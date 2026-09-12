@@ -97,7 +97,31 @@ export default getRequestListener(async (incoming: Request): Promise<Response> =
   // "the database answers" are two questions with two answers rather than one
   // failure that could be either. Everything else goes through the app, and
   // /api/auth/session is the one to ask about the database.
-  if (new URL(request.url).pathname === '/api/health') {
+  const asked = new URL(request.url);
+  if (asked.pathname === '/api/health') {
+    // ?db=1 asks the harder question. A visit with no cookie never reaches
+    // Postgres — the session is answered from the absence of the cookie — so
+    // without this the first thing to touch the database is somebody trying to
+    // sign in, which is a poor place to discover it cannot be reached.
+    if (asked.searchParams.get('db') === '1') {
+      const started = Date.now();
+      try {
+        const dsn = databaseUrl();
+        if (!dsn) throw new Error('no POSTGRES_URL or DATABASE_URL');
+        const pool = await openPostgres(dsn);
+        const { rows } = await pool.query('SELECT 1 AS one');
+        return Response.json({ ok: true, ms: Date.now() - started, rows });
+      } catch (err) {
+        return Response.json(
+          {
+            ok: false,
+            ms: Date.now() - started,
+            error: err instanceof Error ? err.message : String(err),
+          },
+          { status: 503 },
+        );
+      }
+    }
     return Response.json({
       ok: true,
       database: process.env.POSTGRES_URL

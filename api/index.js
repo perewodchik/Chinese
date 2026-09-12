@@ -990,7 +990,27 @@ var vercel_default = getRequestListener(async (incoming) => {
   } catch (err) {
     return failed("Could not read the request", err, 500);
   }
-  if (new URL(request.url).pathname === "/api/health") {
+  const asked = new URL(request.url);
+  if (asked.pathname === "/api/health") {
+    if (asked.searchParams.get("db") === "1") {
+      const started = Date.now();
+      try {
+        const dsn = databaseUrl();
+        if (!dsn) throw new Error("no POSTGRES_URL or DATABASE_URL");
+        const pool2 = await openPostgres(dsn);
+        const { rows } = await pool2.query("SELECT 1 AS one");
+        return Response.json({ ok: true, ms: Date.now() - started, rows });
+      } catch (err) {
+        return Response.json(
+          {
+            ok: false,
+            ms: Date.now() - started,
+            error: err instanceof Error ? err.message : String(err)
+          },
+          { status: 503 }
+        );
+      }
+    }
     return Response.json({
       ok: true,
       database: process.env.POSTGRES_URL ? "POSTGRES_URL" : process.env.DATABASE_URL ? "DATABASE_URL" : null,
