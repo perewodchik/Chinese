@@ -136,6 +136,12 @@ same session cookies. `api/[...path].ts` is the whole difference, and
    finds the address can make an account on it. At home on the Wi-Fi that did
    not matter; on a public address it does.
 
+`/api/health` says whether the function is running; `/api/health?db=1`
+connects, migrates and runs a query, and says how long that took or exactly why
+it could not. The two are separate on purpose: a visit with no cookie is
+answered without touching Postgres, so without the second one the first thing
+to find the database unreachable is somebody trying to sign in.
+
 Your work does not follow you there. The two servers keep separate databases,
 and there is no export any more, so treat the deployed one as a fresh start —
 or keep using the PC at home, which is still where the printing happens.

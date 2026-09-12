@@ -1,7 +1,6 @@
 import { getRequestListener } from '@hono/node-server';
 import { createServices } from './composition';
 import { createHttpApp } from './http/app';
-import { ScryptHasher } from './infrastructure/crypto/scrypt-hasher';
 import { databaseUrl, openPostgres } from './infrastructure/postgres/database';
 import { postgresStores } from './infrastructure/postgres/stores';
 
@@ -93,43 +92,6 @@ async function asSent(request: Request): Promise<Request> {
   });
 }
 
-/** Runs one step, and says so rather than waiting for ever. */
-async function step<T>(name: string, work: Promise<T>): Promise<Record<string, unknown>> {
-  const started = Date.now();
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const capped = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error('did not finish in 6s')), 6_000);
-  });
-  try {
-    const value = await Promise.race([work, capped]);
-    return { [name]: { ms: Date.now() - started, value } };
-  } catch (err) {
-    return {
-      [name]: { ms: Date.now() - started, error: err instanceof Error ? err.message : String(err) },
-    };
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-/** The three things signing in does, timed separately. */
-async function stages(request: Request): Promise<Record<string, unknown>> {
-  const out: Record<string, unknown> = {};
-  Object.assign(out, await step('body', request.text().then((t) => `${t.length} bytes`)));
-  const dsn = databaseUrl();
-  if (!dsn) return { ...out, database: 'no POSTGRES_URL' };
-  const pool = await openPostgres(dsn);
-  Object.assign(
-    out,
-    await step('findUser', pool.query('SELECT count(*)::int AS n FROM users').then((r) => r.rows[0])),
-  );
-  Object.assign(
-    out,
-    await step('scrypt', new ScryptHasher().hash('a-password').then((h) => `${h.length} chars`)),
-  );
-  return out;
-}
-
 function failed(what: string, err: unknown, status: number): Response {
   const message = err instanceof Error ? err.message : String(err);
   console.error(`${what}: ${message}`);
@@ -172,11 +134,6 @@ export default getRequestListener(async (incoming: Request): Promise<Response> =
           { status: 503 },
         );
       }
-    }
-    // ?stages=1 does what signing in does, a step at a time and with each step
-    // capped, so that a request which hangs still says where it hung.
-    if (asked.searchParams.get('stages') === '1') {
-      return Response.json(await stages(request));
     }
     return Response.json({
       ok: true,
