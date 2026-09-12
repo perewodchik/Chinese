@@ -59,6 +59,33 @@ describe('the radical block', () => {
     }
   });
 
+  it('sets the forms apart, out of room the page had going spare', () => {
+    const slot = slotHeight(2);
+    const water = radicals.find((r) => r.n === 85)!;
+    const plan = radicalPlan(water, { ...DEFAULT_RADICAL_SHEET, perPage: 2 }, slot);
+    assert.equal(plan.rows.length, 3, 'water is written three ways and each wants a row');
+    assert.ok(plan.gap > 0, 'each form line sits straight on the squares above it');
+    assert.ok(plan.used <= slot + 0.5);
+  });
+
+  it('never buys that room out of a row of practice', () => {
+    // Three and four to a page fill the slot exactly, so there is nothing
+    // spare: the spacing has to give way rather than the practice.
+    for (const perPage of RADICAL_PER_PAGE) {
+      const slot = slotHeight(perPage);
+      for (const r of radicals) {
+        const o = { ...DEFAULT_RADICAL_SHEET, perPage };
+        const plan = radicalPlan(r, o, slot);
+        const gaps = Math.max(0, plan.rows.length - 1);
+        const withoutGaps = plan.used - plan.gap * gaps;
+        assert.ok(
+          withoutGaps + plan.cell > slot - 0.5 || plan.rows.length >= r.forms.length,
+          `${r.r} at ${perPage} a page: ${plan.rows.length} of ${r.forms.length} forms have a row, and ${(slot - withoutGaps).toFixed(1)}pt was going spare`,
+        );
+      }
+    }
+  });
+
   it('gives the two commonest forms a row each at three per page', () => {
     const slot = slotHeight(3);
     const heart = radicals.find((r) => r.n === 61)!;

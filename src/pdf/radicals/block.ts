@@ -37,6 +37,8 @@ export interface RadicalPlan {
   rows: RadicalRow[];
   /** rows of empty squares under those */
   free: number;
+  /** breathing room between one form's squares and the next form's line */
+  gap: number;
   note: boolean;
   facts: boolean;
   formLines: boolean;
@@ -96,16 +98,26 @@ export function radicalPlan(r: RadicalEntry, o: RadicalSheet, slot: number): Rad
   const free = Math.max(0, Math.min(wanted - rows.length, Math.floor(left / cell)));
   const drawn = rows.reduce((h, row) => h + lineH + (row.tip ? S.tipH : 0) + cell, 0);
 
+  // Each form's line sat directly on the squares of the form above it, which
+  // read as one crowded block rather than as three ways of writing one radical.
+  // The room for that comes out of what the slot has left over and no more, so
+  // the sizes with nothing spare keep every form a row of its own rather than
+  // buying air with somebody's practice.
+  const gaps = p.formLines ? Math.max(0, rows.length - 1) : 0;
+  const spare = Math.max(0, left - free * cell);
+  const gap = gaps ? Math.min(S.rowGap, spare / gaps) : 0;
+
   return {
     cols,
     cell,
     rows,
     free,
+    gap,
     note,
     facts: p.facts,
     formLines: p.formLines,
     shared: rows.some((row) => row.forms.length > 1),
-    used: above + drawn + free * cell,
+    used: above + drawn + free * cell + gap * gaps,
   };
 }
 
@@ -198,7 +210,8 @@ export function drawRadicalBlock(
   const gw = plan.cols * plan.cell;
   const gx = x0 + (contentWidth - gw) / 2;
 
-  for (const row of plan.rows) {
+  plan.rows.forEach((row, i) => {
+    if (i) y += plan.gap;
     if (plan.formLines) {
       let sx = gx;
       row.forms.forEach((form, i) => {
@@ -210,7 +223,7 @@ export function drawRadicalBlock(
     }
     drawRow(s, row, gx, y, plan, o);
     y += plan.cell;
-  }
+  });
   for (let i = 0; i < plan.free; i++) {
     drawRow(s, { forms: [], cells: [], tip: false }, gx, y, plan, o);
     y += plan.cell;

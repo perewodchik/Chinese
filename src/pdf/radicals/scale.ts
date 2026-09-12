@@ -34,6 +34,12 @@ export interface RadicalScale {
   noteH: number;
   /** heading to the first form line */
   gridGap: number;
+  /**
+   * The most room to leave between one form's squares and the next form's
+   * line. Only ever spent out of what is left over in the slot, so a size with
+   * nothing to spare simply stays as tight as it was.
+   */
+  rowGap: number;
 }
 
 const SCALES: Record<string, RadicalScale> = {
@@ -52,6 +58,7 @@ const SCALES: Record<string, RadicalScale> = {
     tipH: 12,
     noteH: 14,
     gridGap: 11,
+    rowGap: 14,
   },
   standard: {
     headH: 54,
@@ -68,6 +75,7 @@ const SCALES: Record<string, RadicalScale> = {
     tipH: 0,
     noteH: 13,
     gridGap: 10,
+    rowGap: 12,
   },
   compact: {
     headH: 47,
@@ -84,6 +92,7 @@ const SCALES: Record<string, RadicalScale> = {
     tipH: 0,
     noteH: 0,
     gridGap: 9,
+    rowGap: 9,
   },
   drill: {
     headH: 38,
@@ -100,6 +109,7 @@ const SCALES: Record<string, RadicalScale> = {
     tipH: 0,
     noteH: 0,
     gridGap: 7,
+    rowGap: 0,
   },
 };
 
