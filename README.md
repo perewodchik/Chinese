@@ -117,9 +117,19 @@ same session cookies. `api/[...path].ts` is the whole difference, and
 
 1. In Vercel, **Add New › Project** and pick this repository. The build command
    and output folder come from `vercel.json`; you do not have to fill them in.
-2. In the project, **Storage › Create Database › Postgres**. Vercel puts
-   `POSTGRES_URL` into the project's environment itself. The schema is created
-   on the first request, so there is no migration step to run.
+2. Give it a Postgres. Vercel stopped selling its own in 2024 and now lists
+   other people's, so there is no "create a Postgres" button of its own:
+   **Marketplace › Neon › Install**, against this project. It writes the
+   connection string into the project's environment for you.
+
+   Any Postgres will do, though — the server reads `POSTGRES_URL`, or
+   `DATABASE_URL` if that is what your provider calls it, and nothing else.
+   So making a database straight at neon.tech (or Supabase, or anywhere) and
+   pasting its connection string into **Settings › Environment Variables**
+   works exactly as well, and is one less thing joined together.
+
+   Either way there is no migration step: the schema is created on the first
+   request.
 3. Deploy, open the site, and **register your account**.
 4. **Then close registration**: Settings › Environment Variables,
    `HANZI_REGISTRATION` = `closed`, and redeploy. Until you do, anyone who
@@ -130,8 +140,8 @@ Your work does not follow you there. The two servers keep separate databases,
 and there is no export any more, so treat the deployed one as a fresh start —
 or keep using the PC at home, which is still where the printing happens.
 
-`PGSSLNOVERIFY=1` is the way out if you use some other Postgres whose
-certificate does not verify. Vercel's own does.
+`PGSSLNOVERIFY=1` is the way out if you land on a Postgres whose certificate
+does not verify. Neon's and Supabase's both do, so you should not need it.
 
 ## On an iPad
 
