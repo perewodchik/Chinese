@@ -1,4 +1,8 @@
 import { getRequestListener } from '@hono/node-server';
+import { createServices } from '../server/src/composition';
+import { createHttpApp } from '../server/src/http/app';
+import { databaseUrl, openPostgres } from '../server/src/infrastructure/postgres/database';
+import { postgresStores } from '../server/src/infrastructure/postgres/stores';
 
 /**
  * The API when the app runs on Vercel, where `server/src/main.ts` cannot: a
@@ -20,9 +24,10 @@ import { getRequestListener } from '@hono/node-server';
  * rewrites every /api/… onto this one function and hands the rest of the path
  * along, which leaves nothing to infer.
  *
- * And the server is imported inside the try. An import that throws takes the
- * module with it, before any code of ours runs, and the platform then answers
- * a bare 500 that says nothing at all.
+ * And the imports are static, which is not a style choice. Vercel packages a
+ * function by following its static imports; the same imports written as
+ * `await import(...)` are left as lookups at run time for files that were
+ * never packaged, and the function dies on "Cannot find module".
  */
 
 const REGISTRATION = process.env.HANZI_REGISTRATION === 'closed' ? 'closed' : 'open';
@@ -34,14 +39,6 @@ let building: Promise<App> | null = null;
 function application(): Promise<App> {
   if (building) return building;
   const started = (async (): Promise<App> => {
-    const [{ createServices }, { createHttpApp }, { databaseUrl, openPostgres }, { postgresStores }] =
-      await Promise.all([
-        import('../server/src/composition'),
-        import('../server/src/http/app'),
-        import('../server/src/infrastructure/postgres/database'),
-        import('../server/src/infrastructure/postgres/stores'),
-      ]);
-
     const url = databaseUrl();
     if (!url) {
       throw new Error(
