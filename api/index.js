@@ -970,13 +970,18 @@ function application() {
   });
   return started;
 }
-function asSent(request) {
+async function asSent(request) {
   const url = new URL(request.url);
   const path = url.searchParams.get("__path");
   if (path === null) return request;
   url.searchParams.delete("__path");
   url.pathname = `/api/${path}`;
-  return new Request(url, request);
+  const hasBody = request.method !== "GET" && request.method !== "HEAD";
+  return new Request(url, {
+    method: request.method,
+    headers: request.headers,
+    body: hasBody ? await request.arrayBuffer() : void 0
+  });
 }
 async function step(name, work) {
   const started = Date.now();
@@ -1019,7 +1024,7 @@ function failed(what, err, status) {
 var vercel_default = getRequestListener(async (incoming) => {
   let request;
   try {
-    request = asSent(incoming);
+    request = await asSent(incoming);
   } catch (err) {
     return failed("Could not read the request", err, 500);
   }

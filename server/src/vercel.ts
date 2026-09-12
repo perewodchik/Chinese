@@ -70,14 +70,27 @@ function application(): Promise<App> {
   return started;
 }
 
-/** The request as it was addressed, whatever the rewrite did to get it here. */
-function asSent(request: Request): Request {
+/**
+ * The request as it was addressed, whatever the rewrite did to get it here.
+ *
+ * The body is read out first rather than handed along. `new Request(url, that)`
+ * carries a socket-backed body across on Node 22 and silently never delivers it
+ * on Node 24, which is what the platform runs: signing in hung for as long as
+ * anything would wait, on reading a body that was already there. Copied out as
+ * bytes, there is no stream left to lose.
+ */
+async function asSent(request: Request): Promise<Request> {
   const url = new URL(request.url);
   const path = url.searchParams.get('__path');
   if (path === null) return request;
   url.searchParams.delete('__path');
   url.pathname = `/api/${path}`;
-  return new Request(url, request);
+  const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
+  return new Request(url, {
+    method: request.method,
+    headers: request.headers,
+    body: hasBody ? await request.arrayBuffer() : undefined,
+  });
 }
 
 /** Runs one step, and says so rather than waiting for ever. */
@@ -126,7 +139,7 @@ function failed(what: string, err: unknown, status: number): Response {
 export default getRequestListener(async (incoming: Request): Promise<Response> => {
   let request: Request;
   try {
-    request = asSent(incoming);
+    request = await asSent(incoming);
   } catch (err) {
     return failed('Could not read the request', err, 500);
   }
