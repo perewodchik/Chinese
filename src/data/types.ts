@@ -43,31 +43,6 @@ export interface CharacterEntry {
   conf: string[];
 }
 
-export interface RadicalEntry {
-  /** Kangxi radical number, 1-214 */
-  n: number;
-  /** the form most often written in modern simplified Chinese */
-  r: string;
-  /** the canonical Kangxi form */
-  kangxi: string;
-  variants: string[];
-  py: string;
-  mean: string;
-  /** colloquial Chinese name, e.g. 三点水 */
-  cn: string | null;
-  cnPy: string | null;
-  sc: number | null;
-  /** characters using this radical, across the whole 10k set */
-  count: number;
-  /** ...of which are in the 3000 most frequent */
-  useful: number;
-  /** rank by `useful`, 1 = most used */
-  rank: number;
-  /** example characters, easiest first */
-  ex: string[];
-  note: string | null;
-}
-
 /** hanzi-writer outlines: `s` = stroke paths, `m` = medians, `g` = component per stroke. */
 export interface StrokeData {
   s: string[];
@@ -81,8 +56,6 @@ export type StrokeMap = Record<string, StrokeData>;
 export interface ComponentGloss {
   py: string;
   def: string;
-  /** Kangxi radical number, when this component is itself a radical */
-  rad: number | null;
 }
 
 /** A hand-curated topical set, e.g. every food character in the syllabus. */
@@ -99,8 +72,6 @@ export interface Library {
   characters: CharacterEntry[];
   themes: Theme[];
   components: Record<string, ComponentGloss>;
-  radicals: RadicalEntry[];
   strokes: StrokeMap;
   byChar: Map<string, CharacterEntry>;
-  byRadical: Map<string, RadicalEntry>;
 }

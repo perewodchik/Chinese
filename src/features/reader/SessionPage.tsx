@@ -1,0 +1,335 @@
+import { useEffect, useMemo } from 'react';
+import { Link, Navigate, useNavigate, useParams } from 'react-router';
+import {
+  basisPool,
+  BASIS_LABEL,
+  BASIS_SOURCES,
+  emptySpec,
+  renumber,
+  taughtAlready,
+  type BasisSource,
+} from '../../domain/teach';
+import {
+  LEVELS,
+  PLAN_STEPS,
+  pickTopic,
+  type Level,
+  type PlanStep,
+  type TextLength,
+  type TextPlan,
+  type TextSpec,
+} from '../../domain/text';
+import { paths } from '../../navigation/paths';
+import { discardPlan, patchPlan, setSettings } from '../../store/commands';
+import { useStore } from '../../store/store';
+import { useTitle } from '../../ui/useTitle';
+import { useLibrary } from '../shared/library';
+import { ImportStep } from './ImportStep';
+import { PromptStep } from './PromptStep';
+import { SpecCard } from './SpecCard';
+
+/** The writing session in progress, at /texts/session/plan, …/prompt and …/paste. */
+export function SessionPage() {
+  const { step } = useParams();
+  const plan = useStore((s) => s.plan);
+  if (!plan) return <NoSession />;
+  const current = PLAN_STEPS.find((s) => s.id === step)?.id;
+  if (!current) return <Navigate to={paths.session(plan.step)} replace />;
+  return <Studio plan={plan} step={current} />;
+}
+
+function NoSession() {
+  useTitle('No session in progress');
+  return (
+    <div className="empty">
+      <span className="big">读</span>
+      <p>There is no writing session in progress. It was saved or thrown away — here, or on another device.</p>
+      <Link className="btn" to={paths.texts()}>
+        Back to the shelf
+      </Link>
+    </div>
+  );
+}
+
+/**
+ * A writing session, on its own page.
+ *
+ * It used to be a dialog with four controls, which was the right size for
+ * asking one question and the wrong size for planning an evening's reading.
+ * Three steps, each at an address of its own: decide what to ask for, take the
+ * prompt to Claude, bring the answer back. The session is saved the whole way,
+ * because the middle step happens in another tab and sometimes on another day.
+ */
+function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
+  useTitle(plan.name || 'Writing session');
+  const lib = useLibrary();
+  const navigate = useNavigate();
+  const learned = useStore((s) => s.learned);
+  const texts = useStore((s) => s.texts);
+  const sets = useStore((s) => s.sets);
+
+  // Where the session was left is saved with it, so Continue on the shelf —
+  // on this device or another — comes back to this step.
+  useEffect(() => {
+    if (plan.step !== step) patchPlan({ step });
+  }, [plan.step, step]);
+
+  // Everything earlier texts have already taught. Told to the writer as mine:
+  // fair to reuse — I need the practice — but not new, and not to be re-taught.
+  const met = useMemo(() => [...taughtAlready(texts)], [texts]);
+  // Five sorted passes over three thousand characters, once — not once per
+  // keystroke in the topic field.
+  const pools = useMemo(() => {
+    const out = {} as Record<BasisSource, string[]>;
+    for (const s of BASIS_SOURCES) out[s] = basisPool(lib, s, learned);
+    return out;
+  }, [lib, learned]);
+
+  const specs = plan.specs;
+  const pool = pools[plan.basisSource as BasisSource] ?? pools.learned;
+  const budget = specs.reduce((n, s) => n + s.newCount, 0);
+  const canGo = plan.basis.length >= 10 && specs.length > 0;
+
+  // Too little in the plan to prompt for: an address typed by hand goes back to planning.
+  if (!canGo && step !== 'plan') return <Navigate to={paths.session('plan')} replace />;
+
+  const go = (id: PlanStep) => navigate(paths.session(id));
+
+  /**
+   * `basisCount` is what was asked for, `basis` is what there was. Keeping the
+   * ask un-clamped is what lets you switch from "what I have learned" — eleven
+   * characters — to HSK 2 and get the hundred and fifty you had chosen, rather
+   * than the eleven the previous source could offer.
+   */
+  function setBasis(source: BasisSource, count: number) {
+    const next = pools[source];
+    const basis = next.slice(0, Math.max(1, Math.min(count, next.length)));
+    const inBasis = new Set(basis);
+    patchPlan({
+      basisSource: source,
+      basisCount: count,
+      basis,
+      met: met.filter((c) => !inBasis.has(c)),
+    });
+    setSettings({ basisSource: source, basisCount: count });
+  }
+
+  const update = (next: TextSpec[]) => patchPlan({ specs: renumber(next) });
+
+  const takenTopics = (except?: string) =>
+    new Set(
+      specs
+        .filter((s) => s.id !== except)
+        .map((s) => s.topic.trim())
+        .filter(Boolean),
+    );
+
+  /** A session that is all the same is a session you stop reading halfway. */
+  function vary() {
+    const order: Level[] = LEVELS.map((d) => d.id);
+    const lengths: TextLength[] = ['short', 'medium', 'long'];
+    const used = takenTopics();
+    update(
+      specs.map((s, i): TextSpec => {
+        const topic = s.topic.trim() || pickTopic(used);
+        used.add(topic);
+        return { ...s, level: order[i % order.length], length: lengths[i % lengths.length], topic };
+      }),
+    );
+  }
+
+  function discard() {
+    if (!confirm('Throw this session away? The plan and anything pasted go with it.')) return;
+    // Off the page first: once the session is gone there is nothing here to show.
+    navigate(paths.texts(), { replace: true, flushSync: true });
+    discardPlan();
+  }
+
+  return (
+    <section className="studio">
+      <div className="editor-bar">
+        <Link className="btn ghost sm" to={paths.texts()} title="Back to all texts">
+          ←
+        </Link>
+        <input
+          className="title-input"
+          value={plan.name}
+          onChange={(e) => patchPlan({ name: e.target.value })}
+          aria-label="Name of this session"
+        />
+        <div className="spacer" />
+        <button className="btn danger sm" onClick={discard}>
+          Discard session
+        </button>
+      </div>
+
+      <nav className="stepper" aria-label="Session steps">
+        {PLAN_STEPS.map((s, i) => (
+          <button
+            key={s.id}
+            className="step"
+            aria-current={step === s.id}
+            data-done={PLAN_STEPS.findIndex((x) => x.id === step) > i}
+            disabled={!canGo && s.id !== 'plan'}
+            onClick={() => go(s.id)}
+          >
+            <span className="dot">{i + 1}</span>
+            <span className="txt">
+              <b>{s.label}</b>
+              <i>{s.hint}</i>
+            </span>
+          </button>
+        ))}
+      </nav>
+
+      {step === 'plan' && (
+        <div className="split studio-split">
+          <div>
+            <div className="board-bar row">
+              <b>
+                {specs.length} passage{specs.length === 1 ? '' : 's'}
+              </b>
+              <span className="tiny muted">
+                · about {budget} new character{budget === 1 ? '' : 's'} between them
+              </span>
+              <div className="spacer" />
+              <button className="btn sm" onClick={vary} title="Spread the levels out">
+                Vary them
+              </button>
+              <button
+                className="btn sm"
+                onClick={() =>
+                  update([
+                    ...specs,
+                    emptySpec({
+                      level: specs[specs.length - 1]?.level ?? 'edge',
+                      length: specs[specs.length - 1]?.length ?? 'medium',
+                      newCount: specs[specs.length - 1]?.newCount ?? 5,
+                    }),
+                  ])
+                }
+              >
+                + Add a passage
+              </button>
+            </div>
+
+            <div className="spec-grid">
+              {specs.map((s, i) => (
+                <SpecCard
+                  key={s.id}
+                  spec={s}
+                  index={i}
+                  onChange={(p) => update(specs.map((x) => (x.id === s.id ? { ...x, ...p } : x)))}
+                  onRollTopic={() =>
+                    update(specs.map((x) => (x.id === s.id ? { ...x, topic: pickTopic(takenTopics(s.id)) } : x)))
+                  }
+                  onDuplicate={() =>
+                    update([...specs.slice(0, i + 1), { ...emptySpec(), ...s, id: `${s.id}-copy` }, ...specs.slice(i + 1)])
+                  }
+                  onRemove={() => update(specs.filter((x) => x.id !== s.id))}
+                  canRemove={specs.length > 1}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="card side">
+            <header>
+              <h2>What it may assume</h2>
+            </header>
+            <div className="body" style={{ display: 'grid', gap: 14 }}>
+              <label className="field">
+                Count as known
+                <select
+                  value={plan.basisSource}
+                  onChange={(e) => setBasis(e.target.value as BasisSource, plan.basisCount)}
+                >
+                  {BASIS_SOURCES.map((s) => (
+                    <option key={s} value={s}>
+                      {BASIS_LABEL[s]} ({pools[s].length})
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {pool.length < 10 ? (
+                <p className="notice">
+                  Only {pool.length} characters here. Mark some as learned in the Library — ten is enough for a
+                  first passage, a hundred makes a good one.
+                </p>
+              ) : (
+                <label className="field">
+                  <span className="row" style={{ justifyContent: 'space-between' }}>
+                    <span>How many of them</span>
+                    <b>{plan.basis.length}</b>
+                  </span>
+                  <input
+                    type="range"
+                    min={10}
+                    max={pool.length}
+                    value={Math.min(plan.basisCount, pool.length)}
+                    onChange={(e) => setBasis(plan.basisSource as BasisSource, Number(e.target.value))}
+                  />
+                  <span className="tiny muted">
+                    The {plan.basis.length} most common of the {pool.length}. Fewer reads more simply; more
+                    reads more like real Chinese.
+                  </span>
+                </label>
+              )}
+
+              <div className="subtle-rule" style={{ margin: 0 }} />
+
+              <div>
+                <h3 className="field-title" style={{ marginTop: 0 }}>
+                  What it is asked for
+                </h3>
+                <p className="tiny muted" style={{ margin: '4px 0 0' }}>
+                  {specs.length} passage{specs.length === 1 ? '' : 's'}, and about <b>{budget}</b> new character
+                  {budget === 1 ? '' : 's'} between them — which ones is Claude's decision, made while it writes.
+                  You find out when the answer comes back, and they go straight onto practice sheets.
+                </p>
+                {met.length > 0 && (
+                  <p className="tiny muted" style={{ margin: '8px 0 0' }}>
+                    It is also told the {met.length} character{met.length === 1 ? '' : 's'} your earlier texts
+                    taught: fair to reuse, but they will not be taught to you twice.
+                  </p>
+                )}
+              </div>
+
+              {sets.length > 0 && (
+                <label className="field">
+                  Where it lands
+                  <select value={plan.setId ?? ''} onChange={(e) => patchPlan({ setId: e.target.value || null })}>
+                    <option value="">A new set</option>
+                    {sets.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        Add to “{s.name}”
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </div>
+            <footer className="card-foot">
+              <span className="tiny muted">Step 1 of 3</span>
+              <div className="spacer" />
+              <button className="btn primary" disabled={!canGo} onClick={() => go('prompt')}>
+                Build the prompt →
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
+
+      {step === 'prompt' && <PromptStep plan={plan} onBack={() => go('plan')} onNext={() => go('paste')} />}
+
+      {step === 'paste' && (
+        <ImportStep
+          plan={plan}
+          onBack={() => go('prompt')}
+          onDone={(textId) => navigate(paths.text(textId), { replace: true, flushSync: true })}
+        />
+      )}
+    </section>
+  );
+}

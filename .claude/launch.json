@@ -4,8 +4,14 @@
     {
       "name": "hanzi-workshop",
       "runtimeExecutable": "C:/Users/Kirill/Documents/Chinese/.cache/node-v22.20.0-win-x64/node.exe",
-      "runtimeArgs": ["node_modules/vite/bin/vite.js", "--port", "5173", "--strictPort"],
+      "runtimeArgs": ["--disable-warning=ExperimentalWarning", "--import", "tsx", "server/src/dev.ts"],
       "port": 5173
+    },
+    {
+      "name": "hanzi-workshop-production",
+      "runtimeExecutable": "C:/Users/Kirill/Documents/Chinese/.cache/node-v22.20.0-win-x64/node.exe",
+      "runtimeArgs": ["--disable-warning=ExperimentalWarning", "dist-server/server.mjs"],
+      "port": 4173
     }
   ]
 }

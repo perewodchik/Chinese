@@ -1,15 +1,18 @@
-import type {
-  CharacterEntry,
-  ComponentGloss,
-  Library,
-  RadicalEntry,
-  StrokeMap,
-  Theme,
-} from './types';
+import type { CharacterEntry, ComponentGloss, Library, StrokeMap, Theme } from './types';
+
+/**
+ * The character data. Radicals are their own dataset, fetched by
+ * data/radicals.ts when the radicals page is opened; nothing here reads them.
+ */
 
 let cached: Promise<Library> | null = null;
 let extended: Promise<void> | null = null;
 
+/**
+ * Paths start at the root. Pages have addresses of their own now, and from
+ * /collections/abc a relative `data/characters.json` would be a request for
+ * /collections/data/characters.json.
+ */
 async function json<T>(path: string): Promise<T> {
   const r = await fetch(path);
   if (!r.ok) throw new Error(`${path} failed to load (${r.status})`);
@@ -17,31 +20,31 @@ async function json<T>(path: string): Promise<T> {
 }
 
 /**
- * Loads the character, radical and theme tables plus the stroke outlines for
- * HSK 1-3. Outlines for the higher bands are several megabytes and are fetched
+ * Loads the character and theme tables plus the stroke outlines for HSK 1-3. Outlines for the higher bands are several megabytes and are fetched
  * separately, the first time something actually needs them.
  */
 export function loadLibrary(): Promise<Library> {
   if (cached) return cached;
   cached = (async () => {
-    const [chars, rads, themes, strokes] = await Promise.all([
+    const [chars, themes, strokes] = await Promise.all([
       json<{ items: CharacterEntry[]; components: Record<string, ComponentGloss> }>(
-        'data/characters.json',
+        '/data/characters.json',
       ),
-      json<{ items: RadicalEntry[] }>('data/radicals.json'),
-      json<{ items: Theme[] }>('data/themes.json'),
-      json<StrokeMap>('data/strokes-core.json'),
+      json<{ items: Theme[] }>('/data/themes.json'),
+      json<StrokeMap>('/data/strokes-core.json'),
     ]);
     return {
       characters: chars.items,
       components: chars.components ?? {},
-      radicals: rads.items,
       themes: themes.items,
       strokes,
       byChar: new Map(chars.items.map((c) => [c.c, c])),
-      byRadical: new Map(rads.items.map((r) => [r.r, r])),
     };
   })();
+  // A failed load is not cached, so trying again tries again.
+  cached.catch(() => {
+    cached = null;
+  });
   return cached;
 }
 
@@ -52,7 +55,7 @@ export function loadLibrary(): Promise<Library> {
  */
 export function loadExtendedStrokes(lib: Library): Promise<void> {
   if (!extended) {
-    extended = json<StrokeMap>('data/strokes-ext.json')
+    extended = json<StrokeMap>('/data/strokes-ext.json')
       .then((ext) => {
         Object.assign(lib.strokes, ext);
       })
@@ -73,6 +76,3 @@ export async function ensureStrokes(
     }
   }
 }
-
-/** A radical is identified by its Kangxi number: 阝 is two different radicals. */
-export const radicalKey = (r: RadicalEntry) => `r${r.n}`;

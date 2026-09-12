@@ -1,0 +1,58 @@
+import { createServer } from 'node:http';
+import { getRequestListener } from '@hono/node-server';
+import { createServer as createViteServer } from 'vite';
+import { createServices } from './composition';
+import { loadConfig } from './config';
+import { createHttpApp } from './http/app';
+import { openDatabase } from './infrastructure/sqlite/database';
+import { banner } from './lan';
+
+/**
+ * The development server: the same API as production, with Vite serving the
+ * app instead of the built files — one process, one port, hot reload.
+ *
+ *   npm run dev
+ *
+ * One process rather than an API server and a Vite server side by side keeps
+ * the address the same as it always was, needs no proxy between the two, and
+ * leaves nothing running on a port after the window is closed.
+ */
+
+const config = loadConfig(process.env, { port: 5173, serveStatic: false });
+const db = openDatabase(config.databaseFile);
+const services = createServices(db, { policy: { registration: config.registration } });
+const api = getRequestListener(
+  createHttpApp(services, { trustProxy: config.trustProxy, staticDir: null, log: console.error }).fetch,
+);
+
+const http = createServer();
+const vite = await createViteServer({
+  server: { middlewareMode: true, hmr: { server: http } },
+  appType: 'spa',
+});
+
+http.on('request', (req, res) => {
+  if (req.url === '/api' || req.url?.startsWith('/api/')) void api(req, res);
+  else vite.middlewares(req, res);
+});
+
+http.on('error', (err: NodeJS.ErrnoException) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n  Port ${config.port} is already in use — is the app already running?\n`);
+    process.exit(1);
+  }
+  throw err;
+});
+
+http.listen(config.port, config.host, () => {
+  console.log(banner(config.port, config.host));
+});
+
+async function shutdown() {
+  await vite.close();
+  http.close();
+  db.close();
+  process.exit(0);
+}
+process.on('SIGINT', () => void shutdown());
+process.on('SIGTERM', () => void shutdown());

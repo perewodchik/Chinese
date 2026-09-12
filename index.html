@@ -2,7 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover so the page can reach under an iPad's rounded
+         corners and a phone's home indicator; the safe-area insets in the
+         stylesheet keep the content out of them. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Hanzi" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f4ef" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#16130f" />
     <title>Hanzi Workshop</title>
     <meta name="description" content="Build printable Chinese character and radical practice worksheets." />
   </head>

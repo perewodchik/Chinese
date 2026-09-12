@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
-Build the character / radical / stroke datasets consumed by the app.
+Build the character and stroke datasets consumed by the app.
+
+Radicals are a dataset of their own, built afterwards by build_radicals.py
+from the hand-written table in radicals_table.py.
 
 Reads raw sources from .cache/ (downloading anything missing) and writes
 JSON into public/data/. Run with:  python scripts/build_data.py
@@ -22,8 +25,11 @@ import re
 import sys
 import urllib.parse
 import urllib.request
-from collections import Counter, defaultdict
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from radicals_table import shape_glosses  # noqa: E402
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -230,8 +236,16 @@ def sentence_pinyin(zh: str, ced, char_py: dict[str, str]) -> str:
     Base tones only: tone sandhi (三 + 三, and the shifts on 不 and 一) is a rule
     of speech, not of spelling, and dictionaries write the base tone.
     """
-    def word_py(chunk: str) -> str:
+    def word_py(chunk: str, prev: str = "") -> str:
         if len(chunk) == 1 and chunk in char_py:
+            # 只 is the one character whose fallback reading has to be decided
+            # from context rather than from a table: after a number, a
+            # demonstrative or 有/是 it is the measure word zhī (一只猫, 有只鸟),
+            # and anywhere else it is the adverb zhǐ (只吃菜). Both are the same
+            # headword, so no dictionary can make the call. 只是 and 只有 are
+            # matched as words before this is reached, so 是/有 are safe here.
+            if chunk == "只":
+                return "zhī" if prev in "一二两三四五六七八九十几这那每某半有是" else "zhǐ"
             return char_py[chunk]
         entries = ced.get(chunk) or []
         ranked = sorted(entries, key=lambda e: e["py"][:1].isupper())
@@ -248,7 +262,7 @@ def sentence_pinyin(zh: str, ced, char_py: dict[str, str]) -> str:
             if len(chunk) < n:
                 continue
             if (len(chunk) == 1 and chunk in char_py) or chunk in ced:
-                py = word_py(chunk)
+                py = word_py(chunk, zh[i - 1] if i else "")
                 if py:
                     out.append(py)
                     i += n
@@ -284,7 +298,27 @@ def load_cedict():
     return d
 
 
-def load_sentences(targets: set[str]):
+def traditional_only(ced) -> set[str]:
+    """
+    Characters that exist only as traditional forms.
+
+    Tatoeba's Chinese corpus mixes both scripts, and hanziDB lists traditional
+    characters too, so filtering against it let 良藥苦口 and 請打開窗 through onto
+    simplified worksheets. Comparing each CC-CEDICT headword against its own
+    simplified spelling gives the set precisely.
+    """
+    trad: set[str] = set()
+    simp: set[str] = set()
+    for key, entries in ced.items():
+        simp.update(key)
+        for e in entries:
+            t = e.get("trad", "")
+            if len(t) == len(key):
+                trad.update(a for a, b in zip(t, key) if a != b)
+    return trad - simp
+
+
+def load_sentences(targets: set[str], reject: set[str] | None = None):
     """Pick one short simplified example sentence per target character."""
     tdir = os.path.join(CACHE, "tatoeba")
     need = (os.path.join(tdir, "cmn_sentences.tsv"),
@@ -307,6 +341,7 @@ def load_sentences(targets: set[str]):
 
     # Prefer sentences built only from characters we can vouch for as simplified.
     simp_ok = set(load_hanzidb().keys())
+    reject = reject or set()
 
     best: dict[str, tuple] = {}
     for line in open(need[2], encoding="utf-8"):
@@ -318,7 +353,7 @@ def load_sentences(targets: set[str]):
         if not (5 <= n <= 16) or len(en) > 70:
             continue
         hz = [c for c in zh if "一" <= c <= "鿿"]
-        if not hz or any(c not in simp_ok for c in hz):
+        if not hz or any(c not in simp_ok or c in reject for c in hz):
             continue
         for c in set(hz) & targets:
             # shortest sentence wins; it is the easiest to read on a worksheet
@@ -365,106 +400,77 @@ def fetch_strokes(chars):
 
 
 # --------------------------------------------------------------------------
-# Radical colloquial names (部首名称) - not present in any dataset, authored here.
-# Keyed by the written form the learner actually meets.
-# --------------------------------------------------------------------------
-RADICAL_NAMES = {
-    "亻": ("单人旁", "dān rén páng"), "冫": ("两点水", "liǎng diǎn shuǐ"),
-    "讠": ("言字旁", "yán zì páng"), "刂": ("立刀旁", "lì dāo páng"),
-    "阝": ("耳刀旁", "ěr dāo páng"), "忄": ("竖心旁", "shù xīn páng"),
-    "宀": ("宝盖头", "bǎo gài tóu"), "辶": ("走之底", "zǒu zhī dǐ"),
-    "扌": ("提手旁", "tí shǒu páng"), "艹": ("草字头", "cǎo zì tóu"),
-    "彳": ("双人旁", "shuāng rén páng"), "犭": ("反犬旁", "fǎn quǎn páng"),
-    "饣": ("食字旁", "shí zì páng"), "纟": ("绞丝旁", "jiǎo sī páng"),
-    "灬": ("四点底", "sì diǎn dǐ"), "礻": ("示字旁", "shì zì páng"),
-    "衤": ("衣字旁", "yī zì páng"), "钅": ("金字旁", "jīn zì páng"),
-    "疒": ("病字旁", "bìng zì páng"), "穴": ("穴宝盖", "xué bǎo gài"),
-    "⺮": ("竹字头", "zhú zì tóu"), "竹": ("竹字头", "zhú zì tóu"),
-    "攵": ("反文旁", "fǎn wén páng"), "⺼": ("月字旁", "yuè zì páng"),
-    "氵": ("三点水", "sān diǎn shuǐ"), "土": ("提土旁", "tí tǔ páng"),
-    "口": ("口字旁", "kǒu zì páng"), "囗": ("方框儿", "fāng kuàng r"),
-    "木": ("木字旁", "mù zì páng"), "禾": ("禾木旁", "hé mù páng"),
-    "女": ("女字旁", "nǚ zì páng"), "日": ("日字旁", "rì zì páng"),
-    "月": ("月字旁", "yuè zì páng"), "火": ("火字旁", "huǒ zì páng"),
-    "心": ("心字底", "xīn zì dǐ"), "王": ("王字旁", "wáng zì páng"),
-    "目": ("目字旁", "mù zì páng"), "田": ("田字旁", "tián zì páng"),
-    "石": ("石字旁", "shí zì páng"), "皿": ("皿字底", "mǐn zì dǐ"),
-    "贝": ("贝字旁", "bèi zì páng"), "见": ("见字旁", "jiàn zì páng"),
-    "页": ("页字旁", "yè zì páng"), "虫": ("虫字旁", "chóng zì páng"),
-    "足": ("足字旁", "zú zì páng"), "车": ("车字旁", "chē zì páng"),
-    "马": ("马字旁", "mǎ zì páng"), "鸟": ("鸟字旁", "niǎo zì páng"),
-    "鱼": ("鱼字旁", "yú zì páng"), "门": ("门字框", "mén zì kuàng"),
-    "广": ("广字旁", "guǎng zì páng"), "厂": ("厂字旁", "chǎng zì páng"),
-    "尸": ("尸字头", "shī zì tóu"), "巾": ("巾字旁", "jīn zì páng"),
-    "山": ("山字旁", "shān zì páng"), "弓": ("弓字旁", "gōng zì páng"),
-    "欠": ("欠字旁", "qiàn zì páng"), "斤": ("斤字旁", "jīn zì páng"),
-    "方": ("方字旁", "fāng zì páng"), "立": ("立字旁", "lì zì páng"),
-    "米": ("米字旁", "mǐ zì páng"), "耳": ("耳字旁", "ěr zì páng"),
-    "舟": ("舟字旁", "zhōu zì páng"), "走": ("走字旁", "zǒu zì páng"),
-    "酉": ("酉字旁", "yǒu zì páng"), "雨": ("雨字头", "yǔ zì tóu"),
-    "革": ("革字旁", "gé zì páng"), "骨": ("骨字旁", "gǔ zì páng"),
-    "隹": ("隹字旁", "zhuī zì páng"), "力": ("力字旁", "lì zì páng"),
-    "又": ("又字旁", "yòu zì páng"), "人": ("人字头", "rén zì tóu"),
-    "八": ("八字旁", "bā zì páng"), "白": ("白字旁", "bái zì páng"),
-    "工": ("工字旁", "gōng zì páng"), "大": ("大字头", "dà zì tóu"),
-    "子": ("子字旁", "zǐ zì páng"), "寸": ("寸字旁", "cùn zì páng"),
-    "手": ("手字旁", "shǒu zì páng"), "水": ("水字旁", "shuǐ zì páng"),
-    "言": ("言字旁", "yán zì páng"), "金": ("金字旁", "jīn zì páng"),
-    "食": ("食字旁", "shí zì páng"), "衣": ("衣字旁", "yī zì páng"),
-    "示": ("示字旁", "shì zì páng"), "爫": ("爪字头", "zhǎo zì tóu"),
-    "亠": ("点横头", "diǎn héng tóu"), "勹": ("包字头", "bāo zì tóu"),
-    "卩": ("单耳旁", "dān ěr páng"), "厶": ("私字儿", "sī zì r"),
-    "彡": ("三撇儿", "sān piě r"), "夕": ("夕字旁", "xī zì páng"),
-    "小": ("小字头", "xiǎo zì tóu"), "户": ("户字头", "hù zì tóu"),
-    "止": ("止字旁", "zhǐ zì páng"), "牛": ("牛字旁", "niú zì páng"),
-    "父": ("父字头", "fù zì tóu"), "气": ("气字头", "qì zì tóu"),
-    "矢": ("矢字旁", "shǐ zì páng"), "舌": ("舌字旁", "shé zì páng"),
-    "虍": ("虎字头", "hǔ zì tóu"), "覀": ("西字头", "xī zì tóu"),
-    "西": ("西字头", "xī zì tóu"), "身": ("身字旁", "shēn zì páng"),
-    "角": ("角字旁", "jiǎo zì páng"), "音": ("音字旁", "yīn zì páng"),
+# Make Me a Hanzi supplies the headword reading, and is right where CC-CEDICT is
+# not (胖 pàng before pán, 说 shuō before shuì). These are the characters where
+# it is the one that is wrong: either it lists a single literary reading, or it
+# lists several and the modern one is not first. Found by cross-checking every
+# character against CC-CEDICT, hanziDB and the readings its own example words
+# use, then judging the disagreements by hand. The sheet prints every reading a
+# character has, so each entry is the whole list, commonest first.
+PINYIN_OVERRIDE = {
+    # -- the leading reading is the wrong one --------------------------------
+    "谁": ["shéi", "shuí"],  # MMAH has only the literary shuí; speech is shéi
+    "呢": ["ne", "ní"],      # MMAH leads with né; the particle is ne, 呢子 is ní
+    "吧": ["ba", "bā"],      # MMAH leads with bā (酒吧); HSK 1 wants the particle
+    "子": ["zǐ", "zi"],      # MMAH gives only the suffix zi; the character is zǐ
+    "地": ["dì", "de"],      # de is the adverbial particle; the character is dì
+    "只": ["zhǐ", "zhī"],    # zhǐ "only"; zhī is the measure word
+    "似": ["sì", "shì"],     # shì occurs only in 似的
+    "甚": ["shèn", "shén"],  # shén only in 甚么, a variant spelling of 什么
+    "著": ["zhù", "zhuó"],   # zhe belongs to traditional 著 = simplified 着
+    "咳": ["ké", "hāi"],     # hāi is the interjection, not 咳嗽
+    "茄": ["qié", "jiā"],    # jiā only in 雪茄 (cigar)
+    "杠": ["gàng", "gāng"],  # 杠铃, 杠杆
+    "罗": ["luó", "luō"],    # luō only in the 啰嗦 spelling
+    "拓": ["tuò", "tà"],     # tà is taking a rubbing; 开拓 is tuò
+    "咽": ["yān", "yàn", "yè"],  # the noun (throat) is yān
+    "哗": ["huá", "huā"],    # huā is the sound of water; 喧哗 is huá
+    "匙": ["chí", "shi"],    # MMAH writes shī; 钥匙 is neutral shi
+    "绷": ["bēng", "běng"],
+    "嚼": ["jiáo", "jué", "jiào"],  # jiáo is chewing, the everyday sense
+    "绩": ["jì"],            # jī is the older reading; 成绩 is jì
+    "驯": ["xùn"],
+    "甸": ["diàn"],
+    "卓": ["zhuó"],
+    "迹": ["jì"],
+    "框": ["kuàng"],
+    "脊": ["jǐ"],
+    "萎": ["wěi"],
+    "掺": ["chān"],
+    # -- right reading, but one the sheet's own words use is missing ----------
+    "冠": ["guān", "guàn"],   # 冠军
+    "假": ["jiǎ", "jià"],     # 假期
+    "薄": ["báo", "bó"],      # 薄弱
+    "爪": ["zhǎo", "zhuǎ"],   # 爪子
+    "吁": ["xū", "yù"],       # 呼吁
+    "呛": ["qiāng", "qiàng"],
+    "帖": ["tiē", "tiě", "tiè"],  # 请帖
+    "贾": ["jiǎ", "gǔ"],      # the surname, and 商贾
+    "勒": ["lēi", "lè"],      # 勒索
+    "逮": ["dǎi", "dài"],     # 逮捕
+    "揣": ["chuāi", "chuǎi"], # 揣测
+    "潦": ["lǎo", "liáo"],    # 潦草
+    "臊": ["sāo", "sào"],     # 害臊
+    "曝": ["pù", "bào"],      # 曝光
+    "啊": ["a", "ā"],
+    "仆": ["pú", "pū"],       # pú is 仆人, pū is to fall forward
+    "宿": ["sù", "xiǔ", "xiù"],  # MMAH omits xiǔ, the 一宿 of "one night"
+    # -- radicals ------------------------------------------------------------
+    "宀": ["mián"],          # MMAH lists a spurious gài first
+    "卜": ["bǔ"],            # MMAH gives bo, which occurs only in 萝卜
+    "尢": ["wāng"],          # MMAH gives yóu, treating it as a form of 尤
 }
 
-# Radicals 163 (邑) and 170 (阜) are both written 阝 and are told apart only by
-# which side of the character they sit on, so they need per-number entries.
-RADICAL_NAMES_BY_NUM = {
-    163: ("右耳旁", "yòu ěr páng"),
-    170: ("左耳旁", "zuǒ ěr páng"),
+# What a lone character should be read as when transcribing a sentence, where
+# that is not the headword reading above. 地 heads its entry as dì because that
+# is what the character means, but a 地 that CC-CEDICT did not swallow into a
+# word is nearly always the adverbial 地 of 慢慢地走; the same split applies to
+# 著, which reaches the corpus mostly as the traditional spelling of 着. 只 needs
+# more than a table and is handled in sentence_pinyin.
+SENTENCE_READING = {
+    "地": "de",
+    "著": "zhe",
 }
-RADICAL_NOTES_BY_NUM = {
-    163: "Written 阝 on the RIGHT of the character. From 邑 (city): 那, 都, 部.",
-    170: "Written 阝 on the LEFT of the character. From 阜 (mound): 阳, 院, 陈.",
-}
-
-# "Careful, not the same thing" notes for radicals that are habitually confused.
-RADICAL_NOTES = {
-    "氵": "Three dots = water. Two dots 冫 = ice.",
-    "冫": "Two dots = ice. Three dots 氵 = water.",
-    "礻": "One dot = spirit/ritual. Two dots 衤 = clothing.",
-    "衤": "Two dots = clothing. One dot 礻 = spirit/ritual.",
-    "犭": "Curved = dog/animal. Compare 彳 (step) and 亻 (person).",
-    "彳": "Two strokes then vertical = step/walk. Compare 亻 (person).",
-    "亻": "Person on the left. Compare 彳 (double, = step).",
-    "阝": "On the LEFT it is 阜 (mound, hill). On the RIGHT it is 邑 (city).",
-    "宀": "Roof with a dot. Compare 冖 (cover, no dot) and 穴 (cave).",
-    "冖": "Bare cover. Compare 宀 (roof, has a dot).",
-    "艹": "Grass on top. Traditionally written with four strokes.",
-    "刂": "Knife on the right. Compare 力 (power).",
-    "力": "Power. Compare 刀/刂 (knife).",
-    "土": "Earth: lower stroke is longer. Compare 士 (scholar): upper is longer.",
-    "士": "Scholar: upper stroke is longer. Compare 土 (earth).",
-    "日": "Sun/day. Compare 曰 (to say), which is wider and flatter.",
-    "月": "Moon/month. As a left radical it is often ⺼ (flesh/body).",
-    "⺼": "Flesh/body radical - looks identical to 月 (moon) in modern print.",
-    "木": "Tree. Compare 禾 (grain), which has a extra stroke on top.",
-    "禾": "Grain - a 木 (tree) with a drooping head.",
-    "见": "To see. Compare 贝 (shell/money).",
-    "贝": "Shell, money. Compare 见 (to see).",
-    "大": "Big. Compare 犬 (dog, extra dot) and 太 (too, extra dot below).",
-    "王": "King / jade. As a radical it usually means jade, not king.",
-    "灬": "Four dots = fire underneath. Same radical as 火.",
-    "⺮": "Bamboo on top. Compare 艹 (grass).",
-}
-
 
 # --------------------------------------------------------------------------
 # Themed sets, so a sheet can be about something rather than just the next 20
@@ -544,69 +550,10 @@ def main():
         r = hdb.get(c)
         return int(r["frequency_rank"]) if r else 99999
 
-    # ---------------- radicals ----------------
-    log("· radicals")
-    # Kangxi number + canonical form from hanziDB; written variants from MMAH.
-    kangxi_form, variants, uses = {}, defaultdict(Counter), defaultdict(list)
-    for ch, r in hdb.items():
-        code = r["radical_code"].split(".")[0]
-        if not code.isdigit():
-            continue
-        n = int(code)
-        kangxi_form.setdefault(n, r["radical"])
-        v = mm.get(ch, {}).get("radical")
-        if v:
-            variants[n][v] += 1
-        uses[n].append(ch)
-
-    radicals = []
-    for n in sorted(kangxi_form):
-        forms = variants[n].most_common()
-        primary = forms[0][0] if forms else kangxi_form[n]
-        allf, seen = [], set()
-        for f, _ in forms:
-            if f not in seen:
-                seen.add(f)
-                allf.append(f)
-        if kangxi_form[n] not in seen:
-            allf.append(kangxi_form[n])
-        # drop traditional-only variants when a simplified one is in use
-        info = mm.get(kangxi_form[n]) or mm.get(primary) or {}
-        hd = hdb.get(primary) or hdb.get(kangxi_form[n]) or {}
-        ex = sorted(uses[n], key=lambda c: (hsk_level.get(c, 9), freq(c)))[:8]
-        name = (RADICAL_NAMES_BY_NUM.get(n) or RADICAL_NAMES.get(primary)
-                or RADICAL_NAMES.get(kangxi_form[n]))
-        strokes = int(hd["stroke_count"]) if hd.get("stroke_count", "").isdigit() else None
-        # Rank by characters a learner will actually meet, not by raw inventory:
-        # 艹/钅/纟 build hundreds of rare characters and would otherwise dominate.
-        useful = sum(1 for c in uses[n] if freq(c) <= 3000)
-        radicals.append({
-            "n": n,
-            "r": primary,
-            "kangxi": kangxi_form[n],
-            "variants": [f for f in allf if f != primary],
-            "py": (" / ".join(info.get("pinyin", [])) or (hd.get("pinyin") or "")),
-            "mean": (info.get("definition") or hd.get("definition") or "").strip(),
-            "cn": name[0] if name else None,
-            "cnPy": name[1] if name else None,
-            "sc": strokes,
-            "count": len(uses[n]),
-            "useful": useful,
-            "ex": ex,
-            "note": (RADICAL_NOTES_BY_NUM.get(n) or RADICAL_NOTES.get(primary)
-                     or RADICAL_NOTES.get(kangxi_form[n])),
-        })
-    radicals.sort(key=lambda r: (-r["useful"], -r["count"]))
-    for i, r in enumerate(radicals, 1):
-        r["rank"] = i
-    radicals.sort(key=lambda r: r["n"])
-    log(f"  {len(radicals)} radicals; top 12 by learner-weighted use: "
-        + " ".join(r["r"] for r in sorted(radicals, key=lambda r: r["rank"])[:12]))
-
     # ---------------- characters ----------------
     log("· characters")
     target = set(all_chars)
-    sentences = load_sentences(target)
+    sentences = load_sentences(target, traditional_only(ced))
     log(f"  example sentences matched: {len(sentences)}/{len(target)}")
 
     # Primary reading per character, preferred over CC-CEDICT's first entry.
@@ -617,6 +564,8 @@ def main():
     for ch, row in hdb.items():
         if ch not in char_py and row.get("pinyin"):
             char_py[ch] = row["pinyin"].split()[0]
+    char_py.update({ch: py[0] for ch, py in PINYIN_OVERRIDE.items()})
+    char_py.update(SENTENCE_READING)
 
     def with_pinyin(sent):
         if not sent:
@@ -656,10 +605,6 @@ def main():
         d.discard(c)
         deps[c] = d
         strokes_needed |= deep_parts(c)
-    for r in radicals:
-        strokes_needed.add(r["r"])
-        strokes_needed.update(r["variants"])
-        strokes_needed.update(r["ex"])
 
     # depth of the longest dependency chain, kept for display only
     layer = {}
@@ -840,7 +785,8 @@ def main():
         hd = hdb.get(c, {})
         tops, leaves = components_of(c)
         cd = ced.get(c, [{}])[0]
-        py = e.get("pinyin") or ([cd.get("py")] if cd.get("py") else [])
+        py = (PINYIN_OVERRIDE.get(c) or e.get("pinyin")
+              or ([cd.get("py")] if cd.get("py") else []))
         defs = e.get("definition") or "; ".join(cd.get("defs", [])[:2])
         rad = e.get("radical") or hd.get("radical")
         radnum = None
@@ -855,7 +801,11 @@ def main():
             "radNum": radnum,
             "sc": sc_of.get(c),
             "ids": e.get("decomposition") if e.get("decomposition") != "？" else None,
-            "parts": [p for p in tops if p != "？"],
+            # Make Me a Hanzi writes ？ for a component it cannot identify -
+            # 那 decomposes to ⿰⿹？？阝. A breakdown showing "？ + 阝" teaches
+            # nothing, so unless every top-level part is known, there is no
+            # breakdown to show.
+            "parts": [] if any("？" in p for p in tops) else tops,
             "leaves": [p for p in leaves if p != "？"],
             "ety": ({**e["etymology"], "hint": tidy(e["etymology"].get("hint", ""))}
                     if e.get("etymology") else None),
@@ -897,39 +847,28 @@ def main():
             comp_chars.add(it["rad"])
         for d in it["conf"]:
             comp_chars.add(d)
-    for r in radicals:
-        comp_chars.add(r["r"])
-        comp_chars.update(r["variants"])
-    rad_by_form = {}
-    for r in radicals:
-        for form in [r["r"], *r["variants"], r["kangxi"]]:
-            rad_by_form.setdefault(form, r["n"])
-    # Unihan glosses for obscure stroke-shapes are noise on a worksheet - 乛
-    # is defined as "kwukyel", which helps nobody. Keep a gloss only for
-    # components that are radicals or characters in their own right.
+    # A shape that only ever occurs inside other characters - 氵, 扌, 忄 - is
+    # glossed with what it means as a radical, because Unihan's own entry for
+    # it is a curiosity (乛 is "kwukyel"). A shape that is a character in its
+    # own right keeps its own meaning. That second half is what used to be
+    # missing: 心, 贝 and 户 took the meaning of whichever radical happened to
+    # list them as a variant, and printed on every sheet as "eight", "lid,
+    # cover" and "body, corpse".
+    shapes = shape_glosses(lambda g: g in target or freq(g) <= 3000)
     components = {}
     for ch in sorted(comp_chars):
         e = mm.get(ch, {})
         hd = hdb.get(ch, {})
         gloss = (e.get("definition") or hd.get("definition") or "").strip()
-        py = " / ".join(e.get("pinyin", [])) or (hd.get("pinyin") or "")
-        if not gloss and not py:
-            continue
-        if ch in rad_by_form:
-            # Prefer the radical's own meaning: Unihan's entry for a variant
-            # shape is often an unrelated curiosity (乛 is glossed "kwukyel").
-            r = next((x for x in radicals if x["n"] == rad_by_form[ch]), None)
-            if r and r["mean"]:
-                gloss = r["mean"]
+        py = (" / ".join(PINYIN_OVERRIDE.get(ch) or e.get("pinyin", []))
+              or (hd.get("pinyin") or ""))
+        if ch in shapes:
+            gloss = shapes[ch]
         elif freq(ch) > 4000:
             gloss = ""
-            if not py:
-                continue
-        components[ch] = {
-            "py": py,
-            "def": shorten(gloss, 40),
-            "rad": rad_by_form.get(ch),
-        }
+        if not gloss and not py:
+            continue
+        components[ch] = {"py": py, "def": shorten(gloss, 40)}
     log(f"  component glosses: {len(components)}")
 
     known = {it["c"]: it for it in items}
@@ -952,7 +891,6 @@ def main():
                               "order": "component-first-by-band", "items": items,
                               "components": components})
     write("themes.json", {"items": themes})
-    write("radicals.json", {"count": len(radicals), "items": radicals})
 
     # Stroke outlines are by far the biggest payload, so the bands most people
     # start with load up front and the rest is fetched only when a template or
@@ -964,11 +902,6 @@ def main():
             core_chars.update(it["parts"])
             core_chars.update(it["leaves"])
             core_chars.update(it["conf"])
-    for r in radicals:
-        core_chars.add(r["r"])
-        core_chars.update(r["variants"])
-        core_chars.add(r["kangxi"])
-        core_chars.update(r["ex"])
     core = {c: v for c, v in strokes_out.items() if c in core_chars}
     ext = {c: v for c, v in strokes_out.items() if c not in core_chars}
     write("strokes-core.json", core)

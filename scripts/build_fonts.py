@@ -106,15 +106,17 @@ def collect_chars(max_hsk: int = 99) -> set[str]:
                 s.update(ety[k])
 
     for r in rads["items"]:
-        s.update(r["r"])
-        s.update(r["kangxi"])
-        for v in r["variants"]:
-            s.update(v)
-        for k in ("py", "mean", "cn", "cnPy", "note"):
+        for k in ("r", "kangxi", "word", "py", "mean", "about", "note"):
             if r.get(k):
                 s.update(r[k])
-        for e in r["ex"]:
-            s.update(e)
+        for f in r["forms"]:
+            for k in ("g", "name", "namePy", "tip"):
+                if f.get(k):
+                    s.update(f[k])
+            for e in f["ex"]:
+                s.update(e["c"])
+                s.update(e["py"])
+                s.update(e["d"])
 
     return {c for c in s if c and c not in "\n\r\t"}
 

@@ -1,6 +1,9 @@
 node_modules/
 dist/
+dist-server/
 .cache/
+.data/
 worksheets/
 *.local
 *.tsbuildinfo
+__pycache__/
