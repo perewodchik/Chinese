@@ -1,8 +1,8 @@
 import { getRequestListener } from '@hono/node-server';
-import { createServices } from '../server/src/composition';
-import { createHttpApp } from '../server/src/http/app';
-import { databaseUrl, openPostgres } from '../server/src/infrastructure/postgres/database';
-import { postgresStores } from '../server/src/infrastructure/postgres/stores';
+import { createServices } from './composition';
+import { createHttpApp } from './http/app';
+import { databaseUrl, openPostgres } from './infrastructure/postgres/database';
+import { postgresStores } from './infrastructure/postgres/stores';
 
 /**
  * The API when the app runs on Vercel, where `server/src/main.ts` cannot: a
@@ -24,10 +24,13 @@ import { postgresStores } from '../server/src/infrastructure/postgres/stores';
  * rewrites every /api/… onto this one function and hands the rest of the path
  * along, which leaves nothing to infer.
  *
- * And the imports are static, which is not a style choice. Vercel packages a
- * function by following its static imports; the same imports written as
- * `await import(...)` are left as lookups at run time for files that were
- * never packaged, and the function dies on "Cannot find module".
+ * And it is bundled to api/index.js before it is deployed, rather than handed
+ * over as TypeScript. Vercel compiles a .ts function itself, against whatever
+ * tsconfig it finds at the root — which here is the solution file, carrying no
+ * options at all — and every relative import in the server then fails to
+ * compile for want of a file extension it does not need. Bundling it the way
+ * `npm start` bundles the home server leaves nothing to be resolved and
+ * nothing to be compiled: one file, and the packages beside it.
  */
 
 const REGISTRATION = process.env.HANZI_REGISTRATION === 'closed' ? 'closed' : 'open';

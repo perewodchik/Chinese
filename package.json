@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "tsx watch --clear-screen=false server/src/dev.ts",
-    "build": "tsc -b && vite build && node scripts/build-server.mjs",
+    "build": "tsc -b && vite build && node scripts/build-server.mjs && node scripts/build-api.mjs",
     "start": "node --disable-warning=ExperimentalWarning dist-server/server.mjs",
     "serve": "vite build && node scripts/build-server.mjs && npm start",
     "test": "node --disable-warning=ExperimentalWarning --import tsx --test \"server/test/**/*.test.ts\" \"src/**/*.test.ts\"",
@@ -17,7 +17,7 @@
     "admin": "node --disable-warning=ExperimentalWarning --import tsx server/src/cli.ts",
     "address": "node --import tsx server/src/cli.ts address",
     "data": "python scripts/build_data.py && python scripts/build_radicals.py && python scripts/build_fonts.py",
-    "vercel-build": "tsc -b && vite build"
+    "vercel-build": "tsc -b && vite build && node scripts/build-api.mjs"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",
