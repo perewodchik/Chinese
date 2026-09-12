@@ -54,6 +54,11 @@ export function openPostgres(url: string): Promise<pg.Pool> {
   pool ??= new Pool({
     connectionString: url,
     ssl: sslFor(url),
+    // Neon's connection string asks for channel binding, and `pg` only reads
+    // that from the options, never from the URL. With it on, the password is
+    // bound to this TLS connection, so a proxy that talked us into trusting it
+    // still cannot replay what it heard.
+    enableChannelBinding: true,
     max: 1,
     idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 10_000,
