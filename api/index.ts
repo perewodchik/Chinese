@@ -1,10 +1,18 @@
+import { getRequestListener } from '@hono/node-server';
+
 /**
  * The API when the app runs on Vercel, where `server/src/main.ts` cannot: a
  * function has no port to listen on and no disk to keep a SQLite file. Only
  * the outermost layer differs — the same Hono app and the same services, over
  * Postgres instead of a file.
  *
- * Two things here are defensive rather than obvious, and both were paid for.
+ * Three things here are defensive rather than obvious, and each was paid for.
+ *
+ * It is a Node listener, not a `Request => Response`. Vercel's Node runtime
+ * calls a function the way `node:http` does, so `req.url` is a bare path and
+ * building a URL from it throws — which is a 500 before a line of ours runs.
+ * `getRequestListener` is the adapter for exactly that, and it is already here
+ * for the home server.
  *
  * The route arrives in a query parameter. Vercel's own file routing read
  * `api/[...path].ts` as one segment rather than as a catch-all, so /api/health
@@ -12,10 +20,9 @@
  * rewrites every /api/… onto this one function and hands the rest of the path
  * along, which leaves nothing to infer.
  *
- * And the server is imported here rather than at the top of the file. An
- * import that throws takes the module with it, before any code of ours runs,
- * and the platform then answers a bare 500 that says nothing at all. Loaded
- * inside the try, a bad import is a message like any other.
+ * And the server is imported inside the try. An import that throws takes the
+ * module with it, before any code of ours runs, and the platform then answers
+ * a bare 500 that says nothing at all.
  */
 
 const REGISTRATION = process.env.HANZI_REGISTRATION === 'closed' ? 'closed' : 'open';
@@ -63,28 +70,41 @@ function application(): Promise<App> {
 }
 
 /** The request as it was addressed, whatever the rewrite did to get it here. */
-async function asSent(request: Request): Promise<Request> {
+function asSent(request: Request): Request {
   const url = new URL(request.url);
   const path = url.searchParams.get('__path');
   if (path === null) return request;
   url.searchParams.delete('__path');
   url.pathname = `/api/${path}`;
-  const body =
-    request.method === 'GET' || request.method === 'HEAD' ? undefined : await request.arrayBuffer();
-  return new Request(url, { method: request.method, headers: request.headers, body });
+  return new Request(url, request);
 }
 
-export default async function handler(request: Request): Promise<Response> {
-  const sent = await asSent(request);
+function failed(what: string, err: unknown, status: number): Response {
+  const message = err instanceof Error ? err.message : String(err);
+  console.error(`${what}: ${message}`);
+  return Response.json({ error: { code: 'internal', message: `${what}. ${message}` } }, { status });
+}
+
+export default getRequestListener(async (incoming: Request): Promise<Response> => {
+  let request: Request;
+  try {
+    request = asSent(incoming);
+  } catch (err) {
+    return failed('Could not read the request', err, 500);
+  }
 
   // Answered before the database is touched, so that "the function runs" and
   // "the database answers" are two questions with two answers rather than one
   // failure that could be either. Everything else goes through the app, and
   // /api/auth/session is the one to ask about the database.
-  if (new URL(sent.url).pathname === '/api/health') {
+  if (new URL(request.url).pathname === '/api/health') {
     return Response.json({
       ok: true,
-      database: process.env.POSTGRES_URL ? 'POSTGRES_URL' : process.env.DATABASE_URL ? 'DATABASE_URL' : null,
+      database: process.env.POSTGRES_URL
+        ? 'POSTGRES_URL'
+        : process.env.DATABASE_URL
+          ? 'DATABASE_URL'
+          : null,
       node: process.version,
     });
   }
@@ -93,17 +113,13 @@ export default async function handler(request: Request): Promise<Response> {
   try {
     app = await application();
   } catch (err) {
-    // Failing to start is not something the Hono app can report, because there
-    // is no Hono app yet — and left to escape it becomes the platform's own
-    // blank 500, which says nothing about what is wrong. These failures happen
-    // before there is any account or any saved work, so what went wrong is
-    // configuration rather than anybody's data.
-    const message = err instanceof Error ? err.message : String(err);
-    console.error(`starting up: ${message}`);
-    return Response.json(
-      { error: { code: 'internal', message: `The server could not start. ${message}` } },
-      { status: 503 },
-    );
+    // Failing to start happens before there is any account or any saved work,
+    // so what went wrong is configuration rather than anybody's data.
+    return failed('The server could not start', err, 503);
   }
-  return app.fetch(sent);
-}
+  try {
+    return await app.fetch(request);
+  } catch (err) {
+    return failed('The server failed on that request', err, 500);
+  }
+});
