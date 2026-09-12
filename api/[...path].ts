@@ -56,6 +56,21 @@ function application() {
 }
 
 export default async function handler(request: Request): Promise<Response> {
-  const app = await application();
+  let app;
+  try {
+    app = await application();
+  } catch (err) {
+    // Failing to start is not something the Hono app can report, because there
+    // is no Hono app yet — and left to escape it becomes the platform's own
+    // blank 500, which says nothing about what is wrong. These failures happen
+    // before there is any account or any saved work, so what went wrong is
+    // configuration rather than anybody's data.
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`starting up: ${message}`);
+    return Response.json(
+      { error: { code: 'internal', message: `The server could not start. ${message}` } },
+      { status: 503 },
+    );
+  }
   return app.fetch(request);
 }

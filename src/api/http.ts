@@ -85,7 +85,19 @@ export async function send<T>(method: string, url: string, options: RequestOptio
       );
     }
 
-    const data = parse(text);
+    const read = parse(text);
+    if (!read.ok) {
+      // A JSON API answering with something else is not working, whatever the
+      // status says. It is usually the app's own page, served where the API
+      // should be by a proxy or a rewrite that matched too much — and read as
+      // an empty answer it becomes a screen that waits for ever.
+      throw new ApiError(
+        res.status,
+        'internal',
+        'The server answered with something that is not JSON.',
+      );
+    }
+    const data = read.value;
     if (res.ok || res.status === 304) return { status: res.status, data: data as T };
 
     const error = (data as Partial<ApiErrorBody> | null)?.error;
@@ -106,11 +118,12 @@ export async function request<T>(method: string, url: string, options?: RequestO
   return (await send<T>(method, url, options)).data;
 }
 
-function parse(text: string): unknown {
-  if (!text) return null;
+/** An empty body is an answer; an unreadable one is not, and the two differ. */
+function parse(text: string): { ok: true; value: unknown } | { ok: false } {
+  if (!text) return { ok: true, value: null };
   try {
-    return JSON.parse(text);
+    return { ok: true, value: JSON.parse(text) };
   } catch {
-    return null;
+    return { ok: false };
   }
 }

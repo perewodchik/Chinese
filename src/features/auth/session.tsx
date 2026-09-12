@@ -44,12 +44,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const check = useCallback(() => {
     setSession({ status: 'checking' });
-    authApi.session().then(
-      ({ user }) =>
+    authApi
+      .session()
+      .then(({ user }) =>
         setSession(user ? { status: 'signed-in', user } : { status: 'signed-out', reason: 'initial' }),
-      (err: unknown) =>
+      )
+      // .catch rather than a second argument to .then: this has to catch what
+      // the line above throws too, or a surprising answer leaves the splash up
+      // for ever with nothing said.
+      .catch((err: unknown) =>
         setSession({ status: 'unreachable', message: err instanceof Error ? err.message : String(err) }),
-    );
+      );
   }, []);
 
   useEffect(check, [check]);
