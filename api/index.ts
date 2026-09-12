@@ -75,6 +75,20 @@ async function asSent(request: Request): Promise<Request> {
 }
 
 export default async function handler(request: Request): Promise<Response> {
+  const sent = await asSent(request);
+
+  // Answered before the database is touched, so that "the function runs" and
+  // "the database answers" are two questions with two answers rather than one
+  // failure that could be either. Everything else goes through the app, and
+  // /api/auth/session is the one to ask about the database.
+  if (new URL(sent.url).pathname === '/api/health') {
+    return Response.json({
+      ok: true,
+      database: process.env.POSTGRES_URL ? 'POSTGRES_URL' : process.env.DATABASE_URL ? 'DATABASE_URL' : null,
+      node: process.version,
+    });
+  }
+
   let app: App;
   try {
     app = await application();
@@ -91,5 +105,5 @@ export default async function handler(request: Request): Promise<Response> {
       { status: 503 },
     );
   }
-  return app.fetch(await asSent(request));
+  return app.fetch(sent);
 }

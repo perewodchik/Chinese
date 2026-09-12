@@ -61,7 +61,10 @@ export function openPostgres(url: string): Promise<pg.Pool> {
     enableChannelBinding: true,
     max: 1,
     idleTimeoutMillis: 10_000,
-    connectionTimeoutMillis: 10_000,
+    // Under the time the platform allows a function, so that failing to
+    // connect is an error we can report rather than the request being cut off
+    // with nothing said.
+    connectionTimeoutMillis: 5_000,
   });
   // A pool that never sees a listener throws on a dropped backend and takes
   // the whole instance with it; a dropped connection is only worth a log.
@@ -94,8 +97,14 @@ async function migrate(p: pg.Pool): Promise<void> {
  * together, one migrates and the rest wait and find the work already done.
  */
 export async function applyMigrations(c: Queryable): Promise<void> {
+  if (await upToDate(c)) return;
   try {
     await c.query('BEGIN');
+    // Never wait on the lock for longer than the platform will wait for us. An
+    // instance frozen mid-transaction still holds it, and every other instance
+    // queueing behind it would be a deployment that hangs rather than one that
+    // says what is wrong.
+    await c.query("SET LOCAL lock_timeout = '4s'");
     // An arbitrary constant, chosen once: it only has to be this application's.
     await c.query('SELECT pg_advisory_xact_lock($1)', [4_917_283]);
     await c.query(
@@ -117,5 +126,22 @@ export async function applyMigrations(c: Queryable): Promise<void> {
   } catch (err) {
     await c.query('ROLLBACK').catch(() => undefined);
     throw err;
+  }
+}
+
+/**
+ * Whether the schema is already current, asked without a transaction and
+ * without a lock — which is every start but the first, and the case worth
+ * making cheap.
+ */
+async function upToDate(c: Queryable): Promise<boolean> {
+  try {
+    const { rows } = await c.query(
+      `SELECT COALESCE(MAX(step), 0) AS step FROM schema_migrations`,
+    );
+    return Number((rows[0] as { step: number } | undefined)?.step ?? 0) >= MIGRATIONS.length;
+  } catch {
+    // No such table yet, so there is migrating to do.
+    return false;
   }
 }
