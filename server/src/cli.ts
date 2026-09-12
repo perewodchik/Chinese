@@ -4,6 +4,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import { createServices, type Services } from './composition';
 import { loadConfig } from './config';
 import { backupDatabase, openDatabase } from './infrastructure/sqlite/database';
+import { sqliteStores } from './infrastructure/sqlite/stores';
 import { banner } from './lan';
 
 /**
@@ -33,7 +34,7 @@ const config = loadConfig(process.env, { port: 4173, serveStatic: false });
 async function withServices<T>(run: (services: Services, db: DatabaseSync) => Promise<T>): Promise<T> {
   const db = openDatabase(config.databaseFile);
   try {
-    return await run(createServices(db), db);
+    return await run(createServices(sqliteStores(db)), db);
   } finally {
     db.close();
   }

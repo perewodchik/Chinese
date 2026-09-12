@@ -1,13 +1,15 @@
-import type { DatabaseSync } from 'node:sqlite';
 import { AuthService, DEFAULT_AUTH_POLICY, type AuthPolicy } from './application/auth-service';
-import type { Clock, PasswordHasher } from './application/ports';
+import type {
+  Clock,
+  PasswordHasher,
+  SessionRepository,
+  UserRepository,
+  WorkspaceRepository,
+} from './application/ports';
 import { WorkspaceService } from './application/workspace-service';
 import { systemClock } from './infrastructure/clock';
 import { ScryptHasher } from './infrastructure/crypto/scrypt-hasher';
 import { cryptoTokens } from './infrastructure/crypto/tokens';
-import { SqliteSessionRepository } from './infrastructure/sqlite/session-repository';
-import { SqliteUserRepository } from './infrastructure/sqlite/user-repository';
-import { SqliteWorkspaceRepository } from './infrastructure/sqlite/workspace-repository';
 
 export interface Services {
   auth: AuthService;
@@ -15,24 +17,34 @@ export interface Services {
   clock: Clock;
 }
 
+/** Where the three kinds of record are kept. */
+export interface Stores {
+  users: UserRepository;
+  sessions: SessionRepository;
+  workspaces: WorkspaceRepository;
+}
+
 /**
  * The one place that decides which implementation stands behind each port.
  * The production server, the development server, the admin commands and the
  * tests all build the application here, differing only in what they pass in.
+ *
+ * The stores arrive already made — `sqliteStores` at home, `postgresStores` on
+ * Vercel — so that neither driver is loaded by a server that does not use it.
  */
 export function createServices(
-  db: DatabaseSync,
+  stores: Stores,
   options: { policy?: Partial<AuthPolicy>; hasher?: PasswordHasher; clock?: Clock } = {},
 ): Services {
   const clock = options.clock ?? systemClock;
   const auth = new AuthService({
-    users: new SqliteUserRepository(db),
-    sessions: new SqliteSessionRepository(db),
+    users: stores.users,
+    sessions: stores.sessions,
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
     clock,
     policy: { ...DEFAULT_AUTH_POLICY, ...options.policy },
   });
-  const workspaces = new WorkspaceService({ workspaces: new SqliteWorkspaceRepository(db), clock });
+  const workspaces = new WorkspaceService({ workspaces: stores.workspaces, clock });
   return { auth, workspaces, clock };
 }

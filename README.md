@@ -104,6 +104,35 @@ feature and has never worked on iOS; there the PDF downloads as normal.
 The Texts tab still needs no API key. It builds a prompt, you paste it into
 Claude yourself, and you paste the answer back.
 
+## Putting it on the internet
+
+Running it at home is still the plain way: one process, one file, nothing to
+pay for. This is for reaching it from somewhere that is not your Wi-Fi.
+
+A Vercel deployment cannot keep the SQLite file — a function has no disk that
+survives the request — so accounts and saved work move to Postgres. Nothing
+above the storage layer changes: the same Hono app, the same services, the
+same session cookies. `api/[...path].ts` is the whole difference, and
+`vercel.json` says how the built page and the API are routed.
+
+1. In Vercel, **Add New › Project** and pick this repository. The build command
+   and output folder come from `vercel.json`; you do not have to fill them in.
+2. In the project, **Storage › Create Database › Postgres**. Vercel puts
+   `POSTGRES_URL` into the project's environment itself. The schema is created
+   on the first request, so there is no migration step to run.
+3. Deploy, open the site, and **register your account**.
+4. **Then close registration**: Settings › Environment Variables,
+   `HANZI_REGISTRATION` = `closed`, and redeploy. Until you do, anyone who
+   finds the address can make an account on it. At home on the Wi-Fi that did
+   not matter; on a public address it does.
+
+Your work does not follow you there. The two servers keep separate databases,
+and there is no export any more, so treat the deployed one as a fresh start —
+or keep using the PC at home, which is still where the printing happens.
+
+`PGSSLNOVERIFY=1` is the way out if you use some other Postgres whose
+certificate does not verify. Vercel's own does.
+
 ## On an iPad
 
 The writing drill is the reason to open this on a tablet, so the input path is
@@ -575,7 +604,7 @@ npm test
 npm run typecheck
 ```
 
-The server's use cases and its HTTP API run against an in-memory database:
+The server's use cases and its HTTP API run against an in-memory SQLite:
 accounts, sessions that expire and renew, a password change signing other
 devices out, saves refused on a stale revision, cross-site requests refused,
 password guessing slowed down. On the app's side, the reducer is checked for
@@ -583,6 +612,12 @@ changes that stay correct when replayed, and the sync engine for the cases that
 matter on a tablet: another device saving first, the server going away and
 coming back, a closed tab's unsaved work picked up by the next page, and a tab
 that must not save twice what another tab has taken over.
+
+The Postgres storage has tests of its own, because it is the one part that runs
+only when deployed and would otherwise first be tried in production. They run
+against real Postgres — PGlite, which is Postgres compiled to WebAssembly — so
+the dialect, the unique constraint, the cascade and the compare-and-swap that
+decides which of two devices wins a save are all exercised for real.
 
 ## Layout
 
@@ -598,12 +633,15 @@ server/src/
   domain/             what the server keeps — accounts, sessions, one workspace
                       each — and the failures it can name
   application/        the use cases, and the ports they need from outside
-  infrastructure/     SQLite, scrypt, tokens, the clock: one answer to each port
+  infrastructure/     scrypt, tokens, the clock: one answer to each port, and
+                      the two stores — sqlite/ at home, postgres/ on Vercel
   http/               routes, guards (session, same origin, rate limits), static files
   composition.ts      which implementation stands behind each port
   main.ts, dev.ts     the production server; the development server with Vite inside
   cli.ts              the admin commands
-server/test/          use cases and the HTTP API, against an in-memory database
+server/test/          use cases and the HTTP API against in-memory SQLite,
+                      and the Postgres storage against Postgres itself
+api/                  the same server as one Vercel function
 
 src/
   domain/             the model, with no React and no DOM in it —

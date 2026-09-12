@@ -7,3 +7,4 @@ worksheets/
 *.local
 *.tsbuildinfo
 __pycache__/
+.vercel/

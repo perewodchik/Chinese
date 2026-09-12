@@ -14,6 +14,8 @@ export interface HttpOptions {
   trustProxy: boolean;
   /** the built app, or null when Vite is serving it */
   staticDir: string | null;
+  /** false where something in front already compresses, as a CDN does */
+  compress?: boolean;
   log: (line: string) => void;
 }
 
@@ -38,8 +40,9 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   const app = new Hono<AppEnv>();
   app.onError(onError);
   // Character data and a workspace are both text that shrinks to a fifth of
-  // its size, which over Wi-Fi is most of the wait.
-  app.use('*', compress());
+  // its size, which over Wi-Fi is most of the wait. A CDN in front does this
+  // itself, and doing it twice is at best wasted work.
+  if (options.compress !== false) app.use('*', compress());
   app.use(
     '*',
     secureHeaders({

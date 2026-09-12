@@ -4,6 +4,7 @@ import { createServices } from '../src/composition';
 import { createHttpApp } from '../src/http/app';
 import { ScryptHasher } from '../src/infrastructure/crypto/scrypt-hasher';
 import { openDatabase } from '../src/infrastructure/sqlite/database';
+import { sqliteStores } from '../src/infrastructure/sqlite/stores';
 
 export class TestClock implements Clock {
   constructor(public time = Date.UTC(2026, 8, 11, 9)) {}
@@ -23,7 +24,7 @@ export const cheapHasher = new ScryptHasher({ log2N: 10, r: 8, p: 1 });
 export function makeServices(policy: Partial<AuthPolicy> = {}) {
   const db = openDatabase(':memory:');
   const clock = new TestClock();
-  const services = createServices(db, { hasher: cheapHasher, clock, policy });
+  const services = createServices(sqliteStores(db), { hasher: cheapHasher, clock, policy });
   return { db, clock, services };
 }
 

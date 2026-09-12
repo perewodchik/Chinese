@@ -36,7 +36,7 @@ export class SqliteUserRepository implements UserRepository {
        ON CONFLICT (username_key) DO NOTHING`,
     );
     this.setPassword = db.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?');
-    this.all = db.prepare('SELECT * FROM users ORDER BY created_at');
+    this.all = db.prepare('SELECT * FROM users ORDER BY created_at, id');
   }
 
   async findById(id: string): Promise<User | null> {
