@@ -774,10 +774,10 @@ async function applyMigrations(c) {
     );
     const { rows } = await c.query("SELECT COALESCE(MAX(step), 0) AS step FROM schema_migrations");
     const applied = Number(rows[0]?.step ?? 0);
-    for (let step = applied; step < MIGRATIONS.length; step++) {
-      await c.query(MIGRATIONS[step]);
+    for (let step2 = applied; step2 < MIGRATIONS.length; step2++) {
+      await c.query(MIGRATIONS[step2]);
       await c.query("INSERT INTO schema_migrations (step, applied_at) VALUES ($1, $2)", [
-        step + 1,
+        step2 + 1,
         Date.now()
       ]);
     }
@@ -978,6 +978,39 @@ function asSent(request) {
   url.pathname = `/api/${path}`;
   return new Request(url, request);
 }
+async function step(name, work) {
+  const started = Date.now();
+  let timer;
+  const capped = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error("did not finish in 6s")), 6e3);
+  });
+  try {
+    const value = await Promise.race([work, capped]);
+    return { [name]: { ms: Date.now() - started, value } };
+  } catch (err) {
+    return {
+      [name]: { ms: Date.now() - started, error: err instanceof Error ? err.message : String(err) }
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+async function stages(request) {
+  const out = {};
+  Object.assign(out, await step("body", request.text().then((t) => `${t.length} bytes`)));
+  const dsn = databaseUrl();
+  if (!dsn) return { ...out, database: "no POSTGRES_URL" };
+  const pool2 = await openPostgres(dsn);
+  Object.assign(
+    out,
+    await step("findUser", pool2.query("SELECT count(*)::int AS n FROM users").then((r) => r.rows[0]))
+  );
+  Object.assign(
+    out,
+    await step("scrypt", new ScryptHasher().hash("a-password").then((h) => `${h.length} chars`))
+  );
+  return out;
+}
 function failed(what, err, status) {
   const message = err instanceof Error ? err.message : String(err);
   console.error(`${what}: ${message}`);
@@ -1010,6 +1043,9 @@ var vercel_default = getRequestListener(async (incoming) => {
           { status: 503 }
         );
       }
+    }
+    if (asked.searchParams.get("stages") === "1") {
+      return Response.json(await stages(request));
     }
     return Response.json({
       ok: true,
