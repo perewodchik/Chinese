@@ -1,6 +1,7 @@
 import { getRequestListener } from '@hono/node-server';
 import { createServices } from './composition';
 import { createHttpApp } from './http/app';
+import { speechFromEnv } from './infrastructure/azure-speech';
 import { databaseUrl, openPostgres } from './infrastructure/postgres/database';
 import { postgresStores } from './infrastructure/postgres/stores';
 
@@ -51,6 +52,7 @@ function application(): Promise<App> {
     const pool = await openPostgres(url);
     const services = createServices(postgresStores(pool), {
       policy: { registration: REGISTRATION },
+      speech: speechFromEnv(process.env),
     });
     return createHttpApp(services, {
       trustProxy: true,

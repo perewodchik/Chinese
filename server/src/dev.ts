@@ -4,6 +4,7 @@ import { createServer as createViteServer } from 'vite';
 import { createServices } from './composition';
 import { loadConfig } from './config';
 import { createHttpApp } from './http/app';
+import { speechFromEnv } from './infrastructure/azure-speech';
 import { openDatabase } from './infrastructure/sqlite/database';
 import { sqliteStores } from './infrastructure/sqlite/stores';
 import { banner } from './lan';
@@ -29,7 +30,10 @@ import { banner } from './lan';
 const config = loadConfig(process.env, { port: 5173, serveStatic: false });
 const devUser = process.env.HANZI_DEV_USER?.trim() || null;
 const db = openDatabase(config.databaseFile);
-const services = createServices(sqliteStores(db), { policy: { registration: config.registration } });
+const services = createServices(sqliteStores(db), {
+  policy: { registration: config.registration },
+  speech: speechFromEnv(process.env),
+});
 const api = getRequestListener(
   createHttpApp(services, { trustProxy: config.trustProxy, staticDir: null, log: console.error, devUser }).fetch,
 );

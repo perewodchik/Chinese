@@ -7,6 +7,7 @@ import type { AppEnv } from './env';
 import { handleError } from './errors';
 import { sameOriginOnly } from './guards';
 import { authRoutes } from './routes/auth';
+import { speechRoutes } from './routes/speech';
 import { workspaceRoutes } from './routes/workspace';
 import { staticSite } from './static-site';
 
@@ -38,6 +39,7 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   api.get('/health', (c) => c.json({ ok: true }));
   api.route('/auth', authRoutes(deps));
   api.route('/workspace', workspaceRoutes(deps));
+  api.route('/speech', speechRoutes(deps));
   api.all('*', () => {
     throw new NotFoundError('That API route');
   });

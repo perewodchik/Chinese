@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { analyse, type Attempt } from '../../domain/pinyin/analyse';
-import { TONE_NAME, type Verdict } from '../../domain/pinyin/contour';
+import { resample, TONE_NAME, type Verdict } from '../../domain/pinyin/contour';
 import { singleTones, tonePairs, type PracticeWord } from '../../domain/pinyin/practice';
 import { RULE_NOTE } from '../../domain/pinyin/sandhi';
 import { withTone } from '../../domain/pinyin/syllable';
 import { micUnavailable, MIC_MESSAGE } from '../../platform/audio/mic';
 import { trackPitch } from '../../platform/audio/pitch';
-import { speak } from '../../platform/speech';
 import { paths } from '../../navigation/paths';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
@@ -15,6 +14,7 @@ import { PitchStaff } from './PitchStaff';
 import { RecordButton } from './RecordButton';
 import { useRecorder } from './useRecorder';
 import { pairKey, record, toneKey, voiceRange } from './voice';
+import { referenceSamples, say } from './voiceOut';
 import './pinyin.css';
 
 interface PracticeSet {
@@ -115,7 +115,31 @@ function Sitting({ set }: { set: PracticeSet }) {
 
   const rec = useRecorder(onRecorded, 1800 + 700 * (word?.syllables.length ?? 1));
 
-  const listen = useCallback(() => word && speak(word.word, { rate: 0.75 }), [word]);
+  const listen = useCallback(() => void (word && say(word.word, { slow: true })), [word]);
+
+  // With a natural voice, the reference on the staff is that voice's own pitch
+  // rather than the textbook shape: real sandhi, a real neutral tone, the
+  // exact thing being imitated. Measured on its own scale, like the learner.
+  const [native, setNative] = useState<Array<number[] | null> | null>(null);
+  useEffect(() => {
+    setNative(null);
+    if (!word) return;
+    let live = true;
+    void referenceSamples(word.word, { slow: true }).then((s) => {
+      if (!live || !s) return;
+      const a = analyse(trackPitch(s, { sampleRate: 16000 }), word.spoken, null);
+      if (a.problem) return;
+      setNative(
+        a.syllables.map((syl) => {
+          const pts = a.line.filter((p) => p.t >= syl.from && p.t <= syl.to && Number.isFinite(p.chao)).map((p) => p.chao);
+          return pts.length > 3 ? resample(pts, 16) : null;
+        }),
+      );
+    });
+    return () => {
+      live = false;
+    };
+  }, [word]);
   const next = useCallback(() => {
     setAt((n) => n + 1);
     setAttempt(null);
@@ -202,6 +226,7 @@ function Sitting({ set }: { set: PracticeSet }) {
         <div className="staff-card">
           <PitchStaff
             take={take}
+            references={native}
             line={judged ? attempt!.line : undefined}
             syllables={word.spoken.map((s, i) => ({
               tone: s.surface,
@@ -213,7 +238,7 @@ function Sitting({ set }: { set: PracticeSet }) {
           />
           <div className="staff-legend tiny muted">
             <span>
-              <i className="key-ref" /> the shape to aim for
+              <i className="key-ref" /> {native ? 'the voice you are copying' : 'the shape to aim for'}
             </span>
             <span>
               <i className="key-voice" /> your voice

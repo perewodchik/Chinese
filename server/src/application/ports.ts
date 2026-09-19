@@ -59,3 +59,23 @@ export interface Tokens {
 export interface Clock {
   now(): number;
 }
+
+/** A voice the app can ask for by its short name. */
+export interface VoiceInfo {
+  /** what the app asks for: "xiaoxiao" */
+  id: string;
+  /** what the learner sees: "Xiaoxiao" */
+  name: string;
+  gender: 'female' | 'male';
+}
+
+/**
+ * Mandarin read aloud by a voice that sounds like a person — the reference a
+ * learner imitates, which the browser's own system voice is not good enough
+ * to be. Optional: without one, the app falls back to the system voice.
+ */
+export interface SpeechSynthesizer {
+  readonly voices: VoiceInfo[];
+  /** MP3 bytes. `slow` reads at about three quarters of normal speed. */
+  synthesize(text: string, voice: string, slow: boolean): Promise<Uint8Array>;
+}

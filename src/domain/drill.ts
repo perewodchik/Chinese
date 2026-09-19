@@ -58,11 +58,16 @@ export function toneOf(py: string): number {
   return 5;
 }
 
-/** The reading without its tone mark — the question, when the tone is the answer. */
+/**
+ * The reading without its tone mark — the question, when the tone is the answer.
+ *
+ * Only the four tone marks go (grave, acute, macron, caron). The two dots of
+ * ü are a combining mark as well, and taking them too turned nǚ into "nu".
+ */
 export const withoutTone = (py: string) =>
   py
     .normalize('NFD')
-    .replace(/[̀-̏]/g, '')
+    .replace(/[̀́̄̌]/g, '')
     .normalize('NFC');
 
 /* ---------------------------------------------------------------- the pool */

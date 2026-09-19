@@ -244,6 +244,7 @@ it was made on.
 | `/texts/<id>` | one passage |
 | `/pinyin` | pronunciation: the four tones, and the map of twenty tone pairs |
 | `/pinyin/practice/<set>` | saying things out loud — `tone-2`, `pair-3-3` |
+| `/pinyin/sounds/<lesson>?step=hear` | one sound lesson — how it is made, hearing it, saying it |
 | `/pinyin/voice` | measuring your voice range, and checking your consonants |
 | `/settings` | account, folder, appearance |
 | `…?item=c好` on any page | the character drawer; back closes it |
@@ -299,6 +300,8 @@ The server reads a few settings from the environment:
 | `HANZI_REGISTRATION` | `open` | `closed` hides "Make an account" |
 | `HANZI_TRUST_PROXY` | off | `1` only behind a reverse proxy you run |
 | `HANZI_STATIC_DIR` | `dist` | the built app `npm start` serves |
+| `AZURE_SPEECH_KEY` | unset | a free Azure Speech key: natural voices for pronunciation (below) |
+| `AZURE_SPEECH_REGION` | unset | the key's region, e.g. `eastus` |
 
 How it holds together: passwords are hashed with scrypt; a session is a random
 token in an HttpOnly, SameSite cookie that the server stores only as a digest,
@@ -531,9 +534,33 @@ an English speaker already knows how to do ("a firm *No!*").
   from the words the app already ships. Words whose tones 一 or 不 change are
   kept out, since 一起 is written 1+3 and said 4+3.
 - **Consonants, roughly.** Pitch cannot see q against ch. The browser's own
-  speech recognition can, crudely: on **/pinyin/voice** it writes down what it
-  heard, and a *ch* where the *q* should be is a *q* drifting. Safari sends that
-  audio to Apple and needs Siri & Dictation on; it is marked experimental.
+  speech recognition can, crudely: it writes down what it heard, and the two
+  are compared sound by sound — initial and final, tone left to the pitch — so
+  hearing 事 for 是 is no mistake and hearing 吃 for 七 is "q heard as ch".
+  Safari sends that audio to Apple and needs Siri & Dictation on; it is marked
+  experimental, and without it the page falls back to recording yourself and
+  playing the two back to back.
+
+**Seven sound lessons** cover what gives an English speaker away: j q x, zh ch
+sh r, z c s, the puff that separates b from p, ü, -n against -ng, and the
+finals pinyin spells short (ui is uei, iu is iou). Each is three steps — what
+the mouth does, with the nearest English sound and the usual mistake; ten
+rounds of telling minimal pairs apart by ear (七 or 吃?), because a sound you
+cannot hear is a sound you cannot aim at; then words to say. Every pair shares
+a tone and differs in the one sound, and every reading is checked against the
+dictionary by the tests, so a typo fails the build rather than teaching the
+wrong sound.
+
+**A natural voice, when there is a key.** With `AZURE_SPEECH_KEY` and
+`AZURE_SPEECH_REGION` set, words are read by Azure's neural voices instead of
+the system voice — good enough to imitate, with real sandhi — and the dashed
+line on the staff becomes that voice's own pitch rather than the textbook
+shape. Hearing drills rotate between three voices, so the ear learns the sound
+rather than one speaker. Clips are served only to signed-in users, rate
+limited, and cached by the browser for a year, so the free tier (half a
+million characters a month) goes on new words. Without a key everything still
+works on the system voice. Create the resource on the **Free F0** tier: on
+F0 the quota simply runs out, where on S0 every character is billed.
 
 The microphone needs a secure page. The online version is https and works; on
 the home Wi-Fi at `http://192.168…` the browser offers no microphone at all,

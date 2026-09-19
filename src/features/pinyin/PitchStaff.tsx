@@ -11,6 +11,11 @@ export interface StaffSyllable {
 
 interface Props {
   syllables: StaffSyllable[];
+  /**
+   * A real speaker's contour per syllable (Chao points), drawn in place of
+   * the textbook shape wherever one is given.
+   */
+  references?: Array<number[] | null> | null;
   /** the learner's voice, Chao scale per frame (NaN where unvoiced) */
   line?: Array<{ t: number; chao: number }>;
   /** bumps to replay the drawing animation */
@@ -42,7 +47,7 @@ const y = (chao: number) => TOP + ((5 - chao) / 4) * PLOT_H;
  * over the stretch of voice it was matched to, so the two lines are compared
  * where they actually overlap.
  */
-export function PitchStaff({ syllables, line, take = 0 }: Props) {
+export function PitchStaff({ syllables, references, line, take = 0 }: Props) {
   const voiced = line?.filter((p) => Number.isFinite(p.chao)) ?? [];
   const timed = voiced.length > 0 && syllables.every((s) => s.from !== undefined && s.to !== undefined);
 
@@ -77,7 +82,7 @@ export function PitchStaff({ syllables, line, take = 0 }: Props) {
 
       {syllables.map((s, i) => {
         const [a, b] = spans[i]!;
-        const t = templateFor(s.tone, s.halfThird);
+        const t = references?.[i] ?? templateFor(s.tone, s.halfThird);
         return (
           <g key={i}>
             {s.verdict && s.verdict !== 'unheard' && (

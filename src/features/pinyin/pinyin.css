@@ -671,6 +671,192 @@
   line-height: 1.2;
 }
 
+/* ---------------------------------------------------------------- sounds */
+.lesson-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 12px;
+}
+
+.lesson-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 15px 16px 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.14s,
+    transform 0.14s,
+    box-shadow 0.14s;
+}
+
+.lesson-card:hover {
+  border-color: var(--line-2);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.lesson-card-mark,
+.lesson-mark {
+  font-size: 22px;
+  line-height: 1.2;
+  color: var(--accent);
+  font-weight: 520;
+  letter-spacing: 0.02em;
+}
+
+.lesson-card-name {
+  font-weight: 620;
+  font-size: 15px;
+}
+
+.lesson-card-blurb {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--ink-3);
+  flex: 1;
+}
+
+.lesson-card-foot {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+}
+
+.lesson-mark {
+  display: block;
+  font-size: 26px;
+  margin-bottom: 2px;
+}
+
+/* How a sound is made: one card per sound. */
+.note-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.note-card > header {
+  align-items: baseline;
+}
+
+.note-sound {
+  font-size: 24px;
+  line-height: 1;
+  color: var(--accent);
+  font-weight: 520;
+}
+
+.note-example {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.note-example .hanzi {
+  font-size: 18px;
+}
+
+.note-py {
+  color: var(--accent);
+}
+
+.note-body {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.note-body dt {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  margin-top: 8px;
+}
+
+.note-body dt:first-child {
+  margin-top: 0;
+}
+
+.note-body dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.lesson-rule {
+  margin-top: 14px;
+  font-size: 13px;
+  max-width: 760px;
+}
+
+.lesson-next {
+  margin-top: 18px;
+}
+
+/* Telling two words apart. */
+.hear-stage {
+  gap: 14px;
+}
+
+.hear-choice {
+  min-width: 150px;
+  min-height: 120px;
+  justify-content: center;
+  position: relative;
+}
+
+.hear-hanzi {
+  font-size: 46px;
+  line-height: 1.1;
+}
+
+.hear-py {
+  font-size: 16px;
+  color: var(--accent);
+}
+
+.hear-choice .key-hint {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-style: normal;
+}
+
+.hear-again {
+  min-height: 44px;
+}
+
+.contrast {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.say-check {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.say-go {
+  min-width: 132px;
+  min-height: 48px;
+  font-size: 15px;
+}
+
 /* ---------------------------------------------------------------- touch */
 @media (hover: none), (pointer: coarse) {
   .rec-button {

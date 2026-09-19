@@ -3,18 +3,18 @@ import { Link } from 'react-router';
 import { analyse, calibrate, type Attempt } from '../../domain/pinyin/analyse';
 import { semitones, type VoiceRange } from '../../domain/pinyin/contour';
 import { CALIBRATION } from '../../domain/pinyin/practice';
-import { parseSyllable, syllables } from '../../domain/pinyin/syllable';
+import { SOUND_LESSONS } from '../../domain/pinyin/sounds';
 import { micUnavailable, MIC_MESSAGE } from '../../platform/audio/mic';
 import { trackPitch } from '../../platform/audio/pitch';
-import { canRecognise, recogniseOnce, RECOGNITION_MESSAGE } from '../../platform/audio/recognition';
-import { speak } from '../../platform/speech';
+import { canRecognise } from '../../platform/audio/recognition';
 import { paths } from '../../navigation/paths';
 import { useTitle } from '../../ui/useTitle';
-import { useLibrary } from '../shared/library';
 import { PitchStaff } from './PitchStaff';
 import { RecordButton } from './RecordButton';
+import { SayCheck } from './SayCheck';
 import { useRecorder } from './useRecorder';
 import { saveRange, usePinyinMemory } from './voice';
+import { say } from './voiceOut';
 import './pinyin.css';
 
 /**
@@ -107,7 +107,7 @@ function Calibration({ current, disabled }: { current: VoiceRange | null; disabl
           />
         </div>
         <div className="speak-controls">
-          <button className="btn speak-side" onClick={() => speak(CALIBRATION.word, { rate: 0.6 })}>
+          <button className="btn speak-side" onClick={() => void say('妈，麻，马，骂', { slow: true })}>
             <span aria-hidden>🔊</span> Listen
           </button>
           <RecordButton state={rec.state} level={rec.level} onToggle={rec.toggle} disabled={disabled} />
@@ -142,61 +142,15 @@ function Calibration({ current, disabled }: { current: VoiceRange | null; disabl
   );
 }
 
-/** Words that each lean on one family of sounds English speakers mix up. */
-const SOUND_WORDS: Array<{ word: string; reading: string; focus: string }> = [
-  { word: '学校', reading: 'xué xiào', focus: 'x' },
-  { word: '起床', reading: 'qǐ chuáng', focus: 'q · ch' },
-  { word: '知道', reading: 'zhī dào', focus: 'zh' },
-  { word: '老师', reading: 'lǎo shī', focus: 'sh' },
-  { word: '四十', reading: 'sì shí', focus: 's · sh' },
-  { word: '自己', reading: 'zì jǐ', focus: 'z · j' },
-  { word: '绿色', reading: 'lǜ sè', focus: 'ü' },
-  { word: '去年', reading: 'qù nián', focus: 'q · ü' },
-  { word: '心情', reading: 'xīn qíng', focus: '-n · -ng' },
-  { word: '很冷', reading: 'hěn lěng', focus: '-n · -ng' },
-];
-
-interface Check {
-  heard: string;
-  /** per target syllable: what was heard there, and whether its sounds matched */
-  syllables: Array<{ want: string; got: string | null; same: boolean }>;
-  exact: boolean;
-}
+/**
+ * One word from each sound lesson, as a quick check of where things stand —
+ * the lessons themselves are where each one is practised.
+ */
+const SOUND_WORDS = SOUND_LESSONS.map((l) => ({ lesson: l, word: l.words[0]! }));
 
 function SoundCheck({ disabled }: { disabled: boolean }) {
-  const lib = useLibrary();
   const [at, setAt] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const [check, setCheck] = useState<Check | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const supported = canRecognise();
-  const target = SOUND_WORDS[at % SOUND_WORDS.length]!;
-
-  async function listen() {
-    setBusy(true);
-    setError(null);
-    setCheck(null);
-    try {
-      const { alternatives } = await recogniseOnce().result;
-      const best = alternatives.find((a) => a.transcript.includes(target.word)) ?? alternatives[0];
-      const heard = (best?.transcript ?? '').replace(/[，。！？、,.!?\s]/g, '');
-      const want = syllables(target.reading);
-      const got = [...heard].map((ch) => lib.byChar.get(ch)?.py[0] ?? null);
-      setCheck({
-        heard,
-        exact: heard.includes(target.word),
-        syllables: want.map((w, i) => {
-          const g = got[i] ? parseSyllable(got[i]!) : null;
-          return { want: w.py, got: got[i] ?? null, same: !!g && g.initial === w.initial && g.final === w.final };
-        }),
-      });
-    } catch (e) {
-      const code = (e as Error).message;
-      setError(RECOGNITION_MESSAGE[code] ?? `Speech recognition stopped (${code}).`);
-    } finally {
-      setBusy(false);
-    }
-  }
+  const { lesson, word } = SOUND_WORDS[at % SOUND_WORDS.length]!;
 
   return (
     <div className="card voice-card">
@@ -211,57 +165,19 @@ function SoundCheck({ disabled }: { disabled: boolean }) {
           down what it heard: if you say 起床 and it writes something with <i>ch</i> where the <i>q</i> should
           be, your q is drifting.
         </p>
-        {!supported ? (
+        {!canRecognise() && (
           <p className="notice speak-notice">
             This browser has no speech recognition. Safari on the iPad does, with Siri &amp; Dictation switched on;
             so does Chrome.
           </p>
-        ) : (
-          <>
-            <div className="speak-word" style={{ minHeight: 0 }}>
-              <span className="tiny muted">{target.focus}</span>
-              <span className="speak-hanzi" style={{ fontSize: 44 }}>
-                {target.word}
-              </span>
-              <span className="speak-reading">{target.reading}</span>
-            </div>
-            <div className="speak-controls">
-              <button className="btn speak-side" onClick={() => speak(target.word, { rate: 0.75 })}>
-                <span aria-hidden>🔊</span> Listen
-              </button>
-              <button className="btn primary" disabled={busy || disabled} onClick={() => void listen()}>
-                {busy ? 'Listening…' : 'Say it'}
-              </button>
-              <button
-                className="btn speak-side"
-                onClick={() => {
-                  setAt((n) => n + 1);
-                  setCheck(null);
-                  setError(null);
-                }}
-              >
-                Next word
-              </button>
-            </div>
-            {error && <p className="notice speak-notice">{error}</p>}
-            {check && (
-              <div className="heard">
-                <span className="tiny muted">It wrote down</span>
-                <span className="heard-text hanzi">{check.heard || '—'}</span>
-                <div className="verdicts">
-                  {check.syllables.map((s, i) => (
-                    <div key={i} className="verdict" data-state={s.same ? 'right' : 'wrong'}>
-                      <span className="verdict-py">{s.want}</span>
-                      <b>{s.same ? 'Heard' : 'Heard as'}</b>
-                      <span className="tiny muted">{s.same ? 'as meant' : (s.got ?? 'nothing')}</span>
-                    </div>
-                  ))}
-                </div>
-                {check.exact && <p className="small" style={{ margin: 0 }}>Exactly what you meant.</p>}
-              </div>
-            )}
-          </>
         )}
+        <Link className="tiny muted" to={paths.pinyinSounds(lesson.id)}>
+          {lesson.mark} — {lesson.title.toLowerCase()}
+        </Link>
+        {!disabled && <SayCheck word={word} />}
+        <button className="btn sm" onClick={() => setAt((n) => n + 1)}>
+          Another sound →
+        </button>
       </div>
     </div>
   );

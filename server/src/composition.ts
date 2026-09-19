@@ -3,6 +3,7 @@ import type {
   Clock,
   PasswordHasher,
   SessionRepository,
+  SpeechSynthesizer,
   UserRepository,
   WorkspaceRepository,
 } from './application/ports';
@@ -15,6 +16,8 @@ export interface Services {
   auth: AuthService;
   workspaces: WorkspaceService;
   clock: Clock;
+  /** a natural voice for reading Mandarin aloud, or null where none is configured */
+  speech: SpeechSynthesizer | null;
 }
 
 /** Where the three kinds of record are kept. */
@@ -34,7 +37,12 @@ export interface Stores {
  */
 export function createServices(
   stores: Stores,
-  options: { policy?: Partial<AuthPolicy>; hasher?: PasswordHasher; clock?: Clock } = {},
+  options: {
+    policy?: Partial<AuthPolicy>;
+    hasher?: PasswordHasher;
+    clock?: Clock;
+    speech?: SpeechSynthesizer | null;
+  } = {},
 ): Services {
   const clock = options.clock ?? systemClock;
   const auth = new AuthService({
@@ -46,5 +54,5 @@ export function createServices(
     policy: { ...DEFAULT_AUTH_POLICY, ...options.policy },
   });
   const workspaces = new WorkspaceService({ workspaces: stores.workspaces, clock });
-  return { auth, workspaces, clock };
+  return { auth, workspaces, clock, speech: options.speech ?? null };
 }

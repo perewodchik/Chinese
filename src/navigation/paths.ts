@@ -45,6 +45,9 @@ export const paths = {
   pinyin: () => '/pinyin',
   /** saying things out loud: `pair-3-3`, `tone-2` */
   pinyinPractice: (set: string) => `/pinyin/practice/${encodeURIComponent(set)}`,
+  /** one sound lesson: how it is made, telling it apart, saying it */
+  pinyinSounds: (lesson: string, step?: 'hear' | 'say') =>
+    withQuery(`/pinyin/sounds/${encodeURIComponent(lesson)}`, { step }),
   /** the microphone, the voice range, and whether speech recognition works here */
   pinyinVoice: () => '/pinyin/voice',
 

@@ -2,10 +2,11 @@ import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { TONE_NAME } from '../../domain/pinyin/contour';
 import { singleTones, tonePairs } from '../../domain/pinyin/practice';
+import { SOUND_LESSONS } from '../../domain/pinyin/sounds';
 import { paths } from '../../navigation/paths';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
-import { pairKey, recentScore, toneKey, usePinyinMemory, type Tally } from './voice';
+import { hearKey, pairKey, recentScore, sayKey, toneKey, usePinyinMemory, type Tally } from './voice';
 import './pinyin.css';
 
 const TONES: Array<{ tone: number; mark: string; shape: string; like: string }> = [
@@ -145,6 +146,39 @@ export function PinyinPage() {
             })}
           </div>
         ))}
+      </div>
+
+      <h2 className="pinyin-label">Sounds English does not have</h2>
+      <p className="small muted pinyin-lede">
+        The seven places an English speaker's Mandarin gives itself away. Each one: how the mouth makes it, telling
+        it apart by ear, then saying it.
+      </p>
+      <div className="lesson-cards">
+        {SOUND_LESSONS.map((l) => {
+          const ear = standing(memory.tallies[hearKey(l.id)]);
+          const mouth = standing(memory.tallies[sayKey(l.id)]);
+          return (
+            <Link key={l.id} className="lesson-card" to={paths.pinyinSounds(l.id)}>
+              <span className="lesson-card-mark">{l.mark}</span>
+              <span className="lesson-card-name">{l.title}</span>
+              <span className="lesson-card-blurb">{l.blurb}</span>
+              <span className="lesson-card-foot tiny">
+                <span>
+                  <span className="muted">Ear </span>
+                  <span className="standing" data-state={ear.state}>
+                    {ear.state ? ear.text.replace(' lately', '') : '—'}
+                  </span>
+                </span>
+                <span>
+                  <span className="muted">Mouth </span>
+                  <span className="standing" data-state={mouth.state}>
+                    {mouth.state ? mouth.text.replace(' lately', '') : '—'}
+                  </span>
+                </span>
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );

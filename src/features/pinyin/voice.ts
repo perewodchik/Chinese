@@ -82,3 +82,7 @@ export function recentScore(t: Tally | undefined): number | null {
 
 export const pairKey = (id: string) => `pair:${id}`;
 export const toneKey = (tone: number) => `tone:${tone}`;
+/** telling a lesson's pairs apart by ear */
+export const hearKey = (lesson: string) => `hear:${lesson}`;
+/** saying a lesson's words so recognition hears them as meant */
+export const sayKey = (lesson: string) => `say:${lesson}`;
