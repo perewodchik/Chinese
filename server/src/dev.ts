@@ -17,13 +17,21 @@ import { banner } from './lan';
  * One process rather than an API server and a Vite server side by side keeps
  * the address the same as it always was, needs no proxy between the two, and
  * leaves nothing running on a port after the window is closed.
+ *
+ *   HANZI_DEV_USER=admin npm run dev
+ *
+ * opens the app from this machine already signed in as `admin` (made if it is
+ * not there yet), with no password — for checking a change in a browser
+ * without stopping at the sign-in page. Other devices on the Wi-Fi still sign
+ * in as usual, and only this server reads the variable.
  */
 
 const config = loadConfig(process.env, { port: 5173, serveStatic: false });
+const devUser = process.env.HANZI_DEV_USER?.trim() || null;
 const db = openDatabase(config.databaseFile);
 const services = createServices(sqliteStores(db), { policy: { registration: config.registration } });
 const api = getRequestListener(
-  createHttpApp(services, { trustProxy: config.trustProxy, staticDir: null, log: console.error }).fetch,
+  createHttpApp(services, { trustProxy: config.trustProxy, staticDir: null, log: console.error, devUser }).fetch,
 );
 
 const http = createServer();
@@ -47,6 +55,7 @@ http.on('error', (err: NodeJS.ErrnoException) => {
 
 http.listen(config.port, config.host, () => {
   console.log(banner(config.port, config.host));
+  if (devUser) console.log(`  Signed in as “${devUser}” without a password, from this machine only (HANZI_DEV_USER).\n`);
 });
 
 async function shutdown() {

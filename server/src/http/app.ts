@@ -17,6 +17,11 @@ export interface HttpOptions {
   /** false where something in front already compresses, as a CDN does */
   compress?: boolean;
   log: (line: string) => void;
+  /**
+   * Development only: sign requests from this machine in as this account, with
+   * no password. Never set by the production server or on Vercel.
+   */
+  devUser?: string | null;
 }
 
 /**
@@ -25,7 +30,7 @@ export interface HttpOptions {
  */
 export function createHttpApp(services: Services, options: HttpOptions) {
   const onError = handleError(options.log);
-  const deps = { ...services, trustProxy: options.trustProxy };
+  const deps = { ...services, trustProxy: options.trustProxy, devUser: options.devUser ?? null };
 
   const api = new Hono<AppEnv>();
   api.onError(onError);

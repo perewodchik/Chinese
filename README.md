@@ -31,6 +31,10 @@ characters.
 - **One account, every device.** Sign in on the PC and on the iPad and it is the
   same work: saved to the server as you go, kept on the device while the Wi-Fi
   is down, and merged rather than overwritten when both were busy at once.
+- **Your tones, drawn.** Say a word into the iPad and see the pitch of your
+  voice laid over the shape the tone should have, syllable by syllable, with
+  the sandhi a native speaker would apply — 你好 is checked as ní hǎo. Nothing
+  leaves the device, and nothing is paid for.
 - **An address for everything.** Every collection, passage, drill and filter has
   a URL — reload it, bookmark it, send yourself back to it.
 
@@ -238,6 +242,9 @@ it was made on.
 | `/texts` | the shelf |
 | `/texts/session/plan`, `…/prompt`, `…/paste` | a writing session, step by step |
 | `/texts/<id>` | one passage |
+| `/pinyin` | pronunciation: the four tones, and the map of twenty tone pairs |
+| `/pinyin/practice/<set>` | saying things out loud — `tone-2`, `pair-3-3` |
+| `/pinyin/voice` | measuring your voice range, and checking your consonants |
 | `/settings` | account, folder, appearance |
 | `…?item=c好` on any page | the character drawer; back closes it |
 
@@ -493,6 +500,45 @@ Sets work like collections: a named run of radicals, printed all at once, only
 the ones you have not ticked off, or a range. Ready-made ones cover the first
 20, the top 50 and 100, all 214, the radicals that change shape, and the ones a
 dot apart printed side by side.
+
+## Pronunciation
+
+At **/pinyin**, for saying things rather than reading them. A tone you can pick
+out of five in the Tones drill is not yet a tone you can say, and nothing on a
+screen could tell you which one came out — until now.
+
+**What it checks, and how.** The microphone's samples are read straight off the
+audio graph (echo cancellation, noise suppression and automatic gain switched
+off — they are built for calls and all three bend pitch), and the pitch is
+tracked with YIN, frame by frame, on the device. The recording is cut into as
+many syllables as the word has, and each syllable's pitch is put on *your own*
+five-point Chao scale — 1 the bottom of your voice, 5 the top — and compared
+with the four tone shapes by shape and by height. What comes back is a line on
+a staff, your voice over the dashed shape it should have had, and per syllable
+*right*, *nearly* or *not yet*, with one sentence saying what to change in terms
+an English speaker already knows how to do ("a firm *No!*").
+
+- **Sandhi first.** The data prints citation tones; people do not say them. The
+  expected tones go through the rules for 3+3, 一 and 不 before anything is
+  judged, and a third tone with something after it is expected low rather than
+  dipping. Say 水果 with two textbook thirds and it tells you the rule, not just
+  the shape.
+- **Your range, measured once.** Say mā má mǎ mà on **/pinyin/voice** and the
+  bottom of your third and the top of your first become the scale. Without it,
+  height is guessed from each recording and the page says so.
+- **Pairs are the curriculum.** Twenty of them — four tones, then any of the
+  four or a neutral — each filled with the most elementary words that have it,
+  from the words the app already ships. Words whose tones 一 or 不 change are
+  kept out, since 一起 is written 1+3 and said 4+3.
+- **Consonants, roughly.** Pitch cannot see q against ch. The browser's own
+  speech recognition can, crudely: on **/pinyin/voice** it writes down what it
+  heard, and a *ch* where the *q* should be is a *q* drifting. Safari sends that
+  audio to Apple and needs Siri & Dictation on; it is marked experimental.
+
+The microphone needs a secure page. The online version is https and works; on
+the home Wi-Fi at `http://192.168…` the browser offers no microphone at all,
+and the page says so. Your voice range and scores are kept on the device for
+now, not in the account.
 
 ## Reading passages
 

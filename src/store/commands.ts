@@ -1,8 +1,9 @@
-import { DEFAULT_SCOPE, type Collection, type PrintScope } from '../domain/collection';
+import { DEFAULT_SCOPE, type Collection, type CollectionWord, type PrintScope } from '../domain/collection';
 import type { ItemId } from '../domain/ids';
 import type { PrintedSheet, Rating, Skill } from '../domain/memory';
 import { defaultSheet, type SheetOptions } from '../domain/sheet';
 import type { GeneratedText, TextPlan, TextSet } from '../domain/text';
+import { emptyListPlan, type WordListPlan } from '../domain/wordlist';
 import { newId } from '../platform/ids';
 import { serialise } from './migrations';
 import type { AppSettings, AppState } from './state';
@@ -27,6 +28,9 @@ export function createCollection(opts: {
   items?: ItemId[];
   sheet?: Partial<SheetOptions>;
   presetId?: string;
+  note?: string;
+  words?: CollectionWord[];
+  brief?: string;
 }): Collection {
   const at = now();
   const collection: Collection = {
@@ -38,6 +42,9 @@ export function createCollection(opts: {
     createdAt: at,
     updatedAt: at,
     presetId: opts.presetId,
+    note: opts.note || undefined,
+    words: opts.words?.length ? opts.words : undefined,
+    brief: opts.brief || undefined,
   };
   dispatch({ type: 'collection/create', collection });
   return collection;
@@ -51,6 +58,9 @@ export const setSheet = (id: string, sheet: Partial<SheetOptions>) =>
 
 export const setScope = (id: string, scope: Partial<PrintScope>) =>
   dispatch({ type: 'collection/update', id, patch: { scope }, at: now() });
+
+export const setWords = (id: string, words: CollectionWord[]) =>
+  dispatch({ type: 'collection/update', id, patch: { words }, at: now() });
 
 export const deleteCollection = (id: string) => dispatch({ type: 'collection/delete', id });
 
@@ -174,6 +184,25 @@ export function patchPlan(patch: Partial<TextPlan>) {
 export function discardPlan() {
   const plan = getState().plan;
   if (plan) dispatch({ type: 'plan/discard', planId: plan.id });
+}
+
+/* ---------------------------------------------------------- the word list */
+
+/** A new word list to write with Claude, replacing any left half-done. */
+export function startListPlan(): WordListPlan {
+  const plan = emptyListPlan(newId(), now());
+  dispatch({ type: 'listPlan/start', plan });
+  return plan;
+}
+
+export function patchListPlan(patch: Partial<WordListPlan>) {
+  const plan = getState().listPlan;
+  if (plan) dispatch({ type: 'listPlan/patch', planId: plan.id, patch });
+}
+
+export function discardListPlan() {
+  const plan = getState().listPlan;
+  if (plan) dispatch({ type: 'listPlan/discard', planId: plan.id });
 }
 
 /* --------------------------------------------------------------- settings */

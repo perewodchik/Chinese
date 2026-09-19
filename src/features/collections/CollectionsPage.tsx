@@ -7,7 +7,7 @@ import { allPresets, GROUP_BLURB, GROUP_LABEL, type Preset, type PresetGroup } f
 import { paths } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
 import { PALETTES } from '../../pdf/theme';
-import { createCollection } from '../../store/commands';
+import { createCollection, discardListPlan, startListPlan } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Strip } from '../../ui/Strip';
 import { useToast } from '../../ui/toast';
@@ -38,6 +38,12 @@ function CollectionCard({ c, learned }: { c: Collection; learned: ReadonlySet<It
       </div>
       <div className="row tiny muted" style={{ gap: 6 }}>
         <span>{countLabel(s.total)}</span>
+        {c.words?.length ? (
+          <>
+            <span>·</span>
+            <span>{c.words.length} words</span>
+          </>
+        ) : null}
         <span>·</span>
         <span>
           {s.pages} page{s.pages === 1 ? '' : 's'} at {c.sheet.perPage} per page
@@ -66,6 +72,7 @@ export function CollectionsPage() {
 
   const collections = useStore((s) => s.collections);
   const learned = useStore((s) => s.learned);
+  const listPlan = useStore((s) => s.listPlan);
   const [adding, setAdding] = useState<Preset | null>(null);
   const presets = useMemo(() => allPresets(lib), [lib]);
   const added = useMemo(() => new Set(collections.map((c) => c.presetId ?? c.name)), [collections]);
@@ -74,6 +81,15 @@ export function CollectionsPage() {
   function startEmpty() {
     const c = createCollection({ name: nextCollectionName(collections) });
     navigate(paths.collection(c.id, 'items'));
+  }
+
+  /** A list written with Claude: a topic or a situation in, explained words out. */
+  function startList() {
+    if (listPlan && !confirm(`Start a new word list? “${listPlan.name}” is still in progress, and would be thrown away.`)) {
+      return;
+    }
+    startListPlan();
+    navigate(paths.buildList('describe'));
   }
 
   return (
@@ -91,7 +107,47 @@ export function CollectionsPage() {
         <button className="btn" onClick={startEmpty}>
           + New collection
         </button>
+        <button
+          className="btn primary"
+          onClick={startList}
+          title="Describe a topic or a situation; Claude picks the words, explains them and shows them in use"
+        >
+          ✦ Write one with Claude
+        </button>
       </div>
+
+      {listPlan && (
+        <div className="resume">
+          <span className="mark">词</span>
+          <div style={{ minWidth: 0 }}>
+            <b>{listPlan.name}</b>
+            <p className="tiny muted" style={{ margin: 0 }}>
+              {listPlan.size} words ·{' '}
+              {listPlan.step === 'describe'
+                ? 'still being described'
+                : listPlan.step === 'prompt'
+                  ? listPlan.copiedAt
+                    ? 'prompt copied — waiting for Claude’s answer'
+                    : 'prompt ready to copy'
+                  : listPlan.response.trim()
+                    ? 'an answer is pasted and waiting to be saved'
+                    : 'waiting for you to paste the answer'}
+            </p>
+          </div>
+          <div className="spacer" />
+          <button
+            className="btn ghost sm"
+            onClick={() => {
+              if (confirm('Throw this word list away?')) discardListPlan();
+            }}
+          >
+            Discard
+          </button>
+          <Link className="btn primary sm" to={paths.buildList(listPlan.step)}>
+            Continue →
+          </Link>
+        </div>
+      )}
 
       {collections.length > 0 && (
         <div className="tpl-grid" style={{ marginBottom: 26 }}>

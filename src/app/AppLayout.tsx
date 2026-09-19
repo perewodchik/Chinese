@@ -36,6 +36,7 @@ export function AppLayout() {
     { to: paths.collections(), label: 'Collections', count: collections },
     { to: paths.radicals(), label: 'Radicals', count: 0 },
     { to: paths.texts(), label: 'Texts', count: texts },
+    { to: paths.pinyin(), label: 'Pinyin', count: 0 },
     { to: paths.settings(), label: 'Settings', count: 0 },
   ];
 

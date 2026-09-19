@@ -11,7 +11,7 @@ import {
   type ScopeMode,
 } from '../../domain/collection';
 import { countLabel } from '../../domain/ids';
-import { paths, type EditorTab } from '../../navigation/paths';
+import { paths, type CollectionTab } from '../../navigation/paths';
 import { fitFor, renderCollection, renderRecall } from '../../pdf/render';
 import {
   deleteCollection,
@@ -27,10 +27,11 @@ import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { ItemBoard } from './ItemBoard';
 import { SheetDesigner } from './SheetDesigner';
+import { WordList } from './WordList';
 
 interface Props {
   c: Collection;
-  tab: EditorTab;
+  tab: CollectionTab;
 }
 
 /** How many pages of a long collection the live preview bothers to build. */
@@ -240,6 +241,11 @@ export function CollectionEditor({ c, tab }: Props) {
         <NavLink to={paths.collection(c.id, 'items')} replace>
           Items ({c.items.length})
         </NavLink>
+        {c.words?.length ? (
+          <NavLink to={paths.collection(c.id, 'words')} replace>
+            Words ({c.words.length})
+          </NavLink>
+        ) : null}
       </nav>
 
       {tab === 'design' ? (
@@ -287,6 +293,8 @@ export function CollectionEditor({ c, tab }: Props) {
             </footer>
           </div>
         </div>
+      ) : tab === 'words' ? (
+        <WordList c={c} />
       ) : (
         <ItemBoard c={c} taken={taken} />
       )}

@@ -30,7 +30,10 @@ const passwordChange = z.object({
   newPassword: z.string().max(2048),
 });
 
-export function authRoutes({ auth, clock, trustProxy }: RouteDeps) {
+/** A request from this machine — the only kind the development sign-in answers. */
+const isLoopback = (ip: string) => ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+
+export function authRoutes({ auth, clock, trustProxy, devUser }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const sessionOptions = { trustProxy, clock };
   const session = requireSession(auth, sessionOptions);
@@ -51,6 +54,15 @@ export function authRoutes({ auth, clock, trustProxy }: RouteDeps) {
   routes.get('/session', async (c) => {
     c.header('Cache-Control', 'no-store');
     const active = await currentSession(c, auth, sessionOptions);
+    // Development with HANZI_DEV_USER: nobody signed in, asked from this
+    // machine, is signed in as that account. The dev server listens on the
+    // whole Wi-Fi, so the tablet on it still has to sign in like anyone else.
+    if (!active && devUser && isLoopback(clientIp(c, trustProxy))) {
+      const issued = await auth.devSignIn(devUser, c.req.header('user-agent') ?? null);
+      writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
+      const body: CurrentSessionResponse = { user: issued.user };
+      return c.json(body);
+    }
     const body: CurrentSessionResponse = { user: active?.user ?? null };
     return c.json(body);
   });

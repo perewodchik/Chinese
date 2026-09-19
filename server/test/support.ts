@@ -30,9 +30,14 @@ export function makeServices(policy: Partial<AuthPolicy> = {}) {
 
 export type TestApp = ReturnType<typeof createHttpApp>;
 
-export function makeApp(policy: Partial<AuthPolicy> = {}) {
+export function makeApp(policy: Partial<AuthPolicy> = {}, http: { trustProxy?: boolean; devUser?: string } = {}) {
   const made = makeServices(policy);
-  const app = createHttpApp(made.services, { trustProxy: false, staticDir: null, log: () => undefined });
+  const app = createHttpApp(made.services, {
+    trustProxy: http.trustProxy ?? false,
+    staticDir: null,
+    log: () => undefined,
+    devUser: http.devUser,
+  });
   return { ...made, app };
 }
 

@@ -50,7 +50,9 @@ export function toneOf(py: string): number {
   const flat = py.normalize('NFD');
   for (const [marks, tone] of TONE_MARKS) {
     for (const m of marks.normalize('NFD')) {
-      if (m.charCodeAt(0) > 0x2ff && flat.includes(m)) return tone;
+      // The two dots of ü are a combining mark too, and they are in every
+      // tone's ǖ ǘ ǚ ǜ — counted as a tone, every ü read as a first.
+      if (m.charCodeAt(0) > 0x2ff && m !== '̈' && flat.includes(m)) return tone;
     }
   }
   return 5;

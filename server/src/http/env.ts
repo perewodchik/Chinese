@@ -13,4 +13,6 @@ export interface AppEnv {
 
 export interface RouteDeps extends Services {
   trustProxy: boolean;
+  /** development only: the account a request from this machine is signed in as, without a password */
+  devUser: string | null;
 }

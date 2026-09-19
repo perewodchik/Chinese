@@ -127,3 +127,47 @@ describe('HTTP API', () => {
     assert.equal(((await res.json()) as ApiErrorBody).error.code, 'not_found');
   });
 });
+
+describe('signing in without a password, on the development server', () => {
+  // The address a request came from, the way a proxy would say it — the only
+  // way to give a request made in-process an address at all.
+  const from = (ip: string) => ({ headers: { 'x-forwarded-for': ip } });
+
+  it('signs a request from this machine in as the named account, making it the first time', async () => {
+    const { app } = makeApp({}, { trustProxy: true, devUser: 'admin' });
+    const res = await call(app, 'GET', '/api/auth/session', from('127.0.0.1'));
+    assert.equal(((await res.json()) as CurrentSessionResponse).user?.username, 'admin');
+
+    const cookie = sessionCookie(res);
+    assert.equal((await call(app, 'GET', '/api/workspace', { cookie })).status, 200);
+
+    const again = await call(app, 'GET', '/api/auth/session', from('::1'));
+    const second = ((await again.json()) as CurrentSessionResponse).user;
+    assert.equal(second?.username, 'admin');
+    assert.equal(second?.id, ((await whoIsSignedIn(app, cookie)) ?? undefined)?.id, 'the same account, not a new one');
+  });
+
+  it('makes the account once when the page asks twice at the same moment', async () => {
+    const { app } = makeApp({}, { trustProxy: true, devUser: 'admin' });
+    const both = await Promise.all([
+      call(app, 'GET', '/api/auth/session', from('127.0.0.1')),
+      call(app, 'GET', '/api/auth/session', from('127.0.0.1')),
+    ]);
+    const users = await Promise.all(both.map(async (r) => ((await r.json()) as CurrentSessionResponse).user));
+    assert.deepEqual(both.map((r) => r.status), [200, 200]);
+    assert.equal(users[0]?.id, users[1]?.id);
+  });
+
+  it('leaves another device on the Wi-Fi at the sign-in page', async () => {
+    const { app } = makeApp({}, { trustProxy: true, devUser: 'admin' });
+    const res = await call(app, 'GET', '/api/auth/session', from('192.168.1.42'));
+    assert.equal(((await res.json()) as CurrentSessionResponse).user, null);
+    assert.equal(res.headers.get('set-cookie'), null);
+  });
+
+  it('does nothing unless it was asked for', async () => {
+    const { app } = makeApp({}, { trustProxy: true });
+    const res = await call(app, 'GET', '/api/auth/session', from('127.0.0.1'));
+    assert.equal(((await res.json()) as CurrentSessionResponse).user, null);
+  });
+});

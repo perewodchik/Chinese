@@ -1,4 +1,4 @@
-import { DEFAULT_SCOPE, type Collection } from '../domain/collection';
+import { DEFAULT_SCOPE, type Collection, type CollectionWord } from '../domain/collection';
 import { isCharId, type ItemId } from '../domain/ids';
 import {
   learnedFrom,
@@ -10,7 +10,8 @@ import {
   type SkillBook,
 } from '../domain/memory';
 import { DEFAULT_CHAR_SHEET, PER_PAGE_CHOICES, type SheetOptions } from '../domain/sheet';
-import type { GeneratedText, TextPlan, TextSet, TextSpec } from '../domain/text';
+import type { GeneratedText, TextLine, TextPlan, TextSet, TextSpec } from '../domain/text';
+import { emptyListPlan, LIST_STEPS, type WordListPlan } from '../domain/wordlist';
 import {
   isRadicalId,
   mergeRadicals,
@@ -274,6 +275,46 @@ function planFrom(v: unknown): TextPlan | null {
   };
 }
 
+/** A collection's explained words, with anything that is not one dropped. */
+function wordsFrom(v: unknown): CollectionWord[] | undefined {
+  const words = arr<Loose>(v)
+    .filter((w) => w && typeof w === 'object' && typeof w.w === 'string' && w.w)
+    .map(
+      (w): CollectionWord => ({
+        w: String(w.w),
+        py: strOr(w.py, ''),
+        d: strOr(w.d, ''),
+        hsk: typeof w.hsk === 'number' ? w.hsk : null,
+        explain: strOr(w.explain, ''),
+        examples: arr<Loose>(w.examples)
+          .filter((l) => l && typeof l === 'object' && typeof l.zh === 'string')
+          .map((l): TextLine => ({ zh: String(l.zh), py: strOr(l.py, ''), en: strOr(l.en, '') })),
+      }),
+    );
+  return words.length ? words : undefined;
+}
+
+/** The word list in progress. Anything malformed simply means none. */
+function listPlanFrom(v: unknown): WordListPlan | null {
+  if (!v || typeof v !== 'object') return null;
+  const p = v as Loose;
+  if (typeof p.id !== 'string') return null;
+  const base = emptyListPlan(p.id, finite(p.createdAt, Date.now()));
+  const step = LIST_STEPS.find((s) => s.id === p.step)?.id ?? base.step;
+  return {
+    ...base,
+    name: strOr(p.name, base.name),
+    request: strOr(p.request, ''),
+    size: finite(p.size, base.size),
+    ceiling: finite(p.ceiling, base.ceiling),
+    phrases: p.phrases !== false,
+    lang: p.lang === 'ru' ? 'ru' : 'en',
+    response: strOr(p.response, ''),
+    step,
+    copiedAt: typeof p.copiedAt === 'number' ? p.copiedAt : undefined,
+  };
+}
+
 /**
  * Settings, field by field.
  *
@@ -443,6 +484,8 @@ export function hydrate(raw: unknown): AppState {
         updatedAt: finite(c.updatedAt, now),
         presetId: c.presetId,
         note: c.note,
+        words: wordsFrom(c.words),
+        brief: typeof c.brief === 'string' && c.brief ? c.brief : undefined,
       })),
     recall,
     sheets: arr<unknown>(p.sheets)
@@ -456,6 +499,7 @@ export function hydrate(raw: unknown): AppState {
       .map(setFrom)
       .filter((s): s is TextSet => s !== null),
     plan: planFrom(p.plan),
+    listPlan: listPlanFrom(p.listPlan),
     radicals: p.radicals ? mergeRadicals(radicalsFrom(p.radicals, now), legacy) : legacy,
     settings: settingsFrom(p.settings),
   };
@@ -473,6 +517,7 @@ export function serialise(s: AppState): PersistedState {
     texts: s.texts,
     sets: s.sets,
     plan: s.plan,
+    listPlan: s.listPlan,
     radicals: s.radicals,
     settings: s.settings,
   };

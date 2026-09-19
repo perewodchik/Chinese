@@ -58,7 +58,7 @@ export interface ParseResult {
 /* ----------------------------------------------------------- json finding */
 
 /** Every fenced block in the reply, closed or not. */
-function fences(raw: string): string[] {
+export function fences(raw: string): string[] {
   const out: string[] = [];
   const re = /```[a-zA-Z]*\s*\n([\s\S]*?)(?:```|$)/g;
   let m: RegExpExecArray | null;
@@ -168,7 +168,7 @@ function repair(src: string): string {
   return out.join('');
 }
 
-function tryParse(text: string): { value: unknown; repaired: boolean } | null {
+export function tryParse(text: string): { value: unknown; repaired: boolean } | null {
   const trimmed = text.trim();
   if (!trimmed) return null;
   try {
@@ -184,7 +184,7 @@ function tryParse(text: string): { value: unknown; repaired: boolean } | null {
 }
 
 /** Walks from `start` to the brace that closes it, ignoring braces in strings. */
-function balancedEnd(s: string, start: number): number {
+export function balancedEnd(s: string, start: number): number {
   const open = s[start];
   const close = open === '{' ? '}' : ']';
   let depth = 0;
@@ -206,7 +206,7 @@ function balancedEnd(s: string, start: number): number {
 }
 
 /** The outermost JSON-looking spans in a blob of prose. */
-function spans(raw: string): string[] {
+export function spans(raw: string): string[] {
   const out: string[] = [];
   for (let i = 0; i < raw.length; i++) {
     if (raw[i] !== '{' && raw[i] !== '[') continue;
@@ -247,11 +247,11 @@ function salvage(raw: string): unknown[] {
 
 /* ------------------------------------------------------------ normalising */
 
-type Bag = Record<string, unknown>;
+export type Bag = Record<string, unknown>;
 
-const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
+export const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 
-const pick = (o: Bag, ...keys: string[]): string => {
+export const pick = (o: Bag, ...keys: string[]): string => {
   for (const k of keys) {
     const v = str(o[k]);
     if (v) return v;
@@ -259,12 +259,12 @@ const pick = (o: Bag, ...keys: string[]): string => {
   return '';
 };
 
-const arrayOf = (o: Bag, ...keys: string[]): unknown[] => {
+export const arrayOf = (o: Bag, ...keys: string[]): unknown[] => {
   for (const k of keys) if (Array.isArray(o[k])) return o[k] as unknown[];
   return [];
 };
 
-function asLine(v: unknown): TextLine | null {
+export function asLine(v: unknown): TextLine | null {
   if (typeof v === 'string') {
     return hanziIn(v).length ? { zh: v.trim(), py: '', en: '' } : null;
   }

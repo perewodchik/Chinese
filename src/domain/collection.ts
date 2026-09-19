@@ -1,6 +1,7 @@
 import type { ItemId } from './ids';
 import { isDue, SKILLS, type RecallBook } from './memory';
 import type { SheetOptions } from './sheet';
+import type { TextLine } from './text';
 
 /**
  * A collection is one named body of work — "HSK 1", "Food", "The ones I keep
@@ -37,6 +38,27 @@ export interface PrintScope {
   count: number;
 }
 
+/**
+ * A word a collection was built around, as its writer explained it.
+ *
+ * A collection is still a list of characters — characters are what go on
+ * paper and what the schedule asks about. A list written to order ("seeing a
+ * doctor") is made of words, though, and the words are the point: these ride
+ * along beside the characters, so the collection can show what each one was
+ * for.
+ */
+export interface CollectionWord {
+  w: string;
+  py: string;
+  /** a short meaning */
+  d: string;
+  /** HSK band, 7 for 7–9; null outside the syllabus */
+  hsk: number | null;
+  /** how it is used, what it goes with, what to watch for */
+  explain: string;
+  examples: TextLine[];
+}
+
 export interface Collection {
   id: string;
   name: string;
@@ -48,6 +70,10 @@ export interface Collection {
   /** the ready-made set it was built from, if any */
   presetId?: string;
   note?: string;
+  /** the words it was written around, when Claude wrote it */
+  words?: CollectionWord[];
+  /** what was asked for, in your own words */
+  brief?: string;
 }
 
 export const DEFAULT_SCOPE: PrintScope = { mode: 'all', from: 1, count: 20 };

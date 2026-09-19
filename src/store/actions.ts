@@ -1,4 +1,4 @@
-import type { Collection, PrintScope } from '../domain/collection';
+import type { Collection, CollectionWord, PrintScope } from '../domain/collection';
 import type { ItemId } from '../domain/ids';
 import {
   asserted,
@@ -12,6 +12,7 @@ import {
 } from '../domain/memory';
 import type { SheetOptions } from '../domain/sheet';
 import type { GeneratedText, TextPlan, TextSet } from '../domain/text';
+import type { WordListPlan } from '../domain/wordlist';
 import { appendNew, reorderKeeping } from './lists';
 import { mergeStates } from './merge';
 import { hydrate } from './migrations';
@@ -38,6 +39,7 @@ export interface CollectionPatch {
   note?: string;
   sheet?: Partial<SheetOptions>;
   scope?: Partial<PrintScope>;
+  words?: CollectionWord[];
 }
 
 export interface GradeResult {
@@ -68,6 +70,9 @@ export type Action =
   | { type: 'plan/start'; plan: TextPlan }
   | { type: 'plan/patch'; planId: string; patch: Partial<TextPlan> }
   | { type: 'plan/discard'; planId: string }
+  | { type: 'listPlan/start'; plan: WordListPlan }
+  | { type: 'listPlan/patch'; planId: string; patch: Partial<WordListPlan> }
+  | { type: 'listPlan/discard'; planId: string }
   | { type: 'settings/patch'; patch: Partial<AppSettings> }
   | { type: 'workspace/reset' }
   | { type: 'workspace/replace'; document: PersistedState }
@@ -88,11 +93,12 @@ export function reduce(state: AppState, action: Action): AppState {
         : { ...state, collections: [...state.collections, action.collection] };
 
     case 'collection/update': {
-      const { name, note, sheet, scope } = action.patch;
+      const { name, note, sheet, scope, words } = action.patch;
       return updateCollection(state, action.id, action.at, (c) => ({
         ...c,
         name: name ?? c.name,
         note: note ?? c.note,
+        words: words ?? c.words,
         sheet: sheet ? { ...c.sheet, ...sheet } : c.sheet,
         scope: scope ? { ...c.scope, ...scope } : c.scope,
       }));
@@ -248,6 +254,18 @@ export function reduce(state: AppState, action: Action): AppState {
     case 'plan/discard':
       return state.plan && state.plan.id === action.planId ? { ...state, plan: null } : state;
 
+    /* ------------------------------------------------------- the word list */
+    case 'listPlan/start':
+      return { ...state, listPlan: action.plan };
+
+    case 'listPlan/patch':
+      return state.listPlan && state.listPlan.id === action.planId
+        ? { ...state, listPlan: { ...state.listPlan, ...action.patch } }
+        : state;
+
+    case 'listPlan/discard':
+      return state.listPlan && state.listPlan.id === action.planId ? { ...state, listPlan: null } : state;
+
     /* ------------------------------------------------------------- the rest */
     case 'settings/patch':
       return { ...state, settings: { ...state.settings, ...action.patch } };
@@ -277,6 +295,10 @@ export function coalesce(last: Action, next: Action): Action | null {
   switch (next.type) {
     case 'plan/patch':
       return last.type === 'plan/patch' && last.planId === next.planId
+        ? { ...next, patch: { ...last.patch, ...next.patch } }
+        : null;
+    case 'listPlan/patch':
+      return last.type === 'listPlan/patch' && last.planId === next.planId
         ? { ...next, patch: { ...last.patch, ...next.patch } }
         : null;
     case 'settings/patch':

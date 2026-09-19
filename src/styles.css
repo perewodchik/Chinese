@@ -2825,6 +2825,29 @@ select.mt {
 
 .progress-meter {
   width: 210px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+.progress-meter .ink {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* One segment per band, so a band filling up shows even when 3000 barely moves. */
+.band-bar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.band-bar .bar {
+  height: 6px;
+}
+
+.band-bar .bar[data-current] {
+  box-shadow: 0 0 0 1px var(--violet);
 }
 
 /* -------------------------------------------------------------- no hover */
@@ -3360,4 +3383,108 @@ label.field[data-invalid] input {
 .radical-example span {
   font-size: 11.5px;
   color: var(--ink-3);
+}
+
+/* ==========================================================================
+   Word lists — written with Claude, kept with a collection
+   ========================================================================== */
+
+.request-box {
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.55;
+}
+
+.word-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.word-card {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: opacity 0.14s;
+}
+
+.word-card.skipped {
+  opacity: 0.5;
+}
+
+.word-card > header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.word-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  min-width: 0;
+}
+
+.word-zh {
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+/* Each character opens its own drawer. Ones you have not learned are marked,
+   the same way a passage marks the characters it is teaching. */
+.word-zh .ch {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  border-bottom: 1.5px solid transparent;
+}
+
+.word-zh .ch.fresh {
+  color: var(--accent);
+  border-bottom-color: var(--accent-soft);
+}
+
+.word-zh .ch:hover {
+  border-bottom-color: currentColor;
+}
+
+.word-py {
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.word-body {
+  padding: 10px 14px 4px;
+}
+
+.word-d {
+  margin: 0 0 6px;
+  font-weight: 560;
+}
+
+.word-explain {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.word-examples .passage-line {
+  padding-left: 0;
+  margin-bottom: 12px;
+}
+
+.word-examples .passage-line .zh {
+  font-size: 18px;
 }

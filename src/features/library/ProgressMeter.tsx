@@ -1,34 +1,77 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router';
 import { charId } from '../../domain/ids';
+import { paths } from '../../navigation/paths';
+import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { useLibrary } from '../shared/library';
 
-/** How much of the band you are working on is learned, in the bar across the top. */
+/** The bands in the order they are climbed; 7 stands for 7–9, which the syllabus treats as one. */
+const BANDS = [1, 2, 3, 4, 5, 6, 7];
+
+const bandName = (band: number) => (band === 7 ? 'HSK 7–9' : `HSK ${band}`);
+
+/**
+ * Where you are on the whole syllabus, in the bar across the top.
+ *
+ * It used to measure the band the Library happened to be filtered to, so
+ * glancing at HSK 2 in the Library made the header claim you were working on
+ * HSK 2. A filter is a view, not a position. This reads the position off what
+ * you have learned instead: one segment per band, and the numbers for the
+ * lowest band you have not finished — the one with something left to do in it.
+ * Counting towards 3000 alone would still make a good week look like nothing
+ * happened; a segment filling up does not.
+ */
 export function ProgressMeter() {
   const lib = useLibrary();
   const learned = useStore((s) => s.learned);
-  const band = useStore((s) => s.settings.hskBand);
 
-  const { done, total, label } = useMemo(() => {
-    // Measured against the band you are actually working on. Counting towards
-    // 3000 would make a good week look like nothing happened.
-    const scope = band ? lib.characters.filter((c) => c.hsk === band) : lib.characters;
-    return {
-      done: scope.filter((c) => learned.has(charId(c.c))).length,
-      total: scope.length || 1,
-      label: band === 7 ? 'HSK 7–9' : band ? `HSK ${band}` : 'all bands',
-    };
-  }, [lib, learned, band]);
+  const { bands, current, total } = useMemo(() => {
+    const bands = BANDS.map((band) => ({ band, done: 0, size: 0 }));
+    let total = 0;
+    for (const c of lib.characters) {
+      const b = bands[Math.min(c.hsk, 7) - 1];
+      if (!b) continue;
+      b.size++;
+      if (learned.has(charId(c.c))) {
+        b.done++;
+        total++;
+      }
+    }
+    const current = bands.find((b) => b.size && b.done < b.size) ?? null;
+    return { bands, current, total };
+  }, [lib, learned]);
+
+  const summary = bands.map((b) => `${bandName(b.band)}: ${b.done} of ${b.size}`).join('\n');
 
   return (
-    <div className="progress-meter" title={`${done} of ${total} learned in ${label}`}>
-      <div className="tiny muted" style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <span>{done} learned</span>
-        <span>{label}</span>
+    <Link
+      className="progress-meter"
+      to={`${paths.library()}?show=todo`}
+      title={`${total} learned in all\n\n${summary}${current ? `\n\nClick for what is left in ${bandName(current.band)}` : ''}`}
+      // The one place the header does touch the Library's filter: on purpose,
+      // to open it on what is left in the band shown here.
+      onClick={() => current && setSettings({ hskBand: current.band })}
+    >
+      <div className="tiny muted" style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+        {current ? (
+          <span>
+            <b className="ink">{bandName(current.band)}</b> · {current.done} / {current.size}
+          </span>
+        ) : (
+          <span>
+            <b className="ink">All bands</b> · done
+          </span>
+        )}
+        <span>{total} learned</span>
       </div>
-      <div className="bar" style={{ marginTop: 4 }}>
-        <i className="learned" style={{ width: `${(done / total) * 100}%` }} />
+      <div className="band-bar" style={{ marginTop: 4 }}>
+        {bands.map((b) => (
+          <div key={b.band} className="bar" data-current={b === current || undefined}>
+            <i className="learned" style={{ width: `${b.size ? (b.done / b.size) * 100 : 0}%` }} />
+          </div>
+        ))}
       </div>
-    </div>
+    </Link>
   );
 }

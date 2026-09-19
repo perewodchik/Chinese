@@ -135,6 +135,31 @@ export class AuthService {
     return this.issue(user, input.userAgent);
   }
 
+  /**
+   * A session for the named account with no password asked — made if it does
+   * not exist yet, with a password nobody knows (`npm run admin` can set one).
+   *
+   * Only the development server calls this, and only when HANZI_DEV_USER is
+   * set, so the app can be opened and checked on this machine without signing
+   * in. Nothing that serves the app to anyone else ever reaches it.
+   */
+  async devSignIn(username: string, userAgent: string | null): Promise<IssuedSession> {
+    const key = usernameKey(username);
+    let user = await this.deps.users.findByUsernameKey(key);
+    if (!user) {
+      try {
+        user = await this.createUser(username, this.deps.tokens.secret());
+      } catch (err) {
+        // A page asks who is signed in more than once as it opens; the first
+        // of those made the account, and the rest simply use it.
+        if (!(err instanceof UsernameTakenError)) throw err;
+        user = await this.deps.users.findByUsernameKey(key);
+        if (!user) throw err;
+      }
+    }
+    return this.issue(user, userAgent);
+  }
+
   async logout(token: string | undefined): Promise<void> {
     if (token) await this.deps.sessions.delete(this.deps.tokens.digest(token));
   }

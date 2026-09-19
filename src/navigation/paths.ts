@@ -1,4 +1,5 @@
 import type { PlanStep } from '../domain/text';
+import type { ListStep } from '../domain/wordlist';
 
 /**
  * Every address in the app, built in one place.
@@ -9,6 +10,8 @@ import type { PlanStep } from '../domain/text';
  */
 
 export type EditorTab = 'design' | 'items';
+/** A collection has a third tab, for the words it was written around. */
+export type CollectionTab = EditorTab | 'words';
 export type DrillId = 'recognise' | 'sound' | 'tone' | 'confuse' | 'write' | 'word';
 
 export const paths = {
@@ -30,12 +33,20 @@ export const paths = {
     `/radicals/sets/${encodeURIComponent(id)}${tab === 'items' ? '/items' : ''}`,
 
   collections: () => '/collections',
-  collection: (id: string, tab: EditorTab = 'design') =>
-    `/collections/${encodeURIComponent(id)}${tab === 'items' ? '/items' : ''}`,
+  collection: (id: string, tab: CollectionTab = 'design') =>
+    `/collections/${encodeURIComponent(id)}${tab === 'design' ? '' : `/${tab}`}`,
+  /** a word list being written with Claude: describe, prompt, paste */
+  buildList: (step: ListStep = 'describe') => `/collections/build/${step}`,
 
   texts: () => '/texts',
   text: (id: string) => `/texts/${encodeURIComponent(id)}`,
   session: (step: PlanStep = 'plan') => `/texts/session/${step}`,
+
+  pinyin: () => '/pinyin',
+  /** saying things out loud: `pair-3-3`, `tone-2` */
+  pinyinPractice: (set: string) => `/pinyin/practice/${encodeURIComponent(set)}`,
+  /** the microphone, the voice range, and whether speech recognition works here */
+  pinyinVoice: () => '/pinyin/voice',
 
   settings: () => '/settings',
 };

@@ -3,6 +3,7 @@ import type { ItemId } from '../domain/ids';
 import type { PrintedSheet, RecallBook } from '../domain/memory';
 import type { PaletteId, StyleId } from '../domain/sheet';
 import type { GeneratedText, TextPlan, TextSet } from '../domain/text';
+import type { WordListPlan } from '../domain/wordlist';
 import { emptyRadicals, type RadicalState } from './radicalState';
 
 export interface AppSettings {
@@ -57,6 +58,8 @@ export interface PersistedState {
   texts: GeneratedText[];
   sets: TextSet[];
   plan: TextPlan | null;
+  /** a word list being written with Claude; absent in documents from before it existed */
+  listPlan?: WordListPlan | null;
   /** radical sets and the radicals marked known, which nothing above reads */
   radicals: RadicalState;
   settings: AppSettings;
@@ -72,6 +75,8 @@ export interface AppState {
   sets: TextSet[];
   /** the writing session in progress, kept across reloads */
   plan: TextPlan | null;
+  /** the word list being written, kept across reloads */
+  listPlan: WordListPlan | null;
   radicals: RadicalState;
   settings: AppSettings;
 }
@@ -84,6 +89,7 @@ export const emptyState = (): AppState => ({
   texts: [],
   sets: [],
   plan: null,
+  listPlan: null,
   radicals: emptyRadicals(),
   settings: { ...DEFAULT_SETTINGS },
 });

@@ -1,0 +1,331 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, Navigate, useNavigate, useParams } from 'react-router';
+import { analyse, type Attempt } from '../../domain/pinyin/analyse';
+import { TONE_NAME, type Verdict } from '../../domain/pinyin/contour';
+import { singleTones, tonePairs, type PracticeWord } from '../../domain/pinyin/practice';
+import { RULE_NOTE } from '../../domain/pinyin/sandhi';
+import { withTone } from '../../domain/pinyin/syllable';
+import { micUnavailable, MIC_MESSAGE } from '../../platform/audio/mic';
+import { trackPitch } from '../../platform/audio/pitch';
+import { speak } from '../../platform/speech';
+import { paths } from '../../navigation/paths';
+import { useTitle } from '../../ui/useTitle';
+import { useLibrary } from '../shared/library';
+import { PitchStaff } from './PitchStaff';
+import { RecordButton } from './RecordButton';
+import { useRecorder } from './useRecorder';
+import { pairKey, record, toneKey, voiceRange } from './voice';
+import './pinyin.css';
+
+interface PracticeSet {
+  id: string;
+  title: string;
+  hint: string;
+  tally: string;
+  words: PracticeWord[];
+}
+
+/** `pair-3-3` or `tone-2`, turned into something to say. */
+function usePracticeSet(id: string | undefined): PracticeSet | null {
+  const lib = useLibrary();
+  return useMemo(() => {
+    const pair = /^pair-([1-4])-([1-5])$/.exec(id ?? '');
+    if (pair) {
+      const [a, b] = [Number(pair[1]), Number(pair[2])];
+      const words = tonePairs(lib).find((p) => p.first === a && p.second === b)?.words ?? [];
+      return {
+        id: id!,
+        title: `${TONE_NAME[a]} + ${TONE_NAME[b]}`.replace(/^./, (c) => c.toUpperCase()),
+        hint: `Two syllables: ${TONE_NAME[a]}, then ${TONE_NAME[b]}. Listen, then say it.`,
+        tally: pairKey(`${a}-${b}`),
+        words,
+      };
+    }
+    const tone = /^tone-([1-4])$/.exec(id ?? '');
+    if (tone) {
+      const t = Number(tone[1]);
+      return {
+        id: id!,
+        title: `The ${TONE_NAME[t]} tone`,
+        hint: 'One syllable at a time. Listen, then say it.',
+        tally: toneKey(t),
+        words: singleTones(lib)[t] ?? [],
+      };
+    }
+    return null;
+  }, [id, lib]);
+}
+
+/** One sitting of saying things, at /pinyin/practice/:set. */
+export function PracticePage() {
+  const { set: setId } = useParams();
+  const set = usePracticeSet(setId);
+  if (!set || !set.words.length) return <Navigate to={paths.pinyin()} replace />;
+  return <Sitting key={set.id} set={set} />;
+}
+
+interface Result {
+  word: PracticeWord;
+  firstTry: boolean;
+  tries: number;
+}
+
+const VERDICT_LABEL: Record<Verdict, string> = {
+  right: 'Right',
+  close: 'Nearly',
+  wrong: 'Not yet',
+  light: 'Light',
+  unheard: 'Not heard',
+};
+
+function Sitting({ set }: { set: PracticeSet }) {
+  useTitle(set.title);
+  const navigate = useNavigate();
+  const [at, setAt] = useState(0);
+  const [attempt, setAttempt] = useState<Attempt | null>(null);
+  const [samples, setSamples] = useState<Float32Array | null>(null);
+  const [take, setTake] = useState(0);
+  const [tries, setTries] = useState(0);
+  const [results, setResults] = useState<Result[]>([]);
+  const blocked = micUnavailable();
+
+  const word = set.words[at];
+  const exit = () => navigate(paths.pinyin(), { replace: true });
+
+  const onRecorded = useCallback(
+    (s: Float32Array) => {
+      if (!word) return;
+      const frames = trackPitch(s, { sampleRate: 16000 });
+      const a = analyse(frames, word.spoken, voiceRange());
+      setSamples(s);
+      setAttempt(a);
+      setTake((n) => n + 1);
+      if (a.problem) return;
+      const good = a.syllables.every((x) => x.judged.verdict === 'right' || x.judged.verdict === 'light');
+      record(set.tally, good);
+      setTries((n) => n + 1);
+      if (good || tries === 0) {
+        // The first try is what counts for the tally; a later success only
+        // counts as having got there.
+        setResults((r) => (r.some((x) => x.word === word) ? r : [...r, { word, firstTry: good, tries: tries + 1 }]));
+      }
+    },
+    [word, set.tally, tries],
+  );
+
+  const rec = useRecorder(onRecorded, 1800 + 700 * (word?.syllables.length ?? 1));
+
+  const listen = useCallback(() => word && speak(word.word, { rate: 0.75 }), [word]);
+  const next = useCallback(() => {
+    setAt((n) => n + 1);
+    setAttempt(null);
+    setSamples(null);
+    setTries(0);
+  }, []);
+
+  // A new word is heard before it is said: imitation first, then comparison.
+  useEffect(() => {
+    if (word) {
+      const id = setTimeout(listen, 250);
+      return () => clearTimeout(id);
+    }
+  }, [word, listen]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey) return;
+      if (e.key === ' ') {
+        e.preventDefault();
+        rec.toggle();
+      } else if (e.key === 'l' || e.key === 'L') listen();
+      else if ((e.key === 'p' || e.key === 'P') && samples) rec.play(samples);
+      else if ((e.key === 'Enter' || e.key === 'ArrowRight') && attempt) next();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [rec, listen, samples, attempt, next]);
+
+  if (!word) return <Done set={set} results={results} onExit={exit} />;
+
+  const judged = attempt && !attempt.problem ? attempt.syllables : null;
+  const rules = [...new Set(word.spoken.map((s) => s.rule).filter(Boolean))] as Array<keyof typeof RULE_NOTE>;
+  // Saying the dictionary's tone where a rule changes it is its own mistake,
+  // and the useful thing to hear is the rule, not a description of the shape.
+  const tip = judged
+    ?.map((s, i) => {
+      const sp = word.spoken[i]!;
+      if (sp.rule && s.judged.verdict !== 'right' && s.judged.guess?.tone === sp.citation) {
+        return `That was the dictionary's ${TONE_NAME[sp.citation]} tone. ${RULE_NOTE[sp.rule]}`;
+      }
+      return s.judged.tip;
+    })
+    .find(Boolean);
+  const allRight = judged?.every((s) => s.judged.verdict === 'right' || s.judged.verdict === 'light');
+
+  return (
+    <section className="drill">
+      <div className="drill-head">
+        <button className="btn ghost sm" onClick={exit} title="Stop here — what you said is kept">
+          ← Stop
+        </button>
+        <div style={{ minWidth: 0 }}>
+          <b>{set.title}</b>
+          <div className="tiny muted">{set.hint}</div>
+        </div>
+        <div className="spacer" />
+        <span className="tiny muted">
+          {at + 1} of {set.words.length}
+        </span>
+        <div className="bar" style={{ width: 140 }}>
+          <i className="learned" style={{ width: `${(at / set.words.length) * 100}%` }} />
+        </div>
+      </div>
+
+      <div className="drill-stage speak-stage">
+        {blocked && <p className="notice speak-notice">{MIC_MESSAGE[blocked]}</p>}
+
+        <div className="speak-word">
+          <span className="speak-hanzi">{word.word}</span>
+          <span className="speak-reading">{word.reading}</span>
+          <span className="small muted">{word.gloss}</span>
+          {rules.length > 0 && (
+            <span className="speak-said tiny">
+              Said{' '}
+              <b>
+                {word.syllables.map((s, i) => withTone(s.bare, word.spoken[i]!.surface)).join(' ')}
+              </b>{' '}
+              — {rules.map((r) => RULE_NOTE[r]).join(' ')}
+            </span>
+          )}
+        </div>
+
+        <div className="staff-card">
+          <PitchStaff
+            take={take}
+            line={judged ? attempt!.line : undefined}
+            syllables={word.spoken.map((s, i) => ({
+              tone: s.surface,
+              halfThird: s.halfThird,
+              from: judged?.[i]?.from,
+              to: judged?.[i]?.to,
+              verdict: judged?.[i]?.judged.verdict,
+            }))}
+          />
+          <div className="staff-legend tiny muted">
+            <span>
+              <i className="key-ref" /> the shape to aim for
+            </span>
+            <span>
+              <i className="key-voice" /> your voice
+            </span>
+          </div>
+        </div>
+
+        <div className="speak-controls">
+          <button className="btn speak-side" onClick={listen} title="Listen (L)">
+            <span aria-hidden>🔊</span> Listen
+          </button>
+          <RecordButton state={rec.state} level={rec.level} onToggle={rec.toggle} disabled={!!blocked} />
+          <button
+            className="btn speak-side"
+            onClick={() => samples && rec.play(samples)}
+            disabled={!samples}
+            title="Hear yourself (P)"
+          >
+            <span aria-hidden>▶</span> Me
+          </button>
+        </div>
+
+        {rec.error && <p className="notice speak-notice">{rec.error}</p>}
+
+        {attempt?.problem && (
+          <p className="small muted" style={{ margin: 0 }}>
+            {attempt.problem === 'silent'
+              ? 'Nothing was heard. Say it a little louder, or closer to the microphone.'
+              : `Could not find ${word.syllables.length} syllables in that. Say it again, a touch more slowly.`}
+          </p>
+        )}
+
+        {judged && (
+          <>
+            <div className="verdicts">
+              {judged.map((s, i) => {
+                const sp = word.spoken[i]!;
+                const heard = s.judged.guess?.tone;
+                return (
+                  <div key={i} className="verdict" data-state={s.judged.verdict}>
+                    <span className="verdict-hanzi">{[...word.word][i]}</span>
+                    <span className="verdict-py">{withTone(word.syllables[i]!.bare, sp.surface)}</span>
+                    <b>{VERDICT_LABEL[s.judged.verdict]}</b>
+                    <span className="tiny muted">
+                      {s.judged.verdict === 'light'
+                        ? 'neutral — short and soft'
+                        : s.judged.verdict === 'right'
+                          ? `a clear ${TONE_NAME[sp.surface]}`
+                          : heard
+                            ? `sounded like a ${TONE_NAME[heard]}`
+                            : ''}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            {tip && <p className="speak-tip">{tip}</p>}
+            {attempt!.selfScaled && (
+              <p className="tiny muted" style={{ margin: 0 }}>
+                Your voice range is not set, so how high is guessed from this recording.{' '}
+                <Link to={paths.pinyinVoice()}>Set it up</Link> — it takes twenty seconds.
+              </p>
+            )}
+            <div className="row" style={{ justifyContent: 'center' }}>
+              <button className={`btn${allRight ? ' primary' : ''}`} onClick={next}>
+                {at + 1 < set.words.length ? 'Next word' : 'Finish'} <span className="key-hint tiny">↵</span>
+              </button>
+            </div>
+          </>
+        )}
+
+        {!judged && (
+          <p className="tiny muted key-hint" style={{ margin: 0 }}>
+            Space to record · L to listen · P to hear yourself
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function Done({ set, results, onExit }: { set: PracticeSet; results: Result[]; onExit: () => void }) {
+  const first = results.filter((r) => r.firstTry).length;
+  const again = results.filter((r) => !r.firstTry);
+  return (
+    <div className="drill-done">
+      <span className="big hanzi">{again.length ? '差不多' : '好'}</span>
+      <h2 style={{ fontSize: 17, margin: '4px 0 2px' }}>
+        {first} of {results.length} right the first time
+      </h2>
+      <p className="small muted" style={{ margin: 0 }}>
+        {results.length === 0
+          ? 'Nothing was recorded this time.'
+          : again.length
+            ? `${set.title}: these took more than one go.`
+            : `${set.title}: every one on the first try.`}
+      </p>
+      {again.length > 0 && (
+        <div className="missed-row">
+          {again.map((r) => (
+            <span key={r.word.word} className="new-char">
+              <span className="hanzi" style={{ fontSize: 26 }}>
+                {r.word.word}
+              </span>
+              <span className="tiny muted">{r.word.reading}</span>
+            </span>
+          ))}
+        </div>
+      )}
+      <button className="btn primary" onClick={onExit} style={{ marginTop: 6 }}>
+        Done
+      </button>
+    </div>
+  );
+}

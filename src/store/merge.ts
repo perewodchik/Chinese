@@ -29,6 +29,7 @@ export function mergeStates(account: AppState, incoming: AppState): AppState {
     ).sort((a, b) => b.createdAt - a.createdAt),
     sets: union(account.sets, incoming.sets, (ours) => ours).sort((a, b) => b.createdAt - a.createdAt),
     plan: account.plan ?? incoming.plan,
+    listPlan: account.listPlan ?? incoming.listPlan,
     radicals: mergeRadicals(account.radicals, incoming.radicals),
   };
 }
