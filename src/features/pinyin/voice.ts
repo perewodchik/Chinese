@@ -20,6 +20,8 @@ export interface Tally {
 
 interface Saved {
   range: VoiceRange | null;
+  /** the voice to hear, by id; null for whichever the pack has, in turn */
+  voice: string | null;
   /** keyed "pair:3-3" or "tone:2" */
   tallies: Record<string, Tally>;
 }
@@ -32,12 +34,12 @@ function read(): Saved {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const v = JSON.parse(raw) as Partial<Saved>;
-      return { range: v.range ?? null, tallies: v.tallies ?? {} };
+      return { range: v.range ?? null, voice: v.voice ?? null, tallies: v.tallies ?? {} };
     }
   } catch {
     void 0;
   }
-  return { range: null, tallies: {} };
+  return { range: null, voice: null, tallies: {} };
 }
 
 let state = read();
@@ -63,6 +65,9 @@ export const usePinyinMemory = () => useSyncExternalStore(subscribe, () => state
 export const voiceRange = () => state.range;
 
 export const saveRange = (range: VoiceRange | null) => write({ ...state, range });
+
+export const preferredVoice = () => state.voice;
+export const saveVoice = (voice: string | null) => write({ ...state, voice });
 
 export function record(key: string, right: boolean) {
   const t = state.tallies[key] ?? { tries: 0, right: 0, recent: [] };

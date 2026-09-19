@@ -33,7 +33,35 @@ export interface PitchOptions {
   threshold?: number;
 }
 
+/** How aperiodic a frame may be and still count as voiced, when nothing met the strict threshold. */
+const LOOSE = 0.4;
+
+/**
+ * The pitch track, in two passes.
+ *
+ * A 40 ms window hears a deep voice — a man's third tone at the bottom of his
+ * range has periods of 12 ms, and the window has to hold a few of them. But a
+ * fourth tone in a high voice can fall an octave in a tenth of a second, and
+ * over 40 ms the period changes so much that nothing repeats: the steepest,
+ * loudest part of the fall comes back unvoiced, and what is left of the
+ * syllable is its high start — which reads as a first tone. So the frames the
+ * long window could not place are filled from a 20 ms window, which cannot go
+ * as low but follows a fall.
+ */
 export function trackPitch(samples: Float32Array, opts: PitchOptions): PitchFrame[] {
+  const long = yin(samples, opts);
+  if (opts.window !== undefined) return smooth(long);
+  const short = yin(samples, { ...opts, window: 0.02, minHz: Math.max(opts.minHz ?? 70, 100) });
+  const byTime = (t: number) => short[Math.round((t - short[0]!.t) / (opts.hop ?? 0.01))];
+  const merged = long.map((f) => {
+    if (f.hz > 0) return f;
+    const s = short.length ? byTime(f.t) : undefined;
+    return s && s.hz > 0 ? { ...f, hz: s.hz } : f;
+  });
+  return smooth(merged);
+}
+
+function yin(samples: Float32Array, opts: PitchOptions): PitchFrame[] {
   const { sampleRate } = opts;
   const hop = Math.round((opts.hop ?? 0.01) * sampleRate);
   const size = Math.round((opts.window ?? 0.04) * sampleRate);
@@ -70,6 +98,17 @@ export function trackPitch(samples: Float32Array, opts: PitchOptions): PitchFram
         break;
       }
     }
+    // Real voices are not that periodic. A low third tone goes creaky, and a
+    // deep male voice at the bottom of its range wobbles from one period to
+    // the next; neither dips under a strict threshold, and both are exactly
+    // the syllables a learner most needs measured. So, as YIN itself does,
+    // fall back to the deepest dip anywhere, provided it is still clearly a
+    // period and not noise.
+    if (lag < 0) {
+      let best = -1;
+      for (let tau = minLag; tau <= maxLag; tau++) if (best < 0 || diff[tau]! < diff[best]!) best = tau;
+      if (best > 0 && diff[best]! < LOOSE) lag = best;
+    }
     let hz = 0;
     if (lag > 0) {
       // Parabolic interpolation between the neighbouring lags for sub-sample accuracy.
@@ -82,7 +121,7 @@ export function trackPitch(samples: Float32Array, opts: PitchOptions): PitchFram
     }
     frames.push({ t: (start + size / 2) / sampleRate, hz, rms });
   }
-  return smooth(frames);
+  return frames;
 }
 
 /**

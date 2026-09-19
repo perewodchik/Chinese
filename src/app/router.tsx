@@ -8,6 +8,7 @@ import { BuildListPage } from '../features/collections/build/BuildListPage';
 import { LibraryPage } from '../features/library/LibraryPage';
 import { PinyinPage } from '../features/pinyin/PinyinPage';
 import { PracticePage } from '../features/pinyin/PracticePage';
+import { ShadowPage } from '../features/pinyin/ShadowPage';
 import { SoundLessonPage } from '../features/pinyin/SoundLessonPage';
 import { VoicePage } from '../features/pinyin/VoicePage';
 import { RadicalSetPage } from '../features/radicals/RadicalSetPage';
@@ -45,6 +46,7 @@ import { RequireSession } from './RequireSession';
  *   /pinyin                        pronunciation: the four tones and the twenty pairs
  *   /pinyin/practice/:set          saying things out loud: pair-3-3, tone-2
  *   /pinyin/sounds/:lesson?step    one sound lesson: how it is made, hear it, say it
+ *   /pinyin/shadow?level&topic     saying sentences along with a natural voice
  *   /pinyin/voice                  the voice range, and a check of the sounds
  *   /settings
  *
@@ -101,6 +103,7 @@ export const router = createBrowserRouter([
               { path: 'pinyin', element: <PinyinPage /> },
               { path: 'pinyin/practice/:set', element: <PracticePage /> },
               { path: 'pinyin/sounds/:lesson', element: <SoundLessonPage /> },
+              { path: 'pinyin/shadow', element: <ShadowPage /> },
               { path: 'pinyin/voice', element: <VoicePage /> },
               { path: 'settings', element: <SettingsPage /> },
               { path: '*', element: <NotFoundPage /> },

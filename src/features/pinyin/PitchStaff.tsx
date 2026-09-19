@@ -108,6 +108,52 @@ export function PitchStaff({ syllables, references, line, take = 0 }: Props) {
   );
 }
 
+/**
+ * A whole sentence on the staff: the speaker's melody and the learner's,
+ * each stretched to the width, one over the other.
+ *
+ * No verdicts. Over ten or fifteen syllables the syllable boundaries cannot
+ * be found reliably enough to mark each one, and a confident red mark on the
+ * wrong syllable would do more harm than none. What a sentence *can* show is
+ * its shape — where the voice rises, where it falls, where it should have
+ * dropped and did not — and the eye is good at comparing two shapes.
+ */
+export function SentenceStaff({
+  native,
+  mine,
+  take = 0,
+}: {
+  native?: Array<{ t: number; chao: number }> | null;
+  mine?: Array<{ t: number; chao: number }> | null;
+  take?: number;
+}) {
+  const paths = (line: Array<{ t: number; chao: number }> | null | undefined) => {
+    const v = line?.filter((p) => Number.isFinite(p.chao)) ?? [];
+    if (v.length < 2) return [];
+    const t0 = v[0]!.t;
+    const t1 = v[v.length - 1]!.t;
+    return pathsOf(line!.filter((p) => p.t >= t0 && p.t <= t1), (t) => LEFT + ((t - t0) / (t1 - t0 || 1)) * PLOT_W);
+  };
+  return (
+    <svg className="staff" viewBox={`0 0 ${W} ${H - 14}`} role="img" aria-label="The sentence's melody, and yours">
+      {[1, 2, 3, 4, 5].map((c) => (
+        <g key={c}>
+          <line className="staff-line" x1={LEFT} x2={W - RIGHT} y1={y(c)} y2={y(c)} />
+          <text className="staff-num" x={LEFT - 12} y={y(c) + 4}>
+            {c}
+          </text>
+        </g>
+      ))}
+      {paths(native).map((d, i) => (
+        <path key={`n${i}`} className="staff-ref staff-ref-line" d={d} />
+      ))}
+      {paths(mine).map((d, i) => (
+        <path key={`${take}-${i}`} className="staff-voice" d={d} pathLength={1} />
+      ))}
+    </svg>
+  );
+}
+
 /** Where a neutral tone sits, after each tone: low after 1 and 4, mid after 2, high after 3. */
 const neutralHeight = (prev?: number) => (prev === 3 ? 4 : prev === 2 ? 3 : prev === 1 ? 2 : 1.5);
 

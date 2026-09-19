@@ -7,7 +7,7 @@ import { Seg } from '../../ui/Seg';
 import { useTitle } from '../../ui/useTitle';
 import { SayCheck } from './SayCheck';
 import { hearKey, record, recentScore, sayKey, usePinyinMemory } from './voice';
-import { anyVoice, say } from './voiceOut';
+import { anyVoiceFor, say } from './voiceOut';
 import './pinyin.css';
 
 type Step = 'learn' | 'hear' | 'say';
@@ -138,7 +138,9 @@ function Hear({ lesson, onNext }: { lesson: SoundLesson; onNext: () => void }) {
   // A different voice each time where there are several: the ear has to learn
   // what makes it q, not what this one speaker's q sounds like.
   const play = useCallback(() => {
-    if (round) void anyVoice().then((v) => say(round.pair[round.target].word, { voice: v?.id }));
+    if (!round) return;
+    const word = round.pair[round.target].word;
+    void anyVoiceFor(word).then((voice) => say(word, { voice }));
   }, [round]);
 
   useEffect(() => {

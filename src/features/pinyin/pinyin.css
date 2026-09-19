@@ -908,3 +908,126 @@
     grid-column: 2;
   }
 }
+
+/* ------------------------------------------------------------- shadowing */
+.shadow-filters {
+  margin-bottom: 6px;
+}
+
+.shadow-stage {
+  gap: 16px;
+}
+
+/* A sentence set the way a reader sets it: each character with its syllable above. */
+.shadow-line {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 2px 3px;
+  max-width: 680px;
+}
+
+.shadow-char {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 34px;
+}
+
+.shadow-char i {
+  font-style: normal;
+  font-size: 12.5px;
+  color: var(--accent);
+  line-height: 1.3;
+}
+
+.shadow-char b {
+  font-family: var(--han);
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 1.2;
+}
+
+.shadow-punct {
+  font-family: var(--han);
+  font-size: 34px;
+  line-height: 1.2;
+  color: var(--ink-3);
+}
+
+.shadow-en {
+  margin: -6px 0 0;
+  font-size: 14px;
+  color: var(--ink-2);
+  max-width: 560px;
+}
+
+.shadow-source a {
+  color: inherit;
+}
+
+.staff-ref-line {
+  stroke-dasharray: 4 4;
+}
+
+.shadow-card-link {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.14s,
+    transform 0.14s,
+    box-shadow 0.14s;
+}
+
+.shadow-card-link:hover {
+  border-color: var(--line-2);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.shadow-card-link > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+}
+
+.shadow-card-link .go {
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .shadow-char b,
+  .shadow-punct {
+    font-size: 28px;
+  }
+
+  .shadow-char {
+    min-width: 28px;
+  }
+}
+
+/* Whose voice to hear. */
+.voice-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: -6px 0 14px;
+}
+
+.voice-picker > .tiny {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}

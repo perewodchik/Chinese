@@ -1,6 +1,6 @@
 import { judge, rangeOf, toChao, type Judged, type VoiceRange } from './contour';
 import type { Spoken } from './sandhi';
-import { alignSyllables, type Frame, type Span } from './segment';
+import { alignSyllables, voicedMask, type Frame, type Span } from './segment';
 
 /**
  * One attempt at a word, taken apart and marked.
@@ -26,9 +26,12 @@ export interface Attempt {
 
 export function analyse(frames: Frame[], expected: Spoken[], calibrated: VoiceRange | null): Attempt {
   const duration = frames.length ? frames[frames.length - 1]!.t : 0;
-  const voiced = frames.map((f) => f.hz);
-  const range = calibrated ?? rangeOf(voiced);
-  const line = frames.map((f) => ({ t: f.t, chao: f.hz > 0 ? toChao(f.hz, range) : NaN }));
+  // Only frames loud enough to be voice. A pitch tracker will find a "pitch"
+  // in the hiss of a quiet room, and one stray 400 Hz in the silence after a
+  // word stretches the range until the word itself looks flat.
+  const mask = voicedMask(frames);
+  const range = calibrated ?? rangeOf(frames.filter((_, i) => mask[i]).map((f) => f.hz));
+  const line = frames.map((f, i) => ({ t: f.t, chao: mask[i] ? toChao(f.hz, range) : NaN }));
 
   const spans: Span[] | null = alignSyllables(frames, expected.length);
   if (!spans) {
@@ -48,6 +51,17 @@ export function analyse(frames: Frame[], expected: Spoken[], calibrated: VoiceRa
 }
 
 /**
+ * The melody of a whole phrase: its voiced frames on the speaker's scale,
+ * without trying to find the syllables in it. For sentences, where the shape
+ * is worth comparing and the syllable boundaries are not worth guessing at.
+ */
+export function melody(frames: Frame[], calibrated: VoiceRange | null): Array<{ t: number; chao: number }> {
+  const mask = voicedMask(frames);
+  const range = calibrated ?? rangeOf(frames.filter((_, i) => mask[i]).map((f) => f.hz));
+  return frames.map((f, i) => ({ t: f.t, chao: mask[i] ? toChao(f.hz, range) : NaN }));
+}
+
+/**
  * A voice range from a calibration: the learner says mā má mǎ mà.
  *
  * The bottom of their third tone is the bottom of the range and the top of
@@ -56,7 +70,11 @@ export function analyse(frames: Frame[], expected: Spoken[], calibrated: VoiceRa
  * than the extremes, so one creak or squeak does not stretch it.
  */
 export function calibrate(frames: Frame[]): VoiceRange | null {
-  const hz = frames.filter((f) => f.hz > 0).map((f) => f.hz).sort((a, b) => a - b);
+  const mask = voicedMask(frames);
+  const hz = frames
+    .filter((f, i) => mask[i] && f.hz > 0)
+    .map((f) => f.hz)
+    .sort((a, b) => a - b);
   if (hz.length < 30) return null;
   const q = (p: number) => hz[Math.floor(p * (hz.length - 1))]!;
   const floorHz = q(0.05);

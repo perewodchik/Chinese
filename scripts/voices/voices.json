@@ -1,0 +1,13 @@
+[
+  { "id": "native", "name": "Native speaker", "gender": "female", "source": "native" },
+  { "id": "vivian", "name": "Vivian", "gender": "female", "source": "qwen3", "speaker": "Vivian" },
+  { "id": "serena", "name": "Serena", "gender": "female", "source": "qwen3", "speaker": "Serena" },
+  { "id": "dylan", "name": "Dylan", "gender": "male", "source": "qwen3", "speaker": "Dylan" },
+  {
+    "id": "chen",
+    "name": "Chen",
+    "gender": "male",
+    "source": "designed",
+    "description": "二十岁出头的年轻男性，音色清亮、温暖，带一点磁性；语气阳光自信，有少年感和一点俏皮的笑意，像动漫游戏里帅气的男主角。普通话标准，吐字清晰，语速适中偏慢。"
+  }
+]

@@ -49,6 +49,9 @@ export function compareHeard(
   const chars = [...text];
   const out = want.map((w, i): HeardSyllable => {
     const ch = chars[i];
+    // The r of erhua (哪儿 nǎr) is the end of the syllable before it, not a
+    // syllable of its own; there is nothing separate to have heard wrong.
+    if (w.bare === 'r') return { want: w.py, got: ch ?? null, off: [] };
     const options = ch ? readings(ch) : [];
     if (!options.length) return { want: w.py, got: null, off: ['initial', 'final'] };
     let best: HeardSyllable | null = null;

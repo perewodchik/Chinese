@@ -245,6 +245,7 @@ it was made on.
 | `/pinyin` | pronunciation: the four tones, and the map of twenty tone pairs |
 | `/pinyin/practice/<set>` | saying things out loud — `tone-2`, `pair-3-3` |
 | `/pinyin/sounds/<lesson>?step=hear` | one sound lesson — how it is made, hearing it, saying it |
+| `/pinyin/shadow?level=1&topic=food` | shadowing sentences with a natural voice |
 | `/pinyin/voice` | measuring your voice range, and checking your consonants |
 | `/settings` | account, folder, appearance |
 | `…?item=c好` on any page | the character drawer; back closes it |
@@ -300,7 +301,7 @@ The server reads a few settings from the environment:
 | `HANZI_REGISTRATION` | `open` | `closed` hides "Make an account" |
 | `HANZI_TRUST_PROXY` | off | `1` only behind a reverse proxy you run |
 | `HANZI_STATIC_DIR` | `dist` | the built app `npm start` serves |
-| `AZURE_SPEECH_KEY` | unset | a free Azure Speech key: natural voices for pronunciation (below) |
+| `AZURE_SPEECH_KEY` | unset | optional: a cloud voice behind the voice pack (see Pronunciation) |
 | `AZURE_SPEECH_REGION` | unset | the key's region, e.g. `eastus` |
 
 How it holds together: passwords are hashed with scrypt; a session is a random
@@ -551,16 +552,58 @@ a tone and differs in the one sound, and every reading is checked against the
 dictionary by the tests, so a typo fails the build rather than teaching the
 wrong sound.
 
-**A natural voice, when there is a key.** With `AZURE_SPEECH_KEY` and
-`AZURE_SPEECH_REGION` set, words are read by Azure's neural voices instead of
-the system voice — good enough to imitate, with real sandhi — and the dashed
-line on the staff becomes that voice's own pitch rather than the textbook
-shape. Hearing drills rotate between three voices, so the ear learns the sound
-rather than one speaker. Clips are served only to signed-in users, rate
-limited, and cached by the browser for a year, so the free tier (half a
-million characters a month) goes on new words. Without a key everything still
-works on the system voice. Create the resource on the **Free F0** tier: on
-F0 the quota simply runs out, where on S0 every character is billed.
+**How often it agrees with a native speaker.** `npx tsx scripts/voices/evaluate.ts`
+runs the checker over 1,622 recordings of a native speaker saying every
+syllable in every tone, and it agrees with the speaker 99.0% of the time
+(first 99.5%, second 100%, third 98.5%, fourth 97.8%). Two fixes got it there,
+both found only by trying real voices: a real second tone starts with a small
+dip, so second and third are told apart by *where* the dip is and how deep it
+goes rather than by overall shape; and a fourth tone in a high voice falls too
+fast for a 40 ms window, so frames the long window cannot place are filled
+from a 20 ms one. Fourteen of those recordings are test fixtures.
+
+**Shadowing**, at **/pinyin/shadow**: three hundred short everyday sentences,
+HSK 1 to 3, each with a translation and sorted into the app's topics, to say
+along with a natural voice. The two melodies — the voice's and yours — are
+drawn one over the other; the sounds are checked by speech recognition, which
+is at its best on a whole sentence. "Voice, then me" plays the two back to
+back. The sentences are Tatoeba's (CC BY 2.0 FR). Tatoeba's own Mandarin
+*recordings* are not used: all but 84 of them carry no licence to reuse
+outside the site.
+
+### The voice pack
+
+What the section says aloud comes from `public/voices/`, built on the Mac with
+`npm run voices` — no account and no key anywhere, so there is nothing for a
+provider to refuse or block, and it plays the same over the Wi-Fi, on Vercel
+and offline.
+
+- **Single syllables are a real person**: the public-domain recordings of
+  every syllable in every tone ([mp3-chinese-pinyin-sound](https://github.com/davinfifield/mp3-chinese-pinyin-sound),
+  Unlicense). That covers the four tones one at a time and every minimal pair
+  in the sound lessons.
+- **Words and sentences are Qwen3-TTS** (0.6B CustomVoice, Apache-2.0, run
+  through MLX), in three of its Mandarin voices, plus **Chen**, a young man's
+  voice *designed from a description* with Qwen3-TTS VoiceDesign and cloned
+  from one reference so it stays one person — a kind of voice, not a copy of
+  anybody's.
+- **Every tone-critical machine clip is checked** by the same pitch analysis
+  the learner gets, on that voice's own range, and left out if it fails: a
+  reference that says the wrong tone is worse than the system voice. Kokoro
+  was tried first and dropped when barely a third of its clips passed.
+- With a pack clip, the dashed line on the staff is that voice's own pitch
+  rather than the textbook shape. You can pick a voice on the front page, or
+  leave it on *Any*, which rotates them — hearing a sound in several voices is
+  what teaches the ear which part is the sound.
+
+`scripts/voices/` holds the pipeline: `sentences.py` picks the sentences,
+`generate.py` voices them, `check.ts` gates them, `encode.py` makes the MP3s,
+`build.ts` runs it all. Setting up the Python side once is in `generate.py`.
+
+A cloud voice can still stand behind the pack for anything it lacks: with
+`AZURE_SPEECH_KEY` and `AZURE_SPEECH_REGION` set, `/api/speech` reads with
+Azure's neural voices (signed in, rate limited, cached a year by the browser).
+Nothing needs it.
 
 The microphone needs a secure page. The online version is https and works; on
 the home Wi-Fi at `http://192.168…` the browser offers no microphone at all,
@@ -646,6 +689,8 @@ npx tsx scripts/preview.ts
 | Character frequency, Kangxi radical numbers | [hanziDB](https://github.com/ruddfawcett/hanziDB.csv), after Jun Da | MIT |
 | Word frequency | [jieba](https://github.com/fxsjy/jieba)'s dictionary | MIT |
 | Example sentences | [Tatoeba](https://tatoeba.org/) | CC BY 2.0 FR |
+| Syllable recordings (pronunciation) | [mp3-chinese-pinyin-sound](https://github.com/davinfifield/mp3-chinese-pinyin-sound) | Unlicense (public domain) |
+| Word and sentence voices | [Qwen3-TTS](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice), generated locally | Apache-2.0 |
 | Chinese text face | [LXGW WenKai 霞鹜文楷](https://github.com/lxgw/LxgwWenKai) | SIL OFL 1.1 |
 | Latin text face | [Noto Sans](https://fonts.google.com/noto/specimen/Noto+Sans) | SIL OFL 1.1 |
 

@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { NaturalVoice } from '../../api/speech';
 import { Link } from 'react-router';
 import { TONE_NAME } from '../../domain/pinyin/contour';
 import { singleTones, tonePairs } from '../../domain/pinyin/practice';
@@ -6,7 +7,8 @@ import { SOUND_LESSONS } from '../../domain/pinyin/sounds';
 import { paths } from '../../navigation/paths';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
-import { hearKey, pairKey, recentScore, sayKey, toneKey, usePinyinMemory, type Tally } from './voice';
+import { hearKey, pairKey, recentScore, saveVoice, sayKey, toneKey, usePinyinMemory, type Tally } from './voice';
+import { packVoices, sampleFor, say } from './voiceOut';
 import './pinyin.css';
 
 const TONES: Array<{ tone: number; mark: string; shape: string; like: string }> = [
@@ -57,6 +59,8 @@ export function PinyinPage() {
           {memory.range ? 'Your voice' : 'Set up your voice'}
         </Link>
       </div>
+
+      <VoicePicker chosen={memory.voice} />
 
       {!memory.range && (
         <Link className="voice-invite" to={paths.pinyinVoice()}>
@@ -148,6 +152,21 @@ export function PinyinPage() {
         ))}
       </div>
 
+      <h2 className="pinyin-label">Whole sentences</h2>
+      <Link className="shadow-card-link" to={paths.pinyinShadow()}>
+        <span className="voice-invite-mark hanzi" aria-hidden>
+          跟
+        </span>
+        <span>
+          <b>Shadowing</b>
+          <span className="small muted">
+            Short everyday sentences on a dozen topics, HSK 1 to 3, read by a natural voice. Say them with it and
+            compare the two melodies.
+          </span>
+        </span>
+        <span className="go">Start →</span>
+      </Link>
+
       <h2 className="pinyin-label">Sounds English does not have</h2>
       <p className="small muted pinyin-lede">
         The seven places an English speaker's Mandarin gives itself away. Each one: how the mouth makes it, telling
@@ -181,5 +200,42 @@ export function PinyinPage() {
         })}
       </div>
     </section>
+  );
+}
+
+/**
+ * Whose voice to hear.
+ *
+ * "Any" is the default and the better teacher: the hearing drills take each
+ * word in whichever voice has it, in turn, and hearing a sound in several
+ * voices is what teaches the ear which part is the sound and which is the
+ * speaker. Picking one is for when a particular voice is simply nicer to
+ * copy — it is used wherever it has the word, and the others fill in.
+ */
+function VoicePicker({ chosen }: { chosen: string | null }) {
+  const [voices, setVoices] = useState<NaturalVoice[]>([]);
+  useEffect(() => {
+    void packVoices().then(setVoices);
+  }, []);
+  if (voices.length < 2) return null;
+  const pick = (id: string | null) => {
+    saveVoice(id);
+    if (id) void sampleFor(id).then((text) => text && say(text, { voice: id }));
+  };
+  return (
+    <div className="voice-picker">
+      <span className="tiny muted">Voice</span>
+      <div className="chips">
+        <button className="chip" aria-pressed={chosen === null} onClick={() => pick(null)}>
+          Any, in turn
+        </button>
+        {voices.map((v) => (
+          <button key={v.id} className="chip" aria-pressed={chosen === v.id} onClick={() => pick(v.id)}>
+            {v.name}
+            <span className="count">{v.gender === 'female' ? '♀' : '♂'}</span>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
