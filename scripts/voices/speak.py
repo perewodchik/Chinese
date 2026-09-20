@@ -69,6 +69,23 @@ def model_for(voice):
     return QWEN3 if VOICES[voice]["source"] == "qwen3" else BASE
 
 
+def reference(voice, slow):
+    """
+    Which recording of a designed voice to clone from.
+
+    Cloning copies pace and manner along with the timbre, and the two things
+    the voice is wanted for want opposite paces. The pronunciation section
+    wants it teaching — slowly, each word said through — and that is the
+    reference the pack is built from (`<id>.wav`). A conversation wants it
+    talking, at the speed a person talks, or it sounds like somebody who has
+    forgotten how the sentence ends: that is `<id>.talk.wav` where a voice has
+    one. Asking for it slowly here is asking for the teacher again.
+    """
+    talking = os.path.join(DESIGN_DIR, f"{voice}.talk.wav")
+    base = os.path.join(DESIGN_DIR, f"{voice}.wav")
+    return base if slow or not os.path.exists(talking) else talking
+
+
 def token_budget(text, slow):
     """A ceiling on how long the model may talk, as in generate.py: without one it now and then never stops."""
     return int(12 * ((1.0 if slow else 0.75) * len(text) + 2))
@@ -99,11 +116,12 @@ def audio_for(text, voice, slow):
                 max_tokens=token_budget(text, slow),
             )
         else:
-            with open(os.path.join(DESIGN_DIR, f"{voice}.txt"), encoding="utf-8") as f:
+            ref = reference(voice, slow)
+            with open(f"{os.path.splitext(ref)[0]}.txt", encoding="utf-8") as f:
                 ref_text = f.read().strip()
             parts = m.generate(
                 text=text,
-                ref_audio=os.path.join(DESIGN_DIR, f"{voice}.wav"),
+                ref_audio=ref,
                 ref_text=ref_text,
                 lang_code="chinese",
                 temperature=temperature,

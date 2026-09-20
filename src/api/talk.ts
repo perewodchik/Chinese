@@ -16,13 +16,17 @@ export function talkReply(lines: TalkLine[], options: TalkOptions): Promise<Talk
 
 /** The model may have to load before the first sentence of a sitting; after that it is seconds. */
 const VOICE_TIMEOUT_MS = 90_000;
+/** Bumped whenever a voice changes how it sounds, to leave the old clips behind. */
+const VOICE_VERSION = '2';
 
 /**
  * One sentence in a local voice, as MP3. Fetched directly, like the speech
  * clips, so the browser's cache keeps each one for a replay.
  */
 export async function talkAudio(text: string, voice: string, slow: boolean, signal?: AbortSignal): Promise<ArrayBuffer> {
-  const q = new URLSearchParams({ text, voice, ...(slow ? { slow: '1' } : {}) });
+  // The clips a browser kept from before the voices were retuned sound like
+  // the old ones for a year; the version tells them apart.
+  const q = new URLSearchParams({ text, voice, v: VOICE_VERSION, ...(slow ? { slow: '1' } : {}) });
   // Either the caller cutting in or the clock gives up on it. Built by hand
   // rather than with AbortSignal.any, which older iPads do not have.
   const stop = new AbortController();

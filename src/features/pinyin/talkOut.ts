@@ -4,14 +4,26 @@ import { hush, playBytes } from './voiceOut';
 
 const SPOKEN = /[㐀-鿿0-9a-z]/i;
 
+/** About as much as anyone says in one breath, and well within what the model keeps one pace across. */
+const ONE_CLIP = 50;
+
 /**
- * Claude's turn cut where a reader would breathe. Each sentence becomes its
- * own clip, so the first can play while the next is still being made — the
- * local voice takes about as long to make a sentence as to say it, and the
- * wait before a whole turn would feel like the partner had not heard.
+ * Claude's turn, as the pieces to make it out of.
+ *
+ * A turn short enough to say in one breath is one piece, and that matters
+ * more than it sounds: asked for a sentence at a time, the model sets each
+ * one going from cold, so the pace and the pitch reset in the middle of a
+ * turn — and the second piece is still being made while the first finishes,
+ * leaving a hole where a speaker would have carried on.
+ *
+ * A long turn is still cut where a reader would breathe, since waiting for
+ * the whole of it before anything is said would be worse.
  */
 export function sentences(text: string): string[] {
-  return (text.match(/[^。！？!?；;…\n]+[。！？!?；;…]*[”」』"']?/g) ?? [])
+  const whole = text.trim();
+  if (!SPOKEN.test(whole)) return [];
+  if ([...whole].length <= ONE_CLIP) return [[...whole].slice(0, 240).join('')];
+  return (whole.match(/[^。！？!?；;…\n]+[。！？!?；;…]*[”」』"']?/g) ?? [])
     .map((s) => s.trim())
     .filter((s) => SPOKEN.test(s))
     .map((s) => [...s].slice(0, 240).join(''));
