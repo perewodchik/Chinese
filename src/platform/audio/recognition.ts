@@ -50,28 +50,63 @@ export const RECOGNITION_MESSAGE: Record<string, string> = {
   'no-speech': 'Nothing was heard. Try again a little closer to the microphone.',
   network: 'Speech recognition needs the internet, and could not reach it.',
   'audio-capture': 'The microphone is busy or missing.',
+  'start-failed': 'Speech recognition would not start. Reload the page, or check nothing else is using the microphone.',
 };
+
+export interface Hearing {
+  /** what was heard, once the utterance is over */
+  result: Promise<Heard>;
+  /** stop listening now, and keep whatever has been heard so far */
+  stop(): void;
+  /** stop listening, and throw it away */
+  cancel(): void;
+}
+
+/**
+ * How long a recogniser that has been told to stop is given to say what it
+ * heard. Long, because finishing means a round trip to Google or Apple and
+ * an answer that arrives late is still the answer; bounded, because an
+ * engine that has gone quiet must not leave a button saying "Listening…"
+ * over a microphone that is not.
+ */
+const SETTLE_MS = 4000;
 
 /**
  * Listens for one short utterance in Mandarin and resolves with what was
  * heard, or rejects with the browser's error code.
+ *
+ * It ends by itself at the end of the utterance — that is what
+ * `continuous = false` buys — so nothing has to be pressed to finish. `stop`
+ * is there for the case where something else already knows the utterance is
+ * over, such as a recording of the same breath that has gone quiet; it
+ * settles the recogniser then rather than waiting for it to notice.
  */
-export function recogniseOnce(timeoutMs = 6000): { result: Promise<Heard>; cancel: () => void } {
+export function recogniseOnce(timeoutMs = 6000): Hearing {
   const Ctor = ctor();
-  if (!Ctor) return { result: Promise.reject(new Error('unsupported')), cancel: () => undefined };
+  if (!Ctor) {
+    return { result: Promise.reject(new Error('unsupported')), stop: () => undefined, cancel: () => undefined };
+  }
   const r = new Ctor();
   r.lang = 'zh-CN';
   r.interimResults = false;
   r.maxAlternatives = 5;
   r.continuous = false;
 
-  let timer: ReturnType<typeof setTimeout>;
+  let cancelled = false;
+  let ceiling: ReturnType<typeof setTimeout>;
+  let grace: ReturnType<typeof setTimeout> | undefined;
+  /** promise an answer, from an engine that may have gone quiet */
+  let ask!: () => void;
+  /** answer now, with a reason */
+  let fail!: (code: string) => void;
+
   const result = new Promise<Heard>((resolve, reject) => {
     let done = false;
     const finish = (fn: () => void) => {
       if (done) return;
       done = true;
-      clearTimeout(timer);
+      clearTimeout(ceiling);
+      clearTimeout(grace);
       fn();
     };
     r.onresult = (e) => {
@@ -80,14 +115,42 @@ export function recogniseOnce(timeoutMs = 6000): { result: Promise<Heard>; cance
       const alternatives = Array.from(last, (a) => ({ transcript: a.transcript.trim(), confidence: a.confidence }));
       finish(() => resolve({ alternatives }));
     };
-    r.onerror = (e) => finish(() => reject(new Error(e.error)));
-    r.onend = () => finish(() => reject(new Error('no-speech')));
-    timer = setTimeout(() => {
+    r.onerror = (e) => finish(() => reject(new Error(cancelled ? 'aborted' : e.error)));
+    r.onend = () => finish(() => reject(new Error(cancelled ? 'aborted' : 'no-speech')));
+    // Being told to stop should end in an answer, and not every engine fires
+    // `end` when it is — Safari has been known to go quiet instead. So the
+    // silence gets an answer of its own, once there has been long enough for
+    // a real one to have arrived.
+    ask = () => {
+      if (done || grace) return;
+      grace = setTimeout(() => finish(() => reject(new Error(cancelled ? 'aborted' : 'no-speech'))), SETTLE_MS);
+    };
+    fail = (code) => finish(() => reject(new Error(code)));
+    ceiling = setTimeout(() => {
       r.stop();
+      ask();
     }, timeoutMs);
   });
-  r.start();
-  return { result, cancel: () => r.abort() };
+  try {
+    r.start();
+  } catch {
+    // An engine that will not even begin — no permission yet, or another
+    // listener still holding the microphone — says so by throwing here, and
+    // then never fires an event. Answer for it.
+    fail('start-failed');
+  }
+  return {
+    result,
+    stop: () => {
+      r.stop();
+      ask();
+    },
+    cancel: () => {
+      cancelled = true;
+      r.abort();
+      ask();
+    },
+  };
 }
 
 export interface Listening {

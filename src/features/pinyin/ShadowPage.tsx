@@ -7,14 +7,14 @@ import { paths } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
 import { micUnavailable, MIC_MESSAGE } from '../../platform/audio/mic';
 import { trackPitch } from '../../platform/audio/pitch';
-import { canRecognise, recogniseOnce, RECOGNITION_MESSAGE } from '../../platform/audio/recognition';
+import { canRecognise } from '../../platform/audio/recognition';
 import { useStore } from '../../store/store';
 import { Seg } from '../../ui/Seg';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { SentenceStaff } from './PitchStaff';
 import { RecordButton } from './RecordButton';
-import { useRecorder } from './useRecorder';
+import { useSayIt } from './useSayIt';
 import { voiceRange } from './voice';
 import { referenceSamples, say } from './voiceOut';
 import './pinyin.css';
@@ -54,8 +54,8 @@ const HAN = /[一-鿿]/;
  * to the rhythm around them, and that is only learned by copying whole
  * sentences out loud. So a sentence is played, said back, and the two
  * melodies drawn one over the other — with no syllable-by-syllable marks,
- * because over a whole sentence those would be guesses. The sounds get a
- * check of their own, by speech recognition, which is at its best on exactly
+ * because over a whole sentence those would be guesses. The sounds are read
+ * off the same breath by speech recognition, which is at its best on exactly
  * this: a whole sentence, with context.
  *
  * The sentences are short, everyday and translated, from Tatoeba, and can be
@@ -107,7 +107,7 @@ export function ShadowPage() {
         <div>
           <h1 style={{ margin: 0 }}>Shadowing</h1>
           <p className="small muted" style={{ margin: '2px 0 0' }}>
-            Listen to a sentence, say it with the voice, and compare the two melodies.
+            Listen to a sentence, say it back, and see what came out — the melody and the sounds.
           </p>
         </div>
         <div className="spacer" />
@@ -170,8 +170,6 @@ function ShadowCard({
   const [samples, setSamples] = useState<Float32Array | null>(null);
   const [take, setTake] = useState(0);
   const [heard, setHeard] = useState<HeardResult | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const blocked = micUnavailable();
   const chart = useStore((st) => st.settings.pitchChart);
   const syllables = sentence.py.split(' ');
@@ -195,7 +193,19 @@ function ShadowCard({
     setMineLine(melody(trackPitch(s, { sampleRate: 16000 }), voiceRange()));
     setTake((n) => n + 1);
   }, []);
-  const rec = useRecorder(onRecorded, 2500 + 450 * syllables.length);
+  const onHeard = useCallback(
+    (alternatives: string[]) =>
+      setHeard(bestHeard(sentence.py, alternatives, (ch) => lib.byChar.get(ch)?.py ?? [])),
+    [sentence.py, lib],
+  );
+  const rec = useSayIt(onRecorded, onHeard, 2500 + 450 * syllables.length);
+
+  // What the last take came out as belongs to the last take; it goes the
+  // moment a new one starts, not when the new answer arrives to replace it.
+  const sayIt = useCallback(() => {
+    if (rec.state === 'idle') setHeard(null);
+    rec.toggle();
+  }, [rec]);
 
   // The voice, then you, back to back: the comparison the ear makes best.
   const both = () => {
@@ -205,27 +215,6 @@ function ShadowCard({
       setTimeout(() => rec.play(samples), wait);
     });
   };
-
-  async function check() {
-    setBusy(true);
-    setError(null);
-    setHeard(null);
-    try {
-      const { alternatives } = await recogniseOnce(10_000).result;
-      setHeard(
-        bestHeard(
-          sentence.py,
-          alternatives.map((a) => a.transcript),
-          (ch) => lib.byChar.get(ch)?.py ?? [],
-        ),
-      );
-    } catch (e) {
-      const code = (e as Error).message;
-      setError(RECOGNITION_MESSAGE[code] ?? `Speech recognition stopped (${code}).`);
-    } finally {
-      setBusy(false);
-    }
-  }
 
   // Characters with their syllable above; punctuation sits on the line. Once
   // recognition has answered, each character carries whether it was heard as
@@ -283,7 +272,7 @@ function ShadowCard({
         <button className="btn speak-side" onClick={() => void say(sentence.zh)}>
           <span aria-hidden>🔊</span> Listen
         </button>
-        <RecordButton state={rec.state} level={rec.level} onToggle={rec.toggle} disabled={!!blocked} />
+        <RecordButton state={rec.state} level={rec.level} onToggle={sayIt} disabled={!!blocked} />
         <button className="btn speak-side" disabled={!samples} onClick={() => samples && rec.play(samples)}>
           <span aria-hidden>▶</span> Me
         </button>
@@ -293,15 +282,16 @@ function ShadowCard({
         <button className="btn" disabled={!samples} onClick={both}>
           Voice, then me
         </button>
-        {canRecognise() && (
-          <button className="btn" disabled={busy || !!blocked} onClick={() => void check()}>
-            {busy ? 'Listening…' : 'Check my sounds'}
-          </button>
-        )}
       </div>
 
       {rec.error && <p className="notice speak-notice">{rec.error}</p>}
-      {error && <p className="notice speak-notice">{error}</p>}
+      {rec.heardError && <p className="notice speak-notice">{rec.heardError}</p>}
+      {!canRecognise() && (
+        <p className="tiny muted" style={{ margin: 0, maxWidth: 460 }}>
+          This browser has no speech recognition, so only the melody is checked here. Safari on the iPad has one,
+          with Siri and Dictation switched on; so does Chrome.
+        </p>
+      )}
 
       {heard && (
         <div className="heard">

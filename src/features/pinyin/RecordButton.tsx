@@ -1,10 +1,11 @@
-import type { RecorderState } from './useRecorder';
+import type { SayItState } from './useSayIt';
 
-const LABEL: Record<RecorderState, string> = {
+const LABEL: Record<SayItState, string> = {
   idle: 'Say it',
   opening: 'Opening the microphone…',
   listening: 'Listening…',
   hearing: 'Hearing you…',
+  checking: 'Working out what you said…',
 };
 
 /**
@@ -21,7 +22,7 @@ export function RecordButton({
   onToggle,
   disabled,
 }: {
-  state: RecorderState;
+  state: SayItState;
   level: number;
   onToggle: () => void;
   disabled?: boolean;
@@ -36,7 +37,7 @@ export function RecordButton({
         className="rec-button"
         data-live={live || undefined}
         aria-pressed={live}
-        disabled={disabled || state === 'opening'}
+        disabled={disabled || state === 'opening' || state === 'checking'}
         onClick={onToggle}
         aria-label={live ? 'Stop recording' : 'Record yourself'}
         style={{ ['--swell' as string]: swell }}
