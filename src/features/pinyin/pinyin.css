@@ -1356,3 +1356,18 @@
   font-size: 12px;
   color: var(--accent);
 }
+
+/* Hearing one without taking it: the card itself is for taking it. */
+.talk-hint-hear {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 15px;
+}
+
+/* Said, but not sent: yours to read, say again or throw away first. */
+.talk-bubble.talk-draft {
+  background: transparent;
+  border: 1px dashed var(--line-2);
+  box-shadow: none;
+}

@@ -287,7 +287,9 @@ export function TalkPage() {
     const session = listen(setHeard);
     mic.current = session;
     session.result
-      .then((text) => submit(text))
+      // Not sent yet: what it heard goes to the draft, to be read, said
+      // again or thrown away first. A sentence said wrong is the common case.
+      .then((text) => setDraft(text))
       .catch((e: Error) => {
         if (e.message !== 'aborted') setError(RECOGNITION_MESSAGE[e.message] ?? `Speech recognition stopped (${e.message}).`);
       })
@@ -347,8 +349,11 @@ export function TalkPage() {
   const lastTutor = [...turns].reverse().find((t) => t.who === 'tutor');
   const hints = turns[turns.length - 1]?.who === 'tutor' ? (lastTutor?.hints ?? []) : [];
   const voiceName = voice === SYSTEM ? 'The system voice' : (voices.find((v) => v.id === voice)?.name ?? voice);
+  const waiting = !listening && !!draft.trim();
   const state = listening
     ? 'Listening… tap again when you have finished.'
+    : waiting
+      ? 'Check what it heard, then send it — or say it again.'
     : thinking
       ? 'Claude is writing…'
       : speaking !== null
@@ -485,6 +490,21 @@ export function TalkPage() {
             </div>
           </div>
         )}
+        {waiting && (
+          <div className="talk-turn" data-who="learner">
+            <div className="talk-bubble talk-draft">
+              <HanziLine {...learnerLine(draft)} />
+            </div>
+            <div className="talk-actions">
+              <button className="btn ghost sm" onClick={toggleMic} disabled={!recognises || !!blocked}>
+                Say it again
+              </button>
+              <button className="btn ghost sm" onClick={() => setDraft('')}>
+                Delete
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {relayDue && (
@@ -510,10 +530,10 @@ export function TalkPage() {
               <div key={i} className="talk-hint">
                 <button
                   className="talk-hint-say"
-                  title="Hear it"
+                  title="Use this one"
                   onClick={() => {
-                    unlockAudio();
-                    void say(h.hanzi);
+                    setDraft(h.hanzi);
+                    setShowHints(false);
                   }}
                 >
                   <span className="hanzi" lang="zh-CN">
@@ -522,8 +542,16 @@ export function TalkPage() {
                   <span className="talk-hint-py">{h.pinyin}</span>
                   {h.english && <span className="tiny muted">{h.english}</span>}
                 </button>
-                <button className="btn ghost sm" onClick={() => setDraft(h.hanzi)}>
-                  Put in the box
+                <button
+                  className="btn ghost talk-hint-hear"
+                  aria-label={`Hear ${h.hanzi}`}
+                  title="Hear it"
+                  onClick={() => {
+                    unlockAudio();
+                    void say(h.hanzi);
+                  }}
+                >
+                  <span aria-hidden>🔊</span>
                 </button>
               </div>
             ))}
@@ -578,7 +606,7 @@ export function TalkPage() {
             aria-label="Your answer"
             disabled={thinking}
           />
-          <button className="btn" disabled={!draft.trim() || thinking}>
+          <button className={`btn${waiting ? ' primary' : ''}`} disabled={!draft.trim() || thinking}>
             Send
           </button>
           {hints.length > 0 && turns.length > 0 && (
@@ -633,6 +661,40 @@ function TopicPicker({
   );
 }
 
+/**
+ * A line of Chinese as a reader sets it: each character with its syllable
+ * above. When the syllables do not come one to a character — Claude wrote a
+ * word together — the pinyin goes above the line whole rather than wrongly
+ * under the characters.
+ */
+function HanziLine({ hanzi, pinyin }: { hanzi: string; pinyin: string }) {
+  const syllables = pinyin
+    .replace(/[^\p{L}\p{M}\s·]/gu, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+  const aligned = syllables.length === [...hanzi].filter((c) => HAN.test(c)).length;
+  let k = 0;
+  return (
+    <>
+      {!aligned && pinyin && <p className="talk-py">{pinyin}</p>}
+      <div className="talk-line" lang="zh-CN">
+        {[...hanzi].map((ch, i) =>
+          HAN.test(ch) ? (
+            <span key={i} className="shadow-char">
+              {aligned && <i>{syllables[k++]}</i>}
+              <b>{ch}</b>
+            </span>
+          ) : (
+            <span key={i} className="shadow-punct">
+              {ch}
+            </span>
+          ),
+        )}
+      </div>
+    </>
+  );
+}
+
 /** One turn: each character with its syllable above, and what was asked for underneath. */
 function TurnView({
   turn,
@@ -645,32 +707,10 @@ function TurnView({
   speaking: boolean;
   onSay: (text: string, slow: boolean) => void;
 }) {
-  const syllables = turn.pinyin
-    .replace(/[^\p{L}\p{M}\s·]/gu, ' ')
-    .split(/\s+/)
-    .filter(Boolean);
-  const hanCount = [...turn.hanzi].filter((c) => HAN.test(c)).length;
-  // Claude is asked for a syllable per character; when it wrote words together instead, the line goes above whole.
-  const aligned = syllables.length === hanCount;
-  let k = 0;
   return (
     <div className="talk-turn" data-who={turn.who}>
       <div className="talk-bubble" data-speaking={speaking || undefined}>
-        {!aligned && turn.pinyin && <p className="talk-py">{turn.pinyin}</p>}
-        <div className="talk-line" lang="zh-CN">
-          {[...turn.hanzi].map((ch, i) =>
-            HAN.test(ch) ? (
-              <span key={i} className="shadow-char">
-                {aligned && <i>{syllables[k++]}</i>}
-                <b>{ch}</b>
-              </span>
-            ) : (
-              <span key={i} className="shadow-punct">
-                {ch}
-              </span>
-            ),
-          )}
-        </div>
+        <HanziLine hanzi={turn.hanzi} pinyin={turn.pinyin} />
         {english && turn.english && <p className="talk-en">{turn.english}</p>}
         {turn.note && <p className="talk-note small">{turn.note}</p>}
       </div>
