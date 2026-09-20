@@ -50,6 +50,8 @@ export const paths = {
     withQuery(`/pinyin/sounds/${encodeURIComponent(lesson)}`, { step }),
   /** saying sentences along with a natural voice */
   pinyinShadow: () => '/pinyin/shadow',
+  /** a spoken conversation with Claude */
+  pinyinTalk: () => '/pinyin/talk',
   /** the microphone, the voice range, and whether speech recognition works here */
   pinyinVoice: () => '/pinyin/voice',
 

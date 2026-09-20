@@ -89,3 +89,70 @@ export function recogniseOnce(timeoutMs = 6000): { result: Promise<Heard>; cance
   r.start();
   return { result, cancel: () => r.abort() };
 }
+
+export interface Listening {
+  /** everything heard, once listening stops — by `stop`, by the time limit, or by the browser itself */
+  result: Promise<string>;
+  /** stop, and keep what was heard */
+  stop(): void;
+  /** stop, and throw it away */
+  cancel(): void;
+}
+
+/**
+ * Listens to a whole turn of a conversation: as long as it takes, until told
+ * to stop, with the words shown as they are recognised.
+ *
+ * Different from `recogniseOnce` in the one way that matters for talking: a
+ * learner pauses in the middle of a sentence to find the next word, and a
+ * recogniser that ends at the first pause cuts the sentence in half. So this
+ * one keeps listening (`continuous`) and hands over its running guess
+ * (`interimResults`) so the page can show it. Safari may still stop on its
+ * own after a long silence; whatever it had by then is the answer.
+ */
+export function listen(onHeard: (text: string) => void, maxMs = 45_000): Listening {
+  const Ctor = ctor();
+  if (!Ctor) return { result: Promise.reject(new Error('unsupported')), stop: () => undefined, cancel: () => undefined };
+  const r = new Ctor();
+  r.lang = 'zh-CN';
+  r.interimResults = true;
+  r.maxAlternatives = 1;
+  r.continuous = true;
+
+  let text = '';
+  let cancelled = false;
+  let timer: ReturnType<typeof setTimeout>;
+  const result = new Promise<string>((resolve, reject) => {
+    let done = false;
+    const finish = (fn: () => void) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      fn();
+    };
+    r.onresult = (e) => {
+      // The list holds the whole session: the settled phrases, then the one still being guessed.
+      let all = '';
+      for (let i = 0; i < e.results.length; i++) all += e.results[i]?.[0]?.transcript ?? '';
+      text = all.trim();
+      onHeard(text);
+    };
+    r.onerror = (e) => {
+      // A pause after some words is not a failure; the end event brings what there is.
+      if (e.error === 'no-speech' && text) return;
+      finish(() => reject(new Error(cancelled ? 'aborted' : e.error)));
+    };
+    r.onend = () =>
+      finish(() => (text && !cancelled ? resolve(text) : reject(new Error(cancelled ? 'aborted' : 'no-speech'))));
+    timer = setTimeout(() => r.stop(), maxMs);
+  });
+  r.start();
+  return {
+    result,
+    stop: () => r.stop(),
+    cancel: () => {
+      cancelled = true;
+      r.abort();
+    },
+  };
+}

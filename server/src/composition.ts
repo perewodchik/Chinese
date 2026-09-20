@@ -4,6 +4,7 @@ import type {
   PasswordHasher,
   SessionRepository,
   SpeechSynthesizer,
+  Tutor,
   UserRepository,
   WorkspaceRepository,
 } from './application/ports';
@@ -18,6 +19,10 @@ export interface Services {
   clock: Clock;
   /** a natural voice for reading Mandarin aloud, or null where none is configured */
   speech: SpeechSynthesizer | null;
+  /** Claude to talk Mandarin with, where the server can reach it through a subscription */
+  tutor: Tutor | null;
+  /** voices that can read any sentence — for Claude's answers — where the models are on this machine */
+  talkVoices: SpeechSynthesizer | null;
 }
 
 /** Where the three kinds of record are kept. */
@@ -42,6 +47,8 @@ export function createServices(
     hasher?: PasswordHasher;
     clock?: Clock;
     speech?: SpeechSynthesizer | null;
+    tutor?: Tutor | null;
+    talkVoices?: SpeechSynthesizer | null;
   } = {},
 ): Services {
   const clock = options.clock ?? systemClock;
@@ -54,5 +61,12 @@ export function createServices(
     policy: { ...DEFAULT_AUTH_POLICY, ...options.policy },
   });
   const workspaces = new WorkspaceService({ workspaces: stores.workspaces, clock });
-  return { auth, workspaces, clock, speech: options.speech ?? null };
+  return {
+    auth,
+    workspaces,
+    clock,
+    speech: options.speech ?? null,
+    tutor: options.tutor ?? null,
+    talkVoices: options.talkVoices ?? null,
+  };
 }

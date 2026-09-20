@@ -16,6 +16,7 @@ const STATUS: Record<ApiErrorCode, ContentfulStatusCode> = {
   payload_too_large: 413,
   rate_limited: 429,
   internal: 500,
+  unavailable: 503,
 };
 
 export const errorBody = (code: ApiErrorCode, message: string, fields?: Record<string, string>): ApiErrorBody => ({

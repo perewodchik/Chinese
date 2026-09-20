@@ -1,3 +1,4 @@
+import type { ClaudeState, TalkReply, TalkRequest } from '../../../shared/talk';
 import type { Session, User, Workspace } from '../domain/entities';
 
 /**
@@ -78,4 +79,17 @@ export interface SpeechSynthesizer {
   readonly voices: VoiceInfo[];
   /** MP3 bytes. `slow` reads at about three quarters of normal speed. */
   synthesize(text: string, voice: string, slow: boolean): Promise<Uint8Array>;
+  /** Gets one voice ready to be asked, when getting ready is slow: a model to load. Optional. */
+  warm?(voice?: string): void;
+}
+
+/**
+ * Claude, as a partner to talk Mandarin with — reached through the learner's
+ * own subscription, never through a key billed per word.
+ */
+export interface Tutor {
+  /** Whether it can answer now; cheap enough to ask on every page load. */
+  status(): Promise<ClaudeState>;
+  /** Claude's next turn. Throws `TutorUnavailableError` when it cannot be reached at all. */
+  reply(request: TalkRequest): Promise<TalkReply>;
 }

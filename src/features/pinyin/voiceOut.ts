@@ -1,6 +1,6 @@
 import { naturalVoices as serverVoices, speechAudio, type NaturalVoice } from '../../api/speech';
 import { ANALYSIS_RATE, downsample } from '../../platform/audio/mic';
-import { speak } from '../../platform/speech';
+import { speak, stopSpeaking, unlockSpeech } from '../../platform/speech';
 import { preferredVoice } from './voice';
 
 /**
@@ -141,4 +141,40 @@ export async function sampleFor(voice: string): Promise<string | null> {
 /** The voices the pack has, for choosing between. */
 export async function packVoices(): Promise<NaturalVoice[]> {
   return (await loadPack())?.voices ?? [];
+}
+
+/**
+ * Wakes both ways of making a sound inside a tap. iOS starts audio only from
+ * a gesture; once woken, a reply that arrives seconds later can still be heard.
+ */
+export function unlockAudio() {
+  if (typeof window === 'undefined') return;
+  void context().resume();
+  unlockSpeech();
+}
+
+/** Plays MP3 bytes to the end. Resolves when it has finished, or was stopped. */
+export async function playBytes(bytes: ArrayBuffer): Promise<void> {
+  const c = context();
+  void c.resume();
+  const buffer = await c.decodeAudioData(bytes);
+  return new Promise((resolve) => {
+    playing?.stop();
+    const src = c.createBufferSource();
+    src.buffer = buffer;
+    src.connect(c.destination);
+    src.onended = () => {
+      if (playing === src) playing = null;
+      resolve();
+    };
+    src.start();
+    playing = src;
+  });
+}
+
+/** Silence, whichever voice is talking. */
+export function hush() {
+  playing?.stop();
+  playing = null;
+  stopSpeaking();
 }

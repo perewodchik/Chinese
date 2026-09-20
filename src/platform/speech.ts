@@ -71,7 +71,7 @@ export const canSpeak = () => chineseVoice() !== null;
  * characters should sound like a list of characters, not like all of them at
  * once. Slightly under normal speed, because the point is to hear the tone.
  */
-export function speak(text: string, opts: { rate?: number } = {}) {
+export function speak(text: string, opts: { rate?: number; onEnd?: () => void } = {}) {
   const s = synth();
   const voice = chineseVoice();
   if (!s || !voice || !text.trim()) return false;
@@ -86,8 +86,26 @@ export function speak(text: string, opts: { rate?: number } = {}) {
     // still lands on a Mandarin voice. Better than throwing out of a click.
     void 0;
   }
+  if (opts.onEnd) {
+    const end = opts.onEnd;
+    u.onend = () => end();
+    u.onerror = () => end();
+  }
   s.speak(u);
   return true;
+}
+
+/**
+ * iOS lets speech synthesis start only inside a tap. Saying nothing, quietly,
+ * inside one is enough to let everything said later — after a network wait —
+ * be heard as well.
+ */
+export function unlockSpeech() {
+  const s = synth();
+  if (!s || s.speaking) return;
+  const u = new SpeechSynthesisUtterance(' ');
+  u.volume = 0;
+  s.speak(u);
 }
 
 export const stopSpeaking = () => synth()?.cancel();

@@ -246,6 +246,7 @@ it was made on.
 | `/pinyin/practice/<set>` | saying things out loud — `tone-2`, `pair-3-3` |
 | `/pinyin/sounds/<lesson>?step=hear` | one sound lesson — how it is made, hearing it, saying it |
 | `/pinyin/shadow?level=1&topic=food` | shadowing sentences with a natural voice |
+| `/pinyin/talk` | a spoken conversation with Claude |
 | `/pinyin/voice` | measuring your voice range, and checking your consonants |
 | `/settings` | account, folder, appearance |
 | `…?item=c好` on any page | the character drawer; back closes it |
@@ -562,6 +563,13 @@ goes rather than by overall shape; and a fourth tone in a high voice falls too
 fast for a 40 ms window, so frames the long window cannot place are filled
 from a 20 ms one. Fourteen of those recordings are test fixtures.
 
+**The chart is optional.** Settings → Pronunciation → *Show the pitch chart*.
+On, you get the staff, your line over the speaker's, and a sentence on what to
+change. Off, there is no chart and no commentary: each syllable is simply
+marked as understood or not, and in a shadowed sentence the characters
+recognition misheard are marked under the text. Some days the answer to "was
+I understood?" is the whole of what you want.
+
 **Shadowing**, at **/pinyin/shadow**: three hundred short everyday sentences,
 HSK 1 to 3, each with a translation and sorted into the app's topics, to say
 along with a natural voice. The two melodies — the voice's and yours — are
@@ -586,11 +594,21 @@ and offline.
   through MLX), in three of its Mandarin voices, plus **Chen**, a young man's
   voice *designed from a description* with Qwen3-TTS VoiceDesign and cloned
   from one reference so it stays one person — a kind of voice, not a copy of
-  anybody's.
+  anybody's. Chen reads the way a patient teacher reads for a beginner: about
+  three characters a second, a third slower than the others, each one said
+  through. Cloning copies pace and manner as much as timbre, so that is
+  decided by the reference passage the voice is designed on, not by a knob.
 - **Every tone-critical machine clip is checked** by the same pitch analysis
-  the learner gets, on that voice's own range, and left out if it fails: a
-  reference that says the wrong tone is worse than the system voice. Kokoro
-  was tried first and dropped when barely a third of its clips passed.
+  the learner gets, on that voice's own range. A clip the check turns down is
+  **said again**, up to three times — the model samples, so another go often
+  comes out right — and only then given up on: a reference that says the wrong
+  tone is worse than the system voice. Kokoro was tried first and dropped when
+  barely a third of its clips passed.
+- **Clips are cut to where the voice is.** A generated voice often starts with
+  a small intake of breath, and trimming silence keeps it, a breath being
+  louder than silence. So the first voiced frame is found and the consonant in
+  front of it followed back only while the sound runs on — a breath, separated
+  by a gap, stays outside.
 - With a pack clip, the dashed line on the staff is that voice's own pitch
   rather than the textbook shape. You can pick a voice on the front page, or
   leave it on *Any*, which rotates them — hearing a sound in several voices is
@@ -609,6 +627,58 @@ The microphone needs a secure page. The online version is https and works; on
 the home Wi-Fi at `http://192.168…` the browser offers no microphone at all,
 and the page says so. Your voice range and scores are kept on the device for
 now, not in the account.
+
+### Conversation
+
+At **/pinyin/talk**, talking with Claude out loud. Claude opens with a question
+on something everyday, at HSK 1, 2 or 3; you answer by speaking; the browser's
+speech recognition writes down what it heard, in characters, as you talk; and
+Claude answers that, read aloud. Every line shows its pinyin, and the English on
+request.
+
+**No API key, and nothing paid beyond your Claude subscription.** Claude is
+reached one of two ways:
+
+- **At home, by itself.** The server runs Claude Code headless (`claude -p`)
+  for each turn, and Claude Code signed in to a Pro or Max plan answers from
+  that plan. It runs as a plain chat partner — no tools, no project
+  instructions, nothing saved — and it is given a short list of environment
+  variables and nothing else, so an `ANTHROPIC_API_KEY` lying around can never
+  quietly bill a turn. A Claude Code signed in with an API key is refused
+  outright. It needs signing in once, in a terminal on the computer running the
+  app:
+
+  ```bash
+  claude auth login
+  ```
+
+  and choosing your Claude account, not the Console. On a Mac without `claude`
+  on the PATH, the copy the Claude desktop app bundles is found by itself, and
+  signed in the same way:
+
+  ```bash
+  "$(ls -d "$HOME/Library/Application Support/Claude/claude-code/"*/claude.app/Contents/MacOS/claude | sort -V | tail -1)" auth login
+  ```
+
+  `HANZI_CLAUDE_BIN` points at a `claude` somewhere unusual,
+  `HANZI_CLAUDE_MODEL` picks the model (`sonnet` by default; `haiku` is
+  quicker), and `HANZI_CLAUDE=off` turns it off.
+- **Anywhere else, through your own Claude chat.** On Vercel there is no Claude
+  Code to run, so the page hands you each turn to copy into a Claude chat and a
+  box to paste the answer back into. The first copy carries the instructions;
+  after that only what you said.
+
+**Claude's answers in the pack's voices.** The server keeps
+`scripts/voices/speak.py` running beside it with Qwen3-TTS loaded, and reads
+each sentence of an answer as it comes — Chen, Vivian, Serena or Dylan — the
+next sentence being made while the first plays. On an M2 that is about eight
+seconds for the very first sentence (the model loading, which starts as soon as
+the page opens) and then roughly as long to make as to hear. It needs Apple
+silicon and the Python setup from `generate.py`; `HANZI_LOCAL_VOICES=off` turns
+it off. Elsewhere — Vercel included — the system voice reads instead. These
+live voices are used for the conversation only: in the rest of the section a
+word without a pack clip falls back to the system voice on purpose, because its
+machine clip failed the tone check.
 
 ## Reading passages
 

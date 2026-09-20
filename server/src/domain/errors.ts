@@ -79,3 +79,10 @@ export class RevisionConflictError extends AppError {
     this.current = current;
   }
 }
+
+/** Claude could not be asked: not installed here, not signed in, or not answering. */
+export class TutorUnavailableError extends AppError {
+  constructor(message: string) {
+    super('unavailable', message);
+  }
+}

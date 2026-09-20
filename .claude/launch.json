@@ -33,6 +33,20 @@
         "server/src/dev.ts"
       ],
       "port": 5173
+    },
+    {
+      "name": "hanzi-workshop-mac-5174",
+      "runtimeExecutable": "/usr/bin/env",
+      "runtimeArgs": [
+        "HANZI_DEV_USER=admin",
+        "PORT=5174",
+        "/opt/homebrew/bin/node",
+        "--disable-warning=ExperimentalWarning",
+        "--import",
+        "tsx",
+        "server/src/dev.ts"
+      ],
+      "port": 5174
     }
   ]
 }

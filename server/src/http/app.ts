@@ -8,6 +8,7 @@ import { handleError } from './errors';
 import { sameOriginOnly } from './guards';
 import { authRoutes } from './routes/auth';
 import { speechRoutes } from './routes/speech';
+import { talkRoutes } from './routes/talk';
 import { workspaceRoutes } from './routes/workspace';
 import { staticSite } from './static-site';
 
@@ -40,6 +41,7 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   api.route('/auth', authRoutes(deps));
   api.route('/workspace', workspaceRoutes(deps));
   api.route('/speech', speechRoutes(deps));
+  api.route('/talk', talkRoutes(deps));
   api.all('*', () => {
     throw new NotFoundError('That API route');
   });

@@ -49,6 +49,8 @@ export interface RequestOptions {
   headers?: Record<string, string>;
   /** a 401 here is an answer rather than news: checking for a session, or signing in */
   expect401?: boolean;
+  /** for the rare request that is slow by nature, such as waiting on Claude to write */
+  timeoutMs?: number;
 }
 
 export interface Answer<T> {
@@ -58,7 +60,7 @@ export interface Answer<T> {
 
 export async function send<T>(method: string, url: string, options: RequestOptions = {}): Promise<Answer<T>> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? TIMEOUT_MS);
   const hasBody = options.body !== undefined;
   try {
     let res: Response;

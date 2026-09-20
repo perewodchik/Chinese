@@ -10,6 +10,7 @@ import { PinyinPage } from '../features/pinyin/PinyinPage';
 import { PracticePage } from '../features/pinyin/PracticePage';
 import { ShadowPage } from '../features/pinyin/ShadowPage';
 import { SoundLessonPage } from '../features/pinyin/SoundLessonPage';
+import { TalkPage } from '../features/pinyin/TalkPage';
 import { VoicePage } from '../features/pinyin/VoicePage';
 import { RadicalSetPage } from '../features/radicals/RadicalSetPage';
 import { RadicalSetsPage } from '../features/radicals/RadicalSetsPage';
@@ -47,6 +48,7 @@ import { RequireSession } from './RequireSession';
  *   /pinyin/practice/:set          saying things out loud: pair-3-3, tone-2
  *   /pinyin/sounds/:lesson?step    one sound lesson: how it is made, hear it, say it
  *   /pinyin/shadow?level&topic     saying sentences along with a natural voice
+ *   /pinyin/talk                   a spoken conversation with Claude
  *   /pinyin/voice                  the voice range, and a check of the sounds
  *   /settings
  *
@@ -104,6 +106,7 @@ export const router = createBrowserRouter([
               { path: 'pinyin/practice/:set', element: <PracticePage /> },
               { path: 'pinyin/sounds/:lesson', element: <SoundLessonPage /> },
               { path: 'pinyin/shadow', element: <ShadowPage /> },
+              { path: 'pinyin/talk', element: <TalkPage /> },
               { path: 'pinyin/voice', element: <VoicePage /> },
               { path: 'settings', element: <SettingsPage /> },
               { path: '*', element: <NotFoundPage /> },

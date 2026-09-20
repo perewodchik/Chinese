@@ -5,6 +5,8 @@ import { createServices } from './composition';
 import { loadConfig } from './config';
 import { createHttpApp } from './http/app';
 import { speechFromEnv } from './infrastructure/azure-speech';
+import { tutorFromEnv } from './infrastructure/claude-cli';
+import { localVoicesFromEnv } from './infrastructure/local-voices';
 import { openDatabase } from './infrastructure/sqlite/database';
 import { sqliteStores } from './infrastructure/sqlite/stores';
 import { banner } from './lan';
@@ -33,6 +35,8 @@ const db = openDatabase(config.databaseFile);
 const services = createServices(sqliteStores(db), {
   policy: { registration: config.registration },
   speech: speechFromEnv(process.env),
+  tutor: tutorFromEnv(process.env),
+  talkVoices: localVoicesFromEnv(process.env, process.cwd()),
 });
 const api = getRequestListener(
   createHttpApp(services, { trustProxy: config.trustProxy, staticDir: null, log: console.error, devUser }).fetch,

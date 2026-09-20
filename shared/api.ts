@@ -75,6 +75,8 @@ export type ApiErrorCode =
   | 'rate_limited'
   | 'payload_too_large'
   | 'not_found'
+  /** something the server leans on is not set up, or not answering */
+  | 'unavailable'
   | 'internal';
 
 export interface ApiErrorBody {

@@ -166,6 +166,19 @@ export function PinyinPage() {
         </span>
         <span className="go">Start →</span>
       </Link>
+      <Link className="shadow-card-link talk-card-link" to={paths.pinyinTalk()}>
+        <span className="voice-invite-mark hanzi" aria-hidden>
+          聊
+        </span>
+        <span>
+          <b>Conversation</b>
+          <span className="small muted">
+            Talk with Claude out loud. It asks about something everyday, you answer by speaking, and it answers back
+            in a voice.
+          </span>
+        </span>
+        <span className="go">Start →</span>
+      </Link>
 
       <h2 className="pinyin-label">Sounds English does not have</h2>
       <p className="small muted pinyin-lede">
