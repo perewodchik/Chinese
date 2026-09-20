@@ -69,13 +69,53 @@ VARIANTS = {
         "suffix": "",
         "pace": "语速很慢，一个字一个字地念清楚，字与字之间留出停顿，像老师在示范每一个声调。",
         "text": "你好，我是你的中文老师。我们慢慢来，一个字一个字地说清楚。听我念：妈，麻，马，骂。声调要念准，不用着急，你跟着我再说一遍。",
+        # Slower than the talking one and by the syllable, not by the gap: the
+        # pauses are what makes it a demonstration, but a short word has none,
+        # so the syllables themselves have to be unhurried too.
+        "articulation": (2.0, 3.2),
     },
     "talk": {
         "suffix": ".talk",
-        "pace": "语速自然平稳，像平常跟朋友聊天，比新闻播报慢一点，从头到尾保持同一个速度。",
+        # Asking for a natural conversational pace got a native one — 6.8
+        # characters a second once the gaps between clauses were taken out,
+        # which is what short sentences inherit. So the instruction asks for
+        # the syllables to be slow rather than for the reading to be, and says
+        # plainly not to fill the time with pauses or drawn-out vowels, which
+        # is how a model usually obeys "slower".
+        "pace": "语速放慢，每个字都说得完整清楚，像跟刚学中文的朋友说话时特意放慢的语气；不要拖长音，也不要在字与字之间加停顿，句子读起来仍然连贯自然。",
         "text": "你好，我是你的中文练习伙伴。今天天气真好，你想出去走走吗？我们一边走一边聊，说错了也没关系，我会等你。",
+        # What a sentence cloned from it will come out at, and the band the
+        # pack and the conversation then measure every clip against
+        # (pace.ts: talking is 1.8 to 4 characters a second).
+        "articulation": (2.6, 3.6),
     },
 }
+
+
+def articulation(audio: np.ndarray, rate: int, chars: int) -> float:
+    """
+    How fast the syllables themselves go, with the pauses taken out.
+
+    The number to choose a reference on, and not the obvious one. A passage
+    read at three characters a second can be somebody speaking slowly, or
+    somebody speaking at full speed who leaves long gaps between clauses —
+    over twelve seconds the average cannot tell them apart. Cloning can: a
+    four-character sentence has no room for a gap, so what it inherits is the
+    speed of the syllables, and a reference chosen on its average ships a
+    voice that gabbles.
+
+    That is exactly what happened to the talking reference. It averaged 3.7
+    characters a second, which is what this script printed and what it was
+    picked on; its syllables ran at 6.8, and every sentence cloned from it
+    came out near there — twice the speed the learner is meant to shadow.
+    """
+    frame = int(rate * 0.01)
+    if len(audio) < frame or not chars:
+        return 0.0
+    n = len(audio) // frame
+    rms = np.sqrt(np.mean(audio[: n * frame].reshape(n, frame) ** 2, axis=1) + 1e-12)
+    speech = float((rms > rms.max() * 0.08).sum()) * frame / rate
+    return chars / speech if speech else 0.0
 
 
 def breaths(audio: np.ndarray, rate: int) -> int:
@@ -179,8 +219,11 @@ def main(voice_id: str, variant: str = "teach", keeping: int | None = None) -> N
         sf.write(path, audio.reshape(-1), rate, subtype="PCM_16")
         seconds = len(audio) / rate
         chars = sum(1 for c in how["text"] if "㐀" <= c <= "鿿")
+        said = articulation(audio.reshape(-1), rate, chars)
+        want = how["articulation"]
         print(
-            f"  {path}  {seconds:.1f}s  {chars / seconds:.1f} characters a second"
+            f"  {path}  {seconds:.1f}s  {chars / seconds:.1f} c/s over the passage"
+            f"  {said:.1f} c/s syllables{'' if want[0] <= said <= want[1] else '  ← outside ' + f'{want[0]}-{want[1]}'}"
             f"  peak {np.abs(audio).max():.2f}  breaths ~{breaths(audio.reshape(-1), rate)}",
             flush=True,
         )

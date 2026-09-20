@@ -48,6 +48,19 @@ const LEVELS = [
 const HAN = /[一-鿿]/;
 
 /**
+ * How fast the sentence is played back.
+ *
+ * The pack records a sentence at the speed somebody talks — around six
+ * syllables a second, which is native and is the point everywhere else in the
+ * app. Shadowing is the one place that cannot use it: you are saying the
+ * sentence *along with* the voice, and nobody learns a melody by chasing it.
+ * Three fifths is slow enough to keep up with and fast enough to still be a
+ * sentence rather than a list of characters — and it is the same reading,
+ * stretched, so the rhythm being copied is the real one.
+ */
+const SHADOW_PACE = 0.6;
+
+/**
  * Shadowing: saying a sentence along with a native-sounding voice, again and
  * again, until the melody is yours.
  *
@@ -211,7 +224,7 @@ function ShadowCard({
   // Heard once when it arrives, not again every time the voice is changed:
   // picking a voice says the sentence itself.
   useEffect(() => {
-    const id = setTimeout(() => void say(sentence.zh), 300);
+    const id = setTimeout(() => void say(sentence.zh, { pace: SHADOW_PACE }), 300);
     return () => clearTimeout(id);
   }, [sentence.zh]);
 
@@ -237,7 +250,7 @@ function ShadowCard({
   // The voice, then you, back to back: the comparison the ear makes best.
   const both = () => {
     if (!samples) return;
-    void say(sentence.zh).then((how) => {
+    void say(sentence.zh, { pace: SHADOW_PACE }).then((how) => {
       const wait = how === 'natural' && nativeLength ? nativeLength * 1000 + 350 : 2500;
       setTimeout(() => rec.play(samples), wait);
     });
@@ -296,7 +309,7 @@ function ShadowCard({
       )}
 
       <div className="speak-controls">
-        <button className="btn speak-side" onClick={() => void say(sentence.zh)}>
+        <button className="btn speak-side" onClick={() => void say(sentence.zh, { pace: SHADOW_PACE })}>
           <span aria-hidden>🔊</span> Listen
         </button>
         <RecordButton state={rec.state} level={rec.level} onToggle={sayIt} disabled={!!blocked} />

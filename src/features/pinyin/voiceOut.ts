@@ -95,6 +95,53 @@ export interface SayOptions {
   /** a natural voice by id; the learner's chosen one, or the first available, when left out */
   voice?: string;
   slow?: boolean;
+  /**
+   * Play the recording at a fraction of its speed, keeping the pitch.
+   *
+   * The voice reads a sentence at the speed a person actually talks, which is
+   * around six syllables a second — natural, and past what a learner can say
+   * along with. Shadowing asks for the same reading slowed down, not for a
+   * different, more laboured one: the rhythm of the sentence is the thing
+   * being copied, and a voice that pauses between characters has none.
+   */
+  pace?: number;
+}
+
+/** Where the pack keeps a text, for the player that needs a file rather than samples. */
+async function packUrl(text: string, opts: SayOptions): Promise<string | null> {
+  const p = await loadPack();
+  const entry = p?.clips[text];
+  if (!entry?.voices.length) return null;
+  const wanted = opts.voice ?? preferredVoice();
+  const voice = wanted && entry.voices.includes(wanted) ? wanted : entry.voices[0]!;
+  return `/voices/${voice}/${entry.name}.mp3`;
+}
+
+/**
+ * Slowing it down without lowering it.
+ *
+ * Web Audio's `playbackRate` resamples: at 0.6 the voice is also a fifth
+ * lower, which is a different person and the wrong tones. An audio element
+ * stretches the time and leaves the pitch where it was, which is the only
+ * way to hear the same reading more slowly.
+ */
+let element: HTMLAudioElement | null = null;
+
+function playSlowly(url: string, pace: number): 'natural' {
+  element?.pause();
+  const el = new Audio(url);
+  // Safari spells it with a prefix, and an older one not at all — where it is
+  // missing the rate still works and the voice drops, which is worse than the
+  // sentence being fast, so it is left alone.
+  const media = el as HTMLAudioElement & { preservesPitch?: boolean; webkitPreservesPitch?: boolean };
+  if ('preservesPitch' in media || 'webkitPreservesPitch' in media) {
+    media.preservesPitch = true;
+    media.webkitPreservesPitch = true;
+    el.playbackRate = pace;
+  }
+  element = el;
+  void el.play().catch(() => undefined);
+  return 'natural';
 }
 
 /** The recording to use for a text, or null when only the system voice has it. */
@@ -135,6 +182,13 @@ export async function say(text: string, opts: SayOptions = {}): Promise<'natural
   // Resumed before anything is awaited: iOS only lets audio start inside the tap.
   const c = typeof window !== 'undefined' ? context() : null;
   void c?.resume();
+  if (opts.pace && opts.pace !== 1) {
+    const url = await packUrl(text, opts);
+    if (url) {
+      playing?.stop();
+      return playSlowly(url, opts.pace);
+    }
+  }
   const buffer = await clipFor(text, opts);
   if (buffer && c) {
     playing?.stop();
@@ -231,5 +285,7 @@ export async function playBytes(bytes: ArrayBuffer, rate = 1): Promise<void> {
 export function hush() {
   playing?.stop();
   playing = null;
+  element?.pause();
+  element = null;
   stopSpeaking();
 }

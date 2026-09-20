@@ -29,7 +29,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { checkClip, speechBounds, voiceRanges, type Job } from './check';
-import { charsPerSecond, paced } from './pace';
+import { charsPerSecond, paced, type Pace } from './pace';
 import { clipName, libraryFromDisk, practiceItems, sentenceReading, type Sentence } from './items';
 import { nativeFile, NATIVE_REPO } from './native';
 
@@ -74,7 +74,7 @@ interface VoiceSpec {
   description?: string;
 }
 
-type Task = Job & { tonal: boolean; sentence: boolean };
+type Task = Job & { tonal: boolean; sentence: boolean; pace: Pace };
 
 const VOICES = JSON.parse(readFileSync(join(ROOT, 'scripts/voices/voices.json'), 'utf8')) as VoiceSpec[];
 const MACHINE = VOICES.filter((v) => v.source === 'qwen3');
@@ -142,12 +142,13 @@ async function voice(batch: Task[], engine: 'qwen3' | 'clone', jobsFile: string)
       const task = pending[i]!;
       const src = join(WAV, `${job.id}.wav`);
       if (!existsSync(src)) return; // the model said nothing at all
-      // Before anything else: is this somebody talking? The pack is read at
-      // a teacher's pace, and a clip well off it is a blur or a drawl
-      // whatever its tones did.
+      // Before anything else: is this somebody talking, at the pace this
+      // clip is for? A word is read through at a teacher's pace and a
+      // sentence at a talking one, and a clip well off its own band is a
+      // blur or a drawl whatever its tones did.
       const bounds = speechBounds(src);
       const said = bounds ? bounds.end - bounds.start : 0;
-      if (!paced(said, job.text, 'teaching')) {
+      if (!paced(said, job.text, job.pace)) {
         rushed.push(charsPerSecond(said, job.text));
         if (attempt + 1 < PACE_TRIES) again.push(task);
         return;
@@ -212,14 +213,36 @@ function main() {
       reading: it.reading,
       tonal: it.tonal,
       sentence: false,
+      pace: 'natural',
     }));
+  // The id is the cache key on disk: it carries the reference, because the
+  // same sentence cloned from the teacher and from the talking recording are
+  // two different clips, and a run that reused the first would ship the drawl
+  // again without saying a word.
   const sentenceTask = (voiceId: string, speaker: string, s: Sentence): Task => ({
-    id: `${voiceId}_${clipName(s.zh)}`,
+    id: `${speaker === voiceId ? voiceId : speaker}_${clipName(s.zh)}`,
     text: s.zh,
     voice: speaker,
     tonal: false,
     sentence: true,
+    // What this voice actually reads at: the gate is here to throw out the
+    // blurs and the drawls, not to ask for a speed the generator will not
+    // give. The shadowing page slows the reading down itself.
+    pace: 'natural',
   });
+
+  /**
+   * Which recording of a designed voice a clip is cloned from.
+   *
+   * Cloning copies the pace and the manner along with the timbre, and the two
+   * things this voice is wanted for want opposite ones: the tone drills want
+   * it teaching, one word said through, and the shadowing sentences want it
+   * talking. `speak.py` has made that choice per turn since the conversation
+   * was built; the pack was still cloning everything from the teacher, which
+   * is why its sentences came out at a character a second.
+   */
+  const referenceFor = (v: VoiceSpec, sentence: boolean): string =>
+    sentence && existsSync(join(DESIGN, `${v.id}.talk.wav`)) ? `${v.id}.talk` : v.id;
 
   // Every word in every machine voice, and each sentence in one of them,
   // taken in turn so the shelf has all of them.
@@ -240,8 +263,8 @@ function main() {
   // copying. Its words go through the same tone check as any other machine
   // clip, so a word it says wrongly is still thrown away.
   const designed: Task[] = DESIGNED.flatMap((v) => [
-    ...wordTasks(v.id, v.id),
-    ...sentences.map((s) => sentenceTask(v.id, v.id, s)),
+    ...wordTasks(v.id, referenceFor(v, false)),
+    ...sentences.map((s) => sentenceTask(v.id, referenceFor(v, true), s)),
   ]);
 
   mkdirSync(WORK, { recursive: true });
@@ -254,9 +277,11 @@ function main() {
       ? await voice(designed, 'clone', join(WORK, 'designed.json'))
       : { won: new Map<string, string>(), first: new Map<string, { ok: number; all: number }>() };
 
+    // A designed voice answers to both of its references: the clips cloned
+    // from `chen.talk` are Chen's, and belong in Chen's folder.
     const idOf = new Map<string, string>([
       ...MACHINE.map((v) => [v.speaker!, v.id] as const),
-      ...DESIGNED.map((v) => [v.id, v.id] as const),
+      ...DESIGNED.flatMap((v) => [[v.id, v.id] as const, [`${v.id}.talk`, v.id] as const]),
     ]);
     const kept = new Map<string, string[]>();
     const encode: Array<{ src: string; dst: string; start?: number; end?: number }> = [];

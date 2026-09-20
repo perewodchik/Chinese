@@ -20,13 +20,22 @@
  * `speak.py` keeps the same numbers for the voice it makes live, where there
  * is no second chance to ship a better one — it is written out again there
  * rather than imported, the way the model names are.
+ *
+ * `natural` is the odd one and belongs to the pack rather than to a reading.
+ * The generator has one speed of syllable — about six a second, whichever
+ * reference it clones and whatever the instruction asks for — and only varies
+ * how long the gaps are. Over a sentence with no room for gaps that is
+ * native conversation, and no amount of saying it again produces the slower
+ * reading the bands above describe. So the pack records what the voice does,
+ * gates it only against being a genuine blur or drawl, and the page that
+ * needs it slower plays it slower (ShadowPage, at three fifths, pitch kept).
  */
 
 /**
  * What a voice is doing. The four the conversation offers, and `talking` is
  * what the pack's own sentences are read at when nobody asked for a mode.
  */
-export type Pace = 'breakdown' | 'teaching' | 'talking' | 'skim';
+export type Pace = 'breakdown' | 'teaching' | 'talking' | 'skim' | 'natural';
 
 /**
  * Seconds one Chinese character should take.
@@ -45,6 +54,7 @@ export const SECONDS_PER_CHAR: Record<Pace, { least: number; most: number }> = {
   teaching: { least: 0.3, most: 1.1 },
   talking: { least: 0.25, most: 0.55 },
   skim: { least: 0.25, most: 0.55 },
+  natural: { least: 0.115, most: 0.33 },
 };
 
 /** The breath at either end, and whatever the punctuation is worth: not charged per character. */
