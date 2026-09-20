@@ -1,5 +1,4 @@
 import type { Library } from '../data/types';
-import type { Collection } from './collection';
 import { charId, idValue, isCharId, type ItemId } from './ids';
 import { sortByLibrary } from './library';
 import { isDue, isLearned, type RecallBook, type Skill } from './memory';
@@ -75,25 +74,25 @@ export const withoutTone = (py: string) =>
 /**
  * Everything the app may ask you about.
  *
- * Not the whole syllabus: being asked about 2,700 characters you have never
- * chosen to study is how a review queue becomes something you stop opening.
- * The pool is what you have put in a collection — the app's existing word for
- * "what I am working on" — plus anything that has ever been asked about, so
- * deleting a collection does not quietly drop its characters out of rotation.
+ * Only what you have said you know, or have already been asked about. Putting
+ * a character in a collection is planning to study it, not studying it — a
+ * collection is a worksheet waiting to be printed, and a review queue built
+ * from one asks you to recall characters you have never met. So rotation
+ * begins at the moment you mark a character learned, and a character that has
+ * been asked about stays in it even after the collection it came from is gone.
  */
-export function reviewPool(
-  lib: Library,
-  collections: Collection[],
-  book: RecallBook,
-): ItemId[] {
-  const ids = new Set<ItemId>();
-  for (const c of collections) for (const i of c.items) ids.add(i);
-  for (const id in book) ids.add(id);
+export function reviewPool(lib: Library, book: RecallBook): ItemId[] {
   // A document written before radicals had a place of their own can still be
   // carrying `r61` ids; they are not characters and there is nothing to ask.
-  const chars = [...ids].filter((id) => isCharId(id) && lib.byChar.has(idValue(id)));
+  const chars = Object.keys(book).filter(
+    (id) => isCharId(id) && lib.byChar.has(idValue(id)) && hasRecord(book[id]),
+  );
   return sortByLibrary(lib, chars);
 }
+
+/** An entry left behind by unticking every skill is not in rotation. */
+const hasRecord = (sk: RecallBook[ItemId] | undefined) =>
+  Boolean(sk && Object.keys(sk).length);
 
 export interface DrillPools {
   /** everything in rotation */
@@ -116,11 +115,10 @@ export interface DrillPools {
  */
 export function drillPools(
   lib: Library,
-  collections: Collection[],
   book: RecallBook,
   learned: ReadonlySet<ItemId>,
 ): DrillPools {
-  const all = reviewPool(lib, collections, book);
+  const all = reviewPool(lib, book);
   const known = new Set(all.filter((id) => learned.has(id)).map(idValue));
   return {
     all,

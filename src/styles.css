@@ -630,6 +630,83 @@ h1 {
   cursor: pointer;
 }
 
+/* The bar you pull the sheet down by. It is only a bottom sheet on a phone,
+   so everywhere else there is nothing to grip. */
+.drawer .grip {
+  display: none;
+}
+
+/* --------------------------------------------------------- how it is held */
+
+.band {
+  font-weight: 620;
+}
+
+.band[data-band='solid'] {
+  color: var(--jade);
+}
+
+.band[data-band='holding'] {
+  color: var(--ink);
+}
+
+.band[data-band='shaky'] {
+  color: var(--gold);
+}
+
+.band[data-band='new'],
+.band[data-band='unseen'] {
+  color: var(--ink-3);
+}
+
+.skill-holds {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.skill-holds li {
+  display: grid;
+  grid-template-columns: 74px minmax(60px, 120px) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+}
+
+.skill-holds li b {
+  font-weight: 600;
+}
+
+/* Never asked about is a different state from asked and forgotten, and the
+   row says so by receding rather than by turning a colour. */
+.skill-holds li:not([data-seen]) b {
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+.skill-holds .hold {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.skill-holds .hold i {
+  display: block;
+  height: 100%;
+  background: var(--jade);
+  border-radius: 999px;
+  transition: width 0.14s ease-out;
+}
+
+.skill-holds li i.tiny {
+  font-style: normal;
+  color: var(--ink-2);
+}
+
 .kv {
   display: grid;
   grid-template-columns: 108px 1fr;
@@ -3033,6 +3110,77 @@ select.mt {
 
 /* ----------------------------------------------------------------- phones */
 @media (max-width: 640px) {
+  /* The drawer is a bottom sheet here: it covers the screen, it arrives from
+     the bottom edge where the thumb is, and it can be pushed back down. A
+     panel sliding in from the right is a desktop idea — on a phone the side
+     it comes from is the side nothing else is. */
+  .drawer {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 0 minmax(0, 1fr);
+    transition: background 0.18s ease-out;
+  }
+
+  .drawer[data-leaving] {
+    background: transparent;
+  }
+
+  .drawer > .sheet {
+    border-left: 0;
+    border-top: 1px solid var(--line-2);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 0 16px calc(40px + env(safe-area-inset-bottom));
+    animation: rise 0.2s ease-out;
+    transition: transform 0.18s ease-out;
+    overscroll-behavior: contain;
+    will-change: transform;
+  }
+
+  /* While a finger is on it, it follows the finger exactly; the transition
+     is for letting go. */
+  .drawer > .sheet[data-dragging] {
+    transition: none;
+  }
+
+  .drawer .grip {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0 -16px;
+    padding: 9px 0 7px;
+    background: var(--card);
+    /* The browser must not treat the pull as a scroll. */
+    touch-action: none;
+    cursor: grab;
+  }
+
+  .drawer .grip span {
+    display: block;
+    width: 38px;
+    height: 4px;
+    margin: 0 auto;
+    border-radius: 999px;
+    background: var(--line-2);
+  }
+
+  /* Close stays where the eye is even when the sheet is scrolled: the swipe
+     is the shortcut, not the only way out. */
+  .drawer .sheet-top {
+    position: sticky;
+    top: 20px;
+    z-index: 1;
+    margin: 0 -16px;
+    padding: 0 16px 8px;
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
+  }
+
+  @keyframes rise {
+    from {
+      transform: translateY(100%);
+    }
+  }
+
   /* Safari zooms the page when a field smaller than 16px takes focus, and
      never zooms back out. */
   input,

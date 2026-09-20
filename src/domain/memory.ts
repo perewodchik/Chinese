@@ -98,6 +98,13 @@ export interface Recall {
   due: number;
   /** epoch ms it was last graded */
   last: number;
+  /**
+   * Epoch ms this skill entered the picture — the day you ticked the box, or
+   * the day the first question about it was answered. `last` moves with every
+   * grade, so it cannot answer "when did I learn this", which is the one date
+   * a person actually wants to see next to a character.
+   */
+  since: number;
   reps: number;
   lapses: number;
 }
@@ -214,6 +221,7 @@ export function grade(
       s,
       d: FIRST_DIFFICULTY[rating],
       last: now,
+      since: prev?.since ?? now,
       due: now + intervalFor(s) * DAY,
       reps: 1,
       lapses: rating === 'again' ? 1 : 0,
@@ -243,6 +251,7 @@ export function grade(
     s,
     d,
     last: now,
+    since: prev.since ?? now,
     due: now + fuzz(intervalFor(s), now) * DAY,
     reps: prev.reps + 1,
     lapses: prev.lapses + (rating === 'again' ? 1 : 0),
@@ -310,6 +319,79 @@ export function strengthOf(sk: SkillBook | undefined, now: number): number {
 }
 
 /**
+ * How far one character has got, as one number and one word.
+ *
+ * The scheduler thinks in four separate records; a person looking at a
+ * character wants a single answer to "where am I with this". Mastery is the
+ * mean over all four skills of *how firmly that skill is held right now* —
+ * a skill with no record at all counts as zero, which is the honest reading:
+ * a character you can recognise and not write is a quarter of the way there,
+ * not finished.
+ *
+ * `MASTERED_STABILITY` is what counts as done for one skill: a memory that
+ * would still hold a month from now. Beyond that the bar stops moving, so it
+ * does not take a year of intervals to look complete.
+ */
+const MASTERED_STABILITY = 30;
+
+export type MasteryBand = 'unseen' | 'new' | 'shaky' | 'holding' | 'solid';
+
+export interface Mastery {
+  /** 0 to 1 over all four skills */
+  score: number;
+  band: MasteryBand;
+  label: string;
+  /** how many of the four skills have ever been asked about */
+  skills: number;
+  /** epoch ms this character first entered the picture, over all skills */
+  since: number | null;
+  /** epoch ms of the most recent answer about it */
+  last: number | null;
+  /** epoch ms of the next question, over all skills */
+  due: number | null;
+  reps: number;
+  lapses: number;
+}
+
+const BAND_LABEL: Record<MasteryBand, string> = {
+  unseen: 'Not started',
+  new: 'Just met',
+  shaky: 'Shaky',
+  holding: 'Holding',
+  solid: 'Solid',
+};
+
+/** How firmly one skill is held now, 0 to 1: still recalled, and for how long. */
+export const skillHold = (r: Recall | undefined, now: number): number =>
+  r ? retrievability(r, now) * Math.min(1, r.s / MASTERED_STABILITY) : 0;
+
+export function masteryOf(sk: SkillBook | undefined, now: number): Mastery {
+  const rs = SKILLS.map((s) => sk?.[s]).filter((r): r is Recall => Boolean(r));
+  const score = SKILLS.reduce((a, s) => a + skillHold(sk?.[s], now), 0) / SKILLS.length;
+  const lapses = rs.reduce((a, r) => a + r.lapses, 0);
+  const band: MasteryBand = !rs.length
+    ? 'unseen'
+    : lapses > 1 && score < 0.6
+      ? 'shaky'
+      : score < 0.15
+        ? 'new'
+        : score < 0.65
+          ? 'holding'
+          : 'solid';
+  return {
+    score,
+    band,
+    label: BAND_LABEL[band],
+    skills: rs.length,
+    since: rs.length ? Math.min(...rs.map((r) => r.since ?? r.last)) : null,
+    last: rs.length ? Math.max(...rs.map((r) => r.last)) : null,
+    due: rs.length ? Math.min(...rs.map((r) => r.due)) : null,
+    reps: rs.reduce((a, r) => a + r.reps, 0),
+    lapses,
+  };
+}
+
+/**
  * The old flag, derived.
  *
  * An item counts as learned once it has been recognised successfully at least
@@ -339,11 +421,12 @@ export function learnedFrom(book: RecallBook): Set<ItemId> {
  * puts it in front of you soon enough to find out whether the belief was true,
  * without pretending a claim is evidence.
  */
-export function asserted(now: number, dueIn = 9): Recall {
+export function asserted(now: number, dueIn = 9, since = now): Recall {
   return {
     s: dueIn,
     d: 5,
     last: now,
+    since,
     due: now + dueIn * DAY,
     reps: 1,
     lapses: 0,

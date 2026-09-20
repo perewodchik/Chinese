@@ -358,6 +358,10 @@ function recallFrom(v: unknown, now: number): Recall | null {
     s,
     d: Math.min(10, Math.max(1, finite(r.d, 5))),
     last: finite(r.last, now),
+    // Records written before the app kept the date only know when they were
+    // last answered. That is the best available answer to "since when", and
+    // for something ticked once and never reviewed it is the right one.
+    since: finite(r.since, finite(r.last, now)),
     due: finite(r.due, now),
     reps: Math.max(0, Math.round(finite(r.reps, 1))),
     lapses: Math.max(0, Math.round(finite(r.lapses, 0))),

@@ -16,6 +16,14 @@ import { voiceLevel } from './voiceOut';
  * sample by sample. Faces are read before words are, so the state of the
  * conversation arrives before the sentence telling you about it does.
  *
+ * One face — the voice you actually hold a conversation with — is drawn soft,
+ * the way a Chinese comic draws a boy you are meant to like, and moves more
+ * than the rest: he sways while he waits, leans in and nods along while you
+ * are the one struggling through a sentence, and goes pink at the cheeks
+ * while he reads his answer back to you. That is not decoration. Speaking a
+ * language badly out loud is embarrassing, and a face that is plainly on your
+ * side is what makes saying the next sentence easier than not saying it.
+ *
  * All of the standing-still motion is CSS, so it costs the page nothing; only
  * the mouth of a face that is speaking runs a frame loop, and only while it
  * speaks.
@@ -79,6 +87,10 @@ const BEHIND: Partial<Record<Hair, string>> = {
   bob: 'M26 46c-1-26 10-33 22-33s23 7 22 33c0 10-1 16-3 19 1-11 0-23-2-30-5-4-29-4-34 0-2 7-3 19-2 30-2-3-3-9-3-19Z',
   wave: 'M26 46c-1-26 10-33 22-33s23 7 22 33c0 12 2 20-2 24-4-4-2-14-3-24-1-10-5-16-17-16s-16 6-17 16c-1 10 1 20-3 24-4-4-2-12-2-24Z',
   bun: 'M48 6a9 9 0 0 1 0 18 9 9 0 0 1 0-18Z',
+  // Soft hair with weight in it: a full crown, and a lock in front of each
+  // ear, which is what stops a round face reading as a bald egg at 34px.
+  fringe:
+    'M27.4 47c-1.8-25 7.4-37 20.6-37s22.4 12 20.6 37c-1-8.4-2.4-15.4-4.4-20-2.4-7.2-8.2-10.8-16.2-10.8s-13.8 3.6-16.2 10.8c-2 4.6-3.4 11.6-4.4 20Z M28.8 42c-1.4 7-1.2 13 .2 16.8 1.4-4 1.6-9.4 1.2-13.8Z M67.2 42c1.4 7 1.2 13-.2 16.8-1.4-4-1.6-9.4-1.2-13.8Z',
 };
 
 /** Hair over the crown: the hairline, which is most of what tells one head from another. */
@@ -89,7 +101,21 @@ const FRONT: Record<Hair, string> = {
   bun: 'M29 44c-1-22 8-28 19-28s20 6 19 28c-1-11-5-17-19-17s-18 6-19 17Z',
   crop: 'M29 44c-1-21 8-27 19-27s20 6 19 27c-1-9-5-16-19-16s-18 7-19 16Z',
   part: 'M29 43c-1-21 8-27 19-27s20 6 19 27c-1-9-4-14-12-15-5 4-14 6-22 5-2 2-3 5-4 10Z',
+  // Drawn in pointed strands rather than one smooth edge, and heavier on the
+  // left than the right: hair that fell that way this morning, not a helmet.
+  fringe:
+    'M28.4 45c-1.4-22 6.6-32 19.6-32s21 10 19.6 32c-1-8-2.8-13-4.8-15.6-1 5.6-3.6 10-7 12.6 1.4-4.6 1.4-8.6 0-12-3.4 5.4-9.4 8.8-16 9.4 2.6-2.8 4-5.8 4.2-9-3.6 4.6-8 7.8-12 9-1.6 1.6-2.8 3.6-3.6 5.6Z',
 };
+
+/**
+ * The strand that will not lie down — 呆毛, the one line of a face that says
+ * this person is pleased to see you. It is stroked rather than filled so it
+ * can be bent by a transform without the shape going wrong, and it is the
+ * part that carries most of the mood: it sways while he waits, dips towards
+ * you while you talk, curls up while he is thinking and bounces while he
+ * reads your sentence back.
+ */
+const AHOGE = 'M45.2 12.6c-1.4-5 1.8-9 5.6-7.6-2.8 0.8-4 3-3.2 6.6';
 
 /**
  * One face. `still` stops the idle motion for the faces further up a
@@ -122,6 +148,7 @@ export function Portrait({
       data-cloth={machine ? undefined : face.cloth}
       data-skin={machine ? undefined : face.skin}
       data-machine={machine || undefined}
+      data-cute={(!machine && face.cute) || undefined}
       style={{ ['--beat' as string]: `-${face.beat}s` }}
       aria-hidden
     >
@@ -140,53 +167,116 @@ export function Portrait({
 }
 
 function Head({ look }: { look: Look }) {
+  // Drawn soft or drawn plain. The two share a skull, a neck and a pair of
+  // ears; what changes is the size of the eyes, the roundness of the face and
+  // the handful of marks — blush, a lighter nose, a strand of hair — that a
+  // comic uses to say somebody is young and glad you are here.
+  const cute = look.cute;
   return (
     <g className="pt-body">
       <path className="pt-cloth" d="M10 96c2-15 17-24 38-24s36 9 38 24Z" />
-      <path className="pt-collar" d="M40 73l8 9 8-9" />
-      <path className="pt-skin pt-neck" d="M41 55h14v14q-7 4-14 0Z" />
+      {cute ? (
+        // A school shirt: an open collar with two small lapels, which is what
+        // the boy in a Chinese web comic is wearing on the cover.
+        <g className="pt-collar">
+          <path d="M40 71l8 10 8-10" />
+          <path d="M40 71l-5.6 7" />
+          <path d="M56 71l5.6 7" />
+        </g>
+      ) : (
+        <path className="pt-collar" d="M40 73l8 9 8-9" />
+      )}
+      <path className="pt-skin pt-neck" d={cute ? 'M41.6 56h12.8v13q-6.4 4-12.8 0Z' : 'M41 55h14v14q-7 4-14 0Z'} />
       <g className="pt-head">
-        {BEHIND[look.hair] && <path className="pt-hair" d={BEHIND[look.hair]} />}
-        <ellipse className="pt-ear" cx="29.4" cy="45" rx="3.4" ry="4.8" />
-        <ellipse className="pt-ear" cx="66.6" cy="45" rx="3.4" ry="4.8" />
-        <ellipse className="pt-skin pt-face" cx="48" cy="43" rx="18.6" ry="21.4" />
-        <path className="pt-hair" d={FRONT[look.hair]} />
-        <g className="pt-brows">
-          <path d="M36.8 36.6q4-2.4 8-0.4" />
-          <path d="M51.2 36.2q4-2 8 0.4" />
+        <g className="pt-sway">
+          {BEHIND[look.hair] && <path className="pt-hair" d={BEHIND[look.hair]} />}
+          <ellipse className="pt-ear" cx={cute ? 29.8 : 29.4} cy={cute ? 46.5 : 45} rx="3.4" ry={cute ? 4.4 : 4.8} />
+          <ellipse className="pt-ear" cx={cute ? 66.2 : 66.6} cy={cute ? 46.5 : 45} rx="3.4" ry={cute ? 4.4 : 4.8} />
+          {/* A rounder, shorter face: a child's proportions, not a man's. */}
+          <ellipse className="pt-skin pt-face" cx="48" cy={cute ? 44 : 43} rx={cute ? 19 : 18.6} ry={cute ? 20 : 21.4} />
+          <path className="pt-hair" d={FRONT[look.hair]} />
+          {cute && <path className="pt-ahoge" d={AHOGE} />}
+          {cute ? (
+            <g className="pt-brows">
+              <path d="M36 38.2q4.2-2.6 7.8-0.8" />
+              <path d="M52.2 37.4q3.6-1.8 7.8 0.8" />
+            </g>
+          ) : (
+            <g className="pt-brows">
+              <path d="M36.8 36.6q4-2.4 8-0.4" />
+              <path d="M51.2 36.2q4-2 8 0.4" />
+            </g>
+          )}
+          {cute ? (
+            // Eyes the size a comic draws them, and the light in them drawn
+            // twice: the big catch near the top and a small one opposite, the
+            // pair of dots that stop a dark eye looking like a hole.
+            <g className="pt-eyes">
+              <ellipse className="pt-white" cx="40.2" cy="46.8" rx="5.3" ry="5.9" />
+              <ellipse className="pt-white" cx="55.8" cy="46.8" rx="5.3" ry="5.9" />
+              <g className="pt-iris">
+                <circle cx="40.2" cy="47.2" r="4" />
+                <circle cx="55.8" cy="47.2" r="4" />
+              </g>
+              <g className="pt-glint">
+                <circle cx="41.9" cy="45.2" r="1.7" />
+                <circle cx="57.5" cy="45.2" r="1.7" />
+                <circle cx="38.5" cy="49.2" r="0.9" />
+                <circle cx="54.1" cy="49.2" r="0.9" />
+              </g>
+              <g className="pt-lash">
+                <path d="M34.9 45.2q5.3-4.6 10.6 0" />
+                <path d="M50.5 45.2q5.3-4.6 10.6 0" />
+              </g>
+            </g>
+          ) : (
+            <g className="pt-eyes">
+              <ellipse className="pt-white" cx="40.4" cy="44" rx="4.4" ry="3.1" />
+              <ellipse className="pt-white" cx="55.6" cy="44" rx="4.4" ry="3.1" />
+              <g className="pt-iris">
+                <circle cx="40.4" cy="44" r="2.2" />
+                <circle cx="55.6" cy="44" r="2.2" />
+              </g>
+              <g className="pt-glint">
+                <circle cx="41.4" cy="43" r="0.8" />
+                <circle cx="56.6" cy="43" r="0.8" />
+              </g>
+            </g>
+          )}
+          <path className="pt-nose" d={cute ? 'M46.8 52.2q1.3 1.1 2.6 0' : 'M48 45.5v5.2q0 1.6 2 1.8'} />
+          {cute && (
+            <g className="pt-blush">
+              <ellipse cx="34.6" cy="52.4" rx="4.3" ry="2.4" />
+              <ellipse cx="61.4" cy="52.4" rx="4.3" ry="2.4" />
+            </g>
+          )}
+          {cute ? (
+            <g className="pt-mouth-g">
+              <path className="pt-lip" d="M43.6 56.8q4.4 3.6 8.8 0" />
+              <ellipse className="pt-mouth" cx="48" cy="57.6" rx="4.6" ry="3.8" />
+            </g>
+          ) : (
+            <g className="pt-mouth-g">
+              <path className="pt-lip" d="M42.6 55.6q5.4 3 10.8 0" />
+              <ellipse className="pt-mouth" cx="48" cy="56.4" rx="5.4" ry="4.4" />
+            </g>
+          )}
+          {look.glasses && (
+            <g className="pt-glasses">
+              <rect x="33.6" y="39.4" width="13.6" height="9.6" rx="4.4" />
+              <rect x="48.8" y="39.4" width="13.6" height="9.6" rx="4.4" />
+              <path d="M47.2 44h1.6" />
+              <path d="M33.6 43h-4" />
+              <path d="M62.4 43h4" />
+            </g>
+          )}
+          {look.earrings && (
+            <g className="pt-earring">
+              <circle cx="29.4" cy="51.4" r="1.7" />
+              <circle cx="66.6" cy="51.4" r="1.7" />
+            </g>
+          )}
         </g>
-        <g className="pt-eyes">
-          <ellipse className="pt-white" cx="40.4" cy="44" rx="4.4" ry="3.1" />
-          <ellipse className="pt-white" cx="55.6" cy="44" rx="4.4" ry="3.1" />
-          <g className="pt-iris">
-            <circle cx="40.4" cy="44" r="2.2" />
-            <circle cx="55.6" cy="44" r="2.2" />
-          </g>
-          <g className="pt-glint">
-            <circle cx="41.4" cy="43" r="0.8" />
-            <circle cx="56.6" cy="43" r="0.8" />
-          </g>
-        </g>
-        <path className="pt-nose" d="M48 45.5v5.2q0 1.6 2 1.8" />
-        <g className="pt-mouth-g">
-          <path className="pt-lip" d="M42.6 55.6q5.4 3 10.8 0" />
-          <ellipse className="pt-mouth" cx="48" cy="56.4" rx="5.4" ry="4.4" />
-        </g>
-        {look.glasses && (
-          <g className="pt-glasses">
-            <rect x="33.6" y="39.4" width="13.6" height="9.6" rx="4.4" />
-            <rect x="48.8" y="39.4" width="13.6" height="9.6" rx="4.4" />
-            <path d="M47.2 44h1.6" />
-            <path d="M33.6 43h-4" />
-            <path d="M62.4 43h4" />
-          </g>
-        )}
-        {look.earrings && (
-          <g className="pt-earring">
-            <circle cx="29.4" cy="51.4" r="1.7" />
-            <circle cx="66.6" cy="51.4" r="1.7" />
-          </g>
-        )}
       </g>
     </g>
   );

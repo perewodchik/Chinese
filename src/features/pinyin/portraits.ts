@@ -20,7 +20,7 @@
  */
 
 /** How the hair is worn. Each one is a different pair of paths in `Portrait.tsx`. */
-export type Hair = 'long' | 'bob' | 'wave' | 'bun' | 'crop' | 'part';
+export type Hair = 'long' | 'bob' | 'wave' | 'bun' | 'crop' | 'part' | 'fringe';
 
 /** What one voice looks like. The colours are indices, so the tokens stay in the stylesheet. */
 export interface Look {
@@ -31,6 +31,14 @@ export interface Look {
   cloth: 1 | 2 | 3 | 4 | 5;
   glasses: boolean;
   earrings: boolean;
+  /**
+   * Drawn soft: a rounder face, eyes twice the size with the light caught in
+   * them, a flick of colour on the cheeks and a strand of hair that will not
+   * lie down. It is the look Chinese comics give a boy you are meant to like,
+   * and it is reserved for the voice you actually talk to — the others are
+   * people in a list, and a list of wide-eyed faces is a cartoon, not a menu.
+   */
+  cute: boolean;
   /**
    * Seconds this face is out of step with the others by. Two faces on one
    * screen blinking together look like one puppet worked by one string.
@@ -46,16 +54,21 @@ export interface Look {
  */
 const KNOWN: Readonly<Record<string, Look>> = {
   // The designed voice: the one you talk to, and the one that reads a word
-  // through when you ask for it slowly.
-  chen: { hair: 'part', skin: 1, cloth: 4, glasses: false, earrings: false, beat: 0 },
+  // through when you ask for it slowly. It is also the only face drawn soft —
+  // the one that leans in, nods along and goes pink while it is the one
+  // talking.
+  chen: { hair: 'fringe', skin: 1, cloth: 4, glasses: false, earrings: false, cute: true, beat: 0 },
   // The syllable recordings are a real person's, so this one is the plainest
   // face of the set rather than a character.
-  native: { hair: 'bun', skin: 3, cloth: 5, glasses: false, earrings: true, beat: 5.3 },
+  native: { hair: 'bun', skin: 3, cloth: 5, glasses: false, earrings: true, cute: false, beat: 5.3 },
 };
 
 /** The system voice is not a person and is not drawn as one. */
 export const SYSTEM_FACE = 'system';
 
+// Chen's fringe is drawn for Chen and is not in either pool: a face worked
+// out from an id is a stranger in a list, and should not turn up wearing the
+// hair of the one you have been talking to.
 const FEMALE: Hair[] = ['long', 'bob', 'wave', 'bun'];
 const MALE: Hair[] = ['crop', 'part'];
 
@@ -85,6 +98,7 @@ export function lookFor(voice: string, gender?: 'female' | 'male'): Look {
     cloth: ((n >> 5) % 5) + 1 as 1 | 2 | 3 | 4 | 5,
     glasses: ((n >> 8) & 1) === 1,
     earrings: gender !== 'male' && ((n >> 9) & 1) === 1,
+    cute: false,
     beat: ((n >> 11) % 60) / 10,
   };
 }

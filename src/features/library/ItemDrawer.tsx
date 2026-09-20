@@ -3,12 +3,22 @@ import { Link, useMatch } from 'react-router';
 import { nextCollectionName } from '../../domain/collection';
 import type { ItemId } from '../../domain/ids';
 import { characterOf, partGloss } from '../../domain/library';
+import {
+  DAY,
+  masteryOf,
+  skillHold,
+  SKILL_META,
+  SKILLS,
+  type Recall,
+  type SkillBook,
+} from '../../domain/memory';
 import { seriesFor } from '../../domain/series';
 import { paths } from '../../navigation/paths';
 import { toggleLearned } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { AnimatedGlyph, Glyph } from '../../ui/Glyph';
 import { Say } from '../../ui/Say';
+import { useSheetDrag } from '../../ui/useSheetDrag';
 import { CollectionPicker, useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
 
@@ -37,18 +47,26 @@ export function ItemDrawer({ id, onClose }: Props) {
   const lib = useLibrary();
   const collect = useCollect();
   const learned = useStore((s) => s.learned.has(id));
+  const book = useStore((s) => s.recall[id]);
   const collections = useStore((s) => s.collections);
   const match = useMatch('/collections/:collectionId/*');
+  const sheet = useSheetDrag(onClose);
+  const { close } = sheet;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') close();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [close]);
 
   const inCollections = useMemo(() => collections.filter((x) => x.items.includes(id)), [collections, id]);
+
+  // Recomputed when the record changes rather than on a clock: the numbers
+  // move by fractions of a percent an hour, and a panel that ticks would be
+  // the only moving thing on the screen.
+  const mastery = useMemo(() => masteryOf(book, Date.now()), [book]);
 
   const c = characterOf(lib, id);
   const char = c?.c ?? '';
@@ -60,7 +78,7 @@ export function ItemDrawer({ id, onClose }: Props) {
   const addTo = (target: string) => collect(target, [id], { newName: nextCollectionName(collections) });
 
   return (
-    <div className="drawer" onClick={onClose}>
+    <div className="drawer" data-leaving={sheet.leaving || undefined} onClick={close}>
       <div />
       <div
         className="sheet"
@@ -68,9 +86,13 @@ export function ItemDrawer({ id, onClose }: Props) {
         aria-modal="true"
         aria-label={char || 'Not found'}
         onClick={(e) => e.stopPropagation()}
+        {...sheet.sheetProps}
       >
-        <div className="row" style={{ justifyContent: 'space-between' }}>
-          <button className="btn ghost sm close" onClick={onClose}>
+        <div className="grip" {...sheet.gripProps} aria-hidden="true">
+          <span />
+        </div>
+        <div className="row sheet-top" style={{ justifyContent: 'space-between' }}>
+          <button className="btn ghost sm close" onClick={close}>
             ✕ Close
           </button>
           {char && (
@@ -155,7 +177,25 @@ export function ItemDrawer({ id, onClose }: Props) {
                 </>
               )}
               <dt>Progress</dt>
-              <dd>{learned ? 'Learned' : <span className="muted">Not learned yet</span>}</dd>
+              <dd>
+                {mastery.since ? (
+                  <>
+                    {learned ? 'Learned' : 'Started'}{' '}
+                    <span className="muted">· {dateOf(mastery.since)}</span>
+                  </>
+                ) : (
+                  <span className="muted">Not learned yet</span>
+                )}
+              </dd>
+              <dt>Mastery</dt>
+              <dd>
+                <span className="band" data-band={mastery.band}>
+                  {mastery.label}
+                </span>{' '}
+                <span className="muted">
+                  · {Math.round(mastery.score * 100)}% over the four skills
+                </span>
+              </dd>
               <dt>Collections</dt>
               <dd>
                 {inCollections.length ? (
@@ -171,6 +211,15 @@ export function ItemDrawer({ id, onClose }: Props) {
                 )}
               </dd>
             </dl>
+
+            <div className="subtle-rule" />
+            <h2 style={{ fontSize: 13, margin: '0 0 8px' }}>
+              How it is holding{' '}
+              <span className="tiny muted" style={{ fontWeight: 400 }}>
+                · the four skills are scheduled apart, because they are forgotten apart
+              </span>
+            </h2>
+            <SkillHolds book={book} />
 
             {c?.ids && c.parts.length > 1 && (
               <>
@@ -318,5 +367,62 @@ export function ItemDrawer({ id, onClose }: Props) {
         )}
       </div>
     </div>
+  );
+}
+
+/** The date something entered the picture, short enough to sit in a table. */
+const dateOf = (ms: number) =>
+  new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+
+/** When the next question about it falls, in the words a person would use. */
+function whenDue(r: Recall, now: number): string {
+  if (r.due <= now) return 'due now';
+  const days = Math.round((r.due - now) / DAY);
+  if (days <= 1) return 'due tomorrow';
+  if (days < 31) return `due in ${days} days`;
+  const months = Math.round(days / 30);
+  return months < 12 ? `due in ${months} months` : 'due in about a year';
+}
+
+/**
+ * The four skills, each with how firmly it is held and when it comes back.
+ *
+ * This is the part of the schedule that the rest of the app only ever shows
+ * you one drill at a time. Seen together it explains the thing that otherwise
+ * looks like a bug: a character you have "learned" turning up again in the
+ * writing drill weeks later, because recognition and the hand are two
+ * different memories and only one of them was ever tested.
+ */
+function SkillHolds({ book }: { book: SkillBook | undefined }) {
+  const now = Date.now();
+  return (
+    <ul className="skill-holds">
+      {SKILLS.map((skill) => {
+        const r = book?.[skill];
+        const hold = skillHold(r, now);
+        return (
+          <li key={skill} data-seen={Boolean(r) || undefined}>
+            <b>{SKILL_META[skill].label}</b>
+            <span className="hold" aria-hidden="true">
+              <i style={{ width: `${Math.max(r ? 3 : 0, Math.round(hold * 100))}%` }} />
+            </span>
+            <i className="tiny">
+              {r ? (
+                <>
+                  {whenDue(r, now)}
+                  <span className="muted">
+                    {' '}
+                    · {r.reps} answer{r.reps === 1 ? '' : 's'}
+                    {r.lapses > 0 ? `, ${r.lapses} missed` : ''}
+                  </span>
+                </>
+              ) : (
+                <span className="muted">not asked yet</span>
+              )}
+            </i>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

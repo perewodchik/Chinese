@@ -17,9 +17,16 @@ describe('the look of a voice', () => {
   it('gives a voice it has never heard of a face anyway', () => {
     const look = lookFor('qwen3-someone', 'male');
     assert.ok(['crop', 'part'].includes(look.hair), 'a man’s hair for a man’s voice');
+    assert.notEqual(look.hair, 'fringe', 'Chen’s hair is Chen’s');
     assert.equal(look.earrings, false);
     assert.ok(look.skin >= 1 && look.skin <= 3);
     assert.ok(look.cloth >= 1 && look.cloth <= 5);
+  });
+
+  it('draws only the voice you talk to soft, not the whole list', () => {
+    assert.equal(lookFor('chen').cute, true);
+    for (const id of ['dylan', 'vivian', 'serena', 'native']) assert.equal(lookFor(id).cute, false, id);
+    assert.equal(lookFor('qwen3-someone', 'male').cute, false, 'a stranger arrives plain');
   });
 
   it('starts the faces at different points, so they do not blink together', () => {

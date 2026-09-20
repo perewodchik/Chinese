@@ -36,15 +36,14 @@ export function ReviewPage() {
   const [query, setQuery] = useQuery();
   const size = sittingSize(query.get('n'));
 
-  const collections = useStore((s) => s.collections);
   const recall = useStore((s) => s.recall);
   const learned = useStore((s) => s.learned);
   const sheets = useStore((s) => s.sheets);
 
   const waiting = useMemo(() => pendingSheets(sheets), [sheets]);
   const pools = useMemo(
-    () => drillPools(lib, collections, recall, learned),
-    [lib, collections, recall, learned],
+    () => drillPools(lib, recall, learned),
+    [lib, recall, learned],
   );
   const counts = useMemo(() => {
     const now = Date.now();
@@ -72,8 +71,8 @@ export function ReviewPage() {
         <span className="big">空</span>
         <p>Nothing to review yet.</p>
         <p className="small">
-          Reviewing works from the characters you have put in a collection. Add some and they will
-          start coming round.
+          Reviewing works from the characters you have marked as learned — not from everything you
+          have collected to study. Mark a few in the library and they will start coming round.
         </p>
         <Link className="btn primary" to={paths.library()} style={{ marginTop: 10 }}>
           Go to the library

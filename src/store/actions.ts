@@ -159,8 +159,11 @@ export function reduce(state: AppState, action: Action): AppState {
         if (action.value) {
           if (isLearned(recall[id])) return;
           // A few days apart, so marking thirty at the end of a text does not
-          // produce thirty questions on one morning next week.
-          recall[id] = { ...recall[id], recognise: asserted(action.at, 7 + (i % 10)) };
+          // produce thirty questions on one morning next week. Marking again
+          // something already half-known keeps the date it was first marked:
+          // the claim is being renewed, not made for the first time.
+          const since = recall[id]?.recognise?.since ?? action.at;
+          recall[id] = { ...recall[id], recognise: asserted(action.at, 7 + (i % 10), since) };
         } else if (recall[id]?.recognise) {
           const { recognise: _claim, ...rest } = recall[id];
           if (Object.keys(rest).length) recall[id] = rest;

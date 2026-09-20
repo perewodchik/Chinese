@@ -31,8 +31,8 @@ function Sitting({ drill, size }: { drill: DrillInfo; size: number }) {
   // what is due, and a queue that planned itself again after each one would
   // never come to an end.
   const [sitting] = useState(() => {
-    const { collections, recall, learned } = getState();
-    const pools = drillPools(lib, collections, recall, learned);
+    const { recall, learned } = getState();
+    const pools = drillPools(lib, recall, learned);
     return { ids: planSitting(drill, pools, recall, size, Date.now()).ids, known: pools.known };
   });
 

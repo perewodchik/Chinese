@@ -55,6 +55,22 @@ describe('reduce', () => {
     assert.equal(twice.recall['c好'].write?.reps, 1);
   });
 
+  it('keeps the day a character was first marked when it is marked again', () => {
+    const tick: Action = { type: 'recall/setLearned', ids: ['c好'], value: true, at: 1_000 };
+    const marked = run(emptyState(), tick);
+    // Missed twice, so it no longer counts as learned — and ticking it again
+    // is a renewed claim about the same character, not a new one.
+    const miss: Action = {
+      type: 'recall/grade',
+      results: [{ id: 'c好', skill: 'recognise', rating: 'again' }],
+      at: 5_000,
+    };
+    const missed = run(marked, miss, { ...miss, at: 6_000 });
+    const again = run(missed, { type: 'recall/setLearned', ids: ['c好'], value: true, at: 9_000 });
+    assert.equal(again.recall['c好'].recognise?.since, 1_000);
+    assert.equal(again.recall['c好'].recognise?.last, 9_000);
+  });
+
   it('adds a text once however many times the action is replayed', () => {
     const text = {
       id: 't',
