@@ -82,6 +82,7 @@ export function ReviewPage() {
   }
 
   const dueTotal = SKILLS.reduce((n, s) => n + counts.bySkill[s].due, 0);
+  const inRotation = `${pools.all.length} character${pools.all.length === 1 ? '' : 's'}`;
 
   return (
     <section>
@@ -90,8 +91,8 @@ export function ReviewPage() {
           <h1 style={{ margin: 0 }}>{dueTotal ? `${dueTotal} to go over` : 'Nothing is due'}</h1>
           <p className="small muted" style={{ margin: '2px 0 0' }}>
             {dueTotal
-              ? `Out of ${pools.all.length} characters in rotation.`
-              : `${pools.all.length} characters in rotation, all of them holding. Start something new below.`}
+              ? `Out of ${inRotation} in rotation.`
+              : `${inRotation} in rotation, all of them holding. Start something new below.`}
           </p>
         </div>
         <div className="spacer" />

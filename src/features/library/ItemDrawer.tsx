@@ -88,35 +88,42 @@ export function ItemDrawer({ id, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
         {...sheet.sheetProps}
       >
-        <div className="grip" {...sheet.gripProps} aria-hidden="true">
-          <span />
-        </div>
-        <div className="row sheet-top" style={{ justifyContent: 'space-between' }}>
-          <button className="btn ghost sm close" onClick={close}>
-            ✕ Close
-          </button>
-          {char && (
-            <div className="row">
-              <button className={`btn sm${learned ? ' primary' : ''}`} onClick={() => toggleLearned(id)}>
-                {learned ? '✓ Learned' : 'Mark as learned'}
-              </button>
-              {current ? (
+        {/* Grip and actions travel together: on a phone they are the one part
+            of the sheet that has to stay under the thumb as it scrolls. */}
+        <div className="sheet-head">
+          <div className="grip" {...sheet.gripProps} aria-hidden="true">
+            <span />
+          </div>
+          <div className="row sheet-top" style={{ justifyContent: 'space-between' }}>
+            <button className="btn ghost sm close" onClick={close}>
+              ✕ Close
+            </button>
+            {char && (
+              <div className="row">
                 <button
-                  className="btn sm primary"
-                  disabled={current.items.includes(id)}
-                  onClick={() => addTo(current.id)}
+                  className={`btn sm${learned ? ' primary' : ''}`}
+                  onClick={() => toggleLearned(id)}
                 >
-                  {current.items.includes(id) ? `In ${current.name}` : `Add to ${current.name}`}
+                  {learned ? '✓ Learned' : 'Mark as learned'}
                 </button>
-              ) : (
-                <CollectionPicker
-                  placeholder="Add to a collection…"
-                  onPick={addTo}
-                  style={{ width: 'auto', maxWidth: 210 }}
-                />
-              )}
-            </div>
-          )}
+                {current ? (
+                  <button
+                    className="btn sm primary"
+                    disabled={current.items.includes(id)}
+                    onClick={() => addTo(current.id)}
+                  >
+                    {current.items.includes(id) ? `In ${current.name}` : `Add to ${current.name}`}
+                  </button>
+                ) : (
+                  <CollectionPicker
+                    placeholder="Add to a collection…"
+                    onPick={addTo}
+                    style={{ width: 'auto', maxWidth: 210 }}
+                  />
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {!char ? (

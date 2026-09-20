@@ -3141,14 +3141,22 @@ select.mt {
     transition: none;
   }
 
-  .drawer .grip {
-    display: block;
+  /* Close stays where the eye is however far the sheet is scrolled: the
+     swipe is the shortcut, not the only way out. */
+  .drawer .sheet-head {
     position: sticky;
     top: 0;
     z-index: 2;
     margin: 0 -16px;
-    padding: 9px 0 7px;
+    padding: 0 16px 8px;
     background: var(--card);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .drawer .grip {
+    display: block;
+    margin: 0 -16px;
+    padding: 9px 0 7px;
     /* The browser must not treat the pull as a scroll. */
     touch-action: none;
     cursor: grab;
@@ -3163,16 +3171,29 @@ select.mt {
     background: var(--line-2);
   }
 
-  /* Close stays where the eye is even when the sheet is scrolled: the swipe
-     is the shortcut, not the only way out. */
+  /* One line, so the header of a full-screen sheet does not eat a sixth of
+     the screen: the picker gives up width first, since its label repeats
+     what the empty state below it already says. */
   .drawer .sheet-top {
-    position: sticky;
-    top: 20px;
-    z-index: 1;
-    margin: 0 -16px;
-    padding: 0 16px 8px;
-    background: var(--card);
-    border-bottom: 1px solid var(--line);
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .drawer .sheet-top > .row {
+    flex-wrap: nowrap;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  /* 16px stands: Safari zooms into anything smaller and never zooms back. */
+  .drawer .sheet-top select {
+    min-width: 0;
+    flex: 0 1 auto;
+    text-overflow: ellipsis;
+  }
+
+  .drawer .sheet-top .btn {
+    white-space: nowrap;
   }
 
   @keyframes rise {
