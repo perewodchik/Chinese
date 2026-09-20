@@ -74,6 +74,17 @@ def token_budget(text, slow):
     return int(12 * ((1.0 if slow else 0.75) * len(text) + 2))
 
 
+def long_enough(audio, rate, text):
+    """
+    Mandarin at a teacher's pace runs about a quarter of a second a character.
+    Now and then the model stops after a word or two and returns something
+    that sounds like a cut-off, so anything under half that is thrown away
+    and tried again — and if no try is long enough, the page is told, and the
+    system voice reads the sentence instead of a clipped one playing.
+    """
+    return len(audio) / rate >= 0.12 * max(1, len(text.strip()))
+
+
 def audio_for(text, voice, slow):
     spec = VOICES[voice]
     m = model(model_for(voice))
@@ -104,7 +115,7 @@ def audio_for(text, voice, slow):
             rate = getattr(r, "sample_rate", rate) or rate
         audio = np.concatenate(chunks).reshape(-1) if chunks else None
         # Now and then the model returns silence; a warmer try almost always speaks.
-        if audio is not None and len(audio) and np.abs(audio).max() > 0.02:
+        if audio is not None and len(audio) and np.abs(audio).max() > 0.02 and long_enough(audio, rate, text):
             return audio, rate
     return None, 24000
 
@@ -131,7 +142,7 @@ def answer(req):
         return {"error": "nothing to say"}
     audio, rate = audio_for(text, voice, bool(req.get("slow")))
     if audio is None:
-        return {"error": "the model said nothing"}
+        return {"error": "the model said nothing usable"}
     return {"mp3": base64.b64encode(mp3(audio, rate)).decode("ascii")}
 
 

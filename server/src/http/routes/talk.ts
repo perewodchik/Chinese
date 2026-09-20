@@ -1,9 +1,12 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import {
+  TALK_LENGTHS,
   TALK_LEVELS,
   TALK_LINE_MAX_CHARS,
   TALK_MAX_LINES,
+  TALK_TOPIC_MAX_CHARS,
+  type TalkOptions,
   type TalkReply,
   type TalkStatusResponse,
 } from '../../../../shared/talk';
@@ -18,14 +21,23 @@ const replyRequest = z.object({
     .array(z.object({ who: z.enum(['tutor', 'learner']), text: z.string().trim().min(1).max(TALK_LINE_MAX_CHARS) }))
     // A longer conversation is fine; only its end goes to Claude.
     .max(TALK_MAX_LINES * 5),
-  level: z.enum(TALK_LEVELS as [string, ...string[]]),
+  options: z.object({
+    level: z.enum(TALK_LEVELS as [string, ...string[]]),
+    length: z.enum(TALK_LENGTHS as [string, ...string[]]),
+    explain: z.boolean(),
+    words: z.boolean(),
+    hints: z.boolean(),
+    // The learner's own words, and they go into a prompt: a topic the length
+    // of an essay is a way of talking past everything above it.
+    topic: z.string().trim().max(TALK_TOPIC_MAX_CHARS),
+  }),
 });
 
 /**
  * Talking with Claude out loud, for signed-in users only.
  *
  *   GET  /api/talk?voice=chen     whether Claude can be asked from here, and the voices that can read its answers
- *   POST /api/talk/reply          { lines, level } → Claude's next turn
+ *   POST /api/talk/reply          { lines, options } → Claude's next turn
  *   GET  /api/talk/audio?text&voice&slow=1   an MP3 of one sentence, in a local voice
  *
  * The status call also gets the chosen voice's model loading, so that the
@@ -54,10 +66,7 @@ export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices }: Route
     if (!tutor) throw new TutorUnavailableError('Claude Code is not installed on this server.');
     const input = await readJson(c, replyRequest);
     turns.consume(c.get('session').user.id);
-    const reply: TalkReply = await tutor.reply({
-      lines: input.lines,
-      level: input.level as (typeof TALK_LEVELS)[number],
-    });
+    const reply: TalkReply = await tutor.reply({ lines: input.lines, options: input.options as TalkOptions });
     c.header('Cache-Control', 'no-store');
     return c.json(reply);
   });

@@ -1,4 +1,4 @@
-import type { TalkLevel, TalkLine, TalkReply, TalkStatusResponse } from '../../shared/talk';
+import type { TalkLine, TalkOptions, TalkReply, TalkStatusResponse } from '../../shared/talk';
 import { request } from './http';
 
 /**
@@ -10,9 +10,12 @@ export function talkStatus(voice?: string): Promise<TalkStatusResponse> {
 }
 
 /** Claude's next turn. Slow by nature — Claude is writing — so it is given two minutes. */
-export function talkReply(lines: TalkLine[], level: TalkLevel): Promise<TalkReply> {
-  return request<TalkReply>('POST', '/api/talk/reply', { body: { lines, level }, timeoutMs: 120_000 });
+export function talkReply(lines: TalkLine[], options: TalkOptions): Promise<TalkReply> {
+  return request<TalkReply>('POST', '/api/talk/reply', { body: { lines, options }, timeoutMs: 120_000 });
 }
+
+/** The model may have to load before the first sentence of a sitting; after that it is seconds. */
+const VOICE_TIMEOUT_MS = 90_000;
 
 /**
  * One sentence in a local voice, as MP3. Fetched directly, like the speech
@@ -20,10 +23,18 @@ export function talkReply(lines: TalkLine[], level: TalkLevel): Promise<TalkRepl
  */
 export async function talkAudio(text: string, voice: string, slow: boolean, signal?: AbortSignal): Promise<ArrayBuffer> {
   const q = new URLSearchParams({ text, voice, ...(slow ? { slow: '1' } : {}) });
-  const res = await fetch(`/api/talk/audio?${q}`, {
-    credentials: 'same-origin',
-    signal: signal ?? AbortSignal.timeout(60_000),
-  });
-  if (!res.ok) throw new Error(`voice ${res.status}`);
-  return res.arrayBuffer();
+  // Either the caller cutting in or the clock gives up on it. Built by hand
+  // rather than with AbortSignal.any, which older iPads do not have.
+  const stop = new AbortController();
+  const timer = setTimeout(() => stop.abort(), VOICE_TIMEOUT_MS);
+  const cutIn = () => stop.abort();
+  signal?.addEventListener('abort', cutIn, { once: true });
+  try {
+    const res = await fetch(`/api/talk/audio?${q}`, { credentials: 'same-origin', signal: stop.signal });
+    if (!res.ok) throw new Error(`voice ${res.status}`);
+    return await res.arrayBuffer();
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', cutIn);
+  }
 }

@@ -636,6 +636,23 @@ speech recognition writes down what it heard, in characters, as you talk; and
 Claude answers that, read aloud. Every line shows its pinyin, and the English on
 request.
 
+**What comes with the answer is yours to choose**, and all of it is asked for in
+the same turn, so none of it is a second wait:
+
+- **A topic** before you start — the app's own topics as chips, or anything at
+  all in your own words. Claude stays on it until you change the subject.
+- **How long a turn is**: one sentence, one or two, or three or four.
+- **New words**: the words in Claude's turn that are probably new at your
+  level, each one sayable on its own with a tap.
+- **Hints**, for when the next thing to say will not come: two or three things
+  you could say back, behind a button until you ask for them, each one you can
+  hear or drop into the box to say yourself.
+- **Explain**: a line of English about one thing in Claude's turn — a word, a
+  pattern, the word order.
+
+An option that is off is left out of the request altogether, because every
+extra field is more for Claude to write before the voice can start.
+
 **No API key, and nothing paid beyond your Claude subscription.** Claude is
 reached one of two ways:
 

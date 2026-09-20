@@ -1209,7 +1209,7 @@
 }
 
 .talk-end {
-  scroll-margin-bottom: 240px;
+  scroll-margin-bottom: calc(var(--composer-height, 220px) + 18px);
 }
 
 /* A character marked by what recognition heard: the whole of the feedback
@@ -1223,4 +1223,136 @@
   text-decoration: underline;
   text-decoration-color: var(--accent);
   text-underline-offset: 3px;
+}
+
+/* What the learner asks Claude for, and how much of it is shown. */
+.talk-options {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.talk-options .voice-picker {
+  margin: 0;
+}
+
+/* Before the first turn: what to talk about. */
+.talk-start {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
+
+.talk-topics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 640px;
+}
+
+.talk-topics > .tiny {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.talk-topic-own {
+  width: min(100%, 260px);
+}
+
+.talk-start-note {
+  margin: 0;
+  text-align: center;
+}
+
+/* A line of English about the Chinese just said. */
+.talk-note {
+  margin: 8px 0 0;
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+}
+
+/* The words in a turn that are probably new, each one sayable on its own. */
+.talk-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.talk-word {
+  display: grid;
+  justify-items: start;
+  gap: 1px;
+  padding: 5px 10px;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 0.14s,
+    transform 0.12s;
+}
+
+.talk-word:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.talk-word-han {
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.talk-word-py {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.talk-word-en {
+  max-width: 180px;
+}
+
+/* Things you could say back, when the next word will not come. */
+.talk-hints {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 560px);
+}
+
+.talk-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.talk-hint-say {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  padding: 7px 11px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.14s;
+}
+
+.talk-hint-say:hover {
+  border-color: var(--accent);
+}
+
+.talk-hint-say .hanzi {
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+.talk-hint-py {
+  font-size: 12px;
+  color: var(--accent);
 }

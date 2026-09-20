@@ -38,12 +38,15 @@ function systemSay(text: string, slow: boolean, signal: AbortSignal): Promise<'s
 export async function sayTurn(
   text: string,
   voice: string | null,
-  opts: { slow?: boolean; signal: AbortSignal },
+  opts: { slow?: boolean; signal: AbortSignal; onStart?: () => void },
 ): Promise<'natural' | 'system' | 'none'> {
   const { signal } = opts;
   const slow = !!opts.slow;
   signal.addEventListener('abort', hush, { once: true });
-  if (!voice) return systemSay(text, slow, signal);
+  if (!voice) {
+    opts.onStart?.();
+    return systemSay(text, slow, signal);
+  }
 
   const parts = sentences(text);
   const fetchPart = (i: number) => talkAudio(parts[i]!, voice, slow, signal);
@@ -54,12 +57,16 @@ export async function sayTurn(
       bytes = await next!;
     } catch {
       if (signal.aborted) return 'none';
+      opts.onStart?.();
       return systemSay(parts.slice(i).join(''), slow, signal);
     }
     next = i + 1 < parts.length ? fetchPart(i + 1) : null;
     // A clip already asked for, when the learner cuts in, must not be left rejected with nobody listening.
     next?.catch(() => undefined);
     if (signal.aborted) return 'none';
+    // The first clip is the one worth announcing: before it there is a wait,
+    // and a page saying "speaking" through that wait is simply wrong.
+    if (i === 0) opts.onStart?.();
     await playBytes(bytes);
     if (signal.aborted) return 'none';
   }

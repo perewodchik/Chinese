@@ -3,7 +3,16 @@ import { chmodSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
-import { parseReply, relayOpening, turnPrompt, type TalkRequest } from '../../shared/talk';
+import {
+  DEFAULT_OPTIONS,
+  parseReply,
+  relayOpening,
+  replySchema,
+  turnPrompt,
+  tutorInstructions,
+  type TalkOptions,
+  type TalkRequest,
+} from '../../shared/talk';
 import type { SpeechSynthesizer, Tutor } from '../src/application/ports';
 import { createServices } from '../src/composition';
 import { TutorUnavailableError } from '../src/domain/errors';
@@ -22,6 +31,8 @@ import {
 import { openDatabase } from '../src/infrastructure/sqlite/database';
 import { sqliteStores } from '../src/infrastructure/sqlite/stores';
 import { call, cheapHasher, sessionCookie, TestClock } from './support';
+
+const OPTIONS: TalkOptions = { ...DEFAULT_OPTIONS, words: false, hints: false };
 
 const REPLY = { hanzi: '你好！你喜欢喝茶吗？', pinyin: 'nǐ hǎo nǐ xǐ huan hē chá ma', english: 'Hello! Do you like tea?' };
 
@@ -69,7 +80,7 @@ describe('talking with Claude over HTTP', () => {
   it('is only for somebody signed in', async () => {
     const app = appWith(stubTutor().tutor);
     assert.equal((await call(app, 'GET', '/api/talk')).status, 401);
-    assert.equal((await call(app, 'POST', '/api/talk/reply', { body: { lines: [], level: 'hsk1' } })).status, 401);
+    assert.equal((await call(app, 'POST', '/api/talk/reply', { body: { lines: [], options: OPTIONS } })).status, 401);
   });
 
   it('says Claude is missing where there is no tutor, and lists no voices', async () => {
@@ -96,32 +107,36 @@ describe('talking with Claude over HTTP', () => {
       { who: 'tutor', text: '你好！' },
       { who: 'learner', text: '你好，我喜欢和茶' },
     ];
-    const res = await call(app, 'POST', '/api/talk/reply', { cookie: await signedIn(app), body: { lines, level: 'hsk2' } });
+    const options: TalkOptions = { ...OPTIONS, level: 'hsk2', length: 'long', topic: 'Food', explain: true };
+    const res = await call(app, 'POST', '/api/talk/reply', { cookie: await signedIn(app), body: { lines, options } });
     assert.equal(res.status, 200);
     assert.deepEqual(await res.json(), REPLY);
-    assert.deepEqual(asked, [{ lines, level: 'hsk2' }]);
+    assert.deepEqual(asked, [{ lines, options }]);
   });
 
   it('refuses a level it does not know and an empty line', async () => {
     const app = appWith(stubTutor().tutor);
     const cookie = await signedIn(app);
     const bad = (body: unknown) => call(app, 'POST', '/api/talk/reply', { cookie, body });
-    assert.equal((await bad({ lines: [], level: 'hsk9' })).status, 400);
-    assert.equal((await bad({ lines: [{ who: 'learner', text: '  ' }], level: 'hsk1' })).status, 400);
-    assert.equal((await bad({ lines: [{ who: 'teacher', text: '好' }], level: 'hsk1' })).status, 400);
+    assert.equal((await bad({ lines: [], options: { ...OPTIONS, level: 'hsk9' } })).status, 400);
+    assert.equal((await bad({ lines: [], options: { ...OPTIONS, length: 'epic' } })).status, 400);
+    assert.equal((await bad({ lines: [], options: { ...OPTIONS, topic: 'x'.repeat(61) } })).status, 400);
+    assert.equal((await bad({ lines: [{ who: 'learner', text: '  ' }], options: OPTIONS })).status, 400);
+    assert.equal((await bad({ lines: [{ who: 'teacher', text: '好' }], options: OPTIONS })).status, 400);
+    assert.equal((await bad({ lines: [], level: 'hsk1' })).status, 400);
   });
 
   it('answers 503 with a reason the page can show when Claude cannot be asked', async () => {
     const app = appWith(stubTutor('signed-out').tutor);
     const res = await call(app, 'POST', '/api/talk/reply', {
       cookie: await signedIn(app),
-      body: { lines: [], level: 'hsk1' },
+      body: { lines: [], options: OPTIONS },
     });
     assert.equal(res.status, 503);
     assert.match(((await res.json()) as { error: { message: string } }).error.message, /claude auth login/);
 
     const none = appWith(null);
-    const res2 = await call(none, 'POST', '/api/talk/reply', { cookie: await signedIn(none), body: { lines: [], level: 'hsk1' } });
+    const res2 = await call(none, 'POST', '/api/talk/reply', { cookie: await signedIn(none), body: { lines: [], options: OPTIONS } });
     assert.equal(res2.status, 503);
   });
 
@@ -186,7 +201,7 @@ describe('Claude Code as the tutor', () => {
     };
     const tutor = claudeTutor({ bin: () => '/bin/claude', model: 'sonnet', run });
     const lines = [{ who: 'learner' as const, text: '我想喝咖啡' }];
-    assert.deepEqual(await tutor.reply({ lines, level: 'hsk1' }), REPLY);
+    assert.deepEqual(await tutor.reply({ lines, options: OPTIONS }), REPLY);
 
     const { args, input } = runs[1]!;
     assert.ok(args.includes('-p') && args.includes('--safe-mode') && args.includes('--no-session-persistence'));
@@ -208,7 +223,7 @@ describe('Claude Code as the tutor', () => {
       return { code: 0, stdout: JSON.stringify({ structured_output: REPLY }), stderr: '' };
     };
     const tutor = claudeTutor({ bin: () => '/bin/claude', model: 'sonnet', run, now: () => now });
-    await assert.rejects(tutor.reply({ lines: [], level: 'hsk1' }), { message: API_KEY_HINT });
+    await assert.rejects(tutor.reply({ lines: [], options: OPTIONS }), { message: API_KEY_HINT });
     assert.equal(turns, 0);
 
     method = 'claude.ai';
@@ -235,13 +250,43 @@ describe('Claude Code as the tutor', () => {
   });
 });
 
+describe('what the learner asked Claude for', () => {
+  it('asks only for the extras that are switched on', () => {
+    const plain = replySchema(OPTIONS);
+    assert.deepEqual(plain.required, ['hanzi', 'pinyin', 'english']);
+
+    const all = replySchema({ ...OPTIONS, words: true, hints: true, explain: true });
+    assert.deepEqual(all.required, ['hanzi', 'pinyin', 'english', 'words', 'hints', 'note']);
+    assert.ok(all.properties.words && all.properties.hints && all.properties.note);
+  });
+
+  it('puts the length and the topic into the instructions', () => {
+    assert.match(tutorInstructions({ ...OPTIONS, length: 'short' }), /One short sentence a turn/);
+    assert.match(tutorInstructions({ ...OPTIONS, length: 'long' }), /Three or four short sentences/);
+
+    const onFood = tutorInstructions({ ...OPTIONS, topic: 'The food I like' });
+    assert.match(onFood, /stay on it unless they change the subject: The food I like/);
+    assert.doesNotMatch(onFood, /Opening the conversation: greet/);
+    assert.match(tutorInstructions(OPTIONS), /Opening the conversation: greet/);
+  });
+
+  it('asks the chat for the same extras, in labelled lines it can paste back', () => {
+    const chatty = relayOpening({ ...OPTIONS, words: true, hints: true, explain: true }, []);
+    assert.match(chatty, /Chinese: your turn/);
+    assert.match(chatty, /^Words: /m);
+    assert.match(chatty, /^Say: /m);
+    assert.match(chatty, /^Note: /m);
+    assert.doesNotMatch(relayOpening(OPTIONS, []), /^(Words|Say|Note): /m);
+  });
+});
+
 describe("reading Claude's answer back", () => {
   it('takes JSON, fenced or not', () => {
     assert.deepEqual(parseReply(JSON.stringify(REPLY)), REPLY);
     assert.deepEqual(parseReply('```json\n' + JSON.stringify(REPLY) + '\n```'), REPLY);
   });
 
-  it('takes the three lines, whatever labels the chat put on them', () => {
+  it('takes the lines whatever a chat numbered, bulleted or bolded them with', () => {
     const pasted = [
       '**Line 1:** 你好！你喜欢喝茶吗？',
       '2. nǐ hǎo nǐ xǐ huan hē chá ma',
@@ -255,10 +300,50 @@ describe("reading Claude's answer back", () => {
     assert.equal(parseReply('Sorry, I cannot help with that.'), null);
   });
 
+  it('takes the new words, the suggestions and the note out of JSON', () => {
+    const reply = parseReply(
+      JSON.stringify({
+        ...REPLY,
+        words: [{ hanzi: '茶', pinyin: 'chá', english: 'tea' }, { hanzi: '', pinyin: 'x', english: 'y' }],
+        hints: [{ hanzi: '我喜欢喝茶。', pinyin: 'wǒ xǐ huan hē chá', english: 'I like tea.' }],
+        note: '喜欢 is followed straight by the verb.',
+      }),
+    );
+    assert.deepEqual(reply?.words, [{ hanzi: '茶', pinyin: 'chá', english: 'tea' }]);
+    assert.equal(reply?.hints?.[0]?.hanzi, '我喜欢喝茶。');
+    assert.match(reply?.note ?? '', /straight by the verb/);
+  });
+
+  it('takes them out of the labelled lines a chat writes, however it lists them', () => {
+    const pasted = [
+      'Chinese: 你好！你喜欢喝茶吗？',
+      'Pinyin: nǐ hǎo nǐ xǐ huan hē chá ma',
+      'English: Hello! Do you like tea?',
+      'Words: 茶 chá — tea; 喜欢 xǐ huan — to like',
+      'Say:',
+      '- 我喜欢喝茶。wǒ xǐ huan hē chá — I like tea.',
+      '- 我不喜欢。wǒ bù xǐ huan — I do not.',
+      'Note: 吗 turns a statement into a question.',
+    ].join('\n');
+    const reply = parseReply(pasted)!;
+    assert.equal(reply.hanzi, REPLY.hanzi);
+    assert.equal(reply.pinyin, REPLY.pinyin);
+    assert.equal(reply.english, REPLY.english);
+    assert.deepEqual(reply.words, [
+      { hanzi: '茶', pinyin: 'chá', english: 'tea' },
+      { hanzi: '喜欢', pinyin: 'xǐ huan', english: 'to like' },
+    ]);
+    assert.deepEqual(reply.hints, [
+      { hanzi: '我喜欢喝茶。', pinyin: 'wǒ xǐ huan hē chá', english: 'I like tea.' },
+      { hanzi: '我不喜欢。', pinyin: 'wǒ bù xǐ huan', english: 'I do not.' },
+    ]);
+    assert.match(reply.note ?? '', /turns a statement/);
+  });
+
   it('gives the chat its instructions and the conversation so far the first time', () => {
-    const first = relayOpening('hsk1', [{ who: 'learner', text: '你好' }]);
-    assert.match(first, /exactly three lines/);
+    const first = relayOpening(OPTIONS, [{ who: 'learner', text: '你好' }]);
+    assert.match(first, /labelled lines/);
     assert.match(first, /Learner: 你好/);
-    assert.match(relayOpening('hsk2', []), /Open the conversation now/);
+    assert.match(relayOpening({ ...OPTIONS, level: 'hsk2' }, []), /Open the conversation now/);
   });
 });

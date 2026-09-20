@@ -4,7 +4,7 @@ import { homedir, tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
 import {
   parseReply,
-  REPLY_SCHEMA,
+  replySchema,
   TALK_MAX_LINES,
   turnPrompt,
   tutorInstructions,
@@ -223,7 +223,7 @@ export function claudeTutor(opts: {
 
   return {
     status,
-    async reply({ lines, level }) {
+    async reply({ lines, options }) {
       const state = await status();
       if (state === 'missing') throw new TutorUnavailableError('Claude Code is not installed on this server.');
       if (state === 'signed-out') throw new TutorUnavailableError(SIGN_IN_HINT);
@@ -241,9 +241,9 @@ export function claudeTutor(opts: {
         '--strict-mcp-config',
         '--no-session-persistence',
         '--system-prompt',
-        tutorInstructions(level),
+        tutorInstructions(options),
         '--json-schema',
-        JSON.stringify(REPLY_SCHEMA),
+        JSON.stringify(replySchema(options)),
       ];
       let run: RunResult;
       try {

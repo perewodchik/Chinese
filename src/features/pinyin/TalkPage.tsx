@@ -1,15 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import {
+  DEFAULT_OPTIONS,
   parseReply,
   relayOpening,
   relayTurn,
+  TALK_TOPIC_MAX_CHARS,
   type ClaudeState,
+  type TalkLength,
   type TalkLevel,
   type TalkLine,
+  type TalkOptions,
   type TalkReply,
   type TalkStatusResponse,
   type TalkVoice,
+  type TalkWord,
 } from '../../../shared/talk';
 import { talkReply, talkStatus } from '../../api/talk';
 import { paths } from '../../navigation/paths';
@@ -31,9 +36,8 @@ interface Turn extends TalkReply {
   who: 'tutor' | 'learner';
 }
 
-/** What the page remembers between visits, on this device. */
-interface Prefs {
-  level: TalkLevel;
+/** What the page remembers between visits, on this device: how to talk, and how to show it. */
+interface Prefs extends TalkOptions {
   /** a local voice by id, or 'system' */
   voice: string | null;
   pinyin: boolean;
@@ -41,14 +45,14 @@ interface Prefs {
 }
 
 const PREFS_KEY = 'hanzi.talk.v1';
+const FALLBACK: Prefs = { ...DEFAULT_OPTIONS, voice: null, pinyin: true, english: false };
 
 function readPrefs(): Prefs {
-  const fallback: Prefs = { level: 'hsk1', voice: null, pinyin: true, english: false };
   try {
     const raw = localStorage.getItem(PREFS_KEY);
-    return raw ? { ...fallback, ...(JSON.parse(raw) as Partial<Prefs>) } : fallback;
+    return raw ? { ...FALLBACK, ...(JSON.parse(raw) as Partial<Prefs>) } : FALLBACK;
   } catch {
-    return fallback;
+    return FALLBACK;
   }
 }
 
@@ -60,11 +64,26 @@ function writePrefs(p: Prefs) {
   }
 }
 
-const LEVELS = [
+const optionsOf = ({ level, length, explain, words, hints, topic }: Prefs): TalkOptions => ({
+  level,
+  length,
+  explain,
+  words,
+  hints,
+  topic,
+});
+
+const LEVELS: ReadonlyArray<{ id: TalkLevel; label: string }> = [
   { id: 'hsk1', label: 'HSK 1' },
   { id: 'hsk2', label: 'HSK 2' },
   { id: 'hsk3', label: 'HSK 3' },
-] as const;
+];
+
+const LENGTHS: ReadonlyArray<{ id: TalkLength; label: string; title: string }> = [
+  { id: 'short', label: 'Short', title: 'One sentence a turn' },
+  { id: 'normal', label: 'Normal', title: 'One or two sentences a turn' },
+  { id: 'long', label: 'Long', title: 'Three or four short sentences a turn' },
+];
 
 const HAN = /[㐀-鿿]/;
 const SYSTEM = 'system';
@@ -94,6 +113,11 @@ const RELAY_NOTE: Record<Exclude<ClaudeState, 'ready'>, string> = {
  * Claude answers that, in a voice. The learner never types unless they want
  * to.
  *
+ * What they get with the answer is theirs to choose: how long a turn is,
+ * whether the grammar is explained, the new words in it, and — for when the
+ * next thing to say will not come — two or three things they could say. All
+ * of it is asked for in the same turn, so none of it costs a second wait.
+ *
  * Claude is reached through the learner's subscription, never a paid API key.
  * At home the server runs Claude Code for each turn, and the page does the
  * rest by itself. Where it cannot (the Vercel site), the learner carries each
@@ -109,10 +133,13 @@ export function TalkPage() {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [thinking, setThinking] = useState(false);
   const [speaking, setSpeaking] = useState<number | null>(null);
+  /** the voice has been asked for but has not started: the model may be loading */
+  const [waitingForVoice, setWaitingForVoice] = useState(false);
   const [listening, setListening] = useState(false);
   const [heard, setHeard] = useState('');
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showHints, setShowHints] = useState(false);
   /** whether the Claude chat has had the instructions yet, on the copy-and-paste route */
   const [primed, setPrimed] = useState(false);
 
@@ -122,6 +149,8 @@ export function TalkPage() {
   const voiceStop = useRef<AbortController | null>(null);
   const mic = useRef<Listening | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const composerRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLElement>(null);
 
   const setPrefs = (patch: Partial<Prefs>) =>
     setPrefsState((p) => {
@@ -152,18 +181,41 @@ export function TalkPage() {
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, [turns.length, thinking, heard, status]);
+  }, [turns.length, thinking, heard, status, showHints]);
 
+  // The microphone sits over the foot of the thread, and how much of it it
+  // covers changes with a notice or the hints: the last turn is scrolled
+  // clear of whatever height it happens to have.
+  useEffect(() => {
+    const composer = composerRef.current;
+    const page = pageRef.current;
+    if (!composer || !page || typeof ResizeObserver === 'undefined') return;
+    const watch = new ResizeObserver(([entry]) => {
+      page.style.setProperty('--composer-height', `${Math.round(entry!.contentRect.height)}px`);
+    });
+    watch.observe(composer);
+    return () => watch.disconnect();
+  }, []);
+
+  /** Says something in the chosen voice, stopping whatever was being said. `mark` lights up a turn while it speaks. */
   const say = useCallback(
-    async (turn: Turn, slow = false) => {
+    async (text: string, opts: { slow?: boolean; mark?: number } = {}) => {
       voiceStop.current?.abort();
       const stop = new AbortController();
       voiceStop.current = stop;
-      setSpeaking(turn.id);
+      if (opts.mark !== undefined) setSpeaking(opts.mark);
+      setWaitingForVoice(true);
       try {
-        await sayTurn(turn.hanzi, voice === SYSTEM ? null : voice, { slow, signal: stop.signal });
+        await sayTurn(text, voice === SYSTEM ? null : voice, {
+          slow: opts.slow,
+          signal: stop.signal,
+          onStart: () => voiceStop.current === stop && setWaitingForVoice(false),
+        });
       } finally {
-        if (voiceStop.current === stop) setSpeaking(null);
+        if (voiceStop.current === stop) {
+          setSpeaking(null);
+          setWaitingForVoice(false);
+        }
       }
     },
     [voice],
@@ -173,6 +225,7 @@ export function TalkPage() {
     const turn = { ...reply, who, id: nextId.current++ };
     turnsRef.current = [...turnsRef.current, turn];
     setTurns(turnsRef.current);
+    setShowHints(false);
     return turn;
   };
 
@@ -182,8 +235,9 @@ export function TalkPage() {
     setThinking(true);
     setError(null);
     try {
-      const reply = await talkReply(lines(turnsRef.current), prefs.level);
-      void say(add('tutor', reply));
+      const reply = await talkReply(lines(turnsRef.current), optionsOf(prefs));
+      const turn = add('tutor', reply);
+      void say(turn.hanzi, { mark: turn.id });
     } catch (e) {
       setError((e as Error).message);
       // Signed out in the meantime, perhaps: the page switches to the chat route if so.
@@ -267,7 +321,7 @@ export function TalkPage() {
 
   async function copyForClaude() {
     unlockAudio();
-    const text = opening ? relayOpening(prefs.level, lines(turns)) : relayTurn(lines(unanswered));
+    const text = opening ? relayOpening(optionsOf(prefs), lines(turns)) : relayTurn(lines(unanswered));
     if (await copyText(text)) {
       setPrimed(true);
       toast(opening ? 'Copied — paste it into a new Claude chat' : 'Copied — paste it into your Claude chat');
@@ -285,18 +339,22 @@ export function TalkPage() {
     unlockAudio();
     setError(null);
     setPrimed(true);
-    void say(add('tutor', reply));
+    const turn = add('tutor', reply);
+    void say(turn.hanzi, { mark: turn.id });
     return true;
   }
 
   const lastTutor = [...turns].reverse().find((t) => t.who === 'tutor');
+  const hints = turns[turns.length - 1]?.who === 'tutor' ? (lastTutor?.hints ?? []) : [];
   const voiceName = voice === SYSTEM ? 'The system voice' : (voices.find((v) => v.id === voice)?.name ?? voice);
   const state = listening
     ? 'Listening… tap again when you have finished.'
     : thinking
       ? 'Claude is writing…'
       : speaking !== null
-        ? `${voiceName} is speaking… tap the microphone to cut in.`
+        ? waitingForVoice
+          ? `${voiceName} is getting ready… the first line of a sitting takes a few seconds.`
+          : `${voiceName} is speaking… tap the microphone to cut in.`
         : relayDue && turns.length > 0
           ? 'Claude’s turn — through your Claude chat, below.'
           : turns.length
@@ -304,7 +362,7 @@ export function TalkPage() {
             : '';
 
   return (
-    <section className="pinyin talk">
+    <section className="pinyin talk" ref={pageRef}>
       <div className="row" style={{ marginBottom: 14 }}>
         <Link className="btn ghost sm" to={paths.pinyin()}>
           ← Pronunciation
@@ -323,44 +381,81 @@ export function TalkPage() {
 
       {status && !direct && <p className="notice talk-notice">{RELAY_NOTE[status.claude.state as Exclude<ClaudeState, 'ready'>]}</p>}
 
-      <div className="voice-picker talk-options">
-        <span className="tiny muted">Voice</span>
-        <div className="chips">
-          {voices.map((v) => (
-            <button key={v.id} className="chip" aria-pressed={voice === v.id} onClick={() => setPrefs({ voice: v.id })}>
-              {v.name}
-              <span className="count">{v.gender === 'female' ? '♀' : '♂'}</span>
+      <div className="talk-options">
+        <div className="voice-picker">
+          <span className="tiny muted">Voice</span>
+          <div className="chips">
+            {voices.map((v) => (
+              <button key={v.id} className="chip" aria-pressed={voice === v.id} onClick={() => setPrefs({ voice: v.id })}>
+                {v.name}
+                <span className="count">{v.gender === 'female' ? '♀' : '♂'}</span>
+              </button>
+            ))}
+            <button className="chip" aria-pressed={voice === SYSTEM} onClick={() => setPrefs({ voice: SYSTEM })}>
+              System
             </button>
-          ))}
-          <button className="chip" aria-pressed={voice === SYSTEM} onClick={() => setPrefs({ voice: SYSTEM })}>
-            System
-          </button>
+          </div>
+          <span className="tiny muted talk-show">Show</span>
+          <div className="chips">
+            <button className="chip" aria-pressed={prefs.pinyin} onClick={() => setPrefs({ pinyin: !prefs.pinyin })}>
+              Pinyin
+            </button>
+            <button className="chip" aria-pressed={prefs.english} onClick={() => setPrefs({ english: !prefs.english })}>
+              English
+            </button>
+          </div>
         </div>
-        <span className="tiny muted talk-show">Show</span>
-        <div className="chips">
-          <button className="chip" aria-pressed={prefs.pinyin} onClick={() => setPrefs({ pinyin: !prefs.pinyin })}>
-            Pinyin
-          </button>
-          <button className="chip" aria-pressed={prefs.english} onClick={() => setPrefs({ english: !prefs.english })}>
-            English
-          </button>
+        <div className="voice-picker">
+          <span className="tiny muted">Answers</span>
+          <Seg value={prefs.length} options={LENGTHS} onChange={(length) => setPrefs({ length })} size="sm" label="How long Claude's turns are" />
+          <div className="chips">
+            <button
+              className="chip"
+              aria-pressed={prefs.words}
+              title="The words in Claude's turn that are probably new to you"
+              onClick={() => setPrefs({ words: !prefs.words })}
+            >
+              New words
+            </button>
+            <button
+              className="chip"
+              aria-pressed={prefs.hints}
+              title="Two or three things you could say back, for when you are stuck"
+              onClick={() => setPrefs({ hints: !prefs.hints })}
+            >
+              Hints
+            </button>
+            <button
+              className="chip"
+              aria-pressed={prefs.explain}
+              title="A line of English about the grammar in each of Claude's turns"
+              onClick={() => setPrefs({ explain: !prefs.explain })}
+            >
+              Explain
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="talk-thread" data-pinyin={prefs.pinyin ? undefined : 'off'}>
         {turns.length === 0 && !thinking && (
-          <div className="empty talk-empty">
-            <span className="big">聊</span>
-            <p>
-              Claude opens with a question about something everyday. Answer out loud — a few words is plenty, and
-              nobody minds a mistake.
-            </p>
+          <div className="talk-start">
+            <div className="empty talk-empty">
+              <span className="big">聊</span>
+              <p>
+                Claude opens with a question, you answer out loud — a few words is plenty, and nobody minds a
+                mistake.
+              </p>
+            </div>
+            <TopicPicker topic={prefs.topic} themes={lib.themes} onPick={(topic) => setPrefs({ topic })} />
             {direct ? (
-              <button className="btn primary" onClick={start} disabled={!status}>
-                Start
-              </button>
+              <div className="row" style={{ justifyContent: 'center' }}>
+                <button className="btn primary" onClick={start} disabled={!status}>
+                  Start
+                </button>
+              </div>
             ) : (
-              status && <p className="small muted">Start by copying the opening for your Claude chat, below.</p>
+              status && <p className="small muted talk-start-note">Start by copying the opening for your Claude chat, below.</p>
             )}
           </div>
         )}
@@ -371,9 +466,9 @@ export function TalkPage() {
             turn={t}
             english={prefs.english}
             speaking={speaking === t.id}
-            onSay={(slow) => {
+            onSay={(text, slow) => {
               unlockAudio();
-              void say(t, slow);
+              void say(text, { slow, mark: text === t.hanzi ? t.id : undefined });
             }}
           />
         ))}
@@ -393,17 +488,12 @@ export function TalkPage() {
       </div>
 
       {relayDue && (
-        <RelayCard
-          first={opening}
-          onCopy={() => void copyForClaude()}
-          onPaste={takePasted}
-          waitingFor={unanswered.length}
-        />
+        <RelayCard first={opening} onCopy={() => void copyForClaude()} onPaste={takePasted} waitingFor={unanswered.length} />
       )}
       {/* Scrolled to after every turn; its margin keeps what it reveals clear of the microphone. */}
       <div ref={endRef} className="talk-end" />
 
-      <div className="talk-composer">
+      <div className="talk-composer" ref={composerRef}>
         {error && <p className="notice speak-notice">{error}</p>}
         {!recognises ? (
           <p className="notice speak-notice">
@@ -413,6 +503,33 @@ export function TalkPage() {
         ) : (
           blocked && <p className="notice speak-notice">{MIC_MESSAGE[blocked]}</p>
         )}
+
+        {showHints && hints.length > 0 && (
+          <div className="talk-hints">
+            {hints.map((h, i) => (
+              <div key={i} className="talk-hint">
+                <button
+                  className="talk-hint-say"
+                  title="Hear it"
+                  onClick={() => {
+                    unlockAudio();
+                    void say(h.hanzi);
+                  }}
+                >
+                  <span className="hanzi" lang="zh-CN">
+                    {h.hanzi}
+                  </span>
+                  <span className="talk-hint-py">{h.pinyin}</span>
+                  {h.english && <span className="tiny muted">{h.english}</span>}
+                </button>
+                <button className="btn ghost sm" onClick={() => setDraft(h.hanzi)}>
+                  Put in the box
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <p className="tiny muted talk-state" aria-live="polite">
           {state}
         </p>
@@ -422,7 +539,7 @@ export function TalkPage() {
             disabled={!lastTutor}
             onClick={() => {
               unlockAudio();
-              if (lastTutor) void say(lastTutor);
+              if (lastTutor) void say(lastTutor.hanzi, { mark: lastTutor.id });
             }}
           >
             <span aria-hidden>🔊</span> Again
@@ -433,9 +550,15 @@ export function TalkPage() {
             onToggle={toggleMic}
             disabled={!recognises || !!blocked || thinking}
           />
-          <button className="btn speak-side" onClick={start} disabled={!status || thinking}>
-            New topic
-          </button>
+          {hints.length > 0 ? (
+            <button className="btn speak-side" aria-pressed={showHints} onClick={() => setShowHints((v) => !v)}>
+              {showHints ? 'Hide hints' : 'What could I say?'}
+            </button>
+          ) : (
+            <button className="btn speak-side" onClick={start} disabled={!status || thinking}>
+              New topic
+            </button>
+          )}
         </div>
         <form
           className="talk-type"
@@ -458,13 +581,59 @@ export function TalkPage() {
           <button className="btn" disabled={!draft.trim() || thinking}>
             Send
           </button>
+          {hints.length > 0 && turns.length > 0 && (
+            <button type="button" className="btn ghost" onClick={start} disabled={!status || thinking}>
+              New topic
+            </button>
+          )}
         </form>
       </div>
     </section>
   );
 }
 
-/** One turn: each character with its syllable above, the translation under, and a way to hear it again. */
+/**
+ * What to talk about, before the conversation starts: the app's own topics as
+ * chips, or anything at all in the learner's own words. Shown only on an
+ * empty thread — mid-conversation the way to change the subject is to say so,
+ * or to start a new one.
+ */
+function TopicPicker({
+  topic,
+  themes,
+  onPick,
+}: {
+  topic: string;
+  themes: Array<{ id: string; name: string }>;
+  onPick: (topic: string) => void;
+}) {
+  return (
+    <div className="talk-topics">
+      <span className="tiny muted">Topic</span>
+      <div className="chips">
+        <button className="chip" aria-pressed={!topic} onClick={() => onPick('')}>
+          Anything
+        </button>
+        {themes.slice(0, 10).map((t) => (
+          <button key={t.id} className="chip" aria-pressed={topic === t.name} onClick={() => onPick(t.name)}>
+            {t.name}
+          </button>
+        ))}
+      </div>
+      <input
+        type="text"
+        className="talk-topic-own"
+        value={topic}
+        maxLength={TALK_TOPIC_MAX_CHARS}
+        placeholder="Or something of your own"
+        aria-label="What to talk about"
+        onChange={(e) => onPick(e.target.value)}
+      />
+    </div>
+  );
+}
+
+/** One turn: each character with its syllable above, and what was asked for underneath. */
 function TurnView({
   turn,
   english,
@@ -474,7 +643,7 @@ function TurnView({
   turn: Turn;
   english: boolean;
   speaking: boolean;
-  onSay: (slow: boolean) => void;
+  onSay: (text: string, slow: boolean) => void;
 }) {
   const syllables = turn.pinyin
     .replace(/[^\p{L}\p{M}\s·]/gu, ' ')
@@ -503,18 +672,39 @@ function TurnView({
           )}
         </div>
         {english && turn.english && <p className="talk-en">{turn.english}</p>}
+        {turn.note && <p className="talk-note small">{turn.note}</p>}
       </div>
+      {turn.words && turn.words.length > 0 && (
+        <div className="talk-words">
+          {turn.words.map((w, i) => (
+            <WordChip key={i} word={w} onSay={() => onSay(w.hanzi, false)} />
+          ))}
+        </div>
+      )}
       {turn.who === 'tutor' && (
         <div className="talk-actions">
-          <button className="btn ghost sm" onClick={() => onSay(false)}>
+          <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, false)}>
             <span aria-hidden>🔊</span> Again
           </button>
-          <button className="btn ghost sm" onClick={() => onSay(true)}>
+          <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, true)}>
             Slowly
           </button>
         </div>
       )}
     </div>
+  );
+}
+
+/** A new word: tap it to hear it on its own. */
+function WordChip({ word, onSay }: { word: TalkWord; onSay: () => void }) {
+  return (
+    <button className="talk-word" onClick={onSay} title="Hear it">
+      <span className="talk-word-han hanzi" lang="zh-CN">
+        {word.hanzi}
+      </span>
+      <span className="talk-word-py">{word.pinyin}</span>
+      <span className="talk-word-en tiny muted">{word.english}</span>
+    </button>
   );
 }
 
