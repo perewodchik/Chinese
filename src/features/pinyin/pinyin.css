@@ -1058,8 +1058,11 @@
 }
 
 /* ----------------------------------------------------------- conversation */
-.talk-notice {
-  margin: 0 0 12px;
+/* Two classes, because `.notice` in the stylesheet sets `margin: 0` and is
+   loaded after this file: a single class here would lose and the notice
+   would sit flush against the faces under it. */
+.notice.talk-notice {
+  margin: 2px 0 16px;
   max-width: 720px;
 }
 

@@ -686,10 +686,16 @@ export function TalkPage() {
             <button className="btn speak-side" aria-pressed={showHints} onClick={() => setShowHints((v) => !v)}>
               {showHints ? 'Hide hints' : 'What could I say?'}
             </button>
-          ) : (
+          ) : turns.length > 0 ? (
             <button className="btn speak-side" onClick={start} disabled={!status || thinking}>
               New topic
             </button>
+          ) : (
+            // Nothing said yet, so there is nothing to throw away and start
+            // again from: the topic and the opening are both on the page
+            // above. An empty space of the same width keeps the microphone
+            // in the middle.
+            <span className="speak-side" />
           )}
         </div>
         <form
