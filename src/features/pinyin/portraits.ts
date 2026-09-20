@@ -41,15 +41,13 @@ export interface Look {
 /**
  * The voices the pack ships with, each given a look of their own, told apart
  * by hair, collar and the rest rather than by a label — the point of a face
- * is that you know who it is before you have read anything.
+ * is that you know who it is before you have read anything. There are two of
+ * them and a machine; a voice added later is drawn from its id.
  */
 const KNOWN: Readonly<Record<string, Look>> = {
-  // The designed voice: a patient young teacher who reads a third as fast as
-  // the others, so his face is the calm one.
+  // The designed voice: the one you talk to, and the one that reads a word
+  // through when you ask for it slowly.
   chen: { hair: 'part', skin: 1, cloth: 4, glasses: false, earrings: false, beat: 0 },
-  dylan: { hair: 'crop', skin: 2, cloth: 3, glasses: true, earrings: false, beat: 1.7 },
-  vivian: { hair: 'long', skin: 1, cloth: 2, glasses: false, earrings: true, beat: 2.9 },
-  serena: { hair: 'wave', skin: 2, cloth: 1, glasses: false, earrings: false, beat: 4.1 },
   // The syllable recordings are a real person's, so this one is the plainest
   // face of the set rather than a character.
   native: { hair: 'bun', skin: 3, cloth: 5, glasses: false, earrings: true, beat: 5.3 },

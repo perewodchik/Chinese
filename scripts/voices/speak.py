@@ -14,8 +14,8 @@ One JSON request a line on stdin, one answer a line on stdout, in order:
     {"id": "7", "mp3": "<base64>"}            or  {"id": "7", "error": "..."}
     {"id": "8", "warm": true, "voice": "chen"} → {"id": "8", "ok": true}
 
-The voices are the pack's own (voices.json): the Qwen3-TTS speakers, and the
-designed voices cloned from their chosen reference in design/. On an M2 a
+The voices are the pack's own (voices.json): a designed voice is cloned from
+its chosen reference in design/, a model speaker read as it comes. On an M2 a
 sentence takes about as long to make as to hear, after a first load of
 several seconds — which `warm` lets the server get out of the way early.
 
@@ -25,6 +25,7 @@ It stops when stdin closes, which is when the server exits.
 import base64
 import json
 import os
+import re
 import sys
 import warnings
 
@@ -91,15 +92,31 @@ def token_budget(text, slow):
     return int(12 * ((1.0 if slow else 0.75) * len(text) + 2))
 
 
-def long_enough(audio, rate, text):
+# How long one Chinese character should take, talking and teaching. The same
+# numbers as scripts/voices/pace.ts, which the pack is gated on and which says
+# where they come from; written out here rather than imported, as the model
+# names are.
+PACE = {False: (0.25, 0.55), True: (0.30, 1.10)}
+ENDS = 0.35
+HAN = re.compile(r"[\u3400-\u9fff]")
+
+
+def paced(audio, rate, text, slow):
     """
-    Mandarin at a teacher's pace runs about a quarter of a second a character.
-    Now and then the model stops after a word or two and returns something
-    that sounds like a cut-off, so anything under half that is thrown away
-    and tried again — and if no try is long enough, the page is told, and the
-    system voice reads the sentence instead of a clipped one playing.
+    Whether that is somebody talking, or the model having lost the thread.
+
+    Asked for the same sentence twice it will spend twelve seconds on one and
+    seven tenths of a second on the other. Both are audio; only one is speech.
+    A clip outside the band for the pace being asked for is said again, and if
+    no try lands in it the page is told, so the system voice reads the
+    sentence rather than a blur playing in a voice the learner trusts.
     """
-    return len(audio) / rate >= 0.12 * max(1, len(text.strip()))
+    chars = len(HAN.findall(text))
+    if not chars:
+        return True
+    least, most = PACE[bool(slow)]
+    seconds = len(audio) / rate
+    return least * chars <= seconds <= most * chars + ENDS
 
 
 def audio_for(text, voice, slow):
@@ -133,7 +150,9 @@ def audio_for(text, voice, slow):
             rate = getattr(r, "sample_rate", rate) or rate
         audio = np.concatenate(chunks).reshape(-1) if chunks else None
         # Now and then the model returns silence; a warmer try almost always speaks.
-        if audio is not None and len(audio) and np.abs(audio).max() > 0.02 and long_enough(audio, rate, text):
+        # The pace is judged on the speech, not on the silence around it —
+        # the same length `mp3` below will keep.
+        if audio is not None and len(audio) and np.abs(audio).max() > 0.02 and paced(trimmed(audio, rate), rate, text, slow):
             return audio, rate
     return None, 24000
 

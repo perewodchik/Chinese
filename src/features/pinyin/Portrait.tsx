@@ -7,8 +7,8 @@ import { voiceLevel } from './voiceOut';
  *
  * One head, built from the numbers in `portraits.ts`: hair, collar, skin,
  * glasses. Nothing here is a likeness of anybody — the parts are the same
- * parts every time, and what tells Vivian from Serena is which ones are
- * drawn, the way a printer's stamp differs from another printer's stamp.
+ * parts every time, and what tells one voice from another is which of them
+ * are drawn, the way a printer's stamp differs from another printer's stamp.
  *
  * What it does is more important than what it is. It breathes, it blinks, it
  * tilts its head while you are the one talking, it looks up while Claude is

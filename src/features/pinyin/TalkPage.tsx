@@ -45,10 +45,29 @@ interface Prefs extends TalkOptions {
   english: boolean;
   /** whether the voices are shown as faces */
   faces: boolean;
+  /** how fast the voice reads a turn */
+  pace: TalkPace;
 }
 
+/**
+ * How fast to be talked to.
+ *
+ * Not a playback speed. A voice slowed down by playing it slower is the same
+ * reading stretched: the same running-together, the same swallowed endings,
+ * now droning. Slow here is a different reading — the model is asked for the
+ * teacher, and a designed voice is cloned from the reference where that
+ * person is demonstrating rather than chatting. It is somebody saying it
+ * again, more carefully, which is what you would ask a person for.
+ */
+type TalkPace = 'normal' | 'slow';
+
+const PACES: ReadonlyArray<{ id: TalkPace; label: string; title: string }> = [
+  { id: 'normal', label: 'Normal', title: 'Said the way it would be said to you' },
+  { id: 'slow', label: 'Slowly', title: 'Said again the way a teacher says it: each word through, every tone landing' },
+];
+
 const PREFS_KEY = 'hanzi.talk.v1';
-const FALLBACK: Prefs = { ...DEFAULT_OPTIONS, voice: null, pinyin: true, english: false, faces: true };
+const FALLBACK: Prefs = { ...DEFAULT_OPTIONS, voice: null, pinyin: true, english: false, faces: true, pace: 'normal' };
 
 function readPrefs(): Prefs {
   try {
@@ -262,7 +281,7 @@ export function TalkPage() {
     try {
       const reply = await talkReply(lines(turnsRef.current), optionsOf(prefs));
       const turn = add('tutor', reply);
-      void say(turn.hanzi, { mark: turn.id });
+      void say(turn.hanzi, { mark: turn.id, slow: prefs.pace === 'slow' });
     } catch (e) {
       setError((e as Error).message);
       // Signed out in the meantime, perhaps: the page switches to the chat route if so.
@@ -463,6 +482,10 @@ export function TalkPage() {
           )}
         </div>
         <div className="opt-row">
+          <span className="tiny muted">Pace</span>
+          <Seg value={prefs.pace} options={PACES} onChange={(pace) => setPrefs({ pace })} size="sm" label="How fast you are talked to" />
+        </div>
+        <div className="opt-row">
           <span className="tiny muted">Show</span>
           <div className="chips">
             <button className="chip" aria-pressed={prefs.pinyin} onClick={() => setPrefs({ pinyin: !prefs.pinyin })}>
@@ -554,6 +577,7 @@ export function TalkPage() {
             voice={voice}
             gender={partner?.gender}
             speaking={speaking === t.id && !waitingForVoice}
+            pace={prefs.pace}
             onSay={(text, slow) => {
               unlockAudio();
               void say(text, { slow, mark: text === t.hanzi ? t.id : undefined });
@@ -640,7 +664,7 @@ export function TalkPage() {
                   title="Hear it"
                   onClick={() => {
                     unlockAudio();
-                    void say(h.hanzi);
+                    void say(h.hanzi, { slow: prefs.pace === 'slow' });
                   }}
                 >
                   <span aria-hidden>🔊</span>
@@ -671,7 +695,7 @@ export function TalkPage() {
             disabled={!lastTutor}
             onClick={() => {
               unlockAudio();
-              if (lastTutor) void say(lastTutor.hanzi, { mark: lastTutor.id });
+              if (lastTutor) void say(lastTutor.hanzi, { mark: lastTutor.id, slow: prefs.pace === 'slow' });
             }}
           >
             <span aria-hidden>🔊</span> Again
@@ -818,6 +842,7 @@ function TurnView({
   voice,
   gender,
   speaking,
+  pace,
   onSay,
 }: {
   turn: Turn;
@@ -826,8 +851,10 @@ function TurnView({
   voice: string;
   gender?: 'female' | 'male';
   speaking: boolean;
+  pace: TalkPace;
   onSay: (text: string, slow: boolean) => void;
 }) {
+  const slow = pace === 'slow';
   return (
     <div className="talk-turn" data-who={turn.who}>
       {faces &&
@@ -851,18 +878,21 @@ function TurnView({
         {turn.words && turn.words.length > 0 && (
           <div className="talk-words">
             {turn.words.map((w, i) => (
-              <WordChip key={i} word={w} onSay={() => onSay(w.hanzi, false)} />
+              <WordChip key={i} word={w} onSay={() => onSay(w.hanzi, slow)} />
             ))}
           </div>
         )}
         {turn.who === 'tutor' && (
           <div className="talk-actions">
-            <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, false)}>
+            <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, slow)}>
               <span aria-hidden>🔊</span> Again
             </button>
-            <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, true)}>
-              Slowly
-            </button>
+            {/* Already the slow reading: asking for it again would be the same clip. */}
+            {!slow && (
+              <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, true)}>
+                Slowly
+              </button>
+            )}
           </div>
         )}
       </div>

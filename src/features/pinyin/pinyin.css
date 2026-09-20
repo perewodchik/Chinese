@@ -1094,6 +1094,12 @@
   gap: 8px;
 }
 
+/* A control on its own in a row takes the width it needs, not the width of
+   the panel: a two-way switch stretched across the page reads as a banner. */
+.opt-row > .seg {
+  justify-self: start;
+}
+
 .talk-thread {
   display: flex;
   flex-direction: column;

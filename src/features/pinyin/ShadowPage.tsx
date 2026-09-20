@@ -17,7 +17,7 @@ import { RecordButton } from './RecordButton';
 import { useSayIt } from './useSayIt';
 import { usePinyinMemory, voiceRange } from './voice';
 import { VoicePicker } from './VoicePicker';
-import { referenceSamples, say } from './voiceOut';
+import { packTexts, referenceSamples, say } from './voiceOut';
 import './pinyin.css';
 
 /** One sentence to shadow, as the voice pack ships it. */
@@ -67,6 +67,8 @@ export function ShadowPage() {
   const lib = useLibrary();
   const learned = useStore((s) => s.learned);
   const [all, setAll] = useState<ShadowSentence[] | null>(null);
+  /** the sentences a voice in the pack actually reads; null until it is known */
+  const [voiced, setVoiced] = useState<Set<string> | null>(null);
   const [query, setQuery] = useQuery();
   const level = oneOf(query.get('level'), ['all', '1', '2', '3'] as const, 'all');
   const topic = query.get('topic');
@@ -75,6 +77,7 @@ export function ShadowPage() {
 
   useEffect(() => {
     void loadShelf().then(setAll);
+    void packTexts().then(setVoiced);
   }, []);
 
   const known = useMemo(() => new Set([...learned].map(idValue)), [learned]);
@@ -87,11 +90,12 @@ export function ShadowPage() {
     () =>
       (all ?? []).filter(
         (s) =>
+          (!voiced || voiced.has(s.zh)) &&
           (level === 'all' || s.hsk === Number(level)) &&
           (!topic || s.topics.includes(topic)) &&
           (!mine || [...s.zh].every((c) => !HAN.test(c) || known.has(c))),
       ),
-    [all, level, topic, mine, known],
+    [all, voiced, level, topic, mine, known],
   );
 
   useEffect(() => setAt(0), [level, topic, mine]);

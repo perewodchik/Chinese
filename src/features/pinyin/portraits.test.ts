@@ -4,7 +4,7 @@ import { chatter, lookFor, mouthOpen, SILENT } from './portraits';
 
 describe('the look of a voice', () => {
   it('gives each of the pack’s voices a face of its own', () => {
-    const ids = ['chen', 'dylan', 'vivian', 'serena', 'native'];
+    const ids = ['chen', 'native'];
     const looks = ids.map((id) => JSON.stringify(lookFor(id)));
     assert.equal(new Set(looks).size, ids.length, 'two voices share a face');
   });
@@ -23,7 +23,7 @@ describe('the look of a voice', () => {
   });
 
   it('starts the faces at different points, so they do not blink together', () => {
-    const beats = ['chen', 'dylan', 'vivian', 'serena', 'native'].map((id) => lookFor(id).beat);
+    const beats = ['chen', 'native', 'a-voice-from-later'].map((id) => lookFor(id).beat);
     assert.equal(new Set(beats).size, beats.length);
   });
 });

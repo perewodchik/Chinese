@@ -590,37 +590,58 @@ and offline.
   every syllable in every tone ([mp3-chinese-pinyin-sound](https://github.com/davinfifield/mp3-chinese-pinyin-sound),
   Unlicense). That covers the four tones one at a time and every minimal pair
   in the sound lessons.
-- **Words and sentences are Qwen3-TTS** (0.6B CustomVoice, Apache-2.0, run
-  through MLX), in three of its Mandarin voices, plus **Chen**, a young man's
-  voice *designed from a description* with Qwen3-TTS VoiceDesign and cloned
+- **Words and sentences are Chen**, a young man's voice *designed from a
+  description* with Qwen3-TTS VoiceDesign (Apache-2.0, through MLX) and cloned
   from one reference so it stays one person — a kind of voice, not a copy of
-  anybody's. Chen reads the way a patient teacher reads for a beginner —
-  1.7 characters a second against the other voices' 4.6, with the pauses left
-  in — and reads the sentences, which is where a voice you like earns its
-  keep. Cloning copies pace and manner as much as timbre, so that is decided
-  by the reference passage the voice is designed on, not by a knob.
+  anybody's. He is written down in `scripts/voices/voices.json`: a bright,
+  warm voice actor in his twenties, every character bitten off, the same speed
+  from the first word to the last. The model's own Mandarin speakers read the
+  words here for a while and have been taken out; one voice you want to copy
+  is worth more than four you are only hearing.
+- **A voice has two references**, because cloning copies the pace and the
+  manner as much as the timbre, and one person has two jobs here. `chen.wav`
+  is the teacher — slow, each word said through — and everything the
+  pronunciation section plays is cloned from it. `chen.talk.wav` is the same
+  person in a conversation. `design.py chen teach` and `design.py chen talk`
+  make them from the one description; the pace is the only thing that differs.
+- **Every clip is measured before it is kept.** A generated voice does not
+  read at a steady speed: asked for the same sixteen characters twice it will
+  spend twelve seconds on one and seven tenths of a second on the other, and
+  both come back looking like audio. Nothing used to check, and it showed —
+  of three hundred sentences shipped, thirty-seven were faster than ten
+  characters a second, which is a blur with no syllables in it, and forty-four
+  slower than one, which is a drawl. It is the spread that makes a voice hard
+  to listen to: you cannot settle into somebody whose next sentence might be
+  twice the speed of this one. So `pace.ts` holds a band per manner — 0.9 to
+  3.3 characters a second teaching, 1.8 to 4 talking — and a clip outside it
+  is said again, up to three times, and dropped if it never lands. The live
+  conversation voice (`speak.py`) is held to the same numbers, where a clip
+  that misses means the system voice reads that sentence instead of a blur
+  playing in a voice you trust.
 - **Every tone-critical machine clip is checked** by the same pitch analysis
   the learner gets, on that voice's own range, and left out if it fails: a
   reference that says the wrong tone is worse than the system voice. A clip
   whose syllables are at worst *nearly* — the check's own word for a shape it
-  could not split — is kept. Each word is said once: making the machine repeat
-  refused words did raise the count with a voice, but the tones that matter
-  most are single syllables, and those are a person's. 206 of the 240 tone-pair
-  words have a machine voice; the rest fall back to the system one. Kokoro was
-  tried first and dropped when barely a third of its clips passed.
+  could not split — is kept. A word the check refuses is said once and no
+  more: the tones that matter most are single syllables, and those are a
+  person's. Kokoro was tried first and dropped when barely a third of its
+  clips passed.
 - **Clips are cut to where the voice is.** A generated voice often starts with
   a small intake of breath, and trimming silence keeps it, a breath being
   louder than silence. So the first voiced frame is found and the consonant in
   front of it followed back only while the sound runs on — a breath, separated
   by a gap, stays outside.
 - With a pack clip, the dashed line on the staff is that voice's own pitch
-  rather than the textbook shape. You can pick a voice on the front page, or
-  leave it on *Any*, which rotates them — hearing a sound in several voices is
-  what teaches the ear which part is the sound.
+  rather than the textbook shape. You pick the voice where it speaks — in
+  shadowing — or leave it on *Any*, which takes each sentence in whichever of
+  the two has it. Shadowing only offers what somebody actually reads: a
+  sentence with no clip is a sentence the system voice would read, and that is
+  the one voice in the app not worth copying.
 
-`scripts/voices/` holds the pipeline: `sentences.py` picks the sentences,
-`generate.py` voices them, `check.ts` gates them, `encode.py` makes the MP3s,
-`build.ts` runs it all. Setting up the Python side once is in `generate.py`.
+`scripts/voices/` holds the pipeline: `design.py` invents the voice,
+`sentences.py` picks the sentences, `generate.py` voices them, `check.ts` and
+`pace.ts` gate them, `encode.py` makes the MP3s, `build.ts` runs it all.
+Setting up the Python side once is in `generate.py`.
 
 A cloud voice can still stand behind the pack for anything it lacks: with
 `AZURE_SPEECH_KEY` and `AZURE_SPEECH_REGION` set, `/api/speech` reads with
@@ -653,6 +674,14 @@ the same turn, so none of it is a second wait:
   hear or drop into the box to say yourself.
 - **Explain**: a line of English about one thing in Claude's turn — a word, a
   pattern, the word order.
+- **Pace**: *normal*, or *slowly* for as long as you leave it there. Slowly is
+  not the same reading played slower — a stretched recording keeps every
+  run-together and swallowed ending and adds a drone. It is a different
+  reading: the voice is cloned from the teacher's reference instead of the
+  talking one, so it is the same person saying it again more carefully, each
+  word through and every tone landing, which is what you would ask a person
+  for. The system voice has no second reading to give, so there it really is
+  only slower.
 
 An option that is off is left out of the request altogether, because every
 extra field is more for Claude to write before the voice can start.
@@ -689,10 +718,9 @@ reached one of two ways:
   box to paste the answer back into. The first copy carries the instructions;
   after that only what you said.
 
-**Claude's answers in the pack's voices.** The server keeps
-`scripts/voices/speak.py` running beside it with Qwen3-TTS loaded, and reads
-each sentence of an answer as it comes — Chen, Vivian, Serena or Dylan — the
-next sentence being made while the first plays. On an M2 that is about eight
+**Claude's answers in Chen's voice.** The server keeps
+`scripts/voices/speak.py` running beside it with the model loaded, and reads
+each answer as it comes, the next sentence being made while the first plays. On an M2 that is about eight
 seconds for the very first sentence (the model loading, which starts as soon as
 the page opens) and then roughly as long to make as to hear. It needs Apple
 silicon and the Python setup from `generate.py`; `HANZI_LOCAL_VOICES=off` turns
@@ -703,11 +731,11 @@ machine clip failed the tone check.
 
 **Every voice has a face.** Talking to a voice with no face is talking to a
 loudspeaker: you wait for it rather than answer it. So each voice is drawn as a
-portrait — Chen, Vivian, Serena, Dylan, and a little machine for the system
-voice, which is not a person and is not drawn as one. You pick who to talk to
-by face, the face sits beside each turn it read, and one of them stays in sight
-above the microphone however long the conversation gets. Your own side of the
-thread is marked 我.
+portrait — Chen, the native speaker who reads the syllables, and a little
+machine for the system voice, which is not a person and is not drawn as one.
+You pick who to talk to by face, the face sits beside each turn it read, and
+one of them stays in sight above the microphone however long the conversation
+gets. Your own side of the thread is marked 我.
 
 The faces are drawn rather than photographed, from about a dozen numbers each —
 hair, collar, skin, glasses — under the same rule the voices themselves are

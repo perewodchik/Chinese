@@ -29,6 +29,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { checkClip, speechBounds, voiceRanges, type Job } from './check';
+import { charsPerSecond, paced } from './pace';
 import { clipName, libraryFromDisk, practiceItems, sentenceReading, type Sentence } from './items';
 import { nativeFile, NATIVE_REPO } from './native';
 
@@ -40,7 +41,7 @@ const OUT = join(ROOT, 'public/voices');
 const DESIGN = join(ROOT, 'scripts/voices/design');
 
 /**
- * How many times a word is said.
+ * How many times a word is said when the tone check refuses it.
  *
  * One. Saying a refused word again and again did raise the count of words
  * with a machine voice, but it is machine practice, not teaching: the tones
@@ -49,6 +50,18 @@ const DESIGN = join(ROOT, 'scripts/voices/design');
  * system voice instead of costing another hour of the GPU.
  */
 const TRIES = 1;
+
+/**
+ * How many times a clip that came out at the wrong speed is said again.
+ *
+ * Three, which is the opposite decision to the one above, for a different
+ * kind of failure. A wrong tone is the model reading the word its own way and
+ * it will read it that way again; a blur or a drawl is the model losing the
+ * thread, and another go usually comes back at the pace everything else is
+ * at. It is also worth more now: one voice reads the words and the sentences,
+ * so a clip nobody says again is one the system voice reads out.
+ */
+const PACE_TRIES = 3;
 
 interface VoiceSpec {
   id: string;
@@ -113,18 +126,32 @@ async function voice(batch: Task[], engine: 'qwen3' | 'clone', jobsFile: string)
   const best = new Map<string, { src: string; wrong: number }>();
   let ranges = new Map<string, { floorHz: number; ceilHz: number }>();
   let pending = batch;
+  /** turned down by the tone check for the last time, and kept for the loose look below */
+  const refused: Task[] = [];
 
-  for (let attempt = 0; attempt < TRIES && pending.length; attempt++) {
+  for (let attempt = 0; attempt < Math.max(TRIES, PACE_TRIES) && pending.length; attempt++) {
     const round = pending.map((j) => (attempt ? { ...j, id: `${j.id}~${attempt}` } : j));
     writeFileSync(jobsFile, JSON.stringify(round));
     await generate(jobsFile, 2, engine);
     if (!attempt) ranges = voiceRanges(round.filter((j) => !j.sentence), WAV);
 
     const again: Task[] = [];
+    /** how fast each clip turned down for its speed came out, for the line below */
+    const rushed: number[] = [];
     round.forEach((job, i) => {
       const task = pending[i]!;
       const src = join(WAV, `${job.id}.wav`);
       if (!existsSync(src)) return; // the model said nothing at all
+      // Before anything else: is this somebody talking? The pack is read at
+      // a teacher's pace, and a clip well off it is a blur or a drawl
+      // whatever its tones did.
+      const bounds = speechBounds(src);
+      const said = bounds ? bounds.end - bounds.start : 0;
+      if (!paced(said, job.text, 'teaching')) {
+        rushed.push(charsPerSecond(said, job.text));
+        if (attempt + 1 < PACE_TRIES) again.push(task);
+        return;
+      }
       let ok = true;
       if (job.tonal) {
         const checked = checkClip(job, WAV, ranges.get(job.voice) ?? null);
@@ -140,13 +167,21 @@ async function voice(batch: Task[], engine: 'qwen3' | 'clone', jobsFile: string)
         }
       }
       if (ok) won.set(task.id, src);
-      else again.push(task);
+      else if (attempt + 1 < TRIES) again.push(task);
+      else refused.push(task);
     });
     pending = again;
+    if (rushed.length)
+      console.log(
+        `  ${rushed.length} at the wrong speed (${Math.min(...rushed).toFixed(1)}–${Math.max(...rushed).toFixed(1)} characters a second)`,
+      );
     if (pending.length) console.log(`  ${pending.length} to say again`);
   }
+  // Whatever is still pending ran out of goes at the right speed; there is no
+  // loose look for that, because a blur is not nearly a sentence.
+  for (const task of pending) console.log(`  gave up on ${task.text}: never came out at a speed to learn from`);
   let loose = 0;
-  for (const task of pending) {
+  for (const task of refused) {
     const b = best.get(task.id);
     if (b && b.wrong === 0) {
       won.set(task.id, b.src);
@@ -188,21 +223,30 @@ function main() {
 
   // Every word in every machine voice, and each sentence in one of them,
   // taken in turn so the shelf has all of them.
-  const machine: Task[] = [
-    ...MACHINE.flatMap((v) => wordTasks(v.id, v.speaker!)),
-    ...sentences.map((s, i) => {
-      const v = MACHINE[i % MACHINE.length]!;
-      return sentenceTask(v.id, v.speaker!, s);
-    }),
-  ];
-  // A designed voice reads the sentences, which is where a voice you like
-  // matters: shadowing is minutes of listening and copying. The words of the
-  // tone drills are left to the voices that already have them.
-  const designed: Task[] = DESIGNED.flatMap((v) => sentences.map((s) => sentenceTask(v.id, v.id, s)));
+  const machine: Task[] = MACHINE.length
+    ? [
+        ...MACHINE.flatMap((v) => wordTasks(v.id, v.speaker!)),
+        ...sentences.map((s, i) => {
+          const v = MACHINE[i % MACHINE.length]!;
+          return sentenceTask(v.id, v.speaker!, s);
+        }),
+      ]
+    : [];
+  // A designed voice reads everything: the sentences, which is where a voice
+  // you like matters most — shadowing is minutes of listening and copying —
+  // and the words of the tone drills, which used to be left to the model's
+  // own speakers. There are none of those any more, and a word nobody reads
+  // falls back to the system voice, which is the one voice not worth
+  // copying. Its words go through the same tone check as any other machine
+  // clip, so a word it says wrongly is still thrown away.
+  const designed: Task[] = DESIGNED.flatMap((v) => [
+    ...wordTasks(v.id, v.id),
+    ...sentences.map((s) => sentenceTask(v.id, v.id, s)),
+  ]);
 
   mkdirSync(WORK, { recursive: true });
-  console.log(`${wordItems.length} words × ${MACHINE.length} voices, and ${sentences.length} sentences`);
-  if (DESIGNED.length) console.log(`  and everything again in ${DESIGNED.map((v) => v.name).join(', ')}`);
+  const reading = [...MACHINE, ...DESIGNED].map((v) => v.name).join(', ') || 'nobody';
+  console.log(`${wordItems.length} words and ${sentences.length} sentences, read by ${reading}`);
 
   return (async () => {
     const said = await voice(machine, 'qwen3', join(WORK, 'jobs.json'));

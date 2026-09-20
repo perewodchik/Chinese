@@ -182,6 +182,19 @@ export async function packVoices(): Promise<NaturalVoice[]> {
 }
 
 /**
+ * Everything the pack has a recording of.
+ *
+ * For shadowing, which is copying a voice: a sentence nobody reads is one the
+ * system voice reads, and that is the one voice in the app not worth copying
+ * — no pitch to draw against yours, and tones it gets right by accident. So
+ * the page offers what somebody actually says, and the shelf grows again the
+ * next time the pack is built.
+ */
+export async function packTexts(): Promise<Set<string>> {
+  return new Set(Object.keys((await loadPack())?.clips ?? {}));
+}
+
+/**
  * Wakes both ways of making a sound inside a tap. iOS starts audio only from
  * a gesture; once woken, a reply that arrives seconds later can still be heard.
  */
