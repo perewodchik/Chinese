@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { NaturalVoice } from '../../api/speech';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { TONE_NAME } from '../../domain/pinyin/contour';
 import { singleTones, tonePairs } from '../../domain/pinyin/practice';
@@ -7,8 +6,7 @@ import { SOUND_LESSONS } from '../../domain/pinyin/sounds';
 import { paths } from '../../navigation/paths';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
-import { hearKey, pairKey, recentScore, saveVoice, sayKey, toneKey, usePinyinMemory, type Tally } from './voice';
-import { packVoices, sampleFor, say } from './voiceOut';
+import { hearKey, pairKey, recentScore, sayKey, toneKey, usePinyinMemory, type Tally } from './voice';
 import './pinyin.css';
 
 const TONES: Array<{ tone: number; mark: string; shape: string; like: string }> = [
@@ -59,8 +57,6 @@ export function PinyinPage() {
           {memory.range ? 'Your voice' : 'Set up your voice'}
         </Link>
       </div>
-
-      <VoicePicker chosen={memory.voice} />
 
       {!memory.range && (
         <Link className="voice-invite" to={paths.pinyinVoice()}>
@@ -213,42 +209,5 @@ export function PinyinPage() {
         })}
       </div>
     </section>
-  );
-}
-
-/**
- * Whose voice to hear.
- *
- * "Any" is the default and the better teacher: the hearing drills take each
- * word in whichever voice has it, in turn, and hearing a sound in several
- * voices is what teaches the ear which part is the sound and which is the
- * speaker. Picking one is for when a particular voice is simply nicer to
- * copy — it is used wherever it has the word, and the others fill in.
- */
-function VoicePicker({ chosen }: { chosen: string | null }) {
-  const [voices, setVoices] = useState<NaturalVoice[]>([]);
-  useEffect(() => {
-    void packVoices().then(setVoices);
-  }, []);
-  if (voices.length < 2) return null;
-  const pick = (id: string | null) => {
-    saveVoice(id);
-    if (id) void sampleFor(id).then((text) => text && say(text, { voice: id }));
-  };
-  return (
-    <div className="voice-picker">
-      <span className="tiny muted">Voice</span>
-      <div className="chips">
-        <button className="chip" aria-pressed={chosen === null} onClick={() => pick(null)}>
-          Any, in turn
-        </button>
-        {voices.map((v) => (
-          <button key={v.id} className="chip" aria-pressed={chosen === v.id} onClick={() => pick(v.id)}>
-            {v.name}
-            <span className="count">{v.gender === 'female' ? '♀' : '♂'}</span>
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }

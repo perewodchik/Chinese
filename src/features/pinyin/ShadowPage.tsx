@@ -15,7 +15,8 @@ import { useLibrary } from '../shared/library';
 import { SentenceStaff } from './PitchStaff';
 import { RecordButton } from './RecordButton';
 import { useSayIt } from './useSayIt';
-import { voiceRange } from './voice';
+import { usePinyinMemory, voiceRange } from './voice';
+import { VoicePicker } from './VoicePicker';
 import { referenceSamples, say } from './voiceOut';
 import './pinyin.css';
 
@@ -114,22 +115,34 @@ export function ShadowPage() {
         <Seg value={level} options={LEVELS} onChange={(v) => setQuery('level', v, 'all')} size="sm" label="Level" />
       </div>
 
-      <div className="chips shadow-filters">
-        {topics.map((t) => (
-          <button
-            key={t.id}
-            className="chip"
-            aria-pressed={topic === t.id}
-            onClick={() => setQuery('topic', topic === t.id ? null : t.id)}
-          >
-            {t.name}
-          </button>
-        ))}
-        {known.size > 0 && (
-          <button className="chip" aria-pressed={mine} onClick={() => setQuery('mine', mine ? null : '1')}>
-            Only characters I know
-          </button>
-        )}
+      {/* Which voice reads them and which sentences they are: both chosen
+          before starting, and both a row of chips, so they need their headings
+          to keep from reading as one long wall of them. */}
+      <div className="opt-panel">
+        <div className="opt-row">
+          <span className="tiny muted">Voice</span>
+          <VoicePicker preview={sentence?.zh} />
+        </div>
+        <div className="opt-row wide">
+          <span className="tiny muted">Topic</span>
+          <div className="chips">
+            {topics.map((t) => (
+              <button
+                key={t.id}
+                className="chip"
+                aria-pressed={topic === t.id}
+                onClick={() => setQuery('topic', topic === t.id ? null : t.id)}
+              >
+                {t.name}
+              </button>
+            ))}
+            {known.size > 0 && (
+              <button className="chip" aria-pressed={mine} onClick={() => setQuery('mine', mine ? null : '1')}>
+                Only characters I know
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {all === null ? (
@@ -173,19 +186,29 @@ function ShadowCard({
   const blocked = micUnavailable();
   const chart = useStore((st) => st.settings.pitchChart);
   const syllables = sentence.py.split(' ');
+  // The line drawn to copy is a particular voice's pitch, so choosing another
+  // one has to draw it again — otherwise the melody on the staff belongs to a
+  // voice that is no longer the one speaking.
+  const voice = usePinyinMemory().voice;
 
   useEffect(() => {
     let live = true;
+    setNative(null);
     void referenceSamples(sentence.zh).then((s) => {
       if (!live || !s) return;
       setNative(melody(trackPitch(s, { sampleRate: 16000 }), null));
       setNativeLength(s.length / 16000);
     });
-    const id = setTimeout(() => void say(sentence.zh), 300);
     return () => {
       live = false;
-      clearTimeout(id);
     };
+  }, [sentence.zh, voice]);
+
+  // Heard once when it arrives, not again every time the voice is changed:
+  // picking a voice says the sentence itself.
+  useEffect(() => {
+    const id = setTimeout(() => void say(sentence.zh), 300);
+    return () => clearTimeout(id);
   }, [sentence.zh]);
 
   const onRecorded = useCallback((s: Float32Array) => {

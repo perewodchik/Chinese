@@ -425,8 +425,8 @@ export function TalkPage() {
 
       {status && !direct && <p className="notice talk-notice">{RELAY_NOTE[status.claude.state as Exclude<ClaudeState, 'ready'>]}</p>}
 
-      <div className="talk-options">
-        <div className="talk-option">
+      <div className="opt-panel">
+        <div className={`opt-row${prefs.faces ? ' wide' : ''}`}>
           <span className="tiny muted">Voice</span>
           {prefs.faces ? (
             <div className="voice-faces">
@@ -462,7 +462,7 @@ export function TalkPage() {
             </div>
           )}
         </div>
-        <div className="talk-option">
+        <div className="opt-row">
           <span className="tiny muted">Show</span>
           <div className="chips">
             <button className="chip" aria-pressed={prefs.pinyin} onClick={() => setPrefs({ pinyin: !prefs.pinyin })}>
@@ -481,9 +481,9 @@ export function TalkPage() {
             </button>
           </div>
         </div>
-        <div className="talk-option">
+        <div className="opt-row">
           <span className="tiny muted">Answers</span>
-          <div className="talk-option-set">
+          <div className="opt-set">
             <Seg value={prefs.length} options={LENGTHS} onChange={(length) => setPrefs({ length })} size="sm" label="How long Claude's turns are" />
             <div className="chips">
               <button
