@@ -7,8 +7,9 @@ A voice made from a description, rather than copied from anyone.
 Reads the voice's description from scripts/voices/voices.json and has
 Qwen3-TTS VoiceDesign (Apache-2.0) invent a speaker to match it, reading a
 short reference passage. Several candidates are made, one per temperature, in
-`.cache/voices/design/`. Listen to them and keep the one that sounds like the
-person with `--keep <n>`. Every clip in that voice is then cloned from it
+`.cache/voices/design/` as `<name>-1.wav`, `-2` and `-3`. Listen to them and
+file the one that sounds like the person with `--keep <n>`, which is that
+number and designs nothing new. Every clip in that voice is then cloned from it
 (generate.py, engine "clone"), which is what keeps one voice sounding like one
 person — designing each clip afresh would give a slightly different speaker
 every time.
@@ -111,13 +112,25 @@ def breaths(audio: np.ndarray, rate: int) -> int:
     return runs + (length >= 10)
 
 
-def keep(name: str, candidate: int, out_dir: str, design_dir: str, text: str) -> None:
+def keep(name: str, candidate: int, out_dir: str, design_dir: str) -> None:
     """
     Puts the chosen candidate where the pack and the conversation look for it,
     with its transcript and a note of what it says — all three in one step,
     because the failure this prevents is a pair that drifts apart.
+
+    The transcript is the one the run that made this candidate wrote down, not
+    whatever the script would say today: keeping a recording from Tuesday with
+    Wednesday's passage is the whole bug again.
     """
     src = os.path.join(out_dir, f"{name}-{candidate}.wav")
+    said = os.path.join(out_dir, f"{name}.txt")
+    if not os.path.exists(src) or not os.path.exists(said):
+        raise SystemExit(
+            f"there is no {os.path.basename(src)} to keep."
+            f" Run design.py without --keep first, listen to the candidates, then keep one of them."
+        )
+    with open(said, encoding="utf-8") as f:
+        text = f.read().strip()
     wav = os.path.join(design_dir, f"{name}.wav")
     shutil.copyfile(src, wav)
     with open(os.path.join(design_dir, f"{name}.txt"), "w", encoding="utf-8") as f:
@@ -128,7 +141,7 @@ def keep(name: str, candidate: int, out_dir: str, design_dir: str, text: str) ->
     with open(manifest, "w", encoding="utf-8") as f:
         json.dump(known, f, ensure_ascii=False, indent=2)
         f.write("\n")
-    print(f"  kept {src}\n  → {wav}, its transcript, and its line in references.json")
+    print(f"  kept {src}\n  → {wav}, the transcript it was read from, and its line in references.json")
 
 
 def main(voice_id: str, variant: str = "teach", keeping: int | None = None) -> None:
@@ -141,7 +154,15 @@ def main(voice_id: str, variant: str = "teach", keeping: int | None = None) -> N
     instruct = f"{spec['description']}{how['pace']}"
     name = f"{voice_id}{how['suffix']}"
     out_dir = os.path.join(ROOT, ".cache", "voices", "design")
+    design_dir = os.path.join(ROOT, "scripts", "voices", "design")
     os.makedirs(out_dir, exist_ok=True)
+
+    # Keeping is filing what was already made and listened to. It designs
+    # nothing: three fresh candidates would be three the ear has never heard,
+    # and the number would point at somebody else.
+    if keeping:
+        keep(name, keeping, out_dir, design_dir)
+        return
 
     from mlx_audio.tts.utils import load_model
 
@@ -165,9 +186,6 @@ def main(voice_id: str, variant: str = "teach", keeping: int | None = None) -> N
         )
     with open(os.path.join(out_dir, f"{name}.txt"), "w", encoding="utf-8") as f:
         f.write(how["text"])
-    if keeping:
-        keep(name, keeping, out_dir, os.path.join(ROOT, "scripts", "voices", "design"), how["text"])
-        return
     print("\n  Listen, then keep the one that sounds like the person:")
     print(f"    design.py {voice_id} {variant} --keep 2")
     print("  The two numbers to go on: the pace, which every clip will be read at,")
