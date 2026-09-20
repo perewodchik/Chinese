@@ -87,10 +87,11 @@ const BEHIND: Partial<Record<Hair, string>> = {
   bob: 'M26 46c-1-26 10-33 22-33s23 7 22 33c0 10-1 16-3 19 1-11 0-23-2-30-5-4-29-4-34 0-2 7-3 19-2 30-2-3-3-9-3-19Z',
   wave: 'M26 46c-1-26 10-33 22-33s23 7 22 33c0 12 2 20-2 24-4-4-2-14-3-24-1-10-5-16-17-16s-16 6-17 16c-1 10 1 20-3 24-4-4-2-12-2-24Z',
   bun: 'M48 6a9 9 0 0 1 0 18 9 9 0 0 1 0-18Z',
-  // Soft hair with weight in it: a full crown, and a lock in front of each
-  // ear, which is what stops a round face reading as a bald egg at 34px.
+  // The cap of hair behind the head, hugging the skull. No locks down the
+  // sides and no ears: a cheek line with nothing interrupting it is rounder,
+  // and round is the whole job here.
   fringe:
-    'M27.4 47c-1.8-25 7.4-37 20.6-37s22.4 12 20.6 37c-1-8.4-2.4-15.4-4.4-20-2.4-7.2-8.2-10.8-16.2-10.8s-13.8 3.6-16.2 10.8c-2 4.6-3.4 11.6-4.4 20Z M28.8 42c-1.4 7-1.2 13 .2 16.8 1.4-4 1.6-9.4 1.2-13.8Z M67.2 42c1.4 7 1.2 13-.2 16.8-1.4-4-1.6-9.4-1.2-13.8Z',
+    'M18.8 56C17 26 29.6 9 48 9s31 17 29.2 47c-1.2-10-3-19.4-5.2-25.2-3.6-9.8-11.6-14.2-24-14.2S27.6 21 24 30.8c-2.2 5.8-4 15.2-5.2 25.2Z M20.4 42c-1.2 8-.4 15.6 2.2 20.6 1.6-5.6 2.4-12.2 2.2-18.2Z M75.6 42c1.2 8 .4 15.6-2.2 20.6-1.6-5.6-2.4-12.2-2.2-18.2Z',
 };
 
 /** Hair over the crown: the hairline, which is most of what tells one head from another. */
@@ -101,11 +102,33 @@ const FRONT: Record<Hair, string> = {
   bun: 'M29 44c-1-22 8-28 19-28s20 6 19 28c-1-11-5-17-19-17s-18 6-19 17Z',
   crop: 'M29 44c-1-21 8-27 19-27s20 6 19 27c-1-9-5-16-19-16s-18 7-19 16Z',
   part: 'M29 43c-1-21 8-27 19-27s20 6 19 27c-1-9-4-14-12-15-5 4-14 6-22 5-2 2-3 5-4 10Z',
-  // Drawn in pointed strands rather than one smooth edge, and heavier on the
-  // left than the right: hair that fell that way this morning, not a helmet.
+  // Three soft lobes sweeping left, not spikes. The gaps between them stop
+  // well above the eyes: hair hanging into the eyes hides the one part of a
+  // face that has to be read, and hides it behind something pointed.
   fringe:
-    'M28.4 45c-1.4-22 6.6-32 19.6-32s21 10 19.6 32c-1-8-2.8-13-4.8-15.6-1 5.6-3.6 10-7 12.6 1.4-4.6 1.4-8.6 0-12-3.4 5.4-9.4 8.8-16 9.4 2.6-2.8 4-5.8 4.2-9-3.6 4.6-8 7.8-12 9-1.6 1.6-2.8 3.6-3.6 5.6Z',
+    'M22.4 47C21 25 31.6 12.4 48 12.4S75 25 73.6 47c-1.2-9-3.6-14.4-6.6-17.2-.4 7.2-3.4 12.6-8 15.2 1-5.4.4-10-2-13.6-3.4 7.6-9.6 11.8-17 12.4 2.4-4 3.4-8 2.8-12-4.2 6.6-10.4 10.6-16.8 12-1.4.6-2.6 1.6-3.6 2.2Z',
 };
+
+/**
+ * The light on the hair: the band a comic puts across a fringe so that a flat
+ * shape reads as something with a shine on it, and the difference between
+ * hair and a hat.
+ */
+const SHINE = 'M30.6 27.4c5-6.6 12-10.2 20.4-10.2 4.8 0 9.4 1.2 13 3.6-4.6-1-9.6-1.4-14.2-.6-7.6 1.2-14.2 3.6-19.2 7.2Z';
+
+/**
+ * The head itself: a wide round skull that takes up most of the picture,
+ * narrowing to a small soft chin.
+ *
+ * This is the whole difference between a face you want to talk to and one
+ * that is faintly disturbing. A cartoon face is not a real face with big eyes
+ * drawn on it — the skull has to be a baby's: cranium enormous, jaw short,
+ * everything below the eyes shrunk. Eyes low on that head rather than halfway
+ * up it is what the eye reads as young, and reading it wrong by a few units
+ * is the whole uncanny valley.
+ */
+const FACE =
+  'M48 13c-15 0-26 11-26 28 0 12 5 21 12.5 26 4 2.6 8.5 3.6 13.5 3.6s9.5-1 13.5-3.6C69 62 74 53 74 41c0-17-11-28-26-28Z';
 
 /**
  * The strand that will not lie down — 呆毛, the one line of a face that says
@@ -115,7 +138,7 @@ const FRONT: Record<Hair, string> = {
  * you while you talk, curls up while he is thinking and bounces while he
  * reads your sentence back.
  */
-const AHOGE = 'M45.2 12.6c-1.4-5 1.8-9 5.6-7.6-2.8 0.8-4 3-3.2 6.6';
+const AHOGE = 'M44.6 12.4c-1.6-5.4 2-9.8 6.2-8.4-3.1.9-4.3 3.5-3.5 7.2';
 
 /**
  * One face. `still` stops the idle motion for the faces further up a
@@ -154,7 +177,7 @@ export function Portrait({
     >
       <span className="pt-clip">
         <svg className="pt" viewBox="0 0 96 96" focusable="false">
-          {machine ? <Machine /> : <Head look={face} />}
+          {machine ? <Machine /> : face.cute ? <CuteHead /> : <Head look={face} />}
           <g className="pt-think">
             <circle cx="68.5" cy="27" r="3" />
             <circle cx="74.5" cy="21" r="2.2" />
@@ -167,100 +190,39 @@ export function Portrait({
 }
 
 function Head({ look }: { look: Look }) {
-  // Drawn soft or drawn plain. The two share a skull, a neck and a pair of
-  // ears; what changes is the size of the eyes, the roundness of the face and
-  // the handful of marks — blush, a lighter nose, a strand of hair — that a
-  // comic uses to say somebody is young and glad you are here.
-  const cute = look.cute;
   return (
     <g className="pt-body">
       <path className="pt-cloth" d="M10 96c2-15 17-24 38-24s36 9 38 24Z" />
-      {cute ? (
-        // A school shirt: an open collar with two small lapels, which is what
-        // the boy in a Chinese web comic is wearing on the cover.
-        <g className="pt-collar">
-          <path d="M40 71l8 10 8-10" />
-          <path d="M40 71l-5.6 7" />
-          <path d="M56 71l5.6 7" />
-        </g>
-      ) : (
-        <path className="pt-collar" d="M40 73l8 9 8-9" />
-      )}
-      <path className="pt-skin pt-neck" d={cute ? 'M41.6 56h12.8v13q-6.4 4-12.8 0Z' : 'M41 55h14v14q-7 4-14 0Z'} />
+      <path className="pt-collar" d="M40 73l8 9 8-9" />
+      <path className="pt-skin pt-neck" d="M41 55h14v14q-7 4-14 0Z" />
       <g className="pt-head">
         <g className="pt-sway">
           {BEHIND[look.hair] && <path className="pt-hair" d={BEHIND[look.hair]} />}
-          <ellipse className="pt-ear" cx={cute ? 29.8 : 29.4} cy={cute ? 46.5 : 45} rx="3.4" ry={cute ? 4.4 : 4.8} />
-          <ellipse className="pt-ear" cx={cute ? 66.2 : 66.6} cy={cute ? 46.5 : 45} rx="3.4" ry={cute ? 4.4 : 4.8} />
-          {/* A rounder, shorter face: a child's proportions, not a man's. */}
-          <ellipse className="pt-skin pt-face" cx="48" cy={cute ? 44 : 43} rx={cute ? 19 : 18.6} ry={cute ? 20 : 21.4} />
+          <ellipse className="pt-ear" cx="29.4" cy="45" rx="3.4" ry="4.8" />
+          <ellipse className="pt-ear" cx="66.6" cy="45" rx="3.4" ry="4.8" />
+          <ellipse className="pt-skin pt-face" cx="48" cy="43" rx="18.6" ry="21.4" />
           <path className="pt-hair" d={FRONT[look.hair]} />
-          {cute && <path className="pt-ahoge" d={AHOGE} />}
-          {cute ? (
-            <g className="pt-brows">
-              <path d="M36 38.2q4.2-2.6 7.8-0.8" />
-              <path d="M52.2 37.4q3.6-1.8 7.8 0.8" />
+          <g className="pt-brows">
+            <path d="M36.8 36.6q4-2.4 8-0.4" />
+            <path d="M51.2 36.2q4-2 8 0.4" />
+          </g>
+          <g className="pt-eyes">
+            <ellipse className="pt-white" cx="40.4" cy="44" rx="4.4" ry="3.1" />
+            <ellipse className="pt-white" cx="55.6" cy="44" rx="4.4" ry="3.1" />
+            <g className="pt-iris">
+              <circle cx="40.4" cy="44" r="2.2" />
+              <circle cx="55.6" cy="44" r="2.2" />
             </g>
-          ) : (
-            <g className="pt-brows">
-              <path d="M36.8 36.6q4-2.4 8-0.4" />
-              <path d="M51.2 36.2q4-2 8 0.4" />
+            <g className="pt-glint">
+              <circle cx="41.4" cy="43" r="0.8" />
+              <circle cx="56.6" cy="43" r="0.8" />
             </g>
-          )}
-          {cute ? (
-            // Eyes the size a comic draws them, and the light in them drawn
-            // twice: the big catch near the top and a small one opposite, the
-            // pair of dots that stop a dark eye looking like a hole.
-            <g className="pt-eyes">
-              <ellipse className="pt-white" cx="40.2" cy="46.8" rx="5.3" ry="5.9" />
-              <ellipse className="pt-white" cx="55.8" cy="46.8" rx="5.3" ry="5.9" />
-              <g className="pt-iris">
-                <circle cx="40.2" cy="47.2" r="4" />
-                <circle cx="55.8" cy="47.2" r="4" />
-              </g>
-              <g className="pt-glint">
-                <circle cx="41.9" cy="45.2" r="1.7" />
-                <circle cx="57.5" cy="45.2" r="1.7" />
-                <circle cx="38.5" cy="49.2" r="0.9" />
-                <circle cx="54.1" cy="49.2" r="0.9" />
-              </g>
-              <g className="pt-lash">
-                <path d="M34.9 45.2q5.3-4.6 10.6 0" />
-                <path d="M50.5 45.2q5.3-4.6 10.6 0" />
-              </g>
-            </g>
-          ) : (
-            <g className="pt-eyes">
-              <ellipse className="pt-white" cx="40.4" cy="44" rx="4.4" ry="3.1" />
-              <ellipse className="pt-white" cx="55.6" cy="44" rx="4.4" ry="3.1" />
-              <g className="pt-iris">
-                <circle cx="40.4" cy="44" r="2.2" />
-                <circle cx="55.6" cy="44" r="2.2" />
-              </g>
-              <g className="pt-glint">
-                <circle cx="41.4" cy="43" r="0.8" />
-                <circle cx="56.6" cy="43" r="0.8" />
-              </g>
-            </g>
-          )}
-          <path className="pt-nose" d={cute ? 'M46.8 52.2q1.3 1.1 2.6 0' : 'M48 45.5v5.2q0 1.6 2 1.8'} />
-          {cute && (
-            <g className="pt-blush">
-              <ellipse cx="34.6" cy="52.4" rx="4.3" ry="2.4" />
-              <ellipse cx="61.4" cy="52.4" rx="4.3" ry="2.4" />
-            </g>
-          )}
-          {cute ? (
-            <g className="pt-mouth-g">
-              <path className="pt-lip" d="M43.6 56.8q4.4 3.6 8.8 0" />
-              <ellipse className="pt-mouth" cx="48" cy="57.6" rx="4.6" ry="3.8" />
-            </g>
-          ) : (
-            <g className="pt-mouth-g">
-              <path className="pt-lip" d="M42.6 55.6q5.4 3 10.8 0" />
-              <ellipse className="pt-mouth" cx="48" cy="56.4" rx="5.4" ry="4.4" />
-            </g>
-          )}
+          </g>
+          <path className="pt-nose" d="M48 45.5v5.2q0 1.6 2 1.8" />
+          <g className="pt-mouth-g">
+            <path className="pt-lip" d="M42.6 55.6q5.4 3 10.8 0" />
+            <ellipse className="pt-mouth" cx="48" cy="56.4" rx="5.4" ry="4.4" />
+          </g>
           {look.glasses && (
             <g className="pt-glasses">
               <rect x="33.6" y="39.4" width="13.6" height="9.6" rx="4.4" />
@@ -276,6 +238,89 @@ function Head({ look }: { look: Look }) {
               <circle cx="66.6" cy="51.4" r="1.7" />
             </g>
           )}
+        </g>
+      </g>
+    </g>
+  );
+}
+
+/**
+ * The face of the voice you actually talk to, drawn the way a comic draws
+ * somebody you are meant to like.
+ *
+ * It is not the plain head with bigger eyes on it — that is a waxwork, and it
+ * was the first thing tried here. It is a different set of proportions
+ * altogether, every one of them borrowed from a baby, because that is what
+ * the eye is reading when it calls a drawing cute:
+ *
+ *   - the head is most of the picture and the shoulders are a hint at the
+ *     bottom, rather than a bust with a head on it;
+ *   - the skull is wide and the jaw is short, so the chin is a soft curve a
+ *     third of the way up from the bottom of the head, not a point;
+ *   - the eyes sit low — around two thirds down the head — and are set a
+ *     full eye's width apart. Eyes halfway up a head is an adult, and an
+ *     adult with a child's eyes is the thing nobody wants to look at;
+ *   - there is almost no nose and no ear, the mouth is small and close under
+ *     the eyes, and nothing is drawn in a hard line. Every feature left out
+ *     is one the eye does not have to check against a real face.
+ *
+ * What is added instead is light: two catches in each eye, a lit crescent at
+ * the bottom of each iris, a shine across the hair, and colour high on the
+ * cheeks. That is the whole trick — cuteness is roundness plus light.
+ */
+function CuteHead() {
+  return (
+    <g className="pt-body">
+      {/* Small shoulders, low down: the head has to win. */}
+      <path className="pt-cloth" d="M12 96c3-12 16-20 36-20s33 8 36 20Z" />
+      <path className="pt-collar" d="M42.4 76.4 48 82.2l5.6-5.8" />
+      <path className="pt-skin pt-neck" d="M42 64.4h12v9.6q-6 3.2-12 0Z" />
+      <g className="pt-head">
+        <g className="pt-sway">
+          <path className="pt-hair" d={BEHIND.fringe} />
+          <path className="pt-skin pt-face" d={FACE} />
+          <path className="pt-hair" d={FRONT.fringe} />
+          <path className="pt-shine" d={SHINE} />
+          <path className="pt-ahoge" d={AHOGE} />
+          {/* Thin, high and a little raised: the brows of somebody listening,
+              drawn over the fringe rather than under it so they can be read. */}
+          <g className="pt-brows">
+            <path d="M32.6 43.4q4.4-3 8.8-1" />
+            <path d="M54.6 42.4q4.4-2 8.8 1" />
+          </g>
+          <g className="pt-eyes">
+            <ellipse className="pt-white" cx="36.6" cy="52.4" rx="6.2" ry="6.8" />
+            <ellipse className="pt-white" cx="59.4" cy="52.4" rx="6.2" ry="6.8" />
+            <g className="pt-iris">
+              <circle cx="36.6" cy="53" r="5" />
+              <circle cx="59.4" cy="53" r="5" />
+            </g>
+            {/* The lit bottom of the iris, where a comic lets the light through. */}
+            <g className="pt-glow">
+              <ellipse cx="36.6" cy="55.4" rx="3.4" ry="2.2" />
+              <ellipse cx="59.4" cy="55.4" rx="3.4" ry="2.2" />
+            </g>
+            <g className="pt-glint">
+              <circle cx="34.4" cy="50.2" r="2.1" />
+              <circle cx="57.2" cy="50.2" r="2.1" />
+              <circle cx="39.2" cy="55.6" r="1" />
+              <circle cx="62" cy="55.6" r="1" />
+            </g>
+            <g className="pt-lash">
+              <path d="M30.6 49.4q6-5.2 12 0" />
+              <path d="M53.4 49.4q6-5.2 12 0" />
+            </g>
+          </g>
+          {/* Barely a nose: two units of a soft line, and no nostril. */}
+          <path className="pt-nose" d="M47.1 58.4q.9.9 1.8 0" />
+          <g className="pt-blush">
+            <ellipse cx="29.8" cy="58.4" rx="5.2" ry="2.8" />
+            <ellipse cx="66.2" cy="58.4" rx="5.2" ry="2.8" />
+          </g>
+          <g className="pt-mouth-g">
+            <path className="pt-lip" d="M44.4 62.6q3.6 3.2 7.2 0" />
+            <ellipse className="pt-mouth" cx="48" cy="63.6" rx="3.6" ry="3.2" />
+          </g>
         </g>
       </g>
     </g>

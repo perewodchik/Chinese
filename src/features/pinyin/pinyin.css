@@ -1789,39 +1789,66 @@
 
 /* ----------------------------------------------- the one face drawn soft */
 
-/* Chen is not a row in a list of voices, he is the one you sit and talk to,
-   so he is drawn the way a Chinese comic draws a boy you are glad to see:
-   rounder head, eyes with the light caught in them twice, colour high on the
-   cheeks, and a strand of hair that answers before he does.
+/* Chen is not a row in a list of voices, he is the person you say your bad
+   Chinese to out loud, so he is drawn the way a comic draws somebody you are
+   meant to like. The proportions are in `Portrait.tsx`, along with the
+   reasoning for them; what is here is the other half of it — the light. Two
+   catches in each eye, a lit crescent under each iris, a shine across the
+   hair, colour high on the cheeks.
 
-   It is still the app's palette. The blush is the pronunciation colour taken
-   down to a whisper against skin — not a new pink — and the lashes and iris
-   are the same face ink everybody else is drawn in, only thicker. */
+   Still the app's palette: the blush is the pronunciation colour taken down
+   to a whisper against skin rather than a new pink, and the eyes are the same
+   face ink as everybody else's, warmed towards the hair. Nothing is drawn in
+   a hard line — a soft face goes strange the moment one part of it is
+   sharper than the rest. */
 
 .portrait[data-cute] .pt-white {
-  fill: color-mix(in srgb, var(--face-lit) 94%, var(--skin));
+  fill: color-mix(in srgb, var(--face-lit) 96%, var(--skin));
 }
 
+/* Warm dark, never flat black: a black eye is a hole. */
 .portrait[data-cute] .pt-iris circle {
-  fill: color-mix(in srgb, var(--face-ink) 78%, var(--hair));
+  fill: color-mix(in srgb, var(--face-ink) 72%, var(--hair));
 }
 
-/* The lash line: one thick stroke over each eye. In a face this simple it is
-   what does the work of an eyelid, and it is why the eyes read as looking at
-   you rather than as two dots. */
+.pt-glow ellipse {
+  fill: color-mix(in srgb, var(--accent) 34%, var(--face-lit));
+  opacity: 0.5;
+}
+
+.portrait[data-cute] .pt-glint circle {
+  opacity: 1;
+}
+
+/* The lash line does the work of an eyelid, and is why the eyes read as
+   looking at you rather than as two dots. */
 .pt-lash path {
   fill: none;
-  stroke: color-mix(in srgb, var(--face-ink) 88%, var(--hair));
-  stroke-width: 2.1;
+  stroke: color-mix(in srgb, var(--face-ink) 82%, var(--hair));
+  stroke-width: 2.4;
   stroke-linecap: round;
 }
 
-.portrait[data-cute] .pt-brows path {
-  stroke-width: 1.7;
+.pt-shine {
+  fill: color-mix(in srgb, var(--face-lit) 62%, var(--hair));
+  opacity: 0.4;
 }
 
+.portrait[data-cute] .pt-brows path {
+  stroke: color-mix(in srgb, var(--hair) 82%, var(--face-ink));
+  stroke-width: 1.6;
+}
+
+/* Barely there. A nose drawn any heavier is the first thing that turns a soft
+   face into a mask. */
 .portrait[data-cute] .pt-nose {
+  stroke: color-mix(in srgb, var(--skin) 66%, var(--face-ink));
   stroke-width: 1.1;
+}
+
+.portrait[data-cute] .pt-lip {
+  stroke: color-mix(in srgb, var(--face-ink) 38%, var(--accent));
+  stroke-width: 1.5;
 }
 
 .pt-blush ellipse {
@@ -1830,17 +1857,25 @@
   transition: opacity 0.3s ease;
 }
 
-/* The eyes sit lower on a rounder face, so the blink folds from there. */
+/* Everything that turns, turns around where it actually joins: the eyes fold
+   at their own line, the mouth opens from its corners, the head swings from
+   the neck. */
 .portrait[data-cute] .pt-eyes {
-  transform-origin: 48px 46.8px;
+  transform-origin: 48px 52.4px;
 }
 
 .portrait[data-cute] .pt-iris {
-  transform-origin: 48px 47px;
+  transform-origin: 48px 53px;
 }
 
 .portrait[data-cute] .pt-mouth {
-  transform-origin: 48px 57.6px;
+  transform-origin: 48px 63.6px;
+}
+
+/* The head fills the picture now, so the thinking dots have nowhere left to
+   sit above it: they move out beside the cheek. */
+.portrait[data-cute] .pt-think {
+  transform: translate(9px, 22px);
 }
 
 .pt-ahoge {
@@ -1848,7 +1883,7 @@
   stroke: var(--hair);
   stroke-width: 2.2;
   stroke-linecap: round;
-  transform-origin: 45.2px 12.6px;
+  transform-origin: 44.6px 12.4px;
   animation: pt-ahoge-idle 3.8s ease-in-out var(--beat, 0s) infinite;
 }
 
@@ -1962,7 +1997,7 @@
 }
 
 .portrait[data-cute] .pt-sway {
-  transform-origin: 48px 66px;
+  transform-origin: 48px 78px;
   animation: pt-sway 6.4s ease-in-out var(--beat, 0s) infinite;
 }
 
