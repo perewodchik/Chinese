@@ -1,13 +1,36 @@
 [
-  { "id": "native", "name": "Native speaker", "gender": "female", "source": "native" },
-  { "id": "vivian", "name": "Vivian", "gender": "female", "source": "qwen3", "speaker": "Vivian" },
-  { "id": "serena", "name": "Serena", "gender": "female", "source": "qwen3", "speaker": "Serena" },
-  { "id": "dylan", "name": "Dylan", "gender": "male", "source": "qwen3", "speaker": "Dylan" },
+  {
+    "id": "native",
+    "name": "Native speaker",
+    "gender": "female",
+    "source": "native"
+  },
+  {
+    "id": "vivian",
+    "name": "Vivian",
+    "gender": "female",
+    "source": "qwen3",
+    "speaker": "Vivian"
+  },
+  {
+    "id": "serena",
+    "name": "Serena",
+    "gender": "female",
+    "source": "qwen3",
+    "speaker": "Serena"
+  },
+  {
+    "id": "dylan",
+    "name": "Dylan",
+    "gender": "male",
+    "source": "qwen3",
+    "speaker": "Dylan"
+  },
   {
     "id": "chen",
     "name": "Chen",
     "gender": "male",
     "source": "designed",
-    "description": "二十岁出头的年轻男性，音色清亮、温暖，带一点磁性；语气阳光自信，有少年感和一点俏皮的笑意，像动漫游戏里帅气的男主角。普通话标准，吐字清晰，语速适中偏慢。"
+    "description": "二十岁出头的年轻男性，音色清亮、温暖、干净。像一位耐心的中文老师在教自己最亲近的人说中文：语速很慢，一个字一个字地念清楚，每个声调都饱满准确，发音标准规范，接近普通话水平测试的朗读；语气温和、鼓励、平稳，不夸张、不做作；全程没有呼吸声、吸气声或其他杂音。"
   }
 ]

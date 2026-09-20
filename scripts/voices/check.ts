@@ -68,6 +68,31 @@ export function voiceRanges(jobs: Job[], dir: string): Map<string, VoiceRange> {
   return out;
 }
 
+/**
+ * Where the speech in a clip starts and ends.
+ *
+ * A generated voice often begins with a small intake of breath, and silence
+ * trimming keeps it: a breath is louder than silence. So the first voiced
+ * frame is found, and the consonant in front of it followed back only while
+ * the sound runs on without a gap — a breath, being separated by one, is left
+ * outside.
+ */
+export function speechBounds(file: string): { start: number; end: number } | null {
+  const frames = framesOf(file);
+  if (!frames.length) return null;
+  const mask = voicedMask(frames);
+  const first = mask.indexOf(true);
+  const last = mask.lastIndexOf(true);
+  if (first < 0) return null;
+  const loudest = Math.max(...frames.map((f) => f.rms));
+  const loud = (i: number) => !!frames[i] && frames[i]!.rms > loudest * 0.12;
+  let a = first;
+  while (a > 0 && loud(a - 1)) a--;
+  let b = last;
+  while (b < frames.length - 1 && loud(b + 1)) b++;
+  return { start: Math.max(0, frames[a]!.t - 0.04), end: frames[b]!.t + 0.09 };
+}
+
 export function checkClip(job: Job, dir: string, range: VoiceRange | null = null): Checked | null {
   const file = join(dir, `${job.id}.wav`);
   if (!job.word || !job.reading || !existsSync(file)) return null;

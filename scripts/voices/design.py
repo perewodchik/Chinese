@@ -29,9 +29,12 @@ import soundfile as sf  # noqa: E402
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 MODEL = "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit"
 
-# What the reference says: every tone, a question, a little warmth, and long
-# enough (about ten seconds) for the cloning model to take the voice from.
-REFERENCE = "你好！我是你的中文练习伙伴。我们一起慢慢说，把每一个声调都说清楚。今天天气真好，你想出去走走吗？"
+# What the reference says: every tone, short clauses with pauses between them,
+# and long enough (about ten seconds) for the cloning model to take the voice
+# from. It is read the way the clips should be read, because cloning copies the
+# pace and the manner as much as the timbre — a reference that rushes makes
+# every clip rush.
+REFERENCE = "你好，我是你的中文老师。我们慢慢来，一个字一个字地说清楚。听我念：妈，麻，马，骂。声调要念准，不用着急，你跟着我再说一遍。"
 
 
 def main(voice_id: str) -> None:

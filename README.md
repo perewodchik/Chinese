@@ -594,16 +594,20 @@ and offline.
   through MLX), in three of its Mandarin voices, plus **Chen**, a young man's
   voice *designed from a description* with Qwen3-TTS VoiceDesign and cloned
   from one reference so it stays one person — a kind of voice, not a copy of
-  anybody's. Chen reads the way a patient teacher reads for a beginner: about
-  three characters a second, a third slower than the others, each one said
-  through. Cloning copies pace and manner as much as timbre, so that is
-  decided by the reference passage the voice is designed on, not by a knob.
+  anybody's. Chen reads the way a patient teacher reads for a beginner —
+  1.7 characters a second against the other voices' 4.6, with the pauses left
+  in — and reads the sentences, which is where a voice you like earns its
+  keep. Cloning copies pace and manner as much as timbre, so that is decided
+  by the reference passage the voice is designed on, not by a knob.
 - **Every tone-critical machine clip is checked** by the same pitch analysis
-  the learner gets, on that voice's own range. A clip the check turns down is
-  **said again**, up to three times — the model samples, so another go often
-  comes out right — and only then given up on: a reference that says the wrong
-  tone is worse than the system voice. Kokoro was tried first and dropped when
-  barely a third of its clips passed.
+  the learner gets, on that voice's own range, and left out if it fails: a
+  reference that says the wrong tone is worse than the system voice. A clip
+  whose syllables are at worst *nearly* — the check's own word for a shape it
+  could not split — is kept. Each word is said once: making the machine repeat
+  refused words did raise the count with a voice, but the tones that matter
+  most are single syllables, and those are a person's. 206 of the 240 tone-pair
+  words have a machine voice; the rest fall back to the system one. Kokoro was
+  tried first and dropped when barely a third of its clips passed.
 - **Clips are cut to where the voice is.** A generated voice often starts with
   a small intake of breath, and trimming silence keeps it, a breath being
   louder than silence. So the first voiced frame is found and the consonant in

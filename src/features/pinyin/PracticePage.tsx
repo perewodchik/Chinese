@@ -8,6 +8,7 @@ import { withTone } from '../../domain/pinyin/syllable';
 import { micUnavailable, MIC_MESSAGE } from '../../platform/audio/mic';
 import { trackPitch } from '../../platform/audio/pitch';
 import { paths } from '../../navigation/paths';
+import { useStore } from '../../store/store';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { PitchStaff } from './PitchStaff';
@@ -78,6 +79,26 @@ const VERDICT_LABEL: Record<Verdict, string> = {
   unheard: 'Not heard',
 };
 
+/**
+ * The same verdicts, for when the chart is off and the only question is
+ * whether a listener would have understood. "Nearly" still counts: a tone
+ * that was a coin toss for the checker is one a listener gets from context.
+ */
+const PLAIN_LABEL: Record<Verdict, string> = {
+  right: 'Understood',
+  close: 'Understood',
+  wrong: 'Not understood',
+  light: 'Understood',
+  unheard: 'Not heard',
+};
+const PLAIN_STATE: Record<Verdict, 'right' | 'wrong' | undefined> = {
+  right: 'right',
+  close: 'right',
+  wrong: 'wrong',
+  light: 'right',
+  unheard: undefined,
+};
+
 function Sitting({ set }: { set: PracticeSet }) {
   useTitle(set.title);
   const navigate = useNavigate();
@@ -88,6 +109,7 @@ function Sitting({ set }: { set: PracticeSet }) {
   const [tries, setTries] = useState(0);
   const [results, setResults] = useState<Result[]>([]);
   const blocked = micUnavailable();
+  const chart = useStore((s) => s.settings.pitchChart);
 
   const word = set.words[at];
   const exit = () => navigate(paths.pinyin(), { replace: true });
@@ -223,28 +245,30 @@ function Sitting({ set }: { set: PracticeSet }) {
           )}
         </div>
 
-        <div className="staff-card">
-          <PitchStaff
-            take={take}
-            references={native}
-            line={judged ? attempt!.line : undefined}
-            syllables={word.spoken.map((s, i) => ({
-              tone: s.surface,
-              halfThird: s.halfThird,
-              from: judged?.[i]?.from,
-              to: judged?.[i]?.to,
-              verdict: judged?.[i]?.judged.verdict,
-            }))}
-          />
-          <div className="staff-legend tiny muted">
-            <span>
-              <i className="key-ref" /> {native ? 'the voice you are copying' : 'the shape to aim for'}
-            </span>
-            <span>
-              <i className="key-voice" /> your voice
-            </span>
+        {chart && (
+          <div className="staff-card">
+            <PitchStaff
+              take={take}
+              references={native}
+              line={judged ? attempt!.line : undefined}
+              syllables={word.spoken.map((s, i) => ({
+                tone: s.surface,
+                halfThird: s.halfThird,
+                from: judged?.[i]?.from,
+                to: judged?.[i]?.to,
+                verdict: judged?.[i]?.judged.verdict,
+              }))}
+            />
+            <div className="staff-legend tiny muted">
+              <span>
+                <i className="key-ref" /> {native ? 'the voice you are copying' : 'the shape to aim for'}
+              </span>
+              <span>
+                <i className="key-voice" /> your voice
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="speak-controls">
           <button className="btn speak-side" onClick={listen} title="Listen (L)">
@@ -278,25 +302,27 @@ function Sitting({ set }: { set: PracticeSet }) {
                 const sp = word.spoken[i]!;
                 const heard = s.judged.guess?.tone;
                 return (
-                  <div key={i} className="verdict" data-state={s.judged.verdict}>
+                  <div key={i} className="verdict" data-state={chart ? s.judged.verdict : PLAIN_STATE[s.judged.verdict]}>
                     <span className="verdict-hanzi">{[...word.word][i]}</span>
                     <span className="verdict-py">{withTone(word.syllables[i]!.bare, sp.surface)}</span>
-                    <b>{VERDICT_LABEL[s.judged.verdict]}</b>
-                    <span className="tiny muted">
-                      {s.judged.verdict === 'light'
-                        ? 'neutral — short and soft'
-                        : s.judged.verdict === 'right'
-                          ? `a clear ${TONE_NAME[sp.surface]}`
-                          : heard
-                            ? `sounded like a ${TONE_NAME[heard]}`
-                            : ''}
-                    </span>
+                    <b>{(chart ? VERDICT_LABEL : PLAIN_LABEL)[s.judged.verdict]}</b>
+                    {chart && (
+                      <span className="tiny muted">
+                        {s.judged.verdict === 'light'
+                          ? 'neutral — short and soft'
+                          : s.judged.verdict === 'right'
+                            ? `a clear ${TONE_NAME[sp.surface]}`
+                            : heard
+                              ? `sounded like a ${TONE_NAME[heard]}`
+                              : ''}
+                      </span>
+                    )}
                   </div>
                 );
               })}
             </div>
-            {tip && <p className="speak-tip">{tip}</p>}
-            {attempt!.selfScaled && (
+            {chart && tip && <p className="speak-tip">{tip}</p>}
+            {chart && attempt!.selfScaled && (
               <p className="tiny muted" style={{ margin: 0 }}>
                 Your voice range is not set, so how high is guessed from this recording.{' '}
                 <Link to={paths.pinyinVoice()}>Set it up</Link> — it takes twenty seconds.

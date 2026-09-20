@@ -3,10 +3,13 @@ Turns generated WAVs into the small MP3s the app ships.
 
     .cache/tts-venv/bin/python scripts/voices/encode.py pairs.json
 
-`pairs.json` is a list of {"src": wav, "dst": mp3}. Silence is trimmed from
-both ends, leaving a breath of 60 ms, because a clip that starts a third of a
-second late feels like a button that did not work. MP3 because every browser
-decodes it, Safari included; 40 kbps mono is plenty for one voice.
+`pairs.json` is a list of {"src": wav, "dst": mp3, "start"?, "end"?}. Silence
+is trimmed from both ends, leaving a breath of 60 ms, because a clip that
+starts a third of a second late feels like a button that did not work. Where
+`start` and `end` are given (build.ts works them out from where the voice
+actually is) the clip is cut there first, which takes off the small intake of
+breath a generated voice often begins with. MP3 because every browser decodes
+it, Safari included; 40 kbps mono is plenty for one voice.
 """
 
 import json
@@ -41,6 +44,10 @@ def main(pairs_file: str) -> None:
         pairs = json.load(f)
     for p in pairs:
         audio, rate = sf.read(p["src"], dtype="float32")
+        if audio.ndim > 1:
+            audio = audio.mean(axis=1)
+        if p.get("end"):
+            audio = audio[int(max(0.0, p.get("start", 0.0)) * rate) : int(p["end"] * rate)]
         audio = trimmed(audio, rate)
         pcm = (np.clip(audio, -1, 1) * 32767).astype(np.int16)
         enc = lameenc.Encoder()

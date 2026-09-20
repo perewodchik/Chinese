@@ -3,6 +3,7 @@ import { bestHeard, describeMiss, type HeardResult } from '../../domain/pinyin/h
 import type { SaidWord } from '../../domain/pinyin/sounds';
 import { micUnavailable, MIC_MESSAGE } from '../../platform/audio/mic';
 import { canRecognise, recogniseOnce, RECOGNITION_MESSAGE } from '../../platform/audio/recognition';
+import { useStore } from '../../store/store';
 import { useLibrary } from '../shared/library';
 import { RecordButton } from './RecordButton';
 import { say } from './voiceOut';
@@ -24,6 +25,7 @@ export function SayCheck({ word, onResult }: { word: SaidWord; onResult?: (r: He
   const [error, setError] = useState<string | null>(null);
   const [mine, setMine] = useState<Float32Array | null>(null);
   const recognises = canRecognise();
+  const chart = useStore((s) => s.settings.pitchChart);
   const blocked = micUnavailable();
   const rec = useRecorder(setMine);
 
@@ -108,7 +110,7 @@ export function SayCheck({ word, onResult }: { word: SaidWord; onResult?: (r: He
                 <span className="verdict-hanzi">{[...word.word][i]}</span>
                 <span className="verdict-py">{s.want}</span>
                 <b>{s.off.length ? 'Heard differently' : 'Heard as meant'}</b>
-                <span className="tiny muted">{s.off.length ? describeMiss(s) : s.got}</span>
+                {chart && <span className="tiny muted">{s.off.length ? describeMiss(s) : s.got}</span>}
               </div>
             ))}
           </div>

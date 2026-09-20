@@ -173,6 +173,7 @@ function ShadowCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const blocked = micUnavailable();
+  const chart = useStore((st) => st.settings.pitchChart);
   const syllables = sentence.py.split(' ');
 
   useEffect(() => {
@@ -226,11 +227,13 @@ function ShadowCard({
     }
   }
 
-  // Characters with their syllable above; punctuation sits on the line.
+  // Characters with their syllable above; punctuation sits on the line. Once
+  // recognition has answered, each character carries whether it was heard as
+  // meant — which, with the chart off, is the whole of the feedback.
   let k = 0;
   const tiles = [...sentence.zh].map((ch, i) =>
     HAN.test(ch) ? (
-      <span key={i} className="shadow-char">
+      <span key={i} className="shadow-char" data-state={heard ? (heard.syllables[k]?.off.length ? 'wrong' : 'right') : undefined}>
         <i>{syllables[k++]}</i>
         <b>{ch}</b>
       </span>
@@ -262,17 +265,19 @@ function ShadowCard({
 
       {blocked && <p className="notice speak-notice">{MIC_MESSAGE[blocked]}</p>}
 
-      <div className="staff-card">
-        <SentenceStaff native={native} mine={mineLine} take={take} />
-        <div className="staff-legend tiny muted">
-          <span>
-            <i className="key-ref" /> the voice
-          </span>
-          <span>
-            <i className="key-voice" /> you
-          </span>
+      {chart && (
+        <div className="staff-card">
+          <SentenceStaff native={native} mine={mineLine} take={take} />
+          <div className="staff-legend tiny muted">
+            <span>
+              <i className="key-ref" /> the voice
+            </span>
+            <span>
+              <i className="key-voice" /> you
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="speak-controls">
         <button className="btn speak-side" onClick={() => void say(sentence.zh)}>
@@ -307,6 +312,11 @@ function ShadowCard({
           {heard.clean ? (
             <p className="small" style={{ margin: 0 }}>
               Every sound as meant.
+            </p>
+          ) : !chart ? (
+            <p className="small" style={{ margin: 0 }}>
+              {heard.syllables.filter((x) => x.off.length).length} of {heard.syllables.length} came out differently —
+              marked above.
             </p>
           ) : (
             <div className="verdicts">

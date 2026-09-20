@@ -24,6 +24,11 @@ export interface AppSettings {
   basisCount: number;
   /** what to call whoever wrote the passage, stamped on the text */
   modelName: string;
+  /**
+   * Pronunciation: draw the pitch staff and say what to change, or only mark
+   * each syllable as understood or not
+   */
+  pitchChart: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -37,6 +42,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   basisSource: 'learned',
   basisCount: 150,
   modelName: 'Claude Opus',
+  pitchChart: true,
 };
 
 /** The workspace as it is written down — to the server now, and to localStorage before accounts. */

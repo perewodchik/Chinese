@@ -339,6 +339,7 @@ function settingsFrom(v: unknown): AppSettings {
     basisSource: strOr(s.basisSource, DEFAULT_SETTINGS.basisSource),
     basisCount: num(s.basisCount, DEFAULT_SETTINGS.basisCount),
     modelName: strOr(s.modelName, DEFAULT_SETTINGS.modelName),
+    pitchChart: s.pitchChart !== false,
   };
 }
 

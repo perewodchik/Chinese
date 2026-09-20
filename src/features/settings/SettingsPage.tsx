@@ -209,6 +209,28 @@ export function SettingsPage() {
 
       <div className="card">
         <header>
+          <h2>Pronunciation</h2>
+        </header>
+        <div className="body" style={{ display: 'grid', gap: 12 }}>
+          <label className="toggle">
+            <input
+              type="checkbox"
+              checked={settings.pitchChart}
+              onChange={(e) => setSettings({ pitchChart: e.target.checked })}
+            />
+            <span>
+              Show the pitch chart
+              <span className="d">
+                Your voice drawn over the speaker's, and a tip on what to change. Off, each syllable is simply
+                marked as understood or not.
+              </span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div className="card">
+        <header>
           <h2>Your saved work</h2>
         </header>
         <div className="body">
