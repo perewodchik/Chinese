@@ -1053,16 +1053,29 @@
   min-height: 180px;
 }
 
+/* A turn is a face and what it said, the way a conversation is laid out
+   everywhere: theirs on the left, yours on the right. */
 .talk-turn {
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 8px;
   max-width: min(100%, 640px);
 }
 
 .talk-turn[data-who='learner'] {
   align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.talk-said {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.talk-turn[data-who='learner'] .talk-said {
   align-items: flex-end;
 }
 
@@ -1370,4 +1383,473 @@
   background: transparent;
   border: 1px dashed var(--line-2);
   box-shadow: none;
+}
+
+/* ------------------------------------------------------- faces for voices */
+
+/* A voice with a face is somebody to answer; a voice without one is a
+   loudspeaker you wait for. Everything below is drawn from tokens, so the
+   portraits follow the theme into the dark like the rest of the app. */
+.portrait {
+  --size: 52px;
+  --mouth: 0;
+  --skin: var(--face-1);
+  --cloth: var(--ink-3);
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--size);
+  height: var(--size);
+}
+
+.portrait[data-size='sm'] {
+  --size: 34px;
+}
+
+.portrait[data-size='lg'] {
+  --size: 104px;
+}
+
+.portrait[data-skin='2'] {
+  --skin: var(--face-2);
+}
+
+.portrait[data-skin='3'] {
+  --skin: var(--face-3);
+}
+
+/* What they are wearing is what tells one face from another at 34px, so the
+   collars are the neutral half of the palette — never the one red thing. */
+.portrait[data-cloth='1'] {
+  --cloth: var(--jade);
+}
+
+.portrait[data-cloth='2'] {
+  --cloth: var(--violet);
+}
+
+.portrait[data-cloth='3'] {
+  --cloth: var(--gold);
+}
+
+.portrait[data-cloth='4'] {
+  --cloth: color-mix(in srgb, var(--jade) 50%, var(--violet));
+}
+
+.portrait[data-cloth='5'] {
+  --cloth: var(--ink-3);
+}
+
+.pt-clip {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--cloth) 18%, var(--card-2));
+}
+
+.pt {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pt-skin {
+  fill: var(--skin);
+}
+
+.pt-ear,
+.pt-neck {
+  fill: color-mix(in srgb, var(--skin) 88%, var(--face-ink));
+}
+
+.pt-cloth {
+  fill: color-mix(in srgb, var(--cloth) 72%, var(--card));
+}
+
+.pt-collar {
+  fill: none;
+  stroke: color-mix(in srgb, var(--cloth) 45%, var(--face-ink));
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pt-hair {
+  fill: var(--hair);
+}
+
+.pt-brows path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--hair) 72%, var(--face-ink));
+  stroke-width: 1.9;
+  stroke-linecap: round;
+}
+
+.pt-white {
+  fill: color-mix(in srgb, var(--face-lit) 88%, var(--skin));
+}
+
+.pt-iris circle {
+  fill: var(--face-ink);
+}
+
+.pt-glint circle {
+  fill: var(--face-lit);
+  opacity: 0.85;
+}
+
+.pt-nose {
+  fill: none;
+  stroke: color-mix(in srgb, var(--skin) 58%, var(--face-ink));
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+.pt-lip {
+  fill: none;
+  stroke: color-mix(in srgb, var(--face-ink) 45%, var(--accent));
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+/* The one part driven from outside: --mouth is written every frame from the
+   sound actually coming out of the speaker. Shut is a line, not a gap. */
+.pt-mouth {
+  fill: color-mix(in srgb, var(--face-ink) 76%, var(--accent));
+  transform-origin: 48px 56.4px;
+  transform: scaleY(calc(0.06 + var(--mouth) * 0.94));
+}
+
+.pt-glasses rect,
+.pt-glasses path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--face-ink) 70%, var(--skin));
+  stroke-width: 1.5;
+}
+
+.pt-earring circle {
+  fill: var(--gold);
+}
+
+/* The system voice is a lit screen rather than a face, and a screen is dark
+   in both themes with the light coming from inside it. */
+.pt-machine {
+  fill: color-mix(in srgb, var(--face-ink) 80%, var(--cloth));
+  stroke: color-mix(in srgb, var(--face-ink) 60%, var(--line-2));
+  stroke-width: 1.4;
+}
+
+.portrait[data-machine] .pt-iris circle {
+  fill: color-mix(in srgb, var(--face-lit) 88%, var(--cloth));
+}
+
+.portrait[data-machine] .pt-mouth {
+  fill: color-mix(in srgb, var(--face-lit) 78%, var(--accent));
+}
+
+.pt-machine-neck {
+  fill: color-mix(in srgb, var(--cloth) 30%, var(--card-2));
+}
+
+.pt-machine-aerial {
+  fill: none;
+  stroke: var(--line-2);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.pt-machine-bulb {
+  fill: var(--ink-3);
+}
+
+.pt-machine-mouth {
+  transform-origin: 48px 49px;
+}
+
+/* Alive while standing still: a breath, and a blink a face is out of step
+   with its neighbours on (--beat), so a thread of them is people rather than
+   one puppet on one string. */
+@keyframes pt-breathe {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(0.8px);
+  }
+}
+
+@keyframes pt-blink {
+  0%,
+  93%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  95.5%,
+  97% {
+    transform: scaleY(0.08);
+  }
+}
+
+.pt-body {
+  animation: pt-breathe 4.8s ease-in-out var(--beat, 0s) infinite;
+}
+
+.pt-eyes {
+  transform-origin: 48px 44px;
+  animation: pt-blink 7.2s var(--beat, 0s) infinite;
+}
+
+/* Faces further up the thread hold still: only the one being talked to needs
+   to be alive, and an iPad should not be breathing twenty portraits. */
+.portrait[data-still] .pt-body,
+.portrait[data-still] .pt-eyes {
+  animation: none;
+}
+
+.pt-head {
+  transform-origin: 48px 68px;
+  transition: transform 0.3s ease;
+}
+
+.pt-brows,
+.pt-iris {
+  transition: transform 0.25s ease;
+}
+
+/* Listening leans in; thinking looks up and away, which is what a person
+   does while the words are still coming. */
+.portrait[data-state='listening'] .pt-head {
+  transform: rotate(-3.5deg);
+}
+
+.portrait[data-state='listening'] .pt-brows {
+  transform: translateY(-1.4px);
+}
+
+.portrait[data-state='listening'] .pt-iris {
+  transform: translate(-1px, 0.4px);
+}
+
+.portrait[data-state='thinking'] .pt-head {
+  transform: rotate(2deg);
+}
+
+.portrait[data-state='thinking'] .pt-brows {
+  transform: translateY(-2px);
+}
+
+.portrait[data-state='thinking'] .pt-iris {
+  transform: translate(2px, -1.6px);
+}
+
+@keyframes pt-think {
+  0%,
+  72%,
+  100% {
+    opacity: 0;
+    transform: translateY(1.5px);
+  }
+
+  26%,
+  48% {
+    opacity: 0.8;
+    transform: translateY(0);
+  }
+}
+
+.pt-think circle {
+  fill: var(--ink-3);
+  opacity: 0;
+}
+
+.portrait[data-state='thinking'] .pt-think circle {
+  animation: pt-think 1.5s ease-in-out infinite;
+}
+
+.portrait[data-state='thinking'] .pt-think circle:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.portrait[data-state='thinking'] .pt-think circle:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+/* A rim, the way a call shows who has the floor: quiet grey while it is your
+   turn to talk, the pronunciation colour while it is speaking. */
+.portrait::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.14s,
+    border-color 0.14s;
+}
+
+@keyframes pt-ring {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.portrait[data-state='listening']::after {
+  border-color: var(--ink-3);
+  opacity: 1;
+  animation: pt-ring 2.2s ease-in-out infinite;
+}
+
+.portrait[data-state='speaking']::after {
+  border-color: var(--accent);
+  opacity: 1;
+  transform: scale(calc(1 + var(--mouth) * 0.05));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-body,
+  .pt-eyes,
+  .pt-think circle,
+  .portrait[data-state='listening']::after,
+  .portrait[data-state='thinking'] .pt-think circle {
+    animation: none;
+  }
+
+  .pt-head,
+  .pt-brows,
+  .pt-iris {
+    transition: none;
+  }
+
+  /* Nothing moves, so a speaking face says so by holding its mouth open. */
+  .portrait[data-state='speaking'] {
+    --mouth: 0.45;
+  }
+
+  .portrait[data-state='thinking'] .pt-think circle {
+    opacity: 0.7;
+  }
+}
+
+/* Your own side of the thread. The app has never seen you, so this is a mark
+   rather than a face — but both sides are somebody. */
+.portrait-self {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card-2);
+  color: var(--ink-3);
+}
+
+.portrait-self .hanzi {
+  font-family: var(--han);
+  font-size: calc(var(--size) * 0.46);
+  line-height: 1;
+}
+
+/* Whose voice, chosen by face. */
+.voice-faces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.voice-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 68px;
+  padding: 7px 8px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition:
+    background 0.14s,
+    border-color 0.14s,
+    color 0.14s;
+}
+
+.voice-face:hover {
+  border-color: var(--line-2);
+}
+
+.voice-face[aria-pressed='true'] {
+  background: var(--card);
+  border-color: var(--line-2);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.voice-face-name {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  line-height: 1.2;
+}
+
+.voice-face-name .count {
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+/* Who is talking to you, beside what they are doing: kept in the composer,
+   where it stays in sight however long the conversation gets. */
+.talk-partner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  max-width: 100%;
+}
+
+.talk-partner .talk-state {
+  text-align: left;
+  max-width: 320px;
+}
+
+/* On a phone the composer is most of the screen, so the face there gives a
+   little of its height back. */
+@media (max-width: 640px) {
+  .talk-partner .portrait {
+    --size: 42px;
+  }
+
+  .voice-face {
+    min-width: 62px;
+  }
+
+  .voice-face .portrait {
+    --size: 46px;
+  }
+}
+
+/* Before the first turn: the face you are about to talk to, at the size of
+   somebody sitting across a table. */
+.talk-face-start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.talk-face-name {
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }

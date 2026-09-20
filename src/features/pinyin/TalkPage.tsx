@@ -25,6 +25,7 @@ import { Seg } from '../../ui/Seg';
 import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
+import { Portrait, SelfMark, type Mood } from './Portrait';
 import { RecordButton } from './RecordButton';
 import { sayTurn } from './talkOut';
 import { preferredVoice } from './voice';
@@ -42,10 +43,12 @@ interface Prefs extends TalkOptions {
   voice: string | null;
   pinyin: boolean;
   english: boolean;
+  /** whether the voices are shown as faces */
+  faces: boolean;
 }
 
 const PREFS_KEY = 'hanzi.talk.v1';
-const FALLBACK: Prefs = { ...DEFAULT_OPTIONS, voice: null, pinyin: true, english: false };
+const FALLBACK: Prefs = { ...DEFAULT_OPTIONS, voice: null, pinyin: true, english: false, faces: true };
 
 function readPrefs(): Prefs {
   try {
@@ -87,6 +90,13 @@ const LENGTHS: ReadonlyArray<{ id: TalkLength; label: string; title: string }> =
 
 const HAN = /[㐀-鿿]/;
 const SYSTEM = 'system';
+
+/** A voice to talk to. The system voice has no gender because it is not a person. */
+interface Choice {
+  id: string;
+  name: string;
+  gender?: 'female' | 'male';
+}
 
 /** The voice to use: the one chosen here, then the pronunciation section's, then Chen, then any. */
 function pickVoice(chosen: string | null, voices: TalkVoice[]): string {
@@ -133,6 +143,8 @@ export function TalkPage() {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [thinking, setThinking] = useState(false);
   const [speaking, setSpeaking] = useState<number | null>(null);
+  /** something is being said — a turn, a new word, a suggestion */
+  const [voicing, setVoicing] = useState(false);
   /** the voice has been asked for but has not started: the model may be loading */
   const [waitingForVoice, setWaitingForVoice] = useState(false);
   const [listening, setListening] = useState(false);
@@ -204,6 +216,7 @@ export function TalkPage() {
       const stop = new AbortController();
       voiceStop.current = stop;
       if (opts.mark !== undefined) setSpeaking(opts.mark);
+      setVoicing(true);
       setWaitingForVoice(true);
       try {
         await sayTurn(text, voice === SYSTEM ? null : voice, {
@@ -214,6 +227,7 @@ export function TalkPage() {
       } finally {
         if (voiceStop.current === stop) {
           setSpeaking(null);
+          setVoicing(false);
           setWaitingForVoice(false);
         }
       }
@@ -348,7 +362,21 @@ export function TalkPage() {
 
   const lastTutor = [...turns].reverse().find((t) => t.who === 'tutor');
   const hints = turns[turns.length - 1]?.who === 'tutor' ? (lastTutor?.hints ?? []) : [];
-  const voiceName = voice === SYSTEM ? 'The system voice' : (voices.find((v) => v.id === voice)?.name ?? voice);
+  const partner = voices.find((v) => v.id === voice);
+  const voiceName = voice === SYSTEM ? 'The system voice' : (partner?.name ?? voice);
+  const choices: Choice[] = [...voices, { id: SYSTEM, name: 'System' }];
+  // What the face is doing, which is the same thing the line under it says:
+  // listening while you talk, waiting while the words are written or the
+  // model wakes up, and speaking once there is sound to move a mouth with.
+  const mood: Mood = listening
+    ? 'listening'
+    : thinking
+      ? 'thinking'
+      : voicing
+        ? waitingForVoice
+          ? 'thinking'
+          : 'speaking'
+        : 'idle';
   const waiting = !listening && !!draft.trim();
   const state = listening
     ? 'Listening… tap again when you have finished.'
@@ -389,17 +417,39 @@ export function TalkPage() {
       <div className="talk-options">
         <div className="voice-picker">
           <span className="tiny muted">Voice</span>
-          <div className="chips">
-            {voices.map((v) => (
-              <button key={v.id} className="chip" aria-pressed={voice === v.id} onClick={() => setPrefs({ voice: v.id })}>
-                {v.name}
-                <span className="count">{v.gender === 'female' ? '♀' : '♂'}</span>
-              </button>
-            ))}
-            <button className="chip" aria-pressed={voice === SYSTEM} onClick={() => setPrefs({ voice: SYSTEM })}>
-              System
-            </button>
-          </div>
+          {prefs.faces ? (
+            <div className="voice-faces">
+              {choices.map((c) => (
+                <button
+                  key={c.id}
+                  className="voice-face"
+                  aria-pressed={voice === c.id}
+                  title={c.id === SYSTEM ? 'The voice built into this device' : `Talk with ${c.name}`}
+                  onClick={() => setPrefs({ voice: c.id })}
+                >
+                  <Portrait
+                    voice={c.id}
+                    gender={c.gender}
+                    mood={voice === c.id ? mood : 'idle'}
+                    still={voice !== c.id}
+                  />
+                  <span className="voice-face-name">
+                    {c.name}
+                    {c.gender && <span className="count">{c.gender === 'female' ? '♀' : '♂'}</span>}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="chips">
+              {choices.map((c) => (
+                <button key={c.id} className="chip" aria-pressed={voice === c.id} onClick={() => setPrefs({ voice: c.id })}>
+                  {c.name}
+                  {c.gender && <span className="count">{c.gender === 'female' ? '♀' : '♂'}</span>}
+                </button>
+              ))}
+            </div>
+          )}
           <span className="tiny muted talk-show">Show</span>
           <div className="chips">
             <button className="chip" aria-pressed={prefs.pinyin} onClick={() => setPrefs({ pinyin: !prefs.pinyin })}>
@@ -407,6 +457,14 @@ export function TalkPage() {
             </button>
             <button className="chip" aria-pressed={prefs.english} onClick={() => setPrefs({ english: !prefs.english })}>
               English
+            </button>
+            <button
+              className="chip"
+              aria-pressed={prefs.faces}
+              title="A face for the voice you are talking to"
+              onClick={() => setPrefs({ faces: !prefs.faces })}
+            >
+              Faces
             </button>
           </div>
         </div>
@@ -446,10 +504,17 @@ export function TalkPage() {
         {turns.length === 0 && !thinking && (
           <div className="talk-start">
             <div className="empty talk-empty">
-              <span className="big">聊</span>
+              {prefs.faces ? (
+                <div className="talk-face-start">
+                  <Portrait voice={voice} gender={partner?.gender} mood={mood} size="lg" />
+                  <span className="talk-face-name">{voiceName}</span>
+                </div>
+              ) : (
+                <span className="big">聊</span>
+              )}
               <p>
-                Claude opens with a question, you answer out loud — a few words is plenty, and nobody minds a
-                mistake.
+                Claude opens with a question, {voiceName === 'The system voice' ? 'the system voice' : voiceName} reads
+                it out, and you answer out loud — a few words is plenty, and nobody minds a mistake.
               </p>
             </div>
             <TopicPicker topic={prefs.topic} themes={lib.themes} onPick={(topic) => setPrefs({ topic })} />
@@ -470,7 +535,10 @@ export function TalkPage() {
             key={t.id}
             turn={t}
             english={prefs.english}
-            speaking={speaking === t.id}
+            faces={prefs.faces}
+            voice={voice}
+            gender={partner?.gender}
+            speaking={speaking === t.id && !waitingForVoice}
             onSay={(text, slow) => {
               unlockAudio();
               void say(text, { slow, mark: text === t.hanzi ? t.id : undefined });
@@ -480,28 +548,37 @@ export function TalkPage() {
 
         {thinking && (
           <div className="talk-turn" data-who="tutor">
-            <div className="talk-bubble talk-pending tiny muted">Claude is writing…</div>
+            {prefs.faces && <Portrait voice={voice} gender={partner?.gender} mood="thinking" size="sm" />}
+            <div className="talk-said">
+              <div className="talk-bubble talk-pending tiny muted">Claude is writing…</div>
+            </div>
           </div>
         )}
         {listening && (
           <div className="talk-turn" data-who="learner">
-            <div className="talk-bubble talk-live hanzi" lang="zh-CN">
-              {heard || '…'}
+            {prefs.faces && <SelfMark />}
+            <div className="talk-said">
+              <div className="talk-bubble talk-live hanzi" lang="zh-CN">
+                {heard || '…'}
+              </div>
             </div>
           </div>
         )}
         {waiting && (
           <div className="talk-turn" data-who="learner">
-            <div className="talk-bubble talk-draft">
-              <HanziLine {...learnerLine(draft)} />
-            </div>
-            <div className="talk-actions">
-              <button className="btn ghost sm" onClick={toggleMic} disabled={!recognises || !!blocked}>
-                Say it again
-              </button>
-              <button className="btn ghost sm" onClick={() => setDraft('')}>
-                Delete
-              </button>
+            {prefs.faces && <SelfMark />}
+            <div className="talk-said">
+              <div className="talk-bubble talk-draft">
+                <HanziLine {...learnerLine(draft)} />
+              </div>
+              <div className="talk-actions">
+                <button className="btn ghost sm" onClick={toggleMic} disabled={!recognises || !!blocked}>
+                  Say it again
+                </button>
+                <button className="btn ghost sm" onClick={() => setDraft('')}>
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -558,9 +635,21 @@ export function TalkPage() {
           </div>
         )}
 
-        <p className="tiny muted talk-state" aria-live="polite">
-          {state}
-        </p>
+        {/* Before the first turn the big face on the empty page is doing this
+            job, and a second one here with nothing to say under it is one
+            face too many. */}
+        {prefs.faces && turns.length > 0 ? (
+          <div className="talk-partner">
+            <Portrait voice={voice} gender={partner?.gender} mood={mood} />
+            <p className="tiny muted talk-state" aria-live="polite">
+              {state}
+            </p>
+          </div>
+        ) : (
+          <p className="tiny muted talk-state" aria-live="polite">
+            {state}
+          </p>
+        )}
         <div className="speak-controls">
           <button
             className="btn speak-side"
@@ -695,42 +784,67 @@ function HanziLine({ hanzi, pinyin }: { hanzi: string; pinyin: string }) {
   );
 }
 
-/** One turn: each character with its syllable above, and what was asked for underneath. */
+/**
+ * One turn: who said it, each character with its syllable above, and what was
+ * asked for underneath. The face beside a turn is the voice that read it —
+ * and it holds still unless it is the one speaking now, since a thread of
+ * twenty breathing portraits is movement nobody asked for.
+ */
 function TurnView({
   turn,
   english,
+  faces,
+  voice,
+  gender,
   speaking,
   onSay,
 }: {
   turn: Turn;
   english: boolean;
+  faces: boolean;
+  voice: string;
+  gender?: 'female' | 'male';
   speaking: boolean;
   onSay: (text: string, slow: boolean) => void;
 }) {
   return (
     <div className="talk-turn" data-who={turn.who}>
-      <div className="talk-bubble" data-speaking={speaking || undefined}>
-        <HanziLine hanzi={turn.hanzi} pinyin={turn.pinyin} />
-        {english && turn.english && <p className="talk-en">{turn.english}</p>}
-        {turn.note && <p className="talk-note small">{turn.note}</p>}
+      {faces &&
+        (turn.who === 'tutor' ? (
+          <Portrait
+            voice={voice}
+            gender={gender}
+            mood={speaking ? 'speaking' : 'idle'}
+            size="sm"
+            still={!speaking}
+          />
+        ) : (
+          <SelfMark />
+        ))}
+      <div className="talk-said">
+        <div className="talk-bubble" data-speaking={speaking || undefined}>
+          <HanziLine hanzi={turn.hanzi} pinyin={turn.pinyin} />
+          {english && turn.english && <p className="talk-en">{turn.english}</p>}
+          {turn.note && <p className="talk-note small">{turn.note}</p>}
+        </div>
+        {turn.words && turn.words.length > 0 && (
+          <div className="talk-words">
+            {turn.words.map((w, i) => (
+              <WordChip key={i} word={w} onSay={() => onSay(w.hanzi, false)} />
+            ))}
+          </div>
+        )}
+        {turn.who === 'tutor' && (
+          <div className="talk-actions">
+            <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, false)}>
+              <span aria-hidden>🔊</span> Again
+            </button>
+            <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, true)}>
+              Slowly
+            </button>
+          </div>
+        )}
       </div>
-      {turn.words && turn.words.length > 0 && (
-        <div className="talk-words">
-          {turn.words.map((w, i) => (
-            <WordChip key={i} word={w} onSay={() => onSay(w.hanzi, false)} />
-          ))}
-        </div>
-      )}
-      {turn.who === 'tutor' && (
-        <div className="talk-actions">
-          <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, false)}>
-            <span aria-hidden>🔊</span> Again
-          </button>
-          <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, true)}>
-            Slowly
-          </button>
-        </div>
-      )}
     </div>
   );
 }

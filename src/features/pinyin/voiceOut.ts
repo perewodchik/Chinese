@@ -35,9 +35,47 @@ const loadPack = () =>
 
 type Ctor = typeof AudioContext;
 let ctx: AudioContext | null = null;
-const context = () =>
-  (ctx ??= new ((window as unknown as { AudioContext?: Ctor; webkitAudioContext?: Ctor }).AudioContext ??
-    (window as unknown as { webkitAudioContext: Ctor }).webkitAudioContext)());
+let meter: AnalyserNode | null = null;
+let frames: Uint8Array<ArrayBuffer> | null = null;
+
+const context = () => {
+  if (!ctx) {
+    ctx = new ((window as unknown as { AudioContext?: Ctor; webkitAudioContext?: Ctor }).AudioContext ??
+      (window as unknown as { webkitAudioContext: Ctor }).webkitAudioContext)();
+    // Everything the page plays goes through one meter on its way out, so
+    // that a face can be given the shape of the sound rather than a guess at
+    // it. An analyser passes what it is given through untouched.
+    meter = ctx.createAnalyser();
+    meter.fftSize = 1024;
+    meter.smoothingTimeConstant = 0.3;
+    frames = new Uint8Array(meter.fftSize);
+    meter.connect(ctx.destination);
+  }
+  return ctx;
+};
+
+/** Where a clip is played into: the meter, which passes it on to the speakers. */
+const output = (): AudioNode => (context(), meter ?? ctx!.destination);
+
+/**
+ * How loud the page is at this instant, 0 to 1 — the root mean square of the
+ * last few milliseconds of whatever is playing.
+ *
+ * Used to move a portrait's mouth with the voice coming out of it. It is 0
+ * when nothing is playing, and also when the system voice is speaking: that
+ * one is spoken by the operating system and never passes through the page,
+ * which is why a face has to fall back to making its own shapes.
+ */
+export function voiceLevel(): number {
+  if (!meter || !frames) return 0;
+  meter.getByteTimeDomainData(frames);
+  let sum = 0;
+  for (let i = 0; i < frames.length; i++) {
+    const v = (frames[i]! - 128) / 128;
+    sum += v * v;
+  }
+  return Math.sqrt(sum / frames.length);
+}
 
 const decoded = new Map<string, Promise<AudioBuffer>>();
 let playing: AudioBufferSourceNode | null = null;
@@ -102,7 +140,7 @@ export async function say(text: string, opts: SayOptions = {}): Promise<'natural
     playing?.stop();
     const src = c.createBufferSource();
     src.buffer = buffer;
-    src.connect(c.destination);
+    src.connect(output());
     src.start();
     playing = src;
     return 'natural';
@@ -162,7 +200,7 @@ export async function playBytes(bytes: ArrayBuffer): Promise<void> {
     playing?.stop();
     const src = c.createBufferSource();
     src.buffer = buffer;
-    src.connect(c.destination);
+    src.connect(output());
     src.onended = () => {
       if (playing === src) playing = null;
       resolve();

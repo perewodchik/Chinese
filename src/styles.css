@@ -25,6 +25,20 @@
   --gold-soft: #f6ecd8;
   --violet: #6b5a8e;
 
+  /* The voices have faces (src/features/pinyin/Portrait.tsx), and a face
+     needs a few colours the rest of the app never asks for: three skins,
+     hair, and the two that a drawing does not invert. A portrait is ink on
+     a face rather than text on a page — eyes and brows stay dark in the dark
+     theme, because the skin they are drawn on is still light. Hair is the
+     one that does move, since it is drawn against the disc and would
+     otherwise disappear into it. */
+  --face-1: #f0d4b9;
+  --face-2: #e2ba96;
+  --face-3: #c7936a;
+  --hair: #32261e;
+  --face-ink: #2a211a;
+  --face-lit: #fdf9f3;
+
   --radius: 10px;
   --radius-lg: 16px;
   --shadow: 0 1px 2px rgb(60 45 30 / 6%), 0 6px 20px rgb(60 45 30 / 6%);
@@ -53,6 +67,13 @@
   --gold: #cfa551;
   --gold-soft: #302719;
   --violet: #a795c9;
+
+  --face-1: #d9b695;
+  --face-2: #c39a76;
+  --face-3: #a67852;
+  --hair: #5b4838;
+  --face-ink: #241c16;
+  --face-lit: #f2e8db;
 
   --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 6px 20px rgb(0 0 0 / 25%);
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 35%);

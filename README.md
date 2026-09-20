@@ -701,6 +701,37 @@ live voices are used for the conversation only: in the rest of the section a
 word without a pack clip falls back to the system voice on purpose, because its
 machine clip failed the tone check.
 
+**Every voice has a face.** Talking to a voice with no face is talking to a
+loudspeaker: you wait for it rather than answer it. So each voice is drawn as a
+portrait — Chen, Vivian, Serena, Dylan, and a little machine for the system
+voice, which is not a person and is not drawn as one. You pick who to talk to
+by face, the face sits beside each turn it read, and one of them stays in sight
+above the microphone however long the conversation gets. Your own side of the
+thread is marked 我.
+
+The faces are drawn rather than photographed, from about a dozen numbers each —
+hair, collar, skin, glasses — under the same rule the voices themselves are
+made under: Chen is *a kind of voice*, not a copy of anyone's, so his face is a
+kind of face and not a likeness of anybody. They are SVG built from the app's
+own colour tokens, so they cost nothing to ship, follow the theme into the
+dark, and stay sharp at any size. A voice added to the pack later gets a face
+of its own worked out from its id, and keeps the same one.
+
+They are alive, which is the point: they breathe and blink, out of step with
+each other; they lean in and raise their brows while you are the one talking;
+they look up and away while Claude is writing. **The mouth follows the actual
+sound** — everything the page plays goes through one analyser on its way to the
+speakers, and the mouth is drawn from that, sixty times a second, straight onto
+the element rather than through React. Over a turn of Chen's that comes out
+about a third shut, a third half-open and the rest wide, which is roughly what
+a mouth does. The system voice is spoken by the operating system and never
+passes through the page, so there is nothing to follow: that face makes its own
+shapes from three waves that do not divide into each other, so it never falls
+into a visible loop. Faces in the thread above the one being spoken hold still,
+because twenty breathing portraits is movement nobody asked for; under
+`prefers-reduced-motion` nothing moves at all and a speaking face simply holds
+its mouth open. The **Faces** switch turns the whole lot off.
+
 ## Reading passages
 
 A session runs in three steps, on its own page.
