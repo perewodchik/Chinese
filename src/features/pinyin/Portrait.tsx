@@ -87,11 +87,13 @@ const BEHIND: Partial<Record<Hair, string>> = {
   bob: 'M26 46c-1-26 10-33 22-33s23 7 22 33c0 10-1 16-3 19 1-11 0-23-2-30-5-4-29-4-34 0-2 7-3 19-2 30-2-3-3-9-3-19Z',
   wave: 'M26 46c-1-26 10-33 22-33s23 7 22 33c0 12 2 20-2 24-4-4-2-14-3-24-1-10-5-16-17-16s-16 6-17 16c-1 10 1 20-3 24-4-4-2-12-2-24Z',
   bun: 'M48 6a9 9 0 0 1 0 18 9 9 0 0 1 0-18Z',
-  // The cap of hair behind the head, hugging the skull. No locks down the
-  // sides and no ears: a cheek line with nothing interrupting it is rounder,
-  // and round is the whole job here.
+  // A short back and sides: the cap covers the skull and its lower edge
+  // sweeps up and off above the cheekbone, so the whole jaw and both ears are
+  // out in the open. This edge is the thing that decides whether a head reads
+  // as a boy's — hair that comes down past the cheeks frames the face, and a
+  // framed face is a girl's however the rest of it is drawn.
   fringe:
-    'M18.8 56C17 26 29.6 9 48 9s31 17 29.2 47c-1.2-10-3-19.4-5.2-25.2-3.6-9.8-11.6-14.2-24-14.2S27.6 21 24 30.8c-2.2 5.8-4 15.2-5.2 25.2Z M20.4 42c-1.2 8-.4 15.6 2.2 20.6 1.6-5.6 2.4-12.2 2.2-18.2Z M75.6 42c1.2 8 .4 15.6-2.2 20.6-1.6-5.6-2.4-12.2-2.2-18.2Z',
+    'M20.4 41C19.4 23.8 30.4 9 48 9s28.6 14.8 27.6 32c-1.6-8-3.4-14.6-5.6-19-3.6-9.4-11-13.4-22-13.4S29.6 12.6 26 22c-2.2 4.4-4 11-5.6 19Z',
 };
 
 /** Hair over the crown: the hairline, which is most of what tells one head from another. */
@@ -102,19 +104,28 @@ const FRONT: Record<Hair, string> = {
   bun: 'M29 44c-1-22 8-28 19-28s20 6 19 28c-1-11-5-17-19-17s-18 6-19 17Z',
   crop: 'M29 44c-1-21 8-27 19-27s20 6 19 27c-1-9-5-16-19-16s-18 7-19 16Z',
   part: 'M29 43c-1-21 8-27 19-27s20 6 19 27c-1-9-4-14-12-15-5 4-14 6-22 5-2 2-3 5-4 10Z',
-  // Three soft lobes sweeping left, not spikes. The gaps between them stop
-  // well above the eyes: hair hanging into the eyes hides the one part of a
+  // Tousled rather than combed: strands of uneven length with a part above
+  // the left eye, and plenty of forehead showing under them. The gaps stop
+  // well above the eyes — hair hanging into the eyes hides the one part of a
   // face that has to be read, and hides it behind something pointed.
   fringe:
-    'M22.4 47C21 25 31.6 12.4 48 12.4S75 25 73.6 47c-1.2-9-3.6-14.4-6.6-17.2-.4 7.2-3.4 12.6-8 15.2 1-5.4.4-10-2-13.6-3.4 7.6-9.6 11.8-17 12.4 2.4-4 3.4-8 2.8-12-4.2 6.6-10.4 10.6-16.8 12-1.4.6-2.6 1.6-3.6 2.2Z',
+    'M24 43C22.2 24.6 32.6 12.4 48 12.4S73.8 24.6 72 43c-1.4-9-3.6-14.6-6.4-17.4-.6 7-3.4 12.2-7.8 14.8 1.4-5.2 1-9.8-1.2-13.6-3 7-8.8 11.2-16 11.8 2.6-3.8 3.8-7.6 3.4-11.6-4.2 6.4-10.2 10.4-16.8 11.8-1.4.6-2.6 1.8-3.4 3.2Z',
 };
+
+/**
+ * The hair in front of each ear. Short, and pointed at the bottom: a
+ * sideburn is the small mark that says this is a cut somebody keeps, rather
+ * than hair that has simply been left alone.
+ */
+const SIDES =
+  'M22.8 40.6c-.4 3.8.3 7 2 9.4-.3-3.2-.5-6.2-.4-9.2Z M73.2 40.6c.4 3.8-.3 7-2 9.4.3-3.2.5-6.2.4-9.2Z';
 
 /**
  * The light on the hair: the band a comic puts across a fringe so that a flat
  * shape reads as something with a shine on it, and the difference between
  * hair and a hat.
  */
-const SHINE = 'M30.6 27.4c5-6.6 12-10.2 20.4-10.2 4.8 0 9.4 1.2 13 3.6-4.6-1-9.6-1.4-14.2-.6-7.6 1.2-14.2 3.6-19.2 7.2Z';
+const SHINE = 'M31.4 25.8c5-6.6 12-10.2 20.4-10.2 4.8 0 9.4 1.2 13 3.6-4.6-1-9.6-1.4-14.2-.6-7.6 1.2-14.2 3.6-19.2 7.2Z';
 
 /**
  * The head itself: a wide round skull that takes up most of the picture,
@@ -272,54 +283,65 @@ function CuteHead() {
   return (
     <g className="pt-body">
       {/* Small shoulders, low down: the head has to win. */}
-      <path className="pt-cloth" d="M12 96c3-12 16-20 36-20s33 8 36 20Z" />
-      <path className="pt-collar" d="M42.4 76.4 48 82.2l5.6-5.8" />
-      <path className="pt-skin pt-neck" d="M42 64.4h12v9.6q-6 3.2-12 0Z" />
+      <path className="pt-cloth" d="M9 96c3-12 17-20 39-20s36 8 39 20Z" />
+      <path className="pt-collar" d="M41.8 76 48 82.4l6.2-6.4" />
+      <path className="pt-skin pt-neck" d="M41 64.4h14v9.2q-7 3.2-14 0Z" />
       <g className="pt-head">
         <g className="pt-sway">
           <path className="pt-hair" d={BEHIND.fringe} />
+          {/* Short hair means ears, and ears are the other half of why a head
+              reads as a boy's. Drawn before the face, so only the outer edge
+              of each shows, and before the sideburns, which fall in front of
+              them the way hair does. */}
+          <ellipse className="pt-ear" cx="21.8" cy="51.6" rx="2.5" ry="3.4" />
+          <ellipse className="pt-ear" cx="74.2" cy="51.6" rx="2.5" ry="3.4" />
           <path className="pt-skin pt-face" d={FACE} />
+          <path className="pt-hair" d={SIDES} />
           <path className="pt-hair" d={FRONT.fringe} />
           <path className="pt-shine" d={SHINE} />
           <path className="pt-ahoge" d={AHOGE} />
-          {/* Thin, high and a little raised: the brows of somebody listening,
-              drawn over the fringe rather than under it so they can be read. */}
+          {/* Straight, heavy and close over the eye. A thin brow arched high
+              on the forehead is the single most feminine line on a face;
+              these sit low, which also makes him look like he is paying
+              attention. Drawn over the fringe so they can be read. */}
           <g className="pt-brows">
-            <path d="M32.6 43.4q4.4-3 8.8-1" />
-            <path d="M54.6 42.4q4.4-2 8.8 1" />
+            <path d="M31.4 45.6q4.8-2 9.6-.6" />
+            <path d="M54.6 45q4.8-1.4 9.6.6" />
           </g>
           <g className="pt-eyes">
-            <ellipse className="pt-white" cx="36.6" cy="52.4" rx="6.2" ry="6.8" />
-            <ellipse className="pt-white" cx="59.4" cy="52.4" rx="6.2" ry="6.8" />
+            <ellipse className="pt-white" cx="36.6" cy="52.6" rx="6.2" ry="5.8" />
+            <ellipse className="pt-white" cx="59.4" cy="52.6" rx="6.2" ry="5.8" />
             <g className="pt-iris">
-              <circle cx="36.6" cy="53" r="5" />
-              <circle cx="59.4" cy="53" r="5" />
+              <circle cx="36.6" cy="53" r="4.6" />
+              <circle cx="59.4" cy="53" r="4.6" />
             </g>
             {/* The lit bottom of the iris, where a comic lets the light through. */}
             <g className="pt-glow">
-              <ellipse cx="36.6" cy="55.4" rx="3.4" ry="2.2" />
-              <ellipse cx="59.4" cy="55.4" rx="3.4" ry="2.2" />
+              <ellipse cx="36.6" cy="55" rx="3.2" ry="1.9" />
+              <ellipse cx="59.4" cy="55" rx="3.2" ry="1.9" />
             </g>
             <g className="pt-glint">
-              <circle cx="34.4" cy="50.2" r="2.1" />
-              <circle cx="57.2" cy="50.2" r="2.1" />
-              <circle cx="39.2" cy="55.6" r="1" />
-              <circle cx="62" cy="55.6" r="1" />
+              <circle cx="34.5" cy="50.6" r="1.9" />
+              <circle cx="57.3" cy="50.6" r="1.9" />
+              <circle cx="39.2" cy="55.4" r="0.9" />
+              <circle cx="62" cy="55.4" r="0.9" />
             </g>
+            {/* An upper lid, not a lash: thinner and flatter than a girl's
+                would be, and with none of the flare at the outer corner. */}
             <g className="pt-lash">
-              <path d="M30.6 49.4q6-5.2 12 0" />
-              <path d="M53.4 49.4q6-5.2 12 0" />
+              <path d="M30.8 50q5.8-4.2 11.6 0" />
+              <path d="M53.6 50q5.8-4.2 11.6 0" />
             </g>
           </g>
           {/* Barely a nose: two units of a soft line, and no nostril. */}
           <path className="pt-nose" d="M47.1 58.4q.9.9 1.8 0" />
           <g className="pt-blush">
-            <ellipse cx="29.8" cy="58.4" rx="5.2" ry="2.8" />
-            <ellipse cx="66.2" cy="58.4" rx="5.2" ry="2.8" />
+            <ellipse cx="29.8" cy="58.6" rx="4.6" ry="2.4" />
+            <ellipse cx="66.2" cy="58.6" rx="4.6" ry="2.4" />
           </g>
           <g className="pt-mouth-g">
-            <path className="pt-lip" d="M44.4 62.6q3.6 3.2 7.2 0" />
-            <ellipse className="pt-mouth" cx="48" cy="63.6" rx="3.6" ry="3.2" />
+            <path className="pt-lip" d="M44.2 62.8q3.8 2.6 7.6 0" />
+            <ellipse className="pt-mouth" cx="48" cy="63.6" rx="3.8" ry="3" />
           </g>
         </g>
       </g>

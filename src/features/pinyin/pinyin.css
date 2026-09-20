@@ -1825,7 +1825,7 @@
 .pt-lash path {
   fill: none;
   stroke: color-mix(in srgb, var(--face-ink) 82%, var(--hair));
-  stroke-width: 2.4;
+  stroke-width: 1.9;
   stroke-linecap: round;
 }
 
@@ -1835,8 +1835,8 @@
 }
 
 .portrait[data-cute] .pt-brows path {
-  stroke: color-mix(in srgb, var(--hair) 82%, var(--face-ink));
-  stroke-width: 1.6;
+  stroke: color-mix(in srgb, var(--hair) 70%, var(--face-ink));
+  stroke-width: 2.2;
 }
 
 /* Barely there. A nose drawn any heavier is the first thing that turns a soft
@@ -1847,13 +1847,13 @@
 }
 
 .portrait[data-cute] .pt-lip {
-  stroke: color-mix(in srgb, var(--face-ink) 38%, var(--accent));
-  stroke-width: 1.5;
+  stroke: color-mix(in srgb, var(--face-ink) 62%, var(--accent));
+  stroke-width: 1.4;
 }
 
 .pt-blush ellipse {
-  fill: color-mix(in srgb, var(--accent) 52%, var(--skin));
-  opacity: 0.42;
+  fill: color-mix(in srgb, var(--accent) 48%, var(--skin));
+  opacity: 0.34;
   transition: opacity 0.3s ease;
 }
 
@@ -1988,11 +1988,11 @@
 @keyframes pt-warm {
   0%,
   100% {
-    opacity: 0.52;
+    opacity: 0.44;
   }
 
   50% {
-    opacity: 0.72;
+    opacity: 0.62;
   }
 }
 
@@ -2015,7 +2015,7 @@
 }
 
 .portrait[data-cute][data-state='listening'] .pt-blush ellipse {
-  opacity: 0.52;
+  opacity: 0.44;
 }
 
 .portrait[data-cute][data-state='thinking'] .pt-ahoge {
