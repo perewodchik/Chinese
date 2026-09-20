@@ -93,7 +93,7 @@ const BEHIND: Partial<Record<Hair, string>> = {
   // as a boy's — hair that comes down past the cheeks frames the face, and a
   // framed face is a girl's however the rest of it is drawn.
   fringe:
-    'M20.4 41C19.4 23.8 30.4 9 48 9s28.6 14.8 27.6 32c-1.6-8-3.4-14.6-5.6-19-3.6-9.4-11-13.4-22-13.4S29.6 12.6 26 22c-2.2 4.4-4 11-5.6 19Z',
+    'M20 44C19 22.6 31 8.6 48 8.6S77 22.6 76 44c-1.4-12-4.4-20.4-9-25-5.4-5.4-11.6-7.6-19-7.6s-13.6 2.2-19 7.6c-4.6 4.6-7.6 13-9 25Z',
 };
 
 /** Hair over the crown: the hairline, which is most of what tells one head from another. */
@@ -109,7 +109,7 @@ const FRONT: Record<Hair, string> = {
   // well above the eyes — hair hanging into the eyes hides the one part of a
   // face that has to be read, and hides it behind something pointed.
   fringe:
-    'M24 43C22.2 24.6 32.6 12.4 48 12.4S73.8 24.6 72 43c-1.4-9-3.6-14.6-6.4-17.4-.6 7-3.4 12.2-7.8 14.8 1.4-5.2 1-9.8-1.2-13.6-3 7-8.8 11.2-16 11.8 2.6-3.8 3.8-7.6 3.4-11.6-4.2 6.4-10.2 10.4-16.8 11.8-1.4.6-2.6 1.8-3.4 3.2Z',
+    'M21.6 43C20.8 23.4 31.4 11.4 48 11.4S75.2 23.4 74.4 43c-1.4-9-3.6-14.6-6.4-17.4-.6 7-3.4 12.2-7.8 14.8 1.4-5.2 1-9.8-1.2-13.6-3 7-8.8 11.2-16 11.8 2.6-3.8 3.8-7.6 3.4-11.6-4.2 6.4-10.2 10.4-16.8 11.8-1.4.6-2.6 1.8-3.4 3.2Z',
 };
 
 /**
