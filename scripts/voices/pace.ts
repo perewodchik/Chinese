@@ -22,8 +22,11 @@
  * rather than imported, the way the model names are.
  */
 
-/** What a voice is doing: talking with somebody, or showing them how a word goes. */
-export type Pace = 'talking' | 'teaching';
+/**
+ * What a voice is doing. The four the conversation offers, and `talking` is
+ * what the pack's own sentences are read at when nobody asked for a mode.
+ */
+export type Pace = 'breakdown' | 'teaching' | 'talking' | 'skim';
 
 /**
  * Seconds one Chinese character should take.
@@ -32,11 +35,16 @@ export type Pace = 'talking' | 'teaching';
  * five, but this is somebody you are learning from: past four a learner hears
  * a shape rather than words. Teaching is 0.9 to 3.3 — slow enough to hear
  * every tone land, and not so slow that the sentence has fallen apart by the
- * end of it.
+ * end of it. Breakdown is a character at a time with a pause between each,
+ * so it is slower again and the ceiling has to allow for the pauses. Skim is
+ * the same reading as talking, made faster on the way out, so what is
+ * measured here is still the reading.
  */
 export const SECONDS_PER_CHAR: Record<Pace, { least: number; most: number }> = {
-  talking: { least: 0.25, most: 0.55 },
+  breakdown: { least: 0.45, most: 1.8 },
   teaching: { least: 0.3, most: 1.1 },
+  talking: { least: 0.25, most: 0.55 },
+  skim: { least: 0.25, most: 0.55 },
 };
 
 /** The breath at either end, and whatever the punctuation is worth: not charged per character. */

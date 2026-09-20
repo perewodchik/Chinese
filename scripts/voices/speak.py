@@ -10,7 +10,7 @@ it, with the models loaded once, and asks it for each sentence as it comes.
 
 One JSON request a line on stdin, one answer a line on stdout, in order:
 
-    {"id": "7", "text": "你好！", "voice": "chen", "slow": false}
+    {"id": "7", "text": "你好！", "voice": "chen", "mode": "conversation"}
     {"id": "7", "mp3": "<base64>"}            or  {"id": "7", "error": "..."}
     {"id": "8", "warm": true, "voice": "chen"} → {"id": "8", "ok": true}
 
@@ -23,6 +23,7 @@ It stops when stdin closes, which is when the server exits.
 """
 
 import base64
+import hashlib
 import json
 import os
 import re
@@ -70,7 +71,7 @@ def model_for(voice):
     return QWEN3 if VOICES[voice]["source"] == "qwen3" else BASE
 
 
-def reference(voice, slow):
+def reference(voice, mode):
     """
     Which recording of a designed voice to clone from.
 
@@ -80,28 +81,91 @@ def reference(voice, slow):
     reference the pack is built from (`<id>.wav`). A conversation wants it
     talking, at the speed a person talks, or it sounds like somebody who has
     forgotten how the sentence ends: that is `<id>.talk.wav` where a voice has
-    one. Asking for it slowly here is asking for the teacher again.
+    one. The two slow modes are asking for the teacher again.
     """
     talking = os.path.join(DESIGN_DIR, f"{voice}.talk.wav")
     base = os.path.join(DESIGN_DIR, f"{voice}.wav")
-    return base if slow or not os.path.exists(talking) else talking
+    teacher = MODES[mode]["teacher"]
+    return (voice, base) if teacher or not os.path.exists(talking) else (f"{voice}.talk", talking)
 
 
-def token_budget(text, slow):
-    """A ceiling on how long the model may talk, as in generate.py: without one it now and then never stops."""
-    return int(12 * ((1.0 if slow else 0.75) * len(text) + 2))
+def transcript(name, wav):
+    """
+    What that recording says — checked, not assumed.
+
+    The model is given the reference audio and what it says, and lines the two
+    up to work out how this speaker sounds. A transcript from a different
+    recording makes the alignment nonsense: the voice drifts, invents
+    syllables, and reads pieces of the transcript instead of the sentence it
+    was asked for. It is invisible from the outside — two files that both
+    exist, one of them wrong — so `references.json` records what each
+    recording is, and a reference that no longer matches is refused here
+    rather than read out.
+    """
+    with open(os.path.join(DESIGN_DIR, f"{name}.txt"), encoding="utf-8") as f:
+        text = f.read().strip()
+    manifest = os.path.join(DESIGN_DIR, "references.json")
+    if os.path.exists(manifest):
+        with open(manifest, encoding="utf-8") as f:
+            known = json.load(f).get(name)
+        if known:
+            digest = hashlib.sha256(open(wav, "rb").read()).hexdigest()
+            if digest != known["sha256"] or text != known["text"]:
+                raise RuntimeError(
+                    f"{name}: the reference recording and its transcript do not match what design.py kept."
+                    " Design it again (design.py <voice> <variant> --keep <n>) rather than copying files by hand."
+                )
+    return text
 
 
-# How long one Chinese character should take, talking and teaching. The same
-# numbers as scripts/voices/pace.ts, which the pack is gated on and which says
-# where they come from; written out here rather than imported, as the model
-# names are.
-PACE = {False: (0.25, 0.55), True: (0.30, 1.10)}
+def token_budget(text, mode):
+    """
+    A ceiling on how long the model may talk, as in generate.py: without one
+    it now and then never stops. It is the mode's own slowest reading plus a
+    little, so a budget can never be the thing that cuts a sentence short.
+    """
+    return int(12 * (MODES[mode]["band"][1] * len(text) + 2))
+
+
+# What each mode asks for: which recording of the voice to clone from, whether
+# the sentence is handed over a character at a time, and how long a character
+# should then take. The bands are the ones in scripts/voices/pace.ts, which
+# the pack is gated on and which says where they come from; written out here
+# rather than imported, as the model names are.
+MODES = {
+    "breakdown": {"teacher": True, "apart": True, "band": (0.45, 1.80)},
+    "teaching": {"teacher": True, "apart": False, "band": (0.30, 1.10)},
+    "conversation": {"teacher": False, "apart": False, "band": (0.25, 0.55)},
+    # Skim is this reading played faster by the page; what is made here is the
+    # ordinary one.
+    "skim": {"teacher": False, "apart": False, "band": (0.25, 0.55)},
+}
 ENDS = 0.35
 HAN = re.compile(r"[\u3400-\u9fff]")
 
 
-def paced(audio, rate, text, slow):
+def spread(text):
+    """
+    The sentence a character at a time, for breakdown mode.
+
+    A pause is not a speed: asking a model to read slowly gives you the same
+    run-together reading stretched, where what is wanted is each character
+    said and then left alone for a moment. Punctuation is how you ask for
+    that, so the pause goes into the text — a comma between characters, and
+    whatever punctuation was already there kept where it was.
+    """
+    out = []
+    for c in text:
+        if HAN.match(c):
+            if out and out[-1] not in "，。！？、；：":
+                out.append("，")
+            out.append(c)
+        else:
+            out.append(c)
+    return "".join(out)
+
+
+def paced(audio, rate, text, mode):
     """
     Whether that is somebody talking, or the model having lost the thread.
 
@@ -114,35 +178,38 @@ def paced(audio, rate, text, slow):
     chars = len(HAN.findall(text))
     if not chars:
         return True
-    least, most = PACE[bool(slow)]
+    least, most = MODES[mode]["band"]
     seconds = len(audio) / rate
     return least * chars <= seconds <= most * chars + ENDS
 
 
-def audio_for(text, voice, slow):
+def audio_for(text, voice, mode):
     spec = VOICES[voice]
     m = model(model_for(voice))
-    for temperature in (0.3, 0.6, 0.8):
+    said = spread(text) if MODES[mode]["apart"] else text
+    # Low first and barely warmer after: every degree of temperature is a
+    # degree of the model wandering off the sentence, and a wandered clip is
+    # not a slower reading, it is a different one.
+    for temperature in (0.25, 0.4, 0.55):
         if spec["source"] == "qwen3":
             parts = m.generate_custom_voice(
-                text=text,
+                text=said,
                 speaker=spec["speaker"],
                 language="chinese",
-                instruct=SLOW if slow else STYLE,
+                instruct=SLOW if MODES[mode]["teacher"] else STYLE,
                 temperature=temperature,
-                max_tokens=token_budget(text, slow),
+                max_tokens=token_budget(said, mode),
             )
         else:
-            ref = reference(voice, slow)
-            with open(f"{os.path.splitext(ref)[0]}.txt", encoding="utf-8") as f:
-                ref_text = f.read().strip()
+            name, ref = reference(voice, mode)
+            ref_text = transcript(name, ref)
             parts = m.generate(
-                text=text,
+                text=said,
                 ref_audio=ref,
                 ref_text=ref_text,
                 lang_code="chinese",
                 temperature=temperature,
-                max_tokens=token_budget(text, slow),
+                max_tokens=token_budget(said, mode),
             )
         chunks, rate = [], 24000
         for r in parts:
@@ -152,7 +219,7 @@ def audio_for(text, voice, slow):
         # Now and then the model returns silence; a warmer try almost always speaks.
         # The pace is judged on the speech, not on the silence around it —
         # the same length `mp3` below will keep.
-        if audio is not None and len(audio) and np.abs(audio).max() > 0.02 and paced(trimmed(audio, rate), rate, text, slow):
+        if audio is not None and len(audio) and np.abs(audio).max() > 0.02 and paced(trimmed(audio, rate), rate, text, mode):
             return audio, rate
     return None, 24000
 
@@ -177,7 +244,8 @@ def answer(req):
     text = (req.get("text") or "").strip()
     if not text:
         return {"error": "nothing to say"}
-    audio, rate = audio_for(text, voice, bool(req.get("slow")))
+    mode = req.get("mode") if req.get("mode") in MODES else "conversation"
+    audio, rate = audio_for(text, voice, mode)
     if audio is None:
         return {"error": "the model said nothing usable"}
     return {"mp3": base64.b64encode(mp3(audio, rate)).decode("ascii")}

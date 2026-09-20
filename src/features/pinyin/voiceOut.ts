@@ -204,8 +204,11 @@ export function unlockAudio() {
   unlockSpeech();
 }
 
-/** Plays MP3 bytes to the end. Resolves when it has finished, or was stopped. */
-export async function playBytes(bytes: ArrayBuffer): Promise<void> {
+/**
+ * Plays MP3 bytes to the end, at `rate` — 1 unless somebody is skimming.
+ * Resolves when it has finished, or was stopped.
+ */
+export async function playBytes(bytes: ArrayBuffer, rate = 1): Promise<void> {
   const c = context();
   void c.resume();
   const buffer = await c.decodeAudioData(bytes);
@@ -213,6 +216,7 @@ export async function playBytes(bytes: ArrayBuffer): Promise<void> {
     playing?.stop();
     const src = c.createBufferSource();
     src.buffer = buffer;
+    src.playbackRate.value = rate;
     src.connect(output());
     src.onended = () => {
       if (playing === src) playing = null;

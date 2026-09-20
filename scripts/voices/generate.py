@@ -22,6 +22,7 @@ The setup, once:
     .cache/tts-venv/bin/pip install "kokoro>=0.9.4" "misaki[zh]>=0.9.4" mlx-audio soundfile lameenc numpy
 """
 
+import hashlib
 import json
 import os
 import sys
@@ -106,6 +107,32 @@ BASE = "mlx-community/Qwen3-TTS-12Hz-0.6B-Base-8bit"
 DESIGN_DIR = os.path.join(os.path.dirname(__file__), "design")
 
 
+def transcript(name: str, wav: str) -> str:
+    """
+    What that reference says, checked against what design.py kept.
+
+    The model lines the reference audio up against its transcript to work out
+    how the speaker sounds; a transcript from a different recording makes that
+    alignment nonsense and every clip drifts. Two files that both exist and
+    disagree look fine from the outside, so the pair is verified here and the
+    build stops rather than voicing three hundred sentences from a broken one.
+    """
+    with open(os.path.join(DESIGN_DIR, f"{name}.txt"), encoding="utf-8") as f:
+        text = f.read().strip()
+    manifest = os.path.join(DESIGN_DIR, "references.json")
+    if os.path.exists(manifest):
+        with open(manifest, encoding="utf-8") as f:
+            known = json.load(f).get(name)
+        if known:
+            digest = hashlib.sha256(open(wav, "rb").read()).hexdigest()
+            if digest != known["sha256"] or text != known["text"]:
+                raise SystemExit(
+                    f"{name}: the reference recording and its transcript do not match what design.py kept."
+                    " Design it again (design.py <voice> <variant> --keep <n>) rather than copying files by hand."
+                )
+    return text
+
+
 def clone_engine():
     """Every clip in a designed voice, cloned from that voice's one reference (design.py)."""
     from mlx_audio.tts.utils import load_model
@@ -114,7 +141,7 @@ def clone_engine():
 
     def say(job):
         ref = os.path.join(DESIGN_DIR, f"{job['voice']}.wav")
-        ref_text = open(os.path.join(DESIGN_DIR, f"{job['voice']}.txt"), encoding="utf-8").read().strip()
+        ref_text = transcript(job["voice"], ref)
         for temperature in (0.3, 0.6, 0.8):
             chunks, rate = [], 24000
             for r in model.generate(

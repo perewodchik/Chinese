@@ -4,6 +4,7 @@ import type {
   PasswordHasher,
   SessionRepository,
   SpeechSynthesizer,
+  TalkSynthesizer,
   Tutor,
   UserRepository,
   WorkspaceRepository,
@@ -22,7 +23,7 @@ export interface Services {
   /** Claude to talk Mandarin with, where the server can reach it through a subscription */
   tutor: Tutor | null;
   /** voices that can read any sentence — for Claude's answers — where the models are on this machine */
-  talkVoices: SpeechSynthesizer | null;
+  talkVoices: TalkSynthesizer | null;
 }
 
 /** Where the three kinds of record are kept. */
@@ -48,7 +49,7 @@ export function createServices(
     clock?: Clock;
     speech?: SpeechSynthesizer | null;
     tutor?: Tutor | null;
-    talkVoices?: SpeechSynthesizer | null;
+    talkVoices?: TalkSynthesizer | null;
   } = {},
 ): Services {
   const clock = options.clock ?? systemClock;

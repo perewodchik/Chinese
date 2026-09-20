@@ -603,7 +603,22 @@ and offline.
   is the teacher — slow, each word said through — and everything the
   pronunciation section plays is cloned from it. `chen.talk.wav` is the same
   person in a conversation. `design.py chen teach` and `design.py chen talk`
-  make them from the one description; the pace is the only thing that differs.
+  make them from the one description; the pace is the only thing that differs,
+  and `--keep <n>` files the chosen candidate.
+- **A reference is a recording *and* what it says**, and the two are kept
+  together by the script that makes them, never copied by hand. The model is
+  given both and lines them up to work out how this speaker sounds; hand it a
+  transcript from a different recording and the alignment is nonsense — the
+  voice drifts, invents syllables, and reads pieces of the transcript instead
+  of the sentence it was asked for. That is exactly what happened here.
+  `chen.wav` was designed again in September, `chen.txt` was left behind, and
+  from then until now every clip in the pack and every slow reading was cloned
+  from a recording the model had been told said something else. It is
+  invisible from the outside: two files that both exist, one of them wrong.
+  So `references.json` records what each recording is — the hash of the file
+  and the words — and both the build and the live voice refuse a reference
+  that no longer matches rather than reading three hundred sentences from a
+  broken one.
 - **Every clip is measured before it is kept.** A generated voice does not
   read at a steady speed: asked for the same sixteen characters twice it will
   spend twelve seconds on one and seven tenths of a second on the other, and
@@ -674,14 +689,28 @@ the same turn, so none of it is a second wait:
   hear or drop into the box to say yourself.
 - **Explain**: a line of English about one thing in Claude's turn — a word, a
   pattern, the word order.
-- **Pace**: *normal*, or *slowly* for as long as you leave it there. Slowly is
-  not the same reading played slower — a stretched recording keeps every
-  run-together and swallowed ending and adds a drone. It is a different
-  reading: the voice is cloned from the teacher's reference instead of the
-  talking one, so it is the same person saying it again more carefully, each
-  word through and every tone landing, which is what you would ask a person
-  for. The system voice has no second reading to give, so there it really is
-  only slower.
+- **Mode**, which is how you are talked to rather than how fast the recording
+  is played:
+
+  | Mode | | What it is for |
+  | --- | --- | --- |
+  | **Breakdown** | very slow | One character at a time, for hearing exactly how a word is put together |
+  | **Teaching** | slow | Clear and measured, the way it would be demonstrated to you |
+  | **Talking** | normal | The pace somebody would answer you at |
+  | **Skim** | fast | A turn you already follow |
+
+  Three of those are a different *reading*, not a speed knob. The voice keeps
+  two recordings of itself — one teaching, one talking — and each clip is
+  cloned from whichever fits, which is what carries the pace and the manner.
+  Breakdown goes further: the sentence is handed to the model a character at a
+  time, with the pauses written into the text, so each one is articulated
+  instead of run together. A recording played at three quarters speed is none
+  of that; it is the same rushed reading, dragged, with every swallowed ending
+  still swallowed. Skim is the exception and is honest about it — there is no
+  fourth recording of somebody talking faster, and playing it faster is what
+  skimming is. Any turn can be taken apart on its own with **break it down**,
+  without leaving the mode you are in. The system voice has only the one
+  reading, so there the mode really is only a speed.
 
 An option that is off is left out of the request altogether, because every
 extra field is more for Claude to write before the voice can start.
@@ -758,7 +787,7 @@ shapes from three waves that do not divide into each other, so it never falls
 into a visible loop. Faces in the thread above the one being spoken hold still,
 because twenty breathing portraits is movement nobody asked for; under
 `prefers-reduced-motion` nothing moves at all and a speaking face simply holds
-its mouth open. The **Faces** switch turns the whole lot off.
+its mouth open.
 
 ## Reading passages
 

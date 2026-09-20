@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import {
+  DEFAULT_MODE,
   DEFAULT_OPTIONS,
   parseReply,
   relayOpening,
@@ -9,6 +10,7 @@ import {
   type ClaudeState,
   type TalkLength,
   type TalkLevel,
+  type TalkMode,
   type TalkLine,
   type TalkOptions,
   type TalkReply,
@@ -43,31 +45,28 @@ interface Prefs extends TalkOptions {
   voice: string | null;
   pinyin: boolean;
   english: boolean;
-  /** whether the voices are shown as faces */
-  faces: boolean;
-  /** how fast the voice reads a turn */
-  pace: TalkPace;
+  /** how the voice reads a turn */
+  mode: TalkMode;
 }
 
 /**
- * How fast to be talked to.
+ * The four ways of being talked to.
  *
- * Not a playback speed. A voice slowed down by playing it slower is the same
- * reading stretched: the same running-together, the same swallowed endings,
- * now droning. Slow here is a different reading — the model is asked for the
- * teacher, and a designed voice is cloned from the reference where that
- * person is demonstrating rather than chatting. It is somebody saying it
- * again, more carefully, which is what you would ask a person for.
+ * Three of them are a different reading rather than a different speed: the
+ * voice is cloned from the recording of itself that is teaching or the one
+ * that is talking, and breakdown hands the sentence over a character at a
+ * time so each one is articulated instead of run together. Skimming is the
+ * one that really is the recording played faster, which is what skimming is.
  */
-type TalkPace = 'normal' | 'slow';
-
-const PACES: ReadonlyArray<{ id: TalkPace; label: string; title: string }> = [
-  { id: 'normal', label: 'Normal', title: 'Said the way it would be said to you' },
-  { id: 'slow', label: 'Slowly', title: 'Said again the way a teacher says it: each word through, every tone landing' },
+const MODES: ReadonlyArray<{ id: TalkMode; label: string; title: string }> = [
+  { id: 'breakdown', label: 'Breakdown', title: 'Very slow — a character at a time, for hearing exactly how a word is put together' },
+  { id: 'teaching', label: 'Teaching', title: 'Slow — clear and measured, the way it would be demonstrated to you' },
+  { id: 'conversation', label: 'Talking', title: 'Normal — the pace somebody would answer you at' },
+  { id: 'skim', label: 'Skim', title: 'Fast — for a turn you already follow' },
 ];
 
 const PREFS_KEY = 'hanzi.talk.v1';
-const FALLBACK: Prefs = { ...DEFAULT_OPTIONS, voice: null, pinyin: true, english: false, faces: true, pace: 'normal' };
+const FALLBACK: Prefs = { ...DEFAULT_OPTIONS, voice: null, pinyin: true, english: false, mode: DEFAULT_MODE };
 
 function readPrefs(): Prefs {
   try {
@@ -241,7 +240,7 @@ export function TalkPage() {
 
   /** Says something in the chosen voice, stopping whatever was being said. `mark` lights up a turn while it speaks. */
   const say = useCallback(
-    async (text: string, opts: { slow?: boolean; mark?: number } = {}) => {
+    async (text: string, opts: { mode?: TalkMode; mark?: number } = {}) => {
       voiceStop.current?.abort();
       const stop = new AbortController();
       voiceStop.current = stop;
@@ -250,7 +249,7 @@ export function TalkPage() {
       setWaitingForVoice(true);
       try {
         await sayTurn(text, voice === SYSTEM ? null : voice, {
-          slow: opts.slow,
+          mode: opts.mode ?? prefs.mode,
           signal: stop.signal,
           onStart: () => voiceStop.current === stop && setWaitingForVoice(false),
         });
@@ -262,7 +261,7 @@ export function TalkPage() {
         }
       }
     },
-    [voice],
+    [voice, prefs.mode],
   );
 
   const add = (who: Turn['who'], reply: TalkReply): Turn => {
@@ -281,7 +280,7 @@ export function TalkPage() {
     try {
       const reply = await talkReply(lines(turnsRef.current), optionsOf(prefs));
       const turn = add('tutor', reply);
-      void say(turn.hanzi, { mark: turn.id, slow: prefs.pace === 'slow' });
+      void say(turn.hanzi, { mark: turn.id });
     } catch (e) {
       setError((e as Error).message);
       // Signed out in the meantime, perhaps: the page switches to the chat route if so.
@@ -445,45 +444,29 @@ export function TalkPage() {
       {status && !direct && <p className="notice talk-notice">{RELAY_NOTE[status.claude.state as Exclude<ClaudeState, 'ready'>]}</p>}
 
       <div className="opt-panel">
-        <div className={`opt-row${prefs.faces ? ' wide' : ''}`}>
+        <div className="opt-row wide">
           <span className="tiny muted">Voice</span>
-          {prefs.faces ? (
-            <div className="voice-faces">
-              {choices.map((c) => (
-                <button
-                  key={c.id}
-                  className="voice-face"
-                  aria-pressed={voice === c.id}
-                  title={c.id === SYSTEM ? 'The voice built into this device' : `Talk with ${c.name}`}
-                  onClick={() => setPrefs({ voice: c.id })}
-                >
-                  <Portrait
-                    voice={c.id}
-                    gender={c.gender}
-                    mood={voice === c.id ? mood : 'idle'}
-                    still={voice !== c.id}
-                  />
-                  <span className="voice-face-name">
-                    {c.name}
-                    {c.gender && <span className="count">{c.gender === 'female' ? '♀' : '♂'}</span>}
-                  </span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="chips">
-              {choices.map((c) => (
-                <button key={c.id} className="chip" aria-pressed={voice === c.id} onClick={() => setPrefs({ voice: c.id })}>
+          <div className="voice-faces">
+            {choices.map((c) => (
+              <button
+                key={c.id}
+                className="voice-face"
+                aria-pressed={voice === c.id}
+                title={c.id === SYSTEM ? 'The voice built into this device' : `Talk with ${c.name}`}
+                onClick={() => setPrefs({ voice: c.id })}
+              >
+                <Portrait voice={c.id} gender={c.gender} mood={voice === c.id ? mood : 'idle'} still={voice !== c.id} />
+                <span className="voice-face-name">
                   {c.name}
                   {c.gender && <span className="count">{c.gender === 'female' ? '♀' : '♂'}</span>}
-                </button>
-              ))}
-            </div>
-          )}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
         <div className="opt-row">
-          <span className="tiny muted">Pace</span>
-          <Seg value={prefs.pace} options={PACES} onChange={(pace) => setPrefs({ pace })} size="sm" label="How fast you are talked to" />
+          <span className="tiny muted">Mode</span>
+          <Seg value={prefs.mode} options={MODES} onChange={(mode) => setPrefs({ mode })} size="sm" label="How you are talked to" />
         </div>
         <div className="opt-row">
           <span className="tiny muted">Show</span>
@@ -493,14 +476,6 @@ export function TalkPage() {
             </button>
             <button className="chip" aria-pressed={prefs.english} onClick={() => setPrefs({ english: !prefs.english })}>
               English
-            </button>
-            <button
-              className="chip"
-              aria-pressed={prefs.faces}
-              title="A face for the voice you are talking to"
-              onClick={() => setPrefs({ faces: !prefs.faces })}
-            >
-              Faces
             </button>
           </div>
         </div>
@@ -542,14 +517,10 @@ export function TalkPage() {
         {turns.length === 0 && !thinking && (
           <div className="talk-start">
             <div className="empty talk-empty">
-              {prefs.faces ? (
-                <div className="talk-face-start">
-                  <Portrait voice={voice} gender={partner?.gender} mood={mood} size="lg" />
-                  <span className="talk-face-name">{voiceName}</span>
-                </div>
-              ) : (
-                <span className="big">聊</span>
-              )}
+              <div className="talk-face-start">
+                <Portrait voice={voice} gender={partner?.gender} mood={mood} size="lg" />
+                <span className="talk-face-name">{voiceName}</span>
+              </div>
               <p>
                 Claude opens with a question, {voiceName === 'The system voice' ? 'the system voice' : voiceName} reads
                 it out, and you answer out loud — a few words is plenty, and nobody minds a mistake.
@@ -573,21 +544,20 @@ export function TalkPage() {
             key={t.id}
             turn={t}
             english={prefs.english}
-            faces={prefs.faces}
             voice={voice}
             gender={partner?.gender}
             speaking={speaking === t.id && !waitingForVoice}
-            pace={prefs.pace}
-            onSay={(text, slow) => {
+            mode={prefs.mode}
+            onSay={(text, mode) => {
               unlockAudio();
-              void say(text, { slow, mark: text === t.hanzi ? t.id : undefined });
+              void say(text, { mode, mark: text === t.hanzi ? t.id : undefined });
             }}
           />
         ))}
 
         {thinking && (
           <div className="talk-turn" data-who="tutor">
-            {prefs.faces && <Portrait voice={voice} gender={partner?.gender} mood="thinking" size="sm" />}
+            <Portrait voice={voice} gender={partner?.gender} mood="thinking" size="sm" />
             <div className="talk-said">
               <div className="talk-bubble talk-pending tiny muted">Claude is writing…</div>
             </div>
@@ -595,7 +565,7 @@ export function TalkPage() {
         )}
         {listening && (
           <div className="talk-turn" data-who="learner">
-            {prefs.faces && <SelfMark />}
+            <SelfMark />
             <div className="talk-said">
               <div className="talk-bubble talk-live hanzi" lang="zh-CN">
                 {heard || '…'}
@@ -605,7 +575,7 @@ export function TalkPage() {
         )}
         {waiting && (
           <div className="talk-turn" data-who="learner">
-            {prefs.faces && <SelfMark />}
+            <SelfMark />
             <div className="talk-said">
               <div className="talk-bubble talk-draft">
                 <HanziLine {...learnerLine(draft)} />
@@ -664,7 +634,7 @@ export function TalkPage() {
                   title="Hear it"
                   onClick={() => {
                     unlockAudio();
-                    void say(h.hanzi, { slow: prefs.pace === 'slow' });
+                    void say(h.hanzi);
                   }}
                 >
                   <span aria-hidden>🔊</span>
@@ -677,7 +647,7 @@ export function TalkPage() {
         {/* Before the first turn the big face on the empty page is doing this
             job, and a second one here with nothing to say under it is one
             face too many. */}
-        {prefs.faces && turns.length > 0 ? (
+        {turns.length > 0 ? (
           <div className="talk-partner">
             <Portrait voice={voice} gender={partner?.gender} mood={mood} />
             <p className="tiny muted talk-state" aria-live="polite">
@@ -695,7 +665,7 @@ export function TalkPage() {
             disabled={!lastTutor}
             onClick={() => {
               unlockAudio();
-              if (lastTutor) void say(lastTutor.hanzi, { mark: lastTutor.id, slow: prefs.pace === 'slow' });
+              if (lastTutor) void say(lastTutor.hanzi, { mark: lastTutor.id });
             }}
           >
             <span aria-hidden>🔊</span> Again
@@ -838,37 +808,27 @@ function HanziLine({ hanzi, pinyin }: { hanzi: string; pinyin: string }) {
 function TurnView({
   turn,
   english,
-  faces,
   voice,
   gender,
   speaking,
-  pace,
+  mode,
   onSay,
 }: {
   turn: Turn;
   english: boolean;
-  faces: boolean;
   voice: string;
   gender?: 'female' | 'male';
   speaking: boolean;
-  pace: TalkPace;
-  onSay: (text: string, slow: boolean) => void;
+  mode: TalkMode;
+  onSay: (text: string, mode?: TalkMode) => void;
 }) {
-  const slow = pace === 'slow';
   return (
     <div className="talk-turn" data-who={turn.who}>
-      {faces &&
-        (turn.who === 'tutor' ? (
-          <Portrait
-            voice={voice}
-            gender={gender}
-            mood={speaking ? 'speaking' : 'idle'}
-            size="sm"
-            still={!speaking}
-          />
-        ) : (
-          <SelfMark />
-        ))}
+      {turn.who === 'tutor' ? (
+        <Portrait voice={voice} gender={gender} mood={speaking ? 'speaking' : 'idle'} size="sm" still={!speaking} />
+      ) : (
+        <SelfMark />
+      )}
       <div className="talk-said">
         <div className="talk-bubble" data-speaking={speaking || undefined}>
           <HanziLine hanzi={turn.hanzi} pinyin={turn.pinyin} />
@@ -878,19 +838,19 @@ function TurnView({
         {turn.words && turn.words.length > 0 && (
           <div className="talk-words">
             {turn.words.map((w, i) => (
-              <WordChip key={i} word={w} onSay={() => onSay(w.hanzi, slow)} />
+              <WordChip key={i} word={w} onSay={() => onSay(w.hanzi)} />
             ))}
           </div>
         )}
         {turn.who === 'tutor' && (
           <div className="talk-actions">
-            <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, slow)}>
+            <button className="btn ghost sm" onClick={() => onSay(turn.hanzi)}>
               <span aria-hidden>🔊</span> Again
             </button>
-            {/* Already the slow reading: asking for it again would be the same clip. */}
-            {!slow && (
-              <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, true)}>
-                Slowly
+            {/* One turn taken apart, without leaving the mode you are in. */}
+            {mode !== 'breakdown' && (
+              <button className="btn ghost sm" onClick={() => onSay(turn.hanzi, 'breakdown')} title="A character at a time">
+                Break it down
               </button>
             )}
           </div>

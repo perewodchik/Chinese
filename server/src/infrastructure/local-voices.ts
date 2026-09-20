@@ -1,7 +1,7 @@
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { SpeechSynthesizer, VoiceInfo } from '../application/ports';
+import type { TalkSynthesizer, VoiceInfo } from '../application/ports';
 
 /**
  * The voice pack's voices, reading anything at all — for the conversation,
@@ -105,14 +105,14 @@ export function localVoices(opts: { python: string; script: string; voices: Voic
       start().stdin.write(`${JSON.stringify({ ...req, id })}\n`);
     });
 
-  const synthesizer: SpeechSynthesizer & { close(): void } = {
+  const synthesizer: TalkSynthesizer & { close(): void } = {
     voices: opts.voices,
 
-    async synthesize(text, voice, slow) {
-      const key = `${voice}|${slow ? 1 : 0}|${text}`;
+    async synthesize(text, voice, mode) {
+      const key = `${voice}|${mode}|${text}`;
       const hit = cache.get(key);
       if (hit) return hit;
-      const answer = await ask({ text, voice, slow });
+      const answer = await ask({ text, voice, mode });
       if (!answer.mp3) throw new Error(answer.error ?? 'no audio');
       const bytes = new Uint8Array(Buffer.from(answer.mp3, 'base64'));
       cache.set(key, bytes);

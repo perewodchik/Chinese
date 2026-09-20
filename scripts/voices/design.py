@@ -2,16 +2,28 @@
 A voice made from a description, rather than copied from anyone.
 
     .cache/tts-venv/bin/python scripts/voices/design.py <voice-id> [talk|teach]
+    .cache/tts-venv/bin/python scripts/voices/design.py <voice-id> [talk|teach] --keep 2
 
 Reads the voice's description from scripts/voices/voices.json and has
 Qwen3-TTS VoiceDesign (Apache-2.0) invent a speaker to match it, reading a
 short reference passage. Several candidates are made, one per temperature, in
-`.cache/voices/design/`. Listen to them, pick the one that sounds like the
-person, and copy it and its `.txt` into scripts/voices/design/ under the name
-the script prints. Every clip in that voice is then cloned from it
+`.cache/voices/design/`. Listen to them and keep the one that sounds like the
+person with `--keep <n>`. Every clip in that voice is then cloned from it
 (generate.py, engine "clone"), which is what keeps one voice sounding like one
 person — designing each clip afresh would give a slightly different speaker
 every time.
+
+**The recording and its transcript are kept together, by this script**, and
+never copied by hand. Cloning is conditioned on both: the model is told what
+the reference says, and lines it up against what the reference sounds like.
+Hand them a transcript from a different recording and the alignment is
+nonsense — the voice drifts, invents syllables, and reads pieces of the
+transcript it was given instead of the sentence it was asked for. That is
+precisely what happened here: `chen.wav` was designed again, `chen.txt` was
+left behind, and for two months every clip in the pack and every slow reading
+was cloned from a recording the model had been told said something else.
+`references.json` records what each recording says, and both the build and the
+live voice refuse a reference whose file no longer matches it.
 
 **A voice needs both references.** Cloning copies the pace and the manner as
 much as the timbre, so one recording cannot serve both jobs: a conversation
@@ -29,8 +41,10 @@ It describes a kind of voice. It does not imitate a real person's: a voice
 actor's voice is theirs, and a game's recordings are not ours to clone.
 """
 
+import hashlib
 import json
 import os
+import shutil
 import sys
 import warnings
 
@@ -97,7 +111,27 @@ def breaths(audio: np.ndarray, rate: int) -> int:
     return runs + (length >= 10)
 
 
-def main(voice_id: str, variant: str = "teach") -> None:
+def keep(name: str, candidate: int, out_dir: str, design_dir: str, text: str) -> None:
+    """
+    Puts the chosen candidate where the pack and the conversation look for it,
+    with its transcript and a note of what it says — all three in one step,
+    because the failure this prevents is a pair that drifts apart.
+    """
+    src = os.path.join(out_dir, f"{name}-{candidate}.wav")
+    wav = os.path.join(design_dir, f"{name}.wav")
+    shutil.copyfile(src, wav)
+    with open(os.path.join(design_dir, f"{name}.txt"), "w", encoding="utf-8") as f:
+        f.write(text)
+    manifest = os.path.join(design_dir, "references.json")
+    known = json.load(open(manifest, encoding="utf-8")) if os.path.exists(manifest) else {}
+    known[name] = {"sha256": hashlib.sha256(open(wav, "rb").read()).hexdigest(), "text": text}
+    with open(manifest, "w", encoding="utf-8") as f:
+        json.dump(known, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print(f"  kept {src}\n  → {wav}, its transcript, and its line in references.json")
+
+
+def main(voice_id: str, variant: str = "teach", keeping: int | None = None) -> None:
     spec_file = os.path.join(ROOT, "scripts", "voices", "voices.json")
     voices = json.load(open(spec_file, encoding="utf-8"))
     spec = next(v for v in voices if v["id"] == voice_id)
@@ -131,12 +165,16 @@ def main(voice_id: str, variant: str = "teach") -> None:
         )
     with open(os.path.join(out_dir, f"{name}.txt"), "w", encoding="utf-8") as f:
         f.write(how["text"])
+    if keeping:
+        keep(name, keeping, out_dir, os.path.join(ROOT, "scripts", "voices", "design"), how["text"])
+        return
     print("\n  Listen, then keep the one that sounds like the person:")
-    print(f"    cp .cache/voices/design/{name}-2.wav scripts/voices/design/{name}.wav")
-    print(f"    cp .cache/voices/design/{name}.txt  scripts/voices/design/{name}.txt")
+    print(f"    design.py {voice_id} {variant} --keep 2")
     print("  The two numbers to go on: the pace, which every clip will be read at,")
     print("  and the breaths, which every clip will take with it.")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else "teach")
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    chosen = int(sys.argv[sys.argv.index("--keep") + 1]) if "--keep" in sys.argv else None
+    main(args[0], args[1] if len(args) > 1 else "teach", chosen)

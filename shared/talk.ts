@@ -23,6 +23,26 @@ export const TALK_LEVELS: readonly TalkLevel[] = ['hsk1', 'hsk2', 'hsk3'];
 export type TalkLength = 'short' | 'normal' | 'long';
 export const TALK_LENGTHS: readonly TalkLength[] = ['short', 'normal', 'long'];
 
+/**
+ * How the voice reads a turn: four ways of being talked to, not four
+ * playback speeds.
+ *
+ * Three of them are a different *reading*. A designed voice keeps two
+ * recordings of itself — one teaching, one talking — and every clip is cloned
+ * from one of them, which is what carries the pace and the manner. Breakdown
+ * goes further and asks for the sentence a character at a time, with the
+ * pauses in the text itself, so the model articulates each one rather than
+ * running them together. A recording played at three quarters speed is none
+ * of that: it is the same rushed reading, dragged, with every swallowed
+ * ending still swallowed.
+ *
+ * Skim is the exception and is honest about it: there is no fourth recording
+ * of somebody talking faster, and skimming is what playing it faster is for.
+ */
+export type TalkMode = 'breakdown' | 'teaching' | 'conversation' | 'skim';
+export const TALK_MODES: readonly TalkMode[] = ['breakdown', 'teaching', 'conversation', 'skim'];
+export const DEFAULT_MODE: TalkMode = 'conversation';
+
 /** One turn so far, as text. The learner's are what speech recognition wrote down. */
 export interface TalkLine {
   who: 'tutor' | 'learner';

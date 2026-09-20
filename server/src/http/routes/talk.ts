@@ -5,7 +5,9 @@ import {
   TALK_LEVELS,
   TALK_LINE_MAX_CHARS,
   TALK_MAX_LINES,
+  TALK_MODES,
   TALK_TOPIC_MAX_CHARS,
+  type TalkMode,
   type TalkOptions,
   type TalkReply,
   type TalkStatusResponse,
@@ -38,7 +40,7 @@ const replyRequest = z.object({
  *
  *   GET  /api/talk?voice=chen     whether Claude can be asked from here, and the voices that can read its answers
  *   POST /api/talk/reply          { lines, options } → Claude's next turn
- *   GET  /api/talk/audio?text&voice&slow=1   an MP3 of one sentence, in a local voice
+ *   GET  /api/talk/audio?text&voice&mode=teaching   an MP3 of one turn, in a local voice
  *
  * The status call also gets the chosen voice's model loading, so that the
  * several seconds it takes are spent while the learner is still reading the
@@ -75,7 +77,8 @@ export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices }: Route
     if (!talkVoices) throw new AppError('not_found', 'No local voice is set up on this server.');
     const text = (c.req.query('text') ?? '').trim();
     const voice = c.req.query('voice') ?? talkVoices.voices[0]!.id;
-    const slow = c.req.query('slow') === '1';
+    const asked = c.req.query('mode');
+    const mode = (TALK_MODES as readonly string[]).includes(asked ?? '') ? (asked as TalkMode) : 'conversation';
     if (!text) throw new ValidationError('Nothing to say.');
     if ([...text].length > SPEECH_MAX_CHARS) throw new ValidationError(`At most ${SPEECH_MAX_CHARS} characters at a time.`);
     if (!talkVoices.voices.some((v) => v.id === voice)) throw new ValidationError(`There is no voice called ${voice}.`);
@@ -83,7 +86,7 @@ export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices }: Route
     clips.consume(c.get('session').user.id);
     let audio: Uint8Array;
     try {
-      audio = await talkVoices.synthesize(text, voice, slow);
+      audio = await talkVoices.synthesize(text, voice, mode);
     } catch {
       throw new AppError('unavailable', 'The voice did not answer. The system voice will have to do for now.');
     }

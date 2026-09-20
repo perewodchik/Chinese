@@ -13,7 +13,7 @@ import {
   type TalkOptions,
   type TalkRequest,
 } from '../../shared/talk';
-import type { SpeechSynthesizer, Tutor } from '../src/application/ports';
+import type { TalkSynthesizer, Tutor } from '../src/application/ports';
 import { createServices } from '../src/composition';
 import { TutorUnavailableError } from '../src/domain/errors';
 import { createHttpApp } from '../src/http/app';
@@ -51,17 +51,19 @@ function stubTutor(state: Awaited<ReturnType<Tutor['status']>> = 'ready') {
 
 function stubVoices() {
   const warmed: Array<string | undefined> = [];
-  const voices: SpeechSynthesizer = {
+  const asked: Array<{ text: string; voice: string; mode: string }> = [];
+  const voices: TalkSynthesizer = {
     voices: [{ id: 'chen', name: 'Chen', gender: 'male' }],
-    async synthesize(text, voice) {
-      return new TextEncoder().encode(`mp3:${voice}:${text}`);
+    async synthesize(text, voice, mode) {
+      asked.push({ text, voice, mode });
+      return new TextEncoder().encode(`mp3:${voice}:${mode}:${text}`);
     },
     warm: (v) => warmed.push(v),
   };
-  return { voices, warmed };
+  return { voices, warmed, asked };
 }
 
-function appWith(tutor: Tutor | null, talkVoices: SpeechSynthesizer | null = null) {
+function appWith(tutor: Tutor | null, talkVoices: TalkSynthesizer | null = null) {
   const services = createServices(sqliteStores(openDatabase(':memory:')), {
     hasher: cheapHasher,
     clock: new TestClock(),
@@ -146,9 +148,25 @@ describe('talking with Claude over HTTP', () => {
     const res = await call(app, 'GET', `/api/talk/audio?text=${encodeURIComponent('你好')}&voice=chen`, { cookie });
     assert.equal(res.status, 200);
     assert.equal(res.headers.get('content-type'), 'audio/mpeg');
-    assert.equal(new TextDecoder().decode(await res.arrayBuffer()), 'mp3:chen:你好');
+    assert.equal(new TextDecoder().decode(await res.arrayBuffer()), 'mp3:chen:conversation:你好');
     assert.equal((await call(app, 'GET', '/api/talk/audio?text=x&voice=siri', { cookie })).status, 400);
     assert.equal((await call(appWith(null), 'GET', '/api/talk/audio?text=x', { cookie })).status, 401);
+  });
+
+  it('reads it the way the mode asks, and ignores a mode it does not know', async () => {
+    const stub = stubVoices();
+    const app = appWith(null, stub.voices);
+    const cookie = await signedIn(app);
+    const say = (mode: string) =>
+      call(app, 'GET', `/api/talk/audio?text=${encodeURIComponent('你好')}&voice=chen&mode=${mode}`, { cookie });
+    for (const mode of ['breakdown', 'teaching', 'conversation', 'skim']) assert.equal((await say(mode)).status, 200);
+    assert.deepEqual(
+      stub.asked.map((a) => a.mode),
+      ['breakdown', 'teaching', 'conversation', 'skim'],
+    );
+    // Anything else is somebody's stale link, not a fifth way of reading.
+    await say('screaming');
+    assert.equal(stub.asked.at(-1)!.mode, 'conversation');
   });
 });
 

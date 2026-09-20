@@ -1,4 +1,4 @@
-import type { ClaudeState, TalkReply, TalkRequest } from '../../../shared/talk';
+import type { ClaudeState, TalkMode, TalkReply, TalkRequest } from '../../../shared/talk';
 import type { Session, User, Workspace } from '../domain/entities';
 
 /**
@@ -79,6 +79,19 @@ export interface SpeechSynthesizer {
   readonly voices: VoiceInfo[];
   /** MP3 bytes. `slow` reads at about three quarters of normal speed. */
   synthesize(text: string, voice: string, slow: boolean): Promise<Uint8Array>;
+  /** Gets one voice ready to be asked, when getting ready is slow: a model to load. Optional. */
+  warm?(voice?: string): void;
+}
+
+/**
+ * The voices that read a conversation, which is a different job from reading
+ * a word: a mode rather than a slow flag, because slow here is a different
+ * reading and not the same one dragged out.
+ */
+export interface TalkSynthesizer {
+  readonly voices: VoiceInfo[];
+  /** MP3 bytes, read the way `mode` asks for. */
+  synthesize(text: string, voice: string, mode: TalkMode): Promise<Uint8Array>;
   /** Gets one voice ready to be asked, when getting ready is slow: a model to load. Optional. */
   warm?(voice?: string): void;
 }
