@@ -191,9 +191,17 @@ export function TalkPage() {
     };
   }, []);
 
+  // The foot of the thread is kept clear of the microphone over it — `end`,
+  // not `nearest`: with a scroll margin as tall as the composer, `nearest`
+  // decides the mark is already as near as it can get and never moves, which
+  // is how the last thing said came to sit underneath the microphone.
+  // `draft` is in the list because what was just said, with its "say it
+  // again" and "delete", is the last thing in the thread while it waits.
+  const started = turns.length > 0 || !!draft || thinking;
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, [turns.length, thinking, heard, status, showHints]);
+    if (!started) return;
+    endRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  }, [started, turns.length, thinking, heard, draft, status, showHints]);
 
   // The microphone sits over the foot of the thread, and how much of it it
   // covers changes with a notice or the hints: the last turn is scrolled
@@ -203,7 +211,10 @@ export function TalkPage() {
     const page = pageRef.current;
     if (!composer || !page || typeof ResizeObserver === 'undefined') return;
     const watch = new ResizeObserver(([entry]) => {
-      page.style.setProperty('--composer-height', `${Math.round(entry!.contentRect.height)}px`);
+      // The border box, not the content box: the padding that holds it off the
+      // bottom edge of the screen is part of what covers the thread.
+      const height = entry!.borderBoxSize?.[0]?.blockSize ?? entry!.target.getBoundingClientRect().height;
+      page.style.setProperty('--composer-height', `${Math.round(height)}px`);
     });
     watch.observe(composer);
     return () => watch.disconnect();
@@ -415,7 +426,7 @@ export function TalkPage() {
       {status && !direct && <p className="notice talk-notice">{RELAY_NOTE[status.claude.state as Exclude<ClaudeState, 'ready'>]}</p>}
 
       <div className="talk-options">
-        <div className="voice-picker">
+        <div className="talk-option">
           <span className="tiny muted">Voice</span>
           {prefs.faces ? (
             <div className="voice-faces">
@@ -450,7 +461,9 @@ export function TalkPage() {
               ))}
             </div>
           )}
-          <span className="tiny muted talk-show">Show</span>
+        </div>
+        <div className="talk-option">
+          <span className="tiny muted">Show</span>
           <div className="chips">
             <button className="chip" aria-pressed={prefs.pinyin} onClick={() => setPrefs({ pinyin: !prefs.pinyin })}>
               Pinyin
@@ -468,34 +481,36 @@ export function TalkPage() {
             </button>
           </div>
         </div>
-        <div className="voice-picker">
+        <div className="talk-option">
           <span className="tiny muted">Answers</span>
-          <Seg value={prefs.length} options={LENGTHS} onChange={(length) => setPrefs({ length })} size="sm" label="How long Claude's turns are" />
-          <div className="chips">
-            <button
-              className="chip"
-              aria-pressed={prefs.words}
-              title="The words in Claude's turn that are probably new to you"
-              onClick={() => setPrefs({ words: !prefs.words })}
-            >
-              New words
-            </button>
-            <button
-              className="chip"
-              aria-pressed={prefs.hints}
-              title="Two or three things you could say back, for when you are stuck"
-              onClick={() => setPrefs({ hints: !prefs.hints })}
-            >
-              Hints
-            </button>
-            <button
-              className="chip"
-              aria-pressed={prefs.explain}
-              title="A line of English about the grammar in each of Claude's turns"
-              onClick={() => setPrefs({ explain: !prefs.explain })}
-            >
-              Explain
-            </button>
+          <div className="talk-option-set">
+            <Seg value={prefs.length} options={LENGTHS} onChange={(length) => setPrefs({ length })} size="sm" label="How long Claude's turns are" />
+            <div className="chips">
+              <button
+                className="chip"
+                aria-pressed={prefs.words}
+                title="The words in Claude's turn that are probably new to you"
+                onClick={() => setPrefs({ words: !prefs.words })}
+              >
+                New words
+              </button>
+              <button
+                className="chip"
+                aria-pressed={prefs.hints}
+                title="Two or three things you could say back, for when you are stuck"
+                onClick={() => setPrefs({ hints: !prefs.hints })}
+              >
+                Hints
+              </button>
+              <button
+                className="chip"
+                aria-pressed={prefs.explain}
+                title="A line of English about the grammar in each of Claude's turns"
+                onClick={() => setPrefs({ explain: !prefs.explain })}
+              >
+                Explain
+              </button>
+            </div>
           </div>
         </div>
       </div>
