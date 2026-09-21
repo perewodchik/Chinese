@@ -20,7 +20,6 @@ export interface AppSettings {
   /** how many of those characters share a practice page */
   practicePerPage: number;
   /** what a new writing session assumes you can read, and how much of it */
-  basisSource: string;
   basisCount: number;
   /** what to call whoever wrote the passage, stamped on the text */
   modelName: string;
@@ -29,6 +28,17 @@ export interface AppSettings {
    * each syllable as understood or not
    */
   pitchChart: boolean;
+  /**
+   * How slowly the Guided button under a turn reads it back, as a fraction of
+   * the speed it was said at. The time is stretched and the pitch left alone,
+   * so the tones are the tones — see `playSlowly` in voiceOut.
+   */
+  guidedPace: number;
+  /**
+   * Seconds of quiet that end a recording on their own, or 0 to stop it by
+   * hand. Somebody who has finished speaking should not have to say so.
+   */
+  silenceStop: number;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -39,10 +49,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   readerStyle: 'classic',
   readerPractice: true,
   practicePerPage: 3,
-  basisSource: 'learned',
   basisCount: 150,
   modelName: 'Claude Opus',
   pitchChart: true,
+  guidedPace: 0.65,
+  silenceStop: 3,
 };
 
 /** The workspace as it is written down — to the server now, and to localStorage before accounts. */

@@ -24,13 +24,10 @@ export const paths = {
   gradeSheet: (sheetId: string) => `/review/sheets/${encodeURIComponent(sheetId)}`,
 
   library: () => '/library',
-
-  radicals: () => '/radicals',
-  /** the radicals page with one radical's drawer open */
-  radical: (n: number) => `/radicals?radical=${n}`,
-  radicalSets: () => '/radicals/sets',
-  radicalSet: (id: string, tab: EditorTab = 'design') =>
-    `/radicals/sets/${encodeURIComponent(id)}${tab === 'items' ? '/items' : ''}`,
+  /** the library showing the 214 radicals rather than a band of characters */
+  radicals: () => '/library?band=radicals',
+  /** the same, with one radical's drawer open over it */
+  radical: (n: number) => `/library?band=radicals&radical=${n}`,
 
   collections: () => '/collections',
   collection: (id: string, tab: CollectionTab = 'design') =>
@@ -42,18 +39,26 @@ export const paths = {
   text: (id: string) => `/texts/${encodeURIComponent(id)}`,
   session: (step: PlanStep = 'plan') => `/texts/session/${step}`,
 
-  pinyin: () => '/pinyin',
+  /**
+   * Speaking — the section that was called Pinyin until the conversation grew
+   * into the largest thing in it. Pinyin is what is written above the
+   * characters; speaking is what the whole section is for, and the old
+   * addresses redirect (see `router.tsx`) so a bookmark still lands.
+   */
+  speaking: () => '/speaking',
   /** saying things out loud: `pair-3-3`, `tone-2` */
-  pinyinPractice: (set: string) => `/pinyin/practice/${encodeURIComponent(set)}`,
+  speakingPractice: (set: string) => `/speaking/practice/${encodeURIComponent(set)}`,
   /** one sound lesson: how it is made, telling it apart, saying it */
-  pinyinSounds: (lesson: string, step?: 'hear' | 'say') =>
-    withQuery(`/pinyin/sounds/${encodeURIComponent(lesson)}`, { step }),
+  speakingSounds: (lesson: string, step?: 'hear' | 'say') =>
+    withQuery(`/speaking/sounds/${encodeURIComponent(lesson)}`, { step }),
   /** saying sentences along with a natural voice */
-  pinyinShadow: () => '/pinyin/shadow',
-  /** a spoken conversation with Claude */
-  pinyinTalk: () => '/pinyin/talk',
+  speakingShadow: () => '/speaking/shadow',
+  /** setting a conversation up: what to talk about, and who talks back */
+  speakingNew: () => '/speaking/new',
+  /** a conversation already under way, by its id */
+  speakingTalk: (id: string) => `/speaking/${encodeURIComponent(id)}`,
   /** the microphone, the voice range, and whether speech recognition works here */
-  pinyinVoice: () => '/pinyin/voice',
+  speakingVoice: () => '/speaking/voice',
 
   settings: () => '/settings',
 };

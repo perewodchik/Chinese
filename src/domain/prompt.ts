@@ -54,9 +54,6 @@ function specBrief(spec: TextSpec, n: number): string {
         spec.newCount > 0
           ? `**New characters:** teach me about ${spec.newCount}. You choose which — take the ones this topic actually needs at this level. Introduce each in a sentence where everything else is familiar, use it at least twice, and list them under \`teach\`.`
           : '**New characters:** none. Stay entirely inside the list above, and return an empty `teach` list.',
-        spec.focus.trim()
-          ? `**Show me:** ${spec.focus.trim()} — build at least two sentences around it`
-          : '',
         spec.questions
           ? '**Questions:** 2 or 3 comprehension questions at the end'
           : '**Questions:** none — return an empty list',
@@ -267,7 +264,6 @@ export function buildBrief(plan: TextPlan, extra: PromptExtras = {}): string {
         sentences: `${lo}-${hi}`,
         howFarPastMe: LEVELS.find((d) => d.id === s.level)?.brief,
         newCharacters: s.newCount,
-        focus: s.focus.trim() || undefined,
         questions: s.questions ? '2 or 3 comprehension questions' : 'none',
       };
     }),

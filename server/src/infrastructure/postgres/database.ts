@@ -2,12 +2,13 @@ import pg from 'pg';
 import { MIGRATIONS } from './migrations';
 
 /**
- * The Postgres pool, for running on Vercel.
+ * The Postgres pool.
  *
- * Nothing here is used at home: `npm start` keeps its SQLite file, because one
- * process on one PC has no reason to talk to a database over the network. This
- * exists because a serverless function has no disk that survives the request,
- * so the file has to become a server somewhere else.
+ * It exists because a serverless function has no disk that survives the
+ * request, so the file the home server keeps had to become a database
+ * somewhere else. A server on this machine can be pointed at that same
+ * database — see `infrastructure/stores.ts` — which is how development happens
+ * on the real accounts and the real saved work rather than on a copy.
  *
  * Two things follow from being serverless, and both are handled here rather
  * than at the call sites. A function instance handles one request at a time and
@@ -75,6 +76,18 @@ export function openPostgres(url: string): Promise<pg.Pool> {
     if (ready === opening) ready = null;
   });
   return opening;
+}
+
+/**
+ * Closes the pool and forgets it, so that opening one again in the same
+ * process — a server told to shut down and started again by a test, or a
+ * command that runs another — gets a live pool rather than the ended one.
+ */
+export async function closePostgres(): Promise<void> {
+  const open = pool;
+  pool = null;
+  ready = null;
+  if (open) await open.end();
 }
 
 /** The little of a client the migration needs, so a test can supply its own. */

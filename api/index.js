@@ -89,6 +89,11 @@ var RevisionConflictError = class extends AppError {
     this.current = current;
   }
 };
+var TutorUnavailableError = class extends AppError {
+  constructor(message) {
+    super("unavailable", message);
+  }
+};
 
 // server/src/application/auth-service.ts
 var DAY = 864e5;
@@ -149,6 +154,34 @@ var AuthService = class {
     const matches = await hasher.verify(input.password, user?.passwordHash ?? await this.decoyHash());
     if (!user || !matches) throw new InvalidCredentialsError();
     return this.issue(user, input.userAgent);
+  }
+  /**
+   * A session for the named account with no password asked.
+   *
+   * Only the development server calls this, and only when HANZI_DEV_USER is
+   * set, so the app can be opened and checked on this machine without signing
+   * in. Nothing that serves the app to anyone else ever reaches it.
+   *
+   * `create` says whether a name nobody has is worth an account — true of the
+   * SQLite file on this machine, where making one costs nothing and is how the
+   * first one appears, and false of the deployed site's database, where a name
+   * that is not already there is a typo rather than a learner. Without it,
+   * there is no session and the app asks to sign in as it would anywhere else.
+   */
+  async devSignIn(username, userAgent, create = true) {
+    const key = usernameKey(username);
+    let user = await this.deps.users.findByUsernameKey(key);
+    if (!user) {
+      if (!create) return null;
+      try {
+        user = await this.createUser(username, this.deps.tokens.secret());
+      } catch (err) {
+        if (!(err instanceof UsernameTakenError)) throw err;
+        user = await this.deps.users.findByUsernameKey(key);
+        if (!user) throw err;
+      }
+    }
+    return this.issue(user, userAgent);
   }
   async logout(token) {
     if (token) await this.deps.sessions.delete(this.deps.tokens.digest(token));
@@ -223,6 +256,78 @@ var AuthService = class {
   decoyHash() {
     this.decoy ??= this.deps.hasher.hash("a password nobody has");
     return this.decoy;
+  }
+};
+
+// shared/talk.ts
+var TALK_LEVELS = ["hsk1", "hsk2", "hsk3"];
+var TALK_LENGTHS = ["short", "normal", "long"];
+var TALK_MODES = ["breakdown", "teaching", "conversation", "skim"];
+var TALK_TOPIC_MAX_CHARS = 60;
+var TALK_MAX_LINES = 40;
+var TALK_LINE_MAX_CHARS = 300;
+var TALK_TITLE_MAX_CHARS = 80;
+var TALK_SAVED_TURNS_MAX = 400;
+function conversationTitle(options, turns) {
+  const opening = turns.find((t) => t.who === "tutor");
+  const raw = options.topic.trim() || opening?.hanzi.trim() || "";
+  if (!raw) return "New conversation";
+  const cut = [...raw].slice(0, TALK_TITLE_MAX_CHARS);
+  return cut.length < [...raw].length ? `${cut.join("")}\u2026` : cut.join("");
+}
+
+// server/src/application/conversation-service.ts
+var LIST_LIMIT = 60;
+var ConversationService = class {
+  conversations;
+  clock;
+  tokens;
+  constructor(deps) {
+    this.conversations = deps.conversations;
+    this.clock = deps.clock;
+    this.tokens = deps.tokens;
+  }
+  list(userId) {
+    return this.conversations.list(userId, LIST_LIMIT);
+  }
+  async open(userId, id) {
+    const found = await this.conversations.find(userId, id);
+    if (!found) throw new NotFoundError("That conversation");
+    return found;
+  }
+  async start(userId, options, voice) {
+    const now = this.clock.now();
+    return this.conversations.create(userId, {
+      id: this.tokens.id(),
+      title: conversationTitle(options, []),
+      options,
+      voice,
+      turns: [],
+      createdAt: now,
+      updatedAt: now
+    });
+  }
+  /**
+   * The conversation as the page now has it. The page is the only writer — one
+   * learner, one thread, in one tab at a time — so the last save wins rather
+   * than being compared against a revision, as the workspace is.
+   */
+  async save(userId, id, patch) {
+    const existing = await this.open(userId, id);
+    const turns = patch.turns.slice(-TALK_SAVED_TURNS_MAX);
+    const next = {
+      ...existing,
+      options: patch.options,
+      voice: patch.voice,
+      turns,
+      title: conversationTitle(patch.options, turns),
+      updatedAt: this.clock.now()
+    };
+    if (!await this.conversations.save(userId, next)) throw new NotFoundError("That conversation");
+    return next;
+  }
+  async remove(userId, id) {
+    if (!await this.conversations.delete(userId, id)) throw new NotFoundError("That conversation");
   }
 };
 
@@ -323,11 +428,20 @@ function createServices(stores, options = {}) {
     policy: { ...DEFAULT_AUTH_POLICY, ...options.policy }
   });
   const workspaces = new WorkspaceService({ workspaces: stores.workspaces, clock });
-  return { auth, workspaces, clock };
+  const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
+  return {
+    auth,
+    workspaces,
+    conversations,
+    clock,
+    speech: options.speech ?? null,
+    tutor: options.tutor ?? null,
+    talkVoices: options.talkVoices ?? null
+  };
 }
 
 // server/src/http/app.ts
-import { Hono as Hono4 } from "hono";
+import { Hono as Hono7 } from "hono";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
 
@@ -344,7 +458,8 @@ var STATUS = {
   conflict: 409,
   payload_too_large: 413,
   rate_limited: 429,
-  internal: 500
+  internal: 500,
+  unavailable: 503
 };
 var errorBody = (code, message, fields) => ({
   error: { code, message, ...fields && { fields } }
@@ -481,20 +596,75 @@ var RateLimiter = class {
   }
 };
 
-// server/src/http/routes/auth.ts
+// server/src/http/routes/ask.ts
 import { Hono } from "hono";
 import { z } from "zod";
-var MINUTE = 6e4;
-var credentials = z.object({
-  username: z.string().max(200),
-  password: z.string().max(2048)
+
+// shared/ask.ts
+var ASK_KINDS = ["passages", "wordlist"];
+var ASK_MAX_CHARS = 8e4;
+var ASK_TIMEOUT_MS = {
+  passages: 15 * 6e4,
+  wordlist: 10 * 6e4
+};
+
+// server/src/http/routes/ask.ts
+var askRequest = z.object({
+  prompt: z.string().trim().min(1).max(ASK_MAX_CHARS),
+  kind: z.enum(ASK_KINDS)
 });
-var passwordChange = z.object({
-  currentPassword: z.string().max(2048),
-  newPassword: z.string().max(2048)
-});
-function authRoutes({ auth, clock, trustProxy }) {
+function askRoutes({ auth, clock, trustProxy, tutor }) {
   const routes = new Hono();
+  const session = requireSession(auth, { trustProxy, clock });
+  const asks = new RateLimiter(20, 60 * 6e4, clock);
+  routes.get("/", session, async (c) => {
+    c.header("Cache-Control", "no-store");
+    const body = { claude: { state: tutor ? await tutor.status() : "missing" } };
+    return c.json(body);
+  });
+  routes.post("/", session, async (c) => {
+    if (!tutor) throw new TutorUnavailableError("Claude Code is not installed on this server.");
+    const input = await readJson(c, askRequest);
+    asks.consume(c.get("session").user.id);
+    const text = await tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind] });
+    const body = { text };
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
+  });
+  return routes;
+}
+
+// server/src/http/routes/auth.ts
+import { Hono as Hono2 } from "hono";
+import { z as z2 } from "zod";
+var MINUTE = 6e4;
+var credentials = z2.object({
+  username: z2.string().max(200),
+  password: z2.string().max(2048)
+});
+var passwordChange = z2.object({
+  currentPassword: z2.string().max(2048),
+  newPassword: z2.string().max(2048)
+});
+function isLocalNetwork(ip) {
+  const plain = ip.startsWith("::ffff:") ? ip.slice("::ffff:".length) : ip;
+  const octets = plain.split(".");
+  if (octets.length === 4) {
+    if (!octets.every((o) => /^\d{1,3}$/.test(o) && Number(o) <= 255)) return false;
+    const [a, b] = octets.map(Number);
+    if (a === 127) return true;
+    if (a === 10) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    return a === 169 && b === 254;
+  }
+  const v6 = (plain.split("%")[0] ?? "").toLowerCase();
+  if (v6 === "::1") return true;
+  if (v6.startsWith("fc") || v6.startsWith("fd")) return true;
+  return /^fe[89ab]/.test(v6);
+}
+function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }) {
+  const routes = new Hono2();
   const sessionOptions = { trustProxy, clock };
   const session = requireSession(auth, sessionOptions);
   const perName = new RateLimiter(10, 15 * MINUTE, clock);
@@ -507,6 +677,15 @@ function authRoutes({ auth, clock, trustProxy }) {
   routes.get("/session", async (c) => {
     c.header("Cache-Control", "no-store");
     const active = await currentSession(c, auth, sessionOptions);
+    if (!active && devUser && isLocalNetwork(clientIp(c, trustProxy))) {
+      const issued = await auth.devSignIn(devUser, c.req.header("user-agent") ?? null, devUserCreate);
+      if (!issued) log(`No account called \u201C${devUser}\u201D in this database (HANZI_DEV_USER).`);
+      else {
+        writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
+        const body2 = { user: issued.user };
+        return c.json(body2);
+      }
+    }
     const body = { user: active?.user ?? null };
     return c.json(body);
   });
@@ -544,22 +723,173 @@ function authRoutes({ auth, clock, trustProxy }) {
   return routes;
 }
 
+// server/src/http/routes/speech.ts
+import { Hono as Hono3 } from "hono";
+var SPEECH_MAX_CHARS = 240;
+function speechRoutes({ auth, clock, trustProxy, speech }) {
+  const routes = new Hono3();
+  const session = requireSession(auth, { trustProxy, clock });
+  const limiter = new RateLimiter(300, 10 * 6e4, clock);
+  routes.get("/", session, (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json({ voices: speech?.voices ?? [] });
+  });
+  routes.get("/audio", session, async (c) => {
+    if (!speech) {
+      throw new AppError("not_found", "No natural voice is set up here: AZURE_SPEECH_KEY and AZURE_SPEECH_REGION are not set.");
+    }
+    const text = (c.req.query("text") ?? "").trim();
+    const voice = c.req.query("voice") ?? speech.voices[0].id;
+    const slow = c.req.query("slow") === "1";
+    if (!text) throw new ValidationError("Nothing to say.");
+    if ([...text].length > SPEECH_MAX_CHARS) throw new ValidationError(`At most ${SPEECH_MAX_CHARS} characters at a time.`);
+    if (!speech.voices.some((v) => v.id === voice)) throw new ValidationError(`There is no voice called ${voice}.`);
+    limiter.consume(c.get("session").user.id);
+    let audio;
+    try {
+      audio = await speech.synthesize(text, voice, slow);
+    } catch {
+      throw new AppError("internal", "The voice service did not answer. The system voice will have to do for now.");
+    }
+    c.header("Content-Type", "audio/mpeg");
+    c.header("Cache-Control", "private, max-age=31536000, immutable");
+    return c.body(audio);
+  });
+  return routes;
+}
+
+// server/src/http/routes/talk.ts
+import { Hono as Hono4 } from "hono";
+import { z as z3 } from "zod";
+var talkOptions = z3.object({
+  level: z3.enum(TALK_LEVELS),
+  length: z3.enum(TALK_LENGTHS),
+  explain: z3.boolean(),
+  words: z3.boolean(),
+  hints: z3.boolean(),
+  // The learner's own words, and they go into a prompt: a topic the length
+  // of an essay is a way of talking past everything above it.
+  topic: z3.string().trim().max(TALK_TOPIC_MAX_CHARS)
+});
+var savedWord = z3.object({
+  hanzi: z3.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z3.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z3.string().max(TALK_LINE_MAX_CHARS)
+});
+var savedTurn = z3.object({
+  who: z3.enum(["tutor", "learner"]),
+  hanzi: z3.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z3.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z3.string().max(TALK_LINE_MAX_CHARS * 2),
+  words: z3.array(savedWord).max(10).optional(),
+  hints: z3.array(savedWord).max(10).optional(),
+  note: z3.string().max(TALK_LINE_MAX_CHARS * 2).optional()
+});
+var startRequest = z3.object({
+  options: talkOptions,
+  voice: z3.string().max(64).nullable()
+});
+var saveRequest = z3.object({
+  options: talkOptions,
+  voice: z3.string().max(64).nullable(),
+  turns: z3.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
+});
+var replyRequest = z3.object({
+  lines: z3.array(z3.object({ who: z3.enum(["tutor", "learner"]), text: z3.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
+  options: talkOptions
+});
+function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations }) {
+  const routes = new Hono4();
+  const session = requireSession(auth, { trustProxy, clock });
+  const turns = new RateLimiter(120, 10 * 6e4, clock);
+  const clips = new RateLimiter(600, 10 * 6e4, clock);
+  const saves = new RateLimiter(400, 10 * 6e4, clock);
+  routes.get("/", session, async (c) => {
+    c.header("Cache-Control", "no-store");
+    talkVoices?.warm?.(c.req.query("voice"));
+    const body = {
+      claude: { state: tutor ? await tutor.status() : "missing" },
+      voices: talkVoices?.voices ?? []
+    };
+    return c.json(body);
+  });
+  routes.post("/reply", session, async (c) => {
+    if (!tutor) throw new TutorUnavailableError("Claude Code is not installed on this server.");
+    const input = await readJson(c, replyRequest);
+    turns.consume(c.get("session").user.id);
+    const reply = await tutor.reply({ lines: input.lines, options: input.options });
+    c.header("Cache-Control", "no-store");
+    return c.json(reply);
+  });
+  routes.get("/audio", session, async (c) => {
+    if (!talkVoices) throw new AppError("not_found", "No local voice is set up on this server.");
+    const text = (c.req.query("text") ?? "").trim();
+    const voice = c.req.query("voice") ?? talkVoices.voices[0].id;
+    const asked = c.req.query("mode");
+    const mode = TALK_MODES.includes(asked ?? "") ? asked : "conversation";
+    if (!text) throw new ValidationError("Nothing to say.");
+    if ([...text].length > SPEECH_MAX_CHARS) throw new ValidationError(`At most ${SPEECH_MAX_CHARS} characters at a time.`);
+    if (!talkVoices.voices.some((v) => v.id === voice)) throw new ValidationError(`There is no voice called ${voice}.`);
+    clips.consume(c.get("session").user.id);
+    let audio;
+    try {
+      audio = await talkVoices.synthesize(text, voice, mode);
+    } catch {
+      throw new AppError("unavailable", "The voice did not answer. The system voice will have to do for now.");
+    }
+    c.header("Content-Type", "audio/mpeg");
+    c.header("Cache-Control", "private, max-age=31536000, immutable");
+    return c.body(audio);
+  });
+  routes.get("/conversations", session, async (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json({ conversations: await conversations.list(c.get("session").user.id) });
+  });
+  routes.post("/conversations", session, async (c) => {
+    const input = await readJson(c, startRequest);
+    saves.consume(c.get("session").user.id);
+    const made = await conversations.start(c.get("session").user.id, input.options, input.voice);
+    c.header("Cache-Control", "no-store");
+    return c.json(made, 201);
+  });
+  routes.get("/conversations/:id", session, async (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json(await conversations.open(c.get("session").user.id, c.req.param("id")));
+  });
+  routes.put("/conversations/:id", session, async (c) => {
+    const input = await readJson(c, saveRequest);
+    saves.consume(c.get("session").user.id);
+    const saved = await conversations.save(c.get("session").user.id, c.req.param("id"), {
+      options: input.options,
+      voice: input.voice,
+      turns: input.turns
+    });
+    c.header("Cache-Control", "no-store");
+    return c.json(saved);
+  });
+  routes.delete("/conversations/:id", session, async (c) => {
+    await conversations.remove(c.get("session").user.id, c.req.param("id"));
+    return c.body(null, 204);
+  });
+  return routes;
+}
+
 // server/src/http/routes/workspace.ts
-import { Hono as Hono2 } from "hono";
+import { Hono as Hono5 } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { z as z2 } from "zod";
+import { z as z4 } from "zod";
 
 // shared/api.ts
 var WORKSPACE_MAX_BYTES = 16 * 1024 * 1024;
 var workspaceTag = (revision) => `"r${revision}"`;
 
 // server/src/http/routes/workspace.ts
-var saveRequest = z2.object({
-  baseRevision: z2.number().int().min(0),
-  document: z2.record(z2.string(), z2.unknown())
+var saveRequest2 = z4.object({
+  baseRevision: z4.number().int().min(0),
+  document: z4.record(z4.string(), z4.unknown())
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
-  const routes = new Hono2();
+  const routes = new Hono5();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -584,7 +914,7 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
       onError: (c) => c.json(errorBody("payload_too_large", "That is more than one account can store."), 413)
     }),
     async (c) => {
-      const input = await readJson(c, saveRequest);
+      const input = await readJson(c, saveRequest2);
       const saved = await workspaces.save(
         c.get("session").user.id,
         input.baseRevision,
@@ -600,9 +930,9 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Hono as Hono3 } from "hono";
+import { Hono as Hono6 } from "hono";
 function staticSite(root) {
-  const site = new Hono3();
+  const site = new Hono6();
   const index = join(root, "index.html");
   site.use("*", caching());
   site.use("*", serveStatic({ root }));
@@ -633,17 +963,26 @@ function caching() {
 // server/src/http/app.ts
 function createHttpApp(services, options) {
   const onError = handleError(options.log);
-  const deps = { ...services, trustProxy: options.trustProxy };
-  const api = new Hono4();
+  const deps = {
+    ...services,
+    trustProxy: options.trustProxy,
+    devUser: options.devUser ?? null,
+    devUserCreate: options.devUserCreate ?? true,
+    log: options.log
+  };
+  const api = new Hono7();
   api.onError(onError);
   api.use("*", sameOriginOnly());
   api.get("/health", (c) => c.json({ ok: true }));
   api.route("/auth", authRoutes(deps));
+  api.route("/ask", askRoutes(deps));
   api.route("/workspace", workspaceRoutes(deps));
+  api.route("/speech", speechRoutes(deps));
+  api.route("/talk", talkRoutes(deps));
   api.all("*", () => {
     throw new NotFoundError("That API route");
   });
-  const app = new Hono4();
+  const app = new Hono7();
   app.onError(onError);
   if (options.compress !== false) app.use("*", compress());
   app.use(
@@ -671,6 +1010,50 @@ function createHttpApp(services, options) {
   app.route("/api", api);
   if (options.staticDir) app.route("/", staticSite(options.staticDir));
   return app;
+}
+
+// server/src/infrastructure/azure-speech.ts
+var AZURE_VOICES = [
+  { id: "xiaoxiao", name: "Xiaoxiao", gender: "female", azure: "zh-CN-XiaoxiaoNeural" },
+  { id: "yunxi", name: "Yunxi", gender: "male", azure: "zh-CN-YunxiNeural" },
+  { id: "xiaoyi", name: "Xiaoyi", gender: "female", azure: "zh-CN-XiaoyiNeural" }
+];
+var SpeechServiceError = class extends Error {
+};
+var escapeXml = (s) => s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c]);
+function azureSpeech(opts) {
+  if (!/^[a-z0-9]+$/.test(opts.region)) throw new Error(`AZURE_SPEECH_REGION \u201C${opts.region}\u201D is not a region name.`);
+  const endpoint = `https://${opts.region}.tts.speech.microsoft.com/cognitiveservices/v1`;
+  const doFetch = opts.fetch ?? fetch;
+  return {
+    voices: AZURE_VOICES.map(({ id, name, gender }) => ({ id, name, gender })),
+    async synthesize(text, voice, slow) {
+      const v = AZURE_VOICES.find((x) => x.id === voice);
+      if (!v) throw new SpeechServiceError(`No voice called ${voice}.`);
+      const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-CN"><voice name="${v.azure}"><prosody rate="${slow ? "-25%" : "0%"}">${escapeXml(text)}</prosody></voice></speak>`;
+      const res = await doFetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Ocp-Apim-Subscription-Key": opts.key,
+          "Content-Type": "application/ssml+xml",
+          "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
+          "User-Agent": "hanzi-workshop"
+        },
+        body: ssml,
+        signal: AbortSignal.timeout(1e4)
+      });
+      if (!res.ok) {
+        throw new SpeechServiceError(`Azure speech answered ${res.status}.`);
+      }
+      return new Uint8Array(await res.arrayBuffer());
+    }
+  };
+}
+function speechFromEnv(env) {
+  const key = env.AZURE_SPEECH_KEY?.trim();
+  const region = env.AZURE_SPEECH_REGION?.trim().toLowerCase();
+  if (!key || !region) return null;
+  return azureSpeech({ key, region });
 }
 
 // server/src/infrastructure/postgres/database.ts
@@ -706,6 +1089,22 @@ var MIGRATIONS = [
     document   TEXT NOT NULL,
     updated_at BIGINT NOT NULL
   );
+  `,
+  // Conversations kept to come back to; see the SQLite migrations for why the
+  // options live beside the turns.
+  `
+  CREATE TABLE conversations (
+    id         TEXT PRIMARY KEY,
+    user_id    TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    title      TEXT NOT NULL,
+    options    TEXT NOT NULL,
+    voice      TEXT,
+    turns      TEXT NOT NULL,
+    created_at BIGINT NOT NULL,
+    updated_at BIGINT NOT NULL
+  );
+
+  CREATE INDEX conversations_by_user ON conversations (user_id, updated_at DESC);
   `
 ];
 
@@ -797,6 +1196,81 @@ async function upToDate(c) {
     return false;
   }
 }
+
+// server/src/infrastructure/postgres/conversation-repository.ts
+var PostgresConversationRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async list(userId, limit) {
+    const { rows } = await this.db.query(
+      `SELECT id, title, options, turns, updated_at FROM conversations
+       WHERE user_id = $1 ORDER BY updated_at DESC, created_at DESC, id DESC LIMIT $2`,
+      [userId, limit]
+    );
+    return rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      level: JSON.parse(row.options).level,
+      turns: JSON.parse(row.turns).length,
+      updatedAt: row.updated_at
+    }));
+  }
+  async find(userId, id) {
+    const { rows } = await this.db.query("SELECT * FROM conversations WHERE id = $1 AND user_id = $2", [
+      id,
+      userId
+    ]);
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      id: row.id,
+      title: row.title,
+      options: JSON.parse(row.options),
+      voice: row.voice,
+      turns: JSON.parse(row.turns),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  }
+  async create(userId, conversation) {
+    await this.db.query(
+      `INSERT INTO conversations (id, user_id, title, options, voice, turns, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        conversation.id,
+        userId,
+        conversation.title,
+        JSON.stringify(conversation.options),
+        conversation.voice,
+        JSON.stringify(conversation.turns),
+        conversation.createdAt,
+        conversation.updatedAt
+      ]
+    );
+    return conversation;
+  }
+  async save(userId, conversation) {
+    const result = await this.db.query(
+      `UPDATE conversations SET title = $1, options = $2, voice = $3, turns = $4, updated_at = $5
+       WHERE id = $6 AND user_id = $7`,
+      [
+        conversation.title,
+        JSON.stringify(conversation.options),
+        conversation.voice,
+        JSON.stringify(conversation.turns),
+        conversation.updatedAt,
+        conversation.id,
+        userId
+      ]
+    );
+    return result.rowCount === 1;
+  }
+  async delete(userId, id) {
+    const result = await this.db.query("DELETE FROM conversations WHERE id = $1 AND user_id = $2", [id, userId]);
+    return result.rowCount === 1;
+  }
+};
 
 // server/src/infrastructure/postgres/session-repository.ts
 var toSession = (r) => ({
@@ -936,7 +1410,8 @@ var PostgresWorkspaceRepository = class {
 var postgresStores = (db) => ({
   users: new PostgresUserRepository(db),
   sessions: new PostgresSessionRepository(db),
-  workspaces: new PostgresWorkspaceRepository(db)
+  workspaces: new PostgresWorkspaceRepository(db),
+  conversations: new PostgresConversationRepository(db)
 });
 
 // server/src/vercel.ts
@@ -953,7 +1428,8 @@ function application() {
     }
     const pool2 = await openPostgres(url);
     const services = createServices(postgresStores(pool2), {
-      policy: { registration: REGISTRATION }
+      policy: { registration: REGISTRATION },
+      speech: speechFromEnv(process.env)
     });
     return createHttpApp(services, {
       trustProxy: true,

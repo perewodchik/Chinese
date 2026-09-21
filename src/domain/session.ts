@@ -1,10 +1,7 @@
 import type { Library } from '../data/types';
 import type { ItemId } from './ids';
-import { basisPool, emptySpec, renumber, taughtAlready, type BasisSource } from './teach';
+import { basisPool, emptySpec, renumber, taughtAlready } from './teach';
 import type { GeneratedText, TextPlan } from './text';
-
-/** Below this many characters, "what I have learned" is too little to write a passage from. */
-const MIN_BASIS = 40;
 
 /**
  * A new writing session: the inventory it may assume, what earlier texts have
@@ -18,15 +15,14 @@ export function planSession(input: {
   lib: Library;
   learned: ReadonlySet<ItemId>;
   texts: GeneratedText[];
-  basisSource: BasisSource;
   basisCount: number;
 }): TextPlan {
   const { lib, learned } = input;
-  // Two weeks in you have marked eleven characters, which is not a passage.
-  // Borrow the syllabus rather than open a session that cannot start.
-  const asked = basisPool(lib, input.basisSource, learned);
-  const source: BasisSource = asked.length >= MIN_BASIS ? input.basisSource : 'learned+hsk1';
-  const pool = source === input.basisSource ? asked : basisPool(lib, source, learned);
+  // Only what has been marked learned. A session opened two weeks in has
+  // eleven characters to build on, and eleven characters is what the passage
+  // gets: a text written as though a band were finished is a text that cannot
+  // be read, which is the one thing it must never be.
+  const pool = basisPool(lib, learned);
   const count = input.basisCount || 150;
   const basis = pool.slice(0, count);
   const inBasis = new Set(basis);
@@ -37,7 +33,6 @@ export function planSession(input: {
     createdAt: input.now,
     setId: input.setId,
     basis,
-    basisSource: source,
     basisCount: count,
     // What earlier texts already taught: reusable, but not new again.
     met: [...taughtAlready(input.texts)].filter((c) => !inBasis.has(c)),

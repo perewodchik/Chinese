@@ -24,20 +24,23 @@ export type TalkLength = 'short' | 'normal' | 'long';
 export const TALK_LENGTHS: readonly TalkLength[] = ['short', 'normal', 'long'];
 
 /**
- * How the voice reads a turn: four ways of being talked to, not four
- * playback speeds.
+ * How the voice reads a turn: four ways of being talked to. Shown as Guided,
+ * Normal, Native and Skim — what the learner is choosing is how much help
+ * they want, not which recording a clip came from.
  *
- * Three of them are a different *reading*. A designed voice keeps two
- * recordings of itself — one teaching, one talking — and every clip is cloned
- * from one of them, which is what carries the pace and the manner. Breakdown
- * goes further and asks for the sentence a character at a time, with the
- * pauses in the text itself, so the model articulates each one rather than
- * running them together. A recording played at three quarters speed is none
- * of that: it is the same rushed reading, dragged, with every swallowed
- * ending still swallowed.
+ * Most of the difference is in the *reading*. Breakdown asks for the sentence
+ * a character at a time, with the pauses written into the text itself, so the
+ * model articulates each one rather than running them together — a slowness
+ * it performs, which a dragged recording is not.
  *
- * Skim is the exception and is honest about it: there is no fourth recording
- * of somebody talking faster, and skimming is what playing it faster is for.
+ * The rest of the difference is the speed the clip is played at, which was
+ * once reserved for skimming on the grounds that dragging a reading is a poor
+ * imitation of a slower one. It is, and it is also the only lever that works
+ * every time: a model asked to read slowly obliges when it feels like it, and
+ * a beginner who cannot follow a turn needs the next one slower, not an
+ * explanation of why it is not. So the reading does the work it can and the
+ * playback speed is the floor under it. `src/features/pinyin/talkOut.ts` has
+ * the numbers and why they stop where they do.
  */
 export type TalkMode = 'breakdown' | 'teaching' | 'conversation' | 'skim';
 export const TALK_MODES: readonly TalkMode[] = ['breakdown', 'teaching', 'conversation', 'skim'];
@@ -370,4 +373,61 @@ export function parseReply(raw: string): TalkReply | null {
     ...(hints.length && { hints }),
     ...(labelled.note && { note: labelled.note }),
   };
+}
+
+/* ------------------------------------------------ conversations that are kept */
+
+/**
+ * A conversation, saved so it can be come back to.
+ *
+ * The options are kept with the turns, not only the turns, and that is the
+ * point of the record rather than a detail of it: what Claude was told at the
+ * start — the level, how long a turn is, what to talk about, whether the
+ * grammar is explained — is what makes the twentieth turn continuous with the
+ * first. A conversation resumed under somebody else's settings is a different
+ * conversation wearing the same history.
+ */
+export interface TalkConversation {
+  id: string;
+  /** the topic, or Claude's opening line cut short — what the list shows */
+  title: string;
+  options: TalkOptions;
+  /** the voice it was held in, so it sounds the same when it is picked up again */
+  voice: string | null;
+  turns: TalkSavedTurn[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface TalkSavedTurn extends TalkReply {
+  who: 'tutor' | 'learner';
+}
+
+/** One line of the list of conversations: enough to choose between them. */
+export interface TalkConversationSummary {
+  id: string;
+  title: string;
+  level: TalkLevel;
+  turns: number;
+  updatedAt: number;
+}
+
+/** Long enough for any topic; a title is cut to it rather than refused. */
+export const TALK_TITLE_MAX_CHARS = 80;
+
+/** Beyond this a conversation is long past the point of being resumed. */
+export const TALK_SAVED_TURNS_MAX = 400;
+
+/**
+ * What to call a conversation in the list: what the learner chose to talk
+ * about, or failing that the opening line, which is always a question about
+ * something. A conversation with neither is still young enough to be "New
+ * conversation" without anyone minding.
+ */
+export function conversationTitle(options: TalkOptions, turns: TalkSavedTurn[]): string {
+  const opening = turns.find((t) => t.who === 'tutor');
+  const raw = options.topic.trim() || opening?.hanzi.trim() || '';
+  if (!raw) return 'New conversation';
+  const cut = [...raw].slice(0, TALK_TITLE_MAX_CHARS);
+  return cut.length < [...raw].length ? `${cut.join('')}…` : cut.join('');
 }

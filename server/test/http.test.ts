@@ -158,11 +158,26 @@ describe('signing in without a password, on the development server', () => {
     assert.equal(users[0]?.id, users[1]?.id);
   });
 
-  it('leaves another device on the Wi-Fi at the sign-in page', async () => {
+  it('signs the tablet on the same Wi-Fi in as that same account', async () => {
     const { app } = makeApp({}, { trustProxy: true, devUser: 'admin' });
-    const res = await call(app, 'GET', '/api/auth/session', from('192.168.1.42'));
-    assert.equal(((await res.json()) as CurrentSessionResponse).user, null);
-    assert.equal(res.headers.get('set-cookie'), null);
+    const here = await call(app, 'GET', '/api/auth/session', from('127.0.0.1'));
+    const mine = ((await here.json()) as CurrentSessionResponse).user;
+
+    for (const ip of ['192.168.1.42', '10.0.0.7', '172.18.73.118', '169.254.3.9', 'fd00::5']) {
+      const res = await call(app, 'GET', '/api/auth/session', from(ip));
+      const user = ((await res.json()) as CurrentSessionResponse).user;
+      assert.equal(user?.username, 'admin', `${ip} should be signed in`);
+      assert.equal(user?.id, mine?.id, `${ip} should get the same account, not a new one`);
+    }
+  });
+
+  it('leaves a device from outside the network at the sign-in page', async () => {
+    const { app } = makeApp({}, { trustProxy: true, devUser: 'admin' });
+    for (const ip of ['203.0.113.7', '8.8.8.8', '172.32.0.1', '2001:db8::1', 'unknown']) {
+      const res = await call(app, 'GET', '/api/auth/session', from(ip));
+      assert.equal(((await res.json()) as CurrentSessionResponse).user, null, `${ip} should be refused`);
+      assert.equal(res.headers.get('set-cookie'), null, `${ip} should get no cookie`);
+    }
   });
 
   it('does nothing unless it was asked for', async () => {

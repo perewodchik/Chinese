@@ -9,17 +9,19 @@ characters.
   is made of.
 - **214 radicals, and every way each one is written.** 心 is 忄 on the left of
   快, flat and wide under 想, and ⺗ under 恭 — three shapes, one radical, and a
-  practice row for each. Their own section, their own sheets: radicals are a
-  beginner's tool and nothing about them touches the characters.
+  practice row for each. In the library behind the same dropdown as the bands,
+  as reference: nothing about them is marked learned, queued or reviewed, and
+  one button prints the whole sheet.
 - **Collections, not templates.** One card per subject — "HSK 1", "Food", "The
   ones I keep missing" — however big you want it, printing as much or as little
   of itself as you ask for.
 - **Real PDFs**, A4, vector, in a 楷体 regular-script hand. Two, three or four
   characters a page, in five colourways and four designs.
 - **Reading passages** written by Claude out of the characters you have marked
-  learned, plus a handful chosen to teach you — planned here, written in your
-  own Claude chat, pasted back, and printed with practice sheets for everything
-  new. No API key.
+  learned — only those; not a band you are partway through — plus a handful
+  chosen to teach you. Planned here and written on your own subscription: one
+  button on the computer, a copy into your own Claude chat on the iPad. Printed
+  with practice sheets for everything new. No API key.
 - **Reviewing that knows the difference** between recognising a character,
   saying it, reading it inside a word, and writing it from nothing — four
   schedules, because they are forgotten separately.
@@ -105,8 +107,10 @@ on screen in full to select by hand, and **Save as file** next to it writes it
 to a file. Saving worksheets straight into a folder is a Chrome and Edge
 feature and has never worked on iOS; there the PDF downloads as normal.
 
-The Texts tab still needs no API key. It builds a prompt, you paste it into
-Claude yourself, and you paste the answer back.
+The Texts tab still needs no API key. On the computer one button hands the
+prompt to Claude Code and drops the answer into the next step; anywhere else —
+the iPad, the website — it builds the prompt, you paste it into Claude
+yourself, and you paste the answer back.
 
 ## Putting it on the internet
 
@@ -146,12 +150,44 @@ it could not. The two are separate on purpose: a visit with no cookie is
 answered without touching Postgres, so without the second one the first thing
 to find the database unreachable is somebody trying to sign in.
 
-Your work does not follow you there. The two servers keep separate databases,
-and there is no export any more, so treat the deployed one as a fresh start —
-or keep using the PC at home, which is still where the printing happens.
-
 `PGSSLNOVERIFY=1` is the way out if you land on a Postgres whose certificate
 does not verify. Neon's and Supabase's both do, so you should not need it.
+
+### Working on the site's own data
+
+A server here can run on the deployed site's database instead of its own file,
+which is what makes the development server and the site one thing rather than
+two that drift apart. Copy the connection string — Vercel › the project ›
+Storage › Neon › **.env.local**, or Neon's own dashboard — into `.env` beside
+`.env.example`:
+
+```
+POSTGRES_URL=postgresql://…
+```
+
+That is the whole of it. `npm run dev` then opens on the same account, the same
+collections, the same texts and the same conversations as the site, and a change
+made in either is a change in the other — not synchronised, because there is
+only one copy. `npm run admin -- users` and `reset-password` work on those same
+accounts, which is the only way to give the account on the site a new password.
+`npm start` does too, if you want the built app against real data.
+
+Two things follow from there being one copy, and both are deliberate. A change
+made while developing is a change to what you will open on the iPad tonight —
+so `scripts/dev.sh --local` (or `HANZI_DB=.data/hanzi-workshop.db`) is there for
+working offline, or for trying something out where it cannot matter. And
+`HANZI_DEV_USER` no longer makes an account it cannot find: on the site's
+database a name that is not already there is a typo, and the app stops at the
+sign-in page rather than putting a new learner on the real site.
+
+`.env` is not committed; `.env.example` says what can go in it.
+
+What still differs, and cannot be made not to: reading a conversation aloud in
+Claude's own voice runs the models on this machine, and Claude itself is
+reached through the CLI on this machine's subscription. Neither exists inside a
+Vercel function, so the Talk section falls back to what the browser can do on
+its own there. Everything that is *kept* — accounts, workspaces, conversations
+— is the same database either way.
 
 ## On an iPad
 
@@ -237,8 +273,7 @@ it was made on.
 | `/library` | browsing; `?q=hao&show=learned&sort=freq` keeps the filters |
 | `/collections` | every collection, and the ready-made sets |
 | `/collections/<id>`, `/collections/<id>/items` | one collection: how it prints, and what is in it |
-| `/radicals` | all 214, ordered by how much of the syllabus each unlocks |
-| `/radicals/sets`, `/radicals/sets/<id>` | radical sets, and one of them |
+| `/library?band=radicals` | all 214, ordered by how much of the syllabus each unlocks |
 | `/texts` | the shelf |
 | `/texts/session/plan`, `…/prompt`, `…/paste` | a writing session, step by step |
 | `/texts/<id>` | one passage |
@@ -422,8 +457,9 @@ A radical sheet is arranged the same way and asks the same question, but what
 the answer decides is different: a radical block is a heading and then **one row
 of squares for every way the radical is written**, each row opened by a line
 naming that form — 忄, on the left, three strokes, its stroke order, and 快 忙 怕.
-So two, three, four or six to a page is really "how many forms get a row of
-their own"; at six they share one row, split between them.
+The reference sheet prints three to a page, which is the size at which every
+form of all but the busiest radicals gets a row of its own; where they do not
+all fit, the last row is split between the ones left over.
 
 Sections are left out **by the profile**, before anything is drawn, and the
 editor names the ones that go — rather than the old behaviour of discovering at
@@ -474,12 +510,13 @@ rather than insetting the block.
 
 ## Radicals
 
-The pieces characters are built from, at **/radicals** — a section of its own,
-because they are a different kind of thing. You learn the common ones early, as
-shapes, and then stop studying them; characters you study for years and the app
-schedules for review. While the two shared a screen, every character page had to
-filter radicals out of itself and every radical sheet inherited choices — "due
-for review", "the ones I miss" — that could never mean anything for a radical.
+The pieces characters are built from, in the **library** — pick Radicals in the
+same dropdown as the HSK bands. They are reference and nothing else: a radical
+cannot be marked learned, cannot be put in a collection, and never comes round
+in a review. You learn the common ones early, as shapes, and then stop studying
+them; characters you study for years and the app schedules for review. So there
+is nothing to tick and no progress to show — you look one up, and the next time
+you meet it inside a character you recognise it.
 
 The thing worth having is the forms. A radical is not one shape:
 
@@ -501,10 +538,11 @@ The rest of a radical's entry is what a beginner actually needs: what it means
 王 on the left is jade, not king), what characters built on it tend to be about,
 and what it gets mistaken for (three dots is water, two is ice).
 
-Sets work like collections: a named run of radicals, printed all at once, only
-the ones you have not ticked off, or a range. Ready-made ones cover the first
-20, the top 50 and 100, all 214, the radicals that change shape, and the ones a
-dot apart printed side by side.
+There is one sheet and no designer for it: **three radicals a page**, each with
+its shape drawn large, its meaning and reading, the stroke order of every form
+it has, the characters it turns up in, and a row of squares for each form. The
+button prints whatever the page is showing — all 214, a search, or just the
+thirty-odd that are written more than one way.
 
 ## Pronunciation
 
@@ -740,8 +778,11 @@ reached one of two ways:
   ```
 
   `HANZI_CLAUDE_BIN` points at a `claude` somewhere unusual,
-  `HANZI_CLAUDE_MODEL` picks the model (`sonnet` by default; `haiku` is
-  quicker), and `HANZI_CLAUDE=off` turns it off.
+  `HANZI_CLAUDE_MODEL` picks the model for a conversation turn (`sonnet` by
+  default; `haiku` is quicker), `HANZI_CLAUDE_ASK_MODEL` the model for a piece
+  of written work — a session of passages, a word list — which is `opus`,
+  because a conversation wants a quick answer and an evening's reading wants a
+  good one. `HANZI_CLAUDE=off` turns the lot off.
 - **Anywhere else, through your own Claude chat.** On Vercel there is no Claude
   Code to run, so the page hands you each turn to copy into a Claude chat and a
   box to paste the answer back into. The first copy carries the instructions;
@@ -794,19 +835,32 @@ its mouth open.
 A session runs in three steps, on its own page.
 
 **Plan.** One card per passage. Each one carries a topic, a length, a form —
-story, dialogue, diary, letter, news — whether it ends in questions, an
-optional grammar point to build it around, and two numbers: the **level**, which
-is simply how far past what you can already read this one should go, and how
-many characters it may **teach** you. Which characters those are is not decided
+story, dialogue, diary, letter, news — whether it ends in questions, and two
+numbers: the **level**, which is simply how far past what you can already read
+this one should go, and how many characters it may **teach** you. There is no
+box for a grammar point: it asked a narrower question than the topic beside it,
+which already takes "a phone call where 把 keeps coming up" and does more with
+it.
+
+What the passage may assume is **what you have marked learned, and nothing
+else**. It used to be able to borrow a band you were partway through, which
+sounds generous and produces a page you cannot read. Which characters those are is not decided
 here. A word picked to fit a story earns its place; a word picked off a
 frequency table needs a story built around it, so the budget goes in the brief
 and the choosing happens where the writing happens.
 
 **Prompt.** The plan becomes a prompt: your inventory in full, the rules as
 rules, one brief per passage, and the shape the answer has to come back in.
-Copy it, paste it into Claude, and come back. The session is saved to your
-account, so closing the tab or finishing tomorrow — on another device — costs
-nothing.
+
+Where the server can reach Claude itself — your computer, signed in to your
+subscription, the same headless `claude -p` the conversation uses — **Ask
+Claude here** sends it and drops the answer straight into the next step. It
+takes minutes rather than seconds and says how long it has been waiting, since
+nothing can report how far through writing a passage Claude is. Everywhere
+else, and whenever you would rather read the prompt first or change a line of
+it, copy it, paste it into Claude, and come back. The session is saved to your
+account either way, so closing the tab or finishing tomorrow — on another
+device — costs nothing.
 
 **Paste back.** Paste the reply — the whole thing, code fence and commentary
 and all. It is read tolerantly: fenced or not, one message or two, with a
@@ -818,6 +872,13 @@ but every character in the passage that was not already yours. That list is
 what goes onto the practice sheets, so it has to be the true one. Anything that
 looks wrong can be left out; the rest is saved, and the new characters are
 queued as a collection to practise by hand.
+
+**Hearing it.** The bar over a passage carries a voice as well as the pinyin
+and translation switches: the system voice, which is always there, or one of
+the models on this computer — the same ones that read Claude's half of a
+conversation, which sound like a person. **Read it aloud** goes through the
+passage sentence by sentence with the line being read marked in the margin, and
+each sentence has a speaker of its own in the margin for hearing just that one.
 
 A session is meant to be read straight through, so a passage knows which one it
 is: arrows in the bar, the next title at the foot of the page, and moving on
@@ -947,7 +1008,9 @@ server/src/
                       each — and the failures it can name
   application/        the use cases, and the ports they need from outside
   infrastructure/     scrypt, tokens, the clock: one answer to each port, and
-                      the two stores — sqlite/ at home, postgres/ on Vercel
+                      the two stores — sqlite/ for a file on this machine,
+                      postgres/ for the deployed database, either of which any
+                      of the servers can be pointed at (stores.ts)
   http/               routes, guards (session, same origin, rate limits), static files
   composition.ts      which implementation stands behind each port
   main.ts, dev.ts     the production server; the development server with Vite inside
@@ -959,7 +1022,7 @@ api/                  the same server as one Vercel function
 src/
   domain/             the model, with no React and no DOM in it —
                       ids, collections, sheet options and what each size can hold;
-                      radicals/, which shares none of that: forms, sets, sizes;
+                      radicals/, which shares none of that: forms and sheet sizes;
                       memory and drill, the scheduler and what to ask next;
                       stroke, which decides whether you drew the right one;
                       vocab and series, words and sound families;
@@ -981,9 +1044,9 @@ src/
     radicals/         the radical sheet: its sizes, its block, its renderer
     draw.ts           the page as a top-left coordinate system, theme-aware
     render.ts         document assembly
-  features/           auth, review, library, collections, radicals, reader,
-                      settings — one each, and shared/ for what several of them
-                      use
+  features/           auth, review, library (characters and radicals),
+                      collections, reader, settings — one each, and shared/
+                      for what several of them use
   ui/                 the pieces they share: a card, a glyph, a modal, a toast,
                       drag-to-reorder, a square to write in, a voice
   app/                the app assembled: providers, routes, the page frame, and

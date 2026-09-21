@@ -1203,6 +1203,46 @@ a.tpl-card:hover {
   background: var(--card);
 }
 
+/* The bar over a passage: what is showing, and what reads it out. It sat
+   directly on the card below it, so the two read as one box with a line
+   through it. */
+.reading-bar {
+  margin-bottom: 14px;
+  row-gap: 8px;
+}
+
+.read-aloud {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+}
+
+.read-aloud .field {
+  margin: 0;
+}
+
+.read-aloud select {
+  height: 28px;
+  padding: 0 24px 0 8px;
+  font-size: 12px;
+}
+
+/* The sentence about what the PDF prints is a footnote to the bar, not a
+   column in it: it takes the whole width under the controls. */
+.scope-note {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+/* The way round the clipboard, where the server can reach Claude itself. */
+.ask-claude {
+  margin: 0 0 14px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--line);
+}
+
 .inline-field {
   display: inline-flex;
   align-items: center;
@@ -1454,8 +1494,8 @@ a.tpl-card:hover {
 
 .passage-line {
   position: relative;
-  margin: 0 0 18px;
-  padding-left: 22px;
+  margin: 0 0 11px;
+  padding-left: 30px;
 }
 
 .passage-line .n {
@@ -1465,6 +1505,39 @@ a.tpl-card:hover {
   font-size: 10px;
   color: var(--ink-3);
   font-variant-numeric: tabular-nums;
+}
+
+/* The speaker lives in the gutter under the line number rather than under the
+   sentence. A passage is a column of sentences and a button on a line of its
+   own between each pair of them doubles the height of the thing being read. */
+.reading .passage-line .say {
+  position: absolute;
+  left: -4px;
+  top: 14px;
+  margin-left: 0;
+  /* Always there, rather than appearing on hover: it is the way to hear the
+     sentence, and on a tablet there is no hover to appear on. */
+  opacity: 0.45;
+}
+
+.reading .passage-line .say:hover,
+.reading .passage-line[data-reading] .say {
+  opacity: 1;
+}
+
+/* The line being read now. A bar in the margin rather than a highlight over
+   the characters: the characters are what is being looked at. */
+.passage-line[data-reading]::before {
+  content: '';
+  position: absolute;
+  /* In the gap between the gutter and the text, clear of the number and the
+     speaker that share the gutter with it. */
+  left: 22px;
+  top: 1px;
+  bottom: 1px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
 }
 
 .passage-line .py {

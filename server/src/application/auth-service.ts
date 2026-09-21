@@ -136,17 +136,27 @@ export class AuthService {
   }
 
   /**
-   * A session for the named account with no password asked — made if it does
-   * not exist yet, with a password nobody knows (`npm run admin` can set one).
+   * A session for the named account with no password asked.
    *
    * Only the development server calls this, and only when HANZI_DEV_USER is
    * set, so the app can be opened and checked on this machine without signing
    * in. Nothing that serves the app to anyone else ever reaches it.
+   *
+   * `create` says whether a name nobody has is worth an account — true of the
+   * SQLite file on this machine, where making one costs nothing and is how the
+   * first one appears, and false of the deployed site's database, where a name
+   * that is not already there is a typo rather than a learner. Without it,
+   * there is no session and the app asks to sign in as it would anywhere else.
    */
-  async devSignIn(username: string, userAgent: string | null): Promise<IssuedSession> {
+  async devSignIn(
+    username: string,
+    userAgent: string | null,
+    create = true,
+  ): Promise<IssuedSession | null> {
     const key = usernameKey(username);
     let user = await this.deps.users.findByUsernameKey(key);
     if (!user) {
+      if (!create) return null;
       try {
         user = await this.createUser(username, this.deps.tokens.secret());
       } catch (err) {

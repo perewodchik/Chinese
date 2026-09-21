@@ -34,9 +34,8 @@ export function AppLayout() {
     { to: paths.review(), label: 'Review', count: due },
     { to: paths.library(), label: 'Library', count: 0 },
     { to: paths.collections(), label: 'Collections', count: collections },
-    { to: paths.radicals(), label: 'Radicals', count: 0 },
     { to: paths.texts(), label: 'Texts', count: texts },
-    { to: paths.pinyin(), label: 'Pinyin', count: 0 },
+    { to: paths.speaking(), label: 'Speaking', count: 0 },
     { to: paths.settings(), label: 'Settings', count: 0 },
   ];
 

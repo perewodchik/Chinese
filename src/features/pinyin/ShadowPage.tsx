@@ -117,8 +117,8 @@ export function ShadowPage() {
   return (
     <section className="pinyin shadow">
       <div className="row" style={{ marginBottom: 14 }}>
-        <Link className="btn ghost sm" to={paths.pinyin()}>
-          ← Pronunciation
+        <Link className="btn ghost sm" to={paths.speaking()}>
+          ← Speaking
         </Link>
       </div>
       <div className="row" style={{ marginBottom: 14, alignItems: 'flex-end' }}>

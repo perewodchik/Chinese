@@ -14,7 +14,19 @@ import type { SheetOptions } from '../sheet';
  * gets a row of its own, or the rarer ones share one.
  */
 
-export type RadicalSheet = SheetOptions;
+export interface RadicalSheet extends SheetOptions {
+  /**
+   * A practice row for every way the radical is written, and no empty rows
+   * under them.
+   *
+   * A radical's shapes are the thing worth practising — 忄 and 心 are one
+   * radical and two different movements of the hand — so the reference sheet
+   * gives each of them a row of its own rather than asking for a number of
+   * rows and dividing them up. Most radicals are written one way and get one
+   * row; 心 gets three, which is what it needs.
+   */
+  rowPerForm?: boolean;
+}
 
 /** The per-page counts the designer offers, in order. */
 export const RADICAL_PER_PAGE = [2, 3, 4, 6];
@@ -24,6 +36,28 @@ export const DEFAULT_RADICAL_SHEET: RadicalSheet = {
   gridStyle: 'mizi',
   squareSize: 'medium',
   practiceRows: 3,
+  traceCount: 3,
+  fadeCount: 2,
+  palette: 'cinnabar',
+  style: 'classic',
+};
+
+/**
+ * The reference sheet, which is the only radical sheet there is a button for.
+ *
+ * Three to a page, each with its shape drawn large, its meaning and reading,
+ * the stroke order of every form it has, the characters it turns up in, and a
+ * row to write it in. No designer, no options: radicals are looked up and
+ * practised once, not collected and printed to a specification, and a page of
+ * choices in front of that was a page of choices about nothing.
+ */
+export const RADICAL_TEMPLATE: RadicalSheet = {
+  perPage: 3,
+  gridStyle: 'mizi',
+  // Few rows on the page, so they may as well be squares worth writing in.
+  squareSize: 'large',
+  practiceRows: 1,
+  rowPerForm: true,
   traceCount: 3,
   fadeCount: 2,
   palette: 'cinnabar',

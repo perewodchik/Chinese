@@ -6,6 +6,7 @@ import { NotFoundError } from '../domain/errors';
 import type { AppEnv } from './env';
 import { handleError } from './errors';
 import { sameOriginOnly } from './guards';
+import { askRoutes } from './routes/ask';
 import { authRoutes } from './routes/auth';
 import { speechRoutes } from './routes/speech';
 import { talkRoutes } from './routes/talk';
@@ -24,6 +25,13 @@ export interface HttpOptions {
    * no password. Never set by the production server or on Vercel.
    */
   devUser?: string | null;
+  /**
+   * Whether `devUser` may be made if there is no such account. True of the
+   * SQLite file on a development machine; false when that server is running on
+   * the deployed site's database, where an unknown name is a typo and making
+   * it would put an account on the real site.
+   */
+  devUserCreate?: boolean;
 }
 
 /**
@@ -32,13 +40,20 @@ export interface HttpOptions {
  */
 export function createHttpApp(services: Services, options: HttpOptions) {
   const onError = handleError(options.log);
-  const deps = { ...services, trustProxy: options.trustProxy, devUser: options.devUser ?? null };
+  const deps = {
+    ...services,
+    trustProxy: options.trustProxy,
+    devUser: options.devUser ?? null,
+    devUserCreate: options.devUserCreate ?? true,
+    log: options.log,
+  };
 
   const api = new Hono<AppEnv>();
   api.onError(onError);
   api.use('*', sameOriginOnly());
   api.get('/health', (c) => c.json({ ok: true }));
   api.route('/auth', authRoutes(deps));
+  api.route('/ask', askRoutes(deps));
   api.route('/workspace', workspaceRoutes(deps));
   api.route('/speech', speechRoutes(deps));
   api.route('/talk', talkRoutes(deps));

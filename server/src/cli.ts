@@ -1,10 +1,8 @@
 import { randomBytes } from 'node:crypto';
 import { resolve } from 'node:path';
-import type { DatabaseSync } from 'node:sqlite';
 import { createServices, type Services } from './composition';
-import { loadConfig } from './config';
-import { backupDatabase, openDatabase } from './infrastructure/sqlite/database';
-import { sqliteStores } from './infrastructure/sqlite/stores';
+import { describeDatabase, loadConfig, loadEnvFile } from './config';
+import { openStores } from './infrastructure/stores';
 import { banner } from './lan';
 
 /**
@@ -18,6 +16,12 @@ import { banner } from './lan';
  *
  * There is no "forgot my password" email: the server has no way to send one,
  * and whoever can run this can already read the database file.
+ *
+ * These run against whichever database the settings name, so with
+ * `POSTGRES_URL` in `.env` they are the deployed site's accounts rather than
+ * this machine's — which is the only way to give the account on the site a
+ * new password. `backup` is the exception: a Postgres is not a file to copy,
+ * and its host takes backups of its own.
  */
 
 const USAGE = `
@@ -29,14 +33,15 @@ const USAGE = `
 `;
 
 const [command, ...args] = process.argv.slice(2);
+loadEnvFile();
 const config = loadConfig(process.env, { port: 4173, serveStatic: false });
 
-async function withServices<T>(run: (services: Services, db: DatabaseSync) => Promise<T>): Promise<T> {
-  const db = openDatabase(config.databaseFile);
+async function withServices<T>(run: (services: Services) => Promise<T>): Promise<T> {
+  const { stores, close } = await openStores(config.database);
   try {
-    return await run(createServices(sqliteStores(db)), db);
+    return await run(createServices(stores));
   } finally {
-    db.close();
+    await close();
   }
 }
 
@@ -74,9 +79,21 @@ try {
     }
 
     case 'backup': {
+      if (config.database.kind !== 'sqlite') {
+        throw new Error(
+          `There is no file to copy: this is ${describeDatabase(config.database)}, whose host takes its own backups.`,
+        );
+      }
       const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
       const target = resolve(args[0] ?? `.data/backups/hanzi-workshop-${stamp}.db`);
-      await withServices(async (_services, db) => backupDatabase(db, target));
+      const { openDatabase, backupDatabase } = await import('./infrastructure/sqlite/database');
+      const file = config.database.file;
+      const db = openDatabase(file);
+      try {
+        backupDatabase(db, target);
+      } finally {
+        db.close();
+      }
       console.log(`\n  Backed up to ${target}\n`);
       break;
     }

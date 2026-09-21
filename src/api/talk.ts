@@ -1,4 +1,13 @@
-import type { TalkLine, TalkMode, TalkOptions, TalkReply, TalkStatusResponse } from '../../shared/talk';
+import type {
+  TalkConversation,
+  TalkConversationSummary,
+  TalkLine,
+  TalkMode,
+  TalkOptions,
+  TalkReply,
+  TalkSavedTurn,
+  TalkStatusResponse,
+} from '../../shared/talk';
 import { request } from './http';
 
 /**
@@ -17,7 +26,7 @@ export function talkReply(lines: TalkLine[], options: TalkOptions): Promise<Talk
 /** The model may have to load before the first sentence of a sitting; after that it is seconds. */
 const VOICE_TIMEOUT_MS = 90_000;
 /** Bumped whenever a voice changes how it sounds, to leave the old clips behind. */
-const VOICE_VERSION = '3';
+const VOICE_VERSION = '4';
 
 /**
  * One sentence in a local voice, as MP3. Fetched directly, like the speech
@@ -41,4 +50,32 @@ export async function talkAudio(text: string, voice: string, mode: TalkMode, sig
     clearTimeout(timer);
     signal?.removeEventListener('abort', cutIn);
   }
+}
+
+/* ------------------------------------------------ conversations that are kept */
+
+export function listConversations(): Promise<TalkConversationSummary[]> {
+  return request<{ conversations: TalkConversationSummary[] }>('GET', '/api/talk/conversations').then(
+    (r) => r.conversations,
+  );
+}
+
+export function openConversation(id: string): Promise<TalkConversation> {
+  return request<TalkConversation>('GET', `/api/talk/conversations/${encodeURIComponent(id)}`);
+}
+
+export function startConversation(options: TalkOptions, voice: string | null): Promise<TalkConversation> {
+  return request<TalkConversation>('POST', '/api/talk/conversations', { body: { options, voice } });
+}
+
+/** The whole thread as the page now has it; the server keeps the last word. */
+export function saveConversation(
+  id: string,
+  body: { options: TalkOptions; voice: string | null; turns: TalkSavedTurn[] },
+): Promise<TalkConversation> {
+  return request<TalkConversation>('PUT', `/api/talk/conversations/${encodeURIComponent(id)}`, { body });
+}
+
+export function deleteConversation(id: string): Promise<void> {
+  return request<void>('DELETE', `/api/talk/conversations/${encodeURIComponent(id)}`);
 }

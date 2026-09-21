@@ -42,4 +42,20 @@ export const MIGRATIONS: readonly string[] = [
     updated_at BIGINT NOT NULL
   );
   `,
+  // Conversations kept to come back to; see the SQLite migrations for why the
+  // options live beside the turns.
+  `
+  CREATE TABLE conversations (
+    id         TEXT PRIMARY KEY,
+    user_id    TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    title      TEXT NOT NULL,
+    options    TEXT NOT NULL,
+    voice      TEXT,
+    turns      TEXT NOT NULL,
+    created_at BIGINT NOT NULL,
+    updated_at BIGINT NOT NULL
+  );
+
+  CREATE INDEX conversations_by_user ON conversations (user_id, updated_at DESC);
+  `,
 ];

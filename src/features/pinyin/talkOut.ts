@@ -1,7 +1,7 @@
 import type { TalkMode } from '../../../shared/talk';
 import { talkAudio } from '../../api/talk';
 import { speak } from '../../platform/speech';
-import { hush, playBytes } from './voiceOut';
+import { hush, playBytes, playBytesAtPace } from './voiceOut';
 
 const SPOKEN = /[㐀-鿿0-9a-z]/i;
 
@@ -31,25 +31,36 @@ export function sentences(text: string): string[] {
 }
 
 /**
- * What each mode comes to once the audio exists.
+ * How slowly a turn is read, and what the system voice does about it.
  *
- * `play` is the speed the clip is played at, which is 1 for everything but
- * skimming — the three slower modes are different readings, made that way by
- * the model, and playing a reading slower is the thing they exist instead of.
- * `system` is the only speed the system voice has, since it reads through the
- * operating system and has no second reading to give.
+ * The page asks for one reading — the one a person would actually say — and
+ * slows it on the way out when the learner wants it slower. It used to offer
+ * four readings to choose between, on the argument that a slow mode should be
+ * a different reading and not a recording dragged. That is true of a model
+ * that obliges, and this one obliges when it feels like it; a beginner who
+ * cannot follow a turn needs the next one slower, not a reading philosophy.
+ *
+ * Slowing happens through an audio element, which stretches the time and
+ * leaves the pitch where it was. That is not a nicety here: resampling drops
+ * the voice with the speed, and a sentence whose tones have all moved down is
+ * not the same sentence said slowly.
+ *
+ * The system voice has no recording to stretch, so it is asked to read slowly
+ * instead, which is the one thing it does well.
  */
-const HOW: Record<TalkMode, { play: number; system: number }> = {
-  breakdown: { play: 1, system: 0.55 },
-  teaching: { play: 1, system: 0.7 },
-  conversation: { play: 1, system: 0.9 },
-  skim: { play: 1.15, system: 1.15 },
-};
+const NATIVE_PACE = 1;
 
-function systemSay(text: string, mode: TalkMode, signal: AbortSignal): Promise<'system' | 'none'> {
+/** What the system voice is asked for, since it cannot be slowed after the fact. */
+function systemRate(pace: number): number {
+  // Its own scale is coarser than a playback rate; this keeps a `pace` of 0.65
+  // sounding like the deliberate reading the number is asking for.
+  return Math.max(0.4, Math.min(1.2, pace * 0.85));
+}
+
+function systemSay(text: string, pace: number, signal: AbortSignal): Promise<'system' | 'none'> {
   return new Promise((resolve) => {
     if (signal.aborted) return resolve('none');
-    const ok = speak(text, { rate: HOW[mode].system, onEnd: () => resolve('system') });
+    const ok = speak(text, { rate: systemRate(pace), onEnd: () => resolve('system') });
     if (!ok) resolve('none');
     signal.addEventListener('abort', () => resolve('none'), { once: true });
   });
@@ -67,13 +78,17 @@ function systemSay(text: string, mode: TalkMode, signal: AbortSignal): Promise<'
 export async function sayTurn(
   text: string,
   voice: string | null,
-  opts: { mode: TalkMode; signal: AbortSignal; onStart?: () => void },
+  opts: { pace?: number; signal: AbortSignal; onStart?: () => void },
 ): Promise<'natural' | 'system' | 'none'> {
-  const { signal, mode } = opts;
+  const { signal } = opts;
+  const pace = opts.pace ?? NATIVE_PACE;
+  // One reading is made whatever pace it will be heard at, so asking for the
+  // same turn slowly is the clip already fetched rather than a second wait.
+  const mode: TalkMode = 'conversation';
   signal.addEventListener('abort', hush, { once: true });
   if (!voice) {
     opts.onStart?.();
-    return systemSay(text, mode, signal);
+    return systemSay(text, pace, signal);
   }
 
   const parts = sentences(text);
@@ -86,7 +101,7 @@ export async function sayTurn(
     } catch {
       if (signal.aborted) return 'none';
       opts.onStart?.();
-      return systemSay(parts.slice(i).join(''), mode, signal);
+      return systemSay(parts.slice(i).join(''), pace, signal);
     }
     next = i + 1 < parts.length ? fetchPart(i + 1) : null;
     // A clip already asked for, when the learner cuts in, must not be left rejected with nobody listening.
@@ -95,7 +110,7 @@ export async function sayTurn(
     // The first clip is the one worth announcing: before it there is a wait,
     // and a page saying "speaking" through that wait is simply wrong.
     if (i === 0) opts.onStart?.();
-    await playBytes(bytes, HOW[mode].play);
+    await (pace === 1 ? playBytes(bytes) : playBytesAtPace(bytes, pace));
     if (signal.aborted) return 'none';
   }
   return 'natural';

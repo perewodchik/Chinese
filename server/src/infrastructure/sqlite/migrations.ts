@@ -34,4 +34,24 @@ export const MIGRATIONS: readonly string[] = [
     updated_at INTEGER NOT NULL
   ) STRICT;
   `,
+  // Conversations, kept so one can be come back to a week later. The options
+  // are stored beside the turns because they are what makes a resumed
+  // conversation continuous with the one that was left: the level Claude was
+  // answering at, how long its turns are, what the two of them were talking
+  // about. The turns are one JSON document rather than a row each — a
+  // conversation is read and written whole, never queried into.
+  `
+  CREATE TABLE conversations (
+    id         TEXT PRIMARY KEY,
+    user_id    TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    title      TEXT NOT NULL,
+    options    TEXT NOT NULL,
+    voice      TEXT,
+    turns      TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  ) STRICT;
+
+  CREATE INDEX conversations_by_user ON conversations (user_id, updated_at DESC);
+  `,
 ];

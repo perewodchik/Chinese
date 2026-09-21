@@ -30,10 +30,31 @@ const passwordChange = z.object({
   newPassword: z.string().max(2048),
 });
 
-/** A request from this machine — the only kind the development sign-in answers. */
-const isLoopback = (ip: string) => ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+/**
+ * A request from this machine, or from a device on the same home network —
+ * the kinds the development sign-in answers. An address from anywhere else is
+ * refused even here, in case the dev server is ever reachable from outside:
+ * the password is the only thing standing in the way then.
+ */
+function isLocalNetwork(ip: string): boolean {
+  const plain = ip.startsWith('::ffff:') ? ip.slice('::ffff:'.length) : ip;
+  const octets = plain.split('.');
+  if (octets.length === 4) {
+    if (!octets.every((o) => /^\d{1,3}$/.test(o) && Number(o) <= 255)) return false;
+    const [a, b] = octets.map(Number) as [number, number, number, number];
+    if (a === 127) return true; // this machine
+    if (a === 10) return true; // 10.0.0.0/8
+    if (a === 172 && b >= 16 && b <= 31) return true; // 172.16.0.0/12
+    if (a === 192 && b === 168) return true; // 192.168.0.0/16
+    return a === 169 && b === 254; // link-local, when there is no router
+  }
+  const v6 = (plain.split('%')[0] ?? '').toLowerCase(); // without any zone
+  if (v6 === '::1') return true;
+  if (v6.startsWith('fc') || v6.startsWith('fd')) return true; // unique local
+  return /^fe[89ab]/.test(v6); // link-local
+}
 
-export function authRoutes({ auth, clock, trustProxy, devUser }: RouteDeps) {
+export function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const sessionOptions = { trustProxy, clock };
   const session = requireSession(auth, sessionOptions);
@@ -55,13 +76,19 @@ export function authRoutes({ auth, clock, trustProxy, devUser }: RouteDeps) {
     c.header('Cache-Control', 'no-store');
     const active = await currentSession(c, auth, sessionOptions);
     // Development with HANZI_DEV_USER: nobody signed in, asked from this
-    // machine, is signed in as that account. The dev server listens on the
-    // whole Wi-Fi, so the tablet on it still has to sign in like anyone else.
-    if (!active && devUser && isLoopback(clientIp(c, trustProxy))) {
-      const issued = await auth.devSignIn(devUser, c.req.header('user-agent') ?? null);
-      writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
-      const body: CurrentSessionResponse = { user: issued.user };
-      return c.json(body);
+    // machine or from the Wi-Fi it is on, is signed in as that account — so
+    // the tablet you are testing on opens the app rather than a password box.
+    if (!active && devUser && isLocalNetwork(clientIp(c, trustProxy))) {
+      const issued = await auth.devSignIn(devUser, c.req.header('user-agent') ?? null, devUserCreate);
+      // No such account, on a database this server is not allowed to add one
+      // to: the sign-in page is the honest answer, and the name is worth
+      // saying out loud because it is almost certainly misspelt.
+      if (!issued) log(`No account called “${devUser}” in this database (HANZI_DEV_USER).`);
+      else {
+        writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
+        const body: CurrentSessionResponse = { user: issued.user };
+        return c.json(body);
+      }
     }
     const body: CurrentSessionResponse = { user: active?.user ?? null };
     return c.json(body);

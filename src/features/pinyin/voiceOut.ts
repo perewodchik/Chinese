@@ -236,6 +236,23 @@ export async function packVoices(): Promise<NaturalVoice[]> {
 }
 
 /**
+ * Which voices actually read this text — not which voices exist.
+ *
+ * The difference is the whole of a bug worth remembering. The native speaker
+ * is a set of single-syllable recordings and has nothing longer; ask for a
+ * sentence in that voice and the pack quietly hands over the designed voice's
+ * clip instead. The picker then says Native Speaker while Chen is talking,
+ * which is worse than having no choice at all: a learner copying a voice has
+ * been told, wrongly, that this is what a native sounds like. A control that
+ * cannot be honoured should not be offered, so the picker asks this first.
+ */
+export async function voicesFor(text: string): Promise<string[]> {
+  const clean = text.trim();
+  if (!clean) return [];
+  return (await loadPack())?.clips[clean]?.voices ?? [];
+}
+
+/**
  * Everything the pack has a recording of.
  *
  * For shadowing, which is copying a voice: a sentence nobody reads is one the
@@ -278,6 +295,44 @@ export async function playBytes(bytes: ArrayBuffer, rate = 1): Promise<void> {
     };
     src.start();
     playing = src;
+  });
+}
+
+/**
+ * MP3 bytes played to the end at `pace`, keeping the pitch, resolving when
+ * they have finished or been cut off.
+ *
+ * The conversation's clips are made as they are needed rather than sitting in
+ * the pack as files, so they reach the audio element through a blob URL. The
+ * element is the player worth the trouble: `playbackRate` on a Web Audio
+ * source resamples, which drops the voice along with the speed, and in a
+ * language where pitch carries the meaning that is not a slower reading of the
+ * sentence — it is a different one, with the tones moved.
+ */
+export function playBytesAtPace(bytes: ArrayBuffer, pace: number): Promise<void> {
+  return new Promise((resolve) => {
+    playing?.stop();
+    element?.pause();
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }));
+    const el = new Audio(url);
+    // Safari spells it with a prefix, and an older one not at all; where it is
+    // missing the clip still slows and the voice drops with it.
+    const media = el as HTMLAudioElement & { preservesPitch?: boolean; webkitPreservesPitch?: boolean };
+    media.preservesPitch = true;
+    media.webkitPreservesPitch = true;
+    el.playbackRate = pace;
+    // Pausing is how `hush` stops it, and a turn that was cut off is as
+    // finished as one that ended. Calling this twice is harmless.
+    const done = () => {
+      URL.revokeObjectURL(url);
+      if (element === el) element = null;
+      resolve();
+    };
+    el.onended = done;
+    el.onerror = done;
+    el.onpause = done;
+    element = el;
+    void el.play().catch(done);
   });
 }
 

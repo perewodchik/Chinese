@@ -8,3 +8,4 @@ worksheets/
 *.tsbuildinfo
 __pycache__/
 .vercel/
+.env

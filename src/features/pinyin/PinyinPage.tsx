@@ -37,7 +37,7 @@ function standing(t: Tally | undefined): { state?: 'right' | 'close' | 'wrong'; 
  * holding and which are not.
  */
 export function PinyinPage() {
-  useTitle('Pronunciation');
+  useTitle('Speaking');
   const lib = useLibrary();
   const memory = usePinyinMemory();
   const pairs = useMemo(() => tonePairs(lib), [lib]);
@@ -47,19 +47,19 @@ export function PinyinPage() {
     <section className="pinyin">
       <div className="row" style={{ marginBottom: 18 }}>
         <div>
-          <h1 style={{ margin: 0 }}>Pronunciation</h1>
+          <h1 style={{ margin: 0 }}>Speaking</h1>
           <p className="small muted" style={{ margin: '2px 0 0' }}>
             Say a word and see the shape of your voice against the shape it should have.
           </p>
         </div>
         <div className="spacer" />
-        <Link className="btn sm" to={paths.pinyinVoice()}>
+        <Link className="btn sm" to={paths.speakingVoice()}>
           {memory.range ? 'Your voice' : 'Set up your voice'}
         </Link>
       </div>
 
       {!memory.range && (
-        <Link className="voice-invite" to={paths.pinyinVoice()}>
+        <Link className="voice-invite" to={paths.speakingVoice()}>
           <span className="voice-invite-mark hanzi" aria-hidden>
             声
           </span>
@@ -79,7 +79,7 @@ export function PinyinPage() {
           const st = standing(memory.tallies[toneKey(t.tone)]);
           const example = singles[t.tone]?.[0];
           return (
-            <Link key={t.tone} className="tone-card" to={paths.pinyinPractice(`tone-${t.tone}`)}>
+            <Link key={t.tone} className="tone-card" to={paths.speakingPractice(`tone-${t.tone}`)}>
               <span className="tone-card-mark">{t.mark}</span>
               <span className="tone-card-name">
                 {TONE_NAME[t.tone]!.replace(/^./, (c) => c.toUpperCase())} tone
@@ -133,7 +133,7 @@ export function PinyinPage() {
                   role="cell"
                   className="pair-cell"
                   data-state={st.state}
-                  to={paths.pinyinPractice(`pair-${pair.id}`)}
+                  to={paths.speakingPractice(`pair-${pair.id}`)}
                   title={`${TONE_NAME[a]} + ${TONE_NAME[b]}: ${pair.words.length} words — ${st.text}`}
                 >
                   <span className="pair-word hanzi">{w.word}</span>
@@ -149,7 +149,7 @@ export function PinyinPage() {
       </div>
 
       <h2 className="pinyin-label">Whole sentences</h2>
-      <Link className="shadow-card-link" to={paths.pinyinShadow()}>
+      <Link className="shadow-card-link" to={paths.speakingShadow()}>
         <span className="voice-invite-mark hanzi" aria-hidden>
           跟
         </span>
@@ -162,7 +162,7 @@ export function PinyinPage() {
         </span>
         <span className="go">Start →</span>
       </Link>
-      <Link className="shadow-card-link talk-card-link" to={paths.pinyinTalk()}>
+      <Link className="shadow-card-link talk-card-link" to={paths.speakingNew()}>
         <span className="voice-invite-mark hanzi" aria-hidden>
           聊
         </span>
@@ -186,7 +186,7 @@ export function PinyinPage() {
           const ear = standing(memory.tallies[hearKey(l.id)]);
           const mouth = standing(memory.tallies[sayKey(l.id)]);
           return (
-            <Link key={l.id} className="lesson-card" to={paths.pinyinSounds(l.id)}>
+            <Link key={l.id} className="lesson-card" to={paths.speakingSounds(l.id)}>
               <span className="lesson-card-mark">{l.mark}</span>
               <span className="lesson-card-name">{l.title}</span>
               <span className="lesson-card-blurb">{l.blurb}</span>

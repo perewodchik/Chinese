@@ -1,14 +1,9 @@
-import { useEffect, useMemo } from 'react';
-import { Link, useMatch } from 'react-router';
+import { useEffect } from 'react';
 import type { RadicalForm } from '../../data/radicals';
 import type { StrokeMap } from '../../data/types';
 import { ordinal, POSITION_PHRASE } from '../../domain/radicals/forms';
-import { isKnown } from '../../domain/radicals/sets';
-import { paths } from '../../navigation/paths';
-import { addRadicals, toggleKnown } from '../../store/radicals';
-import { useStore } from '../../store/store';
 import { AnimatedGlyph, Glyph } from '../../ui/Glyph';
-import { useRadicalLibrary } from './library';
+import { useRadicalLibrary } from './radicalData';
 
 interface Props {
   n: number;
@@ -22,13 +17,17 @@ interface Props {
  * The forms are the point. A radical is not one shape — 心 is 忄 beside 快, 心
  * under 想 and ⺗ under 恭 — and until they are laid out side by side, with the
  * characters each is actually used in, they look like three unrelated things.
+ *
+ * Nothing here can be ticked, queued or scheduled. A radical is not a thing
+ * you learn and are then tested on; it is a thing you look up, the way you
+ * look up what a prefix means, and it stops being interesting the moment you
+ * can see it inside a character. So this is a reference page and only that —
+ * no "mark as known", no collection to add it to, and nothing that a review
+ * could ever ask you about.
  */
 export function RadicalDrawer({ n, onClose }: Props) {
   const rlib = useRadicalLibrary();
   const r = rlib.byNumber.get(n) ?? null;
-  const known = useStore((s) => isKnown(s.radicals.known, n));
-  const sets = useStore((s) => s.radicals.sets);
-  const match = useMatch('/radicals/sets/:setId/*');
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -37,10 +36,6 @@ export function RadicalDrawer({ n, onClose }: Props) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
-
-  const holding = useMemo(() => sets.filter((s) => s.items.includes(n)), [sets, n]);
-  // Opened from inside a set, that set is the obvious place to put it.
-  const current = sets.find((s) => s.id === match?.params.setId) ?? null;
 
   return (
     <div className="drawer" onClick={onClose}>
@@ -56,22 +51,7 @@ export function RadicalDrawer({ n, onClose }: Props) {
           <button className="btn ghost sm close" onClick={onClose}>
             ✕ Close
           </button>
-          {r && (
-            <div className="row">
-              <button className={`btn sm${known ? ' primary' : ''}`} onClick={() => toggleKnown(n)}>
-                {known ? '✓ Known' : 'Mark as known'}
-              </button>
-              {current && (
-                <button
-                  className="btn sm primary"
-                  disabled={current.items.includes(n)}
-                  onClick={() => addRadicals(current.id, [n])}
-                >
-                  {current.items.includes(n) ? `In ${current.name}` : `Add to ${current.name}`}
-                </button>
-              )}
-            </div>
-          )}
+          <span className="tiny muted">For reference — radicals are not learned or reviewed</span>
         </div>
 
         {!r ? (
@@ -132,22 +112,6 @@ export function RadicalDrawer({ n, onClose }: Props) {
               <dd>
                 {r.syllabus} of the 3000 characters{' '}
                 <span className="muted small">· {r.count} in all</span>
-              </dd>
-              <dt>Progress</dt>
-              <dd>{known ? 'Known' : <span className="muted">Not known yet</span>}</dd>
-              <dt>Sets</dt>
-              <dd>
-                {holding.length ? (
-                  <span className="pill-list">
-                    {holding.map((s) => (
-                      <Link key={s.id} className="pill as-button" to={paths.radicalSet(s.id)}>
-                        {s.name}
-                      </Link>
-                    ))}
-                  </span>
-                ) : (
-                  <span className="muted">In no set yet</span>
-                )}
               </dd>
             </dl>
 

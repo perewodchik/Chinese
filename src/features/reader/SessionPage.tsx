@@ -1,14 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
-import {
-  basisPool,
-  BASIS_LABEL,
-  BASIS_SOURCES,
-  emptySpec,
-  renumber,
-  taughtAlready,
-  type BasisSource,
-} from '../../domain/teach';
+import { basisPool, emptySpec, renumber, taughtAlready } from '../../domain/teach';
 import {
   LEVELS,
   PLAN_STEPS,
@@ -77,16 +69,11 @@ function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
   // Everything earlier texts have already taught. Told to the writer as mine:
   // fair to reuse — I need the practice — but not new, and not to be re-taught.
   const met = useMemo(() => [...taughtAlready(texts)], [texts]);
-  // Five sorted passes over three thousand characters, once — not once per
+  // A sorted pass over three thousand characters, once — not once per
   // keystroke in the topic field.
-  const pools = useMemo(() => {
-    const out = {} as Record<BasisSource, string[]>;
-    for (const s of BASIS_SOURCES) out[s] = basisPool(lib, s, learned);
-    return out;
-  }, [lib, learned]);
+  const pool = useMemo(() => basisPool(lib, learned), [lib, learned]);
 
   const specs = plan.specs;
-  const pool = pools[plan.basisSource as BasisSource] ?? pools.learned;
   const budget = specs.reduce((n, s) => n + s.newCount, 0);
   const canGo = plan.basis.length >= 10 && specs.length > 0;
 
@@ -96,22 +83,16 @@ function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
   const go = (id: PlanStep) => navigate(paths.session(id));
 
   /**
-   * `basisCount` is what was asked for, `basis` is what there was. Keeping the
-   * ask un-clamped is what lets you switch from "what I have learned" — eleven
-   * characters — to HSK 2 and get the hundred and fifty you had chosen, rather
-   * than the eleven the previous source could offer.
+   * `basisCount` is what was asked for, `basis` is what there was — the ask is
+   * kept un-clamped so that marking another fifty characters learned next week
+   * widens the basis to the number that was chosen, rather than to the number
+   * there happened to be on the day the dial was last touched.
    */
-  function setBasis(source: BasisSource, count: number) {
-    const next = pools[source];
-    const basis = next.slice(0, Math.max(1, Math.min(count, next.length)));
+  function setBasis(count: number) {
+    const basis = pool.slice(0, Math.max(1, Math.min(count, pool.length)));
     const inBasis = new Set(basis);
-    patchPlan({
-      basisSource: source,
-      basisCount: count,
-      basis,
-      met: met.filter((c) => !inBasis.has(c)),
-    });
-    setSettings({ basisSource: source, basisCount: count });
+    patchPlan({ basisCount: count, basis, met: met.filter((c) => !inBasis.has(c)) });
+    setSettings({ basisCount: count });
   }
 
   const update = (next: TextSpec[]) => patchPlan({ specs: renumber(next) });
@@ -238,24 +219,16 @@ function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
               <h2>What it may assume</h2>
             </header>
             <div className="body" style={{ display: 'grid', gap: 14 }}>
-              <label className="field">
-                Count as known
-                <select
-                  value={plan.basisSource}
-                  onChange={(e) => setBasis(e.target.value as BasisSource, plan.basisCount)}
-                >
-                  {BASIS_SOURCES.map((s) => (
-                    <option key={s} value={s}>
-                      {BASIS_LABEL[s]} ({pools[s].length})
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <p className="tiny muted" style={{ margin: 0 }}>
+                The <b>{pool.length}</b> character{pool.length === 1 ? '' : 's'} you have marked learned, and
+                nothing else. Not a band you are partway through: a passage written as though HSK 1 were
+                finished is a passage you cannot read.
+              </p>
 
               {pool.length < 10 ? (
                 <p className="notice">
-                  Only {pool.length} characters here. Mark some as learned in the Library — ten is enough for a
-                  first passage, a hundred makes a good one.
+                  Only {pool.length} learned so far. Mark some in the Library — ten is enough for a first
+                  passage, a hundred makes a good one.
                 </p>
               ) : (
                 <label className="field">
@@ -268,7 +241,7 @@ function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
                     min={10}
                     max={pool.length}
                     value={Math.min(plan.basisCount, pool.length)}
-                    onChange={(e) => setBasis(plan.basisSource as BasisSource, Number(e.target.value))}
+                    onChange={(e) => setBasis(Number(e.target.value))}
                   />
                   <span className="tiny muted">
                     The {plan.basis.length} most common of the {pool.length}. Fewer reads more simply; more

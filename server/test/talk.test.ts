@@ -45,6 +45,10 @@ function stubTutor(state: Awaited<ReturnType<Tutor['status']>> = 'ready') {
       if (state !== 'ready') throw new TutorUnavailableError(SIGN_IN_HINT);
       return REPLY;
     },
+    async ask() {
+      if (state !== 'ready') throw new TutorUnavailableError(SIGN_IN_HINT);
+      return 'nothing to say here';
+    },
   };
   return { tutor, asked };
 }
@@ -63,10 +67,10 @@ function stubVoices() {
   return { voices, warmed, asked };
 }
 
-function appWith(tutor: Tutor | null, talkVoices: TalkSynthesizer | null = null) {
+function appWith(tutor: Tutor | null, talkVoices: TalkSynthesizer | null = null, clock: TestClock = new TestClock()) {
   const services = createServices(sqliteStores(openDatabase(':memory:')), {
     hasher: cheapHasher,
-    clock: new TestClock(),
+    clock,
     tutor,
     talkVoices,
   });
@@ -363,5 +367,109 @@ describe("reading Claude's answer back", () => {
     assert.match(first, /labelled lines/);
     assert.match(first, /Learner: 你好/);
     assert.match(relayOpening({ ...OPTIONS, level: 'hsk2' }, []), /Open the conversation now/);
+  });
+});
+
+describe('conversations that are kept', () => {
+  const OPENING = {
+    who: 'tutor' as const,
+    hanzi: '你好！你吃早饭了吗？',
+    pinyin: 'nǐ hǎo nǐ chī zǎo fàn le ma',
+    english: 'Hello! Have you had breakfast?',
+  };
+
+  async function started(app: ReturnType<typeof appWith>, cookie: string, options = OPTIONS) {
+    const res = await call(app, 'POST', '/api/talk/conversations', { cookie, body: { options, voice: 'chen' } });
+    assert.equal(res.status, 201);
+    return (await res.json()) as { id: string; title: string; turns: unknown[] };
+  }
+
+  it('is only for somebody signed in', async () => {
+    const app = appWith(stubTutor().tutor);
+    assert.equal((await call(app, 'GET', '/api/talk/conversations')).status, 401);
+    assert.equal((await call(app, 'POST', '/api/talk/conversations', { body: {} })).status, 401);
+  });
+
+  it('starts empty, takes the turns as they are said, and gives them back', async () => {
+    const app = appWith(stubTutor().tutor);
+    const cookie = await signedIn(app);
+    const made = await started(app, cookie);
+    assert.deepEqual(made.turns, []);
+
+    const saved = await call(app, 'PUT', `/api/talk/conversations/${made.id}`, {
+      cookie,
+      body: { options: OPTIONS, voice: 'chen', turns: [OPENING] },
+    });
+    assert.equal(saved.status, 200);
+
+    const again = await call(app, 'GET', `/api/talk/conversations/${made.id}`, { cookie });
+    const body = (await again.json()) as { turns: Array<{ hanzi: string }>; options: TalkOptions; voice: string };
+    assert.equal(body.turns.length, 1);
+    assert.equal(body.turns[0]?.hanzi, OPENING.hanzi);
+    // The settings are the point of keeping it: picked up again, it is the same conversation.
+    assert.deepEqual(body.options, OPTIONS);
+    assert.equal(body.voice, 'chen');
+  });
+
+  it('names itself after the topic, and after the opening line when there is none', async () => {
+    const app = appWith(stubTutor().tutor);
+    const cookie = await signedIn(app);
+
+    const onTopic = await started(app, cookie, { ...OPTIONS, topic: 'Food & drink' });
+    assert.equal(onTopic.title, 'Food & drink');
+
+    const open = await started(app, cookie, { ...OPTIONS, topic: '' });
+    assert.equal(open.title, 'New conversation');
+    await call(app, 'PUT', `/api/talk/conversations/${open.id}`, {
+      cookie,
+      body: { options: { ...OPTIONS, topic: '' }, voice: null, turns: [OPENING] },
+    });
+    const list = await call(app, 'GET', '/api/talk/conversations', { cookie });
+    const { conversations } = (await list.json()) as { conversations: Array<{ id: string; title: string; turns: number }> };
+    const row = conversations.find((x) => x.id === open.id);
+    assert.equal(row?.title, OPENING.hanzi);
+    assert.equal(row?.turns, 1);
+  });
+
+  it('lists the newest first, and forgets one when it is thrown away', async () => {
+    const clock = new TestClock();
+    const app = appWith(stubTutor().tutor, null, clock);
+    const cookie = await signedIn(app);
+    const first = await started(app, cookie, { ...OPTIONS, topic: 'Weather' });
+    clock.advance(60_000);
+    const second = await started(app, cookie, { ...OPTIONS, topic: 'Family' });
+
+    const list = async () => {
+      const res = await call(app, 'GET', '/api/talk/conversations', { cookie });
+      return ((await res.json()) as { conversations: Array<{ id: string }> }).conversations.map((x) => x.id);
+    };
+    assert.deepEqual(await list(), [second.id, first.id]);
+
+    assert.equal((await call(app, 'DELETE', `/api/talk/conversations/${second.id}`, { cookie })).status, 204);
+    assert.deepEqual(await list(), [first.id]);
+    assert.equal((await call(app, 'GET', `/api/talk/conversations/${second.id}`, { cookie })).status, 404);
+  });
+
+  it('keeps each account to its own conversations', async () => {
+    const app = appWith(stubTutor().tutor);
+    const mine = await signedIn(app);
+    const made = await started(app, mine);
+
+    const theirs = sessionCookie(
+      await call(app, 'POST', '/api/auth/register', { body: { username: 'someone-else', password: 'correct horse' } }),
+    );
+    // Not 403: whose it is, is not something a stranger gets to learn.
+    assert.equal((await call(app, 'GET', `/api/talk/conversations/${made.id}`, { cookie: theirs })).status, 404);
+    assert.equal(
+      (await call(app, 'PUT', `/api/talk/conversations/${made.id}`, {
+        cookie: theirs,
+        body: { options: OPTIONS, voice: null, turns: [] },
+      })).status,
+      404,
+    );
+    assert.equal((await call(app, 'DELETE', `/api/talk/conversations/${made.id}`, { cookie: theirs })).status, 404);
+
+    const list = await call(app, 'GET', '/api/talk/conversations', { cookie: theirs });
+    assert.deepEqual(((await list.json()) as { conversations: unknown[] }).conversations, []);
   });
 });

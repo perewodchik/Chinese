@@ -25,7 +25,6 @@ const plan = (id: string): TextPlan => ({
   createdAt: 1,
   setId: null,
   basis: [],
-  basisSource: 'learned',
   basisCount: 150,
   met: [],
   specs: [],

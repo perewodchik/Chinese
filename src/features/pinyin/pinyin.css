@@ -500,6 +500,24 @@
   padding-bottom: calc(var(--rec-label-h, 16px) + var(--rec-label-gap, 6px));
 }
 
+/* In a composer row: no label under it, and the same height as the box it
+   stands beside, so the row is one band rather than a circle with a text
+   field hung off it. Still over the 44px a thumb needs. */
+.rec[data-compact] {
+  padding-bottom: 0;
+  flex: 0 0 auto;
+}
+
+.rec[data-compact] .rec-button {
+  width: var(--composer-h, 48px);
+  height: var(--composer-h, 48px);
+}
+
+.rec[data-compact] .rec-dot {
+  width: 17px;
+  height: 17px;
+}
+
 .rec-button {
   --swell: 0;
   position: relative;
@@ -1252,23 +1270,34 @@
   text-align: center;
 }
 
-/* Wrapping rather than overflowing: on a phone the third button drops to a
-   line of its own, centred, instead of hanging off the right edge. */
+/* Microphone, box, Send — one line that never wraps, because each piece is
+   the size it has to be and the box takes whatever is left. The three are the
+   same height so the row reads as one control rather than three. */
 .talk-type {
+  --composer-h: 48px;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  align-items: center;
   gap: 8px;
-  width: min(100%, 440px);
+  width: min(100%, 560px);
 }
 
 .talk-type input {
-  flex: 1 1 180px;
+  flex: 1 1 auto;
   min-width: 0;
+  height: var(--composer-h);
+  font-size: 15px;
 }
 
 .talk-type .btn {
-  min-height: 40px;
+  flex: 0 0 auto;
+  min-height: var(--composer-h);
+}
+
+/* Help sits over the right end of the row, above the Send it belongs to. */
+.talk-tools {
+  display: flex;
+  justify-content: flex-end;
+  width: min(100%, 560px);
 }
 
 @media (max-width: 640px) {
@@ -1285,6 +1314,15 @@
 
 .talk-card-link {
   margin-top: 10px;
+}
+
+/* Every other page keeps a foot of padding so its last line is not against
+   the bottom of the screen. This one ends in a composer pinned there, which
+   carries its own padding and the safe area with it, so that foot lands
+   underneath the composer instead: a strip of empty paper you could scroll
+   the whole conversation up into, with nothing in it to scroll to. */
+.page:has(> .talk) {
+  padding-bottom: 0;
 }
 
 /* A hand's breadth between the last line said and the microphone over it —
@@ -1388,6 +1426,159 @@
 }
 
 /* Things you could say back, when the next word will not come. */
+/* Help opens over the conversation, not into it.
+   
+   The suggestions used to be a block inside the composer, so asking what to
+   say pushed the microphone and the text box down the screen — the two
+   controls you are about to use, moving because you asked for help using
+   them. As a layer the composer keeps its height and its place, and the page
+   underneath stays where it was. It grows upwards from the button, is capped
+   at half the viewport, and scrolls inside itself rather than off the top. */
+.talk-help {
+  position: relative;
+}
+
+.talk-help-pop {
+  position: absolute;
+  right: 0;
+  /* Clear of the button it belongs to. */
+  bottom: calc(100% + 8px);
+  z-index: 6;
+  display: grid;
+  gap: 6px;
+  width: min(92vw, 460px);
+  max-height: min(50vh, 420px);
+  overflow-y: auto;
+  padding: 10px;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  /* A finger flick inside the list must not drag the thread behind it. */
+  overscroll-behavior: contain;
+}
+
+/* What the microphone is hearing, while it hears it.
+   
+   It floats just over the composer rather than sitting in the thread as a
+   turn on the right: nothing has been said yet, and a bubble among the turns
+   claims otherwise — then has to be taken back when the recogniser changes
+   its mind, which it does with every other word. Here it reads as the
+   microphone's own output, next to the microphone, and disappears when the
+   words land in the box. */
+.talk-hearing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(100%, 560px);
+  padding: 7px 12px;
+  background: color-mix(in srgb, var(--accent) 7%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-radius: var(--radius);
+}
+
+.talk-hearing-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: talk-hearing-pulse 1.4s ease-in-out infinite;
+}
+
+/* Opacity only: a dot that changes size would move the text beside it. */
+@keyframes talk-hearing-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .talk-hearing-dot {
+    animation: none;
+  }
+}
+
+.talk-hearing-text {
+  min-width: 0;
+  font-size: 17px;
+  line-height: 1.35;
+  /* A long sentence keeps its end in view rather than its beginning: what was
+     just said is what you are checking. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
+
+/* The head of a conversation: back, and a way out of this one. */
+.talk-head {
+  margin-bottom: 12px;
+}
+
+/* ---------------------------------------------- setting a conversation up */
+
+.talk-setup .card {
+  margin-bottom: 14px;
+}
+
+.talk-start-row {
+  margin-top: 14px;
+  align-items: center;
+}
+
+.talk-saved {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.talk-saved li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.talk-saved-open {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  padding: 9px 12px;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.14s,
+    transform 0.08s;
+}
+
+.talk-saved-open:hover {
+  border-color: var(--line-2);
+  transform: translateY(-1px);
+}
+
+.talk-saved-title {
+  font-size: 14px;
+  font-weight: 520;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.talk-saved-none {
+  margin: 8px 0 0;
+}
+
 .talk-hints {
   display: grid;
   gap: 6px;

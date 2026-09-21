@@ -61,7 +61,7 @@ function usePracticeSet(id: string | undefined): PracticeSet | null {
 export function PracticePage() {
   const { set: setId } = useParams();
   const set = usePracticeSet(setId);
-  if (!set || !set.words.length) return <Navigate to={paths.pinyin()} replace />;
+  if (!set || !set.words.length) return <Navigate to={paths.speaking()} replace />;
   return <Sitting key={set.id} set={set} />;
 }
 
@@ -112,7 +112,7 @@ function Sitting({ set }: { set: PracticeSet }) {
   const chart = useStore((s) => s.settings.pitchChart);
 
   const word = set.words[at];
-  const exit = () => navigate(paths.pinyin(), { replace: true });
+  const exit = () => navigate(paths.speaking(), { replace: true });
 
   const onRecorded = useCallback(
     (s: Float32Array) => {
@@ -325,7 +325,7 @@ function Sitting({ set }: { set: PracticeSet }) {
             {chart && attempt!.selfScaled && (
               <p className="tiny muted" style={{ margin: 0 }}>
                 Your voice range is not set, so how high is guessed from this recording.{' '}
-                <Link to={paths.pinyinVoice()}>Set it up</Link> — it takes twenty seconds.
+                <Link to={paths.speakingVoice()}>Set it up</Link> — it takes twenty seconds.
               </p>
             )}
             <div className="row" style={{ justifyContent: 'center' }}>

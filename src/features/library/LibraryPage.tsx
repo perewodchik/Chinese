@@ -8,6 +8,7 @@ import { unlockCount } from '../../domain/vocab';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
+import { useRadicalDrawer } from '../../navigation/radicalDrawer';
 import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { ItemCard } from '../../ui/ItemCard';
@@ -15,6 +16,9 @@ import { useRangeSelection } from '../../ui/useRangeSelection';
 import { useTitle } from '../../ui/useTitle';
 import { useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
+import { RadicalDrawer } from './RadicalDrawer';
+import { RadicalGate } from './radicalData';
+import { RADICAL_SHOW, RadicalShelf, type RadicalShow } from './RadicalShelf';
 
 type StatusFilter = 'all' | 'learned' | 'todo' | 'free' | 'ready';
 type Sort = 'order' | 'strokes' | 'freq' | 'radical' | 'unlocks';
@@ -28,34 +32,46 @@ const STATUS: Array<{ id: StatusFilter; label: string }> = [
 ];
 const STATUS_IDS = STATUS.map((s) => s.id);
 const SORTS: Sort[] = ['order', 'strokes', 'freq', 'radical', 'unlocks'];
+const RADICAL_SHOW_IDS = RADICAL_SHOW.map((s) => s.id);
+
+/**
+ * The radicals, as a choice in the same dropdown as the bands.
+ *
+ * They are not a band and they are not characters — nothing here counts
+ * towards what you have learned, and none of them can be queued for practice
+ * or turned up in a review. They are in the library because the library is
+ * where you look something up, and a radical is a thing you look up.
+ */
+export const RADICALS_BAND = -1;
 
 /** Cards shown at first, and added by each "show more": 3000 at once is a lot of SVG. */
 const STEP = 300;
 
-const TONE_MARKS = /[\u0300-\u036f]/g;
+const TONE_MARKS = /[̀-ͯ]/g;
 
 /**
  * Browsing all three thousand characters at /library, with the search, the
  * filter and the order kept in the query, so coming back finds the library the
  * way it was left.
- *
- * Radicals are not here: they are a different kind of thing, studied early and
- * as shapes, and they have a section of their own at /radicals.
  */
 export function LibraryPage() {
-  useTitle('Library');
   const lib = useLibrary();
   const navigate = useNavigate();
   const navigation = useNavigationType();
   const openItem = useOpenItem();
   const collect = useCollect();
   const [query, setQuery] = useQuery();
+  const radicalDrawer = useRadicalDrawer();
 
   const collections = useStore((s) => s.collections);
   const learned = useStore((s) => s.learned);
   const hskBand = useStore((s) => s.settings.hskBand);
 
+  const radicals = hskBand === RADICALS_BAND;
+  useTitle(radicals ? 'Radicals' : 'Library');
+
   const status = oneOf(query.get('show'), STATUS_IDS, 'all');
+  const radicalShow = oneOf(query.get('show'), RADICAL_SHOW_IDS, 'all') as RadicalShow;
   const sort = oneOf(query.get('sort'), SORTS, 'order');
 
   // The search box keeps its own state and writes it into the address behind
@@ -66,6 +82,19 @@ export function LibraryPage() {
   useEffect(() => {
     if (navigation === 'POP') setQ(searched);
   }, [navigation, searched]);
+
+  /**
+   * `?band=radicals` in the address, from the old /radicals section and from
+   * the radical pill inside a character's drawer. The dropdown is a saved
+   * preference rather than part of the address, so the link sets it and then
+   * takes itself back out of the query.
+   */
+  const asked = query.get('band');
+  useEffect(() => {
+    if (asked !== 'radicals') return;
+    setSettings({ hskBand: RADICALS_BAND });
+    setQuery('band', '', '');
+  }, [asked, setQuery]);
 
   const [cap, setCap] = useState(STEP);
   const index = useMemo(() => collectionsByItem(collections), [collections]);
@@ -82,6 +111,7 @@ export function LibraryPage() {
   );
 
   const rows = useMemo(() => {
+    if (radicals) return [];
     const needle = q.trim().toLowerCase();
 
     const base: ItemFacts[] = lib.characters
@@ -113,12 +143,18 @@ export function LibraryPage() {
         unlockCount(lib, b.glyph, knownChars) - unlockCount(lib, a.glyph, knownChars) || a.freq - b.freq,
     };
     return [...matches].sort(cmp[sort]);
-  }, [lib, q, status, sort, index, learned, hskBand, ready, knownChars]);
+  }, [lib, q, status, sort, index, learned, hskBand, ready, knownChars, radicals]);
 
   useEffect(() => setCap(STEP), [q, status, sort, hskBand]);
 
   const ordering = useMemo(() => rows.map((r) => r.id), [rows]);
   const selection = useRangeSelection(ordering);
+
+  // Nothing about a radical can be selected, so switching to them must not
+  // leave a trayful of characters hovering over a page they belong to no more.
+  useEffect(() => {
+    if (radicals) selection.clear();
+  }, [radicals]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const counts = useMemo(() => {
     const ids = lib.characters
@@ -139,7 +175,7 @@ export function LibraryPage() {
     <>
       <section>
         <div className="row" style={{ marginBottom: 14 }}>
-          <h1 style={{ margin: 0, fontSize: 20 }}>Library</h1>
+          <h1 style={{ margin: 0, fontSize: 20 }}>{radicals ? 'Radicals' : 'Library'}</h1>
 
           <input
             type="search"
@@ -149,7 +185,7 @@ export function LibraryPage() {
               setQ(e.target.value);
               setQuery('q', e.target.value);
             }}
-            placeholder="Search 好, hao, good…"
+            placeholder={radicals ? 'Search 氵, shui, water, 三点水…' : 'Search 好, hao, good…'}
             style={{ maxWidth: 280 }}
           />
 
@@ -166,28 +202,30 @@ export function LibraryPage() {
                 </option>
               ))}
               <option value={7}>HSK 7–9</option>
+              <option value={RADICALS_BAND}>Radicals</option>
             </select>
           </label>
 
-          <label className="field" style={{ width: 150 }}>
-            <select value={sort} aria-label="Order" onChange={(e) => setQuery('sort', e.target.value, 'order')}>
-              <option value="order">Teaching order</option>
-              <option value="strokes">Stroke count</option>
-              <option value="freq">Frequency</option>
-              <option value="radical">Radical</option>
-              <option value="unlocks">What it unlocks</option>
-            </select>
-          </label>
-
+          {!radicals && (
+            <label className="field" style={{ width: 150 }}>
+              <select value={sort} aria-label="Order" onChange={(e) => setQuery('sort', e.target.value, 'order')}>
+                <option value="order">Teaching order</option>
+                <option value="strokes">Stroke count</option>
+                <option value="freq">Frequency</option>
+                <option value="radical">Radical</option>
+                <option value="unlocks">What it unlocks</option>
+              </select>
+            </label>
+          )}
         </div>
 
         <div className="row" style={{ marginBottom: 12 }}>
           <div className="chips">
-            {STATUS.map((s) => (
+            {(radicals ? RADICAL_SHOW : STATUS).map((s) => (
               <button
                 key={s.id}
                 className="chip"
-                aria-pressed={status === s.id}
+                aria-pressed={(radicals ? radicalShow : status) === s.id}
                 onClick={() => setQuery('show', s.id, 'all')}
               >
                 {s.label}
@@ -195,12 +233,18 @@ export function LibraryPage() {
             ))}
           </div>
           <div className="spacer" />
-          <span className="small muted">
-            Showing <b>{rows.length}</b> of {counts.all} · {counts.learned} learned
-          </span>
+          {!radicals && (
+            <span className="small muted">
+              Showing <b>{rows.length}</b> of {counts.all} · {counts.learned} learned
+            </span>
+          )}
         </div>
 
-        {rows.length === 0 ? (
+        {radicals ? (
+          <RadicalGate>
+            <RadicalShelf q={q} show={radicalShow} />
+          </RadicalGate>
+        ) : rows.length === 0 ? (
           <div className="empty">
             <span className="big">空</span>
             Nothing matches those filters.
@@ -235,7 +279,7 @@ export function LibraryPage() {
           </div>
         )}
 
-        {rows.length > cap && (
+        {!radicals && rows.length > cap && (
           <div className="row" style={{ justifyContent: 'center', marginTop: 18 }}>
             <button className="btn" onClick={() => setCap((c) => c + 2 * STEP)}>
               Show more — {rows.length - cap} left
@@ -243,6 +287,14 @@ export function LibraryPage() {
           </div>
         )}
       </section>
+
+      {/* A radical opens over whatever the library is showing, and over a
+          character's drawer that linked to it. */}
+      {radicalDrawer.radical !== null && (
+        <RadicalGate>
+          <RadicalDrawer n={radicalDrawer.radical} onClose={radicalDrawer.close} />
+        </RadicalGate>
+      )}
 
       {selection.selected.size > 0 && (
         <div className="tray">

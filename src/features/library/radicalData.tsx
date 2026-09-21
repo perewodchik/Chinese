@@ -10,10 +10,12 @@ interface State {
 const RadicalContext = createContext<State>({ rlib: null, error: null });
 
 /**
- * The radical data, fetched the first time this section is opened.
+ * The radical data, fetched the first time a radical is asked for.
  *
- * Half a megabyte of outlines — every way every radical is written — that no
- * other page reads, so it is not part of the wait to get to Review.
+ * Half a megabyte of outlines — every way every radical is written — which
+ * the library does not need to show three thousand characters, so it is not
+ * part of the wait to get to Review or to the library itself. It arrives when
+ * the level dropdown is set to Radicals, or when a drawer is opened on one.
  */
 export function RadicalGate({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State>({ rlib: null, error: null });
@@ -43,7 +45,7 @@ export function RadicalGate({ children }: { children: ReactNode }) {
   return <RadicalContext.Provider value={state}>{children}</RadicalContext.Provider>;
 }
 
-/** The radical data, for screens inside a `RadicalGate`. */
+/** The radical data, for anything inside a `RadicalGate`. */
 export function useRadicalLibrary(): RadicalLibrary {
   const { rlib } = useContext(RadicalContext);
   if (!rlib) throw new Error('useRadicalLibrary() is only for screens inside <RadicalGate>.');

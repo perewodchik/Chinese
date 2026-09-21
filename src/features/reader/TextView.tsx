@@ -25,12 +25,12 @@ import {
 } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Glyph } from '../../ui/Glyph';
-import { Say } from '../../ui/Say';
 import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
 import { CollectionPicker, useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
+import { SYSTEM_VOICE, useReading } from './readAloud';
 import { readerSheet } from './readerSheet';
 
 interface Props {
@@ -58,6 +58,7 @@ export function TextView({ text, set, siblings, index }: Props) {
   const toast = useToast();
   const collect = useCollect();
   const pdf = usePdfExport();
+  const reading = useReading();
   const settings = useStore((s) => s.settings);
   const learned = useStore((s) => s.learned);
   const [pinyin, setPinyin] = useState(true);
@@ -80,6 +81,9 @@ export function TextView({ text, set, siblings, index }: Props) {
   const prev = siblings[index - 1] ?? null;
   const next = siblings[index + 1] ?? null;
   const total = siblings.length;
+
+  const spoken = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
+  const canHear = reading.system || reading.voices.length > 0;
 
   const known = useMemo(() => new Set(text.basis), [text.basis]);
   const cover = useMemo(() => coverageOf(text, known), [text, known]);
@@ -170,7 +174,7 @@ export function TextView({ text, set, siblings, index }: Props) {
         )}
       </div>
 
-      <div className="scope-bar">
+      <div className="scope-bar reading-bar">
         <div className="chips">
           <button className="chip" aria-pressed={pinyin} onClick={() => setPinyin(!pinyin)}>
             Pinyin
@@ -179,15 +183,44 @@ export function TextView({ text, set, siblings, index }: Props) {
             Translation
           </button>
         </div>
-        <span className="tiny muted">
-          The PDF prints what you have showing. With them off, click a line's number to open just that
-          line — and any character to look it up.
-        </span>
+
+        {canHear && (
+          <div className="read-aloud">
+            <button
+              className={`btn sm${reading.at !== null ? ' primary' : ''}`}
+              onClick={() => (reading.at !== null ? reading.stop() : reading.readAll(spoken))}
+              title={reading.at !== null ? 'Stop reading' : 'Read the whole passage aloud'}
+            >
+              {reading.at !== null ? `◼ Stop — ${reading.at + 1}/${spoken.length}` : '▶ Read it aloud'}
+            </button>
+            {reading.voices.length > 0 && (
+              <label className="field" style={{ width: 138 }}>
+                <select
+                  value={reading.voice}
+                  aria-label="Reading voice"
+                  onChange={(e) => reading.setVoice(e.target.value)}
+                >
+                  {reading.system && <option value={SYSTEM_VOICE}>System voice</option>}
+                  {reading.voices.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
+        )}
+
         <div className="spacer" />
         <span className="tiny muted">
           {text.topic} · {genreLabel(text.genre).toLowerCase()}, {levelLabel(text.level).toLowerCase()} ·{' '}
           {text.lines.length} sentences · {textCharCount(text)} characters · from {text.basis.length} you know
         </span>
+        <p className="tiny muted scope-note">
+          The PDF prints what you have showing. With them off, click a line's number to open just that line —
+          and any character to look it up.
+        </p>
       </div>
 
       <div className="split reading-split">
@@ -196,7 +229,12 @@ export function TextView({ text, set, siblings, index }: Props) {
             {text.lines.map((l, i) => {
               const open = revealed.has(i);
               return (
-                <p key={i} className="passage-line" data-revealed={open || undefined}>
+                <p
+                  key={i}
+                  className="passage-line"
+                  data-revealed={open || undefined}
+                  data-reading={reading.at === i || undefined}
+                >
                   <button
                     className="n"
                     onClick={() =>
@@ -234,7 +272,16 @@ export function TextView({ text, set, siblings, index }: Props) {
                     })}
                   </span>
                   {(english || open) && <span className="en">{l.en}</span>}
-                  <Say text={l.zh} title="Hear this sentence" />
+                  {canHear && (
+                    <button
+                      className="say"
+                      title={reading.at === i ? 'Stop' : 'Hear this sentence'}
+                      aria-label={reading.at === i ? 'Stop reading' : `Hear sentence ${i + 1}`}
+                      onClick={() => (reading.at === i ? reading.stop() : reading.readLine(spoken, i))}
+                    >
+                      {reading.at === i ? '◼' : '🔊'}
+                    </button>
+                  )}
                 </p>
               );
             })}

@@ -34,8 +34,8 @@ export function VoicePage() {
   return (
     <section className="pinyin voice-page">
       <div className="row" style={{ marginBottom: 18 }}>
-        <Link className="btn ghost sm" to={paths.pinyin()}>
-          ← Pronunciation
+        <Link className="btn ghost sm" to={paths.speaking()}>
+          ← Speaking
         </Link>
       </div>
       <h1 style={{ margin: 0 }}>Your voice</h1>
@@ -171,7 +171,7 @@ function SoundCheck({ disabled }: { disabled: boolean }) {
             so does Chrome.
           </p>
         )}
-        <Link className="tiny muted" to={paths.pinyinSounds(lesson.id)}>
+        <Link className="tiny muted" to={paths.speakingSounds(lesson.id)}>
           {lesson.mark} — {lesson.title.toLowerCase()}
         </Link>
         {!disabled && <SayCheck word={word} />}

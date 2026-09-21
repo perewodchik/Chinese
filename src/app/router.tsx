@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createBrowserRouter, Navigate, useLocation } from 'react-router';
 import { GuestOnly } from '../features/auth/gates';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
@@ -11,11 +11,8 @@ import { PracticePage } from '../features/pinyin/PracticePage';
 import { ShadowPage } from '../features/pinyin/ShadowPage';
 import { SoundLessonPage } from '../features/pinyin/SoundLessonPage';
 import { TalkPage } from '../features/pinyin/TalkPage';
+import { TalkSetupPage } from '../features/pinyin/TalkSetupPage';
 import { VoicePage } from '../features/pinyin/VoicePage';
-import { RadicalSetPage } from '../features/radicals/RadicalSetPage';
-import { RadicalSetsPage } from '../features/radicals/RadicalSetsPage';
-import { RadicalsLayout } from '../features/radicals/RadicalsLayout';
-import { RadicalsPage } from '../features/radicals/RadicalsPage';
 import { SessionPage } from '../features/reader/SessionPage';
 import { TextPage } from '../features/reader/TextPage';
 import { TextsPage } from '../features/reader/TextsPage';
@@ -35,26 +32,35 @@ import { RequireSession } from './RequireSession';
  *   /review/:drill?n=30            one sitting of one drill
  *   /review/sheets/:sheetId        marking a printed test sheet
  *   /library?q&show&sort           browsing, filters in the query
+ *   /library?band=radicals         the same page showing all 214 radicals
  *   /collections                   every collection, and the ready-made sets
  *   /collections/build/:step       a word list written with Claude: describe, prompt, paste
  *   /collections/:id[/items|words] one collection: its design, what is in it, its words
- *   /radicals?q&show&sort          all 214, and what each is made of
- *   /radicals/sets                 radical sets, and the ready-made ones
- *   /radicals/sets/:id[/items]     one set: its design, or what is in it
  *   /texts                         the shelf
  *   /texts/session/:step           a writing session: plan, prompt, paste
  *   /texts/:textId                 one passage
- *   /pinyin                        pronunciation: the four tones and the twenty pairs
- *   /pinyin/practice/:set          saying things out loud: pair-3-3, tone-2
- *   /pinyin/sounds/:lesson?step    one sound lesson: how it is made, hear it, say it
- *   /pinyin/shadow?level&topic     saying sentences along with a natural voice
- *   /pinyin/talk                   a spoken conversation with Claude
- *   /pinyin/voice                  the voice range, and a check of the sounds
+ *   /speaking                      pronunciation: the four tones and the twenty pairs
+ *   /speaking/practice/:set        saying things out loud: pair-3-3, tone-2
+ *   /speaking/sounds/:lesson?step  one sound lesson: how it is made, hear it, say it
+ *   /speaking/shadow?level&topic   saying sentences along with a natural voice
+ *   /speaking/new                  setting a conversation up before it starts
+ *   /speaking/:conversationId      one conversation with Claude, kept
+ *   /speaking/voice                the voice range, and a check of the sounds
  *   /settings
  *
- * and, on any page, ?item=c好 for the character drawer — or ?radical=61 for a
- * radical, under /radicals.
+ * and, on any page, ?item=c好 for the character drawer — or, in the library,
+ * ?radical=61 for a radical.
+ *
+ * The section answered to /pinyin until the conversation grew into the largest
+ * thing in it; every old address redirects to its new one.
  */
+
+/** Anything else under the old /pinyin name, carried across with its tail intact. */
+function MovedToSpeaking() {
+  const { pathname, search } = useLocation();
+  return <Navigate to={`${pathname.replace(/^\/pinyin/, '/speaking')}${search}`} replace />;
+}
+
 export const router = createBrowserRouter([
   {
     errorElement: <RouteError />,
@@ -90,24 +96,32 @@ export const router = createBrowserRouter([
               { path: 'collections', element: <CollectionsPage /> },
               { path: 'collections/build/:step?', element: <BuildListPage /> },
               { path: 'collections/:collectionId/:tab?', element: <CollectionPage /> },
-              {
-                path: 'radicals',
-                element: <RadicalsLayout />,
-                children: [
-                  { index: true, element: <RadicalsPage /> },
-                  { path: 'sets', element: <RadicalSetsPage /> },
-                  { path: 'sets/:setId/:tab?', element: <RadicalSetPage /> },
-                ],
-              },
+              // Radicals were a section of their own, with sets and sheets to
+              // design, until it became clear that a radical is something you
+              // look up rather than something you work through. They are part
+              // of the library now; anything bookmarked under the old address
+              // still lands, keeping the radical it named.
+              { path: 'radicals', element: <MovedToLibrary /> },
+              { path: 'radicals/*', element: <MovedToLibrary /> },
               { path: 'texts', element: <TextsPage /> },
               { path: 'texts/session/:step?', element: <SessionPage /> },
               { path: 'texts/:textId', element: <TextPage /> },
-              { path: 'pinyin', element: <PinyinPage /> },
-              { path: 'pinyin/practice/:set', element: <PracticePage /> },
-              { path: 'pinyin/sounds/:lesson', element: <SoundLessonPage /> },
-              { path: 'pinyin/shadow', element: <ShadowPage /> },
-              { path: 'pinyin/talk', element: <TalkPage /> },
-              { path: 'pinyin/voice', element: <VoicePage /> },
+              { path: 'speaking', element: <PinyinPage /> },
+              { path: 'speaking/practice/:set', element: <PracticePage /> },
+              { path: 'speaking/sounds/:lesson', element: <SoundLessonPage /> },
+              { path: 'speaking/shadow', element: <ShadowPage /> },
+              { path: 'speaking/voice', element: <VoicePage /> },
+              // Setting one up, and the conversation itself. `new` is matched
+              // before `:conversationId` so a conversation can never be named
+              // out of reach of the page that starts one.
+              { path: 'speaking/new', element: <TalkSetupPage /> },
+              { path: 'speaking/:conversationId', element: <TalkPage /> },
+              // The section was called Pinyin until speaking became the whole
+              // of it. Anything bookmarked under the old name still lands.
+              { path: 'pinyin', element: <Navigate to={paths.speaking()} replace /> },
+              { path: 'pinyin/talk', element: <Navigate to={paths.speakingNew()} replace /> },
+              { path: 'pinyin/:rest/*', element: <MovedToSpeaking /> },
+              { path: 'pinyin/:rest', element: <MovedToSpeaking /> },
               { path: 'settings', element: <SettingsPage /> },
               { path: '*', element: <NotFoundPage /> },
             ],
@@ -117,3 +131,10 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
+
+/** An old /radicals address, sent to the library with its radical intact. */
+function MovedToLibrary() {
+  const asked = new URLSearchParams(useLocation().search).get('radical');
+  const n = asked && /^\d+$/.test(asked) ? Number(asked) : null;
+  return <Navigate to={n ? paths.radical(n) : paths.radicals()} replace />;
+}

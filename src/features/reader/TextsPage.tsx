@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { charId } from '../../domain/ids';
 import { planSession } from '../../domain/session';
-import type { BasisSource } from '../../domain/teach';
 import {
   coverageOf,
   levelLabel,
@@ -63,7 +62,6 @@ export function TextsPage() {
         lib,
         learned,
         texts,
-        basisSource: settings.basisSource as BasisSource,
         basisCount: settings.basisCount,
       }),
     );

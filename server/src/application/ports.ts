@@ -1,4 +1,11 @@
-import type { ClaudeState, TalkMode, TalkReply, TalkRequest } from '../../../shared/talk';
+import type {
+  ClaudeState,
+  TalkConversation,
+  TalkConversationSummary,
+  TalkMode,
+  TalkReply,
+  TalkRequest,
+} from '../../../shared/talk';
 import type { Session, User, Workspace } from '../domain/entities';
 
 /**
@@ -42,6 +49,20 @@ export interface WorkspaceRepository {
    * nothing is stored yet), as one atomic compare-and-swap.
    */
   save(userId: string, baseRevision: number, document: unknown, at: number): Promise<WorkspaceWrite>;
+}
+
+/**
+ * Conversations kept for a learner. Every call takes the user id as well as
+ * the conversation id: the id is the whole of the address, so the store is
+ * never asked for a conversation without being told whose it must be.
+ */
+export interface ConversationRepository {
+  list(userId: string, limit: number): Promise<TalkConversationSummary[]>;
+  find(userId: string, id: string): Promise<TalkConversation | null>;
+  create(userId: string, conversation: TalkConversation): Promise<TalkConversation>;
+  /** False when there is no such conversation of theirs to write over. */
+  save(userId: string, conversation: TalkConversation): Promise<boolean>;
+  delete(userId: string, id: string): Promise<boolean>;
 }
 
 export interface PasswordHasher {
@@ -105,4 +126,11 @@ export interface Tutor {
   status(): Promise<ClaudeState>;
   /** Claude's next turn. Throws `TutorUnavailableError` when it cannot be reached at all. */
   reply(request: TalkRequest): Promise<TalkReply>;
+  /**
+   * One prompt, one answer, in Claude's own words — what a chat would have
+   * said to the text the learner would otherwise have pasted into it. Used by
+   * the writing session and the word list builder, which have always ended in
+   * a clipboard and need not when Claude is on this machine.
+   */
+  ask(prompt: string, opts?: { timeoutMs?: number }): Promise<string>;
 }

@@ -9,7 +9,9 @@ import { downloadText } from '../../platform/files';
 import { patchPlan } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { useToast } from '../../ui/toast';
+import { AskClaude } from '../shared/AskClaude';
 import { useLibrary } from '../shared/library';
+import { useClaude } from '../shared/useClaude';
 
 interface Props {
   plan: TextPlan;
@@ -34,6 +36,7 @@ const CLAUDE = 'https://claude.ai/new';
 export function PromptStep({ plan, onNext, onBack }: Props) {
   const lib = useLibrary();
   const toast = useToast();
+  const claude = useClaude();
   const [tab, setTab] = useState<'prompt' | 'json'>('prompt');
   const [copied, setCopied] = useState(false);
   const recall = useStore((s) => s.recall);
@@ -108,6 +111,18 @@ export function PromptStep({ plan, onNext, onBack }: Props) {
           <h2>Taking it to Claude</h2>
         </header>
         <div className="body">
+          <AskClaude
+            claude={claude}
+            kind="passages"
+            text={text}
+            what={`${plan.specs.length} passage${plan.specs.length === 1 ? '' : 's'}`}
+            takes="several minutes — longer for a long session"
+            onAnswer={(answer) => {
+              patchPlan({ response: answer, copiedAt: Date.now() });
+              toast('Claude answered — here is what it wrote');
+              onNext();
+            }}
+          />
           <ol className="handoff">
             {HANDOFF_STEPS.map((s) => (
               <li key={s}>{s}</li>
@@ -121,8 +136,9 @@ export function PromptStep({ plan, onNext, onBack }: Props) {
             Either one comes back as the same JSON block.
           </p>
           <p className="notice" style={{ marginTop: 12 }}>
-            Nothing is sent to Claude from this app. The plan is saved to your account, so you can close
-            the tab, sleep on it, and finish tomorrow — on the iPad, if you like.
+            {claude.ready
+              ? 'Either way it is your own subscription doing the writing — no key, nothing billed per word. The plan is saved to your account, so you can close the tab, sleep on it, and finish tomorrow.'
+              : 'Nothing is sent to Claude from this app. The plan is saved to your account, so you can close the tab, sleep on it, and finish tomorrow — on the iPad, if you like.'}
           </p>
         </div>
         <footer className="card-foot">

@@ -7,7 +7,9 @@ import { downloadText } from '../../../platform/files';
 import { patchListPlan } from '../../../store/commands';
 import { useStore } from '../../../store/store';
 import { useToast } from '../../../ui/toast';
+import { AskClaude } from '../../shared/AskClaude';
 import { useLibrary } from '../../shared/library';
+import { useClaude } from '../../shared/useClaude';
 
 interface Props {
   plan: WordListPlan;
@@ -24,6 +26,7 @@ const CLAUDE = 'https://claude.ai/new';
 export function ListPromptStep({ plan, onNext, onBack }: Props) {
   const lib = useLibrary();
   const toast = useToast();
+  const claude = useClaude();
   const learned = useStore((s) => s.learned);
   const [copied, setCopied] = useState(false);
 
@@ -77,6 +80,18 @@ export function ListPromptStep({ plan, onNext, onBack }: Props) {
           <h2>Taking it to Claude</h2>
         </header>
         <div className="body">
+          <AskClaude
+            claude={claude}
+            kind="wordlist"
+            text={text}
+            what="the word list"
+            takes="three or four minutes"
+            onAnswer={(answer) => {
+              patchListPlan({ response: answer, copiedAt: Date.now() });
+              toast('Claude answered — here are the words');
+              onNext();
+            }}
+          />
           <ol className="handoff">
             {HANDOFF_STEPS.map((s) => (
               <li key={s}>{s}</li>
@@ -86,8 +101,9 @@ export function ListPromptStep({ plan, onNext, onBack }: Props) {
             Open Claude ↗
           </a>
           <p className="notice" style={{ marginTop: 12 }}>
-            Nothing is sent to Claude from this app. The list is saved to your account, so you can close the
-            tab and finish later — on the iPad, if you like.
+            {claude.ready
+              ? 'Either way it is your own subscription doing the writing — no key, nothing billed per word. The list is saved to your account, so you can close the tab and finish later.'
+              : 'Nothing is sent to Claude from this app. The list is saved to your account, so you can close the tab and finish later — on the iPad, if you like.'}
           </p>
         </div>
         <footer className="card-foot">

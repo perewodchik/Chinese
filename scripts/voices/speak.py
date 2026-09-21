@@ -75,18 +75,23 @@ def reference(voice, mode):
     """
     Which recording of a designed voice to clone from.
 
-    Cloning copies pace and manner along with the timbre, and the two things
-    the voice is wanted for want opposite paces. The pronunciation section
-    wants it teaching — slowly, each word said through — and that is the
-    reference the pack is built from (`<id>.wav`). A conversation wants it
-    talking, at the speed a person talks, or it sounds like somebody who has
-    forgotten how the sentence ends: that is `<id>.talk.wav` where a voice has
-    one. The two slow modes are asking for the teacher again.
+    The conversation clones from `<id>.talk.wav` in every mode, and from
+    `<id>.wav` only where a voice has no talking recording at all.
+
+    It used to pick per mode — the teaching recording for the slow modes,
+    since cloning carries pace and manner along with the timbre, and a teacher
+    is what the slow modes want. That traded away the one thing a voice cannot
+    be wrong about. The two recordings are separate takes from a description,
+    and nothing makes them the same person: Chen's teaching take came out at
+    185 Hz against the talking take's 149 Hz, so choosing Guided or Normal
+    swapped him for a woman mid-conversation. Timbre is the identity and pace
+    is a setting, so the identity wins here and pace is asked for in the text
+    instead — `spread` puts the pauses in as punctuation, which is a slowness
+    the model performs rather than one cloned from a stranger.
     """
     talking = os.path.join(DESIGN_DIR, f"{voice}.talk.wav")
     base = os.path.join(DESIGN_DIR, f"{voice}.wav")
-    teacher = MODES[mode]["teacher"]
-    return (voice, base) if teacher or not os.path.exists(talking) else (f"{voice}.talk", talking)
+    return (f"{voice}.talk", talking) if os.path.exists(talking) else (voice, base)
 
 
 def transcript(name, wav):
@@ -132,13 +137,18 @@ def token_budget(text, mode):
 # should then take. The bands are the ones in scripts/voices/pace.ts, which
 # the pack is gated on and which says where they come from; written out here
 # rather than imported, as the model names are.
+# The lower bounds are looser than the pack's, because every mode now clones
+# from the talking recording (see `reference`) and so starts from a talking
+# pace. A clip that lands at the quick end is not a bad clip here — the page
+# slows the modes that want slowing on the way out — but one that races or
+# stalls still is, which is what the band is for.
 MODES = {
-    "breakdown": {"teacher": True, "apart": True, "band": (0.45, 1.80)},
-    "teaching": {"teacher": True, "apart": False, "band": (0.30, 1.10)},
-    "conversation": {"teacher": False, "apart": False, "band": (0.25, 0.55)},
+    "breakdown": {"teacher": True, "apart": True, "band": (0.30, 1.80)},
+    "teaching": {"teacher": True, "apart": False, "band": (0.22, 1.10)},
+    "conversation": {"teacher": False, "apart": False, "band": (0.22, 0.60)},
     # Skim is this reading played faster by the page; what is made here is the
     # ordinary one.
-    "skim": {"teacher": False, "apart": False, "band": (0.25, 0.55)},
+    "skim": {"teacher": False, "apart": False, "band": (0.22, 0.60)},
 }
 ENDS = 0.35
 HAN = re.compile(r"[\u3400-\u9fff]")

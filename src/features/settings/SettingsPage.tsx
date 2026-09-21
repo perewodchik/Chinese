@@ -29,6 +29,23 @@ function whereWorkIs(status: SyncStatus | null): string {
   }
 }
 
+/** Slow enough to follow, and not so slow that it stops being speech. */
+const GUIDED_PACES: ReadonlyArray<{ value: number; label: string }> = [
+  { value: 0.8, label: 'A little slower' },
+  { value: 0.7, label: 'Slower' },
+  { value: 0.65, label: 'Slower still' },
+  { value: 0.55, label: 'Very slow' },
+  { value: 0.45, label: 'A word at a time' },
+];
+
+const SILENCE_STOPS: ReadonlyArray<{ value: number; label: string }> = [
+  { value: 0, label: 'Never — I will stop it myself' },
+  { value: 2, label: '2 seconds of quiet' },
+  { value: 3, label: '3 seconds of quiet' },
+  { value: 5, label: '5 seconds of quiet' },
+  { value: 8, label: '8 seconds of quiet' },
+];
+
 export function SettingsPage() {
   useTitle('Settings');
   const user = useUser();
@@ -224,6 +241,40 @@ export function SettingsPage() {
                 Your voice drawn over the speaker's, and a tip on what to change. Off, each syllable is simply
                 marked as understood or not.
               </span>
+            </span>
+          </label>
+          <label className="field">
+            Guided speed
+            <select
+              value={String(settings.guidedPace)}
+              onChange={(e) => setSettings({ guidedPace: Number(e.target.value) })}
+            >
+              {GUIDED_PACES.map((p) => (
+                <option key={p.value} value={String(p.value)}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+            <span className="tiny muted">
+              How slowly the Guided button under a line in a conversation reads it back. The same reading stretched,
+              not a different one — the tones stay where they are.
+            </span>
+          </label>
+          <label className="field">
+            Stop recording after
+            <select
+              value={String(settings.silenceStop)}
+              onChange={(e) => setSettings({ silenceStop: Number(e.target.value) })}
+            >
+              {SILENCE_STOPS.map((p) => (
+                <option key={p.value} value={String(p.value)}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+            <span className="tiny muted">
+              Quiet that ends a recording on its own, once you have started speaking. It watches the words, not the
+              microphone, so a fan or a room of people does not hold it open.
             </span>
           </label>
         </div>

@@ -69,7 +69,9 @@ export function radicalPlan(r: RadicalEntry, o: RadicalSheet, slot: number): Rad
 
   const lineH = p.formLines ? S.lineH : 0;
   const tipH = (f: RadicalForm) => (p.formLines && p.tips && f.tip ? S.tipH : 0);
-  const wanted = Math.max(1, o.practiceRows);
+  // The reference sheet asks for a row per shape; a designed sheet asks for a
+  // number of rows and lets the shapes share them.
+  const wanted = o.rowPerForm ? r.forms.length : Math.max(1, o.practiceRows);
 
   const rows: RadicalRow[] = [];
   let left = room;
@@ -95,7 +97,7 @@ export function radicalPlan(r: RadicalEntry, o: RadicalSheet, slot: number): Rad
   }
   for (const row of rows) row.cells = share(cols, row.forms.length);
 
-  const free = Math.max(0, Math.min(wanted - rows.length, Math.floor(left / cell)));
+  const free = o.rowPerForm ? 0 : Math.max(0, Math.min(wanted - rows.length, Math.floor(left / cell)));
   const drawn = rows.reduce((h, row) => h + lineH + (row.tip ? S.tipH : 0) + cell, 0);
 
   // Each form's line sat directly on the squares of the form above it, which

@@ -17,46 +17,20 @@ import type { GeneratedText, TextSpec } from './text';
 /* --------------------------------------------------------------- what I know */
 
 /**
- * Where the "known" inventory comes from.
+ * Every character marked learned, most common first.
  *
- * "Learned" is the honest answer, and the one the feature exists for. The HSK
- * bands are there because on a Tuesday in week two you have marked eleven
- * characters and would still like something to read: they let you borrow a
- * syllabus you have half of rather than wait until you have all of it.
+ * This used to offer the HSK bands as well, so that on a Tuesday in week two
+ * you could borrow a syllabus you had half of rather than wait until you had
+ * all of it. It was the wrong kindness: a passage written as though HSK 1 were
+ * finished is a passage full of characters that have to be looked up, and the
+ * one thing this feature is for is reading without a dictionary. What I know
+ * is what I have marked, and nothing else counts.
+ *
+ * Frequency order, so trimming the list to fifty keeps the fifty that actually
+ * turn up in sentences rather than the first fifty taught.
  */
-export type BasisSource = 'learned' | 'learned+hsk1' | 'hsk1' | 'hsk2' | 'hsk3';
-
-export const BASIS_LABEL: Record<BasisSource, string> = {
-  learned: 'What I have marked learned',
-  'learned+hsk1': 'What I know, plus all of HSK 1',
-  hsk1: 'All of HSK 1',
-  hsk2: 'HSK 1 and 2',
-  hsk3: 'HSK 1 to 3',
-};
-
-export const BASIS_SOURCES: BasisSource[] = [
-  'learned',
-  'learned+hsk1',
-  'hsk1',
-  'hsk2',
-  'hsk3',
-];
-
-/** Every character a source offers, most common first. */
-export function basisPool(
-  lib: Library,
-  source: BasisSource,
-  learned: ReadonlySet<ItemId>,
-): string[] {
-  const band = source === 'hsk1' ? 1 : source === 'hsk2' ? 2 : source === 'hsk3' ? 3 : 0;
-  const chars = lib.characters.filter((c) => {
-    const marked = learned.has(charId(c.c));
-    if (source === 'learned') return marked;
-    if (source === 'learned+hsk1') return marked || c.hsk === 1;
-    return c.hsk <= band;
-  });
-  // Frequency order, so trimming the list to fifty keeps the fifty that
-  // actually turn up in sentences rather than the first fifty taught.
+export function basisPool(lib: Library, learned: ReadonlySet<ItemId>): string[] {
+  const chars = lib.characters.filter((c) => learned.has(charId(c.c)));
   return [...chars].sort((a, b) => freqOf(a) - freqOf(b)).map((c) => c.c);
 }
 
@@ -164,7 +138,6 @@ export function emptySpec(partial: Partial<TextSpec> = {}): TextSpec {
     genre: 'story',
     newCount: 5,
     questions: true,
-    focus: '',
     ...partial,
   };
 }

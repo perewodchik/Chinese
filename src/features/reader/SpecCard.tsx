@@ -1,12 +1,4 @@
-import { useId } from 'react';
-import {
-  FOCUS_IDEAS,
-  GENRES,
-  LENGTHS,
-  LEVELS,
-  type Genre,
-  type TextSpec,
-} from '../../domain/text';
+import { GENRES, LENGTHS, LEVELS, type Genre, type TextSpec } from '../../domain/text';
 import { Seg } from '../../ui/Seg';
 
 interface Props {
@@ -25,13 +17,16 @@ const NEW_MAX = 15;
 /**
  * One passage, as an order form.
  *
- * Five decisions, all visible at once rather than folded behind a dropdown.
+ * Four decisions, all visible at once rather than folded behind a dropdown.
  * The one that used to be two — how hard the sentences are, and how rare the
  * words — is a single dial now, because it was always one question: how far
  * past what I can already read should this go.
  *
  * What it does not ask is *which* characters to teach. That is a number here
- * and a decision over there, where the story is being written.
+ * and a decision over there, where the story is being written. Nor does it
+ * ask for a grammar point any more: a box wanting one line of grammar out of
+ * a list of ten was a narrower question than the topic box next to it, which
+ * already takes "a phone call where 把 keeps coming up" and does more with it.
  */
 export function SpecCard({
   spec,
@@ -42,7 +37,6 @@ export function SpecCard({
   onRemove,
   canRemove,
 }: Props) {
-  const listId = useId();
   const level = LEVELS.find((l) => l.id === spec.level);
 
   return (
@@ -155,21 +149,6 @@ export function SpecCard({
           </div>
         </div>
 
-        <label className="field">
-          <span className="spec-label">Grammar to show off — optional</span>
-          <input
-            type="text"
-            list={listId}
-            value={spec.focus}
-            placeholder="e.g. 了 for a completed action"
-            onChange={(e) => onChange({ focus: e.target.value })}
-          />
-          <datalist id={listId}>
-            {FOCUS_IDEAS.map((f) => (
-              <option key={f} value={f} />
-            ))}
-          </datalist>
-        </label>
       </div>
     </article>
   );

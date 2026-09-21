@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { NaturalVoice } from '../../api/speech';
 import { saveVoice, usePinyinMemory } from './voice';
-import { packVoices, sampleFor, say } from './voiceOut';
+import { packVoices, sampleFor, say, voicesFor } from './voiceOut';
 
 /**
  * Whose voice to hear.
@@ -18,18 +18,39 @@ import { packVoices, sampleFor, say } from './voiceOut';
  * front of you where there is one, and a word from the pack otherwise — and
  * the choice is remembered for the whole section.
  *
+ * Given `preview`, only the voices that actually read *that* text are
+ * offered. The native speaker has single syllables and nothing longer, so on
+ * a page of sentences it has nothing to say; left in the list it could be
+ * picked, and the pack would answer in the designed voice while the chip
+ * still read Native Speaker. A choice that cannot be honoured is not offered.
+ *
  * Just the chips: the heading beside them belongs to the row it is put in.
  */
 export function VoicePicker({ preview }: { preview?: string }) {
   const chosen = usePinyinMemory().voice;
   const [voices, setVoices] = useState<NaturalVoice[]>([]);
+  const [have, setHave] = useState<string[] | null>(null);
 
   useEffect(() => {
     void packVoices().then(setVoices);
   }, []);
 
+  useEffect(() => {
+    if (!preview?.trim()) {
+      setHave(null);
+      return;
+    }
+    let live = true;
+    void voicesFor(preview).then((ids) => live && setHave(ids));
+    return () => {
+      live = false;
+    };
+  }, [preview]);
+
+  const offered = have ? voices.filter((v) => have.includes(v.id)) : voices;
+
   // One voice is not a choice, and none is not a picker.
-  if (voices.length < 2) return null;
+  if (offered.length < 2) return null;
 
   const pick = (id: string | null) => {
     saveVoice(id);
@@ -43,7 +64,7 @@ export function VoicePicker({ preview }: { preview?: string }) {
       <button className="chip" aria-pressed={chosen === null} onClick={() => pick(null)}>
         Any, in turn
       </button>
-      {voices.map((v) => (
+      {offered.map((v) => (
         <button key={v.id} className="chip" aria-pressed={chosen === v.id} onClick={() => pick(v.id)}>
           {v.name}
           <span className="count">{v.gender === 'female' ? '♀' : '♂'}</span>

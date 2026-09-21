@@ -147,8 +147,6 @@ export interface TextSpec {
   /** roughly how many characters it may introduce */
   newCount: number;
   questions: boolean;
-  /** e.g. "把 sentences"; empty for no particular focus */
-  focus: string;
 }
 
 export type PlanStep = 'plan' | 'prompt' | 'paste';
@@ -172,9 +170,9 @@ export interface TextPlan {
   createdAt: number;
   /** an existing set to add to, or null to start a new one */
   setId: string | null;
-  /** the characters counted as known, frozen when the prompt is built */
+  /** the characters counted as known — what has been marked learned, and nothing else */
   basis: string[];
-  basisSource: string;
+  /** how many of them were asked for; the basis is the commonest that many */
   basisCount: number;
   /** characters earlier texts already taught: fair to reuse, not new */
   met: string[];
@@ -273,20 +271,6 @@ export function pickTopic(used: ReadonlySet<string>): string {
   const pool = free.length ? free : TOPICS;
   return pool[Math.floor(Math.random() * pool.length)];
 }
-
-/** Grammar points worth building a passage around, at this level. */
-export const FOCUS_IDEAS = [
-  '了 for a completed action',
-  '过 for something you have done before',
-  '在 / 正在 for something happening now',
-  '把 sentences',
-  'comparison with 比',
-  'the 是…的 construction',
-  '会 / 能 / 可以',
-  'result complements (完, 好, 到)',
-  'direction complements (来, 去, 上, 下)',
-  '因为…所以… and 虽然…但是…',
-];
 
 const HANZI = /[一-鿿]/;
 

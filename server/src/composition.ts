@@ -1,6 +1,8 @@
 import { AuthService, DEFAULT_AUTH_POLICY, type AuthPolicy } from './application/auth-service';
+import { ConversationService } from './application/conversation-service';
 import type {
   Clock,
+  ConversationRepository,
   PasswordHasher,
   SessionRepository,
   SpeechSynthesizer,
@@ -17,6 +19,7 @@ import { cryptoTokens } from './infrastructure/crypto/tokens';
 export interface Services {
   auth: AuthService;
   workspaces: WorkspaceService;
+  conversations: ConversationService;
   clock: Clock;
   /** a natural voice for reading Mandarin aloud, or null where none is configured */
   speech: SpeechSynthesizer | null;
@@ -26,11 +29,12 @@ export interface Services {
   talkVoices: TalkSynthesizer | null;
 }
 
-/** Where the three kinds of record are kept. */
+/** Where each kind of record is kept. */
 export interface Stores {
   users: UserRepository;
   sessions: SessionRepository;
   workspaces: WorkspaceRepository;
+  conversations: ConversationRepository;
 }
 
 /**
@@ -62,9 +66,11 @@ export function createServices(
     policy: { ...DEFAULT_AUTH_POLICY, ...options.policy },
   });
   const workspaces = new WorkspaceService({ workspaces: stores.workspaces, clock });
+  const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
   return {
     auth,
     workspaces,
+    conversations,
     clock,
     speech: options.speech ?? null,
     tutor: options.tutor ?? null,

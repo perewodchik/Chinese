@@ -53,6 +53,8 @@ export type Runner = (bin: string, args: string[], input: string, timeoutMs: num
 
 const REPLY_TIMEOUT_MS = 120_000;
 const STATUS_TIMEOUT_MS = 15_000;
+/** A piece of work rather than a turn: five graded passages take minutes. */
+const ASK_TIMEOUT_MS = 15 * 60_000;
 /** A signed-in answer is kept for a while; any other is asked again soon, so signing in is noticed. */
 const READY_FOR_MS = 5 * 60_000;
 const OTHER_FOR_MS = 10_000;
@@ -194,10 +196,33 @@ export function replyFrom(run: RunResult): TalkReply {
   return reply;
 }
 
+/**
+ * The same run read as plain text: what a chat window would have shown, for
+ * the prompts whose answer is a JSON block the app already knows how to read.
+ */
+export function answerFrom(run: RunResult): string {
+  let out: CliResult;
+  try {
+    out = JSON.parse(run.stdout) as CliResult;
+  } catch {
+    const said = (run.stderr || run.stdout).trim().slice(0, 240);
+    throw new TutorUnavailableError(`Claude Code did not answer${said ? `: ${said}` : '.'}`);
+  }
+  const text = out.result?.trim() ?? '';
+  if (out.is_error) {
+    if (SIGNED_OUT.test(text)) throw new TutorUnavailableError(SIGN_IN_HINT);
+    throw new TutorUnavailableError(`Claude could not answer: ${text.slice(0, 240) || 'no reason given'}`);
+  }
+  if (!text) throw new TutorUnavailableError('Claude answered with nothing at all. Try again.');
+  return text;
+}
+
 export function claudeTutor(opts: {
   /** looked up on every call, since an app update moves the bundled copy */
   bin: () => string | null;
   model: string;
+  /** the model for a piece of written work, which is worth more thought than a turn */
+  askModel?: string;
   run: Runner;
   now?: () => number;
 }): Tutor {
@@ -259,6 +284,41 @@ export function claudeTutor(opts: {
         throw err;
       }
     },
+
+    async ask(prompt, askOpts = {}) {
+      const state = await status();
+      if (state === 'missing') throw new TutorUnavailableError('Claude Code is not installed on this server.');
+      if (state === 'signed-out') throw new TutorUnavailableError(SIGN_IN_HINT);
+      if (state === 'api-key') throw new TutorUnavailableError(API_KEY_HINT);
+
+      // No system prompt and no schema: the prompt the page would have put on
+      // the clipboard says everything, including the shape of the answer, and
+      // it is the same text whichever way it reaches Claude.
+      const args = [
+        '-p',
+        '--output-format',
+        'json',
+        '--model',
+        opts.askModel ?? opts.model,
+        '--safe-mode',
+        '--tools',
+        '',
+        '--strict-mcp-config',
+        '--no-session-persistence',
+      ];
+      let run: RunResult;
+      try {
+        run = await opts.run(opts.bin()!, args, prompt, askOpts.timeoutMs ?? ASK_TIMEOUT_MS);
+      } catch {
+        throw new TutorUnavailableError('Claude Code could not be started on this server.');
+      }
+      try {
+        return answerFrom(run);
+      } catch (err) {
+        known = null;
+        throw err;
+      }
+    },
   };
 }
 
@@ -266,8 +326,13 @@ export function claudeTutor(opts: {
  * The tutor for a server on the learner's own computer, or null where there
  * is no Claude Code to run (Vercel) or it is switched off (`HANZI_CLAUDE=off`).
  *
- *   HANZI_CLAUDE_BIN     the claude program, when it is somewhere unusual
- *   HANZI_CLAUDE_MODEL   sonnet (default), haiku, opus — any name Claude Code takes
+ *   HANZI_CLAUDE_BIN        the claude program, when it is somewhere unusual
+ *   HANZI_CLAUDE_MODEL      sonnet (default), haiku, opus — any name Claude Code takes
+ *   HANZI_CLAUDE_ASK_MODEL  the model for a written piece of work: opus by
+ *                           default, because a conversation wants a fast
+ *                           answer and a set of graded passages wants a good
+ *                           one, and there is a whole evening's reading
+ *                           riding on the second.
  */
 export function tutorFromEnv(env: Record<string, string | undefined>): Tutor | null {
   if (env.HANZI_CLAUDE === 'off' || env.VERCEL) return null;
@@ -276,6 +341,7 @@ export function tutorFromEnv(env: Record<string, string | undefined>): Tutor | n
   return claudeTutor({
     bin: () => findClaude(env),
     model: env.HANZI_CLAUDE_MODEL?.trim() || 'sonnet',
+    askModel: env.HANZI_CLAUDE_ASK_MODEL?.trim() || 'opus',
     run: spawnRunner(env, cwd),
   });
 }

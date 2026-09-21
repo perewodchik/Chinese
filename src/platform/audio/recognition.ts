@@ -172,8 +172,21 @@ export interface Listening {
  * one keeps listening (`continuous`) and hands over its running guess
  * (`interimResults`) so the page can show it. Safari may still stop on its
  * own after a long silence; whatever it had by then is the answer.
+ *
+ * `quietMs` ends it once the words have stopped coming, so that finishing a
+ * sentence is enough and nobody has to also announce that they have finished.
+ * What it watches is the transcript, not the microphone, and that is the
+ * whole reason it works in a room with something in it: a fan, a street, a
+ * person talking in the next chair all move a level meter, and none of them
+ * produce Chinese. The countdown starts at the first word rather than at the
+ * first tap — before that, silence is somebody deciding what to say, and the
+ * long stop (`maxMs`) is what catches a learner who never begins.
  */
-export function listen(onHeard: (text: string) => void, maxMs = 45_000): Listening {
+export function listen(
+  onHeard: (text: string) => void,
+  maxMs = 45_000,
+  quietMs = 0,
+): Listening {
   const Ctor = ctor();
   if (!Ctor) return { result: Promise.reject(new Error('unsupported')), stop: () => undefined, cancel: () => undefined };
   const r = new Ctor();
@@ -185,20 +198,31 @@ export function listen(onHeard: (text: string) => void, maxMs = 45_000): Listeni
   let text = '';
   let cancelled = false;
   let timer: ReturnType<typeof setTimeout>;
+  let quiet: ReturnType<typeof setTimeout> | undefined;
   const result = new Promise<string>((resolve, reject) => {
     let done = false;
     const finish = (fn: () => void) => {
       if (done) return;
       done = true;
       clearTimeout(timer);
+      clearTimeout(quiet);
       fn();
     };
     r.onresult = (e) => {
       // The list holds the whole session: the settled phrases, then the one still being guessed.
       let all = '';
       for (let i = 0; i < e.results.length; i++) all += e.results[i]?.[0]?.transcript ?? '';
-      text = all.trim();
-      onHeard(text);
+      const next = all.trim();
+      // Only a change counts as still talking: an engine that repeats its last
+      // guess unchanged is not hearing anything new.
+      if (next && next !== text) {
+        text = next;
+        onHeard(text);
+        if (quietMs > 0) {
+          clearTimeout(quiet);
+          quiet = setTimeout(() => r.stop(), quietMs);
+        }
+      }
     };
     r.onerror = (e) => {
       // A pause after some words is not a failure; the end event brings what there is.

@@ -255,7 +255,6 @@ function planFrom(v: unknown): TextPlan | null {
         genre: (s.genre as TextSpec['genre']) ?? 'story',
         newCount: typeof s.newCount === 'number' ? s.newCount : 5,
         questions: s.questions !== false,
-        focus: strOr(s.focus, ''),
       }),
     );
   if (!specs.length) return null;
@@ -265,7 +264,6 @@ function planFrom(v: unknown): TextPlan | null {
     createdAt: typeof p.createdAt === 'number' ? p.createdAt : Date.now(),
     setId: typeof p.setId === 'string' ? p.setId : null,
     basis: arr<string>(p.basis),
-    basisSource: strOr(p.basisSource, 'learned'),
     basisCount: typeof p.basisCount === 'number' ? p.basisCount : 150,
     met: arr<string>(p.met),
     specs,
@@ -336,12 +334,17 @@ function settingsFrom(v: unknown): AppSettings {
       (s.readerStyle as AppSettings['readerStyle']) ?? DEFAULT_SETTINGS.readerStyle,
     readerPractice: s.readerPractice !== false,
     practicePerPage: num(s.practicePerPage, DEFAULT_SETTINGS.practicePerPage),
-    basisSource: strOr(s.basisSource, DEFAULT_SETTINGS.basisSource),
     basisCount: num(s.basisCount, DEFAULT_SETTINGS.basisCount),
     modelName: strOr(s.modelName, DEFAULT_SETTINGS.modelName),
     pitchChart: s.pitchChart !== false,
+    // Kept inside what the page offers: a document written by hand, or by an
+    // older build that knew nothing of either, still opens.
+    guidedPace: clamp(num(s.guidedPace, DEFAULT_SETTINGS.guidedPace), 0.4, 1),
+    silenceStop: clamp(num(s.silenceStop, DEFAULT_SETTINGS.silenceStop), 0, 15),
   };
 }
+
+const clamp = (n: number, least: number, most: number) => Math.min(most, Math.max(least, n));
 
 /* ------------------------------------------------------------- version 3 */
 
