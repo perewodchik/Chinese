@@ -1,8 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { charId } from '../../domain/ids';
 import { planSession } from '../../domain/session';
-import { suggestBand } from '../../domain/teach';
 import {
   coverageOf,
   levelLabel,
@@ -29,7 +27,6 @@ import { Glyph } from '../../ui/Glyph';
 import { Menu } from '../../ui/Menu';
 import { Modal } from '../../ui/Modal';
 import { useToast } from '../../ui/toast';
-import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { readerSheet } from './readerSheet';
@@ -39,6 +36,9 @@ const dateName = () =>
 
 /**
  * Everything Claude has written for you, in the collections you keep it in.
+ * It is a section of the Collections page, under the character collections:
+ * a collection is a subject you are working through, and that is as true of
+ * five passages as of forty characters.
  *
  * This is the other half of the app: the squares are where a character goes
  * in, and a passage is where it comes back out. A collection of texts is the
@@ -47,30 +47,16 @@ const dateName = () =>
  * than by date. And since what belongs together is not always what was
  * written together, texts can be gathered from several into one.
  */
-export function TextsPage() {
-  useTitle('Texts');
+/** Starting a writing session — from the shelf, or from the New menu above it. */
+export function useStartSession() {
   const lib = useLibrary();
   const navigate = useNavigate();
-  const toast = useToast();
   const texts = useStore((s) => s.texts);
-  const sets = useStore((s) => s.sets);
   const plan = useStore((s) => s.plan);
   const learned = useStore((s) => s.learned);
   const settings = useStore((s) => s.settings);
 
-  /** texts picked for a bulk action, or null when the shelf is not being picked from */
-  const [picked, setPicked] = useState<Set<string> | null>(null);
-  const [merging, setMerging] = useState(false);
-  /** the collection whose texts are being put in order */
-  const [ordering, setOrdering] = useState<string | null>(null);
-
-  const learnedCount = useMemo(
-    () => lib.characters.filter((c) => learned.has(charId(c.c))).length,
-    [lib, learned],
-  );
-  const { bySet, loose } = useMemo(() => shelve(texts, sets), [texts, sets]);
-
-  function startSession(setId: string | null, name?: string) {
+  return (setId: string | null = null, name?: string) => {
     if (plan && !confirm(`Start a new session? “${plan.name}” is still in progress, and would be thrown away.`)) {
       return;
     }
@@ -84,11 +70,32 @@ export function TextsPage() {
         learned,
         texts,
         basisCount: settings.basisCount,
-        hsk: settings.targetHsk || suggestBand(lib, learned),
+        hsk: settings.targetHsk,
       }),
     );
     navigate(paths.session('plan'));
-  }
+  };
+}
+
+/**
+ * The text half of the Collections page: every collection of passages, the
+ * writing session in progress, and picking texts to merge.
+ */
+export function TextShelf() {
+  const toast = useToast();
+  const texts = useStore((s) => s.texts);
+  const sets = useStore((s) => s.sets);
+  const plan = useStore((s) => s.plan);
+  const startSession = useStartSession();
+
+  /** texts picked for a bulk action, or null when the shelf is not being picked from */
+  const [picked, setPicked] = useState<Set<string> | null>(null);
+  const [merging, setMerging] = useState(false);
+  /** the collection whose texts are being put in order */
+  const [ordering, setOrdering] = useState<string | null>(null);
+
+  const { bySet, loose } = useMemo(() => shelve(texts, sets), [texts, sets]);
+  const shelved = sets.filter((s) => bySet.has(s.id)).length;
 
   function toggle(ids: string[]) {
     setPicked((prev) => {
@@ -106,19 +113,20 @@ export function TextsPage() {
   const chosen = picked ?? new Set<string>();
 
   return (
-    <section className="shelf">
-      <div className="row" style={{ alignItems: 'flex-end', marginBottom: 18 }}>
+    <section className="shelf" id="texts">
+      <div className="shelf-head">
         <div>
-          <h1>Texts</h1>
+          <h2 className="shelf-title">Texts</h2>
           <p className="small muted" style={{ margin: 0 }}>
-            Reading written around what you know — {learnedCount} characters marked learned, {texts.length}{' '}
-            passage{texts.length === 1 ? '' : 's'} in {sets.length} collection{sets.length === 1 ? '' : 's'}.
+            {texts.length
+              ? `${texts.length} passage${texts.length === 1 ? '' : 's'} in ${shelved} collection${shelved === 1 ? '' : 's'}, written around what you know.`
+              : 'Passages written out of the characters you have marked learned.'}
           </p>
         </div>
         <div className="spacer" />
         {texts.length > 1 && (
           <button
-            className="btn"
+            className="btn sm"
             aria-pressed={selecting}
             onClick={() => {
               setPicked(selecting ? null : new Set());
@@ -128,8 +136,8 @@ export function TextsPage() {
             {selecting ? 'Done' : 'Select'}
           </button>
         )}
-        <button className="btn primary" onClick={() => startSession(null)}>
-          + New writing session
+        <button className="btn sm" onClick={() => startSession(null)}>
+          + Write texts
         </button>
       </div>
 
@@ -173,7 +181,7 @@ export function TextsPage() {
       )}
 
       {texts.length === 0 ? (
-        <div className="empty">
+        <div className="empty compact">
           <span className="big">读</span>
           <p style={{ maxWidth: 480 }}>
             Nothing written yet. Plan a few passages — how long, how hard, and how many new characters

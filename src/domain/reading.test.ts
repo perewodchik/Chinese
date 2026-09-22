@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import type { CharacterEntry, Library } from '../data/types';
 import { readCheck } from './answer';
 import { parseResponse } from './parse';
-import { alignPinyin, bandSpread, paragraphs, tokenize, wordBands } from './reading';
+import { alignPinyin, bandSpread, paragraphs, stepsAbove, tokenize, wordBands } from './reading';
 import type { TextLine } from './text';
 
 const entry = (c: string, hsk: number, py: string, words: Array<[string, number | null]> = []): CharacterEntry => ({
@@ -140,5 +140,13 @@ describe('reading an answer check', () => {
 
   it('gives up on something that is not a verdict', () => {
     assert.equal(readCheck('I think it is fine.'), null);
+  });
+});
+
+describe('stepsAbove', () => {
+  it('counts bands above the reader, capped at four, with unlisted words at the top', () => {
+    const at = (band: number) => stepsAbove({ word: true, band }, 1);
+    assert.deepEqual([1, 2, 3, 4, 5, 7, 0].map(at), [0, 1, 2, 3, 4, 4, 4]);
+    assert.equal(stepsAbove({ word: false, band: 0 }, 1), 0);
   });
 });

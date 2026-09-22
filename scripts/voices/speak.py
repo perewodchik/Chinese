@@ -144,7 +144,11 @@ def token_budget(text, mode):
 # stalls still is, which is what the band is for.
 MODES = {
     "breakdown": {"teacher": True, "apart": True, "band": (0.30, 1.80)},
-    "teaching": {"teacher": True, "apart": False, "band": (0.22, 1.10)},
+    # 0.15 at the quick end, not 0.22: the reader asks for passages in this
+    # mode, and Xiaoyu reads a plain sentence at 0.16–0.19 s a character. At
+    # 0.22 nearly every clip of hers was refused three times over, ten seconds
+    # went by, and the page read the passage in the system voice instead.
+    "teaching": {"teacher": True, "apart": False, "band": (0.15, 1.10)},
     # 0.17 at the quick end: a short question said at five characters a
     # second is a clear, ordinary reading, and turning it down sent whole
     # lines to the system voice. The blurs worth refusing come in near 0.13.

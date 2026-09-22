@@ -138,6 +138,14 @@ export function tokenize(
   return out;
 }
 
+/**
+ * How far above the reader a word is: 0 at or below their band, then 1, 2, 3,
+ * and 4 for four or more — which is also where a word no band lists goes.
+ * Each step has its own colour, so the eye can tell a stretch from a wall.
+ */
+export const stepsAbove = (t: Pick<Token, 'word' | 'band'>, target: number): number =>
+  !t.word ? 0 : t.band === 0 ? 4 : Math.min(4, Math.max(0, t.band - target));
+
 /* ------------------------------------------------------ the band spread */
 
 /**

@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import type { PaletteId, StyleId } from '../../domain/sheet';
-import { suggestBand } from '../../domain/teach';
-import { HSK_BANDS, hskLabel, shelve, type GeneratedText, type TextSet } from '../../domain/text';
+import { hskLabel, shelve, type GeneratedText, type TextSet } from '../../domain/text';
 import { paths, type ReadMode } from '../../navigation/paths';
 import { renderReading, renderTextSet } from '../../pdf/render';
 import { PALETTES, STYLES } from '../../pdf/theme';
-import { deleteText, markRead, setSettings, setTextRead } from '../../store/commands';
+import { deleteText, setSettings, setTextRead } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Menu } from '../../ui/Menu';
 import { Modal } from '../../ui/Modal';
@@ -85,16 +84,13 @@ interface ReaderProps {
 function Reader({ set, list, mode, page }: ReaderProps) {
   const text = list[page - 1];
   useTitle(mode === 'all' && set ? set.name : text.titleZh || text.title);
-  const lib = useLibrary();
   const navigate = useNavigate();
   const settings = useStore((s) => s.settings);
-  const learned = useStore((s) => s.learned);
   const [pinyin, setPinyin] = useState(true);
   const [english, setEnglish] = useState(true);
   const top = useRef<HTMLDivElement>(null);
 
-  const auto = useMemo(() => suggestBand(lib, learned), [lib, learned]);
-  const target = settings.targetHsk || auto;
+  const target = settings.targetHsk;
   const hasTrad = list.some((t) => t.lines.some((l) => l.zht));
 
   const view: ReaderView = {
@@ -142,13 +138,13 @@ function Reader({ set, list, mode, page }: ReaderProps) {
   const shown = mode === 'all' ? list : [text];
 
   return (
-    <div className="reader" ref={top}>
+    <div className="reader" ref={top} style={{ '--reader-scale': settings.readerScale } as CSSProperties}>
       <div className="reader-bar no-print">
         <div className="reader-row">
-          <Link className="btn ghost sm" to={paths.texts()} title="Back to the shelf">
+          <Link className="btn ghost sm" to={paths.texts()} title="Back to the shelf" aria-label="Back to the shelf">
             ←
           </Link>
-          <div style={{ minWidth: 0 }}>
+          <div className="reader-where">
             <b className="reader-set">{set?.name ?? 'A text on its own'}</b>
             {set && (
               <span className="tiny muted">
@@ -157,8 +153,24 @@ function Reader({ set, list, mode, page }: ReaderProps) {
               </span>
             )}
           </div>
-          <div className="spacer" />
-          {mode === 'single' && <ReadCount text={text} />}
+          <div className="seg sm size-seg" role="group" aria-label="Text size">
+            <button
+              onClick={() => setSettings({ readerScale: stepScale(settings.readerScale, -1) })}
+              disabled={settings.readerScale <= SCALE_MIN}
+              title="Smaller text"
+              aria-label="Smaller text"
+            >
+              A−
+            </button>
+            <button
+              onClick={() => setSettings({ readerScale: stepScale(settings.readerScale, 1) })}
+              disabled={settings.readerScale >= SCALE_MAX}
+              title="Larger text"
+              aria-label="Larger text"
+            >
+              A+
+            </button>
+          </div>
           <PrintMenu set={set} list={list} text={text} mode={mode} pinyin={pinyin} english={english} />
         </div>
 
@@ -172,6 +184,8 @@ function Reader({ set, list, mode, page }: ReaderProps) {
           />
         )}
 
+        {/* One line that scrolls sideways when it must, never wraps: a row that
+            reflows as a switch changes its label is a bar that jumps. */}
         <div className="reader-row reader-view">
           <Seg
             size="sm"
@@ -179,61 +193,44 @@ function Reader({ set, list, mode, page }: ReaderProps) {
             value={settings.readerLayout}
             onChange={(readerLayout) => setSettings({ readerLayout })}
             options={[
-              { id: 'paragraph', label: 'Paragraphs', title: 'The Chinese as prose, the translation beneath it' },
-              { id: 'sentences', label: 'Sentences', title: 'Each sentence with its own translation' },
+              { id: 'paragraph', label: 'Prose', title: 'Paragraphs: the Chinese as prose, the translation beneath it' },
+              { id: 'sentences', label: 'Lines', title: 'Sentence by sentence, each with its own translation' },
             ]}
           />
-          <div className="chips">
-            <button className="chip" aria-pressed={pinyin} onClick={() => setPinyin(!pinyin)}>
-              Pinyin
-            </button>
-            <button className="chip" aria-pressed={english} onClick={() => setEnglish(!english)}>
-              Translation
-            </button>
-            {hasTrad && (
-              <button
-                className="chip"
-                aria-pressed={settings.readerTraditional}
-                onClick={() => setSettings({ readerTraditional: !settings.readerTraditional })}
-                title="Show the traditional characters the writer supplied"
-              >
-                繁體
-              </button>
-            )}
+          <button className="chip" aria-pressed={pinyin} onClick={() => setPinyin(!pinyin)}>
+            Pinyin
+          </button>
+          <button className="chip" aria-pressed={english} onClick={() => setEnglish(!english)} title="The translation">
+            English
+          </button>
+          {hasTrad && (
             <button
-              className="chip mark-chip"
-              data-mark="new"
-              aria-pressed={settings.markNew}
-              onClick={() => setSettings({ markNew: !settings.markNew })}
-              title="Colour the words built from characters this text taught"
+              className="chip"
+              aria-pressed={settings.readerTraditional}
+              onClick={() => setSettings({ readerTraditional: !settings.readerTraditional })}
+              title="Show the traditional characters the writer supplied"
             >
-              New words
+              繁體
             </button>
-            <span className="chip-group">
-              <button
-                className="chip mark-chip"
-                data-mark="above"
-                aria-pressed={settings.markAbove}
-                onClick={() => setSettings({ markAbove: !settings.markAbove })}
-                title="Underline words from a band above the one you are reading at"
-              >
-                Above
-              </button>
-              <select
-                className="band-select"
-                aria-label="Your target band"
-                value={settings.targetHsk}
-                onChange={(e) => setSettings({ targetHsk: Number(e.target.value) })}
-              >
-                <option value={0}>{hskLabel(auto)} (yours)</option>
-                {HSK_BANDS.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.label}
-                  </option>
-                ))}
-              </select>
-            </span>
-          </div>
+          )}
+          <button
+            className="chip mark-chip"
+            data-mark="new"
+            aria-pressed={settings.markNew}
+            onClick={() => setSettings({ markNew: !settings.markNew })}
+            title="Colour the words built from characters this text taught"
+          >
+            New
+          </button>
+          <button
+            className="chip mark-chip"
+            data-mark="above"
+            aria-pressed={settings.markAbove}
+            onClick={() => setSettings({ markAbove: !settings.markAbove })}
+            title={`Underline words above ${hskLabel(target)}: green one band up, yellow two, red three, black four or more. Your level is set in Settings.`}
+          >
+            Levels
+          </button>
         </div>
       </div>
 
@@ -244,7 +241,7 @@ function Reader({ set, list, mode, page }: ReaderProps) {
             text={t}
             view={view}
             heading={
-              mode === 'all' || total > 1 ? (
+              mode === 'all' ? (
                 <p className="tiny muted passage-kicker">
                   {set?.name} · text {mode === 'all' ? i + 1 : page} of {total}
                 </p>
@@ -280,17 +277,22 @@ function Reader({ set, list, mode, page }: ReaderProps) {
         )}
       </div>
 
-      {total > 1 && mode === 'single' && (
-        <div className="no-print" style={{ marginTop: 18 }}>
-          <Pager mode={mode} page={page} total={total} onPage={go} onMode={() => navigate(address({ mode: 'all' }))} />
-        </div>
-      )}
       {settings.footerNote && <p className="print-only print-foot tiny">{settings.footerNote}</p>}
     </div>
   );
 }
 
-/** `[ ‹ ] Text 2 of 4 [ › ]`, and the switch to the whole session on one page. */
+const SCALE_MIN = 0.8;
+const SCALE_MAX = 1.6;
+
+/** A tenth larger or smaller, kept to one decimal so steps land where they started. */
+const stepScale = (at: number, by: number) =>
+  Math.round(Math.min(SCALE_MAX, Math.max(SCALE_MIN, at + by * 0.1)) * 10) / 10;
+
+/**
+ * `[ ‹ ] Text 2 of 4 [ › ]`, and — on the bar at the top only — the switch to
+ * the whole session on one page.
+ */
 function Pager({
   mode,
   page,
@@ -302,7 +304,7 @@ function Pager({
   page: number;
   total: number;
   onPage: (n: number) => void;
-  onMode: (m: ReadMode) => void;
+  onMode?: (m: ReadMode) => void;
 }) {
   return (
     <nav className="pager" aria-label="Texts in this session">
@@ -317,22 +319,15 @@ function Pager({
           <button className="btn sm" disabled={page >= total} onClick={() => onPage(page + 1)} aria-label="Next text">
             ›
           </button>
-          <div className="pager-dots" aria-hidden>
-            {Array.from({ length: total }, (_, i) => (
-              <button key={i} tabIndex={-1} data-here={i + 1 === page || undefined} onClick={() => onPage(i + 1)} />
-            ))}
-          </div>
-          <div className="spacer" />
-          <button className="btn ghost sm" onClick={() => onMode('all')}>
-            Show all {total} texts
-          </button>
         </>
       ) : (
+        <span className="pager-where">All {total} texts</span>
+      )}
+      {onMode && (
         <>
-          <span className="pager-where">All {total} texts in this session</span>
           <div className="spacer" />
-          <button className="btn ghost sm" onClick={() => onMode('single')}>
-            One at a time
+          <button className="btn ghost sm pager-mode" onClick={() => onMode(mode === 'all' ? 'single' : 'all')}>
+            {mode === 'all' ? 'One at a time' : 'All on one page'}
           </button>
         </>
       )}
@@ -478,37 +473,5 @@ function PdfLook({ onClose, teaches }: { onClose: () => void; teaches: number })
         </span>
       </label>
     </Modal>
-  );
-}
-
-/** Six days: long enough that a second pass is reading rather than remembering. */
-const RIPE = 6 * 86_400_000;
-
-/**
- * How many times this has been read, and an invitation to do it again.
- *
- * Re-reading a passage you have already understood is one of the few things
- * that moves reading *speed* rather than vocabulary, and it is the thing a
- * reader never thinks to do unaided — a text that has been read once feels
- * finished. So the count is kept, and once it has had time to go cold the
- * button stops saying "mark read" and starts asking.
- */
-function ReadCount({ text }: { text: GeneratedText }) {
-  const reads = text.reads ?? (text.read ? 1 : 0);
-  const cold = text.lastReadAt ? Date.now() - text.lastReadAt > RIPE : false;
-  const days = text.lastReadAt ? Math.round((Date.now() - text.lastReadAt) / 86_400_000) : 0;
-
-  return (
-    <button
-      className={`btn sm${reads ? ' primary' : ''}`}
-      onClick={() => markRead(text.id)}
-      title={
-        reads
-          ? `Read ${reads} time${reads === 1 ? '' : 's'}${text.lastReadAt ? `, last ${days} day${days === 1 ? '' : 's'} ago` : ''}`
-          : 'Mark it read'
-      }
-    >
-      {!reads ? 'Mark read' : cold ? `Read it again — ${days}d` : `✓ Read ${reads}×`}
-    </button>
   );
 }

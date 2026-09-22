@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Library } from '../../data/types';
 import { charId } from '../../domain/ids';
-import { alignPinyin, bandSpread, paragraphs, tokenize, wordBands, type Token } from '../../domain/reading';
+import { alignPinyin, bandSpread, paragraphs, stepsAbove, tokenize, wordBands } from '../../domain/reading';
 import { cardsFor } from '../../domain/teach';
 import {
   coverageOf,
@@ -14,14 +14,15 @@ import {
   type TextLine,
 } from '../../domain/text';
 import { useOpenItem } from '../../navigation/itemDrawer';
-import { setLearned, toggleLearned } from '../../store/commands';
+import { markRead, setLearned, setTextRead, toggleLearned } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Glyph } from '../../ui/Glyph';
 import { useToast } from '../../ui/toast';
 import { CollectionPicker, useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
 import { AnswerBox } from './AnswerBox';
-import { SYSTEM_VOICE, useReading } from './readAloud';
+import { Menu } from '../../ui/Menu';
+import { SYSTEM_VOICE, prefetchFirst, useReading, type Reading } from './readAloud';
 
 /** What the options bar has switched on, shared by every passage on the page. */
 export interface ReaderView {
@@ -68,6 +69,7 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
   const reading = {
     ...voice,
     at: speaking === text.id ? voice.at : null,
+    loading: speaking === text.id && voice.loading,
     readAll: (lines: string[]) => {
       speaking = text.id;
       voice.readAll(lines);
@@ -81,7 +83,17 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
   useEffect(() => setRevealed(new Set()), [text.id]);
 
   const spoken = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
-  const canHear = reading.system || reading.voices.length > 0;
+  const canHear = reading.system || reading.voices.length > 0 || reading.voice !== SYSTEM_VOICE;
+  const toast = useToast();
+
+  // The chosen voice's first sentence, on its way while the title is read.
+  useEffect(() => prefetchFirst(spoken), [spoken, reading.voice]);
+
+  // A reading that stopped short says why — once, from the passage it was in.
+  const failed = speaking === text.id ? voice.error : null;
+  useEffect(() => {
+    if (failed) toast(failed);
+  }, [failed, toast]);
   const paras = useMemo(() => paragraphs(text), [text]);
   const teachSet = useMemo(() => new Set(text.teach), [text.teach]);
   const newWords = useMemo(() => new Set(text.vocab.filter((w) => w.isNew).map((w) => w.w)), [text.vocab]);
@@ -131,7 +143,7 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
             {ch}
           </span>
         ) : (
-          <span>{ch}</span>
+          <span className="ch-plain">{ch}</span>
         );
         return syl ? (
           <ruby key={j}>
@@ -143,14 +155,14 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
         );
       });
       const isNew = view.markNew && (newWords.has(t.text) || [...t.text].some((c) => teachSet.has(c)));
-      const above = view.markAbove && isAbove(t, view.target);
+      const step = view.markAbove ? stepsAbove(t, view.target) : 0;
       return (
         <span
           key={k}
           className="w"
           data-new={isNew || undefined}
-          data-above={above || undefined}
-          title={above ? `${t.text} · ${t.band ? hskLabel(t.band) : 'outside the syllabus'}` : undefined}
+          data-above={step || undefined}
+          title={step ? `${t.text} · ${t.band ? hskLabel(t.band) : 'outside the syllabus'}` : undefined}
         >
           {chars}
         </span>
@@ -173,30 +185,12 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
             {text.hsk ? ` · written at ${hskLabel(text.hsk)}` : ''} · {textCharCount(text)} characters
           </p>
         </div>
-        <div className="spacer" />
-        {canHear && (
-          <div className="read-aloud no-print">
-            <button
-              className={`btn sm${reading.at !== null ? ' primary' : ''}`}
-              onClick={() => (reading.at !== null ? reading.stop() : reading.readAll(spoken))}
-              title={reading.at !== null ? 'Stop reading' : 'Read the whole passage aloud'}
-            >
-              {reading.at !== null ? `◼ ${reading.at + 1}/${spoken.length}` : '▶ Listen'}
-            </button>
-            {reading.voices.length > 0 && (
-              <label className="field" style={{ width: 130 }}>
-                <select value={reading.voice} aria-label="Reading voice" onChange={(e) => reading.setVoice(e.target.value)}>
-                  {reading.system && <option value={SYSTEM_VOICE}>System voice</option>}
-                  {reading.voices.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-          </div>
-        )}
+        {/* Fixed widths and always present — a label that changes, or a picker
+            that turns up once the voices have loaded, must not move anything. */}
+        <div className="passage-tools no-print">
+          <ReadToggle text={text} />
+          <ListenButton reading={reading} canHear={canHear} onListen={() => reading.readAll(spoken)} />
+        </div>
       </header>
 
       {view.layout === 'paragraph' ? (
@@ -314,9 +308,6 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
   );
 }
 
-/** A word is above the reader when its band is — or when no band knows it at all. */
-const isAbove = (t: Token, target: number) => t.word && (t.band === 0 || t.band > target);
-
 function Question({ q, view }: { q: TextLine; view: ReaderView }) {
   return (
     <p className="question">
@@ -355,7 +346,7 @@ export function Fold({
         {count !== undefined && <span className="tiny muted">{count}</span>}
         <span className="spacer" />
         <span className="fold-mark" aria-hidden>
-          ›
+          ‹
         </span>
       </button>
       <div className="fold-body">{children}</div>
@@ -470,7 +461,7 @@ function Shape({ text, target }: { text: GeneratedText; target: number }) {
           </h3>
           <div className="band-spread">
             {rows.map((b) => (
-              <div key={b} className="band-row" data-above={b === 0 || b > target || undefined}>
+              <div key={b} className="band-row" data-above={stepsAbove({ word: true, band: b }, target) || undefined}>
                 <span className="tiny">{b ? hskLabel(b) : 'Other'}</span>
                 <span className="band-bar">
                   <i style={{ width: `${((spread.get(b) ?? 0) / total) * 100}%` }} />
@@ -490,5 +481,78 @@ function Shape({ text, target }: { text: GeneratedText; target: number }) {
         </p>
       </div>
     </Fold>
+  );
+}
+
+/**
+ * Read, or not. A passage sits in a page with others, so its own state is
+ * on it rather than on the bar above them all. Marking it read still counts
+ * the reading and when it was — the reader just does not need to see a tally.
+ */
+function ReadToggle({ text }: { text: GeneratedText }) {
+  return (
+    <button
+      className="btn sm read-toggle"
+      data-read={text.read || undefined}
+      aria-pressed={text.read}
+      onClick={() => (text.read ? setTextRead(text.id, false) : markRead(text.id))}
+      title={text.read ? 'Read — tap to mark it unread' : 'Mark it read'}
+    >
+      {text.read ? '✓ Read' : 'Mark read'}
+    </button>
+  );
+}
+
+/**
+ * Listen, with the voice it listens in behind a chevron on its right: one
+ * control, not a button and a dropdown competing for the same line. While the
+ * clip is being made — a second or three, longer if the model has to load —
+ * the button spins rather than sitting there looking broken.
+ */
+function ListenButton({ reading, canHear, onListen }: { reading: Reading; canHear: boolean; onListen: () => void }) {
+  const playing = reading.at !== null;
+  const name =
+    reading.voice === SYSTEM_VOICE ? 'System voice' : (reading.voices.find((v) => v.id === reading.voice)?.name ?? '…');
+  return (
+    <div className="split-btn" data-on={playing || undefined}>
+      <button
+        className="btn sm listen"
+        disabled={!canHear}
+        onClick={() => (playing ? reading.stop() : onListen())}
+        title={canHear ? (playing ? 'Stop reading' : `Read the whole passage aloud — ${name}`) : 'No voice on this device'}
+        aria-busy={reading.loading || undefined}
+      >
+        {reading.loading ? (
+          <span className="spinner" aria-label="Loading the voice" />
+        ) : (
+          <span aria-hidden>{playing ? '◼' : '▶'}</span>
+        )}
+        <span>{playing && !reading.loading ? 'Stop' : 'Listen'}</span>
+      </button>
+      <Menu label={<span className="chev" aria-hidden>⌄</span>} title={`Voice: ${name}`} className="btn sm split-chev">
+        {(close) => (
+          <>
+            <div className="tiny muted menu-label">Read by</div>
+            {[{ id: SYSTEM_VOICE, name: 'System voice' }, ...reading.voices].map((v) => (
+              <button
+                key={v.id}
+                role="menuitemradio"
+                aria-checked={reading.voice === v.id}
+                className="btn ghost sm"
+                onClick={() => {
+                  close();
+                  reading.setVoice(v.id);
+                }}
+              >
+                <span className="menu-check" aria-hidden>
+                  {reading.voice === v.id ? '✓' : ''}
+                </span>
+                {v.name}
+              </button>
+            ))}
+          </>
+        )}
+      </Menu>
+    </div>
   );
 }

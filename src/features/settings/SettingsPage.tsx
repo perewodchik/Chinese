@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PER_PAGE_CHOICES } from '../../domain/sheet';
+import { HSK_BANDS } from '../../domain/text';
 import { chooseFolder, folderSupported, forgetFolder, getFolderName } from '../../platform/files';
 import { resetWorkspace, setSettings } from '../../store/commands';
 import type { SyncStatus } from '../../store/sync/engine';
@@ -177,9 +178,23 @@ export function SettingsPage() {
 
       <div className="card">
         <header>
-          <h2>Writing texts</h2>
+          <h2>Reading &amp; writing texts</h2>
         </header>
         <div className="body" style={{ display: 'grid', gap: 12 }}>
+          <label className="field">
+            Your level
+            <select value={settings.targetHsk} onChange={(e) => setSettings({ targetHsk: Number(e.target.value) })}>
+              {HSK_BANDS.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.label}
+                </option>
+              ))}
+            </select>
+            <span className="tiny muted">
+              Words above it are marked in a passage — green one band up, yellow two, red three, black four or
+              more — and new writing sessions are pitched at it.
+            </span>
+          </label>
           <p className="small muted" style={{ margin: 0 }}>
             No API key: a session builds a prompt, you paste it into Claude yourself, and paste the answer back.
             Nothing is sent to Claude from this app.

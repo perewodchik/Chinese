@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link, NavLink, Outlet } from 'react-router';
+import { Link, Outlet, useLocation } from 'react-router';
 import { AccountMenu } from '../features/auth/AccountMenu';
 import { ItemDrawer } from '../features/library/ItemDrawer';
 import { ProgressMeter } from '../features/library/ProgressMeter';
@@ -17,7 +17,8 @@ import { SyncIndicator } from './SyncIndicator';
 export function AppLayout() {
   const theme = useStore((s) => s.settings.theme);
   const collections = useStore((s) => s.collections.length);
-  const texts = useStore((s) => s.texts.length);
+  const textSets = useStore((s) => s.sets.filter((set) => s.texts.some((t) => t.setId === set.id)).length);
+  const { pathname } = useLocation();
   const due = useDueCount();
   const drawer = useItemDrawer();
   const main = useRef<HTMLElement>(null);
@@ -30,11 +31,15 @@ export function AppLayout() {
 
   // Review comes first because it is the one section that knows what you should
   // be doing. The rest are places you go once you have decided for yourself.
+  //
+  // A count is a badge beside the name: cinnabar where it is something to do
+  // (reviews due), quiet where it is only how many there are.
   const sections = [
-    { to: paths.review(), label: 'Review', count: due },
+    { to: paths.review(), label: 'Review', count: due, alert: true },
     { to: paths.library(), label: 'Library', count: 0 },
-    { to: paths.collections(), label: 'Collections', count: collections },
-    { to: paths.texts(), label: 'Texts', count: texts },
+    // Texts live in collections now; reading or writing one is still being
+    // in Collections, so the tab stays lit there too.
+    { to: paths.collections(), label: 'Collections', count: collections + textSets, also: '/texts' },
     { to: paths.speaking(), label: 'Speaking', count: 0 },
     { to: paths.settings(), label: 'Settings', count: 0 },
   ];
@@ -48,10 +53,20 @@ export function AppLayout() {
         </Link>
         <nav className="tabs" aria-label="Sections">
           {sections.map((s) => (
-            <NavLink key={s.to} to={s.to}>
+            <Link
+              key={s.to}
+              to={s.to}
+              aria-current={
+                pathname.startsWith(s.to) || (s.also && pathname.startsWith(s.also)) ? 'page' : undefined
+              }
+            >
               {s.label}
-              {s.count ? ` (${s.count})` : ''}
-            </NavLink>
+              {s.count > 0 && (
+                <span className="nav-badge" data-alert={s.alert || undefined} aria-label={`, ${s.count}`}>
+                  {s.count > 99 ? '99+' : s.count}
+                </span>
+              )}
+            </Link>
           ))}
         </nav>
         <div className="spacer" />

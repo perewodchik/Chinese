@@ -75,17 +75,17 @@ export function AnswerBox({ text, question }: { text: GeneratedText; question: T
       />
       <div className="answer-actions">
         {claude.ready ? (
-          <button className="btn sm primary" disabled={empty || waiting} onClick={() => void ask()}>
+          <button className="btn sm primary check-btn" disabled={empty || waiting} onClick={() => void ask()}>
             {waiting ? `Checking… ${claude.waiting}s` : 'Check answer'}
           </button>
         ) : (
           <button
-            className="btn sm"
+            className="btn sm check-btn"
             disabled={empty}
             onClick={() => void copy()}
             title="Copy a short prompt to paste into Claude, then paste its reply back here"
           >
-            {relay === 'copied' ? 'Copied — paste the reply below' : 'Check with Claude'}
+            {relay === 'copied' ? 'Copied ✓' : 'Check with Claude'}
           </button>
         )}
         {waiting && (
@@ -94,8 +94,8 @@ export function AnswerBox({ text, question }: { text: GeneratedText; question: T
           </button>
         )}
         {question.a && (
-          <button className="btn ghost sm" onClick={() => setShowModel((s) => !s)} aria-expanded={showModel}>
-            {showModel ? 'Hide the model answer' : 'Model answer'}
+          <button className="btn ghost sm" onClick={() => setShowModel((s) => !s)} aria-pressed={showModel}>
+            Model answer
           </button>
         )}
       </div>

@@ -12,6 +12,9 @@ import type { ListStep } from '../domain/wordlist';
 export type EditorTab = 'design' | 'items';
 /** A collection has a third tab, for the words it was written around. */
 export type CollectionTab = EditorTab | 'words';
+/** What the Collections page shows: both kinds, or one. */
+export type CollectionsShow = 'all' | 'characters' | 'texts';
+
 /** A session read one text at a time, or all of it on one page. */
 export type ReadMode = 'single' | 'all';
 
@@ -32,13 +35,16 @@ export const paths = {
   /** the same, with one radical's drawer open over it */
   radical: (n: number) => `/library?band=radicals&radical=${n}`,
 
-  collections: () => '/collections',
+  /** characters and texts together, or narrowed to one of them */
+  collections: (show?: CollectionsShow) =>
+    withQuery('/collections', { show: show && show !== 'all' ? show : undefined }),
   collection: (id: string, tab: CollectionTab = 'design') =>
     `/collections/${encodeURIComponent(id)}${tab === 'design' ? '' : `/${tab}`}`,
   /** a word list being written with Claude: describe, prompt, paste */
   buildList: (step: ListStep = 'describe') => `/collections/build/${step}`,
 
-  texts: () => '/texts',
+  /** the texts on the Collections page — where every "back to the shelf" goes */
+  texts: () => '/collections?show=texts',
   /** one text; within a session it redirects to its page there */
   text: (id: string) => `/texts/${encodeURIComponent(id)}`,
   /** a session of texts: `?page=2` for the second on its own, `?mode=all` for every one */

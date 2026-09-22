@@ -15,7 +15,6 @@ import { TalkSetupPage } from '../features/pinyin/TalkSetupPage';
 import { VoicePage } from '../features/pinyin/VoicePage';
 import { SessionPage } from '../features/reader/SessionPage';
 import { ReaderPage } from '../features/reader/ReaderPage';
-import { TextsPage } from '../features/reader/TextsPage';
 import { DrillPage } from '../features/review/DrillPage';
 import { GradeSheetPage } from '../features/review/GradeSheetPage';
 import { ReviewPage } from '../features/review/ReviewPage';
@@ -33,10 +32,10 @@ import { RequireSession } from './RequireSession';
  *   /review/sheets/:sheetId        marking a printed test sheet
  *   /library?q&show&sort           browsing, filters in the query
  *   /library?band=radicals         the same page showing all 214 radicals
- *   /collections                   every collection, and the ready-made sets
+ *   /collections?show              every collection, of characters and of texts, and the ready-made sets
  *   /collections/build/:step       a word list written with Claude: describe, prompt, paste
  *   /collections/:id[/items|words] one collection: its design, what is in it, its words
- *   /texts                         the shelf
+ *   /texts                         moved: the texts are on /collections?show=texts
  *   /texts/session/:step           a writing session: plan, prompt, paste
  *   /texts/:sessionId?page&mode    a session: ?page=2 one text, ?mode=all every one
  *   /texts/:textId                 one passage — within a session, its page there
@@ -104,7 +103,9 @@ export const router = createBrowserRouter([
               // still lands, keeping the radical it named.
               { path: 'radicals', element: <MovedToLibrary /> },
               { path: 'radicals/*', element: <MovedToLibrary /> },
-              { path: 'texts', element: <TextsPage /> },
+              // Texts were a tab of their own until they became what they
+              // always were: collections, beside the character ones.
+              { path: 'texts', element: <Navigate to={paths.texts()} replace /> },
               { path: 'texts/session/:step?', element: <SessionPage /> },
               { path: 'texts/:textId', element: <ReaderPage /> },
               { path: 'speaking', element: <PinyinPage /> },

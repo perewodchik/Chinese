@@ -370,8 +370,10 @@ function settingsFrom(v: unknown): AppSettings {
     readerLayout: s.readerLayout === 'sentences' ? 'sentences' : 'paragraph',
     markNew: s.markNew !== false,
     markAbove: s.markAbove !== false,
-    targetHsk: clamp(Math.round(num(s.targetHsk, DEFAULT_SETTINGS.targetHsk)), 0, 7),
+    // 0 once meant "work it out"; the level is chosen in Settings now, from HSK 1.
+    targetHsk: clamp(Math.round(num(s.targetHsk, DEFAULT_SETTINGS.targetHsk)), 1, 7),
     readerTraditional: s.readerTraditional === true,
+    readerScale: clamp(num(s.readerScale, DEFAULT_SETTINGS.readerScale), 0.8, 1.6),
   };
 }
 

@@ -55,10 +55,12 @@ export interface AppSettings {
   markNew: boolean;
   /** underline words from above the target band */
   markAbove: boolean;
-  /** the band a reader and a new session are pitched at, or 0 to work it out from what is learned */
+  /** the learner's HSK band: words above it are marked, and new sessions are pitched at it */
   targetHsk: number;
   /** show a passage in traditional characters where it has them */
   readerTraditional: boolean;
+  /** how large a passage's text is, as a multiple of the default */
+  readerScale: number;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -78,8 +80,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   readerLayout: 'paragraph',
   markNew: true,
   markAbove: true,
-  targetHsk: 0,
+  targetHsk: 1,
   readerTraditional: false,
+  readerScale: 1,
 };
 
 /** The workspace as it is written down — to the server now, and to localStorage before accounts. */
