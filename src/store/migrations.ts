@@ -341,14 +341,14 @@ function settingsFrom(v: unknown): AppSettings {
     // older build that knew nothing of either, still opens.
     guidedPace: clamp(num(s.guidedPace, DEFAULT_SETTINGS.guidedPace), 0.4, 1),
     silenceStop: clamp(num(s.silenceStop, DEFAULT_SETTINGS.silenceStop), 0, 15),
-    // Chen was three takes for a day (chen-steady, chen-tutor); whichever was
-    // kept, it is the one Chen now.
+    // Chen was three takes for a day (chen-steady, chen-tutor), and then
+    // took Jun's voice; whichever of them was kept, it is the one Chen now.
     talkVoices: Array.isArray(s.talkVoices)
       ? [
           ...new Set(
             s.talkVoices
               .filter((v): v is string => typeof v === 'string')
-              .map((v) => (v.startsWith('chen-') ? 'chen' : v)),
+              .map((v) => (v.startsWith('chen-') || v === 'jun' ? 'chen' : v)),
           ),
         ].slice(0, 20)
       : DEFAULT_SETTINGS.talkVoices,

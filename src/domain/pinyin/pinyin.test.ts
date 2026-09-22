@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { trackPitch } from '../../platform/audio/pitch';
-import { analyse, calibrate } from './analyse';
+import { analyse, calibrate, cleanPitch } from './analyse';
 import { classify, judge, TEMPLATES, templateFor, toChao, type VoiceRange } from './contour';
 import { spokenTones } from './sandhi';
 import { parseSyllable, withTone } from './syllable';
@@ -144,6 +144,30 @@ describe('telling the tones apart', () => {
     const j = judge(templateFor(4)!, 1);
     assert.equal(j.verdict, 'wrong');
     assert.match(j.tip!, /level/);
+  });
+});
+
+describe('a sentence melody', () => {
+  const frames = (hz: number[]) => hz.map((h, i) => ({ t: i / 100, hz: h, rms: h ? 0.1 : 0 }));
+
+  it('drops the frames where the tracker jumps to an overtone, and the spikes at the ends of a run', () => {
+    // 不好意思 as the tracker read it: 意 starting at 405 Hz for five frames.
+    const fall = [285, 280, 270, 260, 250, 241, 239, 233, 222, 207, 196, 186, 179, 175, 173, 171, 171];
+    const hz = [380, ...fall, 286, 403, 403, 405, 405, 405, 235, 235, 236, 234, 229, 225, 216, 212, 207, 204, 298];
+    const clean = cleanPitch(frames(hz));
+    assert.ok(clean.every((h) => h < 300), `nothing left at the top: ${clean.map(Math.round).join(' ')}`);
+    assert.ok(clean.slice(13, 17).every((h) => h > 0), 'the real end of the fall, beside the glitch, is kept');
+    assert.equal(clean[0], 0, 'the onset spike is gone');
+    assert.equal(clean.at(-1), 0, 'the trailing spike is gone');
+    // The fall itself is untouched: the tone is the thing being drawn.
+    assert.ok(clean[2]! > 270 && clean[15]! < 180);
+  });
+
+  it('keeps a real fourth tone, however fast it falls', () => {
+    const fourth = [320, 312, 300, 287, 272, 256, 240, 225, 211, 199, 188, 178, 170, 163];
+    const clean = cleanPitch(frames(fourth));
+    assert.ok(clean.every((h) => h > 0));
+    assert.ok(clean[0]! > 300 && clean.at(-1)! < 175);
   });
 });
 
