@@ -343,6 +343,29 @@ export function playBytesAtPace(bytes: ArrayBuffer, pace: number): Promise<void>
   });
 }
 
+/**
+ * A recording of the learner, as samples, played to the end — for takes kept
+ * from an earlier visit, when no microphone session is open to play them.
+ */
+export function playSamples(samples: Float32Array, rate = ANALYSIS_RATE): Promise<void> {
+  const c = context();
+  void c.resume();
+  const buffer = c.createBuffer(1, samples.length, rate);
+  buffer.copyToChannel(new Float32Array(samples), 0);
+  return new Promise((resolve) => {
+    playing?.stop();
+    const src = c.createBufferSource();
+    src.buffer = buffer;
+    src.connect(output());
+    src.onended = () => {
+      if (playing === src) playing = null;
+      resolve();
+    };
+    src.start();
+    playing = src;
+  });
+}
+
 /** Silence, whichever voice is talking. */
 export function hush() {
   playing?.stop();

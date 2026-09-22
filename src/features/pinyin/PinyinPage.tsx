@@ -7,6 +7,7 @@ import { paths } from '../../navigation/paths';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { PartnerPicker } from './PartnerPicker';
+import { share, useSaidLog, weeks } from './progress';
 import { hearKey, pairKey, recentScore, sayKey, toneKey, usePinyinMemory, type Tally } from './voice';
 import './pinyin.css';
 
@@ -44,6 +45,8 @@ export function PinyinPage() {
   const pairs = useMemo(() => tonePairs(lib), [lib]);
   const singles = useMemo(() => singleTones(lib), [lib]);
   const { hash } = useLocation();
+  const log = useSaidLog();
+  const understoodWeeks = useMemo(() => weeks(log), [log]);
 
   // Arriving from the conversation's "hear them first": the partners are
   // at the bottom of a long page.
@@ -157,6 +160,20 @@ export function PinyinPage() {
       </div>
 
       <h2 className="pinyin-label">Whole sentences</h2>
+      <Understood weeks={understoodWeeks} />
+      <Link className="shadow-card-link" to={`${paths.speakingShadow()}?mode=context`}>
+        <span className="voice-invite-mark hanzi" aria-hidden>
+          说
+        </span>
+        <span>
+          <b>In context</b>
+          <span className="small muted">
+            A situation and what you want to say in it, in English. Say it in Chinese, find out whether you were
+            understood, then hear a native speaker say it.
+          </span>
+        </span>
+        <span className="go">Start →</span>
+      </Link>
       <Link className="shadow-card-link" to={paths.speakingShadow()}>
         <span className="voice-invite-mark hanzi" aria-hidden>
           跟
@@ -222,5 +239,41 @@ export function PinyinPage() {
         })}
       </div>
     </section>
+  );
+}
+
+/**
+ * The one number worth watching: how many whole sentences a listener would
+ * have understood, this week against the ones before. First tries only —
+ * see progress.ts.
+ */
+function Understood({ weeks: ws }: { weeks: ReturnType<typeof weeks> }) {
+  const recent = ws.slice(0, 6).reverse();
+  if (!recent.some((w) => share(w) !== null)) {
+    return (
+      <p className="small muted pinyin-lede">
+        Say whole sentences out loud and the app keeps track of how many a listener would have understood, week by
+        week — the measure that matters more than any chart.
+      </p>
+    );
+  }
+  const now = ws[0];
+  return (
+    <div className="understood-weeks" aria-label="Sentences understood, week by week">
+      <div className="understood-now">
+        <b>{share(now) ?? '—'}%</b>
+        <span className="tiny muted">
+          understood, week of {new Date(now!.start).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} ·{' '}
+          {now!.tries} sentences
+        </span>
+      </div>
+      <div className="understood-bars">
+        {recent.map((w) => (
+          <span key={w.start} title={`${share(w) ?? '—'}% of ${w.tries}`}>
+            <i style={{ height: `${share(w) ?? 0}%` }} />
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }

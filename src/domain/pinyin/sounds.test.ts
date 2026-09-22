@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { withoutTone } from '../drill';
-import { bestHeard, compareHeard, describeMiss } from './heard';
+import { bestHeard, compareHeard, describeMiss, understood } from './heard';
 import { SOUND_LESSONS } from './sounds';
 import { parseSyllable, syllables } from './syllable';
 
@@ -95,5 +95,36 @@ describe('what recognition heard', () => {
   it('marks a -n heard as -ng on the final', () => {
     const r = compareHeard('xīn', '星', readings);
     assert.deepEqual(r.syllables[0]!.off, ['final']);
+  });
+});
+
+describe('whether a listener understood', () => {
+  const said = (py: string, zh: string, heard: string) => understood(compareHeard(py, heard, readings), zh);
+
+  it('is understood when it heard the sentence meant, or the same words with the same tones', () => {
+    assert.ok(said('wǒ mǎi shū', '我买书。', '我买书'));
+    // 事 for 是: the same sound and the same tone — nobody could tell them apart.
+    assert.ok(said('shì', '是', '事'));
+  });
+
+  it('is not understood when a tone turned it into another word', () => {
+    // 卖 for 买: the sounds are right and the meaning is the opposite.
+    const r = compareHeard('wǒ mǎi shū', '我卖书', readings);
+    assert.ok(r.clean, 'the sounds all came out');
+    assert.ok(r.syllables[1]!.toneOff);
+    assert.ok(!understood(r, '我买书。'));
+    assert.match(describeMiss(r.syllables[1]!), /another tone/);
+  });
+
+  it('does not hold a neutral tone to the dictionary reading', () => {
+    // 便宜's 宜 is written yí and said light.
+    assert.ok(!compareHeard('pián yi', '便宜', readings).syllables[1]!.toneOff);
+  });
+
+  it('takes the very character meant as heard right, whatever the dictionary has for it', () => {
+    // The data has 便 as biàn only.
+    const r = compareHeard('pián yi', '便宜', readings, '便宜');
+    assert.ok(r.syllables.every((x) => x.off.length === 0 && !x.toneOff));
+    assert.ok(said('pián yi', '便宜', '便宜'));
   });
 });

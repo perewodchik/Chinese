@@ -620,6 +620,27 @@ the speaker's and yours — are drawn one over the other; the sounds are checked
 by speech recognition, which is at its best on a whole sentence. "Voice, then
 me" plays the two back to back.
 
+**Being understood is the measure**, more than the chart. A native speaker's
+sentence does not look like the textbook tones either — tones shrink, the
+sentence drifts down, a third before another syllable is just low — so the
+question worth asking is whether a listener would take away the words you
+meant. The nearest listener the app has is speech recognition, which learned
+from native speakers and hears a whole sentence with its context, as a person
+does. So every whole sentence said ends in **Understood** or **Not quite
+understood**: every word heard as the word meant, sounds *and* tones (买 heard
+for 卖 is a different word, however the chart looked), or simply the exact
+sentence. The Speaking page shows the share understood per week, first tries
+only, so the trend is how well you speak rather than how well you copy.
+
+- **In context** (/pinyin/shadow?mode=context): a situation and what the other
+  person just said, and what you want to say — in English only. You say it in
+  Chinese, find out whether you were understood, then see the Chinese and hear
+  the native speaker. The scenes are in `scripts/voices/shadowing.json`.
+- **Monthly check** (?mode=check): the same six sentences once a month, each
+  take kept in the browser (IndexedDB) with whether it was understood, and
+  played beside the first month's. Progress is too slow to hear from one day
+  to the next; months apart, it is obvious.
+
 ### The voice pack
 
 What the section says aloud comes from `public/voices/`, built on the Mac with

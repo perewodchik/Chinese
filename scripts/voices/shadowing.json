@@ -7,6 +7,9 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-好久不见.wav"
+    },
+    "context": {
+      "scene": "You bump into a classmate you haven't seen since last year."
     }
   },
   {
@@ -17,6 +20,9 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-不好意思.wav"
+    },
+    "context": {
+      "scene": "You step on someone's foot on a crowded bus."
     }
   },
   {
@@ -27,6 +33,9 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-请问现在几点?.wav"
+    },
+    "context": {
+      "scene": "Your phone is dead, and you ask a stranger at the bus stop."
     }
   },
   {
@@ -37,6 +46,15 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-一共多少钱?.wav"
+    },
+    "context": {
+      "scene": "At the market, you've picked out some fruit and vegetables.",
+      "before": {
+        "who": "seller",
+        "zh": "你还要别的吗？",
+        "py": "nǐ hái yào bié de ma",
+        "en": "Anything else?"
+      }
     }
   },
   {
@@ -47,6 +65,9 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-书店在哪里?.wav"
+    },
+    "context": {
+      "scene": "You're new on campus and ask a student for directions."
     }
   },
   {
@@ -57,6 +78,15 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-他今天很忙.wav"
+    },
+    "context": {
+      "scene": "A colleague asks whether your boss can see them.",
+      "before": {
+        "who": "colleague",
+        "zh": "王经理今天有时间吗？",
+        "py": "wáng jīng lǐ jīn tiān yǒu shí jiān ma",
+        "en": "Does Manager Wang have time today?"
+      }
     }
   },
   {
@@ -67,6 +97,15 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-他今天不太忙.wav"
+    },
+    "context": {
+      "scene": "A friend asks whether your brother can come to dinner.",
+      "before": {
+        "who": "friend",
+        "zh": "你哥哥今天忙吗？",
+        "py": "nǐ gē ge jīn tiān máng ma",
+        "en": "Is your brother busy today?"
+      }
     }
   },
   {
@@ -77,6 +116,15 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-两个都很忙.wav"
+    },
+    "context": {
+      "scene": "Someone asks about your two roommates.",
+      "before": {
+        "who": "friend",
+        "zh": "你的室友忙不忙？",
+        "py": "nǐ de shì yǒu máng bù máng",
+        "en": "Are your roommates busy?"
+      }
     }
   },
   {
@@ -87,6 +135,15 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-他不喜欢看电影.wav"
+    },
+    "context": {
+      "scene": "Your friend suggests inviting your brother to the cinema.",
+      "before": {
+        "who": "friend",
+        "zh": "我们叫你弟弟一起去看电影吧？",
+        "py": "wǒ men jiào nǐ dì di yī qǐ qù kàn diàn yǐng ba",
+        "en": "Shall we ask your brother to come to the film?"
+      }
     }
   },
   {
@@ -97,6 +154,15 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-又便宜又好吃.wav"
+    },
+    "context": {
+      "scene": "A friend asks about the noodle place near your flat.",
+      "before": {
+        "who": "friend",
+        "zh": "你家旁边那家面馆怎么样？",
+        "py": "nǐ jiā páng biān nà jiā miàn guǎn zěn me yàng",
+        "en": "How's that noodle place next to your place?"
+      }
     }
   },
   {
@@ -107,6 +173,15 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-他要去买衣服.wav"
+    },
+    "context": {
+      "scene": "Someone asks where your friend is going.",
+      "before": {
+        "who": "classmate",
+        "zh": "他去哪里？",
+        "py": "tā qù nǎ lǐ",
+        "en": "Where's he going?"
+      }
     }
   },
   {
@@ -117,6 +192,15 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-他要先去买菜,再去买书.wav"
+    },
+    "context": {
+      "scene": "Your roommate's mother asks what he's doing this afternoon.",
+      "before": {
+        "who": "mother",
+        "zh": "他下午做什么？",
+        "py": "tā xià wǔ zuò shén me",
+        "en": "What's he doing this afternoon?"
+      }
     }
   },
   {
@@ -127,6 +211,9 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-那件衣服怎麽样?.wav"
+    },
+    "context": {
+      "scene": "Shopping with a friend, you point at a jacket on the rack."
     }
   },
   {
@@ -137,6 +224,15 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-这家餐厅的菜怎麽样?.wav"
+    },
+    "context": {
+      "scene": "A friend has just eaten at a restaurant you've never tried.",
+      "before": {
+        "who": "friend",
+        "zh": "我昨天去了那家新餐厅。",
+        "py": "wǒ zuó tiān qù le nà jiā xīn cān tīng",
+        "en": "I went to that new restaurant yesterday."
+      }
     }
   },
   {
@@ -147,6 +243,15 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-他们在哪里见面?.wav"
+    },
+    "context": {
+      "scene": "You hear that two friends are meeting up and want to know where.",
+      "before": {
+        "who": "friend",
+        "zh": "小王和小李今天晚上见面。",
+        "py": "xiǎo wáng hé xiǎo lǐ jīn tiān wǎn shang jiàn miàn",
+        "en": "Xiao Wang and Xiao Li are meeting tonight."
+      }
     }
   },
   {
@@ -157,6 +262,15 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-她一边打工一边念书.wav"
+    },
+    "context": {
+      "scene": "Someone asks what your younger sister does.",
+      "before": {
+        "who": "neighbour",
+        "zh": "你妹妹工作了吗？",
+        "py": "nǐ mèi mei gōng zuò le ma",
+        "en": "Does your sister work?"
+      }
     }
   },
   {
@@ -167,6 +281,9 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-欢迎光临.wav"
+    },
+    "context": {
+      "scene": "You're working at a shop, and a customer walks in."
     }
   },
   {
@@ -177,6 +294,15 @@
     "source": {
       "kind": "commons",
       "file": "File:LL-Q9192 (cmn)-Luilui6666-他们去哪里吃饭?.wav"
+    },
+    "context": {
+      "scene": "Your friends have just left for dinner without you.",
+      "before": {
+        "who": "friend",
+        "zh": "他们都去吃饭了。",
+        "py": "tā men dōu qù chī fàn le",
+        "en": "They've all gone to eat."
+      }
     }
   },
   {
@@ -190,6 +316,9 @@
       "audio": 988881,
       "speaker": "GlossaMatik",
       "license": "CC BY-NC 4.0"
+    },
+    "context": {
+      "scene": "You're at a restaurant with a friend, looking at the menu together."
     }
   },
   {
@@ -203,6 +332,9 @@
       "audio": 988889,
       "speaker": "GlossaMatik",
       "license": "CC BY-NC 4.0"
+    },
+    "context": {
+      "scene": "You're cooking for a guest you don't know well, and ask politely."
     }
   },
   {
@@ -216,6 +348,9 @@
       "audio": 988895,
       "speaker": "GlossaMatik",
       "license": "CC BY-NC 4.0"
+    },
+    "context": {
+      "scene": "At the entrance to a park, you ask at the ticket window."
     }
   },
   {
@@ -229,6 +364,9 @@
       "audio": 988882,
       "speaker": "GlossaMatik",
       "license": "CC BY-NC 4.0"
+    },
+    "context": {
+      "scene": "You work at a restaurant, and a group comes in."
     }
   },
   {
@@ -242,6 +380,15 @@
       "audio": 992963,
       "speaker": "GlossaMatik",
       "license": "CC BY-NC 4.0"
+    },
+    "context": {
+      "scene": "Your friend is on a third bowl of dumplings before a long bus ride.",
+      "before": {
+        "who": "friend",
+        "zh": "这个饺子太好吃了！",
+        "py": "zhè ge jiǎo zi tài hǎo chī le",
+        "en": "These dumplings are so good!"
+      }
     }
   },
   {
@@ -255,6 +402,15 @@
       "audio": 992946,
       "speaker": "GlossaMatik",
       "license": "CC BY-NC 4.0"
+    },
+    "context": {
+      "scene": "A friend is about to put on a huge coat.",
+      "before": {
+        "who": "friend",
+        "zh": "外面冷吗？",
+        "py": "wài miàn lěng ma",
+        "en": "Is it cold outside?"
+      }
     }
   },
   {
@@ -268,6 +424,15 @@
       "audio": 992955,
       "speaker": "GlossaMatik",
       "license": "CC BY-NC 4.0"
+    },
+    "context": {
+      "scene": "Your alarm goes off on a grey Monday, and your roommate calls you.",
+      "before": {
+        "who": "roommate",
+        "zh": "快起床！八点了。",
+        "py": "kuài qǐ chuáng bā diǎn le",
+        "en": "Get up, it's eight o'clock."
+      }
     }
   },
   {
@@ -281,6 +446,15 @@
       "audio": 992920,
       "speaker": "GlossaMatik",
       "license": "CC BY-NC 4.0"
+    },
+    "context": {
+      "scene": "A friend asks why you're soaked when you arrive.",
+      "before": {
+        "who": "friend",
+        "zh": "你怎么全湿了？",
+        "py": "nǐ zěn me quán shī le",
+        "en": "Why are you all wet?"
+      }
     }
   },
   {
@@ -294,6 +468,15 @@
       "audio": 1284515,
       "speaker": "zhoucantd",
       "license": "CC BY-NC 4.0"
+    },
+    "context": {
+      "scene": "A friend needs flowers for a birthday this evening.",
+      "before": {
+        "who": "friend",
+        "zh": "我想买花，哪里有？",
+        "py": "wǒ xiǎng mǎi huā nǎ lǐ yǒu",
+        "en": "I want to buy flowers — where can I get some?"
+      }
     }
   },
   {
@@ -307,6 +490,15 @@
       "audio": 1284517,
       "speaker": "zhoucantd",
       "license": "CC BY-NC 4.0"
+    },
+    "context": {
+      "scene": "Your friend is going hiking alone, and you want to know they're safe.",
+      "before": {
+        "who": "friend",
+        "zh": "我下午去爬山。",
+        "py": "wǒ xià wǔ qù pá shān",
+        "en": "I'm going up the mountain this afternoon."
+      }
     }
   },
   {
@@ -320,6 +512,9 @@
       "audio": 1284516,
       "speaker": "zhoucantd",
       "license": "CC BY-NC 4.0"
+    },
+    "context": {
+      "scene": "On a first coffee with a new language partner, you want to know more about them."
     }
   },
   {
@@ -333,6 +528,15 @@
       "audio": 1284520,
       "speaker": "zhoucantd",
       "license": "CC BY-NC 4.0"
+    },
+    "context": {
+      "scene": "You ask a passer-by about the shop you're heading to, late in the evening.",
+      "before": {
+        "who": "passer-by",
+        "zh": "那家超市啊？在前面。",
+        "py": "nà jiā chāo shì a zài qián miàn",
+        "en": "That supermarket? It's just ahead."
+      }
     }
   }
 ]

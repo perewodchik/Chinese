@@ -2480,3 +2480,219 @@
   justify-self: start;
   min-height: 36px;
 }
+
+/* --- in context: the situation, what was said to you, and what you want to say */
+
+.context-scene,
+.context-task {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  max-width: 560px;
+}
+
+.context-scene {
+  padding: 14px 16px;
+  background: var(--card-2);
+  border-radius: var(--radius-lg);
+}
+
+.context-scene p {
+  margin: 0;
+  font-size: 14.5px;
+}
+
+.context-label {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.context-before {
+  display: grid;
+  gap: 2px;
+  margin-top: 4px;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.context-before .hanzi {
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.context-py {
+  color: var(--accent);
+}
+
+.context-task {
+  text-align: center;
+  justify-items: center;
+}
+
+.context-en {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* Whether a listener got it: the one answer that matters, said first. */
+.understood-verdict {
+  margin: 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 14.5px;
+  font-weight: 620;
+}
+
+.understood-verdict[data-state='right'] {
+  color: var(--jade);
+  background: var(--jade-soft);
+}
+
+.understood-verdict[data-state='wrong'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* --- the weekly "understood" number on the Speaking page */
+
+.understood-weeks {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.understood-now {
+  display: grid;
+  gap: 2px;
+}
+
+.understood-now b {
+  font-size: 28px;
+  font-weight: 620;
+  line-height: 1;
+  color: var(--jade);
+}
+
+.understood-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 40px;
+}
+
+.understood-bars span {
+  display: flex;
+  align-items: flex-end;
+  width: 10px;
+  height: 100%;
+  background: var(--card-2);
+  border-radius: 3px;
+}
+
+.understood-bars i {
+  width: 100%;
+  background: color-mix(in srgb, var(--jade) 70%, var(--line));
+  border-radius: 3px;
+}
+
+/* --- the monthly check: six sentences, this month against the first */
+
+.drill-stage.benchmark-stage {
+  gap: 14px;
+  align-items: stretch;
+  text-align: left;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.benchmark-head {
+  display: grid;
+  gap: 10px;
+}
+
+.benchmark-score {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.benchmark-score > span {
+  display: grid;
+  gap: 2px;
+}
+
+.benchmark-score b {
+  font-size: 26px;
+  font-weight: 620;
+  line-height: 1;
+  color: var(--jade);
+}
+
+.benchmark-rows {
+  display: grid;
+  gap: 10px;
+}
+
+.benchmark-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.benchmark-row[data-state='right'] {
+  border-color: color-mix(in srgb, var(--jade) 45%, var(--line));
+}
+
+.benchmark-row[data-state='wrong'] {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.benchmark-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.benchmark-text .hanzi {
+  font-size: 24px;
+  line-height: 1.3;
+}
+
+.benchmark-py {
+  color: var(--accent);
+}
+
+.benchmark-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.benchmark-plays {
+  display: grid;
+  gap: 4px;
+}
+
+@media (max-width: 640px) {
+  .benchmark-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

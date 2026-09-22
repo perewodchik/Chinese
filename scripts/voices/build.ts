@@ -81,11 +81,25 @@ interface VoiceSpec {
   pack?: boolean;
 }
 
+interface SentenceContext {
+  scene: string;
+  before?: { who: string; zh: string; py: string; en: string };
+}
+
 /** What recordings.py found: people, and what each of them said. */
 interface Recordings {
   speakers: Array<{ id: string; name: string; credit: string; licenses: string[]; source: string }>;
   words: Array<{ text: string; speaker: string; wav: string; file: string; page: string; license: string }>;
-  sentences: Array<Omit<Sentence, 'id' | 'len' | 'topics'> & { speaker: string; wav: string; page: string; license: string }>;
+  sentences: Array<
+    Omit<Sentence, 'id' | 'len' | 'topics'> & {
+      speaker: string;
+      wav: string;
+      page: string;
+      license: string;
+      /** where it is said, and what was said just before: shadowing.json */
+      context?: SentenceContext;
+    }
+  >;
 }
 
 type Task = Job & { tonal: boolean; sentence: boolean; pace: Pace };
@@ -436,13 +450,14 @@ function main() {
       JSON.stringify(
         sentences
           .filter((s) => kept.has(s.zh))
-          .map(({ id, zh, py, en, hsk, topics, speaker, page, license }) => ({
+          .map(({ id, zh, py, en, hsk, topics, speaker, page, license, context }) => ({
             id,
             zh,
             py,
             en,
             hsk,
             topics,
+            context,
             by: recorded.speakers.find((p) => p.id === speaker)?.credit ?? speaker,
             license,
             page,

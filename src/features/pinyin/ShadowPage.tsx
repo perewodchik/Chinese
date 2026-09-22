@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { melody } from '../../domain/pinyin/analyse';
-import { bestHeard, describeMiss, type HeardResult } from '../../domain/pinyin/heard';
+import { bestHeard, describeMiss, heardShare, missed, understood, type HeardResult } from '../../domain/pinyin/heard';
 import { idValue } from '../../domain/ids';
 import { paths } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
@@ -12,7 +12,10 @@ import { useStore } from '../../store/store';
 import { Seg } from '../../ui/Seg';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
+import { BenchmarkCard } from './BenchmarkCard';
+import { ContextCard } from './ContextCard';
 import { SentenceStaff } from './PitchStaff';
+import { recordSaid, share, useSaidLog, weeks, type SaidMode } from './progress';
 import { RecordButton } from './RecordButton';
 import { useSayIt } from './useSayIt';
 import { usePinyinMemory, voiceRange } from './voice';
@@ -33,7 +36,18 @@ export interface ShadowSentence {
   by: string;
   license: string;
   page: string;
+  /** where you would say it, and what was said to you just before */
+  context?: {
+    scene: string;
+    before?: { who: string; zh: string; py: string; en: string };
+  };
 }
+
+const MODES: ReadonlyArray<{ id: SaidMode | 'check'; label: string }> = [
+  { id: 'shadow', label: 'Shadow' },
+  { id: 'context', label: 'In context' },
+  { id: 'check', label: 'Monthly check' },
+];
 
 let shelf: Promise<ShadowSentence[]> | null = null;
 const loadShelf = () =>
@@ -73,7 +87,7 @@ const HAN = /[一-鿿]/;
  * learned.
  */
 export function ShadowPage() {
-  useTitle('Shadowing');
+  useTitle('Whole sentences');
   const lib = useLibrary();
   const learned = useStore((s) => s.learned);
   const [all, setAll] = useState<ShadowSentence[] | null>(null);
@@ -83,7 +97,14 @@ export function ShadowPage() {
   const level = oneOf(query.get('level'), ['all', '1', '2', '3'] as const, 'all');
   const topic = query.get('topic');
   const mine = query.get('mine') === '1';
+  const mode = oneOf(query.get('mode'), ['shadow', 'context', 'check'] as const, 'shadow');
   const [at, setAt] = useState(0);
+  const log = useSaidLog();
+  const [thisWeek, lastWeek] = useMemo(() => {
+    const ws = weeks(log, mode === 'check' ? undefined : mode);
+    const monday = ws[0] && Date.now() - ws[0].start < 7 * 864e5 ? ws[0] : undefined;
+    return [monday, monday ? ws[1] : ws[0]];
+  }, [log, mode]);
 
   useEffect(() => {
     void loadShelf().then(setAll);
@@ -101,14 +122,15 @@ export function ShadowPage() {
       (all ?? []).filter(
         (s) =>
           (!voiced || voiced.has(s.zh)) &&
+          (mode === 'shadow' || !!s.context) &&
           (level === 'all' || s.hsk === Number(level)) &&
           (!topic || s.topics.includes(topic)) &&
           (!mine || [...s.zh].every((c) => !HAN.test(c) || known.has(c))),
       ),
-    [all, voiced, level, topic, mine, known],
+    [all, voiced, level, topic, mine, known, mode],
   );
 
-  useEffect(() => setAt(0), [level, topic, mine]);
+  useEffect(() => setAt(0), [level, topic, mine, mode]);
   const sentence = list.length ? list[at % list.length]! : null;
 
   return (
@@ -120,18 +142,35 @@ export function ShadowPage() {
       </div>
       <div className="row" style={{ marginBottom: 14, alignItems: 'flex-end' }}>
         <div>
-          <h1 style={{ margin: 0 }}>Shadowing</h1>
+          <h1 style={{ margin: 0 }}>{mode === 'shadow' ? 'Shadowing' : mode === 'context' ? 'In context' : 'Monthly check'}</h1>
           <p className="small muted" style={{ margin: '2px 0 0' }}>
-            Listen to a sentence, say it back, and see what came out — the melody and the sounds.
+            {mode === 'shadow'
+              ? 'Listen to a native speaker, say it along, and find out whether you were understood.'
+              : mode === 'context'
+                ? 'A situation, and what you want to say in it. Say it in Chinese — then hear how a native speaker says it.'
+                : 'Six sentences, once a month, kept — to hear how far you have come.'}
+          </p>
+          <p className="tiny muted understood-week" style={{ margin: '4px 0 0' }}>
+            {share(thisWeek) !== null
+              ? `Understood this week: ${share(thisWeek)}% of ${thisWeek!.tries} sentences`
+              : 'Understood this week: say a few sentences to see'}
+            {share(lastWeek) !== null && ` · the week before: ${share(lastWeek)}%`}
           </p>
         </div>
         <div className="spacer" />
-        <Seg value={level} options={LEVELS} onChange={(v) => setQuery('level', v, 'all')} size="sm" label="Level" />
+        {mode !== 'check' && (
+          <Seg value={level} options={LEVELS} onChange={(v) => setQuery('level', v, 'all')} size="sm" label="Level" />
+        )}
       </div>
 
       {/* Each sentence has the one voice that recorded it, so there is no
           voice to choose here — only which sentences. */}
       <div className="opt-panel">
+        <div className="opt-row">
+          <span className="tiny muted">Practise</span>
+          <Seg value={mode} options={MODES} onChange={(v) => setQuery('mode', v, 'shadow')} size="sm" label="Practise" />
+        </div>
+        {mode !== 'check' && (
         <div className="opt-row wide">
           <span className="tiny muted">{topics.length ? 'Topic' : 'Sentences'}</span>
           <div className="chips">
@@ -152,15 +191,26 @@ export function ShadowPage() {
             )}
           </div>
         </div>
+        )}
       </div>
 
-      {all === null ? (
+      {mode === 'check' ? (
+        all && <BenchmarkCard sentences={all} />
+      ) : all === null ? (
         <p className="small muted">Loading sentences…</p>
       ) : !sentence ? (
         <div className="empty">
           <span className="big">空</span>
           <p>{all.length ? 'No sentences match those filters.' : 'The sentence pack is not installed on this server.'}</p>
         </div>
+      ) : mode === 'context' ? (
+        <ContextCard
+          key={sentence.id}
+          sentence={sentence}
+          at={at % list.length}
+          total={list.length}
+          onMove={(d) => setAt((n) => (n + d + list.length) % list.length)}
+        />
       ) : (
         <ShadowCard
           key={sentence.id}
@@ -226,9 +276,12 @@ function ShadowCard({
     setTake((n) => n + 1);
   }, []);
   const onHeard = useCallback(
-    (alternatives: string[]) =>
-      setHeard(bestHeard(sentence.py, alternatives, (ch) => lib.byChar.get(ch)?.py ?? [])),
-    [sentence.py, lib],
+    (alternatives: string[]) => {
+      const h = bestHeard(sentence.py, alternatives, (ch) => lib.byChar.get(ch)?.py ?? [], sentence.zh);
+      setHeard(h);
+      if (h) recordSaid({ id: sentence.id, mode: 'shadow', ok: understood(h, sentence.zh), share: heardShare(h) });
+    },
+    [sentence, lib],
   );
   const rec = useSayIt(onRecorded, onHeard, 2500 + 450 * syllables.length);
 
@@ -254,7 +307,7 @@ function ShadowCard({
   let k = 0;
   const tiles = [...sentence.zh].map((ch, i) =>
     HAN.test(ch) ? (
-      <span key={i} className="shadow-char" data-state={heard ? (heard.syllables[k]?.off.length ? 'wrong' : 'right') : undefined}>
+      <span key={i} className="shadow-char" data-state={heard ? (missed(heard.syllables[k]) ? 'wrong' : 'right') : undefined}>
         <i>{syllables[k++]}</i>
         <b>{ch}</b>
       </span>
@@ -331,20 +384,23 @@ function ShadowCard({
           <span className="heard-text hanzi" style={{ fontSize: 26 }}>
             {heard.text || '—'}
           </span>
-          {heard.clean ? (
+          <p className="understood-verdict" data-state={understood(heard, sentence.zh) ? 'right' : 'wrong'}>
+            {understood(heard, sentence.zh) ? 'Understood' : 'Not quite understood'}
+          </p>
+          {understood(heard, sentence.zh) ? (
             <p className="small" style={{ margin: 0 }}>
-              Every sound as meant.
+              Every word came through as you meant it.
             </p>
           ) : !chart ? (
             <p className="small" style={{ margin: 0 }}>
-              {heard.syllables.filter((x) => x.off.length).length} of {heard.syllables.length} came out differently —
+              {heard.syllables.filter(missed).length} of {heard.syllables.length} came through as something else —
               marked above.
             </p>
           ) : (
             <div className="verdicts">
               {heard.syllables
                 .map((s, i) => ({ s, ch: [...sentence.zh].filter((c) => HAN.test(c))[i] }))
-                .filter(({ s }) => s.off.length)
+                .filter(({ s }) => missed(s))
                 .map(({ s, ch }, i) => (
                   <div key={i} className="verdict" data-state="wrong">
                     <span className="verdict-hanzi">{ch}</span>
