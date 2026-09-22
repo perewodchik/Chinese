@@ -294,7 +294,7 @@ describe('what the learner asked Claude for', () => {
 
   it('tells Claude who the voice is, and to be calm whoever it is', () => {
     const soft = tutorInstructions({ ...OPTIONS, persona: 'chen' });
-    assert.match(soft, /You are Chen, a calm and gentle young man/);
+    assert.match(soft, /You are Chen, a very patient, gentle young man/);
     assert.match(soft, /Your name in Chinese is 陈/);
     assert.match(soft, /Avoid exclamation marks/);
 

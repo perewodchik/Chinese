@@ -184,13 +184,17 @@ def keep(name: str, candidate: int, out_dir: str, design_dir: str) -> None:
     print(f"  kept {src}\n  → {wav}, the transcript it was read from, and its line in references.json")
 
 
-def main(voice_id: str, variant: str = "teach", keeping: int | None = None, auto: bool = False) -> None:
+def main(voice_id: str, variant: str = "teach", keeping: int | None = None, auto: bool = False, count: int = 3) -> None:
     spec_file = os.path.join(ROOT, "scripts", "voices", "voices.json")
     voices = json.load(open(spec_file, encoding="utf-8"))
     spec = next(v for v in voices if v["id"] == voice_id)
     how = VARIANTS[variant]
     # Who they are comes from voices.json and is the same both times; how fast
     # they are talking belongs to the job, not to the person.
+    # A voice can bring its own pace and passage: somebody who talks slowly
+    # needs to be designed saying something slowly, since the clone copies
+    # the manner of the reference as much as the timbre.
+    how = {**how, "pace": spec.get("pace", how["pace"]), "text": spec.get("passage", how["text"])}
     instruct = f"{spec['description']}{how['pace']}"
     name = f"{voice_id}{how['suffix']}"
     out_dir = os.path.join(ROOT, ".cache", "voices", "design")
@@ -208,7 +212,11 @@ def main(voice_id: str, variant: str = "teach", keeping: int | None = None, auto
 
     model = load_model(MODEL)
     scores = []
-    for n, temperature in enumerate((0.6, 0.8, 0.9), 1):
+    # Three by default; more (--candidates n) when one thing matters above the
+    # rest, like how slowly somebody talks, and the best of a wider draw is
+    # worth the wait.
+    temperatures = [(0.6, 0.8, 0.9)[i % 3] for i in range(count)]
+    for n, temperature in enumerate(temperatures, 1):
         chunks, rate = [], 24000
         for r in model.generate_voice_design(
             text=how["text"], instruct=instruct, language="chinese", temperature=temperature
@@ -250,4 +258,6 @@ def main(voice_id: str, variant: str = "teach", keeping: int | None = None, auto
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     chosen = int(sys.argv[sys.argv.index("--keep") + 1]) if "--keep" in sys.argv else None
-    main(args[0], args[1] if len(args) > 1 else "teach", chosen, "--auto" in sys.argv)
+    many = int(sys.argv[sys.argv.index("--candidates") + 1]) if "--candidates" in sys.argv else 3
+    args = [a for a in args if not a.isdigit()]
+    main(args[0], args[1] if len(args) > 1 else "teach", chosen, "--auto" in sys.argv, many)

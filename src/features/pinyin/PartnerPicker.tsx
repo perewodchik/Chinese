@@ -3,7 +3,7 @@ import { PERSONAS, type Persona } from '../../../shared/personas';
 import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Portrait } from './Portrait';
-import { hush, playBytes, unlockAudio } from './voiceOut';
+import { hush, playBytes, playBytesAtPace, unlockAudio } from './voiceOut';
 
 interface Line {
   zh: string;
@@ -54,7 +54,8 @@ export function PartnerPicker() {
         if (!r.ok) throw new Error(String(r.status));
         return r.arrayBuffer();
       });
-      if (mine === turn.current) await playBytes(bytes);
+      // At the pace the conversation will play them: Chen is slowed there.
+      if (mine === turn.current) await (p.pace && p.pace !== 1 ? playBytesAtPace(bytes, p.pace) : playBytes(bytes));
     } catch {
       // A line that will not load is a silent button, not an error to read.
     }
@@ -103,8 +104,8 @@ export function PartnerPicker() {
     );
   };
 
-  const chens = ready.filter((p) => p.family === 'chen');
-  const others = ready.filter((p) => p.family !== 'chen');
+  const women = ready.filter((p) => p.gender === 'female');
+  const men = ready.filter((p) => p.gender === 'male');
 
   return (
     <>
@@ -113,16 +114,16 @@ export function PartnerPicker() {
         those are offered when you start a conversation
         {kept.length ? `; you have kept ${kept.length}.` : ', and until you keep one, all of them are.'}
       </p>
-      {chens.length > 0 && (
+      {men.length > 0 && (
         <>
-          <h3 className="partner-group tiny muted">Chen, three calmer takes</h3>
-          <div className="partner-grid">{chens.map(card)}</div>
+          <h3 className="partner-group tiny muted">Men</h3>
+          <div className="partner-grid">{men.map(card)}</div>
         </>
       )}
-      {others.length > 0 && (
+      {women.length > 0 && (
         <>
-          <h3 className="partner-group tiny muted">Other partners</h3>
-          <div className="partner-grid">{others.map(card)}</div>
+          <h3 className="partner-group tiny muted">Women</h3>
+          <div className="partner-grid">{women.map(card)}</div>
         </>
       )}
     </>

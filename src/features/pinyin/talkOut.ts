@@ -1,3 +1,4 @@
+import { personaOf } from '../../../shared/personas';
 import type { TalkMode } from '../../../shared/talk';
 import { talkAudio } from '../../api/talk';
 import { speak } from '../../platform/speech';
@@ -81,7 +82,9 @@ export async function sayTurn(
   opts: { pace?: number; signal: AbortSignal; onStart?: () => void },
 ): Promise<'natural' | 'system' | 'none'> {
   const { signal } = opts;
-  const pace = opts.pace ?? NATIVE_PACE;
+  // A partner who talks slowly (Chen) is slowed on top of whatever the
+  // learner asked for: his pace is part of who he is, not a setting.
+  const pace = (opts.pace ?? NATIVE_PACE) * (personaOf(voice)?.pace ?? 1);
   // One reading is made whatever pace it will be heard at, so asking for the
   // same turn slowly is the clip already fetched rather than a second wait.
   const mode: TalkMode = 'conversation';

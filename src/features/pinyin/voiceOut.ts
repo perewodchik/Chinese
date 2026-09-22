@@ -318,6 +318,16 @@ export function playBytesAtPace(bytes: ArrayBuffer, pace: number): Promise<void>
     media.preservesPitch = true;
     media.webkitPreservesPitch = true;
     el.playbackRate = pace;
+    // Through the meter like everything else, so a face moves with a slowed
+    // voice too — but only into a running context: a suspended one would
+    // swallow the sound, and a face that does not move is the lesser fault.
+    if (ctx?.state === 'running') {
+      try {
+        ctx.createMediaElementSource(el).connect(output());
+      } catch {
+        // Some browsers refuse a blob they have not loaded; it plays unmetered.
+      }
+    }
     // Pausing is how `hush` stops it, and a turn that was cut off is as
     // finished as one that ended. Calling this twice is harmless.
     const done = () => {

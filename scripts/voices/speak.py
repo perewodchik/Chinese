@@ -145,10 +145,13 @@ def token_budget(text, mode):
 MODES = {
     "breakdown": {"teacher": True, "apart": True, "band": (0.30, 1.80)},
     "teaching": {"teacher": True, "apart": False, "band": (0.22, 1.10)},
-    "conversation": {"teacher": False, "apart": False, "band": (0.22, 0.60)},
+    # 0.17 at the quick end: a short question said at five characters a
+    # second is a clear, ordinary reading, and turning it down sent whole
+    # lines to the system voice. The blurs worth refusing come in near 0.13.
+    "conversation": {"teacher": False, "apart": False, "band": (0.17, 0.60)},
     # Skim is this reading played faster by the page; what is made here is the
     # ordinary one.
-    "skim": {"teacher": False, "apart": False, "band": (0.22, 0.60)},
+    "skim": {"teacher": False, "apart": False, "band": (0.17, 0.60)},
 }
 ENDS = 0.35
 HAN = re.compile(r"[\u3400-\u9fff]")
@@ -190,6 +193,8 @@ def paced(audio, rate, text, mode):
         return True
     least, most = MODES[mode]["band"]
     seconds = len(audio) / rate
+    if os.environ.get("SPEAK_DEBUG"):
+        print(f"pace {text} {seconds / chars:.2f} s/char", file=sys.stderr, flush=True)
     return least * chars <= seconds <= most * chars + ENDS
 
 

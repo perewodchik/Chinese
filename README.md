@@ -704,11 +704,18 @@ The voices you talk to are **designed from a description** with Qwen3-TTS
 VoiceDesign (Apache-2.0, through MLX) and cloned from one reference so each
 stays one person — a kind of voice, not a copy of anybody's. They are all calm
 on purpose: speaking a language you are bad at is exposed enough without the
-other person being excited about it. Chen comes in three takes — *Soft*,
-*Steady* and *Tutor* — and there are four others: Lin, Teacher Wang, Old Zhou
-and Xiaoyu. Each is two things: a voice (`scripts/voices/voices.json`, in
-Chinese, for the model) and a manner (`shared/personas.ts`, in English, for
-Claude), so a soft voice does not answer in exclamation marks.
+other person being excited about it, and all of them are asked to keep their
+sentences short enough to follow by ear. **Chen** is the patient one who talks
+slowly: his reference was designed saying short phrases with pauses between
+them (`"pace"` and `"passage"` in `voices.json`, picked as the slowest of six
+takes with `design.py chen talk --auto --candidates 6`), and everything he says
+is played at 0.8× on top, stretched with the pitch kept. The voice model has
+one speed of syllable whatever it is asked for, so the playback is the lever
+that always works. Teacher Wang and Xiaoyu are the women; Haoran, Mingyu,
+Jun, Zhiyuan and Wei are men with personalities of their own. Each is two
+things: a voice (`scripts/voices/voices.json`, in Chinese, for the model) and
+a manner (`shared/personas.ts`, in English, for Claude, with the playback
+pace), so a soft voice does not answer in exclamation marks.
 
 On the Speaking page, under *Conversation partners*, every one of them says
 the same four lines and one of their own, recorded ahead of time
