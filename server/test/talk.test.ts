@@ -292,6 +292,20 @@ describe('what the learner asked Claude for', () => {
     assert.match(tutorInstructions(OPTIONS), /Opening the conversation: greet/);
   });
 
+  it('tells Claude who the voice is, and to be calm whoever it is', () => {
+    const soft = tutorInstructions({ ...OPTIONS, persona: 'chen' });
+    assert.match(soft, /You are Chen, a calm and gentle young man/);
+    assert.match(soft, /Your name in Chinese is 陈/);
+    assert.match(soft, /Avoid exclamation marks/);
+
+    // The system voice, an old conversation, a voice since removed: nobody in particular.
+    for (const persona of [undefined, 'nobody']) {
+      const plain = tutorInstructions({ ...OPTIONS, persona });
+      assert.doesNotMatch(plain, /Your name in Chinese/);
+      assert.match(plain, /Avoid exclamation marks/);
+    }
+  });
+
   it('asks the chat for the same extras, in labelled lines it can paste back', () => {
     const chatty = relayOpening({ ...OPTIONS, words: true, hints: true, explain: true }, []);
     assert.match(chatty, /Chinese: your turn/);

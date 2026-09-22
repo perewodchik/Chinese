@@ -1,0 +1,338 @@
+[
+  {
+    "zh": "好久不见！",
+    "py": "hǎo jiǔ bù jiàn",
+    "en": "Long time no see!",
+    "hsk": 1,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-好久不见.wav"
+    }
+  },
+  {
+    "zh": "不好意思。",
+    "py": "bù hǎo yì si",
+    "en": "Sorry — excuse me.",
+    "hsk": 2,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-不好意思.wav"
+    }
+  },
+  {
+    "zh": "请问现在几点？",
+    "py": "qǐng wèn xiàn zài jǐ diǎn",
+    "en": "Excuse me, what time is it?",
+    "hsk": 1,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-请问现在几点?.wav"
+    }
+  },
+  {
+    "zh": "一共多少钱？",
+    "py": "yī gòng duō shao qián",
+    "en": "How much is it altogether?",
+    "hsk": 2,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-一共多少钱?.wav"
+    }
+  },
+  {
+    "zh": "书店在哪里？",
+    "py": "shū diàn zài nǎ lǐ",
+    "en": "Where is the bookshop?",
+    "hsk": 1,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-书店在哪里?.wav"
+    }
+  },
+  {
+    "zh": "他今天很忙。",
+    "py": "tā jīn tiān hěn máng",
+    "en": "He's busy today.",
+    "hsk": 1,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-他今天很忙.wav"
+    }
+  },
+  {
+    "zh": "他今天不太忙。",
+    "py": "tā jīn tiān bù tài máng",
+    "en": "He isn't very busy today.",
+    "hsk": 1,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-他今天不太忙.wav"
+    }
+  },
+  {
+    "zh": "两个都很忙。",
+    "py": "liǎng ge dōu hěn máng",
+    "en": "They're both busy.",
+    "hsk": 2,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-两个都很忙.wav"
+    }
+  },
+  {
+    "zh": "他不喜欢看电影。",
+    "py": "tā bù xǐ huan kàn diàn yǐng",
+    "en": "He doesn't like watching films.",
+    "hsk": 1,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-他不喜欢看电影.wav"
+    }
+  },
+  {
+    "zh": "又便宜又好吃。",
+    "py": "yòu pián yi yòu hǎo chī",
+    "en": "Cheap and tasty.",
+    "hsk": 2,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-又便宜又好吃.wav"
+    }
+  },
+  {
+    "zh": "他要去买衣服。",
+    "py": "tā yào qù mǎi yī fu",
+    "en": "He's going to buy some clothes.",
+    "hsk": 1,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-他要去买衣服.wav"
+    }
+  },
+  {
+    "zh": "他要先去买菜，再去买书。",
+    "py": "tā yào xiān qù mǎi cài zài qù mǎi shū",
+    "en": "First he's going grocery shopping, then to buy books.",
+    "hsk": 2,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-他要先去买菜,再去买书.wav"
+    }
+  },
+  {
+    "zh": "那件衣服怎么样？",
+    "py": "nà jiàn yī fu zěn me yàng",
+    "en": "What's that one like? (a piece of clothing)",
+    "hsk": 2,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-那件衣服怎麽样?.wav"
+    }
+  },
+  {
+    "zh": "这家餐厅的菜怎么样？",
+    "py": "zhè jiā cān tīng de cài zěn me yàng",
+    "en": "How's the food at this restaurant?",
+    "hsk": 2,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-这家餐厅的菜怎麽样?.wav"
+    }
+  },
+  {
+    "zh": "他们在哪里见面？",
+    "py": "tā men zài nǎ lǐ jiàn miàn",
+    "en": "Where are they meeting?",
+    "hsk": 2,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-他们在哪里见面?.wav"
+    }
+  },
+  {
+    "zh": "她一边打工一边念书。",
+    "py": "tā yī biān dǎ gōng yī biān niàn shū",
+    "en": "She works part-time while she studies.",
+    "hsk": 3,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-她一边打工一边念书.wav"
+    }
+  },
+  {
+    "zh": "欢迎光临！",
+    "py": "huān yíng guāng lín",
+    "en": "Welcome! (what a shop says as you come in)",
+    "hsk": 2,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-欢迎光临.wav"
+    }
+  },
+  {
+    "zh": "他们去哪里吃饭？",
+    "py": "tā men qù nǎ lǐ chī fàn",
+    "en": "Where are they going to eat?",
+    "hsk": 1,
+    "source": {
+      "kind": "commons",
+      "file": "File:LL-Q9192 (cmn)-Luilui6666-他们去哪里吃饭?.wav"
+    }
+  },
+  {
+    "zh": "你想吃什么？",
+    "py": "nǐ xiǎng chī shén me",
+    "en": "What would you like to eat?",
+    "hsk": 1,
+    "source": {
+      "kind": "tatoeba",
+      "sentence": 419672,
+      "audio": 988881,
+      "speaker": "GlossaMatik",
+      "license": "CC BY-NC 4.0"
+    }
+  },
+  {
+    "zh": "您吃不吃肉？",
+    "py": "nín chī bù chī ròu",
+    "en": "Do you eat meat?",
+    "hsk": 1,
+    "source": {
+      "kind": "tatoeba",
+      "sentence": 427989,
+      "audio": 988889,
+      "speaker": "GlossaMatik",
+      "license": "CC BY-NC 4.0"
+    }
+  },
+  {
+    "zh": "门票多少钱？",
+    "py": "mén piào duō shao qián",
+    "en": "How much is a ticket?",
+    "hsk": 2,
+    "source": {
+      "kind": "tatoeba",
+      "sentence": 457644,
+      "audio": 988895,
+      "speaker": "GlossaMatik",
+      "license": "CC BY-NC 4.0"
+    }
+  },
+  {
+    "zh": "你们是几位？",
+    "py": "nǐ men shì jǐ wèi",
+    "en": "How many of you are there? (at a restaurant)",
+    "hsk": 2,
+    "source": {
+      "kind": "tatoeba",
+      "sentence": 419685,
+      "audio": 988882,
+      "speaker": "GlossaMatik",
+      "license": "CC BY-NC 4.0"
+    }
+  },
+  {
+    "zh": "别吃太多。",
+    "py": "bié chī tài duō",
+    "en": "Don't eat too much.",
+    "hsk": 2,
+    "source": {
+      "kind": "tatoeba",
+      "sentence": 10570094,
+      "audio": 992963,
+      "speaker": "GlossaMatik",
+      "license": "CC BY-NC 4.0"
+    }
+  },
+  {
+    "zh": "没那么冷。",
+    "py": "méi nà me lěng",
+    "en": "It's not that cold.",
+    "hsk": 2,
+    "source": {
+      "kind": "tatoeba",
+      "sentence": 10537109,
+      "audio": 992946,
+      "speaker": "GlossaMatik",
+      "license": "CC BY-NC 4.0"
+    }
+  },
+  {
+    "zh": "我今天不想起床。",
+    "py": "wǒ jīn tiān bù xiǎng qǐ chuáng",
+    "en": "I don't want to get up today.",
+    "hsk": 2,
+    "source": {
+      "kind": "tatoeba",
+      "sentence": 10548825,
+      "audio": 992955,
+      "speaker": "GlossaMatik",
+      "license": "CC BY-NC 4.0"
+    }
+  },
+  {
+    "zh": "今天又下暴雨了。",
+    "py": "jīn tiān yòu xià bào yǔ le",
+    "en": "It's pouring with rain again today.",
+    "hsk": 3,
+    "source": {
+      "kind": "tatoeba",
+      "sentence": 10294638,
+      "audio": 992920,
+      "speaker": "GlossaMatik",
+      "license": "CC BY-NC 4.0"
+    }
+  },
+  {
+    "zh": "附近有一家花店。",
+    "py": "fù jìn yǒu yī jiā huā diàn",
+    "en": "There's a flower shop nearby.",
+    "hsk": 3,
+    "source": {
+      "kind": "tatoeba",
+      "sentence": 13827607,
+      "audio": 1284515,
+      "speaker": "zhoucantd",
+      "license": "CC BY-NC 4.0"
+    }
+  },
+  {
+    "zh": "请在天黑之前给我打电话。",
+    "py": "qǐng zài tiān hēi zhī qián gěi wǒ dǎ diàn huà",
+    "en": "Please call me before it gets dark.",
+    "hsk": 3,
+    "source": {
+      "kind": "tatoeba",
+      "sentence": 13829034,
+      "audio": 1284517,
+      "speaker": "zhoucantd",
+      "license": "CC BY-NC 4.0"
+    }
+  },
+  {
+    "zh": "我想了解你。",
+    "py": "wǒ xiǎng liǎo jiě nǐ",
+    "en": "I'd like to get to know you.",
+    "hsk": 3,
+    "source": {
+      "kind": "tatoeba",
+      "sentence": 13829032,
+      "audio": 1284516,
+      "speaker": "zhoucantd",
+      "license": "CC BY-NC 4.0"
+    }
+  },
+  {
+    "zh": "它还开着吗？",
+    "py": "tā hái kāi zhe ma",
+    "en": "Is it still open?",
+    "hsk": 2,
+    "source": {
+      "kind": "tatoeba",
+      "sentence": 13829046,
+      "audio": 1284520,
+      "speaker": "zhoucantd",
+      "license": "CC BY-NC 4.0"
+    }
+  }
+]

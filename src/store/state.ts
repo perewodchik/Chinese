@@ -39,6 +39,12 @@ export interface AppSettings {
    * hand. Somebody who has finished speaking should not have to say so.
    */
   silenceStop: number;
+  /**
+   * The conversation partners kept on the Speaking page, by voice id, in the
+   * order they were kept. Empty until somebody has chosen: then every
+   * partner is offered.
+   */
+  talkVoices: string[];
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -54,6 +60,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   pitchChart: true,
   guidedPace: 0.65,
   silenceStop: 3,
+  talkVoices: [],
 };
 
 /** The workspace as it is written down — to the server now, and to localStorage before accounts. */

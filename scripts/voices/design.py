@@ -184,7 +184,7 @@ def keep(name: str, candidate: int, out_dir: str, design_dir: str) -> None:
     print(f"  kept {src}\n  → {wav}, the transcript it was read from, and its line in references.json")
 
 
-def main(voice_id: str, variant: str = "teach", keeping: int | None = None) -> None:
+def main(voice_id: str, variant: str = "teach", keeping: int | None = None, auto: bool = False) -> None:
     spec_file = os.path.join(ROOT, "scripts", "voices", "voices.json")
     voices = json.load(open(spec_file, encoding="utf-8"))
     spec = next(v for v in voices if v["id"] == voice_id)
@@ -207,6 +207,7 @@ def main(voice_id: str, variant: str = "teach", keeping: int | None = None) -> N
     from mlx_audio.tts.utils import load_model
 
     model = load_model(MODEL)
+    scores = []
     for n, temperature in enumerate((0.6, 0.8, 0.9), 1):
         chunks, rate = [], 24000
         for r in model.generate_voice_design(
@@ -227,8 +228,19 @@ def main(voice_id: str, variant: str = "teach", keeping: int | None = None) -> N
             f"  peak {np.abs(audio).max():.2f}  breaths ~{breaths(audio.reshape(-1), rate)}",
             flush=True,
         )
+        # Outside the band is worse than any number of breaths; within it, the
+        # quieter take, then the one nearest the middle of the band.
+        off = max(0.0, want[0] - said, said - want[1])
+        scores.append((off, breaths(audio.reshape(-1), rate), abs(said - sum(want) / 2), n))
     with open(os.path.join(out_dir, f"{name}.txt"), "w", encoding="utf-8") as f:
         f.write(how["text"])
+    if auto:
+        # For a batch of voices nobody is sitting beside: the numbers choose,
+        # and the ear gets its say afterwards, between voices rather than takes.
+        best = min(scores)[3]
+        print(f"  --auto keeps candidate {best}")
+        keep(name, best, out_dir, design_dir)
+        return
     print("\n  Listen, then keep the one that sounds like the person:")
     print(f"    design.py {voice_id} {variant} --keep 2")
     print("  The two numbers to go on: the pace, which every clip will be read at,")
@@ -238,4 +250,4 @@ def main(voice_id: str, variant: str = "teach", keeping: int | None = None) -> N
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     chosen = int(sys.argv[sys.argv.index("--keep") + 1]) if "--keep" in sys.argv else None
-    main(args[0], args[1] if len(args) > 1 else "teach", chosen)
+    main(args[0], args[1] if len(args) > 1 else "teach", chosen, "--auto" in sys.argv)

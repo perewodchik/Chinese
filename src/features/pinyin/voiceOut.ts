@@ -96,13 +96,10 @@ export interface SayOptions {
   voice?: string;
   slow?: boolean;
   /**
-   * Play the recording at a fraction of its speed, keeping the pitch.
-   *
-   * The voice reads a sentence at the speed a person actually talks, which is
-   * around six syllables a second — natural, and past what a learner can say
-   * along with. Shadowing asks for the same reading slowed down, not for a
-   * different, more laboured one: the rhythm of the sentence is the thing
-   * being copied, and a voice that pauses between characters has none.
+   * Play the recording at a fraction of its speed, keeping the pitch — the
+   * same reading stretched, rather than a different, more laboured one.
+   * Nothing in the pack asks for it now: its sentences are native speakers,
+   * heard at the speed they spoke.
    */
   pace?: number;
 }

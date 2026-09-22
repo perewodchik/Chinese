@@ -153,7 +153,10 @@ export function localVoicesFromEnv(env: Record<string, string | undefined>, root
     .filter(
       (v) =>
         v.source === 'qwen3' ||
-        (v.source === 'designed' && existsSync(join(root, 'scripts/voices/design', `${v.id}.wav`))),
+        // A conversation partner needs only the recording it talks from
+        // (design.py <id> talk); the teaching one is for the pack.
+        (v.source === 'designed' &&
+          ['.talk.wav', '.wav'].some((end) => existsSync(join(root, 'scripts/voices/design', `${v.id}${end}`)))),
     )
     .map(({ id, name, gender }) => ({ id, name, gender }));
   return voices.length ? localVoices({ python, script, voices, cwd: root }) : null;

@@ -9,13 +9,18 @@
  * file needs nothing at all — it plays the same on the home Wi-Fi, on Vercel,
  * and from the cache with no network.
  *
- * Two sources (scripts/voices/voices.json):
+ Sources, real people first:
  *
  * - **a native speaker** for every single syllable: the public-domain set of
  *   every syllable in every tone (native.ts). That covers the four tones one
  *   at a time and every minimal pair in the sound lessons.
- * - **Qwen3-TTS** for words and sentences (generate.py), in its Mandarin
- *   voices and in the designed voices cloned from a reference.
+ * - **native speakers on Wikimedia Commons and Tatoeba** for the words and
+ *   the shadowing sentences (recordings.py): every freely licensed recording
+ *   of a word the section says, from as many speakers as said it, and the
+ *   sentences chosen by hand in shadowing.json.
+ * - **Qwen3-TTS** only where voices.json asks for it with `"pack": true`.
+ *   The designed voices are conversation partners (speak.py) and are not in
+ *   the pack: pronunciation is learned from people, not from a model.
  *
  * Every tone-critical machine clip is run through the app's own pitch check,
  * against the tones a native speaker would use and on that voice's own range.
@@ -72,14 +77,23 @@ interface VoiceSpec {
   speaker?: string;
   /** for a designed voice: what it should sound like (design.py) */
   description?: string;
+  /** read the pack's words and sentences too, rather than only talk (speak.py) */
+  pack?: boolean;
+}
+
+/** What recordings.py found: people, and what each of them said. */
+interface Recordings {
+  speakers: Array<{ id: string; name: string; credit: string; licenses: string[]; source: string }>;
+  words: Array<{ text: string; speaker: string; wav: string; file: string; page: string; license: string }>;
+  sentences: Array<Omit<Sentence, 'id' | 'len' | 'topics'> & { speaker: string; wav: string; page: string; license: string }>;
 }
 
 type Task = Job & { tonal: boolean; sentence: boolean; pace: Pace };
 
 const VOICES = JSON.parse(readFileSync(join(ROOT, 'scripts/voices/voices.json'), 'utf8')) as VoiceSpec[];
-const MACHINE = VOICES.filter((v) => v.source === 'qwen3');
-/** Designed voices whose reference has been chosen: design.py's pick, kept as scripts/voices/design/<id>.wav. */
-const DESIGNED = VOICES.filter((v) => v.source === 'designed' && existsSync(join(DESIGN, `${v.id}.wav`)));
+const MACHINE = VOICES.filter((v) => v.source === 'qwen3' && v.pack);
+/** Designed voices asked into the pack whose reference has been chosen: design.py's pick, kept as scripts/voices/design/<id>.wav. */
+const DESIGNED = VOICES.filter((v) => v.source === 'designed' && v.pack && existsSync(join(DESIGN, `${v.id}.wav`)));
 
 function run(cmd: string, args: string[]) {
   const r = spawnSync(cmd, args, { stdio: 'inherit' });
@@ -198,9 +212,19 @@ function main() {
   const items = practiceItems(lib);
   const wordItems = items.filter((it) => [...it.text].length > 1 || !(it.reading && nativeFile(ROOT, it.reading)));
 
-  if (!existsSync(join(WORK, 'sentences.json'))) run(PY, [join(ROOT, 'scripts/voices/sentences.py')]);
-  const sentences = (JSON.parse(readFileSync(join(WORK, 'sentences.json'), 'utf8')) as Sentence[]).map((s) => ({
+  // People first: every recording of these words that a native speaker has
+  // given away, and the shadowing sentences.
+  mkdirSync(WORK, { recursive: true });
+  writeFileSync(
+    join(WORK, 'wanted.json'),
+    JSON.stringify(items.map((it) => ({ text: it.text, reading: it.reading ?? null }))),
+  );
+  run(PY, [join(ROOT, 'scripts/voices/recordings.py'), join(WORK, 'wanted.json'), ...process.argv.slice(2)]);
+  const recorded = JSON.parse(readFileSync(join(WORK, 'recordings.json'), 'utf8')) as Recordings;
+  const sentences = recorded.sentences.map((s) => ({
     ...s,
+    id: clipName(s.zh),
+    topics: [] as string[],
     py: sentenceReading(s.zh, s.py, lib),
   }));
 
@@ -219,7 +243,7 @@ function main() {
   // same sentence cloned from the teacher and from the talking recording are
   // two different clips, and a run that reused the first would ship the drawl
   // again without saying a word.
-  const sentenceTask = (voiceId: string, speaker: string, s: Sentence): Task => ({
+  const sentenceTask = (voiceId: string, speaker: string, s: { zh: string }): Task => ({
     id: `${speaker === voiceId ? voiceId : speaker}_${clipName(s.zh)}`,
     text: s.zh,
     voice: speaker,
@@ -267,9 +291,8 @@ function main() {
     ...sentences.map((s) => sentenceTask(v.id, referenceFor(v, true), s)),
   ]);
 
-  mkdirSync(WORK, { recursive: true });
-  const reading = [...MACHINE, ...DESIGNED].map((v) => v.name).join(', ') || 'nobody';
-  console.log(`${wordItems.length} words and ${sentences.length} sentences, read by ${reading}`);
+  const reading = [...MACHINE, ...DESIGNED].map((v) => v.name).join(', ') || 'no machine voice';
+  console.log(`${wordItems.length} words and ${sentences.length} sentences; ${reading}`);
 
   return (async () => {
     const said = await voice(machine, 'qwen3', join(WORK, 'jobs.json'));
@@ -301,6 +324,71 @@ function main() {
       }
     }
 
+    // Then everybody else who said a word. A native speaker is the reference
+    // by definition, so the tone check is not a bar to clear here; it is a
+    // net for the recordings that are not what their name says — a
+    // different word, a phrase, a recording of something else. It is loose
+    // on purpose, and it looks at the shape of the recording, not its tones.
+    // The checker agrees with a native speaker 99% of the time on a single
+    // syllable and far less on a word, where one tone runs into the next:
+    // gated like a machine voice it turned down three speakers' 中国, four
+    // speakers' 他们, and every 4+4 word one speaker said, which says more
+    // about the checker than about her. So a native recording is left out only
+    // when it cannot be split into the right number of syllables — which is
+    // what a different word, a phrase or a noise looks like.
+    const rjobs = recorded.words.map((w, i) => ({
+      id: `r${i}`,
+      text: w.text,
+      voice: w.speaker,
+      word: w.text,
+      reading: items.find((it) => it.text === w.text)?.reading,
+      src: w.wav,
+    }));
+    const RDIR = join(WORK, 'recordings-check');
+    rmSync(RDIR, { recursive: true, force: true });
+    mkdirSync(RDIR, { recursive: true });
+    for (const j of rjobs) writeFileSync(join(RDIR, `${j.id}.wav`), readFileSync(j.src));
+    const rranges = voiceRanges(rjobs, RDIR);
+    const turnedDown: string[] = [];
+    const seen = new Set<string>();
+    for (const j of rjobs) {
+      // One recording per speaker per word: some said it twice.
+      if (seen.has(`${j.voice}|${j.text}`)) continue;
+      const tonal = items.find((it) => it.text === j.text)?.tonal;
+      if (tonal && j.reading) {
+        const c = checkClip(j, RDIR, rranges.get(j.voice) ?? null);
+        const bad = !c || c.verdicts.some((v) => v === 'silent' || v === 'count');
+        if (bad) {
+          turnedDown.push(`${j.voice} ${j.text} (${c?.verdicts.join(' ') ?? 'unreadable'})`);
+          continue;
+        }
+      }
+      seen.add(`${j.voice}|${j.text}`);
+      keep(j.text, j.voice, join(RDIR, `${j.id}.wav`), false);
+    }
+    const people = new Map<string, number>();
+    for (const s of sentences) {
+      keep(s.zh, s.speaker, s.wav, false);
+      people.set(s.speaker, (people.get(s.speaker) ?? 0) + 1);
+    }
+
+    // A speaker's gender is not in the licence; it is in the voice. The
+    // middle of their range says which of the two chips to draw.
+    const sayers = new Map<string, string[]>();
+    for (const j of rjobs) sayers.set(j.voice, [...(sayers.get(j.voice) ?? []), join(RDIR, `${j.id}.wav`)]);
+    for (const s of sentences) sayers.set(s.speaker, [...(sayers.get(s.speaker) ?? []), s.wav]);
+    const genderOf = (id: string): 'female' | 'male' => {
+      const r = rranges.get(id) ?? voiceRanges(
+        (sayers.get(id) ?? []).map((f, i) => {
+          const name = `g-${id}-${i}`;
+          writeFileSync(join(RDIR, `${name}.wav`), readFileSync(f));
+          return { id: name, text: '', voice: id };
+        }),
+        RDIR,
+      ).get(id);
+      return r && Math.sqrt(r.floorHz * r.ceilHz) < 165 ? 'male' : 'female';
+    };
+
     for (const [tasks, out] of [
       [machine, said],
       [designed, saidDesigned],
@@ -329,14 +417,62 @@ function main() {
           designed:
             'Voices designed from a description with Qwen3-TTS VoiceDesign and cloned with Qwen3-TTS Base (Apache-2.0) — a kind of voice, not a copy of anyone.',
         },
-        voices: VOICES.filter((v) => used.has(v.id)).map(({ id, name, gender }) => ({ id, name, gender })),
+        voices: [
+          ...VOICES.filter((v) => used.has(v.id)).map(({ id, name, gender }) => ({ id, name, gender })),
+          ...recorded.speakers
+            .filter((p) => used.has(p.id))
+            .map((p) => ({
+              id: p.id,
+              name: p.name,
+              gender: genderOf(p.id),
+              credit: { by: p.credit, license: p.licenses.join(', '), source: p.source },
+            })),
+        ],
         clips,
       }),
     );
     writeFileSync(
       join(OUT, 'sentences.json'),
-      JSON.stringify(sentences.filter((s) => kept.has(s.zh)).map(({ len: _len, ...s }) => s)),
+      JSON.stringify(
+        sentences
+          .filter((s) => kept.has(s.zh))
+          .map(({ id, zh, py, en, hsk, topics, speaker, page, license }) => ({
+            id,
+            zh,
+            py,
+            en,
+            hsk,
+            topics,
+            by: recorded.speakers.find((p) => p.id === speaker)?.credit ?? speaker,
+            license,
+            page,
+          })),
+      ),
     );
+    // Every file, who said it and on what terms: the attribution the
+    // licences ask for, kept beside the audio it belongs to.
+    writeFileSync(
+      join(OUT, 'CREDITS.md'),
+      [
+        '# Who is speaking',
+        '',
+        `Single syllables: one native speaker, public domain (${NATIVE_REPO}).`,
+        '',
+        'Words and sentences: native speakers, from Wikimedia Commons (Lingua Libre, the Shtooka project and others) and Tatoeba, each under the licence below. Files were trimmed, levelled and re-encoded as MP3.',
+        '',
+        '| Text | Speaker | Licence | Source |',
+        '| --- | --- | --- | --- |',
+        ...recorded.words
+          .filter((w) => kept.get(w.text)?.includes(w.speaker))
+          .map((w) => `| ${w.text} | ${recorded.speakers.find((p) => p.id === w.speaker)?.credit} | ${w.license} | ${w.page} |`),
+        ...sentences.map(
+          (s) => `| ${s.zh} | ${recorded.speakers.find((p) => p.id === s.speaker)?.credit} | ${s.license} | ${s.page} |`,
+        ),
+        '',
+      ].join('\n'),
+    );
+    console.log(`  recorded: ${seen.size} word recordings, ${sentences.length} sentences from ${people.size} speakers`);
+    if (turnedDown.length) console.log(`  not the word they are filed under: ${turnedDown.join('; ')}`);
 
     console.log(`  native: ${native} single syllables`);
     for (const [speaker, t] of [...said.first, ...saidDesigned.first]) {

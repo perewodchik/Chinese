@@ -608,14 +608,17 @@ marked as understood or not, and in a shadowed sentence the characters
 recognition misheard are marked under the text. Some days the answer to "was
 I understood?" is the whole of what you want.
 
-**Shadowing**, at **/pinyin/shadow**: three hundred short everyday sentences,
-HSK 1 to 3, each with a translation and sorted into the app's topics, to say
-along with a natural voice. The two melodies — the voice's and yours — are
-drawn one over the other; the sounds are checked by speech recognition, which
-is at its best on a whole sentence. "Voice, then me" plays the two back to
-back. The sentences are Tatoeba's (CC BY 2.0 FR). Tatoeba's own Mandarin
-*recordings* are not used: all but 84 of them carry no licence to reuse
-outside the site.
+**Shadowing**, at **/pinyin/shadow**: thirty short everyday sentences, HSK 1
+to 3, each with a translation, **recorded by native speakers** and played at
+the speed they said them — not slowed down, because the rhythm is what is
+being copied. Eighteen are Lingua Libre recordings on Wikimedia Commons
+(CC BY-SA 4.0), twelve are Tatoeba recordings by two speakers who list
+Mandarin as their mother tongue and licensed their audio (CC BY-NC 4.0); the
+rest of Tatoeba's Mandarin audio has no licence to reuse and is left alone.
+They are chosen by hand in `scripts/voices/shadowing.json`. The two melodies —
+the speaker's and yours — are drawn one over the other; the sounds are checked
+by speech recognition, which is at its best on a whole sentence. "Voice, then
+me" plays the two back to back.
 
 ### The voice pack
 
@@ -628,21 +631,22 @@ and offline.
   every syllable in every tone ([mp3-chinese-pinyin-sound](https://github.com/davinfifield/mp3-chinese-pinyin-sound),
   Unlicense). That covers the four tones one at a time and every minimal pair
   in the sound lessons.
-- **Words and sentences are Chen**, a young man's voice *designed from a
-  description* with Qwen3-TTS VoiceDesign (Apache-2.0, through MLX) and cloned
-  from one reference so it stays one person — a kind of voice, not a copy of
-  anybody's. He is written down in `scripts/voices/voices.json`: a bright,
-  warm voice actor in his twenties, every character bitten off, the same speed
-  from the first word to the last. The model's own Mandarin speakers read the
-  words here for a while and have been taken out; one voice you want to copy
-  is worth more than four you are only hearing.
-- **A voice has two references**, because cloning copies the pace and the
-  manner as much as the timbre, and one person has two jobs here. `chen.wav`
-  is the teacher — slow, each word said through — and everything the
-  pronunciation section plays is cloned from it. `chen.talk.wav` is the same
-  person in a conversation. `design.py chen teach` and `design.py chen talk`
-  make them from the one description; the pace is the only thing that differs,
-  and `--keep <n>` files the chosen candidate.
+- **Words are real people too**, several of them. `recordings.py` looks up
+  every word the section says on Wikimedia Commons — the Lingua Libre
+  recordings in Mandarin and the older `Zh-<pinyin>.ogg` files, most of them
+  Wei Gao's for the Shtooka project — by its characters and by its pinyin, and
+  keeps every native speaker who said it. Hearing a tone pair in several voices
+  is what teaches the ear which part is the tone and which is the person. The
+  tone check is a net here, not a bar: a recording it hears as plainly the
+  wrong tone, or cannot split into the right number of syllables, is not what
+  its name says and is left out. Each speaker is a voice of their own in the
+  picker, and `public/voices/CREDITS.md` lists every file, who said it and its
+  licence (CC BY-SA 4.0, CC BY 2.0 FR, CC BY-NC 4.0 or CC0). A word nobody
+  recorded falls back to the system voice.
+- **No model reads anything you learn pronunciation from.** Chen and the other
+  conversation partners are designed voices (below); they talk to you, and are
+  not in the pack. A machine voice can still be asked in with `"pack": true`
+  in `voices.json`, and then goes through the gates below.
 - **A reference is a recording *and* what it says**, and the two are kept
   together by the script that makes them, never copied by hand. The model is
   given both and lines them up to work out how this speaker sounds; hand it a
@@ -684,17 +688,34 @@ and offline.
   louder than silence. So the first voiced frame is found and the consonant in
   front of it followed back only while the sound runs on — a breath, separated
   by a gap, stays outside.
-- With a pack clip, the dashed line on the staff is that voice's own pitch
-  rather than the textbook shape. You pick the voice where it speaks — in
-  shadowing — or leave it on *Any*, which takes each sentence in whichever of
-  the two has it. Shadowing only offers what somebody actually reads: a
-  sentence with no clip is a sentence the system voice would read, and that is
-  the one voice in the app not worth copying.
+- With a pack clip, the dashed line on the staff is that speaker's own pitch
+  rather than the textbook shape. You pick the voice where it speaks, or leave
+  it on *Any*, which takes each word in whichever speaker has it, in turn.
 
-`scripts/voices/` holds the pipeline: `design.py` invents the voice,
-`sentences.py` picks the sentences, `generate.py` voices them, `check.ts` and
-`pace.ts` gate them, `encode.py` makes the MP3s, `build.ts` runs it all.
-Setting up the Python side once is in `generate.py`.
+`scripts/voices/` holds the pipeline: `recordings.py` fetches the native
+recordings, `shadowing.json` lists the sentences, `check.ts` nets them,
+`encode.py` makes the MP3s, `build.ts` runs it all. `design.py` invents the
+conversation voices and `personas.ts` records what each one says on the
+Speaking page. Setting up the Python side once is in `generate.py`.
+
+### Conversation partners
+
+The voices you talk to are **designed from a description** with Qwen3-TTS
+VoiceDesign (Apache-2.0, through MLX) and cloned from one reference so each
+stays one person — a kind of voice, not a copy of anybody's. They are all calm
+on purpose: speaking a language you are bad at is exposed enough without the
+other person being excited about it. Chen comes in three takes — *Soft*,
+*Steady* and *Tutor* — and there are four others: Lin, Teacher Wang, Old Zhou
+and Xiaoyu. Each is two things: a voice (`scripts/voices/voices.json`, in
+Chinese, for the model) and a manner (`shared/personas.ts`, in English, for
+Claude), so a soft voice does not answer in exclamation marks.
+
+On the Speaking page, under *Conversation partners*, every one of them says
+the same four lines and one of their own, recorded ahead of time
+(`npx tsx scripts/voices/personas.ts`) so it works on the iPad. Keep the ones
+you like: only those are offered when you start a conversation, and the choice
+is saved with your account. `design.py <id> talk --auto` designs a partner's
+reference and keeps the candidate with the fewest breaths.
 
 A cloud voice can still stand behind the pack for anything it lacks: with
 `AZURE_SPEECH_KEY` and `AZURE_SPEECH_REGION` set, `/api/speech` reads with

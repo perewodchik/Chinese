@@ -29,6 +29,7 @@ const talkOptions = z.object({
   // The learner's own words, and they go into a prompt: a topic the length
   // of an essay is a way of talking past everything above it.
   topic: z.string().trim().max(TALK_TOPIC_MAX_CHARS),
+  persona: z.string().max(64).optional(),
 });
 
 /** A word or a suggestion as Claude gave it back, on its way into the record. */

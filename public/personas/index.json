@@ -1,0 +1,183 @@
+{
+ "lines": {
+  "chen": [
+   {
+    "zh": "你好，我是陈。今天想聊点什么？",
+    "en": "Hello, I’m Chen. What would you like to talk about today?",
+    "file": "chen/0fc9a27313ca.mp3"
+   },
+   {
+    "zh": "没关系，慢慢说，我在听。",
+    "en": "It’s fine — take your time, I’m listening.",
+    "file": "chen/00bdb4e34c55.mp3"
+   },
+   {
+    "zh": "你周末一般做什么？",
+    "en": "What do you usually do at the weekend?",
+    "file": "chen/2610d4fa1296.mp3"
+   },
+   {
+    "zh": "今天天气不错，你吃饭了吗？",
+    "en": "Nice weather today. Have you eaten?",
+    "file": "chen/c6757eff96b3.mp3"
+   },
+   {
+    "zh": "说得很好。我们再试一次吧。",
+    "en": "That was good. Let’s try it once more.",
+    "file": "chen/17117c11cfc6.mp3"
+   }
+  ],
+  "chen-steady": [
+   {
+    "zh": "你好，我是陈。今天想聊点什么？",
+    "en": "Hello, I’m Chen. What would you like to talk about today?",
+    "file": "chen-steady/0fc9a27313ca.mp3"
+   },
+   {
+    "zh": "没关系，慢慢说，我在听。",
+    "en": "It’s fine — take your time, I’m listening.",
+    "file": "chen-steady/00bdb4e34c55.mp3"
+   },
+   {
+    "zh": "今天天气不错，你吃饭了吗？",
+    "en": "Nice weather today. Have you eaten?",
+    "file": "chen-steady/c6757eff96b3.mp3"
+   },
+   {
+    "zh": "说得很好。我们再试一次吧。",
+    "en": "That was good. Let’s try it once more.",
+    "file": "chen-steady/17117c11cfc6.mp3"
+   }
+  ],
+  "chen-tutor": [
+   {
+    "zh": "你好，我是陈。今天想聊点什么？",
+    "en": "Hello, I’m Chen. What would you like to talk about today?",
+    "file": "chen-tutor/0fc9a27313ca.mp3"
+   },
+   {
+    "zh": "没关系，慢慢说，我在听。",
+    "en": "It’s fine — take your time, I’m listening.",
+    "file": "chen-tutor/00bdb4e34c55.mp3"
+   },
+   {
+    "zh": "你周末一般做什么？",
+    "en": "What do you usually do at the weekend?",
+    "file": "chen-tutor/2610d4fa1296.mp3"
+   },
+   {
+    "zh": "今天天气不错，你吃饭了吗？",
+    "en": "Nice weather today. Have you eaten?",
+    "file": "chen-tutor/c6757eff96b3.mp3"
+   },
+   {
+    "zh": "说得很好。我们再试一次吧。",
+    "en": "That was good. Let’s try it once more.",
+    "file": "chen-tutor/17117c11cfc6.mp3"
+   }
+  ],
+  "lin": [
+   {
+    "zh": "你好，我是林。今天想聊点什么？",
+    "en": "Hello, I’m Lin. What would you like to talk about today?",
+    "file": "lin/30fb3e48aa8f.mp3"
+   },
+   {
+    "zh": "没关系，慢慢说，我在听。",
+    "en": "It’s fine — take your time, I’m listening.",
+    "file": "lin/00bdb4e34c55.mp3"
+   },
+   {
+    "zh": "你周末一般做什么？",
+    "en": "What do you usually do at the weekend?",
+    "file": "lin/2610d4fa1296.mp3"
+   },
+   {
+    "zh": "今天天气不错，你吃饭了吗？",
+    "en": "Nice weather today. Have you eaten?",
+    "file": "lin/c6757eff96b3.mp3"
+   },
+   {
+    "zh": "说得很好。我们再试一次吧。",
+    "en": "That was good. Let’s try it once more.",
+    "file": "lin/17117c11cfc6.mp3"
+   }
+  ],
+  "wang": [
+   {
+    "zh": "你好，我是王老师。今天想聊点什么？",
+    "en": "Hello, I’m Teacher Wang. What would you like to talk about today?",
+    "file": "wang/a21520994a85.mp3"
+   },
+   {
+    "zh": "没关系，慢慢说，我在听。",
+    "en": "It’s fine — take your time, I’m listening.",
+    "file": "wang/00bdb4e34c55.mp3"
+   },
+   {
+    "zh": "你周末一般做什么？",
+    "en": "What do you usually do at the weekend?",
+    "file": "wang/2610d4fa1296.mp3"
+   },
+   {
+    "zh": "今天天气不错，你吃饭了吗？",
+    "en": "Nice weather today. Have you eaten?",
+    "file": "wang/c6757eff96b3.mp3"
+   },
+   {
+    "zh": "说得很好。我们再试一次吧。",
+    "en": "That was good. Let’s try it once more.",
+    "file": "wang/17117c11cfc6.mp3"
+   }
+  ],
+  "zhou": [
+   {
+    "zh": "你好，我是老周。今天想聊点什么？",
+    "en": "Hello, I’m Old Zhou. What would you like to talk about today?",
+    "file": "zhou/dbe965172048.mp3"
+   },
+   {
+    "zh": "没关系，慢慢说，我在听。",
+    "en": "It’s fine — take your time, I’m listening.",
+    "file": "zhou/00bdb4e34c55.mp3"
+   },
+   {
+    "zh": "你周末一般做什么？",
+    "en": "What do you usually do at the weekend?",
+    "file": "zhou/2610d4fa1296.mp3"
+   },
+   {
+    "zh": "今天天气不错，你吃饭了吗？",
+    "en": "Nice weather today. Have you eaten?",
+    "file": "zhou/c6757eff96b3.mp3"
+   },
+   {
+    "zh": "说得很好。我们再试一次吧。",
+    "en": "That was good. Let’s try it once more.",
+    "file": "zhou/17117c11cfc6.mp3"
+   }
+  ],
+  "xiaoyu": [
+   {
+    "zh": "你好，我是小雨。今天想聊点什么？",
+    "en": "Hello, I’m Xiaoyu. What would you like to talk about today?",
+    "file": "xiaoyu/342af50484b2.mp3"
+   },
+   {
+    "zh": "没关系，慢慢说，我在听。",
+    "en": "It’s fine — take your time, I’m listening.",
+    "file": "xiaoyu/00bdb4e34c55.mp3"
+   },
+   {
+    "zh": "今天天气不错，你吃饭了吗？",
+    "en": "Nice weather today. Have you eaten?",
+    "file": "xiaoyu/c6757eff96b3.mp3"
+   },
+   {
+    "zh": "说得很好。我们再试一次吧。",
+    "en": "That was good. Let’s try it once more.",
+    "file": "xiaoyu/17117c11cfc6.mp3"
+   }
+  ]
+ }
+}

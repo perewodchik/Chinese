@@ -341,6 +341,9 @@ function settingsFrom(v: unknown): AppSettings {
     // older build that knew nothing of either, still opens.
     guidedPace: clamp(num(s.guidedPace, DEFAULT_SETTINGS.guidedPace), 0.4, 1),
     silenceStop: clamp(num(s.silenceStop, DEFAULT_SETTINGS.silenceStop), 0, 15),
+    talkVoices: Array.isArray(s.talkVoices)
+      ? s.talkVoices.filter((v): v is string => typeof v === 'string').slice(0, 20)
+      : DEFAULT_SETTINGS.talkVoices,
   };
 }
 

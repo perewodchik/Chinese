@@ -16,20 +16,23 @@ import { SentenceStaff } from './PitchStaff';
 import { RecordButton } from './RecordButton';
 import { useSayIt } from './useSayIt';
 import { usePinyinMemory, voiceRange } from './voice';
-import { VoicePicker } from './VoicePicker';
 import { packTexts, referenceSamples, say } from './voiceOut';
 import './pinyin.css';
 
-/** One sentence to shadow, as the voice pack ships it. */
+/** One sentence to shadow, as the voice pack ships it: a native speaker's recording. */
 export interface ShadowSentence {
-  /** the Tatoeba sentence number, for attribution */
-  id: number;
+  /** stable across builds: the clip's own name */
+  id: string;
   zh: string;
   /** one syllable per Han character */
   py: string;
   en: string;
   hsk: number;
   topics: string[];
+  /** who said it, on what licence, and where the recording lives — the attribution the licence asks for */
+  by: string;
+  license: string;
+  page: string;
 }
 
 let shelf: Promise<ShadowSentence[]> | null = null;
@@ -48,21 +51,14 @@ const LEVELS = [
 const HAN = /[一-鿿]/;
 
 /**
- * How fast the sentence is played back.
+ * Shadowing: saying a sentence along with a native speaker, again and again,
+ * until the melody is yours.
  *
- * The pack records a sentence at the speed somebody talks — around six
- * syllables a second, which is native and is the point everywhere else in the
- * app. Shadowing is the one place that cannot use it: you are saying the
- * sentence *along with* the voice, and nobody learns a melody by chasing it.
- * Three fifths is slow enough to keep up with and fast enough to still be a
- * sentence rather than a list of characters — and it is the same reading,
- * stretched, so the rhythm being copied is the real one.
- */
-const SHADOW_PACE = 0.6;
-
-/**
- * Shadowing: saying a sentence along with a native-sounding voice, again and
- * again, until the melody is yours.
+ * Every sentence is a real person's recording (scripts/voices/shadowing.json),
+ * played exactly as they said it. It is not slowed down: the rhythm and the
+ * way the tones bend at speed are what shadowing is for, and a stretched
+ * recording teaches a speed nobody talks at. Short sentences are how it stays
+ * possible to keep up.
  *
  * Tones are learned in words; they are *used* in sentences, where they bend
  * to the rhythm around them, and that is only learned by copying whole
@@ -72,8 +68,9 @@ const SHADOW_PACE = 0.6;
  * off the same breath by speech recognition, which is at its best on exactly
  * this: a whole sentence, with context.
  *
- * The sentences are short, everyday and translated, from Tatoeba, and can be
- * narrowed to the characters you have already marked learned.
+ * The sentences are short, everyday and translated, from Wikimedia Commons
+ * and Tatoeba, and can be narrowed to the characters you have already marked
+ * learned.
  */
 export function ShadowPage() {
   useTitle('Shadowing');
@@ -132,16 +129,11 @@ export function ShadowPage() {
         <Seg value={level} options={LEVELS} onChange={(v) => setQuery('level', v, 'all')} size="sm" label="Level" />
       </div>
 
-      {/* Which voice reads them and which sentences they are: both chosen
-          before starting, and both a row of chips, so they need their headings
-          to keep from reading as one long wall of them. */}
+      {/* Each sentence has the one voice that recorded it, so there is no
+          voice to choose here — only which sentences. */}
       <div className="opt-panel">
-        <div className="opt-row">
-          <span className="tiny muted">Voice</span>
-          <VoicePicker preview={sentence?.zh} />
-        </div>
         <div className="opt-row wide">
-          <span className="tiny muted">Topic</span>
+          <span className="tiny muted">{topics.length ? 'Topic' : 'Sentences'}</span>
           <div className="chips">
             {topics.map((t) => (
               <button
@@ -224,7 +216,7 @@ function ShadowCard({
   // Heard once when it arrives, not again every time the voice is changed:
   // picking a voice says the sentence itself.
   useEffect(() => {
-    const id = setTimeout(() => void say(sentence.zh, { pace: SHADOW_PACE }), 300);
+    const id = setTimeout(() => void say(sentence.zh), 300);
     return () => clearTimeout(id);
   }, [sentence.zh]);
 
@@ -250,7 +242,7 @@ function ShadowCard({
   // The voice, then you, back to back: the comparison the ear makes best.
   const both = () => {
     if (!samples) return;
-    void say(sentence.zh, { pace: SHADOW_PACE }).then((how) => {
+    void say(sentence.zh).then((how) => {
       const wait = how === 'natural' && nativeLength ? nativeLength * 1000 + 350 : 2500;
       setTimeout(() => rec.play(samples), wait);
     });
@@ -309,7 +301,7 @@ function ShadowCard({
       )}
 
       <div className="speak-controls">
-        <button className="btn speak-side" onClick={() => void say(sentence.zh, { pace: SHADOW_PACE })}>
+        <button className="btn speak-side" onClick={() => void say(sentence.zh)}>
           <span aria-hidden>🔊</span> Listen
         </button>
         <RecordButton state={rec.state} level={rec.level} onToggle={sayIt} disabled={!!blocked} />
@@ -366,11 +358,11 @@ function ShadowCard({
       )}
 
       <p className="tiny muted shadow-source">
-        Sentence{' '}
-        <a href={`https://tatoeba.org/en/sentences/show/${sentence.id}`} target="_blank" rel="noreferrer">
-          #{sentence.id}
-        </a>{' '}
-        from Tatoeba, CC BY 2.0 FR.
+        Said by {sentence.by} ·{' '}
+        <a href={sentence.page} target="_blank" rel="noreferrer">
+          {sentence.page.includes('tatoeba') ? 'Tatoeba' : 'Wikimedia Commons'}
+        </a>
+        , {sentence.license}
       </p>
     </div>
   );

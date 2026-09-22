@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useMemo } from 'react';
+import { Link, useLocation } from 'react-router';
 import { TONE_NAME } from '../../domain/pinyin/contour';
 import { singleTones, tonePairs } from '../../domain/pinyin/practice';
 import { SOUND_LESSONS } from '../../domain/pinyin/sounds';
 import { paths } from '../../navigation/paths';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
+import { PartnerPicker } from './PartnerPicker';
 import { hearKey, pairKey, recentScore, sayKey, toneKey, usePinyinMemory, type Tally } from './voice';
 import './pinyin.css';
 
@@ -42,6 +43,13 @@ export function PinyinPage() {
   const memory = usePinyinMemory();
   const pairs = useMemo(() => tonePairs(lib), [lib]);
   const singles = useMemo(() => singleTones(lib), [lib]);
+  const { hash } = useLocation();
+
+  // Arriving from the conversation's "hear them first": the partners are
+  // at the bottom of a long page.
+  useEffect(() => {
+    if (hash === '#partners') document.getElementById('partners')?.scrollIntoView({ block: 'start' });
+  }, [hash]);
 
   return (
     <section className="pinyin">
@@ -156,7 +164,7 @@ export function PinyinPage() {
         <span>
           <b>Shadowing</b>
           <span className="small muted">
-            Short everyday sentences on a dozen topics, HSK 1 to 3, read by a natural voice. Say them with it and
+            Thirty everyday sentences recorded by native speakers, at the speed they said them. Say them along and
             compare the two melodies.
           </span>
         </span>
@@ -175,6 +183,11 @@ export function PinyinPage() {
         </span>
         <span className="go">Start →</span>
       </Link>
+
+      <h2 className="pinyin-label" id="partners">
+        Conversation partners
+      </h2>
+      <PartnerPicker />
 
       <h2 className="pinyin-label">Sounds English does not have</h2>
       <p className="small muted pinyin-lede">

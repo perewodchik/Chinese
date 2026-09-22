@@ -58,6 +58,10 @@ const KNOWN: Readonly<Record<string, Look>> = {
   // the one that leans in, nods along and goes pink while it is the one
   // talking.
   chen: { hair: 'fringe', skin: 1, cloth: 4, glasses: false, earrings: false, cute: true, beat: 0 },
+  // His two other takes: the same young man, told apart by what he is
+  // wearing — a darker collar for the low, steady one, glasses for the tutor.
+  'chen-steady': { hair: 'fringe', skin: 1, cloth: 2, glasses: false, earrings: false, cute: true, beat: 1.7 },
+  'chen-tutor': { hair: 'fringe', skin: 1, cloth: 3, glasses: true, earrings: false, cute: true, beat: 3.1 },
   // The syllable recordings are a real person's, so this one is the plainest
   // face of the set rather than a character.
   native: { hair: 'bun', skin: 3, cloth: 5, glasses: false, earrings: true, cute: false, beat: 5.3 },

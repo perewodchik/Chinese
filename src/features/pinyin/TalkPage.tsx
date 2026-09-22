@@ -97,8 +97,13 @@ export function TalkPage() {
   const composerRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLElement>(null);
 
-  const options: TalkOptions | null = record?.options ?? null;
   const voice = record?.voice ?? null;
+  // Who is talking goes to Claude with the rest: the partner's manner is
+  // half of who they are.
+  const options: TalkOptions | null = useMemo(
+    () => (record ? { ...record.options, persona: record.voice ?? undefined } : null),
+    [record],
+  );
   const showPinyin = readPrefs().pinyin;
   const showEnglish = readPrefs().english;
   const direct = status?.claude.state === 'ready';

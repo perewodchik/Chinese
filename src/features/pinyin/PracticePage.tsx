@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { analyse, type Attempt } from '../../domain/pinyin/analyse';
 import { resample, TONE_NAME, type Verdict } from '../../domain/pinyin/contour';
@@ -15,7 +15,7 @@ import { PitchStaff } from './PitchStaff';
 import { RecordButton } from './RecordButton';
 import { useRecorder } from './useRecorder';
 import { pairKey, record, toneKey, voiceRange } from './voice';
-import { referenceSamples, say } from './voiceOut';
+import { anyVoiceFor, packTexts, packVoices, referenceSamples, say, voicesFor } from './voiceOut';
 import './pinyin.css';
 
 interface PracticeSet {
@@ -26,10 +26,23 @@ interface PracticeSet {
   words: PracticeWord[];
 }
 
-/** `pair-3-3` or `tone-2`, turned into something to say. */
-function usePracticeSet(id: string | undefined): PracticeSet | null {
+/**
+ * `pair-3-3` or `tone-2`, turned into something to say — only the words a
+ * native speaker has recorded.
+ *
+ * A word nobody recorded would be read by the system voice, which is a
+ * machine, and the one thing a drill must never do is teach a tone from a
+ * machine. So those words are left out rather than read badly. Should the
+ * pack be missing altogether the whole list comes back, since a drill with no
+ * words is no drill at all. Undefined while the pack is still loading.
+ */
+function usePracticeSet(id: string | undefined): PracticeSet | null | undefined {
   const lib = useLibrary();
-  return useMemo(() => {
+  const [voiced, setVoiced] = useState<Set<string> | null>(null);
+  useEffect(() => {
+    void packTexts().then(setVoiced);
+  }, []);
+  const set = useMemo(() => {
     const pair = /^pair-([1-4])-([1-5])$/.exec(id ?? '');
     if (pair) {
       const [a, b] = [Number(pair[1]), Number(pair[2])];
@@ -55,12 +68,19 @@ function usePracticeSet(id: string | undefined): PracticeSet | null {
     }
     return null;
   }, [id, lib]);
+  return useMemo(() => {
+    if (!set) return set;
+    if (!voiced) return undefined;
+    const recorded = set.words.filter((w) => voiced.has(w.word));
+    return recorded.length ? { ...set, words: recorded } : set;
+  }, [set, voiced]);
 }
 
 /** One sitting of saying things, at /pinyin/practice/:set. */
 export function PracticePage() {
   const { set: setId } = useParams();
   const set = usePracticeSet(setId);
+  if (set === undefined) return null;
   if (!set || !set.words.length) return <Navigate to={paths.speaking()} replace />;
   return <Sitting key={set.id} set={set} />;
 }
@@ -137,7 +157,41 @@ function Sitting({ set }: { set: PracticeSet }) {
 
   const rec = useRecorder(onRecorded, 1800 + 700 * (word?.syllables.length ?? 1));
 
-  const listen = useCallback(() => void (word && say(word.word, { slow: true })), [word]);
+  // Who says this word. Several native speakers often recorded the same
+  // one, and hearing a tone pair in more than one voice is what teaches the
+  // ear which part is the tone and which is the person: so each word opens
+  // in one of them (the learner's chosen voice if it has the word) and
+  // "Another speaker" goes round the rest.
+  const [speakers, setSpeakers] = useState<string[]>([]);
+  const [speaker, setSpeaker] = useState<string | undefined>(undefined);
+  const [names, setNames] = useState<Record<string, string>>({});
+  useEffect(() => {
+    void packVoices().then((vs) => setNames(Object.fromEntries(vs.map((v) => [v.id, v.name]))));
+  }, []);
+  useEffect(() => {
+    if (!word) return;
+    let live = true;
+    setSpeaker(undefined);
+    void Promise.all([voicesFor(word.word), anyVoiceFor(word.word)]).then(([all, first]) => {
+      if (!live) return;
+      setSpeakers(all);
+      setSpeaker(first ?? all[0] ?? '');
+    });
+    return () => {
+      live = false;
+    };
+  }, [word]);
+  const otherSpeaker = useCallback(() => {
+    if (speakers.length < 2 || speaker === undefined) return;
+    const nextOne = speakers[(speakers.indexOf(speaker) + 1) % speakers.length]!;
+    setSpeaker(nextOne);
+    if (word) void say(word.word, { voice: nextOne });
+  }, [speakers, speaker, word]);
+
+  const listen = useCallback(
+    () => void (word && speaker !== undefined && say(word.word, { slow: true, voice: speaker || undefined })),
+    [word, speaker],
+  );
 
   // With a natural voice, the reference on the staff is that voice's own pitch
   // rather than the textbook shape: real sandhi, a real neutral tone, the
@@ -145,9 +199,9 @@ function Sitting({ set }: { set: PracticeSet }) {
   const [native, setNative] = useState<Array<number[] | null> | null>(null);
   useEffect(() => {
     setNative(null);
-    if (!word) return;
+    if (!word || speaker === undefined) return;
     let live = true;
-    void referenceSamples(word.word, { slow: true }).then((s) => {
+    void referenceSamples(word.word, { slow: true, voice: speaker || undefined }).then((s) => {
       if (!live || !s) return;
       const a = analyse(trackPitch(s, { sampleRate: 16000 }), word.spoken, null);
       if (a.problem) return;
@@ -161,7 +215,7 @@ function Sitting({ set }: { set: PracticeSet }) {
     return () => {
       live = false;
     };
-  }, [word]);
+  }, [word, speaker]);
   const next = useCallback(() => {
     setAt((n) => n + 1);
     setAttempt(null);
@@ -170,12 +224,16 @@ function Sitting({ set }: { set: PracticeSet }) {
   }, []);
 
   // A new word is heard before it is said: imitation first, then comparison.
+  // Once, when its first speaker is known — not again on "Another speaker",
+  // which says it itself.
+  const heard = useRef<PracticeWord | null>(null);
   useEffect(() => {
-    if (word) {
+    if (word && speaker !== undefined && heard.current !== word) {
+      heard.current = word;
       const id = setTimeout(listen, 250);
       return () => clearTimeout(id);
     }
-  }, [word, listen]);
+  }, [word, speaker, listen]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -284,6 +342,17 @@ function Sitting({ set }: { set: PracticeSet }) {
             <span aria-hidden>▶</span> Me
           </button>
         </div>
+
+        {speaker && (
+          <div className="row speak-speaker" style={{ justifyContent: 'center', gap: 10 }}>
+            <span className="tiny muted">Said by {names[speaker] ?? speaker}</span>
+            {speakers.length > 1 && (
+              <button className="btn ghost sm" onClick={otherSpeaker}>
+                Another speaker ({speakers.length})
+              </button>
+            )}
+          </div>
+        )}
 
         {rec.error && <p className="notice speak-notice">{rec.error}</p>}
 

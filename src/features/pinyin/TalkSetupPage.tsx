@@ -8,6 +8,7 @@ import {
 } from '../../../shared/talk';
 import { deleteConversation, listConversations, startConversation, talkStatus } from '../../api/talk';
 import { paths } from '../../navigation/paths';
+import { useStore } from '../../store/store';
 import { Seg } from '../../ui/Seg';
 import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
@@ -72,7 +73,12 @@ export function TalkSetupPage() {
     };
   }, []);
 
-  const voices = status?.voices ?? [];
+  // The partners kept on the Speaking page, in the order they were kept;
+  // everybody, until somebody has been.
+  const kept = useStore((st) => st.settings.talkVoices);
+  const all = status?.voices ?? [];
+  const keptVoices = kept.flatMap((id) => all.filter((v) => v.id === id));
+  const voices = keptVoices.length ? keptVoices : all;
   const voice = pickVoice(prefs.voice, voices);
   const partner = voices.find((v) => v.id === voice);
   const voiceName = voice === SYSTEM ? 'The system voice' : (partner?.name ?? voice);
@@ -126,6 +132,9 @@ export function TalkSetupPage() {
       <div className="card">
         <header>
           <h2>Who you are talking to</h2>
+          <Link className="btn ghost sm" to={`${paths.speaking()}#partners`}>
+            {keptVoices.length ? 'Change who is here' : 'Hear them first'}
+          </Link>
         </header>
         <div className="body">
           <div className="voice-faces">

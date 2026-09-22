@@ -17,6 +17,8 @@
  * app or the server.
  */
 
+import { personaOf } from './personas';
+
 export type TalkLevel = 'hsk1' | 'hsk2' | 'hsk3';
 export const TALK_LEVELS: readonly TalkLevel[] = ['hsk1', 'hsk2', 'hsk3'];
 
@@ -64,6 +66,12 @@ export interface TalkOptions {
   hints: boolean;
   /** what to talk about, in the learner's own words; empty leaves the choice to Claude */
   topic: string;
+  /**
+   * Who is talking, by voice id (shared/personas.ts): the partner's manner
+   * goes into the instructions along with their voice. Absent for the
+   * system voice, and in conversations from before there were partners.
+   */
+  persona?: string;
 }
 
 export const DEFAULT_OPTIONS: TalkOptions = {
@@ -145,9 +153,17 @@ const LENGTH_RULE: Record<TalkLength, string> = {
 
 /** Who Claude is in the conversation, and how it answers. Shared by both routes to Claude. */
 export function tutorInstructions(o: TalkOptions): string {
+  const persona = personaOf(o.persona);
   const lines = [
-    'You are a friendly Mandarin conversation partner for someone learning Chinese, who is practising speaking out loud.',
+    'You are a calm, friendly Mandarin conversation partner for someone learning Chinese, who is practising speaking out loud.',
     'Everything you write in Chinese is read aloud to them by a text-to-speech voice, and they answer by speaking.',
+    ...(persona
+      ? [
+          `You are ${persona.character}`,
+          `Your name in Chinese is ${persona.zh}; use it if you introduce yourself.`,
+        ]
+      : []),
+    'Keep the tone relaxed and reassuring: speaking a new language out loud is hard, and they should feel there is no hurry. Avoid exclamation marks and over-the-top praise.',
     '',
     'How to talk:',
     `- Simplified Chinese only, at the learner's level: ${LEVEL_WORDS[o.level]}. Short, natural sentences.`,

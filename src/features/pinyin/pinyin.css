@@ -2375,3 +2375,108 @@
   font-weight: 600;
   letter-spacing: 0.01em;
 }
+
+/* --- conversation partners: each one saying the same lines, to keep or not */
+
+.partner-group {
+  margin: 14px 0 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.partner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+}
+
+.partner-card {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.14s;
+}
+
+.partner-card[data-kept] {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.partner-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.partner-who {
+  display: grid;
+  gap: 2px;
+}
+
+.partner-who b {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14.5px;
+  font-weight: 620;
+}
+
+.partner-who .count {
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+.partner-lines {
+  display: grid;
+  gap: 4px;
+}
+
+.partner-line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: baseline;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card-2);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+}
+
+.partner-line:hover {
+  border-color: var(--line-2);
+}
+
+.partner-line[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--card);
+}
+
+.partner-line .hanzi {
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.partner-line i {
+  grid-column: 2;
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.partner-keep {
+  justify-self: start;
+  min-height: 36px;
+}
