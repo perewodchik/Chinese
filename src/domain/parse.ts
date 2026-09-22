@@ -47,6 +47,8 @@ export interface DraftText {
   questions: TextLine[];
   grammar: GrammarNote[];
   note: string;
+  /** the writer's own count of distinct characters per HSK band */
+  hsk?: Record<string, number>;
 }
 
 export interface ParseResult {
@@ -272,11 +274,31 @@ export function asLine(v: unknown): TextLine | null {
   const o = v as Bag;
   const zh = pick(o, 'zh', 'hanzi', 'chinese', 'cn', 'text', 'sentence', 'q');
   if (!zh || !hanziIn(zh).length) return null;
-  return {
+  const line: TextLine = {
     zh,
-    py: pick(o, 'py', 'pinyin', 'p', 'reading'),
+    py: pick(o, 'py', 'pinyin', 'reading'),
     en: pick(o, 'en', 'english', 'translation', 'tr', 'meaning'),
   };
+  const zht = pick(o, 'zht', 'traditional', 'trad', 'zhTrad');
+  if (zht && hanziIn(zht).length) line.zht = zht;
+  // `p` was once a pinyin key; now it marks a paragraph. A string there is the
+  // old meaning, and only fills the pinyin if nothing else did.
+  if (o.p === true || o.para === true || o.paragraph === true) line.p = true;
+  else if (!line.py && typeof o.p === 'string') line.py = o.p.trim();
+  const a = pick(o, 'a', 'answer', 'modelAnswer');
+  if (a) line.a = a;
+  return line;
+}
+
+function asCounts(v: unknown): Record<string, number> | undefined {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return undefined;
+  const out: Record<string, number> = {};
+  for (const [k, n] of Object.entries(v as Bag)) {
+    if (typeof n === 'number' && Number.isFinite(n) && /^\d$/.test(k.replace(/\D/g, ''))) {
+      out[k.replace(/\D/g, '')] = n;
+    }
+  }
+  return Object.keys(out).length ? out : undefined;
 }
 
 function asWord(v: unknown): TextWord | null {
@@ -349,6 +371,7 @@ function asText(v: unknown): DraftText | null {
       .map(asGrammar)
       .filter((g): g is GrammarNote => g !== null),
     note: pick(o, 'note', 'teacherNote', 'advice', 'comment', 'tip'),
+    hsk: asCounts(o.hsk ?? o.hskDistribution),
   };
 }
 
@@ -492,7 +515,7 @@ export function toText(
   model: string,
 ): Omit<GeneratedText, 'id' | 'createdAt' | 'read'> {
   const { draft, spec } = match;
-  const basis = [...new Set([...plan.basis, ...plan.met])];
+  const basis = [...new Set([...plan.basis, ...plan.met, ...hanziIn(plan.supplement ?? '')])];
   const known = new Set(basis);
   const cover = coverageOf(draft, known);
   const teach = cover.fresh;
@@ -511,6 +534,9 @@ export function toText(
     length: spec?.length ?? 'medium',
     level: spec?.level ?? 'edge',
     genre: spec?.genre ?? 'story',
+    hsk: spec?.hsk,
+    ceiling: spec?.ceiling,
+    hskReported: draft.hsk,
     model,
     lines: draft.lines,
     vocab: draft.vocab.map((w) => ({

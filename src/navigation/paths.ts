@@ -12,6 +12,9 @@ import type { ListStep } from '../domain/wordlist';
 export type EditorTab = 'design' | 'items';
 /** A collection has a third tab, for the words it was written around. */
 export type CollectionTab = EditorTab | 'words';
+/** A session read one text at a time, or all of it on one page. */
+export type ReadMode = 'single' | 'all';
+
 export type DrillId = 'recognise' | 'sound' | 'tone' | 'confuse' | 'write' | 'word';
 
 export const paths = {
@@ -36,7 +39,14 @@ export const paths = {
   buildList: (step: ListStep = 'describe') => `/collections/build/${step}`,
 
   texts: () => '/texts',
+  /** one text; within a session it redirects to its page there */
   text: (id: string) => `/texts/${encodeURIComponent(id)}`,
+  /** a session of texts: `?page=2` for the second on its own, `?mode=all` for every one */
+  reading: (setId: string, at: { page?: number; mode?: ReadMode } = {}) =>
+    withQuery(`/texts/${encodeURIComponent(setId)}`, {
+      mode: at.mode === 'all' ? 'all' : undefined,
+      page: at.mode !== 'all' && at.page && at.page > 1 ? String(at.page) : undefined,
+    }),
   session: (step: PlanStep = 'plan') => `/texts/session/${step}`,
 
   /**

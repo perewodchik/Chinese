@@ -1,4 +1,15 @@
-import { GENRES, LENGTHS, LEVELS, type Genre, type TextSpec } from '../../domain/text';
+import { includeList } from '../../domain/prompt';
+import {
+  GENRES,
+  HSK_BANDS,
+  LENGTHS,
+  LEVELS,
+  STRUCTURES,
+  VOCAB_MODES,
+  hskLabel,
+  type Genre,
+  type TextSpec,
+} from '../../domain/text';
 import { Seg } from '../../ui/Seg';
 
 interface Props {
@@ -109,6 +120,49 @@ export function SpecCard({
           </label>
         </div>
 
+        <div className="spec-row">
+          <span className="spec-label">Shape</span>
+          <Seg
+            size="sm"
+            label="Shape"
+            value={spec.structure}
+            onChange={(structure) => onChange({ structure })}
+            options={STRUCTURES.map((x) => ({ id: x.id, label: x.label, title: x.brief }))}
+          />
+        </div>
+
+        <div className="spec-row">
+          <span className="spec-label">Band</span>
+          <select
+            value={spec.hsk}
+            aria-label="Vocabulary band"
+            onChange={(e) => {
+              const hsk = Number(e.target.value);
+              onChange({ hsk, ceiling: Math.max(hsk, spec.ceiling) });
+            }}
+          >
+            {HSK_BANDS.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.label}
+              </option>
+            ))}
+          </select>
+          <span className="tiny muted" style={{ whiteSpace: 'nowrap' }}>
+            stretch to
+          </span>
+          <select
+            value={Math.max(spec.hsk, spec.ceiling)}
+            aria-label="Highest band a stretch word may come from"
+            onChange={(e) => onChange({ ceiling: Number(e.target.value) })}
+          >
+            {HSK_BANDS.filter((b) => b.id >= spec.hsk).map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.id === spec.hsk ? 'no further' : b.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="spec-teach">
           <div className="row" style={{ gap: 8 }}>
             <span className="spec-label">Level</span>
@@ -144,9 +198,34 @@ export function SpecCard({
             <span className="tiny muted">
               {spec.newCount === 0
                 ? 'nothing new — stay inside what I know'
-                : 'new characters — Claude picks which'}
+                : `about this many new — a target, not a cap; ${hskLabel(spec.hsk)} words are fair game`}
             </span>
           </div>
+
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+            <span className="spec-label">Words</span>
+            <Seg
+              size="sm"
+              label="How the word list is used"
+              value={spec.vocabMode}
+              onChange={(vocabMode) => onChange({ vocabMode })}
+              options={VOCAB_MODES.map((m) => ({ id: m.id, label: m.label, title: m.blurb }))}
+            />
+          </div>
+          <input
+            type="text"
+            className="spec-include"
+            value={spec.include}
+            placeholder={
+              spec.vocabMode === 'strict'
+                ? 'Words it must use — 咖啡、公园、已经'
+                : 'Words it could use, if they fit (optional)'
+            }
+            onChange={(e) => onChange({ include: e.target.value })}
+          />
+          {spec.vocabMode === 'strict' && includeList(spec).length === 0 && (
+            <span className="tiny muted">Put the words to include above — without any, this is the same as a target.</span>
+          )}
         </div>
 
       </div>

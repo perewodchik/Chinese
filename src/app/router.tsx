@@ -14,7 +14,7 @@ import { TalkPage } from '../features/pinyin/TalkPage';
 import { TalkSetupPage } from '../features/pinyin/TalkSetupPage';
 import { VoicePage } from '../features/pinyin/VoicePage';
 import { SessionPage } from '../features/reader/SessionPage';
-import { TextPage } from '../features/reader/TextPage';
+import { ReaderPage } from '../features/reader/ReaderPage';
 import { TextsPage } from '../features/reader/TextsPage';
 import { DrillPage } from '../features/review/DrillPage';
 import { GradeSheetPage } from '../features/review/GradeSheetPage';
@@ -38,7 +38,8 @@ import { RequireSession } from './RequireSession';
  *   /collections/:id[/items|words] one collection: its design, what is in it, its words
  *   /texts                         the shelf
  *   /texts/session/:step           a writing session: plan, prompt, paste
- *   /texts/:textId                 one passage
+ *   /texts/:sessionId?page&mode    a session: ?page=2 one text, ?mode=all every one
+ *   /texts/:textId                 one passage — within a session, its page there
  *   /speaking                      pronunciation: the four tones and the twenty pairs
  *   /speaking/practice/:set        saying things out loud: pair-3-3, tone-2
  *   /speaking/sounds/:lesson?step  one sound lesson: how it is made, hear it, say it
@@ -105,7 +106,7 @@ export const router = createBrowserRouter([
               { path: 'radicals/*', element: <MovedToLibrary /> },
               { path: 'texts', element: <TextsPage /> },
               { path: 'texts/session/:step?', element: <SessionPage /> },
-              { path: 'texts/:textId', element: <TextPage /> },
+              { path: 'texts/:textId', element: <ReaderPage /> },
               { path: 'speaking', element: <PinyinPage /> },
               { path: 'speaking/practice/:set', element: <PracticePage /> },
               { path: 'speaking/sounds/:lesson', element: <SoundLessonPage /> },

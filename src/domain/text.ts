@@ -56,21 +56,21 @@ export const LEVELS: Array<{
     label: 'A step past',
     blurb: 'Everyday Chinese, a little further.',
     brief:
-      'Ordinary written Chinese. Sentences of 6 to 14 characters, joined with 和 / 也 / 但是 / 因为 and the like. Anything new can be a common everyday character just past my list — roughly HSK 3 to 4 — and the words built from it should be ones I would actually use this month.',
+      'Ordinary written Chinese. Sentences of 6 to 14 characters, joined with 和 / 也 / 但是 / 因为 and the like. Anything new can be a common everyday character just past my list, and the words built from it should be ones I would actually use this month.',
   },
   {
     id: 'stretch',
     label: 'Stretch',
     blurb: 'Longer sentences, less common words.',
     brief:
-      'Make me work a little. Sentences of 8 to 20 characters, with 的 modifying clauses, 了 / 过 / 着 used properly, and time and place stated the Chinese way rather than the English way. Reach further for vocabulary where the topic wants it — less common characters and HSK 4 to 5 words.',
+      'Make me work a little. Sentences of 8 to 20 characters, with 的 modifying clauses, 了 / 过 / 着 used properly, and time and place stated the Chinese way rather than the English way. Reach further for vocabulary where the topic wants it — less common characters, up to the stretch ceiling.',
   },
   {
     id: 'beyond',
     label: 'Well beyond',
     blurb: 'Whatever the subject really needs.',
     brief:
-      'Natural adult Chinese: multi-clause sentences, 把 / 被 where they belong, set phrases and a rhythm a native reader would not correct. Take whatever vocabulary the topic really needs, up to HSK 6, including words I have no chance of guessing — you are going to gloss them for me anyway.',
+      'Natural adult Chinese: multi-clause sentences, 把 / 被 where they belong, set phrases and a rhythm a native reader would not correct. Take whatever vocabulary the topic really needs, up to the stretch ceiling, including words I have no chance of guessing — you are going to gloss them for me anyway.',
   },
 ];
 
@@ -108,6 +108,12 @@ export interface TextLine {
   zh: string;
   py: string;
   en: string;
+  /** the same sentence in traditional characters, when it was asked for */
+  zht?: string;
+  /** this sentence starts a new paragraph */
+  p?: boolean;
+  /** for a comprehension question: the answer the writer had in mind */
+  a?: string;
 }
 
 export interface TextWord {
@@ -125,6 +131,68 @@ export interface GrammarNote {
   zh: string;
   en: string;
 }
+
+/* ------------------------------------------------------------- HSK bands */
+
+/**
+ * The bands a passage can be pitched at. HSK 3.0 has nine, but 7 to 9 is one
+ * exam and one syllabus band in the library, so it is one choice here too.
+ */
+export const HSK_BANDS: Array<{ id: number; label: string }> = [
+  { id: 1, label: 'HSK 1' },
+  { id: 2, label: 'HSK 2' },
+  { id: 3, label: 'HSK 3' },
+  { id: 4, label: 'HSK 4' },
+  { id: 5, label: 'HSK 5' },
+  { id: 6, label: 'HSK 6' },
+  { id: 7, label: 'HSK 7–9' },
+];
+
+export const hskLabel = (band: number) =>
+  HSK_BANDS.find((b) => b.id === band)?.label ?? `HSK ${band}`;
+
+export const clampBand = (n: number) => Math.min(7, Math.max(1, Math.round(n) || 1));
+
+/**
+ * How a passage is put together.
+ *
+ * `flow` is prose that runs on — paragraphs, sentences leaning on the one
+ * before. `units` is the textbook shape: short self-contained exchanges or
+ * steps, each readable on its own.
+ */
+export type Structure = 'flow' | 'units';
+
+export const STRUCTURES: Array<{ id: Structure; label: string; brief: string }> = [
+  {
+    id: 'flow',
+    label: 'Flowing',
+    brief:
+      'Continuous prose in one to three paragraphs. Let sentences lean on each other — pronouns, 就 / 还 / 所以, a time phrase carried over — the way a real paragraph does. Do not write one isolated fact per line.',
+  },
+  {
+    id: 'units',
+    label: 'In parts',
+    brief:
+      'Short self-contained units — dialogue exchanges, steps or small scenes — each readable on its own. Start a new paragraph for each unit.',
+  },
+];
+
+/**
+ * What the new-character number means.
+ *
+ * `soft`: roughly this many, the writer chooses. `strict`: the words and
+ * characters in the spec's include list must all appear, and the number is
+ * whatever they come to plus a little.
+ */
+export type VocabMode = 'soft' | 'strict';
+
+export const VOCAB_MODES: Array<{ id: VocabMode; label: string; blurb: string }> = [
+  { id: 'soft', label: 'About this many', blurb: 'A target — Claude picks what the topic needs' },
+  { id: 'strict', label: 'Must include', blurb: 'Every word on your list appears in the passage' },
+];
+
+/** Which script the passage is written in, beside the simplified it is always checked against. */
+export type Script = 'simplified' | 'both';
 
 /* --------------------------------------------------------------- the plan */
 
@@ -144,9 +212,22 @@ export interface TextSpec {
   length: TextLength;
   level: Level;
   genre: Genre;
-  /** roughly how many characters it may introduce */
+  /**
+   * Roughly how many characters it should introduce — a density target, not a
+   * cap. Characters inside words at or under the HSK band are part of the
+   * level; they count towards this, but the passage is not twisted to avoid
+   * them.
+   */
   newCount: number;
   questions: boolean;
+  /** the band the vocabulary is pitched at */
+  hsk: number;
+  /** the highest band a stretch word may come from */
+  ceiling: number;
+  structure: Structure;
+  vocabMode: VocabMode;
+  /** words or characters to work in — required under `strict`, suggestions under `soft` */
+  include: string;
 }
 
 export type PlanStep = 'plan' | 'prompt' | 'paste';
@@ -176,6 +257,14 @@ export interface TextPlan {
   basisCount: number;
   /** characters earlier texts already taught: fair to reuse, not new */
   met: string[];
+  /**
+   * Characters the writer may use as though known, beyond the learned list —
+   * a collection being studied this week, say. Counted as known when the
+   * answer comes back, so they are never reported as new.
+   */
+  supplement: string;
+  /** simplified only, or simplified with a traditional version of every line */
+  script: Script;
   specs: TextSpec[];
   /** what you pasted back, kept so a reload does not lose Claude's answer */
   response: string;
@@ -192,6 +281,11 @@ export interface TextSet {
   name: string;
   createdAt: number;
   note?: string;
+  /**
+   * The reading order, by text id, once somebody has rearranged it. Texts not
+   * listed (added since) follow in the order they were written.
+   */
+  order?: string[];
 }
 
 export interface GeneratedText {
@@ -206,6 +300,11 @@ export interface GeneratedText {
   length: TextLength;
   level: Level;
   genre: Genre;
+  /** the band and stretch ceiling it was written for, when the brief said */
+  hsk?: number;
+  ceiling?: number;
+  /** the writer's own count of distinct characters per band, kept to compare with ours */
+  hskReported?: Record<string, number>;
   createdAt: number;
   model: string;
   lines: TextLine[];
@@ -365,6 +464,14 @@ export function shelve(texts: GeneratedText[], sets: TextSet[]): Shelf {
       loose.push(t);
     }
   }
-  for (const list of bySet.values()) list.sort((a, b) => a.createdAt - b.createdAt);
+  const orders = new Map(sets.map((s) => [s.id, s.order ?? []]));
+  for (const [id, list] of bySet) {
+    const rank = new Map((orders.get(id) ?? []).map((t, i) => [t, i]));
+    list.sort((a, b) => {
+      const ra = rank.get(a.id) ?? Infinity;
+      const rb = rank.get(b.id) ?? Infinity;
+      return ra !== rb ? ra - rb : a.createdAt - b.createdAt;
+    });
+  }
   return { bySet, loose };
 }

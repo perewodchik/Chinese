@@ -10,7 +10,7 @@ import {
   type SkillBook,
 } from '../domain/memory';
 import { DEFAULT_CHAR_SHEET, PER_PAGE_CHOICES, type SheetOptions } from '../domain/sheet';
-import type { GeneratedText, TextLine, TextPlan, TextSet, TextSpec } from '../domain/text';
+import { clampBand, type GeneratedText, type TextLine, type TextPlan, type TextSet, type TextSpec } from '../domain/text';
 import { emptyListPlan, LIST_STEPS, type WordListPlan } from '../domain/wordlist';
 import {
   isRadicalId,
@@ -206,6 +206,12 @@ function textFrom(v: unknown): GeneratedText | null {
     length: (t.length as GeneratedText['length']) ?? 'medium',
     level: levelOf(t),
     genre: (t.genre as GeneratedText['genre']) ?? 'story',
+    hsk: typeof t.hsk === 'number' ? t.hsk : undefined,
+    ceiling: typeof t.ceiling === 'number' ? t.ceiling : undefined,
+    hskReported:
+      t.hskReported && typeof t.hskReported === 'object'
+        ? (t.hskReported as GeneratedText['hskReported'])
+        : undefined,
     createdAt: typeof t.createdAt === 'number' ? t.createdAt : Date.now(),
     model: strOr(t.model, 'Claude'),
     lines,
@@ -235,6 +241,7 @@ function setFrom(v: unknown): TextSet | null {
     name: strOr(s.name, 'Session'),
     createdAt: typeof s.createdAt === 'number' ? s.createdAt : Date.now(),
     note: typeof s.note === 'string' ? s.note : undefined,
+    order: Array.isArray(s.order) ? s.order.filter((x): x is string => typeof x === 'string') : undefined,
   };
 }
 
@@ -255,6 +262,12 @@ function planFrom(v: unknown): TextPlan | null {
         genre: (s.genre as TextSpec['genre']) ?? 'story',
         newCount: typeof s.newCount === 'number' ? s.newCount : 5,
         questions: s.questions !== false,
+        // Plans stored before the band existed were pitched by level alone.
+        hsk: clampBand(typeof s.hsk === 'number' ? s.hsk : 2),
+        ceiling: clampBand(typeof s.ceiling === 'number' ? s.ceiling : 3),
+        structure: s.structure === 'units' ? 'units' : 'flow',
+        vocabMode: s.vocabMode === 'strict' ? 'strict' : 'soft',
+        include: strOr(s.include, ''),
       }),
     );
   if (!specs.length) return null;
@@ -266,6 +279,8 @@ function planFrom(v: unknown): TextPlan | null {
     basis: arr<string>(p.basis),
     basisCount: typeof p.basisCount === 'number' ? p.basisCount : 150,
     met: arr<string>(p.met),
+    supplement: strOr(p.supplement, ''),
+    script: p.script === 'both' ? 'both' : 'simplified',
     specs,
     response: strOr(p.response, ''),
     step: (p.step as TextPlan['step']) ?? 'plan',
@@ -352,6 +367,11 @@ function settingsFrom(v: unknown): AppSettings {
           ),
         ].slice(0, 20)
       : DEFAULT_SETTINGS.talkVoices,
+    readerLayout: s.readerLayout === 'sentences' ? 'sentences' : 'paragraph',
+    markNew: s.markNew !== false,
+    markAbove: s.markAbove !== false,
+    targetHsk: clamp(Math.round(num(s.targetHsk, DEFAULT_SETTINGS.targetHsk)), 0, 7),
+    readerTraditional: s.readerTraditional === true,
   };
 }
 

@@ -1,6 +1,6 @@
 import type { Library } from '../data/types';
 import { charId, type ItemId } from './ids';
-import type { GeneratedText, TextSpec } from './text';
+import { clampBand, type GeneratedText, type TextSpec } from './text';
 
 /**
  * The part of the app that behaves like a teacher.
@@ -35,6 +35,26 @@ export function basisPool(lib: Library, learned: ReadonlySet<ItemId>): string[] 
 }
 
 const freqOf = (c: { freq: number }) => (c.freq > 0 ? c.freq : 99999);
+
+/**
+ * The band a learner is working in: the first one they have not yet mostly
+ * learned. Four in five of a band marked learned is where it stops being the
+ * frontier — the rest are the stragglers every band has.
+ */
+export function suggestBand(lib: Library, learned: ReadonlySet<ItemId>): number {
+  const total = new Map<number, number>();
+  const got = new Map<number, number>();
+  for (const c of lib.characters) {
+    const band = clampBand(c.hsk);
+    total.set(band, (total.get(band) ?? 0) + 1);
+    if (learned.has(charId(c.c))) got.set(band, (got.get(band) ?? 0) + 1);
+  }
+  for (let band = 1; band <= 7; band++) {
+    const n = total.get(band) ?? 0;
+    if (n && (got.get(band) ?? 0) / n < 0.8) return band;
+  }
+  return 7;
+}
 
 /* ------------------------------------------------------ what came back new */
 
@@ -138,6 +158,11 @@ export function emptySpec(partial: Partial<TextSpec> = {}): TextSpec {
     genre: 'story',
     newCount: 5,
     questions: true,
+    hsk: 2,
+    ceiling: 3,
+    structure: 'flow',
+    vocabMode: 'soft',
+    include: '',
     ...partial,
   };
 }

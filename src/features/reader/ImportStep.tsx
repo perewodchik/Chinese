@@ -5,6 +5,7 @@ import { matchToSpecs, parseResponse, toText } from '../../domain/parse';
 import {
   coverageOf,
   lengthLabel,
+  hanziIn,
   levelLabel,
   sentenceRange,
   textCharCount,
@@ -40,7 +41,10 @@ export function ImportStep({ plan, onBack, onDone }: Props) {
   const [skipped, setSkipped] = useState<Set<number>>(new Set());
   const [collect, setCollect] = useState(true);
 
-  const known = useMemo(() => new Set([...plan.basis, ...plan.met]), [plan.basis, plan.met]);
+  const known = useMemo(
+    () => new Set([...plan.basis, ...plan.met, ...hanziIn(plan.supplement)]),
+    [plan.basis, plan.met, plan.supplement],
+  );
   const parsed = useMemo(() => parseResponse(plan.response), [plan.response]);
   const reviews = useMemo(() => {
     const matches = matchToSpecs(parsed.drafts, plan.specs);

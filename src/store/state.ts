@@ -45,6 +45,20 @@ export interface AppSettings {
    * partner is offered.
    */
   talkVoices: string[];
+  /**
+   * How a passage is laid out: the Chinese as paragraphs with the translation
+   * as a block beneath it, or sentence by sentence with each translation
+   * under its own line.
+   */
+  readerLayout: 'paragraph' | 'sentences';
+  /** colour the characters and words a passage taught */
+  markNew: boolean;
+  /** underline words from above the target band */
+  markAbove: boolean;
+  /** the band a reader and a new session are pitched at, or 0 to work it out from what is learned */
+  targetHsk: number;
+  /** show a passage in traditional characters where it has them */
+  readerTraditional: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -61,6 +75,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   guidedPace: 0.65,
   silenceStop: 3,
   talkVoices: [],
+  readerLayout: 'paragraph',
+  markNew: true,
+  markAbove: true,
+  targetHsk: 0,
+  readerTraditional: false,
 };
 
 /** The workspace as it is written down — to the server now, and to localStorage before accounts. */

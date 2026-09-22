@@ -16,6 +16,8 @@ export function planSession(input: {
   learned: ReadonlySet<ItemId>;
   texts: GeneratedText[];
   basisCount: number;
+  /** the band the passages are pitched at */
+  hsk: number;
 }): TextPlan {
   const { lib, learned } = input;
   // Only what has been marked learned. A session opened two weeks in has
@@ -38,11 +40,15 @@ export function planSession(input: {
     met: [...taughtAlready(input.texts)].filter((c) => !inBasis.has(c)),
     // Three to start with, deliberately not identical: a session you can read
     // straight through has a warm-up and something harder at the end.
-    specs: renumber([
-      emptySpec({ level: 'comfort', length: 'short', newCount: 3 }),
-      emptySpec({ level: 'edge', length: 'medium', newCount: 5 }),
-      emptySpec({ level: 'stretch', length: 'medium', newCount: 8 }),
-    ]),
+    specs: renumber(
+      [
+        emptySpec({ level: 'comfort', length: 'short', newCount: 3 }),
+        emptySpec({ level: 'edge', length: 'medium', newCount: 5 }),
+        emptySpec({ level: 'stretch', length: 'medium', newCount: 8 }),
+      ].map((s, i) => ({ ...s, hsk: input.hsk, ceiling: Math.min(7, input.hsk + (i === 2 ? 2 : 1)) })),
+    ),
+    supplement: '',
+    script: 'simplified',
     response: '',
     step: 'plan',
   };

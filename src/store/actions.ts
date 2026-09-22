@@ -67,6 +67,9 @@ export type Action =
   | { type: 'text/markRead'; id: string; at: number }
   | { type: 'set/rename'; id: string; name: string }
   | { type: 'set/delete'; id: string }
+  /** texts gathered into one set, made for them if `set` is new; sets left empty go */
+  | { type: 'texts/collect'; textIds: string[]; set: TextSet }
+  | { type: 'set/reorder'; id: string; order: string[] }
   | { type: 'plan/start'; plan: TextPlan }
   | { type: 'plan/patch'; planId: string; patch: Partial<TextPlan> }
   | { type: 'plan/discard'; planId: string }
@@ -243,6 +246,30 @@ export function reduce(state: AppState, action: Action): AppState {
         texts: state.texts.filter((t) => t.setId !== action.id),
       };
 
+    case 'texts/collect': {
+      const moving = new Set(action.textIds.filter((id) => state.texts.some((t) => t.id === id)));
+      if (!moving.size) return state;
+      const target = action.set;
+      const emptied = new Set(
+        state.texts.filter((t) => moving.has(t.id) && t.setId && t.setId !== target.id).map((t) => t.setId!),
+      );
+      const texts = state.texts.map((t) => (moving.has(t.id) ? { ...t, setId: target.id } : t));
+      // A set the move took everything out of has nothing left to be.
+      for (const t of texts) if (t.setId) emptied.delete(t.setId);
+      const exists = state.sets.some((s) => s.id === target.id);
+      const sets = (exists
+        ? state.sets.map((s) => (s.id === target.id ? { ...s, order: target.order } : s))
+        : [target, ...state.sets]
+      ).filter((s) => !emptied.has(s.id));
+      return { ...state, texts, sets };
+    }
+
+    case 'set/reorder':
+      return {
+        ...state,
+        sets: state.sets.map((s) => (s.id === action.id ? { ...s, order: action.order } : s)),
+      };
+
     /* ---------------------------------------------------------- the session */
     case 'plan/start':
       return { ...state, plan: action.plan };
@@ -316,6 +343,8 @@ export function coalesce(last: Action, next: Action): Action | null {
       return last.type === 'text/setRead' && last.id === next.id ? next : null;
     case 'set/rename':
       return last.type === 'set/rename' && last.id === next.id ? next : null;
+    case 'set/reorder':
+      return last.type === 'set/reorder' && last.id === next.id ? next : null;
     default:
       return null;
   }

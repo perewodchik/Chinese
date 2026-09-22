@@ -2,7 +2,7 @@ import { DEFAULT_SCOPE, type Collection, type CollectionWord, type PrintScope } 
 import type { ItemId } from '../domain/ids';
 import type { PrintedSheet, Rating, Skill } from '../domain/memory';
 import { defaultSheet, type SheetOptions } from '../domain/sheet';
-import type { GeneratedText, TextPlan, TextSet } from '../domain/text';
+import { shelve, type GeneratedText, type TextPlan, type TextSet } from '../domain/text';
 import { emptyListPlan, type WordListPlan } from '../domain/wordlist';
 import { newId } from '../platform/ids';
 import { serialise } from './migrations';
@@ -171,6 +171,38 @@ export const renameSet = (id: string, name: string) => dispatch({ type: 'set/ren
 
 /** Removes a set and everything in it — the texts have nowhere else to live. */
 export const deleteSet = (id: string) => dispatch({ type: 'set/delete', id });
+
+/**
+ * Gathers texts — loose ones, or whole sets — into one set.
+ *
+ * Into an existing set by id, or a new one by name. The texts keep the order
+ * they were read in: the target's own first, then the rest in the order
+ * given. Any set this empties is removed, which is what merging two sets
+ * means.
+ */
+export function collectTexts(
+  textIds: string[],
+  target: { setId: string } | { name: string },
+): TextSet | null {
+  const state = getState();
+  const ids = [...new Set(textIds)].filter((id) => state.texts.some((t) => t.id === id));
+  if (!ids.length) return null;
+  const existing = 'setId' in target ? state.sets.find((s) => s.id === target.setId) : undefined;
+  if ('setId' in target && !existing) return null;
+  const base: TextSet = existing ?? {
+    id: newId(),
+    name: ('name' in target && target.name.trim()) || 'Collection',
+    createdAt: now(),
+  };
+  const mine = existing ? (shelve(state.texts, state.sets).bySet.get(existing.id) ?? []).map((t) => t.id) : [];
+  const moving = new Set(ids);
+  const order = [...mine.filter((id) => !moving.has(id)), ...ids];
+  const set: TextSet = { ...base, order };
+  dispatch({ type: 'texts/collect', textIds: ids, set });
+  return set;
+}
+
+export const reorderSet = (id: string, order: string[]) => dispatch({ type: 'set/reorder', id, order });
 
 /* ------------------------------------------------------------ the session */
 

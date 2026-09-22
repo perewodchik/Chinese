@@ -4,7 +4,7 @@ import { DEFAULT_SCOPE, type Collection } from '../domain/collection';
 import { DEFAULT_RADICAL_SCOPE } from '../domain/radicals/sets';
 import { DEFAULT_RADICAL_SHEET } from '../domain/radicals/sheet';
 import { defaultSheet } from '../domain/sheet';
-import type { TextPlan } from '../domain/text';
+import { shelve, type GeneratedText, type TextPlan } from '../domain/text';
 import { coalesce, reduce, type Action } from './actions';
 import { mergeStates } from './merge';
 import { emptyState, type AppState } from './state';
@@ -27,6 +27,8 @@ const plan = (id: string): TextPlan => ({
   basis: [],
   basisCount: 150,
   met: [],
+  supplement: '',
+  script: 'simplified',
   specs: [],
   response: '',
   step: 'plan',
@@ -184,5 +186,65 @@ describe('radicals', () => {
       { type: 'radicals/setKnown', items: [85], value: true, at: 9 },
     );
     assert.equal(state.radicals.known[85], 5);
+  });
+});
+
+describe('text collections', () => {
+  const text = (id: string, setId?: string, createdAt = 1): GeneratedText => ({
+    id,
+    setId,
+    title: id,
+    titleZh: id,
+    topic: '',
+    length: 'short',
+    level: 'edge',
+    genre: 'story',
+    createdAt,
+    model: 'test',
+    lines: [{ zh: '你好。', py: 'nǐ hǎo', en: 'Hello.' }],
+    vocab: [],
+    questions: [],
+    grammar: [],
+    note: '',
+    teach: [],
+    glosses: {},
+    basis: [],
+    read: false,
+  });
+  const start = (): AppState => ({
+    ...emptyState(),
+    sets: [
+      { id: 'a', name: 'A', createdAt: 1 },
+      { id: 'b', name: 'B', createdAt: 2 },
+    ],
+    texts: [text('a1', 'a', 1), text('a2', 'a', 2), text('b1', 'b', 3), text('loose')],
+  });
+
+  it('merges whole sets and loose texts into a new one, and drops the sets it empties', () => {
+    const state = run(start(), {
+      type: 'texts/collect',
+      textIds: ['b1', 'loose', 'a1'],
+      set: { id: 'n', name: 'Merged', createdAt: 5, order: ['b1', 'loose', 'a1'] },
+    });
+    assert.deepEqual(
+      state.sets.map((s) => s.id),
+      ['n', 'a'],
+    );
+    assert.deepEqual(shelve(state.texts, state.sets).bySet.get('n')?.map((t) => t.id), ['b1', 'loose', 'a1']);
+  });
+
+  it('adds to an existing set in the order it is given', () => {
+    const state = run(start(), {
+      type: 'texts/collect',
+      textIds: ['b1'],
+      set: { id: 'a', name: 'A', createdAt: 1, order: ['a2', 'a1', 'b1'] },
+    });
+    assert.deepEqual(state.sets.map((s) => s.id), ['a']);
+    assert.deepEqual(shelve(state.texts, state.sets).bySet.get('a')?.map((t) => t.id), ['a2', 'a1', 'b1']);
+  });
+
+  it('reads a reordered set in its new order, with newcomers after', () => {
+    const state = run(start(), { type: 'set/reorder', id: 'a', order: ['a2'] });
+    assert.deepEqual(shelve(state.texts, state.sets).bySet.get('a')?.map((t) => t.id), ['a2', 'a1']);
   });
 });

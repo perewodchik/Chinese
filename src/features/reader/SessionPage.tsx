@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { basisPool, emptySpec, renumber, taughtAlready } from '../../domain/teach';
 import {
   LEVELS,
+  hanziIn,
   PLAN_STEPS,
   pickTopic,
   type Level,
@@ -59,6 +60,7 @@ function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
   const learned = useStore((s) => s.learned);
   const texts = useStore((s) => s.texts);
   const sets = useStore((s) => s.sets);
+  const collections = useStore((s) => s.collections);
 
   // Where the session was left is saved with it, so Continue on the shelf —
   // on this device or another — comes back to this step.
@@ -186,6 +188,9 @@ function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
                       level: specs[specs.length - 1]?.level ?? 'edge',
                       length: specs[specs.length - 1]?.length ?? 'medium',
                       newCount: specs[specs.length - 1]?.newCount ?? 5,
+                      hsk: specs[specs.length - 1]?.hsk ?? 2,
+                      ceiling: specs[specs.length - 1]?.ceiling ?? 3,
+                      structure: specs[specs.length - 1]?.structure ?? 'flow',
                     }),
                   ])
                 }
@@ -269,11 +274,61 @@ function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
                 )}
               </div>
 
+              <div className="subtle-rule" style={{ margin: 0 }} />
+
+              <label className="field">
+                <span>Also let it use</span>
+                <input
+                  type="text"
+                  value={plan.supplement}
+                  placeholder="Characters you are studying now — 咖啡茶"
+                  onChange={(e) => patchPlan({ supplement: e.target.value })}
+                />
+                <span className="tiny muted">
+                  {hanziIn(plan.supplement).length
+                    ? `${hanziIn(plan.supplement).length} more it may treat as known — never reported as new.`
+                    : 'Treated as known, beside the ones you have marked learned.'}
+                </span>
+              </label>
+              {collections.length > 0 && (
+                <select
+                  aria-label="Fill from a collection"
+                  value=""
+                  onChange={(e) => {
+                    const c = collections.find((x) => x.id === e.target.value);
+                    if (!c) return;
+                    const chars = hanziIn(plan.supplement + c.items.join(''));
+                    patchPlan({ supplement: chars.join('') });
+                  }}
+                >
+                  <option value="">Add a collection’s characters…</option>
+                  {collections.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.items.length})
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              <label className="field">
+                Script
+                <select
+                  value={plan.script}
+                  onChange={(e) => patchPlan({ script: e.target.value === 'both' ? 'both' : 'simplified' })}
+                >
+                  <option value="simplified">Simplified</option>
+                  <option value="both">Simplified, with traditional alongside</option>
+                </select>
+                <span className="tiny muted">
+                  The reading is always checked in simplified; traditional is a switch on the reader.
+                </span>
+              </label>
+
               {sets.length > 0 && (
                 <label className="field">
                   Where it lands
                   <select value={plan.setId ?? ''} onChange={(e) => patchPlan({ setId: e.target.value || null })}>
-                    <option value="">A new set</option>
+                    <option value="">A new collection</option>
                     {sets.map((s) => (
                       <option key={s.id} value={s.id}>
                         Add to “{s.name}”

@@ -24,6 +24,9 @@ const askRequest = z.object({
  *   GET  /api/ask    whether Claude can be asked from this server at all
  *   POST /api/ask    { prompt, kind } → what Claude wrote back
  *
+ * `kind: 'check'` is the reader's Check Answer: a short prompt about one
+ * comprehension question, answered in seconds.
+ *
  * The same subscription, reached the same headless way as the conversation.
  * It is a separate route because it is a separate thing: no tutor persona, no
  * schema, no voices — one prompt written by a page in this app, and the reply
@@ -35,6 +38,9 @@ export function askRoutes({ auth, clock, trustProxy, tutor }: RouteDeps) {
   // A session or a word list is minutes of Claude's time. A handful an hour is
   // a day's work; a page in a loop is stopped before it spends the allowance.
   const asks = new RateLimiter(20, 60 * 60_000, clock);
+  // Checking an answer is seconds of Claude's time, and a reader working
+  // through a session asks a dozen of them; it gets its own, larger allowance.
+  const checks = new RateLimiter(120, 60 * 60_000, clock);
 
   routes.get('/', session, async (c) => {
     c.header('Cache-Control', 'no-store');
@@ -45,7 +51,7 @@ export function askRoutes({ auth, clock, trustProxy, tutor }: RouteDeps) {
   routes.post('/', session, async (c) => {
     if (!tutor) throw new TutorUnavailableError('Claude Code is not installed on this server.');
     const input = await readJson(c, askRequest);
-    asks.consume(c.get('session').user.id);
+    (input.kind === 'check' ? checks : asks).consume(c.get('session').user.id);
     const text = await tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind as AskKind] });
     const body: AskAnswer = { text };
     c.header('Cache-Control', 'no-store');
