@@ -208,7 +208,13 @@ function Sitting({ set }: { set: PracticeSet }) {
       setNative(
         a.syllables.map((syl) => {
           const pts = a.line.filter((p) => p.t >= syl.from && p.t <= syl.to && Number.isFinite(p.chao)).map((p) => p.chao);
-          return pts.length > 3 ? resample(pts, 16) : null;
+          // The tenth at each end is left off, as the checker leaves it off:
+          // the consonant's push at the start and the voice trailing away at
+          // the end are where a pitch tracker jumps an octave, and a spike to
+          // the top of the staff is not a tone anybody should copy.
+          const cut = Math.floor(pts.length * 0.1);
+          const kept = pts.slice(cut, pts.length - cut || undefined);
+          return kept.length > 3 ? resample(kept, 16) : null;
         }),
       );
     });

@@ -117,6 +117,18 @@ describe('telling the tones apart', () => {
     assert.equal(classify([4, 4.1, 4, 4, 3.9, 4, 4.1, 4, 4])!.tone, 1);
   });
 
+  it('hears a flat syllable in the middle of the voice as a first tone, and only a low one as a third', () => {
+    // 飞机 said flat at 2 on a calibrated scale: the calibration's má and mà
+    // reach higher than anybody speaks, so this is where a first tone lands.
+    const wobble = [0, 0.1, -0.05, 0.08, 0, -0.1, 0.05, 0, 0.05];
+    for (const h of [2, 2.5, 3]) assert.equal(classify(wobble.map((w) => h + w))!.tone, 1, `level at ${h}`);
+    assert.equal(judge(wobble.map((w) => 2.1 + w), 1).verdict, 'right');
+    // Down at the bottom of the voice, level is the low third.
+    assert.equal(classify(wobble.map((w) => 1.3 + w))!.tone, 3);
+    // And a gentle rise from the middle is still a rise.
+    assert.equal(classify([2.6, 2.6, 2.7, 2.9, 3.1, 3.3, 3.5, 3.7, 3.8])!.tone, 2);
+  });
+
   it('calls it nearly rather than wrong when the expected tone is a close second', () => {
     // Halfway between a fall and a low dip.
     const j = judge([4, 3.6, 3.1, 2.5, 2, 1.6, 1.3, 1.2, 1.2], 3);

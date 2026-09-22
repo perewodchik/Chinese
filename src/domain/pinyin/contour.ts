@@ -61,14 +61,22 @@ export type ToneShape = 1 | 2 | 3 | 4;
 
 const POINTS = 9;
 
+/** Less movement than this, in Chao steps, and a syllable counts as level. */
+const LEVEL = 0.6;
+
 /**
  * The four shapes, sampled at nine points on the Chao scale.
  *
  * Two thirds: the full dip a textbook draws, and the low half that is what
  * is actually said before another syllable. Either one counts as a third.
  */
-export const TEMPLATES: Array<{ tone: ToneShape; half?: boolean; points: number[] }> = [
-  { tone: 1, points: [5, 5, 5, 5, 5, 5, 5, 5, 5] },
+export const TEMPLATES: Array<{ tone: ToneShape; half?: boolean; points: number[]; atLeast?: number }> = [
+  // High and level — but "high" is a floor, not a target. The top of the
+  // scale comes from the calibration, where má and mà are said with more
+  // swing than anybody speaks with, and in a word the first tone sits well
+  // under it. Mandarin has one level tone, so a level syllable anywhere from
+  // the middle up is heard as the first; only a low one can be a third.
+  { tone: 1, points: [5, 5, 5, 5, 5, 5, 5, 5, 5], atLeast: 3 },
   { tone: 2, points: [3, 2.9, 3.1, 3.4, 3.8, 4.2, 4.5, 4.8, 5] },
   { tone: 3, points: [2.2, 1.8, 1.4, 1.1, 1, 1.2, 1.8, 2.6, 3.4] },
   { tone: 3, half: true, points: [2.2, 1.9, 1.6, 1.3, 1.1, 1, 1, 1, 1] },
@@ -102,14 +110,15 @@ const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
  * Shape counts twice as much as height. People start a word wherever their
  * voice happens to be, and a rising tone that begins a little high is still a
  * rising tone; a level tone that is level is the first tone even if it sits at
- * 4 rather than 5. Height still counts, because the one thing that tells a
- * low half-third from a high first tone is that it is low.
+ * 3 rather than 5 (see `atLeast`). Height still counts, because the one thing
+ * that tells a low half-third from a first tone is that it is low.
  */
-function distance(c: number[], t: number[]): number {
+function distance(c: number[], t: number[], atLeast?: number): number {
   const mc = mean(c);
   const mt = mean(t);
   const shape = Math.sqrt(mean(c.map((x, i) => (x - mc - (t[i]! - mt)) ** 2)));
-  return shape + 0.5 * Math.abs(mc - mt);
+  const height = atLeast === undefined ? Math.abs(mc - mt) : Math.max(0, atLeast - mc);
+  return shape + 0.5 * height;
 }
 
 export interface ToneGuess {
@@ -136,7 +145,11 @@ export function classify(chao: number[]): ToneGuess | null {
   const points = resample(voiced.slice(cut, voiced.length - cut || undefined));
   const best = new Map<ToneShape, number>();
   for (const t of TEMPLATES) {
-    const d = distance(points, t.points);
+    // Only a contour that really is level gets the first tone's floor: one
+    // that moves is judged on its height as before, or a second tone that
+    // rises gently from the middle would pass for a first.
+    const level = Math.max(...points) - Math.min(...points) < LEVEL;
+    const d = distance(points, t.points, level ? t.atLeast : undefined);
     if (d < (best.get(t.tone) ?? Infinity)) best.set(t.tone, d);
   }
   const ranked = [...best.entries()]
