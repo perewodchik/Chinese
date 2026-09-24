@@ -5,6 +5,8 @@ import { ItemDrawer } from '../features/library/ItemDrawer';
 import { ProgressMeter } from '../features/library/ProgressMeter';
 import { useDueCount } from '../features/review/useDueCount';
 import { LegacyWorkNotice } from '../features/settings/LegacyWorkNotice';
+import { WordDrawer } from '../features/words/WordDrawer';
+import { isWordId } from '../domain/ids';
 import { useItemDrawer } from '../navigation/itemDrawer';
 import { paths } from '../navigation/paths';
 import { useScrollRestoration } from '../navigation/useScrollRestoration';
@@ -13,7 +15,7 @@ import { useStore } from '../store/store';
 import { useColorScheme } from '../ui/colorScheme';
 import { SyncIndicator } from './SyncIndicator';
 
-/** The frame every signed-in page sits in: the bar across the top, the page, and the character drawer. */
+/** The frame every signed-in page sits in: the bar across the top, the page, and the drawer for a character or a word. */
 export function AppLayout() {
   const theme = useStore((s) => s.settings.theme);
   const collections = useStore((s) => s.collections.length);
@@ -82,7 +84,12 @@ export function AppLayout() {
         </div>
       </main>
 
-      {drawer.item && <ItemDrawer id={drawer.item} onClose={drawer.close} />}
+      {drawer.item &&
+        (isWordId(drawer.item) ? (
+          <WordDrawer id={drawer.item} onClose={drawer.close} />
+        ) : (
+          <ItemDrawer id={drawer.item} onClose={drawer.close} />
+        ))}
     </div>
   );
 }

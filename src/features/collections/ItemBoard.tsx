@@ -131,7 +131,7 @@ export function ItemBoard({ c, taken }: Props) {
                   if (reorder.consumeClick()) return;
                   picked.toggle(id, shift);
                 }}
-                onOpen={f.kind === 'char' ? () => openItem(id) : undefined}
+                onOpen={() => openItem(id)}
                 onRemove={() => removeItems(c.id, [id])}
                 {...reorder.handlers(i)}
               />

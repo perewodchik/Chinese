@@ -132,3 +132,22 @@ describe('a workspace with words in it', () => {
     assert.ok(written.recall['w东西']);
   });
 });
+
+/**
+ * A passage marks the words you do not know now, rather than every word by
+ * its band. The bands are turned off once, for a document from before words,
+ * and after that stay however they were left.
+ */
+describe('the reader marks, from before words', () => {
+  it('turns the band marks off in a document from before words, and the unknown words on', () => {
+    const s = hydrate({ version: 6, collections: [], settings: { markAbove: true } }).settings;
+    assert.equal(s.markAbove, false);
+    assert.equal(s.markUnknown, true);
+  });
+
+  it('leaves them as they were left in a document from since', () => {
+    const s = hydrate({ version: 7, collections: [], settings: { markAbove: true, markUnknown: false } }).settings;
+    assert.equal(s.markAbove, true);
+    assert.equal(s.markUnknown, false);
+  });
+});

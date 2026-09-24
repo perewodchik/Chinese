@@ -55,6 +55,8 @@ export interface AppSettings {
   markNew: boolean;
   /** underline words from above the target band */
   markAbove: boolean;
+  /** underline the words you have not learned yet */
+  markUnknown: boolean;
   /** the learner's HSK band: words above it are marked, and new sessions are pitched at it */
   targetHsk: number;
   /** show a passage in traditional characters where it has them */
@@ -79,7 +81,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   talkVoices: [],
   readerLayout: 'paragraph',
   markNew: true,
-  markAbove: true,
+  markAbove: false,
+  markUnknown: true,
   targetHsk: 1,
   readerTraditional: false,
   readerScale: 1,

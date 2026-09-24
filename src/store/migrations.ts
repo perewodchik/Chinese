@@ -158,7 +158,7 @@ function migrate(p: LegacyState): AppState {
       },
       now,
     ),
-    settings: settingsFrom(p.settings),
+    settings: settingsFrom(p.settings, 0),
   };
 }
 
@@ -335,7 +335,7 @@ function listPlanFrom(v: unknown): WordListPlan | null {
  * Anthropic API key the reader used to need, for one, which should not linger
  * anywhere now that nothing sends it anywhere.
  */
-function settingsFrom(v: unknown): AppSettings {
+function settingsFrom(v: unknown, version: number): AppSettings {
   const s = (v ?? {}) as Loose;
   const num = (x: unknown, fallback: number) =>
     typeof x === 'number' && Number.isFinite(x) ? x : fallback;
@@ -369,7 +369,12 @@ function settingsFrom(v: unknown): AppSettings {
       : DEFAULT_SETTINGS.talkVoices,
     readerLayout: s.readerLayout === 'sentences' ? 'sentences' : 'paragraph',
     markNew: s.markNew !== false,
-    markAbove: s.markAbove !== false,
+    // Before words could be learned, a word's band was all a passage could
+    // mark it by. It marks the words you do not know now, and the bands are
+    // turned off — once, for a document from before words; after that they
+    // stay however they were left.
+    markAbove: version < 7 ? false : s.markAbove !== false,
+    markUnknown: s.markUnknown !== false,
     // 0 once meant "work it out"; the level is chosen in Settings now, from HSK 1.
     targetHsk: clamp(Math.round(num(s.targetHsk, DEFAULT_SETTINGS.targetHsk)), 1, 7),
     readerTraditional: s.readerTraditional === true,
@@ -543,7 +548,7 @@ export function hydrate(raw: unknown): AppState {
     plan: planFrom(p.plan),
     listPlan: listPlanFrom(p.listPlan),
     radicals: p.radicals ? mergeRadicals(radicalsFrom(p.radicals, now), legacy) : legacy,
-    settings: settingsFrom(p.settings),
+    settings: settingsFrom(p.settings, typeof p.version === 'number' ? p.version : 0),
   };
 }
 

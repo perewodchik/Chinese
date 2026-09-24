@@ -12,6 +12,7 @@ import { Modal } from '../../ui/Modal';
 import { Seg } from '../../ui/Seg';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
+import { useWordKnowledge } from '../words/useWordKnowledge';
 import { usePdfExport } from '../shared/usePdfExport';
 import { Passage, type ReaderView } from './Passage';
 import { readerSheet } from './readerSheet';
@@ -86,6 +87,7 @@ function Reader({ set, list, mode, page }: ReaderProps) {
   useTitle(mode === 'all' && set ? set.name : text.titleZh || text.title);
   const navigate = useNavigate();
   const settings = useStore((s) => s.settings);
+  const words = useWordKnowledge();
   const [pinyin, setPinyin] = useState(true);
   const [english, setEnglish] = useState(true);
   const top = useRef<HTMLDivElement>(null);
@@ -100,6 +102,7 @@ function Reader({ set, list, mode, page }: ReaderProps) {
     traditional: settings.readerTraditional,
     markNew: settings.markNew,
     markAbove: settings.markAbove,
+    markUnknown: settings.markUnknown,
     target,
   };
 
@@ -224,6 +227,15 @@ function Reader({ set, list, mode, page }: ReaderProps) {
           </button>
           <button
             className="chip mark-chip"
+            data-mark="unknown"
+            aria-pressed={settings.markUnknown}
+            onClick={() => setSettings({ markUnknown: !settings.markUnknown })}
+            title="Underline the words you have not learned yet: blue for new, gold for ones you are learning. Tap any word for what it means."
+          >
+            Unknown
+          </button>
+          <button
+            className="chip mark-chip"
             data-mark="above"
             aria-pressed={settings.markAbove}
             onClick={() => setSettings({ markAbove: !settings.markAbove })}
@@ -232,6 +244,13 @@ function Reader({ set, list, mode, page }: ReaderProps) {
             Levels
           </button>
         </div>
+        {settings.markUnknown && !words.any && (
+          <p className="tiny muted reader-words-note no-print">
+            Nothing is known about your words yet, so nothing is underlined. Sort the HSK words you
+            already know, and the ones you do not will be marked here.{' '}
+            <Link to={paths.sweep()}>Sort them →</Link>
+          </p>
+        )}
       </div>
 
       <div className="reader-doc">

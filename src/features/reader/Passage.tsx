@@ -1,7 +1,9 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Library } from '../../data/types';
 import { charId } from '../../domain/ids';
-import { alignPinyin, bandSpread, paragraphs, stepsAbove, tokenize, wordBands } from '../../domain/reading';
+import { alignPinyin, bandSpread, paragraphs, stepsAbove, wordBands } from '../../domain/reading';
+import { segment } from '../../domain/segment';
+import { itemForToken } from '../../domain/words';
 import { cardsFor } from '../../domain/teach';
 import {
   coverageOf,
@@ -20,6 +22,7 @@ import { Glyph } from '../../ui/Glyph';
 import { useToast } from '../../ui/toast';
 import { CollectionPicker, useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
+import { useWordKnowledge } from '../words/useWordKnowledge';
 import { AnswerBox } from './AnswerBox';
 import { Menu } from '../../ui/Menu';
 import { SYSTEM_VOICE, prefetchFirst, useReading, type Reading } from './readAloud';
@@ -32,6 +35,8 @@ export interface ReaderView {
   traditional: boolean;
   markNew: boolean;
   markAbove: boolean;
+  /** underline the words you have not learned */
+  markUnknown: boolean;
   /** the band above which a word is marked */
   target: number;
 }
@@ -64,6 +69,7 @@ let speaking: string | null = null;
 export function Passage({ text, view, heading }: { text: GeneratedText; view: ReaderView; heading?: ReactNode }) {
   const lib = useLibrary();
   const openItem = useOpenItem();
+  const known = useWordKnowledge();
   const voice = useReading();
   // The shared voice, seen from this passage: reading when it is this one.
   const reading = {
@@ -103,8 +109,8 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
 
   /** Each sentence cut into words, once per passage. */
   const tokens = useMemo(
-    () => text.lines.map((l) => tokenize(l.zh, lib, bands, ownWords)),
-    [text.lines, lib, bands, ownWords],
+    () => text.lines.map((l) => segment(l.zh, lib, ownWords)),
+    [text.lines, lib, ownWords],
   );
   const syllables = useMemo(() => text.lines.map((l) => alignPinyin(l, lib)), [text.lines, lib]);
 
@@ -135,9 +141,9 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
             role="button"
             tabIndex={0}
             title={`${e.py[0]} — ${e.def}`}
-            onClick={() => openItem(charId(ch))}
+            onClick={() => openItem(itemForToken(lib, t.text))}
             onKeyDown={(ev) => {
-              if (ev.key === 'Enter') openItem(charId(ch));
+              if (ev.key === 'Enter') openItem(itemForToken(lib, t.text));
             }}
           >
             {ch}
@@ -156,12 +162,16 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
       });
       const isNew = view.markNew && (newWords.has(t.text) || [...t.text].some((c) => teachSet.has(c)));
       const step = view.markAbove ? stepsAbove(t, view.target) : 0;
+      // Only once something is known about words at all: before the sweep,
+      // every word in the passage would be underlined.
+      const standing = view.markUnknown && known.any ? known.status(t.text) : 'known';
       return (
         <span
           key={k}
           className="w"
           data-new={isNew || undefined}
           data-above={step || undefined}
+          data-unknown={standing === 'known' ? undefined : standing}
           title={step ? `${t.text} · ${t.band ? hskLabel(t.band) : 'outside the syllabus'}` : undefined}
         >
           {chars}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { Link, useMatch } from 'react-router';
 import { nextCollectionName } from '../../domain/collection';
-import type { ItemId } from '../../domain/ids';
+import { wordId, type ItemId } from '../../domain/ids';
 import { characterOf, partGloss } from '../../domain/library';
 import {
   DAY,
@@ -13,6 +13,7 @@ import {
   type SkillBook,
 } from '../../domain/memory';
 import { seriesFor } from '../../domain/series';
+import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
 import { toggleLearned } from '../../store/commands';
 import { useStore } from '../../store/store';
@@ -46,6 +47,7 @@ const IDC_NAME: Record<string, string> = {
 export function ItemDrawer({ id, onClose }: Props) {
   const lib = useLibrary();
   const collect = useCollect();
+  const openItem = useOpenItem();
   const learned = useStore((s) => s.learned.has(id));
   const book = useStore((s) => s.recall[id]);
   const collections = useStore((s) => s.collections);
@@ -288,7 +290,14 @@ export function ItemDrawer({ id, onClose }: Props) {
                   {c.words.map((w) => (
                     <div key={w.w} className="word">
                       <div className="w">
-                        {w.w}
+                        <button
+                          type="button"
+                          className="word-link hanzi"
+                          title="Everything about this word"
+                          onClick={() => openItem(wordId(w.w))}
+                        >
+                          {w.w}
+                        </button>
                         <Say text={w.w} />
                       </div>
                       <div className="small" style={{ color: 'var(--accent)' }}>
