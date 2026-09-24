@@ -24,11 +24,13 @@ export class SqliteWorkspaceRepository implements WorkspaceRepository {
        ON CONFLICT (user_id) DO NOTHING`,
     );
     // The revision in the WHERE clause is the whole concurrency story: of two
-    // saves built on the same revision, exactly one matches a row.
+    // saves built on the same revision, exactly one matches a row. The version
+    // keeps a build that predates the stored document from writing over it.
     this.replaceAt = db.prepare(
       `UPDATE workspaces
        SET document = ?, updated_at = ?, revision = revision + 1
-       WHERE user_id = ? AND revision = ?`,
+       WHERE user_id = ? AND revision = ?
+         AND COALESCE(json_extract(document, '$.version'), 0) <= ?`,
     );
   }
 
@@ -53,10 +55,12 @@ export class SqliteWorkspaceRepository implements WorkspaceRepository {
     const result =
       baseRevision === 0
         ? this.insertFirst.run(userId, json, at)
-        : this.replaceAt.run(json, at, userId, baseRevision);
+        : this.replaceAt.run(json, at, userId, baseRevision, versionOf(document));
     if (Number(result.changes) === 1) {
       return { saved: true, revision: baseRevision + 1, updatedAt: at };
     }
     return { saved: false, current: await this.find(userId) };
   }
 }
+
+const versionOf = (document: unknown): number => (document as { version: number }).version;

@@ -29,6 +29,23 @@ describe('WorkspaceService', () => {
     assert.equal(await services.workspaces.revision(user.id), 2);
   });
 
+  it('refuses a save from a build older than the document it would replace', async () => {
+    const { services, user } = await withAccount();
+    await services.workspaces.save(user.id, 0, { version: 7, words: ['东西'] });
+    await assert.rejects(services.workspaces.save(user.id, 1, { version: 6 }), { code: 'outdated_app' });
+    assert.deepEqual((await services.workspaces.get(user.id)).document, { version: 7, words: ['东西'] });
+    // The same build or a newer one saves as before.
+    assert.equal((await services.workspaces.save(user.id, 1, { version: 7 })).revision, 2);
+    assert.equal((await services.workspaces.save(user.id, 2, { version: 8 })).revision, 3);
+  });
+
+  it('still reports a stale revision as a conflict, whatever the version', async () => {
+    const { services, user } = await withAccount();
+    await services.workspaces.save(user.id, 0, { version: 7 });
+    await services.workspaces.save(user.id, 1, { version: 7 });
+    await assert.rejects(services.workspaces.save(user.id, 1, { version: 6 }), { code: 'conflict' });
+  });
+
   it('refuses a first save once there is already a document', async () => {
     const { services, user } = await withAccount();
     await services.workspaces.save(user.id, 0, { version: 5 });

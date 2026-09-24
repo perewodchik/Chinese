@@ -111,6 +111,16 @@ describe('Postgres storage', () => {
     assert.deepEqual(stale.saved === false && stale.current?.document, { version: 6, from: 'pc' });
   });
 
+  it('will not let a build older than the stored document write over it', async () => {
+    const newer = await stores.workspaces.save('u1', 2, { version: 7, from: 'new build' }, T + 4);
+    assert.deepEqual(newer, { saved: true, revision: 3, updatedAt: T + 4 });
+
+    const older = await stores.workspaces.save('u1', 3, { version: 6, from: 'old tab' }, T + 5);
+    assert.equal(older.saved, false);
+    assert.equal(older.saved === false && older.current?.revision, 3);
+    assert.deepEqual(older.saved === false && older.current?.document, { version: 7, from: 'new build' });
+  });
+
   it('has nothing for an account that has saved nothing', async () => {
     assert.equal(await stores.workspaces.revisionOf('u3'), 0);
     assert.equal(await stores.workspaces.find('u3'), null);

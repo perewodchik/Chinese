@@ -78,7 +78,57 @@ describe('a workspace written before radicals had a place of their own', () => {
 
   it('writes the workspace back at the version it has now', () => {
     const written = serialise(state);
-    assert.equal(written.version, 6);
+    assert.equal(written.version, 7);
     assert.equal(written.radicals.sets.length, 1);
+  });
+});
+
+/**
+ * Words are items since version 7. A document carrying them has to come back
+ * with every one of them — dropping them on the way in is exactly what an
+ * older build does, and what the server refuses to let it save.
+ */
+describe('a workspace with words in it', () => {
+  const stored = {
+    version: 7,
+    collections: [
+      {
+        id: 'w',
+        name: 'HSK 1 words',
+        items: ['w东西', 'c东', 'w好', 'r61'],
+        sheet: {},
+        scope: { mode: 'all', from: 1, count: 20 },
+        createdAt: 1,
+        updatedAt: 2,
+      },
+    ],
+    recall: {
+      'w东西': { recognise: { s: 3, d: 5, last: 10, since: 10, due: 20, reps: 1, lapses: 0 } },
+      'w好': { recognise: { s: 0.5, d: 5, last: 11, since: 11, due: 12, reps: 1, lapses: 0 } },
+    },
+    learned: ['w东西'],
+    sheets: [],
+    texts: [],
+    sets: [],
+    plan: null,
+    settings: {},
+  };
+  const state = hydrate(stored);
+
+  it('keeps words in collections, beside characters, and nothing else', () => {
+    assert.deepEqual(state.collections[0].items, ['w东西', 'c东', 'w好']);
+  });
+
+  it('keeps what is known about each word, and counts it as learned the same way', () => {
+    assert.deepEqual(Object.keys(state.recall).sort(), ['w东西', 'w好']);
+    assert.ok(state.learned.has('w东西'));
+    // Asked once and barely held: not learned yet.
+    assert.ok(!state.learned.has('w好'));
+  });
+
+  it('writes the words back out', () => {
+    const written = serialise(state);
+    assert.deepEqual(written.collections[0].items, ['w东西', 'c东', 'w好']);
+    assert.ok(written.recall['w东西']);
   });
 });

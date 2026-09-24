@@ -46,7 +46,8 @@ export interface WorkspaceRepository {
   revisionOf(userId: string): Promise<number>;
   /**
    * Writes only if the stored revision is still `baseRevision` (0 meaning
-   * nothing is stored yet), as one atomic compare-and-swap.
+   * nothing is stored yet) and the stored document's format `version` is no
+   * newer than this one's, as one atomic compare-and-swap.
    */
   save(userId: string, baseRevision: number, document: unknown, at: number): Promise<WorkspaceWrite>;
 }

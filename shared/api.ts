@@ -72,6 +72,8 @@ export type ApiErrorCode =
   | 'unauthorized'
   | 'forbidden_origin'
   | 'conflict'
+  /** a save from a build older than the document it would replace */
+  | 'outdated_app'
   | 'rate_limited'
   | 'payload_too_large'
   | 'not_found'

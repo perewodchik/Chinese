@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { melody } from '../../domain/pinyin/analyse';
 import { bestHeard, describeMiss, heardShare, missed, understood, type HeardResult } from '../../domain/pinyin/heard';
-import { idValue } from '../../domain/ids';
+import { charsOf } from '../../domain/ids';
 import { paths } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
 import { micUnavailable, MIC_MESSAGE } from '../../platform/audio/mic';
@@ -111,7 +111,7 @@ export function ShadowPage() {
     void packTexts().then(setVoiced);
   }, []);
 
-  const known = useMemo(() => new Set([...learned].map(idValue)), [learned]);
+  const known = useMemo(() => charsOf(learned), [learned]);
   const topics = useMemo(() => {
     const ids = new Set(all?.flatMap((s) => s.topics));
     return lib.themes.filter((t) => ids.has(t.id));

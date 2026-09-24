@@ -85,9 +85,16 @@ export const DEFAULT_SETTINGS: AppSettings = {
   readerScale: 1,
 };
 
-/** The workspace as it is written down — to the server now, and to localStorage before accounts. */
+/**
+ * The workspace as it is written down — to the server now, and to
+ * localStorage before accounts.
+ *
+ * 7: collections and the memory can hold words (`w东西`) beside characters.
+ * A build before that would drop them on reading and lose them on its next
+ * save, which is why the server refuses a save older than what it holds.
+ */
 export interface PersistedState {
-  version: 6;
+  version: 7;
   collections: Collection[];
   /**
    * What the app knows about your memory, by item.

@@ -1,6 +1,6 @@
 import type { SaveWorkspaceResponse, WorkspaceDto } from '../../../shared/api';
 import type { Workspace } from '../domain/entities';
-import { RevisionConflictError, ValidationError } from '../domain/errors';
+import { OutdatedAppError, RevisionConflictError, ValidationError } from '../domain/errors';
 import type { Clock, WorkspaceRepository } from './ports';
 
 const toDto = (w: Workspace | null): WorkspaceDto =>
@@ -41,7 +41,13 @@ export class WorkspaceService {
     }
     const write = await this.deps.workspaces.save(userId, baseRevision, document, this.deps.clock.now());
     if (write.saved) return { revision: write.revision, updatedAt: write.updatedAt };
-    throw new RevisionConflictError(toDto(write.current));
+    // Refused on the revision it was built on: the stored document is newer
+    // than the build that sent this one.
+    const current = write.current;
+    if (current && current.revision === baseRevision && versionOf(current.document) > document.version) {
+      throw new OutdatedAppError();
+    }
+    throw new RevisionConflictError(toDto(current));
   }
 }
 
@@ -49,4 +55,9 @@ function isDocument(v: unknown): v is { version: number } {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
   const version = (v as { version?: unknown }).version;
   return typeof version === 'number' && Number.isInteger(version) && version > 0;
+}
+
+function versionOf(document: unknown): number {
+  const version = (document as { version?: unknown } | null)?.version;
+  return typeof version === 'number' ? version : 0;
 }

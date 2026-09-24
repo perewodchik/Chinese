@@ -42,7 +42,8 @@ export class PostgresWorkspaceRepository implements WorkspaceRepository {
   ): Promise<WorkspaceWrite> {
     const json = JSON.stringify(document);
     // The revision in the WHERE clause is the whole concurrency story: of two
-    // saves built on the same revision, exactly one matches a row.
+    // saves built on the same revision, exactly one matches a row. The version
+    // keeps a build that predates the stored document from writing over it.
     const result =
       baseRevision === 0
         ? await this.db.query(
@@ -54,8 +55,9 @@ export class PostgresWorkspaceRepository implements WorkspaceRepository {
         : await this.db.query(
             `UPDATE workspaces
              SET document = $1, updated_at = $2, revision = revision + 1
-             WHERE user_id = $3 AND revision = $4`,
-            [json, at, userId, baseRevision],
+             WHERE user_id = $3 AND revision = $4
+               AND COALESCE((document::jsonb ->> 'version')::int, 0) <= $5`,
+            [json, at, userId, baseRevision, (document as { version: number }).version],
           );
     if (result.rowCount === 1) {
       return { saved: true, revision: baseRevision + 1, updatedAt: at };

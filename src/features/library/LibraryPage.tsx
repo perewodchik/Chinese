@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useNavigationType } from 'react-router';
 import { collectionsByItem, nextCollectionName } from '../../domain/collection';
-import { charId, countLabel, idValue } from '../../domain/ids';
+import { charId, charsOf, countLabel } from '../../domain/ids';
 import { factsOf, type ItemFacts } from '../../domain/library';
 import { readyToLearn } from '../../domain/series';
 import { unlockCount } from '../../domain/vocab';
@@ -104,7 +104,7 @@ export function LibraryPage() {
    * words each would complete. Both are searches over the whole syllabus, so
    * they are done once rather than per filter change.
    */
-  const knownChars = useMemo(() => new Set([...learned].map(idValue)), [learned]);
+  const knownChars = useMemo(() => charsOf(learned), [learned]);
   const ready = useMemo(
     () => new Set(readyToLearn(lib, knownChars, 400).map((r) => r.entry.c)),
     [lib, knownChars],

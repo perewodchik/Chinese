@@ -13,6 +13,7 @@ const STATUS: Record<ApiErrorCode, ContentfulStatusCode> = {
   not_found: 404,
   username_taken: 409,
   conflict: 409,
+  outdated_app: 409,
   payload_too_large: 413,
   rate_limited: 429,
   internal: 500,

@@ -2,7 +2,7 @@ import { PDFDocument } from 'pdf-lib';
 import { ensureStrokes } from '../data/load';
 import type { CharacterEntry, Library } from '../data/types';
 import type { Collection } from '../domain/collection';
-import type { ItemId } from '../domain/ids';
+import { idValue, isCharId, isWordId, type ItemId } from '../domain/ids';
 import type { SheetOptions } from '../domain/sheet';
 import { cardsFor, textsChars, textsGlosses } from '../domain/teach';
 import type { GeneratedText } from '../domain/text';
@@ -42,12 +42,23 @@ export interface RenderResult {
 
 /* ------------------------------------------------------------- gathering */
 
-/** The characters an id list names, in order, skipping any the library has never heard of. */
+/**
+ * The characters a list of items puts on paper, in order, skipping any the
+ * library has never heard of. A word is written as the characters it is made
+ * of, each once, where it first comes up.
+ */
 function resolve(lib: Library, ids: ItemId[]): CharacterEntry[] {
   const out: CharacterEntry[] = [];
+  const seen = new Set<string>();
   for (const id of ids) {
-    const c = lib.byChar.get(id.slice(1));
-    if (c) out.push(c);
+    const glyphs = isWordId(id) ? [...idValue(id)] : isCharId(id) ? [idValue(id)] : [];
+    for (const g of glyphs) {
+      const c = lib.byChar.get(g);
+      if (c && !seen.has(g)) {
+        seen.add(g);
+        out.push(c);
+      }
+    }
   }
   return out;
 }

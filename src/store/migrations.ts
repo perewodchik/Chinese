@@ -1,5 +1,5 @@
 import { DEFAULT_SCOPE, type Collection, type CollectionWord } from '../domain/collection';
-import { isCharId, type ItemId } from '../domain/ids';
+import { isCharId, isItemId, type ItemId } from '../domain/ids';
 import {
   learnedFrom,
   spreadAsserted,
@@ -421,8 +421,9 @@ function memoryFrom(raw: unknown, learned: ItemId[], now: number): RecallBook {
   const book: RecallBook = {};
   for (const id in stored) {
     // Radicals had records here when a tick was the only thing a radical could
-    // have. They are known-or-not now, and their own slice keeps that.
-    if (!isCharId(id)) continue;
+    // have. They are known-or-not now, and their own slice keeps that. Words
+    // have records of their own since version 7.
+    if (!isItemId(id)) continue;
     const entry = stored[id];
     if (!entry || typeof entry !== 'object') continue;
     const sk: SkillBook = {};
@@ -497,7 +498,7 @@ export function hydrate(raw: unknown): AppState {
 
   const now = Date.now();
   const learned = arr<ItemId>(p.learned);
-  const recall = memoryFrom(p.recall, learned.filter(isCharId), now);
+  const recall = memoryFrom(p.recall, learned.filter(isItemId), now);
   const stored = p.collections as Array<Collection & { kind?: string }>;
 
   // Before version 6 a radical collection was a collection like any other, and
@@ -518,7 +519,7 @@ export function hydrate(raw: unknown): AppState {
       .map((c) => ({
         id: c.id,
         name: c.name,
-        items: arr<ItemId>(c.items).filter(isCharId),
+        items: arr<ItemId>(c.items).filter(isItemId),
         sheet: sheetFrom(c.sheet),
         scope: { ...DEFAULT_SCOPE, ...(c.scope ?? {}) },
         createdAt: finite(c.createdAt, now),
@@ -548,7 +549,7 @@ export function hydrate(raw: unknown): AppState {
 
 export function serialise(s: AppState): PersistedState {
   return {
-    version: 6,
+    version: 7,
     collections: s.collections,
     recall: s.recall,
     sheets: s.sheets,

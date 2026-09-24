@@ -1,5 +1,5 @@
 import type { CharacterEntry, ComponentGloss, Library } from '../data/types';
-import { charId, idValue, type ItemId } from './ids';
+import { charId, idValue, isCharId, wordId, type ItemId } from './ids';
 
 /**
  * Reading the library by item id.
@@ -9,8 +9,9 @@ import { charId, idValue, type ItemId } from './ids';
  * here.
  */
 
+/** The character an id names — never a word's, even a word one character long. */
 export const characterOf = (lib: Library, id: ItemId): CharacterEntry | undefined =>
-  lib.byChar.get(idValue(id));
+  isCharId(id) ? lib.byChar.get(idValue(id)) : undefined;
 
 /** The glyph an id draws as. */
 export const glyphOf = (_lib: Library, id: ItemId): string => idValue(id);
@@ -73,8 +74,14 @@ export const firstSense = (s: string) => s.split(/[;,]/)[0].trim();
 /** Every character, in the order the library teaches them. */
 export const poolFor = (lib: Library): ItemId[] => lib.characters.map((c) => charId(c.c));
 
-/** Sorts ids into library order, so a collection always reads teachably. */
+/** Every syllabus word, band by band, commonest first. */
+export const wordPoolFor = (lib: Library): ItemId[] => lib.words.map((w) => wordId(w.w));
+
+/**
+ * Sorts ids into library order, so a collection always reads teachably:
+ * characters in teaching order, then words in syllabus order.
+ */
 export function sortByLibrary(lib: Library, ids: ItemId[]): ItemId[] {
-  const rank = new Map(poolFor(lib).map((id, i) => [id, i]));
+  const rank = new Map([...poolFor(lib), ...wordPoolFor(lib)].map((id, i) => [id, i]));
   return [...ids].sort((a, b) => (rank.get(a) ?? 1e9) - (rank.get(b) ?? 1e9));
 }

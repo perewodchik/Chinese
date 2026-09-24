@@ -70,6 +70,24 @@ export class RateLimitedError extends AppError {
   }
 }
 
+/**
+ * A save from a build of the app older than the document it would replace.
+ *
+ * An older build reads a newer document by dropping what it does not know —
+ * words it has never heard of, say — and its next save would write that loss
+ * back. So it is refused, and a tab left open since before an update keeps
+ * its changes queued until it is reloaded into the new build, which replays
+ * them on top.
+ */
+export class OutdatedAppError extends AppError {
+  constructor() {
+    super(
+      'outdated_app',
+      'This page is an older version of the app. Reload it to keep saving — nothing done here is lost.',
+    );
+  }
+}
+
 /** A save built on a revision the server has already moved past. */
 export class RevisionConflictError extends AppError {
   readonly current: WorkspaceDto;
