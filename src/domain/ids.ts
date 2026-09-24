@@ -22,7 +22,12 @@ export const idValue = (id: ItemId): string => id.slice(1);
 export const isCharId = (id: unknown): id is ItemId =>
   typeof id === 'string' && id.startsWith('c') && id.length > 1;
 
-export const isWordId = (id: unknown): id is ItemId =>
+/**
+ * A plain answer rather than a type guard: every id is already a string, and
+ * a guard's "no" would narrow the string to nothing — code going on past
+ * `if (isWordId(id)) continue` to treat it as a character would not compile.
+ */
+export const isWordId = (id: unknown): boolean =>
   typeof id === 'string' && id.startsWith('w') && id.length > 1;
 
 /** True for the ids this side of the app owns, so an older document can be filtered. */

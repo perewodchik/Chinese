@@ -10,6 +10,7 @@ import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { SweepCard } from '../words/SweepCard';
+import { WordsCard } from '../words/WordsCard';
 import {
   DEFAULT_SITTING,
   DRILLS,
@@ -132,6 +133,8 @@ export function ReviewPage() {
           ))}
         </div>
       )}
+
+      <WordsCard size={size} />
 
       <div className="drill-grid">
         {DRILLS.map((d) => {

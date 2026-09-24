@@ -316,3 +316,64 @@
 .reader-words-note {
   margin: 8px 0 0;
 }
+
+/* ------------------------------------------------------------- words drill */
+
+.words-drills {
+  margin-bottom: 12px;
+}
+
+.word-drill-han {
+  font-size: 96px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.word-drill-han[data-len='3'] {
+  font-size: 76px;
+}
+
+.word-drill-han[data-len='4'],
+.word-drill-han[data-len='5'] {
+  font-size: 60px;
+}
+
+@media (max-width: 640px) {
+  .word-drill-han {
+    font-size: 72px;
+  }
+
+  .word-drill-han[data-len='3'] {
+    font-size: 58px;
+  }
+
+  .word-drill-han[data-len='4'],
+  .word-drill-han[data-len='5'] {
+    font-size: 46px;
+  }
+}
+
+.word-drill-ex {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  margin: 6px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  max-width: 420px;
+}
+
+.word-drill-ex .hanzi {
+  font-size: 18px;
+}
+
+.word-drill-ex i {
+  font-style: normal;
+  font-size: 12.5px;
+  color: var(--accent);
+}
+
+.rating-row.word-first {
+  grid-template-columns: repeat(2, minmax(0, 180px));
+}

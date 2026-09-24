@@ -375,6 +375,7 @@ function settingsFrom(v: unknown, version: number): AppSettings {
     // stay however they were left.
     markAbove: version < 7 ? false : s.markAbove !== false,
     markUnknown: s.markUnknown !== false,
+    newWordsPerDay: clamp(Math.round(num(s.newWordsPerDay, DEFAULT_SETTINGS.newWordsPerDay)), 1, 50),
     // 0 once meant "work it out"; the level is chosen in Settings now, from HSK 1.
     targetHsk: clamp(Math.round(num(s.targetHsk, DEFAULT_SETTINGS.targetHsk)), 1, 7),
     readerTraditional: s.readerTraditional === true,

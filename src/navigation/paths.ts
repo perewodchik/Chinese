@@ -28,6 +28,8 @@ export const paths = {
   review: () => '/review',
   drill: (drill: DrillId, size?: number) => withQuery(`/review/${drill}`, { n: size ? String(size) : undefined }),
   gradeSheet: (sheetId: string) => `/review/sheets/${encodeURIComponent(sheetId)}`,
+  /** one sitting of words: the due ones, and today's new ones among them */
+  wordDrill: (size?: number) => withQuery('/review/words', { n: size ? String(size) : undefined }),
   /** sorting a band's words into known, not sure and new */
   sweep: (band?: number) => withQuery('/review/sweep', { band: band ? String(band) : undefined }),
 

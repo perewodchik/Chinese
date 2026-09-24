@@ -57,6 +57,8 @@ export interface AppSettings {
   markAbove: boolean;
   /** underline the words you have not learned yet */
   markUnknown: boolean;
+  /** how many new words a day the Words drill may introduce */
+  newWordsPerDay: number;
   /** the learner's HSK band: words above it are marked, and new sessions are pitched at it */
   targetHsk: number;
   /** show a passage in traditional characters where it has them */
@@ -83,6 +85,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   markNew: true,
   markAbove: false,
   markUnknown: true,
+  newWordsPerDay: 10,
   targetHsk: 1,
   readerTraditional: false,
   readerScale: 1,
