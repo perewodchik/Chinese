@@ -4,6 +4,7 @@ import { isDue } from '../../domain/memory';
 import { buildBrief, buildPrompt, HANDOFF_STEPS, type PromptExtras } from '../../domain/prompt';
 import type { TextPlan } from '../../domain/text';
 import { readableWords } from '../../domain/vocab';
+import { wordInventory } from '../../domain/words';
 import { copyText } from '../../platform/clipboard';
 import { downloadText } from '../../platform/files';
 import { patchPlan } from '../../store/commands';
@@ -20,7 +21,7 @@ interface Props {
 }
 
 /** As many words as make a useful list without burying the rest of the prompt. */
-const MAX_WORDS = 400;
+const MAX_WORDS = 800;
 
 const CLAUDE = 'https://claude.ai/new';
 
@@ -42,19 +43,24 @@ export function PromptStep({ plan, onNext, onBack }: Props) {
   const recall = useStore((s) => s.recall);
 
   /**
-   * Two things the app knows and the plan does not carry: which compounds are
-   * actually readable out of the inventory, and which previously-taught
-   * characters the schedule says are slipping. Both are computed here, at the
-   * moment the prompt is built, rather than frozen into the plan — a session
-   * finished tomorrow should ask for what is falling due tomorrow.
+   * What the app knows and the plan does not carry: the words you know as
+   * words, the ones you are learning, and which previously-taught characters
+   * the schedule says are slipping. All computed here, at the moment the
+   * prompt is built, rather than frozen into the plan — a session finished
+   * tomorrow should ask for what is falling due tomorrow.
+   *
+   * Until a single word is known, the words are the compounds readable out of
+   * the characters, as they were before words could be learned.
    */
   const extra: PromptExtras = useMemo(() => {
     const known = new Set([...plan.basis, ...plan.met]);
     const now = Date.now();
+    const inventory = wordInventory(lib, recall, now);
+    const wordsKnown = inventory.known.length > 0;
     return {
-      words: readableWords(lib, known)
-        .slice(0, MAX_WORDS)
-        .map((w) => w.w),
+      words: (wordsKnown ? inventory.known : readableWords(lib, known).map((w) => w.w)).slice(0, MAX_WORDS),
+      wordsKnown,
+      learning: inventory.learning,
       revisit: plan.met.filter((c) => {
         const r = recall[charId(c)]?.recognise;
         return Boolean(r && isDue(r, now));

@@ -12,11 +12,19 @@ import {
 /**
  * What the app knows that the plan does not carry.
  *
- * `words` is the inventory the other way round — the compounds the reader can
- * actually read, rather than the characters they are made of. Handing over
- * only characters is what produces passages full of technically-legal
- * compounds nobody writes: 好 and 天 are both known, so 好天 looks permissible,
- * and it is not a word.
+ * `words` is the inventory the other way round — words rather than the
+ * characters they are made of. Handing over only characters is what produces
+ * passages full of technically-legal compounds nobody writes: 好 and 天 are
+ * both known, so 好天 looks permissible, and it is not a word. And it is what
+ * let 东西 pass as known because 东 and 西 were.
+ *
+ * `wordsKnown` says which list that is. Once words are learned as words it is
+ * those — tested, the way characters are. Before anything is known about any
+ * word it is the old stand-in, the compounds whose characters are all known,
+ * which says what could be read and not what has been.
+ *
+ * `learning` is the words being learned, and known ones falling due: worth
+ * meeting in a sentence, and free to use.
  *
  * `revisit` is the schedule's contribution: characters an earlier passage
  * taught that are now falling due. Meeting one again in a sentence is worth
@@ -25,6 +33,8 @@ import {
  */
 export interface PromptExtras {
   words?: string[];
+  wordsKnown?: boolean;
+  learning?: string[];
   revisit?: string[];
 }
 
@@ -180,13 +190,33 @@ export function buildPrompt(plan: TextPlan, extra: PromptExtras = {}): string {
   out.push(plan.basis.join(''));
   out.push('');
 
-  if (extra.words?.length) {
+  if (extra.words?.length && extra.wordsKnown) {
+    out.push(`## Words I know — ${extra.words.length}`);
+    out.push('');
+    out.push(extra.words.join('、'));
+    out.push('');
+    out.push(
+      'These I know as words. Build out of them first. A word that is not on this list is new to me even when I know every character in it — 东西 is new to me unless it is here, whatever 东 and 西 are — so it counts as new material, and it goes in the vocabulary list.',
+    );
+    out.push('');
+  } else if (extra.words?.length) {
     out.push(`## Words I can already read — ${extra.words.length}`);
     out.push('');
     out.push(extra.words.join('、'));
     out.push('');
     out.push(
       'Build out of these where you can. Characters I know do not make a word just because I know them: two familiar characters put together is a new word to me, and often not a word at all. Where the passage needs a compound that is not on this list, prefer one whose meaning is obvious from its parts, and put it in the vocabulary list.',
+    );
+    out.push('');
+  }
+
+  if (extra.learning?.length) {
+    out.push(`## Words I am learning — ${extra.learning.length}`);
+    out.push('');
+    out.push(extra.learning.join('、'));
+    out.push('');
+    out.push(
+      'Work several of these in, each where it fits naturally — meeting a word in a sentence is how it sticks. They are not new to me and do not count against the new material, but put the ones you use in the vocabulary list.',
     );
     out.push('');
   }
@@ -236,7 +266,9 @@ export function buildPrompt(plan: TextPlan, extra: PromptExtras = {}): string {
         'English: a natural translation of the whole sentence, not a gloss of each character.',
         'Punctuation is free — it is not a character. Use 。，、？！：；“” and 「」 as you like.',
         'In `lines`, one sentence per entry, in reading order — they are joined back into paragraphs on my screen. Mark the first sentence of every paragraph with `"p": true`. Dialogue turns count as sentences, and each turn starts a paragraph.',
-        'The vocabulary list is the key to the passage: 4 to 10 words it actually uses, new ones first. Mark `"new": true` for the ones built out of the characters you have just taught.',
+        extra.wordsKnown
+          ? 'The vocabulary list is the key to the passage: every word it uses that is not on my list of words I know — up to 14, new ones first, then the ones I am learning. Include names and places. Mark `"new": true` for the ones built out of the characters you have just taught.'
+          : 'The vocabulary list is the key to the passage: 4 to 10 words it actually uses, new ones first. Mark `"new": true` for the ones built out of the characters you have just taught.',
         'Each passage stands alone: do not refer to the others, and do not carry a story across them.',
       ],
     ),
@@ -301,7 +333,10 @@ export function buildBrief(plan: TextPlan, extra: PromptExtras = {}): string {
       'Introduce each new character in a sentence whose other characters are familiar, and use it at least twice.',
       'List every new character under "teach" with its reading and meaning; it must match the passage.',
       '"met" characters may be reused freely but are not new and must not be re-taught.',
-      'Prefer compounds from "knownWords". Two known characters side by side is not automatically a word.',
+      extra.wordsKnown
+        ? 'Build from "knownWords", which the learner knows as words. A word not on it is new even when every character in it is known, and goes in "vocab" — every such word the passage uses, up to 14, names and places included.'
+        : 'Prefer compounds from "knownWords". Two known characters side by side is not automatically a word.',
+      'Work several words from "learningWords" in where they fit; they are not new, and go in "vocab" when used.',
       'Use every character in "revisit" at least once; they are not new and do not belong in "teach".',
       'Pinyin with tone marks, lower case, grouped by word, no punctuation.',
       'English is a natural translation of the whole sentence.',
@@ -310,6 +345,7 @@ export function buildBrief(plan: TextPlan, extra: PromptExtras = {}): string {
     known: plan.basis.join(''),
     knownCount: plan.basis.length,
     knownWords: extra.words?.join('、'),
+    learningWords: extra.learning?.join('、') || undefined,
     revisit: extra.revisit?.join(''),
     met: plan.met.join(''),
     supplement: hanziIn(plan.supplement).join('') || undefined,

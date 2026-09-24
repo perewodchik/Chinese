@@ -1,6 +1,6 @@
 import type { Library, SyllabusWord } from '../data/types';
 import { charId, wordId, type ItemId } from './ids';
-import { isLearned, type RecallBook } from './memory';
+import { isDue, isLearned, type RecallBook } from './memory';
 import { wordIndex } from './vocab';
 
 /**
@@ -80,4 +80,36 @@ export function wordKnowledge(
  */
 export function itemForToken(lib: Library, text: string): ItemId {
   return [...text].length > 1 || lib.byWord.has(text) ? wordId(text) : charId(text);
+}
+
+export interface WordInventory {
+  /** words review has let stand as known, syllabus order first */
+  known: string[];
+  /**
+   * Words worth meeting again: the ones being learned, and known ones the
+   * schedule says are falling due — soonest due first.
+   */
+  learning: string[];
+}
+
+/**
+ * The words to hand a writer: what you can read as words, and what you would
+ * gain from meeting again. Worked out when the prompt is built, not stored.
+ */
+export function wordInventory(lib: Library, recall: RecallBook, now: number, maxLearning = 20): WordInventory {
+  const rank = new Map(lib.words.map((w, i) => [w.w, i]));
+  const known: string[] = [];
+  const again: Array<{ w: string; due: number }> = [];
+  for (const id in recall) {
+    if (!id.startsWith('w')) continue;
+    const r = recall[id]?.recognise;
+    if (!r) continue;
+    const w = id.slice(1);
+    const learned = isLearned(recall[id]);
+    if (learned) known.push(w);
+    if (!learned || isDue(r, now)) again.push({ w, due: r.due });
+  }
+  known.sort((a, b) => (rank.get(a) ?? 1e9) - (rank.get(b) ?? 1e9));
+  again.sort((a, b) => a.due - b.due);
+  return { known, learning: again.slice(0, maxLearning).map((x) => x.w) };
 }
