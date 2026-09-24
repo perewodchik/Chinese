@@ -1,5 +1,5 @@
 import type { CharacterEntry, ComponentGloss, Library } from '../data/types';
-import { charId, idValue, isCharId, wordId, type ItemId } from './ids';
+import { charId, idValue, isCharId, isWordId, wordId, type ItemId } from './ids';
 
 /**
  * Reading the library by item id.
@@ -18,6 +18,7 @@ export const glyphOf = (_lib: Library, id: ItemId): string => idValue(id);
 
 export interface ItemFacts {
   id: ItemId;
+  kind: 'char' | 'word';
   glyph: string;
   py: string;
   gloss: string;
@@ -30,11 +31,21 @@ export interface ItemFacts {
   hsk: number;
 }
 
+const ranks = new WeakMap<Library, Map<string, number>>();
+
+/** Each syllabus word's place in the list, counted once per library. */
+function wordRank(lib: Library): Map<string, number> {
+  let m = ranks.get(lib);
+  if (!m) ranks.set(lib, (m = new Map(lib.words.map((w, i) => [w.w, i]))));
+  return m;
+}
+
 export function factsOf(lib: Library, id: ItemId): ItemFacts | null {
   const c = characterOf(lib, id);
   if (c) {
     return {
       id,
+      kind: 'char',
       glyph: c.c,
       py: c.py.join(' / '),
       gloss: c.def,
@@ -43,6 +54,21 @@ export function factsOf(lib: Library, id: ItemId): ItemFacts | null {
       freq: c.freq,
       radical: c.rad ?? '',
       hsk: c.hsk,
+    };
+  }
+  const w = isWordId(id) ? lib.byWord.get(idValue(id)) : undefined;
+  if (w) {
+    return {
+      id,
+      kind: 'word',
+      glyph: w.w,
+      py: w.py,
+      gloss: w.d,
+      idx: lib.characters.length + (wordRank(lib).get(w.w) ?? 0) + 1,
+      strokes: 0,
+      freq: 0,
+      radical: '',
+      hsk: w.hsk,
     };
   }
   return null;

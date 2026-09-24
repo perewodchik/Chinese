@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { nextCollectionName, statsOf, type Collection } from '../../domain/collection';
-import { countLabel, type ItemId } from '../../domain/ids';
+import { countLabel, itemsLabel, type ItemId } from '../../domain/ids';
 import { glyphOf } from '../../domain/library';
 import { allPresets, GROUP_BLURB, GROUP_LABEL, type Preset, type PresetGroup } from '../../domain/presets';
 import { shelve } from '../../domain/text';
@@ -36,12 +36,12 @@ function CollectionCard({ c, learned }: { c: Collection; learned: ReadonlySet<It
           </span>
         )}
       </div>
-      <Strip chars={c.items.map((i) => glyphOf(lib, i))} strokes={lib.strokes} />
+      <Strip chars={c.items.flatMap((i) => [...glyphOf(lib, i)])} strokes={lib.strokes} />
       <div className="bar">
         <i className="learned" style={{ width: `${done * 100}%` }} />
       </div>
       <div className="row tiny muted" style={{ gap: 6 }}>
-        <span>{countLabel(s.total)}</span>
+        <span>{itemsLabel(c.items)}</span>
         {c.words?.length ? (
           <>
             <span>·</span>

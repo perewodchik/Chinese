@@ -9,6 +9,7 @@ import { Seg } from '../../ui/Seg';
 import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
+import { SweepCard } from '../words/SweepCard';
 import {
   DEFAULT_SITTING,
   DRILLS,
@@ -77,6 +78,9 @@ export function ReviewPage() {
         <Link className="btn primary" to={paths.library()} style={{ marginTop: 10 }}>
           Go to the library
         </Link>
+        <div style={{ marginTop: 18, width: '100%', maxWidth: 560 }}>
+          <SweepCard />
+        </div>
       </div>
     );
   }
@@ -108,6 +112,8 @@ export function ReviewPage() {
           />
         </label>
       </div>
+
+      <SweepCard />
 
       {waiting.length > 0 && (
         <div className="waiting-sheets">

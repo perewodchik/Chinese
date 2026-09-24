@@ -1,5 +1,5 @@
 import type { Collection } from '../../domain/collection';
-import { countLabel, type ItemId } from '../../domain/ids';
+import { itemsLabel, type ItemId } from '../../domain/ids';
 import { factsOf, sortByLibrary } from '../../domain/library';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { removeItems, reorderItems, setLearned } from '../../store/commands';
@@ -123,6 +123,7 @@ export function ItemBoard({ c, taken }: Props) {
                 py={f.py}
                 gloss={f.gloss}
                 strokes={lib.strokes}
+                word={f.kind === 'word'}
                 index={i + 1}
                 learned={learned.has(id)}
                 selected={picked.selected.has(id)}
@@ -130,7 +131,7 @@ export function ItemBoard({ c, taken }: Props) {
                   if (reorder.consumeClick()) return;
                   picked.toggle(id, shift);
                 }}
-                onOpen={() => openItem(id)}
+                onOpen={f.kind === 'char' ? () => openItem(id) : undefined}
                 onRemove={() => removeItems(c.id, [id])}
                 {...reorder.handlers(i)}
               />
@@ -141,7 +142,7 @@ export function ItemBoard({ c, taken }: Props) {
 
       <div className="row" style={{ marginTop: 14 }}>
         <span className="tiny muted grow">
-          {countLabel(c.items.length)} · {c.items.filter((i) => learned.has(i)).length} learned
+          {itemsLabel(c.items)} · {c.items.filter((i) => learned.has(i)).length} learned
         </span>
         <button
           className="btn sm"

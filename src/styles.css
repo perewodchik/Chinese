@@ -579,6 +579,14 @@ h1 {
   line-height: 1;
 }
 
+/* A word in a collection of characters. Two characters say so on their own;
+   a one-character word — 好 as the word, not the character — needs telling. */
+.marks .kind {
+  font-size: 11px;
+  line-height: 1;
+  color: var(--ink-3);
+}
+
 /* ------------------------------------------------------------- badges */
 
 .badge {
@@ -1216,8 +1224,10 @@ a.tpl-card:hover {
 }
 
 /* The count and the tick move out from under the remove button when it
-   appears, rather than sitting behind it. */
-.item .remove ~ .marks {
+   appears, rather than sitting behind it. The marks come first in the card,
+   so this has to ask the card whether it has the button — a sibling selector
+   from the button never reached them. */
+.item:has(> .remove) > .marks {
   right: 26px;
 }
 
@@ -3090,7 +3100,7 @@ select.mt {
     font-size: 13px;
   }
 
-  .item .remove ~ .marks {
+  .item:has(> .remove) > .marks {
     right: 36px;
   }
 

@@ -19,6 +19,7 @@ import { DrillPage } from '../features/review/DrillPage';
 import { GradeSheetPage } from '../features/review/GradeSheetPage';
 import { ReviewPage } from '../features/review/ReviewPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
+import { SweepPage } from '../features/words/SweepPage';
 import { paths } from '../navigation/paths';
 import { NotFoundPage, RouteError } from './errors';
 import { RequireSession } from './RequireSession';
@@ -30,6 +31,7 @@ import { RequireSession } from './RequireSession';
  *   /review                        what is due, and the drills
  *   /review/:drill?n=30            one sitting of one drill
  *   /review/sheets/:sheetId        marking a printed test sheet
+ *   /review/sweep?band             sorting a band's words: known, not sure, new
  *   /library?q&show&sort           browsing, filters in the query
  *   /library?band=radicals         the same page showing all 214 radicals
  *   /collections?show              every collection, of characters and of texts, and the ready-made sets
@@ -91,6 +93,7 @@ export const router = createBrowserRouter([
               { index: true, element: <Navigate to={paths.review()} replace /> },
               { path: 'review', element: <ReviewPage /> },
               { path: 'review/sheets/:sheetId', element: <GradeSheetPage /> },
+              { path: 'review/sweep', element: <SweepPage /> },
               { path: 'review/:drill', element: <DrillPage /> },
               { path: 'library', element: <LibraryPage /> },
               { path: 'collections', element: <CollectionsPage /> },

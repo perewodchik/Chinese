@@ -15,6 +15,8 @@ export interface ItemCardProps {
   fit?: boolean;
   /** what to draw when `glyph` is a stroke key rather than a character */
   fallback?: string;
+  /** a word rather than a character: set smaller when it is long, and marked 词 */
+  word?: boolean;
   /** the number in the corner: teaching order, or position in a collection */
   index?: number | string;
   learned?: boolean;
@@ -50,6 +52,7 @@ export function ItemCard({
   strokes,
   fit,
   fallback,
+  word,
   index,
   learned,
   selected,
@@ -73,6 +76,7 @@ export function ItemCard({
       data-selected={selected || undefined}
       data-learned={learned || undefined}
       data-dragging={dragging || undefined}
+      data-kind={word ? 'word' : undefined}
       style={style}
       title={title ?? (learned ? 'Learned' : 'Not learned yet')}
       onClick={(e) => onClick?.(e.shiftKey)}
@@ -92,13 +96,18 @@ export function ItemCard({
     >
       {index !== undefined && <span className="idx">{index}</span>}
       <span className="marks">
+        {word && (
+          <span className="kind hanzi" title="A word">
+            词
+          </span>
+        )}
         {claimed && <span className="dot claimed" />}
         {learned && <span className="tick">✓</span>}
       </span>
       <Glyph
         char={glyph}
         strokes={strokes}
-        size={size}
+        size={word ? wordSize(size, [...glyph].length) : size}
         className="glyph"
         fit={fit}
         fallback={fallback}
@@ -134,3 +143,11 @@ export function ItemCard({
     </div>
   );
 }
+
+/**
+ * A word drawn in the space of one character. Two characters still fit side
+ * by side at nearly full size; past that each gets smaller, so 不好意思 sits
+ * on one line of the card instead of spilling out of it.
+ */
+const wordSize = (size: number, len: number) =>
+  len <= 1 ? size : Math.round(size * Math.min(0.9, 1.7 / len));

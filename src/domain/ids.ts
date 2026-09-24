@@ -43,3 +43,12 @@ export function wordsOf(ids: Iterable<ItemId>): Set<string> {
 }
 
 export const countLabel = (n: number) => `${n} character${n === 1 ? '' : 's'}`;
+
+/** "12 characters", "3 words", or "12 characters · 3 words" — for a list that can hold both. */
+export function itemsLabel(ids: readonly ItemId[]): string {
+  const words = ids.filter(isWordId).length;
+  const chars = ids.length - words;
+  const w = `${words} word${words === 1 ? '' : 's'}`;
+  if (!words) return countLabel(chars);
+  return chars ? `${countLabel(chars)} · ${w}` : w;
+}

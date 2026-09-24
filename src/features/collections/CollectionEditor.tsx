@@ -10,7 +10,7 @@ import {
   type Collection,
   type ScopeMode,
 } from '../../domain/collection';
-import { countLabel } from '../../domain/ids';
+import { itemsLabel } from '../../domain/ids';
 import { paths, type CollectionTab } from '../../navigation/paths';
 import { fitFor, renderCollection, renderRecall } from '../../pdf/render';
 import {
@@ -169,7 +169,7 @@ export function CollectionEditor({ c, tab }: Props) {
           onChange={(e) => renameCollection(c.id, e.target.value)}
           aria-label="Collection name"
         />
-        <span className="badge">{countLabel(stats.total)}</span>
+        <span className="badge">{itemsLabel(c.items)}</span>
         {stats.learned > 0 && (
           <span className={`badge ${stats.learned === stats.total ? 'done' : ''}`}>{stats.learned} learned</span>
         )}

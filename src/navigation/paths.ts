@@ -28,6 +28,8 @@ export const paths = {
   review: () => '/review',
   drill: (drill: DrillId, size?: number) => withQuery(`/review/${drill}`, { n: size ? String(size) : undefined }),
   gradeSheet: (sheetId: string) => `/review/sheets/${encodeURIComponent(sheetId)}`,
+  /** sorting a band's words into known, not sure and new */
+  sweep: (band?: number) => withQuery('/review/sweep', { band: band ? String(band) : undefined }),
 
   library: () => '/library',
   /** the library showing the 214 radicals rather than a band of characters */
