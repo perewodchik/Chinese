@@ -513,35 +513,6 @@ h1 {
   min-height: 2.6em;
 }
 
-.item .info {
-  position: absolute;
-  right: 5px;
-  bottom: 5px;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  border: 1px solid var(--line-2);
-  background: var(--card);
-  color: var(--ink-3);
-  font-size: 10.5px;
-  font-style: italic;
-  font-weight: 600;
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.12s, color 0.12s, border-color 0.12s;
-}
-
-.item:hover .info,
-.item:focus-within .info {
-  opacity: 1;
-}
-
-.item .info:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
 .item .idx {
   position: absolute;
   top: 5px;
@@ -1229,6 +1200,11 @@ a.tpl-card:hover {
    from the button never reached them. */
 .item:has(> .remove) > .marks {
   right: 26px;
+}
+
+/* Select and Done are one button, the same width either way. */
+.select-toggle {
+  min-width: 72px;
 }
 
 .board-bar {
@@ -3076,10 +3052,9 @@ select.mt {
    while still being a sheet of glass with no cursor on it, and that is exactly
    the device this section exists for. */
 @media (hover: none), (pointer: coarse) {
-  /* These were only ever reachable by hovering, which on a tablet means never
-     — the `i` that opens a character, and the × that takes one out of a
-     collection, were both invisible and unclickable. */
-  .item .info,
+  /* This was only ever reachable by hovering, which on a tablet means never
+     — the × that takes a card out of a collection was invisible and
+     unclickable. */
   .item .remove,
   .passage-line .say {
     opacity: 1;
@@ -3091,9 +3066,8 @@ select.mt {
     display: none;
   }
 
-  /* Fingers are not mice: the small round buttons on a card need to be worth
-     aiming at, and the count beside them has to move over to make room. */
-  .item .info,
+  /* Fingers are not mice: the small round button on a card needs to be worth
+     aiming at, and the count beside it has to move over to make room. */
   .item .remove {
     width: 28px;
     height: 28px;

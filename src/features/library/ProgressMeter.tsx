@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { charId } from '../../domain/ids';
+import { wordBands } from '../../domain/wordProgress';
 import { paths } from '../../navigation/paths';
 import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
@@ -25,12 +26,15 @@ const bandName = (band: number) => (band === 7 ? 'HSK 7–9' : `HSK ${band}`);
 export function ProgressMeter() {
   const lib = useLibrary();
   const learned = useStore((s) => s.learned);
+  const recall = useStore((s) => s.recall);
 
-  const { bands, current, total } = useMemo(() => {
-    const bands = BANDS.map((band) => ({ band, done: 0, size: 0 }));
+  // A band is its characters and its words: both fill its segment, and the
+  // numbers say which is which.
+  const { bands, chars, words, current, total } = useMemo(() => {
+    const chars = BANDS.map((band) => ({ band, done: 0, size: 0 }));
     let total = 0;
     for (const c of lib.characters) {
-      const b = bands[Math.min(c.hsk, 7) - 1];
+      const b = chars[Math.min(c.hsk, 7) - 1];
       if (!b) continue;
       b.size++;
       if (learned.has(charId(c.c))) {
@@ -38,11 +42,16 @@ export function ProgressMeter() {
         total++;
       }
     }
+    const words = wordBands(lib, recall);
+    const bands = chars.map((b, i) => ({ ...b, size: b.size + words[i]!.size, done: b.done + words[i]!.done }));
+    total += words.reduce((n, w) => n + w.done, 0);
     const current = bands.find((b) => b.size && b.done < b.size) ?? null;
-    return { bands, current, total };
-  }, [lib, learned]);
+    return { bands, chars, words, current, total };
+  }, [lib, learned, recall]);
 
-  const summary = bands.map((b) => `${bandName(b.band)}: ${b.done} of ${b.size}`).join('\n');
+  const summary = bands
+    .map((b, i) => `${bandName(b.band)}: ${chars[i]!.done} of ${chars[i]!.size} characters, ${words[i]!.done} of ${words[i]!.size} words`)
+    .join('\n');
 
   return (
     <Link
@@ -56,7 +65,10 @@ export function ProgressMeter() {
       <div className="tiny muted" style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
         {current ? (
           <span>
-            <b className="ink">{bandName(current.band)}</b> · {current.done} / {current.size}
+            <b className="ink">{bandName(current.band)}</b> · <span className="meter-kind">字</span>
+            {chars[current.band - 1]!.done}/{chars[current.band - 1]!.size} ·{' '}
+            <span className="meter-kind">词</span>
+            {words[current.band - 1]!.done}/{words[current.band - 1]!.size}
           </span>
         ) : (
           <span>

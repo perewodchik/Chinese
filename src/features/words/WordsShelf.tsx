@@ -6,10 +6,13 @@ import { HSK_BANDS } from '../../domain/text';
 import { wordKnowledge, type WordStatus } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { oneOf, useQuery } from '../../navigation/query';
+import { setLearned } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { ItemCard } from '../../ui/ItemCard';
 import { Seg } from '../../ui/Seg';
-import { useRangeSelection } from '../../ui/useRangeSelection';
+import { SelectToggle } from '../../ui/SelectToggle';
+import { useToast } from '../../ui/toast';
+import { useSelectMode } from '../../ui/useRangeSelection';
 import { useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
 
@@ -38,8 +41,8 @@ const flatten = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowe
  *
  * Each card says whether you know the word, are learning it, or have not met
  * it, which is the thing the character grid cannot say about a word: 东 and 西
- * can both be ticked while 东西 is still new. Select a run and put it in a
- * collection to learn; tap a card's i for the word itself.
+ * can both be ticked while 东西 is still new. Tap a card for the word itself;
+ * turn on Select to pick a run, then mark it learned or put it in a collection.
  */
 export function WordsShelf({ q }: { q: string }) {
   const lib = useLibrary();
@@ -82,12 +85,20 @@ export function WordsShelf({ q }: { q: string }) {
   }, [inBand, q, show, index, knowledge]);
 
   const ids = useMemo(() => rows.map((w) => wordId(w.w)), [rows]);
-  const selection = useRangeSelection(ids);
+  const selection = useSelectMode(ids);
+  const toast = useToast();
   useEffect(() => setCap(STEP), [q, show, band]);
 
   function addSelection(target: string) {
     const picked: ItemId[] = ids.filter((id) => selection.selected.has(id));
     collect(target, picked, { newName: nextCollectionName(collections) });
+    selection.clear();
+  }
+
+  function markSelection(value: boolean) {
+    const picked = ids.filter((id) => selection.selected.has(id));
+    setLearned(picked, value);
+    toast(value ? `Marked ${itemsLabel(picked)} as learned` : `${itemsLabel(picked)} no longer counted as learned`);
     selection.clear();
   }
 
@@ -117,6 +128,7 @@ export function WordsShelf({ q }: { q: string }) {
         <span className="small muted">
           <b>{rows.length}</b> of {inBand.length} · {counts.known} known · {counts.learning} learning
         </span>
+        <SelectToggle on={selection.on} onToggle={selection.toggleMode} />
       </div>
 
       {rows.length === 0 ? (
@@ -150,7 +162,7 @@ export function WordsShelf({ q }: { q: string }) {
                         ? `Waiting in ${inside.map((c) => c.name).join(', ')}`
                         : 'Not learned yet'
                 }
-                onClick={(shift) => selection.toggle(id, shift)}
+                onClick={(shift) => (selection.on ? selection.toggle(id, shift) : openItem(id))}
                 onOpen={() => openItem(id)}
               />
             );
@@ -171,6 +183,12 @@ export function WordsShelf({ q }: { q: string }) {
           <b>{itemsLabel([...selection.selected])} selected</b>
           <button className="btn ghost sm" onClick={selection.clear}>
             Clear
+          </button>
+          <button className="btn sm" onClick={() => markSelection(true)}>
+            Mark learned
+          </button>
+          <button className="btn sm" onClick={() => markSelection(false)}>
+            Unmark
           </button>
           <div className="spacer" />
           <span className="small muted">Learn in</span>

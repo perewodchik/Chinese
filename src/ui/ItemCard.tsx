@@ -25,6 +25,7 @@ export interface ItemCardProps {
   claimed?: boolean;
   size?: number;
   onClick?: (shift: boolean) => void;
+  /** what the i key does: open the card, even while a tap is picking it */
   onOpen?: () => void;
   onRemove?: () => void;
   /** turns the card into a drag handle for reordering */
@@ -80,7 +81,6 @@ export function ItemCard({
       style={style}
       title={title ?? (learned ? 'Learned' : 'Not learned yet')}
       onClick={(e) => onClick?.(e.shiftKey)}
-      onDoubleClick={onOpen}
       onPointerDown={onDragStart}
       onPointerMove={onDragMove}
       onPointerUp={onDragEnd}
@@ -114,19 +114,6 @@ export function ItemCard({
       />
       <div className="py">{py}</div>
       <div className="gloss">{gloss}</div>
-      {onOpen && (
-        <button
-          className="info"
-          title="Everything about this character"
-          aria-label={`Details for ${fallback ?? glyph}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpen();
-          }}
-        >
-          i
-        </button>
-      )}
       {onRemove && (
         <button
           className="remove"

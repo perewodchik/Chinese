@@ -2,6 +2,7 @@ import type { Collection } from './collection';
 import { planDrill, type DrillQueue } from './drill';
 import { isWordId, type ItemId } from './ids';
 import { isDue, type RecallBook } from './memory';
+import { wordsBandOf } from './sweep';
 
 /**
  * Reviewing words: what is due, and which new ones join.
@@ -29,10 +30,7 @@ export const DEFAULT_NEW_WORDS = 10;
 
 /** Word collections in the order their words are learned in. */
 function learningOrder(collections: Collection[]): Collection[] {
-  const band = (c: Collection) => {
-    const m = /^words-hsk-(\d+)$/.exec(c.presetId ?? '');
-    return m ? Number(m[1]) : Infinity;
-  };
+  const band = (c: Collection) => wordsBandOf(c) ?? Infinity;
   return collections
     .filter((c) => c.items.some(isWordId))
     .sort((a, b) => band(a) - band(b) || a.createdAt - b.createdAt);

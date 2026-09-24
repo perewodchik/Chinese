@@ -9,10 +9,12 @@ import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
 import { useRadicalDrawer } from '../../navigation/radicalDrawer';
-import { setSettings } from '../../store/commands';
+import { setLearned, setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { ItemCard } from '../../ui/ItemCard';
-import { useRangeSelection } from '../../ui/useRangeSelection';
+import { SelectToggle } from '../../ui/SelectToggle';
+import { useToast } from '../../ui/toast';
+import { useSelectMode } from '../../ui/useRangeSelection';
 import { useTitle } from '../../ui/useTitle';
 import { useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
@@ -156,7 +158,8 @@ export function LibraryPage() {
   useEffect(() => setCap(STEP), [q, status, sort, hskBand]);
 
   const ordering = useMemo(() => rows.map((r) => r.id), [rows]);
-  const selection = useRangeSelection(ordering);
+  const selection = useSelectMode(ordering);
+  const toast = useToast();
 
   // Nothing about a radical can be selected, so switching to them must not
   // leave a trayful of characters hovering over a page they belong to no more.
@@ -177,6 +180,13 @@ export function LibraryPage() {
     });
     selection.clear();
     if (made && target === 'new') navigate(paths.collection(made.id));
+  }
+
+  function markSelection(value: boolean) {
+    const ids = [...selection.selected];
+    setLearned(ids, value);
+    toast(value ? `Marked ${countLabel(ids.length)} as learned` : `${countLabel(ids.length)} no longer counted as learned`);
+    selection.clear();
   }
 
   return (
@@ -245,9 +255,12 @@ export function LibraryPage() {
           </div>
           <div className="spacer" />
           {!radicals && (
-            <span className="small muted">
-              Showing <b>{rows.length}</b> of {counts.all} · {counts.learned} learned
-            </span>
+            <>
+              <span className="small muted">
+                Showing <b>{rows.length}</b> of {counts.all} · {counts.learned} learned
+              </span>
+              <SelectToggle on={selection.on} onToggle={selection.toggleMode} />
+            </>
           )}
         </div>}
 
@@ -284,7 +297,7 @@ export function LibraryPage() {
                         ? 'Learned'
                         : 'Not learned yet'
                   }
-                  onClick={(shift) => selection.toggle(row.id, shift)}
+                  onClick={(shift) => (selection.on ? selection.toggle(row.id, shift) : openItem(row.id))}
                   onOpen={() => openItem(row.id)}
                 />
               );
@@ -314,6 +327,12 @@ export function LibraryPage() {
           <b>{countLabel(selection.selected.size)} selected</b>
           <button className="btn ghost sm" onClick={selection.clear}>
             Clear
+          </button>
+          <button className="btn sm" onClick={() => markSelection(true)}>
+            Mark learned
+          </button>
+          <button className="btn sm" onClick={() => markSelection(false)}>
+            Unmark
           </button>
           <div className="spacer" />
           <span className="small muted">Add to</span>

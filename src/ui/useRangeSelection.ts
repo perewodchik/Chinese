@@ -35,3 +35,24 @@ export function useRangeSelection<T>(ordering: readonly T[]) {
 
   return { selected, toggle, clear, selectAll };
 }
+
+/**
+ * Tapping a card opens it; with Select on, tapping picks it instead.
+ *
+ * A card has one obvious thing a tap should do, and on a grid of characters
+ * or words that is to open it — picking is the occasional job, done in a run
+ * and then finished with. So picking is a mode you turn on, and turning it
+ * off lets go of whatever was picked.
+ */
+export function useSelectMode<T>(ordering: readonly T[]) {
+  const selection = useRangeSelection(ordering);
+  const [on, setOn] = useState(false);
+  const { clear } = selection;
+  const toggleMode = useCallback(() => {
+    setOn((was) => {
+      if (was) clear();
+      return !was;
+    });
+  }, [clear]);
+  return { ...selection, on, toggleMode };
+}

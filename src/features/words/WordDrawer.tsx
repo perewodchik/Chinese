@@ -157,6 +157,15 @@ export function WordDrawer({ id, onClose }: Props) {
             {status === 'known' ? 'Know it' : status === 'learning' ? 'Are learning it' : 'Have not learned it yet'}
             {r && <span className="muted"> · {nextCheck(r.due, Date.now())}</span>}
           </dd>
+          {r && (
+            <>
+              {/* The day it was first marked or first answered for — a renewed
+                  claim keeps it, so it is when the word came into your life,
+                  not when you last touched the button. */}
+              <dt>{learned ? 'Learned' : 'Started'}</dt>
+              <dd>{dateOf(r.since ?? r.last)}</dd>
+            </>
+          )}
           <dt>Collections</dt>
           <dd>
             {inCollections.length ? (
@@ -259,6 +268,10 @@ export function WordDrawer({ id, onClose }: Props) {
     </div>
   );
 }
+
+/** A day, short enough to sit in a table. */
+const dateOf = (ms: number) =>
+  new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 
 /** When the word comes up in review next, said the way a person would. */
 function nextCheck(due: number, now: number): string {

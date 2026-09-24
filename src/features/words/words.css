@@ -456,3 +456,14 @@
     color: var(--ink);
   }
 }
+
+/* ------------------------------------------------------ the bar across the top */
+
+/* 字 before the characters' count and 词 before the words': one glance says
+   which number is which, in less room than the English would take. */
+.meter-kind {
+  font-family: var(--han);
+  color: var(--ink-3);
+  font-weight: 400;
+  margin-right: 1px;
+}

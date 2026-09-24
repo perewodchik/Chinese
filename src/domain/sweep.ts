@@ -44,7 +44,20 @@ export const SWEEP_PAGE = 24;
 /** The collection a band's new words go into, found again by this. */
 export const wordsPresetId = (band: number) => `words-hsk-${band}`;
 
-export const wordsCollectionName = (band: number) => `HSK ${band} words`;
+/**
+ * Named apart from the ready-made "HSK 1 words", which is the whole band: this
+ * one holds only what the sweep found new.
+ */
+export const wordsCollectionName = (band: number) => `HSK ${band} — new words`;
+
+/**
+ * The band a collection is the words of, if it is one: the sweep's own, or
+ * the whole band taken as a ready-made set (presets.ts, `wordset-hsk-N`).
+ */
+export function wordsBandOf(c: Pick<Collection, 'presetId'>): number | null {
+  const m = /^word(?:s|set)-hsk-(\d+)$/.exec(c.presetId ?? '');
+  return m ? Number(m[1]) : null;
+}
 
 export type WordStanding = 'known' | 'reviewing' | 'to-learn' | 'unsorted';
 

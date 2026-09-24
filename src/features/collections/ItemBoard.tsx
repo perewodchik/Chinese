@@ -7,7 +7,8 @@ import { useStore } from '../../store/store';
 import { ItemCard } from '../../ui/ItemCard';
 import { useToast } from '../../ui/toast';
 import { useGridReorder } from '../../ui/useGridReorder';
-import { useRangeSelection } from '../../ui/useRangeSelection';
+import { SelectToggle } from '../../ui/SelectToggle';
+import { useSelectMode } from '../../ui/useRangeSelection';
 import { useLibrary } from '../shared/library';
 import { AddSearch } from './AddSearch';
 
@@ -29,7 +30,7 @@ export function ItemBoard({ c, taken }: Props) {
   const toast = useToast();
   const openItem = useOpenItem();
   const learned = useStore((s) => s.learned);
-  const picked = useRangeSelection(c.items);
+  const picked = useSelectMode(c.items);
 
   const reorder = useGridReorder(c.items.length, (from, to) => {
     const next = [...c.items];
@@ -37,8 +38,6 @@ export function ItemBoard({ c, taken }: Props) {
     next.splice(to, 0, moved);
     reorderItems(c.id, next);
   });
-
-  const allLearned = c.items.length > 0 && c.items.every((i) => learned.has(i));
 
   return (
     <div>
@@ -53,12 +52,15 @@ export function ItemBoard({ c, taken }: Props) {
         >
           Sort
         </button>
+        <SelectToggle on={picked.on} onToggle={picked.toggleMode} />
         <span className="tiny muted grow">
           {picked.selected.size
             ? `${picked.selected.size} selected`
-            : c.items.length
-              ? 'drag a card to move it · shift-click for a run'
-              : ''}
+            : !c.items.length
+              ? ''
+              : picked.on
+                ? 'tap cards to pick them · shift-click for a run'
+                : 'tap a card to open it · drag to move it'}
         </span>
         {picked.selected.size > 0 && (
           <>
@@ -96,7 +98,7 @@ export function ItemBoard({ c, taken }: Props) {
             </button>
           </>
         )}
-        {!picked.selected.size && c.items.length > 0 && (
+        {picked.on && !picked.selected.size && c.items.length > 0 && (
           <button className="btn ghost sm" onClick={() => picked.selectAll(c.items)}>
             Select all
           </button>
@@ -129,7 +131,8 @@ export function ItemBoard({ c, taken }: Props) {
                 selected={picked.selected.has(id)}
                 onClick={(shift) => {
                   if (reorder.consumeClick()) return;
-                  picked.toggle(id, shift);
+                  if (picked.on) picked.toggle(id, shift);
+                  else openItem(id);
                 }}
                 onOpen={() => openItem(id)}
                 onRemove={() => removeItems(c.id, [id])}
@@ -140,21 +143,9 @@ export function ItemBoard({ c, taken }: Props) {
         </div>
       )}
 
-      <div className="row" style={{ marginTop: 14 }}>
-        <span className="tiny muted grow">
-          {itemsLabel(c.items)} · {c.items.filter((i) => learned.has(i)).length} learned
-        </span>
-        <button
-          className="btn sm"
-          disabled={!c.items.length}
-          onClick={() => {
-            setLearned(c.items, !allLearned);
-            toast(allLearned ? 'Unmarked everything' : `Marked all ${c.items.length} as learned`);
-          }}
-        >
-          {allLearned ? 'Unmark everything' : 'Mark everything learned'}
-        </button>
-      </div>
+      <p className="tiny muted" style={{ margin: '14px 0 0' }}>
+        {itemsLabel(c.items)} · {c.items.filter((i) => learned.has(i)).length} learned
+      </p>
     </div>
   );
 }

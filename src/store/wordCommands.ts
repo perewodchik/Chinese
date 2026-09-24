@@ -1,4 +1,4 @@
-import { wordsCollectionName, wordsPresetId, type SweepMark } from '../domain/sweep';
+import { wordsBandOf, wordsCollectionName, wordsPresetId, type SweepMark } from '../domain/sweep';
 import type { ItemId } from '../domain/ids';
 import { addItems, createCollection, gradeItem, setLearned } from './commands';
 import { getState } from './store';
@@ -12,9 +12,16 @@ import { getState } from './store';
  * and what each answer in the sweep means.
  */
 
-/** The collection a band's new words are gathered in, made the first time it is needed. */
+/**
+ * The collection a band's new words are gathered in: the one the sweep made
+ * before, or the whole band where it was taken as a ready-made set — the new
+ * word is in it already, and a second "HSK 1 words" is only confusing. Made
+ * the first time neither exists.
+ */
 export function wordsCollection(band: number): string {
-  const found = getState().collections.find((c) => c.presetId === wordsPresetId(band));
+  const own = getState().collections;
+  const found =
+    own.find((c) => c.presetId === wordsPresetId(band)) ?? own.find((c) => wordsBandOf(c) === band);
   if (found) return found.id;
   return createCollection({
     name: wordsCollectionName(band),
