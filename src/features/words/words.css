@@ -480,8 +480,15 @@
   margin-inline: 0.13em;
   border-radius: 3px;
   /* A line may break between words, never inside one: 早 at the end of a
-     line and 上 at the start of the next is two things again. */
-  white-space: nowrap;
+     line and 上 at the start of the next is two things again. An inline
+     block does that in every browser — a line may always break beside one,
+     the way a row of images wraps. (white-space: nowrap did it in Chrome
+     only: Safari then found no place to break between two words at all, and
+     a whole paragraph ran off the page as one line.) */
+  display: inline-block;
+  /* A block inherits the paragraph's first-line indent, and would give it
+     to every word. */
+  text-indent: 0;
 }
 
 /* The word lights up as one under the pointer, not the character. */
