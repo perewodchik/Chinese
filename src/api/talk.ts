@@ -7,6 +7,7 @@ import type {
   TalkReply,
   TalkSavedTurn,
   TalkStatusResponse,
+  TalkVocab,
 } from '../../shared/talk';
 import { request } from './http';
 
@@ -19,8 +20,8 @@ export function talkStatus(voice?: string): Promise<TalkStatusResponse> {
 }
 
 /** Claude's next turn. Slow by nature — Claude is writing — so it is given two minutes. */
-export function talkReply(lines: TalkLine[], options: TalkOptions): Promise<TalkReply> {
-  return request<TalkReply>('POST', '/api/talk/reply', { body: { lines, options }, timeoutMs: 120_000 });
+export function talkReply(lines: TalkLine[], options: TalkOptions, vocab?: TalkVocab): Promise<TalkReply> {
+  return request<TalkReply>('POST', '/api/talk/reply', { body: { lines, options, vocab }, timeoutMs: 120_000 });
 }
 
 /** The model may have to load before the first sentence of a sitting; after that it is seconds. */

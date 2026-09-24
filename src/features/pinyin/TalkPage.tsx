@@ -4,6 +4,7 @@ import {
   parseReply,
   relayOpening,
   relayTurn,
+  TALK_VOCAB_MAX,
   type ClaudeState,
   type TalkConversation,
   type TalkLine,
@@ -11,9 +12,10 @@ import {
   type TalkReply,
   type TalkSavedTurn,
   type TalkStatusResponse,
-  type TalkWord,
+  type TalkVocab,
 } from '../../../shared/talk';
 import { openConversation, saveConversation, talkReply, talkStatus } from '../../api/talk';
+import { wordInventory } from '../../domain/words';
 import { paths } from '../../navigation/paths';
 import { micUnavailable, MIC_MESSAGE } from '../../platform/audio/mic';
 import { canRecognise, listen, RECOGNITION_MESSAGE, type Listening } from '../../platform/audio/recognition';
@@ -22,6 +24,7 @@ import { useStore } from '../../store/store';
 import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
+import { TalkWords } from '../words/TalkWords';
 import { Portrait, SelfMark } from './Portrait';
 import { RecordButton } from './RecordButton';
 import { readPrefs, SYSTEM } from './talkPrefs';
@@ -104,6 +107,13 @@ export function TalkPage() {
     () => (record ? { ...record.options, persona: record.voice ?? undefined } : null),
     [record],
   );
+  // And the words the learner knows and is learning, as they stand today:
+  // sent with every turn, not kept with the conversation.
+  const recall = useStore((s) => s.recall);
+  const vocab: TalkVocab = useMemo(() => {
+    const words = wordInventory(lib, recall, Date.now(), TALK_VOCAB_MAX.learning);
+    return { known: words.known.slice(0, TALK_VOCAB_MAX.known), learning: words.learning };
+  }, [lib, recall]);
   const showPinyin = readPrefs().pinyin;
   const showEnglish = readPrefs().english;
   const direct = status?.claude.state === 'ready';
@@ -223,7 +233,7 @@ export function TalkPage() {
     setThinking(true);
     setError(null);
     try {
-      const reply = await talkReply(lines(turnsRef.current), options);
+      const reply = await talkReply(lines(turnsRef.current), options, vocab);
       const turn = add('tutor', reply);
       void say(turn.hanzi, { mark: turn.id });
     } catch (e) {
@@ -303,7 +313,7 @@ export function TalkPage() {
   async function copyForClaude() {
     if (!options) return;
     unlockAudio();
-    const text = opening ? relayOpening(options, lines(turns)) : relayTurn(lines(unanswered));
+    const text = opening ? relayOpening(options, lines(turns), vocab) : relayTurn(lines(unanswered));
     if (await copyText(text)) {
       setPrimed(true);
       toast(opening ? 'Copied — paste it into a new Claude chat' : 'Copied — paste it into your Claude chat');
@@ -558,13 +568,7 @@ function TurnView({
           {english && turn.english && <p className="talk-en">{turn.english}</p>}
           {turn.note && <p className="talk-note small">{turn.note}</p>}
         </div>
-        {turn.words && turn.words.length > 0 && (
-          <div className="talk-words">
-            {turn.words.map((w, i) => (
-              <WordChip key={i} word={w} onSay={() => onSay(w.hanzi)} />
-            ))}
-          </div>
-        )}
+        {turn.who === 'tutor' && <TalkWords hanzi={turn.hanzi} guessed={turn.words} onSay={(w) => onSay(w)} />}
         {turn.who === 'tutor' && (
           <div className="talk-actions">
             <button className="btn ghost sm" onClick={() => onSay(turn.hanzi)}>
@@ -584,19 +588,6 @@ function TurnView({
         )}
       </div>
     </div>
-  );
-}
-
-/** A new word: tap it to hear it on its own. */
-function WordChip({ word, onSay }: { word: TalkWord; onSay: () => void }) {
-  return (
-    <button className="talk-word" onClick={onSay} title="Hear it">
-      <span className="talk-word-han hanzi" lang="zh-CN">
-        {word.hanzi}
-      </span>
-      <span className="talk-word-py">{word.pinyin}</span>
-      <span className="talk-word-en tiny muted">{word.english}</span>
-    </button>
   );
 }
 

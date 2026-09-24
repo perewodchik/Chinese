@@ -85,10 +85,26 @@ export const DEFAULT_OPTIONS: TalkOptions = {
 
 export const TALK_TOPIC_MAX_CHARS = 60;
 
+/**
+ * The learner's words, sent with every turn rather than kept with the
+ * conversation: they are learning more of them every day, and the partner
+ * should talk to who they are now.
+ */
+export interface TalkVocab {
+  /** words they know as words */
+  known: string[];
+  /** words they are learning — worth hearing in use */
+  learning: string[];
+}
+
+/** Enough to cover HSK 1–3 with room to spare, and still a small prompt. */
+export const TALK_VOCAB_MAX = { known: 1000, learning: 15 } as const;
+
 export interface TalkRequest {
   /** the conversation so far, oldest first; empty to have Claude open it */
   lines: TalkLine[];
   options: TalkOptions;
+  vocab?: TalkVocab;
 }
 
 /** A word or a whole suggested sentence: the characters, how to say it, what it means. */
@@ -152,7 +168,7 @@ const LENGTH_RULE: Record<TalkLength, string> = {
 };
 
 /** Who Claude is in the conversation, and how it answers. Shared by both routes to Claude. */
-export function tutorInstructions(o: TalkOptions): string {
+export function tutorInstructions(o: TalkOptions, vocab?: TalkVocab): string {
   const persona = personaOf(o.persona);
   const lines = [
     'You are a calm, friendly Mandarin conversation partner for someone learning Chinese, who is practising speaking out loud.',
@@ -167,6 +183,19 @@ export function tutorInstructions(o: TalkOptions): string {
     '',
     'How to talk:',
     `- Simplified Chinese only, at the learner's level: ${LEVEL_WORDS[o.level]}. Short, natural sentences.`,
+    // The words themselves, where the app knows them: a level is a guess at
+    // what someone knows, the list is what they do. A word of familiar
+    // characters is still a word they may not know — 东西 is not 东 and 西.
+    ...(vocab?.known.length
+      ? [
+          `- The words the learner knows: ${vocab.known.slice(0, TALK_VOCAB_MAX.known).join('、')}. Build your turns out of these wherever you can, and keep anything else to a word or two a turn. A word made of characters they know is not one they know unless it is on this list.`,
+        ]
+      : []),
+    ...(vocab?.learning.length
+      ? [
+          `- Words they are learning: ${vocab.learning.slice(0, TALK_VOCAB_MAX.learning).join('、')}. Use one or two of these in each turn where they fit naturally, so they hear them in use. Do not force them in or point them out.`,
+        ]
+      : []),
     `- ${LENGTH_RULE[o.length]}`,
     o.topic
       ? `- Talk about this, and stay on it unless they change the subject: ${o.topic}`
@@ -267,9 +296,9 @@ function answerFormat(o: TalkOptions): string {
  * whatever has been said already. After that only each new line goes over,
  * since the chat remembers the rest.
  */
-export function relayOpening(o: TalkOptions, lines: readonly TalkLine[]): string {
+export function relayOpening(o: TalkOptions, lines: readonly TalkLine[], vocab?: TalkVocab): string {
   return [
-    tutorInstructions(o),
+    tutorInstructions(o, vocab),
     '',
     answerFormat(o),
     '',

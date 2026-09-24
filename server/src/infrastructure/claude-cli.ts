@@ -248,7 +248,7 @@ export function claudeTutor(opts: {
 
   return {
     status,
-    async reply({ lines, options }) {
+    async reply({ lines, options, vocab }) {
       const state = await status();
       if (state === 'missing') throw new TutorUnavailableError('Claude Code is not installed on this server.');
       if (state === 'signed-out') throw new TutorUnavailableError(SIGN_IN_HINT);
@@ -266,7 +266,7 @@ export function claudeTutor(opts: {
         '--strict-mcp-config',
         '--no-session-persistence',
         '--system-prompt',
-        tutorInstructions(options),
+        tutorInstructions(options, vocab),
         '--json-schema',
         JSON.stringify(replySchema(options)),
       ];

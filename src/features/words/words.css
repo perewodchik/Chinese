@@ -412,3 +412,47 @@
 .strip[data-words] {
   gap: 12px;
 }
+
+/* ------------------------------------------------------ words in conversation */
+
+/* The chip and its keep button, one piece: the button sits on the chip's
+   edge, so keeping a word is an action on that word, not on the turn. */
+.talk-word-kept {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.talk-word-kept > .talk-word {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.talk-word-add {
+  appearance: none;
+  font: inherit;
+  min-width: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-left: 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: 16px;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.talk-word-add:disabled {
+  cursor: default;
+  color: var(--jade);
+  background: var(--jade-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .talk-word-add:not(:disabled):hover {
+    background: var(--card-2);
+    color: var(--ink);
+  }
+}

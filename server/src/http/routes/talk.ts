@@ -8,6 +8,7 @@ import {
   TALK_MODES,
   TALK_SAVED_TURNS_MAX,
   TALK_TOPIC_MAX_CHARS,
+  TALK_VOCAB_MAX,
   type TalkMode,
   type TalkOptions,
   type TalkReply,
@@ -66,6 +67,12 @@ const replyRequest = z.object({
     // A longer conversation is fine; only its end goes to Claude.
     .max(TALK_MAX_LINES * 5),
   options: talkOptions,
+  vocab: z
+    .object({
+      known: z.array(z.string().max(12)).max(TALK_VOCAB_MAX.known),
+      learning: z.array(z.string().max(12)).max(TALK_VOCAB_MAX.learning),
+    })
+    .optional(),
 });
 
 /**
@@ -111,7 +118,11 @@ export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, convers
     if (!tutor) throw new TutorUnavailableError('Claude Code is not installed on this server.');
     const input = await readJson(c, replyRequest);
     turns.consume(c.get('session').user.id);
-    const reply: TalkReply = await tutor.reply({ lines: input.lines, options: input.options as TalkOptions });
+    const reply: TalkReply = await tutor.reply({
+      lines: input.lines,
+      options: input.options as TalkOptions,
+      ...(input.vocab && { vocab: input.vocab }),
+    });
     c.header('Cache-Control', 'no-store');
     return c.json(reply);
   });

@@ -120,6 +120,18 @@ describe('talking with Claude over HTTP', () => {
     assert.deepEqual(asked, [{ lines, options }]);
   });
 
+  it('passes on the words the learner knows and is learning, when the page sends them', async () => {
+    const { tutor, asked } = stubTutor();
+    const app = appWith(tutor);
+    const vocab = { known: ['你好', '喜欢'], learning: ['东西'] };
+    const res = await call(app, 'POST', '/api/talk/reply', {
+      cookie: await signedIn(app),
+      body: { lines: [], options: OPTIONS, vocab },
+    });
+    assert.equal(res.status, 200);
+    assert.deepEqual(asked[0]?.vocab, vocab);
+  });
+
   it('refuses a level it does not know and an empty line', async () => {
     const app = appWith(stubTutor().tutor);
     const cookie = await signedIn(app);
@@ -485,5 +497,20 @@ describe('conversations that are kept', () => {
 
     const list = await call(app, 'GET', '/api/talk/conversations', { cookie: theirs });
     assert.deepEqual(((await list.json()) as { conversations: unknown[] }).conversations, []);
+  });
+});
+
+describe('the words in the instructions', () => {
+  it('names the known words, says familiar characters do not make a known word, and asks for the learning ones', () => {
+    const text = tutorInstructions(OPTIONS, { known: ['你好', '喜欢'], learning: ['东西'] });
+    assert.match(text, /The words the learner knows: 你好、喜欢\./);
+    assert.match(text, /not one they know unless it is on this list/);
+    assert.match(text, /Words they are learning: 东西\./);
+  });
+
+  it('says nothing about words when there are none to say', () => {
+    const text = tutorInstructions(OPTIONS);
+    assert.doesNotMatch(text, /words the learner knows/i);
+    assert.equal(relayOpening(OPTIONS, [], { known: [], learning: [] }).includes('learning:'), false);
   });
 });

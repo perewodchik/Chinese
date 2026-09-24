@@ -36,3 +36,21 @@ export function saveSweep(band: number, marks: Record<SweepMark, ItemId[]>): voi
   for (const id of marks.unsure) gradeItem(id, 'recognise', 'hard');
   if (marks.new.length) addItems(wordsCollection(band), marks.new);
 }
+
+const TALK_PRESET = 'words-talk';
+
+/**
+ * A word met in conversation, kept to learn: into one collection for all of
+ * them, made the first time, so the Words drill brings it in with the rest.
+ */
+export function keepTalkWord(id: ItemId): void {
+  const found = getState().collections.find((c) => c.presetId === TALK_PRESET);
+  const target =
+    found?.id ??
+    createCollection({
+      name: 'Words from conversations',
+      presetId: TALK_PRESET,
+      note: 'Words you met talking and chose to keep. The Words drill brings them in a few a day.',
+    }).id;
+  addItems(target, [id]);
+}
