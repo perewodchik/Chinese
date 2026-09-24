@@ -467,3 +467,37 @@
   font-weight: 400;
   margin-right: 1px;
 }
+
+/* ------------------------------------------------------ words, seen as words */
+
+/* A little air between words and none inside one, so 朋友 reads as one thing
+   and 我 的 朋友 as three. Written Chinese has no spaces; a reader learning it
+   needs to see where the words are before the eye can find them itself. The
+   gap is a margin on the word, not a space character, so nothing copied out
+   of a passage carries it. */
+.prose-zh .w,
+.passage-doc .passage-line .zh .w {
+  margin-inline: 0.13em;
+  border-radius: 3px;
+  /* A line may break between words, never inside one: 早 at the end of a
+     line and 上 at the start of the next is two things again. */
+  white-space: nowrap;
+}
+
+/* The word lights up as one under the pointer, not the character. */
+@media (hover: hover) and (pointer: fine) {
+  .prose-zh .w:hover,
+  .passage-doc .passage-line .zh .w:hover {
+    background: var(--card-2);
+  }
+
+  .prose-zh .w .ch:hover {
+    background: none;
+  }
+}
+
+/* A word's pinyin sits over the word as one: centred, and never wider than it
+   has to be. */
+.prose-zh .w > ruby {
+  ruby-align: center;
+}

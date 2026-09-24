@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { CharacterEntry, Library, SyllabusWord } from '../data/types';
-import { segment } from './segment';
+import { segment, writerHints, writerWords } from './segment';
 
 const entry = (c: string, hsk: number, words: string[] = []): CharacterEntry => ({
   c,
@@ -95,5 +95,48 @@ describe('cutting a sentence into words', () => {
     const [a, b] = segment('意思汤', lib).filter((t) => t.word);
     assert.equal(a!.band, 2);
     assert.equal(b!.band, 4);
+  });
+});
+
+describe('the words the writer grouped in its pinyin', () => {
+  const read = (c: string, py: string[], hsk = 1): CharacterEntry => ({ ...entry(c, hsk), py });
+  const chars = [
+    read('我', ['wǒ']),
+    read('的', ['de', 'dì']),
+    read('朋', ['péng']),
+    read('友', ['yǒu']),
+    read('在', ['zài']),
+    read('食', ['shí'], 3),
+    read('街', ['jiē'], 3),
+    read('很', ['hěn']),
+    read('多', ['duō']),
+    read('深', ['shēn'], 4),
+  ];
+  const listed = [word('我', 1), word('的', 1), word('在', 1), word('很', 1), word('多', 1), word('朋友', 1), word('深', 4)];
+  const withReadings: Library = {
+    characters: chars,
+    themes: [],
+    components: {},
+    strokes: {},
+    byChar: new Map(chars.map((c) => [c.c, c])),
+    words: listed,
+    byWord: new Map(listed.map((w) => [w.w, w])),
+  };
+
+  it('reads each pinyin word back onto the characters it spells, the neutral tone included', () => {
+    assert.deepEqual(writerWords('我的朋友在食街', 'Wǒ de péngyou zài shíjiē.', withReadings), ['朋友', '食街']);
+  });
+
+  it('lets a character the library does not have be any one syllable', () => {
+    assert.deepEqual(writerWords('深圳很大', 'Shēnzhèn hěn dà', withReadings), ['深圳']);
+  });
+
+  it('stops at a word it cannot place, rather than guessing at the rest', () => {
+    assert.deepEqual(writerWords('朋友很多朋友', 'péngyou hěnduó búgǎng péngyou', withReadings), ['朋友', '很多']);
+  });
+
+  it('keeps what no dictionary has and leaves runs of everyday words alone', () => {
+    const hints = writerHints('我的朋友很多，在食街', 'wǒ de péngyou hěnduō, zài shíjiē', withReadings);
+    assert.deepEqual(hints, ['朋友', '食街']);
   });
 });

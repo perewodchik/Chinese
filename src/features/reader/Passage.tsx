@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Library } from '../../data/types';
 import { charId } from '../../domain/ids';
 import { alignPinyin, bandSpread, paragraphs, stepsAbove, wordBands } from '../../domain/reading';
-import { segment } from '../../domain/segment';
+import { segment, writerHints } from '../../domain/segment';
 import { itemForToken } from '../../domain/words';
 import { cardsFor } from '../../domain/teach';
 import {
@@ -109,7 +109,10 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
 
   /** Each sentence cut into words, once per passage. */
   const tokens = useMemo(
-    () => text.lines.map((l) => segment(l.zh, lib, ownWords)),
+    // The writer's own grouping, read out of its pinyin, joins the passage's
+    // vocabulary for each sentence: 广州 and 食街 are words there even though
+    // no dictionary has them.
+    () => text.lines.map((l) => segment(l.zh, lib, new Set([...ownWords, ...writerHints(l.zh, l.py, lib)]))),
     [text.lines, lib, ownWords],
   );
   const syllables = useMemo(() => text.lines.map((l) => alignPinyin(l, lib)), [text.lines, lib]);
@@ -132,11 +135,16 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
     let h = 0;
     return tokens[i].map((t, k) => {
       if (!t.word) return <Fragment key={k}>{t.text}</Fragment>;
-      const chars = [...t.text].map((ch, j) => {
+      // A word's reading goes over the word, as one — péngyou over 朋友, the
+      // way pinyin is written — not a syllable over each character, which made
+      // 朋 and 友 look like two things.
+      const said: string[] = [];
+      const glyphs = [...t.text].map((ch, j) => {
         const e = lib.byChar.get(ch);
-        const syl = withRuby && isHanzi(ch) ? py[h++] : undefined;
-        const glyph = e ? (
+        if (withRuby && isHanzi(ch)) said.push(py[h++] ?? '');
+        return e ? (
           <span
+            key={j}
             className="ch"
             role="button"
             tabIndex={0}
@@ -149,17 +157,20 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
             {ch}
           </span>
         ) : (
-          <span className="ch-plain">{ch}</span>
-        );
-        return syl ? (
-          <ruby key={j}>
-            {glyph}
-            <rt>{syl}</rt>
-          </ruby>
-        ) : (
-          <Fragment key={j}>{glyph}</Fragment>
+          <span key={j} className="ch-plain">
+            {ch}
+          </span>
         );
       });
+      const reading = said.join('');
+      const chars = reading ? (
+        <ruby>
+          {glyphs}
+          <rt>{reading}</rt>
+        </ruby>
+      ) : (
+        glyphs
+      );
       const isNew = view.markNew && (newWords.has(t.text) || [...t.text].some((c) => teachSet.has(c)));
       const step = view.markAbove ? stepsAbove(t, view.target) : 0;
       // Only once something is known about words at all: before the sweep,

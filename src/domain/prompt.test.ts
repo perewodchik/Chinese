@@ -38,3 +38,11 @@ describe('the words a writing prompt hands over', () => {
     assert.equal(brief.learningWords, '东西');
   });
 });
+
+describe('the pinyin a writing prompt asks for', () => {
+  it('asks for a word’s syllables together and the words apart, since the reader finds the words by it', () => {
+    const text = buildPrompt(plan, {});
+    assert.match(text, /`wǒ de péngyou zài chī zǎofàn`, not `wǒ de péng you zài chī zǎo fàn`/);
+    assert.match(text, /A name is one word/);
+  });
+});
