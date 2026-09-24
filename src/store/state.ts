@@ -1,3 +1,4 @@
+import type { Activity } from '../domain/activity';
 import type { Collection } from '../domain/collection';
 import type { ItemId } from '../domain/ids';
 import type { PrintedSheet, RecallBook } from '../domain/memory';
@@ -98,9 +99,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
  * 7: collections and the memory can hold words (`w东西`) beside characters.
  * A build before that would drop them on reading and lose them on its next
  * save, which is why the server refuses a save older than what it holds.
+ *
+ * 8: `activity`, what was done on each day, for the streak and the calendar.
  */
 export interface PersistedState {
-  version: 7;
+  version: 8;
   collections: Collection[];
   /**
    * What the app knows about your memory, by item.
@@ -122,6 +125,8 @@ export interface PersistedState {
   /** radical sets and the radicals marked known, which nothing above reads */
   radicals: RadicalState;
   settings: AppSettings;
+  /** what was done on each day; absent before version 8 */
+  activity?: Activity;
 }
 
 export interface AppState {
@@ -138,6 +143,8 @@ export interface AppState {
   listPlan: WordListPlan | null;
   radicals: RadicalState;
   settings: AppSettings;
+  /** what was done on each day, by local date */
+  activity: Activity;
 }
 
 export const emptyState = (): AppState => ({
@@ -151,4 +158,5 @@ export const emptyState = (): AppState => ({
   listPlan: null,
   radicals: emptyRadicals(),
   settings: { ...DEFAULT_SETTINGS },
+  activity: {},
 });

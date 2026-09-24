@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import { drillPools, summarise, type SkillSummary } from '../../domain/drill';
 import { pendingSheets, SKILLS } from '../../domain/memory';
 import { paths } from '../../navigation/paths';
@@ -7,13 +7,13 @@ import { useQuery } from '../../navigation/query';
 import { useStore } from '../../store/store';
 import { Seg } from '../../ui/Seg';
 import { useToast } from '../../ui/toast';
-import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { SweepCard } from '../words/SweepCard';
 import { WordsCard } from '../words/WordsCard';
 import {
   DEFAULT_SITTING,
   DRILLS,
+  drillById,
   planSitting,
   SITTING_SIZES,
   sittingSize,
@@ -23,15 +23,13 @@ import {
 const SIZES = SITTING_SIZES.map((n) => ({ id: String(n), label: String(n) }));
 
 /**
- * The front door.
+ * Everything Review can ask, as one section of the Today page.
  *
- * Everywhere else in the app you decide what to do; here the app decides, and
- * the only question it puts to you is how long you have got. That inversion is
- * the point of keeping a schedule at all — the value of knowing when a memory
- * is about to go is that you no longer have to guess what to study.
+ * It used to be the front door on its own. It is now the second half of
+ * Today, under the day's plan: the plan says what to do, and this is where
+ * the choice is still yours — which drill, and how long a sitting.
  */
-export function ReviewPage() {
-  useTitle('Review');
+export function ReviewSection() {
   const lib = useLibrary();
   const toast = useToast();
   const navigate = useNavigate();
@@ -69,20 +67,18 @@ export function ReviewPage() {
 
   if (!pools.all.length) {
     return (
-      <div className="empty">
-        <span className="big">空</span>
-        <p>Nothing to review yet.</p>
-        <p className="small">
-          Reviewing works from the characters you have marked as learned — not from everything you
-          have collected to study. Mark a few in the library and they will start coming round.
-        </p>
-        <Link className="btn primary" to={paths.library()} style={{ marginTop: 10 }}>
-          Go to the library
-        </Link>
-        <div style={{ marginTop: 18, width: '100%', maxWidth: 560 }}>
-          <SweepCard />
+      <section className="review-section" id="review">
+        <div className="review-head">
+          <h2>Review</h2>
         </div>
-      </div>
+        <p className="small muted" style={{ margin: '0 0 10px', maxWidth: 560 }}>
+          Nothing to review yet. Reviewing works from the characters you have marked as learned — not from
+          everything you have collected. Mark a few in the <Link to={paths.library()}>library</Link> and they
+          start coming round.
+        </p>
+        <SweepCard />
+        <WordsCard size={size} />
+      </section>
     );
   }
 
@@ -90,28 +86,22 @@ export function ReviewPage() {
   const inRotation = `${pools.all.length} character${pools.all.length === 1 ? '' : 's'}`;
 
   return (
-    <section>
-      <div className="row" style={{ marginBottom: 16 }}>
-        <div>
-          <h1 style={{ margin: 0 }}>{dueTotal ? `${dueTotal} to go over` : 'Nothing is due'}</h1>
-          <p className="small muted" style={{ margin: '2px 0 0' }}>
-            {dueTotal
-              ? `Out of ${inRotation} in rotation.`
-              : `${inRotation} in rotation, all of them holding. Start something new below.`}
-          </p>
-        </div>
-        <div className="spacer" />
-        <label className="field" style={{ width: 'auto' }}>
-          <span className="tiny muted" style={{ display: 'block', marginBottom: 4 }}>
-            Questions per sitting
+    <section className="review-section" id="review">
+      <div className="review-head">
+        <h2>
+          Review
+          <span className="muted">
+            {dueTotal ? ` · ${dueTotal} due of ${inRotation}` : ` · ${inRotation}, all holding`}
           </span>
-          <Seg
-            value={String(size)}
-            options={SIZES}
-            onChange={(v) => setQuery('n', v, String(DEFAULT_SITTING))}
-            size="sm"
-          />
-        </label>
+        </h2>
+        <div className="spacer" />
+        <span className="tiny muted">Per sitting</span>
+        <Seg
+          value={String(size)}
+          options={SIZES}
+          onChange={(v) => setQuery('n', v, String(DEFAULT_SITTING))}
+          size="sm"
+        />
       </div>
 
       <SweepCard />
@@ -153,6 +143,9 @@ export function ReviewPage() {
               <span className="blurb">{d.blurb}</span>
               <span className="figures">
                 {c.due > 0 && <b className="due">{c.due} due</b>}
+                {d.shares && (c.due > 0 || c.fresh > 0) && (
+                  <i className="shares">same cards as {drillById(d.shares)?.name}</i>
+                )}
                 {c.fresh > 0 && <i>{c.fresh} new</i>}
                 {nothing && <i>nothing waiting</i>}
                 {c.shaky > 0 && <i className="shaky">{c.shaky} shaky</i>}
@@ -165,9 +158,16 @@ export function ReviewPage() {
       <p className="tiny muted" style={{ marginTop: 18, maxWidth: 620 }}>
         Recognising, saying and writing are counted separately, because they are forgotten
         separately — a character can be solid on sight and gone from your hand. Writing is scheduled
-        tightest for the same reason. Tones and look-alikes sharpen the reading and the recognition
-        they belong to rather than keeping schedules of their own.
+        tightest for the same reason. Tones and look-alikes work through the same cards as Say it and
+        Recognise, so finishing one clears the other; a right pick there counts for half, because
+        choosing from what is on screen is easier than coming up with it.
       </p>
     </section>
   );
+}
+
+/** Review is a section of Today now; an old address or bookmark lands there. */
+export function ReviewPage() {
+  const { search } = useLocation();
+  return <Navigate to={`${paths.today()}${search}`} replace />;
 }

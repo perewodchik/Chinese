@@ -3,7 +3,7 @@ import { confusionChoices, questionFor } from '../../domain/drill';
 import type { ItemId } from '../../domain/ids';
 import { Glyph } from '../../ui/Glyph';
 import { useLibrary } from '../shared/library';
-import { DrillDone, DrillFrame, useDrillRun } from './DrillFrame';
+import { DrillDone, DrillFrame, PICK_WEIGHT, useDrillRun } from './DrillFrame';
 
 interface Props {
   ids: ItemId[];
@@ -28,7 +28,7 @@ const FLUENT_MS = 4000;
  */
 export function ConfuseDrill({ ids, onExit }: Props) {
   const lib = useLibrary();
-  const run = useDrillRun(ids, 'recognise');
+  const run = useDrillRun(ids, 'recognise', PICK_WEIGHT);
   const [picked, setPicked] = useState<string | null>(null);
   const asked = useRef(Date.now());
   const q = useMemo(() => (run.id ? questionFor(lib, run.id) : null), [lib, run.id]);

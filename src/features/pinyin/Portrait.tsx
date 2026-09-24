@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { chatter, lookFor, mouthOpen, SILENT, SYSTEM_FACE, type Hair, type Look } from './portraits';
-import { voiceLevel } from './voiceOut';
+import { voiceLevel } from '../../platform/audio/voiceOut';
 
 /**
  * The face of a voice, drawn and alive.

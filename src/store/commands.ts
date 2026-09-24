@@ -86,8 +86,19 @@ export const reorderItems = (id: string, items: ItemId[]) =>
 /* ----------------------------------------------------------------- memory */
 
 /** One answer to one question, folded into what was already known. */
-export const gradeItem = (id: ItemId, skill: Skill, rating: Rating) =>
-  dispatch({ type: 'recall/grade', results: [{ id, skill, rating }], at: now() });
+/**
+ * Something done out loud, counted on today's tally — the Speaking section's
+ * tries are kept on the device, but the day they happened belongs to the
+ * account, so the streak is the same everywhere.
+ */
+export const logSpoken = (n = 1) => dispatch({ type: 'activity/log', at: now(), add: { spoken: n } });
+
+export const gradeItem = (id: ItemId, skill: Skill, rating: Rating, weight?: number) =>
+  dispatch({
+    type: 'recall/grade',
+    results: [weight === undefined ? { id, skill, rating } : { id, skill, rating, weight }],
+    at: now(),
+  });
 
 /**
  * Ticking the box by hand, which is still worth having — you have just read the

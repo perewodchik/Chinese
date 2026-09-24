@@ -8,6 +8,7 @@ import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { PartnerPicker } from './PartnerPicker';
 import { share, useSaidLog, weeks } from './progress';
+import { WeakSpotsCard } from './WeakSpots';
 import { hearKey, pairKey, recentScore, sayKey, toneKey, usePinyinMemory, type Tally } from './voice';
 import './pinyin.css';
 
@@ -83,6 +84,8 @@ export function PinyinPage() {
           <span className="go">Start →</span>
         </Link>
       )}
+
+      <WeakSpotsCard />
 
       <h2 className="pinyin-label">The four tones, one at a time</h2>
       <div className="tone-cards">

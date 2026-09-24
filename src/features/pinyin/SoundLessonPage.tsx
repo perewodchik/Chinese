@@ -7,7 +7,7 @@ import { Seg } from '../../ui/Seg';
 import { useTitle } from '../../ui/useTitle';
 import { SayCheck } from './SayCheck';
 import { hearKey, record, recentScore, sayKey, usePinyinMemory } from './voice';
-import { anyVoiceFor, say } from './voiceOut';
+import { anyVoiceFor, say } from '../../platform/audio/voiceOut';
 import './pinyin.css';
 
 type Step = 'learn' | 'hear' | 'say';

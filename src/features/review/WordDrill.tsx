@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { questionFor } from '../../domain/drill';
 import type { ItemId } from '../../domain/ids';
 import { wordFor } from '../../domain/vocab';
-import { speak } from '../../platform/speech';
+import { say } from '../../platform/audio/voiceOut';
 import { Glyph } from '../../ui/Glyph';
 import { Say } from '../../ui/Say';
 import { useLibrary } from '../shared/library';
@@ -35,20 +35,26 @@ export function WordDrill({ ids, known, onExit }: Props) {
   const skipped = useRef<ItemId | null>(null);
 
   const q = useMemo(() => (run.id ? questionFor(lib, run.id) : null), [lib, run.id]);
-  const word = useMemo(() => (q ? wordFor(lib, q.char, known, used.current) : null), [lib, q, known]);
+  // A fresh word where there is one; the same word again rather than no
+  // question at all when this sitting has used them up.
+  const word = useMemo(
+    () => (q ? (wordFor(lib, q.char, known, used.current) ?? wordFor(lib, q.char, known)) : null),
+    [lib, q, known],
+  );
 
   useEffect(() => {
     setShown(false);
     if (word) used.current.add(word.w);
   }, [run.id, word]);
 
-  // A character with nothing readable to sit inside is not a question yet.
-  // Passed over once only: an effect can run twice, and a second answer would
-  // pass over the next character as well.
+  // A character with nothing readable to sit inside is not a question yet,
+  // so it is passed over without a grade — nothing was asked, and a pass
+  // recorded here would push it back for a question never put. Once only: an
+  // effect can run twice, and a second skip would pass the next one over too.
   useEffect(() => {
     if (!run.id || word || skipped.current === run.id) return;
     skipped.current = run.id;
-    run.answer('hard');
+    run.skip();
   }, [run.id, word, run]);
 
   useRevealKeys(Boolean(run.id && word), shown, () => setShown(true), run.answer);
@@ -98,7 +104,7 @@ export function WordDrill({ ids, known, onExit }: Props) {
           className="btn primary reveal"
           onClick={() => {
             setShown(true);
-            speak(word.w);
+            void say(word.w);
           }}
         >
           Show me<span className="key-hint"> — space</span>

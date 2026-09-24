@@ -3,7 +3,7 @@ import { PERSONAS, type Persona } from '../../../shared/personas';
 import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Portrait } from './Portrait';
-import { hush, playBytes, playBytesAtPace, unlockAudio } from './voiceOut';
+import { hush, playBytes, playBytesAtPace, unlockAudio } from '../../platform/audio/voiceOut';
 
 interface Line {
   zh: string;

@@ -14,7 +14,7 @@ import { RecordButton } from './RecordButton';
 import { SayCheck } from './SayCheck';
 import { useRecorder } from './useRecorder';
 import { saveRange, usePinyinMemory } from './voice';
-import { say } from './voiceOut';
+import { say } from '../../platform/audio/voiceOut';
 import './pinyin.css';
 
 /**

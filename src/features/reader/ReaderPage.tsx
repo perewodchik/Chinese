@@ -5,7 +5,7 @@ import { hskLabel, shelve, type GeneratedText, type TextSet } from '../../domain
 import { paths, type ReadMode } from '../../navigation/paths';
 import { renderReading, renderTextSet } from '../../pdf/render';
 import { PALETTES, STYLES } from '../../pdf/theme';
-import { deleteText, setSettings, setTextRead } from '../../store/commands';
+import { deleteText, setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Menu } from '../../ui/Menu';
 import { Modal } from '../../ui/Modal';
@@ -116,11 +116,11 @@ function Reader({ set, list, mode, page }: ReaderProps) {
     set ? paths.reading(set.id, to) : paths.text(text.id);
 
   /**
-   * Moving on marks the one behind you as read. Nobody clicks "mark read" on
-   * the way out of a passage they have just finished; they click "next".
+   * Turning the page only turns the page. Whether a passage has been read is
+   * the reader's to say, with the Mark read button on the passage — paging
+   * past one to look ahead is not reading it.
    */
   function go(to: number) {
-    if (mode === 'single' && !text.read) setTextRead(text.id, true);
     navigate(address({ page: to }));
   }
 
@@ -280,14 +280,8 @@ function Reader({ set, list, mode, page }: ReaderProps) {
               </>
             ) : (
               <>
-                <span className="tiny muted">That is the last one — {total} passages read.</span>
-                <button
-                  className="btn"
-                  onClick={() => {
-                    if (!text.read) setTextRead(text.id, true);
-                    navigate(paths.texts());
-                  }}
-                >
+                <span className="tiny muted">That is the last of {total} passages.</span>
+                <button className="btn" onClick={() => navigate(paths.texts())}>
                   Back to the shelf
                 </button>
               </>

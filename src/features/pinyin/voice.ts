@@ -1,3 +1,4 @@
+import { logSpoken } from '../../store/commands';
 import { useSyncExternalStore } from 'react';
 import type { VoiceRange } from '../../domain/pinyin/contour';
 
@@ -16,12 +17,12 @@ export interface Tally {
   right: number;
   /** the last few results, newest last, 1 = right */
   recent: number[];
+  /** epoch ms of the latest try; absent on tallies kept before it was */
+  last?: number;
 }
 
 interface Saved {
   range: VoiceRange | null;
-  /** the voice to hear, by id; null for whichever the pack has, in turn */
-  voice: string | null;
   /** keyed "pair:3-3" or "tone:2" */
   tallies: Record<string, Tally>;
 }
@@ -34,12 +35,12 @@ function read(): Saved {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const v = JSON.parse(raw) as Partial<Saved>;
-      return { range: v.range ?? null, voice: v.voice ?? null, tallies: v.tallies ?? {} };
+      return { range: v.range ?? null, tallies: v.tallies ?? {} };
     }
   } catch {
     void 0;
   }
-  return { range: null, voice: null, tallies: {} };
+  return { range: null, tallies: {} };
 }
 
 let state = read();
@@ -66,8 +67,8 @@ export const voiceRange = () => state.range;
 
 export const saveRange = (range: VoiceRange | null) => write({ ...state, range });
 
-export const preferredVoice = () => state.voice;
-export const saveVoice = (voice: string | null) => write({ ...state, voice });
+// The voice to hear moved beside the player, which every speaker button uses.
+export { preferredVoice, saveVoice } from '../../platform/audio/voicePreference';
 
 export function record(key: string, right: boolean) {
   const t = state.tallies[key] ?? { tries: 0, right: 0, recent: [] };
@@ -75,8 +76,11 @@ export function record(key: string, right: boolean) {
     tries: t.tries + 1,
     right: t.right + (right ? 1 : 0),
     recent: [...t.recent, right ? 1 : 0].slice(-RECENT),
+    last: Date.now(),
   };
   write({ ...state, tallies: { ...state.tallies, [key]: next } });
+  // The tally stays on the device; that a try happened today goes to the account.
+  logSpoken();
 }
 
 /** Share right over the recent attempts, or null when there are too few to say. */

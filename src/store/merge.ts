@@ -1,3 +1,4 @@
+import { mergeActivity } from '../domain/activity';
 import { learnedFrom, SKILLS, type RecallBook, type SkillBook } from '../domain/memory';
 import { mergeRadicals } from './radicalState';
 import type { AppState } from './state';
@@ -31,6 +32,7 @@ export function mergeStates(account: AppState, incoming: AppState): AppState {
     plan: account.plan ?? incoming.plan,
     listPlan: account.listPlan ?? incoming.listPlan,
     radicals: mergeRadicals(account.radicals, incoming.radicals),
+    activity: mergeActivity(account.activity, incoming.activity),
   };
 }
 

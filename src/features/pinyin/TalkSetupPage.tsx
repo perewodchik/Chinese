@@ -15,7 +15,7 @@ import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { Portrait } from './Portrait';
 import { LEVELS, LENGTHS, optionsOf, pickVoice, readPrefs, SYSTEM, writePrefs, type TalkPrefs } from './talkPrefs';
-import { unlockAudio } from './voiceOut';
+import { unlockAudio } from '../../platform/audio/voiceOut';
 import './pinyin.css';
 
 const RELAY_NOTE: Record<Exclude<ClaudeState, 'ready'>, string> = {

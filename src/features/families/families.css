@@ -1,0 +1,442 @@
+/* ------------------------------------------------------ radical families */
+
+/*
+ * The tree is drawn with borders, not measured: every <li> draws its own
+ * piece of the trunk and its own stub, so the diagram is laid out by the
+ * browser like any list and cannot shift once the fonts arrive. A line takes
+ * the colour of what the part does in the character it leads to — ink for
+ * the meaning, cinnabar for the sound (the app's colour for pronunciation),
+ * dashed for a part that is only a shape.
+ */
+
+.fam-page {
+  --fam-node-h: 46px;
+  --fam-gap: 5px;
+  --fam-indent: 26px;
+  --fam-mid: calc(var(--fam-gap) + var(--fam-node-h) / 2);
+  --fam-faint: color-mix(in srgb, var(--ink-3) 38%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.fam-head {
+  align-items: flex-end;
+}
+
+/* One line of radicals; it scrolls rather than wraps. */
+.fam-strip {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  padding: 2px 2px 6px;
+  margin: 0 -2px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fam-pick {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink-2);
+  font-family: var(--han);
+  font-size: 21px;
+  text-decoration: none;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.fam-pick:hover {
+  background: var(--card-2);
+  color: var(--ink);
+}
+
+.fam-pick[aria-current='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.fam-skeleton {
+  height: 320px;
+  border-radius: var(--radius-lg);
+  background: var(--card-2);
+}
+
+/* The radical itself. */
+.fam-root {
+  display: flex;
+  gap: 18px;
+  padding: 16px;
+  align-items: flex-start;
+}
+
+.fam-root-glyph {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--card-2);
+  color: var(--ink);
+}
+
+.fam-root-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.fam-root-text h2 {
+  font-size: 17px;
+  font-weight: 620;
+  margin: 3px 0 2px;
+}
+
+.fam-py {
+  color: var(--accent);
+  font-size: 20px;
+}
+
+.fam-word {
+  font-size: 19px;
+}
+
+.fam-counts {
+  margin-top: 8px;
+  color: var(--ink-2);
+}
+
+.fam-root-links {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.fam-root-links a,
+.fam-linkish {
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.fam-linkish .hanzi {
+  font-size: 14px;
+}
+
+/* How to read it. */
+.fam-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  align-items: center;
+}
+
+.fam-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fam-legend .ln {
+  width: 22px;
+  border-top: 2px solid var(--fam-edge);
+}
+
+.fam-legend .ln[data-role='shape'] {
+  border-top-style: dashed;
+}
+
+.fam-legend .fam-dot {
+  position: static;
+}
+
+/* A section: one of the three things a radical can do. */
+.fam-section {
+  min-width: 0;
+}
+
+.fam-section > header h3 {
+  font-size: 13px;
+  font-weight: 620;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  margin: 0;
+}
+
+.fam-section > header h3 .count {
+  color: var(--ink-3);
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+.fam-section > header p {
+  margin: 2px 0 6px;
+}
+
+/* Deep trees scroll sideways inside their section, never the page. */
+.fam-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fam-branch + .fam-branch {
+  margin-top: 10px;
+}
+
+.fam-form {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 10px 2px 6px;
+  border-radius: 8px;
+  background: var(--card-2);
+}
+
+.fam-form .hanzi {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.fam-form .count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The edge colour belongs to the line going *into* a node. */
+.fam-page [data-role='meaning'] {
+  --fam-edge: var(--ink-3);
+}
+
+.fam-page [data-role='sound'] {
+  --fam-edge: var(--accent);
+}
+
+.fam-page [data-role='shape'] {
+  --fam-edge: var(--line-2);
+}
+
+.fam-kids {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 var(--fam-indent);
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.fam-kids > li {
+  position: relative;
+  padding-top: var(--fam-gap);
+}
+
+/* the trunk, one piece per child */
+.fam-kids > li::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--fam-indent) / -2);
+  top: 0;
+  bottom: 0;
+  border-left: 1.5px solid var(--fam-edge);
+}
+
+/* the stub from the trunk to the tile */
+.fam-kids > li::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--fam-indent) / -2);
+  top: var(--fam-mid);
+  width: calc(var(--fam-indent) / 2);
+  border-top: 1.5px solid var(--fam-edge);
+}
+
+.fam-kids > li[data-role='shape']::before {
+  border-left-style: dashed;
+}
+
+.fam-kids > li[data-role='shape']::after {
+  border-top-style: dashed;
+}
+
+/* the trunk stops at the last child */
+.fam-kids > li:last-child::before {
+  bottom: auto;
+  height: var(--fam-mid);
+}
+
+/*
+ * A nested list hangs off the tile to its left: its first child sits level
+ * with that tile, so its trunk starts there rather than above it, and its
+ * stub runs all the way across from the tile.
+ */
+.fam-row > .fam-kids > li:first-child::after {
+  left: calc(var(--fam-indent) * -1);
+  width: var(--fam-indent);
+}
+
+.fam-row > .fam-kids > li:first-child::before {
+  top: var(--fam-mid);
+}
+
+.fam-row > .fam-kids > li:only-child::before {
+  display: none;
+}
+
+/* the first generation's trunk comes down from the section heading */
+.fam-kids.top {
+  margin-left: 8px;
+  padding-left: calc(var(--fam-indent) / 2);
+}
+
+.fam-kids.top > li::before,
+.fam-kids.top > li::after {
+  left: calc(var(--fam-indent) / -2);
+}
+
+.fam-kids.top > li::after {
+  width: calc(var(--fam-indent) / 2);
+}
+
+.fam-row {
+  display: flex;
+  align-items: flex-start;
+}
+
+/* A tile: the character, its reading, its gist. */
+.fam-node {
+  position: relative;
+  flex: 0 0 auto;
+  width: clamp(112px, 30vw, 158px);
+  height: var(--fam-node-h);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px 0 6px;
+  border-radius: 11px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+  box-shadow: var(--shadow-sm);
+}
+
+button.fam-node {
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+
+button.fam-node:hover {
+  border-color: var(--line-2);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.fam-node[data-kind='part'] {
+  background: var(--card-2);
+  border-style: dashed;
+  box-shadow: none;
+  color: var(--ink-2);
+}
+
+.fam-node[data-state='new'] {
+  color: var(--ink-2);
+}
+
+.fam-node[data-above] {
+  opacity: 0.72;
+}
+
+.fam-g {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  font-size: 28px;
+  line-height: 32px;
+  text-align: center;
+}
+
+.fam-t {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.fam-t b,
+.fam-t i {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fam-t b {
+  font-weight: 500;
+  font-size: 12.5px;
+  color: var(--accent);
+}
+
+.fam-t i {
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.fam-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.fam-dot[data-state='known'] {
+  background: var(--jade);
+}
+
+.fam-dot[data-state='learning'] {
+  background: var(--gold);
+}
+
+@media (max-width: 640px) {
+  .fam-page {
+    --fam-indent: 20px;
+  }
+
+  .fam-root {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .fam-root-glyph {
+    width: 72px;
+    height: 72px;
+  }
+
+  .fam-root-glyph svg {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.fam-node:hover {
+    transform: none;
+  }
+}

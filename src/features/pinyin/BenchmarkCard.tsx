@@ -7,7 +7,7 @@ import { allTakes, BENCHMARK, monthName, monthOf, saveTake, type Take } from './
 import { RecordButton } from './RecordButton';
 import type { ShadowSentence } from './ShadowPage';
 import { useSayIt } from './useSayIt';
-import { playSamples, say } from './voiceOut';
+import { playSamples, say } from '../../platform/audio/voiceOut';
 
 /**
  * This month's check, against the first one.

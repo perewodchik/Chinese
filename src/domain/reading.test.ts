@@ -66,8 +66,12 @@ describe('alignPinyin', () => {
     assert.deepEqual(alignPinyin(line('我喜欢了。', 'wǒ xǐ huan le')), ['wǒ', 'xǐ', 'huan', 'le']);
   });
 
-  it('falls back to the library when they do not', () => {
-    assert.deepEqual(alignPinyin(line('我喜欢', 'wǒ xǐhuan'), L), ['wǒ', 'xǐ', 'huān']);
+  it('cuts a word the writer ran together along the library’s readings, keeping the writer’s tones', () => {
+    assert.deepEqual(alignPinyin(line('我喜欢', 'wǒ xǐhuan'), L), ['wǒ', 'xǐ', 'huan']);
+  });
+
+  it('falls back to the library only for a word it cannot cut', () => {
+    assert.deepEqual(alignPinyin(line('我喜欢', 'wǒ zzzz'), L), ['wǒ', 'xǐ', 'huān']);
   });
 });
 

@@ -78,7 +78,7 @@ describe('a workspace written before radicals had a place of their own', () => {
 
   it('writes the workspace back at the version it has now', () => {
     const written = serialise(state);
-    assert.equal(written.version, 7);
+    assert.equal(written.version, 8);
     assert.equal(written.radicals.sets.length, 1);
   });
 });

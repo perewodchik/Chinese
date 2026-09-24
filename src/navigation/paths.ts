@@ -25,7 +25,13 @@ export const paths = {
     withQuery('/login', { next: next && next !== '/' ? next : undefined, expired: expired ? '1' : undefined }),
   register: (next?: string) => withQuery('/register', { next }),
 
-  review: () => '/review',
+  /** the day's plan and everything Review can ask: the front door */
+  today: () => '/today',
+  /**
+   * Review is a section of Today now. Kept as a name because sittings and
+   * sheets still live under /review/…, and every "back to Review" means Today.
+   */
+  review: () => '/today',
   drill: (drill: DrillId, size?: number) => withQuery(`/review/${drill}`, { n: size ? String(size) : undefined }),
   gradeSheet: (sheetId: string) => `/review/sheets/${encodeURIComponent(sheetId)}`,
   /** one sitting of words: the due ones, and today's new ones among them */
@@ -38,6 +44,8 @@ export const paths = {
   radicals: () => '/library?band=radicals',
   /** the same, with one radical's drawer open over it */
   radical: (n: number) => `/library?band=radicals&radical=${n}`,
+  /** a radical's family: the characters it grows into, drawn as a tree */
+  family: (n?: number) => (n ? `/families/${n}` : '/families'),
 
   /** characters and texts together, or narrowed to one of them */
   collections: (show?: CollectionsShow) =>
@@ -96,6 +104,6 @@ function withQuery(path: string, query: Record<string, string | undefined>) {
  * somebody there with this app's name on the link.
  */
 export function safeNext(raw: string | null): string {
-  if (!raw || !raw.startsWith('/') || raw.startsWith('//') || raw.startsWith('/\\')) return paths.review();
+  if (!raw || !raw.startsWith('/') || raw.startsWith('//') || raw.startsWith('/\\')) return paths.today();
   return raw;
 }

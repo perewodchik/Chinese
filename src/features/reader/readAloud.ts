@@ -61,6 +61,8 @@ const localVoices = () =>
  * before it is wanted.
  */
 const clips = new Map<string, Promise<string>>();
+/** the clips that have arrived, so a sentence already in hand is not shown as loading for a frame */
+const ready = new Set<string>();
 const AHEAD = 3;
 
 function clip(text: string, voice: string): Promise<string> {
@@ -73,7 +75,10 @@ function clip(text: string, voice: string): Promise<string> {
         if (!r.ok) throw new Error(`voice ${r.status}`);
         return r.blob();
       })
-      .then((b) => URL.createObjectURL(b));
+      .then((b) => {
+        ready.add(key);
+        return URL.createObjectURL(b);
+      });
     // A failure is not kept: the next Listen asks again.
     p.catch(() => clips.delete(key));
     clips.set(key, p);
@@ -82,13 +87,13 @@ function clip(text: string, voice: string): Promise<string> {
 }
 
 /**
- * Starts the opening sentences of a passage coming, before anybody asks for
- * them. The model writes one sentence at a time, so three in hand is what
- * keeps the second from being a wait while the first is still playing.
+ * Starts a passage's clips coming as soon as it is on screen, before anybody
+ * asks for them. Listen waits for the whole passage (see `start`), so every
+ * sentence made while the title is being read is a second less to wait.
  */
-export function prefetchFirst(lines: string[]) {
+export function prefetchPassage(lines: string[]) {
   if (chosen === SYSTEM_VOICE) return;
-  for (const line of lines.slice(0, AHEAD)) void clip(line, chosen).catch(() => undefined);
+  for (const line of lines) void clip(line, chosen).catch(() => undefined);
 }
 
 /**
@@ -154,11 +159,13 @@ export interface ReadingState {
   loading: boolean;
   /** why the last reading stopped short, when it did */
   error: string | null;
+  /** while a whole passage is being made before it is read: how much of it is ready */
+  made: { done: number; total: number } | null;
 }
 
 let run: Run | null = null;
 let stopCurrent: (() => void) | null = null;
-let state: ReadingState = { at: null, loading: false, error: null };
+let state: ReadingState = { at: null, loading: false, error: null, made: null };
 const watchers = new Set<(s: ReadingState) => void>();
 
 function announce(patch: Partial<ReadingState>) {
@@ -170,14 +177,14 @@ export function hushReading() {
   stopCurrent?.();
   stopCurrent = null;
   run = null;
-  announce({ at: null, loading: false });
+  announce({ at: null, loading: false, made: null });
 }
 
 function fail(message: string) {
   stopCurrent?.();
   stopCurrent = null;
   run = null;
-  announce({ at: null, loading: false, error: message });
+  announce({ at: null, loading: false, made: null, error: message });
 }
 
 function step() {
@@ -203,7 +210,7 @@ function step() {
     return;
   }
 
-  announce({ at: here.at, loading: true });
+  announce({ at: here.at, loading: !ready.has(`${here.voice}|${here.lines[here.at]}`) });
   // This one, and the next ones on their way while it plays.
   const wanted = clip(here.lines[here.at]!, here.voice);
   if (here.through) {
@@ -249,9 +256,39 @@ function start(lines: string[], from: number, voice: string, through: boolean) {
   // iOS starts sound only inside the tap that asked for it; this is inside one.
   unlockSpeech();
   if (voice !== SYSTEM_VOICE) unlockAudio();
-  run = { lines, at: from, voice, through };
+  const here: Run = { lines, at: from, voice, through };
+  run = here;
   announce({ error: null });
-  step();
+  if (voice === SYSTEM_VOICE || !through) {
+    step();
+    return;
+  }
+
+  // The whole passage first, then the reading. A model makes a sentence in a
+  // second or two, and a passage read with a wait between its sentences is
+  // a passage whose rhythm is the server's rather than the speaker's. So the
+  // button spins, counting, until every sentence is in hand — then it reads
+  // straight through without a pause that was not written.
+  const wanted = lines.slice(from);
+  let done = 0;
+  announce({ at: null, loading: true, made: { done, total: wanted.length } });
+  Promise.all(
+    wanted.map((line) =>
+      clip(line, voice).then((url) => {
+        if (run === here) announce({ made: { done: ++done, total: wanted.length } });
+        return url;
+      }),
+    ),
+  ).then(
+    () => {
+      if (run !== here) return;
+      announce({ made: null });
+      step();
+    },
+    () => {
+      if (run === here) fail('The voice did not answer. Try again in a moment, or choose another.');
+    },
+  );
 }
 
 /* -------------------------------------------------------------- the hook */

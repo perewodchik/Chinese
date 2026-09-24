@@ -6,7 +6,7 @@ import { canRecognise, recogniseOnce, RECOGNITION_MESSAGE } from '../../platform
 import { useStore } from '../../store/store';
 import { useLibrary } from '../shared/library';
 import { RecordButton } from './RecordButton';
-import { say } from './voiceOut';
+import { say } from '../../platform/audio/voiceOut';
 import { useRecorder } from './useRecorder';
 
 /**

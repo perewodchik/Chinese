@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { NaturalVoice } from '../../api/speech';
-import { saveVoice, usePinyinMemory } from './voice';
-import { packVoices, sampleFor, say, voicesFor } from './voiceOut';
+import { saveVoice, usePreferredVoice } from '../../platform/audio/voicePreference';
+import { packVoices, sampleFor, say, voicesFor } from '../../platform/audio/voiceOut';
 
 /**
  * Whose voice to hear.
@@ -27,7 +27,7 @@ import { packVoices, sampleFor, say, voicesFor } from './voiceOut';
  * Just the chips: the heading beside them belongs to the row it is put in.
  */
 export function VoicePicker({ preview }: { preview?: string }) {
-  const chosen = usePinyinMemory().voice;
+  const chosen = usePreferredVoice();
   const [voices, setVoices] = useState<NaturalVoice[]>([]);
   const [have, setHave] = useState<string[] | null>(null);
 

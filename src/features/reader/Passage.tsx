@@ -25,7 +25,7 @@ import { useLibrary } from '../shared/library';
 import { useWordKnowledge } from '../words/useWordKnowledge';
 import { AnswerBox } from './AnswerBox';
 import { Menu } from '../../ui/Menu';
-import { SYSTEM_VOICE, prefetchFirst, useReading, type Reading } from './readAloud';
+import { SYSTEM_VOICE, prefetchPassage, useReading, type Reading } from './readAloud';
 
 /** What the options bar has switched on, shared by every passage on the page. */
 export interface ReaderView {
@@ -76,6 +76,7 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
     ...voice,
     at: speaking === text.id ? voice.at : null,
     loading: speaking === text.id && voice.loading,
+    made: speaking === text.id ? voice.made : null,
     readAll: (lines: string[]) => {
       speaking = text.id;
       voice.readAll(lines);
@@ -92,8 +93,8 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
   const canHear = reading.system || reading.voices.length > 0 || reading.voice !== SYSTEM_VOICE;
   const toast = useToast();
 
-  // The chosen voice's first sentence, on its way while the title is read.
-  useEffect(() => prefetchFirst(spoken), [spoken, reading.voice]);
+  // The chosen voice's clips, on their way while the title is read.
+  useEffect(() => prefetchPassage(spoken), [spoken, reading.voice]);
 
   // A reading that stopped short says why — once, from the passage it was in.
   const failed = speaking === text.id ? voice.error : null;
@@ -125,15 +126,28 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
       return next;
     });
 
-  /** One sentence's characters, word by word, marked as the bar asks. */
-  function sentence(i: number, withRuby: boolean) {
+  /**
+   * The punctuation a sentence ends on, kept apart so the highlight on the
+   * sentence being read stops at its last word rather than lighting up the 。
+   */
+  function ending(i: number): string {
     const line = text.lines[i];
+    if (showTrad && line.zht) return line.zht.match(TAIL)?.[0] ?? '';
+    const last = tokens[i][tokens[i].length - 1];
+    return last && !last.word ? last.text : '';
+  }
+
+  /** One sentence's characters, word by word, marked as the bar asks — less its ending, when asked. */
+  function sentence(i: number, withRuby: boolean, bare = false) {
+    const line = text.lines[i];
+    const cut = bare ? ending(i).length : 0;
     // Traditional is shown when there is a whole line of it; the marks and the
     // lookups stay on the simplified, which is what the library knows.
-    if (showTrad && line.zht) return <span className="trad">{line.zht}</span>;
+    if (showTrad && line.zht) return <span className="trad">{cut ? line.zht.slice(0, -cut) : line.zht}</span>;
     const py = syllables[i];
     let h = 0;
-    return tokens[i].map((t, k) => {
+    const shown = cut ? tokens[i].slice(0, -1) : tokens[i];
+    return shown.map((t, k) => {
       if (!t.word) return <Fragment key={k}>{t.text}</Fragment>;
       // A word's reading goes over the word, as one — péngyou over 朋友, the
       // way pinyin is written — not a syllable over each character, which made
@@ -220,9 +234,12 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
             {paras.map((p, n) => (
               <p key={n}>
                 {p.map((i) => (
-                  <span key={i} className="sent" data-reading={reading.at === i || undefined}>
-                    {sentence(i, view.pinyin)}
-                  </span>
+                  <Fragment key={i}>
+                    <span className="sent" data-reading={reading.at === i || undefined}>
+                      {sentence(i, view.pinyin, true)}
+                    </span>
+                    {ending(i)}
+                  </Fragment>
                 ))}
               </p>
             ))}
@@ -524,6 +541,9 @@ function ReadToggle({ text }: { text: GeneratedText }) {
   );
 }
 
+/** Punctuation and space at the end of a line: everything after its last character. */
+const TAIL = /[^\p{Script=Han}\p{L}\p{N}]+$/u;
+
 /**
  * Listen, with the voice it listens in behind a chevron on its right: one
  * control, not a button and a dropdown competing for the same line. While the
@@ -532,15 +552,26 @@ function ReadToggle({ text }: { text: GeneratedText }) {
  */
 function ListenButton({ reading, canHear, onListen }: { reading: Reading; canHear: boolean; onListen: () => void }) {
   const playing = reading.at !== null;
+  // Waiting for the passage to be made counts as started: the tap that
+  // started it is the tap that stops it.
+  const busy = playing || reading.loading;
   const name =
     reading.voice === SYSTEM_VOICE ? 'System voice' : (reading.voices.find((v) => v.id === reading.voice)?.name ?? '…');
   return (
-    <div className="split-btn" data-on={playing || undefined}>
+    <div className="split-btn" data-on={busy || undefined}>
       <button
         className="btn sm listen"
         disabled={!canHear}
-        onClick={() => (playing ? reading.stop() : onListen())}
-        title={canHear ? (playing ? 'Stop reading' : `Read the whole passage aloud — ${name}`) : 'No voice on this device'}
+        onClick={() => (busy ? reading.stop() : onListen())}
+        title={
+          !canHear
+            ? 'No voice on this device'
+            : reading.made
+              ? `Making the audio — ${reading.made.done} of ${reading.made.total} sentences. Tap to stop.`
+              : playing
+                ? 'Stop reading'
+                : `Read the whole passage aloud — ${name}`
+        }
         aria-busy={reading.loading || undefined}
       >
         {reading.loading ? (
@@ -548,7 +579,9 @@ function ListenButton({ reading, canHear, onListen }: { reading: Reading; canHea
         ) : (
           <span aria-hidden>{playing ? '◼' : '▶'}</span>
         )}
-        <span>{playing && !reading.loading ? 'Stop' : 'Listen'}</span>
+        <span>
+          {reading.made ? `${reading.made.done}/${reading.made.total}` : playing && !reading.loading ? 'Stop' : 'Listen'}
+        </span>
       </button>
       <Menu label={<span className="chev" aria-hidden>⌄</span>} title={`Voice: ${name}`} className="btn sm split-chev">
         {(close) => (

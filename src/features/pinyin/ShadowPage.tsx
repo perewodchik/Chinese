@@ -18,8 +18,9 @@ import { SentenceStaff } from './PitchStaff';
 import { recordSaid, share, useSaidLog, weeks, type SaidMode } from './progress';
 import { RecordButton } from './RecordButton';
 import { useSayIt } from './useSayIt';
-import { usePinyinMemory, voiceRange } from './voice';
-import { packTexts, referenceSamples, say } from './voiceOut';
+import { usePreferredVoice } from '../../platform/audio/voicePreference';
+import { voiceRange } from './voice';
+import { packTexts, referenceSamples, say } from '../../platform/audio/voiceOut';
 import './pinyin.css';
 
 /** One sentence to shadow, as the voice pack ships it: a native speaker's recording. */
@@ -248,7 +249,7 @@ function ShadowCard({
   // The line drawn to copy is a particular voice's pitch, so choosing another
   // one has to draw it again — otherwise the melody on the staff belongs to a
   // voice that is no longer the one speaking.
-  const voice = usePinyinMemory().voice;
+  const voice = usePreferredVoice();
 
   useEffect(() => {
     let live = true;

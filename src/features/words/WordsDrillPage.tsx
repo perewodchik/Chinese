@@ -6,7 +6,7 @@ import { hskLabel } from '../../domain/text';
 import { planWordSitting } from '../../domain/wordReview';
 import { wordInfo } from '../../domain/words';
 import { paths } from '../../navigation/paths';
-import { speak } from '../../platform/speech';
+import { say } from '../../platform/audio/voiceOut';
 import { getState } from '../../store/store';
 import { Say } from '../../ui/Say';
 import { useTitle } from '../../ui/useTitle';
@@ -14,6 +14,7 @@ import { DrillDone, DrillFrame, RatingRow, useDrillRun, useRevealKeys } from '..
 import { sittingSize } from '../review/drills';
 import { useLibrary } from '../shared/library';
 import './words.css';
+import { WordPicture } from './WordPicture';
 
 /** One sitting of words, at /review/words?n=30. */
 export function WordsDrillPage() {
@@ -68,7 +69,7 @@ function WordsDrill({ ids, fresh, onExit }: { ids: ItemId[]; fresh: ReadonlySet<
 
   useEffect(() => setShown(isNew), [run.id, isNew]);
   useEffect(() => {
-    if (shown && w) speak(w);
+    if (shown && w) void say(w);
   }, [shown, w]);
 
   useRevealKeys(Boolean(run.id) && !isNew, shown, () => setShown(true), run.answer);
@@ -107,6 +108,8 @@ function WordsDrill({ ids, fresh, onExit }: { ids: ItemId[]; fresh: ReadonlySet<
             <Say text={w} />
           </div>
           <div className="gloss">{info?.d ?? '—'}</div>
+          {/* only once the answer is out: a picture beside the question would be the answer */}
+          <WordPicture word={w} compact />
           {info?.cl?.length ? <span className="tiny muted">counted with {info.cl.join('、')}</span> : null}
           {ex && (
             <p className="word-drill-ex">

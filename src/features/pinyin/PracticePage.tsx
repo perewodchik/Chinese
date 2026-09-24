@@ -15,7 +15,7 @@ import { PitchStaff } from './PitchStaff';
 import { RecordButton } from './RecordButton';
 import { useRecorder } from './useRecorder';
 import { pairKey, record, toneKey, voiceRange } from './voice';
-import { anyVoiceFor, packTexts, packVoices, referenceSamples, say, voicesFor } from './voiceOut';
+import { anyVoiceFor, packTexts, packVoices, referenceSamples, say, voicesFor } from '../../platform/audio/voiceOut';
 import './pinyin.css';
 
 interface PracticeSet {

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { questionFor } from '../../domain/drill';
 import type { ItemId } from '../../domain/ids';
 import type { Skill } from '../../domain/memory';
-import { speak } from '../../platform/speech';
+import { say } from '../../platform/audio/voiceOut';
 import { Glyph } from '../../ui/Glyph';
 import { Say } from '../../ui/Say';
 import { useLibrary } from '../shared/library';
@@ -49,7 +49,7 @@ export function RecallDrill({ ids, skill, onExit }: Props) {
   // Only that drill: hearing 好 while being asked what it means would give the
   // answer away half the time.
   useEffect(() => {
-    if (shown && skill === 'sound' && q) speak(q.char);
+    if (shown && skill === 'sound' && q) void say(q.char);
   }, [shown, skill, q]);
 
   useRevealKeys(Boolean(run.id), shown, () => setShown(true), run.answer);

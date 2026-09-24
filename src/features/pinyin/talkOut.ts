@@ -2,7 +2,7 @@ import { personaOf } from '../../../shared/personas';
 import type { TalkMode } from '../../../shared/talk';
 import { talkAudio } from '../../api/talk';
 import { speak } from '../../platform/speech';
-import { hush, playBytes, playBytesAtPace } from './voiceOut';
+import { hush, playBytes, playBytesAtPace } from '../../platform/audio/voiceOut';
 
 const SPOKEN = /[㐀-鿿0-9a-z]/i;
 

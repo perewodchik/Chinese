@@ -1,0 +1,476 @@
+/* ------------------------------------------------------------------ today */
+/* The front door: the day's plan and Review, across the whole screen — a
+   main column for doing things, a side column for seeing how it is going. */
+
+.today {
+  display: grid;
+  gap: 18px;
+}
+
+/* ------------------------------------------------------------- the hero */
+.today-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 20px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.today-hero-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.today-hero h1 {
+  margin: 0;
+}
+
+.today-hero p {
+  margin: 0;
+}
+
+.today-streak {
+  color: var(--ink-2);
+}
+
+.today-streak b {
+  font-weight: 620;
+  color: var(--ink);
+}
+
+.today-go {
+  max-width: 360px;
+  min-height: 44px;
+}
+
+.today-go-what {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.today-ring {
+  width: 64px;
+  height: 64px;
+  display: block;
+}
+
+.today-ring circle {
+  fill: none;
+  stroke-width: 6;
+}
+
+.today-ring .track {
+  stroke: var(--card-2);
+}
+
+.today-ring .fill {
+  stroke: var(--jade);
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.4s ease-out;
+}
+
+.today-ring text {
+  fill: var(--ink);
+  font-size: 15px;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Every step done: a seal stamped where the button was — the one piece of
+   red on the page, because it is the one thing worth celebrating. */
+.today-seal {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 2.5px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 34px;
+  line-height: 1;
+  transform: rotate(-6deg);
+  animation: stamp 0.35s ease-out;
+}
+
+@keyframes stamp {
+  from {
+    transform: rotate(-6deg) scale(1.5);
+    opacity: 0;
+  }
+}
+
+.today-hero[data-done] {
+  background: color-mix(in srgb, var(--jade-soft) 55%, var(--card));
+}
+
+/* ------------------------------------------------------------ two columns */
+.today-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 22px;
+  align-items: start;
+}
+
+.today-main-col,
+.today-side-col {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.today-label {
+  margin: 0 0 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+
+.today-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 12px 14px 14px;
+}
+
+.today-card .today-label {
+  margin-bottom: 10px;
+}
+
+.today .spots-card {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------- the plan */
+.today-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.today-step {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.14s,
+    box-shadow 0.14s,
+    transform 0.14s;
+}
+
+.today-step:hover {
+  border-color: var(--line-2);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+/* The step the big button leads to, marked without a second red button. */
+.today-steps li[data-next] .today-step {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.today-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--card-2);
+  color: var(--accent);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.today-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.today-main b {
+  font-size: 14.5px;
+  font-weight: 620;
+}
+
+.today-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+/* A step already done today stays where it was — the list does not reflow —
+   and goes quiet, with a jade tick instead of its mark. */
+.today-steps li[data-done] .today-step {
+  background: var(--card-2);
+  box-shadow: none;
+}
+
+.today-steps li[data-done] .today-mark {
+  background: var(--jade-soft);
+  color: var(--jade);
+  font-family: inherit;
+  font-size: 18px;
+}
+
+.today-steps li[data-done] .today-main b {
+  color: var(--ink-2);
+}
+
+.today-aside {
+  margin: 0 2px 6px;
+}
+
+/* A link inside a sentence: ink with a quiet underline, not the browser's blue. */
+.today-aside a,
+.review-section p a {
+  color: var(--ink-2);
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 2px;
+}
+
+.today-aside a:hover,
+.review-section p a:hover {
+  color: var(--ink);
+  text-decoration-color: currentColor;
+}
+
+/* ------------------------------------------------------------ review part */
+.review-section {
+  margin-top: 16px;
+  scroll-margin-top: 16px;
+}
+
+.review-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin-bottom: 10px;
+}
+
+.review-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 620;
+}
+
+.review-head h2 .muted {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+/* -------------------------------------------------------------- calendar */
+.cal {
+  display: grid;
+  gap: 4px;
+}
+
+.cal-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.cal-head span {
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.cal-day {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+  background: var(--card-2);
+}
+
+.cal-day[data-level='1'] {
+  background: color-mix(in srgb, var(--jade) 22%, var(--card-2));
+  color: var(--ink-2);
+}
+
+.cal-day[data-level='2'] {
+  background: color-mix(in srgb, var(--jade) 45%, var(--card-2));
+  color: var(--ink);
+}
+
+.cal-day[data-level='3'] {
+  background: color-mix(in srgb, var(--jade) 70%, var(--card-2));
+  color: var(--card);
+}
+
+.cal-day[data-level='4'] {
+  background: var(--jade);
+  color: var(--card);
+}
+
+.cal-day[data-today] {
+  box-shadow: 0 0 0 2px var(--ink-2);
+  font-weight: 620;
+}
+
+.cal-day[data-future] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--line-2);
+}
+
+/* -------------------------------------------------------------- forecast */
+.forecast {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  align-items: end;
+}
+
+.forecast-day {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+}
+
+.forecast-n {
+  min-height: 1.3em;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.forecast-bar {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  height: 56px;
+  border-radius: 5px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.forecast-bar i {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  background: color-mix(in srgb, var(--violet) 55%, var(--card-2));
+  border-radius: 5px 5px 0 0;
+}
+
+.forecast-day[data-today] .forecast-bar i {
+  background: var(--violet);
+}
+
+/* --------------------------------------------------------------- the week */
+.today-week {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 10px;
+  margin: 0;
+  font-size: 13px;
+  align-items: baseline;
+}
+
+.today-week dt {
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  min-width: 2ch;
+}
+
+.today-week dd {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+/* --------------------------------------------------------- focus sittings */
+/* A review sitting takes the whole screen: the bar across the top goes, and
+   the sitting's own "Stop" is the way out. */
+.app[data-focus] > .topbar {
+  display: none;
+}
+
+.app[data-focus] {
+  grid-template-rows: 1fr;
+}
+
+/* ------------------------------------------------------------ narrower */
+@media (max-width: 900px) {
+  .today-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .today-side-col {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    align-items: start;
+  }
+}
+
+@media (max-width: 640px) {
+  .today {
+    gap: 12px;
+  }
+
+  .today-hero {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .today-ring {
+    width: 52px;
+    height: 52px;
+  }
+
+  /* The big button gets its own row under the ring and the words. */
+  .today-go {
+    grid-column: 1 / -1;
+    max-width: none;
+    width: 100%;
+  }
+
+  .today-seal {
+    width: 46px;
+    height: 46px;
+    font-size: 28px;
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .today-step {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .today-mark {
+    width: 36px;
+    height: 36px;
+    font-size: 19px;
+  }
+
+  /* The minutes go first on a phone: the button is the part that has to fit. */
+  .today-side .tiny {
+    display: none;
+  }
+}

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { questionFor, TONE_LABEL, TONE_MARK, withoutTone } from '../../domain/drill';
 import type { ItemId } from '../../domain/ids';
-import { speak } from '../../platform/speech';
+import { say } from '../../platform/audio/voiceOut';
 import { Glyph } from '../../ui/Glyph';
 import { useLibrary } from '../shared/library';
-import { DrillDone, DrillFrame, useDrillRun } from './DrillFrame';
+import { DrillDone, DrillFrame, PICK_WEIGHT, useDrillRun } from './DrillFrame';
 
 interface Props {
   ids: ItemId[];
@@ -32,7 +32,7 @@ const FLUENT_MS = 3500;
  */
 export function ToneDrill({ ids, onExit }: Props) {
   const lib = useLibrary();
-  const run = useDrillRun(ids, 'sound');
+  const run = useDrillRun(ids, 'sound', PICK_WEIGHT);
   const [picked, setPicked] = useState<number | null>(null);
   const asked = useRef(Date.now());
   const q = useMemo(() => (run.id ? questionFor(lib, run.id) : null), [lib, run.id]);
@@ -46,7 +46,7 @@ export function ToneDrill({ ids, onExit }: Props) {
     if (picked === null || !q) return;
     // Hearing it immediately after committing to an answer is the whole
     // feedback loop for tones; reading "no, third" teaches much less.
-    speak(q.char);
+    void say(q.char);
     const right = picked === q.tone;
     const quick = Date.now() - asked.current < FLUENT_MS;
     const id = setTimeout(() => run.answer(right ? (quick ? 'good' : 'hard') : 'again'), right ? 450 : 1300);

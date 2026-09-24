@@ -29,7 +29,7 @@ import { Portrait, SelfMark } from './Portrait';
 import { RecordButton } from './RecordButton';
 import { readPrefs, SYSTEM } from './talkPrefs';
 import { sayTurn } from './talkOut';
-import { unlockAudio } from './voiceOut';
+import { unlockAudio } from '../../platform/audio/voiceOut';
 import './pinyin.css';
 
 interface Turn extends TalkReply {

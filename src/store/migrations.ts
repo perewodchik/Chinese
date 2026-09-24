@@ -1,3 +1,4 @@
+import { activityFrom } from '../domain/activity';
 import { DEFAULT_SCOPE, type Collection, type CollectionWord } from '../domain/collection';
 import { isCharId, isItemId, wordId, type ItemId } from '../domain/ids';
 import {
@@ -407,6 +408,7 @@ function recallFrom(v: unknown, now: number): Recall | null {
     due: finite(r.due, now),
     reps: Math.max(0, Math.round(finite(r.reps, 1))),
     lapses: Math.max(0, Math.round(finite(r.lapses, 0))),
+    ...(r.claim === true ? { claim: true as const } : {}),
   };
 }
 
@@ -550,6 +552,7 @@ export function hydrate(raw: unknown): AppState {
     listPlan: listPlanFrom(p.listPlan),
     radicals: p.radicals ? mergeRadicals(radicalsFrom(p.radicals, now), legacy) : legacy,
     settings: settingsFrom(p.settings, typeof p.version === 'number' ? p.version : 0),
+    activity: activityFrom(p.activity),
   };
 }
 
@@ -578,7 +581,7 @@ function withListWords(items: ItemId[], words: unknown, version: number): ItemId
 
 export function serialise(s: AppState): PersistedState {
   return {
-    version: 7,
+    version: 8,
     collections: s.collections,
     recall: s.recall,
     sheets: s.sheets,
@@ -591,5 +594,6 @@ export function serialise(s: AppState): PersistedState {
     listPlan: s.listPlan,
     radicals: s.radicals,
     settings: s.settings,
+    activity: s.activity,
   };
 }

@@ -15,6 +15,7 @@ import { Glyph } from '../../ui/Glyph';
 import { Say } from '../../ui/Say';
 import { useSheetDrag } from '../../ui/useSheetDrag';
 import { CollectionPicker, useCollect } from '../shared/collect';
+import { WordPicture } from './WordPicture';
 import { useLibrary } from '../shared/library';
 import './words.css';
 
@@ -137,6 +138,8 @@ export function WordDrawer({ id, onClose }: Props) {
             </p>
           </div>
         </div>
+
+        <WordPicture word={w} />
 
         {info?.alt?.length ? (
           <p className="small muted word-alt">

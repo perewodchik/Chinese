@@ -1,17 +1,19 @@
 import { naturalVoices as serverVoices, speechAudio, type NaturalVoice } from '../../api/speech';
-import { ANALYSIS_RATE, downsample } from '../../platform/audio/mic';
-import { speak, stopSpeaking, unlockSpeech } from '../../platform/speech';
-import { preferredVoice } from './voice';
+import { canSpeak, speak, stopSpeaking, unlockSpeech } from '../speech';
+import { ANALYSIS_RATE, downsample } from './mic';
+import { preferredVoice } from './voicePreference';
 
 /**
- * Saying things to the learner, in the best voice there is for that text.
+ * Saying things to the learner, in the best voice there is for that text —
+ * the one way the app makes Chinese audible, wherever the button is: a drill,
+ * the character drawer, a word card, the Speaking section.
  *
  * Three sources, best first:
  *
- * 1. **The voice pack** — every word the section practises, read by natural
- *    voices ahead of time and shipped as static files (`npm run voices`).
- *    Needs no account and no network beyond the page's own, and each clip
- *    has already passed the same tone check the learner's voice goes through.
+ * 1. **The voice pack** — native speakers' recordings of every word the app
+ *    practises, shipped as static files (`npm run voices`). Needs no account
+ *    and no network beyond the page's own, and each clip has already passed
+ *    the same tone check the learner's voice goes through.
  * 2. **A speech service on the server**, if one is configured, for anything
  *    the pack does not have.
  * 3. **The system voice**, which always works and is never the one to copy.
@@ -260,6 +262,20 @@ export async function voicesFor(text: string): Promise<string[]> {
  */
 export async function packTexts(): Promise<Set<string>> {
   return new Set(Object.keys((await loadPack())?.clips ?? {}));
+}
+
+/** Whether the pack has a native recording of exactly this text. */
+export async function hasClip(text: string): Promise<boolean> {
+  return Boolean((await loadPack())?.clips[text.trim()]?.voices.length);
+}
+
+/**
+ * Whether anything can say this text here: a recording in the pack, or a
+ * Chinese system voice. A speaker button that makes no sound when pressed is
+ * worse than none, so buttons ask this before they show.
+ */
+export async function canPronounce(text: string): Promise<boolean> {
+  return canSpeak() || (await hasClip(text));
 }
 
 /**

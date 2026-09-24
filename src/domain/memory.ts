@@ -107,6 +107,13 @@ export interface Recall {
   since: number;
   reps: number;
   lapses: number;
+  /**
+   * Set on a record that is only a claim — ticked "learned" by hand, never yet
+   * answered for. Grading replaces the record, so the first real answer
+   * clears it. It is what lets unticking take back a claim without taking
+   * back anything that was earned.
+   */
+  claim?: true;
 }
 
 /** What is known about one item, across the skills it has been asked for. */
@@ -214,9 +221,20 @@ export function grade(
   rating: Rating,
   now: number,
   skill: Skill = 'recognise',
+  /**
+   * How much of a success this answer proves, 0 to 1. A pick out of five
+   * shown on screen is weaker evidence than producing the answer from
+   * nothing, so the multiple-choice drills pass less than 1 and buy a
+   * correspondingly smaller step. A failure is a failure either way.
+   */
+  weight = 1,
 ): Recall {
+  const w = clamp(weight, 0.1, 1);
   if (!prev || prev.reps === 0) {
-    const s = FIRST_INTERVAL[rating] * (rating === 'again' ? 1 : SKILL_GAIN[skill]);
+    const s =
+      rating === 'again'
+        ? FIRST_INTERVAL.again
+        : Math.max(MIN_STABILITY, FIRST_INTERVAL[rating] * SKILL_GAIN[skill] * w);
     return {
       s,
       d: FIRST_DIFFICULTY[rating],
@@ -243,7 +261,7 @@ export function grade(
     const r = retrievability(prev, now);
     const difficulty = clamp((11 - d) / 7.5, 0.45, 1.35);
     const lateness = 1 + 0.6 * (1 - r);
-    const gain = (EASE[rating] - 1) * difficulty * lateness * SKILL_GAIN[skill];
+    const gain = (EASE[rating] - 1) * difficulty * lateness * SKILL_GAIN[skill] * w;
     s = clamp(prev.s * (1 + gain), MIN_STABILITY, MAX_STABILITY);
   }
 
@@ -430,7 +448,67 @@ export function asserted(now: number, dueIn = 9, since = now): Recall {
     due: now + dueIn * DAY,
     reps: 1,
     lapses: 0,
+    claim: true,
   };
+}
+
+/**
+ * Whether a record is a claim and nothing more.
+ *
+ * Records written before claims were marked have no `claim` flag, so for
+ * those the shape gives it away: one rep, no lapses, the claim's difficulty,
+ * and a stability no first answer produces (a first "good" is exactly 1.5
+ * days times the skill's gain; a claim is a whole number of days or a spread
+ * from 1). Claims are only ever made about recognition, so callers looking at
+ * other skills should not ask.
+ */
+export function isClaimOnly(r: Recall | undefined): boolean {
+  if (!r) return false;
+  if (r.claim) return true;
+  if (r.reps !== 1 || r.lapses !== 0 || r.d !== 5 || r.s < 1) return false;
+  // A first "good" is FIRST_INTERVAL.good times the skill's gain; anything
+  // else of this shape was written by `asserted`.
+  return !SKILLS.some((skill) => r.s === FIRST_INTERVAL.good * SKILL_GAIN[skill]);
+}
+
+/**
+ * Stability below which an item no longer counts as learned: what unticking
+ * leaves a record with that has real answers behind it.
+ */
+const UNLEARNED_STABILITY = 0.5;
+
+/**
+ * Taking a claim back, or saying "I do not know this after all".
+ *
+ * A record that was only ever a claim goes altogether. One with answers
+ * behind it keeps them — the reps, the lapses, the difficulty and the date it
+ * was first met are evidence, and a mistaken tap must not wipe them — but it
+ * stops counting as learned and falls due now, so the next sitting asks.
+ */
+export function unclaimed(r: Recall | undefined, now: number): Recall | null {
+  if (!r || isClaimOnly(r)) return null;
+  return {
+    s: Math.min(r.s, UNLEARNED_STABILITY),
+    d: r.d,
+    last: now,
+    since: r.since,
+    due: now,
+    reps: r.reps,
+    lapses: r.lapses,
+  };
+}
+
+/**
+ * Ticking "learned" on an item that is not counted as learned.
+ *
+ * No record, or only a claim: a fresh claim. A record with answers behind it
+ * — something failed back below the line, say — is renewed rather than
+ * replaced: the stability and due date are the claim's, the history stays.
+ */
+export function reclaimed(r: Recall | undefined, now: number, dueIn: number): Recall {
+  const since = r?.since ?? now;
+  if (!r || isClaimOnly(r)) return asserted(now, dueIn, since);
+  return { ...r, s: Math.max(r.s, dueIn), last: now, due: now + dueIn * DAY };
 }
 
 /**

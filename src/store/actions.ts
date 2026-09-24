@@ -1,10 +1,12 @@
+import { dayKey, logDay, type DayLog } from '../domain/activity';
 import type { Collection, CollectionWord, PrintScope } from '../domain/collection';
 import type { ItemId } from '../domain/ids';
 import {
-  asserted,
   grade,
   isLearned,
   learnedFrom,
+  reclaimed,
+  unclaimed,
   type PrintedSheet,
   type Rating,
   type RecallBook,
@@ -46,6 +48,8 @@ export interface GradeResult {
   id: ItemId;
   skill: Skill;
   rating: Rating;
+  /** how much a success proves, below 1 for a pick out of several; see `grade` */
+  weight?: number;
 }
 
 export type Action =
@@ -77,10 +81,18 @@ export type Action =
   | { type: 'listPlan/patch'; planId: string; patch: Partial<WordListPlan> }
   | { type: 'listPlan/discard'; planId: string }
   | { type: 'settings/patch'; patch: Partial<AppSettings> }
+  /** something done that no other action records — a word said out loud, say */
+  | { type: 'activity/log'; at: number; add: Partial<DayLog> }
   | { type: 'workspace/reset' }
   | { type: 'workspace/replace'; document: PersistedState }
   | { type: 'workspace/merge'; document: PersistedState }
   | RadicalAction;
+
+/** A batch of answers as a day's tally: how many, and how many were not "again". */
+const answered = (results: Array<{ rating: Rating }>): Partial<DayLog> => ({
+  answers: results.length,
+  right: results.filter((r) => r.rating !== 'again').length,
+});
 
 export function reduce(state: AppState, action: Action): AppState {
   if (isRadicalAction(action)) {
@@ -148,28 +160,35 @@ export function reduce(state: AppState, action: Action): AppState {
     case 'recall/grade': {
       if (!action.results.length) return state;
       const recall: RecallBook = { ...state.recall };
-      for (const { id, skill, rating } of action.results) {
+      for (const { id, skill, rating, weight } of action.results) {
         const book = recall[id];
-        recall[id] = { ...book, [skill]: grade(book?.[skill], rating, action.at, skill) };
+        recall[id] = { ...book, [skill]: grade(book?.[skill], rating, action.at, skill, weight) };
       }
-      return withRecall(state, recall);
+      return {
+        ...withRecall(state, recall),
+        activity: logDay(state.activity, action.at, answered(action.results)),
+      };
     }
 
     case 'recall/setLearned': {
       if (!action.ids.length) return state;
       const recall: RecallBook = { ...state.recall };
       action.ids.forEach((id, i) => {
+        const had = recall[id]?.recognise;
         if (action.value) {
           if (isLearned(recall[id])) return;
           // A few days apart, so marking thirty at the end of a text does not
           // produce thirty questions on one morning next week. Marking again
-          // something already half-known keeps the date it was first marked:
-          // the claim is being renewed, not made for the first time.
-          const since = recall[id]?.recognise?.since ?? action.at;
-          recall[id] = { ...recall[id], recognise: asserted(action.at, 7 + (i % 10), since) };
-        } else if (recall[id]?.recognise) {
+          // something already met keeps its history and the date it was first
+          // marked: the claim is being renewed, not made for the first time.
+          recall[id] = { ...recall[id], recognise: reclaimed(had, action.at, 7 + (i % 10)) };
+        } else if (had) {
+          // Only the claim is taken back. Answers actually given stay, and
+          // the item falls due instead of vanishing from the schedule.
+          const left = unclaimed(had, action.at);
           const { recognise: _claim, ...rest } = recall[id];
-          if (Object.keys(rest).length) recall[id] = rest;
+          if (left) recall[id] = { ...rest, recognise: left };
+          else if (Object.keys(rest).length) recall[id] = rest;
           else delete recall[id];
         }
       });
@@ -193,6 +212,7 @@ export function reduce(state: AppState, action: Action): AppState {
       return {
         ...withRecall(state, recall),
         sheets: state.sheets.map((s) => (s.id === action.id ? { ...s, gradedAt: action.at } : s)),
+        activity: logDay(state.activity, action.at, answered(action.results)),
       };
     }
 
@@ -231,7 +251,13 @@ export function reduce(state: AppState, action: Action): AppState {
             ? { ...t, read: true, reads: (t.reads ?? 0) + 1, lastReadAt: action.at }
             : t,
         ),
+        activity: state.texts.some((t) => t.id === action.id)
+          ? logDay(state.activity, action.at, { read: 1 })
+          : state.activity,
       };
+
+    case 'activity/log':
+      return { ...state, activity: logDay(state.activity, action.at, action.add) };
 
     case 'set/rename':
       return {
@@ -333,6 +359,13 @@ export function coalesce(last: Action, next: Action): Action | null {
         : null;
     case 'settings/patch':
       return last.type === 'settings/patch' ? { ...next, patch: { ...last.patch, ...next.patch } } : null;
+    case 'activity/log': {
+      // A run of tries on the same day is one change with the counts added.
+      if (last.type !== 'activity/log' || dayKey(last.at) !== dayKey(next.at)) return null;
+      const add: Partial<DayLog> = { ...last.add };
+      for (const [k, v] of Object.entries(next.add) as Array<[keyof DayLog, number]>) add[k] = (add[k] ?? 0) + v;
+      return { ...next, add };
+    }
     case 'collection/update':
       return last.type === 'collection/update' && last.id === next.id
         ? { ...next, patch: mergePatch(last.patch, next.patch) }

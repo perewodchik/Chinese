@@ -1,4 +1,5 @@
 import type { Library } from '../data/types';
+import { withoutTone } from './drill';
 import { clampBand, isHanzi, type GeneratedText, type TextLine } from './text';
 
 /**
@@ -37,23 +38,115 @@ export function paragraphs(text: Pick<GeneratedText, 'lines' | 'genre'>): number
 
 /* --------------------------------------------------------------- pinyin */
 
-const SYLLABLE_MARK = /[\p{L}̀-ͯ]+/gu;
+/** A run of pinyin letters, tone marks included; apostrophes and hyphens split. */
+const PINYIN_WORD = /[\p{L}\u0300-\u036f]+/gu;
+
+/** Lower case, NFC, the tone marks gone — the same length as the input, letter for letter. */
+const flat = (py: string) => withoutTone(py.normalize('NFC').toLowerCase()).replace(/v/g, 'ü');
 
 /**
  * The sentence's pinyin laid over its characters, one syllable each.
  *
- * The pinyin arrives grouped by word with a space between syllables, so a
- * sentence of twelve hanzi should carry twelve syllables. When it does, this
- * is exact — 了 is le where the writer said le. When it does not (a
- * run-together word, an erhua 儿 folded into the syllable before), the
- * character's commonest reading stands in, which is right far more often
- * than it is wrong and is only ever a reading aid.
+ * The writer is asked for pinyin grouped by word — `huǒchē zhàn zài nàr` —
+ * because that is how pinyin is read, so a word has to be cut back into
+ * syllables before it can sit over its characters. The cut follows the
+ * library's readings of those characters, compared without tones: 火车 is
+ * huo + che, so `huǒchē` splits as huǒ | chē. What goes over each character
+ * is still the writer's own spelling, so 了 is le where the writer said le,
+ * the neutral 来 of 下来 stays toneless, and an erhua 儿 gets the r it was
+ * folded into (nà | r).
+ *
+ * A word that cannot be cut along any reading the library knows is not
+ * allowed to drag the rest of the line with it: only the characters it
+ * covers fall back to their commonest reading. Without a library to cut by,
+ * the writer's syllables are used when there is one per character.
  */
 export function alignPinyin(line: Pick<TextLine, 'zh' | 'py'>, lib?: Library): string[] {
   const chars = [...line.zh].filter(isHanzi);
-  const syllables = (line.py.normalize('NFC').match(SYLLABLE_MARK) ?? []).filter((s) => !/^\d+$/.test(s));
-  if (syllables.length === chars.length) return syllables.map((s) => s.toLowerCase());
-  return chars.map((c) => lib?.byChar.get(c)?.py[0] ?? '');
+  const words = (line.py.normalize('NFC').match(PINYIN_WORD) ?? []).map((w) => w.toLowerCase());
+  if (!lib) return words.length === chars.length ? words : chars.map(() => '');
+  return alignWords(chars, words, lib);
+}
+
+/** The readings a character may take, toneless. 儿 may also be the r of an erhua. */
+function readingsOf(ch: string, lib: Library): string[] {
+  const own = (lib.byChar.get(ch)?.py ?? []).map(flat);
+  return ch === '儿' ? [...own, 'r'] : own;
+}
+
+/**
+ * One pinyin word cut into exactly `k` syllables for the characters from `at`,
+ * each piece one of its character's readings; null when no cut fits.
+ */
+function cutWord(word: string, chars: string[], at: number, k: number, lib: Library): string[] | null {
+  const bare = flat(word);
+  if (bare.length !== word.length) return null;
+  const go = (pos: number, i: number): string[] | null => {
+    if (i === k) return pos === bare.length ? [] : null;
+    for (const r of readingsOf(chars[at + i]!, lib)) {
+      if (!r || !bare.startsWith(r, pos)) continue;
+      const rest = go(pos + r.length, i + 1);
+      if (rest) return [word.slice(pos, pos + r.length), ...rest];
+    }
+    return null;
+  };
+  return go(0, 0);
+}
+
+/** Longest word worth trying to lay over characters: 4 covers 成语 and most names. */
+const MAX_SPAN = 4;
+
+/**
+ * The cheapest way to lay every word over the characters.
+ *
+ * A small alignment over (words used, characters covered): a word that cuts
+ * cleanly over the next one to four characters is free; anything else — a
+ * word the library cannot cut, a character nobody wrote a syllable for, a
+ * stray word — costs, and those characters take the library's reading. So one
+ * surprise costs one word's worth of characters, not the whole sentence.
+ */
+function alignWords(chars: string[], words: string[], lib: Library): string[] {
+  const n = chars.length;
+  const m = words.length;
+  const fallback = (j: number) => lib.byChar.get(chars[j]!)?.py[0] ?? '';
+  type Step = { cost: number; prev: [number, number]; out: string[] } | undefined;
+  // best[i][j]: the cheapest alignment of the first i words over the first j characters
+  const best: Step[][] = Array.from({ length: m + 1 }, () => new Array<Step>(n + 1));
+  best[0]![0] = { cost: 0, prev: [0, 0], out: [] };
+
+  const offer = (i: number, j: number, cost: number, prev: [number, number], out: string[]) => {
+    const had = best[i]![j];
+    if (!had || cost < had.cost) best[i]![j] = { cost, prev, out };
+  };
+
+  for (let i = 0; i <= m; i++) {
+    for (let j = 0; j <= n; j++) {
+      const here = best[i]![j];
+      if (!here) continue;
+      // A character with no syllable of its own.
+      if (j < n) offer(i, j + 1, here.cost + 3, [i, j], [fallback(j)]);
+      if (i === m) continue;
+      // A word that belongs to no character (a stray, or a numeral written out).
+      offer(i + 1, j, here.cost + 3, [i, j], []);
+      for (let k = 1; k <= MAX_SPAN && j + k <= n; k++) {
+        const cut = cutWord(words[i]!, chars, j, k, lib);
+        if (cut) offer(i + 1, j + k, here.cost, [i, j], cut);
+        // One syllable over one character is trusted even when the library
+        // does not list that reading; a longer word it cannot cut is not.
+        else if (k === 1) offer(i + 1, j + 1, here.cost + 1, [i, j], [words[i]!]);
+        else offer(i + 1, j + k, here.cost + 2 * k - 1, [i, j], chars.slice(j, j + k).map((_, x) => fallback(j + x)));
+      }
+    }
+  }
+
+  const out: string[][] = [];
+  let at: [number, number] = [m, n];
+  while (at[0] || at[1]) {
+    const step = best[at[0]]![at[1]]!;
+    out.push(step.out);
+    at = step.prev;
+  }
+  return out.reverse().flat();
 }
 
 /* ---------------------------------------------------------------- words */

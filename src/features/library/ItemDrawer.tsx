@@ -164,6 +164,14 @@ export function ItemDrawer({ id, onClose }: Props) {
                         </span>{' '}
                         <span className="muted small">{partGloss(lib.components, c, c.rad ?? '')}</span>
                       </Link>
+                    ) : null}
+                    {c.radNum ? (
+                      <>
+                        {' '}
+                        <Link className="small" to={paths.family(c.radNum)} title="Every character this radical grows into">
+                          its family
+                        </Link>
+                      </>
                     ) : (
                       <>
                         <span className="hanzi" style={{ fontSize: 17 }}>

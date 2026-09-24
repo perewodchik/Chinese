@@ -7,7 +7,7 @@ import { RecordButton } from './RecordButton';
 import type { ShadowSentence } from './ShadowPage';
 import { recordSaid } from './progress';
 import { useSayIt } from './useSayIt';
-import { say } from './voiceOut';
+import { say } from '../../platform/audio/voiceOut';
 
 const HAN = /[一-鿿]/;
 

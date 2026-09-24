@@ -1,3 +1,4 @@
+import { logSpoken } from '../../store/commands';
 import { useSyncExternalStore } from 'react';
 
 /**
@@ -65,6 +66,7 @@ export function recordSaid(entry: Omit<Said, 'first' | 'at'>, now = Date.now()) 
     // Private browsing, or storage full: it counts for this sitting anyway.
   }
   for (const l of listeners) l();
+  logSpoken();
 }
 
 export interface Week {

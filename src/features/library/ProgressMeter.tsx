@@ -1,89 +1,103 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router';
-import { charId } from '../../domain/ids';
+import { isClaimOnly } from '../../domain/memory';
+import { bandName, progressOf } from '../../domain/progress';
 import { wordBands } from '../../domain/wordProgress';
-import { paths } from '../../navigation/paths';
-import { setSettings } from '../../store/commands';
+import { useOpenProgress } from '../../navigation/progressDrawer';
 import { useStore } from '../../store/store';
 import { useLibrary } from '../shared/library';
-
-/** The bands in the order they are climbed; 7 stands for 7–9, which the syllabus treats as one. */
-const BANDS = [1, 2, 3, 4, 5, 6, 7];
-
-const bandName = (band: number) => (band === 7 ? 'HSK 7–9' : `HSK ${band}`);
 
 /**
  * Where you are on the whole syllabus, in the bar across the top.
  *
- * It used to measure the band the Library happened to be filtered to, so
- * glancing at HSK 2 in the Library made the header claim you were working on
- * HSK 2. A filter is a view, not a position. This reads the position off what
- * you have learned instead: one segment per band, and the numbers for the
- * lowest band you have not finished — the one with something left to do in it.
- * Counting towards 3000 alone would still make a good week look like nothing
- * happened; a segment filling up does not.
+ * It reads the position off what you have learned, not off the band the
+ * Library happens to be filtered to: one segment per band, and the numbers for
+ * the lowest band you have not finished. That band's segment is drawn wide,
+ * because it is the one that moves this week; the others stay as short marks
+ * that say how far off they are, or turn green when they are done.
+ *
+ * Inside the segment, learned is two shades. Ticking a character is a claim;
+ * getting it right in a review is evidence. The solid part is what a review
+ * has confirmed, the pale part what is still only believed — so a morning of
+ * ticking shows as pale, and turns solid as the reviews come round.
+ *
+ * Tapping it opens the rest of the picture (ProgressDrawer) over the page you
+ * are on, rather than taking you away from it.
  */
 export function ProgressMeter() {
   const lib = useLibrary();
   const learned = useStore((s) => s.learned);
   const recall = useStore((s) => s.recall);
+  const sheets = useStore((s) => s.sheets);
+  const open = useOpenProgress();
 
+  const { bands: chars, learned: charTotal } = useMemo(
+    () => progressOf(lib, recall, learned, sheets, Date.now()),
+    [lib, recall, learned, sheets],
+  );
   // A band is its characters and its words: both fill its segment, and the
-  // numbers say which is which.
-  const { bands, chars, words, current, total } = useMemo(() => {
-    const chars = BANDS.map((band) => ({ band, done: 0, size: 0 }));
-    let total = 0;
-    for (const c of lib.characters) {
-      const b = chars[Math.min(c.hsk, 7) - 1];
-      if (!b) continue;
-      b.size++;
-      if (learned.has(charId(c.c))) {
-        b.done++;
-        total++;
-      }
-    }
-    const words = wordBands(lib, recall);
-    const bands = chars.map((b, i) => ({ ...b, size: b.size + words[i]!.size, done: b.done + words[i]!.done }));
-    total += words.reduce((n, w) => n + w.done, 0);
-    const current = bands.find((b) => b.size && b.done < b.size) ?? null;
-    return { bands, chars, words, current, total };
-  }, [lib, learned, recall]);
+  // numbers say which is which. A word ticked is believed; answered, proven.
+  const words = useMemo(() => wordBands(lib, recall, (r) => Boolean(r) && !isClaimOnly(r)), [lib, recall]);
+  const bands = chars.map((b, i) => ({
+    ...b,
+    size: b.size + words[i]!.size,
+    done: b.done + words[i]!.done,
+    proven: b.proven + words[i]!.proven,
+  }));
+  const current = bands.find((b) => b.size && b.done < b.size) ?? null;
+  const total = charTotal + words.reduce((n, w) => n + w.done, 0);
+  const cur = current ? { c: chars[current.band - 1]!, w: words[current.band - 1]! } : null;
 
-  const summary = bands
-    .map((b, i) => `${bandName(b.band)}: ${chars[i]!.done} of ${chars[i]!.size} characters, ${words[i]!.done} of ${words[i]!.size} words`)
-    .join('\n');
+  const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
+  const label = current
+    ? `${bandName(current.band)}: ${cur!.c.done} of ${cur!.c.size} characters and ${cur!.w.done} of ${cur!.w.size} words learned, ${current.proven} confirmed in review. ${total} learned in all. Open your progress.`
+    : `Every band done. ${total} learned in all. Open your progress.`;
 
   return (
-    <Link
-      className="progress-meter"
-      to={`${paths.library()}?show=todo`}
-      title={`${total} learned in all\n\n${summary}${current ? `\n\nClick for what is left in ${bandName(current.band)}` : ''}`}
-      // The one place the header does touch the Library's filter: on purpose,
-      // to open it on what is left in the band shown here.
-      onClick={() => current && setSettings({ hskBand: current.band })}
-    >
-      <div className="tiny muted" style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+    <button type="button" className="progress-meter" aria-label={label} title="Your progress" onClick={open}>
+      <span className="meter-line tiny muted">
         {current ? (
-          <span>
-            <b className="ink">{bandName(current.band)}</b> · <span className="meter-kind">字</span>
-            {chars[current.band - 1]!.done}/{chars[current.band - 1]!.size} ·{' '}
-            <span className="meter-kind">词</span>
-            {words[current.band - 1]!.done}/{words[current.band - 1]!.size}
-          </span>
+          <>
+            <b className="ink">{bandName(current.band)}</b>
+            <span className="meter-count">
+              <span className="meter-kind">字</span>
+              {cur!.c.done}
+              <span className="of">/{cur!.c.size}</span>
+            </span>
+            <span className="meter-count">
+              <span className="meter-kind">词</span>
+              {cur!.w.done}
+              <span className="of">/{cur!.w.size}</span>
+            </span>
+            <span className="meter-pct">{pct(current.done, current.size)}%</span>
+          </>
         ) : (
-          <span>
-            <b className="ink">All bands</b> · done
-          </span>
+          <>
+            <b className="ink">All bands</b>
+            <span className="meter-count">{total}</span>
+          </>
         )}
-        <span>{total} learned</span>
-      </div>
-      <div className="band-bar" style={{ marginTop: 4 }}>
+      </span>
+      <span
+        className="meter-bands"
+        style={{
+          gridTemplateColumns: bands
+            .map((b) => (b === current ? 'minmax(0, 6fr)' : 'minmax(0, 1fr)'))
+            .join(' '),
+        }}
+        aria-hidden
+      >
         {bands.map((b) => (
-          <div key={b.band} className="bar" data-current={b === current || undefined}>
-            <i className="learned" style={{ width: `${b.size ? (b.done / b.size) * 100 : 0}%` }} />
-          </div>
+          <span
+            key={b.band}
+            className="meter-band"
+            data-current={b === current || undefined}
+            data-complete={(b.size > 0 && b.done >= b.size) || undefined}
+          >
+            <i className="believed" style={{ width: `${pct(b.done, b.size)}%` }} />
+            <i className="proven" style={{ width: `${pct(b.proven, b.size)}%` }} />
+          </span>
         ))}
-      </div>
-    </Link>
+      </span>
+    </button>
   );
 }

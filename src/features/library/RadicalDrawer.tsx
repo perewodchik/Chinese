@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
+import { Link } from 'react-router';
 import type { RadicalForm } from '../../data/radicals';
 import type { StrokeMap } from '../../data/types';
 import { ordinal, POSITION_PHRASE } from '../../domain/radicals/forms';
+import { paths } from '../../navigation/paths';
 import { AnimatedGlyph, Glyph } from '../../ui/Glyph';
 import { useRadicalLibrary } from './radicalData';
 
@@ -114,6 +116,9 @@ export function RadicalDrawer({ n, onClose }: Props) {
                 <span className="muted small">· {r.count} in all</span>
               </dd>
             </dl>
+            <Link className="btn sm" to={paths.family(r.n)} style={{ marginTop: 10 }}>
+              See its family tree
+            </Link>
 
             <div className="subtle-rule" />
             <h2 style={{ fontSize: 13, margin: '0 0 10px' }}>

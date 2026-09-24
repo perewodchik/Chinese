@@ -5,6 +5,7 @@ import { RegisterPage } from '../features/auth/RegisterPage';
 import { CollectionPage } from '../features/collections/CollectionPage';
 import { CollectionsPage } from '../features/collections/CollectionsPage';
 import { BuildListPage } from '../features/collections/build/BuildListPage';
+import { FamiliesPage } from '../features/families/FamiliesPage';
 import { LibraryPage } from '../features/library/LibraryPage';
 import { PinyinPage } from '../features/pinyin/PinyinPage';
 import { PracticePage } from '../features/pinyin/PracticePage';
@@ -19,6 +20,7 @@ import { DrillPage } from '../features/review/DrillPage';
 import { GradeSheetPage } from '../features/review/GradeSheetPage';
 import { ReviewPage } from '../features/review/ReviewPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
+import { TodayPage } from '../features/today/TodayPage';
 import { SweepPage } from '../features/words/SweepPage';
 import { WordsDrillPage } from '../features/words/WordsDrillPage';
 import { paths } from '../navigation/paths';
@@ -36,6 +38,7 @@ import { RequireSession } from './RequireSession';
  *   /review/words?n=30             one sitting of words
  *   /library?q&show&sort           browsing, filters in the query
  *   /library?band=radicals         the same page showing all 214 radicals
+ *   /families/:radical?band        a radical's family: what it grows into, as a tree
  *   /collections?show              every collection, of characters and of texts, and the ready-made sets
  *   /collections/build/:step       a word list written with Claude: describe, prompt, paste
  *   /collections/:id[/items|words] one collection: its design, what is in it, its words
@@ -92,13 +95,15 @@ export const router = createBrowserRouter([
             // A page that throws takes the page with it, not the bar above it.
             errorElement: <RouteError />,
             children: [
-              { index: true, element: <Navigate to={paths.review()} replace /> },
+              { index: true, element: <Navigate to={paths.today()} replace /> },
+              { path: 'today', element: <TodayPage /> },
               { path: 'review', element: <ReviewPage /> },
               { path: 'review/sheets/:sheetId', element: <GradeSheetPage /> },
               { path: 'review/sweep', element: <SweepPage /> },
               { path: 'review/words', element: <WordsDrillPage /> },
               { path: 'review/:drill', element: <DrillPage /> },
               { path: 'library', element: <LibraryPage /> },
+              { path: 'families/:radical?', element: <FamiliesPage /> },
               { path: 'collections', element: <CollectionsPage /> },
               { path: 'collections/build/:step?', element: <BuildListPage /> },
               { path: 'collections/:collectionId/:tab?', element: <CollectionPage /> },
