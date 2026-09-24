@@ -12,6 +12,13 @@ characters.
 - **10,000 words** — the 2026 HSK word lists, each with the reading and the
   sense its band means (东西 is dōng xi, "thing", not "east and west"), its
   measure words, and short example sentences up to band 4.
+- **Words are learned as words.** Knowing 东 and 西 is not knowing 东西. Sort
+  the words of a band you already know a screenful at a time, and after that
+  a passage underlines only the words you have not learned, a tap opens the
+  word rather than its first character, Review asks "what does it mean?" with
+  a few new words a day from your collections, and the passages and the
+  conversation partner are told the words you know — not every pair of
+  characters you happen to know.
 - **214 radicals, and every way each one is written.** 心 is 忄 on the left of
   快, flat and wide under 想, and ⺗ under 恭 — three shapes, one radical, and a
   practice row for each. In the library behind the same dropdown as the bands,
