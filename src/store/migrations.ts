@@ -1,5 +1,5 @@
 import { DEFAULT_SCOPE, type Collection, type CollectionWord } from '../domain/collection';
-import { isCharId, isItemId, type ItemId } from '../domain/ids';
+import { isCharId, isItemId, wordId, type ItemId } from '../domain/ids';
 import {
   learnedFrom,
   spreadAsserted,
@@ -525,7 +525,7 @@ export function hydrate(raw: unknown): AppState {
       .map((c) => ({
         id: c.id,
         name: c.name,
-        items: arr<ItemId>(c.items).filter(isItemId),
+        items: withListWords(arr<ItemId>(c.items).filter(isItemId), c.words, finite(p.version, 0)),
         sheet: sheetFrom(c.sheet),
         scope: { ...DEFAULT_SCOPE, ...(c.scope ?? {}) },
         createdAt: finite(c.createdAt, now),
@@ -551,6 +551,29 @@ export function hydrate(raw: unknown): AppState {
     radicals: p.radicals ? mergeRadicals(radicalsFrom(p.radicals, now), legacy) : legacy,
     settings: settingsFrom(p.settings, typeof p.version === 'number' ? p.version : 0),
   };
+}
+
+/**
+ * A list Claude wrote was made of words, but until version 7 only its
+ * characters could be items — the words rode along, explained but never
+ * asked about. They join the collection once, after its characters and in
+ * the list's order, so the words the list was for are learned as words.
+ */
+function withListWords(items: ItemId[], words: unknown, version: number): ItemId[] {
+  if (version >= 7 || !Array.isArray(words)) return items;
+  const have = new Set(items);
+  const out = [...items];
+  for (const w of words) {
+    const text = w && typeof w === 'object' ? (w as Loose).w : null;
+    // A set phrase with an ellipsis in it (我想要…) is an example, not a word.
+    if (typeof text !== 'string' || !/^[\u4e00-\u9fff]{1,8}$/.test(text)) continue;
+    const id = wordId(text);
+    if (!have.has(id)) {
+      have.add(id);
+      out.push(id);
+    }
+  }
+  return out;
 }
 
 export function serialise(s: AppState): PersistedState {

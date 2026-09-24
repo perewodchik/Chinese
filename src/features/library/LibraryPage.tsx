@@ -16,6 +16,7 @@ import { useRangeSelection } from '../../ui/useRangeSelection';
 import { useTitle } from '../../ui/useTitle';
 import { useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
+import { WordsShelf } from '../words/WordsShelf';
 import { RadicalDrawer } from './RadicalDrawer';
 import { RadicalGate } from './radicalData';
 import { RADICAL_SHOW, RadicalShelf, type RadicalShow } from './RadicalShelf';
@@ -44,6 +45,12 @@ const RADICAL_SHOW_IDS = RADICAL_SHOW.map((s) => s.id);
  */
 export const RADICALS_BAND = -1;
 
+/**
+ * The syllabus words, as a third choice in the dropdown: a band at a time,
+ * each marked known, learning or new. See `WordsShelf`.
+ */
+export const WORDS_BAND = -2;
+
 /** Cards shown at first, and added by each "show more": 3000 at once is a lot of SVG. */
 const STEP = 300;
 
@@ -68,7 +75,8 @@ export function LibraryPage() {
   const hskBand = useStore((s) => s.settings.hskBand);
 
   const radicals = hskBand === RADICALS_BAND;
-  useTitle(radicals ? 'Radicals' : 'Library');
+  const words = hskBand === WORDS_BAND;
+  useTitle(radicals ? 'Radicals' : words ? 'Words' : 'Library');
 
   const status = oneOf(query.get('show'), STATUS_IDS, 'all');
   const radicalShow = oneOf(query.get('show'), RADICAL_SHOW_IDS, 'all') as RadicalShow;
@@ -111,7 +119,7 @@ export function LibraryPage() {
   );
 
   const rows = useMemo(() => {
-    if (radicals) return [];
+    if (radicals || words) return [];
     const needle = q.trim().toLowerCase();
 
     const base: ItemFacts[] = lib.characters
@@ -143,7 +151,7 @@ export function LibraryPage() {
         unlockCount(lib, b.glyph, knownChars) - unlockCount(lib, a.glyph, knownChars) || a.freq - b.freq,
     };
     return [...matches].sort(cmp[sort]);
-  }, [lib, q, status, sort, index, learned, hskBand, ready, knownChars, radicals]);
+  }, [lib, q, status, sort, index, learned, hskBand, ready, knownChars, radicals, words]);
 
   useEffect(() => setCap(STEP), [q, status, sort, hskBand]);
 
@@ -175,7 +183,7 @@ export function LibraryPage() {
     <>
       <section>
         <div className="row" style={{ marginBottom: 14 }}>
-          <h1 style={{ margin: 0, fontSize: 20 }}>{radicals ? 'Radicals' : 'Library'}</h1>
+          <h1 style={{ margin: 0, fontSize: 20 }}>{radicals ? 'Radicals' : words ? 'Words' : 'Library'}</h1>
 
           <input
             type="search"
@@ -185,7 +193,9 @@ export function LibraryPage() {
               setQ(e.target.value);
               setQuery('q', e.target.value);
             }}
-            placeholder={radicals ? 'Search 氵, shui, water, 三点水…' : 'Search 好, hao, good…'}
+            placeholder={
+              radicals ? 'Search 氵, shui, water, 三点水…' : words ? 'Search 东西, dongxi, thing…' : 'Search 好, hao, good…'
+            }
             style={{ maxWidth: 280 }}
           />
 
@@ -203,10 +213,11 @@ export function LibraryPage() {
               ))}
               <option value={7}>HSK 7–9</option>
               <option value={RADICALS_BAND}>Radicals</option>
+              <option value={WORDS_BAND}>Words</option>
             </select>
           </label>
 
-          {!radicals && (
+          {!radicals && !words && (
             <label className="field" style={{ width: 150 }}>
               <select value={sort} aria-label="Order" onChange={(e) => setQuery('sort', e.target.value, 'order')}>
                 <option value="order">Teaching order</option>
@@ -219,7 +230,7 @@ export function LibraryPage() {
           )}
         </div>
 
-        <div className="row" style={{ marginBottom: 12 }}>
+        {!words && <div className="row" style={{ marginBottom: 12 }}>
           <div className="chips">
             {(radicals ? RADICAL_SHOW : STATUS).map((s) => (
               <button
@@ -238,9 +249,11 @@ export function LibraryPage() {
               Showing <b>{rows.length}</b> of {counts.all} · {counts.learned} learned
             </span>
           )}
-        </div>
+        </div>}
 
-        {radicals ? (
+        {words ? (
+          <WordsShelf q={q} />
+        ) : radicals ? (
           <RadicalGate>
             <RadicalShelf q={q} show={radicalShow} />
           </RadicalGate>
@@ -279,7 +292,7 @@ export function LibraryPage() {
           </div>
         )}
 
-        {!radicals && rows.length > cap && (
+        {!radicals && !words && rows.length > cap && (
           <div className="row" style={{ justifyContent: 'center', marginTop: 18 }}>
             <button className="btn" onClick={() => setCap((c) => c + 2 * STEP)}>
               Show more — {rows.length - cap} left

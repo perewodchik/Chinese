@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { claimedItems, pagesFor } from '../../domain/collection';
-import { countLabel, type ItemId } from '../../domain/ids';
+import { itemsLabel, type ItemId } from '../../domain/ids';
 import { glyphOf } from '../../domain/library';
 import { suggestedSize, type Preset } from '../../domain/presets';
 import { defaultSheet } from '../../domain/sheet';
@@ -46,7 +46,7 @@ export function NewCollectionDialog({ preset, onCancel, onConfirm }: Props) {
   return (
     <Modal
       title={preset.name}
-      subtitle={`${countLabel(all.length)} · ${preset.blurb}`}
+      subtitle={`${itemsLabel(all)} · ${preset.blurb}`}
       onClose={onCancel}
       onConfirm={() => items.length && onConfirm(name, items)}
       footer={

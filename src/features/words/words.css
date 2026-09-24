@@ -377,3 +377,38 @@
 .rating-row.word-first {
   grid-template-columns: repeat(2, minmax(0, 180px));
 }
+
+/* ------------------------------------------------------ words in the library */
+
+/* The band and the filters on one line where there is room; the chips scroll
+   sideways on a phone rather than wrapping into a second row. */
+.words-shelf-bar {
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: nowrap;
+}
+
+.words-shelf-bar .chips {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+}
+
+.words-shelf-bar > .small {
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .words-shelf-bar {
+    flex-wrap: wrap;
+  }
+
+  .words-shelf-bar .spacer {
+    display: none;
+  }
+}
+
+.strip[data-words] {
+  gap: 12px;
+}

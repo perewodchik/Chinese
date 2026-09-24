@@ -151,3 +151,30 @@ describe('the reader marks, from before words', () => {
     assert.equal(s.markUnknown, false);
   });
 });
+
+describe('a word list Claude wrote, from before words were items', () => {
+  const list = {
+    id: 'doc',
+    name: 'At the doctor’s',
+    items: ['c挂', 'c号'],
+    sheet: {},
+    scope: { mode: 'all', from: 1, count: 20 },
+    createdAt: 1,
+    updatedAt: 1,
+    words: [
+      { w: '挂号', py: 'guà hào', d: 'to register', hsk: 5, explain: '', examples: [] },
+      { w: '我想要…', py: '', d: 'I would like…', hsk: null, explain: '', examples: [] },
+      { w: '号', py: 'hào', d: 'number', hsk: 1, explain: '', examples: [] },
+    ],
+  };
+
+  it('puts its words in as words, once, after its characters', () => {
+    const items = hydrate({ version: 6, collections: [list] }).collections[0].items;
+    assert.deepEqual(items, ['c挂', 'c号', 'w挂号', 'w号']);
+  });
+
+  it('does not put back a word taken out since', () => {
+    const items = hydrate({ version: 7, collections: [list] }).collections[0].items;
+    assert.deepEqual(items, ['c挂', 'c号']);
+  });
+});

@@ -1,7 +1,7 @@
 import type { StrokeMap } from '../data/types';
 import { Glyph } from './Glyph';
 
-/** A row of characters, as a compact visual fingerprint for a card. */
+/** A row of characters — or of words — as a compact visual fingerprint for a card. */
 export function Strip({
   chars,
   strokes,
@@ -17,7 +17,8 @@ export function Strip({
   fit?: boolean;
 }) {
   return (
-    <div className="strip" aria-hidden>
+    // A strip of words needs room between them, or 我们 没有 reads as 我们没有.
+    <div className="strip" aria-hidden data-words={chars.some((c) => [...c].length > 1) || undefined}>
       {chars.slice(0, max).map((c, i) => (
         <Glyph key={`${c}${i}`} char={c} strokes={strokes} size={size} fit={fit} />
       ))}

@@ -64,6 +64,14 @@ export function WordDrawer({ id, onClose }: Props) {
     [texts, w],
   );
 
+  // A list Claude wrote to order explains its words for the situation it was
+  // written for — worth more than a gloss where there is one.
+  const explained = useMemo(
+    () => collections.flatMap((c) => (c.words ?? []).filter((x) => x.w === w).map((cw) => ({ c, cw }))).slice(0, 2),
+    [collections, w],
+  );
+  const fromList = explained[0]?.cw;
+
   const current = collections.find((x) => x.id === match?.params.collectionId) ?? null;
   const addTo = (target: string) => collect(target, [id], { newName: nextCollectionName(collections) });
 
@@ -119,10 +127,10 @@ export function WordDrawer({ id, onClose }: Props) {
           </span>
           <div className="word-said">
             <div className="row" style={{ gap: 8 }}>
-              {info && <span className="word-py">{info.py}</span>}
+              {(info ?? fromList) && <span className="word-py">{info?.py ?? fromList?.py}</span>}
               <Say text={w} size="lg" />
             </div>
-            <h1 className="word-meaning">{info ? info.d : 'Not in the dictionary'}</h1>
+            <h1 className="word-meaning">{info?.d ?? fromList?.d ?? 'Not in the dictionary'}</h1>
             <p className="tiny muted" style={{ margin: 0 }}>
               {info?.listed ? hskLabel(info.hsk) : 'Off the HSK lists'}
               {info?.cl?.length ? ` · counted with ${info.cl.join('、')}` : ''}
@@ -192,6 +200,30 @@ export function WordDrawer({ id, onClose }: Props) {
             );
           })}
         </div>
+
+        {explained.map(({ c, cw }) => (
+          <div key={c.id}>
+            <div className="subtle-rule" />
+            <h2 className="word-h2">
+              From “{c.name}”
+            </h2>
+            {cw.explain && (
+              <p className="small" style={{ margin: '0 0 8px' }}>
+                {cw.explain}
+              </p>
+            )}
+            {cw.examples.map((x) => (
+              <p key={x.zh} className="word-ex">
+                <span className="hanzi zh" lang="zh-CN">
+                  {x.zh}
+                </span>
+                <Say text={x.zh} />
+                <span className="py">{x.py}</span>
+                <span className="small muted">{x.en}</span>
+              </p>
+            ))}
+          </div>
+        ))}
 
         {info?.ex?.length ? (
           <>

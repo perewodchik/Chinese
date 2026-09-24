@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { nextCollectionName, statsOf, type Collection } from '../../domain/collection';
-import { countLabel, itemsLabel, type ItemId } from '../../domain/ids';
+import { itemsLabel, type ItemId } from '../../domain/ids';
 import { glyphOf } from '../../domain/library';
 import { allPresets, GROUP_BLURB, GROUP_LABEL, type Preset, type PresetGroup } from '../../domain/presets';
 import { shelve } from '../../domain/text';
@@ -19,7 +19,7 @@ import { useLibrary } from '../shared/library';
 import { TextShelf, useStartSession } from '../reader/TextsPage';
 import { NewCollectionDialog } from './NewCollectionDialog';
 
-const GROUPS: PresetGroup[] = ['hsk', 'theme'];
+const GROUPS: PresetGroup[] = ['hsk', 'words', 'theme'];
 
 function CollectionCard({ c, learned }: { c: Collection; learned: ReadonlySet<ItemId> }) {
   const lib = useLibrary();
@@ -269,7 +269,7 @@ export function CollectionsPage() {
                       {p.blurb}
                     </p>
                     <div className="row">
-                      <span className="tiny muted grow">{countLabel(p.items(lib).length)}</span>
+                      <span className="tiny muted grow">{itemsLabel(p.items(lib))}</span>
                       <button className="btn sm primary" onClick={() => setAdding(p)}>
                         Add
                       </button>
@@ -288,7 +288,7 @@ export function CollectionsPage() {
           onConfirm={(name, items) => {
             const c = createCollection({ name, items, presetId: adding.id });
             setAdding(null);
-            toast(`“${c.name}” — ${countLabel(items.length)}`);
+            toast(`“${c.name}” — ${itemsLabel(items)}`);
             navigate(paths.collection(c.id));
           }}
         />
