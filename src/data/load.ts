@@ -1,4 +1,4 @@
-import type { CharacterEntry, ComponentGloss, Library, StrokeMap, Theme } from './types';
+import type { CharacterEntry, ComponentGloss, Library, StrokeMap, SyllabusWord, Theme } from './types';
 
 /**
  * The character data. Radicals are their own dataset, fetched by
@@ -20,16 +20,18 @@ async function json<T>(path: string): Promise<T> {
 }
 
 /**
- * Loads the character and theme tables plus the stroke outlines for HSK 1-3. Outlines for the higher bands are several megabytes and are fetched
+ * Loads the character, word and theme tables plus the stroke outlines for
+ * HSK 1-3. Outlines for the higher bands are several megabytes and are fetched
  * separately, the first time something actually needs them.
  */
 export function loadLibrary(): Promise<Library> {
   if (cached) return cached;
   cached = (async () => {
-    const [chars, themes, strokes] = await Promise.all([
+    const [chars, words, themes, strokes] = await Promise.all([
       json<{ items: CharacterEntry[]; components: Record<string, ComponentGloss> }>(
         '/data/characters.json',
       ),
+      json<{ items: SyllabusWord[] }>('/data/words.json'),
       json<{ items: Theme[] }>('/data/themes.json'),
       json<StrokeMap>('/data/strokes-core.json'),
     ]);
@@ -39,6 +41,8 @@ export function loadLibrary(): Promise<Library> {
       themes: themes.items,
       strokes,
       byChar: new Map(chars.items.map((c) => [c.c, c])),
+      words: words.items,
+      byWord: new Map(words.items.map((w) => [w.w, w])),
     };
   })();
   // A failed load is not cached, so trying again tries again.

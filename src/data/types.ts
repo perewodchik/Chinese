@@ -68,10 +68,35 @@ export interface Theme {
   maxHsk: number;
 }
 
+/**
+ * A word on the HSK syllabus — the 2026 lists, from words.json.
+ *
+ * Unlike the few words each character entry carries, this is the whole list,
+ * a word per entry, with the reading and sense a learner at its band means:
+ * 东西 is dōng xi, "thing", and only mentions east and west in `alt`.
+ */
+export interface SyllabusWord {
+  w: string;
+  py: string;
+  /** a short meaning, in the sense the syllabus means */
+  d: string;
+  /** 2026 band; 7 stands for 7–9 */
+  hsk: number;
+  /** the measure words it takes, commonest first */
+  cl?: string[];
+  /** its other readings, and what the word means read that way */
+  alt?: Array<{ py: string; d: string }>;
+  /** a couple of short sentences using it, for bands 1–4 */
+  ex?: Array<{ zh: string; py: string; en: string }>;
+}
+
 export interface Library {
   characters: CharacterEntry[];
   themes: Theme[];
   components: Record<string, ComponentGloss>;
   strokes: StrokeMap;
   byChar: Map<string, CharacterEntry>;
+  /** the syllabus words, band by band, commonest first within a band */
+  words: SyllabusWord[];
+  byWord: Map<string, SyllabusWord>;
 }

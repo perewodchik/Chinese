@@ -10,6 +10,8 @@ JSON into public/data/. Run with:  python scripts/build_data.py
 
 Sources
   charlist.txt / wordlist.txt   HSK 3.0 standard, OCR'd by Pleco      (MIT)
+  hsk_vocabulary.json           HSK 2026 word lists, via
+                                complete-hsk-vocabulary               (MIT)
   mmah_dictionary.txt           Make Me a Hanzi                       (LGPL / Arphic PL)
   hanziDB.csv                   Jun Da frequency + Kangxi radical no. (MIT)
   cedict.txt                    CC-CEDICT                             (CC BY-SA 4.0)
@@ -19,6 +21,7 @@ Sources
 from __future__ import annotations
 
 import csv
+import gzip
 import json
 import os
 import re
@@ -30,6 +33,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from radicals_table import shape_glosses  # noqa: E402
+import hsk_words  # noqa: E402
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -44,6 +48,9 @@ DOWNLOADS = {
     "mmah_dictionary.txt": "https://raw.githubusercontent.com/skishore/makemeahanzi/master/dictionary.txt",
     "hanziDB.csv": "https://raw.githubusercontent.com/ruddfawcett/hanziDB.csv/master/data/hanziDB.csv",
     "jieba_dict.txt": "https://raw.githubusercontent.com/fxsjy/jieba/master/jieba/dict.txt",
+    hsk_words.SOURCE_FILE: hsk_words.SOURCE_URL,
+    # Unpacked on the way in; MDBG only publishes it compressed.
+    "cedict.txt": "https://www.mdbg.net/chinese/export/cedict/cedict_1_0_ts_utf-8_mdbg.txt.gz",
 }
 
 UA = {"User-Agent": "Mozilla/5.0 (hanzi-workshop build script)"}
@@ -62,7 +69,10 @@ def ensure_sources():
         log(f"  downloading {name} ...")
         req = urllib.request.Request(url, headers=UA)
         with urllib.request.urlopen(req, timeout=120) as r:
-            open(p, "wb").write(r.read())
+            body = r.read()
+        if url.endswith(".gz"):
+            body = gzip.decompress(body)
+        open(p, "wb").write(body)
 
 
 # --------------------------------------------------------------------------
@@ -318,15 +328,18 @@ def traditional_only(ced) -> set[str]:
     return trad - simp
 
 
-def load_sentences(targets: set[str], reject: set[str] | None = None):
-    """Pick one short simplified example sentence per target character."""
+def load_sentence_pairs(reject: set[str] | None = None) -> list[tuple[str, str]]:
+    """
+    Every short Tatoeba sentence with an English translation, in simplified
+    characters only, as (chinese, english) in the order the links list them.
+    """
     tdir = os.path.join(CACHE, "tatoeba")
     need = (os.path.join(tdir, "cmn_sentences.tsv"),
             os.path.join(tdir, "eng_sentences.tsv"),
             os.path.join(tdir, "cmn-eng_links.tsv"))
     if not all(os.path.exists(p) for p in need):
         log("  ! tatoeba files absent - skipping example sentences")
-        return {}
+        return []
 
     cmn = {}
     for line in open(need[0], encoding="utf-8"):
@@ -343,18 +356,27 @@ def load_sentences(targets: set[str], reject: set[str] | None = None):
     simp_ok = set(load_hanzidb().keys())
     reject = reject or set()
 
-    best: dict[str, tuple] = {}
+    out: list[tuple[str, str]] = []
     for line in open(need[2], encoding="utf-8"):
         a, _, b = line.rstrip("\n").partition("\t")
         zh, en = cmn.get(a), eng.get(b.strip())
         if not zh or not en:
             continue
-        n = len(zh)
-        if not (5 <= n <= 16) or len(en) > 70:
+        if not (5 <= len(zh) <= 16) or len(en) > 70:
             continue
         hz = [c for c in zh if "一" <= c <= "鿿"]
         if not hz or any(c not in simp_ok or c in reject for c in hz):
             continue
+        out.append((zh, en))
+    return out
+
+
+def load_sentences(pairs: list[tuple[str, str]], targets: set[str]):
+    """Pick one short simplified example sentence per target character."""
+    best: dict[str, tuple] = {}
+    for zh, en in pairs:
+        n = len(zh)
+        hz = [c for c in zh if "一" <= c <= "鿿"]
         for c in set(hz) & targets:
             # shortest sentence wins; it is the easiest to read on a worksheet
             if c not in best or n < best[c][0]:
@@ -515,36 +537,48 @@ def main():
     log("· sources")
     ensure_sources()
     hsk_secs = load_hsk_chars()
-    hsk_words = load_hsk_words()
-    # Everyday expressions the HSK 3.0 word table does not list as lexical items
-    # (it has 谢谢 and 再见 but not 你好). Without these a beginner sheet for 好
+    hsk26 = hsk_words.load_hsk2026(CACHE)
+    # A word's band is its band on the 2026 lists. A word those lists dropped
+    # keeps its 2021 band rather than falling out of the syllabus, which would
+    # rank it behind every unlisted compound when picking a character's words.
+    word_band = {w: e["band"] for w, e in hsk26.items()}
+    for w, lv in load_hsk_words().items():
+        word_band.setdefault(w, lv)
+    # Everyday expressions the HSK word tables do not list as lexical items
+    # (they have 谢谢 and 再见 but not 你好). Without these a beginner sheet for 好
     # would never show the first word anyone learns.
     for w, lv in {"你好": 1, "你们好": 1, "早上好": 1, "晚上好": 1}.items():
-        hsk_words.setdefault(w, lv)
+        word_band.setdefault(w, lv)
     mm = load_mmah()
     hdb = load_hanzidb()
     ced = load_cedict()
     wordfreq = load_wordfreq()
 
-    # Every character in the standard, level by level. Band 7 is published as
-    # one combined 七一九级 table of 1200, so levels 7, 8 and 9 are not
-    # separable and are all labelled 7.
+    # The syllabus is the 3000 characters of the 2021 standard; which band each
+    # belongs to follows the 2026 word lists. A character is in the first band
+    # whose words use it — 248 of them at band 1 — so "HSK 1" means the same
+    # thing for a character as for the words it is read in. The 78 characters
+    # no 2026 word uses keep their 2021 band. Band 7 stands for 7–9, which is
+    # one table in both.
     DIGIT = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7}
-    levels: list[tuple[int, list[str]]] = []
-    hsk_level: dict[str, int] = {}
+    band_2021: dict[str, int] = {}
     for name, chars in hsk_secs.items():
         m = re.match(r"([一二三四五六七])", name)
         if not m or "汉字表" not in name:
             continue
-        lv = DIGIT[m.group(1)]
-        levels.append((lv, chars))
         for c in chars:
-            hsk_level.setdefault(c, lv)
-    levels.sort(key=lambda t: t[0])
+            band_2021.setdefault(c, DIGIT[m.group(1)])
+    band_2026 = hsk_words.char_bands(hsk26)
+    hsk_level = {c: band_2026.get(c, lv) for c, lv in band_2021.items()}
+    by_band: dict[int, list[str]] = defaultdict(list)
+    for c, lv in hsk_level.items():
+        by_band[lv].append(c)
+    levels: list[tuple[int, list[str]]] = sorted(by_band.items())
     all_chars = [c for _, chars in levels for c in chars]
-    log("  HSK 3.0 characters: "
+    log("  characters by 2026 band: "
         + ", ".join(f"L{lv} {len(ch)}" for lv, ch in levels)
-        + f"  = {len(all_chars)}")
+        + f"  = {len(all_chars)}"
+        + f"  ({sum(1 for c in band_2021 if c not in band_2026)} on their 2021 band)")
 
     def freq(c):
         r = hdb.get(c)
@@ -553,7 +587,8 @@ def main():
     # ---------------- characters ----------------
     log("· characters")
     target = set(all_chars)
-    sentences = load_sentences(target, traditional_only(ced))
+    pairs = load_sentence_pairs(traditional_only(ced))
+    sentences = load_sentences(pairs, target)
     log(f"  example sentences matched: {len(sentences)}/{len(target)}")
 
     # Primary reading per character, preferred over CC-CEDICT's first entry.
@@ -710,7 +745,7 @@ def main():
                     break
             if not gl:
                 continue
-            lvl = hsk_words.get(w)
+            lvl = word_band.get(w)
             wf = wordfreq.get(w, 0)
             if lvl is None and wf < 200:
                 continue  # not a real word in the corpus, or far too rare
@@ -887,10 +922,25 @@ def main():
         log(f"  theme {tid:9s} {len(picked):3d} characters"
             + (f"  ({dropped} not in the syllabus)" if dropped else ""))
 
-    write("characters.json", {"set": "hsk3.0", "count": len(items),
+    write("characters.json", {"set": "hsk2026", "count": len(items),
                               "order": "component-first-by-band", "items": items,
                               "components": components})
     write("themes.json", {"items": themes})
+
+    # ---------------- words ----------------
+    log("· words")
+    words = hsk_words.build_words(hsk26, pairs, ced,
+                                  lambda zh, d: sentence_pinyin(zh, d, char_py))
+    per_band = defaultdict(int)
+    for w in words:
+        per_band[w["hsk"]] += 1
+    log("  words by band: " + ", ".join(f"L{b} {n}" for b, n in sorted(per_band.items()))
+        + f"  = {len(words)}")
+    log(f"  with examples: {sum(1 for w in words if 'ex' in w)}"
+        f"/{sum(1 for w in words if w['hsk'] <= hsk_words.EXAMPLE_BANDS)}"
+        f" at bands 1-{hsk_words.EXAMPLE_BANDS}")
+    write("words.json", {"set": "hsk2026", "source": f"complete-hsk-vocabulary@{hsk_words.SOURCE_SHA[:7]}",
+                         "count": len(words), "items": words})
 
     # Stroke outlines are by far the biggest payload, so the bands most people
     # start with load up front and the rest is fetched only when a template or

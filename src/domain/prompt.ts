@@ -167,7 +167,7 @@ export function buildPrompt(plan: TextPlan, extra: PromptExtras = {}): string {
   );
   out.push('');
   out.push(
-    'You are my Chinese teacher. I am learning Mandarin on the HSK 3.0 syllabus, and I read what you write me on paper, away from a dictionary. Below is exactly what I can read today. Everything past that is your call.',
+    'You are my Chinese teacher. I am learning Mandarin on the HSK syllabus (the 2026 word lists), and I read what you write me on paper, away from a dictionary. Below is exactly what I can read today. Everything past that is your call.',
   );
   out.push('');
   out.push(

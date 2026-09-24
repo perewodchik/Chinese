@@ -20,14 +20,18 @@ export interface Preset {
   sample: (lib: Library) => string[];
 }
 
+/**
+ * A character's band is the first band whose words use it, on the 2026 word
+ * lists — so these are the characters you need to read each band's words.
+ */
 const BAND_BLURB: Record<number, string> = {
-  1: 'The first 300. Everything else builds on these.',
-  2: 'The next 300 — enough for simple conversation.',
-  3: 'Rounds out the elementary syllabus at 900 characters.',
+  1: 'The 248 characters the HSK 1 words are written in. Everything else builds on these.',
+  2: 'The 123 more that HSK 2 words need — enough for simple conversation.',
+  3: 'Rounds out the elementary syllabus at about 650 characters.',
   4: 'Intermediate: longer texts and more abstract words.',
   5: 'Intermediate upper band.',
   6: 'The last of the six graded bands.',
-  7: 'The combined 七–九级 table: 1200 advanced characters.',
+  7: 'Bands 7–9 as one: about 1100 advanced characters.',
 };
 
 function bandPreset(band: number): Preset {

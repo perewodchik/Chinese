@@ -367,7 +367,7 @@ export function ItemDrawer({ id, onClose }: Props) {
 
             {c && (
               <p className="tiny muted" style={{ marginTop: 22 }}>
-                HSK 3.0 level {c.hsk}
+                HSK {c.hsk >= 7 ? '7–9' : c.hsk}
               </p>
             )}
           </>

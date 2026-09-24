@@ -6,7 +6,12 @@ characters.
 
 - **3000 characters** — the whole official HSK 3.0 syllabus, bands 1 to 9,
   ordered band by band so that a character never turns up before the parts it
-  is made of.
+  is made of. A character's band is the first band whose words use it on the
+  2026 word lists, so "HSK 1" is the 248 characters the HSK 1 words are
+  written in.
+- **10,000 words** — the 2026 HSK word lists, each with the reading and the
+  sense its band means (东西 is dōng xi, "thing", not "east and west"), its
+  measure words, and short example sentences up to band 4.
 - **214 radicals, and every way each one is written.** 心 is 忄 on the left of
   快, flat and wide under 想, and ⺗ under 恭 — three shapes, one radical, and a
   practice row for each. In the library behind the same dropdown as the bands,
@@ -954,7 +959,8 @@ rebuild them:
 npm run data
 ```
 
-That runs `scripts/build_data.py` (the characters), then
+That runs `scripts/build_data.py` (the characters, and the words through
+`scripts/hsk_words.py`), then
 `scripts/build_radicals.py` (the radicals), then `scripts/build_fonts.py`
 (needs `fonttools` and `brotli`: `pip install fonttools brotli`). Raw sources
 are cached in `.cache/` and re-downloaded if missing.
@@ -962,6 +968,12 @@ are cached in `.cache/` and re-downloaded if missing.
 The radical build writes `.cache/radicals-report.txt`: every radical, every
 form, and the examples chosen for each — the file to read when checking whether
 the data is right, rather than clicking through 214 cards.
+
+The word lists give every reading CC-CEDICT has for a word, and the first is
+often not the one a learner means. `scripts/hsk_words.py` takes the reading
+with the most senses and, for the words where that is wrong, a reading and a
+meaning written by hand in `SENSE` — every HSK 1–3 choice has been read. Add to
+that table rather than editing `words.json`.
 
 `scripts/preview.ts` renders one sample of every profile, colourway and design
 straight to `.cache/preview/*.pdf` without opening the browser:
@@ -975,6 +987,7 @@ npx tsx scripts/preview.ts
 | Data | Source | Licence |
 | --- | --- | --- |
 | HSK 3.0 character and word lists (all nine bands) | [elkmovie/hsk30](https://github.com/elkmovie/hsk30), OCR'd from the 2021 standard by Pleco | MIT |
+| HSK 2026 word lists, readings, measure words | [complete-hsk-vocabulary](https://github.com/drkameleon/complete-hsk-vocabulary), pinned to one commit | MIT |
 | Stroke outlines and decompositions | [Make Me a Hanzi](https://www.skishore.me/makemeahanzi/) / [hanzi-writer-data](https://github.com/chanind/hanzi-writer-data), derived from Arphic's Kai typefaces | Arphic Public License |
 | Definitions and pinyin | [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cedict) | CC BY-SA 4.0 |
 | Character frequency, Kangxi radical numbers | [hanziDB](https://github.com/ruddfawcett/hanziDB.csv), after Jun Da | MIT |

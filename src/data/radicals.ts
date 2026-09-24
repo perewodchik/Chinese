@@ -28,7 +28,7 @@ export interface RadicalExample {
   py: string;
   /** a short gloss */
   d: string;
-  /** HSK 3.0 band, or 0 outside the syllabus */
+  /** HSK band (from the 2026 word lists), or 0 outside the syllabus */
   hsk: number;
 }
 

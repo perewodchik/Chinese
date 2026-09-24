@@ -30,6 +30,8 @@ export function libraryFromDisk(root: string): Library {
     themes: [],
     components: {},
     strokes: {},
+    words: [],
+    byWord: new Map(),
   };
 }
 

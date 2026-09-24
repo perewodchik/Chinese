@@ -167,7 +167,7 @@ export function buildListPrompt(plan: WordListPlan, known: string[]): string {
   out.push(`# ${plan.name.trim() || 'Chinese vocabulary'} — ${plan.size} entries`);
   out.push('');
   out.push(
-    'You are my Chinese teacher. I am learning Mandarin on the HSK 3.0 syllabus, and I want the vocabulary for one particular thing — chosen by you, explained properly, and shown in use. I will learn to read these words and practise writing their characters by hand.',
+    'You are my Chinese teacher. I am learning Mandarin on the HSK syllabus (the 2026 word lists), and I want the vocabulary for one particular thing — chosen by you, explained properly, and shown in use. I will learn to read these words and practise writing their characters by hand.',
   );
   out.push('');
 
@@ -209,7 +209,7 @@ export function buildListPrompt(plan: WordListPlan, known: string[]): string {
       '`w` — the word, in simplified characters.',
       '`py` — pinyin with tone marks, lower case, syllables of one word kept together (`guà hào`), no punctuation.',
       `\`d\` — a short meaning, a few words, in ${lang}.`,
-      '`hsk` — its HSK 3.0 band as a number, 1 to 6, 7 for bands 7–9, or null if it is not in the syllabus. Be honest: I check these.',
+      '`hsk` — its band on the 2026 HSK word lists as a number, 1 to 6, 7 for bands 7–9, or null if it is not on them. Be honest: I check these.',
       `\`explain\` — two to four sentences in ${lang}: what it means exactly, how it is used in this situation, what it goes with, whether it is spoken or written, polite or blunt — and the mistake a learner makes with it, or how it differs from the near-synonym I might reach for instead.`,
       `\`examples\` — two or three sentences using it the way I would need to in this situation, each as \`zh\`, \`py\` and \`tr\` (a natural ${lang} translation of the whole sentence). Keep everything around the word simple.`,
     ]),
@@ -371,11 +371,13 @@ export function parseWordList(raw: string): ListParse {
 /**
  * The band the syllabus gives a word, where it has one.
  *
- * The library knows six thousand words and their bands; for those, its answer
- * beats the writer's memory of it. Everything else keeps what the writer said.
+ * The library knows the ten thousand words of the 2026 lists and their bands,
+ * and a few thousand more that its characters are read in; for those, its
+ * answer beats the writer's memory of it. Everything else keeps what the
+ * writer said.
  */
 export function checkedBand(lib: Library, w: CollectionWord): { hsk: number | null; checked: boolean } {
-  const known = wordIndex(lib).get(w.w);
+  const known = lib.byWord.get(w.w) ?? wordIndex(lib).get(w.w);
   if (known) return { hsk: known.hsk, checked: true };
   return { hsk: w.hsk, checked: false };
 }

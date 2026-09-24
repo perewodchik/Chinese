@@ -33,6 +33,8 @@ const library = (...chars: string[]): Library => {
     components: {},
     strokes: {},
     byChar: new Map(characters.map((e) => [e.c, e])),
+    words: [],
+    byWord: new Map(),
   };
 };
 
