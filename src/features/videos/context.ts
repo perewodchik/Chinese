@@ -11,8 +11,7 @@ export interface VideoCtx {
   /** the index in the whole video of the part's first line */
   offset: number;
   pack: VideoPack | undefined;
-  /** play one line of the part (by its index in the part), or the whole part */
-  playLine: (i: number) => void;
+  /** play the whole part */
   playPart: () => void;
   /** whether lines can be played on their own: they have times, and it is a YouTube video */
   canPlay: boolean;

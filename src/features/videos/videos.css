@@ -434,11 +434,6 @@
   }
 }
 
-/* Writing and saying are about the line buttons; the picture is only company. */
-.video-page[data-step='write'] .video-player,
-.video-page[data-step='say'] .video-player {
-  max-width: 360px;
-}
 
 .video-blocked {
   margin: 6px 0 0;
@@ -497,78 +492,6 @@
 .vmark-row .btn {
   margin-left: auto;
   min-width: 108px;
-}
-
-/* ------------------------------------------------------------ writing */
-.line-player {
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-  padding: 18px 12px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-}
-
-.line-player-now {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.line-player-n {
-  font-size: 44px;
-  font-weight: 600;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  min-width: 2ch;
-  text-align: center;
-}
-
-.line-player-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.line-player-buttons .btn {
-  min-height: 48px;
-  min-width: 64px;
-}
-
-.line-play {
-  min-width: 132px;
-}
-
-.line-strip {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  justify-content: center;
-  max-width: 100%;
-}
-
-.line-strip button {
-  min-width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background: var(--card);
-  color: var(--ink-2);
-  font: inherit;
-  font-size: 12.5px;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-}
-
-.line-strip button[aria-current] {
-  border-color: var(--ink);
-  color: var(--ink);
-  font-weight: 600;
-}
-
-.line-strip button[data-state='right'] {
-  background: var(--jade-soft);
-  border-color: color-mix(in srgb, var(--jade) 40%, var(--line));
 }
 
 /* ------------------------------------------------------------ checking */
@@ -1212,42 +1135,6 @@ span.check-n {
 .ask-a {
   margin: 0 0 4px;
   line-height: 1.55;
-}
-
-/* -------------------------------------------------------------- saying */
-.say-line {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 12px;
-}
-
-.say-syls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 6px;
-}
-
-.say-syls .syl {
-  cursor: default;
-}
-
-.say-verdict {
-  margin: 8px 0 0;
-  min-height: 1.5em;
-}
-
-.say-verdict[data-state='right'] {
-  color: var(--jade);
-}
-
-.say-verdict[data-state='wrong'] {
-  color: var(--accent);
-}
-
-.say-controls {
-  justify-content: center;
 }
 
 @media (max-width: 640px) {

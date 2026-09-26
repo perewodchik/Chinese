@@ -144,7 +144,7 @@ export function StudyStep() {
         The new words from the pack are on <button className="line-ref" onClick={() => go('words')}>Words</button>
         {pack.listening.length ? (
           <>
-            ; the lines to listen hardest to are on <button className="line-ref" onClick={() => go('write')}>Write</button>
+            ; the lines to listen hardest to are on <button className="line-ref" onClick={() => go('watch')}>Watch</button>
           </>
         ) : null}
         .

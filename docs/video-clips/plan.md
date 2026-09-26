@@ -2,8 +2,9 @@
 
 Written 2026-09-25, and built the same day. What differs from the plan:
 
-- The optional extras are **Say it** (recognition, line by line) only; *From
-  memory* was left out.
+- **Write** (line-by-line player) and **Say it** were built and then removed
+  at the user's request (2026-09-26): the video is watched on Watch and the
+  notebook checked on Check. *From memory* was never built.
 - Whisper transcripts and still frames for Claude (the Mac jobs of phase 4)
   are **not built**. A video YouTube will not give captions for is pasted in,
   or kept as a link that fills itself in when opened where YouTube answers.

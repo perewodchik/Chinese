@@ -296,7 +296,7 @@ it was made on.
 | `/pinyin/voice` | measuring your voice range, and checking your consonants |
 | `/videos` | videos to study with a notebook, each with how well it fits |
 | `/videos/add?url=…` | adding one from a YouTube link |
-| `/videos/<id>?part=2&do=check` | one video: a part of it, and a step (watch, write, check, words, study, ask, say) |
+| `/videos/<id>?part=2&do=check` | one video: a part of it, and a step (watch, check, words, study, ask) |
 | `/settings` | account, folder, appearance |
 | `…?item=c好` on any page | the character drawer; back closes it |
 
@@ -634,9 +634,10 @@ with the pinyin **written by hand in a paper notebook**:
   (≥ 95% easy, 88–95% a good stretch, 75–88% hard), the new words worth
   learning now, and the speed. Names the transcript keeps repeating (佩奇) and
   laughter are left out. The fit is never stored, so it improves as you learn.
-- **Write**: YouTube's player in a frame (youtube-nocookie.com, steered with
-  its own messages, so no YouTube script runs in the page) plays **one line at
-  a time**, by the notebook's line number. Natural speed only.
+- **Watch**: YouTube's player in a frame (youtube-nocookie.com, steered with
+  its own messages, so no YouTube script runs in the page), with Claude's
+  "listen for" notes on the hardest lines. Write the pinyin in the notebook as
+  it plays.
 - **Check**: the right pinyin, line by line. Tap what you got wrong — it turns
   red and a small box beside it asks what the notebook says (`ji4`); when you
   finish, the rest turns green. Tone changes (你好 written ní) count as right.
@@ -652,8 +653,6 @@ with the pinyin **written by hand in a paper notebook**:
   (`src/domain/videoPrompt.ts`, read back by `videoPack.ts`). **Ask** keeps a
   thread of questions per part. Both go through Claude Code on the home
   computer or the copy–paste relay elsewhere.
-- **Say it** (optional): hear a line, say it, and speech recognition says
-  whether a listener would have understood.
 - Marks on each video — watched, understood 1–5, written out, words taken,
   can say it, and a status — can be set by hand and also tick themselves.
 

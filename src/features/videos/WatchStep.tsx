@@ -18,7 +18,7 @@ const UNDERSTOOD = [
  * rated "most of it" and called done without a notebook ever coming out.
  */
 export function WatchStep() {
-  const { video: v, part, lines, canPlay, playPart, player } = useVideoCtx();
+  const { video: v, part, lines, canPlay, playPart, player, pack } = useVideoCtx();
   const counting = useRef(false);
   const wasPlaying = useRef(false);
 
@@ -50,9 +50,24 @@ export function WatchStep() {
           </button>
         )}
         <span className="small muted">
-          Watch without the text first. Twice is good; the second time you catch more.
+          Watch it, then write the pinyin in your notebook — pause the video as you need — and check it on Check.
         </span>
       </div>
+
+      {pack?.listening.length ? (
+        <div className="card listen-for">
+          <header>
+            <h2>Listen for</h2>
+          </header>
+          <div className="body">
+            {pack.listening.map((l) => (
+              <p key={l.n} className="small" style={{ margin: '0 0 6px' }}>
+                <b>Line {l.n}</b> — {l.why}
+              </p>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="card video-marks">
         <header>
@@ -85,7 +100,7 @@ export function WatchStep() {
           <Toggle label="Words taken" on={!!marks.words} onChange={(words) => patchVideo(v.id, { marks: { words } })} />
           <Toggle label="Can say it" on={!!marks.said} onChange={(said) => patchVideo(v.id, { marks: { said } })} />
           <p className="tiny muted" style={{ margin: '8px 0 0' }}>
-            Set any of these yourself. Written out, words and saying it also tick themselves when you do them here.
+            Set any of these yourself. Written out and words also tick themselves when you do them here.
           </p>
         </div>
       </div>

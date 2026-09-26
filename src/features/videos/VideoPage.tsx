@@ -23,24 +23,20 @@ import { AskStep } from './AskStep';
 import { CheckStep } from './CheckStep';
 import { FitChips } from './FitChips';
 import { useFit } from './hooks';
-import { SayStep } from './SayStep';
 import { StudyStep } from './StudyStep';
 import { TranscribeBox } from './TranscribeBox';
 import { WatchStep } from './WatchStep';
 import { WordsStep } from './WordsStep';
-import { WriteStep } from './WriteStep';
 import { VideoContext, type VideoCtx } from './context';
 import { YouTubePlayer, type PlayerHandle, type PlayerState } from './YouTubePlayer';
 import './videos.css';
 
 const STEP_LABEL: Record<VideoStep, string> = {
   watch: 'Watch',
-  write: 'Write',
   check: 'Check',
   words: 'Words',
   study: 'Study',
   ask: 'Ask',
-  say: 'Say it',
 };
 
 
@@ -119,18 +115,14 @@ export function VideoPage() {
     pack: v.packs[part],
     canPlay: !!youTube && timed,
     player: state,
-    playLine: (i) => {
-      const l = lines[i];
-      if (l) player.current?.play(l.at, l.end);
-    },
     playPart: () => {
       if (lines.length) player.current?.play(lines[0]!.at, lines[lines.length - 1]!.end);
     },
     go: (s) => setQuery('do', s, 'watch'),
   };
 
-  // The player is on the steps that use it and kept (hidden) on the others.
-  const showPlayer = step === 'watch' || step === 'write' || step === 'say';
+  // The player is on the Watch step and kept (hidden) on the others, so going back to it does not reload it.
+  const showPlayer = step === 'watch';
 
   return (
     <VideoContext.Provider value={ctx}>
@@ -242,18 +234,14 @@ export function VideoPage() {
           </div>
         ) : step === 'watch' ? (
           <WatchStep />
-        ) : step === 'write' ? (
-          <WriteStep />
         ) : step === 'check' ? (
           <CheckStep />
         ) : step === 'words' ? (
           <WordsStep />
         ) : step === 'study' ? (
           <StudyStep />
-        ) : step === 'ask' ? (
-          <AskStep />
         ) : (
-          <SayStep />
+          <AskStep />
         )}
       </section>
     </VideoContext.Provider>
@@ -265,7 +253,6 @@ function stepDone(v: Video, part: number, s: VideoStep): boolean {
   switch (s) {
     case 'watch':
       return v.marks.watched > 0;
-    case 'write':
     case 'check':
       return v.checks.some((c) => c.part === part);
     case 'words':
@@ -274,7 +261,5 @@ function stepDone(v: Video, part: number, s: VideoStep): boolean {
       return !!v.packs[part];
     case 'ask':
       return v.asks.some((a) => a.part === part);
-    case 'say':
-      return !!v.marks.said;
   }
 }

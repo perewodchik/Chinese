@@ -21,8 +21,8 @@ export type ReadMode = 'single' | 'all';
 export type DrillId = 'recognise' | 'sound' | 'tone' | 'confuse' | 'write' | 'word';
 
 /** What is being done with a video: its tabs. */
-export type VideoStep = 'watch' | 'write' | 'check' | 'words' | 'study' | 'ask' | 'say';
-export const VIDEO_STEPS: readonly VideoStep[] = ['watch', 'write', 'check', 'words', 'study', 'ask', 'say'];
+export type VideoStep = 'watch' | 'check' | 'words' | 'study' | 'ask';
+export const VIDEO_STEPS: readonly VideoStep[] = ['watch', 'check', 'words', 'study', 'ask'];
 
 export const paths = {
   login: (next?: string, expired = false) =>

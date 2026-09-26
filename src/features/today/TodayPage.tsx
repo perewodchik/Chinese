@@ -208,7 +208,7 @@ export function TodayPage() {
               : `${video.parts.length > 1 ? `Part ${videoPart + 1}: ` : ''}${videoChecked ? 'write it out again and check it' : 'write it out in your notebook and check it'}.`,
             done: plan.videoToday > 0,
             minutes: 20,
-            to: paths.video(video.id, { part: videoPart, step: 'write' }),
+            to: paths.video(video.id, { part: videoPart }),
             action: 'Open',
           },
         ]
