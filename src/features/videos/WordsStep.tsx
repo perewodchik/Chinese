@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { charId, wordId, type ItemId } from '../../domain/ids';
 import { segment } from '../../domain/segment';
 import { isHanzi } from '../../domain/text';
@@ -7,6 +7,7 @@ import { itemForToken, wordInfo } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useStore } from '../../store/store';
 import { keepVideoItems, patchVideo } from '../../store/videoCommands';
+import { Seg } from '../../ui/Seg';
 import { SelectToggle } from '../../ui/SelectToggle';
 import { useToast } from '../../ui/toast';
 import { useSelectMode } from '../../ui/useRangeSelection';
@@ -15,6 +16,26 @@ import { useWordKnowledge } from '../words/useWordKnowledge';
 import { isNoise } from '../../domain/videoFit';
 import { skippedWords, useFit } from './hooks';
 import { useVideoCtx } from './context';
+
+/** How big the text is drawn, as a multiple of the usual size. */
+const SIZES = [
+  { id: '1', label: 'A', title: 'Usual size' },
+  { id: '1.3', label: 'A+', title: 'Larger' },
+  { id: '1.6', label: 'A++', title: 'Large' },
+  { id: '2', label: 'A+++', title: 'Largest' },
+] as const;
+type Size = (typeof SIZES)[number]['id'];
+
+/** A per-device choice, like the reader's: how the text looks here, not what was learned. */
+const VIEW_KEY = 'hanzi.videos.wordsView';
+function readView(): { size: Size; english: boolean } {
+  try {
+    const v = JSON.parse(localStorage.getItem(VIEW_KEY) ?? '{}') as { size?: string; english?: boolean };
+    return { size: SIZES.some((s) => s.id === v.size) ? (v.size as Size) : '1', english: v.english === true };
+  } catch {
+    return { size: '1', english: false };
+  }
+}
 
 interface Candidate {
   w: string;
@@ -53,6 +74,17 @@ export function WordsStep() {
     [tokens, lib],
   );
   const select = useSelectMode<ItemId>(order);
+  const [view, setViewState] = useState(readView);
+  const setView = (patch: Partial<typeof view>) => {
+    const next = { ...view, ...patch };
+    setViewState(next);
+    try {
+      localStorage.setItem(VIEW_KEY, JSON.stringify(next));
+    } catch {
+      /* fine without: it is only how the text looks */
+    }
+  };
+  const hasEnglish = lines.some((l) => l.en);
 
   const candidates: Candidate[] = useMemo(() => {
     const out: Candidate[] = [];
@@ -167,6 +199,16 @@ export function WordsStep() {
           The text
         </h2>
         <div className="spacer" />
+        <Seg<Size> size="sm" value={view.size} options={SIZES} onChange={(size) => setView({ size })} label="Text size" />
+        <button
+          className="chip"
+          aria-pressed={view.english}
+          disabled={!hasEnglish}
+          title={hasEnglish ? 'Show the English under each line' : 'This text has no English yet — Study adds it'}
+          onClick={() => setView({ english: !view.english })}
+        >
+          English
+        </button>
         {select.on && select.selected.size > 0 && (
           <button
             className="btn sm primary"
@@ -180,34 +222,37 @@ export function WordsStep() {
         )}
         <SelectToggle on={select.on} onToggle={select.toggleMode} />
       </div>
-      <ol className="word-lines">
+      <ol className="word-lines" style={{ ['--words-scale' as string]: view.size }}>
         {lines.map((line, i) => {
           const syl = syllablesOf(line);
           let h = 0;
           return (
             <li key={i}>
               <span className="check-n">{i + 1}</span>
-              <span className="word-line">
-                {tokens[i]!.map((t, k) => {
-                  if (!t.word) return <span key={k} className="word-punct">{t.text}</span>;
-                  const n = [...t.text].filter(isHanzi).length;
-                  const py = syl.slice(h, h + n).join('');
-                  h += n;
-                  const id = itemForToken(lib, t.text);
-                  const status = knowledge.status(t.text);
-                  return (
-                    <button
-                      key={k}
-                      className="word-tok"
-                      data-new={(status === 'new' && !plain(t.text)) || undefined}
-                      aria-pressed={select.on ? select.selected.has(id) : undefined}
-                      onClick={(e) => (select.on ? select.toggle(id, e.shiftKey) : openItem(id))}
-                    >
-                      <span className="tiny word-tok-py">{py || ' '}</span>
-                      <span className="hanzi">{t.text}</span>
-                    </button>
-                  );
-                })}
+              <span className="word-body">
+                <span className="word-line">
+                  {tokens[i]!.map((t, k) => {
+                    if (!t.word) return <span key={k} className="word-punct">{t.text}</span>;
+                    const n = [...t.text].filter(isHanzi).length;
+                    const py = syl.slice(h, h + n).join('');
+                    h += n;
+                    const id = itemForToken(lib, t.text);
+                    const status = knowledge.status(t.text);
+                    return (
+                      <button
+                        key={k}
+                        className="word-tok"
+                        data-new={(status === 'new' && !plain(t.text)) || undefined}
+                        aria-pressed={select.on ? select.selected.has(id) : undefined}
+                        onClick={(e) => (select.on ? select.toggle(id, e.shiftKey) : openItem(id))}
+                      >
+                        <span className="tiny word-tok-py">{py || ' '}</span>
+                        <span className="hanzi">{t.text}</span>
+                      </button>
+                    );
+                  })}
+                </span>
+                {view.english && line.en && <span className="word-en">{line.en}</span>}
               </span>
             </li>
           );

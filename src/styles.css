@@ -181,6 +181,22 @@ textarea {
   background: var(--card-2);
   padding: 3px;
   border-radius: 9px;
+  /* Seven tabs no longer fit beside the brand and the account between a
+     phone and a wide screen: an iPad on its side. They scroll sideways there
+     rather than pushing the account off the edge. */
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs > a,
+.tabs > button {
+  flex: none;
+  white-space: nowrap;
 }
 
 .tabs button,

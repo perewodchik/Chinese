@@ -1007,8 +1007,39 @@ span.check-n {
 }
 
 .word-tok .hanzi {
-  font-size: 20px;
+  font-size: calc(20px * var(--words-scale, 1));
   line-height: 1.25;
+}
+
+.word-tok-py {
+  font-size: calc(11.5px * min(var(--words-scale, 1), 1.6));
+}
+
+.word-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.word-en {
+  font-size: calc(12.5px * min(var(--words-scale, 1), 1.3));
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+
+.words-bar {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.words-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.words-bar > * {
+  flex: none;
 }
 
 .word-tok[data-new] .hanzi {
@@ -1028,7 +1059,7 @@ span.check-n {
 
 .word-punct {
   font-family: var(--han);
-  font-size: 20px;
+  font-size: calc(20px * var(--words-scale, 1));
   align-self: flex-end;
 }
 
