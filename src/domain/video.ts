@@ -486,7 +486,8 @@ export function videoFromLookup(found: VideoLookup, lib: Library, now: number): 
     added: now,
     updatedAt: now,
     lines,
-    textFrom: found.chinese ? found.chinese.source : 'none',
+    // A "Chinese" track can turn out to hold English (channels mislabel them): no lines, no text.
+    textFrom: found.chinese && lines.length ? found.chinese.source : 'none',
     parts: autoParts(lines),
     status: 'want',
     marks: { watched: 0 },
@@ -585,11 +586,12 @@ export function videoFrom(raw: unknown): Video | null {
     .filter((p) => p.from >= 0 && p.to > p.from && p.to <= lines.length);
   const marks = (v.marks ?? {}) as Loose;
   const status = VIDEO_STATUSES.some((s) => s.id === v.status) ? (v.status as VideoStatus) : 'want';
-  const from = ['captions', 'captions-auto', 'pasted', 'waiting', 'none'].includes(v.textFrom as string)
+  const stored = ['captions', 'captions-auto', 'pasted', 'waiting', 'none'].includes(v.textFrom as string)
     ? (v.textFrom as VideoTextFrom)
-    : lines.length
-      ? 'pasted'
-      : 'waiting';
+    : null;
+  // Captions that yielded no Chinese line were not Chinese captions.
+  const from: VideoTextFrom =
+    stored === 'captions' || stored === 'captions-auto' ? (lines.length ? stored : 'none') : stored ?? (lines.length ? 'pasted' : 'waiting');
   return {
     id: v.id,
     source,
