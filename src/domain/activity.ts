@@ -22,17 +22,19 @@ export interface DayLog {
   read: number;
   /** pronunciation tries: words and pairs said, sounds told apart, sentences said */
   spoken: number;
+  /** video work: a part watched, a notebook check marked */
+  videos: number;
 }
 
 /** By local calendar day, "2026-09-24". */
 export type Activity = Record<string, DayLog>;
 
-const FIELDS: Array<keyof DayLog> = ['answers', 'right', 'read', 'spoken'];
+const FIELDS: Array<keyof DayLog> = ['answers', 'right', 'read', 'spoken', 'videos'];
 
 /** How many days are kept: a year and a bit, enough for any calendar the app draws. */
 const KEEP_DAYS = 400;
 
-const empty = (): DayLog => ({ answers: 0, right: 0, read: 0, spoken: 0 });
+const empty = (): DayLog => ({ answers: 0, right: 0, read: 0, spoken: 0, videos: 0 });
 
 /** The local calendar day a moment falls on. */
 export function dayKey(t: number): string {
@@ -66,10 +68,10 @@ export function logDay(a: Activity, at: number, add: Partial<DayLog>): Activity 
 }
 
 /** Whether anything at all was done that day. */
-export const active = (d: DayLog | undefined) => Boolean(d && (d.answers || d.read || d.spoken));
+export const active = (d: DayLog | undefined) => Boolean(d && (d.answers || d.read || d.spoken || d.videos));
 
 /** A rough size of the day, for shading a calendar square. */
-export const dayWeight = (d: DayLog | undefined) => (d ? d.answers + d.spoken + d.read * 10 : 0);
+export const dayWeight = (d: DayLog | undefined) => (d ? d.answers + d.spoken + (d.read + d.videos) * 10 : 0);
 
 /** What was stored, read field by field, keeping the most recent days. */
 export function activityFrom(v: unknown): Activity {

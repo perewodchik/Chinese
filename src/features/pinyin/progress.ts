@@ -20,7 +20,7 @@ import { useSyncExternalStore } from 'react';
  * Kept on the device, like the other pronunciation tallies (voice.ts).
  */
 
-export type SaidMode = 'shadow' | 'context';
+export type SaidMode = 'shadow' | 'context' | 'video';
 
 export interface Said {
   /** the sentence, by its id in the pack */

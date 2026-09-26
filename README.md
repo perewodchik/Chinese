@@ -292,9 +292,11 @@ it was made on.
 | `/pinyin` | pronunciation: the four tones, and the map of twenty tone pairs |
 | `/pinyin/practice/<set>` | saying things out loud — `tone-2`, `pair-3-3` |
 | `/pinyin/sounds/<lesson>?step=hear` | one sound lesson — how it is made, hearing it, saying it |
-| `/pinyin/shadow?level=1&topic=food` | shadowing sentences with a natural voice |
 | `/pinyin/talk` | a spoken conversation with Claude |
 | `/pinyin/voice` | measuring your voice range, and checking your consonants |
+| `/videos` | videos to study with a notebook, each with how well it fits |
+| `/videos/add?url=…` | adding one from a YouTube link |
+| `/videos/<id>?part=2&do=check` | one video: a part of it, and a step (watch, write, check, words, study, ask, say) |
 | `/settings` | account, folder, appearance |
 | `…?item=c好` on any page | the character drawer; back closes it |
 
@@ -616,42 +618,44 @@ from a 20 ms one. Fourteen of those recordings are test fixtures.
 **The chart is optional.** Settings → Pronunciation → *Show the pitch chart*.
 On, you get the staff, your line over the speaker's, and a sentence on what to
 change. Off, there is no chart and no commentary: each syllable is simply
-marked as understood or not, and in a shadowed sentence the characters
-recognition misheard are marked under the text. Some days the answer to "was
+marked as understood or not. Some days the answer to "was
 I understood?" is the whole of what you want.
 
-**Shadowing**, at **/pinyin/shadow**: thirty short everyday sentences, HSK 1
-to 3, each with a translation, **recorded by native speakers** and played at
-the speed they said them — not slowed down, because the rhythm is what is
-being copied. Eighteen are Lingua Libre recordings on Wikimedia Commons
-(CC BY-SA 4.0), twelve are Tatoeba recordings by two speakers who list
-Mandarin as their mother tongue and licensed their audio (CC BY-NC 4.0); the
-rest of Tatoeba's Mandarin audio has no licence to reuse and is left alone.
-They are chosen by hand in `scripts/voices/shadowing.json`. The two melodies —
-the speaker's and yours — are drawn one over the other; the sounds are checked
-by speech recognition, which is at its best on a whole sentence. "Voice, then
-me" plays the two back to back.
+**Videos**, at **/videos** — the method 尚雯婕 made famous (write down what a
+native clip says, check it, learn it, say it), scaled to a beginner. Videos
+are watched on YouTube and worked on here, a part of about 25 lines at a time,
+with the pinyin **written by hand in a paper notebook**:
 
-**Being understood is the measure**, more than the chart. A native speaker's
-sentence does not look like the textbook tones either — tones shrink, the
-sentence drifts down, a third before another syllable is just low — so the
-question worth asking is whether a listener would take away the words you
-meant. The nearest listener the app has is speech recognition, which learned
-from native speakers and hears a whole sentence with its context, as a person
-does. So every whole sentence said ends in **Understood** or **Not quite
-understood**: every word heard as the word meant, sounds *and* tones (买 heard
-for 卖 is a different word, however the chart looked), or simply the exact
-sentence. The Speaking page shows the share understood per week, first tries
-only, so the trend is how well you speak rather than how well you copy.
-
-- **In context** (/pinyin/shadow?mode=context): a situation and what the other
-  person just said, and what you want to say — in English only. You say it in
-  Chinese, find out whether you were understood, then see the Chinese and hear
-  the native speaker. The scenes are in `scripts/voices/shadowing.json`.
-- **Monthly check** (?mode=check): the same six sentences once a month, each
-  take kept in the browser (IndexedDB) with whether it was understood, and
-  played beside the first month's. Progress is too slow to hear from one day
-  to the next; months apart, it is obvious.
+- **Adding** takes a YouTube link. The server fetches the video's captions
+  (`server/src/infrastructure/youtube.ts` — YouTube's own player endpoint, no
+  key); where the Chinese is burned into the picture, the text is pasted or
+  loaded from an .srt/.vtt. Before it goes on the shelf, the page shows **how
+  well it fits**: the share of words said that you know or are learning
+  (≥ 95% easy, 88–95% a good stretch, 75–88% hard), the new words worth
+  learning now, and the speed. Names the transcript keeps repeating (佩奇) and
+  laughter are left out. The fit is never stored, so it improves as you learn.
+- **Write**: YouTube's player in a frame (youtube-nocookie.com, steered with
+  its own messages, so no YouTube script runs in the page) plays **one line at
+  a time**, by the notebook's line number. Natural speed only.
+- **Check**: the right pinyin, line by line. Tap what you got wrong — it turns
+  red and a small box beside it asks what the notebook says (`ji4`); when you
+  finish, the rest turns green. Tone changes (你好 written ní) count as right.
+  The mistakes are named (*sh written as s*), linked to their sound lesson and
+  fed into the weak spots. Quicker ways to mark: tap only, right/nearly/wrong
+  per line, or one tap for the whole part.
+- **Words**: the new words, + to learn (into *Words from videos*), ✕ to wave
+  off; the text with pinyin over each word, a tap opens its card.
+- **Study**: Claude's study pack for the part — it reads the transcript with
+  your words and weak sounds (it cannot watch the video) and returns corrected
+  pinyin, English, the tone changes you will hear, words to learn now, grammar,
+  notes, the lines hardest to write, questions and sentences to use it in
+  (`src/domain/videoPrompt.ts`, read back by `videoPack.ts`). **Ask** keeps a
+  thread of questions per part. Both go through Claude Code on the home
+  computer or the copy–paste relay elsewhere.
+- **Say it** (optional): hear a line, say it, and speech recognition says
+  whether a listener would have understood.
+- Marks on each video — watched, understood 1–5, written out, words taken,
+  can say it, and a status — can be set by hand and also tick themselves.
 
 ### The voice pack
 

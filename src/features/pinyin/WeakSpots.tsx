@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router';
+import { notebookConfusions } from '../../domain/dictation';
 import { weakSpots, type SpotTarget, type WeakSpot, type WeakSpotReport } from '../../domain/pinyin/weakSpots';
 import { paths } from '../../navigation/paths';
 import { useStore } from '../../store/store';
@@ -15,8 +16,6 @@ export function spotPath(t: SpotTarget): string {
       return paths.speakingSounds(t.lesson, t.step);
     case 'drill':
       return paths.drill(t.drill);
-    case 'shadow':
-      return paths.speakingShadow();
   }
 }
 
@@ -25,7 +24,10 @@ export function useWeakSpots(): WeakSpotReport {
   const lib = useLibrary();
   const tallies = usePinyinMemory().tallies;
   const recall = useStore((s) => s.recall);
-  return useMemo(() => weakSpots(tallies, recall, lib), [tallies, recall, lib]);
+  const videos = useStore((s) => s.videos);
+  // The last two months of notebook checks: old mix-ups that have gone should stop counting.
+  const notebook = useMemo(() => notebookConfusions(videos, Date.now() - 60 * 864e5), [videos]);
+  return useMemo(() => weakSpots(tallies, recall, lib, notebook), [tallies, recall, lib, notebook]);
 }
 
 /** One spot as a row: what it is, how it is going, and the way to practise it. */

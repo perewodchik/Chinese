@@ -14,6 +14,17 @@ import {
 } from '../domain/memory';
 import type { SheetOptions } from '../domain/sheet';
 import type { GeneratedText, TextPlan, TextSet } from '../domain/text';
+import {
+  mergeVideo,
+  type DictationCheck,
+  type Video,
+  type VideoAsk,
+  type VideoLine,
+  type VideoMarks,
+  type VideoPack,
+  type VideoPart,
+  type VideoStatus,
+} from '../domain/video';
 import type { WordListPlan } from '../domain/wordlist';
 import { appendNew, reorderKeeping } from './lists';
 import { mergeStates } from './merge';
@@ -42,6 +53,15 @@ export interface CollectionPatch {
   sheet?: Partial<SheetOptions>;
   scope?: Partial<PrintScope>;
   words?: CollectionWord[];
+}
+
+/** What can be changed about a video by setting it. */
+export interface VideoPatch {
+  title?: string;
+  status?: VideoStatus;
+  marks?: Partial<VideoMarks>;
+  parts?: VideoPart[];
+  skipped?: string[];
 }
 
 export interface GradeResult {
@@ -83,6 +103,18 @@ export type Action =
   | { type: 'settings/patch'; patch: Partial<AppSettings> }
   /** something done that no other action records — a word said out loud, say */
   | { type: 'activity/log'; at: number; add: Partial<DayLog> }
+  /** a video onto the shelf; one already there takes whatever the new copy has more of */
+  | { type: 'video/add'; video: Video }
+  | { type: 'video/patch'; id: string; patch: VideoPatch; at: number }
+  /** one line's text changed by hand or by Claude: `index` is its place in the whole video */
+  | { type: 'video/line'; id: string; index: number; line: Partial<VideoLine>; at: number }
+  /** Claude's study pack for a part; its pinyin and English go onto the part's lines */
+  | { type: 'video/pack'; id: string; part: number; pack: VideoPack; at: number }
+  | { type: 'video/check'; id: string; check: DictationCheck }
+  | { type: 'video/ask'; id: string; ask: VideoAsk }
+  /** a part played through, or "watched" ticked */
+  | { type: 'video/watch'; id: string; at: number }
+  | { type: 'video/delete'; id: string }
   | { type: 'workspace/reset' }
   | { type: 'workspace/replace'; document: PersistedState }
   | { type: 'workspace/merge'; document: PersistedState }
@@ -259,6 +291,91 @@ export function reduce(state: AppState, action: Action): AppState {
     case 'activity/log':
       return { ...state, activity: logDay(state.activity, action.at, action.add) };
 
+    /* --------------------------------------------------------------- videos */
+    case 'video/add': {
+      const had = state.videos.find((v) => v.id === action.video.id);
+      if (!had) return { ...state, videos: [action.video, ...state.videos] };
+      // The same video added again — from another device, or once its
+      // captions could be fetched: keep the work, take the text if it is new.
+      if (had.lines.length || !action.video.lines.length) return state;
+      const filled: Video = {
+        ...mergeVideo(had, action.video),
+        lines: action.video.lines,
+        parts: action.video.parts,
+        textFrom: action.video.textFrom,
+        title: action.video.title,
+        channel: action.video.channel,
+        seconds: action.video.seconds,
+        description: action.video.description,
+        status: had.status,
+      };
+      return { ...state, videos: state.videos.map((v) => (v.id === had.id ? filled : v)) };
+    }
+
+    case 'video/patch':
+      return updateVideo(state, action.id, action.at, (v) => ({
+        ...v,
+        title: action.patch.title ?? v.title,
+        status: action.patch.status ?? (action.patch.marks ? started(v.status) : v.status),
+        marks: action.patch.marks ? { ...v.marks, ...action.patch.marks } : v.marks,
+        parts: action.patch.parts ?? v.parts,
+        skipped: action.patch.skipped ?? v.skipped,
+      }));
+
+    case 'video/line':
+      return updateVideo(state, action.id, action.at, (v) =>
+        v.lines[action.index]
+          ? { ...v, lines: v.lines.map((l, i) => (i === action.index ? { ...l, ...action.line } : l)) }
+          : v,
+      );
+
+    case 'video/pack':
+      return updateVideo(state, action.id, action.at, (v) => {
+        const part = v.parts[action.part];
+        if (!part) return v;
+        const lines = v.lines.map((l, i) => {
+          const fix = i >= part.from && i < part.to ? action.pack.lines[i - part.from + 1] : undefined;
+          if (!fix) return l;
+          const next = { ...l };
+          if (fix.py) next.py = fix.py;
+          // Claude's English over the caption's: channels' translations are often word for word, or wrong.
+          if (fix.en) next.en = fix.en;
+          if (fix.who) next.who = fix.who;
+          if (fix.doubt) next.doubt = fix.doubt;
+          return next;
+        });
+        return { ...v, lines, packs: { ...v.packs, [action.part]: action.pack } };
+      });
+
+    // A check marked again straight after (a mis-tap put right) keeps its id
+    // and replaces itself rather than counting twice.
+    case 'video/check':
+      return updateVideo(state, action.id, action.check.at, (v) => ({
+        ...v,
+        checks: v.checks.some((c) => c.id === action.check.id)
+          ? v.checks.map((c) => (c.id === action.check.id ? action.check : c))
+          : [...v.checks, action.check],
+        marks: { ...v.marks, written: true },
+        status: started(v.status),
+      }));
+
+    case 'video/ask':
+      return updateVideo(state, action.id, action.ask.at, (v) =>
+        v.asks.some((a) => a.id === action.ask.id) ? v : { ...v, asks: [...v.asks, action.ask] },
+      );
+
+    case 'video/watch':
+      return updateVideo(state, action.id, action.at, (v) => ({
+        ...v,
+        marks: { ...v.marks, watched: v.marks.watched + 1 },
+        status: started(v.status),
+      }));
+
+    case 'video/delete':
+      return state.videos.some((v) => v.id === action.id)
+        ? { ...state, videos: state.videos.filter((v) => v.id !== action.id) }
+        : state;
+
     case 'set/rename':
       return {
         ...state,
@@ -374,6 +491,17 @@ export function coalesce(last: Action, next: Action): Action | null {
       return last.type === 'collection/reorder' && last.id === next.id ? next : null;
     case 'text/setRead':
       return last.type === 'text/setRead' && last.id === next.id ? next : null;
+    case 'video/patch':
+      return last.type === 'video/patch' && last.id === next.id
+        ? {
+            ...next,
+            patch: {
+              ...last.patch,
+              ...next.patch,
+              marks: last.patch.marks || next.patch.marks ? { ...last.patch.marks, ...next.patch.marks } : undefined,
+            },
+          }
+        : null;
     case 'set/rename':
       return last.type === 'set/rename' && last.id === next.id ? next : null;
     case 'set/reorder':
@@ -400,6 +528,22 @@ const withRecall = (state: AppState, recall: RecallBook): AppState => ({
   recall,
   learned: learnedFrom(recall),
 });
+
+/** A video anything has been done with is being worked on — unless it is already done or put aside. */
+const started = (status: VideoStatus): VideoStatus => (status === 'want' ? 'working' : status);
+
+/** Applies `change` to one video, marking it updated only if something changed. */
+function updateVideo(state: AppState, id: string, at: number, change: (v: Video) => Video): AppState {
+  let changed = false;
+  const videos = state.videos.map((v) => {
+    if (v.id !== id) return v;
+    const next = change(v);
+    if (next === v) return v;
+    changed = true;
+    return { ...next, updatedAt: Math.max(v.updatedAt, at) };
+  });
+  return changed ? { ...state, videos } : state;
+}
 
 /** Applies `change` to one collection, marking it updated only if something changed. */
 function updateCollection(

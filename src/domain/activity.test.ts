@@ -9,17 +9,17 @@ describe('activity', () => {
   it('adds to the day things happen on', () => {
     let a: Activity = {};
     a = logDay(a, NOW, { answers: 3, right: 2 });
-    a = logDay(a, NOW + 3_600_000, { spoken: 1 });
+    a = logDay(a, NOW + 3_600_000, { spoken: 1, videos: 0 });
     a = logDay(a, day(2026, 9, 23), { read: 1 });
-    assert.deepEqual(a[dayKey(NOW)], { answers: 3, right: 2, read: 0, spoken: 1 });
-    assert.deepEqual(a['2026-09-23'], { answers: 0, right: 0, read: 1, spoken: 0 });
+    assert.deepEqual(a[dayKey(NOW)], { answers: 3, right: 2, read: 0, spoken: 1, videos: 0 });
+    assert.deepEqual(a['2026-09-23'], { answers: 0, right: 0, read: 1, spoken: 0, videos: 0 });
   });
 
   it('counts the run of days up to today, or up to yesterday while today is still empty', () => {
     let a: Activity = {};
     for (const d of [18, 19, 21, 22, 23]) a = logDay(a, day(2026, 9, d), { answers: 1 });
     assert.deepEqual(streakOf(a, NOW), { current: 3, best: 3, today: false });
-    a = logDay(a, NOW, { spoken: 1 });
+    a = logDay(a, NOW, { spoken: 1, videos: 0 });
     assert.deepEqual(streakOf(a, NOW), { current: 4, best: 4, today: true });
     assert.equal(streakOf(a, day(2026, 9, 26)).current, 0);
   });
@@ -38,14 +38,14 @@ describe('activity', () => {
   });
 
   it('merges two copies of the same days without counting twice, and reads only what is sound', () => {
-    const a = { '2026-09-24': { answers: 5, right: 4, read: 0, spoken: 2 } };
-    const b = { '2026-09-24': { answers: 3, right: 3, read: 1, spoken: 0 }, '2026-09-20': { answers: 1, right: 1, read: 0, spoken: 0 } };
+    const a = { '2026-09-24': { answers: 5, right: 4, read: 0, spoken: 2, videos: 0 } };
+    const b = { '2026-09-24': { answers: 3, right: 3, read: 1, spoken: 0, videos: 0 }, '2026-09-20': { answers: 1, right: 1, read: 0, spoken: 0, videos: 0 } };
     assert.deepEqual(mergeActivity(a, b), {
-      '2026-09-24': { answers: 5, right: 4, read: 1, spoken: 2 },
-      '2026-09-20': { answers: 1, right: 1, read: 0, spoken: 0 },
+      '2026-09-24': { answers: 5, right: 4, read: 1, spoken: 2, videos: 0 },
+      '2026-09-20': { answers: 1, right: 1, read: 0, spoken: 0, videos: 0 },
     });
     assert.deepEqual(activityFrom({ bad: 1, '2026-09-01': { answers: 'x', read: 2 }, '2026-09-02': {} }), {
-      '2026-09-01': { answers: 0, right: 0, read: 2, spoken: 0 },
+      '2026-09-01': { answers: 0, right: 0, read: 2, spoken: 0, videos: 0 },
     });
   });
 });

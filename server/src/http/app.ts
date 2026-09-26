@@ -10,6 +10,7 @@ import { askRoutes } from './routes/ask';
 import { authRoutes } from './routes/auth';
 import { speechRoutes } from './routes/speech';
 import { talkRoutes } from './routes/talk';
+import { videoRoutes } from './routes/videos';
 import { workspaceRoutes } from './routes/workspace';
 import { staticSite } from './static-site';
 
@@ -57,6 +58,7 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   api.route('/workspace', workspaceRoutes(deps));
   api.route('/speech', speechRoutes(deps));
   api.route('/talk', talkRoutes(deps));
+  api.route('/videos', videoRoutes(deps));
   api.all('*', () => {
     throw new NotFoundError('That API route');
   });
@@ -74,11 +76,13 @@ export function createHttpApp(services: Services, options: HttpOptions) {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'blob:'],
+        // Video thumbnails on the Videos shelf.
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://i.ytimg.com'],
         fontSrc: ["'self'", 'data:'],
         connectSrc: ["'self'"],
-        // The worksheet preview is the PDF itself, in a frame, from a blob.
-        frameSrc: ["'self'", 'blob:'],
+        // The worksheet preview is the PDF itself, in a frame, from a blob; a
+        // video being studied is YouTube's own player, in a frame.
+        frameSrc: ["'self'", 'blob:', 'https://www.youtube-nocookie.com'],
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
         formAction: ["'self'"],

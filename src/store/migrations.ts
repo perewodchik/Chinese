@@ -1,4 +1,5 @@
 import { activityFrom } from '../domain/activity';
+import { videoFrom, type Video } from '../domain/video';
 import { DEFAULT_SCOPE, type Collection, type CollectionWord } from '../domain/collection';
 import { isCharId, isItemId, wordId, type ItemId } from '../domain/ids';
 import {
@@ -553,6 +554,9 @@ export function hydrate(raw: unknown): AppState {
     radicals: p.radicals ? mergeRadicals(radicalsFrom(p.radicals, now), legacy) : legacy,
     settings: settingsFrom(p.settings, typeof p.version === 'number' ? p.version : 0),
     activity: activityFrom(p.activity),
+    videos: arr<unknown>(p.videos)
+      .map(videoFrom)
+      .filter((v): v is Video => v !== null),
   };
 }
 
@@ -581,7 +585,7 @@ function withListWords(items: ItemId[], words: unknown, version: number): ItemId
 
 export function serialise(s: AppState): PersistedState {
   return {
-    version: 8,
+    version: 9,
     collections: s.collections,
     recall: s.recall,
     sheets: s.sheets,
@@ -595,5 +599,6 @@ export function serialise(s: AppState): PersistedState {
     radicals: s.radicals,
     settings: s.settings,
     activity: s.activity,
+    videos: s.videos,
   };
 }

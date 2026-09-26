@@ -23,8 +23,8 @@ export interface AskStatusResponse {
 }
 
 /** What the answer is for. It decides nothing but how long the wait may be. */
-export type AskKind = 'passages' | 'wordlist' | 'check';
-export const ASK_KINDS: readonly AskKind[] = ['passages', 'wordlist', 'check'];
+export type AskKind = 'passages' | 'wordlist' | 'check' | 'video';
+export const ASK_KINDS: readonly AskKind[] = ['passages', 'wordlist', 'check', 'video'];
 
 export interface AskRequest {
   /** the prompt exactly as the page would have copied it */
@@ -54,4 +54,6 @@ export const ASK_TIMEOUT_MS: Record<AskKind, number> = {
   wordlist: 10 * 60_000,
   // One answer to one question: a reader is sitting there waiting for it.
   check: 3 * 60_000,
+  // A study pack for a part of a video: a page of notes, questions and words.
+  video: 6 * 60_000,
 };

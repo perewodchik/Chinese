@@ -69,6 +69,7 @@ export function AppLayout() {
     // in Collections, so the tab stays lit there too.
     { to: paths.collections(), label: 'Collections', count: collections + textSets, also: '/texts' },
     { to: paths.speaking(), label: 'Speaking', count: 0 },
+    { to: paths.videos(), label: 'Videos', count: 0 },
     { to: paths.settings(), label: 'Settings', count: 0 },
   ];
 

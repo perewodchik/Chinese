@@ -9,7 +9,6 @@ import { FamiliesPage } from '../features/families/FamiliesPage';
 import { LibraryPage } from '../features/library/LibraryPage';
 import { PinyinPage } from '../features/pinyin/PinyinPage';
 import { PracticePage } from '../features/pinyin/PracticePage';
-import { ShadowPage } from '../features/pinyin/ShadowPage';
 import { SoundLessonPage } from '../features/pinyin/SoundLessonPage';
 import { TalkPage } from '../features/pinyin/TalkPage';
 import { TalkSetupPage } from '../features/pinyin/TalkSetupPage';
@@ -21,6 +20,9 @@ import { GradeSheetPage } from '../features/review/GradeSheetPage';
 import { ReviewPage } from '../features/review/ReviewPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { TodayPage } from '../features/today/TodayPage';
+import { AddVideoPage } from '../features/videos/AddVideoPage';
+import { VideoPage } from '../features/videos/VideoPage';
+import { VideosPage } from '../features/videos/VideosPage';
 import { SweepPage } from '../features/words/SweepPage';
 import { WordsDrillPage } from '../features/words/WordsDrillPage';
 import { paths } from '../navigation/paths';
@@ -49,7 +51,9 @@ import { RequireSession } from './RequireSession';
  *   /speaking                      pronunciation: the four tones and the twenty pairs
  *   /speaking/practice/:set        saying things out loud: pair-3-3, tone-2
  *   /speaking/sounds/:lesson?step  one sound lesson: how it is made, hear it, say it
- *   /speaking/shadow?level&topic   saying sentences along with a natural voice
+ *   /videos                        videos to study, and how well each fits
+ *   /videos/add?url                adding one from a link
+ *   /videos/:id?part&do            one video, a part of it, a step
  *   /speaking/new                  setting a conversation up before it starts
  *   /speaking/:conversationId      one conversation with Claude, kept
  *   /speaking/voice                the voice range, and a check of the sounds
@@ -122,7 +126,11 @@ export const router = createBrowserRouter([
               { path: 'speaking', element: <PinyinPage /> },
               { path: 'speaking/practice/:set', element: <PracticePage /> },
               { path: 'speaking/sounds/:lesson', element: <SoundLessonPage /> },
-              { path: 'speaking/shadow', element: <ShadowPage /> },
+              // The sentence shadowing that was here gave way to videos.
+              { path: 'speaking/shadow', element: <Navigate to={paths.videos()} replace /> },
+              { path: 'videos', element: <VideosPage /> },
+              { path: 'videos/add', element: <AddVideoPage /> },
+              { path: 'videos/:videoId', element: <VideoPage /> },
               { path: 'speaking/voice', element: <VoicePage /> },
               // Setting one up, and the conversation itself. `new` is matched
               // before `:conversationId` so a conversation can never be named

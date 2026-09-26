@@ -82,6 +82,14 @@ var RateLimitedError = class extends AppError {
     this.retryAfterSeconds = retryAfterSeconds;
   }
 };
+var OutdatedAppError = class extends AppError {
+  constructor() {
+    super(
+      "outdated_app",
+      "This page is an older version of the app. Reload it to keep saving \u2014 nothing done here is lost."
+    );
+  }
+};
 var RevisionConflictError = class extends AppError {
   current;
   constructor(current) {
@@ -259,11 +267,58 @@ var AuthService = class {
   }
 };
 
+// shared/personas.ts
+var CLEAR = "Keep your sentences short and simple, and your words everyday: the learner has to follow you by ear.";
+var PERSONAS = [
+  {
+    id: "chen",
+    name: "Chen",
+    zh: "\u9648",
+    gender: "male",
+    pace: 0.8,
+    blurb: "A patient young man who speaks slowly and warmly, so you can catch every word.",
+    character: `Chen, a very patient, gentle young man in his late twenties. You talk slowly and calmly, like a good friend who has slowed down on purpose so the learner can follow every word. You never rush them, you reassure rather than cheer, and when they struggle you say there is no hurry. Use the shortest, simplest sentences you can. ${CLEAR}`
+  },
+  {
+    id: "wang",
+    name: "Teacher Wang",
+    zh: "\u738B\u8001\u5E08",
+    gender: "female",
+    blurb: "A warm, experienced teacher with textbook-clear standard Mandarin.",
+    character: `Teacher Wang, an experienced and warm Mandarin teacher in her forties. You speak very clear, standard Mandarin, are kind and steady, and model good sentences without lecturing. ${CLEAR}`
+  },
+  {
+    id: "xiaoyu",
+    name: "Xiaoyu",
+    zh: "\u5C0F\u96E8",
+    gender: "female",
+    blurb: "A university student your own age: natural, friendly, relaxed.",
+    character: `Xiaoyu, a friendly university student around twenty, relaxed and natural, like a classmate. You chat about everyday student life. Friendly, but not loud or over-excited. ${CLEAR}`
+  },
+  {
+    id: "zhiyuan",
+    name: "Zhiyuan",
+    zh: "\u5FD7\u8FDC",
+    gender: "male",
+    blurb: "A radio host\u2019s voice: rich, very standard and very clear, telling everyday stories.",
+    character: `Zhiyuan, a radio host in his mid-thirties who tells everyday stories on air. Your Mandarin is very standard and very clear, your tone warm and patient. You like to share a small story and ask the learner about theirs. ${CLEAR}`
+  },
+  {
+    id: "wei",
+    name: "Wei",
+    zh: "\u8001\u9B4F",
+    gender: "male",
+    blurb: "Runs a small restaurant: warm, down to earth, happiest talking about food.",
+    character: `Wei, a warm, down-to-earth man around forty who runs a small family restaurant. You love talking about food, cooking and family life, and you talk plainly, like a friendly older brother. ${CLEAR}`
+  }
+];
+
 // shared/talk.ts
 var TALK_LEVELS = ["hsk1", "hsk2", "hsk3"];
 var TALK_LENGTHS = ["short", "normal", "long"];
 var TALK_MODES = ["breakdown", "teaching", "conversation", "skim"];
 var TALK_TOPIC_MAX_CHARS = 60;
+var TALK_VOCAB_MAX = { known: 1e3, learning: 15 };
 var TALK_MAX_LINES = 40;
 var TALK_LINE_MAX_CHARS = 300;
 var TALK_TITLE_MAX_CHARS = 80;
@@ -356,13 +411,21 @@ var WorkspaceService = class {
     }
     const write = await this.deps.workspaces.save(userId, baseRevision, document, this.deps.clock.now());
     if (write.saved) return { revision: write.revision, updatedAt: write.updatedAt };
-    throw new RevisionConflictError(toDto(write.current));
+    const current = write.current;
+    if (current && current.revision === baseRevision && versionOf(current.document) > document.version) {
+      throw new OutdatedAppError();
+    }
+    throw new RevisionConflictError(toDto(current));
   }
 };
 function isDocument(v) {
   if (!v || typeof v !== "object" || Array.isArray(v)) return false;
   const version = v.version;
   return typeof version === "number" && Number.isInteger(version) && version > 0;
+}
+function versionOf(document) {
+  const version = document?.version;
+  return typeof version === "number" ? version : 0;
 }
 
 // server/src/infrastructure/clock.ts
@@ -441,7 +504,7 @@ function createServices(stores, options = {}) {
 }
 
 // server/src/http/app.ts
-import { Hono as Hono7 } from "hono";
+import { Hono as Hono8 } from "hono";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
 
@@ -456,6 +519,7 @@ var STATUS = {
   not_found: 404,
   username_taken: 409,
   conflict: 409,
+  outdated_app: 409,
   payload_too_large: 413,
   rate_limited: 429,
   internal: 500,
@@ -597,15 +661,20 @@ var RateLimiter = class {
 };
 
 // server/src/http/routes/ask.ts
+import { createHash as createHash2 } from "node:crypto";
 import { Hono } from "hono";
 import { z } from "zod";
 
 // shared/ask.ts
-var ASK_KINDS = ["passages", "wordlist"];
+var ASK_KINDS = ["passages", "wordlist", "check", "video"];
 var ASK_MAX_CHARS = 8e4;
 var ASK_TIMEOUT_MS = {
   passages: 15 * 6e4,
-  wordlist: 10 * 6e4
+  wordlist: 10 * 6e4,
+  // One answer to one question: a reader is sitting there waiting for it.
+  check: 3 * 6e4,
+  // A study pack for a part of a video: a page of notes, questions and words.
+  video: 6 * 6e4
 };
 
 // server/src/http/routes/ask.ts
@@ -617,16 +686,37 @@ function askRoutes({ auth, clock, trustProxy, tutor }) {
   const routes = new Hono();
   const session = requireSession(auth, { trustProxy, clock });
   const asks = new RateLimiter(20, 60 * 6e4, clock);
+  const checks = new RateLimiter(120, 60 * 6e4, clock);
   routes.get("/", session, async (c) => {
     c.header("Cache-Control", "no-store");
     const body = { claude: { state: tutor ? await tutor.status() : "missing" } };
     return c.json(body);
   });
+  const kept = /* @__PURE__ */ new Map();
+  const KEEP_MS = 60 * 6e4;
   routes.post("/", session, async (c) => {
     if (!tutor) throw new TutorUnavailableError("Claude Code is not installed on this server.");
     const input = await readJson(c, askRequest);
-    asks.consume(c.get("session").user.id);
-    const text = await tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind] });
+    const user = c.get("session").user.id;
+    const run = () => tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind] });
+    let text;
+    if (input.kind === "video") {
+      const key = createHash2("sha256").update(`${user}
+${input.prompt}`).digest("hex");
+      const now = clock.now();
+      for (const [k, v] of kept) if (now - v.at > KEEP_MS) kept.delete(k);
+      let entry = kept.get(key);
+      if (!entry) {
+        asks.consume(user);
+        entry = { at: now, answer: run() };
+        kept.set(key, entry);
+        entry.answer.catch(() => kept.delete(key));
+      }
+      text = await entry.answer;
+    } else {
+      (input.kind === "check" ? checks : asks).consume(user);
+      text = await run();
+    }
     const body = { text };
     c.header("Cache-Control", "no-store");
     return c.json(body);
@@ -769,7 +859,8 @@ var talkOptions = z3.object({
   hints: z3.boolean(),
   // The learner's own words, and they go into a prompt: a topic the length
   // of an essay is a way of talking past everything above it.
-  topic: z3.string().trim().max(TALK_TOPIC_MAX_CHARS)
+  topic: z3.string().trim().max(TALK_TOPIC_MAX_CHARS),
+  persona: z3.string().max(64).optional()
 });
 var savedWord = z3.object({
   hanzi: z3.string().max(TALK_LINE_MAX_CHARS),
@@ -796,7 +887,11 @@ var saveRequest = z3.object({
 });
 var replyRequest = z3.object({
   lines: z3.array(z3.object({ who: z3.enum(["tutor", "learner"]), text: z3.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
-  options: talkOptions
+  options: talkOptions,
+  vocab: z3.object({
+    known: z3.array(z3.string().max(12)).max(TALK_VOCAB_MAX.known),
+    learning: z3.array(z3.string().max(12)).max(TALK_VOCAB_MAX.learning)
+  }).optional()
 });
 function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations }) {
   const routes = new Hono4();
@@ -817,7 +912,11 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations 
     if (!tutor) throw new TutorUnavailableError("Claude Code is not installed on this server.");
     const input = await readJson(c, replyRequest);
     turns.consume(c.get("session").user.id);
-    const reply = await tutor.reply({ lines: input.lines, options: input.options });
+    const reply = await tutor.reply({
+      lines: input.lines,
+      options: input.options,
+      ...input.vocab && { vocab: input.vocab }
+    });
     c.header("Cache-Control", "no-store");
     return c.json(reply);
   });
@@ -874,8 +973,200 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations 
   return routes;
 }
 
-// server/src/http/routes/workspace.ts
+// server/src/http/routes/videos.ts
 import { Hono as Hono5 } from "hono";
+
+// shared/videos.ts
+var PLAYLIST_ID = /^[A-Za-z0-9_-]{10,64}$/;
+var VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
+
+// server/src/infrastructure/youtube.ts
+var YouTubeRefused = class extends Error {
+};
+var YouTubeNotFound = class extends Error {
+};
+var ANDROID = { clientName: "ANDROID", clientVersion: "20.10.38" };
+var HEADERS = {
+  "Accept-Language": "en-US,en;q=0.8",
+  "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+};
+var TIMEOUT_MS = 15e3;
+async function get(url, init = {}) {
+  const res = await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+  if (res.status === 429 || res.status === 403) throw new YouTubeRefused(`YouTube answered ${res.status}.`);
+  return res;
+}
+async function lookUpVideo(videoId) {
+  const page = await (await get(`https://www.youtube.com/watch?v=${videoId}`, { headers: HEADERS })).text();
+  if (page.includes('action="https://consent.youtube.com/s"')) throw new YouTubeRefused("YouTube asked for cookie consent.");
+  if (page.includes('class="g-recaptcha"')) throw new YouTubeRefused("YouTube asked this server to prove it is a person.");
+  const key = page.match(/"INNERTUBE_API_KEY":\s*"([A-Za-z0-9_-]+)"/)?.[1];
+  if (!key) throw new YouTubeRefused("The watch page did not have what the player needs.");
+  const res = await get(`https://www.youtube.com/youtubei/v1/player?key=${key}`, {
+    method: "POST",
+    headers: { ...HEADERS, "Content-Type": "application/json" },
+    body: JSON.stringify({ context: { client: ANDROID }, videoId })
+  });
+  const player = await res.json();
+  const status = player.playabilityStatus?.status;
+  if (status === "ERROR") throw new YouTubeNotFound(player.playabilityStatus?.reason ?? "There is no such video.");
+  if (status === "LOGIN_REQUIRED" && !player.videoDetails)
+    throw new YouTubeRefused(player.playabilityStatus?.reason ?? "YouTube wanted a signed-in viewer.");
+  const tracks = player.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? [];
+  const zh = pickChinese(tracks);
+  const en = tracks.find((t) => t.languageCode.startsWith("en") && t.kind !== "asr") ?? tracks.find((t) => t.languageCode.startsWith("en"));
+  const details = player.videoDetails ?? {};
+  return {
+    videoId,
+    title: details.title ?? "",
+    channel: details.author ?? "",
+    seconds: Number(details.lengthSeconds ?? 0) || 0,
+    description: (details.shortDescription ?? "").slice(0, 2e3),
+    chinese: zh ? {
+      source: zh.kind === "asr" ? "captions-auto" : "captions",
+      language: zh.languageCode,
+      cues: await cuesOf(zh)
+    } : null,
+    english: en ? await cuesOf(en) : null,
+    languages: tracks.map((t) => t.kind === "asr" ? `${t.languageCode} (auto)` : t.languageCode)
+  };
+}
+function pickChinese(tracks) {
+  const zh = tracks.filter((t) => /^(zh|cmn)/i.test(t.languageCode));
+  const made = zh.filter((t) => t.kind !== "asr");
+  const rank = (t) => /hans|cn|sg/i.test(t.languageCode) ? 0 : /^(zh|cmn)$/i.test(t.languageCode) ? 1 : 2;
+  return [...made].sort((a, b) => rank(a) - rank(b))[0] ?? zh[0];
+}
+async function cuesOf(track) {
+  const xml = await (await get(track.baseUrl.replace("&fmt=srv3", ""), { headers: HEADERS })).text();
+  return parseTimedText(xml);
+}
+function parseTimedText(xml) {
+  const out = [];
+  for (const m of xml.matchAll(/<text start="([\d.]+)"(?: dur="([\d.]+)")?[^>]*>([\s\S]*?)<\/text>/g)) {
+    const at = Number(m[1]);
+    const dur = Number(m[2] ?? 0);
+    const text = decode(m[3].replace(/<[^>]+>/g, "")).trim();
+    if (!text) continue;
+    out.push({ at: round(at), end: round(at + dur), text });
+  }
+  return out;
+}
+var round = (n) => Math.round(n * 1e3) / 1e3;
+function decode(s) {
+  const once = (x) => x.replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+  return once(once(s));
+}
+var lengthOf = (t) => typeof t === "string" && /^\d+(:\d+)+$/.test(t) ? t.split(":").reduce((a, p) => a * 60 + Number(p), 0) : 0;
+function readItems(data) {
+  const videos = [];
+  let next = null;
+  const walk = (o) => {
+    if (!o || typeof o !== "object") return;
+    const j = o;
+    const old = j.playlistVideoRenderer;
+    if (old && typeof old.videoId === "string") {
+      const title = old.title?.runs?.[0]?.text;
+      videos.push({ videoId: old.videoId, title: typeof title === "string" ? title : "", seconds: Number(old.lengthSeconds) || 0 });
+      return;
+    }
+    const lockup = j.lockupViewModel;
+    if (lockup && typeof lockup.contentId === "string" && String(lockup.contentType).includes("VIDEO")) {
+      const title = lockup.metadata?.lockupMetadataViewModel?.title?.content;
+      let badge = null;
+      const findBadge = (x) => {
+        if (badge || !x || typeof x !== "object") return;
+        const b = x.thumbnailBadgeViewModel;
+        if (b && typeof b.text === "string") badge = b.text;
+        else for (const k in x) findBadge(x[k]);
+      };
+      findBadge(lockup.contentImage);
+      videos.push({ videoId: lockup.contentId, title: typeof title === "string" ? title : "", seconds: lengthOf(badge) });
+      return;
+    }
+    const token = j.continuationItemRenderer?.continuationEndpoint?.continuationCommand?.token;
+    if (typeof token === "string") next = token;
+    for (const k in j) walk(j[k]);
+  };
+  walk(data);
+  return { videos, next };
+}
+async function lookUpPlaylist(playlistId) {
+  const page = await (await get(`https://www.youtube.com/playlist?list=${playlistId}`, { headers: HEADERS })).text();
+  if (page.includes('action="https://consent.youtube.com/s"')) throw new YouTubeRefused("YouTube asked for cookie consent.");
+  const raw = page.match(/var ytInitialData = (\{.*?\});<\/script>/s)?.[1];
+  if (!raw) throw new YouTubeRefused("The playlist page did not have its list in it.");
+  const data = JSON.parse(raw);
+  const title = data.metadata?.playlistMetadataRenderer?.title;
+  const first = readItems(data);
+  if (!first.videos.length && page.includes('"alerts"')) throw new YouTubeNotFound("That playlist is empty, private or gone.");
+  const videos = [...first.videos];
+  let next = first.next;
+  const key = page.match(/"INNERTUBE_API_KEY":\s*"([A-Za-z0-9_-]+)"/)?.[1];
+  const version = page.match(/"INNERTUBE_CLIENT_VERSION":\s*"([\d.]+)"/)?.[1];
+  for (let pages = 0; next && key && version && pages < 5; pages++) {
+    const res = await get(`https://www.youtube.com/youtubei/v1/browse?key=${key}`, {
+      method: "POST",
+      headers: { ...HEADERS, "Content-Type": "application/json" },
+      body: JSON.stringify({ context: { client: { clientName: "WEB", clientVersion: version } }, continuation: next })
+    });
+    const more = readItems(await res.json());
+    videos.push(...more.videos);
+    next = more.next;
+  }
+  const seen = /* @__PURE__ */ new Set();
+  return {
+    playlistId,
+    title: typeof title === "string" ? title : "A playlist",
+    videos: videos.filter((v) => !seen.has(v.videoId) && seen.add(v.videoId)),
+    more: !!next
+  };
+}
+
+// server/src/http/routes/videos.ts
+function videoRoutes({ auth, clock, trustProxy, log }) {
+  const routes = new Hono5();
+  const session = requireSession(auth, { trustProxy, clock });
+  const lookups = new RateLimiter(60, 60 * 6e4, clock);
+  routes.get("/youtube/:id", session, async (c) => {
+    const id = c.req.param("id");
+    if (!VIDEO_ID.test(id)) throw new ValidationError("That is not a YouTube video id.");
+    lookups.consume(c.get("session").user.id);
+    let found;
+    try {
+      found = await lookUpVideo(id);
+    } catch (err) {
+      if (err instanceof YouTubeNotFound) throw new AppError("not_found", err.message);
+      const why = err instanceof Error ? err.message : String(err);
+      log(`videos: YouTube lookup of ${id} failed: ${why}`);
+      throw new AppError(
+        "unavailable",
+        err instanceof YouTubeRefused ? `YouTube would not give this server the captions (${why}). Paste the text instead, or add it from the home computer.` : `YouTube did not answer (${why}). Try again, or paste the text.`
+      );
+    }
+    c.header("Cache-Control", "private, max-age=86400");
+    return c.json(found);
+  });
+  routes.get("/playlist/:id", session, async (c) => {
+    const id = c.req.param("id");
+    if (!PLAYLIST_ID.test(id)) throw new ValidationError("That is not a YouTube playlist id.");
+    lookups.consume(c.get("session").user.id);
+    try {
+      const found = await lookUpPlaylist(id);
+      c.header("Cache-Control", "private, max-age=3600");
+      return c.json(found);
+    } catch (err) {
+      if (err instanceof YouTubeNotFound) throw new AppError("not_found", err.message);
+      const why = err instanceof Error ? err.message : String(err);
+      log(`videos: YouTube playlist ${id} failed: ${why}`);
+      throw new AppError("unavailable", `YouTube would not list that playlist here (${why}).`);
+    }
+  });
+  return routes;
+}
+
+// server/src/http/routes/workspace.ts
+import { Hono as Hono6 } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { z as z4 } from "zod";
 
@@ -889,7 +1180,7 @@ var saveRequest2 = z4.object({
   document: z4.record(z4.string(), z4.unknown())
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
-  const routes = new Hono5();
+  const routes = new Hono6();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -930,9 +1221,9 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Hono as Hono6 } from "hono";
+import { Hono as Hono7 } from "hono";
 function staticSite(root) {
-  const site = new Hono6();
+  const site = new Hono7();
   const index = join(root, "index.html");
   site.use("*", caching());
   site.use("*", serveStatic({ root }));
@@ -970,7 +1261,7 @@ function createHttpApp(services, options) {
     devUserCreate: options.devUserCreate ?? true,
     log: options.log
   };
-  const api = new Hono7();
+  const api = new Hono8();
   api.onError(onError);
   api.use("*", sameOriginOnly());
   api.get("/health", (c) => c.json({ ok: true }));
@@ -979,10 +1270,11 @@ function createHttpApp(services, options) {
   api.route("/workspace", workspaceRoutes(deps));
   api.route("/speech", speechRoutes(deps));
   api.route("/talk", talkRoutes(deps));
+  api.route("/videos", videoRoutes(deps));
   api.all("*", () => {
     throw new NotFoundError("That API route");
   });
-  const app = new Hono7();
+  const app = new Hono8();
   app.onError(onError);
   if (options.compress !== false) app.use("*", compress());
   app.use(
@@ -992,11 +1284,13 @@ function createHttpApp(services, options) {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", "data:", "blob:"],
+        // Video thumbnails on the Videos shelf.
+        imgSrc: ["'self'", "data:", "blob:", "https://i.ytimg.com"],
         fontSrc: ["'self'", "data:"],
         connectSrc: ["'self'"],
-        // The worksheet preview is the PDF itself, in a frame, from a blob.
-        frameSrc: ["'self'", "blob:"],
+        // The worksheet preview is the PDF itself, in a frame, from a blob; a
+        // video being studied is YouTube's own player, in a frame.
+        frameSrc: ["'self'", "blob:", "https://www.youtube-nocookie.com"],
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
         formAction: ["'self'"],
@@ -1396,8 +1690,9 @@ var PostgresWorkspaceRepository = class {
     ) : await this.db.query(
       `UPDATE workspaces
              SET document = $1, updated_at = $2, revision = revision + 1
-             WHERE user_id = $3 AND revision = $4`,
-      [json, at, userId, baseRevision]
+             WHERE user_id = $3 AND revision = $4
+               AND COALESCE((document::jsonb ->> 'version')::int, 0) <= $5`,
+      [json, at, userId, baseRevision, document.version]
     );
     if (result.rowCount === 1) {
       return { saved: true, revision: baseRevision + 1, updatedAt: at };

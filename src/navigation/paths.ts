@@ -20,6 +20,10 @@ export type ReadMode = 'single' | 'all';
 
 export type DrillId = 'recognise' | 'sound' | 'tone' | 'confuse' | 'write' | 'word';
 
+/** What is being done with a video: its tabs. */
+export type VideoStep = 'watch' | 'write' | 'check' | 'words' | 'study' | 'ask' | 'say';
+export const VIDEO_STEPS: readonly VideoStep[] = ['watch', 'write', 'check', 'words', 'study', 'ask', 'say'];
+
 export const paths = {
   login: (next?: string, expired = false) =>
     withQuery('/login', { next: next && next !== '/' ? next : undefined, expired: expired ? '1' : undefined }),
@@ -79,14 +83,23 @@ export const paths = {
   /** one sound lesson: how it is made, telling it apart, saying it */
   speakingSounds: (lesson: string, step?: 'hear' | 'say') =>
     withQuery(`/speaking/sounds/${encodeURIComponent(lesson)}`, { step }),
-  /** saying sentences along with a natural voice */
-  speakingShadow: () => '/speaking/shadow',
   /** setting a conversation up: what to talk about, and who talks back */
   speakingNew: () => '/speaking/new',
   /** a conversation already under way, by its id */
   speakingTalk: (id: string) => `/speaking/${encodeURIComponent(id)}`,
   /** the microphone, the voice range, and whether speech recognition works here */
   speakingVoice: () => '/speaking/voice',
+
+  /** the videos being studied, with how well each fits */
+  videos: () => '/videos',
+  /** adding a video: from a link, which may come already filled in */
+  addVideo: (url?: string) => withQuery('/videos/add', { url }),
+  /** one video, at a part (0-based here, 1-based in the address) and a step */
+  video: (id: string, at: { part?: number; step?: VideoStep } = {}) =>
+    withQuery(`/videos/${encodeURIComponent(id)}`, {
+      part: at.part ? String(at.part + 1) : undefined,
+      do: at.step && at.step !== 'watch' ? at.step : undefined,
+    }),
 
   settings: () => '/settings',
 };

@@ -29,8 +29,7 @@ export interface TallyLike {
 export type SpotTarget =
   | { kind: 'practice'; set: string }
   | { kind: 'sound'; lesson: string; step: 'hear' | 'say' }
-  | { kind: 'drill'; drill: 'tone' }
-  | { kind: 'shadow' };
+  | { kind: 'drill'; drill: 'tone' };
 
 export interface WeakSpot {
   /** stable across renders: "pair:3-3", "hear:jqx", "chars" */
@@ -116,10 +115,22 @@ function exercises(): WeakSpot[] {
 /** How many of a character's missed readings make it one worth practising. */
 const MISSED_READINGS = 2;
 
+/** Mix-ups found in the notebook, by sound lesson (see `notebookConfusions`). */
+export interface NotebookMixUp {
+  lesson: string;
+  count: number;
+  /** "zh written as j" */
+  examples: string[];
+}
+
+/** How many times a sound has to be written wrong before it counts as a spot. */
+const NOTEBOOK_MIN = 2;
+
 export function weakSpots(
   tallies: Record<string, TallyLike>,
   book: RecallBook,
   lib: Library,
+  notebook: readonly NotebookMixUp[] = [],
 ): WeakSpotReport {
   const weak: WeakSpot[] = [];
   const untried: WeakSpot[] = [];
@@ -155,6 +166,21 @@ export function weakSpots(
       tries: missed.reduce((n, x) => n + x.lapses, 0),
       chars: missed.slice(0, 8).map((x) => x.char),
       target: { kind: 'drill', drill: 'tone' },
+    });
+  }
+
+  // From the notebook: sounds written down wrong from videos, the ear's own
+  // evidence. They go to the lesson on telling those sounds apart.
+  for (const n of notebook) {
+    const lesson = SOUND_LESSONS.find((l) => l.id === n.lesson);
+    if (!lesson || n.count < NOTEBOOK_MIN) continue;
+    weak.push({
+      id: `notebook:${lesson.id}`,
+      title: `${lesson.mark}: in your notebook`,
+      detail: n.examples.join('; '),
+      score: null,
+      tries: n.count,
+      target: { kind: 'sound', lesson: lesson.id, step: 'hear' },
     });
   }
 

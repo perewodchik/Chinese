@@ -1,6 +1,5 @@
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router';
-import { calendar, streakOf, type CalendarDay } from '../../domain/activity';
 import { reviewPool, summarise } from '../../domain/drill';
 import { SKILLS } from '../../domain/memory';
 import { bandName, progressOf } from '../../domain/progress';
@@ -19,7 +18,8 @@ import { paths } from '../../navigation/paths';
 import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { useTitle } from '../../ui/useTitle';
-import { useSaidLog } from '../pinyin/progress';
+import { calendar, dayKey, streakOf, type CalendarDay } from '../../domain/activity';
+import { latestChecks, nextPart, touchedAt } from '../../domain/video';
 import { usePinyinMemory } from '../pinyin/voice';
 import { spotPath, useWeakSpots, WeakSpotsCard } from '../pinyin/WeakSpots';
 import { nextSitting } from '../review/drills';
@@ -68,7 +68,7 @@ export function TodayPage() {
   const activity = useStore((s) => s.activity);
   const perDay = useStore((s) => s.settings.newWordsPerDay);
   const tallies = usePinyinMemory().tallies;
-  const said = useSaidLog();
+  const videos = useStore((s) => s.videos);
   const spots = useWeakSpots();
 
   // "Today" is fixed when the page opens, which is when a plan for the day is
@@ -88,13 +88,15 @@ export function TodayPage() {
       started: startedSince(recall, today),
       read: readSince(texts, today),
       next: nextReading(texts, sets),
-      spoken: said.filter((s) => s.at >= today).length,
+      videoToday: activity[dayKey(now)]?.videos ?? 0,
+      // The video in hand: the one being worked on that was touched last.
+      video: [...videos].filter((v) => v.status === 'working').sort((a, b) => touchedAt(b) - touchedAt(a))[0] ?? null,
       practised: Object.values(tallies).some((t) => (t.last ?? 0) >= today),
       progress: progressOf(lib, recall, learned, sheets, now),
       readWeek: readSince(texts, weekStart),
-      saidWeek: said.filter((s) => s.at >= weekStart).length,
+      checkedWeek: videos.reduce((n, v) => n + v.checks.filter((c) => c.at >= weekStart).length, 0),
     };
-  }, [lib, recall, learned, sheets, collections, perDay, now, today, weekStart, texts, sets, said, tallies]);
+  }, [lib, recall, learned, sheets, collections, perDay, now, today, weekStart, texts, sets, videos, activity, tallies]);
 
   const streak = useMemo(() => streakOf(activity, now), [activity, now]);
   const weeks = useMemo(() => calendar(activity, now, 5), [activity, now]);
@@ -103,6 +105,10 @@ export function TodayPage() {
   const due = plan.charsDue + plan.words.due;
   const spot = spots.weak[0] ?? spots.untried[0] ?? null;
   const band = plan.progress.current;
+
+  const video = plan.video;
+  const videoPart = video ? nextPart(video) : 0;
+  const videoChecked = video ? latestChecks(video).has(videoPart) : false;
 
   const steps: Step[] = [
     {
@@ -189,18 +195,24 @@ export function TodayPage() {
           to: paths.session(),
           action: 'Write texts',
         },
-    {
-      id: 'say',
-      mark: '说',
-      title: 'Say sentences out loud',
-      detail: plan.spoken
-        ? `${plural(plan.spoken, 'sentence')} said today.`
-        : 'Shadow a native speaker, or talk with Claude.',
-      done: plan.spoken > 0,
-      minutes: 5,
-      to: paths.speakingShadow(),
-      action: 'Shadow',
-    },
+    // Only while a video is being worked on: a video is a sitting of its
+    // own, a couple of times a week, not something every day asks for.
+    ...(video
+      ? [
+          {
+            id: 'video',
+            mark: '视',
+            title: `Your video: ${video.title}`,
+            detail: plan.videoToday
+              ? 'Worked on today.'
+              : `${video.parts.length > 1 ? `Part ${videoPart + 1}: ` : ''}${videoChecked ? 'write it out again and check it' : 'write it out in your notebook and check it'}.`,
+            done: plan.videoToday > 0,
+            minutes: 20,
+            to: paths.video(video.id, { part: videoPart, step: 'write' }),
+            action: 'Open',
+          },
+        ]
+      : []),
   ];
 
   const left = steps.filter((s) => !s.done);
@@ -267,7 +279,8 @@ export function TodayPage() {
             ))}
           </ol>
           <p className="tiny muted today-aside">
-            Rather talk? <Link to={paths.speakingNew()}>Have a conversation with Claude</Link> instead of shadowing.
+            Rather talk? <Link to={paths.speakingNew()}>Have a conversation with Claude</Link>, or{' '}
+            <Link to={paths.videos()}>work on a video</Link>.
           </p>
 
           <ReviewSection />
@@ -278,7 +291,7 @@ export function TodayPage() {
             <h2 className="today-label">Your days</h2>
             <Calendar weeks={weeks} />
             <p className="tiny muted" style={{ margin: '8px 0 0' }}>
-              A day fills in when you review, read or practise out loud. Darker is more.
+              A day fills in when you review, read, practise out loud or work on a video. Darker is more.
             </p>
           </section>
 
@@ -298,8 +311,8 @@ export function TodayPage() {
               <dd>new characters started</dd>
               <dt>{plan.readWeek}</dt>
               <dd>{plan.readWeek === 1 ? 'text' : 'texts'} read</dd>
-              <dt>{plan.saidWeek}</dt>
-              <dd>{plan.saidWeek === 1 ? 'sentence' : 'sentences'} said out loud</dd>
+              <dt>{plan.checkedWeek}</dt>
+              <dd>{plan.checkedWeek === 1 ? 'video part' : 'video parts'} checked in the notebook</dd>
             </dl>
           </section>
         </aside>
@@ -359,7 +372,7 @@ function Calendar({ weeks }: { weeks: CalendarDay[][] }) {
                 d.future
                   ? undefined
                   : d.log
-                    ? `${d.key}: ${d.log.answers} answers, ${d.log.spoken} said, ${d.log.read} read`
+                    ? `${d.key}: ${d.log.answers} answers, ${d.log.spoken} said, ${d.log.read} read${d.log.videos ? `, ${d.log.videos} on videos` : ''}`
                     : `${d.key}: nothing`
               }
             >

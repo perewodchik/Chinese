@@ -4,6 +4,7 @@ import type { ItemId } from '../domain/ids';
 import type { PrintedSheet, RecallBook } from '../domain/memory';
 import type { PaletteId, StyleId } from '../domain/sheet';
 import type { GeneratedText, TextPlan, TextSet } from '../domain/text';
+import type { Video } from '../domain/video';
 import type { WordListPlan } from '../domain/wordlist';
 import { emptyRadicals, type RadicalState } from './radicalState';
 
@@ -101,9 +102,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
  * save, which is why the server refuses a save older than what it holds.
  *
  * 8: `activity`, what was done on each day, for the streak and the calendar.
+ *
+ * 9: `videos`, the videos being studied. A build before it would drop them
+ * on its next save; the version is what makes the server refuse that save.
  */
 export interface PersistedState {
-  version: 8;
+  version: 9;
   collections: Collection[];
   /**
    * What the app knows about your memory, by item.
@@ -127,6 +131,8 @@ export interface PersistedState {
   settings: AppSettings;
   /** what was done on each day; absent before version 8 */
   activity?: Activity;
+  /** the videos being studied; absent before version 9 */
+  videos?: Video[];
 }
 
 export interface AppState {
@@ -145,6 +151,8 @@ export interface AppState {
   settings: AppSettings;
   /** what was done on each day, by local date */
   activity: Activity;
+  /** the videos on the Videos shelf, newest first */
+  videos: Video[];
 }
 
 export const emptyState = (): AppState => ({
@@ -159,4 +167,5 @@ export const emptyState = (): AppState => ({
   radicals: emptyRadicals(),
   settings: { ...DEFAULT_SETTINGS },
   activity: {},
+  videos: [],
 });

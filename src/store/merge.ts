@@ -1,4 +1,5 @@
 import { mergeActivity } from '../domain/activity';
+import { mergeVideo } from '../domain/video';
 import { learnedFrom, SKILLS, type RecallBook, type SkillBook } from '../domain/memory';
 import { mergeRadicals } from './radicalState';
 import type { AppState } from './state';
@@ -33,6 +34,7 @@ export function mergeStates(account: AppState, incoming: AppState): AppState {
     listPlan: account.listPlan ?? incoming.listPlan,
     radicals: mergeRadicals(account.radicals, incoming.radicals),
     activity: mergeActivity(account.activity, incoming.activity),
+    videos: union(account.videos, incoming.videos, mergeVideo).sort((a, b) => b.added - a.added),
   };
 }
 

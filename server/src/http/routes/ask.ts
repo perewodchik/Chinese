@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import {
@@ -48,11 +49,36 @@ export function askRoutes({ auth, clock, trustProxy, tutor }: RouteDeps) {
     return c.json(body);
   });
 
+  // A video's study pack takes minutes, and the page that asked may be left
+  // or reloaded in the meantime. The answer is kept for an hour by who asked
+  // and what, and a second ask for the same while the first is still running
+  // waits for it instead of starting Claude again.
+  const kept = new Map<string, { at: number; answer: Promise<string> }>();
+  const KEEP_MS = 60 * 60_000;
+
   routes.post('/', session, async (c) => {
     if (!tutor) throw new TutorUnavailableError('Claude Code is not installed on this server.');
     const input = await readJson(c, askRequest);
-    (input.kind === 'check' ? checks : asks).consume(c.get('session').user.id);
-    const text = await tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind as AskKind] });
+    const user = c.get('session').user.id;
+    const run = () => tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind as AskKind] });
+    let text: string;
+    if (input.kind === 'video') {
+      const key = createHash('sha256').update(`${user}\n${input.prompt}`).digest('hex');
+      const now = clock.now();
+      for (const [k, v] of kept) if (now - v.at > KEEP_MS) kept.delete(k);
+      let entry = kept.get(key);
+      if (!entry) {
+        asks.consume(user);
+        entry = { at: now, answer: run() };
+        kept.set(key, entry);
+        // A failed run is not kept: asking again should try again.
+        entry.answer.catch(() => kept.delete(key));
+      }
+      text = await entry.answer;
+    } else {
+      (input.kind === 'check' ? checks : asks).consume(user);
+      text = await run();
+    }
     const body: AskAnswer = { text };
     c.header('Cache-Control', 'no-store');
     return c.json(body);

@@ -83,7 +83,7 @@ describe('the day’s tally', () => {
       at,
       add: { spoken: 2 },
     });
-    assert.deepEqual(state.activity['2026-09-24'], { answers: 2, right: 1, read: 0, spoken: 2 });
+    assert.deepEqual(state.activity['2026-09-24'], { answers: 2, right: 1, read: 0, spoken: 2, videos: 0 });
     const loaded = hydrate(JSON.parse(JSON.stringify(serialise(state))));
     assert.deepEqual(loaded.activity, state.activity);
   });
