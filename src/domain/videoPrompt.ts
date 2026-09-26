@@ -58,6 +58,7 @@ const SOURCE: Record<Video['textFrom'], string> = {
   pasted: 'pasted in by me',
   waiting: 'none yet',
   none: 'none — the video has none',
+  transcribed: 'transcribed from the audio by Gemini — it may have mistakes',
 };
 
 function about(v: Video, part: number): string[] {

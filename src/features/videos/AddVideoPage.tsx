@@ -23,6 +23,7 @@ import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { FitChips, newWordsLine } from './FitChips';
 import { useFit } from './hooks';
+import { TranscribeBox } from './TranscribeBox';
 import './videos.css';
 
 type Look =
@@ -181,6 +182,16 @@ export function AddVideoPage() {
             )}
           </div>
         </div>
+      )}
+
+      {needsText && id && !already?.lines.length && (
+        <TranscribeBox
+          video={look.state === 'found' ? videoFromLookup(look.found, lib, now) : waitingVideo(id, now)}
+          onLines={(lines, parts) => {
+            const base = look.state === 'found' ? videoFromLookup(look.found, lib, Date.now()) : waitingVideo(id, Date.now());
+            add({ ...base, lines, parts, textFrom: 'transcribed' });
+          }}
+        />
       )}
 
       {pasting && (

@@ -180,7 +180,7 @@ function VideoCard({ video: v, fit }: { video: Video; fit: VideoFit | null }) {
         </span>
         <FitChips fit={fit} compact />
         <span className="tiny muted">
-          {v.textFrom === 'waiting' ? 'Waiting for its text' : v.textFrom === 'none' ? 'Needs its text pasted in' : newWordsLine(fit)}
+          {v.textFrom === 'waiting' ? 'Waiting for its text' : v.textFrom === 'none' ? 'Needs its text: open it to get it from Gemini' : newWordsLine(fit)}
         </span>
         {v.parts.length > 0 && (
           <span className="part-dots" aria-label="Parts checked in the notebook">

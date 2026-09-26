@@ -25,6 +25,7 @@ import { FitChips } from './FitChips';
 import { useFit } from './hooks';
 import { SayStep } from './SayStep';
 import { StudyStep } from './StudyStep';
+import { TranscribeBox } from './TranscribeBox';
 import { WatchStep } from './WatchStep';
 import { WordsStep } from './WordsStep';
 import { WriteStep } from './WriteStep';
@@ -161,6 +162,7 @@ export function VideoPage() {
           {[v.channel, v.seconds ? clock(v.seconds) : null, `${v.lines.length} lines`].filter(Boolean).join(' · ')}
           {v.textFrom === 'captions-auto' && ' · automatic captions, may have mistakes'}
           {v.textFrom === 'pasted' && ' · text pasted in'}
+          {v.textFrom === 'transcribed' && ' · transcribed by Gemini, may have mistakes'}
         </p>
 
         <div className="video-bar">
@@ -223,14 +225,20 @@ export function VideoPage() {
         )}
 
         {!v.lines.length ? (
-          <div className="empty">
-            <div className="big hanzi">字</div>
-            <p>This video has no text yet, so there is nothing to write out or check.</p>
-            {youTube && (
-              <Link className="btn" to={paths.addVideo(`https://youtu.be/${youTube}`)}>
-                Paste its text
-              </Link>
-            )}
+          <div className="video-step">
+            <p className="small muted" style={{ margin: 0 }}>
+              This video has no Chinese text yet, so there is nothing to write out or check.
+              {youTube && (
+                <>
+                  {' '}
+                  You can also <Link to={paths.addVideo(`https://youtu.be/${youTube}`)}>paste a text you have</Link>.
+                </>
+              )}
+            </p>
+            <TranscribeBox
+              video={v}
+              onLines={(lines, parts) => addVideo({ ...v, lines, parts, textFrom: 'transcribed', updatedAt: Date.now() })}
+            />
           </div>
         ) : step === 'watch' ? (
           <WatchStep />

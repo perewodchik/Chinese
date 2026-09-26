@@ -43,8 +43,10 @@ export interface VideoLine {
  *   video was added from, and the next device that can fetch it will
  * - `none` — the video has no Chinese captions at all (the text is burned
  *   into the picture): it has to be pasted in
+ * - `transcribed` — Gemini listened to it (see transcribePrompt.ts): good,
+ *   but a machine's hearing
  */
-export type VideoTextFrom = 'captions' | 'captions-auto' | 'pasted' | 'waiting' | 'none';
+export type VideoTextFrom = 'captions' | 'captions-auto' | 'pasted' | 'waiting' | 'none' | 'transcribed';
 
 export type VideoStatus = 'want' | 'working' | 'done' | 'shelved';
 
@@ -586,7 +588,7 @@ export function videoFrom(raw: unknown): Video | null {
     .filter((p) => p.from >= 0 && p.to > p.from && p.to <= lines.length);
   const marks = (v.marks ?? {}) as Loose;
   const status = VIDEO_STATUSES.some((s) => s.id === v.status) ? (v.status as VideoStatus) : 'want';
-  const stored = ['captions', 'captions-auto', 'pasted', 'waiting', 'none'].includes(v.textFrom as string)
+  const stored = ['captions', 'captions-auto', 'pasted', 'waiting', 'none', 'transcribed'].includes(v.textFrom as string)
     ? (v.textFrom as VideoTextFrom)
     : null;
   // Captions that yielded no Chinese line were not Chinese captions.

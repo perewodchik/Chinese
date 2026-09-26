@@ -1299,3 +1299,8 @@ span.check-n {
 .video-playlist-list li span + span {
   margin-left: 8px;
 }
+
+.transcribe-box .body {
+  display: grid;
+  gap: 10px;
+}

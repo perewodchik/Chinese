@@ -20,6 +20,7 @@ import {
 import { videoFit } from './videoFit';
 import { readFixedPinyin, readPack } from './videoPack';
 import { packPrompt } from './videoPrompt';
+import { geminiPrompt } from './transcribePrompt';
 import { wordKnowledge } from './words';
 
 const read = <T,>(p: string): T => JSON.parse(readFileSync(new URL(`../../${p}`, import.meta.url), 'utf8')) as T;
@@ -243,6 +244,33 @@ describe('the study pack', () => {
   it('reads a corrected pinyin line', () => {
     assert.equal(readFixedPinyin('māo zài nǎ r?\nThe 儿 is…', '猫在哪儿'), 'māo zài nǎ r');
     assert.equal(readFixedPinyin('māo zài', '猫在哪儿'), null);
+  });
+});
+
+describe('transcribing with Gemini', () => {
+  it('asks for SRT at the English captions’ times, and reads the answer back', () => {
+    const p = geminiPrompt({
+      url: 'https://www.youtube.com/watch?v=TC1szxmbrqg',
+      title: '猫在哪儿',
+      seconds: 279,
+      english: [
+        { at: 1, end: 6.3, text: 'We have a cat at home.' },
+        { at: 6.3, end: 11.4, text: 'The cat is sometimes inside' },
+      ],
+    });
+    assert.match(p, /00:00:01,000 --> 00:00:06,300/);
+    assert.match(p, /exactly one Chinese line for each caption/);
+    assert.match(p, /No pinyin, no English/);
+    const answer =
+      'Here is the transcript:\n```srt\n1\n00:00:01,000 --> 00:00:06,300\n我家有一只猫。\n\n2\n00:00:06,300 --> 00:00:11,400\n猫有时候在房子里，\n\n3\n00:00:11,400 --> 00:00:12,000\n[-]\n```';
+    const lines = linesFromText(answer, lib());
+    assert.deepEqual(
+      lines.map((l) => [l.at, l.zh]),
+      [
+        [1, '我家有一只猫。'],
+        [6.3, '猫有时候在房子里，'],
+      ],
+    );
   });
 });
 
