@@ -17,6 +17,7 @@ up later without re-deciding it.
 |---|---|---|
 | C framework | `src/games/` (types, registry, kit, README, `_template/`), `/play`, `/play/:gameId` | Results in the synced store as `play` (`src/domain/play.ts`); never scheduled. |
 | C games | where-is-it, pairs, listen, compound, build-char, measure-words, clock, shop, family, opposites, colours, sentence-train | All 12 of C.4, each with a seeded content test. **Tap-to-place instead of drag** for build-char, sentence-train, shop (coins) and family (pick a name) — easier for a finger on an iPad; true drag is in where-is-it. 个 is never offered as a wrong measure word (it is never really wrong). Compound words whose parts show the same photo as the whole (衣服) are left out. |
+| C.4.13 ordering | planned 2026-09-27: `docs/ordering-game/prompt.md` | Seven brand mini-apps; phase 1 is the kit plus 瑞幸咖啡. Not built yet. |
 | D.1 scenes | `domain/story.ts` (`scenesOf`), `reader/SceneView.tsx`, **Pictures** toggle on a passage spec | Ten drawn rooms; things are word photos; unknown words dropped. |
 | D.2 choose-your-path | genre `branching`, `story` in the passage JSON, `reader/StoryPath.tsx` | Lines carry their node, so coverage, read-aloud and the word drawer work unchanged. Endings kept on the text (`endings`), merged across devices; reaching one marks the passage read. |
 | D.3 comics | `reader/Comic.tsx`, **Comic** chip in the reader (per device) | Dialogues ask the writer for `who` per line. |
@@ -248,7 +249,8 @@ is checked, and what makes it done.
   the other side from 4 cards.
 
 #### C.4.13 点单 — Ordering in Chinese mini-apps
-- **Plan**: `docs/ordering-game/plan.md`; brand research in
+- **Plan**: `docs/ordering-game/plan.md`; builder prompt in
+  `docs/ordering-game/prompt.md`; brand research in
   `docs/ordering-game/brands.md`.
 - **Material**: real brands' WeChat mini-programs (瑞幸咖啡 first; then
   蜜雪冰城, 外婆家, 点都德, 马记永, 喜家德, 海底捞): their menus, option groups,
