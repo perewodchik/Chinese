@@ -17,7 +17,12 @@ Writes:
 
 Resizing uses `sips`, which every Mac has — no Python packages needed.
 
-Run: python3 scripts/images/build.py
+With --set menu it ships the ordering games' menu photos instead:
+public/images/menu/<key>.jpg, public/images/menu/CREDITS.md and
+src/data/menuPictures.json (photo key -> size and credit), chosen by
+scripts/images/menu-picks.json.
+
+Run: python3 scripts/images/build.py [--set menu]
 """
 
 import json
@@ -29,10 +34,11 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, HERE)
-from fetch import CACHE, DOWNLOAD_EVERY, THUMB, get, slug  # noqa: E402
+from fetch import CACHE, DOWNLOAD_EVERY, SET, THUMB, get, menu_concepts, slug  # noqa: E402
 
-OUT = os.path.join(ROOT, "public", "images", "words")
-MANIFEST = os.path.join(ROOT, "src", "data", "pictures.json")
+MENU = SET == "menu"
+OUT = os.path.join(ROOT, "public", "images", "menu" if MENU else "words")
+MANIFEST = os.path.join(ROOT, "src", "data", "menuPictures.json" if MENU else "pictures.json")
 EDGE = 440
 # Candidates are fetched small, to be chosen between; the one chosen is
 # fetched again at this width, which is sharp in the drawer on an iPad.
@@ -54,13 +60,14 @@ def load(name):
 def main():
     words = load("words.json")
     parts_map = load("parts.json")
-    picks = load("picks.json") if os.path.exists(os.path.join(HERE, "picks.json")) else {}
+    picks_name = "menu-picks.json" if MENU else "picks.json"
+    picks = load(picks_name) if os.path.exists(os.path.join(HERE, picks_name)) else {}
 
     os.makedirs(OUT, exist_ok=True)
     shipped = {}  # slug -> credit
 
-    def ship(query):
-        s = slug(query)
+    def ship(query, name=None):
+        s = name or slug(query)
         if s in shipped:
             return s if shipped[s] else None
         meta = os.path.join(CACHE, s, "candidates.json")
@@ -100,6 +107,11 @@ def main():
         return s
 
     manifest_words = {}
+    if MENU:
+        # the menu photos are looked up by their key, and there are no words
+        for key, query in menu_concepts().items():
+            ship(query, key)
+        words = {}
     for w, v in words.items():
         entry = {}
         if v[0]:
@@ -122,8 +134,8 @@ def main():
     pictures = {s: {"w": c["w"], "h": c["h"], "by": c["artist"], "lic": c["license"], "src": c["page"]}
                 for s, c in shipped.items() if c}
     with open(MANIFEST, "w", encoding="utf-8") as f:
-        json.dump({"version": 1, "pictures": pictures, "words": manifest_words}, f, ensure_ascii=False,
-                  separators=(",", ":"))
+        manifest = {"version": 1, "pictures": pictures} if MENU else {"version": 1, "pictures": pictures, "words": manifest_words}
+        json.dump(manifest, f, ensure_ascii=False, separators=(",", ":"))
 
     # drop pictures no longer chosen
     keep = {f"{s}.jpg" for s in pictures}
@@ -132,7 +144,7 @@ def main():
             os.remove(os.path.join(OUT, name))
 
     lines = [
-        "# Word pictures — credits",
+        "# Menu photos — credits" if MENU else "# Word pictures — credits",
         "",
         "Photos from Wikimedia Commons (found through Wikidata and Commons search by",
         "`scripts/images/fetch.py`), resized. Each is used under the licence named here;",
@@ -151,6 +163,9 @@ def main():
         f.write("\n".join(lines) + "\n")
 
     size = sum(os.path.getsize(os.path.join(OUT, n)) for n in os.listdir(OUT) if n.endswith(".jpg"))
+    if MENU:
+        print(f"{len(pictures)} menu photos ({size // 1024} KB) -> {MANIFEST}")
+        return
     with_img = sum(1 for e in manifest_words.values() if "img" in e)
     print(f"{len(pictures)} pictures ({size // 1024} KB), {with_img} words with a picture, "
           f"{sum(1 for e in manifest_words.values() if 'parts' in e)} compounds -> {MANIFEST}")

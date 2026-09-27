@@ -8,7 +8,10 @@ scripts/images/picks.json outlined. With the dev server running it opens at
 http://localhost:5173/@fs/<project>/.cache/images/review.html. Write the
 numbers into picks.json (-1 for "none of these") and run build.py.
 
-Run: python3 scripts/images/review.py [--todo] [--from N] [--count N]
+With --set menu it lays out the menu photos instead (.cache/images/menu/
+review.html; choices go in scripts/images/menu-picks.json).
+
+Run: python3 scripts/images/review.py [--set menu] [--todo] [--from N] [--count N]
 """
 
 import html
@@ -18,7 +21,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from fetch import CACHE, concepts, slug  # noqa: E402
+from fetch import CACHE, SET, concepts, menu_concepts, slug  # noqa: E402
 
 
 def main():
@@ -27,7 +30,7 @@ def main():
     count = int(args[args.index("--count") + 1]) if "--count" in args else 10_000
     words = json.load(open(os.path.join(HERE, "words.json"), encoding="utf-8"))
     parts = json.load(open(os.path.join(HERE, "parts.json"), encoding="utf-8"))
-    picks_path = os.path.join(HERE, "picks.json")
+    picks_path = os.path.join(HERE, "picks.json" if SET == "words" else "menu-picks.json")
     picks = json.load(open(picks_path, encoding="utf-8")) if os.path.exists(picks_path) else {}
 
     used = {}
@@ -39,6 +42,11 @@ def main():
             used.setdefault(slug(q), []).append(f"({g})")
 
     listed = list(enumerate(concepts()))
+    if SET == "menu":
+        # cached by photo key; show the key where the words set shows the words
+        keyed = menu_concepts()
+        used = {k: [q] for k, q in keyed.items()}
+        listed = list(enumerate(keyed.keys()))
     if "--todo" in args:
         # only what has candidates and no choice yet
         listed = [(n, q) for n, q in listed if slug(q) not in picks

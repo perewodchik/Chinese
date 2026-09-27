@@ -17,7 +17,11 @@ scripts/images/build.py to ship. Resumable: a concept with candidates already
 saved is skipped. Thumbnail renders are rate-limited, so downloads are one
 every few seconds and back off on 429.
 
-Run: python3 scripts/images/fetch.py [--only slug,slug] [--refresh]
+With --set menu it does the same for the ordering games' menu photos:
+scripts/images/menu.json (photo key -> query), cached under
+.cache/images/menu/<key>/, one download every three seconds.
+
+Run: python3 scripts/images/fetch.py [--set menu] [--only slug,slug] [--refresh]
 """
 
 import html
@@ -31,14 +35,18 @@ import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 HERE = os.path.dirname(os.path.abspath(__file__))
-CACHE = os.path.join(ROOT, ".cache", "images")
+# which set of pictures: the word pictures, or the menu photos (--set menu)
+SET = sys.argv[sys.argv.index("--set") + 1] if "--set" in sys.argv else "words"
+if SET not in ("words", "menu"):
+    raise SystemExit(f"unknown set {SET!r}: words or menu")
+CACHE = os.path.join(ROOT, ".cache", "images") if SET == "words" else os.path.join(ROOT, ".cache", "images", "menu")
 UA = "HanziWorkshop/1.0 (personal Chinese study app; image picker) python-urllib"
 MAX = 4
 # A standard thumbnail step on Wikimedia. Thumbnails that are not cached yet
 # are rendered on request, and those renders are rate-limited per address —
 # hence one download every few seconds.
 THUMB = 330
-DOWNLOAD_EVERY = 1.5
+DOWNLOAD_EVERY = 1.5 if SET == "words" else 3.0
 
 OK_MIME = {"image/jpeg", "image/png", "image/webp"}
 # titles that are almost never a photo of the thing itself
@@ -53,7 +61,15 @@ def slug(q):
     return re.sub(r"[^a-z0-9]+", "-", q.lower()).strip("-")
 
 
+def menu_concepts():
+    """The menu photos: photo key -> query, from scripts/images/menu.json."""
+    menu = json.load(open(os.path.join(HERE, "menu.json"), encoding="utf-8"))
+    return {k: v for k, v in menu.items() if k != "_"}
+
+
 def concepts():
+    if SET == "menu":
+        return list(menu_concepts().values())
     words = json.load(open(os.path.join(HERE, "words.json"), encoding="utf-8"))
     parts = json.load(open(os.path.join(HERE, "parts.json"), encoding="utf-8"))
     qs = []
@@ -190,8 +206,8 @@ def candidate(page, source):
     }
 
 
-def fetch(q, lead=None, refresh=False):
-    s = slug(q)
+def fetch(q, lead=None, refresh=False, name=None):
+    s = name or slug(q)
     d = os.path.join(CACHE, s)
     meta_path = os.path.join(d, "candidates.json")
     if os.path.exists(meta_path) and not refresh:
@@ -232,6 +248,8 @@ def main():
     only = None
     if "--only" in args:
         only = set(args[args.index("--only") + 1].split(","))
+    if SET == "menu":
+        return main_menu(only, refresh)
     qs = concepts()
     if only:
         qs = [q for q in qs if slug(q) in only]
@@ -245,6 +263,22 @@ def main():
             print(f"[{i}/{len(qs)}] {q}: {fetch(q, info.get(files.get(q)), refresh)}", flush=True)
         except Exception as e:  # keep going; a rerun picks it up
             print(f"[{i}/{len(qs)}] {q}: FAILED {e}", flush=True)
+
+
+def main_menu(only, refresh):
+    """The menu set: cached by photo key, since the app looks photos up by key."""
+    keys = menu_concepts()
+    if only:
+        keys = {k: q for k, q in keys.items() if k in only}
+    print(f"{len(keys)} menu photos", flush=True)
+    todo = [q for k, q in keys.items() if refresh or not os.path.exists(os.path.join(CACHE, k, "candidates.json"))]
+    files = lead_images(sorted(set(todo)))
+    info = {p.get("title"): p for p in commons_info(sorted(set(files.values())))}
+    for i, (k, q) in enumerate(keys.items(), 1):
+        try:
+            print(f"[{i}/{len(keys)}] {k} ({q}): {fetch(q, info.get(files.get(q)), refresh, name=k)}", flush=True)
+        except Exception as e:  # keep going; a rerun picks it up
+            print(f"[{i}/{len(keys)}] {k}: FAILED {e}", flush=True)
 
 
 if __name__ == "__main__":

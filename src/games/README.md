@@ -54,5 +54,17 @@ the seal. A game never touches the store or the router.
    with reduced motion. Nothing on the stage may move when a prompt is
    answered except what the answer is about.
 
+## The ordering games (`order-kit/`, `order-<brand>/`)
+
+The 点单 games copy real shops' WeChat mini-programs, and are the one
+documented exception to "only HSK material" (R8 in
+`docs/visual-learning/requirements.md`): a menu's words are whatever the real
+app shows — 生椰拿铁, 不另外加糖, 取餐码 — because reading those is the skill.
+Every Chinese string they show has a glossary entry (pinyin, English, a
+note), and a test fails on one that does not. What they report is still only
+HSK words. Inside the phone they look like WeChat, not paper (see
+`order-kit/order-kit.css`). A new brand is a `menu.ts` of plain data plus
+the usual manifest and test; the plan is `docs/ordering-game/plan.md`.
+
 Scoring: a game's result per prompt is right first time, right on the second
 try, or missed. Games never reach the review schedule (see `domain/play.ts`).

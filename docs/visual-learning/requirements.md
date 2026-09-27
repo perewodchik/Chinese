@@ -21,6 +21,7 @@ up later without re-deciding it.
 | D.2 choose-your-path | genre `branching`, `story` in the passage JSON, `reader/StoryPath.tsx` | Lines carry their node, so coverage, read-aloud and the word drawer work unchanged. Endings kept on the text (`endings`), merged across devices; reaching one marks the passage read. |
 | D.3 comics | `reader/Comic.tsx`, **Comic** chip in the reader (per device) | Dialogues ask the writer for `who` per line. |
 | E.1 ink wall | `domain/inkWall.ts`, `library/InkWall.tsx`, in the progress drawer | Characters or words, HSK 1–3, five steps of ink. |
+| C.4.13 ordering | `src/games/order-kit/`, `src/games/order-luckin/` (`/play/order-luckin`) | **Phase 1 (2026-09-27): the kit + 瑞幸咖啡.** Plan and deviations in `docs/ordering-game/plan.md` §12. Menu photos wait for `--set menu` to be run on the Mac (Wikimedia was unreachable from the build container); word photos stand in. |
 | E.2 mouth diagrams | `scripts/mouth/build.py` → `src/data/mouth.json`, `pinyin/MouthDiagrams.tsx` | Tavin's articulation diagrams (CC BY-SA 4.0) for j q x / zh ch sh / z c s; Wright & McCloy's sagittal sections (CC0) for -n / -ng and i / u (ü). r uses the sh tongue. |
 
 ---
@@ -245,6 +246,33 @@ is checked, and what makes it done.
   both halves are on the list).
 - **Mechanic**: a seesaw: one side shows 大 with a picture; drop the opposite on
   the other side from 4 cards.
+
+#### C.4.13 点单 — Ordering in Chinese mini-apps
+- **Plan**: `docs/ordering-game/plan.md`; brand research in
+  `docs/ordering-game/brands.md`.
+- **Material**: real brands' WeChat mini-programs (瑞幸咖啡 first; then
+  蜜雪冰城, 外婆家, 点都德, 马记永, 喜家德, 海底捞): their menus, option groups,
+  checkout and payment screens, in their own words.
+- **Mechanic**: a friend's WeChat message asks for an order; the learner opens
+  the mini-app at its home page, orders, checks out and pays. The order is
+  checked at 去支付 against the facts the message asked for; the friend says
+  what is wrong once; the second miss shows "You ordered / They asked for".
+  A guide beside the phone (the map of screens, every label on this screen,
+  下一步, 拼, a tour) is there for when the learner is lost; help costs the
+  first-try mark.
+- **Two rules relaxed**, on purpose:
+  - **R8 (only HSK words):** menu words are whatever the real app shows
+    (生椰拿铁, 不另外加糖, 取餐码) — that is the point. Every one has a
+    glossary entry (pinyin, English, a note), tested. Results still record
+    only HSK words.
+  - **R5 (design language) inside the phone:** the phone looks like WeChat,
+    not paper — the brand's colour, system sans-serif Chinese, bold prices,
+    red badges — so the eye is trained on the real screens. Scoped under
+    `.ok-app`, with its own dark mode; everything outside it is paper.
+- **Done when** (per brand): every template's task can be solved with the
+  menu (tested over hundreds of seeds); every Chinese string on the phone has
+  a glossary entry (tested); a full game and a browse work at 375×812 and
+  768×1024, light and dark.
 
 Later candidates (not v1): weather board (天气 下雨 雪 晴 阴 热 冷), calendar
 (星期 几月几号 生日), body parts (头 手 眼睛 身体), numbers bingo with native

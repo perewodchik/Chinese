@@ -1,0 +1,15 @@
+{
+  "_": "The ordering games' menu photos: photo key -> Wikipedia title or Commons query. Keys are lower-case slugs, used by the brands' menu.ts (photos) and by the app. Photos of the dish or drink as served; never from the brands' own apps or sites. See scripts/images/README.md.",
+  "latte": "Caffè latte",
+  "iced-latte": "Iced latte",
+  "americano": "Caffè Americano",
+  "iced-coffee": "Iced coffee",
+  "frappe": "Frappé coffee",
+  "tea": "Jasmine tea",
+  "lemon-tea": "Iced lemon tea",
+  "green-juice": "Green juice",
+  "croissant": "Croissant",
+  "sandwich": "Chicken sandwich",
+  "tiramisu": "Tiramisu",
+  "banner": "Coffee shop counter"
+}

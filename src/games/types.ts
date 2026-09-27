@@ -29,7 +29,8 @@ export type GameTopic =
   | 'word-order'
   | 'family'
   | 'colours'
-  | 'opposites';
+  | 'opposites'
+  | 'ordering';
 
 export type GameNeed = 'images' | 'native-audio' | 'drag';
 

@@ -7,6 +7,7 @@ import { family } from './family/manifest';
 import { listen } from './listen/manifest';
 import { measureWords } from './measure-words/manifest';
 import { opposites } from './opposites/manifest';
+import { orderLuckin } from './order-luckin/manifest';
 import { pairs } from './pairs/manifest';
 import { sentenceTrain } from './sentence-train/manifest';
 import { shop } from './shop/manifest';
@@ -16,6 +17,6 @@ import { whereIsIt } from './where-is-it/manifest';
  * Every game there is. Adding one is a folder beside this file and a line
  * here — see README.md. Order is the order of the Play page.
  */
-export const GAMES: GameManifest[] = [whereIsIt, pairs, listen, compound, buildChar, measureWords, clock, shop, family, opposites, colours, sentenceTrain];
+export const GAMES: GameManifest[] = [whereIsIt, pairs, listen, compound, buildChar, measureWords, clock, shop, family, opposites, colours, sentenceTrain, orderLuckin];
 
 export const gameById = (id: string | undefined) => GAMES.find((g) => g.id === id) ?? null;

@@ -28,3 +28,26 @@ python3 scripts/images/build.py
 
 Only free sources that need no key are used. Every picture keeps its author
 and licence; `CREDITS.md` lists them and the drawer shows the credit.
+
+## Menu photos (`--set menu`)
+
+The ordering games (`src/games/order-*`) show real photos of what is on the
+menu. They go through the same three scripts with `--set menu`:
+
+| File | What |
+|---|---|
+| `menu.json` | photo key → query. The keys are the ones the brands' `menu.ts` use (`iced-latte`, `croissant`); several items share one. |
+| `menu-picks.json` | which candidate to ship for each key; `-1` = none fits. |
+
+```bash
+python3 scripts/images/fetch.py --set menu     # one download every 3 s; resumable
+python3 scripts/images/review.py --set menu    # .cache/images/menu/review.html
+python3 scripts/images/build.py --set menu     # public/images/menu/, src/data/menuPictures.json
+```
+
+Pick the dish or drink **as served** (a bowl of lamian, a steamer of 虾饺, an
+iced latte in a cup). Where Commons has nothing for a brand's own drink, take
+the closest real thing (an iced latte for 生椰拿铁), never an illustration, and
+never a photo from the brand's own app or site. Until a key has a photo, the
+game shows the word photo named in the brand's `photos` (a cup of coffee for
+the lattes), or an empty box of the same size.
