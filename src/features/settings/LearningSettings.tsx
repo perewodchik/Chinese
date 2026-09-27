@@ -28,6 +28,7 @@ export function LearningSettings() {
           <span className="tiny muted">
             How many new things the day’s lesson brings in. Each is back in review within a day or two, so every
             one taken today is a review tomorrow — and when reviews pile up, the lesson takes fewer on its own.
+            {` At ${settings.newPerDay} a day, expect about ${settings.newPerDay * 3} more reviews a day within two weeks.`}
           </span>
         </label>
 

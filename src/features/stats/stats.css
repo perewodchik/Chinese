@@ -524,3 +524,31 @@ g[data-hover] .st-bar {
 .st-mark i {
   font-style: normal;
 }
+
+/* stubborn items */
+.st-stubborn {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.st-stub {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+}
+
+.st-stub b {
+  font-weight: 400;
+  font-size: 18px;
+}
+
+.st-stub i {
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--accent);
+}

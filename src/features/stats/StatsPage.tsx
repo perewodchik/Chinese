@@ -17,6 +17,8 @@ import {
   type Totals,
   type Unit,
 } from '../../domain/stats';
+import { itemInfo } from '../../domain/exercises/items';
+import { leeches } from '../../domain/reviewSession';
 import { wordBands } from '../../domain/wordProgress';
 import { paths } from '../../navigation/paths';
 import { useStore } from '../../store/store';
@@ -307,6 +309,8 @@ export function StatsPage() {
         </div>
       </section>
 
+      <Stubborn />
+
       <section className="card st-card">
         <header className="st-head">
           <h2>Milestones</h2>
@@ -332,6 +336,38 @@ export function StatsPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+/** Items missed four times or more: the ones asking the same way again is not fixing. */
+function Stubborn() {
+  const lib = useLibrary();
+  const recall = useStore((s) => s.recall);
+  const list = useMemo(() => leeches(recall).slice(0, 24), [recall]);
+  if (!list.length) return null;
+  return (
+    <section className="card st-card">
+      <header className="st-head">
+        <h2>Stubborn</h2>
+        <span className="tiny muted">missed four times or more</span>
+        <div className="spacer" />
+        <Link className="btn sm" to={`${paths.learn()}?again=${encodeURIComponent(list.slice(0, 8).map((l) => l.id).join(','))}`}>
+          Meet {list.length > 8 ? 'eight of them' : list.length === 1 ? 'it' : 'them'} again
+        </Link>
+      </header>
+      <div className="body st-stubborn">
+        {list.map((l) => {
+          const info = itemInfo(lib, l.id);
+          return (
+            <span key={l.id} className="st-stub">
+              <b className="hanzi">{info?.text ?? l.id.slice(1)}</b>
+              <i>{info?.py}</i>
+              <span className="tiny muted">{l.lapses}×</span>
+            </span>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
