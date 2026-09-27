@@ -15,6 +15,8 @@ import {
   logLookup,
   newHelpLog,
   newOrder,
+  allLines,
+  goalOf,
   nextHint,
   price,
   shortForm,
@@ -60,8 +62,6 @@ function makeTimes(rng: Rng): Times {
   return { ordered: hhmm(at), ready: hhmm(at + minutes), minutes, code: String(1000 + rng.int(9000)) };
 }
 
-const READ_ASK: Record<ReadKey, string> = { code: S.askCode, total: S.askTotal, time: S.askTime, saved: S.askSaved };
-
 /** The stage is side by side from this width; below it the guide is a drawer. */
 const WIDE = 690;
 
@@ -78,6 +78,10 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
   const [tries, setTries] = useState(0);
   const [log, setLog] = useState(newHelpLog);
   const [settled, setSettled] = useState(false);
+  // table service: which message is in play, whether the 加菜 one is done, and its pop-up
+  const [part, setPart] = useState<0 | 1>(0);
+  const [laterDone, setLaterDone] = useState(false);
+  const [laterPopup, setLaterPopup] = useState(false);
   const [complaint, setComplaint] = useState<Miss[] | null>(null);
   const [missed, setMissed] = useState<Miss[] | null>(null);
   const [toast, setToastState] = useState<{ zh: string; id: number } | null>(null);
@@ -98,6 +102,8 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
   useEffect(() => setFloatHint(null), [view.screen, view.sheet?.kind]);
 
   const task = mode === 'play' ? tasks[index] : null;
+  const later = task?.later && part === 1 ? task.later : null;
+  const table = brand.model === 'table';
   const roundTimes = mode === 'play' ? times[index] : times[times.length - 1];
 
   /* --------------------------------------------------------------- toast */
@@ -112,9 +118,12 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
   /* -------------------------------------------------------------- moving */
   const go = useCallback(
     (v: View, d: 'push' | 'pop' | 'none' = 'none') => {
-      // once the order is checked and paid for, it no longer changes
-      if (settled && v.screen !== 'checkout' && v.screen !== 'pickup') return;
-      if (settled && v.screen === 'checkout' && v.sheet?.kind !== 'pay') return;
+      // once the order is checked, it no longer changes: only paying and the last screens are left
+      if (settled) {
+        const ok =
+          v.screen === 'pickup' || v.screen === 'table' || v.screen === 'bill' || (v.screen === 'checkout' && v.sheet?.kind === 'pay');
+        if (!ok) return;
+      }
       setView(v);
       setDir(d);
       if (v.sheet?.kind === 'spec') setLastItem(v.sheet.item);
@@ -127,7 +136,10 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
     setMode(m);
     setIndex(i);
     setOrderState(newOrder());
-    setView({ screen: m === 'play' ? 'chat' : 'home', sheet: null });
+    setView({ screen: m === 'play' ? 'chat' : brand.model === 'table' ? 'landing' : 'home', sheet: null });
+    setPart(0);
+    setLaterDone(false);
+    setLaterPopup(false);
     setDir('none');
     setTries(0);
     setLog(newHelpLog());
@@ -140,50 +152,106 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
   };
 
   /* ---------------------------------------------------------- the round */
-  const describe = () => ({
-    prompt: task!.message,
-    answer: shortForm(brand, task!),
-    // the things ordered first (咖啡, 面包), then the words of the message (杯, 冰, 要…)
-    items: [
-      ...new Set([
-        ...task!.wants.flatMap((w) => (w.kind === 'line' ? (itemOf(brand, w.item).hsk ?? []) : [])),
-        ...hskWords(task!.message, gl, () => true),
-      ]),
-    ]
-      .filter((w) => ctx.lib.byWord.has(w))
-      .map(wordId),
-  });
+  const describe = () => {
+    const t = task!;
+    const wants = [...t.wants, ...(t.later?.wants ?? [])];
+    const text = t.later ? `${t.message} ${t.later.message}` : t.message;
+    return {
+      prompt: text,
+      answer: shortForm(brand, t),
+      // the things ordered first (咖啡, 饺子), then the words of the messages (杯, 冰, 要…)
+      items: [
+        ...new Set([
+          ...wants.flatMap((w) => (w.kind === 'line' ? (itemOf(brand, w.item).hsk ?? []) : [])),
+          ...hskWords(text, gl, () => true),
+        ]),
+      ]
+        .filter((w) => ctx.lib.byWord.has(w))
+        .map(wordId),
+    };
+  };
 
-  const submit = () => {
-    if (!task) {
-      setView({ screen: 'checkout', sheet: { kind: 'pay' } });
-      return;
-    }
-    const r = check(brand, order, task);
-    if (r.ok) {
-      report({ ...describe(), correct: true, firstTry: tries === 0 && !usedHelp(log) });
-      setSettled(true);
-      setView({ screen: 'checkout', sheet: { kind: 'pay' } });
-      return;
-    }
+  /** A check came back wrong: the friend says so once; the second time, the round is missed. */
+  const wrong = (misses: Miss[]) => {
     if (tries === 0) {
       setTries(1);
-      setComplaint(r.misses);
+      setComplaint(misses);
     } else {
       report({ ...describe(), correct: false, firstTry: false });
       setSettled(true);
-      setMissed(r.misses);
+      setMissed(misses);
     }
+  };
+  const right = () => {
+    report({ ...describe(), correct: true, firstTry: tries === 0 && !usedHelp(log) });
+    setSettled(true);
+  };
+
+  /** Table service: this batch goes to the kitchen. */
+  const sendBatch = () => {
+    setOrderState((o) => ({ ...o, placed: [...o.placed, o.lines], lines: [] }));
+    setView({ screen: 'table', sheet: null });
+    setDir('push');
+    toastFn(S.placed);
+  };
+
+  const submit = () => {
+    if (!task) {
+      if (table) sendBatch();
+      else setView({ screen: 'checkout', sheet: { kind: 'pay' } });
+      return;
+    }
+    if (!table) {
+      const r = check(brand, order, task.wants);
+      if (!r.ok) return wrong(r.misses);
+      right();
+      setView({ screen: 'checkout', sheet: { kind: 'pay' } });
+      return;
+    }
+    const wants = part === 0 ? task.wants : task.later!.wants;
+    const r = check(brand, order, wants);
+    if (!r.ok) return wrong(r.misses);
+    sendBatch();
+    if (part === 0 && task.later) {
+      // the friend thinks of something else once the first dishes are ordered
+      setPart(1);
+      // after the 下单成功 toast has gone
+      window.setTimeout(() => setLaterPopup(true), 1600);
+    } else {
+      if (part === 1) setLaterDone(true);
+      right();
+    }
+  };
+
+  const toBill = () => {
+    if (task && !settled && task.later && part === 1 && !laterDone) {
+      // 去买单 before the 加菜: what the friend still wants is missing
+      const r = check(brand, order, task.later.wants, []);
+      return wrong(r.misses);
+    }
+    go({ screen: 'bill', sheet: null }, 'push');
   };
 
   const paid = () => {
     setView({ screen: 'pickup', sheet: null });
     setDir('push');
     if (task && task.level >= 2) {
-      const bill = price(brand, order);
-      const keys: ReadKey[] = ['code', 'total', 'time', ...(bill.discount > 0 ? (['saved'] as ReadKey[]) : [])];
+      const bill = price(brand, order, table ? order.placed.flat() : order.lines);
+      const keys: ReadKey[] = table
+        ? ['total', 'table', ...(bill.fees.some((f) => f.zh === S.teaFee) ? (['fee'] as ReadKey[]) : [])]
+        : order.mode === '外送'
+          ? ['time', 'total']
+          : ['code', 'total', 'time', ...(bill.discount + bill.promo > 0 ? (['saved'] as ReadKey[]) : [])];
       const key = keys[(index + Number(roundTimes.code)) % keys.length];
-      setReading({ zh: READ_ASK[key], key, state: 'ask' });
+      const ask: Record<ReadKey, string> = {
+        code: brand.code?.zh === S.queueCode ? S.askQueue : S.askCode,
+        total: S.askTotal,
+        time: order.mode === '外送' ? S.askArrive : S.askTime,
+        saved: S.askSaved,
+        table: S.askTable,
+        fee: S.askFee,
+      };
+      setReading({ zh: ask[key], key, state: 'ask' });
     }
   };
 
@@ -201,7 +269,9 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
     go,
     toast: toastFn,
     task,
+    later,
     submit,
+    toBill,
     paid,
     finishOrder: nextRound,
     times: roundTimes,
@@ -315,11 +385,13 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
     if (s === 'spec') return !!lastItem;
     if (s === 'cart') return order.lines.length > 0;
     if (s === 'checkout') return order.lines.length > 0;
+    if (s === 'landing') return order.placed.length === 0;
+    if (s === 'table' || s === 'bill') return order.placed.length > 0;
     return true;
   };
   const goTo = (s: ScreenId) => {
     setComplaint(null);
-    if (s === 'chat' || s === 'home') go({ screen: s, sheet: null }, 'pop');
+    if (s === 'chat' || s === 'home' || s === 'landing' || s === 'table' || s === 'bill') go({ screen: s, sheet: null }, 'pop');
     else if (s === 'menu') go({ screen: 'menu', sheet: null }, 'pop');
     else if (s === 'spec' && lastItem)
       go({ screen: 'menu', sheet: { kind: 'spec', item: lastItem, choices: defaultChoices(brand, itemOf(brand, lastItem)) } }, 'pop');
@@ -342,6 +414,7 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
     <GuideSidebar
       brand={brand}
       task={task}
+      later={later}
       step={step}
       canGo={canGo}
       goTo={goTo}
@@ -349,7 +422,7 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
       pulse={pulse}
       hint={() => {
         if (mode === 'play' && !settled) setLog((l) => ({ ...l, hints: l.hints + 1 }));
-        return nextHint(brand, order, task, view);
+        return nextHint(brand, order, goalOf(task, part, laterDone), view);
       }}
       helpUsed={usedHelp(log)}
       lookups={Math.min(log.lookups.length, 2)}
@@ -362,8 +435,9 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
       }}
       showWords={() => setWords(true)}
       startOver={() => {
-        setOrderState(newOrder());
-        setView({ screen: 'home', sheet: null });
+        // the batches already sent stay sent; the cart and the choices start again
+        setOrderState((o) => ({ ...newOrder(), placed: o.placed, diners: o.diners, tea: o.tea }));
+        setView({ screen: table ? (order.placed.length ? 'table' : 'landing') : 'home', sheet: null });
         setDir('pop');
         setComplaint(null);
       }}
@@ -389,6 +463,25 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
               </div>
             </div>
             <button type="button" className="ok-btn block" onClick={() => setComplaint(null)} autoFocus>
+              <T>{S.fine}</T>
+            </button>
+          </div>
+        </div>
+      )}
+      {laterPopup && later && !complaint && (
+        <div className="ok-modal-wrap">
+          <div className="ok-modal" role="alertdialog" aria-label="Your friend says">
+            <div className="ok-msg">
+              <span className="ok-avatar" aria-hidden>
+                {brand.friend.slice(-1)}
+              </span>
+              <div className="ok-bubble-stack">
+                <div className="ok-bubble">
+                  <T>{later.message}</T>
+                </div>
+              </div>
+            </div>
+            <button type="button" className="ok-btn block" onClick={() => setLaterPopup(false)} autoFocus>
               <T>{S.fine}</T>
             </button>
           </div>
@@ -436,10 +529,11 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
           )}
           {missed && task && (
             <DiffCard
-              message={task.message}
-              asked={task.wants.map((w) => wantText(brand, w))}
+              message={task.later ? `${task.message} ${task.later.message}` : task.message}
+              asked={[...task.wants, ...(task.later?.wants ?? [])].map((w) => wantText(brand, w))}
               got={[
-                ...order.lines.map((l) => lineText(brand, l)),
+                ...(order.diners ? [`${order.diners}人`] : []),
+                ...allLines(order).map((l) => lineText(brand, l)),
                 ...(order.dine ? [order.dine] : []),
                 ...order.note.map((n) => `备注 ${n}`),
               ]}

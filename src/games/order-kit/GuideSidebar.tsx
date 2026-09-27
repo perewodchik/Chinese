@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { GlossBody, T, useHelp } from './help';
 import type { Hint } from './order';
-import type { Brand, ScreenId, Task } from './types';
+import type { Brand, ScreenId, Stage, Task } from './types';
 
 /**
  * The guide beside the phone, for when the learner is lost. It is in the
@@ -28,6 +28,8 @@ function readFolded(): Set<string> {
 export interface GuideProps {
   brand: Brand;
   task: Task | null;
+  /** the 加菜 message, once it has arrived */
+  later: Stage | null;
   step: ScreenId;
   /** steps that can be gone back to now */
   canGo(step: ScreenId): boolean;
@@ -102,6 +104,23 @@ export function GuideSidebar(p: GuideProps) {
                 </T>
               ))}
             </div>
+            {p.later && (
+              <>
+                <div className="ok-guide-msg later">
+                  <span className="ok-guide-avatar" aria-hidden>
+                    {p.brand.friend.slice(-1)}
+                  </span>
+                  <T className="hanzi">{p.later.message}</T>
+                </div>
+                <div className="ok-guide-chips">
+                  {p.later.parts.map((c, i) => (
+                    <T key={i} className="ok-guide-chip hanzi">
+                      {c}
+                    </T>
+                  ))}
+                </div>
+              </>
+            )}
             <div className="ok-guide-help" data-used={p.helpUsed || undefined}>
               <span className="ok-guide-help-state">{p.helpUsed ? 'Help used' : 'No help yet'}</span>
               <span className="tiny muted">

@@ -149,31 +149,31 @@ describe('checking an order', () => {
   const good = { temp: ['ice'], sugar: ['less'], milk: ['oat'], shot: ['std'], cup: ['xl'] };
 
   it('accepts any choice the task did not name', () => {
-    assert.ok(check(brand, order({ lines: [{ item: 'latte', choices: good, qty: 1 }], dine: '外带' }), want).ok);
+    assert.ok(check(brand, order({ lines: [{ item: 'latte', choices: good, qty: 1 }], dine: '外带' }), want.wants).ok);
   });
 
   it('names a wrong option', () => {
-    const r = check(brand, order({ lines: [{ item: 'latte', choices: { ...good, milk: ['whole'] }, qty: 1 }], dine: '外带' }), want);
+    const r = check(brand, order({ lines: [{ item: 'latte', choices: { ...good, milk: ['whole'] }, qty: 1 }], dine: '外带' }), want.wants);
     assert.equal(r.ok, false);
     assert.equal(r.misses.length, 1);
     assert.match(r.misses[0].zh, /燕麦奶/);
   });
 
   it('names a missing item, an extra one, a wrong count, dine-in and the note', () => {
-    assert.match(check(brand, order({ dine: '外带' }), want).misses[0].zh, /我要的是拿铁/);
+    assert.match(check(brand, order({ dine: '外带' }), want.wants).misses[0].zh, /我要的是拿铁/);
     const extra = check(
       brand,
       order({ lines: [{ item: 'latte', choices: good, qty: 1 }, { item: 'croissant', choices: {}, qty: 1 }], dine: '外带' }),
-      want,
+      want.wants,
     );
     assert.match(extra.misses[0].zh, /我没要原味可颂/);
-    const many = check(brand, order({ lines: [{ item: 'latte', choices: good, qty: 2 }], dine: '外带' }), want);
+    const many = check(brand, order({ lines: [{ item: 'latte', choices: good, qty: 2 }], dine: '外带' }), want.wants);
     assert.match(many.misses[0].zh, /我只要一杯拿铁/);
-    const dine = check(brand, order({ lines: [{ item: 'latte', choices: good, qty: 1 }], dine: '堂食' }), want);
+    const dine = check(brand, order({ lines: [{ item: 'latte', choices: good, qty: 1 }], dine: '堂食' }), want.wants);
     assert.match(dine.misses[0].zh, /外带/);
     const noted = task({ wants: [{ kind: 'note', value: '少冰' }] });
-    assert.equal(check(brand, order({}), noted).ok, false);
-    assert.equal(check(brand, order({ note: ['少冰'] }), noted).ok, true);
+    assert.equal(check(brand, order({}), noted.wants).ok, false);
+    assert.equal(check(brand, order({ note: ['少冰'] }), noted.wants).ok, true);
   });
 
   it('matches two lines of one drink to two different wants', () => {
@@ -187,14 +187,14 @@ describe('checking an order', () => {
       { item: 'latte', choices: { ...good, temp: ['hot'] }, qty: 1 },
       { item: 'latte', choices: good, qty: 1 },
     ];
-    assert.ok(check(brand, order({ lines }), two).ok);
-    const both = check(brand, order({ lines: [{ item: 'latte', choices: good, qty: 2 }] }), two);
+    assert.ok(check(brand, order({ lines }), two.wants).ok);
+    const both = check(brand, order({ lines: [{ item: 'latte', choices: good, qty: 2 }] }), two.wants);
     assert.equal(both.ok, false);
     assert.match(both.misses[0].zh, /热/);
   });
 
   it('is solved by the order built from its wants', () => {
-    assert.ok(check(brand, solve(brand, want), want).ok);
+    assert.ok(check(brand, solve(brand, want), want.wants).ok);
   });
 });
 
@@ -207,27 +207,28 @@ describe('下一步', () => {
     ],
   });
   const menu: View = { screen: 'menu', sheet: null };
+  const goal = { wants: want.wants, after: 'pay' as const };
 
   it('walks the whole order, one control at a time', () => {
     const hints: string[] = [];
     let o = newOrder();
-    hints.push(nextHint(brand, o, want, { screen: 'chat', sheet: null }).target);
-    hints.push(nextHint(brand, o, want, { screen: 'home', sheet: null }).target);
-    hints.push(nextHint(brand, o, want, menu).target);
+    hints.push(nextHint(brand, o, goal, { screen: 'chat', sheet: null }).target);
+    hints.push(nextHint(brand, o, goal, { screen: 'home', sheet: null }).target);
+    hints.push(nextHint(brand, o, goal, menu).target);
     let c = defaultChoices(brand, latte);
-    hints.push(nextHint(brand, o, want, { screen: 'menu', sheet: { kind: 'spec', item: 'latte', choices: c } }).target);
+    hints.push(nextHint(brand, o, goal, { screen: 'menu', sheet: { kind: 'spec', item: 'latte', choices: c } }).target);
     c = choose(brand, c, 'temp', 'ice');
-    hints.push(nextHint(brand, o, want, { screen: 'menu', sheet: { kind: 'spec', item: 'latte', choices: c } }).target);
+    hints.push(nextHint(brand, o, goal, { screen: 'menu', sheet: { kind: 'spec', item: 'latte', choices: c } }).target);
     c = choose(brand, c, 'milk', 'oat');
-    hints.push(nextHint(brand, o, want, { screen: 'menu', sheet: { kind: 'spec', item: 'latte', choices: c } }).target);
+    hints.push(nextHint(brand, o, goal, { screen: 'menu', sheet: { kind: 'spec', item: 'latte', choices: c } }).target);
     o = { ...o, lines: [{ item: 'latte', choices: c, qty: 1 }] };
-    hints.push(nextHint(brand, o, want, menu).target);
-    hints.push(nextHint(brand, o, want, { screen: 'checkout', sheet: null }).target);
+    hints.push(nextHint(brand, o, goal, menu).target);
+    hints.push(nextHint(brand, o, goal, { screen: 'checkout', sheet: null }).target);
     o = { ...o, dine: '外带' };
-    hints.push(nextHint(brand, o, want, { screen: 'checkout', sheet: null }).target);
-    hints.push(nextHint(brand, o, want, { screen: 'checkout', sheet: { kind: 'note' } }).target);
+    hints.push(nextHint(brand, o, goal, { screen: 'checkout', sheet: null }).target);
+    hints.push(nextHint(brand, o, goal, { screen: 'checkout', sheet: { kind: 'note' } }).target);
     o = { ...o, note: ['少冰'] };
-    hints.push(nextHint(brand, o, want, { screen: 'checkout', sheet: null }).target);
+    hints.push(nextHint(brand, o, goal, { screen: 'checkout', sheet: null }).target);
     assert.deepEqual(hints, [
       'chat-card',
       'home-pickup',
@@ -245,9 +246,9 @@ describe('下一步', () => {
 
   it('sends a wrong item back out of the cart', () => {
     const o = order({ lines: [{ item: 'croissant', choices: {}, qty: 1 }] });
-    assert.equal(nextHint(brand, o, want, menu).target, 'cart-bar');
-    assert.equal(nextHint(brand, o, want, { screen: 'menu', sheet: { kind: 'cart' } }).target, 'cart-minus:0');
-    assert.equal(nextHint(brand, o, want, { screen: 'checkout', sheet: null }).target, 'nav-back');
+    assert.equal(nextHint(brand, o, goal, menu).target, 'cart-bar');
+    assert.equal(nextHint(brand, o, goal, { screen: 'menu', sheet: { kind: 'cart' } }).target, 'cart-minus:0');
+    assert.equal(nextHint(brand, o, goal, { screen: 'checkout', sheet: null }).target, 'nav-back');
   });
 });
 
@@ -261,5 +262,25 @@ describe('help costs the first-try mark', () => {
     assert.equal(usedHelp(logLookup(log, '奶')), true);
     assert.equal(usedHelp({ ...newHelpLog(), pinyin: true }), true);
     assert.equal(usedHelp({ ...newHelpLog(), hints: 1 }), true);
+  });
+});
+
+describe('下一步 with a coupon to use', () => {
+  it('moves on to 去支付 once the coupon it names is chosen', () => {
+    const lines = [{ item: 'thick-latte', choices: { temp: ['ice'], sugar: ['std'], milk: ['whole'], shot: ['std'], cup: ['big'] }, qty: 1 }];
+    const goal = {
+      wants: [
+        { kind: 'line' as const, item: 'thick-latte', qty: 1, choices: {} },
+        { kind: 'coupon' as const, id: 'off30' },
+      ],
+      after: 'pay' as const,
+    };
+    const at: View = { screen: 'checkout', sheet: null };
+    const o = order({ lines, dine: '外带' });
+    assert.equal(nextHint(brand, o, goal, at).target, 'coupon-row');
+    assert.equal(nextHint(brand, o, goal, { screen: 'checkout', sheet: { kind: 'coupon' } }).target, 'coupon:off30');
+    const chosen = { ...o, coupon: 'off30' };
+    assert.equal(nextHint(brand, chosen, goal, { screen: 'checkout', sheet: { kind: 'coupon' } }).target, 'sheet-ok');
+    assert.equal(nextHint(brand, chosen, goal, at).target, 'pay-btn');
   });
 });

@@ -1,12 +1,11 @@
 # Build: 点单 — ordering in Chinese mini-apps (Play section)
 
-> **Status:** plan approved with changes (2026-09-27). **Phase 1 built
-> 2026-09-27: the kit + 瑞幸咖啡** (`src/games/order-kit/`,
-> `src/games/order-luckin/`). Waiting for the learner to try it before
-> phase 2. What was built, and where it differs from this plan, is in
-> **§12** at the end. The requirements summary is in
-> `docs/visual-learning/requirements.md` §C.4.13; the brand research is in
-> `docs/ordering-game/brands.md`. **What is left to do is in §13.**
+> **Status:** plan approved with changes (2026-09-27). **All four phases
+> built 2026-09-27:** the kit, 瑞幸咖啡 (with 外送), 蜜雪冰城, 外婆家, 点都德,
+> 马记永, 喜家德 and 海底捞, and budget and coupon orders. What was built, and
+> where it differs from this plan, is in **§12**; what is left is in **§13**.
+> The requirements summary is in `docs/visual-learning/requirements.md`
+> §C.4.13; the brand research is in `docs/ordering-game/brands.md`.
 
 ---
 
@@ -321,86 +320,84 @@ glossary, tips, the tour); `--set menu` in the photo scripts. 24 tests.
 - **Friend's words vs the app's:** the friend says 不加糖 where the app says
   不另外加糖, and 打包/带走/在店里喝 where it says 外带/堂食 — on purpose.
 
-## 13. What is left to do
+## 12b. Phases 2–4 — what was built, and where it differs
 
-### Finishing phase 1 (瑞幸咖啡)
+**The kit, generalised** (`src/games/order-kit/`):
+
+- Three ways a shop works (`Brand.model`): `chain` (瑞幸, 蜜雪冰城), `counter`
+  (马记永, 喜家德: 先付后吃, a 取餐号 like A047, 请留意叫号) and `table` (外婆家,
+  点都德, 海底捞: 扫码点餐 → 就餐人数 / 选茶 → menu → 确认下单 → 下单 → at the
+  table (加菜 · 呼叫服务员 · 催单) → 去买单 → the bill → pay → 买单成功).
+  `SCREENS_OF` lists each model's screens; each brand's flow must match it.
+- Option groups: many-of groups with prices in the line (加料), exact picks
+  (`pick: 2` for 双拼 and 鸳鸯锅, `pick: 4` for 四宫格), groups that show only
+  with another choice (`showIf`: 辣度 appears once 麻辣 is in the pot), options
+  that multiply the price (半份 ×0.6, 三两 ×3) and per-item prices that replace
+  it (烧鹅 例牌 ¥68 / 半只 ¥118 / 一只 ¥228).
+- Fees on the bill (`Brand.fees`): per person (餐具 ¥2, 茶位费 ¥8, 调料 ¥10),
+  per order or per item, some only on delivery (配送费, 打包费).
+- Table orders keep their batches (`Order.placed`); a level-4 task has a
+  second message (`Task.later`) that arrives after the first 下单 as a pop-up
+  from the friend, and is checked at the next 下单. 去买单 before it is done
+  counts as a miss. Tries are shared across both messages.
+- New wants: 就餐人数, the tea, 外送 / the address / 餐具数量, a coupon (a
+  named one, or any), and a budget (the total paid, fees included).
+- Coupons: 瑞幸 picks the best one itself (`autoCoupon`), the others do not.
+- One budget, coupon or delivery order per game at most (`extra` templates).
+- The reading check asks, by model: 取餐码/取餐号, 一共多少钱, 几点可以取 or
+  几点送到, 优惠了多少, 桌号是多少, 茶位费一共多少.
+- `suite.test.ts`: the checks every brand runs — full games at both bands,
+  same seed same tasks, every task of 250 seeds × 2 bands solved by the order
+  built from its wants (both messages), every template used, every sentence,
+  chip and label covered by the glossary, **following 下一步 alone gets every
+  order of 60 seeds × 2 bands paid** (a model-level walk that presses what
+  the hint points at), the flow matching the model, 20–40
+  items, 5–9 categories, 10+ templates, photo keys in `menu.json`, item HSK
+  words real.
+
+**The brands** (`src/games/order-<brand>/`): 蜜雪冰城 21 items / 12 templates,
+外婆家 24 / 11, 点都德 26 / 11, 马记永 21 / 11, 喜家德 21 / 11, 海底捞 24 / 10,
+瑞幸 23 / 16 (with 外送, budget and coupon orders). Photos: every key is in
+`scripts/images/menu.json`; word photos stand in where one fits (奶茶, 米饭,
+饺子, 包子, 绿茶, 红茶, 鸡蛋, 咖啡, 面包).
+
+**Differences from the plan:**
+
+- **马记永 面型:** 薄宽 rather than 宽 (the brand's word).
+- **喜家德 by the 两**, although today's stores sell plates of 12 (see
+  `brands.md`): the 两 is kept for the 两 vs 二 lesson.
+- **蜜雪冰城 热:** 热饮 is an option of 冰量 itself, as in the real app, so the
+  "热 removes the ice options" rule never comes up there.
+- **海底捞 prices:** flat prices per pot instead of 单锅/拼锅/per-cell prices.
+- **Coupons at table service:** none — scan-to-order bills in the game have no
+  coupon step. Coupon orders are in 瑞幸, 蜜雪冰城, 马记永 and 喜家德; budget
+  orders are in all seven.
+- **Level 4** is played at band 2 only (band 1 table games are levels 1–2), and
+  a band-2 table game is 2, 3, 3, 4.
+- **PlayPage** has no topic headings, so the ordering games are not grouped
+  under an "Ordering" heading; they come last in the registry, in order.
+
+## 13. What is left to do
 
 These need the Mac, or a container that can reach the hosts named.
 
-- [ ] **Menu photos.** Run `python3 scripts/images/fetch.py --set menu`,
-      `review.py --set menu` and pick in `scripts/images/menu-picks.json`,
-      then `build.py --set menu`. The 12 keys are in
-      `scripts/images/menu.json`. This needs `commons.wikimedia.org`,
-      `en.wikipedia.org` and `upload.wikimedia.org`. Until then the coffee
-      drinks show the coffee-cup word photo, and 生椰拿铁, the frappés, the
-      kale drink, the sandwich and the tiramisu show an empty box.
-- [ ] **WebKit check** with `scripts/webkit-probe.swift`: the rail and the
-      list scroll on their own, sheets and the drawer don't jump, no sideways
-      overflow, and a long press brings up no iOS text-selection menu.
-- [ ] **Check on the real iPad and iPhone** in Safari: the long press (450
-      ms) against iOS's own gestures, and the phone height with Safari's
-      toolbars.
-- [ ] **Reduced motion**, seen on screen: sheets, pages and the drawer fade.
-- [ ] **Brand check against the real luckin app:** measure the blue (now
-      `#1b3a8c`, from memory); confirm 少甜 vs 微甜, the 奶 options, 浓度's
-      wording, 超大杯 vs 特大杯, and the 首页 layout. Update `brands.md` and
-      `order-luckin/menu.ts` — the brand wins.
-- [ ] **Learner review:** play three scored games and one browse, and say
-      what to change before phase 2.
+- [ ] **Menu photos** for all seven brands: `fetch.py`, `review.py` and
+      `build.py` with `--set menu`; pick in `scripts/images/menu-picks.json`.
+      84 keys in `scripts/images/menu.json`. Needs
+      `commons.wikimedia.org`, `en.wikipedia.org`, `upload.wikimedia.org`.
+- [ ] **WebKit check** (`scripts/webkit-probe.swift`) and the real iPad and
+      iPhone: the long press, the drawer, the phone height with Safari's bars.
+- [ ] **Brand check against the real apps:** every colour (none measured),
+      the 瑞幸 sugar and cup names, 马记永's 加面 price, the 外送 screen.
+- [ ] **Learner review** of each shop.
 
-### Known gaps in the kit
+Known gaps:
 
-- [ ] A test that plays one order right with no help and sees
-      `firstTry: true` reported (the rule is unit-tested; the round isn't).
-- [ ] 这一页 lists the labels in view but doesn't update while a sheet
-      slides up; it catches up on the next scroll or tap.
-- [ ] The results page's 🔊 plays `r.answer` (the short form,
-      `冰拿铁 · 少甜`) through `say()`, which falls back to the system voice
-      when there is no native recording. That's the host's behaviour for
-      every game; decide whether ordering games should hide it.
-- [ ] The tour runs over the menu only; the checkout page has no coach marks.
-
-### Phase 2 — 蜜雪冰城 + 外婆家
-
-- [ ] Research both into `brands.md` (screens, groups in real order, colours,
-      sources).
-- [ ] 蜜雪冰城: 杯型 中杯/大杯, 冰量 ×5 with the 热 rule (the kit already has
-      rules and many-of groups, tested with a made-up shop), 糖度 ×5,
-      加料 multi-select priced into the line, 仅冰饮. Mixue red; the 雪王
-      mark only if a freely licensed image exists.
-- [ ] Table service in the kit: `TableLanding` (桌号, 就餐人数 grid),
-      先吃后付 (下单 → 下单成功 → at-the-table screen with 加菜 / 呼叫服务员 /
-      催单 → 去买单 → summary → pay → 买单成功), per-person 餐具 added
-      automatically, `extraRounds` for 加菜 batches.
-- [ ] Order model: `diners`, `cutlery`, `extraRounds`; wants `diners(n)`
-      and `addedLater(item)`; level 4 for table service; 4 rounds.
-- [ ] A `Flow` for table service (扫码 → 人数 → 菜单 → 购物车 → 下单 → 加菜 →
-      买单) and the map's `goTo` for it.
-- [ ] 外婆家 menu (§5 list), 大份/小份, 辣度, 米饭 per 碗, 备注 chips
-      (不要香菜, 不要葱, 少油, 少盐, 不吃辣, 打包).
-- [ ] Menu photo keys for both in `scripts/images/menu.json`.
-
-### Phase 3 — 点都德, 马记永, 喜家德, 海底捞
-
-- [ ] Tea picker and 茶位费 per person; 例牌/半只/一只 portions (options that
-      carry a price, not a delta); 双拼 (pick two meats); 走葱; the culture
-      tips.
-- [ ] 先付后吃 with a queue number (取餐号 A047, 请留意叫号); 面型 ×7;
-      要/不要 groups.
-- [ ] Ordering by 两 (一两约6个, 二两, 三两, 半斤) — tasks that test 两 vs 二.
-- [ ] Hotpot: diners first, 锅底 incl. 鸳鸯 (two soups) and 四宫格, 整份/半份
-      at ≈60%, 调料 per person.
-
-### Phase 4 — delivery and extras
-
-- [ ] 瑞幸 外送: address sheet (公司/家), 预计送达, 起送, 配送费, 打包费, 满减,
-      餐具数量 (无需餐具).
-- [ ] Budget tasks (我只有20块…, `cheapestUnder`) and coupon tasks
-      (用一下优惠券, `couponUsed`), one per game at most, in every brand.
-
-### After every phase
-
-- [ ] Update the status table in `docs/visual-learning/requirements.md` and
-      the status line at the top of this file.
-- [ ] Screenshots of every screen at 768×1024 and 375×812, light and dark,
-      sent to the learner.
+- [ ] No test plays one order through the screens with no help and checks
+      that `firstTry: true` is reported (the rule itself is unit-tested).
+- [ ] 这一页 does not update while a sheet slides up; it catches up on the
+      next scroll or tap.
+- [ ] The results page's 🔊 speaks the short form through `say()`, which
+      falls back to the system voice when there is no native recording.
+- [ ] The tour covers the menu only.
+- [ ] Coupons at table service, and 外送 for shops other than 瑞幸.

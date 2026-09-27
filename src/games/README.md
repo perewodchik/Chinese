@@ -63,8 +63,11 @@ app shows — 生椰拿铁, 不另外加糖, 取餐码 — because reading those
 Every Chinese string they show has a glossary entry (pinyin, English, a
 note), and a test fails on one that does not. What they report is still only
 HSK words. Inside the phone they look like WeChat, not paper (see
-`order-kit/order-kit.css`). A new brand is a `menu.ts` of plain data plus
-the usual manifest and test; the plan is `docs/ordering-game/plan.md`.
+`order-kit/order-kit.css`). A new brand is a `menu.ts` of plain data — its
+`model` (`chain`, `counter` or `table`), menu, option groups, fees, glossary,
+tips and task templates — plus the usual manifest, a one-line `Game.tsx`, and
+a `content.test.ts` that runs `brandSuite` from `order-kit/suite.test.ts`. The
+plan is `docs/ordering-game/plan.md`.
 
 Scoring: a game's result per prompt is right first time, right on the second
 try, or missed. Games never reach the review schedule (see `domain/play.ts`).

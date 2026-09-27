@@ -17,42 +17,58 @@ import {
   saving,
   setQty,
   specText,
+  subtotal,
   unitPrice,
   usable,
+  visibleGroups,
   yuan,
 } from './order';
 import { S } from './strings';
 import { CartIcon, FakeQr, MenuPhoto, PhotoCredit, Price, Sheet, Stepper, Was } from './ui';
-import type { MenuItem } from './types';
+import type { Line, MenuItem } from './types';
 
 /**
- * The screens of a chain-shop mini-program — 瑞幸 now, 蜜雪冰城 next — in
- * the order the learner meets them. Each reads the app state from useApp()
- * and draws itself in the WeChat look; every Chinese string goes through <T>.
+ * The screens of a shop's mini-program, in the order the learner meets them:
+ * the chat, the home page or the table's landing page, the menu, the sheets,
+ * checkout, the table (for 加菜), the bill, payment and the last screen. Each
+ * reads the app state from useApp() and draws itself in the WeChat look;
+ * every Chinese string goes through <T>.
  */
 
 /* ------------------------------------------------------------------ chat */
 
+function Friend({ children }: { children: React.ReactNode }) {
+  const { brand } = useApp();
+  return (
+    <div className="ok-msg">
+      <span className="ok-avatar" aria-hidden>
+        {brand.friend.slice(-1)}
+      </span>
+      {children}
+    </div>
+  );
+}
+
 export function ChatScreen() {
-  const { brand, task, go } = useApp();
+  const { brand, task, later, go } = useApp();
+  const table = brand.model === 'table';
   return (
     <div className="ok-screen ok-chat">
       <div className="ok-scroll">
         {task && (
-          <div className="ok-msg">
-            <span className="ok-avatar" aria-hidden>
-              {brand.friend.slice(-1)}
-            </span>
+          <Friend>
             <div className="ok-bubble">
               <T>{task.message}</T>
             </div>
-          </div>
+          </Friend>
         )}
-        <div className="ok-msg">
-          <span className="ok-avatar" aria-hidden>
-            {brand.friend.slice(-1)}
-          </span>
-          <button type="button" className="ok-mp-card" data-hint="chat-card" onClick={() => go({ screen: 'home', sheet: null }, 'push')}>
+        <Friend>
+          <button
+            type="button"
+            className="ok-mp-card"
+            data-hint="chat-card"
+            onClick={() => go({ screen: table ? 'landing' : 'home', sheet: null }, 'push')}
+          >
             <span className="ok-mp-card-head">
               <span className="ok-mp-dot" aria-hidden />
               <T>{brand.name}</T>
@@ -70,10 +86,17 @@ export function ChatScreen() {
               <span className="ok-mp-glyph" aria-hidden>
                 ◎
               </span>
-              <T>{S.miniProgram}</T>
+              <T>{table ? S.scanOrder : S.miniProgram}</T>
             </span>
           </button>
-        </div>
+        </Friend>
+        {later && (
+          <Friend>
+            <div className="ok-bubble">
+              <T>{later.message}</T>
+            </div>
+          </Friend>
+        )}
       </div>
     </div>
   );
@@ -82,39 +105,38 @@ export function ChatScreen() {
 /* ------------------------------------------------------------------ home */
 
 export function HomeScreen() {
-  const { brand, go, toast } = useApp();
-  const fresh = brand.items.filter((i) => i.cats.includes('new')).slice(0, 3);
+  const { brand, go, toast, setOrder } = useApp();
+  const fresh = brand.items.filter((i) => i.cats.includes('new') || i.cats.includes('top')).slice(0, 3);
+  const counter = brand.model === 'counter';
   return (
     <div className="ok-screen ok-home">
       <div className="ok-scroll">
-        <div className="ok-banner">
-          <MenuPhoto photo={brand.banner.photo} />
-          <span className="ok-banner-panel">
-            <span className="ok-wordmark">
-              <b>
-                <T>{brand.name}</T>
-              </b>
-              <i>{brand.latin}</i>
-            </span>
-            <span className="ok-banner-text">
-              <T>{brand.banner.zh}</T>
-              <b>
-                <T>{brand.banner.sub}</T>
-              </b>
-            </span>
-          </span>
-          <span className="ok-dots" aria-hidden>
-            <i data-on /> <i /> <i />
-          </span>
-        </div>
+        <Banner />
         <div className="ok-entries">
-          <button type="button" className="ok-entry" data-hint="home-pickup" onClick={() => go({ screen: 'menu', sheet: null }, 'push')}>
+          <button
+            type="button"
+            className="ok-entry"
+            data-hint="home-pickup"
+            onClick={() => {
+              setOrder((o) => ({ ...o, mode: '自提' }));
+              go({ screen: 'menu', sheet: null }, 'push');
+            }}
+          >
             <b>
-              <T>{S.pickupHere}</T>
+              <T>{counter ? S.orderHere : S.pickupHere}</T>
             </b>
             <T className="ok-sub">{S.skipQueue}</T>
           </button>
-          <button type="button" className="ok-entry" onClick={() => toast(S.deliverySoon)}>
+          <button
+            type="button"
+            className="ok-entry"
+            data-hint="home-delivery"
+            onClick={() => {
+              if (!brand.delivery) return toast(S.deliverySoon);
+              setOrder((o) => ({ ...o, mode: '外送' }));
+              go({ screen: 'menu', sheet: null }, 'push');
+            }}
+          >
             <b>
               <T>{S.delivery}</T>
             </b>
@@ -156,6 +178,32 @@ export function HomeScreen() {
   );
 }
 
+function Banner() {
+  const { brand } = useApp();
+  return (
+    <div className="ok-banner">
+      <MenuPhoto photo={brand.banner.photo} />
+      <span className="ok-banner-panel">
+        <span className="ok-wordmark">
+          <b>
+            <T>{brand.name}</T>
+          </b>
+          <i>{brand.latin}</i>
+        </span>
+        <span className="ok-banner-text">
+          <T>{brand.banner.zh}</T>
+          <b>
+            <T>{brand.banner.sub}</T>
+          </b>
+        </span>
+      </span>
+      <span className="ok-dots" aria-hidden>
+        <i data-on /> <i /> <i />
+      </span>
+    </div>
+  );
+}
+
 export function EmptyTab({ which }: { which: 'orders' | 'me' }) {
   return (
     <div className="ok-screen ok-empty-tab">
@@ -169,10 +217,107 @@ export function EmptyTab({ which }: { which: 'orders' | 'me' }) {
   );
 }
 
+/* --------------------------------------------------- table: the landing */
+
+export function LandingScreen() {
+  const { brand, order, setOrder, go, toast } = useApp();
+  const tea = brand.table?.tea ? groupOf(brand, brand.table.tea) : null;
+  const teaFee = brand.fees.find((f) => f.zh === S.teaFee);
+  const ready = !!order.diners && (!tea || !!order.tea);
+  return (
+    <div className="ok-screen ok-landing">
+      <div className="ok-scroll">
+        <Banner />
+        <div className="ok-card">
+          <div className="ok-kv">
+            <T className="ok-k">{S.tableNo}</T>
+            <b className="ok-table-no" data-read="table">
+              <T>{brand.table?.no ?? ''}</T>
+            </b>
+          </div>
+          <div className="ok-group-name">
+            <T>{S.diners}</T>
+          </div>
+          <div className="ok-diners">
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              <button
+                key={n}
+                type="button"
+                className="ok-pill"
+                data-hint={`diners:${n}`}
+                data-on={order.diners === n || undefined}
+                onClick={() => setOrder((o) => ({ ...o, diners: n }))}
+              >
+                {n}
+                <T>{S.people}</T>
+              </button>
+            ))}
+          </div>
+        </div>
+        {tea && (
+          <div className="ok-card">
+            <div className="ok-group-name">
+              <T>{S.chooseTea}</T>
+              {teaFee && (
+                <span className="ok-sub">
+                  {' '}
+                  <T>{S.teaFee}</T> ¥{yuan(teaFee.amount)}/<T>{S.perHead}</T>
+                </span>
+              )}
+            </div>
+            <div className="ok-pills">
+              {tea.options.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  className="ok-pill"
+                  data-hint={`tea:${o.id}`}
+                  data-on={order.tea === o.id || undefined}
+                  onClick={() => setOrder((x) => ({ ...x, tea: o.id }))}
+                >
+                  <T>{o.zh}</T>
+                  {o.sub && <T className="ok-pill-sub">{o.sub}</T>}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="ok-list-end" />
+      </div>
+      <div className="ok-paybar">
+        <span className="ok-sub">
+          {order.diners ? (
+            <>
+              {order.diners}
+              <T>{S.people}</T>
+            </>
+          ) : (
+            <T>{`${S.choose}${S.diners}`}</T>
+          )}
+        </span>
+        <button
+          type="button"
+          className="ok-go"
+          data-hint="landing-start"
+          aria-disabled={!ready}
+          data-off={!ready || undefined}
+          onClick={() => {
+            if (!order.diners) return toast(`${S.choose}${S.diners}`);
+            if (tea && !order.tea) return toast(S.chooseTea);
+            go({ screen: 'menu', sheet: null }, 'push');
+          }}
+        >
+          <T>{S.start}</T>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ menu */
 
 export function MenuScreen() {
-  const { brand, go, toast } = useApp();
+  const { brand, order, setOrder, go, toast } = useApp();
   const list = useRef<HTMLDivElement>(null);
   const rail = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(brand.categories[0].id);
@@ -216,27 +361,49 @@ export function MenuScreen() {
   const open = (item: MenuItem) =>
     go({ screen: 'menu', sheet: { kind: 'spec', item: item.id, choices: defaultChoices(brand, item) } }, 'none');
 
+  const setMode = (m: '自提' | '外送') => {
+    if (m === '外送' && !brand.delivery) return toast(S.deliverySoon);
+    setOrder((o) => ({ ...o, mode: m }));
+  };
+
   let firstButton = true;
   return (
     <div className="ok-screen ok-menu">
-      <div className="ok-storebar">
-        <button type="button" className="ok-store" data-tour="store" onClick={() => toast(S.practice)}>
-          <b>
-            <T>{brand.store.zh}</T> ›
-          </b>
-          <span className="ok-sub">
-            <T>{S.near}</T> {brand.store.distance}
+      {brand.model === 'table' ? (
+        <div className="ok-storebar">
+          <span className="ok-store">
+            <b>
+              <T>{S.tableNo}</T> <T>{brand.table?.no ?? ''}</T>
+            </b>
+            <span className="ok-sub">
+              <T>{brand.store.zh}</T>
+            </span>
           </span>
-        </button>
-        <span className="ok-seg" data-tour="mode" role="group">
-          <button type="button" data-on>
-            <T>{S.pickup}</T>
+          <span className="ok-table-chip">
+            {order.diners ?? '–'}
+            <T>{S.people}</T>
+          </span>
+        </div>
+      ) : (
+        <div className="ok-storebar">
+          <button type="button" className="ok-store" data-tour="store" onClick={() => toast(S.practice)}>
+            <b>
+              <T>{brand.store.zh}</T> ›
+            </b>
+            <span className="ok-sub">
+              <T>{S.near}</T> {brand.store.distance}
+            </span>
           </button>
-          <button type="button" onClick={() => toast(S.deliverySoon)}>
-            <T>{S.delivery}</T>
-          </button>
-        </span>
-      </div>
+          <span className="ok-seg" data-tour="mode" role="group">
+            <button type="button" data-on={order.mode === '自提' || undefined} onClick={() => setMode('自提')}>
+              <T>{S.pickup}</T>
+            </button>
+            <button type="button" data-on={order.mode === '外送' || undefined} onClick={() => setMode('外送')}>
+              <T>{S.delivery}</T>
+            </button>
+          </span>
+        </div>
+      )}
       <div className="ok-menu-body">
         <div className="ok-rail" ref={rail} data-tour="rail">
           {brand.categories.map((c) => (
@@ -266,23 +433,26 @@ export function MenuScreen() {
   );
 }
 
+const SPICY = [S.mild, S.medium, S.hot];
+
 function ProductRow({ item, onOpen, tour }: { item: MenuItem; onOpen(): void; tour: boolean }) {
   const { brand, setOrder, toast } = useApp();
   const sheet = needsSheet(brand, item);
-  const only = item.only?.temp?.length === 1 && item.only.temp[0] === 'ice';
+  const onlyIced = ['temp', 'ice'].some((g) => item.groups.includes(g) && item.only?.[g] && !item.only[g].includes('hot'));
   return (
     <div className="ok-row" role="button" tabIndex={0} data-hint={`item:${item.id}`} onClick={onOpen} onKeyDown={(e) => e.key === 'Enter' && onOpen()}>
       <MenuPhoto photo={item.photo} />
       <div className="ok-row-text">
         <T className="ok-row-name">{item.zh}</T>
-        <T className="ok-row-desc">{item.desc}</T>
+        {item.desc && <T className="ok-row-desc">{item.desc}</T>}
         <span className="ok-tags">
           {item.tags?.map((t) => (
             <T key={t} className="ok-tag">
               {t}
             </T>
           ))}
-          {only && <T className="ok-tag quiet">{S.onlyIced}</T>}
+          {item.spicy ? <T className="ok-tag hot">{SPICY[item.spicy - 1]}</T> : null}
+          {onlyIced && <T className="ok-tag quiet">{S.onlyIced}</T>}
         </span>
         <span className="ok-row-foot">
           <span className="ok-row-price">
@@ -293,7 +463,14 @@ function ProductRow({ item, onOpen, tour }: { item: MenuItem; onOpen(): void; to
                 <Was v={item.price} />
               </>
             ) : (
-              <Price v={item.price} className="deal" />
+              <>
+                <Price v={item.price} className="deal" />
+                {(item.per || (item.unit && item.unit !== '份')) && (
+                  <span className="ok-sub">
+                    /<T>{item.per ?? item.unit ?? ''}</T>
+                  </span>
+                )}
+              </>
             )}
           </span>
           {sheet ? (
@@ -336,7 +513,9 @@ function ProductRow({ item, onOpen, tour }: { item: MenuItem; onOpen(): void; to
 export function CartBar() {
   const { brand, order, go, view } = useApp();
   const n = count(order.lines);
-  const bill = price(brand, order);
+  const table = brand.model === 'table';
+  const bill = price(brand, { ...order, placed: [] }, order.lines);
+  const total = table ? subtotal(brand, order.lines) : bill.total - bill.fees.reduce((a, f) => a + f.amount, 0);
   return (
     <div className="ok-cartbar" data-tour="cart-bar">
       <button
@@ -356,8 +535,8 @@ export function CartBar() {
         </span>
         {n ? (
           <span className="ok-cartbar-sum">
-            <Price v={bill.total} />
-            {bill.discount > 0 && <Was v={bill.items} />}
+            <Price v={total} />
+            {!table && bill.discount + bill.promo > 0 && <Was v={bill.items} />}
           </span>
         ) : (
           <T className="ok-cartbar-empty">{S.emptyCart}</T>
@@ -371,7 +550,7 @@ export function CartBar() {
         disabled={!n}
         onClick={() => go({ screen: 'checkout', sheet: null }, 'push')}
       >
-        <T>{S.checkout}</T>
+        <T>{table ? S.chosenDone : S.checkout}</T>
       </button>
     </div>
   );
@@ -379,14 +558,14 @@ export function CartBar() {
 
 /* ------------------------------------------------------------ spec sheet */
 
-export function SpecSheet({ itemId, choices }: { itemId: string; choices: Record<string, string[]> }) {
+export function SpecSheet({ itemId, choices, qty }: { itemId: string; choices: Record<string, string[]>; qty: number }) {
   const { brand, go, setOrder, toast } = useApp();
   const item = itemOf(brand, itemId);
-  const [qty, setQtyState] = useState(1);
   const body = useRef<HTMLDivElement>(null);
-  const set = (c: Record<string, string[]>) => go({ screen: 'menu', sheet: { kind: 'spec', item: itemId, choices: c } }, 'none');
+  const set = (c: Record<string, string[]>, q = qty) => go({ screen: 'menu', sheet: { kind: 'spec', item: itemId, choices: c, qty: q } }, 'none');
   const close = () => go({ screen: 'menu', sheet: null }, 'none');
   const unit = unitPrice(brand, { item: itemId, choices });
+  const table = brand.model === 'table';
 
   const add = (then: 'close' | 'checkout') => {
     const miss = missingRequired(brand, item, choices);
@@ -419,35 +598,45 @@ export function SpecSheet({ itemId, choices }: { itemId: string; choices: Record
         <MenuPhoto photo={item.photo} />
         <div>
           <T className="ok-spec-name">{item.zh}</T>
-          <T className="ok-row-desc">{item.desc}</T>
+          {item.desc && <T className="ok-row-desc">{item.desc}</T>}
           <PhotoCredit photo={item.photo} />
         </div>
       </div>
       <div className="ok-spec-body" ref={body}>
-        {item.groups.map((gid) => {
+        {visibleGroups(brand, item, choices).map((gid) => {
           const g = groupOf(brand, gid);
           const off = disabled(brand, choices, gid);
           return (
             <div key={gid} className="ok-group" data-hint={`group:${gid}`}>
               <div className="ok-group-name">
                 <T>{g.zh}</T>
+                {g.pick && (
+                  <span className="ok-sub">
+                    {' '}
+                    ({choices[gid]?.length ?? 0}/{g.pick})
+                  </span>
+                )}
               </div>
               <div className="ok-pills">
-                {offered(brand, item, gid).map((o) => (
-                  <button
-                    key={o.id}
-                    type="button"
-                    className="ok-pill"
-                    data-on={choices[gid]?.includes(o.id) || undefined}
-                    data-hint={`opt:${gid}:${o.id}`}
-                    disabled={off.has(o.id)}
-                    onClick={() => set(choose(brand, choices, gid, o.id))}
-                  >
-                    <T>{o.zh}</T>
-                    {o.sub && <T className="ok-pill-sub">{o.sub}</T>}
-                    {o.delta ? <span className="ok-pill-sub">+¥{yuan(o.delta)}</span> : null}
-                  </button>
-                ))}
+                {offered(brand, item, gid).map((o) => {
+                  const p = item.prices?.[o.id];
+                  return (
+                    <button
+                      key={o.id}
+                      type="button"
+                      className="ok-pill"
+                      data-on={choices[gid]?.includes(o.id) || undefined}
+                      data-hint={`opt:${gid}:${o.id}`}
+                      disabled={off.has(o.id)}
+                      onClick={() => set(choose(brand, choices, gid, o.id))}
+                    >
+                      <T>{o.zh}</T>
+                      {o.sub && <T className="ok-pill-sub">{o.sub}</T>}
+                      {p !== undefined ? <span className="ok-pill-sub">¥{yuan(p)}</span> : null}
+                      {o.delta ? <span className="ok-pill-sub">+¥{yuan(o.delta)}</span> : null}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           );
@@ -467,12 +656,14 @@ export function SpecSheet({ itemId, choices }: { itemId: string; choices: Record
               ))}
             </span>
           </span>
-          <Stepper qty={qty} min={1} onMinus={() => setQtyState(Math.max(1, qty - 1))} onPlus={() => setQtyState(Math.min(9, qty + 1))} />
+          <Stepper qty={qty} min={1} plusHint="spec-plus" onMinus={() => set(choices, Math.max(1, qty - 1))} onPlus={() => set(choices, Math.min(9, qty + 1))} />
         </div>
-        <div className="ok-spec-actions">
-          <button type="button" className="ok-btn ghost" onClick={() => add('checkout')}>
-            <T>{S.buyNow}</T>
-          </button>
+        <div className={table ? 'ok-spec-actions one' : 'ok-spec-actions'}>
+          {!table && (
+            <button type="button" className="ok-btn ghost" onClick={() => add('checkout')}>
+              <T>{S.buyNow}</T>
+            </button>
+          )}
           <button type="button" className="ok-btn" data-hint="spec-add" onClick={() => add('close')}>
             <T>{S.addToCart}</T>
           </button>
@@ -483,6 +674,20 @@ export function SpecSheet({ itemId, choices }: { itemId: string; choices: Record
 }
 
 /* ------------------------------------------------------------------ cart */
+
+function Spec({ line }: { line: Pick<Line, 'item' | 'choices'> }) {
+  const { brand } = useApp();
+  return (
+    <span className="ok-line-spec">
+      {specText(brand, line).map((z, j) => (
+        <span key={j}>
+          {j > 0 && '/'}
+          <T>{z}</T>
+        </span>
+      ))}
+    </span>
+  );
+}
 
 export function CartSheet() {
   const { brand, order, setOrder, go } = useApp();
@@ -505,14 +710,7 @@ export function CartSheet() {
             <MenuPhoto photo={itemOf(brand, l.item).photo} className="sm" />
             <div className="ok-line-text">
               <T className="ok-line-name">{itemOf(brand, l.item).zh}</T>
-              <span className="ok-line-spec">
-                {specText(brand, l).map((z, j) => (
-                  <span key={j}>
-                    {j > 0 && '/'}
-                    <T>{z}</T>
-                  </span>
-                ))}
-              </span>
+              <Spec line={l} />
               <Price v={lineTotal(brand, l)} />
             </div>
             <Stepper
@@ -532,81 +730,185 @@ export function CartSheet() {
 
 /* -------------------------------------------------------------- checkout */
 
+function Lines({ lines }: { lines: Line[] }) {
+  const { brand } = useApp();
+  return (
+    <>
+      {lines.map((l, i) => (
+        <div key={i} className="ok-line">
+          <MenuPhoto photo={itemOf(brand, l.item).photo} className="sm" />
+          <div className="ok-line-text">
+            <T className="ok-line-name">{itemOf(brand, l.item).zh}</T>
+            <Spec line={l} />
+          </div>
+          <span className="ok-line-right">
+            <Price v={lineTotal(brand, l)} />
+            <span className="ok-sub">×{l.qty}</span>
+          </span>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function NoteRow() {
+  const { order, go, view } = useApp();
+  return (
+    <button type="button" className="ok-kv link" data-hint="note-row" onClick={() => go({ screen: view.screen, sheet: { kind: 'note' } }, 'none')}>
+      <T className="ok-k">{S.note}</T>
+      <span className="ok-sub ok-note-val">
+        {order.note.length || order.noteText ? (
+          <>
+            {order.note.map((x, i) => (
+              <span key={x}>
+                {i > 0 && '，'}
+                <T>{x}</T>
+              </span>
+            ))}
+            {order.noteText && (
+              <span>
+                {order.note.length ? '，' : ''}
+                {order.noteText}
+              </span>
+            )}
+          </>
+        ) : (
+          <T>{S.none}</T>
+        )}{' '}
+        ›
+      </span>
+    </button>
+  );
+}
+
+function FeeRows({ fees, read }: { fees: ReturnType<typeof price>['fees']; read?: (k: ReadKey) => object }) {
+  return (
+    <>
+      {fees.map((f) => (
+        <div key={f.zh} className="ok-kv" data-fee={f.zh}>
+          <T className="ok-k">{f.zh}</T>
+          <span>
+            <span className="ok-sub">
+              ¥{yuan(f.each)}×{f.n}{' '}
+            </span>
+            {read && f.zh === S.teaFee ? (
+              <button type="button" className="ok-readable" {...read('fee')}>
+                <Price v={f.amount} />
+              </button>
+            ) : (
+              <Price v={f.amount} />
+            )}
+          </span>
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function CheckoutScreen() {
+  const { brand, view } = useApp();
+  return (
+    <div className="ok-screen ok-checkout">
+      {brand.model === 'table' ? <TableCheckout /> : <ShopCheckout />}
+      {view.sheet?.kind === 'coupon' && <CouponSheet />}
+      {view.sheet?.kind === 'note' && <NoteSheet />}
+      {view.sheet?.kind === 'address' && <AddressSheet />}
+      {view.sheet?.kind === 'cutlery' && <CutlerySheet />}
+      {view.sheet?.kind === 'pay' && <PaySheet />}
+    </div>
+  );
+}
+
+function ShopCheckout() {
   const app = useApp();
-  const { brand, order, setOrder, go, toast, times, view } = app;
+  const { brand, order, setOrder, go, toast, times } = app;
   const bill = price(brand, order);
   const usableCount = brand.coupons.filter((c) => usable(brand, order.lines, c)).length;
   const n = count(order.lines);
+  const delivery = order.mode === '外送';
+  const address = brand.delivery?.addresses.find((a) => a.id === order.address);
+  const short = delivery && brand.delivery ? Math.max(0, brand.delivery.min - bill.items) : 0;
+  const [a, b] = brand.dine ?? [S.eatIn, S.takeAway];
+  const setMode = (m: '自提' | '外送') => {
+    if (m === '外送' && !brand.delivery) return toast(S.deliverySoon);
+    setOrder((o) => ({ ...o, mode: m }));
+  };
 
   return (
-    <div className="ok-screen ok-checkout">
+    <>
       <div className="ok-scroll">
         <div className="ok-card">
           <span className="ok-seg wide" role="group">
-            <button type="button" data-on>
+            <button type="button" data-on={!delivery || undefined} data-hint="mode:自提" onClick={() => setMode('自提')}>
               <T>{S.pickup}</T>
             </button>
-            <button type="button" onClick={() => toast(S.deliverySoon)}>
+            <button type="button" data-on={delivery || undefined} data-hint="mode:外送" onClick={() => setMode('外送')}>
               <T>{S.delivery}</T>
             </button>
           </span>
-          <div className="ok-kv">
-            <T className="ok-k">{S.store}</T>
-            <span>
-              <T>{brand.store.zh}</T>
-              <span className="ok-sub">
-                {' '}
-                <T>{S.near}</T> {brand.store.distance}
-              </span>
-            </span>
-          </div>
-          <div className="ok-kv">
-            <span />
-            <span className="ok-accent">
-              <T>{S.expect}</T> {times.ready} <T>{S.ready}</T>
-            </span>
-          </div>
-          <div className="ok-kv">
-            <T className="ok-k">{S.dine}</T>
-            <span className="ok-pills tight">
-              {([S.eatIn, S.takeAway] as const).map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  className="ok-pill"
-                  data-hint={`dine:${d}`}
-                  data-on={order.dine === d || undefined}
-                  onClick={() => setOrder((o) => ({ ...o, dine: d }))}
-                >
-                  <T>{d}</T>
-                </button>
-              ))}
-            </span>
-          </div>
-        </div>
-
-        <div className="ok-card">
-          {order.lines.map((l, i) => (
-            <div key={i} className="ok-line">
-              <MenuPhoto photo={itemOf(brand, l.item).photo} className="sm" />
-              <div className="ok-line-text">
-                <T className="ok-line-name">{itemOf(brand, l.item).zh}</T>
-                <span className="ok-line-spec">
-                  {specText(brand, l).map((z, j) => (
-                    <span key={j}>
-                      {j > 0 && '/'}
-                      <T>{z}</T>
-                    </span>
+          {delivery ? (
+            <>
+              <button type="button" className="ok-kv link" data-hint="address-row" onClick={() => go({ screen: 'checkout', sheet: { kind: 'address' } }, 'none')}>
+                <T className="ok-k">{S.address}</T>
+                <span>
+                  {address ? (
+                    <>
+                      <T>{address.zh}</T> <T className="ok-sub">{address.sub}</T>
+                    </>
+                  ) : (
+                    <T className="ok-red">{S.chooseAddress}</T>
+                  )}{' '}
+                  ›
+                </span>
+              </button>
+              <div className="ok-kv">
+                <span />
+                <span className="ok-accent">
+                  <T>{S.arrive}</T> {times.ready}
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="ok-kv">
+                <T className="ok-k">{S.store}</T>
+                <span>
+                  <T>{brand.store.zh}</T>
+                  <span className="ok-sub">
+                    {' '}
+                    <T>{S.near}</T> {brand.store.distance}
+                  </span>
+                </span>
+              </div>
+              <div className="ok-kv">
+                <span />
+                <span className="ok-accent">
+                  <T>{S.expect}</T> {times.ready} <T>{S.ready}</T>
+                </span>
+              </div>
+              <div className="ok-kv">
+                <T className="ok-k">{S.dine}</T>
+                <span className="ok-pills tight">
+                  {[a, b].map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      className="ok-pill"
+                      data-hint={`dine:${d}`}
+                      data-on={order.dine === d || undefined}
+                      onClick={() => setOrder((o) => ({ ...o, dine: d }))}
+                    >
+                      <T>{d}</T>
+                    </button>
                   ))}
                 </span>
               </div>
-              <span className="ok-line-right">
-                <Price v={lineTotal(brand, l)} />
-                <span className="ok-sub">×{l.qty}</span>
-              </span>
-            </div>
-          ))}
+            </>
+          )}
+        </div>
+
+        <div className="ok-card">
+          <Lines lines={order.lines} />
           <div className="ok-kv sum">
             <span className="ok-sub">
               <T>{S.inAll}</T> {n} <T>{S.pieces}</T>
@@ -615,6 +917,13 @@ export function CheckoutScreen() {
               <T className="ok-sub">{S.itemsTotal}</T> <Price v={bill.items} />
             </span>
           </div>
+          <FeeRows fees={bill.fees} />
+          {bill.promo > 0 && (
+            <div className="ok-kv">
+              <T className="ok-k">{S.promo}</T>
+              <span className="ok-red">−¥{yuan(bill.promo)}</span>
+            </div>
+          )}
         </div>
 
         <div className="ok-card">
@@ -637,25 +946,21 @@ export function CheckoutScreen() {
               ›
             </span>
           </button>
-          <button type="button" className="ok-kv link" data-hint="note-row" onClick={() => go({ screen: 'checkout', sheet: { kind: 'note' } }, 'none')}>
-            <T className="ok-k">{S.note}</T>
-            <span className="ok-sub ok-note-val">
-              {order.note.length || order.noteText ? (
-                <>
-                  {order.note.map((x, i) => (
-                    <span key={x}>
-                      {i > 0 && '，'}
-                      <T>{x}</T>
-                    </span>
-                  ))}
-                  {order.noteText && <span>{order.note.length ? '，' : ''}{order.noteText}</span>}
-                </>
-              ) : (
-                <T>{S.none}</T>
-              )}{' '}
-              ›
-            </span>
-          </button>
+          <NoteRow />
+          {delivery && (
+            <button type="button" className="ok-kv link" data-hint="cutlery-row" onClick={() => go({ screen: 'checkout', sheet: { kind: 'cutlery' } }, 'none')}>
+              <T className="ok-k">{S.cutlery}</T>
+              <span className="ok-sub">
+                {order.cutlery === null ? <T className="ok-red">{S.choose}</T> : order.cutlery === 0 ? <T>{S.noCutlery}</T> : (
+                  <>
+                    {order.cutlery}
+                    <T>{S.sets}</T>
+                  </>
+                )}{' '}
+                ›
+              </span>
+            </button>
+          )}
           <div className="ok-kv">
             <T className="ok-k">{S.payMethod}</T>
             <span>
@@ -672,10 +977,10 @@ export function CheckoutScreen() {
       <div className="ok-paybar">
         <span>
           <T className="ok-sub">{S.total}</T> <Price v={bill.total} className="big" />
-          {bill.discount > 0 && (
+          {bill.discount + bill.promo > 0 && (
             <span className="ok-sub">
               {' '}
-              <T>{S.saved}</T>¥{yuan(bill.discount)}
+              <T>{S.saved}</T>¥{yuan(bill.discount + bill.promo)}
             </span>
           )}
         </span>
@@ -683,23 +988,79 @@ export function CheckoutScreen() {
           type="button"
           className="ok-go"
           data-hint="pay-btn"
-          disabled={!n}
+          disabled={!n || short > 0}
           onClick={() => {
-            if (!order.dine) {
-              toast(`${S.choose}${S.dine}`);
-              return;
-            }
+            if (delivery) {
+              if (!order.address) return toast(`${S.choose}${S.address}`);
+              if (order.cutlery === null) return toast(`${S.choose}${S.cutlery}`);
+            } else if (!order.dine) return toast(`${S.choose}${S.dine}`);
             app.submit();
           }}
         >
-          <T>{S.pay}</T>
+          {short > 0 ? (
+            <>
+              <T>{S.short}</T>¥{yuan(short)}
+              <T>{S.minOrder}</T>
+            </>
+          ) : (
+            <T>{S.pay}</T>
+          )}
         </button>
       </div>
+    </>
+  );
+}
 
-      {view.sheet?.kind === 'coupon' && <CouponSheet />}
-      {view.sheet?.kind === 'note' && <NoteSheet />}
-      {view.sheet?.kind === 'pay' && <PaySheet />}
-    </div>
+function TableCheckout() {
+  const app = useApp();
+  const { brand, order } = app;
+  const n = count(order.lines);
+  return (
+    <>
+      <div className="ok-scroll">
+        <div className="ok-card">
+          <div className="ok-kv">
+            <T className="ok-k">{S.tableNo}</T>
+            <b><T>{brand.table?.no ?? ''}</T></b>
+          </div>
+          <div className="ok-kv">
+            <T className="ok-k">{S.diners}</T>
+            <span>
+              {order.diners}
+              <T>{S.people}</T>
+            </span>
+          </div>
+        </div>
+        <div className="ok-card">
+          {order.placed.length > 0 && (
+            <div className="ok-sheet-title left">
+              <T>{S.more}</T>
+            </div>
+          )}
+          <Lines lines={order.lines} />
+          <div className="ok-kv sum">
+            <span className="ok-sub">
+              <T>{S.inAll}</T> {n} <T>{S.pieces}</T>
+            </span>
+            <span>
+              <T className="ok-sub">{S.dishes}</T> <Price v={subtotal(brand, order.lines)} />
+            </span>
+          </div>
+        </div>
+        <div className="ok-card">
+          <NoteRow />
+        </div>
+        <div className="ok-list-end" />
+      </div>
+      <div className="ok-paybar">
+        <span>
+          <T className="ok-sub">{S.total}</T> <Price v={subtotal(brand, order.lines)} className="big" />
+        </span>
+        <button type="button" className="ok-go" data-hint="order-btn" disabled={!n} onClick={app.submit}>
+          <T>{S.placeOrder}</T>
+        </button>
+      </div>
+    </>
   );
 }
 
@@ -721,6 +1082,7 @@ function CouponSheet() {
               type="button"
               className="ok-coupon"
               disabled={!ok}
+              data-hint={`coupon:${c.id}`}
               data-on={current === c.id || undefined}
               onClick={() => setOrder((o) => ({ ...o, coupon: c.id }))}
             >
@@ -747,8 +1109,8 @@ function CouponSheet() {
 }
 
 function NoteSheet() {
-  const { brand, order, setOrder, go } = useApp();
-  const close = () => go({ screen: 'checkout', sheet: null }, 'none');
+  const { brand, order, setOrder, go, view } = useApp();
+  const close = () => go({ screen: view.screen, sheet: null }, 'none');
   return (
     <Sheet onClose={close} label={S.note} className="ok-small-sheet">
       <div className="ok-sheet-title">
@@ -790,15 +1152,85 @@ function NoteSheet() {
   );
 }
 
+function AddressSheet() {
+  const { brand, order, setOrder, go } = useApp();
+  const close = () => go({ screen: 'checkout', sheet: null }, 'none');
+  return (
+    <Sheet onClose={close} label={S.chooseAddress} className="ok-small-sheet">
+      <div className="ok-sheet-title">
+        <T>{S.chooseAddress}</T>
+      </div>
+      <div className="ok-coupons">
+        {brand.delivery?.addresses.map((a) => (
+          <button
+            key={a.id}
+            type="button"
+            className="ok-coupon plain"
+            data-hint={`addr:${a.id}`}
+            data-on={order.address === a.id || undefined}
+            onClick={() => {
+              setOrder((o) => ({ ...o, address: a.id }));
+              close();
+            }}
+          >
+            <span className="ok-coupon-text">
+              <T className="ok-line-name">{a.zh}</T>
+              <T className="ok-sub">{a.sub}</T>
+            </span>
+            <span className="ok-radio" aria-hidden />
+          </button>
+        ))}
+      </div>
+    </Sheet>
+  );
+}
+
+function CutlerySheet() {
+  const { order, setOrder, go } = useApp();
+  const close = () => go({ screen: 'checkout', sheet: null }, 'none');
+  return (
+    <Sheet onClose={close} label={S.cutlery} className="ok-small-sheet">
+      <div className="ok-sheet-title">
+        <T>{S.cutlery}</T>
+      </div>
+      <div className="ok-pills">
+        {[0, 1, 2, 3].map((n) => (
+          <button
+            key={n}
+            type="button"
+            className="ok-pill"
+            data-hint={`cut:${n}`}
+            data-on={order.cutlery === n || undefined}
+            onClick={() => {
+              setOrder((o) => ({ ...o, cutlery: n }));
+              close();
+            }}
+          >
+            {n === 0 ? (
+              <T>{S.noCutlery}</T>
+            ) : (
+              <>
+                {n}
+                <T>{S.sets}</T>
+              </>
+            )}
+          </button>
+        ))}
+      </div>
+    </Sheet>
+  );
+}
+
 /* ------------------------------------------------------------------- pay */
 
 function PaySheet() {
-  const { brand, order, go, paid } = useApp();
+  const { brand, order, go, paid, view } = useApp();
   const [digits, setDigits] = useState(0);
-  const total = price(brand, order).total;
+  const total = price(brand, order, brand.model === 'table' ? order.placed.flat() : order.lines).total;
   const done = digits >= 6;
+  const back = () => go({ screen: view.screen, sheet: null }, 'none');
   return (
-    <Sheet onClose={() => !done && go({ screen: 'checkout', sheet: null }, 'none')} label={S.wechatPay} className="ok-pay">
+    <Sheet onClose={() => !done && back()} label={S.wechatPay} className="ok-pay">
       {done ? (
         <div className="ok-paid">
           <span className="ok-paid-tick" aria-hidden>
@@ -814,7 +1246,7 @@ function PaySheet() {
       ) : (
         <>
           <div className="ok-pay-head">
-            <button type="button" className="ok-x inline" aria-label="close" onClick={() => go({ screen: 'checkout', sheet: null }, 'none')}>
+            <button type="button" className="ok-x inline" aria-label="close" onClick={back}>
               ×
             </button>
             <T>{S.pin}</T>
@@ -851,15 +1283,120 @@ function PaySheet() {
   );
 }
 
+/* ------------------------------------------------- table: during the meal */
+
+export function TableScreen() {
+  const { brand, order, go, toast, toBill } = useApp();
+  return (
+    <div className="ok-screen ok-checkout">
+      <div className="ok-scroll">
+        <div className="ok-card ok-center">
+          <span className="ok-paid-tick small" aria-hidden>
+            ✓
+          </span>
+          <T className="ok-paid-title">{S.placed}</T>
+          <T className="ok-sub">{S.cooking}</T>
+          <span className="ok-sub">
+            <T>{S.tableNo}</T> <T>{brand.table?.no ?? ''}</T> · {order.diners}
+            <T>{S.people}</T>
+          </span>
+        </div>
+        <div className="ok-actions">
+          <button type="button" className="ok-action" data-hint="more-btn" onClick={() => go({ screen: 'menu', sheet: null }, 'push')}>
+            <b>＋</b>
+            <T>{S.more}</T>
+          </button>
+          <button type="button" className="ok-action" onClick={() => toast(S.waiterCalled)}>
+            <b>☏</b>
+            <T>{S.callWaiter}</T>
+          </button>
+          <button type="button" className="ok-action" onClick={() => toast(S.hurried)}>
+            <b>⏱</b>
+            <T>{S.hurry}</T>
+          </button>
+        </div>
+        <div className="ok-card">
+          <div className="ok-sheet-title left">
+            <T>{S.orderedDishes}</T>
+          </div>
+          {order.placed.map((batch, i) => (
+            <div key={i}>
+              {i > 0 && (
+                <div className="ok-batch">
+                  <T>{S.more}</T>
+                </div>
+              )}
+              <Lines lines={batch} />
+            </div>
+          ))}
+        </div>
+        <div className="ok-list-end" />
+      </div>
+      <div className="ok-paybar">
+        <span>
+          <T className="ok-sub">{S.dishes}</T> <Price v={subtotal(brand, order.placed.flat())} />
+        </span>
+        <button type="button" className="ok-go" data-hint="bill-btn" onClick={toBill}>
+          <T>{S.toBill}</T>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function BillScreen() {
+  const { brand, order, go, view } = useApp();
+  const lines = order.placed.flat();
+  const bill = price(brand, order, lines);
+  return (
+    <div className="ok-screen ok-checkout">
+      <div className="ok-scroll">
+        <div className="ok-card">
+          <div className="ok-kv">
+            <T className="ok-k">{S.tableNo}</T>
+            <b><T>{brand.table?.no ?? ''}</T></b>
+          </div>
+          <Lines lines={lines} />
+          <div className="ok-kv sum">
+            <T className="ok-k">{S.dishes}</T>
+            <Price v={bill.items} />
+          </div>
+          <FeeRows fees={bill.fees} />
+          <div className="ok-kv sum">
+            <T className="ok-k">{S.total}</T>
+            <Price v={bill.total} className="big" />
+          </div>
+        </div>
+        <div className="ok-list-end" />
+      </div>
+      <div className="ok-paybar">
+        <span>
+          <T className="ok-sub">{S.total}</T> <Price v={bill.total} className="big" />
+        </span>
+        <button type="button" className="ok-go" data-hint="pay-btn" onClick={() => go({ screen: 'bill', sheet: { kind: 'pay' } }, 'none')}>
+          <T>{S.pay}</T>
+        </button>
+      </div>
+      {view.sheet?.kind === 'pay' && <PaySheet />}
+    </div>
+  );
+}
+
 /* ---------------------------------------------------------------- pickup */
 
 export function PickupScreen() {
   const { brand, order, times, reading, answer, finishOrder } = useApp();
-  const bill = price(brand, order);
+  const table = brand.model === 'table';
+  const lines = table ? order.placed.flat() : order.lines;
+  const bill = price(brand, order, lines);
+  const delivery = order.mode === '外送';
+  const address = brand.delivery?.addresses.find((a) => a.id === order.address);
   const read = (k: ReadKey) => ({
     'data-read': k,
     onClick: () => reading?.state !== 'right' && answer(k),
   });
+  const code = brand.code ?? { zh: S.code };
+
   return (
     <div className="ok-screen ok-pickup">
       <div className="ok-scroll">
@@ -878,68 +1415,97 @@ export function PickupScreen() {
             </div>
           </div>
         )}
-        <div className="ok-card ok-center">
-          <ol className="ok-steps">
-            <li data-done>
-              <T>{S.ordered}</T>
-            </li>
-            <li data-on>
-              <T>{S.making}</T>
-            </li>
-            <li>
-              <T>{S.collect}</T>
-            </li>
-          </ol>
-          <T className="ok-sub">{S.code}</T>
-          <button type="button" className="ok-code" {...read('code')}>
-            {times.code}
-          </button>
-          <FakeQr seed={times.code} />
-          <span className="ok-accent">
-            <T>{S.expect}</T> {times.minutes} <T>{S.minutes}</T>
-          </span>
-          <button type="button" className="ok-readable" {...read('time')}>
-            <T>{S.expect}</T> {times.ready} <T>{S.ready}</T>
-          </button>
-          <T className="ok-sub">{brand.store.zh}</T>
-        </div>
+        {table ? (
+          <div className="ok-card ok-center">
+            <span className="ok-paid-tick" aria-hidden>
+              ✓
+            </span>
+            <T className="ok-paid-title">{S.billPaid}</T>
+            <T className="ok-sub">{S.welcome}</T>
+            <button type="button" className="ok-readable" {...read('table')}>
+              <T>{S.tableNo}</T> <T>{brand.table?.no ?? ''}</T>
+            </button>
+          </div>
+        ) : delivery ? (
+          <div className="ok-card ok-center">
+            <ol className="ok-steps">
+              <li data-done>
+                <T>{S.accepted}</T>
+              </li>
+              <li data-on>
+                <T>{S.riding}</T>
+              </li>
+            </ol>
+            <T className="ok-sub">{S.arrive}</T>
+            <button type="button" className="ok-code small" {...read('time')}>
+              {times.ready}
+            </button>
+            {address && (
+              <span className="ok-sub">
+                <T>{address.zh}</T> <T>{address.sub}</T>
+              </span>
+            )}
+          </div>
+        ) : (
+          <div className="ok-card ok-center">
+            <ol className="ok-steps">
+              <li data-done>
+                <T>{S.ordered}</T>
+              </li>
+              <li data-on>
+                <T>{S.making}</T>
+              </li>
+              <li>
+                <T>{S.collect}</T>
+              </li>
+            </ol>
+            <T className="ok-sub">{code.zh}</T>
+            <button type="button" className="ok-code" {...read('code')}>
+              {code.prefix ? `${code.prefix}${times.code.slice(1)}` : times.code}
+            </button>
+            {brand.model === 'counter' ? <T className="ok-accent">{S.listen}</T> : <FakeQr seed={times.code} />}
+            <span className="ok-accent">
+              <T>{S.expect}</T> {times.minutes} <T>{S.minutes}</T>
+            </span>
+            <button type="button" className="ok-readable" {...read('time')}>
+              <T>{S.expect}</T> {times.ready} <T>{S.ready}</T>
+            </button>
+            <T className="ok-sub">{brand.store.zh}</T>
+          </div>
+        )}
         <div className="ok-card">
           <div className="ok-sheet-title left">
             <T>{S.details}</T>
           </div>
-          {order.lines.map((l, i) => (
+          {lines.map((l, i) => (
             <div key={i} className="ok-kv">
               <span>
-                <T>{itemOf(brand, l.item).zh}</T>{' '}
-                <span className="ok-sub">
-                  {specText(brand, l).map((z, j) => (
-                    <span key={j}>
-                      {j > 0 && '/'}
-                      <T>{z}</T>
-                    </span>
-                  ))}{' '}
-                  ×{l.qty}
-                </span>
+                <T>{itemOf(brand, l.item).zh}</T> <Spec line={l} /> <span className="ok-sub">×{l.qty}</span>
               </span>
               <Price v={lineTotal(brand, l)} />
             </div>
           ))}
-          <div className="ok-kv">
-            <T className="ok-k">{S.saved}</T>
-            <button type="button" className="ok-readable" {...read('saved')}>
-              −¥{yuan(bill.discount)}
-            </button>
-          </div>
+          <FeeRows fees={bill.fees} read={read} />
+          {!table && (
+            <div className="ok-kv">
+              <T className="ok-k">{S.saved}</T>
+              <button type="button" className="ok-readable" {...read('saved')}>
+                −¥{yuan(bill.discount + bill.promo)}
+              </button>
+            </div>
+          )}
           <div className="ok-kv">
             <T className="ok-k">{S.paidAmount}</T>
             <button type="button" className="ok-readable" {...read('total')}>
               <Price v={bill.total} />
             </button>
           </div>
-          <div className="ok-kv">
-            <T className="ok-k">{S.dine}</T>
-            <T>{order.dine ?? ''}</T>
-          </div>
+          {!table && !delivery && (
+            <div className="ok-kv">
+              <T className="ok-k">{S.dine}</T>
+              <T>{order.dine ?? ''}</T>
+            </div>
+          )}
           <div className="ok-kv">
             <T className="ok-k">{S.orderTime}</T>
             <span className="ok-sub">{times.ordered}</span>

@@ -21,7 +21,7 @@ up later without re-deciding it.
 | D.2 choose-your-path | genre `branching`, `story` in the passage JSON, `reader/StoryPath.tsx` | Lines carry their node, so coverage, read-aloud and the word drawer work unchanged. Endings kept on the text (`endings`), merged across devices; reaching one marks the passage read. |
 | D.3 comics | `reader/Comic.tsx`, **Comic** chip in the reader (per device) | Dialogues ask the writer for `who` per line. |
 | E.1 ink wall | `domain/inkWall.ts`, `library/InkWall.tsx`, in the progress drawer | Characters or words, HSK 1–3, five steps of ink. |
-| C.4.13 ordering | `src/games/order-kit/`, `src/games/order-luckin/` (`/play/order-luckin`) | **Phase 1 (2026-09-27): the kit + 瑞幸咖啡.** Plan and deviations in `docs/ordering-game/plan.md` §12. Menu photos wait for `--set menu` to be run on the Mac (Wikimedia was unreachable from the build container); word photos stand in. |
+| C.4.13 ordering | `src/games/order-kit/`, `src/games/order-{luckin,mixue,waipojia,dimsum,majiyong,xijiade,haidilao}/` | **All four phases (2026-09-27):** seven shops — chain (瑞幸 with 外送, 蜜雪冰城), counter (马记永, 喜家德) and table service (外婆家, 点都德, 海底捞, with 加菜) — plus budget and coupon orders. Plan, deviations and what is left: `docs/ordering-game/plan.md` §12–13. Menu photos wait for `--set menu` to be run on the Mac; word photos stand in. |
 | E.2 mouth diagrams | `scripts/mouth/build.py` → `src/data/mouth.json`, `pinyin/MouthDiagrams.tsx` | Tavin's articulation diagrams (CC BY-SA 4.0) for j q x / zh ch sh / z c s; Wright & McCloy's sagittal sections (CC0) for -n / -ng and i / u (ü). r uses the sh tongue. |
 
 ---

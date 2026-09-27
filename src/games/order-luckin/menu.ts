@@ -1,4 +1,4 @@
-import type { Brand, MenuItem, TaskTemplate, TemplatePick } from '../order-kit/types';
+import type { Brand, MenuItem, TaskTemplate, TemplatePick, Want } from '../order-kit/types';
 
 /**
  * 瑞幸咖啡 — the shop, as data.
@@ -94,7 +94,7 @@ const templates: TaskTemplate[] = [
         message: `帮我买一杯${t.zh}${call(i)}。`,
         en: `Buy me a ${t.en} ${enOf(p.brand, call(i))}, please.`,
         parts: [...t.chip, call(i)],
-        wants: [{ kind: 'line', item: i.id, qty: 1, choices: t.want }],
+        wants: [{ kind: 'line', item: i.id, qty: 1, choices: t.want }] as Want[],
       };
     },
   },
@@ -108,7 +108,7 @@ const templates: TaskTemplate[] = [
         message: `我想喝${call(i)}，要${t.zh}的。`,
         en: `I'd like a ${enOf(p.brand, call(i))} — ${t.en}.`,
         parts: [call(i), `${t.zh}的`],
-        wants: [{ kind: 'line', item: i.id, qty: 1, choices: t.want }],
+        wants: [{ kind: 'line', item: i.id, qty: 1, choices: t.want }] as Want[],
       };
     },
   },
@@ -121,7 +121,7 @@ const templates: TaskTemplate[] = [
         message: `帮我买一个${call(i)}。`,
         en: `Buy me a ${enOf(p.brand, call(i))}, please.`,
         parts: ['一个', call(i)],
-        wants: [{ kind: 'line', item: i.id, qty: 1, choices: {} }],
+        wants: [{ kind: 'line', item: i.id, qty: 1, choices: {} }] as Want[],
       };
     },
   },
@@ -140,7 +140,7 @@ const templates: TaskTemplate[] = [
         wants: [
           { kind: 'line', item: i.id, qty: 1, choices: { ...t.want, sugar: s.id } },
           { kind: 'dine', value: dine },
-        ],
+        ] as Want[],
       };
     },
   },
@@ -158,7 +158,7 @@ const templates: TaskTemplate[] = [
         wants: [
           { kind: 'line', item: i.id, qty: 1, choices: { ...t.want, sugar: s.id, milk: 'oat' } },
           { kind: 'dine', value: '外带' },
-        ],
+        ] as Want[],
       };
     },
   },
@@ -172,7 +172,7 @@ const templates: TaskTemplate[] = [
         message: `我要一杯${call(i)}，${t.zh}的，超大杯。`,
         en: `I want a ${enOf(p.brand, call(i))}, ${t.en}, extra large.`,
         parts: [call(i), `${t.zh}的`, '超大杯'],
-        wants: [{ kind: 'line', item: i.id, qty: 1, choices: { ...t.want, cup: 'xl' } }],
+        wants: [{ kind: 'line', item: i.id, qty: 1, choices: { ...t.want, cup: 'xl' } }] as Want[],
       };
     },
   },
@@ -190,7 +190,7 @@ const templates: TaskTemplate[] = [
         wants: [
           { kind: 'line', item: i.id, qty: 1, choices: { ...t.want, shot: 'double' } },
           { kind: 'dine', value: dine },
-        ],
+        ] as Want[],
       };
     },
   },
@@ -207,7 +207,7 @@ const templates: TaskTemplate[] = [
           { kind: 'line', item: i.id, qty: 1, choices: { temp: 'ice' } },
           { kind: 'line', item: i.id, qty: 1, choices: { temp: 'hot' } },
           { kind: 'dine', value: '外带' },
-        ],
+        ] as Want[],
       };
     },
   },
@@ -225,7 +225,7 @@ const templates: TaskTemplate[] = [
         wants: [
           { kind: 'line', item: i.id, qty: 2, choices: { ...(t ? { temp: 'ice' } : {}), sugar: s.id } },
           { kind: 'note', value: '少冰' },
-        ],
+        ] as Want[],
       };
     },
   },
@@ -246,7 +246,7 @@ const templates: TaskTemplate[] = [
           { kind: 'line', item: i.id, qty: 1, choices: { ...t.want, sugar: s.id } },
           { kind: 'line', item: f.id, qty: 1, choices: {} },
           { kind: 'dine', value: dine },
-        ],
+        ] as Want[],
       };
     },
   },
@@ -266,7 +266,7 @@ const templates: TaskTemplate[] = [
           { kind: 'line', item: a.id, qty: 1, choices: ta.want },
           { kind: 'line', item: b.id, qty: 1, choices: tb.want },
           { kind: 'dine', value: dine },
-        ],
+        ] as Want[],
       };
     },
   },
@@ -282,7 +282,82 @@ const templates: TaskTemplate[] = [
         wants: [
           { kind: 'line', item: i.id, qty: 2, choices: { temp: 'hot', milk: 'oat', sugar: 'none' } },
           { kind: 'dine', value: '堂食' },
-        ],
+        ] as Want[],
+      };
+    },
+  },
+  {
+    id: 'deliver-office',
+    level: 2,
+    extra: true,
+    build: (p) => {
+      const i = p.pick(both(p.brand));
+      const t = tempOf(p, i);
+      return {
+        message: `帮我点一杯${t.zh}${call(i)}，送到公司。不要餐具。`,
+        en: `Order me a ${t.en} ${enOf(p.brand, call(i))}, delivered to the office. No cutlery.`,
+        parts: ['外送', ...t.chip, call(i), '公司', '不要餐具'],
+        wants: [
+          { kind: 'line', item: i.id, qty: 1, choices: t.want },
+          { kind: 'mode', value: '外送' },
+          { kind: 'address', value: 'office' },
+          { kind: 'cutlery', n: 0 },
+        ] as Want[],
+      };
+    },
+  },
+  {
+    id: 'deliver-home',
+    level: 3,
+    extra: true,
+    build: (p) => {
+      const i = p.pick(drinks(p.brand));
+      return {
+        message: `帮我点两杯${call(i)}，送到家里，要两份餐具。`,
+        en: `Order me two ${enOf(p.brand, call(i))}s, delivered home, with two sets of cutlery.`,
+        parts: ['外送', '两杯', call(i), '家', '两份餐具'],
+        wants: [
+          { kind: 'line', item: i.id, qty: 2, choices: {} },
+          { kind: 'mode', value: '外送' },
+          { kind: 'address', value: 'home' },
+          { kind: 'cutlery', n: 2 },
+        ] as Want[],
+      };
+    },
+  },
+  {
+    id: 'budget',
+    level: 2,
+    extra: true,
+    build: (p) => {
+      const coffees = drinks(p.brand).filter((i) => i.hsk?.includes('咖啡'));
+      const cheapest = [...coffees].sort((a, b) => (a.deal ?? a.price) - (b.deal ?? b.price))[0];
+      return {
+        message: `我只有15块，帮我买一杯最便宜的咖啡。`,
+        en: `I only have ¥15 — buy me the cheapest coffee.`,
+        parts: ['我只有', '15块', '最便宜', '咖啡'],
+        wants: [
+          { kind: 'line', item: cheapest.id, qty: 1, choices: {} },
+          { kind: 'budget', max: 15 },
+        ] as Want[],
+      };
+    },
+  },
+  {
+    id: 'other-coupon',
+    level: 3,
+    extra: true,
+    build: (p) => {
+      const i = p.pick(drinks(p.brand).filter((x) => x.price >= 30));
+      const t = tempOf(p, i);
+      return {
+        message: `帮我买一杯${t.zh}${call(i)}，用满30减5的券，饮品券我下次再用。`,
+        en: `Buy me a ${t.en} ${enOf(p.brand, call(i))}. Use the ¥5-off-¥30 coupon — I'm keeping the drink coupon for next time.`,
+        parts: [...t.chip, call(i), '优惠券', '满30减5'],
+        wants: [
+          { kind: 'line', item: i.id, qty: 1, choices: t.want },
+          { kind: 'coupon', id: 'off30' },
+        ] as Want[],
       };
     },
   },
@@ -292,6 +367,7 @@ const templates: TaskTemplate[] = [
 
 export const luckin: Brand = {
   id: 'luckin',
+  model: 'chain',
   name: '瑞幸咖啡',
   latin: 'luckin coffee',
   merchant: '瑞幸咖啡',
@@ -369,6 +445,21 @@ export const luckin: Brand = {
     },
   },
   rules: [],
+  autoCoupon: true,
+  fees: [
+    { zh: '配送费', amount: 3, per: 'order', delivery: true },
+    { zh: '打包费', amount: 1, per: 'item', delivery: true },
+  ],
+  dine: ['堂食', '外带'],
+  code: { zh: '取餐码' },
+  delivery: {
+    min: 20,
+    promo: { min: 30, off: 8 },
+    addresses: [
+      { id: 'office', zh: '公司', sub: '朝阳区光华路8号' },
+      { id: 'home', zh: '家', sub: '朝阳区团结湖路12号' },
+    ],
+  },
   coupons: [
     { id: 'drink', zh: '饮品券', sub: '一杯饮品享预估到手价', kind: 'deal' },
     { id: 'off30', zh: '满30减5', sub: '满30元可用', kind: 'off', min: 30, value: 5 },
@@ -391,7 +482,7 @@ export const luckin: Brand = {
     menu: 'The big price is 预估到手 — what you pay after the best coupon. The crossed-out number is the list price.',
     spec: 'luckin offers only 冰 (iced) or 热 (hot). Less ice or no ice (少冰, 去冰) is written in 备注 at checkout.',
     cart: 'Each different set of options is its own line: an iced and a hot latte are two lines.',
-    checkout: '打包 and 带走 both mean 外带. The app picks the best coupon by itself — 已选1张.',
+    checkout: '打包 and 带走 both mean 外带. The app picks the best coupon by itself — 已选1张. For 外送, choose the address and 餐具数量.',
     pay: 'In real life this is your WeChat Pay PIN or Face ID. Here any six taps will do.',
     pickup: 'After paying, the 取餐码 is what the barista calls out, and what the screen by the counter shows.',
   },
@@ -407,6 +498,7 @@ export const luckin: Brand = {
     { en: 'Drinks and food', words: ['咖啡', '拿铁', '美式', '生椰拿铁', '燕麦奶', '纯牛奶', '厚乳', '瑞纳冰', '果蔬茶', '轻食', '可颂'] },
     { en: 'Options', words: ['温度', '冰', '热', '糖度', '不另外加糖', '少少甜', '少甜', '标准甜', '奶', '浓度', '双份浓缩', '杯型', '大杯', '超大杯'] },
     { en: 'Checkout', words: ['去结算', '确认订单', '自提', '外送', '取餐方式', '堂食', '外带', '打包', '带走', '优惠券', '备注', '少冰', '去冰', '多加冰'] },
+    { en: 'Delivery', words: ['外送', '收货地址', '公司', '家', '预计送达', '配送费', '打包费', '满减', '起送', '餐具数量', '无需餐具'] },
     { en: 'Paying and pickup', words: ['去支付', '微信支付', '零钱', '输入支付密码', '支付成功', '合计', '已优惠', '取餐码', '制作中', '请取餐'] },
   ],
   templates,
@@ -544,5 +636,16 @@ export const luckin: Brand = {
     都: { py: 'dōu', en: 'both, all', hsk: ['都'] },
     再要: { py: 'zài yào', en: 'and also', hsk: ['再', '要'] },
     谢谢: { py: 'xièxie', en: 'thanks', hsk: ['谢谢'] },
+    帮我点: { py: 'bāng wǒ diǎn', en: 'order for me', hsk: ['帮', '我', '点'] },
+    公司: { py: 'gōngsī', en: 'the office', hsk: ['公司'] },
+    家: { py: 'jiā', en: 'home', hsk: ['家'] },
+    家里: { py: 'jiā lǐ', en: 'home', hsk: ['家', '里'] },
+    两份餐具: { py: 'liǎng fèn cānjù', en: 'two sets of cutlery', hsk: ['两', '份'] },
+    最便宜: { py: 'zuì piányi', en: 'the cheapest', hsk: ['最', '便宜'] },
+    的: { py: 'de', en: '(links a description to a noun)', hsk: ['的'] },
+    券: { py: 'quàn', en: 'coupon' },
+    我下次再用: { py: 'wǒ xià cì zài yòng', en: "I'll use it next time", hsk: ['我', '下次', '再', '用'] },
+    朝阳区光华路8号: { py: 'Cháoyáng qū Guānghuá lù bā hào', en: 'No. 8 Guanghua Road, Chaoyang', hsk: ['号'] },
+    朝阳区团结湖路12号: { py: 'Cháoyáng qū Tuánjiéhú lù shí’èr hào', en: 'No. 12 Tuanjiehu Road, Chaoyang', hsk: ['号'] },
   },
 };

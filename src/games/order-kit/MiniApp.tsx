@@ -1,7 +1,19 @@
 import type { ReactNode } from 'react';
 import { useApp } from './app';
 import { T } from './help';
-import { CartSheet, ChatScreen, CheckoutScreen, EmptyTab, HomeScreen, MenuScreen, PickupScreen, SpecSheet } from './screens';
+import {
+  BillScreen,
+  CartSheet,
+  ChatScreen,
+  CheckoutScreen,
+  EmptyTab,
+  HomeScreen,
+  LandingScreen,
+  MenuScreen,
+  PickupScreen,
+  SpecSheet,
+  TableScreen,
+} from './screens';
 import { S } from './strings';
 
 /**
@@ -24,20 +36,38 @@ export function MiniApp({
   const app = useApp();
   const { brand, view, go } = app;
   const s = view.screen;
-  const title =
+  const table = brand.model === 'table';
+  const title: string =
     s === 'chat'
       ? brand.friend
       : s === 'checkout'
-        ? S.confirm
+        ? table
+          ? S.confirmOrder
+          : S.confirm
         : s === 'pickup'
-          ? S.details
+          ? table
+            ? S.billPaid
+            : S.details
           : s === 'orders'
             ? S.tabOrders
             : s === 'me'
               ? S.tabMe
-              : brand.name;
-  const back = s === 'checkout' ? () => go({ screen: 'menu', sheet: null }, 'pop') : s === 'menu' ? () => go({ screen: 'home', sheet: null }, 'pop') : null;
-  const tabs = s === 'home' || s === 'menu' || s === 'orders' || s === 'me';
+              : s === 'table'
+                ? S.orderedDishes
+                : s === 'bill'
+                  ? S.bill
+                  : brand.name;
+  // table service: after the first 下单 the menu goes back to the table, not the landing
+  const menuBack = table ? (app.order.placed.length ? 'table' : 'landing') : 'home';
+  const back =
+    s === 'checkout'
+      ? () => go({ screen: 'menu', sheet: null }, 'pop')
+      : s === 'menu'
+        ? () => go({ screen: menuBack, sheet: null }, 'pop')
+        : s === 'bill'
+          ? () => go({ screen: 'table', sheet: null }, 'pop')
+          : null;
+  const tabs = !table && (s === 'home' || s === 'menu' || s === 'orders' || s === 'me');
 
   return (
     <div className="ok-app" data-screen={s} data-chat={s === 'chat' || undefined}>
@@ -69,11 +99,14 @@ export function MiniApp({
           {s === 'home' && <HomeScreen />}
           {s === 'menu' && <MenuScreen />}
           {(s === 'orders' || s === 'me') && <EmptyTab which={s} />}
+          {s === 'landing' && <LandingScreen />}
           {s === 'checkout' && <CheckoutScreen />}
+          {s === 'table' && <TableScreen />}
+          {s === 'bill' && <BillScreen />}
           {s === 'pickup' && <PickupScreen />}
         </div>
         {s === 'menu' && view.sheet?.kind === 'spec' && (
-          <SpecSheet key={view.sheet.item} itemId={view.sheet.item} choices={view.sheet.choices} />
+          <SpecSheet key={view.sheet.item} itemId={view.sheet.item} choices={view.sheet.choices} qty={view.sheet.qty ?? 1} />
         )}
         {s === 'menu' && view.sheet?.kind === 'cart' && <CartSheet />}
       </div>

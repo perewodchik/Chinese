@@ -82,9 +82,65 @@ export const S = {
   member: '会员',
   newOnes: '新品推荐',
   onlyIced: '仅冰饮',
+  // counter shops (先付后吃)
+  orderHere: '到店点餐',
+  queueCode: '取餐号',
+  listen: '请留意叫号',
+  // table service (扫码点餐, 先吃后付)
+  scanOrder: '扫码点餐',
+  tableNo: '桌号',
+  diners: '就餐人数',
+  people: '人',
+  chooseTea: '选茶',
+  start: '开始点餐',
+  perHead: '位',
+  chosenDone: '选好了',
+  confirmOrder: '确认下单',
+  placeOrder: '下单',
+  placed: '下单成功',
+  cooking: '菜品正在准备中',
+  orderedDishes: '已点菜品',
+  more: '加菜',
+  callWaiter: '呼叫服务员',
+  waiterCalled: '已通知服务员',
+  hurry: '催单',
+  hurried: '已催单',
+  toBill: '去买单',
+  bill: '买单',
+  dishes: '菜品',
+  billPaid: '买单成功',
+  welcome: '欢迎再次光临',
+  askTable: '桌号是多少',
+  askQueue: '取餐号是多少',
+  askFee: '茶位费一共多少',
+  // delivery (外送)
+  address: '收货地址',
+  chooseAddress: '选择收货地址',
+  arrive: '预计送达',
+  minOrder: '起送',
+  short: '差',
+  promo: '满减',
+  cutlery: '餐具数量',
+  noCutlery: '无需餐具',
+  sets: '份',
+  riding: '骑手正在赶来',
+  accepted: '商家已接单',
+  askArrive: '几点送到',
+  cutleryFee: '餐具',
+  teaFee: '茶位费',
+  mild: '微辣',
+  medium: '中辣',
+  hot: '特辣',
 } as const;
 
 export const KIT_STRINGS: string[] = Object.values(S);
 
 /** Every screen the kit can show; each brand's flow must name them all. */
 export const KIT_SCREENS: ScreenId[] = ['chat', 'home', 'menu', 'spec', 'cart', 'checkout', 'pay', 'pickup'];
+
+/** The screens of each way a shop works; each brand's flow must name them all. */
+export const SCREENS_OF: Record<'chain' | 'counter' | 'table', ScreenId[]> = {
+  chain: KIT_SCREENS,
+  counter: KIT_SCREENS,
+  table: ['chat', 'landing', 'menu', 'spec', 'cart', 'checkout', 'table', 'bill', 'pay', 'pickup'],
+};

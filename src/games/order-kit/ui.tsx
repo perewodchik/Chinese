@@ -81,12 +81,14 @@ export function Stepper({
   onMinus,
   onPlus,
   minusHint,
+  plusHint,
   min = 0,
 }: {
   qty: number;
   onMinus(): void;
   onPlus(): void;
   minusHint?: string;
+  plusHint?: string;
   min?: number;
 }) {
   return (
@@ -95,7 +97,7 @@ export function Stepper({
         −
       </button>
       <span className="ok-qty">{qty}</span>
-      <button type="button" className="ok-step plus" aria-label="one more" onClick={onPlus}>
+      <button type="button" className="ok-step plus" aria-label="one more" onClick={onPlus} data-hint={plusHint}>
         +
       </button>
     </span>
