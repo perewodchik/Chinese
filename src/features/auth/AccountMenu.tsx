@@ -45,6 +45,9 @@ export function AccountMenu() {
         <div className="account-menu" role="menu">
           <div className="tiny muted">Signed in as</div>
           <b className="account-who">{user.username}</b>
+          <Link role="menuitem" className="btn ghost sm" to={paths.stats()} onClick={() => setOpen(false)}>
+            Your progress
+          </Link>
           <Link role="menuitem" className="btn ghost sm" to={paths.settings()} onClick={() => setOpen(false)}>
             Account and settings
           </Link>

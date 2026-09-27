@@ -126,9 +126,13 @@ export const DEFAULT_SETTINGS: AppSettings = {
  *
  * 9: `videos`, the videos being studied. A build before it would drop them
  * on its next save; the version is what makes the server refuse that save.
+ *
+ * 10: a day's `activity` carries the time worked (`ms`) and a snapshot of
+ * how much was known that evening (`snap`), for the Stats page. A build
+ * before it reads the activity field by field and would drop both.
  */
 export interface PersistedState {
-  version: 9;
+  version: 10;
   collections: Collection[];
   /**
    * What the app knows about your memory, by item.

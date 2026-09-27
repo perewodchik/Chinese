@@ -102,6 +102,8 @@ export const paths = {
     }),
 
   settings: () => '/settings',
+  /** how much has been learned, day by day and week by week */
+  stats: () => '/account/stats',
 };
 
 function withQuery(path: string, query: Record<string, string | undefined>) {

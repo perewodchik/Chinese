@@ -592,7 +592,7 @@ function withListWords(items: ItemId[], words: unknown, version: number): ItemId
 
 export function serialise(s: AppState): PersistedState {
   return {
-    version: 9,
+    version: 10,
     collections: s.collections,
     recall: s.recall,
     sheets: s.sheets,

@@ -19,6 +19,7 @@ import { DrillPage } from '../features/review/DrillPage';
 import { GradeSheetPage } from '../features/review/GradeSheetPage';
 import { ReviewPage } from '../features/review/ReviewPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
+import { StatsPage } from '../features/stats/StatsPage';
 import { TodayPage } from '../features/today/TodayPage';
 import { AddVideoPage } from '../features/videos/AddVideoPage';
 import { VideoPage } from '../features/videos/VideoPage';
@@ -144,6 +145,8 @@ export const router = createBrowserRouter([
               { path: 'pinyin/:rest/*', element: <MovedToSpeaking /> },
               { path: 'pinyin/:rest', element: <MovedToSpeaking /> },
               { path: 'settings', element: <SettingsPage /> },
+              { path: 'account', element: <Navigate to={paths.stats()} replace /> },
+              { path: 'account/stats', element: <StatsPage /> },
               { path: '*', element: <NotFoundPage /> },
             ],
           },

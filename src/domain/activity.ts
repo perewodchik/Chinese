@@ -24,17 +24,46 @@ export interface DayLog {
   spoken: number;
   /** video work: a part watched, a notebook check marked */
   videos: number;
+  /**
+   * Time spent working, in ms: counted between one tap or key and the next
+   * while they come less than a minute apart, so a tab left open counts for
+   * nothing. Absent before format 10.
+   */
+  ms: number;
+  /**
+   * Where things stood at the end of the day, as of the last answer given
+   * that day. The memory keeps only the latest state of each item, so "how
+   * many characters did I know on the 12th" can only be answered by writing
+   * it down on the 12th. Absent on days with no answers, and before format 10.
+   */
+  snap?: DaySnap;
+}
+
+/** How much was known, and how firmly, at the end of one day. */
+export interface DaySnap {
+  /** characters counted as learned */
+  chars: number;
+  /** words counted as learned */
+  words: number;
+  /** items in rotation by how firmly they are held (see `masteryOf`) */
+  solid: number;
+  holding: number;
+  shaky: number;
+  fresh: number;
 }
 
 /** By local calendar day, "2026-09-24". */
 export type Activity = Record<string, DayLog>;
 
-const FIELDS: Array<keyof DayLog> = ['answers', 'right', 'read', 'spoken', 'videos'];
+type Count = Exclude<keyof DayLog, 'snap'>;
+
+const FIELDS: Count[] = ['answers', 'right', 'read', 'spoken', 'videos', 'ms'];
+const SNAP_FIELDS: Array<keyof DaySnap> = ['chars', 'words', 'solid', 'holding', 'shaky', 'fresh'];
 
 /** How many days are kept: a year and a bit, enough for any calendar the app draws. */
 const KEEP_DAYS = 400;
 
-const empty = (): DayLog => ({ answers: 0, right: 0, read: 0, spoken: 0, videos: 0 });
+const empty = (): DayLog => ({ answers: 0, right: 0, read: 0, spoken: 0, videos: 0, ms: 0 });
 
 /** The local calendar day a moment falls on. */
 export function dayKey(t: number): string {
@@ -45,13 +74,13 @@ export function dayKey(t: number): string {
 }
 
 /** Midnight at the start of a day key, local time. */
-const dayStart = (key: string) => {
+export const dayStart = (key: string) => {
   const [y, m, d] = key.split('-').map(Number);
   return new Date(y!, m! - 1, d!).getTime();
 };
 
 /** The key `n` days before (or after, when negative) the day of `t`. */
-function shift(t: number, n: number): string {
+export function shift(t: number, n: number): string {
   const d = new Date(t);
   d.setHours(12, 0, 0, 0); // noon, so a daylight-saving change never skips or repeats a day
   d.setDate(d.getDate() - n);
@@ -64,6 +93,7 @@ export function logDay(a: Activity, at: number, add: Partial<DayLog>): Activity 
   const had = a[key] ?? empty();
   const next = { ...had };
   for (const f of FIELDS) next[f] += Math.max(0, add[f] ?? 0);
+  if (add.snap) next.snap = add.snap;
   return { ...a, [key]: next };
 }
 
@@ -89,7 +119,20 @@ export function activityFrom(v: unknown): Activity {
       const n = raw[f];
       d[f] = typeof n === 'number' && Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
     }
-    if (active(d)) out[k] = d;
+    const snap = snapFrom(raw.snap);
+    if (snap) d.snap = snap;
+    if (active(d) || d.ms > 0 || d.snap) out[k] = d;
+  }
+  return out;
+}
+
+function snapFrom(v: unknown): DaySnap | undefined {
+  if (!v || typeof v !== 'object') return undefined;
+  const raw = v as Record<string, unknown>;
+  const out = {} as DaySnap;
+  for (const f of SNAP_FIELDS) {
+    const n = raw[f];
+    out[f] = typeof n === 'number' && Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
   }
   return out;
 }
@@ -111,7 +154,11 @@ export function mergeActivity(a: Activity, b: Activity): Activity {
       continue;
     }
     const d = empty();
-    for (const f of FIELDS) d[f] = Math.max(x[f], y[f]);
+    for (const f of FIELDS) d[f] = Math.max(x[f] ?? 0, y[f] ?? 0);
+    // Two snapshots are two moments of the same day: the one with more
+    // answers behind it is the later one. A field-by-field max would mix them.
+    const snap = x.snap && y.snap ? (y.answers > x.answers ? y.snap : x.snap) : (x.snap ?? y.snap);
+    if (snap) d.snap = snap;
     out[k] = d;
   }
   return out;

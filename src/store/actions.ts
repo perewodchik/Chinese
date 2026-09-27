@@ -1,6 +1,7 @@
 import { dayKey, logDay, type DayLog } from '../domain/activity';
 import type { Collection, CollectionWord, PrintScope } from '../domain/collection';
 import type { ItemId } from '../domain/ids';
+import { snapshotOf } from '../domain/stats';
 import {
   grade,
   isLearned,
@@ -198,7 +199,7 @@ export function reduce(state: AppState, action: Action): AppState {
       }
       return {
         ...withRecall(state, recall),
-        activity: logDay(state.activity, action.at, answered(action.results)),
+        activity: logDay(state.activity, action.at, { ...answered(action.results), snap: snapshotOf(recall, action.at) }),
       };
     }
 
@@ -224,7 +225,7 @@ export function reduce(state: AppState, action: Action): AppState {
           else delete recall[id];
         }
       });
-      return withRecall(state, recall);
+      return { ...withRecall(state, recall), activity: logDay(state.activity, action.at, { snap: snapshotOf(recall, action.at) }) };
     }
 
     /* ---------------------------------------------------------- paper tests */
@@ -244,7 +245,7 @@ export function reduce(state: AppState, action: Action): AppState {
       return {
         ...withRecall(state, recall),
         sheets: state.sheets.map((s) => (s.id === action.id ? { ...s, gradedAt: action.at } : s)),
-        activity: logDay(state.activity, action.at, answered(action.results)),
+        activity: logDay(state.activity, action.at, { ...answered(action.results), snap: snapshotOf(recall, action.at) }),
       };
     }
 
@@ -480,7 +481,10 @@ export function coalesce(last: Action, next: Action): Action | null {
       // A run of tries on the same day is one change with the counts added.
       if (last.type !== 'activity/log' || dayKey(last.at) !== dayKey(next.at)) return null;
       const add: Partial<DayLog> = { ...last.add };
-      for (const [k, v] of Object.entries(next.add) as Array<[keyof DayLog, number]>) add[k] = (add[k] ?? 0) + v;
+      for (const [k, v] of Object.entries(next.add) as Array<[keyof DayLog, DayLog[keyof DayLog]]>) {
+        if (k === 'snap') add.snap = v as DayLog['snap'];
+        else add[k] = (add[k] ?? 0) + (v as number);
+      }
       return { ...next, add };
     }
     case 'collection/update':
