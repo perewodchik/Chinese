@@ -1,0 +1,691 @@
+/* ------------------------------------------------------------- exercises */
+
+/*
+ * One card at a time, centred, big enough for a thumb. Right is jade, wrong
+ * is cinnabar, "nearly" is gold — the app's fixed three — and every part
+ * that fills in later (the verdict, the answer) has its room from the start,
+ * so nothing on the card moves when it arrives.
+ */
+.ex-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+  text-align: center;
+  touch-action: manipulation;
+}
+
+.ex-ask {
+  margin: 0;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.ex-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 132px;
+  justify-content: center;
+}
+
+/* a face: whatever of photo, sound, hanzi, pinyin and English it has */
+.ex-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ex-hanzi {
+  font-family: var(--han);
+  font-size: 88px;
+  line-height: 1.1;
+  color: var(--ink);
+  word-break: keep-all;
+}
+
+.ex-hanzi[data-len='2'] {
+  font-size: 76px;
+}
+
+.ex-hanzi[data-len='3'],
+.ex-hanzi[data-len='4'] {
+  font-size: 60px;
+}
+
+.ex-hanzi[data-len='5'],
+.ex-hanzi[data-len='6'],
+.ex-hanzi[data-len='7'],
+.ex-hanzi[data-len='8'] {
+  font-size: 36px;
+}
+
+.ex-face[data-size='md'] .ex-hanzi {
+  font-size: 40px;
+}
+
+.ex-face[data-size='sm'] .ex-hanzi {
+  font-size: 30px;
+}
+
+.ex-py {
+  color: var(--accent);
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.ex-face[data-size='sm'] .ex-py {
+  font-size: 16px;
+}
+
+.ex-en {
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1.35;
+  max-width: 460px;
+}
+
+.ex-face[data-size='sm'] .ex-en {
+  font-size: 14px;
+}
+
+.ex-listen {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 1px solid var(--line-2);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  font-size: 32px;
+  cursor: pointer;
+  transition:
+    transform 0.12s,
+    border-color 0.12s;
+}
+
+.ex-listen:hover {
+  border-color: var(--accent);
+}
+
+.ex-listen:active {
+  transform: scale(0.96);
+}
+
+.ex-listen[data-size='sm'] {
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+}
+
+.ex-photo {
+  display: block;
+  width: 220px;
+  height: 160px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--card-2);
+}
+
+.ex-photo[data-size='sm'] {
+  width: 120px;
+  height: 84px;
+  border-radius: var(--radius);
+}
+
+.ex-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.14s;
+}
+
+.ex-photo img[data-ready] {
+  opacity: 1;
+}
+
+/* a sentence with a gap in it */
+.ex-gap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.ex-gap .hanzi {
+  font-size: 32px;
+  line-height: 1.5;
+}
+
+.ex-blank {
+  display: inline-block;
+  min-width: 2.2em;
+  margin: 0 3px;
+  border-bottom: 2px solid var(--line-2);
+  color: var(--jade);
+}
+
+/* choices */
+.ex-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.ex-options[data-n='3'] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ex-option {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 76px;
+  padding: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  color: var(--ink);
+  transition:
+    border-color 0.12s,
+    background 0.12s,
+    transform 0.12s;
+}
+
+.ex-option:hover:not(:disabled) {
+  border-color: var(--line-2);
+  transform: translateY(-1px);
+}
+
+.ex-option:disabled {
+  cursor: default;
+}
+
+.ex-option[data-state='right'],
+.ex-tile[data-state='right'],
+.btn[data-state='right'] {
+  border-color: var(--jade);
+  background: var(--jade-soft);
+}
+
+.ex-option[data-state='wrong'],
+.btn[data-state='wrong'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.ex-option:disabled:not([data-state]) {
+  opacity: 0.55;
+}
+
+.ex-key {
+  position: absolute;
+  top: 6px;
+  right: 9px;
+  font-size: 10px;
+  color: var(--ink-3);
+}
+
+/* the line under a card */
+.ex-settle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 108px;
+  width: 100%;
+}
+
+.ex-verdict {
+  font-weight: 620;
+  font-size: 14.5px;
+}
+
+.ex-settle[data-state='right'] .ex-verdict,
+.ex-settle[data-state='also'] .ex-verdict {
+  color: var(--jade);
+}
+
+.ex-settle[data-state='wrong'] .ex-verdict {
+  color: var(--accent);
+}
+
+.ex-settle[data-state='retry'] .ex-verdict {
+  color: var(--gold);
+  font-weight: 520;
+}
+
+.ex-reveal {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.ex-reveal b {
+  font-family: var(--han);
+  font-weight: 400;
+  font-size: 24px;
+}
+
+.ex-reveal i {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.ex-reveal span {
+  color: var(--ink-2);
+}
+
+.ex-next {
+  min-width: 160px;
+  min-height: 44px;
+}
+
+/* tiles */
+.ex-line,
+.ex-bank {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.ex-line {
+  min-height: 62px;
+  padding: 8px;
+  border-bottom: 2px solid var(--line);
+  align-items: center;
+}
+
+.ex-line[data-state='right'] {
+  border-color: var(--jade);
+}
+
+.ex-line[data-state='wrong'] {
+  border-color: var(--accent);
+}
+
+.ex-line-hint {
+  align-self: center;
+}
+
+.ex-tile {
+  position: relative;
+  min-width: 52px;
+  min-height: 48px;
+  padding: 6px 12px;
+  font-family: var(--han);
+  font-size: 26px;
+  line-height: 1.2;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    transform 0.12s;
+}
+
+.ex-tile[data-english] {
+  font-family: var(--sans);
+  font-size: 15px;
+}
+
+.ex-tile:hover:not(:disabled) {
+  border-color: var(--ink-3);
+}
+
+.ex-tile:disabled {
+  cursor: default;
+}
+
+.ex-tile-gap {
+  visibility: hidden;
+}
+
+.ex-bank {
+  min-height: 60px;
+}
+
+.ex-check {
+  min-width: 160px;
+  min-height: 44px;
+}
+
+/* tones */
+.ex-tones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ex-tone-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+}
+
+.ex-tone-row[data-state='right'] {
+  background: var(--jade-soft);
+}
+
+.ex-tone-row[data-state='wrong'] {
+  background: var(--accent-soft);
+}
+
+.ex-syl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 64px;
+}
+
+.ex-syl b {
+  font-weight: 400;
+  font-size: 30px;
+}
+
+.ex-syl i {
+  font-style: normal;
+  color: var(--accent);
+  font-size: 18px;
+}
+
+.ex-tone-buttons,
+.ex-tonebar {
+  display: flex;
+  gap: 6px;
+}
+
+.ex-tone {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  font-size: 26px;
+  line-height: 1;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.ex-tone b {
+  font-weight: 600;
+  height: 22px;
+}
+
+.ex-tone i {
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.ex-tone[aria-pressed='true'] {
+  border-color: var(--ink-2);
+  background: var(--card-2);
+}
+
+.ex-tone[data-state='right'] {
+  border-color: var(--jade);
+  background: var(--jade-soft);
+}
+
+.ex-tone[data-state='wrong'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* typing */
+.ex-type {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.ex-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 8px 14px;
+  font-size: 20px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink);
+  text-align: center;
+}
+
+.ex-input:lang(zh-CN) {
+  font-family: var(--han);
+  font-size: 26px;
+}
+
+.ex-input[data-state='right'] {
+  border-color: var(--jade);
+  background: var(--jade-soft);
+}
+
+.ex-input[data-state='wrong'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.ex-syls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.ex-syls span {
+  padding: 3px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font-size: 18px;
+}
+
+.ex-syls span.hanzi {
+  font-size: 26px;
+}
+
+.ex-syls [data-state='right'] {
+  border-color: var(--jade);
+  background: var(--jade-soft);
+}
+
+.ex-syls [data-state='nearly'] {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+
+.ex-syls [data-state='wrong'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.ex-note {
+  margin: 0;
+  min-height: 1.5em;
+  max-width: 440px;
+}
+
+/* the match board */
+.ex-match {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.ex-match-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ex-match-card {
+  display: grid;
+  place-items: center;
+  min-height: 64px;
+  padding: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    background 0.12s,
+    opacity 0.14s;
+}
+
+.ex-match-card .hanzi {
+  font-size: 30px;
+}
+
+.ex-match[data-mode='picture'] .ex-match-card {
+  min-height: 96px;
+}
+
+.ex-match-card[data-state='selected'] {
+  border-color: var(--ink-2);
+  background: var(--card-2);
+}
+
+.ex-match-card[data-state='wrong'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.ex-match-card[data-state='done'] {
+  border-color: var(--jade);
+  background: var(--jade-soft);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.ex-match-sound {
+  font-size: 22px;
+}
+
+/* yes or no */
+.ex-swipe {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 24px;
+  min-width: 260px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  transition: border-color 0.12s;
+}
+
+.ex-swipe[data-lean='yes'] {
+  border-color: var(--jade);
+}
+
+.ex-swipe[data-lean='no'] {
+  border-color: var(--accent);
+}
+
+.ex-swipe-word {
+  font-size: 48px;
+  line-height: 1.1;
+}
+
+.ex-yesno {
+  display: flex;
+  gap: 10px;
+}
+
+.ex-yesno .btn {
+  min-width: 120px;
+  min-height: 44px;
+}
+
+/* the plain question */
+.ex-recall-answer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 118px;
+  justify-content: flex-start;
+}
+
+.ex-example {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.ex-example .hanzi {
+  font-size: 20px;
+}
+
+@media (max-width: 640px) {
+  .ex-hanzi {
+    font-size: 72px;
+  }
+
+  .ex-options[data-n='3'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ex-tone {
+    width: 44px;
+    height: 44px;
+  }
+
+  .ex-tone-row {
+    gap: 8px;
+    padding: 6px 4px;
+  }
+
+  .ex-syl {
+    width: 48px;
+  }
+
+  .ex-photo {
+    width: 200px;
+    height: 140px;
+  }
+}
