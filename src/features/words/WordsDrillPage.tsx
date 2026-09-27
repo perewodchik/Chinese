@@ -10,7 +10,7 @@ import { say } from '../../platform/audio/voiceOut';
 import { getState } from '../../store/store';
 import { Say } from '../../ui/Say';
 import { useTitle } from '../../ui/useTitle';
-import { DrillDone, DrillFrame, RatingRow, useDrillRun, useRevealKeys } from '../review/DrillFrame';
+import { DrillDone, DrillFrame, SelfGrade, useDrillRun, useRevealKeys } from '../review/DrillFrame';
 import { sittingSize } from '../review/drills';
 import { useLibrary } from '../shared/library';
 import './words.css';
@@ -61,18 +61,24 @@ function Sitting({ size }: { size: number }) {
  */
 function WordsDrill({ ids, fresh, onExit }: { ids: ItemId[]; fresh: ReadonlySet<ItemId>; onExit: () => void }) {
   const lib = useLibrary();
-  const run = useDrillRun(ids, 'recognise');
-  const isNew = Boolean(run.id && fresh.has(run.id));
+  // A new word marked "new to me" comes back later in the sitting as a real
+  // question, the same as a missed one: meeting it once is not learning it.
+  const run = useDrillRun(ids, 'recognise', undefined, (id, r, first) => r === 'again' || (first && fresh.has(id) && r === 'hard'));
+  const isNew = Boolean(run.id && fresh.has(run.id) && !run.repeat);
   const [shown, setShown] = useState(isNew);
   const w = run.id ? idValue(run.id) : '';
   const info = useMemo(() => (w ? wordInfo(lib, w) : null), [lib, w]);
 
-  useEffect(() => setShown(isNew), [run.id, isNew]);
+  useEffect(() => setShown(isNew), [run.at, isNew]);
+  const show = () => {
+    run.reveal();
+    setShown(true);
+  };
   useEffect(() => {
     if (shown && w) void say(w);
   }, [shown, w]);
 
-  useRevealKeys(Boolean(run.id) && !isNew, shown, () => setShown(true), run.answer);
+  useRevealKeys(Boolean(run.id) && !isNew, shown, show, run);
 
   if (!run.id) {
     return (
@@ -87,7 +93,7 @@ function WordsDrill({ ids, fresh, onExit }: { ids: ItemId[]; fresh: ReadonlySet<
   return (
     <DrillFrame
       title="Words"
-      hint={isNew ? 'A new word. Read it, hear it — did you know it already?' : 'What does it mean? Say it to yourself, then look.'}
+      hint={isNew ? 'A new word. Read it, hear it — did you know it already?' : run.repeat ? 'Once more — this one was new or missed a moment ago.' : 'What does it mean? Say it to yourself, then look.'}
       at={run.at}
       total={run.total}
       onExit={onExit}
@@ -120,12 +126,12 @@ function WordsDrill({ ids, fresh, onExit }: { ids: ItemId[]; fresh: ReadonlySet<
           )}
         </div>
       ) : (
-        <button className="btn primary reveal" onClick={() => setShown(true)}>
+        <button className="btn primary reveal" onClick={show}>
           Show me<span className="key-hint"> — space</span>
         </button>
       )}
 
-      {shown && (isNew ? <FirstMeeting onRate={run.answer} /> : <RatingRow onRate={run.answer} />)}
+      {shown && (isNew ? <FirstMeeting onRate={run.answer} /> : <SelfGrade run={run} />)}
     </DrillFrame>
   );
 }

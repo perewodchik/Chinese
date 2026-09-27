@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { paths } from '../../navigation/paths';
-import { useStore } from '../../store/store';
+import { getState, useStore } from '../../store/store';
 import { nextSitting, type NextSitting } from './drills';
+import { MAX_REPEATS, requeueAt, selfRating } from '../../domain/grading';
 import type { ItemId } from '../../domain/ids';
 import { RATING_META, RATINGS, type Rating, type Skill } from '../../domain/memory';
 import { gradeItem } from '../../store/commands';
 import { Glyph } from '../../ui/Glyph';
 import { CollectionPicker, useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
+import './session.css';
 
 export interface DrillResult {
   id: ItemId;
@@ -21,29 +23,94 @@ export interface DrillResult {
  * Each answer is written to the scheduler as it is given rather than at the
  * end, so walking away in the middle keeps everything up to that point. A
  * review you abandoned is still a review you did.
+ *
+ * A card that is missed comes back a few cards later, and keeps coming back
+ * (up to a limit) until it is got right. That second and third meeting, while
+ * the answer is still warm, is where most of a first day's learning happens —
+ * but it is practice, not evidence: only the first answer to a card goes to
+ * the scheduler, and only the first answers make up the log.
  */
-export function useDrillRun(ids: ItemId[], skill: Skill, weight?: number) {
+export function useDrillRun(
+  ids: ItemId[],
+  skill: Skill,
+  weight?: number,
+  /** whether an answer sends the card round again; by default, only a miss */
+  again: (id: ItemId, rating: Rating, first: boolean) => boolean = (_id, r) => r === 'again',
+) {
+  const [queue, setQueue] = useState<ItemId[]>(ids);
   const [at, setAt] = useState(0);
   const [log, setLog] = useState<DrillResult[]>([]);
+  const answered = useRef(new Set<ItemId>());
+  const repeats = useRef(new Map<ItemId, number>());
+  const startedAt = useRef(Date.now());
+  const revealedAt = useRef<number | null>(null);
+  const id = queue[at] as ItemId | undefined;
+
+  // The clock restarts with every card, including a card that comes straight back.
+  useEffect(() => {
+    startedAt.current = Date.now();
+    revealedAt.current = null;
+  }, [at]);
 
   const answer = useCallback(
     (rating: Rating) => {
-      const id = ids[at];
       if (!id) return;
-      gradeItem(id, skill, rating, weight);
-      setLog((l) => [...l, { id, rating }]);
-      setAt((n) => n + 1);
+      const first = !answered.current.has(id);
+      if (first) {
+        answered.current.add(id);
+        gradeItem(id, skill, rating, weight);
+        setLog((l) => [...l, { id, rating }]);
+      }
+      const n = repeats.current.get(id) ?? 0;
+      if (again(id, rating, first) && n < MAX_REPEATS) {
+        repeats.current.set(id, n + 1);
+        setQueue((q) => {
+          const next = [...q];
+          next.splice(requeueAt(at, q.length), 0, id);
+          return next;
+        });
+      }
+      setAt((a) => a + 1);
     },
-    [ids, at, skill, weight],
+    [id, at, skill, weight, again],
   );
 
   /** Past this one without a grade: nothing was asked, so nothing is recorded. */
   const skip = useCallback(() => {
-    if (ids[at]) setAt((n) => n + 1);
-  }, [ids, at]);
+    if (id) setAt((n) => n + 1);
+  }, [id]);
 
-  return { at, id: ids[at] as ItemId | undefined, total: ids.length, log, answer, skip };
+  /** The answer was shown: the time spent before it is what the self-grade reads. */
+  const reveal = useCallback(() => {
+    revealedAt.current ??= Date.now();
+  }, []);
+
+  /** Forgot / Got it, turned into a rating by how long the thinking took. */
+  const gotIt = useCallback(
+    (got: boolean) => {
+      if (!id) return;
+      const think = (revealedAt.current ?? Date.now()) - startedAt.current;
+      const had = getState().recall[id]?.[skill];
+      answer(selfRating(got, think, !had || had.claim === true));
+    },
+    [id, skill, answer],
+  );
+
+  return {
+    at,
+    id,
+    total: queue.length,
+    log,
+    answer,
+    skip,
+    reveal,
+    gotIt,
+    /** this card has been answered before in this sitting: it is back because it was missed */
+    repeat: Boolean(id && answered.current.has(id)),
+  };
 }
+
+export type DrillRun = ReturnType<typeof useDrillRun>;
 
 /**
  * What a right pick is worth in the drills that show the answer among others.
@@ -56,29 +123,36 @@ export function useDrillRun(ids: ItemId[], skill: Skill, weight?: number) {
 export const PICK_WEIGHT = 0.5;
 
 /**
- * Space or Enter shows the answer, and 1 to 4 grade it: the keyboard way through
- * a drill that shows the answer and asks how it went.
+ * Space or Enter shows the answer; then 1 is Forgot and 2 (or Space) is Got it
+ * — or, with four buttons, 1 to 4 grade it.
  */
-export function useRevealKeys(
-  active: boolean,
-  shown: boolean,
-  reveal: () => void,
-  rate: (rating: Rating) => void,
-) {
+export function useRevealKeys(active: boolean, shown: boolean, reveal: () => void, run: Pick<DrillRun, 'answer' | 'gotIt'>) {
+  const four = useStore((s) => s.settings.fourButtons);
   useEffect(() => {
     if (!active) return;
     const onKey = (e: KeyboardEvent) => {
-      if (!shown && (e.key === ' ' || e.key === 'Enter')) {
-        e.preventDefault();
-        reveal();
+      if ((e.target as HTMLElement | null)?.closest('input, textarea')) return;
+      if (!shown) {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          reveal();
+        }
         return;
       }
-      const rating = shown ? RATINGS[Number(e.key) - 1] : undefined;
-      if (rating) rate(rating);
+      if (four) {
+        const rating = RATINGS[Number(e.key) - 1];
+        if (rating) run.answer(rating);
+        return;
+      }
+      if (e.key === '1') run.gotIt(false);
+      else if (e.key === '2' || e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        run.gotIt(true);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [active, shown, reveal, rate]);
+  }, [active, shown, reveal, run, four]);
 }
 
 export function DrillFrame({
@@ -130,6 +204,30 @@ export function RatingRow({ onRate, only }: { onRate: (r: Rating) => void; only?
           <i>{i + 1}</i>
         </button>
       ))}
+    </div>
+  );
+}
+
+/**
+ * How a self-graded card is answered: Forgot / Got it, with the clock
+ * deciding how well — or the four buttons, for whoever asked for them in
+ * Settings.
+ */
+export function SelfGrade({ run }: { run: Pick<DrillRun, 'answer' | 'gotIt'> }) {
+  const four = useStore((s) => s.settings.fourButtons);
+  if (four) return <RatingRow onRate={run.answer} />;
+  return (
+    <div className="rating-row two">
+      <button className="rate again" onClick={() => run.gotIt(false)}>
+        <b>Forgot</b>
+        <span>Ask me again soon</span>
+        <i>1</i>
+      </button>
+      <button className="rate good" onClick={() => run.gotIt(true)}>
+        <b>Got it</b>
+        <span>How quickly decides when it comes back</span>
+        <i>2</i>
+      </button>
     </div>
   );
 }

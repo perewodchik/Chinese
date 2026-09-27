@@ -67,6 +67,20 @@ export interface AppSettings {
   readerTraditional: boolean;
   /** how large a passage's text is, as a multiple of the default */
   readerScale: number;
+  /** how many new items (characters and words together) a day's lesson brings in */
+  newPerDay: number;
+  /** grade self-graded cards with Again / Hard / Good / Easy rather than Forgot / Got it */
+  fourButtons: boolean;
+  /** ask for typed answers wherever an exercise has a typed form */
+  hardMode: boolean;
+  /** how long the daily review session runs, in minutes */
+  reviewMinutes: number;
+  /** what a day's goal is: the day's plan (learn + clear what is due), or a number of minutes */
+  dailyGoal: 'plan' | 'minutes';
+  /** the minutes a day that meet the goal, when the goal is minutes */
+  goalMinutes: number;
+  /** one day off a week does not break the streak, when the other days of that week met the goal */
+  restDays: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -91,6 +105,13 @@ export const DEFAULT_SETTINGS: AppSettings = {
   targetHsk: 1,
   readerTraditional: false,
   readerScale: 1,
+  newPerDay: 5,
+  fourButtons: false,
+  hardMode: false,
+  reviewMinutes: 10,
+  dailyGoal: 'plan',
+  goalMinutes: 15,
+  restDays: true,
 };
 
 /**

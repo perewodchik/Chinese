@@ -6,7 +6,7 @@ import { say } from '../../platform/audio/voiceOut';
 import { Glyph } from '../../ui/Glyph';
 import { Say } from '../../ui/Say';
 import { useLibrary } from '../shared/library';
-import { DrillDone, DrillFrame, RatingRow, useDrillRun, useRevealKeys } from './DrillFrame';
+import { DrillDone, DrillFrame, SelfGrade, useDrillRun, useRevealKeys } from './DrillFrame';
 
 interface Props {
   ids: ItemId[];
@@ -43,7 +43,11 @@ export function RecallDrill({ ids, skill, onExit }: Props) {
   const [shown, setShown] = useState(false);
   const q = useMemo(() => (run.id ? questionFor(lib, run.id) : null), [lib, run.id]);
 
-  useEffect(() => setShown(false), [run.id]);
+  useEffect(() => setShown(false), [run.at]);
+  const show = () => {
+    run.reveal();
+    setShown(true);
+  };
 
   // The reading drill is about sound, so when the answer appears it makes one.
   // Only that drill: hearing 好 while being asked what it means would give the
@@ -52,7 +56,7 @@ export function RecallDrill({ ids, skill, onExit }: Props) {
     if (shown && skill === 'sound' && q) void say(q.char);
   }, [shown, skill, q]);
 
-  useRevealKeys(Boolean(run.id), shown, () => setShown(true), run.answer);
+  useRevealKeys(Boolean(run.id), shown, show, run);
 
   if (!run.id || !q) {
     return (
@@ -65,7 +69,7 @@ export function RecallDrill({ ids, skill, onExit }: Props) {
   const words = lib.byChar.get(q.char)?.words.slice(0, 2) ?? [];
 
   return (
-    <DrillFrame title={COPY[skill].title} hint={COPY[skill].hint} at={run.at} total={run.total} onExit={onExit}>
+    <DrillFrame title={COPY[skill].title} hint={run.repeat ? 'Once more — you missed this one a moment ago.' : COPY[skill].hint} at={run.at} total={run.total} onExit={onExit}>
       <div className="prompt-card">
         <Glyph char={q.char} strokes={lib.strokes} size={168} />
         <p className="tiny muted" style={{ margin: '10px 0 0' }}>
@@ -93,12 +97,12 @@ export function RecallDrill({ ids, skill, onExit }: Props) {
           )}
         </div>
       ) : (
-        <button className="btn primary reveal" onClick={() => setShown(true)}>
+        <button className="btn primary reveal" onClick={show}>
           Show me<span className="key-hint"> — space</span>
         </button>
       )}
 
-      {shown && <RatingRow onRate={run.answer} />}
+      {shown && <SelfGrade run={run} />}
     </DrillFrame>
   );
 }

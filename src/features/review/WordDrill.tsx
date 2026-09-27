@@ -6,7 +6,7 @@ import { say } from '../../platform/audio/voiceOut';
 import { Glyph } from '../../ui/Glyph';
 import { Say } from '../../ui/Say';
 import { useLibrary } from '../shared/library';
-import { DrillDone, DrillFrame, RatingRow, useDrillRun, useRevealKeys } from './DrillFrame';
+import { DrillDone, DrillFrame, SelfGrade, useDrillRun, useRevealKeys } from './DrillFrame';
 
 interface Props {
   ids: ItemId[];
@@ -45,7 +45,12 @@ export function WordDrill({ ids, known, onExit }: Props) {
   useEffect(() => {
     setShown(false);
     if (word) used.current.add(word.w);
-  }, [run.id, word]);
+  }, [run.at, word]);
+  const show = () => {
+    run.reveal();
+    setShown(true);
+    if (word) void say(word.w);
+  };
 
   // A character with nothing readable to sit inside is not a question yet,
   // so it is passed over without a grade — nothing was asked, and a pass
@@ -57,7 +62,7 @@ export function WordDrill({ ids, known, onExit }: Props) {
     run.skip();
   }, [run.id, word, run]);
 
-  useRevealKeys(Boolean(run.id && word), shown, () => setShown(true), run.answer);
+  useRevealKeys(Boolean(run.id && word), shown, show, run);
 
   if (!run.id || !q) {
     return (
@@ -100,18 +105,12 @@ export function WordDrill({ ids, known, onExit }: Props) {
           {word.hsk && <span className="tiny muted">HSK {word.hsk}</span>}
         </div>
       ) : (
-        <button
-          className="btn primary reveal"
-          onClick={() => {
-            setShown(true);
-            void say(word.w);
-          }}
-        >
+        <button className="btn primary reveal" onClick={show}>
           Show me<span className="key-hint"> — space</span>
         </button>
       )}
 
-      {shown && <RatingRow onRate={run.answer} />}
+      {shown && <SelfGrade run={run} />}
     </DrillFrame>
   );
 }

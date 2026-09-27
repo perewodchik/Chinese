@@ -61,7 +61,7 @@ export function WriteDrill({ ids, onExit }: Props) {
     setNote('');
     setFlash(null);
     setOver(null);
-  }, [run.id]);
+  }, [run.at]);
 
   // A finished character is worth a moment on screen before the next prompt.
   useEffect(() => {

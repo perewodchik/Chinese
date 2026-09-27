@@ -40,7 +40,7 @@ export function ToneDrill({ ids, onExit }: Props) {
   useEffect(() => {
     setPicked(null);
     asked.current = Date.now();
-  }, [run.id]);
+  }, [run.at]);
 
   useEffect(() => {
     if (picked === null || !q) return;
