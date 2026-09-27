@@ -102,6 +102,10 @@ export const paths = {
     }),
 
   settings: () => '/settings',
+  /** today's lesson: meet a few new things, practise them, check them */
+  learn: () => '/learn',
+  /** the daily review: everything due, mixed, in one sitting */
+  reviewSession: (minutes?: number) => withQuery('/review/session', { min: minutes ? String(minutes) : undefined }),
   /** how much has been learned, day by day and week by week */
   stats: () => '/account/stats',
 };

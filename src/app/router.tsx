@@ -20,6 +20,7 @@ import { GradeSheetPage } from '../features/review/GradeSheetPage';
 import { ReviewPage } from '../features/review/ReviewPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { StatsPage } from '../features/stats/StatsPage';
+import { LearnPage } from '../features/learn/LearnPage';
 import { TodayPage } from '../features/today/TodayPage';
 import { AddVideoPage } from '../features/videos/AddVideoPage';
 import { VideoPage } from '../features/videos/VideoPage';
@@ -106,6 +107,7 @@ export const router = createBrowserRouter([
               { path: 'review/sheets/:sheetId', element: <GradeSheetPage /> },
               { path: 'review/sweep', element: <SweepPage /> },
               { path: 'review/words', element: <WordsDrillPage /> },
+              { path: 'learn', element: <LearnPage /> },
               { path: 'review/:drill', element: <DrillPage /> },
               { path: 'library', element: <LibraryPage /> },
               { path: 'families/:radical?', element: <FamiliesPage /> },

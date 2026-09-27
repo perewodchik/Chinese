@@ -29,8 +29,10 @@ function Sitting({ size }: { size: number }) {
   // Chosen once, as the sitting starts — see DrillPage for why. Which of them
   // are new is fixed then too: a new word is shown, not asked.
   const [sitting] = useState(() => {
-    const { recall, collections, settings } = getState();
-    const { ids } = planWordSitting(recall, collections, size, settings.newWordsPerDay, Date.now());
+    // Due words only: new ones are met in the day's lesson, properly, not
+    // shown once in the middle of a review.
+    const { recall, collections } = getState();
+    const { ids } = planWordSitting(recall, collections, size, 0, Date.now());
     return { ids, fresh: new Set(ids.filter((id) => !recall[id]?.recognise)) };
   });
   const exit = () => navigate(paths.review(), { replace: true });

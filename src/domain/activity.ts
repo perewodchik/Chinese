@@ -37,6 +37,18 @@ export interface DayLog {
    * it down on the 12th. Absent on days with no answers, and before format 10.
    */
   snap?: DaySnap;
+  /**
+   * The day's lesson: the items picked for it, whether it has been finished,
+   * and how many lessons were finished that day. Kept so the lesson opened on
+   * the iPad is the one the phone resumes. Absent on days without one.
+   */
+  lesson?: DayLesson;
+}
+
+export interface DayLesson {
+  ids: string[];
+  done: boolean;
+  count: number;
 }
 
 /** How much was known, and how firmly, at the end of one day. */
@@ -55,7 +67,7 @@ export interface DaySnap {
 /** By local calendar day, "2026-09-24". */
 export type Activity = Record<string, DayLog>;
 
-type Count = Exclude<keyof DayLog, 'snap'>;
+type Count = Exclude<keyof DayLog, 'snap' | 'lesson'>;
 
 const FIELDS: Count[] = ['answers', 'right', 'read', 'spoken', 'videos', 'ms'];
 const SNAP_FIELDS: Array<keyof DaySnap> = ['chars', 'words', 'solid', 'holding', 'shaky', 'fresh'];
@@ -94,6 +106,7 @@ export function logDay(a: Activity, at: number, add: Partial<DayLog>): Activity 
   const next = { ...had };
   for (const f of FIELDS) next[f] += Math.max(0, add[f] ?? 0);
   if (add.snap) next.snap = add.snap;
+  if (add.lesson) next.lesson = add.lesson;
   return { ...a, [key]: next };
 }
 
@@ -121,7 +134,9 @@ export function activityFrom(v: unknown): Activity {
     }
     const snap = snapFrom(raw.snap);
     if (snap) d.snap = snap;
-    if (active(d) || d.ms > 0 || d.snap) out[k] = d;
+    const lesson = lessonFrom(raw.lesson);
+    if (lesson) d.lesson = lesson;
+    if (active(d) || d.ms > 0 || d.snap || d.lesson) out[k] = d;
   }
   return out;
 }
@@ -135,6 +150,15 @@ function snapFrom(v: unknown): DaySnap | undefined {
     out[f] = typeof n === 'number' && Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
   }
   return out;
+}
+
+function lessonFrom(v: unknown): DayLesson | undefined {
+  if (!v || typeof v !== 'object') return undefined;
+  const raw = v as Record<string, unknown>;
+  if (!Array.isArray(raw.ids)) return undefined;
+  const ids = raw.ids.filter((x): x is string => typeof x === 'string').slice(0, 50);
+  const count = typeof raw.count === 'number' && raw.count > 0 ? Math.round(raw.count) : 0;
+  return { ids, done: raw.done === true, count };
 }
 
 /**
@@ -159,6 +183,14 @@ export function mergeActivity(a: Activity, b: Activity): Activity {
     // answers behind it is the later one. A field-by-field max would mix them.
     const snap = x.snap && y.snap ? (y.answers > x.answers ? y.snap : x.snap) : (x.snap ?? y.snap);
     if (snap) d.snap = snap;
+    // A finished lesson wins over one still going; of two finished, the one finished more often.
+    const lesson =
+      x.lesson && y.lesson
+        ? y.lesson.count > x.lesson.count || (y.lesson.count === x.lesson.count && y.lesson.done && !x.lesson.done)
+          ? y.lesson
+          : x.lesson
+        : (x.lesson ?? y.lesson);
+    if (lesson) d.lesson = lesson;
     out[k] = d;
   }
   return out;

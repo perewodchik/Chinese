@@ -100,10 +100,17 @@ export const gradeItem = (id: ItemId, skill: Skill, rating: Rating, weight?: num
     at: now(),
   });
 
+/** The day's lesson, picked — or, if one is already going today, left as it is. */
+export const startLesson = (ids: ItemId[]) => dispatch({ type: 'lesson/start', at: now(), ids });
+
+/** The day's lesson, finished: every item's first real grade at once. */
+export const finishLesson = (results: Array<{ id: ItemId; skill: Skill; rating: Rating }>) =>
+  dispatch({ type: 'lesson/finish', at: now(), results });
+
 /**
  * Ticking the box by hand, which is still worth having — you have just read the
  * character in a sentence and you do know it. It is recorded as an assertion
- * rather than as a result, so it comes back to be checked in a week or so
+ * rather than as a result, so it comes back to be checked within a few days
  * instead of being believed forever. Unticking removes the claim and leaves
  * anything actually earned — a writing record, say — where it is.
  */

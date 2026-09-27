@@ -102,6 +102,10 @@ export type Action =
   | { type: 'listPlan/patch'; planId: string; patch: Partial<WordListPlan> }
   | { type: 'listPlan/discard'; planId: string }
   | { type: 'settings/patch'; patch: Partial<AppSettings> }
+  /** the day's lesson picked; a lesson already going that day is kept */
+  | { type: 'lesson/start'; at: number; ids: ItemId[] }
+  /** the day's lesson finished: each item's first grade, from the lesson as a whole */
+  | { type: 'lesson/finish'; at: number; results: Array<{ id: ItemId; skill: Skill; rating: Rating }> }
   /** something done that no other action records — a word said out loud, say */
   | { type: 'activity/log'; at: number; add: Partial<DayLog> }
   /** a video onto the shelf; one already there takes whatever the new copy has more of */
@@ -203,6 +207,34 @@ export function reduce(state: AppState, action: Action): AppState {
       };
     }
 
+    case 'lesson/start': {
+      const had = state.activity[dayKey(action.at)]?.lesson;
+      if (had && !had.done && had.ids.length) return state;
+      return {
+        ...state,
+        activity: logDay(state.activity, action.at, { lesson: { ids: action.ids, done: false, count: had?.count ?? 0 } }),
+      };
+    }
+
+    case 'lesson/finish': {
+      const had = state.activity[dayKey(action.at)]?.lesson;
+      // Finished already, somewhere else: grading it twice would count every item double.
+      if (had?.done) return state;
+      const recall: RecallBook = { ...state.recall };
+      for (const { id, skill, rating } of action.results) {
+        const book = recall[id];
+        recall[id] = { ...book, [skill]: grade(book?.[skill], rating, action.at, skill) };
+      }
+      return {
+        ...withRecall(state, recall),
+        activity: logDay(state.activity, action.at, {
+          ...answered(action.results),
+          snap: snapshotOf(recall, action.at),
+          lesson: { ids: had?.ids ?? action.results.map((r) => r.id), done: true, count: (had?.count ?? 0) + 1 },
+        }),
+      };
+    }
+
     case 'recall/setLearned': {
       if (!action.ids.length) return state;
       const recall: RecallBook = { ...state.recall };
@@ -211,10 +243,12 @@ export function reduce(state: AppState, action: Action): AppState {
         if (action.value) {
           if (isLearned(recall[id])) return;
           // A few days apart, so marking thirty at the end of a text does not
-          // produce thirty questions on one morning next week. Marking again
-          // something already met keeps its history and the date it was first
-          // marked: the claim is being renewed, not made for the first time.
-          recall[id] = { ...recall[id], recognise: reclaimed(had, action.at, 7 + (i % 10)) };
+          // produce thirty questions on one morning. Within days rather than
+          // weeks: a claim is a belief, and the sooner it is tested the less
+          // a wrong one costs. Marking again something already met keeps its
+          // history and the date it was first marked: the claim is being
+          // renewed, not made for the first time.
+          recall[id] = { ...recall[id], recognise: reclaimed(had, action.at, 1 + (i % 4)) };
         } else if (had) {
           // Only the claim is taken back. Answers actually given stay, and
           // the item falls due instead of vanishing from the schedule.
@@ -483,6 +517,7 @@ export function coalesce(last: Action, next: Action): Action | null {
       const add: Partial<DayLog> = { ...last.add };
       for (const [k, v] of Object.entries(next.add) as Array<[keyof DayLog, DayLog[keyof DayLog]]>) {
         if (k === 'snap') add.snap = v as DayLog['snap'];
+        else if (k === 'lesson') add.lesson = v as DayLog['lesson'];
         else add[k] = (add[k] ?? 0) + (v as number);
       }
       return { ...next, add };

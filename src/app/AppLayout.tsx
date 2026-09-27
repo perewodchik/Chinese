@@ -17,8 +17,8 @@ import { useStore } from '../store/store';
 import { useColorScheme } from '../ui/colorScheme';
 import { SyncIndicator } from './SyncIndicator';
 
-/** A review sitting's address: one drill, or the words. */
-const SITTING = /^\/review\/(recognise|sound|tone|confuse|word|write|words)\/?$/;
+/** A review sitting's address: one drill, the words, the daily session, or the day's lesson. */
+const SITTING = /^\/(review\/(recognise|sound|tone|confuse|word|write|words|session)|learn)\/?$/;
 
 /** The frame every signed-in page sits in: the bar across the top, the page, and the drawer for a character or a word. */
 export function AppLayout() {
