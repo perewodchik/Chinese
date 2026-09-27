@@ -16,7 +16,21 @@ type MatchExercise = Extract<Exercise, { kind: 'match' }>;
  * Settled cards keep their place, so the board never reflows mid-game.
  */
 export function MatchCard({ ex, onDone }: { ex: MatchExercise; onDone: (r: ExerciseResult[]) => void }) {
-  const right = useMemo(() => makeRng(ex.ids.join('')).shuffle(ex.pairs), [ex]);
+  // Shuffled so that hardly anything sits beside its own partner: a board
+  // that can be matched straight across is not a question.
+  const right = useMemo(() => {
+    let best = ex.pairs;
+    let fixed = Infinity;
+    for (let i = 0; i < 12 && fixed > 0; i++) {
+      const order = makeRng(`${ex.ids.join('')}-${i}`).shuffle(ex.pairs);
+      const f = order.filter((p, k) => p.id === ex.pairs[k]!.id).length;
+      if (f < fixed) {
+        fixed = f;
+        best = order;
+      }
+    }
+    return best;
+  }, [ex]);
   const [sel, setSel] = useState<{ side: 'l' | 'r'; id: ItemId } | null>(null);
   const [done, setDone] = useState<Set<ItemId>>(new Set());
   const [flash, setFlash] = useState<{ l: ItemId; r: ItemId } | null>(null);

@@ -48,7 +48,7 @@ const TONE_KEYS: Array<{ digit: string; mark: string; name: string }> = [
  */
 export function TypeCard({ ex, onDone }: { ex: TypeExercise; onDone: (r: ExerciseResult[]) => void }) {
   const [value, setValue] = useState('');
-  const [verdict, setVerdict] = useState<'right' | 'wrong' | null>(null);
+  const [verdict, setVerdict] = useState<'right' | 'nearly' | 'wrong' | null>(null);
   const [note, setNote] = useState('');
   const [py, setPy] = useState<PinyinCheck | null>(null);
   const [hz, setHz] = useState<HanziCheck | null>(null);
@@ -60,7 +60,7 @@ export function TypeCard({ ex, onDone }: { ex: TypeExercise; onDone: (r: Exercis
 
   function settle(ok: boolean, misses: number) {
     result.current = { id: ex.ids[0]!, skill: ex.skill, ok, misses, ms: clock(), tier: ex.tier, weight: ex.weight };
-    setVerdict(ok ? 'right' : 'wrong');
+    setVerdict(ok ? (misses ? 'nearly' : 'right') : 'wrong');
     void say(ex.say);
   }
 

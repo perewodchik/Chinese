@@ -264,6 +264,7 @@
   color: var(--accent);
 }
 
+.ex-settle[data-state='nearly'] .ex-verdict,
 .ex-settle[data-state='retry'] .ex-verdict {
   color: var(--gold);
   font-weight: 520;
@@ -491,6 +492,11 @@
 .ex-input[data-state='right'] {
   border-color: var(--jade);
   background: var(--jade-soft);
+}
+
+.ex-input[data-state='nearly'] {
+  border-color: var(--gold);
+  background: var(--gold-soft);
 }
 
 .ex-input[data-state='wrong'] {

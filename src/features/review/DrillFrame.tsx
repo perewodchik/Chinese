@@ -162,6 +162,7 @@ export function DrillFrame({
   total,
   onExit,
   children,
+  dots,
 }: {
   title: string;
   hint: string;
@@ -169,6 +170,8 @@ export function DrillFrame({
   total: number;
   onExit: () => void;
   children: ReactNode;
+  /** the last few answers, oldest first: a row of dots that fills as you go */
+  dots?: Array<'right' | 'nearly' | 'wrong'>;
 }) {
   return (
     <section className="drill">
@@ -181,6 +184,13 @@ export function DrillFrame({
           <div className="tiny muted">{hint}</div>
         </div>
         <div className="spacer" />
+        {dots && (
+          <span className="drill-dots" aria-label={`${dots.filter((d) => d === 'right').length} of the last ${dots.length} right`}>
+            {Array.from({ length: 10 }, (_, i) => (
+              <i key={i} data-state={dots[dots.length - 10 + i]} />
+            ))}
+          </span>
+        )}
         <span className="tiny muted">
           {Math.min(at + 1, total)} of {total}
         </span>
@@ -288,8 +298,14 @@ export function DrillDone({ log, skill, onExit }: { log: DrillResult[]; skill: S
           <div className="missed-row">
             {missed.map((id) => (
               <span key={id} className="new-char">
-                <Glyph char={id.slice(1)} strokes={lib.strokes} size={30} />
-                <span className="tiny muted">{lib.byChar.get(id.slice(1))?.py[0]}</span>
+                {[...id.slice(1)].length === 1 ? (
+                  <Glyph char={id.slice(1)} strokes={lib.strokes} size={30} />
+                ) : (
+                  <span className="hanzi" style={{ fontSize: 24, lineHeight: '30px' }}>
+                    {id.slice(1)}
+                  </span>
+                )}
+                <span className="tiny muted">{lib.byChar.get(id.slice(1))?.py[0] ?? lib.byWord.get(id.slice(1))?.py}</span>
               </span>
             ))}
           </div>

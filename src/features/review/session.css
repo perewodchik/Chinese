@@ -14,3 +14,137 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* the last ten answers, as dots: fixed width, so nothing beside it moves */
+.drill-dots {
+  display: flex;
+  gap: 3px;
+  flex: none;
+}
+
+.drill-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.drill-dots i[data-state='right'] {
+  background: var(--jade);
+}
+
+.drill-dots i[data-state='nearly'] {
+  background: var(--gold);
+}
+
+.drill-dots i[data-state='wrong'] {
+  background: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .drill-dots {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------ the daily session */
+.session-tools {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: 620px;
+  margin: -6px auto -8px;
+}
+
+.session-teach {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.session-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.session-label {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.session-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 520px;
+}
+
+.session-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+}
+
+.session-chip b {
+  font-weight: 400;
+  font-size: 18px;
+}
+
+.session-chip i {
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--accent);
+}
+
+/* ------------------------------------------------- review: the day's two */
+.daily-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.daily-tools {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.review-skills {
+  margin-top: 14px;
+}
+
+.review-skills > summary {
+  cursor: pointer;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 6px 0;
+  list-style-position: inside;
+}
+
+.review-skills[open] > summary {
+  margin-bottom: 10px;
+}
+
+@media (max-width: 640px) {
+  .daily-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

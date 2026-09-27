@@ -100,6 +100,10 @@ export const gradeItem = (id: ItemId, skill: Skill, rating: Rating, weight?: num
     at: now(),
   });
 
+/** Several answers at once — a lesson run again for items that keep slipping, say. */
+export const gradeItems = (results: Array<{ id: ItemId; skill: Skill; rating: Rating }>) =>
+  dispatch({ type: 'recall/grade', results, at: now() });
+
 /** The day's lesson, picked — or, if one is already going today, left as it is. */
 export const startLesson = (ids: ItemId[]) => dispatch({ type: 'lesson/start', at: now(), ids });
 

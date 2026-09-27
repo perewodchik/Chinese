@@ -540,9 +540,10 @@ export function chooseExercise(
   ctx: ExerciseContext,
   item: ItemInfo,
   skill: Skill,
-  opts: { stage: Stage; stability?: number | null; hard?: boolean; recent?: readonly ExerciseKind[] },
+  opts: { stage: Stage; stability?: number | null; hard?: boolean; recent?: readonly ExerciseKind[]; avoid?: readonly ExerciseKind[] },
 ): Exercise {
-  const all = candidates(ctx, item, skill);
+  const avoid = new Set(opts.avoid ?? []);
+  const all = candidates(ctx, item, skill).filter((e) => !avoid.has(e.kind));
   const recent = new Set((opts.recent ?? []).slice(-2));
   const s = opts.stability ?? 0;
   const hard = Boolean(opts.hard);

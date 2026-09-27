@@ -1,7 +1,9 @@
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router';
-import { reviewPool, summarise } from '../../domain/drill';
-import { SKILLS } from '../../domain/memory';
+import { isCharId, isWordId } from '../../domain/ids';
+import { dueItemCount, REVIEW_SKILLS, throttleFor } from '../../domain/lesson';
+import { isDue } from '../../domain/memory';
+import { days as dayStats, goalStreak, weeklyNote } from '../../domain/stats';
 import { bandName, progressOf } from '../../domain/progress';
 import {
   answeredSince,
@@ -13,16 +15,13 @@ import {
   startOfToday,
   type ForecastDay,
 } from '../../domain/today';
-import { summariseWords } from '../../domain/wordReview';
 import { paths } from '../../navigation/paths';
-import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { useTitle } from '../../ui/useTitle';
-import { calendar, dayKey, streakOf, type CalendarDay } from '../../domain/activity';
+import { calendar, dayKey, type CalendarDay } from '../../domain/activity';
 import { latestChecks, nextPart, touchedAt } from '../../domain/video';
 import { usePinyinMemory } from '../pinyin/voice';
 import { spotPath, useWeakSpots, WeakSpotsCard } from '../pinyin/WeakSpots';
-import { nextSitting } from '../review/drills';
 import { ReviewSection } from '../review/ReviewPage';
 import { useLibrary } from '../shared/library';
 import './today.css';
@@ -62,11 +61,10 @@ export function TodayPage() {
   const recall = useStore((s) => s.recall);
   const learned = useStore((s) => s.learned);
   const sheets = useStore((s) => s.sheets);
-  const collections = useStore((s) => s.collections);
   const texts = useStore((s) => s.texts);
   const sets = useStore((s) => s.sets);
   const activity = useStore((s) => s.activity);
-  const perDay = useStore((s) => s.settings.newWordsPerDay);
+  const settings = useStore((s) => s.settings);
   const tallies = usePinyinMemory().tallies;
   const videos = useStore((s) => s.videos);
   const spots = useWeakSpots();
@@ -78,12 +76,20 @@ export function TodayPage() {
   const weekStart = today - 6 * DAY_MS;
 
   const plan = useMemo(() => {
-    const pool = reviewPool(lib, recall);
-    const counts = summarise(recall, pool, SKILLS, now);
+    // Items, not skills: the daily session asks one question per item.
+    let charsDue = 0;
+    let wordsDue = 0;
+    for (const id in recall) {
+      const sk = recall[id]!;
+      const due = (isWordId(id) ? (['recognise'] as const) : REVIEW_SKILLS).some((s) => sk[s] && isDue(sk[s]!, now));
+      if (!due) continue;
+      if (isCharId(id) && lib.byChar.has(id.slice(1))) charsDue++;
+      else if (isWordId(id)) wordsDue++;
+    }
     return {
-      charsDue: SKILLS.reduce((n, s) => n + counts[s].due, 0),
-      first: nextSitting(lib, recall, learned, collections, perDay, now),
-      words: summariseWords(recall, collections, perDay, now),
+      charsDue,
+      wordsDue,
+      lesson: activity[dayKey(now)]?.lesson ?? null,
       answered: answeredSince(recall, today),
       started: startedSince(recall, today),
       read: readSince(texts, today),
@@ -96,13 +102,22 @@ export function TodayPage() {
       readWeek: readSince(texts, weekStart),
       checkedWeek: videos.reduce((n, v) => n + v.checks.filter((c) => c.at >= weekStart).length, 0),
     };
-  }, [lib, recall, learned, sheets, collections, perDay, now, today, weekStart, texts, sets, videos, activity, tallies]);
+  }, [lib, recall, learned, sheets, now, today, weekStart, texts, sets, videos, activity, tallies]);
 
-  const streak = useMemo(() => streakOf(activity, now), [activity, now]);
+  const streak = useMemo(
+    () => goalStreak(activity, now, { dailyGoal: settings.dailyGoal, goalMinutes: settings.goalMinutes, restDays: settings.restDays }),
+    [activity, now, settings.dailyGoal, settings.goalMinutes, settings.restDays],
+  );
+  const note = useMemo(() => weeklyNote(dayStats(activity, recall, now, 21), now), [activity, recall, now]);
   const weeks = useMemo(() => calendar(activity, now, 5), [activity, now]);
   const coming = useMemo(() => forecast(recall, now, 7), [recall, now]);
 
-  const due = plan.charsDue + plan.words.due;
+  const due = plan.charsDue + plan.wordsDue;
+  const throttle = throttleFor(dueItemCount(recall, now));
+  const lessonSize = throttle === 'stop' ? 0 : throttle === 'half' ? Math.ceil(settings.newPerDay / 2) : settings.newPerDay;
+  const learnedToday = plan.lesson?.done ? plan.lesson.ids.length : 0;
+  // A session's worth of answers, or nothing left due, and the review is done for the day.
+  const reviewDone = plan.answered > 0 && (!due || plan.answered >= settings.reviewMinutes * 5);
   const spot = spots.weak[0] ?? spots.untried[0] ?? null;
   const band = plan.progress.current;
 
@@ -116,41 +131,33 @@ export function TodayPage() {
       mark: '复',
       title: due ? `Go over ${due} due` : 'Nothing due',
       detail: due
-        ? [plan.charsDue && plural(plan.charsDue, 'character'), plan.words.due && plural(plan.words.due, 'word')]
-            .filter(Boolean)
-            .join(' and ') + (plan.words.fresh ? `, and ${plural(plan.words.fresh, 'new word')}` : '')
+        ? [plan.charsDue && plural(plan.charsDue, 'character'), plan.wordsDue && plural(plan.wordsDue, 'word')].filter(Boolean).join(' and ') +
+          ` — one mixed session, ${settings.reviewMinutes} minutes at most.`
         : plan.answered
           ? `${plural(plan.answered, 'answer')} given today. Everything is holding.`
-          : plan.words.fresh
-            ? `${plural(plan.words.fresh, 'new word')} waiting for today.`
-            : 'Everything in rotation is holding.',
-      done: !due && plan.answered > 0,
-      minutes: reviewMinutes(due + plan.words.fresh),
-      // Straight into the first sitting with something due; each sitting
-      // ends by offering the next, so this is one run through all of them.
-      to: plan.first
-        ? plan.first.id === 'words'
-          ? paths.wordDrill()
-          : paths.drill(plan.first.id)
-        : plan.words.fresh
-          ? paths.wordDrill()
-          : '#review',
+          : 'Everything in rotation is holding.',
+      done: reviewDone,
+      minutes: due ? Math.min(settings.reviewMinutes, reviewMinutes(due)) : 0,
+      to: due ? paths.reviewSession() : '#review',
       action: 'Review',
     },
     {
       id: 'new',
       mark: '新',
-      title: 'Meet new characters',
-      detail: plan.started
-        ? `${plural(plan.started, 'character')} started today.`
-        : band
-          ? `${band.size - band.done} left in ${bandName(band.band)}. Pick three or four whose parts you know.`
-          : 'Every band is learned.',
-      done: plan.started > 0,
-      minutes: 4,
-      to: `${paths.library()}?show=ready`,
-      onGo: band ? () => setSettings({ hskBand: band.band }) : undefined,
-      action: 'Choose',
+      title: learnedToday ? `Learned ${learnedToday} new` : lessonSize ? `Learn ${lessonSize} new` : 'Catch up first',
+      detail: learnedToday
+        ? 'They come back in review on their own schedule. More, if you like.'
+        : throttle === 'stop'
+          ? `${plural(due, 'item')} due — the lesson waits until the queue is shorter.`
+          : throttle === 'half'
+            ? `Fewer than usual: ${plural(due, 'item')} are due.`
+            : band
+              ? `Picture, sound, parts and a sentence each, then a few quick exercises. ${band.size - band.done} left in ${bandName(band.band)}.`
+              : 'Picture, sound, parts and a sentence each, then a few quick exercises.',
+      done: Boolean(plan.lesson?.done),
+      minutes: lessonSize ? Math.ceil(lessonSize * 1.4) : 0,
+      to: throttle === 'stop' && !learnedToday ? paths.reviewSession() : paths.learn(),
+      action: learnedToday ? 'More' : 'Learn',
     },
     {
       id: 'spot',
@@ -241,7 +248,10 @@ export function TodayPage() {
               'Start a run of days today'
             )}
             {streak.best > streak.current && <span className="muted"> · best {streak.best}</span>}
+            {' · '}
+            <Link to={paths.stats()}>Your progress</Link>
           </p>
+          {note && <p className="small today-note">{note}</p>}
         </div>
         {next ? (
           <Link className="btn primary today-go" to={next.to} onClick={next.onGo}>

@@ -82,7 +82,7 @@ export function FaceView({ face, size = 'lg', autoPlay = true }: { face: Face; s
   );
 }
 
-export type Verdict = 'right' | 'also' | 'wrong';
+export type Verdict = 'right' | 'also' | 'nearly' | 'wrong';
 
 /**
  * The line under a card once it is settled: right or not, the answer with its
@@ -116,7 +116,9 @@ export function Settle({
       {verdict === 'retry' && <span className="ex-verdict">Not quite — one more try.</span>}
       {verdict && verdict !== 'retry' && (
         <>
-          <span className="ex-verdict">{verdict === 'wrong' ? 'The answer' : verdict === 'also' ? 'Also right' : '对 — right'}</span>
+          <span className="ex-verdict">
+            {verdict === 'wrong' ? 'The answer' : verdict === 'also' ? 'Also right' : verdict === 'nearly' ? 'Nearly — the tone' : '对 — right'}
+          </span>
           {reveal && (
             <span className="ex-reveal">
               {reveal.hanzi && (

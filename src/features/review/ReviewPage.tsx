@@ -8,6 +8,7 @@ import { useStore } from '../../store/store';
 import { Seg } from '../../ui/Seg';
 import { useToast } from '../../ui/toast';
 import { useLibrary } from '../shared/library';
+import { DailyReviewCard } from './DailyReviewCard';
 import { SweepCard } from '../words/SweepCard';
 import { WordsCard } from '../words/WordsCard';
 import {
@@ -82,7 +83,6 @@ export function ReviewSection() {
     );
   }
 
-  const dueTotal = SKILLS.reduce((n, s) => n + counts.bySkill[s].due, 0);
   const inRotation = `${pools.all.length} character${pools.all.length === 1 ? '' : 's'}`;
 
   return (
@@ -91,11 +91,11 @@ export function ReviewSection() {
         <h2>
           Review
           <span className="muted">
-            {dueTotal ? ` · ${dueTotal} due of ${inRotation}` : ` · ${inRotation}, all holding`}
+            {` · ${inRotation} in rotation`}
           </span>
         </h2>
         <div className="spacer" />
-        <span className="tiny muted">Per sitting</span>
+        <span className="tiny muted">One skill, per sitting</span>
         <Seg
           value={String(size)}
           options={SIZES}
@@ -103,6 +103,8 @@ export function ReviewSection() {
           size="sm"
         />
       </div>
+
+      <DailyReviewCard />
 
       <SweepCard />
 
@@ -126,6 +128,8 @@ export function ReviewSection() {
 
       <WordsCard size={size} />
 
+      <details className="review-skills">
+        <summary>Practise one skill</summary>
       <div className="drill-grid">
         {DRILLS.map((d) => {
           const c = countsFor(d);
@@ -162,6 +166,7 @@ export function ReviewSection() {
         Recognise, so finishing one clears the other; a right pick there counts for half, because
         choosing from what is on screen is easier than coming up with it.
       </p>
+      </details>
     </section>
   );
 }

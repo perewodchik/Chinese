@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
 import { PER_PAGE_CHOICES } from '../../domain/sheet';
 import { HSK_BANDS } from '../../domain/text';
-import { NEW_WORDS_PER_DAY } from '../../domain/wordReview';
-import { paths } from '../../navigation/paths';
 import { chooseFolder, folderSupported, forgetFolder, getFolderName } from '../../platform/files';
 import { resetWorkspace, setSettings } from '../../store/commands';
 import type { SyncStatus } from '../../store/sync/engine';
@@ -13,6 +10,7 @@ import { useTitle } from '../../ui/useTitle';
 import { ChangePasswordForm } from '../auth/ChangePasswordForm';
 import { useUser } from '../auth/session';
 import { useSignOut } from '../auth/useSignOut';
+import { LearningSettings } from './LearningSettings';
 
 const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 
@@ -179,34 +177,7 @@ export function SettingsPage() {
         </div>
       </div>
 
-      <div className="card">
-        <header>
-          <h2>Words</h2>
-        </header>
-        <div className="body" style={{ display: 'grid', gap: 12 }}>
-          <label className="field">
-            New words a day
-            <select
-              value={settings.newWordsPerDay}
-              onChange={(e) => setSettings({ newWordsPerDay: Number(e.target.value) })}
-            >
-              {NEW_WORDS_PER_DAY.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-            <span className="tiny muted">
-              How many words the Words drill brings in from your collections each day. A new word
-              comes back within a day or two, so every one taken today is a review tomorrow.
-            </span>
-          </label>
-          <p className="small muted" style={{ margin: 0 }}>
-            Sorting the words of a band into known, not sure and new is under{' '}
-            <Link to={paths.sweep()}>Review → Which words do you know?</Link>
-          </p>
-        </div>
-      </div>
+      <LearningSettings />
 
       <div className="card">
         <header>

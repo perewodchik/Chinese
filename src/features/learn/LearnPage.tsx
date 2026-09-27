@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { dayKey } from '../../domain/activity';
 import { chooseExercise, makeExercise, makeMatch, type ExerciseContext, type ExerciseKind } from '../../domain/exercises/generate';
 import { itemInfo, type ItemInfo } from '../../domain/exercises/items';
@@ -8,7 +8,7 @@ import { dueItemCount, lessonCounts, lessonRating, pickLesson, twinWord, type Pr
 import type { Rating } from '../../domain/memory';
 import { progressOf } from '../../domain/progress';
 import { paths } from '../../navigation/paths';
-import { finishLesson, startLesson } from '../../store/commands';
+import { finishLesson, gradeItems, startLesson } from '../../store/commands';
 import { getState, useStore } from '../../store/store';
 import { useTitle } from '../../ui/useTitle';
 import { useExerciseContext } from '../exercises/context';
@@ -33,7 +33,20 @@ interface Setup {
 /** Today's lesson, at /learn: meet a few new things, practise them, check them. */
 export function LearnPage() {
   useTitle('Learn');
+  const lib = useLibrary();
+  const navigate = useNavigate();
+  const [query] = useSearchParams();
   const [round, setRound] = useState(0);
+  // ?again=c好,w火车: items that keep slipping in review, met again from the
+  // start. Graded as reviews, not as the day's lesson.
+  const again = useMemo(
+    () => (query.get('again') ?? '').split(',').filter((id) => id && itemInfo(lib, id)),
+    [query, lib],
+  );
+  if (again.length) {
+    const back = () => navigate(paths.today(), { replace: true });
+    return <Run ids={again} relearn onExit={back} onMore={back} />;
+  }
   return <Lesson key={round} more={round > 0} onMore={() => setRound((r) => r + 1)} />;
 }
 
@@ -70,7 +83,7 @@ function Lesson({ more, onMore }: { more: boolean; onMore: () => void }) {
   return <Run ids={setup.ids} onExit={exit} onMore={onMore} />;
 }
 
-function Run({ ids, onExit, onMore }: { ids: ItemId[]; onExit: () => void; onMore: () => void }) {
+function Run({ ids, relearn, onExit, onMore }: { ids: ItemId[]; relearn?: boolean; onExit: () => void; onMore: () => void }) {
   const lib = useLibrary();
   const hard = useStore((s) => s.settings.hardMode);
   const items = useMemo(() => ids.map((id) => itemInfo(lib, id)!).filter(Boolean), [lib, ids]);
@@ -184,6 +197,12 @@ function Run({ ids, onExit, onMore }: { ids: ItemId[]; onExit: () => void; onMor
       out.set(x.id, lessonRating(knew.has(x.id) ? { ...pr, knew: true } : pr));
     }
     const recall = getState().recall;
+    if (relearn) {
+      gradeItems(items.map((x) => ({ id: x.id, skill: 'recognise' as const, rating: out.get(x.id)! })));
+      setRatings(out);
+      setPhase('done');
+      return;
+    }
     finishLesson(
       items.flatMap((x) => {
         const rating = out.get(x.id)!;
