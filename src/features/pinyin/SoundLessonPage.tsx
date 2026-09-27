@@ -1,3 +1,4 @@
+import { MouthDiagrams } from './MouthDiagrams';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
 import { lessonById, type MinimalPair, type SaidWord, type SoundLesson } from '../../domain/pinyin/sounds';
@@ -59,6 +60,7 @@ export function SoundLessonPage() {
 function Learn({ lesson, onNext }: { lesson: SoundLesson; onNext: () => void }) {
   return (
     <>
+      <MouthDiagrams lesson={lesson.id} />
       <div className="note-grid">
         {lesson.notes.map((n) => (
           <article key={n.sound} className="card note-card">

@@ -17,7 +17,7 @@ import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
 import { toggleLearned } from '../../store/commands';
 import { useStore } from '../../store/store';
-import { AnimatedGlyph, Glyph } from '../../ui/Glyph';
+import { Glyph, StrokeStepper, useStrokeSteps } from '../../ui/Glyph';
 import { Say } from '../../ui/Say';
 import { useSheetDrag } from '../../ui/useSheetDrag';
 import { CollectionPicker, useCollect } from '../shared/collect';
@@ -73,6 +73,7 @@ export function ItemDrawer({ id, onClose }: Props) {
   const c = characterOf(lib, id);
   const char = c?.c ?? '';
   const strokes = lib.strokes[char];
+  const steps = useStrokeSteps(char ?? '', strokes?.s.length ?? 0);
   const family = c ? seriesFor(lib, c.c) : null;
 
   // Opened from inside a collection, that collection is the obvious place for it.
@@ -136,7 +137,7 @@ export function ItemDrawer({ id, onClose }: Props) {
         ) : (
           <>
             <div className="row" style={{ gap: 22, alignItems: 'flex-start', margin: '16px 0 6px' }}>
-              <AnimatedGlyph char={char} strokes={lib.strokes} size={104} />
+              <StrokeStepper steps={steps} char={char} strokes={lib.strokes} size={104} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="row" style={{ gap: 8 }}>
                   <span style={{ fontSize: 22, color: 'var(--accent)' }}>{c?.py.join(' / ')}</span>
@@ -275,7 +276,13 @@ export function ItemDrawer({ id, onClose }: Props) {
                 <h2 style={{ fontSize: 13, margin: '0 0 8px' }}>Stroke order · {strokes.s.length} strokes</h2>
                 <div className="strokerow">
                   {strokes.s.map((_, i) => (
-                    <div key={i} className="box">
+                    <button
+                      key={i}
+                      type="button"
+                      className={`box${steps.step === i + 1 && steps.step < steps.total ? ' on' : ''}`}
+                      onClick={() => steps.go(i + 1)}
+                      aria-label={`Stroke ${i + 1}`}
+                    >
                       <Glyph
                         char={char}
                         strokes={lib.strokes}
@@ -284,7 +291,7 @@ export function ItemDrawer({ id, onClose }: Props) {
                         color="var(--line-2)"
                         highlight="var(--accent)"
                       />
-                    </div>
+                    </button>
                   ))}
                 </div>
               </>

@@ -58,6 +58,7 @@ export function PromptStep({ plan, onNext, onBack }: Props) {
     const inventory = wordInventory(lib, recall, now);
     const wordsKnown = inventory.known.length > 0;
     return {
+      lib,
       words: (wordsKnown ? inventory.known : readableWords(lib, known).map((w) => w.w)).slice(0, MAX_WORDS),
       wordsKnown,
       learning: inventory.learning,

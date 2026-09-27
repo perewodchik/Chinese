@@ -1,6 +1,6 @@
 import type { ItemId } from './ids';
 import { isDue, SKILLS, type RecallBook } from './memory';
-import type { SheetOptions } from './sheet';
+import { perPageOf, type SheetChoice } from './sheet';
 import type { TextLine } from './text';
 
 /**
@@ -63,7 +63,7 @@ export interface Collection {
   id: string;
   name: string;
   items: ItemId[];
-  sheet: SheetOptions;
+  sheet: SheetChoice;
   scope: PrintScope;
   createdAt: number;
   updatedAt: number;
@@ -132,7 +132,7 @@ export function statsOf(
     total: c.items.length,
     learned: c.items.filter((i) => learned.has(i)).length,
     printing,
-    pages: pagesFor(printing, c.sheet.perPage),
+    pages: pagesFor(printing, perPageOf(c.sheet.layout)),
   };
 }
 

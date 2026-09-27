@@ -42,6 +42,7 @@ export function RadicalShelf({ q, show }: Props) {
   const openRadical = useOpenRadical();
   const pdf = usePdfExport();
   const footerNote = useStore((s) => s.settings.footerNote);
+  const printPalette = useStore((s) => s.settings.printPalette);
 
   const rows = useMemo(() => {
     const needle = q.trim();
@@ -56,7 +57,7 @@ export function RadicalShelf({ q, show }: Props) {
     void pdf.run('radical-template', {
       title: show === 'forms' ? 'Radicals written more than one way' : 'Radicals',
       render: () =>
-        renderRadicals(rlib, list, RADICAL_TEMPLATE, {
+        renderRadicals(rlib, list, { ...RADICAL_TEMPLATE, palette: printPalette }, {
           title: show === 'forms' ? 'Radicals — the ones with more than one shape' : 'Radicals',
           footerNote,
         }),

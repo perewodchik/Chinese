@@ -116,7 +116,7 @@ export function ReviewSection() {
               <span className="meta">
                 <b>{w.name}</b>
                 <i>
-                  {w.items.length} characters, printed {new Date(w.printedAt).toLocaleDateString()} — not
+                  {w.items.filter((id) => learned.has(id)).length} learned characters to mark, printed {new Date(w.printedAt).toLocaleDateString()} — not
                   marked yet
                 </i>
               </span>
@@ -126,11 +126,10 @@ export function ReviewSection() {
         </div>
       )}
 
-      <WordsCard size={size} />
-
       <details className="review-skills">
         <summary>Practise one skill</summary>
       <div className="drill-grid">
+        <WordsCard size={size} inGrid />
         {DRILLS.map((d) => {
           const c = countsFor(d);
           const nothing = c.due === 0 && c.fresh === 0;

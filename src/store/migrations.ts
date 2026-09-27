@@ -1,3 +1,6 @@
+import { hasPicture } from '../data/pictures';
+import { scenesOf, storyFrom } from '../domain/story';
+import { playFrom } from '../domain/play';
 import { activityFrom } from '../domain/activity';
 import { videoFrom, type Video } from '../domain/video';
 import { DEFAULT_SCOPE, type Collection, type CollectionWord } from '../domain/collection';
@@ -11,7 +14,7 @@ import {
   type RecallBook,
   type SkillBook,
 } from '../domain/memory';
-import { DEFAULT_CHAR_SHEET, PER_PAGE_CHOICES, type SheetOptions } from '../domain/sheet';
+import { DEFAULT_SHEET, LAYOUT_IDS, layoutFor, type LayoutId, type PaletteId, type SheetChoice } from '../domain/sheet';
 import { clampBand, type GeneratedText, type TextLine, type TextPlan, type TextSet, type TextSpec } from '../domain/text';
 import { emptyListPlan, LIST_STEPS, type WordListPlan } from '../domain/wordlist';
 import {
@@ -48,7 +51,7 @@ interface LegacyTemplate {
   name: string;
   kind: 'char' | 'radical';
   items: ItemId[];
-  options: Partial<SheetOptions> & { density?: string };
+  options: Record<string, unknown>;
   createdAt?: number;
   updatedAt?: number;
   collection?: string;
@@ -62,33 +65,29 @@ interface LegacyState {
   settings?: Record<string, unknown>;
 }
 
-const clampPerPage = (n: number | undefined) => {
-  const lo = PER_PAGE_CHOICES[0];
-  const hi = PER_PAGE_CHOICES[PER_PAGE_CHOICES.length - 1];
-  return Math.min(hi, Math.max(lo, Math.round(n ?? DEFAULT_CHAR_SHEET.perPage)));
-};
+const PALETTE_IDS: PaletteId[] = ['cinnabar', 'indigo', 'pine', 'plum', 'graphite'];
 
 /**
  * Reads whatever a stored sheet has, and keeps only what a sheet still is.
  *
- * Two things have been taken out since: `density`, because how tightly a block
- * is set now follows from how many share the page, and the eight content
- * switches, because the same choice decides those too. Picking the fields by
- * hand rather than spreading means those never ride along in storage.
+ * A sheet used to be eight settings; it is a layout and an optional colour
+ * now. Two or fewer a page was the full sheet and becomes Study, three or four
+ * becomes Drill. Cinnabar was everybody's colour by default rather than by
+ * choice, so it becomes "the one in Settings"; any other colour was picked on
+ * purpose and stays with the collection.
  */
-function sheetFrom(o: Partial<SheetOptions> | undefined): SheetOptions {
-  const base = DEFAULT_CHAR_SHEET;
-  const p = o ?? {};
-  return {
-    perPage: clampPerPage(p.perPage),
-    gridStyle: p.gridStyle ?? base.gridStyle,
-    squareSize: p.squareSize ?? base.squareSize,
-    practiceRows: p.practiceRows ?? base.practiceRows,
-    traceCount: p.traceCount ?? base.traceCount,
-    fadeCount: p.fadeCount ?? base.fadeCount,
-    palette: p.palette ?? base.palette,
-    style: p.style ?? base.style,
-  };
+function sheetFrom(o: unknown): SheetChoice {
+  const p = (o ?? {}) as Loose;
+  const layout = LAYOUT_IDS.includes(p.layout as LayoutId)
+    ? (p.layout as LayoutId)
+    : typeof p.perPage === 'number'
+      ? layoutFor(p.perPage)
+      : DEFAULT_SHEET.layout;
+  const palette =
+    PALETTE_IDS.includes(p.palette as PaletteId) && !(p.palette === 'cinnabar' && !('layout' in p))
+      ? (p.palette as PaletteId)
+      : null;
+  return { layout, palette };
 }
 
 /**
@@ -194,6 +193,12 @@ const levelOf = (v: Loose): GeneratedText['level'] =>
  * filled in rather than dropped — an old text simply teaches nothing, which is
  * exactly what it did.
  */
+/** A field only when it has something in it, so plain passages stay as they were stored. */
+function optional<K extends string, V>(key: K, v: V | undefined): Partial<Record<K, V>> {
+  if (v === undefined || (Array.isArray(v) && v.length === 0)) return {};
+  return { [key]: v } as Record<K, V>;
+}
+
 function textFrom(v: unknown): GeneratedText | null {
   if (!v || typeof v !== 'object') return null;
   const t = v as Loose;
@@ -231,6 +236,9 @@ function textFrom(v: unknown): GeneratedText | null {
     // Texts stored before re-reading was counted have read it once, if at all.
     reads: typeof t.reads === 'number' ? t.reads : t.read === true ? 1 : 0,
     lastReadAt: typeof t.lastReadAt === 'number' ? t.lastReadAt : undefined,
+    ...optional('story', storyFrom(t.story)),
+    ...optional('endings', arr<string>(t.endings).filter((e) => typeof e === 'string')),
+    ...optional('scenes', scenesOf(t.scenes, hasPicture)),
   };
 }
 
@@ -270,6 +278,7 @@ function planFrom(v: unknown): TextPlan | null {
         structure: s.structure === 'units' ? 'units' : 'flow',
         vocabMode: s.vocabMode === 'strict' ? 'strict' : 'soft',
         include: strOr(s.include, ''),
+        pictures: s.pictures === true || undefined,
       }),
     );
   if (!specs.length) return null;
@@ -345,12 +354,11 @@ function settingsFrom(v: unknown, version: number): AppSettings {
     theme: (s.theme as AppSettings['theme']) ?? DEFAULT_SETTINGS.theme,
     hskBand: num(s.hskBand, DEFAULT_SETTINGS.hskBand),
     footerNote: strOr(s.footerNote, DEFAULT_SETTINGS.footerNote),
-    readerPalette:
-      (s.readerPalette as AppSettings['readerPalette']) ?? DEFAULT_SETTINGS.readerPalette,
-    readerStyle:
-      (s.readerStyle as AppSettings['readerStyle']) ?? DEFAULT_SETTINGS.readerStyle,
+    // The texts' colour was the only colour Settings had; it is every sheet's now.
+    printPalette: PALETTE_IDS.includes((s.printPalette ?? s.readerPalette) as PaletteId)
+      ? ((s.printPalette ?? s.readerPalette) as PaletteId)
+      : DEFAULT_SETTINGS.printPalette,
     readerPractice: s.readerPractice !== false,
-    practicePerPage: num(s.practicePerPage, DEFAULT_SETTINGS.practicePerPage),
     basisCount: num(s.basisCount, DEFAULT_SETTINGS.basisCount),
     modelName: strOr(s.modelName, DEFAULT_SETTINGS.modelName),
     pitchChart: s.pitchChart !== false,
@@ -561,6 +569,7 @@ export function hydrate(raw: unknown): AppState {
     radicals: p.radicals ? mergeRadicals(radicalsFrom(p.radicals, now), legacy) : legacy,
     settings: settingsFrom(p.settings, typeof p.version === 'number' ? p.version : 0),
     activity: activityFrom(p.activity),
+    play: playFrom(p.play),
     videos: arr<unknown>(p.videos)
       .map(videoFrom)
       .filter((v): v is Video => v !== null),
@@ -606,6 +615,7 @@ export function serialise(s: AppState): PersistedState {
     radicals: s.radicals,
     settings: s.settings,
     activity: s.activity,
+    play: s.play,
     videos: s.videos,
   };
 }

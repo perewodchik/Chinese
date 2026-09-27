@@ -141,7 +141,7 @@ export function StudyStep() {
       )}
 
       <p className="small">
-        The new words from the pack are on <button className="line-ref" onClick={() => go('words')}>Words</button>
+        The new words from the pack are on <button className="line-ref" onClick={() => go('words')}>Text</button>
         {pack.listening.length ? (
           <>
             ; the lines to listen hardest to are on <button className="line-ref" onClick={() => go('watch')}>Watch</button>

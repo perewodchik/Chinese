@@ -1,0 +1,27 @@
+.g-measure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.g-measure-photo {
+  width: min(220px, 56vw);
+}
+
+.g-gap {
+  display: inline-block;
+  min-width: 1.2em;
+  margin: 0 0.1em;
+  border-bottom: 2px solid var(--line-2);
+  text-align: center;
+}
+
+.g-gap[data-filled] {
+  color: var(--jade);
+  border-color: var(--jade);
+}
+
+.g-rule {
+  min-height: 18px;
+  text-align: center;
+}

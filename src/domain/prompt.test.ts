@@ -46,3 +46,30 @@ describe('the pinyin a writing prompt asks for', () => {
     assert.match(text, /A name is one word/);
   });
 });
+
+describe('stories, speakers and scenes in the prompt', () => {
+  const with_ = (patch: Partial<(typeof plan.specs)[number]>) => ({
+    ...plan,
+    specs: plan.specs.map((s, i) => (i === 0 ? { ...s, ...patch } : s)),
+  });
+
+  it('asks a dialogue for its speakers', () => {
+    assert.match(buildPrompt(with_({ genre: 'dialogue' })), /"who"/);
+  });
+
+  it('explains the story shape only when a passage is a story with choices', () => {
+    assert.doesNotMatch(buildPrompt(plan), /A story with choices/);
+    const text = buildPrompt(with_({ genre: 'branching' }));
+    assert.match(text, /## A story with choices/);
+    assert.match(text, /"start": "a"/);
+    assert.match(buildBrief(with_({ genre: 'branching' })), /"choices"/);
+  });
+
+  it('lists the photos and rooms a scene may use when a passage asks for pictures', () => {
+    const text = buildPrompt(with_({ pictures: true }));
+    assert.match(text, /## Scenes/);
+    assert.match(text, /火车/);
+    assert.match(text, /`classroom`/);
+    assert.doesNotMatch(buildPrompt(plan), /## Scenes/);
+  });
+});

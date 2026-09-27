@@ -11,8 +11,9 @@ import {
   type ScopeMode,
 } from '../../domain/collection';
 import { itemsLabel } from '../../domain/ids';
+import { perPageOf, printSheet } from '../../domain/sheet';
 import { paths, type CollectionTab } from '../../navigation/paths';
-import { fitFor, renderCollection, renderRecall } from '../../pdf/render';
+import { renderCollection, renderRecall } from '../../pdf/render';
 import {
   deleteCollection,
   duplicateCollection,
@@ -55,22 +56,26 @@ export function CollectionEditor({ c, tab }: Props) {
   const learned = useStore((s) => s.learned);
   const recall = useStore((s) => s.recall);
   const footerNote = useStore((s) => s.settings.footerNote);
+  const printPalette = useStore((s) => s.settings.printPalette);
+  const perPage = perPageOf(c.sheet.layout);
   const [url, setUrl] = useState<string | null>(null);
   const [building, setBuilding] = useState(false);
   const urlRef = useRef<string | null>(null);
 
   const taken = useMemo(() => claimedItems(collections, c.id), [collections, c.id]);
   const items = useMemo(() => itemsInScope(c, learned, recall), [c, learned, recall]);
+  // A test asks for what you have learned: a character you have never studied
+  // is not something to write from memory, and marking it only makes noise.
+  const tested = useMemo(() => items.filter((id) => learned.has(id)), [items, learned]);
   const stats = statsOf(c, learned, recall);
-  const fit = useMemo(() => fitFor(lib, c, items), [lib, c, items]);
-  const preview = useMemo(() => items.slice(0, c.sheet.perPage * PREVIEW_PAGES), [items, c.sheet.perPage]);
+  const preview = useMemo(() => items.slice(0, perPage * PREVIEW_PAGES), [items, perPage]);
 
   // The preview is the document itself, not a mock-up of it — a worksheet is
   // something you flick through before committing it to paper. Only the first
   // few pages, though, and only while the preview is on screen: rebuilding
   // forty pages on every click of a checkbox makes the checkbox feel broken,
   // and rebuilding it for each character added on the Items tab is waste.
-  const key = JSON.stringify([preview, c.sheet, c.name, footerNote]);
+  const key = JSON.stringify([preview, c.sheet, c.name, footerNote, printPalette]);
 
   useEffect(() => {
     if (tab !== 'design') return;
@@ -86,6 +91,7 @@ export function CollectionEditor({ c, tab }: Props) {
           footerNote,
           total: items.length,
           pages: stats.pages,
+          palette: printPalette,
         });
         if (cancelled) return;
         const next = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/pdf' }));
@@ -116,12 +122,12 @@ export function CollectionEditor({ c, tab }: Props) {
     const title = printName(c);
     void pdf.run('worksheet', {
       title,
-      render: () => renderCollection(lib, c, items, { footerNote, title }),
+      render: () => renderCollection(lib, c, items, { footerNote, title, palette: printPalette }),
     });
   }
 
   /**
-   * The same characters with the answers taken away.
+   * The learned characters and words among these, with the answers taken away.
    *
    * Printed, it is a test; recorded, it is the only evidence the schedule ever
    * gets about handwriting, which happens where the app cannot watch. So the
@@ -132,9 +138,9 @@ export function CollectionEditor({ c, tab }: Props) {
     const title = `${c.name} — from memory`;
     void pdf.run('test', {
       title,
-      render: () => renderRecall(lib, items, c.sheet, { title, footerNote }),
+      render: () => renderRecall(lib, tested, printSheet(c.sheet, printPalette), { title, footerNote }),
       after: () => {
-        recordSheet(title, items);
+        recordSheet(title, tested);
         return 'Mark it in Review once you have written it.';
       },
     });
@@ -177,10 +183,14 @@ export function CollectionEditor({ c, tab }: Props) {
         <button
           className="btn"
           onClick={testSheet}
-          disabled={busy || !items.length}
-          title="The same characters with no model to copy — the reading and the meaning, empty squares, and the answers under a fold"
+          disabled={busy || !tested.length}
+          title={
+            tested.length
+              ? `The ${tested.length} learned characters and words here with no model to copy — the reading and the meaning, empty squares, and the answers under a fold`
+              : 'Nothing here is learned yet: a test sheet asks only for what you have learned'
+          }
         >
-          {pdf.busy === 'test' ? 'Building…' : 'Test sheet'}
+          {pdf.busy === 'test' ? 'Building…' : tested.length ? `Test sheet · ${tested.length}` : 'Test sheet'}
         </button>
         <button className="btn primary" onClick={download} disabled={busy || !items.length}>
           {pdf.busy === 'worksheet' ? 'Building…' : `Download ${stats.pages} page${stats.pages === 1 ? '' : 's'}`}
@@ -257,7 +267,7 @@ export function CollectionEditor({ c, tab }: Props) {
                 {building
                   ? 'building…'
                   : items.length > preview.length
-                    ? `first ${pagesFor(preview.length, c.sheet.perPage)} of ${stats.pages} pages`
+                    ? `first ${pagesFor(preview.length, perPage)} of ${stats.pages} pages`
                     : `all ${stats.pages} page${stats.pages === 1 ? '' : 's'}`}
               </span>
             </header>
@@ -280,7 +290,7 @@ export function CollectionEditor({ c, tab }: Props) {
 
           <div className="card side">
             <div className="body">
-              <SheetDesigner c={c} fit={fit} />
+              <SheetDesigner c={c} />
             </div>
             <footer className="card-foot">
               <button className="btn sm" onClick={duplicate}>

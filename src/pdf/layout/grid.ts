@@ -1,4 +1,15 @@
 import type { SquareSize } from '../../domain/sheet';
+import { contentWidth } from './page';
+
+/**
+ * The practice square every character and word sheet uses: the measure split
+ * twelve ways, 42.6pt or 15 mm. Twelve because it divides by one, two, three
+ * and four, so a word of any common length fits a row a whole number of times
+ * — twelve goes of 好, six of 朋友, four of 出租车 — and the squares are the
+ * same size on every page the app prints.
+ */
+export const COLS = 12;
+export const CELL = contentWidth / COLS;
 
 /**
  * Smallest square we will draw, in points. 44pt is about 15mm, the size of a

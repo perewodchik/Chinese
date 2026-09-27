@@ -68,22 +68,26 @@ describe('the radical block', () => {
     assert.ok(plan.used <= slot + 0.5);
   });
 
-  it('never buys that room out of a row of practice', () => {
-    // Three and four to a page fill the slot exactly, so there is nothing
-    // spare: the spacing has to give way rather than the practice.
+  it('gives every radical on a page the same rows, whatever it has', () => {
+    // 口 is written one way and 心 three; on paper they are the same block.
     for (const perPage of RADICAL_PER_PAGE) {
       const slot = slotHeight(perPage);
-      for (const r of radicals) {
-        const o = { ...DEFAULT_RADICAL_SHEET, perPage };
-        const plan = radicalPlan(r, o, slot);
-        const gaps = Math.max(0, plan.rows.length - 1);
-        const withoutGaps = plan.used - plan.gap * gaps;
-        assert.ok(
-          withoutGaps + plan.cell > slot - 0.5 || plan.rows.length >= r.forms.length,
-          `${r.r} at ${perPage} a page: ${plan.rows.length} of ${r.forms.length} forms have a row, and ${(slot - withoutGaps).toFixed(1)}pt was going spare`,
-        );
-      }
+      const counts = new Set(
+        radicals.map((r) => {
+          const plan = radicalPlan(r, { ...DEFAULT_RADICAL_SHEET, perPage }, slot);
+          return `${plan.rows.length + plan.free}×${plan.cols}@${plan.cell.toFixed(1)}/${plan.used.toFixed(1)}`;
+        }),
+      );
+      assert.equal(counts.size, 1, `${perPage} a page gives ${[...counts].join(', ')}`);
     }
+  });
+
+  it('gives a radical written one way a row from memory rather than blank paper', () => {
+    const mouth = radicals.find((r) => r.n === 30)!;
+    const plan = radicalPlan(mouth, { ...DEFAULT_RADICAL_SHEET, perPage: 3 }, slotHeight(3));
+    assert.equal(plan.rows.length, 1);
+    assert.equal(plan.free, 1);
+    assert.equal(plan.cols, 12);
   });
 
   it('gives the two commonest forms a row each at three per page', () => {

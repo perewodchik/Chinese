@@ -1,7 +1,7 @@
 import { DEFAULT_SCOPE, type Collection, type CollectionWord, type PrintScope } from '../domain/collection';
 import type { ItemId } from '../domain/ids';
 import type { PrintedSheet, Rating, Skill } from '../domain/memory';
-import { defaultSheet, type SheetOptions } from '../domain/sheet';
+import { defaultSheet, type SheetChoice } from '../domain/sheet';
 import { shelve, type GeneratedText, type TextPlan, type TextSet } from '../domain/text';
 import { emptyListPlan, type WordListPlan } from '../domain/wordlist';
 import { newId } from '../platform/ids';
@@ -26,7 +26,7 @@ const findCollection = (id: string) => getState().collections.find((c) => c.id =
 export function createCollection(opts: {
   name: string;
   items?: ItemId[];
-  sheet?: Partial<SheetOptions>;
+  sheet?: Partial<SheetChoice>;
   presetId?: string;
   note?: string;
   words?: CollectionWord[];
@@ -53,7 +53,7 @@ export function createCollection(opts: {
 export const renameCollection = (id: string, name: string) =>
   dispatch({ type: 'collection/update', id, patch: { name }, at: now() });
 
-export const setSheet = (id: string, sheet: Partial<SheetOptions>) =>
+export const setSheet = (id: string, sheet: Partial<SheetChoice>) =>
   dispatch({ type: 'collection/update', id, patch: { sheet }, at: now() });
 
 export const setScope = (id: string, scope: Partial<PrintScope>) =>
@@ -92,6 +92,10 @@ export const reorderItems = (id: string, items: ItemId[]) =>
  * account, so the streak is the same everywhere.
  */
 export const logSpoken = (n = 1) => dispatch({ type: 'activity/log', at: now(), add: { spoken: n } });
+
+/** A game played to the end: its score, and the words and characters it showed. */
+export const finishGame = (game: string, firstTry: number, rounds: number, items: ItemId[]) =>
+  dispatch({ type: 'play/finish', game: { game, at: now(), firstTry, rounds, items: [...new Set(items)] } });
 
 export const gradeItem = (id: ItemId, skill: Skill, rating: Rating, weight?: number) =>
   dispatch({
@@ -188,6 +192,16 @@ export const setTextRead = (id: string, read: boolean) => dispatch({ type: 'text
  * event: it happened, and the count only goes up.
  */
 export const markRead = (id: string) => dispatch({ type: 'text/markRead', id, at: now() });
+
+/**
+ * A story with choices read through to one of its endings: the ending is
+ * kept, and the passage counts as read once more — every way through is a
+ * reading of it.
+ */
+export function reachEnding(id: string, node: string) {
+  dispatch({ type: 'text/ending', id, node });
+  markRead(id);
+}
 
 export const renameSet = (id: string, name: string) => dispatch({ type: 'set/rename', id, name });
 

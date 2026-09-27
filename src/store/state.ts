@@ -1,8 +1,9 @@
+import { emptyPlay, type PlayRecord } from '../domain/play';
 import type { Activity } from '../domain/activity';
 import type { Collection } from '../domain/collection';
 import type { ItemId } from '../domain/ids';
 import type { PrintedSheet, RecallBook } from '../domain/memory';
-import type { PaletteId, StyleId } from '../domain/sheet';
+import type { PaletteId } from '../domain/sheet';
 import type { GeneratedText, TextPlan, TextSet } from '../domain/text';
 import type { Video } from '../domain/video';
 import type { WordListPlan } from '../domain/wordlist';
@@ -14,13 +15,10 @@ export interface AppSettings {
   hskBand: number;
   /** name to stamp in the page footer */
   footerNote: string;
-  /** how a printed reading passage looks; worksheets carry their own */
-  readerPalette: PaletteId;
-  readerStyle: StyleId;
-  /** print practice squares for a text's new characters behind the reading */
+  /** the colour every printed sheet is in, unless a collection picks its own */
+  printPalette: PaletteId;
+  /** print practice squares for a text's new words and characters behind the reading */
   readerPractice: boolean;
-  /** how many of those characters share a practice page */
-  practicePerPage: number;
   /** what a new writing session assumes you can read, and how much of it */
   basisCount: number;
   /** what to call whoever wrote the passage, stamped on the text */
@@ -87,10 +85,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   hskBand: 1,
   footerNote: '',
-  readerPalette: 'cinnabar',
-  readerStyle: 'classic',
+  printPalette: 'cinnabar',
   readerPractice: true,
-  practicePerPage: 3,
   basisCount: 150,
   modelName: 'Claude Opus',
   pitchChart: true,
@@ -156,6 +152,8 @@ export interface PersistedState {
   settings: AppSettings;
   /** what was done on each day; absent before version 8 */
   activity?: Activity;
+  /** how the games have gone; absent before the games existed */
+  play?: PlayRecord;
   /** the videos being studied; absent before version 9 */
   videos?: Video[];
 }
@@ -176,6 +174,8 @@ export interface AppState {
   settings: AppSettings;
   /** what was done on each day, by local date */
   activity: Activity;
+  /** how each game has gone, and which items the games have shown */
+  play: PlayRecord;
   /** the videos on the Videos shelf, newest first */
   videos: Video[];
 }
@@ -192,5 +192,6 @@ export const emptyState = (): AppState => ({
   radicals: emptyRadicals(),
   settings: { ...DEFAULT_SETTINGS },
   activity: {},
+  play: emptyPlay(),
   videos: [],
 });

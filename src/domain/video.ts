@@ -164,6 +164,8 @@ export interface Video {
   packs: Record<number, VideoPack>;
   /** new words waved off with ✕ on the strip: not wanted from this video */
   skipped: string[];
+  /** lines copied into the notebook, ticked by their number on Text: indices in the whole video */
+  copied?: number[];
 }
 
 /* ------------------------------------------------------------ the pack */
@@ -587,6 +589,7 @@ export function videoFrom(raw: unknown): Video | null {
     .map((p) => ({ from: num(p.from), to: num(p.to) }))
     .filter((p) => p.from >= 0 && p.to > p.from && p.to <= lines.length);
   const marks = (v.marks ?? {}) as Loose;
+  const copied = list(v.copied).filter((n): n is number => Number.isInteger(n) && (n as number) >= 0 && (n as number) < lines.length);
   const status = VIDEO_STATUSES.some((s) => s.id === v.status) ? (v.status as VideoStatus) : 'want';
   const stored = ['captions', 'captions-auto', 'pasted', 'waiting', 'none', 'transcribed'].includes(v.textFrom as string)
     ? (v.textFrom as VideoTextFrom)
@@ -620,7 +623,14 @@ export function videoFrom(raw: unknown): Video | null {
     asks: list(v.asks).filter((a): a is VideoAsk => !!a && typeof a === 'object' && typeof (a as Loose).id === 'string'),
     packs: v.packs && typeof v.packs === 'object' ? (v.packs as Record<number, VideoPack>) : {},
     skipped: list(v.skipped).filter((w): w is string => typeof w === 'string'),
+    ...(copied.length ? { copied } : {}),
   };
+}
+
+/** How much of the video is copied into the notebook: lines ticked, of all its lines, 0–1. */
+export function copiedShare(v: Video): number {
+  if (!v.lines.length) return 0;
+  return new Set((v.copied ?? []).filter((n) => n < v.lines.length)).size / v.lines.length;
 }
 
 /**

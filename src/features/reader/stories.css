@@ -1,0 +1,286 @@
+/* --------------------------------------------- comics, choices and scenes */
+
+/* a dialogue as a comic */
+.comic {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.comic-turn {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: 88%;
+}
+
+.comic-turn[data-side='right'] {
+  flex-direction: row-reverse;
+  align-self: flex-end;
+}
+
+.comic-face {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.comic-name {
+  font-size: 13px;
+  color: var(--ink-3);
+  min-height: 16px;
+}
+
+.comic-bubble {
+  position: relative;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: var(--card);
+  border: 1.5px solid var(--line-2);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.comic-turn[data-side='left'] .comic-bubble {
+  border-bottom-left-radius: 4px;
+}
+
+.comic-turn[data-side='right'] .comic-bubble {
+  border-bottom-right-radius: 4px;
+  background: var(--card-2);
+}
+
+.comic-turn[data-reading] .comic-bubble {
+  border-color: var(--accent);
+}
+
+.comic-zh {
+  line-height: 1.9;
+}
+
+.comic-en {
+  margin-top: 4px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+
+/* a story with choices */
+.story-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+  overflow-x: auto;
+}
+
+.story-map {
+  flex: 0 0 auto;
+}
+
+.story-map line {
+  stroke: var(--line-2);
+  stroke-width: 1.5;
+}
+
+.story-map line[data-taken] {
+  stroke: var(--ink-2);
+  stroke-width: 2.5;
+}
+
+.story-map circle {
+  fill: var(--card);
+  stroke: var(--line-2);
+  stroke-width: 1.5;
+}
+
+.story-map circle[data-visited] {
+  fill: var(--ink-2);
+  stroke: var(--ink-2);
+}
+
+.story-map circle[data-found] {
+  stroke: var(--jade);
+  stroke-width: 2.5;
+}
+
+.story-map circle[data-here] {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.story-choices {
+  margin: 18px 0 8px;
+}
+
+.story-ask {
+  margin: 0 0 8px;
+}
+
+.story-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.story-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px 16px;
+  min-height: 64px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line-2);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.12s;
+}
+
+.story-option:hover {
+  border-color: var(--ink-3);
+  transform: translateY(-1px);
+}
+
+.story-option .hanzi {
+  font-size: 22px;
+}
+
+.story-option-py {
+  font-size: 12.5px;
+  color: var(--accent);
+}
+
+.story-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--jade-soft);
+}
+
+.story-end-title {
+  margin: 0;
+  font-size: 15px;
+}
+
+.story-end-title .hanzi {
+  font-size: 24px;
+  color: var(--jade);
+}
+
+/* a scene beside a paragraph */
+.scene {
+  margin: 8px 0 16px;
+}
+
+.scene-stage {
+  position: relative;
+  width: min(560px, 100%);
+  aspect-ratio: 4 / 3;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+.scene-room {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.scene-wall {
+  fill: var(--card);
+}
+
+.scene-floor {
+  fill: var(--card-2);
+}
+
+.scene-ink,
+.scene-ink path,
+.scene-ink rect,
+.scene-ink circle,
+.scene-ink line {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.scene-ink .scene-board {
+  fill: color-mix(in srgb, var(--jade) 25%, var(--card));
+}
+
+.scene-thing {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  border: 3px solid var(--card);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.12s, border-color 0.12s;
+}
+
+.scene-thing:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.scene-thing[data-state='right'] {
+  border-color: var(--jade);
+}
+
+.scene-thing[data-state='wrong'] {
+  border-color: var(--accent);
+}
+
+.scene-thing .g-photo {
+  border-radius: 10px;
+}
+
+.scene-person {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.scene-name {
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.scene-ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-top: 6px;
+}
+
+.scene-ask .hanzi {
+  font-size: 20px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-option,
+  .scene-thing {
+    transition: none;
+  }
+}

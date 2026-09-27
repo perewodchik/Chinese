@@ -1,3 +1,5 @@
+import { hasPicture } from '../data/pictures';
+import { scenesOf, storyOf, type Scene, type Story } from './story';
 import {
   coverageOf,
   hanziIn,
@@ -49,6 +51,9 @@ export interface DraftText {
   note: string;
   /** the writer's own count of distinct characters per HSK band */
   hsk?: Record<string, number>;
+  /** a story with choices, when the passage is one */
+  story?: Story;
+  scenes?: Scene[];
 }
 
 export interface ParseResult {
@@ -287,6 +292,8 @@ export function asLine(v: unknown): TextLine | null {
   else if (!line.py && typeof o.p === 'string') line.py = o.p.trim();
   const a = pick(o, 'a', 'answer', 'modelAnswer');
   if (a) line.a = a;
+  const who = pick(o, 'who', 'speaker', 'name');
+  if (who) line.who = who.slice(0, 12);
   return line;
 }
 
@@ -347,10 +354,16 @@ function asTaught(v: unknown): TaughtChar | null {
 function asText(v: unknown): DraftText | null {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
   const o = v as Bag;
-  const lines = arrayOf(o, 'lines', 'passage', 'sentences', 'text', 'body')
-    .map(asLine)
-    .filter((l): l is TextLine => l !== null);
+  // A story with choices keeps its sentences in its nodes; they become the
+  // passage's lines, each tagged with its node (see domain/story).
+  const told = storyOf(o.story ?? (o.nodes ? o : null), asLine);
+  const lines = told
+    ? told.lines
+    : arrayOf(o, 'lines', 'passage', 'sentences', 'text', 'body')
+        .map(asLine)
+        .filter((l): l is TextLine => l !== null);
   if (!lines.length) return null;
+  const scenes = scenesOf(o.scenes, hasPicture);
 
   const id = pick(o, 'id', 'specId', 'ref', 'key');
   return {
@@ -372,6 +385,8 @@ function asText(v: unknown): DraftText | null {
       .filter((g): g is GrammarNote => g !== null),
     note: pick(o, 'note', 'teacherNote', 'advice', 'comment', 'tip'),
     hsk: asCounts(o.hsk ?? o.hskDistribution),
+    ...(told ? { story: told.story } : {}),
+    ...(scenes.length ? { scenes } : {}),
   };
 }
 
@@ -551,5 +566,7 @@ export function toText(
     teach,
     glosses,
     basis,
+    ...(draft.story ? { story: draft.story } : {}),
+    ...(draft.scenes ? { scenes: draft.scenes } : {}),
   };
 }

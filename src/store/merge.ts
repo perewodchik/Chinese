@@ -1,4 +1,5 @@
 import { mergeActivity } from '../domain/activity';
+import { mergePlay } from '../domain/play';
 import { mergeVideo } from '../domain/video';
 import { learnedFrom, SKILLS, type RecallBook, type SkillBook } from '../domain/memory';
 import { mergeRadicals } from './radicalState';
@@ -26,14 +27,18 @@ export function mergeStates(account: AppState, incoming: AppState): AppState {
     sheets: union(account.sheets, incoming.sheets, (ours, theirs) =>
       ours.gradedAt === null && theirs.gradedAt !== null ? theirs : ours,
     ).sort((a, b) => b.printedAt - a.printedAt),
-    texts: union(account.texts, incoming.texts, (ours, theirs) =>
-      (theirs.reads ?? 0) > (ours.reads ?? 0) ? theirs : ours,
-    ).sort((a, b) => b.createdAt - a.createdAt),
+    texts: union(account.texts, incoming.texts, (ours, theirs) => {
+      const kept = (theirs.reads ?? 0) > (ours.reads ?? 0) ? theirs : ours;
+      // endings found on either device stay found
+      const endings = [...new Set([...(ours.endings ?? []), ...(theirs.endings ?? [])])];
+      return endings.length ? { ...kept, endings } : kept;
+    }).sort((a, b) => b.createdAt - a.createdAt),
     sets: union(account.sets, incoming.sets, (ours) => ours).sort((a, b) => b.createdAt - a.createdAt),
     plan: account.plan ?? incoming.plan,
     listPlan: account.listPlan ?? incoming.listPlan,
     radicals: mergeRadicals(account.radicals, incoming.radicals),
     activity: mergeActivity(account.activity, incoming.activity),
+    play: mergePlay(account.play, incoming.play),
     videos: union(account.videos, incoming.videos, mergeVideo).sort((a, b) => b.added - a.added),
   };
 }

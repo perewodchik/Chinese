@@ -51,10 +51,10 @@ export const STYLES: SheetStyle[] = [
   {
     id: 'classic',
     name: 'Classic',
-    blurb: 'An accent tab, hairline dividers, dashed guides. Quiet and dense.',
+    blurb: 'An accent tab, ruled labels, hairline dividers, dashed guides.',
     header: 'bar',
     separator: 'hairline',
-    label: 'caps',
+    label: 'capsRule',
     panel: 'rule',
     guide: 'dash',
     headBand: false,

@@ -121,7 +121,7 @@ describe('coalesce', () => {
   it('folds a run of edits to one collection into one action with the same effect', () => {
     const start = run(emptyState(), { type: 'collection/create', collection: collection('c', []) });
     const a: Action = { type: 'collection/update', id: 'c', patch: { name: 'Food' }, at: 2 };
-    const b: Action = { type: 'collection/update', id: 'c', patch: { sheet: { perPage: 3 } }, at: 3 };
+    const b: Action = { type: 'collection/update', id: 'c', patch: { sheet: { layout: 'drill' } }, at: 3 };
     const c: Action = { type: 'collection/update', id: 'c', patch: { sheet: { palette: 'pine' } }, at: 4 };
 
     const ab = coalesce(a, b);

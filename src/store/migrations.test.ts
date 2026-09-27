@@ -178,3 +178,36 @@ describe('a word list Claude wrote, from before words were items', () => {
     assert.deepEqual(items, ['c挂', 'c号']);
   });
 });
+
+/**
+ * A sheet was eight settings and is a layout and an optional colour now. The
+ * colour everybody had by default must not become a choice they never made,
+ * or changing the one in Settings would skip every old collection.
+ */
+describe('a collection written when a sheet had eight settings', () => {
+  const sheetOf = (sheet: Record<string, unknown>, settings: Record<string, unknown> = {}) =>
+    hydrate({
+      version: 9,
+      collections: [
+        { id: 'a', name: 'A', items: ['c好'], sheet, scope: { mode: 'all', from: 1, count: 20 }, createdAt: 1, updatedAt: 1 },
+      ],
+      settings,
+    });
+
+  it('keeps two a page as Study and takes three or four as Drill', () => {
+    assert.equal(sheetOf({ perPage: 2 }).collections[0].sheet.layout, 'study');
+    assert.equal(sheetOf({ perPage: 3 }).collections[0].sheet.layout, 'drill');
+    assert.equal(sheetOf({ perPage: 4, squareSize: 'small' }).collections[0].sheet.layout, 'drill');
+  });
+
+  it('lets the old default colour follow Settings, and keeps a colour picked on purpose', () => {
+    assert.equal(sheetOf({ perPage: 2, palette: 'cinnabar', style: 'workbook' }).collections[0].sheet.palette, null);
+    assert.equal(sheetOf({ perPage: 2, palette: 'plum' }).collections[0].sheet.palette, 'plum');
+    assert.equal(sheetOf({ layout: 'study', palette: 'cinnabar' }).collections[0].sheet.palette, 'cinnabar');
+  });
+
+  it("makes the texts' colour the print colour", () => {
+    assert.equal(sheetOf({}, { readerPalette: 'pine' }).settings.printPalette, 'pine');
+    assert.equal(sheetOf({}).settings.printPalette, 'cinnabar');
+  });
+});

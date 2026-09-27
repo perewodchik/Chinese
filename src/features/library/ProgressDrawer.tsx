@@ -5,6 +5,7 @@ import { bandName, progressOf, type BandProgress } from '../../domain/progress';
 import { paths } from '../../navigation/paths';
 import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
+import { InkWall } from './InkWall';
 import { useSheetDrag } from '../../ui/useSheetDrag';
 import { useLibrary } from '../shared/library';
 
@@ -175,6 +176,12 @@ export function ProgressDrawer({ onClose }: { onClose: () => void }) {
         ) : (
           <p className="small muted">Nothing in rotation yet. Mark a few characters learned and they start coming round.</p>
         )}
+
+        <h3 className="progress-label">The wall</h3>
+        <p className="tiny muted" style={{ margin: '0 0 8px' }}>
+          Each one as dark as you hold it today — the pale ones are slipping. Tap one to look at it again.
+        </p>
+        <InkWall band={lastStarted || 1} />
 
         <h3 className="progress-label">By skill</h3>
         <table className="progress-skills">

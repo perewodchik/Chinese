@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { PER_PAGE_CHOICES } from '../../domain/sheet';
+import { PalettePicker } from '../../ui/PalettePicker';
 import { HSK_BANDS } from '../../domain/text';
 import { chooseFolder, folderSupported, forgetFolder, getFolderName } from '../../platform/files';
 import { resetWorkspace, setSettings } from '../../store/commands';
@@ -162,9 +162,19 @@ export function SettingsPage() {
               <option value="dark">Dark</option>
             </select>
             <span className="tiny muted">
-              This is the app on screen. How a PDF looks is chosen per collection, under Design.
+              This is the app on screen. Printed sheets use the colour below.
             </span>
           </label>
+          <div className="field">
+            Print colour
+            <PalettePicker
+              value={settings.printPalette}
+              onChange={(p) => p && setSettings({ printPalette: p })}
+            />
+            <span className="tiny muted">
+              Every worksheet, test, text and radical sheet. A collection can pick its own under Design.
+            </span>
+          </div>
           <label className="field">
             Footer note on every sheet
             <input
@@ -209,24 +219,8 @@ export function SettingsPage() {
               onChange={(e) => setSettings({ readerPractice: e.target.checked })}
             />
             <span>
-              Print practice sheets behind a text
-              <span className="d">Every new character the text taught, as the same block a worksheet uses</span>
-            </span>
-          </label>
-          <label className="field">
-            Characters per practice page
-            <select
-              value={settings.practicePerPage}
-              onChange={(e) => setSettings({ practicePerPage: Number(e.target.value) })}
-            >
-              {PER_PAGE_CHOICES.map((n) => (
-                <option key={n} value={n}>
-                  {n} per page
-                </option>
-              ))}
-            </select>
-            <span className="tiny muted">
-              Two gets the full sheet — origin, words, a sentence. Four is stroke order and squares.
+              Print practice pages behind a text
+              <span className="d">Its new words and characters, in the Drill layout a worksheet uses</span>
             </span>
           </label>
           <label className="field">

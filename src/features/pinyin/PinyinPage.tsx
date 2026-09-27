@@ -6,7 +6,7 @@ import { SOUND_LESSONS } from '../../domain/pinyin/sounds';
 import { paths } from '../../navigation/paths';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
-import { PartnerPicker } from './PartnerPicker';
+import { ConversationBlock } from './PartnerPicker';
 import { WeakSpotsCard } from './WeakSpots';
 import { hearKey, pairKey, recentScore, sayKey, toneKey, usePinyinMemory, type Tally } from './voice';
 import './pinyin.css';
@@ -159,24 +159,7 @@ export function PinyinPage() {
         ))}
       </div>
 
-      <Link className="shadow-card-link talk-card-link" to={paths.speakingNew()}>
-        <span className="voice-invite-mark hanzi" aria-hidden>
-          聊
-        </span>
-        <span>
-          <b>Conversation</b>
-          <span className="small muted">
-            Talk with Claude out loud. It asks about something everyday, you answer by speaking, and it answers back
-            in a voice.
-          </span>
-        </span>
-        <span className="go">Start →</span>
-      </Link>
-
-      <h2 className="pinyin-label" id="partners">
-        Conversation partners
-      </h2>
-      <PartnerPicker />
+      <ConversationBlock />
 
       <h2 className="pinyin-label">Sounds English does not have</h2>
       <p className="small muted pinyin-lede">

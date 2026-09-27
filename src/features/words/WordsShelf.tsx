@@ -2,17 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { collectionsByItem, nextCollectionName } from '../../domain/collection';
 import { itemsLabel, wordId, type ItemId } from '../../domain/ids';
 import { collectedItems } from '../../domain/sweep';
-import { HSK_BANDS } from '../../domain/text';
 import { wordKnowledge, type WordStatus } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { oneOf, useQuery } from '../../navigation/query';
 import { setLearned } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { ItemCard } from '../../ui/ItemCard';
-import { Seg } from '../../ui/Seg';
 import { SelectToggle } from '../../ui/SelectToggle';
 import { useToast } from '../../ui/toast';
 import { useSelectMode } from '../../ui/useRangeSelection';
+import { BandSeg } from '../library/BandSeg';
 import { useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
 
@@ -26,8 +25,6 @@ export const WORD_SHOW: Array<{ id: WordShow; label: string }> = [
   { id: 'free', label: 'In no collection' },
 ];
 const SHOW_IDS = WORD_SHOW.map((s) => s.id);
-const BAND_IDS = HSK_BANDS.map((b) => String(b.id));
-const BANDS = HSK_BANDS.map((b) => ({ id: String(b.id), label: b.label.replace('HSK ', '') }));
 
 /** Cards at first, and more each time: a band of 4,800 words is a lot of cards. */
 const STEP = 240;
@@ -35,23 +32,22 @@ const STEP = 240;
 const flatten = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 /**
- * The syllabus words, a band at a time, in the library behind the same
- * dropdown as the characters and the radicals — at /library with Words
- * chosen, the band and the filter in the address.
+ * The syllabus words, a band at a time, in the library under the Words
+ * switch — at /library?kind=words, sharing the characters' band strip so the
+ * two line up, with the filter in the address.
  *
  * Each card says whether you know the word, are learning it, or have not met
  * it, which is the thing the character grid cannot say about a word: 东 and 西
  * can both be ticked while 东西 is still new. Tap a card for the word itself;
  * turn on Select to pick a run, then mark it learned or put it in a collection.
  */
-export function WordsShelf({ q }: { q: string }) {
+export function WordsShelf({ q, band }: { q: string; band: number }) {
   const lib = useLibrary();
   const openItem = useOpenItem();
   const collect = useCollect();
   const recall = useStore((s) => s.recall);
   const collections = useStore((s) => s.collections);
   const [query, setQuery] = useQuery();
-  const band = Number(oneOf(query.get('words'), BAND_IDS, '1'));
   const show = oneOf(query.get('show'), SHOW_IDS, 'all');
   const [cap, setCap] = useState(STEP);
 
@@ -61,7 +57,7 @@ export function WordsShelf({ q }: { q: string }) {
   );
   const index = useMemo(() => collectionsByItem(collections), [collections]);
 
-  const inBand = useMemo(() => lib.words.filter((w) => w.hsk === band), [lib, band]);
+  const inBand = useMemo(() => lib.words.filter((w) => (band ? w.hsk === band : true)), [lib, band]);
   const counts = useMemo(() => {
     const c: Record<WordStatus, number> = { known: 0, learning: 0, new: 0 };
     for (const w of inBand) c[knowledge.status(w.w)]++;
@@ -104,14 +100,8 @@ export function WordsShelf({ q }: { q: string }) {
 
   return (
     <>
-      <div className="row words-shelf-bar">
-        <Seg
-          size="sm"
-          label="Band"
-          value={String(band)}
-          options={BANDS}
-          onChange={(v) => setQuery('words', v, '1')}
-        />
+      <div className="row shelf-bar">
+        <BandSeg value={band} />
         <div className="chips">
           {WORD_SHOW.map((s) => (
             <button

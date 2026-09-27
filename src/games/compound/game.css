@@ -1,0 +1,60 @@
+.g-sum {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.g-sum-part {
+  display: flex;
+  align-items: flex-start;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.g-sum-part figure {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.g-sum-part figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.g-sum-part figcaption .hanzi {
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.g-sum-op {
+  flex: 0 0 26px;
+  text-align: center;
+  font-size: 24px;
+  color: var(--ink-3);
+  align-self: center;
+  margin-top: -40px;
+}
+
+.g-sum-q {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  border: 2px dashed var(--line-2);
+  font-size: clamp(26px, 8vw, 44px);
+  color: var(--ink-2);
+}
+
+[data-game='compound'] .g-tile {
+  padding: 6px;
+}

@@ -1,0 +1,57 @@
+.g-colours {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.g-draw {
+  width: min(240px, 60vw);
+  height: auto;
+  margin-top: 6px;
+}
+
+.g-draw-body {
+  stroke: var(--ink);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  transition: fill 0.3s;
+}
+
+.g-draw-line,
+.g-draw-stem {
+  stroke: var(--ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.g-draw-leaf {
+  fill: var(--card-2);
+  stroke: var(--ink);
+  stroke-width: 2.5;
+}
+
+.g-draw-wheel {
+  fill: var(--ink);
+}
+
+.g-draw-eye,
+.g-draw-centre {
+  fill: var(--ink-2);
+}
+
+/* a pot of paint: no label, only the colour */
+.g-pot {
+  display: block;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--line-2);
+  box-shadow: inset 0 -6px 0 rgb(0 0 0 / 12%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-draw-body {
+    transition: none;
+  }
+}

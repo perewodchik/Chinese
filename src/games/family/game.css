@@ -1,0 +1,55 @@
+.g-tree {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  margin: 0 auto;
+}
+
+.g-tree-lines path {
+  fill: none;
+  stroke: var(--line-2);
+  stroke-width: 2;
+}
+
+.g-person-body {
+  fill: var(--ink-3);
+}
+
+.g-person-head {
+  fill: var(--face-1);
+  stroke: var(--face-ink);
+  stroke-width: 0.6;
+}
+
+.g-person-hair {
+  fill: var(--hair);
+}
+
+.g-person[data-old] .g-person-hair {
+  fill: var(--line-2);
+}
+
+.g-person[data-me] .g-person-body {
+  fill: var(--indigo);
+}
+
+.g-person[data-ask] .g-person-body {
+  fill: var(--ink);
+}
+
+.g-person-ring {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.g-person-name {
+  font-family: var(--han);
+  font-size: 20px;
+  fill: var(--ink);
+}
+
+.g-person[data-ask] .g-person-name {
+  fill: var(--accent);
+}

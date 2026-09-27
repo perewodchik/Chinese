@@ -1,0 +1,111 @@
+.g-build {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.g-build-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 84px;
+}
+
+.g-build-photo {
+  width: 84px;
+}
+
+.g-build-py {
+  color: var(--accent);
+  font-size: 24px;
+}
+
+.g-build-gloss {
+  font-size: 16px;
+  color: var(--ink-2);
+}
+
+/* the frame is the character's square, split the way the character is */
+.g-build-frame {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 170px;
+  height: 170px;
+  margin-top: 14px;
+  padding: 6px;
+  border-radius: 18px;
+  border: 2px solid var(--line-2);
+  background: var(--card);
+}
+
+.g-build-frame[data-layout='⿱'] {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.g-build-frame[data-done] {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  border-color: var(--jade);
+}
+
+.g-build-slot {
+  border-radius: 12px;
+  border: 2px dashed var(--line-2);
+  background: var(--card-2);
+  font-size: 54px;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+}
+
+.g-build-frame[data-layout='⿱'] .g-build-slot {
+  font-size: 50px;
+}
+
+.g-build-slot[data-filled] {
+  border-style: solid;
+  background: var(--card);
+}
+
+.g-build-slot[data-state='wrong'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.g-build-whole {
+  display: grid;
+  place-items: center;
+  font-size: 120px;
+  line-height: 1;
+}
+
+.g-build-tray {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.g-build-part {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line-2);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  font-size: 36px;
+  cursor: pointer;
+  transition: transform 0.12s, opacity 0.12s;
+}
+
+.g-build-part:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.g-build-part:active:not(:disabled) {
+  transform: scale(0.94);
+}

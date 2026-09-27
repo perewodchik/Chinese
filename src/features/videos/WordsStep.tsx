@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { charId, wordId, type ItemId } from '../../domain/ids';
 import { segment } from '../../domain/segment';
 import { isHanzi } from '../../domain/text';
-import { syllablesOf, transcriptWords } from '../../domain/video';
+import { copiedShare, syllablesOf, transcriptWords } from '../../domain/video';
 import { itemForToken, wordInfo } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useStore } from '../../store/store';
-import { keepVideoItems, patchVideo } from '../../store/videoCommands';
+import { findVideo, keepVideoItems, patchVideo } from '../../store/videoCommands';
 import { Seg } from '../../ui/Seg';
 import { SelectToggle } from '../../ui/SelectToggle';
 import { useToast } from '../../ui/toast';
@@ -46,7 +46,8 @@ interface Candidate {
 }
 
 /**
- * The part's words: which are new, and taking the ones worth learning.
+ * The part's text and its words: which are new, and taking the ones worth
+ * learning. A line's number ticks it as copied into the notebook.
  *
  * The strip at the top is the one-tap way — the new words worth learning at
  * this level, Claude's order when there is a pack (it knows which matter in
@@ -56,7 +57,7 @@ interface Candidate {
  * words and characters to keep in a run.
  */
 export function WordsStep() {
-  const { video: v, part, lines, pack } = useVideoCtx();
+  const { video: v, part, lines, offset, pack } = useVideoCtx();
   const lib = useLibrary();
   const knowledge = useWordKnowledge();
   const openItem = useOpenItem();
@@ -122,6 +123,19 @@ export function WordsStep() {
     const n = keepVideoItems(ids);
     toast(n ? `${n} added to “Words from videos”.` : 'Already in “Words from videos”.');
   }
+
+  // Lines copied into the notebook, ticked on their number; the share is of the whole video.
+  const copied = new Set(v.copied ?? []);
+  const toggleCopied = (index: number) => {
+    // Read from the store, not this render, so quick taps in a row all count.
+    const now = findVideo(v.id) ?? v;
+    const next = new Set(now.copied ?? []);
+    if (next.has(index)) next.delete(index);
+    else next.add(index);
+    const share = copiedShare({ ...now, copied: [...next] });
+    patchVideo(v.id, { copied: [...next].sort((a, b) => a - b), ...(share === 1 && !now.marks.written ? { marks: { written: true } } : {}) });
+  };
+  const copiedPct = Math.round(copiedShare(v) * 100);
 
   const newChars = (fit?.newChars ?? []).filter((c) => !kept.has(charId(c))).slice(0, 16);
 
@@ -198,6 +212,13 @@ export function WordsStep() {
         <h2 className="videos-label" style={{ margin: 0 }}>
           The text
         </h2>
+        <span
+          className="tiny copied-pct"
+          data-done={copiedPct === 100 || undefined}
+          title={`${copied.size} of ${v.lines.length} lines of the video written in the notebook`}
+        >
+          {copiedPct}% written
+        </span>
         <div className="spacer" />
         <Seg<Size> size="sm" value={view.size} options={SIZES} onChange={(size) => setView({ size })} label="Text size" />
         <button
@@ -226,9 +247,22 @@ export function WordsStep() {
         {lines.map((line, i) => {
           const syl = syllablesOf(line);
           let h = 0;
+          const index = offset + i;
           return (
-            <li key={i}>
-              <span className="check-n">{i + 1}</span>
+            <li key={i} data-copied={copied.has(index) || undefined}>
+              <button
+                className="word-n"
+                aria-pressed={copied.has(index)}
+                aria-label={`Line ${index + 1} written in the notebook`}
+                onClick={() => toggleCopied(index)}
+              >
+                <span className="tiny word-tok-py" aria-hidden>
+                  {'\u00a0'}
+                </span>
+                <span className="word-n-row">
+                  <span className="word-n-box">{copied.has(index) ? '✓' : index + 1}</span>
+                </span>
+              </button>
               <span className="word-body">
                 <span className="word-line">
                   {tokens[i]!.map((t, k) => {

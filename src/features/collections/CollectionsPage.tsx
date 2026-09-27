@@ -4,6 +4,7 @@ import { nextCollectionName, statsOf, type Collection } from '../../domain/colle
 import { itemsLabel, type ItemId } from '../../domain/ids';
 import { glyphOf } from '../../domain/library';
 import { allPresets, GROUP_BLURB, GROUP_LABEL, type Preset, type PresetGroup } from '../../domain/presets';
+import { LAYOUTS } from '../../domain/sheet';
 import { shelve } from '../../domain/text';
 import { paths, type CollectionsShow } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
@@ -23,9 +24,11 @@ const GROUPS: PresetGroup[] = ['hsk', 'words', 'theme'];
 
 function CollectionCard({ c, learned }: { c: Collection; learned: ReadonlySet<ItemId> }) {
   const lib = useLibrary();
+  const printPalette = useStore((st) => st.settings.printPalette);
   const s = statsOf(c, learned);
   const done = s.total ? s.learned / s.total : 0;
-  const swatch = PALETTES.find((p) => p.id === c.sheet.palette)?.swatch;
+  const palette = PALETTES.find((p) => p.id === (c.sheet.palette ?? printPalette));
+  const swatch = palette?.swatch;
   return (
     <Link className="tpl-card" to={paths.collection(c.id)}>
       <div className="row" style={{ gap: 8 }}>
@@ -50,13 +53,13 @@ function CollectionCard({ c, learned }: { c: Collection; learned: ReadonlySet<It
         ) : null}
         <span>·</span>
         <span>
-          {s.pages} page{s.pages === 1 ? '' : 's'} at {c.sheet.perPage} per page
+          {s.pages} page{s.pages === 1 ? '' : 's'}, {LAYOUTS[c.sheet.layout].name}
         </span>
         <div className="spacer" />
         {swatch && (
           <span
             className="theme-dot"
-            title={`${c.sheet.palette} · ${c.sheet.style}`}
+            title={`${palette?.name ?? ''}${c.sheet.palette ? '' : ', the default'}`}
             style={{ background: swatch[0], borderColor: swatch[1] }}
           />
         )}

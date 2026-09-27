@@ -24,6 +24,10 @@ import { CollectionPicker, useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
 import { useWordKnowledge } from '../words/useWordKnowledge';
 import { AnswerBox } from './AnswerBox';
+import { Comic } from './Comic';
+import { SceneView } from './SceneView';
+import { StoryChoices, StoryMap } from './StoryPath';
+import './stories.css';
 import { Menu } from '../../ui/Menu';
 import { SYSTEM_VOICE, prefetchPassage, useReading, type Reading } from './readAloud';
 
@@ -39,6 +43,8 @@ export interface ReaderView {
   markUnknown: boolean;
   /** the band above which a word is marked */
   target: number;
+  /** a dialogue drawn as speech bubbles from faces */
+  comic: boolean;
 }
 
 /** The library's words, indexed once per library rather than once per sentence. */
@@ -89,6 +95,27 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   useEffect(() => setRevealed(new Set()), [text.id]);
 
+  // A story with choices shows the nodes on the way taken so far, in the order
+  // they were reached; a plain passage shows everything.
+  const story = text.story ?? null;
+  const [path, setPath] = useState<string[]>(() => (story ? [story.start] : []));
+  useEffect(() => setPath(story ? [story.start] : []), [text.id, story]);
+  const byNode = useMemo(() => {
+    const m = new Map<string, number[]>();
+    text.lines.forEach((l, i) => {
+      if (!l.node) return;
+      const list = m.get(l.node);
+      if (list) list.push(i);
+      else m.set(l.node, [i]);
+    });
+    return m;
+  }, [text.lines]);
+  const shownLines = useMemo(
+    () => (story ? path.flatMap((n) => byNode.get(n) ?? []) : text.lines.map((_, i) => i)),
+    [story, path, byNode, text.lines],
+  );
+  const comic = view.comic && (text.genre === 'dialogue' || text.lines.some((l) => l.who)) && !story;
+
   const spoken = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
   const canHear = reading.system || reading.voices.length > 0 || reading.voice !== SYSTEM_VOICE;
   const toast = useToast();
@@ -101,7 +128,10 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
   useEffect(() => {
     if (failed) toast(failed);
   }, [failed, toast]);
-  const paras = useMemo(() => paragraphs(text), [text]);
+  const paras = useMemo(
+    () => (story ? path.map((n) => byNode.get(n) ?? []).filter((p) => p.length) : paragraphs(text)),
+    [text, story, path, byNode],
+  );
   const teachSet = useMemo(() => new Set(text.teach), [text.teach]);
   const newWords = useMemo(() => new Set(text.vocab.filter((w) => w.isNew).map((w) => w.w)), [text.vocab]);
   const ownWords = useMemo(() => new Set(text.vocab.map((w) => w.w)), [text.vocab]);
@@ -228,20 +258,48 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
         </div>
       </header>
 
-      {view.layout === 'paragraph' ? (
+      {story && (
+        <div className="story-bar no-print">
+          <StoryMap story={story} path={path} endings={text.endings ?? []} />
+          <span className="tiny muted">A story with choices — you decide what happens.</span>
+        </div>
+      )}
+
+      {comic ? (
+        <div className="prose-zh comic-wrap" data-pinyin={view.pinyin || undefined}>
+          <Comic
+            lines={shownLines.map((i) => ({ i, line: text.lines[i] }))}
+            reading={reading.at}
+            english={view.english}
+            sentence={(i) => (
+              <>
+                {sentence(i, view.pinyin, true)}
+                {ending(i)}
+              </>
+            )}
+          />
+        </div>
+      ) : view.layout === 'paragraph' ? (
         <>
           <div className="prose-zh" data-pinyin={view.pinyin || undefined}>
             {paras.map((p, n) => (
-              <p key={n}>
-                {p.map((i) => (
-                  <Fragment key={i}>
-                    <span className="sent" data-reading={reading.at === i || undefined}>
-                      {sentence(i, view.pinyin, true)}
-                    </span>
-                    {ending(i)}
-                  </Fragment>
-                ))}
-              </p>
+              <Fragment key={n}>
+                {(text.scenes ?? [])
+                  .filter((sc) => sc.para === n)
+                  .map((sc, k) => (
+                    <SceneView key={`s${k}`} scene={sc} />
+                  ))}
+                <p>
+                  {p.map((i) => (
+                    <Fragment key={i}>
+                      <span className="sent" data-reading={reading.at === i || undefined}>
+                        {sentence(i, view.pinyin, true)}
+                      </span>
+                      {ending(i)}
+                    </Fragment>
+                  ))}
+                </p>
+              </Fragment>
             ))}
           </div>
           {view.english && (
@@ -255,7 +313,8 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
         </>
       ) : (
         <div className="passage">
-          {text.lines.map((l, i) => {
+          {shownLines.map((i) => {
+            const l = text.lines[i];
             const open = revealed.has(i);
             return (
               <p key={i} className="passage-line" data-revealed={open || undefined} data-reading={reading.at === i || undefined}>
@@ -283,6 +342,17 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
             );
           })}
         </div>
+      )}
+
+      {story && (
+        <StoryChoices
+          textId={text.id}
+          story={story}
+          path={path}
+          endings={text.endings ?? []}
+          onChoose={(to) => setPath((p) => [...p, to])}
+          onRestart={() => setPath([story.start])}
+        />
       )}
 
       {text.note.trim() && <p className="notice teacher">{text.note}</p>}

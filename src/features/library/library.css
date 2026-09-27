@@ -1,0 +1,112 @@
+/* ------------------------------------------------------------ library bars */
+
+/* Title, what is shown, the search and the order on one line. The switch sits
+   before the search so the box does not move when the order dropdown comes
+   and goes with the characters. */
+.library-head {
+  margin-bottom: 14px;
+}
+
+.library-head h1 {
+  margin: 0;
+  font-size: 21px;
+}
+
+.library-head .seg button {
+  padding: 7px 12px;
+  font-size: 13px;
+}
+
+.library-head input[type='search'] {
+  flex: 1 1 140px;
+  min-width: 0;
+  max-width: 300px;
+}
+
+.library-head .field {
+  width: 156px;
+}
+
+/* The band and the filters on one line where there is room; the chips scroll
+   sideways on a phone rather than wrapping into a third row. The band strip
+   is chip height, so the two read as one bar. */
+.shelf-bar {
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: nowrap;
+}
+
+.shelf-bar .seg {
+  flex-wrap: nowrap;
+  flex: none;
+}
+
+.shelf-bar .seg button {
+  min-width: 30px;
+  padding: 6px 9px;
+  font-size: 13px;
+}
+
+.shelf-bar .chips {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+}
+
+.shelf-bar > .small {
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .shelf-bar {
+    flex-wrap: wrap;
+  }
+
+  .shelf-bar .chips {
+    flex: 1 1 100%;
+    order: 1;
+  }
+
+  .shelf-bar .spacer {
+    display: none;
+  }
+
+  /* The count takes the gap the spacer left, keeping Select at the edge. */
+  .shelf-bar > .small {
+    flex: 1;
+    text-align: right;
+  }
+}
+
+@media (max-width: 640px) {
+  .library-head .seg {
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+  }
+
+  .library-head .seg button {
+    flex: 1;
+  }
+
+  /* The search and the order share a line; the search takes what is left. */
+  .library-head input[type='search'] {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .library-head .field {
+    width: 146px;
+  }
+
+  /* The band strip spans the phone, so each number is a thumb's width. */
+  .shelf-bar .seg {
+    flex: 1 1 100%;
+  }
+
+  .shelf-bar .seg button {
+    flex: 1;
+    padding: 7px 0;
+  }
+}

@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
-import type { PaletteId, StyleId } from '../../domain/sheet';
 import { hskLabel, shelve, type GeneratedText, type TextSet } from '../../domain/text';
 import { paths, type ReadMode } from '../../navigation/paths';
 import { renderReading, renderTextSet } from '../../pdf/render';
-import { PALETTES, STYLES } from '../../pdf/theme';
 import { deleteText, setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Menu } from '../../ui/Menu';
+import { PalettePicker } from '../../ui/PalettePicker';
 import { Modal } from '../../ui/Modal';
 import { Seg } from '../../ui/Seg';
 import { useTitle } from '../../ui/useTitle';
@@ -90,6 +89,8 @@ function Reader({ set, list, mode, page }: ReaderProps) {
   const words = useWordKnowledge();
   const [pinyin, setPinyin] = useState(true);
   const [english, setEnglish] = useState(true);
+  const [comic, setComic] = useComicView();
+  const hasDialogue = list.some((t) => t.genre === 'dialogue' || t.lines.some((l) => l.who));
   const top = useRef<HTMLDivElement>(null);
 
   const target = settings.targetHsk;
@@ -104,6 +105,7 @@ function Reader({ set, list, mode, page }: ReaderProps) {
     markAbove: settings.markAbove,
     markUnknown: settings.markUnknown,
     target,
+    comic,
   };
 
   // A new page starts at its top, not wherever the last one was scrolled to.
@@ -206,6 +208,16 @@ function Reader({ set, list, mode, page }: ReaderProps) {
           <button className="chip" aria-pressed={english} onClick={() => setEnglish(!english)} title="The translation">
             English
           </button>
+          {hasDialogue && (
+            <button
+              className="chip"
+              aria-pressed={comic}
+              onClick={() => setComic(!comic)}
+              title="Show a dialogue as speech bubbles, a face for each speaker"
+            >
+              Comic
+            </button>
+          )}
           {hasTrad && (
             <button
               className="chip"
@@ -377,7 +389,7 @@ function PrintMenu({
   const [look, setLook] = useState(false);
 
   const sheet = readerSheet(settings);
-  const printOptions = { footerNote: settings.footerNote, practice: settings.readerPractice, perPage: settings.practicePerPage };
+  const printOptions = { footerNote: settings.footerNote, practice: settings.readerPractice };
 
   function remove() {
     if (!confirm(`Delete “${text.title}”?`)) return;
@@ -445,33 +457,13 @@ function PdfLook({ onClose, teaches }: { onClose: () => void; teaches: number })
   const settings = useStore((s) => s.settings);
   return (
     <Modal title="How the PDF looks" subtitle="For the designed sheets. Printing the page keeps the page’s own look." onClose={onClose}>
-      <div className="swatches">
-        {PALETTES.map((p) => (
-          <button
-            key={p.id}
-            className="swatch-option"
-            aria-pressed={settings.readerPalette === p.id}
-            title={p.blurb}
-            onClick={() => setSettings({ readerPalette: p.id as PaletteId })}
-            style={{ background: p.swatch[1], color: p.swatch[2] }}
-          >
-            <span className="dab" style={{ background: p.swatch[0] }} />
-            {p.name}
-          </button>
-        ))}
-      </div>
-      <div className="chips" style={{ marginTop: 10 }}>
-        {STYLES.map((s) => (
-          <button
-            key={s.id}
-            className="chip"
-            aria-pressed={settings.readerStyle === s.id}
-            onClick={() => setSettings({ readerStyle: s.id as StyleId })}
-          >
-            {s.name}
-          </button>
-        ))}
-      </div>
+      <PalettePicker
+        value={settings.printPalette}
+        onChange={(p) => p && setSettings({ printPalette: p })}
+      />
+      <p className="tiny muted" style={{ margin: '6px 0 0' }}>
+        This is the print colour for every sheet — worksheets, tests and texts. A collection can still pick its own.
+      </p>
       <label className="toggle" style={{ marginTop: 12 }}>
         <input
           type="checkbox"
@@ -479,12 +471,39 @@ function PdfLook({ onClose, teaches }: { onClose: () => void; teaches: number })
           onChange={(e) => setSettings({ readerPractice: e.target.checked })}
         />
         <span>
-          Practice sheets behind the reading
+          Practice pages behind the reading
           <span className="d">
-            {teaches ? `The same block a worksheet uses, for the ${teaches} new characters` : 'For each text’s new characters'}
+            {teaches
+              ? `Drill pages for its new words and ${teaches} new character${teaches === 1 ? '' : 's'}`
+              : 'Drill pages for each text’s new words and characters'}
           </span>
         </span>
       </label>
     </Modal>
   );
+}
+
+const COMIC_KEY = 'hanzi.reader.comic';
+
+/**
+ * Whether dialogues are drawn as comics — kept on this device only: the iPad
+ * held in the hand may want bubbles where the laptop wants prose.
+ */
+function useComicView(): [boolean, (on: boolean) => void] {
+  const [on, setOn] = useState(() => {
+    try {
+      return localStorage.getItem(COMIC_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const set = (v: boolean) => {
+    setOn(v);
+    try {
+      localStorage.setItem(COMIC_KEY, v ? '1' : '0');
+    } catch {
+      // private browsing: it holds for this visit
+    }
+  };
+  return [on, set];
 }

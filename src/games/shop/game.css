@@ -1,0 +1,121 @@
+.g-shop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.g-tag {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px 8px 8px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1.5px solid var(--line-2);
+  box-shadow: var(--shadow-sm);
+}
+
+.g-tag .g-photo {
+  width: 96px;
+}
+
+.g-tag-price {
+  display: flex;
+  flex-direction: column;
+}
+
+.g-tag-price .hanzi {
+  font-size: 32px;
+}
+
+.g-tray {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: min(520px, 100%);
+  min-height: 76px;
+  margin-top: 16px;
+  padding: 10px 70px 10px 10px;
+  position: relative;
+  border-radius: 18px;
+  border: 2px dashed var(--line-2);
+  background: var(--card-2);
+}
+
+.g-tray-sum {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+
+.g-purse {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+/* coins round, notes long — the way money is */
+.g-money {
+  min-width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--gold) 70%, var(--line-2));
+  background: var(--gold-soft);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+
+.g-money[data-v='10'],
+.g-money[data-v='20'],
+.g-money[data-v='50'] {
+  min-width: 78px;
+  border-radius: 8px;
+  border-color: color-mix(in srgb, var(--jade) 60%, var(--line-2));
+  background: var(--jade-soft);
+}
+
+.g-money:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.g-shop-pay {
+  margin-top: 16px;
+}
+
+.g-shop-pay .btn {
+  min-width: 140px;
+  min-height: 48px;
+  font-size: 16px;
+}
+
+.g-cheaper {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+  width: min(560px, 100%);
+}
+
+.g-cheaper .g-tag {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  flex-direction: column;
+  padding: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-money {
+    transition: none;
+  }
+}

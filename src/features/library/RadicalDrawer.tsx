@@ -4,7 +4,7 @@ import type { RadicalForm } from '../../data/radicals';
 import type { StrokeMap } from '../../data/types';
 import { ordinal, POSITION_PHRASE } from '../../domain/radicals/forms';
 import { paths } from '../../navigation/paths';
-import { AnimatedGlyph, Glyph } from '../../ui/Glyph';
+import { Glyph, StrokeStepper, useStrokeSteps } from '../../ui/Glyph';
 import { useRadicalLibrary } from './radicalData';
 
 interface Props {
@@ -30,6 +30,8 @@ interface Props {
 export function RadicalDrawer({ n, onClose }: Props) {
   const rlib = useRadicalLibrary();
   const r = rlib.byNumber.get(n) ?? null;
+  const headKey = r?.forms[0].k ?? '';
+  const steps = useStrokeSteps(headKey, rlib.strokes[headKey]?.s.length ?? 0);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -64,7 +66,7 @@ export function RadicalDrawer({ n, onClose }: Props) {
         ) : (
           <>
             <div className="row" style={{ gap: 22, alignItems: 'flex-start', margin: '16px 0 6px' }}>
-              <AnimatedGlyph char={r.forms[0].k} strokes={rlib.strokes} size={104} fit fallback={r.r} />
+              <StrokeStepper steps={steps} char={r.forms[0].k} strokes={rlib.strokes} size={104} fit fallback={r.r} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="row" style={{ gap: 8 }}>
                   <span style={{ fontSize: 22, color: 'var(--accent)' }}>{r.py}</span>

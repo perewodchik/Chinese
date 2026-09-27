@@ -69,5 +69,14 @@ export function picturesFor(word: string): WordPictures | null {
   return out.picture || out.parts ? out : null;
 }
 
+/** Every word that has a photo — what a scene can be drawn with. */
+export const picturedWords = (): string[] => Object.keys(data.words).filter((w) => pictureSlug(w) !== null);
+
+/** The concept a word's photo shows ("calendar" for both 今天 and 明天), or null. */
+export const pictureSlug = (word: string): string | null => {
+  const s = data.words[word]?.img;
+  return s && data.pictures[s] ? s : null;
+};
+
 /** Whether a word has a photo of its own — for the places that only want to know. */
 export const hasPicture = (word: string): boolean => Boolean(data.words[word]?.img && data.pictures[data.words[word].img!]);

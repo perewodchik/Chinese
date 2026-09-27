@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useNavigationType } from 'react-router';
+import { useNavigate, useNavigationType, useSearchParams } from 'react-router';
 import { collectionsByItem, nextCollectionName } from '../../domain/collection';
 import { charId, charsOf, countLabel } from '../../domain/ids';
 import { factsOf, type ItemFacts } from '../../domain/library';
@@ -15,6 +15,7 @@ import { ItemCard } from '../../ui/ItemCard';
 import { SelectToggle } from '../../ui/SelectToggle';
 import { useToast } from '../../ui/toast';
 import { useSelectMode } from '../../ui/useRangeSelection';
+import { Seg } from '../../ui/Seg';
 import { useTitle } from '../../ui/useTitle';
 import { useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
@@ -22,6 +23,8 @@ import { WordsShelf } from '../words/WordsShelf';
 import { RadicalDrawer } from './RadicalDrawer';
 import { RadicalGate } from './radicalData';
 import { RADICAL_SHOW, RadicalShelf, type RadicalShow } from './RadicalShelf';
+import { BandSeg } from './BandSeg';
+import './library.css';
 
 type StatusFilter = 'all' | 'learned' | 'todo' | 'free' | 'ready';
 type Sort = 'order' | 'strokes' | 'freq' | 'radical' | 'unlocks';
@@ -38,20 +41,31 @@ const SORTS: Sort[] = ['order', 'strokes', 'freq', 'radical', 'unlocks'];
 const RADICAL_SHOW_IDS = RADICAL_SHOW.map((s) => s.id);
 
 /**
- * The radicals, as a choice in the same dropdown as the bands.
+ * What the library is showing: the characters, the syllabus words, or the
+ * radicals, as a switch at the top rather than hidden in the band dropdown
+ * they used to share.
  *
- * They are not a band and they are not characters — nothing here counts
- * towards what you have learned, and none of them can be queued for practice
- * or turned up in a review. They are in the library because the library is
- * where you look something up, and a radical is a thing you look up.
+ * Characters and words both come a band at a time, from the same band strip,
+ * so switching between them keeps you in HSK 2. The radicals are not a band
+ * and not something to learn — nothing there counts towards what you have
+ * learned, and none of them can be queued or reviewed. They are in the
+ * library because the library is where you look something up, and a radical
+ * is a thing you look up.
  */
-export const RADICALS_BAND = -1;
+type Kind = 'chars' | 'words' | 'radicals';
+
+const KINDS: Array<{ id: Kind; label: string }> = [
+  { id: 'chars', label: '字 Characters' },
+  { id: 'words', label: '词 Words' },
+  { id: 'radicals', label: '部 Radicals' },
+];
+const KIND_IDS = KINDS.map((k) => k.id);
 
 /**
- * The syllabus words, as a third choice in the dropdown: a band at a time,
- * each marked known, learning or new. See `WordsShelf`.
+ * The band setting once stood for the radicals and the words as well, as -1
+ * and -2. A saved setting still holding one of them is read as that kind.
  */
-export const WORDS_BAND = -2;
+const LEGACY_KIND: Record<number, Kind> = { [-1]: 'radicals', [-2]: 'words' };
 
 /** Cards shown at first, and added by each "show more": 3000 at once is a lot of SVG. */
 const STEP = 300;
@@ -74,10 +88,13 @@ export function LibraryPage() {
 
   const collections = useStore((s) => s.collections);
   const learned = useStore((s) => s.learned);
-  const hskBand = useStore((s) => s.settings.hskBand);
+  const savedBand = useStore((s) => s.settings.hskBand);
+  const [, setParams] = useSearchParams();
 
-  const radicals = hskBand === RADICALS_BAND;
-  const words = hskBand === WORDS_BAND;
+  const kind = oneOf(query.get('kind'), KIND_IDS, 'chars');
+  const radicals = kind === 'radicals';
+  const words = kind === 'words';
+  const hskBand = savedBand < 0 ? 1 : savedBand;
   useTitle(radicals ? 'Radicals' : words ? 'Words' : 'Library');
 
   const status = oneOf(query.get('show'), STATUS_IDS, 'all');
@@ -94,17 +111,38 @@ export function LibraryPage() {
   }, [navigation, searched]);
 
   /**
-   * `?band=radicals` in the address, from the old /radicals section and from
-   * the radical pill inside a character's drawer. The dropdown is a saved
-   * preference rather than part of the address, so the link sets it and then
-   * takes itself back out of the query.
+   * Switching what is shown. The status filters differ between the three, so
+   * the one that was on goes with the switch rather than lingering unseen.
+   */
+  function showKind(next: Kind, extra?: Record<string, string>) {
+    setParams(
+      (prev) => {
+        const p = new URLSearchParams(prev);
+        p.delete('show');
+        p.delete('band');
+        if (next === 'chars') p.delete('kind');
+        else p.set('kind', next);
+        for (const [k, v] of Object.entries(extra ?? {})) p.set(k, v);
+        return p;
+      },
+      { replace: true, preventScrollReset: true },
+    );
+  }
+
+  /**
+   * `?band=radicals` from old links, and a saved band of -1 or -2 from when
+   * the dropdown held the radicals and words too: both become `?kind=`.
    */
   const asked = query.get('band');
   useEffect(() => {
-    if (asked !== 'radicals') return;
-    setSettings({ hskBand: RADICALS_BAND });
-    setQuery('band', '', '');
-  }, [asked, setQuery]);
+    if (asked === 'radicals') showKind('radicals');
+  }, [asked]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (savedBand >= 0) return;
+    const legacy = LEGACY_KIND[savedBand];
+    setSettings({ hskBand: 1 });
+    if (legacy) showKind(legacy);
+  }, [savedBand]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [cap, setCap] = useState(STEP);
   const index = useMemo(() => collectionsByItem(collections), [collections]);
@@ -192,8 +230,9 @@ export function LibraryPage() {
   return (
     <>
       <section>
-        <div className="row" style={{ marginBottom: 14 }}>
-          <h1 style={{ margin: 0, fontSize: 20 }}>{radicals ? 'Radicals' : words ? 'Words' : 'Library'}</h1>
+        <div className="row library-head">
+          <h1>Library</h1>
+          <Seg label="Show" value={kind} options={KINDS} onChange={(k) => showKind(k)} />
 
           <input
             type="search"
@@ -206,29 +245,10 @@ export function LibraryPage() {
             placeholder={
               radicals ? 'Search 氵, shui, water, 三点水…' : words ? 'Search 东西, dongxi, thing…' : 'Search 好, hao, good…'
             }
-            style={{ maxWidth: 280 }}
           />
 
-          <label className="field" style={{ width: 132 }}>
-            <select
-              value={hskBand}
-              aria-label="HSK band"
-              onChange={(e) => setSettings({ hskBand: Number(e.target.value) })}
-            >
-              <option value={0}>All 3000</option>
-              {[1, 2, 3, 4, 5, 6].map((n) => (
-                <option key={n} value={n}>
-                  HSK {n}
-                </option>
-              ))}
-              <option value={7}>HSK 7–9</option>
-              <option value={RADICALS_BAND}>Radicals</option>
-              <option value={WORDS_BAND}>Words</option>
-            </select>
-          </label>
-
-          {!radicals && !words && (
-            <label className="field" style={{ width: 150 }}>
+          {kind === 'chars' && (
+            <label className="field">
               <select value={sort} aria-label="Order" onChange={(e) => setQuery('sort', e.target.value, 'order')}>
                 <option value="order">Teaching order</option>
                 <option value="strokes">Stroke count</option>
@@ -240,32 +260,35 @@ export function LibraryPage() {
           )}
         </div>
 
-        {!words && <div className="row" style={{ marginBottom: 12 }}>
-          <div className="chips">
-            {(radicals ? RADICAL_SHOW : STATUS).map((s) => (
-              <button
-                key={s.id}
-                className="chip"
-                aria-pressed={(radicals ? radicalShow : status) === s.id}
-                onClick={() => setQuery('show', s.id, 'all')}
-              >
-                {s.label}
-              </button>
-            ))}
+        {!words && (
+          <div className="row shelf-bar">
+            {!radicals && <BandSeg value={hskBand} />}
+            <div className="chips">
+              {(radicals ? RADICAL_SHOW : STATUS).map((s) => (
+                <button
+                  key={s.id}
+                  className="chip"
+                  aria-pressed={(radicals ? radicalShow : status) === s.id}
+                  onClick={() => setQuery('show', s.id, 'all')}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            {!radicals && (
+              <>
+                <div className="spacer" />
+                <span className="small muted">
+                  <b>{rows.length}</b> of {counts.all} · {counts.learned} learned
+                </span>
+                <SelectToggle on={selection.on} onToggle={selection.toggleMode} />
+              </>
+            )}
           </div>
-          <div className="spacer" />
-          {!radicals && (
-            <>
-              <span className="small muted">
-                Showing <b>{rows.length}</b> of {counts.all} · {counts.learned} learned
-              </span>
-              <SelectToggle on={selection.on} onToggle={selection.toggleMode} />
-            </>
-          )}
-        </div>}
+        )}
 
         {words ? (
-          <WordsShelf q={q} />
+          <WordsShelf q={q} band={hskBand} />
         ) : radicals ? (
           <RadicalGate>
             <RadicalShelf q={q} show={radicalShow} />

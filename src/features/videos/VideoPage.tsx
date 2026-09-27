@@ -34,7 +34,7 @@ import './videos.css';
 const STEP_LABEL: Record<VideoStep, string> = {
   watch: 'Watch',
   check: 'Check',
-  words: 'Words',
+  words: 'Text',
   study: 'Study',
   ask: 'Ask',
 };
@@ -256,7 +256,7 @@ function stepDone(v: Video, part: number, s: VideoStep): boolean {
     case 'check':
       return v.checks.some((c) => c.part === part);
     case 'words':
-      return !!v.marks.words;
+      return !!v.marks.words || !!v.copied?.length;
     case 'study':
       return !!v.packs[part];
     case 'ask':

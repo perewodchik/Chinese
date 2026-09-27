@@ -1,0 +1,576 @@
+/* ------------------------------------------------------------------ play */
+
+/*
+ * The games. Warmer and bigger than the rest of the app inside the stage —
+ * rounder tiles, bigger targets, a little more give when something is right —
+ * but the same paper, the same ink, and the same one red: right is jade,
+ * wrong is cinnabar, and the seal is the only red that is not an answer.
+ */
+
+.play-page,
+.game-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.play-book {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  background: var(--card-2);
+  overflow-x: auto;
+}
+
+.play-book-seals {
+  display: flex;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.play-card {
+  position: relative;
+  padding-right: 52px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.play-card-seal {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+/* the seal */
+.g-seal {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 22%;
+  border: 1.5px dashed var(--line-2);
+  color: var(--line-2);
+  line-height: 1;
+}
+
+.g-seal[data-level='1'],
+.g-seal[data-level='2'],
+.g-seal[data-level='3'] {
+  border: 0;
+  background: var(--accent);
+  color: var(--paper);
+  transform: rotate(-4deg);
+}
+
+.g-seal[data-level='1'] {
+  opacity: 0.45;
+}
+
+.g-seal[data-level='3'] {
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--gold);
+}
+
+/* the frame */
+.game-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.game-name {
+  font-weight: 620;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.game-name .hanzi {
+  color: var(--ink-3);
+  font-size: 18px;
+}
+
+.game-dots {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.game-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.game-dots i[data-state='right'] {
+  background: var(--jade);
+}
+
+.game-dots i[data-state='nearly'] {
+  background: var(--gold);
+}
+
+.game-dots i[data-state='wrong'] {
+  background: var(--accent);
+}
+
+.game-stage {
+  min-height: 420px;
+  touch-action: manipulation;
+}
+
+.game-wait {
+  border-radius: var(--radius-lg);
+  background: var(--card-2);
+}
+
+.g-prompt {
+  text-align: center;
+  margin: 0 0 12px;
+}
+
+.g-ask {
+  text-align: center;
+  font-family: var(--han);
+  font-size: 34px;
+  line-height: 1.3;
+  margin: 4px 0 2px;
+}
+
+.g-ask-py {
+  text-align: center;
+  color: var(--accent);
+  font-size: 15px;
+  min-height: 22px;
+}
+
+/* answer tiles */
+.g-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 560px;
+  margin: 16px auto 0;
+}
+
+.g-tiles[data-n='3'] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (min-width: 700px) {
+  .g-tiles[data-n='4'] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 720px;
+  }
+}
+
+.g-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 72px;
+  padding: 10px;
+  border-radius: 20px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.14s, border-color 0.14s, background 0.14s, opacity 0.14s;
+}
+
+.g-tile:hover:not(:disabled) {
+  border-color: var(--line-2);
+  transform: translateY(-2px);
+}
+
+.g-tile:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.g-tile[data-state='right'] {
+  border-color: var(--jade);
+  background: var(--jade-soft);
+  transform: scale(1.03);
+}
+
+.g-tile[data-state='wrong'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  opacity: 0.7;
+}
+
+.g-tile[data-dim] {
+  opacity: 0.45;
+}
+
+.g-tile:disabled {
+  cursor: default;
+}
+
+.g-tile .hanzi {
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.g-tiles[data-size='lg'] .g-tile .hanzi {
+  font-size: 40px;
+}
+
+.g-tile .g-sub {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.g-key {
+  position: absolute;
+  top: 6px;
+  left: 9px;
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+/* a word's photo in a square */
+.g-photo {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--card-2);
+}
+
+.g-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.14s;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.g-photo img[data-ready] {
+  opacity: 1;
+}
+
+.g-photo-word {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 30px;
+  color: var(--ink-2);
+}
+
+.g-photo-cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 2px 0 4px;
+  text-align: center;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  font-size: 18px;
+}
+
+/* the line under a prompt: always the same height */
+.g-feedback {
+  min-height: 52px;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  text-align: center;
+  color: var(--ink-2);
+}
+
+.g-feedback[data-state='wrong'] {
+  color: var(--accent);
+}
+
+.g-yes {
+  font-family: var(--han);
+  font-size: 26px;
+  color: var(--jade);
+}
+
+.g-answer {
+  font-size: 15px;
+}
+
+.g-answer .hanzi {
+  font-size: 22px;
+}
+
+/* results: centred, the seal on top, then what happened prompt by prompt */
+.game-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 720px;
+  width: 100%;
+  margin: 8px auto 0;
+}
+
+.game-results .g-seal {
+  margin-bottom: 14px;
+}
+
+.game-results h2 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.game-results-verdict {
+  margin: 6px 0 0;
+  color: var(--ink-2);
+}
+
+.game-results-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: min(420px, 100%);
+  margin: 18px 0 0;
+}
+
+.game-results-stats div {
+  padding: 10px 6px;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+
+.game-results-stats dt {
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.game-results-stats dd {
+  margin: 2px 0 0;
+  font-size: 26px;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+}
+
+.game-results-stats [data-kind='first'] dd {
+  color: var(--jade);
+}
+
+.game-results-stats [data-kind='second'] dd {
+  color: var(--gold);
+}
+
+.game-results-stats [data-kind='missed'] dd {
+  color: var(--accent);
+}
+
+.game-results-meta {
+  margin: 10px 0 0;
+}
+
+.game-results-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.game-results-actions .btn {
+  min-height: 44px;
+  min-width: 140px;
+}
+
+.game-review {
+  width: 100%;
+  margin-top: 26px;
+  text-align: left;
+}
+
+.game-review-title {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 620;
+  text-align: center;
+  margin: 0 0 10px;
+}
+
+.game-review ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px;
+}
+
+.game-review li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 8px 8px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--jade);
+}
+
+.game-review li[data-state='nearly'] {
+  border-left-color: var(--gold);
+}
+
+.game-review li[data-state='wrong'] {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 45%, var(--card));
+}
+
+.game-review .g-photo {
+  width: 52px;
+  flex: 0 0 52px;
+  border-radius: 8px;
+}
+
+.game-review .g-photo-word {
+  font-size: 16px;
+}
+
+.game-review-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.game-review-text .hanzi {
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.game-review-text .tiny {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.game-review-py {
+  font-size: 12.5px;
+  color: var(--accent);
+}
+
+.game-review-mark {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 620;
+  color: var(--jade);
+}
+
+.game-review li[data-state='nearly'] .game-review-mark {
+  color: var(--gold);
+}
+
+.game-review li[data-state='wrong'] .game-review-mark {
+  color: var(--accent);
+}
+
+/* pairs */
+.g-pairs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+@media (max-width: 520px) {
+  .g-pairs-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.g-card {
+  position: relative;
+  aspect-ratio: 1;
+  border: 0;
+  padding: 0;
+  border-radius: 16px;
+  background: transparent;
+  cursor: pointer;
+  perspective: 600px;
+}
+
+.g-card-back,
+.g-card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 0.18s;
+  overflow: hidden;
+}
+
+.g-card-back {
+  background: var(--card-2);
+  border: 1.5px solid var(--line-2);
+  color: var(--line-2);
+  font-size: 28px;
+}
+
+.g-card-face {
+  transform: rotateY(180deg);
+  background: var(--card);
+  border: 1.5px solid var(--line-2);
+}
+
+.g-card[data-up] .g-card-back {
+  transform: rotateY(-180deg);
+}
+
+.g-card[data-up] .g-card-face {
+  transform: rotateY(0);
+}
+
+.g-card[data-found] .g-card-face {
+  border-color: var(--jade);
+  box-shadow: 0 0 0 2px var(--jade-soft);
+}
+
+.g-card-face .g-photo {
+  border-radius: 0;
+  height: 100%;
+}
+
+.g-card-word {
+  font-size: clamp(20px, 6vw, 34px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-tile,
+  .g-card-back,
+  .g-card-face,
+  .g-photo img {
+    transition: none;
+  }
+}

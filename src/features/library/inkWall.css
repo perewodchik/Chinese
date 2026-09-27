@@ -1,0 +1,117 @@
+/* ---------------------------------------------------------------- the wall */
+
+/*
+ * Ink on paper, and nothing else: the one thing that changes from tile to
+ * tile is how dark the character is. Five steps from the ink token to the
+ * line colour; never-met tiles are outlines.
+ */
+
+.ink-wall-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin-bottom: 8px;
+}
+
+.ink-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 4px;
+}
+
+.ink-wall[data-kind='words'] {
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+}
+
+@media (min-width: 700px) {
+  .ink-wall {
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  }
+}
+
+.ink-tile {
+  height: 44px;
+  padding: 0 2px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--card-2);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.ink-wall[data-kind='words'] .ink-tile {
+  font-size: 19px;
+}
+
+.ink-tile[data-ink='0'],
+.ink-swatch[data-ink='0'] {
+  color: var(--line-2);
+  background: transparent;
+  border: 1px dashed var(--line-2);
+}
+
+.ink-tile[data-ink='1'],
+.ink-swatch[data-ink='1'] {
+  color: color-mix(in srgb, var(--ink) 22%, var(--card-2));
+}
+
+.ink-tile[data-ink='2'],
+.ink-swatch[data-ink='2'] {
+  color: color-mix(in srgb, var(--ink) 40%, var(--card-2));
+}
+
+.ink-tile[data-ink='3'],
+.ink-swatch[data-ink='3'] {
+  color: color-mix(in srgb, var(--ink) 60%, var(--card-2));
+}
+
+.ink-tile[data-ink='4'],
+.ink-swatch[data-ink='4'] {
+  color: color-mix(in srgb, var(--ink) 80%, var(--card-2));
+}
+
+.ink-tile[data-ink='5'],
+.ink-swatch[data-ink='5'] {
+  color: var(--ink);
+}
+
+.ink-tile:hover {
+  border-color: var(--line-2);
+}
+
+.ink-legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 0;
+  margin: 8px 0 0;
+  color: var(--ink-3);
+}
+
+.ink-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ink-legend b {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.ink-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: currentColor;
+}
+
+.ink-swatch[data-ink='0'] {
+  background: transparent;
+}

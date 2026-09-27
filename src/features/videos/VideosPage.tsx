@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import {
   clock,
+  copiedShare,
   latestChecks,
   thumbnailOf,
   touchedAt,
@@ -181,6 +182,7 @@ function VideoCard({ video: v, fit }: { video: Video; fit: VideoFit | null }) {
         <FitChips fit={fit} compact />
         <span className="tiny muted">
           {v.textFrom === 'waiting' ? 'Waiting for its text' : v.textFrom === 'none' ? 'Needs its text: open it to get it from Gemini' : newWordsLine(fit)}
+          {copiedShare(v) > 0 && ` · ${Math.round(copiedShare(v) * 100)}% written`}
         </span>
         {v.parts.length > 0 && (
           <span className="part-dots" aria-label="Parts checked in the notebook">

@@ -2,7 +2,8 @@ import type { RadicalEntry, RadicalForm } from '../../data/radicals';
 import { POSITION_LABEL } from '../../domain/radicals/forms';
 import { radicalProfile, type RadicalProfile, type RadicalSheet } from '../../domain/radicals/sheet';
 import type { Sheet } from '../draw';
-import { gridFit, minCellFor } from '../layout/grid';
+import { kindTag } from '../blocks/item';
+import { CELL, COLS } from '../layout/grid';
 import { contentLeft, contentWidth } from '../layout/page';
 import { LABEL_TRACKING, T } from '../theme';
 import { radicalScale, type RadicalScale } from './scale';
@@ -35,9 +36,9 @@ export interface RadicalPlan {
   cols: number;
   cell: number;
   rows: RadicalRow[];
-  /** rows of empty squares under those */
+  /** rows after those with no model in them, to write the radical from memory */
   free: number;
-  /** breathing room between one form's squares and the next form's line */
+  /** breathing room between one row and the next row's line */
   gap: number;
   note: boolean;
   facts: boolean;
@@ -57,69 +58,54 @@ function share(cols: number, parts: number): number[] {
   return Array.from({ length: parts }, () => base + (extra-- > 0 ? 1 : 0));
 }
 
+/**
+ * How many rows every radical on a page of this size gets, and the air
+ * between them.
+ *
+ * Decided by the page, never by the radical. When the rows followed the
+ * forms, 口 — written one way, like four radicals in five — printed one row
+ * with a third of its slot empty under it, while 心 beside it had three. Now
+ * every block of a sheet has the same rows in the same places, with the same
+ * 15 mm squares as every character sheet, and the note line keeps its place
+ * whether or not a radical has a note.
+ */
+export function radicalRows(perPage: number, slot: number) {
+  const S = radicalScale(perPage);
+  const p = radicalProfile(perPage);
+  const above = S.headH + S.noteH + S.gridGap;
+  const row = (p.formLines ? S.lineH + (p.tips ? S.tipH : 0) : 0) + CELL;
+  const room = slot - above;
+  const count = Math.max(1, Math.floor((room + 0.5) / row));
+  const gap = count > 1 ? Math.max(0, Math.min(S.rowGap, (room - count * row) / (count - 1))) : 0;
+  return { above, row, count, gap };
+}
+
 export function radicalPlan(r: RadicalEntry, o: RadicalSheet, slot: number): RadicalPlan {
-  const S = radicalScale(o.perPage);
   const p = radicalProfile(o.perPage);
-  const note = p.note && Boolean(r.note);
-  const above = S.headH + (note ? S.noteH : 0) + S.gridGap;
+  const R = radicalRows(o.perPage, slot);
 
-  const minCell = Math.max(30, minCellFor(o.squareSize) - 4);
-  const room = Math.max(minCell, slot - above);
-  const { cols, cell } = gridFit(contentWidth, room, 99, minCell, 48);
-
-  const lineH = p.formLines ? S.lineH : 0;
-  const tipH = (f: RadicalForm) => (p.formLines && p.tips && f.tip ? S.tipH : 0);
-  // The reference sheet asks for a row per shape; a designed sheet asks for a
-  // number of rows and lets the shapes share them.
-  const wanted = o.rowPerForm ? r.forms.length : Math.max(1, o.practiceRows);
-
+  // A row for each form while there are rows; the last row shares what is left.
   const rows: RadicalRow[] = [];
-  let left = room;
-  for (const form of r.forms) {
-    const h = lineH + tipH(form) + cell;
-    if (rows.length >= wanted || h > left) break;
-    rows.push({ forms: [form], cells: [], tip: tipH(form) > 0 });
-    left -= h;
+  r.forms.forEach((form, i) => {
+    if (i < R.count) rows.push({ forms: [form], cells: [], tip: p.tips && Boolean(form.tip) });
+    else rows[R.count - 1].forms.push(form);
+  });
+  for (const row of rows) {
+    row.cells = share(COLS, row.forms.length);
+    if (row.forms.length > 1) row.tip = false;
   }
-  if (!rows.length) {
-    // Not even one line and one row fit: the row alone, every form on it.
-    rows.push({ forms: [...r.forms], cells: [], tip: false });
-    left = room - cell;
-  } else if (rows.length < r.forms.length) {
-    // Whatever is left over shares the last row, and a shared line has no room
-    // for a note about how one of them is written.
-    const last = rows[rows.length - 1];
-    if (last.tip) {
-      left += S.tipH;
-      last.tip = false;
-    }
-    last.forms.push(...r.forms.slice(rows.length));
-  }
-  for (const row of rows) row.cells = share(cols, row.forms.length);
-
-  const free = o.rowPerForm ? 0 : Math.max(0, Math.min(wanted - rows.length, Math.floor(left / cell)));
-  const drawn = rows.reduce((h, row) => h + lineH + (row.tip ? S.tipH : 0) + cell, 0);
-
-  // Each form's line sat directly on the squares of the form above it, which
-  // read as one crowded block rather than as three ways of writing one radical.
-  // The room for that comes out of what the slot has left over and no more, so
-  // the sizes with nothing spare keep every form a row of its own rather than
-  // buying air with somebody's practice.
-  const gaps = p.formLines ? Math.max(0, rows.length - 1) : 0;
-  const spare = Math.max(0, left - free * cell);
-  const gap = gaps ? Math.min(S.rowGap, spare / gaps) : 0;
 
   return {
-    cols,
-    cell,
+    cols: COLS,
+    cell: CELL,
     rows,
-    free,
-    gap,
-    note,
+    free: R.count - rows.length,
+    gap: R.gap,
+    note: p.note && Boolean(r.note),
     facts: p.facts,
     formLines: p.formLines,
     shared: rows.some((row) => row.forms.length > 1),
-    used: above + drawn + free * cell + gap * gaps,
+    used: R.above + R.count * R.row + R.gap * (R.count - 1),
   };
 }
 
@@ -183,10 +169,11 @@ export function drawRadicalBlock(
       `in ${r.syllabus} of the 3000 characters`,
       r.about ?? '',
     ].filter(Boolean);
-    s.text(facts.join('   ·   '), tx, top + S.factY, {
+    const fx = tx + kindTag(s, 'radical', tx, top + S.factY) + 8;
+    s.text(facts.join('   ·   '), fx, top + S.factY, {
       size: S.body,
       color: s.c.ink2,
-      maxWidth: x1 - tx - 6,
+      maxWidth: x1 - fx - 6,
     });
   }
 
@@ -204,32 +191,58 @@ export function drawRadicalBlock(
       color: s.c.ink2,
       maxWidth: x1 - x0 - w - 9,
     });
-    y += S.noteH;
   }
-  y += S.gridGap;
+  // The note's line is kept whether there is a note or not, so the rows of
+  // every block on the page start at the same height.
+  y += S.noteH + S.gridGap;
 
   /* ------------------------------------------------------------- practice */
-  const gw = plan.cols * plan.cell;
-  const gx = x0 + (contentWidth - gw) / 2;
+  const gx = x0;
+  const lineH = plan.formLines ? S.lineH + (p.tips ? S.tipH : 0) : 0;
 
   plan.rows.forEach((row, i) => {
     if (i) y += plan.gap;
     if (plan.formLines) {
       let sx = gx;
-      row.forms.forEach((form, i) => {
-        const w = row.cells[i] * plan.cell;
+      row.forms.forEach((form, k) => {
+        const w = row.cells[k] * plan.cell;
         drawFormLine(s, form, sx, y, w, S, p, row.forms.length === 1, row.tip, r.forms.length === 1);
         sx += w;
       });
-      y += S.lineH + (row.tip ? S.tipH : 0);
+      y += lineH;
     }
     drawRow(s, row, gx, y, plan, o);
     y += plan.cell;
   });
   for (let i = 0; i < plan.free; i++) {
+    y += plan.gap;
+    if (plan.formLines) {
+      drawMemoryLine(s, main.k, gx, y, S);
+      y += lineH;
+    }
     drawRow(s, { forms: [], cells: [], tip: false }, gx, y, plan, o);
     y += plan.cell;
   }
+}
+
+/** The line over a row with no models: the radical, from memory. */
+function drawMemoryLine(s: Sheet, k: string, x: number, y: number, S: RadicalScale) {
+  const baseline = y + S.soBox * 0.76;
+  let cx = x;
+  s.glyph(k, cx, y, S.soBox, { fit: true, inset: 0.04, color: s.c.fade });
+  cx += S.soBox + 7;
+  cx +=
+    s.text('FROM MEMORY', cx, baseline, {
+      size: T.label,
+      color: s.c.ink3,
+      bold: true,
+      tracking: LABEL_TRACKING,
+    }) + 8;
+  s.text('The same shape again, with nothing to copy. Cover the row above if you can.', cx, baseline, {
+    size: S.small,
+    color: s.c.ink2,
+    maxWidth: x + contentWidth - cx - 4,
+  });
 }
 
 /**
@@ -339,10 +352,10 @@ function drawRow(
     let col = 0;
     row.forms.forEach((form, i) => {
       const n = row.cells[i];
-      // Scaled to the run: a form sharing a row must not get a run of solid
-      // models with nothing left to write in.
+      // Scaled to the run: a form sharing a row must not get a run of models
+      // with nothing left to write in, so half of every run stays empty.
       const trace = Math.max(1, Math.min(o.traceCount, n - 2));
-      const fade = Math.max(0, Math.min(o.fadeCount, n - trace - 1));
+      const fade = Math.max(0, Math.min(o.fadeCount, Math.floor(n / 2) - trace));
       for (let k = 0; k < n; k++) {
         const cx = x + (col + k) * plan.cell;
         s.cell(cx, y, plan.cell, o.gridStyle);
@@ -351,6 +364,8 @@ function drawRow(
           s.glyph(form.k, cx, y, plan.cell, { color: s.c.fade, inset: 0.12 });
         }
       }
+      // A firmer line where one form's run ends and the next begins.
+      if (col) s.line(x + col * plan.cell, y, x + col * plan.cell, y + plan.cell, { width: 1.1, color: s.c.grid });
       col += n;
     });
   }

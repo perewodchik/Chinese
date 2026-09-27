@@ -58,8 +58,9 @@ export const RADICAL_TEMPLATE: RadicalSheet = {
   squareSize: 'large',
   practiceRows: 1,
   rowPerForm: true,
-  traceCount: 3,
-  fadeCount: 2,
+  // The same pattern as every character sheet: one to trace, then faint ones.
+  traceCount: 1,
+  fadeCount: 3,
   palette: 'cinnabar',
   style: 'classic',
 };

@@ -1,3 +1,4 @@
+import type { Scene, Story } from './story';
 /**
  * Reading passages, and the plan that produces them.
  *
@@ -83,7 +84,8 @@ export type Genre =
   | 'description'
   | 'news'
   | 'howto'
-  | 'legend';
+  | 'legend'
+  | 'branching';
 
 export const GENRES: Array<{ id: Genre; label: string; brief: string }> = [
   { id: 'story', label: 'Story', brief: 'a small story with a beginning and an end' },
@@ -102,6 +104,11 @@ export const GENRES: Array<{ id: Genre; label: string; brief: string }> = [
   { id: 'news', label: 'News', brief: 'a short plain news item, told factually' },
   { id: 'howto', label: 'How-to', brief: 'simple instructions, step by step' },
   { id: 'legend', label: 'Legend', brief: 'a folk tale or legend, retold simply' },
+  {
+    id: 'branching',
+    label: 'Choose a path',
+    brief: 'a short story where I choose what happens, two or three times, with an ending for each way',
+  },
 ];
 
 export interface TextLine {
@@ -114,6 +121,10 @@ export interface TextLine {
   p?: boolean;
   /** for a comprehension question: the answer the writer had in mind */
   a?: string;
+  /** in a dialogue: who says it */
+  who?: string;
+  /** in a story with choices: the node it belongs to */
+  node?: string;
 }
 
 export interface TextWord {
@@ -228,6 +239,8 @@ export interface TextSpec {
   vocabMode: VocabMode;
   /** words or characters to work in — required under `strict`, suggestions under `soft` */
   include: string;
+  /** draw scenes beside the paragraphs, out of the app's word photos */
+  pictures?: boolean;
 }
 
 export type PlanStep = 'plan' | 'prompt' | 'paste';
@@ -322,6 +335,12 @@ export interface GeneratedText {
   glosses: Record<string, { py: string; d: string }>;
   /** the characters the writer was allowed to assume you could already read */
   basis: string[];
+  /** a story with choices: which lines belong to which node, and where each choice leads */
+  story?: Story;
+  /** the endings of that story reached so far, by node id */
+  endings?: string[];
+  /** scenes drawn beside the paragraphs */
+  scenes?: Scene[];
   /** true once you have read it */
   read: boolean;
   /**

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FIT_FLOOR, strokeBounds } from '../data/bounds';
 import type { StrokeMap } from '../data/types';
 
@@ -12,6 +12,8 @@ interface Props {
   upto?: number;
   /** tint the final drawn stroke */
   highlight?: string;
+  /** draw the strokes not yet reached, faintly, in this colour */
+  ghost?: string;
   /** colour strokes by which component they belong to */
   groups?: boolean;
   color?: string;
@@ -42,6 +44,7 @@ export function Glyph({
   size = 44,
   upto,
   highlight,
+  ghost,
   groups,
   color = 'currentColor',
   className,
@@ -90,6 +93,7 @@ export function Glyph({
         />
       )}
       <g transform="translate(0, 900) scale(1, -1)">
+        {ghost && d.s.slice(n).map((p, i) => <path key={`g${i}`} d={p} fill={ghost} />)}
         {d.s.slice(0, n).map((p, i) => (
           <path
             key={i}
@@ -108,32 +112,129 @@ export function Glyph({
   );
 }
 
-/** The same glyph, drawing itself one stroke at a time then looping. */
-export function AnimatedGlyph({ char, strokes, size = 96, fit, fallback, guide }: Props) {
-  const total = strokes[char]?.s.length ?? 0;
-  const [n, setN] = useState(total);
+/**
+ * Where a stroke-by-stroke walk through a character stands. `step` counts the
+ * strokes drawn, so `step === total` is the finished character, which is
+ * where it rests until asked to move.
+ */
+export interface StrokeSteps {
+  total: number;
+  step: number;
+  playing: boolean;
+  go: (step: number) => void;
+  prev: () => void;
+  next: () => void;
+  toggle: () => void;
+}
+
+export function useStrokeSteps(key: string, total: number): StrokeSteps {
+  const [step, setStep] = useState(total);
+  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
-    setN(total);
-    if (!total) return;
-    let step = 0;
-    const id = setInterval(() => {
-      step = (step + 1) % (total + 6); // pause on the finished character
-      setN(Math.min(step, total));
-    }, 420);
-    return () => clearInterval(id);
-  }, [char, total]);
+    setStep(total);
+    setPlaying(false);
+  }, [key, total]);
 
+  useEffect(() => {
+    if (!playing) return;
+    if (step >= total) {
+      setPlaying(false);
+      return;
+    }
+    const id = setTimeout(() => setStep((s) => s + 1), 520);
+    return () => clearTimeout(id);
+  }, [playing, step, total]);
+
+  const go = useCallback(
+    (s: number) => {
+      setPlaying(false);
+      setStep(Math.max(0, Math.min(total, s)));
+    },
+    [total],
+  );
+  const prev = useCallback(() => go(step - 1), [go, step]);
+  const next = useCallback(() => go(step + 1), [go, step]);
+  const toggle = useCallback(() => {
+    if (playing) return setPlaying(false);
+    if (step >= total) setStep(0);
+    setPlaying(true);
+  }, [playing, step, total]);
+
+  // ← and → walk the strokes, unless a field has the keys.
+  useEffect(() => {
+    if (!total) return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target;
+      if (t instanceof Element && t.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (e.key === 'ArrowLeft') prev();
+      else if (e.key === 'ArrowRight') next();
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [total, prev, next]);
+
+  return { total, step, playing, go, prev, next, toggle };
+}
+
+/**
+ * The finished character, still, with the controls to rebuild it one stroke
+ * at a time: back, play, forward. Mid-way, the strokes still to come show
+ * faintly so the new one is seen in its place.
+ */
+export function StrokeStepper({
+  steps,
+  char,
+  strokes,
+  size = 104,
+  fit,
+  fallback,
+}: Pick<Props, 'char' | 'strokes' | 'size' | 'fit' | 'fallback'> & { steps: StrokeSteps }) {
+  const { total, step, playing, prev, next, toggle } = steps;
+  const whole = step >= total;
   return (
-    <Glyph
-      char={char}
-      strokes={strokes}
-      size={size}
-      upto={n}
-      highlight="var(--accent)"
-      fit={fit}
-      fallback={fallback}
-      guide={guide}
-    />
+    <div className="strokestep">
+      <button
+        type="button"
+        className="strokestep-glyph"
+        onClick={whole ? toggle : next}
+        aria-label={whole ? 'Play the strokes' : 'Next stroke'}
+        disabled={!total}
+      >
+        <Glyph
+          char={char}
+          strokes={strokes}
+          size={size}
+          upto={step}
+          highlight={whole ? undefined : 'var(--accent)'}
+          ghost={whole ? undefined : 'var(--line)'}
+          fit={fit}
+          fallback={fallback}
+        />
+      </button>
+      {total > 0 && (
+        <div className="strokestep-bar">
+          <button type="button" className="btn ghost sm" onClick={prev} disabled={step <= 0} aria-label="Previous stroke">
+            ‹
+          </button>
+          <button
+            type="button"
+            className="btn ghost sm"
+            onClick={toggle}
+            aria-label={playing ? 'Pause' : 'Play the strokes'}
+          >
+            {playing ? '❚❚' : '▶'}
+          </button>
+          <button type="button" className="btn ghost sm" onClick={next} disabled={whole} aria-label="Next stroke">
+            ›
+          </button>
+          <span className="strokestep-count tiny muted">
+            {step}/{total}
+          </span>
+        </div>
+      )}
+    </div>
   );
 }

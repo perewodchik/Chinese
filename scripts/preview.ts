@@ -27,19 +27,20 @@ const { loadLibrary } = await import('../src/data/load.ts');
 const { renderCollection, renderReading, renderRecall, renderTextSet } = await import(
   '../src/pdf/render.ts',
 );
-const { charId } = await import('../src/domain/ids.ts');
-const { defaultSheet } = await import('../src/domain/sheet.ts');
+const { charId, wordId } = await import('../src/domain/ids.ts');
+const { defaultSheet, printSheet } = await import('../src/domain/sheet.ts');
 const { DEFAULT_SCOPE } = await import('../src/domain/collection.ts');
 const { loadRadicals } = await import('../src/data/radicals.ts');
 const { renderRadicals } = await import('../src/pdf/radicals/render.ts');
-const { DEFAULT_RADICAL_SHEET } = await import('../src/domain/radicals/sheet.ts');
+const { RADICAL_TEMPLATE } = await import('../src/domain/radicals/sheet.ts');
 
 type Collection = import('../src/domain/collection.ts').Collection;
 type SheetOptions = import('../src/domain/sheet.ts').SheetOptions;
+type SheetChoice = import('../src/domain/sheet.ts').SheetChoice;
 
 const lib = await loadLibrary();
 
-function collection(name: string, items: string[], sheet: Partial<SheetOptions> = {}): Collection {
+function collection(name: string, items: string[], sheet: Partial<SheetChoice> = {}): Collection {
   return {
     id: 'preview',
     name,
@@ -65,38 +66,24 @@ const sample = [
 ].map(charId);
 
 
+// Words of two and three characters, mixed in with characters: the page has
+// to give every one of them the same rows.
+const mixed = [
+  charId('好'),
+  wordId('朋友'),
+  charId('我'),
+  wordId('出租车'),
+  wordId('喜欢'),
+  charId('慢'),
+  wordId('早上'),
+  wordId('对不起'),
+];
+
 const jobs: Array<[string, Collection]> = [
-  ['chars-2-classic', collection('Two a page — Classic', sample)],
-  [
-    'chars-3-workbook',
-    collection('Three a page — Workbook', sample, {
-      perPage: 3,
-      palette: 'indigo',
-      style: 'workbook',
-    }),
-  ],
-  [
-    'chars-4-card',
-    collection('Four a page — Card', sample, {
-      perPage: 4,
-      palette: 'pine',
-      style: 'card',
-    }),
-  ],
-  [
-    'chars-2-card',
-    collection('Two a page — Card', sample, {
-      palette: 'plum',
-      style: 'card',
-    }),
-  ],
-  [
-    'chars-2-quiet',
-    collection('Two a page — Quiet', sample, {
-      palette: 'graphite',
-      style: 'quiet',
-    }),
-  ],
+  ['chars-study', collection('Study — characters', sample)],
+  ['mixed-study', collection('Study — words and characters', mixed)],
+  ['mixed-drill', collection('Drill — words and characters', mixed, { layout: 'drill', palette: 'pine' })],
+  ['chars-drill', collection('Drill — characters', sample, { layout: 'drill', palette: 'plum' })],
 ];
 
 for (const [file, c] of jobs) {
@@ -107,22 +94,20 @@ for (const [file, c] of jobs) {
   console.log(`${file}.pdf`.padEnd(24), `${pages} pages`);
 }
 
-// Radical sheets: the same eight radicals at every size, because what changes
-// with the size is how many of a radical's forms get a row of their own.
+// The radical reference sheet: heart and water are written three ways, mouth
+// one, and all of them should come out as the same block.
 const rlib = await loadRadicals();
-const radicals = rlib.radicals.slice(0, 8);
+const radicals = [61, 85, 30, 9, 75, 64].map((n) => rlib.radicals.find((r) => r.n === n)!);
 
-for (const [file, sheet] of [
-  ['radicals-3', {}],
-  ['radicals-2-workbook', { perPage: 2, palette: 'indigo', style: 'workbook' }],
-  ['radicals-4-card', { perPage: 4, palette: 'pine', style: 'card' }],
-  ['radicals-6-quiet', { perPage: 6, palette: 'graphite', style: 'quiet' }],
-] as Array<[string, Partial<SheetOptions>]>) {
+for (const [file, palette] of [
+  ['radicals', 'cinnabar'],
+  ['radicals-indigo', 'indigo'],
+] as const) {
   const { bytes, pages } = await renderRadicals(
     rlib,
     radicals,
-    { ...DEFAULT_RADICAL_SHEET, ...sheet },
-    { title: 'Radicals — the first eight', footerNote: 'Kirill' },
+    { ...RADICAL_TEMPLATE, palette },
+    { title: 'Radicals', footerNote: 'Kirill' },
   );
   fs.writeFileSync(path.join(out, `${file}.pdf`), bytes);
   console.log(`${file}.pdf`.padEnd(24), `${pages} pages`);
@@ -198,12 +183,8 @@ const passage: GeneratedText = {
   ],
 };
 
-const readingSheet = {
-  ...defaultSheet(),
-  palette: 'indigo' as const,
-  style: 'classic' as const,
-};
-const readingOpts = { footerNote: 'Kirill', practice: true, perPage: 3 };
+const readingSheet = printSheet('drill', 'indigo');
+const readingOpts = { footerNote: 'Kirill', practice: true };
 
 const reading = await renderReading(lib, passage, readingSheet, readingOpts);
 fs.writeFileSync(path.join(out, 'reading.pdf'), reading.bytes);
@@ -234,17 +215,17 @@ console.log('set.pdf'.padEnd(24), `${set.pages} pages`);
 // Recall sheets: the same characters with the answers taken away, which is the
 // arrangement that is easiest to get wrong — the key has to clear the last row
 // of squares, and the squares have to stay writable at twelve prompts a page.
-const recallItems = lib.characters.slice(0, 26).map((c) => c.c).map(charId);
+const recallItems = [...lib.characters.slice(0, 20).map((c) => c.c).map(charId), ...mixed];
 
 for (const [file, rows, answers, sheet] of [
   ['recall-1row', 1, 'foot', {}],
-  ['recall-2rows', 2, 'foot', { palette: 'graphite', style: 'quiet' }],
-  ['recall-key-at-end', 1, 'end', { palette: 'pine', style: 'workbook' }],
+  ['recall-2rows', 2, 'foot', { palette: 'graphite' }],
+  ['recall-key-at-end', 1, 'end', { palette: 'pine' }],
 ] as Array<[string, number, 'foot' | 'end', Partial<SheetOptions>]>) {
   const { bytes, pages } = await renderRecall(
     lib,
     recallItems,
-    { ...defaultSheet(), ...sheet },
+    { ...printSheet('study', 'cinnabar'), ...sheet },
     { title: 'From memory — HSK 1', footerNote: 'Kirill', rows, answers },
   );
   fs.writeFileSync(path.join(out, `${file}.pdf`), bytes);

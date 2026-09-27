@@ -1,0 +1,99 @@
+.g-train {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.g-train-en {
+  font-size: 17px;
+  text-align: center;
+  margin: 4px 0 14px;
+  color: var(--ink-2);
+}
+
+.g-rails {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px 6px;
+  padding: 10px 10px 14px;
+  min-height: 84px;
+  width: min(640px, 100%);
+  border-bottom: 3px solid var(--ink-3);
+  background: repeating-linear-gradient(90deg, transparent 0 22px, var(--line-2) 22px 26px) bottom / 100% 6px no-repeat;
+}
+
+.g-rails[data-state='right'] {
+  border-color: var(--jade);
+}
+
+.g-engine svg {
+  width: 58px;
+  height: 44px;
+  display: block;
+}
+
+.g-engine path {
+  fill: var(--accent);
+}
+
+.g-engine circle {
+  fill: var(--ink);
+}
+
+.g-car {
+  min-width: 58px;
+  height: 52px;
+  padding: 0 12px;
+  border-radius: 10px 10px 6px 6px;
+  border: 1.5px solid var(--line-2);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  font-size: 26px;
+  cursor: pointer;
+  transition: transform 0.12s, opacity 0.12s;
+}
+
+.g-car:disabled {
+  cursor: default;
+}
+
+.g-yard .g-car:disabled {
+  opacity: 0.25;
+}
+
+.g-car-empty {
+  display: inline-block;
+  border-style: dashed;
+  background: transparent;
+  box-shadow: none;
+}
+
+.g-car-end {
+  font-size: 26px;
+  align-self: center;
+}
+
+.g-rails[data-state='wrong'] .g-car {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.g-rails[data-state='right'] .g-car {
+  border-color: var(--jade);
+  background: var(--jade-soft);
+}
+
+.g-yard {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+  max-width: 640px;
+}
+
+.g-car:active:not(:disabled) {
+  transform: scale(0.95);
+}

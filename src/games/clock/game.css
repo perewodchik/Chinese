@@ -1,0 +1,74 @@
+.g-clock-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.g-clock-wrap {
+  position: relative;
+  width: min(240px, 62vw);
+}
+
+.g-clock {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.g-clock-face {
+  fill: var(--card);
+  stroke: var(--ink-2);
+  stroke-width: 3;
+}
+
+.g-clock-num {
+  fill: var(--ink);
+  font-size: 17px;
+  font-family: var(--sans);
+  font-weight: 520;
+}
+
+.g-clock-tick {
+  stroke: var(--ink-3);
+}
+
+.g-clock-hour {
+  stroke: var(--ink);
+}
+
+.g-clock-min {
+  stroke: var(--ink-2);
+}
+
+.g-clock-pin {
+  fill: var(--ink);
+}
+
+.g-clock-part {
+  position: absolute;
+  top: -6px;
+  right: -34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.g-sun circle {
+  fill: var(--gold);
+}
+
+.g-sun line {
+  stroke: var(--gold);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.g-moon {
+  fill: var(--indigo);
+}
+
+.g-tile .g-clock-say {
+  font-size: clamp(16px, 4.4vw, 20px);
+  line-height: 1.3;
+}

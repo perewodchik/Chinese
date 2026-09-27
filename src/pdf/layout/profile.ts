@@ -1,31 +1,27 @@
-import { profileIdFor } from '../../domain/sheet';
+import { LAYOUTS, type LayoutId } from '../../domain/sheet';
 import { T } from '../theme';
+import { CELL } from './grid';
 
 /**
- * The same layout at four sizes.
+ * The two layouts, in points.
  *
- * Nothing about the arrangement changes between them: heading on the left with
- * the reading beside it, two columns of sections, then the squares. What
- * changes is the size of the drawn things and the leading, so three characters
- * a page is the same page read smaller rather than a second design to learn.
- *
- * Every offset a block draws with comes from one of these tables. The version
- * before this carried hardcoded numbers left over from an older type size, and
- * collapsed into itself the first time a label changed.
+ * Every block of a layout is cut the same way: a heading, a notes zone (Study
+ * only), then the practice rows. The zones are fixed rather than measured from
+ * what a character has to say — measuring is what gave one character three
+ * rows and the one under it two. A section a character does not have leaves
+ * its place empty; nothing moves up to fill it.
  */
-export interface CharScale {
-  /** heading height: the big glyph, the reading, the facts line */
-  headH: number;
-  /** the square the big glyph sits in */
+export interface ItemScale {
+  /** the square each glyph of the heading sits in */
   box: number;
+  /** widest the row of heading boxes may get, for long words */
+  boxesMax: number;
   boxGap: number;
   /** baselines inside the heading, measured from the top of the block */
   pyY: number;
   defY: number;
   ruleY: number;
   factY: number;
-  /** the definition sits beside the reading rather than under it */
-  defInline: boolean;
 
   hero: number;
   lead: number;
@@ -33,7 +29,6 @@ export interface CharScale {
   small: number;
 
   partGlyph: number;
-  partRow: number;
   soBox: number;
   wordRow: number;
 
@@ -41,96 +36,73 @@ export interface CharScale {
   labelDrop: number;
   /** space between two sections in a column */
   blockGap: number;
-  /** the sections zone to the practice grid */
+  /** the heading or notes to the practice grid */
   gridGap: number;
+  /** fixed heading height; Drill's is whatever the slot leaves */
+  headH: number;
 }
 
-const CHAR: Record<string, CharScale> = {
-  solo: {
-    headH: 96,
-    box: 86,
-    boxGap: 22,
-    pyY: 20,
-    defY: 38,
-    ruleY: 54,
-    factY: 70,
-    defInline: false,
-    hero: 18,
-    lead: 11,
-    body: 9,
-    small: 8,
-    partGlyph: 18,
-    partRow: 20,
-    soBox: 27,
-    wordRow: 24,
-    labelDrop: 13,
-    blockGap: 14,
-    gridGap: 16,
-  },
-  full: {
-    headH: 80,
+const SCALE: Record<LayoutId, ItemScale> = {
+  study: {
     box: 70,
+    boxesMax: 250,
     boxGap: 20,
     pyY: 18,
     defY: 34,
     ruleY: 48,
     factY: 62,
-    defInline: false,
     hero: T.hero,
     lead: T.lead,
     body: T.body,
     small: T.small,
     partGlyph: 17,
-    partRow: 19,
-    soBox: 25,
+    soBox: 22,
     wordRow: 23,
     labelDrop: 13,
-    blockGap: 13,
-    gridGap: 15,
+    blockGap: 10,
+    gridGap: 14,
+    headH: 80,
   },
-  mid: {
-    headH: 67,
-    box: 56,
+  drill: {
+    box: 58,
+    boxesMax: 200,
     boxGap: 16,
-    pyY: 16,
-    defY: 31,
-    ruleY: 42,
-    factY: 55,
-    defInline: false,
-    hero: 14,
-    lead: 9.6,
-    body: 8.2,
-    small: 7.3,
-    partGlyph: 15,
-    partRow: 17.5,
-    soBox: 21,
-    wordRow: 22,
-    labelDrop: 12,
-    blockGap: 12,
-    gridGap: 13,
-  },
-  tight: {
-    headH: 54,
-    box: 44,
-    boxGap: 13,
-    pyY: 13.5,
-    defY: 13.5,
-    ruleY: 24,
-    factY: 36,
-    defInline: true,
-    hero: 12.4,
-    lead: 9,
-    body: 7.7,
-    small: 7,
+    pyY: 18,
+    defY: 33,
+    ruleY: 40,
+    factY: 51,
+    hero: 13.5,
+    lead: 9.2,
+    body: 7.8,
+    small: 7.2,
     partGlyph: 13,
-    partRow: 16,
-    soBox: 18,
+    soBox: 17,
     wordRow: 20,
     labelDrop: 10.5,
-    blockGap: 10,
-    gridGap: 10,
+    blockGap: 8,
+    gridGap: 12,
+    headH: 0,
   },
 };
 
-export const charScale = (perPage: number): CharScale =>
-  CHAR[profileIdFor(perPage)];
+export const itemScale = (layout: LayoutId): ItemScale => SCALE[layout];
+
+export interface ItemFrame {
+  S: ItemScale;
+  head: number;
+  /** the notes zone between heading and grid; 0 in Drill */
+  info: number;
+  rows: number;
+  /** from the top of the block to the top of the grid */
+  gridTop: number;
+}
+
+/** Where a block's zones fall in a slot of this height. */
+export function itemFrame(layout: LayoutId, slot: number): ItemFrame {
+  const S = SCALE[layout];
+  const rows = LAYOUTS[layout].rows;
+  const grid = rows * CELL;
+  const head = layout === 'study' ? S.headH : slot - S.gridGap - grid;
+  const info = layout === 'study' ? Math.max(0, slot - head - S.gridGap - grid) : 0;
+  return { S, head, info, rows, gridTop: head + info + S.gridGap };
+}

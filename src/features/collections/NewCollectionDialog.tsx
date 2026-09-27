@@ -3,7 +3,7 @@ import { claimedItems, pagesFor } from '../../domain/collection';
 import { itemsLabel, type ItemId } from '../../domain/ids';
 import { glyphOf } from '../../domain/library';
 import { suggestedSize, type Preset } from '../../domain/presets';
-import { defaultSheet } from '../../domain/sheet';
+import { defaultSheet, perPageOf } from '../../domain/sheet';
 import { useStore } from '../../store/store';
 import { Modal } from '../../ui/Modal';
 import { Strip } from '../../ui/Strip';
@@ -41,7 +41,7 @@ export function NewCollectionDialog({ preset, onCancel, onConfirm }: Props) {
 
   const take = Math.min(size, pool.length);
   const items = pool.slice(0, take);
-  const perPage = defaultSheet().perPage;
+  const perPage = perPageOf(defaultSheet().layout);
 
   return (
     <Modal

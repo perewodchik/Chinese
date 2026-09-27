@@ -11,6 +11,20 @@ up later without re-deciding it.
 - **E — Seeing it**: a wall of characters that fades like ink as you forget
   them, and mouth diagrams for the sounds that are hard.
 
+## Status (2026-09-25): all of C, D and E are built
+
+| Part | Where | Notes |
+|---|---|---|
+| C framework | `src/games/` (types, registry, kit, README, `_template/`), `/play`, `/play/:gameId` | Results in the synced store as `play` (`src/domain/play.ts`); never scheduled. |
+| C games | where-is-it, pairs, listen, compound, build-char, measure-words, clock, shop, family, opposites, colours, sentence-train | All 12 of C.4, each with a seeded content test. **Tap-to-place instead of drag** for build-char, sentence-train, shop (coins) and family (pick a name) — easier for a finger on an iPad; true drag is in where-is-it. 个 is never offered as a wrong measure word (it is never really wrong). Compound words whose parts show the same photo as the whole (衣服) are left out. |
+| D.1 scenes | `domain/story.ts` (`scenesOf`), `reader/SceneView.tsx`, **Pictures** toggle on a passage spec | Ten drawn rooms; things are word photos; unknown words dropped. |
+| D.2 choose-your-path | genre `branching`, `story` in the passage JSON, `reader/StoryPath.tsx` | Lines carry their node, so coverage, read-aloud and the word drawer work unchanged. Endings kept on the text (`endings`), merged across devices; reaching one marks the passage read. |
+| D.3 comics | `reader/Comic.tsx`, **Comic** chip in the reader (per device) | Dialogues ask the writer for `who` per line. |
+| E.1 ink wall | `domain/inkWall.ts`, `library/InkWall.tsx`, in the progress drawer | Characters or words, HSK 1–3, five steps of ink. |
+| E.2 mouth diagrams | `scripts/mouth/build.py` → `src/data/mouth.json`, `pinyin/MouthDiagrams.tsx` | Tavin's articulation diagrams (CC BY-SA 4.0) for j q x / zh ch sh / z c s; Wright & McCloy's sagittal sections (CC0) for -n / -ng and i / u (ü). r uses the sh tongue. |
+
+---
+
 Everything here builds on what B delivers: the **word picture pack**
 (`public/images/words/`, one real photo per picturable word, with a manifest and
 CREDITS) and the **compound pictures** (火 + 车 = 火车).

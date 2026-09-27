@@ -1,8 +1,9 @@
 import type { SheetOptions } from '../../domain/sheet';
 import type { Sheet } from '../draw';
-import { gridFit, minCellFor } from '../layout/grid';
-import { bodyHeight, contentLeft, contentRight, contentWidth } from '../layout/page';
+import { CELL, COLS } from '../layout/grid';
+import { bodyHeight, contentLeft, contentRight } from '../layout/page';
 import { T } from '../theme';
+import { drawPractice } from './item';
 
 /**
  * A sheet with the answers left out.
@@ -21,6 +22,7 @@ import { T } from '../theme';
 export interface RecallPrompt {
   /** the number printed beside it, which is also its number in the key */
   n: number;
+  /** what is to be written: a character, or a whole word */
   char: string;
   py: string;
   gloss: string;
@@ -60,10 +62,11 @@ const ITEM_SPACING = 9;
  * out of room. Here it is simpler, because a recall block has no sections to
  * give up — only a count per page to arrive at.
  */
-export function recallLayout(sheet: SheetOptions, style: RecallStyle): RecallLayout {
+export function recallLayout(style: RecallStyle): RecallLayout {
   const rows = Math.max(1, Math.min(4, style.rows));
-  const min = minCellFor(sheet.squareSize);
-  const { cols, cell } = gridFit(contentWidth, 9999, rows, min, min + 15);
+  // The same 15 mm squares as every other sheet, twelve across.
+  const cols = COLS;
+  const cell = CELL;
 
   const itemH = PROMPT_H + PROMPT_GAP + rows * cell;
   // The key needs a fold line, a line of glyphs and a little air. Two lines of
@@ -122,25 +125,19 @@ export function drawRecallPrompt(
     maxWidth: Math.max(40, glossRight - glossLeft - 6),
   });
 
-  if (style.strokeHint && p.strokes > 0) {
-    s.textRight(`${p.strokes} strokes`, contentRight, baseline, {
+  // For a word the length is the hint: how many characters, not which.
+  const len = [...p.char].length;
+  if (style.strokeHint && (len > 1 || p.strokes > 0)) {
+    s.textRight(len > 1 ? `${len} characters` : `${p.strokes} strokes`, contentRight, baseline, {
       size: T.micro,
       color: s.c.ink3,
       tracking: 0.25,
     });
   }
 
+  // A word is asked for whole, so its squares come in groups of its length.
   const gridTop = top + layout.promptH + layout.gap;
-  for (let r = 0; r < layout.rows; r++) {
-    for (let c = 0; c < layout.cols; c++) {
-      s.cell(
-        contentLeft + c * layout.cell,
-        gridTop + r * layout.cell,
-        layout.cell,
-        sheet.gridStyle,
-      );
-    }
-  }
+  drawPractice(s, [...p.char], gridTop, layout.rows, { gridStyle: sheet.gridStyle, trace: 0, faint: 0 });
 }
 
 /**
@@ -173,7 +170,8 @@ export function drawAnswerKey(
   let x = contentLeft;
   let y = top + 32;
   for (const p of prompts) {
-    const width = 34;
+    const glyphs = [...p.char];
+    const width = 17 + glyphs.length * 17;
     if (x + width > contentRight) {
       x = contentLeft;
       y += 22;
@@ -182,9 +180,11 @@ export function drawAnswerKey(
       size: 5.6,
       color: s.c.ink3,
     });
-    if (!s.glyph(p.char, x + 10, y - 15, 17, { inset: 0.02 })) {
-      s.text(p.char, x + 10, y, { size: 14 });
-    }
+    glyphs.forEach((g, i) => {
+      if (!s.glyph(g, x + 10 + i * 17, y - 15, 17, { inset: 0.02 })) {
+        s.text(g, x + 10 + i * 17, y, { size: 14 });
+      }
+    });
     x += width;
   }
 }

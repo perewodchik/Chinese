@@ -317,7 +317,6 @@ function SetShelf({
         renderTextSet(lib, set.name, list, readerSheet(settings), {
           footerNote: settings.footerNote,
           practice: settings.readerPractice,
-          perPage: settings.practicePerPage,
         }),
     });
   }
@@ -578,20 +577,21 @@ function TextCard({
       <p className="small" style={{ margin: '2px 0 6px' }}>
         {text.title}
       </p>
-      <p className="passage-peek hanzi">{text.lines[0]?.zh}</p>
-
+      {/* One line, so every card in a row keeps the same shape: six, and a
+          count for the rest — or all seven, since "+1" takes the room of the
+          one it hides. */}
       {text.teach.length > 0 && (
-        <div className="teach-chips">
-          {text.teach.slice(0, 8).map((c) => (
+        <div className="teach-chips one-line">
+          {text.teach.slice(0, text.teach.length > 7 ? 6 : 7).map((c) => (
             <span key={c} className="teach-chip mini">
               <Glyph char={c} strokes={lib.strokes} size={20} />
             </span>
           ))}
-          {text.teach.length > 8 && <span className="tiny muted">+{text.teach.length - 8}</span>}
+          {text.teach.length > 7 && <span className="tiny muted">+{text.teach.length - 6}</span>}
         </div>
       )}
 
-      <div className="row tiny muted" style={{ gap: 6 }}>
+      <div className="row tiny muted text-card-foot" style={{ gap: 6 }}>
         <span>{levelLabel(text.level)}</span>
         <span>·</span>
         <span>{textCharCount(text)} characters</span>

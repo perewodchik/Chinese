@@ -45,9 +45,9 @@ export const paths = {
 
   library: () => '/library',
   /** the library showing the 214 radicals rather than a band of characters */
-  radicals: () => '/library?band=radicals',
+  radicals: () => '/library?kind=radicals',
   /** the same, with one radical's drawer open over it */
-  radical: (n: number) => `/library?band=radicals&radical=${n}`,
+  radical: (n: number) => `/library?kind=radicals&radical=${n}`,
   /** a radical's family: the characters it grows into, drawn as a tree */
   family: (n?: number) => (n ? `/families/${n}` : '/families'),
 
@@ -100,6 +100,12 @@ export const paths = {
       part: at.part ? String(at.part + 1) : undefined,
       do: at.step && at.step !== 'watch' ? at.step : undefined,
     }),
+
+  /** the games, for one band */
+  play: (band?: number) => withQuery('/play', { band: band && band !== 1 ? String(band) : undefined }),
+  /** one round of one game; the seed replays it */
+  game: (id: string, band?: number, seed?: string) =>
+    withQuery(`/play/${encodeURIComponent(id)}`, { band: band ? String(band) : undefined, seed }),
 
   settings: () => '/settings',
   /** today's lesson: meet a few new things, practise them, check them */

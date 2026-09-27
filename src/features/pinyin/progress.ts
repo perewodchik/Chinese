@@ -99,3 +99,38 @@ export function weeks(entries: readonly Said[], mode?: SaidMode): Week[] {
 
 /** A week's share as a whole percentage, or null with too few tries to mean anything. */
 export const share = (w: Week | undefined) => (w && w.tries >= 3 ? Math.round((100 * w.understood) / w.tries) : null);
+
+/**
+ * One sentence's history: every try, oldest first, and what they add up to.
+ *
+ * Unlike the weekly share, this keeps every try, not only the first of the
+ * day — it is the answer to "is this sentence getting better as I work on
+ * it", and the fifth try in a row is exactly what that question is about.
+ */
+export interface SentenceHistory {
+  id: string;
+  tries: Said[];
+  /** best share of syllables heard as meant, 0–1 */
+  best: number;
+  /** understood at least once */
+  ever: boolean;
+  last: Said;
+}
+
+export function bySentence(entries: readonly Said[], mode: SaidMode): Map<string, SentenceHistory> {
+  const out = new Map<string, SentenceHistory>();
+  for (const s of entries) {
+    if (s.mode !== mode) continue;
+    const h = out.get(s.id);
+    if (h) {
+      h.tries.push(s);
+      h.best = Math.max(h.best, s.share);
+      h.ever ||= s.ok;
+      h.last = s;
+    } else out.set(s.id, { id: s.id, tries: [s], best: s.share, ever: s.ok, last: s });
+  }
+  return out;
+}
+
+/** A share of syllables as a whole percentage. */
+export const pct = (share: number) => Math.round(share * 100);

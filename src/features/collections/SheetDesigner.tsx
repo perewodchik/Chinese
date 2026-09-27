@@ -1,65 +1,73 @@
 import type { Collection } from '../../domain/collection';
-import { bandsLostAt, BAND_NAME, PER_PAGE_CHOICES, profileFor } from '../../domain/sheet';
-import type { FitReport } from '../../pdf/render';
+import { LAYOUT_IDS, LAYOUTS, type LayoutId } from '../../domain/sheet';
 import { setSheet } from '../../store/commands';
-import { SheetLook } from '../../ui/SheetLook';
+import { useStore } from '../../store/store';
+import { PalettePicker } from '../../ui/PalettePicker';
 
 interface Props {
   c: Collection;
-  fit: FitReport;
 }
 
 /**
- * Everything about how the PDF looks, in the order you would think about it:
- * how much goes on a page, then what it is printed in, then how big the
- * squares are.
+ * How the PDF looks: which layout, and — only if it should differ from every
+ * other sheet — which colour.
  *
- * The first control is the only one that changes what the sheet says. Choosing
- * four characters a page is choosing a shorter sheet, and the panel says so —
- * before the download, in words, naming the sections that go — rather than
- * offering eight switches that are mostly disabled anyway.
+ * That is all there is to choose. The squares are 15 mm, twelve to a row, with
+ * a 米 guide; the first go is traced and the next are faint; a word is
+ * practised whole. Every block of a layout gets the same rows, so what the
+ * preview shows for the first page is what every page will be.
  */
-export function SheetDesigner({ c, fit }: Props) {
+export function SheetDesigner({ c }: Props) {
+  const fallback = useStore((s) => s.settings.printPalette);
   const o = c.sheet;
-  const lost = bandsLostAt(o.perPage);
 
   return (
-    <SheetLook
-      sheet={o}
-      onChange={(patch) => setSheet(c.id, patch)}
-      fit={fit}
-      notice={
-        fit.dropped.length > 0 ? (
-          <p className="notice">
-            <b>{fit.dropped.join(', ')}</b> did not fit on at least one of these, so it is being
-            left off. Fewer per page, or smaller squares, brings it back.
-          </p>
-        ) : null
-      }
-    >
+    <div className="designer">
       <section>
-        <h3 className="field-title">How many to a page</h3>
-        <div className="perpage">
-          {PER_PAGE_CHOICES.map((n) => (
+        <h3 className="field-title">Layout</h3>
+        <div className="layout-picker">
+          {LAYOUT_IDS.map((id) => (
             <button
-              key={n}
-              className="perpage-option"
-              aria-pressed={o.perPage === n}
-              onClick={() => setSheet(c.id, { perPage: n })}
+              key={id}
+              className="layout-option"
+              aria-pressed={o.layout === id}
+              onClick={() => setSheet(c.id, { layout: id })}
             >
-              <b>{n}</b>
-              <span>{profileFor(n).blurb}</span>
+              <LayoutThumb id={id} />
+              <span>
+                <b>{LAYOUTS[id].name}</b>
+                <span>{LAYOUTS[id].blurb}</span>
+              </span>
             </button>
           ))}
         </div>
-        {lost.length > 0 && (
-          <p className="tiny muted" style={{ margin: '8px 0 0' }}>
-            At {o.perPage} a page there is no room for{' '}
-            <b>{lost.map((b) => BAND_NAME[b].toLowerCase()).join(', ')}</b>. Everything else stays,
-            at a size that still reads on paper.
-          </p>
-        )}
       </section>
-    </SheetLook>
+
+      <section>
+        <h3 className="field-title">Colour</h3>
+        <PalettePicker value={o.palette} fallback={fallback} onChange={(palette) => setSheet(c.id, { palette })} />
+      </section>
+
+      <p className="tiny muted" style={{ margin: 0 }}>
+        Every square is 15 mm with a 米 guide, twelve to a row. Words are practised whole: 朋友 six
+        times a row, 出租车 four. The first go is solid to trace and the next are faint.
+      </p>
+    </div>
+  );
+}
+
+/** A miniature page: heading bars and grids, as many as the layout puts on one. */
+function LayoutThumb({ id }: { id: LayoutId }) {
+  const L = LAYOUTS[id];
+  return (
+    <span className="layout-thumb" data-layout={id} aria-hidden>
+      {Array.from({ length: L.perPage }, (_, i) => (
+        <span key={i} className="blk">
+          <i className="head" />
+          {id === 'study' && <i className="notes" />}
+          <i className="grid" style={{ height: L.rows * 3.4 }} />
+        </span>
+      ))}
+    </span>
   );
 }

@@ -1,3 +1,5 @@
+import { picturedWords } from '../data/pictures';
+import { BACKDROPS } from './story';
 import {
   GENRES,
   LEVELS,
@@ -32,6 +34,8 @@ import {
  * already known, so they are free to use.
  */
 export interface PromptExtras {
+  /** for the list of photos a scene can use, cut to the band */
+  lib?: { byWord: Map<string, { hsk: number }> };
   words?: string[];
   wordsKnown?: boolean;
   learning?: string[];
@@ -122,6 +126,15 @@ function specBrief(spec: TextSpec, n: number): string {
         spec.questions
           ? '**Questions:** 2 or 3 comprehension questions at the end, each with a short model answer in Chinese'
           : '**Questions:** none — return an empty list',
+        spec.genre === 'dialogue'
+          ? '**Speakers:** give every line `"who"` — the speaker\'s name in Chinese (两三个人, e.g. 小明, 王老师) — so I can see who is talking'
+          : '',
+        spec.genre === 'branching'
+          ? '**Choices:** send this one as a `story` instead of `lines` — see "A story with choices" below. 5 to 8 nodes, 2 or 3 of them with a choice, at least two different endings'
+          : '',
+        spec.pictures
+          ? '**Pictures:** add `scenes` — one small scene for each of 2 or 3 paragraphs, drawn out of the photos listed under "Scenes" below'
+          : '',
       ].filter(Boolean),
     ),
   ].join('\n');
@@ -156,6 +169,64 @@ const SHAPE = `{
     }
   ]
 }`;
+
+const STORY_SHAPE = `{
+  "id": "t2",
+  "title": "Tea or coffee",
+  "titleZh": "茶还是咖啡",
+  "story": {
+    "start": "a",
+    "nodes": {
+      "a": {
+        "lines": [{ "zh": "早上，我去饭店。服务员问我：你想喝什么？", "py": "…", "en": "…" }],
+        "choices": [
+          { "zh": "我想喝茶。", "py": "wǒ xiǎng hē chá", "en": "I'd like tea.", "to": "b" },
+          { "zh": "我想喝咖啡。", "py": "wǒ xiǎng hē kāfēi", "en": "I'd like coffee.", "to": "c" }
+        ]
+      },
+      "b": { "lines": [{ "zh": "…", "py": "…", "en": "…" }], "end": "a quiet morning" },
+      "c": { "lines": [{ "zh": "…", "py": "…", "en": "…" }], "choices": [{ "zh": "…", "py": "…", "en": "…", "to": "b" }] }
+    }
+  },
+  "teach": [], "vocab": [], "questions": [], "grammar": [], "note": ""
+}`;
+
+/** How a story with choices is sent, for the passages that are one. */
+function storySection(): string[] {
+  return [
+    '## A story with choices',
+    '',
+    'For a passage marked **Choices**, send `story` in place of `lines`: numbered-free node ids, each node with its own `lines` (the same line objects as usual), and either `choices` — each a short sentence in Chinese the reader picks, with `py`, `en` and `to`, the node it leads to — or `end`, a few English words naming that ending. Every node must be reachable from `start`, every `to` must exist, and at least two nodes must be endings. The choices are part of the reading: write them from the characters I know, like the rest.',
+    '',
+    `${FENCE}json`,
+    STORY_SHAPE,
+    FENCE,
+    '',
+  ];
+}
+
+/** The photos a scene can be drawn with, for the passages that ask for pictures. */
+function scenesSection(hsk: number, lib?: { byWord: Map<string, { hsk: number }> }): string[] {
+  const words = picturedWords().filter((w) => !lib || (lib.byWord.get(w)?.hsk ?? 9) <= Math.max(2, hsk));
+  return [
+    '## Scenes',
+    '',
+    'For a passage marked **Pictures**, add `scenes` beside `lines`. A scene is drawn by my app out of its own photos, so it can only use these words, exactly as written:',
+    '',
+    words.join('、'),
+    '',
+    `Rooms (\`bg\`): ${Object.entries(BACKDROPS)
+      .map(([id, d]) => `\`${id}\` (${d})`)
+      .join(', ')}.`,
+    '',
+    'Each scene: `para` (the paragraph it goes before, 0 for the first), `bg`, `things` — up to six of the words above, each at `x`, `y` between 0 and 1 (0,0 top left; the floor is around y 0.8) and an optional size `s` (0.6–1.6) — `people` (up to two, `who` a name from the passage, with `x`, `y`), and optionally `ask`: a question in Chinese the reader answers by tapping one of the things, `{ "q": "猫在哪儿？", "w": "猫" }`. Put things where the paragraph says they are.',
+    '',
+    `${FENCE}json`,
+    '"scenes": [{ "para": 0, "bg": "home", "things": [{ "w": "猫", "x": 0.3, "y": 0.75 }, { "w": "桌子", "x": 0.55, "y": 0.7, "s": 1.4 }], "people": [{ "who": "小明", "x": 0.8, "y": 0.62 }], "ask": { "q": "猫在哪儿？", "w": "猫" } }]',
+    FENCE,
+    '',
+  ];
+}
 
 /**
  * The whole prompt, as one block of markdown.
@@ -282,6 +353,11 @@ export function buildPrompt(plan: TextPlan, extra: PromptExtras = {}): string {
     out.push('');
   });
 
+  if (plan.specs.some((s) => s.genre === 'branching')) out.push(...storySection());
+  if (plan.specs.some((s) => s.pictures)) {
+    out.push(...scenesSection(Math.max(...plan.specs.filter((s) => s.pictures).map((s) => s.hsk)), extra.lib));
+  }
+
   out.push('## What to send back');
   out.push('');
   out.push(
@@ -384,8 +460,18 @@ export function buildBrief(plan: TextPlan, extra: PromptExtras = {}): string {
         mustInclude: s.vocabMode === 'strict' ? includeList(s) : undefined,
         niceToInclude: s.vocabMode === 'soft' && includeList(s).length ? includeList(s) : undefined,
         questions: s.questions ? '2 or 3 comprehension questions' : 'none',
+        speakers: s.genre === 'dialogue' ? 'give every line "who": the speaker\'s name in Chinese' : undefined,
+        choices:
+          s.genre === 'branching'
+            ? 'send "story" instead of "lines": { start, nodes: { id: { lines, choices: [{ zh, py, en, to }] | end: "how it ends" } } } — 5 to 8 nodes, at least two endings, every node reachable'
+            : undefined,
+        pictures: s.pictures
+          ? 'add "scenes": [{ para, bg, things: [{ w, x, y, s }], people: [{ who, x, y }], ask: { q, w } }] for 2 or 3 paragraphs, using only "sceneWords" and "sceneRooms"'
+          : undefined,
       };
     }),
+    sceneWords: plan.specs.some((s) => s.pictures) ? picturedWords().join('、') : undefined,
+    sceneRooms: plan.specs.some((s) => s.pictures) ? Object.keys(BACKDROPS).join(', ') : undefined,
   };
   return JSON.stringify(brief, null, 2);
 }

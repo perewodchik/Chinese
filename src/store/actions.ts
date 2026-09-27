@@ -1,3 +1,4 @@
+import { recordGame, type FinishedGame } from '../domain/play';
 import { dayKey, logDay, type DayLog } from '../domain/activity';
 import type { Collection, CollectionWord, PrintScope } from '../domain/collection';
 import type { ItemId } from '../domain/ids';
@@ -13,7 +14,7 @@ import {
   type RecallBook,
   type Skill,
 } from '../domain/memory';
-import type { SheetOptions } from '../domain/sheet';
+import type { SheetChoice } from '../domain/sheet';
 import type { GeneratedText, TextPlan, TextSet } from '../domain/text';
 import {
   mergeVideo,
@@ -51,7 +52,7 @@ import { emptyState, type AppSettings, type AppState, type PersistedState } from
 export interface CollectionPatch {
   name?: string;
   note?: string;
-  sheet?: Partial<SheetOptions>;
+  sheet?: Partial<SheetChoice>;
   scope?: Partial<PrintScope>;
   words?: CollectionWord[];
 }
@@ -63,6 +64,7 @@ export interface VideoPatch {
   marks?: Partial<VideoMarks>;
   parts?: VideoPart[];
   skipped?: string[];
+  copied?: number[];
 }
 
 export interface GradeResult {
@@ -108,6 +110,8 @@ export type Action =
   | { type: 'lesson/finish'; at: number; results: Array<{ id: ItemId; skill: Skill; rating: Rating }> }
   /** something done that no other action records — a word said out loud, say */
   | { type: 'activity/log'; at: number; add: Partial<DayLog> }
+  | { type: 'play/finish'; game: FinishedGame }
+  | { type: 'text/ending'; id: string; node: string }
   /** a video onto the shelf; one already there takes whatever the new copy has more of */
   | { type: 'video/add'; video: Video }
   | { type: 'video/patch'; id: string; patch: VideoPatch; at: number }
@@ -326,6 +330,19 @@ export function reduce(state: AppState, action: Action): AppState {
     case 'activity/log':
       return { ...state, activity: logDay(state.activity, action.at, action.add) };
 
+    case 'play/finish':
+      return { ...state, play: recordGame(state.play, action.game) };
+
+    case 'text/ending':
+      return {
+        ...state,
+        texts: state.texts.map((t) =>
+          t.id === action.id && !(t.endings ?? []).includes(action.node)
+            ? { ...t, endings: [...(t.endings ?? []), action.node] }
+            : t,
+        ),
+      };
+
     /* --------------------------------------------------------------- videos */
     case 'video/add': {
       const had = state.videos.find((v) => v.id === action.video.id);
@@ -355,6 +372,7 @@ export function reduce(state: AppState, action: Action): AppState {
         marks: action.patch.marks ? { ...v.marks, ...action.patch.marks } : v.marks,
         parts: action.patch.parts ?? v.parts,
         skipped: action.patch.skipped ?? v.skipped,
+        copied: action.patch.copied ?? v.copied,
       }));
 
     case 'video/line':

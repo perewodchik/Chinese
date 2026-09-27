@@ -1312,8 +1312,76 @@
   }
 }
 
-.talk-card-link {
+/* The conversation and the partners you kept, one card: the head is the
+   way in, the faces under it who you would be talking to. */
+.talk-block {
   margin-top: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  scroll-margin-top: 16px;
+}
+
+.talk-block-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 18px 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.talk-block-head > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+}
+
+.talk-block-head .go {
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.talk-block-head:hover .go {
+  text-decoration: underline;
+}
+
+/* One line, never wrapping: more faces than fit scroll sideways, and
+   Change stays put at the end of the line. */
+.talk-block-faces {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 10px;
+}
+
+.talk-block-strip {
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.talk-block-strip .voice-face-name {
+  white-space: nowrap;
+}
+
+.talk-block-faces .voice-face {
+  flex: none;
+  min-width: 64px;
+}
+
+.talk-block-faces .voice-face .portrait {
+  --size: 40px;
+}
+
+.talk-block-change {
+  flex: none;
+  margin-left: auto;
+  min-height: 36px;
 }
 
 /* Every other page keeps a foot of padding so its last line is not against
@@ -2409,7 +2477,7 @@
 
 .partner-head {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
 }
@@ -2476,9 +2544,40 @@
   color: var(--ink-3);
 }
 
+/* In a partner's own drawer the dialog is the frame. */
+.modal .partner-card:only-child {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* Kept or not: a round check in the card's corner. */
 .partner-keep {
-  justify-self: start;
-  min-height: 36px;
+  align-self: start;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--card);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+
+.partner-keep:hover {
+  border-color: var(--ink-3);
+}
+
+.partner-keep[aria-pressed='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
 }
 
 /* --- in context: the situation, what was said to you, and what you want to say */
@@ -2695,4 +2794,82 @@
   .benchmark-row {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* ------------------------------------------------------- mouth diagrams */
+
+/*
+ * The side of the head, from phonetics diagrams: every line faint, the tongue
+ * in the pronunciation colour — within one series it is the only thing that
+ * moves from sound to sound.
+ */
+.mouth {
+  margin: 0 0 16px;
+}
+
+.mouth-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 640px;
+}
+
+.mouth-row[data-n='3'] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mouth-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 10px 8px 12px;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+
+.mouth-svg {
+  width: 100%;
+  max-width: 200px;
+  aspect-ratio: 1;
+  display: block;
+}
+
+.mouth-line {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.mouth-tongue {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.mouth-sound {
+  margin-top: 6px;
+  font-size: 18px;
+  color: var(--accent);
+  font-weight: 520;
+}
+
+.mouth-says {
+  color: var(--ink-2);
+  line-height: 1.35;
+}
+
+.mouth-note {
+  margin: 8px 0 0;
+}
+
+.mouth-credit {
+  margin-top: 6px;
+}
+
+.mouth-credit a {
+  color: inherit;
 }

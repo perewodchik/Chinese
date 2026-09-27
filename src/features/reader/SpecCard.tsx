@@ -118,6 +118,14 @@ export function SpecCard({
             />
             <span>Questions</span>
           </label>
+          <label className="toggle" style={{ padding: 0, whiteSpace: 'nowrap' }} title="Scenes drawn beside the paragraphs, out of the word photos">
+            <input
+              type="checkbox"
+              checked={spec.pictures === true}
+              onChange={(e) => onChange({ pictures: e.target.checked || undefined })}
+            />
+            <span>Pictures</span>
+          </label>
         </div>
 
         <div className="spec-row">

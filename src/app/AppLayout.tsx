@@ -70,6 +70,7 @@ export function AppLayout() {
     { to: paths.collections(), label: 'Collections', count: collections + textSets, also: '/texts' },
     { to: paths.speaking(), label: 'Speaking', count: 0 },
     { to: paths.videos(), label: 'Videos', count: 0 },
+    { to: paths.play(), label: 'Play', count: 0 },
     { to: paths.settings(), label: 'Settings', count: 0 },
   ];
 

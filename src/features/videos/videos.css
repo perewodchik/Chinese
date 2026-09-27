@@ -980,15 +980,64 @@ span.check-n {
   align-items: flex-start;
 }
 
-.word-lines .check-n {
-  margin-top: 4px;
-  cursor: default;
+/* The line's number, drawn like a word: a blank pinyin row over a box as tall as the hanzi, so it sits beside the text. */
+.word-n {
+  flex: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  border: 0;
+  background: none;
+  padding: 1px 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.word-n-row {
+  height: calc(20px * var(--words-scale, 1) * 1.25);
+  display: flex;
+  align-items: center;
+}
+
+.word-n-box {
+  width: 34px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--line-2);
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.word-n[aria-pressed='true'] .word-n-box {
+  background: var(--jade-soft);
+  border-color: var(--jade);
+  color: var(--jade);
+}
+
+.copied-pct {
+  flex: none;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.copied-pct[data-done] {
+  color: var(--jade);
 }
 
 .word-line {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
+  align-content: flex-start;
   gap: 2px 6px;
   min-width: 0;
 }
@@ -1015,7 +1064,9 @@ span.check-n {
   font-size: calc(11.5px * min(var(--words-scale, 1), 1.6));
 }
 
-.word-body {
+.word-lines .word-body {
+  flex: 1;
+  padding: 0; /* the word card's .word-body has padding; this is another thing */
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1028,7 +1079,7 @@ span.check-n {
   line-height: 1.4;
 }
 
-.words-bar {
+.row.words-bar {
   flex-wrap: nowrap;
   overflow-x: auto;
   scrollbar-width: none;
