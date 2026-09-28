@@ -7,7 +7,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
-B2
+C1
 
 ## Tasks
 ### A — core logic
@@ -25,7 +25,7 @@ B2
 
 ### B — saves in the database
 - [x] B1 Server: world_saves (SQLite + Postgres), service, /api/world, tests
-- [ ] B2 Client sync: local copy, scheduler, merge on conflict, offline
+- [x] B2 Client sync: local copy, scheduler, merge on conflict, offline
 
 ### C — art
 - [ ] C1 Palette + pixel builder + recolour
@@ -113,6 +113,7 @@ _(date — decision — why)_
 - 2026-09-28 — A10: Line 10 is modelled only as its eastern arc 北土城 → 十里河 (a line with two ends, "往十里河方向"), not the whole loop — its loop direction names I could not verify offline. Line 2 is the full loop, forward = clockwise = 外环. Fares: Beijing's distance bands with 1.3 km per stop; bus 2 元; 京张高铁 to 八达岭长城 20 元. Bus numbers: 332 (西直门 → 动物园 → 颐和园) is the real old line; **34路 天坛东门 → 潘家园 is a stand-in number** — check before relying on it. 北京北站 is a walk from 西直门.
 - 2026-09-28 — A11: IME candidates also include words that only the characters' own entries know (你好 is not on the 2026 word lists but is in 你's entry), ranked after list words of the same band. `toneless()` now keeps ü apart from u (nǚ → nv) — it used to fold it into u.
 - 2026-09-28 — B1: the ETag of a world save is `"w<rev>"` (the workspace's is `"r<rev>"`), so the two can never be confused in a cache. A conflict has its own error class (`WorldConflictError`) whose 409 body carries `current: WorldSaveDto`.
+- 2026-09-28 — B2: on open, a device copy with unsent changes is merged with the server save (not just "newer wins"), so a session played offline on the iPad and one on the Mac both survive. After three conflicts in a row the sync shows `failing` and retries in 15 s. A save on the server from a newer app build puts sync in `outdated`: the game plays on from the device copy but never writes.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
