@@ -4,7 +4,9 @@ The builder reads `prompt.md` §0, then this file, and continues at the
 first unchecked box. Tick a box in the same commit as the work.
 
 ## For the learner (morning notes)
-**2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
+**2026-09-28, 23:30 — сессия остановлена: исчерпан лимит использования.** Готово и закоммичено (ничего не запушено): A8–A11 (диалоги, бюджет слов HSK, метро/автобусы/поезд, встроенный ввод пинъиня), B1–B2 (сохранения в БД `/api/world` + синхронизация и слияние), C1–C4 (свой пиксель-арт в коде: тайлы Пекина, 8 типов людей, 兔儿爷, реквизит; прототип 胡同 и 天安门), D1–D7 (движок на `/play/world`: ходьба тапом/удержанием/клавишами, двери, жизнь на улице, день и ночь), E1 (верхняя строка).
+**Смотреть первым:** скриншоты `docs/world-game/review/c4-*.png` (день/ночь, 1024 и 390) и `c3-*.png` (вся графика). Важно: скриншоты сделаны офлайн-рендером — эта сессия не может запускать dev-сервер, поэтому **игру в браузере ещё никто не видел**. Первое, что стоит сделать: запустить `hanzi-workshop-mac-world` (порт 5179, база `.data/world-test.db`) и открыть `/play/world`.
+**Не закончено:** E2 (пузырь диалога) — начатые файлы лежат незакоммиченными: `src/world/ui/content.ts`, `useTalk.ts`, `Portrait.tsx`. B1 добавляет миграцию `world_saves` — она выполнится на продакшн-Postgres при первом деплое после push.
 
 ## Current task
 E2
@@ -146,5 +148,6 @@ _(date — decision — why)_
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
+- 2026-09-28 23:30 — stopped at the usage limit in the middle of E2. Uncommitted, unfinished E2 files in the working tree: `src/world/ui/content.ts`, `src/world/ui/useTalk.ts`, `src/world/ui/Portrait.tsx` (not wired in yet; the next session should finish E2 from them — the Dialogue component and its CSS are still to write).
 - Dev servers cannot be started from this unattended session (preview_start refuses), so nothing is checked in a browser yet: C4 screenshots are offline renders, D-phase checks will be code-level plus offline renders until a session with a person present runs the preview (`hanzi-workshop-mac-world`, port 5179, `.data/world-test.db`, added to `.claude/launch.json`).
 - **B1 adds migration step 3 (`world_saves`) to both SQLite and Postgres.** It runs on the production Postgres at the first deploy after the learner pushes — an additive `CREATE TABLE`, nothing existing is touched.
