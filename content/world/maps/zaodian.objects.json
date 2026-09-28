@@ -145,7 +145,7 @@
  {
   "kind": "npc",
   "id": "owner",
-  "npc": "uncle-apron",
+  "npc": "zaodian-shifu",
   "tile": [
    4,
    3

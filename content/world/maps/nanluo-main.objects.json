@@ -267,7 +267,7 @@
  {
   "kind": "npc",
   "id": "grandpa",
-  "npc": "grandpa",
+  "npc": "zhao-yeye",
   "tile": [
    27,
    7
@@ -277,7 +277,7 @@
  {
   "kind": "npc",
   "id": "kid",
-  "npc": "kid",
+  "npc": "xiaoming",
   "tile": [
    48,
    9
@@ -287,7 +287,7 @@
  {
   "kind": "npc",
   "id": "tourist-a",
-  "npc": "tourist",
+  "npc": "tourist-1",
   "tile": [
    24,
    9
@@ -297,7 +297,7 @@
  {
   "kind": "npc",
   "id": "tourist-b",
-  "npc": "tourist-green",
+  "npc": "tourist-2",
   "tile": [
    25,
    9

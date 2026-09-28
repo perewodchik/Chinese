@@ -10,9 +10,10 @@
  *   npx tsx scripts/world/render-map.ts <map> <WxH> <time> <out.png> [heroX,heroY] [focusX,focusY]
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import type { MapObject, PartOfDay, Tile } from '../../src/world/core/types';
+import { looksOf } from '../../src/world/core/cast';
+import type { MapObject, NpcCard, PartOfDay, Tile } from '../../src/world/core/types';
 import { DAY_LOOK, zoomFor } from '../../src/world/engine/look';
 import type { AtlasJson } from './art/pack';
 import { blank, decodePng, encodePng, type Image } from './art/png';
@@ -60,6 +61,11 @@ export function renderMap(mapId: string, width: number, height: number, time: Pa
   const names = (JSON.parse(readFileSync('public/world/art/tiles-set.json', 'utf8')).names as string[]).map((n) => n.replace(/^[^/]+\//, ''));
   const set = decodePng(read('public/world/art/tiles-set.png'));
   const chars = sheet('chars');
+  // people are drawn with their card's look, as the game does (core/cast.ts)
+  const looks: Record<string, string> = {};
+  for (const id of existsSync('public/world/content/index.json') ? (JSON.parse(readFileSync('public/world/content/index.json', 'utf8')) as string[]) : []) {
+    Object.assign(looks, looksOf(JSON.parse(readFileSync(`public/world/content/${id}.json`, 'utf8')).npcs as NpcCard[]));
+  }
   const props = sheet('props');
   const W = map.width * T;
   const H = map.height * T;
@@ -102,7 +108,7 @@ export function renderMap(mapId: string, width: number, height: number, time: Pa
     } else if (o.kind === 'npc') {
       const x = o.tile[0] * T;
       const y = (o.tile[1] + 1) * T;
-      draws.push({ y, draw: () => frame(world, chars, `${o.npc}/${o.facing ?? 'down'}-0`, x, y + 3) });
+      draws.push({ y, draw: () => frame(world, chars, `${looks[o.npc] ?? o.npc}/${o.facing ?? 'down'}-0`, x, y + 3) });
     } else if (o.kind === 'light' && look.lit) {
       glows.push({ x: o.tile[0] * T + 8, y: o.tile[1] * T + 8, r: o.radius ?? 32, c: hex(o.color ?? '#fff1b3') });
     }

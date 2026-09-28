@@ -173,7 +173,7 @@
  {
   "kind": "npc",
   "id": "owner",
-  "npc": "grandpa-blue",
+  "npc": "lao-liu",
   "tile": [
    6,
    3

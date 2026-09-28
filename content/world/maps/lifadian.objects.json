@@ -106,7 +106,7 @@
  {
   "kind": "npc",
   "id": "barber",
-  "npc": "uncle",
+  "npc": "zhang-shifu",
   "tile": [
    5,
    4

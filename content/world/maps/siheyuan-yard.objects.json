@@ -119,7 +119,7 @@
  {
   "kind": "npc",
   "id": "wang",
-  "npc": "auntie",
+  "npc": "wang-ayi",
   "tile": [
    11,
    7

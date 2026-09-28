@@ -87,7 +87,7 @@
  {
   "kind": "npc",
   "id": "dancer",
-  "npc": "auntie-purple",
+  "npc": "passer-dancer",
   "tile": [
    14,
    16
@@ -97,7 +97,7 @@
  {
   "kind": "npc",
   "id": "photo",
-  "npc": "tourist",
+  "npc": "passer-photo",
   "tile": [
    17,
    14

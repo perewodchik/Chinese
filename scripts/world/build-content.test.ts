@@ -36,6 +36,23 @@ describe('the built content', () => {
     }
   });
 
+  it('everyone standing on a district map has a card, and every card is drawn with a real sprite', () => {
+    const chars = JSON.parse(readFileSync('public/world/art/chars.json', 'utf8')) as { frames: Record<string, unknown> };
+    const r = checkContent('content/world', readLibrary());
+    const cards = new Map(r.districts.flatMap((d) => d.npcs).map((n) => [n.id, n]));
+    for (const d of r.districts) {
+      for (const m of d.district.maps) {
+        const map = JSON.parse(readFileSync(`public/world/maps/${m}.json`, 'utf8'));
+        const objects = map.layers.find((l: { name: string }) => l.name === 'objects').objects.map((o: { properties: { value: string }[] }) => JSON.parse(o.properties[0]!.value));
+        for (const o of objects.filter((x: { kind: string }) => x.kind === 'npc')) assert.ok(cards.has(o.npc), `${m}: ${o.npc} has no card`);
+      }
+    }
+    for (const c of cards.values()) {
+      const look = c.look.palette ? `${c.look.sprite}-${c.look.palette}` : c.look.sprite;
+      assert.ok(chars.frames[`${look}/down-0`], `${c.id}: no sprite ${look}`);
+    }
+  });
+
   it('a manual reading travels with its line', () => {
     const c = compileDistrict({
       district: { id: 'x', name: '北京', en: 'x', chapter: 1, maps: ['m'], stations: [], names: [] },

@@ -6,7 +6,8 @@ import type { MapObject, PartOfDay, Tile } from '../../world/core/types';
 import type { RunningWorld } from '../../world/engine/boot';
 import { throughDoor } from '../../world/engine/doors';
 import type { WorldHost } from '../../world/engine/scene';
-import { useWorldContent, EMPTY_CONTENT } from '../../world/ui/content';
+import { loadContent, useWorldContent, EMPTY_CONTENT } from '../../world/ui/content';
+import { castMap, looksOf } from '../../world/core/cast';
 import { Dialogue, lookOf } from '../../world/ui/Dialogue';
 import { InputBar } from '../../world/ui/InputBar';
 import { Joystick } from '../../world/ui/Joystick';
@@ -122,6 +123,8 @@ export function WorldPage() {
           onKey: (k) => k !== 'companion' && setPanel(k),
           isBusy: () => busy.current,
         };
+        // The people on the maps come from the content's cards (who, where now, how they look).
+        const people = await loadContent();
         const { startWorld } = await import('../../world/engine/boot');
         if (gone) return;
         const w = await startWorld(el, {
@@ -130,6 +133,11 @@ export function WorldPage() {
           hero: tile,
           facing: start.place.facing,
           host,
+          looks: looksOf(people.npcs),
+          cast: (info) => {
+            const s = game.current();
+            return s ? castMap(info.objects, info.id, people.npcs, s) : info.objects;
+          },
           onReady: () => !gone && setState('ready'),
         }, !!frame);
         if (gone) {

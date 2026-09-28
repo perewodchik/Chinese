@@ -80,7 +80,7 @@
  {
   "kind": "npc",
   "id": "driver",
-  "npc": "uncle-brown",
+  "npc": "sanlun-shifu",
   "tile": [
    10,
    9
@@ -90,7 +90,7 @@
  {
   "kind": "npc",
   "id": "rider",
-  "npc": "rider",
+  "npc": "waimai",
   "tile": [
    16,
    7

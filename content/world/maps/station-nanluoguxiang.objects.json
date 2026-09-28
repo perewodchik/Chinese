@@ -84,7 +84,7 @@
  {
   "kind": "npc",
   "id": "staff",
-  "npc": "woman-black",
+  "npc": "station-staff",
   "tile": [
    14,
    5

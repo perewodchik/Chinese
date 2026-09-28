@@ -9,7 +9,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** E2 (пузырь диалога) — начатые файлы лежат незакоммиченными: `src/world/ui/content.ts`, `useTalk.ts`, `Portrait.tsx`. B1 добавляет миграцию `world_saves` — она выполнится на продакшн-Postgres при первом деплое после push.
 
 ## Current task
-F2
+F3
 
 ## Tasks
 ### A — core logic
@@ -55,7 +55,7 @@ F2
 
 ### F — MVP content
 - [x] F1 District 鼓楼 · 南锣鼓巷 maps + interiors
-- [ ] F2 NPC cards
+- [x] F2 NPC cards
 - [ ] F3 Chapter 1 scenes
 - [ ] F4 Subway ride to 天安门
 - [ ] F5 MVP check + notes for the learner
@@ -153,6 +153,7 @@ _(date — decision — why)_
 - 2026-09-29 — E6: settings are a ⚙ tab at the end of the panels' tab row (no extra button in the one-line top bar). Answer by (voice/keyboard — also written to this device), 拼 under lines, on-screen joystick, text size S/M/L (the Chinese in the bubble: 18 / 22 / 27 px). The joystick (built now, D3 left it for here): a pad bottom-right that walks step by step while held and runs when pushed to the rim, plus an A button (= Space: talk/look ahead); it hides while talking or in a panel. Engine got `stick()` and `act()` on `RunningWorld`.
 - 2026-09-29 — E7: the card is a link, first on /play (before the seals and 点单), labelled **Game**: a 3:1 pixel banner (four pictures `public/world/art/banner-<time>.png`, rendered by `npm run world:banners` from the lane map with 兔儿爷 beside the hero), title, one progress line "Chapter · spirits n/7 · 成语 · stamps" (at ≤ 420 px it collapses to 章 灵 成 印 with numbers), where you stopped with the game time, Continue / Start. The banner follows the saved game clock; before a first game, the real clock. The device's copy shows at once, the server's replaces it if newer. Side by side on wide screens, banner above the text below 860 px. "Spirits n/7" counts the main story's seven (石狮子 九尾狐 门神 麒麟 貔貅 年兽 龙). The banners are drawn from the **prototype lane** for now; F1 should re-render them from the real 南锣鼓巷 map with 鼓楼 in the back (change the map id in `world:banners`).
 - 2026-09-29 — F1: district 1 is 11 maps: streets `hutong-home` (帽儿胡同 — your red gate, a neighbour's, the 公共厕所 sign), `nanluo-main` (南锣鼓巷 — 早点铺, 小卖部, 理发店, 茶馆), `subway-lane` (out to 平安大街 and the station's stairs), `gulou-square` (鼓楼 and 钟楼 on their terraces); inside: `siheyuan-room` (the save's HOME), `siheyuan-yard`, `zaodian`, `xiaomaibu`, `lifadian`, `chaguan`, `station-nanluoguxiang` (ticket machines, gates, platform). West → east: square ↔ home lane ↔ main lane ↔ subway lane. **Lanes run east–west** even though the real 南锣鼓巷 runs north–south: the tile kit only draws walls facing the camera, and east–west lanes are how Pokémon-style towns show fronts. The two towers stand side by side on the square's north edge (really they face each other north–south). New art (drawn in code, same palette): 16 tiles (plaster walls and skirting, wall tops, doormat, counter, shelves, menu board, mirror, station tiles and band, platform edge, track, gates, stairs down, rug, square cobbles) and 11 props (table, stool, bed, steamers, wok, tea table, barber chair, ticket machine, plant, street sign, and the two towers at 80×96). The engine now centres a map smaller than the screen (rooms). Content build added: `npm run world:content` (`scripts/world/build-content.ts`) writes `public/world/content/<district>.json` + `index.json`; `npm run world` = art → maps → content → banners. Neighbours' doors are locked with the flag `never`. Map screenshots (offline renders): `docs/world-game/review/f1/`.
+- 2026-09-29 — F2: 14 cards in `content/world/gulou/npcs.json` — 王阿姨, 早点铺师傅, 李阿姨 (小卖部), 张师傅 (barber), 老刘 (茶馆), 赵爷爷 (bird cage), 小明 (kid), two 游客, 三轮车师傅, 外卖小哥, two passers-by (跳舞的阿姨, 拍照的人) and the station's 工作人员. Each has `explains` for the chapter's hard words (灯笼, 胡同, 附近, 四合院, 石狮子, 交通卡, 押金, 换乘, 油条, 豆浆, 包子, 马马虎虎, 一心一意, 鼓楼, 地铁站) in HSK 1 Chinese. Map spawns now name card ids; a new `core/cast.ts` decides who is on a map now (map spawn, `when`, routine moves them or takes them away, routine-only visitors) and gives the engine each person's sprite from their card. Routines: 赵爷爷 on the square 6–9 then on 南锣鼓巷; 小明 away at school 8–16 (a routine stop on a map that does not exist means "not about"); the delivery rider on 南锣鼓巷 11–14 and in 帽儿胡同 17–20. People are placed when a map loads — they do not walk off when the hour turns while you stand there (a later polish). Shop hours are not enforced on the shopkeepers yet (so a late start never finds the breakfast shop empty).
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

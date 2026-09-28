@@ -41,7 +41,7 @@
  {
   "kind": "npc",
   "id": "owner",
-  "npc": "woman-teal",
+  "npc": "li-ayi",
   "tile": [
    7,
    3

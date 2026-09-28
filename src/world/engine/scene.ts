@@ -48,6 +48,10 @@ export interface SceneOptions {
   facing?: Facing;
   host?: WorldHost;
   onReady?: () => void;
+  /** who stands on this map now (core/cast.ts); without it, the map's own spawns */
+  cast?: (info: MapInfo) => MapObject[];
+  /** npc id → sprite frame prefix (the card's look); without it the id is the sprite */
+  looks?: Record<string, string>;
 }
 
 interface TilesetNames {
@@ -128,6 +132,7 @@ export class WorldScene extends Phaser.Scene {
     const { map: key } = this.opts;
     const map = this.make.tilemap({ key });
     this.info = readMap(key, this.cache.tilemap.get(key).data);
+    if (this.opts.cast) this.info = { ...this.info, objects: this.opts.cast(this.info) };
     this.at = resolveArrival(this.at, this.info.width, this.info.height);
     const tileset = map.addTilesetImage('tiles', 'tiles-set')!;
     const names = (this.cache.json.get('tiles-names') as TilesetNames).names.map((n) => n.replace(/^[^/]+\//, ''));
@@ -152,7 +157,7 @@ export class WorldScene extends Phaser.Scene {
         if (o.light) glow(x + s.width / 2, y - s.height / 2, Phaser.Display.Color.HexStringToColor(o.light).color, 28);
       } else if (o.kind === 'npc') {
         const { x, y } = feet(o.tile);
-        const s = this.add.sprite(x, y + 3, 'chars', `${o.npc}/${o.facing ?? 'down'}-0`).setOrigin(0, 1).setDepth(y);
+        const s = this.add.sprite(x, y + 3, 'chars', `${this.opts.looks?.[o.npc] ?? o.npc}/${o.facing ?? 'down'}-0`).setOrigin(0, 1).setDepth(y);
         this.npcSprites.set(o.id, s);
       } else if (o.kind === 'light') {
         const { x, y } = feet(o.tile);
