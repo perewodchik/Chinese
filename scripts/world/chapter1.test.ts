@@ -111,7 +111,7 @@ describe('chapter 1, played through the core', () => {
     r = runOn(board(r, trainsAt('wangfujing').find((t) => t.line === 'l1' && nextStop('l1', 'wangfujing', t.dir) === 'tiananmendong')!));
     s = act(s, [{ do: 'card', amount: -fareOut(r) }, { do: 'station', station: r.at }]);
     assert.equal(s.bag.card, 17);
-    assert.equal(activeQuests(s, quests).length, 0);
+    assert.deepEqual(activeQuests(s, quests).map((a) => a.quest.id), ['ch2']);
     assert.equal(s.quests.ch1?.done, true);
     assert.equal(s.chapter, 2);
 
@@ -178,5 +178,38 @@ describe('chapter 1, played through the core', () => {
     assert.match(play(s, 'ask-way', ['地铁站在哪儿？']).said.join(''), /东边/);
     const slept = play({ ...s, clock: 22 * 60 }, 'bed').save;
     assert.equal(slept.clock, 24 * 60 + 7 * 60);
+  });
+});
+
+describe('chapter 2, played through the core', () => {
+  it('后海 → the fisherman → 景山 → the fox at the corner tower', () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 2 }, { do: 'quest', quest: 'ch2', step: 'go-houhai' }]);
+    const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'ch2')?.step.id;
+    assert.equal(autoScene(scenes, s, 'houhai-lake')?.id, 'houhai-arrive');
+    s = play(s, 'houhai-arrive').save;
+    assert.equal(at(), 'rumour');
+    assert.equal(sceneFor(scenes, s, { npc: 'fisher-yeye' })?.id, 'fisher-fox');
+    s = play(s, 'fisher-fox').save;
+    assert.equal(at(), 'jingshan');
+    s = play(s, 'beihai-arrive').save;
+    assert.equal(sceneFor(scenes, s, { look: 'view', map: 'jingshan-view' })?.id, 'jingshan-view');
+    s = play(s, 'jingshan-view').save;
+    assert.equal(sceneFor(scenes, s, { npc: 'jingshan-yeye' })?.id, 'singer');
+    s = play(s, 'singer').save;
+    assert.equal(at(), 'fox');
+    s = play(s, 'bench').save;
+    assert.equal(Math.floor(s.clock / 60) % 24, 19);
+    assert.equal(sceneFor(scenes, s, { look: 'fox', map: 'jiaolou' })?.id, 'fox');
+    s = play(s, 'fox').save;
+    assert.ok('jiuweihu' in s.spirits);
+    assert.ok('狐假虎威' in s.idioms);
+    assert.equal(s.quests.ch2?.done, true);
+    assert.equal(s.chapter, 3);
+    for (const st of ['houhai', 'baita', 'jingshan', 'jiuweihu']) assert.ok(st in s.stamps, st);
+  });
+
+  it('chapter 1 hands over to chapter 2', () => {
+    const ch1 = quests.find((q) => q.id === 'ch1')!;
+    assert.ok(ch1.reward?.some((a) => a.do === 'quest' && a.quest === 'ch2'));
   });
 });

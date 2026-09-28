@@ -1,0 +1,13 @@
+[
+  {
+    "id": "狐假虎威",
+    "pinyin": "hújiǎ-hǔwēi",
+    "parts": [{ "c": "狐", "gloss": "fox" }, { "c": "假", "gloss": "borrows" }, { "c": "虎", "gloss": "tiger's" }, { "c": "威", "gloss": "might" }],
+    "meaning": "to bully others with someone else's power — the fox borrowing the tiger's might",
+    "story": {
+      "zh": "老虎要吃狐狸。狐狸说：“别吃我！动物们都怕我。你跟我走，你看看。”狐狸在前面走，老虎在后面走。动物们看见老虎，都跑了。老虎想：“它们真的怕狐狸！”",
+      "en": "A tiger was about to eat a fox. The fox said: 'Don't! All the animals fear me. Walk behind me and see.' The fox walked in front, the tiger behind. The animals saw the tiger and fled — and the tiger thought: 'They really are afraid of the fox!'"
+    },
+    "tier": "story"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "jiuweihu",
+    "hanzi": "九尾狐",
+    "pinyin": "jiǔwěihú",
+    "en": "the nine-tailed fox",
+    "source": "山海经",
+    "legend": {
+      "zh": "《山海经》说，青丘山上有一只狐狸，它有九个尾巴。它的声音像小孩子。人们说，看见它，是好事。",
+      "en": "The Classic of Mountains and Seas says that on Mount Qingqiu lives a fox with nine tails, whose voice is like a child's. Seeing it, people said, was a good omen."
+    },
+    "befriend": { "kind": "name", "text": "你知道我叫什么吗？", "en": "Say its name: 九尾狐, the nine-tailed fox." },
+    "district": "jingshan"
+  }
+]

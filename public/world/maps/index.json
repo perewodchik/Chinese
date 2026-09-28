@@ -1,4 +1,9 @@
 {
+ "beihai-north": {
+  "district": "jingshan",
+  "width": 36,
+  "height": 20
+ },
  "chaguan": {
   "district": "gulou",
   "width": 14,
@@ -9,6 +14,11 @@
   "width": 32,
   "height": 24
  },
+ "houhai-lake": {
+  "district": "houhai",
+  "width": 40,
+  "height": 24
+ },
  "hutong-home": {
   "district": "gulou",
   "width": 40,
@@ -17,6 +27,21 @@
  "hutong-proto": {
   "district": "gulou",
   "width": 32,
+  "height": 18
+ },
+ "jiaolou": {
+  "district": "jingshan",
+  "width": 32,
+  "height": 20
+ },
+ "jingshan-park": {
+  "district": "jingshan",
+  "width": 28,
+  "height": 28
+ },
+ "jingshan-view": {
+  "district": "jingshan",
+  "width": 48,
   "height": 18
  },
  "lifadian": {
@@ -39,8 +64,18 @@
   "width": 20,
   "height": 14
  },
+ "station-beihaibei": {
+  "district": "jingshan",
+  "width": 24,
+  "height": 16
+ },
  "station-nanluoguxiang": {
   "district": "gulou",
+  "width": 24,
+  "height": 16
+ },
+ "station-shichahai": {
+  "district": "houhai",
   "width": 24,
   "height": 16
  },

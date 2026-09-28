@@ -1,0 +1,88 @@
+[
+  {
+    "id": "fisher-yeye",
+    "name": "钓鱼的爷爷",
+    "role": "an old man who fishes at 后海 every night and morning",
+    "look": {
+      "sprite": "grandpa",
+      "palette": "blue"
+    },
+    "voice": "wei",
+    "character": "Quiet, patient, speaks in a low voice so as not to scare the fish. Sees everything that happens by the water at night.",
+    "knows": [
+      "A white fox with many tails ran along the lake last night, towards 景山",
+      "The fish bite best at dawn"
+    ],
+    "wants": [
+      "Quiet",
+      "A big fish"
+    ],
+    "actions": [
+      "flag",
+      "remember"
+    ],
+    "routine": [],
+    "explains": {
+      "狐狸": "像小狗，住在山里，很聪明。",
+      "尾巴": "动物后面长长的东西。",
+      "白": "雪的颜色。"
+    },
+    "misses": [
+      "嘘……你说什么？",
+      "小声一点，再说一遍。"
+    ]
+  },
+  {
+    "id": "boat-shifu",
+    "name": "划船的师傅",
+    "role": "the man who rents out boats on 后海",
+    "look": {
+      "sprite": "uncle",
+      "palette": "brown"
+    },
+    "voice": "zhiyuan",
+    "character": "Sunburnt, cheerful, a Beijing talker.",
+    "knows": [
+      "The lakes 前海, 后海 and 西海 are called 什刹海",
+      "In winter the lake freezes and people skate"
+    ],
+    "wants": [
+      "Customers for his boats"
+    ],
+    "actions": [
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "后海": "北京的一个湖，在鼓楼西边。",
+      "船": "在水上走的东西。",
+      "白": "雪的颜色。"
+    },
+    "misses": [
+      "嘿，啥？"
+    ]
+  },
+  {
+    "id": "houhai-tourist",
+    "name": "游客",
+    "role": "a young woman from Xi'an taking a walk by the lake",
+    "look": {
+      "sprite": "woman",
+      "palette": "teal"
+    },
+    "voice": "xiaoyu",
+    "character": "Friendly, easily delighted.",
+    "knows": [
+      "The lane 烟袋斜街 goes to 鼓楼"
+    ],
+    "wants": [
+      "A photo on 银锭桥"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {},
+    "misses": [
+      "啊？"
+    ]
+  }
+]

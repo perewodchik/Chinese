@@ -1,0 +1,50 @@
+id: jiaolou
+size: 32x20
+tilesets: tiles
+district: jingshan
+crowd: 2
+
+# The north-west corner of the palace: the moat, the red wall and the corner tower 角楼; at night a white fox
+
+[ground]
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+[below]
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+llllllllllllllllllllllllllllllll
+................................
+................................
+................................
+................................
+................................
+................................
+................................

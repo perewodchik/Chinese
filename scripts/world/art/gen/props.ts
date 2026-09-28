@@ -345,6 +345,123 @@ export function stoneLion(awake: boolean): Grid {
   return g;
 }
 
+
+// ---------------------------------------------------------------- H1: the lakes and the hill
+
+/** A weeping willow by the water, 32×48: long hanging strands, lit from the left. */
+export function willow(): Grid {
+  const g = new Grid(32, 48);
+  g.oval(6, 41, 22, 6, '_');
+  const f = new Grid(32, 48);
+  f.rect(14, 24, 4, 20, 'M').vline(14, 24, 20, 'z').vline(17, 24, 20, 'm').rect(12, 41, 8, 3, 'M');
+  f.oval(4, 2, 24, 18, 'h').oval(7, 3, 12, 8, 'i');
+  // the hanging strands
+  for (let x = 4; x < 28; x += 2) {
+    const len = 16 + ((x * 7) % 9);
+    f.vline(x, 12, len, x % 4 ? 'h' : 'G');
+    f.set(x, 12 + len, 'i');
+  }
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A small rowing boat on the lake, 32×16. */
+export function boat(): Grid {
+  const g = new Grid(32, 16);
+  const f = new Grid(32, 16);
+  f.rect(3, 6, 26, 6, 'M').hline(3, 6, 26, 'z').rect(6, 12, 20, 2, 'm');
+  f.set(2, 6, 'M').set(29, 6, 'M').set(1, 5, 'z').set(30, 5, 'z');
+  f.rect(10, 7, 12, 3, 'r').hline(10, 7, 12, 'p');
+  f.hline(8, 3, 1, 'z').vline(8, 3, 4, 'z');
+  f.outline('k');
+  g.stamp(f, 0, 0);
+  g.hline(0, 14, 32, 'X').hline(4, 15, 24, 'W');
+  return g;
+}
+
+/** A pavilion on the hilltop (万春亭), 64×64: yellow roofs in two tiers on red columns. */
+export function pavilion(): Grid {
+  const g = new Grid(64, 64);
+  g.oval(4, 58, 58, 6, '_');
+  const f = new Grid(64, 64);
+  f.rect(6, 50, 52, 10, 'e').hline(6, 50, 52, 'w').hline(6, 59, 52, 'c');
+  for (const x of [12, 22, 40, 50]) f.rect(x, 32, 3, 18, 'r').vline(x, 32, 18, 'p');
+  f.rect(10, 30, 44, 3, 'v').hline(10, 30, 44, 'Y');
+  const roof = (y: number, x0: number, x1: number, h: number) => {
+    for (let x = x0; x < x1; x += 3) f.vline(x, y, h, 'j').vline(x + 1, y, h, 'y').vline(x + 2, y, h, 'Y');
+    f.hline(x0, y + h, x1 - x0, 'o');
+    f.rect(x0 - 4, y + h - 3, 5, 3, 'y').set(x0 - 5, y + h - 4, 'Y').rect(x1 - 1, y + h - 3, 5, 3, 'y').set(x1 + 4, y + h - 4, 'Y');
+  };
+  roof(18, 6, 58, 12);
+  f.rect(16, 12, 32, 6, 'r');
+  roof(2, 14, 50, 10);
+  f.rect(29, 0, 6, 3, 'y').set(31, 0, 'j');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** The palace's corner tower (角楼) over its moat, 64×64: a cluster of yellow roofs on a red hall, on the wall. */
+export function cornerTower(): Grid {
+  const g = new Grid(64, 64);
+  const f = new Grid(64, 64);
+  f.rect(0, 46, 64, 18, 'r').rect(0, 44, 64, 3, 'Y').hline(0, 44, 64, 'j').hline(0, 47, 64, 'q');
+  f.rect(12, 30, 40, 14, 'r');
+  for (let x = 14; x < 52; x += 6) f.vline(x, 30, 14, 'R');
+  const tier = (y: number, x0: number, x1: number) => {
+    for (let x = x0; x < x1; x += 3) f.vline(x, y, 8, 'j').vline(x + 1, y, 8, 'y').vline(x + 2, y, 8, 'Y');
+    f.hline(x0, y + 8, x1 - x0, 'v').hline(x0, y + 9, x1 - x0, 'u');
+    f.rect(x0 - 3, y + 5, 4, 3, 'y').rect(x1 - 1, y + 5, 4, 3, 'y');
+  };
+  tier(22, 6, 58);
+  tier(12, 14, 50);
+  tier(2, 22, 42);
+  f.rect(30, 0, 4, 3, 'Y');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** The White Dagoba of 北海 on its hill, 32×48. */
+export function whitePagoda(): Grid {
+  const g = new Grid(32, 48);
+  g.oval(2, 43, 30, 5, '_');
+  const f = new Grid(32, 48);
+  f.rect(4, 38, 24, 8, 'd').hline(4, 38, 24, 'e');
+  f.rect(8, 32, 16, 6, 'w').vline(8, 32, 6, 'e');
+  f.oval(6, 16, 20, 18, 'w').oval(8, 18, 8, 10, 'w').vline(22, 20, 12, 'e');
+  f.rect(12, 20, 8, 7, 'e').rect(14, 21, 4, 5, 'r');
+  f.rect(13, 8, 6, 9, 'w').vline(18, 8, 9, 'e');
+  for (let y = 9; y < 17; y += 2) f.hline(13, y, 6, 'd');
+  f.oval(11, 4, 10, 4, 'Y').rect(15, 0, 2, 5, 'Y').set(15, 0, 'j');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/**
+ * The nine-tailed fox (九尾狐), 32×24: white, its tails fanned behind it.
+ * Frame 0/1 sway the tails; it is only seen at night.
+ */
+export function fox(sway: number): Grid {
+  const g = new Grid(32, 24);
+  g.oval(4, 20, 24, 4, '_');
+  const f = new Grid(32, 24);
+  for (let i = 0; i < 9; i++) {
+    const a = -1.1 + (i / 8) * 2.2 + (sway ? 0.08 : -0.08);
+    const x = 16 + Math.round(Math.sin(a) * 11);
+    const y = 12 - Math.round(Math.cos(a) * 9);
+    f.oval(x - 2, y - 2, 5, 5, 'w').set(x, y - 2, 'e');
+    f.set(x, y + 1, 'x');
+  }
+  f.oval(10, 10, 12, 8, 'w').oval(11, 13, 10, 5, 'e');
+  f.oval(12, 6, 8, 7, 'w');
+  f.set(12, 5, 'w').set(13, 4, 'w').set(19, 5, 'w').set(18, 4, 'w').set(13, 5, 'N').set(18, 5, 'N');
+  f.set(14, 8, 'R').set(17, 8, 'R').set(15, 10, 'k').set(16, 10, 'k');
+  f.vline(12, 17, 3, 'e').vline(19, 17, 3, 'e');
+  f.outline('k');
+  g.stamp(f, 0, 0);
+  g.set(14, 8, 'O').set(17, 8, 'O');
+  return g;
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -363,6 +480,12 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['plant', 'a potted plant', () => [['green', plant()]]],
   ['street-sign', 'a small blue street sign on a post', () => [['blue', streetSign()]]],
   ['lion', 'a stone guardian lion on its plinth, asleep and awake', () => [['stone', stoneLion(false)], ['awake', stoneLion(true)]]],
+  ['willow', 'a weeping willow by the water', () => [['green', willow()]]],
+  ['boat', 'a small rowing boat on the lake', () => [['red', boat()]]],
+  ['pavilion', 'the pavilion on top of 景山', () => [['wanchun', pavilion()]]],
+  ['corner-tower', 'the palace corner tower 角楼', () => [['jiaolou', cornerTower()]]],
+  ['pagoda', 'the White Dagoba of 北海', () => [['white', whitePagoda()]]],
+  ['fox', 'the nine-tailed fox 九尾狐', () => [['sway-0', fox(0)], ['sway-1', fox(1)]]],
   ['tower', 'the Drum and Bell Towers on their terraces', () => [['drum', tower('drum')], ['bell', tower('bell')]]],
   ['pigeon', 'a pigeon of the hutongs', () => [['peck', pigeon('peck')], ['look', pigeon('look')], ['fly-0', pigeon('fly-0')], ['fly-1', pigeon('fly-1')]]],
 ];

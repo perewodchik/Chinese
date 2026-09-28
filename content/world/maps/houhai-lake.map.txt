@@ -1,0 +1,60 @@
+id: houhai-lake
+size: 40x24
+tilesets: tiles
+district: houhai
+crowd: 5
+pigeons: 3
+bikes: 1
+
+# 后海: the lane of teahouses and bars above the lake, willows, boats, 银锭桥 over to the south shore; the subway at the east end, 鼓楼 to the east
+
+[ground]
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+ppppppppppppppppppppppppppppppppppppzzpp
+wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+[below]
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+bbnbbhhhbbbnbbbbhhhbbbnbbbbbnbbbhhhbbbb.
+BBBBBhhhBBBBBBBBhhhBBBBBBBBBBBBBhhhBBBB.
+........................................
+........................................
+........................................
+........................................
+wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+........................................
+........................................
+........................................

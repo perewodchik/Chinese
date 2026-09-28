@@ -1,0 +1,153 @@
+[
+ {
+  "kind": "prop",
+  "id": "pavilion",
+  "tile": [
+   11,
+   5
+  ],
+  "frame": "pavilion/wanchun",
+  "blocks": [
+   4,
+   2
+  ]
+ },
+ {
+  "kind": "door",
+  "id": "top",
+  "tile": [
+   13,
+   5
+  ],
+  "to": {
+   "map": "jingshan-view",
+   "tile": [
+    24,
+    15
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "hill",
+  "tile": [
+   1,
+   14
+  ],
+  "text": "景山公园",
+  "en": "Jingshan Park"
+ },
+ {
+  "kind": "sign",
+  "id": "bench-sign",
+  "tile": [
+   16,
+   11
+  ],
+  "text": "椅子",
+  "en": "A bench"
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   3,
+   12
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   18,
+   20
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-3",
+  "tile": [
+   24,
+   14
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-4",
+  "tile": [
+   7,
+   26
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-5",
+  "tile": [
+   24,
+   26
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "taiji",
+  "npc": "jingshan-ayi",
+  "tile": [
+   9,
+   19
+  ],
+  "facing": "right"
+ },
+ {
+  "kind": "edge",
+  "id": "west",
+  "side": "left",
+  "from": 15,
+  "to": 23,
+  "target": {
+   "map": "beihai-north",
+   "offset": -4
+  }
+ },
+ {
+  "kind": "door",
+  "id": "to-jiaolou",
+  "tile": [
+   13,
+   27
+  ],
+  "to": {
+   "map": "jiaolou",
+   "tile": [
+    16,
+    18
+   ],
+   "facing": "up"
+  }
+ }
+]

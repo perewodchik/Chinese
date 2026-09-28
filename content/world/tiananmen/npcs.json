@@ -3,41 +3,83 @@
     "id": "tam-staff",
     "name": "工作人员",
     "role": "the station attendant at 天安门东",
-    "look": { "sprite": "woman", "palette": "black" },
-    "voice": "woman-clear",
+    "look": {
+      "sprite": "woman",
+      "palette": "black"
+    },
+    "voice": "xiaoyu",
     "character": "Brisk and kind; has answered 'where is Tiananmen' ten thousand times and still smiles.",
-    "knows": ["Exit B is for 天安门", "The Palace Museum needs a ticket booked online in your own name"],
-    "wants": ["Passengers to keep moving"],
-    "actions": ["money", "card"],
+    "knows": [
+      "Exit B is for 天安门",
+      "The Palace Museum needs a ticket booked online in your own name"
+    ],
+    "wants": [
+      "Passengers to keep moving"
+    ],
+    "actions": [
+      "money",
+      "card"
+    ],
     "routine": [],
-    "explains": { "出站": "从地铁站出去。", "票": "进门要的纸，要花钱买。" },
-    "misses": ["您好，请再说一遍。"]
+    "explains": {
+      "出站": "从地铁站出去。",
+      "票": "进门要的纸，要花钱买。"
+    },
+    "misses": [
+      "您好，请再说一遍。"
+    ]
   },
   {
     "id": "tam-guard",
     "name": "工作人员",
     "role": "a guide at the gate of the Palace Museum",
-    "look": { "sprite": "uncle" },
-    "voice": "uncle-dry",
+    "look": {
+      "sprite": "uncle"
+    },
+    "voice": "chen",
     "character": "Patient, a little formal; used to disappointing tourists who came without a ticket.",
-    "knows": ["Tickets for 故宫 are booked online, in your own name, days ahead", "Mondays it is closed"],
-    "wants": ["Everyone to have booked", "The square to stay tidy"],
-    "actions": ["flag"],
+    "knows": [
+      "Tickets for 故宫 are booked online, in your own name, days ahead",
+      "Mondays it is closed"
+    ],
+    "wants": [
+      "Everyone to have booked",
+      "The square to stay tidy"
+    ],
+    "actions": [
+      "flag"
+    ],
     "routine": [],
-    "explains": { "故宫": "以前皇帝住的地方，很大很大。", "票": "进去要的，要买。" },
-    "misses": ["您说什么？", "请再说一遍。"]
+    "explains": {
+      "故宫": "以前皇帝住的地方，很大很大。",
+      "票": "进去要的，要买。"
+    },
+    "misses": [
+      "您说什么？",
+      "请再说一遍。"
+    ]
   },
   {
     "id": "tam-photographer",
     "name": "拍照的人",
     "role": "a man taking photos of the gate",
-    "look": { "sprite": "tourist", "palette": "green" },
+    "look": {
+      "sprite": "tourist",
+      "palette": "green"
+    },
     "character": "Cheerful, absorbed in his pictures.",
-    "knows": ["The flag ceremony is at sunrise"],
-    "wants": ["A clear view of the gate"],
+    "knows": [
+      "The flag ceremony is at sunrise"
+    ],
+    "wants": [
+      "A clear view of the gate"
+    ],
     "actions": [],
     "routine": [],
     "explains": {},
-    "misses": ["嗯？"]
+    "misses": [
+      "嗯？"
+    ],
+    "voice": "zhiyuan"
   }
 ]

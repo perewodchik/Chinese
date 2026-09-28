@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { say } from '../../platform/audio/voiceOut';
-import { board, callNext, fareOut, getOff, runOn, startRide, stationSign, trainsAt, type RideState, type Train } from '../core/ride';
-import { station } from '../core/travel';
+import { playLine } from './lineVoice';
+import { arrivalCall, board, callNext, fareOut, getOff, runOn, startRide, stationSign, trainsAt, type RideState, type Train } from '../core/ride';
 import { ZhText } from './ZhText';
 
 /** a stop takes this long on screen: the call, then the arrival */
@@ -56,14 +55,15 @@ export function RideSheet({
         return;
       }
       setLine(call);
-      void say(call).catch(() => undefined);
+      void playLine({ speaker: 'announcer', zh: call, en: '', node: '' });
       timer.current = window.setTimeout(() => {
         setRide((r) => runOn(r));
         setPhase('stopped');
       }, step);
     } else if (phase === 'stopped') {
-      const here = `${station(ride.at).zh}到了。`;
+      const here = arrivalCall(ride.at);
       setLine(here);
+      void playLine({ speaker: 'announcer', zh: here, en: '', node: '' });
       timer.current = window.setTimeout(() => setPhase('moving'), step * 1.4);
     }
   }, [phase, ride.train, ride.at, step]);

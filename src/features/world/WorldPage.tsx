@@ -12,6 +12,7 @@ import { castMap, looksOf } from '../../world/core/cast';
 import { Dialogue, lookOf } from '../../world/ui/Dialogue';
 import { InputBar } from '../../world/ui/InputBar';
 import { RideSheet } from '../../world/ui/RideSheet';
+import { setVoiceCards } from '../../world/ui/lineVoice';
 import { Ambient } from '../../world/audio/ambient';
 import { mixFor } from '../../world/audio/mix';
 import type { MapLife } from '../../world/core/maptext';
@@ -71,6 +72,7 @@ export function WorldPage() {
   talkRef.current = talk;
   const contentRef = useRef(content);
   contentRef.current = content;
+  useEffect(() => setVoiceCards(content.npcs), [content]);
   const [query] = useQuery();
   const frame = /^(\d+)x(\d+)$/.exec(query.get('frame') ?? '');
   const box = useRef<HTMLDivElement>(null);

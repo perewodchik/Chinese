@@ -1,0 +1,5 @@
+[
+  { "id": "baita", "name": "白塔", "en": "The White Dagoba of Beihai", "place": "beihai-north", "design": "baita", "landmark": true },
+  { "id": "jingshan", "name": "景山", "en": "The view from Jingshan", "place": "jingshan-view", "design": "jingshan", "landmark": true },
+  { "id": "jiuweihu", "name": "九尾狐", "en": "The nine-tailed fox's friend", "place": "jiaolou", "design": "jiuweihu" }
+]

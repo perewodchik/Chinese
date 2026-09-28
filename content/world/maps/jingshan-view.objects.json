@@ -1,0 +1,38 @@
+[
+ {
+  "kind": "door",
+  "id": "down",
+  "tile": [
+   24,
+   17
+  ],
+  "to": {
+   "map": "jingshan-park",
+   "tile": [
+    13,
+    6
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "view",
+  "tile": [
+   23,
+   13
+  ],
+  "text": "故宫",
+  "en": "The Palace Museum, from above"
+ },
+ {
+  "kind": "npc",
+  "id": "singer",
+  "npc": "jingshan-yeye",
+  "tile": [
+   20,
+   15
+  ],
+  "facing": "up"
+ }
+]

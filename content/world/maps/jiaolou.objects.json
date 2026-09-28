@@ -1,0 +1,123 @@
+[
+ {
+  "kind": "prop",
+  "id": "tower",
+  "tile": [
+   12,
+   7
+  ],
+  "frame": "corner-tower/jiaolou",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   12,
+   13
+  ],
+  "text": "角楼",
+  "en": "The corner tower of the palace"
+ },
+ {
+  "kind": "prop",
+  "id": "willow-1",
+  "tile": [
+   20,
+   19
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "willow-2",
+  "tile": [
+   27,
+   19
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "fox",
+  "tile": [
+   15,
+   16
+  ],
+  "frame": "fox/sway-0",
+  "blocks": [
+   1,
+   1
+  ],
+  "when": {
+   "all": [
+    {
+     "hours": [
+      19,
+      5
+     ]
+    },
+    {
+     "not": {
+      "spirit": "jiuweihu"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "l1",
+  "tile": [
+   8,
+   13
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l2",
+  "tile": [
+   24,
+   13
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "door",
+  "id": "to-jingshan",
+  "tile": [
+   16,
+   19
+  ],
+  "to": {
+   "map": "jingshan-park",
+   "tile": [
+    13,
+    26
+   ],
+   "facing": "up"
+  }
+ }
+]

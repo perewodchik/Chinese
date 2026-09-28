@@ -18,9 +18,9 @@ import { heardNote, matchIntent, normalize } from './match';
 import type { CompanionCue, DialogueSource, DialogueState, Line, Turn, Utterance } from './source';
 import { askIntent, explainWord, POLITE_REPLY, politeIntent } from './universal';
 
-const DEFAULT_MISSES = ['你说什么？', '什么？请再说一遍。'];
-const NOT_CHINESE = { zh: '对不起，我听不懂……', en: "Sorry, I don't understand…" };
-const DONT_KNOW = { zh: '这个……我不知道怎么说。', en: "Hmm… I don't know how to say it." };
+export const DEFAULT_MISSES = ['你说什么？', '什么？请再说一遍。'];
+export const NOT_CHINESE = { zh: '对不起，我听不懂……', en: "Sorry, I don't understand…" };
+export const DONT_KNOW = { zh: '这个……我不知道怎么说。', en: "Hmm… I don't know how to say it." };
 
 export interface ScriptContent {
   scenes: readonly Scene[];

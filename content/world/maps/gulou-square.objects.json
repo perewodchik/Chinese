@@ -141,5 +141,16 @@
    "map": "hutong-home",
    "offset": -8
   }
+ },
+ {
+  "kind": "edge",
+  "id": "west",
+  "side": "left",
+  "from": 14,
+  "to": 17,
+  "target": {
+   "map": "houhai-lake",
+   "offset": -9
+  }
  }
 ]

@@ -1,0 +1,296 @@
+[
+ {
+  "kind": "sign",
+  "id": "lane",
+  "tile": [
+   2,
+   3
+  ],
+  "text": "烟袋斜街",
+  "en": "Yandai Xiejie (the lane to 鼓楼)"
+ },
+ {
+  "kind": "sign",
+  "id": "shop-a",
+  "tile": [
+   6,
+   3
+  ],
+  "text": "茶",
+  "en": "Tea"
+ },
+ {
+  "kind": "sign",
+  "id": "shop-b",
+  "tile": [
+   17,
+   3
+  ],
+  "text": "酒吧",
+  "en": "Bar"
+ },
+ {
+  "kind": "sign",
+  "id": "bridge",
+  "tile": [
+   19,
+   8
+  ],
+  "text": "银锭桥",
+  "en": "Silver Ingot Bridge"
+ },
+ {
+  "kind": "sign",
+  "id": "lake",
+  "tile": [
+   10,
+   21
+  ],
+  "text": "后海",
+  "en": "Houhai lake"
+ },
+ {
+  "kind": "door",
+  "id": "station",
+  "tile": [
+   36,
+   8
+  ],
+  "to": {
+   "map": "station-shichahai",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station-2",
+  "tile": [
+   37,
+   8
+  ],
+  "to": {
+   "map": "station-shichahai",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "metro-sign",
+  "tile": [
+   35,
+   8
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "willow-1",
+  "tile": [
+   3,
+   8
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "willow-2",
+  "tile": [
+   11,
+   8
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "willow-3",
+  "tile": [
+   26,
+   8
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "willow-4",
+  "tile": [
+   31,
+   23
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "willow-5",
+  "tile": [
+   6,
+   23
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "boat-1",
+  "tile": [
+   8,
+   15
+  ],
+  "frame": "boat/red",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "boat-2",
+  "tile": [
+   27,
+   12
+  ],
+  "frame": "boat/red",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "l1",
+  "tile": [
+   4,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l2",
+  "tile": [
+   15,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l3",
+  "tile": [
+   24,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l4",
+  "tile": [
+   33,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "npc",
+  "id": "fisher",
+  "npc": "fisher-yeye",
+  "tile": [
+   15,
+   8
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "boatman",
+  "npc": "boat-shifu",
+  "tile": [
+   23,
+   7
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "tourist",
+  "npc": "houhai-tourist",
+  "tile": [
+   30,
+   6
+  ],
+  "facing": "left"
+ },
+ {
+  "kind": "edge",
+  "id": "east",
+  "side": "right",
+  "from": 5,
+  "to": 8,
+  "target": {
+   "map": "gulou-square",
+   "offset": 9
+  }
+ },
+ {
+  "kind": "edge",
+  "id": "south",
+  "side": "down",
+  "from": 17,
+  "to": 19,
+  "target": {
+   "map": "beihai-north",
+   "offset": 0
+  }
+ }
+]

@@ -1,0 +1,51 @@
+id: beihai-north
+size: 36x20
+tilesets: tiles
+district: jingshan
+crowd: 4
+pigeons: 4
+
+# 北海's north shore: the White Dagoba 白塔 across the water; north over the bridge to 后海, east to 景山
+
+[ground]
+wwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwww
+pppppppppppppppppppppppppppppppppppp
+pppppppPppppppppPppppppppPppppppppPp
+ppppppPppppppppPppppppppPpzzpppppPpp
+pppppPppppppppPppppppppPppppppppPppp
+ppppPppppppppPppppppppPppppppppPpppp
+pppPppppppppPppppppppPppppppppPppppp
+ppPppppppppPppppppppPppppppppPpppppp
+pPppppppppPppppppppPppppppppPppppppp
+PppppppppPppppppppPppppppppPpppppppp
+ppppppppPppppppppPppppppppPppppppppP
+[below]
+wwwwwwwwwwwwwwwww...wwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwww...wwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwww...wwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwww...wwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwww...wwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwww...wwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwww...wwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwww...wwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwww...wwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwww...wwwwwwwwwwwwwwww
+lllllllllllllllll...llllllllllllllll
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................

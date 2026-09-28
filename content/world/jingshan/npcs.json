@@ -1,0 +1,88 @@
+[
+  {
+    "id": "beihai-painter",
+    "name": "画画的人",
+    "role": "a man painting the White Dagoba",
+    "look": {
+      "sprite": "uncle"
+    },
+    "voice": "chen",
+    "character": "Absorbed and gentle; happy to show his painting.",
+    "knows": [
+      "The White Dagoba 白塔 was built for a Tibetan lama's visit, long ago"
+    ],
+    "wants": [
+      "Good light"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "白塔": "北海里面白色的塔。"
+    },
+    "misses": [
+      "嗯？"
+    ]
+  },
+  {
+    "id": "jingshan-ayi",
+    "name": "打太极的阿姨",
+    "role": "a woman doing 太极 on 景山 every morning",
+    "look": {
+      "sprite": "auntie",
+      "palette": "green"
+    },
+    "voice": "wang",
+    "character": "Calm, slow, kind; explains things with her hands.",
+    "knows": [
+      "The old city wall stood where the second ring road is now",
+      "The palace wall has a tower on each corner"
+    ],
+    "wants": [
+      "Everyone to move a little every day"
+    ],
+    "actions": [
+      "remember"
+    ],
+    "routine": [],
+    "explains": {
+      "城墙": "很长很高的墙，以前在北京老城的外面。",
+      "西北角": "西边和北边的中间那儿。",
+      "附近": "就是不远的地方。",
+      "狐狸": "像小狗，红色或者白色的。",
+      "白": "雪的颜色。",
+      "尾巴": "动物后面长长的东西。",
+      "西北": "西边和北边的中间。",
+      "角": "两个墙在一起的地方。"
+    },
+    "misses": [
+      "慢慢说，你说什么？"
+    ]
+  },
+  {
+    "id": "jingshan-yeye",
+    "name": "唱歌的爷爷",
+    "role": "an old man who sings on the top of 景山",
+    "look": {
+      "sprite": "grandpa"
+    },
+    "voice": "chen",
+    "character": "Loud, jolly, sings old songs to the city below; saw the fox last night.",
+    "knows": [
+      "A white fox was near the palace's north-west corner last night",
+      "From here you can see the whole palace"
+    ],
+    "wants": [
+      "An audience"
+    ],
+    "actions": [
+      "flag"
+    ],
+    "routine": [],
+    "explains": {
+      "故宫": "以前皇帝住的地方，很大。"
+    },
+    "misses": [
+      "哈？大声点儿！"
+    ]
+  }
+]

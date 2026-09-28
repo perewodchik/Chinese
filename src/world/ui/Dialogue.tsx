@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { say } from '../../platform/audio/voiceOut';
+import { playLine } from './lineVoice';
 import type { Line } from '../core/dialogue/source';
 import type { NpcCard } from '../core/types';
 import { Portrait } from './Portrait';
@@ -26,9 +26,9 @@ export function nameOf(card: NpcCard | null, sprite: string): string {
   return card?.name ?? BY_LOOK[sprite.split('-')[0] ?? ''] ?? '路人';
 }
 
-/** Plays a line: slowly after 慢一点, and it never throws (no voice is fine). */
+/** Plays a line in its speaker's voice: slowly after 慢一点; it never throws (no voice is fine). */
 export function voice(line: Line, slower = false) {
-  void say(line.zh, line.slow || slower ? { pace: 0.75 } : {}).catch(() => undefined);
+  void playLine(line, slower);
 }
 
 /**
@@ -94,6 +94,18 @@ export function Dialogue({
       vv.removeEventListener('scroll', fit);
     };
   }, []);
+
+  // Each new line is heard as it arrives.
+  const heard = useRef({ scene: '', n: 0 });
+  useEffect(() => {
+    const n = view.history.length;
+    if (heard.current.scene !== view.scene.id) heard.current = { scene: view.scene.id, n: 0 };
+    if (n > heard.current.n) {
+      const s = view.history[n - 1];
+      if (s?.who === 'npc' && s.line) voice(s.line);
+    }
+    heard.current.n = n;
+  }, [view.history, view.scene.id]);
 
   useEffect(() => {
     const el = list.current;

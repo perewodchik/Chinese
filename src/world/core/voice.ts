@@ -1,0 +1,40 @@
+/**
+ * Who says a line in which voice (prompt G2, concept §12): each person's card
+ * names one of the designed voices of the app's voice pack; 兔儿爷 and the
+ * spirits have their own. The player's own thoughts and signs are silent.
+ * Every line a script can say is rendered ahead of time to
+ * `public/world/voice/<key>.mp3`, the key made from the voice and the text.
+ */
+
+import type { NpcCard } from './types';
+
+/** the voice pack's designed voices (scripts/voices/voices.json) */
+export const VOICES = ['wang', 'xiaoyu', 'chen', 'zhiyuan', 'wei'] as const;
+export type VoiceId = (typeof VOICES)[number];
+
+const isVoice = (v: string | undefined): v is VoiceId => !!v && (VOICES as readonly string[]).includes(v);
+
+/** 兔儿爷 and the spirits, who have no cards */
+const OTHERS: Record<string, VoiceId> = { companion: 'zhiyuan', shishizi: 'wei', announcer: 'xiaoyu' };
+
+/** The voice a speaker is heard in, or null for the silent ones (the hero, signs, anyone without a voice). */
+export function voiceOf(speaker: string, cards: ReadonlyMap<string, NpcCard> | readonly NpcCard[]): VoiceId | null {
+  if (speaker === 'hero' || speaker === 'sign') return null;
+  if (OTHERS[speaker]) return OTHERS[speaker];
+  const card = cards instanceof Map ? cards.get(speaker) : (cards as readonly NpcCard[]).find((c) => c.id === speaker);
+  return isVoice(card?.voice) ? card.voice : null;
+}
+
+/** The file name of a line in a voice: 16 hex digits of FNV-1a over both, the same in the build and the page. */
+export function voiceKey(voice: string, text: string): string {
+  const s = `${voice}|${text}`;
+  let a = 0x811c9dc5;
+  let b = 0x01000193 ^ 0x5bd1e995;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    a = Math.imul(a ^ c, 0x01000193) >>> 0;
+    b = Math.imul(b ^ c, 0x5bd1e995) >>> 0;
+    b ^= b >>> 13;
+  }
+  return a.toString(16).padStart(8, '0') + (b >>> 0).toString(16).padStart(8, '0');
+}

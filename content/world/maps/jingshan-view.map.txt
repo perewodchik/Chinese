@@ -1,0 +1,46 @@
+id: jingshan-view
+size: 48x18
+tilesets: tiles
+district: jingshan
+pigeons: 3
+
+# From 万春亭 on top of 景山: the golden roofs of the palace to the south, as far as you can see
+
+[ground]
+gggggggggggggggggggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggggggggggggggggggg
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+[below]
+..YYYYYYYYYYYY....YYYYYYYYYYYY....YYYYYYYYYYYY..
+..yyyyyyyyyyyy....yyyyyyyyyyyy....yyyyyyyyyyyy..
+..EEEEEEEEEEEE....EEEEEEEEEEEE....EEEEEEEEEEEE..
+..cWWWWWWWWWWc....cWWWWWWWWWWc....cWWWWWWWWWWc..
+................................................
+........YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY........
+........yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy........
+........EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE........
+........cWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWc........
+UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
+VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+....YYYYYYYYYY....................YYYYYYYYYY....
+....yyyyyyyyyy....................yyyyyyyyyy....
+llllllllllllllllllllllll.lllllllllllllllllllllll
+....cWWWWWWWWc....................cWWWWWWWWc....
+................................................
+................................................
+................................................

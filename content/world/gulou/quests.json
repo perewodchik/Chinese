@@ -58,6 +58,11 @@
       {
         "do": "chapter",
         "chapter": 2
+      },
+      {
+        "do": "quest",
+        "quest": "ch2",
+        "step": "go-houhai"
       }
     ]
   }

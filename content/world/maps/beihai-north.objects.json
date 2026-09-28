@@ -1,0 +1,154 @@
+[
+ {
+  "kind": "prop",
+  "id": "pagoda",
+  "tile": [
+   6,
+   8
+  ],
+  "frame": "pagoda/white",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "beihai",
+  "tile": [
+   9,
+   11
+  ],
+  "text": "北海公园",
+  "en": "Beihai Park"
+ },
+ {
+  "kind": "door",
+  "id": "station",
+  "tile": [
+   26,
+   12
+  ],
+  "to": {
+   "map": "station-beihaibei",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station-2",
+  "tile": [
+   27,
+   12
+  ],
+  "to": {
+   "map": "station-beihaibei",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "metro-sign",
+  "tile": [
+   25,
+   12
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "willow-1",
+  "tile": [
+   2,
+   19
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "willow-2",
+  "tile": [
+   30,
+   19
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "willow-3",
+  "tile": [
+   13,
+   14
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "boat",
+  "tile": [
+   22,
+   4
+  ],
+  "frame": "boat/red",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "painter",
+  "npc": "beihai-painter",
+  "tile": [
+   9,
+   13
+  ],
+  "facing": "up"
+ },
+ {
+  "kind": "edge",
+  "id": "north",
+  "side": "up",
+  "from": 17,
+  "to": 19,
+  "target": {
+   "map": "houhai-lake",
+   "offset": 0
+  }
+ },
+ {
+  "kind": "edge",
+  "id": "east",
+  "side": "right",
+  "from": 11,
+  "to": 19,
+  "target": {
+   "map": "jingshan-park",
+   "offset": 4
+  }
+ }
+]

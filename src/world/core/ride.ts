@@ -7,7 +7,7 @@
  * leave through a station's gates, by the stops ridden since you came in.
  */
 
-import { announcement, line, linesAt, station, subwayFare } from './travel';
+import { announcement, line, LINES, linesAt, station, subwayFare } from './travel';
 
 export type Dir = 1 | -1;
 
@@ -81,6 +81,25 @@ export const getOff = (r: RideState): RideState => ({ ...r, train: null });
 
 /** What leaving through the gates costs: nothing when you never rode. */
 export const fareOut = (r: RideState) => (r.stops > 0 ? subwayFare(r.stops) : 0);
+
+/** What the train says as it stops: 「王府井到了。」 */
+export const arrivalCall = (at: string) => `${station(at).zh}到了。`;
+
+/** Every call a train can make, for rendering the announcer's voice ahead of time. */
+export function allCalls(): string[] {
+  const out = new Set<string>();
+  for (const l of LINES) {
+    if (l.mode !== 'subway') continue;
+    for (const at of l.stops) {
+      out.add(arrivalCall(at));
+      for (const dir of [1, -1] as const) {
+        const c = callNext(l.id, at, dir);
+        if (c) out.add(c);
+      }
+    }
+  }
+  return [...out];
+}
 
 /** A station's name as its signs show it: 南锣鼓巷站. */
 export const stationSign = (id: string) => `${station(id).zh}站`;

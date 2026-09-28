@@ -6,7 +6,7 @@
     "look": {
       "sprite": "auntie"
     },
-    "voice": "auntie-warm",
+    "voice": "wang",
     "character": "Warm, practical, talks a little fast when she is pleased. Has lived in this courtyard all her life and treats you like a nephew or niece from far away.",
     "knows": [
       "Everyone in 帽儿胡同 by name",
@@ -47,7 +47,7 @@
       "sprite": "uncle",
       "palette": "apron"
     },
-    "voice": "uncle-busy",
+    "voice": "chen",
     "character": "Busy and cheerful, hands never still; short sentences, says the price before you ask.",
     "knows": [
       "包子 2 yuan, 豆浆 2 yuan, 油条 1.5 yuan",
@@ -83,7 +83,7 @@
       "sprite": "woman",
       "palette": "teal"
     },
-    "voice": "woman-calm",
+    "voice": "xiaoyu",
     "character": "Calm, sharp-eyed, knows every rumour of the lane but tells them slowly, as if they were nothing.",
     "knows": [
       "Prices of water, cola, bread, milk",
@@ -119,7 +119,7 @@
     "look": {
       "sprite": "uncle"
     },
-    "voice": "uncle-dry",
+    "voice": "zhiyuan",
     "character": "Dry humour, modest about his work, likes to test your Chinese with small jokes.",
     "knows": [
       "He opened the shop thirty years ago",
@@ -153,7 +153,7 @@
       "sprite": "grandpa",
       "palette": "blue"
     },
-    "voice": "grandpa-slow",
+    "voice": "wei",
     "character": "Slow, deliberate, pours tea as if nothing else in the world mattered. Speaks in short, careful sentences.",
     "knows": [
       "The stone lion by the Drum Tower is older than the tower's last repairs",
@@ -192,7 +192,7 @@
     "look": {
       "sprite": "grandpa"
     },
-    "voice": "grandpa-cheerful",
+    "voice": "chen",
     "character": "Cheerful, proud of his bird, happy to point the way and tell stories.",
     "knows": [
       "The subway station is east, at the end of 南锣鼓巷",
@@ -252,7 +252,7 @@
     "look": {
       "sprite": "kid"
     },
-    "voice": "kid",
+    "voice": "xiaoyu",
     "character": "Curious, fearless, asks you questions back. Believes every ghost story.",
     "knows": [
       "The stone lion winks at night — he saw it",
@@ -308,7 +308,8 @@
     "explains": {},
     "misses": [
       "对不起，我也不是北京人。"
-    ]
+    ],
+    "voice": "zhiyuan"
   },
   {
     "id": "tourist-2",
@@ -330,7 +331,8 @@
     "explains": {},
     "misses": [
       "啊？你说什么？"
-    ]
+    ],
+    "voice": "xiaoyu"
   },
   {
     "id": "sanlun-shifu",
@@ -340,7 +342,7 @@
       "sprite": "uncle",
       "palette": "brown"
     },
-    "voice": "uncle-loud",
+    "voice": "zhiyuan",
     "character": "Loud, friendly, Beijing through and through; always offering a ride.",
     "knows": [
       "Every lane of the old city",
@@ -411,7 +413,8 @@
     "explains": {},
     "misses": [
       "不好意思，我很忙！"
-    ]
+    ],
+    "voice": "chen"
   },
   {
     "id": "passer-dancer",
@@ -433,7 +436,8 @@
     "explains": {},
     "misses": [
       "来跳舞吧！"
-    ]
+    ],
+    "voice": "wang"
   },
   {
     "id": "passer-photo",
@@ -454,7 +458,8 @@
     "explains": {},
     "misses": [
       "嗯？"
-    ]
+    ],
+    "voice": "wei"
   },
   {
     "id": "station-staff",
@@ -464,7 +469,7 @@
       "sprite": "woman",
       "palette": "black"
     },
-    "voice": "woman-clear",
+    "voice": "xiaoyu",
     "character": "Clear, patient, used to tourists; speaks slowly and points.",
     "knows": [
       "A 交通卡 costs a 20 yuan deposit plus what you put on it",
