@@ -30,8 +30,8 @@ describe('conditions', () => {
     assert.equal(holds({ flag: 'nope' }, s), false);
     assert.equal(holds({ item: 'baozi', count: 2 }, s), true);
     assert.equal(holds({ item: 'baozi', count: 3 }, s), false);
-    assert.equal(holds({ money: 50 }, s), true);
-    assert.equal(holds({ money: 51 }, s), false);
+    assert.equal(holds({ money: s.bag.money }, s), true);
+    assert.equal(holds({ money: s.bag.money + 1 }, s), false);
     assert.equal(holds({ hours: [6, 10] }, s), true);
     assert.equal(holds({ hours: [10, 6] }, s), false);
     assert.equal(holds({ chapter: 1 }, s), true);

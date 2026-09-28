@@ -1,0 +1,531 @@
+{
+ "version": 1,
+ "updatedAt": 1,
+ "deviceId": "golden",
+ "place": {
+  "map": "wumen",
+  "tile": [
+   16,
+   12
+  ],
+  "facing": "up"
+ },
+ "district": "gulou",
+ "clock": 4020,
+ "chapter": 5,
+ "flags": [
+  "lantern-broken",
+  "heard-lion",
+  "haircut",
+  "has-card",
+  "palace-needs-ticket",
+  "bird-back",
+  "heard-fox",
+  "bait-given",
+  "boat-ride",
+  "painting-given",
+  "taiji",
+  "saw-corner",
+  "heard-menshen",
+  "changed-money",
+  "tea-given",
+  "saw-show",
+  "idiom-book",
+  "song",
+  "jianzi",
+  "echo-ready",
+  "heard-qilin",
+  "book-given",
+  "wang-got-medicine"
+ ],
+ "scenes": [
+  "first-morning",
+  "bed",
+  "arrive",
+  "wang-go-eat",
+  "gulou-visit",
+  "lion-day",
+  "ask-way",
+  "zhao-later",
+  "breakfast",
+  "lantern",
+  "wang-after",
+  "breakfast-more",
+  "rumour-shop",
+  "shop",
+  "barber",
+  "haircut",
+  "rumour-tea",
+  "lion-night",
+  "lion-friend",
+  "tea",
+  "nlgx-gates-nocard",
+  "nlgx-gates-out",
+  "card",
+  "nlgx-gates-in",
+  "topup-station-staff",
+  "tam-arrive",
+  "tam-guard",
+  "tam-photo",
+  "first-ride",
+  "tamd-gates-in",
+  "tamd-gates-out",
+  "topup-tam-staff",
+  "staff",
+  "tam-staff",
+  "wumen-out",
+  "anjian",
+  "anjian-later",
+  "taihedian-arrive",
+  "gugong-guide",
+  "yuhuayuan-arrive",
+  "bird-lost",
+  "bird-kid",
+  "bird-back",
+  "houhai-arrive",
+  "fisher-fox",
+  "bait-ask",
+  "bait-buy",
+  "bait-give",
+  "fisher-later",
+  "boat-ride",
+  "boat",
+  "houhai-tourist",
+  "beihai-arrive",
+  "painter",
+  "painting-gift",
+  "painting-wang",
+  "bench",
+  "taiji",
+  "jingshan-view",
+  "view-again",
+  "singer",
+  "fox",
+  "wang-cold",
+  "book-want",
+  "singer-later",
+  "qm-arrive",
+  "menshen-ask",
+  "granny",
+  "opera",
+  "opera-owner",
+  "wfj-arrive",
+  "shopper",
+  "red-paper",
+  "menshen-give",
+  "menshen-friend",
+  "tea-want",
+  "shudian-later",
+  "pharmacy-later",
+  "bank",
+  "tea-buy",
+  "tea-give",
+  "show",
+  "book",
+  "tiantan-arrive",
+  "erhu",
+  "song",
+  "jianzi-play",
+  "jianzi",
+  "echo-boy",
+  "wall-listen",
+  "echo-boy-later",
+  "storybook",
+  "book-give",
+  "pharmacy",
+  "wang-medicine",
+  "bank-later",
+  "incense",
+  "gzj-arrive",
+  "qilin"
+ ],
+ "quests": {
+  "ch1": {
+   "step": "ride",
+   "index": 6,
+   "done": true
+  },
+  "side-haircut": {
+   "step": "cut",
+   "index": 0,
+   "done": true
+  },
+  "ch2": {
+   "step": "fox",
+   "index": 3,
+   "done": true
+  },
+  "side-bird": {
+   "step": "back",
+   "index": 1,
+   "done": true
+  },
+  "side-bait": {
+   "step": "give",
+   "index": 1,
+   "done": true
+  },
+  "side-boat": {
+   "step": "ride",
+   "index": 0,
+   "done": true
+  },
+  "side-painting": {
+   "step": "give",
+   "index": 0,
+   "done": true
+  },
+  "side-taiji": {
+   "step": "learn",
+   "index": 0,
+   "done": true
+  },
+  "ch3": {
+   "step": "menshen",
+   "index": 5,
+   "done": true
+  },
+  "wang-cold": {
+   "step": "give",
+   "index": 1,
+   "done": true
+  },
+  "side-book": {
+   "step": "give",
+   "index": 1,
+   "done": true
+  },
+  "side-tea": {
+   "step": "give",
+   "index": 1,
+   "done": true
+  },
+  "side-show": {
+   "step": "watch",
+   "index": 0,
+   "done": true
+  },
+  "ch4": {
+   "step": "qilin",
+   "index": 3,
+   "done": true
+  },
+  "side-song": {
+   "step": "sing",
+   "index": 0,
+   "done": true
+  },
+  "side-jianzi": {
+   "step": "play",
+   "index": 0,
+   "done": true
+  },
+  "ch5": {
+   "step": "go",
+   "index": 0,
+   "done": false
+  }
+ },
+ "riddles": {
+  "lantern/d": {
+   "scene": "lantern",
+   "node": "d",
+   "pinnedAt": 1860,
+   "solved": true
+  },
+  "rumour-shop/rumour": {
+   "scene": "rumour-shop",
+   "node": "rumour",
+   "pinnedAt": 1860,
+   "solved": true
+  },
+  "barber/key": {
+   "scene": "barber",
+   "node": "key",
+   "pinnedAt": 1860,
+   "solved": false
+  },
+  "lion-night/b": {
+   "scene": "lion-night",
+   "node": "b",
+   "pinnedAt": 2580,
+   "solved": false
+  },
+  "tea/key": {
+   "scene": "tea",
+   "node": "key",
+   "pinnedAt": 2580,
+   "solved": false
+  },
+  "bird-lost/a": {
+   "scene": "bird-lost",
+   "node": "a",
+   "pinnedAt": 2580,
+   "solved": false
+  },
+  "fisher-fox/b": {
+   "scene": "fisher-fox",
+   "node": "b",
+   "pinnedAt": 2580,
+   "solved": true
+  },
+  "singer/key": {
+   "scene": "singer",
+   "node": "key",
+   "pinnedAt": 4020,
+   "solved": true
+  },
+  "fox/b": {
+   "scene": "fox",
+   "node": "b",
+   "pinnedAt": 4020,
+   "solved": false
+  },
+  "granny/a": {
+   "scene": "granny",
+   "node": "a",
+   "pinnedAt": 4020,
+   "solved": false
+  },
+  "wfj-arrive/a": {
+   "scene": "wfj-arrive",
+   "node": "a",
+   "pinnedAt": 4020,
+   "solved": false
+  },
+  "menshen-give/c": {
+   "scene": "menshen-give",
+   "node": "c",
+   "pinnedAt": 4020,
+   "solved": false
+  },
+  "erhu/b": {
+   "scene": "erhu",
+   "node": "b",
+   "pinnedAt": 4020,
+   "solved": false
+  }
+ },
+ "bag": {
+  "items": {
+   "huzhao": 1,
+   "baozi": 2,
+   "doujiang": 1,
+   "water": 1,
+   "chengyu-shu": 1,
+   "ganmaoyao": 1
+  },
+  "money": 546,
+  "card": 114
+ },
+ "spirits": {
+  "shishizi": 2580,
+  "jiuweihu": 4020,
+  "menshen": 4020,
+  "qilin": 4020
+ },
+ "idioms": {
+  "马马虎虎": {
+   "at": 1860
+  },
+  "一心一意": {
+   "at": 2580
+  },
+  "狐假虎威": {
+   "at": 4020
+  },
+  "人山人海": {
+   "at": 4020
+  },
+  "画蛇添足": {
+   "at": 4020
+  },
+  "对牛弹琴": {
+   "at": 4020
+  }
+ },
+ "stamps": {
+  "new-home": 1860,
+  "gulou": 1860,
+  "ask-way": 1860,
+  "breakfast": 1860,
+  "haircut": 1860,
+  "shishizi": 2580,
+  "card": 2580,
+  "tiananmen": 2580,
+  "subway": 2580,
+  "gugong": 2580,
+  "taihedian": 2580,
+  "yuhuayuan": 2580,
+  "houhai": 2580,
+  "boat": 2580,
+  "baita": 2580,
+  "taiji": 4020,
+  "jingshan": 4020,
+  "jiuweihu": 4020,
+  "qianmen": 4020,
+  "jingju": 4020,
+  "wangfujing": 4020,
+  "menshen": 4020,
+  "huanqian": 4020,
+  "show": 4020,
+  "chengyu-shu": 4020,
+  "tiantan": 4020,
+  "song": 4020,
+  "jianzi": 4020,
+  "huiyinbi": 4020,
+  "yaodian": 4020,
+  "guozijian": 4020,
+  "qilin": 4020
+ },
+ "stations": [
+  "nanluoguxiang",
+  "tiananmendong"
+ ],
+ "districts": [
+  "gulou"
+ ],
+ "npcs": {
+  "wang-ayi": {
+   "met": 1860,
+   "notes": [
+    "told her their name",
+    "gave her a painting of the White Dagoba",
+    "brought her cold medicine"
+   ]
+  },
+  "zhao-yeye": {
+   "met": 1860,
+   "notes": [
+    "brought his bird back"
+   ]
+  },
+  "zaodian-shifu": {
+   "met": 1860,
+   "notes": []
+  },
+  "li-ayi": {
+   "met": 1860,
+   "notes": []
+  },
+  "zhang-shifu": {
+   "met": 1860,
+   "notes": []
+  },
+  "lao-liu": {
+   "met": 1860,
+   "notes": []
+  },
+  "station-staff": {
+   "met": 2580,
+   "notes": []
+  },
+  "tam-guard": {
+   "met": 2580,
+   "notes": []
+  },
+  "tam-photographer": {
+   "met": 2580,
+   "notes": []
+  },
+  "tam-staff": {
+   "met": 2580,
+   "notes": []
+  },
+  "anjian-yuan": {
+   "met": 2580,
+   "notes": []
+  },
+  "gugong-daoyou": {
+   "met": 2580,
+   "notes": []
+  },
+  "xiaoming": {
+   "met": 2580,
+   "notes": [
+    "gave him a storybook"
+   ]
+  },
+  "fisher-yeye": {
+   "met": 2580,
+   "notes": [
+    "brought him bait"
+   ]
+  },
+  "boat-shifu": {
+   "met": 2580,
+   "notes": []
+  },
+  "houhai-tourist": {
+   "met": 2580,
+   "notes": []
+  },
+  "beihai-painter": {
+   "met": 2580,
+   "notes": []
+  },
+  "jingshan-ayi": {
+   "met": 4020,
+   "notes": []
+  },
+  "jingshan-yeye": {
+   "met": 4020,
+   "notes": []
+  },
+  "dashilar-nainai": {
+   "met": 4020,
+   "notes": [
+    "brought her tea leaves"
+   ]
+  },
+  "jingju-yanyuan": {
+   "met": 4020,
+   "notes": []
+  },
+  "xiyuan-laoban": {
+   "met": 4020,
+   "notes": []
+  },
+  "wfj-shopper": {
+   "met": 4020,
+   "notes": []
+  },
+  "shudian-ayi": {
+   "met": 4020,
+   "notes": []
+  },
+  "yaoshi": {
+   "met": 4020,
+   "notes": []
+  },
+  "yinhang-yuan": {
+   "met": 4020,
+   "notes": []
+  },
+  "huqin-yeye": {
+   "met": 4020,
+   "notes": []
+  },
+  "tiantan-nainai": {
+   "met": 4020,
+   "notes": []
+  },
+  "echo-boy": {
+   "met": 4020,
+   "notes": []
+  },
+  "xiang-ayi": {
+   "met": 4020,
+   "notes": []
+  }
+ },
+ "rides": {},
+ "settings": {
+  "input": "keyboard",
+  "pinyin": true,
+  "joystick": false,
+  "textSize": "m",
+  "live": false,
+  "volume": 0.6
+ }
+}

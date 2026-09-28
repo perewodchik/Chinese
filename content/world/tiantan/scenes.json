@@ -1,361 +1,363 @@
 [
-  {
-    "id": "tiantan-arrive",
-    "map": "tiantan-park",
-    "trigger": "auto",
-    "once": true,
-    "stamp": "tiantan",
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "这是天坛！",
-        "translate": "So this is the Temple of Heaven!",
-        "speaker": "hero",
-        "why": "天坛 — where emperors prayed for good harvests. The round blue hall is 祈年殿; the Echo Wall 回音壁 is further east."
-      }
-    ]
-  },
-  {
-    "id": "erhu",
-    "map": "tiantan-park",
-    "npc": "huqin-yeye",
-    "trigger": "talk",
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你听！我的歌好听吗？",
-        "translate": "Listen! Is my song nice?",
-        "expect": [
-          {
-            "intent": "nice",
-            "match": [
-              [
-                "好听",
-                "好",
-                "很好",
-                "喜欢",
-                "不错"
-              ]
-            ],
-            "go": "b"
-          }
-        ],
-        "hint": {
-          "word": "好听",
-          "frame": "很___！",
-          "full": "很好听！"
-        }
-      },
-      {
-        "id": "b",
-        "say": "谢谢！他们都不听，我是对牛弹琴！",
-        "translate": "Thank you! They never listen — I'm playing the zither to cows!",
-        "key": true,
-        "onEnter": [
-          {
-            "do": "idiom",
-            "idiom": "对牛弹琴"
-          }
-        ],
-        "why": "A 成语 📌: 对牛弹琴 — playing the zither to a cow: talking to people who won't listen. He is joking about his chatting friends."
-      }
-    ]
-  },
-  {
-    "id": "jianzi",
-    "map": "tiantan-park",
-    "npc": "tiantan-nainai",
-    "trigger": "talk",
-    "start": "a",
-    "words": [
-      {
-        "w": "毽子",
-        "explain": "用脚踢的小东西，上面有毛。",
-        "en": "shuttlecock"
-      }
+ {
+  "id": "tiantan-arrive",
+  "map": "tiantan-park",
+  "trigger": "auto",
+  "once": true,
+  "stamp": "tiantan",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这是天坛！",
+    "translate": "So this is the Temple of Heaven!",
+    "speaker": "hero",
+    "why": "天坛 — where emperors prayed for good harvests. The round blue hall is 祈年殿; the Echo Wall 回音壁 is further east."
+   }
+  ]
+ },
+ {
+  "id": "erhu",
+  "map": "tiantan-park",
+  "npc": "huqin-yeye",
+  "trigger": "talk",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你听！我的歌好听吗？",
+    "translate": "Listen! Is my song nice?",
+    "expect": [
+     {
+      "intent": "nice",
+      "match": [
+       [
+        "好听",
+        "好",
+        "很好",
+        "喜欢",
+        "不错"
+       ]
+      ],
+      "go": "b"
+     }
     ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "我们在踢毽子。你也来吧！",
-        "translate": "We're kicking the 毽子. Come and join in!",
-        "simpler": "来踢毽子吧！"
-      }
-    ]
+    "hint": {
+     "word": "好听",
+     "frame": "很___！",
+     "full": "很好听！"
+    }
+   },
+   {
+    "id": "b",
+    "say": "谢谢！他们都不听，我是对牛弹琴！",
+    "translate": "Thank you! They never listen — I'm playing the zither to cows!",
+    "key": true,
+    "onEnter": [
+     {
+      "do": "idiom",
+      "idiom": "对牛弹琴"
+     }
+    ],
+    "why": "A 成语 📌: 对牛弹琴 — playing the zither to a cow: talking to people who won't listen. He is joking about his chatting friends."
+   }
+  ],
+  "priority": 5
+ },
+ {
+  "id": "jianzi",
+  "map": "tiantan-park",
+  "npc": "tiantan-nainai",
+  "trigger": "talk",
+  "start": "a",
+  "words": [
+   {
+    "w": "毽子",
+    "explain": "用脚踢的小东西，上面有毛。",
+    "en": "shuttlecock"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我们在踢毽子。你也来吧！",
+    "translate": "We're kicking the 毽子. Come and join in!",
+    "simpler": "来踢毽子吧！"
+   }
+  ],
+  "priority": 5
+ },
+ {
+  "id": "echo-boy",
+  "map": "huiyinbi",
+  "npc": "echo-boy",
+  "trigger": "talk",
+  "priority": 0,
+  "when": {
+   "not": {
+    "flag": "heard-qilin"
+   }
   },
-  {
-    "id": "echo-boy",
-    "map": "huiyinbi",
-    "npc": "echo-boy",
-    "trigger": "talk",
-    "priority": 0,
-    "when": {
-      "not": {
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你去那边，听！我在这儿说话。",
+    "translate": "Hi! You go over there and listen! I'll talk from here.",
+    "expect": [
+     {
+      "intent": "ok",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "听",
+        "去"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "flag",
+        "flag": "echo-ready"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，我去听。",
+     "full": "好，我去听。"
+    },
+    "why": "The Echo Wall carries a whisper all the way round: go to the wall on the far side (the 墙 sign) and listen."
+   },
+   {
+    "id": "b",
+    "say": "好，去吧！",
+    "translate": "Go on, then!"
+   }
+  ]
+ },
+ {
+  "id": "echo-boy-later",
+  "map": "huiyinbi",
+  "npc": "echo-boy",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你听见了吗？",
+    "translate": "Did you hear it?"
+   }
+  ]
+ },
+ {
+  "id": "wall-listen",
+  "map": "huiyinbi",
+  "object": "wall-spot",
+  "trigger": "look",
+  "priority": 0,
+  "stamp": "huiyinbi",
+  "when": {
+   "all": [
+    {
+     "flag": "echo-ready"
+    },
+    {
+     "not": {
+      "flag": "heard-qilin"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "麒麟……在……国子监……",
+    "translate": "The qilin… is at… the Imperial Academy…",
+    "speaker": "echo-boy",
+    "listen": true,
+    "next": "b",
+    "why": "Listen first: 🔁 plays it again, Show reveals the words. It is free."
+   },
+   {
+    "id": "b",
+    "say": "你听见了什么？",
+    "translate": "What did you hear?",
+    "speaker": "companion",
+    "expect": [
+     {
+      "intent": "heard",
+      "match": [
+       [
+        "国子监",
+        "麒麟"
+       ]
+      ],
+      "go": "c",
+      "actions": [
+       {
+        "do": "flag",
         "flag": "heard-qilin"
-      }
-    },
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！你去那边，听！我在这儿说话。",
-        "translate": "Hi! You go over there and listen! I'll talk from here.",
-        "expect": [
-          {
-            "intent": "ok",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对",
-                "听",
-                "去"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "flag",
-                "flag": "echo-ready"
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "好",
-          "frame": "___，我去听。",
-          "full": "好，我去听。"
-        },
-        "why": "The Echo Wall carries a whisper all the way round: go to the wall on the far side (the 墙 sign) and listen."
-      },
-      {
-        "id": "b",
-        "say": "好，去吧！",
-        "translate": "Go on, then!"
-      }
-    ]
-  },
-  {
-    "id": "echo-boy-later",
-    "map": "huiyinbi",
-    "npc": "echo-boy",
-    "trigger": "talk",
-    "priority": 5,
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你听见了吗？",
-        "translate": "Did you hear it?"
-      }
-    ]
-  },
-  {
-    "id": "wall-listen",
-    "map": "huiyinbi",
-    "object": "wall-spot",
-    "trigger": "look",
-    "priority": 0,
-    "stamp": "huiyinbi",
-    "when": {
-      "all": [
-        {
-          "flag": "echo-ready"
-        },
-        {
-          "not": {
-            "flag": "heard-qilin"
-          }
-        }
+       }
       ]
-    },
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "麒麟……在……国子监……",
-        "translate": "The qilin… is at… the Imperial Academy…",
-        "speaker": "echo-boy",
-        "listen": true,
-        "next": "b",
-        "why": "Listen first: 🔁 plays it again, Show reveals the words. It is free."
-      },
-      {
-        "id": "b",
-        "say": "你听见了什么？",
-        "translate": "What did you hear?",
-        "speaker": "companion",
-        "expect": [
-          {
-            "intent": "heard",
-            "match": [
-              [
-                "国子监",
-                "麒麟"
-              ]
-            ],
-            "go": "c",
-            "actions": [
-              {
-                "do": "flag",
-                "flag": "heard-qilin"
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "国子监",
-          "frame": "麒麟在___。",
-          "full": "麒麟在国子监。"
-        }
-      },
-      {
-        "id": "c",
-        "say": "国子监！我们去那儿吧。",
-        "translate": "The Imperial Academy! Let's go there.",
-        "speaker": "companion"
-      }
-    ]
-  },
-  {
-    "id": "jianzi-play",
-    "map": "tiantan-park",
-    "npc": "tiantan-nainai",
-    "trigger": "talk",
-    "priority": 0,
-    "when": {
-      "not": {
-        "flag": "jianzi"
-      }
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "毽子",
-        "explain": "用脚踢的小东西。",
-        "en": "shuttlecock"
-      }
+     }
     ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "来踢毽子！一，二……",
-        "translate": "Come and kick the 毽子! One, two…",
-        "simpler": "踢毽子！一，二……",
-        "onEnter": [
-          {
-            "do": "quest",
-            "quest": "side-jianzi",
-            "step": "play"
-          }
-        ],
-        "expect": [
-          {
-            "intent": "three",
-            "match": [
-              [
-                "三"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "flag",
-                "flag": "jianzi"
-              },
-              {
-                "do": "stamp",
-                "stamp": "jianzi"
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "三",
-          "frame": "一，二，___！",
-          "full": "三！"
-        }
-      },
-      {
-        "id": "b",
-        "say": "三！很好！",
-        "translate": "Three! Well done!"
-      }
-    ]
+    "hint": {
+     "word": "国子监",
+     "frame": "麒麟在___。",
+     "full": "麒麟在国子监。"
+    }
+   },
+   {
+    "id": "c",
+    "say": "国子监！我们去那儿吧。",
+    "translate": "The Imperial Academy! Let's go there.",
+    "speaker": "companion"
+   }
+  ]
+ },
+ {
+  "id": "jianzi-play",
+  "map": "tiantan-park",
+  "npc": "tiantan-nainai",
+  "trigger": "talk",
+  "priority": 0,
+  "when": {
+   "not": {
+    "flag": "jianzi"
+   }
   },
-  {
-    "id": "song",
-    "map": "tiantan-park",
-    "npc": "huqin-yeye",
-    "trigger": "talk",
-    "priority": 0,
-    "when": {
-      "all": [
-        {
-          "idiom": "对牛弹琴"
-        },
-        {
-          "not": {
-            "flag": "song"
-          }
-        }
+  "start": "a",
+  "words": [
+   {
+    "w": "毽子",
+    "explain": "用脚踢的小东西。",
+    "en": "shuttlecock"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "来踢毽子！一，二……",
+    "translate": "Come and kick the 毽子! One, two…",
+    "simpler": "踢毽子！一，二……",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-jianzi",
+      "step": "play"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "three",
+      "match": [
+       [
+        "三"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "flag",
+        "flag": "jianzi"
+       },
+       {
+        "do": "stamp",
+        "stamp": "jianzi"
+       }
       ]
+     }
+    ],
+    "hint": {
+     "word": "三",
+     "frame": "一，二，___！",
+     "full": "三！"
+    }
+   },
+   {
+    "id": "b",
+    "say": "三！很好！",
+    "translate": "Three! Well done!"
+   }
+  ]
+ },
+ {
+  "id": "song",
+  "map": "tiantan-park",
+  "npc": "huqin-yeye",
+  "trigger": "talk",
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "idiom": "对牛弹琴"
     },
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你跟我唱：我爱北京！",
-        "translate": "Sing with me: I love Beijing!",
-        "onEnter": [
-          {
-            "do": "quest",
-            "quest": "side-song",
-            "step": "sing"
-          }
-        ],
-        "expect": [
-          {
-            "intent": "sing",
-            "match": [
-              [
-                "爱"
-              ],
-              [
-                "北京"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "flag",
-                "flag": "song"
-              },
-              {
-                "do": "stamp",
-                "stamp": "song"
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "我爱北京",
-          "frame": "___！",
-          "full": "我爱北京！"
-        }
-      },
-      {
-        "id": "b",
-        "say": "好听！谢谢你！",
-        "translate": "Lovely! Thank you!",
-        "why": "After 对牛弹琴, someone finally sings along."
-      }
-    ]
-  }
+    {
+     "not": {
+      "flag": "song"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你跟我唱：我爱北京！",
+    "translate": "Sing with me: I love Beijing!",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-song",
+      "step": "sing"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "sing",
+      "match": [
+       [
+        "爱"
+       ],
+       [
+        "北京"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "flag",
+        "flag": "song"
+       },
+       {
+        "do": "stamp",
+        "stamp": "song"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "我爱北京",
+     "frame": "___！",
+     "full": "我爱北京！"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好听！谢谢你！",
+    "translate": "Lovely! Thank you!",
+    "why": "After 对牛弹琴, someone finally sings along."
+   }
+  ]
+ }
 ]

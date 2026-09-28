@@ -1,0 +1,42 @@
+{
+ "version": 1,
+ "updatedAt": 1,
+ "deviceId": "golden",
+ "place": {
+  "map": "siheyuan-room",
+  "tile": [
+   4,
+   4
+  ],
+  "facing": "down"
+ },
+ "district": "gulou",
+ "clock": 420,
+ "chapter": 1,
+ "flags": [],
+ "scenes": [],
+ "quests": {},
+ "riddles": {},
+ "bag": {
+  "items": {},
+  "money": 200,
+  "card": null
+ },
+ "spirits": {},
+ "idioms": {},
+ "stamps": {},
+ "stations": [],
+ "districts": [
+  "gulou"
+ ],
+ "npcs": {},
+ "rides": {},
+ "settings": {
+  "input": "keyboard",
+  "pinyin": true,
+  "joystick": false,
+  "textSize": "m",
+  "live": false,
+  "volume": 0.6
+ }
+}

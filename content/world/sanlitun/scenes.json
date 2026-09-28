@@ -1,701 +1,710 @@
 [
-  {
-    "id": "sanlitun-arrive",
-    "map": "sanlitun-street",
-    "trigger": "auto",
-    "once": true,
-    "stamp": "sanlitun",
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "三里屯！人很多。",
-        "translate": "Sanlitun! So many people.",
-        "speaker": "hero",
-        "why": "三里屯 is new Beijing: glass shops, cafés, bars; 国贸 to the south is the business district."
-      }
-    ]
+ {
+  "id": "sanlitun-arrive",
+  "map": "sanlitun-street",
+  "trigger": "auto",
+  "once": true,
+  "stamp": "sanlitun",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "三里屯！人很多。",
+    "translate": "Sanlitun! So many people.",
+    "speaker": "hero",
+    "why": "三里屯 is new Beijing: glass shops, cafés, bars; 国贸 to the south is the business district."
+   }
+  ]
+ },
+ {
+  "id": "courier",
+  "map": "sanlitun-street",
+  "npc": "kuaidi-xiaoge",
+  "trigger": "talk",
+  "priority": 0,
+  "once": true,
+  "when": {
+   "chapter": 5
   },
-  {
-    "id": "courier",
-    "map": "sanlitun-street",
-    "npc": "kuaidi-xiaoge",
-    "trigger": "talk",
-    "priority": 0,
-    "once": true,
-    "when": {
-      "chapter": 5
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "银行",
-        "explain": "放钱、换钱的地方。",
-        "en": "bank"
-      },
-      {
-        "w": "金色",
-        "explain": "像太阳的颜色。",
-        "en": "golden"
-      }
+  "start": "a",
+  "words": [
+   {
+    "w": "银行",
+    "explain": "放钱、换钱的地方。",
+    "en": "bank"
+   },
+   {
+    "w": "金色",
+    "explain": "像太阳的颜色。",
+    "en": "golden"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！我很忙！",
+    "translate": "Hi! I'm in a hurry!",
+    "expect": [
+     {
+      "intent": "ask",
+      "match": [
+       [
+        "看见",
+        "听说",
+        "知道",
+        "奇怪",
+        "金色",
+        "银行"
+       ]
+      ],
+      "go": "b"
+     }
     ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！我很忙！",
-        "translate": "Hi! I'm in a hurry!",
-        "expect": [
-          {
-            "intent": "ask",
-            "match": [
-              [
-                "看见",
-                "听说",
-                "知道",
-                "奇怪",
-                "金色",
-                "银行"
-              ]
-            ],
-            "go": "b"
-          }
-        ],
-        "hint": {
-          "word": "看见",
-          "frame": "你___什么了？",
-          "full": "你看见什么了？"
-        }
-      },
-      {
-        "id": "b",
-        "say": "我朋友说，国贸的银行里，有一个金色的东西，会动！",
-        "translate": "A friend says in a bank at 国贸 there's something golden — and it moves!",
-        "simpler": "银行里有一个金色的东西。",
-        "next": "c"
-      },
-      {
-        "id": "c",
-        "say": "我半信半疑。",
-        "translate": "I half believe it.",
-        "key": true,
-        "onEnter": [
-          {
-            "do": "flag",
-            "flag": "heard-pixiu"
-          },
-          {
-            "do": "idiom",
-            "idiom": "半信半疑"
-          }
-        ],
-        "why": "A 成语 📌: 半信半疑 — half believing, half doubting. You can read it from its parts."
-      }
-    ]
-  },
-  {
-    "id": "courier-later",
-    "map": "sanlitun-street",
-    "npc": "kuaidi-xiaoge",
-    "trigger": "talk",
-    "priority": 5,
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "我很忙！再见！",
-        "translate": "Busy busy! Bye!"
-      }
-    ]
-  },
-  {
-    "id": "office",
-    "map": "sanlitun-street",
-    "npc": "bailing",
-    "trigger": "talk",
-    "start": "a",
-    "words": [
-      {
-        "w": "咖啡",
-        "explain": "黑色的，可以喝。",
-        "en": "coffee"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "我要去喝咖啡。",
-        "translate": "I'm off for a coffee.",
-        "simpler": "咖啡！"
-      }
-    ]
-  },
-  {
-    "id": "door-order-luckin",
-    "map": "sanlitun-street",
-    "object": "door-luckin",
-    "trigger": "look",
-    "start": "a",
-    "words": [
-      {
-        "w": "咖啡",
-        "explain": "黑色的，可以喝。",
-        "en": "coffee"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "点咖啡吗？",
-        "translate": "Order a coffee?",
-        "speaker": "hero",
-        "simpler": "去点咖啡吧。",
-        "expect": [
-          {
-            "intent": "yes",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对",
-                "去",
-                "进去"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "game",
-                "game": "order-luckin"
-              }
-            ]
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不要",
-                "不用"
-              ]
-            ],
-            "go": "c"
-          }
-        ],
-        "hint": {
-          "word": "好",
-          "frame": "___，我去。",
-          "full": "好，我去。"
-        },
-        "why": "This door opens the luckin coffee ordering game from Play (点单). When you leave it, you are back here."
-      },
-      {
-        "id": "b",
-        "say": "好，走！",
-        "translate": "Let's go!",
-        "speaker": "hero"
-      },
-      {
-        "id": "c",
-        "say": "现在不去。",
-        "translate": "Not now.",
-        "speaker": "hero"
-      }
-    ]
-  },
-  {
-    "id": "door-order-mixue",
-    "map": "sanlitun-street",
-    "object": "door-mixue",
-    "trigger": "look",
-    "start": "a",
-    "words": [
-      {
-        "w": "冰淇淋",
-        "explain": "很冷很甜，夏天吃。",
-        "en": "ice cream"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "买冰淇淋吗？",
-        "translate": "Get an ice cream?",
-        "speaker": "hero",
-        "simpler": "去买冰淇淋吧。",
-        "expect": [
-          {
-            "intent": "yes",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对",
-                "去",
-                "进去"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "game",
-                "game": "order-mixue"
-              }
-            ]
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不要",
-                "不用"
-              ]
-            ],
-            "go": "c"
-          }
-        ],
-        "hint": {
-          "word": "好",
-          "frame": "___，我去。",
-          "full": "好，我去。"
-        },
-        "why": "This door opens the Mixue milk tea ordering game from Play (点单). When you leave it, you are back here."
-      },
-      {
-        "id": "b",
-        "say": "好，走！",
-        "translate": "Let's go!",
-        "speaker": "hero"
-      },
-      {
-        "id": "c",
-        "say": "现在不去。",
-        "translate": "Not now.",
-        "speaker": "hero"
-      }
-    ]
-  },
-  {
-    "id": "door-order-haidilao",
-    "map": "sanlitun-street",
-    "object": "door-haidilao",
-    "trigger": "look",
-    "start": "a",
-    "words": [
-      {
-        "w": "火锅",
-        "explain": "一个锅，里面很热，放肉和菜。",
-        "en": "hot pot"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "吃火锅吗？",
-        "translate": "Eat hot pot?",
-        "speaker": "hero",
-        "simpler": "去吃火锅吧。",
-        "expect": [
-          {
-            "intent": "yes",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对",
-                "去",
-                "进去"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "game",
-                "game": "order-haidilao"
-              }
-            ]
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不要",
-                "不用"
-              ]
-            ],
-            "go": "c"
-          }
-        ],
-        "hint": {
-          "word": "好",
-          "frame": "___，我去。",
-          "full": "好，我去。"
-        },
-        "why": "This door opens the Haidilao hot pot ordering game from Play (点单). When you leave it, you are back here."
-      },
-      {
-        "id": "b",
-        "say": "好，走！",
-        "translate": "Let's go!",
-        "speaker": "hero"
-      },
-      {
-        "id": "c",
-        "say": "现在不去。",
-        "translate": "Not now.",
-        "speaker": "hero"
-      }
-    ]
-  },
-  {
-    "id": "guomao-arrive",
-    "map": "guomao-plaza",
-    "trigger": "auto",
-    "once": true,
-    "stamp": "guomao",
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "国贸的楼！很大！",
-        "translate": "The towers of 国贸! Huge!",
-        "speaker": "hero"
-      }
-    ]
-  },
-  {
-    "id": "guard",
-    "map": "guomao-plaza",
-    "npc": "guomao-baoan",
-    "trigger": "talk",
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！你第一次来国贸？",
-        "translate": "Hello! First time at 国贸?",
-        "expect": [
-          {
-            "intent": "yes",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对",
-                "第一次"
-              ]
-            ],
-            "go": "b"
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不是"
-              ]
-            ],
-            "go": "c"
-          }
-        ],
-        "hint": {
-          "word": "第一次",
-          "frame": "对，我___来。",
-          "full": "对，我第一次来。"
-        }
-      },
-      {
-        "id": "b",
-        "say": "你七上八下吧？没事，没事！",
-        "translate": "Butterflies in your stomach? Don't worry!",
-        "key": true,
-        "onEnter": [
-          {
-            "do": "idiom",
-            "idiom": "七上八下"
-          }
-        ],
-        "why": "A 成语 📌: 七上八下 — seven up, eight down: a heart that won't settle."
-      },
-      {
-        "id": "c",
-        "say": "好！你去看看吧。",
-        "translate": "Right! Have a look around."
-      }
-    ]
-  },
-  {
-    "id": "manager",
-    "map": "guomao-bank",
-    "npc": "yinhang-jingli",
-    "trigger": "talk",
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！这是我们的貔貅。",
-        "translate": "Hello! This is our 貔貅."
-      }
-    ]
-  },
-  {
-    "id": "pixiu-ask",
-    "map": "guomao-bank",
-    "object": "pixiu",
-    "trigger": "look",
-    "priority": 2,
-    "when": {
-      "not": {
-        "spirit": "pixiu"
-      }
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "金色",
-        "explain": "像太阳的颜色，很亮的黄色。",
-        "en": "golden"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "我喜欢金色的东西。你有吗？",
-        "translate": "I like golden things. Have you got any?",
-        "speaker": "pixiu",
-        "simpler": "你有金色的东西吗？",
-        "onEnter": [
-          {
-            "do": "flag",
-            "flag": "saw-pixiu"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "pixiu-give",
-    "map": "guomao-bank",
-    "object": "pixiu",
-    "trigger": "look",
-    "priority": 0,
-    "stamp": "pixiu",
-    "when": {
-      "all": [
-        {
-          "item": "jinbi"
-        },
-        {
-          "not": {
-            "spirit": "pixiu"
-          }
-        }
-      ]
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "金色",
-        "explain": "像太阳的颜色。",
-        "en": "golden"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "金色的！给我吧！",
-        "translate": "Golden! Give it to me!",
-        "speaker": "pixiu",
-        "simpler": "金色的东西给我吧！",
-        "expect": [
-          {
-            "intent": "give",
-            "match": [
-              [
-                "给",
-                "好",
-                "这是",
-                "行"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "take",
-                "item": "jinbi"
-              },
-              {
-                "do": "spirit",
-                "spirit": "pixiu"
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "给",
-          "frame": "好，___你。",
-          "full": "好，给你。"
-        }
-      },
-      {
-        "id": "b",
-        "say": "好吃！我们是朋友了！",
-        "translate": "Delicious! We're friends now!",
-        "speaker": "pixiu",
-        "why": "A 貔貅 eats gold and never lets it out — chocolate in gold paper will do."
-      }
-    ]
-  },
-  {
-    "id": "pixiu-friend",
-    "map": "guomao-bank",
-    "object": "pixiu",
-    "trigger": "look",
-    "priority": 1,
-    "when": {
-      "spirit": "pixiu"
-    },
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "朋友，你好！",
-        "translate": "Hello, friend!",
-        "speaker": "pixiu"
-      }
-    ]
-  },
-  {
-    "id": "store",
-    "map": "bianlidian",
-    "npc": "bianlidian-yuan",
-    "trigger": "talk",
-    "start": "a",
-    "words": [
-      {
-        "w": "巧克力",
-        "explain": "很甜的，小孩子喜欢。",
-        "en": "chocolate"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！要什么？",
-        "translate": "Hi! What can I get you?",
-        "expect": [
-          {
-            "intent": "choc",
-            "match": [
-              [
-                "巧克力",
-                "金"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "money",
-                "amount": -10
-              },
-              {
-                "do": "give",
-                "item": "jinbi"
-              }
-            ]
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不要",
-                "没有",
-                "谢谢"
-              ]
-            ],
-            "go": "c"
-          }
-        ],
-        "hint": {
-          "word": "巧克力",
-          "frame": "我要___。",
-          "full": "我要巧克力。"
-        }
-      },
-      {
-        "id": "b",
-        "say": "这个巧克力？十块。给你。",
-        "translate": "These chocolate coins? Ten yuan. Here.",
-        "simpler": "巧克力，十块。"
-      },
-      {
-        "id": "c",
-        "say": "好，再见！",
-        "translate": "OK, bye!"
-      }
-    ]
-  },
-  {
-    "id": "bike-tip",
-    "map": "sanlitun-street",
-    "npc": "kuaidi-xiaoge",
-    "trigger": "talk",
-    "priority": 1,
-    "once": true,
-    "when": {
+    "hint": {
+     "word": "看见",
+     "frame": "你___什么了？",
+     "full": "你看见什么了？"
+    }
+   },
+   {
+    "id": "b",
+    "say": "我朋友说，国贸的银行里，有一个金色的东西，会动！",
+    "translate": "A friend says in a bank at 国贸 there's something golden — and it moves!",
+    "simpler": "银行里有一个金色的东西。",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "我半信半疑。",
+    "translate": "I half believe it.",
+    "key": true,
+    "onEnter": [
+     {
+      "do": "flag",
       "flag": "heard-pixiu"
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "共享单车",
-        "explain": "在路边，大家都能用的车。",
-        "en": "shared bike"
-      },
-      {
-        "w": "扫码",
-        "explain": "用手机看一下。",
-        "en": "scan the code"
-      },
-      {
-        "w": "骑",
-        "explain": "坐在车上走。",
-        "en": "to ride"
-      }
+     },
+     {
+      "do": "idiom",
+      "idiom": "半信半疑"
+     }
     ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你知道共享单车吗？扫码，能骑。很快！",
-        "translate": "Know the shared bikes? Scan the code and ride. Fast!",
-        "simpler": "共享单车，扫码，骑！",
-        "onEnter": [
-          {
-            "do": "quest",
-            "quest": "side-bike",
-            "step": "ride"
-          }
-        ],
-        "why": "The bike stands are by the stations and in the lanes. Tap one to ride; tap a stand again (or go indoors) to park — 1 元 a ride."
-      }
+    "why": "A 成语 📌: 半信半疑 — half believing, half doubting. You can read it from its parts."
+   }
+  ]
+ },
+ {
+  "id": "courier-later",
+  "map": "sanlitun-street",
+  "npc": "kuaidi-xiaoge",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我很忙！再见！",
+    "translate": "Busy busy! Bye!"
+   }
+  ]
+ },
+ {
+  "id": "office",
+  "map": "sanlitun-street",
+  "npc": "bailing",
+  "trigger": "talk",
+  "start": "a",
+  "words": [
+   {
+    "w": "咖啡",
+    "explain": "黑色的，可以喝。",
+    "en": "coffee"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我要去喝咖啡。",
+    "translate": "I'm off for a coffee.",
+    "simpler": "咖啡！"
+   }
+  ],
+  "priority": 5
+ },
+ {
+  "id": "door-order-luckin",
+  "map": "sanlitun-street",
+  "object": "door-luckin",
+  "trigger": "look",
+  "start": "a",
+  "words": [
+   {
+    "w": "咖啡",
+    "explain": "黑色的，可以喝。",
+    "en": "coffee"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "点咖啡吗？",
+    "translate": "Order a coffee?",
+    "speaker": "hero",
+    "simpler": "去点咖啡吧。",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "去",
+        "进去"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "game",
+        "game": "order-luckin"
+       }
+      ]
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，我去。",
+     "full": "好，我去。"
+    },
+    "why": "This door opens the luckin coffee ordering game from Play (点单). When you leave it, you are back here."
+   },
+   {
+    "id": "b",
+    "say": "好，走！",
+    "translate": "Let's go!",
+    "speaker": "hero"
+   },
+   {
+    "id": "c",
+    "say": "现在不去。",
+    "translate": "Not now.",
+    "speaker": "hero"
+   }
+  ],
+  "priority": 5
+ },
+ {
+  "id": "door-order-mixue",
+  "map": "sanlitun-street",
+  "object": "door-mixue",
+  "trigger": "look",
+  "start": "a",
+  "words": [
+   {
+    "w": "冰淇淋",
+    "explain": "很冷很甜，夏天吃。",
+    "en": "ice cream"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "买冰淇淋吗？",
+    "translate": "Get an ice cream?",
+    "speaker": "hero",
+    "simpler": "去买冰淇淋吧。",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "去",
+        "进去"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "game",
+        "game": "order-mixue"
+       }
+      ]
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，我去。",
+     "full": "好，我去。"
+    },
+    "why": "This door opens the Mixue milk tea ordering game from Play (点单). When you leave it, you are back here."
+   },
+   {
+    "id": "b",
+    "say": "好，走！",
+    "translate": "Let's go!",
+    "speaker": "hero"
+   },
+   {
+    "id": "c",
+    "say": "现在不去。",
+    "translate": "Not now.",
+    "speaker": "hero"
+   }
+  ],
+  "priority": 5
+ },
+ {
+  "id": "door-order-haidilao",
+  "map": "sanlitun-street",
+  "object": "door-haidilao",
+  "trigger": "look",
+  "start": "a",
+  "words": [
+   {
+    "w": "火锅",
+    "explain": "一个锅，里面很热，放肉和菜。",
+    "en": "hot pot"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "吃火锅吗？",
+    "translate": "Eat hot pot?",
+    "speaker": "hero",
+    "simpler": "去吃火锅吧。",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "去",
+        "进去"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "game",
+        "game": "order-haidilao"
+       }
+      ]
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，我去。",
+     "full": "好，我去。"
+    },
+    "why": "This door opens the Haidilao hot pot ordering game from Play (点单). When you leave it, you are back here."
+   },
+   {
+    "id": "b",
+    "say": "好，走！",
+    "translate": "Let's go!",
+    "speaker": "hero"
+   },
+   {
+    "id": "c",
+    "say": "现在不去。",
+    "translate": "Not now.",
+    "speaker": "hero"
+   }
+  ],
+  "priority": 5
+ },
+ {
+  "id": "guomao-arrive",
+  "map": "guomao-plaza",
+  "trigger": "auto",
+  "once": true,
+  "stamp": "guomao",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "国贸的楼！很大！",
+    "translate": "The towers of 国贸! Huge!",
+    "speaker": "hero"
+   }
+  ]
+ },
+ {
+  "id": "guard",
+  "map": "guomao-plaza",
+  "npc": "guomao-baoan",
+  "trigger": "talk",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你第一次来国贸？",
+    "translate": "Hello! First time at 国贸?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "第一次"
+       ]
+      ],
+      "go": "b"
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不是"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "第一次",
+     "frame": "对，我___来。",
+     "full": "对，我第一次来。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "你七上八下吧？没事，没事！",
+    "translate": "Butterflies in your stomach? Don't worry!",
+    "key": true,
+    "onEnter": [
+     {
+      "do": "idiom",
+      "idiom": "七上八下"
+     }
+    ],
+    "why": "A 成语 📌: 七上八下 — seven up, eight down: a heart that won't settle."
+   },
+   {
+    "id": "c",
+    "say": "好！你去看看吧。",
+    "translate": "Right! Have a look around."
+   }
+  ],
+  "priority": 5
+ },
+ {
+  "id": "manager",
+  "map": "guomao-bank",
+  "npc": "yinhang-jingli",
+  "trigger": "talk",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！这是我们的貔貅。",
+    "translate": "Hello! This is our 貔貅."
+   }
+  ],
+  "priority": 5
+ },
+ {
+  "id": "pixiu-ask",
+  "map": "guomao-bank",
+  "object": "pixiu",
+  "trigger": "look",
+  "priority": 2,
+  "when": {
+   "not": {
+    "spirit": "pixiu"
+   }
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "金色",
+    "explain": "像太阳的颜色，很亮的黄色。",
+    "en": "golden"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我喜欢金色的东西。你有吗？",
+    "translate": "I like golden things. Have you got any?",
+    "speaker": "pixiu",
+    "simpler": "你有金色的东西吗？",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "saw-pixiu"
+     }
     ]
+   }
+  ]
+ },
+ {
+  "id": "pixiu-give",
+  "map": "guomao-bank",
+  "object": "pixiu",
+  "trigger": "look",
+  "priority": 0,
+  "stamp": "pixiu",
+  "when": {
+   "all": [
+    {
+     "item": "jinbi"
+    },
+    {
+     "not": {
+      "spirit": "pixiu"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "金色",
+    "explain": "像太阳的颜色。",
+    "en": "golden"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "金色的！给我吧！",
+    "translate": "Golden! Give it to me!",
+    "speaker": "pixiu",
+    "simpler": "金色的东西给我吧！",
+    "expect": [
+     {
+      "intent": "give",
+      "match": [
+       [
+        "给",
+        "好",
+        "这是",
+        "行"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "take",
+        "item": "jinbi"
+       },
+       {
+        "do": "spirit",
+        "spirit": "pixiu"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "给",
+     "frame": "好，___你。",
+     "full": "好，给你。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好吃！我们是朋友了！",
+    "translate": "Delicious! We're friends now!",
+    "speaker": "pixiu",
+    "why": "A 貔貅 eats gold and never lets it out — chocolate in gold paper will do."
+   }
+  ]
+ },
+ {
+  "id": "pixiu-friend",
+  "map": "guomao-bank",
+  "object": "pixiu",
+  "trigger": "look",
+  "priority": 1,
+  "when": {
+   "spirit": "pixiu"
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "朋友，你好！",
+    "translate": "Hello, friend!",
+    "speaker": "pixiu"
+   }
+  ]
+ },
+ {
+  "id": "store",
+  "map": "bianlidian",
+  "npc": "bianlidian-yuan",
+  "trigger": "talk",
+  "start": "a",
+  "words": [
+   {
+    "w": "巧克力",
+    "explain": "很甜的，小孩子喜欢。",
+    "en": "chocolate"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！要什么？",
+    "translate": "Hi! What can I get you?",
+    "expect": [
+     {
+      "intent": "choc",
+      "match": [
+       [
+        "巧克力",
+        "金"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -10
+       },
+       {
+        "do": "give",
+        "item": "jinbi"
+       }
+      ]
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "没有",
+        "谢谢"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "巧克力",
+     "frame": "我要___。",
+     "full": "我要巧克力。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "这个巧克力？十块。给你。",
+    "translate": "These chocolate coins? Ten yuan. Here.",
+    "simpler": "巧克力，十块。"
+   },
+   {
+    "id": "c",
+    "say": "好，再见！",
+    "translate": "OK, bye!"
+   }
+  ],
+  "when": {
+   "money": 10
   }
+ },
+ {
+  "id": "bike-tip",
+  "map": "sanlitun-street",
+  "npc": "kuaidi-xiaoge",
+  "trigger": "talk",
+  "priority": 1,
+  "once": true,
+  "when": {
+   "flag": "heard-pixiu"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "共享单车",
+    "explain": "在路边，大家都能用的车。",
+    "en": "shared bike"
+   },
+   {
+    "w": "扫码",
+    "explain": "用手机看一下。",
+    "en": "scan the code"
+   },
+   {
+    "w": "骑",
+    "explain": "坐在车上走。",
+    "en": "to ride"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你知道共享单车吗？扫码，能骑。很快！",
+    "translate": "Know the shared bikes? Scan the code and ride. Fast!",
+    "simpler": "共享单车，扫码，骑！",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-bike",
+      "step": "ride"
+     }
+    ],
+    "why": "The bike stands are by the stations and in the lanes. Tap one to ride; tap a stand again (or go indoors) to park — 1 元 a ride."
+   }
+  ]
+ }
 ]

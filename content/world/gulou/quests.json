@@ -75,7 +75,14 @@
         "id": "find",
         "now": "赵爷爷’s bird flew off. The kid 小明 plays in the lanes — ask him.",
         "done": {
-          "item": "niao"
+          "any": [
+            {
+              "item": "niao"
+            },
+            {
+              "flag": "bird-back"
+            }
+          ]
         }
       },
       {

@@ -1,2335 +1,2451 @@
 [
-  {
-    "id": "first-morning",
-    "map": "siheyuan-room",
-    "trigger": "auto",
-    "once": true,
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "这是我的新房间！",
-        "translate": "So this is my new room!",
-        "speaker": "hero",
-        "onEnter": [
-          {
-            "do": "quest",
-            "quest": "ch1",
-            "step": "meet-wang"
-          },
-          {
-            "do": "give",
-            "item": "huzhao"
-          }
-        ],
-        "why": "你 arrive in Beijing. The companion button (bottom left) is 兔儿爷 — he wakes up soon. Tap words for their cards; tap 拼 for pinyin."
-      }
-    ]
-  },
-  {
-    "id": "arrive",
-    "map": "siheyuan-yard",
-    "npc": "wang-ayi",
-    "trigger": "talk",
-    "once": true,
-    "priority": 0,
-    "stamp": "new-home",
-    "start": "hi",
-    "nodes": [
-      {
-        "id": "hi",
-        "say": "你好！你是新来的吧？我是王阿姨。",
-        "translate": "Hello! You must be the new one? I'm Auntie Wang.",
-        "simpler": "你好！我是王阿姨。",
-        "why": "吧 at the end makes a guess: 'you're the new one, right?'. 阿姨 is how you address a woman of your parents' age.",
-        "expect": [
-          {
-            "intent": "greet",
-            "match": [
-              [
-                "你好",
-                "您好",
-                "阿姨好",
-                "王阿姨",
-                "是",
-                "对"
-              ]
-            ],
-            "go": "name"
-          }
-        ],
-        "hint": {
-          "word": "你好",
-          "frame": "___，王阿姨！",
-          "full": "你好，王阿姨！"
-        }
-      },
-      {
-        "id": "name",
-        "say": "你叫什么名字？",
-        "translate": "What's your name?",
-        "expect": [
-          {
-            "intent": "name",
-            "match": [
-              [
-                "叫",
-                "名字",
-                "是"
-              ]
-            ],
-            "go": "room",
-            "actions": [
-              {
-                "do": "remember",
-                "npc": "wang-ayi",
-                "note": "told her their name"
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "我叫",
-          "frame": "我叫___。",
-          "full": "我叫大卫。"
-        },
-        "why": "叫 is 'to be called'. Answer with 我叫 + your name."
-      },
-      {
-        "id": "room",
-        "say": "好！你的房间在那儿。你吃早饭了吗？",
-        "translate": "Good! Your room is over there. Have you had breakfast?",
-        "simpler": "你吃早饭了吗？",
-        "expect": [
-          {
-            "intent": "not-yet",
-            "match": [
-              [
-                "没",
-                "没有",
-                "还没"
-              ]
-            ],
-            "go": "eat"
-          },
-          {
-            "intent": "ate",
-            "match": [
-              [
-                "吃了",
-                "吃过"
-              ]
-            ],
-            "go": "ate"
-          }
-        ],
-        "hint": {
-          "word": "没有",
-          "frame": "___，我还没吃。",
-          "full": "没有，我还没吃。"
-        },
-        "why": "吃了吗 — 'have you eaten?' — is also just a friendly hello in Beijing."
-      },
-      {
-        "id": "eat",
-        "say": "南锣鼓巷有一个早点铺，包子很好吃！去吃吧。",
-        "translate": "On 南锣鼓巷 there's a breakfast shop, the buns are great! Go and eat.",
-        "simpler": "去早点铺吃包子吧！",
-        "why": "吧 here is a friendly push: 'go on, eat!'. 南锣鼓巷 is east of our lane."
-      },
-      {
-        "id": "ate",
-        "say": "好！那去南锣鼓巷看看吧。早点铺的包子很好吃！",
-        "translate": "Good! Then go and look around 南锣鼓巷. The buns at the breakfast shop are great!",
-        "simpler": "去南锣鼓巷看看吧！"
-      }
-    ]
-  },
-  {
-    "id": "wang-go-eat",
-    "map": "siheyuan-yard",
-    "npc": "wang-ayi",
-    "trigger": "talk",
-    "priority": 1,
-    "when": {
-      "all": [
-        {
-          "scene": "arrive"
-        },
-        {
-          "not": {
-            "scene": "breakfast"
-          }
-        }
+ {
+  "id": "first-morning",
+  "map": "siheyuan-room",
+  "trigger": "auto",
+  "once": true,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这是我的新房间！",
+    "translate": "So this is my new room!",
+    "speaker": "hero",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "ch1",
+      "step": "meet-wang"
+     },
+     {
+      "do": "give",
+      "item": "huzhao"
+     }
+    ],
+    "why": "你 arrive in Beijing. The companion button (bottom left) is 兔儿爷 — he wakes up soon. Tap words for their cards; tap 拼 for pinyin."
+   }
+  ]
+ },
+ {
+  "id": "arrive",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "new-home",
+  "start": "hi",
+  "nodes": [
+   {
+    "id": "hi",
+    "say": "你好！你是新来的吧？我是王阿姨。",
+    "translate": "Hello! You must be the new one? I'm Auntie Wang.",
+    "simpler": "你好！我是王阿姨。",
+    "why": "吧 at the end makes a guess: 'you're the new one, right?'. 阿姨 is how you address a woman of your parents' age.",
+    "expect": [
+     {
+      "intent": "greet",
+      "match": [
+       [
+        "你好",
+        "您好",
+        "阿姨好",
+        "王阿姨",
+        "是",
+        "对"
+       ]
+      ],
+      "go": "name"
+     }
+    ],
+    "hint": {
+     "word": "你好",
+     "frame": "___，王阿姨！",
+     "full": "你好，王阿姨！"
+    }
+   },
+   {
+    "id": "name",
+    "say": "你叫什么名字？",
+    "translate": "What's your name?",
+    "expect": [
+     {
+      "intent": "name",
+      "match": [
+       [
+        "叫",
+        "名字",
+        "是"
+       ]
+      ],
+      "go": "room",
+      "actions": [
+       {
+        "do": "remember",
+        "npc": "wang-ayi",
+        "note": "told her their name"
+       }
       ]
+     }
+    ],
+    "hint": {
+     "word": "我叫",
+     "frame": "我叫___。",
+     "full": "我叫大卫。"
     },
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "去早点铺吃早饭吧！在南锣鼓巷。",
-        "translate": "Go and have breakfast at the breakfast shop! It's on 南锣鼓巷."
-      }
-    ]
-  },
-  {
-    "id": "lantern",
-    "map": "siheyuan-yard",
-    "npc": "wang-ayi",
-    "object": "old-lantern",
-    "trigger": "look",
-    "once": true,
-    "when": {
+    "why": "叫 is 'to be called'. Answer with 我叫 + your name."
+   },
+   {
+    "id": "room",
+    "say": "好！你的房间在那儿。你吃早饭了吗？",
+    "translate": "Good! Your room is over there. Have you had breakfast?",
+    "simpler": "你吃早饭了吗？",
+    "expect": [
+     {
+      "intent": "not-yet",
+      "match": [
+       [
+        "没",
+        "没有",
+        "还没"
+       ]
+      ],
+      "go": "eat"
+     },
+     {
+      "intent": "ate",
+      "match": [
+       [
+        "吃了",
+        "吃过"
+       ]
+      ],
+      "go": "ate"
+     }
+    ],
+    "hint": {
+     "word": "没有",
+     "frame": "___，我还没吃。",
+     "full": "没有，我还没吃。"
+    },
+    "why": "吃了吗 — 'have you eaten?' — is also just a friendly hello in Beijing."
+   },
+   {
+    "id": "eat",
+    "say": "南锣鼓巷有一个早点铺，包子很好吃！去吃吧。",
+    "translate": "On 南锣鼓巷 there's a breakfast shop, the buns are great! Go and eat.",
+    "simpler": "去早点铺吃包子吧！",
+    "why": "吧 here is a friendly push: 'go on, eat!'. 南锣鼓巷 is east of our lane."
+   },
+   {
+    "id": "ate",
+    "say": "好！那去南锣鼓巷看看吧。早点铺的包子很好吃！",
+    "translate": "Good! Then go and look around 南锣鼓巷. The buns at the breakfast shop are great!",
+    "simpler": "去南锣鼓巷看看吧！"
+   }
+  ]
+ },
+ {
+  "id": "wang-go-eat",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "priority": 1,
+  "when": {
+   "all": [
+    {
+     "scene": "arrive"
+    },
+    {
+     "not": {
       "scene": "breakfast"
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "灯笼",
-        "explain": "晚上用的红色的灯。",
-        "en": "lantern"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你看，这个灯笼是我奶奶的。",
-        "translate": "Look — this lantern was my grandmother's.",
-        "next": "b",
-        "why": "的 at the end: 'is my grandmother's'."
-      },
-      {
-        "id": "b",
-        "say": "灯笼坏了！",
-        "translate": "Oh no… the lantern broke!",
-        "next": "c",
-        "onEnter": [
-          {
-            "do": "flag",
-            "flag": "lantern-broken"
-          }
-        ]
-      },
-      {
-        "id": "c",
-        "say": "你好。我是兔儿爷。",
-        "translate": "Hello. I am 兔儿爷, the rabbit.",
-        "speaker": "companion",
-        "next": "d",
-        "why": "兔儿爷 is Beijing's clay rabbit of the Mid-Autumn festival — a small guardian. He speaks English with you from now on (tap him, bottom left)."
-      },
-      {
-        "id": "d",
-        "say": "灯笼里的小神都跑了，跑到北京的胡同里了。",
-        "translate": "The little spirits in the lantern have all run off — into the hutongs of Beijing.",
-        "speaker": "companion",
-        "key": true,
-        "next": "e",
-        "simpler": "小神都跑了。",
-        "why": "A key line 📌: 神 (spirit, god) and 胡同 (the old lanes) are hard. Ask people: “神是什么意思？” — or tap them."
-      },
-      {
-        "id": "e",
-        "say": "我们去找他们吧！",
-        "translate": "Let's go and find them!",
-        "speaker": "companion",
-        "expect": [
-          {
-            "intent": "go",
-            "match": [
-              [
-                "好",
-                "好的",
-                "走",
-                "去",
-                "行",
-                "找"
-              ]
-            ],
-            "go": "f"
-          }
-        ],
-        "hint": {
-          "word": "好",
-          "frame": "___，我们去吧！",
-          "full": "好，我们去吧！"
-        }
-      },
-      {
-        "id": "f",
-        "say": "你问问人吧。他们看见了什么？",
-        "translate": "Ask people. What have they seen?",
-        "speaker": "companion"
-      }
-    ]
+     }
+    }
+   ]
   },
-  {
-    "id": "wang-after",
-    "map": "siheyuan-yard",
-    "npc": "wang-ayi",
-    "trigger": "talk",
-    "priority": 2,
-    "when": {
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "去早点铺吃早饭吧！在南锣鼓巷。",
+    "translate": "Go and have breakfast at the breakfast shop! It's on 南锣鼓巷."
+   }
+  ]
+ },
+ {
+  "id": "lantern",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "object": "old-lantern",
+  "trigger": "look",
+  "once": true,
+  "when": {
+   "scene": "breakfast"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "灯笼",
+    "explain": "晚上用的红色的灯。",
+    "en": "lantern"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你看，这个灯笼是我奶奶的。",
+    "translate": "Look — this lantern was my grandmother's.",
+    "next": "b",
+    "why": "的 at the end: 'is my grandmother's'."
+   },
+   {
+    "id": "b",
+    "say": "灯笼坏了！",
+    "translate": "Oh no… the lantern broke!",
+    "next": "c",
+    "onEnter": [
+     {
+      "do": "flag",
       "flag": "lantern-broken"
-    },
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "没事，没事。你去玩吧！",
-        "translate": "That lantern… never mind, never mind. Go and have fun!"
-      }
+     }
     ]
-  },
-  {
-    "id": "breakfast",
-    "map": "zaodian",
-    "npc": "zaodian-shifu",
-    "trigger": "talk",
-    "once": true,
-    "priority": 0,
-    "stamp": "breakfast",
-    "start": "hi",
-    "words": [
-      {
-        "w": "豆浆",
-        "explain": "白色的，可以喝，早上喝。",
-        "en": "soy milk"
-      },
-      {
-        "w": "油条",
-        "explain": "早上吃的，长长的，热的。",
-        "en": "fried dough stick"
-      },
-      {
-        "w": "包子",
-        "explain": "里面有肉或者菜，热的。",
-        "en": "steamed bun"
-      }
+   },
+   {
+    "id": "c",
+    "say": "你好。我是兔儿爷。",
+    "translate": "Hello. I am 兔儿爷, the rabbit.",
+    "speaker": "companion",
+    "next": "d",
+    "why": "兔儿爷 is Beijing's clay rabbit of the Mid-Autumn festival — a small guardian. He speaks English with you from now on (tap him, bottom left)."
+   },
+   {
+    "id": "d",
+    "say": "灯笼里的小神都跑了，跑到北京的胡同里了。",
+    "translate": "The little spirits in the lantern have all run off — into the hutongs of Beijing.",
+    "speaker": "companion",
+    "key": true,
+    "next": "e",
+    "simpler": "小神都跑了。",
+    "why": "A key line 📌: 神 (spirit, god) and 胡同 (the old lanes) are hard. Ask people: “神是什么意思？” — or tap them."
+   },
+   {
+    "id": "e",
+    "say": "我们去找他们吧！",
+    "translate": "Let's go and find them!",
+    "speaker": "companion",
+    "expect": [
+     {
+      "intent": "go",
+      "match": [
+       [
+        "好",
+        "好的",
+        "走",
+        "去",
+        "行",
+        "找"
+       ]
+      ],
+      "go": "f"
+     }
     ],
-    "nodes": [
-      {
-        "id": "hi",
-        "say": "早！要什么？包子、豆浆、油条都有。",
-        "translate": "Morning! What'll it be? Buns, soy milk, fried dough sticks — we've got them all.",
-        "simpler": "你要包子吗？豆浆？油条？",
-        "expect": [
-          {
-            "intent": "price",
-            "match": [
-              [
-                "多少钱",
-                "多少",
-                "钱"
-              ]
-            ],
-            "go": "prices"
-          },
-          {
-            "intent": "order",
-            "match": [
-              [
-                "要",
-                "来",
-                "买",
-                "吃",
-                "喝"
-              ],
-              [
-                "包子",
-                "豆浆",
-                "油条"
-              ]
-            ],
-            "go": "pay"
-          }
-        ],
-        "hint": {
-          "word": "包子",
-          "frame": "我要___和豆浆。",
-          "full": "我要包子和豆浆。"
-        },
-        "why": "要 is 'want' — 我要 + the food is how you order."
-      },
-      {
-        "id": "prices",
-        "say": "包子两块，豆浆两块，油条一块五。",
-        "translate": "Buns 2 yuan, soy milk 2 yuan, fried dough sticks 1.5.",
-        "simpler": "包子两块。",
-        "expect": [
-          {
-            "intent": "order",
-            "match": [
-              [
-                "要",
-                "来",
-                "买",
-                "吃",
-                "喝"
-              ],
-              [
-                "包子",
-                "豆浆",
-                "油条"
-              ]
-            ],
-            "go": "pay"
-          }
-        ],
-        "hint": {
-          "word": "包子",
-          "frame": "我要___和豆浆。",
-          "full": "我要包子和豆浆。"
-        },
-        "why": "块 is how people say 元 (yuan). 一块五 = 1.5 yuan."
-      },
-      {
-        "id": "pay",
-        "say": "好的！包子和豆浆，四块钱。",
-        "translate": "Right! A bun and a soy milk, 4 yuan.",
-        "expect": [
-          {
-            "intent": "pay",
-            "match": [
-              [
-                "给",
-                "好",
-                "好的",
-                "这是",
-                "行",
-                "可以"
-              ]
-            ],
-            "go": "done",
-            "actions": [
-              {
-                "do": "money",
-                "amount": -4
-              },
-              {
-                "do": "give",
-                "item": "baozi"
-              },
-              {
-                "do": "give",
-                "item": "doujiang"
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "给你",
-          "frame": "好，___。",
-          "full": "好，给你。"
-        },
-        "why": "给你 — 'here you are' — as you hand over the money."
-      },
-      {
-        "id": "done",
-        "say": "给你包子和豆浆！好吃吗？下次来吃油条。",
-        "translate": "Here's your bun and soy milk! Good? Next time try the fried dough sticks."
-      }
-    ]
+    "hint": {
+     "word": "好",
+     "frame": "___，我们去吧！",
+     "full": "好，我们去吧！"
+    }
+   },
+   {
+    "id": "f",
+    "say": "你问问人吧。他们看见了什么？",
+    "translate": "Ask people. What have they seen?",
+    "speaker": "companion"
+   }
+  ]
+ },
+ {
+  "id": "wang-after",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "priority": 2,
+  "when": {
+   "flag": "lantern-broken"
   },
-  {
-    "id": "breakfast-more",
-    "map": "zaodian",
-    "npc": "zaodian-shifu",
-    "trigger": "talk",
-    "priority": 5,
-    "start": "hi",
-    "nodes": [
-      {
-        "id": "hi",
-        "say": "你好！要一个包子吗？两块。",
-        "translate": "You're back! A bun? 2 yuan.",
-        "expect": [
-          {
-            "intent": "yes",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对",
-                "来"
-              ]
-            ],
-            "go": "give",
-            "actions": [
-              {
-                "do": "money",
-                "amount": -2
-              },
-              {
-                "do": "give",
-                "item": "baozi"
-              }
-            ]
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不要",
-                "不用",
-                "不想",
-                "不喝"
-              ]
-            ],
-            "go": "bye"
-          }
-        ],
-        "hint": {
-          "word": "要",
-          "frame": "___，谢谢。",
-          "full": "要，谢谢。"
-        }
-      },
-      {
-        "id": "give",
-        "say": "给你！",
-        "translate": "Here you go!"
-      },
-      {
-        "id": "bye",
-        "say": "好，再见！",
-        "translate": "OK, bye!"
-      }
-    ]
-  },
-  {
-    "id": "rumour-shop",
-    "map": "xiaomaibu",
-    "npc": "li-ayi",
-    "trigger": "talk",
-    "once": true,
-    "priority": 0,
-    "when": {
-      "flag": "lantern-broken"
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "石狮子",
-        "explain": "石头的狮子，在大门两边。",
-        "en": "stone lion"
-      }
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "没事，没事。你去玩吧！",
+    "translate": "That lantern… never mind, never mind. Go and have fun!"
+   }
+  ]
+ },
+ {
+  "id": "breakfast",
+  "map": "zaodian",
+  "npc": "zaodian-shifu",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "breakfast",
+  "start": "hi",
+  "words": [
+   {
+    "w": "豆浆",
+    "explain": "白色的，可以喝，早上喝。",
+    "en": "soy milk"
+   },
+   {
+    "w": "油条",
+    "explain": "早上吃的，长长的，热的。",
+    "en": "fried dough stick"
+   },
+   {
+    "w": "包子",
+    "explain": "里面有肉或者菜，热的。",
+    "en": "steamed bun"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "hi",
+    "say": "早！要什么？包子、豆浆、油条都有。",
+    "translate": "Morning! What'll it be? Buns, soy milk, fried dough sticks — we've got them all.",
+    "simpler": "你要包子吗？豆浆？油条？",
+    "expect": [
+     {
+      "intent": "price",
+      "match": [
+       [
+        "多少钱",
+        "多少",
+        "钱"
+       ]
+      ],
+      "go": "prices"
+     },
+     {
+      "intent": "order",
+      "match": [
+       [
+        "要",
+        "来",
+        "买",
+        "吃",
+        "喝"
+       ],
+       [
+        "包子",
+        "豆浆",
+        "油条"
+       ]
+      ],
+      "go": "pay"
+     }
     ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！要买什么？",
-        "translate": "Hello! What would you like?",
-        "expect": [
-          {
-            "intent": "ask",
-            "match": [
-              [
-                "看见",
-                "听说",
-                "知道",
-                "奇怪"
-              ]
-            ],
-            "go": "rumour"
-          },
-          {
-            "intent": "buy",
-            "match": [
-              [
-                "买",
-                "要"
-              ],
-              [
-                "水",
-                "可乐",
-                "面包",
-                "牛奶"
-              ]
-            ],
-            "go": "sell"
-          }
-        ],
-        "hint": {
-          "word": "看见",
-          "frame": "你___什么了？",
-          "full": "请问，你看见什么了？"
-        },
-        "why": "看见 is 'to see (and notice)'. Ask what people have seen."
-      },
-      {
-        "id": "sell",
-        "say": "水三块。给你。你还要什么？",
-        "translate": "Water's 3 yuan. Here. Anything else?",
-        "onEnter": [
-          {
-            "do": "money",
-            "amount": -3
-          },
-          {
-            "do": "give",
-            "item": "water"
-          }
-        ],
-        "expect": [
-          {
-            "intent": "ask",
-            "match": [
-              [
-                "看见",
-                "听说",
-                "知道",
-                "奇怪"
-              ]
-            ],
-            "go": "rumour"
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不要",
-                "不用",
-                "不想",
-                "不喝",
-                "没有",
-                "谢谢"
-              ]
-            ],
-            "go": "bye"
-          }
-        ],
-        "hint": {
-          "word": "看见",
-          "frame": "你___什么了？",
-          "full": "请问，你看见什么了？"
-        }
-      },
-      {
-        "id": "rumour",
-        "say": "听说晚上鼓楼那儿的石狮子会动。",
-        "translate": "They say at night the stone lion over by the Drum Tower moves.",
-        "key": true,
-        "simpler": "晚上，石狮子会动。",
-        "onEnter": [
-          {
-            "do": "flag",
-            "flag": "heard-lion"
-          }
-        ],
-        "next": "b",
-        "why": "A key line 📌: 听说 is 'I've heard / they say'. 会动 is 'can move'. 鼓楼 is the Drum Tower, west of your lane."
-      },
-      {
-        "id": "b",
-        "say": "我不知道。晚上，你去看看吧！",
-        "translate": "I don't know. Go and see at night!"
-      },
-      {
-        "id": "bye",
-        "say": "好，再见！",
-        "translate": "OK, bye!"
-      }
-    ]
-  },
-  {
-    "id": "shop",
-    "map": "xiaomaibu",
-    "npc": "li-ayi",
-    "trigger": "talk",
-    "priority": 5,
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！要买什么？",
-        "translate": "Hello! What would you like?",
-        "expect": [
-          {
-            "intent": "buy",
-            "match": [
-              [
-                "买",
-                "要"
-              ],
-              [
-                "水",
-                "可乐",
-                "面包",
-                "牛奶"
-              ]
-            ],
-            "go": "sell",
-            "actions": [
-              {
-                "do": "money",
-                "amount": -3
-              },
-              {
-                "do": "give",
-                "item": "water"
-              }
-            ]
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不要",
-                "不用",
-                "不想",
-                "不喝",
-                "没有",
-                "谢谢"
-              ]
-            ],
-            "go": "bye"
-          }
-        ],
-        "hint": {
-          "word": "水",
-          "frame": "我要买___。",
-          "full": "我要买水。"
-        }
-      },
-      {
-        "id": "sell",
-        "say": "水三块。给你。",
-        "translate": "Water's 3 yuan. Here you are."
-      },
-      {
-        "id": "bye",
-        "say": "好，再见！",
-        "translate": "OK, bye!"
-      }
-    ]
-  },
-  {
-    "id": "rumour-tea",
-    "map": "chaguan",
-    "npc": "lao-liu",
-    "trigger": "talk",
-    "priority": 0,
-    "when": {
-      "all": [
-        {
-          "flag": "lantern-broken"
-        },
-        {
-          "not": {
-            "spirit": "shishizi"
-          }
-        }
+    "hint": {
+     "word": "包子",
+     "frame": "我要___和豆浆。",
+     "full": "我要包子和豆浆。"
+    },
+    "why": "要 is 'want' — 我要 + the food is how you order."
+   },
+   {
+    "id": "prices",
+    "say": "包子两块，豆浆两块，油条一块五。",
+    "translate": "Buns 2 yuan, soy milk 2 yuan, fried dough sticks 1.5.",
+    "simpler": "包子两块。",
+    "expect": [
+     {
+      "intent": "order",
+      "match": [
+       [
+        "要",
+        "来",
+        "买",
+        "吃",
+        "喝"
+       ],
+       [
+        "包子",
+        "豆浆",
+        "油条"
+       ]
+      ],
+      "go": "pay"
+     }
+    ],
+    "hint": {
+     "word": "包子",
+     "frame": "我要___和豆浆。",
+     "full": "我要包子和豆浆。"
+    },
+    "why": "块 is how people say 元 (yuan). 一块五 = 1.5 yuan."
+   },
+   {
+    "id": "pay",
+    "say": "好的！包子和豆浆，四块钱。",
+    "translate": "Right! A bun and a soy milk, 4 yuan.",
+    "expect": [
+     {
+      "intent": "pay",
+      "match": [
+       [
+        "给",
+        "好",
+        "好的",
+        "这是",
+        "行",
+        "可以"
+       ]
+      ],
+      "go": "done",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -4
+       },
+       {
+        "do": "give",
+        "item": "baozi"
+       },
+       {
+        "do": "give",
+        "item": "doujiang"
+       }
       ]
+     }
+    ],
+    "hint": {
+     "word": "给你",
+     "frame": "好，___。",
+     "full": "好，给你。"
     },
-    "start": "a",
-    "words": [
-      {
-        "w": "石狮子",
-        "explain": "石头做的狮子，在大门两边。",
-        "en": "stone lion"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "来，坐。",
-        "translate": "Come, sit.",
-        "next": "b"
-      },
-      {
-        "id": "b",
-        "say": "晚上，鼓楼的石狮子会动。很多人看见了。",
-        "translate": "At night the Drum Tower's stone lion moves. Lots of people have seen it.",
-        "onEnter": [
-          {
-            "do": "flag",
-            "flag": "heard-lion"
-          }
-        ],
-        "next": "c"
-      },
-      {
-        "id": "c",
-        "say": "你想看吗？在这儿坐，晚上再去。",
-        "translate": "Want to see it? Sit here, and go when it's night.",
-        "simpler": "你想看吗？",
-        "expect": [
-          {
-            "intent": "wait",
-            "match": [
-              [
-                "想",
-                "好",
-                "要",
-                "看",
-                "行",
-                "坐"
-              ]
-            ],
-            "go": "d"
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不要",
-                "不用",
-                "不想",
-                "不喝"
-              ]
-            ],
-            "go": "e"
-          }
-        ],
-        "hint": {
-          "word": "想",
-          "frame": "我___看。",
-          "full": "我想看。"
-        }
-      },
-      {
-        "id": "d",
-        "say": "现在是晚上了。去看看石狮子吧！",
-        "translate": "It's night now. Go and see the stone lion!",
-        "onEnter": [
-          {
-            "do": "wait",
-            "until": 19
-          }
-        ]
-      },
-      {
-        "id": "e",
-        "say": "好。晚上你再来。",
-        "translate": "All right. Come back in the evening."
-      }
-    ]
-  },
-  {
-    "id": "tea",
-    "map": "chaguan",
-    "npc": "lao-liu",
-    "trigger": "talk",
-    "priority": 5,
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "来，坐。喝茶吗？",
-        "translate": "Come, sit. Some tea?",
-        "expect": [
-          {
-            "intent": "yes",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对",
-                "喝"
-              ]
-            ],
-            "go": "key"
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不要",
-                "不用",
-                "不想",
-                "不喝"
-              ]
-            ],
-            "go": "no"
-          }
-        ],
-        "hint": {
-          "word": "喝",
-          "frame": "我___茶。",
-          "full": "好，我喝茶。"
-        }
-      },
-      {
-        "id": "key",
-        "say": "喝茶要一心一意。",
-        "translate": "Tea wants your whole heart.",
-        "key": true,
-        "next": "b",
-        "onEnter": [
-          {
-            "do": "idiom",
-            "idiom": "一心一意"
-          }
-        ],
-        "why": "A 成语 📌: 一心一意 — 'one heart, one mind': doing one thing with all your attention. It is in your 成语 book now."
-      },
-      {
-        "id": "b",
-        "say": "好喝吗？",
-        "translate": "Is it good?",
-        "expect": [
-          {
-            "intent": "good",
-            "match": [
-              [
-                "好喝",
-                "好",
-                "喜欢",
-                "不错"
-              ]
-            ],
-            "go": "c"
-          }
-        ],
-        "hint": {
-          "word": "好喝",
-          "frame": "很___！",
-          "full": "很好喝！"
-        }
-      },
-      {
-        "id": "c",
-        "say": "好！你再来。",
-        "translate": "Good! Come again."
-      },
-      {
-        "id": "no",
-        "say": "好，下次来喝。",
-        "translate": "All right, next time."
-      }
-    ]
-  },
-  {
-    "id": "ask-way",
-    "map": "nanluo-main",
-    "npc": "zhao-yeye",
-    "trigger": "talk",
-    "once": true,
-    "priority": 1,
-    "stamp": "ask-way",
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "早！你看，我的鸟好看吗？",
-        "translate": "Morning! Look — isn't my bird pretty?",
-        "expect": [
-          {
-            "intent": "where-gulou",
-            "match": [
-              [
-                "鼓楼"
-              ]
-            ],
-            "go": "gulou"
-          },
-          {
-            "intent": "where-subway",
-            "match": [
-              [
-                "地铁",
-                "地铁站"
-              ]
-            ],
-            "go": "subway"
-          },
-          {
-            "intent": "nice",
-            "match": [
-              [
-                "好看",
-                "漂亮",
-                "很好",
-                "喜欢"
-              ]
-            ],
-            "go": "b"
-          }
-        ],
-        "hint": {
-          "word": "好看",
-          "frame": "很___！",
-          "full": "很好看！"
-        },
-        "why": "The old men of Beijing take their birds for a walk in the morning, cage and all."
-      },
-      {
-        "id": "b",
-        "say": "谢谢！你去哪儿？",
-        "translate": "Thanks! Where are you off to?",
-        "expect": [
-          {
-            "intent": "where-gulou",
-            "match": [
-              [
-                "鼓楼"
-              ]
-            ],
-            "go": "gulou"
-          },
-          {
-            "intent": "where-subway",
-            "match": [
-              [
-                "地铁",
-                "地铁站"
-              ]
-            ],
-            "go": "subway"
-          }
-        ],
-        "hint": {
-          "word": "鼓楼",
-          "frame": "我去___。请问，在哪儿？",
-          "full": "请问，鼓楼在哪儿？"
-        },
-        "why": "请问 — 'may I ask' — opens any question to a stranger."
-      },
-      {
-        "id": "gulou",
-        "say": "鼓楼在西边，不远。",
-        "translate": "The Drum Tower is to the west, not far.",
-        "simpler": "鼓楼在西边。",
-        "why": "西边 is 'the west side'. From 南锣鼓巷, walk back through your lane and on."
-      },
-      {
-        "id": "subway",
-        "say": "地铁站在东边。",
-        "translate": "The subway station is to the east.",
-        "simpler": "在东边。"
-      }
-    ]
-  },
-  {
-    "id": "zhao-later",
-    "map": "nanluo-main",
-    "npc": "zhao-yeye",
-    "trigger": "talk",
-    "priority": 5,
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！鼓楼在西边，地铁在东边。",
-        "translate": "Hello! The Drum Tower's west, the subway's east."
-      }
-    ]
-  },
-  {
-    "id": "gulou-visit",
-    "map": "gulou-square",
-    "trigger": "auto",
-    "once": true,
-    "stamp": "gulou",
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "这是鼓楼！很大！",
-        "translate": "So this is the Drum Tower! It's big!",
-        "speaker": "hero",
-        "why": "鼓楼 — the Drum Tower — told Beijing the time with drums; the 钟楼 (Bell Tower) beside it with a bell. A landmark stamp for your passport."
-      }
-    ]
-  },
-  {
-    "id": "lion-day",
-    "map": "gulou-square",
-    "object": "stone-lion",
-    "trigger": "look",
-    "priority": 5,
-    "start": "a",
-    "words": [
-      {
-        "w": "石狮子",
-        "explain": "石头的狮子。",
-        "en": "stone lion"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "石狮子在睡觉。晚上再来看石狮子吧。",
-        "translate": "The stone lion is asleep. Come back and see it at night.",
-        "speaker": "hero"
-      }
-    ]
-  },
-  {
-    "id": "lion-night",
-    "map": "gulou-square",
-    "object": "stone-lion",
-    "trigger": "look",
-    "priority": 0,
-    "stamp": "shishizi",
-    "when": {
-      "all": [
-        {
-          "hours": [
-            17,
-            6
-          ]
-        },
-        {
-          "not": {
-            "spirit": "shishizi"
-          }
-        }
+    "why": "给你 — 'here you are' — as you hand over the money."
+   },
+   {
+    "id": "done",
+    "say": "给你包子和豆浆！好吃吗？下次来吃油条。",
+    "translate": "Here's your bun and soy milk! Good? Next time try the fried dough sticks."
+   }
+  ]
+ },
+ {
+  "id": "breakfast-more",
+  "map": "zaodian",
+  "npc": "zaodian-shifu",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "hi",
+  "nodes": [
+   {
+    "id": "hi",
+    "say": "你好！要一个包子吗？两块。",
+    "translate": "You're back! A bun? 2 yuan.",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "来"
+       ]
+      ],
+      "go": "give",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -2
+       },
+       {
+        "do": "give",
+        "item": "baozi"
+       }
       ]
-    },
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "有人来了？你是谁？",
-        "translate": "Someone's here? Who are you?",
-        "speaker": "shishizi",
-        "expect": [
-          {
-            "intent": "who",
-            "match": [
-              [
-                "我是",
-                "我叫",
-                "朋友",
-                "你好",
-                "兔儿爷"
-              ]
-            ],
-            "go": "b"
-          }
-        ],
-        "hint": {
-          "word": "朋友",
-          "frame": "我是兔儿爷的___。",
-          "full": "我是兔儿爷的朋友。"
-        }
-      },
-      {
-        "id": "b",
-        "say": "你想和我做朋友吗？你说：一个日，一个月，是什么字？",
-        "translate": "You want to be my friend? Then tell me: a sun and a moon — what character is that?",
-        "speaker": "shishizi",
-        "key": true,
-        "simpler": "一个日，一个月，是什么字？",
-        "expect": [
-          {
-            "intent": "ming",
-            "match": [
-              [
-                "明"
-              ]
-            ],
-            "go": "c"
-          }
-        ],
-        "hint": {
-          "word": "日 + 月",
-          "frame": "是___字。",
-          "full": "是明字。"
-        },
-        "why": "A 灯谜, a character riddle: 日 (sun) + 月 (moon) side by side make 明 — bright."
-      },
-      {
-        "id": "c",
-        "say": "对！是明！你是我的朋友了。",
-        "translate": "Right! It's 明! You're my friend now.",
-        "speaker": "shishizi",
-        "onEnter": [
-          {
-            "do": "spirit",
-            "spirit": "shishizi"
-          },
-          {
-            "do": "solve",
-            "riddle": "rumour-shop/rumour"
-          },
-          {
-            "do": "solve",
-            "riddle": "lantern/d"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "lion-friend",
-    "map": "gulou-square",
-    "object": "stone-lion",
-    "trigger": "look",
-    "priority": 1,
-    "when": {
-      "spirit": "shishizi"
-    },
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "朋友，你好！",
-        "translate": "Hello, friend!",
-        "speaker": "shishizi"
-      }
-    ]
-  },
-  {
-    "id": "barber",
-    "map": "lifadian",
-    "npc": "zhang-shifu",
-    "trigger": "talk",
-    "priority": 0,
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！你的中文怎么样？",
-        "translate": "Hello! How's your Chinese?",
-        "expect": [
-          {
-            "intent": "so-so",
-            "match": [
-              [
-                "好",
-                "不好",
-                "很好",
-                "还行",
-                "可以",
-                "一点",
-                "不错",
-                "还可以"
-              ]
-            ],
-            "go": "key"
-          }
-        ],
-        "hint": {
-          "word": "可以",
-          "frame": "我的中文还___。",
-          "full": "我的中文还可以。"
-        }
-      },
-      {
-        "id": "key",
-        "say": "我也马马虎虎！坐吧。",
-        "translate": "Me too — 马马虎虎, so-so! Have a seat.",
-        "key": true,
-        "next": "b",
-        "onEnter": [
-          {
-            "do": "idiom",
-            "idiom": "马马虎虎"
-          }
-        ],
-        "why": "A 成语 📌: 马马虎虎 — 'horse horse tiger tiger' — means so-so. It is a joke: he is a very good barber."
-      },
-      {
-        "id": "b",
-        "say": "今天我很累，明天见！",
-        "translate": "I'm tired today — see you tomorrow!"
-      }
-    ]
-  },
-  {
-    "id": "card",
-    "map": "station-nanluoguxiang",
-    "npc": "station-staff",
-    "trigger": "talk",
-    "once": true,
-    "priority": 0,
-    "stamp": "card",
-    "start": "a",
-    "words": [
-      {
-        "w": "交通卡",
-        "explain": "坐地铁、坐公交车的卡。",
-        "en": "transport card"
-      },
-      {
-        "w": "押金",
-        "explain": "先给的钱，不用卡的时候还给你。",
-        "en": "deposit"
-      },
-      {
-        "w": "充值",
-        "explain": "给卡里放钱。",
-        "en": "top up"
-      },
-      {
-        "w": "刷卡",
-        "explain": "在门那儿放一下卡。",
-        "en": "tap the card"
-      },
-      {
-        "w": "进站",
-        "explain": "走进地铁站。",
-        "en": "go into the station"
-      }
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用",
+        "不想",
+        "不喝"
+       ]
+      ],
+      "go": "bye"
+     }
     ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！坐地铁吗？",
-        "translate": "Hello! Taking the subway?",
-        "expect": [
-          {
-            "intent": "card",
-            "match": [
-              [
-                "交通卡",
-                "卡"
-              ]
-            ],
-            "go": "b"
-          },
-          {
-            "intent": "yes",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对",
-                "坐"
-              ]
-            ],
-            "go": "have"
-          }
-        ],
-        "hint": {
-          "word": "交通卡",
-          "frame": "我要买___。",
-          "full": "我要买交通卡。"
-        }
-      },
-      {
-        "id": "have",
-        "say": "你有交通卡吗？",
-        "translate": "Do you have a transport card?",
-        "expect": [
-          {
-            "intent": "no",
-            "match": [
-              [
-                "没",
-                "没有"
-              ]
-            ],
-            "go": "b"
-          },
-          {
-            "intent": "card",
-            "match": [
-              [
-                "交通卡",
-                "卡",
-                "买"
-              ]
-            ],
-            "go": "b"
-          }
-        ],
-        "hint": {
-          "word": "没有",
-          "frame": "___，我要买一个。",
-          "full": "没有，我要买交通卡。"
-        }
-      },
-      {
-        "id": "b",
-        "say": "好的。交通卡：押金二十，充值二十，四十块。好吗？",
-        "translate": "Sure. Transport card: 20 deposit, 20 on the card — 40 yuan. OK?",
-        "simpler": "押金二十，充值二十。你要交通卡吗？",
-        "expect": [
-          {
-            "intent": "yes",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对"
-              ]
-            ],
-            "go": "c",
-            "actions": [
-              {
-                "do": "money",
-                "amount": -40
-              },
-              {
-                "do": "card",
-                "amount": 20
-              },
-              {
-                "do": "flag",
-                "flag": "has-card"
-              },
-              {
-                "do": "flag",
-                "flag": "has-card"
-              },
-              {
-                "do": "flag",
-                "flag": "has-card"
-              }
-            ]
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不要",
-                "不用",
-                "不想",
-                "不喝"
-              ]
-            ],
-            "go": "later"
-          }
-        ],
-        "hint": {
-          "word": "好",
-          "frame": "___，给你。",
-          "full": "好，给你。"
-        },
-        "why": "押金 is a deposit — you get it back when you return the card. 充值 is topping the card up."
-      },
-      {
-        "id": "c",
-        "say": "这是你的交通卡。刷卡，进站。",
-        "translate": "Here's your transport card. Tap it at the gate to go in.",
-        "simpler": "刷卡，进站。",
-        "why": "刷卡 — tap the card. 进站 — enter the station. The gates are just below."
-      },
-      {
-        "id": "later",
-        "say": "好，下次再来。",
-        "translate": "All right — come back any time."
-      }
-    ]
-  },
-  {
-    "id": "staff",
-    "map": "station-nanluoguxiang",
-    "npc": "station-staff",
-    "trigger": "talk",
-    "priority": 5,
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！地铁在这儿。",
-        "translate": "Hello! The trains are this way."
-      }
-    ]
-  },
-  {
-    "id": "bed",
-    "map": "siheyuan-room",
-    "object": "bed",
-    "trigger": "look",
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "睡觉吗？",
-        "translate": "Go to sleep?",
-        "speaker": "hero",
-        "expect": [
-          {
-            "intent": "yes",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对",
-                "睡",
-                "睡觉"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "sleep"
-              }
-            ]
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不要",
-                "不用",
-                "不想",
-                "不喝"
-              ]
-            ],
-            "go": "c"
-          }
-        ],
-        "hint": {
-          "word": "睡觉",
-          "frame": "我要___。",
-          "full": "好，我要睡觉。"
-        }
-      },
-      {
-        "id": "b",
-        "say": "好，睡吧。明天见。",
-        "translate": "Right — sleep. See you tomorrow.",
-        "speaker": "hero"
-      },
-      {
-        "id": "c",
-        "say": "现在不睡。",
-        "translate": "Not now.",
-        "speaker": "hero"
-      }
-    ]
-  },
-  {
-    "id": "nlgx-gates-in",
-    "map": "station-nanluoguxiang",
-    "object": "gates-in",
-    "trigger": "look",
-    "priority": 0,
-    "when": {
-      "flag": "has-card"
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "刷卡",
-        "explain": "在门那儿放一下卡。",
-        "en": "tap the card"
-      },
-      {
-        "w": "进站",
-        "explain": "走进地铁站。",
-        "en": "go into the station"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "刷卡，进站！",
-        "translate": "Tap the card — in you go!",
-        "speaker": "hero",
-        "simpler": "刷卡。进站。",
-        "onEnter": [
-          {
-            "do": "teleport",
-            "map": "station-nanluoguxiang",
-            "tile": [
-              11,
-              9
-            ],
-            "facing": "down"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "nlgx-gates-nocard",
-    "map": "station-nanluoguxiang",
-    "object": "gates-in",
-    "trigger": "look",
-    "priority": 1,
-    "start": "a",
-    "words": [
-      {
-        "w": "交通卡",
-        "explain": "坐地铁的卡。",
-        "en": "transport card"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你没有交通卡。",
-        "translate": "You haven't got a transport card.",
-        "speaker": "companion",
-        "simpler": "去买交通卡吧。",
-        "why": "The attendant by the ticket machines sells the 交通卡."
-      }
-    ]
-  },
-  {
-    "id": "nlgx-gates-out",
-    "map": "station-nanluoguxiang",
-    "object": "gates-out",
-    "trigger": "look",
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "好，出去。",
-        "translate": "Right — out through the gates.",
-        "speaker": "hero",
-        "onEnter": [
-          {
-            "do": "teleport",
-            "map": "station-nanluoguxiang",
-            "tile": [
-              11,
-              5
-            ],
-            "facing": "up"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "wang-cold",
-    "map": "siheyuan-yard",
-    "npc": "wang-ayi",
-    "trigger": "talk",
-    "once": true,
-    "priority": -1,
-    "when": {
-      "chapter": 3
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "感冒",
-        "explain": "身体不好，头疼，要喝水。",
-        "en": "a cold"
-      },
-      {
-        "w": "发烧",
-        "explain": "身体很热。",
-        "en": "fever"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好……我感冒了，有点发烧。",
-        "translate": "Hello… I've caught a cold, a bit of a fever.",
-        "simpler": "我感冒了，发烧。",
-        "onEnter": [
-          {
-            "do": "quest",
-            "quest": "wang-cold",
-            "step": "medicine"
-          }
-        ],
-        "next": "b"
-      },
-      {
-        "id": "b",
-        "say": "没事，没事。你去玩吧。",
-        "translate": "It's nothing, nothing. Off you go."
-      }
-    ]
-  },
-  {
-    "id": "wang-medicine",
-    "map": "siheyuan-yard",
-    "npc": "wang-ayi",
-    "trigger": "talk",
-    "priority": -2,
-    "when": {
-      "all": [
-        {
-          "item": "ganmaoyao"
-        },
-        {
-          "not": {
-            "flag": "wang-got-medicine"
-          }
-        }
-      ]
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "药",
-        "explain": "身体不好的时候吃的东西。",
-        "en": "medicine"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你给我买药了？",
-        "translate": "You bought me medicine?",
-        "simpler": "这是药吗？",
-        "expect": [
-          {
-            "intent": "give",
-            "match": [
-              [
-                "给",
-                "是",
-                "对",
-                "药",
-                "这是"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "take",
-                "item": "ganmaoyao"
-              },
-              {
-                "do": "flag",
-                "flag": "wang-got-medicine"
-              },
-              {
-                "do": "remember",
-                "npc": "wang-ayi",
-                "note": "brought her cold medicine"
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "药",
-          "frame": "对，这是你的___。",
-          "full": "对，这是你的药。"
-        }
-      },
-      {
-        "id": "b",
-        "say": "谢谢你！你真好。",
-        "translate": "Thank you! You're so kind."
-      }
-    ]
-  },
-  {
-    "id": "ticket",
-    "map": "siheyuan-yard",
-    "npc": "wang-ayi",
-    "trigger": "talk",
-    "priority": -3,
-    "once": true,
-    "when": {
-      "all": [
-        {
-          "chapter": 7
-        },
-        {
-          "not": {
-            "flag": "palace-ticket"
-          }
-        }
-      ]
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "票",
-        "explain": "进门要的，要买。",
-        "en": "ticket"
-      },
-      {
-        "w": "网上",
-        "explain": "在手机、电脑上。",
-        "en": "online"
-      },
-      {
-        "w": "护照",
-        "explain": "去别的国家要用的小本子。",
-        "en": "passport"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你要去故宫吗？",
-        "translate": "You want to go to the palace?",
-        "expect": [
-          {
-            "intent": "yes",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对",
-                "故宫",
-                "去",
-                "想"
-              ]
-            ],
-            "go": "b"
-          }
-        ],
-        "hint": {
-          "word": "故宫",
-          "frame": "对，我要去___。",
-          "full": "对，我要去故宫。"
-        }
-      },
-      {
-        "id": "b",
-        "say": "故宫的票要在网上买，要写你的名字和护照。",
-        "translate": "Palace tickets are bought online, with your name and passport.",
-        "simpler": "票要在网上买。",
-        "next": "c"
-      },
-      {
-        "id": "c",
-        "say": "我帮你买吧！你的护照呢？",
-        "translate": "I'll buy it for you! Your passport?",
-        "expect": [
-          {
-            "intent": "give",
-            "match": [
-              [
-                "给",
-                "好",
-                "这是",
-                "护照",
-                "谢谢"
-              ]
-            ],
-            "go": "d",
-            "actions": [
-              {
-                "do": "flag",
-                "flag": "palace-ticket"
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "护照",
-          "frame": "好，这是我的___。",
-          "full": "好，这是我的护照。"
-        }
-      },
-      {
-        "id": "d",
-        "say": "好了！明天上午九点，你的票在手机上。",
-        "translate": "Done! Tomorrow at nine in the morning — the ticket's on your phone.",
-        "simpler": "好了！你有票了。"
-      }
-    ]
-  },
-  {
-    "id": "bird-lost",
-    "map": "nanluo-main",
-    "npc": "zhao-yeye",
-    "trigger": "talk",
-    "once": true,
-    "priority": -1,
-    "when": {
-      "chapter": 2
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "鸟",
-        "explain": "会飞的小动物。",
-        "en": "bird"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "我的鸟不见了！你看见了吗？",
-        "translate": "My bird's gone! Have you seen it?",
-        "simpler": "我的鸟没了。",
-        "onEnter": [
-          {
-            "do": "quest",
-            "quest": "side-bird",
-            "step": "find"
-          }
-        ],
-        "key": true,
-        "why": "A small key line: 不见了 — 'has gone, can't be found'. 小明 is always in the lanes: ask him."
-      }
-    ]
-  },
-  {
-    "id": "bird-kid",
-    "map": "nanluo-main",
-    "npc": "xiaoming",
-    "trigger": "talk",
-    "priority": 0,
-    "when": {
-      "all": [
-        {
-          "quest": "side-bird",
-          "step": "find"
-        },
-        {
-          "not": {
-            "item": "niao"
-          }
-        }
-      ]
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "鸟",
-        "explain": "会飞的小动物。",
-        "en": "bird"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "这是爷爷的鸟吗？给你！",
-        "translate": "Is this grandpa's bird? Here!",
-        "simpler": "鸟，给你！",
-        "onEnter": [
-          {
-            "do": "give",
-            "item": "niao"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "bird-back",
-    "map": "nanluo-main",
-    "npc": "zhao-yeye",
-    "trigger": "talk",
-    "priority": -2,
-    "when": {
-      "all": [
-        {
-          "item": "niao"
-        },
-        {
-          "not": {
-            "flag": "bird-back"
-          }
-        }
-      ]
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "鸟",
-        "explain": "会飞的小动物。",
-        "en": "bird"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "我的鸟！谢谢你！",
-        "translate": "My bird! Thank you!",
-        "simpler": "鸟回来了！",
-        "onEnter": [
-          {
-            "do": "take",
-            "item": "niao"
-          },
-          {
-            "do": "flag",
-            "flag": "bird-back"
-          },
-          {
-            "do": "money",
-            "amount": 20
-          },
-          {
-            "do": "remember",
-            "npc": "zhao-yeye",
-            "note": "brought his bird back"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "haircut",
-    "map": "lifadian",
-    "npc": "zhang-shifu",
-    "trigger": "talk",
-    "priority": 1,
-    "when": {
-      "idiom": "马马虎虎"
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "剪头",
-        "explain": "把头发弄短。",
-        "en": "a haircut"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "剪头吗？三十块。",
-        "translate": "A haircut? Thirty yuan.",
-        "simpler": "你要剪头吗？",
-        "onEnter": [
-          {
-            "do": "quest",
-            "quest": "side-haircut",
-            "step": "cut"
-          }
-        ],
-        "expect": [
-          {
-            "intent": "yes",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对",
-                "剪"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "money",
-                "amount": -30
-              },
-              {
-                "do": "flag",
-                "flag": "haircut"
-              },
-              {
-                "do": "stamp",
-                "stamp": "haircut"
-              }
-            ]
-          },
-          {
-            "intent": "no",
-            "match": [
-              [
-                "不",
-                "不要",
-                "不用"
-              ]
-            ],
-            "go": "c"
-          }
-        ],
-        "hint": {
-          "word": "好",
-          "frame": "___，谢谢。",
-          "full": "好，谢谢。"
-        }
-      },
-      {
-        "id": "b",
-        "say": "好了！很好看！",
-        "translate": "Done! Looks great!"
-      },
-      {
-        "id": "c",
-        "say": "好，下次来。",
-        "translate": "All right, next time."
-      }
-    ]
-  },
-  {
-    "id": "bait-buy",
-    "map": "xiaomaibu",
-    "npc": "li-ayi",
-    "trigger": "talk",
-    "priority": -1,
-    "when": {
-      "all": [
-        {
-          "quest": "side-bait",
-          "step": "buy"
-        },
-        {
-          "not": {
-            "item": "yuer"
-          }
-        }
-      ]
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "鱼饵",
-        "explain": "鱼喜欢吃的小东西，钓鱼用。",
-        "en": "bait"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！要什么？",
-        "translate": "Hello! What'll it be?",
-        "expect": [
-          {
-            "intent": "bait",
-            "match": [
-              [
-                "鱼饵"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "money",
-                "amount": -5
-              },
-              {
-                "do": "give",
-                "item": "yuer"
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "鱼饵",
-          "frame": "我要买___。",
-          "full": "我要买鱼饵。"
-        }
-      },
-      {
-        "id": "b",
-        "say": "鱼饵？五块。给你。",
-        "translate": "Bait? Five yuan. Here.",
-        "simpler": "鱼饵五块。"
-      }
-    ]
-  },
-  {
-    "id": "painting-wang",
-    "map": "siheyuan-yard",
-    "npc": "wang-ayi",
-    "trigger": "talk",
-    "priority": -4,
-    "when": {
-      "all": [
-        {
-          "item": "hua"
-        },
-        {
-          "not": {
-            "flag": "painting-given"
-          }
-        }
-      ]
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "画",
-        "explain": "用笔做的，好看的东西。",
-        "en": "painting"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "这是给我的画吗？真好看！谢谢！",
-        "translate": "A painting for me? It's beautiful! Thank you!",
-        "simpler": "画真好看！",
-        "onEnter": [
-          {
-            "do": "take",
-            "item": "hua"
-          },
-          {
-            "do": "flag",
-            "flag": "painting-given"
-          },
-          {
-            "do": "remember",
-            "npc": "wang-ayi",
-            "note": "gave her a painting of the White Dagoba"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "book-want",
-    "map": "nanluo-main",
-    "npc": "xiaoming",
-    "trigger": "talk",
-    "priority": 1,
-    "once": true,
-    "when": {
-      "chapter": 3
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "故事书",
-        "explain": "有故事的书。",
-        "en": "storybook"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "我想要一本故事书！",
-        "translate": "I want a storybook!",
-        "simpler": "我要故事书！",
-        "onEnter": [
-          {
-            "do": "quest",
-            "quest": "side-book",
-            "step": "buy"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "book-give",
-    "map": "nanluo-main",
-    "npc": "xiaoming",
-    "trigger": "talk",
-    "priority": -1,
-    "when": {
-      "all": [
-        {
-          "item": "gushishu"
-        },
-        {
-          "not": {
-            "flag": "book-given"
-          }
-        }
-      ]
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "故事书",
-        "explain": "有故事的书。",
-        "en": "storybook"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "我的故事书！谢谢你！",
-        "translate": "My storybook! Thank you!",
-        "simpler": "故事书！",
-        "onEnter": [
-          {
-            "do": "take",
-            "item": "gushishu"
-          },
-          {
-            "do": "flag",
-            "flag": "book-given"
-          },
-          {
-            "do": "remember",
-            "npc": "xiaoming",
-            "note": "gave him a storybook"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "tea-buy",
-    "map": "chaguan",
-    "npc": "lao-liu",
-    "trigger": "talk",
-    "priority": -1,
-    "when": {
-      "all": [
-        {
-          "quest": "side-tea",
-          "step": "buy"
-        },
-        {
-          "not": {
-            "item": "chaye"
-          }
-        }
-      ]
-    },
-    "start": "a",
-    "words": [
-      {
-        "w": "茶叶",
-        "explain": "做茶用的叶子。",
-        "en": "tea leaves"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你要什么？",
-        "translate": "What would you like?",
-        "expect": [
-          {
-            "intent": "tea",
-            "match": [
-              [
-                "茶叶",
-                "茶"
-              ]
-            ],
-            "go": "b",
-            "actions": [
-              {
-                "do": "money",
-                "amount": -20
-              },
-              {
-                "do": "give",
-                "item": "chaye"
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "茶叶",
-          "frame": "我要买___。",
-          "full": "我要买茶叶。"
-        }
-      },
-      {
-        "id": "b",
-        "say": "茶叶？二十块。给你。",
-        "translate": "Tea leaves? Twenty yuan. Here.",
-        "simpler": "茶叶，二十块。"
-      }
-    ]
+    "hint": {
+     "word": "要",
+     "frame": "___，谢谢。",
+     "full": "要，谢谢。"
+    }
+   },
+   {
+    "id": "give",
+    "say": "给你！",
+    "translate": "Here you go!"
+   },
+   {
+    "id": "bye",
+    "say": "好，再见！",
+    "translate": "OK, bye!"
+   }
+  ],
+  "when": {
+   "money": 2
   }
+ },
+ {
+  "id": "rumour-shop",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "flag": "lantern-broken"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "石狮子",
+    "explain": "石头的狮子，在大门两边。",
+    "en": "stone lion"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！要买什么？",
+    "translate": "Hello! What would you like?",
+    "expect": [
+     {
+      "intent": "ask",
+      "match": [
+       [
+        "看见",
+        "听说",
+        "知道",
+        "奇怪"
+       ]
+      ],
+      "go": "rumour"
+     },
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "买",
+        "要"
+       ],
+       [
+        "水",
+        "可乐",
+        "面包",
+        "牛奶"
+       ]
+      ],
+      "go": "sell"
+     }
+    ],
+    "hint": {
+     "word": "看见",
+     "frame": "你___什么了？",
+     "full": "请问，你看见什么了？"
+    },
+    "why": "看见 is 'to see (and notice)'. Ask what people have seen."
+   },
+   {
+    "id": "sell",
+    "say": "水三块。给你。你还要什么？",
+    "translate": "Water's 3 yuan. Here. Anything else?",
+    "onEnter": [
+     {
+      "do": "money",
+      "amount": -3
+     },
+     {
+      "do": "give",
+      "item": "water"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "ask",
+      "match": [
+       [
+        "看见",
+        "听说",
+        "知道",
+        "奇怪"
+       ]
+      ],
+      "go": "rumour"
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用",
+        "不想",
+        "不喝",
+        "没有",
+        "谢谢"
+       ]
+      ],
+      "go": "bye"
+     }
+    ],
+    "hint": {
+     "word": "看见",
+     "frame": "你___什么了？",
+     "full": "请问，你看见什么了？"
+    }
+   },
+   {
+    "id": "rumour",
+    "say": "听说晚上鼓楼那儿的石狮子会动。",
+    "translate": "They say at night the stone lion over by the Drum Tower moves.",
+    "key": true,
+    "simpler": "晚上，石狮子会动。",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "heard-lion"
+     }
+    ],
+    "next": "b",
+    "why": "A key line 📌: 听说 is 'I've heard / they say'. 会动 is 'can move'. 鼓楼 is the Drum Tower, west of your lane."
+   },
+   {
+    "id": "b",
+    "say": "我不知道。晚上，你去看看吧！",
+    "translate": "I don't know. Go and see at night!"
+   },
+   {
+    "id": "bye",
+    "say": "好，再见！",
+    "translate": "OK, bye!"
+   }
+  ]
+ },
+ {
+  "id": "shop",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！要买什么？",
+    "translate": "Hello! What would you like?",
+    "expect": [
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "买",
+        "要"
+       ],
+       [
+        "水",
+        "可乐",
+        "面包",
+        "牛奶"
+       ]
+      ],
+      "go": "sell",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -3
+       },
+       {
+        "do": "give",
+        "item": "water"
+       }
+      ]
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用",
+        "不想",
+        "不喝",
+        "没有",
+        "谢谢"
+       ]
+      ],
+      "go": "bye"
+     }
+    ],
+    "hint": {
+     "word": "水",
+     "frame": "我要买___。",
+     "full": "我要买水。"
+    }
+   },
+   {
+    "id": "sell",
+    "say": "水三块。给你。",
+    "translate": "Water's 3 yuan. Here you are."
+   },
+   {
+    "id": "bye",
+    "say": "好，再见！",
+    "translate": "OK, bye!"
+   }
+  ],
+  "when": {
+   "money": 3
+  }
+ },
+ {
+  "id": "rumour-tea",
+  "map": "chaguan",
+  "npc": "lao-liu",
+  "trigger": "talk",
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "flag": "lantern-broken"
+    },
+    {
+     "not": {
+      "spirit": "shishizi"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "石狮子",
+    "explain": "石头做的狮子，在大门两边。",
+    "en": "stone lion"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "来，坐。",
+    "translate": "Come, sit.",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "晚上，鼓楼的石狮子会动。很多人看见了。",
+    "translate": "At night the Drum Tower's stone lion moves. Lots of people have seen it.",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "heard-lion"
+     }
+    ],
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "你想看吗？在这儿坐，晚上再去。",
+    "translate": "Want to see it? Sit here, and go when it's night.",
+    "simpler": "你想看吗？",
+    "expect": [
+     {
+      "intent": "wait",
+      "match": [
+       [
+        "想",
+        "好",
+        "要",
+        "看",
+        "行",
+        "坐"
+       ]
+      ],
+      "go": "d"
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用",
+        "不想",
+        "不喝"
+       ]
+      ],
+      "go": "e"
+     }
+    ],
+    "hint": {
+     "word": "想",
+     "frame": "我___看。",
+     "full": "我想看。"
+    }
+   },
+   {
+    "id": "d",
+    "say": "现在是晚上了。去看看石狮子吧！",
+    "translate": "It's night now. Go and see the stone lion!",
+    "onEnter": [
+     {
+      "do": "wait",
+      "until": 19
+     }
+    ]
+   },
+   {
+    "id": "e",
+    "say": "好。晚上你再来。",
+    "translate": "All right. Come back in the evening."
+   }
+  ]
+ },
+ {
+  "id": "tea",
+  "map": "chaguan",
+  "npc": "lao-liu",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "来，坐。喝茶吗？",
+    "translate": "Come, sit. Some tea?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "喝"
+       ]
+      ],
+      "go": "key"
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用",
+        "不想",
+        "不喝"
+       ]
+      ],
+      "go": "no"
+     }
+    ],
+    "hint": {
+     "word": "喝",
+     "frame": "我___茶。",
+     "full": "好，我喝茶。"
+    }
+   },
+   {
+    "id": "key",
+    "say": "喝茶要一心一意。",
+    "translate": "Tea wants your whole heart.",
+    "key": true,
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "idiom",
+      "idiom": "一心一意"
+     }
+    ],
+    "why": "A 成语 📌: 一心一意 — 'one heart, one mind': doing one thing with all your attention. It is in your 成语 book now."
+   },
+   {
+    "id": "b",
+    "say": "好喝吗？",
+    "translate": "Is it good?",
+    "expect": [
+     {
+      "intent": "good",
+      "match": [
+       [
+        "好喝",
+        "好",
+        "喜欢",
+        "不错"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "好喝",
+     "frame": "很___！",
+     "full": "很好喝！"
+    }
+   },
+   {
+    "id": "c",
+    "say": "好！你再来。",
+    "translate": "Good! Come again."
+   },
+   {
+    "id": "no",
+    "say": "好，下次来喝。",
+    "translate": "All right, next time."
+   }
+  ]
+ },
+ {
+  "id": "ask-way",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": 1,
+  "stamp": "ask-way",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "早！你看，我的鸟好看吗？",
+    "translate": "Morning! Look — isn't my bird pretty?",
+    "expect": [
+     {
+      "intent": "where-gulou",
+      "match": [
+       [
+        "鼓楼"
+       ]
+      ],
+      "go": "gulou"
+     },
+     {
+      "intent": "where-subway",
+      "match": [
+       [
+        "地铁",
+        "地铁站"
+       ]
+      ],
+      "go": "subway"
+     },
+     {
+      "intent": "nice",
+      "match": [
+       [
+        "好看",
+        "漂亮",
+        "很好",
+        "喜欢"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "好看",
+     "frame": "很___！",
+     "full": "很好看！"
+    },
+    "why": "The old men of Beijing take their birds for a walk in the morning, cage and all."
+   },
+   {
+    "id": "b",
+    "say": "谢谢！你去哪儿？",
+    "translate": "Thanks! Where are you off to?",
+    "expect": [
+     {
+      "intent": "where-gulou",
+      "match": [
+       [
+        "鼓楼"
+       ]
+      ],
+      "go": "gulou"
+     },
+     {
+      "intent": "where-subway",
+      "match": [
+       [
+        "地铁",
+        "地铁站"
+       ]
+      ],
+      "go": "subway"
+     }
+    ],
+    "hint": {
+     "word": "鼓楼",
+     "frame": "我去___。请问，在哪儿？",
+     "full": "请问，鼓楼在哪儿？"
+    },
+    "why": "请问 — 'may I ask' — opens any question to a stranger."
+   },
+   {
+    "id": "gulou",
+    "say": "鼓楼在西边，不远。",
+    "translate": "The Drum Tower is to the west, not far.",
+    "simpler": "鼓楼在西边。",
+    "why": "西边 is 'the west side'. From 南锣鼓巷, walk back through your lane and on."
+   },
+   {
+    "id": "subway",
+    "say": "地铁站在东边。",
+    "translate": "The subway station is to the east.",
+    "simpler": "在东边。"
+   }
+  ]
+ },
+ {
+  "id": "zhao-later",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！鼓楼在西边，地铁在东边。",
+    "translate": "Hello! The Drum Tower's west, the subway's east."
+   }
+  ]
+ },
+ {
+  "id": "gulou-visit",
+  "map": "gulou-square",
+  "trigger": "auto",
+  "once": true,
+  "stamp": "gulou",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这是鼓楼！很大！",
+    "translate": "So this is the Drum Tower! It's big!",
+    "speaker": "hero",
+    "why": "鼓楼 — the Drum Tower — told Beijing the time with drums; the 钟楼 (Bell Tower) beside it with a bell. A landmark stamp for your passport."
+   }
+  ]
+ },
+ {
+  "id": "lion-day",
+  "map": "gulou-square",
+  "object": "stone-lion",
+  "trigger": "look",
+  "priority": 5,
+  "start": "a",
+  "words": [
+   {
+    "w": "石狮子",
+    "explain": "石头的狮子。",
+    "en": "stone lion"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "石狮子在睡觉。晚上再来看石狮子吧。",
+    "translate": "The stone lion is asleep. Come back and see it at night.",
+    "speaker": "hero"
+   }
+  ]
+ },
+ {
+  "id": "lion-night",
+  "map": "gulou-square",
+  "object": "stone-lion",
+  "trigger": "look",
+  "priority": 0,
+  "stamp": "shishizi",
+  "when": {
+   "all": [
+    {
+     "hours": [
+      17,
+      6
+     ]
+    },
+    {
+     "not": {
+      "spirit": "shishizi"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "有人来了？你是谁？",
+    "translate": "Someone's here? Who are you?",
+    "speaker": "shishizi",
+    "expect": [
+     {
+      "intent": "who",
+      "match": [
+       [
+        "我是",
+        "我叫",
+        "朋友",
+        "你好",
+        "兔儿爷"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "朋友",
+     "frame": "我是兔儿爷的___。",
+     "full": "我是兔儿爷的朋友。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "你想和我做朋友吗？你说：一个日，一个月，是什么字？",
+    "translate": "You want to be my friend? Then tell me: a sun and a moon — what character is that?",
+    "speaker": "shishizi",
+    "key": true,
+    "simpler": "一个日，一个月，是什么字？",
+    "expect": [
+     {
+      "intent": "ming",
+      "match": [
+       [
+        "明"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "日 + 月",
+     "frame": "是___字。",
+     "full": "是明字。"
+    },
+    "why": "A 灯谜, a character riddle: 日 (sun) + 月 (moon) side by side make 明 — bright."
+   },
+   {
+    "id": "c",
+    "say": "对！是明！你是我的朋友了。",
+    "translate": "Right! It's 明! You're my friend now.",
+    "speaker": "shishizi",
+    "onEnter": [
+     {
+      "do": "spirit",
+      "spirit": "shishizi"
+     },
+     {
+      "do": "solve",
+      "riddle": "rumour-shop/rumour"
+     },
+     {
+      "do": "solve",
+      "riddle": "lantern/d"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "lion-friend",
+  "map": "gulou-square",
+  "object": "stone-lion",
+  "trigger": "look",
+  "priority": 1,
+  "when": {
+   "spirit": "shishizi"
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "朋友，你好！",
+    "translate": "Hello, friend!",
+    "speaker": "shishizi"
+   }
+  ]
+ },
+ {
+  "id": "barber",
+  "map": "lifadian",
+  "npc": "zhang-shifu",
+  "trigger": "talk",
+  "priority": 0,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你的中文怎么样？",
+    "translate": "Hello! How's your Chinese?",
+    "expect": [
+     {
+      "intent": "so-so",
+      "match": [
+       [
+        "好",
+        "不好",
+        "很好",
+        "还行",
+        "可以",
+        "一点",
+        "不错",
+        "还可以"
+       ]
+      ],
+      "go": "key"
+     }
+    ],
+    "hint": {
+     "word": "可以",
+     "frame": "我的中文还___。",
+     "full": "我的中文还可以。"
+    }
+   },
+   {
+    "id": "key",
+    "say": "我也马马虎虎！坐吧。",
+    "translate": "Me too — 马马虎虎, so-so! Have a seat.",
+    "key": true,
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "idiom",
+      "idiom": "马马虎虎"
+     }
+    ],
+    "why": "A 成语 📌: 马马虎虎 — 'horse horse tiger tiger' — means so-so. It is a joke: he is a very good barber."
+   },
+   {
+    "id": "b",
+    "say": "今天我很累，明天见！",
+    "translate": "I'm tired today — see you tomorrow!"
+   }
+  ],
+  "once": true
+ },
+ {
+  "id": "card",
+  "map": "station-nanluoguxiang",
+  "npc": "station-staff",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "card",
+  "start": "a",
+  "words": [
+   {
+    "w": "交通卡",
+    "explain": "坐地铁、坐公交车的卡。",
+    "en": "transport card"
+   },
+   {
+    "w": "押金",
+    "explain": "先给的钱，不用卡的时候还给你。",
+    "en": "deposit"
+   },
+   {
+    "w": "充值",
+    "explain": "给卡里放钱。",
+    "en": "top up"
+   },
+   {
+    "w": "刷卡",
+    "explain": "在门那儿放一下卡。",
+    "en": "tap the card"
+   },
+   {
+    "w": "进站",
+    "explain": "走进地铁站。",
+    "en": "go into the station"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！坐地铁吗？",
+    "translate": "Hello! Taking the subway?",
+    "expect": [
+     {
+      "intent": "card",
+      "match": [
+       [
+        "交通卡",
+        "卡"
+       ]
+      ],
+      "go": "b"
+     },
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "坐"
+       ]
+      ],
+      "go": "have"
+     }
+    ],
+    "hint": {
+     "word": "交通卡",
+     "frame": "我要买___。",
+     "full": "我要买交通卡。"
+    }
+   },
+   {
+    "id": "have",
+    "say": "你有交通卡吗？",
+    "translate": "Do you have a transport card?",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "没",
+        "没有"
+       ]
+      ],
+      "go": "b"
+     },
+     {
+      "intent": "card",
+      "match": [
+       [
+        "交通卡",
+        "卡",
+        "买"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "没有",
+     "frame": "___，我要买一个。",
+     "full": "没有，我要买交通卡。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好的。交通卡：押金二十，充值二十，四十块。好吗？",
+    "translate": "Sure. Transport card: 20 deposit, 20 on the card — 40 yuan. OK?",
+    "simpler": "押金二十，充值二十。你要交通卡吗？",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对"
+       ]
+      ],
+      "go": "c",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -40
+       },
+       {
+        "do": "card",
+        "amount": 20
+       },
+       {
+        "do": "flag",
+        "flag": "has-card"
+       },
+       {
+        "do": "flag",
+        "flag": "has-card"
+       },
+       {
+        "do": "flag",
+        "flag": "has-card"
+       }
+      ]
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用",
+        "不想",
+        "不喝"
+       ]
+      ],
+      "go": "later"
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，给你。",
+     "full": "好，给你。"
+    },
+    "why": "押金 is a deposit — you get it back when you return the card. 充值 is topping the card up."
+   },
+   {
+    "id": "c",
+    "say": "这是你的交通卡。刷卡，进站。",
+    "translate": "Here's your transport card. Tap it at the gate to go in.",
+    "simpler": "刷卡，进站。",
+    "why": "刷卡 — tap the card. 进站 — enter the station. The gates are just below."
+   },
+   {
+    "id": "later",
+    "say": "好，下次再来。",
+    "translate": "All right — come back any time."
+   }
+  ],
+  "when": {
+   "money": 40
+  }
+ },
+ {
+  "id": "staff",
+  "map": "station-nanluoguxiang",
+  "npc": "station-staff",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！地铁在这儿。",
+    "translate": "Hello! The trains are this way."
+   }
+  ]
+ },
+ {
+  "id": "bed",
+  "map": "siheyuan-room",
+  "object": "bed",
+  "trigger": "look",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "睡觉吗？",
+    "translate": "Go to sleep?",
+    "speaker": "hero",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "睡",
+        "睡觉"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "sleep"
+       }
+      ]
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用",
+        "不想",
+        "不喝"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "睡觉",
+     "frame": "我要___。",
+     "full": "好，我要睡觉。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好，睡吧。明天见。",
+    "translate": "Right — sleep. See you tomorrow.",
+    "speaker": "hero"
+   },
+   {
+    "id": "c",
+    "say": "现在不睡。",
+    "translate": "Not now.",
+    "speaker": "hero"
+   }
+  ],
+  "priority": 5
+ },
+ {
+  "id": "nlgx-gates-in",
+  "map": "station-nanluoguxiang",
+  "object": "gates-in",
+  "trigger": "look",
+  "priority": 0,
+  "when": {
+   "flag": "has-card"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "刷卡",
+    "explain": "在门那儿放一下卡。",
+    "en": "tap the card"
+   },
+   {
+    "w": "进站",
+    "explain": "走进地铁站。",
+    "en": "go into the station"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "刷卡，进站！",
+    "translate": "Tap the card — in you go!",
+    "speaker": "hero",
+    "simpler": "刷卡。进站。",
+    "onEnter": [
+     {
+      "do": "teleport",
+      "map": "station-nanluoguxiang",
+      "tile": [
+       11,
+       9
+      ],
+      "facing": "down"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "nlgx-gates-nocard",
+  "map": "station-nanluoguxiang",
+  "object": "gates-in",
+  "trigger": "look",
+  "priority": 1,
+  "start": "a",
+  "words": [
+   {
+    "w": "交通卡",
+    "explain": "坐地铁的卡。",
+    "en": "transport card"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你没有交通卡。",
+    "translate": "You haven't got a transport card.",
+    "speaker": "companion",
+    "simpler": "去买交通卡吧。",
+    "why": "The attendant by the ticket machines sells the 交通卡."
+   }
+  ]
+ },
+ {
+  "id": "nlgx-gates-out",
+  "map": "station-nanluoguxiang",
+  "object": "gates-out",
+  "trigger": "look",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好，出去。",
+    "translate": "Right — out through the gates.",
+    "speaker": "hero",
+    "onEnter": [
+     {
+      "do": "teleport",
+      "map": "station-nanluoguxiang",
+      "tile": [
+       11,
+       5
+      ],
+      "facing": "up"
+     }
+    ]
+   }
+  ],
+  "priority": 5
+ },
+ {
+  "id": "wang-cold",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "chapter": 3
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "感冒",
+    "explain": "身体不好，头疼，要喝水。",
+    "en": "a cold"
+   },
+   {
+    "w": "发烧",
+    "explain": "身体很热。",
+    "en": "fever"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好……我感冒了，有点发烧。",
+    "translate": "Hello… I've caught a cold, a bit of a fever.",
+    "simpler": "我感冒了，发烧。",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "wang-cold",
+      "step": "medicine"
+     }
+    ],
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "没事，没事。你去玩吧。",
+    "translate": "It's nothing, nothing. Off you go."
+   }
+  ]
+ },
+ {
+  "id": "wang-medicine",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "priority": -2,
+  "when": {
+   "all": [
+    {
+     "item": "ganmaoyao"
+    },
+    {
+     "not": {
+      "flag": "wang-got-medicine"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "药",
+    "explain": "身体不好的时候吃的东西。",
+    "en": "medicine"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你给我买药了？",
+    "translate": "You bought me medicine?",
+    "simpler": "这是药吗？",
+    "expect": [
+     {
+      "intent": "give",
+      "match": [
+       [
+        "给",
+        "是",
+        "对",
+        "药",
+        "这是"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "take",
+        "item": "ganmaoyao"
+       },
+       {
+        "do": "flag",
+        "flag": "wang-got-medicine"
+       },
+       {
+        "do": "remember",
+        "npc": "wang-ayi",
+        "note": "brought her cold medicine"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "药",
+     "frame": "对，这是你的___。",
+     "full": "对，这是你的药。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "谢谢你！你真好。",
+    "translate": "Thank you! You're so kind."
+   }
+  ]
+ },
+ {
+  "id": "ticket",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "priority": -3,
+  "once": true,
+  "when": {
+   "all": [
+    {
+     "chapter": 7
+    },
+    {
+     "not": {
+      "flag": "palace-ticket"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "票",
+    "explain": "进门要的，要买。",
+    "en": "ticket"
+   },
+   {
+    "w": "网上",
+    "explain": "在手机、电脑上。",
+    "en": "online"
+   },
+   {
+    "w": "护照",
+    "explain": "去别的国家要用的小本子。",
+    "en": "passport"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你要去故宫吗？",
+    "translate": "You want to go to the palace?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "故宫",
+        "去",
+        "想"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "故宫",
+     "frame": "对，我要去___。",
+     "full": "对，我要去故宫。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "故宫的票要在网上买，要写你的名字和护照。",
+    "translate": "Palace tickets are bought online, with your name and passport.",
+    "simpler": "票要在网上买。",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "我帮你买吧！你的护照呢？",
+    "translate": "I'll buy it for you! Your passport?",
+    "expect": [
+     {
+      "intent": "give",
+      "match": [
+       [
+        "给",
+        "好",
+        "这是",
+        "护照",
+        "谢谢"
+       ]
+      ],
+      "go": "d",
+      "actions": [
+       {
+        "do": "flag",
+        "flag": "palace-ticket"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "护照",
+     "frame": "好，这是我的___。",
+     "full": "好，这是我的护照。"
+    }
+   },
+   {
+    "id": "d",
+    "say": "好了！明天上午九点，你的票在手机上。",
+    "translate": "Done! Tomorrow at nine in the morning — the ticket's on your phone.",
+    "simpler": "好了！你有票了。"
+   }
+  ]
+ },
+ {
+  "id": "bird-lost",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "chapter": 2
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "鸟",
+    "explain": "会飞的小动物。",
+    "en": "bird"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我的鸟不见了！你看见了吗？",
+    "translate": "My bird's gone! Have you seen it?",
+    "simpler": "我的鸟没了。",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-bird",
+      "step": "find"
+     }
+    ],
+    "key": true,
+    "why": "A small key line: 不见了 — 'has gone, can't be found'. 小明 is always in the lanes: ask him."
+   }
+  ]
+ },
+ {
+  "id": "bird-kid",
+  "map": "nanluo-main",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "quest": "side-bird",
+     "step": "find"
+    },
+    {
+     "not": {
+      "item": "niao"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "鸟",
+    "explain": "会飞的小动物。",
+    "en": "bird"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这是爷爷的鸟吗？给你！",
+    "translate": "Is this grandpa's bird? Here!",
+    "simpler": "鸟，给你！",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "niao"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "bird-back",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "priority": -2,
+  "when": {
+   "all": [
+    {
+     "item": "niao"
+    },
+    {
+     "not": {
+      "flag": "bird-back"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "鸟",
+    "explain": "会飞的小动物。",
+    "en": "bird"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我的鸟！谢谢你！",
+    "translate": "My bird! Thank you!",
+    "simpler": "鸟回来了！",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "niao"
+     },
+     {
+      "do": "flag",
+      "flag": "bird-back"
+     },
+     {
+      "do": "money",
+      "amount": 20
+     },
+     {
+      "do": "remember",
+      "npc": "zhao-yeye",
+      "note": "brought his bird back"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "haircut",
+  "map": "lifadian",
+  "npc": "zhang-shifu",
+  "trigger": "talk",
+  "priority": 1,
+  "when": {
+   "all": [
+    {
+     "idiom": "马马虎虎"
+    },
+    {
+     "money": 30
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "剪头",
+    "explain": "把头发弄短。",
+    "en": "a haircut"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "剪头吗？三十块。",
+    "translate": "A haircut? Thirty yuan.",
+    "simpler": "你要剪头吗？",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-haircut",
+      "step": "cut"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "剪"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -30
+       },
+       {
+        "do": "flag",
+        "flag": "haircut"
+       },
+       {
+        "do": "stamp",
+        "stamp": "haircut"
+       }
+      ]
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，谢谢。",
+     "full": "好，谢谢。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好了！很好看！",
+    "translate": "Done! Looks great!"
+   },
+   {
+    "id": "c",
+    "say": "好，下次来。",
+    "translate": "All right, next time."
+   }
+  ]
+ },
+ {
+  "id": "bait-buy",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "side-bait",
+     "step": "buy"
+    },
+    {
+     "not": {
+      "item": "yuer"
+     }
+    },
+    {
+     "money": 5
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "鱼饵",
+    "explain": "鱼喜欢吃的小东西，钓鱼用。",
+    "en": "bait"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！要什么？",
+    "translate": "Hello! What'll it be?",
+    "expect": [
+     {
+      "intent": "bait",
+      "match": [
+       [
+        "鱼饵"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -5
+       },
+       {
+        "do": "give",
+        "item": "yuer"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "鱼饵",
+     "frame": "我要买___。",
+     "full": "我要买鱼饵。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "鱼饵？五块。给你。",
+    "translate": "Bait? Five yuan. Here.",
+    "simpler": "鱼饵五块。"
+   }
+  ]
+ },
+ {
+  "id": "painting-wang",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "priority": -4,
+  "when": {
+   "all": [
+    {
+     "item": "hua"
+    },
+    {
+     "not": {
+      "flag": "painting-given"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "画",
+    "explain": "用笔做的，好看的东西。",
+    "en": "painting"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这是给我的画吗？真好看！谢谢！",
+    "translate": "A painting for me? It's beautiful! Thank you!",
+    "simpler": "画真好看！",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "hua"
+     },
+     {
+      "do": "flag",
+      "flag": "painting-given"
+     },
+     {
+      "do": "remember",
+      "npc": "wang-ayi",
+      "note": "gave her a painting of the White Dagoba"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "book-want",
+  "map": "nanluo-main",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "priority": 1,
+  "once": true,
+  "when": {
+   "chapter": 3
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "故事书",
+    "explain": "有故事的书。",
+    "en": "storybook"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我想要一本故事书！",
+    "translate": "I want a storybook!",
+    "simpler": "我要故事书！",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-book",
+      "step": "buy"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "book-give",
+  "map": "nanluo-main",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "item": "gushishu"
+    },
+    {
+     "not": {
+      "flag": "book-given"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "故事书",
+    "explain": "有故事的书。",
+    "en": "storybook"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我的故事书！谢谢你！",
+    "translate": "My storybook! Thank you!",
+    "simpler": "故事书！",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "gushishu"
+     },
+     {
+      "do": "flag",
+      "flag": "book-given"
+     },
+     {
+      "do": "remember",
+      "npc": "xiaoming",
+      "note": "gave him a storybook"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "tea-buy",
+  "map": "chaguan",
+  "npc": "lao-liu",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "side-tea",
+     "step": "buy"
+    },
+    {
+     "not": {
+      "item": "chaye"
+     }
+    },
+    {
+     "money": 20
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "茶叶",
+    "explain": "做茶用的叶子。",
+    "en": "tea leaves"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你要什么？",
+    "translate": "What would you like?",
+    "expect": [
+     {
+      "intent": "tea",
+      "match": [
+       [
+        "茶叶",
+        "茶"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -20
+       },
+       {
+        "do": "give",
+        "item": "chaye"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "茶叶",
+     "frame": "我要买___。",
+     "full": "我要买茶叶。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "茶叶？二十块。给你。",
+    "translate": "Tea leaves? Twenty yuan. Here.",
+    "simpler": "茶叶，二十块。"
+   }
+  ]
+ },
+ {
+  "id": "topup-station-staff",
+  "map": "station-nanluoguxiang",
+  "npc": "station-staff",
+  "trigger": "talk",
+  "priority": 1,
+  "when": {
+   "all": [
+    {
+     "scene": "card"
+    },
+    {
+     "money": 50
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "充值",
+    "explain": "给卡里放钱。",
+    "en": "top up"
+   },
+   {
+    "w": "交通卡",
+    "explain": "坐地铁的卡。",
+    "en": "transport card"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！交通卡要充值吗？五十块。",
+    "translate": "Hello! Top up your transport card? Fifty yuan.",
+    "simpler": "充值吗？",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "要",
+        "行",
+        "充值",
+        "可以"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -50
+       },
+       {
+        "do": "card",
+        "amount": 50
+       }
+      ]
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "充值",
+     "frame": "好，我要___。",
+     "full": "好，我要充值。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好了！你的交通卡有钱了。",
+    "translate": "Done! Your card is topped up.",
+    "simpler": "交通卡充值了。"
+   },
+   {
+    "id": "c",
+    "say": "好，再见！",
+    "translate": "OK, bye!"
+   }
+  ]
+ }
 ]

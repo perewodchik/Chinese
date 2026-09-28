@@ -69,7 +69,7 @@ describe('chapter 1, played through the core', () => {
 
     assert.equal(sceneFor(scenes, s, { npc: 'zaodian-shifu' })?.id, 'breakfast');
     s = play(s, 'breakfast').save;
-    assert.equal(s.bag.money, 46);
+    assert.equal(s.bag.money, 196);
     assert.equal(s.bag.items.baozi, 1);
     assert.equal(step(s), 'lantern');
 
@@ -97,7 +97,7 @@ describe('chapter 1, played through the core', () => {
     assert.equal(sceneFor(scenes, s, { npc: 'station-staff' })?.id, 'card');
     s = play(s, 'card').save;
     assert.equal(s.bag.card, 20);
-    assert.equal(s.bag.money, 6);
+    assert.equal(s.bag.money, 156);
     assert.equal(step(s), 'ride');
     assert.ok(s.flags.includes('has-card'));
 
@@ -222,7 +222,7 @@ describe('chapter 3, played through the core', () => {
     assert.ok('人山人海' in s.idioms);
     assert.equal(at(), 'money');
     s = play(s, 'bank').save;
-    assert.equal(s.bag.money, 750);
+    assert.equal(s.bag.money, 900);
     assert.equal(at(), 'book');
     s = play(s, 'book').save;
     assert.ok(s.flags.includes('idiom-book'));
@@ -366,7 +366,7 @@ describe('the epilogue, played through the core', () => {
     let r = startRide('beijingbeizhan');
     r = board(r, trainsAt('beijingbeizhan', 'train')[0]!);
     while (r.at !== 'badalingchangcheng') r = runOn(r);
-    assert.equal(fareOut(r, 'train'), 20);
+    assert.equal(fareOut(r, 'train'), 0);
     s = play(s, 'changcheng-arrive').save;
     s = play(s, 'yugong').save;
     assert.ok('愚公移山' in s.idioms);
@@ -402,5 +402,34 @@ describe('every scene, and the side quests', () => {
     s = play(s, 'bait-buy').save;
     s = play(s, 'bait-give').save;
     assert.equal(s.quests['side-bait']?.done, true);
+  });
+});
+
+describe('stress: odd input never breaks a conversation', () => {
+  const scene = scenes.find((x) => x.id === 'arrive')!;
+  const cases: Array<[string, string]> = [
+    ['empty', ''],
+    ['spaces', '    '],
+    ['emoji', '😀🐰🏮'],
+    ['very long', '你好'.repeat(3000)],
+    ['latin gibberish', 'asdfghjkl qwerty'],
+    ['punctuation', '？？？！！！……'],
+    ['mixed', '你好 hello 😀 ni3hao3'],
+  ];
+  for (const [name, text] of cases) {
+    it(`${name} input: an answer, the talk still open, the save untouched`, () => {
+      const t0 = src.start(scene, newSave('d', 0));
+      const t = src.reply(t0.state, { text, via: 'keyboard' });
+      assert.ok(t.say === null || typeof t.say.zh === 'string');
+      assert.equal(t.state.scene, 'arrive');
+      assert.ok(!t.actions.some((a) => a.do === 'money' || a.do === 'give' || a.do === 'take'));
+    });
+  }
+
+  it('a hundred wrong answers in a row: hints climb to the whole sentence and stay there', () => {
+    let t = src.start(scene, newSave('d', 0));
+    for (let i = 0; i < 100; i++) t = src.reply(t.state, { text: '苹果', via: 'keyboard' });
+    assert.equal(t.companion?.kind, 'hint');
+    assert.equal(t.companion?.kind === 'hint' && t.companion.step, 3);
   });
 });

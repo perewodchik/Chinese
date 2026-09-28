@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import { CrashGuard } from '../../world/ui/CrashGuard';
 import './world.css';
 
 /**
@@ -10,8 +11,10 @@ const WorldPage = lazy(() => import('./WorldPage').then((m) => ({ default: m.Wor
 
 export function WorldRoute() {
   return (
-    <Suspense fallback={<div className="world-shell"><div className="world-loading small">Opening Beijing…</div></div>}>
-      <WorldPage />
-    </Suspense>
+    <CrashGuard>
+      <Suspense fallback={<div className="world-shell"><div className="world-loading small">Opening Beijing…</div></div>}>
+        <WorldPage />
+      </Suspense>
+    </CrashGuard>
   );
 }

@@ -25,6 +25,9 @@ export const DEFAULT_SETTINGS: WorldSettings = {
   volume: 0.6,
 };
 
+/** What you arrive in Beijing with, in 元: enough for chapter 1 and a few treats, until the bank in chapter 3. */
+export const START_MONEY = 200;
+
 export function newSave(deviceId: string, now: number): WorldSave {
   return {
     version: WORLD_SAVE_VERSION,
@@ -38,7 +41,7 @@ export function newSave(deviceId: string, now: number): WorldSave {
     scenes: [],
     quests: {},
     riddles: {},
-    bag: { items: {}, money: 50, card: null },
+    bag: { items: {}, money: START_MONEY, card: null },
     spirits: {},
     idioms: {},
     stamps: {},

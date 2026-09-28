@@ -36,7 +36,14 @@
         "id": "red-paper",
         "now": "The door gods need red paper to be painted again. The bookshop on 王府井 sells 红纸.",
         "done": {
-          "item": "hongzhi"
+          "any": [
+            {
+              "item": "hongzhi"
+            },
+            {
+              "spirit": "menshen"
+            }
+          ]
         }
       },
       {
@@ -68,7 +75,14 @@
         "id": "medicine",
         "now": "王阿姨 has a cold and a little fever. Buy cold medicine at the pharmacy 药店 on 王府井 — say what's wrong.",
         "done": {
-          "item": "ganmaoyao"
+          "any": [
+            {
+              "item": "ganmaoyao"
+            },
+            {
+              "flag": "wang-got-medicine"
+            }
+          ]
         }
       },
       {
@@ -89,7 +103,14 @@
         "id": "buy",
         "now": "小明 wants a storybook 故事书. The bookshop on 王府井 has them.",
         "done": {
-          "item": "gushishu"
+          "any": [
+            {
+              "item": "gushishu"
+            },
+            {
+              "flag": "book-given"
+            }
+          ]
         }
       },
       {

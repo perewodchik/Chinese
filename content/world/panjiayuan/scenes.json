@@ -1,413 +1,425 @@
 [
-  {
-    "id": "panjiayuan-arrive",
-    "map": "panjiayuan-market",
-    "trigger": "auto",
-    "once": true,
-    "stamp": "panjiayuan",
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "这是潘家园！东西很多。",
-        "translate": "So this is 潘家园! So much stuff.",
-        "speaker": "hero",
-        "why": "潘家园 is Beijing's biggest antiques and flea market. Bargaining is expected: start at a third of the price."
-      }
-    ]
-  },
-  {
-    "id": "lock",
-    "map": "panjiayuan-market",
-    "npc": "panjiayuan-dashu",
-    "trigger": "talk",
-    "start": "a",
-    "words": [
-      {
-        "w": "丢",
-        "explain": "没有了，找不到了。",
-        "en": "to lose"
-      },
-      {
-        "w": "修",
-        "explain": "把坏的东西弄好。",
-        "en": "to mend"
-      }
+ {
+  "id": "panjiayuan-arrive",
+  "map": "panjiayuan-market",
+  "trigger": "auto",
+  "once": true,
+  "stamp": "panjiayuan",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这是潘家园！东西很多。",
+    "translate": "So this is 潘家园! So much stuff.",
+    "speaker": "hero",
+    "why": "潘家园 is Beijing's biggest antiques and flea market. Bargaining is expected: start at a third of the price."
+   }
+  ]
+ },
+ {
+  "id": "lock",
+  "map": "panjiayuan-market",
+  "npc": "panjiayuan-dashu",
+  "trigger": "talk",
+  "start": "a",
+  "words": [
+   {
+    "w": "丢",
+    "explain": "没有了，找不到了。",
+    "en": "to lose"
+   },
+   {
+    "w": "修",
+    "explain": "把坏的东西弄好。",
+    "en": "to mend"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "上个月，我的东西丢了。",
+    "translate": "Last month my things were stolen.",
+    "simpler": "我的东西丢了。",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "现在我修门。",
+    "translate": "Now I'm mending the door.",
+    "simpler": "我在修门。",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "这是亡羊补牢。",
+    "translate": "That's 亡羊补牢 — mending the pen after the sheep is gone.",
+    "key": true,
+    "onEnter": [
+     {
+      "do": "idiom",
+      "idiom": "亡羊补牢"
+     }
     ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "上个月，我的东西丢了。",
-        "translate": "Last month my things were stolen.",
-        "simpler": "我的东西丢了。",
-        "next": "b"
-      },
-      {
-        "id": "b",
-        "say": "现在我修门。",
-        "translate": "Now I'm mending the door.",
-        "simpler": "我在修门。",
-        "next": "c"
-      },
-      {
-        "id": "c",
-        "say": "这是亡羊补牢。",
-        "translate": "That's 亡羊补牢 — mending the pen after the sheep is gone.",
-        "key": true,
-        "onEnter": [
-          {
-            "do": "idiom",
-            "idiom": "亡羊补牢"
-          }
-        ],
-        "why": "A 成语 📌 with a story: better late than never — mend the pen after the first sheep is lost, and lose no more."
-      }
-    ]
-  },
-  {
-    "id": "bargain",
-    "map": "panjiayuan-market",
-    "npc": "guwan-laoban",
-    "trigger": "talk",
-    "priority": 0,
-    "stamp": "kanjia",
-    "when": {
-      "all": [
-        {
-          "flag": "heard-nianshou"
-        },
-        {
-          "not": {
-            "spirit": "nianshou"
-          }
-        }
-      ]
+    "why": "A 成语 📌 with a story: better late than never — mend the pen after the first sheep is lost, and lose no more."
+   }
+  ],
+  "priority": 5
+ },
+ {
+  "id": "bargain",
+  "map": "panjiayuan-market",
+  "npc": "guwan-laoban",
+  "trigger": "talk",
+  "priority": 0,
+  "stamp": "kanjia",
+  "when": {
+   "all": [
+    {
+     "flag": "heard-nianshou"
     },
-    "start": "a",
-    "words": [
-      {
-        "w": "古董",
-        "explain": "很老很老的东西，很贵。",
-        "en": "antique"
-      },
-      {
-        "w": "便宜点儿",
-        "explain": "钱少一点。",
-        "en": "cheaper, please"
-      },
-      {
-        "w": "真的假的",
-        "explain": "是真的吗？",
-        "en": "really?"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你好！看看古董吧！",
-        "translate": "Hello! Have a look at my antiques!",
-        "expect": [
-          {
-            "intent": "which",
-            "match": [
-              [
-                "年兽",
-                "这个",
-                "多少钱",
-                "多少"
-              ]
-            ],
-            "go": "b"
-          }
-        ],
-        "hint": {
-          "word": "年兽",
-          "frame": "这个___多少钱？",
-          "full": "这个年兽多少钱？"
-        }
-      },
-      {
-        "id": "b",
-        "say": "这个年兽？是古董！两百块。",
-        "translate": "This 年兽? A real antique! Two hundred.",
-        "expect": [
-          {
-            "intent": "cheaper",
-            "match": [
-              [
-                "便宜点儿",
-                "便宜",
-                "太贵",
-                "贵"
-              ]
-            ],
-            "go": "c"
-          },
-          {
-            "intent": "really",
-            "match": [
-              [
-                "真的假的",
-                "真的"
-              ]
-            ],
-            "go": "b2"
-          }
-        ],
-        "hint": {
-          "word": "便宜点儿",
-          "frame": "太贵了！___吧。",
-          "full": "太贵了！便宜点儿吧。"
-        },
-        "why": "便宜点儿 — a bit cheaper. 真的假的 — really? Both are the market's everyday words."
-      },
-      {
-        "id": "b2",
-        "say": "真的假的？是真的古董！两百块。",
-        "translate": "Really? A genuine antique! Two hundred.",
-        "simpler": "真的假的？是真的！",
-        "expect": [
-          {
-            "intent": "cheaper",
-            "match": [
-              [
-                "便宜点儿",
-                "便宜",
-                "太贵",
-                "贵"
-              ]
-            ],
-            "go": "c"
-          }
-        ],
-        "hint": {
-          "word": "便宜点儿",
-          "frame": "太贵了！___吧。",
-          "full": "太贵了！便宜点儿吧。"
-        }
-      },
-      {
-        "id": "c",
-        "say": "便宜点儿？一百五。",
-        "translate": "Cheaper? A hundred and fifty.",
-        "expect": [
-          {
-            "intent": "more",
-            "match": [
-              [
-                "便宜点儿",
-                "便宜",
-                "太贵",
-                "贵",
-                "一百",
-                "五十"
-              ]
-            ],
-            "go": "d"
-          }
-        ],
-        "hint": {
-          "word": "一百",
-          "frame": "___吧。",
-          "full": "一百吧。"
-        }
-      },
-      {
-        "id": "d",
-        "say": "好吧，一百块。",
-        "translate": "Fine — a hundred.",
-        "expect": [
-          {
-            "intent": "deal",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对",
-                "行"
-              ]
-            ],
-            "go": "e",
-            "actions": [
-              {
-                "do": "money",
-                "amount": -100
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "好",
-          "frame": "___，给你。",
-          "full": "好，给你。"
-        }
-      },
-      {
-        "id": "e",
-        "say": "谢谢你！我是年兽。我们是朋友了！",
-        "translate": "Thank you! I'm the 年兽. We're friends now!",
-        "speaker": "nianshou",
-        "onEnter": [
-          {
-            "do": "spirit",
-            "spirit": "nianshou"
-          }
-        ],
-        "why": "The clay figure was a spirit from the lantern all along. The 年兽 of the New Year stories fears red — it has had a hard time among 潘家园's red cloths."
-      }
-    ]
-  },
-  {
-    "id": "seller-later",
-    "map": "panjiayuan-market",
-    "npc": "guwan-laoban",
-    "trigger": "talk",
-    "priority": 5,
-    "start": "a",
-    "words": [
-      {
-        "w": "古董",
-        "explain": "很老的东西。",
-        "en": "antique"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "看看古董吧！",
-        "translate": "Have a look at my antiques!",
-        "simpler": "古董，很便宜！"
-      }
-    ]
-  },
-  {
-    "id": "nianshou-look",
-    "map": "panjiayuan-market",
-    "object": "nianshou",
-    "trigger": "look",
-    "start": "a",
-    "nodes": [
-      {
-        "id": "a",
-        "say": "一个小年兽。",
-        "translate": "A little 年兽.",
-        "speaker": "hero"
-      }
-    ]
-  },
-  {
-    "id": "old-map",
-    "map": "panjiayuan-market",
-    "npc": "panjiayuan-dashu",
-    "trigger": "talk",
-    "priority": 0,
-    "when": {
-      "all": [
-        {
-          "idiom": "亡羊补牢"
-        },
-        {
-          "not": {
-            "item": "ditu"
-          }
-        }
-      ]
+    {
+     "not": {
+      "spirit": "nianshou"
+     }
     },
-    "start": "a",
-    "words": [
-      {
-        "w": "地图",
-        "explain": "画了路和地方的纸。",
-        "en": "map"
-      },
-      {
-        "w": "便宜点儿",
-        "explain": "钱少一点。",
-        "en": "cheaper, please"
-      }
+    {
+     "money": 100
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "古董",
+    "explain": "很老很老的东西，很贵。",
+    "en": "antique"
+   },
+   {
+    "w": "便宜点儿",
+    "explain": "钱少一点。",
+    "en": "cheaper, please"
+   },
+   {
+    "w": "真的假的",
+    "explain": "是真的吗？",
+    "en": "really?"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！看看古董吧！",
+    "translate": "Hello! Have a look at my antiques!",
+    "expect": [
+     {
+      "intent": "which",
+      "match": [
+       [
+        "年兽",
+        "这个",
+        "多少钱",
+        "多少"
+       ]
+      ],
+      "go": "b"
+     }
     ],
-    "nodes": [
-      {
-        "id": "a",
-        "say": "你看，北京的地图！很老的！五十块。",
-        "translate": "Look — a map of Beijing! Very old! Fifty.",
-        "simpler": "地图，五十块。",
-        "onEnter": [
-          {
-            "do": "quest",
-            "quest": "side-map",
-            "step": "buy"
-          }
-        ],
-        "key": true,
-        "expect": [
-          {
-            "intent": "cheaper",
-            "match": [
-              [
-                "便宜点儿",
-                "便宜",
-                "太贵",
-                "贵"
-              ]
-            ],
-            "go": "b"
-          }
-        ],
-        "hint": {
-          "word": "便宜点儿",
-          "frame": "太贵了！___吧。",
-          "full": "太贵了！便宜点儿吧。"
-        },
-        "why": "老 — old — is HSK 3: a small key line. Bargain!"
-      },
-      {
-        "id": "b",
-        "say": "便宜点儿？好，三十块。",
-        "translate": "Cheaper? Fine, thirty.",
-        "simpler": "地图，三十块。",
-        "expect": [
-          {
-            "intent": "yes",
-            "match": [
-              [
-                "好",
-                "好的",
-                "行",
-                "可以",
-                "要",
-                "是",
-                "对"
-              ]
-            ],
-            "go": "c",
-            "actions": [
-              {
-                "do": "money",
-                "amount": -30
-              },
-              {
-                "do": "give",
-                "item": "ditu"
-              }
-            ]
-          }
-        ],
-        "hint": {
-          "word": "好",
-          "frame": "___，给你。",
-          "full": "好，给你。"
-        }
-      },
-      {
-        "id": "c",
-        "say": "给你！",
-        "translate": "Here you are!"
-      }
-    ]
-  }
+    "hint": {
+     "word": "年兽",
+     "frame": "这个___多少钱？",
+     "full": "这个年兽多少钱？"
+    }
+   },
+   {
+    "id": "b",
+    "say": "这个年兽？是古董！两百块。",
+    "translate": "This 年兽? A real antique! Two hundred.",
+    "expect": [
+     {
+      "intent": "cheaper",
+      "match": [
+       [
+        "便宜点儿",
+        "便宜",
+        "太贵",
+        "贵"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "really",
+      "match": [
+       [
+        "真的假的",
+        "真的"
+       ]
+      ],
+      "go": "b2"
+     }
+    ],
+    "hint": {
+     "word": "便宜点儿",
+     "frame": "太贵了！___吧。",
+     "full": "太贵了！便宜点儿吧。"
+    },
+    "why": "便宜点儿 — a bit cheaper. 真的假的 — really? Both are the market's everyday words."
+   },
+   {
+    "id": "b2",
+    "say": "真的假的？是真的古董！两百块。",
+    "translate": "Really? A genuine antique! Two hundred.",
+    "simpler": "真的假的？是真的！",
+    "expect": [
+     {
+      "intent": "cheaper",
+      "match": [
+       [
+        "便宜点儿",
+        "便宜",
+        "太贵",
+        "贵"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "便宜点儿",
+     "frame": "太贵了！___吧。",
+     "full": "太贵了！便宜点儿吧。"
+    }
+   },
+   {
+    "id": "c",
+    "say": "便宜点儿？一百五。",
+    "translate": "Cheaper? A hundred and fifty.",
+    "expect": [
+     {
+      "intent": "more",
+      "match": [
+       [
+        "便宜点儿",
+        "便宜",
+        "太贵",
+        "贵",
+        "一百",
+        "五十"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "一百",
+     "frame": "___吧。",
+     "full": "一百吧。"
+    }
+   },
+   {
+    "id": "d",
+    "say": "好吧，一百块。",
+    "translate": "Fine — a hundred.",
+    "expect": [
+     {
+      "intent": "deal",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "行"
+       ]
+      ],
+      "go": "e",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -100
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，给你。",
+     "full": "好，给你。"
+    }
+   },
+   {
+    "id": "e",
+    "say": "谢谢你！我是年兽。我们是朋友了！",
+    "translate": "Thank you! I'm the 年兽. We're friends now!",
+    "speaker": "nianshou",
+    "onEnter": [
+     {
+      "do": "spirit",
+      "spirit": "nianshou"
+     },
+     {
+      "do": "stamp",
+      "stamp": "nianshou"
+     }
+    ],
+    "why": "The clay figure was a spirit from the lantern all along. The 年兽 of the New Year stories fears red — it has had a hard time among 潘家园's red cloths."
+   }
+  ]
+ },
+ {
+  "id": "seller-later",
+  "map": "panjiayuan-market",
+  "npc": "guwan-laoban",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "a",
+  "words": [
+   {
+    "w": "古董",
+    "explain": "很老的东西。",
+    "en": "antique"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "看看古董吧！",
+    "translate": "Have a look at my antiques!",
+    "simpler": "古董，很便宜！"
+   }
+  ]
+ },
+ {
+  "id": "nianshou-look",
+  "map": "panjiayuan-market",
+  "object": "nianshou",
+  "trigger": "look",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "一个小年兽。",
+    "translate": "A little 年兽.",
+    "speaker": "hero"
+   }
+  ],
+  "priority": 5
+ },
+ {
+  "id": "old-map",
+  "map": "panjiayuan-market",
+  "npc": "panjiayuan-dashu",
+  "trigger": "talk",
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "idiom": "亡羊补牢"
+    },
+    {
+     "not": {
+      "item": "ditu"
+     }
+    },
+    {
+     "money": 30
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "地图",
+    "explain": "画了路和地方的纸。",
+    "en": "map"
+   },
+   {
+    "w": "便宜点儿",
+    "explain": "钱少一点。",
+    "en": "cheaper, please"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你看，北京的地图！很老的！五十块。",
+    "translate": "Look — a map of Beijing! Very old! Fifty.",
+    "simpler": "地图，五十块。",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-map",
+      "step": "buy"
+     }
+    ],
+    "key": true,
+    "expect": [
+     {
+      "intent": "cheaper",
+      "match": [
+       [
+        "便宜点儿",
+        "便宜",
+        "太贵",
+        "贵"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "便宜点儿",
+     "frame": "太贵了！___吧。",
+     "full": "太贵了！便宜点儿吧。"
+    },
+    "why": "老 — old — is HSK 3: a small key line. Bargain!"
+   },
+   {
+    "id": "b",
+    "say": "便宜点儿？好，三十块。",
+    "translate": "Cheaper? Fine, thirty.",
+    "simpler": "地图，三十块。",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对"
+       ]
+      ],
+      "go": "c",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -30
+       },
+       {
+        "do": "give",
+        "item": "ditu"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，给你。",
+     "full": "好，给你。"
+    }
+   },
+   {
+    "id": "c",
+    "say": "给你！",
+    "translate": "Here you are!"
+   }
+  ]
+ }
 ]

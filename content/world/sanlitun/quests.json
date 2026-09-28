@@ -29,7 +29,14 @@
         "id": "gold",
         "now": "The 貔貅 loves golden things. The convenience store 便利店 next to the bank sells chocolate coins in gold paper.",
         "done": {
-          "item": "jinbi"
+          "any": [
+            {
+              "item": "jinbi"
+            },
+            {
+              "spirit": "pixiu"
+            }
+          ]
         }
       },
       {

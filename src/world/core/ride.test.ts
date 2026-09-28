@@ -45,6 +45,7 @@ describe('a subway ride', () => {
     r = runOn(runOn(r));
     assert.equal(r.at, 'yiheyuan');
     assert.equal(fareOut(r, 'bus'), 2);
+    assert.equal(fareOut(r, 'train'), 0);
     assert.equal(stopMap('yiheyuan', 'bus'), 'stop-yiheyuan');
     assert.equal(stopMap('nanluoguxiang'), 'station-nanluoguxiang');
     assert.match(callNext('b332', 'xizhimen', 1)!, /下一站：动物园/);

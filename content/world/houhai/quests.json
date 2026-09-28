@@ -54,7 +54,14 @@
         "id": "buy",
         "now": "The fisherman has run out of bait 鱼饵. The corner shop 小卖部 on 南锣鼓巷 sells it.",
         "done": {
-          "item": "yuer"
+          "any": [
+            {
+              "item": "yuer"
+            },
+            {
+              "flag": "bait-given"
+            }
+          ]
         }
       },
       {

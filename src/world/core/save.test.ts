@@ -66,8 +66,8 @@ describe('apply', () => {
   it('spends money in 角 without float dust, never below zero', () => {
     let s = apply(fresh(), { do: 'money', amount: -1.1 }, ctx);
     s = apply(s, { do: 'money', amount: -2.2 }, ctx);
-    assert.equal(s.bag.money, 46.7);
-    s = apply(s, { do: 'money', amount: -100 }, ctx);
+    assert.equal(s.bag.money, 196.7);
+    s = apply(s, { do: 'money', amount: -1000 }, ctx);
     assert.equal(s.bag.money, 0);
   });
 

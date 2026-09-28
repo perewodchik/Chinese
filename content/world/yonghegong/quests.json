@@ -8,7 +8,14 @@
         "id": "buy",
         "now": "The old scholar at 国子监 wants a writing brush 毛笔. The bookshop on 王府井 sells them.",
         "done": {
-          "item": "maobi"
+          "any": [
+            {
+              "item": "maobi"
+            },
+            {
+              "flag": "brush-given"
+            }
+          ]
         }
       },
       {

@@ -79,10 +79,10 @@ export function runOn(r: RideState): RideState {
 /** Off the train, onto the platform: a new train may be chosen (a change is free). */
 export const getOff = (r: RideState): RideState => ({ ...r, train: null });
 
-/** What getting out costs: the subway by distance, a bus 2 元, the train to the Wall 20 元; nothing when you never rode. */
+/** What getting out costs from the card: the subway by distance, a bus 2 元; the train's ticket is bought at the window; nothing when you never rode. */
 export function fareOut(r: RideState, mode: Mode = 'subway'): number {
-  if (r.stops === 0) return 0;
-  return mode === 'bus' ? 2 : mode === 'train' ? 20 : subwayFare(r.stops);
+  if (r.stops === 0 || mode === 'train') return 0;
+  return mode === 'bus' ? 2 : subwayFare(r.stops);
 }
 
 /** The map you get out onto at a stop: `station-<id>` for the subway, `stop-<id>` for buses and trains. */

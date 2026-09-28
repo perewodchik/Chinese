@@ -1328,3 +1328,21 @@
     min-height: 36px;
   }
 }
+
+/* the crash guard's calm screen */
+.world-crash {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+  color: #f8f5ec;
+}
+
+.world-crash-mark {
+  font-size: 64px;
+  opacity: 0.5;
+}

@@ -21,6 +21,8 @@ export interface RunningWorld {
   act(): void;
   /** on or off a shared bike */
   setBike(on: boolean): void;
+  /** frames a second lately (for the map probe) */
+  fps(): number;
   /** a PNG data URL of the canvas, for review screenshots */
   snapshot(): Promise<string>;
 }
@@ -51,6 +53,7 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions, snapsh
     travel: (to) => (game.scene.getScene('world') as Scene | null)?.travel(to),
     stick: (f, run) => (game.scene.getScene('world') as Scene | null)?.setStick(f, run),
     act: () => (game.scene.getScene('world') as Scene | null)?.act(),
+    fps: () => Math.round(game.loop.actualFps),
     setBike: (on) => (game.scene.getScene('world') as Scene | null)?.setBike(on),
     snapshot: () =>
       new Promise((resolve) => {

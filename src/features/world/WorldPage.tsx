@@ -12,6 +12,7 @@ import { loadContent, useWorldContent, EMPTY_CONTENT } from '../../world/ui/cont
 import { castMap, looksOf } from '../../world/core/cast';
 import { Dialogue, lookOf } from '../../world/ui/Dialogue';
 import { InputBar } from '../../world/ui/InputBar';
+import { reportCrash } from '../../world/ui/CrashGuard';
 import { RideSheet } from '../../world/ui/RideSheet';
 import { setVoiceCards } from '../../world/ui/lineVoice';
 import { Ambient } from '../../world/audio/ambient';
@@ -104,6 +105,15 @@ export function WorldPage() {
   };
   const busy = useRef(false);
   busy.current = note !== null || talk.view !== null || panel !== null || riding !== null;
+
+  // An error thrown inside the engine's loop never reaches React: hand it to the crash guard.
+  useEffect(() => {
+    const onError = (e: ErrorEvent) => {
+      if (/phaser|world\/engine|scene\.ts/i.test(`${e.filename} ${e.error?.stack ?? ''}`)) reportCrash(e.error ?? e.message);
+    };
+    window.addEventListener('error', onError);
+    return () => window.removeEventListener('error', onError);
+  }, []);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -244,8 +254,9 @@ export function WorldPage() {
         }
         world.current = w;
         (window as unknown as { __world?: RunningWorld }).__world = w;
-      } catch {
+      } catch (err) {
         if (!gone) setState('failed');
+        console.error('走走 could not start:', err);
       }
     })();
     return () => {

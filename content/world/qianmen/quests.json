@@ -22,7 +22,14 @@
         "id": "buy",
         "now": "The granny of 大栅栏 misses 老刘’s tea. Buy tea leaves 茶叶 at the teahouse on 南锣鼓巷.",
         "done": {
-          "item": "chaye"
+          "any": [
+            {
+              "item": "chaye"
+            },
+            {
+              "flag": "tea-given"
+            }
+          ]
         }
       },
       {

@@ -1,0 +1,217 @@
+{
+ "version": 1,
+ "updatedAt": 1,
+ "deviceId": "golden",
+ "place": {
+  "map": "wumen",
+  "tile": [
+   16,
+   12
+  ],
+  "facing": "up"
+ },
+ "district": "gulou",
+ "clock": 2580,
+ "chapter": 2,
+ "flags": [
+  "lantern-broken",
+  "heard-lion",
+  "haircut",
+  "has-card",
+  "palace-needs-ticket"
+ ],
+ "scenes": [
+  "first-morning",
+  "bed",
+  "arrive",
+  "wang-go-eat",
+  "gulou-visit",
+  "lion-day",
+  "ask-way",
+  "zhao-later",
+  "breakfast",
+  "lantern",
+  "wang-after",
+  "breakfast-more",
+  "rumour-shop",
+  "shop",
+  "barber",
+  "haircut",
+  "rumour-tea",
+  "lion-night",
+  "lion-friend",
+  "tea",
+  "nlgx-gates-nocard",
+  "nlgx-gates-out",
+  "card",
+  "nlgx-gates-in",
+  "topup-station-staff",
+  "tam-arrive",
+  "tam-guard",
+  "tam-photo",
+  "first-ride",
+  "tamd-gates-in",
+  "tamd-gates-out",
+  "topup-tam-staff",
+  "staff",
+  "tam-staff",
+  "wumen-out",
+  "anjian",
+  "anjian-later",
+  "taihedian-arrive",
+  "gugong-guide",
+  "yuhuayuan-arrive"
+ ],
+ "quests": {
+  "ch1": {
+   "step": "ride",
+   "index": 6,
+   "done": true
+  },
+  "side-haircut": {
+   "step": "cut",
+   "index": 0,
+   "done": true
+  },
+  "ch2": {
+   "step": "go-houhai",
+   "index": 0,
+   "done": false
+  }
+ },
+ "riddles": {
+  "lantern/d": {
+   "scene": "lantern",
+   "node": "d",
+   "pinnedAt": 1860,
+   "solved": true
+  },
+  "rumour-shop/rumour": {
+   "scene": "rumour-shop",
+   "node": "rumour",
+   "pinnedAt": 1860,
+   "solved": true
+  },
+  "barber/key": {
+   "scene": "barber",
+   "node": "key",
+   "pinnedAt": 1860,
+   "solved": false
+  },
+  "lion-night/b": {
+   "scene": "lion-night",
+   "node": "b",
+   "pinnedAt": 2580,
+   "solved": false
+  },
+  "tea/key": {
+   "scene": "tea",
+   "node": "key",
+   "pinnedAt": 2580,
+   "solved": false
+  }
+ },
+ "bag": {
+  "items": {
+   "huzhao": 1,
+   "baozi": 2,
+   "doujiang": 1,
+   "water": 1
+  },
+  "money": 21,
+  "card": 114
+ },
+ "spirits": {
+  "shishizi": 2580
+ },
+ "idioms": {
+  "马马虎虎": {
+   "at": 1860
+  },
+  "一心一意": {
+   "at": 2580
+  }
+ },
+ "stamps": {
+  "new-home": 1860,
+  "gulou": 1860,
+  "ask-way": 1860,
+  "breakfast": 1860,
+  "haircut": 1860,
+  "shishizi": 2580,
+  "card": 2580,
+  "tiananmen": 2580,
+  "subway": 2580,
+  "gugong": 2580,
+  "taihedian": 2580,
+  "yuhuayuan": 2580
+ },
+ "stations": [
+  "nanluoguxiang",
+  "tiananmendong"
+ ],
+ "districts": [
+  "gulou"
+ ],
+ "npcs": {
+  "wang-ayi": {
+   "met": 1860,
+   "notes": [
+    "told her their name"
+   ]
+  },
+  "zhao-yeye": {
+   "met": 1860,
+   "notes": []
+  },
+  "zaodian-shifu": {
+   "met": 1860,
+   "notes": []
+  },
+  "li-ayi": {
+   "met": 1860,
+   "notes": []
+  },
+  "zhang-shifu": {
+   "met": 1860,
+   "notes": []
+  },
+  "lao-liu": {
+   "met": 1860,
+   "notes": []
+  },
+  "station-staff": {
+   "met": 2580,
+   "notes": []
+  },
+  "tam-guard": {
+   "met": 2580,
+   "notes": []
+  },
+  "tam-photographer": {
+   "met": 2580,
+   "notes": []
+  },
+  "tam-staff": {
+   "met": 2580,
+   "notes": []
+  },
+  "anjian-yuan": {
+   "met": 2580,
+   "notes": []
+  },
+  "gugong-daoyou": {
+   "met": 2580,
+   "notes": []
+  }
+ },
+ "rides": {},
+ "settings": {
+  "input": "keyboard",
+  "pinyin": true,
+  "joystick": false,
+  "textSize": "m",
+  "live": false,
+  "volume": 0.6
+ }
+}
