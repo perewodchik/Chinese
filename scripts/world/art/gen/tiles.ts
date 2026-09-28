@@ -195,12 +195,11 @@ export function roofEave(kind: RoofKind): Grid {
 
 // ---------------------------------------------------------------- the palace
 
+/** The red of palace walls: flat plaster, a little worn, no pattern to repeat. */
 export function palaceWall(): Grid {
   const g = tile('r');
-  for (let x = 1; x < T; x += 5) g.vline(x, 0, T, 'p');
-  g.vline(15, 0, T, 'R');
   const r = rng(7);
-  for (let i = 0; i < 6; i++) g.set(Math.floor(r() * T), Math.floor(r() * T), 'R');
+  for (let i = 0; i < 10; i++) g.set(Math.floor(r() * T), Math.floor(r() * T), r() < 0.7 ? 'R' : 'p');
   return g;
 }
 
@@ -215,6 +214,41 @@ export function palaceTop(): Grid {
 export function palaceBase(): Grid {
   const g = palaceWall();
   g.rect(0, 11, T, 5, 'd').hline(0, 11, T, 'e').hline(0, 15, T, 'c').vline(7, 12, 3, 'c');
+  return g;
+}
+
+/** The top of a gateway through the red wall: the wall with a round arch cut in it. */
+export function archTop(): Grid {
+  const g = palaceWall();
+  g.hline(0, 0, T, 'R');
+  g.oval(2, 4, 12, 24, 'k');
+  g.oval(3, 5, 10, 22, 'a');
+  g.vline(3, 10, 6, 'b');
+  return g;
+}
+
+/** A gateway's opening: dark passage, lit a little at the far end. */
+export function arch(): Grid {
+  const g = palaceWall();
+  g.rect(2, 0, 12, T, 'k').rect(3, 0, 10, T, 'a').vline(3, 0, T, 'b');
+  g.rect(3, 12, 10, 4, 'b').hline(3, 12, 10, 'c');
+  return g;
+}
+
+/** White marble balustrade, the railings of terraces and bridges. */
+export function marbleRail(): Grid {
+  const g = new Grid(T, T);
+  g.rect(0, 5, T, 2, 'w').rect(0, 7, T, 1, 'd').rect(0, 11, T, 3, 'e').hline(0, 11, T, 'w').hline(0, 13, T, 'd');
+  for (const x of [0, 8]) g.rect(x + 1, 2, 3, 12, 'e').vline(x + 1, 2, 12, 'w').vline(x + 3, 2, 12, 'd').hline(x + 1, 1, 3, 'w');
+  for (let x = 5; x < T; x += 8) g.rect(x, 8, 2, 3, 'e').set(x, 8, 'w');
+  g.outline('c');
+  return g;
+}
+
+/** White marble paving of terraces and bridges. */
+export function marble(): Grid {
+  const g = tile('e');
+  g.hline(0, 7, T, 'd').vline(3, 0, 7, 'd').vline(11, 8, 8, 'd').hline(0, 0, T, 'w').hline(0, 8, T, 'w');
   return g;
 }
 
@@ -276,6 +310,10 @@ export const TILES: Array<[string, () => Grid]> = [
   ['palace-wall', palaceWall],
   ['palace-top', palaceTop],
   ['palace-base', palaceBase],
+  ['palace-arch-top', archTop],
+  ['palace-arch', arch],
+  ['marble-rail', marbleRail],
+  ['marble', marble],
   ['column', column],
   ['steps', steps],
   ['window', () => lattice(false)],

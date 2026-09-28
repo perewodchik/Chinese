@@ -1,0 +1,108 @@
+[
+ {
+  "kind": "prop",
+  "id": "lantern-1",
+  "tile": [
+   14,
+   8
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lantern-2",
+  "tile": [
+   24,
+   8
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lantern-3",
+  "tile": [
+   10,
+   8
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lantern-4",
+  "tile": [
+   28,
+   8
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "tree-w",
+  "tile": [
+   0,
+   24
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-e",
+  "tile": [
+   37,
+   24
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "tourist-1",
+  "npc": "tourist",
+  "tile": [
+   17,
+   21
+  ],
+  "facing": "up"
+ },
+ {
+  "kind": "npc",
+  "id": "tourist-2",
+  "npc": "tourist-green",
+  "tile": [
+   22,
+   23
+  ],
+  "facing": "left"
+ },
+ {
+  "kind": "npc",
+  "id": "woman",
+  "npc": "woman-teal",
+  "tile": [
+   12,
+   20
+  ],
+  "facing": "right"
+ },
+ {
+  "kind": "npc",
+  "id": "guard",
+  "npc": "uncle",
+  "tile": [
+   19,
+   18
+  ],
+  "facing": "down"
+ }
+]

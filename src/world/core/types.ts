@@ -93,7 +93,14 @@ export type MapObject =
   | { kind: 'light'; id: string; tile: Tile; color?: string; radius?: number }
   | { kind: 'zone'; id: string; tile: Tile; size?: readonly [number, number]; scene: string; when?: Condition }
   | { kind: 'spirit'; id: string; tile: Tile; spirit: string; when?: Condition }
-  | { kind: 'bike'; id: string; tile: Tile };
+  | { kind: 'bike'; id: string; tile: Tile }
+  /**
+   * Something standing in the street, drawn from the props atlas: a tree, a
+   * lantern, a parked bicycle. `tile` is where its foot is (bottom-left);
+   * `blocks` is its footprint in tiles, `[w, h]` up from there, 0 for none.
+   * A prop with `light` glows at evening and night.
+   */
+  | { kind: 'prop'; id: string; tile: Tile; frame: string; blocks?: readonly [number, number]; light?: string };
 
 export type MapObjectKind = MapObject['kind'];
 

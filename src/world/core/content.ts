@@ -119,6 +119,14 @@ export const mapObjectSchema: z.ZodType<MapObject> = z.discriminatedUnion('kind'
   }),
   z.strictObject({ kind: z.literal('spirit'), id, tile, spirit: id, when: conditionSchema.optional() }),
   z.strictObject({ kind: z.literal('bike'), id, tile }),
+  z.strictObject({
+    kind: z.literal('prop'),
+    id,
+    tile,
+    frame: text,
+    blocks: z.tuple([z.number().int().min(0), z.number().int().min(0)]).optional(),
+    light: z.string().optional(),
+  }),
 ]);
 
 export const npcSchema: z.ZodType<NpcCard> = z.strictObject({

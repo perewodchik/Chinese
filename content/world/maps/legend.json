@@ -1,0 +1,53 @@
+{
+ "ground": {
+  "p": "paving",
+  "P": "paving-2",
+  "g": "grass",
+  "G": "grass-2",
+  "s": "plaza",
+  "r": "road",
+  "R": "road-line",
+  "m": "marble",
+  "f": "floor-wood",
+  "t": "floor-tile",
+  "w": "water-0"
+ },
+ "below": {
+  "b": "brick",
+  "B": "brick-base",
+  "T": "brick-top",
+  "d": "door-top",
+  "D": "door-bottom",
+  "x": "roof-grey",
+  "X": "roof-grey-ridge",
+  "e": "roof-grey-eave",
+  "y": "roof-yellow",
+  "Y": "roof-yellow-ridge",
+  "E": "roof-yellow-eave",
+  "W": "palace-wall",
+  "U": "palace-top",
+  "V": "palace-base",
+  "a": "palace-arch-top",
+  "A": "palace-arch",
+  "c": "column",
+  "S": "steps",
+  "n": "window",
+  "N": "window-lit",
+  "h": "shop",
+  "H": "shop-lit",
+  "l": "marble-rail",
+  "M": "marble",
+  "w": "water-0"
+ },
+ "above": {
+  "x": "roof-grey",
+  "e": "roof-grey-eave",
+  "E": "roof-yellow-eave",
+  "T": "brick-top"
+ },
+ "walkable": [
+  "door-bottom",
+  "steps",
+  "marble"
+ ]
+}

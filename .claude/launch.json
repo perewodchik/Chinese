@@ -91,6 +91,21 @@
       "port": 5177
     },
     {
+      "name": "hanzi-workshop-mac-world",
+      "runtimeExecutable": "/usr/bin/env",
+      "runtimeArgs": [
+        "HANZI_DEV_USER=admin",
+        "HANZI_DB=.data/world-test.db",
+        "PORT=5179",
+        "/opt/homebrew/bin/node",
+        "--disable-warning=ExperimentalWarning",
+        "--import",
+        "tsx",
+        "server/src/dev.ts"
+      ],
+      "port": 5179
+    },
+    {
       "name": "hanzi-workshop-mac-learn-test",
       "runtimeExecutable": "/usr/bin/env",
       "runtimeArgs": [

@@ -97,6 +97,13 @@ var RevisionConflictError = class extends AppError {
     this.current = current;
   }
 };
+var WorldConflictError = class extends AppError {
+  current;
+  constructor(current) {
+    super("conflict", "This game was saved from somewhere else in the meantime.");
+    this.current = current;
+  }
+};
 var TutorUnavailableError = class extends AppError {
   constructor(message) {
     super("unavailable", message);
@@ -428,6 +435,44 @@ function versionOf(document) {
   return typeof version === "number" ? version : 0;
 }
 
+// server/src/application/world-service.ts
+var toDto2 = (w) => w ? { revision: w.revision, save: w.save, updatedAt: w.updatedAt } : { revision: 0, save: null, updatedAt: null };
+var WorldService = class {
+  constructor(deps) {
+    this.deps = deps;
+  }
+  async get(userId) {
+    return toDto2(await this.deps.saves.find(userId));
+  }
+  revision(userId) {
+    return this.deps.saves.revisionOf(userId);
+  }
+  async save(userId, baseRevision, save) {
+    if (!Number.isInteger(baseRevision) || baseRevision < 0) {
+      throw new ValidationError("The base revision has to be a whole number, 0 or more.", { baseRevision: "Not a revision." });
+    }
+    if (!isSave(save)) {
+      throw new ValidationError("A game save is a JSON object carrying its format version.", { save: "Not a game save." });
+    }
+    const write = await this.deps.saves.save(userId, baseRevision, save, this.deps.clock.now());
+    if (write.saved) return { revision: write.revision, updatedAt: write.updatedAt };
+    const current = write.current;
+    if (current && current.revision === baseRevision && versionOf2(current.save) > save.version) {
+      throw new OutdatedAppError();
+    }
+    throw new WorldConflictError(toDto2(current));
+  }
+};
+function isSave(v) {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return false;
+  const version = v.version;
+  return typeof version === "number" && Number.isInteger(version) && version > 0;
+}
+function versionOf2(save) {
+  const version = save?.version;
+  return typeof version === "number" ? version : 0;
+}
+
 // server/src/infrastructure/clock.ts
 var systemClock = { now: () => Date.now() };
 
@@ -491,10 +536,12 @@ function createServices(stores, options = {}) {
     policy: { ...DEFAULT_AUTH_POLICY, ...options.policy }
   });
   const workspaces = new WorkspaceService({ workspaces: stores.workspaces, clock });
+  const world = new WorldService({ saves: stores.worldSaves, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
   return {
     auth,
     workspaces,
+    world,
     conversations,
     clock,
     speech: options.speech ?? null,
@@ -504,7 +551,7 @@ function createServices(stores, options = {}) {
 }
 
 // server/src/http/app.ts
-import { Hono as Hono8 } from "hono";
+import { Hono as Hono9 } from "hono";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
 
@@ -532,6 +579,10 @@ function handleError(log) {
   return (err, c) => {
     if (err instanceof RevisionConflictError) {
       const body = { ...errorBody(err.code, err.message), current: err.current };
+      return c.json(body, 409);
+    }
+    if (err instanceof WorldConflictError) {
+      const body = { error: { code: "conflict", message: err.message }, current: err.current };
       return c.json(body, 409);
     }
     if (err instanceof AppError) {
@@ -1217,13 +1268,61 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
   return routes;
 }
 
+// server/src/http/routes/world.ts
+import { Hono as Hono7 } from "hono";
+import { bodyLimit as bodyLimit2 } from "hono/body-limit";
+import { z as z5 } from "zod";
+
+// shared/world.ts
+var WORLD_SAVE_MAX_BYTES = 512 * 1024;
+var worldTag = (revision) => `"w${revision}"`;
+
+// server/src/http/routes/world.ts
+var putRequest = z5.object({
+  baseRevision: z5.number().int().min(0),
+  save: z5.record(z5.string(), z5.unknown())
+});
+function worldRoutes({ auth, world, clock, trustProxy }) {
+  const routes = new Hono7();
+  const session = requireSession(auth, { trustProxy, clock });
+  routes.get("/", session, async (c) => {
+    const userId = c.get("session").user.id;
+    c.header("Cache-Control", "no-store");
+    const known = c.req.header("if-none-match");
+    if (known) {
+      const tag = worldTag(await world.revision(userId));
+      if (known.replace(/^W\//, "") === tag) {
+        c.header("ETag", tag);
+        return c.body(null, 304);
+      }
+    }
+    const current = await world.get(userId);
+    c.header("ETag", worldTag(current.revision));
+    return c.json(current);
+  });
+  routes.put(
+    "/",
+    session,
+    bodyLimit2({
+      maxSize: WORLD_SAVE_MAX_BYTES,
+      onError: (c) => c.json(errorBody("payload_too_large", "That game save is larger than the server keeps."), 413)
+    }),
+    async (c) => {
+      const input = await readJson(c, putRequest);
+      const saved = await world.save(c.get("session").user.id, input.baseRevision, input.save);
+      return c.json(saved);
+    }
+  );
+  return routes;
+}
+
 // server/src/http/static-site.ts
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Hono as Hono7 } from "hono";
+import { Hono as Hono8 } from "hono";
 function staticSite(root) {
-  const site = new Hono7();
+  const site = new Hono8();
   const index = join(root, "index.html");
   site.use("*", caching());
   site.use("*", serveStatic({ root }));
@@ -1261,20 +1360,21 @@ function createHttpApp(services, options) {
     devUserCreate: options.devUserCreate ?? true,
     log: options.log
   };
-  const api = new Hono8();
+  const api = new Hono9();
   api.onError(onError);
   api.use("*", sameOriginOnly());
   api.get("/health", (c) => c.json({ ok: true }));
   api.route("/auth", authRoutes(deps));
   api.route("/ask", askRoutes(deps));
   api.route("/workspace", workspaceRoutes(deps));
+  api.route("/world", worldRoutes(deps));
   api.route("/speech", speechRoutes(deps));
   api.route("/talk", talkRoutes(deps));
   api.route("/videos", videoRoutes(deps));
   api.all("*", () => {
     throw new NotFoundError("That API route");
   });
-  const app = new Hono8();
+  const app = new Hono9();
   app.onError(onError);
   if (options.compress !== false) app.use("*", compress());
   app.use(
@@ -1399,6 +1499,15 @@ var MIGRATIONS = [
   );
 
   CREATE INDEX conversations_by_user ON conversations (user_id, updated_at DESC);
+  `,
+  // 走走's game saves; see the SQLite migrations.
+  `
+  CREATE TABLE world_saves (
+    user_id    TEXT PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
+    revision   INTEGER NOT NULL,
+    save       TEXT NOT NULL,
+    updated_at BIGINT NOT NULL
+  );
   `
 ];
 
@@ -1701,11 +1810,46 @@ var PostgresWorkspaceRepository = class {
   }
 };
 
+// server/src/infrastructure/postgres/world-save-repository.ts
+var PostgresWorldSaveRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async find(userId) {
+    const { rows } = await this.db.query("SELECT * FROM world_saves WHERE user_id = $1", [userId]);
+    const row = rows[0];
+    if (!row) return null;
+    return { userId: row.user_id, revision: row.revision, save: JSON.parse(row.save), updatedAt: row.updated_at };
+  }
+  async revisionOf(userId) {
+    const { rows } = await this.db.query("SELECT revision FROM world_saves WHERE user_id = $1", [userId]);
+    return rows[0]?.revision ?? 0;
+  }
+  async save(userId, baseRevision, save, at) {
+    const json = JSON.stringify(save);
+    const result = baseRevision === 0 ? await this.db.query(
+      `INSERT INTO world_saves (user_id, revision, save, updated_at)
+             VALUES ($1, 1, $2, $3)
+             ON CONFLICT (user_id) DO NOTHING`,
+      [userId, json, at]
+    ) : await this.db.query(
+      `UPDATE world_saves
+             SET save = $1, updated_at = $2, revision = revision + 1
+             WHERE user_id = $3 AND revision = $4
+               AND COALESCE((save::jsonb ->> 'version')::int, 0) <= $5`,
+      [json, at, userId, baseRevision, save.version]
+    );
+    if (result.rowCount === 1) return { saved: true, revision: baseRevision + 1, updatedAt: at };
+    return { saved: false, current: await this.find(userId) };
+  }
+};
+
 // server/src/infrastructure/postgres/stores.ts
 var postgresStores = (db) => ({
   users: new PostgresUserRepository(db),
   sessions: new PostgresSessionRepository(db),
   workspaces: new PostgresWorkspaceRepository(db),
+  worldSaves: new PostgresWorldSaveRepository(db),
   conversations: new PostgresConversationRepository(db)
 });
 

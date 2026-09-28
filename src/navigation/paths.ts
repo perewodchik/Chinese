@@ -102,6 +102,8 @@ export const paths = {
     }),
 
   /** the games, for one band */
+  /** 走走, the walk through Beijing */
+  world: () => '/play/world',
   play: (band?: number) => withQuery('/play', { band: band && band !== 1 ? String(band) : undefined }),
   /** one round of one game; the seed replays it */
   game: (id: string, band?: number, seed?: string) =>

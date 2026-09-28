@@ -8,6 +8,7 @@ import { BuildListPage } from '../features/collections/build/BuildListPage';
 import { FamiliesPage } from '../features/families/FamiliesPage';
 import { GamePage } from '../features/play/GamePage';
 import { PlayPage } from '../features/play/PlayPage';
+import { WorldRoute } from '../features/world/WorldRoute';
 import { LibraryPage } from '../features/library/LibraryPage';
 import { PinyinPage } from '../features/pinyin/PinyinPage';
 import { PracticePage } from '../features/pinyin/PracticePage';
@@ -47,6 +48,7 @@ import { RequireSession } from './RequireSession';
  *   /library?kind=radicals         the same page showing all 214 radicals
  *   /families/:radical?band        a radical's family: what it grows into, as a tree
  *   /play?band                     the games, and the seals they have won
+ *   /play/world?map&time           走走, the walk through Beijing (Phaser, loaded lazily)
  *   /play/:gameId?band&seed        one round of one game
  *   /collections?show              every collection, of characters and of texts, and the ready-made sets
  *   /collections/build/:step       a word list written with Claude: describe, prompt, paste
@@ -118,6 +120,7 @@ export const router = createBrowserRouter([
               { path: 'library', element: <LibraryPage /> },
               { path: 'families/:radical?', element: <FamiliesPage /> },
               { path: 'play', element: <PlayPage /> },
+              { path: 'play/world', element: <WorldRoute /> },
               { path: 'play/:gameId', element: <GamePage /> },
               { path: 'collections', element: <CollectionsPage /> },
               { path: 'collections/build/:step?', element: <BuildListPage /> },

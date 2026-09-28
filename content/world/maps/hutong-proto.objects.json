@@ -1,0 +1,185 @@
+[
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   2,
+   10
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   25,
+   10
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "lantern-1",
+  "tile": [
+   5,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lantern-2",
+  "tile": [
+   7,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lantern-3",
+  "tile": [
+   19,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lantern-4",
+  "tile": [
+   21,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "bike-1",
+  "tile": [
+   10,
+   6
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bike-2",
+  "tile": [
+   11,
+   6
+  ],
+  "frame": "bicycle/side-r",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tricycle",
+  "tile": [
+   16,
+   9
+  ],
+  "frame": "tricycle/side",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "subway",
+  "tile": [
+   30,
+   7
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "cage",
+  "tile": [
+   23,
+   5
+  ],
+  "frame": "bird-cage/cage"
+ },
+ {
+  "kind": "npc",
+  "id": "auntie",
+  "npc": "auntie",
+  "tile": [
+   7,
+   7
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "grandpa",
+  "npc": "grandpa",
+  "tile": [
+   23,
+   7
+  ],
+  "facing": "left"
+ },
+ {
+  "kind": "npc",
+  "id": "rider",
+  "npc": "rider",
+  "tile": [
+   13,
+   8
+  ],
+  "facing": "right"
+ },
+ {
+  "kind": "npc",
+  "id": "kid",
+  "npc": "kid",
+  "tile": [
+   27,
+   9
+  ],
+  "facing": "up"
+ },
+ {
+  "kind": "door",
+  "id": "gate-west",
+  "tile": [
+   6,
+   5
+  ],
+  "to": {
+   "map": "hutong-proto",
+   "tile": [
+    6,
+    6
+   ],
+   "facing": "down"
+  }
+ }
+]

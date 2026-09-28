@@ -7,7 +7,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
-C4
+D1
 
 ## Tasks
 ### A — core logic
@@ -31,7 +31,7 @@ C4
 - [x] C1 Palette + pixel builder + recolour
 - [x] C2 Free packs (CC0/CC-BY only) + CREDITS
 - [x] C3 Beijing modules, hero, 兔儿爷, NPC bases
-- [ ] C4 Prototype: 胡同 street + 天安门 gate, screenshots in review/
+- [x] C4 Prototype: 胡同 street + 天安门 gate, screenshots in review/
 
 ### D — engine
 - [ ] D1 WorldPage /play/world + Phaser boot, full screen on phones
@@ -77,7 +77,22 @@ C4
 - [ ] I2 iPad pass
 - [ ] I3 Final summary
 
-### J — 上海 (only if A–I are done before 10:00, see prompt §10)
+### X — Beijing+ (prompt §9½, before other cities)
+- [ ] X0 QA harness: quest solver, golden saves, map probe, crash guard, stress; fix A–I
+- [ ] X1 Usable items + gifts
+- [ ] X2 Friendship hearts, NPC memory, personal stories
+- [ ] X3 Diary 日记
+- [ ] X4 Calendar, festivals, weather
+- [ ] X5 Room decoration + the 胡同 cat
+- [ ] X6 Photos, postcards, stickers
+- [ ] X7 兔儿爷 alive
+- [ ] X8 Beijing life activities
+- [ ] X9 Book side quests (骆驼祥子, 茶馆, 城南旧事, 红楼梦, 孔乙己, 西游记, 三国演义)
+- [ ] X10 Tales and festival stories
+- [ ] X11 《天官赐福》 homage line
+- [ ] X12 Final bug hunt over everything
+
+### J — 上海 (only if A–I and X are done before 10:00, see prompt §10)
 - [ ] J0 The world knows about cities (types, save v+1, map switcher)
 - [ ] J1 Design concept-shanghai.md
 - [ ] J2 Home, 外滩, 南京路, 人民广场 maps
@@ -117,7 +132,12 @@ _(date — decision — why)_
 - 2026-09-28 — C1: no image library is installed, so the art pipeline has its own small PNG writer/reader on `node:zlib` (RGBA out; RGBA/RGB/grey/palette in, non-interlaced). One palette of 45 lettered colours (`scripts/world/art/palette.ts`); `.px` supports `= mirror <frame>`, copies and `variant: name r>n …` palette swaps for NPC bases. Recolour maps to the nearest palette colour in Lab space and can emit an editable `.px`.
 - 2026-09-28 — C2: **no packs downloaded.** Fetching files from the internet needs the learner's own OK, and nobody was awake to give it; the brief allows drawing everything with the C1 pipeline, so the game uses only its own art. Candidates for the learner to approve later (all listed as CC0 by their authors — re-check the license page before downloading): Kenney "RPG Urban Pack" (16×16, modern streets — good for 三里屯/国贸), Kenney "Roguelike City/Indoor" packs, Ninja Adventure by Pixel-boy & AAA (16×16, has East-Asian roofs). `content/world/art/vendor/README.md` says how to add one, `recolour.ts` fits it to the palette.
 - 2026-09-28 — C3: the art is drawn *in code* (`scripts/world/art/gen/`) and written out as editable `.px` sources: 31 Beijing tiles, 8 character bases × 12 frames (hero, auntie, grandpa with stick, kid, young woman, delivery rider, tourist, working man) with 12 palette-swap variants, 兔儿爷 (8 floating frames), 6 props (lantern unlit/lit, 槐树, bicycle, 三轮车, subway sign, bird cage). A test keeps the committed `.px` equal to the generator; a file edited by hand (first line no longer "# generated") is left alone. Review sheets: `docs/world-game/review/c3-*.png`. The subway sign shows a generic train, not the real Beijing Subway logo.
+- 2026-09-28 — C4: the map format of §6.1 was built now rather than in F1 (`src/world/core/maptext.ts`, `scripts/world/build-maps.ts` → Tiled JSON in `public/world/maps/`), so the prototype is two real map files (`content/world/maps/hutong-proto`, `tiananmen-proto`). New map object `prop` (tree, lantern, bike… from the props atlas, with a footprint and an optional light). The art build also writes `tiles-set.png/json`, a plain 8-column tileset for Tiled maps.
+- 2026-09-28 — C4: **screenshots are from an offline renderer** (`scripts/world/render-map.ts`), not from the browser: this unattended session is not allowed to start a dev server. The renderer follows the engine scene's rules (layers, depth by feet, integer zoom, multiply tint, additive glow). The engine itself (`src/world/engine/`, route `/play/world?map=…&time=…`) builds and type-checks but has **not been seen running** yet — first thing to check in the morning.
+- 2026-09-28 — C4, what looks weak: roofs are flat stripes (no curved hip ends, no ridge beasts); the arch tiles show a seam above each arch; plaza slabs read as bricks; people are all the same height and pose (fine for NPCs, but the hero needs more character); the night glow of lit windows is a plain disc. Not below "B/W-ish indie" enough to redo before D, so I carried on (brief: one more task only if clearly below).
+- 2026-09-28 — The learner added prompt §9½ (phase X) and its STATUS section during the night; both were committed with C4 unchanged.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
+- Dev servers cannot be started from this unattended session (preview_start refuses), so nothing is checked in a browser yet: C4 screenshots are offline renders, D-phase checks will be code-level plus offline renders until a session with a person present runs the preview (`hanzi-workshop-mac-world`, port 5179, `.data/world-test.db`, added to `.claude/launch.json`).
 - **B1 adds migration step 3 (`world_saves`) to both SQLite and Postgres.** It runs on the production Postgres at the first deploy after the learner pushes — an additive `CREATE TABLE`, nothing existing is touched.

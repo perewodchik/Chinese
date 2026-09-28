@@ -1,0 +1,45 @@
+id: hutong-proto
+size: 32x18
+tilesets: tiles
+district: gulou
+
+# C4 prototype: a hutong lane — grey walls, red gates, a shop, trees
+
+[ground]
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+ppppppppppPppppppppppPpppppppppp
+ppppppppPppppppppppPppppppppppPp
+ppppppPppppppppppPppppppppppPppp
+ppppPppppppppppPppppppppppPppppp
+ppPppppppppppPppppppppppPppppppp
+pppppppppppppppppppppppppppppppp
+gggGggggGggggGggggGggggGggggGggg
+ggGggggGggggGggggGggggGggggGgggg
+gGggggGggggGggggGggggGggggGggggG
+GggggGggggGggggGggggGggggGggggGg
+ggggGggggGggggGggggGggggGggggGgg
+gggGggggGggggGggggGggggGggggGggg
+[below]
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+bbbnbbdbbnbbbhhbbnbbdbbbnbbnbbbb
+BBBBBBDBBBBBBhhBBBBBDBBBBBBBBBBB
+................................
+................................
+................................
+................................
+................................
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+................................
+................................
+................................
+................................
+................................
+................................

@@ -1,0 +1,52 @@
+/* --- 走走, the walk through Beijing */
+
+/* The game fills what is below the site's bar; the page's own padding and
+   scroll do not apply to it. */
+.world-shell {
+  position: fixed;
+  inset: 56px 0 0 0;
+  z-index: 15;
+  background: #22202e; /* the game's own night-ink, behind the canvas in both themes */
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.world-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.world-shell[data-framed] .world-canvas {
+  inset: auto;
+  top: 0;
+  left: 0;
+}
+
+.world-canvas canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+
+.world-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #cbced8;
+  pointer-events: none;
+}
+
+/* On a phone the game is the whole screen, inside the safe areas. */
+@media (max-width: 689px) {
+  html[data-world-full] .topbar {
+    display: none;
+  }
+
+  .world-shell {
+    inset: 0;
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px)
+      env(safe-area-inset-left, 0px);
+  }
+}

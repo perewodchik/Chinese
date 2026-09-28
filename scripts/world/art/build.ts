@@ -13,18 +13,50 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { basename, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { pack, type Packable } from './pack';
-import { encodePng } from './png';
+import { blank, encodePng } from './png';
 import { parsePx, render } from './px';
 
 export const SPRITES = 'content/world/art/sprites';
 export const OUT = 'public/world/art';
 
-export function buildAtlas(dir: string, atlas: string): { png: Uint8Array; json: string; frames: number } {
+/**
+ * The tiles also go out as a plain tileset — 16×16 cells, 8 across, no
+ * padding, in the order they are written — because maps use Tiled's format,
+ * which counts tiles by index in one image. `<atlas>-set.json` names each index.
+ */
+export interface TilesetJson {
+  image: string;
+  tileWidth: number;
+  tileHeight: number;
+  columns: number;
+  /** index → frame name; Tiled's gid is index + firstgid */
+  names: string[];
+}
+
+export function buildTileset(items: Packable[], atlas: string, size = 16, columns = 8): { png: Uint8Array; json: string } {
+  const rows = Math.ceil(items.length / columns);
+  const img = blank(columns * size, rows * size);
+  items.forEach((it, i) => {
+    if (it.img.width !== size || it.img.height !== size) throw new Error(`${it.name}: a tile is ${size}×${size}`);
+    const ox = (i % columns) * size;
+    const oy = Math.floor(i / columns) * size;
+    for (let y = 0; y < size; y++) img.data.set(it.img.data.subarray(y * size * 4, (y + 1) * size * 4), ((oy + y) * img.width + ox) * 4);
+  });
+  const json: TilesetJson = { image: `${atlas}-set.png`, tileWidth: size, tileHeight: size, columns, names: items.map((i) => i.name) };
+  return { png: encodePng(img), json: JSON.stringify(json, null, 1) + '\n' };
+}
+
+function itemsOf(dir: string): Packable[] {
   const items: Packable[] = [];
   for (const file of readdirSync(dir).filter((f) => f.endsWith('.px')).sort()) {
     const sprite = parsePx(readFileSync(join(dir, file), 'utf8'), basename(file, '.px'));
     for (const f of sprite.frames) items.push({ name: f.name, img: render(f, sprite.width, sprite.height) });
   }
+  return items;
+}
+
+export function buildAtlas(dir: string, atlas: string): { png: Uint8Array; json: string; frames: number } {
+  const items = itemsOf(dir);
   const names = new Set<string>();
   for (const it of items) {
     if (names.has(it.name)) throw new Error(`${atlas}: frame ${it.name} comes from two files`);
@@ -42,6 +74,11 @@ export function buildAll(src = SPRITES, out = OUT): string[] {
     const r = buildAtlas(join(src, atlas), atlas);
     writeFileSync(join(out, `${atlas}.png`), r.png);
     writeFileSync(join(out, `${atlas}.json`), r.json);
+    if (atlas === 'tiles') {
+      const set = buildTileset(itemsOf(join(src, atlas)), atlas);
+      writeFileSync(join(out, `${atlas}-set.png`), set.png);
+      writeFileSync(join(out, `${atlas}-set.json`), set.json);
+    }
     done.push(`${atlas}: ${r.frames} frames`);
   }
   return done;

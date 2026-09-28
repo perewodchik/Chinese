@@ -525,9 +525,197 @@ red walls and yellow roofs (故宫), green-blue painted eaves, red lanterns.
 
 ---
 
+## 9½. Beijing+ — side quests, items, cosy features, QA (added 2026-09-28, 22:40)
+
+**When:** after every task A–I is ticked, **before §10 (other cities)**.
+The learner approved every idea below. Everything is still Beijing. All
+standing rules apply (§0, concept §1): no quizzes — understanding shows in
+what you do; help is free; the §5 word budget (plus situation words);
+companion speaks English; own or CC0/CC-BY art; everything saved in the
+world save (bump its version with an upgrade + test when the save grows).
+
+**Cultural references are homages, never copies:** your own short lines,
+no passages from the books, no copied artwork. Name the source in the
+quest's English "About this" note (shown by the companion's Why?).
+
+### X0 — QA harness first (so every later task is checked by it)
+1. **Quest solver test** (`src/world/core/solver.test.ts`, runs in
+   `npm test`): starting from a fresh save it plays every quest through
+   the core only (no engine) — walking via the travel/door graph, feeding
+   the dialogue the **full sentence of each node's third hint step** — and
+   asserts: every quest can be finished; every hint's full sentence
+   matches its intent; no dead ends (every node has a way out, incl. the
+   universal intents); each needed item can be obtained before it is
+   needed; every time window is reachable with the clock/sleep; every
+   door leads to a walkable tile of an existing map; every NPC routine
+   position is walkable; every spirit and 成语 can be collected.
+2. **Golden saves** (`content/world/test-saves/`): one save at the start
+   of each chapter and one per side-quest line; a test loads each, runs
+   the migration, and continues the next quest with the solver.
+3. **Map probe:** a script that opens `/play/world?map=<id>` for every
+   map (dev-only query), in the pane **and** in WebKit
+   (`scripts/webkit-probe.swift`), at 375/768/1024: no console errors,
+   the canvas draws, frame time recorded. Screenshots to
+   `docs/world-game/review/maps/`.
+4. **Crash guard:** an error boundary around the engine and the overlay;
+   on a crash the save stays intact, a calm screen offers "Back to where
+   you were". Log the error to the console with the map and quest.
+5. **Stress checks** (automated where possible): fast repeated taps,
+   hiding the tab mid-dialogue, going offline mid-save, two tabs open,
+   rotating the iPad, very long input, empty input, emoji input.
+6. Fix everything these find in A–I content **before** X1.
+
+### X1 — usable items
+- Use an item from 🎒 on a person or object (tap item → tap target, or
+  drag). Scene/NPC data says which items do what; **a wrong item gets a
+  gentle funny HSK 1 reaction**, never a dead end.
+- **Gifts:** every NPC has likes / dislikes / neutral (data). Giving
+  changes friendship (X2). One gift per NPC per game day.
+- Items and their situations (build all):
+
+| Item | Where / how it is used |
+|---|---|
+| 雨伞 | on rainy days lend it to the neighbour caught in the rain → friendship; get it back next day |
+| 保温杯 + 热水 | fill at home or the 茶馆; the old man in the park in winter |
+| 药 (bought at 药店 with situation words) | the neighbour with a cold (感冒/发烧) — you tell the pharmacist the symptoms |
+| 手机 | map app (Chinese UI), 扫码 pay at stalls, camera for photo tasks ("拍一张红门的照片") |
+| 手电筒 | dark 胡同 at night; one spirit only shows in the dark |
+| 竹竿 (from 小卖部) | the kite stuck in the 槐树 |
+| 红包 | give to the children on 春节 (say 新年快乐) |
+| 春联, 福 | put on your door; 福 upside down — the companion explains 倒 / 到 |
+| 糖葫芦, 包子, 月饼 | gifts (likes differ) |
+| 毛笔 | 地书 in the park, writing postcards |
+| 风筝, 毽子, 空竹 | the park games (X8) |
+| 钥匙 | one day you lose your keys and find them by asking the neighbours who saw what |
+
+### X2 — friendship and NPC memory
+Hearts (0–5) per NPC, raised by talking, gifts, helping. NPCs greet you
+by name, recall what you told them (NPC memory in the save). At 3 hearts
+each main NPC opens a **personal story** (2–3 short scenes): 王阿姨's son
+abroad, the barber's first shop, the bird-cage grandpa's bird.
+
+### X3 — diary 日记
+Every game day writes itself in simple Chinese from what you did
+(templates over the day's actions: "今天我在王府井买了一本书。晚上我和
+王阿姨包饺子了。"). Words tappable, 拼 toggle, unknown words marked. A
+diary page in the panels; it stays within the §5 budget (validator
+covers the templates).
+
+### X4 — calendar, festivals, weather
+A game calendar (one game day ≈ one week of the year, so a festival comes
+round every few sessions): 春节 (饺子, 春联, 红包, 庙会 at 地坛),
+元宵 (灯谜, lanterns), 端午 (粽子, 龙舟 on 后海), 七夕, 中秋, 国庆
+(crowds 人山人海). Weather: snow (雪人 you can build), rain (umbrellas
+appear on NPCs), windy days (kites), clear. Weather and festivals change
+NPC lines, the streets, and which side quests are open. The /play card
+banner reflects snow/festival.
+
+### X5 — the room and the cat
+- **Your room in the 四合院:** buy 剪纸, 灯笼, 书法, plants, a 京剧 mask;
+  place them on a small grid; visitors comment ("你的灯笼真好看！").
+- **The 胡同 cat:** feed it a few days → it trusts you → you name it
+  (type/say a name in Chinese) → it follows you in the 胡同 and sleeps in
+  the courtyard. Tap = purr.
+
+### X6 — photos, postcards, stickers
+- Photo mode: freeze, frame, zoom; photos go to an album; some quests ask
+  for a photo of something described in Chinese.
+- **Postcards:** a photo + a caption you write in Chinese → printable
+  through the app's print flow (or a clean PNG if print is too costly —
+  log it).
+- **Stickers** (表情包-style, drawn in the pixel style) you can send in
+  dialogue; NPCs react to them.
+
+### X7 — 兔儿爷 alive
+Emotes (happy, sulky, sleepy, proud), seasonal hats (snow hat, festival
+flower, 中秋 armour as in the clay figure), hold to pat → blushes, sulks
+at 守株待兔, dozes when you stand still, cheers when a spirit is found.
+
+### X8 — Beijing life (small activities, each a side quest)
+- **地书:** write with water on the pavement next to the old men — trace
+  with a finger; the stroke dries and fades (use the app's stroke data).
+- **象棋:** you move pieces by saying the move (马走日, 象走田, 车, 炮…),
+  a short puzzle, not a full game.
+- **广场舞:** evening dance on the square — 左, 右, 前, 后, 转, 拍手 in
+  time with the music.
+- **放风筝** at 天坛 on windy days — choose the kite from the maker's
+  description.
+- **抖空竹, 踢毽子** — old people teach each step in Chinese.
+- **包饺子 with 王阿姨 on 春节** — her shopping list, then the steps
+  (和面, 擀皮, 包).
+- **烤鸭** — the waiter explains how to wrap it; do it by his words.
+- **相声** — a short crosstalk bit with a simple sound pun; the companion
+  explains if you missed it.
+- **京剧 masks** — the make-up artist explains colours (红 loyal, 白
+  cunning, 黑 honest); pick the mask for the hero described.
+- **外卖 rider lost** — read the door numbers (门牌号) to find the address.
+- **收破烂儿** — the recycler on a tricycle with a loudspeaker ("收——旧
+  手机、旧电脑") — sell him your old things; he appears again in X11.
+- **Fishing on 后海** with the old men — calm, they chat beside you.
+
+### X9 — side quests from books and theatre (homages)
+1. **《骆驼祥子》** — 祥子, a rickshaw man in the 胡同, saves for his own
+   cart; you pedal a 三轮车 and take tourists where they ask.
+2. **《茶馆》** — the 茶馆 at 前门 has a "莫谈国事" sign; guests try to
+   talk news, you steer them politely to weather and food.
+3. **《城南旧事》** — the girl 英子 lost a camel bell from the old camel
+   caravans; find it from people's descriptions.
+4. **《红楼梦》** — at 恭王府 near 后海 a poetry club (海棠诗社) asks you
+   to pick the second line of simple couplets.
+5. **《孔乙己》** — at the Lu Xun house an old man asks if you know the
+   ways to write 回; you write them with a finger.
+6. **《西游记》** — a boy dressed as 孙悟空 near the 京剧 theatre "turns
+   into" things around you; guess from descriptions ("红色的，圆的，可以
+   吃"). And 猪八戒 has eaten everything on 小吃街 — find out who ordered
+   what.
+7. **《三国演义》** — a 说书 storyteller in the teahouse tells a new
+   episode each day (桃园结义, 空城计…) — listening; come back for more.
+
+### X10 — tales and festival stories
+8. **神笔马良** — a boy with a magic brush whose drawings come alive;
+   leads into the 画龙点睛 finale.
+9. **孔融让梨, 司马光砸缸** — small park stories with children.
+10. **牛郎织女 on 七夕** — gather magpies (喜鹊) around the city to make
+    the bridge; each found through an NPC's hint.
+11. **兔儿爷's own story on 中秋** — make 月饼 with 王阿姨; he tells of
+    嫦娥 and the jade rabbit.
+12. **哪吒** — a child in a 哪吒 costume argues with a friend whether
+    哪吒 or 孙悟空 is stronger; you settle it.
+
+### X11 — 《天官赐福》 homage line (the learner's favourite)
+A side line of 5–6 scenes built on real folk culture — 天官赐福 is the
+blessing of the Heavenly Official (天官) on 上元 (元宵) — as a homage to
+墨香铜臭's novel. Original characters and lines only:
+- **The scrap-collecting god:** a gentle man in plain white with a bamboo
+  hat who goes around the 胡同 collecting 破烂 (he works with the 收破烂儿
+  recycler, X8). He is always unlucky (things fall, rain starts when he
+  arrives) and never complains. He wants to rebuild a tiny forgotten
+  shrine (a 菩荠观-like 小庙) at the edge of the city: you gather
+  donations and materials by talking to people (friendship helps), and he
+  says 「百无禁忌」 when something goes wrong.
+- **The man in red with silver butterflies:** at night a young man in red
+  appears near the shrine; **silver butterflies (银蝶)** lead you through
+  dark 胡同 — a collectible: once befriended they light the way at night
+  and show hidden spirits.
+- **鬼市 at 潘家园** (the antique market at night becomes a ghost
+  market): strange sellers, bargaining with riddles; the red-clad man
+  owns it.
+- **上元 finale:** the shrine is done on 元宵 night; the sky fills with
+  thousands of lanterns (长明灯) — ties back to the broken lantern of the
+  main story. A special stamp and a 图鉴 page.
+- **成语 / phrases:** 百无禁忌, 所向披靡 (as the red-clad man's motto),
+  一念之间. Mark them in the 成语 book as "from the 天官赐福 line".
+
+### X12 — polish and the final bug hunt
+Run X0's solver, golden saves, map probe and stress checks over **all**
+content; then play every chapter and every side line in the pane and
+in WebKit like the learner would (tap-to-move, both input modes, phone
+and iPad widths), fix what you find, and write a bug report + what was
+fixed into STATUS.md. Only then go to §10.
+
 ## 10. After Beijing: Shanghai, then Chengdu (added 2026-09-28, 22:10)
 
-**When:** only after every task A–I is ticked, **and only if the local time
+**When:** only after every task A–I **and X0–X12 (§9½)** is ticked, **and only if the local time
 is before 10:00** when you reach this point. Otherwise write in STATUS.md
 that you stopped before §10 and end. Once §10 has started, keep going like
 any other phase (commit per task, resume from STATUS.md).
