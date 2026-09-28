@@ -7,7 +7,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
-A9
+A10
 
 ## Tasks
 ### A — core logic
@@ -19,7 +19,7 @@ A9
 - [x] A6 Grid + A*
 - [x] A7 Conditions, quests, schedule
 - [x] A8 Dialogue (source, scripted, match, universal, normalize)
-- [ ] A9 Word budget + content check
+- [x] A9 Word budget + content check
 - [ ] A10 Travel (subway, bus, train)
 - [ ] A11 Pinyin IME
 
@@ -108,6 +108,8 @@ _(date — decision — why)_
 - 2026-09-28 — A8: dictionary access goes through a small `Lexicon` interface (words / syllables / gloss) built from the app's library, so `core/` stays free of fetch and DOM. Erhua is dropped on both sides (哪儿 = 哪 = `nar`).
 - 2026-09-28 — A8: `DialogueSource` got a third method, `proceed(state)`, for "tap to go on" at nodes that expect nothing; `Turn` carries the next `state` and a `companion` cue (hint step, heard-as, not Chinese, unknown word).
 - 2026-09-28 — The learner's uncommitted additions to prompt.md (§10 Shanghai/Chengdu), concept.md (rule 5) and STATUS.md (phases J, K) were committed together with A8, since STATUS.md has to be committed with every task.
+- 2026-09-28 — A9: the "≤ 15 % HSK 2 per scene" rule is only applied to scenes of 20 words or more — in a five-word scene one HSK 2 word is already 20 %, and §5 allows one per line. Fewer than 3 situation words is a warning, not an error (a ticket window may honestly need only 交通卡); more than 8 is an error. The simpler line and the hint's full sentence are checked like normal lines. Unknown words (no band anywhere) count as above HSK 2.
+- 2026-09-28 — A9: `npm run world` currently runs only the check (`world:check`); art → maps → content are added to it as C1/F1 bring those scripts.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

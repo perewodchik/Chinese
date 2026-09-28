@@ -246,6 +246,14 @@ export function formatPath(file: string, path: readonly PropertyKey[]): string {
  * empty. Every error names the file and the path inside it.
  */
 export function loadDistrict(files: DistrictFiles): Checked<DistrictContent> {
+  const parsed = parseDistrict(files);
+  if (!parsed.ok) return parsed;
+  const refErrors = checkReferences(parsed.value);
+  return refErrors.length ? { ok: false, errors: refErrors } : parsed;
+}
+
+/** The schemas only — for checking references across several districts afterwards. */
+export function parseDistrict(files: DistrictFiles): Checked<DistrictContent> {
   const errors: string[] = [];
   const out: Record<string, unknown> = {};
   for (const [name, schema] of Object.entries(DISTRICT_FILES)) {
@@ -260,9 +268,7 @@ export function loadDistrict(files: DistrictFiles): Checked<DistrictContent> {
     else for (const issue of parsed.error.issues) errors.push(`${formatPath(name, issue.path)}: ${issue.message}`);
   }
   if (errors.length) return { ok: false, errors };
-  const content = out as unknown as DistrictContent;
-  const refErrors = checkReferences(content);
-  return refErrors.length ? { ok: false, errors: refErrors } : { ok: true, value: content };
+  return { ok: true, value: out as unknown as DistrictContent };
 }
 
 /**
