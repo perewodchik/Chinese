@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { useLibrary } from '../../features/shared/library';
 import { districtInfo, type DistrictInfo } from '../core/districts';
 import { formatTime, dayOf } from '../core/clock';
-import type { WorldSave } from '../core/types';
+import type { WorldSave, WorldSettings } from '../core/types';
+import { canRecognise } from '../../platform/audio/recognition';
+import { Seg } from '../../ui/Seg';
+import { rememberInput } from './typing';
 import type { WorldContent } from './content';
 import { pinyinOf } from './pinyin';
 import {
@@ -32,6 +35,7 @@ export function Panels({
   pinyin,
   onClose,
   onGo,
+  onSettings,
 }: {
   tab: PanelId;
   setTab: (t: PanelId) => void;
@@ -41,6 +45,7 @@ export function Panels({
   onClose: () => void;
   /** "Go": to the nearest station of where you are, to ride from there */
   onGo: (station: string) => void;
+  onSettings: (patch: Partial<WorldSettings>) => void;
 }) {
   return (
     <div className="wp-scrim" onClick={onClose}>
@@ -63,6 +68,7 @@ export function Panels({
           {tab === 'spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
           {tab === 'idioms' && <Idioms save={save} content={content} pinyin={pinyin} />}
           {tab === 'stamps' && <Stamps save={save} content={content} />}
+          {tab === 'settings' && <Settings settings={save.settings} onChange={onSettings} />}
         </div>
       </section>
     </div>
@@ -278,5 +284,68 @@ function Stamps({ save, content }: { save: WorldSave; content: WorldContent }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+function Settings({ settings, onChange }: { settings: WorldSettings; onChange: (patch: Partial<WorldSettings>) => void }) {
+  const listenable = canRecognise();
+  return (
+    <div className="wp-settings">
+      <label>
+        <span>Answer by</span>
+        <Seg
+          value={settings.input}
+          options={[
+            { id: 'voice', label: '🎤 Voice', title: listenable ? 'Hold and talk' : 'This browser cannot listen' },
+            { id: 'keyboard', label: '⌨ Keyboard' },
+          ]}
+          onChange={(input) => {
+            if (input === 'voice' && !listenable) return;
+            rememberInput(input);
+            onChange({ input });
+          }}
+          size="sm"
+        />
+      </label>
+      {!listenable && <p className="tiny muted">This browser cannot listen, so the game uses the keyboard. On an iPad, Safari with Siri &amp; Dictation on can.</p>}
+      <label>
+        <span>拼 under lines</span>
+        <Seg
+          value={settings.pinyin ? 'on' : 'off'}
+          options={[
+            { id: 'off', label: 'Off' },
+            { id: 'on', label: 'On' },
+          ]}
+          onChange={(v) => onChange({ pinyin: v === 'on' })}
+          size="sm"
+        />
+      </label>
+      <label>
+        <span>On-screen joystick</span>
+        <Seg
+          value={settings.joystick ? 'on' : 'off'}
+          options={[
+            { id: 'off', label: 'Off' },
+            { id: 'on', label: 'On' },
+          ]}
+          onChange={(v) => onChange({ joystick: v === 'on' })}
+          size="sm"
+        />
+      </label>
+      <label>
+        <span>Text size</span>
+        <Seg
+          value={settings.textSize}
+          options={[
+            { id: 's', label: 'Small' },
+            { id: 'm', label: 'Medium' },
+            { id: 'l', label: 'Large' },
+          ]}
+          onChange={(textSize) => onChange({ textSize })}
+          size="sm"
+        />
+      </label>
+      <p className="tiny muted">Settings are kept in your game save, so the iPad and the Mac share them.</p>
+    </div>
   );
 }

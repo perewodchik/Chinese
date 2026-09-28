@@ -80,6 +80,8 @@ export class WorldScene extends Phaser.Scene {
   private after: Plan | null = null;
   private moving = false;
   private running = false;
+  /** the on-screen joystick's direction while it is held */
+  private stick: Facing | null = null;
   private stepFrame = 0;
 
   private baseZoom = 2;
@@ -370,6 +372,21 @@ export class WorldScene extends Phaser.Scene {
     if (!this.moving) this.next();
   }
 
+  /** The on-screen joystick (E6): walk that way while held, step by step; null lets go. */
+  setStick(f: Facing | null, run = false) {
+    this.stick = f;
+    if (!f || this.host.isBusy()) return;
+    this.running = run;
+    this.queue = [];
+    this.after = null;
+    if (!this.moving) this.keyStep(f);
+  }
+
+  /** The joystick's action button: talk to or look at what is ahead, as Space does. */
+  act() {
+    if (!this.host.isBusy() && !this.moving) this.actAhead();
+  }
+
   private keyStep(f: Facing) {
     const s = stepOnce(this.info.grid, this.at, f, this.occupied());
     if (s.to) this.stepTo(s.to);
@@ -477,6 +494,11 @@ export class WorldScene extends Phaser.Scene {
           this.moving = false;
           if (door) this.host.onDoor(door);
           else this.host.onEdge(throughEdge(edge!, t));
+          return;
+        }
+        if (this.stick && !this.host.isBusy()) {
+          this.moving = false;
+          this.keyStep(this.stick);
           return;
         }
         if (this.holding) {

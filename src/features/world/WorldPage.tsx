@@ -9,6 +9,7 @@ import type { WorldHost } from '../../world/engine/scene';
 import { useWorldContent, EMPTY_CONTENT } from '../../world/ui/content';
 import { Dialogue, lookOf } from '../../world/ui/Dialogue';
 import { InputBar } from '../../world/ui/InputBar';
+import { Joystick } from '../../world/ui/Joystick';
 import { Panels } from '../../world/ui/Panels';
 import type { PanelId } from '../../world/ui/panelRows';
 import { Companion } from '../../world/ui/Companion';
@@ -246,7 +247,7 @@ export function WorldPage() {
   const setPinyin = (on: boolean) => void game.dispatch([{ do: 'settings', patch: { pinyin: on } }]);
 
   return (
-    <div className="world-shell" data-state={state} data-framed={frame ? '' : undefined}>
+    <div className="world-shell" data-state={state} data-textsize={game.save?.settings.textSize ?? 'm'} data-framed={frame ? '' : undefined}>
       <div
         className="world-canvas"
         ref={box}
@@ -261,6 +262,7 @@ export function WorldPage() {
           content={content}
           pinyin={game.save.settings.pinyin}
           onClose={() => setPanel(null)}
+          onSettings={(patch) => void game.dispatch([{ do: 'settings', patch }])}
           onGo={(station) => {
             setPanel(null);
             const map = `station-${station}`;
@@ -303,6 +305,9 @@ export function WorldPage() {
           lex={lex}
           talking={!!talk.view}
         />
+      )}
+      {game.save?.settings.joystick && state === 'ready' && !talk.view && !panel && (
+        <Joystick onStick={(f, run) => world.current?.stick(f, run)} onAct={() => world.current?.act()} />
       )}
       {note !== null && (
         <button type="button" className="world-note" onClick={() => setNote(null)}>

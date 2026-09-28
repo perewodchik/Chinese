@@ -1099,3 +1099,87 @@
     height: 64px;
   }
 }
+
+/* --- ⚙ settings */
+.wp-settings {
+  display: grid;
+  gap: 14px;
+  max-width: 460px;
+}
+
+.wp-settings label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wp-settings p {
+  margin: -6px 0 0;
+}
+
+/* text size: the Chinese in the bubble, the panels and the companion */
+.world-shell[data-textsize='s'] .wd-zh {
+  font-size: 18px;
+}
+
+.world-shell[data-textsize='l'] .wd-zh {
+  font-size: 27px;
+}
+
+.world-shell[data-textsize='l'] .wd-py {
+  font-size: 14px;
+}
+
+.world-shell[data-textsize='l'] .wd-you,
+.world-shell[data-textsize='l'] .wc-out {
+  font-size: 16px;
+}
+
+.world-shell[data-textsize='s'] .wd-you {
+  font-size: 16px;
+}
+
+/* --- the on-screen joystick (optional): bottom right, A beside it */
+.wj {
+  position: absolute;
+  right: calc(env(safe-area-inset-right, 0px) + 16px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  z-index: 4;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.wj-pad {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(248, 245, 236, 0.5);
+  border-radius: 50%;
+  background: rgba(34, 32, 46, 0.35);
+  touch-action: none;
+}
+
+.wj-knob {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(248, 245, 236, 0.85);
+  pointer-events: none;
+}
+
+.wj-a {
+  width: 56px;
+  height: 56px;
+  border: 2px solid rgba(248, 245, 236, 0.7);
+  border-radius: 50%;
+  background: rgba(34, 32, 46, 0.6);
+  color: #f8f5ec;
+  font: inherit;
+  font-weight: 600;
+  font-size: 18px;
+  cursor: pointer;
+}

@@ -9,7 +9,7 @@ import { activeQuests } from '../core/quests';
 import { findRoute, routeText, station } from '../core/travel';
 import type { Idiom, Item, Quest, Scene, Spirit, Stamp, WorldSave } from '../core/types';
 
-export type PanelId = 'tasks' | 'bag' | 'map' | 'spirits' | 'idioms' | 'stamps';
+export type PanelId = 'tasks' | 'bag' | 'map' | 'spirits' | 'idioms' | 'stamps' | 'settings';
 
 export const PANELS: readonly { id: PanelId; label: string }[] = [
   { id: 'tasks', label: '📜 Tasks' },
@@ -18,6 +18,7 @@ export const PANELS: readonly { id: PanelId; label: string }[] = [
   { id: 'spirits', label: '图鉴' },
   { id: 'idioms', label: '成语' },
   { id: 'stamps', label: '印章' },
+  { id: 'settings', label: '⚙' },
 ];
 
 export interface TaskRow {

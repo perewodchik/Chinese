@@ -4,19 +4,10 @@ import { canRecognise, listen, RECOGNITION_MESSAGE, type Listening } from '../..
 import { buildIme, type ImeIndex } from '../core/ime';
 import type { Hint, InputMode } from '../core/types';
 import { pinyinOf } from './pinyin';
-import { fieldCandidates, hintChips, pickCandidate, startMode } from './typing';
+import { deviceInput, fieldCandidates, hintChips, pickCandidate, rememberInput, startMode } from './typing';
 
-const DEVICE_KEY = 'zouzou:input';
 /** how long a heard line waits before it sends itself */
 const SEND_AFTER = 1500;
-
-const deviceMode = (): string | null => {
-  try {
-    return localStorage.getItem(DEVICE_KEY);
-  } catch {
-    return null;
-  }
-};
 
 let imeIndex: ImeIndex | null = null;
 
@@ -53,7 +44,7 @@ export function InputBar({
 }) {
   const lib = useLibrary();
   const listenable = canRecognise();
-  const [mode, setMode] = useState<InputMode>(() => startMode(deviceMode(), saved, listenable));
+  const [mode, setMode] = useState<InputMode>(() => startMode(deviceInput(), saved, listenable));
   const [text, setText] = useState('');
   const [voice, setVoice] = useState<Voice>({ phase: 'idle' });
   const field = useRef<HTMLInputElement>(null);
@@ -76,11 +67,7 @@ export function InputBar({
     if (m === 'voice' && !listenable) return;
     setMode(m);
     setSaved(m);
-    try {
-      localStorage.setItem(DEVICE_KEY, m);
-    } catch {
-      /* a private window: the save still remembers */
-    }
+    rememberInput(m);
     if (m === 'keyboard') window.setTimeout(() => field.current?.focus(), 0);
   };
 

@@ -3,7 +3,7 @@
  * it is only ever downloaded on /play/world.
  */
 
-import type { PartOfDay } from '../core/types';
+import type { Facing, PartOfDay } from '../core/types';
 import type { Arrival } from './doors';
 import type { SceneOptions, WorldScene as Scene } from './scene';
 
@@ -15,6 +15,10 @@ export interface RunningWorld {
   setPaused(paused: boolean): void;
   /** the part of the day changed on the game clock */
   setTime(time: PartOfDay): void;
+  /** the on-screen joystick: walk that way while held (null lets go) */
+  stick(f: Facing | null, run?: boolean): void;
+  /** the joystick's action button */
+  act(): void;
   /** a PNG data URL of the canvas, for review screenshots */
   snapshot(): Promise<string>;
 }
@@ -43,6 +47,8 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions, snapsh
     setPaused: (paused) => (paused ? game.loop.sleep() : game.loop.wake()),
     setTime: (time) => (game.scene.getScene('world') as Scene | null)?.setTime(time),
     travel: (to) => (game.scene.getScene('world') as Scene | null)?.travel(to),
+    stick: (f, run) => (game.scene.getScene('world') as Scene | null)?.setStick(f, run),
+    act: () => (game.scene.getScene('world') as Scene | null)?.act(),
     snapshot: () =>
       new Promise((resolve) => {
         game.renderer.snapshot((img) => resolve((img as HTMLImageElement).src));

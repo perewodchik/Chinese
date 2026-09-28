@@ -60,3 +60,23 @@ export function startMode(device: string | null, saved: InputMode, canListen: bo
   const want: InputMode = device === 'voice' || device === 'keyboard' ? device : saved;
   return want === 'voice' && !canListen ? 'keyboard' : want;
 }
+
+const DEVICE_KEY = 'zouzou:input';
+
+/** This device's own input mode, if it has chosen one. */
+export function deviceInput(): string | null {
+  try {
+    return localStorage.getItem(DEVICE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Remember the mode on this device too (the save remembers it everywhere). */
+export function rememberInput(m: InputMode) {
+  try {
+    localStorage.setItem(DEVICE_KEY, m);
+  } catch {
+    /* a private window: the save still remembers */
+  }
+}
