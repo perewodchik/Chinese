@@ -42,7 +42,9 @@ export interface ItemScale {
   headH: number;
 }
 
-const SCALE: Record<LayoutId, ItemScale> = {
+// Test prints through its own block (recallBlock); anything asking for its
+// scale gets Drill's, the other compact layout.
+const SCALE: Record<Exclude<LayoutId, 'test'>, ItemScale> = {
   study: {
     box: 70,
     boxesMax: 250,
@@ -85,7 +87,7 @@ const SCALE: Record<LayoutId, ItemScale> = {
   },
 };
 
-export const itemScale = (layout: LayoutId): ItemScale => SCALE[layout];
+export const itemScale = (layout: LayoutId): ItemScale => SCALE[layout === 'test' ? 'drill' : layout];
 
 export interface ItemFrame {
   S: ItemScale;
@@ -99,7 +101,7 @@ export interface ItemFrame {
 
 /** Where a block's zones fall in a slot of this height. */
 export function itemFrame(layout: LayoutId, slot: number): ItemFrame {
-  const S = SCALE[layout];
+  const S = itemScale(layout);
   const rows = LAYOUTS[layout].rows;
   const grid = rows * CELL;
   const head = layout === 'study' ? S.headH : slot - S.gridGap - grid;
