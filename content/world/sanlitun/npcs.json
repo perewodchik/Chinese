@@ -1,0 +1,134 @@
+[
+  {
+    "id": "kuaidi-xiaoge",
+    "name": "快递小哥",
+    "role": "a parcel courier on an electric scooter",
+    "look": {
+      "sprite": "rider",
+      "palette": "blue"
+    },
+    "voice": "chen",
+    "character": "Fast-talking, hears every rumour in the district.",
+    "knows": [
+      "A friend says a golden beast in a 国贸 bank moves at night"
+    ],
+    "wants": [
+      "To finish his round"
+    ],
+    "actions": [
+      "flag"
+    ],
+    "routine": [],
+    "explains": {
+      "银行": "放钱、换钱的地方。",
+      "金色": "像太阳的颜色，很亮的黄色。"
+    },
+    "misses": [
+      "我很忙！再说一遍？"
+    ]
+  },
+  {
+    "id": "bailing",
+    "name": "上班的人",
+    "role": "an office worker on her coffee break",
+    "look": {
+      "sprite": "woman"
+    },
+    "voice": "xiaoyu",
+    "character": "Brisk, friendly, always holding a coffee.",
+    "knows": [
+      "瑞幸 is the cheapest good coffee"
+    ],
+    "wants": [
+      "Five more minutes"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "咖啡": "黑色的，可以喝，早上喝了不累。",
+      "半信半疑": "有一点信，有一点不信。"
+    },
+    "misses": [
+      "啊？"
+    ]
+  },
+  {
+    "id": "guomao-baoan",
+    "name": "保安",
+    "role": "a security guard on the plaza",
+    "look": {
+      "sprite": "uncle",
+      "palette": "brown"
+    },
+    "voice": "zhiyuan",
+    "character": "Kind behind the uniform.",
+    "knows": [
+      "The bank's golden beast is a 貔貅, it brings wealth"
+    ],
+    "wants": [
+      "Nobody to run on the plaza"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "七上八下": "心里很不安，有一点怕。",
+      "貔貅": "金色的神兽，喜欢钱。"
+    },
+    "misses": [
+      "您说什么？"
+    ]
+  },
+  {
+    "id": "yinhang-jingli",
+    "name": "银行经理",
+    "role": "the bank manager",
+    "look": {
+      "sprite": "woman",
+      "palette": "black"
+    },
+    "voice": "wang",
+    "character": "Polished, proud of her bank's 貔貅.",
+    "knows": [
+      "The 貔貅 eats gold and never lets it out — that is why banks keep one"
+    ],
+    "wants": [
+      "Customers"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "貔貅": "金色的神兽，只吃不拉，所以钱不会走。"
+    },
+    "misses": [
+      "不好意思，请再说一遍。"
+    ]
+  },
+  {
+    "id": "bianlidian-yuan",
+    "name": "便利店店员",
+    "role": "the clerk at the 24-hour store",
+    "look": {
+      "sprite": "kid",
+      "palette": "blue"
+    },
+    "voice": "xiaoyu",
+    "character": "Sleepy, friendly.",
+    "knows": [
+      "The chocolate coins in gold paper are by the till"
+    ],
+    "wants": [
+      "The end of his shift"
+    ],
+    "actions": [
+      "give",
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "巧克力": "很甜的，黑色的，小孩子喜欢。"
+    },
+    "misses": [
+      "啊？你要什么？"
+    ]
+  }
+]

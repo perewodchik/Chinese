@@ -1,0 +1,142 @@
+[
+ {
+  "kind": "prop",
+  "id": "nest",
+  "tile": [
+   3,
+   13
+  ],
+  "frame": "birds-nest/stadium",
+  "blocks": [
+   6,
+   3
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "nest-name",
+  "tile": [
+   8,
+   14
+  ],
+  "text": "鸟巢",
+  "en": "The Bird’s Nest — the National Stadium"
+ },
+ {
+  "kind": "prop",
+  "id": "cube",
+  "tile": [
+   28,
+   12
+  ],
+  "frame": "water-cube/blue",
+  "blocks": [
+   4,
+   3
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "cube-name",
+  "tile": [
+   31,
+   13
+  ],
+  "text": "水立方",
+  "en": "The Water Cube"
+ },
+ {
+  "kind": "door",
+  "id": "station",
+  "tile": [
+   44,
+   19
+  ],
+  "to": {
+   "map": "station-aolinpikegongyuan",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station-2",
+  "tile": [
+   45,
+   19
+  ],
+  "to": {
+   "map": "station-aolinpikegongyuan",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "metro-sign",
+  "tile": [
+   43,
+   19
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   6,
+   23
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   20,
+   24
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-3",
+  "tile": [
+   36,
+   23
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "runner",
+  "npc": "paobu-dashu",
+  "tile": [
+   22,
+   17
+  ],
+  "facing": "left"
+ }
+]

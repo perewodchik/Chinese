@@ -57,7 +57,10 @@
   "K": "bookshelf",
   "m": "mask-wall",
   "u": "curtain",
-  "q": "echo-wall"
+  "q": "echo-wall",
+  "G": "glass",
+  "Z": "glass-shop",
+  "Q": "glass-door"
  },
  "above": {
   "x": "roof-grey",
@@ -69,6 +72,7 @@
  "walkable": [
   "door-bottom",
   "steps",
-  "marble"
+  "marble",
+  "glass-door"
  ]
 }

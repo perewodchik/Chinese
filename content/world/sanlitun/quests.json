@@ -1,0 +1,57 @@
+[
+  {
+    "id": "ch5",
+    "title": "New Beijing",
+    "chapter": 5,
+    "steps": [
+      {
+        "id": "go",
+        "now": "兔儿爷: a spirit that loves gold would go where the money is. Start at 三里屯 — line 10 to 团结湖.",
+        "done": {
+          "scene": "sanlitun-arrive"
+        }
+      },
+      {
+        "id": "rumour",
+        "now": "Ask around 三里屯 — the parcel courier hears everything.",
+        "done": {
+          "flag": "heard-pixiu"
+        }
+      },
+      {
+        "id": "guomao",
+        "now": "Ride line 10 south to 国贸 and go into the bank on the plaza.",
+        "done": {
+          "flag": "saw-pixiu"
+        }
+      },
+      {
+        "id": "gold",
+        "now": "The 貔貅 loves golden things. The convenience store 便利店 next to the bank sells chocolate coins in gold paper.",
+        "done": {
+          "item": "jinbi"
+        }
+      },
+      {
+        "id": "pixiu",
+        "now": "Give the golden coins to the 貔貅 in the bank's hall.",
+        "done": {
+          "spirit": "pixiu"
+        }
+      },
+      {
+        "id": "olympic",
+        "now": "兔儿爷 wants to see the Bird's Nest: line 8 north to 奥林匹克公园.",
+        "done": {
+          "scene": "olympic-arrive"
+        }
+      }
+    ],
+    "reward": [
+      {
+        "do": "chapter",
+        "chapter": 6
+      }
+    ]
+  }
+]

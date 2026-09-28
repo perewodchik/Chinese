@@ -1,0 +1,38 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   5,
+   7
+  ],
+  "to": {
+   "map": "guomao-plaza",
+   "tile": [
+    28,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "shelf",
+  "tile": [
+   3,
+   1
+  ],
+  "text": "巧克力  饮料  面包",
+  "en": "Chocolate · drinks · bread"
+ },
+ {
+  "kind": "npc",
+  "id": "clerk",
+  "npc": "bianlidian-yuan",
+  "tile": [
+   7,
+   3
+  ],
+  "facing": "down"
+ }
+]

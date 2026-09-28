@@ -1,0 +1,104 @@
+[
+ {
+  "kind": "door",
+  "id": "exit",
+  "tile": [
+   3,
+   2
+  ],
+  "to": {
+   "map": "guomao-plaza",
+   "tile": [
+    44,
+    15
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "machine-1",
+  "tile": [
+   6,
+   4
+  ],
+  "frame": "ticket-machine/blue",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   12,
+   1
+  ],
+  "text": "国贸",
+  "en": "Guomao"
+ },
+ {
+  "kind": "sign",
+  "id": "lines",
+  "tile": [
+   18,
+   1
+  ],
+  "text": "1号线  10号线",
+  "en": "The lines here"
+ },
+ {
+  "kind": "sign",
+  "id": "exit-sign",
+  "tile": [
+   4,
+   1
+  ],
+  "text": "出口",
+  "en": "Way out"
+ },
+ {
+  "kind": "sign",
+  "id": "gates-in",
+  "tile": [
+   11,
+   7
+  ],
+  "text": "进站",
+  "en": "Way in: tap your card"
+ },
+ {
+  "kind": "sign",
+  "id": "gates-out",
+  "tile": [
+   13,
+   7
+  ],
+  "text": "出站",
+  "en": "Way out"
+ },
+ {
+  "kind": "prop",
+  "id": "board-post",
+  "tile": [
+   8,
+   10
+  ],
+  "frame": "street-sign/blue",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "board",
+  "tile": [
+   8,
+   10
+  ],
+  "text": "1号线  10号线",
+  "en": "The trains"
+ }
+]

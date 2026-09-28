@@ -487,6 +487,37 @@ export function echoWall(): Grid {
   return g;
 }
 
+
+// ---------------------------------------------------------------- H4: new Beijing
+
+/** An office tower's glass wall: blue panes in a steel grid, a sky reflection. */
+export function glass(): Grid {
+  const g = tile('B');
+  for (let y = 0; y < T; y += 4) g.hline(0, y, T, 'c');
+  for (let x = 0; x < T; x += 4) g.vline(x, 0, T, 'c');
+  for (let y = 1; y < T; y += 4) for (let x = 1; x < T; x += 4) g.rect(x, y, 3, 3, (x + y) % 3 ? 'n' : 'l');
+  g.set(2, 2, 'w').set(10, 6, 'X');
+  return g;
+}
+
+/** A glass shopfront at street level, lit from inside. */
+export function glassShop(): Grid {
+  const g = tile('e');
+  g.rect(1, 1, 14, 14, 'l').vline(8, 1, 14, 'e').hline(1, 1, 14, 'w');
+  g.set(3, 4, 'w').set(4, 5, 'w');
+  g.hline(0, 15, T, 'c');
+  return g;
+}
+
+/** A glass door into a modern shop (walkable), a steel frame and handle. */
+export function glassDoor(): Grid {
+  const g = tile('c');
+  g.rect(2, 1, 12, 15, 'l').vline(8, 1, 15, 'c').hline(2, 1, 12, 'w');
+  g.vline(6, 7, 3, 'a').vline(10, 7, 3, 'a');
+  g.hline(0, 15, T, 'b');
+  return g;
+}
+
 export const TILES: Array<[string, () => Grid]> = [
   ['paving', () => paving(1)],
   ['paving-2', () => paving(9)],
@@ -543,4 +574,7 @@ export const TILES: Array<[string, () => Grid]> = [
   ['mask-wall', maskWall],
   ['curtain', curtain],
   ['echo-wall', echoWall],
+  ['glass', glass],
+  ['glass-shop', glassShop],
+  ['glass-door', glassDoor],
 ];

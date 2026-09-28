@@ -1,0 +1,27 @@
+id: guomao-bank
+size: 14x9
+tilesets: tiles
+district: sanlitun
+
+# The bank's hall at 国贸: marble, counters either side, a golden 貔貅 on a red pedestal in the middle
+
+[ground]
+tttttttttttttt
+tttttttttttttt
+tttttttttttttt
+tttttttttttttt
+tttttttttttttt
+tttttttttttttt
+tttttttttttttt
+tttttttttttttt
+tttttttetttttt
+[below]
+kkkkkkkkkkkkkk
+kooovoooooovok
+kOOOOOOOOOOOOk
+k............k
+kCCCC....CCCCk
+k............k
+k............k
+k............k
+kkkkkkk.kkkkkk

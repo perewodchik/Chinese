@@ -1,0 +1,32 @@
+{
+  "id": "sanlitun",
+  "name": "三里屯 · 国贸",
+  "en": "Sanlitun · Guomao",
+  "chapter": 5,
+  "maps": [
+    "sanlitun-street",
+    "guomao-plaza",
+    "guomao-bank",
+    "bianlidian",
+    "station-tuanjiehu",
+    "station-guomao"
+  ],
+  "stations": [
+    "tuanjiehu",
+    "guomao",
+    "dongdaqiao"
+  ],
+  "names": [
+    "三里屯",
+    "太古里",
+    "国贸",
+    "貔貅",
+    "瑞幸",
+    "蜜雪冰城",
+    "海底捞",
+    "鸟巢",
+    "北京",
+    "兔儿爷"
+  ],
+  "ambience": "city"
+}

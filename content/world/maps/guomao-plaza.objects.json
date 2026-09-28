@@ -1,0 +1,145 @@
+[
+ {
+  "kind": "door",
+  "id": "bank",
+  "tile": [
+   10,
+   4
+  ],
+  "to": {
+   "map": "guomao-bank",
+   "tile": [
+    7,
+    7
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "s-bank",
+  "tile": [
+   9,
+   3
+  ],
+  "text": "银行",
+  "en": "Bank"
+ },
+ {
+  "kind": "door",
+  "id": "store",
+  "tile": [
+   28,
+   4
+  ],
+  "to": {
+   "map": "bianlidian",
+   "tile": [
+    5,
+    6
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "s-store",
+  "tile": [
+   27,
+   3
+  ],
+  "text": "便利店",
+  "en": "Convenience store"
+ },
+ {
+  "kind": "sign",
+  "id": "place",
+  "tile": [
+   2,
+   3
+  ],
+  "text": "国贸",
+  "en": "China World Trade Center"
+ },
+ {
+  "kind": "door",
+  "id": "station",
+  "tile": [
+   44,
+   15
+  ],
+  "to": {
+   "map": "station-guomao",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station-2",
+  "tile": [
+   45,
+   15
+  ],
+  "to": {
+   "map": "station-guomao",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "metro-sign",
+  "tile": [
+   43,
+   15
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   18,
+   15
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   34,
+   15
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "guard",
+  "npc": "guomao-baoan",
+  "tile": [
+   12,
+   6
+  ],
+  "facing": "down"
+ }
+]

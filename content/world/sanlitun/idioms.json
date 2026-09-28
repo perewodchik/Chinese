@@ -1,0 +1,42 @@
+[
+  {
+    "id": "半信半疑",
+    "pinyin": "bànxìn-bànyí",
+    "parts": [
+      {
+        "c": "半信",
+        "gloss": "half believe"
+      },
+      {
+        "c": "半疑",
+        "gloss": "half doubt"
+      }
+    ],
+    "meaning": "half believing, half doubting",
+    "story": {
+      "zh": "一个人跟你说一件事，你有一点信，也有一点不信，就是半信半疑。",
+      "en": "When someone tells you something and you half believe it and half don't — that is 半信半疑."
+    },
+    "tier": "basic"
+  },
+  {
+    "id": "七上八下",
+    "pinyin": "qīshàng-bāxià",
+    "parts": [
+      {
+        "c": "七上",
+        "gloss": "seven up"
+      },
+      {
+        "c": "八下",
+        "gloss": "eight down"
+      }
+    ],
+    "meaning": "on tenterhooks; your heart going up and down with nerves",
+    "story": {
+      "zh": "心里好像有十五个水桶，七个上去，八个下来，很不安。",
+      "en": "As if fifteen buckets were in your heart, seven going up and eight coming down — you can't settle."
+    },
+    "tier": "basic"
+  }
+]

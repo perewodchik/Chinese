@@ -64,6 +64,9 @@ function Host({ game }: { game: GameManifest }) {
   const navigate = useNavigate();
   const [query, setQuery] = useQuery();
   const band = Number(oneOf(query.get('band'), ['1', '2'], String(game.bands[0]))) as Band;
+  // Opened from a shop door in 走走: leaving goes back to the same spot in Beijing.
+  const fromWorld = query.get('back') === 'world';
+  const home = fromWorld ? paths.world() : paths.play(band);
   const seed = query.get('seed');
 
   // A round without a seed gets one, written into the address so a reload replays it.
@@ -122,13 +125,13 @@ function Host({ game }: { game: GameManifest }) {
   }, [over, results, game.id]);
 
   const can = useMemo(() => (ctx ? game.available(ctx) : null), [ctx, game]);
-  const again = () => navigate(paths.game(game.id, band, newSeed()), { replace: true });
-  const leave = useCallback(() => navigate(paths.play(band)), [navigate, band]);
+  const again = () => navigate(paths.game(game.id, band, newSeed()) + (fromWorld ? '&back=world' : ''), { replace: true });
+  const leave = useCallback(() => navigate(home), [navigate, home]);
 
   return (
     <div className="game-page" data-game={game.id}>
       <header className="game-head">
-        <Link className="btn ghost sm" to={paths.play(band)} aria-label="Leave the game">
+        <Link className="btn ghost sm" to={home} aria-label="Leave the game">
           ✕
         </Link>
         <span className="game-name">
@@ -149,7 +152,7 @@ function Host({ game }: { game: GameManifest }) {
           {can.reason}
         </div>
       ) : over ? (
-        <Results game={game} results={results} onAgain={again} band={band} seconds={took} before={before.current} />
+        <Results game={game} results={results} onAgain={again} band={band} seconds={took} before={before.current} home={fromWorld ? home : undefined} />
       ) : (
         <Suspense fallback={<div className="game-stage game-wait" aria-hidden />}>
           <div className="game-stage">
@@ -165,6 +168,7 @@ function Results({
   game,
   results,
   onAgain,
+  home,
   band,
   seconds,
   before,
@@ -172,6 +176,8 @@ function Results({
   game: GameManifest;
   results: RoundResult[];
   onAgain: () => void;
+  /** set when the game was opened from 走走: the way back to Beijing */
+  home?: string;
   band: Band;
   seconds: number;
   /** the record before this round, if the game had been played */
@@ -236,8 +242,8 @@ function Results({
         <button type="button" className="btn primary" onClick={onAgain} autoFocus>
           Play again
         </button>
-        <Link className="btn" to={paths.play(band)}>
-          Another game
+        <Link className="btn" to={home ?? paths.play(band)}>
+          {home ? 'Back to Beijing' : 'Another game'}
         </Link>
       </div>
 

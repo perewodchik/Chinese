@@ -1,0 +1,33 @@
+[
+  {
+    "id": "olympic-arrive",
+    "map": "olympic-park",
+    "trigger": "auto",
+    "once": true,
+    "stamp": "niaochao",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "这是鸟巢！",
+        "translate": "This is the Bird's Nest!",
+        "speaker": "hero",
+        "why": "鸟巢 — the National Stadium, built for the 2008 Olympics, its steel woven like a nest. The blue box is the Water Cube 水立方."
+      }
+    ]
+  },
+  {
+    "id": "runner",
+    "map": "olympic-park",
+    "npc": "paobu-dashu",
+    "trigger": "talk",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你也跑步吗？",
+        "translate": "Out for a run too?"
+      }
+    ]
+  }
+]

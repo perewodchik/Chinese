@@ -58,6 +58,9 @@
   "beijing/bookshelf",
   "beijing/mask-wall",
   "beijing/curtain",
-  "beijing/echo-wall"
+  "beijing/echo-wall",
+  "beijing/glass",
+  "beijing/glass-shop",
+  "beijing/glass-door"
  ]
 }

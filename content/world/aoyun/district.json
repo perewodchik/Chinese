@@ -1,0 +1,21 @@
+{
+  "id": "aoyun",
+  "name": "奥林匹克公园",
+  "en": "Olympic Park",
+  "chapter": 5,
+  "maps": [
+    "olympic-park",
+    "station-aolinpikegongyuan"
+  ],
+  "stations": [
+    "aolinpikegongyuan"
+  ],
+  "names": [
+    "奥林匹克公园",
+    "鸟巢",
+    "水立方",
+    "北京",
+    "兔儿爷"
+  ],
+  "ambience": "park"
+}

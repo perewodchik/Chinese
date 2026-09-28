@@ -560,6 +560,57 @@ export function archway(): Grid {
   return g.stamp(f, 0, 0);
 }
 
+
+// ---------------------------------------------------------------- H4: 鸟巢, 水立方, 貔貅
+
+/** 鸟巢, the National Stadium, 96×48: a grey steel lattice bowl with a red glow inside. */
+export function birdsNest(): Grid {
+  const g = new Grid(96, 48);
+  g.oval(2, 40, 94, 8, '_');
+  const f = new Grid(96, 48);
+  f.oval(2, 4, 92, 42, 'c');
+  f.oval(10, 8, 76, 20, 'R').oval(14, 10, 68, 14, 'r');
+  // the woven steel: crossing strands
+  for (let i = -48; i < 96; i += 6) {
+    for (let t = 0; t < 48; t++) {
+      const x1 = i + t;
+      const x2 = i + 48 - t;
+      if (f.get(x1, t) !== '.' && f.get(x1, t) !== 'r' && f.get(x1, t) !== 'R') f.set(x1, t, 'd');
+      if (f.get(x2, t) !== '.' && f.get(x2, t) !== 'r' && f.get(x2, t) !== 'R') f.set(x2, t, 'b');
+    }
+  }
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** 水立方, the Water Cube, 64×40: a blue box of bubbles. */
+export function waterCube(): Grid {
+  const g = new Grid(64, 40);
+  g.oval(2, 34, 62, 6, '_');
+  const f = new Grid(64, 40);
+  f.rect(2, 4, 60, 32, 'n').rect(2, 4, 60, 3, 'l');
+  const bubbles: Array<[number, number, number]> = [[6, 10, 6], [16, 8, 8], [28, 12, 5], [38, 9, 7], [50, 11, 6], [9, 22, 7], [21, 20, 6], [33, 24, 8], [46, 21, 7], [56, 26, 4], [14, 30, 4], [40, 31, 3]];
+  for (const [x, y, r] of bubbles) f.oval(x, y, r, r, 'X').set(x + 1, y + 1, 'w');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** 貔貅, the golden beast that keeps wealth, on a pedestal, 16×32. */
+export function pixiu(): Grid {
+  const g = new Grid(16, 32);
+  g.oval(1, 28, 15, 4, '_');
+  const f = new Grid(16, 32);
+  f.rect(1, 24, 14, 6, 'q').hline(1, 24, 14, 'R');
+  f.rect(3, 15, 10, 9, 'y').vline(3, 15, 9, 'j').vline(12, 15, 9, 'Y');
+  f.rect(3, 20, 2, 4, 'Y').rect(10, 20, 2, 4, 'Y');
+  f.oval(2, 6, 12, 10, 'y').oval(3, 7, 6, 5, 'j');
+  f.set(5, 3, 'Y').set(6, 4, 'Y').set(10, 3, 'Y').set(9, 4, 'Y');
+  f.set(5, 10, 'k').set(10, 10, 'k').hline(5, 13, 6, 'o').set(7, 14, 'r');
+  f.set(13, 16, 'Y').set(14, 15, 'Y').set(15, 14, 'j');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -588,6 +639,9 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['qiniandian', 'the Hall of Prayer for Good Harvests at 天坛', () => [['hall', qiniandian()]]],
   ['qilin', 'a bronze 麒麟, asleep and awake', () => [['bronze', qilin(false)], ['awake', qilin(true)]]],
   ['archway', 'a 牌楼 memorial archway', () => [['green', archway()]]],
+  ['birds-nest', 'the National Stadium 鸟巢', () => [['stadium', birdsNest()]]],
+  ['water-cube', 'the Water Cube 水立方', () => [['blue', waterCube()]]],
+  ['pixiu', 'a golden 貔貅', () => [['gold', pixiu()]]],
   ['door-gods', 'an old gate with its door gods, faded and restored', () => [['faded', doorGods(true)], ['bright', doorGods(false)]]],
   ['pigeon', 'a pigeon of the hutongs', () => [['peck', pigeon('peck')], ['look', pigeon('look')], ['fly-0', pigeon('fly-0')], ['fly-1', pigeon('fly-1')]]],
 ];

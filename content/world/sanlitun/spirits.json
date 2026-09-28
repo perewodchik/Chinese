@@ -1,0 +1,19 @@
+[
+  {
+    "id": "pixiu",
+    "hanzi": "貔貅",
+    "pinyin": "píxiū",
+    "en": "the pixiu, the beast that keeps wealth",
+    "source": "folk",
+    "legend": {
+      "zh": "貔貅是金色的神兽。它很喜欢吃金子。人们说，它只吃，不拉，所以家里的钱不会走。很多银行和商店都有一个貔貅。",
+      "en": "The pixiu is a golden beast that loves to eat gold. People say it only eats and never lets anything out, so wealth stays in the house — many banks and shops keep one."
+    },
+    "befriend": {
+      "kind": "request",
+      "text": "我喜欢金色的东西。你有吗？",
+      "en": "Bring it something golden."
+    },
+    "district": "sanlitun"
+  }
+]

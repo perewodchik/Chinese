@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { partOfDay } from '../../world/core/clock';
 import { libraryLexicon } from '../../world/core/dialogue/lexicon';
@@ -30,6 +31,7 @@ import { useLibrary } from '../shared/library';
 import { useWorldSave } from '../../world/ui/useWorldSave';
 import { useUser } from '../auth/session';
 import { oneOf, useQuery } from '../../navigation/query';
+import { paths } from '../../navigation/paths';
 import { useTitle } from '../../ui/useTitle';
 
 const TIMES: PartOfDay[] = ['morning', 'day', 'evening', 'night'];
@@ -56,8 +58,14 @@ export function WorldPage() {
   const lex = useMemo(() => libraryLexicon(lib), [lib]);
   // What a conversation does beyond the save: a teleport waits for the talk to end.
   const pendingTravel = useRef<{ map: string; tile: Tile; facing: Facing } | null>(null);
+  /** a shop door's 点单 game, opened when the talk is over */
+  const pendingGame = useRef<string | null>(null);
+  const navigate = useNavigate();
   const talkDispatch = (actions: readonly SaveAction[]) => {
-    for (const a of actions) if (a.do === 'teleport') pendingTravel.current = { map: a.map, tile: a.tile, facing: a.facing ?? 'down' };
+    for (const a of actions) {
+      if (a.do === 'teleport') pendingTravel.current = { map: a.map, tile: a.tile, facing: a.facing ?? 'down' };
+      if (a.do === 'game') pendingGame.current = a.game;
+    }
     return game.dispatch(actions);
   };
   const talk = useTalk(content, lex, talkDispatch);
@@ -331,6 +339,13 @@ export function WorldPage() {
   }, [riding]);
 
   // A teleport said in a conversation happens when it is over.
+  useEffect(() => {
+    if (talk.view || !pendingGame.current) return;
+    const id = pendingGame.current;
+    pendingGame.current = null;
+    // the save already holds this spot (and is sent as the page closes); the game's way out comes back to it
+    navigate(`${paths.game(id)}${paths.game(id).includes('?') ? '&' : '?'}back=world`);
+  }, [talk.view, navigate]);
   useEffect(() => {
     if (talk.view || !pendingTravel.current) return;
     world.current?.travel(pendingTravel.current);

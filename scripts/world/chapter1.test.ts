@@ -281,3 +281,33 @@ describe('chapter 4, played through the core', () => {
     assert.equal(s.chapter, 5);
   });
 });
+
+describe('chapter 5, played through the core', () => {
+  it('三里屯 → the courier → 国贸 bank → gold coins → 貔貅 → the Bird\'s Nest', () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 5 }, { do: 'quest', quest: 'ch5', step: 'go' }, { do: 'money', amount: 100 }]);
+    const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'ch5')?.step.id;
+    s = play(s, 'sanlitun-arrive').save;
+    s = play(s, 'courier').save;
+    assert.ok('半信半疑' in s.idioms);
+    assert.equal(at(), 'guomao');
+    s = play(s, 'guard').save;
+    assert.ok('七上八下' in s.idioms);
+    assert.equal(sceneFor(scenes, s, { look: 'pixiu', map: 'guomao-bank' })?.id, 'pixiu-ask');
+    s = play(s, 'pixiu-ask').save;
+    assert.equal(at(), 'gold');
+    s = play(s, 'store').save;
+    assert.equal(sceneFor(scenes, s, { look: 'pixiu', map: 'guomao-bank' })?.id, 'pixiu-give');
+    s = play(s, 'pixiu-give').save;
+    assert.ok('pixiu' in s.spirits);
+    assert.equal(at(), 'olympic');
+    s = play(s, 'olympic-arrive').save;
+    assert.equal(s.quests.ch5?.done, true);
+    assert.equal(s.chapter, 6);
+  });
+
+  it('a shop door opens its 点单 game', () => {
+    const scene = scenes.find((x) => x.id === 'door-order-luckin')!;
+    const t = src.reply(src.start(scene, newSave('d', 0)).state, { text: '好，我去。', via: 'keyboard' });
+    assert.ok(t.actions.some((a) => a.do === 'game' && a.game === 'order-luckin'));
+  });
+});

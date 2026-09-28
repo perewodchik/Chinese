@@ -1,0 +1,77 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   7,
+   8
+  ],
+  "to": {
+   "map": "guomao-plaza",
+   "tile": [
+    10,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "pixiu",
+  "tile": [
+   7,
+   4
+  ],
+  "frame": "pixiu/gold",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant-1",
+  "tile": [
+   1,
+   7
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant-2",
+  "tile": [
+   12,
+   7
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "rate",
+  "tile": [
+   3,
+   1
+  ],
+  "text": "欢迎光临",
+  "en": "Welcome"
+ },
+ {
+  "kind": "npc",
+  "id": "manager",
+  "npc": "yinhang-jingli",
+  "tile": [
+   11,
+   3
+  ],
+  "facing": "down"
+ }
+]

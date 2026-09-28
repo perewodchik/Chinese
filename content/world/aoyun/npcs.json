@@ -1,0 +1,26 @@
+[
+  {
+    "id": "paobu-dashu",
+    "name": "跑步的大叔",
+    "role": "a man jogging round the park",
+    "look": {
+      "sprite": "uncle"
+    },
+    "voice": "chen",
+    "character": "Out of breath and cheerful.",
+    "knows": [
+      "The Bird's Nest was built for the 2008 Olympics"
+    ],
+    "wants": [
+      "To beat his time"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "鸟巢": "很大的体育场，样子像鸟的家。"
+    },
+    "misses": [
+      "呼……你说什么？"
+    ]
+  }
+]

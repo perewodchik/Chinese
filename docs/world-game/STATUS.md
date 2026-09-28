@@ -10,7 +10,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** проверка в браузере и в WebKit (F5, нужен человек), дальше по списку — G (звук), H (остальной Пекин), I, X.
 
 ## Current task
-G2 (clips still rendering) → H4
+G2 (clips still rendering) → H5
 
 ## Tasks
 ### A — core logic
@@ -69,7 +69,7 @@ G2 (clips still rendering) → H4
 - [x] H1 Ch. 2 后海 · 景山 · 北海
 - [x] H2 Ch. 3 王府井 · 前门
 - [x] H3 Ch. 4 天坛 · 雍和宫 · 国子监
-- [ ] H4 Ch. 5 三里屯 · 国贸 · 奥林匹克公园 (+ 点单 doors)
+- [x] H4 Ch. 5 三里屯 · 国贸 · 奥林匹克公园 (+ 点单 doors)
 - [ ] H5 Ch. 6 颐和园 · 潘家园
 - [ ] H6 Ch. 7 故宫
 - [ ] H7 Epilogue 长城
@@ -162,6 +162,7 @@ _(date — decision — why)_
 - 2026-09-29 — H1: chapter 2 (quest `ch2`, started by ch. 1's reward). Maps: `houhai-lake` (lane of teahouses/bars over the lake, willows, boats, 银锭桥 south), `station-shichahai`, `beihai-north` (the White Dagoba across the water), `station-beihaibei`, `jingshan-park` (the hill with a winding path and a bench), `jingshan-view` (the panorama: golden palace roofs to the south, from the pavilion), `jiaolou` (moat, red wall, corner tower; the fox only at night). 鼓楼 square now opens west to 后海 (烟袋斜街, as in the real city). Story: the fisherman saw a white fox with nine tails (📌), the old man singing on 景山 saw it 「在故宫西北角附近」 (📌; 西北/角/附近 explained by the 太极 auntie — the draft 城墙的西北角 had one hard word too many for §5), wait on the bench till dark, at the corner tower the fox brags that even tigers fear it → 兔儿爷: 「它这是狐假虎威。」 (📌 成语), befriend by saying its name 九尾狐. Spirit 九尾狐 (山海经), 成语 狐假虎威 (story tier), stamps 后海, 白塔 (landmark), 景山 (landmark), 九尾狐. New art: willow, boat, pavilion, corner tower, white dagoba, the fox (a bit blob-like — worth a redraw). Played through the core in `scripts/world/chapter1.test.ts`. Renders: `review/h1/`.
 - 2026-09-29 — H2: chapter 3 (quest `ch3`, started by ch. 2's reward). Maps: `wangfujing-street` (新华书店, 药店, 银行, 百货大楼; a crowd of 12), `station-wangfujing`, `shudian`, `yaodian`, `yinhang`; `qianmen-street` (the 前门 arrow tower — a third `tower` frame —, roast duck with a queue round the corner, the opera house 戏园, the old gate of 大栅栏 with faded/bright door gods), `station-qianmen`, `xiyuan` (stage with curtain and masks). Story: 「王府井今天人山人海！」 on arrival (📌 成语), change 100 美元 at the bank (situation words 换钱 护照 美元 签字; +700 元), buy 《成语故事》 at the bookshop (flag `idiom-book`, the 成语 book's note goes away), the opera actor explains 脸谱 (红脸 good, 白脸 bad) and the faded door gods, buy 红纸, give it to the 门神 (befriend by request) — and when you offer to paint more: 「别画了！再画是画蛇添足。」 (📌 成语). Side quest `wang-cold`: 王阿姨 has a cold; tell the pharmacist the symptoms (感冒 发烧 一天三次 饭后 药), bring her the medicine. You now start with 护照 in the bag. New art: bookshelf, mask wall, stage curtain tiles; door gods (faded/bright); the arrow tower. Renders: `review/h2/`.
 - 2026-09-29 — H3: chapter 4 (quest `ch4`). Maps: `tiantan-park` (祈年殿 on its terraces at the end of a marble way — new 64×80 prop), `huiyinbi` (the round Echo Wall — new tile — with the vault in the middle), `station-tiantandongmen`, `yonghegong-street` (国子监街: a 牌楼 archway — new prop —, incense, the Academy's gate, 雍和宫's locked gate), `guozijian` (courtyard, the scholars' stones, a bronze 麒麟 that glows after dark), `station-yonghegong`. **New line type `listen: true`:** the Echo Wall's whisper shows 👂 and hides its words until you tap Show (🔁 replays; free), so it is really heard first. Story: the old 胡琴 player's friends never listen — 「我是对牛弹琴！」 (📌 成语); a boy whispers through the Echo Wall 「麒麟……在……国子监……」 and 兔儿爷 asks what you heard; at 国子监 the old scholar tells a boastful student 「你是井底之蛙！」 (📌 成语); after 17:00 the 麒麟 asks 人 + 木 = 休 (灯谜). Stamps 天坛 (landmark), 回音壁, 国子监 (landmark), 麒麟. The Lama Temple itself stays closed ("the monks are at prayer") — its inside is not built. Renders: `review/h3/`.
+- 2026-09-29 — H4: chapter 5 (quest `ch5`). Maps: `sanlitun-street` (glass towers and shops — new tiles glass, glass-shop, glass-door), `guomao-plaza`, `guomao-bank` (a golden 貔貅 on a red pedestal in the hall), `bianlidian`, `olympic-park` (鸟巢 96×48 and 水立方 — new props), stations 团结湖, 国贸, 奥林匹克公园. **点单 doors:** tapping the glass door of 瑞幸 / 蜜雪冰城 / 海底捞 asks 「点咖啡吗？」 etc.; yes → new page action: after the talk, `/play/<game>?back=world`. `GamePage` got a small change (only mine): with `back=world`, ✕, "leave" and the results' button (renamed "Back to Beijing") go to `/play/world`, and "Play again" keeps `back=world`; the world reopens where the save left you (in front of the shop). Story: the courier's friend saw 「银行里有一个金色的东西，会动」 — 「我半信半疑。」 (📌 成语); the guard: 「你七上八下吧？」 (📌 成语); the 貔貅 wants 「金色的东西」 → gold-paper chocolate coins from the 便利店 (befriend by request); then 兔儿爷 wants to see 鸟巢. Stamps 三里屯, 国贸, 貔貅, 鸟巢 (landmark). Renders: `review/h4/`.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

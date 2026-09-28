@@ -1,0 +1,23 @@
+[
+  {
+    "id": "sanlitun",
+    "name": "三里屯",
+    "en": "Sanlitun",
+    "place": "sanlitun-street",
+    "design": "sanlitun"
+  },
+  {
+    "id": "guomao",
+    "name": "国贸",
+    "en": "Guomao",
+    "place": "guomao-plaza",
+    "design": "guomao"
+  },
+  {
+    "id": "pixiu",
+    "name": "貔貅",
+    "en": "The golden beast's friend",
+    "place": "guomao-bank",
+    "design": "pixiu"
+  }
+]

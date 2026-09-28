@@ -1,0 +1,25 @@
+id: bianlidian
+size: 10x8
+tilesets: tiles
+district: sanlitun
+
+# A 24-hour convenience store
+
+[ground]
+tttttttttt
+tttttttttt
+tttttttttt
+tttttttttt
+tttttttttt
+tttttttttt
+tttttttttt
+tttttetttt
+[below]
+kkkkkkkkkk
+kssssssssk
+kOOOOOOOOk
+k........k
+k.....CCCk
+k........k
+k........k
+kkkkk.kkkk

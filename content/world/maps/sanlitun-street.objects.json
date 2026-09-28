@@ -1,0 +1,202 @@
+[
+ {
+  "kind": "sign",
+  "id": "luckin",
+  "tile": [
+   8,
+   3
+  ],
+  "text": "瑞幸咖啡",
+  "en": "luckin coffee"
+ },
+ {
+  "kind": "sign",
+  "id": "mixue",
+  "tile": [
+   20,
+   3
+  ],
+  "text": "蜜雪冰城",
+  "en": "Mixue ice cream & tea"
+ },
+ {
+  "kind": "sign",
+  "id": "haidilao",
+  "tile": [
+   32,
+   3
+  ],
+  "text": "海底捞",
+  "en": "Haidilao hot pot"
+ },
+ {
+  "kind": "sign",
+  "id": "place",
+  "tile": [
+   2,
+   3
+  ],
+  "text": "三里屯太古里",
+  "en": "Sanlitun Taikoo Li"
+ },
+ {
+  "kind": "sign",
+  "id": "door-luckin",
+  "tile": [
+   8,
+   4
+  ],
+  "text": "进去",
+  "en": "Go in"
+ },
+ {
+  "kind": "sign",
+  "id": "door-mixue",
+  "tile": [
+   20,
+   4
+  ],
+  "text": "进去",
+  "en": "Go in"
+ },
+ {
+  "kind": "sign",
+  "id": "door-haidilao",
+  "tile": [
+   32,
+   4
+  ],
+  "text": "进去",
+  "en": "Go in"
+ },
+ {
+  "kind": "door",
+  "id": "station",
+  "tile": [
+   44,
+   13
+  ],
+  "to": {
+   "map": "station-tuanjiehu",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station-2",
+  "tile": [
+   45,
+   13
+  ],
+  "to": {
+   "map": "station-tuanjiehu",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "metro-sign",
+  "tile": [
+   43,
+   13
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bikes-1",
+  "tile": [
+   38,
+   12
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bikes-2",
+  "tile": [
+   39,
+   12
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bikes-3",
+  "tile": [
+   40,
+   12
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant-1",
+  "tile": [
+   14,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant-2",
+  "tile": [
+   26,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "courier",
+  "npc": "kuaidi-xiaoge",
+  "tile": [
+   24,
+   9
+  ],
+  "facing": "left"
+ },
+ {
+  "kind": "npc",
+  "id": "office",
+  "npc": "bailing",
+  "tile": [
+   12,
+   11
+  ],
+  "facing": "right"
+ }
+]
