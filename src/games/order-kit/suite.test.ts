@@ -296,5 +296,25 @@ export function brandSuite(brand: Brand, rounds: number) {
       if (table) assert.ok(brand.table, 'a table');
       if (brand.table?.tea) groupOf(brand, brand.table.tea);
     });
+
+    // Eight lattes under one photo looked like a broken menu. Within a shop,
+    // every dish and the banner show a picture of their own — by key, and by
+    // the file behind the key, since two queries can find the same one.
+    // (The same dish in two shops, 可乐 or 拍黄瓜, may share one.)
+    it('shows every dish with a photo of its own', () => {
+      const shipped = JSON.parse(readFileSync(new URL('../../data/menuPictures.json', import.meta.url), 'utf8')) as {
+        pictures: Record<string, { src: string }>;
+      };
+      const byKey = new Map<string, string>();
+      const byFile = new Map<string, string>();
+      for (const [who, key] of [...brand.items.map((i) => [i.zh, i.photo]), ['banner', brand.banner.photo]]) {
+        assert.ok(!byKey.has(key), `${who} and ${byKey.get(key)} both show ${key}`);
+        byKey.set(key, who);
+        const file = shipped.pictures[key]?.src;
+        if (!file) continue;
+        assert.ok(!byFile.has(file), `${who} (${key}) shows the same photo as ${byFile.get(file)}`);
+        byFile.set(file, `${who} (${key})`);
+      }
+    });
   });
 }

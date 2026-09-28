@@ -213,6 +213,12 @@ def fetch(q, lead=None, refresh=False, name=None):
     if os.path.exists(meta_path) and not refresh:
         return "cached"
     os.makedirs(d, exist_ok=True)
+    # A refresh is a new search: the old pictures go — the thumbnails and the
+    # larger copies build.py kept (ship-N.jpg) — or N.jpg would stay the old
+    # search's picture under the new one's name and credit.
+    for f in os.listdir(d):
+        if re.fullmatch(r"(ship-)?\d+\.(jpg|png)", f):
+            os.remove(os.path.join(d, f))
 
     cands, seen = [], set()
     for page in [lead] if lead else []:
