@@ -1,14 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import type { Library } from '../../data/types';
-import { itemForToken } from '../../domain/words';
-import { useLibrary } from '../../features/shared/library';
-import { useOpenItem } from '../../navigation/itemDrawer';
 import { say } from '../../platform/audio/voiceOut';
 import type { Line } from '../core/dialogue/source';
 import type { NpcCard } from '../core/types';
 import { Portrait } from './Portrait';
-import { readLine } from './pinyin';
 import type { Said, TalkView } from './useTalk';
+import { ZhText } from './ZhText';
 
 /** People on the prototype maps have no cards yet: a name by their look. */
 const BY_LOOK: Record<string, string> = {
@@ -36,33 +32,20 @@ export function voice(line: Line, slower = false) {
 }
 
 /**
- * One NPC line: every word a button that opens the app's word drawer, the
- * reading over it when 拼 is on. A line with a reading written in the
- * script shows that reading whole, under the line (the build's cut could
- * split a polyphone wrongly).
+ * One NPC line, words tappable. A line with a reading written in the script
+ * shows that reading whole, under the line (the build's cut could split a
+ * polyphone wrongly).
  */
-function SaidLine({ line, lib, pinyin, open }: { line: Line; lib: Library; pinyin: boolean; open: (w: string) => void }) {
-  const pieces = readLine(line.zh, lib);
-  const manual = pinyin && line.pinyin;
+function SaidLine({ line, pinyin }: { line: Line; pinyin: boolean }) {
+  const manual = pinyin && !!line.pinyin;
   return (
-    <span className="wd-zh" data-py={pinyin && !manual ? '' : undefined}>
+    <span className="wd-said">
       {line.key && (
         <span className="wd-key" title="A key line: pinned to your tasks">
           📌
         </span>
       )}
-      {pieces.map((p, i) =>
-        p.word ? (
-          <button key={i} type="button" className="wd-w" onClick={() => open(p.text)}>
-            {pinyin && !manual && <span className="wd-py">{p.py}</span>}
-            <span className="han">{p.text}</span>
-          </button>
-        ) : (
-          <span key={i} className="wd-p han">
-            {p.text}
-          </span>
-        ),
-      )}
+      <ZhText zh={line.zh} pinyin={pinyin && !manual} />
       {manual && <span className="wd-py-line">{line.pinyin}</span>}
     </span>
   );
@@ -89,9 +72,6 @@ export function Dialogue({
   onClose: () => void;
   children?: ReactNode;
 }) {
-  const lib = useLibrary();
-  const openItem = useOpenItem();
-  const open = (w: string) => openItem(itemForToken(lib, w));
   const list = useRef<HTMLOListElement>(null);
   const last = [...view.history].reverse().find((s): s is Said & { line: Line } => s.who === 'npc' && !!s.line)?.line;
   const name = nameOf(view.npc, view.sprite);
@@ -167,7 +147,7 @@ export function Dialogue({
               {s.line.speaker !== (view.scene.npc ?? '') && s.line.speaker !== view.npc?.id && (
                 <span className="wd-who tiny han">{speakerName(s.line.speaker)}</span>
               )}
-              <SaidLine line={s.line} lib={lib} pinyin={pinyin} open={open} />
+              <SaidLine line={s.line} pinyin={pinyin} />
             </li>
           ) : null,
         )}

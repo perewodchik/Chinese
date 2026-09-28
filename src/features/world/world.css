@@ -699,3 +699,403 @@
     transform: scale(0.85);
   }
 }
+
+.wd-said {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.wd-said .wd-key + .wd-zh {
+  flex: 1;
+  min-width: 0;
+}
+
+/* a word you do not know yet, as the reader marks it */
+.wd-w[data-unknown] {
+  border-bottom-color: color-mix(in srgb, var(--gold) 70%, transparent);
+  border-bottom-style: dotted;
+}
+
+/* --- the panels: one sheet over the (paused) world */
+.wp-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  background: rgba(20, 18, 28, 0.45);
+  touch-action: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.wp {
+  width: min(760px, 100%);
+  height: min(640px, 100%);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.wp-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.wp-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.wp-tabs .spacer {
+  flex: 1;
+}
+
+.wp-tabs [role='tab'] {
+  flex: none;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.wp-tabs [role='tab'][aria-selected='true'] {
+  border-color: var(--line);
+  background: var(--card-2);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.wp-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 16px 20px;
+}
+
+.wp-label {
+  margin: 8px 0 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.wp-empty {
+  padding: 24px 0;
+}
+
+.wp-list,
+.wp-cards,
+.wp-grid,
+.wp-stamps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wp-list li {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.wp-list li p {
+  margin: 4px 0 0;
+}
+
+.wp-list li[data-done] {
+  opacity: 0.6;
+}
+
+.wp-list .wd-zh,
+.wp-zh {
+  font-size: 19px;
+  margin: 4px 0;
+}
+
+.wp-money {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.wp-money .han {
+  font-family: var(--han);
+  color: var(--ink-2);
+}
+
+.wp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.wp-item {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.wp-item .han {
+  font-family: var(--han);
+  font-size: 20px;
+}
+
+.wp-count {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* the map: a schematic, north up; the old city's ring road as a faint square */
+.wp-map {
+  position: relative;
+  aspect-ratio: 5 / 3;
+  max-height: 46vh;
+  margin: 0 auto 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.wp-map-ring {
+  position: absolute;
+  left: 36%;
+  top: 22%;
+  width: 30%;
+  height: 50%;
+  border: 2px solid color-mix(in srgb, var(--ink-3) 30%, transparent);
+  border-radius: 6px;
+}
+
+.wp-spot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  cursor: pointer;
+}
+
+.wp-spot i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--ink-3);
+  background: var(--card);
+}
+
+.wp-spot .han {
+  font-family: var(--han);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.wp-spot[data-visited] {
+  color: var(--ink);
+}
+
+.wp-spot[data-visited] i {
+  border-color: var(--ink);
+  background: var(--ink);
+}
+
+.wp-spot[data-here] i {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.wp-spot[data-later]:not([data-visited]) {
+  opacity: 0.55;
+}
+
+.wp-spot[aria-pressed='true'] .han {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.wp-route {
+  min-height: 92px; /* a place picked or not, the page below does not jump */
+  padding: 8px 0;
+}
+
+.wp-route b.han {
+  font-family: var(--han);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.wp-route p {
+  margin: 4px 0 8px;
+}
+
+.wp-card {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+}
+
+.wp-idiom {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.wp-card[data-missing] {
+  align-items: center;
+  opacity: 0.7;
+}
+
+.wp-card p {
+  margin: 4px 0;
+}
+
+.wp-art {
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.wp-art img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+}
+
+.wp-art .han {
+  font-family: var(--han);
+  font-size: 44px;
+  color: var(--line-2);
+}
+
+.wp-name {
+  font-family: var(--han);
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.wp-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.wp-parts .han {
+  font-family: var(--han);
+  font-size: 18px;
+}
+
+/* stamps: red seals like the real souvenir stamps; an empty frame until you have one */
+.wp-stamps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 12px;
+}
+
+.wp-stamp {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+  color: var(--ink-3);
+}
+
+.wp-seal {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  border: 2px dashed var(--line-2);
+  border-radius: 8px;
+  font-family: var(--han);
+  font-size: 17px;
+  line-height: 1.05;
+  writing-mode: vertical-rl;
+  letter-spacing: 0.05em;
+}
+
+.wp-stamp[data-got] .wp-seal {
+  border: 3px solid var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 60%, transparent);
+  transform: rotate(-4deg);
+}
+
+.wp-stamp[data-got][data-landmark] .wp-seal {
+  border-radius: 50%;
+  border-width: 4px;
+}
+
+.wp-stamp[data-got] {
+  color: var(--ink-2);
+}
+
+@media (max-width: 689px) {
+  .wp-scrim {
+    padding: env(safe-area-inset-top, 0px) 0 0;
+    place-items: end stretch;
+  }
+
+  .wp {
+    width: 100%;
+    height: calc(100% - 40px);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .wp-card {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .wp-art,
+  .wp-art img {
+    width: 64px;
+    height: 64px;
+  }
+}

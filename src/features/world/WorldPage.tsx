@@ -9,6 +9,8 @@ import type { WorldHost } from '../../world/engine/scene';
 import { useWorldContent, EMPTY_CONTENT } from '../../world/ui/content';
 import { Dialogue, lookOf } from '../../world/ui/Dialogue';
 import { InputBar } from '../../world/ui/InputBar';
+import { Panels } from '../../world/ui/Panels';
+import type { PanelId } from '../../world/ui/panelRows';
 import { Companion } from '../../world/ui/Companion';
 import { cueLine, IDLE_MS, speaksUpAfterMisses } from '../../world/ui/companionLines';
 import { activeQuests, whatNow } from '../../world/core/quests';
@@ -55,9 +57,11 @@ export function WorldPage() {
   const [note, setNote] = useState<string | null>(null);
   const [minutes, setMinutes] = useState(0);
   const [pal, setPal] = useState<{ open: boolean; said: string | null }>({ open: false, said: null });
+  const [panel, setPanel] = useState<PanelId | null>(null);
+  const mapIndex = useRef<MapIndex>({});
   const lastActive = useRef(Date.now());
   const busy = useRef(false);
-  busy.current = note !== null || talk.view !== null;
+  busy.current = note !== null || talk.view !== null || panel !== null;
 
   useEffect(() => {
     const html = document.documentElement;
@@ -86,6 +90,7 @@ export function WorldPage() {
     void (async () => {
       try {
         const index = (await (await fetch('/world/maps/index.json')).json()) as MapIndex;
+        mapIndex.current = index;
         let { map, tile } = start.asked && index[start.asked] ? { map: start.asked, tile: null as Tile | null } : start.place;
         if (!index[map]) ({ map, tile } = FALLBACK);
         if (!tile) tile = map === FALLBACK.map ? FALLBACK.tile : [Math.floor(index[map]!.width / 2), index[map]!.height - 4];
@@ -112,7 +117,8 @@ export function WorldPage() {
             talkRef.current.start(scene, card, lookOf(card, npc), s);
           },
           onLook: (o: MapObject) => setNote(o.kind === 'sign' ? o.text : 'Nothing written here.'),
-          onKey: () => undefined,
+          // Tab (the companion) is the page's own key, so it works in a conversation too.
+          onKey: (k) => k !== 'companion' && setPanel(k),
           isBusy: () => busy.current,
         };
         const { startWorld } = await import('../../world/engine/boot');
@@ -224,6 +230,16 @@ export function WorldPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
+  // A full-screen panel stops the world: no drawing, no clock (D7).
+  useEffect(() => {
+    world.current?.setPaused(panel !== null);
+  }, [panel]);
+  useEffect(() => {
+    if (!panel) return;
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setPanel(null);
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [panel]);
   const lastLine = talk.view ? [...talk.view.history].reverse().find((h) => h.who === 'npc' && h.line)?.line : undefined;
   const lastNode = talk.view && lastLine ? talk.view.scene.nodes.find((n) => n.id === lastLine.node) : undefined;
 
@@ -236,7 +252,23 @@ export function WorldPage() {
         ref={box}
         style={frame ? { width: Number(frame[1]), height: Number(frame[2]) } : undefined}
       />
-      {game.save && state === 'ready' && <TopBar district={game.save.district} minutes={minutes} open={() => undefined} />}
+      {game.save && state === 'ready' && <TopBar district={game.save.district} minutes={minutes} open={setPanel} />}
+      {panel && game.save && (
+        <Panels
+          tab={panel}
+          setTab={setPanel}
+          save={game.save}
+          content={content}
+          pinyin={game.save.settings.pinyin}
+          onClose={() => setPanel(null)}
+          onGo={(station) => {
+            setPanel(null);
+            const map = `station-${station}`;
+            if (mapIndex.current[map]) world.current?.travel({ map, tile: [Math.floor(mapIndex.current[map]!.width / 2), mapIndex.current[map]!.height - 3], facing: 'up' });
+            else setNote('The station is not built yet — it comes with chapter 1’s subway ride.');
+          }}
+        />
+      )}
       {talk.view && game.save && (
         <Dialogue
           view={talk.view}
