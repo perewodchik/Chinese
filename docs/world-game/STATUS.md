@@ -4,12 +4,13 @@ The builder reads `prompt.md` §0, then this file, and continues at the
 first unchecked box. Tick a box in the same commit as the work.
 
 ## For the learner (morning notes)
-**2026-09-28, 23:30 — сессия остановлена: исчерпан лимит использования.** Готово и закоммичено (ничего не запушено): A8–A11 (диалоги, бюджет слов HSK, метро/автобусы/поезд, встроенный ввод пинъиня), B1–B2 (сохранения в БД `/api/world` + синхронизация и слияние), C1–C4 (свой пиксель-арт в коде: тайлы Пекина, 8 типов людей, 兔儿爷, реквизит; прототип 胡同 и 天安门), D1–D7 (движок на `/play/world`: ходьба тапом/удержанием/клавишами, двери, жизнь на улице, день и ночь), E1 (верхняя строка).
-**Смотреть первым:** скриншоты `docs/world-game/review/c4-*.png` (день/ночь, 1024 и 390) и `c3-*.png` (вся графика). Важно: скриншоты сделаны офлайн-рендером — эта сессия не может запускать dev-сервер, поэтому **игру в браузере ещё никто не видел**. Первое, что стоит сделать: запустить `hanzi-workshop-mac-world` (порт 5179, база `.data/world-test.db`) и открыть `/play/world`.
-**Не закончено:** E2 (пузырь диалога) — начатые файлы лежат незакоммиченными: `src/world/ui/content.ts`, `useTalk.ts`, `Portrait.tsx`. B1 добавляет миграцию `world_saves` — она выполнится на продакшн-Postgres при первом деплое после push.
+**2026-09-29 — MVP (фазы A–F) собран и закоммичен; ничего не запушено.** Глава 1 целиком: комната в 四合院 → 王阿姨 → завтрак в 早点铺 (包子 и 豆浆 за 4 块) → разбитый фонарь и 兔儿爷 → слух о 石狮子 (李阿姨 или 老刘 в 茶馆, у него можно посидеть до вечера) → ночью у 鼓楼 загадка 日+月 = 明 → 交通卡 на станции → метро: 8号线 до 王府井, пересадка на 1号线, выход на 天安门东 → площадь, 故宫 закрыт («билет — онлайн, на твоё имя»). По пути: 成语 马马虎虎 (парикмахер) и 一心一意 (чай у 老刘), 8 печатей, пузырь диалога с тапом по словам, строка ввода (голос / клавиатура / встроенный пиньинь), кролик-помощник, панели (задания, сумка, карта, 图鉴, 成语, печати, ⚙), карточка игры на /play.
+**Смотреть первым:** запустить `hanzi-workshop-mac-world` (порт 5179, база `.data/world-test.db`) и открыть `/play/world` — **в браузере игру ещё никто не видел**: эта ночная сессия не может запускать dev-сервер, всё проверено тестами (глава проигрывается от начала до конца в `scripts/world/chapter1.test.ts`, сохранение переносится на «другое устройство») и офлайн-рендером карт.
+**Скриншоты (офлайн-рендер, без интерфейса):** `docs/world-game/review/f1/` (все карты района), `f4/` (станция и площадь), `f5/` (телефон 390 и iPad 1024, день/вечер/ночь).
+**Не закончено:** проверка в браузере и в WebKit (F5, нужен человек), дальше по списку — G (звук), H (остальной Пекин), I, X.
 
 ## Current task
-F5
+G1
 
 ## Tasks
 ### A — core logic
@@ -58,7 +59,7 @@ F5
 - [x] F2 NPC cards
 - [x] F3 Chapter 1 scenes
 - [x] F4 Subway ride to 天安门
-- [ ] F5 MVP check + notes for the learner
+- [x] F5 MVP check + notes for the learner (browser + WebKit part pending — see notes)
 
 ### G — audio
 - [ ] G1 Ambient sounds
@@ -162,4 +163,5 @@ _(anything blocked, skipped, or failing in someone else's code)_
 - 2026-09-28 23:30 — stopped at the usage limit in the middle of E2. Uncommitted, unfinished E2 files in the working tree: `src/world/ui/content.ts`, `src/world/ui/useTalk.ts`, `src/world/ui/Portrait.tsx` (not wired in yet; the next session should finish E2 from them — the Dialogue component and its CSS are still to write).
 - Dev servers cannot be started from this unattended session (preview_start refuses), so nothing is checked in a browser yet: C4 screenshots are offline renders, D-phase checks will be code-level plus offline renders until a session with a person present runs the preview (`hanzi-workshop-mac-world`, port 5179, `.data/world-test.db`, added to `.claude/launch.json`).
 - 2026-09-29 — E3 is unchecked on a real iPad: the bubble lifts itself above the on-screen keyboard by following `visualViewport` — worth a look on the iPad that the field stays visible.
+- 2026-09-29 — F5: the browser half of the MVP check could not be done here (no dev server in an unattended run). Done instead: the whole chapter played through the core with each line's hint (`scripts/world/chapter1.test.ts`), a two-device save round-trip through `WorldSync` with a fake server, offline renders at 390×844 and 1024×768 (`review/f5/`). **Still to do with a person present:** play chapter 1 in the pane at 1024 and 390 and in WebKit (`scripts/webkit-probe.swift`), especially: the bubble and input bar with the iPad keyboard up, hold-to-talk in Safari, the ride sheet, the joystick, frame rate on the iPad.
 - **B1 adds migration step 3 (`world_saves`) to both SQLite and Postgres.** It runs on the production Postgres at the first deploy after the learner pushes — an additive `CREATE TABLE`, nothing existing is touched.

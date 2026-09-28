@@ -7,6 +7,9 @@ import { applyAll, newSave, type SaveAction } from '../../src/world/core/save';
 import { autoScene, sceneFor } from '../../src/world/core/scenes';
 import { board, fareOut, getOff, nextStop, runOn, startRide, trainsAt } from '../../src/world/core/ride';
 import type { DialogueNode, WorldSave } from '../../src/world/core/types';
+import { memoryLocal } from '../../src/world/sync/local';
+import type { WorldGateway } from '../../src/world/sync/gateway';
+import { WorldSync } from '../../src/world/sync/sync';
 import { checkContent, readLibrary } from './check-content';
 
 const lib = readLibrary();
@@ -122,6 +125,37 @@ describe('chapter 1, played through the core', () => {
   it('without a card the gates say so', () => {
     assert.equal(sceneFor(scenes, newSave('d', 0), { look: 'gates-in', map: 'station-nanluoguxiang' })?.id, 'nlgx-gates-nocard');
 
+  });
+
+  it('saved on the iPad after the chapter, opened on the Mac in a fresh profile: the same place and progress', async () => {
+    let stored: unknown = null;
+    let revision = 0;
+    const server: WorldGateway = {
+      load: async () => ({ revision, save: stored, updatedAt: revision ? 1 : null }),
+      save: async (base, save) => {
+        if (base !== revision) return { kind: 'conflict', current: { revision, save: stored, updatedAt: 1 } };
+        revision++;
+        stored = JSON.parse(JSON.stringify(save));
+        return { kind: 'saved', revision };
+      },
+    };
+    const ipad = new WorldSync({ gateway: server, local: memoryLocal(), deviceId: 'ipad' });
+    const start = await ipad.open();
+    let s = start;
+    for (const id of ['first-morning', 'arrive', 'breakfast', 'lantern', 'rumour-tea', 'lion-night', 'card']) s = play(s, id).save;
+    s = act(s, [{ do: 'enter', map: 'station-nanluoguxiang', tile: [8, 11], facing: 'down', district: 'gulou' }]);
+    ipad.update(s, 'important');
+    await ipad.flush();
+    ipad.dispose();
+
+    const mac = new WorldSync({ gateway: server, local: memoryLocal(), deviceId: 'mac' });
+    const there = await mac.open();
+    mac.dispose();
+    assert.deepEqual(there.place, s.place);
+    assert.deepEqual(there.quests, s.quests);
+    assert.deepEqual(there.spirits, s.spirits);
+    assert.deepEqual(there.stamps, s.stamps);
+    assert.equal(there.bag.card, 20);
   });
 
   it('the corner shop tells the rumour too, and sells water', () => {

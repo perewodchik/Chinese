@@ -13,12 +13,15 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { looksOf } from '../../src/world/core/cast';
+import { holds } from '../../src/world/core/flags';
+import { newSave } from '../../src/world/core/save';
 import type { MapObject, NpcCard, PartOfDay, Tile } from '../../src/world/core/types';
 import { DAY_LOOK, zoomFor } from '../../src/world/engine/look';
 import type { AtlasJson } from './art/pack';
 import { blank, decodePng, encodePng, type Image } from './art/png';
 
 const T = 16;
+const FRESH = newSave('render', 0);
 const read = (p: string) => readFileSync(p);
 
 interface Sheet {
@@ -96,6 +99,8 @@ export function renderMap(mapId: string, width: number, height: number, time: Pa
   const hex = (h: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as [number, number, number];
   const draws: Array<{ y: number; draw: () => void }> = [];
   for (const o of objects) {
+    // what a fresh game shows: a prop that is only there later (the broken lantern) is left out
+    if (o.kind === 'prop' && o.when && !holds(o.when, FRESH)) continue;
     if (o.kind === 'prop') {
       const x = o.tile[0] * T;
       const y = (o.tile[1] + 1) * T;
