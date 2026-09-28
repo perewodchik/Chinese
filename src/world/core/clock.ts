@@ -41,6 +41,13 @@ export function inHours(minutes: number, [from, to]: readonly [number, number]):
   return from < to ? h >= from && h < to : h >= from || h < to;
 }
 
+/** Waiting (a rest in the teahouse) skips to the next time the clock shows `hour`:00 — later today, or tomorrow. */
+export function waitUntil(minutes: number, hour: number): number {
+  const day = Math.floor(minutes / MINUTES_PER_DAY);
+  const today = day * MINUTES_PER_DAY + hour * 60;
+  return minutes < today ? today : today + MINUTES_PER_DAY;
+}
+
 /** Sleeping skips to the next 7:00 — the same night's morning, or tomorrow's. */
 export function sleep(minutes: number): number {
   const day = Math.floor(minutes / MINUTES_PER_DAY);

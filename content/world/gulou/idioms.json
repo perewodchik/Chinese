@@ -1,0 +1,24 @@
+[
+  {
+    "id": "马马虎虎",
+    "pinyin": "mǎmǎhūhū",
+    "parts": [{ "c": "马马", "gloss": "horse, horse" }, { "c": "虎虎", "gloss": "tiger, tiger" }],
+    "meaning": "so-so; careless — neither good nor bad",
+    "story": {
+      "zh": "以前有一个画家，画了一个头是虎、身子是马的画。别人问：“这是马还是虎？”他说：“马马虎虎！”",
+      "en": "Long ago a painter drew an animal with a tiger's head and a horse's body. People asked, 'Is it a horse or a tiger?' He said, 'Horse-horse, tiger-tiger!' — and since then the words mean 'so-so, careless'."
+    },
+    "tier": "basic"
+  },
+  {
+    "id": "一心一意",
+    "pinyin": "yìxīn-yíyì",
+    "parts": [{ "c": "一心", "gloss": "one heart" }, { "c": "一意", "gloss": "one mind" }],
+    "meaning": "wholeheartedly; with all your attention on one thing",
+    "story": {
+      "zh": "做一个事的时候，只想这个事，不想别的，就是一心一意。老刘做茶的时候，就是这样。",
+      "en": "When you do one thing and think only of it, not of anything else, that is 一心一意 — the way 老刘 makes tea."
+    },
+    "tier": "basic"
+  }
+]

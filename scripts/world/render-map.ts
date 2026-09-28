@@ -99,7 +99,7 @@ export function renderMap(mapId: string, width: number, height: number, time: Pa
     if (o.kind === 'prop') {
       const x = o.tile[0] * T;
       const y = (o.tile[1] + 1) * T;
-      const name = look.lit && o.frame === 'lantern/unlit' ? 'lantern/lit-0' : o.frame;
+      const name = look.lit && o.frame === 'lantern/unlit' ? 'lantern/lit-0' : look.lit && o.night ? o.night : o.frame;
       draws.push({ y, draw: () => frame(world, props, name, x, y) });
       if (look.lit && o.light) {
         const f = props.json.frames[name]!.frame;

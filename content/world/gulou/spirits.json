@@ -1,0 +1,15 @@
+[
+  {
+    "id": "shishizi",
+    "hanzi": "石狮子",
+    "pinyin": "shíshīzi",
+    "en": "the stone lion",
+    "source": "folk",
+    "legend": {
+      "zh": "北京的大门口，常常有两个石狮子。人们说，石狮子晚上会醒，看着门，不让坏东西进来。",
+      "en": "At the great gates of Beijing there are often two stone lions. People say that at night the lions wake and watch the gate, and let nothing bad come in."
+    },
+    "befriend": { "kind": "riddle", "text": "一个日，一个月，是什么字？", "en": "A sun and a moon side by side — what character is that? (明, bright)" },
+    "district": "gulou"
+  }
+]

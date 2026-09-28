@@ -1,0 +1,8 @@
+[
+  { "id": "new-home", "name": "新家", "en": "A new home", "place": "siheyuan-yard", "design": "new-home" },
+  { "id": "breakfast", "name": "早点", "en": "First breakfast", "place": "zaodian", "design": "breakfast" },
+  { "id": "ask-way", "name": "问路", "en": "Asked the way", "place": "nanluo-main", "design": "ask-way" },
+  { "id": "gulou", "name": "鼓楼", "en": "The Drum Tower", "place": "gulou-square", "design": "gulou", "landmark": true },
+  { "id": "shishizi", "name": "石狮子", "en": "The stone lion's friend", "place": "gulou-square", "design": "shishizi" },
+  { "id": "card", "name": "交通卡", "en": "Your 交通卡", "place": "station-nanluoguxiang", "design": "card" }
+]

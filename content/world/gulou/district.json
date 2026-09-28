@@ -16,7 +16,26 @@
     "chaguan",
     "station-nanluoguxiang"
   ],
-  "stations": ["nanluoguxiang", "guloudajie"],
-  "names": ["鼓楼", "钟楼", "南锣鼓巷", "帽儿胡同", "平安大街", "北京", "王阿姨", "天安门", "天安门东", "故宫"],
+  "stations": [
+    "nanluoguxiang",
+    "guloudajie"
+  ],
+  "names": [
+    "鼓楼",
+    "钟楼",
+    "南锣鼓巷",
+    "帽儿胡同",
+    "平安大街",
+    "北京",
+    "王阿姨",
+    "天安门",
+    "天安门东",
+    "故宫",
+    "早点铺",
+    "兔儿爷",
+    "大卫",
+    "阿姨",
+    "王"
+  ],
   "ambience": "hutong"
 }

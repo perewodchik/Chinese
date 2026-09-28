@@ -68,6 +68,7 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
   z.strictObject({ do: z.literal('teleport'), map: id, tile, facing: facing.optional() }),
   z.strictObject({ do: z.literal('game'), game: id }),
   z.strictObject({ do: z.literal('sleep') }),
+  z.strictObject({ do: z.literal('wait'), until: hour }),
   z.strictObject({ do: z.literal('pin'), riddle: text }),
   z.strictObject({ do: z.literal('solve'), riddle: text }),
   z.strictObject({ do: z.literal('remember'), npc: id, note: text }),
@@ -75,7 +76,7 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
 
 const actionKind = z.enum([
   'flag', 'give', 'take', 'money', 'card', 'quest', 'quest_done', 'stamp', 'spirit', 'idiom',
-  'station', 'district', 'chapter', 'teleport', 'game', 'sleep', 'pin', 'solve', 'remember',
+  'station', 'district', 'chapter', 'teleport', 'game', 'sleep', 'wait', 'pin', 'solve', 'remember',
 ]);
 
 export const districtSchema: z.ZodType<District> = z.strictObject({
@@ -126,6 +127,8 @@ export const mapObjectSchema: z.ZodType<MapObject> = z.discriminatedUnion('kind'
     frame: text,
     blocks: z.tuple([z.number().int().min(0), z.number().int().min(0)]).optional(),
     light: z.string().optional(),
+    night: z.string().optional(),
+    when: conditionSchema.optional(),
   }),
 ]);
 
@@ -174,6 +177,7 @@ export const sceneSchema: z.ZodType<Scene> = z.strictObject({
   id,
   map: id,
   npc: id.optional(),
+  object: id.optional(),
   trigger: z.enum(['talk', 'zone', 'look', 'auto']),
   when: conditionSchema.optional(),
   once: z.boolean().optional(),
@@ -354,7 +358,8 @@ export function checkReferences(
       if (n.key) keys++;
       if (n.next && !nodes.has(n.next)) errors.push(`${nat}.next: no node "${n.next}"`);
       if (n.next && n.expect?.length) errors.push(`${nat}: a node has either next or expect, not both`);
-      if (n.speaker && n.speaker !== 'hero' && !npcs.has(n.speaker)) errors.push(`${nat}.speaker: unknown npc "${n.speaker}"`);
+      // a line may be said by the hero, by 兔儿爷, by a spirit, or by a person with a card
+      if (n.speaker && n.speaker !== 'hero' && n.speaker !== 'companion' && !npcs.has(n.speaker) && !spirits.has(n.speaker)) errors.push(`${nat}.speaker: unknown speaker "${n.speaker}"`);
       n.expect?.forEach((e, ei) => {
         if (e.go && !nodes.has(e.go)) errors.push(`${nat}.expect[${ei}].go: no node "${e.go}"`);
         e.actions?.forEach((a, ai) => checkAction(a, `${nat}.expect[${ei}].actions[${ai}]`));

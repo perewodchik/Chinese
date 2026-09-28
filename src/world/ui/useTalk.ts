@@ -19,6 +19,8 @@ export interface TalkView {
   npc: NpcCard | null;
   /** the prototype maps have people without cards: their sprite and id */
   sprite: string;
+  /** a heading instead of a person's name (a sign) */
+  title?: string;
   history: Said[];
   state: DialogueState;
   /** what the player does now: answer, tap to go on, or it is over */
@@ -44,6 +46,11 @@ export function afterTurn(v: TalkView, t: Turn, you?: string): TalkView {
   if (t.say) history.push({ who: 'npc', line: t.say, kind: t.kind });
   const misses = t.kind === 'miss' || t.kind === 'not_chinese' ? v.misses + 1 : t.kind === 'match' ? 0 : v.misses;
   return { ...v, history, state: t.state, mode: modeOf(v.scene, t), cue: t.companion, misses };
+}
+
+/** A sign read in the bubble, so its words can be tapped (concept §4): one line, its English as the translation. */
+export function signScene(o: { id: string; text: string; en?: string }): Scene {
+  return { id: `sign-${o.id}`, map: '', trigger: 'look', start: 'text', nodes: [{ id: 'text', speaker: 'sign', say: o.text, translate: o.en ?? '' }] };
 }
 
 /** A card-less or scene-less person still says something: hello, and goodbye. */
@@ -80,10 +87,10 @@ export function useTalk(content: WorldContent, lex: Lexicon | null, dispatch: (a
   );
 
   const start = useCallback(
-    (scene: Scene, npc: NpcCard | null, sprite: string, save: WorldSave) => {
+    (scene: Scene, npc: NpcCard | null, sprite: string, save: WorldSave, title?: string) => {
       if (!source) return;
       const t = source.start(scene, save);
-      const v: TalkView = { scene, npc, sprite, history: [], state: t.state, mode: 'reply', misses: 0 };
+      const v: TalkView = { scene, npc, sprite, history: [], state: t.state, mode: 'reply', misses: 0, ...(title ? { title } : {}) };
       cur.current = v;
       take(t);
     },

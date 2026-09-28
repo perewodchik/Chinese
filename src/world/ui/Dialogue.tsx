@@ -59,6 +59,7 @@ function SaidLine({ line, pinyin }: { line: Line; pinyin: boolean }) {
  */
 export function Dialogue({
   view,
+  names = {},
   pinyin,
   setPinyin,
   onProceed,
@@ -66,6 +67,8 @@ export function Dialogue({
   children,
 }: {
   view: TalkView;
+  /** npc id → name, for other people who speak in a scene */
+  names?: Record<string, string>;
   pinyin: boolean;
   setPinyin: (on: boolean) => void;
   onProceed: () => void;
@@ -74,7 +77,7 @@ export function Dialogue({
 }) {
   const list = useRef<HTMLOListElement>(null);
   const last = [...view.history].reverse().find((s): s is Said & { line: Line } => s.who === 'npc' && !!s.line)?.line;
-  const name = nameOf(view.npc, view.sprite);
+  const name = view.title ?? nameOf(view.npc, view.sprite);
 
   // On an iPad the on-screen keyboard covers the bottom of the page without
   // resizing it: lift the bubble by what the visual viewport has lost.
@@ -111,12 +114,12 @@ export function Dialogue({
     return () => window.removeEventListener('keydown', onKey);
   }, [view.mode, onProceed, onClose]);
 
-  const speakerName = (id: string) => (id === 'hero' ? '我' : id === 'companion' ? '兔儿爷' : id === view.npc?.id || id === view.scene.npc ? name : id);
+  const speakerName = (id: string) => (id === 'hero' ? '我' : id === 'companion' ? '兔儿爷' : id === view.npc?.id || id === view.scene.npc ? name : (names[id] ?? id));
 
   return (
     <section className="wd" aria-label={`Talking with ${name}`} style={lift ? { bottom: lift + 8, maxHeight: `calc(100% - ${lift + 60}px)` } : undefined}>
       <header className="wd-head">
-        <Portrait sprite={view.sprite} scale={2} />
+        {view.sprite !== 'sign' && <Portrait sprite={view.sprite} scale={2} />}
         <span className="wd-name han">{name}</span>
         {view.npc && <span className="wd-role tiny">{view.npc.role}</span>}
         <span className="spacer" />
@@ -144,7 +147,7 @@ export function Dialogue({
             </li>
           ) : s.line ? (
             <li key={i} className="wd-npc" data-latest={i === view.history.length - 1 ? '' : undefined}>
-              {s.line.speaker !== (view.scene.npc ?? '') && s.line.speaker !== view.npc?.id && (
+              {s.line.speaker !== (view.scene.npc ?? '') && s.line.speaker !== view.npc?.id && s.line.speaker !== 'sign' && (
                 <span className="wd-who tiny han">{speakerName(s.line.speaker)}</span>
               )}
               <SaidLine line={s.line} pinyin={pinyin} />

@@ -14,6 +14,33 @@
  },
  {
   "kind": "prop",
+  "id": "lion-left",
+  "tile": [
+   2,
+   11
+  ],
+  "frame": "lion/stone",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stone-lion",
+  "tile": [
+   8,
+   11
+  ],
+  "frame": "lion/stone",
+  "blocks": [
+   1,
+   1
+  ],
+  "night": "lion/awake"
+ },
+ {
+  "kind": "prop",
   "id": "bell-tower",
   "tile": [
    20,

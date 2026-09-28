@@ -66,16 +66,37 @@
  },
  {
   "kind": "prop",
-  "id": "lantern",
+  "id": "old-lantern",
   "tile": [
    4,
    6
   ],
   "frame": "lantern/unlit",
   "blocks": [
-   0,
-   0
-  ]
+   1,
+   1
+  ],
+  "when": {
+   "not": {
+    "flag": "lantern-broken"
+   }
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "broken-lantern",
+  "tile": [
+   4,
+   6
+  ],
+  "frame": "lantern/broken",
+  "blocks": [
+   1,
+   1
+  ],
+  "when": {
+   "flag": "lantern-broken"
+  }
  },
  {
   "kind": "prop",

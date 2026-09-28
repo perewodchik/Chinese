@@ -31,6 +31,19 @@ describe('which scene plays', () => {
     assert.equal(autoScene(scenes, applyAll(save, [{ do: 'scene_done', scene: 'arrive' }], { now: 1 }), 'm'), null);
   });
 
+  it('a look scene belongs to its object on its own map, and may vary by time', () => {
+    const save = newSave('d', 0);
+    const looks = [
+      s('lion-day', { trigger: 'look', object: 'lion', map: 'square' }),
+      s('lion-night', { trigger: 'look', object: 'lion', map: 'square', when: { hours: [19, 5] }, priority: -1 }),
+      s('plant', { trigger: 'look', map: 'room' }),
+    ];
+    assert.equal(sceneFor(looks, save, { look: 'lion', map: 'square' })?.id, 'lion-day');
+    assert.equal(sceneFor(looks, { ...save, clock: 20 * 60 }, { look: 'lion', map: 'square' })?.id, 'lion-night');
+    assert.equal(sceneFor(looks, save, { look: 'lion', map: 'elsewhere' }), null);
+    assert.equal(sceneFor(looks, save, { look: 'plant', map: 'room' })?.id, 'plant');
+  });
+
   it('knows the districts', () => {
     assert.equal(DISTRICTS.length, 13);
     assert.equal(districtInfo('gulou')?.name, '鼓楼 · 南锣鼓巷');

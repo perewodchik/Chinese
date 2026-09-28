@@ -89,3 +89,21 @@ Sprites are `.px` text files — a grid of palette letters per frame — built
 by `scripts/world/art/build.ts` into atlases in `public/world/art/`.
 Imported packs live in `art/vendor/<pack>/` with their license, credited in
 `public/world/CREDITS.md`. Only CC0, CC-BY or public domain.
+
+## Added while building chapter 1 (F1–F3)
+
+- **Props** (`kind: "prop"`) may have `night` (a frame shown at evening and
+  night — the stone lion's glowing eyes) and `when` (a condition: the prop is
+  only there while it holds — the lantern whole, then broken).
+- **Look scenes** (`trigger: "look"`) belong to the map object named by
+  `object` (default: the scene's own id) on the scene's `map`. Several scenes
+  may share one object with different `when`s; the lowest `priority` wins.
+- **Auto scenes** (`trigger: "auto"`) start by themselves on arriving on
+  their `map` (the first morning, the first visit to 鼓楼).
+- A line's `speaker` may be `hero`, `companion` (兔儿爷), a spirit id, or an
+  NPC id. Signs without a scene open in the bubble with their words tappable.
+- Action `{ "do": "wait", "until": 19 }` lets time pass to the next 19:00
+  (resting in the teahouse till dark).
+- `npm run world:content` compiles the district folders to
+  `public/world/content/`; `scripts/world/chapter1.test.ts` plays chapter 1
+  through the core with each node's hint sentence.

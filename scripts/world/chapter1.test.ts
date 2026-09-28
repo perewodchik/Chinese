@@ -1,0 +1,121 @@
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
+import { libraryLexicon } from '../../src/world/core/dialogue/lexicon';
+import { ScriptedDialogue } from '../../src/world/core/dialogue/scripted';
+import { activeQuests, advanceQuests } from '../../src/world/core/quests';
+import { applyAll, newSave, type SaveAction } from '../../src/world/core/save';
+import { autoScene, sceneFor } from '../../src/world/core/scenes';
+import type { DialogueNode, WorldSave } from '../../src/world/core/types';
+import { checkContent, readLibrary } from './check-content';
+
+const lib = readLibrary();
+const lex = libraryLexicon(lib);
+const content = checkContent('content/world', lib).districts;
+const scenes = content.flatMap((d) => d.scenes);
+const npcs = content.flatMap((d) => d.npcs);
+const quests = content.flatMap((d) => d.quests);
+const src = new ScriptedDialogue({ scenes, npcs }, lex);
+
+/** Applies a turn's actions the way the page does: the save, then quests move on. */
+function act(s: WorldSave, actions: readonly SaveAction[]): WorldSave {
+  const ctx = { now: 1, quests: new Map(quests.map((q) => [q.id, q])) };
+  return advanceQuests(applyAll(s, actions, ctx), quests, ctx);
+}
+
+/**
+ * Plays one scene to its end. At each line that expects an answer it says
+ * `answers[i]` if given, else the node's hint — the full sentence the
+ * companion offers at the third step — which must move the talk on.
+ */
+function play(s: WorldSave, sceneId: string, answers: string[] = []): { save: WorldSave; said: string[] } {
+  const scene = scenes.find((x) => x.id === sceneId);
+  assert.ok(scene, `no scene ${sceneId}`);
+  let t = src.start(scene, s);
+  let save = act(s, t.actions);
+  const said = [t.say?.zh ?? ''];
+  for (let i = 0, guard = 0; !t.state.ended && guard < 30; guard++) {
+    const node: DialogueNode = scene.nodes.find((n) => n.id === t.state.node)!;
+    if (node.expect?.length) {
+      const answer = answers[i++] ?? node.hint?.full;
+      assert.ok(answer, `${sceneId}/${node.id} expects an answer and gives no hint`);
+      t = src.reply(t.state, { text: answer, via: 'keyboard' });
+      assert.equal(t.kind, 'match', `${sceneId}/${node.id}: “${answer}” did not move the talk on (${t.kind})`);
+    } else t = src.proceed(t.state);
+    save = act(save, t.actions);
+    if (t.say) said.push(t.say.zh);
+  }
+  assert.ok(t.state.ended, `${sceneId} never ended`);
+  return { save, said };
+}
+
+const step = (s: WorldSave) => activeQuests(s, quests).find((a) => a.quest.id === 'ch1')?.step.id;
+
+describe('chapter 1, played through the core', () => {
+  it('from the first morning to the 交通卡, every step reachable with the hints', () => {
+    let s = newSave('d', 0);
+    assert.equal(autoScene(scenes, s, 'siheyuan-room')?.id, 'first-morning');
+    s = play(s, 'first-morning').save;
+    assert.equal(step(s), 'meet-wang');
+
+    assert.equal(sceneFor(scenes, s, { npc: 'wang-ayi' })?.id, 'arrive');
+    s = play(s, 'arrive').save;
+    assert.equal(step(s), 'breakfast');
+    assert.ok('new-home' in s.stamps);
+    assert.equal(sceneFor(scenes, s, { npc: 'wang-ayi' })?.id, 'wang-go-eat');
+
+    assert.equal(sceneFor(scenes, s, { npc: 'zaodian-shifu' })?.id, 'breakfast');
+    s = play(s, 'breakfast').save;
+    assert.equal(s.bag.money, 46);
+    assert.equal(s.bag.items.baozi, 1);
+    assert.equal(step(s), 'lantern');
+
+    assert.equal(sceneFor(scenes, s, { look: 'old-lantern', map: 'siheyuan-yard' })?.id, 'lantern');
+    s = play(s, 'lantern').save;
+    assert.ok(s.flags.includes('lantern-broken'));
+    assert.equal(s.riddles['lantern/d']?.solved, false);
+    assert.equal(step(s), 'rumour');
+
+    // the teahouse: the rumour, then a rest until evening
+    assert.equal(sceneFor(scenes, s, { npc: 'lao-liu' })?.id, 'rumour-tea');
+    s = play(s, 'rumour-tea').save;
+    assert.equal(step(s), 'lion');
+    assert.equal(Math.floor(s.clock / 60) % 24, 19);
+
+    // by day the lion sleeps; after dark it asks its riddle
+    assert.equal(sceneFor(scenes, { ...s, clock: 12 * 60 }, { look: 'stone-lion', map: 'gulou-square' })?.id, 'lion-day');
+    assert.equal(sceneFor(scenes, s, { look: 'stone-lion', map: 'gulou-square' })?.id, 'lion-night');
+    s = play(s, 'lion-night').save;
+    assert.ok('shishizi' in s.spirits);
+    assert.ok('shishizi' in s.stamps);
+    assert.equal(s.riddles['lantern/d']?.solved, true);
+    assert.equal(step(s), 'card');
+
+    assert.equal(sceneFor(scenes, s, { npc: 'station-staff' })?.id, 'card');
+    s = play(s, 'card').save;
+    assert.equal(s.bag.card, 20);
+    assert.equal(s.bag.money, 6);
+    assert.equal(step(s), 'ride');
+  });
+
+  it('the corner shop tells the rumour too, and sells water', () => {
+    let s = act(newSave('d', 0), [{ do: 'flag', flag: 'lantern-broken' }]);
+    s = play(s, 'rumour-shop', ['我要买水', '你看见什么了？']).save;
+    assert.ok(s.flags.includes('heard-lion'));
+    assert.equal(s.bag.items.water, 1);
+  });
+
+  it('the idioms: 一心一意 over tea, 马马虎虎 at the barber', () => {
+    let s = newSave('d', 0);
+    s = play(s, 'tea').save;
+    s = play(s, 'barber').save;
+    assert.deepEqual(Object.keys(s.idioms).sort(), ['一心一意', '马马虎虎'].sort());
+  });
+
+  it('asking the way, both ways, and sleep', () => {
+    const s = newSave('d', 0);
+    assert.match(play(s, 'ask-way', ['很好看！', '请问，鼓楼在哪儿？']).said.join(''), /西边/);
+    assert.match(play(s, 'ask-way', ['地铁站在哪儿？']).said.join(''), /东边/);
+    const slept = play({ ...s, clock: 22 * 60 }, 'bed').save;
+    assert.equal(slept.clock, 24 * 60 + 7 * 60);
+  });
+});

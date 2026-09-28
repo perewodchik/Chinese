@@ -7,7 +7,7 @@
  * Nothing is mutated; unchanged parts are shared with the old save.
  */
 
-import { sleep as sleepClock, START_MINUTES } from './clock';
+import { sleep as sleepClock, START_MINUTES, waitUntil } from './clock';
 import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
 
 export const WORLD_SAVE_VERSION = 1;
@@ -157,6 +157,8 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
       return a.chapter > s.chapter ? { ...s, chapter: a.chapter } : s;
     case 'sleep':
       return { ...s, clock: sleepClock(s.clock) };
+    case 'wait':
+      return { ...s, clock: waitUntil(s.clock, a.until) };
     case 'pin': {
       if (s.riddles[a.riddle]) return s;
       const { scene, node } = riddleParts(a.riddle);

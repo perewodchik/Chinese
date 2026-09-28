@@ -20,6 +20,8 @@ export function castMap(objects: readonly MapObject[], map: string, npcs: readon
   const here = new Set<string>();
   for (const o of objects) {
     if (o.kind !== 'npc') {
+      // a prop may be there only sometimes (the lantern whole, then broken); a door's `when` is its lock, not its presence
+      if (o.kind === 'prop' && o.when && !holds(o.when, save)) continue;
       out.push(o);
       continue;
     }

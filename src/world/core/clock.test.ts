@@ -13,6 +13,7 @@ import {
   resume,
   sleep,
   START_MINUTES,
+  waitUntil,
 } from './clock';
 
 const at = (day: number, h: number, m = 0) => (day - 1) * 1440 + h * 60 + m;
@@ -77,5 +78,11 @@ describe('clock', () => {
     assert.equal(sleep(at(2, 2)), at(2, 7));
     assert.equal(sleep(at(2, 7)), at(3, 7));
     assert.equal(sleep(at(2, 6, 59)), at(2, 7));
+  });
+
+  it('waiting runs to the next time the clock shows that hour', () => {
+    assert.equal(waitUntil(at(1, 10), 19), at(1, 19));
+    assert.equal(waitUntil(at(1, 20), 19), at(2, 19));
+    assert.equal(waitUntil(at(1, 19), 19), at(2, 19));
   });
 });

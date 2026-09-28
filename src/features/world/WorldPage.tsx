@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { partOfDay } from '../../world/core/clock';
 import { libraryLexicon } from '../../world/core/dialogue/lexicon';
-import { sceneFor } from '../../world/core/scenes';
-import type { MapObject, PartOfDay, Tile } from '../../world/core/types';
+import { autoScene, sceneFor } from '../../world/core/scenes';
+import type { SaveAction } from '../../world/core/save';
+import type { Facing, MapObject, PartOfDay, Scene, Tile, WorldSave } from '../../world/core/types';
 import type { RunningWorld } from '../../world/engine/boot';
 import { throughDoor } from '../../world/engine/doors';
 import type { WorldHost } from '../../world/engine/scene';
@@ -17,7 +18,7 @@ import { Companion } from '../../world/ui/Companion';
 import { cueLine, IDLE_MS, speaksUpAfterMisses } from '../../world/ui/companionLines';
 import { activeQuests, whatNow } from '../../world/core/quests';
 import { TopBar } from '../../world/ui/TopBar';
-import { smallTalk, useTalk } from '../../world/ui/useTalk';
+import { signScene, smallTalk, useTalk } from '../../world/ui/useTalk';
 import { useLibrary } from '../shared/library';
 import { useWorldSave } from '../../world/ui/useWorldSave';
 import { useUser } from '../auth/session';
@@ -46,7 +47,20 @@ export function WorldPage() {
   const content = useWorldContent() ?? EMPTY_CONTENT;
   const game = useWorldSave(user.id, content.quests);
   const lex = useMemo(() => libraryLexicon(lib), [lib]);
-  const talk = useTalk(content, lex, game.dispatch);
+  // What a conversation does beyond the save: a teleport waits for the talk to end.
+  const pendingTravel = useRef<{ map: string; tile: Tile; facing: Facing } | null>(null);
+  const talkDispatch = (actions: readonly SaveAction[]) => {
+    for (const a of actions) if (a.do === 'teleport') pendingTravel.current = { map: a.map, tile: a.tile, facing: a.facing ?? 'down' };
+    return game.dispatch(actions);
+  };
+  const talk = useTalk(content, lex, talkDispatch);
+  /** A scene with no person in it (a thought, 兔儿爷, a spirit): headed by whoever speaks first. */
+  const startBare = (scene: Scene, s: WorldSave) => {
+    const who = scene.nodes.find((n) => n.id === scene.start)?.speaker ?? 'hero';
+    const spirit = contentRef.current.spirits.find((x) => x.id === who);
+    if (who === 'companion') talkRef.current.start(scene, null, 'rabbit', s, '兔儿爷');
+    else talkRef.current.start(scene, null, 'sign', s, spirit?.hanzi ?? '我');
+  };
   const talkRef = useRef(talk);
   talkRef.current = talk;
   const contentRef = useRef(content);
@@ -101,7 +115,16 @@ export function WorldPage() {
             lastActive.current = Date.now();
             game.dispatch([{ do: 'move', tile: t, facing }], 'walk');
           },
-          onArrive: (info, t, facing) => game.dispatch([{ do: 'enter', map: info.id, tile: t, facing, district: info.district || undefined }]),
+          onArrive: (info, t, facing) => {
+            const s = game.dispatch([{ do: 'enter', map: info.id, tile: t, facing, district: info.district || undefined }]);
+            // a scene that starts by itself here (the first morning, a first visit)
+            const auto = s && autoScene(contentRef.current.scenes, s, info.id);
+            if (s && auto) {
+              const card = contentRef.current.npcs.find((n) => n.id === auto.npc) ?? null;
+              if (card) talkRef.current.start(auto, card, lookOf(card, card.id), s);
+              else startBare(auto, s);
+            }
+          },
           onDoor: (door) => {
             const s = game.current();
             if (!s) return;
@@ -118,7 +141,19 @@ export function WorldPage() {
             const scene = sceneFor(c.scenes, s, { npc }) ?? smallTalk(npc, card);
             talkRef.current.start(scene, card, lookOf(card, npc), s);
           },
-          onLook: (o: MapObject) => setNote(o.kind === 'sign' ? o.text : 'Nothing written here.'),
+          onLook: (o: MapObject) => {
+            const s = game.current();
+            if (!s) return;
+            const c = contentRef.current;
+            const scene = sceneFor(c.scenes, s, { look: o.id, map: s.place.map });
+            if (scene) {
+              const card = c.npcs.find((n) => n.id === scene.npc) ?? null;
+              if (card) talkRef.current.start(scene, card, lookOf(card, card.id), s);
+              else startBare(scene, s);
+            } else if (o.kind === 'sign') {
+              talkRef.current.start(signScene(o), null, 'sign', s, o.en ?? 'A sign');
+            }
+          },
           // Tab (the companion) is the page's own key, so it works in a conversation too.
           onKey: (k) => k !== 'companion' && setPanel(k),
           isBusy: () => busy.current,
@@ -172,6 +207,9 @@ export function WorldPage() {
     let told = minutes;
     const id = window.setInterval(() => {
       if (busy.current || document.visibilityState === 'hidden') return;
+      // a sleep or a rest moved the save's clock on: catch up with it
+      const saved = game.current()?.clock ?? minutes;
+      if (saved > minutes) minutes = saved;
       minutes += 1;
       setMinutes(minutes);
       if (minutes - told >= 10) {
@@ -239,6 +277,13 @@ export function WorldPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
+  // A teleport said in a conversation happens when it is over.
+  useEffect(() => {
+    if (talk.view || !pendingTravel.current) return;
+    world.current?.travel(pendingTravel.current);
+    pendingTravel.current = null;
+  }, [talk.view]);
+
   // A full-screen panel stops the world: no drawing, no clock (D7).
   useEffect(() => {
     world.current?.setPaused(panel !== null);
@@ -252,6 +297,10 @@ export function WorldPage() {
   const lastLine = talk.view ? [...talk.view.history].reverse().find((h) => h.who === 'npc' && h.line)?.line : undefined;
   const lastNode = talk.view && lastLine ? talk.view.scene.nodes.find((n) => n.id === lastLine.node) : undefined;
 
+  const npcNames = useMemo(
+    () => Object.fromEntries([...content.npcs.map((n) => [n.id, n.name]), ...content.spirits.map((x) => [x.id, x.hanzi])]),
+    [content],
+  );
   const setPinyin = (on: boolean) => void game.dispatch([{ do: 'settings', patch: { pinyin: on } }]);
 
   return (
@@ -282,6 +331,7 @@ export function WorldPage() {
       {talk.view && game.save && (
         <Dialogue
           view={talk.view}
+          names={npcNames}
           pinyin={game.save.settings.pinyin}
           setPinyin={setPinyin}
           onProceed={talk.proceed}

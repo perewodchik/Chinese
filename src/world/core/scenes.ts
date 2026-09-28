@@ -10,10 +10,11 @@
 import { holds } from './flags';
 import type { Scene, WorldSave } from './types';
 
-export function sceneFor(scenes: readonly Scene[], save: WorldSave, who: { npc?: string; look?: string; zone?: string }): Scene | null {
+export function sceneFor(scenes: readonly Scene[], save: WorldSave, who: { npc?: string; look?: string; zone?: string; map?: string }): Scene | null {
   const fits = scenes.filter((s) => {
     if (who.npc !== undefined && !(s.trigger === 'talk' && s.npc === who.npc)) return false;
-    if (who.look !== undefined && !(s.trigger === 'look' && s.id === who.look)) return false;
+    // a look scene belongs to an object on its own map: `object` (or its id) names it
+    if (who.look !== undefined && !(s.trigger === 'look' && (s.object ?? s.id) === who.look && (who.map === undefined || s.map === who.map))) return false;
     if (who.zone !== undefined && !(s.trigger === 'zone' && s.id === who.zone)) return false;
     if (s.once && save.scenes.includes(s.id)) return false;
     return holds(s.when, save);

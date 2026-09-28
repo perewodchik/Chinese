@@ -60,6 +60,8 @@ export type Action =
   /** open a 点单 game from `src/games` and come back to the same spot */
   | { do: 'game'; game: string }
   | { do: 'sleep' }
+  /** let time pass until the next `until`:00 (resting in the teahouse till dark) */
+  | { do: 'wait'; until: number }
   /** pin the current key line to 📜 as a riddle to work out */
   | { do: 'pin'; riddle: string }
   | { do: 'solve'; riddle: string }
@@ -100,7 +102,7 @@ export type MapObject =
    * `blocks` is its footprint in tiles, `[w, h]` up from there, 0 for none.
    * A prop with `light` glows at evening and night.
    */
-  | { kind: 'prop'; id: string; tile: Tile; frame: string; blocks?: readonly [number, number]; light?: string };
+  | { kind: 'prop'; id: string; tile: Tile; frame: string; blocks?: readonly [number, number]; light?: string; night?: string; when?: Condition };
 
 export type MapObjectKind = MapObject['kind'];
 
@@ -187,6 +189,8 @@ export interface Scene {
   map: string;
   /** the NPC spoken to; none for a sign, a zone or the companion */
   npc?: string;
+  /** for a `look` scene: the id of the map object it belongs to (default: the scene's own id) */
+  object?: string;
   /** how it starts: talking to the NPC, stepping into a zone, looking at something */
   trigger: 'talk' | 'zone' | 'look' | 'auto';
   when?: Condition;

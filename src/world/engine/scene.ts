@@ -99,6 +99,8 @@ export class WorldScene extends Phaser.Scene {
   private gid: (name: string) => number = () => 0;
   private lightLayers: Phaser.Tilemaps.TilemapLayer[] = [];
   private lanterns: Phaser.GameObjects.Sprite[] = [];
+  /** props with a frame of their own after dark (the stone lion's eyes): sprite, day frame, night frame */
+  private nightProps: Array<[Phaser.GameObjects.Sprite, string, string]> = [];
   private glows: Phaser.GameObjects.Image[] = [];
   private shade?: Phaser.GameObjects.Rectangle;
   private lit = false;
@@ -143,6 +145,7 @@ export class WorldScene extends Phaser.Scene {
       map.createLayer('above', tileset, 0, 0)!.setDepth(10_000) as Phaser.Tilemaps.TilemapLayer,
     ];
     this.lanterns = [];
+    this.nightProps = [];
     this.glows = [];
     this.makeGlowTexture();
     const glow = (x: number, y: number, color: number, r: number) =>
@@ -154,6 +157,7 @@ export class WorldScene extends Phaser.Scene {
         const { x, y } = feet(o.tile);
         const s = this.add.sprite(x, y, 'props', o.frame).setOrigin(0, 1).setDepth(y);
         if (o.frame === 'lantern/unlit') this.lanterns.push(s);
+        if (o.night) this.nightProps.push([s, o.frame, o.night]);
         if (o.light) glow(x + s.width / 2, y - s.height / 2, Phaser.Display.Color.HexStringToColor(o.light).color, 28);
       } else if (o.kind === 'npc') {
         const { x, y } = feet(o.tile);
@@ -246,6 +250,7 @@ export class WorldScene extends Phaser.Scene {
       layer.replaceByIndex(this.gid(`shop${off}`), this.gid(`shop${on}`));
     }
     for (const s of this.lanterns) s.setFrame(look.lit ? 'lantern/lit-0' : 'lantern/unlit');
+    for (const [s, day, night] of this.nightProps) s.setFrame(look.lit ? night : day);
     for (const g of this.glows) {
       if (soft) this.tweens.add({ targets: g, alpha: look.glow, duration: 2000 });
       else g.setAlpha(look.glow);

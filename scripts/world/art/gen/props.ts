@@ -23,6 +23,19 @@ export function lantern(glow: number): Grid {
   return g.stamp(f, 0, 0);
 }
 
+/** The old lantern after its fall: on the ground, torn, its frame bent. */
+export function brokenLantern(): Grid {
+  const g = new Grid(16, 16);
+  g.oval(1, 12, 15, 4, '_');
+  const f = new Grid(16, 16);
+  f.oval(2, 7, 12, 7, 'r').vline(12, 8, 5, 'R').vline(4, 8, 5, 'p');
+  f.oval(6, 8, 4, 4, 'k').set(7, 9, 'a').set(8, 10, 'a');
+  for (const x of [5, 10]) f.vline(x, 8, 5, 'R');
+  f.rect(2, 12, 5, 1, 'Y').set(13, 6, 'Y').set(14, 5, 'Y').set(1, 9, 'y');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 /** The 槐树 of the hutongs, 32×48: a round crown over a crooked trunk, its shadow falling right. */
 export function tree(): Grid {
   const g = new Grid(32, 48);
@@ -302,8 +315,38 @@ export function tower(kind: 'drum' | 'bell'): Grid {
   return g.stamp(f, 0, 0);
 }
 
+
+/**
+ * A 石狮子, the stone guardian lion, sitting on its plinth, 16×32. `awake`:
+ * at night, when it is the spirit, its eyes glow and a little red ribbon shows.
+ */
+export function stoneLion(awake: boolean): Grid {
+  const g = new Grid(16, 32);
+  g.oval(1, 28, 15, 4, '_');
+  const f = new Grid(16, 32);
+  // plinth
+  f.rect(1, 22, 14, 8, 'd').hline(1, 22, 14, 'e').rect(2, 25, 12, 3, 'c').hline(1, 29, 14, 'b');
+  // body sitting, front legs down
+  f.rect(4, 13, 8, 9, 'd').vline(4, 13, 9, 'e').vline(11, 13, 9, 'c');
+  f.rect(5, 18, 2, 4, 'e').rect(9, 18, 2, 4, 'c').hline(4, 21, 8, 'c');
+  // head with the curly mane
+  f.oval(2, 3, 12, 11, 'c');
+  for (const [x, y] of [[3, 5], [6, 3], [10, 4], [12, 7], [3, 9], [11, 11], [5, 12]] as const) f.oval(x, y, 3, 3, 'b').set(x, y, 'd');
+  f.oval(4, 5, 8, 7, 'd').hline(5, 6, 6, 'e');
+  // eyes and mouth
+  const eye = awake ? 'Q' : 'b';
+  f.set(6, 8, eye).set(9, 8, eye).hline(6, 10, 4, 'b').set(7, 11, awake ? 'r' : 'c');
+  // a ball under its paw
+  f.oval(10, 18, 4, 4, 'e').set(11, 19, 'w');
+  if (awake) f.hline(5, 13, 6, 'r').set(7, 14, 'R').set(8, 14, 'R');
+  f.outline('k');
+  g.stamp(f, 0, 0);
+  if (awake) g.set(5, 7, 'L').set(10, 7, 'L');
+  return g;
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
-  ['lantern', 'a red lantern: unlit and two lit frames that flicker', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)]]],
+  ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
   ['bicycle', 'a parked city bicycle', () => [['side', bicycle()], ['side-r', bicycle().mirror()]]],
   ['tricycle', 'a 三轮车 pedal tricycle', () => [['side', tricycle()], ['side-r', tricycle().mirror()]]],
@@ -319,6 +362,7 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['ticket-machine', "the station's ticket machine", () => [['blue', ticketMachine()]]],
   ['plant', 'a potted plant', () => [['green', plant()]]],
   ['street-sign', 'a small blue street sign on a post', () => [['blue', streetSign()]]],
+  ['lion', 'a stone guardian lion on its plinth, asleep and awake', () => [['stone', stoneLion(false)], ['awake', stoneLion(true)]]],
   ['tower', 'the Drum and Bell Towers on their terraces', () => [['drum', tower('drum')], ['bell', tower('bell')]]],
   ['pigeon', 'a pigeon of the hutongs', () => [['peck', pigeon('peck')], ['look', pigeon('look')], ['fly-0', pigeon('fly-0')], ['fly-1', pigeon('fly-1')]]],
 ];

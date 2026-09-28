@@ -2,7 +2,7 @@
  "frames": {
   "barber-chair/red": {
    "frame": {
-    "x": 330,
+    "x": 364,
     "y": 1,
     "w": 16,
     "h": 16
@@ -42,7 +42,7 @@
   },
   "bicycle/side": {
    "frame": {
-    "x": 347,
+    "x": 381,
     "y": 1,
     "w": 16,
     "h": 16
@@ -62,7 +62,7 @@
   },
   "bicycle/side-r": {
    "frame": {
-    "x": 364,
+    "x": 398,
     "y": 1,
     "w": 16,
     "h": 16
@@ -82,46 +82,6 @@
   },
   "bird-cage/cage": {
    "frame": {
-    "x": 381,
-    "y": 1,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "lantern/lit-0": {
-   "frame": {
-    "x": 398,
-    "y": 1,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "lantern/lit-1": {
-   "frame": {
     "x": 415,
     "y": 1,
     "w": 16,
@@ -140,7 +100,7 @@
     "h": 16
    }
   },
-  "lantern/unlit": {
+  "lantern/broken": {
    "frame": {
     "x": 432,
     "y": 1,
@@ -160,87 +120,7 @@
     "h": 16
    }
   },
-  "pigeon/fly-0": {
-   "frame": {
-    "x": 69,
-    "y": 98,
-    "w": 8,
-    "h": 8
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 8,
-    "h": 8
-   },
-   "sourceSize": {
-    "w": 8,
-    "h": 8
-   }
-  },
-  "pigeon/fly-1": {
-   "frame": {
-    "x": 78,
-    "y": 98,
-    "w": 8,
-    "h": 8
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 8,
-    "h": 8
-   },
-   "sourceSize": {
-    "w": 8,
-    "h": 8
-   }
-  },
-  "pigeon/look": {
-   "frame": {
-    "x": 87,
-    "y": 98,
-    "w": 8,
-    "h": 8
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 8,
-    "h": 8
-   },
-   "sourceSize": {
-    "w": 8,
-    "h": 8
-   }
-  },
-  "pigeon/peck": {
-   "frame": {
-    "x": 96,
-    "y": 98,
-    "w": 8,
-    "h": 8
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 8,
-    "h": 8
-   },
-   "sourceSize": {
-    "w": 8,
-    "h": 8
-   }
-  },
-  "plant/green": {
+  "lantern/lit-0": {
    "frame": {
     "x": 449,
     "y": 1,
@@ -260,7 +140,7 @@
     "h": 16
    }
   },
-  "steamer/steam-0": {
+  "lantern/lit-1": {
    "frame": {
     "x": 466,
     "y": 1,
@@ -280,7 +160,7 @@
     "h": 16
    }
   },
-  "steamer/steam-1": {
+  "lantern/unlit": {
    "frame": {
     "x": 483,
     "y": 1,
@@ -300,27 +180,7 @@
     "h": 16
    }
   },
-  "stool/red": {
-   "frame": {
-    "x": 1,
-    "y": 98,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "street-sign/blue": {
+  "lion/awake": {
    "frame": {
     "x": 213,
     "y": 1,
@@ -340,7 +200,7 @@
     "h": 32
    }
   },
-  "subway-sign/post": {
+  "lion/stone": {
    "frame": {
     "x": 230,
     "y": 1,
@@ -360,7 +220,107 @@
     "h": 32
    }
   },
-  "table/wood": {
+  "pigeon/fly-0": {
+   "frame": {
+    "x": 120,
+    "y": 98,
+    "w": 8,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   }
+  },
+  "pigeon/fly-1": {
+   "frame": {
+    "x": 129,
+    "y": 98,
+    "w": 8,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   }
+  },
+  "pigeon/look": {
+   "frame": {
+    "x": 138,
+    "y": 98,
+    "w": 8,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   }
+  },
+  "pigeon/peck": {
+   "frame": {
+    "x": 147,
+    "y": 98,
+    "w": 8,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   }
+  },
+  "plant/green": {
+   "frame": {
+    "x": 1,
+    "y": 98,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "steamer/steam-0": {
    "frame": {
     "x": 18,
     "y": 98,
@@ -380,7 +340,7 @@
     "h": 16
    }
   },
-  "tea-table/pot": {
+  "steamer/steam-1": {
    "frame": {
     "x": 35,
     "y": 98,
@@ -400,9 +360,109 @@
     "h": 16
    }
   },
-  "ticket-machine/blue": {
+  "stool/red": {
+   "frame": {
+    "x": 52,
+    "y": 98,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "street-sign/blue": {
    "frame": {
     "x": 247,
+    "y": 1,
+    "w": 16,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 32
+   }
+  },
+  "subway-sign/post": {
+   "frame": {
+    "x": 264,
+    "y": 1,
+    "w": 16,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 32
+   }
+  },
+  "table/wood": {
+   "frame": {
+    "x": 69,
+    "y": 98,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "tea-table/pot": {
+   "frame": {
+    "x": 86,
+    "y": 98,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "ticket-machine/blue": {
+   "frame": {
+    "x": 281,
     "y": 1,
     "w": 16,
     "h": 32
@@ -482,7 +542,7 @@
   },
   "tricycle/side": {
    "frame": {
-    "x": 264,
+    "x": 298,
     "y": 1,
     "w": 32,
     "h": 24
@@ -502,7 +562,7 @@
   },
   "tricycle/side-r": {
    "frame": {
-    "x": 297,
+    "x": 331,
     "y": 1,
     "w": 32,
     "h": 24
@@ -522,7 +582,7 @@
   },
   "wok/oil": {
    "frame": {
-    "x": 52,
+    "x": 103,
     "y": 98,
     "w": 16,
     "h": 16
