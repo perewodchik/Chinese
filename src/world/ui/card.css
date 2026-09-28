@@ -1,0 +1,112 @@
+/* --- 走走's card on /play: first on the page, a pixel banner over one line of progress */
+.world-card {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  margin: 12px 0 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  text-decoration: none;
+  overflow: hidden;
+  transition:
+    border-color 0.14s,
+    box-shadow 0.14s,
+    transform 0.14s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .world-card:hover {
+    border-color: var(--line-2);
+    box-shadow: var(--shadow);
+    transform: translateY(-1px);
+  }
+}
+
+.world-card-art {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 1; /* sized before the picture arrives */
+  background: #22202e;
+}
+
+.world-card-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.world-card-label {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(34, 32, 46, 0.72);
+  color: #f8f5ec;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.world-card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 16px;
+}
+
+.world-card-title {
+  font-size: 15px;
+  font-weight: 620;
+}
+
+.world-card-title b {
+  font-size: 20px;
+  font-weight: 500;
+  margin-right: 2px;
+}
+
+.world-card-title i {
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.world-card-progress,
+.world-card-where {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.world-card-progress .short {
+  display: none;
+}
+
+.world-card-go {
+  align-self: flex-start;
+  margin-top: 6px;
+  min-width: 96px;
+}
+
+@media (max-width: 860px) {
+  .world-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .world-card-progress .long {
+    display: none;
+  }
+
+  .world-card-progress .short {
+    display: inline;
+  }
+}

@@ -9,7 +9,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** E2 (пузырь диалога) — начатые файлы лежат незакоммиченными: `src/world/ui/content.ts`, `useTalk.ts`, `Portrait.tsx`. B1 добавляет миграцию `world_saves` — она выполнится на продакшн-Postgres при первом деплое после push.
 
 ## Current task
-E7
+F1
 
 ## Tasks
 ### A — core logic
@@ -51,7 +51,7 @@ E7
 - [x] E4 Companion 兔儿爷
 - [x] E5 Panels (tasks, bag, map, 图鉴, 成语 book, stamps)
 - [x] E6 Game settings
-- [ ] E7 The /play card
+- [x] E7 The /play card
 
 ### F — MVP content
 - [ ] F1 District 鼓楼 · 南锣鼓巷 maps + interiors
@@ -151,6 +151,7 @@ _(date — decision — why)_
 - 2026-09-29 — E4: 兔儿爷 sits bottom-left (a round button with his sprite) and moves up above the bubble while you talk. His row: 🔁 Again (second tap on the same line: slower), Translate (the English line + each word with pinyin and meaning, tap → word card), Why? (the node's `why`, else a calm default), What do I say? (one hint step, same as 💡), What now? (`whatNow` of the quests), Keep (tap words of the line → the app collection **“Words from Beijing”**, made the first time, with reading and meaning so off-list situation words keep them). He opens by himself only with a cue after 2 misses in a row, a misheard word (卖/买) or English input, and once after 60 s standing still while a quest is under way. Tab opens him from anywhere, in a conversation too. The world does not pause while he is open (he is not a full-screen panel). `keepBeijingWord` was added to `src/store/wordCommands.ts` (a new function only).
 - 2026-09-29 — E5: the six panels are **one sheet with a tab row** (📜 Tasks · 🎒 Bag · 🗺 Map · 图鉴 · 成语 · 印章); 🗺 🎒 📜 and M / B open it at their tab, Esc or a tap outside closes it; the world sleeps (`setPaused`) while it is open. The map is a schematic of the 13 districts (visited filled, here in red, later chapters faded but open); a tap gives 兔儿爷's route from your district's first station (`findRoute` + `routeText`) — without a 交通卡 he says to buy one first. "Go — to the station" travels to map `station-<id>` when that map exists (F1/F4 build them). Stamps are drawn as CSS seals (red square, round for landmarks, the name in vertical 楷体) — no stamp atlas needed; missing ones show as dashed frames. The 成语 book shows plain ones before stories; the note about finding the book goes away with the flag **`idiom-book`** (H2 must set it in the 书店). Printing the 成语 book: **TODO**, not built (the print flow wants a collection; later, e.g. as a collection of the idioms' words). Words in legends, stories and riddles are tappable, follow 拼, and unknown words are marked as in the reader.
 - 2026-09-29 — E6: settings are a ⚙ tab at the end of the panels' tab row (no extra button in the one-line top bar). Answer by (voice/keyboard — also written to this device), 拼 under lines, on-screen joystick, text size S/M/L (the Chinese in the bubble: 18 / 22 / 27 px). The joystick (built now, D3 left it for here): a pad bottom-right that walks step by step while held and runs when pushed to the rim, plus an A button (= Space: talk/look ahead); it hides while talking or in a panel. Engine got `stick()` and `act()` on `RunningWorld`.
+- 2026-09-29 — E7: the card is a link, first on /play (before the seals and 点单), labelled **Game**: a 3:1 pixel banner (four pictures `public/world/art/banner-<time>.png`, rendered by `npm run world:banners` from the lane map with 兔儿爷 beside the hero), title, one progress line "Chapter · spirits n/7 · 成语 · stamps" (at ≤ 420 px it collapses to 章 灵 成 印 with numbers), where you stopped with the game time, Continue / Start. The banner follows the saved game clock; before a first game, the real clock. The device's copy shows at once, the server's replaces it if newer. Side by side on wide screens, banner above the text below 860 px. "Spirits n/7" counts the main story's seven (石狮子 九尾狐 门神 麒麟 貔貅 年兽 龙). The banners are drawn from the **prototype lane** for now; F1 should re-render them from the real 南锣鼓巷 map with 鼓楼 in the back (change the map id in `world:banners`).
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

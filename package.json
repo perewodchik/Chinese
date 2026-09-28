@@ -19,7 +19,8 @@
     "data": "python scripts/build_data.py && python scripts/build_radicals.py && python scripts/build_fonts.py",
     "vercel-build": "tsc -b && vite build && node scripts/build-api.mjs",
     "voices": "tsx scripts/voices/build.ts",
-    "world": "npm run world:art && npm run world:check",
+    "world": "npm run world:art && npm run world:check && npm run world:banners",
+    "world:banners": "for t in morning day evening night; do tsx scripts/world/render-map.ts hutong-proto 960x320 $t public/world/art/banner-$t.png 14,7 16,6 || exit 1; done",
     "world:art": "tsx scripts/world/art/build.ts",
     "world:check": "tsx scripts/world/check-content.ts"
   },

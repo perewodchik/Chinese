@@ -9,6 +9,7 @@ import { useStore } from '../../store/store';
 import { Seg } from '../../ui/Seg';
 import { useTitle } from '../../ui/useTitle';
 import { usePlayContext } from './usePlayContext';
+import { WorldCard } from '../../world/ui/WorldCard';
 import '../../games/kit/kit.css';
 
 const BANDS = ['1', '2'] as const;
@@ -62,6 +63,8 @@ export function PlayPage() {
           onChange={(v) => setQuery('band', v, '1')}
         />
       </div>
+
+      <WorldCard />
 
       <section className="play-book" aria-label="Seals">
         <div className="play-book-seals">
