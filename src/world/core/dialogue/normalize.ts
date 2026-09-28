@@ -38,9 +38,10 @@ export const hanziOnly = (s: string) => [...s].filter((c) => HANZI.test(c)).join
 export function toneless(py: string): string {
   return py
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
-    .replace(/ü|u:/g, 'v');
+    // ü is u + a combining diaeresis once decomposed; keep it apart from u.
+    .replace(/u\u0308|u:/g, 'v')
+    .replace(/[\u0300-\u036f]/g, '');
 }
 
 /** One whole toneless syllable: an initial, if any, and a final. */
