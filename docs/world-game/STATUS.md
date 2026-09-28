@@ -7,7 +7,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
-A5
+A6
 
 ## Tasks
 ### A — core logic
@@ -15,7 +15,7 @@ A5
 - [x] A2 Types + content schemas
 - [x] A3 Clock
 - [x] A4 Save reducer + migrate
-- [ ] A5 Merge
+- [x] A5 Merge
 - [ ] A6 Grid + A*
 - [ ] A7 Conditions, quests, schedule
 - [ ] A8 Dialogue (source, scripted, match, universal, normalize)
