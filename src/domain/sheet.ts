@@ -15,7 +15,7 @@ export type PaletteId = 'cinnabar' | 'indigo' | 'pine' | 'plum' | 'graphite';
 export type StyleId = 'classic' | 'workbook' | 'quiet' | 'card';
 
 /**
- * The two ways a collection prints.
+ * The ways a collection prints.
  *
  * There used to be eight controls here — how many to a page, square size,
  * guides, rows, how many to trace, how many faint, a design and a colour — and
@@ -23,8 +23,12 @@ export type StyleId = 'classic' | 'workbook' | 'quiet' | 'card';
  * one character and three under the next. A layout now fixes all of that at
  * once: every square is the same 15 mm, twelve to a row, and every block of a
  * layout has the same heading, the same notes zone and the same rows.
+ *
+ * Test is the odd one out: it prints only the learned items, as a reading and
+ * a meaning over empty squares with the answers under a fold, and every print
+ * of it waits in Review to be marked.
  */
-export type LayoutId = 'study' | 'drill';
+export type LayoutId = 'study' | 'drill' | 'test';
 
 /** What a collection stores about how it prints. */
 export interface SheetChoice {
@@ -61,9 +65,17 @@ export const LAYOUTS: Record<LayoutId, LayoutInfo> = {
     perPage: 4,
     rows: 2,
   },
+  test: {
+    id: 'test',
+    name: 'Test',
+    blurb: '9 a page, learned ones only. Reading and meaning, empty squares, answers under a fold.',
+    // what `recallLayout` fits with one row and the key on the page
+    perPage: 9,
+    rows: 1,
+  },
 };
 
-export const LAYOUT_IDS: LayoutId[] = ['study', 'drill'];
+export const LAYOUT_IDS: LayoutId[] = ['study', 'drill', 'test'];
 
 export const perPageOf = (layout: LayoutId) => LAYOUTS[layout].perPage;
 

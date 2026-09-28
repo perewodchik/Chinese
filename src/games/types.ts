@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import type { Library, SyllabusWord } from '../data/types';
+import type { CollectionWord } from '../domain/collection';
 import type { ItemId } from '../domain/ids';
 import type { Rng } from './kit/rng';
 
@@ -109,4 +110,8 @@ export interface GameProps {
 export interface WordHost {
   open(id: ItemId): void;
   status(w: string): 'known' | 'learning' | 'new';
+  /** keep a list of words as a collection (one per `key`, updated after); returns its id */
+  keepList(key: string, name: string, note: string, words: CollectionWord[]): string;
+  /** leave the game for that collection, to print it */
+  openList(id: string): void;
 }

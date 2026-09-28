@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { finishGame } from '../../store/commands';
+import { keepMenuWords } from '../../store/wordCommands';
 import { gameById } from '../../games/registry';
 import { Photo } from '../../games/kit/Photo';
 import { newSeed } from '../../games/kit/rng';
@@ -97,7 +98,15 @@ function Host({ game }: { game: GameManifest }) {
   // seed), so a word met mid-order can be kept without leaving the order.
   const openItem = useOpenItem();
   const knowledge = useWordKnowledge();
-  const words = useMemo<WordHost>(() => ({ open: openItem, status: knowledge.status }), [openItem, knowledge]);
+  const words = useMemo<WordHost>(
+    () => ({
+      open: openItem,
+      status: knowledge.status,
+      keepList: keepMenuWords,
+      openList: (id) => navigate(paths.collection(id)),
+    }),
+    [openItem, knowledge, navigate],
+  );
 
   useEffect(() => {
     if (!over || recorded.current || !results.length) return;

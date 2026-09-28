@@ -61,11 +61,14 @@ export function deleteVideo(id: string) {
 const VIDEO_PRESET = 'words-videos';
 
 /**
- * Words and characters met in a video, kept to learn: into one collection for
- * all of them, made the first time, so the Words drill brings them in with the
- * rest. Returns how many were new to it.
+ * Words and characters met in a video, kept to learn: into the collection
+ * picked on the Text step, or else “Words from videos”, made the first time,
+ * so the Words drill brings them in with the rest. Returns how many were new
+ * to it and where they went.
  */
-export function keepVideoItems(ids: ItemId[]): number {
+export function keepVideoItems(ids: ItemId[], to = ''): { added: number; name: string } {
+  const picked = to ? getState().collections.find((c) => c.id === to) : undefined;
+  if (picked) return { added: addItems(picked.id, ids), name: picked.name };
   const found = getState().collections.find((c) => c.presetId === VIDEO_PRESET);
   const target =
     found?.id ??
@@ -74,7 +77,7 @@ export function keepVideoItems(ids: ItemId[]): number {
       presetId: VIDEO_PRESET,
       note: 'Words and characters you met in videos and chose to learn. The Words drill brings the words in a few a day.',
     }).id;
-  return addItems(target, ids);
+  return { added: addItems(target, ids), name: found?.name ?? 'Words from videos' };
 }
 
 /** The collection kept words go into, if there is one yet. */

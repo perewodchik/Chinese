@@ -79,6 +79,12 @@ export interface AppSettings {
   goalMinutes: number;
   /** one day off a week does not break the streak, when the other days of that week met the goal */
   restDays: boolean;
+  /**
+   * The collections a video's Text step keeps new words and new characters
+   * in, by id; empty for “Words from videos”, made the first time.
+   */
+  videoWordsTo: string;
+  videoCharsTo: string;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -108,6 +114,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   dailyGoal: 'plan',
   goalMinutes: 15,
   restDays: true,
+  videoWordsTo: '',
+  videoCharsTo: '',
 };
 
 /**

@@ -1,6 +1,7 @@
 import { wordsBandOf, wordsCollectionName, wordsPresetId, type SweepMark } from '../domain/sweep';
-import type { ItemId } from '../domain/ids';
-import { addItems, createCollection, gradeItem, setLearned } from './commands';
+import type { CollectionWord } from '../domain/collection';
+import { wordId, type ItemId } from '../domain/ids';
+import { addItems, createCollection, gradeItem, setLearned, setWords } from './commands';
 import { getState } from './store';
 
 /**
@@ -60,4 +61,21 @@ export function keepTalkWord(id: ItemId): void {
       note: 'Words you met talking and chose to keep. The Words drill brings them in a few a day.',
     }).id;
   addItems(target, [id]);
+}
+
+/**
+ * A shop's menu words (the 点单 games), kept as one collection to print: made
+ * the first time, brought up to date after. Most menu words are off the HSK
+ * lists (拿铁, 燕麦奶), so each goes in with its pinyin and meaning as the
+ * collection's own words, which is what the sheet prints them from.
+ */
+export function keepMenuWords(shop: string, name: string, note: string, words: CollectionWord[]): string {
+  const presetId = `menu-${shop}`;
+  const items = words.map((w) => wordId(w.w));
+  const found = getState().collections.find((c) => c.presetId === presetId);
+  if (!found) return createCollection({ name, presetId, note, items, words }).id;
+  addItems(found.id, items);
+  const fresh = new Map(words.map((w) => [w.w, w]));
+  setWords(found.id, [...(found.words ?? []).filter((w) => !fresh.has(w.w)), ...words]);
+  return found.id;
 }

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router';
 import {
   claimedItems,
-  itemsInScope,
+  itemsToPrint,
   pagesFor,
   printName,
   scopeLabel,
@@ -63,10 +63,11 @@ export function CollectionEditor({ c, tab }: Props) {
   const urlRef = useRef<string | null>(null);
 
   const taken = useMemo(() => claimedItems(collections, c.id), [collections, c.id]);
-  const items = useMemo(() => itemsInScope(c, learned, recall), [c, learned, recall]);
-  // A test asks for what you have learned: a character you have never studied
-  // is not something to write from memory, and marking it only makes noise.
-  const tested = useMemo(() => items.filter((id) => learned.has(id)), [items, learned]);
+  const isTest = c.sheet.layout === 'test';
+  // A Test prints only what you have learned: a character you have never
+  // studied is not something to write from memory, and marking it only makes noise.
+  const items = useMemo(() => itemsToPrint(c, learned, recall), [c, learned, recall]);
+  const testTitle = `${c.name} — from memory`;
   const stats = statsOf(c, learned, recall);
   const preview = useMemo(() => items.slice(0, perPage * PREVIEW_PAGES), [items, perPage]);
 
@@ -87,12 +88,14 @@ export function CollectionEditor({ c, tab }: Props) {
     setBuilding(true);
     const id = setTimeout(async () => {
       try {
-        const { bytes } = await renderCollection(lib, c, preview, {
-          footerNote,
-          total: items.length,
-          pages: stats.pages,
-          palette: printPalette,
-        });
+        const { bytes } = isTest
+          ? await renderRecall(lib, preview, printSheet(c.sheet, printPalette), { title: testTitle, footerNote })
+          : await renderCollection(lib, c, preview, {
+              footerNote,
+              total: items.length,
+              pages: stats.pages,
+              palette: printPalette,
+            });
         if (cancelled) return;
         const next = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/pdf' }));
         if (urlRef.current) URL.revokeObjectURL(urlRef.current);
@@ -119,6 +122,7 @@ export function CollectionEditor({ c, tab }: Props) {
   );
 
   function download() {
+    if (isTest) return testSheet();
     const title = printName(c);
     void pdf.run('worksheet', {
       title,
@@ -135,12 +139,12 @@ export function CollectionEditor({ c, tab }: Props) {
    * be marked.
    */
   function testSheet() {
-    const title = `${c.name} — from memory`;
-    void pdf.run('test', {
+    const title = testTitle;
+    void pdf.run('worksheet', {
       title,
-      render: () => renderRecall(lib, tested, printSheet(c.sheet, printPalette), { title, footerNote }),
+      render: () => renderRecall(lib, items, printSheet(c.sheet, printPalette), { title, footerNote }),
       after: () => {
-        recordSheet(title, tested);
+        recordSheet(title, items);
         return 'Mark it in Review once you have written it.';
       },
     });
@@ -180,18 +184,6 @@ export function CollectionEditor({ c, tab }: Props) {
           <span className={`badge ${stats.learned === stats.total ? 'done' : ''}`}>{stats.learned} learned</span>
         )}
         <div className="spacer" />
-        <button
-          className="btn"
-          onClick={testSheet}
-          disabled={busy || !tested.length}
-          title={
-            tested.length
-              ? `The ${tested.length} learned characters and words here with no model to copy — the reading and the meaning, empty squares, and the answers under a fold`
-              : 'Nothing here is learned yet: a test sheet asks only for what you have learned'
-          }
-        >
-          {pdf.busy === 'test' ? 'Building…' : tested.length ? `Test sheet · ${tested.length}` : 'Test sheet'}
-        </button>
         <button className="btn primary" onClick={download} disabled={busy || !items.length}>
           {pdf.busy === 'worksheet' ? 'Building…' : `Download ${stats.pages} page${stats.pages === 1 ? '' : 's'}`}
         </button>
@@ -238,7 +230,8 @@ export function CollectionEditor({ c, tab }: Props) {
         )}
         <div className="spacer" />
         <span className="tiny muted">
-          {scopeLabel(c, learned, recall)} · {stats.pages} page{stats.pages === 1 ? '' : 's'}
+          {scopeLabel(c, learned, recall)}
+          {isTest && ` · ${items.length} learned`} · {stats.pages} page{stats.pages === 1 ? '' : 's'}
         </span>
       </div>
 
@@ -277,12 +270,18 @@ export function CollectionEditor({ c, tab }: Props) {
               ) : (
                 <div className="empty">
                   <span className="big">纸</span>
-                  {c.items.length ? 'Nothing in the range you picked.' : 'Nothing in this collection yet.'}
-                  <div style={{ marginTop: 14 }}>
-                    <Link className="btn sm" to={paths.collection(c.id, 'items')} replace>
-                      Add some
-                    </Link>
-                  </div>
+                  {!c.items.length
+                    ? 'Nothing in this collection yet.'
+                    : isTest
+                      ? 'Nothing learned in what you picked yet — a test asks only for what you have learned.'
+                      : 'Nothing in the range you picked.'}
+                  {!(isTest && c.items.length) && (
+                    <div style={{ marginTop: 14 }}>
+                      <Link className="btn sm" to={paths.collection(c.id, 'items')} replace>
+                        Add some
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

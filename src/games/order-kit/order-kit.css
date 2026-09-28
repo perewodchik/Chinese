@@ -2266,6 +2266,21 @@
   text-align: left;
 }
 
+.ok-mw-keep {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 10px 4px 0;
+  padding: 6px 6px 6px 10px;
+  border-radius: 10px;
+  background: var(--card-2);
+}
+
+.ok-mw-keep b {
+  font-weight: 600;
+}
+
 .ok-intro .ok-mw {
   margin-top: 8px;
   padding: 0;

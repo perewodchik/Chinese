@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { charId, wordId, type ItemId } from '../../domain/ids';
+import type { Collection } from '../../domain/collection';
+import { charId, isWordId, wordId, type ItemId } from '../../domain/ids';
 import { segment } from '../../domain/segment';
 import { isHanzi } from '../../domain/text';
 import { copiedShare, syllablesOf, transcriptWords } from '../../domain/video';
 import { itemForToken, wordInfo } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
+import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { findVideo, keepVideoItems, patchVideo } from '../../store/videoCommands';
 import { Seg } from '../../ui/Seg';
@@ -28,14 +30,48 @@ type Size = (typeof SIZES)[number]['id'];
 
 /** A per-device choice, like the reader's: how the text looks here, not what was learned. */
 const VIEW_KEY = 'hanzi.videos.wordsView';
-function readView(): { size: Size; english: boolean } {
+function readView(): { size: Size; english: boolean; pinyin: boolean } {
   try {
-    const v = JSON.parse(localStorage.getItem(VIEW_KEY) ?? '{}') as { size?: string; english?: boolean };
-    return { size: SIZES.some((s) => s.id === v.size) ? (v.size as Size) : '1', english: v.english === true };
+    const v = JSON.parse(localStorage.getItem(VIEW_KEY) ?? '{}') as { size?: string; english?: boolean; pinyin?: boolean };
+    return {
+      size: SIZES.some((s) => s.id === v.size) ? (v.size as Size) : '1',
+      english: v.english === true,
+      pinyin: v.pinyin !== false,
+    };
   } catch {
-    return { size: '1', english: false };
+    return { size: '1', english: false, pinyin: true };
   }
 }
+
+/**
+ * Where kept words or characters go: “Words from videos” unless another
+ * collection is picked. Remembered in Settings, so every device agrees.
+ */
+function KeepTo({ value, onChange, what }: { value: string; onChange: (id: string) => void; what: string }) {
+  const collections = useStore((s) => s.collections);
+  const others = collections.filter((c) => c.presetId !== 'words-videos');
+  const current = others.some((c) => c.id === value) ? value : '';
+  return (
+    <select
+      className="keep-to tiny"
+      value={current}
+      aria-label={`Collection new ${what} go to`}
+      title={`Where + puts new ${what}`}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <option value="">→ Words from videos</option>
+      {others.map((c) => (
+        <option key={c.id} value={c.id}>
+          → {c.name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/** The collection `KeepTo` points at, if it exists yet. */
+const keepTarget = (collections: Collection[], to: string) =>
+  (to && collections.find((c) => c.id === to)) || collections.find((c) => c.presetId === 'words-videos');
 
 interface Candidate {
   w: string;
@@ -64,7 +100,11 @@ export function WordsStep() {
   const toast = useToast();
   const fit = useFit(v, lines);
   const collections = useStore((s) => s.collections);
-  const kept = useMemo(() => new Set(collections.find((c) => c.presetId === 'words-videos')?.items ?? []), [collections]);
+  const wordsTo = useStore((s) => s.settings.videoWordsTo);
+  const charsTo = useStore((s) => s.settings.videoCharsTo);
+  // What is already in the collection a thing would go to needs no + any more.
+  const kept = useMemo(() => new Set(keepTarget(collections, wordsTo)?.items ?? []), [collections, wordsTo]);
+  const keptChars = useMemo(() => new Set(keepTarget(collections, charsTo)?.items ?? []), [collections, charsTo]);
   const ignore = useMemo(() => new Set([...skippedWords(v), ...transcriptWords(v.lines, lib)]), [v, lib]);
   /** Not worth marking as new: a name, a noise, a word waved off. */
   const plain = (w: string) => ignore.has(w) || isNoise(w) || v.skipped.includes(w);
@@ -120,8 +160,16 @@ export function WordsStep() {
   }, [candidates, worthNow.length, v.id, v.marks.words]);
 
   function keep(ids: ItemId[]) {
-    const n = keepVideoItems(ids);
-    toast(n ? `${n} added to “Words from videos”.` : 'Already in “Words from videos”.');
+    // Words to where words go, characters to where characters go.
+    const words = ids.filter(isWordId);
+    const chars = ids.filter((id) => !isWordId(id));
+    const said: string[] = [];
+    for (const [some, to] of [[words, wordsTo], [chars, charsTo]] as const) {
+      if (!some.length) continue;
+      const { added, name } = keepVideoItems(some, to);
+      said.push(added ? `${added} added to “${name}”` : `already in “${name}”`);
+    }
+    if (said.length) toast(`${said.join('; ')}.`.replace(/^./, (c) => c.toUpperCase()));
   }
 
   // Lines copied into the notebook, ticked on their number; the share is of the whole video.
@@ -137,11 +185,14 @@ export function WordsStep() {
   };
   const copiedPct = Math.round(copiedShare(v) * 100);
 
-  const newChars = (fit?.newChars ?? []).filter((c) => !kept.has(charId(c))).slice(0, 16);
+  const newChars = (fit?.newChars ?? []).filter((c) => !keptChars.has(charId(c))).slice(0, 16);
 
   return (
     <div className="video-step words-step">
-      <h2 className="videos-label">New in {v.parts.length > 1 ? `part ${part + 1}` : 'this video'}</h2>
+      <div className="row keep-head">
+        <h2 className="videos-label">New in {v.parts.length > 1 ? `part ${part + 1}` : 'this video'}</h2>
+        <KeepTo what="words" value={wordsTo} onChange={(videoWordsTo) => setSettings({ videoWordsTo })} />
+      </div>
       {open.length ? (
         <div className="new-words">
           {open.slice(0, 24).map((c) => (
@@ -151,7 +202,7 @@ export function WordsStep() {
                 <span className="tiny new-word-py">{c.py}</span>
                 <span className="tiny muted new-word-en">{c.en}</span>
               </button>
-              <button className="new-word-act" aria-label={`Learn ${c.w}`} title="Add to Words from videos" onClick={() => keep([wordId(c.w)])}>
+              <button className="new-word-act" aria-label={`Learn ${c.w}`} title="Add to the collection picked above" onClick={() => keep([wordId(c.w)])}>
                 +
               </button>
               <button
@@ -178,7 +229,10 @@ export function WordsStep() {
 
       {newChars.length > 0 && (
         <>
-          <h2 className="videos-label">Characters you have not learned</h2>
+          <div className="row keep-head">
+            <h2 className="videos-label">Characters you have not learned</h2>
+            <KeepTo what="characters" value={charsTo} onChange={(videoCharsTo) => setSettings({ videoCharsTo })} />
+          </div>
           <div className="vchars">
             {newChars.map((c) => (
               <span key={c} className="vchar">
@@ -223,6 +277,14 @@ export function WordsStep() {
         <Seg<Size> size="sm" value={view.size} options={SIZES} onChange={(size) => setView({ size })} label="Text size" />
         <button
           className="chip"
+          aria-pressed={view.pinyin}
+          title="Show the pinyin over each word"
+          onClick={() => setView({ pinyin: !view.pinyin })}
+        >
+          Pinyin
+        </button>
+        <button
+          className="chip"
           aria-pressed={view.english}
           disabled={!hasEnglish}
           title={hasEnglish ? 'Show the English under each line' : 'This text has no English yet — Study adds it'}
@@ -243,7 +305,7 @@ export function WordsStep() {
         )}
         <SelectToggle on={select.on} onToggle={select.toggleMode} />
       </div>
-      <ol className="word-lines" style={{ ['--words-scale' as string]: view.size }}>
+      <ol className="word-lines" data-nopy={!view.pinyin || undefined} style={{ ['--words-scale' as string]: view.size }}>
         {lines.map((line, i) => {
           const syl = syllablesOf(line);
           let h = 0;

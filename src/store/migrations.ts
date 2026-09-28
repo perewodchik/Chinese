@@ -397,6 +397,8 @@ function settingsFrom(v: unknown, version: number): AppSettings {
     dailyGoal: s.dailyGoal === 'minutes' ? 'minutes' : 'plan',
     goalMinutes: clamp(Math.round(num(s.goalMinutes, DEFAULT_SETTINGS.goalMinutes)), 5, 120),
     restDays: s.restDays !== false,
+    videoWordsTo: strOr(s.videoWordsTo, DEFAULT_SETTINGS.videoWordsTo),
+    videoCharsTo: strOr(s.videoCharsTo, DEFAULT_SETTINGS.videoCharsTo),
   };
 }
 

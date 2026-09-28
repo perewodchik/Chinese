@@ -1490,6 +1490,19 @@ a.tpl-card:hover {
   height: 3px;
 }
 
+.layout-thumb[data-layout='test'] {
+  gap: 1px;
+}
+
+.layout-thumb[data-layout='test'] .blk {
+  gap: 0.5px;
+}
+
+.layout-thumb[data-layout='test'] .head {
+  height: 1.5px;
+  width: 40%;
+}
+
 .toggle[data-disabled] {
   opacity: 0.45;
   cursor: not-allowed;

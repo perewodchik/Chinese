@@ -119,6 +119,20 @@ export function itemsInScope(
   }
 }
 
+/**
+ * What actually goes on paper: the scope, and for a Test only the learned ones —
+ * a character never studied is not something to write from memory.
+ */
+export function itemsToPrint(
+  c: Collection,
+  learned: ReadonlySet<ItemId>,
+  book?: RecallBook,
+  now = Date.now(),
+): ItemId[] {
+  const items = itemsInScope(c, learned, book, now);
+  return c.sheet.layout === 'test' ? items.filter((i) => learned.has(i)) : items;
+}
+
 export const pagesFor = (count: number, perPage: number) =>
   Math.max(1, Math.ceil(count / Math.max(1, perPage)));
 
@@ -127,7 +141,7 @@ export function statsOf(
   learned: ReadonlySet<ItemId>,
   book?: RecallBook,
 ): CollectionStats {
-  const printing = itemsInScope(c, learned, book).length;
+  const printing = itemsToPrint(c, learned, book).length;
   return {
     total: c.items.length,
     learned: c.items.filter((i) => learned.has(i)).length,

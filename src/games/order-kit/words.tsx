@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import type { CollectionWord } from '../../domain/collection';
 import { itemForToken } from '../../domain/words';
 import { segment } from '../../domain/segment';
 import { glossFor } from './gloss';
@@ -69,6 +70,7 @@ export function MenuWordList({ brand }: { brand: Brand }) {
   const [open, setOpen] = useState<string | null>(null);
   return (
     <div className="ok-mw">
+      <KeepMenuWords brand={brand} />
       {brand.words.map((g) => {
         const photos = new Map(g.words.map((w) => [w, photoOf(brand, w)]));
         // a group with no photo at all (the options) goes without the column
@@ -109,6 +111,57 @@ export function MenuWordList({ brand }: { brand: Brand }) {
           </section>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * The menu words as a collection, to print: one per shop, brought up to date
+ * when saved again. Each word takes its pinyin and meaning from the shop's
+ * glossary, and the note as what to watch for, so a word off the HSK lists
+ * prints as fully as one on them.
+ */
+function KeepMenuWords({ brand }: { brand: Brand }) {
+  const h = useHelp();
+  const [saved, setSaved] = useState<{ id: string; n: number } | null>(null);
+  if (!h.words) return null;
+  const host = h.words;
+  const keep = () => {
+    const seen = new Set<string>();
+    const words: CollectionWord[] = brand.words
+      .flatMap((g) => g.words)
+      .filter((w) => !seen.has(w) && !!seen.add(w))
+      .map((w) => {
+        const g = glossFor(w, h.gl);
+        return { w, py: g.py, d: g.en, hsk: h.lib.byWord.get(w)?.hsk ?? null, explain: g.note ?? '', examples: [] };
+      });
+    const id = host.keepList(
+      brand.id,
+      `${brand.name} menu words`,
+      `Every word on ${brand.name}’s menu, options and checkout, from the 点单 game (${brand.latin}).`,
+      words,
+    );
+    setSaved({ id, n: words.length });
+  };
+  return (
+    <div className="ok-mw-keep">
+      {saved ? (
+        <>
+          <span className="small">
+            {saved.n} words in <b className="hanzi">{brand.name}</b> menu words
+          </span>
+          <button type="button" className="btn sm" onClick={() => host.openList(saved.id)}>
+            Open to print ›
+          </button>
+        </>
+      ) : (
+        <>
+          <span className="small muted">Keep them on paper</span>
+          <button type="button" className="btn sm" onClick={keep}>
+            Save as a collection
+          </button>
+        </>
+      )}
     </div>
   );
 }

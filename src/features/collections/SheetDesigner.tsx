@@ -65,7 +65,7 @@ function LayoutThumb({ id }: { id: LayoutId }) {
         <span key={i} className="blk">
           <i className="head" />
           {id === 'study' && <i className="notes" />}
-          <i className="grid" style={{ height: L.rows * 3.4 }} />
+          <i className="grid" style={{ height: L.rows * (id === 'test' ? 2.4 : 3.4) }} />
         </span>
       ))}
     </span>
