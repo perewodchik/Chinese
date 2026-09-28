@@ -9,8 +9,13 @@ first unchecked box. Tick a box in the same commit as the work.
 **Скриншоты (офлайн-рендер, без интерфейса):** `docs/world-game/review/f1/` (все карты района), `f4/` (станция и площадь), `f5/` (телефон 390 и iPad 1024, день/вечер/ночь).
 **Не закончено:** проверка в браузере и в WebKit (F5, нужен человек), дальше по списку — G (звук), H (остальной Пекин), I, X.
 
+## Summary after phases A–I (2026-09-29)
+**Done:** the whole Beijing story — chapters 1–7 and the epilogue — plus 14 side quests, in 13 district folders: 57 maps (13 stations, 2 bus/train stops, streets, parks, interiors), 51 people with cards, 148 scenes, 26 quests, 8 spirits (石狮子 九尾狐 门神 麒麟 貔貅 年兽 龙 + ending), 15 成语, ~45 stamps. Engine and overlay: walking (tap/hold/keys/joystick), doors and edges, street life, day and night, the dialogue bubble with tappable words and 拼, listen-first lines, the input bar (voice / keyboard / built-in pinyin), 兔儿爷's help row, panels (tasks, bag, map with routes, 图鉴, 成语 book, stamps, ⚙), subway/bus/train rides with calls, 点单 shop doors, shared bikes, synthesized street sounds, NPC voices (Qwen, pre-rendered), saves on the server with merge. Every scene is played to its end by the tests with its own hints; every chapter is played through the core.
+**Weak / unchecked:** nobody has seen it in a browser (no dev server in unattended runs) — layout, touch, frame rate on the iPad, Safari's speech recognition and audio unlock are all unverified; the art is my own code-drawn pixel art (the fox and the dragon are the weakest; roofs are flat bands); lanes run east–west for the tile kit; people are placed when a map loads (they don't walk off at the hour); the 成语 book cannot be printed yet; the ride sheet is a sheet, not a train interior.
+**Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
+
 ## Current task
-G2 (clips still rendering) → I3
+G2 (clips still rendering) → X0
 
 ## Tasks
 ### A — core logic
@@ -78,7 +83,7 @@ G2 (clips still rendering) → I3
 ### I — finishing
 - [x] I1 LiveDialogue hook (disabled)
 - [x] I2 iPad pass (code-level; the WebKit probe and frame rate need a running server — see notes)
-- [ ] I3 Final summary
+- [x] I3 Final summary
 
 ### X — Beijing+ (prompt §9½, before other cities)
 - [ ] X0 QA harness: quest solver, golden saves, map probe, crash guard, stress; fix A–I
