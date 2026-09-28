@@ -1,0 +1,17 @@
+[
+  {
+    "id": "tiantan",
+    "name": "天坛",
+    "en": "The Temple of Heaven",
+    "place": "tiantan-park",
+    "design": "tiantan",
+    "landmark": true
+  },
+  {
+    "id": "huiyinbi",
+    "name": "回音壁",
+    "en": "Heard the Echo Wall",
+    "place": "huiyinbi",
+    "design": "huiyinbi"
+  }
+]

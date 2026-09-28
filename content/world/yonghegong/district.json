@@ -1,0 +1,24 @@
+{
+  "id": "yonghegong",
+  "name": "雍和宫 · 国子监",
+  "en": "Lama Temple · Imperial Academy",
+  "chapter": 4,
+  "maps": [
+    "yonghegong-street",
+    "guozijian",
+    "station-yonghegong"
+  ],
+  "stations": [
+    "yonghegong",
+    "andingmen"
+  ],
+  "names": [
+    "雍和宫",
+    "国子监",
+    "麒麟",
+    "天坛",
+    "北京",
+    "兔儿爷"
+  ],
+  "ambience": "temple"
+}

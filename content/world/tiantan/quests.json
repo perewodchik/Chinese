@@ -1,0 +1,43 @@
+[
+  {
+    "id": "ch4",
+    "title": "The echo",
+    "chapter": 4,
+    "steps": [
+      {
+        "id": "go",
+        "now": "兔儿爷 has heard of a spirit that loves learning. Start at 天坛 — line 5 to 天坛东门.",
+        "done": {
+          "scene": "tiantan-arrive"
+        }
+      },
+      {
+        "id": "echo",
+        "now": "At the Echo Wall 回音壁, east of the Hall of Prayer, a boy wants to whisper you a secret through the wall. Talk to him, then put your ear to the wall.",
+        "done": {
+          "flag": "heard-qilin"
+        }
+      },
+      {
+        "id": "go-gzj",
+        "now": "The whisper said 国子监. Ride line 5 north to 雍和宫 and walk along 国子监街 to the Academy's gate.",
+        "done": {
+          "scene": "gzj-arrive"
+        }
+      },
+      {
+        "id": "qilin",
+        "now": "The bronze 麒麟 in the Academy's courtyard wakes at dusk. Come after five in the afternoon.",
+        "done": {
+          "spirit": "qilin"
+        }
+      }
+    ],
+    "reward": [
+      {
+        "do": "chapter",
+        "chapter": 5
+      }
+    ]
+  }
+]

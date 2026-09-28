@@ -164,6 +164,7 @@ const nodeSchema: z.ZodType<DialogueNode> = z.strictObject({
   pinyin: z.string().optional(),
   simpler: z.string().optional(),
   key: z.boolean().optional(),
+  listen: z.boolean().optional(),
   expect: z.array(expectSchema).optional(),
   next: id.optional(),
   hint: z.strictObject({ word: text, frame: text, full: text }).optional(),

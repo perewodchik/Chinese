@@ -1,0 +1,191 @@
+[
+ {
+  "kind": "prop",
+  "id": "hall",
+  "tile": [
+   21,
+   11
+  ],
+  "frame": "qiniandian/hall",
+  "blocks": [
+   4,
+   5
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hall-name",
+  "tile": [
+   20,
+   12
+  ],
+  "text": "祈年殿",
+  "en": "The Hall of Prayer for Good Harvests"
+ },
+ {
+  "kind": "sign",
+  "id": "park",
+  "tile": [
+   2,
+   14
+  ],
+  "text": "天坛公园",
+  "en": "Temple of Heaven Park"
+ },
+ {
+  "kind": "sign",
+  "id": "echo",
+  "tile": [
+   36,
+   14
+  ],
+  "text": "回音壁 →",
+  "en": "The Echo Wall (this way)"
+ },
+ {
+  "kind": "door",
+  "id": "to-echo",
+  "tile": [
+   47,
+   16
+  ],
+  "to": {
+   "map": "huiyinbi",
+   "tile": [
+    1,
+    9
+   ],
+   "facing": "right"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station",
+  "tile": [
+   44,
+   18
+  ],
+  "to": {
+   "map": "station-tiantandongmen",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station-2",
+  "tile": [
+   45,
+   18
+  ],
+  "to": {
+   "map": "station-tiantandongmen",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "metro-sign",
+  "tile": [
+   43,
+   18
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   4,
+   12
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   9,
+   22
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-3",
+  "tile": [
+   32,
+   11
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-4",
+  "tile": [
+   38,
+   23
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-5",
+  "tile": [
+   28,
+   23
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "erhu",
+  "npc": "huqin-yeye",
+  "tile": [
+   8,
+   16
+  ],
+  "facing": "right"
+ },
+ {
+  "kind": "npc",
+  "id": "jianzi",
+  "npc": "tiantan-nainai",
+  "tile": [
+   30,
+   17
+  ],
+  "facing": "left"
+ }
+]

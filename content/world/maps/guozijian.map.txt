@@ -1,0 +1,38 @@
+id: guozijian
+size: 22x14
+tilesets: tiles
+district: yonghegong
+pigeons: 2
+
+# 国子监: the Imperial Academy — old cypresses, the scholars' stone tablets, the round hall 辟雍, a bronze 麒麟
+
+[ground]
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmm
+[below]
+YYYYYYYYYYYYYYYYYYYYYY
+yyyyyyyyyyyyyyyyyyyyyy
+EEEEEEEEEEEEEEEEEEEEEE
+WWWWWWWWWWWWWWWWWWWWWW
+VVVVVVVVVVVVVVVVVVVVVV
+W....................W
+W....................W
+W....................W
+W....................W
+W....................W
+W....................W
+W....................W
+W....................W
+WWWWWWWWWW.WWWWWWWWWWW

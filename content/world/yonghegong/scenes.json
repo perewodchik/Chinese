@@ -1,0 +1,217 @@
+[
+  {
+    "id": "gzj-arrive",
+    "map": "guozijian",
+    "trigger": "auto",
+    "once": true,
+    "stamp": "guozijian",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "这是国子监！",
+        "translate": "So this is the Imperial Academy!",
+        "speaker": "hero",
+        "why": "国子监 — for 700 years the empire's highest school. The stone tablets carry the names of scholars who passed the imperial exams."
+      }
+    ]
+  },
+  {
+    "id": "frog",
+    "map": "guozijian",
+    "npc": "lao-xiansheng",
+    "trigger": "talk",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我什么都知道！",
+        "translate": "I know everything!",
+        "speaker": "xuesheng",
+        "next": "b"
+      },
+      {
+        "id": "b",
+        "say": "你是井底之蛙！",
+        "translate": "You're a frog at the bottom of a well!",
+        "key": true,
+        "onEnter": [
+          {
+            "do": "idiom",
+            "idiom": "井底之蛙"
+          }
+        ],
+        "next": "c",
+        "why": "A 成语 📌: 井底之蛙 — a frog in a well thinks the sky is as small as the well's mouth. Someone who has seen little and thinks it is everything."
+      },
+      {
+        "id": "c",
+        "say": "对不起，老师。",
+        "translate": "Sorry, teacher.",
+        "speaker": "xuesheng"
+      }
+    ]
+  },
+  {
+    "id": "student",
+    "map": "guozijian",
+    "npc": "xuesheng",
+    "trigger": "talk",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我什么都知道！",
+        "translate": "I know everything!"
+      }
+    ]
+  },
+  {
+    "id": "incense",
+    "map": "yonghegong-street",
+    "npc": "xiang-ayi",
+    "trigger": "talk",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！雍和宫在东边。",
+        "translate": "Hello! The Lama Temple is to the east."
+      }
+    ]
+  },
+  {
+    "id": "qilin-day",
+    "map": "guozijian",
+    "object": "qilin",
+    "trigger": "look",
+    "priority": 5,
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "麒麟在睡觉。",
+        "translate": "The qilin is asleep.",
+        "speaker": "hero"
+      }
+    ]
+  },
+  {
+    "id": "qilin",
+    "map": "guozijian",
+    "object": "qilin",
+    "trigger": "look",
+    "priority": 0,
+    "stamp": "qilin",
+    "when": {
+      "all": [
+        {
+          "hours": [
+            17,
+            6
+          ]
+        },
+        {
+          "not": {
+            "spirit": "qilin"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "木",
+        "explain": "树。",
+        "en": "wood, tree"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好。你也来学习吗？",
+        "translate": "Hello. Have you come to learn, too?",
+        "speaker": "qilin",
+        "expect": [
+          {
+            "intent": "learn",
+            "match": [
+              [
+                "好",
+                "好的",
+                "行",
+                "可以",
+                "要",
+                "是",
+                "对",
+                "学习",
+                "来"
+              ]
+            ],
+            "go": "b"
+          }
+        ],
+        "hint": {
+          "word": "学习",
+          "frame": "对，我来___。",
+          "full": "对，我来学习。"
+        }
+      },
+      {
+        "id": "b",
+        "say": "人字和木字，在一起是什么字？",
+        "translate": "The character 人 and the character 木 together — what character is that?",
+        "speaker": "qilin",
+        "simpler": "人和木，是什么字？",
+        "expect": [
+          {
+            "intent": "xiu",
+            "match": [
+              [
+                "休"
+              ]
+            ],
+            "go": "c",
+            "actions": [
+              {
+                "do": "spirit",
+                "spirit": "qilin"
+              }
+            ]
+          }
+        ],
+        "hint": {
+          "word": "人 + 木",
+          "frame": "是___字。",
+          "full": "是休字。"
+        },
+        "why": "A 灯谜: a person 人 leaning on a tree 木 is 休 — to rest."
+      },
+      {
+        "id": "c",
+        "say": "对！是休。我们是朋友了！",
+        "translate": "Right! It's 休. We're friends now!",
+        "speaker": "qilin"
+      }
+    ]
+  },
+  {
+    "id": "qilin-friend",
+    "map": "guozijian",
+    "object": "qilin",
+    "trigger": "look",
+    "priority": 1,
+    "when": {
+      "spirit": "qilin"
+    },
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "朋友，你好！",
+        "translate": "Hello, friend!",
+        "speaker": "qilin"
+      }
+    ]
+  }
+]

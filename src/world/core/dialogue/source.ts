@@ -21,6 +21,8 @@ export interface Line {
   en: string;
   /** a 📌 key line */
   key?: boolean;
+  /** hear it first: the words stay hidden until shown */
+  listen?: boolean;
   /** the node it comes from ('' for a line not in the script, like 不客气) */
   node: string;
   /** said slowly (慢一点) */

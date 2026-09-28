@@ -56,7 +56,8 @@
   "g": "gate",
   "K": "bookshelf",
   "m": "mask-wall",
-  "u": "curtain"
+  "u": "curtain",
+  "q": "echo-wall"
  },
  "above": {
   "x": "roof-grey",

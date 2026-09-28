@@ -1,0 +1,83 @@
+[
+  {
+    "id": "xiang-ayi",
+    "name": "卖香的阿姨",
+    "role": "a woman selling incense by the temple",
+    "look": {
+      "sprite": "woman",
+      "palette": "teal"
+    },
+    "voice": "xiaoyu",
+    "character": "Brisk, friendly.",
+    "knows": [
+      "The temple opens early"
+    ],
+    "wants": [
+      "Customers"
+    ],
+    "actions": [
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "香": "在庙里点的东西，有很好的味道。"
+    },
+    "misses": [
+      "啊？"
+    ]
+  },
+  {
+    "id": "lao-xiansheng",
+    "name": "老先生",
+    "role": "an old scholar who visits the Academy every day",
+    "look": {
+      "sprite": "grandpa",
+      "palette": "blue"
+    },
+    "voice": "wei",
+    "character": "Dignified, dry, kind under it.",
+    "knows": [
+      "The stones list scholars who passed the imperial exams",
+      "The 麒麟 is a symbol of learning"
+    ],
+    "wants": [
+      "Young people to stay humble"
+    ],
+    "actions": [
+      "idiom"
+    ],
+    "routine": [],
+    "explains": {
+      "井底之蛙": "只看见一点点，就说什么都知道。",
+      "国子监": "以前的大学，很多学生在这儿学习。",
+      "麒麟": "一个很好的神兽，喜欢学习的人。"
+    },
+    "misses": [
+      "嗯？请再说一遍。"
+    ]
+  },
+  {
+    "id": "xuesheng",
+    "name": "学生",
+    "role": "a proud student in a school uniform",
+    "look": {
+      "sprite": "kid"
+    },
+    "voice": "xiaoyu",
+    "character": "Clever and knows it.",
+    "knows": [
+      "Everything, he says"
+    ],
+    "wants": [
+      "To be the best"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "对牛弹琴": "跟不听的人说话。"
+    },
+    "misses": [
+      "我不知道你说什么！"
+    ]
+  }
+]

@@ -51,6 +51,11 @@
       {
         "do": "chapter",
         "chapter": 4
+      },
+      {
+        "do": "quest",
+        "quest": "ch4",
+        "step": "go"
       }
     ]
   },

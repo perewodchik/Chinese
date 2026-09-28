@@ -1,0 +1,25 @@
+{
+  "id": "tiantan",
+  "name": "天坛",
+  "en": "Temple of Heaven",
+  "chapter": 4,
+  "maps": [
+    "tiantan-park",
+    "huiyinbi",
+    "station-tiantandongmen"
+  ],
+  "stations": [
+    "tiantandongmen"
+  ],
+  "names": [
+    "天坛",
+    "祈年殿",
+    "回音壁",
+    "国子监",
+    "麒麟",
+    "雍和宫",
+    "北京",
+    "兔儿爷"
+  ],
+  "ambience": "park"
+}

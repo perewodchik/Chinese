@@ -14,10 +14,20 @@
   "width": 32,
   "height": 24
  },
+ "guozijian": {
+  "district": "yonghegong",
+  "width": 22,
+  "height": 14
+ },
  "houhai-lake": {
   "district": "houhai",
   "width": 40,
   "height": 24
+ },
+ "huiyinbi": {
+  "district": "tiantan",
+  "width": 26,
+  "height": 18
  },
  "hutong-home": {
   "district": "gulou",
@@ -99,8 +109,18 @@
   "width": 24,
   "height": 16
  },
+ "station-tiantandongmen": {
+  "district": "tiantan",
+  "width": 24,
+  "height": 16
+ },
  "station-wangfujing": {
   "district": "wangfujing",
+  "width": 24,
+  "height": 16
+ },
+ "station-yonghegong": {
+  "district": "yonghegong",
   "width": 24,
   "height": 16
  },
@@ -118,6 +138,11 @@
   "district": "tiananmen",
   "width": 39,
   "height": 30
+ },
+ "tiantan-park": {
+  "district": "tiantan",
+  "width": 48,
+  "height": 24
  },
  "wangfujing-street": {
   "district": "wangfujing",
@@ -143,6 +168,11 @@
   "district": "wangfujing",
   "width": 12,
   "height": 8
+ },
+ "yonghegong-street": {
+  "district": "yonghegong",
+  "width": 48,
+  "height": 20
  },
  "zaodian": {
   "district": "gulou",

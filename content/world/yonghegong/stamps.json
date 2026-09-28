@@ -1,0 +1,17 @@
+[
+  {
+    "id": "guozijian",
+    "name": "国子监",
+    "en": "The Imperial Academy",
+    "place": "guozijian",
+    "design": "guozijian",
+    "landmark": true
+  },
+  {
+    "id": "qilin",
+    "name": "麒麟",
+    "en": "The qilin's friend",
+    "place": "guozijian",
+    "design": "qilin"
+  }
+]

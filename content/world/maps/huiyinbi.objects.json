@@ -1,0 +1,61 @@
+[
+ {
+  "kind": "prop",
+  "id": "vault",
+  "tile": [
+   9,
+   9
+  ],
+  "frame": "pavilion/wanchun",
+  "blocks": [
+   4,
+   2
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   12,
+   0
+  ],
+  "text": "回音壁",
+  "en": "The Echo Wall"
+ },
+ {
+  "kind": "sign",
+  "id": "wall-spot",
+  "tile": [
+   3,
+   0
+  ],
+  "text": "墙",
+  "en": "The wall — put your ear to it"
+ },
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   0,
+   9
+  ],
+  "to": {
+   "map": "tiantan-park",
+   "tile": [
+    46,
+    16
+   ],
+   "facing": "left"
+  }
+ },
+ {
+  "kind": "npc",
+  "id": "boy",
+  "npc": "echo-boy",
+  "tile": [
+   22,
+   1
+  ],
+  "facing": "up"
+ }
+]

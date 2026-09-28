@@ -180,9 +180,29 @@
     "h": 16
    }
   },
-  "beijing/exit-mat": {
+  "beijing/echo-wall": {
    "frame": {
     "x": 154,
+    "y": 1,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "beijing/exit-mat": {
+   "frame": {
+    "x": 171,
     "y": 1,
     "w": 16,
     "h": 16
@@ -202,7 +222,7 @@
   },
   "beijing/floor-tile": {
    "frame": {
-    "x": 171,
+    "x": 188,
     "y": 1,
     "w": 16,
     "h": 16
@@ -222,7 +242,7 @@
   },
   "beijing/floor-wood": {
    "frame": {
-    "x": 188,
+    "x": 205,
     "y": 1,
     "w": 16,
     "h": 16
@@ -242,7 +262,7 @@
   },
   "beijing/gate": {
    "frame": {
-    "x": 205,
+    "x": 222,
     "y": 1,
     "w": 16,
     "h": 16
@@ -262,7 +282,7 @@
   },
   "beijing/grass": {
    "frame": {
-    "x": 222,
+    "x": 239,
     "y": 1,
     "w": 16,
     "h": 16
@@ -282,7 +302,7 @@
   },
   "beijing/grass-2": {
    "frame": {
-    "x": 239,
+    "x": 256,
     "y": 1,
     "w": 16,
     "h": 16
@@ -302,7 +322,7 @@
   },
   "beijing/marble": {
    "frame": {
-    "x": 256,
+    "x": 273,
     "y": 1,
     "w": 16,
     "h": 16
@@ -322,7 +342,7 @@
   },
   "beijing/marble-rail": {
    "frame": {
-    "x": 273,
+    "x": 290,
     "y": 1,
     "w": 16,
     "h": 16
@@ -342,7 +362,7 @@
   },
   "beijing/mask-wall": {
    "frame": {
-    "x": 290,
+    "x": 307,
     "y": 1,
     "w": 16,
     "h": 16
@@ -362,7 +382,7 @@
   },
   "beijing/menu-board": {
    "frame": {
-    "x": 307,
+    "x": 324,
     "y": 1,
     "w": 16,
     "h": 16
@@ -382,7 +402,7 @@
   },
   "beijing/mirror": {
    "frame": {
-    "x": 324,
+    "x": 341,
     "y": 1,
     "w": 16,
     "h": 16
@@ -402,7 +422,7 @@
   },
   "beijing/palace-arch": {
    "frame": {
-    "x": 341,
+    "x": 358,
     "y": 1,
     "w": 16,
     "h": 16
@@ -422,7 +442,7 @@
   },
   "beijing/palace-arch-top": {
    "frame": {
-    "x": 358,
+    "x": 375,
     "y": 1,
     "w": 16,
     "h": 16
@@ -442,7 +462,7 @@
   },
   "beijing/palace-base": {
    "frame": {
-    "x": 375,
+    "x": 392,
     "y": 1,
     "w": 16,
     "h": 16
@@ -462,7 +482,7 @@
   },
   "beijing/palace-top": {
    "frame": {
-    "x": 392,
+    "x": 409,
     "y": 1,
     "w": 16,
     "h": 16
@@ -482,7 +502,7 @@
   },
   "beijing/palace-wall": {
    "frame": {
-    "x": 409,
+    "x": 426,
     "y": 1,
     "w": 16,
     "h": 16
@@ -502,7 +522,7 @@
   },
   "beijing/paving": {
    "frame": {
-    "x": 426,
+    "x": 443,
     "y": 1,
     "w": 16,
     "h": 16
@@ -522,7 +542,7 @@
   },
   "beijing/paving-2": {
    "frame": {
-    "x": 443,
+    "x": 460,
     "y": 1,
     "w": 16,
     "h": 16
@@ -542,7 +562,7 @@
   },
   "beijing/plaster": {
    "frame": {
-    "x": 460,
+    "x": 477,
     "y": 1,
     "w": 16,
     "h": 16
@@ -562,7 +582,7 @@
   },
   "beijing/plaster-base": {
    "frame": {
-    "x": 477,
+    "x": 494,
     "y": 1,
     "w": 16,
     "h": 16
@@ -582,26 +602,6 @@
   },
   "beijing/platform-edge": {
    "frame": {
-    "x": 494,
-    "y": 1,
-    "w": 16,
-    "h": 16
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 16
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 16
-   }
-  },
-  "beijing/plaza": {
-   "frame": {
     "x": 1,
     "y": 18,
     "w": 16,
@@ -620,7 +620,7 @@
     "h": 16
    }
   },
-  "beijing/road": {
+  "beijing/plaza": {
    "frame": {
     "x": 18,
     "y": 18,
@@ -640,7 +640,7 @@
     "h": 16
    }
   },
-  "beijing/road-line": {
+  "beijing/road": {
    "frame": {
     "x": 35,
     "y": 18,
@@ -660,7 +660,7 @@
     "h": 16
    }
   },
-  "beijing/roof-grey": {
+  "beijing/road-line": {
    "frame": {
     "x": 52,
     "y": 18,
@@ -680,7 +680,7 @@
     "h": 16
    }
   },
-  "beijing/roof-grey-eave": {
+  "beijing/roof-grey": {
    "frame": {
     "x": 69,
     "y": 18,
@@ -700,7 +700,7 @@
     "h": 16
    }
   },
-  "beijing/roof-grey-ridge": {
+  "beijing/roof-grey-eave": {
    "frame": {
     "x": 86,
     "y": 18,
@@ -720,7 +720,7 @@
     "h": 16
    }
   },
-  "beijing/roof-yellow": {
+  "beijing/roof-grey-ridge": {
    "frame": {
     "x": 103,
     "y": 18,
@@ -740,7 +740,7 @@
     "h": 16
    }
   },
-  "beijing/roof-yellow-eave": {
+  "beijing/roof-yellow": {
    "frame": {
     "x": 120,
     "y": 18,
@@ -760,7 +760,7 @@
     "h": 16
    }
   },
-  "beijing/roof-yellow-ridge": {
+  "beijing/roof-yellow-eave": {
    "frame": {
     "x": 137,
     "y": 18,
@@ -780,7 +780,7 @@
     "h": 16
    }
   },
-  "beijing/rug": {
+  "beijing/roof-yellow-ridge": {
    "frame": {
     "x": 154,
     "y": 18,
@@ -800,7 +800,7 @@
     "h": 16
    }
   },
-  "beijing/shelf": {
+  "beijing/rug": {
    "frame": {
     "x": 171,
     "y": 18,
@@ -820,7 +820,7 @@
     "h": 16
    }
   },
-  "beijing/shop": {
+  "beijing/shelf": {
    "frame": {
     "x": 188,
     "y": 18,
@@ -840,7 +840,7 @@
     "h": 16
    }
   },
-  "beijing/shop-lit": {
+  "beijing/shop": {
    "frame": {
     "x": 205,
     "y": 18,
@@ -860,7 +860,7 @@
     "h": 16
    }
   },
-  "beijing/square-stone": {
+  "beijing/shop-lit": {
    "frame": {
     "x": 222,
     "y": 18,
@@ -880,7 +880,7 @@
     "h": 16
    }
   },
-  "beijing/stairs-down": {
+  "beijing/square-stone": {
    "frame": {
     "x": 239,
     "y": 18,
@@ -900,7 +900,7 @@
     "h": 16
    }
   },
-  "beijing/steps": {
+  "beijing/stairs-down": {
    "frame": {
     "x": 256,
     "y": 18,
@@ -920,7 +920,7 @@
     "h": 16
    }
   },
-  "beijing/tile-wall": {
+  "beijing/steps": {
    "frame": {
     "x": 273,
     "y": 18,
@@ -940,7 +940,7 @@
     "h": 16
    }
   },
-  "beijing/tile-wall-band": {
+  "beijing/tile-wall": {
    "frame": {
     "x": 290,
     "y": 18,
@@ -960,7 +960,7 @@
     "h": 16
    }
   },
-  "beijing/track": {
+  "beijing/tile-wall-band": {
    "frame": {
     "x": 307,
     "y": 18,
@@ -980,7 +980,7 @@
     "h": 16
    }
   },
-  "beijing/wall-top": {
+  "beijing/track": {
    "frame": {
     "x": 324,
     "y": 18,
@@ -1000,7 +1000,7 @@
     "h": 16
    }
   },
-  "beijing/water-0": {
+  "beijing/wall-top": {
    "frame": {
     "x": 341,
     "y": 18,
@@ -1020,7 +1020,7 @@
     "h": 16
    }
   },
-  "beijing/water-1": {
+  "beijing/water-0": {
    "frame": {
     "x": 358,
     "y": 18,
@@ -1040,7 +1040,7 @@
     "h": 16
    }
   },
-  "beijing/window": {
+  "beijing/water-1": {
    "frame": {
     "x": 375,
     "y": 18,
@@ -1060,9 +1060,29 @@
     "h": 16
    }
   },
-  "beijing/window-lit": {
+  "beijing/window": {
    "frame": {
     "x": 392,
+    "y": 18,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "beijing/window-lit": {
+   "frame": {
+    "x": 409,
     "y": 18,
     "w": 16,
     "h": 16

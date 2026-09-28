@@ -254,3 +254,30 @@ describe('chapter 3, played through the core', () => {
     assert.equal(s.quests['wang-cold']?.done, true);
   });
 });
+
+describe('chapter 4, played through the core', () => {
+  it('天坛 → the Echo Wall whisper → 国子监 → the 麒麟 riddle', () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 4 }, { do: 'quest', quest: 'ch4', step: 'go' }]);
+    const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'ch4')?.step.id;
+    s = play(s, 'tiantan-arrive').save;
+    s = play(s, 'erhu').save;
+    assert.ok('对牛弹琴' in s.idioms);
+    assert.equal(at(), 'echo');
+    assert.equal(sceneFor(scenes, s, { look: 'wall-spot', map: 'huiyinbi' }), null);
+    s = play(s, 'echo-boy').save;
+    const wall = sceneFor(scenes, s, { look: 'wall-spot', map: 'huiyinbi' });
+    assert.equal(wall?.id, 'wall-listen');
+    const first = src.start(wall!, s);
+    assert.equal(first.say?.listen, true);
+    s = play(s, 'wall-listen').save;
+    assert.equal(at(), 'go-gzj');
+    s = play(s, 'gzj-arrive').save;
+    s = play(s, 'frog').save;
+    assert.ok('井底之蛙' in s.idioms);
+    assert.equal(sceneFor(scenes, { ...s, clock: 10 * 60 }, { look: 'qilin', map: 'guozijian' })?.id, 'qilin-day');
+    s = play({ ...s, clock: 18 * 60 }, 'qilin').save;
+    assert.ok('qilin' in s.spirits);
+    assert.equal(s.quests.ch4?.done, true);
+    assert.equal(s.chapter, 5);
+  });
+});

@@ -1,0 +1,52 @@
+id: yonghegong-street
+size: 48x20
+tilesets: tiles
+district: yonghegong
+crowd: 7
+pigeons: 3
+bikes: 2
+
+# 国子监街 and 雍和宫: incense sellers, a painted archway, the gate of the Imperial Academy, the Lama Temple's yellow roofs
+
+[ground]
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+ppppppppppppppppppppppppppppppppppppppppppppzzpp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+[below]
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYYYYYYYYYYXXXXXXXX
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxyyyyyyyyyyxxxxxxxx
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeEEEEEEEEEEeeeeeeee
+bbbbbbhhhhhbbbbbbbbbdbbbbbbbbbWWWWaWWWWWbbbbbbbb
+BBBBBBhhhhhBBBBBBBBBDBBBBBBBBBVVVVAVVVVVBBBBBBBB
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

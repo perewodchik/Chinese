@@ -497,6 +497,69 @@ export function doorGods(faded: boolean): Grid {
   return g.stamp(f, 0, 0);
 }
 
+
+// ---------------------------------------------------------------- H3: 天坛, 国子监
+
+/** 祈年殿, the Hall of Prayer for Good Harvests, 64×80: three round blue roofs on a white marble terrace. */
+export function qiniandian(): Grid {
+  const g = new Grid(64, 80);
+  g.oval(2, 72, 62, 8, '_');
+  const f = new Grid(64, 80);
+  for (const [y, x0, x1] of [[64, 2, 62], [68, 4, 60], [72, 6, 58]] as const) f.rect(x0, y, x1 - x0, 4, 'e').hline(x0, y, x1 - x0, 'w');
+  f.rect(12, 40, 40, 24, 'r');
+  for (let x = 14; x < 52; x += 5) f.vline(x, 40, 24, 'R');
+  f.rect(26, 52, 12, 12, 'q');
+  const roof = (y: number, x0: number, x1: number) => {
+    f.oval(x0, y, x1 - x0, 14, 'B');
+    f.oval(x0 + 2, y + 1, x1 - x0 - 4, 9, 'n');
+    for (let x = x0 + 4; x < x1 - 4; x += 3) f.vline(x, y + 3, 5, 'l');
+    f.rect(x0, y + 11, x1 - x0, 2, 'Y');
+  };
+  roof(30, 6, 58);
+  f.rect(16, 26, 32, 6, 'r');
+  roof(16, 12, 52);
+  f.rect(22, 14, 20, 4, 'r');
+  roof(4, 18, 46);
+  f.rect(30, 0, 4, 5, 'Y').set(31, 0, 'j');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A bronze 麒麟 on a stone base, 16×32; `awake` it glows faintly. */
+export function qilin(awake: boolean): Grid {
+  const g = new Grid(16, 32);
+  g.oval(1, 28, 15, 4, '_');
+  const f = new Grid(16, 32);
+  f.rect(1, 23, 14, 7, 'd').hline(1, 23, 14, 'e');
+  const b = awake ? 'Y' : 'u';
+  const s = awake ? 'j' : 'v';
+  f.rect(4, 14, 9, 9, b).vline(4, 14, 9, s);
+  f.rect(4, 19, 2, 4, b).rect(10, 19, 2, 4, b);
+  f.oval(3, 5, 10, 10, b).oval(4, 6, 6, 5, s);
+  f.vline(7, 1, 5, 'o').set(6, 1, 'o').set(8, 1, 'o');
+  f.set(6, 9, awake ? 'r' : 'k').set(10, 9, awake ? 'r' : 'k').hline(7, 12, 3, 'k');
+  for (const x of [5, 8, 11]) f.set(x, 16, 'x');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A 牌楼 memorial archway over a lane, 48×48: red posts, a painted beam, grey-green roofs. */
+export function archway(): Grid {
+  const g = new Grid(48, 48);
+  const f = new Grid(48, 48);
+  for (const x of [4, 22, 40]) f.rect(x, 16, 4, 32, 'r').vline(x, 16, 32, 'p');
+  f.rect(2, 16, 44, 6, 'v').hline(2, 16, 44, 'Y').hline(2, 21, 44, 'u');
+  f.rect(14, 17, 20, 4, 'B').hline(16, 18, 16, 'Y');
+  const roof = (y: number, x0: number, x1: number) => {
+    for (let x = x0; x < x1; x += 3) f.vline(x, y, 6, 'h').vline(x + 1, y, 6, 'G').vline(x + 2, y, 6, 'g');
+    f.hline(x0, y + 6, x1 - x0, 'k');
+  };
+  roof(9, 0, 48);
+  roof(2, 12, 36);
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -522,6 +585,9 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['pagoda', 'the White Dagoba of 北海', () => [['white', whitePagoda()]]],
   ['fox', 'the nine-tailed fox 九尾狐', () => [['sway-0', fox(0)], ['sway-1', fox(1)]]],
   ['tower', 'the Drum and Bell Towers on their terraces, and 前门', () => [['drum', tower('drum')], ['bell', tower('bell')], ['arrow', tower('arrow')]]],
+  ['qiniandian', 'the Hall of Prayer for Good Harvests at 天坛', () => [['hall', qiniandian()]]],
+  ['qilin', 'a bronze 麒麟, asleep and awake', () => [['bronze', qilin(false)], ['awake', qilin(true)]]],
+  ['archway', 'a 牌楼 memorial archway', () => [['green', archway()]]],
   ['door-gods', 'an old gate with its door gods, faded and restored', () => [['faded', doorGods(true)], ['bright', doorGods(false)]]],
   ['pigeon', 'a pigeon of the hutongs', () => [['peck', pigeon('peck')], ['look', pigeon('look')], ['fly-0', pigeon('fly-0')], ['fly-1', pigeon('fly-1')]]],
 ];

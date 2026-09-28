@@ -1,0 +1,22 @@
+[
+  {
+    "id": "井底之蛙",
+    "pinyin": "jǐngdǐ-zhīwā",
+    "parts": [
+      {
+        "c": "井底",
+        "gloss": "the bottom of a well"
+      },
+      {
+        "c": "之蛙",
+        "gloss": "'s frog"
+      }
+    ],
+    "meaning": "someone who has seen very little and thinks it is all there is",
+    "story": {
+      "zh": "一只青蛙住在井里。它看见的天，只有井口那么大。它说：“天就这么大！”",
+      "en": "A frog lived at the bottom of a well. The sky it saw was only as big as the well's mouth, so it said: 'The sky is this big!'"
+    },
+    "tier": "story"
+  }
+]

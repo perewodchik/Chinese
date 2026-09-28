@@ -1,0 +1,81 @@
+[
+  {
+    "id": "huqin-yeye",
+    "name": "拉胡琴的爷爷",
+    "role": "an old man who plays the 胡琴 fiddle in the park",
+    "look": {
+      "sprite": "grandpa"
+    },
+    "voice": "wei",
+    "character": "Gentle, a little sad that his friends talk through his music.",
+    "knows": [
+      "His friends never listen"
+    ],
+    "wants": [
+      "An audience"
+    ],
+    "actions": [
+      "idiom"
+    ],
+    "routine": [],
+    "explains": {
+      "对牛弹琴": "跟不想听的人说话，没有用。"
+    },
+    "misses": [
+      "啊？"
+    ]
+  },
+  {
+    "id": "tiantan-nainai",
+    "name": "踢毽子的奶奶",
+    "role": "an old woman kicking a 毽子 with friends",
+    "look": {
+      "sprite": "auntie",
+      "palette": "purple"
+    },
+    "voice": "wang",
+    "character": "Nimble and bossy; wants everyone to play.",
+    "knows": [
+      "She has kicked 毽子 here every morning for forty years"
+    ],
+    "wants": [
+      "A new player"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "毽子": "用脚踢的小东西，上面有毛。"
+    },
+    "misses": [
+      "来！你说什么？"
+    ]
+  },
+  {
+    "id": "echo-boy",
+    "name": "小朋友",
+    "role": "a boy who loves the Echo Wall",
+    "look": {
+      "sprite": "kid",
+      "palette": "blue"
+    },
+    "voice": "xiaoyu",
+    "character": "Mischievous, whispers secrets into the wall.",
+    "knows": [
+      "The qilin statue at 国子监 winks at dusk"
+    ],
+    "wants": [
+      "Someone to whisper to"
+    ],
+    "actions": [
+      "flag"
+    ],
+    "routine": [],
+    "explains": {
+      "回音壁": "一个圆的墙，你在这边说话，那边能听见。",
+      "国子监": "以前的大学。"
+    },
+    "misses": [
+      "你说什么呀？"
+    ]
+  }
+]

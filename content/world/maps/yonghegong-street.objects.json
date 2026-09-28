@@ -1,0 +1,201 @@
+[
+ {
+  "kind": "prop",
+  "id": "arch-1",
+  "tile": [
+   12,
+   9
+  ],
+  "frame": "archway/green",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "lane",
+  "tile": [
+   2,
+   3
+  ],
+  "text": "国子监街",
+  "en": "Guozijian Street"
+ },
+ {
+  "kind": "sign",
+  "id": "incense",
+  "tile": [
+   8,
+   3
+  ],
+  "text": "香",
+  "en": "Incense"
+ },
+ {
+  "kind": "door",
+  "id": "guozijian",
+  "tile": [
+   20,
+   4
+  ],
+  "to": {
+   "map": "guozijian",
+   "tile": [
+    10,
+    12
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "gzj",
+  "tile": [
+   19,
+   3
+  ],
+  "text": "国子监",
+  "en": "The Imperial Academy"
+ },
+ {
+  "kind": "sign",
+  "id": "temple-name",
+  "tile": [
+   35,
+   3
+  ],
+  "text": "雍和宫",
+  "en": "The Lama Temple"
+ },
+ {
+  "kind": "door",
+  "id": "temple",
+  "tile": [
+   34,
+   4
+  ],
+  "to": {
+   "map": "yonghegong-street",
+   "tile": [
+    34,
+    5
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "The Lama Temple: the monks are at prayer. Come back another day."
+ },
+ {
+  "kind": "door",
+  "id": "station",
+  "tile": [
+   44,
+   14
+  ],
+  "to": {
+   "map": "station-yonghegong",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station-2",
+  "tile": [
+   45,
+   14
+  ],
+  "to": {
+   "map": "station-yonghegong",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "metro-sign",
+  "tile": [
+   43,
+   14
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "l1",
+  "tile": [
+   5,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l2",
+  "tile": [
+   17,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l3",
+  "tile": [
+   24,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   27,
+   14
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "incense-seller",
+  "npc": "xiang-ayi",
+  "tile": [
+   8,
+   6
+  ],
+  "facing": "down"
+ }
+]

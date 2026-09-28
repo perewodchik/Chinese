@@ -63,6 +63,7 @@ export class ScriptedDialogue implements DialogueSource {
       ...(n.pinyin && !simpler ? { pinyin: n.pinyin } : {}),
       en: n.translate,
       ...(n.key ? { key: true } : {}),
+      ...(n.listen && !simpler ? { listen: true } : {}),
       node: n.id,
       ...(slow ? { slow: true } : {}),
     };

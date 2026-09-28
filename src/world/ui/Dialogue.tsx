@@ -38,6 +38,18 @@ export function voice(line: Line, slower = false) {
  */
 function SaidLine({ line, pinyin }: { line: Line; pinyin: boolean }) {
   const manual = pinyin && !!line.pinyin;
+  const [shown, setShown] = useState(!line.listen);
+  if (!shown) {
+    return (
+      <span className="wd-said wd-listen">
+        <span aria-hidden>👂</span>
+        <span className="small muted">Listen first — 🔁 to hear it again.</span>
+        <button type="button" className="wd-tool wd-show" onClick={() => setShown(true)}>
+          Show
+        </button>
+      </span>
+    );
+  }
   return (
     <span className="wd-said">
       {line.key && (

@@ -1268,3 +1268,17 @@
   align-items: center;
   gap: 10px;
 }
+
+/* a line to hear first: hidden until shown (free) */
+.wd-listen {
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  font-size: 20px;
+}
+
+.wd-show {
+  width: auto;
+  padding: 0 10px;
+  font-size: 13px;
+}

@@ -167,6 +167,8 @@ export interface DialogueNode {
   simpler?: string;
   /** a 📌 key line: may hold harder words or one 成语 */
   key?: boolean;
+  /** a line to hear first (the Echo Wall's whisper): its words stay hidden until shown */
+  listen?: boolean;
   expect?: Expect[];
   /** when there is nothing to expect: tap to go on here (none = the end) */
   next?: string;

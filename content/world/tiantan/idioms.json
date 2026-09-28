@@ -1,0 +1,22 @@
+[
+  {
+    "id": "对牛弹琴",
+    "pinyin": "duìniú-tánqín",
+    "parts": [
+      {
+        "c": "对牛",
+        "gloss": "to a cow"
+      },
+      {
+        "c": "弹琴",
+        "gloss": "play the zither"
+      }
+    ],
+    "meaning": "to talk to someone who cannot or will not understand",
+    "story": {
+      "zh": "以前有一个人，他很会弹琴。有一天，他给一头牛弹琴。牛不听，还在吃草。",
+      "en": "Once a man who played the zither beautifully played for a cow. The cow didn't listen; it went on eating grass."
+    },
+    "tier": "story"
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "id": "qilin",
+    "hanzi": "麒麟",
+    "pinyin": "qílín",
+    "en": "the qilin",
+    "source": "folk",
+    "legend": {
+      "zh": "麒麟是一个很好的神兽。它头上有一个角，身上有鱼一样的东西。人们说，好人出生的时候，麒麟会来。它喜欢学习的人。",
+      "en": "The qilin is a gentle, lucky beast with a single horn and scales like a fish. People say it appears when a wise person is born; it loves those who learn."
+    },
+    "befriend": {
+      "kind": "riddle",
+      "text": "人字和木字，在一起是什么字？",
+      "en": "人 (person) beside 木 (tree): 休, to rest — a man resting against a tree."
+    },
+    "district": "yonghegong"
+  }
+]

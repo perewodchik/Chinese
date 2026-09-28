@@ -1,0 +1,101 @@
+[
+ {
+  "kind": "prop",
+  "id": "biyong",
+  "tile": [
+   8,
+   9
+  ],
+  "frame": "pavilion/wanchun",
+  "blocks": [
+   4,
+   2
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   2,
+   12
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   17,
+   12
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "qilin",
+  "tile": [
+   15,
+   7
+  ],
+  "frame": "qilin/bronze",
+  "blocks": [
+   1,
+   1
+  ],
+  "night": "qilin/awake"
+ },
+ {
+  "kind": "sign",
+  "id": "stones",
+  "tile": [
+   4,
+   5
+  ],
+  "text": "进士题名碑",
+  "en": "Stones with the names of the old scholars"
+ },
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   10,
+   13
+  ],
+  "to": {
+   "map": "yonghegong-street",
+   "tile": [
+    20,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "npc",
+  "id": "scholar",
+  "npc": "lao-xiansheng",
+  "tile": [
+   5,
+   8
+  ],
+  "facing": "right"
+ },
+ {
+  "kind": "npc",
+  "id": "student",
+  "npc": "xuesheng",
+  "tile": [
+   6,
+   8
+  ],
+  "facing": "left"
+ }
+]

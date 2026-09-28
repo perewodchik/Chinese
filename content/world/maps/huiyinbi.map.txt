@@ -1,0 +1,46 @@
+id: huiyinbi
+size: 26x18
+tilesets: tiles
+district: tiantan
+crowd: 2
+
+# 回音壁: the round Echo Wall, smooth as glass; a whisper at one side is heard at the other
+
+[ground]
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmm
+[below]
+qqqqqqqqqqqqqqqqqqqqqqqqqq
+q........................q
+q........................q
+q........................q
+q........................q
+q........................q
+q........................q
+q........................q
+q........................q
+.........................q
+q........................q
+q........................q
+q........................q
+q........................q
+q........................q
+q........................q
+q........................q
+qqqqqqqqqqqqqqqqqqqqqqqqqq

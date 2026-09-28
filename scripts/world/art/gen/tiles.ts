@@ -474,6 +474,19 @@ export function curtain(): Grid {
   return g;
 }
 
+
+// ---------------------------------------------------------------- H3: the Echo Wall
+
+/** The Echo Wall's smooth grey-blue brick under its green glazed coping. */
+export function echoWall(): Grid {
+  const g = tile('c');
+  for (let y = 6; y < T; y += 3) g.hline(0, y, T, 'd');
+  g.rect(0, 0, T, 5, 'G').hline(0, 0, T, 'i');
+  for (let x = 0; x < T; x += 3) g.vline(x, 1, 3, 'h');
+  g.hline(0, 5, T, 'k');
+  return g;
+}
+
 export const TILES: Array<[string, () => Grid]> = [
   ['paving', () => paving(1)],
   ['paving-2', () => paving(9)],
@@ -529,4 +542,5 @@ export const TILES: Array<[string, () => Grid]> = [
   ['bookshelf', bookshelf],
   ['mask-wall', maskWall],
   ['curtain', curtain],
+  ['echo-wall', echoWall],
 ];
