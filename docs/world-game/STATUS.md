@@ -10,7 +10,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** проверка в браузере и в WebKit (F5, нужен человек), дальше по списку — G (звук), H (остальной Пекин), I, X.
 
 ## Current task
-G1
+G2
 
 ## Tasks
 ### A — core logic
@@ -62,7 +62,7 @@ G1
 - [x] F5 MVP check + notes for the learner (browser + WebKit part pending — see notes)
 
 ### G — audio
-- [ ] G1 Ambient sounds
+- [x] G1 Ambient sounds
 - [ ] G2 NPC voices (if the local voice worker runs)
 
 ### H — the rest of Beijing
@@ -157,6 +157,7 @@ _(date — decision — why)_
 - 2026-09-29 — F2: 14 cards in `content/world/gulou/npcs.json` — 王阿姨, 早点铺师傅, 李阿姨 (小卖部), 张师傅 (barber), 老刘 (茶馆), 赵爷爷 (bird cage), 小明 (kid), two 游客, 三轮车师傅, 外卖小哥, two passers-by (跳舞的阿姨, 拍照的人) and the station's 工作人员. Each has `explains` for the chapter's hard words (灯笼, 胡同, 附近, 四合院, 石狮子, 交通卡, 押金, 换乘, 油条, 豆浆, 包子, 马马虎虎, 一心一意, 鼓楼, 地铁站) in HSK 1 Chinese. Map spawns now name card ids; a new `core/cast.ts` decides who is on a map now (map spawn, `when`, routine moves them or takes them away, routine-only visitors) and gives the engine each person's sprite from their card. Routines: 赵爷爷 on the square 6–9 then on 南锣鼓巷; 小明 away at school 8–16 (a routine stop on a map that does not exist means "not about"); the delivery rider on 南锣鼓巷 11–14 and in 帽儿胡同 17–20. People are placed when a map loads — they do not walk off when the hour turns while you stand there (a later polish). Shop hours are not enforced on the shopkeepers yet (so a late start never finds the breakfast shop empty).
 - 2026-09-29 — F3: chapter 1 is one quest `ch1` (7 steps: meet 王阿姨 → breakfast → the lantern → the rumour → the stone lion → the 交通卡 → the ride, F4) and 21 scenes in `content/world/gulou/scenes.json`, all inside the §5 budget (`npm run world:check` clean; four "only one situation word" warnings). The lantern breaks when you look at it after breakfast (not "the first night" — nobody should have to wait 14 real minutes for the story to start); 兔儿爷 wakes then and says the 📌 key line about the spirits (神, 胡同). His few lines in scenes are simple Chinese; everything he says in his help row stays English. The rumour comes from 李阿姨 (a 📌 line with 听说) or 老刘, who also offers to let you sit till 19:00 (new action `wait`). The stone lion (a new prop with glowing eyes at night) asks the 灯谜 日+月 = 明. 一心一意 comes with tea at the 茶馆, 马马虎虎 from the barber — both as 📌 key lines (an idiom cannot be in a hint, the budget forbids it outside a key line). 6 stamps: 新家, 早点, 问路, 鼓楼 (landmark, on first arrival), 石狮子, 交通卡. The breakfast is always a bun and a soy milk for 4 元, whatever you order (one price path keeps the line budget). Money: 50 at the start, the card costs 40 (20 deposit + 20), so ch. 1 leaves ~6 元. `scripts/world/chapter1.test.ts` plays the whole chapter through the core with the hints' full sentences. Page: look scenes on objects, auto scenes on arrival, signs open in the bubble (words tappable), teleports wait for the talk to end, the clock catches up after sleep/wait.
 - 2026-09-29 — F4: the ride is a sheet (`RideSheet`, logic in `core/ride.ts`): on a platform you tap the board (a sign `board` at [8,10] on every `station-<id>` map), choose a train by its sign (8号线 往天桥方向), hear/read 「下一站：王府井。可以换乘1号线。」 (system voice via `say()` until G2), and 下车 at any stop. At a station with no map yet you can only change trains or ride back (兔儿爷 says so); at a station with a map you go out: the fare by stops ridden comes off the 交通卡 (Beijing's distance bands), the station is recorded, the ride counted; after three rides the calls go three times quicker. The gates are look-scenes: 进站 with the card (flag `has-card`, set when you buy it) puts you on the platform, without it 兔儿爷 sends you to the attendant; 出站 puts you back in the concourse. New district folder `tiananmen/`: the square (the C4 prototype's picture as `tiananmen-square`, with the subway stairs at the east end), `station-tiananmendong`, 3 cards, 5 scenes: first ride (stamp 地铁), first sight of 天安门 (landmark stamp), the gate guide who explains that 故宫 tickets are booked online in your own name (flag `palace-needs-ticket` for ch. 7). Arriving at 天安门东 finishes quest `ch1` and opens chapter 2. The prototype maps stay in the build for comparison but are in no district.
+- 2026-09-29 — G1: **the ambient sounds are synthesized, not downloaded** (downloading CC0 packs needs the learner's OK, like the art in C2): 鸽哨 whistles (a soft three-tone chord with vibrato gliding as the flock passes, every ~20–60 s by day where the map has pigeons), bicycle bells (two strikes of metallic partials), a murmur of people (filtered brown noise that breathes, as loud as the map is busy, quieter at night), and a three-note station chime (on arriving in a station and when the ride sheet opens). What plays where is pure (`audio/mix.ts`, tested). Audio starts on the first tap (iOS rule), is suspended while the tab is hidden, and has a ⚙ setting: Street sounds Off / Soft / On (the save's `volume`). If a real recording is wanted later, `ambient.ts` is the one place to swap.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

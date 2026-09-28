@@ -12,7 +12,10 @@ listed here with author, license and link.
 
 ## Sounds
 
-None yet.
+No recordings. The street's sounds — pigeon whistles (鸽哨), bicycle bells,
+the murmur of people, the station chime — are synthesized in the browser
+by `src/world/audio/ambient.ts` (original, nothing to license). The
+station chime is three plain notes, not any real subway's jingle.
 
 ## Pictures of spirits
 

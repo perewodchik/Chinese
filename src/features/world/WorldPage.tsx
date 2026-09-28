@@ -12,6 +12,9 @@ import { castMap, looksOf } from '../../world/core/cast';
 import { Dialogue, lookOf } from '../../world/ui/Dialogue';
 import { InputBar } from '../../world/ui/InputBar';
 import { RideSheet } from '../../world/ui/RideSheet';
+import { Ambient } from '../../world/audio/ambient';
+import { mixFor } from '../../world/audio/mix';
+import type { MapLife } from '../../world/core/maptext';
 import { fareOut } from '../../world/core/ride';
 import { rideKey } from '../../world/core/travel';
 import { Joystick } from '../../world/ui/Joystick';
@@ -81,6 +84,14 @@ export function WorldPage() {
   const [riding, setRiding] = useState<string | null>(null);
   const mapIndex = useRef<MapIndex>({});
   const lastActive = useRef(Date.now());
+  // the street's sounds (G1): made on first tap, mixed by where you are and the hour
+  const ambient = useRef<Ambient | null>(null);
+  const here = useRef<{ id: string; life: MapLife } | null>(null);
+  const remix = (minutes?: number) => {
+    const h = here.current;
+    const s = game.current();
+    if (h && s) ambient.current?.setMix(mixFor(h.id, h.life, partOfDay(minutes ?? s.clock)));
+  };
   const busy = useRef(false);
   busy.current = note !== null || talk.view !== null || panel !== null || riding !== null;
 
@@ -122,6 +133,9 @@ export function WorldPage() {
           },
           onArrive: (info, t, facing) => {
             const s = game.dispatch([{ do: 'enter', map: info.id, tile: t, facing, district: info.district || undefined }]);
+            here.current = { id: info.id, life: info.life };
+            remix();
+            if (info.id.startsWith('station-')) ambient.current?.chime();
             // a scene that starts by itself here (the first morning, a first visit)
             const auto = s && autoScene(contentRef.current.scenes, s, info.id);
             if (s && auto) {
@@ -232,6 +246,7 @@ export function WorldPage() {
       if (now !== part) {
         part = now;
         world.current?.setTime(now);
+        remix(minutes);
       }
     }, 1000);
     return () => window.clearInterval(id);
@@ -289,6 +304,30 @@ export function WorldPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
+  useEffect(() => {
+    const a = new Ambient(game.current()?.settings.volume ?? 0.6);
+    ambient.current = a;
+    const wake = () => a.wake();
+    const vis = () => a.setHidden(document.visibilityState === 'hidden');
+    window.addEventListener('pointerdown', wake);
+    window.addEventListener('keydown', wake);
+    document.addEventListener('visibilitychange', vis);
+    return () => {
+      window.removeEventListener('pointerdown', wake);
+      window.removeEventListener('keydown', wake);
+      document.removeEventListener('visibilitychange', vis);
+      a.dispose();
+      ambient.current = null;
+    };
+  }, []);
+  const volume = game.save?.settings.volume;
+  useEffect(() => {
+    if (volume !== undefined) ambient.current?.setVolume(volume);
+  }, [volume]);
+  useEffect(() => {
+    if (riding) ambient.current?.chime();
+  }, [riding]);
+
   // A teleport said in a conversation happens when it is over.
   useEffect(() => {
     if (talk.view || !pendingTravel.current) return;

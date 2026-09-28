@@ -333,6 +333,19 @@ function Settings({ settings, onChange }: { settings: WorldSettings; onChange: (
         />
       </label>
       <label>
+        <span>Street sounds</span>
+        <Seg
+          value={settings.volume <= 0 ? 'off' : settings.volume < 0.5 ? 'soft' : 'on'}
+          options={[
+            { id: 'off', label: 'Off' },
+            { id: 'soft', label: 'Soft' },
+            { id: 'on', label: 'On' },
+          ]}
+          onChange={(v) => onChange({ volume: v === 'off' ? 0 : v === 'soft' ? 0.35 : 0.8 })}
+          size="sm"
+        />
+      </label>
+      <label>
         <span>Text size</span>
         <Seg
           value={settings.textSize}
