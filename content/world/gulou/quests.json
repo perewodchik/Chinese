@@ -107,5 +107,76 @@
         }
       }
     ]
+  },
+  {
+    "id": "side-kite",
+    "title": "小明’s kite",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "pole",
+        "now": "小明’s kite is stuck in the 槐树 of 帽儿胡同. Buy a bamboo pole 竹竿 at the corner shop and use it on the kite (🎒 → Use).",
+        "done": {
+          "flag": "kite-down"
+        }
+      },
+      {
+        "id": "give",
+        "now": "Give the kite back to 小明 (🎒 → Use on him).",
+        "done": {
+          "flag": "kite-back"
+        }
+      }
+    ]
+  },
+  {
+    "id": "side-keys",
+    "title": "Lost keys",
+    "chapter": 3,
+    "steps": [
+      {
+        "id": "ask",
+        "now": "Your keys are gone. Ask the neighbours if they have seen them.",
+        "done": {
+          "any": [
+            {
+              "quest": "side-keys",
+              "step": "light"
+            },
+            {
+              "flag": "keys-found"
+            }
+          ]
+        }
+      },
+      {
+        "id": "light",
+        "now": "小明 saw them in the dark corner of 帽儿胡同. A torch 手电筒 from the corner shop — use it on the corner.",
+        "done": {
+          "flag": "keys-found"
+        }
+      }
+    ]
+  },
+  {
+    "id": "side-photo-gate",
+    "title": "A photo for 王阿姨",
+    "chapter": 3,
+    "steps": [
+      {
+        "id": "photo",
+        "now": "王阿姨 wants a photo of a red gate. Use your 手机 on the door gods’ gate in 大栅栏.",
+        "done": {
+          "flag": "photo-gate"
+        }
+      },
+      {
+        "id": "show",
+        "now": "Show 王阿姨 the photo (use your 手机 on her).",
+        "done": {
+          "flag": "photo-shown"
+        }
+      }
+    ]
   }
 ]

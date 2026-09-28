@@ -15,7 +15,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-G2 (last clips rendering) → X1
+X2
 
 ## Tasks
 ### A — core logic
@@ -68,7 +68,7 @@ G2 (last clips rendering) → X1
 
 ### G — audio
 - [x] G1 Ambient sounds
-- [ ] G2 NPC voices (if the local voice worker runs)
+- [x] G2 NPC voices (if the local voice worker runs)
 
 ### H — the rest of Beijing
 - [x] H1 Ch. 2 后海 · 景山 · 北海
@@ -87,7 +87,7 @@ G2 (last clips rendering) → X1
 
 ### X — Beijing+ (prompt §9½, before other cities)
 - [x] X0 QA harness: quest solver, golden saves, map probe, crash guard, stress; fix A–I (map probe written, not run — needs the server)
-- [ ] X1 Usable items + gifts
+- [x] X1 Usable items + gifts (umbrella, 红包, 春联/福 wait for X4's weather and festivals; kite/毽子/空竹 toys for X8)
 - [ ] X2 Friendship hearts, NPC memory, personal stories
 - [ ] X3 Diary 日记
 - [ ] X4 Calendar, festivals, weather
@@ -175,6 +175,8 @@ _(date — decision — why)_
 - 2026-09-29 — I1: `src/world/core/dialogue/live.ts` — `LiveDialogue` implements `DialogueSource` around the script, `LIVE_DIALOGUE_ENABLED = false`, nothing constructs it, no network calls; its doc comment says how it will work (the script stays the authority for intents, actions and 📌 lines; Claude only rewords ordinary lines via the Mac server like /pinyin/talk; a slow answer falls back to the script; the budget check applies; `settings.live` is the hidden switch, already in the save).
 - 2026-09-29 — I2, what could be done without a browser: touch targets — on touch screens (`hover: none` / `pointer: coarse`) every game control is now ≥ 40 px, the ones used mid-conversation 44 px (the bubble's tools, the input bar, the send and go-on buttons); tappable words ≥ 36 px. Safe areas: the top line, bubble, companion, joystick and panels all sit inside `env(safe-area-inset-*)`; the bubble also rises above the on-screen keyboard (`visualViewport`). Memory: three small atlases stay loaded, one map's tilemap at a time, voice clips fetched per line (never preloaded), one AudioContext for the street sounds.
 - 2026-09-29 — X0: **quest solver** (`scripts/world/solver.ts`, checked by `solver.test.ts` in `npm test`): from a fresh save it plays the whole game through the core like a patient player — whatever scene can start on the maps the story has reached, rides to stations it has not seen (card fare), a shared bike once, the clock run on when stuck — answering every line with its third hint. It asserts every quest (main and side) finishes, every spirit, 成语 and stamp is found, money never goes below zero, every routine spot is walkable. **What it found and what I fixed:** (1) a soft-lock — buy the red paper and give it to the door gods before the quest reaches that step, and the step waited forever for paper you no longer had; same shape in 8 steps: an "have X" step is now also done once X has been used; (2) a haircut or water in chapter 1 could leave you unable to afford the 交通卡 (40 元) with no income until the bank in chapter 3 → you now arrive with **200 元**, and every purchase scene only offers itself when you can pay; (3) a person's plain one-liner had the same priority as their side-quest scene and always won — the barber's haircut, the boat, the run, the photo… were unreachable → plain one-liners now have priority 5 (and the barber's joke plays once); (4) the 年兽 never gave its stamp; (5) the train charged the card on top of the ticket. Card top-ups (充值 50 元) at both station attendants. **Golden saves:** `content/world/test-saves/chapter-1…9.json` (written by `npx tsx scripts/world/golden-saves.ts`), each read through the migration and played to the end by the test. **Crash guard:** `CrashGuard` around the page — a calm 停 screen with "Back to where you were" (remounts the game from the save), errors logged with the map and quests; engine errors inside Phaser are passed to it. **Stress:** empty, spaces, emoji, 6000-character, gibberish and mixed input never break a talk or touch the save; a hundred misses keep the hint at the whole sentence. Offline mid-save and two tabs were already covered by the sync tests (B2). **Map probe:** `scripts/world/map-probe.ts` (+ `map-probe.js`) opens every map in WebKit at 375/768/1024 and reports start, canvas, fps — written, **not run** (no server).
+- 2026-09-29 — G2 done: ~765 clips (≈ 11 MB of mp3 in `public/world/voice/`), every scripted line, stock reply and train call up to X1. New lines need `npx tsx scripts/world/build-voices.ts` again (resumable; ~10 s a line).
+- 2026-09-29 — X1: **using things.** 🎒 → "Use / give" on an item, then tap a person or a thing (a slim bar says what you hold; × puts it back). A scene written for that item there wins (new scene field `use`); otherwise a person takes it as a **present** — items marked `gift` (包子 豆浆 油条 水 糖葫芦 月饼 茶叶 金币巧克力), their card's `likes`/`dislikes`, one present per person per game day, a liked one gives a friendship heart and a memory — and anything else gets a gentle 「这个给我？我不要，谢谢。」 / 「不是这个。」 (HSK 1, checked by a test). The item stays in the bag unless accepted. **Save format 2** (with an upgrade from 1, tested — and the golden saves are still version 1 on purpose, so the upgrade is exercised): each remembered person has `hearts` (0–5) and `gift` (the day of the last present); merge keeps the higher. New sellers: 糖葫芦 on 南锣鼓巷, 月饼 at the 王府井 department store. Situations built now: 小明's kite stuck in the 槐树 (竹竿 from the corner shop → use on the kite → give it back); the lost keys (ask the neighbours; 小明 saw them in the dark corner; a 手电筒 finds them); hot water for the 胡琴 player at 天坛 (保温杯 from the shop, filled at 老刘's); a photo of a red gate for 王阿姨 with your 手机 (you have one from the first morning). Deferred on purpose: 雨伞 (needs X4's rain), 红包 and 春联/福 (X4's 春节), 风筝/毽子/空竹 to play with and 毛笔 地书 (X8). The solver now also tries every item in the bag on everyone.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

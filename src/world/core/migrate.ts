@@ -18,7 +18,14 @@ type Raw = Record<string, unknown>;
 
 /** version n → n + 1 */
 export type Upgrade = (save: Raw) => Raw;
-export const UPGRADES: Record<number, Upgrade> = {};
+export const UPGRADES: Record<number, Upgrade> = {
+  /** 1 → 2 (X1): every person remembered gets friendship hearts and the day of the last gift */
+  1: (r) => ({
+    ...r,
+    version: 2,
+    npcs: Object.fromEntries(Object.entries(isObj(r.npcs) ? r.npcs : {}).map(([k, v]) => [k, isObj(v) ? { hearts: 0, gift: 0, ...v } : v])),
+  }),
+};
 
 export type ReadResult =
   | { ok: true; save: WorldSave; upgraded: boolean }
@@ -58,7 +65,12 @@ function fill(r: Raw): WorldSave {
     stamps: record(r.stamps, isNum),
     stations: strings(r.stations),
     districts: strings(r.districts).length ? strings(r.districts) : [HOME_DISTRICT],
-    npcs: record(r.npcs, (x): x is WorldSave['npcs'][string] => isObj(x) && isNum(x.met)),
+    npcs: Object.fromEntries(
+      Object.entries(record(r.npcs, (x): x is WorldSave['npcs'][string] => isObj(x) && isNum(x.met))).map(([k, x]) => [
+        k,
+        { met: x.met, notes: strings(x.notes), hearts: isNum(x.hearts) ? x.hearts : 0, gift: isNum(x.gift) ? x.gift : 0 },
+      ]),
+    ),
     rides: record(r.rides, isNum),
     settings: { ...DEFAULT_SETTINGS, ...(isObj(r.settings) ? (r.settings as Partial<WorldSave['settings']>) : {}) },
   };

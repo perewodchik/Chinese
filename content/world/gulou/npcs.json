@@ -37,6 +37,13 @@
     "misses": [
       "啊？你说什么？",
       "阿姨没听懂，再说一遍？"
+    ],
+    "likes": [
+      "tanghulu",
+      "yuebing"
+    ],
+    "dislikes": [
+      "youtiao"
     ]
   },
   {
@@ -73,6 +80,12 @@
     "misses": [
       "什么？要什么？",
       "你说什么？要包子吗？"
+    ],
+    "likes": [
+      "chaye"
+    ],
+    "dislikes": [
+      "baozi"
     ]
   },
   {
@@ -106,11 +119,16 @@
       "石狮子": "门口的狮子，是石头的。",
       "附近": "就是不远的地方。",
       "神": "天上的人，人看不见。",
-      "不见": "找不到了。"
+      "不见": "找不到了。",
+      "拍": "用手机做照片。",
+      "红": "像灯笼的颜色。"
     },
     "misses": [
       "嗯？",
       "你说什么？慢一点。"
+    ],
+    "likes": [
+      "doujiang"
     ]
   },
   {
@@ -144,6 +162,9 @@
     "misses": [
       "啊？再说一遍。",
       "你说什么？"
+    ],
+    "likes": [
+      "youtiao"
     ]
   },
   {
@@ -184,6 +205,13 @@
     "misses": [
       "嗯……你说什么？",
       "慢慢说，不急。"
+    ],
+    "likes": [
+      "yuebing",
+      "chaye"
+    ],
+    "dislikes": [
+      "water"
     ]
   },
   {
@@ -244,6 +272,10 @@
     "misses": [
       "哈？你说什么？",
       "爷爷没听见，再说一遍！"
+    ],
+    "likes": [
+      "chaye",
+      "baozi"
     ]
   },
   {
@@ -287,6 +319,13 @@
     "misses": [
       "你说什么呀？",
       "我听不懂！"
+    ],
+    "likes": [
+      "tanghulu",
+      "jinbi"
+    ],
+    "dislikes": [
+      "chaye"
     ]
   },
   {
@@ -496,6 +535,34 @@
     "misses": [
       "您好，请再说一遍。",
       "对不起，我没听懂。"
+    ]
+  },
+  {
+    "id": "tanghulu-dashu",
+    "name": "卖糖葫芦的大叔",
+    "role": "a man selling candied haws on sticks",
+    "look": {
+      "sprite": "uncle",
+      "palette": "brown"
+    },
+    "voice": "zhiyuan",
+    "character": "Sing-song street seller.",
+    "knows": [
+      "Candied haws are best in winter"
+    ],
+    "wants": [
+      "Customers"
+    ],
+    "actions": [
+      "money",
+      "give"
+    ],
+    "routine": [],
+    "explains": {
+      "糖葫芦": "红色的小果子，外面有糖，很甜。"
+    },
+    "misses": [
+      "啊？糖葫芦！"
     ]
   }
 ]

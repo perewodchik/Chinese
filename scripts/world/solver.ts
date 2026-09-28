@@ -90,9 +90,15 @@ function candidates(s: WorldSave): Scene[] {
     if ((chapterOf.get(m.id) ?? 1) > s.chapter) continue;
     const auto = autoScene(scenes, s, m.id);
     if (auto) out.push(auto);
+    const held = Object.entries(s.bag.items).filter(([, n]) => n > 0).map(([k]) => k);
     for (const o of castMap(m.objects, m.id, npcs, s)) {
       const sc = o.kind === 'npc' ? sceneFor(scenes, s, { npc: o.npc }) : o.kind === 'prop' || o.kind === 'sign' ? sceneFor(scenes, s, { look: o.id, map: m.id }) : null;
       if (sc) out.push(sc);
+      // using what is in the bag on them (X1)
+      for (const use of held) {
+        const u = o.kind === 'npc' ? sceneFor(scenes, s, { npc: o.npc, use }) : o.kind === 'prop' || o.kind === 'sign' ? sceneFor(scenes, s, { look: o.id, map: m.id, use }) : null;
+        if (u) out.push(u);
+      }
     }
   }
   return out;

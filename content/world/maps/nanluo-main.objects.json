@@ -346,5 +346,15 @@
    51,
    7
   ]
+ },
+ {
+  "kind": "npc",
+  "id": "tanghulu",
+  "npc": "tanghulu-dashu",
+  "tile": [
+   44,
+   8
+  ],
+  "facing": "down"
  }
 ]

@@ -20,6 +20,10 @@
      {
       "do": "give",
       "item": "huzhao"
+     },
+     {
+      "do": "give",
+      "item": "shouji"
      }
     ],
     "why": "你 arrive in Beijing. The companion button (bottom left) is 兔儿爷 — he wakes up soon. Tap words for their cards; tap 拼 for pinyin."
@@ -1853,6 +1857,97 @@
   ]
  },
  {
+  "id": "topup-station-staff",
+  "map": "station-nanluoguxiang",
+  "npc": "station-staff",
+  "trigger": "talk",
+  "priority": 1,
+  "when": {
+   "all": [
+    {
+     "scene": "card"
+    },
+    {
+     "money": 50
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "充值",
+    "explain": "给卡里放钱。",
+    "en": "top up"
+   },
+   {
+    "w": "交通卡",
+    "explain": "坐地铁的卡。",
+    "en": "transport card"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！交通卡要充值吗？五十块。",
+    "translate": "Hello! Top up your transport card? Fifty yuan.",
+    "simpler": "充值吗？",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "要",
+        "行",
+        "充值",
+        "可以"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -50
+       },
+       {
+        "do": "card",
+        "amount": 50
+       }
+      ]
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不要",
+        "不用"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "充值",
+     "frame": "好，我要___。",
+     "full": "好，我要充值。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好了！你的交通卡有钱了。",
+    "translate": "Done! Your card is topped up.",
+    "simpler": "交通卡充值了。"
+   },
+   {
+    "id": "c",
+    "say": "好，再见！",
+    "translate": "OK, bye!"
+   }
+  ]
+ },
+ {
   "id": "bird-lost",
   "map": "nanluo-main",
   "npc": "zhao-yeye",
@@ -1893,7 +1988,7 @@
   "map": "nanluo-main",
   "npc": "xiaoming",
   "trigger": "talk",
-  "priority": 0,
+  "priority": -4,
   "when": {
    "all": [
     {
@@ -2358,93 +2453,655 @@
   ]
  },
  {
-  "id": "topup-station-staff",
-  "map": "station-nanluoguxiang",
-  "npc": "station-staff",
+  "id": "tanghulu",
+  "map": "nanluo-main",
+  "npc": "tanghulu-dashu",
   "trigger": "talk",
-  "priority": 1,
+  "priority": 0,
   "when": {
    "all": [
     {
-     "scene": "card"
-    },
-    {
-     "money": 50
+     "money": 5
     }
    ]
   },
   "start": "a",
   "words": [
    {
-    "w": "充值",
-    "explain": "给卡里放钱。",
-    "en": "top up"
-   },
-   {
-    "w": "交通卡",
-    "explain": "坐地铁的卡。",
-    "en": "transport card"
+    "w": "糖葫芦",
+    "explain": "红色的小果子，外面有糖，很甜。",
+    "en": "candied haws"
    }
   ],
   "nodes": [
    {
     "id": "a",
-    "say": "你好！交通卡要充值吗？五十块。",
-    "translate": "Hello! Top up your transport card? Fifty yuan.",
-    "simpler": "充值吗？",
+    "say": "你好！要什么？",
+    "translate": "Hello! What'll it be?",
     "expect": [
      {
-      "intent": "yes",
+      "intent": "buy",
       "match": [
        [
-        "好",
-        "好的",
-        "要",
-        "行",
-        "充值",
-        "可以"
+        "糖葫芦"
        ]
       ],
       "go": "b",
       "actions": [
        {
         "do": "money",
-        "amount": -50
+        "amount": -5
        },
        {
-        "do": "card",
-        "amount": 50
+        "do": "give",
+        "item": "tanghulu"
        }
       ]
-     },
-     {
-      "intent": "no",
-      "match": [
-       [
-        "不",
-        "不要",
-        "不用"
-       ]
-      ],
-      "go": "c"
      }
     ],
     "hint": {
-     "word": "充值",
-     "frame": "好，我要___。",
-     "full": "好，我要充值。"
+     "word": "糖葫芦",
+     "frame": "我要买___。",
+     "full": "我要买糖葫芦。"
     }
    },
    {
     "id": "b",
-    "say": "好了！你的交通卡有钱了。",
-    "translate": "Done! Your card is topped up.",
-    "simpler": "交通卡充值了。"
+    "say": "糖葫芦？五块。给你。",
+    "translate": "糖葫芦? 5 yuan. Here.",
+    "simpler": "糖葫芦，五块。"
+   }
+  ]
+ },
+ {
+  "id": "kite-stuck",
+  "map": "nanluo-main",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "priority": -2,
+  "once": true,
+  "when": {
+   "chapter": 2
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "风筝",
+    "explain": "在天上飞的纸，有一根长线。",
+    "en": "kite"
    },
    {
-    "id": "c",
-    "say": "好，再见！",
-    "translate": "OK, bye!"
+    "w": "树",
+    "explain": "很高，绿色的，有很多叶子。",
+    "en": "tree"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我的风筝在树上！你能帮我吗？",
+    "translate": "My kite's stuck in a tree! Can you help me?",
+    "simpler": "风筝在树上！",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-kite",
+      "step": "pole"
+     }
+    ],
+    "why": "The tree is the big 槐树 in your lane, 帽儿胡同. A bamboo pole would reach it."
+   }
+  ]
+ },
+ {
+  "id": "zhugan-buy",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "side-kite",
+     "step": "pole"
+    },
+    {
+     "money": 10
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "竹竿",
+    "explain": "很长的，用竹子做的。",
+    "en": "bamboo pole"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！要什么？",
+    "translate": "Hello! What'll it be?",
+    "expect": [
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "竹竿"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -10
+       },
+       {
+        "do": "give",
+        "item": "zhugan"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "竹竿",
+     "frame": "我要买___。",
+     "full": "我要买竹竿。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "竹竿？十块。给你。",
+    "translate": "竹竿? 10 yuan. Here.",
+    "simpler": "竹竿，十块。"
+   }
+  ]
+ },
+ {
+  "id": "kite-down",
+  "map": "hutong-home",
+  "object": "kite-tree",
+  "trigger": "look",
+  "use": "zhugan",
+  "start": "a",
+  "words": [
+   {
+    "w": "风筝",
+    "explain": "在天上飞的纸。",
+    "en": "kite"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好，风筝下来了！",
+    "translate": "There — the kite's down!",
+    "speaker": "hero",
+    "simpler": "风筝下来了！",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "zhugan"
+     },
+     {
+      "do": "give",
+      "item": "fengzheng"
+     },
+     {
+      "do": "flag",
+      "flag": "kite-down"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "kite-look",
+  "map": "hutong-home",
+  "object": "kite-tree",
+  "trigger": "look",
+  "priority": 5,
+  "start": "a",
+  "words": [
+   {
+    "w": "风筝",
+    "explain": "在天上飞的纸。",
+    "en": "kite"
+   },
+   {
+    "w": "树",
+    "explain": "很高，绿色的，有很多叶子。",
+    "en": "tree"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "树上有一个风筝。",
+    "translate": "There's a kite in the tree.",
+    "speaker": "hero",
+    "simpler": "风筝在树上。"
+   }
+  ]
+ },
+ {
+  "id": "kite-back",
+  "map": "nanluo-main",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "use": "fengzheng",
+  "start": "a",
+  "words": [
+   {
+    "w": "风筝",
+    "explain": "在天上飞的纸。",
+    "en": "kite"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我的风筝！谢谢你！",
+    "translate": "My kite! Thank you!",
+    "simpler": "风筝回来了！",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "fengzheng"
+     },
+     {
+      "do": "flag",
+      "flag": "kite-back"
+     },
+     {
+      "do": "hearts",
+      "npc": "xiaoming",
+      "delta": 1
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "keys-lost",
+  "map": "siheyuan-yard",
+  "trigger": "auto",
+  "once": true,
+  "when": {
+   "chapter": 3
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "钥匙",
+    "explain": "开门用的小东西。",
+    "en": "keys"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我的钥匙呢？没有了！",
+    "translate": "Where are my keys? Gone!",
+    "speaker": "hero",
+    "simpler": "钥匙没有了。",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-keys",
+      "step": "ask"
+     }
+    ],
+    "why": "Ask the neighbours if they have seen them: 李阿姨 at the shop, 赵爷爷, 小明."
+   }
+  ]
+ },
+ {
+  "id": "keys-li",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": -3,
+  "when": {
+   "quest": "side-keys",
+   "step": "ask"
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我没看见。你问问小明吧。",
+    "translate": "I haven't seen them. Ask 小明."
+   }
+  ]
+ },
+ {
+  "id": "keys-kid",
+  "map": "nanluo-main",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "priority": -3,
+  "when": {
+   "quest": "side-keys",
+   "step": "ask"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "钥匙",
+    "explain": "开门用的小东西。",
+    "en": "keys"
+   },
+   {
+    "w": "胡同",
+    "explain": "北京的小路。",
+    "en": "lane"
+   },
+   {
+    "w": "黑",
+    "explain": "没有光。",
+    "en": "dark"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我看见了！钥匙在胡同那儿，那儿很黑。",
+    "translate": "I saw them! The keys are in the lane, where it's dark.",
+    "simpler": "钥匙在胡同里，很黑。",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-keys",
+      "step": "light"
+     }
+    ],
+    "why": "The dark corner is at the east end of 帽儿胡同. A torch 手电筒 from the corner shop would help."
+   }
+  ]
+ },
+ {
+  "id": "torch-buy",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "side-keys",
+     "step": "light"
+    },
+    {
+     "money": 15
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "手电筒",
+    "explain": "晚上用的小灯。",
+    "en": "torch"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！要什么？",
+    "translate": "Hello! What'll it be?",
+    "expect": [
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "手电筒"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -15
+       },
+       {
+        "do": "give",
+        "item": "shoudiantong"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "手电筒",
+     "frame": "我要买___。",
+     "full": "我要买手电筒。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "手电筒？十五块。给你。",
+    "translate": "手电筒? 15 yuan. Here.",
+    "simpler": "手电筒，十五块。"
+   }
+  ]
+ },
+ {
+  "id": "keys-found",
+  "map": "hutong-home",
+  "object": "dark-corner",
+  "trigger": "look",
+  "use": "shoudiantong",
+  "when": {
+   "not": {
+    "flag": "keys-found"
+   }
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "钥匙",
+    "explain": "开门用的小东西。",
+    "en": "keys"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我的钥匙！在这儿！",
+    "translate": "My keys! Here they are!",
+    "speaker": "hero",
+    "simpler": "钥匙在这儿！",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "yaoshi"
+     },
+     {
+      "do": "flag",
+      "flag": "keys-found"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "thermos-buy",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "side-thermos",
+     "step": "flask"
+    },
+    {
+     "money": 20
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "保温杯",
+    "explain": "放热水的杯子。",
+    "en": "thermos flask"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！要什么？",
+    "translate": "Hello! What'll it be?",
+    "expect": [
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "保温杯"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -20
+       },
+       {
+        "do": "give",
+        "item": "baowenbei"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "保温杯",
+     "frame": "我要买___。",
+     "full": "我要买保温杯。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "保温杯？二十块。给你。",
+    "translate": "保温杯? 20 yuan. Here.",
+    "simpler": "保温杯，二十块。"
+   }
+  ]
+ },
+ {
+  "id": "thermos-fill",
+  "map": "chaguan",
+  "npc": "lao-liu",
+  "trigger": "talk",
+  "use": "baowenbei",
+  "start": "a",
+  "words": [
+   {
+    "w": "热水",
+    "explain": "很热的水。",
+    "en": "hot water"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "热水？好，给你。",
+    "translate": "Hot water? Here you are.",
+    "simpler": "热水来了。",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "baowenbei"
+     },
+     {
+      "do": "give",
+      "item": "reshui"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "photo-ask",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "priority": -2,
+  "once": true,
+  "when": {
+   "spirit": "menshen"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "照片",
+    "explain": "用手机拍的画。",
+    "en": "photo"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你能给我拍一张红门的照片吗？",
+    "translate": "Could you take a photo of a red gate for me?",
+    "simpler": "你能给我一张照片吗？",
+    "key": true,
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-photo-gate",
+      "step": "photo"
+     }
+    ],
+    "why": "拍 (take a photo) and 张 (the measure word for flat things) are HSK 3 — a small key line. Use your 手机 on the door gods' gate in 大栅栏."
+   }
+  ]
+ },
+ {
+  "id": "photo-show",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "use": "shouji",
+  "when": {
+   "all": [
+    {
+     "flag": "photo-gate"
+    },
+    {
+     "not": {
+      "flag": "photo-shown"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "照片",
+    "explain": "用手机拍的画。",
+    "en": "photo"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这个照片真好看！谢谢你！",
+    "translate": "What a lovely photo! Thank you!",
+    "simpler": "照片真好看！",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "photo-shown"
+     },
+     {
+      "do": "hearts",
+      "npc": "wang-ayi",
+      "delta": 1
+     }
+    ]
    }
   ]
  }

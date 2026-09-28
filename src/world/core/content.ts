@@ -69,6 +69,7 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
   z.strictObject({ do: z.literal('game'), game: id }),
   z.strictObject({ do: z.literal('sleep') }),
   z.strictObject({ do: z.literal('wait'), until: hour }),
+  z.strictObject({ do: z.literal('hearts'), npc: id, delta: z.number().int() }),
   z.strictObject({ do: z.literal('pin'), riddle: text }),
   z.strictObject({ do: z.literal('solve'), riddle: text }),
   z.strictObject({ do: z.literal('remember'), npc: id, note: text }),
@@ -76,7 +77,7 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
 
 const actionKind = z.enum([
   'flag', 'give', 'take', 'money', 'card', 'quest', 'quest_done', 'stamp', 'spirit', 'idiom',
-  'station', 'district', 'chapter', 'teleport', 'game', 'sleep', 'wait', 'pin', 'solve', 'remember',
+  'station', 'district', 'chapter', 'teleport', 'game', 'sleep', 'wait', 'hearts', 'pin', 'solve', 'remember',
 ]);
 
 export const districtSchema: z.ZodType<District> = z.strictObject({
@@ -147,6 +148,8 @@ export const npcSchema: z.ZodType<NpcCard> = z.strictObject({
   ),
   explains: z.record(z.string(), text),
   misses: z.array(hanzi).optional(),
+  likes: z.array(id).optional(),
+  dislikes: z.array(id).optional(),
 });
 
 const expectSchema: z.ZodType<Expect> = z.strictObject({
@@ -179,6 +182,7 @@ export const sceneSchema: z.ZodType<Scene> = z.strictObject({
   map: id,
   npc: id.optional(),
   object: id.optional(),
+  use: id.optional(),
   trigger: z.enum(['talk', 'zone', 'look', 'auto']),
   when: conditionSchema.optional(),
   once: z.boolean().optional(),
@@ -228,7 +232,7 @@ export const stampSchema: z.ZodType<Stamp> = z.strictObject({
   landmark: z.boolean().optional(),
 });
 
-export const itemSchema: z.ZodType<Item> = z.strictObject({ id, name: hanzi, en: text, icon: z.string().optional() });
+export const itemSchema: z.ZodType<Item> = z.strictObject({ id, name: hanzi, en: text, icon: z.string().optional(), gift: z.boolean().optional() });
 
 /** The files of one district folder and the schema each is checked with. */
 export const DISTRICT_FILES = {

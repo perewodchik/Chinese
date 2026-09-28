@@ -726,6 +726,20 @@ export function rockery(): Grid {
   return g.stamp(f, 0, 0);
 }
 
+
+// ---------------------------------------------------------------- X1: things
+
+/** A red paper kite with a tail, 16×16 — stuck in a tree, or in a child's hands. */
+export function kite(): Grid {
+  const g = new Grid(16, 16);
+  const f = new Grid(16, 16);
+  for (let i = 0; i < 6; i++) f.hline(7 - i, 1 + i, 1 + i * 2, 'r').hline(7 - i, 12 - i, 1 + i * 2, 'r');
+  f.vline(7, 1, 12, 'y').hline(2, 6, 11, 'y').set(7, 6, 'j');
+  f.set(8, 13, 'n').set(9, 14, 'n').set(8, 15, 'y').set(10, 15, 'n');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -763,6 +777,7 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['jiulongbi', 'the Nine-Dragon Screen, before and after the eyes', () => [['blind', jiulongbi(false)], ['eyes', jiulongbi(true)]]],
   ['dragon', 'the dragon, awake', () => [['fly-0', dragon(0)], ['fly-1', dragon(1)]]],
   ['rockery', 'a rockery of the Imperial Garden', () => [['rocks', rockery()]]],
+  ['kite', 'a red paper kite', () => [['red', kite()]]],
   ['door-gods', 'an old gate with its door gods, faded and restored', () => [['faded', doorGods(true)], ['bright', doorGods(false)]]],
   ['pigeon', 'a pigeon of the hutongs', () => [['peck', pigeon('peck')], ['look', pigeon('look')], ['fly-0', pigeon('fly-0')], ['fly-1', pigeon('fly-1')]]],
 ];

@@ -65,7 +65,9 @@ export type Action =
   /** pin the current key line to 📜 as a riddle to work out */
   | { do: 'pin'; riddle: string }
   | { do: 'solve'; riddle: string }
-  | { do: 'remember'; npc: string; note: string };
+  | { do: 'remember'; npc: string; note: string }
+  /** friendship up or down (0–5) */
+  | { do: 'hearts'; npc: string; delta: number };
 
 export type ActionKind = Action['do'];
 
@@ -133,6 +135,9 @@ export interface NpcCard {
   routine: RoutineStop[];
   /** words they can explain, each in HSK 1 Chinese */
   explains: Record<string, string>;
+  /** items they are glad to be given (X1), and ones they are not */
+  likes?: string[];
+  dislikes?: string[];
   /** their own ways of saying "what?" when they do not understand */
   misses?: string[];
 }
@@ -198,6 +203,8 @@ export interface Scene {
   when?: Condition;
   /** plays once; after that the NPC's next scene (or small talk) is used */
   once?: boolean;
+  /** played when this item is used on the NPC or the object (X1), not when simply talking or looking */
+  use?: string;
   start: string;
   nodes: DialogueNode[];
   words?: SituationWord[];
@@ -262,6 +269,8 @@ export interface Item {
   name: string;
   en: string;
   icon?: string;
+  /** something one can give as a present (food, flowers …) */
+  gift?: boolean;
 }
 
 /** Everything one district's folder holds, after validation. */
@@ -320,6 +329,10 @@ export interface NpcMemory {
   met: number;
   /** short notes of what was said, oldest first */
   notes: string[];
+  /** friendship, 0–5 (X2): talking, gifts, help */
+  hearts: number;
+  /** the game day of the last gift (one a day), 0 for never */
+  gift: number;
 }
 
 export interface WorldSave {

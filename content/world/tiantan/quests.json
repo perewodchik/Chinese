@@ -72,5 +72,50 @@
         }
       }
     ]
+  },
+  {
+    "id": "side-thermos",
+    "title": "Hot water for the 胡琴 player",
+    "chapter": 4,
+    "steps": [
+      {
+        "id": "flask",
+        "now": "The old 胡琴 player is cold. Buy a thermos 保温杯 at the corner shop on 南锣鼓巷.",
+        "done": {
+          "any": [
+            {
+              "item": "baowenbei"
+            },
+            {
+              "item": "reshui"
+            },
+            {
+              "flag": "thermos-given"
+            }
+          ]
+        }
+      },
+      {
+        "id": "fill",
+        "now": "Fill it with hot water at 老刘’s teahouse (use the flask on him).",
+        "done": {
+          "any": [
+            {
+              "item": "reshui"
+            },
+            {
+              "flag": "thermos-given"
+            }
+          ]
+        }
+      },
+      {
+        "id": "give",
+        "now": "Give the hot water to the old man at 天坛 (use it on him).",
+        "done": {
+          "flag": "thermos-given"
+        }
+      }
+    ]
   }
 ]

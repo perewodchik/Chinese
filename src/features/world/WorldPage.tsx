@@ -4,7 +4,7 @@ import { partOfDay } from '../../world/core/clock';
 import { libraryLexicon } from '../../world/core/dialogue/lexicon';
 import { autoScene, sceneFor } from '../../world/core/scenes';
 import type { SaveAction } from '../../world/core/save';
-import type { Facing, MapObject, PartOfDay, Scene, Tile, WorldSave } from '../../world/core/types';
+import type { Facing, MapObject, NpcCard, PartOfDay, Scene, Tile, WorldSave } from '../../world/core/types';
 import type { RunningWorld } from '../../world/engine/boot';
 import { throughDoor } from '../../world/engine/doors';
 import type { WorldHost } from '../../world/engine/scene';
@@ -27,7 +27,8 @@ import { Companion } from '../../world/ui/Companion';
 import { cueLine, IDLE_MS, speaksUpAfterMisses } from '../../world/ui/companionLines';
 import { activeQuests, whatNow } from '../../world/core/quests';
 import { TopBar } from '../../world/ui/TopBar';
-import { signScene, smallTalk, useTalk } from '../../world/ui/useTalk';
+import { lineScene, signScene, smallTalk, useTalk } from '../../world/ui/useTalk';
+import { GIFT_LINES, giveTo, NOTHING_HAPPENS } from '../../world/core/gifts';
 import { useLibrary } from '../shared/library';
 import { useWorldSave } from '../../world/ui/useWorldSave';
 import { useUser } from '../auth/session';
@@ -70,6 +71,33 @@ export function WorldPage() {
     return game.dispatch(actions);
   };
   const talk = useTalk(content, lex, talkDispatch);
+  /**
+   * Using an item on someone or something (X1): a scene written for it wins;
+   * otherwise a person takes it as a present (likes, dislikes, one a day), and
+   * anything else is a gentle "not this one". The item stays unless accepted.
+   */
+  const applyItem = (itemId: string, target: { npc: string; card: NpcCard | null } | { object: string }, s: WorldSave) => {
+    setUsing(null);
+    const c = contentRef.current;
+    const item = c.items.find((i) => i.id === itemId);
+    if (!item) return;
+    if ('npc' in target) {
+      const scene = sceneFor(c.scenes, s, { npc: target.npc, use: itemId });
+      const look = target.card ? lookOf(target.card, target.card.id) : target.npc;
+      if (scene) return talkRef.current.start(scene, target.card, look, s);
+      if (!target.card) return talkRef.current.start(lineScene('no', target.npc, GIFT_LINES['not-a-gift'].zh, GIFT_LINES['not-a-gift'].en, target.npc), null, look, s);
+      const r = giveTo(target.card, item, s);
+      if (r.actions.length) game.dispatch(r.actions);
+      return talkRef.current.start(lineScene(`gift-${r.kind}`, target.npc, r.zh, r.en, target.npc), target.card, look, s);
+    }
+    const scene = sceneFor(c.scenes, s, { look: target.object, map: s.place.map, use: itemId });
+    if (scene) {
+      const card = c.npcs.find((n) => n.id === scene.npc) ?? null;
+      return card ? talkRef.current.start(scene, card, lookOf(card, card.id), s) : startBare(scene, s);
+    }
+    talkRef.current.start(lineScene('nothing', 'hero', NOTHING_HAPPENS.zh, NOTHING_HAPPENS.en), null, 'sign', s, '我');
+  };
+
   /** A scene with no person in it (a thought, 兔儿爷, a spirit): headed by whoever speaks first. */
   const startBare = (scene: Scene, s: WorldSave) => {
     const who = scene.nodes.find((n) => n.id === scene.start)?.speaker ?? 'hero';
@@ -91,6 +119,10 @@ export function WorldPage() {
   const [minutes, setMinutes] = useState(0);
   const [pal, setPal] = useState<{ open: boolean; said: string | null }>({ open: false, said: null });
   const [panel, setPanel] = useState<PanelId | null>(null);
+  /** an item chosen in the bag, waiting for someone or something to be used on (X1) */
+  const [using, setUsing] = useState<string | null>(null);
+  const usingRef = useRef<string | null>(null);
+  usingRef.current = using;
   /** on a platform: the station you board at */
   const [riding, setRiding] = useState<{ at: string; mode: Mode } | null>(null);
   const mapIndex = useRef<MapIndex>({});
@@ -182,12 +214,20 @@ export function WorldPage() {
             if (!s) return;
             const c = contentRef.current;
             const card = c.npcs.find((n) => n.id === npc) ?? null;
+            if (usingRef.current) {
+              applyItem(usingRef.current, { npc, card }, s);
+              return;
+            }
             const scene = sceneFor(c.scenes, s, { npc }) ?? smallTalk(npc, card);
             talkRef.current.start(scene, card, lookOf(card, npc), s);
           },
           onLook: (o: MapObject) => {
             const s = game.current();
             if (!s) return;
+            if (usingRef.current) {
+              applyItem(usingRef.current, { object: o.id }, s);
+              return;
+            }
             // the board on a platform or at a bus stop: what leaves from here
             // (subway maps are called station-<id>, bus and train stops stop-<id>);
             // a scene on the board (no ticket yet) comes first
@@ -425,6 +465,10 @@ export function WorldPage() {
           content={content}
           pinyin={game.save.settings.pinyin}
           onClose={() => setPanel(null)}
+          onUse={(item) => {
+            setPanel(null);
+            setUsing(item);
+          }}
           onSettings={(patch) => void game.dispatch([{ do: 'settings', patch }])}
           onGo={(station) => {
             setPanel(null);
@@ -491,6 +535,16 @@ export function WorldPage() {
             if (r.at !== riding.at) world.current?.travel({ map: stopMap(r.at, riding.mode), tile: [8, 11], facing: 'down' });
           }}
         />
+      )}
+      {using && game.save && (
+        <div className="wu-bar" role="status">
+          <span>
+            🎒 <span className="han">{content.items.find((i) => i.id === using)?.name ?? using}</span> → tap someone or something
+          </span>
+          <button type="button" className="wd-tool" onClick={() => setUsing(null)} aria-label="Put it back">
+            ×
+          </button>
+        </div>
       )}
       {game.save?.settings.joystick && state === 'ready' && !talk.view && !panel && (
         <Joystick onStick={(f, run) => world.current?.stick(f, run)} onAct={() => world.current?.act()} />

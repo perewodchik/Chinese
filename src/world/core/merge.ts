@@ -43,7 +43,9 @@ const memory = (x: NpcMemory, y: NpcMemory): NpcMemory => {
   const [first, second] = xFirst ? [x, y] : [y, x];
   const notes = [...first.notes];
   for (const n of second.notes) if (!notes.includes(n)) notes.push(n);
-  return { met: first.met, notes: notes.slice(-20) };
+  const hearts = Math.max(x.hearts ?? 0, y.hearts ?? 0);
+  const gift = Math.max(x.gift ?? 0, y.gift ?? 0);
+  return { met: first.met, notes: notes.slice(-20), hearts, gift };
 };
 
 type Heard = WorldSave['idioms'][string];

@@ -2,22 +2,26 @@
   {
     "id": "baozi",
     "name": "包子",
-    "en": "steamed bun"
+    "en": "steamed bun",
+    "gift": true
   },
   {
     "id": "doujiang",
     "name": "豆浆",
-    "en": "soy milk"
+    "en": "soy milk",
+    "gift": true
   },
   {
     "id": "youtiao",
     "name": "油条",
-    "en": "fried dough stick"
+    "en": "fried dough stick",
+    "gift": true
   },
   {
     "id": "water",
     "name": "水",
-    "en": "a bottle of water"
+    "en": "a bottle of water",
+    "gift": true
   },
   {
     "id": "huzhao",
@@ -28,5 +32,46 @@
     "id": "niao",
     "name": "鸟",
     "en": "赵爷爷's bird"
+  },
+  {
+    "id": "tanghulu",
+    "name": "糖葫芦",
+    "en": "candied haws on a stick",
+    "gift": true
+  },
+  {
+    "id": "zhugan",
+    "name": "竹竿",
+    "en": "a bamboo pole"
+  },
+  {
+    "id": "fengzheng",
+    "name": "风筝",
+    "en": "小明's kite"
+  },
+  {
+    "id": "shoudiantong",
+    "name": "手电筒",
+    "en": "a torch"
+  },
+  {
+    "id": "yaoshi",
+    "name": "钥匙",
+    "en": "your keys"
+  },
+  {
+    "id": "baowenbei",
+    "name": "保温杯",
+    "en": "a thermos flask (empty)"
+  },
+  {
+    "id": "reshui",
+    "name": "热水",
+    "en": "a thermos of hot water"
+  },
+  {
+    "id": "shouji",
+    "name": "手机",
+    "en": "your phone"
   }
 ]

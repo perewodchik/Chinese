@@ -48,6 +48,11 @@ export function afterTurn(v: TalkView, t: Turn, you?: string): TalkView {
   return { ...v, history, state: t.state, mode: modeOf(v.scene, t), cue: t.companion, misses };
 }
 
+/** One line said by someone, outside any script (a gift's thanks, "not this one"). */
+export function lineScene(id: string, speaker: string, zh: string, en: string, npc?: string): Scene {
+  return { id: `line-${id}`, map: '', ...(npc ? { npc } : {}), trigger: 'talk', start: 'a', nodes: [{ id: 'a', speaker, say: zh, translate: en }] };
+}
+
 /** A sign read in the bubble, so its words can be tapped (concept §4): one line, its English as the translation. */
 export function signScene(o: { id: string; text: string; en?: string }): Scene {
   return { id: `sign-${o.id}`, map: '', trigger: 'look', start: 'text', nodes: [{ id: 'text', speaker: 'sign', say: o.text, translate: o.en ?? '' }] };

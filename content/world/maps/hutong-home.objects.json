@@ -164,5 +164,33 @@
    25,
    7
   ]
+ },
+ {
+  "kind": "prop",
+  "id": "kite-tree",
+  "tile": [
+   16,
+   8
+  ],
+  "frame": "kite/red",
+  "blocks": [
+   0,
+   0
+  ],
+  "when": {
+   "not": {
+    "flag": "kite-down"
+   }
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "dark-corner",
+  "tile": [
+   37,
+   6
+  ],
+  "text": "……",
+  "en": "A dark corner between two walls"
  }
 ]

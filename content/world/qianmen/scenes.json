@@ -474,5 +474,49 @@
     ]
    }
   ]
+ },
+ {
+  "id": "photo-gate",
+  "map": "qianmen-street",
+  "object": "door-gods",
+  "trigger": "look",
+  "use": "shouji",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好，一，二，三！",
+    "translate": "Right — one, two, three!",
+    "speaker": "hero",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "photo-gate"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "photo-gate-2",
+  "map": "qianmen-street",
+  "object": "door-gods-bright",
+  "trigger": "look",
+  "use": "shouji",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好，一，二，三！",
+    "translate": "Right — one, two, three!",
+    "speaker": "hero",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "photo-gate"
+     }
+    ]
+   }
+  ]
  }
 ]

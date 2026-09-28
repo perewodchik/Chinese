@@ -690,5 +690,66 @@
     "simpler": "毛笔，二十块。"
    }
   ]
+ },
+ {
+  "id": "yuebing",
+  "map": "wangfujing-street",
+  "npc": "yuebing-ayi",
+  "trigger": "talk",
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "money": 15
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "月饼",
+    "explain": "圆的点心，中秋节吃。",
+    "en": "moon cake"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！要什么？",
+    "translate": "Hello! What'll it be?",
+    "expect": [
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "月饼"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -15
+       },
+       {
+        "do": "give",
+        "item": "yuebing"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "月饼",
+     "frame": "我要买___。",
+     "full": "我要买月饼。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "月饼？十五块。给你。",
+    "translate": "月饼? 15 yuan. Here.",
+    "simpler": "月饼，十五块。"
+   }
+  ]
  }
 ]

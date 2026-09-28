@@ -2,6 +2,7 @@
   {
     "id": "chaye",
     "name": "茶叶",
-    "en": "tea leaves"
+    "en": "tea leaves",
+    "gift": true
   }
 ]

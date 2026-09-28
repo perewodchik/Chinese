@@ -359,5 +359,78 @@
     "why": "After 对牛弹琴, someone finally sings along."
    }
   ]
+ },
+ {
+  "id": "cold",
+  "map": "tiantan-park",
+  "npc": "huqin-yeye",
+  "trigger": "talk",
+  "priority": -1,
+  "once": true,
+  "when": {
+   "idiom": "对牛弹琴"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "热水",
+    "explain": "很热的水。",
+    "en": "hot water"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "今天有点冷。我想喝热水。",
+    "translate": "It's a bit cold today. I'd love some hot water.",
+    "simpler": "我想喝热水。",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-thermos",
+      "step": "flask"
+     }
+    ],
+    "why": "冷 — cold. A thermos flask 保温杯 from the corner shop, filled at 老刘's teahouse, would do."
+   }
+  ]
+ },
+ {
+  "id": "thermos-give",
+  "map": "tiantan-park",
+  "npc": "huqin-yeye",
+  "trigger": "talk",
+  "use": "reshui",
+  "start": "a",
+  "words": [
+   {
+    "w": "热水",
+    "explain": "很热的水。",
+    "en": "hot water"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "热水！谢谢你！",
+    "translate": "Hot water! Thank you!",
+    "simpler": "热水，谢谢！",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "reshui"
+     },
+     {
+      "do": "flag",
+      "flag": "thermos-given"
+     },
+     {
+      "do": "hearts",
+      "npc": "huqin-yeye",
+      "delta": 1
+     }
+    ]
+   }
+  ]
  }
 ]

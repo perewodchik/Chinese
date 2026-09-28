@@ -36,6 +36,7 @@ export function Panels({
   onClose,
   onGo,
   onSettings,
+  onUse,
 }: {
   tab: PanelId;
   setTab: (t: PanelId) => void;
@@ -46,6 +47,8 @@ export function Panels({
   /** "Go": to the nearest station of where you are, to ride from there */
   onGo: (station: string) => void;
   onSettings: (patch: Partial<WorldSettings>) => void;
+  /** choose an item to use on someone or something (X1) */
+  onUse: (item: string) => void;
 }) {
   return (
     <div className="wp-scrim" onClick={onClose}>
@@ -63,7 +66,7 @@ export function Panels({
         </header>
         <div className="wp-body">
           {tab === 'tasks' && <Tasks save={save} content={content} pinyin={pinyin} />}
-          {tab === 'bag' && <Bag save={save} content={content} />}
+          {tab === 'bag' && <Bag save={save} content={content} onUse={onUse} />}
           {tab === 'map' && <BeijingMap save={save} onGo={onGo} />}
           {tab === 'spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
           {tab === 'idioms' && <Idioms save={save} content={content} pinyin={pinyin} />}
@@ -121,7 +124,7 @@ function Tasks({ save, content, pinyin }: { save: WorldSave; content: WorldConte
   );
 }
 
-function Bag({ save, content }: { save: WorldSave; content: WorldContent }) {
+function Bag({ save, content, onUse }: { save: WorldSave; content: WorldContent; onUse: (item: string) => void }) {
   const rows = bagRows(save, content.items);
   return (
     <>
@@ -140,6 +143,9 @@ function Bag({ save, content }: { save: WorldSave; content: WorldContent }) {
               <span className="han">{r.name}</span>
               <span className="tiny muted">{r.en}</span>
               {r.count > 1 && <span className="wp-count">×{r.count}</span>}
+              <button type="button" className="btn sm wp-use" onClick={() => onUse(r.id)}>
+                Use / give
+              </button>
             </li>
           ))}
         </ul>

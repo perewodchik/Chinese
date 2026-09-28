@@ -234,5 +234,15 @@
    37,
    12
   ]
+ },
+ {
+  "kind": "npc",
+  "id": "yuebing",
+  "npc": "yuebing-ayi",
+  "tile": [
+   40,
+   9
+  ],
+  "facing": "down"
  }
 ]

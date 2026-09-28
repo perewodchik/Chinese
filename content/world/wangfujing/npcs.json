@@ -119,5 +119,33 @@
     "misses": [
       "对不起，请再说一遍。"
     ]
+  },
+  {
+    "id": "yuebing-ayi",
+    "name": "卖月饼的阿姨",
+    "role": "a woman at the department store's moon-cake stall",
+    "look": {
+      "sprite": "auntie",
+      "palette": "green"
+    },
+    "voice": "wang",
+    "character": "Chatty, gives tastes.",
+    "knows": [
+      "Moon cakes are eaten at the Mid-Autumn festival"
+    ],
+    "wants": [
+      "Customers"
+    ],
+    "actions": [
+      "money",
+      "give"
+    ],
+    "routine": [],
+    "explains": {
+      "月饼": "圆的点心，中秋节吃。"
+    },
+    "misses": [
+      "你说什么？"
+    ]
   }
 ]

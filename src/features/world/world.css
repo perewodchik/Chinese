@@ -1346,3 +1346,32 @@
   font-size: 64px;
   opacity: 0.5;
 }
+
+/* using an item (X1): a slim bar under the top line until you tap a target */
+.wu-bar {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 52px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 20px);
+  padding: 4px 6px 4px 14px;
+  border-radius: 999px;
+  background: rgba(34, 32, 46, 0.82);
+  color: #f8f5ec;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.wu-bar .han {
+  font-family: var(--han);
+  font-size: 17px;
+}
+
+.wp-use {
+  margin-top: 6px;
+  justify-self: start;
+}

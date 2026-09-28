@@ -18,5 +18,11 @@
     "id": "gushishu",
     "name": "故事书",
     "en": "a storybook"
+  },
+  {
+    "id": "yuebing",
+    "name": "月饼",
+    "en": "a moon cake",
+    "gift": true
   }
 ]
