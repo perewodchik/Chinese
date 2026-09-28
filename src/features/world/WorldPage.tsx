@@ -114,6 +114,31 @@ export function WorldPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [start]);
 
+  // The game clock: one real second is one game minute, and it only runs
+  // while you are free in the world — not in a conversation, a panel, or a
+  // hidden tab (concept §2). The save hears of it every ten game minutes.
+  useEffect(() => {
+    if (state !== 'ready' || !start || start.asked) return;
+    let minutes = game.current()?.clock ?? 0;
+    let part = partOfDay(minutes);
+    let told = minutes;
+    const id = window.setInterval(() => {
+      if (busy.current || document.visibilityState === 'hidden') return;
+      minutes += 1;
+      if (minutes - told >= 10) {
+        told = minutes;
+        game.dispatch([{ do: 'tick', minutes }], 'walk');
+      }
+      const now = partOfDay(minutes);
+      if (now !== part) {
+        part = now;
+        world.current?.setTime(now);
+      }
+    }, 1000);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, start]);
+
   return (
     <div className="world-shell" data-state={state} data-framed={frame ? '' : undefined}>
       <div

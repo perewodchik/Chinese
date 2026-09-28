@@ -7,7 +7,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
-D6
+D7
 
 ## Tasks
 ### A — core logic
@@ -39,7 +39,7 @@ D6
 - [x] D3 Movement (tap, hold, double tap, pinch, keyboard)
 - [x] D4 Doors and transitions
 - [x] D5 Life (NPC idle/routines, crowd, pigeons)
-- [ ] D6 Light and time of day
+- [x] D6 Light and time of day
 - [ ] D7 Performance
 
 ### E — overlay UI
@@ -140,6 +140,7 @@ _(date — decision — why)_
 - 2026-09-28 — D3: pinch zoom only picks whole-number zooms between 0.75× and 1.5× of the page's zoom (iPad ×3 → 3 or 4), so pixels stay square — the brief's "0.75–1.5" as a range, rule §9's "integer scaling only" as the step. Hold starts after 320 ms and then steps toward the finger; a second tap within 300 ms near the first runs. The on-screen joystick (off by default) is not built yet — left for E6 with the setting.
 - 2026-09-28 — D4: the page now plays on the real save (`useWorldSave` → WorldSync from B2): every step is a `move` (synced at most every 30 s), every arrival an `enter` (synced soon). A saved place on a map this build does not have (the new game's `siheyuan-room` until F1) falls back to the prototype lane. `?map=` / `?time=` stay as development switches. The two prototype maps are joined by edge exits (east end of the lane ↔ west side of the square) to exercise transitions.
 - 2026-09-28 — D5: how busy a map is lives in its header (`crowd:`, `pigeons:`, `bikes:`). Passers-by and cyclists are ambient only — they cross from one border tile to another, do not block the hero and cannot be talked to. People standing about blink (new `down-blink` frame for every character) and turn. NPC *routines* need NPC cards, which arrive with F2: the scene will then place people from `schedule.npcsOnMap` via the page.
+- 2026-09-28 — D6: lights are additive glow sprites plus one full-map multiply rectangle for the tint (not Phaser's Light2D) — cheaper on iPad Safari and the same on every GPU. The part of the day changes softly (3 s) without reloading the map. The game clock runs on the page: 1 real s = 1 game min while free in the world and the tab is visible; stopped in lines/panels; the save gets a `tick` every 10 game minutes. Weather: `setWeather('rain'|'snow')` exists, nothing calls it.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

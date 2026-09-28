@@ -90,6 +90,13 @@ export class WorldScene extends Phaser.Scene {
   private pinchStart: { dist: number; zoom: number } | null = null;
   private dots?: Phaser.GameObjects.Graphics;
   private rng: Rand = rand(1);
+  private gid: (name: string) => number = () => 0;
+  private lightLayers: Phaser.Tilemaps.TilemapLayer[] = [];
+  private lanterns: Phaser.GameObjects.Sprite[] = [];
+  private glows: Phaser.GameObjects.Image[] = [];
+  private shade?: Phaser.GameObjects.Rectangle;
+  private lit = false;
+  private weather?: Phaser.GameObjects.Particles.ParticleEmitter;
   private pigeons: Array<{ s: Phaser.GameObjects.Sprite; tile: Tile; gone: boolean }> = [];
 
   constructor() {
@@ -116,56 +123,52 @@ export class WorldScene extends Phaser.Scene {
   }
 
   create() {
-    const { map: key, time } = this.opts;
-    const look = DAY_LOOK[time];
+    const { map: key } = this.opts;
     const map = this.make.tilemap({ key });
     this.info = readMap(key, this.cache.tilemap.get(key).data);
     this.at = resolveArrival(this.at, this.info.width, this.info.height);
     const tileset = map.addTilesetImage('tiles', 'tiles-set')!;
     const names = (this.cache.json.get('tiles-names') as TilesetNames).names.map((n) => n.replace(/^[^/]+\//, ''));
-    const gid = (n: string) => names.indexOf(n) + 1;
+    this.gid = (n: string) => names.indexOf(n) + 1;
     map.createLayer('ground', tileset, 0, 0)!.setDepth(0);
-    const below = map.createLayer('below', tileset, 0, 0)!.setDepth(1);
-    const above = map.createLayer('above', tileset, 0, 0)!.setDepth(10_000);
-    if (look.lit) {
-      for (const layer of [below, above]) {
-        layer.replaceByIndex(gid('window'), gid('window-lit'));
-        layer.replaceByIndex(gid('shop'), gid('shop-lit'));
-      }
-    }
+    this.lightLayers = [
+      map.createLayer('below', tileset, 0, 0)!.setDepth(1) as Phaser.Tilemaps.TilemapLayer,
+      map.createLayer('above', tileset, 0, 0)!.setDepth(10_000) as Phaser.Tilemaps.TilemapLayer,
+    ];
+    this.lanterns = [];
+    this.glows = [];
+    this.makeGlowTexture();
+    const glow = (x: number, y: number, color: number, r: number) =>
+      this.glows.push(this.add.image(x, y, 'glow').setDisplaySize(r * 2, r * 2).setTint(color).setAlpha(0).setBlendMode(Phaser.BlendModes.ADD).setDepth(20_001));
 
-    const glows: Array<{ x: number; y: number; color: number; r: number }> = [];
     const feet = (t: Tile) => ({ x: t[0] * TILE, y: (t[1] + 1) * TILE });
     for (const o of this.info.objects) {
       if (o.kind === 'prop') {
-        let frame = o.frame;
-        if (look.lit && frame === 'lantern/unlit') frame = 'lantern/lit-0';
         const { x, y } = feet(o.tile);
-        const s = this.add.sprite(x, y, 'props', frame).setOrigin(0, 1).setDepth(y);
-        if (look.lit && o.light) {
-          glows.push({ x: x + s.width / 2, y: y - s.height / 2, color: Phaser.Display.Color.HexStringToColor(o.light).color, r: 28 });
-          if (o.frame === 'lantern/unlit') {
-            this.time.addEvent({
-              delay: 260 + Math.random() * 200,
-              loop: true,
-              callback: () => s.setFrame(s.frame.name === 'lantern/lit-0' ? 'lantern/lit-1' : 'lantern/lit-0'),
-            });
-          }
-        }
+        const s = this.add.sprite(x, y, 'props', o.frame).setOrigin(0, 1).setDepth(y);
+        if (o.frame === 'lantern/unlit') this.lanterns.push(s);
+        if (o.light) glow(x + s.width / 2, y - s.height / 2, Phaser.Display.Color.HexStringToColor(o.light).color, 28);
       } else if (o.kind === 'npc') {
         const { x, y } = feet(o.tile);
         const s = this.add.sprite(x, y + 3, 'chars', `${o.npc}/${o.facing ?? 'down'}-0`).setOrigin(0, 1).setDepth(y);
         this.npcSprites.set(o.id, s);
-      } else if (o.kind === 'light' && look.lit) {
+      } else if (o.kind === 'light') {
         const { x, y } = feet(o.tile);
-        glows.push({ x: x + TILE / 2, y: y - TILE / 2, color: Phaser.Display.Color.HexStringToColor(o.color ?? '#fff1b3').color, r: o.radius ?? 32 });
+        glow(x + TILE / 2, y - TILE / 2, Phaser.Display.Color.HexStringToColor(o.color ?? '#fff1b3').color, o.radius ?? 32);
       }
     }
-    if (look.lit) {
-      below.forEachTile((t) => {
-        if (t.index === gid('window-lit') || t.index === gid('shop-lit')) glows.push({ x: t.pixelX + 8, y: t.pixelY + 10, color: 0xffd98a, r: 16 });
-      });
-    }
+    // Windows and shop fronts glow once they are lit.
+    this.lightLayers[0]!.forEachTile((t) => {
+      if ([this.gid('window'), this.gid('shop')].includes(t.index)) glow(t.pixelX + 8, t.pixelY + 10, 0xffd98a, 16);
+    });
+    this.time.addEvent({
+      delay: 320,
+      loop: true,
+      callback: () => {
+        if (!this.lit) return;
+        for (const s of this.lanterns) if (Math.random() < 0.5) s.setFrame(s.frame.name === 'lantern/lit-0' ? 'lantern/lit-1' : 'lantern/lit-0');
+      },
+    });
 
     const { x, y } = feet(this.at);
     this.hero = this.add.sprite(x, y + 3, 'chars', `hero/${this.facing}-0`).setOrigin(0, 1).setDepth(y + 0.5);
@@ -192,31 +195,85 @@ export class WorldScene extends Phaser.Scene {
     // A soft follow; roundPixels keeps the art on whole pixels while it glides.
     cam.startFollow(this.hero, true, 0.15, 0.15, -8, 16);
 
-    if (look.tint !== 0xffffff) {
-      this.add
-        .rectangle(0, 0, map.widthInPixels, map.heightInPixels, look.tint)
-        .setOrigin(0, 0)
-        .setDepth(20_000)
-        .setBlendMode(Phaser.BlendModes.MULTIPLY);
-    }
-    if (glows.length) {
-      this.makeGlowTexture();
-      for (const g of glows) {
-        this.add
-          .image(g.x, g.y, 'glow')
-          .setDisplaySize(g.r * 2, g.r * 2)
-          .setTint(g.color)
-          .setAlpha(look.glow)
-          .setBlendMode(Phaser.BlendModes.ADD)
-          .setDepth(20_001);
-      }
-    }
+    this.shade = this.add
+      .rectangle(0, 0, map.widthInPixels, map.heightInPixels, 0xffffff)
+      .setOrigin(0, 0)
+      .setDepth(20_000)
+      .setBlendMode(Phaser.BlendModes.MULTIPLY);
+    this.setTime(this.opts.time, false);
     this.dots = this.add.graphics().setDepth(9_999);
     this.bindInput();
     this.startLife();
     cam.fadeIn(180, 34, 32, 46);
     this.host.onArrive(this.info, this.at, this.facing);
     this.opts.onReady?.();
+  }
+
+  /**
+   * The part of the day: the colour over everything, lamps and windows lit
+   * or not. Changes softly (a few seconds) unless `soft` is false.
+   */
+  setTime(time: PartOfDay, soft = true) {
+    const look = DAY_LOOK[time];
+    this.opts = { ...this.opts, time };
+    const shade = this.shade!;
+    const from = Phaser.Display.Color.IntegerToColor(shade.fillColor);
+    const to = Phaser.Display.Color.IntegerToColor(look.tint);
+    if (soft) {
+      this.tweens.addCounter({
+        from: 0,
+        to: 100,
+        duration: 3000,
+        onUpdate: (tw) => {
+          const c = Phaser.Display.Color.Interpolate.ColorWithColor(from, to, 100, tw.getValue() ?? 0);
+          shade.setFillStyle(Phaser.Display.Color.GetColor(c.r, c.g, c.b));
+        },
+      });
+    } else shade.setFillStyle(look.tint);
+    shade.setVisible(true);
+    this.lit = look.lit;
+    const [on, off] = look.lit ? ['-lit', ''] : ['', '-lit'];
+    for (const layer of this.lightLayers) {
+      if (!this.gid('window') || !this.gid('window-lit')) break;
+      layer.replaceByIndex(this.gid(`window${off}`), this.gid(`window${on}`));
+      layer.replaceByIndex(this.gid(`shop${off}`), this.gid(`shop${on}`));
+    }
+    for (const s of this.lanterns) s.setFrame(look.lit ? 'lantern/lit-0' : 'lantern/unlit');
+    for (const g of this.glows) {
+      if (soft) this.tweens.add({ targets: g, alpha: look.glow, duration: 2000 });
+      else g.setAlpha(look.glow);
+    }
+  }
+
+  /**
+   * The weather hook (off for now): rain or snow falling over the view.
+   * Nothing calls it yet; seasons may later.
+   */
+  setWeather(kind: 'none' | 'rain' | 'snow') {
+    this.weather?.destroy();
+    this.weather = undefined;
+    if (kind === 'none') return;
+    const key = `weather-${kind}`;
+    if (!this.textures.exists(key)) {
+      const t = this.textures.createCanvas(key, kind === 'rain' ? 1 : 2, kind === 'rain' ? 4 : 2)!;
+      const ctx = t.getContext();
+      ctx.fillStyle = kind === 'rain' ? 'rgba(200,220,255,0.7)' : 'rgba(255,255,255,0.9)';
+      ctx.fillRect(0, 0, t.width, t.height);
+      t.refresh();
+    }
+    const cam = this.cameras.main;
+    this.weather = this.add
+      .particles(0, 0, key, {
+        x: { min: 0, max: cam.width },
+        y: -8,
+        lifespan: kind === 'rain' ? 900 : 5000,
+        speedY: kind === 'rain' ? { min: 260, max: 320 } : { min: 18, max: 36 },
+        speedX: kind === 'rain' ? -30 : { min: -10, max: 10 },
+        quantity: kind === 'rain' ? 4 : 1,
+        frequency: kind === 'rain' ? 30 : 120,
+      })
+      .setScrollFactor(0)
+      .setDepth(20_002);
   }
 
   /** Off to another map: a short fade, then the scene starts again there. */
