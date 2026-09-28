@@ -411,6 +411,22 @@ label.field {
   font-weight: 620;
 }
 
+/* the app's own icon on the install card, squared off as a home screen would */
+.install-card > header img {
+  border-radius: 8px;
+  flex: 0 0 auto;
+}
+
+.install-steps {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--ink-2);
+}
+
+.install-steps li + li {
+  margin-top: 4px;
+}
+
 .card .body {
   padding: 14px 16px;
 }

@@ -10,6 +10,7 @@ import { useTitle } from '../../ui/useTitle';
 import { ChangePasswordForm } from '../auth/ChangePasswordForm';
 import { useUser } from '../auth/session';
 import { useSignOut } from '../auth/useSignOut';
+import { InstallCard } from './InstallCard';
 import { LearningSettings } from './LearningSettings';
 
 const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -70,6 +71,8 @@ export function SettingsPage() {
   return (
     <section style={{ maxWidth: 640, display: 'grid', gap: 16 }}>
       <h1>Settings</h1>
+
+      <InstallCard />
 
       <div className="card">
         <header>
