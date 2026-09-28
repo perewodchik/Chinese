@@ -9,7 +9,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** E2 (пузырь диалога) — начатые файлы лежат незакоммиченными: `src/world/ui/content.ts`, `useTalk.ts`, `Portrait.tsx`. B1 добавляет миграцию `world_saves` — она выполнится на продакшн-Postgres при первом деплое после push.
 
 ## Current task
-E3
+E4
 
 ## Tasks
 ### A — core logic
@@ -47,7 +47,7 @@ E3
 ### E — overlay UI
 - [x] E1 Top bar
 - [x] E2 Dialogue bubble
-- [ ] E3 Input bar (voice / keyboard / IME)
+- [x] E3 Input bar (voice / keyboard / IME)
 - [ ] E4 Companion 兔儿爷
 - [ ] E5 Panels (tasks, bag, map, 图鉴, 成语 book, stamps)
 - [ ] E6 Game settings
@@ -147,9 +147,11 @@ _(date — decision — why)_
 - 2026-09-28 — E1: the game's top line floats over the world (translucent ink chips, so the canvas never shifts), with ‹ to leave on every size — the site's own bar is only hidden on phones. The concept's 🗺 🎒 📜 are used as the buttons even though the app's design rules avoid emoji in UI text: the concept is the game's own design and wins. District names come from a new `core/districts.ts` table (all 13, with stations and a place on the map schematic).
 - 2026-09-29 — E2: the bubble has a fixed height (46 % of the game, at most 340 px) and scrolls its history inside, so it never pushes or grows. 拼 is the save's `settings.pinyin` (so it is remembered on every device). 🔁 plays the line through the app's `say()` (voice pack, else the system voice) until G2 brings the NPC voices; a line after 慢一点 plays at 0.75. A line with a manual `pinyin` shows that reading whole under the line rather than per word. People without an NPC card (the prototype maps) get small talk (「你好！」) and a name by their look (阿姨, 爷爷, 外卖小哥…). Until E3 the answer is a plain text field (the system Chinese keyboard works in it).
 - 2026-09-29 — E2: `/world/content/index.json` (the list of built districts) does not exist until F1 builds content; the game then plays with empty content. The engine still names NPC sprites by the spawn's `npc` id; F2 has to map card ids to `look.sprite`.
+- 2026-09-29 — E3: one row above the field is always reserved (40 px): pinyin candidates while typing, else the hint chips — so the bar never changes height. The built-in pinyin input works inside the normal field: the pinyin at the end of the field gets candidates; 1–9 or Space pick (Space picks the first, like a system IME); what a candidate does not use stays as pinyin. Voice: hold to talk (`listen`, up to 30 s), release to finish; what was heard shows in hanzi + pinyin and sends itself after 1.5 s; tap it to edit in the field, × to throw it away. 💡 goes one hint step further per tap (word → frame cut into chips → whole sentence); the companion's own hint step counts too. In voice mode the chips are only there to read aloud. Mode: this device's choice (`localStorage zouzou:input`) first, else the save's; 🎤 disabled where the browser cannot listen, with the reason as its title.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
 - 2026-09-28 23:30 — stopped at the usage limit in the middle of E2. Uncommitted, unfinished E2 files in the working tree: `src/world/ui/content.ts`, `src/world/ui/useTalk.ts`, `src/world/ui/Portrait.tsx` (not wired in yet; the next session should finish E2 from them — the Dialogue component and its CSS are still to write).
 - Dev servers cannot be started from this unattended session (preview_start refuses), so nothing is checked in a browser yet: C4 screenshots are offline renders, D-phase checks will be code-level plus offline renders until a session with a person present runs the preview (`hanzi-workshop-mac-world`, port 5179, `.data/world-test.db`, added to `.claude/launch.json`).
+- 2026-09-29 — E3 is unchecked on a real iPad: the bubble lifts itself above the on-screen keyboard by following `visualViewport` — worth a look on the iPad that the field stays visible.
 - **B1 adds migration step 3 (`world_saves`) to both SQLite and Postgres.** It runs on the production Postgres at the first deploy after the learner pushes — an additive `CREATE TABLE`, nothing existing is touched.

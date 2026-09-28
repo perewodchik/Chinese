@@ -8,6 +8,7 @@ import { throughDoor } from '../../world/engine/doors';
 import type { WorldHost } from '../../world/engine/scene';
 import { useWorldContent, EMPTY_CONTENT } from '../../world/ui/content';
 import { Dialogue, lookOf } from '../../world/ui/Dialogue';
+import { InputBar } from '../../world/ui/InputBar';
 import { TopBar } from '../../world/ui/TopBar';
 import { smallTalk, useTalk } from '../../world/ui/useTalk';
 import { useLibrary } from '../shared/library';
@@ -164,6 +165,12 @@ export function WorldPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, start]);
 
+  // How far "What do I say?" has gone at this line: the 💡 taps, or the companion's own hint if further.
+  const talkAt = talk.view ? `${talk.view.scene.id}/${talk.view.state.node}` : '';
+  const [hint, setHint] = useState({ at: '', step: 0 });
+  const cueStep = talk.view?.cue?.kind === 'hint' ? talk.view.cue.step : 0;
+  const hintStep = Math.max(hint.at === talkAt ? hint.step : 0, cueStep);
+  const hintNow = talk.view?.scene.nodes.find((n) => n.id === talk.view?.state.node)?.hint;
   const setPinyin = (on: boolean) => void game.dispatch([{ do: 'settings', patch: { pinyin: on } }]);
 
   return (
@@ -182,7 +189,14 @@ export function WorldPage() {
           onProceed={talk.proceed}
           onClose={talk.close}
         >
-          <ReplyField onSend={(t) => talk.reply(t, 'keyboard')} />
+          <InputBar
+            onSend={talk.reply}
+            hint={hintNow}
+            hintStep={hintStep}
+            onHint={() => setHint({ at: talkAt, step: hintStep + 1 })}
+            saved={game.save.settings.input}
+            setSaved={(m) => void game.dispatch([{ do: 'settings', patch: { input: m } }])}
+          />
         </Dialogue>
       )}
       {note !== null && (
@@ -197,31 +211,3 @@ export function WorldPage() {
   );
 }
 
-/** Until the full input bar (E3): a plain field; the system Chinese keyboard works in it. */
-function ReplyField({ onSend }: { onSend: (text: string) => void }) {
-  const [text, setText] = useState('');
-  return (
-    <form
-      className="wd-reply"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (!text.trim()) return;
-        onSend(text);
-        setText('');
-      }}
-    >
-      <input
-        type="text"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Answer in Chinese…"
-        lang="zh"
-        autoComplete="off"
-        autoFocus
-      />
-      <button type="submit" className="wd-go" disabled={!text.trim()}>
-        ➤
-      </button>
-    </form>
-  );
-}

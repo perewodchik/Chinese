@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Library } from '../../data/types';
 import { itemForToken } from '../../domain/words';
 import { useLibrary } from '../../features/shared/library';
@@ -96,6 +96,22 @@ export function Dialogue({
   const last = [...view.history].reverse().find((s): s is Said & { line: Line } => s.who === 'npc' && !!s.line)?.line;
   const name = nameOf(view.npc, view.sprite);
 
+  // On an iPad the on-screen keyboard covers the bottom of the page without
+  // resizing it: lift the bubble by what the visual viewport has lost.
+  const [lift, setLift] = useState(0);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const fit = () => setLift(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)));
+    fit();
+    vv.addEventListener('resize', fit);
+    vv.addEventListener('scroll', fit);
+    return () => {
+      vv.removeEventListener('resize', fit);
+      vv.removeEventListener('scroll', fit);
+    };
+  }, []);
+
   useEffect(() => {
     const el = list.current;
     if (el) el.scrollTop = el.scrollHeight;
@@ -118,7 +134,7 @@ export function Dialogue({
   const speakerName = (id: string) => (id === 'hero' ? '我' : id === 'companion' ? '兔儿爷' : id === view.npc?.id || id === view.scene.npc ? name : id);
 
   return (
-    <section className="wd" aria-label={`Talking with ${name}`}>
+    <section className="wd" aria-label={`Talking with ${name}`} style={lift ? { bottom: lift + 8, maxHeight: `calc(100% - ${lift + 60}px)` } : undefined}>
       <header className="wd-head">
         <Portrait sprite={view.sprite} scale={2} />
         <span className="wd-name han">{name}</span>

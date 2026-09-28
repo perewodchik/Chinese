@@ -165,7 +165,7 @@
   transform: translateX(-50%);
   z-index: 4;
   width: min(680px, calc(100% - 20px));
-  height: min(46%, 340px); /* fixed: new lines scroll inside, the box never grows */
+  height: min(52%, 380px); /* fixed: new lines scroll inside, the box never grows */
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   border: 1px solid var(--line);
@@ -352,7 +352,7 @@
 
 @media (max-width: 689px) {
   .wd {
-    height: min(50%, 360px);
+    height: min(56%, 400px);
   }
 
   .wd-zh {
@@ -360,19 +360,198 @@
   }
 }
 
-.wd-reply {
+/* --- the input bar: [🎤|⌨] [field / hold to talk] [💡] [➤], a row of candidates or hint chips above */
+.wi {
   flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.wi-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px; /* always there, empty or not */
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.wi-row::-webkit-scrollbar {
+  display: none;
+}
+
+.wi-cand,
+.wi-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card-2);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.wi-cand .han,
+.wi-chip .han {
+  font-family: var(--han);
+  font-size: 19px;
+}
+
+.wi-cand kbd {
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.wi-chip {
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+  line-height: 1.1;
+}
+
+.wi-chip[data-key] {
+  border-color: color-mix(in srgb, var(--gold) 50%, var(--line));
+  background: var(--gold-soft);
+}
+
+.wi-chip-py {
+  font-size: 11px;
+  color: var(--accent);
+}
+
+.wi-note {
+  color: var(--ink-3);
+  white-space: normal;
+  line-height: 1.3;
+}
+
+.wi-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.wi-mode {
+  flex: none;
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.wi-mode button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.wi-mode button[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.wi-mode button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.wi-field {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  font-size: 16px; /* Safari does not zoom a 16px field */
+}
+
+.wi-hold,
+.wi-heard {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+}
+
+.wi-hold {
+  border: 1px dashed var(--line-2);
+  border-radius: var(--radius);
+  background: var(--card-2);
+  color: var(--ink-2);
+  font: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.wi-hold[data-on] {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.wi-hold .han {
+  font-family: var(--han);
+  font-size: 19px;
+}
+
+.wi-heard {
   display: flex;
   gap: 6px;
 }
 
-.wd-reply input {
+.wi-heard-text {
   flex: 1;
   min-width: 0;
-  height: 36px;
-  font-size: 16px; /* Safari does not zoom a 16px field */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.15;
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
 }
 
-.wd-reply .wd-go {
+.wi-heard-text .han {
+  font-family: var(--han);
+  font-size: 18px;
+}
+
+.wi-send {
   min-width: 48px;
+  height: 40px;
+}
+
+.wd-go:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .wi-cand kbd {
+    display: none;
+  }
 }
