@@ -7,7 +7,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
-A10
+A11
 
 ## Tasks
 ### A — core logic
@@ -20,7 +20,7 @@ A10
 - [x] A7 Conditions, quests, schedule
 - [x] A8 Dialogue (source, scripted, match, universal, normalize)
 - [x] A9 Word budget + content check
-- [ ] A10 Travel (subway, bus, train)
+- [x] A10 Travel (subway, bus, train)
 - [ ] A11 Pinyin IME
 
 ### B — saves in the database
@@ -110,6 +110,7 @@ _(date — decision — why)_
 - 2026-09-28 — The learner's uncommitted additions to prompt.md (§10 Shanghai/Chengdu), concept.md (rule 5) and STATUS.md (phases J, K) were committed together with A8, since STATUS.md has to be committed with every task.
 - 2026-09-28 — A9: the "≤ 15 % HSK 2 per scene" rule is only applied to scenes of 20 words or more — in a five-word scene one HSK 2 word is already 20 %, and §5 allows one per line. Fewer than 3 situation words is a warning, not an error (a ticket window may honestly need only 交通卡); more than 8 is an error. The simpler line and the hint's full sentence are checked like normal lines. Unknown words (no band anywhere) count as above HSK 2.
 - 2026-09-28 — A9: `npm run world` currently runs only the check (`world:check`); art → maps → content are added to it as C1/F1 bring those scripts.
+- 2026-09-28 — A10: Line 10 is modelled only as its eastern arc 北土城 → 十里河 (a line with two ends, "往十里河方向"), not the whole loop — its loop direction names I could not verify offline. Line 2 is the full loop, forward = clockwise = 外环. Fares: Beijing's distance bands with 1.3 km per stop; bus 2 元; 京张高铁 to 八达岭长城 20 元. Bus numbers: 332 (西直门 → 动物园 → 颐和园) is the real old line; **34路 天坛东门 → 潘家园 is a stand-in number** — check before relying on it. 北京北站 is a walk from 西直门.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
