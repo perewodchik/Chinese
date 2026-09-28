@@ -7,7 +7,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
-D3
+D4
 
 ## Tasks
 ### A — core logic
@@ -36,7 +36,7 @@ D3
 ### D — engine
 - [x] D1 WorldPage /play/world + Phaser boot, full screen on phones
 - [x] D2 Maps + camera
-- [ ] D3 Movement (tap, hold, double tap, pinch, keyboard)
+- [x] D3 Movement (tap, hold, double tap, pinch, keyboard)
 - [ ] D4 Doors and transitions
 - [ ] D5 Life (NPC idle/routines, crowd, pigeons)
 - [ ] D6 Light and time of day
@@ -137,6 +137,7 @@ _(date — decision — why)_
 - 2026-09-28 — C4, what looks weak: roofs are flat stripes (no curved hip ends, no ridge beasts); the arch tiles show a seam above each arch; plaza slabs read as bricks; people are all the same height and pose (fine for NPCs, but the hero needs more character); the night glow of lit windows is a plain disc. Not below "B/W-ish indie" enough to redo before D, so I carried on (brief: one more task only if clearly below).
 - 2026-09-28 — The learner added prompt §9½ (phase X) and its STATUS section during the night; both were committed with C4 unchanged.
 - 2026-09-28 — D1: `/play/world` is a fixed box under the site bar; below 690px it is the whole screen (site bar hidden via `html[data-world-full]`, like 点单) with a small ‹ to leave. Phaser (1.7 MB, 380 KB gzip) is its own chunk, loaded only there. Zoom is an integer: min(width/320, height/200), clamped 2–4 (iPad landscape ×3, phones ×2).
+- 2026-09-28 — D3: pinch zoom only picks whole-number zooms between 0.75× and 1.5× of the page's zoom (iPad ×3 → 3 or 4), so pixels stay square — the brief's "0.75–1.5" as a range, rule §9's "integer scaling only" as the step. Hold starts after 320 ms and then steps toward the finger; a second tap within 300 ms near the first runs. The on-screen joystick (off by default) is not built yet — left for E6 with the setting.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
