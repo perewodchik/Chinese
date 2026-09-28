@@ -117,3 +117,21 @@ describe('recolour', () => {
     assert.deepEqual(s.frames.map((f) => f.name), ['imp/r0c0']);
   });
 });
+
+describe('the generated art', () => {
+  it('every generated .px parses, and the committed ones match the generator', async () => {
+    const { sources } = await import('./generate');
+    for (const [rel, text] of sources()) {
+      const name = rel.split('/').pop()!.replace('.px', '');
+      parsePx(text, name);
+      const committed = join('content/world/art/sprites', rel);
+      let onDisk = '';
+      try {
+        onDisk = readFileSync(committed, 'utf8');
+      } catch {
+        assert.fail(`${committed} is missing — run scripts/world/art/generate.ts`);
+      }
+      if (onDisk.startsWith('# generated')) assert.equal(onDisk, text, `${committed} is stale — run scripts/world/art/generate.ts`);
+    }
+  });
+});
