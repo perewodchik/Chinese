@@ -10,7 +10,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** проверка в браузере и в WebKit (F5, нужен человек), дальше по списку — G (звук), H (остальной Пекин), I, X.
 
 ## Current task
-G2 (clips still rendering) → I1
+G2 (clips still rendering) → I2
 
 ## Tasks
 ### A — core logic
@@ -76,7 +76,7 @@ G2 (clips still rendering) → I1
 - [x] H8 Side quests + 共享单车
 
 ### I — finishing
-- [ ] I1 LiveDialogue hook (disabled)
+- [x] I1 LiveDialogue hook (disabled)
 - [ ] I2 iPad pass
 - [ ] I3 Final summary
 
@@ -167,6 +167,7 @@ _(date — decision — why)_
 - 2026-09-29 — H6: chapter 7 (quest `ch7`). 王阿姨 books the palace ticket online in your name (票 网上 护照; the real rule), then a door in 天安门's central arch lets you in (locked without the flag `palace-ticket`, with the reason). Maps: `wumen` (the Meridian Gate built from palace tiles; security gates across the south — the 安检 officer checks your passport and lets you through), `taihedian` (the Hall of Supreme Harmony — new 112×72 prop — over the great square), `jiulongbi` (the Nine-Dragon Screen, one dragon without eyes; after the finale the eyes are in and the dragon flies above), `yuhuayuan` (rockeries, trees, a pavilion). Finale 「画龙点睛！」: every spirit you found comes to help (the stone lion and the fox speak), you say 点睛, the dragon wakes (spirit 龙), 兔儿爷: all the lantern's spirits are back; in the garden he proposes the Great Wall. Every spirit now has a voice for the voice render. Chapter 8 (the epilogue) opens. New art: 太和殿, 九龙壁 (two frames), the dragon (reads a bit like a snake — worth a redraw), rockery. Renders: `review/h6/`.
 - 2026-09-29 — H7: the epilogue (quest `epilogue`, started by ch. 7's reward). Walk east from the 西直门 bus stop into `stop-beijingbeizhan` (the concourse), buy a train ticket at the window with your passport (flag `train-ticket`; without it the board's scene sends you to the window — a scene on a board now comes before the ride), ride 京张高铁 (20 元) to `stop-badalingchangcheng`, walk onto `changcheng` — the Wall climbs east along the ridge in steps, with crenellations on both sides, to a watchtower. The old man climbing a little every day: 「这是愚公移山！」 (📌 成语); at the watchtower the spirits say goodbye — they go home to the mended lantern — and 兔儿爷: 「你要走了吗？一路平安！」 (📌 成语; flag `game-finished`, chapter 9 = free walking). Stamps 火车, 长城 (landmark). Renders: `review/h7/`.
 - 2026-09-29 — H8: 14 side quests (fewer than "2–3 per district" for the small districts — one each for 奥运, 颐和园, 潘家园, 长城, 雍和宫, 三里屯; two for 鼓楼, 后海, 景山, 前门, 天坛; 王府井 has the storybook and 王阿姨's cold): 赵爷爷's lost bird (小明 has it), a haircut, bait for the fisherman (from 李阿姨's shop), a boat on 后海, a painting for 王阿姨 from the 北海 painter, a 太极 lesson (左手/右手), a storybook for 小明, a night at the opera, tea leaves from 老刘 for the 大栅栏 granny, counting 毽子 kicks, singing 「我爱北京」 with the 胡琴 player, a brush for the scholar, shared bikes, a run with the jogger, the guide's lost tourist, an old map at 潘家园 (bargain), a photo on the Wall. Errands cross districts on purpose (the city is one place). Five more stamps. **共享单车:** bike stands (a `bike` object beside a parked bike) on ten street maps; tap → 「扫码骑车」, you ride — faster steps, a bicycle drawn under you (left/right) — until you tap a stand again or go through a door (parked, 1 元). From chapter 2 on. A new test plays **every scene** in the game to its end using only its hints (no dead ends).
+- 2026-09-29 — I1: `src/world/core/dialogue/live.ts` — `LiveDialogue` implements `DialogueSource` around the script, `LIVE_DIALOGUE_ENABLED = false`, nothing constructs it, no network calls; its doc comment says how it will work (the script stays the authority for intents, actions and 📌 lines; Claude only rewords ordinary lines via the Mac server like /pinyin/talk; a slow answer falls back to the script; the budget check applies; `settings.live` is the hidden switch, already in the save).
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
