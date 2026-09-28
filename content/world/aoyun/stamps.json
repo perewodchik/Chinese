@@ -6,5 +6,12 @@
     "place": "olympic-park",
     "design": "niaochao",
     "landmark": true
+  },
+  {
+    "id": "run",
+    "name": "跑步",
+    "en": "A run at the Olympic Park",
+    "place": "olympic-park",
+    "design": "run"
   }
 ]

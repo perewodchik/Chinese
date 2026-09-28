@@ -1,389 +1,514 @@
 [
- {
-  "id": "beihai-arrive",
-  "map": "beihai-north",
-  "trigger": "auto",
-  "once": true,
-  "stamp": "baita",
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "那是北海的白塔！",
-    "translate": "That's the White Dagoba of 北海!",
-    "speaker": "hero",
-    "why": "北海 was an imperial garden; its White Dagoba 白塔 has stood on the island since 1651."
-   }
-  ]
- },
- {
-  "id": "painter",
-  "map": "beihai-north",
-  "npc": "beihai-painter",
-  "trigger": "talk",
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "你看，这是我画的白塔。好看吗？",
-    "translate": "Look, this is my painting of the White Dagoba. Is it good?",
-    "expect": [
-     {
-      "intent": "nice",
-      "match": [
-       [
-        "好看",
-        "漂亮",
-        "好",
-        "喜欢",
-        "不错"
-       ]
-      ],
-      "go": "b"
-     }
-    ],
-    "hint": {
-     "word": "好看",
-     "frame": "很___！",
-     "full": "很好看！"
-    }
-   },
-   {
-    "id": "b",
-    "say": "谢谢！",
-    "translate": "Thank you!"
-   }
-  ]
- },
- {
-  "id": "taiji",
-  "map": "jingshan-park",
-  "npc": "jingshan-ayi",
-  "trigger": "talk",
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "你好！上面很好看，你去看看吧！",
-    "translate": "Hello! It's beautiful at the top — go and see!"
-   }
-  ]
- },
- {
-  "id": "bench",
-  "map": "jingshan-park",
-  "object": "bench-sign",
-  "trigger": "look",
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "坐一会儿吗？",
-    "translate": "Sit for a while?",
-    "speaker": "hero",
-    "expect": [
-     {
-      "intent": "yes",
-      "match": [
-       [
-        "好",
-        "好的",
-        "行",
-        "可以",
-        "要",
-        "是",
-        "对",
-        "坐"
-       ]
-      ],
-      "go": "b"
-     },
-     {
-      "intent": "no",
-      "match": [
-       [
-        "不",
-        "不要",
-        "不用",
-        "不想"
-       ]
-      ],
-      "go": "c"
-     }
-    ],
-    "hint": {
-     "word": "坐",
-     "frame": "好，我___一会儿。",
-     "full": "好，我坐一会儿。"
-    }
-   },
-   {
-    "id": "b",
-    "say": "好，坐到晚上。",
-    "translate": "Right — I'll sit till evening.",
-    "speaker": "hero",
-    "onEnter": [
-     {
-      "do": "wait",
-      "until": 19
-     }
+  {
+    "id": "beihai-arrive",
+    "map": "beihai-north",
+    "trigger": "auto",
+    "once": true,
+    "stamp": "baita",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "那是北海的白塔！",
+        "translate": "That's the White Dagoba of 北海!",
+        "speaker": "hero",
+        "why": "北海 was an imperial garden; its White Dagoba 白塔 has stood on the island since 1651."
+      }
     ]
-   },
-   {
-    "id": "c",
-    "say": "现在不坐。",
-    "translate": "Not now.",
-    "speaker": "hero"
-   }
-  ]
- },
- {
-  "id": "jingshan-view",
-  "map": "jingshan-view",
-  "object": "view",
-  "trigger": "look",
-  "once": true,
-  "stamp": "jingshan",
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "你看！故宫很大很大！",
-    "translate": "Look! The palace is huge!",
-    "speaker": "companion",
-    "next": "b",
-    "why": "From 景山 you see the whole Forbidden City, roof after golden roof, on Beijing's north–south axis."
-   },
-   {
-    "id": "b",
-    "say": "我们在上面找一找吧。",
-    "translate": "Let's search from up here.",
-    "speaker": "companion"
-   }
-  ]
- },
- {
-  "id": "view-again",
-  "map": "jingshan-view",
-  "object": "view",
-  "trigger": "look",
-  "priority": 5,
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "故宫！",
-    "translate": "The palace!",
-    "speaker": "hero"
-   }
-  ]
- },
- {
-  "id": "singer",
-  "map": "jingshan-view",
-  "npc": "jingshan-yeye",
-  "trigger": "talk",
-  "priority": 0,
-  "when": {
-   "all": [
-    {
-     "flag": "heard-fox"
-    },
-    {
-     "not": {
-      "spirit": "jiuweihu"
-     }
-    }
-   ]
   },
-  "start": "a",
-  "words": [
-   {
-    "w": "狐狸",
-    "explain": "像小狗，住在山里。",
-    "en": "fox"
-   }
-  ],
-  "nodes": [
-   {
-    "id": "a",
-    "say": "你好！你累了吧？",
-    "translate": "Hello! Tired, I bet?",
-    "expect": [
-     {
-      "intent": "tired",
-      "match": [
-       [
-        "累",
-        "不累",
-        "还好",
-        "好",
-        "还可以"
-       ]
-      ],
-      "go": "b"
-     }
-    ],
-    "hint": {
-     "word": "不累",
-     "frame": "我___。",
-     "full": "我不累。"
-    }
-   },
-   {
-    "id": "b",
-    "say": "你看，这是故宫！很大吧？",
-    "translate": "Look — the palace! Big, isn't it?",
-    "next": "key"
-   },
-   {
-    "id": "key",
-    "say": "我昨天晚上看见一只狐狸，在故宫西北角附近。",
-    "translate": "Last night I saw a fox, near the north-west corner of the palace.",
-    "key": true,
-    "simpler": "我看见一只狐狸，在西北角。",
-    "onEnter": [
-     {
-      "do": "flag",
-      "flag": "saw-corner"
-     }
-    ],
-    "next": "d",
-    "why": "A key line 📌: 西北 is north-west, 角 a corner, 附近 nearby. Ask the woman doing 太极 on the path — she explains them. The corner of the palace wall is by the corner tower, 角楼."
-   },
-   {
-    "id": "d",
-    "say": "晚上，你去看看狐狸吧！",
-    "translate": "Go and look for the fox tonight!"
-   }
-  ]
- },
- {
-  "id": "singer-later",
-  "map": "jingshan-view",
-  "npc": "jingshan-yeye",
-  "trigger": "talk",
-  "priority": 5,
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "你好！这儿很好看吧？",
-    "translate": "Hello! Beautiful up here, isn't it?"
-   }
-  ]
- },
- {
-  "id": "fox",
-  "map": "jiaolou",
-  "object": "fox",
-  "trigger": "look",
-  "priority": 0,
-  "stamp": "jiuweihu",
-  "when": {
-   "not": {
-    "spirit": "jiuweihu"
-   }
-  },
-  "start": "a",
-  "words": [
-   {
-    "w": "老虎",
-    "explain": "很大的猫，很大很大，大家都怕它。",
-    "en": "tiger"
-   },
-   {
-    "w": "怕",
-    "explain": "看见不好的东西，想跑。",
-    "en": "to be afraid"
-   }
-  ],
-  "nodes": [
-   {
-    "id": "a",
-    "say": "你是谁？你也怕我吧？老虎都怕我！",
-    "translate": "Who are you? You're scared of me too, aren't you? Even tigers are scared of me!",
-    "speaker": "jiuweihu",
-    "simpler": "老虎怕我！你也怕我吗？",
-    "expect": [
-     {
-      "intent": "brave",
-      "match": [
-       [
-        "不怕",
-        "不",
-        "朋友",
-        "兔儿爷",
-        "我是"
-       ]
-      ],
-      "go": "b"
-     }
-    ],
-    "hint": {
-     "word": "不怕",
-     "frame": "我___你。",
-     "full": "我不怕你。"
-    }
-   },
-   {
-    "id": "b",
-    "say": "它这是狐假虎威。",
-    "translate": "That's 狐假虎威 — the fox borrowing the tiger's might.",
-    "speaker": "companion",
-    "key": true,
-    "next": "c",
-    "onEnter": [
-     {
-      "do": "idiom",
-      "idiom": "狐假虎威"
-     },
-     {
-      "do": "solve",
-      "riddle": "singer/key"
-     },
-     {
-      "do": "solve",
-      "riddle": "fisher-fox/b"
-     }
-    ],
-    "why": "A 成语 📌 with a story: the fox walked in front of the tiger, the animals fled from the tiger, and the fox said they feared *him*. Look it up in your 成语 book."
-   },
-   {
-    "id": "c",
-    "say": "好吧……你知道我叫什么吗？",
-    "translate": "Fine… do you know my name?",
-    "speaker": "jiuweihu",
-    "expect": [
-     {
-      "intent": "name",
-      "match": [
-       [
-        "九尾狐"
-       ]
-      ],
-      "go": "d"
-     }
-    ],
-    "hint": {
-     "word": "九尾狐",
-     "frame": "你是___！",
-     "full": "你是九尾狐！"
-    },
-    "why": "Say its name: 九尾狐 — 九 nine, 尾 tail, 狐 fox. Tones: jiǔ wěi hú."
-   },
-   {
-    "id": "d",
-    "say": "对！我是九尾狐。我们是朋友了！",
-    "translate": "Yes! I'm the nine-tailed fox. We're friends now!",
-    "speaker": "jiuweihu",
-    "onEnter": [
-     {
-      "do": "spirit",
-      "spirit": "jiuweihu"
-     }
+  {
+    "id": "painter",
+    "map": "beihai-north",
+    "npc": "beihai-painter",
+    "trigger": "talk",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你看，这是我画的白塔。好看吗？",
+        "translate": "Look, this is my painting of the White Dagoba. Is it good?",
+        "expect": [
+          {
+            "intent": "nice",
+            "match": [
+              [
+                "好看",
+                "漂亮",
+                "好",
+                "喜欢",
+                "不错"
+              ]
+            ],
+            "go": "b"
+          }
+        ],
+        "hint": {
+          "word": "好看",
+          "frame": "很___！",
+          "full": "很好看！"
+        }
+      },
+      {
+        "id": "b",
+        "say": "谢谢！",
+        "translate": "Thank you!"
+      }
     ]
-   }
-  ]
- }
+  },
+  {
+    "id": "bench",
+    "map": "jingshan-park",
+    "object": "bench-sign",
+    "trigger": "look",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "坐一会儿吗？",
+        "translate": "Sit for a while?",
+        "speaker": "hero",
+        "expect": [
+          {
+            "intent": "yes",
+            "match": [
+              [
+                "好",
+                "好的",
+                "行",
+                "可以",
+                "要",
+                "是",
+                "对",
+                "坐"
+              ]
+            ],
+            "go": "b"
+          },
+          {
+            "intent": "no",
+            "match": [
+              [
+                "不",
+                "不要",
+                "不用",
+                "不想"
+              ]
+            ],
+            "go": "c"
+          }
+        ],
+        "hint": {
+          "word": "坐",
+          "frame": "好，我___一会儿。",
+          "full": "好，我坐一会儿。"
+        }
+      },
+      {
+        "id": "b",
+        "say": "好，坐到晚上。",
+        "translate": "Right — I'll sit till evening.",
+        "speaker": "hero",
+        "onEnter": [
+          {
+            "do": "wait",
+            "until": 19
+          }
+        ]
+      },
+      {
+        "id": "c",
+        "say": "现在不坐。",
+        "translate": "Not now.",
+        "speaker": "hero"
+      }
+    ]
+  },
+  {
+    "id": "jingshan-view",
+    "map": "jingshan-view",
+    "object": "view",
+    "trigger": "look",
+    "once": true,
+    "stamp": "jingshan",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你看！故宫很大很大！",
+        "translate": "Look! The palace is huge!",
+        "speaker": "companion",
+        "next": "b",
+        "why": "From 景山 you see the whole Forbidden City, roof after golden roof, on Beijing's north–south axis."
+      },
+      {
+        "id": "b",
+        "say": "我们在上面找一找吧。",
+        "translate": "Let's search from up here.",
+        "speaker": "companion"
+      }
+    ]
+  },
+  {
+    "id": "view-again",
+    "map": "jingshan-view",
+    "object": "view",
+    "trigger": "look",
+    "priority": 5,
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "故宫！",
+        "translate": "The palace!",
+        "speaker": "hero"
+      }
+    ]
+  },
+  {
+    "id": "singer",
+    "map": "jingshan-view",
+    "npc": "jingshan-yeye",
+    "trigger": "talk",
+    "priority": 0,
+    "when": {
+      "all": [
+        {
+          "flag": "heard-fox"
+        },
+        {
+          "not": {
+            "spirit": "jiuweihu"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "狐狸",
+        "explain": "像小狗，住在山里。",
+        "en": "fox"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！你累了吧？",
+        "translate": "Hello! Tired, I bet?",
+        "expect": [
+          {
+            "intent": "tired",
+            "match": [
+              [
+                "累",
+                "不累",
+                "还好",
+                "好",
+                "还可以"
+              ]
+            ],
+            "go": "b"
+          }
+        ],
+        "hint": {
+          "word": "不累",
+          "frame": "我___。",
+          "full": "我不累。"
+        }
+      },
+      {
+        "id": "b",
+        "say": "你看，这是故宫！很大吧？",
+        "translate": "Look — the palace! Big, isn't it?",
+        "next": "key"
+      },
+      {
+        "id": "key",
+        "say": "我昨天晚上看见一只狐狸，在故宫西北角附近。",
+        "translate": "Last night I saw a fox, near the north-west corner of the palace.",
+        "key": true,
+        "simpler": "我看见一只狐狸，在西北角。",
+        "onEnter": [
+          {
+            "do": "flag",
+            "flag": "saw-corner"
+          }
+        ],
+        "next": "d",
+        "why": "A key line 📌: 西北 is north-west, 角 a corner, 附近 nearby. Ask the woman doing 太极 on the path — she explains them. The corner of the palace wall is by the corner tower, 角楼."
+      },
+      {
+        "id": "d",
+        "say": "晚上，你去看看狐狸吧！",
+        "translate": "Go and look for the fox tonight!"
+      }
+    ]
+  },
+  {
+    "id": "singer-later",
+    "map": "jingshan-view",
+    "npc": "jingshan-yeye",
+    "trigger": "talk",
+    "priority": 5,
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！这儿很好看吧？",
+        "translate": "Hello! Beautiful up here, isn't it?"
+      }
+    ]
+  },
+  {
+    "id": "fox",
+    "map": "jiaolou",
+    "object": "fox",
+    "trigger": "look",
+    "priority": 0,
+    "stamp": "jiuweihu",
+    "when": {
+      "not": {
+        "spirit": "jiuweihu"
+      }
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "老虎",
+        "explain": "很大的猫，很大很大，大家都怕它。",
+        "en": "tiger"
+      },
+      {
+        "w": "怕",
+        "explain": "看见不好的东西，想跑。",
+        "en": "to be afraid"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你是谁？你也怕我吧？老虎都怕我！",
+        "translate": "Who are you? You're scared of me too, aren't you? Even tigers are scared of me!",
+        "speaker": "jiuweihu",
+        "simpler": "老虎怕我！你也怕我吗？",
+        "expect": [
+          {
+            "intent": "brave",
+            "match": [
+              [
+                "不怕",
+                "不",
+                "朋友",
+                "兔儿爷",
+                "我是"
+              ]
+            ],
+            "go": "b"
+          }
+        ],
+        "hint": {
+          "word": "不怕",
+          "frame": "我___你。",
+          "full": "我不怕你。"
+        }
+      },
+      {
+        "id": "b",
+        "say": "它这是狐假虎威。",
+        "translate": "That's 狐假虎威 — the fox borrowing the tiger's might.",
+        "speaker": "companion",
+        "key": true,
+        "next": "c",
+        "onEnter": [
+          {
+            "do": "idiom",
+            "idiom": "狐假虎威"
+          },
+          {
+            "do": "solve",
+            "riddle": "singer/key"
+          },
+          {
+            "do": "solve",
+            "riddle": "fisher-fox/b"
+          }
+        ],
+        "why": "A 成语 📌 with a story: the fox walked in front of the tiger, the animals fled from the tiger, and the fox said they feared *him*. Look it up in your 成语 book."
+      },
+      {
+        "id": "c",
+        "say": "好吧……你知道我叫什么吗？",
+        "translate": "Fine… do you know my name?",
+        "speaker": "jiuweihu",
+        "expect": [
+          {
+            "intent": "name",
+            "match": [
+              [
+                "九尾狐"
+              ]
+            ],
+            "go": "d"
+          }
+        ],
+        "hint": {
+          "word": "九尾狐",
+          "frame": "你是___！",
+          "full": "你是九尾狐！"
+        },
+        "why": "Say its name: 九尾狐 — 九 nine, 尾 tail, 狐 fox. Tones: jiǔ wěi hú."
+      },
+      {
+        "id": "d",
+        "say": "对！我是九尾狐。我们是朋友了！",
+        "translate": "Yes! I'm the nine-tailed fox. We're friends now!",
+        "speaker": "jiuweihu",
+        "onEnter": [
+          {
+            "do": "spirit",
+            "spirit": "jiuweihu"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "painting-gift",
+    "map": "beihai-north",
+    "npc": "beihai-painter",
+    "trigger": "talk",
+    "priority": 0,
+    "once": true,
+    "when": {
+      "scene": "painter"
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "画",
+        "explain": "用笔做的，好看的东西。",
+        "en": "painting"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "这个画给你。你给王阿姨吧。",
+        "translate": "This painting is for you — give it to 王阿姨.",
+        "simpler": "画给你。",
+        "onEnter": [
+          {
+            "do": "give",
+            "item": "hua"
+          },
+          {
+            "do": "quest",
+            "quest": "side-painting",
+            "step": "give"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "taiji",
+    "map": "jingshan-park",
+    "npc": "jingshan-ayi",
+    "trigger": "talk",
+    "priority": 0,
+    "when": {
+      "not": {
+        "flag": "taiji"
+      }
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "太极",
+        "explain": "很慢很慢的运动，老人喜欢。",
+        "en": "tai chi"
+      },
+      {
+        "w": "左手",
+        "explain": "左边的手。",
+        "en": "left hand"
+      },
+      {
+        "w": "右手",
+        "explain": "右边的手。",
+        "en": "right hand"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我们打太极吧。你看，左手！",
+        "translate": "Let's do some 太极. Watch — left hand!",
+        "simpler": "左手！",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-taiji",
+            "step": "learn"
+          }
+        ],
+        "expect": [
+          {
+            "intent": "left",
+            "match": [
+              [
+                "左手",
+                "左"
+              ]
+            ],
+            "go": "b"
+          }
+        ],
+        "hint": {
+          "word": "左手",
+          "frame": "___！",
+          "full": "左手！"
+        }
+      },
+      {
+        "id": "b",
+        "say": "对！现在，右手！",
+        "translate": "Yes! Now — right hand!",
+        "simpler": "右手！",
+        "expect": [
+          {
+            "intent": "right",
+            "match": [
+              [
+                "右手",
+                "右"
+              ]
+            ],
+            "go": "c"
+          }
+        ],
+        "hint": {
+          "word": "右手",
+          "frame": "___！",
+          "full": "右手！"
+        }
+      },
+      {
+        "id": "c",
+        "say": "很好！你会太极了！",
+        "translate": "Very good! You can do 太极 now!",
+        "simpler": "太极，很好！",
+        "onEnter": [
+          {
+            "do": "flag",
+            "flag": "taiji"
+          },
+          {
+            "do": "stamp",
+            "stamp": "taiji"
+          }
+        ]
+      }
+    ]
+  }
 ]

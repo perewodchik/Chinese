@@ -32,5 +32,19 @@
         "chapter": 9
       }
     ]
+  },
+  {
+    "id": "side-photo",
+    "title": "A photo on the Wall",
+    "chapter": 8,
+    "steps": [
+      {
+        "id": "photo",
+        "now": "The old man on the Wall wants a photo — count him in.",
+        "done": {
+          "flag": "photo"
+        }
+      }
+    ]
   }
 ]

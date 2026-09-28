@@ -1,0 +1,23 @@
+[
+  {
+    "id": "side-brush",
+    "title": "A brush for the scholar",
+    "chapter": 4,
+    "steps": [
+      {
+        "id": "buy",
+        "now": "The old scholar at 国子监 wants a writing brush 毛笔. The bookshop on 王府井 sells them.",
+        "done": {
+          "item": "maobi"
+        }
+      },
+      {
+        "id": "give",
+        "now": "Bring the brush to the scholar at 国子监.",
+        "done": {
+          "flag": "brush-given"
+        }
+      }
+    ]
+  }
+]

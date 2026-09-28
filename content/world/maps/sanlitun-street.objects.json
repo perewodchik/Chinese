@@ -198,5 +198,13 @@
    11
   ],
   "facing": "right"
+ },
+ {
+  "kind": "bike",
+  "id": "bike-stand-0",
+  "tile": [
+   41,
+   12
+  ]
  }
 ]

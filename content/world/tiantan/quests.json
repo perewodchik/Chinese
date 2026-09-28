@@ -44,5 +44,33 @@
         "step": "go"
       }
     ]
+  },
+  {
+    "id": "side-jianzi",
+    "title": "毽子 with the grannies",
+    "chapter": 4,
+    "steps": [
+      {
+        "id": "play",
+        "now": "Kick the 毽子 with the grannies at 天坛 — count with them.",
+        "done": {
+          "flag": "jianzi"
+        }
+      }
+    ]
+  },
+  {
+    "id": "side-song",
+    "title": "A song at 天坛",
+    "chapter": 4,
+    "steps": [
+      {
+        "id": "sing",
+        "now": "The old man with the 胡琴 wants you to sing a line with him.",
+        "done": {
+          "flag": "song"
+        }
+      }
+    ]
   }
 ]

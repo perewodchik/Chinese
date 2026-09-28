@@ -1,3 +1,16 @@
 [
-  { "id": "houhai", "name": "后海", "en": "The lakes of Houhai", "place": "houhai-lake", "design": "houhai" }
+  {
+    "id": "houhai",
+    "name": "后海",
+    "en": "The lakes of Houhai",
+    "place": "houhai-lake",
+    "design": "houhai"
+  },
+  {
+    "id": "boat",
+    "name": "划船",
+    "en": "A boat on Houhai",
+    "place": "houhai-lake",
+    "design": "boat"
+  }
 ]

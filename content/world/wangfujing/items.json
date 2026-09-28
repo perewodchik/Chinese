@@ -13,5 +13,10 @@
     "id": "ganmaoyao",
     "name": "感冒药",
     "en": "cold medicine"
+  },
+  {
+    "id": "gushishu",
+    "name": "故事书",
+    "en": "a storybook"
   }
 ]

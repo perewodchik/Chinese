@@ -1,161 +1,339 @@
 [
- {
-  "id": "houhai-arrive",
-  "map": "houhai-lake",
-  "trigger": "auto",
-  "once": true,
-  "stamp": "houhai",
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "这儿是后海。你看，水很多！",
-    "translate": "This is 后海. Look — so much water!",
-    "speaker": "companion",
-    "why": "什刹海 is three lakes in a row — 前海, 后海, 西海 — the old city's playground: boats in summer, skating in winter."
-   }
-  ]
- },
- {
-  "id": "fisher-fox",
-  "map": "houhai-lake",
-  "npc": "fisher-yeye",
-  "trigger": "talk",
-  "priority": 0,
-  "once": true,
-  "when": {
-   "chapter": 2
+  {
+    "id": "houhai-arrive",
+    "map": "houhai-lake",
+    "trigger": "auto",
+    "once": true,
+    "stamp": "houhai",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "这儿是后海。你看，水很多！",
+        "translate": "This is 后海. Look — so much water!",
+        "speaker": "companion",
+        "why": "什刹海 is three lakes in a row — 前海, 后海, 西海 — the old city's playground: boats in summer, skating in winter."
+      }
+    ]
   },
-  "start": "a",
-  "words": [
-   {
-    "w": "钓鱼",
-    "explain": "在水边用一根长长的东西拿鱼。",
-    "en": "to fish"
-   },
-   {
-    "w": "狐狸",
-    "explain": "像小狗，住在山里。",
-    "en": "fox"
-   },
-   {
-    "w": "尾巴",
-    "explain": "动物后面长长的东西。",
-    "en": "tail"
-   }
-  ],
-  "nodes": [
-   {
-    "id": "a",
-    "say": "你好。小声一点，我在钓鱼。",
-    "translate": "Hello. Quietly — I'm fishing.",
-    "expect": [
-     {
-      "intent": "ask",
-      "match": [
-       [
-        "看见",
-        "听说",
-        "知道",
-        "奇怪",
-        "狐狸"
-       ]
-      ],
-      "go": "b"
-     }
-    ],
-    "hint": {
-     "word": "看见",
-     "frame": "你晚上___什么了？",
-     "full": "你晚上看见什么了？"
+  {
+    "id": "fisher-fox",
+    "map": "houhai-lake",
+    "npc": "fisher-yeye",
+    "trigger": "talk",
+    "priority": 0,
+    "once": true,
+    "when": {
+      "chapter": 2
     },
-    "why": "He fishes at night and at dawn — ask what he has seen."
-   },
-   {
-    "id": "b",
-    "say": "昨天晚上，我看见一只白狐狸，有九个尾巴！",
-    "translate": "Last night I saw a white fox — with nine tails!",
-    "key": true,
-    "simpler": "我看见一只白狐狸。",
-    "onEnter": [
-     {
-      "do": "flag",
-      "flag": "heard-fox"
-     }
+    "start": "a",
+    "words": [
+      {
+        "w": "钓鱼",
+        "explain": "在水边用一根长长的东西拿鱼。",
+        "en": "to fish"
+      },
+      {
+        "w": "狐狸",
+        "explain": "像小狗，住在山里。",
+        "en": "fox"
+      },
+      {
+        "w": "尾巴",
+        "explain": "动物后面长长的东西。",
+        "en": "tail"
+      }
     ],
-    "next": "c",
-    "why": "A key line 📌: 白 is white; 只 is the measure word for animals. Nine tails — that is no ordinary fox."
-   },
-   {
-    "id": "c",
-    "say": "九个尾巴的狐狸！它去景山了。",
-    "translate": "A fox with nine tails! It went to 景山.",
-    "next": "d"
-   },
-   {
-    "id": "d",
-    "say": "好，我还要钓鱼。再见！",
-    "translate": "Right, back to my fishing. Bye!"
-   }
-  ]
- },
- {
-  "id": "fisher-later",
-  "map": "houhai-lake",
-  "npc": "fisher-yeye",
-  "trigger": "talk",
-  "priority": 5,
-  "start": "a",
-  "words": [
-   {
-    "w": "钓鱼",
-    "explain": "在水边用一根长长的东西拿鱼。",
-    "en": "to fish"
-   }
-  ],
-  "nodes": [
-   {
-    "id": "a",
-    "say": "我在钓鱼。",
-    "translate": "I'm fishing.",
-    "simpler": "我在钓鱼，小声一点。"
-   }
-  ]
- },
- {
-  "id": "boat",
-  "map": "houhai-lake",
-  "npc": "boat-shifu",
-  "trigger": "talk",
-  "start": "a",
-  "words": [
-   {
-    "w": "船",
-    "explain": "在水上走的东西。",
-    "en": "boat"
-   }
-  ],
-  "nodes": [
-   {
-    "id": "a",
-    "say": "你好！今天没有船了，明天来坐船吧！",
-    "translate": "Hello! No boats left today — come for a boat tomorrow!",
-    "simpler": "明天来坐船吧。"
-   }
-  ]
- },
- {
-  "id": "houhai-tourist",
-  "map": "houhai-lake",
-  "npc": "houhai-tourist",
-  "trigger": "talk",
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "你好！这儿很好看！",
-    "translate": "Hello! Isn't it lovely here!"
-   }
-  ]
- }
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好。小声一点，我在钓鱼。",
+        "translate": "Hello. Quietly — I'm fishing.",
+        "expect": [
+          {
+            "intent": "ask",
+            "match": [
+              [
+                "看见",
+                "听说",
+                "知道",
+                "奇怪",
+                "狐狸"
+              ]
+            ],
+            "go": "b"
+          }
+        ],
+        "hint": {
+          "word": "看见",
+          "frame": "你晚上___什么了？",
+          "full": "你晚上看见什么了？"
+        },
+        "why": "He fishes at night and at dawn — ask what he has seen."
+      },
+      {
+        "id": "b",
+        "say": "昨天晚上，我看见一只白狐狸，有九个尾巴！",
+        "translate": "Last night I saw a white fox — with nine tails!",
+        "key": true,
+        "simpler": "我看见一只白狐狸。",
+        "onEnter": [
+          {
+            "do": "flag",
+            "flag": "heard-fox"
+          }
+        ],
+        "next": "c",
+        "why": "A key line 📌: 白 is white; 只 is the measure word for animals. Nine tails — that is no ordinary fox."
+      },
+      {
+        "id": "c",
+        "say": "九个尾巴的狐狸！它去景山了。",
+        "translate": "A fox with nine tails! It went to 景山.",
+        "next": "d"
+      },
+      {
+        "id": "d",
+        "say": "好，我还要钓鱼。再见！",
+        "translate": "Right, back to my fishing. Bye!"
+      }
+    ]
+  },
+  {
+    "id": "fisher-later",
+    "map": "houhai-lake",
+    "npc": "fisher-yeye",
+    "trigger": "talk",
+    "priority": 5,
+    "start": "a",
+    "words": [
+      {
+        "w": "钓鱼",
+        "explain": "在水边用一根长长的东西拿鱼。",
+        "en": "to fish"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我在钓鱼。",
+        "translate": "I'm fishing.",
+        "simpler": "我在钓鱼，小声一点。"
+      }
+    ]
+  },
+  {
+    "id": "boat",
+    "map": "houhai-lake",
+    "npc": "boat-shifu",
+    "trigger": "talk",
+    "start": "a",
+    "words": [
+      {
+        "w": "船",
+        "explain": "在水上走的东西。",
+        "en": "boat"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！今天没有船了，明天来坐船吧！",
+        "translate": "Hello! No boats left today — come for a boat tomorrow!",
+        "simpler": "明天来坐船吧。"
+      }
+    ]
+  },
+  {
+    "id": "houhai-tourist",
+    "map": "houhai-lake",
+    "npc": "houhai-tourist",
+    "trigger": "talk",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！这儿很好看！",
+        "translate": "Hello! Isn't it lovely here!"
+      }
+    ]
+  },
+  {
+    "id": "bait-ask",
+    "map": "houhai-lake",
+    "npc": "fisher-yeye",
+    "trigger": "talk",
+    "priority": 1,
+    "once": true,
+    "when": {
+      "flag": "heard-fox"
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "鱼饵",
+        "explain": "鱼喜欢吃的小东西，钓鱼用。",
+        "en": "bait"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我没有鱼饵了。你能帮我买吗？",
+        "translate": "I've run out of bait. Could you buy me some?",
+        "simpler": "我要鱼饵。",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-bait",
+            "step": "buy"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bait-give",
+    "map": "houhai-lake",
+    "npc": "fisher-yeye",
+    "trigger": "talk",
+    "priority": -1,
+    "when": {
+      "all": [
+        {
+          "item": "yuer"
+        },
+        {
+          "not": {
+            "flag": "bait-given"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "鱼饵",
+        "explain": "鱼喜欢吃的小东西。",
+        "en": "bait"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "鱼饵！谢谢你！今天有鱼了！",
+        "translate": "Bait! Thank you! Fish tonight!",
+        "simpler": "有鱼饵了！",
+        "onEnter": [
+          {
+            "do": "take",
+            "item": "yuer"
+          },
+          {
+            "do": "flag",
+            "flag": "bait-given"
+          },
+          {
+            "do": "remember",
+            "npc": "fisher-yeye",
+            "note": "brought him bait"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "boat-ride",
+    "map": "houhai-lake",
+    "npc": "boat-shifu",
+    "trigger": "talk",
+    "priority": 0,
+    "when": {
+      "not": {
+        "flag": "boat-ride"
+      }
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "船",
+        "explain": "在水上走的东西。",
+        "en": "boat"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "坐船吗？三十块。",
+        "translate": "A boat? Thirty yuan.",
+        "simpler": "你要坐船吗？",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-boat",
+            "step": "ride"
+          }
+        ],
+        "expect": [
+          {
+            "intent": "yes",
+            "match": [
+              [
+                "好",
+                "好的",
+                "行",
+                "可以",
+                "要",
+                "是",
+                "对",
+                "坐"
+              ]
+            ],
+            "go": "b",
+            "actions": [
+              {
+                "do": "money",
+                "amount": -30
+              },
+              {
+                "do": "flag",
+                "flag": "boat-ride"
+              },
+              {
+                "do": "stamp",
+                "stamp": "boat"
+              }
+            ]
+          },
+          {
+            "intent": "no",
+            "match": [
+              [
+                "不",
+                "不要",
+                "不用"
+              ]
+            ],
+            "go": "c"
+          }
+        ],
+        "hint": {
+          "word": "好",
+          "frame": "___，我坐船。",
+          "full": "好，我坐船。"
+        }
+      },
+      {
+        "id": "b",
+        "say": "好！你玩吧！",
+        "translate": "Off you go — enjoy it!",
+        "why": "An hour on the water between the willows. (The ride itself is imagined — the stamp is real.)"
+      },
+      {
+        "id": "c",
+        "say": "好，明天来。",
+        "translate": "All right, come tomorrow."
+      }
+    ]
+  }
 ]

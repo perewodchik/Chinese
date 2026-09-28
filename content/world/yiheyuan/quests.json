@@ -51,5 +51,26 @@
         "step": "ticket"
       }
     ]
+  },
+  {
+    "id": "side-lost",
+    "title": "The lost tourist",
+    "chapter": 6,
+    "steps": [
+      {
+        "id": "find",
+        "now": "The guide at the east gate has lost one of her group — a young woman. Look along the Long Corridor.",
+        "done": {
+          "flag": "found-tourist"
+        }
+      },
+      {
+        "id": "back",
+        "now": "Tell the guide she’s found.",
+        "done": {
+          "flag": "told-guide"
+        }
+      }
+    ]
   }
 ]

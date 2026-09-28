@@ -1839,5 +1839,497 @@
         "simpler": "好了！你有票了。"
       }
     ]
+  },
+  {
+    "id": "bird-lost",
+    "map": "nanluo-main",
+    "npc": "zhao-yeye",
+    "trigger": "talk",
+    "once": true,
+    "priority": -1,
+    "when": {
+      "chapter": 2
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "鸟",
+        "explain": "会飞的小动物。",
+        "en": "bird"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我的鸟不见了！你看见了吗？",
+        "translate": "My bird's gone! Have you seen it?",
+        "simpler": "我的鸟没了。",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-bird",
+            "step": "find"
+          }
+        ],
+        "key": true,
+        "why": "A small key line: 不见了 — 'has gone, can't be found'. 小明 is always in the lanes: ask him."
+      }
+    ]
+  },
+  {
+    "id": "bird-kid",
+    "map": "nanluo-main",
+    "npc": "xiaoming",
+    "trigger": "talk",
+    "priority": 0,
+    "when": {
+      "all": [
+        {
+          "quest": "side-bird",
+          "step": "find"
+        },
+        {
+          "not": {
+            "item": "niao"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "鸟",
+        "explain": "会飞的小动物。",
+        "en": "bird"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "这是爷爷的鸟吗？给你！",
+        "translate": "Is this grandpa's bird? Here!",
+        "simpler": "鸟，给你！",
+        "onEnter": [
+          {
+            "do": "give",
+            "item": "niao"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bird-back",
+    "map": "nanluo-main",
+    "npc": "zhao-yeye",
+    "trigger": "talk",
+    "priority": -2,
+    "when": {
+      "all": [
+        {
+          "item": "niao"
+        },
+        {
+          "not": {
+            "flag": "bird-back"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "鸟",
+        "explain": "会飞的小动物。",
+        "en": "bird"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我的鸟！谢谢你！",
+        "translate": "My bird! Thank you!",
+        "simpler": "鸟回来了！",
+        "onEnter": [
+          {
+            "do": "take",
+            "item": "niao"
+          },
+          {
+            "do": "flag",
+            "flag": "bird-back"
+          },
+          {
+            "do": "money",
+            "amount": 20
+          },
+          {
+            "do": "remember",
+            "npc": "zhao-yeye",
+            "note": "brought his bird back"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "haircut",
+    "map": "lifadian",
+    "npc": "zhang-shifu",
+    "trigger": "talk",
+    "priority": 1,
+    "when": {
+      "idiom": "马马虎虎"
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "剪头",
+        "explain": "把头发弄短。",
+        "en": "a haircut"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "剪头吗？三十块。",
+        "translate": "A haircut? Thirty yuan.",
+        "simpler": "你要剪头吗？",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-haircut",
+            "step": "cut"
+          }
+        ],
+        "expect": [
+          {
+            "intent": "yes",
+            "match": [
+              [
+                "好",
+                "好的",
+                "行",
+                "可以",
+                "要",
+                "是",
+                "对",
+                "剪"
+              ]
+            ],
+            "go": "b",
+            "actions": [
+              {
+                "do": "money",
+                "amount": -30
+              },
+              {
+                "do": "flag",
+                "flag": "haircut"
+              },
+              {
+                "do": "stamp",
+                "stamp": "haircut"
+              }
+            ]
+          },
+          {
+            "intent": "no",
+            "match": [
+              [
+                "不",
+                "不要",
+                "不用"
+              ]
+            ],
+            "go": "c"
+          }
+        ],
+        "hint": {
+          "word": "好",
+          "frame": "___，谢谢。",
+          "full": "好，谢谢。"
+        }
+      },
+      {
+        "id": "b",
+        "say": "好了！很好看！",
+        "translate": "Done! Looks great!"
+      },
+      {
+        "id": "c",
+        "say": "好，下次来。",
+        "translate": "All right, next time."
+      }
+    ]
+  },
+  {
+    "id": "bait-buy",
+    "map": "xiaomaibu",
+    "npc": "li-ayi",
+    "trigger": "talk",
+    "priority": -1,
+    "when": {
+      "all": [
+        {
+          "quest": "side-bait",
+          "step": "buy"
+        },
+        {
+          "not": {
+            "item": "yuer"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "鱼饵",
+        "explain": "鱼喜欢吃的小东西，钓鱼用。",
+        "en": "bait"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！要什么？",
+        "translate": "Hello! What'll it be?",
+        "expect": [
+          {
+            "intent": "bait",
+            "match": [
+              [
+                "鱼饵"
+              ]
+            ],
+            "go": "b",
+            "actions": [
+              {
+                "do": "money",
+                "amount": -5
+              },
+              {
+                "do": "give",
+                "item": "yuer"
+              }
+            ]
+          }
+        ],
+        "hint": {
+          "word": "鱼饵",
+          "frame": "我要买___。",
+          "full": "我要买鱼饵。"
+        }
+      },
+      {
+        "id": "b",
+        "say": "鱼饵？五块。给你。",
+        "translate": "Bait? Five yuan. Here.",
+        "simpler": "鱼饵五块。"
+      }
+    ]
+  },
+  {
+    "id": "painting-wang",
+    "map": "siheyuan-yard",
+    "npc": "wang-ayi",
+    "trigger": "talk",
+    "priority": -4,
+    "when": {
+      "all": [
+        {
+          "item": "hua"
+        },
+        {
+          "not": {
+            "flag": "painting-given"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "画",
+        "explain": "用笔做的，好看的东西。",
+        "en": "painting"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "这是给我的画吗？真好看！谢谢！",
+        "translate": "A painting for me? It's beautiful! Thank you!",
+        "simpler": "画真好看！",
+        "onEnter": [
+          {
+            "do": "take",
+            "item": "hua"
+          },
+          {
+            "do": "flag",
+            "flag": "painting-given"
+          },
+          {
+            "do": "remember",
+            "npc": "wang-ayi",
+            "note": "gave her a painting of the White Dagoba"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "book-want",
+    "map": "nanluo-main",
+    "npc": "xiaoming",
+    "trigger": "talk",
+    "priority": 1,
+    "once": true,
+    "when": {
+      "chapter": 3
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "故事书",
+        "explain": "有故事的书。",
+        "en": "storybook"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我想要一本故事书！",
+        "translate": "I want a storybook!",
+        "simpler": "我要故事书！",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-book",
+            "step": "buy"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "book-give",
+    "map": "nanluo-main",
+    "npc": "xiaoming",
+    "trigger": "talk",
+    "priority": -1,
+    "when": {
+      "all": [
+        {
+          "item": "gushishu"
+        },
+        {
+          "not": {
+            "flag": "book-given"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "故事书",
+        "explain": "有故事的书。",
+        "en": "storybook"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我的故事书！谢谢你！",
+        "translate": "My storybook! Thank you!",
+        "simpler": "故事书！",
+        "onEnter": [
+          {
+            "do": "take",
+            "item": "gushishu"
+          },
+          {
+            "do": "flag",
+            "flag": "book-given"
+          },
+          {
+            "do": "remember",
+            "npc": "xiaoming",
+            "note": "gave him a storybook"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "tea-buy",
+    "map": "chaguan",
+    "npc": "lao-liu",
+    "trigger": "talk",
+    "priority": -1,
+    "when": {
+      "all": [
+        {
+          "quest": "side-tea",
+          "step": "buy"
+        },
+        {
+          "not": {
+            "item": "chaye"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "茶叶",
+        "explain": "做茶用的叶子。",
+        "en": "tea leaves"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你要什么？",
+        "translate": "What would you like?",
+        "expect": [
+          {
+            "intent": "tea",
+            "match": [
+              [
+                "茶叶",
+                "茶"
+              ]
+            ],
+            "go": "b",
+            "actions": [
+              {
+                "do": "money",
+                "amount": -20
+              },
+              {
+                "do": "give",
+                "item": "chaye"
+              }
+            ]
+          }
+        ],
+        "hint": {
+          "word": "茶叶",
+          "frame": "我要买___。",
+          "full": "我要买茶叶。"
+        }
+      },
+      {
+        "id": "b",
+        "say": "茶叶？二十块。给你。",
+        "translate": "Tea leaves? Twenty yuan. Here.",
+        "simpler": "茶叶，二十块。"
+      }
+    ]
   }
 ]

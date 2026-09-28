@@ -13,5 +13,19 @@
     "en": "Heard the Echo Wall",
     "place": "huiyinbi",
     "design": "huiyinbi"
+  },
+  {
+    "id": "jianzi",
+    "name": "毽子",
+    "en": "Kicked the 毽子",
+    "place": "tiantan-park",
+    "design": "jianzi"
+  },
+  {
+    "id": "song",
+    "name": "唱歌",
+    "en": "Sang at the Temple of Heaven",
+    "place": "tiantan-park",
+    "design": "song"
   }
 ]

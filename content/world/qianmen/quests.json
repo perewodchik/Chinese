@@ -1,0 +1,37 @@
+[
+  {
+    "id": "side-show",
+    "title": "A night at the opera",
+    "chapter": 3,
+    "steps": [
+      {
+        "id": "watch",
+        "now": "Buy a ticket from the opera house owner and watch a show (50 元).",
+        "done": {
+          "flag": "saw-show"
+        }
+      }
+    ]
+  },
+  {
+    "id": "side-tea",
+    "title": "Tea for the granny",
+    "chapter": 3,
+    "steps": [
+      {
+        "id": "buy",
+        "now": "The granny of 大栅栏 misses 老刘’s tea. Buy tea leaves 茶叶 at the teahouse on 南锣鼓巷.",
+        "done": {
+          "item": "chaye"
+        }
+      },
+      {
+        "id": "give",
+        "now": "Bring the tea to the granny in 大栅栏.",
+        "done": {
+          "flag": "tea-given"
+        }
+      }
+    ]
+  }
+]

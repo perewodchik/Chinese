@@ -213,5 +213,89 @@
         "speaker": "qilin"
       }
     ]
+  },
+  {
+    "id": "brush-want",
+    "map": "guozijian",
+    "npc": "lao-xiansheng",
+    "trigger": "talk",
+    "priority": -1,
+    "once": true,
+    "when": {
+      "scene": "frog"
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "毛笔",
+        "explain": "写中国字的笔。",
+        "en": "writing brush"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我想要一个新的毛笔。你能帮我买吗？",
+        "translate": "I'd like a new brush. Could you buy me one?",
+        "simpler": "我要毛笔。",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-brush",
+            "step": "buy"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "brush-give",
+    "map": "guozijian",
+    "npc": "lao-xiansheng",
+    "trigger": "talk",
+    "priority": -2,
+    "when": {
+      "all": [
+        {
+          "item": "maobi"
+        },
+        {
+          "not": {
+            "flag": "brush-given"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "毛笔",
+        "explain": "写中国字的笔。",
+        "en": "writing brush"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "毛笔！谢谢你！我要写字了。",
+        "translate": "A brush! Thank you! Now I can write.",
+        "simpler": "毛笔，谢谢！",
+        "onEnter": [
+          {
+            "do": "take",
+            "item": "maobi"
+          },
+          {
+            "do": "flag",
+            "flag": "brush-given"
+          },
+          {
+            "do": "remember",
+            "npc": "lao-xiansheng",
+            "note": "brought him a brush"
+          }
+        ]
+      }
+    ]
   }
 ]

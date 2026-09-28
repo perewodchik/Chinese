@@ -652,5 +652,50 @@
         "translate": "OK, bye!"
       }
     ]
+  },
+  {
+    "id": "bike-tip",
+    "map": "sanlitun-street",
+    "npc": "kuaidi-xiaoge",
+    "trigger": "talk",
+    "priority": 1,
+    "once": true,
+    "when": {
+      "flag": "heard-pixiu"
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "共享单车",
+        "explain": "在路边，大家都能用的车。",
+        "en": "shared bike"
+      },
+      {
+        "w": "扫码",
+        "explain": "用手机看一下。",
+        "en": "scan the code"
+      },
+      {
+        "w": "骑",
+        "explain": "坐在车上走。",
+        "en": "to ride"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你知道共享单车吗？扫码，能骑。很快！",
+        "translate": "Know the shared bikes? Scan the code and ride. Fast!",
+        "simpler": "共享单车，扫码，骑！",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-bike",
+            "step": "ride"
+          }
+        ],
+        "why": "The bike stands are by the stations and in the lanes. Tap one to ride; tap a stand again (or go indoors) to park — 1 元 a ride."
+      }
+    ]
   }
 ]

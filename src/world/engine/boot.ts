@@ -19,6 +19,8 @@ export interface RunningWorld {
   stick(f: Facing | null, run?: boolean): void;
   /** the joystick's action button */
   act(): void;
+  /** on or off a shared bike */
+  setBike(on: boolean): void;
   /** a PNG data URL of the canvas, for review screenshots */
   snapshot(): Promise<string>;
 }
@@ -49,6 +51,7 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions, snapsh
     travel: (to) => (game.scene.getScene('world') as Scene | null)?.travel(to),
     stick: (f, run) => (game.scene.getScene('world') as Scene | null)?.setStick(f, run),
     act: () => (game.scene.getScene('world') as Scene | null)?.act(),
+    setBike: (on) => (game.scene.getScene('world') as Scene | null)?.setBike(on),
     snapshot: () =>
       new Promise((resolve) => {
         game.renderer.snapshot((img) => resolve((img as HTMLImageElement).src));

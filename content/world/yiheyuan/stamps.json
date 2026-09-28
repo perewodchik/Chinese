@@ -13,5 +13,12 @@
     "en": "The Long Corridor",
     "place": "yiheyuan-changlang",
     "design": "changlang"
+  },
+  {
+    "id": "helper",
+    "name": "帮忙",
+    "en": "Helped a lost tourist",
+    "place": "stop-yiheyuan",
+    "design": "helper"
   }
 ]

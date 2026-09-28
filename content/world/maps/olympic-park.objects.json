@@ -138,5 +138,26 @@
    17
   ],
   "facing": "left"
+ },
+ {
+  "kind": "prop",
+  "id": "stand-bike-0",
+  "tile": [
+   38,
+   17
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "bike",
+  "id": "bike-stand-0",
+  "tile": [
+   39,
+   17
+  ]
  }
 ]

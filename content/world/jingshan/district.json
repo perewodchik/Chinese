@@ -3,8 +3,28 @@
   "name": "景山 · 北海",
   "en": "Jingshan · Beihai",
   "chapter": 2,
-  "maps": ["beihai-north", "station-beihaibei", "jingshan-park", "jingshan-view", "jiaolou"],
-  "stations": ["beihaibei"],
-  "names": ["景山", "北海", "白塔", "故宫", "角楼", "万春亭", "后海", "北京", "兔儿爷", "九尾狐"],
+  "maps": [
+    "beihai-north",
+    "station-beihaibei",
+    "jingshan-park",
+    "jingshan-view",
+    "jiaolou"
+  ],
+  "stations": [
+    "beihaibei"
+  ],
+  "names": [
+    "景山",
+    "北海",
+    "白塔",
+    "故宫",
+    "角楼",
+    "万春亭",
+    "后海",
+    "北京",
+    "兔儿爷",
+    "九尾狐",
+    "王阿姨"
+  ],
   "ambience": "park"
 }

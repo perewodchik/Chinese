@@ -65,5 +65,40 @@
         "step": "go-houhai"
       }
     ]
+  },
+  {
+    "id": "side-bird",
+    "title": "赵爷爷’s bird",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "find",
+        "now": "赵爷爷’s bird flew off. The kid 小明 plays in the lanes — ask him.",
+        "done": {
+          "item": "niao"
+        }
+      },
+      {
+        "id": "back",
+        "now": "Take the bird back to 赵爷爷 on 南锣鼓巷.",
+        "done": {
+          "flag": "bird-back"
+        }
+      }
+    ]
+  },
+  {
+    "id": "side-haircut",
+    "title": "A haircut",
+    "chapter": 1,
+    "steps": [
+      {
+        "id": "cut",
+        "now": "Get a haircut at 张师傅’s on 南锣鼓巷 (30 元).",
+        "done": {
+          "flag": "haircut"
+        }
+      }
+    ]
   }
 ]

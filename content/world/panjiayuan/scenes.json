@@ -298,5 +298,116 @@
         "speaker": "hero"
       }
     ]
+  },
+  {
+    "id": "old-map",
+    "map": "panjiayuan-market",
+    "npc": "panjiayuan-dashu",
+    "trigger": "talk",
+    "priority": 0,
+    "when": {
+      "all": [
+        {
+          "idiom": "亡羊补牢"
+        },
+        {
+          "not": {
+            "item": "ditu"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "地图",
+        "explain": "画了路和地方的纸。",
+        "en": "map"
+      },
+      {
+        "w": "便宜点儿",
+        "explain": "钱少一点。",
+        "en": "cheaper, please"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你看，北京的地图！很老的！五十块。",
+        "translate": "Look — a map of Beijing! Very old! Fifty.",
+        "simpler": "地图，五十块。",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-map",
+            "step": "buy"
+          }
+        ],
+        "key": true,
+        "expect": [
+          {
+            "intent": "cheaper",
+            "match": [
+              [
+                "便宜点儿",
+                "便宜",
+                "太贵",
+                "贵"
+              ]
+            ],
+            "go": "b"
+          }
+        ],
+        "hint": {
+          "word": "便宜点儿",
+          "frame": "太贵了！___吧。",
+          "full": "太贵了！便宜点儿吧。"
+        },
+        "why": "老 — old — is HSK 3: a small key line. Bargain!"
+      },
+      {
+        "id": "b",
+        "say": "便宜点儿？好，三十块。",
+        "translate": "Cheaper? Fine, thirty.",
+        "simpler": "地图，三十块。",
+        "expect": [
+          {
+            "intent": "yes",
+            "match": [
+              [
+                "好",
+                "好的",
+                "行",
+                "可以",
+                "要",
+                "是",
+                "对"
+              ]
+            ],
+            "go": "c",
+            "actions": [
+              {
+                "do": "money",
+                "amount": -30
+              },
+              {
+                "do": "give",
+                "item": "ditu"
+              }
+            ]
+          }
+        ],
+        "hint": {
+          "word": "好",
+          "frame": "___，给你。",
+          "full": "好，给你。"
+        }
+      },
+      {
+        "id": "c",
+        "say": "给你！",
+        "translate": "Here you are!"
+      }
+    ]
   }
 ]

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "side-map",
+    "title": "An old map of Beijing",
+    "chapter": 6,
+    "steps": [
+      {
+        "id": "buy",
+        "now": "The book-seller at 潘家园 has an old map of Beijing — bargain for it.",
+        "done": {
+          "item": "ditu"
+        }
+      }
+    ]
+  }
+]

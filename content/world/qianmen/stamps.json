@@ -20,5 +20,12 @@
     "en": "The door gods' friend",
     "place": "qianmen-street",
     "design": "menshen"
+  },
+  {
+    "id": "show",
+    "name": "看戏",
+    "en": "A night at the opera",
+    "place": "xiyuan",
+    "design": "show"
   }
 ]

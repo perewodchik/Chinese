@@ -79,5 +79,26 @@
         }
       }
     ]
+  },
+  {
+    "id": "side-book",
+    "title": "A book for 小明",
+    "chapter": 3,
+    "steps": [
+      {
+        "id": "buy",
+        "now": "小明 wants a storybook 故事书. The bookshop on 王府井 has them.",
+        "done": {
+          "item": "gushishu"
+        }
+      },
+      {
+        "id": "give",
+        "now": "Give 小明 the storybook — he plays on 南锣鼓巷.",
+        "done": {
+          "flag": "book-given"
+        }
+      }
+    ]
   }
 ]

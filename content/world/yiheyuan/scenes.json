@@ -171,5 +171,107 @@
         "translate": "Hello! Look — aren't these paintings lovely."
       }
     ]
+  },
+  {
+    "id": "lost-ask",
+    "map": "stop-yiheyuan",
+    "npc": "daoyou",
+    "trigger": "talk",
+    "priority": 0,
+    "once": true,
+    "when": {
+      "chapter": 6
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "游客",
+        "explain": "来玩的人。",
+        "en": "tourist"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我的一个游客不见了！你看见了吗？",
+        "translate": "One of my tourists has vanished! Have you seen her?",
+        "simpler": "我找一个游客。",
+        "key": true,
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-lost",
+            "step": "find"
+          }
+        ],
+        "why": "A small key line: 不见了 — gone missing."
+      }
+    ]
+  },
+  {
+    "id": "lost-found",
+    "map": "yiheyuan-changlang",
+    "npc": "houhai-tourist",
+    "trigger": "talk",
+    "priority": 0,
+    "when": {
+      "all": [
+        {
+          "quest": "side-lost",
+          "step": "find"
+        }
+      ]
+    },
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "啊？我的朋友在找我吗？谢谢！",
+        "translate": "Oh? My group is looking for me? Thanks!",
+        "onEnter": [
+          {
+            "do": "flag",
+            "flag": "found-tourist"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lost-back",
+    "map": "stop-yiheyuan",
+    "npc": "daoyou",
+    "trigger": "talk",
+    "priority": -1,
+    "when": {
+      "all": [
+        {
+          "flag": "found-tourist"
+        },
+        {
+          "not": {
+            "flag": "told-guide"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你找到她了？太好了！谢谢你！",
+        "translate": "You found her? Wonderful! Thank you!",
+        "onEnter": [
+          {
+            "do": "flag",
+            "flag": "told-guide"
+          },
+          {
+            "do": "stamp",
+            "stamp": "helper"
+          }
+        ]
+      }
+    ]
   }
 ]

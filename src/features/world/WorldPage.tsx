@@ -158,6 +158,11 @@ export function WorldPage() {
             const s = game.current();
             if (!s) return;
             const r = throughDoor(door, s);
+            // nobody rides a bike indoors: it is parked at the door
+            if (r.open && s.flags.includes('on-bike')) {
+              game.dispatch([{ do: 'flag', flag: 'on-bike', value: false }, { do: 'money', amount: -1 }]);
+              world.current?.setBike(false);
+            }
             if (r.open) world.current?.travel(r.to);
             else setNote(r.why);
           },
@@ -192,6 +197,23 @@ export function WorldPage() {
               else startBare(scene, s);
             } else if (o.kind === 'sign') {
               talkRef.current.start(signScene(o), null, 'sign', s, o.en ?? 'A sign');
+            } else if (o.kind === 'bike') {
+              // 共享单车 (H8): scan to ride, park at any stand; after chapter 1
+              const riding = s.flags.includes('on-bike');
+              if (s.chapter < 2) {
+                talkRef.current.start(signScene({ id: o.id, text: '扫码骑车', en: 'Scan to ride — once you have settled in (after chapter 1).' }), null, 'sign', s, 'Shared bikes');
+                return;
+              }
+              game.dispatch([{ do: 'flag', flag: 'on-bike', value: !riding }]);
+              world.current?.setBike(!riding);
+              talkRef.current.start(
+                signScene(riding ? { id: o.id, text: '还车', en: 'Bike parked. 1 元.' } : { id: o.id, text: '扫码骑车', en: 'Scan to ride — you are on a bike now (faster). Park at any stand.' }),
+                null,
+                'sign',
+                s,
+                'Shared bikes',
+              );
+              if (riding) game.dispatch([{ do: 'money', amount: -1 }]);
             }
           },
           // Tab (the companion) is the page's own key, so it works in a conversation too.
@@ -209,6 +231,7 @@ export function WorldPage() {
           facing: start.place.facing,
           host,
           looks: looksOf(people.npcs),
+          bike: game.current()?.flags.includes('on-bike') ?? false,
           cast: (info) => {
             const s = game.current();
             return s ? castMap(info.objects, info.id, people.npcs, s) : info.objects;

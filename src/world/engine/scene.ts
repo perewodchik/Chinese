@@ -52,6 +52,8 @@ export interface SceneOptions {
   cast?: (info: MapInfo) => MapObject[];
   /** npc id → sprite frame prefix (the card's look); without it the id is the sprite */
   looks?: Record<string, string>;
+  /** on a shared bike: faster, a bicycle under the hero */
+  bike?: boolean;
 }
 
 interface TilesetNames {
@@ -75,6 +77,8 @@ export class WorldScene extends Phaser.Scene {
   info!: MapInfo;
   private hero!: Phaser.GameObjects.Sprite;
   private rabbit!: Phaser.GameObjects.Sprite;
+  /** the shared bike under the hero, while riding one */
+  private bikeSprite: Phaser.GameObjects.Sprite | null = null;
   private npcSprites = new Map<string, Phaser.GameObjects.Sprite>();
 
   /** where the hero stands (the tile, not the sprite mid-step) */
@@ -184,6 +188,8 @@ export class WorldScene extends Phaser.Scene {
     const { x, y } = feet(this.at);
     this.hero = this.add.sprite(x, y + 3, 'chars', `hero/${this.facing}-0`).setOrigin(0, 1).setDepth(y + 0.5);
     this.rabbit = this.add.sprite(x + 12, y - 18, 'chars', 'rabbit/down-0').setOrigin(0, 1).setDepth(y + 0.6);
+    this.bikeSprite = null;
+    if (this.opts.bike) this.setBike(true);
     // the bob is in the frames: 0 up, 1 down
     this.time.addEvent({
       delay: 450,
@@ -382,6 +388,26 @@ export class WorldScene extends Phaser.Scene {
     if (!this.moving) this.next();
   }
 
+  /** Get on or off a shared bike (H8): faster steps, a bicycle drawn under the hero. */
+  setBike(on: boolean) {
+    this.opts.bike = on;
+    if (on && !this.bikeSprite) {
+      this.bikeSprite = this.add.sprite(this.hero.x, this.hero.y, 'props', 'bicycle/side').setOrigin(0, 1);
+      this.placeBike();
+    } else if (!on && this.bikeSprite) {
+      this.bikeSprite.destroy();
+      this.bikeSprite = null;
+    }
+  }
+
+  private placeBike() {
+    const b = this.bikeSprite;
+    if (!b) return;
+    b.setPosition(this.hero.x, this.hero.y - 1).setDepth(this.hero.depth - 0.05);
+    b.setFlipX(this.facing === 'left');
+    b.setVisible(this.facing === 'left' || this.facing === 'right');
+  }
+
   /** The on-screen joystick (E6): walk that way while held, step by step; null lets go. */
   setStick(f: Facing | null, run = false) {
     this.stick = f;
@@ -497,14 +523,17 @@ export class WorldScene extends Phaser.Scene {
     this.hero.setFrame(`hero/${this.facing}-${this.stepFrame + 1}`);
     const x = t[0] * TILE;
     const y = (t[1] + 1) * TILE;
-    const ms = this.running ? RUN_MS : WALK_MS;
+    const ms = this.bikeSprite ? RUN_MS * 0.75 : this.running ? RUN_MS : WALK_MS;
     this.hero.setDepth(Math.max(this.hero.depth, y + 0.5));
     this.tweens.add({
       targets: this.hero,
       x,
       y: y + 3,
       duration: ms,
-      onUpdate: () => this.hero.setDepth(this.hero.y - 3 + 0.5),
+      onUpdate: () => {
+        this.hero.setDepth(this.hero.y - 3 + 0.5);
+        this.placeBike();
+      },
       onComplete: () => {
         this.hero.setFrame(`hero/${this.facing}-0`);
         this.host.onStep(t, this.facing, this.running);

@@ -1,285 +1,468 @@
 [
- {
-  "id": "qm-arrive",
-  "map": "qianmen-street",
-  "trigger": "auto",
-  "once": true,
-  "stamp": "qianmen",
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "这是前门！",
-    "translate": "So this is Qianmen!",
-    "speaker": "hero",
-    "why": "前门 — the Front Gate — stood at the south of the old inner city. 大栅栏, just east, is a lane of shops hundreds of years old."
-   }
-  ]
- },
- {
-  "id": "opera",
-  "map": "xiyuan",
-  "npc": "jingju-yanyuan",
-  "trigger": "talk",
-  "priority": 0,
-  "stamp": "jingju",
-  "start": "a",
-  "words": [
-   {
-    "w": "京剧",
-    "explain": "北京的老戏，有歌，有脸谱。",
-    "en": "Beijing opera"
-   },
-   {
-    "w": "脸谱",
-    "explain": "京剧里脸上画的颜色。",
-    "en": "opera face paint"
-   },
-   {
-    "w": "红脸",
-    "explain": "红色的脸谱，是好人。",
-    "en": "red face"
-   },
-   {
-    "w": "白脸",
-    "explain": "白色的脸谱，是坏人。",
-    "en": "white face"
-   }
-  ],
-  "nodes": [
-   {
-    "id": "a",
-    "say": "你好！你喜欢京剧吗？",
-    "translate": "Hello! Do you like Beijing opera?",
-    "simpler": "你看过京剧的脸谱吗？",
-    "expect": [
-     {
-      "intent": "any",
-      "match": [
-       [
-        "喜欢",
-        "不知道",
-        "好",
-        "是",
-        "没",
-        "不"
-       ]
-      ],
-      "go": "b"
-     }
-    ],
-    "hint": {
-     "word": "喜欢",
-     "frame": "我很___！",
-     "full": "我很喜欢！"
-    }
-   },
-   {
-    "id": "b",
-    "say": "你看这些脸谱。红脸是好人，白脸是坏人。",
-    "translate": "Look at these masks. A red face is a good man, a white face a bad one.",
-    "simpler": "红脸好，白脸坏。",
-    "next": "c",
-    "why": "In 京剧 the face paint tells you the character: red loyal and brave, white cunning, black honest and fierce."
-   },
-   {
-    "id": "c",
-    "say": "大栅栏东边有一个门。",
-    "translate": "At the east end of 大栅栏 there's an old gate.",
-    "next": "d"
-   },
-   {
-    "id": "d",
-    "say": "门神的颜色都没了。你去看看吧。",
-    "translate": "The door gods on it have lost all their colour. Go and have a look.",
-    "onEnter": [
-     {
-      "do": "flag",
-      "flag": "heard-menshen"
-     }
+  {
+    "id": "qm-arrive",
+    "map": "qianmen-street",
+    "trigger": "auto",
+    "once": true,
+    "stamp": "qianmen",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "这是前门！",
+        "translate": "So this is Qianmen!",
+        "speaker": "hero",
+        "why": "前门 — the Front Gate — stood at the south of the old inner city. 大栅栏, just east, is a lane of shops hundreds of years old."
+      }
     ]
-   }
-  ]
- },
- {
-  "id": "opera-owner",
-  "map": "xiyuan",
-  "npc": "xiyuan-laoban",
-  "trigger": "talk",
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "请坐，请喝茶！",
-    "translate": "Please sit, have some tea!"
-   }
-  ]
- },
- {
-  "id": "granny",
-  "map": "qianmen-street",
-  "npc": "dashilar-nainai",
-  "trigger": "talk",
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "那个门很老了。以前，门神很好看！",
-    "translate": "That gate is very old. The door gods used to be beautiful!",
-    "key": true,
-    "why": "老 (old) is HSK 3 — a small key line. The door gods are on the gate right beside her."
-   }
-  ]
- },
- {
-  "id": "menshen-friend",
-  "map": "qianmen-street",
-  "object": "door-gods-bright",
-  "trigger": "look",
-  "start": "a",
-  "nodes": [
-   {
-    "id": "a",
-    "say": "朋友，你好！",
-    "translate": "Hello, friend!",
-    "speaker": "menshen"
-   }
-  ]
- },
- {
-  "id": "menshen-ask",
-  "map": "qianmen-street",
-  "object": "door-gods",
-  "trigger": "look",
-  "priority": 2,
-  "when": {
-   "not": {
-    "spirit": "menshen"
-   }
   },
-  "start": "a",
-  "words": [
-   {
-    "w": "红纸",
-    "explain": "红色的纸。",
-    "en": "red paper"
-   }
-  ],
-  "nodes": [
-   {
-    "id": "a",
-    "say": "我们的颜色都没了。你有红纸吗？",
-    "translate": "Our colour is all gone. Have you got red paper?",
-    "speaker": "menshen",
-    "simpler": "你有红纸吗？"
-   }
-  ]
- },
- {
-  "id": "menshen-give",
-  "map": "qianmen-street",
-  "object": "door-gods",
-  "trigger": "look",
-  "priority": 0,
-  "stamp": "menshen",
-  "when": {
-   "all": [
-    {
-     "item": "hongzhi"
-    },
-    {
-     "not": {
-      "spirit": "menshen"
-     }
-    }
-   ]
+  {
+    "id": "opera",
+    "map": "xiyuan",
+    "npc": "jingju-yanyuan",
+    "trigger": "talk",
+    "priority": 0,
+    "stamp": "jingju",
+    "start": "a",
+    "words": [
+      {
+        "w": "京剧",
+        "explain": "北京的老戏，有歌，有脸谱。",
+        "en": "Beijing opera"
+      },
+      {
+        "w": "脸谱",
+        "explain": "京剧里脸上画的颜色。",
+        "en": "opera face paint"
+      },
+      {
+        "w": "红脸",
+        "explain": "红色的脸谱，是好人。",
+        "en": "red face"
+      },
+      {
+        "w": "白脸",
+        "explain": "白色的脸谱，是坏人。",
+        "en": "white face"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！你喜欢京剧吗？",
+        "translate": "Hello! Do you like Beijing opera?",
+        "simpler": "你看过京剧的脸谱吗？",
+        "expect": [
+          {
+            "intent": "any",
+            "match": [
+              [
+                "喜欢",
+                "不知道",
+                "好",
+                "是",
+                "没",
+                "不"
+              ]
+            ],
+            "go": "b"
+          }
+        ],
+        "hint": {
+          "word": "喜欢",
+          "frame": "我很___！",
+          "full": "我很喜欢！"
+        }
+      },
+      {
+        "id": "b",
+        "say": "你看这些脸谱。红脸是好人，白脸是坏人。",
+        "translate": "Look at these masks. A red face is a good man, a white face a bad one.",
+        "simpler": "红脸好，白脸坏。",
+        "next": "c",
+        "why": "In 京剧 the face paint tells you the character: red loyal and brave, white cunning, black honest and fierce."
+      },
+      {
+        "id": "c",
+        "say": "大栅栏东边有一个门。",
+        "translate": "At the east end of 大栅栏 there's an old gate.",
+        "next": "d"
+      },
+      {
+        "id": "d",
+        "say": "门神的颜色都没了。你去看看吧。",
+        "translate": "The door gods on it have lost all their colour. Go and have a look.",
+        "onEnter": [
+          {
+            "do": "flag",
+            "flag": "heard-menshen"
+          }
+        ]
+      }
+    ]
   },
-  "start": "a",
-  "words": [
-   {
-    "w": "红纸",
-    "explain": "红色的纸。",
-    "en": "red paper"
-   }
-  ],
-  "nodes": [
-   {
-    "id": "a",
-    "say": "你有红纸？给我们吧！",
-    "translate": "You've got red paper? Give it to us!",
-    "speaker": "menshen",
-    "simpler": "红纸给我们吧！",
-    "expect": [
-     {
-      "intent": "give",
-      "match": [
-       [
-        "给",
-        "好",
-        "这是",
-        "红纸",
-        "行"
-       ]
-      ],
-      "go": "b",
-      "actions": [
-       {
-        "do": "take",
-        "item": "hongzhi"
-       },
-       {
-        "do": "spirit",
+  {
+    "id": "opera-owner",
+    "map": "xiyuan",
+    "npc": "xiyuan-laoban",
+    "trigger": "talk",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "请坐，请喝茶！",
+        "translate": "Please sit, have some tea!"
+      }
+    ]
+  },
+  {
+    "id": "granny",
+    "map": "qianmen-street",
+    "npc": "dashilar-nainai",
+    "trigger": "talk",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "那个门很老了。以前，门神很好看！",
+        "translate": "That gate is very old. The door gods used to be beautiful!",
+        "key": true,
+        "why": "老 (old) is HSK 3 — a small key line. The door gods are on the gate right beside her."
+      }
+    ]
+  },
+  {
+    "id": "menshen-friend",
+    "map": "qianmen-street",
+    "object": "door-gods-bright",
+    "trigger": "look",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "朋友，你好！",
+        "translate": "Hello, friend!",
+        "speaker": "menshen"
+      }
+    ]
+  },
+  {
+    "id": "menshen-ask",
+    "map": "qianmen-street",
+    "object": "door-gods",
+    "trigger": "look",
+    "priority": 2,
+    "when": {
+      "not": {
         "spirit": "menshen"
-       }
+      }
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "红纸",
+        "explain": "红色的纸。",
+        "en": "red paper"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我们的颜色都没了。你有红纸吗？",
+        "translate": "Our colour is all gone. Have you got red paper?",
+        "speaker": "menshen",
+        "simpler": "你有红纸吗？"
+      }
+    ]
+  },
+  {
+    "id": "menshen-give",
+    "map": "qianmen-street",
+    "object": "door-gods",
+    "trigger": "look",
+    "priority": 0,
+    "stamp": "menshen",
+    "when": {
+      "all": [
+        {
+          "item": "hongzhi"
+        },
+        {
+          "not": {
+            "spirit": "menshen"
+          }
+        }
       ]
-     }
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "红纸",
+        "explain": "红色的纸。",
+        "en": "red paper"
+      }
     ],
-    "hint": {
-     "word": "给",
-     "frame": "好，___你们。",
-     "full": "好，给你们。"
-    }
-   },
-   {
-    "id": "b",
-    "say": "你看，我们好看了！好看吗？",
-    "translate": "Look — we're beautiful again! Aren't we?",
-    "speaker": "menshen",
-    "expect": [
-     {
-      "intent": "more",
-      "match": [
-       [
-        "好看",
-        "漂亮",
-        "很好",
-        "再画",
-        "画"
-       ]
-      ],
-      "go": "c"
-     }
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你有红纸？给我们吧！",
+        "translate": "You've got red paper? Give it to us!",
+        "speaker": "menshen",
+        "simpler": "红纸给我们吧！",
+        "expect": [
+          {
+            "intent": "give",
+            "match": [
+              [
+                "给",
+                "好",
+                "这是",
+                "红纸",
+                "行"
+              ]
+            ],
+            "go": "b",
+            "actions": [
+              {
+                "do": "take",
+                "item": "hongzhi"
+              },
+              {
+                "do": "spirit",
+                "spirit": "menshen"
+              }
+            ]
+          }
+        ],
+        "hint": {
+          "word": "给",
+          "frame": "好，___你们。",
+          "full": "好，给你们。"
+        }
+      },
+      {
+        "id": "b",
+        "say": "你看，我们好看了！好看吗？",
+        "translate": "Look — we're beautiful again! Aren't we?",
+        "speaker": "menshen",
+        "expect": [
+          {
+            "intent": "more",
+            "match": [
+              [
+                "好看",
+                "漂亮",
+                "很好",
+                "再画",
+                "画"
+              ]
+            ],
+            "go": "c"
+          }
+        ],
+        "hint": {
+          "word": "好看",
+          "frame": "很___！我再画一点？",
+          "full": "很好看！我再画一点？"
+        }
+      },
+      {
+        "id": "c",
+        "say": "别画了！再画是画蛇添足。",
+        "translate": "Stop painting! Any more would be 画蛇添足 — drawing feet on a snake.",
+        "speaker": "menshen",
+        "key": true,
+        "onEnter": [
+          {
+            "do": "idiom",
+            "idiom": "画蛇添足"
+          }
+        ],
+        "why": "A 成语 📌 with a story: a man who finished drawing his snake first added feet to it, and lost the prize. Adding more spoils it."
+      }
+    ]
+  },
+  {
+    "id": "show",
+    "map": "xiyuan",
+    "npc": "xiyuan-laoban",
+    "trigger": "talk",
+    "priority": 0,
+    "when": {
+      "not": {
+        "flag": "saw-show"
+      }
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "京剧",
+        "explain": "北京的老戏。",
+        "en": "Beijing opera"
+      },
+      {
+        "w": "票",
+        "explain": "进门要的，要买。",
+        "en": "ticket"
+      }
     ],
-    "hint": {
-     "word": "好看",
-     "frame": "很___！我再画一点？",
-     "full": "很好看！我再画一点？"
-    }
-   },
-   {
-    "id": "c",
-    "say": "别画了！再画是画蛇添足。",
-    "translate": "Stop painting! Any more would be 画蛇添足 — drawing feet on a snake.",
-    "speaker": "menshen",
-    "key": true,
-    "onEnter": [
-     {
-      "do": "idiom",
-      "idiom": "画蛇添足"
-     }
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你要看京剧吗？票五十块。",
+        "translate": "Would you like to see the opera? Tickets are fifty.",
+        "simpler": "京剧票，五十块。",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-show",
+            "step": "watch"
+          }
+        ],
+        "expect": [
+          {
+            "intent": "yes",
+            "match": [
+              [
+                "好",
+                "好的",
+                "行",
+                "可以",
+                "要",
+                "是",
+                "对",
+                "看"
+              ]
+            ],
+            "go": "b",
+            "actions": [
+              {
+                "do": "money",
+                "amount": -50
+              },
+              {
+                "do": "flag",
+                "flag": "saw-show"
+              },
+              {
+                "do": "stamp",
+                "stamp": "show"
+              }
+            ]
+          },
+          {
+            "intent": "no",
+            "match": [
+              [
+                "不",
+                "不要",
+                "不用"
+              ]
+            ],
+            "go": "c"
+          }
+        ],
+        "hint": {
+          "word": "好",
+          "frame": "___，我看。",
+          "full": "好，我看。"
+        }
+      },
+      {
+        "id": "b",
+        "say": "请坐！……京剧真好看吧？",
+        "translate": "Take a seat! …Wonderful, isn't it?",
+        "why": "Gongs, a high voice, painted faces: 京剧 in a hundred-year-old theatre."
+      },
+      {
+        "id": "c",
+        "say": "好，下次来。",
+        "translate": "All right, next time."
+      }
+    ]
+  },
+  {
+    "id": "tea-want",
+    "map": "qianmen-street",
+    "npc": "dashilar-nainai",
+    "trigger": "talk",
+    "priority": 0,
+    "once": true,
+    "when": {
+      "spirit": "menshen"
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "茶叶",
+        "explain": "做茶用的叶子。",
+        "en": "tea leaves"
+      }
     ],
-    "why": "A 成语 📌 with a story: a man who finished drawing his snake first added feet to it, and lost the prize. Adding more spoils it."
-   }
-  ]
- }
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我想喝老刘的茶叶。你能买吗？",
+        "translate": "I miss 老刘's tea leaves. Could you get me some?",
+        "simpler": "我要茶叶。",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-tea",
+            "step": "buy"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "tea-give",
+    "map": "qianmen-street",
+    "npc": "dashilar-nainai",
+    "trigger": "talk",
+    "priority": -1,
+    "when": {
+      "all": [
+        {
+          "item": "chaye"
+        },
+        {
+          "not": {
+            "flag": "tea-given"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "茶叶",
+        "explain": "做茶用的叶子。",
+        "en": "tea leaves"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我的茶叶！谢谢！",
+        "translate": "My tea! Thank you!",
+        "simpler": "茶叶！",
+        "onEnter": [
+          {
+            "do": "take",
+            "item": "chaye"
+          },
+          {
+            "do": "flag",
+            "flag": "tea-given"
+          },
+          {
+            "do": "remember",
+            "npc": "dashilar-nainai",
+            "note": "brought her tea leaves"
+          }
+        ]
+      }
+    ]
+  }
 ]

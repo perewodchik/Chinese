@@ -238,5 +238,79 @@
         "speaker": "hero"
       }
     ]
+  },
+  {
+    "id": "photo",
+    "map": "changcheng",
+    "npc": "yugong-yeye",
+    "trigger": "talk",
+    "priority": 0,
+    "when": {
+      "all": [
+        {
+          "idiom": "愚公移山"
+        },
+        {
+          "not": {
+            "flag": "photo"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "照片",
+        "explain": "用手机拍的画。",
+        "en": "photo"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你能给我照一张照片吗？一，二……",
+        "translate": "Could you take a photo of me? One, two…",
+        "simpler": "照片！一，二……",
+        "key": true,
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-photo",
+            "step": "photo"
+          }
+        ],
+        "expect": [
+          {
+            "intent": "three",
+            "match": [
+              [
+                "三"
+              ]
+            ],
+            "go": "b",
+            "actions": [
+              {
+                "do": "flag",
+                "flag": "photo"
+              },
+              {
+                "do": "stamp",
+                "stamp": "photo"
+              }
+            ]
+          }
+        ],
+        "hint": {
+          "word": "三",
+          "frame": "一，二，___！",
+          "full": "三！"
+        }
+      },
+      {
+        "id": "b",
+        "say": "好！我的照片真好！",
+        "translate": "Great! What a photo!"
+      }
+    ]
   }
 ]

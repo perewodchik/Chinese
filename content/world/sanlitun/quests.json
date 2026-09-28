@@ -58,5 +58,19 @@
         "step": "go"
       }
     ]
+  },
+  {
+    "id": "side-bike",
+    "title": "Shared bikes",
+    "chapter": 5,
+    "steps": [
+      {
+        "id": "ride",
+        "now": "The courier says: scan a shared bike 共享单车 at a stand and ride. Try one — park at any stand.",
+        "done": {
+          "flag": "on-bike"
+        }
+      }
+    ]
   }
 ]

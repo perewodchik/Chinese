@@ -376,3 +376,31 @@ describe('the epilogue, played through the core', () => {
     assert.equal(s.chapter, 9);
   });
 });
+
+describe('every scene, and the side quests', () => {
+  it('every scene in the city plays to its end with its own hints — no dead ends', () => {
+    const rich = act(newSave('d', 0), [{ do: 'chapter', chapter: 9 }, { do: 'money', amount: 5000 }]);
+    for (const sc of scenes) play(rich, sc.id);
+  });
+
+  it('赵爷爷\'s bird: 小明 has it', () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 2 }]);
+    assert.equal(sceneFor(scenes, s, { npc: 'zhao-yeye' })?.id, 'bird-lost');
+    s = play(s, 'bird-lost').save;
+    assert.equal(sceneFor(scenes, s, { npc: 'xiaoming' })?.id, 'bird-kid');
+    s = play(s, 'bird-kid').save;
+    assert.equal(sceneFor(scenes, s, { npc: 'zhao-yeye' })?.id, 'bird-back');
+    s = play(s, 'bird-back').save;
+    assert.equal(s.quests['side-bird']?.done, true);
+  });
+
+  it('bait for the fisherman, from 李阿姨\'s shop', () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 2 }, { do: 'flag', flag: 'heard-fox' }, { do: 'scene_done', scene: 'fisher-fox' }]);
+    assert.equal(sceneFor(scenes, s, { npc: 'fisher-yeye' })?.id, 'bait-ask');
+    s = play(s, 'bait-ask').save;
+    assert.equal(sceneFor(scenes, s, { npc: 'li-ayi' })?.id, 'bait-buy');
+    s = play(s, 'bait-buy').save;
+    s = play(s, 'bait-give').save;
+    assert.equal(s.quests['side-bait']?.done, true);
+  });
+});

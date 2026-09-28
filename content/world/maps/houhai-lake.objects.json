@@ -292,5 +292,26 @@
    "map": "beihai-north",
    "offset": 0
   }
+ },
+ {
+  "kind": "prop",
+  "id": "stand-bike-0",
+  "tile": [
+   33,
+   6
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "bike",
+  "id": "bike-stand-0",
+  "tile": [
+   34,
+   6
+  ]
  }
 ]

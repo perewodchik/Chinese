@@ -29,5 +29,91 @@
         "translate": "Out for a run too?"
       }
     ]
+  },
+  {
+    "id": "run",
+    "map": "olympic-park",
+    "npc": "paobu-dashu",
+    "trigger": "talk",
+    "priority": 0,
+    "when": {
+      "not": {
+        "flag": "ran"
+      }
+    },
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我们跑步吧！",
+        "translate": "Let's go for a run!",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-run",
+            "step": "run"
+          }
+        ],
+        "expect": [
+          {
+            "intent": "yes",
+            "match": [
+              [
+                "好",
+                "好的",
+                "行",
+                "可以",
+                "要",
+                "是",
+                "对",
+                "跑",
+                "好的"
+              ]
+            ],
+            "go": "b",
+            "actions": [
+              {
+                "do": "flag",
+                "flag": "ran"
+              },
+              {
+                "do": "stamp",
+                "stamp": "run"
+              },
+              {
+                "do": "wait",
+                "until": 18
+              }
+            ]
+          },
+          {
+            "intent": "no",
+            "match": [
+              [
+                "不",
+                "不要",
+                "不用"
+              ]
+            ],
+            "go": "c"
+          }
+        ],
+        "hint": {
+          "word": "好",
+          "frame": "___，我们跑吧！",
+          "full": "好，我们跑吧！"
+        }
+      },
+      {
+        "id": "b",
+        "say": "好！你很好！",
+        "translate": "Great! Well done!"
+      },
+      {
+        "id": "c",
+        "say": "好，下次吧！",
+        "translate": "OK, next time!"
+      }
+    ]
   }
 ]

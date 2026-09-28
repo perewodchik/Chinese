@@ -13,5 +13,12 @@
     "place": "changcheng",
     "design": "changcheng",
     "landmark": true
+  },
+  {
+    "id": "photo",
+    "name": "照相",
+    "en": "A photo on the Great Wall",
+    "place": "changcheng",
+    "design": "photo"
   }
 ]

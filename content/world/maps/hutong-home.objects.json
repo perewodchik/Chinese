@@ -156,5 +156,13 @@
    "map": "nanluo-main",
    "offset": 0
   }
+ },
+ {
+  "kind": "bike",
+  "id": "bike-stand-0",
+  "tile": [
+   25,
+   7
+  ]
  }
 ]

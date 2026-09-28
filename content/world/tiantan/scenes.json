@@ -222,5 +222,140 @@
         "speaker": "companion"
       }
     ]
+  },
+  {
+    "id": "jianzi-play",
+    "map": "tiantan-park",
+    "npc": "tiantan-nainai",
+    "trigger": "talk",
+    "priority": 0,
+    "when": {
+      "not": {
+        "flag": "jianzi"
+      }
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "毽子",
+        "explain": "用脚踢的小东西。",
+        "en": "shuttlecock"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "来踢毽子！一，二……",
+        "translate": "Come and kick the 毽子! One, two…",
+        "simpler": "踢毽子！一，二……",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-jianzi",
+            "step": "play"
+          }
+        ],
+        "expect": [
+          {
+            "intent": "three",
+            "match": [
+              [
+                "三"
+              ]
+            ],
+            "go": "b",
+            "actions": [
+              {
+                "do": "flag",
+                "flag": "jianzi"
+              },
+              {
+                "do": "stamp",
+                "stamp": "jianzi"
+              }
+            ]
+          }
+        ],
+        "hint": {
+          "word": "三",
+          "frame": "一，二，___！",
+          "full": "三！"
+        }
+      },
+      {
+        "id": "b",
+        "say": "三！很好！",
+        "translate": "Three! Well done!"
+      }
+    ]
+  },
+  {
+    "id": "song",
+    "map": "tiantan-park",
+    "npc": "huqin-yeye",
+    "trigger": "talk",
+    "priority": 0,
+    "when": {
+      "all": [
+        {
+          "idiom": "对牛弹琴"
+        },
+        {
+          "not": {
+            "flag": "song"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你跟我唱：我爱北京！",
+        "translate": "Sing with me: I love Beijing!",
+        "onEnter": [
+          {
+            "do": "quest",
+            "quest": "side-song",
+            "step": "sing"
+          }
+        ],
+        "expect": [
+          {
+            "intent": "sing",
+            "match": [
+              [
+                "爱"
+              ],
+              [
+                "北京"
+              ]
+            ],
+            "go": "b",
+            "actions": [
+              {
+                "do": "flag",
+                "flag": "song"
+              },
+              {
+                "do": "stamp",
+                "stamp": "song"
+              }
+            ]
+          }
+        ],
+        "hint": {
+          "word": "我爱北京",
+          "frame": "___！",
+          "full": "我爱北京！"
+        }
+      },
+      {
+        "id": "b",
+        "say": "好听！谢谢你！",
+        "translate": "Lovely! Thank you!",
+        "why": "After 对牛弹琴, someone finally sings along."
+      }
+    ]
   }
 ]

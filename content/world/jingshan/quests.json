@@ -1,0 +1,30 @@
+[
+  {
+    "id": "side-painting",
+    "title": "A painting for 王阿姨",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "give",
+        "now": "The painter at 北海 gave you a painting of the White Dagoba for 王阿姨. Bring it home.",
+        "done": {
+          "flag": "painting-given"
+        }
+      }
+    ]
+  },
+  {
+    "id": "side-taiji",
+    "title": "太极 on 景山",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "learn",
+        "now": "The woman on 景山’s path does 太极 every morning — learn a move with her.",
+        "done": {
+          "flag": "taiji"
+        }
+      }
+    ]
+  }
+]
