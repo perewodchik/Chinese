@@ -7,7 +7,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
-C1
+C2
 
 ## Tasks
 ### A — core logic
@@ -28,7 +28,7 @@ C1
 - [x] B2 Client sync: local copy, scheduler, merge on conflict, offline
 
 ### C — art
-- [ ] C1 Palette + pixel builder + recolour
+- [x] C1 Palette + pixel builder + recolour
 - [ ] C2 Free packs (CC0/CC-BY only) + CREDITS
 - [ ] C3 Beijing modules, hero, 兔儿爷, NPC bases
 - [ ] C4 Prototype: 胡同 street + 天安门 gate, screenshots in review/
@@ -114,6 +114,7 @@ _(date — decision — why)_
 - 2026-09-28 — A11: IME candidates also include words that only the characters' own entries know (你好 is not on the 2026 word lists but is in 你's entry), ranked after list words of the same band. `toneless()` now keeps ü apart from u (nǚ → nv) — it used to fold it into u.
 - 2026-09-28 — B1: the ETag of a world save is `"w<rev>"` (the workspace's is `"r<rev>"`), so the two can never be confused in a cache. A conflict has its own error class (`WorldConflictError`) whose 409 body carries `current: WorldSaveDto`.
 - 2026-09-28 — B2: on open, a device copy with unsent changes is merged with the server save (not just "newer wins"), so a session played offline on the iPad and one on the Mac both survive. After three conflicts in a row the sync shows `failing` and retries in 15 s. A save on the server from a newer app build puts sync in `outdated`: the game plays on from the device copy but never writes.
+- 2026-09-28 — C1: no image library is installed, so the art pipeline has its own small PNG writer/reader on `node:zlib` (RGBA out; RGBA/RGB/grey/palette in, non-interlaced). One palette of 45 lettered colours (`scripts/world/art/palette.ts`); `.px` supports `= mirror <frame>`, copies and `variant: name r>n …` palette swaps for NPC bases. Recolour maps to the nearest palette colour in Lab space and can emit an editable `.px`.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
