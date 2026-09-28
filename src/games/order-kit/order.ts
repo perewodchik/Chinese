@@ -687,26 +687,6 @@ export function nextHint(brand: Brand, order: Order, goal: Goal | null, view: Vi
   return { en: '去支付 means "go and pay". Tap it.', target: 'pay-btn' };
 }
 
-/* ------------------------------------------------------------------- help */
-
-/** What the learner leaned on during one order (§3.5). */
-export interface HelpLog {
-  lookups: string[];
-  pinyin: boolean;
-  hints: number;
-}
-
-export const newHelpLog = (): HelpLog => ({ lookups: [], pinyin: false, hints: 0 });
-
-export const LOOKUPS_ALLOWED = 2;
-
-export function logLookup(log: HelpLog, zh: string): HelpLog {
-  return log.lookups.includes(zh) ? log : { ...log, lookups: [...log.lookups, zh] };
-}
-
-/** Help costs the first-try mark: 拼, 下一步, or three or more words looked up. */
-export const usedHelp = (log: HelpLog) => log.pinyin || log.hints > 0 || log.lookups.length > LOOKUPS_ALLOWED;
-
 /* ------------------------------------------------------------ the solution */
 
 /** The lines a message asks for, with every other option left at its default. */

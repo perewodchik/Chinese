@@ -174,21 +174,39 @@ async function clipFor(text: string, opts: SayOptions): Promise<AudioBuffer | nu
 }
 
 /**
+ * Which request to speak is the latest. A clip is fetched before it plays,
+ * and a slow one can arrive after the learner has moved on — the last card's
+ * word turning up over the next card. Only the latest request is played.
+ */
+let turn = 0;
+
+/**
+ * Forgets anything still on its way, leaving what is already playing to
+ * finish — for when the thing that asked for it has gone.
+ */
+export function dropPending() {
+  turn++;
+}
+
+/**
  * Says it — naturally if possible. Resolves to what spoke, so a caller can
  * tell whether there is audio to measure.
  */
 export async function say(text: string, opts: SayOptions = {}): Promise<'natural' | 'system' | 'none'> {
+  const mine = ++turn;
   // Resumed before anything is awaited: iOS only lets audio start inside the tap.
   const c = typeof window !== 'undefined' ? context() : null;
   void c?.resume();
   if (opts.pace && opts.pace !== 1) {
     const url = await packUrl(text, opts);
+    if (mine !== turn) return 'none';
     if (url) {
       playing?.stop();
       return playSlowly(url, opts.pace);
     }
   }
   const buffer = await clipFor(text, opts);
+  if (mine !== turn) return 'none';
   if (buffer && c) {
     playing?.stop();
     const src = c.createBufferSource();
@@ -384,6 +402,7 @@ export function playSamples(samples: Float32Array, rate = ANALYSIS_RATE): Promis
 
 /** Silence, whichever voice is talking. */
 export function hush() {
+  turn++;
   playing?.stop();
   playing = null;
   element?.pause();

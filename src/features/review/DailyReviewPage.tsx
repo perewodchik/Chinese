@@ -201,6 +201,16 @@ function Run({
       }
     }
     if (entries.length) setLog((l) => [...l, ...entries]);
+    // A board of pinyin or sounds keeps to one word length, so it can leave
+    // some of its items off; those are asked on their own, next.
+    const left = targets.filter((t) => slot.kind === 'board' && !results.some((r) => r.id === t.id));
+    if (left.length) {
+      setSlots((s) => {
+        const out = [...s];
+        out.splice(at + 1, 0, ...left.map((t): Slot => ({ key: `ask-${t.id}-${t.skill}`, kind: 'ask', target: t })));
+        return out;
+      });
+    }
     if (add.length) {
       setSlots((s) => {
         const out = [...s];

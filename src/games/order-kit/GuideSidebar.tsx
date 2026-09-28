@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { GlossBody, T, useHelp } from './help';
 import type { Hint } from './order';
 import type { Brand, ScreenId, Stage, Task } from './types';
+import { MenuWordList, WordPicks } from './words';
 
 /**
  * The guide beside the phone, for when the learner is lost. It is in the
@@ -9,10 +10,14 @@ import type { Brand, ScreenId, Stage, Task } from './types';
  *
  *   任务      the friend's message, always there, and its parts as chips
  *   你在这里  the flow as a map; an earlier step is one tap away
- *   这一页    every Chinese label on the screen; opening one outlines it
+ *   这一页    every Chinese label on the screen; opening one outlines it,
+ *             and its words can be kept (known, or onto a list)
  *   下一步    one line of English and the control to press
  *   tools     拼, the tour, the menu words, start over
  *   tip       one line about this screen
+ *
+ * The menu words take the guide's place rather than the screen's, so the
+ * phone stays in view while they are open. None of it is scored.
  */
 
 const FOLD_KEY = 'hanzi-workshop/order-guide-folded';
@@ -37,13 +42,10 @@ export interface GuideProps {
   onScreen: string[];
   /** outline a control on the phone; `hint` also shows the line where the phone is */
   pulse(selector: string, hint?: Hint): void;
-  /** 下一步: returns the hint and counts it */
+  /** 下一步: returns the hint */
   hint(): Hint;
-  helpUsed: boolean;
-  lookups: number;
   setPinyin(on: boolean): void;
   replayTour(): void;
-  showWords(): void;
   startOver(): void;
   /** the order has been checked and paid: the map no longer goes back */
   locked: boolean;
@@ -55,6 +57,7 @@ export function GuideSidebar(p: GuideProps) {
   const [openRow, setOpenRow] = useState<string | null>(null);
   const [hint, setHint] = useState<Hint | null>(null);
   const [confirm, setConfirm] = useState(false);
+  const [words, setWords] = useState(false);
   const here = p.brand.flow.findIndex((f) => f.id === p.step);
 
   const fold = (id: string) => {
@@ -82,6 +85,22 @@ export function GuideSidebar(p: GuideProps) {
       {!folded.has(id) && <div className="ok-guide-b">{body}</div>}
     </section>
   );
+
+  if (words) {
+    return (
+      <aside className="ok-guide" aria-label="Menu words">
+        <div className="ok-guide-words-top">
+          <button type="button" className="btn ghost sm" onClick={() => setWords(false)} autoFocus>
+            ‹ Guide
+          </button>
+          <span className="ok-guide-h-static">
+            <span className="hanzi">菜单</span> · Menu words
+          </span>
+        </div>
+        <MenuWordList brand={p.brand} />
+      </aside>
+    );
+  }
 
   return (
     <aside className="ok-guide" aria-label="Guide">
@@ -121,12 +140,6 @@ export function GuideSidebar(p: GuideProps) {
                 </div>
               </>
             )}
-            <div className="ok-guide-help" data-used={p.helpUsed || undefined}>
-              <span className="ok-guide-help-state">{p.helpUsed ? 'Help used' : 'No help yet'}</span>
-              <span className="tiny muted">
-                {p.lookups}/2 free lookups · 拼 and 下一步 cost the first-try mark
-              </span>
-            </div>
           </>,
         )}
 
@@ -167,16 +180,18 @@ export function GuideSidebar(p: GuideProps) {
                   type="button"
                   onClick={() => {
                     setOpenRow(open ? null : zh);
-                    if (!open) {
-                      help.looked(zh);
-                      p.pulse(`[data-zh="${CSS.escape(zh)}"]`);
-                    }
+                    if (!open) p.pulse(`[data-zh="${CSS.escape(zh)}"]`);
                   }}
                 >
                   <span className="hanzi">{zh}</span>
                   {!open && <span className="tiny muted ok-onscreen-hint">›</span>}
                 </button>
-                {open && <GlossBody zh={zh} />}
+                {open && (
+                  <>
+                    <GlossBody zh={zh} />
+                    <WordPicks zh={zh} />
+                  </>
+                )}
               </li>
             );
           })}
@@ -196,7 +211,7 @@ export function GuideSidebar(p: GuideProps) {
         >
           <span className="hanzi">下一步</span> · What next?
         </button>
-        <p className="small ok-guide-hint">{hint ? hint.en : p.task ? 'Shows the next thing to press. Counts as help.' : 'Shows the next thing to press.'}</p>
+        <p className="small ok-guide-hint">{hint ? hint.en : 'Shows the next thing to press.'}</p>
       </section>
 
       <section className="ok-guide-sec ok-guide-tools">
@@ -212,7 +227,7 @@ export function GuideSidebar(p: GuideProps) {
         <button type="button" className="chip" onClick={p.replayTour}>
           Replay tour
         </button>
-        <button type="button" className="chip" onClick={p.showWords}>
+        <button type="button" className="chip" onClick={() => setWords(true)}>
           Menu words
         </button>
         {confirm ? (

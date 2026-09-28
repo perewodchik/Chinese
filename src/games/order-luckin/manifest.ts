@@ -13,4 +13,5 @@ export const orderLuckin: GameManifest = {
   rounds: ROUNDS,
   available: () => ({ ok: true }),
   load: () => import('./Game'),
+  shop: { latin: 'luckin coffee', kind: 'Coffee · pick up', photo: 'latte', colour: '#1b3a8c' },
 };

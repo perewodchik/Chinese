@@ -13,4 +13,5 @@ export const majiyongGame: GameManifest = {
   rounds: ROUNDS,
   available: () => ({ ok: true }),
   load: () => import('./Game'),
+  shop: { latin: 'MA JI YONG', kind: 'Lanzhou beef noodles · at the counter', photo: 'beef-noodles', colour: '#1f3b57' },
 };

@@ -13,4 +13,5 @@ export const xijiadeGame: GameManifest = {
   rounds: ROUNDS,
   available: () => ({ ok: true }),
   load: () => import('./Game'),
+  shop: { latin: 'XIJIADE', kind: 'Dumplings by weight · at the counter', photo: 'xijiade-banner', colour: '#1f6f45' },
 };

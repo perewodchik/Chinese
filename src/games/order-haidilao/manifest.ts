@@ -13,4 +13,5 @@ export const haidilaoGame: GameManifest = {
   rounds: ROUNDS,
   available: () => ({ ok: true }),
   load: () => import('./Game'),
+  shop: { latin: 'HAIDILAO HOT POT', kind: 'Hot pot · at the table', photo: 'hotpot', colour: '#c8161d' },
 };

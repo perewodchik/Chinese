@@ -13,4 +13,5 @@ export const waipojiaGame: GameManifest = {
   rounds: ROUNDS,
   available: () => ({ ok: true }),
   load: () => import('./Game'),
+  shop: { latin: 'Grandma’s Home', kind: 'Hangzhou home cooking · at the table', photo: 'braised-pork', colour: '#9b2d20' },
 };

@@ -13,4 +13,5 @@ export const mixueGame: GameManifest = {
   rounds: ROUNDS,
   available: () => ({ ok: true }),
   load: () => import('./Game'),
+  shop: { latin: 'MIXUE', kind: 'Tea and ice cream · pick up', photo: 'bubble-tea', colour: '#e2231a' },
 };

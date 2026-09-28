@@ -5,14 +5,16 @@ import { gameById } from '../../games/registry';
 import { Photo } from '../../games/kit/Photo';
 import { newSeed } from '../../games/kit/rng';
 import { Seal } from '../../games/kit/Seal';
-import type { Band, GameManifest, RoundResult } from '../../games/types';
+import type { Band, GameManifest, RoundResult, WordHost } from '../../games/types';
 import { sealFor, type GameStats } from '../../domain/play';
 import { useStore } from '../../store/store';
 import { useLibrary } from '../shared/library';
+import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
 import { Say } from '../../ui/Say';
 import { useTitle } from '../../ui/useTitle';
+import { useWordKnowledge } from '../words/useWordKnowledge';
 import { usePlayContext } from './usePlayContext';
 import '../../games/kit/kit.css';
 
@@ -91,6 +93,12 @@ function Host({ game }: { game: GameManifest }) {
   const report = useCallback((r: RoundResult) => setResults((rs) => [...rs, r]), []);
   const finish = useCallback(() => setOver(true), []);
 
+  // The word drawer opens over the game (it lives in the address, beside the
+  // seed), so a word met mid-order can be kept without leaving the order.
+  const openItem = useOpenItem();
+  const knowledge = useWordKnowledge();
+  const words = useMemo<WordHost>(() => ({ open: openItem, status: knowledge.status }), [openItem, knowledge]);
+
   useEffect(() => {
     if (!over || recorded.current || !results.length) return;
     recorded.current = true;
@@ -135,7 +143,7 @@ function Host({ game }: { game: GameManifest }) {
       ) : (
         <Suspense fallback={<div className="game-stage game-wait" aria-hidden />}>
           <div className="game-stage">
-            <Game key={`${seed}-${band}`} ctx={ctx} rounds={game.rounds} report={report} finish={finish} />
+            <Game key={`${seed}-${band}`} ctx={ctx} rounds={game.rounds} report={report} finish={finish} words={words} />
           </div>
         </Suspense>
       )}

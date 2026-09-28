@@ -51,6 +51,18 @@ export interface GameManifest {
   available(ctx: GameContext): { ok: true } | { ok: false; reason: string };
   /** each game is its own chunk, loaded when it is opened */
   load(): Promise<{ default: ComponentType<GameProps> }>;
+  /** a 点单 shop: shown in its own section of the Play page, as a shopfront */
+  shop?: ShopFront;
+}
+
+export interface ShopFront {
+  latin: string;
+  /** what the shop is, in a few words: "Coffee · pick up" */
+  kind: string;
+  /** a key into the menu photos (public/images/menu/<key>.jpg) */
+  photo: string;
+  /** the brand's colour, behind its name */
+  colour: string;
 }
 
 export interface GameContext {
@@ -85,4 +97,16 @@ export interface GameProps {
   report(r: RoundResult): void;
   /** the game is over — the host shows the results */
   finish(): void;
+  /** the host's word drawer, for games that let a word be kept (the 点单 guide) */
+  words?: WordHost;
+}
+
+/**
+ * The drawer every other page opens for a word, handed to a game so it need
+ * not reach for the router or the store: open it to mark the word known or
+ * put it on a list, and read where the learner stands with a word.
+ */
+export interface WordHost {
+  open(id: ItemId): void;
+  status(w: string): 'known' | 'learning' | 'new';
 }

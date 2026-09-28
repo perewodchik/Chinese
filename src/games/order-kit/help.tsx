@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import type { Library } from '../../data/types';
 import { say } from '../../platform/audio/voiceOut';
+import type { WordHost } from '../types';
 import { glossFor } from './gloss';
 import type { Gloss } from './types';
 
@@ -21,8 +23,10 @@ export interface HelpApi {
   pinyin: boolean;
   /** texts the voice pack has a native recording of */
   native: Set<string>;
-  /** a string was looked up (counts towards the help rule) */
-  looked(zh: string): void;
+  /** for cutting a label into words */
+  lib: Library;
+  /** the host's word drawer, when there is one */
+  words?: WordHost;
 }
 
 const Ctx = createContext<HelpApi | null>(null);
@@ -96,10 +100,7 @@ export function useLongPress(onHold: (el: HTMLElement) => void) {
 /** A Chinese string on the phone: long press to look it up, ruby when 拼 is on. */
 export function T({ children: zh, className }: { children: string; className?: string }) {
   const h = useHelp();
-  const press = useLongPress((el) => {
-    h.looked(zh);
-    lookUp(zh, el);
-  });
+  const press = useLongPress((el) => lookUp(zh, el));
   const g = h.pinyin ? glossFor(zh, h.gl) : null;
   return (
     <span className={className ? `ok-t ${className}` : 'ok-t'} data-zh={zh} {...press}>

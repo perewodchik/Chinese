@@ -92,6 +92,9 @@
 
 .ok-stage {
   position: relative;
+  /* the stage's layers (the guide drawer, the diff card) stack among
+     themselves, so the app's word drawer opened from the guide lands on top */
+  isolation: isolate;
   display: flex;
   justify-content: center;
   gap: 16px;
@@ -326,9 +329,7 @@
   border-radius: 6px;
 }
 
-.ok-photo.words {
-  width: 56px;
-  border-radius: 10px;
+.ok-photo.mw {
   background: var(--card-2);
 }
 
@@ -1922,29 +1923,6 @@
   font-size: 16px;
 }
 
-.ok-guide-help {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  margin-top: 10px;
-}
-
-.ok-guide-help-state {
-  width: 100px;
-  padding: 2px 0;
-  border-radius: 999px;
-  background: var(--jade-soft);
-  color: var(--jade);
-  font-size: 12px;
-  font-weight: 600;
-  text-align: center;
-}
-
-[data-used] > .ok-guide-help-state {
-  background: var(--gold-soft);
-  color: var(--gold);
-}
-
 .ok-map {
   margin: 0;
   padding: 0;
@@ -2029,7 +2007,7 @@
   padding: 0 8px;
 }
 
-.ok-onscreen button {
+.ok-onscreen li > button {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -2257,28 +2235,45 @@
   margin: 16px 0 10px;
 }
 
-.ok-words-wrap {
-  position: fixed;
-  inset: 0;
-  z-index: 900;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0));
-  background: var(--paper);
-  animation: ok-fade 0.15s ease-out;
+/* the menu words: compact rows, in the guide or under the intro */
+.ok-guide-words-top {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
 }
 
-.ok-words {
-  max-width: 640px;
-  margin: 0 auto;
+.ok-guide-h-static {
+  color: var(--ink-3);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.ok-words h2 {
-  margin: 0;
+.ok-guide-h-static .hanzi {
+  color: var(--ink-2);
+  font-size: 15px;
+  text-transform: none;
 }
 
-.ok-words-h {
-  margin: 18px 0 6px;
+.ok-mw {
+  padding: 0 10px 12px;
+  text-align: left;
+}
+
+.ok-intro .ok-mw {
+  margin-top: 8px;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.ok-mw-h {
+  margin: 14px 4px 4px;
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -2286,22 +2281,116 @@
   color: var(--ink-3);
 }
 
-.ok-words ul {
+.ok-mw ul {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.ok-words li {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--line);
+.ok-mw li {
+  border-radius: 8px;
 }
 
-.ok-words-nophoto {
-  flex: 0 0 56px;
+.ok-mw li[data-open] {
+  padding-bottom: 8px;
+  background: var(--card-2);
+}
+
+.ok-mw li > button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ok-photo.mw,
+.ok-mw-nophoto {
+  flex: 0 0 36px;
+  width: 36px;
+  aspect-ratio: 1;
+  border-radius: 6px;
+}
+
+.ok-mw-nophoto {
+  background: var(--card-2);
+}
+
+.ok-mw-zh {
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.ok-mw-en {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ok-mw-body {
+  padding: 0 8px;
+}
+
+/* the words of a label, each opening the word drawer */
+.ok-picks {
+  margin-top: 8px;
+  padding: 0 8px;
+}
+
+.ok-pop .ok-picks {
+  padding: 0;
+}
+
+.ok-picks-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.ok-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 2px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 17px;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.ok-pick:hover {
+  border-color: var(--ink-3);
+}
+
+.ok-pick i {
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-style: normal;
+}
+
+.ok-pick[data-state='known'] {
+  border-color: color-mix(in srgb, var(--jade) 40%, var(--line));
+  background: var(--jade-soft);
+  color: var(--jade);
+}
+
+.ok-pick[data-state='learning'] {
+  border-color: color-mix(in srgb, var(--gold) 40%, var(--line));
+  background: var(--gold-soft);
 }
 
 .ok-diff-wrap {
@@ -2445,7 +2534,7 @@
 
 /* the list of labels scrolls on its own, so 下一步 stays within reach */
 .ok-stage[data-wide] .ok-onscreen {
-  max-height: 232px;
+  max-height: 300px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }

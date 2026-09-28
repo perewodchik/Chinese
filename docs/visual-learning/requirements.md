@@ -260,8 +260,9 @@ is checked, and what makes it done.
   checked at 去支付 against the facts the message asked for; the friend says
   what is wrong once; the second miss shows "You ordered / They asked for".
   A guide beside the phone (the map of screens, every label on this screen,
-  下一步, 拼, a tour) is there for when the learner is lost; help costs the
-  first-try mark.
+  下一步, 拼, a tour) is there for when the learner is lost; help is free.
+  Any word on the screen can be kept from the guide (the word drawer: known,
+  or onto a list). The menu words open inside the guide, not over the phone.
 - **Two rules relaxed**, on purpose:
   - **R8 (only HSK words):** menu words are whatever the real app shows
     (生椰拿铁, 不另外加糖, 取餐码) — that is the point. Every one has a

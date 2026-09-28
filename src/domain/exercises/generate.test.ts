@@ -129,4 +129,20 @@ describe('exercises', () => {
     assert.equal(new Set(m.pairs.map((p) => p.right.en)).size, 5);
     assert.equal(makeMatch(c, items.slice(0, 2)), null);
   });
+
+  it('keeps a pinyin board to one word length, so syllable counts give nothing away', () => {
+    const c = ctx();
+    const items = [
+      ...['你', '好', '大', '人'].map((x) => itemInfo(c.lib, charId(x))!),
+      ...['火车', '学生'].map((w) => itemInfo(c.lib, wordId(w))!),
+    ];
+    const m = makeMatch(c, items, 'pinyin');
+    assert.ok(m && m.kind === 'match' && m.mode === 'pinyin');
+    assert.deepEqual(new Set(m.pairs.map((p) => [...p.left.hanzi!].length)), new Set([1]));
+    // Meaning is not given away by length, so that board keeps everyone.
+    assert.equal(makeMatch(c, items, 'meaning')!.ids.length, 6);
+    // Too few of any one length for pinyin: it falls back to meaning.
+    const two = makeMatch(c, [items[0]!, items[1]!, items[4]!, items[5]!], 'pinyin');
+    assert.ok(two && two.kind === 'match' && two.mode === 'meaning');
+  });
 });

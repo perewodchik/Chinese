@@ -589,13 +589,26 @@ export function chooseExercise(
  * otherwise meaning or pinyin.
  */
 export function makeMatch(ctx: ExerciseContext, items: ItemInfo[], prefer?: 'meaning' | 'pinyin' | 'listen' | 'picture'): Exercise | null {
-  const board = items.filter((x, i) => items.findIndex((y) => y.gloss === x.gloss || y.text === x.text) === i).slice(0, 6);
+  const distinct = items.filter((x, i) => items.findIndex((y) => y.gloss === x.gloss || y.text === x.text) === i);
+  let board = distinct.slice(0, 6);
   if (board.length < 3) return null;
+  // Pinyin and sounds give away how many characters they belong to: beside
+  // three single characters, the one with two syllables is obviously the
+  // word. Those boards are drawn from items of one length only.
+  const byLength = new Map<number, ItemInfo[]>();
+  for (const x of distinct) {
+    const n = [...x.text].length;
+    byLength.set(n, [...(byLength.get(n) ?? []), x]);
+  }
+  const even = [...byLength.values()].sort((a, b) => b.length - a.length)[0]!.slice(0, 6);
+  const heard = byLength.size > 1 ? even : board;
   const pictures = new Set(board.map((x) => x.picture));
-  const modes: Array<'meaning' | 'pinyin' | 'listen' | 'picture'> = ['meaning', 'pinyin'];
+  const modes: Array<'meaning' | 'pinyin' | 'listen' | 'picture'> = ['meaning'];
+  if (heard.length >= 3) modes.push('pinyin');
   if (board.every((x) => x.picture) && pictures.size === board.length) modes.push('picture');
-  if (board.every((x) => ctx.native.has(x.text))) modes.push('listen');
+  if (heard.length >= 3 && heard.every((x) => ctx.native.has(x.text))) modes.push('listen');
   const mode = prefer && modes.includes(prefer) ? prefer : ctx.rng.pick(modes);
+  if (mode === 'pinyin' || mode === 'listen') board = heard;
   const right = (x: ItemInfo): Face =>
     mode === 'meaning' ? { en: x.gloss } : mode === 'pinyin' ? { py: x.py } : mode === 'listen' ? { audio: x.text } : { picture: x.picture! };
   return {

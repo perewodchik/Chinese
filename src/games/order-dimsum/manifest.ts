@@ -13,4 +13,5 @@ export const dimsumGame: GameManifest = {
   rounds: ROUNDS,
   available: () => ({ ok: true }),
   load: () => import('./Game'),
+  shop: { latin: 'Dian Dou De', kind: 'Cantonese dim sum · at the table', photo: 'har-gow', colour: '#8c2a1f' },
 };

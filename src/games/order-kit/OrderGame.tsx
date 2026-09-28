@@ -5,15 +5,13 @@ import type { GameProps } from '../types';
 import { AppProvider, type AppApi, type ReadKey } from './app';
 import { glossaryOf, hskWords } from './gloss';
 import { GuideSidebar } from './GuideSidebar';
-import { GlossBody, HelpProvider, NativeSay, Popover, T, type HelpApi } from './help';
+import { HelpProvider, NativeSay, Popover, T, type HelpApi } from './help';
 import { MiniApp } from './MiniApp';
 import {
   check,
   defaultChoices,
   itemOf,
   lineText,
-  logLookup,
-  newHelpLog,
   newOrder,
   allLines,
   goalOf,
@@ -21,7 +19,6 @@ import {
   price,
   shortForm,
   stepOf,
-  usedHelp,
   wantText,
   type Hint,
   type View,
@@ -30,7 +27,7 @@ import { S } from './strings';
 import { buildTasks } from './tasks';
 import { markTourSeen, Tour, tourSeen } from './Tour';
 import type { Brand, Miss, Order, ScreenId } from './types';
-import { MenuPhoto } from './ui';
+import { MenuWordList, WordPicks } from './words';
 import './order-kit.css';
 
 /**
@@ -39,10 +36,10 @@ import './order-kit.css';
  * look around.
  *
  * The order is checked at 去支付. Right: the payment sheet, then the pickup
- * screen, and the round is reported (first try only when no help was used —
- * §3.5 of the plan). Wrong: the friend says what is wrong, and the learner
- * goes back and fixes it; wrong again, and the round is missed and a card
- * shows what was asked beside what was ordered.
+ * screen, and the round is reported. Help is free: the guide, 拼 and 下一步
+ * are there to be used, and cost nothing. Wrong: the friend says what is
+ * wrong, and the learner goes back and fixes it; wrong again, and the round
+ * is missed and a card shows what was asked beside what was ordered.
  */
 
 type Mode = 'intro' | 'play' | 'browse';
@@ -65,7 +62,7 @@ function makeTimes(rng: Rng): Times {
 /** The stage is side by side from this width; below it the guide is a drawer. */
 const WIDE = 690;
 
-export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { brand: Brand }) {
+export function OrderGame({ brand, ctx, rounds, report, finish, words: wordHost }: GameProps & { brand: Brand }) {
   const gl = useMemo(() => glossaryOf(brand), [brand]);
   const [tasks] = useState(() => buildTasks(brand, ctx.rng, ctx.band, rounds));
   const [times] = useState(() => [...tasks.map(() => makeTimes(ctx.rng)), makeTimes(ctx.rng)]);
@@ -76,7 +73,6 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
   const [view, setView] = useState<View>({ screen: 'chat', sheet: null });
   const [dir, setDir] = useState<'push' | 'pop' | 'none'>('none');
   const [tries, setTries] = useState(0);
-  const [log, setLog] = useState(newHelpLog);
   const [settled, setSettled] = useState(false);
   // table service: which message is in play, whether the 加菜 one is done, and its pop-up
   const [part, setPart] = useState<0 | 1>(0);
@@ -87,7 +83,6 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
   const [toast, setToastState] = useState<{ zh: string; id: number } | null>(null);
   const [pinyin, setPinyinState] = useState(false);
   const [tour, setTour] = useState(false);
-  const [words, setWords] = useState(false);
   const [reading, setReading] = useState<AppApi['reading']>(null);
   const [lastItem, setLastItem] = useState<string | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -142,7 +137,6 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
     setLaterPopup(false);
     setDir('none');
     setTries(0);
-    setLog(newHelpLog());
     setSettled(false);
     setComplaint(null);
     setMissed(null);
@@ -183,7 +177,7 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
     }
   };
   const right = () => {
-    report({ ...describe(), correct: true, firstTry: tries === 0 && !usedHelp(log) });
+    report({ ...describe(), correct: true, firstTry: tries === 0 });
     setSettled(true);
   };
 
@@ -285,12 +279,10 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
     gl,
     pinyin,
     native: ctx.native,
-    looked: (zh) => mode === 'play' && !settled && setLog((l) => logLookup(l, zh)),
+    lib: ctx.lib,
+    words: wordHost,
   };
-  const setPinyin = (on: boolean) => {
-    setPinyinState(on);
-    if (on && mode === 'play' && !settled) setLog((l) => ({ ...l, pinyin: true }));
-  };
+  const setPinyin = setPinyinState;
 
   /* --------------------------------------------------------------- layout */
   const stage = useRef<HTMLDivElement>(null);
@@ -403,9 +395,8 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
   if (mode === 'intro') {
     return (
       <HelpProvider value={help}>
-        <Intro brand={brand} onPlay={() => reset('play', 0)} onBrowse={() => reset('browse', 0)} onWords={() => setWords(true)} />
-        {words && <MenuWords brand={brand} onClose={() => setWords(false)} />}
-        <Popover help={help} />
+        <Intro brand={brand} onPlay={() => reset('play', 0)} onBrowse={() => reset('browse', 0)} />
+        <Popover help={help} extra={(zh) => <WordPicks zh={zh} />} />
       </HelpProvider>
     );
   }
@@ -420,12 +411,7 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
       goTo={goTo}
       onScreen={onScreen}
       pulse={pulse}
-      hint={() => {
-        if (mode === 'play' && !settled) setLog((l) => ({ ...l, hints: l.hints + 1 }));
-        return nextHint(brand, order, goalOf(task, part, laterDone), view);
-      }}
-      helpUsed={usedHelp(log)}
-      lookups={Math.min(log.lookups.length, 2)}
+      hint={() => nextHint(brand, order, goalOf(task, part, laterDone), view)}
       setPinyin={setPinyin}
       replayTour={() => {
         if (settled) return;
@@ -433,7 +419,6 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
         setTour(true);
         if (!wide) setGuideOpen(false);
       }}
-      showWords={() => setWords(true)}
       startOver={() => {
         // the batches already sent stay sent; the cart and the choices start again
         setOrderState((o) => ({ ...newOrder(), placed: o.placed, diners: o.diners, tea: o.tea }));
@@ -542,9 +527,8 @@ export function OrderGame({ brand, ctx, rounds, report, finish }: GameProps & { 
               onNext={nextRound}
             />
           )}
-          {words && <MenuWords brand={brand} onClose={() => setWords(false)} />}
         </div>
-        <Popover help={help} />
+        <Popover help={help} extra={(zh) => <WordPicks zh={zh} />} />
       </AppProvider>
     </HelpProvider>
   );
@@ -588,7 +572,8 @@ function Drawer({ onClose, children }: { onClose(): void; children: React.ReactN
 
 /* ----------------------------------------------------------------- intro */
 
-function Intro({ brand, onPlay, onBrowse, onWords }: { brand: Brand; onPlay(): void; onBrowse(): void; onWords(): void }) {
+function Intro({ brand, onPlay, onBrowse }: { brand: Brand; onPlay(): void; onBrowse(): void }) {
+  const [words, setWords] = useState(false);
   return (
     <div className="ok-intro" style={{ '--brand': brand.colours.brand, '--brand-dark': brand.colours.darkBrand } as React.CSSProperties}>
       <div className="ok-intro-mark">
@@ -600,8 +585,9 @@ function Intro({ brand, onPlay, onBrowse, onWords }: { brand: Brand; onPlay(): v
         <li>A friend sends you an order on WeChat, in Chinese. The mini-app opens at its home page.</li>
         <li>Press and hold any Chinese on the phone to see its pinyin and meaning.</li>
         <li>
-          The guide beside the phone shows where you are and what is on the screen. Using <span className="hanzi">拼</span>,{' '}
-          <span className="hanzi">下一步</span> or looking up three or more words costs that order its first-try mark.
+          The guide beside the phone shows where you are and what is on the screen, and any word on it can be marked known
+          or put on a list. <span className="hanzi">拼</span> and <span className="hanzi">下一步</span> are there whenever
+          you want them.
         </li>
       </ul>
       <div className="ok-intro-actions">
@@ -611,45 +597,12 @@ function Intro({ brand, onPlay, onBrowse, onWords }: { brand: Brand; onPlay(): v
         <button type="button" className="btn" onClick={onBrowse}>
           Just browse
         </button>
-        <button type="button" className="btn ghost" onClick={onWords}>
-          Menu words
+        <button type="button" className="btn ghost" aria-expanded={words} onClick={() => setWords(!words)}>
+          {words ? 'Hide menu words' : 'Menu words'}
         </button>
       </div>
       <p className="tiny muted">Just browse records nothing: leave it with ✕ when you are done.</p>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------ menu words */
-
-function MenuWords({ brand, onClose }: { brand: Brand; onClose(): void }) {
-  return (
-    <div className="ok-words-wrap" role="dialog" aria-label="Menu words">
-      <div className="ok-words">
-        <div className="row">
-          <h2>Menu words</h2>
-          <span className="spacer" />
-          <button type="button" className="btn ghost sm" onClick={onClose} aria-label="Close" autoFocus>
-            ✕
-          </button>
-        </div>
-        {brand.words.map((g) => (
-          <section key={g.en}>
-            <h3 className="ok-words-h">{g.en}</h3>
-            <ul>
-              {g.words.map((w) => {
-                const item = brand.items.find((i) => i.zh === w || i.call === w);
-                return (
-                  <li key={w}>
-                    {item ? <MenuPhoto brand={brand} photo={item.photo} className="words" /> : <span className="ok-words-nophoto" />}
-                    <GlossBody zh={w} />
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        ))}
-      </div>
+      {words && <MenuWordList brand={brand} />}
     </div>
   );
 }

@@ -161,20 +161,22 @@ puts pinyin over every label. A **first-visit tour** of numbered coach marks.
 **Menu words**: every word the shop uses, grouped, with photo, pinyin,
 English and a note.
 
-### 3.5 Help costs the first-try mark
+### 3.5 Help is free
 
-A right order is `firstTry: false` when, during it, the learner turned on
-`拼`, used `下一步`, or looked up **3 or more** words. Free: the map, the
-breakdown, tips, the tour, Start over. The sidebar shows `Help used` /
-`No help yet`, fixed width.
+~~A right order is `firstTry: false` when the learner turned on `拼`, used
+`下一步`, or looked up 3 or more words.~~ Dropped 2026-09-28: the mark taught
+nothing and made using help feel like failing. A right order is first try
+when it was right at the first 去支付, whatever help was used; the sidebar no
+longer shows `Help used` / `No help yet`.
 
 ### 3.6 The guide sidebar
 
 Paper style, beside the phone: 任务 (message + breakdown chips, no ticks),
 你在这里 (the flow as a map; tapping an earlier step goes back with the cart
-kept), 这一页 (every label on the screen; opening one outlines it and counts
-as a lookup), 下一步 (one English line, pulses the control; counts as help),
-tools (`拼`, Replay tour, Menu words, Start over), a tip. iPad: side by side;
+kept), 这一页 (every label on the screen; opening one outlines it and shows
+its words as chips that open the word drawer), 下一步 (one English line,
+pulses the control), tools (`拼`, Replay tour, Menu words — shown in the
+guide's place, not over the phone — Start over), a tip. iPad: side by side;
 phone: a Guide handle and a right-hand drawer (85%, scrim, swipe to close).
 Folded sections remembered per device.
 
@@ -270,7 +272,7 @@ passwords.
 - **D1 Shops:** the original six plus 点都德 (早茶 + 烧味).
 - **D2 Brands:** the real brand names; text wordmarks.
 - **Guide sidebar** (§3.6).
-- **D3 Help costs the first-try mark:** yes.
+- **D3 Help costs the first-try mark:** yes at first; dropped 2026-09-28 (§3.5).
 - **D4 Task language:** Chinese only, English through help (the default; not
   answered explicitly).
 - **D5 Order:** coffee (瑞幸) first.

@@ -12,16 +12,13 @@ import {
   itemOf,
   lineKey,
   missingRequired,
-  newHelpLog,
   newOrder,
   nextHint,
-  logLookup,
   price,
   round1,
   setQty,
   solve,
   unitPrice,
-  usedHelp,
   type View,
 } from './order';
 
@@ -249,19 +246,6 @@ describe('下一步', () => {
     assert.equal(nextHint(brand, o, goal, menu).target, 'cart-bar');
     assert.equal(nextHint(brand, o, goal, { screen: 'menu', sheet: { kind: 'cart' } }).target, 'cart-minus:0');
     assert.equal(nextHint(brand, o, goal, { screen: 'checkout', sheet: null }).target, 'nav-back');
-  });
-});
-
-describe('help costs the first-try mark', () => {
-  it('counts 拼, any 下一步, and a third word looked up', () => {
-    let log = newHelpLog();
-    assert.equal(usedHelp(log), false);
-    log = logLookup(logLookup(log, '冰'), '热');
-    log = logLookup(log, '冰');
-    assert.equal(usedHelp(log), false, 'two words, one of them twice');
-    assert.equal(usedHelp(logLookup(log, '奶')), true);
-    assert.equal(usedHelp({ ...newHelpLog(), pinyin: true }), true);
-    assert.equal(usedHelp({ ...newHelpLog(), hints: 1 }), true);
   });
 });
 

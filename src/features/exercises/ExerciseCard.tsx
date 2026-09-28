@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Exercise } from '../../domain/exercises/generate';
 import { selfRating } from '../../domain/grading';
 import { RATING_META, RATINGS, type Rating } from '../../domain/memory';
-import { say } from '../../platform/audio/voiceOut';
+import { dropPending, say } from '../../platform/audio/voiceOut';
 import { useStore } from '../../store/store';
 import { Say } from '../../ui/Say';
 import { WritePad } from '../review/WritePad';
@@ -35,6 +35,9 @@ export function ExerciseCard({
   onDone: (results: ExerciseResult[]) => void;
   onSkip?: () => void;
 }) {
+  // A word this card asked for that has not arrived by the time the card
+  // goes would be heard over the next one.
+  useEffect(() => dropPending, []);
   switch (ex.kind) {
     case 'pick-meaning':
     case 'pick-hanzi':
