@@ -7,7 +7,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
-D1
+D2
 
 ## Tasks
 ### A — core logic
@@ -34,7 +34,7 @@ D1
 - [x] C4 Prototype: 胡同 street + 天安门 gate, screenshots in review/
 
 ### D — engine
-- [ ] D1 WorldPage /play/world + Phaser boot, full screen on phones
+- [x] D1 WorldPage /play/world + Phaser boot, full screen on phones
 - [ ] D2 Maps + camera
 - [ ] D3 Movement (tap, hold, double tap, pinch, keyboard)
 - [ ] D4 Doors and transitions
@@ -136,6 +136,7 @@ _(date — decision — why)_
 - 2026-09-28 — C4: **screenshots are from an offline renderer** (`scripts/world/render-map.ts`), not from the browser: this unattended session is not allowed to start a dev server. The renderer follows the engine scene's rules (layers, depth by feet, integer zoom, multiply tint, additive glow). The engine itself (`src/world/engine/`, route `/play/world?map=…&time=…`) builds and type-checks but has **not been seen running** yet — first thing to check in the morning.
 - 2026-09-28 — C4, what looks weak: roofs are flat stripes (no curved hip ends, no ridge beasts); the arch tiles show a seam above each arch; plaza slabs read as bricks; people are all the same height and pose (fine for NPCs, but the hero needs more character); the night glow of lit windows is a plain disc. Not below "B/W-ish indie" enough to redo before D, so I carried on (brief: one more task only if clearly below).
 - 2026-09-28 — The learner added prompt §9½ (phase X) and its STATUS section during the night; both were committed with C4 unchanged.
+- 2026-09-28 — D1: `/play/world` is a fixed box under the site bar; below 690px it is the whole screen (site bar hidden via `html[data-world-full]`, like 点单) with a small ‹ to leave. Phaser (1.7 MB, 380 KB gzip) is its own chunk, loaded only there. Zoom is an integer: min(width/320, height/200), clamped 2–4 (iPad landscape ×3, phones ×2).
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

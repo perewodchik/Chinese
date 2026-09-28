@@ -38,10 +38,31 @@
   pointer-events: none;
 }
 
+.world-exit {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  left: calc(env(safe-area-inset-left, 0px) + 8px);
+  z-index: 2;
+  display: none;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(34, 32, 46, 0.72);
+  color: #f8f5ec;
+  font-size: 22px;
+  line-height: 1;
+  text-decoration: none;
+}
+
 /* On a phone the game is the whole screen, inside the safe areas. */
 @media (max-width: 689px) {
   html[data-world-full] .topbar {
     display: none;
+  }
+
+  .world-exit {
+    display: grid;
   }
 
   .world-shell {

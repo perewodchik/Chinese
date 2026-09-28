@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router';
+import { paths } from '../../navigation/paths';
 import type { PartOfDay } from '../../world/core/types';
 import type { RunningWorld } from '../../world/engine/boot';
 import { oneOf, useQuery } from '../../navigation/query';
@@ -69,6 +71,10 @@ export function WorldPage() {
         ref={box}
         style={frame ? { width: Number(frame[1]), height: Number(frame[2]) } : undefined}
       />
+      {/* On a phone the site's bar is gone; this is the way back out. */}
+      <Link className="world-exit" to={paths.play()} aria-label="Leave the game">
+        ‹
+      </Link>
       {state !== 'ready' && (
         <div className="world-loading small">{state === 'failed' ? 'The game could not start. Reload to try again.' : 'Opening Beijing…'}</div>
       )}
