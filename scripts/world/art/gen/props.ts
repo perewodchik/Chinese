@@ -611,6 +611,40 @@ export function pixiu(): Grid {
   return g.stamp(f, 0, 0);
 }
 
+
+// ---------------------------------------------------------------- H5: 潘家园
+
+/** A flea-market stall, 32×16: a cloth on the ground covered with vases, coins, pots and old books. */
+export function stall(seed: number): Grid {
+  const g = new Grid(32, 16);
+  g.oval(0, 12, 32, 4, '_');
+  const f = new Grid(32, 16);
+  f.rect(1, 8, 30, 6, seed % 2 ? 'B' : 'q').hline(1, 8, 30, seed % 2 ? 'n' : 'R');
+  const goods: Array<[number, (x: number) => void]> = [
+    [3, (x) => f.oval(x, 2, 5, 7, 'l').rect(x + 1, 1, 3, 2, 'l').set(x + 1, 4, 'n').set(x + 3, 5, 'n')],
+    [10, (x) => f.oval(x, 6, 4, 3, 'Y').oval(x + 3, 7, 3, 2, 'y')],
+    [15, (x) => f.oval(x, 3, 6, 6, 'M').hline(x + 1, 3, 4, 'z').set(x + 2, 5, 'y')],
+    [23, (x) => f.rect(x, 5, 6, 4, 'r').hline(x, 5, 6, 'p').vline(x + 3, 5, 4, 'y')],
+  ];
+  for (const [x, draw] of goods) draw(x + (seed % 3) - 1);
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** The little clay 年兽 on a stall, 16×16: a horned beast, green and red; `awake` its eyes open. */
+export function nianshou(awake: boolean): Grid {
+  const g = new Grid(16, 16);
+  g.oval(2, 13, 12, 3, '_');
+  const f = new Grid(16, 16);
+  f.rect(3, 8, 10, 5, 'h').vline(3, 8, 5, 'i').rect(3, 12, 2, 2, 'G').rect(11, 12, 2, 2, 'G');
+  f.oval(4, 2, 9, 8, 'h').oval(5, 3, 5, 4, 'i');
+  f.set(5, 1, 'y').set(4, 0, 'y').set(11, 1, 'y').set(12, 0, 'y');
+  f.set(6, 5, awake ? 'L' : 'G').set(10, 5, awake ? 'L' : 'G').hline(6, 8, 5, 'r').set(7, 9, 'w').set(9, 9, 'w');
+  f.rect(12, 9, 3, 2, 'r');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -642,6 +676,8 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['birds-nest', 'the National Stadium 鸟巢', () => [['stadium', birdsNest()]]],
   ['water-cube', 'the Water Cube 水立方', () => [['blue', waterCube()]]],
   ['pixiu', 'a golden 貔貅', () => [['gold', pixiu()]]],
+  ['stall', 'a flea-market stall of antiques', () => [['a', stall(1)], ['b', stall(2)], ['c', stall(3)]]],
+  ['nianshou', 'the little clay 年兽, asleep and awake', () => [['clay', nianshou(false)], ['awake', nianshou(true)]]],
   ['door-gods', 'an old gate with its door gods, faded and restored', () => [['faded', doorGods(true)], ['bright', doorGods(false)]]],
   ['pigeon', 'a pigeon of the hutongs', () => [['peck', pigeon('peck')], ['look', pigeon('look')], ['fly-0', pigeon('fly-0')], ['fly-1', pigeon('fly-1')]]],
 ];

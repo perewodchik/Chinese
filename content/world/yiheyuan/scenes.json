@@ -1,0 +1,175 @@
+[
+  {
+    "id": "yiheyuan-arrive",
+    "map": "stop-yiheyuan",
+    "trigger": "auto",
+    "once": true,
+    "stamp": "yiheyuan",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "这是颐和园！",
+        "translate": "So this is the Summer Palace!",
+        "speaker": "hero",
+        "why": "颐和园 — the imperial summer garden, a lake and a hill. The Long Corridor 长廊 runs along the water for 700 metres, every beam painted with a story."
+      }
+    ]
+  },
+  {
+    "id": "guide",
+    "map": "stop-yiheyuan",
+    "npc": "daoyou",
+    "trigger": "talk",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！长廊里有很多画。",
+        "translate": "Hello! There are lots of paintings in the Long Corridor."
+      }
+    ]
+  },
+  {
+    "id": "bus-man",
+    "map": "stop-xizhimen",
+    "npc": "deng-che-ren",
+    "trigger": "talk",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！去颐和园，坐332路。",
+        "translate": "Hello! For the Summer Palace, take the 332."
+      }
+    ]
+  },
+  {
+    "id": "painting-rabbit",
+    "map": "yiheyuan-changlang",
+    "object": "painting-rabbit",
+    "trigger": "look",
+    "priority": 0,
+    "once": true,
+    "stamp": "changlang",
+    "when": {
+      "chapter": 6
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "兔子",
+        "explain": "长耳朵的小动物，白色的。",
+        "en": "rabbit"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "他在等兔子。",
+        "translate": "He is waiting for a rabbit.",
+        "speaker": "hero",
+        "simpler": "他等兔子。",
+        "next": "b"
+      },
+      {
+        "id": "b",
+        "say": "守株待兔！我不喜欢！",
+        "translate": "守株待兔 — waiting by the stump for a rabbit! I don't like that one!",
+        "speaker": "companion",
+        "key": true,
+        "onEnter": [
+          {
+            "do": "idiom",
+            "idiom": "守株待兔"
+          },
+          {
+            "do": "flag",
+            "flag": "painting-alive"
+          }
+        ],
+        "why": "A 成语 📌 with a story: a farmer saw a rabbit break its neck on a tree stump, and gave up work to wait for another. 兔儿爷 is offended on behalf of rabbits.",
+        "next": "c"
+      },
+      {
+        "id": "c",
+        "say": "我们兔子很好！",
+        "translate": "We rabbits are perfectly fine!",
+        "speaker": "companion"
+      }
+    ]
+  },
+  {
+    "id": "changlang-painter",
+    "map": "yiheyuan-changlang",
+    "npc": "changlang-huajia",
+    "trigger": "talk",
+    "priority": 0,
+    "when": {
+      "all": [
+        {
+          "flag": "painting-alive"
+        },
+        {
+          "not": {
+            "flag": "heard-nianshou"
+          }
+        }
+      ]
+    },
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！你喜欢这些画吗？",
+        "translate": "Hello! Do you like these paintings?",
+        "expect": [
+          {
+            "intent": "like",
+            "match": [
+              [
+                "喜欢",
+                "好看",
+                "很好",
+                "漂亮"
+              ]
+            ],
+            "go": "b"
+          }
+        ],
+        "hint": {
+          "word": "喜欢",
+          "frame": "我很___。",
+          "full": "我很喜欢。"
+        }
+      },
+      {
+        "id": "b",
+        "say": "潘家园有人卖一个年兽。你们去看看吧。",
+        "translate": "Someone at 潘家园 is selling a 年兽. Go and have a look.",
+        "onEnter": [
+          {
+            "do": "flag",
+            "flag": "heard-nianshou"
+          }
+        ],
+        "why": "年兽 — the Nian beast of New Year stories. 潘家园 is the big antiques market in the south-east: line 10."
+      }
+    ]
+  },
+  {
+    "id": "changlang-painter-later",
+    "map": "yiheyuan-changlang",
+    "npc": "changlang-huajia",
+    "trigger": "talk",
+    "priority": 5,
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！你看，这些画很好看。",
+        "translate": "Hello! Look — aren't these paintings lovely."
+      }
+    ]
+  }
+]

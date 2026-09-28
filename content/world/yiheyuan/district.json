@@ -1,0 +1,28 @@
+{
+  "id": "yiheyuan",
+  "name": "颐和园",
+  "en": "Summer Palace",
+  "chapter": 6,
+  "maps": [
+    "stop-yiheyuan",
+    "yiheyuan-changlang",
+    "stop-xizhimen",
+    "station-xizhimen"
+  ],
+  "stations": [
+    "yiheyuan",
+    "xizhimen"
+  ],
+  "names": [
+    "颐和园",
+    "长廊",
+    "昆明湖",
+    "西直门",
+    "北京北站",
+    "潘家园",
+    "年兽",
+    "北京",
+    "兔儿爷"
+  ],
+  "ambience": "lake"
+}

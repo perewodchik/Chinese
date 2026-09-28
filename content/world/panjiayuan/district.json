@@ -1,0 +1,20 @@
+{
+  "id": "panjiayuan",
+  "name": "潘家园",
+  "en": "Panjiayuan",
+  "chapter": 6,
+  "maps": [
+    "panjiayuan-market",
+    "station-panjiayuan"
+  ],
+  "stations": [
+    "panjiayuan"
+  ],
+  "names": [
+    "潘家园",
+    "年兽",
+    "北京",
+    "兔儿爷"
+  ],
+  "ambience": "market"
+}

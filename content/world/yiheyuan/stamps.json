@@ -1,0 +1,17 @@
+[
+  {
+    "id": "yiheyuan",
+    "name": "颐和园",
+    "en": "The Summer Palace",
+    "place": "stop-yiheyuan",
+    "design": "yiheyuan",
+    "landmark": true
+  },
+  {
+    "id": "changlang",
+    "name": "长廊",
+    "en": "The Long Corridor",
+    "place": "yiheyuan-changlang",
+    "design": "changlang"
+  }
+]

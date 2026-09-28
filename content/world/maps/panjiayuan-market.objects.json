@@ -1,0 +1,267 @@
+[
+ {
+  "kind": "prop",
+  "id": "stall-1",
+  "tile": [
+   3,
+   8
+  ],
+  "frame": "stall/b",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stall-2",
+  "tile": [
+   11,
+   8
+  ],
+  "frame": "stall/c",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stall-3",
+  "tile": [
+   19,
+   8
+  ],
+  "frame": "stall/a",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stall-4",
+  "tile": [
+   27,
+   8
+  ],
+  "frame": "stall/b",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stall-5",
+  "tile": [
+   35,
+   8
+  ],
+  "frame": "stall/c",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stall-6",
+  "tile": [
+   3,
+   13
+  ],
+  "frame": "stall/a",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stall-7",
+  "tile": [
+   11,
+   13
+  ],
+  "frame": "stall/b",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stall-8",
+  "tile": [
+   19,
+   13
+  ],
+  "frame": "stall/c",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stall-9",
+  "tile": [
+   27,
+   13
+  ],
+  "frame": "stall/a",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stall-10",
+  "tile": [
+   35,
+   13
+  ],
+  "frame": "stall/b",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "place",
+  "tile": [
+   2,
+   3
+  ],
+  "text": "潘家园旧货市场",
+  "en": "Panjiayuan antiques market"
+ },
+ {
+  "kind": "prop",
+  "id": "nianshou",
+  "tile": [
+   29,
+   12
+  ],
+  "frame": "nianshou/clay",
+  "blocks": [
+   1,
+   1
+  ],
+  "when": {
+   "not": {
+    "spirit": "nianshou"
+   }
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station",
+  "tile": [
+   44,
+   18
+  ],
+  "to": {
+   "map": "station-panjiayuan",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station-2",
+  "tile": [
+   45,
+   18
+  ],
+  "to": {
+   "map": "station-panjiayuan",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "metro-sign",
+  "tile": [
+   43,
+   18
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "l1",
+  "tile": [
+   6,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l2",
+  "tile": [
+   20,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l3",
+  "tile": [
+   34,
+   4
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "npc",
+  "id": "seller",
+  "npc": "guwan-laoban",
+  "tile": [
+   29,
+   11
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "seller-2",
+  "npc": "panjiayuan-dashu",
+  "tile": [
+   12,
+   11
+  ],
+  "facing": "down"
+ }
+]

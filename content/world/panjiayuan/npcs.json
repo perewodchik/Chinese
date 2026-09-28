@@ -1,0 +1,56 @@
+[
+  {
+    "id": "guwan-laoban",
+    "name": "卖古董的老板",
+    "role": "a stallholder selling 'antiques' of every age",
+    "look": {
+      "sprite": "uncle"
+    },
+    "voice": "chen",
+    "character": "A born haggler, loud, cheerful; every price starts high.",
+    "knows": [
+      "The clay 年兽 came from an old house in the 胡同"
+    ],
+    "wants": [
+      "A good price"
+    ],
+    "actions": [
+      "money",
+      "give"
+    ],
+    "routine": [],
+    "explains": {
+      "古董": "很老很老的东西，很贵。",
+      "便宜点儿": "钱少一点。"
+    },
+    "misses": [
+      "哎？你说什么？"
+    ]
+  },
+  {
+    "id": "panjiayuan-dashu",
+    "name": "卖旧书的大叔",
+    "role": "a man selling old books who was robbed last month",
+    "look": {
+      "sprite": "uncle",
+      "palette": "apron"
+    },
+    "voice": "zhiyuan",
+    "character": "Rueful, jokes about his own bad luck.",
+    "knows": [
+      "Someone stole his books last month"
+    ],
+    "wants": [
+      "A better lock"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "亡羊补牢": "东西丢了，再修门，以后就不会丢了。",
+      "真的假的": "是真的吗？"
+    },
+    "misses": [
+      "啊？"
+    ]
+  }
+]

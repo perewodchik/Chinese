@@ -84,6 +84,11 @@
   "width": 48,
   "height": 26
  },
+ "panjiayuan-market": {
+  "district": "panjiayuan",
+  "width": 48,
+  "height": 22
+ },
  "qianmen-street": {
   "district": "qianmen",
   "width": 48,
@@ -129,6 +134,11 @@
   "width": 24,
   "height": 16
  },
+ "station-panjiayuan": {
+  "district": "panjiayuan",
+  "width": 24,
+  "height": 16
+ },
  "station-qianmen": {
   "district": "qianmen",
   "width": 24,
@@ -159,10 +169,25 @@
   "width": 24,
   "height": 16
  },
+ "station-xizhimen": {
+  "district": "yiheyuan",
+  "width": 24,
+  "height": 16
+ },
  "station-yonghegong": {
   "district": "yonghegong",
   "width": 24,
   "height": 16
+ },
+ "stop-xizhimen": {
+  "district": "yiheyuan",
+  "width": 36,
+  "height": 16
+ },
+ "stop-yiheyuan": {
+  "district": "yiheyuan",
+  "width": 36,
+  "height": 20
  },
  "subway-lane": {
   "district": "gulou",
@@ -203,6 +228,11 @@
   "district": "wangfujing",
   "width": 10,
   "height": 8
+ },
+ "yiheyuan-changlang": {
+  "district": "yiheyuan",
+  "width": 60,
+  "height": 14
  },
  "yinhang": {
   "district": "wangfujing",

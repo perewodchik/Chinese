@@ -1,0 +1,22 @@
+[
+  {
+    "id": "亡羊补牢",
+    "pinyin": "wángyáng-bǔláo",
+    "parts": [
+      {
+        "c": "亡羊",
+        "gloss": "lose a sheep"
+      },
+      {
+        "c": "补牢",
+        "gloss": "mend the pen"
+      }
+    ],
+    "meaning": "better late than never: fix the problem after the first loss",
+    "story": {
+      "zh": "一个人的羊圈坏了，狼进来，吃了一只羊。朋友说：“快修羊圈！”他没修。第二天，又少了一只羊。他马上修好了羊圈，以后羊再也没少。",
+      "en": "A man's sheep pen had a hole; a wolf got in and took a sheep. His friend said, 'Mend it!' He didn't — and lost another. Then he mended it at once, and lost no more."
+    },
+    "tier": "story"
+  }
+]

@@ -79,6 +79,17 @@ export function checkContent(contentRoot: string, lib: Library): CheckResult {
   for (const d of districts) {
     errors.push(...checkReferences(d, known).map((e) => `${d.district.id}/${e.replace(/^(\w+)/, '$1.json')}`));
   }
+  // Ids are one namespace across the whole city: a scene, a person or a quest is found by id alone.
+  for (const kind of ['scenes', 'npcs', 'quests', 'spirits', 'idioms', 'stamps', 'items'] as const) {
+    const seen = new Map<string, string>();
+    for (const d of districts) {
+      for (const x of d[kind] as ReadonlyArray<{ id: string }>) {
+        const other = seen.get(x.id);
+        if (other && other !== d.district.id) errors.push(`${d.district.id}/${kind}.json: id "${x.id}" is also used in ${other}/${kind}.json`);
+        seen.set(x.id, d.district.id);
+      }
+    }
+  }
   const budget = checkBudget({ leveler: libraryLeveler(lib), all: districts });
   return { districts, errors: [...new Set(errors)], budget };
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { board, callNext, fareOut, getOff, nextStop, runOn, startRide, trainsAt } from './ride';
+import { board, callNext, fareOut, getOff, nextStop, runOn, startRide, stopMap, trainsAt } from './ride';
 
 describe('a subway ride', () => {
   it('lists the trains at a station, both ways, named as the signs name them', () => {
@@ -36,6 +36,18 @@ describe('a subway ride', () => {
     const r = runOn(board(startRide('tianqiao'), { line: 'l8', dir: 1, name: '8号线', towards: '' }));
     assert.equal(r.train, null);
     assert.equal(r.at, 'tianqiao');
+  });
+
+  it('buses: 332 from 西直门 to 颐和园, 2 元; stops on stop- maps', () => {
+    const bus = trainsAt('xizhimen', 'bus');
+    assert.deepEqual(bus.map((b) => b.name), ['332路']);
+    let r = board(startRide('xizhimen'), bus[0]!);
+    r = runOn(runOn(r));
+    assert.equal(r.at, 'yiheyuan');
+    assert.equal(fareOut(r, 'bus'), 2);
+    assert.equal(stopMap('yiheyuan', 'bus'), 'stop-yiheyuan');
+    assert.equal(stopMap('nanluoguxiang'), 'station-nanluoguxiang');
+    assert.match(callNext('b332', 'xizhimen', 1)!, /下一站：动物园/);
   });
 
   it('no ride, no fare', () => {

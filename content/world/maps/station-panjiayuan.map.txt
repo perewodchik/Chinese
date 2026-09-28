@@ -1,0 +1,42 @@
+id: station-panjiayuan
+size: 24x16
+tilesets: tiles
+district: panjiayuan
+crowd: 3
+
+# 潘家园 station: the gates, the platform
+
+[ground]
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tEEEEEEEEEEEEEEEEEEEEEEt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+[below]
+kkkkkkkkkkkkkkkkkkkkkkkk
+kJJJJJJJJJJJJJJJJJJJJJJk
+kjjSjjjjjjjjjjjjjjjjjjjk
+k......................k
+k......................k
+k......................k
+k......................k
+kggggggggggggggggggggggk
+k......................k
+k......................k
+k......................k
+k......................k
+k......................k
+krrrrrrrrrrrrrrrrrrrrrrk
+krrrrrrrrrrrrrrrrrrrrrrk
+krrrrrrrrrrrrrrrrrrrrrrk

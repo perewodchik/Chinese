@@ -1,0 +1,81 @@
+[
+  {
+    "id": "deng-che-ren",
+    "name": "等车的人",
+    "role": "a man waiting for the bus",
+    "look": {
+      "sprite": "uncle",
+      "palette": "brown"
+    },
+    "voice": "zhiyuan",
+    "character": "Patient, reads the paper.",
+    "knows": [
+      "Bus 332 goes to the Summer Palace"
+    ],
+    "wants": [
+      "The bus to come"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "颐和园": "很大的公园，有湖，以前皇帝夏天住在那儿。"
+    },
+    "misses": [
+      "嗯？"
+    ]
+  },
+  {
+    "id": "daoyou",
+    "name": "导游",
+    "role": "a tour guide with a little flag",
+    "look": {
+      "sprite": "woman",
+      "palette": "teal"
+    },
+    "voice": "xiaoyu",
+    "character": "Bright and practised; says everything twice.",
+    "knows": [
+      "The Long Corridor has over 14,000 paintings"
+    ],
+    "wants": [
+      "Her group to keep up"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "长廊": "很长很长的路，上面有很多画。",
+      "画": "用笔做的，好看的东西。"
+    },
+    "misses": [
+      "请再说一遍！"
+    ]
+  },
+  {
+    "id": "changlang-huajia",
+    "name": "画画的老人",
+    "role": "an old painter copying the corridor's pictures",
+    "look": {
+      "sprite": "grandpa",
+      "palette": "blue"
+    },
+    "voice": "wei",
+    "character": "Soft-spoken; knows every story on the beams.",
+    "knows": [
+      "There is a clay 年兽 for sale at 潘家园 that looks alive"
+    ],
+    "wants": [
+      "Time to paint"
+    ],
+    "actions": [
+      "flag"
+    ],
+    "routine": [],
+    "explains": {
+      "守株待兔": "不做事，只等好事来。",
+      "年兽": "一个老的怪兽，过年的时候来，怕红色。"
+    },
+    "misses": [
+      "嗯……你说什么？"
+    ]
+  }
+]

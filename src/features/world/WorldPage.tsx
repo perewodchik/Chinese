@@ -17,8 +17,8 @@ import { setVoiceCards } from '../../world/ui/lineVoice';
 import { Ambient } from '../../world/audio/ambient';
 import { mixFor } from '../../world/audio/mix';
 import type { MapLife } from '../../world/core/maptext';
-import { fareOut } from '../../world/core/ride';
-import { rideKey } from '../../world/core/travel';
+import { fareOut, stopMap } from '../../world/core/ride';
+import { rideKey, type Mode } from '../../world/core/travel';
 import { Joystick } from '../../world/ui/Joystick';
 import { Panels } from '../../world/ui/Panels';
 import type { PanelId } from '../../world/ui/panelRows';
@@ -91,7 +91,7 @@ export function WorldPage() {
   const [pal, setPal] = useState<{ open: boolean; said: string | null }>({ open: false, said: null });
   const [panel, setPanel] = useState<PanelId | null>(null);
   /** on a platform: the station you board at */
-  const [riding, setRiding] = useState<string | null>(null);
+  const [riding, setRiding] = useState<{ at: string; mode: Mode } | null>(null);
   const mapIndex = useRef<MapIndex>({});
   const lastActive = useRef(Date.now());
   // the street's sounds (G1): made on first tap, mixed by where you are and the hour
@@ -173,11 +173,14 @@ export function WorldPage() {
           onLook: (o: MapObject) => {
             const s = game.current();
             if (!s) return;
-            // the board on a platform: the trains (every station map is called station-<id>)
-            if (o.kind === 'sign' && o.id === 'board' && s.place.map.startsWith('station-')) {
-              const here = s.place.map.slice('station-'.length);
+            // the board on a platform or at a bus stop: what leaves from here
+            // (subway maps are called station-<id>, bus and train stops stop-<id>)
+            const boards: Record<string, Mode> = { board: 'subway', 'bus-board': 'bus', 'train-board': 'train' };
+            const board = o.kind === 'sign' ? boards[o.id] : undefined;
+            if (board) {
+              const here = s.place.map.replace(/^(station|stop)-/, '');
               game.dispatch([{ do: 'station', station: here }]);
-              setRiding(here);
+              setRiding({ at: here, mode: board });
               return;
             }
             const c = contentRef.current;
@@ -434,22 +437,23 @@ export function WorldPage() {
       )}
       {riding && game.save && (
         <RideSheet
-          from={riding}
+          from={riding.at}
+          mode={riding.mode}
           pinyin={game.save.settings.pinyin}
           fast={Object.values(game.save.rides).reduce((a, b) => a + b, 0) >= 3}
-          canExit={(id) => !!mapIndex.current[`station-${id}`]}
+          canExit={(id) => !!mapIndex.current[stopMap(id, riding.mode)]}
           card={game.save.bag.card ?? 0}
           onClose={() => setRiding(null)}
           onExit={(r) => {
             setRiding(null);
-            const fare = fareOut(r);
+            const fare = fareOut(r, riding.mode);
             game.dispatch([
               ...(fare ? [{ do: 'card' as const, amount: -fare }] : []),
               { do: 'station', station: r.at },
               ...(r.at !== r.from ? [{ do: 'ride' as const, route: rideKey(r.from, r.at) }] : []),
             ]);
             // every station map has its board at [8, 10]: you step off in front of it
-            if (r.at !== riding) world.current?.travel({ map: `station-${r.at}`, tile: [8, 11], facing: 'down' });
+            if (r.at !== riding.at) world.current?.travel({ map: stopMap(r.at, riding.mode), tile: [8, 11], facing: 'down' });
           }}
         />
       )}

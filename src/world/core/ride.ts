@@ -7,7 +7,7 @@
  * leave through a station's gates, by the stops ridden since you came in.
  */
 
-import { announcement, line, LINES, linesAt, station, subwayFare } from './travel';
+import { announcement, line, LINES, linesAt, station, subwayFare, type Mode } from './travel';
 
 export type Dir = 1 | -1;
 
@@ -20,11 +20,11 @@ export interface Train {
   towards: string;
 }
 
-/** The trains that leave from a station: every subway line, both ways (one way at an end of the line). */
-export function trainsAt(at: string): Train[] {
+/** What leaves from a stop: every line of that kind (subway, bus, train), both ways (one way at an end of the line). */
+export function trainsAt(at: string, mode: Mode = 'subway'): Train[] {
   const out: Train[] = [];
   for (const l of linesAt(at)) {
-    if (l.mode !== 'subway') continue;
+    if (l.mode !== mode) continue;
     const i = l.stops.indexOf(at);
     for (const dir of [1, -1] as const) {
       if (!l.loop && (dir === 1 ? i === l.stops.length - 1 : i === 0)) continue;
@@ -79,8 +79,14 @@ export function runOn(r: RideState): RideState {
 /** Off the train, onto the platform: a new train may be chosen (a change is free). */
 export const getOff = (r: RideState): RideState => ({ ...r, train: null });
 
-/** What leaving through the gates costs: nothing when you never rode. */
-export const fareOut = (r: RideState) => (r.stops > 0 ? subwayFare(r.stops) : 0);
+/** What getting out costs: the subway by distance, a bus 2 元, the train to the Wall 20 元; nothing when you never rode. */
+export function fareOut(r: RideState, mode: Mode = 'subway'): number {
+  if (r.stops === 0) return 0;
+  return mode === 'bus' ? 2 : mode === 'train' ? 20 : subwayFare(r.stops);
+}
+
+/** The map you get out onto at a stop: `station-<id>` for the subway, `stop-<id>` for buses and trains. */
+export const stopMap = (id: string, mode: Mode = 'subway') => `${mode === 'subway' ? 'station' : 'stop'}-${id}`;
 
 /** What the train says as it stops: 「王府井到了。」 */
 export const arrivalCall = (at: string) => `${station(at).zh}到了。`;
@@ -89,7 +95,6 @@ export const arrivalCall = (at: string) => `${station(at).zh}到了。`;
 export function allCalls(): string[] {
   const out = new Set<string>();
   for (const l of LINES) {
-    if (l.mode !== 'subway') continue;
     for (const at of l.stops) {
       out.add(arrivalCall(at));
       for (const dir of [1, -1] as const) {

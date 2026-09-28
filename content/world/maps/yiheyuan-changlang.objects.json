@@ -1,0 +1,134 @@
+[
+ {
+  "kind": "sign",
+  "id": "painting-1",
+  "tile": [
+   6,
+   3
+  ],
+  "text": "三顾茅庐",
+  "en": "Liu Bei visits Zhuge Liang three times"
+ },
+ {
+  "kind": "sign",
+  "id": "painting-rabbit",
+  "tile": [
+   14,
+   3
+  ],
+  "text": "守株待兔",
+  "en": "A farmer waits by a tree stump for rabbits"
+ },
+ {
+  "kind": "sign",
+  "id": "painting-2",
+  "tile": [
+   22,
+   3
+  ],
+  "text": "西游记",
+  "en": "Journey to the West"
+ },
+ {
+  "kind": "sign",
+  "id": "painting-3",
+  "tile": [
+   30,
+   3
+  ],
+  "text": "司马光砸缸",
+  "en": "Sima Guang breaks the water jar"
+ },
+ {
+  "kind": "sign",
+  "id": "painting-4",
+  "tile": [
+   38,
+   3
+  ],
+  "text": "孔融让梨",
+  "en": "Kong Rong gives away the big pear"
+ },
+ {
+  "kind": "sign",
+  "id": "painting-5",
+  "tile": [
+   46,
+   3
+  ],
+  "text": "嫦娥奔月",
+  "en": "Chang’e flies to the moon"
+ },
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   0,
+   6
+  ],
+  "to": {
+   "map": "stop-yiheyuan",
+   "tile": [
+    17,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   2,
+   3
+  ],
+  "text": "长廊",
+  "en": "The Long Corridor"
+ },
+ {
+  "kind": "prop",
+  "id": "boat",
+  "tile": [
+   30,
+   11
+  ],
+  "frame": "boat/red",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "boat-2",
+  "tile": [
+   48,
+   12
+  ],
+  "frame": "boat/red",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "painter",
+  "npc": "changlang-huajia",
+  "tile": [
+   16,
+   6
+  ],
+  "facing": "up"
+ },
+ {
+  "kind": "npc",
+  "id": "tourist",
+  "npc": "houhai-tourist",
+  "tile": [
+   34,
+   6
+  ],
+  "facing": "left"
+ }
+]

@@ -1,0 +1,51 @@
+id: stop-yiheyuan
+size: 36x20
+tilesets: tiles
+district: yiheyuan
+crowd: 7
+pigeons: 3
+
+# The east gate of the Summer Palace 颐和园, with the stop for bus 332
+
+[ground]
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+sssssssssssssssssmssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ggggggGggggGggggGggggGgGgGGggggggggg
+gggggggGGGggGggggggggGgGggGgggGGGgGg
+ggggggGgggGgGggggggggGGGggGGgggggggg
+GgGggGggggGgGggggggggggggGggggggGggg
+[below]
+YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+WWWWWWWWWWWWWWWcWaWcWWWWWWWWWWWWWWWW
+VVVVVVVVVVVVVVVcV.VcVVVVVVVVVVVVVVVV
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................

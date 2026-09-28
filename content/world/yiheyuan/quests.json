@@ -1,0 +1,50 @@
+[
+  {
+    "id": "ch6",
+    "title": "Stories",
+    "chapter": 6,
+    "steps": [
+      {
+        "id": "go",
+        "now": "兔儿爷 has a feeling about paintings that come alive. Go to the Summer Palace 颐和园: line 2 to 西直门, then bus 332 from the stop outside.",
+        "done": {
+          "scene": "yiheyuan-arrive"
+        }
+      },
+      {
+        "id": "changlang",
+        "now": "Walk into the Long Corridor 长廊 and look at the paintings on the beams.",
+        "done": {
+          "flag": "painting-alive"
+        }
+      },
+      {
+        "id": "rumour",
+        "now": "Ask the old painter in the corridor what he has seen.",
+        "done": {
+          "flag": "heard-nianshou"
+        }
+      },
+      {
+        "id": "market",
+        "now": "Go to 潘家园 antiques market — line 10 to 潘家园.",
+        "done": {
+          "scene": "panjiayuan-arrive"
+        }
+      },
+      {
+        "id": "bargain",
+        "now": "The little clay 年兽 is on a stall. Bargain — say 便宜点儿; nobody pays the first price at 潘家园.",
+        "done": {
+          "spirit": "nianshou"
+        }
+      }
+    ],
+    "reward": [
+      {
+        "do": "chapter",
+        "chapter": 7
+      }
+    ]
+  }
+]

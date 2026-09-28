@@ -1,0 +1,23 @@
+[
+  {
+    "id": "panjiayuan",
+    "name": "潘家园",
+    "en": "Panjiayuan market",
+    "place": "panjiayuan-market",
+    "design": "panjiayuan"
+  },
+  {
+    "id": "kanjia",
+    "name": "砍价",
+    "en": "Bargained well",
+    "place": "panjiayuan-market",
+    "design": "kanjia"
+  },
+  {
+    "id": "nianshou",
+    "name": "年兽",
+    "en": "The Nian beast's friend",
+    "place": "panjiayuan-market",
+    "design": "nianshou"
+  }
+]

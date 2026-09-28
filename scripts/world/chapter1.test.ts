@@ -311,3 +311,25 @@ describe('chapter 5, played through the core', () => {
     assert.ok(t.actions.some((a) => a.do === 'game' && a.game === 'order-luckin'));
   });
 });
+
+describe('chapter 6, played through the core', () => {
+  it('颐和园 → the rabbit painting → 潘家园 → bargaining for the 年兽', () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 6 }, { do: 'quest', quest: 'ch6', step: 'go' }, { do: 'money', amount: 200 }]);
+    const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'ch6')?.step.id;
+    s = play(s, 'yiheyuan-arrive').save;
+    assert.equal(sceneFor(scenes, s, { look: 'painting-rabbit', map: 'yiheyuan-changlang' })?.id, 'painting-rabbit');
+    s = play(s, 'painting-rabbit').save;
+    assert.ok('守株待兔' in s.idioms);
+    s = play(s, 'changlang-painter').save;
+    assert.equal(at(), 'market');
+    s = play(s, 'panjiayuan-arrive').save;
+    s = play(s, 'lock').save;
+    assert.ok('亡羊补牢' in s.idioms);
+    const before = s.bag.money;
+    s = play(s, 'bargain', ['这个年兽多少钱？', '真的假的？', '太贵了！便宜点儿吧。', '一百吧。', '好，给你。']).save;
+    assert.equal(s.bag.money, before - 100);
+    assert.ok('nianshou' in s.spirits);
+    assert.equal(s.quests.ch6?.done, true);
+    assert.equal(s.chapter, 7);
+  });
+});

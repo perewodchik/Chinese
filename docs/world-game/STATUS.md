@@ -10,7 +10,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** проверка в браузере и в WebKit (F5, нужен человек), дальше по списку — G (звук), H (остальной Пекин), I, X.
 
 ## Current task
-G2 (clips still rendering) → H5
+G2 (clips still rendering) → H6
 
 ## Tasks
 ### A — core logic
@@ -70,7 +70,7 @@ G2 (clips still rendering) → H5
 - [x] H2 Ch. 3 王府井 · 前门
 - [x] H3 Ch. 4 天坛 · 雍和宫 · 国子监
 - [x] H4 Ch. 5 三里屯 · 国贸 · 奥林匹克公园 (+ 点单 doors)
-- [ ] H5 Ch. 6 颐和园 · 潘家园
+- [x] H5 Ch. 6 颐和园 · 潘家园
 - [ ] H6 Ch. 7 故宫
 - [ ] H7 Epilogue 长城
 - [ ] H8 Side quests + 共享单车
@@ -163,6 +163,7 @@ _(date — decision — why)_
 - 2026-09-29 — H2: chapter 3 (quest `ch3`, started by ch. 2's reward). Maps: `wangfujing-street` (新华书店, 药店, 银行, 百货大楼; a crowd of 12), `station-wangfujing`, `shudian`, `yaodian`, `yinhang`; `qianmen-street` (the 前门 arrow tower — a third `tower` frame —, roast duck with a queue round the corner, the opera house 戏园, the old gate of 大栅栏 with faded/bright door gods), `station-qianmen`, `xiyuan` (stage with curtain and masks). Story: 「王府井今天人山人海！」 on arrival (📌 成语), change 100 美元 at the bank (situation words 换钱 护照 美元 签字; +700 元), buy 《成语故事》 at the bookshop (flag `idiom-book`, the 成语 book's note goes away), the opera actor explains 脸谱 (红脸 good, 白脸 bad) and the faded door gods, buy 红纸, give it to the 门神 (befriend by request) — and when you offer to paint more: 「别画了！再画是画蛇添足。」 (📌 成语). Side quest `wang-cold`: 王阿姨 has a cold; tell the pharmacist the symptoms (感冒 发烧 一天三次 饭后 药), bring her the medicine. You now start with 护照 in the bag. New art: bookshelf, mask wall, stage curtain tiles; door gods (faded/bright); the arrow tower. Renders: `review/h2/`.
 - 2026-09-29 — H3: chapter 4 (quest `ch4`). Maps: `tiantan-park` (祈年殿 on its terraces at the end of a marble way — new 64×80 prop), `huiyinbi` (the round Echo Wall — new tile — with the vault in the middle), `station-tiantandongmen`, `yonghegong-street` (国子监街: a 牌楼 archway — new prop —, incense, the Academy's gate, 雍和宫's locked gate), `guozijian` (courtyard, the scholars' stones, a bronze 麒麟 that glows after dark), `station-yonghegong`. **New line type `listen: true`:** the Echo Wall's whisper shows 👂 and hides its words until you tap Show (🔁 replays; free), so it is really heard first. Story: the old 胡琴 player's friends never listen — 「我是对牛弹琴！」 (📌 成语); a boy whispers through the Echo Wall 「麒麟……在……国子监……」 and 兔儿爷 asks what you heard; at 国子监 the old scholar tells a boastful student 「你是井底之蛙！」 (📌 成语); after 17:00 the 麒麟 asks 人 + 木 = 休 (灯谜). Stamps 天坛 (landmark), 回音壁, 国子监 (landmark), 麒麟. The Lama Temple itself stays closed ("the monks are at prayer") — its inside is not built. Renders: `review/h3/`.
 - 2026-09-29 — H4: chapter 5 (quest `ch5`). Maps: `sanlitun-street` (glass towers and shops — new tiles glass, glass-shop, glass-door), `guomao-plaza`, `guomao-bank` (a golden 貔貅 on a red pedestal in the hall), `bianlidian`, `olympic-park` (鸟巢 96×48 and 水立方 — new props), stations 团结湖, 国贸, 奥林匹克公园. **点单 doors:** tapping the glass door of 瑞幸 / 蜜雪冰城 / 海底捞 asks 「点咖啡吗？」 etc.; yes → new page action: after the talk, `/play/<game>?back=world`. `GamePage` got a small change (only mine): with `back=world`, ✕, "leave" and the results' button (renamed "Back to Beijing") go to `/play/world`, and "Play again" keeps `back=world`; the world reopens where the save left you (in front of the shop). Story: the courier's friend saw 「银行里有一个金色的东西，会动」 — 「我半信半疑。」 (📌 成语); the guard: 「你七上八下吧？」 (📌 成语); the 貔貅 wants 「金色的东西」 → gold-paper chocolate coins from the 便利店 (befriend by request); then 兔儿爷 wants to see 鸟巢. Stamps 三里屯, 国贸, 貔貅, 鸟巢 (landmark). Renders: `review/h4/`.
+- 2026-09-29 — H5: chapter 6 (quest `ch6`). **Buses:** the ride sheet now takes a mode — a `bus-board` sign opens the buses at a stop (332路 西直门 → 动物园 → 颐和园; 2 元 flat), a `train-board` will open the train (H7). Subway exits are `station-<id>` maps, bus/train stops `stop-<id>` maps, all with their board at [8,10]. Maps: `station-xizhimen`, `stop-xizhimen` (the 332 stop; the way to 北京北站 for H7), `stop-yiheyuan` (the east gate, stone lions, the stop), `yiheyuan-changlang` (60 tiles of painted corridor by 昆明湖 — six beam paintings as signs: 三顾茅庐, 守株待兔, 西游记, 司马光砸缸, 孔融让梨, 嫦娥奔月), `station-panjiayuan`, `panjiayuan-market` (ten stalls of 'antiques' — new stall prop —, the little clay 年兽 — new prop). Story: the rabbit painting → 兔儿爷: 「守株待兔！我不喜欢！」 (📌 成语; he is offended), the old painter heard of a 年兽 for sale at 潘家园; the book-seller who was robbed and now mends his door: 「这是亡羊补牢。」 (📌 成语); bargain for the 年兽 (古董, 便宜点儿, 真的假的; 200 → 150 → 100 元) and it wakes as the spirit (befriend by request). Stamps 颐和园 (landmark), 长廊, 潘家园, 砍价, 年兽. The content checker now also refuses the same id in two districts (a second `painter` scene had shadowed the first). Renders: `review/h5/`.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

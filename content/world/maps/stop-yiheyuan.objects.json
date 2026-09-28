@@ -1,0 +1,113 @@
+[
+ {
+  "kind": "prop",
+  "id": "bus-post",
+  "tile": [
+   8,
+   10
+  ],
+  "frame": "street-sign/blue",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "bus-board",
+  "tile": [
+   8,
+   10
+  ],
+  "text": "332路",
+  "en": "Bus 332"
+ },
+ {
+  "kind": "door",
+  "id": "gate",
+  "tile": [
+   17,
+   4
+  ],
+  "to": {
+   "map": "yiheyuan-changlang",
+   "tile": [
+    2,
+    6
+   ],
+   "facing": "right"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "gate-name",
+  "tile": [
+   16,
+   3
+  ],
+  "text": "颐和园",
+  "en": "The Summer Palace"
+ },
+ {
+  "kind": "prop",
+  "id": "lion-l",
+  "tile": [
+   14,
+   5
+  ],
+  "frame": "lion/stone",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "lion-r",
+  "tile": [
+   20,
+   5
+  ],
+  "frame": "lion/stone",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   3,
+   19
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   28,
+   19
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "guide",
+  "npc": "daoyou",
+  "tile": [
+   22,
+   8
+  ],
+  "facing": "left"
+ }
+]

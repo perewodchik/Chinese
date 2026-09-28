@@ -1,0 +1,100 @@
+[
+ {
+  "kind": "prop",
+  "id": "bus-post",
+  "tile": [
+   8,
+   10
+  ],
+  "frame": "street-sign/blue",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "bus-board",
+  "tile": [
+   8,
+   10
+  ],
+  "text": "332路  颐和园",
+  "en": "Bus 332 to the Summer Palace"
+ },
+ {
+  "kind": "sign",
+  "id": "place",
+  "tile": [
+   2,
+   3
+  ],
+  "text": "西直门",
+  "en": "Xizhimen"
+ },
+ {
+  "kind": "sign",
+  "id": "north-station",
+  "tile": [
+   20,
+   3
+  ],
+  "text": "北京北站 →",
+  "en": "Beijing North railway station (this way)"
+ },
+ {
+  "kind": "door",
+  "id": "station",
+  "tile": [
+   30,
+   12
+  ],
+  "to": {
+   "map": "station-xizhimen",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station-2",
+  "tile": [
+   31,
+   12
+  ],
+  "to": {
+   "map": "station-xizhimen",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "metro-sign",
+  "tile": [
+   29,
+   12
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "waiting",
+  "npc": "deng-che-ren",
+  "tile": [
+   10,
+   9
+  ],
+  "facing": "left"
+ }
+]

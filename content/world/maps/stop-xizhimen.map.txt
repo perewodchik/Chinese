@@ -1,0 +1,43 @@
+id: stop-xizhimen
+size: 36x16
+tilesets: tiles
+district: yiheyuan
+crowd: 6
+bikes: 3
+
+# Outside 西直门 station: the stop for bus 332 to the Summer Palace; the railway station 北京北站 is next door
+
+[ground]
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssss
+rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+sssssssssssssssssssssssssssssszzssss
+RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+[below]
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+bbbbZZZZZZbbbbbbbbbbbbbbbbbbbbbbbbbb
+BBBBZZZZZZBBBBBBBBBBBBBBBBBBBBBBBBBB
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................
+....................................

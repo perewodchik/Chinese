@@ -1,0 +1,22 @@
+[
+  {
+    "id": "守株待兔",
+    "pinyin": "shǒuzhū-dàitù",
+    "parts": [
+      {
+        "c": "守株",
+        "gloss": "guard the stump"
+      },
+      {
+        "c": "待兔",
+        "gloss": "wait for a rabbit"
+      }
+    ],
+    "meaning": "to wait for luck instead of working; to expect the same windfall twice",
+    "story": {
+      "zh": "一个农民在地里工作。一只兔子跑来，撞到树上，死了。农民很高兴，他不工作了，每天在树旁边等兔子。兔子再也没来。",
+      "en": "A farmer was working his field when a rabbit ran into a tree stump and died. Delighted, he stopped working and waited by the stump every day for another. No rabbit ever came again. (兔儿爷 takes this personally.)"
+    },
+    "tier": "story"
+  }
+]

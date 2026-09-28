@@ -1,0 +1,19 @@
+[
+  {
+    "id": "nianshou",
+    "hanzi": "年兽",
+    "pinyin": "niánshòu",
+    "en": "the Nian beast",
+    "source": "folk",
+    "legend": {
+      "zh": "很久以前，每年的最后一个晚上，年兽会来村子里。人们发现，年兽怕红色，怕声音。所以过年的时候，人们贴红纸，放鞭炮。",
+      "en": "Long ago, on the last night of every year, the Nian beast came to the villages. People found it feared the colour red and loud noise — so at New Year they put up red paper and set off firecrackers."
+    },
+    "befriend": {
+      "kind": "request",
+      "text": "便宜点儿！",
+      "en": "Bargain it free from the stall."
+    },
+    "district": "panjiayuan"
+  }
+]

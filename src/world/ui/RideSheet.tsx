@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { playLine } from './lineVoice';
 import { arrivalCall, board, callNext, fareOut, getOff, runOn, startRide, stationSign, trainsAt, type RideState, type Train } from '../core/ride';
+import type { Mode } from '../core/travel';
 import { ZhText } from './ZhText';
 
 /** a stop takes this long on screen: the call, then the arrival */
@@ -16,6 +17,7 @@ type Phase = 'platform' | 'moving' | 'stopped';
  */
 export function RideSheet({
   from,
+  mode = 'subway',
   pinyin,
   fast,
   canExit,
@@ -24,6 +26,8 @@ export function RideSheet({
   onClose,
 }: {
   from: string;
+  /** a subway platform, a bus stop, or the railway station */
+  mode?: Mode;
   pinyin: boolean;
   /** three rides done: the calls go quicker */
   fast: boolean;
@@ -79,16 +83,16 @@ export function RideSheet({
     setLine('');
   };
 
-  const trains = trainsAt(ride.at);
+  const trains = trainsAt(ride.at, mode);
   const exitable = canExit(ride.at);
-  const fare = fareOut(ride);
+  const fare = fareOut(ride, mode);
   const onTrain = ride.train !== null;
 
   return (
     <div className="wp-scrim">
       <section className="wr" role="dialog" aria-label="Subway">
         <header className="wr-head">
-          <span className="wr-sign han">{stationSign(ride.at)}</span>
+          <span className="wr-sign han">{stationSign(ride.at)}{mode === 'bus' ? ' 🚌' : ''}</span>
           {onTrain && (
             <span className="wr-train small">
               <span className="han">
@@ -105,7 +109,7 @@ export function RideSheet({
         </header>
         <div className="wr-body">
           <p className="wr-call" aria-live="polite">
-            {line ? <ZhText zh={line} pinyin={pinyin} /> : <span className="small muted">Which train? The signs say where each one goes.</span>}
+            {line ? <ZhText zh={line} pinyin={pinyin} /> : <span className="small muted">{mode === 'bus' ? 'Which bus? The sign says where each one goes.' : 'Which train? The signs say where each one goes.'}</span>}
           </p>
           {onTrain ? (
             <div className="wr-acts">
