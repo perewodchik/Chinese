@@ -7,7 +7,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
-A8
+A9
 
 ## Tasks
 ### A — core logic
@@ -18,7 +18,7 @@ A8
 - [x] A5 Merge
 - [x] A6 Grid + A*
 - [x] A7 Conditions, quests, schedule
-- [ ] A8 Dialogue (source, scripted, match, universal, normalize)
+- [x] A8 Dialogue (source, scripted, match, universal, normalize)
 - [ ] A9 Word budget + content check
 - [ ] A10 Travel (subway, bus, train)
 - [ ] A11 Pinyin IME
@@ -77,9 +77,37 @@ A8
 - [ ] I2 iPad pass
 - [ ] I3 Final summary
 
+### J — 上海 (only if A–I are done before 10:00, see prompt §10)
+- [ ] J0 The world knows about cities (types, save v+1, map switcher)
+- [ ] J1 Design concept-shanghai.md
+- [ ] J2 Home, 外滩, 南京路, 人民广场 maps
+- [ ] J3 NPCs + chapters 1–2
+- [ ] J4 豫园 · 城隍庙, 田子坊, 新天地
+- [ ] J5 武康路, 静安寺, 陆家嘴
+- [ ] J6 Day trips 朱家角, 杭州 西湖
+- [ ] J7 Finale on the Bund, side quests
+- [ ] J8 Train from Beijing, flight out to Chengdu
+- [ ] J9 Play-through check + notes
+
+### K — 成都
+- [ ] K1 Design concept-chengdu.md
+- [ ] K2 Home, 宽窄巷子, 人民公园 maps
+- [ ] K3 NPCs + chapters 1–2
+- [ ] K4 锦里 · 武侯祠, 春熙路 · 太古里
+- [ ] K5 熊猫基地, 文殊院, 杜甫草堂
+- [ ] K6 金沙, 玉林路 at night
+- [ ] K7 Day trips 都江堰 · 青城山, 三星堆; finale
+- [ ] K8 Side quests, ways back between cities
+- [ ] K9 Play-through check + notes
+
 ## Decisions made without the learner
 _(date — decision — why)_
 - 2026-09-28 — Phaser 4.2.1 (latest stable on npm), not 3.x — the brief says latest stable; the API we use (scenes, tilemaps, cameras, tweens) is the same.
+- 2026-09-28 — A8: polite words (你好/谢谢/再见/对不起) are checked *after* the scene's intents, not before — otherwise 「你好，请问地铁在哪里？」 would get only 「你好！」. Requests (再说一遍, 慢一点, X是什么意思, 听不懂) are checked first, as §4.4 says.
+- 2026-09-28 — A8: a match "by sound only" (卖 for 买) is accepted from the keyboard too, not only from voice, with the same "I heard …" note — a homophone picked by mistake in the IME is the same slip, and help is free.
+- 2026-09-28 — A8: dictionary access goes through a small `Lexicon` interface (words / syllables / gloss) built from the app's library, so `core/` stays free of fetch and DOM. Erhua is dropped on both sides (哪儿 = 哪 = `nar`).
+- 2026-09-28 — A8: `DialogueSource` got a third method, `proceed(state)`, for "tap to go on" at nodes that expect nothing; `Turn` carries the next `state` and a `companion` cue (hint step, heard-as, not Chinese, unknown word).
+- 2026-09-28 — The learner's uncommitted additions to prompt.md (§10 Shanghai/Chengdu), concept.md (rule 5) and STATUS.md (phases J, K) were committed together with A8, since STATUS.md has to be committed with every task.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

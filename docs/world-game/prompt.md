@@ -522,3 +522,136 @@ characters 16×32 with big heads, semi-transparent shadows all falling the
 same way, lively idle animation. Integer scaling only, no smoothing. Night:
 blue tint + warm lights. Beijing colours: grey brick and tile (胡同),
 red walls and yellow roofs (故宫), green-blue painted eaves, red lanterns.
+
+---
+
+## 10. After Beijing: Shanghai, then Chengdu (added 2026-09-28, 22:10)
+
+**When:** only after every task A–I is ticked, **and only if the local time
+is before 10:00** when you reach this point. Otherwise write in STATUS.md
+that you stopped before §10 and end. Once §10 has started, keep going like
+any other phase (commit per task, resume from STATUS.md).
+
+**This overrides concept §1 rule 5 ("only Beijing")** — the learner asked
+for more cities after Beijing is done. All other rules stay: no dialect
+(no 上海话, no 四川话 — standard Mandarin everywhere), help is free, no
+quizzes, companion 兔儿爷 speaks English, scripted dialogue only, free art
+only, saves in the DB.
+
+**The learner wants these cities worked out "to the smallest detail"** —
+as rich as Beijing: real districts, real stations, many building types,
+iconic places, a story, spirits, 成语, situation words, side quests, life
+in the streets. Before building a city, write its design in the same
+depth as concept.md (in Russian, like concept.md) as
+`docs/world-game/concept-<city>.md`, commit it, then build from it.
+
+### J0 — the world knows about cities
+Add `City` (id, hanzi, English, districts, home map, arrival station) to
+the core types; `District.city`; the save gets `city` and per-city
+progress (visited, stamps passport per city). Save format version +1 with
+an upgrade that puts every existing save in `beijing`. Tests: old save
+upgrades, merge keeps per-city progress. The 🗺 map shows the current
+city; a small city switcher appears once a second city is unlocked. The
+/play card shows the current city.
+
+### J1–J9 — 上海 (world 2, HSK 2)
+Language budget: HSK 1–2 free, **at most 1 HSK 3 word per normal line**,
+key lines up to 3 HSK 4+ words or one 成语. Situation words as in Beijing.
+
+- **J1 Design** `concept-shanghai.md`. Minimum content to design:
+  - **Getting there:** unlocked by the Beijing epilogue. 北京南站 → ticket
+    window (二等座, 几点的, 身份证/护照) → departure board, 检票口 →
+    高铁 carriage scene (seat neighbour, trolley snacks, announcements) →
+    上海虹桥站 → metro line 2 into town.
+  - **Home:** a room in a 石库门 lane house (弄堂) — shared kitchen,
+    neighbours, the 灶披间.
+  - **Districts:** 石库门 弄堂 (home) · 外滩 (the Bund, river wall,
+    ferry pier) · 南京路步行街 · 人民广场 (museum, the 相亲角 marriage
+    market) · 豫园 · 城隍庙 (old town, 九曲桥, 小笼包 queue) · 田子坊 ·
+    新天地 · 武康路 / old French Concession streets under plane trees ·
+    静安寺 · 陆家嘴 (东方明珠, 上海中心 observation deck) · 朱家角
+    water town (day trip by bus) · 杭州 西湖 day trip by 高铁 (for the
+    白蛇 story: 断桥, 雷峰塔).
+  - **Building types** beyond Beijing's: 生煎 / 葱油饼 breakfast,
+    high-rise 小区 with a guard and 快递柜, 房产中介 (renting), 洗衣店,
+    共享充电宝, 医院 with 挂号 by phone, coffee bars (瑞幸 door → 点单),
+    bookshop, 夜宵.
+  - **Transport:** metro lines 1, 2, 10 (real stations: 人民广场,
+    南京东路, 陆家嘴, 豫园, 新天地, 静安寺, 虹桥火车站), the 黄浦江 ferry
+    (轮渡), 磁悬浮 to 浦东机场 (used to leave for Chengdu), bus to 朱家角.
+  - **Story:** e.g. the City God (城隍) of 城隍庙 has lost his seal and the
+    river spirits are restless; ends on the Bund at night with the lights.
+    Design 6–7 chapters like Beijing's table (district · task · spirit ·
+    成语).
+  - **Spirits (about 10):** 城隍, 财神, 月老 (相亲角), 白蛇 and 青蛇
+    (西湖), 精卫 (精卫填海 — the sea), 鲤鱼 (跃龙门), 灶王爷 (the lane
+    kitchen), 雷公 / 电母 (a typhoon night), 嫦娥 or 后羿.
+  - **成语 (about 12, easy → story):** 入乡随俗, 一帆风顺, 一举两得,
+    半途而废, 守口如瓶, 对症下药 (hospital), 刻舟求剑 (lost on the
+    ferry), 三人成虎 (a rumour), 杯弓蛇影 (白蛇 chapter), 精卫填海,
+    胸有成竹, 画饼充饥.
+  - **Situation words** per place (e.g. 房产中介: 租, 押金, 月租, 合同;
+    医院: 挂号, 预约; 外滩: 轮渡, 码头).
+  - 2–3 side quests per district, ambient life (morning 广场舞, the
+    marriage-market parents with notices, ferry horns, night lights).
+- **J2** maps + interiors of home + 外滩 + 南京路 + 人民广场.
+- **J3** NPCs and chapter 1–2 scenes.
+- **J4** 豫园 · 城隍庙, 田子坊, 新天地 (chapters 3–4).
+- **J5** 武康路, 静安寺, 陆家嘴 (chapter 5).
+- **J6** Day trips 朱家角 and 杭州 西湖 (chapter 6, 白蛇).
+- **J7** Finale on the Bund, side quests, 共享单车.
+- **J8** The train from Beijing and the airport exit to Chengdu (flight:
+  check-in, 安检, boarding gate, announcements).
+- **J9** Play-through check at 390/1024 + WebKit, screenshots in
+  `review/shanghai/`, notes for the learner.
+
+### K1–K9 — 成都 (world 3, HSK 2–3)
+Language budget: HSK 1–3 free, **at most 1 HSK 4 word per normal line**,
+key lines up to 3 HSK 5+ words or one 成语.
+
+- **K1 Design** `concept-chengdu.md`. Minimum content to design:
+  - **Getting there:** flight 上海浦东 → 成都天府 (or the 高铁 to 成都东
+    as an alternative the player can choose), airport express metro
+    line 18 into town.
+  - **Home:** a room above a teahouse inn (客栈) near 宽窄巷子.
+  - **Districts:** 宽窄巷子 (home) · 人民公园 (鹤鸣茶社, 采耳, 相亲角,
+    boats) · 锦里 · 武侯祠 (三国, 诸葛亮) · 春熙路 · 太古里 · 大熊猫
+    繁育研究基地 (pandas, early morning) · 文殊院 (temple, vegetarian
+    food) · 杜甫草堂 (poetry) · 金沙遗址 (太阳神鸟) · 玉林路 at night
+    (little bars, 串串) · day trips: 都江堰 + 青城山 (bus/train),
+    三星堆 in 广汉 (bus).
+  - **Building types** beyond the others: 茶馆 with 盖碗茶 and mahjong
+    (numbers!), 火锅 restaurant (锅底, 微辣/中辣/特辣, 鸳鸯锅, 蘸料 — and
+    the 海底捞 door → 点单), 串串, 川剧 theatre with 变脸, 采耳 stall,
+    菜市场 with 花椒 and 辣椒, 快递, 小区.
+  - **Transport:** metro lines 1, 2, 3, 4, 18 (real stations: 天府广场,
+    春熙路, 宽窄巷子, 人民公园, 熊猫大道, 文殊院, 金沙博物馆,
+    天府国际机场), buses to 熊猫基地 / 都江堰, train to 青城山.
+  - **Story:** e.g. the 太阳神鸟 of Jinsha has lost its sun and the old
+    Shu spirits wake up; finale at 金沙 or 三星堆 at dawn. 6–7 chapters.
+  - **Spirits (about 10):** 太阳神鸟, a 三星堆 bronze-mask spirit (纵目),
+    望帝 / 杜鹃, 蚕丛, 李冰's stone rhinoceros 石犀 (都江堰), 食铁兽 (the
+    old name of the panda), 川剧 mask spirit, 文殊's lion, the 青城山
+    Daoist immortal, 锦官城 brocade spirit.
+  - **成语 (about 12):** 乐不思蜀, 三顾茅庐, 如鱼得水, 草船借箭,
+    锦上添花 (锦里), 水到渠成 (都江堰), 慢条斯理 (slow life),
+    津津有味 (food), 得陇望蜀, 蜀犬吠日, 一鸣惊人, 百闻不如一见.
+  - **Situation words** per place (火锅: 锅底, 微辣, 蘸料, 毛肚, 鸭肠;
+    茶馆: 盖碗, 续水, 麻将; 熊猫基地: 饲养员, 竹子; 采耳).
+  - 2–3 side quests per district, ambient life (mahjong clatter, 采耳
+    tools ringing, pandas at feeding time, spicy steam, slow afternoons).
+- **K2** maps + interiors of home + 宽窄巷子 + 人民公园.
+- **K3** NPCs and chapter 1–2 scenes.
+- **K4** 锦里 · 武侯祠, 春熙路 · 太古里 (chapters 3–4).
+- **K5** 熊猫基地, 文殊院, 杜甫草堂 (chapter 5).
+- **K6** 金沙 and the night at 玉林路 (chapter 6).
+- **K7** Day trips 都江堰 · 青城山 and 三星堆; finale.
+- **K8** Side quests, 共享单车, the way back (trains/flights to Beijing
+  and Shanghai, a fast ticket after the first trip).
+- **K9** Play-through check, screenshots in `review/chengdu/`, notes.
+
+Art for both cities: extend the same palette and module kit (§9):
+Shanghai — 石库门 grey-and-red brick, arched stone door frames,
+plane trees, Bund stone facades, glass towers, river water and ferries;
+Chengdu — dark wood teahouses, bamboo chairs, red lanterns, bamboo,
+pandas, bronze-green 三星堆 masks, gold sun-bird motif. Stamps per city.
