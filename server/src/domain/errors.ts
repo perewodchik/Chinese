@@ -1,4 +1,5 @@
 import type { ApiErrorCode, WorkspaceDto } from '../../../shared/api';
+import type { WorldSaveDto } from '../../../shared/world';
 
 /**
  * Failures the application knows how to name.
@@ -94,6 +95,16 @@ export class RevisionConflictError extends AppError {
 
   constructor(current: WorkspaceDto) {
     super('conflict', 'This workspace was saved from somewhere else in the meantime.');
+    this.current = current;
+  }
+}
+
+/** A game save built on a revision the server has already moved past. */
+export class WorldConflictError extends AppError {
+  readonly current: WorldSaveDto;
+
+  constructor(current: WorldSaveDto) {
+    super('conflict', 'This game was saved from somewhere else in the meantime.');
     this.current = current;
   }
 }

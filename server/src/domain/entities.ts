@@ -35,3 +35,11 @@ export interface Workspace {
   document: unknown;
   updatedAt: number;
 }
+
+/** 走走's game save: one per account, kept as the game gives it. */
+export interface WorldSaveRecord {
+  userId: string;
+  revision: number;
+  save: unknown;
+  updatedAt: number;
+}

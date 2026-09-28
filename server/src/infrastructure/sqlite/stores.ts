@@ -4,11 +4,13 @@ import { SqliteConversationRepository } from './conversation-repository';
 import { SqliteSessionRepository } from './session-repository';
 import { SqliteUserRepository } from './user-repository';
 import { SqliteWorkspaceRepository } from './workspace-repository';
+import { SqliteWorldSaveRepository } from './world-save-repository';
 
 /** Everything kept in the one SQLite file. */
 export const sqliteStores = (db: DatabaseSync): Stores => ({
   users: new SqliteUserRepository(db),
   sessions: new SqliteSessionRepository(db),
   workspaces: new SqliteWorkspaceRepository(db),
+  worldSaves: new SqliteWorldSaveRepository(db),
   conversations: new SqliteConversationRepository(db),
 });

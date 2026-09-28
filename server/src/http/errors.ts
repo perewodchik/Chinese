@@ -2,7 +2,8 @@ import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { ApiErrorBody, ApiErrorCode, WorkspaceConflictBody } from '../../../shared/api';
-import { AppError, RateLimitedError, RevisionConflictError } from '../domain/errors';
+import type { WorldConflictBody } from '../../../shared/world';
+import { AppError, RateLimitedError, RevisionConflictError, WorldConflictError } from '../domain/errors';
 
 const STATUS: Record<ApiErrorCode, ContentfulStatusCode> = {
   validation: 400,
@@ -29,6 +30,10 @@ export function handleError(log: (line: string) => void) {
   return (err: Error, c: Context): Response => {
     if (err instanceof RevisionConflictError) {
       const body: WorkspaceConflictBody = { ...errorBody(err.code, err.message), current: err.current };
+      return c.json(body, 409);
+    }
+    if (err instanceof WorldConflictError) {
+      const body: WorldConflictBody = { error: { code: 'conflict', message: err.message }, current: err.current };
       return c.json(body, 409);
     }
     if (err instanceof AppError) {

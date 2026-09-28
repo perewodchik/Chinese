@@ -10,8 +10,10 @@ import type {
   Tutor,
   UserRepository,
   WorkspaceRepository,
+  WorldSaveRepository,
 } from './application/ports';
 import { WorkspaceService } from './application/workspace-service';
+import { WorldService } from './application/world-service';
 import { systemClock } from './infrastructure/clock';
 import { ScryptHasher } from './infrastructure/crypto/scrypt-hasher';
 import { cryptoTokens } from './infrastructure/crypto/tokens';
@@ -19,6 +21,8 @@ import { cryptoTokens } from './infrastructure/crypto/tokens';
 export interface Services {
   auth: AuthService;
   workspaces: WorkspaceService;
+  /** 走走's game saves */
+  world: WorldService;
   conversations: ConversationService;
   clock: Clock;
   /** a natural voice for reading Mandarin aloud, or null where none is configured */
@@ -34,6 +38,7 @@ export interface Stores {
   users: UserRepository;
   sessions: SessionRepository;
   workspaces: WorkspaceRepository;
+  worldSaves: WorldSaveRepository;
   conversations: ConversationRepository;
 }
 
@@ -66,10 +71,12 @@ export function createServices(
     policy: { ...DEFAULT_AUTH_POLICY, ...options.policy },
   });
   const workspaces = new WorkspaceService({ workspaces: stores.workspaces, clock });
+  const world = new WorldService({ saves: stores.worldSaves, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
   return {
     auth,
     workspaces,
+    world,
     conversations,
     clock,
     speech: options.speech ?? null,

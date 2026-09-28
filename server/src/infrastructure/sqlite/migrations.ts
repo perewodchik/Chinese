@@ -54,4 +54,15 @@ export const MIGRATIONS: readonly string[] = [
 
   CREATE INDEX conversations_by_user ON conversations (user_id, updated_at DESC);
   `,
+  // 走走, the walk through Beijing: one game save per account, apart from the
+  // workspace — the game saves on every map change and conversation, and
+  // must not move the workspace's revision each time.
+  `
+  CREATE TABLE world_saves (
+    user_id    TEXT PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
+    revision   INTEGER NOT NULL,
+    save       TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  ) STRICT;
+  `,
 ];

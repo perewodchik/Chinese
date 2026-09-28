@@ -58,4 +58,13 @@ export const MIGRATIONS: readonly string[] = [
 
   CREATE INDEX conversations_by_user ON conversations (user_id, updated_at DESC);
   `,
+  // 走走's game saves; see the SQLite migrations.
+  `
+  CREATE TABLE world_saves (
+    user_id    TEXT PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
+    revision   INTEGER NOT NULL,
+    save       TEXT NOT NULL,
+    updated_at BIGINT NOT NULL
+  );
+  `,
 ];

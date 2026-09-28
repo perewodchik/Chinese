@@ -12,6 +12,7 @@ import { speechRoutes } from './routes/speech';
 import { talkRoutes } from './routes/talk';
 import { videoRoutes } from './routes/videos';
 import { workspaceRoutes } from './routes/workspace';
+import { worldRoutes } from './routes/world';
 import { staticSite } from './static-site';
 
 export interface HttpOptions {
@@ -56,6 +57,7 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   api.route('/auth', authRoutes(deps));
   api.route('/ask', askRoutes(deps));
   api.route('/workspace', workspaceRoutes(deps));
+  api.route('/world', worldRoutes(deps));
   api.route('/speech', speechRoutes(deps));
   api.route('/talk', talkRoutes(deps));
   api.route('/videos', videoRoutes(deps));

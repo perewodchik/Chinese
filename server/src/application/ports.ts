@@ -6,7 +6,7 @@ import type {
   TalkReply,
   TalkRequest,
 } from '../../../shared/talk';
-import type { Session, User, Workspace } from '../domain/entities';
+import type { Session, User, Workspace, WorldSaveRecord } from '../domain/entities';
 
 /**
  * What the use cases need from the outside world, and nothing about how it is
@@ -50,6 +50,21 @@ export interface WorkspaceRepository {
    * newer than this one's, as one atomic compare-and-swap.
    */
   save(userId: string, baseRevision: number, document: unknown, at: number): Promise<WorkspaceWrite>;
+}
+
+export type WorldSaveWrite =
+  | { saved: true; revision: number; updatedAt: number }
+  | { saved: false; current: WorldSaveRecord | null };
+
+/** 走走's saves, under the same compare-and-swap rule as the workspace. */
+export interface WorldSaveRepository {
+  find(userId: string): Promise<WorldSaveRecord | null>;
+  revisionOf(userId: string): Promise<number>;
+  /**
+   * Writes only if the stored revision is still `baseRevision` (0: nothing
+   * stored yet) and the stored save's `version` is no newer than this one's.
+   */
+  save(userId: string, baseRevision: number, save: unknown, at: number): Promise<WorldSaveWrite>;
 }
 
 /**

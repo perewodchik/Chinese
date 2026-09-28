@@ -41,3 +41,6 @@ export const WORLD_API = '/api/world';
 
 /** The largest save the server accepts, in bytes of JSON. */
 export const WORLD_SAVE_MAX_BYTES = 512 * 1024;
+
+/** The ETag of a revision, as for the workspace: `"w41"`. */
+export const worldTag = (revision: number) => `"w${revision}"`;
