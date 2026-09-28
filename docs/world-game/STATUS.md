@@ -7,13 +7,13 @@ first unchecked box. Tick a box in the same commit as the work.
 _(the builder writes here: what to look at first, screenshots in `review/`)_
 
 ## Current task
-A3
+A4
 
 ## Tasks
 ### A — core logic
 - [x] A1 Setup (phaser, skeleton, shared/world.ts, content README)
 - [x] A2 Types + content schemas
-- [ ] A3 Clock
+- [x] A3 Clock
 - [ ] A4 Save reducer + migrate
 - [ ] A5 Merge
 - [ ] A6 Grid + A*
