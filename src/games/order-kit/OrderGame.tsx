@@ -62,7 +62,6 @@ function makeTimes(rng: Rng): Times {
 /** The stage is side by side from this width; below it the guide is a drawer. */
 const WIDE = 690;
 
-const CAPSULE_KEY = 'hanzi-workshop/order-capsule-told';
 
 export function OrderGame({ brand, ctx, rounds, report, finish, words: wordHost, leave }: GameProps & { brand: Brand }) {
   const gl = useMemo(() => glossaryOf(brand), [brand]);
@@ -289,24 +288,29 @@ export function OrderGame({ brand, ctx, rounds, report, finish, words: wordHost,
   const wide = !full && size.w >= WIDE;
   useEffect(() => {
     if (!full) return;
+    // The site's bars are hidden, not just covered: iOS Safari paints its
+    // sticky top bar over a fixed layer whatever the z-index says, and the
+    // mini-app's own nav bar (with the capsule, the way to the guide) went
+    // under it.
     const html = document.documentElement;
-    const before = html.style.overflow;
+    const before = { html: html.style.overflow, body: document.body.style.overflow };
     html.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    html.dataset.okFull = '';
     return () => {
-      html.style.overflow = before;
+      html.style.overflow = before.html;
+      document.body.style.overflow = before.body;
+      delete html.dataset.okFull;
     };
   }, [full]);
-  // the first time, say where the guide went
+  // each time a shop opens full screen, say where the guide is
+  const [capsuleHint, setCapsuleHint] = useState(false);
   useEffect(() => {
     if (!full) return;
-    try {
-      if (localStorage.getItem(CAPSULE_KEY)) return;
-      localStorage.setItem(CAPSULE_KEY, '1');
-    } catch {
-      return;
-    }
-    setFloatHint('··· at the top opens the guide; ◎ leaves the shop.');
-  }, [full]);
+    setCapsuleHint(true);
+    const t = window.setTimeout(() => setCapsuleHint(false), 5000);
+    return () => window.clearTimeout(t);
+  }, [full, mode]);
 
   const app: AppApi = {
     brand,
@@ -534,6 +538,11 @@ export function OrderGame({ brand, ctx, rounds, report, finish, words: wordHost,
         >
           <div className="ok-phone" ref={phone} data-pinyin={pinyin || undefined}>
             <MiniApp dir={dir} toast={toast} overlay={overlay} />
+            {full && capsuleHint && !guideOpen && (
+              <button type="button" className="ok-capsule-hint small" onClick={() => setCapsuleHint(false)}>
+                <b>···</b> opens the guide · <b>◎</b> leaves the shop
+              </button>
+            )}
           </div>
           {wide ? (
             guide
