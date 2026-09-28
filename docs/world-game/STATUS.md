@@ -4,7 +4,7 @@ The builder reads `prompt.md` §0, then this file, and continues at the
 first unchecked box. Tick a box in the same commit as the work.
 
 ## For the learner (morning notes)
-_(the builder writes here: what to look at first, screenshots in `review/`)_
+**2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
 A4
