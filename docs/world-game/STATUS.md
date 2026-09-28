@@ -7,7 +7,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
-C2
+C3
 
 ## Tasks
 ### A — core logic
@@ -29,7 +29,7 @@ C2
 
 ### C — art
 - [x] C1 Palette + pixel builder + recolour
-- [ ] C2 Free packs (CC0/CC-BY only) + CREDITS
+- [x] C2 Free packs (CC0/CC-BY only) + CREDITS
 - [ ] C3 Beijing modules, hero, 兔儿爷, NPC bases
 - [ ] C4 Prototype: 胡同 street + 天安门 gate, screenshots in review/
 
@@ -115,6 +115,7 @@ _(date — decision — why)_
 - 2026-09-28 — B1: the ETag of a world save is `"w<rev>"` (the workspace's is `"r<rev>"`), so the two can never be confused in a cache. A conflict has its own error class (`WorldConflictError`) whose 409 body carries `current: WorldSaveDto`.
 - 2026-09-28 — B2: on open, a device copy with unsent changes is merged with the server save (not just "newer wins"), so a session played offline on the iPad and one on the Mac both survive. After three conflicts in a row the sync shows `failing` and retries in 15 s. A save on the server from a newer app build puts sync in `outdated`: the game plays on from the device copy but never writes.
 - 2026-09-28 — C1: no image library is installed, so the art pipeline has its own small PNG writer/reader on `node:zlib` (RGBA out; RGBA/RGB/grey/palette in, non-interlaced). One palette of 45 lettered colours (`scripts/world/art/palette.ts`); `.px` supports `= mirror <frame>`, copies and `variant: name r>n …` palette swaps for NPC bases. Recolour maps to the nearest palette colour in Lab space and can emit an editable `.px`.
+- 2026-09-28 — C2: **no packs downloaded.** Fetching files from the internet needs the learner's own OK, and nobody was awake to give it; the brief allows drawing everything with the C1 pipeline, so the game uses only its own art. Candidates for the learner to approve later (all listed as CC0 by their authors — re-check the license page before downloading): Kenney "RPG Urban Pack" (16×16, modern streets — good for 三里屯/国贸), Kenney "Roguelike City/Indoor" packs, Ninja Adventure by Pixel-boy & AAA (16×16, has East-Asian roofs). `content/world/art/vendor/README.md` says how to add one, `recolour.ts` fits it to the palette.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
