@@ -11,6 +11,9 @@ import { loadContent, useWorldContent, EMPTY_CONTENT } from '../../world/ui/cont
 import { castMap, looksOf } from '../../world/core/cast';
 import { Dialogue, lookOf } from '../../world/ui/Dialogue';
 import { InputBar } from '../../world/ui/InputBar';
+import { RideSheet } from '../../world/ui/RideSheet';
+import { fareOut } from '../../world/core/ride';
+import { rideKey } from '../../world/core/travel';
 import { Joystick } from '../../world/ui/Joystick';
 import { Panels } from '../../world/ui/Panels';
 import type { PanelId } from '../../world/ui/panelRows';
@@ -74,10 +77,12 @@ export function WorldPage() {
   const [minutes, setMinutes] = useState(0);
   const [pal, setPal] = useState<{ open: boolean; said: string | null }>({ open: false, said: null });
   const [panel, setPanel] = useState<PanelId | null>(null);
+  /** on a platform: the station you board at */
+  const [riding, setRiding] = useState<string | null>(null);
   const mapIndex = useRef<MapIndex>({});
   const lastActive = useRef(Date.now());
   const busy = useRef(false);
-  busy.current = note !== null || talk.view !== null || panel !== null;
+  busy.current = note !== null || talk.view !== null || panel !== null || riding !== null;
 
   useEffect(() => {
     const html = document.documentElement;
@@ -144,6 +149,13 @@ export function WorldPage() {
           onLook: (o: MapObject) => {
             const s = game.current();
             if (!s) return;
+            // the board on a platform: the trains (every station map is called station-<id>)
+            if (o.kind === 'sign' && o.id === 'board' && s.place.map.startsWith('station-')) {
+              const here = s.place.map.slice('station-'.length);
+              game.dispatch([{ do: 'station', station: here }]);
+              setRiding(here);
+              return;
+            }
             const c = contentRef.current;
             const scene = sceneFor(c.scenes, s, { look: o.id, map: s.place.map });
             if (scene) {
@@ -286,8 +298,8 @@ export function WorldPage() {
 
   // A full-screen panel stops the world: no drawing, no clock (D7).
   useEffect(() => {
-    world.current?.setPaused(panel !== null);
-  }, [panel]);
+    world.current?.setPaused(panel !== null || riding !== null);
+  }, [panel, riding]);
   useEffect(() => {
     if (!panel) return;
     const esc = (e: KeyboardEvent) => e.key === 'Escape' && setPanel(null);
@@ -362,6 +374,27 @@ export function WorldPage() {
           }}
           lex={lex}
           talking={!!talk.view}
+        />
+      )}
+      {riding && game.save && (
+        <RideSheet
+          from={riding}
+          pinyin={game.save.settings.pinyin}
+          fast={Object.values(game.save.rides).reduce((a, b) => a + b, 0) >= 3}
+          canExit={(id) => !!mapIndex.current[`station-${id}`]}
+          card={game.save.bag.card ?? 0}
+          onClose={() => setRiding(null)}
+          onExit={(r) => {
+            setRiding(null);
+            const fare = fareOut(r);
+            game.dispatch([
+              ...(fare ? [{ do: 'card' as const, amount: -fare }] : []),
+              { do: 'station', station: r.at },
+              ...(r.at !== r.from ? [{ do: 'ride' as const, route: rideKey(r.from, r.at) }] : []),
+            ]);
+            // every station map has its board at [8, 10]: you step off in front of it
+            if (r.at !== riding) world.current?.travel({ map: `station-${r.at}`, tile: [8, 11], facing: 'down' });
+          }}
         />
       )}
       {game.save?.settings.joystick && state === 'ready' && !talk.view && !panel && (

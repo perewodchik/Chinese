@@ -1,0 +1,264 @@
+[
+ {
+  "id": "tamd-gates-in",
+  "map": "station-tiananmendong",
+  "object": "gates-in",
+  "trigger": "look",
+  "priority": 0,
+  "when": {
+   "flag": "has-card"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "刷卡",
+    "explain": "在门那儿放一下卡。",
+    "en": "tap the card"
+   },
+   {
+    "w": "进站",
+    "explain": "走进地铁站。",
+    "en": "go into the station"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "刷卡，进站！",
+    "translate": "Tap the card — in you go!",
+    "speaker": "hero",
+    "simpler": "刷卡。进站。",
+    "onEnter": [
+     {
+      "do": "teleport",
+      "map": "station-tiananmendong",
+      "tile": [
+       11,
+       9
+      ],
+      "facing": "down"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "tamd-gates-nocard",
+  "map": "station-tiananmendong",
+  "object": "gates-in",
+  "trigger": "look",
+  "priority": 1,
+  "start": "a",
+  "words": [
+   {
+    "w": "交通卡",
+    "explain": "坐地铁的卡。",
+    "en": "transport card"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你没有交通卡。",
+    "translate": "You haven't got a transport card.",
+    "speaker": "companion",
+    "simpler": "去买交通卡吧。",
+    "why": "The attendant by the ticket machines sells the 交通卡."
+   }
+  ]
+ },
+ {
+  "id": "tamd-gates-out",
+  "map": "station-tiananmendong",
+  "object": "gates-out",
+  "trigger": "look",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好，出去。",
+    "translate": "Right — out through the gates.",
+    "speaker": "hero",
+    "onEnter": [
+     {
+      "do": "teleport",
+      "map": "station-tiananmendong",
+      "tile": [
+       11,
+       5
+      ],
+      "facing": "up"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "first-ride",
+  "map": "station-tiananmendong",
+  "trigger": "auto",
+  "once": true,
+  "stamp": "subway",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我坐地铁到了天安门东！",
+    "translate": "I took the subway all the way to 天安门东!",
+    "speaker": "hero",
+    "why": "到 after a verb: you got there. A stamp for your first ride."
+   }
+  ]
+ },
+ {
+  "id": "tam-arrive",
+  "map": "tiananmen-square",
+  "trigger": "auto",
+  "once": true,
+  "stamp": "tiananmen",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这是天安门！很大！",
+    "translate": "So this is Tiananmen! It's huge!",
+    "speaker": "hero",
+    "next": "b",
+    "why": "天安门 — the Gate of Heavenly Peace — was the front gate of the imperial city. Behind it lies 故宫, the Palace Museum."
+   },
+   {
+    "id": "b",
+    "say": "我们去故宫看看吧。",
+    "translate": "Let's go and look at the palace.",
+    "speaker": "companion"
+   }
+  ]
+ },
+ {
+  "id": "tam-guard",
+  "map": "tiananmen-square",
+  "npc": "tam-guard",
+  "trigger": "talk",
+  "priority": 0,
+  "start": "a",
+  "words": [
+   {
+    "w": "票",
+    "explain": "进门要的，要花钱买。",
+    "en": "ticket"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！去故宫吗？",
+    "translate": "Hello! Going to the palace?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "好的",
+        "行",
+        "可以",
+        "要",
+        "是",
+        "对",
+        "故宫",
+        "去"
+       ]
+      ],
+      "go": "b"
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "不去",
+        "没有"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "故宫",
+     "frame": "对，我去___。",
+     "full": "对，我去故宫。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "去故宫要票。你有票吗？",
+    "translate": "The palace needs a ticket. Do you have one?",
+    "simpler": "你有票吗？",
+    "expect": [
+     {
+      "intent": "no-ticket",
+      "match": [
+       [
+        "没",
+        "没有",
+        "不"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "没有",
+     "frame": "___，我没有票。",
+     "full": "没有，我没有票。"
+    }
+   },
+   {
+    "id": "d",
+    "say": "票要在网上买，要写你的名字。你明天再来吧。",
+    "translate": "Tickets are bought online, with your name on them. Come back another day.",
+    "simpler": "票要在网上买。",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "palace-needs-ticket"
+     }
+    ],
+    "why": "A real Beijing rule: the Palace Museum sells tickets online only, booked days ahead in your own name (with your passport). The story comes back to it in chapter 7."
+   },
+   {
+    "id": "c",
+    "say": "好。这儿很好看，你看看吧！",
+    "translate": "All right. It's beautiful here — have a look around!"
+   }
+  ]
+ },
+ {
+  "id": "tam-photo",
+  "map": "tiananmen-square",
+  "npc": "tam-photographer",
+  "trigger": "talk",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！这儿很好看！",
+    "translate": "Hello! Beautiful here, isn't it!"
+   }
+  ]
+ },
+ {
+  "id": "tam-staff",
+  "map": "station-tiananmendong",
+  "npc": "tam-staff",
+  "trigger": "talk",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！天安门在外面。",
+    "translate": "Hello! Tiananmen is just outside."
+   }
+  ]
+ }
+]

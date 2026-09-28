@@ -4,13 +4,61 @@
     "title": "A new home in the hutong",
     "chapter": 1,
     "steps": [
-      { "id": "meet-wang", "now": "Go out into the courtyard and say hello to 王阿姨, your landlady.", "done": { "scene": "arrive" } },
-      { "id": "breakfast", "now": "Have breakfast at the 早点铺 on 南锣鼓巷: out of the courtyard gate, then east along the lane.", "done": { "scene": "breakfast" } },
-      { "id": "lantern", "now": "Go back to the courtyard and look at 王阿姨's old lantern.", "done": { "flag": "lantern-broken" } },
-      { "id": "rumour", "now": "The lantern's spirits have run off. Ask people if they have seen anything strange — the teahouse 茶馆 and the corner shop 小卖部 on 南锣鼓巷 hear everything.", "done": { "flag": "heard-lion" } },
-      { "id": "lion", "now": "They say the stone lion by the Drum Tower 鼓楼 moves at night. Ask the way if you need to (it is west of your lane), and go after dark — 老刘 at the teahouse lets you sit till evening.", "done": { "spirit": "shishizi" } },
-      { "id": "card", "now": "The spirits could be anywhere in Beijing. Buy a 交通卡 at 南锣鼓巷 station, at the east end of the lanes.", "done": { "scene": "card" } },
-      { "id": "ride", "now": "Take the subway to 天安门东 — through the gates, down to the platform.", "done": { "station": "tiananmendong" } }
+      {
+        "id": "meet-wang",
+        "now": "Go out into the courtyard and say hello to 王阿姨, your landlady.",
+        "done": {
+          "scene": "arrive"
+        }
+      },
+      {
+        "id": "breakfast",
+        "now": "Have breakfast at the 早点铺 on 南锣鼓巷: out of the courtyard gate, then east along the lane.",
+        "done": {
+          "scene": "breakfast"
+        }
+      },
+      {
+        "id": "lantern",
+        "now": "Go back to the courtyard and look at 王阿姨's old lantern.",
+        "done": {
+          "flag": "lantern-broken"
+        }
+      },
+      {
+        "id": "rumour",
+        "now": "The lantern's spirits have run off. Ask people if they have seen anything strange — the teahouse 茶馆 and the corner shop 小卖部 on 南锣鼓巷 hear everything.",
+        "done": {
+          "flag": "heard-lion"
+        }
+      },
+      {
+        "id": "lion",
+        "now": "They say the stone lion by the Drum Tower 鼓楼 moves at night. Ask the way if you need to (it is west of your lane), and go after dark — 老刘 at the teahouse lets you sit till evening.",
+        "done": {
+          "spirit": "shishizi"
+        }
+      },
+      {
+        "id": "card",
+        "now": "The spirits could be anywhere in Beijing. Buy a 交通卡 at 南锣鼓巷 station, at the east end of the lanes.",
+        "done": {
+          "scene": "card"
+        }
+      },
+      {
+        "id": "ride",
+        "now": "Take the subway to 天安门东: through the gates (tap your card), find the board on the platform, line 8 south to 王府井, then line 1 one stop.",
+        "done": {
+          "station": "tiananmendong"
+        }
+      }
+    ],
+    "reward": [
+      {
+        "do": "chapter",
+        "chapter": 2
+      }
     ]
   }
 ]

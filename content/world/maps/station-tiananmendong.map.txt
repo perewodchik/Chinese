@@ -1,10 +1,10 @@
-id: station-nanluoguxiang
+id: station-tiananmendong
 size: 24x16
 tilesets: tiles
-district: gulou
-crowd: 3
+district: tiananmen
+crowd: 4
 
-# 南锣鼓巷 station: ticket machines, the gates, the platform (lines 6 and 8)
+# 天安门东 station: the gates, the platform
 
 [ground]
 tttttttttttttttttttttttt

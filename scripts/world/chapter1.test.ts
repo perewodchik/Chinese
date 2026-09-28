@@ -5,6 +5,7 @@ import { ScriptedDialogue } from '../../src/world/core/dialogue/scripted';
 import { activeQuests, advanceQuests } from '../../src/world/core/quests';
 import { applyAll, newSave, type SaveAction } from '../../src/world/core/save';
 import { autoScene, sceneFor } from '../../src/world/core/scenes';
+import { board, fareOut, getOff, nextStop, runOn, startRide, trainsAt } from '../../src/world/core/ride';
 import type { DialogueNode, WorldSave } from '../../src/world/core/types';
 import { checkContent, readLibrary } from './check-content';
 
@@ -95,6 +96,32 @@ describe('chapter 1, played through the core', () => {
     assert.equal(s.bag.card, 20);
     assert.equal(s.bag.money, 6);
     assert.equal(step(s), 'ride');
+    assert.ok(s.flags.includes('has-card'));
+
+    // the gates let you through with the card; the ride as the page plays it
+    assert.equal(sceneFor(scenes, s, { look: 'gates-in', map: 'station-nanluoguxiang' })?.id, 'nlgx-gates-in');
+    s = play(s, 'nlgx-gates-in').save;
+    let r = startRide('nanluoguxiang');
+    r = board(r, trainsAt('nanluoguxiang').find((t) => t.line === 'l8' && t.dir === 1)!);
+    while (r.at !== 'wangfujing') r = runOn(r);
+    r = getOff(r);
+    r = runOn(board(r, trainsAt('wangfujing').find((t) => t.line === 'l1' && nextStop('l1', 'wangfujing', t.dir) === 'tiananmendong')!));
+    s = act(s, [{ do: 'card', amount: -fareOut(r) }, { do: 'station', station: r.at }]);
+    assert.equal(s.bag.card, 17);
+    assert.equal(activeQuests(s, quests).length, 0);
+    assert.equal(s.quests.ch1?.done, true);
+    assert.equal(s.chapter, 2);
+
+    s = play(s, 'first-ride').save;
+    s = play(s, 'tam-arrive').save;
+    s = play(s, 'tam-guard').save;
+    assert.ok(s.flags.includes('palace-needs-ticket'));
+    assert.ok('subway' in s.stamps && 'tiananmen' in s.stamps);
+  });
+
+  it('without a card the gates say so', () => {
+    assert.equal(sceneFor(scenes, newSave('d', 0), { look: 'gates-in', map: 'station-nanluoguxiang' })?.id, 'nlgx-gates-nocard');
+
   });
 
   it('the corner shop tells the rumour too, and sells water', () => {

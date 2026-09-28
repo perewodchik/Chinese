@@ -7,10 +7,10 @@
    2
   ],
   "to": {
-   "map": "subway-lane",
+   "map": "tiananmen-square",
    "tile": [
-    27,
-    9
+    34,
+    23
    ],
    "facing": "down"
   }
@@ -29,27 +29,14 @@
   ]
  },
  {
-  "kind": "prop",
-  "id": "machine-2",
-  "tile": [
-   8,
-   4
-  ],
-  "frame": "ticket-machine/blue",
-  "blocks": [
-   1,
-   1
-  ]
- },
- {
   "kind": "sign",
   "id": "name",
   "tile": [
    12,
    1
   ],
-  "text": "南锣鼓巷",
-  "en": "Nanluoguxiang"
+  "text": "天安门东",
+  "en": "Tiananmen East"
  },
  {
   "kind": "sign",
@@ -58,8 +45,8 @@
    18,
    1
   ],
-  "text": "6号线  8号线",
-  "en": "Line 6 · Line 8"
+  "text": "1号线",
+  "en": "The lines here"
  },
  {
   "kind": "sign",
@@ -111,15 +98,15 @@
    8,
    10
   ],
-  "text": "6号线  8号线",
-  "en": "Line 6 · Line 8 — the trains"
+  "text": "1号线",
+  "en": "The trains"
  },
  {
   "kind": "npc",
   "id": "staff",
-  "npc": "station-staff",
+  "npc": "tam-staff",
   "tile": [
-   14,
+   15,
    5
   ],
   "facing": "down"

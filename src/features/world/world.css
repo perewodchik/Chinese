@@ -1183,3 +1183,88 @@
   font-size: 18px;
   cursor: pointer;
 }
+
+/* --- the subway: platform and train */
+.wr {
+  width: min(560px, 100%);
+  display: grid;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.wr-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 12px;
+  background: #35508f; /* the station's own blue sign, in both themes */
+  color: #f8f5ec;
+  white-space: nowrap;
+}
+
+.wr-head .spacer {
+  flex: 1;
+}
+
+.wr-sign {
+  font-family: var(--han);
+  font-size: 22px;
+}
+
+.wr-train {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.9;
+}
+
+.wr-body {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px 16px;
+}
+
+.wr-call {
+  min-height: 64px; /* a call, an arrival or nothing: the same room */
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.wr-trains {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wr-train-btn {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wr-train-btn b {
+  font-weight: 500;
+  margin-right: 6px;
+}
+
+.wr-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}

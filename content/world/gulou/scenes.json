@@ -1374,6 +1374,18 @@
        {
         "do": "card",
         "amount": 20
+       },
+       {
+        "do": "flag",
+        "flag": "has-card"
+       },
+       {
+        "do": "flag",
+        "flag": "has-card"
+       },
+       {
+        "do": "flag",
+        "flag": "has-card"
        }
       ]
      },
@@ -1493,6 +1505,100 @@
     "say": "现在不睡。",
     "translate": "Not now.",
     "speaker": "hero"
+   }
+  ]
+ },
+ {
+  "id": "nlgx-gates-in",
+  "map": "station-nanluoguxiang",
+  "object": "gates-in",
+  "trigger": "look",
+  "priority": 0,
+  "when": {
+   "flag": "has-card"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "刷卡",
+    "explain": "在门那儿放一下卡。",
+    "en": "tap the card"
+   },
+   {
+    "w": "进站",
+    "explain": "走进地铁站。",
+    "en": "go into the station"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "刷卡，进站！",
+    "translate": "Tap the card — in you go!",
+    "speaker": "hero",
+    "simpler": "刷卡。进站。",
+    "onEnter": [
+     {
+      "do": "teleport",
+      "map": "station-nanluoguxiang",
+      "tile": [
+       11,
+       9
+      ],
+      "facing": "down"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "nlgx-gates-nocard",
+  "map": "station-nanluoguxiang",
+  "object": "gates-in",
+  "trigger": "look",
+  "priority": 1,
+  "start": "a",
+  "words": [
+   {
+    "w": "交通卡",
+    "explain": "坐地铁的卡。",
+    "en": "transport card"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你没有交通卡。",
+    "translate": "You haven't got a transport card.",
+    "speaker": "companion",
+    "simpler": "去买交通卡吧。",
+    "why": "The attendant by the ticket machines sells the 交通卡."
+   }
+  ]
+ },
+ {
+  "id": "nlgx-gates-out",
+  "map": "station-nanluoguxiang",
+  "object": "gates-out",
+  "trigger": "look",
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好，出去。",
+    "translate": "Right — out through the gates.",
+    "speaker": "hero",
+    "onEnter": [
+     {
+      "do": "teleport",
+      "map": "station-nanluoguxiang",
+      "tile": [
+       11,
+       5
+      ],
+      "facing": "up"
+     }
+    ]
    }
   ]
  }

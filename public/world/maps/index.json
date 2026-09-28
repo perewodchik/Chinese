@@ -44,12 +44,22 @@
   "width": 24,
   "height": 16
  },
+ "station-tiananmendong": {
+  "district": "tiananmen",
+  "width": 24,
+  "height": 16
+ },
  "subway-lane": {
   "district": "gulou",
   "width": 32,
   "height": 16
  },
  "tiananmen-proto": {
+  "district": "tiananmen",
+  "width": 39,
+  "height": 30
+ },
+ "tiananmen-square": {
   "district": "tiananmen",
   "width": 39,
   "height": 30
