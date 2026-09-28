@@ -10,7 +10,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** проверка в браузере и в WebKit (F5, нужен человек), дальше по списку — G (звук), H (остальной Пекин), I, X.
 
 ## Current task
-G2 (clips still rendering) → I2
+G2 (clips still rendering) → I3
 
 ## Tasks
 ### A — core logic
@@ -77,7 +77,7 @@ G2 (clips still rendering) → I2
 
 ### I — finishing
 - [x] I1 LiveDialogue hook (disabled)
-- [ ] I2 iPad pass
+- [x] I2 iPad pass (code-level; the WebKit probe and frame rate need a running server — see notes)
 - [ ] I3 Final summary
 
 ### X — Beijing+ (prompt §9½, before other cities)
@@ -168,6 +168,7 @@ _(date — decision — why)_
 - 2026-09-29 — H7: the epilogue (quest `epilogue`, started by ch. 7's reward). Walk east from the 西直门 bus stop into `stop-beijingbeizhan` (the concourse), buy a train ticket at the window with your passport (flag `train-ticket`; without it the board's scene sends you to the window — a scene on a board now comes before the ride), ride 京张高铁 (20 元) to `stop-badalingchangcheng`, walk onto `changcheng` — the Wall climbs east along the ridge in steps, with crenellations on both sides, to a watchtower. The old man climbing a little every day: 「这是愚公移山！」 (📌 成语); at the watchtower the spirits say goodbye — they go home to the mended lantern — and 兔儿爷: 「你要走了吗？一路平安！」 (📌 成语; flag `game-finished`, chapter 9 = free walking). Stamps 火车, 长城 (landmark). Renders: `review/h7/`.
 - 2026-09-29 — H8: 14 side quests (fewer than "2–3 per district" for the small districts — one each for 奥运, 颐和园, 潘家园, 长城, 雍和宫, 三里屯; two for 鼓楼, 后海, 景山, 前门, 天坛; 王府井 has the storybook and 王阿姨's cold): 赵爷爷's lost bird (小明 has it), a haircut, bait for the fisherman (from 李阿姨's shop), a boat on 后海, a painting for 王阿姨 from the 北海 painter, a 太极 lesson (左手/右手), a storybook for 小明, a night at the opera, tea leaves from 老刘 for the 大栅栏 granny, counting 毽子 kicks, singing 「我爱北京」 with the 胡琴 player, a brush for the scholar, shared bikes, a run with the jogger, the guide's lost tourist, an old map at 潘家园 (bargain), a photo on the Wall. Errands cross districts on purpose (the city is one place). Five more stamps. **共享单车:** bike stands (a `bike` object beside a parked bike) on ten street maps; tap → 「扫码骑车」, you ride — faster steps, a bicycle drawn under you (left/right) — until you tap a stand again or go through a door (parked, 1 元). From chapter 2 on. A new test plays **every scene** in the game to its end using only its hints (no dead ends).
 - 2026-09-29 — I1: `src/world/core/dialogue/live.ts` — `LiveDialogue` implements `DialogueSource` around the script, `LIVE_DIALOGUE_ENABLED = false`, nothing constructs it, no network calls; its doc comment says how it will work (the script stays the authority for intents, actions and 📌 lines; Claude only rewords ordinary lines via the Mac server like /pinyin/talk; a slow answer falls back to the script; the budget check applies; `settings.live` is the hidden switch, already in the save).
+- 2026-09-29 — I2, what could be done without a browser: touch targets — on touch screens (`hover: none` / `pointer: coarse`) every game control is now ≥ 40 px, the ones used mid-conversation 44 px (the bubble's tools, the input bar, the send and go-on buttons); tappable words ≥ 36 px. Safe areas: the top line, bubble, companion, joystick and panels all sit inside `env(safe-area-inset-*)`; the bubble also rises above the on-screen keyboard (`visualViewport`). Memory: three small atlases stay loaded, one map's tilemap at a time, voice clips fetched per line (never preloaded), one AudioContext for the street sounds.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
@@ -175,4 +176,5 @@ _(anything blocked, skipped, or failing in someone else's code)_
 - Dev servers cannot be started from this unattended session (preview_start refuses), so nothing is checked in a browser yet: C4 screenshots are offline renders, D-phase checks will be code-level plus offline renders until a session with a person present runs the preview (`hanzi-workshop-mac-world`, port 5179, `.data/world-test.db`, added to `.claude/launch.json`).
 - 2026-09-29 — E3 is unchecked on a real iPad: the bubble lifts itself above the on-screen keyboard by following `visualViewport` — worth a look on the iPad that the field stays visible.
 - 2026-09-29 — F5: the browser half of the MVP check could not be done here (no dev server in an unattended run). Done instead: the whole chapter played through the core with each line's hint (`scripts/world/chapter1.test.ts`), a two-device save round-trip through `WorldSync` with a fake server, offline renders at 390×844 and 1024×768 (`review/f5/`). **Still to do with a person present:** play chapter 1 in the pane at 1024 and 390 and in WebKit (`scripts/webkit-probe.swift`), especially: the bubble and input bar with the iPad keyboard up, hold-to-talk in Safari, the ride sheet, the joystick, frame rate on the iPad.
+- 2026-09-29 — I2 is only half done: **the WebKit probe of every overlay at 375/768/1024 and the iPad frame rate need the dev server**, which unattended sessions cannot start. First thing for a session with a person: run `hanzi-workshop-mac-world`, then `scripts/webkit-probe.swift` against `/play/world` at the three widths (bubble, input bar, companion, panels, ride sheet, joystick).
 - **B1 adds migration step 3 (`world_saves`) to both SQLite and Postgres.** It runs on the production Postgres at the first deploy after the learner pushes — an additive `CREATE TABLE`, nothing existing is touched.

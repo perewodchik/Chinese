@@ -1282,3 +1282,49 @@
   padding: 0 10px;
   font-size: 13px;
 }
+
+/* --- touch (I2): on a finger, every control in the game is at least 44 px where it is used mid-conversation, 40 px elsewhere */
+@media (hover: none), (pointer: coarse) {
+  .wd-tool {
+    width: 44px;
+    height: 40px;
+  }
+
+  .wd-show {
+    width: auto;
+  }
+
+  .wi-mode button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .wi-field,
+  .wi-hold,
+  .wi-heard,
+  .wi-send {
+    height: 44px;
+  }
+
+  .wi-row {
+    height: 44px;
+  }
+
+  .wi-cand,
+  .wi-chip {
+    height: 40px;
+  }
+
+  .wd-go {
+    height: 44px;
+  }
+
+  .wc-acts button,
+  .wp-tabs [role='tab'] {
+    height: 40px;
+  }
+
+  .wd-w {
+    min-height: 36px;
+  }
+}
