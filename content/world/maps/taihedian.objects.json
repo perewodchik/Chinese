@@ -1,0 +1,103 @@
+[
+ {
+  "kind": "prop",
+  "id": "hall",
+  "tile": [
+   17,
+   9
+  ],
+  "frame": "taihedian/hall",
+  "blocks": [
+   7,
+   5
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   20,
+   9
+  ],
+  "text": "太和殿",
+  "en": "The Hall of Supreme Harmony"
+ },
+ {
+  "kind": "door",
+  "id": "south",
+  "tile": [
+   20,
+   29
+  ],
+  "to": {
+   "map": "wumen",
+   "tile": [
+    16,
+    8
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "east",
+  "tile": [
+   39,
+   18
+  ],
+  "to": {
+   "map": "jiulongbi",
+   "tile": [
+    1,
+    10
+   ],
+   "facing": "right"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "west",
+  "tile": [
+   0,
+   11
+  ],
+  "to": {
+   "map": "yuhuayuan",
+   "tile": [
+    30,
+    18
+   ],
+   "facing": "left"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "to-dragons",
+  "tile": [
+   37,
+   17
+  ],
+  "text": "九龙壁 →",
+  "en": "The Nine-Dragon Screen (this way)"
+ },
+ {
+  "kind": "sign",
+  "id": "to-garden",
+  "tile": [
+   2,
+   12
+  ],
+  "text": "← 御花园",
+  "en": "The Imperial Garden (this way)"
+ },
+ {
+  "kind": "npc",
+  "id": "guide",
+  "npc": "gugong-daoyou",
+  "tile": [
+   24,
+   20
+  ],
+  "facing": "left"
+ }
+]

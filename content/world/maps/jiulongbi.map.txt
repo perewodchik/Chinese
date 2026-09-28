@@ -1,0 +1,42 @@
+id: jiulongbi
+size: 30x16
+tilesets: tiles
+district: tiananmen
+crowd: 3
+
+# 九龙壁: the Nine-Dragon Screen of glazed tiles — one of its dragons has no eyes
+
+[ground]
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssss
+[below]
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WVVVVVVVVVVVVVVVVVVVVVVVVVVVVW
+W............................W
+W............................W
+W............................W
+W............................W
+W............................W
+W............................W
+W............................W
+.............................W
+W............................W
+W............................W
+W............................W
+W............................W
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW

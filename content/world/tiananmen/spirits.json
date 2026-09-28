@@ -1,0 +1,19 @@
+[
+  {
+    "id": "long",
+    "hanzi": "龙",
+    "pinyin": "lóng",
+    "en": "the dragon",
+    "source": "folk",
+    "legend": {
+      "zh": "中国的龙能在天上飞，能在水里住。它会下雨。以前，龙是皇帝的样子。人们说，画龙的时候，最后要画眼睛，龙就会飞走。",
+      "en": "The Chinese dragon flies in the sky and lives in the water; it brings rain, and it was the emperor's emblem. They say a painted dragon, once its eyes are dotted in, flies away."
+    },
+    "befriend": {
+      "kind": "request",
+      "text": "画龙要点睛。你来吧！",
+      "en": "Dot in the dragon's eyes — together with every spirit you have found."
+    },
+    "district": "tiananmen"
+  }
+]

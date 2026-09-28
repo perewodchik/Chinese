@@ -1,0 +1,50 @@
+[
+  {
+    "id": "ch7",
+    "title": "The dragon",
+    "chapter": 7,
+    "steps": [
+      {
+        "id": "ticket",
+        "now": "The palace needs a ticket booked online in your own name. Ask 王阿姨 at home — she books everything on her phone.",
+        "done": {
+          "flag": "palace-ticket"
+        }
+      },
+      {
+        "id": "anjian",
+        "now": "Go to 天安门 (line 1 to 天安门东), cross the bridge and walk through the gate; show your passport at the security check.",
+        "done": {
+          "scene": "anjian"
+        }
+      },
+      {
+        "id": "taihedian",
+        "now": "Walk north through 午门 to the Hall of Supreme Harmony 太和殿.",
+        "done": {
+          "scene": "taihedian-arrive"
+        }
+      },
+      {
+        "id": "dragon",
+        "now": "兔儿爷 feels the last spirit at the Nine-Dragon Screen 九龙壁, east of 太和殿's square.",
+        "done": {
+          "spirit": "long"
+        }
+      },
+      {
+        "id": "garden",
+        "now": "Walk to the Imperial Garden 御花园 — west of 太和殿's square. The spirits are waiting for you there.",
+        "done": {
+          "scene": "yuhuayuan-arrive"
+        }
+      }
+    ],
+    "reward": [
+      {
+        "do": "chapter",
+        "chapter": 8
+      }
+    ]
+  }
+]

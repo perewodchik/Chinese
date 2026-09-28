@@ -1,0 +1,71 @@
+id: taihedian
+size: 40x30
+tilesets: tiles
+district: tiananmen
+crowd: 10
+pigeons: 4
+
+# 太和殿: the Hall of Supreme Harmony on its white terraces over the greatest square of the palace
+
+[ground]
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssss
+[below]
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+Wllllllllllllllllll...lllllllllllllllllW
+.......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W.......................................
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W
+W......................................W

@@ -1,4 +1,47 @@
 [
-  { "id": "subway", "name": "地铁", "en": "First subway ride", "place": "station-tiananmendong", "design": "subway" },
-  { "id": "tiananmen", "name": "天安门", "en": "Tiananmen", "place": "tiananmen-square", "design": "tiananmen", "landmark": true }
+  {
+    "id": "subway",
+    "name": "地铁",
+    "en": "First subway ride",
+    "place": "station-tiananmendong",
+    "design": "subway"
+  },
+  {
+    "id": "tiananmen",
+    "name": "天安门",
+    "en": "Tiananmen",
+    "place": "tiananmen-square",
+    "design": "tiananmen",
+    "landmark": true
+  },
+  {
+    "id": "gugong",
+    "name": "故宫",
+    "en": "The Palace Museum",
+    "place": "wumen",
+    "design": "gugong",
+    "landmark": true
+  },
+  {
+    "id": "taihedian",
+    "name": "太和殿",
+    "en": "The Hall of Supreme Harmony",
+    "place": "taihedian",
+    "design": "taihedian",
+    "landmark": true
+  },
+  {
+    "id": "long",
+    "name": "龙",
+    "en": "The dragon's friend",
+    "place": "jiulongbi",
+    "design": "long"
+  },
+  {
+    "id": "yuhuayuan",
+    "name": "御花园",
+    "en": "The Imperial Garden",
+    "place": "yuhuayuan",
+    "design": "yuhuayuan"
+  }
 ]

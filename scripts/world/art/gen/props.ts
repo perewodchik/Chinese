@@ -645,6 +645,87 @@ export function nianshou(awake: boolean): Grid {
   return g.stamp(f, 0, 0);
 }
 
+
+// ---------------------------------------------------------------- H6: the Forbidden City
+
+/** 太和殿, the Hall of Supreme Harmony, 112×72: a double yellow roof on red columns, on a white terrace. */
+export function taihedian(): Grid {
+  const W = 112;
+  const g = new Grid(W, 72);
+  g.oval(2, 64, 108, 8, '_');
+  const f = new Grid(W, 72);
+  for (const [y, x0] of [[56, 2], [60, 4], [64, 6]] as const) f.rect(x0, y, W - 2 * x0, 4, 'e').hline(x0, y, W - 2 * x0, 'w');
+  for (let x = 4; x < W - 4; x += 4) f.rect(x, 54, 2, 2, 'w');
+  f.rect(10, 34, W - 20, 20, 'r');
+  for (let x = 12; x < W - 10; x += 7) f.rect(x, 34, 2, 20, 'R').vline(x, 34, 20, 'p');
+  for (let x = 40; x < 72; x += 8) f.rect(x, 40, 6, 14, 'q').rect(x + 1, 41, 4, 5, 'o');
+  const roof = (y: number, x0: number, x1: number, h: number) => {
+    for (let x = x0; x < x1; x += 3) f.vline(x, y, h, 'j').vline(x + 1, y, h, 'y').vline(x + 2, y, h, 'Y');
+    f.hline(x0, y + h, x1 - x0, 'v').hline(x0, y + h + 1, x1 - x0, 'u').hline(x0, y + h + 2, x1 - x0, 'Y');
+    f.rect(x0 - 5, y + h - 4, 6, 4, 'y').set(x0 - 6, y + h - 5, 'Y').rect(x1 - 1, y + h - 4, 6, 4, 'y').set(x1 + 5, y + h - 5, 'Y');
+  };
+  roof(20, 6, W - 6, 11);
+  f.rect(20, 14, W - 40, 6, 'r');
+  roof(2, 16, W - 16, 10);
+  f.rect(16, 0, W - 32, 3, 'Y').hline(16, 0, W - 32, 'j');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** 九龙壁, the Nine-Dragon Screen, 96×32: glazed tiles, blue sea, yellow and white dragons. `eyes`: the last dragon's eyes are painted in. */
+export function jiulongbi(eyes: boolean): Grid {
+  const W = 96;
+  const g = new Grid(W, 32);
+  const f = new Grid(W, 32);
+  f.rect(0, 0, W, 4, 'Y').hline(0, 0, W, 'j').hline(0, 3, W, 'o');
+  f.rect(0, 4, W, 22, 'n');
+  for (let x = 0; x < W; x += 5) f.set(x, 22, 'x').set(x + 2, 23, 'l');
+  const dragon = (x: number, body: string, last: boolean) => {
+    for (let i = 0; i < 12; i++) {
+      const yy = 12 + Math.round(Math.sin(i / 2) * 4);
+      f.rect(x + i, yy, 2, 3, body);
+      if (i % 3 === 0) f.set(x + i, yy - 1, body === 'y' ? 'j' : 'w');
+    }
+    f.rect(x + 11, 7, 5, 5, body).set(x + 15, 9, body).set(x + 12, 6, 'o');
+    if (!last || eyes) f.set(x + 13, 8, last ? 'r' : 'k');
+    else f.set(x + 13, 8, body);
+  };
+  const cols = ['y', 'w', 'y', 'e', 'y', 'w', 'y', 'e', 'y'];
+  for (let i = 0; i < 6; i++) dragon(2 + i * 15, cols[i]!, i === 5);
+  f.rect(0, 26, W, 6, 'e').hline(0, 26, W, 'w').hline(0, 31, W, 'c');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** The dragon itself, awake and flying, 48×32. */
+export function dragon(frame: number): Grid {
+  const g = new Grid(48, 32);
+  const f = new Grid(48, 32);
+  for (let i = 0; i < 34; i++) {
+    const y = 16 + Math.round(Math.sin(i / 3 + frame) * 6);
+    f.rect(4 + i, y, 2, 4, 'y');
+    if (i % 3 === 0) f.set(4 + i, y - 1, 'j').set(4 + i, y + 4, 'Y');
+  }
+  const hy = 16 + Math.round(Math.sin(34 / 3 + frame) * 6);
+  f.rect(38, hy - 4, 8, 7, 'y').set(45, hy - 1, 'y').set(40, hy - 5, 'o').set(43, hy - 6, 'o');
+  f.set(42, hy - 2, 'r').hline(41, hy + 2, 4, 'R');
+  f.set(8, 20 + frame, 'q').set(20, 12, 'q');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A rockery of the Imperial Garden, 32×32: holed grey rocks with a little pine. */
+export function rockery(): Grid {
+  const g = new Grid(32, 32);
+  g.oval(1, 27, 31, 5, '_');
+  const f = new Grid(32, 32);
+  f.oval(2, 12, 16, 17, 'c').oval(12, 6, 16, 23, 'd').oval(8, 18, 20, 12, 'c');
+  for (const [x, y] of [[7, 17], [16, 12], [20, 20], [11, 24]] as const) f.oval(x, y, 4, 3, 'a');
+  f.oval(18, 1, 10, 7, 'G').oval(20, 2, 5, 3, 'h').rect(22, 7, 2, 3, 'M');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -678,6 +759,10 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['pixiu', 'a golden 貔貅', () => [['gold', pixiu()]]],
   ['stall', 'a flea-market stall of antiques', () => [['a', stall(1)], ['b', stall(2)], ['c', stall(3)]]],
   ['nianshou', 'the little clay 年兽, asleep and awake', () => [['clay', nianshou(false)], ['awake', nianshou(true)]]],
+  ['taihedian', 'the Hall of Supreme Harmony', () => [['hall', taihedian()]]],
+  ['jiulongbi', 'the Nine-Dragon Screen, before and after the eyes', () => [['blind', jiulongbi(false)], ['eyes', jiulongbi(true)]]],
+  ['dragon', 'the dragon, awake', () => [['fly-0', dragon(0)], ['fly-1', dragon(1)]]],
+  ['rockery', 'a rockery of the Imperial Garden', () => [['rocks', rockery()]]],
   ['door-gods', 'an old gate with its door gods, faded and restored', () => [['faded', doorGods(true)], ['bright', doorGods(false)]]],
   ['pigeon', 'a pigeon of the hutongs', () => [['peck', pigeon('peck')], ['look', pigeon('look')], ['fly-0', pigeon('fly-0')], ['fly-1', pigeon('fly-1')]]],
 ];

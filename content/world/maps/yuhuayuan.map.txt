@@ -1,0 +1,54 @@
+id: yuhuayuan
+size: 32x22
+tilesets: tiles
+district: tiananmen
+pigeons: 5
+
+# 御花园: the Imperial Garden — rockeries, old trees, a pavilion; the end of the palace
+
+[ground]
+ggggggpgggggggggggpgpgggggpggpgp
+ggggggpgggppggggggpgppggggpggggp
+gggggggggggpgggggpggggppgppgpggg
+pggpggpgggggggppgggpggggpgpgggpg
+gggggpppppppppppppppppppppgggpgg
+gppgggppppppppppppppppppppgggpgg
+ggggggppppppppppppppppppppgggggp
+ggggggppppppppppppppppppppgggggg
+ggpgggpppppppppppppppppppppggggp
+gggggppppppppppppppppppppppggpgg
+gpggggppppppppppppppppppppgggggg
+ggggpgppppppppppppppppppppgggggp
+ggggpgppppppppppppppppppppgggpgg
+gpggpppppppppppppppppppppppggggg
+gggpggppppppppppppppppppppgpgggg
+ggpggpppppppppppppppppppppgggggg
+pgggggppppppppppppppppppppgggpgp
+pgggggppppppppppppppppppppgggggg
+gpgggpppppppppppppppppppppgggggg
+ppppggppppppppppppppppppppgpgggg
+pgggpgppppppppppppppppppppggggpg
+ggggggppppppppppppppppppppgggggg
+[below]
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVW
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W..............................W
+W...............................
+W..............................W
+W..............................W
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW

@@ -1,0 +1,106 @@
+[
+ {
+  "kind": "prop",
+  "id": "pavilion",
+  "tile": [
+   12,
+   8
+  ],
+  "frame": "pavilion/wanchun",
+  "blocks": [
+   4,
+   2
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "rock-1",
+  "tile": [
+   3,
+   10
+  ],
+  "frame": "rockery/rocks",
+  "blocks": [
+   2,
+   2
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "rock-2",
+  "tile": [
+   25,
+   7
+  ],
+  "frame": "rockery/rocks",
+  "blocks": [
+   2,
+   2
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   5,
+   17
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   20,
+   20
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-3",
+  "tile": [
+   27,
+   15
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   15,
+   9
+  ],
+  "text": "御花园",
+  "en": "The Imperial Garden"
+ },
+ {
+  "kind": "door",
+  "id": "east",
+  "tile": [
+   31,
+   18
+  ],
+  "to": {
+   "map": "taihedian",
+   "tile": [
+    1,
+    11
+   ],
+   "facing": "right"
+  }
+ }
+]

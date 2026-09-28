@@ -3,8 +3,32 @@
   "name": "天安门 · 故宫",
   "en": "Tiananmen · the Forbidden City",
   "chapter": 1,
-  "maps": ["tiananmen-square", "station-tiananmendong"],
-  "stations": ["tiananmendong", "tiananmenxi"],
-  "names": ["天安门", "天安门东", "天安门西", "故宫", "午门", "北京", "兔儿爷"],
+  "maps": [
+    "tiananmen-square",
+    "station-tiananmendong",
+    "wumen",
+    "taihedian",
+    "jiulongbi",
+    "yuhuayuan"
+  ],
+  "stations": [
+    "tiananmendong",
+    "tiananmenxi"
+  ],
+  "names": [
+    "天安门",
+    "天安门东",
+    "天安门西",
+    "故宫",
+    "午门",
+    "北京",
+    "兔儿爷",
+    "太和殿",
+    "九龙壁",
+    "御花园",
+    "龙",
+    "长城",
+    "王阿姨"
+  ],
   "ambience": "square"
 }

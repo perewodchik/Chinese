@@ -44,6 +44,11 @@
       {
         "do": "chapter",
         "chapter": 7
+      },
+      {
+        "do": "quest",
+        "quest": "ch7",
+        "step": "ticket"
       }
     ]
   }

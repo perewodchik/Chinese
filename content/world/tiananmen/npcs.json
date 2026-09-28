@@ -81,5 +81,62 @@
       "嗯？"
     ],
     "voice": "zhiyuan"
+  },
+  {
+    "id": "anjian-yuan",
+    "name": "安检员",
+    "role": "the security officer at the palace's gate",
+    "look": {
+      "sprite": "woman",
+      "palette": "black"
+    },
+    "voice": "xiaoyu",
+    "character": "Efficient, polite, checks every name against every passport.",
+    "knows": [
+      "Tickets are checked by passport",
+      "No lighters inside"
+    ],
+    "wants": [
+      "A quick line"
+    ],
+    "actions": [
+      "teleport",
+      "stamp"
+    ],
+    "routine": [],
+    "explains": {
+      "安检": "进门以前，看你的包和护照。",
+      "护照": "去别的国家要用的小本子。"
+    },
+    "misses": [
+      "您好，请再说一遍。"
+    ]
+  },
+  {
+    "id": "gugong-daoyou",
+    "name": "故宫导游",
+    "role": "a guide with a microphone and a yellow flag",
+    "look": {
+      "sprite": "uncle"
+    },
+    "voice": "zhiyuan",
+    "character": "Knows every beam of the palace; talks in numbers.",
+    "knows": [
+      "太和殿 is the largest wooden hall in China",
+      "The Nine-Dragon Screen is east, the Imperial Garden north-west (in the game)"
+    ],
+    "wants": [
+      "His group to stay together"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "太和殿": "故宫里最大的房子。",
+      "九龙壁": "一个墙，上面有九个龙。",
+      "皇帝": "以前中国最大的人，住在故宫。"
+    },
+    "misses": [
+      "请再说一遍！"
+    ]
   }
 ]

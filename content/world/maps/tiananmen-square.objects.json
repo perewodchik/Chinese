@@ -131,11 +131,31 @@
   "en": "The Palace Museum — this way to the Meridian Gate"
  },
  {
+  "kind": "door",
+  "id": "palace-gate",
+  "tile": [
+   19,
+   16
+  ],
+  "to": {
+   "map": "wumen",
+   "tile": [
+    16,
+    18
+   ],
+   "facing": "up"
+  },
+  "when": {
+   "flag": "palace-ticket"
+  },
+  "locked": "The way into the palace. You need a ticket booked online in your own name — ask someone to help you book it."
+ },
+ {
   "kind": "npc",
   "id": "guard",
   "npc": "tam-guard",
   "tile": [
-   19,
+   20,
    18
   ],
   "facing": "down"

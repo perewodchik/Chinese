@@ -1,0 +1,78 @@
+[
+ {
+  "kind": "prop",
+  "id": "screen",
+  "tile": [
+   9,
+   4
+  ],
+  "frame": "jiulongbi/blind",
+  "blocks": [
+   6,
+   1
+  ],
+  "when": {
+   "not": {
+    "spirit": "long"
+   }
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "screen-eyes",
+  "tile": [
+   9,
+   4
+  ],
+  "frame": "jiulongbi/eyes",
+  "blocks": [
+   6,
+   1
+  ],
+  "when": {
+   "spirit": "long"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "dragon",
+  "tile": [
+   18,
+   10
+  ],
+  "frame": "dragon/fly-0",
+  "blocks": [
+   0,
+   0
+  ],
+  "when": {
+   "spirit": "long"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   6,
+   4
+  ],
+  "text": "九龙壁",
+  "en": "The Nine-Dragon Screen"
+ },
+ {
+  "kind": "door",
+  "id": "west",
+  "tile": [
+   0,
+   10
+  ],
+  "to": {
+   "map": "taihedian",
+   "tile": [
+    38,
+    18
+   ],
+   "facing": "left"
+  }
+ }
+]

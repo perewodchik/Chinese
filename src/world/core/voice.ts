@@ -15,7 +15,18 @@ export type VoiceId = (typeof VOICES)[number];
 const isVoice = (v: string | undefined): v is VoiceId => !!v && (VOICES as readonly string[]).includes(v);
 
 /** 兔儿爷 and the spirits, who have no cards */
-const OTHERS: Record<string, VoiceId> = { companion: 'zhiyuan', shishizi: 'wei', announcer: 'xiaoyu' };
+const OTHERS: Record<string, VoiceId> = {
+  companion: 'zhiyuan',
+  announcer: 'xiaoyu',
+  shishizi: 'wei',
+  jiuweihu: 'xiaoyu',
+  menshen: 'chen',
+  qilin: 'wei',
+  pixiu: 'zhiyuan',
+  nianshou: 'chen',
+  long: 'wei',
+  'echo-boy': 'xiaoyu',
+};
 
 /** The voice a speaker is heard in, or null for the silent ones (the hero, signs, anyone without a voice). */
 export function voiceOf(speaker: string, cards: ReadonlyMap<string, NpcCard> | readonly NpcCard[]): VoiceId | null {

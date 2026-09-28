@@ -1,0 +1,22 @@
+[
+  {
+    "id": "画龙点睛",
+    "pinyin": "huàlóng-diǎnjīng",
+    "parts": [
+      {
+        "c": "画龙",
+        "gloss": "paint a dragon"
+      },
+      {
+        "c": "点睛",
+        "gloss": "dot the eyes"
+      }
+    ],
+    "meaning": "the finishing touch that brings a thing to life",
+    "story": {
+      "zh": "以前有一个画家，他在墙上画了四个龙，都没有眼睛。别人问他为什么。他说：“画了眼睛，龙就会飞走。”别人不信。他给两个龙画了眼睛，这两个龙真的飞走了！",
+      "en": "A painter drew four dragons on a temple wall, all without eyes. 'If I dot the eyes, they will fly away,' he said. Nobody believed him — so he dotted the eyes of two, and those two flew off into the sky."
+    },
+    "tier": "story"
+  }
+]

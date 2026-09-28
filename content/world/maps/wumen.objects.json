@@ -1,0 +1,74 @@
+[
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   15,
+   4
+  ],
+  "text": "午门",
+  "en": "The Meridian Gate"
+ },
+ {
+  "kind": "door",
+  "id": "north",
+  "tile": [
+   16,
+   7
+  ],
+  "to": {
+   "map": "taihedian",
+   "tile": [
+    20,
+    28
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   16,
+   19
+  ],
+  "to": {
+   "map": "tiananmen-square",
+   "tile": [
+    19,
+    17
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "wumen-out",
+  "tile": [
+   13,
+   15
+  ],
+  "text": "出口",
+  "en": "Way out"
+ },
+ {
+  "kind": "npc",
+  "id": "anjian",
+  "npc": "anjian-yuan",
+  "tile": [
+   17,
+   16
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "tourist",
+  "npc": "tourist-2",
+  "tile": [
+   10,
+   11
+  ],
+  "facing": "up"
+ }
+]

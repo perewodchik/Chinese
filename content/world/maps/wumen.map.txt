@@ -1,0 +1,51 @@
+id: wumen
+size: 32x20
+tilesets: tiles
+district: tiananmen
+crowd: 8
+pigeons: 2
+
+# 午门, the Meridian Gate of the palace; the security check across the south
+
+[ground]
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssss
+[below]
+YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWaWWWWWWWaWWWWWWWaWWWWWWW
+VVVVVVVVAVVVVVVVAVVVVVVVAVVVVVVV
+................................
+................................
+................................
+................................
+................................
+................................
+................................
+................................
+gggggggggggggggggggggggggggggggg
+................................
+................................
+................................
+................................

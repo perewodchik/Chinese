@@ -69,6 +69,11 @@
   "width": 48,
   "height": 18
  },
+ "jiulongbi": {
+  "district": "tiananmen",
+  "width": 30,
+  "height": 16
+ },
  "lifadian": {
   "district": "gulou",
   "width": 12,
@@ -194,6 +199,11 @@
   "width": 32,
   "height": 16
  },
+ "taihedian": {
+  "district": "tiananmen",
+  "width": 40,
+  "height": 30
+ },
  "tiananmen-proto": {
   "district": "tiananmen",
   "width": 39,
@@ -213,6 +223,11 @@
   "district": "wangfujing",
   "width": 48,
   "height": 18
+ },
+ "wumen": {
+  "district": "tiananmen",
+  "width": 32,
+  "height": 20
  },
  "xiaomaibu": {
   "district": "gulou",
@@ -243,6 +258,11 @@
   "district": "yonghegong",
   "width": 48,
   "height": 20
+ },
+ "yuhuayuan": {
+  "district": "tiananmen",
+  "width": 32,
+  "height": 22
  },
  "zaodian": {
   "district": "gulou",

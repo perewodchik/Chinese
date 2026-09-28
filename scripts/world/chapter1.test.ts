@@ -333,3 +333,24 @@ describe('chapter 6, played through the core', () => {
     assert.equal(s.chapter, 7);
   });
 });
+
+describe('chapter 7, played through the core', () => {
+  it('the ticket in your name → security → 太和殿 → 画龙点睛 → the garden', () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 7 }, { do: 'quest', quest: 'ch7', step: 'ticket' }]);
+    const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'ch7')?.step.id;
+    assert.equal(sceneFor(scenes, s, { npc: 'wang-ayi' })?.id, 'ticket');
+    s = play(s, 'ticket').save;
+    assert.ok(s.flags.includes('palace-ticket'));
+    assert.equal(at(), 'anjian');
+    s = play(s, 'anjian').save;
+    s = play(s, 'taihedian-arrive').save;
+    assert.equal(at(), 'dragon');
+    assert.equal(sceneFor(scenes, s, { look: 'screen', map: 'jiulongbi' })?.id, 'dragon');
+    s = play(s, 'dragon').save;
+    assert.ok('long' in s.spirits);
+    assert.ok('画龙点睛' in s.idioms);
+    s = play(s, 'yuhuayuan-arrive').save;
+    assert.equal(s.quests.ch7?.done, true);
+    assert.equal(s.chapter, 8);
+  });
+});
