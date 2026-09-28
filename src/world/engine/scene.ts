@@ -7,7 +7,8 @@
  */
 
 import * as Phaser from 'phaser';
-import type { MapObject, PartOfDay, Tile } from '../core/types';
+import type { PartOfDay, Tile } from '../core/types';
+import { readMap, type MapInfo } from './mapdata';
 import { DAY_LOOK, zoomFor } from './look';
 
 export const TILE = 16;
@@ -25,15 +26,11 @@ interface TilesetNames {
   names: string[];
 }
 
-const objectsOf = (map: Phaser.Tilemaps.Tilemap): MapObject[] =>
-  (map.getObjectLayer('objects')?.objects ?? []).flatMap((o) => {
-    const data = (o.properties as Array<{ name: string; value: string }> | undefined)?.find((p) => p.name === 'data');
-    return data ? [JSON.parse(data.value) as MapObject] : [];
-  });
 
 export class WorldScene extends Phaser.Scene {
   private opts!: SceneOptions;
   private hero!: Phaser.GameObjects.Sprite;
+  info!: MapInfo;
 
   constructor() {
     super('world');
@@ -55,6 +52,7 @@ export class WorldScene extends Phaser.Scene {
     const { map: key, time } = this.opts;
     const look = DAY_LOOK[time];
     const map = this.make.tilemap({ key });
+    this.info = readMap(key, this.cache.tilemap.get(key).data);
     const tileset = map.addTilesetImage('tiles', 'tiles-set')!;
     const names = (this.cache.json.get('tiles-names') as TilesetNames).names.map((n) => n.replace(/^[^/]+\//, ''));
     const gid = (n: string) => names.indexOf(n) + 1;
@@ -70,7 +68,7 @@ export class WorldScene extends Phaser.Scene {
 
     const glows: Array<{ x: number; y: number; color: number; r: number }> = [];
     const feet = (t: Tile) => ({ x: t[0] * TILE, y: (t[1] + 1) * TILE });
-    for (const o of objectsOf(map)) {
+    for (const o of this.info.objects) {
       if (o.kind === 'prop') {
         let frame = o.frame;
         if (look.lit && frame === 'lantern/unlit') frame = 'lantern/lit-0';
@@ -107,7 +105,8 @@ export class WorldScene extends Phaser.Scene {
     const fit = () => cam.setZoom(zoomFor(this.scale.width, this.scale.height));
     fit();
     this.scale.on('resize', fit);
-    cam.startFollow(this.hero, true, 1, 1, -8, 16);
+    // A soft follow; roundPixels keeps the art on whole pixels while it glides.
+    cam.startFollow(this.hero, true, 0.15, 0.15, -8, 16);
 
     if (look.tint !== 0xffffff) {
       this.add
