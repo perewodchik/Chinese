@@ -18,6 +18,7 @@ import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { TextShelf, useStartSession } from '../reader/TextsPage';
+import { BlankPaper } from './BlankPaper';
 import { NewCollectionDialog } from './NewCollectionDialog';
 
 const GROUPS: PresetGroup[] = ['hsk', 'words', 'theme'];
@@ -239,6 +240,8 @@ export function CollectionsPage() {
       )}
 
       {show !== 'characters' && <TextShelf />}
+
+      {show !== 'texts' && <BlankPaper />}
 
       {show !== 'texts' && (
         <div className="card presets-card">

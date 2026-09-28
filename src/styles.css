@@ -5102,6 +5102,59 @@ label.field[data-invalid] input {
   }
 }
 
+/* ------------------------------------------------------- blank paper */
+.tpl-card.blank-card {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.blank-text {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.blank-zh {
+  font-family: var(--han);
+  color: var(--ink-3);
+  font-size: 15px;
+}
+
+.blank-thumb {
+  flex: none;
+  width: 56px;
+  height: auto;
+}
+
+.blank-thumb .page {
+  fill: var(--card);
+  stroke: var(--line-2);
+  stroke-width: 1.5;
+}
+
+.blank-thumb .head {
+  fill: var(--line-2);
+}
+
+.blank-thumb .cell,
+.blank-thumb .rule {
+  fill: none;
+  stroke: color-mix(in srgb, var(--ink-3) 70%, var(--card));
+  stroke-width: 0.9;
+}
+
+.blank-thumb .guide {
+  fill: none;
+  stroke: var(--line-2);
+  stroke-width: 0.6;
+}
+
+.blank-preview .preview {
+  height: min(62dvh, 720px);
+}
+
 /* ---------------------------------------------- collections, both kinds */
 .show-bar {
   margin-bottom: 20px;
