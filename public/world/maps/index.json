@@ -1,0 +1,12 @@
+{
+ "hutong-proto": {
+  "district": "gulou",
+  "width": 32,
+  "height": 18
+ },
+ "tiananmen-proto": {
+  "district": "tiananmen",
+  "width": 39,
+  "height": 30
+ }
+}

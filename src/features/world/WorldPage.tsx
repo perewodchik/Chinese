@@ -1,35 +1,43 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import { paths } from '../../navigation/paths';
-import type { PartOfDay } from '../../world/core/types';
+import { partOfDay } from '../../world/core/clock';
+import type { MapObject, PartOfDay, Tile } from '../../world/core/types';
 import type { RunningWorld } from '../../world/engine/boot';
+import { throughDoor } from '../../world/engine/doors';
+import type { WorldHost } from '../../world/engine/scene';
+import { useWorldSave } from '../../world/ui/useWorldSave';
+import { useUser } from '../auth/session';
+import { paths } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
 import { useTitle } from '../../ui/useTitle';
 
 const TIMES: PartOfDay[] = ['morning', 'day', 'evening', 'night'];
 
-/** Where the prototype maps put you. Replaced by the save once the game runs on it. */
-const STARTS: Record<string, [number, number]> = {
-  'hutong-proto': [14, 7],
-  'tiananmen-proto': [19, 22],
-};
+/** Until chapter 1's maps exist, a save that points at a map this build lacks starts in the prototype lane. */
+const FALLBACK = { map: 'hutong-proto', tile: [14, 7] as Tile };
+
+type MapIndex = Record<string, { district: string; width: number; height: number }>;
 
 /**
  * 走走 on the page: a box the canvas fills. Below 690px it takes the whole
  * screen and the site's bar goes, as 点单 does on a phone.
  *
- *   /play/world?map=hutong-proto&time=night&frame=1024x768
- *
- * `frame` pins the box to a size, for review screenshots.
+ *   /play/world                       the game, where the save says you are
+ *   /play/world?map=…&time=night      development: a map at a time of day
+ *   &frame=1024x768                   pins the box to a size, for screenshots
  */
 export function WorldPage() {
   useTitle('走走 Zǒuzou');
+  const user = useUser();
+  const game = useWorldSave(user.id);
   const [query] = useQuery();
-  const mapId = oneOf(query.get('map'), Object.keys(STARTS), 'hutong-proto');
-  const time = oneOf(query.get('time'), TIMES, 'day') as PartOfDay;
   const frame = /^(\d+)x(\d+)$/.exec(query.get('frame') ?? '');
   const box = useRef<HTMLDivElement>(null);
+  const world = useRef<RunningWorld | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'failed'>('loading');
+  const [note, setNote] = useState<string | null>(null);
+  const busy = useRef(false);
+  busy.current = note !== null;
 
   useEffect(() => {
     const html = document.documentElement;
@@ -39,30 +47,72 @@ export function WorldPage() {
     };
   }, []);
 
+  const opened = game.save !== null;
+  const start = useMemo(() => {
+    const s = game.current();
+    if (!s) return null;
+    const time = oneOf(query.get('time'), TIMES, partOfDay(s.clock)) as PartOfDay;
+    const asked = query.get('map');
+    return { time, asked, place: s.place };
+    // Only the first save opens the world; later changes come from inside it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opened]);
+
   useEffect(() => {
     const el = box.current;
-    if (!el) return;
-    let world: RunningWorld | null = null;
+    if (!el || !start) return;
     let gone = false;
     setState('loading');
-    import('../../world/engine/boot')
-      .then(({ startWorld }) =>
-        startWorld(el, { map: mapId, time, hero: STARTS[mapId]!, onReady: () => !gone && setState('ready') }),
-      )
-      .then((w) => {
-        if (gone) w.destroy();
-        else {
-          world = w;
-          (window as unknown as { __world?: RunningWorld }).__world = w;
+    void (async () => {
+      try {
+        const index = (await (await fetch('/world/maps/index.json')).json()) as MapIndex;
+        let { map, tile } = start.asked && index[start.asked] ? { map: start.asked, tile: null as Tile | null } : start.place;
+        if (!index[map]) ({ map, tile } = FALLBACK);
+        if (!tile) tile = map === FALLBACK.map ? FALLBACK.tile : [Math.floor(index[map]!.width / 2), index[map]!.height - 4];
+        const host: WorldHost = {
+          onStep: (t, facing) => game.dispatch([{ do: 'move', tile: t, facing }], 'walk'),
+          onArrive: (info, t, facing) => game.dispatch([{ do: 'enter', map: info.id, tile: t, facing, district: info.district || undefined }]),
+          onDoor: (door) => {
+            const s = game.current();
+            if (!s) return;
+            const r = throughDoor(door, s);
+            if (r.open) world.current?.travel(r.to);
+            else setNote(r.why);
+          },
+          onEdge: (to) => world.current?.travel(to),
+          onTalk: (npc) => setNote(`${npc}: conversations arrive with the dialogue bubble (E2).`),
+          onLook: (o: MapObject) => setNote(o.kind === 'sign' ? o.text : 'Nothing written here.'),
+          onKey: () => undefined,
+          isBusy: () => busy.current,
+        };
+        const { startWorld } = await import('../../world/engine/boot');
+        if (gone) return;
+        const w = await startWorld(el, {
+          map,
+          time: start.time,
+          hero: tile,
+          facing: start.place.facing,
+          host,
+          onReady: () => !gone && setState('ready'),
+        });
+        if (gone) {
+          w.destroy();
+          return;
         }
-      })
-      .catch(() => !gone && setState('failed'));
+        world.current = w;
+        (window as unknown as { __world?: RunningWorld }).__world = w;
+      } catch {
+        if (!gone) setState('failed');
+      }
+    })();
     return () => {
       gone = true;
-      world?.destroy();
+      world.current?.destroy();
+      world.current = null;
       delete (window as unknown as { __world?: RunningWorld }).__world;
     };
-  }, [mapId, time]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [start]);
 
   return (
     <div className="world-shell" data-state={state} data-framed={frame ? '' : undefined}>
@@ -75,6 +125,11 @@ export function WorldPage() {
       <Link className="world-exit" to={paths.play()} aria-label="Leave the game">
         ‹
       </Link>
+      {note !== null && (
+        <button type="button" className="world-note" onClick={() => setNote(null)}>
+          {note}
+        </button>
+      )}
       {state !== 'ready' && (
         <div className="world-loading small">{state === 'failed' ? 'The game could not start. Reload to try again.' : 'Opening Beijing…'}</div>
       )}

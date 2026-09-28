@@ -13,6 +13,7 @@ import * as Phaser from 'phaser';
 import { ahead } from '../core/grid';
 import type { Facing, MapObject, PartOfDay, Tile } from '../core/types';
 import { DAY_LOOK, zoomFor } from './look';
+import { edgeAt, resolveArrival, throughEdge, type Arrival, type Door } from './doors';
 import { readMap, type MapInfo } from './mapdata';
 import { DOUBLE_TAP_MS, facingTo, KEY_FACING, objectAt, pinchTo, planTap, RUN_MS, stepOnce, WALK_MS, type Plan } from './movement';
 
@@ -27,8 +28,12 @@ export interface WorldHost {
   onTalk(npc: string, spot: string): void;
   /** the hero is beside a sign or a thing, facing it */
   onLook(object: MapObject): void;
-  /** the hero stepped onto a door or off an edge */
-  onDoor(door: Extract<MapObject, { kind: 'door' }>): void;
+  /** the hero stepped onto a door: the page checks it and calls travel() */
+  onDoor(door: Door): void;
+  /** the hero stepped onto an edge exit */
+  onEdge(to: Arrival): void;
+  /** a map is on screen with the hero on it (after a start or a travel) */
+  onArrive(info: MapInfo, tile: Tile, facing: Facing): void;
   /** M, B, Tab */
   onKey(key: 'map' | 'bag' | 'companion'): void;
   /** true while a dialogue or a panel is open: the world takes no input */
@@ -53,6 +58,8 @@ const idleHost: WorldHost = {
   onTalk: () => undefined,
   onLook: () => undefined,
   onDoor: () => undefined,
+  onEdge: () => undefined,
+  onArrive: () => undefined,
   onKey: () => undefined,
   isBusy: () => false,
 };
@@ -110,6 +117,7 @@ export class WorldScene extends Phaser.Scene {
     const look = DAY_LOOK[time];
     const map = this.make.tilemap({ key });
     this.info = readMap(key, this.cache.tilemap.get(key).data);
+    this.at = resolveArrival(this.at, this.info.width, this.info.height);
     const tileset = map.addTilesetImage('tiles', 'tiles-set')!;
     const names = (this.cache.json.get('tiles-names') as TilesetNames).names.map((n) => n.replace(/^[^/]+\//, ''));
     const gid = (n: string) => names.indexOf(n) + 1;
@@ -202,7 +210,23 @@ export class WorldScene extends Phaser.Scene {
     }
     this.dots = this.add.graphics().setDepth(9_999);
     this.bindInput();
+    cam.fadeIn(180, 34, 32, 46);
+    this.host.onArrive(this.info, this.at, this.facing);
     this.opts.onReady?.();
+  }
+
+  /** Off to another map: a short fade, then the scene starts again there. */
+  travel(to: Arrival) {
+    this.queue = [];
+    this.after = null;
+    this.holding = false;
+    this.input.enabled = false;
+    const cam = this.cameras.main;
+    cam.fadeOut(180, 34, 32, 46);
+    cam.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.input.enabled = true;
+      this.scene.restart({ ...this.opts, map: to.map, hero: to.tile, facing: to.facing });
+    });
   }
 
   // ---------------------------------------------------------------- input
@@ -381,12 +405,14 @@ export class WorldScene extends Phaser.Scene {
       onComplete: () => {
         this.hero.setFrame(`hero/${this.facing}-0`);
         this.host.onStep(t, this.facing, this.running);
-        const door = this.info.objects.find((o): o is Extract<MapObject, { kind: 'door' }> => o.kind === 'door' && o.tile[0] === t[0] && o.tile[1] === t[1]);
-        if (door) {
+        const door = this.info.objects.find((o): o is Door => o.kind === 'door' && o.tile[0] === t[0] && o.tile[1] === t[1]);
+        const edge = door ? undefined : edgeAt(this.info.objects, t, this.info.width, this.info.height);
+        if (door || edge) {
           this.queue = [];
           this.after = null;
           this.moving = false;
-          this.host.onDoor(door);
+          if (door) this.host.onDoor(door);
+          else this.host.onEdge(throughEdge(edge!, t));
           return;
         }
         if (this.holding) {

@@ -104,5 +104,16 @@
    18
   ],
   "facing": "down"
+ },
+ {
+  "kind": "edge",
+  "id": "west",
+  "side": "left",
+  "from": 20,
+  "to": 24,
+  "target": {
+   "map": "hutong-proto",
+   "offset": -14
+  }
  }
 ]

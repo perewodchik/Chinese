@@ -181,5 +181,16 @@
    ],
    "facing": "down"
   }
+ },
+ {
+  "kind": "edge",
+  "id": "east",
+  "side": "right",
+  "from": 6,
+  "to": 10,
+  "target": {
+   "map": "tiananmen-proto",
+   "offset": 14
+  }
  }
 ]

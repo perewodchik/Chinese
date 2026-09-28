@@ -3,10 +3,13 @@
  * it is only ever downloaded on /play/world.
  */
 
-import type { SceneOptions } from './scene';
+import type { Arrival } from './doors';
+import type { SceneOptions, WorldScene as Scene } from './scene';
 
 export interface RunningWorld {
   destroy(): void;
+  /** go to another map (a door the page has let you through) */
+  travel(to: Arrival): void;
   /** a PNG data URL of the canvas, for review screenshots */
   snapshot(): Promise<string>;
 }
@@ -29,6 +32,7 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions): Promi
   game.scene.add('world', WorldScene, true, opts);
   return {
     destroy: () => game.destroy(true),
+    travel: (to) => (game.scene.getScene('world') as Scene | null)?.travel(to),
     snapshot: () =>
       new Promise((resolve) => {
         game.renderer.snapshot((img) => resolve((img as HTMLImageElement).src));

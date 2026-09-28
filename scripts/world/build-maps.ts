@@ -152,6 +152,9 @@ export function buildMaps(src = MAPS_SRC, out = MAPS_OUT, tileset = TILESET): st
   if (errors.length) throw new Error(errors.join('\n'));
   mkdirSync(out, { recursive: true });
   for (const c of all) writeFileSync(join(out, `${c.map.id}.json`), JSON.stringify(toTiled(c, set)) + '\n');
+  // The list the game checks a saved place against, so a save never points at a map this build lacks.
+  const index = Object.fromEntries(all.map((c) => [c.map.id, { district: c.map.district, width: c.map.width, height: c.map.height }]));
+  writeFileSync(join(out, 'index.json'), JSON.stringify(index, null, 1) + '\n');
   return all.map((c) => `${c.map.id}: ${c.map.width}×${c.map.height}, ${c.objects.length} objects`);
 }
 
