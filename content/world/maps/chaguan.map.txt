@@ -1,0 +1,29 @@
+id: chaguan
+size: 14x10
+tilesets: tiles
+district: gulou
+
+# The 茶馆: a red rug, low tables with pots; the owner pours by the wall
+
+[ground]
+ffffffffffffff
+ffffffffffffff
+ffffffffffffff
+ffffffffffffff
+fffuuuuuuuufff
+fffuuuuuuuufff
+fffuuuuuuuufff
+fffuuuuuuuufff
+ffffffffffffff
+fffffffeffffff
+[below]
+kkkkkkkkkkkkkk
+koovoooonooovk
+kOOOOOOOOOOOOk
+k............k
+k............k
+k............k
+k............k
+k............k
+k............k
+kkkkkkk.kkkkkk

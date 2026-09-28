@@ -1,0 +1,27 @@
+id: zaodian
+size: 12x9
+tilesets: tiles
+district: gulou
+
+# The 早点铺: 包子 in the steamers, 油条 from the wok, 豆浆, a few tables
+
+[ground]
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+ttttttettttt
+[below]
+kkkkkkkkkkkk
+kovvooooovok
+kOOOOOOOOOOk
+k..........k
+kCCCCCC....k
+k..........k
+k..........k
+k..........k
+kkkkkk.kkkkk

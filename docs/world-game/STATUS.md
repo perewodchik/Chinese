@@ -9,7 +9,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** E2 (пузырь диалога) — начатые файлы лежат незакоммиченными: `src/world/ui/content.ts`, `useTalk.ts`, `Portrait.tsx`. B1 добавляет миграцию `world_saves` — она выполнится на продакшн-Postgres при первом деплое после push.
 
 ## Current task
-F1
+F2
 
 ## Tasks
 ### A — core logic
@@ -54,7 +54,7 @@ F1
 - [x] E7 The /play card
 
 ### F — MVP content
-- [ ] F1 District 鼓楼 · 南锣鼓巷 maps + interiors
+- [x] F1 District 鼓楼 · 南锣鼓巷 maps + interiors
 - [ ] F2 NPC cards
 - [ ] F3 Chapter 1 scenes
 - [ ] F4 Subway ride to 天安门
@@ -152,6 +152,7 @@ _(date — decision — why)_
 - 2026-09-29 — E5: the six panels are **one sheet with a tab row** (📜 Tasks · 🎒 Bag · 🗺 Map · 图鉴 · 成语 · 印章); 🗺 🎒 📜 and M / B open it at their tab, Esc or a tap outside closes it; the world sleeps (`setPaused`) while it is open. The map is a schematic of the 13 districts (visited filled, here in red, later chapters faded but open); a tap gives 兔儿爷's route from your district's first station (`findRoute` + `routeText`) — without a 交通卡 he says to buy one first. "Go — to the station" travels to map `station-<id>` when that map exists (F1/F4 build them). Stamps are drawn as CSS seals (red square, round for landmarks, the name in vertical 楷体) — no stamp atlas needed; missing ones show as dashed frames. The 成语 book shows plain ones before stories; the note about finding the book goes away with the flag **`idiom-book`** (H2 must set it in the 书店). Printing the 成语 book: **TODO**, not built (the print flow wants a collection; later, e.g. as a collection of the idioms' words). Words in legends, stories and riddles are tappable, follow 拼, and unknown words are marked as in the reader.
 - 2026-09-29 — E6: settings are a ⚙ tab at the end of the panels' tab row (no extra button in the one-line top bar). Answer by (voice/keyboard — also written to this device), 拼 under lines, on-screen joystick, text size S/M/L (the Chinese in the bubble: 18 / 22 / 27 px). The joystick (built now, D3 left it for here): a pad bottom-right that walks step by step while held and runs when pushed to the rim, plus an A button (= Space: talk/look ahead); it hides while talking or in a panel. Engine got `stick()` and `act()` on `RunningWorld`.
 - 2026-09-29 — E7: the card is a link, first on /play (before the seals and 点单), labelled **Game**: a 3:1 pixel banner (four pictures `public/world/art/banner-<time>.png`, rendered by `npm run world:banners` from the lane map with 兔儿爷 beside the hero), title, one progress line "Chapter · spirits n/7 · 成语 · stamps" (at ≤ 420 px it collapses to 章 灵 成 印 with numbers), where you stopped with the game time, Continue / Start. The banner follows the saved game clock; before a first game, the real clock. The device's copy shows at once, the server's replaces it if newer. Side by side on wide screens, banner above the text below 860 px. "Spirits n/7" counts the main story's seven (石狮子 九尾狐 门神 麒麟 貔貅 年兽 龙). The banners are drawn from the **prototype lane** for now; F1 should re-render them from the real 南锣鼓巷 map with 鼓楼 in the back (change the map id in `world:banners`).
+- 2026-09-29 — F1: district 1 is 11 maps: streets `hutong-home` (帽儿胡同 — your red gate, a neighbour's, the 公共厕所 sign), `nanluo-main` (南锣鼓巷 — 早点铺, 小卖部, 理发店, 茶馆), `subway-lane` (out to 平安大街 and the station's stairs), `gulou-square` (鼓楼 and 钟楼 on their terraces); inside: `siheyuan-room` (the save's HOME), `siheyuan-yard`, `zaodian`, `xiaomaibu`, `lifadian`, `chaguan`, `station-nanluoguxiang` (ticket machines, gates, platform). West → east: square ↔ home lane ↔ main lane ↔ subway lane. **Lanes run east–west** even though the real 南锣鼓巷 runs north–south: the tile kit only draws walls facing the camera, and east–west lanes are how Pokémon-style towns show fronts. The two towers stand side by side on the square's north edge (really they face each other north–south). New art (drawn in code, same palette): 16 tiles (plaster walls and skirting, wall tops, doormat, counter, shelves, menu board, mirror, station tiles and band, platform edge, track, gates, stairs down, rug, square cobbles) and 11 props (table, stool, bed, steamers, wok, tea table, barber chair, ticket machine, plant, street sign, and the two towers at 80×96). The engine now centres a map smaller than the screen (rooms). Content build added: `npm run world:content` (`scripts/world/build-content.ts`) writes `public/world/content/<district>.json` + `index.json`; `npm run world` = art → maps → content → banners. Neighbours' doors are locked with the flag `never`. Map screenshots (offline renders): `docs/world-game/review/f1/`.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

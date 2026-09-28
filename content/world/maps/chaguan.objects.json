@@ -1,0 +1,183 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   7,
+   9
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    44,
+    6
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "tt1",
+  "tile": [
+   4,
+   5
+  ],
+  "frame": "tea-table/pot",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "st1",
+  "tile": [
+   5,
+   5
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tt2",
+  "tile": [
+   8,
+   5
+  ],
+  "frame": "tea-table/pot",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "st2",
+  "tile": [
+   9,
+   5
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tt3",
+  "tile": [
+   11,
+   7
+  ],
+  "frame": "tea-table/pot",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "st3",
+  "tile": [
+   12,
+   7
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tt4",
+  "tile": [
+   2,
+   7
+  ],
+  "frame": "tea-table/pot",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   1,
+   3
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant2",
+  "tile": [
+   12,
+   3
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "lamp1",
+  "tile": [
+   3,
+   3
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp2",
+  "tile": [
+   10,
+   3
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "sign",
+  "id": "tea",
+  "tile": [
+   3,
+   1
+  ],
+  "text": "花茶  绿茶  红茶",
+  "en": "Jasmine tea · green tea · black tea"
+ },
+ {
+  "kind": "npc",
+  "id": "owner",
+  "npc": "grandpa-blue",
+  "tile": [
+   6,
+   3
+  ],
+  "facing": "down"
+ }
+]

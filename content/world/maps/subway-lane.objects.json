@@ -1,0 +1,152 @@
+[
+ {
+  "kind": "door",
+  "id": "station",
+  "tile": [
+   27,
+   8
+  ],
+  "to": {
+   "map": "station-nanluoguxiang",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station-2",
+  "tile": [
+   28,
+   8
+  ],
+  "to": {
+   "map": "station-nanluoguxiang",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "metro-sign",
+  "tile": [
+   26,
+   8
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "road",
+  "tile": [
+   21,
+   9
+  ],
+  "text": "平安大街",
+  "en": "Ping’an Avenue"
+ },
+ {
+  "kind": "sign",
+  "id": "exit-name",
+  "tile": [
+   25,
+   7
+  ],
+  "text": "南锣鼓巷站 A口",
+  "en": "Nanluoguxiang station, exit A"
+ },
+ {
+  "kind": "prop",
+  "id": "tricycle",
+  "tile": [
+   8,
+   9
+  ],
+  "frame": "tricycle/side",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "driver",
+  "npc": "uncle-brown",
+  "tile": [
+   10,
+   9
+  ],
+  "facing": "left"
+ },
+ {
+  "kind": "npc",
+  "id": "rider",
+  "npc": "rider",
+  "tile": [
+   16,
+   7
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "prop",
+  "id": "l1",
+  "tile": [
+   3,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l2",
+  "tile": [
+   11,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "tree",
+  "tile": [
+   22,
+   10
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "edge",
+  "id": "west",
+  "side": "left",
+  "from": 6,
+  "to": 10,
+  "target": {
+   "map": "nanluo-main",
+   "offset": 0
+  }
+ }
+]

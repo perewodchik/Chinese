@@ -186,11 +186,11 @@ export class WorldScene extends Phaser.Scene {
     });
 
     const cam = this.cameras.main;
-    cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     cam.setRoundPixels(true);
     const fit = () => {
       this.baseZoom = zoomFor(this.scale.width, this.scale.height);
       cam.setZoom(this.baseZoom);
+      this.frameBounds();
     };
     fit();
     this.scale.on('resize', fit);
@@ -421,6 +421,19 @@ export class WorldScene extends Phaser.Scene {
     if (!this.pinchStart || !a.isDown || !b.isDown) return;
     const scale = Math.hypot(a.x - b.x, a.y - b.y) / Math.max(1, this.pinchStart.dist);
     this.cameras.main.setZoom(pinchTo(this.baseZoom, (this.pinchStart.zoom / this.baseZoom) * scale));
+    this.frameBounds();
+  }
+
+  /**
+   * The camera stays on the map; a map smaller than the screen (a room, a
+   * shop) sits in the middle of it rather than in the top-left corner.
+   */
+  private frameBounds() {
+    const cam = this.cameras.main;
+    const [w, h] = [this.info.width * TILE, this.info.height * TILE];
+    const [vw, vh] = [cam.width / cam.zoom, cam.height / cam.zoom];
+    const [bw, bh] = [Math.max(w, vw), Math.max(h, vh)];
+    cam.setBounds(Math.round((w - bw) / 2), Math.round((h - bh) / 2), Math.round(bw), Math.round(bh));
   }
 
   private occupied(): Set<string> {

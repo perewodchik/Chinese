@@ -1,0 +1,155 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   6,
+   8
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    8,
+    6
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "steamer-a",
+  "tile": [
+   2,
+   4
+  ],
+  "frame": "steamer/steam-0",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "steamer-b",
+  "tile": [
+   3,
+   4
+  ],
+  "frame": "steamer/steam-1",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "wok",
+  "tile": [
+   5,
+   4
+  ],
+  "frame": "wok/oil",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "menu",
+  "tile": [
+   2,
+   1
+  ],
+  "text": "包子 两块  豆浆 两块  油条 一块五",
+  "en": "Buns 2 yuan · soy milk 2 yuan · fried dough stick 1.5 yuan"
+ },
+ {
+  "kind": "prop",
+  "id": "t1",
+  "tile": [
+   8,
+   4
+  ],
+  "frame": "table/wood",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "s1",
+  "tile": [
+   9,
+   4
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "t2",
+  "tile": [
+   9,
+   6
+  ],
+  "frame": "table/wood",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "s2",
+  "tile": [
+   10,
+   6
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "t3",
+  "tile": [
+   2,
+   6
+  ],
+  "frame": "table/wood",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "s3",
+  "tile": [
+   3,
+   6
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "owner",
+  "npc": "uncle-apron",
+  "tile": [
+   4,
+   3
+  ],
+  "facing": "down"
+ }
+]

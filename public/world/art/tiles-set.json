@@ -38,6 +38,22 @@
   "beijing/window",
   "beijing/window-lit",
   "beijing/shop",
-  "beijing/shop-lit"
+  "beijing/shop-lit",
+  "beijing/plaster",
+  "beijing/plaster-base",
+  "beijing/wall-top",
+  "beijing/exit-mat",
+  "beijing/counter",
+  "beijing/shelf",
+  "beijing/menu-board",
+  "beijing/mirror",
+  "beijing/tile-wall",
+  "beijing/tile-wall-band",
+  "beijing/platform-edge",
+  "beijing/track",
+  "beijing/gate",
+  "beijing/stairs-down",
+  "beijing/rug",
+  "beijing/square-stone"
  ]
 }

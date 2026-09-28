@@ -1,0 +1,42 @@
+id: station-nanluoguxiang
+size: 24x16
+tilesets: tiles
+district: gulou
+crowd: 3
+
+# 南锣鼓巷 station: ticket machines, the gates, the platform (lines 6 and 8)
+
+[ground]
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tEEEEEEEEEEEEEEEEEEEEEEt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+[below]
+kkkkkkkkkkkkkkkkkkkkkkkk
+kJJJJJJJJJJJJJJJJJJJJJJk
+kjjSjjjjjjjjjjjjjjjjjjjk
+k......................k
+k......................k
+k......................k
+k......................k
+kgggggggggg..ggggggggggk
+k......................k
+k......................k
+k......................k
+k......................k
+k......................k
+krrrrrrrrrrrrrrrrrrrrrrk
+krrrrrrrrrrrrrrrrrrrrrrk
+krrrrrrrrrrrrrrrrrrrrrrk

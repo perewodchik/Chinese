@@ -1,0 +1,160 @@
+[
+ {
+  "kind": "door",
+  "id": "home-gate",
+  "tile": [
+   10,
+   5
+  ],
+  "to": {
+   "map": "siheyuan-yard",
+   "tile": [
+    9,
+    12
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "neighbour",
+  "tile": [
+   21,
+   5
+  ],
+  "to": {
+   "map": "hutong-home",
+   "tile": [
+    21,
+    6
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "A neighbour’s gate. Nobody opens."
+ },
+ {
+  "kind": "sign",
+  "id": "toilet",
+  "tile": [
+   30,
+   4
+  ],
+  "text": "公共厕所",
+  "en": "Public toilet"
+ },
+ {
+  "kind": "prop",
+  "id": "toilet-sign",
+  "tile": [
+   29,
+   7
+  ],
+  "frame": "street-sign/blue",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "lane-name",
+  "tile": [
+   2,
+   4
+  ],
+  "text": "帽儿胡同",
+  "en": "Mao’er Hutong (the lane’s name)"
+ },
+ {
+  "kind": "prop",
+  "id": "l1",
+  "tile": [
+   9,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l2",
+  "tile": [
+   11,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "tree1",
+  "tile": [
+   15,
+   10
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree2",
+  "tile": [
+   34,
+   10
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bike",
+  "tile": [
+   24,
+   7
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "edge",
+  "id": "west",
+  "side": "left",
+  "from": 6,
+  "to": 10,
+  "target": {
+   "map": "gulou-square",
+   "offset": 8
+  }
+ },
+ {
+  "kind": "edge",
+  "id": "east",
+  "side": "right",
+  "from": 6,
+  "to": 10,
+  "target": {
+   "map": "nanluo-main",
+   "offset": 0
+  }
+ }
+]

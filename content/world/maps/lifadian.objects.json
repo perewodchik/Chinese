@@ -1,0 +1,116 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   8,
+   7
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    32,
+    6
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "c1",
+  "tile": [
+   2,
+   3
+  ],
+  "frame": "barber-chair/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "c2",
+  "tile": [
+   4,
+   3
+  ],
+  "frame": "barber-chair/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "c3",
+  "tile": [
+   6,
+   3
+  ],
+  "frame": "barber-chair/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "wait1",
+  "tile": [
+   10,
+   5
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "wait2",
+  "tile": [
+   10,
+   4
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   1,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "price",
+  "tile": [
+   9,
+   1
+  ],
+  "text": "剪头 三十块",
+  "en": "Haircut 30 yuan"
+ },
+ {
+  "kind": "npc",
+  "id": "barber",
+  "npc": "uncle",
+  "tile": [
+   5,
+   4
+  ],
+  "facing": "up"
+ }
+]

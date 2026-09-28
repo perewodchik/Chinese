@@ -1,0 +1,129 @@
+[
+ {
+  "kind": "door",
+  "id": "my-room",
+  "tile": [
+   6,
+   4
+  ],
+  "to": {
+   "map": "siheyuan-room",
+   "tile": [
+    4,
+    6
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "wang-home",
+  "tile": [
+   13,
+   4
+  ],
+  "to": {
+   "map": "siheyuan-yard",
+   "tile": [
+    13,
+    5
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "王阿姨's rooms. The door is closed."
+ },
+ {
+  "kind": "door",
+  "id": "gate",
+  "tile": [
+   9,
+   13
+  ],
+  "to": {
+   "map": "hutong-home",
+   "tile": [
+    10,
+    6
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "tree",
+  "tile": [
+   8,
+   9
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "lantern",
+  "tile": [
+   4,
+   6
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bike",
+  "tile": [
+   15,
+   7
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   2,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant2",
+  "tile": [
+   17,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "wang",
+  "npc": "auntie",
+  "tile": [
+   11,
+   7
+  ],
+  "facing": "down"
+ }
+]

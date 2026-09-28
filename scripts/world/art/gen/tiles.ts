@@ -284,6 +284,155 @@ export function shopFront(lit: boolean): Grid {
   return g;
 }
 
+
+// ---------------------------------------------------------------- indoors (F1)
+
+/** A whitewashed inside wall, faintly uneven. */
+export function plaster(): Grid {
+  const g = tile('w');
+  const r = rng(11);
+  for (let i = 0; i < 9; i++) g.set(Math.floor(r() * T), Math.floor(r() * T), 'e');
+  return g;
+}
+
+/** The foot of an inside wall: a wooden skirting board. */
+export function plasterBase(): Grid {
+  const g = plaster();
+  g.rect(0, 11, T, 5, 'M').hline(0, 11, T, 'z').hline(0, 15, T, 'm');
+  return g;
+}
+
+/** The top of an inside wall seen from above: a dark beam — also the side walls of a room. */
+export function wallTop(): Grid {
+  const g = tile('m');
+  g.hline(0, 0, T, 'M').hline(0, 15, T, 'k');
+  for (let x = 2; x < T; x += 6) g.vline(x, 2, 11, 'M');
+  return g;
+}
+
+/** A doormat at a room's way out (walkable). */
+export function exitMat(): Grid {
+  const g = floorWood();
+  g.rect(1, 3, 14, 11, 'R').rect(2, 4, 12, 9, 'r');
+  for (let x = 3; x < 13; x += 3) g.vline(x, 5, 7, 'R');
+  return g;
+}
+
+/** A wooden shop counter, front on. */
+export function counter(): Grid {
+  const g = tile('M');
+  g.rect(0, 0, T, 5, 'z').hline(0, 0, T, 'f').hline(0, 4, T, 'm');
+  g.rect(1, 6, 14, 9, 'M');
+  for (let x = 0; x < T; x += 8) g.vline(x, 5, 11, 'm');
+  g.hline(0, 15, T, 'm');
+  return g;
+}
+
+/** Shop shelves full of packets, bottles and cans. */
+export function shelf(): Grid {
+  const g = tile('M');
+  const goods = ['r', 'y', 'n', 'h', 'w', 'p', 'l', 'Y'];
+  const r = rng(13);
+  for (const y of [1, 6, 11]) {
+    g.hline(0, y + 4, T, 'm');
+    for (let x = 1; x < T - 1; x += 2) {
+      const c = goods[Math.floor(r() * goods.length)]!;
+      const hgt = 2 + Math.floor(r() * 2);
+      g.rect(x, y + 4 - hgt, 2, hgt, c);
+      g.set(x, y + 4 - hgt, 'w');
+    }
+  }
+  g.vline(0, 0, T, 'm').vline(15, 0, T, 'm');
+  return g;
+}
+
+/** A red menu board with rows of white writing (too small to read — the sign object holds the words). */
+export function menuBoard(): Grid {
+  const g = plaster();
+  g.rect(1, 2, 14, 11, 'R').rect(2, 3, 12, 9, 'r');
+  for (const y of [4, 7, 10]) g.hline(3, y, 5, 'w').hline(10, y, 3, 'j');
+  return g;
+}
+
+/** A barber's mirror on the wall. */
+export function mirror(): Grid {
+  const g = plaster();
+  g.rect(2, 1, 12, 12, 'M').rect(3, 2, 10, 10, 'l');
+  g.set(4, 3, 'w').set(5, 3, 'w').set(4, 4, 'w').set(10, 9, 'X');
+  g.hline(2, 13, 12, 'm');
+  return g;
+}
+
+/** A subway station's white tiled wall. */
+export function tileWall(): Grid {
+  const g = tile('w');
+  g.hline(0, 7, T, 'e').hline(0, 15, T, 'e').vline(0, 0, 7, 'e').vline(8, 8, 8, 'e');
+  return g;
+}
+
+/** A tiled wall with the line's coloured band and a stripe of the station name. */
+export function tileWallBand(): Grid {
+  const g = tileWall();
+  g.rect(0, 5, T, 4, 'n').hline(0, 5, T, 'l');
+  return g;
+}
+
+/** The platform's edge: the yellow tactile strip before the tracks. */
+export function platformEdge(): Grid {
+  const g = floorTile();
+  g.rect(0, 10, T, 4, 'y');
+  for (let x = 1; x < T; x += 3) g.set(x, 11, 'Y').set(x + 1, 12, 'Y');
+  g.rect(0, 14, T, 2, 'e');
+  return g;
+}
+
+/** The tracks, down in the dark. */
+export function track(): Grid {
+  const g = tile('a');
+  g.hline(0, 3, T, 'c').hline(0, 12, T, 'c');
+  for (let x = 1; x < T; x += 5) g.rect(x, 1, 2, 14, 'm');
+  g.hline(0, 3, T, 'd').hline(0, 12, T, 'd');
+  return g;
+}
+
+/** A ticket gate: a grey cabinet with a blue reader and a green arrow. */
+export function gate(): Grid {
+  const g = floorTile();
+  g.rect(3, 1, 10, 14, 'c').rect(4, 2, 8, 12, 'd').rect(5, 3, 6, 3, 'n').set(7, 4, 'l');
+  g.rect(6, 8, 4, 3, 'h').set(7, 9, 'i');
+  g.hline(3, 15, 10, 'b');
+  return g;
+}
+
+/** Stairs going down into the station, seen from the street (walkable). */
+export function stairsDown(): Grid {
+  const g = tile('b');
+  for (let y = 0; y < T; y += 3) g.hline(1, y, 14, 'd').hline(1, y + 1, 14, 'c');
+  g.vline(0, 0, T, 'e').vline(15, 0, T, 'e');
+  g.rect(0, 13, T, 3, 'a');
+  return g;
+}
+
+/** A red rug, the teahouse's floor. */
+export function rug(): Grid {
+  const g = tile('r');
+  g.rect(0, 0, T, 1, 'R').rect(0, 15, T, 1, 'R');
+  for (let x = 2; x < T; x += 6) g.rect(x, 6, 3, 3, 'y').set(x + 1, 7, 'r');
+  return g;
+}
+
+/** Cobbles of the square between the Drum and Bell Towers. */
+export function squareStone(seed = 17): Grid {
+  const g = tile('d');
+  const r = rng(seed);
+  for (let y = 0; y < T; y += 4) {
+    const off = (y / 4) % 2 ? 2 : 0;
+    for (let x = off; x < T; x += 4) g.rect(x, y, 3, 3, r() < 0.3 ? 'e' : 'd').set(x, y, 'e');
+    g.hline(0, y + 3, T, 'c');
+  }
+  return g;
+}
+
 export const TILES: Array<[string, () => Grid]> = [
   ['paving', () => paving(1)],
   ['paving-2', () => paving(9)],
@@ -320,4 +469,20 @@ export const TILES: Array<[string, () => Grid]> = [
   ['window-lit', () => lattice(true)],
   ['shop', () => shopFront(false)],
   ['shop-lit', () => shopFront(true)],
+  ['plaster', plaster],
+  ['plaster-base', plasterBase],
+  ['wall-top', wallTop],
+  ['exit-mat', exitMat],
+  ['counter', counter],
+  ['shelf', shelf],
+  ['menu-board', menuBoard],
+  ['mirror', mirror],
+  ['tile-wall', tileWall],
+  ['tile-wall-band', tileWallBand],
+  ['platform-edge', platformEdge],
+  ['track', track],
+  ['gate', gate],
+  ['stairs-down', stairsDown],
+  ['rug', rug],
+  ['square-stone', () => squareStone(17)],
 ];

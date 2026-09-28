@@ -130,6 +130,178 @@ export function pigeon(pose: 'peck' | 'look' | 'fly-0' | 'fly-1'): Grid {
   return g;
 }
 
+
+// ---------------------------------------------------------------- F1: rooms, shops, the towers
+
+/** A square wooden table, ¾ view, 16×16. */
+export function table(): Grid {
+  const g = new Grid(16, 16);
+  g.oval(1, 12, 15, 4, '_');
+  const f = new Grid(16, 16);
+  f.rect(1, 3, 14, 6, 'z').hline(1, 3, 14, 'f').rect(1, 9, 14, 2, 'M');
+  f.vline(2, 11, 4, 'm').vline(13, 11, 4, 'm');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A little stool, 16×16. */
+export function stool(): Grid {
+  const g = new Grid(16, 16);
+  g.oval(3, 12, 11, 3, '_');
+  const f = new Grid(16, 16);
+  f.oval(4, 6, 8, 4, 'r').hline(5, 6, 6, 'p').rect(4, 8, 8, 2, 'R');
+  f.vline(5, 10, 3, 'm').vline(10, 10, 3, 'm');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A bed with a flowered quilt, head to the wall, 16×32. */
+export function bed(): Grid {
+  const g = new Grid(16, 32);
+  g.oval(0, 27, 16, 5, '_');
+  const f = new Grid(16, 32);
+  f.rect(1, 2, 14, 27, 'M').rect(2, 3, 12, 5, 'w').hline(2, 3, 12, 'e');
+  f.rect(2, 9, 12, 18, 'n').rect(2, 9, 12, 2, 'l');
+  for (let y = 12; y < 26; y += 4) for (let x = 4; x < 13; x += 4) f.set(x, y, 'N').set(x + 1, y + 1, 'y');
+  f.hline(1, 28, 14, 'm');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** Bamboo steamers stacked on a stove, 16×16 — the 包子 of the 早点铺. `puff` 0/1 moves the steam. */
+export function steamer(puff: number): Grid {
+  const g = new Grid(16, 16);
+  g.oval(1, 13, 15, 3, '_');
+  const f = new Grid(16, 16);
+  f.rect(2, 11, 12, 4, 'a').hline(2, 11, 12, 'b');
+  for (const y of [8, 5]) f.oval(2, y, 12, 4, 'z').hline(3, y + 1, 10, 'Y').hline(3, y + 3, 10, 'o');
+  f.oval(3, 3, 10, 3, 'Y').hline(5, 3, 6, 'j');
+  f.outline('k');
+  g.stamp(f, 0, 0);
+  const x = puff ? 6 : 8;
+  g.set(x, 1, 'w').set(x + 1, 0, 'e').set(x - 2, 2, 'e');
+  return g;
+}
+
+/** A wok of oil on a stove, 16×16 — for 油条. */
+export function wok(): Grid {
+  const g = new Grid(16, 16);
+  g.oval(1, 13, 15, 3, '_');
+  const f = new Grid(16, 16);
+  f.rect(2, 9, 12, 6, 'a').hline(2, 9, 12, 'b').rect(6, 12, 4, 2, 'O');
+  f.oval(1, 4, 14, 6, 'b').oval(2, 5, 12, 4, 'Y');
+  f.hline(4, 6, 6, 'y').hline(6, 7, 5, 'o');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A low tea table with a teapot and cups, 16×16. */
+export function teaTable(): Grid {
+  const g = new Grid(16, 16);
+  g.oval(1, 12, 15, 4, '_');
+  const f = new Grid(16, 16);
+  f.rect(1, 6, 14, 5, 'M').hline(1, 6, 14, 'z').rect(1, 11, 14, 1, 'm').vline(2, 12, 2, 'm').vline(13, 12, 2, 'm');
+  f.oval(5, 2, 5, 5, 'R').set(10, 4, 'R').set(4, 3, 'R').hline(6, 2, 3, 'p');
+  f.set(12, 6, 'w').set(3, 7, 'w').set(12, 7, 'e');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A barber's chair, red leather on chrome, 16×16. */
+export function barberChair(): Grid {
+  const g = new Grid(16, 16);
+  g.oval(2, 13, 13, 3, '_');
+  const f = new Grid(16, 16);
+  f.rect(4, 1, 8, 6, 'r').hline(4, 1, 8, 'p').rect(3, 7, 10, 3, 'R').hline(3, 7, 10, 'r');
+  f.vline(3, 5, 4, 'd').vline(12, 5, 4, 'd');
+  f.rect(7, 10, 2, 3, 'd').rect(5, 13, 6, 1, 'c');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** The station's ticket machine, 16×32: blue, a screen, a slot. */
+export function ticketMachine(): Grid {
+  const g = new Grid(16, 32);
+  g.oval(1, 28, 15, 4, '_');
+  const f = new Grid(16, 32);
+  f.rect(2, 4, 12, 26, 'n').vline(2, 4, 26, 'l').vline(13, 4, 26, 'B');
+  f.rect(4, 7, 8, 7, 'k').rect(5, 8, 6, 5, 'x').hline(5, 9, 4, 'w').hline(5, 11, 3, 'w');
+  f.rect(5, 17, 6, 2, 'a').rect(6, 22, 4, 1, 'a').rect(2, 2, 12, 3, 'r').hline(4, 3, 8, 'w');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A potted plant, 16×16. */
+export function plant(): Grid {
+  const g = new Grid(16, 16);
+  g.oval(3, 13, 11, 3, '_');
+  const f = new Grid(16, 16);
+  f.rect(5, 10, 6, 4, 'M').hline(5, 10, 6, 'z');
+  for (const [x, y, w, h] of [[3, 3, 6, 6], [7, 1, 6, 7], [5, 5, 7, 5]] as const) f.oval(x, y, w, h, 'h');
+  f.set(6, 4, 'i').set(9, 3, 'i').set(8, 7, 'G');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A small blue street sign on a post, 16×32 — for 公共厕所 and the like (the words are the sign object's). */
+export function streetSign(): Grid {
+  const g = new Grid(16, 32);
+  g.oval(4, 28, 10, 3, '_');
+  const f = new Grid(16, 32);
+  f.rect(7, 10, 2, 19, 'c').vline(8, 10, 19, 'b');
+  f.rect(1, 3, 14, 8, 'B').rect(2, 4, 12, 6, 'n');
+  f.hline(3, 5, 4, 'w').hline(9, 5, 3, 'w').hline(3, 8, 9, 'l');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/**
+ * A tower of old Beijing on its brick terrace (鼓楼 / 钟楼), 80×96: a grey
+ * stone terrace with an arched passage, and on it a hall of red columns
+ * under two tiers of grey roof with upturned ends.
+ * `kind` 'drum' has red walls and a wooden gallery; 'bell' is all grey stone.
+ */
+export function tower(kind: 'drum' | 'bell'): Grid {
+  const W = 80;
+  const H = 96;
+  const g = new Grid(W, H);
+  g.oval(2, 88, 78, 8, '_');
+  const f = new Grid(W, H);
+  const stone = kind === 'drum' ? 'c' : 'd';
+  const stoneLit = kind === 'drum' ? 'd' : 'e';
+  // terrace
+  f.rect(2, 56, 76, 36, stone).hline(2, 56, 76, stoneLit);
+  for (let y = 60; y < 92; y += 4) f.hline(2, y, 76, kind === 'drum' ? 'b' : 'c');
+  for (let y = 58; y < 92; y += 4) for (let x = 2 + ((y / 4) % 2 ? 0 : 4); x < 78; x += 8) f.vline(x, y, 2, kind === 'drum' ? 'b' : 'c');
+  // the arch through it
+  f.oval(30, 66, 20, 28, 'a').rect(30, 80, 20, 12, 'a').oval(32, 68, 16, 24, 'k').rect(32, 80, 16, 12, 'k');
+  // the hall: red walls or grey stone, columns
+  const wall = kind === 'drum' ? 'r' : 'd';
+  f.rect(10, 34, 60, 22, wall);
+  if (kind === 'drum') {
+    for (let x = 12; x < 70; x += 8) f.rect(x, 34, 2, 22, 'R').vline(x, 34, 22, 'p');
+    f.rect(26, 42, 28, 14, 'q').rect(30, 44, 8, 12, 'M').rect(42, 44, 8, 12, 'M');
+  } else {
+    f.hline(10, 34, 60, 'e');
+    f.oval(33, 40, 14, 16, 'b').rect(33, 48, 14, 8, 'b').oval(35, 42, 10, 14, 'a');
+  }
+  // lower roof
+  const roofRow = (y: number, x0: number, x1: number) => {
+    for (let x = x0; x < x1; x += 3) f.vline(x, y, 8, 'c').vline(x + 1, y, 8, 'b').vline(x + 2, y, 8, 'a');
+    f.hline(x0, y + 8, x1 - x0, 'k').rect(x0, y + 9, x1 - x0, 2, 'v').hline(x0, y + 9, x1 - x0, 'Y');
+    // upturned ends
+    f.rect(x0 - 3, y + 5, 4, 3, 'b').set(x0 - 4, y + 4, 'a').rect(x1 - 1, y + 5, 4, 3, 'b').set(x1 + 3, y + 4, 'a');
+  };
+  roofRow(24, 6, 74);
+  // upper hall and roof
+  f.rect(18, 16, 44, 9, wall);
+  if (kind === 'drum') for (let x = 20; x < 60; x += 6) f.vline(x, 16, 9, 'R');
+  roofRow(4, 12, 68);
+  f.rect(14, 1, 52, 4, 'a').hline(14, 2, 52, 'b').set(13, 0, 'a').set(66, 0, 'a');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -137,5 +309,16 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['tricycle', 'a 三轮车 pedal tricycle', () => [['side', tricycle()], ['side-r', tricycle().mirror()]]],
   ['subway-sign', 'a subway entrance sign', () => [['post', subwaySign()]]],
   ['bird-cage', "an old man's bird cage", () => [['cage', birdCage()]]],
+  ['table', 'a square wooden table', () => [['wood', table()]]],
+  ['stool', 'a little red stool', () => [['red', stool()]]],
+  ['bed', 'a bed with a flowered quilt', () => [['quilt', bed()]]],
+  ['steamer', 'bamboo steamers of 包子 on a stove', () => [['steam-0', steamer(0)], ['steam-1', steamer(1)]]],
+  ['wok', 'a wok of oil for 油条', () => [['oil', wok()]]],
+  ['tea-table', 'a low tea table with a pot and cups', () => [['pot', teaTable()]]],
+  ['barber-chair', "a barber's chair", () => [['red', barberChair()]]],
+  ['ticket-machine', "the station's ticket machine", () => [['blue', ticketMachine()]]],
+  ['plant', 'a potted plant', () => [['green', plant()]]],
+  ['street-sign', 'a small blue street sign on a post', () => [['blue', streetSign()]]],
+  ['tower', 'the Drum and Bell Towers on their terraces', () => [['drum', tower('drum')], ['bell', tower('bell')]]],
   ['pigeon', 'a pigeon of the hutongs', () => [['peck', pigeon('peck')], ['look', pigeon('look')], ['fly-0', pigeon('fly-0')], ['fly-1', pigeon('fly-1')]]],
 ];

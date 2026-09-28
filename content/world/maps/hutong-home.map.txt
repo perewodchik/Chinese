@@ -1,0 +1,44 @@
+id: hutong-home
+size: 40x16
+tilesets: tiles
+district: gulou
+crowd: 2
+pigeons: 5
+bikes: 1
+
+# 帽儿胡同, the lane of your 四合院: your red gate, a neighbour's gate, the public toilet; west to 鼓楼, east to 南锣鼓巷
+
+[ground]
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppPppppppppppPppppppppppPpppppppp
+pppppPppppppppppPppppppppppPppppppppppPp
+pPppppppppppPppppppppppPppppppppppPppppp
+ppppppppPppppppppppPppppppppppPppppppppp
+ppppPppppppppppPppppppppppPppppppppppPpp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+[below]
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+bbnbbbbbbbdbbnbbbbnbbdbbbnbbbbhhbbbnbbbb
+BBBBBBBBBBDBBBBBBBBBBDBBBBBBBBhhBBBBBBBB
+........................................
+........................................
+........................................
+........................................
+........................................
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

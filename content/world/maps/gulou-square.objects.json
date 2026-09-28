@@ -1,0 +1,118 @@
+[
+ {
+  "kind": "prop",
+  "id": "drum-tower",
+  "tile": [
+   3,
+   11
+  ],
+  "frame": "tower/drum",
+  "blocks": [
+   5,
+   6
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bell-tower",
+  "tile": [
+   20,
+   11
+  ],
+  "frame": "tower/bell",
+  "blocks": [
+   5,
+   6
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "drum",
+  "tile": [
+   5,
+   12
+  ],
+  "text": "鼓楼",
+  "en": "The Drum Tower"
+ },
+ {
+  "kind": "sign",
+  "id": "bell",
+  "tile": [
+   22,
+   12
+  ],
+  "text": "钟楼",
+  "en": "The Bell Tower"
+ },
+ {
+  "kind": "prop",
+  "id": "tree1",
+  "tile": [
+   11,
+   20
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree2",
+  "tile": [
+   27,
+   20
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree3",
+  "tile": [
+   1,
+   21
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "dancer",
+  "npc": "auntie-purple",
+  "tile": [
+   14,
+   16
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "photo",
+  "npc": "tourist",
+  "tile": [
+   17,
+   14
+  ],
+  "facing": "up"
+ },
+ {
+  "kind": "edge",
+  "id": "east",
+  "side": "right",
+  "from": 14,
+  "to": 18,
+  "target": {
+   "map": "hutong-home",
+   "offset": -8
+  }
+ }
+]

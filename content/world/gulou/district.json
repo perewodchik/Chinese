@@ -1,0 +1,22 @@
+{
+  "id": "gulou",
+  "name": "鼓楼 · 南锣鼓巷",
+  "en": "Drum Tower · Nanluoguxiang",
+  "chapter": 1,
+  "maps": [
+    "siheyuan-room",
+    "siheyuan-yard",
+    "hutong-home",
+    "nanluo-main",
+    "subway-lane",
+    "gulou-square",
+    "zaodian",
+    "xiaomaibu",
+    "lifadian",
+    "chaguan",
+    "station-nanluoguxiang"
+  ],
+  "stations": ["nanluoguxiang", "guloudajie"],
+  "names": ["鼓楼", "钟楼", "南锣鼓巷", "帽儿胡同", "平安大街", "北京", "王阿姨", "天安门", "天安门东", "故宫"],
+  "ambience": "hutong"
+}

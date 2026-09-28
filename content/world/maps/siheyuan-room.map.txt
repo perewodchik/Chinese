@@ -1,0 +1,25 @@
+id: siheyuan-room
+size: 10x8
+tilesets: tiles
+district: gulou
+
+# Your room at 王阿姨's: a bed, a table, the window where 兔儿爷 sat
+
+[ground]
+ffffffffff
+ffffffffff
+ffffffffff
+ffffffffff
+ffffffffff
+ffffffffff
+ffffffffff
+ffffefffff
+[below]
+kkkkkkkkkk
+kooonooook
+kOOOOOOOOk
+k........k
+k........k
+k........k
+k........k
+kkkk.kkkkk

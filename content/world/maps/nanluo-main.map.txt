@@ -1,0 +1,44 @@
+id: nanluo-main
+size: 56x16
+tilesets: tiles
+district: gulou
+crowd: 6
+pigeons: 4
+bikes: 2
+
+# 南锣鼓巷: 早点铺, 小卖部, 理发店 and 茶馆 along the north side, lanterns, a bird cage on a hook
+
+[ground]
+pppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppPppppppppppPppppppppppPppppppppppPppppppppppPpp
+pppppPppppppppppPppppppppppPppppppppppPppppppppppPpppppp
+pPppppppppppPppppppppppPppppppppppPppppppppppPpppppppppp
+ppppppppPppppppppppPppppppppppPppppppppppPppppppppppPppp
+ppppPppppppppppPppppppppppPppppppppppPppppppppppPppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+[below]
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+bbnbbbhhdhbbbbnbbbhhdhbbbbnbbbhhdhbbbbnbbbhhdhbbbbnbbnbb
+BBBBBBhhDhBBBBBBBBhhDhBBBBBBBBhhDhBBBBBBBBhhDhBBBBBBBBBB
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

@@ -1,0 +1,25 @@
+id: lifadian
+size: 12x8
+tilesets: tiles
+district: gulou
+
+# The 理发店: three chairs before three mirrors, a bench to wait on
+
+[ground]
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+ttttttttettt
+[below]
+kkkkkkkkkkkk
+koioioiooook
+kOOOOOOOOOOk
+k..........k
+k..........k
+k..........k
+k..........k
+kkkkkkkk.kkk

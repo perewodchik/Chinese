@@ -1,0 +1,38 @@
+id: siheyuan-yard
+size: 20x14
+tilesets: tiles
+district: gulou
+pigeons: 3
+
+# The 四合院: your room on the north side, 王阿姨's door, the old lantern, a 槐树 in the middle
+
+[ground]
+pppppppppppppppppppp
+pppppppppppppppppppp
+pppppppppppppppppppp
+pppppppppppppppppppp
+pppppppppppppppppppp
+ppPppppppPppppppPppp
+pPppppppPppppppPpppp
+pppppppPppppppPppppp
+ppppppPppppppPpppppp
+pppppPppppppPppppppp
+ppppPppppppPppppppPp
+pppPppppppPppppppPpp
+ppPppppppPppppppPppp
+pppppppppppppppppppp
+[below]
+XXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeee
+bbnbbbdbbnbbbdbbnbbb
+BBBBBBDBBBBBBDBBBBBB
+T..................T
+T..................T
+T..................T
+T..................T
+T..................T
+T..................T
+T..................T
+T..................T
+TTTTTTTTT.TTTTTTTTTT

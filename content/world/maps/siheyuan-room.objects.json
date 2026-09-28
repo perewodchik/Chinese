@@ -1,0 +1,80 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   4,
+   7
+  ],
+  "to": {
+   "map": "siheyuan-yard",
+   "tile": [
+    6,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "bed",
+  "tile": [
+   1,
+   4
+  ],
+  "frame": "bed/quilt",
+  "blocks": [
+   1,
+   2
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "table",
+  "tile": [
+   7,
+   4
+  ],
+  "frame": "table/wood",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stool",
+  "tile": [
+   7,
+   5
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   8,
+   3
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "light",
+  "id": "lamp",
+  "tile": [
+   7,
+   3
+  ],
+  "color": "#fff1b3",
+  "radius": 40
+ }
+]

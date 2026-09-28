@@ -1,0 +1,51 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   5,
+   7
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    20,
+    6
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   1,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "shelf",
+  "tile": [
+   3,
+   1
+  ],
+  "text": "水  可乐  面包  牛奶",
+  "en": "Water · cola · bread · milk"
+ },
+ {
+  "kind": "npc",
+  "id": "owner",
+  "npc": "woman-teal",
+  "tile": [
+   7,
+   3
+  ],
+  "facing": "down"
+ }
+]

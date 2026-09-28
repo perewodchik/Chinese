@@ -1,0 +1,94 @@
+[
+ {
+  "kind": "door",
+  "id": "exit",
+  "tile": [
+   3,
+   2
+  ],
+  "to": {
+   "map": "subway-lane",
+   "tile": [
+    27,
+    9
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "machine-1",
+  "tile": [
+   6,
+   4
+  ],
+  "frame": "ticket-machine/blue",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "machine-2",
+  "tile": [
+   8,
+   4
+  ],
+  "frame": "ticket-machine/blue",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   12,
+   1
+  ],
+  "text": "南锣鼓巷",
+  "en": "Nanluoguxiang"
+ },
+ {
+  "kind": "sign",
+  "id": "lines",
+  "tile": [
+   18,
+   1
+  ],
+  "text": "6号线  8号线",
+  "en": "Line 6 · Line 8"
+ },
+ {
+  "kind": "sign",
+  "id": "exit-sign",
+  "tile": [
+   4,
+   1
+  ],
+  "text": "出口",
+  "en": "Way out"
+ },
+ {
+  "kind": "sign",
+  "id": "gates",
+  "tile": [
+   10,
+   7
+  ],
+  "text": "进站",
+  "en": "Way in (to the trains)"
+ },
+ {
+  "kind": "npc",
+  "id": "staff",
+  "npc": "woman-black",
+  "tile": [
+   14,
+   5
+  ],
+  "facing": "down"
+ }
+]

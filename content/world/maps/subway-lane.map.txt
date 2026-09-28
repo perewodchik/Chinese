@@ -1,0 +1,43 @@
+id: subway-lane
+size: 32x16
+tilesets: tiles
+district: gulou
+crowd: 4
+bikes: 3
+
+# The lane out to 平安大街 and the subway entrance of 南锣鼓巷 station (lines 6 and 8)
+
+[ground]
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppPppppppppppPppppppppppP
+pppppPppppppppppPppppppppppPpppp
+pPppppppppppPppppppppppPpppzzppp
+ppppppppPppppppppppPppppppppppPp
+ppppPppppppppppPppppppppppPppppp
+pppppppppppppppppppprrrrrrrrrrrr
+pppppppppppppppppppprrrrrrrrrrrr
+ppppppppppppppppppppRRRRRRRRRRRR
+pppppppppppppppppppprrrrrrrrrrrr
+pppppppppppppppppppprrrrrrrrrrrr
+[below]
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+bbnbbbbnbbbbhhhbbbbbnbbbbbbbbbbb
+BBBBBBBBBBBBhhhBBBBBBBBBBBBBBBBB
+................................
+................................
+................................
+................................
+................................
+TTTTTTTTTTTTTTTTTTTT............
+xxxxxxxxxxxxxxxxxxxT............
+xxxxxxxxxxxxxxxxxxxT............
+xxxxxxxxxxxxxxxxxxxT............
+XXXXXXXXXXXXXXXXXXXT............

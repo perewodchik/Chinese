@@ -1,12 +1,67 @@
 {
+ "chaguan": {
+  "district": "gulou",
+  "width": 14,
+  "height": 10
+ },
+ "gulou-square": {
+  "district": "gulou",
+  "width": 32,
+  "height": 24
+ },
+ "hutong-home": {
+  "district": "gulou",
+  "width": 40,
+  "height": 16
+ },
  "hutong-proto": {
   "district": "gulou",
   "width": 32,
   "height": 18
  },
+ "lifadian": {
+  "district": "gulou",
+  "width": 12,
+  "height": 8
+ },
+ "nanluo-main": {
+  "district": "gulou",
+  "width": 56,
+  "height": 16
+ },
+ "siheyuan-room": {
+  "district": "gulou",
+  "width": 10,
+  "height": 8
+ },
+ "siheyuan-yard": {
+  "district": "gulou",
+  "width": 20,
+  "height": 14
+ },
+ "station-nanluoguxiang": {
+  "district": "gulou",
+  "width": 24,
+  "height": 16
+ },
+ "subway-lane": {
+  "district": "gulou",
+  "width": 32,
+  "height": 16
+ },
  "tiananmen-proto": {
   "district": "tiananmen",
   "width": 39,
   "height": 30
+ },
+ "xiaomaibu": {
+  "district": "gulou",
+  "width": 10,
+  "height": 8
+ },
+ "zaodian": {
+  "district": "gulou",
+  "width": 12,
+  "height": 9
  }
 }

@@ -10,7 +10,12 @@
   "m": "marble",
   "f": "floor-wood",
   "t": "floor-tile",
-  "w": "water-0"
+  "w": "water-0",
+  "q": "square-stone",
+  "u": "rug",
+  "e": "exit-mat",
+  "z": "stairs-down",
+  "E": "platform-edge"
  },
  "below": {
   "b": "brick",
@@ -37,13 +42,25 @@
   "H": "shop-lit",
   "l": "marble-rail",
   "M": "marble",
-  "w": "water-0"
+  "w": "water-0",
+  "o": "plaster",
+  "O": "plaster-base",
+  "k": "wall-top",
+  "C": "counter",
+  "s": "shelf",
+  "v": "menu-board",
+  "i": "mirror",
+  "j": "tile-wall",
+  "J": "tile-wall-band",
+  "r": "track",
+  "g": "gate"
  },
  "above": {
   "x": "roof-grey",
   "e": "roof-grey-eave",
   "E": "roof-yellow-eave",
-  "T": "brick-top"
+  "T": "brick-top",
+  "k": "wall-top"
  },
  "walkable": [
   "door-bottom",
