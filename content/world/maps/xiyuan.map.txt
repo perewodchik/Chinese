@@ -1,0 +1,33 @@
+id: xiyuan
+size: 16x12
+tilesets: tiles
+district: qianmen
+
+# The opera house 戏园: the stage and its curtain, masks on the walls, tea tables
+
+[ground]
+ffffffffffffffff
+ffffffffffffffff
+ffffffffffffffff
+ffffffffffffffff
+ffffffffffffffff
+ffffffffffffffff
+ffffffffffffffff
+ffffffffffffffff
+ffffffffffffffff
+ffffffffffffffff
+ffffffffffffffff
+ffffffffefffffff
+[below]
+kkkkkkkkkkkkkkkk
+kmuuuuuuuuuuuumk
+kOOOOOOOOOOOOOOk
+k..............k
+k..............k
+k..............k
+k..............k
+k..............k
+k..............k
+k..............k
+k..............k
+kkkkkkkk.kkkkkkk

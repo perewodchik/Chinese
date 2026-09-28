@@ -213,3 +213,44 @@ describe('chapter 2, played through the core', () => {
     assert.ok(ch1.reward?.some((a) => a.do === 'quest' && a.quest === 'ch2'));
   });
 });
+
+describe('chapter 3, played through the core', () => {
+  it('王府井: the bank, the 成语 book; 前门: the opera, the door gods', () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 3 }, { do: 'quest', quest: 'ch3', step: 'go' }]);
+    const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'ch3')?.step.id;
+    s = play(s, 'wfj-arrive').save;
+    assert.ok('人山人海' in s.idioms);
+    assert.equal(at(), 'money');
+    s = play(s, 'bank').save;
+    assert.equal(s.bag.money, 750);
+    assert.equal(at(), 'book');
+    s = play(s, 'book').save;
+    assert.ok(s.flags.includes('idiom-book'));
+    assert.equal(at(), 'qianmen');
+    s = play(s, 'qm-arrive').save;
+    s = play(s, 'opera').save;
+    assert.equal(at(), 'red-paper');
+    assert.equal(sceneFor(scenes, s, { look: 'door-gods', map: 'qianmen-street' })?.id, 'menshen-ask');
+    assert.equal(sceneFor(scenes, s, { npc: 'shudian-ayi' })?.id, 'red-paper');
+    s = play(s, 'red-paper').save;
+    assert.equal(at(), 'menshen');
+    assert.equal(sceneFor(scenes, s, { look: 'door-gods', map: 'qianmen-street' })?.id, 'menshen-give');
+    s = play(s, 'menshen-give').save;
+    assert.ok('menshen' in s.spirits);
+    assert.ok('画蛇添足' in s.idioms);
+    assert.equal(s.bag.items.hongzhi ?? 0, 0);
+    assert.equal(s.quests.ch3?.done, true);
+    assert.equal(s.chapter, 4);
+  });
+
+  it("王阿姨's cold: medicine from the pharmacy", () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 3 }]);
+    assert.equal(sceneFor(scenes, s, { npc: 'wang-ayi' })?.id, 'wang-cold');
+    s = play(s, 'wang-cold').save;
+    s = play(s, 'pharmacy').save;
+    assert.equal(s.bag.items.ganmaoyao, 1);
+    assert.equal(sceneFor(scenes, s, { npc: 'wang-ayi' })?.id, 'wang-medicine');
+    s = play(s, 'wang-medicine').save;
+    assert.equal(s.quests['wang-cold']?.done, true);
+  });
+});

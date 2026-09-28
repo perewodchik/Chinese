@@ -1,0 +1,56 @@
+id: qianmen-street
+size: 48x22
+tilesets: tiles
+district: qianmen
+crowd: 9
+pigeons: 5
+bikes: 1
+
+# 前门大街 and the corner of 大栅栏: the arrow tower 前门, roast duck, the opera house, an old gate with faded door gods
+
+[ground]
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+sssssssssssssssssssssssssssssssssssssssssssszzss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+ssssssssssssssssssssssssssssssssssssssssssssssss
+[below]
+............XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+............xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+............xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+............eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+............bbbbhhhhhbbbhhdhhbbbbhhhhbbb..bbbbbb
+............BBBBhhhhhBBBhhDhhBBBBhhhhBBB..BBBBBB
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

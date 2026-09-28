@@ -1,0 +1,51 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   5,
+   7
+  ],
+  "to": {
+   "map": "wangfujing-street",
+   "tile": [
+    20,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "shelf",
+  "tile": [
+   2,
+   1
+  ],
+  "text": "感冒药",
+  "en": "Cold medicine"
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   8,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "pharmacist",
+  "npc": "yaoshi",
+  "tile": [
+   2,
+   3
+  ],
+  "facing": "down"
+ }
+]

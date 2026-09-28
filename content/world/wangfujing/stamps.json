@@ -1,0 +1,30 @@
+[
+  {
+    "id": "wangfujing",
+    "name": "王府井",
+    "en": "Wangfujing",
+    "place": "wangfujing-street",
+    "design": "wangfujing"
+  },
+  {
+    "id": "huanqian",
+    "name": "换钱",
+    "en": "Changed money at the bank",
+    "place": "yinhang",
+    "design": "huanqian"
+  },
+  {
+    "id": "chengyu-shu",
+    "name": "成语",
+    "en": "The book of 成语",
+    "place": "shudian",
+    "design": "chengyu-shu"
+  },
+  {
+    "id": "yaodian",
+    "name": "买药",
+    "en": "Bought medicine",
+    "place": "yaodian",
+    "design": "yaodian"
+  }
+]

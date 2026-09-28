@@ -1,0 +1,25 @@
+id: yaodian
+size: 10x8
+tilesets: tiles
+district: wangfujing
+
+# The pharmacy: medicine on the shelves, the pharmacist behind the counter
+
+[ground]
+tttttttttt
+tttttttttt
+tttttttttt
+tttttttttt
+tttttttttt
+tttttttttt
+tttttttttt
+tttttetttt
+[below]
+kkkkkkkkkk
+kssssssssk
+kOOOOOOOOk
+k........k
+kCCCC....k
+k........k
+k........k
+kkkkk.kkkk

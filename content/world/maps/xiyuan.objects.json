@@ -1,0 +1,144 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   8,
+   11
+  ],
+  "to": {
+   "map": "qianmen-street",
+   "tile": [
+    26,
+    6
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "tt1",
+  "tile": [
+   3,
+   7
+  ],
+  "frame": "tea-table/pot",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "st1",
+  "tile": [
+   4,
+   7
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tt2",
+  "tile": [
+   10,
+   7
+  ],
+  "frame": "tea-table/pot",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "st2",
+  "tile": [
+   11,
+   7
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tt3",
+  "tile": [
+   6,
+   9
+  ],
+  "frame": "tea-table/pot",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "st3",
+  "tile": [
+   7,
+   9
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "l1",
+  "tile": [
+   2,
+   2
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l2",
+  "tile": [
+   13,
+   2
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "npc",
+  "id": "actor",
+  "npc": "jingju-yanyuan",
+  "tile": [
+   8,
+   3
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "owner",
+  "npc": "xiyuan-laoban",
+  "tile": [
+   13,
+   8
+  ],
+  "facing": "left"
+ }
+]

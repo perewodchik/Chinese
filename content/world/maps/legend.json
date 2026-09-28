@@ -53,7 +53,10 @@
   "j": "tile-wall",
   "J": "tile-wall-band",
   "r": "track",
-  "g": "gate"
+  "g": "gate",
+  "K": "bookshelf",
+  "m": "mask-wall",
+  "u": "curtain"
  },
  "above": {
   "x": "roof-grey",

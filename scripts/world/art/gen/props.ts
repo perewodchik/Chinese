@@ -274,7 +274,7 @@ export function streetSign(): Grid {
  * under two tiers of grey roof with upturned ends.
  * `kind` 'drum' has red walls and a wooden gallery; 'bell' is all grey stone.
  */
-export function tower(kind: 'drum' | 'bell'): Grid {
+export function tower(kind: 'drum' | 'bell' | 'arrow'): Grid {
   const W = 80;
   const H = 96;
   const g = new Grid(W, H);
@@ -289,9 +289,12 @@ export function tower(kind: 'drum' | 'bell'): Grid {
   // the arch through it
   f.oval(30, 66, 20, 28, 'a').rect(30, 80, 20, 12, 'a').oval(32, 68, 16, 24, 'k').rect(32, 80, 16, 12, 'k');
   // the hall: red walls or grey stone, columns
-  const wall = kind === 'drum' ? 'r' : 'd';
+  const wall = kind === 'drum' ? 'r' : kind === 'arrow' ? 'c' : 'd';
   f.rect(10, 34, 60, 22, wall);
-  if (kind === 'drum') {
+  if (kind === 'arrow') {
+    f.hline(10, 34, 60, 'd');
+    for (const y of [37, 43, 49]) for (let x = 13; x < 68; x += 6) f.rect(x, y, 3, 3, 'a').set(x, y, 'k');
+  } else if (kind === 'drum') {
     for (let x = 12; x < 70; x += 8) f.rect(x, 34, 2, 22, 'R').vline(x, 34, 22, 'p');
     f.rect(26, 42, 28, 14, 'q').rect(30, 44, 8, 12, 'M').rect(42, 44, 8, 12, 'M');
   } else {
@@ -309,6 +312,7 @@ export function tower(kind: 'drum' | 'bell'): Grid {
   // upper hall and roof
   f.rect(18, 16, 44, 9, wall);
   if (kind === 'drum') for (let x = 20; x < 60; x += 6) f.vline(x, 16, 9, 'R');
+  if (kind === 'arrow') for (let x = 21; x < 60; x += 6) f.rect(x, 18, 2, 3, 'a');
   roofRow(4, 12, 68);
   f.rect(14, 1, 52, 4, 'a').hline(14, 2, 52, 'b').set(13, 0, 'a').set(66, 0, 'a');
   f.outline('k');
@@ -462,6 +466,37 @@ export function fox(sway: number): Grid {
   return g;
 }
 
+
+// ---------------------------------------------------------------- H2: 门神, 前门
+
+/**
+ * An old gate with its door gods (门神) painted on the two leaves, 32×32.
+ * `faded`: the paint almost gone; restored: two bright generals.
+ */
+export function doorGods(faded: boolean): Grid {
+  const g = new Grid(32, 32);
+  const f = new Grid(32, 32);
+  f.rect(0, 0, 32, 5, 'a').hline(0, 0, 32, 'b').hline(0, 4, 32, 'k');
+  for (const x of [5, 13, 21]) f.rect(x, 1, 3, 2, 'v');
+  const red = faded ? 'R' : 'r';
+  f.rect(2, 5, 28, 25, red).vline(15, 5, 25, 'q').vline(16, 5, 25, 'q');
+  const general = (x: number, face: string, robe: string) => {
+    if (faded) {
+      f.oval(x + 3, 9, 6, 5, 'p').rect(x + 2, 14, 8, 10, 'p');
+      return;
+    }
+    f.oval(x + 2, 8, 8, 7, face).set(x + 4, 10, 'k').set(x + 7, 10, 'k').hline(x + 4, 13, 4, 'k');
+    f.rect(x + 3, 6, 6, 2, 'Y').set(x + 5, 5, 'y');
+    f.rect(x + 1, 15, 10, 10, robe).hline(x + 1, 15, 10, 'y').vline(x + 6, 15, 10, 'Y');
+    f.rect(x, 17, 2, 6, 'e');
+  };
+  general(3, 'r', 'h');
+  general(17, 'd', 'n');
+  f.rect(0, 29, 32, 3, 'd').hline(0, 29, 32, 'e');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -486,6 +521,7 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['corner-tower', 'the palace corner tower 角楼', () => [['jiaolou', cornerTower()]]],
   ['pagoda', 'the White Dagoba of 北海', () => [['white', whitePagoda()]]],
   ['fox', 'the nine-tailed fox 九尾狐', () => [['sway-0', fox(0)], ['sway-1', fox(1)]]],
-  ['tower', 'the Drum and Bell Towers on their terraces', () => [['drum', tower('drum')], ['bell', tower('bell')]]],
+  ['tower', 'the Drum and Bell Towers on their terraces, and 前门', () => [['drum', tower('drum')], ['bell', tower('bell')], ['arrow', tower('arrow')]]],
+  ['door-gods', 'an old gate with its door gods, faded and restored', () => [['faded', doorGods(true)], ['bright', doorGods(false)]]],
   ['pigeon', 'a pigeon of the hutongs', () => [['peck', pigeon('peck')], ['look', pigeon('look')], ['fly-0', pigeon('fly-0')], ['fly-1', pigeon('fly-1')]]],
 ];

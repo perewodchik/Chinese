@@ -1,0 +1,22 @@
+[
+  {
+    "id": "人山人海",
+    "pinyin": "rénshān-rénhǎi",
+    "parts": [
+      {
+        "c": "人山",
+        "gloss": "a mountain of people"
+      },
+      {
+        "c": "人海",
+        "gloss": "a sea of people"
+      }
+    ],
+    "meaning": "huge crowds; a sea of people",
+    "story": {
+      "zh": "人多得像山，多得像海。王府井和天安门，过年过节的时候，都是人山人海。",
+      "en": "People as many as a mountain, as many as the sea — Wangfujing and Tiananmen on a holiday."
+    },
+    "tier": "basic"
+  }
+]

@@ -1,0 +1,217 @@
+[
+ {
+  "kind": "door",
+  "id": "shudian",
+  "tile": [
+   8,
+   4
+  ],
+  "to": {
+   "map": "shudian",
+   "tile": [
+    6,
+    7
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "yaodian",
+  "tile": [
+   20,
+   4
+  ],
+  "to": {
+   "map": "yaodian",
+   "tile": [
+    5,
+    6
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "yinhang",
+  "tile": [
+   32,
+   4
+  ],
+  "to": {
+   "map": "yinhang",
+   "tile": [
+    6,
+    6
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "s-shudian",
+  "tile": [
+   7,
+   3
+  ],
+  "text": "新华书店",
+  "en": "Xinhua Bookshop"
+ },
+ {
+  "kind": "sign",
+  "id": "s-yaodian",
+  "tile": [
+   19,
+   3
+  ],
+  "text": "药店",
+  "en": "Pharmacy"
+ },
+ {
+  "kind": "sign",
+  "id": "s-yinhang",
+  "tile": [
+   31,
+   3
+  ],
+  "text": "银行",
+  "en": "Bank"
+ },
+ {
+  "kind": "sign",
+  "id": "s-store",
+  "tile": [
+   41,
+   3
+  ],
+  "text": "百货大楼",
+  "en": "Department store"
+ },
+ {
+  "kind": "sign",
+  "id": "street",
+  "tile": [
+   2,
+   3
+  ],
+  "text": "王府井大街",
+  "en": "Wangfujing Street"
+ },
+ {
+  "kind": "sign",
+  "id": "snack",
+  "tile": [
+   24,
+   13
+  ],
+  "text": "小吃街 →",
+  "en": "Snack street (this way)"
+ },
+ {
+  "kind": "door",
+  "id": "station",
+  "tile": [
+   44,
+   12
+  ],
+  "to": {
+   "map": "station-wangfujing",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station-2",
+  "tile": [
+   45,
+   12
+  ],
+  "to": {
+   "map": "station-wangfujing",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "metro-sign",
+  "tile": [
+   43,
+   12
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   13,
+   13
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   27,
+   13
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant-1",
+  "tile": [
+   17,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant-2",
+  "tile": [
+   29,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "shopper",
+  "npc": "wfj-shopper",
+  "tile": [
+   24,
+   9
+  ],
+  "facing": "down"
+ }
+]

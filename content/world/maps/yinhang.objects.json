@@ -1,0 +1,61 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   6,
+   7
+  ],
+  "to": {
+   "map": "wangfujing-street",
+   "tile": [
+    32,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "rates",
+  "tile": [
+   4,
+   1
+  ],
+  "text": "美元  7.1",
+  "en": "US dollar 7.1"
+ },
+ {
+  "kind": "sign",
+  "id": "window",
+  "tile": [
+   8,
+   1
+  ],
+  "text": "换钱",
+  "en": "Currency exchange"
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   1,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "clerk",
+  "npc": "yinhang-yuan",
+  "tile": [
+   8,
+   3
+  ],
+  "facing": "down"
+ }
+]

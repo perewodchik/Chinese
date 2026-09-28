@@ -1,0 +1,22 @@
+[
+  {
+    "id": "画蛇添足",
+    "pinyin": "huàshé-tiānzú",
+    "parts": [
+      {
+        "c": "画蛇",
+        "gloss": "draw a snake"
+      },
+      {
+        "c": "添足",
+        "gloss": "add feet"
+      }
+    ],
+    "meaning": "to spoil something by adding what is not needed",
+    "story": {
+      "zh": "几个人比画蛇，谁先画好，谁喝酒。一个人先画好了，他说：“我还能给蛇画脚！”他画脚的时候，别人画好了。别人说：“蛇没有脚！”酒是别人的了。",
+      "en": "Several men raced to draw a snake; the first to finish would get the wine. One finished first and said, 'I can even add feet!' While he drew them, another finished and said, 'Snakes have no feet!' — and took the wine."
+    },
+    "tier": "story"
+  }
+]

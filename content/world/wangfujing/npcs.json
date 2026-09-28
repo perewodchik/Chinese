@@ -1,0 +1,123 @@
+[
+  {
+    "id": "wfj-shopper",
+    "name": "逛街的人",
+    "role": "a young woman out shopping",
+    "look": {
+      "sprite": "woman"
+    },
+    "voice": "xiaoyu",
+    "character": "Cheerful, loaded with bags.",
+    "knows": [
+      "The bookshop is the big one with red letters"
+    ],
+    "wants": [
+      "A good bargain"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "人山人海": "人很多很多。"
+    },
+    "misses": [
+      "啊？"
+    ]
+  },
+  {
+    "id": "shudian-ayi",
+    "name": "书店的阿姨",
+    "role": "the woman at the bookshop counter",
+    "look": {
+      "sprite": "auntie",
+      "palette": "green"
+    },
+    "voice": "wang",
+    "character": "Bookish, precise, recommends books whether you ask or not.",
+    "knows": [
+      "《成语故事》 is the best book for learners",
+      "The shop sells red paper for 春联"
+    ],
+    "wants": [
+      "People to read more"
+    ],
+    "actions": [
+      "give",
+      "take",
+      "money",
+      "flag"
+    ],
+    "routine": [],
+    "explains": {
+      "成语": "四个字的老话，每个都有一个故事。",
+      "红纸": "红色的纸，过年写字用。",
+      "画蛇添足": "做多了，就不好了。"
+    },
+    "misses": [
+      "你找什么书？再说一遍。"
+    ]
+  },
+  {
+    "id": "yaoshi",
+    "name": "药店的医生",
+    "role": "the pharmacist",
+    "look": {
+      "sprite": "woman",
+      "palette": "black"
+    },
+    "voice": "xiaoyu",
+    "character": "Calm and careful, repeats the dosage twice.",
+    "knows": [
+      "Cold medicine: three times a day, after meals"
+    ],
+    "wants": [
+      "People to drink more water"
+    ],
+    "actions": [
+      "give",
+      "take",
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "感冒": "身体不好，头疼，要喝水。",
+      "发烧": "身体很热。",
+      "一天三次": "早上、中午、晚上，都吃。",
+      "饭后": "吃了饭以后。",
+      "药": "身体不好的时候吃的东西。"
+    },
+    "misses": [
+      "你哪儿不好？再说一遍。"
+    ]
+  },
+  {
+    "id": "yinhang-yuan",
+    "name": "银行的工作人员",
+    "role": "the bank clerk at the exchange window",
+    "look": {
+      "sprite": "uncle"
+    },
+    "voice": "chen",
+    "character": "Formal, polite, a little slow.",
+    "knows": [
+      "The rate is about seven yuan to the dollar",
+      "You need your passport to change money"
+    ],
+    "wants": [
+      "Your signature in the right place"
+    ],
+    "actions": [
+      "money",
+      "flag"
+    ],
+    "routine": [],
+    "explains": {
+      "换钱": "用一个国家的钱，换别的国家的钱。",
+      "护照": "去别的国家要用的小本子。",
+      "签字": "写你的名字。",
+      "美元": "美国的钱。"
+    },
+    "misses": [
+      "对不起，请再说一遍。"
+    ]
+  }
+]

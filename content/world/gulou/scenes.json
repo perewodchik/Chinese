@@ -16,6 +16,10 @@
       "do": "quest",
       "quest": "ch1",
       "step": "meet-wang"
+     },
+     {
+      "do": "give",
+      "item": "huzhao"
      }
     ],
     "why": "你 arrive in Beijing. The companion button (bottom left) is 兔儿爷 — he wakes up soon. Tap words for their cards; tap 拼 for pinyin."
@@ -1599,6 +1603,126 @@
       "facing": "up"
      }
     ]
+   }
+  ]
+ },
+ {
+  "id": "wang-cold",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "chapter": 3
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "感冒",
+    "explain": "身体不好，头疼，要喝水。",
+    "en": "a cold"
+   },
+   {
+    "w": "发烧",
+    "explain": "身体很热。",
+    "en": "fever"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好……我感冒了，有点发烧。",
+    "translate": "Hello… I've caught a cold, a bit of a fever.",
+    "simpler": "我感冒了，发烧。",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "wang-cold",
+      "step": "medicine"
+     }
+    ],
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "没事，没事。你去玩吧。",
+    "translate": "It's nothing, nothing. Off you go."
+   }
+  ]
+ },
+ {
+  "id": "wang-medicine",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "priority": -2,
+  "when": {
+   "all": [
+    {
+     "item": "ganmaoyao"
+    },
+    {
+     "not": {
+      "flag": "wang-got-medicine"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "药",
+    "explain": "身体不好的时候吃的东西。",
+    "en": "medicine"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你给我买药了？",
+    "translate": "You bought me medicine?",
+    "simpler": "这是药吗？",
+    "expect": [
+     {
+      "intent": "give",
+      "match": [
+       [
+        "给",
+        "是",
+        "对",
+        "药",
+        "这是"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "take",
+        "item": "ganmaoyao"
+       },
+       {
+        "do": "flag",
+        "flag": "wang-got-medicine"
+       },
+       {
+        "do": "remember",
+        "npc": "wang-ayi",
+        "note": "brought her cold medicine"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "药",
+     "frame": "对，这是你的___。",
+     "full": "对，这是你的药。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "谢谢你！你真好。",
+    "translate": "Thank you! You're so kind."
    }
   ]
  }

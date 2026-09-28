@@ -1,0 +1,27 @@
+id: shudian
+size: 12x9
+tilesets: tiles
+district: wangfujing
+
+# 新华书店: shelves to the ceiling, a counter by the window
+
+[ground]
+ffffffffffff
+ffffffffffff
+ffffffffffff
+ffffffffffff
+ffffffffffff
+ffffffffffff
+ffffffffffff
+ffffffffffff
+ffffffefffff
+[below]
+kkkkkkkkkkkk
+kKKKKKKKKKKk
+kOOOOOOOOOOk
+k..........k
+k......CCCCk
+k..........k
+k..........k
+k..........k
+kkkkkk.kkkkk

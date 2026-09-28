@@ -1,0 +1,24 @@
+[
+  {
+    "id": "qianmen",
+    "name": "前门",
+    "en": "Qianmen",
+    "place": "qianmen-street",
+    "design": "qianmen",
+    "landmark": true
+  },
+  {
+    "id": "jingju",
+    "name": "京剧",
+    "en": "A night at the opera",
+    "place": "xiyuan",
+    "design": "jingju"
+  },
+  {
+    "id": "menshen",
+    "name": "门神",
+    "en": "The door gods' friend",
+    "place": "qianmen-street",
+    "design": "menshen"
+  }
+]

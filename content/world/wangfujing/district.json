@@ -1,0 +1,29 @@
+{
+  "id": "wangfujing",
+  "name": "王府井",
+  "en": "Wangfujing",
+  "chapter": 3,
+  "maps": [
+    "wangfujing-street",
+    "station-wangfujing",
+    "shudian",
+    "yaodian",
+    "yinhang"
+  ],
+  "stations": [
+    "wangfujing",
+    "dengshikou"
+  ],
+  "names": [
+    "王府井",
+    "新华书店",
+    "百货大楼",
+    "前门",
+    "大栅栏",
+    "门神",
+    "北京",
+    "兔儿爷",
+    "王阿姨"
+  ],
+  "ambience": "street"
+}

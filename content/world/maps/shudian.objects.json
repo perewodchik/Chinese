@@ -1,0 +1,64 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   6,
+   8
+  ],
+  "to": {
+   "map": "wangfujing-street",
+   "tile": [
+    8,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "table-1",
+  "tile": [
+   2,
+   5
+  ],
+  "frame": "table/wood",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "table-2",
+  "tile": [
+   4,
+   5
+  ],
+  "frame": "table/wood",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "shelf",
+  "tile": [
+   3,
+   1
+  ],
+  "text": "成语  小说  字典",
+  "en": "Idioms · novels · dictionaries"
+ },
+ {
+  "kind": "npc",
+  "id": "seller",
+  "npc": "shudian-ayi",
+  "tile": [
+   9,
+   3
+  ],
+  "facing": "down"
+ }
+]

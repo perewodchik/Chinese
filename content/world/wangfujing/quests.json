@@ -1,0 +1,78 @@
+[
+  {
+    "id": "ch3",
+    "title": "The book",
+    "chapter": 3,
+    "steps": [
+      {
+        "id": "go",
+        "now": "兔儿爷: spirits like old books. Ride to 王府井 — line 8 south from 南锣鼓巷.",
+        "done": {
+          "scene": "wfj-arrive"
+        }
+      },
+      {
+        "id": "money",
+        "now": "Your money is nearly gone. Change money at the bank 银行 on 王府井 — you have your passport.",
+        "done": {
+          "flag": "changed-money"
+        }
+      },
+      {
+        "id": "book",
+        "now": "Find a book of 成语 at the bookshop 新华书店 — 兔儿爷 wants to write down the ones you've heard.",
+        "done": {
+          "flag": "idiom-book"
+        }
+      },
+      {
+        "id": "qianmen",
+        "now": "The book talks of 门神, the door gods. Ride one stop south to 前门 and ask at the opera house 戏园.",
+        "done": {
+          "flag": "heard-menshen"
+        }
+      },
+      {
+        "id": "red-paper",
+        "now": "The door gods need red paper to be painted again. The bookshop on 王府井 sells 红纸.",
+        "done": {
+          "item": "hongzhi"
+        }
+      },
+      {
+        "id": "menshen",
+        "now": "Take the red paper to the old gate in 大栅栏, at the east end of 前门大街.",
+        "done": {
+          "spirit": "menshen"
+        }
+      }
+    ],
+    "reward": [
+      {
+        "do": "chapter",
+        "chapter": 4
+      }
+    ]
+  },
+  {
+    "id": "wang-cold",
+    "title": "王阿姨 has a cold",
+    "chapter": 3,
+    "steps": [
+      {
+        "id": "medicine",
+        "now": "王阿姨 has a cold and a little fever. Buy cold medicine at the pharmacy 药店 on 王府井 — say what's wrong.",
+        "done": {
+          "item": "ganmaoyao"
+        }
+      },
+      {
+        "id": "give",
+        "now": "Take the medicine back to 王阿姨 in the courtyard.",
+        "done": {
+          "flag": "wang-got-medicine"
+        }
+      }
+    ]
+  }
+]

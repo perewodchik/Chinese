@@ -4,11 +4,45 @@
     "title": "Water and the hill",
     "chapter": 2,
     "steps": [
-      { "id": "go-houhai", "now": "兔儿爷 smells a spirit by the water. Walk west from the 鼓楼 square along 烟袋斜街 to 后海 — or ride line 8 one stop to 什刹海.", "done": { "scene": "houhai-arrive" } },
-      { "id": "rumour", "now": "Ask the old man fishing by the lake what he saw last night.", "done": { "flag": "heard-fox" } },
-      { "id": "jingshan", "now": "The fox went towards 景山. Cross 银锭桥, walk along 北海 and climb 景山 to the pavilion — someone up there sees everything.", "done": { "flag": "saw-corner" } },
-      { "id": "fox", "now": "“故宫西北角附近” — near the north-west corner of the palace: the corner tower 角楼, down the south side of 景山. Go after dark; the bench on 景山 is a good place to wait.", "done": { "spirit": "jiuweihu" } }
+      {
+        "id": "go-houhai",
+        "now": "兔儿爷 smells a spirit by the water. Walk west from the 鼓楼 square along 烟袋斜街 to 后海 — or ride line 8 one stop to 什刹海.",
+        "done": {
+          "scene": "houhai-arrive"
+        }
+      },
+      {
+        "id": "rumour",
+        "now": "Ask the old man fishing by the lake what he saw last night.",
+        "done": {
+          "flag": "heard-fox"
+        }
+      },
+      {
+        "id": "jingshan",
+        "now": "The fox went towards 景山. Cross 银锭桥, walk along 北海 and climb 景山 to the pavilion — someone up there sees everything.",
+        "done": {
+          "flag": "saw-corner"
+        }
+      },
+      {
+        "id": "fox",
+        "now": "“故宫西北角附近” — near the north-west corner of the palace: the corner tower 角楼, down the south side of 景山. Go after dark; the bench on 景山 is a good place to wait.",
+        "done": {
+          "spirit": "jiuweihu"
+        }
+      }
     ],
-    "reward": [{ "do": "chapter", "chapter": 3 }]
+    "reward": [
+      {
+        "do": "chapter",
+        "chapter": 3
+      },
+      {
+        "do": "quest",
+        "quest": "ch3",
+        "step": "go"
+      }
+    ]
   }
 ]

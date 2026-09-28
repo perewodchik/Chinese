@@ -433,6 +433,47 @@ export function squareStone(seed = 17): Grid {
   return g;
 }
 
+
+// ---------------------------------------------------------------- H2: books, the stage
+
+/** A bookshop's shelves: rows of spines in many colours. */
+export function bookshelf(): Grid {
+  const g = tile('M');
+  const r = rng(23);
+  const cols = ['r', 'n', 'h', 'y', 'w', 'V', 'B', 'o', 'R'];
+  for (const y of [1, 6, 11]) {
+    g.hline(0, y + 4, T, 'm');
+    for (let x = 1; x < T - 1; x++) {
+      const c = cols[Math.floor(r() * cols.length)]!;
+      const h = 3 + (r() < 0.3 ? 1 : 0);
+      g.vline(x, y + 4 - h, h, c);
+      if (r() < 0.25) x++;
+    }
+  }
+  g.vline(0, 0, T, 'm').vline(15, 0, T, 'm');
+  return g;
+}
+
+/** A wall hung with 京剧 masks: red, white, black faces. */
+export function maskWall(): Grid {
+  const g = plaster();
+  const face = (x: number, c: string, mark: string) => {
+    g.oval(x, 3, 6, 8, c).set(x + 1, 6, mark).set(x + 4, 6, mark).hline(x + 2, 9, 2, mark).set(x + 2, 4, mark === 'k' ? 'r' : 'k');
+  };
+  face(1, 'r', 'k');
+  face(9, 'w', 'k');
+  g.hline(0, 13, T, 'M');
+  return g;
+}
+
+/** The theatre's red stage curtain. */
+export function curtain(): Grid {
+  const g = tile('r');
+  for (let x = 0; x < T; x += 4) g.vline(x, 0, T, 'R').vline(x + 1, 0, T, 'p');
+  g.rect(0, 0, T, 3, 'Y').hline(0, 3, T, 'o');
+  return g;
+}
+
 export const TILES: Array<[string, () => Grid]> = [
   ['paving', () => paving(1)],
   ['paving-2', () => paving(9)],
@@ -485,4 +526,7 @@ export const TILES: Array<[string, () => Grid]> = [
   ['stairs-down', stairsDown],
   ['rug', rug],
   ['square-stone', () => squareStone(17)],
+  ['bookshelf', bookshelf],
+  ['mask-wall', maskWall],
+  ['curtain', curtain],
 ];

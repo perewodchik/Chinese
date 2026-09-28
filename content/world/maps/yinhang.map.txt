@@ -1,0 +1,25 @@
+id: yinhang
+size: 12x8
+tilesets: tiles
+district: wangfujing
+
+# The bank: a long counter, the exchange rates on the wall
+
+[ground]
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+tttttttttttt
+ttttttettttt
+[below]
+kkkkkkkkkkkk
+kooovoooovok
+kOOOOOOOOOOk
+k..........k
+kCCCCCCCCCCk
+k..........k
+k..........k
+kkkkkk.kkkkk

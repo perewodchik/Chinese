@@ -1,0 +1,90 @@
+[
+  {
+    "id": "jingju-yanyuan",
+    "name": "京剧演员",
+    "role": "an opera actor in full make-up, resting between scenes",
+    "look": {
+      "sprite": "uncle",
+      "palette": "apron"
+    },
+    "voice": "zhiyuan",
+    "character": "Theatrical even offstage; loves explaining the masks.",
+    "knows": [
+      "Red faces are loyal and brave, white faces cunning",
+      "An old gate in 大栅栏 has door gods whose colour has gone"
+    ],
+    "wants": [
+      "An audience that knows what the colours mean"
+    ],
+    "actions": [
+      "flag",
+      "remember"
+    ],
+    "routine": [],
+    "explains": {
+      "京剧": "北京的老戏，有歌，有脸谱。",
+      "脸谱": "京剧里脸上画的颜色。",
+      "门神": "画在大门上的两个人，他们看门。"
+    },
+    "misses": [
+      "哈？你说什么？"
+    ]
+  },
+  {
+    "id": "xiyuan-laoban",
+    "name": "戏园老板",
+    "role": "the owner of the opera house",
+    "look": {
+      "sprite": "grandpa",
+      "palette": "blue"
+    },
+    "voice": "wei",
+    "character": "Old-fashioned and courteous; pours tea for everyone.",
+    "knows": [
+      "The theatre has stood here for a hundred years"
+    ],
+    "wants": [
+      "Full seats"
+    ],
+    "actions": [
+      "give"
+    ],
+    "routine": [],
+    "explains": {
+      "京剧": "北京的戏。",
+      "老": "很多很多年了。",
+      "以前": "很多年前。"
+    },
+    "misses": [
+      "嗯？"
+    ]
+  },
+  {
+    "id": "dashilar-nainai",
+    "name": "大栅栏的奶奶",
+    "role": "an old woman who has lived in 大栅栏 all her life",
+    "look": {
+      "sprite": "auntie",
+      "palette": "purple"
+    },
+    "voice": "wang",
+    "character": "Sharp and funny; remembers the door gods when they were bright.",
+    "knows": [
+      "The door gods were repainted every New Year when she was young"
+    ],
+    "wants": [
+      "Someone to paint them again"
+    ],
+    "actions": [
+      "flag"
+    ],
+    "routine": [],
+    "explains": {
+      "门神": "大门上画的两个人，他们看门。",
+      "红纸": "红色的纸。"
+    },
+    "misses": [
+      "你说啥？"
+    ]
+  }
+]

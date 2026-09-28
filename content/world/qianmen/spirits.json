@@ -1,0 +1,19 @@
+[
+  {
+    "id": "menshen",
+    "hanzi": "门神",
+    "pinyin": "ménshén",
+    "en": "the door gods",
+    "source": "folk",
+    "legend": {
+      "zh": "过年的时候，人们在大门上画两个门神。门神看着门，不让坏东西进来。人们说，他们以前是两个很好的将军。",
+      "en": "At New Year people paint two door gods on their gates. They guard the door and keep bad things out. People say they were once two brave generals."
+    },
+    "befriend": {
+      "kind": "request",
+      "text": "我们的颜色都没了。你有红纸吗？",
+      "en": "Bring red paper so they can be painted bright again."
+    },
+    "district": "qianmen"
+  }
+]

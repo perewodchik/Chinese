@@ -1,0 +1,42 @@
+id: station-qianmen
+size: 24x16
+tilesets: tiles
+district: qianmen
+crowd: 3
+
+# 前门 station: the gates, the platform
+
+[ground]
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tEEEEEEEEEEEEEEEEEEEEEEt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+tttttttttttttttttttttttt
+[below]
+kkkkkkkkkkkkkkkkkkkkkkkk
+kJJJJJJJJJJJJJJJJJJJJJJk
+kjjSjjjjjjjjjjjjjjjjjjjk
+k......................k
+k......................k
+k......................k
+k......................k
+kggggggggggggggggggggggk
+k......................k
+k......................k
+k......................k
+k......................k
+k......................k
+krrrrrrrrrrrrrrrrrrrrrrk
+krrrrrrrrrrrrrrrrrrrrrrk
+krrrrrrrrrrrrrrrrrrrrrrk

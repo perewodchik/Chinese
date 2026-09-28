@@ -54,6 +54,16 @@
   "width": 56,
   "height": 16
  },
+ "qianmen-street": {
+  "district": "qianmen",
+  "width": 48,
+  "height": 22
+ },
+ "shudian": {
+  "district": "wangfujing",
+  "width": 12,
+  "height": 9
+ },
  "siheyuan-room": {
   "district": "gulou",
   "width": 10,
@@ -74,6 +84,11 @@
   "width": 24,
   "height": 16
  },
+ "station-qianmen": {
+  "district": "qianmen",
+  "width": 24,
+  "height": 16
+ },
  "station-shichahai": {
   "district": "houhai",
   "width": 24,
@@ -81,6 +96,11 @@
  },
  "station-tiananmendong": {
   "district": "tiananmen",
+  "width": 24,
+  "height": 16
+ },
+ "station-wangfujing": {
+  "district": "wangfujing",
   "width": 24,
   "height": 16
  },
@@ -99,9 +119,29 @@
   "width": 39,
   "height": 30
  },
+ "wangfujing-street": {
+  "district": "wangfujing",
+  "width": 48,
+  "height": 18
+ },
  "xiaomaibu": {
   "district": "gulou",
   "width": 10,
+  "height": 8
+ },
+ "xiyuan": {
+  "district": "qianmen",
+  "width": 16,
+  "height": 12
+ },
+ "yaodian": {
+  "district": "wangfujing",
+  "width": 10,
+  "height": 8
+ },
+ "yinhang": {
+  "district": "wangfujing",
+  "width": 12,
   "height": 8
  },
  "zaodian": {

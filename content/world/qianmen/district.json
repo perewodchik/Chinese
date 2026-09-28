@@ -1,0 +1,24 @@
+{
+  "id": "qianmen",
+  "name": "前门 · 大栅栏",
+  "en": "Qianmen · Dashilar",
+  "chapter": 3,
+  "maps": [
+    "qianmen-street",
+    "station-qianmen",
+    "xiyuan"
+  ],
+  "stations": [
+    "qianmen",
+    "zhushikou"
+  ],
+  "names": [
+    "前门",
+    "大栅栏",
+    "门神",
+    "王府井",
+    "北京",
+    "兔儿爷"
+  ],
+  "ambience": "street"
+}

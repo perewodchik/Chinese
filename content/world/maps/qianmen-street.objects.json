@@ -1,0 +1,246 @@
+[
+ {
+  "kind": "prop",
+  "id": "arrow-tower",
+  "tile": [
+   1,
+   14
+  ],
+  "frame": "tower/arrow",
+  "blocks": [
+   5,
+   6
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "gate",
+  "tile": [
+   3,
+   15
+  ],
+  "text": "前门",
+  "en": "Qianmen, the Front Gate"
+ },
+ {
+  "kind": "sign",
+  "id": "s-duck",
+  "tile": [
+   17,
+   4
+  ],
+  "text": "烤鸭",
+  "en": "Roast duck"
+ },
+ {
+  "kind": "door",
+  "id": "duck",
+  "tile": [
+   18,
+   5
+  ],
+  "to": {
+   "map": "qianmen-street",
+   "tile": [
+    18,
+    6
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "The roast-duck place: the queue goes round the corner. Another day."
+ },
+ {
+  "kind": "door",
+  "id": "xiyuan",
+  "tile": [
+   26,
+   5
+  ],
+  "to": {
+   "map": "xiyuan",
+   "tile": [
+    8,
+    10
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "s-xiyuan",
+  "tile": [
+   25,
+   4
+  ],
+  "text": "戏园",
+  "en": "The opera house"
+ },
+ {
+  "kind": "sign",
+  "id": "s-silk",
+  "tile": [
+   34,
+   4
+  ],
+  "text": "老字号",
+  "en": "An old shop, a hundred years old"
+ },
+ {
+  "kind": "sign",
+  "id": "dashilar",
+  "tile": [
+   38,
+   6
+  ],
+  "text": "大栅栏",
+  "en": "Dashilar"
+ },
+ {
+  "kind": "prop",
+  "id": "door-gods",
+  "tile": [
+   40,
+   5
+  ],
+  "frame": "door-gods/faded",
+  "blocks": [
+   2,
+   1
+  ],
+  "when": {
+   "not": {
+    "spirit": "menshen"
+   }
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "door-gods-bright",
+  "tile": [
+   40,
+   5
+  ],
+  "frame": "door-gods/bright",
+  "blocks": [
+   2,
+   1
+  ],
+  "when": {
+   "spirit": "menshen"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station",
+  "tile": [
+   44,
+   16
+  ],
+  "to": {
+   "map": "station-qianmen",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "station-2",
+  "tile": [
+   45,
+   16
+  ],
+  "to": {
+   "map": "station-qianmen",
+   "tile": [
+    3,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "metro-sign",
+  "tile": [
+   43,
+   16
+  ],
+  "frame": "subway-sign/post",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "l1",
+  "tile": [
+   15,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l2",
+  "tile": [
+   23,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l3",
+  "tile": [
+   30,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l4",
+  "tile": [
+   37,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "npc",
+  "id": "granny",
+  "npc": "dashilar-nainai",
+  "tile": [
+   37,
+   8
+  ],
+  "facing": "left"
+ }
+]

@@ -10,7 +10,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** проверка в браузере и в WebKit (F5, нужен человек), дальше по списку — G (звук), H (остальной Пекин), I, X.
 
 ## Current task
-G2 (clips still rendering) → H2
+G2 (clips still rendering) → H3
 
 ## Tasks
 ### A — core logic
@@ -67,7 +67,7 @@ G2 (clips still rendering) → H2
 
 ### H — the rest of Beijing
 - [x] H1 Ch. 2 后海 · 景山 · 北海
-- [ ] H2 Ch. 3 王府井 · 前门
+- [x] H2 Ch. 3 王府井 · 前门
 - [ ] H3 Ch. 4 天坛 · 雍和宫 · 国子监
 - [ ] H4 Ch. 5 三里屯 · 国贸 · 奥林匹克公园 (+ 点单 doors)
 - [ ] H5 Ch. 6 颐和园 · 潘家园
@@ -160,6 +160,7 @@ _(date — decision — why)_
 - 2026-09-29 — G1: **the ambient sounds are synthesized, not downloaded** (downloading CC0 packs needs the learner's OK, like the art in C2): 鸽哨 whistles (a soft three-tone chord with vibrato gliding as the flock passes, every ~20–60 s by day where the map has pigeons), bicycle bells (two strikes of metallic partials), a murmur of people (filtered brown noise that breathes, as loud as the map is busy, quieter at night), and a three-note station chime (on arriving in a station and when the ride sheet opens). What plays where is pure (`audio/mix.ts`, tested). Audio starts on the first tap (iOS rule), is suspended while the tab is hidden, and has a ⚙ setting: Street sounds Off / Soft / On (the save's `volume`). If a real recording is wanted later, `ambient.ts` is the one place to swap.
 - 2026-09-29 — G2: the local voice worker runs on this Mac, so NPC lines are pre-rendered: each card names one of the voice pack's five designed voices (wang, xiaoyu, chen, zhiyuan, wei); 兔儿爷 is zhiyuan, the stone lion wei, the train announcer xiaoyu; the hero and signs are silent. `npm`-less script: `npx tsx scripts/world/build-voices.ts` renders every line, simpler line, stock reply (misses, 你好/谢谢/再见, "I don't know", explanations) and every train call to `public/world/voice/<key>.mp3` (key = FNV hash of voice + text, `core/voice.ts`), resumable, and writes `index.json`. The bubble plays each new NPC line as it appears (🔁 again, slower on 慢一点); a line without a clip falls back to the system voice. **Re-run the script after changing any line.** Rendering is slow (~10 s a line on this M-series Mac with the models already cached).
 - 2026-09-29 — H1: chapter 2 (quest `ch2`, started by ch. 1's reward). Maps: `houhai-lake` (lane of teahouses/bars over the lake, willows, boats, 银锭桥 south), `station-shichahai`, `beihai-north` (the White Dagoba across the water), `station-beihaibei`, `jingshan-park` (the hill with a winding path and a bench), `jingshan-view` (the panorama: golden palace roofs to the south, from the pavilion), `jiaolou` (moat, red wall, corner tower; the fox only at night). 鼓楼 square now opens west to 后海 (烟袋斜街, as in the real city). Story: the fisherman saw a white fox with nine tails (📌), the old man singing on 景山 saw it 「在故宫西北角附近」 (📌; 西北/角/附近 explained by the 太极 auntie — the draft 城墙的西北角 had one hard word too many for §5), wait on the bench till dark, at the corner tower the fox brags that even tigers fear it → 兔儿爷: 「它这是狐假虎威。」 (📌 成语), befriend by saying its name 九尾狐. Spirit 九尾狐 (山海经), 成语 狐假虎威 (story tier), stamps 后海, 白塔 (landmark), 景山 (landmark), 九尾狐. New art: willow, boat, pavilion, corner tower, white dagoba, the fox (a bit blob-like — worth a redraw). Played through the core in `scripts/world/chapter1.test.ts`. Renders: `review/h1/`.
+- 2026-09-29 — H2: chapter 3 (quest `ch3`, started by ch. 2's reward). Maps: `wangfujing-street` (新华书店, 药店, 银行, 百货大楼; a crowd of 12), `station-wangfujing`, `shudian`, `yaodian`, `yinhang`; `qianmen-street` (the 前门 arrow tower — a third `tower` frame —, roast duck with a queue round the corner, the opera house 戏园, the old gate of 大栅栏 with faded/bright door gods), `station-qianmen`, `xiyuan` (stage with curtain and masks). Story: 「王府井今天人山人海！」 on arrival (📌 成语), change 100 美元 at the bank (situation words 换钱 护照 美元 签字; +700 元), buy 《成语故事》 at the bookshop (flag `idiom-book`, the 成语 book's note goes away), the opera actor explains 脸谱 (红脸 good, 白脸 bad) and the faded door gods, buy 红纸, give it to the 门神 (befriend by request) — and when you offer to paint more: 「别画了！再画是画蛇添足。」 (📌 成语). Side quest `wang-cold`: 王阿姨 has a cold; tell the pharmacist the symptoms (感冒 发烧 一天三次 饭后 药), bring her the medicine. You now start with 护照 in the bag. New art: bookshelf, mask wall, stage curtain tiles; door gods (faded/bright); the arrow tower. Renders: `review/h2/`.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

@@ -1,6 +1,27 @@
 [
-  { "id": "baozi", "name": "包子", "en": "steamed bun" },
-  { "id": "doujiang", "name": "豆浆", "en": "soy milk" },
-  { "id": "youtiao", "name": "油条", "en": "fried dough stick" },
-  { "id": "water", "name": "水", "en": "a bottle of water" }
+  {
+    "id": "baozi",
+    "name": "包子",
+    "en": "steamed bun"
+  },
+  {
+    "id": "doujiang",
+    "name": "豆浆",
+    "en": "soy milk"
+  },
+  {
+    "id": "youtiao",
+    "name": "油条",
+    "en": "fried dough stick"
+  },
+  {
+    "id": "water",
+    "name": "水",
+    "en": "a bottle of water"
+  },
+  {
+    "id": "huzhao",
+    "name": "护照",
+    "en": "your passport"
+  }
 ]
