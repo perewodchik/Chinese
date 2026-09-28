@@ -6,6 +6,7 @@
  *   size: 40x24
  *   tilesets: tiles
  *   district: gulou
+ *   crowd: 6          (optional: passers-by; also `pigeons:` and `bikes:`)
  *
  *   [ground]
  *   pppppppp…
@@ -41,6 +42,14 @@ export interface TextMap {
   layers: Record<LayerName, string[]>;
   /** 1 blocked, row by row */
   collide: Uint8Array;
+  /** street life: passers-by, pigeons and cyclists at a time (header `crowd: 6` …) */
+  life: MapLife;
+}
+
+export interface MapLife {
+  crowd: number;
+  pigeons: number;
+  bikes: number;
 }
 
 export class MapError extends Error {}
@@ -122,6 +131,7 @@ export function parseMap(text: string, legend: Legend, file = 'map'): TextMap {
     height,
     tilesets: (head.tilesets ?? 'tiles').split(/[\s,]+/).filter(Boolean),
     district: head.district ?? '',
+    life: { crowd: Number(head.crowd ?? 0) || 0, pigeons: Number(head.pigeons ?? 0) || 0, bikes: Number(head.bikes ?? 0) || 0 },
     layers,
     collide,
   };

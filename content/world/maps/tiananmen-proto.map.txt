@@ -1,6 +1,8 @@
 id: tiananmen-proto
 size: 39x30
 tilesets: tiles
+crowd: 10
+pigeons: 8
 district: tiananmen
 
 # C4 prototype: the front of 天安门 — the gate tower, the red wall with five arches, 金水河 and its bridges, the square

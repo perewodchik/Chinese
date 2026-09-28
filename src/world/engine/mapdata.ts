@@ -5,6 +5,7 @@
  */
 
 import { gridFromLayer, type Grid } from '../core/grid';
+import type { MapLife } from '../core/maptext';
 import type { MapObject } from '../core/types';
 
 export interface MapInfo {
@@ -14,6 +15,7 @@ export interface MapInfo {
   district: string;
   grid: Grid;
   objects: MapObject[];
+  life: MapLife;
 }
 
 interface TiledLayer {
@@ -44,6 +46,7 @@ export function readMap(id: string, json: unknown): MapInfo {
     district: t.properties?.find((p) => p.name === 'district')?.value ?? '',
     grid: gridFromLayer(t.width, t.height, (x, y) => (collide[y * t.width + x] ?? 1) !== 0),
     objects,
+    life: JSON.parse(t.properties?.find((p) => p.name === 'life')?.value ?? '{"crowd":0,"pigeons":0,"bikes":0}') as MapLife,
   };
 }
 

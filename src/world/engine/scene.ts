@@ -14,6 +14,7 @@ import { ahead } from '../core/grid';
 import type { Facing, MapObject, PartOfDay, Tile } from '../core/types';
 import { DAY_LOOK, zoomFor } from './look';
 import { edgeAt, resolveArrival, throughEdge, type Arrival, type Door } from './doors';
+import { crowdTrip, facingOf, idleNext, PASSERS, pigeonSpots, rand, scared, type Rand } from './life';
 import { readMap, type MapInfo } from './mapdata';
 import { DOUBLE_TAP_MS, facingTo, KEY_FACING, objectAt, pinchTo, planTap, RUN_MS, stepOnce, WALK_MS, type Plan } from './movement';
 
@@ -88,6 +89,8 @@ export class WorldScene extends Phaser.Scene {
   private holdTimer?: Phaser.Time.TimerEvent;
   private pinchStart: { dist: number; zoom: number } | null = null;
   private dots?: Phaser.GameObjects.Graphics;
+  private rng: Rand = rand(1);
+  private pigeons: Array<{ s: Phaser.GameObjects.Sprite; tile: Tile; gone: boolean }> = [];
 
   constructor() {
     super('world');
@@ -210,6 +213,7 @@ export class WorldScene extends Phaser.Scene {
     }
     this.dots = this.add.graphics().setDepth(9_999);
     this.bindInput();
+    this.startLife();
     cam.fadeIn(180, 34, 32, 46);
     this.host.onArrive(this.info, this.at, this.facing);
     this.opts.onReady?.();
@@ -405,6 +409,7 @@ export class WorldScene extends Phaser.Scene {
       onComplete: () => {
         this.hero.setFrame(`hero/${this.facing}-0`);
         this.host.onStep(t, this.facing, this.running);
+        this.scarePigeons();
         const door = this.info.objects.find((o): o is Door => o.kind === 'door' && o.tile[0] === t[0] && o.tile[1] === t[1]);
         const edge = door ? undefined : edgeAt(this.info.objects, t, this.info.width, this.info.height);
         if (door || edge) {
@@ -427,6 +432,114 @@ export class WorldScene extends Phaser.Scene {
     this.tweens.add({ targets: this.rabbit, x: x + 12, duration: ms * 1.6, ease: 'Sine.easeOut' });
     this.rabbit.setDepth(y + 0.6);
     this.tweens.add({ targets: this.rabbit, y: y - 18, duration: ms * 1.6, ease: 'Sine.easeOut' });
+  }
+
+  // ---------------------------------------------------------------- life (D5)
+
+  private startLife() {
+    this.rng = rand(Math.floor(Math.random() * 1e9));
+    this.pigeons = [];
+    for (const s of this.npcSprites.values()) this.idle(s);
+    const { crowd, pigeons, bikes } = this.info.life;
+    for (let i = 0; i < crowd; i++) this.time.delayedCall(this.rng() * 6000, () => this.passerBy(false));
+    for (let i = 0; i < bikes; i++) this.time.delayedCall(2000 + this.rng() * 8000, () => this.passerBy(true));
+    for (const t of pigeonSpots(this.info.grid, this.rng, pigeons)) this.addPigeon(t);
+  }
+
+  /** Someone standing about: now and then they blink or look another way. */
+  private idle(s: Phaser.GameObjects.Sprite) {
+    const [base, dir] = s.frame.name.split('/');
+    let facing = (dir?.split('-')[0] ?? 'down') as Facing;
+    const loop = () => {
+      const n = idleNext(this.rng, facing);
+      this.time.delayedCall(n.after, () => {
+        if (!s.active) return;
+        if (n.act === 'blink' && facing === 'down') {
+          s.setFrame(`${base}/down-blink`);
+          this.time.delayedCall(140, () => s.active && s.setFrame(`${base}/${facing}-0`));
+        } else if (n.act === 'turn') {
+          facing = n.facing;
+          s.setFrame(`${base}/${facing}-0`);
+        }
+        loop();
+      });
+    };
+    loop();
+  }
+
+  /** A passer-by (or a cyclist) crosses the map, then another comes a while later. */
+  private passerBy(bike: boolean) {
+    if (!this.scene.isActive()) return;
+    const trip = crowdTrip(this.info.grid, this.rng);
+    const again = () => this.time.delayedCall(3000 + this.rng() * 9000, () => this.passerBy(bike));
+    if (!trip) return;
+    const look = bike ? 'rider' : PASSERS[Math.floor(this.rng() * PASSERS.length)]!;
+    const [x0, y0] = trip[0]!;
+    const s = this.add.sprite(x0 * TILE, (y0 + 1) * TILE + 3, 'chars', `${look}/down-0`).setOrigin(0, 1);
+    const ms = bike ? RUN_MS * 0.8 : WALK_MS * 1.3;
+    let i = 1;
+    let step = 0;
+    const go = () => {
+      const t = trip[i];
+      if (!t || !s.active) {
+        s.destroy();
+        again();
+        return;
+      }
+      const f = facingOf(trip[i - 1]!, t);
+      step = (step + 1) % 2;
+      s.setFrame(`${look}/${f}-${bike ? 1 : step + 1}`);
+      this.tweens.add({
+        targets: s,
+        x: t[0] * TILE,
+        y: (t[1] + 1) * TILE + 3,
+        duration: ms,
+        onUpdate: () => s.setDepth(s.y - 3),
+        onComplete: () => {
+          i++;
+          go();
+        },
+      });
+    };
+    go();
+  }
+
+  private addPigeon(t: Tile) {
+    const s = this.add.sprite(t[0] * TILE + 4 + Math.floor(this.rng() * 6), (t[1] + 1) * TILE - 2, 'props', 'pigeon/peck').setOrigin(0, 1);
+    s.setDepth(s.y).setFlipX(this.rng() < 0.5);
+    const bird = { s, tile: t, gone: false };
+    this.pigeons.push(bird);
+    this.time.addEvent({
+      delay: 500 + this.rng() * 700,
+      loop: true,
+      callback: () => !bird.gone && s.setFrame(s.frame.name === 'pigeon/peck' ? 'pigeon/look' : 'pigeon/peck'),
+    });
+  }
+
+  /** Pigeons near the hero take off, and settle somewhere else later. */
+  private scarePigeons() {
+    for (const bird of this.pigeons) {
+      if (bird.gone || !scared(bird.tile, this.at)) continue;
+      bird.gone = true;
+      const away = bird.s.x < this.hero.x ? -1 : 1;
+      const flap = this.time.addEvent({ delay: 90, loop: true, callback: () => bird.s.setFrame(bird.s.frame.name === 'pigeon/fly-0' ? 'pigeon/fly-1' : 'pigeon/fly-0') });
+      bird.s.setDepth(9_000).setFlipX(away < 0);
+      this.tweens.add({
+        targets: bird.s,
+        x: bird.s.x + away * 140,
+        y: bird.s.y - 120,
+        duration: 1400,
+        ease: 'Quad.easeIn',
+        onComplete: () => {
+          flap.remove();
+          bird.s.destroy();
+          this.time.delayedCall(8000 + this.rng() * 8000, () => {
+            const [spot] = pigeonSpots(this.info.grid, this.rng, 1);
+            if (spot && !scared(spot, this.at)) this.addPigeon(spot);
+          });
+        },
+      });
+    }
   }
 
   private makeGlowTexture() {

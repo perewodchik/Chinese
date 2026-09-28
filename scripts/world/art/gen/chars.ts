@@ -176,6 +176,14 @@ export function person(look: Look, dir: Dir, step: number): Grid {
   return g.stamp(fig, 0, 0);
 }
 
+/** Facing down with the eyes shut for a moment: the upper pixel of each eye goes. */
+function blink(look: Look): Grid {
+  const g = person(look, 'down', 0);
+  const top = 5 + (look.small ? 4 : 0);
+  for (const x of [5, 10]) g.set(x, top + 6, look.skin[0]).set(x, top + 7, 'k');
+  return g;
+}
+
 /** All twelve frames: down/up/left/right × stand, step, step. */
 export function walkFrames(look: Look): Array<[string, Grid]> {
   const out: Array<[string, Grid]> = [];
@@ -183,6 +191,7 @@ export function walkFrames(look: Look): Array<[string, Grid]> {
     out.push([`${dir}-0`, person(look, dir, 0)], [`${dir}-1`, person(look, dir, 1)], [`${dir}-2`, person(look, dir, -1)]);
   }
   for (const i of [0, 1, 2]) out.push([`right-${i}`, out.find(([n]) => n === `left-${i}`)![1].mirror()]);
+  out.push(['down-blink', blink(look)]);
   return out;
 }
 

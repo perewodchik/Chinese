@@ -1,6 +1,9 @@
 id: hutong-proto
 size: 32x18
 tilesets: tiles
+crowd: 3
+pigeons: 5
+bikes: 1
 district: gulou
 
 # C4 prototype: a hutong lane — grey walls, red gates, a shop, trees

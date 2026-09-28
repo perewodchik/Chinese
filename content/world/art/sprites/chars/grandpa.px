@@ -396,4 +396,37 @@ frame: right-2
 ..._________k...
 ....________....
 ................
+frame: down-blink
+................
+................
+................
+................
+...kkkkkkkkkk...
+..kSSSSSSSSSSk..
+.kSSSwwwSSSSSSk.
+.kSSSSSSSSSSStk.
+.kSSSSSSSSSSStk.
+.kddSSSSSSSSddk.
+.kddSSSSSSSSddk.
+.kddSSSSSSSSddk.
+.kSSSkSSSSkSStk.
+.kSSNSSSSSSNStk.
+.kSSSSSttSSSSSk.
+..kSttttttttSk..
+...kwwwStwwek...
+..kewwwwwwweek..
+..kewwwwwwweemk.
+..kewwwwwwweeMk.
+..kewwwwwwweeMk.
+..kewwwwwwweeMk.
+..kewwwwwwweeMk.
+..kewwwwwwweeMk.
+..kSkBBaBBakSMk.
+...kkBBaBBakkMk.
+....kBBaBBakkMk.
+.....kkkkkk.kMk.
+....________kMk.
+...__________k..
+....________....
+................
 variant: grandpa-blue w>l e>n

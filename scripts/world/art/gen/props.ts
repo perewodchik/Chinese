@@ -109,6 +109,27 @@ export function birdCage(): Grid {
   return g.stamp(f, 0, 0);
 }
 
+/** A pigeon, 8×8: pecking, looking up, and two wing beats. */
+export function pigeon(pose: 'peck' | 'look' | 'fly-0' | 'fly-1'): Grid {
+  const g = new Grid(8, 8);
+  const f = new Grid(8, 8);
+  if (pose === 'peck' || pose === 'look') {
+    f.oval(1, 3, 5, 4, 'c').hline(2, 4, 3, 'd').set(5, 5, 'b');
+    if (pose === 'peck') f.set(5, 5, 'c').set(6, 6, 'b').set(6, 5, 'c');
+    else f.rect(4, 1, 2, 3, 'c').set(5, 2, 'k').set(6, 2, 'Y').set(4, 3, 'v');
+    f.set(2, 7, 'R').set(4, 7, 'R');
+  } else {
+    const up = pose === 'fly-0';
+    f.oval(2, 3, 4, 3, 'c').set(6, 3, 'c').set(7, 3, 'Y');
+    if (up) f.hline(0, 1, 3, 'd').hline(5, 1, 3, 'd').set(2, 2, 'd').set(5, 2, 'd');
+    else f.hline(0, 5, 3, 'd').hline(5, 5, 3, 'd');
+  }
+  f.outline('a');
+  g.stamp(f, 0, 0);
+  if (pose === 'peck' || pose === 'look') g.hline(1, 7, 5, '_');
+  return g;
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -116,4 +137,5 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['tricycle', 'a 三轮车 pedal tricycle', () => [['side', tricycle()], ['side-r', tricycle().mirror()]]],
   ['subway-sign', 'a subway entrance sign', () => [['post', subwaySign()]]],
   ['bird-cage', "an old man's bird cage", () => [['cage', birdCage()]]],
+  ['pigeon', 'a pigeon of the hutongs', () => [['peck', pigeon('peck')], ['look', pigeon('look')], ['fly-0', pigeon('fly-0')], ['fly-1', pigeon('fly-1')]]],
 ];

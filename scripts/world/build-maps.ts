@@ -78,7 +78,10 @@ export function toTiled(c: Compiled, set: TilesetJson): TiledMap {
       tilecount: set.names.length, columns: set.columns, margin: 0, spacing: 0,
     }],
     layers,
-    properties: [{ name: 'district', type: 'string', value: map.district }],
+    properties: [
+      { name: 'district', type: 'string', value: map.district },
+      { name: 'life', type: 'string', value: JSON.stringify(map.life) },
+    ],
   };
 }
 
