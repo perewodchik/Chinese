@@ -96,5 +96,16 @@
    9
   ],
   "facing": "left"
+ },
+ {
+  "kind": "edge",
+  "id": "east",
+  "side": "right",
+  "from": 5,
+  "to": 10,
+  "target": {
+   "map": "stop-beijingbeizhan",
+   "offset": 0
+  }
  }
 ]

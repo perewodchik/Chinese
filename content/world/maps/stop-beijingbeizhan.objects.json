@@ -1,0 +1,92 @@
+[
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   12,
+   1
+  ],
+  "text": "北京北站",
+  "en": "Beijing North railway station"
+ },
+ {
+  "kind": "sign",
+  "id": "window",
+  "tile": [
+   18,
+   1
+  ],
+  "text": "售票",
+  "en": "Tickets"
+ },
+ {
+  "kind": "prop",
+  "id": "board-post",
+  "tile": [
+   8,
+   10
+  ],
+  "frame": "street-sign/blue",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "train-board",
+  "tile": [
+   8,
+   10
+  ],
+  "text": "京张高铁  八达岭长城",
+  "en": "The train to the Great Wall at Badaling"
+ },
+ {
+  "kind": "prop",
+  "id": "plant-1",
+  "tile": [
+   2,
+   13
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant-2",
+  "tile": [
+   25,
+   13
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "seller",
+  "npc": "huoche-shoupiao",
+  "tile": [
+   18,
+   3
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "edge",
+  "id": "west",
+  "side": "left",
+  "from": 5,
+  "to": 10,
+  "target": {
+   "map": "stop-xizhimen",
+   "offset": 0
+  }
+ }
+]

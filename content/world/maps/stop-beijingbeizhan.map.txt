@@ -1,0 +1,42 @@
+id: stop-beijingbeizhan
+size: 28x16
+tilesets: tiles
+district: changcheng
+crowd: 6
+
+# 北京北站: the old railway station's concourse — the ticket window, the board for the train to the Wall
+
+[ground]
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+tttttttttttttttttttttttttttt
+[below]
+kkkkkkkkkkkkkkkkkkkkkkkkkkkk
+kJJJJJJJJJJJJJJJJJJJJJJJJJJk
+kjjjjjjjjjjjjjjjjjjjjjjjjjjk
+k..........................k
+k...............CCCCC......k
+...........................k
+...........................k
+...........................k
+...........................k
+...........................k
+...........................k
+k..........................k
+k..........................k
+k..........................k
+k..........................k
+kkkkkkkkkkkkkkkkkkkkkkkkkkkk

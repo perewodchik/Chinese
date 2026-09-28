@@ -1,0 +1,60 @@
+[
+  {
+    "id": "huoche-shoupiao",
+    "name": "售票员",
+    "role": "the clerk at the railway ticket window",
+    "look": {
+      "sprite": "woman",
+      "palette": "teal"
+    },
+    "voice": "xiaoyu",
+    "character": "Quick, precise, reads names off passports at speed.",
+    "knows": [
+      "Trains to the Wall leave every hour",
+      "The ticket costs 20 yuan and needs your passport"
+    ],
+    "wants": [
+      "The right change"
+    ],
+    "actions": [
+      "money",
+      "flag"
+    ],
+    "routine": [],
+    "explains": {
+      "票": "坐车、进门要的，要买。",
+      "护照": "去别的国家用的小本子。"
+    },
+    "misses": [
+      "您去哪儿？请再说一遍。"
+    ]
+  },
+  {
+    "id": "yugong-yeye",
+    "name": "爬长城的爷爷",
+    "role": "an old man climbing the Wall one step at a time",
+    "look": {
+      "sprite": "grandpa",
+      "palette": "blue"
+    },
+    "voice": "wei",
+    "character": "Slow, stubborn, delighted with himself.",
+    "knows": [
+      "He climbs a little further every year"
+    ],
+    "wants": [
+      "To reach the top"
+    ],
+    "actions": [
+      "idiom"
+    ],
+    "routine": [],
+    "explains": {
+      "愚公移山": "很难的事，每天做一点，就能做好。",
+      "长城": "很长很长的墙，在山上。"
+    },
+    "misses": [
+      "啊？慢慢说。"
+    ]
+  }
+]

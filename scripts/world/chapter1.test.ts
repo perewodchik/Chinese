@@ -354,3 +354,25 @@ describe('chapter 7, played through the core', () => {
     assert.equal(s.chapter, 8);
   });
 });
+
+describe('the epilogue, played through the core', () => {
+  it('a train ticket in your name → the train → 愚公移山 → 一路平安', () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 8 }, { do: 'quest', quest: 'epilogue', step: 'ticket' }]);
+    const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'epilogue')?.step.id;
+    assert.equal(sceneFor(scenes, s, { look: 'train-board', map: 'stop-beijingbeizhan' })?.id, 'no-train-ticket');
+    s = play(s, 'train-ticket').save;
+    assert.equal(sceneFor(scenes, s, { look: 'train-board', map: 'stop-beijingbeizhan' }), null);
+    assert.equal(at(), 'ride');
+    let r = startRide('beijingbeizhan');
+    r = board(r, trainsAt('beijingbeizhan', 'train')[0]!);
+    while (r.at !== 'badalingchangcheng') r = runOn(r);
+    assert.equal(fareOut(r, 'train'), 20);
+    s = play(s, 'changcheng-arrive').save;
+    s = play(s, 'yugong').save;
+    assert.ok('愚公移山' in s.idioms);
+    s = play(s, 'farewell').save;
+    assert.ok('一路平安' in s.idioms);
+    assert.equal(s.quests.epilogue?.done, true);
+    assert.equal(s.chapter, 9);
+  });
+});

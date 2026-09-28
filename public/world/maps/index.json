@@ -14,6 +14,11 @@
   "width": 14,
   "height": 10
  },
+ "changcheng": {
+  "district": "changcheng",
+  "width": 48,
+  "height": 24
+ },
  "gulou-square": {
   "district": "gulou",
   "width": 32,
@@ -182,6 +187,16 @@
  "station-yonghegong": {
   "district": "yonghegong",
   "width": 24,
+  "height": 16
+ },
+ "stop-badalingchangcheng": {
+  "district": "changcheng",
+  "width": 24,
+  "height": 14
+ },
+ "stop-beijingbeizhan": {
+  "district": "changcheng",
+  "width": 28,
   "height": 16
  },
  "stop-xizhimen": {

@@ -1,0 +1,17 @@
+[
+  {
+    "id": "huoche",
+    "name": "火车",
+    "en": "The train to the Wall",
+    "place": "stop-beijingbeizhan",
+    "design": "huoche"
+  },
+  {
+    "id": "changcheng",
+    "name": "长城",
+    "en": "The Great Wall",
+    "place": "changcheng",
+    "design": "changcheng",
+    "landmark": true
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "id": "changcheng",
+  "name": "长城 · 八达岭",
+  "en": "Great Wall · Badaling",
+  "chapter": 8,
+  "maps": [
+    "stop-beijingbeizhan",
+    "stop-badalingchangcheng",
+    "changcheng"
+  ],
+  "stations": [
+    "beijingbeizhan",
+    "badalingchangcheng"
+  ],
+  "names": [
+    "长城",
+    "八达岭",
+    "八达岭长城",
+    "北京北站",
+    "京张高铁",
+    "北京",
+    "兔儿爷"
+  ],
+  "ambience": "mountain"
+}

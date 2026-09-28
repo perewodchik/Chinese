@@ -1,0 +1,242 @@
+[
+  {
+    "id": "train-ticket",
+    "map": "stop-beijingbeizhan",
+    "npc": "huoche-shoupiao",
+    "trigger": "talk",
+    "once": true,
+    "priority": 0,
+    "stamp": "huoche",
+    "start": "a",
+    "words": [
+      {
+        "w": "票",
+        "explain": "坐车要的，要买。",
+        "en": "ticket"
+      },
+      {
+        "w": "护照",
+        "explain": "去别的国家用的小本子。",
+        "en": "passport"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！去哪儿？",
+        "translate": "Hello! Where to?",
+        "expect": [
+          {
+            "intent": "where",
+            "match": [
+              [
+                "长城",
+                "八达岭",
+                "八达岭长城"
+              ]
+            ],
+            "go": "b"
+          }
+        ],
+        "hint": {
+          "word": "长城",
+          "frame": "我去___。",
+          "full": "我去长城。"
+        }
+      },
+      {
+        "id": "b",
+        "say": "八达岭长城？二十块。请给我你的护照。",
+        "translate": "Badaling Great Wall? Twenty yuan. Your passport, please.",
+        "simpler": "请给我你的护照。",
+        "expect": [
+          {
+            "intent": "give",
+            "match": [
+              [
+                "给",
+                "好",
+                "这是",
+                "护照"
+              ]
+            ],
+            "go": "c",
+            "actions": [
+              {
+                "do": "money",
+                "amount": -20
+              },
+              {
+                "do": "flag",
+                "flag": "train-ticket"
+              }
+            ]
+          }
+        ],
+        "hint": {
+          "word": "护照",
+          "frame": "好，这是我的___。",
+          "full": "好，这是我的护照。"
+        }
+      },
+      {
+        "id": "c",
+        "say": "好了，这是你的票。十点的车。",
+        "translate": "There you are — your ticket. The ten o'clock train.",
+        "simpler": "这是你的票。",
+        "why": "Train tickets in China are sold in your own name, with your passport; the gates check it."
+      }
+    ]
+  },
+  {
+    "id": "no-train-ticket",
+    "map": "stop-beijingbeizhan",
+    "object": "train-board",
+    "trigger": "look",
+    "priority": 0,
+    "when": {
+      "not": {
+        "flag": "train-ticket"
+      }
+    },
+    "start": "a",
+    "words": [
+      {
+        "w": "票",
+        "explain": "坐车要的，要买。",
+        "en": "ticket"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你没有票。去那儿买票吧。",
+        "translate": "You haven't got a ticket. Buy one over there.",
+        "speaker": "companion",
+        "simpler": "去买票吧。"
+      }
+    ]
+  },
+  {
+    "id": "changcheng-arrive",
+    "map": "changcheng",
+    "trigger": "auto",
+    "once": true,
+    "stamp": "changcheng",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "长城！很长！",
+        "translate": "The Great Wall! It goes on and on!",
+        "speaker": "hero",
+        "why": "长城 at 八达岭: the most famous stretch of the Wall, built of stone and brick along the mountain ridges."
+      }
+    ]
+  },
+  {
+    "id": "yugong",
+    "map": "changcheng",
+    "npc": "yugong-yeye",
+    "trigger": "talk",
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "你好！长城很高。",
+        "translate": "Hello! The Wall is high.",
+        "next": "b"
+      },
+      {
+        "id": "b",
+        "say": "我每天走一点，这是愚公移山！",
+        "translate": "I climb a little every day — 愚公移山, the Foolish Old Man moving mountains!",
+        "key": true,
+        "onEnter": [
+          {
+            "do": "idiom",
+            "idiom": "愚公移山"
+          }
+        ],
+        "why": "A 成语 📌 with a story: the Foolish Old Man carried two mountains away stone by stone — whatever is left, his sons and grandsons would finish."
+      }
+    ]
+  },
+  {
+    "id": "farewell",
+    "map": "changcheng",
+    "object": "watchtower-sign",
+    "trigger": "look",
+    "priority": 0,
+    "once": true,
+    "when": {
+      "chapter": 8
+    },
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "我们到了！",
+        "translate": "We made it!",
+        "speaker": "companion",
+        "next": "b"
+      },
+      {
+        "id": "b",
+        "say": "谢谢你，朋友！",
+        "translate": "Thank you, friend!",
+        "speaker": "shishizi",
+        "next": "c"
+      },
+      {
+        "id": "c",
+        "say": "我们要回家了。",
+        "translate": "We're going home now.",
+        "speaker": "long",
+        "next": "d",
+        "why": "The spirits go back to the lantern in 王阿姨's courtyard — mended now, it will be lit at night."
+      },
+      {
+        "id": "d",
+        "say": "我们会想你的。",
+        "translate": "We'll miss you.",
+        "speaker": "jiuweihu",
+        "next": "e"
+      },
+      {
+        "id": "e",
+        "say": "你要走了吗？一路平安！",
+        "translate": "Are you setting off? 一路平安 — a safe journey!",
+        "speaker": "companion",
+        "key": true,
+        "onEnter": [
+          {
+            "do": "idiom",
+            "idiom": "一路平安"
+          },
+          {
+            "do": "flag",
+            "flag": "game-finished"
+          }
+        ],
+        "why": "A 成语 📌: 一路平安 — safe all the way. 兔儿爷 stays with you: Beijing is yours to walk, and one day, maybe, another city."
+      }
+    ]
+  },
+  {
+    "id": "watchtower-after",
+    "map": "changcheng",
+    "object": "watchtower-sign",
+    "trigger": "look",
+    "priority": 5,
+    "start": "a",
+    "nodes": [
+      {
+        "id": "a",
+        "say": "长城很好看！",
+        "translate": "The Wall is beautiful!",
+        "speaker": "hero"
+      }
+    ]
+  }
+]

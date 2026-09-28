@@ -174,10 +174,11 @@ export function WorldPage() {
             const s = game.current();
             if (!s) return;
             // the board on a platform or at a bus stop: what leaves from here
-            // (subway maps are called station-<id>, bus and train stops stop-<id>)
+            // (subway maps are called station-<id>, bus and train stops stop-<id>);
+            // a scene on the board (no ticket yet) comes first
             const boards: Record<string, Mode> = { board: 'subway', 'bus-board': 'bus', 'train-board': 'train' };
             const board = o.kind === 'sign' ? boards[o.id] : undefined;
-            if (board) {
+            if (board && !sceneFor(contentRef.current.scenes, s, { look: o.id, map: s.place.map })) {
               const here = s.place.map.replace(/^(station|stop)-/, '');
               game.dispatch([{ do: 'station', station: here }]);
               setRiding({ at: here, mode: board });

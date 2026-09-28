@@ -10,7 +10,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** проверка в браузере и в WebKit (F5, нужен человек), дальше по списку — G (звук), H (остальной Пекин), I, X.
 
 ## Current task
-G2 (clips still rendering) → H7
+G2 (clips still rendering) → H8
 
 ## Tasks
 ### A — core logic
@@ -72,7 +72,7 @@ G2 (clips still rendering) → H7
 - [x] H4 Ch. 5 三里屯 · 国贸 · 奥林匹克公园 (+ 点单 doors)
 - [x] H5 Ch. 6 颐和园 · 潘家园
 - [x] H6 Ch. 7 故宫
-- [ ] H7 Epilogue 长城
+- [x] H7 Epilogue 长城
 - [ ] H8 Side quests + 共享单车
 
 ### I — finishing
@@ -165,6 +165,7 @@ _(date — decision — why)_
 - 2026-09-29 — H4: chapter 5 (quest `ch5`). Maps: `sanlitun-street` (glass towers and shops — new tiles glass, glass-shop, glass-door), `guomao-plaza`, `guomao-bank` (a golden 貔貅 on a red pedestal in the hall), `bianlidian`, `olympic-park` (鸟巢 96×48 and 水立方 — new props), stations 团结湖, 国贸, 奥林匹克公园. **点单 doors:** tapping the glass door of 瑞幸 / 蜜雪冰城 / 海底捞 asks 「点咖啡吗？」 etc.; yes → new page action: after the talk, `/play/<game>?back=world`. `GamePage` got a small change (only mine): with `back=world`, ✕, "leave" and the results' button (renamed "Back to Beijing") go to `/play/world`, and "Play again" keeps `back=world`; the world reopens where the save left you (in front of the shop). Story: the courier's friend saw 「银行里有一个金色的东西，会动」 — 「我半信半疑。」 (📌 成语); the guard: 「你七上八下吧？」 (📌 成语); the 貔貅 wants 「金色的东西」 → gold-paper chocolate coins from the 便利店 (befriend by request); then 兔儿爷 wants to see 鸟巢. Stamps 三里屯, 国贸, 貔貅, 鸟巢 (landmark). Renders: `review/h4/`.
 - 2026-09-29 — H5: chapter 6 (quest `ch6`). **Buses:** the ride sheet now takes a mode — a `bus-board` sign opens the buses at a stop (332路 西直门 → 动物园 → 颐和园; 2 元 flat), a `train-board` will open the train (H7). Subway exits are `station-<id>` maps, bus/train stops `stop-<id>` maps, all with their board at [8,10]. Maps: `station-xizhimen`, `stop-xizhimen` (the 332 stop; the way to 北京北站 for H7), `stop-yiheyuan` (the east gate, stone lions, the stop), `yiheyuan-changlang` (60 tiles of painted corridor by 昆明湖 — six beam paintings as signs: 三顾茅庐, 守株待兔, 西游记, 司马光砸缸, 孔融让梨, 嫦娥奔月), `station-panjiayuan`, `panjiayuan-market` (ten stalls of 'antiques' — new stall prop —, the little clay 年兽 — new prop). Story: the rabbit painting → 兔儿爷: 「守株待兔！我不喜欢！」 (📌 成语; he is offended), the old painter heard of a 年兽 for sale at 潘家园; the book-seller who was robbed and now mends his door: 「这是亡羊补牢。」 (📌 成语); bargain for the 年兽 (古董, 便宜点儿, 真的假的; 200 → 150 → 100 元) and it wakes as the spirit (befriend by request). Stamps 颐和园 (landmark), 长廊, 潘家园, 砍价, 年兽. The content checker now also refuses the same id in two districts (a second `painter` scene had shadowed the first). Renders: `review/h5/`.
 - 2026-09-29 — H6: chapter 7 (quest `ch7`). 王阿姨 books the palace ticket online in your name (票 网上 护照; the real rule), then a door in 天安门's central arch lets you in (locked without the flag `palace-ticket`, with the reason). Maps: `wumen` (the Meridian Gate built from palace tiles; security gates across the south — the 安检 officer checks your passport and lets you through), `taihedian` (the Hall of Supreme Harmony — new 112×72 prop — over the great square), `jiulongbi` (the Nine-Dragon Screen, one dragon without eyes; after the finale the eyes are in and the dragon flies above), `yuhuayuan` (rockeries, trees, a pavilion). Finale 「画龙点睛！」: every spirit you found comes to help (the stone lion and the fox speak), you say 点睛, the dragon wakes (spirit 龙), 兔儿爷: all the lantern's spirits are back; in the garden he proposes the Great Wall. Every spirit now has a voice for the voice render. Chapter 8 (the epilogue) opens. New art: 太和殿, 九龙壁 (two frames), the dragon (reads a bit like a snake — worth a redraw), rockery. Renders: `review/h6/`.
+- 2026-09-29 — H7: the epilogue (quest `epilogue`, started by ch. 7's reward). Walk east from the 西直门 bus stop into `stop-beijingbeizhan` (the concourse), buy a train ticket at the window with your passport (flag `train-ticket`; without it the board's scene sends you to the window — a scene on a board now comes before the ride), ride 京张高铁 (20 元) to `stop-badalingchangcheng`, walk onto `changcheng` — the Wall climbs east along the ridge in steps, with crenellations on both sides, to a watchtower. The old man climbing a little every day: 「这是愚公移山！」 (📌 成语); at the watchtower the spirits say goodbye — they go home to the mended lantern — and 兔儿爷: 「你要走了吗？一路平安！」 (📌 成语; flag `game-finished`, chapter 9 = free walking). Stamps 火车, 长城 (landmark). Renders: `review/h7/`.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

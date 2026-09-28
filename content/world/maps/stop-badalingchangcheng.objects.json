@@ -1,0 +1,82 @@
+[
+ {
+  "kind": "prop",
+  "id": "board-post",
+  "tile": [
+   8,
+   10
+  ],
+  "frame": "street-sign/blue",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "train-board",
+  "tile": [
+   8,
+   10
+  ],
+  "text": "京张高铁  北京北站",
+  "en": "The train back to Beijing North"
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   2,
+   6
+  ],
+  "text": "八达岭长城站",
+  "en": "Badaling Great Wall station"
+ },
+ {
+  "kind": "sign",
+  "id": "way",
+  "tile": [
+   20,
+   8
+  ],
+  "text": "长城 →",
+  "en": "The Great Wall (this way)"
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   3,
+   4
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   17,
+   4
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "edge",
+  "id": "east",
+  "side": "right",
+  "from": 6,
+  "to": 13,
+  "target": {
+   "map": "changcheng",
+   "offset": 0
+  }
+ }
+]

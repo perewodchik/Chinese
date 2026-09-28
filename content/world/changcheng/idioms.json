@@ -1,0 +1,42 @@
+[
+  {
+    "id": "愚公移山",
+    "pinyin": "yúgōng-yíshān",
+    "parts": [
+      {
+        "c": "愚公",
+        "gloss": "the Foolish Old Man"
+      },
+      {
+        "c": "移山",
+        "gloss": "moves mountains"
+      }
+    ],
+    "meaning": "perseverance: any task can be done, a little every day",
+    "story": {
+      "zh": "愚公的家前面有两座大山。愚公九十岁了，他每天和孩子们一起搬山上的石头。别人笑他。他说：“我做不完，我的孩子做，孩子的孩子做，山会没有的。”天帝听了，很感动，就把山搬走了。",
+      "en": "Two great mountains blocked the Foolish Old Man's door. At ninety he began carrying their stones away with his sons. People laughed; he said, 'What I can't finish, my sons will, and their sons after them — the mountains won't grow.' Moved, the Emperor of Heaven had the mountains carried off."
+    },
+    "tier": "story"
+  },
+  {
+    "id": "一路平安",
+    "pinyin": "yílù-píng'ān",
+    "parts": [
+      {
+        "c": "一路",
+        "gloss": "all the way"
+      },
+      {
+        "c": "平安",
+        "gloss": "safe and sound"
+      }
+    ],
+    "meaning": "have a safe journey; bon voyage",
+    "story": {
+      "zh": "朋友要去远的地方，我们说：“一路平安！”",
+      "en": "When a friend sets off on a long journey, we say: 一路平安 — safe all the way!"
+    },
+    "tier": "basic"
+  }
+]

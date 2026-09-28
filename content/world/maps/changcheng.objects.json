@@ -1,0 +1,56 @@
+[
+ {
+  "kind": "prop",
+  "id": "watchtower",
+  "tile": [
+   40,
+   5
+  ],
+  "frame": "tower/bell",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "watchtower-sign",
+  "tile": [
+   44,
+   6
+  ],
+  "text": "敌楼",
+  "en": "A watchtower"
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   4,
+   15
+  ],
+  "text": "八达岭长城",
+  "en": "The Great Wall at Badaling"
+ },
+ {
+  "kind": "npc",
+  "id": "yugong",
+  "npc": "yugong-yeye",
+  "tile": [
+   16,
+   12
+  ],
+  "facing": "right"
+ },
+ {
+  "kind": "edge",
+  "id": "west",
+  "side": "left",
+  "from": 6,
+  "to": 13,
+  "target": {
+   "map": "stop-badalingchangcheng",
+   "offset": 0
+  }
+ }
+]

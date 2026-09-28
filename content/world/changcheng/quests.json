@@ -1,0 +1,36 @@
+[
+  {
+    "id": "epilogue",
+    "title": "The Great Wall",
+    "chapter": 8,
+    "steps": [
+      {
+        "id": "ticket",
+        "now": "One last trip: the train to the Great Wall. Walk east from the 西直门 bus stop to 北京北站 and buy a ticket at the window (bring your passport).",
+        "done": {
+          "flag": "train-ticket"
+        }
+      },
+      {
+        "id": "ride",
+        "now": "Take the train — 京张高铁 — from the board in the concourse to 八达岭长城.",
+        "done": {
+          "scene": "changcheng-arrive"
+        }
+      },
+      {
+        "id": "climb",
+        "now": "Climb the Wall east to the watchtower. The spirits are waiting.",
+        "done": {
+          "flag": "game-finished"
+        }
+      }
+    ],
+    "reward": [
+      {
+        "do": "chapter",
+        "chapter": 9
+      }
+    ]
+  }
+]
