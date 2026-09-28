@@ -1,0 +1,81 @@
+/**
+ * The save's own format version, apart from the workspace's.
+ *
+ * `readSave` takes whatever came out of localStorage or the server and
+ * gives back a save of the current version, or says why it cannot: a save
+ * written by a newer build is never downgraded (that build knows things this
+ * one does not), and junk is refused rather than guessed at.
+ *
+ * To change the format: bump `WORLD_SAVE_VERSION` in save.ts and add the
+ * step from the old version here. Fields that are merely *added* need no
+ * step — `fill` gives a missing field its default.
+ */
+
+import { DEFAULT_SETTINGS, HOME, HOME_DISTRICT, newSave, WORLD_SAVE_VERSION } from './save';
+import type { WorldSave } from './types';
+
+type Raw = Record<string, unknown>;
+
+/** version n → n + 1 */
+export type Upgrade = (save: Raw) => Raw;
+export const UPGRADES: Record<number, Upgrade> = {};
+
+export type ReadResult =
+  | { ok: true; save: WorldSave; upgraded: boolean }
+  | { ok: false; reason: 'newer' | 'invalid'; message: string };
+
+const isObj = (v: unknown): v is Raw => typeof v === 'object' && v !== null && !Array.isArray(v);
+const strings = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+const record = <T>(v: unknown, ok: (x: unknown) => x is T): Record<string, T> => {
+  const out: Record<string, T> = {};
+  if (isObj(v)) for (const [k, x] of Object.entries(v)) if (ok(x)) out[k] = x;
+  return out;
+};
+const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
+
+/** Gives every field the current version has its value, or its default. */
+function fill(r: Raw): WorldSave {
+  const base = newSave(typeof r.deviceId === 'string' ? r.deviceId : 'unknown', isNum(r.updatedAt) ? r.updatedAt : 0);
+  const place = isObj(r.place) && typeof r.place.map === 'string' && Array.isArray(r.place.tile) ? (r.place as unknown as WorldSave['place']) : HOME;
+  const bag = isObj(r.bag) ? r.bag : {};
+  return {
+    ...base,
+    place,
+    district: typeof r.district === 'string' ? r.district : HOME_DISTRICT,
+    clock: isNum(r.clock) ? r.clock : base.clock,
+    chapter: isNum(r.chapter) ? r.chapter : 1,
+    flags: strings(r.flags),
+    scenes: strings(r.scenes),
+    quests: record(r.quests, (x): x is WorldSave['quests'][string] => isObj(x) && typeof x.step === 'string'),
+    riddles: record(r.riddles, (x): x is WorldSave['riddles'][string] => isObj(x) && typeof x.scene === 'string'),
+    bag: {
+      items: record(bag.items, isNum),
+      money: isNum(bag.money) ? bag.money : base.bag.money,
+      card: isNum(bag.card) ? bag.card : null,
+    },
+    spirits: record(r.spirits, isNum),
+    idioms: record(r.idioms, (x): x is WorldSave['idioms'][string] => isObj(x) && isNum(x.at)),
+    stamps: record(r.stamps, isNum),
+    stations: strings(r.stations),
+    districts: strings(r.districts).length ? strings(r.districts) : [HOME_DISTRICT],
+    npcs: record(r.npcs, (x): x is WorldSave['npcs'][string] => isObj(x) && isNum(x.met)),
+    rides: record(r.rides, isNum),
+    settings: { ...DEFAULT_SETTINGS, ...(isObj(r.settings) ? (r.settings as Partial<WorldSave['settings']>) : {}) },
+  };
+}
+
+export function readSave(raw: unknown, upgrades: Record<number, Upgrade> = UPGRADES, current = WORLD_SAVE_VERSION): ReadResult {
+  if (!isObj(raw) || !isNum(raw.version)) return { ok: false, reason: 'invalid', message: 'not a 走走 save' };
+  if (raw.version > current) {
+    return { ok: false, reason: 'newer', message: `the save is version ${raw.version}; this app knows ${current} — reload to update` };
+  }
+  let r: Raw = raw;
+  let v = raw.version;
+  while (v < current) {
+    const step = upgrades[v];
+    if (!step) return { ok: false, reason: 'invalid', message: `no way to upgrade a version ${v} save` };
+    r = step(r);
+    v++;
+  }
+  return { ok: true, save: { ...fill(r), version: current }, upgraded: raw.version !== current };
+}

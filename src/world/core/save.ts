@@ -1,0 +1,204 @@
+/**
+ * The one way the save changes: `apply(save, action)` returns a new save.
+ *
+ * Content actions (`give`, `stamp`, `quest` …, see `types.ts`) and the
+ * engine's own (`move`, `enter`, `meet`, `tick` …) go through here alike, so
+ * a scene that plays wrong can be replayed as a list of actions in a test.
+ * Nothing is mutated; unchanged parts are shared with the old save.
+ */
+
+import { sleep as sleepClock, START_MINUTES } from './clock';
+import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
+
+export const WORLD_SAVE_VERSION = 1;
+
+/** Where a new game starts: your room in 王阿姨's 四合院. */
+export const HOME: Place = { map: 'siheyuan-room', tile: [4, 4], facing: 'down' };
+export const HOME_DISTRICT = 'gulou';
+
+export const DEFAULT_SETTINGS: WorldSettings = {
+  input: 'keyboard',
+  pinyin: true,
+  joystick: false,
+  textSize: 'm',
+  live: false,
+  volume: 0.6,
+};
+
+export function newSave(deviceId: string, now: number): WorldSave {
+  return {
+    version: WORLD_SAVE_VERSION,
+    updatedAt: now,
+    deviceId,
+    place: HOME,
+    district: HOME_DISTRICT,
+    clock: START_MINUTES,
+    chapter: 1,
+    flags: [],
+    scenes: [],
+    quests: {},
+    riddles: {},
+    bag: { items: {}, money: 50, card: null },
+    spirits: {},
+    idioms: {},
+    stamps: {},
+    stations: [],
+    districts: [HOME_DISTRICT],
+    npcs: {},
+    rides: {},
+    settings: DEFAULT_SETTINGS,
+  };
+}
+
+/** What only the engine does: walking, doors, meeting people, time passing. */
+export type EngineAction =
+  | { do: 'move'; tile: Tile; facing: Facing }
+  | { do: 'enter'; map: string; tile: Tile; facing: Facing; district?: string }
+  | { do: 'meet'; npc: string }
+  | { do: 'scene_done'; scene: string }
+  | { do: 'ride'; route: string }
+  | { do: 'tick'; minutes: number }
+  | { do: 'settings'; patch: Partial<WorldSettings> };
+
+export type SaveAction = Action | EngineAction;
+
+export interface ApplyContext {
+  /** wall-clock ms, stamped into `updatedAt` */
+  now: number;
+  deviceId?: string;
+  /** quest definitions, so a step can be ordered against another */
+  quests?: ReadonlyMap<string, Quest>;
+  /** who is talking, for the 成语 book's "heard from" */
+  scene?: string;
+  npc?: string;
+}
+
+const money = (n: number) => Math.round(n * 100) / 100;
+const withFlag = (flags: string[], flag: string, on: boolean) =>
+  on ? (flags.includes(flag) ? flags : [...flags, flag]) : flags.includes(flag) ? flags.filter((f) => f !== flag) : flags;
+const addOnce = (list: string[], v: string) => (list.includes(v) ? list : [...list, v]);
+
+/** `scene/node` → its parts; a riddle id without a slash is its own scene. */
+export function riddleParts(riddle: string): { scene: string; node: string } {
+  const i = riddle.indexOf('/');
+  return i < 0 ? { scene: riddle, node: '' } : { scene: riddle.slice(0, i), node: riddle.slice(i + 1) };
+}
+
+function stepIndex(ctx: ApplyContext, quest: string, step: string): number {
+  const q = ctx.quests?.get(quest);
+  const i = q ? q.steps.findIndex((s) => s.id === step) : -1;
+  return i < 0 ? 0 : i;
+}
+
+/** The save's own changes, before `updatedAt` is stamped. Unknown actions change nothing. */
+function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
+  switch (a.do) {
+    case 'move':
+      return { ...s, place: { ...s.place, tile: a.tile, facing: a.facing } };
+    case 'enter':
+    case 'teleport': {
+      const facing = a.facing ?? s.place.facing;
+      const next = { ...s, place: { map: a.map, tile: a.tile, facing } };
+      if (a.do === 'enter' && a.district && a.district !== s.district) {
+        return { ...next, district: a.district, districts: addOnce(s.districts, a.district) };
+      }
+      return next;
+    }
+    case 'flag': {
+      const flags = withFlag(s.flags, a.flag, a.value ?? true);
+      return flags === s.flags ? s : { ...s, flags };
+    }
+    case 'give': {
+      const n = (s.bag.items[a.item] ?? 0) + (a.count ?? 1);
+      return { ...s, bag: { ...s.bag, items: { ...s.bag.items, [a.item]: n } } };
+    }
+    case 'take': {
+      const n = (s.bag.items[a.item] ?? 0) - (a.count ?? 1);
+      const items = { ...s.bag.items };
+      if (n > 0) items[a.item] = n;
+      else delete items[a.item];
+      return { ...s, bag: { ...s.bag, items } };
+    }
+    case 'money':
+      return { ...s, bag: { ...s.bag, money: Math.max(0, money(s.bag.money + a.amount)) } };
+    case 'card':
+      return { ...s, bag: { ...s.bag, card: Math.max(0, money((s.bag.card ?? 0) + a.amount)) } };
+    case 'quest': {
+      const index = stepIndex(ctx, a.quest, a.step);
+      const cur = s.quests[a.quest];
+      // A quest only moves forward: replaying an old scene cannot take it back.
+      if (cur && (cur.done || cur.index > index)) return s;
+      return { ...s, quests: { ...s.quests, [a.quest]: { step: a.step, index, done: false } } };
+    }
+    case 'quest_done': {
+      const cur = s.quests[a.quest];
+      const last = ctx.quests?.get(a.quest)?.steps.at(-1);
+      const done = {
+        step: last?.id ?? cur?.step ?? 'done',
+        index: last ? (ctx.quests!.get(a.quest)!.steps.length - 1) : (cur?.index ?? 0),
+        done: true,
+      };
+      return { ...s, quests: { ...s.quests, [a.quest]: done } };
+    }
+    case 'stamp':
+      return s.stamps[a.stamp] !== undefined ? s : { ...s, stamps: { ...s.stamps, [a.stamp]: Math.floor(s.clock) } };
+    case 'spirit':
+      return s.spirits[a.spirit] !== undefined ? s : { ...s, spirits: { ...s.spirits, [a.spirit]: Math.floor(s.clock) } };
+    case 'idiom': {
+      if (s.idioms[a.idiom]) return s;
+      const entry = { at: Math.floor(s.clock), ...(ctx.npc ? { npc: ctx.npc } : {}), ...(ctx.scene ? { scene: ctx.scene } : {}) };
+      return { ...s, idioms: { ...s.idioms, [a.idiom]: entry } };
+    }
+    case 'station':
+      return s.stations.includes(a.station) ? s : { ...s, stations: [...s.stations, a.station] };
+    case 'district':
+      return s.districts.includes(a.district) ? s : { ...s, districts: [...s.districts, a.district] };
+    case 'chapter':
+      return a.chapter > s.chapter ? { ...s, chapter: a.chapter } : s;
+    case 'sleep':
+      return { ...s, clock: sleepClock(s.clock) };
+    case 'pin': {
+      if (s.riddles[a.riddle]) return s;
+      const { scene, node } = riddleParts(a.riddle);
+      return { ...s, riddles: { ...s.riddles, [a.riddle]: { scene, node, pinnedAt: Math.floor(s.clock), solved: false } } };
+    }
+    case 'solve': {
+      const cur = s.riddles[a.riddle];
+      if (cur?.solved) return s;
+      const base = cur ?? { ...riddleParts(a.riddle), pinnedAt: Math.floor(s.clock) };
+      return { ...s, riddles: { ...s.riddles, [a.riddle]: { ...base, solved: true } } };
+    }
+    case 'meet':
+      return s.npcs[a.npc] ? s : { ...s, npcs: { ...s.npcs, [a.npc]: { met: Math.floor(s.clock), notes: [] } } };
+    case 'remember': {
+      const cur = s.npcs[a.npc] ?? { met: Math.floor(s.clock), notes: [] };
+      if (cur.notes.includes(a.note)) return s;
+      // Keep the memory short: the last twenty things are what a neighbour recalls.
+      const notes = [...cur.notes, a.note].slice(-20);
+      return { ...s, npcs: { ...s.npcs, [a.npc]: { ...cur, notes } } };
+    }
+    case 'scene_done':
+      return s.scenes.includes(a.scene) ? s : { ...s, scenes: [...s.scenes, a.scene] };
+    case 'ride':
+      return { ...s, rides: { ...s.rides, [a.route]: (s.rides[a.route] ?? 0) + 1 } };
+    case 'tick':
+      return a.minutes === s.clock ? s : { ...s, clock: Math.max(s.clock, a.minutes) };
+    case 'settings':
+      return { ...s, settings: { ...s.settings, ...a.patch } };
+    case 'game':
+      // The engine opens the game; the save only remembers where we were, which it already does.
+      return s;
+    default:
+      return s;
+  }
+}
+
+export function apply(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
+  const next = change(s, a, ctx);
+  if (next === s) return s;
+  return { ...next, updatedAt: ctx.now, deviceId: ctx.deviceId ?? s.deviceId };
+}
+
+export function applyAll(s: WorldSave, actions: readonly SaveAction[], ctx: ApplyContext): WorldSave {
+  return actions.reduce((acc, a) => apply(acc, a, ctx), s);
+}
