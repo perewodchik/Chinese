@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { partOfDay } from '../../world/core/clock';
+import { libraryLexicon } from '../../world/core/dialogue/lexicon';
+import { sceneFor } from '../../world/core/scenes';
 import type { MapObject, PartOfDay, Tile } from '../../world/core/types';
 import type { RunningWorld } from '../../world/engine/boot';
 import { throughDoor } from '../../world/engine/doors';
 import type { WorldHost } from '../../world/engine/scene';
+import { useWorldContent, EMPTY_CONTENT } from '../../world/ui/content';
+import { Dialogue, lookOf } from '../../world/ui/Dialogue';
 import { TopBar } from '../../world/ui/TopBar';
+import { smallTalk, useTalk } from '../../world/ui/useTalk';
+import { useLibrary } from '../shared/library';
 import { useWorldSave } from '../../world/ui/useWorldSave';
 import { useUser } from '../auth/session';
 import { oneOf, useQuery } from '../../navigation/query';
@@ -28,7 +34,15 @@ type MapIndex = Record<string, { district: string; width: number; height: number
 export function WorldPage() {
   useTitle('走走 Zǒuzou');
   const user = useUser();
-  const game = useWorldSave(user.id);
+  const lib = useLibrary();
+  const content = useWorldContent() ?? EMPTY_CONTENT;
+  const game = useWorldSave(user.id, content.quests);
+  const lex = useMemo(() => libraryLexicon(lib), [lib]);
+  const talk = useTalk(content, lex, game.dispatch);
+  const talkRef = useRef(talk);
+  talkRef.current = talk;
+  const contentRef = useRef(content);
+  contentRef.current = content;
   const [query] = useQuery();
   const frame = /^(\d+)x(\d+)$/.exec(query.get('frame') ?? '');
   const box = useRef<HTMLDivElement>(null);
@@ -37,7 +51,7 @@ export function WorldPage() {
   const [note, setNote] = useState<string | null>(null);
   const [minutes, setMinutes] = useState(0);
   const busy = useRef(false);
-  busy.current = note !== null;
+  busy.current = note !== null || talk.view !== null;
 
   useEffect(() => {
     const html = document.documentElement;
@@ -80,7 +94,14 @@ export function WorldPage() {
             else setNote(r.why);
           },
           onEdge: (to) => world.current?.travel(to),
-          onTalk: (npc) => setNote(`${npc}: conversations arrive with the dialogue bubble (E2).`),
+          onTalk: (npc) => {
+            const s = game.current();
+            if (!s) return;
+            const c = contentRef.current;
+            const card = c.npcs.find((n) => n.id === npc) ?? null;
+            const scene = sceneFor(c.scenes, s, { npc }) ?? smallTalk(npc, card);
+            talkRef.current.start(scene, card, lookOf(card, npc), s);
+          },
           onLook: (o: MapObject) => setNote(o.kind === 'sign' ? o.text : 'Nothing written here.'),
           onKey: () => undefined,
           isBusy: () => busy.current,
@@ -143,6 +164,8 @@ export function WorldPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, start]);
 
+  const setPinyin = (on: boolean) => void game.dispatch([{ do: 'settings', patch: { pinyin: on } }]);
+
   return (
     <div className="world-shell" data-state={state} data-framed={frame ? '' : undefined}>
       <div
@@ -151,6 +174,17 @@ export function WorldPage() {
         style={frame ? { width: Number(frame[1]), height: Number(frame[2]) } : undefined}
       />
       {game.save && state === 'ready' && <TopBar district={game.save.district} minutes={minutes} open={() => undefined} />}
+      {talk.view && game.save && (
+        <Dialogue
+          view={talk.view}
+          pinyin={game.save.settings.pinyin}
+          setPinyin={setPinyin}
+          onProceed={talk.proceed}
+          onClose={talk.close}
+        >
+          <ReplyField onSend={(t) => talk.reply(t, 'keyboard')} />
+        </Dialogue>
+      )}
       {note !== null && (
         <button type="button" className="world-note" onClick={() => setNote(null)}>
           {note}
@@ -160,5 +194,34 @@ export function WorldPage() {
         <div className="world-loading small">{state === 'failed' ? 'The game could not start. Reload to try again.' : 'Opening Beijing…'}</div>
       )}
     </div>
+  );
+}
+
+/** Until the full input bar (E3): a plain field; the system Chinese keyboard works in it. */
+function ReplyField({ onSend }: { onSend: (text: string) => void }) {
+  const [text, setText] = useState('');
+  return (
+    <form
+      className="wd-reply"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!text.trim()) return;
+        onSend(text);
+        setText('');
+      }}
+    >
+      <input
+        type="text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Answer in Chinese…"
+        lang="zh"
+        autoComplete="off"
+        autoFocus
+      />
+      <button type="submit" className="wd-go" disabled={!text.trim()}>
+        ➤
+      </button>
+    </form>
   );
 }

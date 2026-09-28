@@ -9,7 +9,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** E2 (пузырь диалога) — начатые файлы лежат незакоммиченными: `src/world/ui/content.ts`, `useTalk.ts`, `Portrait.tsx`. B1 добавляет миграцию `world_saves` — она выполнится на продакшн-Postgres при первом деплое после push.
 
 ## Current task
-E2
+E3
 
 ## Tasks
 ### A — core logic
@@ -46,7 +46,7 @@ E2
 
 ### E — overlay UI
 - [x] E1 Top bar
-- [ ] E2 Dialogue bubble
+- [x] E2 Dialogue bubble
 - [ ] E3 Input bar (voice / keyboard / IME)
 - [ ] E4 Companion 兔儿爷
 - [ ] E5 Panels (tasks, bag, map, 图鉴, 成语 book, stamps)
@@ -145,6 +145,8 @@ _(date — decision — why)_
 - 2026-09-28 — D6: lights are additive glow sprites plus one full-map multiply rectangle for the tint (not Phaser's Light2D) — cheaper on iPad Safari and the same on every GPU. The part of the day changes softly (3 s) without reloading the map. The game clock runs on the page: 1 real s = 1 game min while free in the world and the tab is visible; stopped in lines/panels; the save gets a `tick` every 10 game minutes. Weather: `setWeather('rain'|'snow')` exists, nothing calls it.
 - 2026-09-28 — D7: the three atlases together are under 20 KB of PNG, so they stay loaded; only the map's tilemap is dropped when you leave it. Target 60 fps, floor 30; `setPaused()` sleeps the game loop while a full-screen panel is open (E5 uses it); Phaser already stops when the tab is hidden. The drawing buffer is kept only for `?frame=` screenshots. **Frame rate on a real iPad is unmeasured** (no browser in this session).
 - 2026-09-28 — E1: the game's top line floats over the world (translucent ink chips, so the canvas never shifts), with ‹ to leave on every size — the site's own bar is only hidden on phones. The concept's 🗺 🎒 📜 are used as the buttons even though the app's design rules avoid emoji in UI text: the concept is the game's own design and wins. District names come from a new `core/districts.ts` table (all 13, with stations and a place on the map schematic).
+- 2026-09-29 — E2: the bubble has a fixed height (46 % of the game, at most 340 px) and scrolls its history inside, so it never pushes or grows. 拼 is the save's `settings.pinyin` (so it is remembered on every device). 🔁 plays the line through the app's `say()` (voice pack, else the system voice) until G2 brings the NPC voices; a line after 慢一点 plays at 0.75. A line with a manual `pinyin` shows that reading whole under the line rather than per word. People without an NPC card (the prototype maps) get small talk (「你好！」) and a name by their look (阿姨, 爷爷, 外卖小哥…). Until E3 the answer is a plain text field (the system Chinese keyboard works in it).
+- 2026-09-29 — E2: `/world/content/index.json` (the list of built districts) does not exist until F1 builds content; the game then plays with empty content. The engine still names NPC sprites by the spawn's `npc` id; F2 has to map card ids to `look.sprite`.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
