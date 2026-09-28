@@ -7,7 +7,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **2026-09-28, сессия остановлена после A3 (по просьбе).** Готово: A1 (Phaser 4.2.1, каркас `src/world/`, `shared/world.ts`, `content/world/README.md`), A2 (типы и zod-схемы контента — ошибки называют файл и путь, напр. `scenes[0].nodes[0].expect[0].go`), A3 (игровые часы: 1 мин = 1 час, пауза по причинам, сон до 7:00). Смотреть первым: `src/world/core/types.ts` — модель сохранения и контента, на ней строится всё остальное. Графики и скриншотов пока нет (`review/` пуст). Ничего не запушено. Следующая задача — A4.
 
 ## Current task
-E1
+E2
 
 ## Tasks
 ### A — core logic
@@ -43,7 +43,7 @@ E1
 - [x] D7 Performance
 
 ### E — overlay UI
-- [ ] E1 Top bar
+- [x] E1 Top bar
 - [ ] E2 Dialogue bubble
 - [ ] E3 Input bar (voice / keyboard / IME)
 - [ ] E4 Companion 兔儿爷
@@ -142,6 +142,7 @@ _(date — decision — why)_
 - 2026-09-28 — D5: how busy a map is lives in its header (`crowd:`, `pigeons:`, `bikes:`). Passers-by and cyclists are ambient only — they cross from one border tile to another, do not block the hero and cannot be talked to. People standing about blink (new `down-blink` frame for every character) and turn. NPC *routines* need NPC cards, which arrive with F2: the scene will then place people from `schedule.npcsOnMap` via the page.
 - 2026-09-28 — D6: lights are additive glow sprites plus one full-map multiply rectangle for the tint (not Phaser's Light2D) — cheaper on iPad Safari and the same on every GPU. The part of the day changes softly (3 s) without reloading the map. The game clock runs on the page: 1 real s = 1 game min while free in the world and the tab is visible; stopped in lines/panels; the save gets a `tick` every 10 game minutes. Weather: `setWeather('rain'|'snow')` exists, nothing calls it.
 - 2026-09-28 — D7: the three atlases together are under 20 KB of PNG, so they stay loaded; only the map's tilemap is dropped when you leave it. Target 60 fps, floor 30; `setPaused()` sleeps the game loop while a full-screen panel is open (E5 uses it); Phaser already stops when the tab is hidden. The drawing buffer is kept only for `?frame=` screenshots. **Frame rate on a real iPad is unmeasured** (no browser in this session).
+- 2026-09-28 — E1: the game's top line floats over the world (translucent ink chips, so the canvas never shifts), with ‹ to leave on every size — the site's own bar is only hidden on phones. The concept's 🗺 🎒 📜 are used as the buttons even though the app's design rules avoid emoji in UI text: the concept is the game's own design and wins. District names come from a new `core/districts.ts` table (all 13, with stations and a place on the map schematic).
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

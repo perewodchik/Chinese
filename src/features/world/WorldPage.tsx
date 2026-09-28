@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router';
 import { partOfDay } from '../../world/core/clock';
 import type { MapObject, PartOfDay, Tile } from '../../world/core/types';
 import type { RunningWorld } from '../../world/engine/boot';
 import { throughDoor } from '../../world/engine/doors';
 import type { WorldHost } from '../../world/engine/scene';
+import { TopBar } from '../../world/ui/TopBar';
 import { useWorldSave } from '../../world/ui/useWorldSave';
 import { useUser } from '../auth/session';
-import { paths } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
 import { useTitle } from '../../ui/useTitle';
 
@@ -36,6 +35,7 @@ export function WorldPage() {
   const world = useRef<RunningWorld | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'failed'>('loading');
   const [note, setNote] = useState<string | null>(null);
+  const [minutes, setMinutes] = useState(0);
   const busy = useRef(false);
   busy.current = note !== null;
 
@@ -118,13 +118,17 @@ export function WorldPage() {
   // while you are free in the world — not in a conversation, a panel, or a
   // hidden tab (concept §2). The save hears of it every ten game minutes.
   useEffect(() => {
-    if (state !== 'ready' || !start || start.asked) return;
+    if (state !== 'ready' || !start) return;
     let minutes = game.current()?.clock ?? 0;
+    setMinutes(minutes);
+    // With ?map= / ?time= (development) the clock stands still.
+    if (start.asked) return;
     let part = partOfDay(minutes);
     let told = minutes;
     const id = window.setInterval(() => {
       if (busy.current || document.visibilityState === 'hidden') return;
       minutes += 1;
+      setMinutes(minutes);
       if (minutes - told >= 10) {
         told = minutes;
         game.dispatch([{ do: 'tick', minutes }], 'walk');
@@ -146,10 +150,7 @@ export function WorldPage() {
         ref={box}
         style={frame ? { width: Number(frame[1]), height: Number(frame[2]) } : undefined}
       />
-      {/* On a phone the site's bar is gone; this is the way back out. */}
-      <Link className="world-exit" to={paths.play()} aria-label="Leave the game">
-        ‹
-      </Link>
+      {game.save && state === 'ready' && <TopBar district={game.save.district} minutes={minutes} open={() => undefined} />}
       {note !== null && (
         <button type="button" className="world-note" onClick={() => setNote(null)}>
           {note}
