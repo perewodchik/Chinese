@@ -62,7 +62,9 @@ function makeTimes(rng: Rng): Times {
 /** The stage is side by side from this width; below it the guide is a drawer. */
 const WIDE = 690;
 
-export function OrderGame({ brand, ctx, rounds, report, finish, words: wordHost }: GameProps & { brand: Brand }) {
+const CAPSULE_KEY = 'hanzi-workshop/order-capsule-told';
+
+export function OrderGame({ brand, ctx, rounds, report, finish, words: wordHost, leave }: GameProps & { brand: Brand }) {
   const gl = useMemo(() => glossaryOf(brand), [brand]);
   const [tasks] = useState(() => buildTasks(brand, ctx.rng, ctx.band, rounds));
   const [times] = useState(() => [...tasks.map(() => makeTimes(ctx.rng)), makeTimes(ctx.rng)]);
@@ -255,6 +257,57 @@ export function OrderGame({ brand, ctx, rounds, report, finish, words: wordHost 
     reset('play', index + 1);
   };
 
+  /* --------------------------------------------------------------- layout */
+  const stage = useRef<HTMLDivElement>(null);
+  const phone = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 0, h: 640, vw: 0 });
+  useLayoutEffect(() => {
+    const el = stage.current;
+    if (!el) return;
+    const measure = () => {
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      setSize({
+        w: el.clientWidth,
+        h: Math.max(520, Math.min(860, window.innerHeight - top - 12)),
+        vw: window.innerWidth,
+      });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [mode]);
+  // On a phone the mini-app is the screen, as a mini-program is in WeChat:
+  // over the site's bars, edge to edge, with the page behind it held still.
+  // Decided by the window, not the stage, since filling the screen changes
+  // the stage's own width.
+  const full = size.vw > 0 && size.vw < WIDE && mode !== 'intro';
+  const wide = !full && size.w >= WIDE;
+  useEffect(() => {
+    if (!full) return;
+    const html = document.documentElement;
+    const before = html.style.overflow;
+    html.style.overflow = 'hidden';
+    return () => {
+      html.style.overflow = before;
+    };
+  }, [full]);
+  // the first time, say where the guide went
+  useEffect(() => {
+    if (!full) return;
+    try {
+      if (localStorage.getItem(CAPSULE_KEY)) return;
+      localStorage.setItem(CAPSULE_KEY, '1');
+    } catch {
+      return;
+    }
+    setFloatHint('··· at the top opens the guide; ◎ leaves the shop.');
+  }, [full]);
+
   const app: AppApi = {
     brand,
     order,
@@ -262,6 +315,12 @@ export function OrderGame({ brand, ctx, rounds, report, finish, words: wordHost 
     view,
     go,
     toast: toastFn,
+    capsule: full
+      ? {
+          more: () => setGuideOpen(true),
+          close: () => leave?.(),
+        }
+      : null,
     task,
     later,
     submit,
@@ -283,28 +342,6 @@ export function OrderGame({ brand, ctx, rounds, report, finish, words: wordHost 
     words: wordHost,
   };
   const setPinyin = setPinyinState;
-
-  /* --------------------------------------------------------------- layout */
-  const stage = useRef<HTMLDivElement>(null);
-  const phone = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ w: 0, h: 640 });
-  useLayoutEffect(() => {
-    const el = stage.current;
-    if (!el) return;
-    const measure = () => {
-      const top = el.getBoundingClientRect().top + window.scrollY;
-      setSize({ w: el.clientWidth, h: Math.max(520, Math.min(860, window.innerHeight - top - 12)) });
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    window.addEventListener('resize', measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', measure);
-    };
-  }, [mode]);
-  const wide = size.w >= WIDE;
 
   /* ------------------------------------------------------- on this screen */
   const collect = useCallback(() => {
@@ -492,6 +529,7 @@ export function OrderGame({ brand, ctx, rounds, report, finish, words: wordHost 
           ref={stage}
           className="ok-stage"
           data-wide={wide || undefined}
+          data-full={full || undefined}
           style={{ '--ok-h': `${size.h}px`, '--brand': brand.colours.brand, '--brand-soft': brand.colours.soft, '--brand-ink': brand.colours.ink, '--brand-dark': brand.colours.darkBrand, '--brand-soft-dark': brand.colours.darkSoft } as React.CSSProperties}
         >
           <div className="ok-phone" ref={phone} data-pinyin={pinyin || undefined}>
@@ -506,9 +544,11 @@ export function OrderGame({ brand, ctx, rounds, report, finish, words: wordHost 
                   {floatHint}
                 </button>
               )}
-              <button type="button" className="ok-handle" aria-expanded={guideOpen} onClick={() => setGuideOpen(true)}>
-                Guide
-              </button>
+              {!full && (
+                <button type="button" className="ok-handle" aria-expanded={guideOpen} onClick={() => setGuideOpen(true)}>
+                  Guide
+                </button>
+              )}
               {guideOpen && <Drawer onClose={() => setGuideOpen(false)}>{guide}</Drawer>}
             </>
           )}

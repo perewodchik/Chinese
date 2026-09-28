@@ -13,6 +13,12 @@ export interface AppApi {
   view: View;
   go(v: View, dir?: 'push' | 'pop' | 'none'): void;
   toast(zh: string): void;
+  /**
+   * The WeChat capsule, when the mini-app fills a phone's screen: ··· opens
+   * the guide and ◎ leaves the shop, as they open the menu and close the
+   * mini-program in WeChat. Absent beside the guide, where both are in view.
+   */
+  capsule: { more(): void; close(): void } | null;
   /** null when just browsing */
   task: Task | null;
   /** the 加菜 message, once it has arrived */

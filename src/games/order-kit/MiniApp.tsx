@@ -74,6 +74,11 @@ export function MiniApp({
       <div className="ok-status" aria-hidden />
       <div className="ok-nav">
         <span className="ok-nav-side">
+          {s === 'chat' && app.capsule && (
+            <button type="button" className="ok-back" aria-label="Leave the shop" onClick={app.capsule.close}>
+              ‹
+            </button>
+          )}
           {back && (
             <button type="button" className="ok-back" aria-label="back" data-hint="nav-back" onClick={back}>
               ‹
@@ -84,13 +89,29 @@ export function MiniApp({
           <T>{title}</T>
         </span>
         <span className="ok-nav-side right">
-          {s !== 'chat' && (
-            <button type="button" className="ok-capsule" aria-label="WeChat menu" onClick={() => app.toast(S.practice)}>
-              <span aria-hidden>···</span>
-              <i aria-hidden />
-              <span aria-hidden>◎</span>
+          {s === 'chat' && app.capsule && (
+            <button type="button" className="ok-chat-more" aria-label="Open the guide" onClick={app.capsule.more}>
+              ···
             </button>
           )}
+          {s !== 'chat' &&
+            (app.capsule ? (
+              <span className="ok-capsule" role="group" aria-label="WeChat menu">
+                <button type="button" aria-label="Open the guide" onClick={app.capsule.more}>
+                  ···
+                </button>
+                <i aria-hidden />
+                <button type="button" aria-label="Leave the shop" onClick={app.capsule.close}>
+                  ◎
+                </button>
+              </span>
+            ) : (
+              <button type="button" className="ok-capsule" aria-label="WeChat menu" onClick={() => app.toast(S.practice)}>
+                <span aria-hidden>···</span>
+                <i aria-hidden />
+                <span aria-hidden>◎</span>
+              </button>
+            ))}
         </span>
       </div>
       <div className="ok-stack">

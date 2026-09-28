@@ -100,6 +100,8 @@ export interface GameProps {
   finish(): void;
   /** the host's word drawer, for games that let a word be kept (the 点单 guide) */
   words?: WordHost;
+  /** leave the game for the Play page — for a game that fills the screen and hides the host's ✕ */
+  leave?(): void;
 }
 
 /**

@@ -121,6 +121,55 @@
   box-shadow: var(--shadow);
 }
 
+/*
+ * A phone: the mini-app is the screen. The stage is lifted over the site's
+ * bars (above the top bar, below the word drawer) and fills the viewport,
+ * inside the safe areas; the phone's frame goes, since the phone is real.
+ */
+.ok-stage[data-full] {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  height: auto;
+}
+
+/* the notch and the home bar, in the mini-app's own colours */
+.ok-stage[data-full] .ok-status {
+  height: env(safe-area-inset-top, 0);
+}
+
+.ok-stage[data-full] .ok-app {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.ok-stage[data-full] .ok-phone {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+/* the chat's ··· (the guide), where WeChat puts a chat's menu */
+.ok-chat-more {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: none;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px;
+}
+
+.ok-capsule button {
+  flex: 1;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+}
+
 /* the Guide handle lives in its own gutter, beside the phone, never over it */
 .ok-handle {
   position: absolute;

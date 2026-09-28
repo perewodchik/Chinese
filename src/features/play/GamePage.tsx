@@ -123,6 +123,7 @@ function Host({ game }: { game: GameManifest }) {
 
   const can = useMemo(() => (ctx ? game.available(ctx) : null), [ctx, game]);
   const again = () => navigate(paths.game(game.id, band, newSeed()), { replace: true });
+  const leave = useCallback(() => navigate(paths.play(band)), [navigate, band]);
 
   return (
     <div className="game-page" data-game={game.id}>
@@ -152,7 +153,7 @@ function Host({ game }: { game: GameManifest }) {
       ) : (
         <Suspense fallback={<div className="game-stage game-wait" aria-hidden />}>
           <div className="game-stage">
-            <Game key={`${seed}-${band}`} ctx={ctx} rounds={game.rounds} report={report} finish={finish} words={words} />
+            <Game key={`${seed}-${band}`} ctx={ctx} rounds={game.rounds} report={report} finish={finish} words={words} leave={leave} />
           </div>
         </Suspense>
       )}
