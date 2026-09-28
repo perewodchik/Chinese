@@ -25,7 +25,7 @@ export function Portrait({ sprite, scale = 3 }: { sprite: string; scale?: number
       live = false;
     };
   }, [sprite]);
-  // the head: the top 18 pixels of a 16×32 figure, from row 2
+  // a person's head: 16 pixels of a 16×32 figure from row 3; a 16×16 figure (兔儿爷) whole
   const w = 16 * scale;
   const h = 16 * scale;
   return (
@@ -37,7 +37,7 @@ export function Portrait({ sprite, scale = 3 }: { sprite: string; scale?: number
         height: h,
         backgroundImage: f ? 'url(/world/art/chars.png)' : undefined,
         backgroundSize: size ? `${size.w * scale}px ${size.h * scale}px` : undefined,
-        backgroundPosition: f ? `${-f.x * scale}px ${-(f.y + 3) * scale}px` : undefined,
+        backgroundPosition: f ? `${-f.x * scale}px ${-(f.y + (f.h > 16 ? 3 : 0)) * scale}px` : undefined,
       }}
     />
   );

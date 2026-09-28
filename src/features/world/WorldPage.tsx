@@ -9,6 +9,9 @@ import type { WorldHost } from '../../world/engine/scene';
 import { useWorldContent, EMPTY_CONTENT } from '../../world/ui/content';
 import { Dialogue, lookOf } from '../../world/ui/Dialogue';
 import { InputBar } from '../../world/ui/InputBar';
+import { Companion } from '../../world/ui/Companion';
+import { cueLine, IDLE_MS, speaksUpAfterMisses } from '../../world/ui/companionLines';
+import { activeQuests, whatNow } from '../../world/core/quests';
 import { TopBar } from '../../world/ui/TopBar';
 import { smallTalk, useTalk } from '../../world/ui/useTalk';
 import { useLibrary } from '../shared/library';
@@ -51,6 +54,8 @@ export function WorldPage() {
   const [state, setState] = useState<'loading' | 'ready' | 'failed'>('loading');
   const [note, setNote] = useState<string | null>(null);
   const [minutes, setMinutes] = useState(0);
+  const [pal, setPal] = useState<{ open: boolean; said: string | null }>({ open: false, said: null });
+  const lastActive = useRef(Date.now());
   const busy = useRef(false);
   busy.current = note !== null || talk.view !== null;
 
@@ -85,7 +90,10 @@ export function WorldPage() {
         if (!index[map]) ({ map, tile } = FALLBACK);
         if (!tile) tile = map === FALLBACK.map ? FALLBACK.tile : [Math.floor(index[map]!.width / 2), index[map]!.height - 4];
         const host: WorldHost = {
-          onStep: (t, facing) => game.dispatch([{ do: 'move', tile: t, facing }], 'walk'),
+          onStep: (t, facing) => {
+            lastActive.current = Date.now();
+            game.dispatch([{ do: 'move', tile: t, facing }], 'walk');
+          },
           onArrive: (info, t, facing) => game.dispatch([{ do: 'enter', map: info.id, tile: t, facing, district: info.district || undefined }]),
           onDoor: (door) => {
             const s = game.current();
@@ -171,6 +179,54 @@ export function WorldPage() {
   const cueStep = talk.view?.cue?.kind === 'hint' ? talk.view.cue.step : 0;
   const hintStep = Math.max(hint.at === talkAt ? hint.step : 0, cueStep);
   const hintNow = talk.view?.scene.nodes.find((n) => n.id === talk.view?.state.node)?.hint;
+  // 兔儿爷 speaks up by himself: after two misses in a row (or a misheard word), one short line.
+  const cue = talk.view?.cue;
+  const misses = talk.view?.misses ?? 0;
+  useEffect(() => {
+    if (cue && speaksUpAfterMisses(misses, cue)) setPal({ open: true, said: cueLine(cue) });
+  }, [cue, misses]);
+  useEffect(() => {
+    if (!talk.view) setPal((p) => (p.said ? { open: false, said: null } : p));
+  }, [talk.view]);
+  // …and after a minute standing about while a quest waits, once until you move again.
+  useEffect(() => {
+    if (state !== 'ready') return;
+    let told = false;
+    const id = window.setInterval(() => {
+      const s = game.current();
+      if (!s || busy.current || document.visibilityState === 'hidden') {
+        lastActive.current = Date.now();
+        return;
+      }
+      if (Date.now() - lastActive.current < IDLE_MS) {
+        told = false;
+        return;
+      }
+      if (told || !activeQuests(s, contentRef.current.quests).length) return;
+      told = true;
+      setPal({ open: true, said: whatNow(s, contentRef.current.quests) });
+    }, 5000);
+    const touch = () => (lastActive.current = Date.now());
+    window.addEventListener('pointerdown', touch);
+    window.addEventListener('keydown', touch);
+    // Tab calls him from anywhere, in a conversation too.
+    const tab = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      e.preventDefault();
+      setPal((p) => ({ open: !p.open, said: p.open ? null : p.said }));
+    };
+    window.addEventListener('keydown', tab);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener('pointerdown', touch);
+      window.removeEventListener('keydown', touch);
+      window.removeEventListener('keydown', tab);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+  const lastLine = talk.view ? [...talk.view.history].reverse().find((h) => h.who === 'npc' && h.line)?.line : undefined;
+  const lastNode = talk.view && lastLine ? talk.view.scene.nodes.find((n) => n.id === lastLine.node) : undefined;
+
   const setPinyin = (on: boolean) => void game.dispatch([{ do: 'settings', patch: { pinyin: on } }]);
 
   return (
@@ -198,6 +254,23 @@ export function WorldPage() {
             setSaved={(m) => void game.dispatch([{ do: 'settings', patch: { input: m } }])}
           />
         </Dialogue>
+      )}
+      {game.save && state === 'ready' && (
+        <Companion
+          open={pal.open}
+          setOpen={(open) => setPal({ open, said: null })}
+          said={pal.said}
+          line={lastLine ?? undefined}
+          why={lastNode?.why}
+          canHint={!!hintNow && hintStep < 3 && talk.view?.mode === 'reply'}
+          onHint={() => setHint({ at: talkAt, step: hintStep + 1 })}
+          now={() => {
+            const s = game.current();
+            return s ? whatNow(s, contentRef.current.quests) : '';
+          }}
+          lex={lex}
+          talking={!!talk.view}
+        />
       )}
       {note !== null && (
         <button type="button" className="world-note" onClick={() => setNote(null)}>

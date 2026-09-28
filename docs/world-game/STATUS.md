@@ -9,7 +9,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Не закончено:** E2 (пузырь диалога) — начатые файлы лежат незакоммиченными: `src/world/ui/content.ts`, `useTalk.ts`, `Portrait.tsx`. B1 добавляет миграцию `world_saves` — она выполнится на продакшн-Postgres при первом деплое после push.
 
 ## Current task
-E4
+E5
 
 ## Tasks
 ### A — core logic
@@ -48,7 +48,7 @@ E4
 - [x] E1 Top bar
 - [x] E2 Dialogue bubble
 - [x] E3 Input bar (voice / keyboard / IME)
-- [ ] E4 Companion 兔儿爷
+- [x] E4 Companion 兔儿爷
 - [ ] E5 Panels (tasks, bag, map, 图鉴, 成语 book, stamps)
 - [ ] E6 Game settings
 - [ ] E7 The /play card
@@ -148,6 +148,7 @@ _(date — decision — why)_
 - 2026-09-29 — E2: the bubble has a fixed height (46 % of the game, at most 340 px) and scrolls its history inside, so it never pushes or grows. 拼 is the save's `settings.pinyin` (so it is remembered on every device). 🔁 plays the line through the app's `say()` (voice pack, else the system voice) until G2 brings the NPC voices; a line after 慢一点 plays at 0.75. A line with a manual `pinyin` shows that reading whole under the line rather than per word. People without an NPC card (the prototype maps) get small talk (「你好！」) and a name by their look (阿姨, 爷爷, 外卖小哥…). Until E3 the answer is a plain text field (the system Chinese keyboard works in it).
 - 2026-09-29 — E2: `/world/content/index.json` (the list of built districts) does not exist until F1 builds content; the game then plays with empty content. The engine still names NPC sprites by the spawn's `npc` id; F2 has to map card ids to `look.sprite`.
 - 2026-09-29 — E3: one row above the field is always reserved (40 px): pinyin candidates while typing, else the hint chips — so the bar never changes height. The built-in pinyin input works inside the normal field: the pinyin at the end of the field gets candidates; 1–9 or Space pick (Space picks the first, like a system IME); what a candidate does not use stays as pinyin. Voice: hold to talk (`listen`, up to 30 s), release to finish; what was heard shows in hanzi + pinyin and sends itself after 1.5 s; tap it to edit in the field, × to throw it away. 💡 goes one hint step further per tap (word → frame cut into chips → whole sentence); the companion's own hint step counts too. In voice mode the chips are only there to read aloud. Mode: this device's choice (`localStorage zouzou:input`) first, else the save's; 🎤 disabled where the browser cannot listen, with the reason as its title.
+- 2026-09-29 — E4: 兔儿爷 sits bottom-left (a round button with his sprite) and moves up above the bubble while you talk. His row: 🔁 Again (second tap on the same line: slower), Translate (the English line + each word with pinyin and meaning, tap → word card), Why? (the node's `why`, else a calm default), What do I say? (one hint step, same as 💡), What now? (`whatNow` of the quests), Keep (tap words of the line → the app collection **“Words from Beijing”**, made the first time, with reading and meaning so off-list situation words keep them). He opens by himself only with a cue after 2 misses in a row, a misheard word (卖/买) or English input, and once after 60 s standing still while a quest is under way. Tab opens him from anywhere, in a conversation too. The world does not pause while he is open (he is not a full-screen panel). `keepBeijingWord` was added to `src/store/wordCommands.ts` (a new function only).
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

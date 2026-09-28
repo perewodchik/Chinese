@@ -79,3 +79,26 @@ export function keepMenuWords(shop: string, name: string, note: string, words: C
   setWords(found.id, [...(found.words ?? []).filter((w) => !fresh.has(w.w)), ...words]);
   return found.id;
 }
+
+const BEIJING_PRESET = 'words-beijing';
+
+/**
+ * A word kept in 走走 (the walk through Beijing): into "Words from Beijing",
+ * made the first time. Many are off the lists (situation words like 挂号),
+ * so each goes in with its reading and meaning, as the menu words do.
+ */
+export function keepBeijingWord(word: CollectionWord): string {
+  const found = getState().collections.find((c) => c.presetId === BEIJING_PRESET);
+  if (!found) {
+    return createCollection({
+      name: 'Words from Beijing',
+      presetId: BEIJING_PRESET,
+      note: 'Words you kept while walking Beijing in 走走 — from people, signs and the places they belong to.',
+      items: [wordId(word.w)],
+      words: [word],
+    }).id;
+  }
+  addItems(found.id, [wordId(word.w)]);
+  setWords(found.id, [...(found.words ?? []).filter((w) => w.w !== word.w), word]);
+  return found.id;
+}
