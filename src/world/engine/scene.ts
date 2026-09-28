@@ -286,6 +286,8 @@ export class WorldScene extends Phaser.Scene {
     cam.fadeOut(180, 34, 32, 46);
     cam.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.input.enabled = true;
+      // Only the map on screen stays in memory; the atlases are shared and small.
+      if (to.map !== this.opts.map) this.cache.tilemap.remove(this.opts.map);
       this.scene.restart({ ...this.opts, map: to.map, hero: to.tile, facing: to.facing });
     });
   }

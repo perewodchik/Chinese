@@ -94,7 +94,7 @@ export function WorldPage() {
           facing: start.place.facing,
           host,
           onReady: () => !gone && setState('ready'),
-        });
+        }, !!frame);
         if (gone) {
           w.destroy();
           return;
