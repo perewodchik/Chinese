@@ -63,6 +63,8 @@ import { LanternCard, SealToast } from '../../world/ui/Celebrate';
 import { arrivalNudge, chapterHoods, markedMaps, nudgeKey, openBeforeFinale, questMarks, whoWhere, type SideEntry } from '../../world/core/sidequests';
 import { hoodOf } from '../../world/core/hoods';
 import { bedScene, canWaitHere, sleepTarget } from '../../world/core/rest';
+import { isAway, recapOf, wordsOfScene, type Recap } from '../../world/core/recap';
+import { RecapCard } from '../../world/ui/Recap';
 import { holds } from '../../world/core/flags';
 import type { RunningCutscene } from '../../world/engine/cutscene';
 
@@ -256,6 +258,12 @@ export function WorldPage() {
     const festival = (query.get('festival') as FestivalId | null) ?? festivalOf(day)?.id ?? null;
     ambient.current?.setMood(moodFor({ mapId: h.id, life: h.life, time, weather, festival }));
   };
+  /** §13 Q3: "last time…" after twelve real hours away (?recap=1 shows it anyway) */
+  const [recap, setRecap] = useState<Recap | null>(null);
+  /** the recap waits for the world to be up and the creator done */
+  const pendingRecap = useRef(false);
+  /** the talk on screen, to take its words when it ends (§13 Q3) */
+  const lastTalk = useRef<Scene | null>(null);
   /** the cutscene on screen (§13 K1): what the overlay shows, how to go on or skip */
   const [cut, setCut] = useState<CutView | null>(null);
   /** "Before we go…" (§13 Q1): the finale waiting while 兔儿爷 names what is still open here */
@@ -266,7 +274,7 @@ export function WorldPage() {
   const sayNext = useRef<(() => void) | null>(null);
   const titleNext = useRef<(() => void) | null>(null);
   const busy = useRef(false);
-  busy.current = cut !== null || beforeGo !== null || note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null || wardrobe;
+  busy.current = cut !== null || beforeGo !== null || recap !== null || note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null || wardrobe;
 
   // An error thrown inside the engine's loop never reaches React: hand it to the crash guard.
   useEffect(() => {
@@ -289,6 +297,7 @@ export function WorldPage() {
   const start = useMemo(() => {
     const s = game.current();
     if (!s) return null;
+    if (isAway(s, Date.now()) || query.get('recap') === '1') pendingRecap.current = true;
     const time = oneOf(query.get('time'), TIMES, partOfDay(s.clock)) as PartOfDay;
     const asked = query.get('map');
     return { time, asked, place: s.place };
@@ -692,6 +701,28 @@ export function WorldPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, cutTick, cut, beforeGo, talk.view, panel, riding, creator, wardrobe, photo]);
 
+  // §13 Q3: a finished talk leaves its words for next time's recap
+  useEffect(() => {
+    if (talk.view) {
+      if (talk.view.npc) lastTalk.current = talk.view.scene;
+      return;
+    }
+    const sc = lastTalk.current;
+    lastTalk.current = null;
+    const words = sc ? wordsOfScene(sc) : [];
+    if (words.length) game.dispatch([{ do: 'heard', words }], 'walk');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [talk.view]);
+  // …and after a day away, the card: once, when the world is up and nothing else holds the screen
+  useEffect(() => {
+    if (!pendingRecap.current || state !== 'ready' || creator || cut || talk.view) return;
+    const s = game.current();
+    pendingRecap.current = false;
+    const r = s ? recapOf(s, contentRef.current) : null;
+    if (r) setRecap(r);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, creator, cut, talk.view, content]);
+
   // The game clock: one real second is one game minute, and it only runs
   // while you are free in the world — not in a conversation, a panel, or a
   // hidden tab (concept §2). The save hears of it every ten game minutes.
@@ -1052,6 +1083,7 @@ export function WorldPage() {
         />
       )}
       {seal && <SealToast seal={seal} />}
+      {recap && <RecapCard recap={recap} onClose={() => setRecap(null)} />}
       {beforeGo && (
         <div className="world-note cs-before" role="dialog" aria-label="Before we go">
           <span>

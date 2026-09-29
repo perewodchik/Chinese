@@ -80,6 +80,8 @@ export const UPGRADES: Record<number, Upgrade> = {
   11: (r) => ({ ...r, version: 12 }),
   /** 12 → 13 (§13 K1): no cutscene watched yet — the ones already passed in the story are not replayed by themselves, only the new ones ahead */
   12: (r) => ({ ...r, version: 13, cutscenes: Array.isArray(r.cutscenes) ? r.cutscenes : [] }),
+  /** 13 → 14 (§13 Q3): no words kept from a session yet — the "last time" card shows the plot only until the next talk */
+  13: (r) => ({ ...r, version: 14, lastWords: Array.isArray(r.lastWords) ? r.lastWords : [] }),
 };
 
 export type ReadResult =
@@ -141,6 +143,7 @@ function fill(r: Raw): WorldSave {
     daily: record(r.daily, isNum),
     fresh: record(r.fresh, isNum),
     cutscenes: strings(r.cutscenes),
+    lastWords: strings(r.lastWords).slice(-8),
     ...(isObj(r.seen) ? { seen: record(r.seen, isNum) } : {}),
     ...(isObj(r.practised)
       ? { practised: record(r.practised, (x): x is Practised => isObj(x) && isNum(x.right) && isNum(x.wrong) && isNum(x.last)) }

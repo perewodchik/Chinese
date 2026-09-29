@@ -100,7 +100,7 @@ describe('cutscenes (§13 K1)', () => {
   });
 
   it('the save keeps what was watched (v13): upgrade, merge, the journal’s replays', () => {
-    assert.equal(WORLD_SAVE_VERSION, 13);
+    assert.ok(WORLD_SAVE_VERSION >= 13);
     const old = { ...JSON.parse(JSON.stringify(newSave('d', 0))), version: 12 };
     delete old.cutscenes;
     const r = readSave(old);

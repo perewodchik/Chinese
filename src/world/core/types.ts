@@ -576,6 +576,8 @@ export interface WorldSave {
   worn: string[];
   /** cutscenes watched to the end or skipped (§13 K1, save v13): they do not play again by themselves, and Journal → Story can replay them */
   cutscenes: string[];
+  /** the last session's words (§13 Q3, save v14): each talk's situation and key words, newest last, eight at most — the "last time" card */
+  lastWords: string[];
 
   settings: WorldSettings;
 }

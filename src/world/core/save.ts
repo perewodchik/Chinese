@@ -15,7 +15,7 @@ import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } fro
 import { applyWardrobe, newWardrobe, wardrobeEvents, type WardrobeAction } from './wardrobe';
 
 /** 10 is the journal's (§10); 11 is §12's wardrobe; 12 is 成语 Practise (§10 P3) */
-export const WORLD_SAVE_VERSION = 13;
+export const WORLD_SAVE_VERSION = 14;
 /** how many payments the 账单 keeps */
 export const BILLS = 20;
 
@@ -66,6 +66,7 @@ export function newSave(deviceId: string, now: number): WorldSave {
     daily: {},
     fresh: {},
     cutscenes: [],
+    lastWords: [],
     ...newWardrobe(),
     settings: DEFAULT_SETTINGS,
   };
@@ -98,6 +99,8 @@ export type EngineAction =
   | { do: 'track'; quest: string; rev: number }
   /** a cutscene played to its end or skipped (§13 K1) */
   | { do: 'watched'; id: string }
+  /** the words a finished talk taught (§13 Q3): into the last session's words */
+  | { do: 'heard'; words: string[] }
   /** one 成语 Practise answer (§10 P3): right or missed, at the game's minute */
   | { do: 'practised'; idiom: string; right: boolean }
   /** the creator, the wardrobe, the mirror, the racks and the barber (§12) */
@@ -120,6 +123,14 @@ const money = (n: number) => Math.round(n * 100) / 100;
 const withFlag = (flags: string[], flag: string, on: boolean) =>
   on ? (flags.includes(flag) ? flags : [...flags, flag]) : flags.includes(flag) ? flags.filter((f) => f !== flag) : flags;
 const addOnce = (list: string[], v: string) => (list.includes(v) ? list : [...list, v]);
+
+/** How many of the last session's words the save keeps (§13 Q3). */
+export const LAST_WORDS = 8;
+/** The last session's words with these added: each once, newest last, eight at most. */
+export function rememberWords(prev: readonly string[], words: readonly string[]): string[] {
+  const kept = prev.filter((w) => !words.includes(w));
+  return [...kept, ...words].slice(-LAST_WORDS);
+}
 
 /** The `QuestState.at` key for the minute a quest was finished (step ids are latin, so it cannot clash). */
 export const DONE_AT = '$done';
@@ -310,6 +321,10 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
       const cur = s.practised?.[a.idiom] ?? { right: 0, wrong: 0, last: -1 };
       const next = { right: cur.right + (a.right ? 1 : 0), wrong: cur.wrong + (a.right ? 0 : 1), last: Math.max(cur.last, Math.floor(s.clock)) };
       return { ...s, practised: { ...s.practised, [a.idiom]: next } };
+    }
+    case 'heard': {
+      const next = rememberWords(s.lastWords, a.words);
+      return next.join() === s.lastWords.join() ? s : { ...s, lastWords: next };
     }
     case 'watched':
       return s.cutscenes.includes(a.id) ? s : { ...s, cutscenes: [...s.cutscenes, a.id] };

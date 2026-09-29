@@ -373,3 +373,80 @@
   60% { box-shadow: 0 0 14px 4px var(--gold); }
   to { filter: none; box-shadow: 0 0 0 0 var(--gold); }
 }
+
+/* --- §13 Q3: "last time" — a small card over the world after a day away */
+.cs-recap-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: color-mix(in srgb, var(--ink) 25%, transparent);
+}
+
+.cs-recap {
+  width: min(420px, 100%);
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--px-frame);
+}
+
+.cs-recap-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cs-recap-head b {
+  font-family: var(--han);
+  font-size: 18px;
+  font-weight: 520;
+}
+
+.cs-recap-line {
+  margin: 0;
+}
+
+.cs-recap-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cs-recap-words li {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.cs-recap-word {
+  display: inline-grid;
+  justify-items: center;
+  min-height: 36px;
+  padding: 2px 10px;
+  line-height: 1.2;
+}
+
+.cs-recap-word .han {
+  font-family: var(--han);
+  font-size: 17px;
+}
+
+/* the speaker keeps its place whether or not it can speak yet: nothing moves */
+.cs-recap-say {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+}
+
+.cs-recap-go {
+  justify-self: end;
+}

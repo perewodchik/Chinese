@@ -105,6 +105,8 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
     ...(a.visited || b.visited ? { visited: union(a.visited ?? [], b.visited ?? []) } : {}),
     photos: union(a.photos, b.photos),
     cutscenes: union(a.cutscenes, b.cutscenes),
+    // the last session's words are the later device's (§13 Q3)
+    lastWords: late.lastWords,
     quests: byKey(a.quests, b.quests, further),
     riddles: byKey(a.riddles, b.riddles, riddle),
     spirits: byKey(a.spirits, b.spirits, Math.min),
