@@ -1,0 +1,213 @@
+/* --- 走走 §12: you, dressed your way — the creator, the mirror, the wardrobe, the racks.
+   Sheets reuse the panels' frame (.wp-scrim, .wp); what is new is here. */
+
+.wc-figure,
+.wc-head {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background-repeat: no-repeat;
+  flex: none;
+}
+
+.wc-head {
+  image-rendering: pixelated;
+}
+
+/* the sheet's header: title, a line about it, the actions; one line, it scrolls if it must */
+.wc-head-bar {
+  gap: 8px;
+}
+
+.wc-title {
+  flex: none;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.wc-sub {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wc-head-bar .btn {
+  flex: none;
+}
+
+.wc-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wc-stage {
+  display: grid;
+  place-items: center;
+  padding: 12px 16px;
+  border-right: 1px solid var(--line);
+  background: var(--card-2);
+}
+
+/* the turning figure: a fixed box, a soft floor under the feet */
+.wc-turn {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  background: radial-gradient(ellipse 60% 12% at 50% 88%, color-mix(in srgb, var(--ink) 10%, transparent), transparent 70%);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.wc-turn:active {
+  cursor: grabbing;
+}
+
+.wc-rows {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 16px 20px;
+}
+
+.wc-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.wc-row:last-child {
+  border-bottom: 0;
+}
+
+.wc-label {
+  display: grid;
+  line-height: 1.2;
+}
+
+.wc-label .han {
+  font-size: 16px;
+  color: var(--ink);
+}
+
+/* a strip of options on one line, scrolling sideways (a grid when it wraps: the hair) */
+.wc-opts {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px;
+}
+
+.wc-opts::-webkit-scrollbar {
+  display: none;
+}
+
+.wc-opts[data-wrap] {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+.wc-opt {
+  flex: none;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 48px;
+  padding: 4px 4px 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.wc-opt[aria-pressed='true'],
+.wc-chip[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.wc-opt-zh {
+  font-size: 12px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.wc-swatch {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 3px var(--card);
+}
+
+.wc-swatch[aria-pressed='true'] {
+  border: 2px solid var(--accent);
+}
+
+.wc-chip {
+  flex: none;
+  display: grid;
+  justify-items: center;
+  min-width: 72px;
+  height: 44px;
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.wc-chip .han {
+  font-size: 15px;
+}
+
+/* phones: the preview on top, smaller; the rows under it */
+@media (max-width: 640px) {
+  .wc-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .wc-stage {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 6px;
+  }
+
+  /* four times instead of six: whole pixels still */
+  .wc-stage .wc-turn {
+    width: 88px !important;
+    height: 140px !important;
+  }
+
+  .wc-stage .wc-turn .wc-figure {
+    width: 64px;
+    height: 128px;
+  }
+
+  .wc-sub {
+    display: none;
+  }
+
+  .wc-row {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+}
