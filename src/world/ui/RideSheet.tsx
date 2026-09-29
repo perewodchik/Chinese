@@ -1,8 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { playLine } from './lineVoice';
-import { arrivalCall, board, callNext, fareOut, getOff, runOn, startRide, stationSign, trainsAt, type RideState, type Train } from '../core/ride';
+import { arrivalCall, board, callNext, fareOut, getOff, nextStop, runOn, startRide, stationSign, trainsAt, type RideState, type Train } from '../core/ride';
+import { station } from '../core/travel';
 import type { Mode } from '../core/travel';
 import { ZhText } from './ZhText';
+
+/** the next few stops of a train, so a direction means something (bold: stops you can get off at) */
+function stopsAhead(t: Train, from: string, n = 5): string[] {
+  const out: string[] = [];
+  for (let at = from; out.length < n; ) {
+    const next = nextStop(t.line, at, t.dir);
+    if (!next || next === from) break;
+    out.push(next);
+    at = next;
+  }
+  return out;
+}
 
 /** a stop takes this long on screen: the call, then the arrival */
 const STEP_MS = 2600;
@@ -125,6 +138,15 @@ export function RideSheet({
                   <li key={`${t.line}${t.dir}`}>
                     <button type="button" className="wr-train-btn" onClick={() => take(t)}>
                       <b className="han">{t.name}</b> <span className="han">{t.towards}</span>
+                      <span className="wr-next tiny muted">
+                        {stopsAhead(t, ride.at).map((st, i) => (
+                          <span key={st} className="han" data-open={canExit(st) ? '' : undefined}>
+                            {i ? ' · ' : ''}
+                            {station(st).zh}
+                          </span>
+                        ))}
+                        {' …'}
+                      </span>
                     </button>
                   </li>
                 ))}

@@ -119,5 +119,62 @@
     "explains": {
       "烤鸭": "北京很有名的鸭子。"
     }
+  },
+  {
+    "id": "yingzi",
+    "name": "英子",
+    "role": "a little girl from the south of the old city",
+    "look": {
+      "sprite": "kid",
+      "palette": "blue"
+    },
+    "voice": "xiaoyu",
+    "character": "Curious, asks about everything, misses the camels.",
+    "knows": [
+      "The camels used to bring coal into the city"
+    ],
+    "wants": [
+      "Her bell back"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "骆驼": "很大的动物，背上有两个包。"
+    }
+  },
+  {
+    "id": "wukong-xiaohai",
+    "name": "孙悟空",
+    "role": "a boy in a 孙悟空 costume outside the opera house",
+    "look": {
+      "sprite": "kid"
+    },
+    "voice": "xiaoyu",
+    "character": "Never still; certain he can turn into anything.",
+    "knows": [
+      "72 transformations"
+    ],
+    "wants": [
+      "An audience"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "变": "一个东西成了别的东西。"
+    }
   }
 ]

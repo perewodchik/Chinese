@@ -132,6 +132,27 @@ describe('chapter 1, played through the core', () => {
 
   });
 
+  it('saying no to the card keeps the step and the offer: he sells it next time', () => {
+    let s = act(newSave('d', 0), [{ do: 'quest', quest: 'ch1', step: 'card' }]);
+    s = play(s, 'card', ['我要买交通卡', '不要']).save;
+    assert.equal(s.bag.card, null);
+    assert.equal(step(s), 'card');
+    assert.ok(!('card' in s.stamps));
+    assert.equal(sceneFor(scenes, s, { npc: 'station-staff' })?.id, 'card');
+    s = play(s, 'card').save;
+    assert.ok(s.flags.includes('has-card'));
+    assert.equal(step(s), 'ride');
+    assert.ok('card' in s.stamps);
+  });
+
+  it('the stone lion keeps still at night until you have heard the rumour, so the quest cannot skip it', () => {
+    const night = { ...newSave('d', 0), clock: 20 * 60 };
+    assert.equal(sceneFor(scenes, night, { look: 'stone-lion', map: 'gulou-square' })?.id, 'lion-still');
+    const heard = act(night, [{ do: 'flag', flag: 'heard-lion' }]);
+    assert.equal(sceneFor(scenes, heard, { look: 'stone-lion', map: 'gulou-square' })?.id, 'lion-night');
+
+  });
+
   it('saved on the iPad after the chapter, opened on the Mac in a fresh profile: the same place and progress', async () => {
     let stored: unknown = null;
     let revision = 0;

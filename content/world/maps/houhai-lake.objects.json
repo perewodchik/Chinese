@@ -313,5 +313,15 @@
    34,
    6
   ]
+ },
+ {
+  "kind": "npc",
+  "id": "shishe",
+  "npc": "shishe-guniang",
+  "tile": [
+   8,
+   6
+  ],
+  "facing": "down"
  }
 ]

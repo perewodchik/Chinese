@@ -111,5 +111,26 @@
     "en": "Crosstalk",
     "place": "chaguan",
     "design": "xiangsheng"
+  },
+  {
+    "id": "xiangzi",
+    "name": "祥子",
+    "en": "Rickshaw Boy",
+    "place": "nanluo-main",
+    "design": "xiangzi"
+  },
+  {
+    "id": "chaguan",
+    "name": "茶馆",
+    "en": "Teahouse",
+    "place": "chaguan",
+    "design": "chaguan"
+  },
+  {
+    "id": "sanguo",
+    "name": "三国",
+    "en": "The storyteller",
+    "place": "chaguan",
+    "design": "sanguo"
   }
 ]

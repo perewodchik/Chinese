@@ -26,5 +26,16 @@
         }
       }
     ]
+  },
+  {
+    "id": "side-kong",
+    "title": "《孔乙己》 — the character 回",
+    "chapter": 4,
+    "steps": [
+      {
+        "id": "do",
+        "now": "An old scholar in the Academy courtyard wants to see you write 回."
+      }
+    ]
   }
 ]

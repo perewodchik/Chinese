@@ -87,5 +87,34 @@
     "misses": [
       "啊？"
     ]
+  },
+  {
+    "id": "shishe-guniang",
+    "name": "诗社的姑娘",
+    "role": "a young woman of a poetry club that meets by the lake near 恭王府",
+    "look": {
+      "sprite": "woman",
+      "palette": "teal"
+    },
+    "voice": "xiaoyu",
+    "character": "Bright, teasing, loves a good second line.",
+    "knows": [
+      "恭王府 is said to be the garden of 《红楼梦》"
+    ],
+    "wants": [
+      "New members"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "诗": "很美的话，一句一句。"
+    }
   }
 ]

@@ -19,5 +19,12 @@
     "en": "Dragon Boat Festival",
     "place": "houhai-lake",
     "design": "duanwu"
+  },
+  {
+    "id": "shishe",
+    "name": "诗社",
+    "en": "The poetry club",
+    "place": "houhai-lake",
+    "design": "shishe"
   }
 ]

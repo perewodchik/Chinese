@@ -85,5 +85,33 @@
     "misses": [
       "我不知道你说什么！"
     ]
+  },
+  {
+    "id": "kong-xiansheng",
+    "name": "孔先生",
+    "role": "a threadbare old scholar in the Academy courtyard",
+    "look": {
+      "sprite": "grandpa"
+    },
+    "voice": "wei",
+    "character": "Proud, poor, kind; quotes the classics at everyone.",
+    "knows": [
+      "Four ways to write 回"
+    ],
+    "wants": [
+      "Someone who cares about characters"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "写法": "怎么写。"
+    }
   }
 ]

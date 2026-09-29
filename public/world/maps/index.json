@@ -2,286 +2,486 @@
  "beihai-north": {
   "district": "jingshan",
   "width": 36,
-  "height": 20
+  "height": 20,
+  "links": [
+   "houhai-lake",
+   "jingshan-park",
+   "station-beihaibei"
+  ]
  },
  "bianlidian": {
   "district": "sanlitun",
   "width": 10,
-  "height": 8
+  "height": 8,
+  "links": [
+   "guomao-plaza"
+  ]
  },
  "chaguan": {
   "district": "gulou",
   "width": 14,
-  "height": 10
+  "height": 10,
+  "links": [
+   "nanluo-main"
+  ]
  },
  "changcheng": {
   "district": "changcheng",
   "width": 48,
-  "height": 24
+  "height": 24,
+  "links": [
+   "stop-badalingchangcheng"
+  ]
  },
  "gulou-square": {
   "district": "gulou",
   "width": 32,
-  "height": 24
+  "height": 24,
+  "links": [
+   "houhai-lake",
+   "hutong-home"
+  ]
  },
  "guomao-bank": {
   "district": "sanlitun",
   "width": 14,
-  "height": 9
+  "height": 9,
+  "links": [
+   "guomao-plaza"
+  ]
  },
  "guomao-plaza": {
   "district": "sanlitun",
   "width": 48,
-  "height": 20
+  "height": 20,
+  "links": [
+   "bianlidian",
+   "guomao-bank",
+   "station-guomao"
+  ]
  },
  "guozijian": {
   "district": "yonghegong",
   "width": 22,
-  "height": 14
+  "height": 14,
+  "links": [
+   "yonghegong-street"
+  ]
  },
  "houhai-lake": {
   "district": "houhai",
   "width": 40,
-  "height": 24
+  "height": 24,
+  "links": [
+   "beihai-north",
+   "gulou-square",
+   "station-shichahai"
+  ]
  },
  "huiyinbi": {
   "district": "tiantan",
   "width": 26,
-  "height": 18
+  "height": 18,
+  "links": [
+   "tiantan-park"
+  ]
  },
  "hutong-home": {
   "district": "gulou",
   "width": 40,
-  "height": 16
+  "height": 16,
+  "links": [
+   "gulou-square",
+   "nanluo-main",
+   "siheyuan-yard"
+  ]
  },
  "hutong-proto": {
   "district": "gulou",
   "width": 32,
-  "height": 18
+  "height": 18,
+  "links": [
+   "tiananmen-proto"
+  ]
  },
  "jiaolou": {
   "district": "jingshan",
   "width": 32,
-  "height": 20
+  "height": 20,
+  "links": [
+   "jingshan-park"
+  ]
  },
  "jingshan-park": {
   "district": "jingshan",
   "width": 28,
-  "height": 28
+  "height": 28,
+  "links": [
+   "beihai-north",
+   "jiaolou",
+   "jingshan-view"
+  ]
  },
  "jingshan-view": {
   "district": "jingshan",
   "width": 48,
-  "height": 18
+  "height": 18,
+  "links": [
+   "jingshan-park"
+  ]
  },
  "jiulongbi": {
   "district": "tiananmen",
   "width": 30,
-  "height": 16
+  "height": 16,
+  "links": [
+   "taihedian"
+  ]
  },
  "lifadian": {
   "district": "gulou",
   "width": 12,
-  "height": 8
+  "height": 8,
+  "links": [
+   "nanluo-main"
+  ]
  },
  "nanluo-main": {
   "district": "gulou",
   "width": 56,
-  "height": 16
+  "height": 16,
+  "links": [
+   "chaguan",
+   "hutong-home",
+   "lifadian",
+   "subway-lane",
+   "xiaomaibu",
+   "zaodian"
+  ]
  },
  "olympic-park": {
   "district": "aoyun",
   "width": 48,
-  "height": 26
+  "height": 26,
+  "links": [
+   "station-aolinpikegongyuan"
+  ]
  },
  "panjiayuan-market": {
   "district": "panjiayuan",
   "width": 48,
-  "height": 22
+  "height": 22,
+  "links": [
+   "station-panjiayuan"
+  ]
  },
  "qianmen-street": {
   "district": "qianmen",
   "width": 48,
-  "height": 22
+  "height": 22,
+  "links": [
+   "station-qianmen",
+   "xiyuan"
+  ]
  },
  "sanlitun-street": {
   "district": "sanlitun",
   "width": 48,
-  "height": 18
+  "height": 18,
+  "links": [
+   "station-tuanjiehu"
+  ]
  },
  "shudian": {
   "district": "wangfujing",
   "width": 12,
-  "height": 9
+  "height": 9,
+  "links": [
+   "wangfujing-street"
+  ]
  },
  "siheyuan-room": {
   "district": "gulou",
   "width": 10,
-  "height": 8
+  "height": 8,
+  "links": [
+   "siheyuan-yard"
+  ]
  },
  "siheyuan-yard": {
   "district": "gulou",
   "width": 20,
-  "height": 14
+  "height": 14,
+  "links": [
+   "hutong-home",
+   "siheyuan-room"
+  ]
  },
  "station-aolinpikegongyuan": {
   "district": "aoyun",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "olympic-park"
+  ]
  },
  "station-beihaibei": {
   "district": "jingshan",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "beihai-north"
+  ]
  },
  "station-guomao": {
   "district": "sanlitun",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "guomao-plaza"
+  ]
  },
  "station-nanluoguxiang": {
   "district": "gulou",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "subway-lane"
+  ]
  },
  "station-panjiayuan": {
   "district": "panjiayuan",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "panjiayuan-market"
+  ]
  },
  "station-qianmen": {
   "district": "qianmen",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "qianmen-street"
+  ]
  },
  "station-shichahai": {
   "district": "houhai",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "houhai-lake"
+  ]
  },
  "station-tiananmendong": {
   "district": "tiananmen",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "tiananmen-square"
+  ]
  },
  "station-tiantandongmen": {
   "district": "tiantan",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "tiantan-park"
+  ]
  },
  "station-tuanjiehu": {
   "district": "sanlitun",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "sanlitun-street"
+  ]
  },
  "station-wangfujing": {
   "district": "wangfujing",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "wangfujing-street"
+  ]
  },
  "station-xizhimen": {
   "district": "yiheyuan",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "stop-xizhimen"
+  ]
  },
  "station-yonghegong": {
   "district": "yonghegong",
   "width": 24,
-  "height": 16
+  "height": 16,
+  "links": [
+   "yonghegong-street"
+  ]
  },
  "stop-badalingchangcheng": {
   "district": "changcheng",
   "width": 24,
-  "height": 14
+  "height": 14,
+  "links": [
+   "changcheng"
+  ]
  },
  "stop-beijingbeizhan": {
   "district": "changcheng",
   "width": 28,
-  "height": 16
+  "height": 16,
+  "links": [
+   "stop-xizhimen"
+  ]
  },
  "stop-xizhimen": {
   "district": "yiheyuan",
   "width": 36,
-  "height": 16
+  "height": 16,
+  "links": [
+   "station-xizhimen",
+   "stop-beijingbeizhan"
+  ]
  },
  "stop-yiheyuan": {
   "district": "yiheyuan",
   "width": 36,
-  "height": 20
+  "height": 20,
+  "links": [
+   "yiheyuan-changlang"
+  ]
  },
  "subway-lane": {
   "district": "gulou",
   "width": 32,
-  "height": 16
+  "height": 16,
+  "links": [
+   "nanluo-main",
+   "station-nanluoguxiang"
+  ]
  },
  "taihedian": {
   "district": "tiananmen",
   "width": 40,
-  "height": 30
+  "height": 30,
+  "links": [
+   "jiulongbi",
+   "wumen",
+   "yuhuayuan"
+  ]
  },
  "tiananmen-proto": {
   "district": "tiananmen",
   "width": 39,
-  "height": 30
+  "height": 30,
+  "links": [
+   "hutong-proto"
+  ]
  },
  "tiananmen-square": {
   "district": "tiananmen",
   "width": 39,
-  "height": 30
+  "height": 30,
+  "links": [
+   "station-tiananmendong",
+   "wumen"
+  ]
  },
  "tiantan-park": {
   "district": "tiantan",
   "width": 48,
-  "height": 24
+  "height": 24,
+  "links": [
+   "huiyinbi",
+   "station-tiantandongmen"
+  ]
  },
  "wangfujing-street": {
   "district": "wangfujing",
   "width": 48,
-  "height": 18
+  "height": 18,
+  "links": [
+   "shudian",
+   "station-wangfujing",
+   "yaodian",
+   "yinhang"
+  ]
  },
  "wumen": {
   "district": "tiananmen",
   "width": 32,
-  "height": 20
+  "height": 20,
+  "links": [
+   "taihedian",
+   "tiananmen-square"
+  ]
  },
  "xiaomaibu": {
   "district": "gulou",
   "width": 10,
-  "height": 8
+  "height": 8,
+  "links": [
+   "nanluo-main"
+  ]
  },
  "xiyuan": {
   "district": "qianmen",
   "width": 16,
-  "height": 12
+  "height": 12,
+  "links": [
+   "qianmen-street"
+  ]
  },
  "yaodian": {
   "district": "wangfujing",
   "width": 10,
-  "height": 8
+  "height": 8,
+  "links": [
+   "wangfujing-street"
+  ]
  },
  "yiheyuan-changlang": {
   "district": "yiheyuan",
   "width": 60,
-  "height": 14
+  "height": 14,
+  "links": [
+   "stop-yiheyuan"
+  ]
  },
  "yinhang": {
   "district": "wangfujing",
   "width": 12,
-  "height": 8
+  "height": 8,
+  "links": [
+   "wangfujing-street"
+  ]
  },
  "yonghegong-street": {
   "district": "yonghegong",
   "width": 48,
-  "height": 20
+  "height": 20,
+  "links": [
+   "guozijian",
+   "station-yonghegong"
+  ]
  },
  "yuhuayuan": {
   "district": "tiananmen",
   "width": 32,
-  "height": 22
+  "height": 22,
+  "links": [
+   "taihedian"
+  ]
  },
  "zaodian": {
   "district": "gulou",
   "width": 12,
-  "height": 9
+  "height": 9,
+  "links": [
+   "nanluo-main"
+  ]
  }
 }

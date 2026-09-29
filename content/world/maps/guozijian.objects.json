@@ -97,5 +97,15 @@
    8
   ],
   "facing": "left"
+ },
+ {
+  "kind": "npc",
+  "id": "kong",
+  "npc": "kong-xiansheng",
+  "tile": [
+   15,
+   10
+  ],
+  "facing": "left"
  }
 ]

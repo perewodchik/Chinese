@@ -50,7 +50,9 @@ export type Condition =
   /** the 胡同 cat (X5): fed today, trusts you (fed on three days), or has its name */
   | { cat: 'fed-today' | 'trusts' | 'named' }
   /** a photo was taken with this in it (X6): `<map>:<object id>` or `npc:<id>` */
-  | { photo: string };
+  | { photo: string }
+  /** this person has not had a talk with you yet today (X9: one story episode a day) */
+  | { fresh: string };
 
 export type Action =
   | { do: 'flag'; flag: string; value?: boolean }
@@ -353,6 +355,8 @@ export interface WorldSettings {
   volume: number;
   /** 0–1, the music */
   music: number;
+  /** a small mark over whatever can be talked to or looked at (old saves: off) */
+  highlight?: boolean;
 }
 
 export interface Place {
@@ -403,6 +407,11 @@ export interface WorldSave {
   updatedAt: number;
   /** the device that made the last change */
   deviceId: string;
+  /**
+   * wall-clock ms when this game was started over ("Start over"); none for
+   * the first game. A later start replaces an earlier game whole in a merge.
+   */
+  born?: number;
 
   place: Place;
   district: string;

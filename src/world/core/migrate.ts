@@ -60,6 +60,7 @@ function fill(r: Raw): WorldSave {
   const bag = isObj(r.bag) ? r.bag : {};
   return {
     ...base,
+    ...(isNum(r.born) && r.born > 0 ? { born: r.born } : {}),
     place,
     district: typeof r.district === 'string' ? r.district : HOME_DISTRICT,
     name: typeof r.name === 'string' ? r.name : '',

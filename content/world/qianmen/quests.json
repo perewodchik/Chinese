@@ -62,5 +62,34 @@
         "now": "The actor at the 前门 theatre explains the painted faces — pick the right one."
       }
     ]
+  },
+  {
+    "id": "side-yingzi",
+    "title": "《城南旧事》 — the camel bell",
+    "chapter": 3,
+    "steps": [
+      {
+        "id": "find",
+        "now": "英子 on 前门 street lost a small yellow camel bell. Maybe the antique market at 潘家园 has one.",
+        "done": {
+          "item": "lingdang"
+        }
+      },
+      {
+        "id": "back",
+        "now": "Bring 英子 her bell."
+      }
+    ]
+  },
+  {
+    "id": "side-wukong",
+    "title": "《西游记》 — the Monkey King",
+    "chapter": 3,
+    "steps": [
+      {
+        "id": "do",
+        "now": "A boy dressed as 孙悟空 on 前门 street turns into things. Guess what from his words."
+      }
+    ]
   }
 ]

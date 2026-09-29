@@ -3,7 +3,7 @@
  * it is only ever downloaded on /play/world.
  */
 
-import type { Facing, PartOfDay } from '../core/types';
+import type { Facing, MapObject, PartOfDay } from '../core/types';
 import type { Arrival } from './doors';
 import type { SceneOptions, WorldScene as Scene } from './scene';
 
@@ -29,6 +29,10 @@ export interface RunningWorld {
   /** 兔儿爷: today's hat, and a feeling for a moment (X7) */
   setHat(kind: 'none' | 'snow' | 'flower' | 'armour'): void;
   emote(kind: 'happy' | 'sulky' | 'sleepy' | 'proud' | 'blush', ms?: number): void;
+  /** walk through a station's ticket gates at this tile */
+  passGate(gate: readonly [number, number], down: boolean): void;
+  /** marks over what can be talked to or looked at; null for none */
+  setHints(pred: ((o: MapObject) => boolean) | null): void;
   /** frames a second lately (for the map probe) */
   fps(): number;
   /** a PNG data URL of the canvas, for review screenshots */
@@ -61,6 +65,8 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions, snapsh
     travel: (to) => (game.scene.getScene('world') as Scene | null)?.travel(to),
     stick: (f, run) => (game.scene.getScene('world') as Scene | null)?.setStick(f, run),
     act: () => (game.scene.getScene('world') as Scene | null)?.act(),
+    passGate: (gate, down) => (game.scene.getScene('world') as Scene | null)?.passGate([gate[0], gate[1]], down),
+    setHints: (pred) => (game.scene.getScene('world') as Scene | null)?.setHints(pred),
     fps: () => Math.round(game.loop.actualFps),
     setBike: (on) => (game.scene.getScene('world') as Scene | null)?.setBike(on),
     setSky: (kind) => (game.scene.getScene('world') as Scene | null)?.setSky(kind),

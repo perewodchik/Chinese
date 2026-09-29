@@ -156,7 +156,10 @@ export function buildMaps(src = MAPS_SRC, out = MAPS_OUT, tileset = TILESET): st
   mkdirSync(out, { recursive: true });
   for (const c of all) writeFileSync(join(out, `${c.map.id}.json`), JSON.stringify(toTiled(c, set)) + '\n');
   // The list the game checks a saved place against, so a save never points at a map this build lacks.
-  const index = Object.fromEntries(all.map((c) => [c.map.id, { district: c.map.district, width: c.map.width, height: c.map.height }]));
+  // `links`: the maps a door or an edge of this one leads to — the city map's walking routes.
+  const linksOf = (c: (typeof all)[number]) =>
+    [...new Set(c.objects.flatMap((o) => (o.kind === 'door' ? [o.to.map] : o.kind === 'edge' ? [o.target.map] : [])))].filter((m) => m !== c.map.id).sort();
+  const index = Object.fromEntries(all.map((c) => [c.map.id, { district: c.map.district, width: c.map.width, height: c.map.height, links: linksOf(c) }]));
   writeFileSync(join(out, 'index.json'), JSON.stringify(index, null, 1) + '\n');
   return all.map((c) => `${c.map.id}: ${c.map.width}×${c.map.height}, ${c.objects.length} objects`);
 }

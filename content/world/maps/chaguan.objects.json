@@ -179,5 +179,35 @@
    3
   ],
   "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "keren",
+  "npc": "chaguan-keren",
+  "tile": [
+   8,
+   4
+  ],
+  "facing": "up"
+ },
+ {
+  "kind": "sign",
+  "id": "motan",
+  "tile": [
+   9,
+   1
+  ],
+  "text": "莫谈国事",
+  "en": "Do not talk about affairs of state — an old teahouse notice"
+ },
+ {
+  "kind": "npc",
+  "id": "shuoshu",
+  "npc": "shuoshu-xiansheng",
+  "tile": [
+   3,
+   4
+  ],
+  "facing": "down"
  }
 ]

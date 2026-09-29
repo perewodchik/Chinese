@@ -97,5 +97,16 @@
         "now": "Once he has his bait, the old fisherman on 后海 asks you to sit with him."
       }
     ]
+  },
+  {
+    "id": "side-shishe",
+    "title": "《红楼梦》 — the poetry club",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "do",
+        "now": "A poetry club meets by the lake on 后海. Pick the line that answers theirs."
+      }
+    ]
   }
 ]

@@ -10,7 +10,7 @@
  */
 
 import * as Phaser from 'phaser';
-import { ahead } from '../core/grid';
+import { ahead, walkable, walkTo } from '../core/grid';
 import { rabbitSpot } from '../core/rabbit';
 import type { Facing, MapObject, PartOfDay, Tile } from '../core/types';
 import { DAY_LOOK, zoomFor } from './look';
@@ -38,6 +38,10 @@ export interface WorldHost {
   onArrive(info: MapInfo, tile: Tile, facing: Facing): void;
   /** M, B, Tab */
   onKey(key: 'map' | 'bag' | 'companion'): void;
+  /** the hero walked into a station's ticket gates, from above (the street side) or below (the platform) */
+  onGate?(tile: Tile, fromAbove: boolean): void;
+  /** the hero walked up to the tracks on a platform: choose a train */
+  onBoard?(): void;
   /** true while a dialogue or a panel is open: the world takes no input */
   isBusy(): boolean;
 }
@@ -61,6 +65,8 @@ export interface SceneOptions {
   hat?: 'none' | 'snow' | 'flower' | 'armour';
   /** whether the named 胡同 cat walks a step behind you on a map (X5) */
   pet?: (map: string) => boolean;
+  /** the "show what I can use" setting: which people and things get a small mark over them; off without it */
+  hints?: ((o: MapObject) => boolean) | null;
 }
 
 interface TilesetNames {
@@ -95,6 +101,9 @@ export class WorldScene extends Phaser.Scene {
   /** the shared bike under the hero, while riding one */
   private bikeSprite: Phaser.GameObjects.Sprite | null = null;
   private npcSprites = new Map<string, Phaser.GameObjects.Sprite>();
+  private propSprites = new Map<string, Phaser.GameObjects.Sprite>();
+  /** the marks over what can be talked to or looked at, by object id */
+  private hintMarks = new Map<string, Phaser.GameObjects.Image>();
 
   /** where the hero stands (the tile, not the sprite mid-step) */
   private at: Tile = [0, 0];
@@ -105,6 +114,15 @@ export class WorldScene extends Phaser.Scene {
   private running = false;
   /** the on-screen joystick's direction while it is held */
   private stick: Facing | null = null;
+  /** arrow / WASD keys held down, the latest last: the hero keeps walking while one is held */
+  private held: Facing[] = [];
+  /** the row of ticket gates on a station map, if there is one */
+  private gateRow: number | null = null;
+  /** a walk that ends by going through the gates at this tile */
+  private afterGate: Tile | null = null;
+  /** a walk that ends at the platform edge, choosing a train */
+  private afterBoard = false;
+  private shift = false;
   private stepFrame = 0;
 
   private baseZoom = 2;
@@ -138,7 +156,10 @@ export class WorldScene extends Phaser.Scene {
     this.queue = [];
     this.after = null;
     this.moving = false;
+    this.held = [];
     this.npcSprites.clear();
+    this.propSprites.clear();
+    this.hintMarks.clear();
   }
 
   preload() {
@@ -163,6 +184,11 @@ export class WorldScene extends Phaser.Scene {
       map.createLayer('below', tileset, 0, 0)!.setDepth(1) as Phaser.Tilemaps.TilemapLayer,
       map.createLayer('above', tileset, 0, 0)!.setDepth(10_000) as Phaser.Tilemaps.TilemapLayer,
     ];
+    this.gateRow = null;
+    this.afterGate = null;
+    this.lightLayers[0]!.forEachTile((t) => {
+      if (this.gateRow === null && t.index === this.gid('gate')) this.gateRow = t.y;
+    });
     this.lanterns = [];
     this.nightProps = [];
     this.glows = [];
@@ -175,6 +201,7 @@ export class WorldScene extends Phaser.Scene {
       if (o.kind === 'prop') {
         const { x, y } = feet(o.tile);
         const s = this.add.sprite(x, y, 'props', o.frame).setOrigin(0, 1).setDepth(y);
+        this.propSprites.set(o.id, s);
         if (o.frame === 'lantern/unlit') this.lanterns.push(s);
         if (o.night) this.nightProps.push([s, o.frame, o.night]);
         if (o.light) glow(x + s.width / 2, y - s.height / 2, Phaser.Display.Color.HexStringToColor(o.light).color, 28);
@@ -244,6 +271,7 @@ export class WorldScene extends Phaser.Scene {
     this.setSky(this.opts.sky ?? 'none');
     this.dots = this.add.graphics().setDepth(9_999);
     this.bindInput();
+    this.setHints(this.opts.hints ?? null);
     this.startLife();
     cam.fadeIn(180, 34, 32, 46);
     this.host.onArrive(this.info, this.at, this.facing);
@@ -359,6 +387,45 @@ export class WorldScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * A small bobbing diamond over each person and thing that answers Space
+   * (or a tap) — the "show what I can use" setting; null takes them away.
+   * Only redrawn when the set of marked things changes.
+   */
+  setHints(pred: ((o: MapObject) => boolean) | null) {
+    this.opts = { ...this.opts, hints: pred };
+    const want = pred ? this.info.objects.filter((o) => 'tile' in o && pred(o)) : [];
+    const ids = new Set(want.map((o) => o.id));
+    if (ids.size === this.hintMarks.size && [...ids].every((id) => this.hintMarks.has(id))) return;
+    for (const m of this.hintMarks.values()) m.destroy();
+    this.hintMarks.clear();
+    this.makeHintTexture();
+    for (const o of want) {
+      if (!('tile' in o)) continue;
+      const s = o.kind === 'npc' ? this.npcSprites.get(o.id) : o.kind === 'prop' ? this.propSprites.get(o.id) : undefined;
+      const x = s ? s.x + s.width / 2 : o.tile[0] * TILE + TILE / 2;
+      const y = s ? s.y - s.height - (o.kind === 'npc' ? 0 : 2) : o.tile[1] * TILE - 1;
+      const m = this.add.image(Math.round(x), Math.round(y), 'hint').setOrigin(0.5, 1).setAlpha(0.8).setDepth(20_003);
+      this.tweens.add({ targets: m, y: m.y - 2, duration: 650, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: Math.floor(Math.random() * 600) });
+      this.hintMarks.set(o.id, m);
+    }
+  }
+
+  private makeHintTexture() {
+    if (this.textures.exists('hint')) return;
+    // a 7×7 pixel diamond, warm paper with a dark rim, like the path dots
+    const t = this.textures.createCanvas('hint', 7, 7)!;
+    const ctx = t.getContext();
+    for (let y = 0; y < 7; y++) {
+      const r = 3 - Math.abs(3 - y);
+      for (let x = 3 - r; x <= 3 + r; x++) {
+        ctx.fillStyle = x === 3 - r || x === 3 + r || y === 0 || y === 6 ? '#3a2f3f' : '#fff1b3';
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+    t.refresh();
+  }
+
   /** The part of the map on screen, in tiles (X6 photos). */
   viewTiles() {
     const v = this.cameras.main.worldView;
@@ -397,6 +464,19 @@ export class WorldScene extends Phaser.Scene {
         });
       },
     });
+  }
+
+  /** Through the ticket gates at this tile: two steps across, down to the platform or up to the street. */
+  passGate(gate: Tile, down: boolean) {
+    const [x, row] = gate;
+    this.held = [];
+    this.after = null;
+    this.afterGate = null;
+    this.afterBoard = false;
+    this.running = false;
+    const lineUp: Tile[] = this.at[0] === x ? [] : [[x, this.at[1]]];
+    this.queue = [...lineUp, [x, row], [x, down ? row + 1 : row - 1]];
+    if (!this.moving) this.next();
   }
 
   /** Off to another map: a short fade, then the scene starts again there. */
@@ -458,9 +538,13 @@ export class WorldScene extends Phaser.Scene {
 
     const keys = this.input.keyboard;
     keys?.on('keydown', (e: KeyboardEvent) => {
-      if (this.host.isBusy()) return;
+      this.shift = e.shiftKey;
       const f = KEY_FACING[e.key];
+      // A held key walks on step after step (see stepTo), not at the pace of the keyboard's repeat.
+      if (f && e.repeat && this.held.includes(f)) return;
+      if (this.host.isBusy()) return;
       if (f) {
+        this.held = [...this.held.filter((h) => h !== f), f];
         this.running = e.shiftKey;
         this.queue = [];
         this.after = null;
@@ -475,6 +559,23 @@ export class WorldScene extends Phaser.Scene {
         this.host.onKey('companion');
       }
     });
+    keys?.on('keyup', (e: KeyboardEvent) => {
+      this.shift = e.shiftKey;
+      const f = KEY_FACING[e.key];
+      // W and w are one key: letting go of either lets go of it
+      if (f) this.held = this.held.filter((h) => h !== f);
+    });
+    const letGo = () => {
+      this.held = [];
+      this.shift = false;
+    };
+    window.addEventListener('blur', letGo);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => window.removeEventListener('blur', letGo));
+  }
+
+  /** the tracks: a blocked tile below the gates of a station, not a thing standing there */
+  private isTrack([x, y]: Tile): boolean {
+    return this.gateRow !== null && y > this.gateRow + 1 && y < this.info.height && !walkable(this.info.grid, x, y) && !objectAt(this.info.objects, [x, y]);
   }
 
   private tileAt(wx: number, wy: number): Tile {
@@ -486,6 +587,31 @@ export class WorldScene extends Phaser.Scene {
     const again = time - this.lastTap.time < DOUBLE_TAP_MS && Math.abs(tile[0] - this.lastTap.tile[0]) + Math.abs(tile[1] - this.lastTap.tile[1]) <= 1;
     this.lastTap = { time, tile };
     this.running = again;
+    this.afterGate = null;
+    this.afterBoard = false;
+    // a tap on the tracks: walk to the edge and choose a train
+    if (this.isTrack(tile)) {
+      const w = walkTo(this.info.grid, this.at, tile, this.occupied());
+      this.queue = [...w.path];
+      this.after = null;
+      this.afterBoard = w.path.length > 0 || this.isTrack(ahead(this.at, 'down'));
+      this.showPath(w.path);
+      if (!this.moving) this.next();
+      return;
+    }
+    // a tap on the gates, or anywhere past them: walk up to the gates on this side and go through
+    const g = this.gateRow;
+    if (g !== null && (tile[1] === g || (tile[1] < g) !== (this.at[1] < g)) && !objectAt(this.info.objects, tile)) {
+      const above = this.at[1] < g;
+      const x = Math.max(1, Math.min(this.info.width - 2, tile[0]));
+      const w = walkTo(this.info.grid, this.at, [x, above ? g - 1 : g + 1], this.occupied());
+      this.queue = [...w.path];
+      this.after = null;
+      if (w.arrived) this.afterGate = [x, g];
+      this.showPath(w.path);
+      if (!this.moving) this.next();
+      return;
+    }
     const plan = planTap(this.info.grid, this.info.objects, this.at, tile, this.occupied());
     this.queue = [...plan.path];
     this.after = plan.kind === 'walk' ? null : plan;
@@ -531,7 +657,18 @@ export class WorldScene extends Phaser.Scene {
   private keyStep(f: Facing) {
     const s = stepOnce(this.info.grid, this.at, f, this.occupied());
     if (s.to) this.stepTo(s.to);
-    else this.face(f);
+    else {
+      this.face(f);
+      // walking into the ticket gates goes through them, as in a real station
+      const next = ahead(this.at, f);
+      if (this.gateRow !== null && next[1] === this.gateRow && (f === 'up' || f === 'down')) {
+        this.held = [];
+        this.host.onGate?.(next, f === 'down');
+      } else if (f === 'down' && this.isTrack(next)) {
+        this.held = [];
+        this.host.onBoard?.();
+      }
+    }
   }
 
   private holdStep() {
@@ -610,6 +747,20 @@ export class WorldScene extends Phaser.Scene {
     }
     this.moving = false;
     this.hero.setFrame(`hero/${this.facing}-0`);
+    const gate = this.afterGate;
+    this.afterGate = null;
+    if (this.afterBoard) {
+      this.afterBoard = false;
+      this.face('down');
+      this.host.onBoard?.();
+      return;
+    }
+    if (gate && this.gateRow !== null) {
+      const down = this.at[1] < this.gateRow;
+      this.face(down ? 'down' : 'up');
+      this.host.onGate?.(gate, down);
+      return;
+    }
     const plan = this.after;
     this.after = null;
     if (!plan || plan.kind === 'walk' || !plan.arrived) return;
@@ -663,6 +814,16 @@ export class WorldScene extends Phaser.Scene {
         if (this.holding) {
           this.moving = false;
           this.holdStep();
+          return;
+        }
+        const key = this.held[this.held.length - 1];
+        if (key && !this.queue.length) {
+          this.moving = false;
+          if (this.host.isBusy()) this.held = [];
+          else {
+            this.running = this.shift;
+            this.keyStep(key);
+          }
           return;
         }
         this.next();

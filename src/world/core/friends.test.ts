@@ -101,6 +101,14 @@ describe('friendship (X2)', () => {
     assert.equal(s.npcs.wang?.hearts, 0);
   });
 
+  it('fresh: someone not talked to yet today (X9, one story a day)', () => {
+    let s = newSave('d', 0);
+    assert.ok(holds({ fresh: 'teller' }, s));
+    s = applyAll(s, [{ do: 'talked', npc: 'teller' }], ctx);
+    assert.ok(!holds({ fresh: 'teller' }, s));
+    assert.ok(holds({ fresh: 'teller' }, { ...s, clock: s.clock + 24 * 60 }));
+  });
+
   it('a version 2 save gains a name and talk days', () => {
     const v2 = { ...newSave('d', 0), version: 2, name: undefined, npcs: { wang: { met: 3, notes: [], hearts: 2, gift: 1 } } };
     const r = readSave(v2);

@@ -92,7 +92,7 @@ export function mapHint(s: WorldSave, to: DistrictInfo): MapHint {
   const r = findRoute(from, dest);
   if (!r) return { kind: 'far', text: `No way there yet from ${station(from).zh}.` };
   const text = `From ${station(from).zh}: ${routeText(r)}`;
-  if (s.bag.card === null) return { kind: 'no-card', text: `${text} But first you need a 交通卡 — they sell them at the station.` };
+  if (s.bag.card === null) return { kind: 'no-card', text: `${text} But first you need a 交通卡 — the ticket machine in any station sells them (40 元).` };
   return { kind: 'route', text, from, fare: r.fare };
 }
 

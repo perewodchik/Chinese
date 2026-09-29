@@ -305,5 +305,56 @@
     ]
    }
   ]
+ },
+ {
+  "id": "kong",
+  "map": "guozijian",
+  "npc": "kong-xiansheng",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "kong",
+  "when": {
+   "chapter": 4
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "写法",
+    "explain": "怎么写。",
+    "en": "way of writing"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你是学生吗？我问你：“回”字，你会写吗？",
+    "translate": "Are you a student? Tell me: can you write the character 回?",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-kong",
+      "step": "do"
+     }
+    ],
+    "trace": {
+     "chars": "回",
+     "go": "b"
+    },
+    "why": "Homage to 鲁迅’s story 《孔乙己》 (1919): a poor old scholar at the wine shop asks a boy whether he knows the four ways to write 回 — learning nobody needs. This one is simply glad you know one."
+   },
+   {
+    "id": "b",
+    "say": "对！“回”字有四个写法，你知道吗？没关系！",
+    "translate": "Right! There are four ways to write 回, did you know? Ha, never mind!",
+    "simpler": "回字有四个写法！",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-kong"
+     }
+    ]
+   }
+  ]
  }
 ]

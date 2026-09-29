@@ -13,5 +13,12 @@
     "en": "The qilin's friend",
     "place": "guozijian",
     "design": "qilin"
+  },
+  {
+    "id": "kong",
+    "name": "孔乙己",
+    "en": "The character 回",
+    "place": "guozijian",
+    "design": "kong"
   }
 ]

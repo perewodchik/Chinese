@@ -28,6 +28,8 @@ export interface WorldSaveApi {
   dispatch(actions: readonly SaveAction[], urgency?: Urgency): WorldSave | null;
   /** the latest save, for callbacks that must not wait for a render */
   current(): WorldSave | null;
+  /** sends the save to the server now (before a reload) */
+  flush(): Promise<void>;
 }
 
 /**
@@ -82,5 +84,5 @@ export function useWorldSave(userId: string, quests: readonly Quest[] = []): Wor
     [],
   );
 
-  return { save, phase, dispatch, current: () => latest.current };
+  return { save, phase, dispatch, current: () => latest.current, flush: () => sync.current?.flush() ?? Promise.resolve() };
 }

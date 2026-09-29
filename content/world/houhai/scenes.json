@@ -483,5 +483,108 @@
     ]
    }
   ]
+ },
+ {
+  "id": "shishe",
+  "map": "houhai-lake",
+  "npc": "shishe-guniang",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "shishe",
+  "when": {
+   "chapter": 2
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "诗社",
+    "explain": "一起写诗的朋友。",
+    "en": "poetry club"
+   },
+   {
+    "w": "月亮",
+    "explain": "晚上天上很亮的，圆的。",
+    "en": "the moon"
+   },
+   {
+    "w": "天上",
+    "explain": "上面，很高的地方。",
+    "en": "in the sky"
+   },
+   {
+    "w": "诗",
+    "explain": "很美的话，一句一句。",
+    "en": "poem"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我们是一个诗社。你来说下一个：“天上一个月亮，”",
+    "translate": "We’re a poetry club. You give the next line: “One moon in the sky,”",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-shishe",
+      "step": "do"
+     }
+    ],
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "我爱吃米饭。"
+      },
+      {
+       "id": "o1",
+       "label": "水里一个月亮。",
+       "right": true
+      },
+      {
+       "id": "o2",
+       "label": "他是一个老师。"
+      }
+     ],
+     "go": "b"
+    },
+    "why": "Homage to 曹雪芹’s 《红楼梦》 (Dream of the Red Chamber): the young people of the Grand View Garden founded the 海棠诗社. 恭王府 by 后海 is said to be the model for the garden. The second line answers the first, word for word.",
+    "simpler": "“天上一个月亮，”下一个是什么？"
+   },
+   {
+    "id": "b",
+    "say": "好！再来：“今天下大雨，”",
+    "translate": "Good! Again: “Today heavy rain falls,”",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "明天出太阳。",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "我有一个猫。"
+      },
+      {
+       "id": "o2",
+       "label": "这是我的书。"
+      }
+     ],
+     "go": "c"
+    }
+   },
+   {
+    "id": "c",
+    "say": "你是我们诗社的朋友了！月亮也高兴！",
+    "translate": "You’re a friend of our poetry club now!",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-shishe"
+     }
+    ]
+   }
+  ]
  }
 ]

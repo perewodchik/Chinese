@@ -8,5 +8,10 @@
     "id": "denglong",
     "name": "灯笼",
     "en": "a red lantern"
+  },
+  {
+    "id": "lingdang",
+    "name": "铃铛",
+    "en": "a small yellow camel bell"
   }
 ]

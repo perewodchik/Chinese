@@ -10,6 +10,9 @@
  * sit inside a longer word (地铁 in 地铁站). For typed pinyin it is the
  * entry's toneless syllables standing in a row among the input's.
  *
+ * A word right after 不, 没 or 别 is not said: 不要 is no 要, 不好 no 好,
+ * 没有 no 有 — unless the entry itself starts with the negation (不要, 没有).
+ *
  * Voice comes as hanzi and the recogniser guesses characters from sound, so
  * when the hanzi does not match but its sound does, the intent is accepted
  * with a note: "I heard 卖 (mài, sell) — did you mean 买 (mǎi, buy)?"
@@ -32,25 +35,21 @@ export function normalize(input: string, lex: Lexicon): Normalized {
   return { raw, kind: 'other', hanzi: '', syllables: [] };
 }
 
-/** `needle` stands in `hay` as a run. */
-function runAt(hay: readonly string[], needle: readonly string[]): number {
-  if (!needle.length || needle.length > hay.length) return -1;
-  outer: for (let i = 0; i + needle.length <= hay.length; i++) {
-    for (let k = 0; k < needle.length; k++) if (hay[i + k] !== needle[k]) continue outer;
-    return i;
-  }
-  return -1;
-}
+const NEGATIONS = new Set(['不', '没', '别']);
+const NEGATION_SYLLABLES = new Set(['bu', 'mei', 'bie']);
 
-/** The entry as whole words of the sentence, or (two characters up) anywhere in it. */
+/** The entry as whole words of the sentence, or (two characters up) anywhere in it — and not negated. */
 export function hanziHit(entry: string, words: readonly string[], hanzi: string): boolean {
   const e = hanziOnly(entry) || entry;
-  if ([...e].length >= 2 && hanzi.includes(e)) return true;
-  for (let i = 0; i < words.length; i++) {
+  const said = (at: number) => at === 0 || NEGATIONS.has(e[0]!) || !NEGATIONS.has(hanzi[at - 1]!);
+  if (e.length >= 2) {
+    for (let at = hanzi.indexOf(e); at >= 0; at = hanzi.indexOf(e, at + 1)) if (said(at)) return true;
+  }
+  for (let i = 0, at = 0; i < words.length; at += words[i]!.length, i++) {
     let acc = '';
     for (let j = i; j < words.length && acc.length < e.length; j++) {
       acc += words[j];
-      if (acc === e) return true;
+      if (acc === e && said(at)) return true;
     }
   }
   return false;
@@ -58,7 +57,12 @@ export function hanziHit(entry: string, words: readonly string[], hanzi: string)
 
 export function soundHit(entry: string, syllables: readonly string[], lex: Lexicon): boolean {
   const target = hasHanzi(entry) ? lex.syllables(hanziOnly(entry)) : (pinyinSyllables(entry) ?? []);
-  return runAt(syllables, target) >= 0;
+  if (!target.length || target.length > syllables.length) return false;
+  const negated = NEGATION_SYLLABLES.has(target[0]!);
+  for (let i = 0; i + target.length <= syllables.length; i++) {
+    if (target.every((t, k) => syllables[i + k] === t) && (negated || i === 0 || !NEGATION_SYLLABLES.has(syllables[i - 1]!))) return true;
+  }
+  return false;
 }
 
 export interface HeardAs {

@@ -516,5 +516,71 @@
     "translate": "All right, bye!"
    }
   ]
+ },
+ {
+  "id": "lingdang-buy",
+  "map": "panjiayuan-market",
+  "npc": "guwan-laoban",
+  "trigger": "talk",
+  "priority": -2,
+  "stamp": "yingzi",
+  "when": {
+   "all": [
+    {
+     "quest": "side-yingzi",
+     "step": "find"
+    },
+    {
+     "not": {
+      "item": "lingdang"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "铃铛",
+    "explain": "一动就有声音的小东西。",
+    "en": "bell"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "铃铛？我有很多铃铛。你要哪个？",
+    "translate": "Bells? I have lots of bells. Which one?",
+    "simpler": "你要哪个铃铛？",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🔔 a big black bell"
+      },
+      {
+       "id": "o1",
+       "label": "🔔 a small yellow bell",
+       "right": true
+      },
+      {
+       "id": "o2",
+       "label": "🔔 a big red bell"
+      }
+     ],
+     "go": "b"
+    }
+   },
+   {
+    "id": "b",
+    "say": "这个？给你吧，不要钱。",
+    "translate": "This one? Take it — no charge.",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "lingdang"
+     }
+    ]
+   }
+  ]
  }
 ]

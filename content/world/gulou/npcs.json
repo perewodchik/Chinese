@@ -623,5 +623,91 @@
     "explains": {
       "旧": "不新的，用了很久的。"
     }
+  },
+  {
+    "id": "xiangzi",
+    "name": "祥子",
+    "role": "a young 三轮车 man saving for a tricycle of his own",
+    "look": {
+      "sprite": "uncle"
+    },
+    "voice": "zhiyuan",
+    "character": "Quiet, strong, stubbornly hopeful.",
+    "knows": [
+      "Every lane of the old city"
+    ],
+    "wants": [
+      "A 三轮车 of his own"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "三轮车": "三个轮子的车，可以拉人。"
+    }
+  },
+  {
+    "id": "chaguan-keren",
+    "name": "喝茶的客人",
+    "role": "a teahouse regular who cannot stop talking about the news",
+    "look": {
+      "sprite": "uncle",
+      "palette": "brown"
+    },
+    "voice": "chen",
+    "character": "Excitable, friendly, easily steered.",
+    "knows": [
+      "Everything in the papers"
+    ],
+    "wants": [
+      "Someone to talk to"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "新闻": "今天的大事。"
+    }
+  },
+  {
+    "id": "shuoshu-xiansheng",
+    "name": "说书的先生",
+    "role": "a storyteller who tells the Three Kingdoms in the teahouse, one episode a day",
+    "look": {
+      "sprite": "grandpa",
+      "palette": "blue"
+    },
+    "voice": "wei",
+    "character": "A voice like a drum; stops at the best moment.",
+    "knows": [
+      "The whole of the Three Kingdoms"
+    ],
+    "wants": [
+      "Listeners who come back"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "说书": "一个人给大家说故事。"
+    }
   }
 ]

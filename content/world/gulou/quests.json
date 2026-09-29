@@ -436,5 +436,45 @@
         "now": "In the morning a recycler rides through 帽儿胡同 calling out — talk to him."
       }
     ]
+  },
+  {
+    "id": "side-xiangzi",
+    "title": "《骆驼祥子》 — a cart of his own",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "do",
+        "now": "祥子 on 南锣鼓巷 wants a tricycle of his own. Take his passengers where they ask."
+      }
+    ]
+  },
+  {
+    "id": "side-chaguan",
+    "title": "《茶馆》 — don’t talk politics",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "do",
+        "now": "In 老刘’s teahouse a guest keeps bringing up the news. Mind the notice on the wall — talk about the weather or food."
+      }
+    ]
+  },
+  {
+    "id": "side-sanguo",
+    "title": "《三国演义》 — the storyteller",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "one",
+        "now": "The storyteller in 老刘’s teahouse tells one episode a day. Come back on another day for the next.",
+        "done": {
+          "scene": "sanguo-1"
+        }
+      },
+      {
+        "id": "two",
+        "now": "Hear the second episode at the teahouse."
+      }
+    ]
   }
 ]

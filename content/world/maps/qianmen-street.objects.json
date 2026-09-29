@@ -273,5 +273,25 @@
    8
   ],
   "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "yingzi",
+  "npc": "yingzi",
+  "tile": [
+   20,
+   10
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "wukong",
+  "npc": "wukong-xiaohai",
+  "tile": [
+   24,
+   12
+  ],
+  "facing": "down"
  }
 ]

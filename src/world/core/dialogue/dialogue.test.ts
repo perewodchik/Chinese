@@ -91,6 +91,20 @@ describe('matching an intent', () => {
     assert.equal(matchIntent(ex, normalize('地铁在哪儿', lex), lex)?.expect.intent, 'two');
     assert.equal(matchIntent(ex, normalize('地铁', lex), lex)?.expect.intent, 'one');
   });
+
+  it('hears 不要 as no, not as 要 — typed, in pinyin or spoken', () => {
+    const ex: Expect[] = [
+      { intent: 'yes', match: [['好', '要', '有']] },
+      { intent: 'no', match: [['不', '不要', '没有']] },
+    ];
+    const said = (s: string) => matchIntent(ex, normalize(s, lex), lex)?.expect.intent ?? null;
+    assert.equal(said('不要'), 'no');
+    assert.equal(said('我不要'), 'no');
+    assert.equal(said('没有'), 'no');
+    assert.equal(said('bu yao'), 'no');
+    assert.equal(said('要'), 'yes');
+    assert.equal(said('好的，我要'), 'yes');
+  });
 });
 
 describe('a scripted conversation', () => {

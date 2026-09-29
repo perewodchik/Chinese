@@ -41,5 +41,12 @@
     "en": "Opera faces",
     "place": "xiyuan",
     "design": "lianpu"
+  },
+  {
+    "id": "wukong",
+    "name": "悟空",
+    "en": "The Monkey King",
+    "place": "qianmen-street",
+    "design": "wukong"
   }
 ]

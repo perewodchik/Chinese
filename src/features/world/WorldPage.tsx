@@ -11,6 +11,7 @@ import { cropPhoto, loadAlbum, saveAlbum } from '../../world/ui/album';
 import { FINDER, PhotoMode } from '../../world/ui/PhotoMode';
 import { libraryLexicon } from '../../world/core/dialogue/lexicon';
 import { autoScene, sceneFor } from '../../world/core/scenes';
+import { gateCheck, isMachine, machineScene } from '../../world/core/machine';
 import type { SaveAction } from '../../world/core/save';
 import type { Facing, MapObject, NpcCard, PartOfDay, Scene, Tile, WorldSave } from '../../world/core/types';
 import type { RunningWorld } from '../../world/engine/boot';
@@ -223,6 +224,22 @@ export function WorldPage() {
         let { map, tile } = start.asked && index[start.asked] ? { map: start.asked, tile: null as Tile | null } : start.place;
         if (!index[map]) ({ map, tile } = FALLBACK);
         if (!tile) tile = map === FALLBACK.map ? FALLBACK.tile : [Math.floor(index[map]!.width / 2), index[map]!.height - 4];
+        /** the ticket gates, walked into or tapped: the station's own gate scene if it has one, else through with a card */
+        const gate = (tile: Tile, fromAbove: boolean) => {
+          const s = game.current();
+          if (!s) return;
+          const c = contentRef.current;
+          const own = sceneFor(c.scenes, s, { look: fromAbove ? 'gates-in' : 'gates-out', map: s.place.map });
+          if (own) {
+            const card = c.npcs.find((n) => n.id === own.npc) ?? null;
+            if (card) talkRef.current.start(own, card, lookOf(card, card.id), s);
+            else startBare(own, s);
+            return;
+          }
+          const stop = gateCheck(s, fromAbove);
+          if (stop) talkRef.current.start(stop, null, 'sign', s, '闸机 · The gates');
+          else world.current?.passGate(tile, fromAbove);
+        };
         const host: WorldHost = {
           onStep: (t, facing) => {
             lastActive.current = Date.now();
@@ -290,6 +307,11 @@ export function WorldPage() {
               const card = c.npcs.find((n) => n.id === scene.npc) ?? null;
               if (card) talkRef.current.start(scene, card, lookOf(card, card.id), s);
               else startBare(scene, s);
+            } else if (o.kind === 'sign' && (o.id === 'gates-in' || o.id === 'gates-out') && s.place.map.startsWith('station-')) {
+              gate(o.tile, s.place.tile[1] < o.tile[1]);
+            } else if (isMachine(o)) {
+              // every station's ticket machine sells and tops up the 交通卡
+              talkRef.current.start(machineScene(s, o.id), null, 'sign', s, '售票机 · Ticket machine');
             } else if (o.kind === 'sign') {
               talkRef.current.start(signScene(o), null, 'sign', s, o.en ?? 'A sign');
             } else if (o.kind === 'bike') {
@@ -310,6 +332,12 @@ export function WorldPage() {
               );
               if (riding) game.dispatch([{ do: 'money', amount: -1 }]);
             }
+          },
+          onGate: (tile, fromAbove) => gate(tile, fromAbove),
+          // at the platform edge: the same as reading the board
+          onBoard: () => {
+            const board = here.current?.objects.find((o) => o.kind === 'sign' && (o.id === 'board' || o.id === 'bus-board' || o.id === 'train-board'));
+            if (board) host.onLook(board);
           },
           // Tab (the companion) is the page's own key, so it works in a conversation too.
           onKey: (k) => k !== 'companion' && setPanel(k),
@@ -503,6 +531,23 @@ export function WorldPage() {
   useEffect(() => {
     if (music !== undefined) ambient.current?.setMusicVolume(music);
   }, [music]);
+  // "Show what I can use": a small mark over people, signs, bikes and the things that have something to say
+  const hints = game.save?.settings.highlight ?? false;
+  useEffect(() => {
+    const s = game.save;
+    if (state !== 'ready' || !s) return;
+    const scenes = contentRef.current.scenes;
+    world.current?.setHints(
+      hints
+        ? (o: MapObject) =>
+            o.kind === 'npc' ||
+            o.kind === 'sign' ||
+            o.kind === 'bike' ||
+            isMachine(o) ||
+            (o.kind === 'prop' && !!sceneFor(scenes, s, { look: o.id, map: s.place.map }))
+        : null,
+    );
+  }, [hints, state, game.save, content]);
   // the music steps back while someone talks, and under a full-screen panel
   const talking = talk.view !== null;
   useEffect(() => {
@@ -562,6 +607,12 @@ export function WorldPage() {
           content={content}
           pinyin={game.save.settings.pinyin}
           user={user.id}
+          onReset={() => {
+            // a new game, born now: it replaces this one on every device; this device's album goes too
+            game.dispatch([{ do: 'reset', born: Date.now() }]);
+            saveAlbum(user.id, []);
+            void game.flush().finally(() => window.location.replace(window.location.pathname));
+          }}
           onClose={() => setPanel(null)}
           onUse={(item) => {
             setPanel(null);

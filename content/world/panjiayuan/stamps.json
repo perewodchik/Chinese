@@ -19,5 +19,12 @@
     "en": "The Nian beast's friend",
     "place": "panjiayuan-market",
     "design": "nianshou"
+  },
+  {
+    "id": "yingzi",
+    "name": "英子",
+    "en": "The camel bell",
+    "place": "panjiayuan-market",
+    "design": "yingzi"
   }
 ]

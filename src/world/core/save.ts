@@ -78,6 +78,8 @@ export type EngineAction =
   /** a photo taken, with what is in it (X6) */
   | { do: 'photo'; subjects: string[] }
   | { do: 'scene_done'; scene: string }
+  /** start the game over (settings stay): a new game, born now, that wins over the old one on every device */
+  | { do: 'reset'; born: number }
   | { do: 'ride'; route: string }
   | { do: 'tick'; minutes: number }
   | { do: 'settings'; patch: Partial<WorldSettings> };
@@ -251,6 +253,8 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
       return a.minutes === s.clock ? s : { ...s, clock: Math.max(s.clock, a.minutes) };
     case 'settings':
       return { ...s, settings: { ...s.settings, ...a.patch } };
+    case 'reset':
+      return { ...newSave(s.deviceId, s.updatedAt), born: a.born, settings: s.settings };
     case 'game':
       // The engine opens the game; the save only remembers where we were, which it already does.
       return s;

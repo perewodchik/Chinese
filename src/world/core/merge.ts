@@ -58,10 +58,14 @@ export const isLater = (a: WorldSave, b: WorldSave) =>
   a.updatedAt !== b.updatedAt ? a.updatedAt > b.updatedAt : a.deviceId > b.deviceId;
 
 export function merge(a: WorldSave, b: WorldSave): WorldSave {
+  // Two different games (one was started over): the newer game is the game, whole.
+  const [ba, bb] = [a.born ?? 0, b.born ?? 0];
+  if (ba !== bb) return ba > bb ? a : b;
   const late = isLater(a, b) ? a : b;
   return {
     // taken whole from the later save
     version: Math.max(a.version, b.version),
+    ...(late.born ? { born: late.born } : {}),
     updatedAt: late.updatedAt,
     deviceId: late.deviceId,
     place: late.place,

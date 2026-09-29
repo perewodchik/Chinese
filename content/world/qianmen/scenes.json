@@ -888,5 +888,223 @@
     "why": "包公 was a famous honest judge; 关公, a general, stands for loyalty. The face tells the audience who someone is before he sings a note."
    }
   ]
+ },
+ {
+  "id": "yingzi-ask",
+  "map": "qianmen-street",
+  "npc": "yingzi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "chapter": 3
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "铃铛",
+    "explain": "一动就有声音的小东西。",
+    "en": "bell"
+   },
+   {
+    "w": "骆驼",
+    "explain": "很大的动物，背上有两个包。",
+    "en": "camel"
+   },
+   {
+    "w": "黄色",
+    "explain": "像太阳的颜色。",
+    "en": "yellow"
+   },
+   {
+    "w": "声音",
+    "explain": "你听到的东西。",
+    "en": "sound"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我叫英子。我的铃铛没有了……是骆驼的铃铛。",
+    "translate": "I’m 英子. My bell is gone… a camel’s bell.",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-yingzi",
+      "step": "find"
+     }
+    ],
+    "why": "Homage to 林海音’s 《城南旧事》 (My Memories of Old Beijing, 1960): little 英子 grows up in the south of the city in the 1920s, when camel caravans still brought coal in.",
+    "simpler": "我的骆驼铃铛没有了。"
+   },
+   {
+    "id": "b",
+    "say": "我的铃铛是黄色的，小小的，有声音。",
+    "translate": "My bell is yellow, very small, and it rings when it moves.",
+    "simpler": "黄色的，小的铃铛，有声音。"
+   }
+  ]
+ },
+ {
+  "id": "yingzi-back",
+  "map": "qianmen-street",
+  "npc": "yingzi",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "item": "lingdang"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "铃铛",
+    "explain": "一动就有声音的小东西。",
+    "en": "bell"
+   },
+   {
+    "w": "骆驼",
+    "explain": "很大的动物，背上有两个包。",
+    "en": "camel"
+   },
+   {
+    "w": "声音",
+    "explain": "你听到的东西。",
+    "en": "sound"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我的铃铛！谢谢你！你听，它的声音！",
+    "translate": "My bell! Thank you! Listen: ding-dong, ding-dong.",
+    "simpler": "我的铃铛！",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "lingdang"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "say": "那个时候，骆驼来北京，都有这个声音。",
+    "translate": "When the camels came to Beijing, they all made this sound.",
+    "simpler": "骆驼有这个声音。",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "yingzi",
+      "delta": 1
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-yingzi"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "wukong",
+  "map": "qianmen-street",
+  "npc": "wukong-xiaohai",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "wukong",
+  "when": {
+   "chapter": 3
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "变",
+    "explain": "一个东西成了别的东西。",
+    "en": "to transform"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我是孙悟空！我会变！",
+    "translate": "I am 孙悟空! I can transform!",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-wukong",
+      "step": "do"
+     }
+    ],
+    "why": "Homage to 《西游记》 (Journey to the West): the Monkey King 孙悟空 knows seventy-two transformations. (猪八戒 eating the whole snack street is not built yet.)"
+   },
+   {
+    "id": "b",
+    "say": "我变！红色的，可以吃，很好吃。我是什么？",
+    "translate": "Transform! Red, you can eat it, very sweet. What am I?",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🚗"
+      },
+      {
+       "id": "o1",
+       "label": "🍎",
+       "right": true
+      },
+      {
+       "id": "o2",
+       "label": "🏮"
+      },
+      {
+       "id": "o3",
+       "label": "⚽"
+      }
+     ],
+     "go": "c"
+    }
+   },
+   {
+    "id": "c",
+    "say": "再变！很大，有四个门，可以坐人。我是什么？",
+    "translate": "Again! Very big, four doors, goes along the road. What am I?",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🍎"
+      },
+      {
+       "id": "o1",
+       "label": "🐱"
+      },
+      {
+       "id": "o2",
+       "label": "🚗",
+       "right": true
+      },
+      {
+       "id": "o3",
+       "label": "📱"
+      }
+     ],
+     "go": "d"
+    }
+   },
+   {
+    "id": "d",
+    "say": "你都知道！我不变了！",
+    "translate": "You know them all! I give up!",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-wukong"
+     }
+    ]
+   }
+  ]
  }
 ]

@@ -7434,5 +7434,365 @@
     ]
    }
   ]
+ },
+ {
+  "id": "xiangzi",
+  "map": "nanluo-main",
+  "npc": "xiangzi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "xiangzi",
+  "when": {
+   "chapter": 2
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "三轮车",
+    "explain": "三个轮子的车，可以拉人。",
+    "en": "pedal tricycle"
+   },
+   {
+    "w": "拉",
+    "explain": "用车带人去一个地方。",
+    "en": "to carry (fares)"
+   },
+   {
+    "w": "客人",
+    "explain": "坐你的车的人。",
+    "en": "passenger, customer"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我叫祥子。我想要一个自己的三轮车。",
+    "translate": "I'm 祥子. I want a tricycle of my own.",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-xiangzi",
+      "step": "do"
+     }
+    ],
+    "why": "Homage to 老舍’s novel 《骆驼祥子》 (Rickshaw Boy, 1937): 祥子 pulls a rickshaw in old Beijing and saves, again and again, for a cart of his own. This 祥子 is a new, luckier one."
+   },
+   {
+    "id": "b",
+    "say": "今天你来拉客人吧！客人去哪儿，我们去哪儿。",
+    "translate": "Today you take the fares! Wherever the passenger goes, we go.",
+    "simpler": "你来拉客人！",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "你好！我去鼓楼。",
+    "translate": "Hello! To the Drum Tower, please.",
+    "speaker": "tourist-1",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🥁 鼓楼",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "🔔 钟楼"
+      },
+      {
+       "id": "o2",
+       "label": "🌊 后海"
+      }
+     ],
+     "go": "d"
+    }
+   },
+   {
+    "id": "d",
+    "say": "我要去后海，谢谢！",
+    "translate": "To 后海, please!",
+    "speaker": "tourist-2",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🥁 鼓楼"
+      },
+      {
+       "id": "o1",
+       "label": "🏮 南锣鼓巷"
+      },
+      {
+       "id": "o2",
+       "label": "🌊 后海",
+       "right": true
+      }
+     ],
+     "go": "e"
+    }
+   },
+   {
+    "id": "e",
+    "say": "好！客人给了三十块。谢谢你！三轮车，快有了！",
+    "translate": "Good! The passengers gave us thirty yuan. Thank you! My savings have grown!",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "xiangzi",
+      "delta": 1
+     },
+     {
+      "do": "remember",
+      "npc": "xiangzi",
+      "note": "pedalled his tricycle for a morning"
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-xiangzi"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "chaguan-keren",
+  "map": "chaguan",
+  "npc": "chaguan-keren",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "chaguan",
+  "when": {
+   "chapter": 2
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "新闻",
+    "explain": "今天的大事。",
+    "en": "the news"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你看新闻了吗？今天的新闻……",
+    "translate": "Have you seen the news? Today’s news…",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-chaguan",
+      "step": "do"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "change",
+      "match": [
+       [
+        "天气",
+        "吃",
+        "茶",
+        "饭",
+        "菜"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "天气",
+     "frame": "今天___很好！",
+     "full": "今天天气很好！"
+    },
+    "why": "Homage to 老舍’s play 《茶馆》 (Teahouse, 1957): the old teahouse hung a notice, 莫谈国事 — “don’t talk about affairs of state”. A good guest steers the talk to the weather and food."
+   },
+   {
+    "id": "b",
+    "say": "对，对，天气很好！我们喝茶吧。",
+    "translate": "Yes, yes, lovely weather! Let’s drink our tea.",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "在茶馆，我们说天气，说吃的，不说新闻。",
+    "translate": "In a teahouse we talk about the weather and food, not the news.",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-chaguan"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sanguo-1",
+  "map": "chaguan",
+  "npc": "shuoshu-xiansheng",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "chapter": 2
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "说书",
+    "explain": "一个人给大家说故事。",
+    "en": "storytelling"
+   },
+   {
+    "w": "兄弟",
+    "explain": "哥哥和弟弟。",
+    "en": "brothers"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "来，听我说书！那个时候，有三个好朋友：刘备、关羽、张飞。",
+    "translate": "Come, listen to a story! Long ago there were three men: 刘备, 关羽 and 张飞.",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-sanguo",
+      "step": "one"
+     }
+    ],
+    "why": "Homage to 《三国演义》 (Romance of the Three Kingdoms). 说书, storytelling, was the teahouse’s radio: one episode a day, always stopping at the best moment. Come back tomorrow."
+   },
+   {
+    "id": "b",
+    "say": "他们喝酒，说：“我们是兄弟！”",
+    "translate": "They drank together in a garden and said: “We are brothers!”",
+    "listen": true,
+    "next": "c",
+    "why": "桃园结义, the Oath of the Peach Garden: three strangers swear to be brothers."
+   },
+   {
+    "id": "c",
+    "say": "三个兄弟！今天说到这儿。明天再来听说书！",
+    "translate": "That’s all for today. Come back tomorrow for more!",
+    "simpler": "明天再来！"
+   }
+  ]
+ },
+ {
+  "id": "sanguo-2",
+  "map": "chaguan",
+  "npc": "shuoshu-xiansheng",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "scene": "sanguo-1"
+    },
+    {
+     "fresh": "shuoshu-xiansheng"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "城门",
+    "explain": "城的大门。",
+    "en": "city gate"
+   },
+   {
+    "w": "弹琴",
+    "explain": "用手让琴出声音。",
+    "en": "to play the zither"
+   },
+   {
+    "w": "敌人",
+    "explain": "打你的人。",
+    "en": "the enemy"
+   },
+   {
+    "w": "城",
+    "explain": "很多人住的大地方，有城门。",
+    "en": "walled city"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你来了！今天：诸葛亮的城里没有人，敌人来了。",
+    "translate": "You came! Today: 诸葛亮’s city is empty, and the enemy is coming.",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-sanguo",
+      "step": "two"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "say": "他开了城门，在城门上弹琴。",
+    "translate": "He opened the city gate, and sat on top of it playing the zither.",
+    "listen": true,
+    "next": "c",
+    "simpler": "他在城门上弹琴。"
+   },
+   {
+    "id": "c",
+    "say": "敌人看到了，说：“有很多人！”他们走了。",
+    "translate": "The enemy saw him and said: “The city is full of soldiers!” And they left.",
+    "listen": true,
+    "next": "d",
+    "why": "空城计, the Empty City: 诸葛亮 was so calm that the enemy feared a trap."
+   },
+   {
+    "id": "d",
+    "say": "你喜欢三国吗？",
+    "translate": "Do you like the Three Kingdoms?",
+    "expect": [
+     {
+      "intent": "like",
+      "match": [
+       [
+        "喜欢",
+        "好",
+        "有意思"
+       ]
+      ],
+      "go": "e"
+     }
+    ],
+    "hint": {
+     "word": "喜欢",
+     "frame": "我很___！",
+     "full": "我很喜欢！"
+    }
+   },
+   {
+    "id": "e",
+    "say": "好！你明天也来听吧！",
+    "translate": "Good! Come and listen often!",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "shuoshu-xiansheng",
+      "delta": 1
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-sanguo"
+     }
+    ]
+   }
+  ],
+  "stamp": "sanguo"
  }
 ]

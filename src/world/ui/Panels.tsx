@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { useLibrary } from '../../features/shared/library';
-import { districtInfo, type DistrictInfo } from '../core/districts';
-import { formatTime, dayOf } from '../core/clock';
+import { dayOf } from '../core/clock';
 import { contentNames, diaryDays, diaryLines } from '../core/diary';
 import { dateZh, WEATHER_ICON, WEATHER_ZH, weatherOf } from '../core/calendar';
 import type { WorldSave, WorldSettings } from '../core/types';
@@ -9,13 +7,10 @@ import { canRecognise } from '../../platform/audio/recognition';
 import { Seg } from '../../ui/Seg';
 import { rememberInput } from './typing';
 import type { WorldContent } from './content';
-import { pinyinOf } from './pinyin';
 import {
   bagRows,
   friendRows,
   idiomRows,
-  mapHint,
-  mapSpots,
   PANELS,
   riddleRows,
   spiritRows,
@@ -26,6 +21,7 @@ import {
 import { Hearts } from './Hearts';
 import { ALBUM_MAX, loadAlbum, postcardPng, saveAlbum, saveFile, type Photo } from './album';
 import { ZhText } from './ZhText';
+import { CityMap } from './CityMap';
 
 /**
  * The game's sheets over the world (E5): tasks and riddles, the bag, the
@@ -43,6 +39,7 @@ export function Panels({
   onSettings,
   onUse,
   user,
+  onReset,
 }: {
   tab: PanelId;
   setTab: (t: PanelId) => void;
@@ -57,6 +54,8 @@ export function Panels({
   onUse: (item: string) => void;
   /** whose album this device keeps (X6) */
   user: string;
+  /** start the whole game over */
+  onReset: () => void;
 }) {
   return (
     <div className="wp-scrim" onClick={onClose}>
@@ -75,14 +74,14 @@ export function Panels({
         <div className="wp-body">
           {tab === 'tasks' && <Tasks save={save} content={content} pinyin={pinyin} />}
           {tab === 'bag' && <Bag save={save} content={content} onUse={onUse} />}
-          {tab === 'map' && <BeijingMap save={save} onGo={onGo} />}
+          {tab === 'map' && <CityMap save={save} onGo={onGo} />}
           {tab === 'spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
           {tab === 'idioms' && <Idioms save={save} content={content} pinyin={pinyin} />}
           {tab === 'stamps' && <Stamps save={save} content={content} />}
           {tab === 'friends' && <Friends save={save} content={content} />}
           {tab === 'diary' && <Diary save={save} content={content} pinyin={pinyin} />}
           {tab === 'album' && <Album user={user} />}
-          {tab === 'settings' && <Settings settings={save.settings} onChange={onSettings} />}
+          {tab === 'settings' && <Settings settings={save.settings} onChange={onSettings} onReset={onReset} />}
         </div>
       </section>
     </div>
@@ -288,59 +287,6 @@ function Bag({ save, content, onUse }: { save: WorldSave; content: WorldContent;
   );
 }
 
-function BeijingMap({ save, onGo }: { save: WorldSave; onGo: (station: string) => void }) {
-  const lib = useLibrary();
-  const [picked, setPicked] = useState<DistrictInfo | null>(null);
-  const spots = mapSpots(save);
-  const hint = picked ? mapHint(save, picked) : null;
-  const here = districtInfo(save.district);
-  return (
-    <>
-      <div className="wp-map" role="img" aria-label="A map of Beijing's districts">
-        <span className="wp-map-ring" aria-hidden />
-        {spots.map((s) => (
-          <button
-            key={s.d.id}
-            type="button"
-            className="wp-spot"
-            style={{ left: `${s.d.at[0]}%`, top: `${s.d.at[1]}%` }}
-            data-visited={s.visited ? '' : undefined}
-            data-here={s.here ? '' : undefined}
-            data-later={s.later ? '' : undefined}
-            aria-pressed={picked?.id === s.d.id}
-            onClick={() => setPicked(s.d)}
-            title={s.d.en}
-          >
-            <i aria-hidden />
-            <span className="han">{s.d.name.split(' · ')[0]}</span>
-          </button>
-        ))}
-      </div>
-      <div className="wp-route">
-        {picked ? (
-          <>
-            <b className="han">{picked.name}</b> <span className="tiny muted">{pinyinOf(picked.name, lib)} · {picked.en}</span>
-            <p className="small">
-              {hint?.kind === 'here' ? 'You are here.' : hint && 'text' in hint ? hint.text : ''}
-              {picked.chapter > save.chapter && picked.id !== save.district && ' (The story gets there later — you may go already.)'}
-            </p>
-            {hint?.kind === 'route' && (
-              <button type="button" className="btn sm primary" onClick={() => onGo(hint.from)}>
-                Go — to the station
-              </button>
-            )}
-          </>
-        ) : (
-          <p className="small muted">Tap a place for the way there{here ? ` from ${here.name}` : ''}.</p>
-        )}
-      </div>
-      <p className="tiny muted">
-        Day {dayOf(save.clock)} · {formatTime(save.clock)} · stations used: {save.stations.length}
-      </p>
-    </>
-  );
-}
-
 function Spirits({ save, content, pinyin }: { save: WorldSave; content: WorldContent; pinyin: boolean }) {
   const rows = spiritRows(save, content.spirits);
   if (!rows.length && !save.cat.name) return <Empty han="灵">The spirits of the broken lantern are still out there.</Empty>;
@@ -425,8 +371,9 @@ function Stamps({ save, content }: { save: WorldSave; content: WorldContent }) {
   );
 }
 
-function Settings({ settings, onChange }: { settings: WorldSettings; onChange: (patch: Partial<WorldSettings>) => void }) {
+function Settings({ settings, onChange, onReset }: { settings: WorldSettings; onChange: (patch: Partial<WorldSettings>) => void; onReset: () => void }) {
   const listenable = canRecognise();
+  const [sure, setSure] = useState(false);
   return (
     <div className="wp-settings">
       <label>
@@ -471,6 +418,18 @@ function Settings({ settings, onChange }: { settings: WorldSettings; onChange: (
         />
       </label>
       <label>
+        <span>Mark what I can use</span>
+        <Seg
+          value={settings.highlight ? 'on' : 'off'}
+          options={[
+            { id: 'off', label: 'Off' },
+            { id: 'on', label: 'On' },
+          ]}
+          onChange={(v) => onChange({ highlight: v === 'on' })}
+          size="sm"
+        />
+      </label>
+      <label>
         <span>Street sounds</span>
         <Seg
           value={settings.volume <= 0 ? 'off' : settings.volume < 0.5 ? 'soft' : 'on'}
@@ -510,6 +469,28 @@ function Settings({ settings, onChange }: { settings: WorldSettings; onChange: (
         />
       </label>
       <p className="tiny muted">Settings are kept in your game save, so the iPad and the Mac share them.</p>
+      <div className="wp-reset">
+        {sure ? (
+          <>
+            <p className="small">
+              Start a new game from the first morning? The story, the bag and money, friends, stamps, spirits, 成语, the diary and the photos all go — on
+              every device. Your settings stay. This cannot be undone.
+            </p>
+            <div className="row">
+              <button type="button" className="btn sm danger" onClick={onReset}>
+                Start over
+              </button>
+              <button type="button" className="btn sm ghost" onClick={() => setSure(false)}>
+                Keep playing
+              </button>
+            </div>
+          </>
+        ) : (
+          <button type="button" className="btn sm ghost" onClick={() => setSure(true)}>
+            Start a new game…
+          </button>
+        )}
+      </div>
     </div>
   );
 }
