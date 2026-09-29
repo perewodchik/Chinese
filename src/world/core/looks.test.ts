@@ -7,7 +7,7 @@ import {
 } from './looks';
 
 describe('the character creator’s catalogue (W3)', () => {
-  it('every combination composes: each build × skin × face × hair × colour gives thirteen frames', () => {
+  it('every combination composes: each build × skin × face × hair × colour gives seventeen frames (§13 V4: + the passing frames)', () => {
     // every value of every choice meets every value of every other choice at least once, by pairs
     let n = 0;
     for (const build of BUILDS) {
@@ -23,12 +23,12 @@ describe('the character creator’s catalogue (W3)', () => {
           };
           assert.ok(isLook(look));
           const frames = heroFrames(look, DEFAULT_WORN);
-          assert.equal(frames.length, 13);
+          assert.equal(frames.length, 17);
         }
       }
     }
     for (const eyes of EYES) for (const brows of BROWS) for (const mouth of MOUTHS) for (const colour of HAIR_COLOURS) {
-      assert.equal(heroFrames({ ...DEFAULT_LOOK, face: { eyes, brows, mouth }, hair: { style: 'short', colour } }, DEFAULT_WORN).length, 13);
+      assert.equal(heroFrames({ ...DEFAULT_LOOK, face: { eyes, brows, mouth }, hair: { style: 'short', colour } }, DEFAULT_WORN).length, 17);
     }
   });
 

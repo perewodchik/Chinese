@@ -19,6 +19,7 @@ import { TILES } from './gen/tiles';
 import { KIT_TILES } from './gen/kit';
 import { KIT_PROPS } from './gen/kit-props';
 import { MOTION_PROPS, MOTION_TILES } from './gen/motion';
+import { FIGURES, woodcut } from './gen/spirits';
 import { DEFAULT_WORN, heroFrames } from '../../../src/world/art/hero';
 import { DEFAULT_LOOK } from '../../../src/world/core/looks';
 
@@ -47,6 +48,11 @@ export function sources(): Array<[string, string]> {
   // §13 V3: the frames that move (a file after the others, so no tile id moves)
   out.push(['tiles/motion.px', pxFile('moving tiles (§13 V3): water in four frames, the escalator in three — see scripts/world/art/gen/motion.ts', MOTION_TILES.map(([n, f]) => [n, f()]))]);
   for (const [name, note, frames] of [...PROPS, ...KIT_PROPS, ...MOTION_PROPS]) out.push([`props/${name}.px`, pxFile(note, frames())]);
+  // §13 V4: the lantern's figures redrawn, each with its idle, and their woodcut pictures (an atlas of their own)
+  for (const [id, fig] of Object.entries(FIGURES)) {
+    if (fig.frames.length) out.push([`props/spirit-${id}.px`, pxFile(`the spirit ${id}, awake, with its idle (§13 V4, scripts/world/art/gen/spirits.ts)`, fig.frames.map(([n, f]) => [n, f()]))]);
+  }
+  out.push(['woodcut/figures.px', pxFile('the lantern figures as woodcut pictures, 48×48 — 图鉴 and the lantern wheel (§13 V4)', Object.entries(FIGURES).map(([id, fig]) => [id, woodcut(fig.picture())]))]);
   // the menu's atlas: a picture for every thing in the bag, and the menu's own icons
   out.push(['menu/item.px', pxFile('the things in the bag, one per item id', Object.entries(ITEM_SPRITES).map(([n, f]) => [n, f()]))]);
   out.push(['menu/ui.px', pxFile("the menu's icons: tabs, pockets, wallet", Object.entries(UI_SPRITES).map(([n, f]) => [n, f()]))]);

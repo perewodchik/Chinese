@@ -37,6 +37,10 @@ export const PROP_ANIM_LIST: readonly Anim[] = [
   // red, then green, then a moment of amber
   { frames: ['signal/red', 'signal/red', 'signal/red', 'signal/green', 'signal/green', 'signal/green', 'signal/amber'], fps: 0.5, random: true },
   { frames: ['puddle/ripple-0', 'puddle/ripple-1'], fps: 1.5, random: true },
+  // §13 V4: the lantern's figures, awake
+  ...['shishizi', 'menshen', 'qilin', 'shihou', 'pixiu', 'nianshou', 'zaowang', 'tianguan'].map((id) => ({ frames: [`spirit-${id}/idle-0`, `spirit-${id}/idle-1`], fps: 1.6, random: true })),
+  { frames: ['spirit-jiuweihu/idle-0', 'spirit-jiuweihu/idle-1', 'spirit-jiuweihu/idle-0', 'spirit-jiuweihu/idle-2'], fps: 2.5 },
+  { frames: ['spirit-long/idle-0', 'spirit-long/idle-1', 'spirit-long/idle-2'], fps: 4 },
 ];
 
 /** Any frame of an animation → the animation (a map may name any of its frames). */

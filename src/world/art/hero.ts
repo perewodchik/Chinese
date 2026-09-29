@@ -626,7 +626,7 @@ export function layerFrame(layer: Layer, look: HeroLook, worn: WornOutfit, dir: 
 }
 
 /** One whole frame: the layers stacked in the direction's order, then the outline and the shadow. */
-export function heroFrame(look: HeroLook, worn: WornOutfit, dir: Dir, step: number, closed = false): Grid {
+export function heroFrame(look: HeroLook, worn: WornOutfit, dir: Dir, step: number, closed = false, lift = 0): Grid {
   const fig = new Grid(16, 32);
   for (const layer of ORDER[dir]) {
     const l = layerFrame(layer, look, worn, dir, step, closed);
@@ -639,13 +639,19 @@ export function heroFrame(look: HeroLook, worn: WornOutfit, dir: Dir, step: numb
   fig.outline('k');
   const out = new Grid(16, 32);
   out.oval(3, 28, 10, 3, '_');
-  return out.stamp(fig, 0, 0);
+  // the passing frame of a step (§13 V4) dips the body a pixel, knees bent mid-stride; the shadow stays put
+  return out.stamp(fig, 0, lift);
 }
 
-/** The frame names every person in the game has (the scene only swaps the texture, W1). */
-export const FRAME_NAMES = ['down-0', 'down-1', 'down-2', 'up-0', 'up-1', 'up-2', 'left-0', 'left-1', 'left-2', 'right-0', 'right-1', 'right-2', 'down-blink'] as const;
+/**
+ * The frame names the player has (the scene only swaps the texture, W1):
+ * stand, one foot, the other foot for each direction, a blink, and (§13 V4)
+ * the passing frame `-3` between the steps — a 4-frame walk 1 → 3 → 2 → 3,
+ * which also dips a pixel as the player breathes, standing.
+ */
+export const FRAME_NAMES = ['down-0', 'down-1', 'down-2', 'up-0', 'up-1', 'up-2', 'left-0', 'left-1', 'left-2', 'right-0', 'right-1', 'right-2', 'down-blink', 'down-3', 'up-3', 'left-3', 'right-3'] as const;
 
-/** All thirteen frames: down/up/left × stand, step, step; right mirrored from left; a blink. */
+/** All seventeen frames: down/up/left × stand, step, step; right mirrored from left; a blink; the passing frames. */
 export function heroFrames(look: HeroLook, worn: WornOutfit): Array<[string, Grid]> {
   const out: Array<[string, Grid]> = [];
   for (const dir of ['down', 'up', 'left'] as const) {
@@ -653,6 +659,8 @@ export function heroFrames(look: HeroLook, worn: WornOutfit): Array<[string, Gri
   }
   for (const i of [0, 1, 2]) out.push([`right-${i}`, out.find(([n]) => n === `left-${i}`)![1].mirror()]);
   out.push(['down-blink', heroFrame(look, worn, 'down', 0, true)]);
+  for (const dir of ['down', 'up', 'left'] as const) out.push([`${dir}-3`, heroFrame(look, worn, dir, 0, false, 1)]);
+  out.push(['right-3', out.find(([n]) => n === 'left-3')![1].mirror()]);
   return out;
 }
 

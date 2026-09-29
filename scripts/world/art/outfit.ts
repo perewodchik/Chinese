@@ -49,7 +49,7 @@ function strip(frames: Grid[]): Image {
 }
 
 /** frame name → how it is drawn */
-export const FRAME_POSES: Array<{ name: string; dir: Dir; step: number; closed: boolean; mirror: boolean }> = FRAME_NAMES.map((name) => {
+export const FRAME_POSES: Array<{ name: string; dir: Dir; step: number; closed: boolean; mirror: boolean; lift: number }> = FRAME_NAMES.map((name) => {
   const [d, s] = name.split('-') as [string, string];
   return {
     name,
@@ -57,13 +57,16 @@ export const FRAME_POSES: Array<{ name: string; dir: Dir; step: number; closed: 
     step: s === '1' ? 1 : s === '2' ? -1 : 0,
     closed: s === 'blink',
     mirror: d === 'right',
+    // §13 V4: the passing frame, a pixel down
+    lift: s === '3' ? 1 : 0,
   };
 });
 
-/** One layer's thirteen frames. */
+/** One layer's frames, one per frame name. */
 export function layerStrip(layer: Layer, look: HeroLook, worn: WornOutfit): Grid[] {
   return FRAME_POSES.map((f) => {
-    const g = layerFrame(layer, look, worn, f.dir, f.step, f.closed);
+    const g0 = layerFrame(layer, look, worn, f.dir, f.step, f.closed);
+    const g = f.lift ? g0.shift(0, f.lift) : g0;
     return f.mirror ? g.mirror() : g;
   });
 }

@@ -674,6 +674,9 @@ export class WorldScene extends Phaser.Scene {
         s.setDepth(y);
         spawned.set(a, s);
         tiles.set(a, at);
+        // a spirit keeps its idle while it stands in a cutscene (§13 V4)
+        const anim = spirit ? PROP_ANIMS.get(spirit) : undefined;
+        if (anim) this.turning.push({ s, a: anim, phase: 0 });
       },
       despawn: (a) => {
         const own = spawned.get(a);
@@ -1080,14 +1083,20 @@ export class WorldScene extends Phaser.Scene {
     const ms = this.bikeSprite ? RUN_MS * 0.75 : this.running ? RUN_MS : WALK_MS;
     this.hero.setDepth(Math.max(this.hero.depth, y + 0.5));
     this.followPet(prev, ms);
+    // §13 V4: a 4-frame walk — the foot forward, then the passing frame halfway (1 → 3 → 2 → 3)
+    let passed = !!this.bikeSprite;
     this.tweens.add({
       targets: this.hero,
       x,
       y: y + 3,
       duration: ms,
-      onUpdate: () => {
+      onUpdate: (tw) => {
         this.hero.setDepth(this.hero.y - 3 + 0.5);
         this.placeBike();
+        if (!passed && tw.progress >= 0.5) {
+          passed = true;
+          this.hero.setFrame(`hero/${this.facing}-3`);
+        }
       },
       onComplete: () => {
         this.hero.setFrame(`hero/${this.facing}-0`);
@@ -1303,6 +1312,16 @@ export class WorldScene extends Phaser.Scene {
       for (const x of tm.tiles) {
         const gid = tm.gids[(step + x.phase) % tm.gids.length]!;
         if (x.t.index !== gid) x.t.index = gid;
+      }
+    }
+    // §13 V4: standing still, the player breathes — a pixel's dip now and then
+    if (!this.moving && !this.bikeSprite && this.hero && !this.hero.getData('cut')) {
+      const name = this.hero.frame.name;
+      const rest = `hero/${this.facing}-0`;
+      const up = `hero/${this.facing}-3`;
+      if (name === rest || name === up) {
+        const want = t % 2600 < 280 ? up : rest;
+        if (name !== want) this.hero.setFrame(want);
       }
     }
     for (const b of this.bodyMoves) {

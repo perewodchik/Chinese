@@ -7,7 +7,7 @@ interface Frame {
 type Atlas = { frames: Record<string, Frame>; meta: { size: { w: number; h: number } } };
 const atlases = new Map<string, Promise<Atlas>>();
 /** `props` (the street's things) or `menu` (the bag's things and the menu's icons) */
-export type AtlasName = 'props' | 'menu';
+export type AtlasName = 'props' | 'menu' | 'woodcut';
 const loadAtlas = (name: AtlasName) => {
   let a = atlases.get(name);
   if (!a) atlases.set(name, (a = fetch(`/world/art/${name}.json`).then((r) => r.json() as Promise<Atlas>)));

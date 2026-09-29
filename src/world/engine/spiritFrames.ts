@@ -1,15 +1,11 @@
 /**
  * The picture each spirit is drawn with (the props atlas), by spirit id —
- * shared by the engine's cutscenes and the page's lantern card, so it lives
- * apart from Phaser. A spirit not drawn yet (石猴, 灶王爷 until V4) shows a
- * lit lantern.
+ * shared by the engine's cutscenes and the page — and its woodcut in the
+ * `woodcut` atlas (§13 V4: every lantern figure redrawn, each with an idle).
  */
-export const SPIRIT_FRAMES: Readonly<Record<string, string>> = {
-  shishizi: 'lion/awake',
-  jiuweihu: 'fox/sway-0',
-  menshen: 'door-gods/bright',
-  qilin: 'qilin/awake',
-  pixiu: 'pixiu/gold',
-  nianshou: 'nianshou/awake',
-  long: 'dragon/fly-0',
-};
+const IDS = ['shishizi', 'jiuweihu', 'menshen', 'qilin', 'shihou', 'pixiu', 'nianshou', 'long', 'zaowang', 'tianguan'] as const;
+
+export const SPIRIT_FRAMES: Readonly<Record<string, string>> = Object.fromEntries(IDS.map((id) => [id, `spirit-${id}/idle-0`]));
+
+/** The woodcut picture's frame (48×48) for a spirit or the lantern's `family` place. */
+export const woodcutOf = (id: string) => `figures/${id}`;

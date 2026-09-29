@@ -347,6 +347,7 @@
 .cs-lantern-wheel li {
   width: 40px;
   height: 40px;
+  overflow: hidden;
   display: grid;
   place-items: center;
   background: color-mix(in srgb, var(--ink) 12%, var(--card-2));

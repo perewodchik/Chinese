@@ -1,5 +1,5 @@
 import { LANTERN_FIGURES, type Seal } from '../core/celebrate';
-import { SPIRIT_FRAMES } from '../engine/spiritFrames';
+import { woodcutOf } from '../engine/spiritFrames';
 import { FitSprite } from './PropSprite';
 import './cutscene.css';
 
@@ -43,7 +43,7 @@ export function LanternCard({ lit, now, names }: { lit: readonly string[]; now: 
           const on = lit.includes(f) || now.includes(f);
           return (
             <li key={f} data-on={on ? '' : undefined} data-now={now.includes(f) ? '' : undefined} title={on ? names(f) : '?'}>
-              {on && f !== 'family' ? <FitSprite frame={SPIRIT_FRAMES[f] ?? 'lantern/lit-0'} box={32} /> : <span className="cs-lantern-blank han">{on ? '家' : ''}</span>}
+              {on ? <FitSprite frame={woodcutOf(f)} box={36} atlas="woodcut" /> : <span className="cs-lantern-blank han" />}
             </li>
           );
         })}
