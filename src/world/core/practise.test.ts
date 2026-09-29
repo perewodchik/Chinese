@@ -154,12 +154,12 @@ describe('成语 Practise (§10 P3)', () => {
   });
 
   it('an 11 save upgrades to 12 with nothing practised; a 12 save is refused by an 11 build', () => {
-    assert.equal(WORLD_SAVE_VERSION, 12);
+    assert.ok(WORLD_SAVE_VERSION >= 12);
     const old = { ...JSON.parse(JSON.stringify(newSave('d', 0))), version: 11 };
     delete old.practised;
     const r = readSave(old);
     assert.ok(r.ok && r.upgraded);
-    assert.equal(r.ok && r.save.version, 12);
+    assert.equal(r.ok && r.save.version, WORLD_SAVE_VERSION);
     assert.equal(r.ok && r.save.practised, undefined);
     const junk = readSave({ ...old, version: 12, practised: { 一路平安: { right: 'x' }, 马马虎虎: { right: 1, wrong: 0, last: 5 } } });
     assert.deepEqual(junk.ok && junk.save.practised, { 马马虎虎: { right: 1, wrong: 0, last: 5 } });

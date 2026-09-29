@@ -7,6 +7,8 @@ import type { Facing, MapObject, PartOfDay } from '../core/types';
 import type { Arrival } from './doors';
 import type { HeroDress } from './look';
 import type { SceneOptions, WorldScene as Scene } from './scene';
+import type { Cutscene } from '../core/cutscene';
+import type { CutsceneHooks, RunningCutscene } from './cutscene';
 
 export interface RunningWorld {
   destroy(): void;
@@ -36,6 +38,8 @@ export interface RunningWorld {
   passGate(gate: readonly [number, number], down: boolean): void;
   /** marks over what can be talked to or looked at; null for none */
   setHints(pred: ((o: MapObject) => boolean) | null): void;
+  /** play a cutscene on the map on screen (§13 K1); null when no map is running */
+  cutscene(cs: Cutscene, hooks: CutsceneHooks): RunningCutscene | null;
   /** frames a second lately (for the map probe) */
   fps(): number;
   /** a PNG data URL of the canvas, for review screenshots */
@@ -70,6 +74,7 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions, snapsh
     act: () => (game.scene.getScene('world') as Scene | null)?.act(),
     passGate: (gate, down) => (game.scene.getScene('world') as Scene | null)?.passGate([gate[0], gate[1]], down),
     setHints: (pred) => (game.scene.getScene('world') as Scene | null)?.setHints(pred),
+    cutscene: (cs, hooks) => (game.scene.getScene('world') as Scene | null)?.playCutscene(cs, hooks) ?? null,
     fps: () => Math.round(game.loop.actualFps),
     setBike: (on) => (game.scene.getScene('world') as Scene | null)?.setBike(on),
     setSky: (kind) => (game.scene.getScene('world') as Scene | null)?.setSky(kind),

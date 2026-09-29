@@ -165,6 +165,21 @@
         "server/src/dev.ts"
       ],
       "port": 5182
+    },
+    {
+      "name": "hanzi-workshop-mac-world-5183",
+      "runtimeExecutable": "/usr/bin/env",
+      "runtimeArgs": [
+        "HANZI_DEV_USER=admin",
+        "HANZI_DB=.data/world-test-5183.db",
+        "PORT=5183",
+        "/opt/homebrew/bin/node",
+        "--disable-warning=ExperimentalWarning",
+        "--import",
+        "tsx",
+        "server/src/dev.ts"
+      ],
+      "port": 5183
     }
   ]
 }

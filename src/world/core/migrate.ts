@@ -78,6 +78,8 @@ export const UPGRADES: Record<number, Upgrade> = {
    * it does not know on its next save, so it must refuse a 12 save instead.
    */
   11: (r) => ({ ...r, version: 12 }),
+  /** 12 → 13 (§13 K1): no cutscene watched yet — the ones already passed in the story are not replayed by themselves, only the new ones ahead */
+  12: (r) => ({ ...r, version: 13, cutscenes: Array.isArray(r.cutscenes) ? r.cutscenes : [] }),
 };
 
 export type ReadResult =
@@ -138,6 +140,7 @@ function fill(r: Raw): WorldSave {
     photos: strings(r.photos),
     daily: record(r.daily, isNum),
     fresh: record(r.fresh, isNum),
+    cutscenes: strings(r.cutscenes),
     ...(isObj(r.seen) ? { seen: record(r.seen, isNum) } : {}),
     ...(isObj(r.practised)
       ? { practised: record(r.practised, (x): x is Practised => isObj(x) && isNum(x.right) && isNum(x.wrong) && isNum(x.last)) }

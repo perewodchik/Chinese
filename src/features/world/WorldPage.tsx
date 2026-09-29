@@ -56,6 +56,9 @@ import { RackSheet } from '../../world/ui/RackSheet';
 import { remarkAt } from '../../world/core/notice';
 import { PLACES } from '../../world/core/places';
 import { homeProp } from '../../world/core/wardrobe';
+import { cutsceneActions, cutscenesDue, isSpiritActor, type Actor } from '../../world/core/cutscene';
+import { CutsceneOverlay, EMPTY_CUT, type CutView } from '../../world/ui/CutsceneOverlay';
+import type { RunningCutscene } from '../../world/engine/cutscene';
 
 const TIMES: PartOfDay[] = ['morning', 'day', 'evening', 'night'];
 
@@ -86,7 +89,17 @@ export function WorldPage() {
   /** a shop door's 点单 game, opened when the talk is over */
   const pendingGame = useRef<string | null>(null);
   const navigate = useNavigate();
+  /** cutscenes waiting to play (§13 K1): said in a talk, a quest step done, ▶ in the journal; `back` is where a replay returns you */
+  const cutQueue = useRef<{ id: string; back?: WorldSave['place'] }[]>([]);
+  /** a cutscene waiting to arrive on its map */
+  const pendingCut = useRef<{ id: string; back?: WorldSave['place'] } | null>(null);
+  const [cutTick, setCutTick] = useState(0);
   const talkDispatch = (actions: readonly SaveAction[], who: TalkWho) => {
+    const cuts = cutsceneActions(actions);
+    if (cuts.length) {
+      cutQueue.current.push(...cuts.map((id) => ({ id })));
+      setCutTick((t) => t + 1);
+    }
     for (const a of actions) {
       if (a.do === 'teleport') pendingTravel.current = { map: a.map, tile: a.tile, facing: a.facing ?? 'down' };
       if (a.do === 'game') pendingGame.current = a.game;
@@ -223,8 +236,13 @@ export function WorldPage() {
     const festival = (query.get('festival') as FestivalId | null) ?? festivalOf(day)?.id ?? null;
     ambient.current?.setMood(moodFor({ mapId: h.id, life: h.life, time, weather, festival }));
   };
+  /** the cutscene on screen (§13 K1): what the overlay shows, how to go on or skip */
+  const [cut, setCut] = useState<CutView | null>(null);
+  const cutRun = useRef<RunningCutscene | null>(null);
+  const sayNext = useRef<(() => void) | null>(null);
+  const titleNext = useRef<(() => void) | null>(null);
   const busy = useRef(false);
-  busy.current = note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null || wardrobe;
+  busy.current = cut !== null || note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null || wardrobe;
 
   // An error thrown inside the engine's loop never reaches React: hand it to the crash guard.
   useEffect(() => {
@@ -291,6 +309,13 @@ export function WorldPage() {
             const s = game.dispatch([{ do: 'enter', map: info.id, tile: t, facing, district: info.district || undefined }]);
             here.current = { id: info.id, life: info.life, objects: info.objects };
             remix();
+            // a cutscene that sent you here plays now (§13 K1); nothing else starts by itself first
+            setCutTick((t) => t + 1);
+            if (pendingCut.current) {
+              cutQueue.current.unshift(pendingCut.current);
+              pendingCut.current = null;
+              return;
+            }
             if (info.id.startsWith('station-')) ambient.current?.chime();
             // 兔儿爷 on what you wear here (§12 W6): a T-shirt in the snow, a hat indoors — each once a day
             const kind = PLACES.find((p) => p.map === info.id)?.kind;
@@ -463,6 +488,107 @@ export function WorldPage() {
     const e = before ? emoteFor(before, now) : null;
     if (e) world.current?.emote(e);
   }, [game.save]);
+
+  // A quest step done that names a cutscene (`onDone`) queues it (§13 K1).
+  const lastSave = useRef<WorldSave | null>(null);
+  useEffect(() => {
+    const now = game.save;
+    if (!now) return;
+    const before = lastSave.current;
+    lastSave.current = now;
+    if (!before) return;
+    const due = cutscenesDue(before, now, contentRef.current.quests).filter((id) => !cutQueue.current.some((q) => q.id === id));
+    if (due.length) {
+      cutQueue.current.push(...due.map((id) => ({ id })));
+      setCutTick((t) => t + 1);
+    }
+  }, [game.save]);
+  // ?cutscene=<id> plays one (development, and the review probe's frames)
+  const askedCut = query.get('cutscene');
+  useEffect(() => {
+    if (state !== 'ready' || !askedCut) return;
+    cutQueue.current.push({ id: askedCut, back: game.current()?.place });
+    setCutTick((t) => t + 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, askedCut]);
+  const cutNames = (a: Actor): string => {
+    if (a === 'hero') return game.current()?.name || '我';
+    if (a === 'rabbit') return '兔儿爷';
+    if (isSpiritActor(a)) return contentRef.current.spirits.find((x) => x.id === a.slice(7))?.hanzi ?? '?';
+    if (a.startsWith('extra:')) return '路人';
+    return contentRef.current.npcs.find((n) => n.id === a)?.name ?? a;
+  };
+  /** Plays the next cutscene when nothing else holds the screen: first travelling to its map if you are elsewhere. */
+  const startCut = (item: { id: string; back?: WorldSave['place'] }) => {
+    const cs = contentRef.current.cutscenes.find((c) => c.id === item.id);
+    const s = game.current();
+    const w = world.current;
+    if (!cs || !s || !w) return;
+    if (s.place.map !== cs.map) {
+      const ix = mapIndex.current[cs.map];
+      if (!ix) return;
+      const hero = cs.cast?.find((c) => c.actor === 'hero');
+      pendingCut.current = item;
+      w.travel({ map: cs.map, tile: hero?.at ?? [Math.floor(ix.width / 2), ix.height - 4], facing: hero?.facing ?? 'up' });
+      return;
+    }
+    setCut({ ...EMPTY_CUT, letterbox: cs.letterbox ?? true });
+    const run = w.cutscene(cs, {
+      say: (line) =>
+        new Promise<void>((resolve) => {
+          sayNext.current = resolve;
+          setCut((c) => (c ? { ...c, line } : c));
+        }),
+      title: (t) =>
+        new Promise<void>((resolve) => {
+          setCut((c) => (c ? { ...c, title: t } : c));
+          const end = () => {
+            window.clearTimeout(id);
+            titleNext.current = null;
+            setCut((c) => (c ? { ...c, title: null } : c));
+            resolve();
+          };
+          const id = window.setTimeout(end, 2600);
+          titleNext.current = end;
+        }),
+      overlay: (fx, text) => {
+        if (fx === 'seal') return setCut((c) => (c ? { ...c, seal: c.seal + 1 } : c));
+        const base = Date.now();
+        const flying = (text ?? []).map((t, i) => ({ id: base + i, text: t, row: (i * 3) % 7, delay: i * 450 }));
+        setCut((c) => (c ? { ...c, danmaku: [...c.danmaku, ...flying] } : c));
+        window.setTimeout(() => setCut((c) => (c ? { ...c, danmaku: c.danmaku.filter((d) => !flying.includes(d)) } : c)), 7000 + flying.length * 450);
+      },
+      sound: (id) => {
+        const a = ambient.current;
+        if (id === 'chime') a?.chime();
+        else if (id === 'blip') a?.blip();
+        else a?.cue(id);
+      },
+      music: (m) => ambient.current?.duck(m === 'hush' ? 0 : m === 'soft' ? 0.35 : 1),
+    });
+    if (!run) {
+      setCut(null);
+      return;
+    }
+    cutRun.current = run;
+    void run.done.then(() => {
+      cutRun.current = null;
+      sayNext.current = null;
+      titleNext.current = null;
+      setCut(null);
+      // watched (or skipped): it does not play again by itself, and what it gives is given
+      if (!item.back) game.dispatch([{ do: 'watched', id: cs.id }, ...(cs.then ?? [])], 'important', { scene: `cutscene-${cs.id}` });
+      else if (item.back.map !== cs.map) world.current?.travel(item.back);
+      setCutTick((t) => t + 1);
+    });
+  };
+  // The queue plays one cutscene at a time, when no talk, panel or sheet is open and no journey is under way.
+  useEffect(() => {
+    if (state !== 'ready' || cut || talk.view || panel || riding || creator || wardrobe || photo || pendingTravel.current || pendingCut.current) return;
+    const next = cutQueue.current.shift();
+    if (next) startCut(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, cutTick, cut, talk.view, panel, riding, creator, wardrobe, photo]);
 
   // The game clock: one real second is one game minute, and it only runs
   // while you are free in the world — not in a conversation, a panel, or a
@@ -694,7 +820,7 @@ export function WorldPage() {
         ref={box}
         style={frame ? { width: Number(frame[1]), height: Number(frame[2]) } : undefined}
       />
-      {game.save && state === 'ready' && !photo && !panel && !talk.view && !riding && (
+      {game.save && state === 'ready' && !photo && !panel && !talk.view && !riding && !cut && (
         <Minimap
           place={game.save.place}
           goals={new Set(trackedMaps(game.save, content))}
@@ -706,7 +832,7 @@ export function WorldPage() {
           <NextHop save={game.save} content={content} onOpen={() => setPanel('tasks')} />
         </Minimap>
       )}
-      {game.save && state === 'ready' && !photo && <TopBar district={game.save.district} minutes={minutes} open={setPanel} onPhoto={() => setPhoto(true)} news={menuNewsFor(game.save, content).size > 0} />}
+      {game.save && state === 'ready' && !photo && !cut && <TopBar district={game.save.district} minutes={minutes} open={setPanel} onPhoto={() => setPhoto(true)} news={menuNewsFor(game.save, content).size > 0} />}
       {photo && <PhotoMode onTake={takePhoto} onZoom={(d) => world.current?.zoomBy(d)} onClose={() => setPhoto(false)} />}
       {panel && game.save && (
         <Panels
@@ -717,6 +843,11 @@ export function WorldPage() {
           pinyin={game.save.settings.pinyin}
           user={user.id}
           mapStart={mapStart}
+          onReplay={(id) => {
+            setPanel(null);
+            cutQueue.current.push({ id, back: game.current()?.place });
+            setCutTick((t) => t + 1);
+          }}
           onReset={() => {
             // a new game, born now: it replaces this one on every device; this device's album goes too
             game.dispatch([{ do: 'reset', born: Date.now() }]);
@@ -779,7 +910,30 @@ export function WorldPage() {
           />
         </Dialogue>
       )}
-      {game.save && state === 'ready' && (
+      {cut && game.save && (
+        <CutsceneOverlay
+          view={cut}
+          names={cutNames}
+          pinyin={game.save.settings.pinyin}
+          setPinyin={setPinyin}
+          onNext={() => {
+            const go = sayNext.current;
+            sayNext.current = null;
+            setCut((c) => (c ? { ...c, line: null } : c));
+            go?.();
+          }}
+          onSkip={() => {
+            cutRun.current?.skip();
+            titleNext.current?.();
+            const go = sayNext.current;
+            sayNext.current = null;
+            setCut((c) => (c ? { ...c, line: null, title: null } : c));
+            go?.();
+          }}
+        />
+      )}
+      {/* 兔儿爷 is silent during a cutscene unless the script gives him a line */}
+      {game.save && state === 'ready' && !cut && (
         <Companion
           open={pal.open}
           setOpen={(open) => setPal((p) => ({ open, said: open ? p.said : null }))}
@@ -869,7 +1023,7 @@ export function WorldPage() {
           </button>
         </div>
       )}
-      {game.save?.settings.joystick && state === 'ready' && !talk.view && !panel && (
+      {game.save?.settings.joystick && state === 'ready' && !talk.view && !panel && !cut && (
         <Joystick onStick={(f, run) => world.current?.stick(f, run)} onAct={() => world.current?.act()} />
       )}
       {note !== null && (

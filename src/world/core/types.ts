@@ -100,7 +100,9 @@ export type Action =
   /** something paid for comes into the bag (Y7): the money moves with its own `money`; this is the thing, the day it was bought, and the diary's 「我花了六块钱买包子。」 */
   | { do: 'buy'; item: string; count?: number; price: number }
   /** money earned by work or a sale (Y7): into 余额 and the diary's 「我挣了十块钱。」 */
-  | { do: 'earn'; amount: number };
+  | { do: 'earn'; amount: number }
+  /** play a cutscene (§13 K1) — after the talk it was said in is over */
+  | { do: 'cutscene'; id: string };
 
 export type ActionKind = Action['do'];
 
@@ -299,6 +301,8 @@ export interface QuestStep {
   when?: string;
   /** the step is finished when this holds (checked after every action) */
   done?: Condition;
+  /** the cutscene that plays once the step is done (§13 K1) */
+  onDone?: string;
 }
 
 export interface Quest {
@@ -388,6 +392,8 @@ export interface DistrictContent {
   items: Item[];
   /** sellers and what they sell (Y1); each becomes a generated `shop-<id>` scene */
   shops?: import('./shop').Shop[];
+  /** scripted moments on this district's maps (§13 K1) */
+  cutscenes?: import('./cutscene').Cutscene[];
 }
 
 // ---------------------------------------------------------------------------
@@ -561,6 +567,8 @@ export interface WorldSave {
   outfits: (Outfit | null)[];
   /** clothes ever worn, by item (W6: a neighbour notices a new thing once) */
   worn: string[];
+  /** cutscenes watched to the end or skipped (§13 K1, save v13): they do not play again by themselves, and Journal → Story can replay them */
+  cutscenes: string[];
 
   settings: WorldSettings;
 }

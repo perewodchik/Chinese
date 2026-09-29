@@ -25,6 +25,7 @@ import type { Scene, WorldSave } from '../../src/world/core/types';
 import { readMap, type MapInfo } from '../../src/world/engine/mapdata';
 import { checkContent, readLibrary } from './check-content';
 import { rackOf, rackScenes } from '../../src/world/core/rack';
+import { cutsceneActions, cutscenesDue } from '../../src/world/core/cutscene';
 
 const lib = readLibrary();
 const lex = libraryLexicon(lib);
@@ -39,6 +40,7 @@ const stampIds = districts.flatMap((d) => d.stamps.map((x) => x.id));
 /** everything a quest or scene wants photographed (X6): `<map>:<object>` */
 const photoSubjects = [...new Set([...JSON.stringify(districts).matchAll(/"photo":"([^"]+)"/g)].map((m) => m[1]!))];
 const shops = districts.flatMap((d) => d.shops ?? []);
+export const cutscenes = new Map(districts.flatMap((d) => d.cutscenes ?? []).map((c) => [c.id, c]));
 const items = new Map(districts.flatMap((d) => d.items).map((i) => [i.id, i]));
 const src = new ScriptedDialogue({ scenes, npcs, shops, items: [...items.values()], clothes }, lex);
 export const maps: MapInfo[] = districts
@@ -62,7 +64,16 @@ function act(s: WorldSave, actions: readonly SaveAction[], short: string[], wher
     money += a.amount;
   }
   const ctx = { now: 1, quests: new Map(quests.map((q) => [q.id, q])) };
-  return advanceQuests(applyAll(s, actions, ctx), quests, ctx);
+  const after = advanceQuests(applyAll(s, actions, ctx), quests, ctx);
+  // cutscenes (§13 K1) play headless: said in these actions, or started by a quest step done — each ends, and what it gives is given
+  const due = [...cutsceneActions(actions), ...cutscenesDue(s, after, quests)].filter((id, i, all) => all.indexOf(id) === i && !after.cutscenes.includes(id));
+  if (!due.length) return after;
+  const then: SaveAction[] = due.flatMap((id) => {
+    const cs = cutscenes.get(id);
+    if (!cs) short.push(`${where}: no cutscene "${id}"`);
+    return [{ do: 'watched' as const, id }, ...(cs?.then ?? [])];
+  });
+  return act(after, then, short, `cutscene ${due.join(', ')}`);
 }
 
 /** What a patient player goes shopping for now: things the current step of a quest waits for, and things a scene could be used with right now. */

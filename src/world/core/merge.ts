@@ -104,6 +104,7 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
     districts: union(a.districts, b.districts),
     ...(a.visited || b.visited ? { visited: union(a.visited ?? [], b.visited ?? []) } : {}),
     photos: union(a.photos, b.photos),
+    cutscenes: union(a.cutscenes, b.cutscenes),
     quests: byKey(a.quests, b.quests, further),
     riddles: byKey(a.riddles, b.riddles, riddle),
     spirits: byKey(a.spirits, b.spirits, Math.min),

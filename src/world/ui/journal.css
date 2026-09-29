@@ -530,3 +530,18 @@
   color: #fff;
   font-family: var(--han);
 }
+
+/* §13 K1: cutscenes seen in a chapter, to watch again — one nowrap row that scrolls sideways */
+.jn-replays {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 2px 0 6px;
+  list-style: none;
+}
+
+.jn-replay {
+  flex: none;
+  min-height: 28px;
+}

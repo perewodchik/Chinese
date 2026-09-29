@@ -1,4 +1,5 @@
 import type { Shop } from '../core/shop';
+import type { Cutscene } from '../core/cutscene';
 import { useEffect, useState } from 'react';
 import type { DistrictContent, Idiom, Item, NpcCard, Quest, Scene, Spirit, Stamp } from '../core/types';
 import { EMPTY_CLOTHES, type ClothesContent } from '../core/wardrobe';
@@ -16,6 +17,8 @@ export interface WorldContent {
   items: Item[];
   /** sellers and their stock (Y1) */
   shops: Shop[];
+  /** scripted moments (§13 K1) */
+  cutscenes: Cutscene[];
   /** manual or generated pinyin per line text, from the content build */
   pinyin: Record<string, string>;
   /** the clothes and the racks that sell them (§12) */
@@ -23,7 +26,7 @@ export interface WorldContent {
 }
 
 export const EMPTY_CONTENT: WorldContent = {
-  districts: [], npcs: [], scenes: [], quests: [], spirits: [], idioms: [], stamps: [], items: [], shops: [], pinyin: {}, clothes: EMPTY_CLOTHES,
+  districts: [], npcs: [], scenes: [], quests: [], spirits: [], idioms: [], stamps: [], items: [], shops: [], cutscenes: [], pinyin: {}, clothes: EMPTY_CLOTHES,
 };
 
 export function mergeContent(parts: Array<DistrictContent & { pinyin?: Record<string, string> }>): WorldContent {
@@ -37,6 +40,7 @@ export function mergeContent(parts: Array<DistrictContent & { pinyin?: Record<st
     stamps: parts.flatMap((p) => p.stamps),
     items: parts.flatMap((p) => p.items),
     shops: parts.flatMap((p) => p.shops ?? []),
+    cutscenes: parts.flatMap((p) => p.cutscenes ?? []),
     pinyin: Object.assign({}, ...parts.map((p) => p.pinyin ?? {})),
     clothes: EMPTY_CLOTHES,
   };

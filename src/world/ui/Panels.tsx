@@ -45,6 +45,7 @@ export function Panels({
   user,
   onReset,
   mapStart,
+  onReplay,
 }: {
   tab: PanelId;
   setTab: (t: PanelId) => void;
@@ -65,6 +66,8 @@ export function Panels({
   onReset: () => void;
   /** the neighbourhood the 🗺 tab opens on (a tap on the minimap), else yours */
   mapStart?: string | null;
+  /** watch a cutscene again (Journal → Story, §13 K1) */
+  onReplay?: (cutscene: string) => void;
 }) {
   const [mem, setMem] = useState<MenuMemory>(readMemory);
   const [at, setAt] = useState<MenuAt>(() => panelTarget(tab, mem));
@@ -175,7 +178,7 @@ export function Panels({
           {key === 'journal/now' && (
             <JournalNow save={save} content={content} pinyin={pinyin} onTrack={(quest) => onAct?.({ do: 'track', quest, rev: Date.now() })} onShowRoute={showRoute} />
           )}
-          {key === 'journal/story' && <JournalStory save={save} content={content} onDay={(day) => (setDiaryDay(day), go({ tab: 'journal', view: 'diary' }))} />}
+          {key === 'journal/story' && <JournalStory save={save} content={content} onDay={(day) => (setDiaryDay(day), go({ tab: 'journal', view: 'diary' }))} {...(onReplay ? { onReplay } : {})} />}
           {key === 'journal/diary' && <Diary save={save} content={content} pinyin={pinyin} focus={diaryDay} onStory={() => go({ tab: 'journal', view: 'story' })} />}
           {key === 'bag' && <Bag save={save} content={content} onUse={onUse} onAct={onAct} />}
           {key === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} route={route} />}

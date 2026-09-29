@@ -4,6 +4,7 @@ import { dayOf, formatTime } from '../core/clock';
 import { contentNames, diaryDays, diaryLines } from '../core/diary';
 import { dateZh, WEATHER_ICON, WEATHER_ZH, weatherOf } from '../core/calendar';
 import { hoodOf } from '../core/hoods';
+import { seenInChapter } from '../core/cutscene';
 import { directions, journal, story, type Directions, type Journal, type JournalQuest, type Lead, type RouteLeg, type StoryChapter } from '../core/journal';
 import { placeOf, type MapLinks } from '../core/places';
 import { line, station } from '../core/travel';
@@ -443,7 +444,7 @@ function TrackedCard({ save, jq, index, onOpen, onShowRoute }: { save: WorldSave
 }
 
 /** Journal → Story (J3): the chapters as a timeline; the current one open, finished ones one line each. */
-export function JournalStory({ save, content, onDay }: { save: WorldSave; content: WorldContent; onDay: (day: number) => void }) {
+export function JournalStory({ save, content, onDay, onReplay }: { save: WorldSave; content: WorldContent; onDay: (day: number) => void; onReplay?: (cutscene: string) => void }) {
   const chapters = useMemo(() => journal(save, content).story, [save, content]);
   const current = chapters.at(-1)?.chapter;
   const [open, setOpen] = useState<Set<number>>(() => new Set(current !== undefined ? [current] : []));
@@ -469,6 +470,15 @@ export function JournalStory({ save, content, onDay }: { save: WorldSave; conten
           </button>
           {open.has(c.chapter) && (
             <ul className="jn-entries">
+              {onReplay && seenInChapter(save, content.cutscenes, c.chapter).length > 0 && (
+                <li className="jn-replays">
+                  {seenInChapter(save, content.cutscenes, c.chapter).map((cs) => (
+                    <button key={cs.id} type="button" className="chip jn-replay" onClick={() => onReplay(cs.id)} title="Watch again">
+                      ▶ <span className="han">{cs.title?.zh ?? cs.id}</span>
+                    </button>
+                  ))}
+                </li>
+              )}
               {c.entries.map((e) => (
                 <Entry key={e.step} day={e.day} past={e.past} onDay={onDay} />
               ))}

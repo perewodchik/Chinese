@@ -22,6 +22,9 @@ import { checkClothes, parseClothes } from '../../src/world/core/clothes';
 import { EMPTY_CLOTHES, type ClothesContent } from '../../src/world/core/wardrobe';
 import { GARMENT_ART } from '../../src/world/art/hero';
 import { coverage, coverageProblems, mapIds, readBooks } from './coverage';
+import { checkCutscene } from '../../src/world/core/cutscene';
+import { gridFromLayer } from '../../src/world/core/grid';
+import { loadAll } from './build-maps';
 
 export interface CheckResult {
   districts: DistrictContent[];
@@ -133,6 +136,22 @@ export function checkContent(contentRoot: string, lib: Library): CheckResult {
         }
       }
     } else errors.push(...r.errors);
+  }
+  // §13 K1: every cutscene against its map — tiles on the map, walks on walkable ground, actors on the cast or the map
+  const cutscenes = districts.flatMap((d) => (d.cutscenes ?? []).map((cs) => ({ d: d.district.id, cs })));
+  if (cutscenes.length) {
+    const built = new Map(loadAll(join(contentRoot, 'maps')).map((c) => [c.map.id, c]));
+    const npcs = new Set(known.npcs);
+    const spirits = new Set(known.spirits);
+    for (const { d, cs } of cutscenes) {
+      const m = built.get(cs.map);
+      if (!m) {
+        errors.push(`${d}/cutscenes.json: cutscene ${cs.id}: no map "${cs.map}"`);
+        continue;
+      }
+      const grid = gridFromLayer(m.map.width, m.map.height, (x, y) => m.map.collide[y * m.map.width + x] !== 0);
+      errors.push(...checkCutscene(cs, { grid, objects: m.objects, npcs, spirits }).map((e) => `${d}/cutscenes.json: ${e}`));
+    }
   }
   // §13 Z0: every map on some chapter's main route — strict only once the chapters are deepened (S10)
   if (process.env.WORLD_COVERAGE === 'strict') errors.push(...coverageProblems(coverage(districts, readBooks(contentRoot), mapIds(contentRoot))).map((e) => `coverage: ${e}`));

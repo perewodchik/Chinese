@@ -18,6 +18,7 @@
 import { spoken } from './voice';
 import type { Library } from '../../data/types';
 import { segment } from '../../domain/segment';
+import { cutsceneScene } from './cutscene';
 import type { DistrictContent, DialogueNode, NpcCard, Scene } from './types';
 
 export interface Leveled {
@@ -137,5 +138,9 @@ export function checkScene(scene: Scene, c: DistrictContent, ctx: BudgetContext,
 
 /** Every scene of every district. */
 export function checkBudget(ctx: BudgetContext): BudgetProblem[] {
-  return ctx.all.flatMap((c) => c.scenes.flatMap((s) => checkScene(s, c, ctx, `${c.district.id}/scenes.json`)));
+  return ctx.all.flatMap((c) => [
+    ...c.scenes.flatMap((s) => checkScene(s, c, ctx, `${c.district.id}/scenes.json`)),
+    // a cutscene's lines are lines like any other (§13 K1)
+    ...(c.cutscenes ?? []).flatMap((cs) => checkScene(cutsceneScene(cs), c, ctx, `${c.district.id}/cutscenes.json`)),
+  ]);
 }

@@ -7,6 +7,7 @@
  */
 
 import { shopScene, type Shop } from './shop';
+import { CUT_SOUNDS, EMOTES, FXS, type Cutscene, type CutStep } from './cutscene';
 import { z } from 'zod';
 import type {
   Action,
@@ -90,6 +91,7 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
   z.strictObject({ do: z.literal('pin'), riddle: text }),
   z.strictObject({ do: z.literal('solve'), riddle: text }),
   z.strictObject({ do: z.literal('remember'), npc: id, note: text }),
+  z.strictObject({ do: z.literal('cutscene'), id }),
 ]);
 
 const actionKind = z.enum([
@@ -233,7 +235,7 @@ export const questSchema: z.ZodType<Quest> = z.strictObject({
   blurb: text.optional(),
   lead: text.optional(),
   steps: z
-    .array(z.strictObject({ id, now: text, past: text, where: id.optional(), when: text.optional(), done: conditionSchema.optional() }))
+    .array(z.strictObject({ id, now: text, past: text, where: id.optional(), when: text.optional(), done: conditionSchema.optional(), onDone: id.optional() }))
     .min(1),
   reward: z.array(actionSchema).optional(),
 });
@@ -297,6 +299,44 @@ export const shopSchema: z.ZodType<Shop> = z.strictObject({
   mischarge: z.boolean().optional(),
 });
 
+// --- cutscenes (§13 K1) ---
+const actor = z.string().regex(/^(hero|rabbit|[a-z0-9][a-z0-9_-]*|spirit:[a-z0-9_-]+|extra:[a-z0-9_/-]+)$/, 'an actor is hero, rabbit, a person id, spirit:<id> or extra:<sprite>');
+const tileOrActor = z.union([tile, actor]);
+export const cutStepSchema: z.ZodType<CutStep> = z.lazy(() =>
+  z.union([
+    z.strictObject({ camera: tileOrActor, ms: z.number().int().min(0).optional(), zoom: z.number().int().min(1).max(4).optional() }),
+    z.strictObject({ move: actor, to: z.union([tile, z.array(tile).min(1)]), speed: z.enum(['walk', 'run', 'slow']).optional() }),
+    z.strictObject({ face: actor, dir: facing }),
+    z.strictObject({ emote: actor, kind: z.enum(EMOTES as [string, ...string[]]) }),
+    z.strictObject({ say: actor, zh: hanzi.optional(), en: text, pinyin: text.optional(), key: z.boolean().optional() }),
+    z.strictObject({ wait: z.number().int().min(0).max(10_000) }),
+    z.strictObject({ fade: z.enum(['in', 'out']), ms: z.number().int().min(0).optional(), colour: z.string().optional() }),
+    z.strictObject({ flash: z.literal(true) }),
+    z.strictObject({ shake: z.number().int().min(0).max(3000) }),
+    z.strictObject({ title: z.strictObject({ zh: hanzi, en: text }) }),
+    z.strictObject({ fx: z.enum(FXS as [string, ...string[]]), at: tileOrActor.optional(), n: z.number().int().min(1).max(200).optional(), text: z.array(text).optional() }),
+    z.strictObject({ sound: z.enum(CUT_SOUNDS as [string, ...string[]]) }),
+    z.strictObject({ music: z.enum(['on', 'soft', 'hush']) }),
+    z.strictObject({ spawn: actor, at: tile, facing: facing.optional() }),
+    z.strictObject({ despawn: actor }),
+    z.strictObject({ together: z.array(cutStepSchema).min(1) }),
+  ]) as z.ZodType<CutStep>,
+);
+
+export const cutsceneSchema: z.ZodType<Cutscene> = z.strictObject({
+  id,
+  map: id,
+  chapter: z.number().int().min(1).optional(),
+  title: z.strictObject({ zh: hanzi, en: text }).optional(),
+  letterbox: z.boolean().optional(),
+  finale: z.boolean().optional(),
+  music: z.enum(['on', 'soft', 'hush']).optional(),
+  cast: z.array(z.strictObject({ actor, at: tile, facing: facing.optional() })).optional(),
+  steps: z.array(cutStepSchema).min(1),
+  then: z.array(actionSchema).optional(),
+  words: z.array(z.strictObject({ w: hanzi, explain: hanzi, en: text })).optional(),
+});
+
 /** The files of one district folder and the schema each is checked with. */
 export const DISTRICT_FILES = {
   district: districtSchema,
@@ -308,6 +348,7 @@ export const DISTRICT_FILES = {
   stamps: z.array(stampSchema),
   items: z.array(itemSchema),
   shops: z.array(shopSchema),
+  cutscenes: z.array(cutsceneSchema),
 } as const;
 
 export type DistrictFiles = { [K in keyof typeof DISTRICT_FILES]?: unknown };
@@ -463,6 +504,12 @@ export function checkReferences(
     if (keys > 1) errors.push(`${at}: ${keys} key lines — at most one per scene`);
   });
   c.quests.forEach((q, qi) => q.reward?.forEach((a, ai) => checkAction(a, `quests[${qi}].reward[${ai}]`)));
+  // cutscenes (§13 K1): unique ids, their actions; the map and the actors are checked against the built maps by world:check
+  idsOf(c.cutscenes ?? [], 'cutscenes');
+  (c.cutscenes ?? []).forEach((cs, ci) => {
+    cs.then?.forEach((a, ai) => checkAction(a, `cutscenes[${ci}].then[${ai}]`));
+    if (!c.district.maps.includes(cs.map)) errors.push(`cutscenes[${ci}].map: "${cs.map}" is not one of this district's maps`);
+  });
   // shops (Y1): a seller who exists, and only the district's own things (so the menu has their names)
   const own = new Set(c.items.map((i) => i.id));
   (c.shops ?? []).forEach((sh, si) => {

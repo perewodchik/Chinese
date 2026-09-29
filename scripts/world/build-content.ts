@@ -13,6 +13,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { DistrictContent } from '../../src/world/core/types';
 import { formatProblem } from '../../src/world/core/budget';
+import { cutsceneLines } from '../../src/world/core/cutscene';
 import { checkContent, readLibrary } from './check-content';
 
 export const CONTENT_OUT = 'public/world/content';
@@ -21,6 +22,7 @@ export const CONTENT_OUT = 'public/world/content';
 export function compileDistrict(d: DistrictContent): DistrictContent & { pinyin: Record<string, string> } {
   const pinyin: Record<string, string> = {};
   for (const s of d.scenes) for (const n of s.nodes) if (n.pinyin) pinyin[n.say] = n.pinyin;
+  for (const cs of d.cutscenes ?? []) for (const l of cutsceneLines(cs)) if (l.zh && l.pinyin) pinyin[l.zh] = l.pinyin;
   return { ...d, pinyin };
 }
 

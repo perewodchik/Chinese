@@ -36,7 +36,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0 done (2026-09-30) — continue at K1. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
+§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1 done (2026-09-30) — continue at K2. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
 
 ## Tasks
 ### A — core logic
@@ -160,7 +160,7 @@ first unchecked box. Tick a box in the same commit as the work.
 
 ### §13 — one long story through real Beijing (prompt §13, added 2026-09-29 night; before X12 and M6)
 - [x] Z0 Story bible `story.md` (团圆 throughline, chapter tables, cast sheet), `facts.md`, coverage script
-- [ ] K1 Cutscene runner (data + zod, pure core, engine, letterbox/skip/replay, save v13, review strips)
+- [x] K1 Cutscene runner (data + zod, pure core, engine, letterbox/skip/replay, save v13, review strips) — **not yet seen in a browser** (no dev server in unattended runs); `scripts/world/cutscene-probe.mjs` makes the strips
 - [ ] K2 "You did it": step seals, quest seals, spirit-return + memory cutscene template, ⚙ Celebrations
 - [ ] K3 Chapter opening/finale template; ch1 opening + finale; lantern break, 景山 view, 回音壁, 画龙点睛 as cutscenes
 - [ ] Q1 Explicit side quests: marks over people, Journal → Side (no vague leads), counts on the metro map, arrival + chapter-end nudges
@@ -313,6 +313,10 @@ _(date — decision — why)_
 - 2026-09-30 — Z0: **coverage** counts a station or stop (`station-*`, `stop-*`) as on a route when another map of its district is; the only exceptions are the two C4 prototypes. Strict mode (`WORLD_COVERAGE=strict`) is off until S10; today 16 maps are on no main route (listed in story.md §2.1).
 - 2026-09-30 — Z0: **facts** — 百货大楼 is on the **west** side of 王府井大街 (the brief said east; T4 puts it west); the 北海 白塔 was built in 1651, a year before the Fifth Dalai Lama's visit — the game says that, not "built for his visit"; 东华门 has 72 门钉 (9 × 8), the reason given as "people say"; the 鼓楼 drum times shift by season, so lines say "every hour or so in the day". Unchecked facts stay `?` in facts.md for the task that uses them.
 - 2026-09-30 — Z0: new 成语 per chapter: 三人行，必有我师 (ch4 孔庙), 猴年马月 (ch5 — the monkeys, and 老马 about 老牛), 年年有余 (ch9, the fish), 不到长城非好汉 (尾声); plus 胡半仙's 天机不可泄露 (U1). 王阿姨 was a primary-school teacher (new backstory; fits the card).
+- 2026-09-30 — K1: **save v13** keeps watched cutscenes in `cutscenes: string[]`, not `seen` as the brief wrote — `seen` is already the menu's red dots (§10 P1). Upgrade 12 → 13 adds an empty list; merge is the union. Cutscenes of steps an old save has already passed never play by themselves (Journal → Story cannot replay what was never watched); they are for steps done from now on.
+- 2026-09-30 — K1: a cutscene on another map **takes you there** and plays on arrival (the hero stands where the script's cast puts them, else the map's lower middle); a replay from Journal → Story plays on its map and brings you back, and gives nothing again. `?cutscene=<id>` plays one (development and the probe).
+- 2026-09-30 — K1: lines, the chapter card, 弹幕 and the seal are **DOM over the canvas** (crisp CJK, tappable words, the app's word drawer), the rest is the engine. Sounds are synthesized in `Ambient.cue` (wood block, gong, bell, drum) beside the chime and blip. `zoom` in a script is a step over the usual zoom (1 = as always). Spirits are drawn from their existing props frames; a spirit without one (石猴, 灶王爷 until V4) shows a lit lantern.
+- 2026-09-30 — K1: the §13 in-browser checks need a dev server, which unattended runs cannot start (preview_start refuses). Added the preview config `hanzi-workshop-mac-world-5183` (`.data/world-test-5183.db`) for a session with the learner present, and `scripts/world/cutscene-probe.mjs` (strips to `review/k/`, letterbox-as-transform, a word tap opens the drawer, ⏭ held skips).
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

@@ -249,4 +249,41 @@ export class Ambient {
       o.stop(at + 1.2);
     });
   }
+
+  /**
+   * A cutscene's sound (§13 K1), made on the spot: a wood block (a step
+   * done), a temple gong, a small bell, a drum beat.
+   */
+  cue(kind: 'wood' | 'gong' | 'bell' | 'drum') {
+    if (!this.ctx || this.volume <= 0) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const tone = (f: number, type: OscillatorType, peak: number, len: number, bend = 1) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(f, t);
+      if (bend !== 1) o.frequency.exponentialRampToValueAtTime(f * bend, t + len);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(peak, t + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      o.connect(g).connect(this.master!);
+      o.start(t);
+      o.stop(t + len + 0.02);
+    };
+    if (kind === 'wood') {
+      tone(880, 'sine', 0.12, 0.09, 0.8);
+      tone(1320, 'sine', 0.05, 0.05);
+    } else if (kind === 'gong') {
+      tone(110, 'sine', 0.14, 3.2, 0.97);
+      tone(167, 'sine', 0.07, 2.6);
+      tone(231, 'triangle', 0.03, 1.8);
+    } else if (kind === 'bell') {
+      tone(1568, 'sine', 0.06, 1.4);
+      tone(2349, 'sine', 0.025, 0.9);
+    } else {
+      tone(72, 'sine', 0.22, 0.5, 0.6);
+      tone(140, 'triangle', 0.05, 0.12);
+    }
+  }
 }

@@ -8,6 +8,7 @@
  *   npx tsx scripts/world/build-voices.ts [--dry]
  */
 
+import { cutsceneLines, speakerOf } from '../../src/world/core/cutscene';
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -57,6 +58,8 @@ export function clipsOf(districts: readonly DistrictContent[]): Clip[] {
       for (const w of s.words ?? []) add(s.npc, explanationLine(w.w, w.explain));
     }
   }
+  // cutscene lines (§13 K1), in their speakers' voices
+  for (const d of districts) for (const cs of d.cutscenes ?? []) for (const l of cutsceneLines(cs)) if (l.zh) add(speakerOf(l.actor), spoken(l.zh));
   // the train's calls, in the announcer's voice
   for (const c of allCalls()) add('announcer', c);
   // the pieces prices are said in, in every voice (Y2)

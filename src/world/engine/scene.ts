@@ -14,6 +14,8 @@ import { ahead, walkable, walkTo } from '../core/grid';
 import { rabbitSpot } from '../core/rabbit';
 import type { Facing, MapObject, PartOfDay, Tile } from '../core/types';
 import { composeHero, DAY_LOOK, zoomFor, type HeroDress } from './look';
+import { isExtra, isSpiritActor, type Actor, type Cutscene } from '../core/cutscene';
+import { runCutscene, spiritFrame, type CutsceneHooks, type RunningCutscene, type Stage } from './cutscene';
 import { edgeAt, resolveArrival, throughEdge, type Arrival, type Door } from './doors';
 import { crowdTrip, facingOf, idleNext, PASSERS, pigeonSpots, rand, scared, type Rand } from './life';
 import { readMap, type MapInfo } from './mapdata';
@@ -500,6 +502,121 @@ export class WorldScene extends Phaser.Scene {
     t.refresh();
   }
 
+  /**
+   * A cutscene on this map (§13 K1): the runner walks the people here and
+   * moves the camera; the page shows the lines. Input waits (the page is
+   * busy); at the end people stand where they stood, spawned ones go, the
+   * camera follows you again, and the save hears where you ended up.
+   */
+  playCutscene(cs: Cutscene, hooks: CutsceneHooks): RunningCutscene {
+    this.queue = [];
+    this.after = null;
+    this.held = [];
+    this.stick = null;
+    this.holding = false;
+    const spawned = new Map<Actor, Phaser.GameObjects.Sprite>();
+    const tiles = new Map<Actor, Tile>();
+    const before = new Map<Phaser.GameObjects.Sprite, { x: number; y: number; frame: string; depth: number }>();
+    const npcObj = (a: Actor) => this.info.objects.find((o): o is Extract<MapObject, { kind: 'npc' }> => o.kind === 'npc' && o.npc === a);
+    const feet = (t: Tile, sprite: boolean) => ({ x: t[0] * TILE, y: (t[1] + 1) * TILE + (sprite ? 3 : 0) });
+    const sprite = (a: Actor): Phaser.GameObjects.Sprite | null => {
+      if (a === 'hero') return this.hero;
+      if (a === 'rabbit') return this.rabbit;
+      const own = spawned.get(a);
+      if (own) return own;
+      const o = npcObj(a);
+      return (o && this.npcSprites.get(o.id)) ?? null;
+    };
+    const frames = (a: Actor) =>
+      a === 'hero' ? 'hero' : a === 'rabbit' || isSpiritActor(a) ? null : isExtra(a) ? a.slice(6) : (this.opts.looks?.[a] ?? a);
+    const keep = (s: Phaser.GameObjects.Sprite) => {
+      if (!before.has(s)) before.set(s, { x: s.x, y: s.y, frame: s.frame.name, depth: s.depth });
+      s.setData('cut', true);
+    };
+    const stage: Stage = {
+      scene: this,
+      grid: this.info.grid,
+      sprite,
+      frames,
+      tile: (a) => {
+        if (a === 'hero') return this.at;
+        const t = tiles.get(a);
+        if (t) return t;
+        if (a === 'rabbit') return [Math.floor(this.rabbit.x / TILE), Math.floor(this.rabbit.y / TILE) - 1];
+        return npcObj(a)?.tile ?? null;
+      },
+      setTile: (a, t, f) => {
+        const s = sprite(a);
+        if (a === 'hero') {
+          this.at = t;
+          if (f) this.facing = f;
+          const { x, y } = feet(t, true);
+          this.hero.setPosition(x, y).setDepth(y - 3 + 0.5);
+          this.placeRabbit(t, 200, null);
+          return;
+        }
+        tiles.set(a, t);
+        if (!s) return;
+        if (!spawned.has(a)) keep(s);
+        const { x, y } = feet(t, !isSpiritActor(a));
+        s.setPosition(x, y).setDepth(y);
+        const pre = frames(a);
+        if (f && pre) s.setFrame(`${pre}/${f}-0`);
+      },
+      spawn: (a, at, facing) => {
+        spawned.get(a)?.destroy();
+        const spirit = spiritFrame(a);
+        const { x, y } = feet(at, !spirit);
+        const s = spirit
+          ? this.add.sprite(x, y, 'props', spirit).setOrigin(0, 1)
+          : this.add.sprite(x, y, 'chars', `${frames(a)}/${facing}-0`).setOrigin(0, 1);
+        s.setDepth(y);
+        spawned.set(a, s);
+        tiles.set(a, at);
+      },
+      despawn: (a) => {
+        const own = spawned.get(a);
+        if (own) {
+          own.destroy();
+          spawned.delete(a);
+        } else {
+          const s = sprite(a);
+          if (s && a !== 'hero' && a !== 'rabbit') {
+            keep(s);
+            s.setVisible(false);
+          }
+        }
+        tiles.delete(a);
+      },
+      camera: (to, ms, zoom) => {
+        const cam = this.cameras.main;
+        cam.stopFollow();
+        const z = Math.max(1, this.baseZoom + zoom - 1);
+        if ('setFrame' in to) cam.startFollow(to, true, 0.12, 0.12);
+        else cam.pan(to.x, to.y, ms, 'Sine.easeInOut');
+        if (cam.zoom !== z) cam.zoomTo(z, ms);
+        return new Promise((resolve) => (ms > 0 ? this.time.delayedCall(ms, () => resolve()) : resolve()));
+      },
+      restore: () => {
+        for (const s of spawned.values()) s.destroy();
+        spawned.clear();
+        for (const [s, b] of before) {
+          if (!s.active) continue;
+          s.setPosition(b.x, b.y).setFrame(b.frame).setDepth(b.depth).setVisible(true).setAlpha(1).setData('cut', false);
+        }
+        before.clear();
+        const cam = this.cameras.main;
+        cam.stopFollow();
+        cam.zoomTo(this.baseZoom, 250);
+        cam.startFollow(this.hero, true, 0.15, 0.15, -8, 16);
+        this.hero.setFrame(`hero/${this.facing}-0`);
+        this.placeRabbit(this.at, 200, null);
+        this.host.onStep(this.at, this.facing, false);
+      },
+    };
+    return runCutscene(stage, cs, hooks);
+  }
+
   /** The part of the map on screen, in tiles (X6 photos). */
   viewTiles() {
     const v = this.cameras.main.worldView;
@@ -958,6 +1075,8 @@ export class WorldScene extends Phaser.Scene {
       const n = idleNext(this.rng, facing);
       this.time.delayedCall(n.after, () => {
         if (!s.active) return;
+        // in a cutscene the script moves them (§13 K1)
+        if (s.getData('cut')) return loop();
         if (n.act === 'blink' && facing === 'down') {
           s.setFrame(`${base}/down-blink`);
           this.time.delayedCall(140, () => s.active && s.setFrame(`${base}/${facing}-0`));

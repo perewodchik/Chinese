@@ -1,0 +1,238 @@
+/* --- 走走 §13 K1: cutscenes — letterbox, the read-only line, the chapter card, 弹幕, the seal, ⏭ */
+
+.cs-layer {
+  /* film black and the paper white on it: the same in light and dark (a cinema, not a page) */
+  --cs-night: #0d0c12;
+  --cs-paper: #f8f5ec;
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cs-layer[data-lines] {
+  pointer-events: auto;
+}
+
+/* the bars slide in by a transform: nothing on the page moves */
+.cs-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 11%;
+  background: var(--cs-night);
+  transition: transform 0.4s ease;
+}
+
+.cs-top {
+  top: 0;
+  transform: translateY(-100%);
+}
+
+.cs-bottom {
+  bottom: 0;
+  transform: translateY(100%);
+}
+
+.cs-bar[data-on] {
+  transform: translateY(0);
+}
+
+/* the chapter card: big 楷, English under */
+.cs-title {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  background: color-mix(in srgb, var(--cs-night) 45%, transparent);
+  color: var(--cs-paper);
+  animation: cs-fade 2.6s ease both;
+}
+
+.cs-title-zh {
+  font-family: var(--han);
+  font-size: clamp(40px, 9vw, 72px);
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 0 var(--cs-night);
+}
+
+.cs-title-en {
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+@keyframes cs-fade {
+  0% { opacity: 0; }
+  18% { opacity: 1; }
+  82% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 弹幕: short comments flying right to left */
+.cs-danmaku {
+  position: absolute;
+  inset: 0;
+}
+
+.cs-dm {
+  position: absolute;
+  left: 100%;
+  white-space: nowrap;
+  font-family: var(--han);
+  font-size: 18px;
+  color: var(--cs-paper);
+  text-shadow: 0 1px 0 var(--cs-night), 1px 0 0 var(--cs-night), 0 -1px 0 var(--cs-night), -1px 0 0 var(--cs-night);
+  animation: cs-fly 6s linear both;
+}
+
+@keyframes cs-fly {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-100vw - 100%)); }
+}
+
+/* the seal: a red square stamp that lands at the top centre */
+.cs-seal {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 60px);
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  margin-left: -28px;
+  display: grid;
+  place-items: center;
+  font-family: var(--han);
+  font-size: 34px;
+  color: var(--cs-paper);
+  background: var(--accent);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--cs-paper) 70%, var(--accent));
+  animation: cs-stamp 1.8s ease both;
+}
+
+@keyframes cs-stamp {
+  0% { opacity: 0; transform: scale(2) rotate(-8deg); }
+  15% { opacity: 1; transform: scale(1) rotate(-4deg); }
+  80% { opacity: 1; transform: scale(1) rotate(-4deg); }
+  100% { opacity: 0; transform: scale(1) rotate(-4deg); }
+}
+
+/* the line: the dialogue box's pixel frame, read-only, fixed height (no jump between lines) */
+.cs-box {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+  transform: translateX(-50%);
+  width: min(680px, calc(100% - 26px));
+  height: 132px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--px-frame);
+  pointer-events: auto;
+}
+
+.cs-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  min-height: 34px;
+  background: var(--card-2);
+  border-bottom: 2px solid color-mix(in srgb, var(--px-edge) 35%, var(--line));
+}
+
+.cs-who {
+  font-family: var(--han);
+  font-size: 16px;
+}
+
+.cs-body {
+  all: unset;
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 8px 12px;
+  overflow: auto;
+  cursor: pointer;
+}
+
+.cs-zh {
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.cs-en-only {
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.cs-next {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  color: var(--ink-3);
+  animation: cs-bob 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes cs-bob {
+  from { transform: translateY(0); }
+  to { transform: translateY(2px); }
+}
+
+/* ⏭ held to skip: a ring fills */
+.cs-skip {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  right: calc(env(safe-area-inset-right, 0px) + 10px);
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  grid-template-rows: 1fr auto;
+  padding: 4px 0 3px;
+  border: 0;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--cs-night) 55%, transparent);
+  color: var(--cs-paper);
+  font-size: 16px;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.cs-skip-ring {
+  position: absolute;
+  inset: 2px;
+  border-radius: 9px;
+  box-shadow: inset 0 0 0 2px var(--cs-paper);
+  clip-path: inset(0 100% 0 0);
+}
+
+.cs-skip[data-held] .cs-skip-ring {
+  animation: cs-fill 0.6s linear both;
+}
+
+@keyframes cs-fill {
+  to { clip-path: inset(0 0 0 0); }
+}
+
+.cs-skip-label {
+  line-height: 1;
+  opacity: 0.8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-bar,
+  .cs-title,
+  .cs-seal {
+    transition: none;
+    animation-duration: 0.01s;
+  }
+}
