@@ -1,0 +1,532 @@
+/* --- the journal (§10 J3): one card for the quest you follow, quiet rows for the rest.
+   Gold is the one "current / go here" colour, as the task ring on the maps. */
+.jn-head {
+  margin: 0 0 10px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.jn-head .han {
+  font-family: var(--han);
+  font-size: 13px;
+}
+
+.jn-card {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line));
+  border-left: 4px solid var(--gold);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+
+.jn-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.jn-tag {
+  flex: none;
+  padding: 1px 6px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  font-family: var(--han);
+  font-size: 12px;
+  color: var(--ink-2);
+  background: var(--card-2);
+}
+
+.jn-tag[data-kind='main'] {
+  border-color: color-mix(in srgb, var(--gold) 60%, var(--line));
+  color: var(--gold);
+  background: var(--gold-soft);
+}
+
+.jn-title {
+  font-size: 15px;
+  font-weight: 620;
+}
+
+.jn-now {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.jn-dest {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.jn-mini {
+  flex: none;
+  width: 64px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--card-2);
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.jn-mini img {
+  display: block;
+  width: 64px;
+  height: 48px;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.jn-dest-text {
+  display: grid;
+  min-width: 0;
+}
+
+.jn-dest-text b.han {
+  font-family: var(--han);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.jn-dest-text .tiny {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jn-when {
+  margin: 0;
+  color: var(--gold);
+}
+
+.jn-here {
+  margin: 0;
+}
+
+/* the route strip: chips in the order you take them; they wrap, so the whole way is always in view */
+.jn-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 2px 0;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.jn-route > li {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card-2);
+  font-size: 12.5px;
+}
+
+.jn-route .han {
+  font-family: var(--han);
+  font-size: 13.5px;
+}
+
+.jn-route > li.jn-change {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+}
+
+.jn-route > li.jn-ride {
+  padding-left: 3px;
+}
+
+.jn-line {
+  display: inline-grid;
+  place-items: center;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12.5px !important;
+  font-weight: 600;
+}
+
+.jn-fare {
+  margin: -2px 0 0;
+}
+
+.jn-show {
+  justify-self: start;
+}
+
+/* quiet rows: the other quests, leads */
+.jn-rows > li {
+  padding: 0;
+}
+
+.jn-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 2px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.jn-row .wt-portrait {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.jn-row-text {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+}
+
+.jn-row-top {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.jn-row-top b {
+  font-weight: 600;
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jn-hood {
+  flex: none;
+  justify-self: start;
+  padding: 0 5px;
+  border-radius: 5px;
+  background: var(--card-2);
+  color: var(--ink-3);
+  font-family: var(--han);
+  font-size: 12px;
+}
+
+.jn-one {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jn-lead .jn-row {
+  opacity: 0.78;
+}
+
+.jn-lead .jn-row-text {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.jn-pin {
+  flex: none;
+  width: 32px;
+  text-align: center;
+}
+
+.jn-riddle {
+  display: block !important;
+}
+
+.jn-riddle .wd-zh {
+  font-size: 18px;
+}
+
+.jn-riddle p {
+  margin: 2px 0 0;
+}
+
+.jn-riddle[data-done] {
+  opacity: 0.7;
+}
+
+.jn-fold,
+.jn-also,
+.jn-daylink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.jn-fold {
+  font-size: 12.5px;
+}
+
+.jn-also {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-3);
+  font-size: 11.5px;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+/* a quest's drawer */
+.jn-sheet {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.jn-sheet p {
+  margin: 0;
+}
+
+.jn-giver {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jn-giver .han {
+  font-family: var(--han);
+  font-size: 16px;
+}
+
+.jn-log > li {
+  gap: 10px;
+}
+
+.jn-day {
+  flex: none;
+  width: 48px;
+  font-family: var(--han);
+}
+
+.jn-acts {
+  display: flex;
+  gap: 8px;
+}
+
+/* Story: the chapter timeline */
+.jn-story {
+  margin: 0;
+  padding: 0 0 0 10px;
+  list-style: none;
+  border-left: 2px solid var(--line);
+}
+
+.jn-story > li {
+  position: relative;
+  padding: 0 0 6px 12px;
+}
+
+.jn-story > li::before {
+  content: '';
+  position: absolute;
+  left: -17px;
+  top: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 3px var(--paper);
+}
+
+.jn-story > li[data-done]::before {
+  background: var(--line-2);
+}
+
+.jn-chapter {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.jn-chapter b {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.jn-ch {
+  flex: none;
+  font-family: var(--han);
+  color: var(--ink-3);
+}
+
+.jn-ok {
+  color: var(--jade);
+}
+
+.jn-entries {
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.jn-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.jn-daylink {
+  flex: none;
+  width: 48px;
+  font-family: var(--han);
+  color: var(--ink-3);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.jn-next {
+  padding: 4px 0 4px 58px;
+}
+
+.jn-side {
+  padding-left: 16px;
+}
+
+.jn-side-head {
+  min-height: 32px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wp-list li[data-focus] {
+  border-color: var(--gold);
+}
+
+/* the metro with a route drawn (J3b): the way thick, the rest faint */
+.wp-metro[data-route] .mm-line,
+.wp-metro[data-route] .mm-walk {
+  opacity: 0.25;
+}
+
+.mm-route {
+  fill: none;
+  stroke-width: 9px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.mm-route[data-mode='bus'],
+.mm-route[data-mode='train'] {
+  stroke-dasharray: 10 6;
+  stroke-linecap: butt;
+}
+
+.mm-route-walk {
+  stroke: var(--ink-2);
+  stroke-width: 4px;
+  stroke-dasharray: 1 6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.mm-change {
+  fill: var(--card);
+  stroke: var(--ink);
+  stroke-width: 3px;
+  vector-effect: non-scaling-stroke;
+}
+
+.mm-pin-box {
+  fill: var(--ink);
+}
+
+.mm-pin[data-kind='there'] .mm-pin-box,
+.mm-pin[data-kind='there'] .mm-pin-tail {
+  fill: var(--gold);
+}
+
+.mm-pin-tail {
+  fill: var(--ink);
+}
+
+.mm-pin-text {
+  fill: var(--paper);
+  font-weight: 600;
+}
+
+/* J3c: the next hop of the quest you follow, under the minimap */
+.wm-hop {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 220px;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: rgba(34, 32, 46, 0.72);
+  color: #f8f5ec;
+  font: inherit;
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.wm-hop .han {
+  font-family: var(--han);
+  font-size: 13.5px;
+}
+
+.wm-hop-line {
+  padding: 0 5px;
+  border-radius: 5px;
+  color: #fff;
+  font-family: var(--han);
+}

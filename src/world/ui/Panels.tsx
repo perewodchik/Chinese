@@ -5,8 +5,6 @@ import { itemForToken } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { dayOf, formatTime } from '../core/clock';
-import { contentNames, diaryDays, diaryLines } from '../core/diary';
-import { dateZh, WEATHER_ICON, WEATHER_ZH, weatherOf } from '../core/calendar';
 import type { Item, WorldSave, WorldSettings } from '../core/types';
 import { priceYen, priceZh } from '../core/shop';
 import { pinyinOf } from './pinyin';
@@ -22,11 +20,11 @@ import {
   type BagFilter,
   friendRows,
   idiomRows,
-  riddleRows,
   spiritRows,
   stampRows,
-  taskRows,
 } from './panelRows';
+import { leads } from '../core/journal';
+import { Diary, JournalNow, JournalStory, type RouteRequest } from './Journal';
 import { markSeen, MENU, menuNews, panelTarget, readMemory, remember, tabForKey, tabHasNews, viewKey, VIEWS, writeMemory, type MenuAt, type MenuMemory, type MenuTab, type PanelId } from './menu';
 import './menu.css';
 import { Hearts } from './Hearts';
@@ -87,12 +85,22 @@ export function Panels({
     setAt(panelTarget(tab, mem));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
+  /** the journal's "Show on map" (J3b): the metro with the way drawn */
+  const [route, setRoute] = useState<RouteRequest | null>(null);
+  /** a Story entry's day, opened in the diary */
+  const [diaryDay, setDiaryDay] = useState<number | null>(null);
   const go = (next: MenuAt) => {
+    if (next.tab !== 'map') setRoute(null);
+    if (next.view !== 'diary') setDiaryDay(null);
     setAt(next);
     asked.current = next.tab;
     setTab(next.tab);
   };
   const openTab = (t: MenuTab) => go(panelTarget(t, mem));
+  const showRoute = (r: RouteRequest) => {
+    go({ tab: 'map' });
+    setRoute(r);
+  };
   // the menu reopens on this tab and view (per device)
   useEffect(() => {
     const m = remember(mem, at);
@@ -101,11 +109,12 @@ export function Panels({
     writeMemory(m);
   }, [mem, at]);
 
-  const news = useMemo(() => menuNews(save), [save]);
+  const leadIds = useMemo(() => leads(save, content).map((l) => l.quest.id), [save, content]);
+  const news = useMemo(() => menuNews(save, leadIds), [save, leadIds]);
   // opening a view clears its dot
   const key = viewKey(at);
   useEffect(() => {
-    if (news.has(key)) for (const a of markSeen(save, at)) onAct?.(a);
+    if (news.has(key)) for (const a of markSeen(save, at, leadIds)) onAct?.(a);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, news]);
 
@@ -168,11 +177,13 @@ export function Panels({
           </button>
         </header>
         <div className="mn-body" key={key}>
-          {key === 'journal/now' && <Tasks save={save} content={content} pinyin={pinyin} />}
-          {key === 'journal/story' && <StoryList save={save} content={content} />}
-          {key === 'journal/diary' && <Diary save={save} content={content} pinyin={pinyin} />}
+          {key === 'journal/now' && (
+            <JournalNow save={save} content={content} pinyin={pinyin} onTrack={(quest) => onAct?.({ do: 'track', quest, rev: Date.now() })} onShowRoute={showRoute} />
+          )}
+          {key === 'journal/story' && <JournalStory save={save} content={content} onDay={(day) => (setDiaryDay(day), go({ tab: 'journal', view: 'diary' }))} />}
+          {key === 'journal/diary' && <Diary save={save} content={content} pinyin={pinyin} focus={diaryDay} onStory={() => go({ tab: 'journal', view: 'story' })} />}
           {key === 'bag' && <Bag save={save} content={content} onUse={onUse} onAct={onAct} />}
-          {key === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} />}
+          {key === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} route={route} />}
           {key === 'people' && <Friends save={save} content={content} />}
           {key === 'collection/spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
           {key === 'collection/idioms' && <Idioms save={save} content={content} pinyin={pinyin} />}
@@ -182,21 +193,6 @@ export function Panels({
         </div>
       </section>
     </div>
-  );
-}
-
-/** The story so far, until the journal's chapter timeline (J3): the finished quests, one quiet line each. */
-function StoryList({ save, content }: { save: WorldSave; content: WorldContent }) {
-  const done = taskRows(save, content.quests).filter((t) => t.done);
-  if (!done.length) return <Empty han="始">The story has only begun.</Empty>;
-  return (
-    <ul className="mn-rows">
-      {done.map((t) => (
-        <li key={t.quest.id}>
-          {t.quest.title} <span className="tiny muted">✓</span>
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -259,44 +255,6 @@ function Album({ user }: { user: string }) {
   );
 }
 
-/** The diary (X3): each game day in a few simple sentences, newest first; every word tappable. */
-function Diary({ save, content, pinyin }: { save: WorldSave; content: WorldContent; pinyin: boolean }) {
-  const [open, setOpen] = useState<number | null>(null);
-  const days = diaryDays(save);
-  if (!days.length) return <Empty han="记">The diary writes itself as you go. Come back at the end of the day.</Empty>;
-  const names = contentNames([content]);
-  const today = dayOf(save.clock);
-  return (
-    <>
-      <h3 className="wp-label">
-        日记 <span className="tiny muted">· tap a word for its card; tap a day for the English</span>
-      </h3>
-      <ul className="wp-list">
-        {days.map((d) => {
-          const lines = diaryLines(d.codes, names, d.day);
-          const w = weatherOf(d.day);
-          return (
-            <li key={d.day}>
-              <button type="button" className="w-diary-day tiny muted" aria-expanded={open === d.day} onClick={() => setOpen(open === d.day ? null : d.day)}>
-                <span className="han">
-                  {dateZh(d.day)} · {WEATHER_ICON[w]} {WEATHER_ZH[w]}
-                  {d.day === today ? ' · 今天' : ''}
-                </span>
-              </button>
-              <p>
-                {lines.map((l, i) => (
-                  <ZhText key={i} zh={l.zh} pinyin={pinyin} />
-                ))}
-              </p>
-              {open === d.day && <p className="small muted">{lines.map((l) => l.en).join(' ')}</p>}
-            </li>
-          );
-        })}
-      </ul>
-    </>
-  );
-}
-
 function Friends({ save, content }: { save: WorldSave; content: WorldContent }) {
   const rows = friendRows(save, content.npcs);
   if (!rows.length && !save.cat.name) return <Empty han="友">Nobody yet. Say 你好 to the neighbours.</Empty>;
@@ -327,43 +285,6 @@ function Empty({ han, children }: { han: string; children: React.ReactNode }) {
       <div className="big han">{han}</div>
       <p className="small muted">{children}</p>
     </div>
-  );
-}
-
-function Tasks({ save, content, pinyin }: { save: WorldSave; content: WorldContent; pinyin: boolean }) {
-  const tasks = taskRows(save, content.quests);
-  const riddles = riddleRows(save, content.scenes);
-  const npcName = (id?: string) => content.npcs.find((n) => n.id === id)?.name;
-  return (
-    <>
-      <h3 className="wp-label">Tasks</h3>
-      {tasks.length ? (
-        <ul className="wp-list">
-          {tasks.map((t) => (
-            <li key={t.quest.id} data-done={t.done ? '' : undefined}>
-              <b>{t.quest.title}</b>
-              {t.done ? <span className="tiny muted"> · done</span> : <p className="small">{t.now}</p>}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <Empty han="事">No tasks yet. Talk to people — someone always needs a hand.</Empty>
-      )}
-      <h3 className="wp-label">📌 Riddles</h3>
-      {riddles.length ? (
-        <ul className="wp-list">
-          {riddles.map((r) => (
-            <li key={r.id} data-done={r.solved ? '' : undefined}>
-              {npcName(r.npc) && <span className="tiny muted han">{npcName(r.npc)}：</span>}
-              <ZhText zh={r.zh} pinyin={pinyin} />
-              <p className="tiny muted">{r.solved ? `Worked out — “${r.en}”` : 'Tap the hard words, ask someone “……是什么意思？”, or ask 兔儿爷.'}</p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="small muted">Key lines 📌 — the hard ones that matter — pin themselves here.</p>
-      )}
-    </>
   );
 }
 
