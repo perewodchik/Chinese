@@ -3,11 +3,15 @@
     "id": "chaye",
     "name": "茶叶",
     "en": "tea leaves",
-    "gift": true
+    "gift": true,
+    "kind": "gift",
+    "price": 20
   },
   {
     "id": "lianpu",
     "name": "脸谱",
-    "en": "an opera mask"
+    "en": "an opera mask",
+    "kind": "decor",
+    "price": 30
   }
 ]

@@ -1,0 +1,19 @@
+[
+  {
+    "id": "lianpu",
+    "npc": "jingju-yanyuan",
+    "map": "xiyuan",
+    "name": "戏园",
+    "pay": "scan",
+    "when": {
+      "scene": "opera"
+    },
+    "priority": 0,
+    "stock": [
+      {
+        "item": "lianpu",
+        "price": 30
+      }
+    ]
+  }
+]

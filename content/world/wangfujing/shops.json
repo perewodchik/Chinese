@@ -1,0 +1,39 @@
+[
+  {
+    "id": "shudian",
+    "npc": "shudian-ayi",
+    "map": "shudian",
+    "name": "新华书店",
+    "pay": "scan",
+    "stock": [
+      {
+        "item": "gushishu",
+        "price": 15,
+        "measure": "本"
+      },
+      {
+        "item": "maobi",
+        "price": 20,
+        "measure": "支"
+      },
+      {
+        "item": "shufa",
+        "price": 50,
+        "measure": "幅"
+      }
+    ]
+  },
+  {
+    "id": "yuebing",
+    "npc": "yuebing-ayi",
+    "map": "wangfujing-street",
+    "name": "月饼",
+    "pay": "code",
+    "stock": [
+      {
+        "item": "yuebing",
+        "price": 8
+      }
+    ]
+  }
+]

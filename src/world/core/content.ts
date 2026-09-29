@@ -6,6 +6,7 @@
  * cannot drift apart without the build failing.
  */
 
+import { shopScene, type Shop } from './shop';
 import { z } from 'zod';
 import type {
   Action,
@@ -188,6 +189,7 @@ const nodeSchema: z.ZodType<DialogueNode> = z.strictObject({
   listen: z.boolean().optional(),
   expect: z.array(expectSchema).optional(),
   choose: chooseSchema.optional(),
+  order: z.strictObject({ shop: id, go: id.optional() }).optional(),
   trace: traceSchema.optional(),
   next: id.optional(),
   hint: z.strictObject({ word: text, frame: text, full: text }).optional(),
@@ -253,7 +255,29 @@ export const stampSchema: z.ZodType<Stamp> = z.strictObject({
   landmark: z.boolean().optional(),
 });
 
-export const itemSchema: z.ZodType<Item> = z.strictObject({ id, name: hanzi, en: text, icon: z.string().optional(), gift: z.boolean().optional() });
+export const itemSchema: z.ZodType<Item> = z.strictObject({
+  id,
+  name: hanzi,
+  en: text,
+  icon: z.string().optional(),
+  gift: z.boolean().optional(),
+  kind: z.enum(['food', 'drink', 'gift', 'tool', 'decor', 'toy', 'key']).optional(),
+  price: z.number().min(0).optional(),
+});
+
+/** whole yuan or x.5 — 五毛 is the only small unit */
+const price = z.number().positive().refine((p) => Number.isInteger(p * 2), 'a price is whole yuan or x.5');
+export const shopSchema: z.ZodType<Shop> = z.strictObject({
+  id,
+  npc: id,
+  map: id,
+  name: hanzi,
+  pay: z.enum(['scan', 'code']).optional(),
+  hours: z.tuple([z.number().int().min(0).max(24), z.number().int().min(0).max(24)]).optional(),
+  when: conditionSchema.optional(),
+  stock: z.array(z.strictObject({ item: id, price, measure: z.string().optional(), when: conditionSchema.optional() })).min(1),
+  priority: z.number().int().optional(),
+});
 
 /** The files of one district folder and the schema each is checked with. */
 export const DISTRICT_FILES = {
@@ -265,6 +289,7 @@ export const DISTRICT_FILES = {
   idioms: z.array(idiomSchema),
   stamps: z.array(stampSchema),
   items: z.array(itemSchema),
+  shops: z.array(shopSchema),
 } as const;
 
 export type DistrictFiles = { [K in keyof typeof DISTRICT_FILES]?: unknown };
@@ -306,7 +331,11 @@ export function parseDistrict(files: DistrictFiles): Checked<DistrictContent> {
     else for (const issue of parsed.error.issues) errors.push(`${formatPath(name, issue.path)}: ${issue.message}`);
   }
   if (errors.length) return { ok: false, errors };
-  return { ok: true, value: out as unknown as DistrictContent };
+  // each shop talks through a generated scene (Y1), named from the district's own items; listed first, so a
+  // seller's shop wins a tie with their small talk (a greeting by name has the same priority)
+  const c = out as unknown as DistrictContent;
+  const items = new Map(c.items.map((i) => [i.id, i]));
+  return { ok: true, value: { ...c, scenes: [...(c.shops ?? []).map((sh) => shopScene(sh, items)), ...c.scenes] } };
 }
 
 /**
@@ -408,5 +437,13 @@ export function checkReferences(
     if (keys > 1) errors.push(`${at}: ${keys} key lines — at most one per scene`);
   });
   c.quests.forEach((q, qi) => q.reward?.forEach((a, ai) => checkAction(a, `quests[${qi}].reward[${ai}]`)));
+  // shops (Y1): a seller who exists, and only the district's own things (so the menu has their names)
+  const own = new Set(c.items.map((i) => i.id));
+  (c.shops ?? []).forEach((sh, si) => {
+    if (!npcs.has(sh.npc)) errors.push(`shops[${si}].npc: unknown NPC "${sh.npc}"`);
+    sh.stock.forEach((x, xi) => {
+      if (!own.has(x.item)) errors.push(`shops[${si}].stock[${xi}].item: "${x.item}" is not in this district's items.json`);
+    });
+  });
   return errors;
 }

@@ -12,7 +12,7 @@
  */
 
 import type { SaveAction } from '../save';
-import type { Action, DialogueNode, NpcCard, Scene, WorldSave } from '../types';
+import type { Action, DialogueNode, Hint, Item, NpcCard, Scene, WorldSave } from '../types';
 import type { Lexicon } from './lexicon';
 import { heardNote, matchIntent, normalize } from './match';
 import type { CompanionCue, DialogueSource, DialogueState, Line, Turn, Utterance } from './source';
@@ -20,6 +20,8 @@ import { askIntent, explainWord, POLITE_REPLY, politeIntent } from './universal'
 import { hintWithName, NAME_SLOT, withName } from '../voice';
 import { catNameFrom } from '../room';
 import { STICKER_REPLY, STICKERS } from '../photo';
+import { cartTotal, cartZh, DONE_WORDS, parseOrder, priceEn, priceZh, SHOP_LINES, type Named, type Shop } from '../shop';
+import { holds } from '../flags';
 
 export const DEFAULT_MISSES = ['你说什么？', '什么？请再说一遍。'];
 export const NOT_CHINESE = { zh: '对不起，我听不懂……', en: "Sorry, I don't understand…" };
@@ -32,6 +34,9 @@ export const DONT_KNOW = { zh: '这个……我不知道怎么说。', en: "Hmm�
 export interface ScriptContent {
   scenes: readonly Scene[];
   npcs: readonly NpcCard[];
+  /** sellers and the things they sell, for order lines (Y1) */
+  shops?: readonly Shop[];
+  items?: readonly Item[];
 }
 
 /**
@@ -63,9 +68,104 @@ export class ScriptedDialogue implements DialogueSource {
   private scenes = new Map<string, Scene>();
   private npcs = new Map<string, NpcCard>();
 
+  private shops = new Map<string, Shop>();
+  private items = new Map<string, Item>();
+
   constructor(content: ScriptContent, private lex: Lexicon) {
     for (const s of content.scenes) this.scenes.set(s.id, s);
     for (const n of content.npcs) this.npcs.set(n.id, n);
+    for (const s of content.shops ?? []) this.shops.set(s.id, s);
+    for (const i of content.items ?? []) this.items.set(i.id, i);
+  }
+
+  /** A shop's things with names, and whether each is on sale today (as the talk began). */
+  private stock(shopId: string, state: DialogueState): (Named & { now: boolean })[] {
+    const shop = this.shops.get(shopId);
+    if (!shop) return [];
+    return shop.stock.map((x) => {
+      const it = this.items.get(x.item);
+      return { ...x, name: it?.name ?? x.item, en: it?.en ?? x.item, measure: x.measure ?? '个', now: state.onSale ? state.onSale.includes(x.item) : true };
+    });
+  }
+
+  /** What 💡 offers at a line: its own hint, or at a shop the first thing on sale (and 不要了 once something is ordered). */
+  hintAt(state: DialogueState): Hint | undefined {
+    const scene = this.scenes.get(state.scene);
+    const n = scene?.nodes.find((x) => x.id === state.node);
+    if (!n) return undefined;
+    if (!n.order) return n.hint ? hintWithName(n.hint, state.name ?? '') : undefined;
+    if (state.cart?.length) return { word: '不要了', frame: '___，谢谢。', full: '不要了，谢谢。' };
+    const first = this.stock(n.order.shop, state).find((x) => x.now);
+    return first ? { word: first.name, frame: `我要一${first.measure}___。`, full: `我要一${first.measure}${first.name}。` } : undefined;
+  }
+
+  /** What a patient player says here (tests and the solver): the right pick, the writing, the hint's whole sentence. */
+  answer(state: DialogueState): Utterance | null {
+    const n = this.scenes.get(state.scene)?.nodes.find((x) => x.id === state.node);
+    if (!n) return null;
+    if (n.order) {
+      const h = this.hintAt(state);
+      return h ? { text: h.full, via: 'keyboard' } : null;
+    }
+    return answerFor(n, state.name ?? '');
+  }
+
+  /** An order line at a shop (Y1): things named with numbers go into the order, 多少钱 is answered, 不要了 pays. */
+  private orderReply(scene: Scene, n: DialogueNode, state: DialogueState, u: Utterance): Turn | null {
+    const order = n.order!;
+    const stock = this.stock(order.shop, state);
+    const text = u.text.trim();
+    const cart = state.cart ?? [];
+    const say = (zh: string, en: string, extra: Partial<Turn> = {}): Turn => ({ kind: 'match', intent: 'order', say: this.aside(scene, zh, en), actions: [], state, ...extra });
+    const asked = parseOrder(text, stock);
+    const price = /多少钱|几块|什么价|多少/.test(text);
+    if (price) {
+      const one = asked[0] && stock.find((x) => x.item === asked[0]!.item);
+      if (one) return say(`${one.name}${priceZh(one.price)}一${one.measure}。`, `${one.en}: ${priceEn(one.price)} each.`);
+      if (cart.length) return say(`一共${priceZh(cartTotal(cart, stock))}。`, `That comes to ${priceEn(cartTotal(cart, stock))}.`);
+    }
+    const now = asked.filter((c) => stock.find((x) => x.item === c.item)?.now);
+    const later = asked.find((c) => !stock.find((x) => x.item === c.item)?.now);
+    if (now.length) {
+      const next = [...cart];
+      for (const c of now) {
+        const cur = next.find((x) => x.item === c.item);
+        if (cur) cur.n += c.n;
+        else next.push({ ...c });
+      }
+      const total = cartTotal(next, stock);
+      return say(`${cartZh(next, stock)}，一共${priceZh(total)}。${SHOP_LINES.more.zh}`, `${next.map((c) => `${c.n} × ${stock.find((x) => x.item === c.item)!.en}`).join(', ')} — ${priceEn(total)} in all. ${SHOP_LINES.more.en}`, {
+        state: { ...state, cart: next, misses: 0, hint: 0 },
+      });
+    }
+    if (later) {
+      const s = stock.find((x) => x.item === later.item)!;
+      return say(`现在没有${s.name}。`, `No ${s.en} at the moment.`);
+    }
+    const done = DONE_WORDS.some((w) => text.includes(w)) || (cart.length > 0 && /谢谢|好的|行|对/.test(text));
+    if (!done) return null;
+    if (!cart.length) {
+      if (order.go) return say(SHOP_LINES.hello.zh, SHOP_LINES.hello.en);
+      return { kind: 'polite', intent: 'bye', say: this.aside(scene, SHOP_LINES.bye.zh, SHOP_LINES.bye.en), actions: this.finish(scene), end: true, state: { ...state, ended: true } };
+    }
+    const total = cartTotal(cart, stock);
+    if ((state.wallet ?? Infinity) < total) {
+      return say(`一共${priceZh(total)}……${SHOP_LINES.short.zh}`, `${priceEn(total)}… ${SHOP_LINES.short.en}`, {
+        state: { ...state, cart: [] },
+        companion: { kind: 'heard', text: `That is ${priceEn(total)} and you have ${priceEn(state.wallet ?? 0)} — order a little less, or come back with more money.` },
+      });
+    }
+    const buy: SaveAction[] = [{ do: 'money', amount: -total }, ...cart.map((c) => ({ do: 'give' as const, item: c.item, count: c.n }))];
+    const after = { ...state, cart: [], wallet: (state.wallet ?? 0) - total };
+    if (order.go) return { kind: 'match', intent: 'pay', ...this.move(scene, n, order.go, false, buy, after) };
+    return {
+      kind: 'match',
+      intent: 'pay',
+      say: this.aside(scene, `一共${priceZh(total)}。${SHOP_LINES.thanks.zh}`, `${priceEn(total)} in all. ${SHOP_LINES.thanks.en}`),
+      actions: [...buy, ...this.finish(scene)],
+      end: true,
+      state: { ...after, ended: true },
+    };
   }
 
   private scene(id: string): Scene {
@@ -120,7 +220,18 @@ export class ScriptedDialogue implements DialogueSource {
     this.scenes.set(scene.id, scene);
     const n = this.node(scene, scene.start);
     const meet: SaveAction[] = scene.npc ? [{ do: 'meet', npc: scene.npc }] : [];
-    const state: DialogueState = { scene: scene.id, node: n.id, misses: 0, hint: 0, ended: false, ...(save?.name ? { name: save.name } : {}) };
+    // a scene with an order line keeps the money and today's stock from the start (Y1)
+    const shopId = scene.nodes.find((x) => x.order)?.order?.shop;
+    const shop = shopId ? this.shops.get(shopId) : undefined;
+    const state: DialogueState = {
+      scene: scene.id,
+      node: n.id,
+      misses: 0,
+      hint: 0,
+      ended: false,
+      ...(save?.name ? { name: save.name } : {}),
+      ...(shop && save ? { wallet: save.bag.money, onSale: shop.stock.filter((x) => holds(x.when, save)).map((x) => x.item) } : {}),
+    };
     return { kind: 'start', say: this.line(scene, n, 'say', false, state.name), actions: [...meet, ...this.enter(scene, n)], state };
   }
 
@@ -155,10 +266,9 @@ export class ScriptedDialogue implements DialogueSource {
     return { kind: 'continue', ...this.move(scene, n, n.next, false, [], state) };
   }
 
-  private hintCue(n: DialogueNode, step: number, name = ''): CompanionCue | undefined {
-    if (!n.hint || step < 1) return undefined;
+  private hintCue(h: Hint | undefined, step: number): CompanionCue | undefined {
+    if (!h || step < 1) return undefined;
     const s = Math.min(3, step) as 1 | 2 | 3;
-    const h = hintWithName(n.hint, name);
     return { kind: 'hint', step: s, text: s === 1 ? h.word : s === 2 ? h.frame : h.full };
   }
 
@@ -174,6 +284,11 @@ export class ScriptedDialogue implements DialogueSource {
     const scene = this.scene(state.scene);
     const n = this.node(scene, state.node);
     const npc = scene.npc ? this.npcs.get(scene.npc) : undefined;
+    // An order at a shop (Y1); anything it does not take goes on to the usual requests and misses below.
+    if (!state.ended && n.order) {
+      const t = this.orderReply(scene, n, state, u);
+      if (t) return t;
+    }
     // Doing what the line says (X8): a pick or a written character moves on; a wrong pick is never a dead end.
     if (!state.ended && (n.choose || n.trace)) {
       if (n.trace && u.traced) return { kind: 'match', intent: 'trace', ...this.move(scene, n, n.trace.go, !n.trace.go, n.trace.actions ?? [], state) };
@@ -194,7 +309,7 @@ export class ScriptedDialogue implements DialogueSource {
     if (input.kind === 'empty') return stay('repeat', this.line(scene, n, 'say', false, nm));
 
     // Words at a pick-or-write line: questions are answered, anything else hears the line again.
-    if (n.choose || n.trace) {
+    if ((n.choose || n.trace) && !n.order) {
       const known = [...Object.keys(npc?.explains ?? {}), ...(scene.words ?? []).map((w) => w.w)];
       const word = explainWord(input, this.lex, known);
       const explain = word ? (npc?.explains[word] ?? scene.words?.find((w) => w.w === word)?.explain) : undefined;
@@ -204,8 +319,8 @@ export class ScriptedDialogue implements DialogueSource {
       return stay('repeat', this.line(scene, n, 'say', false, nm), { intent: 'repeat' });
     }
 
-    // A node with nothing to expect: whatever is said, go on.
-    if (!n.expect?.length) {
+    // A node with nothing to expect: whatever is said, go on (an order line waits for its order).
+    if (!n.expect?.length && !n.order) {
       const polite = politeIntent(input, this.lex);
       if (polite === 'bye') return { kind: 'polite', intent: 'bye', say: this.aside(scene, POLITE_REPLY.bye.zh, POLITE_REPLY.bye.en), actions: [], end: true, state: { ...state, ended: true } };
       return this.proceed(state);
@@ -233,7 +348,7 @@ export class ScriptedDialogue implements DialogueSource {
     if (ask === 'simpler') return stay('simpler', this.line(scene, n, 'simpler', false, nm), { intent: 'simpler' });
 
     // 2. The scene's own intents.
-    const m = matchIntent(n.expect, input, this.lex);
+    const m = matchIntent(n.expect ?? [], input, this.lex);
     // A homophone picked by mistake from a keyboard is kept too, with the same note.
     if (m) {
       const note = m.heard.length ? m.heard.map((h) => heardNote(h, this.lex)).join(' ') : undefined;
@@ -282,7 +397,7 @@ export class ScriptedDialogue implements DialogueSource {
     const hint = misses >= 2 ? Math.min(3, Math.max(state.hint, 0) + 1) : state.hint;
     const lines = npc?.misses?.length ? npc.misses : DEFAULT_MISSES;
     const zh = lines[(misses - 1) % lines.length]!;
-    const cue = misses >= 2 ? this.hintCue(n, hint, nm) : undefined;
+    const cue = misses >= 2 ? this.hintCue(this.hintAt(state), hint) : undefined;
     return {
       kind: 'miss',
       say: this.aside(scene, zh, 'What did you say?'),

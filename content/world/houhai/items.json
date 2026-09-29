@@ -1,19 +1,16 @@
 [
   {
-    "id": "yuer",
-    "name": "鱼饵",
-    "en": "fishing bait"
-  },
-  {
     "id": "zongzi",
     "name": "粽子",
     "en": "zongzi",
-    "gift": true
+    "gift": true,
+    "kind": "food"
   },
   {
     "id": "xiaoyu",
     "name": "小鱼",
     "en": "a little fish",
-    "gift": true
+    "gift": true,
+    "kind": "food"
   }
 ]

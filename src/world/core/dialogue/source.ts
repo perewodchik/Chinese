@@ -53,6 +53,11 @@ export interface DialogueState {
   ended: boolean;
   /** the player's name, for lines that say it (X2) */
   name?: string;
+  /** what has been ordered so far at a shop (Y1) */
+  cart?: { item: string; n: number }[];
+  /** at a shop: the money you had when the talk began, and what is on sale today (Y1) */
+  wallet?: number;
+  onSale?: string[];
 }
 
 /** What happened to the player's line. */

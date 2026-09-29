@@ -19,7 +19,7 @@ const content = checkContent('content/world', lib).districts;
 const scenes = content.flatMap((d) => d.scenes);
 const npcs = content.flatMap((d) => d.npcs);
 const quests = content.flatMap((d) => d.quests);
-const src = new ScriptedDialogue({ scenes, npcs }, lex);
+const src = new ScriptedDialogue({ scenes, npcs, shops: content.flatMap((d) => d.shops ?? []), items: content.flatMap((d) => d.items) }, lex);
 
 /** Applies a turn's actions the way the page does: the save, then quests move on. */
 function act(s: WorldSave, actions: readonly SaveAction[]): WorldSave {
@@ -40,7 +40,12 @@ function play(s: WorldSave, sceneId: string, answers: string[] = []): { save: Wo
   const said = [t.say?.zh ?? ''];
   for (let i = 0, guard = 0; !t.state.ended && guard < 30; guard++) {
     const node: DialogueNode = scene.nodes.find((n) => n.id === t.state.node)!;
-    if (node.choose || node.trace) {
+    if (node.order) {
+      // a shop (Y1): the given words, else the hint — order the first thing, then 不要了 to pay
+      const text = answers[i++] ?? src.answer(t.state)!.text;
+      t = src.reply(t.state, { text, via: 'keyboard' });
+      assert.equal(t.kind === 'match' || t.kind === 'polite', true, `${sceneId}/${node.id}: “${text}” was not taken (${t.kind})`);
+    } else if (node.choose || node.trace) {
       // a pick or a written character (X8): the right one moves on
       t = src.reply(t.state, answerFor(node)!);
       assert.equal(t.kind, 'match', `${sceneId}/${node.id}: the right pick did not move the talk on (${t.kind})`);
@@ -73,9 +78,11 @@ describe('chapter 1, played through the core', () => {
     assert.equal(sceneFor(scenes, s, { npc: 'wang-ayi' })?.id, 'wang-go-eat');
 
     assert.equal(sceneFor(scenes, s, { npc: 'zaodian-shifu' })?.id, 'breakfast');
-    s = play(s, 'breakfast').save;
-    assert.equal(s.bag.money, 196);
+    // an ordinary order now (Y1): a bun and a soy milk, 3 元 each
+    s = play(s, 'breakfast', ['我要一个包子，一杯豆浆。', '不要了。']).save;
+    assert.equal(s.bag.money, 194);
     assert.equal(s.bag.items.baozi, 1);
+    assert.equal(s.bag.items.doujiang, 1);
     assert.equal(step(s), 'lantern');
 
     assert.equal(sceneFor(scenes, s, { look: 'old-lantern', map: 'siheyuan-yard' })?.id, 'lantern');
@@ -102,7 +109,7 @@ describe('chapter 1, played through the core', () => {
     assert.equal(sceneFor(scenes, s, { npc: 'station-staff' })?.id, 'card');
     s = play(s, 'card').save;
     assert.equal(s.bag.card, 20);
-    assert.equal(s.bag.money, 156);
+    assert.equal(s.bag.money, 154);
     assert.equal(step(s), 'ride');
     assert.ok(s.flags.includes('has-card'));
 
@@ -321,7 +328,7 @@ describe('chapter 5, played through the core', () => {
     assert.equal(sceneFor(scenes, s, { look: 'pixiu', map: 'guomao-bank' })?.id, 'pixiu-ask');
     s = play(s, 'pixiu-ask').save;
     assert.equal(at(), 'gold');
-    s = play(s, 'store').save;
+    s = play(s, 'shop-bianlidian', ['我要一块金币巧克力。', '不要了。']).save;
     assert.equal(sceneFor(scenes, s, { look: 'pixiu', map: 'guomao-bank' })?.id, 'pixiu-give');
     s = play(s, 'pixiu-give').save;
     assert.ok('pixiu' in s.spirits);
@@ -424,8 +431,9 @@ describe('every scene, and the side quests', () => {
     let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 2 }, { do: 'flag', flag: 'heard-fox' }, { do: 'scene_done', scene: 'fisher-fox' }]);
     assert.equal(sceneFor(scenes, s, { npc: 'fisher-yeye' })?.id, 'bait-ask');
     s = play(s, 'bait-ask').save;
-    assert.equal(sceneFor(scenes, s, { npc: 'li-ayi' })?.id, 'bait-buy');
-    s = play(s, 'bait-buy').save;
+    assert.equal(sceneFor(scenes, s, { npc: 'li-ayi' })?.id, 'shop-li-ayi');
+    s = play(s, 'shop-li-ayi', ['我要一包鱼饵。', '不要了。']).save;
+    assert.equal(s.bag.items.yuer, 1);
     s = play(s, 'bait-give').save;
     assert.equal(s.quests['side-bait']?.done, true);
   });

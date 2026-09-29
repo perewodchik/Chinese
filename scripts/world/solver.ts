@@ -17,7 +17,8 @@ import { readFileSync } from 'node:fs';
 import { castMap } from '../../src/world/core/cast';
 import { libraryLexicon } from '../../src/world/core/dialogue/lexicon';
 import { answerFor, ScriptedDialogue } from '../../src/world/core/dialogue/scripted';
-import { advanceQuests } from '../../src/world/core/quests';
+import { activeQuests, advanceQuests } from '../../src/world/core/quests';
+import { holds } from '../../src/world/core/flags';
 import { applyAll, newSave, type SaveAction } from '../../src/world/core/save';
 import { autoScene, sceneFor } from '../../src/world/core/scenes';
 import type { Scene, WorldSave } from '../../src/world/core/types';
@@ -33,7 +34,9 @@ export const quests = districts.flatMap((d) => d.quests);
 const stampIds = districts.flatMap((d) => d.stamps.map((x) => x.id));
 /** everything a quest or scene wants photographed (X6): `<map>:<object>` */
 const photoSubjects = [...new Set([...JSON.stringify(districts).matchAll(/"photo":"([^"]+)"/g)].map((m) => m[1]!))];
-const src = new ScriptedDialogue({ scenes, npcs }, lex);
+const shops = districts.flatMap((d) => d.shops ?? []);
+const items = new Map(districts.flatMap((d) => d.items).map((i) => [i.id, i]));
+const src = new ScriptedDialogue({ scenes, npcs, shops, items: [...items.values()] }, lex);
 export const maps: MapInfo[] = districts
   .flatMap((d) => d.district.maps)
   .map((id) => readMap(id, JSON.parse(readFileSync(`public/world/maps/${id}.json`, 'utf8'))));
@@ -58,11 +61,39 @@ function act(s: WorldSave, actions: readonly SaveAction[], short: string[], wher
   return advanceQuests(applyAll(s, actions, ctx), quests, ctx);
 }
 
+/** What a patient player goes shopping for now: things the current step of a quest waits for, and things a scene could be used with right now. */
+/** How often a patient player buys the same thing: food a few times (the cat eats every day), anything else once. */
+const bought = new Map<string, number>();
+const buyLimit = (item: string) => (['food', 'drink'].includes(items.get(item)?.kind ?? '') ? 5 : 1);
+
+function wantedNow(s: WorldSave): Set<string> {
+  const out = new Set<string>();
+  for (const a of activeQuests(s, quests)) for (const m of JSON.stringify(a.step.done ?? {}).matchAll(/"item":"([^"]+)"/g)) out.add(m[1]!);
+  for (const sc of scenes) if (sc.use && holds(sc.when, s)) out.add(sc.use);
+  return out;
+}
+
 function play(s: WorldSave, scene: Scene, short: string[]): WorldSave {
   let t = src.start(scene, s);
   let save = act(s, t.actions, short, scene.id);
   for (let guard = 0; !t.state.ended && guard < 40; guard++) {
     const node = scene.nodes.find((n) => n.id === t.state.node)!;
+    // at a shop: buy one thing something is waiting for (or the first thing, for a story order), then pay (Y1)
+    if (node.order) {
+      const shop = shops.find((x) => x.id === node.order!.shop)!;
+      const wanted = wantedNow(save);
+      const need = shop.stock.find(
+        (x) => wanted.has(x.item) && !(save.bag.items[x.item] ?? 0) && (t.state.onSale ?? []).includes(x.item) && (bought.get(x.item) ?? 0) < buyLimit(x.item),
+      );
+      const pick = need ?? (node.order.go ? shop.stock.find((x) => (t.state.onSale ?? []).includes(x.item)) : undefined);
+      const name = pick && items.get(pick.item)?.name;
+      const say = t.state.cart?.length || !name ? '不要了' : `我要一${pick!.measure ?? '个'}${name}`;
+      t = src.reply(t.state, { text: say, via: 'keyboard' });
+      // only what was paid for counts as bought
+      for (const a of t.actions) if (a.do === 'give') bought.set(a.item, (bought.get(a.item) ?? 0) + 1);
+      save = act(save, t.actions, short, scene.id);
+      continue;
+    }
     const answer = answerFor(node, t.state.name ?? '');
     t = answer ? src.reply(t.state, answer) : node.expect?.length ? src.reply(t.state, { text: '', via: 'keyboard' }) : src.proceed(t.state);
     save = act(save, t.actions, short, scene.id);
@@ -164,6 +195,7 @@ function rideTo(s: WorldSave): { to: string; actions: SaveAction[] } | null {
  */
 export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000, goal?: (s: WorldSave) => boolean): Run {
   let s = start;
+  bought.clear();
   const log: string[] = [];
   const short: string[] = [];
   const chapters = new Map<number, WorldSave>([[s.chapter, s]]);
@@ -171,7 +203,12 @@ export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000,
   for (let step = 0, idle = 0; step < maxSteps; step++) {
     if (goal?.(s)) break;
     const key = progress(s);
-    const next = candidates(s).find((sc) => !tried.has(`${sc.id}|${key}`));
+    // a shop is worth another visit when something new is wanted (rain brings the umbrella, winter the couplets)
+    const want = [...wantedNow(s)].sort().join(',');
+    const tryKey = (sc: Scene) => `${sc.id}|${key}${sc.id.startsWith('shop-') ? `|${want}|${Math.floor(s.bag.money / 10)}` : ''}`;
+    // a patient player puts a decoration on an empty spot, and does not keep swapping them round
+    const swaps = (sc: Scene) => sc.nodes.some((n) => n.onEnter?.some((x) => x.do === 'place' && s.room[x.spot]));
+    const next = candidates(s).find((sc) => !tried.has(tryKey(sc)) && !swaps(sc));
     if (!next) {
       // a ride somewhere new (the page's ride sheet: out at a station, the fare from the card)
       const ride = rideTo(s);
@@ -217,13 +254,13 @@ export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000,
       s = act(s, [{ do: 'tick', minutes: Math.floor(s.clock / 1440) * 1440 + to * 60 }], short, 'clock');
       continue;
     }
-    tried.add(`${next.id}|${key}`);
+    tried.add(tryKey(next));
     const spent: string[] = [];
     const after = play(s, next, spent);
     // a talk that moves nothing is as if it never happened (no buying water twenty times)
     if (progress(after) !== key) {
       idle = 0;
-      log.push(next.id);
+      log.push(next.id + (after.bag.money !== s.bag.money ? `(${after.bag.money - s.bag.money})` : ""));
       short.push(...spent);
       if (after.chapter !== s.chapter) chapters.set(after.chapter, after);
       s = after;

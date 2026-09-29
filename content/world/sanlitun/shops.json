@@ -1,0 +1,16 @@
+[
+  {
+    "id": "bianlidian",
+    "npc": "bianlidian-yuan",
+    "map": "bianlidian",
+    "name": "便利店",
+    "pay": "scan",
+    "stock": [
+      {
+        "item": "jinbi",
+        "price": 10,
+        "measure": "块"
+      }
+    ]
+  }
+]

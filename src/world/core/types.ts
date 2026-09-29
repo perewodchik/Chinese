@@ -226,6 +226,8 @@ export interface DialogueNode {
   choose?: Choose;
   /** write what the line says with a finger (X8) */
   trace?: Trace;
+  /** take an order at a shop (Y1): the talk engine handles the order, the paying, and goes on to `go` afterwards */
+  order?: { shop: string; go?: string };
   /** when there is nothing to expect: tap to go on here (none = the end) */
   next?: string;
   hint?: Hint;
@@ -324,7 +326,13 @@ export interface Item {
   icon?: string;
   /** something one can give as a present (food, flowers …) */
   gift?: boolean;
+  /** what sort of thing it is (Y1); a `key` (story) item cannot be given away or sold */
+  kind?: ItemKind;
+  /** its base value in yuan, for selling (Y3) */
+  price?: number;
 }
+
+export type ItemKind = 'food' | 'drink' | 'gift' | 'tool' | 'decor' | 'toy' | 'key';
 
 /** Everything one district's folder holds, after validation. */
 export interface DistrictContent {
@@ -336,6 +344,8 @@ export interface DistrictContent {
   idioms: Idiom[];
   stamps: Stamp[];
   items: Item[];
+  /** sellers and what they sell (Y1); each becomes a generated `shop-<id>` scene */
+  shops?: import('./shop').Shop[];
 }
 
 // ---------------------------------------------------------------------------

@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { dayOf, partOfDay } from '../../world/core/clock';
-import { hintWithName } from '../../world/core/voice';
 import { festivalOf, skyOf, weatherOf, type FestivalId } from '../../world/core/calendar';
 import { CAT_LANE } from '../../world/core/room';
 import { DOZE_AFTER_MS, emoteFor, hatFor } from '../../world/core/rabbit';
@@ -450,8 +449,8 @@ export function WorldPage() {
   const [hint, setHint] = useState({ at: '', step: 0 });
   const cueStep = talk.view?.cue?.kind === 'hint' ? talk.view.cue.step : 0;
   const hintStep = Math.max(hint.at === talkAt ? hint.step : 0, cueStep);
-  const hintRaw = talk.view?.scene.nodes.find((n) => n.id === talk.view?.state.node)?.hint;
-  const hintNow = hintRaw ? hintWithName(hintRaw, talk.view?.state.name ?? '') : undefined;
+  // the line's own hint, or at a shop the thing to order (Y1)
+  const hintNow = talk.view ? talk.hint() : undefined;
   // 兔儿爷 speaks up by himself: after two misses in a row (or a misheard word), one short line.
   const cue = talk.view?.cue;
   const misses = talk.view?.misses ?? 0;

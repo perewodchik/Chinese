@@ -1,3 +1,4 @@
+import type { Shop } from '../core/shop';
 import { useEffect, useState } from 'react';
 import type { DistrictContent, Idiom, Item, NpcCard, Quest, Scene, Spirit, Stamp } from '../core/types';
 
@@ -11,12 +12,14 @@ export interface WorldContent {
   idioms: Idiom[];
   stamps: Stamp[];
   items: Item[];
+  /** sellers and their stock (Y1) */
+  shops: Shop[];
   /** manual or generated pinyin per line text, from the content build */
   pinyin: Record<string, string>;
 }
 
 export const EMPTY_CONTENT: WorldContent = {
-  districts: [], npcs: [], scenes: [], quests: [], spirits: [], idioms: [], stamps: [], items: [], pinyin: {},
+  districts: [], npcs: [], scenes: [], quests: [], spirits: [], idioms: [], stamps: [], items: [], shops: [], pinyin: {},
 };
 
 export function mergeContent(parts: Array<DistrictContent & { pinyin?: Record<string, string> }>): WorldContent {
@@ -29,6 +32,7 @@ export function mergeContent(parts: Array<DistrictContent & { pinyin?: Record<st
     idioms: parts.flatMap((p) => p.idioms),
     stamps: parts.flatMap((p) => p.stamps),
     items: parts.flatMap((p) => p.items),
+    shops: parts.flatMap((p) => p.shops ?? []),
     pinyin: Object.assign({}, ...parts.map((p) => p.pinyin ?? {})),
   };
 }

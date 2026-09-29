@@ -1,0 +1,114 @@
+[
+  {
+    "id": "li-ayi",
+    "npc": "li-ayi",
+    "map": "xiaomaibu",
+    "name": "李阿姨小卖部",
+    "pay": "scan",
+    "stock": [
+      {
+        "item": "water",
+        "price": 2,
+        "measure": "瓶"
+      },
+      {
+        "item": "xiaoyugan",
+        "price": 3,
+        "measure": "包"
+      },
+      {
+        "item": "yuer",
+        "price": 5,
+        "measure": "包"
+      },
+      {
+        "item": "zhugan",
+        "price": 10,
+        "measure": "根"
+      },
+      {
+        "item": "shoudiantong",
+        "price": 15
+      },
+      {
+        "item": "baowenbei",
+        "price": 20
+      },
+      {
+        "item": "yusan",
+        "price": 15,
+        "measure": "把"
+      },
+      {
+        "item": "huapen",
+        "price": 10,
+        "measure": "盆"
+      },
+      {
+        "item": "jianzhi",
+        "price": 10,
+        "measure": "张"
+      },
+      {
+        "item": "hongbao",
+        "price": 5,
+        "when": {
+          "season": "winter"
+        }
+      },
+      {
+        "item": "chunlian",
+        "price": 10,
+        "measure": "副",
+        "when": {
+          "season": "winter"
+        }
+      },
+      {
+        "item": "fu",
+        "price": 5,
+        "measure": "张",
+        "when": {
+          "season": "winter"
+        }
+      }
+    ]
+  },
+  {
+    "id": "zaodian",
+    "npc": "zaodian-shifu",
+    "map": "zaodian",
+    "name": "早点铺",
+    "pay": "scan",
+    "stock": [
+      {
+        "item": "baozi",
+        "price": 3
+      },
+      {
+        "item": "doujiang",
+        "price": 3,
+        "measure": "杯"
+      },
+      {
+        "item": "youtiao",
+        "price": 3,
+        "measure": "根"
+      }
+    ]
+  },
+  {
+    "id": "tanghulu",
+    "npc": "tanghulu-dashu",
+    "map": "nanluo-main",
+    "name": "糖葫芦",
+    "pay": "code",
+    "stock": [
+      {
+        "item": "tanghulu",
+        "price": 10,
+        "measure": "串"
+      }
+    ]
+  }
+]

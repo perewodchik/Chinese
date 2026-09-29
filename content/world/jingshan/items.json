@@ -2,6 +2,7 @@
   {
     "id": "hua",
     "name": "画",
-    "en": "a painting of the White Dagoba"
+    "en": "a painting of the White Dagoba",
+    "kind": "key"
   }
 ]

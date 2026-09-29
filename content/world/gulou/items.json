@@ -3,142 +3,191 @@
     "id": "baozi",
     "name": "包子",
     "en": "steamed bun",
-    "gift": true
+    "gift": true,
+    "kind": "food",
+    "price": 3
   },
   {
     "id": "doujiang",
     "name": "豆浆",
     "en": "soy milk",
-    "gift": true
+    "gift": true,
+    "kind": "drink",
+    "price": 3
   },
   {
     "id": "youtiao",
     "name": "油条",
     "en": "fried dough stick",
-    "gift": true
+    "gift": true,
+    "kind": "food",
+    "price": 3
   },
   {
     "id": "water",
     "name": "水",
     "en": "a bottle of water",
-    "gift": true
+    "gift": true,
+    "kind": "drink",
+    "price": 2
   },
   {
     "id": "huzhao",
     "name": "护照",
-    "en": "your passport"
+    "en": "your passport",
+    "kind": "key"
   },
   {
     "id": "niao",
     "name": "鸟",
-    "en": "赵爷爷's bird"
+    "en": "赵爷爷's bird",
+    "kind": "key"
   },
   {
     "id": "tanghulu",
     "name": "糖葫芦",
     "en": "candied haws on a stick",
-    "gift": true
+    "gift": true,
+    "kind": "food",
+    "price": 10
   },
   {
     "id": "zhugan",
     "name": "竹竿",
-    "en": "a bamboo pole"
+    "en": "a bamboo pole",
+    "kind": "tool",
+    "price": 10
   },
   {
     "id": "fengzheng",
     "name": "风筝",
-    "en": "小明's kite"
+    "en": "小明's kite",
+    "kind": "key"
   },
   {
     "id": "shoudiantong",
     "name": "手电筒",
-    "en": "a torch"
+    "en": "a torch",
+    "kind": "tool",
+    "price": 15
   },
   {
     "id": "yaoshi",
     "name": "钥匙",
-    "en": "your keys"
+    "en": "your keys",
+    "kind": "key"
   },
   {
     "id": "baowenbei",
     "name": "保温杯",
-    "en": "a thermos flask (empty)"
+    "en": "a thermos flask (empty)",
+    "kind": "tool",
+    "price": 20
   },
   {
     "id": "reshui",
     "name": "热水",
-    "en": "a thermos of hot water"
+    "en": "a thermos of hot water",
+    "kind": "drink"
   },
   {
     "id": "shouji",
     "name": "手机",
-    "en": "your phone"
+    "en": "your phone",
+    "kind": "key"
   },
   {
     "id": "lao-zhaopian",
     "name": "老照片",
-    "en": "an old photo of the first barber shop"
+    "en": "an old photo of the first barber shop",
+    "kind": "key"
   },
   {
     "id": "yusan",
     "name": "雨伞",
-    "en": "umbrella"
+    "en": "umbrella",
+    "kind": "tool",
+    "price": 15
   },
   {
     "id": "hongbao",
     "name": "红包",
-    "en": "red envelope"
+    "en": "red envelope",
+    "kind": "gift",
+    "price": 5
   },
   {
     "id": "chunlian",
     "name": "春联",
-    "en": "spring couplets"
+    "en": "spring couplets",
+    "kind": "decor",
+    "price": 10
   },
   {
     "id": "fu",
     "name": "福",
-    "en": "a 福 “luck” sign"
+    "en": "a 福 “luck” sign",
+    "kind": "decor",
+    "price": 5
   },
   {
     "id": "jiaozi",
     "name": "饺子",
     "en": "dumplings",
-    "gift": true
+    "gift": true,
+    "kind": "food"
   },
   {
     "id": "yuanxiao",
     "name": "元宵",
     "en": "sweet rice balls",
-    "gift": true
+    "gift": true,
+    "kind": "food"
   },
   {
     "id": "huapen",
     "name": "花",
-    "en": "a pot of flowers"
+    "en": "a pot of flowers",
+    "kind": "decor",
+    "price": 10
   },
   {
     "id": "jianzhi",
     "name": "剪纸",
-    "en": "a paper-cut"
+    "en": "a paper-cut",
+    "kind": "decor",
+    "price": 10
   },
   {
     "id": "xiaoyugan",
     "name": "小鱼干",
-    "en": "dried fish (for the cat)"
+    "en": "dried fish (for the cat)",
+    "kind": "food",
+    "price": 3
   },
   {
     "id": "mutou",
     "name": "木头",
-    "en": "old wood"
+    "en": "old wood",
+    "kind": "key"
   },
   {
     "id": "hongbu",
     "name": "红布",
-    "en": "red cloth"
+    "en": "red cloth",
+    "kind": "key"
   },
   {
     "id": "xiang",
     "name": "香",
-    "en": "incense"
+    "en": "incense",
+    "kind": "key"
+  },
+  {
+    "id": "yuer",
+    "name": "鱼饵",
+    "en": "fishing bait",
+    "kind": "tool",
+    "price": 5
   }
 ]

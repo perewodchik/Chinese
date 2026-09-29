@@ -37,6 +37,7 @@ export function modeOf(scene: Scene, t: Turn): TalkView['mode'] {
   if (t.end || t.state.ended) return 'over';
   const node = scene.nodes.find((n) => n.id === t.state.node);
   if (node?.choose) return 'choose';
+  if (node?.order) return 'reply';
   if (node?.trace) return 'trace';
   if (node?.expect?.length) return 'reply';
   // A first line that expects nothing and leads nowhere is all there is.
@@ -81,7 +82,7 @@ export function smallTalk(npcId: string, _card: NpcCard | null): Scene {
 export function useTalk(content: WorldContent, lex: Lexicon | null, dispatch: (a: readonly SaveAction[]) => WorldSave | null) {
   const [view, setView] = useState<TalkView | null>(null);
   const cur = useRef<TalkView | null>(null);
-  const source = useMemo(() => (lex ? new ScriptedDialogue({ scenes: content.scenes, npcs: content.npcs }, lex) : null), [content, lex]);
+  const source = useMemo(() => (lex ? new ScriptedDialogue({ scenes: content.scenes, npcs: content.npcs, shops: content.shops, items: content.items }, lex) : null), [content, lex]);
 
   const take = useCallback(
     (t: Turn, you?: string, sticker?: string) => {
@@ -154,5 +155,8 @@ export function useTalk(content: WorldContent, lex: Lexicon | null, dispatch: (a
     setView(null);
   }, []);
 
-  return { view, start, reply, pick, traced, proceed, close };
+  /** what 💡 offers now (a shop's order line makes its own) */
+  const hint = useCallback(() => (cur.current && source ? source.hintAt(cur.current.state) : undefined), [source]);
+
+  return { view, start, reply, pick, traced, proceed, close, hint };
 }

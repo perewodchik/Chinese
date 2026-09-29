@@ -1,0 +1,15 @@
+[
+  {
+    "id": "guwan",
+    "npc": "guwan-laoban",
+    "map": "panjiayuan-market",
+    "name": "古董摊",
+    "pay": "code",
+    "stock": [
+      {
+        "item": "denglong",
+        "price": 30
+      }
+    ]
+  }
+]

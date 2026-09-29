@@ -2,32 +2,49 @@
   {
     "id": "chengyu-shu",
     "name": "成语故事",
-    "en": "a book of idiom stories"
+    "en": "a book of idiom stories",
+    "kind": "key",
+    "price": 30
   },
   {
     "id": "hongzhi",
     "name": "红纸",
-    "en": "red paper"
+    "en": "red paper",
+    "kind": "key",
+    "price": 5
   },
   {
     "id": "ganmaoyao",
     "name": "感冒药",
-    "en": "cold medicine"
+    "en": "cold medicine",
+    "kind": "key",
+    "price": 20
   },
   {
     "id": "gushishu",
     "name": "故事书",
-    "en": "a storybook"
+    "en": "a storybook",
+    "kind": "gift",
+    "price": 15
   },
   {
     "id": "yuebing",
     "name": "月饼",
     "en": "a moon cake",
-    "gift": true
+    "gift": true,
+    "kind": "food",
+    "price": 8
   },
   {
     "id": "shufa",
     "name": "书法",
     "en": "a scroll of calligraphy"
+  },
+  {
+    "id": "maobi",
+    "name": "毛笔",
+    "en": "a writing brush",
+    "kind": "tool",
+    "price": 20
   }
 ]

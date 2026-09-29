@@ -2,21 +2,27 @@
   {
     "id": "ditu",
     "name": "地图",
-    "en": "an old map of Beijing"
+    "en": "an old map of Beijing",
+    "kind": "key",
+    "price": 30
   },
   {
     "id": "denglong",
     "name": "灯笼",
-    "en": "a red lantern"
+    "en": "a red lantern",
+    "kind": "decor",
+    "price": 30
   },
   {
     "id": "lingdang",
     "name": "铃铛",
-    "en": "a small yellow camel bell"
+    "en": "a small yellow camel bell",
+    "kind": "key"
   },
   {
     "id": "changmingdeng",
     "name": "长明灯",
-    "en": "an ever-burning lamp"
+    "en": "an ever-burning lamp",
+    "kind": "key"
   }
 ]

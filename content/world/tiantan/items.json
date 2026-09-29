@@ -2,11 +2,13 @@
   {
     "id": "long-fengzheng",
     "name": "龙风筝",
-    "en": "a red dragon kite"
+    "en": "a red dragon kite",
+    "kind": "toy"
   },
   {
     "id": "kongzhu",
     "name": "空竹",
-    "en": "a diabolo"
+    "en": "a diabolo",
+    "kind": "toy"
   }
 ]
