@@ -66,3 +66,24 @@ describe('the golden saves', () => {
     });
   }
 });
+
+describe('money goes round (Y3)', () => {
+  it('a player who buys everything they are offered still finishes every quest', () => {
+    const run = solve(undefined, 40000, undefined, { spendAll: true });
+    assert.deepEqual(
+      quests.filter((q) => !run.save.quests[q.id]?.done).map((q) => q.id),
+      [],
+    );
+    assert.deepEqual(run.short, []);
+  });
+
+  it('a broke player earns a 交通卡 (40 元) within one game day of jobs', () => {
+    const golden = readSave(JSON.parse(readFileSync('content/world/test-saves/chapter-2.json', 'utf8')));
+    assert.ok(golden.ok);
+    const broke = { ...golden.save, bag: { ...golden.save.bag, money: 0 } };
+    const run = solve(broke, 400, (s) => s.bag.money >= 40);
+    assert.ok(run.save.bag.money >= 40, `only ${run.save.bag.money} 元 after ${run.log.join(' ')}`);
+    assert.ok(Math.floor(run.save.clock / 1440) - Math.floor(broke.clock / 1440) <= 1);
+  });
+});
+

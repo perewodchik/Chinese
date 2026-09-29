@@ -4,7 +4,7 @@
     "npc": "guwan-laoban",
     "map": "panjiayuan-market",
     "name": "古董摊",
-    "pay": "code",
+    "pay": "scan",
     "stock": [
       {
         "item": "denglong",

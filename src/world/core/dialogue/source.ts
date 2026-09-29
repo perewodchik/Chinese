@@ -41,6 +41,18 @@ export interface Utterance {
   choice?: string;
   /** the characters written with a finger (X8) */
   traced?: boolean;
+  /** an amount paid on the phone (Y2) */
+  paid?: number;
+}
+
+export interface Due {
+  total: number;
+  /** what the cashier rang up (a 付款码 shop may get it wrong) */
+  charged: number;
+  mode: 'scan' | 'code';
+  /** the shop's name on the phone */
+  name: string;
+  cart: { item: string; n: number }[];
 }
 
 export interface DialogueState {
@@ -58,6 +70,15 @@ export interface DialogueState {
   /** at a shop: the money you had when the talk began, and what is on sale today (Y1) */
   wallet?: number;
   onSale?: string[];
+  /** an order waiting to be paid (Y2): scan the stall's code and type the amount, or check what the cashier charged */
+  due?: Due;
+  /** a cashier may ring up the wrong amount on this game day (Y2, at most once a day) */
+  mischarge?: number;
+  /** at the recycler (Y3): what you could sell him and for how much, and his offer on the table */
+  sellable?: { item: string; name: string; price: number }[];
+  offer?: { item: string; name: string; price: number };
+  /** what is in your bag that could be handed over by saying it (Y4) */
+  held?: { item: string; name: string }[];
 }
 
 /** What happened to the player's line. */
@@ -72,7 +93,7 @@ export type TurnKind =
   | 'polite'
   | 'not_chinese'
   | 'miss'
-  /** a wrong pick at a choose line: "not that one", try again */
+  /** a wrong pick at a choose line, or a wrong amount on the phone: "not that one", try again */
   | 'wrong';
 
 /** What the companion should offer, unasked, after this turn. */
@@ -92,6 +113,10 @@ export interface Turn {
   end?: boolean;
   /** an English note for the companion (misheard words) */
   note?: string;
+  /** a line heard before `say`: the stall's speaker box after a payment (Y2) */
+  chime?: Line;
+  /** 「给你糖葫芦」: hand this item over (the page runs the present / use logic, Y4) */
+  gift?: string;
   companion?: CompanionCue;
   state: DialogueState;
 }

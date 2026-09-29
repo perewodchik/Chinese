@@ -42,6 +42,8 @@ export interface Shop {
   stock: ShopStock[];
   /** below story scenes (lower first), above one-liners (5) */
   priority?: number;
+  /** now and then the cashier rings up the wrong amount (Y2: a reading drill, not a trap) */
+  mischarge?: boolean;
 }
 
 export interface CartLine {
@@ -64,13 +66,21 @@ export function readNumber(s: string): number | null {
   return tens * 10 + ones;
 }
 
-/** A count in Chinese: 两 for 2 before a measure word, 十二, 二十. */
+/** A count in Chinese: 两 for 2 before a measure word, 十二, 二十, 一百零五, 两百 (up to 999). */
 export function numZh(n: number, count = true): string {
   if (n === 2 && count) return '两';
   if (n < 10) return DIGITS[n]!;
-  const tens = Math.floor(n / 10);
-  const ones = n % 10;
-  return `${tens === 1 ? '' : DIGITS[tens]}十${ones ? DIGITS[ones] : ''}`;
+  if (n < 100) {
+    const tens = Math.floor(n / 10);
+    const ones = n % 10;
+    return `${tens === 1 ? '' : DIGITS[tens]}十${ones ? DIGITS[ones] : ''}`;
+  }
+  const h = Math.floor(n / 100);
+  const rest = n % 100;
+  const head = `${h === 2 && count ? '两' : DIGITS[h]}百`;
+  if (!rest) return head;
+  // 一百零五; 一百一十 (the 一 comes back after 百)
+  return head + (rest < 10 ? `零${DIGITS[rest]}` : rest < 20 ? `一${numZh(rest, false)}` : numZh(rest, false));
 }
 
 /** 3 → 三块, 2 → 两块, 3.5 → 三块五, 0.5 → 五毛, 12 → 十二块. */
@@ -82,6 +92,36 @@ export function priceZh(p: number): string {
 }
 
 export const priceEn = (p: number) => `${p % 1 ? p.toFixed(1) : p} 元`;
+
+/** How the speaker box says it: 十五元, 二元, 三点五元. */
+export function yuanZh(p: number): string {
+  const yuan = Math.floor(p);
+  const mao = Math.round((p - yuan) * 10);
+  return `${yuan ? numZh(yuan, false) : '零'}${mao ? `点${numZh(mao, false)}` : ''}元`;
+}
+
+/** The phone's ¥23.00 */
+export const priceYen = (p: number) => `¥${p.toFixed(2)}`;
+
+/** Paying (Y2) */
+export const PAY_LINES = {
+  scan: (total: string) => ({ zh: `一共${total}。扫这儿吧。`, en: 'Scan the code here.' }),
+  code: (total: string) => ({ zh: `一共${total}。`, en: '' }),
+  more: { zh: '多了！', en: 'That’s too much!' },
+  less: (total: string) => ({ zh: `不对，是${total}。`, en: `No — it’s ${total}.` }),
+  box: (yuan: string) => ({ zh: `支付宝到账，${yuan}。`, en: `Alipay: payment received, ${yuan}.` }),
+  sorry: (total: string) => ({ zh: `对不起！是${total}。谢谢你！`, en: 'Sorry! You’re right. Thank you!' }),
+  right: (total: string) => ({ zh: `没错，是${total}。`, en: 'No mistake — that’s right.' }),
+};
+
+/** Selling to the recycler (Y3) */
+export const SELL_LINES = {
+  ask: { zh: '你有什么旧东西？', en: 'What old things have you got?' },
+  more: { zh: '好！还有吗？', en: 'Good! Anything else?' },
+};
+
+/** A day when a 付款码 cashier gets the sum wrong once (every third day, only the first purchase). */
+export const mischargeDay = (day: number) => day % 3 === 0;
 
 /** 两个包子 / 一杯豆浆: each thing of the stock named in the text, with the number before it (1 when none). */
 export function parseOrder(text: string, stock: readonly { item: string; name: string }[]): CartLine[] {

@@ -1943,3 +1943,122 @@
 .w-dishu[data-drying] canvas {
   opacity: 0.15;
 }
+
+/* the 账单 in the bag (Y2) */
+.w-bills li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.w-bill {
+  font-variant-numeric: tabular-nums;
+}
+
+.w-bill[data-in] {
+  color: var(--jade, #357d49);
+}
+
+/* the phone at the counter (Y2): our own drawing in a 支付宝-like blue */
+.w-phone {
+  --pay: #1677ff;
+  display: grid;
+  gap: 6px;
+  max-width: 340px;
+  margin: 0 auto;
+  padding: 10px;
+  border: 2px solid var(--pay);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.w-phone-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--pay);
+  white-space: nowrap;
+}
+
+.w-phone-head .han {
+  font-weight: 600;
+}
+
+.w-phone-shop {
+  font-size: 15px;
+}
+
+.w-phone-amount {
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  min-height: 36px;
+}
+
+.w-phone-amount[data-short] {
+  color: var(--accent);
+}
+
+.w-phone-keys {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.w-phone-keys button {
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.w-phone-note {
+  margin: 0;
+  color: var(--ink-3);
+}
+
+.w-phone-go {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.w-phone-pay {
+  width: auto;
+  padding: 0 18px;
+  background: var(--pay);
+}
+
+.w-phone-pay[data-touch] {
+  animation: w-touch 0.65s ease-out;
+}
+
+@keyframes w-touch {
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--pay) 30%, transparent);
+  }
+}
+
+/* the bag's verbs (Y4): one compact row of Chinese verbs per item, and a seal on story things */
+.w-verbs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.w-seal {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+}

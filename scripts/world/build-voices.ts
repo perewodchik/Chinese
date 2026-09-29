@@ -18,7 +18,7 @@ import { POLITE_REPLY } from '../../src/world/core/dialogue/universal';
 import { allCalls } from '../../src/world/core/ride';
 import { STICKER_REPLY } from '../../src/world/core/photo';
 import type { DistrictContent } from '../../src/world/core/types';
-import { spoken, voiceKey, voiceOf, type VoiceId } from '../../src/world/core/voice';
+import { SAY_BITS, spoken, voiceKey, voiceOf, VOICES, type VoiceId } from '../../src/world/core/voice';
 import { checkContent, readLibrary } from './check-content';
 
 export const VOICE_OUT = 'public/world/voice';
@@ -59,6 +59,8 @@ export function clipsOf(districts: readonly DistrictContent[]): Clip[] {
   }
   // the train's calls, in the announcer's voice
   for (const c of allCalls()) add('announcer', c);
+  // the pieces prices are said in, in every voice (Y2)
+  for (const v of VOICES) for (const b of SAY_BITS) out.set(voiceKey(v, b), { key: voiceKey(v, b), voice: v, text: b });
   return [...out.values()];
 }
 

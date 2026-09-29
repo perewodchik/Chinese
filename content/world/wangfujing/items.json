@@ -11,7 +11,13 @@
     "name": "红纸",
     "en": "red paper",
     "kind": "key",
-    "price": 5
+    "price": 5,
+    "combine": [
+      {
+        "with": "maobi",
+        "makes": "chunlian"
+      }
+    ]
   },
   {
     "id": "ganmaoyao",

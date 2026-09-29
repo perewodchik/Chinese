@@ -102,7 +102,7 @@
     "npc": "tanghulu-dashu",
     "map": "nanluo-main",
     "name": "糖葫芦",
-    "pay": "code",
+    "pay": "scan",
     "stock": [
       {
         "item": "tanghulu",

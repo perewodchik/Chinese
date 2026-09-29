@@ -107,7 +107,11 @@
     "name": "雨伞",
     "en": "umbrella",
     "kind": "tool",
-    "price": 15
+    "price": 15,
+    "verbs": [
+      "open",
+      "give"
+    ]
   },
   {
     "id": "hongbao",

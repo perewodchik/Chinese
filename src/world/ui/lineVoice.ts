@@ -1,7 +1,7 @@
 import { playBytes, playBytesAtPace, say } from '../../platform/audio/voiceOut';
 import type { Line } from '../core/dialogue/source';
 import type { NpcCard } from '../core/types';
-import { spoken, voiceKey, voiceOf } from '../core/voice';
+import { bitsOf, spoken, voiceKey, voiceOf } from '../core/voice';
 
 /**
  * Plays an NPC's line in their voice (prompt G2): the clip rendered for it
@@ -35,6 +35,15 @@ export async function playLine(line: Line, slower = false): Promise<void> {
     if (key && keys.has(key)) {
       const bytes = await (await fetch(`/world/voice/${key}.mp3`)).arrayBuffer();
       await (slow ? playBytesAtPace(bytes, 0.75) : playBytes(bytes));
+      return;
+    }
+    // a price line (Y2): said piece by piece in the same voice, when every piece has a clip
+    const bits = voice ? bitsOf(line.zh) : null;
+    if (voice && bits && bits.every((b) => keys.has(voiceKey(voice, b)))) {
+      for (const b of bits) {
+        const bytes = await (await fetch(`/world/voice/${voiceKey(voice, b)}.mp3`)).arrayBuffer();
+        await (slow ? playBytesAtPace(bytes, 0.75) : playBytes(bytes));
+      }
       return;
     }
     await say(line.zh, slow ? { pace: 0.75 } : {});

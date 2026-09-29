@@ -42,9 +42,10 @@ function play(s: WorldSave, sceneId: string, answers: string[] = []): { save: Wo
     const node: DialogueNode = scene.nodes.find((n) => n.id === t.state.node)!;
     if (node.order) {
       // a shop (Y1): the given words, else the hint — order the first thing, then 不要了 to pay
-      const text = answers[i++] ?? src.answer(t.state)!.text;
-      t = src.reply(t.state, { text, via: 'keyboard' });
-      assert.equal(t.kind === 'match' || t.kind === 'polite', true, `${sceneId}/${node.id}: “${text}” was not taken (${t.kind})`);
+      // at a shop: the given words, else what a patient player says — the first thing, 不要了, then the amount on the phone (Y2)
+      const u = !t.state.due && answers[i] !== undefined ? { text: answers[i++]!, via: 'keyboard' as const } : src.answer(t.state)!;
+      t = src.reply(t.state, u);
+      assert.equal(t.kind === 'match' || t.kind === 'polite', true, `${sceneId}/${node.id}: “${u.text || u.paid}” was not taken (${t.kind})`);
     } else if (node.choose || node.trace) {
       // a pick or a written character (X8): the right one moves on
       t = src.reply(t.state, answerFor(node)!);

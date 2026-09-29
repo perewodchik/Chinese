@@ -40,10 +40,24 @@ generated from it (`src/world/core/shop.ts`).
 | boat on 后海 | 30 | the boatman |
 | opera show | 50 | 戏园 |
 
-## Money coming in (so far)
+## Money coming in
 
-200 元 to start, 20 from 赵爷爷 for his bird, 700 from changing 100 US
-dollars at the 王府井 bank (chapter 3). Earning (Y3) is still to come.
+| From | How much | When |
+|---|---|---|
+| the start | 200 | chapter 1 |
+| 赵爷爷, for his bird | 20 | once |
+| the 王府井 bank (100 US dollars) | 700 | chapter 3, once |
+| stacking 李阿姨's shelves (the notice in her shop) | 10 | once a game day |
+| the breakfast rush at the 早点铺 (its notice) | 15 | once a game day |
+| carrying tea at 老刘's (the notice in the 茶馆) | 10 | once a game day |
+| a delivery for the rider (帽儿胡同, evenings, after helping him once) | 5 | once a game day |
+| selling to the recycler (帽儿胡同, mornings) | half of what a thing cost | any time |
+| 红包 from 王阿姨 / 赵爷爷 | 50 / 20 | 春节 or 元宵, once each |
+
+So a player who has spent everything earns 40 元 — a 交通卡 — in one game
+day of jobs (checked by `solver.test.ts`), and a player who buys
+everything every shop offers still finishes the game (also checked).
+`START_MONEY` stays 200.
 
 ## Rules
 

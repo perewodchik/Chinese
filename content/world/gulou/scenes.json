@@ -7489,5 +7489,593 @@
     ]
    }
   ]
+ },
+ {
+  "id": "job-li",
+  "map": "xiaomaibu",
+  "object": "notice-li",
+  "trigger": "look",
+  "priority": 0,
+  "when": {
+   "not": {
+    "daily": "job-li"
+   }
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "放",
+    "explain": "把东西放在一个地方。",
+    "en": "to put"
+   },
+   {
+    "w": "帮忙",
+    "explain": "帮别人做事。",
+    "en": "to help out"
+   },
+   {
+    "w": "上面",
+    "explain": "高的地方。",
+    "en": "on top"
+   },
+   {
+    "w": "下面",
+    "explain": "低的地方。",
+    "en": "below"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你来帮忙？好！水放上面。",
+    "translate": "You’ve come to help? Good! The water goes on top.",
+    "speaker": "li-ayi",
+    "simpler": "水放上面。",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "⬆️ the top shelf",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "⬇️ the bottom shelf"
+      },
+      {
+       "id": "o2",
+       "label": "🚪 by the door"
+      }
+     ],
+     "go": "b"
+    },
+    "why": "Stack the shelves the way she says. 上面 on top, 下面 underneath."
+   },
+   {
+    "id": "b",
+    "say": "面包放下面。",
+    "translate": "The bread goes underneath.",
+    "speaker": "li-ayi",
+    "simpler": "面包，下面。",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "⬆️ the top shelf"
+      },
+      {
+       "id": "o1",
+       "label": "⬇️ the bottom shelf",
+       "right": true
+      },
+      {
+       "id": "o2",
+       "label": "🚪 by the door"
+      }
+     ],
+     "go": "c"
+    }
+   },
+   {
+    "id": "c",
+    "say": "谢谢你帮忙！给你十块。",
+    "translate": "Thanks for helping! Here’s ten yuan.",
+    "speaker": "li-ayi",
+    "onEnter": [
+     {
+      "do": "money",
+      "amount": 10
+     },
+     {
+      "do": "daily",
+      "id": "job-li"
+     }
+    ],
+    "next": "d"
+   },
+   {
+    "id": "d",
+    "say": "支付宝到账，十元。",
+    "translate": "Alipay: 10 元 received.",
+    "speaker": "speaker-box"
+   }
+  ]
+ },
+ {
+  "id": "job-zaodian",
+  "map": "zaodian",
+  "object": "notice-zaodian",
+  "trigger": "look",
+  "priority": 0,
+  "when": {
+   "not": {
+    "daily": "job-zaodian"
+   }
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "帮忙",
+    "explain": "帮别人做事。",
+    "en": "to help out"
+   },
+   {
+    "w": "客人",
+    "explain": "来店里的人。",
+    "en": "customer"
+   },
+   {
+    "w": "豆浆",
+    "explain": "白色的，可以喝，早上喝。",
+    "en": "soy milk"
+   },
+   {
+    "w": "油条",
+    "explain": "早上吃的，长长的，热的。",
+    "en": "fried dough stick"
+   },
+   {
+    "w": "根",
+    "explain": "长的东西说“一根”：一根油条。",
+    "en": "(measure word for long things)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "来帮忙！人太多了！这个客人要两个包子。",
+    "translate": "Come and help — so many people! This customer wants two buns.",
+    "speaker": "zaodian-shifu",
+    "simpler": "两个包子！",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🥟🥟 two buns",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "🥟 one bun"
+      },
+      {
+       "id": "o2",
+       "label": "🥛 a soy milk"
+      }
+     ],
+     "go": "b"
+    },
+    "why": "Hand out what each customer ordered."
+   },
+   {
+    "id": "b",
+    "say": "那个客人要一杯豆浆，一根油条。",
+    "translate": "That customer wants a soy milk and a fried dough stick.",
+    "speaker": "zaodian-shifu",
+    "simpler": "一杯豆浆，一根油条！",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🥛 + 🥖 soy milk and a dough stick",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "🥛🥛 two soy milks"
+      },
+      {
+       "id": "o2",
+       "label": "🥟 + 🥖 a bun and a dough stick"
+      }
+     ],
+     "go": "c"
+    }
+   },
+   {
+    "id": "c",
+    "say": "谢谢你帮忙！给你十五块。",
+    "translate": "Thanks for helping! Here’s fifteen yuan.",
+    "speaker": "zaodian-shifu",
+    "onEnter": [
+     {
+      "do": "money",
+      "amount": 15
+     },
+     {
+      "do": "daily",
+      "id": "job-zaodian"
+     }
+    ],
+    "next": "d"
+   },
+   {
+    "id": "d",
+    "say": "支付宝到账，十五元。",
+    "translate": "Alipay: 15 元 received.",
+    "speaker": "speaker-box"
+   }
+  ]
+ },
+ {
+  "id": "job-chaguan",
+  "map": "chaguan",
+  "object": "notice-chaguan",
+  "trigger": "look",
+  "priority": 0,
+  "when": {
+   "not": {
+    "daily": "job-chaguan"
+   }
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "帮忙",
+    "explain": "帮别人做事。",
+    "en": "to help out"
+   },
+   {
+    "w": "桌",
+    "explain": "吃饭、喝茶的时候用的，上面放东西。",
+    "en": "table"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你来帮忙？好！三号桌要茶。",
+    "translate": "You’ll help? Good! Table three wants tea.",
+    "speaker": "lao-liu",
+    "simpler": "三号桌，茶。",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🍵 tea to table 3",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "🍵 tea to table 5"
+      },
+      {
+       "id": "o2",
+       "label": "💧 water to table 3"
+      }
+     ],
+     "go": "b"
+    }
+   },
+   {
+    "id": "b",
+    "say": "五号桌要水。",
+    "translate": "Table five wants water.",
+    "speaker": "lao-liu",
+    "simpler": "五号桌，水。",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🍵 tea to table 5"
+      },
+      {
+       "id": "o1",
+       "label": "💧 water to table 5",
+       "right": true
+      },
+      {
+       "id": "o2",
+       "label": "💧 water to table 3"
+      }
+     ],
+     "go": "c"
+    }
+   },
+   {
+    "id": "c",
+    "say": "谢谢你帮忙！给你十块。",
+    "translate": "Thanks for helping! Here’s ten yuan.",
+    "speaker": "lao-liu",
+    "onEnter": [
+     {
+      "do": "money",
+      "amount": 10
+     },
+     {
+      "do": "daily",
+      "id": "job-chaguan"
+     }
+    ],
+    "next": "d"
+   },
+   {
+    "id": "d",
+    "say": "支付宝到账，十元。",
+    "translate": "Alipay: 10 元 received.",
+    "speaker": "speaker-box"
+   }
+  ]
+ },
+ {
+  "id": "job-waimai",
+  "map": "hutong-home",
+  "npc": "waimai",
+  "trigger": "talk",
+  "priority": 1,
+  "when": {
+   "all": [
+    {
+     "scene": "waimai-lost"
+    },
+    {
+     "not": {
+      "daily": "job-waimai"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "送",
+    "explain": "把东西给别人拿过去。",
+    "en": "to deliver"
+   },
+   {
+    "w": "号",
+    "explain": "门上的数字。",
+    "en": "number (of a house)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我太忙了！你帮我送一个吧：八号。",
+    "translate": "I’m so busy! Deliver one for me: number eight.",
+    "simpler": "送到八号！",
+    "onEnter": [
+     {
+      "do": "daily",
+      "id": "job-waimai"
+     }
+    ],
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "8",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "18"
+      },
+      {
+       "id": "o2",
+       "label": "80"
+      }
+     ],
+     "go": "b"
+    }
+   },
+   {
+    "id": "b",
+    "say": "谢谢你！给你五块。",
+    "translate": "Thank you! Here’s five yuan.",
+    "onEnter": [
+     {
+      "do": "money",
+      "amount": 5
+     }
+    ],
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "支付宝到账，五元。",
+    "translate": "Alipay: 5 元 received.",
+    "speaker": "speaker-box"
+   }
+  ]
+ },
+ {
+  "id": "polan-sell",
+  "map": "hutong-home",
+  "npc": "polan-shifu",
+  "trigger": "talk",
+  "priority": 1,
+  "when": {
+   "all": [
+    {
+     "scene": "polan"
+    },
+    {
+     "hours": [
+      7,
+      12
+     ]
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "旧",
+    "explain": "不新的，用了很久的。",
+    "en": "old, used"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你有旧东西吗？我都要！",
+    "translate": "Got anything old? I’ll take it all!",
+    "simpler": "旧东西，我要！",
+    "sell": {
+     "share": 0.5
+    },
+    "why": "Name something in your bag (「我有保温杯」); he offers half what it cost — 「好」 and the money arrives on your phone. Story things are not for sale."
+   }
+  ]
+ },
+ {
+  "id": "hongbao-wang",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "any": [
+      {
+       "festival": "chunjie"
+      },
+      {
+       "festival": "yuanxiao"
+      }
+     ]
+    },
+    {
+     "scene": "chunjie-wang"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "红包",
+    "explain": "红色的小纸包，里面有钱。",
+    "en": "red envelope"
+   },
+   {
+    "w": "新年快乐",
+    "explain": "春节的时候说的话：新的一年，你要快乐！",
+    "en": "Happy New Year"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "新年快乐！这个红包给你。",
+    "translate": "Happy New Year! This red envelope is for you.",
+    "simpler": "红包给你！",
+    "expect": [
+     {
+      "intent": "thanks",
+      "match": [
+       [
+        "谢谢",
+        "新年快乐",
+        "过年好"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": 50
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "谢谢",
+     "frame": "___阿姨！新年快乐！",
+     "full": "谢谢阿姨！新年快乐！"
+    },
+    "why": "At New Year the older ones give the younger ones 红包 with money in — you say 谢谢 and a wish back."
+   },
+   {
+    "id": "b",
+    "say": "好孩子！",
+    "translate": "Good kid!"
+   }
+  ]
+ },
+ {
+  "id": "hongbao-zhao",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "any": [
+    {
+     "festival": "chunjie"
+    },
+    {
+     "festival": "yuanxiao"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "红包",
+    "explain": "红色的小纸包，里面有钱。",
+    "en": "red envelope"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "过年好！给你一个红包！",
+    "translate": "Happy New Year! A red envelope for you!",
+    "simpler": "红包给你！",
+    "expect": [
+     {
+      "intent": "thanks",
+      "match": [
+       [
+        "谢谢",
+        "新年快乐",
+        "过年好"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": 20
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "谢谢",
+     "frame": "___！过年好！",
+     "full": "谢谢！过年好！"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好，好！",
+    "translate": "Ha ha, good!"
+   }
+  ]
  }
 ]

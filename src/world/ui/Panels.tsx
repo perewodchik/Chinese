@@ -1,3 +1,8 @@
+import { useLibrary } from '../../features/shared/library';
+import { combos, VERB_ZH, verbsOf } from '../core/verbs';
+import type { SaveAction } from '../core/save';
+import { itemForToken } from '../../domain/words';
+import { useOpenItem } from '../../navigation/itemDrawer';
 import { useState } from 'react';
 import { dayOf } from '../core/clock';
 import { contentNames, diaryDays, diaryLines } from '../core/diary';
@@ -38,6 +43,7 @@ export function Panels({
   onGo,
   onSettings,
   onUse,
+  onAct,
   user,
   onReset,
   mapStart,
@@ -53,6 +59,8 @@ export function Panels({
   onSettings: (patch: Partial<WorldSettings>) => void;
   /** choose an item to use on someone or something (X1) */
   onUse: (item: string) => void;
+  /** 吃 / 喝, and two things made into a third (Y4) */
+  onAct?: (a: SaveAction) => void;
   /** whose album this device keeps (X6) */
   user: string;
   /** start the whole game over */
@@ -76,7 +84,7 @@ export function Panels({
         </header>
         <div className="wp-body">
           {tab === 'tasks' && <Tasks save={save} content={content} pinyin={pinyin} />}
-          {tab === 'bag' && <Bag save={save} content={content} onUse={onUse} />}
+          {tab === 'bag' && <Bag save={save} content={content} onUse={onUse} onAct={onAct} />}
           {tab === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} />}
           {tab === 'spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
           {tab === 'idioms' && <Idioms save={save} content={content} pinyin={pinyin} />}
@@ -258,13 +266,16 @@ function Tasks({ save, content, pinyin }: { save: WorldSave; content: WorldConte
   );
 }
 
-function Bag({ save, content, onUse }: { save: WorldSave; content: WorldContent; onUse: (item: string) => void }) {
+function Bag({ save, content, onUse, onAct }: { save: WorldSave; content: WorldContent; onUse: (item: string) => void; onAct?: (a: SaveAction) => void }) {
   const rows = bagRows(save, content.items);
+  const lib = useLibrary();
+  const openItem = useOpenItem();
+  const byId = new Map(content.items.map((i) => [i.id, i]));
   return (
     <>
       <div className="wp-money">
         <span>
-          <span className="han">钱</span> <b>{save.bag.money}</b> 元
+          <span className="han">支付宝 余额</span> <b>{save.bag.money}</b> 元
         </span>
         <span>
           <span className="han">交通卡</span> {save.bag.card === null ? <span className="muted">not yet</span> : <b>{save.bag.card} 元</b>}
@@ -277,17 +288,75 @@ function Bag({ save, content, onUse }: { save: WorldSave; content: WorldContent;
               <span className="han">{r.name}</span>
               <span className="tiny muted">{r.en}</span>
               {r.count > 1 && <span className="wp-count">×{r.count}</span>}
-              <button type="button" className="btn sm wp-use" onClick={() => onUse(r.id)}>
-                Use / give
-              </button>
+              {byId.get(r.id)?.kind === 'key' && (
+                <span className="w-seal han" title="A story thing: not a present, not for sale">
+                  印
+                </span>
+              )}
+              {/* what you can do with it, as Chinese verbs (Y4) */}
+              <span className="w-verbs">
+                {(byId.get(r.id) ? verbsOf(byId.get(r.id)!) : ['use' as const]).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    className="btn sm"
+                    title={VERB_ZH[v].en}
+                    onClick={() =>
+                      v === 'eat' || v === 'drink'
+                        ? onAct?.({ do: 'eat', item: r.id })
+                        : v === 'look'
+                          ? openItem(itemForToken(lib, r.name))
+                          : onUse(r.id)
+                    }
+                  >
+                    <span className="han">{VERB_ZH[v].zh}</span>
+                  </button>
+                ))}
+                {byId.get(r.id) &&
+                  combos(byId.get(r.id)!, save.bag.items).map((c) => (
+                    <button key={c.with} type="button" className="btn sm" title={`with the ${byId.get(c.with)?.en ?? c.with}: makes ${byId.get(c.makes)?.en ?? c.makes}`} onClick={() => onAct?.({ do: 'combine', a: r.id, b: c.with, makes: c.makes })}>
+                      <span className="han">
+                        +{byId.get(c.with)?.name} → {byId.get(c.makes)?.name}
+                      </span>
+                    </button>
+                  ))}
+              </span>
             </li>
           ))}
         </ul>
       ) : (
         <Empty han="空">Nothing in the bag yet.</Empty>
       )}
+      {save.bills.length > 0 && (
+        <>
+          <h3 className="wp-label">
+            账单 <span className="tiny muted">· the last payments on your phone</span>
+          </h3>
+          <ul className="wp-list w-bills">
+            {[...save.bills].reverse().map((b, i) => (
+              <li key={i}>
+                <span className="han">{billName(b.who, content)}</span>
+                <span className="spacer" />
+                <b className="w-bill" data-in={b.amount > 0 ? '' : undefined}>
+                  {b.amount > 0 ? '+' : '−'}
+                  {Math.abs(b.amount).toFixed(2)}
+                </b>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </>
   );
+}
+
+/** Who a payment was with, as the 账单 names it: a shop, a person, or the place. */
+function billName(who: string, content: WorldContent): string {
+  const shop = content.shops.find((x) => x.npc === who);
+  if (shop) return shop.name;
+  const npc = content.npcs.find((n) => n.id === who);
+  if (npc) return npc.name;
+  return who ? '北京' : '—';
 }
 
 function Spirits({ save, content, pinyin }: { save: WorldSave; content: WorldContent; pinyin: boolean }) {

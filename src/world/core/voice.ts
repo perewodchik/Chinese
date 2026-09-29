@@ -41,6 +41,8 @@ const isVoice = (v: string | undefined): v is VoiceId => !!v && (VOICES as reado
 const OTHERS: Record<string, VoiceId> = {
   companion: 'zhiyuan',
   announcer: 'xiaoyu',
+  /** the stall's 支付宝 speaker box (Y2) */
+  'speaker-box': 'xiaoyu',
   shishizi: 'wei',
   jiuweihu: 'xiaoyu',
   menshen: 'chen',
@@ -71,4 +73,52 @@ export function voiceKey(voice: string, text: string): string {
     b ^= b >>> 13;
   }
   return a.toString(16).padStart(8, '0') + (b >>> 0).toString(16).padStart(8, '0');
+}
+
+/**
+ * Prices said aloud (Y2): each voice has a clip per piece — 一共, the
+ * digits, 十, 百, 块, 元, 毛, 点, 支付宝到账 … — and a line with no clip of its
+ * own (「一共十五块。扫这儿吧。」) is played as its pieces, if it is made only
+ * of them. Longest piece first; punctuation is a pause.
+ */
+export const SAY_BITS = [
+  '支付宝到账',
+  '扫这儿吧',
+  '还要什么',
+  '不对',
+  '一共',
+  '多了',
+  '谢谢',
+  '没错',
+  '是',
+  '块',
+  '元',
+  '毛',
+  '点',
+  '零',
+  '一',
+  '二',
+  '两',
+  '三',
+  '四',
+  '五',
+  '六',
+  '七',
+  '八',
+  '九',
+  '十',
+  '百',
+] as const;
+
+export function bitsOf(text: string): string[] | null {
+  const out: string[] = [];
+  const t = text.replace(/[，。！？、,.!?\s]/g, '');
+  let i = 0;
+  while (i < t.length) {
+    const b = SAY_BITS.find((x) => t.startsWith(x, i));
+    if (!b) return null;
+    out.push(b);
+    i += b.length;
+  }
+  return out.length ? out : null;
 }

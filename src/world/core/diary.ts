@@ -35,6 +35,8 @@ export const TEMPLATES: Record<string, { zh: string; en: string }> = {
   r: { zh: '我的房间里有了{x}。', en: 'My room has {x} now.' },
   c: { zh: '我的猫叫{x}。', en: 'My cat is called {x}.' },
   k: { zh: '我给小猫吃了东西。', en: 'I fed the little cat.' },
+  e: { zh: '我吃了{x}。', en: 'I ate {x}.' },
+  w: { zh: '我喝了{x}。', en: 'I drank {x}.' },
   p: { zh: '今天我拍了照片。照片拍得很好！', en: 'Today I took photos. They came out well!' },
   z: { zh: '晚上我在家睡觉了。', en: 'In the evening I slept at home.' },
 };
@@ -84,6 +86,8 @@ export function eventsOf(before: WorldSave, after: WorldSave, a: { do: string },
       return [`r:${x.item}`];
     case 'feed_cat':
       return ['k'];
+    case 'eat':
+      return [`e:${x.item}`];
     case 'photo':
       return ['p'];
     case 'cat_name':
@@ -118,6 +122,8 @@ export interface DiaryLine {
 }
 
 export interface Names {
+  /** is it a drink (Y4: 喝 rather than 吃) */
+  drink?: (id: string) => boolean;
   npc: (id: string) => string | undefined;
   item: (id: string) => { zh: string; en: string } | undefined;
   spirit: (id: string) => { zh: string; en: string } | undefined;
@@ -127,8 +133,9 @@ export interface Names {
 export function contentNames(all: readonly Pick<DistrictContent, 'npcs' | 'items' | 'spirits'>[]): Names {
   const npcs = new Map(all.flatMap((d) => d.npcs).map((n) => [n.id, n.name]));
   const items = new Map(all.flatMap((d) => d.items).map((i) => [i.id, { zh: i.name, en: i.en }]));
+  const drinks = new Set(all.flatMap((d) => d.items).filter((i) => i.kind === 'drink').map((i) => i.id));
   const spirits = new Map(all.flatMap((d) => d.spirits).map((s) => [s.id, { zh: s.hanzi, en: s.en }]));
-  return { npc: (id) => npcs.get(id), item: (id) => items.get(id), spirit: (id) => spirits.get(id) };
+  return { npc: (id) => npcs.get(id), item: (id) => items.get(id), spirit: (id) => spirits.get(id), drink: (id) => drinks.has(id) };
 }
 
 const stations = new Map(STATIONS.map((s) => [s.id, s]));
@@ -175,6 +182,10 @@ export function diaryLines(codes: readonly string[], names: Names, day?: number)
       if (sp) fill(k, sp);
     } else if (k === 'i') {
       fill(k, { zh: a, en: a });
+    } else if (k === 'e') {
+      const it = names.item(a);
+      // a drink is drunk, the rest is eaten
+      if (it) fill(names.drink?.(a) ? 'w' : 'e', it);
     } else if (k === 'r') {
       const it = names.item(a);
       if (it) fill(k, it);

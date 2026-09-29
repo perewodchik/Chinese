@@ -74,6 +74,8 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
     name: late.name || (late === a ? b : a).name,
     clock: late.clock,
     bag: late.bag,
+    // the 账单 goes with the purse it describes
+    bills: late.bills,
     // what stands in the room goes with the bag it came out of
     room: late.room,
     // the cat remembers every day it was fed, and keeps a name once given
@@ -98,6 +100,7 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
     idioms: byKey(a.idioms, b.idioms, earlier),
     npcs: byKey(a.npcs, b.npcs, memory),
     rides: byKey(a.rides, b.rides, Math.max),
+    daily: byKey(a.daily, b.daily, Math.max),
     // a day's diary from both devices: the earlier device's lines first, the other's after
     diary: byKey(a.diary, b.diary, (x, y) => {
       const [first, second] = JSON.stringify(x) <= JSON.stringify(y) ? [x, y] : [y, x];

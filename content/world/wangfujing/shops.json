@@ -4,7 +4,7 @@
     "npc": "shudian-ayi",
     "map": "shudian",
     "name": "新华书店",
-    "pay": "scan",
+    "pay": "code",
     "stock": [
       {
         "item": "gushishu",
@@ -21,14 +21,15 @@
         "price": 50,
         "measure": "幅"
       }
-    ]
+    ],
+    "mischarge": true
   },
   {
     "id": "yuebing",
     "npc": "yuebing-ayi",
     "map": "wangfujing-street",
     "name": "月饼",
-    "pay": "code",
+    "pay": "scan",
     "stock": [
       {
         "item": "yuebing",

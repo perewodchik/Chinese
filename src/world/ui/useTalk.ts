@@ -37,7 +37,7 @@ export function modeOf(scene: Scene, t: Turn): TalkView['mode'] {
   if (t.end || t.state.ended) return 'over';
   const node = scene.nodes.find((n) => n.id === t.state.node);
   if (node?.choose) return 'choose';
-  if (node?.order) return 'reply';
+  if (node?.order || node?.sell) return 'reply';
   if (node?.trace) return 'trace';
   if (node?.expect?.length) return 'reply';
   // A first line that expects nothing and leads nowhere is all there is.
@@ -48,6 +48,8 @@ export function modeOf(scene: Scene, t: Turn): TalkView['mode'] {
 export function afterTurn(v: TalkView, t: Turn, you?: string, sticker?: string): TalkView {
   const history = [...v.history];
   if (you !== undefined) history.push({ who: 'you', text: you, ...(sticker ? { sticker } : {}) });
+  // the speaker box's 「支付宝到账」 comes before the seller's thanks (Y2)
+  if (t.chime) history.push({ who: 'npc', line: t.chime, kind: t.kind });
   if (t.say) history.push({ who: 'npc', line: t.say, kind: t.kind });
   const misses = t.kind === 'miss' || t.kind === 'not_chinese' || t.kind === 'wrong' ? v.misses + 1 : t.kind === 'match' ? 0 : v.misses;
   return { ...v, history, state: t.state, mode: modeOf(v.scene, t), cue: t.companion, misses };
@@ -79,7 +81,15 @@ export function smallTalk(npcId: string, _card: NpcCard | null): Scene {
  * One conversation at a time, through `ScriptedDialogue` (core/dialogue),
  * with the history kept for the bubble and the actions handed to the save.
  */
-export function useTalk(content: WorldContent, lex: Lexicon | null, dispatch: (a: readonly SaveAction[]) => WorldSave | null) {
+export function useTalk(
+  content: WorldContent,
+  lex: Lexicon | null,
+  dispatch: (a: readonly SaveAction[]) => WorldSave | null,
+  /** 「给你糖葫芦」 said in a talk: hand it over (Y4) */
+  onGift?: (item: string, npc: string) => void,
+) {
+  const gift = useRef(onGift);
+  gift.current = onGift;
   const [view, setView] = useState<TalkView | null>(null);
   const cur = useRef<TalkView | null>(null);
   const source = useMemo(() => (lex ? new ScriptedDialogue({ scenes: content.scenes, npcs: content.npcs, shops: content.shops, items: content.items }, lex) : null), [content, lex]);
@@ -89,6 +99,13 @@ export function useTalk(content: WorldContent, lex: Lexicon | null, dispatch: (a
       const v = cur.current;
       if (!v) return;
       if (t.actions.length) dispatch(t.actions);
+      if (t.gift && v.scene.npc) {
+        // the talk closes and the present (or the use) plays out as if the item had been tapped on them
+        cur.current = null;
+        setView(null);
+        gift.current?.(t.gift, v.scene.npc);
+        return;
+      }
       const next = afterTurn(v, t, you, sticker);
       cur.current = next;
       setView(next);
@@ -155,8 +172,23 @@ export function useTalk(content: WorldContent, lex: Lexicon | null, dispatch: (a
     setView(null);
   }, []);
 
+  /** paying on the phone (Y2): an amount typed or a charge accepted, or 不对 at a wrong charge */
+  const pay = useCallback(
+    (amount: number) => {
+      const v = cur.current;
+      if (!v || !source || !v.state.due) return;
+      take(source.reply(v.state, { text: '', via: 'keyboard', paid: amount }), `支付宝 ¥${amount.toFixed(2)}`);
+    },
+    [source, take],
+  );
+  const dispute = useCallback(() => {
+    const v = cur.current;
+    if (!v || !source || !v.state.due) return;
+    take(source.reply(v.state, { text: '不对', via: 'keyboard' }), '不对！');
+  }, [source, take]);
+
   /** what 💡 offers now (a shop's order line makes its own) */
   const hint = useCallback(() => (cur.current && source ? source.hintAt(cur.current.state) : undefined), [source]);
 
-  return { view, start, reply, pick, traced, proceed, close, hint };
+  return { view, start, reply, pick, traced, proceed, close, hint, pay, dispute };
 }

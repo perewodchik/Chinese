@@ -4,6 +4,7 @@ import type { Line } from '../core/dialogue/source';
 import type { NpcCard } from '../core/types';
 import { Hearts } from './Hearts';
 import { ChoiceRow, DishuPad } from './Doing';
+import { PhonePay } from './PhonePay';
 import { Portrait } from './Portrait';
 import { PropSprite } from './PropSprite';
 import { STICKERS } from '../core/photo';
@@ -83,6 +84,9 @@ export function Dialogue({
   onClose,
   onPick,
   onTraced,
+  balance,
+  onPay,
+  onDispute,
   children,
 }: {
   view: TalkView;
@@ -97,6 +101,10 @@ export function Dialogue({
   /** a picture picked, the characters written (X8) */
   onPick: (id: string) => void;
   onTraced: () => void;
+  /** paying at a counter (Y2) */
+  balance?: number;
+  onPay?: (amount: number) => void;
+  onDispute?: () => void;
   children?: ReactNode;
 }) {
   const list = useRef<HTMLOListElement>(null);
@@ -151,7 +159,7 @@ export function Dialogue({
     return () => window.removeEventListener('keydown', onKey);
   }, [view.mode, onProceed, onClose]);
 
-  const speakerName = (id: string) => (id === 'hero' ? '我' : id === 'companion' ? '兔儿爷' : id === view.npc?.id || id === view.scene.npc ? name : (names[id] ?? id));
+  const speakerName = (id: string) => (id === 'hero' ? '我' : id === 'companion' ? '兔儿爷' : id === 'speaker-box' ? '支付宝' : id === view.npc?.id || id === view.scene.npc ? name : (names[id] ?? id));
 
   return (
     <section className="wd" aria-label={`Talking with ${name}`} style={lift ? { bottom: lift + 8, maxHeight: `calc(100% - ${lift + 60}px)` } : undefined}>
@@ -194,7 +202,9 @@ export function Dialogue({
         )}
       </ol>
       <footer className="wd-foot">
-        {view.mode === 'reply' ? (
+        {view.mode === 'reply' && view.state.due && onPay && onDispute ? (
+          <PhonePay due={view.state.due} balance={balance ?? 0} fill={view.state.hint >= 3} onPay={onPay} onDispute={onDispute} />
+        ) : view.mode === 'reply' ? (
           children
         ) : view.mode === 'choose' && node?.choose ? (
           <ChoiceRow choose={node.choose} showRight={view.state.hint >= 3} onPick={onPick} />

@@ -85,7 +85,21 @@ export function WorldPage() {
     }
     return after;
   };
-  const talk = useTalk(content, lex, talkDispatch);
+  // 「给你糖葫芦」 said in a talk hands it over as if it had been tapped on them (Y4)
+  const talk = useTalk(content, lex, talkDispatch, (item, npc) => {
+    const s = game.current();
+    if (s) applyItem(item, { npc, card: contentRef.current.npcs.find((n) => n.id === npc) ?? null }, s);
+  });
+  /** wrong things tried on one person or thing (Y4): after two, 兔儿爷 glances at the right one */
+  const wrongTries = useRef<{ at: string; n: number }>({ at: '', n: 0 });
+  const missedWith = (at: string, s: WorldSave, who: { npc: string } | { look: string; map: string }) => {
+    wrongTries.current = wrongTries.current.at === at ? { at, n: wrongTries.current.n + 1 } : { at, n: 1 };
+    if (wrongTries.current.n < 2) return;
+    const c = contentRef.current;
+    const right = Object.keys(s.bag.items).find((id) => (s.bag.items[id] ?? 0) > 0 && sceneFor(c.scenes, s, { ...who, use: id }));
+    const it = right && c.items.find((i) => i.id === right);
+    if (it) setPal({ open: true, said: `Try the ${it.en} — ${it.name} — from your bag.` });
+  };
   /**
    * Using an item on someone or something (X1): a scene written for it wins;
    * otherwise a person takes it as a present (likes, dislikes, one a day), and
@@ -102,6 +116,7 @@ export function WorldPage() {
       if (scene) return talkRef.current.start(scene, target.card, look, s);
       if (!target.card) return talkRef.current.start(lineScene('no', target.npc, GIFT_LINES['not-a-gift'].zh, GIFT_LINES['not-a-gift'].en, target.npc), null, look, s);
       const r = giveTo(target.card, item, s);
+      if (r.kind === 'not-a-gift') missedWith(`npc:${target.npc}`, s, { npc: target.npc });
       if (r.actions.length) game.dispatch(r.actions);
       return talkRef.current.start(lineScene(`gift-${r.kind}`, target.npc, r.zh, r.en, target.npc), target.card, look, s);
     }
@@ -110,6 +125,7 @@ export function WorldPage() {
       const card = c.npcs.find((n) => n.id === scene.npc) ?? null;
       return card ? talkRef.current.start(scene, card, lookOf(card, card.id), s) : startBare(scene, s);
     }
+    missedWith(`look:${s.place.map}:${target.object}`, s, { look: target.object, map: s.place.map });
     talkRef.current.start(lineScene('nothing', 'hero', NOTHING_HAPPENS.zh, NOTHING_HAPPENS.en), null, 'sign', s, '我');
   };
 
@@ -635,6 +651,11 @@ export function WorldPage() {
             setPanel(null);
             setUsing(item);
           }}
+          onAct={(a) => {
+            // 吃 / 喝: a small pleasure — 兔儿爷 is pleased; combining makes something new
+            game.dispatch([a]);
+            if (a.do === 'eat') world.current?.emote('happy');
+          }}
           onSettings={(patch) => void game.dispatch([{ do: 'settings', patch }])}
           onGo={(station) => {
             setPanel(null);
@@ -655,6 +676,9 @@ export function WorldPage() {
           onClose={talk.close}
           onPick={talk.pick}
           onTraced={talk.traced}
+          balance={game.save.bag.money}
+          onPay={talk.pay}
+          onDispute={talk.dispute}
         >
           <InputBar
             onSend={talk.reply}

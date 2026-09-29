@@ -62,6 +62,8 @@ function act(s: WorldSave, actions: readonly SaveAction[], short: string[], wher
 }
 
 /** What a patient player goes shopping for now: things the current step of a quest waits for, and things a scene could be used with right now. */
+let spendAll = false;
+
 /** How often a patient player buys the same thing: food a few times (the cat eats every day), anything else once. */
 const bought = new Map<string, number>();
 const buyLimit = (item: string) => (['food', 'drink'].includes(items.get(item)?.kind ?? '') ? 5 : 1);
@@ -79,13 +81,21 @@ function play(s: WorldSave, scene: Scene, short: string[]): WorldSave {
   for (let guard = 0; !t.state.ended && guard < 40; guard++) {
     const node = scene.nodes.find((n) => n.id === t.state.node)!;
     // at a shop: buy one thing something is waiting for (or the first thing, for a story order), then pay (Y1)
+    // paying on the phone (Y2): type the amount heard, or catch a wrong charge first
+    if (node.order && t.state.due) {
+      t = src.reply(t.state, src.answer(t.state)!);
+      for (const a of t.actions) if (a.do === 'give') bought.set(a.item, (bought.get(a.item) ?? 0) + 1);
+      save = act(save, t.actions, short, scene.id);
+      continue;
+    }
     if (node.order) {
       const shop = shops.find((x) => x.id === node.order!.shop)!;
       const wanted = wantedNow(save);
       const need = shop.stock.find(
         (x) => wanted.has(x.item) && !(save.bag.items[x.item] ?? 0) && (t.state.onSale ?? []).includes(x.item) && (bought.get(x.item) ?? 0) < buyLimit(x.item),
       );
-      const pick = need ?? (node.order.go ? shop.stock.find((x) => (t.state.onSale ?? []).includes(x.item)) : undefined);
+      const any = spendAll ? shop.stock.find((x) => (t.state.onSale ?? []).includes(x.item) && !bought.has(x.item)) : undefined;
+      const pick = need ?? any ?? (node.order.go ? shop.stock.find((x) => (t.state.onSale ?? []).includes(x.item)) : undefined);
       const name = pick && items.get(pick.item)?.name;
       const say = t.state.cart?.length || !name ? '不要了' : `我要一${pick!.measure ?? '个'}${name}`;
       t = src.reply(t.state, { text: say, via: 'keyboard' });
@@ -114,6 +124,8 @@ const progress = (s: WorldSave) =>
     s.chapter,
     s.bag.card !== null,
     [...s.stations].sort(),
+    // short of money, a day's job is worth doing (Y3)
+    s.bag.money < 100 ? s.daily : null,
   ]);
 
 const chapterOf = new Map(districts.flatMap((d) => d.district.maps.map((m) => [m, d.district.chapter] as const)));
@@ -193,7 +205,13 @@ function rideTo(s: WorldSave): { to: string; actions: SaveAction[] } | null {
  * story), and wait through the calendar only while it does not. Without one
  * the solver plays everything: every quest and every stamp.
  */
-export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000, goal?: (s: WorldSave) => boolean): Run {
+export interface SolveOptions {
+  /** buy everything every shop offers (once each): the "can a spendthrift soft-lock?" check (Y3) */
+  spendAll?: boolean;
+}
+
+export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000, goal?: (s: WorldSave) => boolean, opts: SolveOptions = {}): Run {
+  spendAll = !!opts.spendAll;
   let s = start;
   bought.clear();
   const log: string[] = [];

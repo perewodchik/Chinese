@@ -13,7 +13,9 @@ import { feedCat, fits, NO_CAT } from './room';
 import { MAX_SUBJECTS } from './photo';
 import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
 
-export const WORLD_SAVE_VERSION = 6;
+export const WORLD_SAVE_VERSION = 8;
+/** how many payments the 账单 keeps */
+export const BILLS = 20;
 
 /** Where a new game starts: your room in 王阿姨's 四合院. */
 export const HOME: Place = { map: 'siheyuan-room', tile: [4, 4], facing: 'down' };
@@ -58,6 +60,8 @@ export function newSave(deviceId: string, now: number): WorldSave {
     room: {},
     cat: { ...NO_CAT },
     photos: [],
+    bills: [],
+    daily: {},
     settings: DEFAULT_SETTINGS,
   };
 }
@@ -218,6 +222,21 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
     }
     case 'feed_cat':
       return feedCat(s);
+    case 'eat': {
+      const n = s.bag.items[a.item] ?? 0;
+      if (!n) return s;
+      const items = { ...s.bag.items, [a.item]: n - 1 };
+      if (!items[a.item]) delete items[a.item];
+      return { ...s, bag: { ...s.bag, items } };
+    }
+    case 'combine': {
+      if (!(s.bag.items[a.a] ?? 0) || !(s.bag.items[a.b] ?? 0)) return s;
+      const items = { ...s.bag.items, [a.a]: (s.bag.items[a.a] ?? 0) - 1, [a.b]: (s.bag.items[a.b] ?? 0) - 1, [a.makes]: (s.bag.items[a.makes] ?? 0) + 1 };
+      for (const k of [a.a, a.b]) if (!items[k]) delete items[k];
+      return { ...s, bag: { ...s.bag, items } };
+    }
+    case 'daily':
+      return s.daily[a.id] === dayOf(s.clock) ? s : { ...s, daily: { ...s.daily, [a.id]: dayOf(s.clock) } };
     case 'photo': {
       const add = a.subjects.filter((x) => !s.photos.includes(x));
       // a photo of nothing in particular still counts for the diary
@@ -265,8 +284,12 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
 }
 
 export function apply(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
-  const changed = change(s, a, ctx);
+  let changed = change(s, a, ctx);
   if (changed === s) return s;
+  // every change to 余额 goes into the phone's 账单 (Y2)
+  if (a.do === 'money' && a.amount) {
+    changed = { ...changed, bills: [...changed.bills, { at: Math.floor(s.clock), who: ctx.npc ?? ctx.scene ?? '', amount: a.amount }].slice(-BILLS) };
+  }
   // the diary writes itself as things happen (X3); a night's sleep belongs to the day it ended
   const next = logDay(changed, eventsOf(s, changed, a, ctx.npc), a.do === 'sleep' ? s.clock : changed.clock);
   return { ...next, updatedAt: ctx.now, deviceId: ctx.deviceId ?? s.deviceId };

@@ -47,5 +47,15 @@
    3
   ],
   "facing": "down"
+ },
+ {
+  "kind": "sign",
+  "id": "notice-li",
+  "tile": [
+   6,
+   1
+  ],
+  "text": "帮忙：一天十块。",
+  "en": "Help wanted: 10 元 a day (tap to help)"
  }
 ]

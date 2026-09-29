@@ -57,6 +57,7 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.strictObject({ cat: z.enum(['fed-today', 'trusts', 'named']) }),
     z.strictObject({ photo: text }),
     z.strictObject({ fresh: id }),
+    z.strictObject({ daily: id }),
   ]),
 );
 
@@ -81,6 +82,9 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
   z.strictObject({ do: z.literal('hearts'), npc: id, delta: z.number().int() }),
   z.strictObject({ do: z.literal('place'), spot: id, item: id }),
   z.strictObject({ do: z.literal('feed_cat') }),
+  z.strictObject({ do: z.literal('daily'), id }),
+  z.strictObject({ do: z.literal('eat'), item: id }),
+  z.strictObject({ do: z.literal('combine'), a: id, b: id, makes: id }),
   z.strictObject({ do: z.literal('pin'), riddle: text }),
   z.strictObject({ do: z.literal('solve'), riddle: text }),
   z.strictObject({ do: z.literal('remember'), npc: id, note: text }),
@@ -88,7 +92,7 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
 
 const actionKind = z.enum([
   'flag', 'give', 'take', 'money', 'card', 'quest', 'quest_done', 'stamp', 'spirit', 'idiom',
-  'station', 'district', 'chapter', 'teleport', 'game', 'sleep', 'wait', 'hearts', 'place', 'feed_cat', 'pin', 'solve', 'remember',
+  'station', 'district', 'chapter', 'teleport', 'game', 'sleep', 'wait', 'hearts', 'place', 'feed_cat', 'daily', 'eat', 'combine', 'pin', 'solve', 'remember',
 ]);
 
 export const districtSchema: z.ZodType<District> = z.strictObject({
@@ -190,6 +194,7 @@ const nodeSchema: z.ZodType<DialogueNode> = z.strictObject({
   expect: z.array(expectSchema).optional(),
   choose: chooseSchema.optional(),
   order: z.strictObject({ shop: id, go: id.optional() }).optional(),
+  sell: z.strictObject({ share: z.number().min(0).max(1) }).optional(),
   trace: traceSchema.optional(),
   next: id.optional(),
   hint: z.strictObject({ word: text, frame: text, full: text }).optional(),
@@ -263,6 +268,8 @@ export const itemSchema: z.ZodType<Item> = z.strictObject({
   gift: z.boolean().optional(),
   kind: z.enum(['food', 'drink', 'gift', 'tool', 'decor', 'toy', 'key']).optional(),
   price: z.number().min(0).optional(),
+  verbs: z.array(z.enum(['eat', 'drink', 'give', 'use', 'put', 'look', 'open', 'play'])).optional(),
+  combine: z.array(z.strictObject({ with: id, makes: id })).optional(),
 });
 
 /** whole yuan or x.5 — 五毛 is the only small unit */
@@ -277,6 +284,7 @@ export const shopSchema: z.ZodType<Shop> = z.strictObject({
   when: conditionSchema.optional(),
   stock: z.array(z.strictObject({ item: id, price, measure: z.string().optional(), when: conditionSchema.optional() })).min(1),
   priority: z.number().int().optional(),
+  mischarge: z.boolean().optional(),
 });
 
 /** The files of one district folder and the schema each is checked with. */
@@ -414,7 +422,7 @@ export function checkReferences(
       if (n.next && !nodes.has(n.next)) errors.push(`${nat}.next: no node "${n.next}"`);
       if (n.next && n.expect?.length) errors.push(`${nat}: a node has either next or expect, not both`);
       // a line may be said by the hero, by 兔儿爷, by a spirit, or by a person with a card
-      if (n.speaker && n.speaker !== 'hero' && n.speaker !== 'companion' && !npcs.has(n.speaker) && !spirits.has(n.speaker)) errors.push(`${nat}.speaker: unknown speaker "${n.speaker}"`);
+      if (n.speaker && n.speaker !== 'hero' && n.speaker !== 'companion' && n.speaker !== 'speaker-box' && !npcs.has(n.speaker) && !spirits.has(n.speaker)) errors.push(`${nat}.speaker: unknown speaker "${n.speaker}"`);
       n.expect?.forEach((e, ei) => {
         if (e.go && !nodes.has(e.go)) errors.push(`${nat}.expect[${ei}].go: no node "${e.go}"`);
         e.actions?.forEach((a, ai) => checkAction(a, `${nat}.expect[${ei}].actions[${ai}]`));

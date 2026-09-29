@@ -151,5 +151,15 @@
    3
   ],
   "facing": "down"
+ },
+ {
+  "kind": "sign",
+  "id": "notice-zaodian",
+  "tile": [
+   9,
+   1
+  ],
+  "text": "帮忙：一天十五块。",
+  "en": "Help wanted: 15 元 a day (tap to help)"
  }
 ]

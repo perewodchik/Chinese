@@ -52,7 +52,9 @@ export type Condition =
   /** a photo was taken with this in it (X6): `<map>:<object id>` or `npc:<id>` */
   | { photo: string }
   /** this person has not had a talk with you yet today (X9: one story episode a day) */
-  | { fresh: string };
+  | { fresh: string }
+  /** a once-a-day thing (a job, Y3) was done today */
+  | { daily: string };
 
 export type Action =
   | { do: 'flag'; flag: string; value?: boolean }
@@ -85,7 +87,13 @@ export type Action =
   /** a decoration from the bag onto a spot in your room (X5); what stood there goes back to the bag */
   | { do: 'place'; spot: string; item: string }
   /** the 胡同 cat eats (once a day counts) */
-  | { do: 'feed_cat' };
+  | { do: 'feed_cat' }
+  /** a once-a-day thing done today (Y3: a job) */
+  | { do: 'daily'; id: string }
+  /** eat or drink something from the bag (Y4): a small pleasure, no hunger */
+  | { do: 'eat'; item: string }
+  /** two things from the bag make a third (Y4) */
+  | { do: 'combine'; a: string; b: string; makes: string };
 
 export type ActionKind = Action['do'];
 
@@ -228,6 +236,8 @@ export interface DialogueNode {
   trace?: Trace;
   /** take an order at a shop (Y1): the talk engine handles the order, the paying, and goes on to `go` afterwards */
   order?: { shop: string; go?: string };
+  /** buy things from you (Y3: the recycler): name something in your bag, hear the offer, say 好 */
+  sell?: { share: number };
   /** when there is nothing to expect: tap to go on here (none = the end) */
   next?: string;
   hint?: Hint;
@@ -330,7 +340,14 @@ export interface Item {
   kind?: ItemKind;
   /** its base value in yuan, for selling (Y3) */
   price?: number;
+  /** what you can do with it, shown as Chinese verbs on the bag (Y4); by default from its kind */
+  verbs?: ItemVerb[];
+  /** two things that make a third (Y4): 红纸 + 毛笔 → 春联 */
+  combine?: { with: string; makes: string }[];
 }
+
+/** 吃 喝 给 用 放 看 打 (an umbrella) 玩 (a toy) — Y4 */
+export type ItemVerb = 'eat' | 'drink' | 'give' | 'use' | 'put' | 'look' | 'open' | 'play';
 
 export type ItemKind = 'food' | 'drink' | 'gift' | 'tool' | 'decor' | 'toy' | 'key';
 
@@ -413,6 +430,15 @@ export interface CatState {
   name: string;
 }
 
+export interface Bill {
+  /** game minute */
+  at: number;
+  /** who with: an NPC id, or a scene id when nobody spoke */
+  who: string;
+  /** yuan, negative for money out */
+  amount: number;
+}
+
 export interface WorldSave {
   version: number;
   /** wall-clock ms of the last change */
@@ -465,6 +491,10 @@ export interface WorldSave {
   cat: CatState;
   /** everything ever photographed (X6); the pictures stay on the device */
   photos: string[];
+  /** the phone's 账单 (Y2): the last payments in and out of 余额, newest last */
+  bills: Bill[];
+  /** once-a-day things (Y3: jobs): id → the game day last done */
+  daily: Record<string, number>;
 
   settings: WorldSettings;
 }
