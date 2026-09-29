@@ -428,26 +428,61 @@ export class WorldScene extends Phaser.Scene {
 
   /**
    * A small bobbing diamond over each person and thing that answers Space
-   * (or a tap) — the "show what I can use" setting; null takes them away.
-   * Only redrawn when the set of marked things changes.
+   * (or a tap), each door and each way off the map — the "show what I can
+   * use" setting; null takes them away. Only redrawn when the set of marked
+   * things changes.
    */
   setHints(pred: ((o: MapObject) => boolean) | null) {
     this.opts = { ...this.opts, hints: pred };
-    const want = pred ? this.info.objects.filter((o) => 'tile' in o && pred(o)) : [];
-    const ids = new Set(want.map((o) => o.id));
-    if (ids.size === this.hintMarks.size && [...ids].every((id) => this.hintMarks.has(id))) return;
+    const want = pred ? this.info.objects.filter(pred) : [];
+    const spots = new Map<string, { x: number; y: number }>();
+    for (const o of want) {
+      const at = this.hintSpot(o, want);
+      if (at) spots.set(o.id, at);
+    }
+    if (spots.size === this.hintMarks.size && [...spots.keys()].every((id) => this.hintMarks.has(id))) return;
     for (const m of this.hintMarks.values()) m.destroy();
     this.hintMarks.clear();
     this.makeHintTexture();
-    for (const o of want) {
-      if (!('tile' in o)) continue;
-      const s = o.kind === 'npc' ? this.npcSprites.get(o.id) : o.kind === 'prop' ? this.propSprites.get(o.id) : undefined;
-      const x = s ? s.x + s.width / 2 : o.tile[0] * TILE + TILE / 2;
-      const y = s ? s.y - s.height - (o.kind === 'npc' ? 0 : 2) : o.tile[1] * TILE - 1;
+    for (const [id, { x, y }] of spots) {
       const m = this.add.image(Math.round(x), Math.round(y), 'hint').setOrigin(0.5, 1).setAlpha(0.8).setDepth(20_003);
       this.tweens.add({ targets: m, y: m.y - 2, duration: 650, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: Math.floor(Math.random() * 600) });
-      this.hintMarks.set(o.id, m);
+      this.hintMarks.set(id, m);
     }
+  }
+
+  /** Where a thing's mark sits (its foot is at the mark's bottom), or null for no mark of its own. */
+  private hintSpot(o: MapObject, marked: readonly MapObject[]): { x: number; y: number } | null {
+    if (o.kind === 'edge') {
+      // in the middle of the stretch of edge that leads away
+      const mid = Math.floor((o.from + o.to) / 2);
+      const [tx, ty] =
+        o.side === 'left' ? [0, mid] : o.side === 'right' ? [this.info.width - 1, mid] : o.side === 'up' ? [mid, 0] : [mid, this.info.height - 1];
+      return { x: tx * TILE + TILE / 2, y: ty * TILE + TILE / 2 + 4 };
+    }
+    const s = o.kind === 'npc' ? this.npcSprites.get(o.id) : o.kind === 'prop' ? this.propSprites.get(o.id) : undefined;
+    if (s) return { x: s.x + s.width / 2, y: s.y - s.height - (o.kind === 'npc' ? 0 : 2) };
+    if (!('tile' in o)) return null;
+    const [tx, ty] = o.tile;
+    if (o.kind === 'door') {
+      // a wide way in (two gate tiles to the station) is one mark, over the middle of it
+      const same = (x: number) => marked.some((d) => d.kind === 'door' && d.to.map === o.to.map && d.tile[0] === x && d.tile[1] === ty);
+      if (same(tx - 1)) return null;
+      let w = 1;
+      while (same(tx + w)) w++;
+      return { x: tx * TILE + (w * TILE) / 2, y: ty * TILE - 1 };
+    }
+    // a bike, a machine, a board: over the picture drawn on that tile, or
+    // beside it (a bike stand is the tile next to the parked bike)
+    const drawnAt = (x: number) =>
+      [...this.propSprites.values()].find((p) => {
+        const cx = x * TILE + TILE / 2;
+        const foot = Math.round(p.y / TILE) - 1;
+        return cx >= p.x && cx < p.x + p.width && ty <= foot && ty > foot - Math.max(1, Math.ceil(p.height / TILE));
+      });
+    const p = drawnAt(tx) ?? (o.kind === 'bike' ? (drawnAt(tx - 1) ?? drawnAt(tx + 1)) : undefined);
+    if (p) return { x: p.x + p.width / 2, y: p.y - p.height - 2 };
+    return { x: tx * TILE + TILE / 2, y: ty * TILE - 1 };
   }
 
   private makeHintTexture() {

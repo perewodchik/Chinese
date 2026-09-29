@@ -61,6 +61,8 @@ const TIMES: PartOfDay[] = ['morning', 'day', 'evening', 'night'];
 
 /** Until chapter 1's maps exist, a save that points at a map this build lacks starts in the prototype lane. */
 const FALLBACK = { map: 'hutong-proto', tile: [14, 7] as Tile };
+/** signs that do something when used: the departure boards and the ticket gates */
+const USE_SIGNS = new Set(['board', 'bus-board', 'train-board', 'gates-in', 'gates-out']);
 
 type MapIndex = Record<string, { district: string; width: number; height: number }>;
 
@@ -595,20 +597,25 @@ export function WorldPage() {
   useEffect(() => {
     if (music !== undefined) ambient.current?.setMusicVolume(music);
   }, [music]);
-  // "Show what I can use": a small mark over people, signs, bikes and the things that have something to say
+  // "Show what I can use": a small mark over people to talk to, ways into new
+  // places, and things that do something (bikes, machines, boards, gates, a
+  // scene) — not over plain name signs, which only say what is written
   const hints = game.save?.settings.highlight ?? false;
   useEffect(() => {
     const s = game.save;
     if (state !== 'ready' || !s) return;
     const scenes = contentRef.current.scenes;
+    const hasScene = (o: MapObject) => !!sceneFor(scenes, s, { look: o.id, map: s.place.map });
     world.current?.setHints(
       hints
         ? (o: MapObject) =>
             o.kind === 'npc' ||
-            o.kind === 'sign' ||
+            o.kind === 'door' ||
+            o.kind === 'edge' ||
             o.kind === 'bike' ||
             isMachine(o) ||
-            (o.kind === 'prop' && !!sceneFor(scenes, s, { look: o.id, map: s.place.map })) ||
+            (o.kind === 'sign' && (USE_SIGNS.has(o.id) || hasScene(o))) ||
+            (o.kind === 'prop' && hasScene(o)) ||
             !!homeProp(o, s.place.map)
         : null,
     );
