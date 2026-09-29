@@ -1,0 +1,100 @@
+[
+ {
+  "kind": "door",
+  "id": "down",
+  "tile": [
+   13,
+   3
+  ],
+  "to": {
+   "map": "baihuo-1",
+   "tile": [
+    13,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "down-2",
+  "tile": [
+   14,
+   3
+  ],
+  "to": {
+   "map": "baihuo-1",
+   "tile": [
+    14,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "racks",
+  "tile": [
+   3,
+   1
+  ],
+  "text": "裤子  裙子  西装  皮鞋",
+  "en": "Trousers · skirts · suits · leather shoes"
+ },
+ {
+  "kind": "sign",
+  "id": "fitting",
+  "tile": [
+   9,
+   1
+  ],
+  "text": "试衣间",
+  "en": "The fitting room"
+ },
+ {
+  "kind": "sign",
+  "id": "stairs",
+  "tile": [
+   14,
+   1
+  ],
+  "text": "一楼 ↓",
+  "en": "Downstairs: the way out"
+ },
+ {
+  "kind": "npc",
+  "id": "seller",
+  "npc": "baihuo-ayi",
+  "tile": [
+   4,
+   3
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   1,
+   8
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant-2",
+  "tile": [
+   14,
+   8
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ }
+]

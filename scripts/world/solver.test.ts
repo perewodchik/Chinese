@@ -92,6 +92,12 @@ describe('money goes round (Y3)', () => {
       [],
     );
     assert.deepEqual(run.short, []);
+    // and bought clothes at every rack on the way (§12 W5): the game still finishes
+    const clothes = JSON.parse(readFileSync('content/world/clothes.json', 'utf8')) as { racks: { id: string; hair?: unknown }[]; clothes: { id: string; shop: string }[] };
+    const shopOf = new Map(clothes.clothes.map((c) => [c.id, c.shop]));
+    const racksBought = new Set(run.save.wardrobe.map((id) => shopOf.get(id.split(':')[0]!)));
+    assert.deepEqual(clothes.racks.filter((r) => !r.hair && !racksBought.has(r.id)).map((r) => r.id), []);
+    assert.notEqual(run.save.look.hair.style, 'short', 'the barber cut something');
   });
 
   it('a broke player earns a 交通卡 (40 元) within one game day of jobs', () => {

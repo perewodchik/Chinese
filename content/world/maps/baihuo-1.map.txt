@@ -1,0 +1,29 @@
+id: baihuo-1
+size: 16x10
+tilesets: tiles
+district: wangfujing
+
+# 王府井百货大楼, ground floor: racks of sweaters and coats, a counter, mirrors, the stairs up
+
+[ground]
+tttttttttttttttt
+tttttttttttttttt
+tttttttttttttttt
+tttttttttttttzzt
+tttttttttttttttt
+tttttttttttttttt
+tttttttttttttttt
+tttttttttttttttt
+tttttttttttttttt
+ttttttttettttttt
+[below]
+kkkkkkkkkkkkkkkk
+kssssssoouuoiiok
+kOOOOOOOOOOOOOOk
+k..............k
+k..CCCC........k
+k..............k
+k..............k
+k..............k
+k..............k
+kkkkkkkk.kkkkkkk

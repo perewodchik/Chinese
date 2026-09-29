@@ -56,6 +56,8 @@ export const PLACES: readonly Place[] = [
   P('wangfujing-street', '王府井大街', 'Wangfujing Street', 'street'),
   P('station-wangfujing', '王府井站', 'Wangfujing station', 'station'),
   P('shudian', '书店', 'Bookshop', 'inside'),
+  P('baihuo-1', '百货大楼', 'Department store', 'inside'),
+  P('baihuo-2', '百货大楼二楼', 'Department store, upstairs', 'inside'),
   P('yaodian', '药店', 'Pharmacy', 'inside'),
   P('yinhang', '银行', 'Bank', 'inside'),
 
@@ -63,6 +65,8 @@ export const PLACES: readonly Place[] = [
   P('station-qianmen', '前门站', 'Qianmen station', 'station'),
   P('qianmen-street', '前门大街', 'Qianmen Street', 'street'),
   P('xiyuan', '戏园', 'Opera house', 'inside'),
+  P('ruifuxiang', '瑞蚨祥', 'Ruifuxiang silk shop', 'inside'),
+  P('neiliansheng', '内联升', 'Neiliansheng shoe shop', 'inside'),
 
   // 天坛
   P('huiyinbi', '回音壁', 'Echo Wall', 'sight'),

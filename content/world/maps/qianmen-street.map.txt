@@ -36,8 +36,8 @@ ssssssssssssssssssssssssssssssssssssssssssssssss
 ............xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ............xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ............eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
-............bbbbhhhhhbbbhhdhhbbbbhhhhbbb..bbbbbb
-............BBBBhhhhhBBBhhDhhBBBBhhhhBBB..BBBBBB
+............bbbbhhhhhbbbhhdhhbbbbhhdhbbb..bhhdhb
+............BBBBhhhhhBBBhhDhhBBBBhhDhBBB..BhhDhB
 ................................................
 ................................................
 ................................................

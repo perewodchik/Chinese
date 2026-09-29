@@ -1884,6 +1884,7 @@
   "npc": "zhang-shifu",
   "trigger": "talk",
   "priority": 1,
+  "once": true,
   "when": {
    "all": [
     {

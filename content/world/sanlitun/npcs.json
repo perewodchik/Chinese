@@ -130,5 +130,61 @@
     "misses": [
       "啊？你要什么？"
     ]
+  },
+  {
+    "id": "lining-dianyuan",
+    "name": "李宁的店员",
+    "role": "an assistant in a 李宁 tracksuit outside the sports shop",
+    "look": {
+      "sprite": "kid",
+      "palette": "blue"
+    },
+    "voice": "zhiyuan",
+    "character": "Sporty and quick; talks about running.",
+    "knows": [
+      "What everything on the rack costs"
+    ],
+    "wants": [
+      "To see you in something that suits you"
+    ],
+    "actions": [
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "运动服": "运动的时候穿的衣服。",
+      "运动鞋": "运动的时候穿的鞋。"
+    },
+    "misses": [
+      "你说什么？",
+      "什么？你再说一遍。"
+    ]
+  },
+  {
+    "id": "huili-dianyuan",
+    "name": "回力的店员",
+    "role": "an assistant at the 回力 shoe shop, in white canvas shoes",
+    "look": {
+      "sprite": "woman"
+    },
+    "voice": "xiaoyu",
+    "character": "Laid-back; says the old ones are the cool ones.",
+    "knows": [
+      "What everything on the rack costs"
+    ],
+    "wants": [
+      "To see you in something that suits you"
+    ],
+    "actions": [
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "回力鞋": "白色的布鞋，很便宜，很多年轻人喜欢。"
+    },
+    "misses": [
+      "你说什么？",
+      "什么？你再说一遍。"
+    ]
   }
 ]

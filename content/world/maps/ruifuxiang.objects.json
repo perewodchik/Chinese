@@ -1,0 +1,61 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   5,
+   7
+  ],
+  "to": {
+   "map": "qianmen-street",
+   "tile": [
+    35,
+    6
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "silk",
+  "tile": [
+   2,
+   1
+  ],
+  "text": "丝绸  旗袍  唐装",
+  "en": "Silk by the bolt · qipao · Tang jackets"
+ },
+ {
+  "kind": "sign",
+  "id": "fitting",
+  "tile": [
+   8,
+   1
+  ],
+  "text": "试衣间",
+  "en": "The fitting room"
+ },
+ {
+  "kind": "npc",
+  "id": "seller",
+  "npc": "ruifuxiang-ayi",
+  "tile": [
+   4,
+   3
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   10,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ }
+]

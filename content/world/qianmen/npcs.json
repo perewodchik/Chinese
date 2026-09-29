@@ -205,5 +205,63 @@
     "explains": {
       "厉害": "很强，很好，别人不能比。"
     }
+  },
+  {
+    "id": "ruifuxiang-ayi",
+    "name": "瑞蚨祥的阿姨",
+    "role": "the saleswoman at 瑞蚨祥, a tape measure round her neck",
+    "look": {
+      "sprite": "auntie",
+      "palette": "purple"
+    },
+    "voice": "xiaoyu",
+    "character": "Warm and exact; measures everyone with her eyes.",
+    "knows": [
+      "瑞蚨祥 has sold silk on 大栅栏 for over a hundred years"
+    ],
+    "wants": [
+      "To see you in something that suits you"
+    ],
+    "actions": [
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "旗袍": "中国女人常穿的一种长衣服，很漂亮。",
+      "丝巾": "很薄很软的小围巾。",
+      "试衣间": "试衣服的小房间。"
+    },
+    "misses": [
+      "你说什么？",
+      "什么？你再说一遍。"
+    ]
+  },
+  {
+    "id": "neiliansheng-shifu",
+    "name": "内联升的师傅",
+    "role": "the shoemaker at 内联升, stitching a sole at the counter",
+    "look": {
+      "sprite": "uncle",
+      "palette": "apron"
+    },
+    "voice": "wei",
+    "character": "Quiet, proud of every stitch.",
+    "knows": [
+      "内联升 has made cloth shoes since the Qing dynasty"
+    ],
+    "wants": [
+      "To see you in something that suits you"
+    ],
+    "actions": [
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "布鞋": "用布做的鞋，穿着很舒服。"
+    },
+    "misses": [
+      "你说什么？",
+      "什么？你再说一遍。"
+    ]
   }
 ]

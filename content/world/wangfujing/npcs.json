@@ -147,5 +147,94 @@
     "misses": [
       "你说什么？"
     ]
+  },
+  {
+    "id": "shengxifu-dianyuan",
+    "name": "盛锡福的店员",
+    "role": "the assistant at the hat maker 盛锡福",
+    "look": {
+      "sprite": "woman",
+      "palette": "black"
+    },
+    "voice": "xiaoyu",
+    "character": "Brisk; tries every hat on you in her head first.",
+    "knows": [
+      "What everything on the rack costs"
+    ],
+    "wants": [
+      "To see you in something that suits you"
+    ],
+    "actions": [
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "礼帽": "很高的帽子，有点儿老。",
+      "鸭舌帽": "前面有一块的帽子。"
+    },
+    "misses": [
+      "你说什么？",
+      "什么？你再说一遍。"
+    ]
+  },
+  {
+    "id": "baihuo-jiejie",
+    "name": "百货大楼的售货员",
+    "role": "a shop assistant on the department store's ground floor",
+    "look": {
+      "sprite": "woman",
+      "palette": "teal"
+    },
+    "voice": "xiaoyu",
+    "character": "Cheerful; knows which colour is in this year.",
+    "knows": [
+      "What everything on the rack costs"
+    ],
+    "wants": [
+      "To see you in something that suits you"
+    ],
+    "actions": [
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "羽绒服": "冬天穿的很暖和的衣服。",
+      "大衣": "很长的外衣。",
+      "试衣间": "试衣服的小房间。"
+    },
+    "misses": [
+      "你说什么？",
+      "什么？你再说一遍。"
+    ]
+  },
+  {
+    "id": "baihuo-ayi",
+    "name": "二楼的售货员",
+    "role": "a shop assistant upstairs at the department store",
+    "look": {
+      "sprite": "auntie",
+      "palette": "green"
+    },
+    "voice": "chen",
+    "character": "Motherly; thinks everyone needs a good pair of trousers.",
+    "knows": [
+      "What everything on the rack costs"
+    ],
+    "wants": [
+      "To see you in something that suits you"
+    ],
+    "actions": [
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "西装": "上班的时候穿的衣服。",
+      "牛仔裤": "蓝色的裤子，很多年轻人穿。",
+      "试衣间": "试衣服的小房间。"
+    },
+    "misses": [
+      "你说什么？",
+      "什么？你再说一遍。"
+    ]
   }
 ]

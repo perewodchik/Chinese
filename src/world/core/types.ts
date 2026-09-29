@@ -247,6 +247,8 @@ export interface DialogueNode {
   sell?: { share: number };
   /** bargain for one thing at a stall (Y6, `bargain.ts`): the deal is paid on the phone, then `go` */
   bargain?: Bargain;
+  /** a clothes rack or the barber's menu (§12 W5, `rack.ts`): look, ask, try, buy — then 穿着走 */
+  rack?: { rack: string };
   /** when there is nothing to expect: tap to go on here (none = the end) */
   next?: string;
   hint?: Hint;

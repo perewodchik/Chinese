@@ -221,5 +221,34 @@
     "misses": [
       "啊？你说什么？"
     ]
+  },
+  {
+    "id": "jiuyi-dashu",
+    "name": "卖旧衣服的大叔",
+    "role": "a man selling old clothes from a rail at 潘家园",
+    "look": {
+      "sprite": "uncle",
+      "palette": "brown"
+    },
+    "voice": "wei",
+    "character": "Theatrical; every jacket has a story, not always true.",
+    "knows": [
+      "Prices at 潘家园 start high"
+    ],
+    "wants": [
+      "To see you in something that suits you"
+    ],
+    "actions": [
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "中山装": "以前很多人穿的衣服，有四个口袋。",
+      "眼镜": "戴在眼睛上的东西。"
+    },
+    "misses": [
+      "你说什么？",
+      "什么？你再说一遍。"
+    ]
   }
 ]

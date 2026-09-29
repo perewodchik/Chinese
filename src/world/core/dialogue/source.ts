@@ -10,6 +10,7 @@
 
 import type { SaveAction } from '../save';
 import type { Haggle } from '../bargain';
+import type { RackState } from '../rack';
 import type { Scene, WorldSave } from '../types';
 
 /** One line on screen. */
@@ -55,6 +56,9 @@ export interface Due {
   name: string;
   /** what is paid for; `price` is the line's own total, for the diary (Y7) */
   cart: { item: string; n: number; price?: number }[];
+  /** a garment bought at a rack, or the barber's cut and colour (§12 W5) */
+  clothes?: RackState['bought'];
+  hair?: RackState['hair'];
 }
 
 export interface DialogueState {
@@ -83,6 +87,8 @@ export interface DialogueState {
   held?: { item: string; name: string }[];
   /** at a stall (Y6): the price on the table and how the bargaining has gone */
   haggle?: Haggle;
+  /** at a clothes rack or the barber's (§12 W5) */
+  rack?: RackState;
 }
 
 /** What happened to the player's line. */

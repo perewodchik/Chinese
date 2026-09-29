@@ -1,0 +1,29 @@
+id: baihuo-2
+size: 16x10
+tilesets: tiles
+district: wangfujing
+
+# 王府井百货大楼, first floor: trousers and skirts, suits, a shoe wall, the stairs down
+
+[ground]
+tttttttttttttttt
+tttttttttttttttt
+tttttttttttttttt
+tttttttttttttzzt
+tttttttttttttttt
+tttttttttttttttt
+tttttttttttttttt
+tttttttttttttttt
+tttttttttttttttt
+tttttttttttttttt
+[below]
+kkkkkkkkkkkkkkkk
+kssssssoouuoiiok
+kOOOOOOOOOOOOOOk
+k..............k
+k..CCCC........k
+k..............k
+k..............k
+k..............k
+k..............k
+kkkkkkkkkkkkkkkk

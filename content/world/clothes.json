@@ -1,5 +1,104 @@
 {
-  "racks": [],
+  "racks": [
+    {
+      "id": "ruifuxiang",
+      "npc": "ruifuxiang-ayi",
+      "map": "ruifuxiang",
+      "name": "瑞蚨祥",
+      "en": "Ruifuxiang, the silk shop",
+      "pay": "code",
+      "about": "瑞蚨祥 is an old silk and cloth shop on 大栅栏, in Beijing since the end of the Qing dynasty — people still have 旗袍 made there."
+    },
+    {
+      "id": "neiliansheng",
+      "npc": "neiliansheng-shifu",
+      "map": "neiliansheng",
+      "name": "内联升",
+      "en": "Neiliansheng, the cloth-shoe shop",
+      "pay": "code",
+      "about": "内联升 on 大栅栏 has made cloth shoes (布鞋) since the Qing dynasty — soft black uppers on a stitched white sole."
+    },
+    {
+      "id": "shengxifu",
+      "npc": "shengxifu-dianyuan",
+      "map": "wangfujing-street",
+      "name": "盛锡福",
+      "en": "Shengxifu, the hat maker",
+      "pay": "code",
+      "about": "盛锡福 is a famous old hat maker; its shop is on 王府井大街."
+    },
+    {
+      "id": "baihuo-1",
+      "npc": "baihuo-jiejie",
+      "map": "baihuo-1",
+      "name": "王府井百货大楼",
+      "en": "Wangfujing Department Store, ground floor",
+      "pay": "code",
+      "about": "王府井百货大楼 is the big department store on 王府井, open since the 1950s. Ground floor: sweaters, shirts, coats."
+    },
+    {
+      "id": "baihuo-2",
+      "npc": "baihuo-ayi",
+      "map": "baihuo-2",
+      "name": "王府井百货大楼",
+      "en": "Wangfujing Department Store, first floor",
+      "pay": "code",
+      "about": "Upstairs at 王府井百货大楼: trousers, skirts, suits and leather shoes."
+    },
+    {
+      "id": "lining",
+      "npc": "lining-dianyuan",
+      "map": "sanlitun-street",
+      "name": "李宁",
+      "en": "Li-Ning, sportswear",
+      "pay": "code",
+      "about": "李宁 is a Chinese sports brand, started by the Olympic gymnast 李宁 — trainers, tracksuits, T-shirts."
+    },
+    {
+      "id": "huili",
+      "npc": "huili-dianyuan",
+      "map": "sanlitun-street",
+      "name": "回力",
+      "en": "Warrior (回力), canvas shoes",
+      "pay": "code",
+      "about": "回力 are old Shanghai canvas trainers — white with a red stripe — that young people wear again."
+    },
+    {
+      "id": "wenchuang",
+      "npc": "wenchuang-jiejie",
+      "map": "nanluo-main",
+      "name": "胡同文创",
+      "en": "Hutong gift shop",
+      "pay": "scan",
+      "about": "A 文创 shop: 'cultural and creative' things — T-shirts, bags and caps with Beijing on them."
+    },
+    {
+      "id": "jiuyi",
+      "npc": "jiuyi-dashu",
+      "map": "panjiayuan-market",
+      "name": "旧衣服",
+      "en": "Old clothes stall",
+      "pay": "scan",
+      "bargain": true,
+      "about": "Old clothes at 潘家园: 中山装 jackets, caps and round glasses. The first price is always too high — bargain."
+    },
+    {
+      "id": "lifadian",
+      "npc": "zhang-shifu",
+      "map": "lifadian",
+      "name": "张师傅理发店",
+      "en": "Master Zhang’s barber shop",
+      "pay": "scan",
+      "about": "张师傅's barber shop. Besides the mirror at home, this is the one place that changes your hair.",
+      "hair": {
+        "cut": 30,
+        "dye": 40
+      },
+      "when": {
+        "flag": "haircut"
+      }
+    }
+  ],
   "clothes": [
     {
       "id": "jacket",
@@ -7,30 +106,17 @@
       "en": "jacket",
       "slot": "top",
       "measure": "件",
-      "colours": [{ "id": "blue", "zh": "蓝的", "en": "blue", "palette": "nBB" }],
+      "colours": [
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nBB"
+        }
+      ],
       "price": 150,
       "shop": "start",
       "story": "The jacket you came to Beijing in."
-    },
-    {
-      "id": "trousers",
-      "zh": "裤子",
-      "en": "trousers",
-      "slot": "bottom",
-      "measure": "条",
-      "colours": [{ "id": "dark", "zh": "黑的", "en": "dark", "palette": "ak" }],
-      "price": 45,
-      "shop": "start"
-    },
-    {
-      "id": "sneakers",
-      "zh": "运动鞋",
-      "en": "trainers",
-      "slot": "shoes",
-      "measure": "双",
-      "colours": [{ "id": "white", "zh": "白的", "en": "white", "palette": "we" }],
-      "price": 200,
-      "shop": "start"
     },
     {
       "id": "scarf",
@@ -38,10 +124,942 @@
       "en": "scarf",
       "slot": "accessory",
       "measure": "条",
-      "colours": [{ "id": "red", "zh": "红的", "en": "red", "palette": "rRy" }],
+      "colours": [
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rRy"
+        }
+      ],
       "price": 60,
       "shop": "start",
       "story": "A red scarf — 王阿姨 says red brings luck."
+    },
+    {
+      "id": "sweater",
+      "zh": "毛衣",
+      "en": "sweater",
+      "slot": "top",
+      "measure": "件",
+      "colours": [
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rRwe",
+          "when": {
+            "festival": "chunjie"
+          }
+        },
+        {
+          "id": "green",
+          "zh": "绿的",
+          "en": "green",
+          "palette": "hGwe"
+        },
+        {
+          "id": "grey",
+          "zh": "灰的",
+          "en": "grey",
+          "palette": "dcrR"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nBwe"
+        }
+      ],
+      "price": 150,
+      "shop": "baihuo-1",
+      "story": "Knitted, with a band across the chest. The red one only comes out for 春节."
+    },
+    {
+      "id": "shirt",
+      "zh": "衬衫",
+      "en": "shirt",
+      "slot": "top",
+      "measure": "件",
+      "colours": [
+        {
+          "id": "white",
+          "zh": "白的",
+          "en": "white",
+          "palette": "wdw"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "lnw"
+        },
+        {
+          "id": "pink",
+          "zh": "粉的",
+          "en": "pink",
+          "palette": "NRw"
+        }
+      ],
+      "price": 90,
+      "shop": "baihuo-1"
+    },
+    {
+      "id": "coat",
+      "zh": "大衣",
+      "en": "long coat",
+      "slot": "top",
+      "measure": "件",
+      "colours": [
+        {
+          "id": "brown",
+          "zh": "棕的",
+          "en": "camel",
+          "palette": "zMY"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "akc"
+        },
+        {
+          "id": "grey",
+          "zh": "灰的",
+          "en": "grey",
+          "palette": "dcb"
+        }
+      ],
+      "price": 300,
+      "shop": "baihuo-1"
+    },
+    {
+      "id": "down-jacket",
+      "zh": "羽绒服",
+      "en": "down jacket",
+      "slot": "top",
+      "measure": "件",
+      "colours": [
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rRw"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "akd"
+        },
+        {
+          "id": "yellow",
+          "zh": "黄的",
+          "en": "yellow",
+          "palette": "yYw"
+        }
+      ],
+      "price": 400,
+      "shop": "baihuo-1",
+      "when": {
+        "season": "winter"
+      },
+      "story": "Beijing winters are cold and dry — everyone has one of these."
+    },
+    {
+      "id": "sunglasses",
+      "zh": "墨镜",
+      "en": "sunglasses",
+      "slot": "accessory",
+      "measure": "副",
+      "colours": [
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "kaw"
+        }
+      ],
+      "price": 100,
+      "shop": "baihuo-1"
+    },
+    {
+      "id": "trousers",
+      "zh": "裤子",
+      "en": "trousers",
+      "slot": "bottom",
+      "measure": "条",
+      "colours": [
+        {
+          "id": "dark",
+          "zh": "黑的",
+          "en": "dark",
+          "palette": "ak"
+        },
+        {
+          "id": "grey",
+          "zh": "灰的",
+          "en": "grey",
+          "palette": "cb"
+        },
+        {
+          "id": "brown",
+          "zh": "棕的",
+          "en": "brown",
+          "palette": "Mm"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nB"
+        }
+      ],
+      "price": 45,
+      "shop": "baihuo-2"
+    },
+    {
+      "id": "jeans",
+      "zh": "牛仔裤",
+      "en": "jeans",
+      "slot": "bottom",
+      "measure": "条",
+      "colours": [
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nBl"
+        },
+        {
+          "id": "dark",
+          "zh": "深蓝的",
+          "en": "dark blue",
+          "palette": "Bal"
+        }
+      ],
+      "price": 80,
+      "shop": "baihuo-2"
+    },
+    {
+      "id": "skirt",
+      "zh": "裙子",
+      "en": "skirt",
+      "slot": "bottom",
+      "measure": "条",
+      "colours": [
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rR"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nB"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "ak"
+        },
+        {
+          "id": "pink",
+          "zh": "粉的",
+          "en": "pink",
+          "palette": "Np"
+        }
+      ],
+      "price": 90,
+      "shop": "baihuo-2"
+    },
+    {
+      "id": "long-skirt",
+      "zh": "长裙",
+      "en": "long skirt",
+      "slot": "bottom",
+      "measure": "条",
+      "colours": [
+        {
+          "id": "green",
+          "zh": "绿的",
+          "en": "green",
+          "palette": "hG"
+        },
+        {
+          "id": "purple",
+          "zh": "紫的",
+          "en": "purple",
+          "palette": "Vq"
+        },
+        {
+          "id": "white",
+          "zh": "白的",
+          "en": "white",
+          "palette": "we"
+        }
+      ],
+      "price": 120,
+      "shop": "baihuo-2"
+    },
+    {
+      "id": "suit",
+      "zh": "西装",
+      "en": "suit",
+      "slot": "top",
+      "measure": "件",
+      "colours": [
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "akwr"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "navy",
+          "palette": "BawR"
+        },
+        {
+          "id": "grey",
+          "zh": "灰的",
+          "en": "grey",
+          "palette": "cbwR"
+        }
+      ],
+      "price": 600,
+      "shop": "baihuo-2",
+      "story": "A suit for a wedding, a job, or feeling tall on 王府井."
+    },
+    {
+      "id": "leather",
+      "zh": "皮鞋",
+      "en": "leather shoes",
+      "slot": "shoes",
+      "measure": "双",
+      "colours": [
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "ab"
+        },
+        {
+          "id": "brown",
+          "zh": "棕的",
+          "en": "brown",
+          "palette": "Mm"
+        }
+      ],
+      "price": 300,
+      "shop": "baihuo-2"
+    },
+    {
+      "id": "qipao",
+      "zh": "旗袍",
+      "en": "qipao",
+      "slot": "top",
+      "measure": "件",
+      "colours": [
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rRyY"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nByY"
+        },
+        {
+          "id": "green",
+          "zh": "绿的",
+          "en": "green",
+          "palette": "hGjy"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "akrR"
+        }
+      ],
+      "price": 500,
+      "shop": "ruifuxiang",
+      "story": "A silk 旗袍 with a high collar and knotted buttons — worth saving up for."
+    },
+    {
+      "id": "tangzhuang",
+      "zh": "唐装",
+      "en": "Tang jacket",
+      "slot": "top",
+      "measure": "件",
+      "colours": [
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rRy"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nBy"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "aky"
+        }
+      ],
+      "price": 300,
+      "shop": "ruifuxiang",
+      "story": "A jacket with a stand-up collar and knotted buttons; people wear the red ones at New Year."
+    },
+    {
+      "id": "silk",
+      "zh": "丝巾",
+      "en": "silk scarf",
+      "slot": "accessory",
+      "measure": "条",
+      "colours": [
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rRy"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "lnw"
+        },
+        {
+          "id": "pink",
+          "zh": "粉的",
+          "en": "pink",
+          "palette": "NpY"
+        }
+      ],
+      "price": 120,
+      "shop": "ruifuxiang"
+    },
+    {
+      "id": "hanfu",
+      "zh": "汉服",
+      "en": "hanfu robe",
+      "slot": "top",
+      "measure": "件",
+      "colours": [
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rRwy"
+        },
+        {
+          "id": "white",
+          "zh": "白的",
+          "en": "white",
+          "palette": "wdlr"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "lnwr"
+        }
+      ],
+      "price": 100,
+      "shop": "ruifuxiang",
+      "when": {
+        "festival": "yuanxiao"
+      },
+      "story": "Only at the Lantern Festival: a flowing robe with wide sleeves, for the lanterns."
+    },
+    {
+      "id": "buxie",
+      "zh": "布鞋",
+      "en": "cloth shoes",
+      "slot": "shoes",
+      "measure": "双",
+      "colours": [
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "aw"
+        },
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rw"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "Bw"
+        },
+        {
+          "id": "green",
+          "zh": "绿的",
+          "en": "green",
+          "palette": "Gw"
+        }
+      ],
+      "price": 150,
+      "shop": "neiliansheng",
+      "story": "Soft cloth shoes on a stitched sole, from 内联升."
+    },
+    {
+      "id": "beanie",
+      "zh": "毛线帽",
+      "en": "woolly hat",
+      "slot": "hat",
+      "measure": "顶",
+      "colours": [
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rRw"
+        },
+        {
+          "id": "grey",
+          "zh": "灰的",
+          "en": "grey",
+          "palette": "dcw"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nBw"
+        }
+      ],
+      "price": 50,
+      "shop": "shengxifu",
+      "when": {
+        "season": "winter"
+      }
+    },
+    {
+      "id": "straw",
+      "zh": "草帽",
+      "en": "straw hat",
+      "slot": "hat",
+      "measure": "顶",
+      "colours": [
+        {
+          "id": "yellow",
+          "zh": "黄的",
+          "en": "straw",
+          "palette": "jYr"
+        }
+      ],
+      "price": 40,
+      "shop": "shengxifu",
+      "when": {
+        "season": "summer"
+      }
+    },
+    {
+      "id": "cap",
+      "zh": "鸭舌帽",
+      "en": "peaked cap",
+      "slot": "hat",
+      "measure": "顶",
+      "colours": [
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "ak"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nB"
+        },
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rR"
+        }
+      ],
+      "price": 60,
+      "shop": "shengxifu"
+    },
+    {
+      "id": "tophat",
+      "zh": "礼帽",
+      "en": "top hat",
+      "slot": "hat",
+      "measure": "顶",
+      "colours": [
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "akr"
+        },
+        {
+          "id": "grey",
+          "zh": "灰的",
+          "en": "grey",
+          "palette": "cbk"
+        },
+        {
+          "id": "brown",
+          "zh": "棕的",
+          "en": "brown",
+          "palette": "Mmy"
+        }
+      ],
+      "price": 200,
+      "shop": "shengxifu"
+    },
+    {
+      "id": "tshirt",
+      "zh": "T恤",
+      "en": "T-shirt",
+      "slot": "top",
+      "measure": "件",
+      "colours": [
+        {
+          "id": "white",
+          "zh": "白的",
+          "en": "white",
+          "palette": "we"
+        },
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rR"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "ak"
+        },
+        {
+          "id": "yellow",
+          "zh": "黄的",
+          "en": "yellow",
+          "palette": "yY"
+        }
+      ],
+      "price": 35,
+      "shop": "lining"
+    },
+    {
+      "id": "track-top",
+      "zh": "运动服",
+      "en": "tracksuit top",
+      "slot": "top",
+      "measure": "件",
+      "colours": [
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rRw"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nBw"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "akw"
+        }
+      ],
+      "price": 150,
+      "shop": "lining"
+    },
+    {
+      "id": "track-pants",
+      "zh": "运动裤",
+      "en": "tracksuit trousers",
+      "slot": "bottom",
+      "measure": "条",
+      "colours": [
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rRw"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nBw"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "akw"
+        }
+      ],
+      "price": 80,
+      "shop": "lining"
+    },
+    {
+      "id": "shorts",
+      "zh": "短裤",
+      "en": "shorts",
+      "slot": "bottom",
+      "measure": "条",
+      "colours": [
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nB"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "ak"
+        },
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rR"
+        }
+      ],
+      "price": 35,
+      "shop": "lining",
+      "when": {
+        "season": "summer"
+      }
+    },
+    {
+      "id": "sneakers",
+      "zh": "运动鞋",
+      "en": "trainers",
+      "slot": "shoes",
+      "measure": "双",
+      "colours": [
+        {
+          "id": "white",
+          "zh": "白的",
+          "en": "white",
+          "palette": "we"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "ac"
+        },
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rw"
+        }
+      ],
+      "price": 200,
+      "shop": "lining"
+    },
+    {
+      "id": "huili",
+      "zh": "回力鞋",
+      "en": "canvas trainers",
+      "slot": "shoes",
+      "measure": "双",
+      "colours": [
+        {
+          "id": "white",
+          "zh": "白的",
+          "en": "white",
+          "palette": "wr"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "aw"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "nw"
+        }
+      ],
+      "price": 80,
+      "shop": "huili"
+    },
+    {
+      "id": "hutong-tee",
+      "zh": "胡同T恤",
+      "en": "hutong T-shirt",
+      "slot": "top",
+      "measure": "件",
+      "colours": [
+        {
+          "id": "white",
+          "zh": "白的",
+          "en": "white",
+          "palette": "werR"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "akrR"
+        }
+      ],
+      "price": 40,
+      "shop": "wenchuang",
+      "story": "A T-shirt with a little 胡同 gate on the chest."
+    },
+    {
+      "id": "panda",
+      "zh": "熊猫帽",
+      "en": "panda hat",
+      "slot": "hat",
+      "measure": "顶",
+      "colours": [
+        {
+          "id": "white",
+          "zh": "白的",
+          "en": "white",
+          "palette": "wek"
+        }
+      ],
+      "price": 45,
+      "shop": "wenchuang"
+    },
+    {
+      "id": "bag",
+      "zh": "帆布包",
+      "en": "canvas bag",
+      "slot": "accessory",
+      "measure": "个",
+      "colours": [
+        {
+          "id": "white",
+          "zh": "白的",
+          "en": "natural",
+          "palette": "fPR"
+        },
+        {
+          "id": "red",
+          "zh": "红的",
+          "en": "red",
+          "palette": "rRw"
+        },
+        {
+          "id": "green",
+          "zh": "绿的",
+          "en": "green",
+          "palette": "hGw"
+        }
+      ],
+      "price": 30,
+      "shop": "wenchuang"
+    },
+    {
+      "id": "zhongshan",
+      "zh": "中山装",
+      "en": "Mao jacket",
+      "slot": "top",
+      "measure": "件",
+      "colours": [
+        {
+          "id": "grey",
+          "zh": "灰的",
+          "en": "grey",
+          "palette": "cbd"
+        },
+        {
+          "id": "blue",
+          "zh": "蓝的",
+          "en": "blue",
+          "palette": "Bad"
+        },
+        {
+          "id": "green",
+          "zh": "绿的",
+          "en": "green",
+          "palette": "Ggd"
+        }
+      ],
+      "price": 120,
+      "shop": "jiuyi",
+      "story": "An old 中山装 from 潘家园: four pockets, five buttons."
+    },
+    {
+      "id": "flatcap",
+      "zh": "老帽子",
+      "en": "old flat cap",
+      "slot": "hat",
+      "measure": "顶",
+      "colours": [
+        {
+          "id": "grey",
+          "zh": "灰的",
+          "en": "grey",
+          "palette": "cb"
+        },
+        {
+          "id": "brown",
+          "zh": "棕的",
+          "en": "brown",
+          "palette": "Mm"
+        }
+      ],
+      "price": 30,
+      "shop": "jiuyi"
+    },
+    {
+      "id": "glasses",
+      "zh": "圆眼镜",
+      "en": "round glasses",
+      "slot": "accessory",
+      "measure": "副",
+      "colours": [
+        {
+          "id": "gold",
+          "zh": "金的",
+          "en": "gold",
+          "palette": "Y"
+        },
+        {
+          "id": "black",
+          "zh": "黑的",
+          "en": "black",
+          "palette": "a"
+        }
+      ],
+      "price": 40,
+      "shop": "jiuyi"
     }
   ]
 }

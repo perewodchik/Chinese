@@ -1,0 +1,126 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   8,
+   9
+  ],
+  "to": {
+   "map": "wangfujing-street",
+   "tile": [
+    42,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "up",
+  "tile": [
+   13,
+   3
+  ],
+  "to": {
+   "map": "baihuo-2",
+   "tile": [
+    13,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "up-2",
+  "tile": [
+   14,
+   3
+  ],
+  "to": {
+   "map": "baihuo-2",
+   "tile": [
+    14,
+    4
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "racks",
+  "tile": [
+   3,
+   1
+  ],
+  "text": "毛衣  衬衫  大衣",
+  "en": "Sweaters · shirts · coats"
+ },
+ {
+  "kind": "sign",
+  "id": "fitting",
+  "tile": [
+   9,
+   1
+  ],
+  "text": "试衣间",
+  "en": "The fitting room"
+ },
+ {
+  "kind": "sign",
+  "id": "stairs",
+  "tile": [
+   14,
+   1
+  ],
+  "text": "二楼 ↑",
+  "en": "Upstairs: trousers, skirts, suits, shoes"
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   6,
+   1
+  ],
+  "text": "王府井百货大楼",
+  "en": "Wangfujing Department Store"
+ },
+ {
+  "kind": "npc",
+  "id": "seller",
+  "npc": "baihuo-jiejie",
+  "tile": [
+   4,
+   3
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   1,
+   8
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant-2",
+  "tile": [
+   14,
+   8
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ }
+]

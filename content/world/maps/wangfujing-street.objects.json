@@ -244,5 +244,41 @@
    9
   ],
   "facing": "down"
+ },
+ {
+  "kind": "door",
+  "id": "baihuo",
+  "tile": [
+   42,
+   4
+  ],
+  "to": {
+   "map": "baihuo-1",
+   "tile": [
+    8,
+    8
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "s-shengxifu",
+  "tile": [
+   13,
+   3
+  ],
+  "text": "盛锡福",
+  "en": "Shengxifu — hats"
+ },
+ {
+  "kind": "npc",
+  "id": "shengxifu",
+  "npc": "shengxifu-dianyuan",
+  "tile": [
+   14,
+   5
+  ],
+  "facing": "down"
  }
 ]

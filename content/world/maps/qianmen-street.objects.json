@@ -303,5 +303,57 @@
    12
   ],
   "facing": "left"
+ },
+ {
+  "kind": "door",
+  "id": "ruifuxiang",
+  "tile": [
+   35,
+   5
+  ],
+  "to": {
+   "map": "ruifuxiang",
+   "tile": [
+    5,
+    6
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "s-ruifuxiang",
+  "tile": [
+   34,
+   3
+  ],
+  "text": "瑞蚨祥",
+  "en": "Ruifuxiang — silk since the Qing"
+ },
+ {
+  "kind": "door",
+  "id": "neiliansheng",
+  "tile": [
+   45,
+   5
+  ],
+  "to": {
+   "map": "neiliansheng",
+   "tile": [
+    5,
+    6
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "s-neiliansheng",
+  "tile": [
+   44,
+   3
+  ],
+  "text": "内联升",
+  "en": "Neiliansheng — cloth shoes"
  }
 ]

@@ -41,6 +41,7 @@ export const rackSchema: z.ZodType<Rack> = z.strictObject({
   bargain: z.boolean().optional(),
   about: text,
   hair: z.strictObject({ cut: price, dye: price }).optional(),
+  when: conditionSchema.optional(),
 });
 
 export const clothingSchema: z.ZodType<Clothing> = z.strictObject({
@@ -50,7 +51,7 @@ export const clothingSchema: z.ZodType<Clothing> = z.strictObject({
   slot: z.enum(SLOTS as unknown as [Slot, ...Slot[]]),
   measure: z.enum(['件', '条', '双', '顶', '副', '个']),
   colours: z
-    .array(z.strictObject({ id, zh: z.string().regex(/的$/, 'a colour as a seller says it: 红的, 蓝的'), en: text, palette: z.string().min(1).max(4) }))
+    .array(z.strictObject({ id, zh: z.string().regex(/的$/, 'a colour as a seller says it: 红的, 蓝的'), en: text, palette: z.string().min(1).max(4), when: conditionSchema.optional() }))
     .min(1),
   price,
   shop: id,

@@ -2,6 +2,7 @@ import type { Shop } from '../core/shop';
 import { useEffect, useState } from 'react';
 import type { DistrictContent, Idiom, Item, NpcCard, Quest, Scene, Spirit, Stamp } from '../core/types';
 import { EMPTY_CLOTHES, type ClothesContent } from '../core/wardrobe';
+import { rackScenes } from '../core/rack';
 
 /** Everything the built content says, all districts together (it is small: text only). */
 export interface WorldContent {
@@ -60,7 +61,9 @@ export function loadContent(): Promise<WorldContent> {
     const parts = await Promise.all(ids.map(async (id) => (await fetch(`/world/content/${id}.json`)).json()));
     // the clothes (§12): a file of their own; a build without it has none
     const clothes = await fetch('/world/content/clothes.json').then((x) => (x.ok ? (x.json() as Promise<ClothesContent>) : EMPTY_CLOTHES)).catch(() => EMPTY_CLOTHES);
-    const c = { ...mergeContent(parts), clothes };
+    const merged = mergeContent(parts);
+    // the clothes racks and the barber's menu talk like shops (§12 W5)
+    const c = { ...merged, scenes: [...rackScenes(clothes), ...merged.scenes], clothes };
     own = wordsOf(c);
     return c;
   })().catch(() => EMPTY_CONTENT);

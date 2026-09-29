@@ -206,5 +206,45 @@
    41,
    12
   ]
+ },
+ {
+  "kind": "sign",
+  "id": "huili",
+  "tile": [
+   26,
+   3
+  ],
+  "text": "回力",
+  "en": "Warrior canvas shoes"
+ },
+ {
+  "kind": "npc",
+  "id": "s-huili",
+  "npc": "huili-dianyuan",
+  "tile": [
+   26,
+   5
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "sign",
+  "id": "lining",
+  "tile": [
+   38,
+   3
+  ],
+  "text": "李宁",
+  "en": "Li-Ning sportswear"
+ },
+ {
+  "kind": "npc",
+  "id": "s-lining",
+  "npc": "lining-dianyuan",
+  "tile": [
+   38,
+   5
+  ],
+  "facing": "down"
  }
 ]

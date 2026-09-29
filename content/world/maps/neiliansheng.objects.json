@@ -1,0 +1,51 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   5,
+   7
+  ],
+  "to": {
+   "map": "qianmen-street",
+   "tile": [
+    45,
+    6
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "shoes",
+  "tile": [
+   2,
+   1
+  ],
+  "text": "布鞋",
+  "en": "Cloth shoes, pair after pair"
+ },
+ {
+  "kind": "npc",
+  "id": "seller",
+  "npc": "neiliansheng-shifu",
+  "tile": [
+   3,
+   3
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   8,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ }
+]

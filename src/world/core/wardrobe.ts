@@ -34,6 +34,8 @@ export interface ClothingColour {
   en: string;
   /** palette letters for the garment's colour keys 1, 2, 3 … (`rR` = red with a red shade) */
   palette: string;
+  /** this colour only sometimes (red at 春节) */
+  when?: Condition;
 }
 
 export interface Clothing {
@@ -68,6 +70,8 @@ export interface Rack {
   about: string;
   /** the barber's: haircuts and colours instead of clothes */
   hair?: { cut: number; dye: number };
+  /** the rack talk only when this holds (the barber's menu after the first haircut) */
+  when?: Condition;
 }
 
 export interface ClothesContent {

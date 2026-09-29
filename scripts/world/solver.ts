@@ -24,11 +24,15 @@ import { autoScene, sceneFor } from '../../src/world/core/scenes';
 import type { Scene, WorldSave } from '../../src/world/core/types';
 import { readMap, type MapInfo } from '../../src/world/engine/mapdata';
 import { checkContent, readLibrary } from './check-content';
+import { rackOf, rackScenes } from '../../src/world/core/rack';
 
 const lib = readLibrary();
 const lex = libraryLexicon(lib);
-export const districts = checkContent('content/world', lib).districts;
-const scenes = districts.flatMap((d) => d.scenes);
+const checked = checkContent('content/world', lib);
+export const districts = checked.districts;
+const clothes = checked.clothes;
+// the clothes racks and the barber's menu talk like shops (§12 W5)
+const scenes = [...rackScenes(clothes), ...districts.flatMap((d) => d.scenes)];
 export const npcs = districts.flatMap((d) => d.npcs);
 export const quests = districts.flatMap((d) => d.quests);
 const stampIds = districts.flatMap((d) => d.stamps.map((x) => x.id));
@@ -36,7 +40,7 @@ const stampIds = districts.flatMap((d) => d.stamps.map((x) => x.id));
 const photoSubjects = [...new Set([...JSON.stringify(districts).matchAll(/"photo":"([^"]+)"/g)].map((m) => m[1]!))];
 const shops = districts.flatMap((d) => d.shops ?? []);
 const items = new Map(districts.flatMap((d) => d.items).map((i) => [i.id, i]));
-const src = new ScriptedDialogue({ scenes, npcs, shops, items: [...items.values()] }, lex);
+const src = new ScriptedDialogue({ scenes, npcs, shops, items: [...items.values()], clothes }, lex);
 export const maps: MapInfo[] = districts
   .flatMap((d) => d.district.maps)
   .map((id) => readMap(id, JSON.parse(readFileSync(`public/world/maps/${id}.json`, 'utf8'))));
@@ -82,9 +86,27 @@ function play(s: WorldSave, scene: Scene, short: string[]): WorldSave {
     const node = scene.nodes.find((n) => n.id === t.state.node)!;
     // at a shop: buy one thing something is waiting for (or the first thing, for a story order), then pay (Y1)
     // paying on the phone (Y2): type the amount heard, or catch a wrong charge first
-    if ((node.order || node.bargain) && t.state.due) {
+    if ((node.order || node.bargain || node.rack) && t.state.due) {
       t = src.reply(t.state, src.answer(t.state)!);
       for (const a of t.actions) if (a.do === 'give' || a.do === 'buy') bought.set(a.item, (bought.get(a.item) ?? 0) + 1);
+      save = act(save, t.actions, short, scene.id);
+      continue;
+    }
+    // a clothes rack (§12 W5): only a spendthrift buys — the cheapest thing not owned yet, tried on and worn out;
+    // at the barber's a shorter cut. Anyone else says goodbye (nothing in the story needs clothes).
+    if (node.rack) {
+      const rack = rackOf(clothes, node.rack.rack)!;
+      const r = t.state.rack!;
+      let say: { text: string; choice?: string } = { text: '再见' };
+      if (spendAll && !r.bought) {
+        const want = r.onSale
+          .filter((id) => !save.wardrobe.includes(id))
+          .map((id) => ({ id, price: clothes.clothes.find((c) => c.id === id.split(':')[0])!.price }))
+          .sort((a, b) => a.price - b.price)[0];
+        if (rack.hair) say = { text: r.hair?.style ? '好' : save.look.hair.style !== 'bald' && save.bag.money >= rack.hair.cut ? '剪短一点' : '再见' };
+        else if (want && want.price <= save.bag.money) say = !r.focus || `${r.focus.item}:${r.focus.colour}` !== want.id ? { text: '', choice: want.id } : { text: src.answer(t.state)!.text };
+      } else if (r.bought) say = { text: '穿着走' };
+      t = src.reply(t.state, { via: 'keyboard', ...say });
       save = act(save, t.actions, short, scene.id);
       continue;
     }
@@ -126,6 +148,8 @@ const progress = (s: WorldSave) =>
     [...s.stations].sort(),
     // short of money, a day's job is worth doing (Y3)
     s.bag.money < 100 ? s.daily : null,
+    // a spendthrift's new clothes and haircuts count too (§12 W5)
+    spendAll ? [s.wardrobe.length, s.look.hair.style] : null,
   ]);
 
 const chapterOf = new Map(districts.flatMap((d) => d.district.maps.map((m) => [m, d.district.chapter] as const)));
@@ -144,7 +168,8 @@ function candidates(s: WorldSave): Scene[] {
       const who = o.kind === 'npc' ? { npc: o.npc } : { look: o.id, map: m.id };
       const sc = sceneFor(list, s, who);
       // a stall's bargain is struck once (buying a coin and selling it back forever moves nothing)
-      if (sc && !(sc.nodes.some((n) => n.bargain) && s.scenes.includes(sc.id))) out.push(sc);
+      // clothes racks only for the spendthrift check: nothing in the story needs them
+      if (sc && !(sc.nodes.some((n) => n.bargain) && s.scenes.includes(sc.id)) && (spendAll || !sc.id.startsWith('rack-'))) out.push(sc);
       // using what is in the bag on them (X1): only the items some scene here is written for
       for (const use of new Set(list.map((x) => x.use).filter((u): u is string => !!u && held.has(u)))) {
         const u = sceneFor(list, s, { ...who, use });

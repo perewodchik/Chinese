@@ -1,0 +1,25 @@
+id: neiliansheng
+size: 10x8
+tilesets: tiles
+district: qianmen
+
+# 内联升: shelves of cloth shoes in pairs, a shoemaker stitching soles at the counter
+
+[ground]
+ffffffffff
+ffffffffff
+ffffffffff
+ffffffffff
+ffffffffff
+ffffffffff
+ffffffffff
+fffffeffff
+[below]
+kkkkkkkkkk
+kssssssssk
+kOOOOOOOOk
+k........k
+k..CCC...k
+k........k
+k........k
+kkkkk.kkkk

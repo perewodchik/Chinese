@@ -769,5 +769,34 @@
       "银蝶": "银色的蝴蝶，晚上会亮。",
       "鬼市": "晚上的市场。"
     }
+  },
+  {
+    "id": "wenchuang-jiejie",
+    "name": "文创店的姐姐",
+    "role": "a young woman who runs a little gift shop on 南锣鼓巷",
+    "look": {
+      "sprite": "woman",
+      "palette": "teal"
+    },
+    "voice": "xiaoyu",
+    "character": "Chatty; draws the designs herself.",
+    "knows": [
+      "What everything on the rack costs"
+    ],
+    "wants": [
+      "To see you in something that suits you"
+    ],
+    "actions": [
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "帆布包": "用布做的包。",
+      "熊猫": "黑白的动物，很可爱。"
+    },
+    "misses": [
+      "你说什么？",
+      "什么？你再说一遍。"
+    ]
   }
 ]

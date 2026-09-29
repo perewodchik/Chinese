@@ -198,6 +198,7 @@ const nodeSchema: z.ZodType<DialogueNode> = z.strictObject({
   order: z.strictObject({ shop: id, go: id.optional() }).optional(),
   sell: z.strictObject({ share: z.number().min(0).max(1) }).optional(),
   bargain: z.strictObject({ item: id.optional(), open: z.number().positive(), limit: z.number().positive(), sell: z.literal(true).optional(), go: id.optional() }).optional(),
+  rack: z.strictObject({ rack: id }).optional(),
   trace: traceSchema.optional(),
   next: id.optional(),
   hint: z.strictObject({ word: text, frame: text, full: text }).optional(),

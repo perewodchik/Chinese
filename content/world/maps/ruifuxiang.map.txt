@@ -1,0 +1,25 @@
+id: ruifuxiang
+size: 12x8
+tilesets: tiles
+district: qianmen
+
+# 瑞蚨祥: bolts of silk on the shelves, a counter with a tape measure, a curtained fitting room and a long mirror
+
+[ground]
+ffffffffffff
+ffffffffffff
+ffffffffffff
+ffffffffffff
+ffffffffffff
+ffffffffffff
+ffffffffffff
+fffffeffffff
+[below]
+kkkkkkkkkkkk
+ksssssoouuik
+kOOOOOOOOOOk
+k..........k
+k..CCCC....k
+k..........k
+k..........k
+kkkkk.kkkkkk

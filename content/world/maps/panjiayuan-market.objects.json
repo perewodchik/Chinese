@@ -353,5 +353,15 @@
    11
   ],
   "facing": "left"
+ },
+ {
+  "kind": "npc",
+  "id": "s-jiuyi",
+  "npc": "jiuyi-dashu",
+  "tile": [
+   4,
+   14
+  ],
+  "facing": "down"
  }
 ]

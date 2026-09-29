@@ -1,4 +1,21 @@
 {
+ "baihuo-1": {
+  "district": "wangfujing",
+  "width": 16,
+  "height": 10,
+  "links": [
+   "baihuo-2",
+   "wangfujing-street"
+  ]
+ },
+ "baihuo-2": {
+  "district": "wangfujing",
+  "width": 16,
+  "height": 10,
+  "links": [
+   "baihuo-1"
+  ]
+ },
  "beihai-north": {
   "district": "jingshan",
   "width": 36,
@@ -159,6 +176,14 @@
    "zaodian"
   ]
  },
+ "neiliansheng": {
+  "district": "qianmen",
+  "width": 10,
+  "height": 8,
+  "links": [
+   "qianmen-street"
+  ]
+ },
  "olympic-park": {
   "district": "aoyun",
   "width": 48,
@@ -180,8 +205,18 @@
   "width": 48,
   "height": 22,
   "links": [
+   "neiliansheng",
+   "ruifuxiang",
    "station-qianmen",
    "xiyuan"
+  ]
+ },
+ "ruifuxiang": {
+  "district": "qianmen",
+  "width": 12,
+  "height": 8,
+  "links": [
+   "qianmen-street"
   ]
  },
  "sanlitun-street": {
@@ -404,6 +439,7 @@
   "width": 48,
   "height": 18,
   "links": [
+   "baihuo-1",
    "shudian",
    "station-wangfujing",
    "yaodian",

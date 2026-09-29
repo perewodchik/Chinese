@@ -376,5 +376,25 @@
    9
   ],
   "facing": "left"
+ },
+ {
+  "kind": "sign",
+  "id": "s-wenchuang",
+  "tile": [
+   49,
+   4
+  ],
+  "text": "胡同文创",
+  "en": "A little gift shop"
+ },
+ {
+  "kind": "npc",
+  "id": "wenchuang",
+  "npc": "wenchuang-jiejie",
+  "tile": [
+   50,
+   6
+  ],
+  "facing": "down"
  }
 ]
