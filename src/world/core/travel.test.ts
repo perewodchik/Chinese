@@ -34,7 +34,7 @@ describe('finding a route', () => {
     assert.deepEqual(r.legs.map((l) => [l.line, l.to]), [['l8', 'wangfujing'], ['l1', 'tiananmendong']]);
     assert.equal(r.changes, 1);
     assert.equal(r.legs[0]!.direction, '往天桥方向');
-    assert.equal(r.legs[1]!.direction, '往复兴门方向');
+    assert.equal(r.legs[1]!.direction, '往木樨地方向');
     assert.equal(routeText(r), 'Line 8 to 王府井, change to Line 1 to 天安门东.');
   });
 

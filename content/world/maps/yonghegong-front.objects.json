@@ -1,0 +1,216 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   16,
+   29
+  ],
+  "to": {
+   "map": "yonghegong-street",
+   "tile": [
+    34,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "out-2",
+  "tile": [
+   17,
+   29
+  ],
+  "to": {
+   "map": "yonghegong-street",
+   "tile": [
+    34,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "hall",
+  "tile": [
+   16,
+   7
+  ],
+  "to": {
+   "map": "yonghegong-wanfuge",
+   "tile": [
+    12,
+    20
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "hall-2",
+  "tile": [
+   17,
+   7
+  ],
+  "to": {
+   "map": "yonghegong-wanfuge",
+   "tile": [
+    12,
+    20
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "hall-name",
+  "tile": [
+   15,
+   6
+  ],
+  "text": "雍和宫",
+  "en": "The Lama Temple — once a prince’s mansion (the future 雍正 emperor), a temple since 1744"
+ },
+ {
+  "kind": "sign",
+  "id": "rule",
+  "tile": [
+   4,
+   17
+  ],
+  "text": "请文明敬香",
+  "en": "Please burn incense with care — three sticks are enough"
+ },
+ {
+  "kind": "prop",
+  "id": "censer-1",
+  "tile": [
+   15,
+   20
+  ],
+  "frame": "censer/smoke-0",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "censer-2",
+  "tile": [
+   15,
+   12
+  ],
+  "frame": "censer/smoke-1",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "wheels-w",
+  "tile": [
+   2,
+   25
+  ],
+  "frame": "prayer-wheels/turn-0",
+  "blocks": [
+   3,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "wheels-e",
+  "tile": [
+   29,
+   25
+  ],
+  "frame": "prayer-wheels/turn-0",
+  "blocks": [
+   3,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bell",
+  "tile": [
+   4,
+   23
+  ],
+  "frame": "temple-bell/bronze",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele",
+  "tile": [
+   27,
+   22
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   9,
+   27
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   23,
+   27
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "putuan-1",
+  "tile": [
+   14,
+   9
+  ],
+  "frame": "putuan/straw",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "putuan-2",
+  "tile": [
+   19,
+   9
+  ],
+  "frame": "putuan/straw",
+  "blocks": [
+   0,
+   0
+  ]
+ }
+]

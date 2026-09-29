@@ -1,0 +1,56 @@
+id: yonghegong-wanfuge
+size: 24x24
+tilesets: tiles
+district: yonghegong
+below_keys: d=beam-xuanzi e=face-lattice f=face-pillar s=face-studs t=face-studs-r r=face-red
+
+[ground]
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+ffffffffffffffffffffffff
+fffffffffffeefffffffffff
+[below]
+TTTTTTTTTTTTTTTTTTTTTTTT
+bbbbbbbbbbbbbbbbbbbbbbbb
+BBBBBBBBBBBBBBBBBBBBBBBB
+T......................T
+T......................T
+T...f..............f...T
+T......................T
+T......................T
+T......................T
+T......................T
+T...f..............f...T
+T......................T
+T......................T
+T......................T
+T......................T
+T...f..............f...T
+T......................T
+T......................T
+T......................T
+T......................T
+T...f..............f...T
+T......................T
+T......................T
+TTTTTTTTTTT..TTTTTTTTTTT

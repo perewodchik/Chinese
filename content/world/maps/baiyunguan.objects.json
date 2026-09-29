@@ -1,0 +1,159 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   15,
+   29
+  ],
+  "to": {
+   "map": "station-muxidi",
+   "tile": [
+    3,
+    3
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "out-2",
+  "tile": [
+   16,
+   29
+  ],
+  "to": {
+   "map": "station-muxidi",
+   "tile": [
+    3,
+    3
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "arch",
+  "tile": [
+   13,
+   28
+  ],
+  "frame": "paifang/glazed",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   14,
+   25
+  ],
+  "text": "白云观",
+  "en": "The White Cloud Temple — the home of the Daoist 全真 school"
+ },
+ {
+  "kind": "sign",
+  "id": "monkey-1",
+  "tile": [
+   17,
+   25
+  ],
+  "text": "石猴",
+  "en": "A little stone monkey carved by the gate, rubbed smooth by a thousand hands"
+ },
+ {
+  "kind": "prop",
+  "id": "screen",
+  "tile": [
+   2,
+   23
+  ],
+  "frame": "yingbi/brick",
+  "blocks": [
+   3,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "monkey-2",
+  "tile": [
+   3,
+   23
+  ],
+  "text": "石猴",
+  "en": "Another stone monkey hides in this wall’s carving"
+ },
+ {
+  "kind": "prop",
+  "id": "stele",
+  "tile": [
+   26,
+   22
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "monkey-3",
+  "tile": [
+   27,
+   22
+  ],
+  "text": "石猴",
+  "en": "The third monkey — at the foot of a stone tablet"
+ },
+ {
+  "kind": "prop",
+  "id": "coin",
+  "tile": [
+   17,
+   20
+  ],
+  "frame": "big-coin/bell",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "bridge",
+  "tile": [
+   14,
+   19
+  ],
+  "text": "窝风桥",
+  "en": "Wofeng Bridge; at 春节 people throw coins at the bell in the big coin below — 打金钱眼"
+ },
+ {
+  "kind": "prop",
+  "id": "censer",
+  "tile": [
+   15,
+   10
+  ],
+  "frame": "censer/smoke-0",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hall-name",
+  "tile": [
+   15,
+   7
+  ],
+  "text": "老律堂",
+  "en": "A hall of the temple"
+ }
+]

@@ -76,12 +76,12 @@
    4
   ],
   "to": {
-   "map": "yonghegong-street",
+   "map": "yonghegong-front",
    "tile": [
-    34,
-    5
+    16,
+    28
    ],
-   "facing": "down"
+   "facing": "up"
   },
   "when": {
    "flag": "never"
@@ -197,5 +197,57 @@
    6
   ],
   "facing": "down"
+ },
+ {
+  "kind": "door",
+  "id": "kongmiao",
+  "tile": [
+   26,
+   4
+  ],
+  "to": {
+   "map": "kongmiao",
+   "tile": [
+    15,
+    24
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "kongmiao-name",
+  "tile": [
+   26,
+   3
+  ],
+  "text": "孔庙",
+  "en": "The Confucius Temple"
+ },
+ {
+  "kind": "door",
+  "id": "ditan",
+  "tile": [
+   46,
+   4
+  ],
+  "to": {
+   "map": "ditan",
+   "tile": [
+    16,
+    26
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "ditan-name",
+  "tile": [
+   46,
+   3
+  ],
+  "text": "地坛",
+  "en": "Ditan Park, the Temple of Earth — north across the road"
  }
 ]

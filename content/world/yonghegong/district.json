@@ -6,7 +6,11 @@
   "maps": [
     "yonghegong-street",
     "guozijian",
-    "station-yonghegong"
+    "station-yonghegong",
+    "yonghegong-front",
+    "yonghegong-wanfuge",
+    "kongmiao",
+    "ditan"
   ],
   "stations": [
     "yonghegong",
@@ -18,7 +22,14 @@
     "麒麟",
     "天坛",
     "北京",
-    "兔儿爷"
+    "兔儿爷",
+    "万福阁",
+    "弥勒佛",
+    "孔庙",
+    "大成殿",
+    "地坛",
+    "方泽坛",
+    "雍正"
   ],
   "ambience": "temple"
 }

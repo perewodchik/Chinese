@@ -39,6 +39,8 @@ const S = (id: string, zh: string, en: string): Station => ({ id, zh, en });
 
 export const STATIONS: readonly Station[] = [
   // Line 1
+  S('muxidi', '木樨地', 'Muxidi'),
+  S('nanlishilu', '南礼士路', 'Nanlishilu'),
   S('fuxingmen', '复兴门', 'Fuxingmen'),
   S('xidan', '西单', 'Xidan'),
   S('tiananmenxi', '天安门西', 'Tiananmen West'),
@@ -119,7 +121,7 @@ export const STATIONS: readonly Station[] = [
 export const LINES: readonly Line[] = [
   {
     id: 'l1', mode: 'subway', zh: '1号线', en: 'Line 1', color: '#c23a30',
-    stops: ['fuxingmen', 'xidan', 'tiananmenxi', 'tiananmendong', 'wangfujing', 'dongdan', 'jianguomen', 'yonganli', 'guomao', 'dawanglu'],
+    stops: ['muxidi', 'nanlishilu', 'fuxingmen', 'xidan', 'tiananmenxi', 'tiananmendong', 'wangfujing', 'dongdan', 'jianguomen', 'yonganli', 'guomao', 'dawanglu'],
   },
   {
     id: 'l2', mode: 'subway', zh: '2号线', en: 'Line 2', color: '#006098', loop: true,

@@ -1,0 +1,61 @@
+id: kongmiao
+size: 32x26
+tilesets: tiles
+district: yonghegong
+pigeons: 2
+below_keys: 1=pitch-yellow-ridge-l 2=pitch-yellow-ridge 3=pitch-yellow-ridge-r 4=pitch-yellow-up-l 5=pitch-yellow-up 6=pitch-yellow-up-r 7=pitch-yellow-slope-l 8=pitch-yellow-slope 9=pitch-yellow-slope-r a=pitch-yellow-eave-l b=pitch-yellow-eave c=pitch-yellow-eave-r d=beam-xuanzi e=face-lattice f=face-pillar s=face-studs t=face-studs-r r=face-red
+
+[ground]
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqeeqqqqqqqqqqqqqqq
+[below]
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+T..............................T
+T.......1222222222222223.......T
+T.......4555555555555556.......T
+T.......7888888888888889.......T
+T.......abbbbbbbbbbbbbbc.......T
+T.......dddddddddddddddd.......T
+T.......feeffeeffeeffeef.......T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+TTTTTTTTTTTTTTT..TTTTTTTTTTTTTTT

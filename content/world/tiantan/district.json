@@ -6,7 +6,9 @@
   "maps": [
     "tiantan-park",
     "huiyinbi",
-    "station-tiantandongmen"
+    "station-tiantandongmen",
+    "qiniandian",
+    "huanqiu"
   ],
   "stations": [
     "tiantandongmen"
@@ -19,7 +21,11 @@
     "麒麟",
     "雍和宫",
     "北京",
-    "兔儿爷"
+    "兔儿爷",
+    "圜丘",
+    "丹陛桥",
+    "天心石",
+    "皇穹宇"
   ],
   "ambience": "park"
 }

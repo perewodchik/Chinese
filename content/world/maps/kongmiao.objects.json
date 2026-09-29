@@ -1,0 +1,327 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   15,
+   25
+  ],
+  "to": {
+   "map": "yonghegong-street",
+   "tile": [
+    26,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "out-2",
+  "tile": [
+   16,
+   25
+  ],
+  "to": {
+   "map": "yonghegong-street",
+   "tile": [
+    26,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "hall-name",
+  "tile": [
+   15,
+   7
+  ],
+  "text": "大成殿",
+  "en": "Dacheng Hall of the Confucius Temple"
+ },
+ {
+  "kind": "sign",
+  "id": "steles-sign",
+  "tile": [
+   3,
+   10
+  ],
+  "text": "进士题名碑",
+  "en": "198 stone tablets with 51,624 names of those who passed the highest exam, 进士, from the Yuan to the Qing"
+ },
+ {
+  "kind": "prop",
+  "id": "stele-1",
+  "tile": [
+   3,
+   12
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-2",
+  "tile": [
+   6,
+   12
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-3",
+  "tile": [
+   9,
+   12
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-4",
+  "tile": [
+   21,
+   12
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-5",
+  "tile": [
+   24,
+   12
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-6",
+  "tile": [
+   27,
+   12
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-7",
+  "tile": [
+   3,
+   16
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-8",
+  "tile": [
+   6,
+   16
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-9",
+  "tile": [
+   9,
+   16
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-10",
+  "tile": [
+   21,
+   16
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-11",
+  "tile": [
+   24,
+   16
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-12",
+  "tile": [
+   27,
+   16
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-13",
+  "tile": [
+   3,
+   20
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-14",
+  "tile": [
+   6,
+   20
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-15",
+  "tile": [
+   9,
+   20
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-16",
+  "tile": [
+   21,
+   20
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-17",
+  "tile": [
+   24,
+   20
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-18",
+  "tile": [
+   27,
+   20
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "censer",
+  "tile": [
+   15,
+   13
+  ],
+  "frame": "censer/cold",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   13,
+   21
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   18,
+   21
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ }
+]

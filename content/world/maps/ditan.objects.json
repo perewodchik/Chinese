@@ -1,0 +1,306 @@
+[
+ {
+  "kind": "sign",
+  "id": "altar",
+  "tile": [
+   15,
+   12
+  ],
+  "text": "方泽坛",
+  "en": "The Altar of the Earth: square, as the earth was thought to be — the sky round, the earth square, 天圆地方"
+ },
+ {
+  "kind": "sign",
+  "id": "park",
+  "tile": [
+   2,
+   25
+  ],
+  "text": "地坛公园",
+  "en": "Ditan Park, the Temple of Earth"
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   4,
+   6
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   28,
+   6
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-3",
+  "tile": [
+   4,
+   22
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-4",
+  "tile": [
+   28,
+   22
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-5",
+  "tile": [
+   8,
+   14
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-6",
+  "tile": [
+   26,
+   14
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stall-1",
+  "tile": [
+   3,
+   20
+  ],
+  "frame": "stall/a",
+  "blocks": [
+   2,
+   1
+  ],
+  "when": {
+   "festival": "chunjie"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "stall-2",
+  "tile": [
+   7,
+   20
+  ],
+  "frame": "stall/b",
+  "blocks": [
+   2,
+   1
+  ],
+  "when": {
+   "festival": "chunjie"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "stall-3",
+  "tile": [
+   24,
+   20
+  ],
+  "frame": "stall/c",
+  "blocks": [
+   2,
+   1
+  ],
+  "when": {
+   "festival": "chunjie"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "stall-4",
+  "tile": [
+   28,
+   20
+  ],
+  "frame": "stall/a",
+  "blocks": [
+   2,
+   1
+  ],
+  "when": {
+   "festival": "chunjie"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "fair-lantern-1",
+  "tile": [
+   6,
+   19
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c",
+  "when": {
+   "festival": "chunjie"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "fair-lantern-2",
+  "tile": [
+   12,
+   19
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c",
+  "when": {
+   "festival": "chunjie"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "fair-lantern-3",
+  "tile": [
+   21,
+   19
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c",
+  "when": {
+   "festival": "chunjie"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "fair-lantern-4",
+  "tile": [
+   27,
+   19
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c",
+  "when": {
+   "festival": "chunjie"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "fair-tanghulu",
+  "tile": [
+   10,
+   23
+  ],
+  "frame": "tanghulu-stand/haws",
+  "blocks": [
+   1,
+   1
+  ],
+  "when": {
+   "festival": "chunjie"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "fair-grill",
+  "tile": [
+   21,
+   23
+  ],
+  "frame": "grill/smoke-0",
+  "blocks": [
+   2,
+   1
+  ],
+  "when": {
+   "festival": "chunjie"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "fair",
+  "tile": [
+   16,
+   20
+  ],
+  "text": "地坛庙会",
+  "en": "The Ditan temple fair — every Spring Festival, 初一 to 初七"
+ },
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   16,
+   27
+  ],
+  "to": {
+   "map": "yonghegong-street",
+   "tile": [
+    46,
+    5
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "out-2",
+  "tile": [
+   17,
+   27
+  ],
+  "to": {
+   "map": "yonghegong-street",
+   "tile": [
+    46,
+    5
+   ],
+   "facing": "down"
+  }
+ }
+]

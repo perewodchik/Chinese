@@ -40,7 +40,9 @@ export const AT: Record<string, readonly [number, number, Side]> = {
   fuxingmen: [0, 7, 'w'],
   fuchengmen: [0, 5, 'w'],
   chegongzhuang: [0, 3, 'w'],
-  // Line 1
+  // Line 1 (west of Line 2: 白云观's 木樨地, §13 T3)
+  muxidi: [-4, 7, 's'],
+  nanlishilu: [-2, 7, 's'],
   xidan: [2, 7, 's'],
   tiananmenxi: [3.8, 7, 's'],
   tiananmendong: [5.6, 7, 's'],
@@ -101,7 +103,7 @@ export const AT: Record<string, readonly [number, number, Side]> = {
 
 /** each line's way through its stations; `[x, y]` is a bend with no station */
 export const ROUTES: Record<string, ReadonlyArray<string | readonly [number, number]>> = {
-  l1: [[-1.5, 7], 'fuxingmen', 'xidan', 'tiananmenxi', 'tiananmendong', 'wangfujing', 'dongdan', 'jianguomen', 'yonganli', 'guomao', 'dawanglu', [20.5, 7]],
+  l1: ['muxidi', 'nanlishilu', [-1.5, 7], 'fuxingmen', 'xidan', 'tiananmenxi', 'tiananmendong', 'wangfujing', 'dongdan', 'jianguomen', 'yonganli', 'guomao', 'dawanglu', [20.5, 7]],
   l2: [
     'xizhimen', 'jishuitan', 'guloudajie', 'andingmen', 'yonghegong', 'dongzhimen', 'dongsishitiao', 'chaoyangmen', 'jianguomen', [12, 10],
     'beijingzhan', 'chongwenmen', 'qianmen', 'hepingmen', 'xuanwumen', [0, 10], 'changchunjie', 'fuxingmen', 'fuchengmen', 'chegongzhuang', 'xizhimen',

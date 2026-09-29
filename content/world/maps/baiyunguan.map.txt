@@ -1,0 +1,70 @@
+id: baiyunguan
+size: 32x30
+tilesets: tiles
+district: xianghuo
+crowd: 4
+pigeons: 3
+below_keys: 1=pitch-green-ridge-l 2=pitch-green-ridge 3=pitch-green-ridge-r 4=pitch-green-up-l 5=pitch-green-up 6=pitch-green-up-r 7=pitch-green-slope-l 8=pitch-green-slope 9=pitch-green-slope-r a=pitch-green-eave-l b=pitch-green-eave c=pitch-green-eave-r d=beam-xuanzi e=face-lattice f=face-pillar s=face-studs t=face-studs-r r=face-red
+
+[ground]
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqwwwwwmmwwwwwqqqqqqqqqq
+qqqqqqqqqqwwwwwmmwwwwwqqqqqqqqqq
+qqqqqqqqqqwwwwwmmwwwwwqqqqqqqqqq
+qqqqqqqqqqwwwwwmmwwwwwqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqeeqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqeeqqqqqqqqqqqqqqq
+[below]
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+T..............................T
+T........12222222222223........T
+T........45555555555556........T
+T........78888888888889........T
+T........abbbbbbbbbbbbc........T
+T........dddddddddddddd........T
+T........feeffeeffeeffe........T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+T122223..................122223T
+T455556..................455556T
+T788889..................788889T
+Tabbbbc..................abbbbcT
+Tdddddd..................ddddddT
+Tfeeffe...wwwww..wwwww...feeffeT
+T.........wwwww..wwwww.........T
+T.........wwwww..wwwww.........T
+T.........wwwww..wwwww.........T
+T..............................T
+T..............................T
+T..............................T
+T..............................T
+Trrrrrrrrrrrrrr..rrrrrrrrrrrrrrT
+T..............................T
+T..............................T
+T..............................T
+TTTTTTTTTTTTTTT..TTTTTTTTTTTTTTT

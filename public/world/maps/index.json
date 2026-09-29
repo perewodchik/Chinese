@@ -16,6 +16,14 @@
    "baihuo-1"
   ]
  },
+ "baiyunguan": {
+  "district": "xianghuo",
+  "width": 32,
+  "height": 30,
+  "links": [
+   "station-muxidi"
+  ]
+ },
  "beihai-baita": {
   "district": "jingshan",
   "width": 32,
@@ -57,6 +65,22 @@
   "height": 24,
   "links": [
    "stop-badalingchangcheng"
+  ]
+ },
+ "ditan": {
+  "district": "yonghegong",
+  "width": 34,
+  "height": 28,
+  "links": [
+   "yonghegong-street"
+  ]
+ },
+ "dongyuemiao": {
+  "district": "xianghuo",
+  "width": 34,
+  "height": 28,
+  "links": [
+   "station-chaoyangmen"
   ]
  },
  "gongwangfu": {
@@ -123,6 +147,14 @@
    "yandai-xiejie"
   ]
  },
+ "huanqiu": {
+  "district": "tiantan",
+  "width": 30,
+  "height": 30,
+  "links": [
+   "tiantan-park"
+  ]
+ },
  "huiyinbi": {
   "district": "tiantan",
   "width": 26,
@@ -183,6 +215,14 @@
    "taihedian"
   ]
  },
+ "kongmiao": {
+  "district": "yonghegong",
+  "width": 32,
+  "height": 26,
+  "links": [
+   "yonghegong-street"
+  ]
+ },
  "lifadian": {
   "district": "gulou",
   "width": 12,
@@ -238,6 +278,14 @@
    "ruifuxiang",
    "station-qianmen",
    "xiyuan"
+  ]
+ },
+ "qiniandian": {
+  "district": "tiantan",
+  "width": 32,
+  "height": 32,
+  "links": [
+   "tiantan-park"
   ]
  },
  "ruifuxiang": {
@@ -297,12 +345,28 @@
    "beihai-north"
   ]
  },
+ "station-chaoyangmen": {
+  "district": "xianghuo",
+  "width": 24,
+  "height": 16,
+  "links": [
+   "dongyuemiao"
+  ]
+ },
  "station-guomao": {
   "district": "sanlitun",
   "width": 24,
   "height": 16,
   "links": [
    "guomao-plaza"
+  ]
+ },
+ "station-muxidi": {
+  "district": "xianghuo",
+  "width": 24,
+  "height": 16,
+  "links": [
+   "baiyunguan"
   ]
  },
  "station-nanluoguxiang": {
@@ -459,7 +523,9 @@
   "width": 48,
   "height": 24,
   "links": [
+   "huanqiu",
    "huiyinbi",
+   "qiniandian",
    "station-tiantandongmen"
   ]
  },
@@ -533,13 +599,33 @@
    "wangfujing-street"
   ]
  },
+ "yonghegong-front": {
+  "district": "yonghegong",
+  "width": 34,
+  "height": 30,
+  "links": [
+   "yonghegong-street",
+   "yonghegong-wanfuge"
+  ]
+ },
  "yonghegong-street": {
   "district": "yonghegong",
   "width": 48,
   "height": 20,
   "links": [
+   "ditan",
    "guozijian",
-   "station-yonghegong"
+   "kongmiao",
+   "station-yonghegong",
+   "yonghegong-front"
+  ]
+ },
+ "yonghegong-wanfuge": {
+  "district": "yonghegong",
+  "width": 24,
+  "height": 24,
+  "links": [
+   "yonghegong-front"
   ]
  },
  "yuhuayuan": {

@@ -1,0 +1,137 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   11,
+   23
+  ],
+  "to": {
+   "map": "yonghegong-front",
+   "tile": [
+    16,
+    8
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "out-2",
+  "tile": [
+   12,
+   23
+  ],
+  "to": {
+   "map": "yonghegong-front",
+   "tile": [
+    17,
+    8
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "maitreya",
+  "tile": [
+   9,
+   14
+  ],
+  "frame": "maitreya/gold",
+  "blocks": [
+   3,
+   2
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "buddha",
+  "tile": [
+   11,
+   14
+  ],
+  "text": "弥勒佛",
+  "en": "The Maitreya of 万福阁: 18 m above the floor and 8 m below, carved from one white sandalwood trunk"
+ },
+ {
+  "kind": "prop",
+  "id": "censer",
+  "tile": [
+   11,
+   18
+  ],
+  "frame": "censer/smoke-0",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "putuan-1",
+  "tile": [
+   8,
+   20
+  ],
+  "frame": "putuan/straw",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "putuan-2",
+  "tile": [
+   15,
+   20
+  ],
+  "frame": "putuan/straw",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "qiantong",
+  "tile": [
+   17,
+   18
+  ],
+  "frame": "qiantong/bamboo",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "l1",
+  "tile": [
+   5,
+   6
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l2",
+  "tile": [
+   18,
+   6
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ }
+]

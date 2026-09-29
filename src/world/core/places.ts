@@ -74,11 +74,21 @@ export const PLACES: readonly Place[] = [
 
   // 天坛
   P('huiyinbi', '回音壁', 'Echo Wall', 'sight'),
+  P('qiniandian', '祈年殿', 'Hall of Prayer for Good Harvests', 'sight'),
+  P('huanqiu', '圜丘', 'Circular Mound Altar', 'sight'),
   P('tiantan-park', '天坛公园', 'Temple of Heaven Park', 'sight'),
   P('station-tiantandongmen', '天坛东门站', 'Tiantan East Gate station', 'station'),
 
   // 雍和宫 · 国子监
   P('guozijian', '国子监', 'Imperial Academy', 'sight'),
+  P('kongmiao', '孔庙', 'Confucius Temple', 'sight'),
+  P('yonghegong-front', '雍和宫', 'Lama Temple, the courtyards', 'sight'),
+  P('yonghegong-wanfuge', '万福阁', 'Wanfu Pavilion, the Maitreya', 'inside'),
+  P('ditan', '地坛', 'Ditan Park, the Temple of Earth', 'sight'),
+  P('baiyunguan', '白云观', 'White Cloud Temple', 'sight'),
+  P('station-muxidi', '木樨地站', 'Muxidi station', 'station'),
+  P('dongyuemiao', '东岳庙', 'Dongyue Temple', 'sight'),
+  P('station-chaoyangmen', '朝阳门站', 'Chaoyangmen station', 'station'),
   P('yonghegong-street', '雍和宫大街', 'Yonghegong Street', 'street'),
   P('station-yonghegong', '雍和宫站', 'Yonghegong station', 'station'),
 

@@ -1,0 +1,70 @@
+id: yonghegong-front
+size: 34x30
+tilesets: tiles
+district: yonghegong
+crowd: 5
+pigeons: 3
+below_keys: 1=pitch-yellow-ridge-l 2=pitch-yellow-ridge 3=pitch-yellow-ridge-r 4=pitch-yellow-up-l 5=pitch-yellow-up 6=pitch-yellow-up-r 7=pitch-yellow-slope-l 8=pitch-yellow-slope 9=pitch-yellow-slope-r a=pitch-yellow-eave-l b=pitch-yellow-eave c=pitch-yellow-eave-r d=beam-xuanzi e=face-lattice f=face-pillar s=face-studs t=face-studs-r r=face-red
+
+[ground]
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqeeqqqqqqqqqqqqqqqq
+[below]
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+T................................T
+T.........12222222222223.........T
+T.........45555555555556.........T
+T.........78888888888889.........T
+T.........abbbbbbbbbbbbc.........T
+T.........dddddddddddddd.........T
+T.........feeeeesteffeee.........T
+T................................T
+T................................T
+T................................T
+T................................T
+T1222223..................1222223T
+T4555556..................4555556T
+T7888889..................7888889T
+Tabbbbbc..................abbbbbcT
+Tddddddd..................dddddddT
+Tfeeffee..................feeffeeT
+T................................T
+T................................T
+T................................T
+T................................T
+T................................T
+T................................T
+T................................T
+T................................T
+T................................T
+T................................T
+T................................T
+TTTTTTTTTTTTTTTT..TTTTTTTTTTTTTTTT

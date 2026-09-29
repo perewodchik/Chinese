@@ -1,0 +1,66 @@
+id: dongyuemiao
+size: 34x28
+tilesets: tiles
+district: xianghuo
+crowd: 3
+pigeons: 2
+below_keys: 1=pitch-green-ridge-l 2=pitch-green-ridge 3=pitch-green-ridge-r 4=pitch-green-up-l 5=pitch-green-up 6=pitch-green-up-r 7=pitch-green-slope-l 8=pitch-green-slope 9=pitch-green-slope-r a=pitch-green-eave-l b=pitch-green-eave c=pitch-green-eave-r d=beam-xuanzi e=face-lattice f=face-pillar s=face-studs t=face-studs-r r=face-red
+
+[ground]
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqeeqqqqqqqqqqqqqqqq
+[below]
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+T................................T
+T.........12222222222223.........T
+T.........45555555555556.........T
+T.........78888888888889.........T
+T.........abbbbbbbbbbbbc.........T
+T.........dddddddddddddd.........T
+T.........feeffeeffeeffe.........T
+T................................T
+Trrf..........................frrT
+Trre..........................errT
+Trre..........................errT
+Trrf..........................frrT
+Trre..........................errT
+Trre..........................errT
+Trrf..........................frrT
+Trre..........................errT
+Trre..........................errT
+Trrf..........................frrT
+Trre..........................errT
+Trre..........................errT
+Trrf..........................frrT
+Trre..........................errT
+Trre..........................errT
+T................................T
+T................................T
+T................................T
+TTTTTTTTTTTTTTTT..TTTTTTTTTTTTTTTT

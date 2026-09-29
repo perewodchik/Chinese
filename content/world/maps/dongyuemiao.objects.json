@@ -1,0 +1,139 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   16,
+   27
+  ],
+  "to": {
+   "map": "station-chaoyangmen",
+   "tile": [
+    3,
+    3
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "out-2",
+  "tile": [
+   17,
+   27
+  ],
+  "to": {
+   "map": "station-chaoyangmen",
+   "tile": [
+    3,
+    3
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "name",
+  "tile": [
+   16,
+   7
+  ],
+  "text": "东岳庙",
+  "en": "The Dongyue Temple, of the god of Mount Tai — today also Beijing’s folk-custom museum"
+ },
+ {
+  "kind": "sign",
+  "id": "dept-1",
+  "tile": [
+   3,
+   11
+  ],
+  "text": "速报司",
+  "en": "The Department of Speedy Retribution"
+ },
+ {
+  "kind": "sign",
+  "id": "dept-2",
+  "tile": [
+   3,
+   17
+  ],
+  "text": "……司",
+  "en": "One of the seventy-six departments of the afterlife"
+ },
+ {
+  "kind": "sign",
+  "id": "dept-3",
+  "tile": [
+   30,
+   14
+  ],
+  "text": "……司",
+  "en": "Another department — there is one for nearly everything"
+ },
+ {
+  "kind": "prop",
+  "id": "censer",
+  "tile": [
+   16,
+   13
+  ],
+  "frame": "censer/smoke-0",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele",
+  "tile": [
+   8,
+   20
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stele-2",
+  "tile": [
+   24,
+   20
+  ],
+  "frame": "stele/tortoise",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   10,
+   24
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   22,
+   24
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ }
+]

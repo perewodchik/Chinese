@@ -1,0 +1,85 @@
+[
+ {
+  "kind": "sign",
+  "id": "heart",
+  "tile": [
+   15,
+   14
+  ],
+  "text": "天心石",
+  "en": "The Heavenly Centre Stone: stand on it and speak — your voice comes back to you"
+ },
+ {
+  "kind": "sign",
+  "id": "altar",
+  "tile": [
+   15,
+   2
+  ],
+  "text": "圜丘",
+  "en": "The Circular Mound Altar, open to the sky, three round tiers of white stone"
+ },
+ {
+  "kind": "prop",
+  "id": "cypress-1",
+  "tile": [
+   2,
+   3
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "cypress-2",
+  "tile": [
+   26,
+   3
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "cypress-3",
+  "tile": [
+   2,
+   24
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "cypress-4",
+  "tile": [
+   26,
+   24
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "edge",
+  "id": "north",
+  "side": "up",
+  "from": 14,
+  "to": 16,
+  "target": {
+   "map": "tiantan-park",
+   "offset": 8
+  }
+ }
+]

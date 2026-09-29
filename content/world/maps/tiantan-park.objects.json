@@ -267,5 +267,47 @@
     }
    ]
   }
+ },
+ {
+  "kind": "edge",
+  "id": "north",
+  "side": "up",
+  "from": 21,
+  "to": 26,
+  "target": {
+   "map": "qiniandian",
+   "offset": -8
+  }
+ },
+ {
+  "kind": "edge",
+  "id": "south",
+  "side": "down",
+  "from": 22,
+  "to": 24,
+  "target": {
+   "map": "huanqiu",
+   "offset": -8
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "to-qiniandian",
+  "tile": [
+   20,
+   1
+  ],
+  "text": "祈年殿 ↑",
+  "en": "North to the Hall of Prayer for Good Harvests"
+ },
+ {
+  "kind": "sign",
+  "id": "to-huanqiu",
+  "tile": [
+   25,
+   22
+  ],
+  "text": "圜丘 ↓",
+  "en": "South to the Circular Mound Altar"
  }
 ]

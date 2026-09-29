@@ -1,0 +1,124 @@
+[
+ {
+  "kind": "prop",
+  "id": "hall",
+  "tile": [
+   12,
+   11
+  ],
+  "frame": "qiniandian/hall",
+  "blocks": [
+   4,
+   3
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hall-name",
+  "tile": [
+   15,
+   11
+  ],
+  "text": "祈年殿",
+  "en": "The Hall of Prayer for Good Harvests: round, with three blue roofs — blue for heaven. It burned in 1889 and was rebuilt as it was."
+ },
+ {
+  "kind": "sign",
+  "id": "danbi",
+  "tile": [
+   12,
+   22
+  ],
+  "text": "丹陛桥",
+  "en": "The Danbi Bridge: the raised way from 祈年殿 south to the Echo Wall"
+ },
+ {
+  "kind": "prop",
+  "id": "cypress-1",
+  "tile": [
+   2,
+   6
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "cypress-2",
+  "tile": [
+   28,
+   6
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "cypress-3",
+  "tile": [
+   2,
+   18
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "cypress-4",
+  "tile": [
+   28,
+   18
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "cypress-5",
+  "tile": [
+   4,
+   26
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "cypress-6",
+  "tile": [
+   26,
+   26
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "edge",
+  "id": "south",
+  "side": "down",
+  "from": 13,
+  "to": 18,
+  "target": {
+   "map": "tiantan-park",
+   "offset": 8
+  }
+ }
+]

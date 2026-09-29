@@ -404,6 +404,52 @@ export function smallPavilion(tiles: 'green' | 'yellow'): Grid {
   return g.stamp(f, 0, 0);
 }
 
+/**
+ * The Maitreya of 万福阁 (§13 T3), drawn with respect: a tall standing figure
+ * in gold with a jewelled crown and a red-and-gold robe, hands in a gesture
+ * of teaching, on a lotus base — so tall the camera must look up. (The real
+ * one is 18 m above the floor, carved from one sandalwood trunk.)
+ */
+export function maitreya(): Grid {
+  const g = new Grid(48, 112);
+  const f = new Grid(48, 112);
+  // lotus base
+  f.oval(4, 100, 40, 10, 'N').oval(8, 98, 32, 8, 'p');
+  for (let x = 6; x < 44; x += 6) f.oval(x, 101, 6, 5, 'N').set(x + 2, 102, 'w');
+  // robe, long, falling to the base
+  f.rect(12, 40, 24, 60, 'y').rect(14, 42, 20, 56, 'j');
+  f.rect(10, 44, 4, 50, 'r').rect(34, 44, 4, 50, 'r');
+  for (let y = 48; y < 96; y += 6) f.hline(15, y, 18, 'Y');
+  f.vline(23, 42, 56, 'Y').vline(24, 42, 56, 'o');
+  // shoulders and arms, the hands before the chest
+  f.oval(8, 30, 32, 16, 'y').rect(8, 36, 6, 30, 'y').rect(34, 36, 6, 30, 'y');
+  f.oval(17, 44, 6, 5, 'j').oval(25, 44, 6, 5, 'j').set(19, 45, 'Y').set(27, 45, 'Y');
+  // a sash of red and a jewelled necklace
+  f.hline(12, 38, 24, 'r').hline(13, 39, 22, 'R');
+  for (let x = 14; x < 34; x += 3) f.set(x, 41, 'x').set(x + 1, 41, 'j');
+  // head: a calm face, long ears, the crown
+  f.oval(15, 12, 18, 20, 'j').oval(17, 15, 14, 14, 'y');
+  f.hline(19, 21, 3, 'o').hline(26, 21, 3, 'o').hline(21, 26, 6, 'Y').set(24, 24, 'o');
+  f.rect(13, 16, 2, 9, 'y').rect(33, 16, 2, 9, 'y');
+  f.rect(15, 4, 18, 9, 'Y');
+  for (let x = 16; x < 32; x += 4) f.rect(x, 2, 3, 5, 'y').set(x + 1, 3, 'r');
+  f.set(23, 8, 'x').set(24, 8, 'x');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** 打金钱眼: the giant coin under 白云观's 窝风桥, a little bell hanging in its square hole (§13 T3). */
+export function bigCoin(): Grid {
+  const g = new Grid(32, 32);
+  const f = new Grid(32, 32);
+  f.oval(2, 2, 28, 28, 'Y').oval(4, 4, 24, 24, 'y').oval(6, 6, 20, 20, 'Y');
+  f.rect(12, 12, 8, 8, '.');
+  f.rect(13, 13, 6, 5, 'o').rect(14, 14, 4, 3, 'Y').set(15, 18, 'o').set(16, 18, 'o').vline(16, 11, 2, 'm');
+  for (const [x, y] of [[15, 7], [15, 23], [7, 15], [23, 15]] as const) f.rect(x, y, 2, 2, 'o');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 /** Every kit prop: [file, note, frames] as `PROPS` has them. */
 export const KIT_PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['censer', 'a bronze 香炉 censer: cold, and smoking in two frames (§13 V2)', () => [['smoke-0', censer(0)], ['smoke-1', censer(1)], ['cold', censer(null)]]],
@@ -429,5 +475,7 @@ export const KIT_PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['repair-stall', 'a 修车摊 street bike-repair stand (§13 V2, L1)', () => [['tools', repairStall()]]],
   ['kiosk', 'a newspaper kiosk 报刊亭 (§13 V2)', () => [['green', kiosk()]]],
   ['bike-rack', 'a rack of 共享单车 shared bikes (§13 V2)', () => [['shared', bikeRack()]]],
+  ['maitreya', 'the Maitreya of 万福阁, in gold on a lotus base (§13 T3)', () => [['gold', maitreya()]]],
+  ['big-coin', 'the giant coin with a bell under 白云观\'s 窝风桥 (§13 T3)', () => [['bell', bigCoin()]]],
   ['pavilion-small', 'a small 攒尖 pavilion of 景山, green or yellow (§13 T2)', () => [['green', smallPavilion('green')], ['yellow', smallPavilion('yellow')]]],
 ];
