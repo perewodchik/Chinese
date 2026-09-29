@@ -1238,6 +1238,113 @@ world stays paused while the menu is open.
   scroll, no layout shift when a drawer opens or a dot clears. Run
   `scripts/webkit-probe.swift` at 390 and 1024.
 
+## 11. 兔儿爷's bubble — talking to the rabbit, not a help menu (added 2026-09-29)
+
+**When:** now, before P1. The order is **R1 → R2 → R3 → R4** → P1 … (§10).
+It's small, and the learner runs into it in every conversation.
+
+**Why:** the learner finds the companion's help panel too big, jumpy and
+off-style (screenshot 2026-09-29: a white site-style card saying "What do
+you need?" with six buttons below it, half of them greyed out and Keep off
+screen):
+- **It jumps.** `.wc[data-talking]` moves the rabbit and the panel from
+  `bottom: 10px` to above the dialogue box when a talk starts. The panel
+  also grows upward from the rabbit, and `.wc-out` is 0–150px tall
+  depending on the answer. So each answer (placeholder, translation, the
+  Keep list) moves the top edge.
+- **Too many buttons.** Again, Translate, Why?, What do I say?, What now?
+  and Keep always show, and the disabled ones stay visible. The row scrolls
+  sideways (`.wc-acts { overflow-x: auto }`), so Keep can't be seen on the
+  iPad.
+- **Off-style.** It uses the site's card (`--card`, a thin line, a big
+  radius) with a placeholder and a button bar. Nothing says it's him
+  talking.
+
+**Learner's decision:** the menu should feel like **interacting with the
+bunny**, cosy and cute in the game's own style: compact, no jumping, never
+more options than fit without scrolling. This replaces the "one row of
+actions" in concept §9 for how help looks. What each kind of help does
+(repeat, slow repeat, translate, the three hint steps, what now, keep a
+word) stays the same, and everything stays free.
+
+**Defaults (the learner may still change them; log them under Decisions):**
+- During a talk he **perches on the top-left rim of the dialogue box**
+  instead of floating above it. If this can't be done without covering the
+  NPC's name or the tools, use a fixed spot for the whole game (top-left
+  under the HUD) and write down why.
+- **Keep lives inside Translate:** each translated word gets a small ☆.
+
+Standing rules apply: §0, stable compact UI (no layout shift, check at 375 /
+768 / 1024 and in WebKit, light and dark), `hanzi-design` tokens, no emoji
+in UI text (use pixel icons), Chinese with pinyin, English from him.
+
+### R1 — options as data (`companionLines.ts`, pure, tested)
+- `companionOptions(ctx)` returns **at most three** options
+  `{id, icon, label, run}` for the moment, where `ctx.phase` is
+  `'walk' | 'heard' | 'reply'` plus flags (has a line, can hint, has kept
+  words from the last talk):
+
+  | Phase | Options |
+  |---|---|
+  | walk (no talk open) | *What now?* · *What did I learn?* (words from the last talk to keep; only when there are some) |
+  | heard (an NPC just spoke) | *Say it again?* · *What did they say?* · *Help me answer* (only in reply mode with a hint left) |
+  | reply, nothing said yet / no line | *Help me answer* · *What now?* |
+
+- Options that don't apply are **left out**, never disabled.
+- Labels are things you ask him, in English, short enough for a 375px
+  row: "Again?", "What did they say?", "Help me answer", "What now?",
+  "What did I learn?". Write them into the concept §9 table as the English
+  labels.
+- **Why?** stops being a button. When the node has a `why`, his "What did
+  they say?" answer ends with it on its own line. `whyText`'s key-line note
+  folds in the same way. With no `why`, nothing is added.
+- Tests: the options for each phase (never more than 3, none without an
+  action), and the translate answer with and without a `why`.
+
+### R2 — the bubble (`Companion.tsx`, `world.css`)
+- The panel becomes **his speech bubble** in the dialogue box's own pixel
+  style: the same border and background as `.wd`, a small pixel tail
+  pointing at his portrait. Retire `.wc-panel`, `.wc-out` and `.wc-acts`.
+- **Fixed size:** an answer area of two lines (his line, typed out like
+  NPC lines, with a small portrait expression) and one options row. For
+  longer content:
+  - The translation shows the English line and one row of word chips
+    (汉字 + pinyin + ☆) that **wrap to at most two rows**. The rest go
+    behind a "+N" chip that opens the word drawer (`useOpenItem`).
+  - Nothing inside the bubble scrolls, and its height is the same for
+    every answer.
+- **Opening** scales and fades from the tail using `transform`/`opacity`
+  only, so nothing around it moves. Close by tapping outside, tapping him
+  again, or Esc. Tab opens him, and 1 / 2 / 3 pick an option.
+- The bubble opens **to his side** (right of the portrait), never upward
+  over the conversation. Check that at 375 it fits between him and the
+  screen edge, and that on the iPad it's no wider than ~420px.
+
+### R3 — where he sits, and his little reactions
+- Remove the `bottom` jump of `.wc[data-talking]`. When a talk opens he
+  **hops** onto the rim of the dialogue box (a ~250ms arc using
+  `transform`), and hops back down when it closes. The dialogue box doesn't
+  move and the bubble doesn't resize.
+- When he wants to speak by himself (`said`), a small pixel **"!" / speech
+  mark** pops above his head instead of the gold ring. A tap opens the
+  bubble with that line.
+- Reuse the X7 emotes: *thinking* while an answer types, *happy* after a
+  keep, the blush pat (hold) as now, hats as now. A soft blip per answer
+  uses the existing synthesized sounds, respecting the sound setting.
+
+### R4 — checks
+- Unit tests from R1, and the existing companion tests updated.
+- In the pane at 375 / 768 / 1024, light and dark, play one full talk in
+  早点铺 and check:
+  - the rabbit and the dialogue box never jump
+  - the bubble keeps the same height through Again → What did they say?
+    → Help me answer → keep a word
+  - no horizontal scroll anywhere
+  - nothing covers the NPC's name, the input bar or the hint chips
+- Run `scripts/webkit-probe.swift` at 390 and 1024. Put screenshots
+  (walking, in a talk, translation with ☆, the "!" cue) into
+  `docs/world-game/review/r/`.
+
 ## 12. You, dressed your way — character creator, wardrobe, clothes shops (added 2026-09-29)
 
 **When:** after §11 (R1–R4) and §10 (P1–P4, J1–J3), before the X12

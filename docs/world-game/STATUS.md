@@ -26,7 +26,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-P1 — the menu shell (prompt §10). The X12 play-through waits for the learner and comes after §10.
+R1 — 兔儿爷's bubble, options as data (prompt §11), then R2–R4, then P1 — the menu shell (prompt §10). The X12 play-through waits for the learner and comes after §10.
 
 ## Tasks
 ### A — core logic
@@ -122,6 +122,12 @@ P1 — the menu shell (prompt §10). The X12 play-through waits for the learner 
 - [x] Y6 Bargaining 砍价 + Chinese number parser
 - [x] Y7 Save format +1 (ledger, freshness, jobs), buy/earn diary lines, checks
 - [ ] X12 Final bug hunt over everything
+
+### R — 兔儿爷's bubble (prompt §11, added 2026-09-29)
+- [ ] R1 Options as data: `companionOptions(phase)` ≤ 3 by moment, inapplicable ones hidden, Why? folded into the translation, Keep as ☆ on translated words; tests
+- [ ] R2 The bubble: dialogue-box pixel style with a tail, fixed two-line height + one options row, chips wrap ≤ 2 rows then "+N", opens sideways, transform-only pop, Esc / tap outside / 1-2-3
+- [ ] R3 No jump: he hops onto the dialogue box's rim during a talk; "!" above his head instead of the gold ring; thinking/happy emotes, soft blip
+- [ ] R4 Checks: a full talk at 375/768/1024 light/dark with no jumps and no scroll, WebKit probe 390/1024, screenshots in review/r/
 
 ### P/J — the menu: journal, people, collection (prompt §10, added 2026-09-29)
 - [ ] P1 Menu shell: 5 tabs + ⚙ (日志 包 地图 朋友 收藏), inner segmented views, red dots (`seen`), bottom bar on phones, last tab remembered, old PanelIds mapped, settings grouped
