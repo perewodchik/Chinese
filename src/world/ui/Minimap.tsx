@@ -14,7 +14,7 @@ import { frameAround, loadPlans, PlanDrawing } from './HoodPlan';
 
 const KEY = 'zouzou:minimap';
 /** tiles across the corner map */
-const ACROSS = 44;
+const ACROSS = 32;
 
 type Manual = { indoor: boolean; open: boolean };
 const readManual = (): Manual | null => {

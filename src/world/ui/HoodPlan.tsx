@@ -90,7 +90,8 @@ export function PlanDrawing({ plan, u, here, visited, goals, picked, onPick, onE
       ))}
       {!mini &&
         plan.rooms.map((r) => (
-          <Label key={`n-${r.map}`} x={r.x + r.w / 2} y={r.y + r.h + 11 * u} text={placeOf(r.map)?.zh ?? r.map} u={u} fs={fs * 0.92} picked={picked === r.map} faint={!seen(r.map)} />
+          // the name on the far side from the door, clear of the street
+          <Label key={`n-${r.map}`} x={r.x + r.w / 2} y={r.door[1] > r.y + r.h / 2 ? r.y - 10 * u : r.y + r.h + 10 * u} text={placeOf(r.map)?.zh ?? r.map} u={u} fs={fs * 0.92} picked={picked === r.map} faint={!seen(r.map)} />
         ))}
       {plan.exits.map((e) => {
         const off = 14 * u;

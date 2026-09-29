@@ -892,7 +892,7 @@
   color: var(--ink-3);
 }
 
-/* the map: Beijing drawn north up, every place of the game on it (CityMap.tsx) */
+/* the 🗺 tab's drawings (MapTab.tsx): a neighbourhood's plan, or the metro diagram */
 .wp-city {
   position: relative;
   margin: 0 auto 10px;
@@ -943,57 +943,8 @@
   background: var(--card);
 }
 
-.wp-city-svg text {
-  font-family: var(--han);
-  fill: var(--ink);
-  paint-order: stroke;
-  stroke: var(--card-2);
-  stroke-width: 0.25em;
-  stroke-linejoin: round;
-}
-
 .c-land {
   fill: var(--card-2);
-}
-
-.c-ring,
-.c-road,
-.c-axis,
-.c-line,
-.c-walk,
-.c-wall {
-  fill: none;
-  vector-effect: non-scaling-stroke;
-}
-
-.c-ring {
-  stroke: color-mix(in srgb, var(--ink-3) 22%, transparent);
-  stroke-width: 3px;
-}
-
-.c-ring-2 {
-  stroke: color-mix(in srgb, var(--ink-3) 34%, transparent);
-  stroke-width: 4px;
-  stroke-linejoin: round;
-}
-
-.c-road {
-  stroke: color-mix(in srgb, var(--ink-3) 26%, transparent);
-  stroke-width: 3px;
-}
-
-.c-axis {
-  stroke: color-mix(in srgb, var(--gold) 30%, transparent);
-  stroke-width: 1px;
-  stroke-dasharray: 2 4;
-}
-
-.c-hill {
-  fill: color-mix(in srgb, var(--jade) 12%, var(--card-2));
-  stroke: color-mix(in srgb, var(--jade) 35%, transparent);
-  stroke-width: 1.5px;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
 }
 
 .c-park {
@@ -1011,126 +962,330 @@
   vector-effect: non-scaling-stroke;
 }
 
-.c-square {
-  fill: color-mix(in srgb, var(--ink-3) 10%, var(--card-2));
-}
-
 .c-wall {
+  fill: none;
+  vector-effect: non-scaling-stroke;
   stroke: color-mix(in srgb, var(--ink-2) 55%, transparent);
   stroke-width: 2.5px;
   stroke-dasharray: 3 1.5;
 }
 
-.c-note text {
-  fill: var(--ink-3);
-  font-size: 0.9em;
+/* the 🗺 tab's head: metro or neighbourhood, and which neighbourhood */
+.wp-maphead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-height: 36px;
+  margin-bottom: 8px;
 }
 
-.c-line {
-  stroke-width: 2.5px;
-  opacity: 0.4;
-  stroke-linejoin: round;
+.wp-maphead .seg {
+  flex: none;
+  white-space: nowrap;
 }
 
-.c-line[data-mode='bus'],
-.c-line[data-mode='train'] {
-  stroke-dasharray: 5 4;
+.wp-hoodpick {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
 }
 
-.c-walk {
-  stroke: var(--ink-3);
-  stroke-width: 1.5px;
-  stroke-dasharray: 1 3;
-  stroke-linecap: round;
-  opacity: 0.8;
+.wp-hoodpick b.han {
+  min-width: 6em;
+  text-align: center;
+  font-family: var(--han);
+  font-size: 17px;
+  font-weight: 500;
 }
 
-.c-hit {
-  fill: transparent;
+/* a neighbourhood's plan (HoodPlan.tsx): the maps in small, cards at their doors */
+.hp-img {
+  image-rendering: pixelated;
 }
 
-.c-speck {
-  fill: color-mix(in srgb, var(--ink-3) 60%, transparent);
-}
-
-.c-district,
-.c-place {
-  cursor: pointer;
-}
-
-.c-district .c-dot {
-  fill: var(--card);
-  stroke: var(--ink-3);
-  stroke-width: 2px;
-  vector-effect: non-scaling-stroke;
-}
-
-.c-district text {
-  fill: var(--ink-3);
-}
-
-.c-district[data-visited] text {
-  fill: var(--ink);
-}
-
-.c-district[data-visited] .c-dot {
-  fill: var(--ink);
-  stroke: var(--ink);
-}
-
-.c-district[data-later]:not([data-visited]) {
-  opacity: 0.6;
-}
-
-.c-district[aria-pressed='true'] text,
-.c-place[aria-pressed='true'] text {
-  fill: var(--accent);
-  font-weight: 600;
-}
-
-.c-place .c-mark {
-  fill: var(--ink-2);
-  stroke: var(--card);
-  stroke-width: 1.5px;
-  vector-effect: non-scaling-stroke;
-}
-
-.c-place[data-kind='sight'] .c-mark {
-  fill: var(--card);
-  stroke: var(--ink-2);
-  stroke-width: 2.5px;
-}
-
-.c-place[data-kind='inside'] .c-mark {
-  fill: var(--card);
-  stroke: var(--ink-2);
-  stroke-width: 1.5px;
-}
-
-.c-place[data-kind='station'] .c-mark {
-  fill: var(--card);
-  stroke: var(--indigo);
-  stroke-width: 3px;
-}
-
-.c-place[data-far] {
-  opacity: 0.6;
-}
-
-.c-place[data-here] .c-mark {
-  fill: var(--accent);
-  stroke: var(--card);
-}
-
-.c-here-ring {
-  fill: var(--accent-soft);
-  stroke: color-mix(in srgb, var(--accent) 40%, transparent);
+.hp-area .hp-edge {
+  fill: none;
+  stroke: color-mix(in srgb, var(--ink) 35%, transparent);
   stroke-width: 1px;
   vector-effect: non-scaling-stroke;
 }
 
-.c-place[aria-pressed='true'] .c-mark {
+.hp-area:not([data-seen]) .hp-img,
+.hp-room:not([data-seen]) .hp-img {
+  opacity: 0.55;
+  filter: grayscale(0.6);
+}
+
+.hp-area:not([data-seen]) .hp-edge {
+  stroke-dasharray: 4 3;
+}
+
+.hp-area[data-picked] .hp-edge,
+.hp-room[data-picked] .hp-card {
   stroke: var(--accent);
+  stroke-width: 2.5px;
+}
+
+.hp-area[role='button'],
+.hp-room[role='button'],
+.hp-exit[role='button'] {
+  cursor: pointer;
+}
+
+.hp-card {
+  fill: var(--card);
+  stroke: var(--line-2);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.hp-room[data-station] .hp-card {
+  stroke: var(--indigo);
+  stroke-width: 2px;
+}
+
+.hp-roundel {
+  fill: var(--card);
+  stroke: var(--indigo);
+  stroke-width: 2.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.hp-path {
+  stroke: color-mix(in srgb, var(--ink-3) 70%, transparent);
+  stroke-width: 1.5px;
+  stroke-dasharray: 1 3;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.hp-label rect {
+  fill: color-mix(in srgb, var(--card) 90%, transparent);
+  stroke: var(--line-2);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.hp-label text {
+  font-family: var(--han);
+  fill: var(--ink);
+}
+
+.hp-label[data-faint] text {
+  fill: var(--ink-3);
+}
+
+.hp-label[data-picked] rect {
+  stroke: var(--accent);
+}
+
+.hp-label[data-picked] text {
+  fill: var(--accent);
+}
+
+.hp-label[data-exit] rect {
+  fill: var(--card-2);
+  stroke-dasharray: 3 2;
+}
+
+.hp-label[data-exit] text {
+  fill: var(--ink-2);
+}
+
+.hp-goal {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2.5px;
+  stroke-dasharray: 5 3;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.hp-here {
+  pointer-events: none;
+}
+
+.hp-here-ring {
+  fill: var(--accent-soft);
+  fill-opacity: 0.7;
+  stroke: var(--accent);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.hp-here-dot {
+  fill: var(--accent);
+  stroke: #fff;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+/* the metro diagram (MetroMap.tsx) */
+.mm-line {
+  fill: none;
+  stroke-width: 5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.mm-line[data-mode='bus'],
+.mm-line[data-mode='train'] {
+  stroke-width: 3px;
+  stroke-dasharray: 7 5;
+  stroke-linecap: butt;
+}
+
+.mm-walk {
+  stroke: var(--ink-3);
+  stroke-width: 2px;
+  stroke-dasharray: 1 4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.mm-dot {
+  fill: var(--card);
+  stroke: var(--ink);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+
+.mm-st:not([data-inter]):not([data-game]) .mm-dot {
+  stroke-width: 2px;
+}
+
+.mm-st[data-game] .mm-dot {
+  stroke-width: 3px;
+}
+
+.mm-st[data-game],
+.mm-name[data-game] {
+  cursor: pointer;
+}
+
+.mm-hit {
+  fill: transparent;
+}
+
+.mm-here {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3px;
+  vector-effect: non-scaling-stroke;
+}
+
+.mm-goal {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2.5px;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.mm-name {
+  font-family: var(--han);
+  fill: var(--ink-3);
+  paint-order: stroke;
+  stroke: var(--card-2);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.mm-name[data-game] {
+  fill: var(--ink);
+  font-weight: 600;
+}
+
+.mm-marks {
+  opacity: 0.8;
+}
+
+.mm-key {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  color: var(--ink-3);
+  pointer-events: none;
+}
+
+/* the corner map over the world (Minimap.tsx): always there, folds away indoors */
+.wm {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 52px);
+  right: calc(env(safe-area-inset-right, 0px) + 8px);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.wm-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: rgba(34, 32, 46, 0.72);
+  color: #f8f5ec;
+  font: inherit;
+  font-size: 13px;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.wm-head .han {
+  font-family: var(--han);
+}
+
+.wm-chev {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.wm-map {
+  display: block;
+  width: 220px;
+  height: 146px;
+  border: 2px solid rgba(248, 245, 236, 0.85);
+  border-radius: 10px;
+  background: #3a3846;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .wm-map {
+    width: 150px;
+    height: 100px;
+  }
+}
+
+.wm .hp-label rect {
+  fill: rgba(34, 32, 46, 0.72);
+  stroke: none;
+}
+
+.wm .hp-label text {
+  fill: #f8f5ec;
+}
+
+.wm .hp-card {
+  fill: #f8f5ec;
+  stroke: none;
+}
+
+.wm .hp-area .hp-edge {
+  stroke: rgba(0, 0, 0, 0.35);
 }
 
 .wp-route {

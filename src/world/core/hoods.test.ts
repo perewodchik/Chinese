@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { heroOnPlan, HOODS, hoodOf, type HoodLayout } from './hoods';
 import { walkPath, type MapLinks } from './places';
@@ -36,6 +36,10 @@ describe('neighbourhoods', () => {
     }
   });
 
+  it('have a miniature for every map (npm run world:minis)', () => {
+    for (const m of real) assert.ok(existsSync(`public/world/minis/${m}.png`), `no miniature of ${m}`);
+  });
+
   it('put the hero where he stands', () => {
     const p = plans.find((x) => x.id === 'nanluoguxiang')!;
     const street = p.areas.find((a) => a.map === 'nanluo-main')!;
@@ -49,5 +53,17 @@ describe('neighbourhoods', () => {
   it('show the ways on foot into the next neighbourhood', () => {
     const p = plans.find((x) => x.id === 'nanluoguxiang')!;
     assert.ok(p.exits.some((e) => e.hood === 'shichahai' && e.map === 'gulou-square'));
+  });
+});
+
+describe('the way there', () => {
+  it('walks when it can, else rides from this neighbourhood\'s station to that one\'s', async () => {
+    const { wayThere } = await import('./hoods');
+    const { newSave } = await import('./save');
+    const s = { ...newSave('t', 0), place: { map: 'nanluo-main', tile: [3, 8] as [number, number], facing: 'down' as const } };
+    assert.deepEqual(wayThere(s, 'chaguan', index), { kind: 'walk', path: ['nanluo-main', 'chaguan'] });
+    const w = wayThere(s, 'bianlidian', index);
+    // 国贸 is not 团结湖: the ride ends at 国贸 and the walk starts there
+    assert.ok(w.kind === 'ride' && w.from === 'nanluoguxiang' && w.to === 'guomao' && w.then?.at(-1) === 'bianlidian', JSON.stringify(w));
   });
 });

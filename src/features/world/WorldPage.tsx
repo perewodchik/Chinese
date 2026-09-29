@@ -32,6 +32,7 @@ import { fareOut, stopMap } from '../../world/core/ride';
 import { rideKey, type Mode } from '../../world/core/travel';
 import { Joystick } from '../../world/ui/Joystick';
 import { Panels } from '../../world/ui/Panels';
+import { Minimap } from '../../world/ui/Minimap';
 import type { PanelId } from '../../world/ui/panelRows';
 import { Companion } from '../../world/ui/Companion';
 import { cueLine, IDLE_MS, speaksUpAfterMisses } from '../../world/ui/companionLines';
@@ -155,6 +156,11 @@ export function WorldPage() {
   const [minutes, setMinutes] = useState(0);
   const [pal, setPal] = useState<{ open: boolean; said: string | null }>({ open: false, said: null });
   const [panel, setPanel] = useState<PanelId | null>(null);
+  /** the neighbourhood the 🗺 tab opens on, when the minimap opened it */
+  const [mapStart, setMapStart] = useState<string | null>(null);
+  useEffect(() => {
+    if (panel !== 'map') setMapStart(null);
+  }, [panel]);
   /** an item chosen in the bag, waiting for someone or something to be used on (X1) */
   const [using, setUsing] = useState<string | null>(null);
   const usingRef = useRef<string | null>(null);
@@ -599,6 +605,15 @@ export function WorldPage() {
         ref={box}
         style={frame ? { width: Number(frame[1]), height: Number(frame[2]) } : undefined}
       />
+      {game.save && state === 'ready' && !photo && !panel && !talk.view && !riding && (
+        <Minimap
+          place={game.save.place}
+          onOpen={(hood) => {
+            setMapStart(hood);
+            setPanel('map');
+          }}
+        />
+      )}
       {game.save && state === 'ready' && !photo && <TopBar district={game.save.district} minutes={minutes} open={setPanel} onPhoto={() => setPhoto(true)} />}
       {photo && <PhotoMode onTake={takePhoto} onZoom={(d) => world.current?.zoomBy(d)} onClose={() => setPhoto(false)} />}
       {panel && game.save && (
@@ -609,6 +624,7 @@ export function WorldPage() {
           content={content}
           pinyin={game.save.settings.pinyin}
           user={user.id}
+          mapStart={mapStart}
           onReset={() => {
             // a new game, born now: it replaces this one on every device; this device's album goes too
             game.dispatch([{ do: 'reset', born: Date.now() }]);

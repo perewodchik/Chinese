@@ -96,17 +96,21 @@ export function usePanZoom(bounds: View, minW: number) {
   useEffect(() => {
     const el = svg.current;
     if (!el) return;
+    let first = true;
     const ro = new ResizeObserver(() => {
       const next = { w: el.clientWidth || 800, h: el.clientHeight || 500 };
       setBox(next);
       const v = viewRef.current;
       const a = next.w / Math.max(1, next.h);
       aspectRef.current = a;
-      setView(clamp({ x: v.x, y: v.y + v.h / 2 - v.w / a / 2, w: v.w, h: v.w / a }, a));
+      // the first measure frames the whole drawing; later ones keep the middle where it was
+      if (first) setView(fit(v));
+      else setView(clamp({ x: v.x, y: v.y + v.h / 2 - v.w / a / 2, w: v.w, h: v.w / a }, a));
+      first = false;
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, [clamp]);
+  }, [clamp, fit]);
 
   // scroll (or a trackpad pinch) zooms where the pointer is
   useEffect(() => {

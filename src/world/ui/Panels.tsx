@@ -21,7 +21,7 @@ import {
 import { Hearts } from './Hearts';
 import { ALBUM_MAX, loadAlbum, postcardPng, saveAlbum, saveFile, type Photo } from './album';
 import { ZhText } from './ZhText';
-import { CityMap } from './CityMap';
+import { MapTab } from './MapTab';
 
 /**
  * The game's sheets over the world (E5): tasks and riddles, the bag, the
@@ -40,6 +40,7 @@ export function Panels({
   onUse,
   user,
   onReset,
+  mapStart,
 }: {
   tab: PanelId;
   setTab: (t: PanelId) => void;
@@ -56,6 +57,8 @@ export function Panels({
   user: string;
   /** start the whole game over */
   onReset: () => void;
+  /** the neighbourhood the 🗺 tab opens on (a tap on the minimap), else yours */
+  mapStart?: string | null;
 }) {
   return (
     <div className="wp-scrim" onClick={onClose}>
@@ -74,7 +77,7 @@ export function Panels({
         <div className="wp-body">
           {tab === 'tasks' && <Tasks save={save} content={content} pinyin={pinyin} />}
           {tab === 'bag' && <Bag save={save} content={content} onUse={onUse} />}
-          {tab === 'map' && <CityMap save={save} onGo={onGo} />}
+          {tab === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} />}
           {tab === 'spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
           {tab === 'idioms' && <Idioms save={save} content={content} pinyin={pinyin} />}
           {tab === 'stamps' && <Stamps save={save} content={content} />}
