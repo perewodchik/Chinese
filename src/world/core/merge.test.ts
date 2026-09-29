@@ -42,6 +42,10 @@ function randomSave(seed: number, device: string): WorldSave {
       () => ({ do: 'move', tile: [Math.floor(r() * 9), Math.floor(r() * 9)], facing: 'up' }),
       () => ({ do: 'tick', minutes: s.clock + Math.floor(r() * 60) }),
       () => ({ do: 'chapter', chapter: 1 + Math.floor(r() * 3) }),
+      // the menu's own marks (§10): news seen, the quest followed, 成语 practised
+      () => ({ do: 'seen', key: pick(['journal/now', 'collection/idioms', 'lead:q']), at: Math.floor(r() * 900) }),
+      () => ({ do: 'track', quest: pick(['q', '']), rev: now }),
+      () => ({ do: 'practised', idiom: pick(['马马虎虎', '一心一意']), right: r() < 0.5 }),
     ])();
     s = apply(s, a, { now, deviceId: device, quests });
   }
@@ -100,6 +104,35 @@ describe('merge', () => {
     assert.deepEqual(m.bag.items, { tea: 1 });
     assert.equal(m.updatedAt, 20);
     assert.equal(m.deviceId, 'mac');
+  });
+
+  it('the menu’s marks (§10): step stamps by the earlier minute, the later tracked choice, seen and practised by the larger', () => {
+    const base = apply(newSave('start', 0), { do: 'quest', quest: 'q', step: 'a' }, { now: 1, quests });
+    const on = (s: WorldSave, device: string, now: number, actions: SaveAction[]) => actions.reduce((x, a) => apply(x, a, { now, deviceId: device, quests }), s);
+    const ipad = on(base, 'ipad', 10, [
+      { do: 'tick', minutes: base.clock + 30 },
+      { do: 'quest', quest: 'q', step: 'b' },
+      { do: 'track', quest: 'q', rev: 100 },
+      { do: 'seen', key: 'journal/now', at: 700 },
+      { do: 'practised', idiom: '马马虎虎', right: true },
+    ]);
+    const mac = on(base, 'mac', 20, [
+      { do: 'tick', minutes: base.clock + 90 },
+      { do: 'quest', quest: 'q', step: 'b' },
+      { do: 'quest', quest: 'q', step: 'c' },
+      { do: 'track', quest: '', rev: 200 },
+      { do: 'seen', key: 'journal/now', at: 500 },
+      { do: 'seen', key: 'collection/idioms', at: 40 },
+      { do: 'practised', idiom: '马马虎虎', right: false },
+      { do: 'practised', idiom: '马马虎虎', right: false },
+    ]);
+    const both = merge(ipad, mac);
+    assert.deepEqual(both, merge(mac, ipad));
+    const t = Math.floor(base.clock);
+    assert.deepEqual(both.quests.q, { step: 'c', index: 2, done: false, at: { a: t, b: t + 30, c: t + 90 } });
+    assert.deepEqual(both.tracked, { quest: '', rev: 200 });
+    assert.deepEqual(both.seen, { 'collection/idioms': 40, 'journal/now': 700 });
+    assert.deepEqual(both.practised, { 马马虎虎: { right: 1, wrong: 2, last: t + 90 } });
   });
 
   it('remembers when a spirit was found first', () => {

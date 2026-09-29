@@ -13,6 +13,7 @@ import { riddleRows } from './panelRows';
 import { loadIndex } from './PlaceCard';
 import { pinyinOf } from './pinyin';
 import { Portrait } from './Portrait';
+import { useEscape } from './useEscape';
 import { ZhText } from './ZhText';
 import './journal.css';
 
@@ -171,6 +172,7 @@ export function QuestSheet({
   const tracked = (save.tracked?.quest ?? '') === quest.id;
   const log = jq?.log ?? (st ? story(save, content).flatMap((c) => [...(c.quest === quest.id ? c.entries : []), ...c.side.filter((x) => x.quest.id === quest.id).flatMap((x) => x.entries)]) : []);
   const hint = rewardHint(quest);
+  useEscape(onClose);
   return (
     <div className="w-sheet-scrim" onClick={onClose}>
       <section className="w-sheet jn-sheet" role="dialog" aria-label={quest.title} onClick={(e) => e.stopPropagation()}>
@@ -240,6 +242,7 @@ export function QuestSheet({
 
 function LeadSheet({ save, lead, index, onClose, onShowRoute }: { save: WorldSave; lead: Lead; index: MapLinks; onClose: () => void; onShowRoute: (r: RouteRequest) => void }) {
   const dir = lead.map ? directions(save, lead.map, index) : null;
+  useEscape(onClose);
   return (
     <div className="w-sheet-scrim" onClick={onClose}>
       <section className="w-sheet jn-sheet" role="dialog" aria-label="A lead" onClick={(e) => e.stopPropagation()}>

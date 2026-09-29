@@ -304,7 +304,7 @@
 
 .cl-spirit[data-missing] .cl-spirit-art {
   background: color-mix(in srgb, var(--ink) 12%, var(--card-2));
-  color: var(--line-2);
+  color: color-mix(in srgb, var(--ink-3) 70%, transparent);
 }
 
 .cl-spirit-name {
@@ -720,6 +720,16 @@
   font-weight: 500;
 }
 
+.cl-sheet-idiom {
+  flex: none;
+  font-size: 36px;
+  white-space: nowrap;
+}
+
+.cl-sheet-sub {
+  min-width: 0;
+}
+
 .cl-sheet-title {
   font-size: 20px;
   font-weight: 500;
@@ -731,7 +741,8 @@
 
 /* 相册: the photo full width in its drawer, its box sized before it loads */
 .cl-photo {
-  width: 100%;
+  width: min(100%, 60vh);
+  justify-self: center;
   aspect-ratio: 4 / 3;
   border: 1px solid var(--line);
   border-radius: var(--radius);

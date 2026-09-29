@@ -92,3 +92,9 @@
 .w-sheet-scrim + .w-sheet-scrim {
   z-index: 6;
 }
+
+/* the name is never cut: the role gives way (§10 P4 — at 375 names read "快递…") */
+.jn-row-top .pp-name {
+  flex: none;
+  max-width: 60%;
+}

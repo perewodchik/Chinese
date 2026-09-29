@@ -18,6 +18,7 @@ import {
 import { peopleRows, whereText, type PersonRow } from "./panelRows";
 import { pinyinOf } from "./pinyin";
 import { Portrait } from "./Portrait";
+import { useEscape } from "./useEscape";
 import "./journal.css";
 import "./people.css";
 
@@ -147,6 +148,7 @@ function PersonSheet({
   const jq = quest
     ? [j.tracked, ...j.active].find((x) => x?.quest.id === quest)
     : undefined;
+  useEscape(onClose);
   return (
     <>
       <div className="w-sheet-scrim" onClick={onClose}>

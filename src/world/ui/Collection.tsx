@@ -12,6 +12,7 @@ import { InputBar } from './InputBar';
 import { Destination, FareNote, RouteStrip, useMapIndex, type RouteRequest } from './Journal';
 import { playLine } from './lineVoice';
 import { IDIOM_FILTERS, idiomFilter, idiomRows, passportPages, spiritHint, spiritPlace, spiritRows, type IdiomFilter, type IdiomRow, type PassportStamp } from './panelRows';
+import { useEscape } from './useEscape';
 import { ZhText } from './ZhText';
 import './menu.css';
 
@@ -34,15 +35,7 @@ export function CollectionEmpty({ han, children }: { han: string; children: Reac
 
 /** A drawer over the list, the same sheet the bag and the journal use. */
 function Sheet({ label, onClose, head, children }: { label: string; onClose: () => void; head: React.ReactNode; children: React.ReactNode }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      e.stopPropagation();
-      onClose();
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [onClose]);
+  useEscape(onClose);
   return (
     <div className="w-sheet-scrim" onClick={onClose}>
       <section className="w-sheet jn-sheet" role="dialog" aria-label={label} onClick={(e) => e.stopPropagation()}>
@@ -79,7 +72,7 @@ export function Spirits({ save, content, pinyin }: { save: WorldSave; content: W
           <li key={x.id}>
             <button type="button" className="cl-spirit" data-missing={found ? undefined : ''} onClick={() => setOpen(x.id)} aria-label={found ? `${x.hanzi}, ${x.en}` : 'Not found yet'}>
               <span className="cl-spirit-art han" aria-hidden>
-                {found ? [...x.hanzi][0] : '？'}
+                {found ? [...x.hanzi][0] : '?'}
               </span>
               {found ? (
                 <>
@@ -105,7 +98,7 @@ export function Spirits({ save, content, pinyin }: { save: WorldSave; content: W
 function SpiritSheet({ spirit: x, found, pinyin, onClose }: { spirit: Spirit; found: boolean; pinyin: boolean; onClose: () => void }) {
   if (!found)
     return (
-      <Sheet label="A spirit not found yet" onClose={onClose} head={<b className="han w-sheet-han cl-faint">？</b>}>
+      <Sheet label="A spirit not found yet" onClose={onClose} head={<b className="han w-sheet-han cl-faint">?</b>}>
         <p className="small">{spiritHint(x)}</p>
         <p className="small muted">People talk about strange things — listen, and ask what they mean.</p>
       </Sheet>
@@ -121,7 +114,7 @@ function SpiritSheet({ spirit: x, found, pinyin, onClose }: { spirit: Spirit; fo
             <span className="small">{x.pinyin}</span>
             <br />
             <span className="small muted">
-              {x.en} · <span className="han">{x.source}</span>
+              {x.en} · {x.source === 'folk' ? 'a folk tale' : <span className="han">{x.source}</span>}
             </span>
           </span>
         </>
@@ -211,8 +204,8 @@ function IdiomSheet({ row: { idiom: x, npc }, pinyin, from, onClose }: { row: Id
       onClose={onClose}
       head={
         <>
-          <b className="han w-sheet-han">{x.id}</b>
-          <span>
+          <b className="han w-sheet-han cl-sheet-idiom">{x.id}</b>
+          <span className="cl-sheet-sub">
             <span className="small">{x.pinyin}</span>
             <br />
             <span className="small muted">

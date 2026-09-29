@@ -5,6 +5,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { walkable } from '../../src/world/core/grid';
 import { readSave } from '../../src/world/core/migrate';
+import { DONE_AT } from '../../src/world/core/save';
 import { districts, maps, npcs, quests, solve } from './solver';
 
 describe('the quest solver', () => {
@@ -33,6 +34,22 @@ describe('the quest solver', () => {
   it('every stamp can be earned', () => {
     const missing = districts.flatMap((d) => d.stamps).filter((x) => !(x.id in run.save.stamps)).map((x) => x.id);
     assert.deepEqual(missing, []);
+  });
+
+  it('its final save has an `at` stamp for every quest it did, in step order, never after the clock (§10 P4)', () => {
+    for (const q of quests) {
+      const st = run.save.quests[q.id];
+      if (!st) continue;
+      const at = st.at ?? {};
+      assert.ok(Object.keys(at).length, `${q.id} has no stamps`);
+      if (st.done) assert.ok(DONE_AT in at, `${q.id} is done without a finish stamp`);
+      assert.ok(st.step in at || st.done, `${q.id}: the step it is at (${st.step}) has no stamp`);
+      const ids = q.steps.map((x) => x.id);
+      for (const k of Object.keys(at)) assert.ok(k === DONE_AT || ids.includes(k), `${q.id}: a stamp for no step (${k})`);
+      const times = ids.filter((k) => k in at).map((k) => at[k]!);
+      assert.deepEqual(times, [...times].sort((a, b) => a - b), `${q.id}: steps stamped out of order`);
+      for (const t of Object.values(at)) assert.ok(t <= run.save.clock, `${q.id}: a stamp after the clock`);
+    }
   });
 
   it("every person's routine spot is a tile they can stand on", () => {

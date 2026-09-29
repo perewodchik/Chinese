@@ -159,8 +159,10 @@
   cursor: pointer;
 }
 
-/* On a phone the game is the whole screen, inside the safe areas. */
-@media (max-width: 689px) {
+/* On a phone, and up to where the site's bar wraps onto two rows (860px — an
+   iPad upright), the game is the whole screen, inside the safe areas; its own
+   ‹ leads out. Between 690 and 860 the wrapped bar used to cover the game's. */
+@media (max-width: 860px) {
   html[data-world-full] .topbar {
     display: none;
   }

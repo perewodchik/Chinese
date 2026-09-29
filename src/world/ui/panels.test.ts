@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { districtInfo } from '../core/districts';
 import { apply, applyAll, newSave } from '../core/save';
-import type { Idiom, NpcCard, Quest, Scene, Stamp } from '../core/types';
+import type { Idiom, NpcCard, Quest, Scene, Spirit, Stamp } from '../core/types';
 import { giveTo } from '../core/gifts';
 import { merge } from '../core/merge';
 import { readSave } from '../core/migrate';
 import { FIRST_MEMORY, markSeen, menuNews, panelTarget, remember, tabForKey, tabHasNews } from './menu';
-import { BAG_FILTERS, bagRows, filterOf, friendRows, itemFacts, peopleRows, whereText, idiomRows, mapHint, riddleRows, stampRows, taskRows } from './panelRows';
+import { BAG_FILTERS, bagRows, filterOf, friendRows, itemFacts, peopleRows, whereText, idiomFilter, idiomRows, mapHint, passportPages, riddleRows, spiritHint, spiritRows, stampRows, taskRows } from './panelRows';
 
 const ctx = { now: 1 };
 const fresh = () => newSave('d', 0);
@@ -208,5 +208,58 @@ describe('the menu (§10 P1)', () => {
     const back = readSave(JSON.parse(JSON.stringify(a)));
     assert.ok(back.ok);
     assert.deepEqual(back.save.seen, a.seen);
+  });
+});
+
+describe('the Collection tab (§10 P3)', () => {
+  const spirit = (id: string, district: string): Spirit => ({
+    id,
+    hanzi: id,
+    pinyin: '',
+    en: id,
+    source: 'folk',
+    legend: { zh: '', en: '' },
+    befriend: { kind: 'request', text: '', en: '' },
+    district,
+  });
+
+  it('图鉴: every spirit, found or not; a missing one hints where, never what', () => {
+    const all = [spirit('石狮子', 'gulou'), spirit('麒麟', 'yonghegong'), spirit('龙', 'tiananmen')];
+    const s = applyAll(fresh(), [{ do: 'spirit', spirit: '麒麟' }], ctx);
+    assert.deepEqual(spiritRows(s, all).map((r) => [r.spirit.id, r.found]), [
+      ['石狮子', false],
+      ['麒麟', true],
+      ['龙', false],
+    ]);
+    assert.equal(spiritHint(all[0]!), 'Something stirs near 鼓楼.');
+    assert.equal(spiritHint(all[2]!), 'Something stirs near 天安门.');
+    for (const x of all) assert.ok(!spiritHint(x).includes(x.hanzi), 'the hint names the spirit');
+  });
+
+  it('成语: 全部 · 听到的 · 故事 split by tier, only the ones heard', () => {
+    const idiom = (id: string, tier: Idiom['tier']): Idiom => ({ id, pinyin: '', parts: [], meaning: '', story: { zh: '', en: '' }, tier });
+    const book = [idiom('马马虎虎', 'basic'), idiom('狐假虎威', 'story'), idiom('一心一意', 'basic'), idiom('画蛇添足', 'story')];
+    const s = applyAll(fresh(), [{ do: 'idiom', idiom: '狐假虎威' }, { do: 'idiom', idiom: '马马虎虎' }, { do: 'idiom', idiom: '画蛇添足' }], ctx);
+    const rows = idiomRows(s, book);
+    assert.deepEqual(idiomFilter(rows, 'all').map((r) => r.idiom.id), ['马马虎虎', '狐假虎威', '画蛇添足']);
+    assert.deepEqual(idiomFilter(rows, 'heard').map((r) => r.idiom.id), ['马马虎虎']);
+    assert.deepEqual(idiomFilter(rows, 'story').map((r) => r.idiom.id), ['狐假虎威', '画蛇添足']);
+  });
+
+  it('印章: a page per neighbourhood in the city’s order, the landmark first, missing stamps say where', () => {
+    const st = (id: string, place: string, landmark = false): Stamp => ({ id, name: id, en: id, place, design: id, ...(landmark ? { landmark } : {}) });
+    const stamps = [st('echo', 'huiyinbi'), st('breakfast', 'zaodian'), st('tiantan', 'tiantan-park', true), st('gulou', 'gulou-square', true), st('far', 'nowhere')];
+    const s = applyAll(fresh(), [{ do: 'stamp', stamp: 'breakfast' }], ctx);
+    const pages = passportPages(s, stamps);
+    assert.deepEqual(pages.map((p) => [p.id, p.got, p.stamps.map((x) => x.stamp.id)]), [
+      ['nanluoguxiang', 1, ['gulou', 'breakfast']],
+      ['tiantan', 0, ['tiantan', 'echo']],
+      ['beijing', 0, ['far']],
+    ]);
+    const echo = pages[1]!.stamps[1]!;
+    assert.equal(echo.got, false);
+    assert.equal(echo.where, '天坛 · 回音壁');
+    assert.equal(echo.place, '回音壁');
+    assert.equal(pages.reduce((n, p) => n + p.stamps.length, 0), stamps.length);
   });
 });

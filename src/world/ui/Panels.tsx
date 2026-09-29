@@ -20,6 +20,7 @@ import { markSeen, MENU, menuNews, panelTarget, readMemory, remember, tabForKey,
 import './menu.css';
 import { Album, Idioms, Spirits, Stamps } from './Collection';
 import { MapTab } from './MapTab';
+import { useEscape } from './useEscape';
 
 /**
  * The menu over the (paused) world (§10 P1): five tabs — 日志 journal, 包
@@ -311,6 +312,7 @@ function ItemSheet({
   const facts = itemFacts(item, save, content.shops, content.npcs);
   const names = new Map(content.items.map((i) => [i.id, i]));
   const shop = facts.sold[0];
+  useEscape(onClose);
   return (
     <div className="w-sheet-scrim" onClick={onClose}>
       <section className="w-sheet" role="dialog" aria-label={item.en} onClick={(e) => e.stopPropagation()}>
