@@ -119,6 +119,36 @@
         "server/src/dev.ts"
       ],
       "port": 5178
+    },
+    {
+      "name": "hanzi-workshop-mac-world-5180",
+      "runtimeExecutable": "/usr/bin/env",
+      "runtimeArgs": [
+        "HANZI_DEV_USER=admin",
+        "HANZI_DB=.data/world-test-5180.db",
+        "PORT=5180",
+        "/opt/homebrew/bin/node",
+        "--disable-warning=ExperimentalWarning",
+        "--import",
+        "tsx",
+        "server/src/dev.ts"
+      ],
+      "port": 5180
+    },
+    {
+      "name": "hanzi-workshop-mac-words-5181",
+      "runtimeExecutable": "/usr/bin/env",
+      "runtimeArgs": [
+        "HANZI_DEV_USER=admin",
+        "HANZI_DB=.data/words-test.db",
+        "PORT=5181",
+        "/opt/homebrew/bin/node",
+        "--disable-warning=ExperimentalWarning",
+        "--import",
+        "tsx",
+        "server/src/dev.ts"
+      ],
+      "port": 5181
     }
   ]
 }

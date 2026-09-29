@@ -707,7 +707,7 @@ blessing of the Heavenly Official (天官) on 上元 (元宵) — as a homage to
   一念之间. Mark them in the 成语 book as "from the 天官赐福 line".
 
 ### X12 — polish and the final bug hunt
-**Run it after §9¾ (Y1–Y7, items and money)** — the order is X11 → Y1–Y7
+**Run it after §9¾ (Y1–Y7, items and money)** — the order is X10 → M1–M5 (§9⅞) → X11 → Y1–Y7
 → X12. Run X0's solver, golden saves, map probe and stress checks over **all**
 content; then play every chapter and every side line in the pane and
 in WebKit like the learner would (tap-to-move, both input modes, phone
@@ -872,3 +872,132 @@ short fingerprint animation.
   X3's "bought or given" note); `earn` for 「我挣了十块钱。」.
 - Content checker, solver, golden saves updated; STATUS notes with
   renders of the phone screens at 375 and 1024.
+
+## 9⅞. Maps and finding the way — minimap, neighbourhood maps, a metro diagram (added 2026-09-29)
+
+**When:** right after the task in progress when this was written (X10),
+**before X11**. The order is X10 → M1–M5 → X11 → Y1–Y7 → X12 → M6.
+The learner plays every day and finds the map "harder to navigate than
+the actual Beijing metro", so this comes first.
+
+**What is there now** (built with the learner 2026-09-29, uncommitted work
+in the tree at that time — build on it, don't redo it):
+- `src/world/core/places.ts`: every map as a place `{map, zh, en, kind:
+  street | sight | inside | station, at, label, apart}` on a hand-laid
+  160×100 drawing; `walkPath` (BFS over doors and edges), `districtFrame`,
+  `districtCentre`; tested in `places.test.ts` (every map has a place).
+- `public/world/maps/index.json` has `links` per map (doors and edges), written
+  by `scripts/world/build-maps.ts`.
+- `src/world/ui/CityMap.tsx` (the 🗺 tab): a drawn Beijing (rings, lakes,
+  palace, parks, subway lines as polylines) with every place, dotted walk
+  links, pan/pinch/scroll zoom, "北京" / "Where I am", tap a place →
+  "On foot: 我的房间 → 四合院 → …" or the subway route + the walk from the
+  station. Styles `.wp-city*`, `.c-*` in `src/features/world/world.css`.
+- Stations: walking into the ticket gates goes through (a card with money
+  from the street side; always out); without a card the gate sells one
+  (`core/machine.ts`: `machineScene`, `gateCheck`); every ticket machine sells
+  and tops up; walking to the platform edge / tapping the tracks opens the
+  train board; the train list shows the next five stops (exitable ones bold).
+- The "Mark what I can use" setting (`settings.highlight`, diamonds over
+  people, signs, bikes, machines and props with a look scene).
+
+**The learner's model — use it everywhere:** Beijing in the game is 13
+**neighbourhoods**, each a cluster of places around one or two stations,
+joined on foot through doors and street ends (a few neighbourhoods also
+join on foot: 鼓楼 → 后海 → 北海 → 景山). Everything else is a ride.
+
+**Learner's decisions:** the minimap is **always on**, can be collapsed by
+the learner, and **collapses by itself indoors and expands outdoors**
+(a manual collapse holds until the next indoor/outdoor change). The city
+level is a **metro diagram, drawn well** (see M4). "Take me there" comes
+**only after the maps are fixed** (M6, last).
+
+All standing rules apply (§0, stable compact UI — no layout shift, check at
+375 / 768 / 1024 and in WebKit; tap opens a card; hanzi-design tokens only,
+dark mode; no emoji in UI text; names in Chinese, English on tap).
+
+### M1 — neighbourhood data and place pictures
+- A **neighbourhood layout per district**: a simple street plan in its own
+  frame (not the city drawing): streets as lines with their names along
+  them, each place **on the street it really opens onto** (the teahouse on
+  南锣鼓巷, the courtyard off 帽儿胡同, the shops of 王府井大街 on its side),
+  the station as a roundel with its line numbers, water and parks as flat
+  shapes, and exits to walkable neighbours as labelled arrows at the edge
+  ("← 鼓楼 · walk"). Data in `content/world/<district>/layout.json` (or
+  extend `places.ts` — your call, write it down), zod-checked; the checker
+  fails if a map of the district is missing from its layout or a drawn
+  street link disagrees with the door/edge graph in `index.json`.
+- **A picture for every place**: at build time render a small thumbnail of
+  each map with the game's own art (`scripts/world/render-map.ts` already
+  draws maps to PNG) — a crop around the main door or the most typical
+  spot, ~96×64, pixel-perfect, into `public/world/thumbs/<map>.png`, built
+  by `npm run world` and listed in the map probe. Interiors show their
+  inside; stations their gates.
+- One clear shape per kind: street = line, shop/inside = small door card
+  with the thumbnail, sight = outlined roof mark, station = metro roundel.
+
+### M2 — the minimap (always on)
+- A small card in a corner of the game (bottom-right on phones above the
+  joystick area; top-right under the tools on iPad/desktop — pick what does
+  not cover the hero or the input bar and write it down), showing **this
+  neighbourhood's** layout from M1: streets, places, the station, and a red
+  dot where you are (on the current map's place; on a street, placed along
+  the street by the hero's x/y as a fraction of the map).
+- **Collapse**: a toggle on the card (collapsed = one compact pill with
+  the neighbourhood name and a 🗺-style icon button, no layout shift).
+  Auto: **collapsed indoors** (a map whose place kind is `inside`, and the
+  station interiors count as outdoors), **expanded outdoors**; a manual
+  toggle holds until the next indoor↔outdoor change. Remember the manual
+  state per device (`localStorage`, try/catch), not in the save.
+- Tap the expanded minimap → the 🗺 panel opens on this neighbourhood (M3).
+  Hidden while a dialogue, a panel, photo mode or the ride sheet is open.
+- Cheap: an SVG redrawn only on map change or every ~250 ms of walking,
+  never per frame; check the frame rate on the iPad stays as before.
+
+### M3 — the 🗺 panel, reworked
+- Opens on **your neighbourhood** (M1 layout, big, with thumbnails and
+  names); a header row: neighbourhood name + station, "北京" (to M4), and
+  prev/next or a small picker for other neighbourhoods.
+- Tap a place → its card (thumbnail, 汉字, pinyin, English, kind, and the
+  way there: on foot inside the neighbourhood, or the ride + the walk from
+  the station, as now). Unvisited places are outlines until you have been
+  there (needs a `visited` set of maps in the save → save version +1 with
+  an upgrade, merged as a union).
+- Current task's place marked (from `whatNow` / the active quest's step,
+  when the step names a map or an NPC whose place is known).
+- Keep `walkPath` and the route text; retire the old free-form city drawing
+  from the panel once M4 replaces it (keep `places.ts` if M1 builds on it).
+
+### M4 — the city as a metro diagram, drawn well
+- A proper schematic metro map, not a sketch: lines as **45°/90° runs with
+  rounded corners** in the real line colours, even stroke width, stations as
+  ticks and interchanges as white roundels with a dark ring, names set
+  horizontally with consistent offsets and **no overlaps** (a test checks
+  label boxes do not collide), Line 2 as the rounded rectangle around the
+  old city, Line 10 as its arc, the bus and the Great Wall train dashed. Only
+  the game's lines and stations (`travel.ts`); stations with a game map are
+  full-colour and tappable, others are small ticks.
+- Each neighbourhood is a soft bubble around its station(s) with its name;
+  tap → M3 for that neighbourhood. "You are here" on your station.
+- Faint landmarks only where they help (the palace block, 后海, 天坛 green) —
+  the diagram is the picture. Works at 375 wide (pan/zoom as now) and fills
+  the iPad nicely.
+- Lay it out by hand in data (station → grid position) and render it;
+  write the rules for the next person in a comment.
+
+### M5 — checks
+- Content checker: every map in exactly one layout, links agree with doors,
+  thumbnails exist; `places.test.ts` and new layout tests; the map probe
+  opens the panel on every neighbourhood and screenshots it (`review/m/`).
+- In the pane and in WebKit at 375 / 768 / 1024, light and dark: the
+  minimap collapses entering 茶馆 and opens again on 南锣鼓巷; nothing
+  overlaps the hero, the joystick or the input bar.
+
+### M6 — "Take me there" (only after M1–M5 and the learner's look at them)
+- On a place card: **Take me there**. In the world a faint footprint trail
+  leads to the next door or street end on the `walkPath`; each new map
+  continues it; across town it leads to the station, and on the platform
+  the right train is marked in the train list ("往X方向 — 3 stops"), then
+  on from the arrival station. 兔儿爷 can say "This way." The minimap shows
+  the route. Cancel from the card or by arriving. Saved nowhere (a
+  per-session goal).
