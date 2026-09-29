@@ -103,6 +103,7 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
     rides: byKey(a.rides, b.rides, Math.max),
     daily: byKey(a.daily, b.daily, Math.max),
     fresh: byKey(a.fresh, b.fresh, Math.max),
+    ...(a.seen || b.seen ? { seen: byKey(a.seen ?? {}, b.seen ?? {}, Math.max) } : {}),
     // a day's diary from both devices: the earlier device's lines first, the other's after
     diary: byKey(a.diary, b.diary, (x, y) => {
       const [first, second] = JSON.stringify(x) <= JSON.stringify(y) ? [x, y] : [y, x];

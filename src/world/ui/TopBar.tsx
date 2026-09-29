@@ -6,17 +6,19 @@ import { districtInfo } from '../core/districts';
 import { useLibrary } from '../../features/shared/library';
 import { paths } from '../../navigation/paths';
 import { pinyinOf } from './pinyin';
+import './menu.css';
 
-export type Panel = 'map' | 'bag' | 'tasks';
+import type { PanelId } from './menu';
 
 const DAY_ICON = { morning: '☀', day: '☀', evening: '◐', night: '☾' } as const;
 
 /**
  * The game's one line at the top (concept §4): where you are (tap for 拼),
- * the game time, and 🗺 🎒 📜. Fixed widths, so nothing moves as the clock
- * turns or the place changes.
+ * the game time, and 📷 🗺 🎒 ☰ — the last opens the menu where you left it
+ * (§10), with a red dot when something in it is new. Fixed widths, so
+ * nothing moves as the clock turns or the place changes.
  */
-export function TopBar({ district, minutes, open, onPhoto }: { district: string; minutes: number; open: (p: Panel) => void; onPhoto: () => void }) {
+export function TopBar({ district, minutes, open, onPhoto, news }: { district: string; minutes: number; open: (p: PanelId) => void; onPhoto: () => void; news?: boolean }) {
   const lib = useLibrary();
   const [py, setPy] = useState(false);
   const info = districtInfo(district);
@@ -49,8 +51,8 @@ export function TopBar({ district, minutes, open, onPhoto }: { district: string;
       <button type="button" className="wt-btn" onClick={() => open('bag')} aria-label="Bag (B)">
         🎒
       </button>
-      <button type="button" className="wt-btn" onClick={() => open('tasks')} aria-label="Tasks and riddles">
-        📜
+      <button type="button" className="wt-btn wt-menu" onClick={() => open('menu')} aria-label={news ? 'Menu — something new' : 'Menu: journal, people, collection'}>
+        ☰{news && <i className="mn-dot" aria-hidden />}
       </button>
     </div>
   );

@@ -32,7 +32,7 @@ import { rideKey, type Mode } from '../../world/core/travel';
 import { Joystick } from '../../world/ui/Joystick';
 import { Panels } from '../../world/ui/Panels';
 import { Minimap } from '../../world/ui/Minimap';
-import type { PanelId } from '../../world/ui/panelRows';
+import { menuNews, type PanelId } from '../../world/ui/menu';
 import { Companion } from '../../world/ui/Companion';
 import { cueLine, IDLE_MS, speaksUpAfterMisses } from '../../world/ui/companionLines';
 import { activeQuests, whatNow } from '../../world/core/quests';
@@ -629,7 +629,7 @@ export function WorldPage() {
           }}
         />
       )}
-      {game.save && state === 'ready' && !photo && <TopBar district={game.save.district} minutes={minutes} open={setPanel} onPhoto={() => setPhoto(true)} />}
+      {game.save && state === 'ready' && !photo && <TopBar district={game.save.district} minutes={minutes} open={setPanel} onPhoto={() => setPhoto(true)} news={menuNews(game.save).size > 0} />}
       {photo && <PhotoMode onTake={takePhoto} onZoom={(d) => world.current?.zoomBy(d)} onClose={() => setPhoto(false)} />}
       {panel && game.save && (
         <Panels

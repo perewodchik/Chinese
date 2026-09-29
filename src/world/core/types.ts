@@ -407,6 +407,12 @@ export interface QuestState {
   /** index of `step` in the quest, so two saves can say which is further */
   index: number;
   done: boolean;
+  /**
+   * The game minute each step was reached, and `$done` when the quest was
+   * finished (§10 J1). Merged by the earlier minute; older saves have none
+   * and their steps show as "earlier".
+   */
+  at?: Record<string, number>;
 }
 
 export interface Riddle {
@@ -507,6 +513,12 @@ export interface WorldSave {
   daily: Record<string, number>;
   /** the game day each thing was last bought (Y7): food bought today is still warm */
   fresh: Record<string, number>;
+  /**
+   * The menu's red dots (§10 P1): view key (`journal/now`, `collection/idioms` …)
+   * → the game minute it was last opened, and `lead:<quest>` → 1 once a lead
+   * was seen. Additive, merged by max; none in older saves.
+   */
+  seen?: Record<string, number>;
 
   settings: WorldSettings;
 }

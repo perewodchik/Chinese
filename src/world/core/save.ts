@@ -87,7 +87,9 @@ export type EngineAction =
   | { do: 'reset'; born: number }
   | { do: 'ride'; route: string }
   | { do: 'tick'; minutes: number }
-  | { do: 'settings'; patch: Partial<WorldSettings> };
+  | { do: 'settings'; patch: Partial<WorldSettings> }
+  /** a menu view opened (its news seen), or a lead looked at (§10) */
+  | { do: 'seen'; key: string; at: number };
 
 export type SaveAction = Action | EngineAction;
 
@@ -280,6 +282,8 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
       return a.minutes === s.clock ? s : { ...s, clock: Math.max(s.clock, a.minutes) };
     case 'settings':
       return { ...s, settings: { ...s.settings, ...a.patch } };
+    case 'seen':
+      return (s.seen?.[a.key] ?? -1) >= a.at ? s : { ...s, seen: { ...s.seen, [a.key]: a.at } };
     case 'reset':
       return { ...newSave(s.deviceId, s.updatedAt), born: a.born, settings: s.settings };
     case 'game':

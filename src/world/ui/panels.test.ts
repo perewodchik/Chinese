@@ -4,6 +4,9 @@ import { districtInfo } from '../core/districts';
 import { applyAll, newSave } from '../core/save';
 import type { Idiom, NpcCard, Quest, Scene, Stamp } from '../core/types';
 import { giveTo } from '../core/gifts';
+import { merge } from '../core/merge';
+import { readSave } from '../core/migrate';
+import { FIRST_MEMORY, markSeen, menuNews, panelTarget, remember, tabForKey, tabHasNews } from './menu';
 import { BAG_FILTERS, bagRows, filterOf, friendRows, itemFacts, idiomRows, mapHint, riddleRows, stampRows, taskRows } from './panelRows';
 
 const ctx = { now: 1 };
@@ -102,5 +105,68 @@ describe('the panels', () => {
     s = applyAll(s, giveTo(zhao, hulu, s).actions, ctx);
     const f = itemFacts(hulu, s, shops, [wang, zhao]);
     assert.deepEqual([f.liked, f.disliked], [['王阿姨'], ['赵爷爷']]);
+  });
+});
+
+describe('the menu (§10 P1)', () => {
+  it('maps every old panel id onto a tab and view', () => {
+    assert.deepEqual(panelTarget('tasks'), { tab: 'journal', view: 'now' });
+    assert.deepEqual(panelTarget('diary'), { tab: 'journal', view: 'diary' });
+    assert.deepEqual(panelTarget('spirits'), { tab: 'collection', view: 'spirits' });
+    assert.deepEqual(panelTarget('idioms'), { tab: 'collection', view: 'idioms' });
+    assert.deepEqual(panelTarget('stamps'), { tab: 'collection', view: 'stamps' });
+    assert.deepEqual(panelTarget('album'), { tab: 'collection', view: 'album' });
+    assert.deepEqual(panelTarget('friends'), { tab: 'people' });
+    assert.deepEqual(panelTarget('settings'), { tab: 'settings' });
+    assert.deepEqual(panelTarget('bag'), { tab: 'bag' });
+    assert.deepEqual(panelTarget('map'), { tab: 'map' });
+  });
+
+  it('reopens on the last tab and on each tab’s last view', () => {
+    let mem = remember(FIRST_MEMORY, { tab: 'collection', view: 'stamps' });
+    mem = remember(mem, { tab: 'bag' });
+    mem = remember(mem, { tab: 'settings' });
+    assert.deepEqual(panelTarget('menu', mem), { tab: 'bag' });
+    assert.deepEqual(panelTarget('collection', mem), { tab: 'collection', view: 'stamps' });
+    assert.deepEqual(panelTarget('journal', mem), { tab: 'journal', view: 'now' });
+    assert.deepEqual(panelTarget('menu'), { tab: 'journal', view: 'now' });
+    // an unknown remembered view falls back to the first
+    assert.deepEqual(panelTarget('journal', { tab: 'journal', views: { journal: 'nope' } }), { tab: 'journal', view: 'now' });
+    assert.equal(remember(mem, { tab: 'bag' }), mem);
+  });
+
+  it('keys 1–5 are the tabs in order', () => {
+    assert.deepEqual(['1', '2', '3', '4', '5', '6', 'a'].map(tabForKey), ['journal', 'bag', 'map', 'people', 'collection', null, null]);
+  });
+
+  it('dots news until the view is opened, then clears it', () => {
+    let s = applyAll(fresh(), [{ do: 'idiom', idiom: '马马虎虎' }, { do: 'stamp', stamp: 'st' }], ctx);
+    let news = menuNews(s);
+    assert.ok(news.has('collection/idioms') && news.has('collection/stamps'));
+    assert.ok(tabHasNews(news, 'collection') && !tabHasNews(news, 'bag'));
+    s = applyAll(s, markSeen(s, { tab: 'collection', view: 'idioms' }), ctx);
+    news = menuNews(s);
+    assert.ok(!news.has('collection/idioms') && news.has('collection/stamps'));
+    // later news dots it again
+    s = applyAll(s, [{ do: 'tick', minutes: s.clock + 30 }, { do: 'idiom', idiom: '一心一意' }], ctx);
+    assert.ok(menuNews(s).has('collection/idioms'));
+  });
+
+  it('dots a lead until the journal is opened', () => {
+    let s = fresh();
+    assert.ok(menuNews(s, ['side-kite']).has('journal/now'));
+    s = applyAll(s, markSeen(s, { tab: 'journal', view: 'now' }, ['side-kite']), ctx);
+    assert.ok(!menuNews(s, ['side-kite']).has('journal/now'));
+    assert.ok(menuNews(s, ['side-kite', 'side-bird']).has('journal/now'));
+  });
+
+  it('merges seen markers by the later minute, and keeps them through a reload', () => {
+    const a = applyAll(fresh(), [{ do: 'seen', key: 'journal/now', at: 500 }, { do: 'seen', key: 'people', at: 10 }], ctx);
+    const b = applyAll(newSave('e', 0), [{ do: 'seen', key: 'journal/now', at: 400 }, { do: 'seen', key: 'bag', at: 7 }], ctx);
+    assert.deepEqual(merge(a, b).seen, { bag: 7, 'journal/now': 500, people: 10 });
+    assert.deepEqual(merge(b, a).seen, merge(a, b).seen);
+    const back = readSave(JSON.parse(JSON.stringify(a)));
+    assert.ok(back.ok);
+    assert.deepEqual(back.save.seen, a.seen);
   });
 });
