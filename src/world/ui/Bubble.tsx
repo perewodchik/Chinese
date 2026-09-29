@@ -83,7 +83,7 @@ export function Typed({ text, lines, onBusy }: { text: string; lines: number; on
     return stop;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
-  useEffect(() => () => busy.current?.(false), []);
+  useLayoutEffect(() => () => busy.current?.(false), []);
 
   // A tap on his line: finish the page, or turn it.
   const advance = () => {

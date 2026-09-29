@@ -212,6 +212,24 @@ export class Ambient {
     strike(t + 0.16);
   }
 
+  /** 兔儿爷 answers: one short, soft rising blip (at the sound level; silent at 0). */
+  blip() {
+    if (!this.ctx || this.volume <= 0) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(740, t);
+    o.frequency.exponentialRampToValueAtTime(988, t + 0.06);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.07, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    o.connect(g).connect(this.master!);
+    o.start(t);
+    o.stop(t + 0.14);
+  }
+
   /** The station's chime: three soft falling notes (not any real line's jingle). */
   chime() {
     if (!this.ctx || this.silent) return;

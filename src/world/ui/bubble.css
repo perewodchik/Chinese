@@ -284,3 +284,122 @@
     animation: none;
   }
 }
+
+/* --- over his head: a pixel "!" when he has something to say, "…" while he
+   types an answer, and X7's pictures (glad at a kept word) */
+.wc-mark,
+.wc-emote {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  animation: wc-pop 0.16s ease-out both;
+}
+
+.wc-mark {
+  --wb-edge: color-mix(in srgb, var(--ink) 78%, var(--card));
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  background: var(--card);
+  box-shadow:
+    0 -2px 0 0 var(--wb-edge),
+    0 2px 0 0 var(--wb-edge),
+    -2px 0 0 0 var(--wb-edge),
+    2px 0 0 0 var(--wb-edge);
+}
+
+/* its little tail, pointing down at him */
+.wc-mark::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: calc(100% + 2px);
+  width: 6px;
+  height: 4px;
+  background: var(--wb-edge);
+  clip-path: polygon(0 0, 6px 0, 6px 2px, 4px 2px, 4px 4px, 2px 4px, 2px 2px, 0 2px);
+}
+
+.wc-mark i {
+  position: absolute;
+  left: 8px;
+  top: 3px;
+  width: 4px;
+  height: 8px;
+  background: var(--gold);
+}
+
+/* the dot of the "!" */
+.wc-mark[data-kind='says'] i::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 4px;
+  height: 3px;
+  background: var(--gold);
+}
+
+.wc-mark[data-kind='says'] {
+  animation:
+    wc-pop 0.16s ease-out both,
+    wc-bob 1.2s steps(2, jump-none) 0.16s infinite;
+}
+
+.wc-mark[data-kind='thinking'] i {
+  left: 3px;
+  top: 8px;
+  width: 3px;
+  height: 3px;
+  background: var(--ink-2);
+  box-shadow:
+    5px 0 0 0 var(--ink-2),
+    10px 0 0 0 var(--ink-2);
+  animation: wc-dots 0.9s steps(3, jump-none) infinite;
+}
+
+.wc-emote {
+  margin-left: -16px;
+}
+
+@keyframes wc-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
+@keyframes wc-bob {
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes wc-dots {
+  0% {
+    box-shadow:
+      5px 0 0 0 transparent,
+      10px 0 0 0 transparent;
+  }
+  50% {
+    box-shadow:
+      5px 0 0 0 var(--ink-2),
+      10px 0 0 0 transparent;
+  }
+  100% {
+    box-shadow:
+      5px 0 0 0 var(--ink-2),
+      10px 0 0 0 var(--ink-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wc-mark,
+  .wc-mark[data-kind='says'],
+  .wc-mark[data-kind='thinking'] i,
+  .wc-emote {
+    animation: none;
+  }
+}

@@ -572,8 +572,9 @@
   }
 }
 
-/* --- 兔儿爷, the companion: bottom left; above the bubble while talking.
-   His speech bubble (ui/bubble.css) opens to his right. */
+/* --- 兔儿爷, the companion: bottom left; during a talk he hops onto the
+   dialogue box's rim (a transform set by Companion — his box never moves).
+   His speech bubble, "!" and faces are in ui/bubble.css. */
 .wc {
   position: absolute;
   left: calc(env(safe-area-inset-left, 0px) + 10px);
@@ -588,10 +589,6 @@
 
 .wc > * {
   pointer-events: auto;
-}
-
-.wc[data-talking] {
-  bottom: calc(env(safe-area-inset-bottom, 0px) + min(52%, 380px) + 16px);
 }
 
 .wc-rabbit {
@@ -612,15 +609,7 @@
   background-color: transparent;
 }
 
-.wc-rabbit[data-says] {
-  border-color: var(--gold);
-}
-
 @media (max-width: 689px) {
-  .wc[data-talking] {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + min(56%, 400px) + 16px);
-  }
-
   .wc-rabbit {
     width: 48px;
     height: 48px;

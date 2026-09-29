@@ -98,7 +98,7 @@ export function WorldPage() {
     const c = contentRef.current;
     const right = Object.keys(s.bag.items).find((id) => (s.bag.items[id] ?? 0) > 0 && sceneFor(c.scenes, s, { ...who, use: id }));
     const it = right && c.items.find((i) => i.id === right);
-    if (it) setPal({ open: true, said: `Try the ${it.en} — ${it.name} — from your bag.` });
+    if (it) setPal((p) => ({ open: p.open, said: `Try the ${it.en} — ${it.name} — from your bag.` }));
   };
   /**
    * Using an item on someone or something (X1): a scene written for it wins;
@@ -471,7 +471,7 @@ export function WorldPage() {
   const cue = talk.view?.cue;
   const misses = talk.view?.misses ?? 0;
   useEffect(() => {
-    if (cue && speaksUpAfterMisses(misses, cue)) setPal({ open: true, said: cueLine(cue) });
+    if (cue && speaksUpAfterMisses(misses, cue)) setPal((p) => ({ open: p.open, said: cueLine(cue) }));
   }, [cue, misses]);
   useEffect(() => {
     if (!talk.view) setPal((p) => (p.said ? { open: false, said: null } : p));
@@ -498,7 +498,7 @@ export function WorldPage() {
       }
       if (told || !activeQuests(s, contentRef.current.quests).length) return;
       told = true;
-      setPal({ open: true, said: whatNow(s, contentRef.current.quests) });
+      setPal((p) => ({ open: p.open, said: whatNow(s, contentRef.current.quests) }));
     }, 5000);
     const touch = () => (lastActive.current = Date.now());
     window.addEventListener('pointerdown', touch);
@@ -700,6 +700,7 @@ export function WorldPage() {
           why={lastNode?.why}
           canHint={!!hintNow && hintStep < 3 && talk.view?.mode === 'reply'}
           hintStep={hintStep}
+          onBlip={() => ambient.current?.blip()}
           hat={hatFor(minutes)}
           onPat={() => {
             lastActive.current = Date.now();
