@@ -211,3 +211,113 @@
     grid-template-columns: 52px minmax(0, 1fr);
   }
 }
+
+/* --- the wardrobe sheet (W4) */
+.wc-set {
+  flex: none;
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.wc-set button {
+  height: 30px;
+  border: 0;
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.wc-set-on {
+  padding: 0 8px;
+}
+
+.wc-set-on:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.wc-set-save {
+  width: 28px;
+  border-left: 1px solid var(--line) !important;
+  font-family: var(--han) !important;
+}
+
+.wc-tile {
+  flex: none;
+  display: inline-flex;
+}
+
+.wc-tile .wc-opt {
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.wc-none {
+  align-self: center;
+  white-space: normal;
+  max-width: 240px;
+}
+
+span.wc-opt[aria-disabled] {
+  cursor: default;
+}
+
+/* a tile's card, over the sheet's lower part */
+.wc-card {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.wc-card-pic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 136px;
+  border-radius: var(--radius);
+  background: var(--card-2);
+}
+
+.wc-card-text {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.wc-card-text p {
+  margin: 0;
+}
+
+.wc-card-zh {
+  font-size: 22px;
+}
+
+.wc-card-acts {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* the close button stays in reach when the header scrolls on a phone */
+.wc-head-bar > .wd-tool:last-child {
+  position: sticky;
+  right: 0;
+}

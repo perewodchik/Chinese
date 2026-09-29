@@ -48,6 +48,8 @@ import { useTitle } from '../../ui/useTitle';
 import { Creator, type CreatorMode } from '../../world/ui/Creator';
 import { dressOf } from '../../world/ui/HeroFigure';
 import { setCurrentDress } from '../../world/ui/heroPicture';
+import { WardrobeSheet } from '../../world/ui/WardrobeSheet';
+import { homeProp } from '../../world/core/wardrobe';
 
 const TIMES: PartOfDay[] = ['morning', 'day', 'evening', 'night'];
 
@@ -195,6 +197,8 @@ export function WorldPage() {
   const [creator, setCreator] = useState<CreatorMode | null>(null);
   /** a scene that starts by itself waits while the creator is open (the first morning comes after it) */
   const pendingAuto = useRef<Scene | null>(null);
+  /** the 衣柜 at home (W4) */
+  const [wardrobe, setWardrobe] = useState(false);
   const remix = (minutes?: number) => {
     const h = here.current;
     const s = game.current();
@@ -210,7 +214,7 @@ export function WorldPage() {
     ambient.current?.setMood(moodFor({ mapId: h.id, life: h.life, time, weather, festival }));
   };
   const busy = useRef(false);
-  busy.current = note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null;
+  busy.current = note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null || wardrobe;
 
   // An error thrown inside the engine's loop never reaches React: hand it to the crash guard.
   useEffect(() => {
@@ -324,6 +328,10 @@ export function WorldPage() {
               applyItem(usingRef.current, { object: o.id }, s);
               return;
             }
+            // your room's 衣柜 and 镜子 (W4)
+            const home = homeProp(o, s.place.map);
+            if (home === 'wardrobe') return setWardrobe(true);
+            if (home === 'mirror') return setCreator('mirror');
             // the board on a platform or at a bus stop: what leaves from here
             // (subway maps are called station-<id>, bus and train stops stop-<id>);
             // a scene on the board (no ticket yet) comes first
@@ -585,7 +593,8 @@ export function WorldPage() {
             o.kind === 'sign' ||
             o.kind === 'bike' ||
             isMachine(o) ||
-            (o.kind === 'prop' && !!sceneFor(scenes, s, { look: o.id, map: s.place.map }))
+            (o.kind === 'prop' && !!sceneFor(scenes, s, { look: o.id, map: s.place.map })) ||
+            !!homeProp(o, s.place.map)
         : null,
     );
   }, [hints, state, game.save, content]);
@@ -614,8 +623,8 @@ export function WorldPage() {
 
   // A full-screen panel stops the world: no drawing, no clock (D7).
   useEffect(() => {
-    world.current?.setPaused(panel !== null || riding !== null || creator !== null);
-  }, [panel, riding, creator]);
+    world.current?.setPaused(panel !== null || riding !== null || creator !== null || wardrobe);
+  }, [panel, riding, creator, wardrobe]);
   // What you look like and wear (§12): the world sprite and 我's portrait follow the save.
   const look = game.save?.look;
   const outfit = game.save?.outfit;
@@ -766,6 +775,16 @@ export function WorldPage() {
             }
           }}
           {...(creator === 'mirror' ? { onClose: () => setCreator(null) } : {})}
+        />
+      )}
+      {wardrobe && game.save && (
+        <WardrobeSheet
+          save={game.save}
+          clothes={content.clothes}
+          pinyin={game.save.settings.pinyin}
+          // a thing sold goes to the recycler: his name on the 账单 line
+          dispatch={(a, sold) => void game.dispatch(a, 'important', sold ? { npc: 'polan-shifu' } : undefined)}
+          onClose={() => setWardrobe(false)}
         />
       )}
       {riding && game.save && (

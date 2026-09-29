@@ -77,6 +77,13 @@ export interface ClothesContent {
 
 export const EMPTY_CLOTHES: ClothesContent = { racks: [], clothes: [] };
 
+/** Your room's 衣柜 and 镜子 (W4): the props that open the wardrobe sheet and the mirror. */
+export const HOME_ROOM = 'siheyuan-room';
+export function homeProp(o: { kind: string; id: string }, map: string): 'wardrobe' | 'mirror' | null {
+  if (map !== HOME_ROOM || o.kind !== 'prop') return null;
+  return o.id === 'wardrobe' ? 'wardrobe' : o.id === 'mirror' ? 'mirror' : null;
+}
+
 // ---------------------------------------------------------------------------
 // The save's side
 // ---------------------------------------------------------------------------

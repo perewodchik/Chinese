@@ -934,6 +934,34 @@ export function butterfly(open: boolean): Grid {
   return g.stamp(f, 0, 0);
 }
 
+/** Your 衣柜 (§12, W4): a tall wooden wardrobe, two doors, brass handles, a carved top — 16×32. */
+export function wardrobe(): Grid {
+  const g = new Grid(16, 32);
+  g.oval(0, 27, 16, 5, '_');
+  const f = new Grid(16, 32);
+  f.rect(1, 4, 14, 25, 'M').hline(1, 4, 14, 'z').rect(0, 2, 16, 3, 'm').hline(1, 2, 14, 'M');
+  // two doors with a panel each, and the gap between them
+  f.rect(2, 6, 5, 20, 'z').rect(9, 6, 5, 20, 'z').vline(7, 6, 20, 'm').vline(8, 6, 20, 'm');
+  f.rect(3, 8, 3, 7, 'M').rect(10, 8, 3, 7, 'M').rect(3, 17, 3, 7, 'M').rect(10, 17, 3, 7, 'M');
+  f.set(6, 15, 'y').set(9, 15, 'y');
+  f.hline(1, 27, 14, 'm').set(2, 28, 'm').set(13, 28, 'm');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A 镜子 on a stand (§12, W4): an oval glass in a red frame on wooden legs — 16×32. */
+export function mirror(): Grid {
+  const g = new Grid(16, 32);
+  g.oval(2, 27, 12, 4, '_');
+  const f = new Grid(16, 32);
+  f.oval(2, 2, 12, 20, 'R').oval(3, 3, 10, 18, 'x').oval(4, 5, 8, 14, 'l');
+  // the shine
+  f.vline(5, 7, 4, 'w').set(6, 6, 'w').vline(10, 14, 2, 'w');
+  f.vline(7, 22, 5, 'm').vline(8, 22, 5, 'M').hline(4, 27, 8, 'm').set(3, 28, 'm').set(12, 28, 'm');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -944,6 +972,8 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['table', 'a square wooden table', () => [['wood', table()]]],
   ['stool', 'a little red stool', () => [['red', stool()]]],
   ['bed', 'a bed with a flowered quilt', () => [['quilt', bed()]]],
+  ['wardrobe', 'your 衣柜: a tall wooden wardrobe (§12)', () => [['wood', wardrobe()]]],
+  ['mirror', 'a 镜子 on a stand (§12)', () => [['stand', mirror()]]],
   ['steamer', 'bamboo steamers of 包子 on a stove', () => [['steam-0', steamer(0)], ['steam-1', steamer(1)]]],
   ['wok', 'a wok of oil for 油条', () => [['oil', wok()]]],
   ['tea-table', 'a low tea table with a pot and cups', () => [['pot', teaTable()]]],
