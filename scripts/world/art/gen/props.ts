@@ -807,6 +807,38 @@ export function cat(pose: 'sit' | 'sleep' | 'walk-0' | 'walk-1'): Grid {
   return g.stamp(f, 0, 0);
 }
 
+// ---------------------------------------------------------------- X6: stickers
+
+/**
+ * A chat sticker 表情包, 16×16: a round yellow face (or 兔儿爷's) with a
+ * feeling — hello (a wave), thanks (a bow and a heart), ok (a thumb), haha
+ * (tears of laughter), sorry (a sweat drop), love (heart eyes).
+ */
+export function sticker(kind: 'hello' | 'thanks' | 'ok' | 'haha' | 'sorry' | 'love'): Grid {
+  const g = new Grid(16, 16);
+  const f = new Grid(16, 16);
+  f.oval(1, 1, 14, 14, 'y').oval(2, 2, 11, 11, 'j').vline(13, 4, 7, 'Y').hline(4, 13, 7, 'Y');
+  const eyes = (c: string) => f.vline(5, 5, 2, c).vline(10, 5, 2, c);
+  if (kind === 'love') {
+    for (const x of [4, 9]) f.set(x, 5, 'r').set(x + 2, 5, 'r').hline(x, 6, 3, 'r').set(x + 1, 7, 'r');
+    f.hline(5, 10, 6, 'k').hline(6, 11, 4, 'R');
+  } else if (kind === 'haha') {
+    f.hline(4, 6, 3, 'k').hline(9, 6, 3, 'k').set(4, 7, 'l').set(11, 7, 'l').set(3, 8, 'l').set(12, 8, 'l');
+    f.rect(5, 9, 6, 3, 'k').hline(6, 11, 4, 'r');
+  } else if (kind === 'sorry') {
+    eyes('k');
+    f.hline(6, 11, 4, 'k').set(5, 10, 'k').set(10, 10, 'k').vline(12, 2, 3, 'l').set(12, 5, 'X');
+  } else {
+    eyes('k');
+    f.hline(5, 10, 6, 'k').set(4, 9, 'k').set(11, 9, 'k').set(4, 8, 'N').set(11, 8, 'N');
+  }
+  if (kind === 'hello') f.rect(12, 9, 3, 4, 's').vline(12, 7, 2, 's').vline(14, 7, 2, 's');
+  if (kind === 'ok') f.rect(11, 9, 4, 4, 's').vline(12, 6, 3, 's');
+  if (kind === 'thanks') f.set(12, 2, 'r').set(14, 2, 'r').hline(12, 3, 3, 'r').set(13, 4, 'r');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -846,6 +878,7 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['rockery', 'a rockery of the Imperial Garden', () => [['rocks', rockery()]]],
   ['kite', 'a red paper kite', () => [['red', kite()]]],
   ['jianzhi', 'a red paper-cut window flower', () => [['red', jianzhi()]]],
+  ['sticker', 'chat stickers', () => (['hello', 'thanks', 'ok', 'haha', 'sorry', 'love'] as const).map((k) => [k, sticker(k)] as [string, Grid])],
   ['shufa', 'a hanging scroll of calligraphy', () => [['scroll', shufa()]]],
   ['lianpu', 'a Peking-opera mask', () => [['red', lianpu()]]],
   ['cat', 'the hutong cat', () => [['sit', cat('sit')], ['sleep', cat('sleep')], ['walk-0', cat('walk-0')], ['walk-1', cat('walk-1')], ['walk-0-r', cat('walk-0').mirror()], ['walk-1-r', cat('walk-1').mirror()]]],

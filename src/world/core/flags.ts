@@ -40,6 +40,7 @@ export function holds(c: Condition | undefined, s: WorldSave): boolean {
   if ('weather' in c) return weatherOf(dayOf(s.clock)) === c.weather;
   if ('festival' in c) return festivalOf(dayOf(s.clock))?.id === c.festival;
   if ('season' in c) return seasonOf(dayOf(s.clock)) === c.season;
+  if ('photo' in c) return s.photos.includes(c.photo);
   if ('cat' in c) return c.cat === 'named' ? !!s.cat.name : c.cat === 'trusts' ? s.cat.fed >= CAT_TRUST_DAYS : s.cat.day === dayOf(s.clock);
   return false;
 }

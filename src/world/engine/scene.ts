@@ -16,7 +16,7 @@ import { DAY_LOOK, zoomFor } from './look';
 import { edgeAt, resolveArrival, throughEdge, type Arrival, type Door } from './doors';
 import { crowdTrip, facingOf, idleNext, PASSERS, pigeonSpots, rand, scared, type Rand } from './life';
 import { readMap, type MapInfo } from './mapdata';
-import { DOUBLE_TAP_MS, facingTo, KEY_FACING, objectAt, pinchTo, planTap, RUN_MS, stepOnce, WALK_MS, type Plan } from './movement';
+import { DOUBLE_TAP_MS, facingTo, KEY_FACING, objectAt, pinchTo, pinchZooms, planTap, RUN_MS, stepOnce, WALK_MS, type Plan } from './movement';
 
 export const TILE = 16;
 const ART = '/world/art';
@@ -307,6 +307,22 @@ export class WorldScene extends Phaser.Scene {
       })
       .setScrollFactor(0)
       .setDepth(20_002);
+  }
+
+  /** The part of the map on screen, in tiles (X6 photos). */
+  viewTiles() {
+    const v = this.cameras.main.worldView;
+    return { x: v.x / TILE, y: v.y / TILE, w: v.width / TILE, h: v.height / TILE };
+  }
+
+  /** One step closer or further for a photo, among the zooms that keep pixels square. */
+  zoomStep(d: 1 | -1) {
+    const cam = this.cameras.main;
+    const zooms = pinchZooms(this.baseZoom);
+    const i = zooms.findIndex((z) => z === cam.zoom);
+    const next = zooms[Math.max(0, Math.min(zooms.length - 1, (i < 0 ? zooms.indexOf(this.baseZoom) : i) + d))];
+    if (next) cam.setZoom(next);
+    this.frameBounds();
   }
 
   /** The cat pads after you onto the tile you just left (X5), and sits when you stop. */

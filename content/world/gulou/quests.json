@@ -334,5 +334,41 @@
         }
       }
     ]
+  },
+  {
+    "id": "side-photo-drum",
+    "title": "A photo for 小明",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "take",
+        "now": "Take a photo of the Drum Tower 鼓楼 for 小明: tap 📷 on the 鼓楼 square and put the tower in the frame.",
+        "done": {
+          "photo": "gulou-square:drum-tower"
+        }
+      },
+      {
+        "id": "show",
+        "now": "Show 小明 the photo — he is in 帽儿胡同."
+      }
+    ]
+  },
+  {
+    "id": "side-photo-wall",
+    "title": "The Wall for 老刘",
+    "chapter": 8,
+    "steps": [
+      {
+        "id": "take",
+        "now": "Take a photo of the Great Wall’s watchtower for 老刘: tap 📷 on the Wall.",
+        "done": {
+          "photo": "changcheng:watchtower"
+        }
+      },
+      {
+        "id": "show",
+        "now": "Show 老刘 the photo at the teahouse."
+      }
+    ]
   }
 ]

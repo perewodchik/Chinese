@@ -35,6 +35,8 @@ export interface Utterance {
   text: string;
   /** voice input is hanzi guessed from sound, so a sound-only match is kept with a note */
   via: 'voice' | 'keyboard';
+  /** a sticker sent instead of words (X6): understood as the word it stands for */
+  sticker?: string;
 }
 
 export interface DialogueState {

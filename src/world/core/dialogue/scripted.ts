@@ -19,6 +19,7 @@ import type { CompanionCue, DialogueSource, DialogueState, Line, Turn, Utterance
 import { askIntent, explainWord, POLITE_REPLY, politeIntent } from './universal';
 import { hintWithName, NAME_SLOT, withName } from '../voice';
 import { catNameFrom } from '../room';
+import { STICKER_REPLY, STICKERS } from '../photo';
 
 export const DEFAULT_MISSES = ['你说什么？', '什么？请再说一遍。'];
 export const NOT_CHINESE = { zh: '对不起，我听不懂……', en: "Sorry, I don't understand…" };
@@ -148,6 +149,14 @@ export class ScriptedDialogue implements DialogueSource {
   }
 
   reply(state: DialogueState, u: Utterance): Turn {
+    // A sticker means its word; if that fits nothing here, the person just smiles at it — never a miss.
+    if (u.sticker) {
+      const def = STICKERS.find((x) => x.id === u.sticker);
+      const t = def ? this.reply(state, { text: def.says, via: 'keyboard' }) : null;
+      if (t && t.kind !== 'miss' && t.kind !== 'not_chinese') return t;
+      const sc = this.scene(state.scene);
+      return { kind: 'polite', intent: 'sticker', say: this.aside(sc, STICKER_REPLY.zh, STICKER_REPLY.en), actions: [], state };
+    }
     const scene = this.scene(state.scene);
     const n = this.node(scene, state.node);
     const npc = scene.npc ? this.npcs.get(scene.npc) : undefined;

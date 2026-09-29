@@ -11,6 +11,8 @@ export interface Said {
   /** the NPC's line; for your lines, the text you sent */
   line?: Line;
   text?: string;
+  /** a sticker you sent (X6) */
+  sticker?: string;
   kind?: Turn['kind'];
 }
 
@@ -40,9 +42,9 @@ export function modeOf(scene: Scene, t: Turn): TalkView['mode'] {
 }
 
 /** The view after a turn: your line and the NPC's added, misses counted for the companion. */
-export function afterTurn(v: TalkView, t: Turn, you?: string): TalkView {
+export function afterTurn(v: TalkView, t: Turn, you?: string, sticker?: string): TalkView {
   const history = [...v.history];
-  if (you !== undefined) history.push({ who: 'you', text: you });
+  if (you !== undefined) history.push({ who: 'you', text: you, ...(sticker ? { sticker } : {}) });
   if (t.say) history.push({ who: 'npc', line: t.say, kind: t.kind });
   const misses = t.kind === 'miss' || t.kind === 'not_chinese' ? v.misses + 1 : t.kind === 'match' ? 0 : v.misses;
   return { ...v, history, state: t.state, mode: modeOf(v.scene, t), cue: t.companion, misses };
@@ -80,11 +82,11 @@ export function useTalk(content: WorldContent, lex: Lexicon | null, dispatch: (a
   const source = useMemo(() => (lex ? new ScriptedDialogue({ scenes: content.scenes, npcs: content.npcs }, lex) : null), [content, lex]);
 
   const take = useCallback(
-    (t: Turn, you?: string) => {
+    (t: Turn, you?: string, sticker?: string) => {
       const v = cur.current;
       if (!v) return;
       if (t.actions.length) dispatch(t.actions);
-      const next = afterTurn(v, t, you);
+      const next = afterTurn(v, t, you, sticker);
       cur.current = next;
       setView(next);
     },
@@ -103,10 +105,10 @@ export function useTalk(content: WorldContent, lex: Lexicon | null, dispatch: (a
   );
 
   const reply = useCallback(
-    (text: string, via: 'voice' | 'keyboard') => {
+    (text: string, via: 'voice' | 'keyboard', sticker?: string) => {
       const v = cur.current;
       if (!v || !source || v.mode !== 'reply') return;
-      take(source.reply(v.state, { text, via }), text);
+      take(source.reply(v.state, { text, via, ...(sticker ? { sticker } : {}) }), text, sticker);
     },
     [source, take],
   );

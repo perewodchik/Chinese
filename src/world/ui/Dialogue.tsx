@@ -4,6 +4,8 @@ import type { Line } from '../core/dialogue/source';
 import type { NpcCard } from '../core/types';
 import { Hearts } from './Hearts';
 import { Portrait } from './Portrait';
+import { PropSprite } from './PropSprite';
+import { STICKERS } from '../core/photo';
 import type { Said, TalkView } from './useTalk';
 import { ZhText } from './ZhText';
 
@@ -172,7 +174,7 @@ export function Dialogue({
         {view.history.map((s, i) =>
           s.who === 'you' ? (
             <li key={i} className="wd-you han">
-              {s.text}
+              {s.sticker ? <PropSprite frame={`sticker/${s.sticker}`} scale={3} label={STICKERS.find((x) => x.id === s.sticker)?.en ?? 'a sticker'} /> : s.text}
             </li>
           ) : s.line ? (
             <li key={i} className="wd-npc" data-latest={i === view.history.length - 1 ? '' : undefined}>

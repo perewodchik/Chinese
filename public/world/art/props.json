@@ -722,7 +722,7 @@
   },
   "pigeon/fly-0": {
    "frame": {
-    "x": 136,
+    "x": 238,
     "y": 221,
     "w": 8,
     "h": 8
@@ -742,7 +742,7 @@
   },
   "pigeon/fly-1": {
    "frame": {
-    "x": 145,
+    "x": 247,
     "y": 221,
     "w": 8,
     "h": 8
@@ -762,7 +762,7 @@
   },
   "pigeon/look": {
    "frame": {
-    "x": 154,
+    "x": 256,
     "y": 221,
     "w": 8,
     "h": 8
@@ -782,7 +782,7 @@
   },
   "pigeon/peck": {
    "frame": {
-    "x": 163,
+    "x": 265,
     "y": 221,
     "w": 8,
     "h": 8
@@ -1040,9 +1040,129 @@
     "h": 16
    }
   },
-  "stool/red": {
+  "sticker/haha": {
    "frame": {
     "x": 68,
+    "y": 221,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "sticker/hello": {
+   "frame": {
+    "x": 85,
+    "y": 221,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "sticker/love": {
+   "frame": {
+    "x": 102,
+    "y": 221,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "sticker/ok": {
+   "frame": {
+    "x": 119,
+    "y": 221,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "sticker/sorry": {
+   "frame": {
+    "x": 136,
+    "y": 221,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "sticker/thanks": {
+   "frame": {
+    "x": 153,
+    "y": 221,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "stool/red": {
+   "frame": {
+    "x": 170,
     "y": 221,
     "w": 16,
     "h": 16
@@ -1102,7 +1222,7 @@
   },
   "table/wood": {
    "frame": {
-    "x": 85,
+    "x": 187,
     "y": 221,
     "w": 16,
     "h": 16
@@ -1142,7 +1262,7 @@
   },
   "tea-table/pot": {
    "frame": {
-    "x": 102,
+    "x": 204,
     "y": 221,
     "w": 16,
     "h": 16
@@ -1342,7 +1462,7 @@
   },
   "wok/oil": {
    "frame": {
-    "x": 119,
+    "x": 221,
     "y": 221,
     "w": 16,
     "h": 16

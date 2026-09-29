@@ -6452,5 +6452,204 @@
     "translate": "All right, bye!"
    }
   ]
+ },
+ {
+  "id": "photo-drum-ask",
+  "map": "hutong-home",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "once": true,
+  "priority": 2,
+  "when": {
+   "chapter": 2
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "照片",
+    "explain": "用手机拍的画。",
+    "en": "photo"
+   },
+   {
+    "w": "拍",
+    "explain": "用手机做照片。",
+    "en": "to take (a photo)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你的手机能拍照片吗？",
+    "translate": "Can your phone take photos?",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "你能给我拍鼓楼的照片吗？我想给我的朋友看。",
+    "translate": "Could you take a photo of the Drum Tower for me? I want to show my friend.",
+    "simpler": "给我拍鼓楼的照片吧！",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-photo-drum",
+      "step": "take"
+     }
+    ],
+    "why": "Tap 📷 in the top bar on the 鼓楼 square, put the Drum Tower inside the frame, and take it. Then come back to 小明."
+   }
+  ]
+ },
+ {
+  "id": "photo-drum-show",
+  "map": "hutong-home",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "side-photo-drum",
+     "step": "show"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "照片",
+    "explain": "用手机拍的画。",
+    "en": "photo"
+   },
+   {
+    "w": "拍",
+    "explain": "用手机做照片。",
+    "en": "to take (a photo)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你拍了鼓楼的照片！真好看！",
+    "translate": "You took a photo of the Drum Tower! It looks great!",
+    "simpler": "你拍了照片！",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "谢谢你！我的朋友会很高兴。",
+    "translate": "Thank you! My friend will be so happy.",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "xiaoming",
+      "delta": 1
+     },
+     {
+      "do": "remember",
+      "npc": "xiaoming",
+      "note": "photographed the Drum Tower for him"
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-photo-drum"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "photo-wall-ask",
+  "map": "chaguan",
+  "npc": "lao-liu",
+  "trigger": "talk",
+  "once": true,
+  "priority": 2,
+  "when": {
+   "chapter": 8
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "照片",
+    "explain": "用手机拍的画。",
+    "en": "photo"
+   },
+   {
+    "w": "拍",
+    "explain": "用手机做照片。",
+    "en": "to take (a photo)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你要去长城？我不能去了。",
+    "translate": "You are going to the Great Wall? I can’t go any more.",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "你给我拍长城的照片吧！我想看看。",
+    "translate": "Take a photo of the Wall for me! I would like to see it.",
+    "simpler": "给我拍长城的照片吧！",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-photo-wall",
+      "step": "take"
+     }
+    ],
+    "why": "On the Great Wall, tap 📷 and put the watchtower in the frame."
+   }
+  ]
+ },
+ {
+  "id": "photo-wall-show",
+  "map": "chaguan",
+  "npc": "lao-liu",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "quest": "side-photo-wall",
+   "step": "show"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "照片",
+    "explain": "用手机拍的画。",
+    "en": "photo"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这是长城的照片！真好看……",
+    "translate": "A photo of the Great Wall! How beautiful…",
+    "simpler": "长城的照片！",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "谢谢你，{name}。来，喝茶！",
+    "translate": "Thank you, {name}. Here — have some tea!",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "lao-liu",
+      "delta": 1
+     },
+     {
+      "do": "remember",
+      "npc": "lao-liu",
+      "note": "brought him a photo of the Great Wall"
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-photo-wall"
+     }
+    ]
+   }
+  ]
  }
 ]

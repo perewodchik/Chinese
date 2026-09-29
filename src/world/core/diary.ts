@@ -35,6 +35,7 @@ export const TEMPLATES: Record<string, { zh: string; en: string }> = {
   r: { zh: '我的房间里有了{x}。', en: 'My room has {x} now.' },
   c: { zh: '我的猫叫{x}。', en: 'My cat is called {x}.' },
   k: { zh: '我给小猫吃了东西。', en: 'I fed the little cat.' },
+  p: { zh: '今天我拍了照片。照片拍得很好！', en: 'Today I took photos. They came out well!' },
   z: { zh: '晚上我在家睡觉了。', en: 'In the evening I slept at home.' },
 };
 export const EMPTY_DAY = { zh: '今天没有什么事。', en: 'Nothing much happened today.' };
@@ -45,7 +46,11 @@ export const DIARY_SCENE: Scene = {
   map: '',
   trigger: 'look',
   start: 'd',
-  words: [{ w: '成语', explain: '四个字的老话。', en: 'a four-character idiom' }],
+  words: [
+    { w: '成语', explain: '四个字的老话。', en: 'a four-character idiom' },
+    { w: '照片', explain: '用手机拍的画。', en: 'photo' },
+    { w: '拍', explain: '用手机做照片。', en: 'to take (a photo)' },
+  ],
   nodes: [...Object.entries(TEMPLATES), ['empty', EMPTY_DAY] as const].map(([id, t]) => ({
     id,
     say: t.zh.replace(/\{[xy]\}/g, ''),
@@ -79,6 +84,8 @@ export function eventsOf(before: WorldSave, after: WorldSave, a: { do: string },
       return [`r:${x.item}`];
     case 'feed_cat':
       return ['k'];
+    case 'photo':
+      return ['p'];
     case 'cat_name':
       return [`c:${after.cat.name}`];
     case 'hearts':
@@ -173,8 +180,8 @@ export function diaryLines(codes: readonly string[], names: Names, day?: number)
       if (it) fill(k, it);
     } else if (k === 'c') {
       if (a) fill(k, { zh: a, en: a });
-    } else if (k === 'k') {
-      out.push({ ...TEMPLATES.k! });
+    } else if (k === 'k' || k === 'p') {
+      out.push({ ...TEMPLATES[k]! });
     } else if (k === 'z') {
       out.push({ ...TEMPLATES.z! });
     }

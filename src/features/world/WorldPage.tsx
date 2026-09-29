@@ -4,6 +4,10 @@ import { dayOf, partOfDay } from '../../world/core/clock';
 import { hintWithName } from '../../world/core/voice';
 import { skyOf, weatherOf } from '../../world/core/calendar';
 import { CAT_LANE } from '../../world/core/room';
+import { districtInfo } from '../../world/core/districts';
+import { subjectsIn } from '../../world/core/photo';
+import { cropPhoto, loadAlbum, saveAlbum } from '../../world/ui/album';
+import { FINDER, PhotoMode } from '../../world/ui/PhotoMode';
 import { libraryLexicon } from '../../world/core/dialogue/lexicon';
 import { autoScene, sceneFor } from '../../world/core/scenes';
 import type { SaveAction } from '../../world/core/save';
@@ -106,6 +110,27 @@ export function WorldPage() {
     talkRef.current.start(lineScene('nothing', 'hero', NOTHING_HAPPENS.zh, NOTHING_HAPPENS.en), null, 'sign', s, '我');
   };
 
+  /**
+   * A photo (X6): the canvas inside the viewfinder, small, into this device's
+   * album; what stood inside the frame goes to the save for photo tasks.
+   */
+  const takePhoto = async (): Promise<string | null> => {
+    const w = world.current;
+    const h = here.current;
+    const s = game.current();
+    if (!w || !h || !s) return null;
+    const shot = await w.snapshot();
+    const img = await cropPhoto(shot, FINDER);
+    const v = w.view();
+    const subjects = v ? subjectsIn(h.objects, h.id, { x: v.x + v.w * FINDER.x, y: v.y + v.h * FINDER.y, w: v.w * FINDER.w, h: v.h * FINDER.h }) : [];
+    const place = districtInfo(s.district)?.name ?? '北京';
+    const id = `${Date.now().toString(36)}`;
+    saveAlbum(user.id, [{ id, at: s.clock, map: h.id, subjects, place, img }, ...loadAlbum(user.id)]);
+    game.dispatch([{ do: 'photo', subjects }]);
+    const who = subjects.filter((x) => x.startsWith('npc:')).map((x) => contentRef.current.npcs.find((n) => n.id === x.slice(4))?.name).filter(Boolean);
+    return who.length ? `Saved to 相册 — with ${who.slice(0, 2).join(', ')}.` : 'Saved to 相册.';
+  };
+
   /** A scene with no person in it (a thought, 兔儿爷, a spirit): headed by whoever speaks first. */
   const startBare = (scene: Scene, s: WorldSave) => {
     const who = scene.nodes.find((n) => n.id === scene.start)?.speaker ?? 'hero';
@@ -137,14 +162,15 @@ export function WorldPage() {
   const lastActive = useRef(Date.now());
   // the street's sounds (G1): made on first tap, mixed by where you are and the hour
   const ambient = useRef<Ambient | null>(null);
-  const here = useRef<{ id: string; life: MapLife } | null>(null);
+  const here = useRef<{ id: string; life: MapLife; objects: MapObject[] } | null>(null);
+  const [photo, setPhoto] = useState(false);
   const remix = (minutes?: number) => {
     const h = here.current;
     const s = game.current();
     if (h && s) ambient.current?.setMix(mixFor(h.id, h.life, partOfDay(minutes ?? s.clock)));
   };
   const busy = useRef(false);
-  busy.current = note !== null || talk.view !== null || panel !== null || riding !== null;
+  busy.current = note !== null || talk.view !== null || panel !== null || riding !== null || photo;
 
   // An error thrown inside the engine's loop never reaches React: hand it to the crash guard.
   useEffect(() => {
@@ -193,7 +219,7 @@ export function WorldPage() {
           },
           onArrive: (info, t, facing) => {
             const s = game.dispatch([{ do: 'enter', map: info.id, tile: t, facing, district: info.district || undefined }]);
-            here.current = { id: info.id, life: info.life };
+            here.current = { id: info.id, life: info.life, objects: info.objects };
             remix();
             if (info.id.startsWith('station-')) ambient.current?.chime();
             // a scene that starts by itself here (the first morning, a first visit)
@@ -471,7 +497,8 @@ export function WorldPage() {
         ref={box}
         style={frame ? { width: Number(frame[1]), height: Number(frame[2]) } : undefined}
       />
-      {game.save && state === 'ready' && <TopBar district={game.save.district} minutes={minutes} open={setPanel} />}
+      {game.save && state === 'ready' && !photo && <TopBar district={game.save.district} minutes={minutes} open={setPanel} onPhoto={() => setPhoto(true)} />}
+      {photo && <PhotoMode onTake={takePhoto} onZoom={(d) => world.current?.zoomBy(d)} onClose={() => setPhoto(false)} />}
       {panel && game.save && (
         <Panels
           tab={panel}
@@ -479,6 +506,7 @@ export function WorldPage() {
           save={game.save}
           content={content}
           pinyin={game.save.settings.pinyin}
+          user={user.id}
           onClose={() => setPanel(null)}
           onUse={(item) => {
             setPanel(null);
@@ -505,6 +533,7 @@ export function WorldPage() {
         >
           <InputBar
             onSend={talk.reply}
+            onSticker={(id) => talk.reply('', 'keyboard', id)}
             hint={hintNow}
             hintStep={hintStep}
             onHint={() => setHint({ at: talkAt, step: hintStep + 1 })}

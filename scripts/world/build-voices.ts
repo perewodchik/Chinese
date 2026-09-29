@@ -16,6 +16,7 @@ import { pathToFileURL } from 'node:url';
 import { DEFAULT_MISSES, DONT_KNOW, explanationLine, NOT_CHINESE } from '../../src/world/core/dialogue/scripted';
 import { POLITE_REPLY } from '../../src/world/core/dialogue/universal';
 import { allCalls } from '../../src/world/core/ride';
+import { STICKER_REPLY } from '../../src/world/core/photo';
 import type { DistrictContent } from '../../src/world/core/types';
 import { spoken, voiceKey, voiceOf, type VoiceId } from '../../src/world/core/voice';
 import { checkContent, readLibrary } from './check-content';
@@ -49,6 +50,7 @@ export function clipsOf(districts: readonly DistrictContent[]): Clip[] {
       const card = cards.get(s.npc);
       for (const m of card?.misses?.length ? card.misses : DEFAULT_MISSES) add(s.npc, m);
       for (const r of Object.values(POLITE_REPLY)) add(s.npc, r.zh);
+      add(s.npc, STICKER_REPLY.zh);
       add(s.npc, NOT_CHINESE.zh);
       add(s.npc, DONT_KNOW.zh);
       for (const [w, e] of Object.entries(card?.explains ?? {})) add(s.npc, explanationLine(w, e));

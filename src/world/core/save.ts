@@ -10,9 +10,10 @@
 import { dayOf, sleep as sleepClock, START_MINUTES, waitUntil } from './clock';
 import { eventsOf, logDay } from './diary';
 import { feedCat, fits, NO_CAT } from './room';
+import { MAX_SUBJECTS } from './photo';
 import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
 
-export const WORLD_SAVE_VERSION = 5;
+export const WORLD_SAVE_VERSION = 6;
 
 /** Where a new game starts: your room in 王阿姨's 四合院. */
 export const HOME: Place = { map: 'siheyuan-room', tile: [4, 4], facing: 'down' };
@@ -55,6 +56,7 @@ export function newSave(deviceId: string, now: number): WorldSave {
     diary: {},
     room: {},
     cat: { ...NO_CAT },
+    photos: [],
     settings: DEFAULT_SETTINGS,
   };
 }
@@ -72,6 +74,8 @@ export type EngineAction =
   | { do: 'name'; name: string }
   /** the name the cat got (X5) */
   | { do: 'cat_name'; name: string }
+  /** a photo taken, with what is in it (X6) */
+  | { do: 'photo'; subjects: string[] }
   | { do: 'scene_done'; scene: string }
   | { do: 'ride'; route: string }
   | { do: 'tick'; minutes: number }
@@ -210,6 +214,12 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
     }
     case 'feed_cat':
       return feedCat(s);
+    case 'photo': {
+      const add = a.subjects.filter((x) => !s.photos.includes(x));
+      // a photo of nothing in particular still counts for the diary
+      if (!add.length) return { ...s, photos: s.photos };
+      return { ...s, photos: [...s.photos, ...add].slice(-MAX_SUBJECTS) };
+    }
     case 'cat_name': {
       const name = a.name.trim().slice(0, 8);
       if (!name || name === s.cat.name) return s;

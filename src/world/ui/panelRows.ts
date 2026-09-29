@@ -10,7 +10,7 @@ import { findRoute, routeText, station } from '../core/travel';
 import type { Idiom, Item, NpcCard, Quest, Scene, Spirit, Stamp, WorldSave } from '../core/types';
 import { withName } from '../core/voice';
 
-export type PanelId = 'tasks' | 'bag' | 'map' | 'spirits' | 'idioms' | 'stamps' | 'friends' | 'diary' | 'settings';
+export type PanelId = 'tasks' | 'bag' | 'map' | 'spirits' | 'idioms' | 'stamps' | 'friends' | 'diary' | 'album' | 'settings';
 
 export const PANELS: readonly { id: PanelId; label: string }[] = [
   { id: 'tasks', label: '📜 Tasks' },
@@ -21,6 +21,7 @@ export const PANELS: readonly { id: PanelId; label: string }[] = [
   { id: 'stamps', label: '印章' },
   { id: 'friends', label: '朋友' },
   { id: 'diary', label: '日记' },
+  { id: 'album', label: '相册' },
   { id: 'settings', label: '⚙' },
 ];
 

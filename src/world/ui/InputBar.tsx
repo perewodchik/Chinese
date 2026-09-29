@@ -4,6 +4,8 @@ import { canRecognise, listen, RECOGNITION_MESSAGE, type Listening } from '../..
 import { buildIme, type ImeIndex } from '../core/ime';
 import type { Hint, InputMode } from '../core/types';
 import { pinyinOf } from './pinyin';
+import { PropSprite } from './PropSprite';
+import { STICKERS } from '../core/photo';
 import { deviceInput, fieldCandidates, hintChips, pickCandidate, rememberInput, startMode } from './typing';
 
 /** how long a heard line waits before it sends itself */
@@ -28,6 +30,7 @@ type Voice =
  */
 export function InputBar({
   onSend,
+  onSticker,
   hint,
   hintStep,
   onHint,
@@ -35,6 +38,8 @@ export function InputBar({
   setSaved,
 }: {
   onSend: (text: string, via: InputMode) => void;
+  /** send a sticker instead of words (X6) */
+  onSticker: (id: string) => void;
   hint?: Hint;
   /** how far the hint has gone at this line (the companion may have gone ahead) */
   hintStep: number;
@@ -46,6 +51,7 @@ export function InputBar({
   const listenable = canRecognise();
   const [mode, setMode] = useState<InputMode>(() => startMode(deviceInput(), saved, listenable));
   const [text, setText] = useState('');
+  const [stickers, setStickers] = useState(false);
   const [voice, setVoice] = useState<Voice>({ phase: 'idle' });
   const field = useRef<HTMLInputElement>(null);
   const mic = useRef<Listening | null>(null);
@@ -120,8 +126,24 @@ export function InputBar({
 
   return (
     <div className="wi">
-      <div className="wi-row" aria-label={cands.length ? 'Pinyin candidates' : 'Hint'}>
-        {cands.length > 0
+      <div className="wi-row" aria-label={stickers ? 'Stickers' : cands.length ? 'Pinyin candidates' : 'Hint'}>
+        {stickers
+          ? STICKERS.map((st) => (
+              <button
+                key={st.id}
+                type="button"
+                className="wi-cand"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  setStickers(false);
+                  onSticker(st.id);
+                }}
+                title={`${st.en} — means ${st.says}`}
+              >
+                <PropSprite frame={`sticker/${st.id}`} scale={2} label={st.en} />
+              </button>
+            ))
+          : cands.length > 0
           ? cands.map((c, i) => (
               <button
                 key={c.text}
@@ -223,6 +245,9 @@ export function InputBar({
             {voice.phase === 'listening' ? <span className="han">{voice.text || '…'}</span> : 'Hold and talk'}
           </button>
         )}
+        <button type="button" className="wd-tool wi-hint" aria-pressed={stickers} onClick={() => setStickers((v) => !v)} aria-label="Stickers">
+          🙂
+        </button>
         <button type="button" className="wd-tool wi-hint" onClick={onHint} disabled={!hint || hintStep >= 3} aria-label="What do I say?">
           💡
         </button>

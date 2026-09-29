@@ -1408,3 +1408,121 @@
   width: 1.2em;
   text-align: center;
 }
+
+/* a frame of the props atlas in the overlay (X6 stickers) */
+.w-prop {
+  flex: none;
+  display: inline-block;
+  vertical-align: middle;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* photo mode (X6): a viewfinder over the still world, one toolbar at the bottom */
+.wph {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.wph-finder {
+  position: absolute;
+  border: 2px solid rgba(248, 245, 236, 0.9);
+  border-radius: 6px;
+  box-shadow: 0 0 0 100vmax rgba(34, 32, 46, 0.35);
+  transition: background-color 0.18s;
+}
+
+.wph-finder[data-flash] {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.wph-bar {
+  position: absolute;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 24px);
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  pointer-events: auto;
+  white-space: nowrap;
+}
+
+.wph-take {
+  width: auto;
+  padding: 0 14px;
+}
+
+.wph-said {
+  width: 14em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink-3);
+}
+
+@media (max-width: 480px) {
+  .wph-said {
+    width: 7em;
+  }
+}
+
+/* the album (X6): photos in fixed boxes, a postcard editor under the one tapped */
+.w-album {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.w-album button {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--card-2);
+  cursor: pointer;
+}
+
+.w-album button[aria-pressed='true'] {
+  outline: 2px solid var(--accent);
+}
+
+.w-album img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.w-card-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.w-card-edit input {
+  flex: 1 1 12em;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--han);
+}

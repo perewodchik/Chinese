@@ -23,6 +23,9 @@ export interface RunningWorld {
   setBike(on: boolean): void;
   /** today's rain or snow (X4) */
   setSky(kind: 'none' | 'rain' | 'snow'): void;
+  /** the part of the map on screen, in tiles, and a zoom step for photos (X6) */
+  view(): { x: number; y: number; w: number; h: number } | null;
+  zoomBy(d: 1 | -1): void;
   /** frames a second lately (for the map probe) */
   fps(): number;
   /** a PNG data URL of the canvas, for review screenshots */
@@ -58,6 +61,8 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions, snapsh
     fps: () => Math.round(game.loop.actualFps),
     setBike: (on) => (game.scene.getScene('world') as Scene | null)?.setBike(on),
     setSky: (kind) => (game.scene.getScene('world') as Scene | null)?.setSky(kind),
+    view: () => (game.scene.getScene('world') as Scene | null)?.viewTiles() ?? null,
+    zoomBy: (d) => (game.scene.getScene('world') as Scene | null)?.zoomStep(d),
     snapshot: () =>
       new Promise((resolve) => {
         game.renderer.snapshot((img) => resolve((img as HTMLImageElement).src));

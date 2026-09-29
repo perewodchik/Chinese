@@ -36,6 +36,8 @@ export const UPGRADES: Record<number, Upgrade> = {
   3: (r) => ({ ...r, version: 4, diary: isObj(r.diary) ? r.diary : {} }),
   /** 4 → 5 (X5): an empty room and a cat not yet met */
   4: (r) => ({ ...r, version: 5, room: isObj(r.room) ? r.room : {}, cat: isObj(r.cat) ? r.cat : { fed: 0, day: 0, name: '' } }),
+  /** 5 → 6 (X6): nothing photographed yet */
+  5: (r) => ({ ...r, version: 6, photos: Array.isArray(r.photos) ? r.photos : [] }),
 };
 
 export type ReadResult =
@@ -86,6 +88,7 @@ function fill(r: Raw): WorldSave {
     rides: record(r.rides, isNum),
     diary: record(r.diary, (x): x is string[] => Array.isArray(x) && x.every((c) => typeof c === 'string')),
     room: record(r.room, (x): x is string => typeof x === 'string'),
+    photos: strings(r.photos),
     cat: isObj(r.cat)
       ? { fed: isNum(r.cat.fed) ? r.cat.fed : 0, day: isNum(r.cat.day) ? r.cat.day : 0, name: typeof r.cat.name === 'string' ? r.cat.name : '' }
       : { fed: 0, day: 0, name: '' },

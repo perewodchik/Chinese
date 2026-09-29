@@ -32,6 +32,8 @@ const scenes = districts.flatMap((d) => d.scenes);
 export const npcs = districts.flatMap((d) => d.npcs);
 export const quests = districts.flatMap((d) => d.quests);
 const stampIds = districts.flatMap((d) => d.stamps.map((x) => x.id));
+/** everything a quest or scene wants photographed (X6): `<map>:<object>` */
+const photoSubjects = [...new Set([...JSON.stringify(districts).matchAll(/"photo":"([^"]+)"/g)].map((m) => m[1]!))];
 const src = new ScriptedDialogue({ scenes, npcs }, lex);
 export const maps: MapInfo[] = districts
   .flatMap((d) => d.district.maps)
@@ -168,6 +170,14 @@ export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000)
         const after = act(act(s, [{ do: 'flag', flag: 'on-bike' }], short, 'bike'), [{ do: 'flag', flag: 'on-bike', value: false }, { do: 'flag', flag: 'rode-bike' }, { do: 'money', amount: -1 }], short, 'bike');
         log.push('bike');
         s = after;
+        idle = 0;
+        continue;
+      }
+      // photos of what someone asked for, where the story has reached (X6)
+      const shots = photoSubjects.filter((p) => !s.photos.includes(p) && (chapterOf.get(p.split(':')[0]!) ?? 99) <= s.chapter && (s.stations.length > 0 || p.startsWith('gulou')));
+      if (shots.length) {
+        log.push('photo');
+        s = act(s, [{ do: 'photo', subjects: shots }], short, 'photo');
         idle = 0;
         continue;
       }

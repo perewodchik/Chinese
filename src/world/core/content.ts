@@ -54,6 +54,7 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.strictObject({ festival: z.enum(['chunjie', 'yuanxiao', 'duanwu', 'qixi', 'zhongqiu', 'guoqing']) }),
     z.strictObject({ season: z.enum(['spring', 'summer', 'autumn', 'winter']) }),
     z.strictObject({ cat: z.enum(['fed-today', 'trusts', 'named']) }),
+    z.strictObject({ photo: text }),
   ]),
 );
 

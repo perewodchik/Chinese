@@ -24,6 +24,7 @@ import {
   type PanelId,
 } from './panelRows';
 import { Hearts } from './Hearts';
+import { ALBUM_MAX, loadAlbum, postcardPng, saveAlbum, saveFile, type Photo } from './album';
 import { ZhText } from './ZhText';
 
 /**
@@ -41,6 +42,7 @@ export function Panels({
   onGo,
   onSettings,
   onUse,
+  user,
 }: {
   tab: PanelId;
   setTab: (t: PanelId) => void;
@@ -53,6 +55,8 @@ export function Panels({
   onSettings: (patch: Partial<WorldSettings>) => void;
   /** choose an item to use on someone or something (X1) */
   onUse: (item: string) => void;
+  /** whose album this device keeps (X6) */
+  user: string;
 }) {
   return (
     <div className="wp-scrim" onClick={onClose}>
@@ -77,10 +81,70 @@ export function Panels({
           {tab === 'stamps' && <Stamps save={save} content={content} />}
           {tab === 'friends' && <Friends save={save} content={content} />}
           {tab === 'diary' && <Diary save={save} content={content} pinyin={pinyin} />}
+          {tab === 'album' && <Album user={user} />}
           {tab === 'settings' && <Settings settings={save.settings} onChange={onSettings} />}
         </div>
       </section>
     </div>
+  );
+}
+
+/** The album (X6): photos taken on this device; tap one to write a postcard or to throw it away. */
+function Album({ user }: { user: string }) {
+  const [list, setList] = useState<Photo[]>(() => loadAlbum(user));
+  const [open, setOpen] = useState<string | null>(null);
+  const [caption, setCaption] = useState('');
+  const [note, setNote] = useState<string | null>(null);
+  if (!list.length) return <Empty han="照">No photos yet. Tap 📷 at the top to take one.</Empty>;
+  const cur = list.find((p) => p.id === open) ?? null;
+  const pick = (p: Photo) => {
+    setOpen(open === p.id ? null : p.id);
+    setCaption(p.caption ?? '');
+    setNote(null);
+  };
+  const card = async () => {
+    if (!cur) return;
+    const text = caption.trim() || '北京，你好！';
+    setList(saveAlbum(user, list.map((p) => (p.id === cur.id ? { ...p, caption: text } : p))));
+    try {
+      saveFile(await postcardPng(cur, text, cur.place), `postcard-${cur.id}.png`);
+      setNote('Saved as a picture — send it or print it.');
+    } catch {
+      setNote('The postcard could not be made on this device.');
+    }
+  };
+  const drop = () => {
+    if (!cur) return;
+    setList(saveAlbum(user, list.filter((p) => p.id !== cur.id)));
+    setOpen(null);
+  };
+  return (
+    <>
+      <h3 className="wp-label">
+        相册 <span className="tiny muted">· on this device, the newest {ALBUM_MAX}</span>
+      </h3>
+      <ul className="w-album">
+        {list.map((p) => (
+          <li key={p.id}>
+            <button type="button" aria-pressed={open === p.id} onClick={() => pick(p)} aria-label={`Photo at ${p.place}`}>
+              <img src={p.img} alt="" width={400} height={300} />
+            </button>
+          </li>
+        ))}
+      </ul>
+      {cur && (
+        <div className="w-card-edit">
+          <input value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="写一句话：北京，你好！" lang="zh" maxLength={24} aria-label="Caption in Chinese" />
+          <button type="button" className="btn primary sm" onClick={() => void card()}>
+            Postcard
+          </button>
+          <button type="button" className="btn sm" onClick={drop}>
+            Delete
+          </button>
+          {note && <p className="tiny muted">{note}</p>}
+        </div>
+      )}
+    </>
   );
 }
 

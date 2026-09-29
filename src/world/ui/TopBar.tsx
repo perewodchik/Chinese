@@ -16,7 +16,7 @@ const DAY_ICON = { morning: '☀', day: '☀', evening: '◐', night: '☾' } as
  * the game time, and 🗺 🎒 📜. Fixed widths, so nothing moves as the clock
  * turns or the place changes.
  */
-export function TopBar({ district, minutes, open }: { district: string; minutes: number; open: (p: Panel) => void }) {
+export function TopBar({ district, minutes, open, onPhoto }: { district: string; minutes: number; open: (p: Panel) => void; onPhoto: () => void }) {
   const lib = useLibrary();
   const [py, setPy] = useState(false);
   const info = districtInfo(district);
@@ -40,6 +40,9 @@ export function TopBar({ district, minutes, open }: { district: string; minutes:
         </span>
       </span>
       <span className="spacer" />
+      <button type="button" className="wt-btn" onClick={onPhoto} aria-label="Take a photo">
+        📷
+      </button>
       <button type="button" className="wt-btn" onClick={() => open('map')} aria-label="Map (M)">
         🗺
       </button>

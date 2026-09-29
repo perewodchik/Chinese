@@ -48,7 +48,9 @@ export type Condition =
   | { festival: 'chunjie' | 'yuanxiao' | 'duanwu' | 'qixi' | 'zhongqiu' | 'guoqing' }
   | { season: 'spring' | 'summer' | 'autumn' | 'winter' }
   /** the 胡同 cat (X5): fed today, trusts you (fed on three days), or has its name */
-  | { cat: 'fed-today' | 'trusts' | 'named' };
+  | { cat: 'fed-today' | 'trusts' | 'named' }
+  /** a photo was taken with this in it (X6): `<map>:<object id>` or `npc:<id>` */
+  | { photo: string };
 
 export type Action =
   | { do: 'flag'; flag: string; value?: boolean }
@@ -405,6 +407,8 @@ export interface WorldSave {
   room: Record<string, string>;
   /** the 胡同 cat (X5) */
   cat: CatState;
+  /** everything ever photographed (X6); the pictures stay on the device */
+  photos: string[];
 
   settings: WorldSettings;
 }
