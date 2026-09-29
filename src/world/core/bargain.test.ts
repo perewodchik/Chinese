@@ -150,6 +150,6 @@ describe('a bargain in a talk (Y6)', () => {
     const t0 = d.start(scene, rich);
     assert.equal(d.hintAt(t0.state)?.full, '三十块行吗？');
     const en = d.reply(t0.state, { text: 'too expensive', via: 'keyboard' });
-    assert.deepEqual([en.kind, en.companion?.text], ['not_chinese', '三十块行吗？']);
+    assert.deepEqual([en.kind, en.companion && 'text' in en.companion ? en.companion.text : undefined], ['not_chinese', '三十块行吗？']);
   });
 });
