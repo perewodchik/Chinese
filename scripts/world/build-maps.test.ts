@@ -29,8 +29,8 @@ describe('text maps', () => {
   });
 
   it('lets a map add letters of its own for a layer (§13 V2)', () => {
-    const m = parseMap(text().replace('district: gulou', 'district: gulou\nbelow_keys: 1=roof-green-ridge-l 2=roof-green-ridge').replace('bDb', '12b'), legend);
-    assert.deepEqual(m.layers.below.slice(0, 3), ['roof-green-ridge-l', 'roof-green-ridge', 'brick']);
+    const m = parseMap(text().replace('district: gulou', 'district: gulou\nbelow_keys: 1=pitch-green-ridge-l 2=pitch-green-ridge').replace('bDb', '12b'), legend);
+    assert.deepEqual(m.layers.below.slice(0, 3), ['pitch-green-ridge-l', 'pitch-green-ridge', 'brick']);
     assert.throws(() => parseMap(text().replace('district: gulou', 'district: gulou\nbelow_keys: 12=x'), legend), /below_keys: "12=x"/);
   });
 

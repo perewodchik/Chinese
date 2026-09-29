@@ -189,5 +189,18 @@
    20
   ],
   "facing": "right"
+ },
+ {
+  "kind": "prop",
+  "id": "national-flag",
+  "tile": [
+   19,
+   22
+  ],
+  "frame": "flag/red-0",
+  "blocks": [
+   1,
+   1
+  ]
  }
 ]

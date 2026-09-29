@@ -18,6 +18,8 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { blank, decodePng, type Image } from './png';
 import { recolour } from './recolour';
+import { Grid } from './gen/grid';
+import { sway } from './gen/motion';
 
 const SHEET = 'content/world/art/vendor/kenney-rpg-urban/tilemap_packed.png';
 const OUT = 'content/world/art/sprites/props';
@@ -79,6 +81,8 @@ function pxOf(img: Image, picks: Readonly<Record<string, readonly [number, numbe
     const letters = recolour(crop(img, c, r, h)).letters.map((row) => [...row].map((k) => map[k] ?? k).join(''));
     // one frame: toPx cuts into 16-high cells, so take the letters whole
     parts.push(`frame: ${name}`, ...letters);
+    // §13 V3: every tree gets a second frame, its crown leaning a pixel with the wind
+    if (name.startsWith('tree-')) parts.push(`frame: ${name}-1`, ...sway(new Grid(16, 16 * h).where(() => true, (x, y) => letters[y]![x]!), 20).lines());
   }
   return parts.join('\n') + '\n';
 }

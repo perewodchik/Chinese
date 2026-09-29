@@ -77,6 +77,10 @@ export function buildAll(src = SPRITES, out = OUT): string[] {
     writeFileSync(join(out, `${atlas}.json`), r.json);
     if (atlas === 'tiles') {
       const set = buildTileset(itemsOf(join(src, atlas)), atlas);
+      // maps name tiles without their file: two files with the same tile name would hide one of them (§13 V2/V3)
+      const bare = (JSON.parse(String(set.json)) as { names: string[] }).names.map((n) => n.replace(/^[^/]+\//, ''));
+      const twice = bare.filter((n, i) => bare.indexOf(n) !== i);
+      if (twice.length) throw new Error(`tile names used in two files: ${[...new Set(twice)].join(', ')}`);
       writeFileSync(join(out, `${atlas}-set.png`), set.png);
       writeFileSync(join(out, `${atlas}-set.json`), set.json);
     }

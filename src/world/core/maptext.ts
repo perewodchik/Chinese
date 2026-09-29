@@ -87,7 +87,7 @@ export function parseMap(text: string, legend: Legend, file = 'map'): TextMap {
   const width = Number(size[1]);
   const height = Number(size[2]);
   // a map may add letters of its own for a layer (§13 V2: the kit has more tiles than the shared legend has letters):
-  //   below_keys: 1=roof-green-ridge-l 2=roof-green-ridge 3=roof-green-ridge-r
+  //   below_keys: 1=pitch-green-ridge-l 2=pitch-green-ridge 3=pitch-green-ridge-r
   const own = (name: LayerName): Record<string, string> => {
     const spec = head[`${name}_keys`];
     if (!spec) return {};

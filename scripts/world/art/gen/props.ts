@@ -4,6 +4,7 @@
  * subway entrance sign, a bird cage.
  */
 
+import { sway } from './motion';
 import { Grid } from './grid';
 
 /** A red lantern hung from a bracket, 16×16. `glow` 0 = unlit, 1–2 = lit flicker. */
@@ -964,7 +965,7 @@ export function mirror(): Grid {
 
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
-  ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
+  ['tree', 'the 槐树 pagoda tree of the hutongs, and its sway frame (§13 V3)', () => [['huai', tree()], ['huai-1', sway(tree(), 26)]]],
   ['bicycle', 'a parked city bicycle', () => [['side', bicycle()], ['side-r', bicycle().mirror()]]],
   ['tricycle', 'a 三轮车 pedal tricycle', () => [['side', tricycle()], ['side-r', tricycle().mirror()]]],
   ['subway-sign', 'a subway entrance sign', () => [['post', subwaySign()]]],
@@ -982,7 +983,7 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['plant', 'a potted plant', () => [['green', plant()]]],
   ['street-sign', 'a small blue street sign on a post', () => [['blue', streetSign()]]],
   ['lion', 'a stone guardian lion on its plinth, asleep and awake', () => [['stone', stoneLion(false)], ['awake', stoneLion(true)]]],
-  ['willow', 'a weeping willow by the water', () => [['green', willow()]]],
+  ['willow', 'a weeping willow by the water, and its sway frame (§13 V3)', () => [['green', willow()], ['green-1', sway(willow(), 40)]]],
   ['boat', 'a small rowing boat on the lake', () => [['red', boat()]]],
   ['pavilion', 'the pavilion on top of 景山', () => [['wanchun', pavilion()]]],
   ['corner-tower', 'the palace corner tower 角楼', () => [['jiaolou', cornerTower()]]],

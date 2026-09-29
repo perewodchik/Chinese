@@ -25,7 +25,8 @@
     },
     "misses": [
       "我很忙！再说一遍？"
-    ]
+    ],
+    "idle": "phone"
   },
   {
     "id": "bailing",
@@ -50,7 +51,8 @@
     },
     "misses": [
       "啊？"
-    ]
+    ],
+    "idle": "phone"
   },
   {
     "id": "guomao-baoan",

@@ -38,3 +38,13 @@ export function mixFor(mapId: string, life: MapLife, time: PartOfDay): Mix {
 
 /** Seconds until the next such sound: around `every`, never the same twice (±40 %). */
 export const nextIn = (every: number, rand: () => number) => every * (0.6 + rand() * 0.8);
+
+/**
+ * The 鼓楼's drum shows (§13 V3, facts.md `gulou-drum-times`): the drummers
+ * play for visitors several times a day — about 9:30, 10:30, 11:30, 13:30,
+ * 14:30, 15:30 and a last show near 16:30 (the times shift by season).
+ */
+export const DRUM_SHOWS: readonly number[] = [9 * 60 + 30, 10 * 60 + 30, 11 * 60 + 30, 13 * 60 + 30, 14 * 60 + 30, 15 * 60 + 30, 16 * 60 + 30];
+
+/** Whether the drums start at this game minute. */
+export const isDrumShow = (minute: number) => DRUM_SHOWS.includes(((minute % 1440) + 1440) % 1440);

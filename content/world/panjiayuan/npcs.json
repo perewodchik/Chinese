@@ -137,7 +137,8 @@
     },
     "misses": [
       "啊？你说什么？"
-    ]
+    ],
+    "idle": "read"
   },
   {
     "id": "shanzi-jiejie",

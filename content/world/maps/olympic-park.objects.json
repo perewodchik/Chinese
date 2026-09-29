@@ -159,5 +159,18 @@
    39,
    17
   ]
+ },
+ {
+  "kind": "prop",
+  "id": "fountain",
+  "tile": [
+   26,
+   21
+  ],
+  "frame": "fountain/spray-0",
+  "blocks": [
+   2,
+   1
+  ]
  }
 ]

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { dayOf, partOfDay } from '../../world/core/clock';
-import { festivalOf, skyOf, weatherOf, type FestivalId } from '../../world/core/calendar';
+import { festivalOf, seasonOf, skyOf, weatherOf, type FestivalId } from '../../world/core/calendar';
 import { CAT_LANE } from '../../world/core/room';
 import { DOZE_AFTER_MS, emoteFor, hatFor } from '../../world/core/rabbit';
 import { districtInfo } from '../../world/core/districts';
@@ -24,7 +24,7 @@ import { reportCrash } from '../../world/ui/CrashGuard';
 import { RideSheet } from '../../world/ui/RideSheet';
 import { setVoiceCards } from '../../world/ui/lineVoice';
 import { Ambient } from '../../world/audio/ambient';
-import { mixFor } from '../../world/audio/mix';
+import { isDrumShow, mixFor } from '../../world/audio/mix';
 import { moodFor } from '../../world/audio/music';
 import type { MapLife } from '../../world/core/maptext';
 import { fareOut, stopMap } from '../../world/core/ride';
@@ -501,6 +501,9 @@ export function WorldPage() {
           butterflies: () => game.current()?.flags.includes('yindie') ?? false,
           // 兔儿爷 dresses for the day (X7)
           hat: hatFor(game.current()?.clock ?? 0),
+          // §13 V3: the season on the map, and what people do while they stand about
+          season: seasonOf(dayOf(game.current()?.clock ?? 0)),
+          idles: Object.fromEntries(people.npcs.flatMap((n) => (n.idle ? [[n.id, n.idle]] : []))),
           // the named cat follows you in 帽儿胡同 (X5)
           pet: (m) => m === CAT_LANE.map && !!game.current()?.cat.name,
           // the player's own look and clothes (W1/W2), read at every map
@@ -741,6 +744,11 @@ export function WorldPage() {
       if (saved > minutes) minutes = saved;
       minutes += 1;
       setMinutes(minutes);
+      // §13 V3: the 鼓楼's drummers play at their show times — heard on the square
+      if (here.current?.id === 'gulou-square' && isDrumShow(minutes)) {
+        for (let i = 0; i < 6; i++) window.setTimeout(() => ambient.current?.cue('drum'), i * 380);
+        world.current?.emote('happy', 2000);
+      }
       if (minutes - told >= 10) {
         told = minutes;
         game.dispatch([{ do: 'tick', minutes }], 'walk');

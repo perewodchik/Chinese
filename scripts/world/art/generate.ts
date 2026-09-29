@@ -18,6 +18,7 @@ import { PROPS } from './gen/props';
 import { TILES } from './gen/tiles';
 import { KIT_TILES } from './gen/kit';
 import { KIT_PROPS } from './gen/kit-props';
+import { MOTION_PROPS, MOTION_TILES } from './gen/motion';
 import { DEFAULT_WORN, heroFrames } from '../../../src/world/art/hero';
 import { DEFAULT_LOOK } from '../../../src/world/core/looks';
 
@@ -43,7 +44,9 @@ export function sources(): Array<[string, string]> {
       ['right-0', rabbit(1, 'right')], ['right-1', rabbit(0, 'right')],
     ]),
   ]);
-  for (const [name, note, frames] of [...PROPS, ...KIT_PROPS]) out.push([`props/${name}.px`, pxFile(note, frames())]);
+  // §13 V3: the frames that move (a file after the others, so no tile id moves)
+  out.push(['tiles/motion.px', pxFile('moving tiles (§13 V3): water in four frames, the escalator in three — see scripts/world/art/gen/motion.ts', MOTION_TILES.map(([n, f]) => [n, f()]))]);
+  for (const [name, note, frames] of [...PROPS, ...KIT_PROPS, ...MOTION_PROPS]) out.push([`props/${name}.px`, pxFile(note, frames())]);
   // the menu's atlas: a picture for every thing in the bag, and the menu's own icons
   out.push(['menu/item.px', pxFile('the things in the bag, one per item id', Object.entries(ITEM_SPRITES).map(([n, f]) => [n, f()]))]);
   out.push(['menu/ui.px', pxFile("the menu's icons: tabs, pockets, wallet", Object.entries(UI_SPRITES).map(([n, f]) => [n, f()]))]);

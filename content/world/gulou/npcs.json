@@ -213,7 +213,8 @@
     ],
     "dislikes": [
       "water"
-    ]
+    ],
+    "idle": "fan"
   },
   {
     "id": "zhao-yeye",
@@ -278,7 +279,8 @@
       "baozi",
       "chaye",
       "jiaozi"
-    ]
+    ],
+    "idle": "birdcage"
   },
   {
     "id": "xiaoming",
@@ -457,7 +459,8 @@
     "misses": [
       "不好意思，我很忙！"
     ],
-    "voice": "chen"
+    "voice": "chen",
+    "idle": "phone"
   },
   {
     "id": "passer-dancer",
@@ -480,7 +483,8 @@
     "misses": [
       "来跳舞吧！"
     ],
-    "voice": "wang"
+    "voice": "wang",
+    "idle": "dance"
   },
   {
     "id": "passer-photo",
@@ -594,7 +598,8 @@
     "routine": [],
     "explains": {
       "象棋": "中国的棋。"
-    }
+    },
+    "idle": "chess"
   },
   {
     "id": "polan-shifu",
@@ -679,7 +684,8 @@
     "routine": [],
     "explains": {
       "新闻": "今天的大事。"
-    }
+    },
+    "idle": "read"
   },
   {
     "id": "shuoshu-xiansheng",

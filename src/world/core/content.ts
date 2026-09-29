@@ -7,6 +7,7 @@
  */
 
 import { shopScene, type Shop } from './shop';
+import { IDLE_ACTIONS, type IdleAction } from '../art/anims';
 import { CUT_SOUNDS, EMOTES, FXS, type Cutscene, type CutStep } from './cutscene';
 import { z } from 'zod';
 import type {
@@ -169,6 +170,7 @@ export const npcSchema: z.ZodType<NpcCard> = z.strictObject({
   misses: z.array(hanzi).optional(),
   likes: z.array(id).optional(),
   dislikes: z.array(id).optional(),
+  idle: z.enum(IDLE_ACTIONS as unknown as [IdleAction, ...IdleAction[]]).optional(),
 });
 
 const chooseSchema = z.strictObject({

@@ -27,7 +27,8 @@
     "likes": [
       "chaye",
       "yuebing"
-    ]
+    ],
+    "idle": "fan"
   },
   {
     "id": "tiantan-nainai",
@@ -52,7 +53,8 @@
     },
     "misses": [
       "来！你说什么？"
-    ]
+    ],
+    "idle": "jianzi"
   },
   {
     "id": "echo-boy",
@@ -167,6 +169,7 @@
     "routine": [],
     "explains": {
       "空竹": "两根棍子，一条线，让它转。"
-    }
+    },
+    "idle": "kongzhu"
   }
 ]

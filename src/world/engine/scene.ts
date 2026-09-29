@@ -15,6 +15,7 @@ import { rabbitSpot } from '../core/rabbit';
 import type { Facing, MapObject, PartOfDay, Tile } from '../core/types';
 import { composeHero, DAY_LOOK, zoomFor, type HeroDress } from './look';
 import { isExtra, isSpiritActor, type Actor, type Cutscene } from '../core/cutscene';
+import { frameAt, IDLE_THINGS, PROP_ANIMS, TILE_ANIMS, type Anim, type IdleAction } from '../art/anims';
 import { runCutscene, spiritFrame, type CutsceneHooks, type RunningCutscene, type Stage } from './cutscene';
 import { edgeAt, resolveArrival, throughEdge, type Arrival, type Door } from './doors';
 import { crowdTrip, facingOf, idleNext, PASSERS, pigeonSpots, rand, scared, type Rand } from './life';
@@ -69,6 +70,10 @@ export interface SceneOptions {
   butterflies?: () => boolean;
   /** whether the named 胡同 cat walks a step behind you on a map (X5) */
   pet?: (map: string) => boolean;
+  /** §13 V3: the season (leaves in autumn, snow on the roofs in winter, 柳絮 in spring) */
+  season?: 'spring' | 'summer' | 'autumn' | 'winter';
+  /** §13 V3: what each person does while they stand about, by npc id (their card's `idle`) */
+  idles?: Record<string, IdleAction>;
   /** the player's own look and clothes (W1), read at every map; the plain atlas hero without it */
   dress?: () => HeroDress | null;
   /** the "show what I can use" setting: which people and things get a small mark over them; off without it */
@@ -152,6 +157,16 @@ export class WorldScene extends Phaser.Scene {
   private lit = false;
   private weather?: Phaser.GameObjects.Particles.ParticleEmitter;
   private pigeons: Array<{ s: Phaser.GameObjects.Sprite; tile: Tile; gone: boolean }> = [];
+  /** §13 V3: everything the one clock turns — props, the things people hold, crows, puddles */
+  private turning: Array<{ s: Phaser.GameObjects.Sprite; a: Anim; phase: number; at?: Tile }> = [];
+  /** §13 V3: animated tiles (water, the escalator) by animation, each tile with its own phase */
+  private tileMoves: Array<{ a: Anim; gids: number[]; tiles: Array<{ t: Phaser.Tilemaps.Tile; phase: number }> }> = [];
+  /** §13 V3: people who move as they idle (太极, dancing): their sprite, their frames' prefix, the move */
+  private bodyMoves: Array<{ s: Phaser.GameObjects.Sprite; base: string; kind: 'taiji' | 'dance'; y: number }> = [];
+  /** §13 V3: the morning mist over water */
+  private mist?: Phaser.GameObjects.Rectangle;
+  /** the tileset's names by index (gid - 1) */
+  private tileNames: string[] = [];
 
   constructor() {
     super('world');
@@ -170,6 +185,10 @@ export class WorldScene extends Phaser.Scene {
     this.propSprites.clear();
     this.hintMarks.clear();
     this.questTags.clear();
+    this.turning = [];
+    this.tileMoves = [];
+    this.bodyMoves = [];
+    this.mist = undefined;
   }
 
   preload() {
@@ -189,6 +208,7 @@ export class WorldScene extends Phaser.Scene {
     const tileset = map.addTilesetImage('tiles', 'tiles-set')!;
     const names = (this.cache.json.get('tiles-names') as TilesetNames).names.map((n) => n.replace(/^[^/]+\//, ''));
     this.gid = (n: string) => names.indexOf(n) + 1;
+    this.tileNames = names;
     map.createLayer('ground', tileset, 0, 0)!.setDepth(0);
     this.lightLayers = [
       map.createLayer('below', tileset, 0, 0)!.setDepth(1) as Phaser.Tilemaps.TilemapLayer,
@@ -212,6 +232,9 @@ export class WorldScene extends Phaser.Scene {
         const { x, y } = feet(o.tile);
         const s = this.add.sprite(x, y, 'props', o.frame).setOrigin(0, 1).setDepth(y);
         this.propSprites.set(o.id, s);
+        // §13 V3: a prop whose frame belongs to an animation plays it on the one clock
+        const anim = PROP_ANIMS.get(o.frame);
+        if (anim) this.turning.push({ s, a: anim, phase: anim.random ? Math.floor(Math.random() * anim.frames.length * 7) : 0, at: o.tile });
         if (o.frame === 'lantern/unlit') this.lanterns.push(s);
         if (o.night) this.nightProps.push([s, o.frame, o.night]);
         if (o.light) glow(x + s.width / 2, y - s.height / 2, Phaser.Display.Color.HexStringToColor(o.light).color, 28);
@@ -219,6 +242,17 @@ export class WorldScene extends Phaser.Scene {
         const { x, y } = feet(o.tile);
         const s = this.add.sprite(x, y + 3, 'chars', `${this.opts.looks?.[o.npc] ?? o.npc}/${o.facing ?? 'down'}-0`).setOrigin(0, 1).setDepth(y);
         this.npcSprites.set(o.id, s);
+        // §13 V3: what they do while they stand about — a thing in their hand, or 太极 and dancing
+        const idle = this.opts.idles?.[o.npc];
+        const thing = idle ? IDLE_THINGS[idle] : undefined;
+        if (thing) {
+          const t = this.add.sprite(x + thing.dx, y + 3 - thing.dy, 'props', thing.frames[0]!).setOrigin(0, 1).setDepth(y + 0.1);
+          this.turning.push({ s: t, a: thing, phase: Math.floor(Math.random() * 10) });
+          s.setData('idle', idle);
+        } else if (idle === 'taiji' || idle === 'dance') {
+          this.bodyMoves.push({ s, base: this.opts.looks?.[o.npc] ?? o.npc, kind: idle, y: y + 3 });
+          s.setData('idle', idle);
+        }
       } else if (o.kind === 'light') {
         const { x, y } = feet(o.tile);
         glow(x + TILE / 2, y - TILE / 2, Phaser.Display.Color.HexStringToColor(o.color ?? '#fff1b3').color, o.radius ?? 32);
@@ -288,6 +322,10 @@ export class WorldScene extends Phaser.Scene {
       .setBlendMode(Phaser.BlendModes.MULTIPLY);
     this.setTime(this.opts.time, false);
     this.setSky(this.opts.sky ?? 'none');
+    // §13 V3: water and escalators move; the season shows on the map; one clock turns it all
+    this.findTileMoves(map);
+    this.decorate(map);
+    this.time.addEvent({ delay: 90, loop: true, callback: () => this.animate() });
     this.dots = this.add.graphics().setDepth(9_999);
     this.bindInput();
     this.setHints(this.opts.hints ?? null);
@@ -333,6 +371,8 @@ export class WorldScene extends Phaser.Scene {
       if (soft) this.tweens.add({ targets: g, alpha: look.glow, duration: 2000 });
       else g.setAlpha(look.glow);
     }
+    // §13 V3: the morning mist comes and goes with the morning
+    if (this.tileMoves.length) this.setMist(time === 'morning');
   }
 
   /**
@@ -395,6 +435,8 @@ export class WorldScene extends Phaser.Scene {
     }
     const r = this.rabbit;
     if (!r) return;
+    // §13 V3: sorted by his feet every frame — behind you he is behind you, even mid-float (on your shoulder, just in front of you)
+    if (this.hero) r.setDepth(this.rabbitAt === null ? this.hero.depth + 0.1 : r.y - 1 + 0.45);
     const bob = r.frame.name.endsWith('1') ? 1 : 0;
     this.hat?.setPosition(r.x, r.y).setDepth(r.depth + 0.01);
     this.blush?.setPosition(r.x, r.y + bob).setDepth(r.depth + 0.02);
@@ -1124,7 +1166,8 @@ export class WorldScene extends Phaser.Scene {
   private startLife() {
     this.rng = rand(Math.floor(Math.random() * 1e9));
     this.pigeons = [];
-    for (const s of this.npcSprites.values()) this.idle(s);
+    // people with an idle action of their own (§13 V3) do that instead of looking about
+    for (const s of this.npcSprites.values()) if (!s.getData('idle')) this.idle(s);
     const { crowd, pigeons, bikes } = this.info.life;
     for (let i = 0; i < crowd; i++) this.time.delayedCall(this.rng() * 6000, () => this.passerBy(false));
     for (let i = 0; i < bikes; i++) this.time.delayedCall(2000 + this.rng() * 8000, () => this.passerBy(true));
@@ -1227,6 +1270,175 @@ export class WorldScene extends Phaser.Scene {
         },
       });
     }
+  }
+
+  // ---------------------------------------------------------------- V3: motion
+
+  /** The tiles that move (water, the escalator): found once per map, turned by the clock. */
+  private findTileMoves(map: Phaser.Tilemaps.Tilemap) {
+    for (const a of TILE_ANIMS) {
+      const gids = a.frames.map((f) => this.gid(f));
+      if (gids.some((g) => g <= 0)) continue;
+      const tiles: Array<{ t: Phaser.Tilemaps.Tile; phase: number }> = [];
+      for (const layer of map.layers) {
+        layer.tilemapLayer?.forEachTile((t) => {
+          if (gids.includes(t.index)) tiles.push({ t, phase: a.random ? (t.x * 3 + t.y * 5) % a.frames.length : 0 });
+        });
+      }
+      if (tiles.length) this.tileMoves.push({ a, gids, tiles });
+    }
+  }
+
+  /** One tick of the one clock: props, held things, tiles and people who move as they idle. */
+  private animate() {
+    const t = this.time.now;
+    for (const m of this.turning) {
+      if (!m.s.active || !m.s.visible) continue;
+      if (m.a.near !== undefined && m.at && Math.abs(m.at[0] - this.at[0]) + Math.abs(m.at[1] - this.at[1]) > m.a.near) continue;
+      const f = frameAt(m.a, t, m.phase);
+      if (m.s.frame.name !== f) m.s.setFrame(f);
+    }
+    for (const tm of this.tileMoves) {
+      const step = Math.floor((t / 1000) * tm.a.fps);
+      for (const x of tm.tiles) {
+        const gid = tm.gids[(step + x.phase) % tm.gids.length]!;
+        if (x.t.index !== gid) x.t.index = gid;
+      }
+    }
+    for (const b of this.bodyMoves) {
+      if (!b.s.active || b.s.getData('cut')) continue;
+      if (b.kind === 'taiji') {
+        // slow: face one way, then the other, rising a little between
+        const phase = (t / 1800) % 4;
+        const f = phase < 1 ? 'left' : phase < 2 ? 'down' : phase < 3 ? 'right' : 'down';
+        b.s.setFrame(`${b.base}/${f}-0`);
+        b.s.y = b.y - (phase % 1 < 0.5 ? 1 : 0);
+      } else {
+        // 广场舞: a step to the beat, a turn every four
+        const beat = Math.floor(t / 420);
+        b.s.setFrame(`${b.base}/${['down', 'left', 'down', 'right'][Math.floor(beat / 4) % 4]}-${(beat % 2) + 1}`);
+        b.s.y = b.y - (beat % 2);
+      }
+    }
+  }
+
+  /** Is this map out of doors (it has street life)? */
+  private get outdoors() {
+    const { crowd, pigeons, bikes } = this.info.life;
+    return crowd + pigeons + bikes > 0;
+  }
+
+  /**
+   * The season and the weather on the map (§13 V3): gold ginkgo leaves
+   * drifting in autumn, snow on the roofs and wall tops in winter (and crows
+   * at dusk), 柳絮 floating in spring, puddles with ripples in the rain, mist
+   * over water in the morning.
+   */
+  private decorate(map: Phaser.Tilemaps.Tilemap) {
+    this.makeSeasonTextures();
+    const season = this.opts.season;
+    const out = this.outdoors;
+    const view = this.cameras.main;
+    const drift = (key: string, cfg: Phaser.Types.GameObjects.Particles.ParticleEmitterConfig) =>
+      this.add.particles(0, 0, key, { x: { min: 0, max: view.width }, y: -6, ...cfg }).setScrollFactor(0).setDepth(20_002);
+    if (out && season === 'autumn') drift('season-leaf', { lifespan: 7000, speedY: { min: 14, max: 26 }, speedX: { min: -14, max: 8 }, rotate: { min: 0, max: 360 }, frequency: 700, quantity: 1 });
+    if (out && season === 'spring') drift('season-fluff', { lifespan: 9000, speedY: { min: 4, max: 10 }, speedX: { min: 8, max: 22 }, frequency: 900, quantity: 1, alpha: { start: 0.9, end: 0.2 } });
+    if (out && season === 'winter') {
+      // snow lies on ridges, eaves and wall tops: a cap on each such tile, drawn once
+      const capped = (name: string) => /^((roof|pitch)-[a-z]+-(ridge|eave)(-[lr])?|brick-top|wall-top|palace-top)$/.test(name);
+      // how far down the tile the snow lies: the ¾ kit's ridge beam and eave sit lower in their tiles than the old flat ones
+      const lift = (name: string) => (name.startsWith('pitch-') ? (name.includes('-ridge') ? 3 : 6) : name.includes('-eave') ? 3 : 0);
+      for (const layer of map.layers) {
+        const depth = layer.name === 'above' ? 10_000.5 : 1.5;
+        layer.tilemapLayer?.forEachTile((t) => {
+          const name = this.tileNames[t.index - 1];
+          if (!name || !capped(name)) return;
+          this.add.image(t.pixelX, t.pixelY + lift(name), 'season-snowcap').setOrigin(0, 0).setDepth(depth);
+        });
+      }
+      if (this.opts.time === 'evening') this.crows();
+    }
+    if (out && this.opts.sky === 'rain') this.puddles(map);
+    if (this.opts.time === 'morning') this.setMist(true);
+  }
+
+  /** Crows cross the dusk sky in winter, one after another, high over the lanes. */
+  private crows() {
+    const fly = (i: number) => {
+      if (!this.scene.isActive()) return;
+      const cam = this.cameras.main;
+      const y = 10 + Math.random() * 40;
+      const s = this.add.sprite(-16, y, 'props', 'crow/fly-0').setScrollFactor(0).setDepth(20_002);
+      this.turning.push({ s, a: { frames: ['crow/fly-0', 'crow/fly-1'], fps: 5 }, phase: i });
+      this.tweens.add({ targets: s, x: cam.width / cam.zoom + 16, y: y - 20 + Math.random() * 20, duration: 9000 + Math.random() * 4000, onComplete: () => s.destroy() });
+      this.time.delayedCall(5000 + Math.random() * 9000, () => fly(i + 1));
+    };
+    fly(0);
+    this.time.delayedCall(1500, () => fly(7));
+  }
+
+  /** Puddles on open paving in the rain, each with its ripple. */
+  private puddles(map: Phaser.Tilemaps.Tilemap) {
+    const ground = new Set(['paving', 'paving-2', 'plaza', 'square-stone', 'road', 'marble']);
+    const spots: Tile[] = [];
+    map.getLayer('ground')?.tilemapLayer?.forEachTile((t) => {
+      const name = this.tileNames[t.index - 1];
+      if (name && ground.has(name) && walkable(this.info.grid, t.x, t.y)) spots.push([t.x, t.y]);
+    });
+    for (let i = 0; i < Math.min(8, Math.floor(spots.length / 30)); i++) {
+      const [x, y] = spots[Math.floor(Math.random() * spots.length)]!;
+      const s = this.add.sprite(x * TILE, (y + 1) * TILE, 'props', 'puddle/ripple-0').setOrigin(0, 1).setDepth(0.6);
+      this.turning.push({ s, a: PROP_ANIMS.get('puddle/ripple-0')!, phase: i * 3 });
+    }
+  }
+
+  /** Mist over water in the morning: a pale veil that breathes, gone when the morning is. */
+  private setMist(on: boolean) {
+    const water = this.tileMoves.some((m) => m.a.frames[0] === 'water-0' && m.tiles.length > 20);
+    if (!on || !water) {
+      this.mist?.destroy();
+      this.mist = undefined;
+      return;
+    }
+    if (this.mist) return;
+    const w = this.info.width * TILE;
+    const h = this.info.height * TILE;
+    this.mist = this.add.rectangle(0, 0, w, h, 0xeef2f6, 0.14).setOrigin(0, 0).setDepth(19_999);
+    this.tweens.add({ targets: this.mist, fillAlpha: 0.22, duration: 5000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  }
+
+  private makeSeasonTextures() {
+    const make = (key: string, w: number, h: number, draw: (c: CanvasRenderingContext2D) => void) => {
+      if (this.textures.exists(key)) return;
+      const t = this.textures.createCanvas(key, w, h)!;
+      draw(t.getContext());
+      t.refresh();
+    };
+    // a ginkgo leaf: a little gold fan
+    make('season-leaf', 3, 3, (c) => {
+      c.fillStyle = '#f4c542';
+      c.fillRect(0, 0, 3, 1);
+      c.fillRect(1, 1, 1, 1);
+      c.fillStyle = '#d7982b';
+      c.fillRect(1, 2, 1, 1);
+    });
+    // 柳絮: a wisp of willow cotton
+    make('season-fluff', 3, 2, (c) => {
+      c.fillStyle = 'rgba(255,255,255,0.9)';
+      c.fillRect(0, 1, 3, 1);
+      c.fillRect(1, 0, 1, 1);
+    });
+    // snow lying along the top of a tile: an uneven white line with a pale edge
+    make('season-snowcap', 16, 4, (c) => {
+      c.fillStyle = '#f8f5ec';
+      c.fillRect(0, 1, 16, 2);
+      c.fillRect(2, 0, 5, 1);
+      c.fillRect(10, 0, 4, 1);
+      c.fillStyle = '#cbced8';
+      c.fillRect(0, 3, 3, 1);
+      c.fillRect(6, 3, 5, 1);
+      c.fillRect(13, 3, 3, 1);
+    });
   }
 
   private makeGlowTexture() {

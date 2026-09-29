@@ -143,7 +143,11 @@ function leftEnd(t: Tones, hip: boolean, row: 'ridge' | 'up' | 'slope' | 'eave',
   return base;
 }
 
-/** The twelve roof tiles of a glaze: `roof-<glaze>-{ridge,up,slope,eave}[-l|-r]`. */
+/**
+ * The twelve roof tiles of a glaze: `pitch-<glaze>-{ridge,up,slope,eave}[-l|-r]`
+ * ("pitch": the ¾ roof with its slope showing — the older flat `roof-*`
+ * tiles keep their names).
+ */
 export function roofKit(glaze: Glaze): Array<[string, () => Grid]> {
   const t = TONES[glaze];
   const hip = HIP[glaze];
@@ -156,9 +160,9 @@ export function roofKit(glaze: Glaze): Array<[string, () => Grid]> {
   ] as const;
   const out: Array<[string, () => Grid]> = [];
   for (const [row, plain] of rows) {
-    out.push([`roof-${glaze}-${row}`, plain]);
-    out.push([`roof-${glaze}-${row}-l`, () => leftEnd(t, hip, row, beasts)]);
-    out.push([`roof-${glaze}-${row}-r`, () => leftEnd(t, hip, row, beasts).mirror()]);
+    out.push([`pitch-${glaze}-${row}`, plain]);
+    out.push([`pitch-${glaze}-${row}-l`, () => leftEnd(t, hip, row, beasts)]);
+    out.push([`pitch-${glaze}-${row}-r`, () => leftEnd(t, hip, row, beasts).mirror()]);
   }
   return out;
 }

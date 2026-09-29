@@ -176,6 +176,8 @@ export interface NpcCard {
   dislikes?: string[];
   /** their own ways of saying "what?" when they do not understand */
   misses?: string[];
+  /** what they do while they stand about (§13 V3): fan themselves, swing a bird cage, play chess, 太极 … */
+  idle?: import('../art/anims').IdleAction;
 }
 
 export interface Expect {

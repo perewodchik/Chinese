@@ -141,5 +141,44 @@
    6
   ],
   "facing": "down"
+ },
+ {
+  "kind": "prop",
+  "id": "flag-1",
+  "tile": [
+   15,
+   6
+  ],
+  "frame": "flag/red-0",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "flag-2",
+  "tile": [
+   21,
+   6
+  ],
+  "frame": "flag/red-1",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "flag-3",
+  "tile": [
+   33,
+   6
+  ],
+  "frame": "flag/red-2",
+  "blocks": [
+   1,
+   1
+  ]
  }
 ]

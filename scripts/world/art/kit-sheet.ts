@@ -50,7 +50,7 @@ function hall(img: Image, glaze: string, tx: number, ty: number, w: number, face
   const rows = ['ridge', 'up', 'slope', 'eave'];
   rows.forEach((r, j) => {
     for (let i = 0; i < w; i++) {
-      const n = `roof-${glaze}-${r}${i === 0 ? '-l' : i === w - 1 ? '-r' : ''}`;
+      const n = `pitch-${glaze}-${r}${i === 0 ? '-l' : i === w - 1 ? '-r' : ''}`;
       draw(img, get(n), (tx + i) * T, (ty + j) * T, scale);
     }
   });

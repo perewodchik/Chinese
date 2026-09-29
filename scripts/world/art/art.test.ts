@@ -135,3 +135,28 @@ describe('the generated art', () => {
     }
   });
 });
+
+describe('the kit and the motion (§13 V2–V3)', () => {
+  const props = JSON.parse(readFileSync('public/world/art/props.json', 'utf8')) as { frames: Record<string, unknown> };
+  const tiles = (JSON.parse(readFileSync('public/world/art/tiles-set.json', 'utf8')) as { names: string[] }).names.map((n) => n.replace(/^[^/]+\//, ''));
+
+  it('every frame an animation names is in the built atlases', async () => {
+    const { PROP_ANIM_LIST, TILE_ANIMS, IDLE_THINGS } = await import('../../../src/world/art/anims');
+    for (const a of [...PROP_ANIM_LIST, ...Object.values(IDLE_THINGS)]) for (const f of a!.frames) assert.ok(props.frames[f], `props atlas has no ${f}`);
+    for (const a of TILE_ANIMS) for (const f of a.frames) assert.ok(tiles.includes(f), `tileset has no ${f}`);
+  });
+
+  it('the kit: twelve roof tiles for each glaze, every tile name once', async () => {
+    const { GLAZES } = await import('./gen/kit');
+    for (const g of GLAZES) assert.equal(tiles.filter((n) => n.startsWith(`pitch-${g}-`)).length, 12, g);
+    assert.equal(new Set(tiles).size, tiles.length);
+    for (const f of ['censer/smoke-0', 'prayer-wheels/turn-2', 'chuihuamen/painted', 'bike-rack/shared', 'idle/jianzi-2', 'tree/huai-1']) assert.ok(props.frames[f], f);
+  });
+
+  it('the 鼓楼 drums play at their show times', async () => {
+    const { isDrumShow } = await import('../../../src/world/audio/mix');
+    assert.ok(isDrumShow(9 * 60 + 30));
+    assert.ok(isDrumShow(3 * 1440 + 16 * 60 + 30));
+    assert.ok(!isDrumShow(12 * 60 + 30));
+  });
+});

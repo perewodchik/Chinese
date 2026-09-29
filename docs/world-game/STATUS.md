@@ -39,7 +39,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1–K3, Q1–Q3, V1–V2 done (2026-09-30) — continue at V3. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
+§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1–K3, Q1–Q3, V1–V3 done (2026-09-30) — continue at V4. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
 
 ## Tasks
 ### A — core logic
@@ -171,7 +171,7 @@ first unchecked box. Tick a box in the same commit as the work.
 - [x] Q3 "Last time" recap card with the last session's words
 - [x] V1 CC0 packs (license checked, credited, recoloured) — Kenney RPG Urban Pack only; placing them is V2/T/V5
 - [x] V2 Beijing architecture kit (3/4 roofs by rank and type, temple set, street props, N–S streets)
-- [ ] V3 Animation everywhere (animated tiles/props, NPC idle actions, seasons on tiles, light pools, depth-sort fix)
+- [x] V3 Animation everywhere (animated tiles/props, NPC idle actions, seasons on tiles, light pools, depth-sort fix) — frame time on the iPad not measured (no dev server)
 - [ ] V4 Spirits redrawn + woodcut pictures; hero 4-frame walk through the composer
 - [ ] T1 鼓楼 · 南锣鼓巷 redone (N–S lane with 胡同 legs, 钟鼓楼 square, 烟袋斜街, 鼓楼东大街)
 - [ ] T2 什刹海 · 银锭桥 · 恭王府 gate · 北海 白塔 · 景山 pavilions
@@ -333,6 +333,9 @@ _(date — decision — why)_
 - 2026-09-30 — Q3: **save v14** adds `lastWords` (the last session's words, eight at most; upgrade 13 → 14 gives an empty list; merge takes the later device's). "The words of the last session" = each finished talk's situation words and its hints' key words (at most four per talk) — the words the talk was built to teach, not every word heard. "Away" = the save last changed twelve or more real hours ago (`updatedAt`).
 - 2026-09-30 — V1: **only Kenney's RPG Urban Pack (CC0) is used.** Tiny Town (CC0) has thick dark outlines on its ground tiles; Ninja Adventure's itch.io page answered 403, so its license could not be read and it is not used; the pack's cars are drawn from straight above and fight the 3/4 view. 20 generic frames (lamps, bus-stop sign, traffic lights, bins, bench, hydrant, hedges, crates, barrier, trees) are in the props atlas, recoloured with per-frame letter swaps; the autumn trees became gold ginkgo 银杏 for V3's Beijing autumn. Placing them is left to V2/T/V5, where each map is looked at.
 - 2026-09-30 — V2: the kit is **tiles for roofs and faces, props for things**: four glazes × twelve roof tiles (ridge / upper slope / slope / eave, plain and both ends; hip ends for the glazed ranks, gable ends for grey houses), eight face tiles, six north–south street tiles, 23 props. 攒尖 pavilions and the triple round roof stay whole props (万春亭, 祈年殿 exist) rather than modules — they are one-off buildings. Maps can add **their own legend letters** in the header (`below_keys: 1=roof-green-ridge-l …`); the shared legend keeps its letters. Adding the kit's tile file kept every existing tile id, so all maps were rebuilt with only the tileset's size changing.
+- 2026-09-30 — V3: the animation table lives in **`src/world/art/anims.ts`** (shared by the engine and `art.test.ts`), not in the atlas JSON as the brief put it — one source, checked against the built atlases by a test. Animations run on one 90 ms clock. Prayer wheels turn only within three tiles of you. People's idle actions are a card field (`idle`) — most are a held thing drawn beside the hand (fan, bird cage, chess, paper, phone, broom, knitting, 空竹, 毽子); 太极 and 广场舞 move the person. Lanterns keep their flicker but do not sway (rotating pixel art smears).
+- 2026-09-30 — V3: **the V2 kit's roof tiles were renamed `pitch-<glaze>-<row>`**: `roof-grey-ridge`, `roof-grey-eave`, `roof-yellow-ridge` and `roof-yellow-eave` clashed with the old flat tiles of the same names, which hid the kit's. The art build now fails when a tile name is used in two files.
+- 2026-09-30 — V3: placed the national flag at the north end of 天安门 square (in line with the palace gate), three flags in front of 国贸's towers and a fountain at 奥林匹克 (each on a blocked tile, clear of doors and people). The winter snow lies on ridges, eaves and wall tops; the morning mist shows only on maps with water.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
