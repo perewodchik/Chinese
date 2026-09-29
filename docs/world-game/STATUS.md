@@ -98,6 +98,13 @@ X9
 - [ ] X9 Book side quests (骆驼祥子, 茶馆, 城南旧事, 红楼梦, 孔乙己, 西游记, 三国演义)
 - [ ] X10 Tales and festival stories
 - [ ] X11 《天官赐福》 homage line
+- [ ] Y1 Shops and prices as data (shops.json, generic shop talk, real prices, convert purchase scenes, no vanishing shops)
+- [ ] Y2 Paying with the phone, 支付宝-style (扫一扫 + type the amount heard, 付款码, 收款码, 到账 voice, 账单)
+- [ ] Y3 Earning (daily jobs, selling to the recycler / 潘家园, 红包, economy table + solver checks)
+- [ ] Y4 Items that do something (Chinese verbs, eat/drink, give by saying it, combine, key items)
+- [ ] Y5 Bag redesign (filters, item card drawer, phone summary)
+- [ ] Y6 Bargaining 砍价 + Chinese number parser
+- [ ] Y7 Save format +1 (ledger, freshness, jobs), buy/earn diary lines, checks
 - [ ] X12 Final bug hunt over everything
 
 ### J — 上海

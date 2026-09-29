@@ -707,11 +707,172 @@ blessing of the Heavenly Official (天官) on 上元 (元宵) — as a homage to
   一念之间. Mark them in the 成语 book as "from the 天官赐福 line".
 
 ### X12 — polish and the final bug hunt
-Run X0's solver, golden saves, map probe and stress checks over **all**
+**Run it after §9¾ (Y1–Y7, items and money)** — the order is X11 → Y1–Y7
+→ X12 → §10. Run X0's solver, golden saves, map probe and stress checks over **all**
 content; then play every chapter and every side line in the pane and
 in WebKit like the learner would (tap-to-move, both input modes, phone
 and iPad widths), fix what you find, and write a bug report + what was
 fixed into STATUS.md. Only then go to §10.
+
+## 9¾. Items and money — shops, 支付宝-style paying, a living bag (added 2026-09-29)
+
+**When:** after X11, **before X12** (so the final bug hunt covers it) and
+before §10. The learner found items and money "very primitive" and chose
+**QR paying in the style of 支付宝** as *the* way to pay — no cash notes.
+
+**What is there now (the problem):** money is one number (200 元 at the
+start); ~36 hand-written purchase scenes each bake in a price ("the
+breakfast is always 4 元"); a shop scene only offers itself when you can
+pay, so a broke player sees shops silently vanish; income is 20 元 once
+and 700 元 from the bank in ch. 3, then nothing. Items are
+`{id, name, en, gift}`; every item gets the same "Use / give" button; you
+cannot eat, sell, combine, or tell a story item from a snack; the diary
+cannot tell bought from given. The richest HSK 1 topic of daily life —
+多少钱, numbers, 块/毛, 扫码, 便宜一点 — is almost unused.
+
+All standing rules apply (§0, §5 budget, help is free, never a dead end,
+no quizzes, companion speaks English, stable compact UI, tap opens a
+card). **No hunger or survival meter** — food is a pleasure, not a need.
+
+### Y1 — shops and prices as data
+- `content/world/<district>/shops.json`: `{id, npc | object, map, name
+  (e.g. 李阿姨小卖部), pay: 'scan' | 'code', hours?, when?, stock: [{item,
+  price, when?, perDay?}]}`; zod schema in `content.ts`, checked by
+  `world:check` (every item exists, every price is a whole 元 or x.5 —
+  五毛 is the only small unit, the stock words are in the budget as
+  situation words of that shop).
+- `Item` grows: `kind: 'food' | 'drink' | 'gift' | 'tool' | 'decor' |
+  'toy' | 'key'` (`key` = story item: cannot be given away as a present
+  or sold), `price?` (base value, for selling), `verbs?` (Y4),
+  `combine?` (Y4). Keep `gift` working (old content).
+- **A generic shop talk**, generated in code like the ticket machine in
+  `travel.ts` (`core/shop.ts`): 「你要什么？」 → you name one or more
+  things with quantities and measure words (「两个包子，一杯豆浆」 —
+  parse 一/两/二…十 and the measure words 个 杯 瓶 本 张 串 斤 块);
+  「多少钱？」 always works and is answered with the price (listen-first
+  line, voiced by the seller's voice with a numbers-clip set, see Y2);
+  「还要别的吗？」 → 不要了 / 没有了 / another item → the total → Y2's
+  paying. Sold-out / closed / wrong season get short HSK 1 lines.
+- **Real 2026 Beijing prices** (table in `docs/world-game/economy.md`):
+  包子 3, 豆浆 3, 油条 3, 水 2, 糖葫芦 10, 月饼 8, 小鱼干 3, 茶叶 20,
+  红纸 5, 书 30–45, bike 1.5, 故宫 60, and so on.
+- **Convert** the plain purchase scenes (breakfast, water, bait, 竹竿,
+  保温杯, 雨伞, 红包, 春联, 福, flowers, paper-cuts, 小鱼干, 月饼, 糖葫芦,
+  lantern, calligraphy …) to shop stock; story purchases with special
+  lines keep their scenes but pay through Y2. Chapter 1's breakfast
+  becomes an ordinary order (bun + soy milk or whatever you ask for).
+- **No vanishing shops:** when the money is short the seller says
+  「钱不够吗？没关系。」 and 兔儿爷 names a way to earn (Y3).
+
+### Y2 — paying with the phone (支付宝-style)
+The 手机 opens a small phone overlay over the frozen world (like photo
+mode). Drawn in our own pixel style in an Alipay-like blue; the app is
+called 支付宝 as a word to learn, but **no copied logo or real UI**. The
+real words: 扫一扫, 付款码, 收款码, 余额, 账单, 支付成功, 余额不足,
+到账. **Never a password or PIN field** — confirm with a button and a
+short fingerprint animation.
+
+1. **扫一扫 — scan the stall's code** (street stalls, small shops, 早点铺,
+   糖葫芦, 潘家园): the seller says the total aloud (「一共十五块。」);
+   the QR sign on the counter (a new prop, drawn) lights up; tap it → the
+   phone shows the shop's name → **type the amount you heard** on a
+   keypad (0–9, ., ⌫) → 付款 → fingerprint → 支付成功, and the seller's
+   speaker box says **「支付宝到账，十五元。」** (the famous voice — a second
+   hearing of the number). This is the core listening drill.
+   - Wrong amount → the seller: 「不对，是十五块。」; from the second miss
+     the amount is filled in for you. Too much → 「多了！」 and it is
+     not taken. Never a dead end.
+   - Not enough → 余额不足 on the screen, then Y1's "no vanishing shop".
+2. **付款码 — show your code** (便利店, 百货大楼, bookshop, tickets, chain
+   shops): the cashier scans you; the charge pops up (「支付成功
+   ¥23.00」) and you check it. Now and then (content-flagged, at most
+   once a day) the cashier rings up the wrong amount — say 「不对」 /
+   「我只买了一个」 / 「是二十块」 and it is fixed with a thank-you and a
+   friendship heart; missing it costs a few 元 and 兔儿爷 points it out
+   afterwards (reading drill, not a trap).
+3. **收款码 — get paid** (Y3): people scan *your* code and your phone
+   says 「支付宝到账，五元。」.
+- The phone's home screen: 余额 (the save's `bag.money`), the 交通卡
+  (stays a card — chapter 1 is built on buying it), and 账单 — the last
+  20 payments (「李阿姨小卖部 −15.00」「王阿姨 +20.00」), words tappable.
+- The ticket machine and the train pay the same way (scan or code). The
+  bank's 100 美元 goes to 余额 (「到账」).
+- **Numbers audio:** pre-render per seller voice 一 … 十, 百, 块, 元,
+  毛/五毛, 一共, 找你, and the speaker box line in a neutral machine-like
+  voice; assemble totals from clips (test: every price in shops.json can
+  be said). Pinyin/English under the numbers like any line.
+- Solver and tests pay by typing the amount from the hint; a test plays
+  one of each flow including a wrong amount and a wrong charge.
+
+### Y3 — earning, so the money goes round
+- **Small repeatable jobs** (once a game day each, 5–20 元, paid to your
+  收款码): stack shelves for 李阿姨 (choose lines: 「水放这儿，面包放那儿」);
+  the breakfast rush at the 早点铺 (hand out the order you hear);
+  deliver for the 外卖 rider (read the door numbers — X8's rider);
+  carry tea at 老刘's 茶馆.
+- **Selling:** the recycler 收破烂儿 (X8, `met-polan`) buys 旧 things
+  and extra items at part of their `price` (「这个多少钱？」「五块。」); at
+  潘家园 you can sell finds (Y6's bargaining works both ways).
+- **Gifts of money:** 红包 from 王阿姨 and 赵爷爷 at 春节 (you say
+  新年快乐), people paying you back 「我请你！」 after a favour (the
+  treat is free food, not cash).
+- **Economy table** in `docs/world-game/economy.md` (start money, every
+  price, every income, per chapter); tune START_MONEY if needed.
+- Solver asserts: money never below zero; a broke player can always
+  earn enough within one game day for the next thing the story needs; a
+  player who buys everything they are offered never soft-locks.
+
+### Y4 — items that do something
+- **Chinese verbs on the item instead of "Use / give":** 吃 喝 给 用 放
+  看 穿/戴 (umbrella: 打, kite: 放), each item shows only its `verbs`.
+  给 and 用 keep X1's tap-a-target flow; 吃/喝 happen at once; 看 opens
+  the item's card (Y5).
+- **Eating and drinking** are small pleasures: 兔儿爷 reacts (X7 moods),
+  the diary writes 「我吃了两个包子。」, a hot 豆浆 or 热水 on a snowy day
+  warms you (the cold shiver emote stops), food bought today is 热的 and
+  tomorrow 凉的 (NPCs like warm food more). No hunger meter.
+- **Give by saying it:** in any talk, 「给你糖葫芦」「这个给你」 (with the
+  item held) / 「我有雨伞」 when it is in the bag hands it over — a new
+  universal intent that falls through to the X1 gift logic; tap-to-use
+  stays.
+- **Combine** (`combine: [{with, makes}]` in items.json): 红纸 + 毛笔 →
+  春联, 保温杯 + 热水 (the existing refill becomes one), 竹竿 + 网 → 捞鱼网
+  … drag one item onto another or "用 → tap another item".
+- **`key` items** (护照, 钥匙, 老照片, borrowed things) are marked with a
+  small seal, never given as presents, never sold.
+- After two wrong item tries in one place, 兔儿爷 glances at the right
+  item in the bag (help after a miss, not before).
+
+### Y5 — the bag, redesigned
+- One compact filter line: 全部 食物 礼物 工具 装饰 重要 (fixed width,
+  no layout shift, fits 375 px).
+- **Tap an item → its card** (drawer, like the app's cards): big hanzi,
+  pinyin, English, where it came from and what it cost, who liked or did
+  not like it (learned from your gifts), its verbs as buttons, hot/cold.
+- The money header becomes the phone's mini summary (余额, 交通卡, the
+  last payment) and opens the phone.
+- Check at 375 / 768 / 1024 in the pane and in WebKit.
+
+### Y6 — bargaining 砍价 (潘家园, the night market, selling)
+- A generic bargaining talk (`core/bargain.ts`): the seller has an
+  asking price and a lowest price (data); you answer with numbers and
+  phrases — 太贵了, 便宜一点, 最多X块, X块行吗, 算了 (walk away → the
+  seller calls you back once at a better price). Hot/cold feedback in
+  the seller's lines; a deal ends in Y2's 扫一扫 at the agreed price.
+- A Chinese number parser (二十五, 两百, 一百五, 一百零五, digits too) in
+  `core/numbers.ts` with tests — shared with Y1/Y2.
+- The old map at 潘家园 (H8) becomes a real bargain; add 3–4 more
+  stalls (a teapot, an old coin, a paper fan, a snuff bottle 鼻烟壶).
+
+### Y7 — save, diary, checks
+- **Save format +1** with an upgrade and tests: `bag.ledger` (last 20
+  payments), `bag.bought` (shop purchases per day for `perDay`), item
+  freshness (the day food was bought), jobs done per day. Merge: ledger
+  union by id, counters keep the higher.
+- A `buy` save action so the diary says 「我花了六块钱买包子。」 (fixes
+  X3's "bought or given" note); `earn` for 「我挣了十块钱。」.
+- Content checker, solver, golden saves updated; STATUS notes with
+  renders of the phone screens at 375 and 1024.
 
 ## 10. After Beijing: Shanghai, then Chengdu (added 2026-09-28, 22:10)
 
