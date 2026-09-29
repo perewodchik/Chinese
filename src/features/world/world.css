@@ -663,10 +663,17 @@
   font-size: 17px;
 }
 
-.wc-word[aria-pressed='true'] {
-  border-color: color-mix(in srgb, var(--jade) 50%, var(--line));
-  background: var(--jade-soft);
-  color: var(--jade);
+.wc-word button {
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.wc-word button[aria-pressed='true'] {
+  color: var(--gold);
 }
 
 .wc-acts {

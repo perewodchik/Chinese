@@ -1,23 +1,25 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { itemForToken } from '../../domain/words';
 import { useLibrary } from '../../features/shared/library';
 import { useOpenItem } from '../../navigation/itemDrawer';
-import { keepBeijingWord } from '../../store/wordCommands';
+import { useStore } from '../../store/store';
+import { BEIJING_PRESET, keepBeijingWord } from '../../store/wordCommands';
 import type { Lexicon } from '../core/dialogue/lexicon';
 import type { Line } from '../core/dialogue/source';
-import { glossLine, whyText } from './companionLines';
+import { companionOptions, glossLine, hintAnswer, keepable, phaseOf, translateAnswer, type Gloss } from './companionLines';
 import { voice } from './Dialogue';
+import { PixelIcon } from './PixelIcon';
 import { Portrait } from './Portrait';
 import { PropSprite } from './PropSprite';
 
-type Show = { kind: 'say'; text: string } | { kind: 'translate' } | { kind: 'keep' };
+type Show = { kind: 'say'; text: string } | { kind: 'translate' } | { kind: 'learned' };
 
 /**
- * 兔儿爷, in the corner (concept §9): tap him (or Tab) for one row of help —
- * Again, Translate, Why?, What do I say?, What now?, Keep — and he answers
- * in English above it. Everything is free. He speaks up by himself only
- * when the page gives him a `said` line (two misses in a row, a long idle
- * minute during a quest).
+ * 兔儿爷, in the corner (concept §9, prompt §11): tap him (or Tab) and you
+ * can ask him at most three things that fit the moment — options that do
+ * not apply are left out (`companionOptions`). He answers in English.
+ * Everything is free. He speaks up by himself only when the page gives him
+ * a `said` line (two misses in a row, a long idle minute during a quest).
  */
 export function Companion({
   open,
@@ -26,6 +28,7 @@ export function Companion({
   line,
   why,
   canHint,
+  hintStep,
   onHint,
   now,
   lex,
@@ -41,6 +44,8 @@ export function Companion({
   line: Line | undefined;
   why: string | undefined;
   canHint: boolean;
+  /** how far the hint has gone at this line (0–3) */
+  hintStep: number;
   onHint: () => void;
   now: () => string;
   lex: Lexicon;
@@ -56,16 +61,65 @@ export function Companion({
   const openItem = useOpenItem();
   const [show, setShow] = useState<Show | null>(null);
   const [again, setAgain] = useState<{ line: Line | undefined; n: number }>({ line: undefined, n: 0 });
-  const [kept, setKept] = useState<Set<string>>(new Set());
   // A new line of his own replaces whatever he was showing.
   useEffect(() => setShow(null), [said]);
   const current: Show | null = show ?? (said ? { kind: 'say', text: said } : null);
 
-  const glosses = line ? glossLine(line, lex) : [];
-  const keep = (w: string, py: string, en: string) => {
-    keepBeijingWord({ w, py, d: en, hsk: lib.byWord.get(w)?.hsk ?? null, explain: '', examples: [] });
-    setKept((k) => new Set(k).add(w));
+  // The words of the talk you are in (or just had): "What did I learn?" after it.
+  const [talkWords, setTalkWords] = useState<Gloss[]>([]);
+  useEffect(() => {
+    if (talking) setTalkWords([]);
+  }, [talking]);
+  useEffect(() => {
+    if (!talking || !line) return;
+    const add = keepable(glossLine(line, lex));
+    setTalkWords((ws) => [...ws, ...add.filter((g) => !ws.some((w) => w.w === g.w))]);
+  }, [talking, line, lex]);
+
+  // Kept is what "Words from Beijing" holds, so a star stays lit on every device.
+  const beijing = useStore((s) => s.collections.find((c) => c.presetId === BEIJING_PRESET));
+  const kept = useMemo(() => new Set((beijing?.words ?? []).map((w) => w.w)), [beijing]);
+  const keep = (g: Gloss) => {
+    if (kept.has(g.w)) return;
+    keepBeijingWord({ w: g.w, py: g.py, d: g.en, hsk: lib.byWord.get(g.w)?.hsk ?? null, explain: '', examples: [] });
   };
+
+  const phase = phaseOf(talking, line);
+  const options = companionOptions(
+    { phase, canHint, learned: talkWords.length > 0 },
+    {
+      again: line
+        ? () => {
+            const n = again.line === line ? again.n + 1 : 1;
+            setAgain({ line, n });
+            voice(line, n > 1);
+            setShow({ kind: 'say', text: n > 1 ? 'Once more, slowly.' : 'Listen again.' });
+          }
+        : undefined,
+      translate: line ? () => setShow({ kind: 'translate' }) : undefined,
+      hint: () => {
+        onHint();
+        setShow({ kind: 'say', text: hintAnswer(hintStep + 1) });
+      },
+      now: () => setShow({ kind: 'say', text: now() }),
+      learned: () => setShow({ kind: 'learned' }),
+    },
+  );
+
+  const chips = (words: Gloss[]) => (
+    <div className="wc-words">
+      {words.map((g) => (
+        <span key={g.w} className="wc-word">
+          <button type="button" onClick={() => openItem(itemForToken(lib, g.w))} title={g.en || undefined}>
+            <span className="han">{g.w}</span> <span className="wi-chip-py">{g.py}</span>
+          </button>
+          <button type="button" aria-pressed={kept.has(g.w)} aria-label={kept.has(g.w) ? `${g.w} is kept` : `Keep ${g.w}`} onClick={() => keep(g)}>
+            <PixelIcon name={kept.has(g.w) ? 'star-full' : 'star'} />
+          </button>
+        </span>
+      ))}
+    </div>
+  );
 
   return (
     <div className="wc" data-talking={talking ? '' : undefined}>
@@ -75,75 +129,24 @@ export function Companion({
             {current?.kind === 'say' && <p>{current.text}</p>}
             {current?.kind === 'translate' && line && (
               <>
-                <p>“{line.en}”</p>
-                <div className="wc-words">
-                  {glosses.map((g) => (
-                    <button key={g.w} type="button" className="wc-word" onClick={() => openItem(itemForToken(lib, g.w))}>
-                      <span className="han">{g.w}</span> <span className="wi-chip-py">{g.py}</span>
-                      {g.en && <span className="tiny"> {g.en}</span>}
-                    </button>
-                  ))}
-                </div>
+                <p style={{ whiteSpace: 'pre-line' }}>{translateAnswer(line, why)}</p>
+                {chips(keepable(glossLine(line, lex)))}
               </>
             )}
-            {current?.kind === 'keep' && (
+            {current?.kind === 'learned' && (
               <>
-                <p className="tiny">Tap a word to keep it in “Words from Beijing”.</p>
-                <div className="wc-words">
-                  {glosses.map((g) => (
-                    <button
-                      key={g.w}
-                      type="button"
-                      className="wc-word"
-                      aria-pressed={kept.has(g.w)}
-                      onClick={() => keep(g.w, g.py, g.en)}
-                      disabled={kept.has(g.w)}
-                    >
-                      <span className="han">{g.w}</span> <span className="wi-chip-py">{g.py}</span>
-                      {kept.has(g.w) && ' ✓'}
-                    </button>
-                  ))}
-                </div>
+                <p>From that talk — tap the star to keep a word.</p>
+                {chips(talkWords)}
               </>
             )}
-            {!current && <p className="muted">What do you need?</p>}
+            {!current && <p className="muted">Yes?</p>}
           </div>
           <div className="wc-acts">
-            <button
-              type="button"
-              disabled={!line}
-              onClick={() => {
-                if (!line) return;
-                const n = again.line === line ? again.n + 1 : 1;
-                setAgain({ line, n });
-                voice(line, n > 1);
-                setShow({ kind: 'say', text: n > 1 ? 'Once more, slowly.' : `Again — ${line.zh}` });
-              }}
-            >
-              🔁 Again
-            </button>
-            <button type="button" disabled={!line} onClick={() => setShow({ kind: 'translate' })}>
-              Translate
-            </button>
-            <button type="button" disabled={!line} onClick={() => setShow({ kind: 'say', text: whyText(why, line) })}>
-              Why?
-            </button>
-            <button
-              type="button"
-              disabled={!talking || !canHint}
-              onClick={() => {
-                onHint();
-                setShow({ kind: 'say', text: 'Look above the field — tap the chips to use them.' });
-              }}
-            >
-              What do I say?
-            </button>
-            <button type="button" onClick={() => setShow({ kind: 'say', text: now() })}>
-              What now?
-            </button>
-            <button type="button" disabled={!line} onClick={() => setShow({ kind: 'keep' })}>
-              Keep
-            </button>
+            {options.map((o) => (
+              <button key={o.id} type="button" onClick={o.run}>
+                <PixelIcon name={o.icon} /> {o.label}
+              </button>
+            ))}
           </div>
         </div>
       )}

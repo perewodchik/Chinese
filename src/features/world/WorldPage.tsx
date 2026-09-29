@@ -699,6 +699,7 @@ export function WorldPage() {
           line={lastLine ?? undefined}
           why={lastNode?.why}
           canHint={!!hintNow && hintStep < 3 && talk.view?.mode === 'reply'}
+          hintStep={hintStep}
           hat={hatFor(minutes)}
           onPat={() => {
             lastActive.current = Date.now();

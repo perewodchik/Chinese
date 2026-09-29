@@ -80,7 +80,7 @@ export function keepMenuWords(shop: string, name: string, note: string, words: C
   return found.id;
 }
 
-const BEIJING_PRESET = 'words-beijing';
+export const BEIJING_PRESET = 'words-beijing';
 
 /**
  * A word kept in 走走 (the walk through Beijing): into "Words from Beijing",

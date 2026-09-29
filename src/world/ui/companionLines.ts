@@ -49,10 +49,87 @@ export function glossLine(line: Line, lex: Lexicon): Gloss[] {
   return out;
 }
 
-/** Why?: the script's own note, or a calm word that there is nothing special. */
-export function whyText(why: string | undefined, line: Line | undefined): string {
-  if (why) return why;
-  if (!line) return 'Ask me when somebody says something.';
-  if (line.key) return 'This is a key line — it is pinned in 📜. Tap the hard words, or ask someone “……是什么意思？”.';
-  return 'Nothing tricky here — plain everyday Chinese.';
+/**
+ * What did they say?: the English line, and on its own line after it the
+ * script's note (`why`) — or, at a key line with no note, where it is
+ * pinned. With neither, nothing is added (prompt §11 R1: Why? is no longer
+ * a button of its own).
+ */
+export function translateAnswer(line: Line, why: string | undefined): string {
+  const note = why ?? (line.key ? 'A key line — it is pinned to your tasks. Tap the hard words, or ask someone “……是什么意思？”.' : undefined);
+  return note ? `“${line.en}”\n${note}` : `“${line.en}”`;
+}
+
+/** Help me answer: what he says as the next hint step shows above the field. */
+export function hintAnswer(step: number): string {
+  return step <= 1
+    ? 'The word you want is above the field — tap it.'
+    : step === 2
+      ? 'Here is how it goes — tap the chips above the field.'
+      : 'That is the whole answer, above the field. Tap it and send.';
+}
+
+/** Words worth keeping from a line: only the ones with a hanzi in them. */
+export const keepable = (glosses: readonly Gloss[]): Gloss[] => glosses.filter((g) => /\p{Script=Han}/u.test(g.w));
+
+// ------------------------------------------------------------ the options
+
+/** where you are when you tap him */
+export type CompanionPhase = 'walk' | 'heard' | 'reply';
+
+/** No talk: walking. A talk with somebody's line to go on: heard. A talk with no line yet: reply. */
+export const phaseOf = (talking: boolean, line: Line | undefined): CompanionPhase => (!talking ? 'walk' : line ? 'heard' : 'reply');
+
+export type OptionId = 'again' | 'translate' | 'hint' | 'now' | 'learned';
+/** a pixel icon (`PixelIcon`) — never an emoji */
+export type OptionIcon = 'again' | 'ask' | 'hint' | 'now' | 'star';
+
+export interface CompanionCtx {
+  phase: CompanionPhase;
+  /** reply mode with a hint step left */
+  canHint: boolean;
+  /** the last talk left words to look at and keep */
+  learned: boolean;
+}
+
+export interface CompanionOption {
+  id: OptionId;
+  icon: OptionIcon;
+  label: string;
+  run: () => void;
+}
+
+/** Things you ask him, in English, short enough for a 375px row. */
+export const OPTIONS: Record<OptionId, { icon: OptionIcon; label: string }> = {
+  again: { icon: 'again', label: 'Again?' },
+  translate: { icon: 'ask', label: 'What did they say?' },
+  hint: { icon: 'hint', label: 'Help me answer' },
+  now: { icon: 'now', label: 'What now?' },
+  learned: { icon: 'star', label: 'What did I learn?' },
+};
+
+/** at most this many at once: one row that never scrolls */
+export const MAX_OPTIONS = 3;
+
+/** Which options, in order, fit the moment — the ones that do not apply are left out. */
+export function optionIds(ctx: CompanionCtx): OptionId[] {
+  const hint: OptionId[] = ctx.canHint ? ['hint'] : [];
+  const ids: OptionId[] =
+    ctx.phase === 'walk'
+      ? ['now', ...(ctx.learned ? (['learned'] as OptionId[]) : [])]
+      : ctx.phase === 'heard'
+        ? ['again', 'translate', ...hint]
+        : [...hint, 'now'];
+  return ids.slice(0, MAX_OPTIONS);
+}
+
+/**
+ * The options for the moment, each with what it does. One with no action
+ * given is left out too — nothing is ever shown disabled.
+ */
+export function companionOptions(ctx: CompanionCtx, actions: Partial<Record<OptionId, () => void>>): CompanionOption[] {
+  return optionIds(ctx).flatMap((id) => {
+    const run = actions[id];
+    return run ? [{ id, ...OPTIONS[id], run }] : [];
+  });
 }
