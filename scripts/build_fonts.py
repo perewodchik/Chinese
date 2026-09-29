@@ -121,6 +121,24 @@ def collect_chars(max_hsk: int = 99) -> set[str]:
     return {c for c in s if c and c not in "\n\r\t"}
 
 
+def menu_chars() -> set[str]:
+    """
+    The Chinese in the ordering games (src/games/order-*): dish names like
+    豉汁蒸凤爪 reach word collections, and so printed sheets, without ever
+    being in characters.json.
+    """
+    games = os.path.join(ROOT, "src", "games")
+    s: set[str] = set()
+    for d in sorted(os.listdir(games)):
+        if not d.startswith("order-"):
+            continue
+        for name in sorted(os.listdir(os.path.join(games, d))):
+            if name.endswith((".ts", ".tsx")) and ".test." not in name:
+                text = open(os.path.join(games, d, name), encoding="utf-8").read()
+                s.update(c for c in text if "\u3400" <= c <= "\u9fff")
+    return s
+
+
 def cut(src: str, chars: set[str], stem: str, formats=("ttf", "woff2")):
     font = TTFont(src, lazy=True)
     cmap = font.getBestCmap()
@@ -160,7 +178,7 @@ CORE_MAX_HSK = 3
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    chars = collect_chars()
+    chars = collect_chars() | menu_chars()
     han = {c for c in chars if "⺀" <= c <= "鿿" or "㐀" <= c <= "䶿"}
     log(f"· {len(chars)} characters needed ({len(han)} CJK)")
 

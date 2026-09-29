@@ -82,6 +82,10 @@ export class Sheet {
   measure(s: string, size = 9, bold = false, tracking = 0): number {
     let w = 0;
     for (const r of splitRuns(s, this.fonts, bold)) {
+      if (r.gap) {
+        w += size * [...r.text].length;
+        continue;
+      }
       try {
         w += r.font.widthOfTextAtSize(r.text, size);
       } catch {
@@ -119,6 +123,10 @@ export class Sheet {
       // parameter in a PDF text-showing operator that pdf-lib exposes.
       const atoms = track ? [...r.text] : [r.text];
       for (const a of atoms) {
+        if (r.gap) {
+          cx += size * [...a].length + track;
+          continue;
+        }
         try {
           this.page.drawText(a, {
             x: cx,

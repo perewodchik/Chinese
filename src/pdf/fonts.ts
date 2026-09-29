@@ -83,7 +83,20 @@ export async function embedFonts(
 const LATIN =
   /^[ -~ -ɏʰ-˿‐-‟†-‧‰-⁞]$/;
 
-export type Run = { font: PDFFont; text: string; latin: boolean };
+/**
+ * `gap` marks characters the face has no glyph for (豉 is not in WenKai).
+ * pdf-lib would draw them as the font's "?" placeholder, so they are left as
+ * blank space one em wide per character instead.
+ */
+export type Run = { font: PDFFont; text: string; latin: boolean; gap?: boolean };
+
+type Fontkit = { hasGlyphForCodePoint(cp: number): boolean };
+
+/** Whether `font` can draw `ch`; reaches into pdf-lib for the fontkit face. */
+function hasGlyph(font: PDFFont, ch: string): boolean {
+  const face = (font as unknown as { embedder?: { font?: Fontkit } }).embedder?.font;
+  return face?.hasGlyphForCodePoint ? face.hasGlyphForCodePoint(ch.codePointAt(0)!) : true;
+}
 
 /** Splits mixed English/Chinese text into runs, each drawable by one font. */
 export function splitRuns(text: string, f: Fonts, bold = false): Run[] {
@@ -91,9 +104,10 @@ export function splitRuns(text: string, f: Fonts, bold = false): Run[] {
   for (const ch of text) {
     const latin = LATIN.test(ch);
     const font = latin ? (bold ? f.sansBold : f.sans) : f.han;
+    const gap = !latin && !hasGlyph(font, ch);
     const last = runs[runs.length - 1];
-    if (last && last.font === font) last.text += ch;
-    else runs.push({ font, text: ch, latin });
+    if (last && last.font === font && !last.gap === !gap) last.text += ch;
+    else runs.push({ font, text: ch, latin, ...(gap ? { gap } : {}) });
   }
   return runs;
 }
