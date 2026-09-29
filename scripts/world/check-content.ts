@@ -21,6 +21,7 @@ import type { DistrictContent } from '../../src/world/core/types';
 import { checkClothes, parseClothes } from '../../src/world/core/clothes';
 import { EMPTY_CLOTHES, type ClothesContent } from '../../src/world/core/wardrobe';
 import { GARMENT_ART } from '../../src/world/art/hero';
+import { coverage, coverageProblems, mapIds, readBooks } from './coverage';
 
 export interface CheckResult {
   districts: DistrictContent[];
@@ -133,6 +134,8 @@ export function checkContent(contentRoot: string, lib: Library): CheckResult {
       }
     } else errors.push(...r.errors);
   }
+  // §13 Z0: every map on some chapter's main route — strict only once the chapters are deepened (S10)
+  if (process.env.WORLD_COVERAGE === 'strict') errors.push(...coverageProblems(coverage(districts, readBooks(contentRoot), mapIds(contentRoot))).map((e) => `coverage: ${e}`));
   const budget = checkBudget({ leveler: libraryLeveler(lib), all: districts });
   return { districts, errors: [...new Set(errors)], budget, clothes };
 }
