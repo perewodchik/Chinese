@@ -9,7 +9,8 @@
     "wumen",
     "taihedian",
     "jiulongbi",
-    "yuhuayuan"
+    "yuhuayuan",
+    "qianqinggong"
   ],
   "stations": [
     "tiananmendong",
@@ -29,7 +30,11 @@
     "龙",
     "长城",
     "王阿姨",
-    "国庆节"
+    "国庆节",
+    "乾清宫",
+    "保和殿",
+    "中和殿",
+    "神武门"
   ],
   "ambience": "square"
 }

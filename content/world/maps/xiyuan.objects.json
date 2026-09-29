@@ -9,10 +9,10 @@
   "to": {
    "map": "qianmen-street",
    "tile": [
-    26,
-    6
+    14,
+    20
    ],
-   "facing": "down"
+   "facing": "left"
   }
  },
  {

@@ -3,8 +3,8 @@
   "kind": "door",
   "id": "shudian",
   "tile": [
-   8,
-   4
+   6,
+   10
   ],
   "to": {
    "map": "shudian",
@@ -17,10 +17,42 @@
  },
  {
   "kind": "door",
+  "id": "baihuo",
+  "tile": [
+   6,
+   24
+  ],
+  "to": {
+   "map": "baihuo-1",
+   "tile": [
+    8,
+    8
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "baihuo-2",
+  "tile": [
+   6,
+   25
+  ],
+  "to": {
+   "map": "baihuo-1",
+   "tile": [
+    8,
+    8
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "door",
   "id": "yaodian",
   "tile": [
-   20,
-   4
+   15,
+   16
   ],
   "to": {
    "map": "yaodian",
@@ -35,8 +67,8 @@
   "kind": "door",
   "id": "yinhang",
   "tile": [
-   32,
-   4
+   15,
+   32
   ],
   "to": {
    "map": "yinhang",
@@ -48,71 +80,11 @@
   }
  },
  {
-  "kind": "sign",
-  "id": "s-shudian",
-  "tile": [
-   7,
-   3
-  ],
-  "text": "新华书店",
-  "en": "Xinhua Bookshop"
- },
- {
-  "kind": "sign",
-  "id": "s-yaodian",
-  "tile": [
-   19,
-   3
-  ],
-  "text": "药店",
-  "en": "Pharmacy"
- },
- {
-  "kind": "sign",
-  "id": "s-yinhang",
-  "tile": [
-   31,
-   3
-  ],
-  "text": "银行",
-  "en": "Bank"
- },
- {
-  "kind": "sign",
-  "id": "s-store",
-  "tile": [
-   41,
-   3
-  ],
-  "text": "百货大楼",
-  "en": "Department store"
- },
- {
-  "kind": "sign",
-  "id": "street",
-  "tile": [
-   2,
-   3
-  ],
-  "text": "王府井大街",
-  "en": "Wangfujing Street"
- },
- {
-  "kind": "sign",
-  "id": "snack",
-  "tile": [
-   24,
-   13
-  ],
-  "text": "小吃街 →",
-  "en": "Snack street (this way)"
- },
- {
   "kind": "door",
   "id": "station",
   "tile": [
-   44,
-   12
+   10,
+   55
   ],
   "to": {
    "map": "station-wangfujing",
@@ -127,8 +99,8 @@
   "kind": "door",
   "id": "station-2",
   "tile": [
-   45,
-   12
+   11,
+   55
   ],
   "to": {
    "map": "station-wangfujing",
@@ -140,13 +112,272 @@
   }
  },
  {
-  "kind": "prop",
-  "id": "metro-sign",
+  "kind": "sign",
+  "id": "s-shudian",
   "tile": [
-   43,
-   12
+   6,
+   9
   ],
-  "frame": "subway-sign/post",
+  "text": "新华书店",
+  "en": "A bookshop"
+ },
+ {
+  "kind": "sign",
+  "id": "s-store",
+  "tile": [
+   6,
+   23
+  ],
+  "text": "百货大楼",
+  "en": "The Beijing Department Store — on the west side of the street"
+ },
+ {
+  "kind": "sign",
+  "id": "s-yaodian",
+  "tile": [
+   15,
+   15
+  ],
+  "text": "药店",
+  "en": "Pharmacy"
+ },
+ {
+  "kind": "sign",
+  "id": "s-yinhang",
+  "tile": [
+   15,
+   31
+  ],
+  "text": "银行",
+  "en": "Bank"
+ },
+ {
+  "kind": "sign",
+  "id": "s-shengxifu",
+  "tile": [
+   15,
+   19
+  ],
+  "text": "盛锡福",
+  "en": "A hat maker"
+ },
+ {
+  "kind": "sign",
+  "id": "street",
+  "tile": [
+   6,
+   2
+  ],
+  "text": "王府井大街",
+  "en": "Wangfujing Street — a walking street running north–south"
+ },
+ {
+  "kind": "sign",
+  "id": "snack",
+  "tile": [
+   6,
+   41
+  ],
+  "text": "小吃街",
+  "en": "The snack street — west, just here"
+ },
+ {
+  "kind": "sign",
+  "id": "metro",
+  "tile": [
+   12,
+   54
+  ],
+  "text": "王府井站",
+  "en": "Wangfujing station, line 1 — down the steps"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp-w0",
+  "tile": [
+   7,
+   6
+  ],
+  "frame": "urban-tall/lamp",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#fff1b3"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp-e0",
+  "tile": [
+   14,
+   9
+  ],
+  "frame": "urban-tall/lamp-t",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#fff1b3"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp-w1",
+  "tile": [
+   7,
+   18
+  ],
+  "frame": "urban-tall/lamp",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#fff1b3"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp-e1",
+  "tile": [
+   14,
+   21
+  ],
+  "frame": "urban-tall/lamp-t",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#fff1b3"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp-w2",
+  "tile": [
+   7,
+   30
+  ],
+  "frame": "urban-tall/lamp",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#fff1b3"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp-e2",
+  "tile": [
+   14,
+   33
+  ],
+  "frame": "urban-tall/lamp-t",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#fff1b3"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp-w3",
+  "tile": [
+   7,
+   38
+  ],
+  "frame": "urban-tall/lamp",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#fff1b3"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp-e3",
+  "tile": [
+   14,
+   41
+  ],
+  "frame": "urban-tall/lamp-t",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#fff1b3"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp-w4",
+  "tile": [
+   7,
+   48
+  ],
+  "frame": "urban-tall/lamp",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#fff1b3"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp-e4",
+  "tile": [
+   14,
+   51
+  ],
+  "frame": "urban-tall/lamp-t",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#fff1b3"
+ },
+ {
+  "kind": "prop",
+  "id": "bench-1",
+  "tile": [
+   9,
+   13
+  ],
+  "frame": "urban/bench",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bench-2",
+  "tile": [
+   12,
+   36
+  ],
+  "frame": "urban/bench",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bin-1",
+  "tile": [
+   13,
+   13
+  ],
+  "frame": "urban/bin-grey",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bin-2",
+  "tile": [
+   8,
+   36
+  ],
+  "frame": "urban/bin-red",
   "blocks": [
    1,
    1
@@ -156,12 +387,12 @@
   "kind": "prop",
   "id": "tree-1",
   "tile": [
-   13,
-   13
+   10,
+   8
   ],
-  "frame": "tree/huai",
+  "frame": "urban-tall/tree-round",
   "blocks": [
-   2,
+   1,
    1
   ]
  },
@@ -169,38 +400,38 @@
   "kind": "prop",
   "id": "tree-2",
   "tile": [
-   27,
-   13
+   11,
+   27
   ],
-  "frame": "tree/huai",
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-3",
+  "tile": [
+   10,
+   46
+  ],
+  "frame": "urban-tall/tree-round",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "kiosk",
+  "tile": [
+   12,
+   40
+  ],
+  "frame": "kiosk/green",
   "blocks": [
    2,
-   1
-  ]
- },
- {
-  "kind": "prop",
-  "id": "plant-1",
-  "tile": [
-   17,
-   6
-  ],
-  "frame": "plant/green",
-  "blocks": [
-   1,
-   1
-  ]
- },
- {
-  "kind": "prop",
-  "id": "plant-2",
-  "tile": [
-   29,
-   6
-  ],
-  "frame": "plant/green",
-  "blocks": [
-   1,
    1
   ]
  },
@@ -209,67 +440,20 @@
   "id": "shopper",
   "npc": "wfj-shopper",
   "tile": [
-   24,
-   9
+   11,
+   20
   ],
   "facing": "down"
- },
- {
-  "kind": "prop",
-  "id": "stand-bike-0",
-  "tile": [
-   36,
-   12
-  ],
-  "frame": "bicycle/side",
-  "blocks": [
-   1,
-   1
-  ]
- },
- {
-  "kind": "bike",
-  "id": "bike-stand-0",
-  "tile": [
-   37,
-   12
-  ]
  },
  {
   "kind": "npc",
   "id": "yuebing",
   "npc": "yuebing-ayi",
   "tile": [
-   40,
-   9
+   8,
+   26
   ],
-  "facing": "down"
- },
- {
-  "kind": "door",
-  "id": "baihuo",
-  "tile": [
-   42,
-   4
-  ],
-  "to": {
-   "map": "baihuo-1",
-   "tile": [
-    8,
-    8
-   ],
-   "facing": "up"
-  }
- },
- {
-  "kind": "sign",
-  "id": "s-shengxifu",
-  "tile": [
-   13,
-   3
-  ],
-  "text": "盛锡福",
-  "en": "Shengxifu — hats"
+  "facing": "left"
  },
  {
   "kind": "npc",
@@ -277,8 +461,8 @@
   "npc": "shengxifu-dianyuan",
   "tile": [
    14,
-   5
+   20
   ],
-  "facing": "down"
+  "facing": "left"
  }
 ]

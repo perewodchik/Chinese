@@ -173,7 +173,11 @@ export function buildMaps(src = MAPS_SRC, out = MAPS_OUT, tileset = TILESET): st
   // `links`: the maps a door or an edge of this one leads to — the city map's walking routes.
   const linksOf = (c: (typeof all)[number]) =>
     [...new Set(c.objects.flatMap((o) => (o.kind === 'door' ? [o.to.map] : o.kind === 'edge' ? [o.target.map] : [])))].filter((m) => m !== c.map.id).sort();
-  const index = Object.fromEntries(all.map((c) => [c.map.id, { district: c.map.district, width: c.map.width, height: c.map.height, links: linksOf(c) }]));
+  // a door marked `oneWay` leads out only (神武门): the route finder does not walk back through it
+  const oneWayOf = (c: (typeof all)[number]) => [...new Set(c.objects.flatMap((o) => (o.kind === 'door' && o.oneWay ? [o.to.map] : [])))].sort();
+  const index = Object.fromEntries(
+    all.map((c) => [c.map.id, { district: c.map.district, width: c.map.width, height: c.map.height, links: linksOf(c), ...(oneWayOf(c).length ? { oneWay: oneWayOf(c) } : {}) }]),
+  );
   writeFileSync(join(out, 'index.json'), JSON.stringify(index, null, 1) + '\n');
   // the neighbourhood plans (core/hoods.ts) for the minimap and the 🗺 panel
   const geo: Record<string, MapGeo> = Object.fromEntries(

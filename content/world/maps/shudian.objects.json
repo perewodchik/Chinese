@@ -9,10 +9,10 @@
   "to": {
    "map": "wangfujing-street",
    "tile": [
-    8,
-    5
+    7,
+    10
    ],
-   "facing": "down"
+   "facing": "right"
   }
  },
  {

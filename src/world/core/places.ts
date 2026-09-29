@@ -48,6 +48,7 @@ export const PLACES: readonly Place[] = [
   P('jiaolou', '角楼', 'The palace corner tower', 'sight'),
 
   // 天安门 · 故宫
+  P('qianqinggong', '乾清宫', 'The inner halls: 中和殿, 保和殿, 乾清宫', 'sight'),
   P('yuhuayuan', '御花园', 'Imperial Garden', 'sight'),
   P('jiulongbi', '九龙壁', 'Nine Dragon Wall', 'sight'),
   P('taihedian', '太和殿', 'Hall of Supreme Harmony', 'sight'),
@@ -69,6 +70,7 @@ export const PLACES: readonly Place[] = [
   P('station-qianmen', '前门站', 'Qianmen station', 'station'),
   P('qianmen-street', '前门大街', 'Qianmen Street', 'street'),
   P('xiyuan', '戏园', 'Opera house', 'inside'),
+  P('dashilar', '大栅栏', 'Dashilar, the old shopping lane', 'street'),
   P('ruifuxiang', '瑞蚨祥', 'Ruifuxiang silk shop', 'inside'),
   P('neiliansheng', '内联升', 'Neiliansheng shoe shop', 'inside'),
 
@@ -123,7 +125,8 @@ export const PLACES: readonly Place[] = [
 const byMap = new Map(PLACES.map((p) => [p.map, p]));
 export const placeOf = (map: string): Place | undefined => byMap.get(map);
 
-export type MapLinks = Record<string, { district: string; links?: string[] }>;
+/** `oneWay`: maps a door of this one leads to that do not lead back (§13 T4) */
+export type MapLinks = Record<string, { district: string; links?: string[]; oneWay?: string[] }>;
 
 /**
  * The way on foot from one map to another, through doors and edges: the
@@ -139,7 +142,12 @@ export function walkPath(index: MapLinks, from: string, to: string): string[] | 
     if (!next.has(a)) next.set(a, new Set());
     next.get(a)!.add(b);
   };
-  for (const [m, v] of Object.entries(index)) for (const l of v.links ?? []) if (index[l]) (add(m, l), add(l, m));
+  for (const [m, v] of Object.entries(index))
+    for (const l of v.links ?? []) {
+      if (!index[l]) continue;
+      add(m, l);
+      if (!v.oneWay?.includes(l)) add(l, m);
+    }
   const back = new Map<string, string>([[from, '']]);
   const queue = [from];
   while (queue.length) {

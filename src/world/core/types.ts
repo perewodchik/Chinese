@@ -126,7 +126,8 @@ export interface District {
 }
 
 export type MapObject =
-  | { kind: 'door'; id: string; tile: Tile; to: { map: string; tile: Tile; facing?: Facing }; when?: Condition; locked?: string }
+  /** `oneWay`: a way out only (神武门: you leave the palace by it, you enter at 午门) — walking routes do not go back through it */
+  | { kind: 'door'; id: string; tile: Tile; to: { map: string; tile: Tile; facing?: Facing }; when?: Condition; locked?: string; oneWay?: boolean }
   | { kind: 'edge'; id: string; side: Facing; from: number; to: number; target: { map: string; offset: number } }
   | { kind: 'sign'; id: string; tile: Tile; text: string; en?: string }
   | { kind: 'npc'; id: string; npc: string; tile: Tile; facing?: Facing; when?: Condition }

@@ -30,8 +30,8 @@ ppppggppppppppppppppppppppgpgggg
 pgggpgppppppppppppppppppppggggpg
 ggggggppppppppppppppppppppgggggg
 [below]
-WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-WVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVW
+WWWWWWWWWWWWWWW.WWWWWWWWWWWWWWWW
+WVVVVVVVVVVVVVV.VVVVVVVVVVVVVVVW
 W..............................W
 W..............................W
 W..............................W
@@ -51,4 +51,4 @@ W..............................W
 W...............................
 W..............................W
 W..............................W
-WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWW..WWWWWWWWWWWWWWW

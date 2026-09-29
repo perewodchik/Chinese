@@ -119,5 +119,15 @@
    ],
    "facing": "up"
   }
+ },
+ {
+  "kind": "sign",
+  "id": "shenwumen-sign",
+  "tile": [
+   11,
+   19
+  ],
+  "text": "神武门",
+  "en": "Shenwumen, the palace’s north gate — a way out only; you go in at 午门"
  }
 ]

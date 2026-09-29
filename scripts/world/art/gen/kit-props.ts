@@ -450,6 +450,23 @@ export function bigCoin(): Grid {
   return g.stamp(f, 0, 0);
 }
 
+/** 铛铛车: 前门大街's old-style tram, red below and cream above, its pole up to the wire (§13 T4). Seen from the side, facing west. */
+export function tram(): Grid {
+  const g = new Grid(48, 32);
+  shadow(g, 2, 28, 44, 4);
+  const f = new Grid(48, 32);
+  f.rect(3, 12, 42, 15, 'r').hline(3, 12, 42, 'p').rect(3, 23, 42, 3, 'R');
+  f.rect(3, 7, 42, 6, 'f').hline(3, 7, 42, 'w');
+  for (let x = 6; x < 42; x += 6) f.rect(x, 8, 4, 4, 'l').set(x, 8, 'w');
+  f.rect(2, 5, 44, 2, 'b').hline(2, 5, 44, 'c');
+  f.vline(24, 0, 5, 'a').hline(22, 0, 5, 'a');
+  for (const x of [9, 37]) f.oval(x, 25, 5, 5, 'a').set(x + 2, 27, 'c');
+  f.rect(40, 14, 4, 9, 'q').rect(4, 14, 3, 9, 'q');
+  f.hline(10, 18, 26, 'y');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 /** Every kit prop: [file, note, frames] as `PROPS` has them. */
 export const KIT_PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['censer', 'a bronze 香炉 censer: cold, and smoking in two frames (§13 V2)', () => [['smoke-0', censer(0)], ['smoke-1', censer(1)], ['cold', censer(null)]]],
@@ -475,6 +492,7 @@ export const KIT_PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['repair-stall', 'a 修车摊 street bike-repair stand (§13 V2, L1)', () => [['tools', repairStall()]]],
   ['kiosk', 'a newspaper kiosk 报刊亭 (§13 V2)', () => [['green', kiosk()]]],
   ['bike-rack', 'a rack of 共享单车 shared bikes (§13 V2)', () => [['shared', bikeRack()]]],
+  ['tram', '铛铛车, the 前门大街 tram (§13 T4)', () => [['red', tram()]]],
   ['maitreya', 'the Maitreya of 万福阁, in gold on a lotus base (§13 T3)', () => [['gold', maitreya()]]],
   ['big-coin', 'the giant coin with a bell under 白云观\'s 窝风桥 (§13 T3)', () => [['bell', bigCoin()]]],
   ['pavilion-small', 'a small 攒尖 pavilion of 景山, green or yellow (§13 T2)', () => [['green', smallPavilion('green')], ['yellow', smallPavilion('yellow')]]],

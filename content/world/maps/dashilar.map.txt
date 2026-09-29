@@ -1,0 +1,41 @@
+id: dashilar
+size: 40x16
+tilesets: tiles
+district: qianmen
+crowd: 6
+pigeons: 3
+
+[ground]
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+[below]
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+bbbbhhbbbbbbdbbbbhhbbbbbdbbbbhhbbbbhbbbb
+BBBBBBBBBBBBDBBBBBBBBBBBDBBBBBBBBBBBBBBB
+........................................
+........................................
+........................................
+........................................
+........................................
+........................................
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

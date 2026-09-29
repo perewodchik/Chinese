@@ -7,10 +7,10 @@
    7
   ],
   "to": {
-   "map": "qianmen-street",
+   "map": "dashilar",
    "tile": [
-    35,
-    6
+    12,
+    5
    ],
    "facing": "down"
   }

@@ -89,18 +89,61 @@
  },
  {
   "kind": "door",
-  "id": "east",
+  "id": "south",
   "tile": [
-   31,
-   18
+   15,
+   21
   ],
   "to": {
-   "map": "taihedian",
+   "map": "qianqinggong",
    "tile": [
-    1,
-    11
+    17,
+    8
    ],
-   "facing": "right"
+   "facing": "down"
   }
+ },
+ {
+  "kind": "door",
+  "id": "south-2",
+  "tile": [
+   16,
+   21
+  ],
+  "to": {
+   "map": "qianqinggong",
+   "tile": [
+    18,
+    8
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "shenwumen",
+  "tile": [
+   15,
+   0
+  ],
+  "to": {
+   "map": "jiaolou",
+   "tile": [
+    12,
+    18
+   ],
+   "facing": "up"
+  },
+  "oneWay": true
+ },
+ {
+  "kind": "sign",
+  "id": "shenwumen-sign",
+  "tile": [
+   14,
+   1
+  ],
+  "text": "神武门",
+  "en": "Shenwumen, the north gate — out to the moat and the corner tower"
  }
 ]

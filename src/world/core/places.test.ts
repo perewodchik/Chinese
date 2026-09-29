@@ -18,6 +18,11 @@ describe('places', () => {
     assert.deepEqual(walkPath(index, 'gulou-square', 'jingshan-park'), ['gulou-square', 'yandai-xiejie', 'houhai-lake', 'beihai-north', 'jingshan-park']);
     // 南锣鼓巷 runs north to 鼓楼东大街 and south to the station's street
     assert.deepEqual(walkPath(index, 'gulou-dongdajie', 'station-nanluoguxiang'), ['gulou-dongdajie', 'nanluo-main', 'subway-lane', 'station-nanluoguxiang']);
+    // §13 T4: the palace in its real order, and 神武门 a way out only
+    assert.deepEqual(walkPath(index, 'wumen', 'yuhuayuan'), ['wumen', 'taihedian', 'qianqinggong', 'yuhuayuan']);
+    assert.deepEqual(walkPath(index, 'yuhuayuan', 'jiaolou'), ['yuhuayuan', 'jiaolou']);
+    assert.equal(walkPath(index, 'jiaolou', 'yuhuayuan'), null);
+    assert.deepEqual(walkPath(index, 'qianmen-street', 'ruifuxiang'), ['qianmen-street', 'dashilar', 'ruifuxiang']);
     // across town needs a ride
     assert.equal(walkPath(index, 'nanluo-main', 'panjiayuan-market'), null);
   });

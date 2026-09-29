@@ -3,8 +3,8 @@
   "kind": "prop",
   "id": "arrow-tower",
   "tile": [
-   1,
-   14
+   8,
+   7
   ],
   "frame": "tower/arrow",
   "blocks": [
@@ -16,128 +16,18 @@
   "kind": "sign",
   "id": "gate",
   "tile": [
-   3,
-   15
+   10,
+   7
   ],
   "text": "前门",
-  "en": "Qianmen, the Front Gate"
- },
- {
-  "kind": "sign",
-  "id": "s-duck",
-  "tile": [
-   17,
-   4
-  ],
-  "text": "烤鸭",
-  "en": "Roast duck"
- },
- {
-  "kind": "door",
-  "id": "duck",
-  "tile": [
-   18,
-   5
-  ],
-  "to": {
-   "map": "qianmen-street",
-   "tile": [
-    18,
-    6
-   ],
-   "facing": "down"
-  },
-  "when": {
-   "flag": "never"
-  },
-  "locked": "The roast-duck place: the queue goes round the corner. Another day."
- },
- {
-  "kind": "door",
-  "id": "xiyuan",
-  "tile": [
-   26,
-   5
-  ],
-  "to": {
-   "map": "xiyuan",
-   "tile": [
-    8,
-    10
-   ],
-   "facing": "up"
-  }
- },
- {
-  "kind": "sign",
-  "id": "s-xiyuan",
-  "tile": [
-   25,
-   4
-  ],
-  "text": "戏园",
-  "en": "The opera house"
- },
- {
-  "kind": "sign",
-  "id": "s-silk",
-  "tile": [
-   34,
-   4
-  ],
-  "text": "老字号",
-  "en": "An old shop, a hundred years old"
- },
- {
-  "kind": "sign",
-  "id": "dashilar",
-  "tile": [
-   38,
-   6
-  ],
-  "text": "大栅栏",
-  "en": "Dashilar"
- },
- {
-  "kind": "prop",
-  "id": "door-gods",
-  "tile": [
-   40,
-   5
-  ],
-  "frame": "door-gods/faded",
-  "blocks": [
-   2,
-   1
-  ],
-  "when": {
-   "not": {
-    "spirit": "menshen"
-   }
-  }
- },
- {
-  "kind": "prop",
-  "id": "door-gods-bright",
-  "tile": [
-   40,
-   5
-  ],
-  "frame": "door-gods/bright",
-  "blocks": [
-   2,
-   1
-  ],
-  "when": {
-   "spirit": "menshen"
-  }
+  "en": "Qianmen: the Arrow Tower (箭楼) of the old front gate — 前门大街 runs south from it"
  },
  {
   "kind": "door",
   "id": "station",
   "tile": [
-   44,
-   16
+   2,
+   8
   ],
   "to": {
    "map": "station-qianmen",
@@ -152,8 +42,8 @@
   "kind": "door",
   "id": "station-2",
   "tile": [
-   45,
-   16
+   3,
+   8
   ],
   "to": {
    "map": "station-qianmen",
@@ -168,8 +58,8 @@
   "kind": "prop",
   "id": "metro-sign",
   "tile": [
-   43,
-   16
+   1,
+   8
   ],
   "frame": "subway-sign/post",
   "blocks": [
@@ -178,11 +68,144 @@
   ]
  },
  {
+  "kind": "door",
+  "id": "xiyuan",
+  "tile": [
+   15,
+   20
+  ],
+  "to": {
+   "map": "xiyuan",
+   "tile": [
+    8,
+    10
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "s-xiyuan",
+  "tile": [
+   15,
+   19
+  ],
+  "text": "老舍茶馆",
+  "en": "The Lao She Teahouse — tea, and Peking opera on its stage"
+ },
+ {
+  "kind": "door",
+  "id": "duck",
+  "tile": [
+   15,
+   30
+  ],
+  "to": {
+   "map": "qianmen-street",
+   "tile": [
+    14,
+    30
+   ],
+   "facing": "left"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "s-duck",
+  "tile": [
+   15,
+   27
+  ],
+  "text": "烤鸭",
+  "en": "Roast duck"
+ },
+ {
+  "kind": "sign",
+  "id": "dashilar",
+  "tile": [
+   6,
+   25
+  ],
+  "text": "大栅栏",
+  "en": "Dashilar — the old shopping lane, west"
+ },
+ {
+  "kind": "prop",
+  "id": "door-gods",
+  "tile": [
+   15,
+   38
+  ],
+  "frame": "door-gods/faded",
+  "blocks": [
+   1,
+   1
+  ],
+  "when": {
+   "not": {
+    "spirit": "menshen"
+   }
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "door-gods-bright",
+  "tile": [
+   15,
+   38
+  ],
+  "frame": "door-gods/bright",
+  "blocks": [
+   1,
+   1
+  ],
+  "when": {
+   "spirit": "menshen"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "tram",
+  "tile": [
+   9,
+   44
+  ],
+  "frame": "tram/red",
+  "blocks": [
+   3,
+   2
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "tram-sign",
+  "tile": [
+   10,
+   44
+  ],
+  "text": "铛铛车",
+  "en": "The Dangdang tram, an old-style tram that runs down 前门大街"
+ },
+ {
   "kind": "prop",
   "id": "l1",
   "tile": [
-   15,
-   5
+   7,
+   12
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lr1",
+  "tile": [
+   14,
+   14
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -195,8 +218,22 @@
   "kind": "prop",
   "id": "l2",
   "tile": [
-   23,
-   5
+   7,
+   22
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lr2",
+  "tile": [
+   14,
+   24
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -209,8 +246,22 @@
   "kind": "prop",
   "id": "l3",
   "tile": [
-   30,
-   5
+   7,
+   34
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lr3",
+  "tile": [
+   14,
+   36
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -223,8 +274,50 @@
   "kind": "prop",
   "id": "l4",
   "tile": [
-   37,
-   5
+   7,
+   46
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lr4",
+  "tile": [
+   14,
+   48
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l5",
+  "tile": [
+   7,
+   52
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lr5",
+  "tile": [
+   14,
+   54
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -235,20 +328,50 @@
  },
  {
   "kind": "npc",
-  "id": "granny",
-  "npc": "dashilar-nainai",
+  "id": "kaoya",
+  "npc": "kaoya-shifu",
   "tile": [
-   37,
-   8
+   14,
+   31
   ],
   "facing": "left"
+ },
+ {
+  "kind": "npc",
+  "id": "yingzi",
+  "npc": "yingzi",
+  "tile": [
+   10,
+   24
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "wukong",
+  "npc": "wukong-xiaohai",
+  "tile": [
+   11,
+   33
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "nezha",
+  "npc": "nezha-xiaohai",
+  "tile": [
+   12,
+   33
+  ],
+  "facing": "down"
  },
  {
   "kind": "prop",
   "id": "stand-bike-0",
   "tile": [
-   12,
-   12
+   8,
+   16
   ],
   "frame": "bicycle/side",
   "blocks": [
@@ -260,100 +383,19 @@
   "kind": "bike",
   "id": "bike-stand-0",
   "tile": [
-   13,
-   12
+   9,
+   16
   ]
  },
  {
-  "kind": "npc",
-  "id": "kaoya",
-  "npc": "kaoya-shifu",
-  "tile": [
-   30,
-   8
-  ],
-  "facing": "down"
- },
- {
-  "kind": "npc",
-  "id": "yingzi",
-  "npc": "yingzi",
-  "tile": [
-   20,
-   10
-  ],
-  "facing": "down"
- },
- {
-  "kind": "npc",
-  "id": "wukong",
-  "npc": "wukong-xiaohai",
-  "tile": [
-   24,
-   12
-  ],
-  "facing": "down"
- },
- {
-  "kind": "npc",
-  "id": "nezha",
-  "npc": "nezha-xiaohai",
-  "tile": [
-   26,
-   12
-  ],
-  "facing": "left"
- },
- {
-  "kind": "door",
-  "id": "ruifuxiang",
-  "tile": [
-   35,
-   5
-  ],
-  "to": {
-   "map": "ruifuxiang",
-   "tile": [
-    5,
-    6
-   ],
-   "facing": "up"
+  "kind": "edge",
+  "id": "west",
+  "side": "left",
+  "from": 26,
+  "to": 28,
+  "target": {
+   "map": "dashilar",
+   "offset": -19
   }
- },
- {
-  "kind": "sign",
-  "id": "s-ruifuxiang",
-  "tile": [
-   34,
-   3
-  ],
-  "text": "瑞蚨祥",
-  "en": "Ruifuxiang — silk since the Qing"
- },
- {
-  "kind": "door",
-  "id": "neiliansheng",
-  "tile": [
-   45,
-   5
-  ],
-  "to": {
-   "map": "neiliansheng",
-   "tile": [
-    5,
-    6
-   ],
-   "facing": "up"
-  }
- },
- {
-  "kind": "sign",
-  "id": "s-neiliansheng",
-  "tile": [
-   44,
-   3
-  ],
-  "text": "内联升",
-  "en": "Neiliansheng — cloth shoes"
  }
 ]

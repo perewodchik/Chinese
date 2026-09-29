@@ -118,7 +118,7 @@
  },
  {
   "id": "granny",
-  "map": "qianmen-street",
+  "map": "dashilar",
   "npc": "dashilar-nainai",
   "trigger": "talk",
   "start": "a",
@@ -393,7 +393,7 @@
  },
  {
   "id": "tea-want",
-  "map": "qianmen-street",
+  "map": "dashilar",
   "npc": "dashilar-nainai",
   "trigger": "talk",
   "priority": 0,
@@ -427,7 +427,7 @@
  },
  {
   "id": "tea-give",
-  "map": "qianmen-street",
+  "map": "dashilar",
   "npc": "dashilar-nainai",
   "trigger": "talk",
   "priority": -1,

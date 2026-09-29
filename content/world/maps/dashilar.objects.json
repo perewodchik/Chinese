@@ -1,0 +1,189 @@
+[
+ {
+  "kind": "door",
+  "id": "ruifuxiang",
+  "tile": [
+   12,
+   4
+  ],
+  "to": {
+   "map": "ruifuxiang",
+   "tile": [
+    5,
+    6
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "neiliansheng",
+  "tile": [
+   24,
+   4
+  ],
+  "to": {
+   "map": "neiliansheng",
+   "tile": [
+    5,
+    6
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "s-ruifuxiang",
+  "tile": [
+   12,
+   3
+  ],
+  "text": "瑞蚨祥",
+  "en": "Ruifuxiang, silk and cloth since the Qing"
+ },
+ {
+  "kind": "sign",
+  "id": "s-neiliansheng",
+  "tile": [
+   24,
+   3
+  ],
+  "text": "内联升",
+  "en": "Neiliansheng, cloth shoes made by hand"
+ },
+ {
+  "kind": "sign",
+  "id": "lane",
+  "tile": [
+   1,
+   3
+  ],
+  "text": "大栅栏",
+  "en": "Dashilar"
+ },
+ {
+  "kind": "sign",
+  "id": "s-old",
+  "tile": [
+   17,
+   3
+  ],
+  "text": "老字号",
+  "en": "An old shop"
+ },
+ {
+  "kind": "sign",
+  "id": "s-tea",
+  "tile": [
+   29,
+   3
+  ],
+  "text": "茶叶",
+  "en": "Tea leaves"
+ },
+ {
+  "kind": "prop",
+  "id": "l1",
+  "tile": [
+   3,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l2",
+  "tile": [
+   9,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l3",
+  "tile": [
+   15,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l4",
+  "tile": [
+   21,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l5",
+  "tile": [
+   27,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l6",
+  "tile": [
+   33,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "npc",
+  "id": "granny",
+  "npc": "dashilar-nainai",
+  "tile": [
+   18,
+   7
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "edge",
+  "id": "east",
+  "side": "right",
+  "from": 7,
+  "to": 9,
+  "target": {
+   "map": "qianmen-street",
+   "offset": 19
+  }
+ }
+]

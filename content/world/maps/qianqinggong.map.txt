@@ -1,0 +1,70 @@
+id: qianqinggong
+size: 36x30
+tilesets: tiles
+district: tiananmen
+pigeons: 2
+crowd: 3
+below_keys: 1=pitch-yellow-ridge-l 2=pitch-yellow-ridge 3=pitch-yellow-ridge-r 4=pitch-yellow-up-l 5=pitch-yellow-up 6=pitch-yellow-up-r 7=pitch-yellow-slope-l 8=pitch-yellow-slope 9=pitch-yellow-slope-r a=pitch-yellow-eave-l b=pitch-yellow-eave c=pitch-yellow-eave-r d=beam-xuanzi e=face-lattice f=face-pillar s=face-studs t=face-studs-r
+
+[ground]
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+[below]
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVW
+W........122222222222222223........W
+W........455555555555555556........W
+W........788888888888888889........W
+W........abbbbbbbbbbbbbbbbc........W
+W........dddddddddddddddddd........W
+W........feeffeefsteffeeffe........W
+W..................................W
+W..................................W
+W..................................W
+W..................................W
+W............1222222223............W
+W............4555555556............W
+W............7888888889............W
+W............abbbbbbbbc............W
+W............dddddddddd............W
+W............feeffeeffe............W
+W..................................W
+W..................................W
+W..................................W
+W..................................W
+W..................................W
+W..................................W
+W..................................W
+W..................................W
+W..................................W
+W..................................W
+W..................................W
+W..................................W

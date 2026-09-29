@@ -119,6 +119,7 @@ export const mapObjectSchema: z.ZodType<MapObject> = z.discriminatedUnion('kind'
     to: z.strictObject({ map: id, tile, facing: facing.optional() }),
     when: conditionSchema.optional(),
     locked: z.string().optional(),
+    oneWay: z.boolean().optional(),
   }),
   z.strictObject({
     kind: z.literal('edge'),

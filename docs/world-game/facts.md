@@ -42,6 +42,9 @@ Checked 2026-09-30 unless dated otherwise.
 | `ditan-miaohui` | the 地坛 春节 temple fair is held every New Year (the 37th in 2025, 初一 to 初七) | ✓ | [people.cn — 2025地坛庙会](http://bj.people.com.cn/n2/2025/0131/c14540-41124434.html) |
 | `taihedian-beasts` | 太和殿 has 10 ridge beasts behind the immortal riding a phoenix — the most on any old building; the 10th (行什) is found only there | ✓ | [zh.wikipedia — 仙人走兽](https://zh.wikipedia.org/zh-hans/%E4%BB%99%E4%BA%BA%E8%B5%B0%E5%85%BD) |
 | `menting-81` | the palace gates 午门, 神武门, 西华门 have 9 × 9 = 81 门钉; **东华门 has 9 rows × 8 = 72** (explanations differ — say "people say it was the gate for funerals") | ✓ / ~ for the reason | [163 — 东华门门钉之谜](https://c.m.163.com/news/a/H49URO5I05532UKP.html); [qianggen](https://culture.qianggen.net/2019/0613/68686.html) |
+| `shenwumen-exit` | visitors enter the Palace Museum at 午门 and leave by 神武门 (the north gate), which is an exit | ? | check in S8; the game makes 神武门 one-way |
+| `laoshe-teahouse` | 老舍茶馆 is by 前门 and has shows (opera, 曲艺) with the tea | ? | check in S3 before a line names it; the map signs it on 前门大街 |
+| `wfj-station-south` | 王府井 station (line 1) is at the south end of 王府井大街, on 东长安街 | ? | check in S3 |
 | `gugong-rooms` | the legend says 9,999½ rooms; a 1973 survey counted 8,704 | ? | check in S8 (book 14) |
 | `jiulongbi` | the palace's 九龙壁 stands in front of 皇极门 in the east (宁寿宫 area) | ? | check in T4 |
 | `changlang-paintings` | the 长廊 of 颐和园: 728 m, 273 bays, more than 14,000 paintings (landscapes, birds, and scenes from the four classic novels); Guinness 1990 | ✓ | [visitbeijing — 长廊](https://www.visitbeijing.com.cn/article/47Qs87fyYVC); [kepuchina](https://www.kepuchina.cn/wiki/ct/201903/t20190323_1029637.shtml) |

@@ -1,0 +1,135 @@
+[
+ {
+  "kind": "sign",
+  "id": "qianqing",
+  "tile": [
+   17,
+   6
+  ],
+  "text": "乾清宫",
+  "en": "The Palace of Heavenly Purity, where emperors lived"
+ },
+ {
+  "kind": "sign",
+  "id": "baohe",
+  "tile": [
+   17,
+   16
+  ],
+  "text": "保和殿",
+  "en": "The Hall of Preserving Harmony — once the hall of the palace exam"
+ },
+ {
+  "kind": "sign",
+  "id": "zhonghe",
+  "tile": [
+   17,
+   24
+  ],
+  "text": "中和殿",
+  "en": "The Hall of Central Harmony: a small square hall where the emperor rested"
+ },
+ {
+  "kind": "prop",
+  "id": "zhonghe-hall",
+  "tile": [
+   15,
+   25
+  ],
+  "frame": "pavilion-small/yellow",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "door",
+  "id": "south",
+  "tile": [
+   17,
+   29
+  ],
+  "to": {
+   "map": "taihedian",
+   "tile": [
+    20,
+    1
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "south-2",
+  "tile": [
+   18,
+   29
+  ],
+  "to": {
+   "map": "taihedian",
+   "tile": [
+    20,
+    1
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "north",
+  "tile": [
+   17,
+   7
+  ],
+  "to": {
+   "map": "yuhuayuan",
+   "tile": [
+    15,
+    20
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "north-2",
+  "tile": [
+   18,
+   7
+  ],
+  "to": {
+   "map": "yuhuayuan",
+   "tile": [
+    16,
+    20
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "censer-1",
+  "tile": [
+   6,
+   20
+  ],
+  "frame": "censer/cold",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "censer-2",
+  "tile": [
+   28,
+   20
+  ],
+  "frame": "censer/cold",
+  "blocks": [
+   2,
+   1
+  ]
+ }
+]

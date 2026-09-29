@@ -40,7 +40,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1–K3, Q1–Q3, V1–V4, T1–T3 done (2026-09-30) — continue at T4. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
+§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1–K3, Q1–Q3, V1–V4, T1–T4 done (2026-09-30) — continue at T5. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
 
 ## Tasks
 ### A — core logic
@@ -177,7 +177,7 @@ first unchecked box. Tick a box in the same commit as the work.
 - [x] T1 鼓楼 · 南锣鼓巷 redone (N–S lane with 胡同 legs, 钟鼓楼 square, 烟袋斜街, 鼓楼东大街)
 - [x] T2 什刹海 · 银锭桥 · 恭王府 gate · 北海 白塔 · 景山 pavilions
 - [x] T3 Temples: 雍和宫 (2 maps), 孔庙, 天坛 祈年殿 + 圜丘, 白云观, 东岳庙, 地坛 庙会
-- [ ] T4 王府井 · 前门/大栅栏 · 故宫 axis realism pass
+- [x] T4 王府井 · 前门/大栅栏 · 故宫 axis realism pass
 - [ ] T5 Map checks and before/after renders
 - [ ] B1 Book format + reader + 书架 + Collection 书 view (books themselves are written in S/U/L)
 - [ ] S1 Ch. 1 新家 deepened (+ save v14 step/chapter upgrade)
@@ -341,6 +341,7 @@ _(date — decision — why)_
 - 2026-09-30 — T1: **烟袋斜街 belongs to the 后海 district** (and the 什刹海 neighbourhood), since chapter 2 starts there; 鼓楼东大街 to 鼓楼. The shops on the north–south 南锣鼓巷 open as doorways in the side walls (a lit mat in a gap), their signs on the wall above. The 胡同 names and their order are from Wikipedia (two sources agree); only 帽儿胡同 leads anywhere — the others end at the map's edge, as side lanes do. 平安大街's place is now named 地安门东大街 (the street at 南锣鼓巷's south end, part of 平安大街).
 - 2026-09-30 — T2: the 诗社 (X9) moved from 后海's shore into a new **恭王府 garden** map behind the gate on 后海's south shore (its scenes' map changed; the talk is unchanged). 琼华岛 (`beihai-baita`) is reached **by boat** from a pier on 北海's north shore — a door, as the park's ferries do. 景山's four smaller pavilions are drawn green (the brief did not ask for their real glaze colours, and none were checked).
 - 2026-09-30 — T3: 雍和宫's two maps are **the courtyards** and **inside 万福阁** (the Maitreya is the point; a second courtyard would add walking, not Chinese). Line 1 now starts at **木樨地** (+ 南礼士路) so 白云观 has its real station; 东岳庙 uses 朝阳门 (lines 2 and 6, already modelled). A new district `xianghuo` holds 白云观 and 东岳庙 (chapter 5 until S1 renumbers). 地坛's 庙会 is props that appear only at 春节. Line 1's direction west now reads 「往木樨地方向」 (the game's line ends there; the real line runs on to 古城 — a simplification, as before with 复兴门).
+- 2026-09-30 — T4: the old 戏园 map is signed **老舍茶馆** (tea and opera on one stage — the X9 茶馆 homage stays with 老刘 in 鼓楼's teahouse). 瑞蚨祥, 内联升 and the 大栅栏 granny moved to a new **大栅栏** lane west off 前门大街. Doors can be **`oneWay`** (神武门: out only); walking routes respect it. The palace gained one map (中和殿 · 保和殿 · 乾清宫) between 太和殿 and 御花园; 御花园 is no longer reached from 太和殿's west side.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

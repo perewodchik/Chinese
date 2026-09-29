@@ -8,7 +8,8 @@
     "station-qianmen",
     "xiyuan",
     "ruifuxiang",
-    "neiliansheng"
+    "neiliansheng",
+    "dashilar"
   ],
   "stations": [
     "qianmen",
@@ -29,7 +30,13 @@
     "关公",
     "英子",
     "孙悟空",
-    "哪吒"
+    "哪吒",
+    "瑞蚨祥",
+    "内联升",
+    "老舍茶馆",
+    "铛铛车",
+    "箭楼",
+    "前门大街"
   ],
   "ambience": "street"
 }
