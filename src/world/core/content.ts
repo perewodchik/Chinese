@@ -195,6 +195,7 @@ const nodeSchema: z.ZodType<DialogueNode> = z.strictObject({
   choose: chooseSchema.optional(),
   order: z.strictObject({ shop: id, go: id.optional() }).optional(),
   sell: z.strictObject({ share: z.number().min(0).max(1) }).optional(),
+  bargain: z.strictObject({ item: id.optional(), open: z.number().positive(), limit: z.number().positive(), sell: z.literal(true).optional(), go: id.optional() }).optional(),
   trace: traceSchema.optional(),
   next: id.optional(),
   hint: z.strictObject({ word: text, frame: text, full: text }).optional(),
@@ -434,6 +435,13 @@ export function checkReferences(
         if (n.choose.options.filter((o) => o.right).length !== 1) errors.push(`${nat}.choose: needs exactly one right option`);
         if (n.choose.go && !nodes.has(n.choose.go)) errors.push(`${nat}.choose.go: no node "${n.choose.go}"`);
         n.choose.actions?.forEach((a, ai) => checkAction(a, `${nat}.choose.actions[${ai}]`));
+      }
+      if (n.bargain) {
+        const b = n.bargain;
+        if (b.go && !nodes.has(b.go)) errors.push(`${nat}.bargain.go: no node "${b.go}"`);
+        if (b.item && !items.has(b.item)) errors.push(`${nat}.bargain.item: unknown item "${b.item}"`);
+        if (b.sell ? b.limit < b.open : b.limit > b.open) errors.push(`${nat}.bargain: the limit is past the first price`);
+        if (n.expect?.length || n.next || n.choose || n.trace) errors.push(`${nat}: a bargain line waits for nothing else`);
       }
       if (n.trace) {
         if (n.trace.go && !nodes.has(n.trace.go)) errors.push(`${nat}.trace.go: no node "${n.trace.go}"`);

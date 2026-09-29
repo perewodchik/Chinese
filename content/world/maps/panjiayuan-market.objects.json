@@ -303,5 +303,55 @@
     }
    ]
   }
+ },
+ {
+  "kind": "npc",
+  "id": "s-chahu",
+  "npc": "chahu-ayi",
+  "tile": [
+   4,
+   7
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "s-tongqian",
+  "npc": "tongqian-yeye",
+  "tile": [
+   20,
+   7
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "s-shanzi",
+  "npc": "shanzi-jiejie",
+  "tile": [
+   36,
+   7
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "s-biyanhu",
+  "npc": "biyanhu-laoban",
+  "tile": [
+   20,
+   14
+  ],
+  "facing": "up"
+ },
+ {
+  "kind": "npc",
+  "id": "s-laodongxi",
+  "npc": "mai-laodongxi",
+  "tile": [
+   40,
+   11
+  ],
+  "facing": "left"
  }
 ]

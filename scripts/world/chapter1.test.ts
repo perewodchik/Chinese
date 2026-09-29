@@ -40,8 +40,8 @@ function play(s: WorldSave, sceneId: string, answers: string[] = []): { save: Wo
   const said = [t.say?.zh ?? ''];
   for (let i = 0, guard = 0; !t.state.ended && guard < 30; guard++) {
     const node: DialogueNode = scene.nodes.find((n) => n.id === t.state.node)!;
-    if (node.order) {
-      // a shop (Y1): the given words, else the hint — order the first thing, then 不要了 to pay
+    if (node.order || node.bargain) {
+      // a shop (Y1) or a stall's bargain (Y6): the given words, else the hint — order the first thing, then 不要了 to pay
       // at a shop: the given words, else what a patient player says — the first thing, 不要了, then the amount on the phone (Y2)
       const u = !t.state.due && answers[i] !== undefined ? { text: answers[i++]!, via: 'keyboard' as const } : src.answer(t.state)!;
       t = src.reply(t.state, u);
@@ -360,7 +360,7 @@ describe('chapter 6, played through the core', () => {
     s = play(s, 'lock').save;
     assert.ok('亡羊补牢' in s.idioms);
     const before = s.bag.money;
-    s = play(s, 'bargain', ['这个年兽多少钱？', '真的假的？', '太贵了！便宜点儿吧。', '一百吧。', '好，给你。']).save;
+    s = play(s, 'bargain', ['这个年兽多少钱？', '太贵了！便宜点儿吧。', '一百吧。']).save;
     assert.equal(s.bag.money, before - 100);
     assert.ok('nianshou' in s.spirits);
     assert.equal(s.quests.ch6?.done, true);

@@ -9,6 +9,7 @@
  */
 
 import type { SaveAction } from '../save';
+import type { Haggle } from '../bargain';
 import type { Scene, WorldSave } from '../types';
 
 /** One line on screen. */
@@ -79,6 +80,8 @@ export interface DialogueState {
   offer?: { item: string; name: string; price: number };
   /** what is in your bag that could be handed over by saying it (Y4) */
   held?: { item: string; name: string }[];
+  /** at a stall (Y6): the price on the table and how the bargaining has gone */
+  haggle?: Haggle;
 }
 
 /** What happened to the player's line. */

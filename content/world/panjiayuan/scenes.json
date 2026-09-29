@@ -93,16 +93,6 @@
     "w": "古董",
     "explain": "很老很老的东西，很贵。",
     "en": "antique"
-   },
-   {
-    "w": "便宜点儿",
-    "explain": "钱少一点。",
-    "en": "cheaper, please"
-   },
-   {
-    "w": "真的假的",
-    "explain": "是真的吗？",
-    "en": "really?"
    }
   ],
   "nodes": [
@@ -134,120 +124,11 @@
     "id": "b",
     "say": "这个年兽？是古董！两百块。",
     "translate": "This 年兽? A real antique! Two hundred.",
-    "expect": [
-     {
-      "intent": "cheaper",
-      "match": [
-       [
-        "便宜点儿",
-        "便宜",
-        "太贵",
-        "贵"
-       ]
-      ],
-      "go": "c"
-     },
-     {
-      "intent": "really",
-      "match": [
-       [
-        "真的假的",
-        "真的"
-       ]
-      ],
-      "go": "b2"
-     }
-    ],
-    "hint": {
-     "word": "便宜点儿",
-     "frame": "太贵了！___吧。",
-     "full": "太贵了！便宜点儿吧。"
-    },
-    "why": "便宜点儿 — a bit cheaper. 真的假的 — really? Both are the market's everyday words."
-   },
-   {
-    "id": "b2",
-    "say": "真的假的？是真的古董！两百块。",
-    "translate": "Really? A genuine antique! Two hundred.",
-    "simpler": "真的假的？是真的！",
-    "expect": [
-     {
-      "intent": "cheaper",
-      "match": [
-       [
-        "便宜点儿",
-        "便宜",
-        "太贵",
-        "贵"
-       ]
-      ],
-      "go": "c"
-     }
-    ],
-    "hint": {
-     "word": "便宜点儿",
-     "frame": "太贵了！___吧。",
-     "full": "太贵了！便宜点儿吧。"
-    }
-   },
-   {
-    "id": "c",
-    "say": "便宜点儿？一百五。",
-    "translate": "Cheaper? A hundred and fifty.",
-    "expect": [
-     {
-      "intent": "more",
-      "match": [
-       [
-        "便宜点儿",
-        "便宜",
-        "太贵",
-        "贵",
-        "一百",
-        "五十"
-       ]
-      ],
-      "go": "d"
-     }
-    ],
-    "hint": {
-     "word": "一百",
-     "frame": "___吧。",
-     "full": "一百吧。"
-    }
-   },
-   {
-    "id": "d",
-    "say": "好吧，一百块。",
-    "translate": "Fine — a hundred.",
-    "expect": [
-     {
-      "intent": "deal",
-      "match": [
-       [
-        "好",
-        "好的",
-        "行",
-        "可以",
-        "要",
-        "是",
-        "对",
-        "行"
-       ]
-      ],
-      "go": "e",
-      "actions": [
-       {
-        "do": "money",
-        "amount": -100
-       }
-      ]
-     }
-    ],
-    "hint": {
-     "word": "好",
-     "frame": "___，给你。",
-     "full": "好，给你。"
+    "why": "便宜点儿 — a bit cheaper. 真的假的 — really? Bargain: 「太贵了」, 「一百块行吗？」, or 「算了」 and walk away.",
+    "bargain": {
+     "open": 200,
+     "limit": 100,
+     "go": "e"
     }
    },
    {
@@ -335,11 +216,6 @@
     "w": "地图",
     "explain": "画了路和地方的纸。",
     "en": "map"
-   },
-   {
-    "w": "便宜点儿",
-    "explain": "钱少一点。",
-    "en": "cheaper, please"
    }
   ],
   "nodes": [
@@ -356,63 +232,12 @@
      }
     ],
     "key": true,
-    "expect": [
-     {
-      "intent": "cheaper",
-      "match": [
-       [
-        "便宜点儿",
-        "便宜",
-        "太贵",
-        "贵"
-       ]
-      ],
-      "go": "b"
-     }
-    ],
-    "hint": {
-     "word": "便宜点儿",
-     "frame": "太贵了！___吧。",
-     "full": "太贵了！便宜点儿吧。"
-    },
-    "why": "老 — old — is HSK 3: a small key line. Bargain!"
-   },
-   {
-    "id": "b",
-    "say": "便宜点儿？好，三十块。",
-    "translate": "Cheaper? Fine, thirty.",
-    "simpler": "地图，三十块。",
-    "expect": [
-     {
-      "intent": "yes",
-      "match": [
-       [
-        "好",
-        "好的",
-        "行",
-        "可以",
-        "要",
-        "是",
-        "对"
-       ]
-      ],
-      "go": "c",
-      "actions": [
-       {
-        "do": "money",
-        "amount": -30
-       },
-       {
-        "do": "give",
-        "item": "ditu"
-       }
-      ]
-     }
-    ],
-    "hint": {
-     "word": "好",
-     "frame": "___，给你。",
-     "full": "好，给你。"
+    "why": "老 — old — is HSK 3: a small key line. Bargain! 「太贵了」, 「便宜一点」, 「三十块行吗？」 — or 「算了」 and walk away: he may call you back.",
+    "bargain": {
+     "item": "ditu",
+     "open": 50,
+     "limit": 30,
+     "go": "c"
     }
    },
    {
@@ -596,6 +421,280 @@
      }
     ],
     "why": "一念之间, “in the space of one thought”. This is his market, it seems."
+   }
+  ]
+ },
+ {
+  "id": "stall-chahu",
+  "map": "panjiayuan-market",
+  "npc": "chahu-ayi",
+  "trigger": "talk",
+  "priority": 3,
+  "when": {
+   "not": {
+    "item": "chahu"
+   }
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "茶壶",
+    "explain": "喝茶的时候用的东西。",
+    "en": "teapot"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你看这个茶壶，很好看！八十块。",
+    "translate": "Hello! Look at this teapot — lovely! Eighty.",
+    "bargain": {
+     "item": "chahu",
+     "open": 80,
+     "limit": 50,
+     "go": "b"
+    },
+    "why": "Bargain! 「太贵了」, 「便宜一点」, a price of your own — 「二十块行吗？」 — or 「算了」: walk away, and they may call you back."
+   },
+   {
+    "id": "b",
+    "say": "谢谢！这个茶壶是你的了！",
+    "translate": "Thank you! The teapot is yours!"
+   }
+  ]
+ },
+ {
+  "id": "chat-chahu",
+  "map": "panjiayuan-market",
+  "npc": "chahu-ayi",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！来喝杯茶吧！",
+    "translate": "Hello! Have a cup of tea!"
+   }
+  ]
+ },
+ {
+  "id": "stall-tongqian",
+  "map": "panjiayuan-market",
+  "npc": "tongqian-yeye",
+  "trigger": "talk",
+  "priority": 3,
+  "when": {
+   "not": {
+    "item": "tongqian"
+   }
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "铜钱",
+    "explain": "很老很老的钱。",
+    "en": "copper coin"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这是铜钱！很好的铜钱。二十五块。",
+    "translate": "Copper coins! Fine old copper coins. Twenty-five.",
+    "bargain": {
+     "item": "tongqian",
+     "open": 25,
+     "limit": 15,
+     "go": "b"
+    },
+    "why": "Bargain! 「太贵了」, 「便宜一点」, a price of your own — 「二十块行吗？」 — or 「算了」: walk away, and they may call you back."
+   },
+   {
+    "id": "b",
+    "say": "好，铜钱给你！",
+    "translate": "All right — the coin is yours!"
+   }
+  ]
+ },
+ {
+  "id": "chat-tongqian",
+  "map": "panjiayuan-market",
+  "npc": "tongqian-yeye",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！看看吧！",
+    "translate": "Hello! Have a look!"
+   }
+  ]
+ },
+ {
+  "id": "stall-shanzi",
+  "map": "panjiayuan-market",
+  "npc": "shanzi-jiejie",
+  "trigger": "talk",
+  "priority": 3,
+  "when": {
+   "not": {
+    "item": "shanzi"
+   }
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "扇子",
+    "explain": "天热的时候用。",
+    "en": "fan"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "天热了！买一个扇子吧！三十块。",
+    "translate": "It's getting hot! Buy a fan! Thirty.",
+    "bargain": {
+     "item": "shanzi",
+     "open": 30,
+     "limit": 20,
+     "go": "b"
+    },
+    "why": "Bargain! 「太贵了」, 「便宜一点」, a price of your own — 「二十块行吗？」 — or 「算了」: walk away, and they may call you back."
+   },
+   {
+    "id": "b",
+    "say": "好，扇子给你！谢谢！",
+    "translate": "All right — here's your fan! Thank you!"
+   }
+  ]
+ },
+ {
+  "id": "chat-shanzi",
+  "map": "panjiayuan-market",
+  "npc": "shanzi-jiejie",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！今天很热吧？",
+    "translate": "Hello! Hot today, isn't it?"
+   }
+  ]
+ },
+ {
+  "id": "stall-biyanhu",
+  "map": "panjiayuan-market",
+  "npc": "biyanhu-laoban",
+  "trigger": "talk",
+  "priority": 3,
+  "when": {
+   "not": {
+    "item": "biyanhu"
+   }
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "鼻烟壶",
+    "explain": "一个很小很小的瓶子。",
+    "en": "snuff bottle"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "鼻烟壶！很小，很漂亮！一百二。",
+    "translate": "A snuff bottle! Tiny and beautiful! A hundred and twenty.",
+    "bargain": {
+     "item": "biyanhu",
+     "open": 120,
+     "limit": 80,
+     "go": "b"
+    },
+    "why": "一百二 is how the market says 一百二十 (120). Bargain: 「太贵了」, 「八十块行吗？」, or 「算了」 and walk away."
+   },
+   {
+    "id": "b",
+    "say": "好吧……鼻烟壶是你的了。谢谢！",
+    "translate": "Oh well… the snuff bottle is yours. Thank you!"
+   }
+  ]
+ },
+ {
+  "id": "chat-biyanhu",
+  "map": "panjiayuan-market",
+  "npc": "biyanhu-laoban",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我的东西都很漂亮！",
+    "translate": "All my things are beautiful!"
+   }
+  ]
+ },
+ {
+  "id": "sell-tongqian",
+  "map": "panjiayuan-market",
+  "npc": "mai-laodongxi",
+  "trigger": "talk",
+  "priority": 3,
+  "when": {
+   "item": "tongqian"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "铜钱",
+    "explain": "很老很老的钱。",
+    "en": "copper coin"
+   },
+   {
+    "w": "卖",
+    "explain": "给我东西，我给你钱。",
+    "en": "sell"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你有铜钱？我看看……八块，卖不卖？",
+    "translate": "You have a copper coin? Let me see… eight yuan — will you sell?",
+    "bargain": {
+     "item": "tongqian",
+     "open": 8,
+     "limit": 15,
+     "sell": true,
+     "go": "b"
+    },
+    "why": "Now you are the seller: 「太少了」, 「多一点吧」, 「十五块行吗？」 — or 「算了」, and he may call you back. 好 sells."
+   },
+   {
+    "id": "b",
+    "say": "好，这个铜钱是我的了！谢谢！",
+    "translate": "Good — this coin is mine now! Thank you!"
+   }
+  ]
+ },
+ {
+  "id": "chat-laodongxi",
+  "map": "panjiayuan-market",
+  "npc": "mai-laodongxi",
+  "trigger": "talk",
+  "priority": 5,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你有东西卖吗？",
+    "translate": "Hello! Have you got something to sell?"
    }
   ]
  }

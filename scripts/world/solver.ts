@@ -82,7 +82,7 @@ function play(s: WorldSave, scene: Scene, short: string[]): WorldSave {
     const node = scene.nodes.find((n) => n.id === t.state.node)!;
     // at a shop: buy one thing something is waiting for (or the first thing, for a story order), then pay (Y1)
     // paying on the phone (Y2): type the amount heard, or catch a wrong charge first
-    if (node.order && t.state.due) {
+    if ((node.order || node.bargain) && t.state.due) {
       t = src.reply(t.state, src.answer(t.state)!);
       for (const a of t.actions) if (a.do === 'give') bought.set(a.item, (bought.get(a.item) ?? 0) + 1);
       save = act(save, t.actions, short, scene.id);

@@ -83,6 +83,18 @@ export function voiceKey(voice: string, text: string): string {
  */
 export const SAY_BITS = [
   '支付宝到账',
+  // bargaining (Y6): longer pieces before the ones they start with
+  '不能再少了',
+  '不能再多了',
+  '不可以',
+  '太少了',
+  '太多了',
+  '等一下',
+  '好吗',
+  '好吧',
+  '再见',
+  '吧',
+  '好',
   '扫这儿吧',
   '还要什么',
   '不对',

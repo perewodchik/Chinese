@@ -24,5 +24,37 @@
     "name": "长明灯",
     "en": "an ever-burning lamp",
     "kind": "key"
+  },
+  {
+    "id": "chahu",
+    "name": "茶壶",
+    "en": "a little clay teapot",
+    "kind": "gift",
+    "gift": true,
+    "price": 50
+  },
+  {
+    "id": "tongqian",
+    "name": "铜钱",
+    "en": "an old copper coin",
+    "kind": "gift",
+    "gift": true,
+    "price": 15
+  },
+  {
+    "id": "shanzi",
+    "name": "扇子",
+    "en": "a paper fan",
+    "kind": "gift",
+    "gift": true,
+    "price": 20
+  },
+  {
+    "id": "biyanhu",
+    "name": "鼻烟壶",
+    "en": "a painted snuff bottle",
+    "kind": "gift",
+    "gift": true,
+    "price": 80
   }
 ]

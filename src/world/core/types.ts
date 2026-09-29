@@ -5,6 +5,8 @@
  * `content.ts`; the rules that change a save live in `save.ts`.
  */
 
+import type { Bargain } from './bargain';
+
 /** A tile on a map, `[x, y]`, 0-based from the top left. */
 export type Tile = readonly [number, number];
 
@@ -238,6 +240,8 @@ export interface DialogueNode {
   order?: { shop: string; go?: string };
   /** buy things from you (Y3: the recycler): name something in your bag, hear the offer, say 好 */
   sell?: { share: number };
+  /** bargain for one thing at a stall (Y6, `bargain.ts`): the deal is paid on the phone, then `go` */
+  bargain?: Bargain;
   /** when there is nothing to expect: tap to go on here (none = the end) */
   next?: string;
   hint?: Hint;

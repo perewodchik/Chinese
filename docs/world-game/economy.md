@@ -40,6 +40,21 @@ generated from it (`src/world/core/shop.ts`).
 | boat on 后海 | 30 | the boatman |
 | opera show | 50 | 戏园 |
 
+### Bargained at 潘家园 (Y6: first price → the lowest)
+
+| Thing | Asked | Lowest | Seller |
+|---|---|---|---|
+| the clay 年兽 (story) | 200 | 100 | 卖古董的老板 |
+| 地图 (old map, side quest) | 50 | 30 | 卖旧书的大叔 |
+| 茶壶 (teapot) | 80 | 50 | 卖茶壶的阿姨 |
+| 铜钱 (copper coin) | 25 | 15 | 卖铜钱的爷爷 |
+| 扇子 (paper fan) | 30 | 20 | 卖扇子的姐姐 |
+| 鼻烟壶 (snuff bottle) | 120 | 80 | 卖鼻烟壶的老板 |
+
+Two 「太贵了」 bring the price halfway down each time; your own fair
+offer is taken the second time you say it; walking away (「算了」) gets
+one call back at the lowest price.
+
 ## Money coming in
 
 | From | How much | When |
@@ -52,6 +67,7 @@ generated from it (`src/world/core/shop.ts`).
 | carrying tea at 老刘's (the notice in the 茶馆) | 10 | once a game day |
 | a delivery for the rider (帽儿胡同, evenings, after helping him once) | 5 | once a game day |
 | selling to the recycler (帽儿胡同, mornings) | half of what a thing cost | any time |
+| selling a 铜钱 to the old collector at 潘家园 (bargained up) | 8 → at most 15 | any time — never more than the coin's lowest price, so no money pump |
 | 红包 from 王阿姨 / 赵爷爷 | 50 / 20 | 春节 or 元宵, once each |
 
 So a player who has spent everything earns 40 元 — a 交通卡 — in one game

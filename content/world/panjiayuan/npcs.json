@@ -81,5 +81,145 @@
     "explains": {
       "谜": "一个问题，你要想一想。"
     }
+  },
+  {
+    "id": "chahu-ayi",
+    "name": "卖茶壶的阿姨",
+    "role": "a woman selling clay teapots",
+    "look": {
+      "sprite": "woman",
+      "palette": "teal"
+    },
+    "voice": "xiaoyu",
+    "character": "Warm and quick; pours you a cup while you haggle.",
+    "knows": [
+      "Prices at 潘家园 start high"
+    ],
+    "wants": [
+      "A good price"
+    ],
+    "actions": [
+      "money",
+      "give"
+    ],
+    "routine": [],
+    "explains": {
+      "茶壶": "喝茶的时候用的东西。",
+      "便宜一点": "钱少一点。"
+    },
+    "misses": [
+      "啊？你说什么？"
+    ]
+  },
+  {
+    "id": "tongqian-yeye",
+    "name": "卖铜钱的爷爷",
+    "role": "an old man with a cloth full of old coins",
+    "look": {
+      "sprite": "grandpa",
+      "palette": "blue"
+    },
+    "voice": "wei",
+    "character": "Slow, amused; knows every coin's emperor.",
+    "knows": [
+      "Prices at 潘家园 start high"
+    ],
+    "wants": [
+      "A good price"
+    ],
+    "actions": [
+      "money",
+      "give"
+    ],
+    "routine": [],
+    "explains": {
+      "铜钱": "很老很老的钱。"
+    },
+    "misses": [
+      "啊？你说什么？"
+    ]
+  },
+  {
+    "id": "shanzi-jiejie",
+    "name": "卖扇子的姐姐",
+    "role": "a young woman selling painted paper fans",
+    "look": {
+      "sprite": "woman",
+      "palette": "black"
+    },
+    "voice": "wang",
+    "character": "Chatty, fans herself the whole time.",
+    "knows": [
+      "Prices at 潘家园 start high"
+    ],
+    "wants": [
+      "A good price"
+    ],
+    "actions": [
+      "money",
+      "give"
+    ],
+    "routine": [],
+    "explains": {
+      "扇子": "天热的时候用。"
+    },
+    "misses": [
+      "啊？你说什么？"
+    ]
+  },
+  {
+    "id": "biyanhu-laoban",
+    "name": "卖鼻烟壶的老板",
+    "role": "a man with tiny painted bottles under glass",
+    "look": {
+      "sprite": "uncle",
+      "palette": "brown"
+    },
+    "voice": "zhiyuan",
+    "character": "Proud of every bottle; drops the price with a sigh.",
+    "knows": [
+      "Prices at 潘家园 start high"
+    ],
+    "wants": [
+      "A good price"
+    ],
+    "actions": [
+      "money",
+      "give"
+    ],
+    "routine": [],
+    "explains": {
+      "鼻烟壶": "一个很小很小的瓶子。"
+    },
+    "misses": [
+      "啊？你说什么？"
+    ]
+  },
+  {
+    "id": "mai-laodongxi",
+    "name": "买老东西的老先生",
+    "role": "an old collector who buys small old things",
+    "look": {
+      "sprite": "grandpa"
+    },
+    "voice": "chen",
+    "character": "Peers at everything through his glasses; opens low, always.",
+    "knows": [
+      "Prices at 潘家园 start high"
+    ],
+    "wants": [
+      "A good price"
+    ],
+    "actions": [
+      "money",
+      "give"
+    ],
+    "routine": [],
+    "explains": {
+      "铜钱": "很老很老的钱。"
+    },
+    "misses": [
+      "啊？你说什么？"
+    ]
   }
 ]

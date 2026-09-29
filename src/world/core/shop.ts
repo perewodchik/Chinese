@@ -15,6 +15,7 @@
  */
 
 import { holds } from './flags';
+import { readNumber } from './numbers';
 import type { Condition, Item, Scene, WorldSave } from './types';
 
 export interface ShopStock {
@@ -54,17 +55,7 @@ export interface CartLine {
 const DIGITS = '零一二三四五六七八九';
 export const MEASURES = ['个', '杯', '瓶', '本', '张', '串', '斤', '块', '盒', '包', '把', '支', '条', '份', '碗', '双', '件', '根', '副', '盆', '幅'];
 
-/** 一 … 九十九 from Chinese numerals or digits; null when it is not a number. */
-export function readNumber(s: string): number | null {
-  if (/^\d+$/.test(s)) return Number(s);
-  const t = s.replace(/两/g, '二');
-  if (!/^[零一二三四五六七八九十]+$/.test(t)) return null;
-  const i = t.indexOf('十');
-  if (i < 0) return t.length === 1 ? DIGITS.indexOf(t) : null;
-  const tens = i === 0 ? 1 : DIGITS.indexOf(t[0]!);
-  const ones = t.length > i + 1 ? DIGITS.indexOf(t[i + 1]!) : 0;
-  return tens * 10 + ones;
-}
+export { readNumber } from './numbers';
 
 /** A count in Chinese: 两 for 2 before a measure word, 十二, 二十, 一百零五, 两百 (up to 999). */
 export function numZh(n: number, count = true): string {

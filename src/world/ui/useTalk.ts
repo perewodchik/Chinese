@@ -37,7 +37,7 @@ export function modeOf(scene: Scene, t: Turn): TalkView['mode'] {
   if (t.end || t.state.ended) return 'over';
   const node = scene.nodes.find((n) => n.id === t.state.node);
   if (node?.choose) return 'choose';
-  if (node?.order || node?.sell) return 'reply';
+  if (node?.order || node?.sell || node?.bargain) return 'reply';
   if (node?.trace) return 'trace';
   if (node?.expect?.length) return 'reply';
   // A first line that expects nothing and leads nowhere is all there is.
