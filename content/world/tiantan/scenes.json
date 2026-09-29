@@ -223,7 +223,8 @@
     "translate": "The Imperial Academy! Let's go there.",
     "speaker": "companion"
    }
-  ]
+  ],
+  "before": "echo-wall"
  },
  {
   "id": "jianzi-play",

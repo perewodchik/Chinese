@@ -85,7 +85,9 @@ Next time you are home after a spirit returns, 王阿姨 by the lantern:
 9. **灶王爷** — on 除夕, at the table:「灶王爷看了我们家一百年。」
 
 ### 1.4 兔儿爷's own small arc
-He is a 中秋 clay rabbit (a real Beijing folk toy, facts.md). He fears
+He is a 中秋 clay rabbit (a real Beijing folk toy, facts.md) who sat on the
+lantern as its little guardian; the lantern breaking woke him (「我也在灯笼里。」,
+K3). He fears
 that when the lantern is whole the magic ends and he goes back to clay.
 It surfaces three times, lightly: after ch4 ("…what happens to me when it's
 whole?"), in ch8 after 画龙点睛, and on 元宵 — he doesn't go back:

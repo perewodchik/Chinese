@@ -36,7 +36,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1, K2 done (2026-09-30) — continue at K3. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
+§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1–K3 done (2026-09-30) — continue at Q1. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
 
 ## Tasks
 ### A — core logic
@@ -162,7 +162,7 @@ first unchecked box. Tick a box in the same commit as the work.
 - [x] Z0 Story bible `story.md` (团圆 throughline, chapter tables, cast sheet), `facts.md`, coverage script
 - [x] K1 Cutscene runner (data + zod, pure core, engine, letterbox/skip/replay, save v13, review strips) — **not yet seen in a browser** (no dev server in unattended runs); `scripts/world/cutscene-probe.mjs` makes the strips
 - [x] K2 "You did it": step seals, quest seals, spirit-return + memory cutscene template, ⚙ Celebrations (memory-1 written)
-- [ ] K3 Chapter opening/finale template; ch1 opening + finale; lantern break, 景山 view, 回音壁, 画龙点睛 as cutscenes
+- [x] K3 Chapter opening/finale template; ch1 opening + finale; lantern break, 景山 view, 回音壁, 画龙点睛 as cutscenes
 - [ ] Q1 Explicit side quests: marks over people, Journal → Side (no vague leads), counts on the metro map, arrival + chapter-end nudges
 - [ ] Q2 Sleep until a day / festival; general "wait here"
 - [ ] Q3 "Last time" recap card with the last session's words
@@ -320,6 +320,9 @@ _(date — decision — why)_
 - 2026-09-30 — K2: the spirit's "3 s cut to the courtyard" is **the 走马灯 card over the world** (the wheel's ten places, its figure lighting up), not a trip to the yard and back — two map loads for three seconds would be slow on the iPad and lose where you stood. Memories stay in the yard (they play when you are next home, as the brief says).
 - 2026-09-30 — K2: **Celebrations: Quiet** = seals without sound and no flight home; story cutscenes still play (they carry the plot). Stored as the optional `settings.celebrate` (no save bump — settings keep keys an older build does not know).
 - 2026-09-30 — K2: 王阿姨's line 「你看，这个灯笼是我奶奶的。」 became 「你看，这个灯笼是我爷爷做的。」 now (not in S1) so the first memory agrees with it; her card's *knows* line too.
+- 2026-09-30 — K3: a scene may name a cutscene to play **`before`** it (the 回音壁 whisper, the 景山 view) and a cutscene may name the **`talk`** that follows (the lantern, the dragon): so every spoken task stays a talk and nothing to *do* hides in a cutscene. The lantern talk and the dragon talk were split at the moment (`lantern` → `lantern-breaks` → `lantern-rabbit`; `dragon` → `dragon-eyes` → `dragon-after`); the lantern's key line is now riddle `lantern-rabbit/d`, and the lion solves both ids so old saves' pinned riddle still closes.
+- 2026-09-30 — K3: the ch1 opening is an `auto` cutscene started **on arriving in your room** before the first morning (after the creator) and ends by bringing you back there; saves past the first morning never see it. 兔儿爷's first line became 「你好。我是兔儿爷。我也在灯笼里。」 — he lived on the lantern too (story.md §1.4 updated).
+- 2026-09-30 — K3: `画龙点睛`'s dragon rises over the Nine Dragon Screen where it happens, not over 太和殿 (a second map would mean a journey inside the cutscene). Chapter numbers on cutscenes follow today's numbering (`dragon-eyes` is chapter 7); S1's renumbering must move them too.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

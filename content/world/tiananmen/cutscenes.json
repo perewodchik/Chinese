@@ -1,0 +1,221 @@
+[
+ {
+  "id": "ch1-finale",
+  "map": "station-tiananmendong",
+  "chapter": 1,
+  "finale": true,
+  "title": {
+   "zh": "第一章 · 完",
+   "en": "End of chapter one"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     8,
+     11
+    ],
+    "facing": "up"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     12,
+     6
+    ],
+    "ms": 900
+   },
+   {
+    "say": "tam-staff",
+    "zh": "天安门东到了！",
+    "en": "This is 天安门东!"
+   },
+   {
+    "move": "hero",
+    "to": [
+     12,
+     8
+    ]
+   },
+   {
+    "title": {
+     "zh": "第一章 · 完",
+     "en": "End of chapter one · A new home"
+    }
+   },
+   {
+    "say": "rabbit",
+    "en": "One figure home — the stone lion. Eight more are out there, somewhere in this city."
+   },
+   {
+    "say": "rabbit",
+    "en": "Next, the lakes: 后海. People there talk about a fox."
+   }
+  ]
+ },
+ {
+  "id": "dragon-eyes",
+  "map": "jiulongbi",
+  "chapter": 7,
+  "finale": true,
+  "title": {
+   "zh": "画龙点睛",
+   "en": "Paint the dragon, dot the eyes"
+  },
+  "letterbox": true,
+  "music": "hush",
+  "steps": [
+   {
+    "camera": [
+     12,
+     4
+    ],
+    "ms": 800
+   },
+   {
+    "together": [
+     {
+      "fx": "sparkle",
+      "at": [
+       11,
+       4
+      ],
+      "n": 12
+     },
+     {
+      "sound": "wood"
+     }
+    ]
+   },
+   {
+    "wait": 500
+   },
+   {
+    "together": [
+     {
+      "fx": "sparkle",
+      "at": [
+       13,
+       4
+      ],
+      "n": 12
+     },
+     {
+      "sound": "wood"
+     }
+    ]
+   },
+   {
+    "wait": 700
+   },
+   {
+    "prop": "screen",
+    "frame": "jiulongbi/eyes"
+   },
+   {
+    "together": [
+     {
+      "flash": true
+     },
+     {
+      "shake": 900
+     },
+     {
+      "sound": "drum"
+     }
+    ]
+   },
+   {
+    "spawn": "spirit:long",
+    "at": [
+     12,
+     5
+    ]
+   },
+   {
+    "together": [
+     {
+      "fx": "sparkle",
+      "at": "spirit:long",
+      "n": 40
+     },
+     {
+      "sound": "gong"
+     }
+    ]
+   },
+   {
+    "fly": "spirit:long",
+    "by": [
+     -4,
+     -2
+    ],
+    "ms": 900
+   },
+   {
+    "fly": "spirit:long",
+    "by": [
+     8,
+     -1
+    ],
+    "ms": 1100
+   },
+   {
+    "together": [
+     {
+      "fly": "spirit:long",
+      "by": [
+       -2,
+       5
+      ],
+      "ms": 1000
+     },
+     {
+      "fx": "lanterns-rise",
+      "at": [
+       14,
+       8
+      ],
+      "n": 24
+     }
+    ]
+   },
+   {
+    "title": {
+     "zh": "画龙点睛",
+     "en": "Paint the dragon, dot the eyes — the finishing touch that brings it to life"
+    }
+   },
+   {
+    "together": [
+     {
+      "fx": "fireworks",
+      "at": [
+       8,
+       3
+      ],
+      "n": 50
+     },
+     {
+      "fx": "fireworks",
+      "at": [
+       20,
+       3
+      ],
+      "n": 50
+     },
+     {
+      "sound": "bell"
+     }
+    ]
+   },
+   {
+    "wait": 1200
+   }
+  ],
+  "talk": "dragon-after"
+ }
+]

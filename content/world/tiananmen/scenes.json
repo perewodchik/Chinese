@@ -421,6 +421,11 @@
      "not": {
       "spirit": "long"
      }
+    },
+    {
+     "not": {
+      "flag": "dragon-eyes"
+     }
     }
    ]
   },
@@ -430,11 +435,6 @@
     "w": "点睛",
     "explain": "画上眼睛。",
     "en": "to dot in the eyes"
-   },
-   {
-    "w": "神",
-    "explain": "天上的人，人看不见。",
-    "en": "spirit"
    }
   ],
   "nodes": [
@@ -492,15 +492,45 @@
     "translate": "画龙点睛 — the eyes are dotted!",
     "speaker": "companion",
     "key": true,
-    "next": "f",
     "onEnter": [
      {
       "do": "idiom",
       "idiom": "画龙点睛"
+     },
+     {
+      "do": "flag",
+      "flag": "dragon-eyes"
+     },
+     {
+      "do": "cutscene",
+      "id": "dragon-eyes"
      }
     ],
     "why": "A 成语 📌 with a story: a painter dotted in the eyes of the dragons he had painted, and they flew away. The finishing touch that brings a thing to life."
-   },
+   }
+  ]
+ },
+ {
+  "id": "dragon-after",
+  "map": "jiulongbi",
+  "object": "screen",
+  "trigger": "look",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "flag": "dragon-eyes"
+    },
+    {
+     "not": {
+      "spirit": "long"
+     }
+    }
+   ]
+  },
+  "start": "f",
+  "nodes": [
    {
     "id": "f",
     "say": "谢谢你们！我是龙。我们都是朋友了！",
@@ -520,6 +550,13 @@
     "translate": "We found them all! Every spirit has come back!",
     "speaker": "companion",
     "simpler": "小神都找到了！"
+   }
+  ],
+  "words": [
+   {
+    "w": "神",
+    "explain": "天上的人，人看不见。",
+    "en": "spirit"
    }
   ]
  },

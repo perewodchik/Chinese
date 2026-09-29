@@ -207,18 +207,44 @@
     "id": "b",
     "say": "灯笼坏了！",
     "translate": "Oh no… the lantern broke!",
-    "next": "c",
     "onEnter": [
      {
       "do": "flag",
       "flag": "lantern-broken"
+     },
+     {
+      "do": "cutscene",
+      "id": "lantern-breaks"
      }
     ]
-   },
+   }
+  ]
+ },
+ {
+  "id": "lantern-rabbit",
+  "map": "siheyuan-yard",
+  "object": "broken-lantern",
+  "trigger": "look",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "flag": "lantern-broken"
+    },
+    {
+     "not": {
+      "scene": "lantern-rabbit"
+     }
+    }
+   ]
+  },
+  "start": "c",
+  "nodes": [
    {
     "id": "c",
-    "say": "你好。我是兔儿爷。",
-    "translate": "Hello. I am 兔儿爷, the rabbit.",
+    "say": "你好。我是兔儿爷。我也在灯笼里。",
+    "translate": "Hello. I am 兔儿爷, the rabbit. I was in the lantern too.",
     "speaker": "companion",
     "next": "d",
     "why": "兔儿爷 is Beijing's clay rabbit of the Mid-Autumn festival — a small guardian. He speaks English with you from now on (tap him, bottom left)."
@@ -265,6 +291,13 @@
     "say": "你问问人吧。他们看见了什么？",
     "translate": "Ask people. What have they seen?",
     "speaker": "companion"
+   }
+  ],
+  "words": [
+   {
+    "w": "灯笼",
+    "explain": "晚上用的红色的灯。",
+    "en": "lantern"
    }
   ]
  },
@@ -957,6 +990,10 @@
      {
       "do": "solve",
       "riddle": "lantern/d"
+     },
+     {
+      "do": "solve",
+      "riddle": "lantern-rabbit/d"
      }
     ]
    }

@@ -224,6 +224,7 @@ export const sceneSchema: z.ZodType<Scene> = z.strictObject({
   words: z.array(z.strictObject({ w: hanzi, explain: hanzi, en: text })).optional(),
   stamp: id.optional(),
   priority: z.number().int().optional(),
+  before: id.optional(),
 });
 
 export const questSchema: z.ZodType<Quest> = z.strictObject({
@@ -308,6 +309,7 @@ export const cutStepSchema: z.ZodType<CutStep> = z.lazy(() =>
     z.strictObject({ move: actor, to: z.union([tile, z.array(tile).min(1)]), speed: z.enum(['walk', 'run', 'slow']).optional() }),
     z.strictObject({ fly: actor, by: z.tuple([z.number().int(), z.number().int()]), ms: z.number().int().min(0).optional() }),
     z.strictObject({ face: actor, dir: facing }),
+    z.strictObject({ prop: id, frame: z.string().regex(/^[a-z0-9-]+\/[a-z0-9-]+$/, 'a frame is <thing>/<look>') }),
     z.strictObject({ emote: actor, kind: z.enum(EMOTES as [string, ...string[]]) }),
     z.strictObject({ say: actor, zh: hanzi.optional(), en: text, pinyin: text.optional(), key: z.boolean().optional() }),
     z.strictObject({ wait: z.number().int().min(0).max(10_000) }),
@@ -337,6 +339,8 @@ export const cutsceneSchema: z.ZodType<Cutscene> = z.strictObject({
   then: z.array(actionSchema).optional(),
   words: z.array(z.strictObject({ w: hanzi, explain: hanzi, en: text })).optional(),
   auto: conditionSchema.optional(),
+  on: id.optional(),
+  talk: id.optional(),
 });
 
 /** The files of one district folder and the schema each is checked with. */

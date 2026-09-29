@@ -1,0 +1,58 @@
+[
+ {
+  "id": "jingshan-view",
+  "map": "jingshan-view",
+  "chapter": 2,
+  "title": {
+   "zh": "景山 · 看故宫",
+   "en": "From 景山: the palace below"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "steps": [
+   {
+    "camera": [
+     24,
+     12
+    ],
+    "ms": 500
+   },
+   {
+    "camera": [
+     24,
+     5
+    ],
+    "ms": 2200
+   },
+   {
+    "camera": [
+     8,
+     4
+    ],
+    "ms": 1800
+   },
+   {
+    "camera": [
+     40,
+     4
+    ],
+    "ms": 2600
+   },
+   {
+    "camera": [
+     24,
+     6
+    ],
+    "ms": 1400
+   },
+   {
+    "say": "rabbit",
+    "en": "The whole palace — 故宫 — laid out below us, roof after roof, all the way south."
+   },
+   {
+    "camera": "hero",
+    "ms": 900
+   }
+  ]
+ }
+]

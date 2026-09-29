@@ -71,6 +71,8 @@ const FALLBACK = { map: 'hutong-proto', tile: [14, 7] as Tile };
 const USE_SIGNS = new Set(['board', 'bus-board', 'train-board', 'gates-in', 'gates-out']);
 
 type MapIndex = Record<string, { district: string; width: number; height: number }>;
+/** a cutscene waiting to play (§13 K1): `back` is where a replay returns you; `after` runs when it ends (the talk it came before) */
+type CutItem = { id: string; back?: WorldSave['place']; after?: () => void };
 
 /**
  * 走走 on the page: a box the canvas fills. Below 690px it takes the whole
@@ -93,9 +95,9 @@ export function WorldPage() {
   const pendingGame = useRef<string | null>(null);
   const navigate = useNavigate();
   /** cutscenes waiting to play (§13 K1): said in a talk, a quest step done, ▶ in the journal; `back` is where a replay returns you */
-  const cutQueue = useRef<{ id: string; back?: WorldSave['place'] }[]>([]);
+  const cutQueue = useRef<CutItem[]>([]);
   /** a cutscene waiting to arrive on its map */
-  const pendingCut = useRef<{ id: string; back?: WorldSave['place'] } | null>(null);
+  const pendingCut = useRef<CutItem | null>(null);
   const [cutTick, setCutTick] = useState(0);
   const talkDispatch = (actions: readonly SaveAction[], who: TalkWho) => {
     const cuts = cutsceneActions(actions);
@@ -187,7 +189,19 @@ export function WorldPage() {
     else talkRef.current.start(scene, null, who === 'hero' ? 'hero' : 'sign', s, spirit?.hanzi ?? '我');
   };
   const talkRef = useRef(talk);
-  talkRef.current = talk;
+  // a scene that names a cutscene `before` it plays that first, the first time (§13 K3)
+  talkRef.current = {
+    ...talk,
+    start: (scene, ...rest) => {
+      const s = game.current();
+      if (scene.before && s && !s.cutscenes.includes(scene.before) && contentRef.current.cutscenes.some((c) => c.id === scene.before)) {
+        cutQueue.current.unshift({ id: scene.before, after: () => talk.start(scene, ...rest) });
+        setCutTick((t) => t + 1);
+        return;
+      }
+      talk.start(scene, ...rest);
+    },
+  };
   const contentRef = useRef(content);
   contentRef.current = content;
   useEffect(() => setVoiceCards(content.npcs), [content]);
@@ -319,10 +333,12 @@ export function WorldPage() {
               pendingCut.current = null;
               return;
             }
-            // a memory at home once its spirit is back (§13 K2): the content's `auto` cutscenes, one per arrival
-            const memory = s && autoCutscenes(s, contentRef.current.cutscenes, info.id, (c) => holds(c, s))[0];
-            if (memory && !cutQueue.current.some((q) => q.id === memory.id)) {
-              cutQueue.current.push({ id: memory.id });
+            // a memory at home once its spirit is back, a new game's opening (§13 K2–K3): the content's `auto` cutscenes, one per arrival;
+            // the creator still comes first, and a scene that would start here waits for the next arrival
+            const own = s && autoCutscenes(s, contentRef.current.cutscenes, info.id, (c) => holds(c, s))[0];
+            if (s && own && !cutQueue.current.some((q) => q.id === own.id)) {
+              cutQueue.current.push({ id: own.id });
+              if (!s.created) setCreator(s.scenes.length ? 'first' : 'new');
               return;
             }
             if (info.id.startsWith('station-')) ambient.current?.chime();
@@ -550,7 +566,7 @@ export function WorldPage() {
     return contentRef.current.npcs.find((n) => n.id === a)?.name ?? a;
   };
   /** Plays the next cutscene when nothing else holds the screen: first travelling to its map if you are elsewhere. */
-  const startCut = (item: { id: string; back?: WorldSave['place'] }) => {
+  const startCut = (item: CutItem) => {
     const s = game.current();
     const w = world.current;
     const h = here.current;
@@ -617,8 +633,22 @@ export function WorldPage() {
       titleNext.current = null;
       setCut(null);
       // watched (or skipped): it does not play again by itself, and what it gives is given
-      if (!item.back) game.dispatch([{ do: 'watched', id: cs.id }, ...(cs.then ?? [])], 'important', { scene: `cutscene-${cs.id}` });
-      else if (item.back.map !== cs.map) world.current?.travel(item.back);
+      if (!item.back) {
+        game.dispatch([{ do: 'watched', id: cs.id }, ...(cs.then ?? [])], 'important', { scene: `cutscene-${cs.id}` });
+        // a `then` that moves you (the opening brings you home) goes there; else the talk that follows the moment starts
+        const tp = cs.then?.find((a) => a.do === 'teleport');
+        if (tp && tp.do === 'teleport') world.current?.travel({ map: tp.map, tile: tp.tile, facing: tp.facing ?? 'down' });
+        else if (item.after) item.after();
+        else if (cs.talk) {
+          const sc = contentRef.current.scenes.find((x) => x.id === cs.talk);
+          const now = game.current();
+          if (sc && now) {
+            const card = contentRef.current.npcs.find((n) => n.id === sc.npc) ?? null;
+            if (card) talkRef.current.start(sc, card, lookOf(card, card.id), now);
+            else startBare(sc, now);
+          }
+        }
+      } else if (item.back.map !== cs.map) world.current?.travel(item.back);
       setCutTick((t) => t + 1);
     });
   };
@@ -1012,11 +1042,12 @@ export function WorldPage() {
           onDone={(l) => {
             game.dispatch([{ do: 'create', look: l }]);
             setCreator(null);
-            // the scene that waited (the first morning) starts now
+            // the scene that waited (the first morning) starts now — unless a cutscene waits (the opening), which brings you back here
             const auto = pendingAuto.current;
             pendingAuto.current = null;
             const s = game.current();
-            if (auto && s) {
+            if (cutQueue.current.length) setCutTick((t) => t + 1);
+            else if (auto && s) {
               const card = contentRef.current.npcs.find((n) => n.id === auto.npc) ?? null;
               if (card) talkRef.current.start(auto, card, lookOf(card, card.id), s);
               else startBare(auto, s);

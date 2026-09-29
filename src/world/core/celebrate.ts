@@ -103,5 +103,5 @@ export function spiritReturn(spirit: string, map: string, objects: readonly MapO
 
 /** Memory cutscenes (story.md §1.3) play at home once their spirit is back: the content marks them `auto`. */
 export function autoCutscenes(s: WorldSave, all: readonly Cutscene[], map: string, holds: (c: NonNullable<Cutscene['auto']>) => boolean): Cutscene[] {
-  return all.filter((c) => c.map === map && c.auto && !s.cutscenes.includes(c.id) && holds(c.auto));
+  return all.filter((c) => (c.on ?? c.map) === map && c.auto && !s.cutscenes.includes(c.id) && holds(c.auto));
 }

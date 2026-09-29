@@ -287,6 +287,8 @@ export interface Scene {
   stamp?: string;
   /** lower plays first when several scenes could start */
   priority?: number;
+  /** a cutscene that plays first, the first time (§13 K3): the 回音壁's whisper, the view from 景山 */
+  before?: string;
 }
 
 export interface QuestStep {

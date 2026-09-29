@@ -588,6 +588,10 @@ export class WorldScene extends Phaser.Scene {
         }
         tiles.delete(a);
       },
+      prop: (id, frame) => {
+        const p = this.propSprites.get(id);
+        if (p && this.textures.get('props').has(frame)) p.setFrame(frame);
+      },
       camera: (to, ms, zoom) => {
         const cam = this.cameras.main;
         cam.stopFollow();

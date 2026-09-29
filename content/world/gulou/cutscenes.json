@@ -1,5 +1,302 @@
 [
  {
+  "id": "ch1-open",
+  "map": "nanluo-main",
+  "chapter": 1,
+  "title": {
+   "zh": "第一章 · 新家",
+   "en": "Chapter one · A new home"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "on": "siheyuan-room",
+  "auto": {
+   "not": {
+    "scene": "first-morning"
+   }
+  },
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     53,
+     9
+    ],
+    "facing": "left"
+   }
+  ],
+  "steps": [
+   {
+    "fade": "in",
+    "ms": 800
+   },
+   {
+    "title": {
+     "zh": "第一章 · 新家",
+     "en": "Chapter one · A new home"
+    }
+   },
+   {
+    "camera": "hero",
+    "ms": 400
+   },
+   {
+    "move": "hero",
+    "to": [
+     29,
+     8
+    ]
+   },
+   {
+    "face": "zhao-yeye",
+    "dir": "down"
+   },
+   {
+    "say": "zhao-yeye",
+    "zh": "早！你是新来的吧？",
+    "en": "Morning! You're new here, aren't you?"
+   },
+   {
+    "say": "hero",
+    "zh": "是。我住帽儿胡同。",
+    "en": "Yes. I live in 帽儿胡同."
+   },
+   {
+    "say": "zhao-yeye",
+    "zh": "好，好！有事就找我。",
+    "en": "Good, good! If you need anything, come and find me."
+   },
+   {
+    "move": "hero",
+    "to": [
+     4,
+     9
+    ]
+   },
+   {
+    "say": "rabbit",
+    "en": "南锣鼓巷 — your lane now. Home is just round the corner, in 帽儿胡同."
+   },
+   {
+    "fade": "out",
+    "ms": 700
+   }
+  ],
+  "then": [
+   {
+    "do": "teleport",
+    "map": "siheyuan-room",
+    "tile": [
+     4,
+     4
+    ],
+    "facing": "down"
+   }
+  ]
+ },
+ {
+  "id": "lantern-breaks",
+  "map": "siheyuan-yard",
+  "chapter": 1,
+  "title": {
+   "zh": "灯笼坏了",
+   "en": "The lantern breaks"
+  },
+  "letterbox": true,
+  "music": "hush",
+  "steps": [
+   {
+    "camera": [
+     4,
+     6
+    ],
+    "ms": 500
+   },
+   {
+    "together": [
+     {
+      "shake": 600
+     },
+     {
+      "sound": "drum"
+     }
+    ]
+   },
+   {
+    "flash": true
+   },
+   {
+    "prop": "old-lantern",
+    "frame": "lantern/broken"
+   },
+   {
+    "spawn": "spirit:shishizi",
+    "at": [
+     4,
+     6
+    ]
+   },
+   {
+    "spawn": "spirit:jiuweihu",
+    "at": [
+     4,
+     6
+    ]
+   },
+   {
+    "spawn": "spirit:menshen",
+    "at": [
+     4,
+     6
+    ]
+   },
+   {
+    "spawn": "spirit:qilin",
+    "at": [
+     4,
+     6
+    ]
+   },
+   {
+    "spawn": "spirit:pixiu",
+    "at": [
+     4,
+     6
+    ]
+   },
+   {
+    "spawn": "spirit:nianshou",
+    "at": [
+     4,
+     6
+    ]
+   },
+   {
+    "spawn": "spirit:long",
+    "at": [
+     4,
+     6
+    ]
+   },
+   {
+    "together": [
+     {
+      "fx": "sparkle",
+      "at": [
+       4,
+       6
+      ],
+      "n": 40
+     },
+     {
+      "sound": "bell"
+     },
+     {
+      "fly": "spirit:shishizi",
+      "by": [
+       -6,
+       -8
+      ],
+      "ms": 1400
+     },
+     {
+      "fly": "spirit:jiuweihu",
+      "by": [
+       8,
+       -9
+      ],
+      "ms": 1520
+     },
+     {
+      "fly": "spirit:menshen",
+      "by": [
+       14,
+       -5
+      ],
+      "ms": 1640
+     },
+     {
+      "fly": "spirit:qilin",
+      "by": [
+       -3,
+       -10
+      ],
+      "ms": 1760
+     },
+     {
+      "fly": "spirit:pixiu",
+      "by": [
+       12,
+       4
+      ],
+      "ms": 1880
+     },
+     {
+      "fly": "spirit:nianshou",
+      "by": [
+       -5,
+       6
+      ],
+      "ms": 2000
+     },
+     {
+      "fly": "spirit:long",
+      "by": [
+       4,
+       -12
+      ],
+      "ms": 2120
+     }
+    ]
+   },
+   {
+    "despawn": "spirit:shishizi"
+   },
+   {
+    "despawn": "spirit:jiuweihu"
+   },
+   {
+    "despawn": "spirit:menshen"
+   },
+   {
+    "despawn": "spirit:qilin"
+   },
+   {
+    "despawn": "spirit:pixiu"
+   },
+   {
+    "despawn": "spirit:nianshou"
+   },
+   {
+    "despawn": "spirit:long"
+   },
+   {
+    "emote": "wang-ayi",
+    "kind": "surprised"
+   },
+   {
+    "wait": 600
+   },
+   {
+    "together": [
+     {
+      "fx": "sparkle",
+      "at": "rabbit",
+      "n": 16
+     },
+     {
+      "emote": "rabbit",
+      "kind": "proud"
+     }
+    ]
+   },
+   {
+    "wait": 500
+   }
+  ],
+  "talk": "lantern-rabbit"
+ },
+ {
   "id": "memory-1",
   "map": "siheyuan-yard",
   "chapter": 1,

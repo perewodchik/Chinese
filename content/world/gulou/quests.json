@@ -65,7 +65,8 @@
         "past": "Rode the subway — line 8, then line 1 — all the way to 天安门.",
         "done": {
           "station": "tiananmendong"
-        }
+        },
+        "onDone": "ch1-finale"
       }
     ],
     "reward": [

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { checkCutscene, cutsceneLines, cutsceneScene, cutscenesDue, durationMs, MAX_MS, seenInChapter, type Cutscene } from './cutscene';
+import { checkCutscene, checkCutsceneLinks, cutsceneLines, cutsceneScene, cutscenesDue, durationMs, MAX_MS, seenInChapter, type Cutscene } from './cutscene';
 import { gridFromRows } from './grid';
 import { merge } from './merge';
 import { readSave } from './migrate';
@@ -113,5 +113,26 @@ describe('cutscenes (§13 K1)', () => {
     assert.deepEqual(merge(a, b).cutscenes, ['lantern-breaks', 'x']);
     assert.deepEqual(seenInChapter(merge(a, b), [lantern], 1).map((c) => c.id), ['lantern-breaks']);
     assert.deepEqual(seenInChapter(a, [lantern], 1), []);
+  });
+
+  it('a prop that changes its picture must be on the map', () => {
+    const cs: Cutscene = { id: 'p', map: 'm', steps: [{ prop: 'old-lantern', frame: 'lantern/broken' }] };
+    assert.match(checkCutscene(cs, ctx)[0]!, /no prop "old-lantern"/);
+    const withProp = { ...ctx, objects: [...objects, { kind: 'prop' as const, id: 'old-lantern', tile: [4, 1] as const, frame: 'lantern/unlit' }] };
+    assert.deepEqual(checkCutscene(cs, withProp), []);
+  });
+
+  it('every link to and from a cutscene names something real', () => {
+    const scenes = [{ id: 'lantern-rabbit', map: 'm', trigger: 'look' as const, start: 'a', nodes: [{ id: 'a', say: '你好', translate: 'hi', onEnter: [{ do: 'cutscene' as const, id: 'nope' }] }], before: 'ghost' }];
+    const quests: Quest[] = [{ id: 'q', title: 't', chapter: 1, kind: 'main', steps: [{ id: 's', now: 'n', past: 'p', onDone: 'missing' }, { id: 't', now: 'n', past: 'p', onDone: 'spirit-return-long' }] }];
+    const all: Cutscene[] = [{ ...lantern, talk: 'lantern-rabbit' }, { id: 'o', map: 'm', on: 'nowhere', steps: [{ wait: 1 }] }];
+    const e = checkCutsceneLinks(all, scenes, quests, new Set(['m']));
+    assert.deepEqual(e.sort(), [
+      'a {"do":"cutscene"} names "nope", which is no cutscene',
+      'cutscene o: "on" only means something with "auto"',
+      'cutscene o: on "nowhere" is no map',
+      'quest q/s: onDone "missing" is no cutscene',
+      'scene lantern-rabbit: before "ghost" is no cutscene',
+    ]);
   });
 });

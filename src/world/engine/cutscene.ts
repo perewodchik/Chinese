@@ -41,6 +41,8 @@ export interface Stage {
   setTile(a: Actor, t: Tile, facing?: Facing): void;
   spawn(a: Actor, at: Tile, facing: Facing): void;
   despawn(a: Actor): void;
+  /** a prop's picture for the rest of the visit (a map reload draws it from the save again) */
+  prop(id: string, frame: string): void;
   /** the camera: follow a sprite or pan to a point, at a zoom step (1 = the usual) */
   camera(to: Phaser.GameObjects.Sprite | { x: number; y: number }, ms: number, zoom: number): Promise<void>;
   /** put things as they were: the camera on the hero, spawned actors gone, people back in place */
@@ -187,6 +189,7 @@ export function runCutscene(stage: Stage, cs: Cutscene, hooks: CutsceneHooks): R
       return;
     }
     if ('face' in s) return face(s.face, s.dir);
+    if ('prop' in s) return stage.prop(s.prop, s.frame);
     if ('emote' in s) {
       const sp = stage.sprite(s.emote);
       if (sp && !skipping) {

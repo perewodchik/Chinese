@@ -148,7 +148,8 @@
     "translate": "Let's search from up here.",
     "speaker": "companion"
    }
-  ]
+  ],
+  "before": "jingshan-view"
  },
  {
   "id": "view-again",

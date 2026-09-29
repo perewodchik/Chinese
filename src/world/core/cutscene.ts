@@ -42,6 +42,8 @@ export type CutStep =
   /** float through the air by so many tiles (a spirit going home, a kite): not bound to the ground */
   | { fly: Actor; by: readonly [number, number]; ms?: number }
   | { face: Actor; dir: Facing }
+  /** a thing on the map changes its picture (the lantern breaks, is lit): a props-atlas frame */
+  | { prop: string; frame: string }
   | { emote: Actor; kind: Emote }
   /** a line in the dialogue box, read-only; tap to go on. 兔儿爷 speaks English only (no `zh`). */
   | { say: Actor; zh?: string; en: string; pinyin?: string; key?: boolean }
@@ -85,6 +87,10 @@ export interface Cutscene {
   words?: SituationWord[];
   /** plays by itself on arriving on its map once this holds, once (a memory at home, §13 K2) */
   auto?: Condition;
+  /** the map whose arrival starts an `auto` cutscene, when not its own (a new game's opening starts in your room, plays in the lane) */
+  on?: string;
+  /** a scene to start when it ends (§13 K3): the talk that follows the moment */
+  talk?: string;
 }
 
 export const MAX_MS = 40_000;
@@ -181,6 +187,10 @@ export function checkCutscene(cs: Cutscene, ctx: CutsceneContext): string[] {
     }
     if ('fly' in s) return need(s.fly, p);
     if ('face' in s) return need(s.face, p);
+    if ('prop' in s) {
+      if (!ctx.objects.some((o) => o.kind === 'prop' && o.id === s.prop)) errors.push(at(`${p}: no prop "${s.prop}" on the map`));
+      return;
+    }
     if ('emote' in s) return need(s.emote, p);
     if ('say' in s) {
       if (s.say !== 'rabbit' && s.say !== 'hero' && !known(s.say)) errors.push(at(`${p}: unknown speaker "${s.say}"`));
@@ -356,6 +366,27 @@ export function cutscenesDue(before: WorldSave, after: WorldSave, quests: readon
 /** The actions a talk's actions start as cutscenes (they play when the talk is over). */
 export function cutsceneActions(actions: readonly { do: string }[]): string[] {
   return actions.flatMap((a) => (a.do === 'cutscene' ? [(a as { do: 'cutscene'; id: string }).id] : []));
+}
+
+/**
+ * The references a cutscene makes outside itself: its `talk` scene, its
+ * `on` map, scenes naming it as `before`, quest steps naming it as
+ * `onDone`, actions naming it. Unknown ids are errors.
+ */
+export function checkCutsceneLinks(all: readonly Cutscene[], scenes: readonly Scene[], quests: readonly Quest[], maps: ReadonlySet<string>): string[] {
+  const errors: string[] = [];
+  const ids = new Set(all.map((c) => c.id));
+  const sceneIds = new Set(scenes.map((s) => s.id));
+  for (const c of all) {
+    if (c.talk && !sceneIds.has(c.talk)) errors.push(`cutscene ${c.id}: talk "${c.talk}" is no scene`);
+    if (c.on && !maps.has(c.on)) errors.push(`cutscene ${c.id}: on "${c.on}" is no map`);
+    if (c.on && !c.auto) errors.push(`cutscene ${c.id}: "on" only means something with "auto"`);
+  }
+  for (const s of scenes) if (s.before && !ids.has(s.before)) errors.push(`scene ${s.id}: before "${s.before}" is no cutscene`);
+  for (const q of quests) for (const st of q.steps) if (st.onDone && !ids.has(st.onDone) && !st.onDone.startsWith('spirit-return-')) errors.push(`quest ${q.id}/${st.id}: onDone "${st.onDone}" is no cutscene`);
+  const said = [...JSON.stringify(scenes).matchAll(/"do":"cutscene","id":"([^"]+)"/g), ...JSON.stringify(all).matchAll(/"do":"cutscene","id":"([^"]+)"/g)].map((m) => m[1]!);
+  for (const id of said) if (!ids.has(id)) errors.push(`a {"do":"cutscene"} names "${id}", which is no cutscene`);
+  return [...new Set(errors)];
 }
 
 /** The cutscenes of a chapter already seen, in the content's order — Journal → Story's ▶. */

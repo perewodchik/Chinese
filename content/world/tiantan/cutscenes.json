@@ -1,0 +1,102 @@
+[
+ {
+  "id": "echo-wall",
+  "map": "huiyinbi",
+  "chapter": 4,
+  "title": {
+   "zh": "回音壁",
+   "en": "The Echo Wall"
+  },
+  "letterbox": true,
+  "music": "hush",
+  "steps": [
+   {
+    "camera": "echo-boy",
+    "ms": 800
+   },
+   {
+    "emote": "echo-boy",
+    "kind": "happy"
+   },
+   {
+    "face": "echo-boy",
+    "dir": "up"
+   },
+   {
+    "together": [
+     {
+      "fx": "sparkle",
+      "at": [
+       21,
+       1
+      ],
+      "n": 8
+     },
+     {
+      "sound": "bell"
+     }
+    ]
+   },
+   {
+    "camera": [
+     12,
+     2
+    ],
+    "ms": 900
+   },
+   {
+    "fx": "sparkle",
+    "at": [
+     17,
+     1
+    ],
+    "n": 6
+   },
+   {
+    "wait": 250
+   },
+   {
+    "fx": "sparkle",
+    "at": [
+     13,
+     1
+    ],
+    "n": 6
+   },
+   {
+    "wait": 250
+   },
+   {
+    "fx": "sparkle",
+    "at": [
+     9,
+     1
+    ],
+    "n": 6
+   },
+   {
+    "wait": 250
+   },
+   {
+    "together": [
+     {
+      "fx": "sparkle",
+      "at": [
+       5,
+       1
+      ],
+      "n": 10
+     },
+     {
+      "camera": "hero",
+      "ms": 600
+     }
+    ]
+   },
+   {
+    "say": "rabbit",
+    "en": "Ear to the wall. His whisper runs all the way round the curve to you — listen."
+   }
+  ]
+ }
+]

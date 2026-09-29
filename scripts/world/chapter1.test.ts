@@ -89,7 +89,10 @@ describe('chapter 1, played through the core', () => {
     assert.equal(sceneFor(scenes, s, { look: 'old-lantern', map: 'siheyuan-yard' })?.id, 'lantern');
     s = play(s, 'lantern').save;
     assert.ok(s.flags.includes('lantern-broken'));
-    assert.equal(s.riddles['lantern/d']?.solved, false);
+    // the lantern breaks (a cutscene, §13 K3), then 兔儿爷 speaks by the broken lantern
+    assert.equal(sceneFor(scenes, s, { look: 'broken-lantern', map: 'siheyuan-yard' })?.id, 'lantern-rabbit');
+    s = play(s, 'lantern-rabbit').save;
+    assert.equal(s.riddles['lantern-rabbit/d']?.solved, false);
     assert.equal(step(s), 'rumour');
 
     // the teahouse: the rumour, then a rest until evening
@@ -104,7 +107,7 @@ describe('chapter 1, played through the core', () => {
     s = play(s, 'lion-night').save;
     assert.ok('shishizi' in s.spirits);
     assert.ok('shishizi' in s.stamps);
-    assert.equal(s.riddles['lantern/d']?.solved, true);
+    assert.equal(s.riddles['lantern-rabbit/d']?.solved, true);
     assert.equal(step(s), 'card');
 
     assert.equal(sceneFor(scenes, s, { npc: 'station-staff' })?.id, 'card');
@@ -176,7 +179,7 @@ describe('chapter 1, played through the core', () => {
     const ipad = new WorldSync({ gateway: server, local: memoryLocal(), deviceId: 'ipad' });
     const start = await ipad.open();
     let s = start;
-    for (const id of ['first-morning', 'arrive', 'breakfast', 'lantern', 'rumour-tea', 'lion-night', 'card']) s = play(s, id).save;
+    for (const id of ['first-morning', 'arrive', 'breakfast', 'lantern', 'lantern-rabbit', 'rumour-tea', 'lion-night', 'card']) s = play(s, id).save;
     s = act(s, [{ do: 'enter', map: 'station-nanluoguxiang', tile: [8, 11], facing: 'down', district: 'gulou' }]);
     ipad.update(s, 'important');
     await ipad.flush();
@@ -381,6 +384,10 @@ describe('chapter 7, played through the core', () => {
     assert.equal(at(), 'dragon');
     assert.equal(sceneFor(scenes, s, { look: 'screen', map: 'jiulongbi' })?.id, 'dragon');
     s = play(s, 'dragon').save;
+    // the eyes are dotted in a cutscene (§13 K3); the dragon speaks after it
+    assert.ok(s.flags.includes('dragon-eyes'));
+    assert.equal(sceneFor(scenes, s, { look: 'screen', map: 'jiulongbi' })?.id, 'dragon-after');
+    s = play(s, 'dragon-after').save;
     assert.ok('long' in s.spirits);
     assert.ok('画龙点睛' in s.idioms);
     s = play(s, 'yuhuayuan-arrive').save;
