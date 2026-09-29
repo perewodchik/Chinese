@@ -53,7 +53,8 @@ export interface Due {
   mode: 'scan' | 'code';
   /** the shop's name on the phone */
   name: string;
-  cart: { item: string; n: number }[];
+  /** what is paid for; `price` is the line's own total, for the diary (Y7) */
+  cart: { item: string; n: number; price?: number }[];
 }
 
 export interface DialogueState {

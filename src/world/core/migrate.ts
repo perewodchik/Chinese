@@ -42,6 +42,13 @@ export const UPGRADES: Record<number, Upgrade> = {
   6: (r) => ({ ...r, version: 7, bills: Array.isArray(r.bills) ? r.bills : [] }),
   /** 7 → 8 (Y3): nothing done today yet */
   7: (r) => ({ ...r, version: 8, daily: isObj(r.daily) ? r.daily : {} }),
+  /** 8 → 9 (Y7): every 账单 line gets an id (so two phones' 账单 merge); nothing bought fresh yet */
+  8: (r) => ({
+    ...r,
+    version: 9,
+    bills: Array.isArray(r.bills) ? r.bills.map((b, i) => (isObj(b) && typeof b.id !== 'string' ? { ...b, id: `old:${i}` } : b)) : [],
+    fresh: isObj(r.fresh) ? r.fresh : {},
+  }),
 };
 
 export type ReadResult =
@@ -96,8 +103,9 @@ function fill(r: Raw): WorldSave {
     room: record(r.room, (x): x is string => typeof x === 'string'),
     photos: strings(r.photos),
     daily: record(r.daily, isNum),
+    fresh: record(r.fresh, isNum),
     bills: Array.isArray(r.bills)
-      ? r.bills.filter((b): b is WorldSave['bills'][number] => isObj(b) && isNum(b.at) && typeof b.who === 'string' && isNum(b.amount))
+      ? r.bills.filter((b): b is WorldSave['bills'][number] => isObj(b) && typeof b.id === 'string' && isNum(b.at) && typeof b.who === 'string' && isNum(b.amount))
       : [],
     cat: isObj(r.cat)
       ? { fed: isNum(r.cat.fed) ? r.cat.fed : 0, day: isNum(r.cat.day) ? r.cat.day : 0, name: typeof r.cat.name === 'string' ? r.cat.name : '' }

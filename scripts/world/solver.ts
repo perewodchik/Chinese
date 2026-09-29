@@ -84,7 +84,7 @@ function play(s: WorldSave, scene: Scene, short: string[]): WorldSave {
     // paying on the phone (Y2): type the amount heard, or catch a wrong charge first
     if ((node.order || node.bargain) && t.state.due) {
       t = src.reply(t.state, src.answer(t.state)!);
-      for (const a of t.actions) if (a.do === 'give') bought.set(a.item, (bought.get(a.item) ?? 0) + 1);
+      for (const a of t.actions) if (a.do === 'give' || a.do === 'buy') bought.set(a.item, (bought.get(a.item) ?? 0) + 1);
       save = act(save, t.actions, short, scene.id);
       continue;
     }
@@ -100,7 +100,7 @@ function play(s: WorldSave, scene: Scene, short: string[]): WorldSave {
       const say = t.state.cart?.length || !name ? '不要了' : `我要一${pick!.measure ?? '个'}${name}`;
       t = src.reply(t.state, { text: say, via: 'keyboard' });
       // only what was paid for counts as bought
-      for (const a of t.actions) if (a.do === 'give') bought.set(a.item, (bought.get(a.item) ?? 0) + 1);
+      for (const a of t.actions) if (a.do === 'give' || a.do === 'buy') bought.set(a.item, (bought.get(a.item) ?? 0) + 1);
       save = act(save, t.actions, short, scene.id);
       continue;
     }
@@ -143,7 +143,8 @@ function candidates(s: WorldSave): Scene[] {
       if (!list) continue;
       const who = o.kind === 'npc' ? { npc: o.npc } : { look: o.id, map: m.id };
       const sc = sceneFor(list, s, who);
-      if (sc) out.push(sc);
+      // a stall's bargain is struck once (buying a coin and selling it back forever moves nothing)
+      if (sc && !(sc.nodes.some((n) => n.bargain) && s.scenes.includes(sc.id))) out.push(sc);
       // using what is in the bag on them (X1): only the items some scene here is written for
       for (const use of new Set(list.map((x) => x.use).filter((u): u is string => !!u && held.has(u)))) {
         const u = sceneFor(list, s, { ...who, use });

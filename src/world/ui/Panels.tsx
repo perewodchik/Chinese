@@ -442,6 +442,12 @@ function ItemSheet({
               <dd className="han">{facts.disliked.join('、')}</dd>
             </>
           )}
+          {(item.kind === 'food' || item.kind === 'drink') && save.fresh[item.id] !== undefined && (
+            <>
+              <dt className="han">{save.fresh[item.id] === dayOf(save.clock) ? '热的' : '凉了'}</dt>
+              <dd className="muted">{save.fresh[item.id] === dayOf(save.clock) ? 'bought today — still warm' : 'bought on an earlier day — gone cold'}</dd>
+            </>
+          )}
           {item.gift && !facts.liked.length && !facts.disliked.length && (
             <>
               <dt className="han">礼物</dt>

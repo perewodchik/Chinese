@@ -7583,7 +7583,7 @@
     "speaker": "li-ayi",
     "onEnter": [
      {
-      "do": "money",
+      "do": "earn",
       "amount": 10
      },
      {
@@ -7699,7 +7699,7 @@
     "speaker": "zaodian-shifu",
     "onEnter": [
      {
-      "do": "money",
+      "do": "earn",
       "amount": 15
      },
      {
@@ -7799,7 +7799,7 @@
     "speaker": "lao-liu",
     "onEnter": [
      {
-      "do": "money",
+      "do": "earn",
       "amount": 10
      },
      {
@@ -7885,7 +7885,7 @@
     "translate": "Thank you! Here’s five yuan.",
     "onEnter": [
      {
-      "do": "money",
+      "do": "earn",
       "amount": 5
      }
     ],

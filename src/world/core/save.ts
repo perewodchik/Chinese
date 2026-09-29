@@ -13,7 +13,7 @@ import { feedCat, fits, NO_CAT } from './room';
 import { MAX_SUBJECTS } from './photo';
 import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
 
-export const WORLD_SAVE_VERSION = 8;
+export const WORLD_SAVE_VERSION = 9;
 /** how many payments the 账单 keeps */
 export const BILLS = 20;
 
@@ -62,6 +62,7 @@ export function newSave(deviceId: string, now: number): WorldSave {
     photos: [],
     bills: [],
     daily: {},
+    fresh: {},
     settings: DEFAULT_SETTINGS,
   };
 }
@@ -150,6 +151,12 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
     }
     case 'money':
       return { ...s, bag: { ...s.bag, money: Math.max(0, money(s.bag.money + a.amount)) } };
+    case 'earn':
+      return a.amount > 0 ? { ...s, bag: { ...s.bag, money: money(s.bag.money + a.amount) } } : s;
+    case 'buy': {
+      const n = (s.bag.items[a.item] ?? 0) + (a.count ?? 1);
+      return { ...s, bag: { ...s.bag, items: { ...s.bag.items, [a.item]: n } }, fresh: { ...s.fresh, [a.item]: dayOf(s.clock) } };
+    }
     case 'card':
       return { ...s, bag: { ...s.bag, card: Math.max(0, money((s.bag.card ?? 0) + a.amount)) } };
     case 'quest': {
@@ -283,12 +290,21 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
   }
 }
 
+/** One line of the 账单, with an id no other line (on this device or another) has. */
+function bill(s: WorldSave, amount: number, ctx: ApplyContext): WorldSave['bills'][number] {
+  const at = Math.floor(s.clock);
+  const base = `${ctx.deviceId ?? s.deviceId}:${at}`;
+  let id = base;
+  for (let i = 2; s.bills.some((b) => b.id === id); i++) id = `${base}:${i}`;
+  return { id, at, who: ctx.npc ?? ctx.scene ?? '', amount };
+}
+
 export function apply(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
   let changed = change(s, a, ctx);
   if (changed === s) return s;
   // every change to 余额 goes into the phone's 账单 (Y2)
-  if (a.do === 'money' && a.amount) {
-    changed = { ...changed, bills: [...changed.bills, { at: Math.floor(s.clock), who: ctx.npc ?? ctx.scene ?? '', amount: a.amount }].slice(-BILLS) };
+  if ((a.do === 'money' || a.do === 'earn') && a.amount) {
+    changed = { ...changed, bills: [...changed.bills, bill(changed, a.amount, ctx)].slice(-BILLS) };
   }
   // the diary writes itself as things happen (X3); a night's sleep belongs to the day it ended
   const next = logDay(changed, eventsOf(s, changed, a, ctx.npc), a.do === 'sleep' ? s.clock : changed.clock);

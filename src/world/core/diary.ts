@@ -11,6 +11,7 @@
  */
 
 import { festivalOf } from './calendar';
+import { priceZh } from './shop';
 import { dayOf } from './clock';
 import { districtInfo } from './districts';
 import { STATIONS } from './travel';
@@ -36,6 +37,8 @@ export const TEMPLATES: Record<string, { zh: string; en: string }> = {
   c: { zh: '我的猫叫{x}。', en: 'My cat is called {x}.' },
   k: { zh: '我给小猫吃了东西。', en: 'I fed the little cat.' },
   e: { zh: '我吃了{x}。', en: 'I ate {x}.' },
+  b: { zh: '我花了{y}买{x}。', en: 'I spent {y} on {x}.' },
+  $: { zh: '我挣了{x}，是我自己挣的！', en: 'I earned {x} — earned it myself!' },
   w: { zh: '我喝了{x}。', en: 'I drank {x}.' },
   p: { zh: '今天我拍了照片。照片拍得很好！', en: 'Today I took photos. They came out well!' },
   z: { zh: '晚上我在家睡觉了。', en: 'In the evening I slept at home.' },
@@ -52,6 +55,7 @@ export const DIARY_SCENE: Scene = {
     { w: '成语', explain: '四个字的老话。', en: 'a four-character idiom' },
     { w: '照片', explain: '用手机拍的画。', en: 'photo' },
     { w: '拍', explain: '用手机做照片。', en: 'to take (a photo)' },
+    { w: '挣', explain: '做事，有了钱。', en: 'to earn' },
   ],
   nodes: [...Object.entries(TEMPLATES), ['empty', EMPTY_DAY] as const].map(([id, t]) => ({
     id,
@@ -88,6 +92,10 @@ export function eventsOf(before: WorldSave, after: WorldSave, a: { do: string },
       return ['k'];
     case 'eat':
       return [`e:${x.item}`];
+    case 'buy':
+      return [`b:${x.item}:${x.price}`];
+    case 'earn':
+      return [`$:${x.amount}`];
     case 'photo':
       return ['p'];
     case 'cat_name':
@@ -138,6 +146,12 @@ export function contentNames(all: readonly Pick<DistrictContent, 'npcs' | 'items
   return { npc: (id) => npcs.get(id), item: (id) => items.get(id), spirit: (id) => spirits.get(id), drink: (id) => drinks.has(id) };
 }
 
+/** 六块钱, 三块五, 五毛 — how much, as the diary says it */
+const moneyZh = (p: number) => {
+  const z = priceZh(p);
+  return z.endsWith('块') ? `${z}钱` : z;
+};
+
 const stations = new Map(STATIONS.map((s) => [s.id, s]));
 
 /** One day's codes as sentences (a festival first, when the day is given); codes naming something unknown are left out. */
@@ -186,6 +200,13 @@ export function diaryLines(codes: readonly string[], names: Names, day?: number)
       const it = names.item(a);
       // a drink is drunk, the rest is eaten
       if (it) fill(names.drink?.(a) ? 'w' : 'e', it);
+    } else if (k === 'b') {
+      const it = names.item(a);
+      const p = Number(b);
+      if (it && p > 0) fill(k, it, { zh: moneyZh(p), en: `${p} 元` });
+    } else if (k === '$') {
+      const p = Number(a);
+      if (p > 0) fill(k, { zh: moneyZh(p), en: `${p} 元` });
     } else if (k === 'r') {
       const it = names.item(a);
       if (it) fill(k, it);

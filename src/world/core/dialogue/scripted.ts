@@ -179,7 +179,7 @@ export class ScriptedDialogue implements DialogueSource {
     const mode = shop.pay ?? 'scan';
     // now and then a cashier rings up one thing too many (a reading drill, never a trap)
     const extra = mode === 'code' && state.mischarge ? (stock.find((x) => x.item === cart[0]!.item)?.price ?? 0) : 0;
-    const due = { total, charged: total + extra, mode, name: shop.name, cart };
+    const due = { total, charged: total + extra, mode, name: shop.name, cart: cart.map((c) => ({ ...c, price: (stock.find((x) => x.item === c.item)?.price ?? 0) * c.n })) };
     const l = mode === 'scan' ? PAY_LINES.scan(priceZh(total)) : PAY_LINES.code(priceZh(total));
     return say(l.zh, `${priceEn(total)} in all.${l.en ? ` ${l.en}` : ''}`, { intent: 'due', state: { ...state, cart: [], due, misses: 0, hint: 0 } });
   }
@@ -197,7 +197,7 @@ export class ScriptedDialogue implements DialogueSource {
     const price = r.haggle.price;
     if (b.sell) {
       const box = PAY_LINES.box(yuanZh(price));
-      const paid: SaveAction[] = [...(b.item ? [{ do: 'take' as const, item: b.item }] : []), { do: 'money', amount: price }];
+      const paid: SaveAction[] = [...(b.item ? [{ do: 'take' as const, item: b.item }] : []), { do: 'earn', amount: price }];
       const chime: Line = { speaker: 'speaker-box', zh: box.zh, en: box.en, node: '' };
       if (b.go) return { kind: 'match', intent: 'deal', chime, ...this.move(scene, n, b.go, false, paid, haggled) };
       return { kind: 'match', intent: 'deal', chime, say: aside(r.zh, r.en), actions: [...paid, ...this.finish(scene)], end: true, state: { ...haggled, ended: true } };
@@ -213,7 +213,7 @@ export class ScriptedDialogue implements DialogueSource {
       };
     }
     const name = (scene.npc && this.npcs.get(scene.npc)?.name) || '';
-    const due = { total: price, charged: price, mode: 'scan' as const, name, cart: b.item ? [{ item: b.item, n: 1 }] : [] };
+    const due = { total: price, charged: price, mode: 'scan' as const, name, cart: b.item ? [{ item: b.item, n: 1, price }] : [] };
     const l = PAY_LINES.scan(priceZh(price));
     return { kind: 'match', intent: 'due', say: aside(`${r.zh}扫这儿吧。`, `${r.en} ${l.en}`), actions: [], state: { ...haggled, due } };
   }
@@ -237,7 +237,7 @@ export class ScriptedDialogue implements DialogueSource {
         intent: 'sell',
         chime: { speaker: 'speaker-box', zh: box.zh, en: box.en, node: '' },
         say: aside(SELL_LINES.more.zh, SELL_LINES.more.en),
-        actions: [{ do: 'take', item: o.item }, { do: 'money', amount: o.price }],
+        actions: [{ do: 'take', item: o.item }, { do: 'earn', amount: o.price }],
         state: { ...state, offer: undefined, sellable: left },
       };
     }
@@ -277,7 +277,7 @@ export class ScriptedDialogue implements DialogueSource {
     const paid = due.mode === 'scan' ? due.total : due.charged;
     const buy: SaveAction[] = [
       { do: 'money', amount: -paid },
-      ...due.cart.map((c) => ({ do: 'give' as const, item: c.item, count: c.n })),
+      ...due.cart.map((c) => ({ do: 'buy' as const, item: c.item, count: c.n, price: c.price ?? 0 })),
       ...(paid !== due.total ? [{ do: 'flag' as const, flag: `mischarged-${state.mischarge ?? 0}` }] : []),
     ];
     const box = PAY_LINES.box(yuanZh(paid));

@@ -111,7 +111,7 @@ describe('a shop talk (Y1)', () => {
     assert.ok(t5.end);
     const s = applyAll(rich, t5.actions, { ...ctx, npc: 'shifu' });
     assert.deepEqual([s.bag.money, s.bag.items.baozi, s.bag.items.doujiang], [rich.bag.money - 9, 2, 1]);
-    assert.deepEqual(s.bills.at(-1), { at: rich.clock, who: 'shifu', amount: -9 });
+    assert.deepEqual(s.bills.at(-1), { id: `d:${rich.clock}`, at: rich.clock, who: 'shifu', amount: -9 });
   });
 
   it('a cashier who rings up too much is put right with 不对, and a heart', () => {

@@ -95,7 +95,11 @@ export type Action =
   /** eat or drink something from the bag (Y4): a small pleasure, no hunger */
   | { do: 'eat'; item: string }
   /** two things from the bag make a third (Y4) */
-  | { do: 'combine'; a: string; b: string; makes: string };
+  | { do: 'combine'; a: string; b: string; makes: string }
+  /** something paid for comes into the bag (Y7): the money moves with its own `money`; this is the thing, the day it was bought, and the diary's 「我花了六块钱买包子。」 */
+  | { do: 'buy'; item: string; count?: number; price: number }
+  /** money earned by work or a sale (Y7): into 余额 and the diary's 「我挣了十块钱。」 */
+  | { do: 'earn'; amount: number };
 
 export type ActionKind = Action['do'];
 
@@ -435,6 +439,8 @@ export interface CatState {
 }
 
 export interface Bill {
+  /** unique across devices, so two phones' 账单 merge (Y7) */
+  id: string;
   /** game minute */
   at: number;
   /** who with: an NPC id, or a scene id when nobody spoke */
@@ -499,6 +505,8 @@ export interface WorldSave {
   bills: Bill[];
   /** once-a-day things (Y3: jobs): id → the game day last done */
   daily: Record<string, number>;
+  /** the game day each thing was last bought (Y7): food bought today is still warm */
+  fresh: Record<string, number>;
 
   settings: WorldSettings;
 }

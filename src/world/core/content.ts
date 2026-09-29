@@ -85,6 +85,8 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
   z.strictObject({ do: z.literal('daily'), id }),
   z.strictObject({ do: z.literal('eat'), item: id }),
   z.strictObject({ do: z.literal('combine'), a: id, b: id, makes: id }),
+  z.strictObject({ do: z.literal('buy'), item: id, count: z.number().int().positive().optional(), price: z.number().min(0) }),
+  z.strictObject({ do: z.literal('earn'), amount: z.number().positive() }),
   z.strictObject({ do: z.literal('pin'), riddle: text }),
   z.strictObject({ do: z.literal('solve'), riddle: text }),
   z.strictObject({ do: z.literal('remember'), npc: id, note: text }),
@@ -92,7 +94,7 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
 
 const actionKind = z.enum([
   'flag', 'give', 'take', 'money', 'card', 'quest', 'quest_done', 'stamp', 'spirit', 'idiom',
-  'station', 'district', 'chapter', 'teleport', 'game', 'sleep', 'wait', 'hearts', 'place', 'feed_cat', 'daily', 'eat', 'combine', 'pin', 'solve', 'remember',
+  'station', 'district', 'chapter', 'teleport', 'game', 'sleep', 'wait', 'hearts', 'place', 'feed_cat', 'daily', 'eat', 'combine', 'buy', 'earn', 'pin', 'solve', 'remember',
 ]);
 
 export const districtSchema: z.ZodType<District> = z.strictObject({
@@ -379,6 +381,7 @@ export function checkReferences(
     switch (a.do) {
       case 'give':
       case 'take':
+      case 'buy':
         if (!items.has(a.item)) miss('item', a.item);
         break;
       case 'stamp':
