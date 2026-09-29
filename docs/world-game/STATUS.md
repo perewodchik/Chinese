@@ -26,7 +26,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-X12 — the automated half done (see the log); the play-through in the pane and WebKit is left (M1–M5: the interactive map session).
+P1 — the menu shell (prompt §10). The X12 play-through waits for the learner and comes after §10.
 
 ## Tasks
 ### A — core logic
@@ -122,6 +122,15 @@ X12 — the automated half done (see the log); the play-through in the pane and 
 - [x] Y6 Bargaining 砍价 + Chinese number parser
 - [x] Y7 Save format +1 (ledger, freshness, jobs), buy/earn diary lines, checks
 - [ ] X12 Final bug hunt over everything
+
+### P/J — the menu: journal, people, collection (prompt §10, added 2026-09-29)
+- [ ] P1 Menu shell: 5 tabs + ⚙ (日志 包 地图 朋友 收藏), inner segmented views, red dots (`seen`), bottom bar on phones, last tab remembered, old PanelIds mapped, settings grouped
+- [ ] J1 Quest data: kind main/side, giver, blurb, lead, step past/where/when for all quests; `at` stamps in QuestState; content check
+- [ ] J2 core/journal.ts: stepTargets (any quest), directions as legs (walk / line + 往…方向 + stops / change / walk, fare, card), journal rows, leads (vague hints, max 5), tracked quest in the save
+- [ ] J3 Journal tab: Now (tracked card + route strip + Show on map, active rows → drawer, leads, riddles) · Story (chapter timeline) · 日记 (moved, cross-linked); route drawn on MetroMap; next-hop chip under the minimap
+- [ ] P2 People tab: where each person is now, drawer (memories, likes, their quests, 成语, route, topics), the cat's card
+- [ ] P3 Collection tab: 图鉴 grid with hints · 成语 cards + **Practise** (5 question kinds, learned only, weak first) · 印章 passport pages with missing stamps as places · 相册 drawer
+- [ ] P4 Checks: journal/practise/merge tests, solver + golden saves, probe screenshots in review/p/, pane + WebKit at 375/768/1024 light/dark
 - [ ] M6 "Take me there" — footprint trail, right train marked (only after M1–M5 and the learner's look)
 
 ## Decisions made without the learner

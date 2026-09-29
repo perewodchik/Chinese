@@ -1001,3 +1001,239 @@ dark mode; no emoji in UI text; names in Chinese, English on tap).
   on from the arrival station. 兔儿爷 can say "This way." The minimap shows
   the route. Cancel from the card or by arriving. Saved nowhere (a
   per-session goal).
+
+## 10. The menu — journal, people, collection (added 2026-09-29)
+
+**When:** now, before the X12 play-through and before M6. The order is
+X12 automated half (done) → **P1 → J1 → J2 → J3 → P2 → P3 → P4** → the X12
+play-through with the learner → M6.
+
+**Why:** the learner finds the panels plain and not very useful. There are
+ten tabs in one row, so they scroll sideways on a phone and nothing says
+which one has news. Every tab is the same flat list of white boxes. Tasks
+shows one line per quest, and finished quests fill most of the list ("·
+done" ×5). It never says what happened, where to go, or how to get there,
+and it doesn't separate the story from side quests. Collections (图鉴, 成语,
+印章, 相册) are split over four tabs, and 日记 and Tasks tell the same story
+without linking to each other.
+
+**Learner's decisions:**
+- Tasks become a **journal**. It shows what happened, the main quest now
+  with the place to head to and **the route with metro stations**, and side
+  quests with their description and info.
+- Side quests not yet started show as **vague hints (leads)**, never
+  spoilers.
+- The 成语 book gets a **Practise** mode.
+- The whole menu is regrouped and restyled. It should look clean and be
+  more useful.
+
+All standing rules apply: §0, the stable compact UI (no layout shift,
+one-line toolbars, per-item actions on the item, checked at 375 / 768 /
+1024 and in WebKit, light and dark), a tap opens a card's drawer,
+`hanzi-design` tokens only, and names in Chinese with English on tap. The
+world stays paused while the menu is open.
+
+### P1 — the menu shell
+- **Five tabs plus ⚙.**
+
+  | Tab | Holds |
+  |---|---|
+  | 📜 日志 Journal | tasks, riddles, diary |
+  | 🎒 包 Bag | as built in Y5 |
+  | 🗺 地图 Map | as built in M3/M4 |
+  | 👥 朋友 People | friends and the cat |
+  | 📖 收藏 Collection | 图鉴, 成语, 印章, 相册 |
+
+- Each tab shows an icon, a 汉字 label and a small English word under it.
+  ⚙ becomes an icon button beside ×, and settings are grouped into Sound,
+  Text (pinyin, size), Controls and Game (Start over).
+- **Inner views** use one segmented control at the top of the tab, never a
+  second tab row. Journal: Now · Story · 日记. Collection: 图鉴 · 成语 · 印章 ·
+  相册. Map: as now.
+- **Red dots** mark news: a new 成语, stamp, spirit, riddle or lead, or a
+  quest step that moved. A dot shows on the tab and on the inner view, and
+  clears when that view is opened. `seen` markers live in the save
+  (additive, merged by max, no version bump).
+- **Phones (<768):** the sheet is full height with the tab bar at the
+  bottom, within thumb reach. **iPad/desktop:** the tab bar stays on top.
+- The menu reopens on the last tab and view, kept per device in
+  localStorage (try/catch). Keyboard: 1–5 switch tabs, Esc closes.
+- Old `PanelId`s (`tasks`, `spirits`, `idioms`, `stamps`, `friends`,
+  `diary`, `album`, `settings`) map onto the new tab + view, so
+  `onOpenPanel` callers (TopBar, companion, minimap) keep working.
+- **Look:** cards only for things you act on. Passive and finished things
+  are quiet one-line rows. One accent for "current / go here" (the gold
+  already used for the task ring on the maps). Drawers slide over the list
+  and never push it down.
+
+### J1 — quest data
+- `Quest.kind: 'main' | 'side'`, required. Main = `ch1`…`ch7` and
+  `epilogue`; everything else is side (`story-*`, `wang-cold` too).
+- `Quest.giver?: npcId`.
+- `Quest.blurb: string`, required for side quests: 1–2 English sentences
+  on what it is about and why it matters to the giver.
+- `Quest.lead?: string`: the vague hint shown before the quest starts
+  (see J2), in English, naming a person and/or a place and never the
+  answer. Example: "赵爷爷 by the 鼓楼 square looks worried about
+  something." When it is missing, it is generated from the giver and the
+  giver's usual place.
+- `QuestStep.past: string`, required: the step told afterwards, in the
+  past tense, first person, one line. Example: "Had 包子 and 豆浆 at the
+  早点铺 — my first order in Chinese."
+- `QuestStep.where?: mapId`, for steps whose `done` names no place (a
+  flag, an item). Use `"anywhere"` when the step truly has no place.
+- `QuestStep.when?: string`: timing the player must know ("after dark",
+  "open 9:00–17:00", "at 春节").
+- **Save:** `QuestState.at?: Record<stepId, gameMinute>`, stamped when a
+  step is reached and when the quest is done. It is additive, merged by the
+  earlier minute, with no version bump. Old saves have no stamps and show
+  as "earlier".
+- **Content check:** `kind` on every quest, `blurb` on side quests, `past`
+  on every step, and every **main** step must resolve to a place
+  (`goalMaps` or `where`) or be `where: "anywhere"`.
+- Write `past`/`blurb`/`lead` for all ~64 quests (~180 steps). Keep them
+  short and warm, in the companion's voice, English only (Chinese names as
+  usual).
+
+### J2 — `core/journal.ts` (pure, tested)
+- `stepTargets(save, quest, content)`: `goal.ts`'s condition walk,
+  generalised from "the first active quest" to any quest, plus `where`.
+  Returns maps, and for each its neighbourhood (`hoodOf`) and station.
+  `goalMaps` becomes a thin wrapper around it.
+- `directions(save, map, index)`: builds on `wayThere` and returns
+  display legs rather than text. Example:
+  - `{walk: [我的房间 → 四合院 → 南锣鼓巷 → 南锣鼓巷站]}`
+  - `{ride: line 8, 往… direction, 3 stops, from 南锣鼓巷, to 王府井}`
+  - `{change: at 王府井 to line 1}`
+  - `{ride …}`
+  - `{walk: exit → 天安门广场}`
+
+  Plus `fare` and `hasCard` (with enough money). "Here" and "on foot"
+  are cases of their own.
+- `journal(save, content)` returns:
+  - `tracked`: the tracked quest, else the current main step.
+  - `active`: main first, then side, newest first; each with step `now`,
+    targets, `when` and giver.
+  - `story`: chapters in order. Each is a list of `{day, past}` for the
+    steps done, with finished side quests filed under the chapter in which
+    they finished (by `at`).
+  - `leads`: side quests not started whose giver you have **met** or
+    whose giver's neighbourhood you have **visited**, and whose start
+    conditions could hold now or soon. At most 5 at a time: nearest
+    neighbourhood first, then lower chapter.
+- **Tracked quest:** `save.tracked?: questId`, synced (additive, merged by
+  the newer revision). 兔儿爷's "What now?", the minimap's gold ring and the
+  🗺 task ring all follow it. If it is finished or missing, fall back to
+  the current main step.
+
+### J3 — the Journal tab
+- **Now** (the default view):
+  1. A one-line header: day, weather, time, 余额, and chapter progress
+     ("第二章 · 2 / 7").
+  2. **The tracked quest card:** the title (a small 主线 / 支线 tag), the
+     step `now`, the destination with its mini thumbnail
+     (`public/world/minis/`) and 汉字 · pinyin · English, the `when` note,
+     and the **route strip**. The strip is the J2 legs as chips: 🚶 walk,
+     then line chips in the line colour with the number, direction and
+     stops, a small ↔ at changes, and the final walk. Under it: the fare
+     and "交通卡 ✓ / top up / buy one at the station". One button:
+     **Show on map**, which opens 🗺 → metro with the route drawn (J3b).
+     If the step has no place: "Ask around — …" plus the `lead`-style
+     hint.
+  3. **Other active quests:** compact rows (giver portrait 32px, title,
+     neighbourhood tag, one-line step). A tap opens the quest drawer:
+     blurb, giver, where, route strip, `when`, the log of past steps with
+     days, a reward hint when the reward is known to the player (a stamp,
+     a friend's heart — never spoil items or spirits), and **Track**.
+  4. **Leads:** faint rows with a 📍 neighbourhood tag and the lead
+     sentence. A tap shows the route to the giver's place now
+     (`schedule.ts`).
+  5. **📌 Riddles:** unsolved first, as now. Solved ones fold into one line
+     "Worked out: N" that opens.
+- **Story:** a chapter timeline. The current chapter is open; finished
+  chapters are one line ("第一章 · A new home in the hutong ✓ · days
+  1–3") that opens their log. Side quests sit under their chapter as
+  indented one-liners with their own `past` lines on tap.
+- **日记:** the diary as built in X3, moved here unchanged. Each day adds a
+  small "Also: <quest step past lines of that day>" link, and a Story
+  entry's day links to that diary day.
+- **J3b, the route on the map:** `MetroMap` gets `route?: Leg[]`. The legs
+  are drawn thick in their line colours, other lines dimmed to ~25%, rings
+  at the changes, "you" and "there" pins, and the view fitted to the
+  route. The neighbourhood plan keeps the gold ring on the target.
+- **J3c, in the world:** a small chip under the minimap shows the next hop
+  of the tracked quest ("→ 南锣鼓巷站 · 8号线"). A tap opens Journal → Now.
+  It hides indoors with the minimap and never overlaps the hero, the
+  joystick or the input bar. This is not M6's footprint trail; M6 later
+  reuses `directions`.
+
+### P2 — the People tab
+- Rows: portrait, 汉字 name, ♥ hearts, role, and **where they are now**
+  from `schedule.ts` ("茶馆 · until 18:00", or "not about now · usually at
+  鼓楼 in the morning"). Sort: people with an active quest first, then
+  hearts, then last met.
+- A tap opens the person's drawer:
+  - what they remember about you (X2 notes)
+  - likes and dislikes learned from gifts (Y5 already records them)
+  - their quests, active and done, linking to the journal drawer
+  - the 成语 they taught you
+  - the route to where they are now (J2 `directions`)
+  - "Talk topics" they answer, from their card, shown only once met
+- Your cat gets its own card: name, days fed, where it sleeps. Your name
+  goes in the header as now (我叫…).
+
+### P3 — the Collection tab
+- **图鉴:** a grid of portraits (3 columns on phones, 5 on iPad) with a
+  count "3 / 8". Missing spirits are silhouettes with a district hint
+  ("Something stirs near 天坛") from `Spirit.district`, never the name. A
+  tap opens the drawer with legend, befriend line and credit.
+- **成语:** compact cards: the 成语 large, pinyin, and a one-line meaning. A
+  tap opens the drawer with parts, story (ZhText), and who you heard it
+  from. Filters in one line: 全部 · 听到的 · 故事. A count "N / total"
+  where the total counts only 成语 already met.
+- **成语 Practise** (learner asked for it): a button in the 成语 view's
+  toolbar, active once ≥4 成语 are known. A short round of up to 8
+  questions, only from the 成语 you have heard (the test-only-learned
+  rule). Question kinds, mixed:
+  1. English meaning → pick the 成语 from 4
+  2. 成语 → pick the meaning from 4
+  3. a gap — the 成语 with one character hidden → pick the character from 4
+  4. **say it:** the meaning is shown, and the player says or types the
+     成语 through the existing input bar (voice / keyboard / IME),
+     matched after normalising
+  5. listen: the 成语 is played in the voice clip or system voice → pick
+     it
+
+  Distractors come from other known 成语 first, then from the game's list.
+  At the end: a score, the ones missed with their story line, and a small
+  reward the first time a round is all right (a friend's heart for the
+  person who taught the most, or a 成语 stamp — pick one, write it under
+  Decisions). Keep per-成语 `practised: {right, wrong, last}` in the save
+  (additive, merged by max) and ask weak ones first. No timers, no lives.
+- **印章:** a passport with one page per neighbourhood (swipe or ‹ ›),
+  stamps as red seal art in a grid, and missing ones as dashed outlines
+  with the place name ("天坛 · 回音壁") so the page says where to go. Each
+  page shows a count, and the cover shows the total. A tap on a missing
+  stamp shows the route there (J2).
+- **相册:** a grid as now. A tap opens a full-width drawer with the photo,
+  place and day, and the postcard / delete actions (as in X6).
+
+### P4 — checks
+- Tests: `journal.test.ts`
+  - targets for every main step
+  - `directions` for the chapter 1 ride (南锣鼓巷 → 8 → 王府井 → 1 → 天安门东),
+    a walk-only case and a no-card case
+  - leads (none before meeting, max 5, never a started quest)
+  - story ordering by `at`
+  - tracked fallback
+- Tests: panel rows for People and Collection. Practise question building
+  (only learned 成语, 4 distinct options, weak first).
+- Tests: the old `PanelId` mapping, and the merge of `at` / `tracked` /
+  `seen` / `practised`.
+- The solver and golden saves still pass. The solver's final save has
+  `at` stamps for every step it did.
+- The map probe screenshots every tab and view, and a quest drawer, into
+  `review/p/`.
+- Check in the pane at 375 / 768 / 1024, light and dark: no horizontal
+  scroll, no layout shift when a drawer opens or a dot clears. Run
+  `scripts/webkit-probe.swift` at 390 and 1024.
