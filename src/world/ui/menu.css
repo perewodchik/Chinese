@@ -1,40 +1,81 @@
-/* --- the menu (§10): five tabs and ⚙ over the paused world.
-   iPad and desktop: a sheet in the middle, tabs on top. Phones: the whole
-   screen, tabs at the bottom in thumb reach. Tokens only. */
+/* --- the menu (§10, redrawn cozy): a paper book in the game's pixel frame,
+   its five tabs as bookmarks on a wooden bar with ⚙ and × at the bar's end —
+   one bar, never a second header between the tabs and the page. iPad and
+   desktop: the bar on top. Phones: the whole screen, the bar at the bottom in
+   thumb reach. Everything inside is square pixels: 2px edges, hard drops, no
+   rounded corners, the same as the dialogue box and 兔儿爷's bubble. */
 .mn-scrim {
   position: absolute;
   inset: 0;
   z-index: 8;
   display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
-  background: rgba(20, 18, 28, 0.45);
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  background: rgba(20, 18, 28, 0.5);
   touch-action: auto;
   user-select: text;
   -webkit-user-select: text;
 }
 
 .mn {
+  /* warm paper and wood, mixed from the site's tokens so dark mode follows */
+  --mn-paper: color-mix(in srgb, var(--card) 86%, #e6d7b6);
+  --mn-paper-2: color-mix(in srgb, var(--card) 70%, #cbb88f);
+  --mn-edge: color-mix(in srgb, var(--line-2) 60%, #a99870);
+  --mn-hole: color-mix(in srgb, var(--card-2) 55%, #a99870);
+  --mn-wood: #8c5c3b;
+  --mn-wood-light: #a8744a;
+  --mn-wood-deep: #5b3a29;
+  --mn-cream: #f8f1df;
+  --mn-drop: color-mix(in srgb, var(--ink) 16%, transparent);
+  --radius: 0px;
+  --radius-lg: 0px;
   position: relative;
-  width: min(780px, 100%);
-  height: min(680px, 100%);
+  width: min(800px, 100%);
+  height: min(700px, 100%);
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  grid-template-areas: 'tabs' 'head' 'body';
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  background: var(--paper);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: 'bar' 'page';
+  background: var(--mn-paper);
   color: var(--ink);
-  box-shadow: var(--shadow);
+  box-shadow: var(--px-frame);
   overflow: hidden;
+  animation: mn-open 0.14s ease-out both;
+}
+
+@keyframes mn-open {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mn {
+    animation: none;
+  }
+}
+
+/* the wooden bar: planks, the bookmarks, and ⚙ × at its end */
+.mn-bar {
+  grid-area: bar;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 8px 0;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 13px, rgba(0, 0, 0, 0.12) 13px 15px),
+    var(--mn-wood);
+  box-shadow: inset 0 -3px 0 var(--mn-wood-deep);
 }
 
 .mn-tabs {
-  grid-area: tabs;
+  flex: 1;
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  border-bottom: 1px solid var(--line);
-  background: var(--card);
+  gap: 4px;
 }
 
 .mn-tabs [role='tab'] {
@@ -43,25 +84,47 @@
   justify-items: center;
   align-content: center;
   gap: 1px;
-  height: 56px;
-  padding: 0 2px;
+  height: 64px;
+  padding: 4px 2px 5px;
   border: 0;
-  background: none;
-  color: var(--ink-3);
+  background: color-mix(in srgb, var(--mn-wood-light) 80%, var(--mn-wood));
+  color: var(--mn-cream);
   font: inherit;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  /* a bookmark's pixel edge: dark on the sides and top, open at the bottom */
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.12),
+    0 -3px 0 0 var(--mn-wood-deep),
+    -3px 0 0 0 var(--mn-wood-deep),
+    3px 0 0 0 var(--mn-wood-deep);
+  margin: 3px 3px 0;
+  transform: translateY(4px);
+  transition: transform 0.1s, background 0.12s;
 }
 
+.mn-tabs [role='tab']:hover {
+  transform: translateY(1px);
+}
+
+.mn-tabs [role='tab'] .w-prop {
+  opacity: 0.85;
+}
+
+/* the open tab is part of the page: paper, raised, joined to it */
 .mn-tabs [role='tab'][aria-selected='true'] {
-  background: var(--card-2);
+  z-index: 1;
+  background: var(--mn-paper);
   color: var(--ink);
-  box-shadow: inset 0 -2px 0 var(--ink-2);
+  transform: none;
+  box-shadow:
+    0 -3px 0 0 var(--px-edge),
+    -3px 0 0 0 var(--px-edge),
+    3px 0 0 0 var(--px-edge),
+    0 3px 0 0 var(--mn-paper);
 }
 
-.mn-icon {
-  font-size: 17px;
-  line-height: 1.1;
+.mn-tabs [role='tab'][aria-selected='true'] .w-prop {
+  opacity: 1;
 }
 
 .mn-zh {
@@ -76,30 +139,81 @@
   line-height: 1.1;
   letter-spacing: 0.02em;
   white-space: nowrap;
+  opacity: 0.85;
 }
 
 .mn-tabs [role='tab'][aria-selected='true'] .mn-zh {
   font-weight: 600;
 }
 
-/* news: a small red dot, laid over — clearing it moves nothing */
+/* ⚙ and ×: square pixel keys on the wood */
+.mn-keys {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  align-self: center;
+  padding: 0 4px 6px;
+}
+
+.mn-key {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: var(--mn-cream);
+  color: var(--mn-wood-deep);
+  cursor: pointer;
+  box-shadow:
+    0 -2px 0 0 var(--mn-wood-deep),
+    0 2px 0 0 var(--mn-wood-deep),
+    -2px 0 0 0 var(--mn-wood-deep),
+    2px 0 0 0 var(--mn-wood-deep),
+    0 5px 0 0 rgba(0, 0, 0, 0.3);
+}
+
+.mn-key:hover {
+  background: #fff;
+}
+
+.mn-key:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 -2px 0 0 var(--mn-wood-deep),
+    0 2px 0 0 var(--mn-wood-deep),
+    -2px 0 0 0 var(--mn-wood-deep),
+    2px 0 0 0 var(--mn-wood-deep);
+}
+
+.mn-key[aria-pressed='true'] {
+  background: var(--gold-soft, #f4e6c4);
+  color: var(--accent);
+}
+
+.mn-close {
+  background: #f2c9bd;
+  color: #761d25;
+}
+
+/* news: a small red pixel dot, laid over — clearing it moves nothing */
 .mn-dot {
   position: absolute;
-  top: 6px;
-  right: calc(50% - 20px);
+  top: 5px;
+  right: calc(50% - 22px);
   width: 8px;
   height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 2px var(--card);
+  background: #d8443b;
+  box-shadow: 0 0 0 2px var(--mn-wood-deep);
   pointer-events: none;
 }
 
 .mn-views .mn-dot {
-  top: 1px;
-  right: 1px;
+  top: 2px;
+  right: 2px;
   width: 6px;
   height: 6px;
+  box-shadow: none;
 }
 
 .wt-menu {
@@ -112,27 +226,25 @@
   box-shadow: none;
 }
 
-.mn-head {
-  grid-area: head;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 48px;
-  padding: 0 8px 0 12px;
-  border-bottom: 1px solid var(--line);
-  background: var(--card);
-  white-space: nowrap;
+/* the page under the bar: its own page tabs (Now · Story · 日记), then the body */
+.mn-page {
+  grid-area: page;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
-.mn-head .spacer {
-  flex: 1;
+.mn-page > .mn-body:only-child {
+  grid-row: 1 / -1;
 }
 
 .mn-views {
-  flex-wrap: nowrap;
-  min-width: 0;
+  display: flex;
+  gap: 6px;
+  padding: 14px 16px 0;
   overflow-x: auto;
   scrollbar-width: none;
+  white-space: nowrap;
 }
 
 .mn-views::-webkit-scrollbar {
@@ -141,9 +253,30 @@
 
 .mn-views button {
   position: relative;
-  min-width: 44px;
-  height: 30px;
+  flex: none;
+  min-width: 56px;
+  height: 32px;
+  padding: 0 12px;
+  border: 2px solid var(--mn-edge);
+  background: var(--mn-paper-2);
+  color: var(--ink-2);
+  font: inherit;
   font-size: 13px;
+  font-weight: 560;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--mn-drop);
+}
+
+.mn-views button:hover {
+  border-color: var(--px-edge);
+}
+
+.mn-views button[aria-selected='true'] {
+  border-color: var(--px-edge);
+  background: var(--px-edge);
+  color: var(--mn-paper);
+  box-shadow: none;
+  transform: translateY(2px);
 }
 
 .mn-views .han {
@@ -151,23 +284,24 @@
   font-size: 15px;
 }
 
-.mn-title .han {
-  font-family: var(--han);
-  font-size: 17px;
-  font-weight: 500;
+.mn-title {
+  margin: 0;
+  padding: 14px 16px 0;
+  font-size: inherit;
 }
 
-.mn-gear[aria-pressed='true'] {
-  background: var(--card-2);
-  border-radius: 8px;
+.mn-title .han {
+  font-family: var(--han);
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .mn-body {
-  grid-area: body;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 12px 16px 20px;
+  padding: 14px 16px 22px;
 }
 
 /* quiet one-line rows for passive and finished things (cards only for what you act on) */
@@ -183,7 +317,7 @@
   gap: 8px;
   min-height: 36px;
   padding: 8px 2px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 2px dotted var(--mn-edge);
   font-size: 13.5px;
 }
 
@@ -200,25 +334,536 @@
   .mn {
     width: 100%;
     height: 100%;
-    border: 0;
-    border-radius: 0;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    grid-template-areas: 'head' 'body' 'tabs';
-  }
-
-  .mn-head {
-    height: calc(48px + env(safe-area-inset-top, 0px));
+    box-shadow: none;
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: 'page' 'bar';
     padding-top: env(safe-area-inset-top, 0px);
   }
 
+  .mn-bar {
+    align-items: flex-start;
+    gap: 4px;
+    padding: 0 4px calc(env(safe-area-inset-bottom, 0px) + 6px);
+    box-shadow: inset 0 3px 0 var(--mn-wood-deep);
+  }
+
   .mn-tabs {
-    border-top: 1px solid var(--line);
-    border-bottom: 0;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    gap: 2px;
+  }
+
+  .mn-tabs [role='tab'] {
+    height: 58px;
+    margin: 0 2px 3px;
+    transform: translateY(-4px);
+    box-shadow:
+      inset 0 -3px 0 rgba(0, 0, 0, 0.1),
+      0 3px 0 0 var(--mn-wood-deep),
+      -3px 0 0 0 var(--mn-wood-deep),
+      3px 0 0 0 var(--mn-wood-deep);
+  }
+
+  .mn-tabs [role='tab']:hover {
+    transform: translateY(-1px);
   }
 
   .mn-tabs [role='tab'][aria-selected='true'] {
-    box-shadow: inset 0 2px 0 var(--ink-2);
+    transform: none;
+    box-shadow:
+      0 3px 0 0 var(--px-edge),
+      -3px 0 0 0 var(--px-edge),
+      3px 0 0 0 var(--px-edge),
+      0 -3px 0 0 var(--mn-paper);
+  }
+
+  .mn-en {
+    font-size: 9.5px;
+  }
+
+  .mn-keys {
+    flex-direction: column;
+    align-self: stretch;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 3px 0;
+  }
+
+  .mn-key {
+    width: 40px;
+    height: 27px;
+    box-shadow:
+      0 -2px 0 0 var(--mn-wood-deep),
+      0 2px 0 0 var(--mn-wood-deep),
+      -2px 0 0 0 var(--mn-wood-deep),
+      2px 0 0 0 var(--mn-wood-deep);
+  }
+
+  .mn-key .w-px-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .mn-views {
+    padding: 12px 12px 0;
+  }
+
+  .mn-body {
+    padding: 12px 12px 18px;
+  }
+}
+
+/* at 375 the bar has no room for English under every tab and two keys beside */
+@media (max-width: 420px) {
+  .mn-tabs [role='tab'] {
+    margin: 0 1px 3px;
+  }
+
+  .mn-en {
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+}
+
+/* --- the 包 tab: a game inventory. The wallet strip, the pockets, square slots
+   (six across, never fewer than four rows — empty slots are drawn too), and the
+   picked thing's card beside them (above them on a phone). */
+.bg {
+  display: grid;
+  gap: 12px;
+}
+
+.bg-wallet {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 12px;
+  border: 0;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: left;
+  cursor: pointer;
+  box-shadow:
+    0 -2px 0 0 var(--mn-edge),
+    0 2px 0 0 var(--mn-edge),
+    -2px 0 0 0 var(--mn-edge),
+    2px 0 0 0 var(--mn-edge),
+    0 5px 0 0 var(--mn-drop);
+  margin: 2px 2px 5px;
+  width: calc(100% - 4px);
+}
+
+.bg-wallet:hover {
+  box-shadow:
+    0 -2px 0 0 var(--px-edge),
+    0 2px 0 0 var(--px-edge),
+    -2px 0 0 0 var(--px-edge),
+    2px 0 0 0 var(--px-edge),
+    0 5px 0 0 var(--mn-drop);
+}
+
+.bg-purse {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bg-purse .han,
+.bg-last .han,
+.bg-go .han {
+  font-family: var(--han);
+  color: var(--ink-3);
+}
+
+.bg-purse b {
+  font-size: 16px;
+}
+
+.bg-last {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink-3);
+}
+
+.bg-go {
+  margin-left: auto;
+  flex: none;
+  color: var(--ink-2);
+}
+
+/* the pockets: one line, a picture and a count each */
+.bg-pockets {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.bg-pockets button {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: center;
+  align-items: center;
+  column-gap: 6px;
+  height: 44px;
+  padding: 0 4px;
+  border: 2px solid var(--mn-edge);
+  background: var(--mn-paper-2);
+  color: var(--ink-2);
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--mn-drop);
+}
+
+.bg-pockets .han {
+  font-family: var(--han);
+  font-size: 15px;
+}
+
+.bg-pockets button:hover:not(:disabled) {
+  border-color: var(--px-edge);
+}
+
+.bg-pockets button[aria-selected='true'] {
+  border-color: var(--px-edge);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: inset 0 -3px 0 var(--accent);
+}
+
+.bg-pockets button:disabled {
+  cursor: default;
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+.bg-pockets button:disabled .w-prop {
+  filter: grayscale(1);
+}
+
+.bg-n {
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.bg-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  align-items: start;
+  gap: 16px;
+}
+
+/* the slots: sunk into the paper, a picture, a name, a count */
+.bg-slots {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  background: var(--mn-paper-2);
+  box-shadow:
+    0 -2px 0 0 var(--mn-edge),
+    0 2px 0 0 var(--mn-edge),
+    -2px 0 0 0 var(--mn-edge),
+    2px 0 0 0 var(--mn-edge);
+  margin: 2px;
+}
+
+.bg-slot {
+  aspect-ratio: 1 / 1.08;
+  min-width: 0;
+  background: var(--mn-hole);
+  box-shadow:
+    inset 2px 2px 0 color-mix(in srgb, var(--ink) 14%, transparent),
+    inset -2px -2px 0 color-mix(in srgb, #fff 30%, transparent);
+}
+
+.bg-slot > button {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 4px 2px 3px;
+  border: 0;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  box-shadow:
+    inset 0 -3px 0 color-mix(in srgb, var(--ink) 10%, transparent),
+    0 0 0 2px var(--mn-edge);
+  transition: transform 0.08s;
+}
+
+.bg-slot > button:hover {
+  transform: translateY(-2px);
+}
+
+.bg-slot > button[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--card) 80%, var(--gold-soft, #f4e6c4));
+  box-shadow:
+    0 0 0 3px var(--gold),
+    0 0 0 5px var(--px-edge);
+  z-index: 1;
+}
+
+.bg-slot > button .w-prop {
+  align-self: end;
+}
+
+.bg-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--han);
+  font-size: 12.5px;
+  line-height: 1.3;
+}
+
+.bg-count {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  min-width: 16px;
+  padding: 0 3px;
+  background: var(--px-edge);
+  color: var(--card);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.bg-count::before {
+  content: '×';
+  font-weight: 500;
+}
+
+/* a story thing: a little red seal corner */
+.bg-key {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--card);
+}
+
+/* the picked thing's card */
+.bg-card {
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-height: 220px;
+  padding: 12px;
+  background: var(--card);
+  box-shadow:
+    0 -3px 0 0 var(--px-edge),
+    0 3px 0 0 var(--px-edge),
+    -3px 0 0 0 var(--px-edge),
+    3px 0 0 0 var(--px-edge),
+    0 7px 0 0 var(--mn-drop);
+  margin: 3px;
+}
+
+.bg-card-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+/* the picture in a little display case */
+.bg-case {
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  background:
+    radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--gold) 22%, transparent) 0 40%, transparent 41%),
+    var(--mn-paper-2);
+  box-shadow:
+    inset 2px 2px 0 color-mix(in srgb, var(--ink) 14%, transparent),
+    0 0 0 2px var(--mn-edge);
+}
+
+.bg-card-word {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.bg-card-han {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px dotted var(--mn-edge);
+  background: none;
+  color: var(--ink);
+  font-family: var(--han);
+  font-size: 30px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.bg-card-han:hover {
+  border-bottom-color: var(--accent);
+}
+
+.bg-card-py {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.bg-card-en {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bg-tag {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: 1px 8px;
+  border: 2px solid var(--mn-edge);
+  background: var(--mn-paper-2);
+  font-family: var(--han);
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.bg-tag[data-kind='key'] {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--mn-edge));
+  color: var(--accent);
+}
+
+.bg-card .w-facts {
+  margin: 0;
+}
+
+.bg-verbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bg-verb {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 36px;
+  padding: 0 12px;
+  border: 2px solid var(--px-edge);
+  background: var(--mn-paper);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 560;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--mn-drop);
+}
+
+.bg-verb .han {
+  font-family: var(--han);
+  font-size: 16px;
+}
+
+.bg-verb .tiny {
+  color: var(--ink-3);
+}
+
+.bg-verb:hover {
+  background: var(--card);
+}
+
+.bg-verb:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.bg-card-empty {
+  place-items: center;
+  align-content: center;
+  text-align: center;
+}
+
+.bg-card-empty b {
+  font-family: var(--han);
+  font-size: 44px;
+  font-weight: 500;
+  color: var(--mn-edge);
+}
+
+@media (max-width: 767px) {
+  .bg {
+    gap: 10px;
+  }
+
+  .bg-wallet {
+    gap: 10px;
+    font-size: 13px;
+  }
+
+  .bg-last {
+    display: none;
+  }
+
+  .bg-pockets {
+    gap: 4px;
+  }
+
+  .bg-pockets button {
+    grid-template-columns: auto;
+    align-content: center;
+    height: 56px;
+    row-gap: 0;
+    padding-bottom: 3px;
+  }
+
+  .bg-pockets .han {
+    font-size: 12.5px;
+  }
+
+  /* the card on top, the slots under it: picking never moves the card */
+  .bg-main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  /* a fixed height, so a longer card never pushes the slots down; more facts scroll inside */
+  .bg-card {
+    order: -1;
+    position: static;
+    height: 236px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .bg-slots {
+    gap: 5px;
+    padding: 6px;
+  }
+
+  .bg-name {
+    font-size: 11.5px;
   }
 }
 
@@ -770,4 +1415,274 @@
   .cl-big {
     font-size: 56px;
   }
+}
+
+/* --- the pixel pass: everything else inside the menu (journal, 收藏, ⚙, the
+   map's tools, the drawers) in the same square pixels as the bag. `:where`
+   keeps these weaker than each view's own state colours (right / wrong / got). */
+.mn .btn {
+  border: 2px solid var(--mn-edge);
+  border-radius: 0;
+  background: var(--mn-paper);
+  box-shadow: 0 3px 0 var(--mn-drop);
+  font-weight: 560;
+}
+
+.mn .btn:hover:not(:disabled) {
+  border-color: var(--px-edge);
+  background: var(--card);
+}
+
+.mn .btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.mn .btn.primary {
+  border-color: color-mix(in srgb, var(--accent) 65%, #000);
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--accent) 50%, #000);
+}
+
+.mn .btn.primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 88%, #fff);
+}
+
+.mn .btn.ghost {
+  background: transparent;
+  box-shadow: none;
+}
+
+.mn .btn.danger {
+  border-color: color-mix(in srgb, var(--accent) 65%, #000);
+  color: var(--accent);
+}
+
+.mn .seg {
+  border: 2px solid var(--mn-edge);
+  border-radius: 0;
+  background: var(--mn-paper-2);
+  padding: 2px;
+}
+
+.mn .seg button {
+  border-radius: 0;
+}
+
+.mn .seg button[aria-pressed='true'] {
+  background: var(--px-edge);
+  color: var(--mn-paper);
+  box-shadow: none;
+}
+
+.mn .tag,
+.mn .jn-tag,
+.mn .jn-hood {
+  border-radius: 0;
+}
+
+/* section labels: small caps with a dotted rule running out to the edge */
+.mn .wp-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 8px;
+  color: var(--ink-2);
+  letter-spacing: 0.06em;
+}
+
+.mn .wp-label::after {
+  content: '';
+  flex: 1;
+  border-bottom: 2px dotted var(--mn-edge);
+}
+
+/* cards: a 2px edge and a hard drop, no rounding */
+.mn :where(.jn-card, .cl-spirit, .cl-idiom, .cl-stage, .cl-opt, .cl-said, .wp-list li, .wp-card, .cl-photo, .w-phone-home) {
+  border: 2px solid var(--mn-edge);
+  border-radius: 0;
+  background: var(--card);
+  box-shadow: 0 4px 0 var(--mn-drop);
+}
+
+.mn :where(.cl-spirit, .cl-idiom, .cl-opt):hover:not(:disabled) {
+  border-color: var(--px-edge);
+}
+
+.mn :where(.cl-spirit, .cl-idiom, .cl-opt):active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+/* the quest you follow: the gold card, framed like 兔儿爷's bubble */
+.mn .jn-card {
+  border: 3px solid color-mix(in srgb, var(--gold) 75%, var(--px-edge));
+  background: color-mix(in srgb, var(--card) 88%, var(--gold-soft, #f4e6c4));
+  box-shadow: 0 5px 0 var(--mn-drop);
+}
+
+.mn .jn-mini {
+  border-radius: 0;
+  outline: 0;
+  box-shadow:
+    0 0 0 2px var(--gold),
+    0 0 0 4px var(--px-edge);
+  margin: 4px;
+}
+
+/* quiet rows under the card: a hover wash, square */
+.mn .jn-row {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.mn .jn-row:hover {
+  background: color-mix(in srgb, var(--mn-paper-2) 60%, transparent);
+}
+
+.mn .jn-row .wt-portrait {
+  border-radius: 0;
+  box-shadow: 0 0 0 2px var(--mn-edge);
+}
+
+/* 图鉴: the spirit in a square niche, missing ones a dashed outline */
+.mn .cl-spirit-art {
+  border-radius: 0;
+  background: var(--mn-paper-2);
+  box-shadow: inset 2px 2px 0 color-mix(in srgb, var(--ink) 12%, transparent);
+}
+
+.mn .cl-spirit[data-missing] {
+  border-style: dashed;
+  background: transparent;
+  box-shadow: none;
+}
+
+.mn .cl-steps i {
+  border-radius: 0;
+  height: 6px;
+}
+
+.mn .cl-reward {
+  border-radius: 0;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 50%, transparent);
+}
+
+/* drawers over a view: paper, a pixel top edge */
+.mn .w-sheet-scrim {
+  background: rgba(20, 18, 28, 0.35);
+}
+
+.mn .w-sheet {
+  border: 0;
+  border-radius: 0;
+  background: var(--mn-paper);
+  box-shadow:
+    0 -3px 0 0 var(--px-edge),
+    0 -8px 0 0 var(--mn-drop);
+  animation: mn-sheet 0.14s ease-out both;
+}
+
+@keyframes mn-sheet {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mn .w-sheet {
+    animation: none;
+  }
+}
+
+/* ⚙: each group a framed box of rows */
+.mn .wp-settings {
+  max-width: 520px;
+  gap: 10px;
+}
+
+.mn .wp-settings label {
+  min-height: 48px;
+  padding: 6px 12px;
+  background: var(--card);
+  box-shadow:
+    0 -2px 0 0 var(--mn-edge),
+    0 2px 0 0 var(--mn-edge),
+    -2px 0 0 0 var(--mn-edge),
+    2px 0 0 0 var(--mn-edge);
+  margin: 2px;
+}
+
+.mn .wp-settings p {
+  margin: 0 2px;
+}
+
+.mn .wp-settings .wp-label {
+  margin-bottom: 2px;
+}
+
+/* the phone in the bag: a pixel phone on the paper */
+.mn .w-phone-home {
+  border: 0;
+  box-shadow:
+    0 -3px 0 0 var(--pay-edge),
+    0 3px 0 0 var(--pay-edge),
+    -3px 0 0 0 var(--pay-edge),
+    3px 0 0 0 var(--pay-edge),
+    0 7px 0 0 var(--mn-drop);
+}
+
+.mn .w-phone-home li {
+  border: 0;
+  border-bottom: 2px dotted var(--line-2);
+  box-shadow: none;
+  background: none;
+  margin: 0;
+}
+
+/* empty states: the big character in the paper's edge colour */
+.mn .wp-empty .big {
+  color: var(--mn-edge);
+}
+
+.w-fit {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+}
+
+.mn .cl-spirit-art[data-art] {
+  background:
+    radial-gradient(circle at 50% 62%, color-mix(in srgb, var(--gold) 20%, transparent) 0 42%, transparent 43%),
+    var(--mn-paper-2);
+}
+
+/* the journal's route strip: square chips like everything else */
+.mn .jn-route > li,
+.mn .jn-line,
+.mn .jn-route :where(span, b, i) {
+  border-radius: 0;
+}
+
+.mn .jn-pin {
+  display: grid;
+  place-items: center;
+  color: var(--gold);
+}
+
+/* the world's top line in the same square pixels: chips with a light inner edge and a hard drop */
+.wt-btn,
+.wt-place,
+.wt-time {
+  border-radius: 0;
+  box-shadow:
+    inset 0 0 0 2px rgba(248, 245, 236, 0.14),
+    0 3px 0 rgba(0, 0, 0, 0.28);
+}
+
+.wt-btn:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 0 0 2px rgba(248, 245, 236, 0.14);
 }

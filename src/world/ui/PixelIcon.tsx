@@ -18,7 +18,12 @@ export type IconName =
   | 'edit'
   | 'close'
   | 'check'
-  | 'huh';
+  | 'huh'
+  | 'gear'
+  | 'heart'
+  | 'heart-empty'
+  | 'back'
+  | 'menu';
 
 const ICONS: Record<IconName, readonly string[]> = {
   // a round arrow: once more
@@ -50,6 +55,15 @@ const ICONS: Record<IconName, readonly string[]> = {
   check: ['.......', '......#', '.....#.', '#...#..', '.#.#...', '..#....', '.......'],
   // …or not
   huh: ['..###..', '.#...#.', '.....#.', '....#..', '...#...', '.......', '...#...'],
+  // a cog: settings (9×9)
+  gear: ['....#....', '.#.###.#.', '..##.##..', '.##...##.', '###...###', '.##...##.', '..##.##..', '.#.###.#.', '....#....'],
+  // friendship, kept and not yet
+  heart: ['.......', '.##.##.', '#######', '#######', '.#####.', '..###..', '...#...'],
+  'heart-empty': ['.......', '.##.##.', '#..#..#', '#.....#', '.#...#.', '..#.#..', '...#...'],
+  // back: an arrow to the left
+  // three bars: the menu
+  menu: ['.......', '#######', '.......', '#######', '.......', '#######', '.......'],
+  back: ['...#...', '..##...', '.######', '#######', '.######', '..##...', '...#...'],
 };
 
 export function PixelIcon({ name, size = 14 }: { name: IconName; size?: number }) {

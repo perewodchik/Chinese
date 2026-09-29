@@ -30,12 +30,13 @@ export interface MenuAt {
   view?: string;
 }
 
+/** `icon` is a frame of the menu atlas (`ui/<icon>`, drawn in scripts/world/art/gen/items.ts). */
 export const MENU: readonly { id: MenuTab; icon: string; zh: string; en: string }[] = [
-  { id: 'journal', icon: '📜', zh: '日志', en: 'Journal' },
-  { id: 'bag', icon: '🎒', zh: '包', en: 'Bag' },
-  { id: 'map', icon: '🗺', zh: '地图', en: 'Map' },
-  { id: 'people', icon: '👥', zh: '朋友', en: 'People' },
-  { id: 'collection', icon: '📖', zh: '收藏', en: 'Collection' },
+  { id: 'journal', icon: 'journal', zh: '日志', en: 'Journal' },
+  { id: 'bag', icon: 'bag', zh: '包', en: 'Bag' },
+  { id: 'map', icon: 'map', zh: '地图', en: 'Map' },
+  { id: 'people', icon: 'people', zh: '朋友', en: 'People' },
+  { id: 'collection', icon: 'collection', zh: '收藏', en: 'Collection' },
 ];
 
 export const VIEWS: Partial<Record<MenuTab, readonly { id: string; label: string; title: string }[]>> = {

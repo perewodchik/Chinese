@@ -13,6 +13,7 @@ import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { LOOKS, rabbit, walkFrames } from './gen/chars';
 import { pxFile } from './gen/grid';
+import { ITEM_SPRITES, UI_SPRITES } from './gen/items';
 import { PROPS } from './gen/props';
 import { TILES } from './gen/tiles';
 import { DEFAULT_WORN, heroFrames } from '../../../src/world/art/hero';
@@ -39,6 +40,9 @@ export function sources(): Array<[string, string]> {
     ]),
   ]);
   for (const [name, note, frames] of PROPS) out.push([`props/${name}.px`, pxFile(note, frames())]);
+  // the menu's atlas: a picture for every thing in the bag, and the menu's own icons
+  out.push(['menu/item.px', pxFile('the things in the bag, one per item id', Object.entries(ITEM_SPRITES).map(([n, f]) => [n, f()]))]);
+  out.push(['menu/ui.px', pxFile("the menu's icons: tabs, pockets, wallet", Object.entries(UI_SPRITES).map(([n, f]) => [n, f()]))]);
   return out;
 }
 

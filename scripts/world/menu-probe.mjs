@@ -109,11 +109,24 @@ for (const [w, h] of SIZES) for (const t of ['light', 'dark']) {
   await view(1, 2, 'journal-story');
   await view(1, 3, 'journal-diary');
   await view(2, 0, 'bag');
+  // picking a thing changes the card only: the slots never move (the card sits above them on a phone)
+  {
+    const slotsTop = () => p.evaluate(() => Math.round(document.querySelector('.bg-slots')?.getBoundingClientRect().top ?? -1));
+    const top0 = await slotsTop();
+    const picks = await p.$$('.bg-slot > button');
+    for (const b of picks.slice(0, 6)) {
+      await b.click();
+      await p.waitForTimeout(80);
+      if ((await slotsTop()) !== top0) { problems.push(`${tag} bag: the slots moved when a thing was picked`); break; }
+    }
+    await check('bag-picked');
+    await shot('bag-picked');
+  }
   await view(3, 0, 'map');
   await view(4, 0, 'people');
-  await drawer('people-person', '.pp-rows .jn-row');
+  await drawer('people-person', '.pp-cards .pp-open');
   // a person's quest drawer over their drawer
-  await (await p.$('.pp-rows .jn-row'))?.click();
+  await (await p.$('.pp-cards .pp-open'))?.click();
   await p.waitForTimeout(300);
   const q = await p.$('.w-sheet .jn-fold');
   if (q) { await q.click(); await p.waitForTimeout(300); await check('people-quest'); await shot('people-quest'); await p.keyboard.press('Escape'); await p.waitForTimeout(150); if ((await p.$$('.w-sheet')).length !== 1) problems.push(`${tag} people: Esc did not close just the quest drawer`); await p.keyboard.press('Escape'); }

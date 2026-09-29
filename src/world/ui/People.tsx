@@ -18,6 +18,7 @@ import {
 import { peopleRows, whereText, type PersonRow } from "./panelRows";
 import { pinyinOf } from "./pinyin";
 import { Portrait } from "./Portrait";
+import { PropSprite } from "./PropSprite";
 import { useEscape } from "./useEscape";
 import "./journal.css";
 import "./people.css";
@@ -58,46 +59,42 @@ export function People({
           <span className="tiny muted">· what the neighbours call you</span>
         </p>
       )}
-      {(cat.name || cat.fed > 0) && (
-        <div className="pp-cat">
-          <span className="pp-cat-face" aria-hidden>
-            🐈
-          </span>
-          <span>
-            <b className="han">{cat.name || "小猫"}</b>{" "}
-            <span className="tiny muted">· your cat</span>
-            <br />
-            <span className="small">
-              Fed on {cat.fed} {cat.fed === 1 ? "day" : "days"}. It sleeps in
-              the courtyard and follows you in{" "}
-              <span className="han">帽儿胡同</span>.
+      <ul className="pp-cards">
+        {(cat.name || cat.fed > 0) && (
+          <li className="pp-card pp-cat">
+            <span className="pp-face" aria-hidden>
+              <PropSprite frame="cat/sit" scale={3} />
             </span>
-          </span>
-        </div>
-      )}
-      <ul className="mn-rows pp-rows">
+            <span className="pp-text">
+              <span className="pp-top">
+                <b className="han pp-name">{cat.name || "小猫"}</b>
+                <span className="tiny muted">your cat</span>
+              </span>
+              <span className="small pp-where">
+                Fed on {cat.fed} {cat.fed === 1 ? "day" : "days"}. Sleeps in the
+                courtyard, follows you in <span className="han">帽儿胡同</span>.
+              </span>
+            </span>
+          </li>
+        )}
         {rows.map((r) => (
-          <li key={r.id}>
-            <button
-              type="button"
-              className="jn-row"
-              onClick={() => setOpen(r.id)}
-            >
-              <Portrait sprite={r.sprite} scale={2} />
-              <span className="jn-row-text">
-                <span className="jn-row-top">
+          <li key={r.id} className="pp-card">
+            <button type="button" className="pp-open" onClick={() => setOpen(r.id)}>
+              <span className="pp-face">
+                <Portrait sprite={r.sprite} scale={3} />
+                {r.asking && (
+                  <span className="pp-ask" title="Asked you for something">
+                    !
+                  </span>
+                )}
+              </span>
+              <span className="pp-text">
+                <span className="pp-top">
                   <b className="han pp-name">{r.name}</b>
                   <Hearts n={r.hearts} />
-                  {r.asking && (
-                    <span className="pp-ask" title="Asked you for something">
-                      !
-                    </span>
-                  )}
-                  <span className="tiny muted jn-one">{r.role}</span>
                 </span>
-                <span className="tiny muted jn-one">
-                  {whereText(r, placeZh)}
-                </span>
+                <span className="tiny muted pp-role">{r.role}</span>
+                <span className="small pp-where han">{whereText(r, placeZh)}</span>
               </span>
             </button>
           </li>

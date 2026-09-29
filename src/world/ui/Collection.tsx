@@ -15,6 +15,18 @@ import { IDIOM_FILTERS, idiomFilter, idiomRows, passportPages, spiritHint, spiri
 import { useEscape } from './useEscape';
 import { ZhText } from './ZhText';
 import './menu.css';
+import { FitSprite } from './PropSprite';
+
+/** A found spirit's picture: its awake frame in the props atlas (the ones drawn so far). */
+const SPIRIT_ART: Record<string, string> = {
+  shishizi: 'lion/awake',
+  jiuweihu: 'fox/sway-0',
+  nianshou: 'nianshou/awake',
+  menshen: 'door-gods/bright',
+  pixiu: 'pixiu/gold',
+  long: 'dragon/fly-0',
+  qilin: 'qilin/awake',
+};
 
 /**
  * The 📖 收藏 tab (§10 P3): 图鉴 as a grid of spirits (the missing ones as
@@ -71,8 +83,8 @@ export function Spirits({ save, content, pinyin }: { save: WorldSave; content: W
         {rows.map(({ spirit: x, found }) => (
           <li key={x.id}>
             <button type="button" className="cl-spirit" data-missing={found ? undefined : ''} onClick={() => setOpen(x.id)} aria-label={found ? `${x.hanzi}, ${x.en}` : 'Not found yet'}>
-              <span className="cl-spirit-art han" aria-hidden>
-                {found ? [...x.hanzi][0] : '?'}
+              <span className="cl-spirit-art han" aria-hidden data-art={found && SPIRIT_ART[x.id] ? '' : undefined}>
+                {found && SPIRIT_ART[x.id] ? <FitSprite frame={SPIRIT_ART[x.id]!} box={64} /> : found ? [...x.hanzi][0] : '?'}
               </span>
               {found ? (
                 <>

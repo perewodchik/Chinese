@@ -20,7 +20,8 @@ import { markSeen, MENU, menuNews, panelTarget, readMemory, remember, tabForKey,
 import './menu.css';
 import { Album, Idioms, Spirits, Stamps } from './Collection';
 import { MapTab } from './MapTab';
-import { useEscape } from './useEscape';
+import { ItemSprite, MenuIcon } from './PropSprite';
+import { PixelIcon } from './PixelIcon';
 
 /**
  * The menu over the (paused) world (§10 P1): five tabs — 日志 journal, 包
@@ -124,48 +125,52 @@ export function Panels({
   const cur = MENU.find((m) => m.id === at.tab);
   return (
     <div className="mn-scrim" onClick={onClose}>
-      <section className="mn" role="dialog" aria-label="Menu" onClick={(e) => e.stopPropagation()}>
-        <nav className="mn-tabs" role="tablist" aria-label="Menu">
-          {MENU.map((m, i) => (
-            <button key={m.id} type="button" role="tab" aria-selected={at.tab === m.id} onClick={() => openTab(m.id)} title={`${m.en} (${i + 1})`}>
-              <span className="mn-icon" aria-hidden>
-                {m.icon}
-              </span>
-              <span className="han mn-zh">{m.zh}</span>
-              <span className="mn-en">{m.en}</span>
-              {tabHasNews(news, m.id) && at.tab !== m.id && <i className="mn-dot" aria-label="new" />}
+      <section className="mn" role="dialog" aria-label="Menu" data-tab={at.tab} onClick={(e) => e.stopPropagation()}>
+        {/* one bar: the five tabs as bookmarks, then ⚙ and × at its end — nothing between it and the page */}
+        <nav className="mn-bar" aria-label="Menu">
+          <div className="mn-tabs" role="tablist">
+            {MENU.map((m, i) => (
+              <button key={m.id} type="button" role="tab" aria-selected={at.tab === m.id} onClick={() => openTab(m.id)} title={`${m.en} (${i + 1})`}>
+                <MenuIcon name={m.icon} />
+                <span className="han mn-zh">{m.zh}</span>
+                <span className="mn-en">{m.en}</span>
+                {tabHasNews(news, m.id) && at.tab !== m.id && <i className="mn-dot" aria-label="new" />}
+              </button>
+            ))}
+          </div>
+          <div className="mn-keys">
+            <button
+              type="button"
+              className="mn-key mn-gear"
+              aria-pressed={at.tab === 'settings'}
+              onClick={() => go(at.tab === 'settings' ? panelTarget('menu', mem) : { tab: 'settings' })}
+              aria-label="Settings"
+              title="Settings"
+            >
+              <PixelIcon name="gear" size={18} />
             </button>
-          ))}
+            <button type="button" className="mn-key mn-close" onClick={onClose} aria-label="Back to the world (Esc)" title="Back to the world (Esc)">
+              <PixelIcon name="close" size={14} />
+            </button>
+          </div>
         </nav>
-        <header className="mn-head">
+        <div className="mn-page">
           {views ? (
-            <div className="seg sm mn-views" role="group" aria-label={cur?.en}>
+            <div className="mn-views" role="tablist" aria-label={cur?.en}>
               {views.map((v) => (
-                <button key={v.id} type="button" aria-pressed={at.view === v.id} title={v.title} onClick={() => go({ tab: at.tab, view: v.id })}>
+                <button key={v.id} type="button" role="tab" aria-selected={at.view === v.id} aria-pressed={at.view === v.id} title={v.title} onClick={() => go({ tab: at.tab, view: v.id })}>
                   <span className={/[一-鿿]/.test(v.label) ? 'han' : undefined}>{v.label}</span>
                   {news.has(`${at.tab}/${v.id}`) && at.view !== v.id && <i className="mn-dot" aria-label="new" />}
                 </button>
               ))}
             </div>
           ) : (
-            <b className="mn-title">
-              <span className="han">{at.tab === 'settings' ? '设置' : cur?.zh}</span> <span className="tiny muted">{at.tab === 'settings' ? 'Settings' : cur?.en}</span>
-            </b>
+            at.tab === 'settings' && (
+              <h2 className="mn-title">
+                <span className="han">设置</span> <span className="tiny muted">Settings</span>
+              </h2>
+            )
           )}
-          <span className="spacer" />
-          <button
-            type="button"
-            className="wd-tool mn-gear"
-            aria-pressed={at.tab === 'settings'}
-            onClick={() => go(at.tab === 'settings' ? panelTarget('menu', mem) : { tab: 'settings' })}
-            aria-label="Settings"
-          >
-            ⚙
-          </button>
-          <button type="button" className="wd-tool" onClick={onClose} aria-label="Back to the world (Esc)">
-            ×
-          </button>
-        </header>
         <div className="mn-body" key={key}>
           {key === 'journal/now' && (
             <JournalNow save={save} content={content} pinyin={pinyin} onTrack={(quest) => onAct?.({ do: 'track', quest, rev: Date.now() })} onShowRoute={showRoute} />
@@ -181,102 +186,121 @@ export function Panels({
           {key === 'collection/album' && <Album user={user} />}
           {key === 'settings' && <Settings settings={save.settings} onChange={onSettings} onReset={onReset} />}
         </div>
+        </div>
       </section>
-    </div>
-  );
-}
-
-function Empty({ han, children }: { han: string; children: React.ReactNode }) {
-  return (
-    <div className="empty wp-empty">
-      <div className="big han">{han}</div>
-      <p className="small muted">{children}</p>
     </div>
   );
 }
 
 const KIND_ZH: Record<string, string> = { food: '食物', drink: '喝的', gift: '礼物', toy: '玩具', tool: '工具', decor: '装饰', key: '重要' };
 
+/** Each pocket's picture: an item of that kind, or one of the menu's icons. */
+const POCKET_ICON: Record<BagFilter, { item?: string; ui?: string }> = {
+  all: { ui: 'bag' },
+  food: { item: 'baozi' },
+  gift: { ui: 'gift' },
+  tool: { item: 'shoudiantong' },
+  decor: { item: 'denglong' },
+  key: { ui: 'seal' },
+};
+
+/** The bag's slots: six across, never fewer than four rows, so it always looks like a bag with room in it. */
+const SLOT_COLS = 6;
+const SLOT_MIN = 24;
+
 /**
- * The bag (Y5): the phone's mini summary on top (余额, 交通卡, the last
- * payment — tap it for the phone and its 账单), one fixed filter line, and
- * the things as small tiles. A tile opens the thing's card: big hanzi,
- * pinyin, what it is, where it is sold, who liked it as a present, and
- * what you can do with it as Chinese verbs.
+ * The bag (Y5, redrawn as a game inventory): the wallet on top (余额, 交通卡,
+ * the last payment — tap it for the phone and its 账单), the pockets, and the
+ * things in square slots, each with its picture, name and count. One thing
+ * is always picked, and its card sits beside the slots on the iPad (above
+ * them on a phone): big hanzi, pinyin, what it is, where it is sold, who
+ * liked it, and what you can do with it as Chinese verbs.
  */
 function Bag({ save, content, onUse, onAct }: { save: WorldSave; content: WorldContent; onUse: (item: string) => void; onAct?: (a: SaveAction) => void }) {
   const [filter, setFilter] = useState<BagFilter>('all');
-  const [open, setOpen] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string | null>(null);
   const [phone, setPhone] = useState(false);
   const byId = new Map(content.items.map((i) => [i.id, i]));
   const rows = bagRows(save, content.items);
   const counts = new Map<BagFilter, number>(BAG_FILTERS.map((f) => [f.id, f.id === 'all' ? rows.length : rows.filter((r) => filterOf(byId.get(r.id)) === f.id).length]));
   const shown = filter === 'all' ? rows : rows.filter((r) => filterOf(byId.get(r.id)) === filter);
+  // the pick stays on its thing; when that is gone (eaten, given, another pocket) the first one here is picked
+  const cur = shown.find((r) => r.id === picked) ?? shown[0];
+  const item = cur ? byId.get(cur.id) : undefined;
   const last = save.bills.at(-1);
-  const cur = open ? rows.find((r) => r.id === open) : undefined;
+  const slots = Math.max(SLOT_MIN, Math.ceil(shown.length / SLOT_COLS) * SLOT_COLS);
   if (phone) return <Phone save={save} content={content} onBack={() => setPhone(false)} />;
   return (
-    <>
-      <button type="button" className="w-mini" onClick={() => setPhone(true)} aria-label="Open the phone: 余额, 交通卡 and 账单">
-        <span aria-hidden>📱</span>
-        <span className="han">余额</span> <b>{save.bag.money}</b>
-        <span className="han">交通卡</span> {save.bag.card === null ? <span className="muted">—</span> : <b>{save.bag.card}</b>}
+    <div className="bg">
+      <button type="button" className="bg-wallet" onClick={() => setPhone(true)} aria-label="Open the phone: 余额, 交通卡 and 账单">
+        <span className="bg-purse">
+          <MenuIcon name="coin" />
+          <span className="han">余额</span>
+          <b>¥{save.bag.money}</b>
+        </span>
+        <span className="bg-purse">
+          <MenuIcon name="card" />
+          <span className="han">交通卡</span>
+          {save.bag.card === null ? <span className="muted">—</span> : <b>¥{save.bag.card}</b>}
+        </span>
         {last && (
-          <span className="w-mini-last">
+          <span className="bg-last">
             <span className="han">{billName(last.who, content)}</span> <Amount n={last.amount} />
           </span>
         )}
-        <span className="spacer" />
-        <span aria-hidden>›</span>
+        <span className="bg-go" aria-hidden>
+          <span className="han">账单</span> ›
+        </span>
       </button>
-      <div className="w-filters" role="tablist" aria-label="Show">
-        {BAG_FILTERS.map((f) => (
-          <button key={f.id} type="button" role="tab" aria-selected={filter === f.id} title={f.title} disabled={!counts.get(f.id)} onClick={() => setFilter(f.id)}>
-            <span className="han">{f.label}</span>
-          </button>
-        ))}
+      <div className="bg-pockets" role="tablist" aria-label="Pockets">
+        {BAG_FILTERS.map((f) => {
+          const icon = POCKET_ICON[f.id];
+          const n = counts.get(f.id) ?? 0;
+          return (
+            <button key={f.id} type="button" role="tab" aria-selected={filter === f.id} title={f.title} disabled={!n} onClick={() => setFilter(f.id)}>
+              {icon.item ? <ItemSprite id={icon.item} /> : <MenuIcon name={icon.ui!} />}
+              <span className="han">{f.label}</span>
+              <span className="bg-n">{n}</span>
+            </button>
+          );
+        })}
       </div>
-      {shown.length ? (
-        <ul className="wp-grid">
-          {shown.map((r) => (
-            <li key={r.id}>
-              <button type="button" className="wp-item" onClick={() => setOpen(r.id)}>
-                <span className="han">{r.name}</span>
-                <span className="tiny muted">{r.en}</span>
-                {r.count > 1 && <span className="wp-count">×{r.count}</span>}
-                {byId.get(r.id)?.kind === 'key' && (
-                  <span className="w-seal han" title="A story thing: not a present, not for sale">
-                    印
-                  </span>
-                )}
-              </button>
-            </li>
-          ))}
+      <div className="bg-main">
+        <ul className="bg-slots" aria-label={BAG_FILTERS.find((f) => f.id === filter)?.title}>
+          {Array.from({ length: slots }, (_, i) => {
+            const r = shown[i];
+            if (!r) return <li key={`empty-${i}`} className="bg-slot" data-empty="" aria-hidden />;
+            const kind = byId.get(r.id)?.kind;
+            return (
+              <li key={r.id} className="bg-slot">
+                <button type="button" aria-pressed={cur?.id === r.id} onClick={() => setPicked(r.id)} title={r.en}>
+                  <ItemSprite id={r.id} scale={2} />
+                  <span className="han bg-name">{r.name}</span>
+                  {r.count > 1 && <span className="bg-count">{r.count}</span>}
+                  {kind === 'key' && <i className="bg-key" title="A story thing: not a present, not for sale" />}
+                </button>
+              </li>
+            );
+          })}
         </ul>
-      ) : rows.length ? (
-        <p className="small muted">Nothing of this kind in the bag now.</p>
-      ) : (
-        <Empty han="空">Nothing in the bag yet.</Empty>
-      )}
-      {cur && byId.get(cur.id) && (
-        <ItemSheet
-          item={byId.get(cur.id)!}
-          count={cur.count}
-          save={save}
-          content={content}
-          onClose={() => setOpen(null)}
-          onUse={(id) => {
-            setOpen(null);
-            onUse(id);
-          }}
-          onAct={(a) => {
-            onAct?.(a);
-            // the last one eaten, or made into something else: the card has nothing left to show
-            if ((save.bag.items[cur.id] ?? 0) <= 1) setOpen(null);
-          }}
-        />
-      )}
-    </>
+        {cur && item ? (
+          <BagCard
+            key={item.id}
+            item={item}
+            count={cur.count}
+            save={save}
+            content={content}
+            onUse={onUse}
+            onAct={(a) => onAct?.(a)}
+          />
+        ) : (
+          <div className="bg-card bg-card-empty">
+            <b className="han">空</b>
+            <p className="small muted">{rows.length ? 'Nothing in this pocket.' : 'Nothing in the bag yet. Shops, friends and the street fill it.'}</p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -289,13 +313,12 @@ function Amount({ n }: { n: number }) {
   );
 }
 
-/** One thing's card (Y5), over the bag like the app's word cards. */
-function ItemSheet({
+/** The picked thing's card (Y5): its picture in a little display case, the word, the facts, the verbs. */
+function BagCard({
   item,
   count,
   save,
   content,
-  onClose,
   onUse,
   onAct,
 }: {
@@ -303,7 +326,6 @@ function ItemSheet({
   count: number;
   save: WorldSave;
   content: WorldContent;
-  onClose: () => void;
   onUse: (item: string) => void;
   onAct: (a: SaveAction) => void;
 }) {
@@ -312,98 +334,110 @@ function ItemSheet({
   const facts = itemFacts(item, save, content.shops, content.npcs);
   const names = new Map(content.items.map((i) => [i.id, i]));
   const shop = facts.sold[0];
-  useEscape(onClose);
+  const verbs = verbsOf(item);
+  const mix = combos(item, save.bag.items);
   return (
-    <div className="w-sheet-scrim" onClick={onClose}>
-      <section className="w-sheet" role="dialog" aria-label={item.en} onClick={(e) => e.stopPropagation()}>
-        <header className="w-sheet-head">
-          <b className="han w-sheet-han">{item.name}</b>
-          <span>
-            <span className="small">{pinyinOf(item.name, lib)}</span>
-            <br />
-            <span className="small muted">
-              {item.en}
-              {count > 1 ? ` · ×${count}` : ''}
-            </span>
-          </span>
-          <span className="spacer" />
-          {item.kind && <span className="tag han">{KIND_ZH[item.kind] ?? item.kind}</span>}
-          <button type="button" className="wd-tool" onClick={onClose} aria-label="Close">
-            ×
+    <section className="bg-card" aria-label={item.en}>
+      <header className="bg-card-head">
+        <span className="bg-case">
+          <ItemSprite id={item.id} scale={4} label={item.en} />
+        </span>
+        <span className="bg-card-word">
+          <button type="button" className="han bg-card-han" onClick={() => openItem(itemForToken(lib, item.name))} title="Open the word">
+            {item.name}
           </button>
-        </header>
-        <dl className="w-facts small">
-          {shop ? (
-            <>
-              <dt className="han">哪儿有</dt>
-              <dd>
-                {facts.sold.map((x, i) => (
-                  <span key={i}>
-                    {i > 0 && ' · '}
-                    <span className="han">{x.shop}</span> {priceZh(x.price)}一{x.measure}
-                  </span>
-                ))}
-              </dd>
-            </>
-          ) : item.kind === 'key' ? (
-            <>
-              <dt className="han">重要</dt>
-              <dd className="muted">A story thing — not a present, never sold.</dd>
-            </>
-          ) : facts.worth !== undefined ? (
-            <>
-              <dt className="han">多少钱</dt>
-              <dd>about {facts.worth} 元 — the recycler pays part of it</dd>
-            </>
-          ) : null}
-          {facts.liked.length > 0 && (
-            <>
-              <dt className="han">喜欢</dt>
-              <dd className="han">{facts.liked.join('、')}</dd>
-            </>
-          )}
-          {facts.disliked.length > 0 && (
-            <>
-              <dt className="han">不喜欢</dt>
-              <dd className="han">{facts.disliked.join('、')}</dd>
-            </>
-          )}
-          {(item.kind === 'food' || item.kind === 'drink') && save.fresh[item.id] !== undefined && (
-            <>
-              <dt className="han">{save.fresh[item.id] === dayOf(save.clock) ? '热的' : '凉了'}</dt>
-              <dd className="muted">{save.fresh[item.id] === dayOf(save.clock) ? 'bought today — still warm' : 'bought on an earlier day — gone cold'}</dd>
-            </>
-          )}
-          {item.gift && !facts.liked.length && !facts.disliked.length && (
-            <>
-              <dt className="han">礼物</dt>
-              <dd className="muted">Give it to someone to find out who likes it.</dd>
-            </>
-          )}
-        </dl>
-        {/* what you can do with it, as Chinese verbs (Y4) */}
-        <div className="w-verbs">
-          {verbsOf(item).map((v) => (
+          <span className="bg-card-py">{pinyinOf(item.name, lib)}</span>
+          <span className="small muted bg-card-en">
+            {item.en}
+            {count > 1 ? ` · ×${count}` : ''}
+          </span>
+        </span>
+        {item.kind && (
+          <span className="bg-tag han" data-kind={item.kind}>
+            {KIND_ZH[item.kind] ?? item.kind}
+          </span>
+        )}
+      </header>
+      <dl className="w-facts small">
+        {shop ? (
+          <>
+            <dt className="han">哪儿有</dt>
+            <dd>
+              {facts.sold.map((x, i) => (
+                <span key={i}>
+                  {i > 0 && ' · '}
+                  <span className="han">{x.shop}</span> {priceZh(x.price)}一{x.measure}
+                </span>
+              ))}
+            </dd>
+          </>
+        ) : item.kind === 'key' ? (
+          <>
+            <dt className="han">重要</dt>
+            <dd className="muted">A story thing — not a present, never sold.</dd>
+          </>
+        ) : facts.worth !== undefined ? (
+          <>
+            <dt className="han">多少钱</dt>
+            <dd>about {facts.worth} 元 — the recycler pays part of it</dd>
+          </>
+        ) : null}
+        {facts.liked.length > 0 && (
+          <>
+            <dt className="han">喜欢</dt>
+            <dd className="han">{facts.liked.join('、')}</dd>
+          </>
+        )}
+        {facts.disliked.length > 0 && (
+          <>
+            <dt className="han">不喜欢</dt>
+            <dd className="han">{facts.disliked.join('、')}</dd>
+          </>
+        )}
+        {(item.kind === 'food' || item.kind === 'drink') && save.fresh[item.id] !== undefined && (
+          <>
+            <dt className="han">{save.fresh[item.id] === dayOf(save.clock) ? '热的' : '凉了'}</dt>
+            <dd className="muted">{save.fresh[item.id] === dayOf(save.clock) ? 'bought today — still warm' : 'bought on an earlier day — gone cold'}</dd>
+          </>
+        )}
+        {item.gift && !facts.liked.length && !facts.disliked.length && (
+          <>
+            <dt className="han">礼物</dt>
+            <dd className="muted">Give it to someone to find out who likes it.</dd>
+          </>
+        )}
+      </dl>
+      {/* what you can do with it, as Chinese verbs (Y4) */}
+      {(verbs.length > 0 || mix.length > 0) && (
+        <div className="bg-verbs">
+          {verbs.map((v) => (
             <button
               key={v}
               type="button"
-              className="btn sm"
+              className="bg-verb"
               title={VERB_ZH[v].en}
               onClick={() => (v === 'eat' || v === 'drink' ? onAct({ do: 'eat', item: item.id }) : v === 'look' ? openItem(itemForToken(lib, item.name)) : onUse(item.id))}
             >
-              <span className="han">{VERB_ZH[v].zh}</span> <span className="tiny muted">{VERB_ZH[v].en}</span>
+              <span className="han">{VERB_ZH[v].zh}</span> <span className="tiny">{VERB_ZH[v].en}</span>
             </button>
           ))}
-          {combos(item, save.bag.items).map((c) => (
-            <button key={c.with} type="button" className="btn sm" title={`with the ${names.get(c.with)?.en ?? c.with}: makes ${names.get(c.makes)?.en ?? c.makes}`} onClick={() => onAct({ do: 'combine', a: item.id, b: c.with, makes: c.makes })}>
+          {mix.map((c) => (
+            <button
+              key={c.with}
+              type="button"
+              className="bg-verb"
+              title={`with the ${names.get(c.with)?.en ?? c.with}: makes ${names.get(c.makes)?.en ?? c.makes}`}
+              onClick={() => onAct({ do: 'combine', a: item.id, b: c.with, makes: c.makes })}
+            >
+              <ItemSprite id={c.with} scale={1} />
               <span className="han">
                 +{names.get(c.with)?.name} → {names.get(c.makes)?.name}
               </span>
             </button>
           ))}
         </div>
-      </section>
-    </div>
+      )}
+    </section>
   );
 }
 
@@ -413,7 +447,7 @@ function Phone({ save, content, onBack }: { save: WorldSave; content: WorldConte
     <div className="w-phone w-phone-home">
       <div className="w-phone-head">
         <button type="button" className="wd-tool" onClick={onBack} aria-label="Back to the bag">
-          ‹
+          <PixelIcon name="back" />
         </button>
         <span className="han">支付宝</span>
       </div>

@@ -15,6 +15,7 @@ import { pinyinOf } from './pinyin';
 import { Portrait } from './Portrait';
 import { useEscape } from './useEscape';
 import { ZhText } from './ZhText';
+import { PixelIcon } from './PixelIcon';
 import './journal.css';
 
 /**
@@ -354,7 +355,7 @@ export function JournalNow({
               <li key={l.quest.id} className="jn-lead">
                 <button type="button" className="jn-row" onClick={() => setLead(l)}>
                   <span className="jn-pin" aria-hidden>
-                    📍
+                    <PixelIcon name="now" />
                   </span>
                   <span className="jn-row-text">
                     {l.hood && <span className="jn-hood han">{hoodOf(l.map ?? '')?.zh}</span>}

@@ -7,6 +7,8 @@ import { useLibrary } from '../../features/shared/library';
 import { paths } from '../../navigation/paths';
 import { pinyinOf } from './pinyin';
 import './menu.css';
+import { MenuIcon } from './PropSprite';
+import { PixelIcon } from './PixelIcon';
 
 import type { PanelId } from './menu';
 
@@ -14,7 +16,7 @@ const DAY_ICON = { morning: '☀', day: '☀', evening: '◐', night: '☾' } as
 
 /**
  * The game's one line at the top (concept §4): where you are (tap for 拼),
- * the game time, and 📷 🗺 🎒 ☰ — the last opens the menu where you left it
+ * the game time, and photo · map · bag · menu (pixel icons) — the last opens the menu where you left it
  * (§10), with a red dot when something in it is new. Fixed widths, so
  * nothing moves as the clock turns or the place changes.
  */
@@ -43,16 +45,17 @@ export function TopBar({ district, minutes, open, onPhoto, news }: { district: s
       </span>
       <span className="spacer" />
       <button type="button" className="wt-btn" onClick={onPhoto} aria-label="Take a photo">
-        📷
+        <MenuIcon name="camera" />
       </button>
       <button type="button" className="wt-btn" onClick={() => open('map')} aria-label="Map (M)">
-        🗺
+        <MenuIcon name="map" />
       </button>
       <button type="button" className="wt-btn" onClick={() => open('bag')} aria-label="Bag (B)">
-        🎒
+        <MenuIcon name="bag" />
       </button>
       <button type="button" className="wt-btn wt-menu" onClick={() => open('menu')} aria-label={news ? 'Menu — something new' : 'Menu: journal, people, collection'}>
-        ☰{news && <i className="mn-dot" aria-hidden />}
+        <PixelIcon name="menu" size={14} />
+        {news && <i className="mn-dot" aria-hidden />}
       </button>
     </div>
   );
