@@ -13,6 +13,7 @@
 
 import { DEFAULT_SETTINGS, HOME, HOME_DISTRICT, newSave, WORLD_SAVE_VERSION } from './save';
 import type { WorldSave } from './types';
+import { DEFAULT_LOOK, DEFAULT_OUTFIT, DEFAULT_WARDROBE, fillWardrobe, itemOf } from './wardrobe';
 
 type Raw = Record<string, unknown>;
 
@@ -48,6 +49,28 @@ export const UPGRADES: Record<number, Upgrade> = {
     version: 9,
     bills: Array.isArray(r.bills) ? r.bills.map((b, i) => (isObj(b) && typeof b.id !== 'string' ? { ...b, id: `old:${i}` } : b)) : [],
     fresh: isObj(r.fresh) ? r.fresh : {},
+  }),
+  /**
+   * 9 → 10: placeholder — replaced by the journal's v10 at merge (§10 is
+   * built on another branch and takes version 10; this identity step only
+   * keeps the numbers in line until the two are joined).
+   */
+  9: (r) => ({ ...r, version: 10 }),
+  /**
+   * 10 → 11 (§12, W2): you, dressed your way. An old save gets today's hero
+   * — short black hair, the blue jacket, red scarf, dark trousers, white
+   * shoes — as its look, its wardrobe and what it wears; the creator has not
+   * been seen yet, so it opens once, prefilled with that look.
+   */
+  10: (r) => ({
+    ...r,
+    version: 11,
+    look: isObj(r.look) ? r.look : DEFAULT_LOOK,
+    created: r.created === true,
+    wardrobe: Array.isArray(r.wardrobe) ? r.wardrobe : [...DEFAULT_WARDROBE],
+    outfit: isObj(r.outfit) ? r.outfit : { ...DEFAULT_OUTFIT },
+    outfits: Array.isArray(r.outfits) ? r.outfits : [null, null, null],
+    worn: Array.isArray(r.worn) ? r.worn : Object.values(DEFAULT_OUTFIT).map(itemOf),
   }),
 };
 
@@ -110,6 +133,7 @@ function fill(r: Raw): WorldSave {
     cat: isObj(r.cat)
       ? { fed: isNum(r.cat.fed) ? r.cat.fed : 0, day: isNum(r.cat.day) ? r.cat.day : 0, name: typeof r.cat.name === 'string' ? r.cat.name : '' }
       : { fed: 0, day: 0, name: '' },
+    ...fillWardrobe(r),
     settings: { ...DEFAULT_SETTINGS, ...(isObj(r.settings) ? (r.settings as Partial<WorldSave['settings']>) : {}) },
   };
 }

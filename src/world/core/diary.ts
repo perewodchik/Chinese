@@ -42,6 +42,9 @@ export const TEMPLATES: Record<string, { zh: string; en: string }> = {
   w: { zh: '我喝了{x}。', en: 'I drank {x}.' },
   p: { zh: '今天我拍了照片。照片拍得很好！', en: 'Today I took photos. They came out well!' },
   z: { zh: '晚上我在家睡觉了。', en: 'In the evening I slept at home.' },
+  // §12: clothes (the codes carry their own names: 一件红毛衣, 旗袍)
+  u: { zh: '我买了{x}。', en: 'I bought {x}.' },
+  o: { zh: '今天我穿了{x}。', en: 'Today I wore {x}.' },
 };
 export const EMPTY_DAY = { zh: '今天没有什么事。', en: 'Nothing much happened today.' };
 
@@ -210,6 +213,9 @@ export function diaryLines(codes: readonly string[], names: Names, day?: number)
     } else if (k === 'r') {
       const it = names.item(a);
       if (it) fill(k, it);
+    } else if (k === 'u' || k === 'o') {
+      // bought or first worn (§12): the code names it, 「我买了一件红毛衣。」「今天我穿了旗袍。」
+      if (a) fill(k, { zh: a, en: b || a });
     } else if (k === 'c') {
       if (a) fill(k, { zh: a, en: a });
     } else if (k === 'k' || k === 'p') {

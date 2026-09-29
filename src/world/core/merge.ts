@@ -15,6 +15,7 @@
 import { DIARY_PER_DAY } from './diary';
 import { BILLS } from './save';
 import type { NpcMemory, QuestState, Riddle, WorldSave } from './types';
+import { mergeWardrobe } from './wardrobe';
 
 const union = (a: readonly string[], b: readonly string[]) => [...new Set([...a, ...b])].sort();
 
@@ -86,6 +87,8 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
       name: late.cat.name || (late === a ? b : a).cat.name,
     },
     settings: late.settings,
+    // clothes owned only grow; the look, what is worn and the sets come from the later save (W2)
+    ...mergeWardrobe(a, b, late),
     // only ever grow
     chapter: Math.max(a.chapter, b.chapter),
     flags: union(a.flags, b.flags),

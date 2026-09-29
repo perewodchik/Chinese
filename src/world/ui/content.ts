@@ -1,6 +1,7 @@
 import type { Shop } from '../core/shop';
 import { useEffect, useState } from 'react';
 import type { DistrictContent, Idiom, Item, NpcCard, Quest, Scene, Spirit, Stamp } from '../core/types';
+import { EMPTY_CLOTHES, type ClothesContent } from '../core/wardrobe';
 
 /** Everything the built content says, all districts together (it is small: text only). */
 export interface WorldContent {
@@ -16,10 +17,12 @@ export interface WorldContent {
   shops: Shop[];
   /** manual or generated pinyin per line text, from the content build */
   pinyin: Record<string, string>;
+  /** the clothes and the racks that sell them (§12) */
+  clothes: ClothesContent;
 }
 
 export const EMPTY_CONTENT: WorldContent = {
-  districts: [], npcs: [], scenes: [], quests: [], spirits: [], idioms: [], stamps: [], items: [], shops: [], pinyin: {},
+  districts: [], npcs: [], scenes: [], quests: [], spirits: [], idioms: [], stamps: [], items: [], shops: [], pinyin: {}, clothes: EMPTY_CLOTHES,
 };
 
 export function mergeContent(parts: Array<DistrictContent & { pinyin?: Record<string, string> }>): WorldContent {
@@ -34,6 +37,7 @@ export function mergeContent(parts: Array<DistrictContent & { pinyin?: Record<st
     items: parts.flatMap((p) => p.items),
     shops: parts.flatMap((p) => p.shops ?? []),
     pinyin: Object.assign({}, ...parts.map((p) => p.pinyin ?? {})),
+    clothes: EMPTY_CLOTHES,
   };
 }
 
@@ -54,7 +58,9 @@ export function loadContent(): Promise<WorldContent> {
     if (!r.ok) return EMPTY_CONTENT;
     const ids = (await r.json()) as string[];
     const parts = await Promise.all(ids.map(async (id) => (await fetch(`/world/content/${id}.json`)).json()));
-    const c = mergeContent(parts);
+    // the clothes (§12): a file of their own; a build without it has none
+    const clothes = await fetch('/world/content/clothes.json').then((x) => (x.ok ? (x.json() as Promise<ClothesContent>) : EMPTY_CLOTHES)).catch(() => EMPTY_CLOTHES);
+    const c = { ...mergeContent(parts), clothes };
     own = wordsOf(c);
     return c;
   })().catch(() => EMPTY_CONTENT);

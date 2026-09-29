@@ -1,0 +1,47 @@
+{
+  "racks": [],
+  "clothes": [
+    {
+      "id": "jacket",
+      "zh": "夹克",
+      "en": "jacket",
+      "slot": "top",
+      "measure": "件",
+      "colours": [{ "id": "blue", "zh": "蓝的", "en": "blue", "palette": "nBB" }],
+      "price": 150,
+      "shop": "start",
+      "story": "The jacket you came to Beijing in."
+    },
+    {
+      "id": "trousers",
+      "zh": "裤子",
+      "en": "trousers",
+      "slot": "bottom",
+      "measure": "条",
+      "colours": [{ "id": "dark", "zh": "黑的", "en": "dark", "palette": "ak" }],
+      "price": 45,
+      "shop": "start"
+    },
+    {
+      "id": "sneakers",
+      "zh": "运动鞋",
+      "en": "trainers",
+      "slot": "shoes",
+      "measure": "双",
+      "colours": [{ "id": "white", "zh": "白的", "en": "white", "palette": "we" }],
+      "price": 200,
+      "shop": "start"
+    },
+    {
+      "id": "scarf",
+      "zh": "围巾",
+      "en": "scarf",
+      "slot": "accessory",
+      "measure": "条",
+      "colours": [{ "id": "red", "zh": "红的", "en": "red", "palette": "rRy" }],
+      "price": 60,
+      "shop": "start",
+      "story": "A red scarf — 王阿姨 says red brings luck."
+    }
+  ]
+}
