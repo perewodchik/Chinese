@@ -36,7 +36,7 @@ export function NewCollectionDialog({ preset, onCancel, onConfirm }: Props) {
   const [skipTaken, setSkipTaken] = useState(overlap > 0);
   const pool = skipTaken ? all.filter((i) => !taken.has(i)) : all;
 
-  const [size, setSize] = useState(() => suggestedSize(all.length));
+  const [size, setSize] = useState(() => (preset.whole ? all.length : suggestedSize(all.length)));
   const [name, setName] = useState(preset.name);
 
   const take = Math.min(size, pool.length);

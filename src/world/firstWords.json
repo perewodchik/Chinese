@@ -1,0 +1,2258 @@
+[
+ {
+  "w": "这",
+  "py": "zhè",
+  "d": "this; these; the",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "这是我的新房间！",
+    "py": "zhè shì wǒ de xīn fángjiān！",
+    "en": "So this is my new room!"
+   }
+  ]
+ },
+ {
+  "w": "是",
+  "py": "shì",
+  "d": "to be; correct; right; true",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "这是我的新房间！",
+    "py": "zhè shì wǒ de xīn fángjiān！",
+    "en": "So this is my new room!"
+   }
+  ]
+ },
+ {
+  "w": "我",
+  "py": "wǒ",
+  "d": "I; me; my",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "这是我的新房间！",
+    "py": "zhè shì wǒ de xīn fángjiān！",
+    "en": "So this is my new room!"
+   }
+  ]
+ },
+ {
+  "w": "的",
+  "py": "de",
+  "d": "~'s; of (joins a description to a noun)",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "这是我的新房间！",
+    "py": "zhè shì wǒ de xīn fángjiān！",
+    "en": "So this is my new room!"
+   }
+  ]
+ },
+ {
+  "w": "新",
+  "py": "xīn",
+  "d": "new; newly",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "这是我的新房间！",
+    "py": "zhè shì wǒ de xīn fángjiān！",
+    "en": "So this is my new room!"
+   }
+  ]
+ },
+ {
+  "w": "房间",
+  "py": "fáng jiān",
+  "d": "room",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "这是我的新房间！",
+    "py": "zhè shì wǒ de xīn fángjiān！",
+    "en": "So this is my new room!"
+   }
+  ]
+ },
+ {
+  "w": "睡觉",
+  "py": "shuì jiào",
+  "d": "to go to bed; to sleep",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "睡觉吗？",
+    "py": "shuìjiào ma？",
+    "en": "Go to sleep?"
+   }
+  ]
+ },
+ {
+  "w": "吗",
+  "py": "ma",
+  "d": "yes-or-no question particle",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "睡觉吗？",
+    "py": "shuìjiào ma？",
+    "en": "Go to sleep?"
+   }
+  ]
+ },
+ {
+  "w": "好",
+  "py": "hǎo",
+  "d": "good; well; fine; OK",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "好，睡吧。明天见。",
+    "py": "hǎo， shuì ba。 míngtiān jiàn。",
+    "en": "Right — sleep. See you tomorrow."
+   }
+  ]
+ },
+ {
+  "w": "要",
+  "py": "yào",
+  "d": "to want; to need; to ask for; will",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "早！要什么？包子、豆浆、油条都有。",
+    "py": "zǎo！ yào shénme？ bāozi、 dòujiāng、 yóutiáo dōu yǒu。",
+    "en": "Morning! What'll it be? Buns, soy milk, fried dough sticks — we've got them all."
+   }
+  ]
+ },
+ {
+  "w": "睡",
+  "py": "shuì",
+  "d": "to sleep; to lie down",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "好，睡吧。明天见。",
+    "py": "hǎo， shuì ba。 míngtiān jiàn。",
+    "en": "Right — sleep. See you tomorrow."
+   }
+  ]
+ },
+ {
+  "w": "吧",
+  "py": "ba",
+  "d": "let's…; …right?; suggestion particle",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "好，睡吧。明天见。",
+    "py": "hǎo， shuì ba。 míngtiān jiàn。",
+    "en": "Right — sleep. See you tomorrow."
+   }
+  ]
+ },
+ {
+  "w": "明天",
+  "py": "míng tiān",
+  "d": "tomorrow",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "好，睡吧。明天见。",
+    "py": "hǎo， shuì ba。 míngtiān jiàn。",
+    "en": "Right — sleep. See you tomorrow."
+   }
+  ]
+ },
+ {
+  "w": "见",
+  "py": "jiàn",
+  "d": "to see; to meet; to appear; to interview",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "好，睡吧。明天见。",
+    "py": "hǎo， shuì ba。 míngtiān jiàn。",
+    "en": "Right — sleep. See you tomorrow."
+   }
+  ]
+ },
+ {
+  "w": "现在",
+  "py": "xiàn zài",
+  "d": "now; at present; at the moment; modern",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "现在不睡。",
+    "py": "xiànzài bù shuì。",
+    "en": "Not now."
+   }
+  ]
+ },
+ {
+  "w": "不",
+  "py": "bù",
+  "d": "no; not so; not; un-",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "现在不睡。",
+    "py": "xiànzài bù shuì。",
+    "en": "Not now."
+   }
+  ]
+ },
+ {
+  "w": "你好",
+  "py": "nǐ hǎo",
+  "d": "hello",
+  "hsk": null,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你好！你是新来的吧？我是王阿姨。",
+    "py": "nǐhǎo！ nǐ shì xīn lái de ba？ wǒ shì wáng āyí。",
+    "en": "Hello! You must be the new one? I'm Auntie Wang."
+   }
+  ]
+ },
+ {
+  "w": "你",
+  "py": "nǐ",
+  "d": "you",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你好！你是新来的吧？我是王阿姨。",
+    "py": "nǐhǎo！ nǐ shì xīn lái de ba？ wǒ shì wáng āyí。",
+    "en": "Hello! You must be the new one? I'm Auntie Wang."
+   }
+  ]
+ },
+ {
+  "w": "来",
+  "py": "lái",
+  "d": "to come",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你好！你是新来的吧？我是王阿姨。",
+    "py": "nǐhǎo！ nǐ shì xīn lái de ba？ wǒ shì wáng āyí。",
+    "en": "Hello! You must be the new one? I'm Auntie Wang."
+   }
+  ]
+ },
+ {
+  "w": "叫",
+  "py": "jiào",
+  "d": "to be called; to call; to shout; to ask (sb to do)",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你叫什么名字？",
+    "py": "nǐ jiào shénme míngzi？",
+    "en": "What's your name?"
+   }
+  ]
+ },
+ {
+  "w": "什么",
+  "py": "shén me",
+  "d": "what?; something; anything",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你叫什么名字？",
+    "py": "nǐ jiào shénme míngzi？",
+    "en": "What's your name?"
+   }
+  ]
+ },
+ {
+  "w": "在",
+  "py": "zài",
+  "d": "to be at; in; at; (doing) right now",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "好！你的房间在那儿。你吃早饭了吗？",
+    "py": "hǎo！ nǐ de fángjiān zài nàr。 nǐ chī zǎofàn le ma？",
+    "en": "Good! Your room is over there. Have you had breakfast?"
+   }
+  ]
+ },
+ {
+  "w": "吃",
+  "py": "chī",
+  "d": "to eat",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "好！你的房间在那儿。你吃早饭了吗？",
+    "py": "hǎo！ nǐ de fángjiān zài nàr。 nǐ chī zǎofàn le ma？",
+    "en": "Good! Your room is over there. Have you had breakfast?"
+   }
+  ]
+ },
+ {
+  "w": "了",
+  "py": "le",
+  "d": "particle: action done, or a change of state",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "好！你的房间在那儿。你吃早饭了吗？",
+    "py": "hǎo！ nǐ de fángjiān zài nàr。 nǐ chī zǎofàn le ma？",
+    "en": "Good! Your room is over there. Have you had breakfast?"
+   }
+  ]
+ },
+ {
+  "w": "没有",
+  "py": "méi yǒu",
+  "d": "haven't; hasn't; doesn't exist; to not have",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你没有交通卡。",
+    "py": "nǐ méiyǒu jiāotōngkǎ。",
+    "en": "You haven't got a transport card."
+   }
+  ]
+ },
+ {
+  "w": "还",
+  "py": "hái",
+  "d": "still; still in progress; still more; yet",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "水三块。给你。你还要什么？",
+    "py": "shuǐ sān kuài。 gěinǐ。 nǐ hái yào shénme？",
+    "en": "Water's 3 yuan. Here. Anything else?"
+   }
+  ]
+ },
+ {
+  "w": "没",
+  "py": "méi",
+  "d": "not (have); didn't",
+  "hsk": null,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "没事，没事。你去玩吧！",
+    "py": "méi shì， méi shì。 nǐ qù wán ba！",
+    "en": "That lantern… never mind, never mind. Go and have fun!"
+   }
+  ]
+ },
+ {
+  "w": "包子",
+  "py": "bāo zi",
+  "d": "steamed bun",
+  "hsk": 1,
+  "explain": "You say this in the game. The game explains it: 里面有肉或者菜，热的。",
+  "examples": [
+   {
+    "zh": "南锣鼓巷有一个早点铺，包子很好吃！去吃吧。",
+    "py": "nán gǔ xiàng yǒu yī gè zǎo diǎn pù， bāozi hěn hǎochī！ qù chī ba。",
+    "en": "On 南锣鼓巷 there's a breakfast shop, the buns are great! Go and eat."
+   }
+  ]
+ },
+ {
+  "w": "很",
+  "py": "hěn",
+  "d": "very; quite",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "南锣鼓巷有一个早点铺，包子很好吃！去吃吧。",
+    "py": "nán gǔ xiàng yǒu yī gè zǎo diǎn pù， bāozi hěn hǎochī！ qù chī ba。",
+    "en": "On 南锣鼓巷 there's a breakfast shop, the buns are great! Go and eat."
+   }
+  ]
+ },
+ {
+  "w": "去",
+  "py": "qù",
+  "d": "to go; to go to",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "南锣鼓巷有一个早点铺，包子很好吃！去吃吧。",
+    "py": "nán gǔ xiàng yǒu yī gè zǎo diǎn pù， bāozi hěn hǎochī！ qù chī ba。",
+    "en": "On 南锣鼓巷 there's a breakfast shop, the buns are great! Go and eat."
+   }
+  ]
+ },
+ {
+  "w": "那",
+  "py": "nà",
+  "d": "that; the; those; then",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "好！那去南锣鼓巷看看吧。早点铺的包子很好吃！",
+    "py": "hǎo！ nà qù nán gǔ xiàng kàn kàn ba。 zǎo diǎn pù de bāozi hěn hǎochī！",
+    "en": "Good! Then go and look around 南锣鼓巷. The buns at the breakfast shop are great!"
+   }
+  ]
+ },
+ {
+  "w": "看",
+  "py": "kàn",
+  "d": "to see; to look at; to read; to watch",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "好！那去南锣鼓巷看看吧。早点铺的包子很好吃！",
+    "py": "hǎo！ nà qù nán gǔ xiàng kàn kàn ba。 zǎo diǎn pù de bāozi hěn hǎochī！",
+    "en": "Good! Then go and look around 南锣鼓巷. The buns at the breakfast shop are great!"
+   }
+  ]
+ },
+ {
+  "w": "名字",
+  "py": "míng zi",
+  "d": "name",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你叫什么名字？",
+    "py": "nǐ jiào shénme míngzi？",
+    "en": "What's your name?"
+   }
+  ]
+ },
+ {
+  "w": "那儿",
+  "py": "nà r",
+  "d": "there",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "好！你的房间在那儿。你吃早饭了吗？",
+    "py": "hǎo！ nǐ de fángjiān zài nàr。 nǐ chī zǎofàn le ma？",
+    "en": "Good! Your room is over there. Have you had breakfast?"
+   }
+  ]
+ },
+ {
+  "w": "早饭",
+  "py": "zǎo fàn",
+  "d": "breakfast",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "好！你的房间在那儿。你吃早饭了吗？",
+    "py": "hǎo！ nǐ de fángjiān zài nàr。 nǐ chī zǎofàn le ma？",
+    "en": "Good! Your room is over there. Have you had breakfast?"
+   }
+  ]
+ },
+ {
+  "w": "有",
+  "py": "yǒu",
+  "d": "to have; there is; having; with",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "南锣鼓巷有一个早点铺，包子很好吃！去吃吧。",
+    "py": "nán gǔ xiàng yǒu yī gè zǎo diǎn pù， bāozi hěn hǎochī！ qù chī ba。",
+    "en": "On 南锣鼓巷 there's a breakfast shop, the buns are great! Go and eat."
+   }
+  ]
+ },
+ {
+  "w": "一",
+  "py": "yī",
+  "d": "one; single; a; as soon as",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "南锣鼓巷有一个早点铺，包子很好吃！去吃吧。",
+    "py": "nán gǔ xiàng yǒu yī gè zǎo diǎn pù， bāozi hěn hǎochī！ qù chī ba。",
+    "en": "On 南锣鼓巷 there's a breakfast shop, the buns are great! Go and eat."
+   }
+  ]
+ },
+ {
+  "w": "个",
+  "py": "gè",
+  "d": "the general measure word; individual",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "南锣鼓巷有一个早点铺，包子很好吃！去吃吧。",
+    "py": "nán gǔ xiàng yǒu yī gè zǎo diǎn pù， bāozi hěn hǎochī！ qù chī ba。",
+    "en": "On 南锣鼓巷 there's a breakfast shop, the buns are great! Go and eat."
+   }
+  ]
+ },
+ {
+  "w": "好吃",
+  "py": "hǎo chī",
+  "d": "tasty; delicious",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "南锣鼓巷有一个早点铺，包子很好吃！去吃吧。",
+    "py": "nán gǔ xiàng yǒu yī gè zǎo diǎn pù， bāozi hěn hǎochī！ qù chī ba。",
+    "en": "On 南锣鼓巷 there's a breakfast shop, the buns are great! Go and eat."
+   }
+  ]
+ },
+ {
+  "w": "大",
+  "py": "dà",
+  "d": "big; large; great; older",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "这是鼓楼！很大！",
+    "py": "zhè shì gǔ lóu！ hěn dà！",
+    "en": "So this is the Drum Tower! It's big!"
+   }
+  ]
+ },
+ {
+  "w": "石狮子",
+  "py": "shíshīzi",
+  "d": "stone lion",
+  "hsk": null,
+  "explain": "You say this in the game. The game explains it: 石头的狮子。",
+  "examples": [
+   {
+    "zh": "石狮子在睡觉。晚上再来看石狮子吧。",
+    "py": "shíshīzi zài shuìjiào。 wǎnshang zài lái kàn shíshīzi ba。",
+    "en": "The stone lion is asleep. Come back and see it at night."
+   }
+  ]
+ },
+ {
+  "w": "晚上",
+  "py": "wǎn shang",
+  "d": "evening; night; in the evening",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "石狮子在睡觉。晚上再来看石狮子吧。",
+    "py": "shíshīzi zài shuìjiào。 wǎnshang zài lái kàn shíshīzi ba。",
+    "en": "The stone lion is asleep. Come back and see it at night."
+   }
+  ]
+ },
+ {
+  "w": "再",
+  "py": "zài",
+  "d": "again; once more; re-; second",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "石狮子在睡觉。晚上再来看石狮子吧。",
+    "py": "shíshīzi zài shuìjiào。 wǎnshang zài lái kàn shíshīzi ba。",
+    "en": "The stone lion is asleep. Come back and see it at night."
+   }
+  ]
+ },
+ {
+  "w": "鸟",
+  "py": "niǎo",
+  "d": "bird",
+  "hsk": 2,
+  "explain": "You say this in the game. The game explains it: 会飞的小动物。",
+  "examples": [
+   {
+    "zh": "早！你看，我的鸟好看吗？",
+    "py": "zǎo！ nǐ kàn， wǒ de niǎo hǎokàn ma？",
+    "en": "Morning! Look — isn't my bird pretty?"
+   }
+  ]
+ },
+ {
+  "w": "好看",
+  "py": "hǎo kàn",
+  "d": "good-looking; nice to watch or read",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "早！你看，我的鸟好看吗？",
+    "py": "zǎo！ nǐ kàn， wǒ de niǎo hǎokàn ma？",
+    "en": "Morning! Look — isn't my bird pretty?"
+   }
+  ]
+ },
+ {
+  "w": "谢谢",
+  "py": "xiè xie",
+  "d": "to thank; thanks; thank you",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "谢谢！你去哪儿？",
+    "py": "xièxie！ nǐ qù nǎr？",
+    "en": "Thanks! Where are you off to?"
+   }
+  ]
+ },
+ {
+  "w": "哪儿",
+  "py": "nǎ r",
+  "d": "where?; wherever; anywhere; somewhere",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "谢谢！你去哪儿？",
+    "py": "xièxie！ nǐ qù nǎr？",
+    "en": "Thanks! Where are you off to?"
+   }
+  ]
+ },
+ {
+  "w": "请问",
+  "py": "qǐng wèn",
+  "d": "Excuse me, may I ask...?",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": []
+ },
+ {
+  "w": "早",
+  "py": "zǎo",
+  "d": "early; morning; Good morning!; long ago",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "早！你看，我的鸟好看吗？",
+    "py": "zǎo！ nǐ kàn， wǒ de niǎo hǎokàn ma？",
+    "en": "Morning! Look — isn't my bird pretty?"
+   }
+  ]
+ },
+ {
+  "w": "西边",
+  "py": "xībian",
+  "d": "the west side; to the west",
+  "hsk": null,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "鼓楼在西边，不远。",
+    "py": "gǔ lóu zài xībian， bù yuǎn。",
+    "en": "The Drum Tower is to the west, not far."
+   }
+  ]
+ },
+ {
+  "w": "远",
+  "py": "yuǎn",
+  "d": "far; distant; remote; by far",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "鼓楼在西边，不远。",
+    "py": "gǔ lóu zài xībian， bù yuǎn。",
+    "en": "The Drum Tower is to the west, not far."
+   }
+  ]
+ },
+ {
+  "w": "地铁站",
+  "py": "dìtiězhàn",
+  "d": "subway station",
+  "hsk": null,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "地铁站在东边。",
+    "py": "dìtiězhàn zài dōngbian。",
+    "en": "The subway station is to the east."
+   }
+  ]
+ },
+ {
+  "w": "东边",
+  "py": "dōngbian",
+  "d": "the east side; to the east",
+  "hsk": null,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "地铁站在东边。",
+    "py": "dìtiězhàn zài dōngbian。",
+    "en": "The subway station is to the east."
+   }
+  ]
+ },
+ {
+  "w": "地铁",
+  "py": "dì tiě",
+  "d": "underground railway; subway; subway train",
+  "hsk": 2,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你好！鼓楼在西边，地铁在东边。",
+    "py": "nǐhǎo！ gǔ lóu zài xībian， dìtiě zài dōngbian。",
+    "en": "Hello! The Drum Tower's west, the subway's east."
+   }
+  ]
+ },
+ {
+  "w": "豆浆",
+  "py": "dòu jiāng",
+  "d": "soy milk",
+  "hsk": 5,
+  "explain": "You say this in the game. The game explains it: 白色的，可以喝，早上喝。",
+  "examples": [
+   {
+    "zh": "早！要什么？包子、豆浆、油条都有。",
+    "py": "zǎo！ yào shénme？ bāozi、 dòujiāng、 yóutiáo dōu yǒu。",
+    "en": "Morning! What'll it be? Buns, soy milk, fried dough sticks — we've got them all."
+   }
+  ]
+ },
+ {
+  "w": "油条",
+  "py": "yóutiáo",
+  "d": "fried dough stick",
+  "hsk": null,
+  "explain": "You say this in the game. The game explains it: 早上吃的，长长的，热的。",
+  "examples": [
+   {
+    "zh": "早！要什么？包子、豆浆、油条都有。",
+    "py": "zǎo！ yào shénme？ bāozi、 dòujiāng、 yóutiáo dōu yǒu。",
+    "en": "Morning! What'll it be? Buns, soy milk, fried dough sticks — we've got them all."
+   }
+  ]
+ },
+ {
+  "w": "和",
+  "py": "hé",
+  "d": "and; together with; with; sum",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "好的！包子和豆浆，四块钱。",
+    "py": "hǎo de！ bāozi hé dòujiāng， sì kuài qián。",
+    "en": "Right! A bun and a soy milk, 4 yuan."
+   }
+  ]
+ },
+ {
+  "w": "给",
+  "py": "gěi",
+  "d": "to; for; for the benefit of; to give",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "给你包子和豆浆！好吃吗？下次来吃油条。",
+    "py": "gěinǐ bāozi hé dòujiāng！ hǎochī ma？ xiàcì lái chī yóutiáo。",
+    "en": "Here's your bun and soy milk! Good? Next time try the fried dough sticks."
+   }
+  ]
+ },
+ {
+  "w": "都",
+  "py": "dōu",
+  "d": "all; both; entirely; even",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "早！要什么？包子、豆浆、油条都有。",
+    "py": "zǎo！ yào shénme？ bāozi、 dòujiāng、 yóutiáo dōu yǒu。",
+    "en": "Morning! What'll it be? Buns, soy milk, fried dough sticks — we've got them all."
+   }
+  ]
+ },
+ {
+  "w": "两",
+  "py": "liǎng",
+  "d": "two; both; some; a few",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "包子两块，豆浆两块，油条一块五。",
+    "py": "bāozi liǎng kuài， dòujiāng liǎng kuài， yóutiáo yīkuài wǔ。",
+    "en": "Buns 2 yuan, soy milk 2 yuan, fried dough sticks 1.5."
+   }
+  ]
+ },
+ {
+  "w": "块",
+  "py": "kuài",
+  "d": "piece; lump; yuan (spoken)",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "包子两块，豆浆两块，油条一块五。",
+    "py": "bāozi liǎng kuài， dòujiāng liǎng kuài， yóutiáo yīkuài wǔ。",
+    "en": "Buns 2 yuan, soy milk 2 yuan, fried dough sticks 1.5."
+   }
+  ]
+ },
+ {
+  "w": "五",
+  "py": "wǔ",
+  "d": "five; 5",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "包子两块，豆浆两块，油条一块五。",
+    "py": "bāozi liǎng kuài， dòujiāng liǎng kuài， yóutiáo yīkuài wǔ。",
+    "en": "Buns 2 yuan, soy milk 2 yuan, fried dough sticks 1.5."
+   }
+  ]
+ },
+ {
+  "w": "四",
+  "py": "sì",
+  "d": "four; 4",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "好的！包子和豆浆，四块钱。",
+    "py": "hǎo de！ bāozi hé dòujiāng， sì kuài qián。",
+    "en": "Right! A bun and a soy milk, 4 yuan."
+   }
+  ]
+ },
+ {
+  "w": "钱",
+  "py": "qián",
+  "d": "money",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "好的！包子和豆浆，四块钱。",
+    "py": "hǎo de！ bāozi hé dòujiāng， sì kuài qián。",
+    "en": "Right! A bun and a soy milk, 4 yuan."
+   }
+  ]
+ },
+ {
+  "w": "下次",
+  "py": "xià cì",
+  "d": "next time",
+  "hsk": null,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "给你包子和豆浆！好吃吗？下次来吃油条。",
+    "py": "gěinǐ bāozi hé dòujiāng！ hǎochī ma？ xiàcì lái chī yóutiáo。",
+    "en": "Here's your bun and soy milk! Good? Next time try the fried dough sticks."
+   }
+  ]
+ },
+ {
+  "w": "灯笼",
+  "py": "dēng lóng",
+  "d": "lantern",
+  "hsk": 6,
+  "explain": "You say this in the game. The game explains it: 晚上用的红色的灯。",
+  "examples": [
+   {
+    "zh": "你看，这个灯笼是我奶奶的。",
+    "py": "nǐ kàn， zhè gè dēnglóng shì wǒ nǎinai de。",
+    "en": "Look — this lantern was my grandmother's."
+   }
+  ]
+ },
+ {
+  "w": "到",
+  "py": "dào",
+  "d": "to reach; to arrive; to leave for; to go to",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "灯笼里的小神都跑了，跑到北京的胡同里了。",
+    "py": "dēnglóng lǐ de xiǎo shén dōu pǎo le， pǎo dào běijīng de hútòng lǐ le。",
+    "en": "The little spirits in the lantern have all run off — into the hutongs of Beijing."
+   }
+  ]
+ },
+ {
+  "w": "我们",
+  "py": "wǒ men",
+  "d": "we; us; ourselves; our",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "我们去找他们吧！",
+    "py": "wǒmen qù zhǎo tāmen ba！",
+    "en": "Let's go and find them!"
+   }
+  ]
+ },
+ {
+  "w": "看见",
+  "py": "kàn jiàn",
+  "d": "to see; to catch sight of",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你问问人吧。他们看见了什么？",
+    "py": "nǐ wèn wèn rén ba。 tāmen kànjiàn le shénme？",
+    "en": "Ask people. What have they seen?"
+   }
+  ]
+ },
+ {
+  "w": "奶奶",
+  "py": "nǎi nai",
+  "d": "grandma (father's mother)",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你看，这个灯笼是我奶奶的。",
+    "py": "nǐ kàn， zhè gè dēnglóng shì wǒ nǎinai de。",
+    "en": "Look — this lantern was my grandmother's."
+   }
+  ]
+ },
+ {
+  "w": "坏",
+  "py": "huài",
+  "d": "bad; spoiled; broken; to break down",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "灯笼坏了！",
+    "py": "dēnglóng huài le！",
+    "en": "Oh no… the lantern broke!"
+   }
+  ]
+ },
+ {
+  "w": "里",
+  "py": "lǐ",
+  "d": "inside; in",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "灯笼里的小神都跑了，跑到北京的胡同里了。",
+    "py": "dēnglóng lǐ de xiǎo shén dōu pǎo le， pǎo dào běijīng de hútòng lǐ le。",
+    "en": "The little spirits in the lantern have all run off — into the hutongs of Beijing."
+   }
+  ]
+ },
+ {
+  "w": "小",
+  "py": "xiǎo",
+  "d": "small; tiny; few; young",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "灯笼里的小神都跑了，跑到北京的胡同里了。",
+    "py": "dēnglóng lǐ de xiǎo shén dōu pǎo le， pǎo dào běijīng de hútòng lǐ le。",
+    "en": "The little spirits in the lantern have all run off — into the hutongs of Beijing."
+   }
+  ]
+ },
+ {
+  "w": "神",
+  "py": "shén",
+  "d": "deity; soul; spirit; unusual",
+  "hsk": 6,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "灯笼里的小神都跑了，跑到北京的胡同里了。",
+    "py": "dēnglóng lǐ de xiǎo shén dōu pǎo le， pǎo dào běijīng de hútòng lǐ le。",
+    "en": "The little spirits in the lantern have all run off — into the hutongs of Beijing."
+   }
+  ]
+ },
+ {
+  "w": "跑",
+  "py": "pǎo",
+  "d": "to run; to run away; to escape; to run around",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "灯笼里的小神都跑了，跑到北京的胡同里了。",
+    "py": "dēnglóng lǐ de xiǎo shén dōu pǎo le， pǎo dào běijīng de hútòng lǐ le。",
+    "en": "The little spirits in the lantern have all run off — into the hutongs of Beijing."
+   }
+  ]
+ },
+ {
+  "w": "胡同",
+  "py": "hú tòng",
+  "d": "lane; alley",
+  "hsk": 5,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "灯笼里的小神都跑了，跑到北京的胡同里了。",
+    "py": "dēnglóng lǐ de xiǎo shén dōu pǎo le， pǎo dào běijīng de hútòng lǐ le。",
+    "en": "The little spirits in the lantern have all run off — into the hutongs of Beijing."
+   }
+  ]
+ },
+ {
+  "w": "找",
+  "py": "zhǎo",
+  "d": "to try to find; to look for; to call on sb",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "我们去找他们吧！",
+    "py": "wǒmen qù zhǎo tāmen ba！",
+    "en": "Let's go and find them!"
+   }
+  ]
+ },
+ {
+  "w": "他们",
+  "py": "tā men",
+  "d": "they",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "我们去找他们吧！",
+    "py": "wǒmen qù zhǎo tāmen ba！",
+    "en": "Let's go and find them!"
+   }
+  ]
+ },
+ {
+  "w": "问",
+  "py": "wèn",
+  "d": "to ask; to inquire",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你问问人吧。他们看见了什么？",
+    "py": "nǐ wèn wèn rén ba。 tāmen kànjiàn le shénme？",
+    "en": "Ask people. What have they seen?"
+   }
+  ]
+ },
+ {
+  "w": "人",
+  "py": "rén",
+  "d": "person; people",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你问问人吧。他们看见了什么？",
+    "py": "nǐ wèn wèn rén ba。 tāmen kànjiàn le shénme？",
+    "en": "Ask people. What have they seen?"
+   }
+  ]
+ },
+ {
+  "w": "事",
+  "py": "shì",
+  "d": "matter; thing; item; work",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "没事，没事。你去玩吧！",
+    "py": "méi shì， méi shì。 nǐ qù wán ba！",
+    "en": "That lantern… never mind, never mind. Go and have fun!"
+   }
+  ]
+ },
+ {
+  "w": "玩",
+  "py": "wán",
+  "d": "to play; to have fun; to trifle with; toy",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "没事，没事。你去玩吧！",
+    "py": "méi shì， méi shì。 nǐ qù wán ba！",
+    "en": "That lantern… never mind, never mind. Go and have fun!"
+   }
+  ]
+ },
+ {
+  "w": "再见",
+  "py": "zài jiàn",
+  "d": "goodbye",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "好，再见！",
+    "py": "hǎo， zàijiàn！",
+    "en": "OK, bye!"
+   }
+  ]
+ },
+ {
+  "w": "买",
+  "py": "mǎi",
+  "d": "to buy; to purchase",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你好！要买什么？",
+    "py": "nǐhǎo！ yào mǎi shénme？",
+    "en": "Hello! What would you like?"
+   }
+  ]
+ },
+ {
+  "w": "水",
+  "py": "shuǐ",
+  "d": "water; river; liquid; beverage",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "水三块。给你。你还要什么？",
+    "py": "shuǐ sān kuài。 gěinǐ。 nǐ hái yào shénme？",
+    "en": "Water's 3 yuan. Here. Anything else?"
+   }
+  ]
+ },
+ {
+  "w": "三",
+  "py": "sān",
+  "d": "three; 3",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "水三块。给你。你还要什么？",
+    "py": "shuǐ sān kuài。 gěinǐ。 nǐ hái yào shénme？",
+    "en": "Water's 3 yuan. Here. Anything else?"
+   }
+  ]
+ },
+ {
+  "w": "听说",
+  "py": "tīng shuō",
+  "d": "to hear; one hears; hearsay",
+  "hsk": 3,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "听说晚上鼓楼那儿的石狮子会动。",
+    "py": "tīngshuō wǎnshang gǔ lóu nàr de shíshīzi huì dòng。",
+    "en": "They say at night the stone lion over by the Drum Tower moves."
+   }
+  ]
+ },
+ {
+  "w": "会",
+  "py": "huì",
+  "d": "can; to have the skill; to know how to",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "听说晚上鼓楼那儿的石狮子会动。",
+    "py": "tīngshuō wǎnshang gǔ lóu nàr de shíshīzi huì dòng。",
+    "en": "They say at night the stone lion over by the Drum Tower moves."
+   }
+  ]
+ },
+ {
+  "w": "动",
+  "py": "dòng",
+  "d": "to move; to set in movement; to displace",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "听说晚上鼓楼那儿的石狮子会动。",
+    "py": "tīngshuō wǎnshang gǔ lóu nàr de shíshīzi huì dòng。",
+    "en": "They say at night the stone lion over by the Drum Tower moves."
+   }
+  ]
+ },
+ {
+  "w": "知道",
+  "py": "zhī dào",
+  "d": "to know; to become aware of",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "我不知道。晚上，你去看看吧！",
+    "py": "wǒ bù zhīdào。 wǎnshang， nǐ qù kàn kàn ba！",
+    "en": "I don't know. Go and see at night!"
+   }
+  ]
+ },
+ {
+  "w": "中文",
+  "py": "Zhōng wén",
+  "d": "Chinese language",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你好！你的中文怎么样？",
+    "py": "nǐhǎo！ nǐ de Zhōngwén zěnmeyàng？",
+    "en": "Hello! How's your Chinese?"
+   }
+  ]
+ },
+ {
+  "w": "可以",
+  "py": "kě yǐ",
+  "d": "can; may; possible; able to",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": []
+ },
+ {
+  "w": "坐",
+  "py": "zuò",
+  "d": "to sit; to take (a bus, a plane)",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "我也马马虎虎！坐吧。",
+    "py": "wǒ yě mǎmǎhūhū！ zuò ba。",
+    "en": "Me too — 马马虎虎, so-so! Have a seat."
+   }
+  ]
+ },
+ {
+  "w": "累",
+  "py": "lèi",
+  "d": "tired; weary; to strain; to wear out",
+  "hsk": 2,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "今天我很累，明天见！",
+    "py": "jīntiān wǒ hěn lèi， míngtiān jiàn！",
+    "en": "I'm tired today — see you tomorrow!"
+   }
+  ]
+ },
+ {
+  "w": "怎么样",
+  "py": "zěn me yàng",
+  "d": "how?; how about?; how was it?; how are things?",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你好！你的中文怎么样？",
+    "py": "nǐhǎo！ nǐ de Zhōngwén zěnmeyàng？",
+    "en": "Hello! How's your Chinese?"
+   }
+  ]
+ },
+ {
+  "w": "也",
+  "py": "yě",
+  "d": "also; both ... and ...",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "我也马马虎虎！坐吧。",
+    "py": "wǒ yě mǎmǎhūhū！ zuò ba。",
+    "en": "Me too — 马马虎虎, so-so! Have a seat."
+   }
+  ]
+ },
+ {
+  "w": "马马虎虎",
+  "py": "mǎmǎhūhū",
+  "d": "so-so; careless — neither good nor bad",
+  "hsk": null,
+  "explain": "People say this to you. A 成语 from the 成语 book.",
+  "examples": [
+   {
+    "zh": "我也马马虎虎！坐吧。",
+    "py": "wǒ yě mǎmǎhūhū！ zuò ba。",
+    "en": "Me too — 马马虎虎, so-so! Have a seat."
+   }
+  ]
+ },
+ {
+  "w": "今天",
+  "py": "jīn tiān",
+  "d": "today; at the present; now",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "今天我很累，明天见！",
+    "py": "jīntiān wǒ hěn lèi， míngtiān jiàn！",
+    "en": "I'm tired today — see you tomorrow!"
+   }
+  ]
+ },
+ {
+  "w": "剪头",
+  "py": "jiǎn tóu",
+  "d": "a haircut",
+  "hsk": null,
+  "explain": "You say this in the game. The game explains it: 把头发弄短。",
+  "examples": [
+   {
+    "zh": "剪头吗？三十块。",
+    "py": "jiǎntóu ma？ sān shí kuài。",
+    "en": "A haircut? Thirty yuan."
+   }
+  ]
+ },
+ {
+  "w": "十",
+  "py": "shí",
+  "d": "ten; 10",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "剪头吗？三十块。",
+    "py": "jiǎntóu ma？ sān shí kuài。",
+    "en": "A haircut? Thirty yuan."
+   }
+  ]
+ },
+ {
+  "w": "想",
+  "py": "xiǎng",
+  "d": "to want to; to think; to miss (sb)",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你想看吗？在这儿坐，晚上再去。",
+    "py": "nǐ xiǎng kàn ma？ zài zhèr zuò， wǎnshang zài qù。",
+    "en": "Want to see it? Sit here, and go when it's night."
+   }
+  ]
+ },
+ {
+  "w": "多",
+  "py": "duō",
+  "d": "many; much; too many; in excess",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "晚上，鼓楼的石狮子会动。很多人看见了。",
+    "py": "wǎnshang， gǔ lóu de shíshīzi huì dòng。 hěn duō rén kànjiàn le。",
+    "en": "At night the Drum Tower's stone lion moves. Lots of people have seen it."
+   }
+  ]
+ },
+ {
+  "w": "这儿",
+  "py": "zhè r",
+  "d": "here",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你想看吗？在这儿坐，晚上再去。",
+    "py": "nǐ xiǎng kàn ma？ zài zhèr zuò， wǎnshang zài qù。",
+    "en": "Want to see it? Sit here, and go when it's night."
+   }
+  ]
+ },
+ {
+  "w": "朋友",
+  "py": "péng you",
+  "d": "friend",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你想和我做朋友吗？你说：一个日，一个月，是什么字？",
+    "py": "nǐ xiǎng hé wǒ zuò péngyou ma？ nǐ shuō： yī gè rì， yī gè yuè， shì shénme zì？",
+    "en": "You want to be my friend? Then tell me: a sun and a moon — what character is that?"
+   }
+  ]
+ },
+ {
+  "w": "字",
+  "py": "zì",
+  "d": "letter; symbol; character; word",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "你想和我做朋友吗？你说：一个日，一个月，是什么字？",
+    "py": "nǐ xiǎng hé wǒ zuò péngyou ma？ nǐ shuō： yī gè rì， yī gè yuè， shì shénme zì？",
+    "en": "You want to be my friend? Then tell me: a sun and a moon — what character is that?"
+   }
+  ]
+ },
+ {
+  "w": "明",
+  "py": "míng",
+  "d": "bright (日 sun + 月 moon)",
+  "hsk": null,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "对！是明！你是我的朋友了。",
+    "py": "duì！ shì míng！ nǐ shì wǒ de péngyou le。",
+    "en": "Right! It's 明! You're my friend now."
+   }
+  ]
+ },
+ {
+  "w": "对",
+  "py": "duì",
+  "d": "right; correct; towards; at",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "对！是明！你是我的朋友了。",
+    "py": "duì！ shì míng！ nǐ shì wǒ de péngyou le。",
+    "en": "Right! It's 明! You're my friend now."
+   }
+  ]
+ },
+ {
+  "w": "谁",
+  "py": "shéi",
+  "d": "who",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "有人来了？你是谁？",
+    "py": "yǒurén lái le？ nǐ shì shéi？",
+    "en": "Someone's here? Who are you?"
+   }
+  ]
+ },
+ {
+  "w": "做",
+  "py": "zuò",
+  "d": "to do; to make",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你想和我做朋友吗？你说：一个日，一个月，是什么字？",
+    "py": "nǐ xiǎng hé wǒ zuò péngyou ma？ nǐ shuō： yī gè rì， yī gè yuè， shì shénme zì？",
+    "en": "You want to be my friend? Then tell me: a sun and a moon — what character is that?"
+   }
+  ]
+ },
+ {
+  "w": "说",
+  "py": "shuō",
+  "d": "to speak; to talk; to say; to explain",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你想和我做朋友吗？你说：一个日，一个月，是什么字？",
+    "py": "nǐ xiǎng hé wǒ zuò péngyou ma？ nǐ shuō： yī gè rì， yī gè yuè， shì shénme zì？",
+    "en": "You want to be my friend? Then tell me: a sun and a moon — what character is that?"
+   }
+  ]
+ },
+ {
+  "w": "日",
+  "py": "rì",
+  "d": "sun; day; date, day of the month",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你想和我做朋友吗？你说：一个日，一个月，是什么字？",
+    "py": "nǐ xiǎng hé wǒ zuò péngyou ma？ nǐ shuō： yī gè rì， yī gè yuè， shì shénme zì？",
+    "en": "You want to be my friend? Then tell me: a sun and a moon — what character is that?"
+   }
+  ]
+ },
+ {
+  "w": "月",
+  "py": "yuè",
+  "d": "moon; month; monthly",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你想和我做朋友吗？你说：一个日，一个月，是什么字？",
+    "py": "nǐ xiǎng hé wǒ zuò péngyou ma？ nǐ shuō： yī gè rì， yī gè yuè， shì shénme zì？",
+    "en": "You want to be my friend? Then tell me: a sun and a moon — what character is that?"
+   }
+  ]
+ },
+ {
+  "w": "喝",
+  "py": "hē",
+  "d": "to drink",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "来，坐。喝茶吗？",
+    "py": "lái， zuò。 hē chá ma？",
+    "en": "Come, sit. Some tea?"
+   }
+  ]
+ },
+ {
+  "w": "茶",
+  "py": "chá",
+  "d": "tea; tea plant",
+  "hsk": 1,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "来，坐。喝茶吗？",
+    "py": "lái， zuò。 hē chá ma？",
+    "en": "Come, sit. Some tea?"
+   }
+  ]
+ },
+ {
+  "w": "一心一意",
+  "py": "yī xīn yī yì",
+  "d": "concentrating one's thoughts and efforts",
+  "hsk": 7,
+  "explain": "People say this to you. A 成语 from the 成语 book.",
+  "examples": [
+   {
+    "zh": "喝茶要一心一意。",
+    "py": "hē chá yào yìxīn-yíyì。",
+    "en": "Tea wants your whole heart."
+   }
+  ]
+ },
+ {
+  "w": "交通卡",
+  "py": "jiāotōngkǎ",
+  "d": "transport card",
+  "hsk": null,
+  "explain": "You say this in the game. The game explains it: 坐地铁的卡。",
+  "examples": [
+   {
+    "zh": "你没有交通卡。",
+    "py": "nǐ méiyǒu jiāotōngkǎ。",
+    "en": "You haven't got a transport card."
+   }
+  ]
+ },
+ {
+  "w": "出去",
+  "py": "chū qù",
+  "d": "to go out",
+  "hsk": 2,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "好，出去。",
+    "py": "hǎo， chūqù。",
+    "en": "Right — out through the gates."
+   }
+  ]
+ },
+ {
+  "w": "押金",
+  "py": "yā jīn",
+  "d": "deposit",
+  "hsk": 5,
+  "explain": "You say this in the game. The game explains it: 先给的钱，不用卡的时候还给你。",
+  "examples": [
+   {
+    "zh": "好的。交通卡：押金二十，充值二十，四十块。好吗？",
+    "py": "hǎo de。 jiāotōngkǎ： yājīn èr shí， chōngzhí èr shí， sì shí kuài。 hǎo ma？",
+    "en": "Sure. Transport card: 20 deposit, 20 on the card — 40 yuan. OK?"
+   }
+  ]
+ },
+ {
+  "w": "充值",
+  "py": "chōngzhí",
+  "d": "top up",
+  "hsk": null,
+  "explain": "You say this in the game. The game explains it: 给卡里放钱。",
+  "examples": [
+   {
+    "zh": "好的。交通卡：押金二十，充值二十，四十块。好吗？",
+    "py": "hǎo de。 jiāotōngkǎ： yājīn èr shí， chōngzhí èr shí， sì shí kuài。 hǎo ma？",
+    "en": "Sure. Transport card: 20 deposit, 20 on the card — 40 yuan. OK?"
+   }
+  ]
+ },
+ {
+  "w": "刷卡",
+  "py": "shuā kǎ",
+  "d": "tap the card",
+  "hsk": null,
+  "explain": "You say this in the game. The game explains it: 在门那儿放一下卡。",
+  "examples": [
+   {
+    "zh": "这是你的交通卡。刷卡，进站。",
+    "py": "zhè shì nǐ de jiāotōngkǎ。 shuākǎ， jìnzhàn。",
+    "en": "Here's your transport card. Tap it at the gate to go in."
+   }
+  ]
+ },
+ {
+  "w": "进站",
+  "py": "jìn zhàn",
+  "d": "go into the station",
+  "hsk": null,
+  "explain": "You say this in the game. The game explains it: 走进地铁站。",
+  "examples": [
+   {
+    "zh": "这是你的交通卡。刷卡，进站。",
+    "py": "zhè shì nǐ de jiāotōngkǎ。 shuākǎ， jìnzhàn。",
+    "en": "Here's your transport card. Tap it at the gate to go in."
+   }
+  ]
+ },
+ {
+  "w": "二",
+  "py": "èr",
+  "d": "two",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "好的。交通卡：押金二十，充值二十，四十块。好吗？",
+    "py": "hǎo de。 jiāotōngkǎ： yājīn èr shí， chōngzhí èr shí， sì shí kuài。 hǎo ma？",
+    "en": "Sure. Transport card: 20 deposit, 20 on the card — 40 yuan. OK?"
+   }
+  ]
+ },
+ {
+  "w": "票",
+  "py": "piào",
+  "d": "ticket",
+  "hsk": 2,
+  "explain": "You say this in the game. The game explains it: 进门要的，要花钱买。",
+  "examples": [
+   {
+    "zh": "去故宫要票。你有票吗？",
+    "py": "qù gù gōng yào piào。 nǐ yǒu piào ma？",
+    "en": "The palace needs a ticket. Do you have one?"
+   }
+  ]
+ },
+ {
+  "w": "网上",
+  "py": "wǎng shàng",
+  "d": "online",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "票要在网上买，要写你的名字。你明天再来吧。",
+    "py": "piào yào zài wǎngshàng mǎi， yào xiě nǐ de míngzi。 nǐ míngtiān zài lái ba。",
+    "en": "Tickets are bought online, with your name on them. Come back another day."
+   }
+  ]
+ },
+ {
+  "w": "写",
+  "py": "xiě",
+  "d": "to write",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "票要在网上买，要写你的名字。你明天再来吧。",
+    "py": "piào yào zài wǎngshàng mǎi， yào xiě nǐ de míngzi。 nǐ míngtiān zài lái ba。",
+    "en": "Tickets are bought online, with your name on them. Come back another day."
+   }
+  ]
+ },
+ {
+  "w": "外面",
+  "py": "wài miàn",
+  "d": "outside; surface; exterior; external appearance",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你好！天安门在外面。",
+    "py": "nǐhǎo！ tiān ān mén zài wàimiàn。",
+    "en": "Hello! Tiananmen is just outside."
+   }
+  ]
+ },
+ {
+  "w": "护照",
+  "py": "hù zhào",
+  "d": "passport",
+  "hsk": 3,
+  "explain": "You say this in the game. The game explains it: 去别的国家要用的小本子。",
+  "examples": [
+   {
+    "zh": "你好！安检。请给我看你的护照。",
+    "py": "nǐhǎo！ ānjiǎn。 qǐng gěi wǒ kàn nǐ de hùzhào。",
+    "en": "Hello! Security. Your passport, please."
+   }
+  ]
+ },
+ {
+  "w": "安检",
+  "py": "ān jiǎn",
+  "d": "security check",
+  "hsk": 4,
+  "explain": "You say this in the game. The game explains it: 进门以前，看你的包和护照。",
+  "examples": [
+   {
+    "zh": "你好！安检。请给我看你的护照。",
+    "py": "nǐhǎo！ ānjiǎn。 qǐng gěi wǒ kàn nǐ de hùzhào。",
+    "en": "Hello! Security. Your passport, please."
+   }
+  ]
+ },
+ {
+  "w": "请",
+  "py": "qǐng",
+  "d": "to ask; to invite; please; to treat",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你好！安检。请给我看你的护照。",
+    "py": "nǐhǎo！ ānjiǎn。 qǐng gěi wǒ kàn nǐ de hùzhào。",
+    "en": "Hello! Security. Your passport, please."
+   }
+  ]
+ },
+ {
+  "w": "进去",
+  "py": "jìn qù",
+  "d": "to go in",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "好，名字对。进去吧！",
+    "py": "hǎo， míngzi duì。 jìnqù ba！",
+    "en": "Right, the name matches. In you go!"
+   }
+  ]
+ },
+ {
+  "w": "请进",
+  "py": "qǐng jìn",
+  "d": "come in, please",
+  "hsk": null,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你好！请进。",
+    "py": "nǐhǎo！ qǐngjìn。",
+    "en": "Hello! Please go in."
+   }
+  ]
+ },
+ {
+  "w": "不见",
+  "py": "bù jiàn",
+  "d": "not to see; not to meet; to have disappeared",
+  "hsk": 3,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "我的鸟不见了！你看见了吗？",
+    "py": "wǒ de niǎo bùjiàn le！ nǐ kànjiàn le ma？",
+    "en": "My bird's gone! Have you seen it?"
+   }
+  ]
+ },
+ {
+  "w": "爷爷",
+  "py": "yé ye",
+  "d": "father's father; paternal grandfather",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "这是爷爷的鸟吗？给你！",
+    "py": "zhè shì yéye de niǎo ma？ gěinǐ！",
+    "en": "Is this grandpa's bird? Here!"
+   }
+  ]
+ },
+ {
+  "w": "钓鱼",
+  "py": "diào yú",
+  "d": "to fish",
+  "hsk": 6,
+  "explain": "You say this in the game. The game explains it: 在水边用一根长长的东西拿鱼。",
+  "examples": [
+   {
+    "zh": "你好。小声一点，我在钓鱼。",
+    "py": "nǐhǎo。 xiǎoshēng yī diǎn， wǒ zài diàoyú。",
+    "en": "Hello. Quietly — I'm fishing."
+   }
+  ]
+ },
+ {
+  "w": "狐狸",
+  "py": "húli",
+  "d": "fox",
+  "hsk": null,
+  "explain": "You say this in the game. The game explains it: 像小狗，住在山里。",
+  "examples": [
+   {
+    "zh": "昨天晚上，我看见一只白狐狸，有九个尾巴！",
+    "py": "zuótiān wǎnshang， wǒ kànjiàn yī zhǐ bái húli， yǒu jiǔ gè wěiba！",
+    "en": "Last night I saw a white fox — with nine tails!"
+   }
+  ]
+ },
+ {
+  "w": "尾巴",
+  "py": "wěi ba",
+  "d": "tail",
+  "hsk": 5,
+  "explain": "You say this in the game. The game explains it: 动物后面长长的东西。",
+  "examples": [
+   {
+    "zh": "昨天晚上，我看见一只白狐狸，有九个尾巴！",
+    "py": "zuótiān wǎnshang， wǒ kànjiàn yī zhǐ bái húli， yǒu jiǔ gè wěiba！",
+    "en": "Last night I saw a white fox — with nine tails!"
+   }
+  ]
+ },
+ {
+  "w": "小声",
+  "py": "xiǎoshēng",
+  "d": "quietly; in a low voice",
+  "hsk": null,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你好。小声一点，我在钓鱼。",
+    "py": "nǐhǎo。 xiǎoshēng yī diǎn， wǒ zài diàoyú。",
+    "en": "Hello. Quietly — I'm fishing."
+   }
+  ]
+ },
+ {
+  "w": "点",
+  "py": "diǎn",
+  "d": "o'clock; a little; point; to order (food)",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "你好。小声一点，我在钓鱼。",
+    "py": "nǐhǎo。 xiǎoshēng yī diǎn， wǒ zài diàoyú。",
+    "en": "Hello. Quietly — I'm fishing."
+   }
+  ]
+ },
+ {
+  "w": "昨天",
+  "py": "zuó tiān",
+  "d": "yesterday",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "昨天晚上，我看见一只白狐狸，有九个尾巴！",
+    "py": "zuótiān wǎnshang， wǒ kànjiàn yī zhǐ bái húli， yǒu jiǔ gè wěiba！",
+    "en": "Last night I saw a white fox — with nine tails!"
+   }
+  ]
+ },
+ {
+  "w": "只",
+  "py": "zhǐ",
+  "d": "only; just",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "昨天晚上，我看见一只白狐狸，有九个尾巴！",
+    "py": "zuótiān wǎnshang， wǒ kànjiàn yī zhǐ bái húli， yǒu jiǔ gè wěiba！",
+    "en": "Last night I saw a white fox — with nine tails!"
+   }
+  ]
+ },
+ {
+  "w": "白",
+  "py": "bái",
+  "d": "white; snowy; pure; bright",
+  "hsk": 5,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "昨天晚上，我看见一只白狐狸，有九个尾巴！",
+    "py": "zuótiān wǎnshang， wǒ kànjiàn yī zhǐ bái húli， yǒu jiǔ gè wěiba！",
+    "en": "Last night I saw a white fox — with nine tails!"
+   }
+  ]
+ },
+ {
+  "w": "九",
+  "py": "jiǔ",
+  "d": "nine; 9",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "昨天晚上，我看见一只白狐狸，有九个尾巴！",
+    "py": "zuótiān wǎnshang， wǒ kànjiàn yī zhǐ bái húli， yǒu jiǔ gè wěiba！",
+    "en": "Last night I saw a white fox — with nine tails!"
+   }
+  ]
+ },
+ {
+  "w": "它",
+  "py": "tā",
+  "d": "it",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "九个尾巴的狐狸！它去景山了。",
+    "py": "jiǔ gè wěiba de húli！ tā qù jǐng shān le。",
+    "en": "A fox with nine tails! It went to 景山."
+   }
+  ]
+ },
+ {
+  "w": "鱼饵",
+  "py": "yú’ěr",
+  "d": "bait",
+  "hsk": null,
+  "explain": "You say this in the game. The game explains it: 鱼喜欢吃的小东西，钓鱼用。",
+  "examples": [
+   {
+    "zh": "我没有鱼饵了。你能帮我买吗？",
+    "py": "wǒ méiyǒu yú’ěr le。 nǐ néng bāng wǒ mǎi ma？",
+    "en": "I've run out of bait. Could you buy me some?"
+   }
+  ]
+ },
+ {
+  "w": "能",
+  "py": "néng",
+  "d": "can; to be able to; might possibly; ability",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "我没有鱼饵了。你能帮我买吗？",
+    "py": "wǒ méiyǒu yú’ěr le。 nǐ néng bāng wǒ mǎi ma？",
+    "en": "I've run out of bait. Could you buy me some?"
+   }
+  ]
+ },
+ {
+  "w": "帮",
+  "py": "bāng",
+  "d": "to help; to assist; to support; for sb",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "我没有鱼饵了。你能帮我买吗？",
+    "py": "wǒ méiyǒu yú’ěr le。 nǐ néng bāng wǒ mǎi ma？",
+    "en": "I've run out of bait. Could you buy me some?"
+   }
+  ]
+ },
+ {
+  "w": "鱼",
+  "py": "yú",
+  "d": "fish",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "鱼饵！谢谢你！今天有鱼了！",
+    "py": "yú’ěr！ xièxie nǐ！ jīntiān yǒu yú le！",
+    "en": "Bait! Thank you! Fish tonight!"
+   }
+  ]
+ },
+ {
+  "w": "船",
+  "py": "chuán",
+  "d": "boat",
+  "hsk": 3,
+  "explain": "You say this in the game. The game explains it: 在水上走的东西。",
+  "examples": [
+   {
+    "zh": "坐船吗？三十块。",
+    "py": "zuò chuán ma？ sān shí kuài。",
+    "en": "A boat? Thirty yuan."
+   }
+  ]
+ },
+ {
+  "w": "画",
+  "py": "huà",
+  "d": "painting",
+  "hsk": 2,
+  "explain": "You say this in the game. The game explains it: 用笔做的，好看的东西。",
+  "examples": [
+   {
+    "zh": "你看，这是我画的白塔。好看吗？",
+    "py": "nǐ kàn， zhè shì wǒ huà de bái tǎ。 hǎokàn ma？",
+    "en": "Look, this is my painting of the White Dagoba. Is it good?"
+   }
+  ]
+ },
+ {
+  "w": "真",
+  "py": "zhēn",
+  "d": "really; truly; indeed; real",
+  "hsk": 1,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "这是给我的画吗？真好看！谢谢！",
+    "py": "zhè shì gěi wǒ de huà ma？ zhēn hǎokàn！ xièxie！",
+    "en": "A painting for me? It's beautiful! Thank you!"
+   }
+  ]
+ },
+ {
+  "w": "一会儿",
+  "py": "yī huì r",
+  "d": "a moment; a while; in a moment; now...now...",
+  "hsk": 2,
+  "explain": "You say this in the game.",
+  "examples": [
+   {
+    "zh": "坐一会儿吗？",
+    "py": "zuò yīhuìr ma？",
+    "en": "Sit for a while?"
+   }
+  ]
+ },
+ {
+  "w": "太极",
+  "py": "Tài jí",
+  "d": "tai chi",
+  "hsk": 7,
+  "explain": "You say this in the game. The game explains it: 很慢很慢的运动，老人喜欢。",
+  "examples": [
+   {
+    "zh": "我们打太极吧。你看，左手！",
+    "py": "wǒmen dǎ Tàijí ba。 nǐ kàn， zuǒshǒu！",
+    "en": "Let's do some 太极. Watch — left hand!"
+   }
+  ]
+ },
+ {
+  "w": "左手",
+  "py": "zuǒshǒu",
+  "d": "left hand",
+  "hsk": null,
+  "explain": "You say this in the game. The game explains it: 左边的手。",
+  "examples": [
+   {
+    "zh": "我们打太极吧。你看，左手！",
+    "py": "wǒmen dǎ Tàijí ba。 nǐ kàn， zuǒshǒu！",
+    "en": "Let's do some 太极. Watch — left hand!"
+   }
+  ]
+ },
+ {
+  "w": "右手",
+  "py": "yòushǒu",
+  "d": "right hand",
+  "hsk": null,
+  "explain": "You say this in the game. The game explains it: 右边的手。",
+  "examples": [
+   {
+    "zh": "对！现在，右手！",
+    "py": "duì！ xiànzài， yòushǒu！",
+    "en": "Yes! Now — right hand!"
+   }
+  ]
+ },
+ {
+  "w": "打",
+  "py": "dǎ",
+  "d": "to hit; to play (ball games); to make (a call)",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "我们打太极吧。你看，左手！",
+    "py": "wǒmen dǎ Tàijí ba。 nǐ kàn， zuǒshǒu！",
+    "en": "Let's do some 太极. Watch — left hand!"
+   }
+  ]
+ },
+ {
+  "w": "上面",
+  "py": "shàng miàn",
+  "d": "on top of; above-mentioned",
+  "hsk": 2,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "我们在上面找一找吧。",
+    "py": "wǒmen zài shàngmiàn zhǎo yī zhǎo ba。",
+    "en": "Let's search from up here."
+   }
+  ]
+ },
+ {
+  "w": "西北",
+  "py": "xī běi",
+  "d": "northwest",
+  "hsk": 3,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "我昨天晚上看见一只狐狸，在故宫西北角附近。",
+    "py": "wǒ zuótiān wǎnshang kànjiàn yī zhǐ húli， zài gù gōng xīběi jiǎo fùjìn。",
+    "en": "Last night I saw a fox, near the north-west corner of the palace."
+   }
+  ]
+ },
+ {
+  "w": "角",
+  "py": "jiǎo",
+  "d": "angle; corner; horn; jiao (a tenth of a yuan)",
+  "hsk": 3,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "我昨天晚上看见一只狐狸，在故宫西北角附近。",
+    "py": "wǒ zuótiān wǎnshang kànjiàn yī zhǐ húli， zài gù gōng xīběi jiǎo fùjìn。",
+    "en": "Last night I saw a fox, near the north-west corner of the palace."
+   }
+  ]
+ },
+ {
+  "w": "附近",
+  "py": "fù jìn",
+  "d": "nearby; neighboring; vicinity; neighborhood",
+  "hsk": 3,
+  "explain": "People say this to you.",
+  "examples": [
+   {
+    "zh": "我昨天晚上看见一只狐狸，在故宫西北角附近。",
+    "py": "wǒ zuótiān wǎnshang kànjiàn yī zhǐ húli， zài gù gōng xīběi jiǎo fùjìn。",
+    "en": "Last night I saw a fox, near the north-west corner of the palace."
+   }
+  ]
+ },
+ {
+  "w": "老虎",
+  "py": "lǎo hǔ",
+  "d": "tiger",
+  "hsk": 4,
+  "explain": "You say this in the game. The game explains it: 很大的猫，很大很大，大家都怕它。",
+  "examples": [
+   {
+    "zh": "你是谁？你也怕我吧？老虎都怕我！",
+    "py": "nǐ shì shéi？ nǐ yě pà wǒ ba？ lǎohǔ dōu pà wǒ！",
+    "en": "Who are you? You're scared of me too, aren't you? Even tigers are scared of me!"
+   }
+  ]
+ },
+ {
+  "w": "怕",
+  "py": "pà",
+  "d": "to be afraid",
+  "hsk": 3,
+  "explain": "You say this in the game. The game explains it: 看见不好的东西，想跑。",
+  "examples": [
+   {
+    "zh": "你是谁？你也怕我吧？老虎都怕我！",
+    "py": "nǐ shì shéi？ nǐ yě pà wǒ ba？ lǎohǔ dōu pà wǒ！",
+    "en": "Who are you? You're scared of me too, aren't you? Even tigers are scared of me!"
+   }
+  ]
+ },
+ {
+  "w": "狐假虎威",
+  "py": "hújiǎ-hǔwēi",
+  "d": "to bully others with someone else's power — the fox borrowing the tiger's might",
+  "hsk": null,
+  "explain": "People say this to you. A 成语 from the 成语 book.",
+  "examples": [
+   {
+    "zh": "它这是狐假虎威。",
+    "py": "tā zhè shì hújiǎ-hǔwēi。",
+    "en": "That's 狐假虎威 — the fox borrowing the tiger's might."
+   }
+  ]
+ }
+]

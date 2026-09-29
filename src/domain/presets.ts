@@ -1,4 +1,6 @@
 import type { Library } from '../data/types';
+import firstWords from '../world/firstWords.json';
+import type { CollectionWord } from './collection';
 import { charId, wordId, type ItemId } from './ids';
 
 /**
@@ -18,6 +20,10 @@ export interface Preset {
   items: (lib: Library) => ItemId[];
   /** a few glyphs to show on the card */
   sample: (lib: Library) => string[];
+  /** the words with their readings, meanings and examples, for a set with words off the lists */
+  words?: CollectionWord[];
+  /** taken whole by default: a set that is only useful complete */
+  whole?: boolean;
 }
 
 /**
@@ -69,6 +75,23 @@ function wordBandPreset(band: number): Preset {
   };
 }
 
+/**
+ * The words of 走走's first two or three hours — chapters 1 and 2, in the
+ * order the game brings them (scripts/world/first-words.ts). Several are off
+ * the lists (交通卡, 充值), so the set carries its own words.
+ */
+const zouzouFirst: Preset = {
+  id: 'wordset-zouzou-first',
+  group: 'words',
+  name: '走走 · the first hours',
+  blurb:
+    'The words of the Beijing game’s first two or three hours — the hutong, breakfast, the stone lion, the subway to 天安门, 后海 and 景山 — in the order you meet them, what you say first.',
+  items: () => (firstWords as CollectionWord[]).map((w) => wordId(w.w)),
+  sample: () => ['包子', '豆浆', '交通卡', '充值', '狐狸', '地铁站'],
+  words: firstWords as CollectionWord[],
+  whole: true,
+};
+
 export function allPresets(lib: Library): Preset[] {
   const themes: Preset[] = lib.themes.map((t) => ({
     id: `theme-${t.id}`,
@@ -79,7 +102,7 @@ export function allPresets(lib: Library): Preset[] {
     sample: () => t.items.slice(0, 8),
   }));
 
-  return [...[1, 2, 3, 4, 5, 6, 7].map(bandPreset), ...[1, 2, 3, 4].map(wordBandPreset), ...themes];
+  return [...[1, 2, 3, 4, 5, 6, 7].map(bandPreset), ...[1, 2, 3, 4].map(wordBandPreset), zouzouFirst, ...themes];
 }
 
 export const GROUP_LABEL: Record<PresetGroup, string> = {

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { nextCollectionName, statsOf, type Collection } from '../../domain/collection';
-import { itemsLabel, type ItemId } from '../../domain/ids';
+import { itemsLabel, wordId, type ItemId } from '../../domain/ids';
 import { glyphOf } from '../../domain/library';
 import { allPresets, GROUP_BLURB, GROUP_LABEL, type Preset, type PresetGroup } from '../../domain/presets';
 import { LAYOUTS } from '../../domain/sheet';
@@ -292,7 +292,9 @@ export function CollectionsPage() {
           preset={adding}
           onCancel={() => setAdding(null)}
           onConfirm={(name, items) => {
-            const c = createCollection({ name, items, presetId: adding.id });
+            const taken = new Set(items);
+            const words = adding.words?.filter((w) => taken.has(wordId(w.w)));
+            const c = createCollection({ name, items, presetId: adding.id, words });
             setAdding(null);
             toast(`“${c.name}” — ${itemsLabel(items)}`);
             navigate(paths.collection(c.id));
