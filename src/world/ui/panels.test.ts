@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { districtInfo } from '../core/districts';
-import { applyAll, newSave } from '../core/save';
+import { apply, applyAll, newSave } from '../core/save';
 import type { Idiom, NpcCard, Quest, Scene, Stamp } from '../core/types';
 import { giveTo } from '../core/gifts';
 import { merge } from '../core/merge';
 import { readSave } from '../core/migrate';
 import { FIRST_MEMORY, markSeen, menuNews, panelTarget, remember, tabForKey, tabHasNews } from './menu';
-import { BAG_FILTERS, bagRows, filterOf, friendRows, itemFacts, idiomRows, mapHint, riddleRows, stampRows, taskRows } from './panelRows';
+import { BAG_FILTERS, bagRows, filterOf, friendRows, itemFacts, peopleRows, whereText, idiomRows, mapHint, riddleRows, stampRows, taskRows } from './panelRows';
 
 const ctx = { now: 1 };
 const fresh = () => newSave('d', 0);
@@ -105,6 +105,46 @@ describe('the panels', () => {
     s = applyAll(s, giveTo(zhao, hulu, s).actions, ctx);
     const f = itemFacts(hulu, s, shops, [wang, zhao]);
     assert.deepEqual([f.liked, f.disliked], [['王阿姨'], ['赵爷爷']]);
+  });
+});
+
+describe('the People tab (§10 P2)', () => {
+  const card = (id: string, name: string, extra: Partial<NpcCard> = {}): NpcCard => ({ id, name, role: 'r', look: { sprite: id }, character: '', knows: [], wants: [], actions: [], routine: [], explains: {}, ...extra });
+  const zhao = card('zhao', '赵爷爷', { routine: [{ hours: [6, 9], map: 'gulou-square', tile: [1, 1] }, { hours: [9, 18], map: 'nanluo-main', tile: [1, 1] }], explains: { 鸟: '会飞的动物' } });
+  const liu = card('liu', '老刘');
+  const wang = card('wang', '王阿姨');
+  const scenes: Scene[] = [{ ...scene, id: 'tea', map: 'chaguan', npc: 'liu' }];
+  const hulu = { id: 'tanghulu', name: '糖葫芦', en: 'candied haws' };
+  const qs: Quest[] = [{ id: 'bird', title: 'Bird', chapter: 1, kind: 'side', giver: 'zhao', blurb: 'b', steps: [{ id: 'a', now: 'a', past: 'a' }] }];
+  const c = { npcs: [zhao, liu, wang], scenes, quests: qs, items: [hulu] };
+
+  it('someone with a quest under way first, then the warmest; where each is at this hour', () => {
+    let s = applyAll(fresh(), [{ do: 'meet', npc: 'wang' }, { do: 'meet', npc: 'liu' }, { do: 'meet', npc: 'zhao' }, { do: 'hearts', npc: 'liu', delta: 3 }], ctx);
+    let rows = peopleRows(s, c);
+    assert.deepEqual(rows.map((r) => r.id), ['liu', 'wang', 'zhao']);
+    s = applyAll(s, [{ do: 'quest', quest: 'bird', step: 'a' }], ctx);
+    rows = peopleRows(s, c);
+    assert.deepEqual(rows.map((r) => [r.id, r.asking]), [['zhao', true], ['liu', false], ['wang', false]]);
+    // 7:00 — 赵爷爷 is on the 鼓楼 square until 9; 老刘 is where people talk to him; 王阿姨 has no place known
+    const name = (m: string) => m;
+    assert.equal(whereText(rows[0]!, name), 'gulou-square · until 9:00');
+    assert.equal(whereText(rows[1]!, name), 'chaguan');
+    assert.equal(whereText(rows[2]!, name), 'somewhere in Beijing');
+    const night = applyAll(s, [{ do: 'tick', minutes: 22 * 60 }], ctx);
+    assert.equal(whereText(peopleRows(night, c)[0]!, name), 'not about now · usually at gulou-square from 6:00');
+    assert.deepEqual(rows[0]!.topics, ['鸟']);
+    assert.deepEqual(rows[0]!.quests.map((q) => [q.quest.id, q.done]), [['bird', false]]);
+  });
+
+  it('gift notes become likes, the rest stay what they remember; the 成语 they taught', () => {
+    const s = applyAll(fresh(), [
+      { do: 'meet', npc: 'liu' },
+      { do: 'remember', npc: 'liu', note: 'likes 包子' },
+      { do: 'remember', npc: 'liu', note: 'liked the candied haws you gave' },
+    ], ctx);
+    const withIdiom = apply(s, { do: 'idiom', idiom: '一心一意' }, { ...ctx, npc: 'liu' });
+    const [r] = peopleRows(withIdiom, c);
+    assert.deepEqual([r!.notes, r!.likes, r!.dislikes, r!.idioms], [['likes 包子'], ['糖葫芦'], [], ['一心一意']]);
   });
 });
 

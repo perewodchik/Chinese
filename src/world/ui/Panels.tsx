@@ -18,16 +18,15 @@ import {
   filterOf,
   itemFacts,
   type BagFilter,
-  friendRows,
   idiomRows,
   spiritRows,
   stampRows,
 } from './panelRows';
 import { leads } from '../core/journal';
 import { Diary, JournalNow, JournalStory, type RouteRequest } from './Journal';
+import { People } from './People';
 import { markSeen, MENU, menuNews, panelTarget, readMemory, remember, tabForKey, tabHasNews, viewKey, VIEWS, writeMemory, type MenuAt, type MenuMemory, type MenuTab, type PanelId } from './menu';
 import './menu.css';
-import { Hearts } from './Hearts';
 import { ALBUM_MAX, loadAlbum, postcardPng, saveAlbum, saveFile, type Photo } from './album';
 import { ZhText } from './ZhText';
 import { MapTab } from './MapTab';
@@ -184,7 +183,7 @@ export function Panels({
           {key === 'journal/diary' && <Diary save={save} content={content} pinyin={pinyin} focus={diaryDay} onStory={() => go({ tab: 'journal', view: 'story' })} />}
           {key === 'bag' && <Bag save={save} content={content} onUse={onUse} onAct={onAct} />}
           {key === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} route={route} />}
-          {key === 'people' && <Friends save={save} content={content} />}
+          {key === 'people' && <People save={save} content={content} onTrack={(quest) => onAct?.({ do: 'track', quest, rev: Date.now() })} onShowRoute={showRoute} />}
           {key === 'collection/spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
           {key === 'collection/idioms' && <Idioms save={save} content={content} pinyin={pinyin} />}
           {key === 'collection/stamps' && <Stamps save={save} content={content} />}
@@ -251,30 +250,6 @@ function Album({ user }: { user: string }) {
           {note && <p className="tiny muted">{note}</p>}
         </div>
       )}
-    </>
-  );
-}
-
-function Friends({ save, content }: { save: WorldSave; content: WorldContent }) {
-  const rows = friendRows(save, content.npcs);
-  if (!rows.length && !save.cat.name) return <Empty han="友">Nobody yet. Say 你好 to the neighbours.</Empty>;
-  return (
-    <>
-      <h3 className="wp-label">People you know{save.name && <span className="han"> · 我叫{save.name}</span>}</h3>
-      <ul className="wp-list">
-        {rows.map((r) => (
-          <li key={r.id}>
-            <b className="han">{r.name}</b> <Hearts n={r.hearts} /> <span className="tiny muted">{r.role}</span>
-            {r.notes.length > 0 && <p className="small muted">Remembers: {r.notes.join('; ')}.</p>}
-          </li>
-        ))}
-        {save.cat.name && (
-          <li key="cat">
-            <b className="han">{save.cat.name}</b> <span className="tiny muted">· your cat, fed on {save.cat.fed} days — it sleeps in the courtyard and follows you in 帽儿胡同</span>
-          </li>
-        )}
-      </ul>
-      <p className="tiny muted">Friendship grows when you talk (once a day), give something they like, or help. At three hearts some people tell you their own story.</p>
     </>
   );
 }
