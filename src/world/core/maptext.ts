@@ -86,7 +86,21 @@ export function parseMap(text: string, legend: Legend, file = 'map'): TextMap {
   if (!size) throw new MapError(`${file}: size: WxH is missing`);
   const width = Number(size[1]);
   const height = Number(size[2]);
+  // a map may add letters of its own for a layer (§13 V2: the kit has more tiles than the shared legend has letters):
+  //   below_keys: 1=roof-green-ridge-l 2=roof-green-ridge 3=roof-green-ridge-r
+  const own = (name: LayerName): Record<string, string> => {
+    const spec = head[`${name}_keys`];
+    if (!spec) return {};
+    const out: Record<string, string> = {};
+    for (const pair of spec.split(/\s+/)) {
+      const m = /^(.)=([a-z0-9-]+)$/u.exec(pair);
+      if (!m) throw new MapError(`${file}: ${name}_keys: "${pair}" is not <letter>=<tile>`);
+      out[m[1]!] = m[2]!;
+    }
+    return out;
+  };
   const layers = {} as Record<LayerName, string[]>;
+  const extra = Object.fromEntries(LAYERS.map((n) => [n, own(n)])) as Record<LayerName, Record<string, string>>;
   for (const name of LAYERS) {
     const rows = sections[name];
     const cells = new Array<string>(width * height).fill('');
@@ -99,9 +113,10 @@ export function parseMap(text: string, legend: Legend, file = 'map'): TextMap {
     rows.forEach(({ row, line }, y) => {
       const chars = [...row];
       if (chars.length !== width) fail(line, `[${name}] row is ${chars.length} wide, not ${width}`);
+      const keys = { ...legend[name], ...extra[name] };
       chars.forEach((ch, x) => {
         if (ch === '.') return;
-        const tile = legend[name][ch];
+        const tile = keys[ch];
         if (!tile) fail(line, `[${name}] "${ch}" is not in the legend`);
         cells[y * width + x] = tile!;
       });

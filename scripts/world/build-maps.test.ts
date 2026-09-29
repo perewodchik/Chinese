@@ -28,6 +28,12 @@ describe('text maps', () => {
     assert.deepEqual([...m.collide], [0, 0, 0, 0, 1, 0]);
   });
 
+  it('lets a map add letters of its own for a layer (§13 V2)', () => {
+    const m = parseMap(text().replace('district: gulou', 'district: gulou\nbelow_keys: 1=roof-green-ridge-l 2=roof-green-ridge').replace('bDb', '12b'), legend);
+    assert.deepEqual(m.layers.below.slice(0, 3), ['roof-green-ridge-l', 'roof-green-ridge', 'brick']);
+    assert.throws(() => parseMap(text().replace('district: gulou', 'district: gulou\nbelow_keys: 12=x'), legend), /below_keys: "12=x"/);
+  });
+
   it('says file and line of a mistake', () => {
     assert.throws(() => parseMap(text().replace('bDb', 'bXb'), legend, 'x.map.txt'), /x\.map\.txt:9: \[below\] "X" is not in the legend/);
     assert.throws(() => parseMap(text().replace('bDb', 'bD'), legend), MapError);

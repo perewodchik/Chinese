@@ -16,6 +16,8 @@ import { pxFile } from './gen/grid';
 import { ITEM_SPRITES, UI_SPRITES } from './gen/items';
 import { PROPS } from './gen/props';
 import { TILES } from './gen/tiles';
+import { KIT_TILES } from './gen/kit';
+import { KIT_PROPS } from './gen/kit-props';
 import { DEFAULT_WORN, heroFrames } from '../../../src/world/art/hero';
 import { DEFAULT_LOOK } from '../../../src/world/core/looks';
 
@@ -24,6 +26,8 @@ const ROOT = 'content/world/art/sprites';
 export function sources(): Array<[string, string]> {
   const out: Array<[string, string]> = [];
   out.push(['tiles/beijing.px', pxFile('Beijing tiles, 16×16', TILES.map(([n, f]) => [n, f()]))]);
+  // §13 V2: the Beijing architecture kit — roofs by rank, faces, north–south streets
+  out.push(['tiles/kit.px', pxFile('the Beijing architecture kit (§13 V2), 16×16: roofs in four glazes, faces under the eaves, north–south street pieces — see scripts/world/art/gen/kit.ts', KIT_TILES.map(([n, f]) => [n, f()]))]);
   // the player: today's look from the layered drawer (W1) — the game composes the player's own look with the same code
   out.push(['chars/hero.px', pxFile('the player as they arrive: short black hair, blue jacket, red scarf (src/world/art/hero.ts)', heroFrames(DEFAULT_LOOK, DEFAULT_WORN))]);
   for (const [name, { look, variants, note }] of Object.entries(LOOKS)) {
@@ -39,7 +43,7 @@ export function sources(): Array<[string, string]> {
       ['right-0', rabbit(1, 'right')], ['right-1', rabbit(0, 'right')],
     ]),
   ]);
-  for (const [name, note, frames] of PROPS) out.push([`props/${name}.px`, pxFile(note, frames())]);
+  for (const [name, note, frames] of [...PROPS, ...KIT_PROPS]) out.push([`props/${name}.px`, pxFile(note, frames())]);
   // the menu's atlas: a picture for every thing in the bag, and the menu's own icons
   out.push(['menu/item.px', pxFile('the things in the bag, one per item id', Object.entries(ITEM_SPRITES).map(([n, f]) => [n, f()]))]);
   out.push(['menu/ui.px', pxFile("the menu's icons: tabs, pockets, wallet", Object.entries(UI_SPRITES).map(([n, f]) => [n, f()]))]);
