@@ -81,6 +81,7 @@
       "runtimeExecutable": "/usr/bin/env",
       "runtimeArgs": [
         "HANZI_DEV_USER=admin",
+        "HANZI_DB=.data/world-pj.db",
         "PORT=5177",
         "/opt/homebrew/bin/node",
         "--disable-warning=ExperimentalWarning",

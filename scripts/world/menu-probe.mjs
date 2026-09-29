@@ -34,6 +34,7 @@ async function seeded(b, file, { width = 1024, height = 768, dark = false } = {}
     const up = readSave(save);
     if (!up.ok) return `unreadable: ${up.message}`;
     save = { ...up.save, created: true };
+    await fetch('/api/auth/session'); // signs in as HANZI_DEV_USER, before the page's own call does
     const cur = await (await fetch('/api/world')).json();
     const r = await fetch('/api/world', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ baseRevision: cur.revision, save: { ...save, updatedAt: Date.now() } }) });
     return `${r.status} ${(await r.text()).slice(0, 120)}`;
@@ -70,7 +71,8 @@ for (const [w, h] of SIZES) for (const t of ['light', 'dark']) {
     const m = await p.evaluate(() => {
       const body = document.querySelector('.mn-body');
       const sheet = document.querySelector('.w-sheet');
-      return { page: document.documentElement.scrollWidth - innerWidth, body: body ? body.scrollWidth - body.clientWidth : 0, sheet: sheet ? sheet.scrollWidth - sheet.clientWidth : 0 };
+      const shell = document.querySelector('.world-shell'); // overflow: hidden, but WebKit scrolls it to a focused thing past its edge
+      return { page: document.documentElement.scrollWidth - innerWidth, shell: shell ? shell.scrollWidth - shell.clientWidth : 0, body: body ? body.scrollWidth - body.clientWidth : 0, sheet: sheet ? sheet.scrollWidth - sheet.clientWidth : 0 };
     });
     for (const [k, v] of Object.entries(m)) if (v > 0) problems.push(`${tag} ${name}: ${k} scrolls sideways by ${v}px`);
   };

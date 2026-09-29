@@ -75,6 +75,7 @@
 }
 
 .wt-btn {
+  min-width: 34px; /* buttons give a little first, then the place name */
   display: grid;
   place-items: center;
   width: 40px;
@@ -93,6 +94,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  min-width: 0; /* then the place name gives way (…): at 375 in WebKit ☰ was pushed 9px off screen */
   max-width: 46vw;
   padding: 0 12px;
   text-align: left;
@@ -100,6 +102,7 @@
 }
 
 .wt-place .han {
+  white-space: nowrap;
   font-family: var(--han);
   font-size: 16px;
   line-height: 1.1;
@@ -108,6 +111,7 @@
 }
 
 .wt-py {
+  white-space: nowrap;
   font-size: 11px;
   line-height: 1.1;
   color: #f7c9a4;
