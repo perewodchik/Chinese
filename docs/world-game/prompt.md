@@ -1498,3 +1498,864 @@ that address you use your name or 你; if a line needs a word like
 - Review renders: every garment in 4 directions on both builds
   (`review/w/`), the creator, the wardrobe sheet and a rack at 375 / 768 /
   1024 light/dark; WebKit probe.
+
+---
+
+## 13. One long story through real Beijing — cutscenes, temples, books, substories, your own bike (added 2026-09-29, night)
+
+**When:** now, before the X12 play-through and M6 (both still wait for the
+learner). Order: **Z0 → K1–K3 → Q1–Q3 → V1–V4 → T1–T5 → B1 → S1–S10 → U1–U5
+→ L1–L4 → N1–N2 → V5 → Z9**. Each task is one or more commits; tick the
+box in the same commit. If a session ends mid-way, the order above is
+also the order of value: the tools (cutscenes, clear quests) make every
+later task better, the story is the heart, the rest is flavour.
+
+### 13.0 What the learner asked for, and why (read this first; it decides every trade-off)
+
+The learner (HSK 1–2, 20–30 minutes a day, learns Chinese from English)
+said, in their words:
+- *"My primary focus is learning the language — not playing longer."* The
+  game is a **reason to hear, read and say Chinese in real situations**,
+  wrapped in a story good enough that they want to come back tomorrow.
+  Nothing here is grind, collect-a-thon or a timer. If a feature does not
+  make the learner hear, read or say more Chinese, or understand Chinese
+  culture better, or remove friction from doing so, **cut it**.
+- *"One long main story that immerses me in Chinese culture, and makes me
+  visit every (or almost every) place."* Today the main story is 40 steps
+  over 8 quests (3–7 steps each). Most of the city — and most of the good
+  content — sits in 57 side quests that are easy to miss. By an audit of
+  `quests.json`, no main step points at: 北海 north, 景山 park, 药店,
+  小卖部, 雍和宫 street, 天安门 square, 百货大楼, 国贸 plaza, 瑞蚨祥,
+  内联升. There is no real temple interior at all (雍和宫 is a street,
+  天坛 has no 祈年殿 of its own).
+- *"Books to read, in English and Chinese, about events in the culture, so
+  I understand how the game relates to real Chinese culture."*
+- *"Side quests should be more explicit."* (This **reverses** §10's
+  "vague leads" decision — log it under Decisions.)
+- *"Cutscenes for important events, so I know I am doing something
+  correctly."*
+- *"The graphics more animated and good looking, embracing the style. More
+  Chinese temples. The map should remind me of real Chinese places."*
+- *"At least 3 substories — a bit comedic — with memorable, charismatic
+  characters, and cutscenes."*
+- *"Real Beijing sounds."*
+- *"A bike I can buy in a shop, and ride anywhere."*
+- **Art packs:** the learner approved downloading **CC0-only** pixel-art
+  packs (check each license page; credit in `public/world/CREDITS.md`
+  even when CC0; recolour to our palette). CC-BY or unclear → do not use.
+- **Story:** the learner chose **deepen the existing chapters, not
+  rewrite**: keep the lantern-and-spirits frame and every scene that
+  works; add a human thread, many more steps, routes through every place.
+  Saves in progress must keep working.
+
+All standing rules still apply (§0; concept wins; Beijing only; no
+dialect; companion speaks English; help is free, never a test, no
+penalties; stable compact UI — no layout shift, 375 / 768 / 1024, WebKit,
+light/dark; hanzi-design tokens; own or CC0 art; homages, never copies;
+the §5 word budget plus situation words; everything in the world save
+with an upgrade + test). **Save format: v12 → v13 in K1, and each later
+task that adds fields bumps once more** (write each bump in Decisions).
+
+**Quality bar for every feature below.** Before building a task, write a
+short design note for it in `docs/world-game/s13/<task>.md` (why it helps
+the learner, what exactly the player sees, data, edge cases, what you
+decided not to do). Keep it to one screen. Then build. This is how the
+learner asked for it: *thought through, not there for the sake of
+existing*. A feature you could not make good is better left as a note
+than shipped half-done.
+
+---
+
+### Z0 — the story bible and the place audit (write before any content)
+
+**Why:** 100+ new scenes written across several sleepy sessions will
+drift (names, tone, facts, what each chapter teaches) unless one document
+holds the truth. Write it first; every content task reads it.
+
+Create `docs/world-game/story.md` with:
+1. **The throughline — 团圆 (reunion).** It is the emotional heart of the
+   Chinese year (中秋, 春节, 元宵 are all about families being together),
+   so the story teaches the culture by being about it:
+   - The lantern that broke in chapter 1 is a **走马灯** (revolving
+     lantern) that 王阿姨's grandfather, a lantern maker, painted for her
+     when she was small; each spirit is one of its painted panels. Keep
+     what the content already says ("hung there since her grandmother's
+     time" can become "her grandparents'" — adjust the one line).
+   - 王阿姨's son **小军** works abroad (already in `story-wang`). He
+     loved the lantern as a boy. Each spirit you bring back lights one
+     panel, and 王阿姨 remembers one thing about the family (a 20–40 s
+     **memory cutscene** in the yard, K2). The memories build a picture of
+     three generations in one 四合院 — the learner lives this Beijing
+     family's story, not a tourist's.
+   - The story ends on **春节** (小军 comes home; 年夜饭 all together) and
+     **元宵** (the mended lantern is lit in the courtyard, and the
+     spirits — now friends — take their places in it). `story-wang`
+     (calling him) becomes the setup: keep it a side quest, but chapter 9
+     requires that call to have happened and offers it again if not.
+   - 兔儿爷's own small arc: he is a 中秋 clay toy (a real Beijing folk
+     toy); he fears that when the lantern is whole he goes back to clay.
+     At 元宵 he doesn't — 王阿姨 puts him on the windowsill "where he
+     belongs", and he winks. Light, never sad for long.
+2. **Every chapter as a table**: places in visit order (every map in the
+   game must be in some chapter's route — list the few that are allowed
+   not to be, with the reason, e.g. `hutong-proto`), the cultural focus,
+   the book (B1), the 成语, the spirit, the cutscenes, which substory
+   episodes sit on its route, and which side quests its route passes.
+3. **The cast sheet**: every named character (existing 51 + new) with
+   voice, sprite, catchphrase, how they speak (HSK level, speed, habits),
+   and which chapters they appear in. Main people recur across chapters —
+   王阿姨, 老刘, 李阿姨, 张师傅, 赵爷爷, 小明 should each appear in at least
+   three chapters outside 鼓楼 (they visit, they call, they send you).
+4. **Facts register** `docs/world-game/facts.md` (like `brands.md`): every
+   real-world claim a line, a book or an "About this" note makes, with the
+   source you checked. **Look facts up** (WebSearch / WebFetch are fine
+   for reading); if you cannot confirm one, soften it ("people say…") or
+   drop it. Items below marked *(check)* are ones I believe but you must
+   confirm.
+5. **Place audit** (script): `scripts/world/coverage.ts` prints, for each
+   map, which main steps / side quests / substory episodes / books point
+   at it; `world:check` fails if a map (except a listed exception) is on
+   no main route by the end of S10. Commit the script in Z0 with the
+   exception list; it will fail until S10 — gate it behind a flag
+   (`WORLD_COVERAGE=strict`) until then.
+
+---
+
+### K — cutscenes and "you did it" (the tool every later task uses)
+
+#### K1 — the cutscene runner
+**Why:** the learner wants to *know* they did something right, and big
+moments should feel big. Today a finished step is a line in a dialogue;
+the game never shows it. Cutscenes also give listening practice with
+context (you *see* what is said).
+
+**Data** — `content/world/<district>/cutscenes.json` (zod in
+`core/content.ts`, checked by `world:check`):
+```ts
+{ id, map, title?: {zh, en}, letterbox?: true, music?: Mood | 'sting-*',
+  cast?: [{ actor: 'hero'|'rabbit'|npcId|'spirit:<id>'|'extra:<sprite>', at: Tile, facing }],
+  steps: Step[] }
+Step =
+ | { camera: Tile | actor, ms?, zoom? }          // pan / follow / zoom (integer zooms only)
+ | { move: actor, to: Tile | Tile[], speed? }     // walks by A* if one tile given
+ | { face: actor, dir } | { emote: actor, kind }
+ | { say: actor, zh, en, voice? }                 // the dialogue box, read-only; tap to go on
+ | { wait: ms } | { fade: 'in'|'out', ms?, colour? } | { flash } | { shake: ms }
+ | { title: { zh, en } }                          // a chapter card: big 楷 title, English under
+ | { fx: 'sparkle'|'petals'|'snow'|'lanterns-rise'|'fireworks'|'butterflies'|'incense'|'danmaku'|'seal', at?, n?, text?: string[] }
+ | { sound: SoundId } | { music: Mood | Sting }
+ | { spawn: actor, at, facing? } | { despawn: actor }
+ | { together: Step[] }                           // steps that run at once
+```
+- **Pure core** `core/cutscene.ts`: validates a script against the map
+  (tiles in bounds and walkable for `move`, actors on the cast or map),
+  computes the step list the engine runs, and the `say` lines that the
+  budget checker and voice builder must see. Tests.
+- **Engine** `engine/cutscene.ts`: runs steps with Phaser tweens and the
+  existing camera; the clock is paused (as in talks); people the cutscene
+  doesn't use keep idling but don't walk into the cast; input is
+  captured. Particle textures are made once at boot (iPad frame time).
+- **UI**: letterbox bars (a transform, not a layout change), the dialogue
+  box in read-only mode (tappable words and 拼 still work — they pause
+  the cutscene), **Skip** = hold ⏭ for 0.6 s (a tap would be too easy to
+  hit by mistake), 兔儿爷 is silent during cutscenes unless scripted.
+- **Triggers**: a scene action `{ do: 'cutscene', id }` (runs after the
+  talk closes), and `onDone` on a quest step. A cutscene can end with
+  actions (`then: Action[]`, same as scene actions) so it can give items
+  or move the story.
+- **Replay**: Journal → Story shows ▶ on every chapter entry with a
+  cutscene seen — the Journal only, one place for it. Save (v13):
+  `seen: string[]` of cutscene ids.
+- **Rules:** a cutscene is **at most 40 s** unless it is a chapter finale
+  (90 s); every Chinese line in it follows §5; never in a cutscene
+  anything the player must *do* (no hidden quiz); it must make sense with
+  sound off (the lines are on screen).
+- **Checks:** runner tests; `world:check` validates every script;
+  the solver runs every cutscene headless (it only checks that it ends and
+  its `then` actions apply); a probe records a strip of 6 frames per
+  cutscene to `review/k/<id>.png` so the learner can see them in the
+  morning without playing.
+
+#### K2 — "you did it": step seals and story beats
+**Why:** most steps finish silently. A tiny, consistent reward after each
+step tells the learner they understood — which is the whole point of the
+game (understanding shows in what you do).
+- **Step done:** a red seal 「✓」 stamps in at the top centre with the
+  step's `past` line (J1 already has one for every step) and a soft wood
+  block + chime; 1.8 s; does not block input; never moves layout (an
+  overlay in a fixed box). The NextHop chip (under the minimap) then
+  shows the next step with a gentle glow once.
+- **Quest done:** a bigger seal with the quest name, the stamp, and the
+  reward line (item / 成语 / friend heart) — 2.5 s — then, for main
+  chapters, the chapter-finale cutscene.
+- **Spirit returned (every chapter):** a short standard cutscene
+  (`spirit-return` template with the spirit id): the spirit glows, turns
+  into light, flies off the screen to the north-east (home), then a 3 s
+  cut to the courtyard: one panel of the lantern lights up. **Then the
+  memory cutscene** (Z0): 王阿姨 by the lantern tells one memory in 2–4
+  simple lines (HSK 1–2, the English under), next time you are home.
+- **Right answer in a talk:** already shows ✓ on your line (dialogue box
+  rework); keep it, don't add more.
+- Settings ⚙: "Celebrations: full / quiet" (quiet = seals only, no
+  sound). Default full.
+
+#### K3 — chapter openings and finales
+One **opening** per chapter: the title card (第二章 · 水与山 · *Water and
+the hill*), a slow pan over the district's landmark with its real sounds
+(N1), 兔儿爷's one English line on what we are here for. One **finale**
+per chapter (spirit-return + memory). Write them with S1–S10; K3 is the
+template and the first two (ch1 opening, ch1 finale) done here to prove
+the runner. Also convert the existing big moments to cutscenes: the
+lantern breaking (ch1), the view from 景山 (ch2), the 回音壁 whisper
+(ch4), the dragon's eyes (ch7 → 画龙点睛 is *the* moment of the game:
+the brush stroke, lightning, the dragon rising over 太和殿).
+
+---
+
+### Q — clear quests and less friction
+
+#### Q1 — side quests you can't miss (explicit)
+**Why:** the learner wants side quests explicit; vague leads hid 57
+quests' worth of language practice.
+- **Markers over people** (engine, pixel art, 8×10): a red 「!」 paper tag
+  = a main-story person to talk to now; a gold 「!」 = a side quest you can
+  start now; a small 「…」 = a person with the next step of a quest you're
+  on. Shown only when the person's scene could start **now** (J2's "could
+  hold now" logic); on the minimap as dots in the same colours.
+  ⚙ "Quest marks: on / off" (on by default).
+- **Journal → Side**: every available side quest by name, giver, place,
+  the first thing to do, what it gives (a story / a 成语 / an item / a
+  friend), and its time window — no vague leads any more. Quests whose
+  scene can't start yet show *when* ("mornings 6–9", "at 中秋", "after
+  chapter 3"). Grouped by district, your district first. Show on map.
+- **Metro map**: a small count on each district bubble ("3 new · 1 on").
+- **On arriving** in a district with side quests near the main route,
+  兔儿爷 says once per district per chapter: "Someone here could use a
+  hand — 李阿姨 at the 小卖部." (English, one line, never repeated.)
+- **Chapter-end nudge:** before a chapter's finale cutscene, if side
+  quests *of this district* are open, 兔儿爷 lists up to 2: "Before we
+  go…" — one tap to go on anyway. Never blocks.
+- Update the J2 tests and the "vague lead" copy; log the reversal.
+
+#### Q2 — waiting for a day or a festival
+**Why:** the story now reaches 春节 and 元宵, and some quests wait for
+mornings or a festival. Walking in circles to wait is dead time for a
+20-minute learner.
+- The bed in your room: 睡觉 (to 7:00, today) **and**, when something
+  the player follows waits for a later day, "睡到…" with that day's name
+  (「睡到中秋」「睡到星期六早上」— one day = one week, calendar.ts). Only
+  offered when a tracked or main step needs it; each skipped day gets a
+  one-line diary entry so the diary has no hole.
+- The NextHop chip says *when* for a step that waits ("After 17:00 —
+  sit on the bench to wait" already exists for some; make it general: a
+  `wait here` button where a bench/café exists).
+
+#### Q3 — "last time" recap
+**Why:** after a day away, a learner forgets both the plot and the words.
+- On opening the game after ≥ 12 real hours: a small card over the world
+  (not a cutscene): 兔儿爷's 2–3 English lines of what's going on (from
+  the Story journal's last entries + the current step), and **the 3–5
+  Chinese words of the last session** (from the talks you had — the save
+  already knows who you talked to; keep the last session's new words in
+  the save, max 8) as chips with 🔊. Tap = the word drawer. One button:
+  "Let's go".
+
+---
+
+### V — the look: temples, real streets, animation
+
+**Why:** the learner finds the world flat. Seen in the pane (2026-09-29):
+streets are 16-tile strips where grey roof bands take ~40 % of the screen,
+one tree, empty paving; the courtyard is mostly bare floor; 兔儿爷 draws
+over the hero's head when he's behind; everything is still. The style
+target stays Pokémon Black/White (§9, concept §12): 3/4 view, big
+buildings of many tiles, soft 2–3-shade palette, outlines on characters
+and props, **lively idle animation everywhere**.
+
+#### V1 — CC0 packs (approved by the learner 2026-09-29)
+- Candidates: **Ninja Adventure** (Pixel-boy & AAA; 16×16, East-Asian
+  roofs, nature, interiors), **Kenney** RPG Urban Pack / Roguelike City /
+  Roguelike Indoor / Tiny Town. **Read each license page**; only CC0
+  (or public domain). Record URL, license text, date in
+  `public/world/CREDITS.md` and `content/world/art/vendor/README.md`.
+- Import through `recolour.ts` into the one palette. Use packs for what
+  is generic (trees, bushes, water edges, rocks, grass variety, furniture,
+  modern city: cars, street lights, benches, shopfronts at 三里屯/国贸,
+  interior clutter). **Beijing-specific architecture stays ours** (V2),
+  but may start from a pack's roof tiles recoloured.
+- Don't mix sizes (16 px only) or styles that fight (no pack with thick
+  black outlines on ground tiles).
+
+#### V2 — the Beijing architecture kit
+Draw (in `scripts/world/art/gen/`, `.px` or code) modules so any building
+is assembled from them, in **3/4 view with the roof's pitch visible**
+(not flat bands): each roof type has a ridge, slopes, eave, and a front
+face row, and buildings cast one-direction shadows.
+- **Roofs** — the real hierarchy is itself culture (put it in a book):
+  grey 筒瓦 of houses (硬山, gable ends), **green** 琉璃 for princes' and
+  temple halls, **yellow** 琉璃 only for the emperor (故宫, 天坛's walls),
+  **blue** 琉璃 for heaven (祈年殿). Types: 硬山 (houses), 歇山 (halls,
+  temples), 庑殿 (太和殿), 攒尖 pavilions (景山 万春亭), the triple
+  round roof of 祈年殿, 重檐 double eaves, with 脊兽 ridge beasts on
+  palace roofs (a row of tiny figures — count matters: 太和殿 has the
+  most, *(check)* 10).
+- **Walls and fronts:** red pillars, 彩画 painted beams (blue-green 旋子
+  for temples; 苏式 story paintings for 长廊), lattice windows, 门钉 on
+  palace doors (9 × 9 *(check)*), 门墩 stones at 四合院 gates, 垂花门
+  (the inner courtyard gate), 影壁 screen walls, grey 胡同 walls with
+  doors, 汉白玉 marble balustrades and stairs, 丹陛 carved ramps, 金水桥.
+- **Temple set:** 山门, 钟楼/鼓楼 pairs, 香炉 incense burners (with smoke,
+  V3), 转经筒 prayer wheels (雍和宫), 石碑 on 赑屃 tortoises, 牌楼 /
+  牌坊 archways (wood and glazed), 石狮 pairs (male with a ball, female
+  with a cub *(check)*), a 白塔 dagoba, bells, 蒲团 cushions, 签筒.
+- **Street life props:** 胡同 overhead wires, AC boxes, 煤棚, parked
+  bikes and 三轮车, washing lines, stacked 大白菜 (winter), 春联 and 福
+  on doors (at 春节 — the X4 "couplets on the gate" leftover), 小广告
+  stickers, 公厕 sign, 早点 steamers (笼屉), 烤串 grills, 冰糖葫芦
+  stands, 修车摊, newspaper kiosks, 共享单车 racks, bus stop signs.
+- **North–south streets:** today lanes only run east–west because the kit
+  has no side-view walls. Add side-facing wall/roof tiles so streets can
+  run N–S (南锣鼓巷, 王府井, 前门大街 all run N–S in reality).
+- Review sheet `review/v/kit.png`; `art.test.ts` for every new frame.
+
+#### V3 — animation everywhere (engine + atlases)
+- **Animated tiles and props**: `frames` + `fps` in the atlas JSON; one
+  global animation clock in the engine (no per-object timers — iPad).
+  Required list: water (后海, 北海, 金水河; 3–4 frames + sparkle), lanterns
+  swaying and flickering at night, flags on 天安门 and 国贸, 香炉 incense
+  smoke, 早点铺 steam, 烤鸭 chimney smoke, 烤串 smoke, prayer wheels
+  turning when you walk past (雍和宫), trees swaying (2 frames, random
+  phase), willow strands at 后海, a fountain at 奥林匹克, traffic lights,
+  the 鼓楼 drum being struck at the real show times *(check the hours)*,
+  the station's escalator.
+- **People**: hero 4-frame walk, run, idle breathing, pedalling (L2);
+  NPC idle actions from their card (`idle: 'fan'|'knit'|'birdcage'|'chess'
+  |'taiji'|'dance'|'kongzhu'|'jianzi'|'read'|'phone'|'sweep'`, 2–4 frames),
+  so 赵爷爷 swings his bird cage, 老刘 fans himself, the 广场舞 group
+  dances in time with the music, chess players move pieces.
+- **Weather and seasons on the tiles**: gold ginkgo leaves drifting in
+  autumn (Beijing's signature), snow on roofs and 胡同 edges in winter,
+  puddles + ripples in rain, 柳絮 in spring; crows at dusk in winter
+  (N1).
+- **Light**: warm light pools under lanterns and lit windows at night
+  (additive sprites, pre-drawn), morning mist on 后海, a slow sun-shaft in
+  temple halls. The night blue tint exists (D6) — keep it.
+- **Depth sort fix**: sort by feet y every frame for every moving sprite
+  (兔儿爷 now draws over the hero's head when he is behind).
+- Frame time check on the iPad profile (D7): no more than +2 ms per frame
+  in the busiest map; if over, lower particle counts, never remove life.
+
+#### V4 — redraw the weak art
+The fox (九尾狐) and the dragon (龙) are the weakest (STATUS); give every
+spirit a proper sprite with a 2–4 frame idle, and a **woodcut-style
+picture** for 图鉴 and the lantern panels (48×48, the lantern's painted
+look — flat colours, black outline; the "no woodcuts in the content yet"
+leftover). The hero's new 4-frame walk must keep W1's layered composer
+working (every layer gets the extra frame).
+
+#### V5 — the final look pass (after the content, before Z9)
+Walk every map in the pane at 1024 day and night and at 375; fix empty
+stretches (no more than ~6×6 tiles of bare ground without a prop, a
+person or a texture change), roof bands > 25 % of the screen, props that
+float, people that clip. Before/after renders per map in `review/v/`.
+
+---
+
+### T — maps that look like the real places, and the temples
+
+**Why:** the learner wants to recognise real Beijing. Real layouts also
+teach real directions (「往北走」 means something when 南锣鼓巷 really runs
+north–south). Use real geography as a *reference* (OpenStreetMap, official
+site maps — read them, never copy tiles or images); simplify freely, but
+keep the **shape, order and orientation** a visitor would recognise.
+
+#### T1 — 鼓楼 · 南锣鼓巷 redone
+- **南锣鼓巷 runs north–south**, with 胡同 branching east and west like
+  a centipede's legs (people call it 蜈蚣巷 *(check)*); 帽儿胡同 (your
+  home) is one of the western ones. The 早点铺, 小卖部, 理发店, 茶馆
+  stay on it. Station 南锣鼓巷 at the south end *(check which end;
+  exits on 地安门东大街 / 平安大街)*.
+- **钟鼓楼**: the 鼓楼 south, the 钟楼 north, a square between them
+  (钟鼓楼广场) — one map with both towers; the 钟楼 is new. A 胡同 west
+  of the square leads to **烟袋斜街** (a slanted street — draw it stepped)
+  and on to 银锭桥 (T2).
+- **鼓楼东大街** (new strip): the **bike shop** and the 修车摊 (L1), a
+  shop or two, the bus stop.
+
+#### T2 — 什刹海 · 北海 · 景山
+- 后海 and 前海 with **银锭桥** between them (the view from it to the
+  western hills — 银锭观山, *(check)* one of the 燕京小八景), bars and
+  willows along the shore, 恭王府 as a door (X9's 诗社 lives there —
+  check where its scenes are now and give it a real gate).
+- **北海**: 琼华岛 with the **白塔** (built 1651 for the Fifth Dalai
+  Lama's visit *(check)*) — new map `beihai-baita` (永安寺 steps up to
+  the dagoba, the lake below, boats).
+- **景山**: the five pavilions on the ridge, 万春亭 in the middle, the
+  view south over the whole palace (the ch2 cutscene).
+
+#### T3 — the temples (new maps; each is a real place with its real layout, simplified)
+- **雍和宫** (Lama Temple): the gate street exists; add the temple itself
+  in two maps: the front courtyards (incense, 转经筒, halls in green-and-
+  yellow roofs) and the back hall **万福阁** with the huge standing
+  Maitreya carved from one sandalwood tree *(check: 18 m above ground)*.
+  The real history for B1: a prince's mansion (the future 雍正 emperor)
+  that became a lamasery in 1744 *(check)*.
+- **孔庙 · 国子监**: the Confucius temple beside the academy (both on
+  国子监街, which has the painted 牌楼 archways *(check: four)*); the
+  stone tablets with the names of 进士 exam graduates *(check number)*.
+- **天坛**: the central axis north → south: **祈年殿** (the round blue
+  triple-roofed hall — its own map), 丹陛桥, 皇穹宇 with the 回音壁
+  (exists), **圜丘** (the round open altar; the centre stone 天心石 where
+  your voice echoes back *(check)* — a second listening moment). Morning
+  life in the park: 太极, singing groups, 毽子 (exists in part).
+- **白云观** (Daoist; station 木樨地 or 南礼士路 on line 1 *(check)*):
+  the stone monkeys hidden in the carvings that people touch for luck
+  (摸石猴 *(check: three monkeys)*), 窝风桥 where people throw coins at a
+  bell in a giant coin (打金钱眼) at the 春节 temple fair *(check)*.
+  Used by chapter 5 (new) and 春节.
+- **东岳庙** (folk Daoist; near 朝阳门 *(check station and line)*): the
+  halls of the "departments" of the afterlife (七十六司 *(check)*) — kept
+  gentle and funny (a department for everything), a real contrast right
+  next to 国贸's towers for chapter 6.
+- **地坛** (the temple fair 庙会 at 春节 *(check that 地坛庙会 is held
+  and where)*; the X4 leftover): an open park map dressed for 春节 (stalls,
+  performers, crowds, 糖人, 风车) only during the festival; plain park
+  otherwise.
+- Add only stations on lines the game already models (`metro.ts`); if a
+  temple's real station is on an unmodelled line, add the line only if
+  small and true, otherwise arrive by bus (as 颐和园 does) — log it.
+
+#### T4 — 王府井 · 前门 · 故宫 realism pass
+- **王府井大街** north–south, the pedestrian street with 百货大楼 on the
+  east side *(check)*, 新华书店, the snack street 小吃街 on the west side
+  *(check)*.
+- **前门大街** north–south from the 前门 gate (箭楼), the old tram
+  (铛铛车), **大栅栏** going west off it with 瑞蚨祥 and 内联升, 老舍茶馆
+  (a door — the X9 茶馆 homage can live there).
+- **故宫**: 午门 → 太和门 → 太和殿's huge square → 中和殿/保和殿 → 乾清宫
+  → 御花园 → 神武门, in order; 九龙壁 (it is in the east, near 皇极殿
+  *(check)*) as its own small map (exists).
+
+#### T5 — checks
+- `map-probe` renders every new and reworked map at day and night
+  (`review/t/`), a before/after pair for each reworked one.
+- `build-maps.test.ts`: every door leads somewhere, every N–S street
+  walks, every station exit matches `metro.ts`.
+- `world:check`: every new map is in a district, in `hoods.ts` (M1), has
+  a thumbnail (M1), and is on some chapter's route (Z0 coverage).
+
+---
+
+### B — books: read the culture in Chinese and English
+
+**Why:** the learner wants to understand how the game's events relate to
+real Chinese culture, and reading is the skill the game trains least. A
+book is also the perfect **graded reader**: short, illustrated, with a
+reason to read (the story needs what's in it).
+
+#### B1 — the reader and the book format
+- **Data** — `content/world/books/<id>.json` (zod, `world:check`):
+  `{ id, zh, en, level: 1|2|3, cover: sprite, source: 'gift'|'shop'|'found',
+  pages: [{ zh, en, pic? }], today: { zh, en }, place?: mapId, facts: [factId] }`.
+  - 6–10 pages, each **≤ 60 characters of Chinese** in 1–4 sentences, an
+    optional 64×48 picture (V2 kit, or a spirit's woodcut).
+  - **The English is a faithful translation** (sentence by sentence), not
+    a summary — the learner checks their understanding against it.
+  - The last page is always **「今天的北京 · In Beijing today」**: what
+    you can still see or do in real Beijing (the 鼓楼 drums are still
+    played, the 祈年殿 was rebuilt after a fire in 1889 *(check)*, people
+    still touch the 白云观 monkeys at 春节…). This is the bridge the
+    learner asked for between the game and real culture.
+  - **Level:** books 1–4 HSK 1–2 only (+ ≤ 3 situation words, glossed on
+    first use); books from chapter 5 on may use HSK 3 words (≤ 10 %),
+    glossed. `budget.ts` checks them like lines (new rule set `book`).
+- **Reader UI** (`ui/BookReader.tsx`, a full sheet in the menu's paper
+  style): one page at a time, page turn by swipe / ‹ ›; the Chinese on
+  top, **English hidden under a tap by default** (a "Show English" toggle
+  remembered per device — the learner can choose to read side by side);
+  拼 toggle; tap a word → the app's word drawer; 🔊 reads the page (the
+  NPC voice builder renders book pages with a narrator voice — G2 worker
+  if it runs, system voice otherwise; `build-voices` learns a `book`
+  kind); unknown words marked as in the app's reader (reuse
+  `src/domain/reading.ts` helpers, don't copy the app's Passage). No
+  layout shift between pages (fixed page box).
+- **Where books live:** a **书架** (bookshelf) prop in your room (tap →
+  the shelf sheet: covers on shelves, the ones you don't have as grey
+  spines with where to get them), and Collection → a 书 view (5th inner
+  tab; the collection tab stays one tab). Books are not bag items (like
+  clothes).
+- **Reading is part of the story, not homework:** each chapter's book is
+  *given* on the main route (a person hands it to you, or it's where the
+  clue is), and **the next step needs something the book says** — e.g.
+  the 门神 must be repainted facing each other, and only the book tells
+  you they are the generals 秦琼 and 尉迟恭; the 圜丘 echo only works if
+  you stand on the centre stone the book mentions. The player can also
+  just ask 兔儿爷 (help is free): he answers in English and says "it's in
+  the book, page 3" — reading is encouraged, never forced.
+- **Diary:** 「我读了《门神的故事》。」 Save: `books: {id: {got, readPages}}`.
+
+#### The book list (write each with its chapter in S1–S10; titles are working titles)
+| # | Book | Chapter | What it's about (verify every fact in facts.md) |
+|---|---|---|---|
+| 1 | 《灯笼》 | 1 | lanterns, the 走马灯, 元宵 and 灯谜 — how our lantern works |
+| 2 | 《石狮子》 | 1 | guardian lions: the pair, ball and cub, why at gates |
+| 3 | 《晨钟暮鼓》 | 1 | the Drum and Bell towers kept the city's time; drums still played |
+| 4 | 《什刹海》 | 2 | the lakes, 银锭桥, skating in winter; the 白塔 |
+| 5 | 《狐假虎威》 | 2 | the fox and the tiger (战国策 *(check)*), foxes in Chinese tales |
+| 6 | 《门神》 | 3 | 秦琼 and 尉迟恭 guarding 唐太宗; 春节 door gods today |
+| 7 | 《脸谱》 | 3 | 京剧 face colours (red 关羽, black 包公, white 曹操 *(check)*) |
+| 8 | 《天坛》 | 4 | praying for harvest, 天圆地方, the blue roof, the echoes |
+| 9 | 《科举》 | 4 | the imperial exams, 国子监, the names in stone |
+| 10 | 《三教》 | 5 | 儒 释 道 — the three teachings you just walked through |
+| 11 | 《数字》 | 6 | lucky and unlucky numbers (8 发, 4 死), 貔貅, 红包 |
+| 12 | 《长廊的画》 | 7 | the Long Corridor's thousands of paintings *(check count)* |
+| 13 | 《年》 | 7 | the 年兽 legend, red, firecrackers, 春联 |
+| 14 | 《故宫》 | 8 | the palace, colours of power, the 9,999½ rooms legend vs the real count *(check)* |
+| 15 | 《画龙点睛》 | 8 | 张僧繇 and the dragons without eyes |
+| 16 | 《灶王爷》 | 9 | 小年, the kitchen god, 糖瓜 *(check northern date 腊月二十三)* |
+| 17 | 《团圆》 | 9 | 年夜饭, 守岁, why everyone goes home (春运 *(check scale)*) |
+| 18 | 《长城》 | epilogue | the Wall, 孟姜女, 不到长城非好汉 |
+| 19 | 《自行车王国》 | L3 | the "kingdom of bicycles": 永久, 凤凰, 飞鸽, commuting in the 1980s |
+| + | one per substory (U) | — | e.g. 《属相》 (胡半仙), 《煎饼果子》 (老马 & 老牛) |
+
+---
+
+### S — the main story, deepened (one task per chapter)
+
+**Rules for all of S:**
+- **Deepen, don't replace.** Keep every existing scene id that works; add
+  steps and scenes around them. Quest ids stay; step ids stay; new steps
+  get new ids.
+- **Target ~12–20 main steps per chapter** (today 3–7), each step
+  2–6 minutes of play: a place, a person, something to *say or do* in
+  Chinese, and a small reward (✓ seal, K2). Vary what each step asks:
+  ask the way, buy, read a sign, listen and choose where to go, tell
+  someone what you saw, use an item, take a photo, give a gift.
+- **Every place in the chapter's district is on the route** (Z0 table);
+  shops that exist (药店, 银行, 小卖部, 百货大楼, the clothes shops,
+  便利店) become story beats with a reason (a cold → 药店; a gift for
+  王阿姨 → 百货大楼; a proper jacket for the temple ceremony → 瑞蚨祥 —
+  lend clothes free if the player can't pay: **no step may require
+  money the player can't have**; the solver's `spendAll` check stays).
+- **One book per chapter on the route** (B1 list); one cutscene opening,
+  one finale (K3), 2–4 cutscenes in between for the big beats.
+- **The recurring cast visits**: at least one 鼓楼 friend appears in
+  every chapter (王阿姨 phones you; 老刘 wants tea from 王府井; 小明's school
+  trip is at 天坛; 赵爷爷 flies kites at 奥林匹克).
+- **Save upgrade (v13 → v14 in S1):** a save mid-chapter keeps its place:
+  new steps inserted *before* the save's current step count as done
+  (dated like J2's skipped steps); new steps after it are simply ahead.
+  New chapters shift numbers (below): upgrade `chapter` accordingly and
+  test with every golden save.
+- **New chapter numbering:** 1 新家 · 2 水与山 · 3 书 · 4 回声 · **5 香火
+  (new)** · 6 新北京 (was 5) · 7 故事 (was 6) · 8 龙 (was 7) · **9 过年
+  (new)** · 尾声 长城 + 元宵.
+
+Per chapter (the beats listed are the minimum; the builder adds the
+connecting steps):
+
+- **S1 · 1 新家 (鼓楼 · 南锣鼓巷)** — opening cutscene (arriving with a
+  suitcase through 南锣鼓巷, the 胡同 at morning). Add: 王阿姨 gives the
+  lantern book 《灯笼》 when it breaks; a step at the 小卖部 (buy what
+  王阿姨 needs — you read her list); 钟楼 and 鼓楼 both (book 3: listen for
+  the drum at dusk — the time the book says); the 石狮子 (book 2: which
+  one is the lion, which the lioness); first memory cutscene (王阿姨 as a
+  girl under the lantern). Route: yard → 南锣鼓巷 → 小卖部 → 早点铺 →
+  茶馆 → 钟鼓楼 → 烟袋斜街 (a glimpse, for ch2) → station.
+- **S2 · 2 水与山 (后海 · 北海 · 景山)** — 烟袋斜街 → 银锭桥 (the view,
+  a cutscene) → the fisherman → 恭王府 gate → boat or walk to **北海 白塔**
+  (book 4) → 景山's five pavilions → 万春亭 view cutscene → the fox at
+  角楼 (book 5 tells you the fox borrows the tiger's power — you must
+  get the tiger's roar: a recording from 小明's toy / the 京剧 CD… let the
+  builder choose; the solution comes from the book).
+- **S3 · 3 书 (王府井 · 前门)** — 王府井 north–south: the 银行 (exists),
+  百货大楼 (a gift for 王阿姨, a proper outfit for 京剧 night → 瑞蚨祥 on
+  大栅栏; lend if poor), 书店 (the 成语 book + 《门神》 + 《脸谱》),
+  小吃街 (老牛, U2), 药店 (兔儿爷 caught a cold from the 景山 wind — you
+  describe his symptoms: 发烧, 咳嗽 — funny and very useful), 前门 by the
+  铛铛车, the 京剧 show cutscene, the 门神 repainted facing each other.
+- **S4 · 4 回声 (天坛 · 国子监 · 孔庙)** — 天坛 by the axis: 祈年殿 (book
+  8; the blue roof), 丹陛桥, 回音壁 (exists), 圜丘 centre stone echo
+  (a new listening beat: say a word, hear it back); 小明's school trip;
+  国子监街 牌楼 → 孔庙 (book 9: find a name on the 进士 stones —
+  reading), the 麒麟 at dusk (exists).
+- **S5 · 5 香火 · Incense (new; 雍和宫 · 白云观 · 东岳庙)** — the
+  culture chapter about belief in everyday Beijing, told with respect and
+  warmth: 雍和宫 (incense etiquette — three sticks, bow; the prayer
+  wheels; the Maitreya of 万福阁), 白云观 (the stone monkeys: a spirit
+  hides as a fourth monkey — the chapter's spirit is **石猴** or another
+  from the lantern; decide in Z0 and keep the 图鉴 consistent), 东岳庙
+  (the funny "departments" — a 胡半仙 episode, U1). Book 10 《三教》.
+  Nothing mocks belief; the jokes are about people, not faith.
+- **S6 · 6 新北京 (三里屯 · 国贸 · 奥林匹克)** — keep the 貔貅 line;
+  add 国贸 plaza (office lunch: order by phone QR), a 快递 pickup (you
+  sign for a parcel from 小军! — the throughline), 甜甜's stream at
+  三里屯 (U3), 鸟巢 at night cutscene; book 11 《数字》.
+- **S7 · 7 故事 (颐和园 · 潘家园)** — 长廊 paintings come alive (a
+  cutscene per painting you "enter": 3 short ones from 西游记, 三国,
+  红楼梦 — homages, own lines), 十七孔桥 at sunset, 潘家园 bargaining for
+  the 年兽 (exists); books 12, 13.
+- **S8 · 8 龙 (故宫)** — the full axis (T4), the ticket in your name
+  (exists), the colours of power (book 14 — a step where you choose the
+  door by its 门钉 count, *(check)* 东华门 has 8 rows), 画龙点睛 as the
+  game's biggest cutscene (book 15). After it: **王阿姨 says 小军 is
+  coming home for 春节**.
+- **S9 · 9 过年 (new; the whole city)** — 腊月 → 春节 → the week after.
+  小年: 灶王爷 and 糖瓜 (book 16); buying 年货 at 前门 and 王府井
+  (a list to read), writing 春联 with 老刘 (the 地书 brush mechanic), 大扫除
+  the courtyard, 小军 arrives (a cutscene at the station: 王阿姨 and her
+  son, and the lantern with every panel lit but one), 包饺子 (exists as
+  side-jiaozi — fold it in), 年夜饭 cutscene with the whole cast, 守岁,
+  fireworks, 初一 拜年 round the 胡同 (「新年好」「恭喜发财」 — 红包), the
+  **地坛 or 白云观 庙会** (U2's 煎饼 contest, U1's finale). Book 17.
+  If the player reaches chapter 9 away from 春节, Q2's 睡到… takes them
+  to 腊月; if they're past it this year, to next year's (the calendar
+  loops every 52 days).
+- **S10 · 尾声 (长城 · 元宵)** — the train to 长城 (exists) with 小军
+  and 兔儿爷; the spirits' farewell on the Wall (exists; add the last
+  panel); book 18; then **元宵 night in the courtyard**: the mended 走马灯
+  lit, the panels turning with every spirit in it, lanterns rising over
+  the 胡同 (the 天官赐福 lanterns if that line is done — its finale is
+  also 元宵: make them one night, both endings shown), 兔儿爷 on the
+  windowsill. Credits roll over the city by day (a slow pan through every
+  district you visited, with its real sounds). After the credits: free
+  play continues (Keep playing, exists), and the substories that aren't
+  done yet stay on.
+
+---
+
+### U — substories: four characters the learner will remember
+
+**Why:** comedy makes lines stick. Each character has a clear comic
+engine, a catchphrase the learner will end up saying, a warm ending, and
+teaches one slice of real culture. Episodes sit **on main routes** (they
+appear where the story sends you, marked with their own tag in Q1's
+style — a small portrait badge) so they can't be missed; each episode is
+3–6 minutes; each has at least one cutscene; each ending has a longer
+one with the character's **own musical motif** (music.ts, a 4–6 note
+phrase on their instrument — keep it bright, the music rule). Each has
+a book (B1) and a stamp. Kind humour: laugh with people, never at a
+culture, a belief or an accent.
+
+#### U1 — 胡半仙 Hú Bànxiān, the fortune teller who is always a bit wrong
+- **Who:** a sixty-ish man with a folding stool, a cloth sign 「算命」,
+  round glasses and enormous confidence. Catchphrase:
+  「天机不可泄露……不过，可以告诉你一点点。」 (the 成语 天机不可泄露 goes in
+  the 成语 book — a hard line, §7 key-line rules). His predictions are
+  hilariously safe: 「你今天……会吃饭！」
+- **Episodes:** (1) 雍和宫 street — reads your face and 兔儿爷's ("你属兔！"
+  — to a rabbit); book 《属相》: the 12 animals, find your own. (2)
+  三里屯 phone shop — sells "lucky" numbers full of 8s; you notice his
+  own number is full of 4s (the 8/4 culture of book 11). (3) your room —
+  风水 advice that moves your furniture somewhere silly; the cat
+  disagrees (a cutscene: the cat pushes it back). (4) 东岳庙 — he visits
+  the "department of luck" to complain about his luck. (5) 春节 庙会 —
+  his one real prediction comes true (「你会和朋友们一起过年」); he
+  admits he's a retired maths teacher who just likes talking to people.
+- **Language:** zodiac animals, numbers, 今天/明天, 会 (will), 好运.
+
+#### U2 — 老马 and 老牛, the 煎饼 rivals
+- **Who:** two 煎饼果子 sellers: **老马** (南锣鼓巷, mornings, tiny,
+  fast, says 「正宗！」 about everything) and **老牛** (王府井 小吃街, huge,
+  slow, says 「牛！」). Each insists his is the *real* one — the real
+  debate: 天津's 馃篦儿 vs 北京's 薄脆 *(check)*.
+- **Episodes:** (1) order from 老马 (the order is the lesson: 加个鸡蛋,
+  不要葱, 要辣的); (2) 老牛's stall — same order, different words; (3) the
+  message relay: each sends a rude message to the other; **you choose how
+  to pass it on** (exactly, or kinder — the kind version starts peace,
+  the exact one a comic escalation; both lead on); (4) they find out
+  they were classmates in 天津 (a flashback cutscene in sepia: two boys
+  sharing one 煎饼); (5) the 春节 庙会 煎饼 contest, you are the judge
+  (taste, then say which you liked and why — any answer is right; they
+  open a joint stall 「马牛煎饼」 in the ending cutscene). Book
+  《煎饼果子》.
+- **Language:** food orders, likes/dislikes, 比 comparisons (他的比他的
+  好吃), 马马虎虎 finally makes sense.
+
+#### U3 — 甜甜 Tiántian, the livestreamer
+- **Who:** a cheerful 直播 streamer with a phone on a stick, who greets
+  her audience with 「家人们！」 and says 「打卡！」 at every landmark.
+  Gets history cheerfully wrong.
+- **Episodes** on the routes of ch 2, 4, 6, 8, 10: 景山 sunset stream
+  (she says 故宫 was built by 秦始皇 — you correct her with what your
+  book said, by saying or choosing the simple sentence 「不对，是明朝。」 —
+  if the learner can't, 兔儿爷 helps, as always); 回音壁 (her stream
+  hears your whisper through the wall — comic); 三里屯 网红 café queue
+  (you order for her; she's live); 角楼 (she needs you to film — the
+  photo mode X6 with her in it); 长城 finale stream. **Her comments fly
+  across the screen as 弹幕** (the `danmaku` fx): short real internet
+  lines — 哈哈哈, 好美！, 666 (= awesome), 打卡, 主播加油 — a genuinely
+  modern reading moment; the ending cutscene is all 弹幕 thanking you.
+- **Language:** internet Chinese in small doses (家人们, 点赞, 关注,
+  666), correcting someone politely (不对，是……), directions for a
+  camera (左边一点).
+
+#### U4 — 米沙 Mǐshā, the other learner (tones!)
+- **Who:** a Russian exchange student, three months ahead of you and
+  sure he speaks perfectly. He doesn't: his tones go wrong in the famous
+  ways. He's kind, brave, always ready to try again — a mirror for the
+  learner.
+- **Episodes:** (1) 早点铺: he orders 「两个豹子」 (bàozi, leopards)
+  instead of 包子 (bāozi); the seller's face; you help. (2) he wants
+  水饺 (shuǐjiǎo) and asks where to 睡觉 (shuìjiào). (3) he wants to
+  *ask* (问 wèn) a girl something and says *kiss* (吻 wěn) — the classic;
+  cutscene of mortal embarrassment. (4) 买 mǎi / 卖 mài at 潘家园: he
+  tries to buy and accidentally sells his watch. (5) 春节: he gives a
+  toast at 年夜饭 with perfect tones — the ending cutscene, 王阿姨 claps.
+  Every mistake is a **real minimal pair** (verify each pair's pinyin
+  and tones); every episode ends with 兔儿爷 saying the two words so
+  the learner *hears* the difference (🔊 on both). Book 《声调》 — tones
+  with his mistakes as examples.
+- **Language:** tones, the thing learners fear most, made funny.
+
+#### U5 — checks
+Every episode played by the solver with its hints; `world:check`: each
+substory has ≥ 4 episodes, each on some chapter's route, each with a
+cutscene; the four motifs render (offline audio check, as for music).
+
+---
+
+### L — your own bike (and the shop that sells it)
+
+**Why:** a bike is *the* Beijing way to get around (and a culture of its
+own — 自行车王国), it removes friction between nearby places, and every
+part of owning one is a real conversation: buying, choosing, locking,
+pumping a tyre, asking where to park.
+
+#### L1 — the bike shop and the 修车摊
+- **自行车行** on 鼓楼东大街 (T1) *(check: 鼓楼东大街 is known for
+  shops; a bike shop is plausible — say "a bike shop", don't claim a
+  real one)*: a shop talk on Y1's engine + the rack sheet style from W5:
+  bikes as cards (your hero on each), price, colours.
+- **Stock** (real brands, names only, own pixel art, add to
+  `brands.md`): 永久 and 凤凰 (Shanghai classics) and 飞鸽 (Tianjin)
+  *(check each)* — the old 28-inch black roadster (「二八大杠」) and a
+  lighter city bike; colours; accessories: 车筐 basket, 车铃 bell (three
+  sounds), 车锁 lock, 后座 rack (兔儿爷 rides it or the basket). A
+  **second-hand** bike from the recycler (收破烂, X8) or 潘家园 at half
+  price, bargained (Y6).
+- **Prices** in economy.md: new ~400–600 元, second-hand ~150; reachable
+  by chapter 3 with the daily jobs (check with the solver's economy).
+  The talk: 「我想买自行车」「这辆多少钱？」「有红色的吗？」「我可以试试吗？」
+  (a **test ride** up and down the street, a cutscene-lite: you ride,
+  the owner shouts 「怎么样？」), pay by 支付宝 (Y2). Measure word 辆.
+- **修车摊** (a street repair stand with an old master, 老师傅): 打气
+  (pump, free), 补胎 (5 元), 换铃 — and he explains the bike's parts.
+  L3's flat tyre sends you here.
+- A side quest leads to it: 赵爷爷 remembers the 1980s when all Beijing
+  rode 永久 (book 19 《自行车王国》) and says you should have one.
+
+#### L2 — riding
+- **Get on / off**: a 🚲 button in the top bar when you own a bike and
+  stand outdoors (or tap your parked bike). Speed ×2 (shared bikes stay
+  ×1.6 — yours is better); the pedalling frames (V3) and the bike under
+  the composed hero (W1 composer + a bike layer by model and colour);
+  兔儿爷 sits in the basket if you have one (cozy — the learner's rabbit
+  on your bike).
+- **Bell:** a tap on the bell button rings it (the synthesized bell,
+  G1); people in front step aside with a line now and then
+  (「慢点儿！」). Pure fun, one tap.
+- **Where you can't ride** (real rules, taught by signs you read): you
+  get off automatically at doors (the bike stays outside, drawn where
+  you left it — the existing shared-bike parking logic, generalised); at
+  park and palace gates with a sign 「禁止骑车」 / 「请推行」 *(check which
+  parks forbid riding: 故宫, 天坛, 颐和园 at least)* you walk it or park
+  it; **you can't take a bike on the subway** (real rule; the station
+  gate says 「自行车不能进站」 *(check wording)*) — it stays at the
+  station exit.
+- **Riding between districts** — the big quality-of-life gain: on the
+  metro map, districts within ~6 km of where you stand *(use real
+  distances between stations; list them in a table)* get a 🚲 "骑车去"
+  option. Riding is a short **ride cutscene** (6–15 s, skippable): you
+  pedal past the landmarks between them — 长安街's wide bike lanes by
+  天安门 when you ride from 王府井 west, the lake when you ride to 后海 —
+  with the real sounds (N1). Game time = distance ÷ 15 km/h. You arrive
+  on the district's main street with your bike. Far places (颐和园,
+  奥林匹克 from the centre, 长城) are not offered — the train and metro
+  stay the way there.
+- **The parked bike** is on the minimap and the map (🚲 at 南锣鼓巷站 B
+  口). When you come home by metro and the bike is elsewhere, 兔儿爷
+  mentions it once. **Fetching it**: walk back, or phone the 修车摊
+  master: 「我的车在王府井站A口，可以帮我送回来吗？」 — 10 元, it's home next
+  morning (a speaking task instead of a chore; the phone UI from Y2).
+- **Save** (v+1): `bike: { model, colour, parts[], at: {map, tile} |
+  'riding' | 'home', flat?: day }`; merge: owned bike from either save
+  (the later wins on colour/parts), position from the later save.
+
+#### L3 — small life with the bike
+- **Flat tyre** — at most once a week (seven game days), never during a
+  cutscene or a timed step: 「车胎没气了！」, you can still walk it; the
+  nearest 修车摊 is on the map; 打气 or 补胎. Never a penalty, only a
+  conversation.
+- **Lock it** — getting off outside a place shows the 车锁 once as a
+  one-tap habit (「锁车」); an unlocked bike is *never* stolen (no
+  penalties) — 王阿姨 just tells you off with a smile once.
+- **Photos** with your bike (X6), diary lines 「我骑自行车去了后海。」,
+  friends notice a new bike once (W6 notice).
+- Side quest `side-bike` (shared bikes) stays; its ending now points to
+  the shop.
+
+#### L4 — checks
+Solver: buy a bike in chapter 3 with jobs' money and ride every
+"骑车去" pair; the gate rules; the parked-bike-on-metro case; save
+upgrade + merge; review renders of every model/colour in 4 directions
+(`review/l/`); the shop at 375 / 768 / 1024 light/dark (rack-probe).
+
+---
+
+### N — real Beijing sounds
+
+**Why:** listening is the skill that needs the most hours; real city
+sounds with real words teach it for free. Today there are pigeon
+whistles, bike bells, a crowd murmur and a station chime (G1).
+
+#### N1 — voices of the city (pre-rendered with the voice worker, G2; system voice fallback)
+- **Metro:** the real announcement pattern *(check today's wording on
+  Beijing lines)*: 「下一站：王府井。」 + English 「Next station:
+  Wangfujing.」, 「换乘1号线的乘客，请在本站下车。」, 「请站稳扶好」,
+  「开左侧门」 — on every ride; the station names are the words the
+  learner needs anyway.
+- **吆喝 street cries**, by place and hour: 「冰糖葫芦——」, the knife
+  grinder 「磨剪子嘞——戗菜刀——」 in the 胡同 (a real old Beijing cry), the
+  recycler's loudspeaker 「高价回收旧冰箱、旧彩电、旧手机……」 (very
+  real, very funny), 「热乎的烤红薯！」 in winter, the 早点铺's 「包子，
+  热乎的！」 in the morning.
+- **Life:** the 鼓楼 drums at the show hours *(check)*, the 钟楼 bell,
+  temple chanting murmur + 木鱼 at 雍和宫, a 京剧 radio from a courtyard
+  window, 麻将 clatter from a 胡同 door in the evening, 广场舞 music at
+  18–21 (the dance crowd moves to it, V3), cicadas (知了) in summer,
+  crows at dusk in winter, firecrackers at 春节 (not all night — a few
+  bursts), the 外卖 rider's 「您的外卖到了！」, the electric scooter's
+  「请注意，倒车」.
+- Each sound is placed in `audio/mix.ts` by map, hour, season and
+  festival (pure, tested, as G1). The ones with words are **tappable**:
+  the last heard street line appears for 4 s as a small caption at the
+  screen edge (Chinese, tap → English and the word drawer). ⚙ "City
+  voices: on / off".
+- **CC0 recordings:** under the learner's CC0-only approval you may use
+  CC0 ambience recordings (credited) for non-speech sounds (crowd, rain,
+  temple bell) if they sound clearly better than synthesis. Speech is
+  always our own voices.
+
+#### N2 — checks
+`mix.test.ts` for every new rule; an offline render of each new sound
+(node-web-audio-api in the scratchpad, as the music check); loudness
+matched to the music (ducks in talks, as music does).
+
+---
+
+### Z9 — the end-of-§13 check and the morning notes
+- Solver plays the whole game start → 元宵 credits with only its hints,
+  including every substory; golden saves at each chapter start (new
+  ones for ch 5, 9); every old golden save upgrades and finishes.
+- Coverage strict (`WORLD_COVERAGE=strict world:check` passes): every
+  map on a main route except the listed exceptions.
+- WebKit + Chromium probes: cutscene (letterbox, skip, a line tap), the
+  reader (a page, English toggle, 拼), the bike shop, Journal → Side at
+  375 / 768 / 1024 light/dark.
+- `review/`: `k/` (cutscene strips), `t/` (maps before/after), `v/` (kit,
+  animations as strips), `l/` (bikes), `b/` (a page of each book).
+- Morning notes in STATUS.md (Russian, as before): what to play first
+  (chapter 1 from a new game to see the new opening and route; then a
+  golden save at chapter 5 for the temples), what's unchecked, the facts
+  you could not confirm.

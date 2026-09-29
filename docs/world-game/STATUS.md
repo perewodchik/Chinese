@@ -36,7 +36,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-§12 is done (W1–W7). Next: the X12 play-through with the learner, then M6 after the learner has looked at the maps — both wait for the learner. The §10 menu is done (P1–P4, J1–J3; save v12 = Practise, after v10 = journal and v11 = wardrobe); checked in WebKit and Chromium on the Mac. The X12 play-through waits for the learner and comes after W7; M6 after the learner has looked at the maps.
+§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — start at Z0. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
 
 ## Tasks
 ### A — core logic
@@ -158,8 +158,51 @@ first unchecked box. Tick a box in the same commit as the work.
 - [x] W6 People notice (one comment per new thing, red at 春节), 兔儿爷 remarks, photos and diary show the outfit
 - [x] W7 Checks: composer/save/rack tests, world:check (art for every colour, a shop, a measure word; brands.md with sources), review/w/ renders, pane + WebKit 375/768/1024 light/dark
 
+### §13 — one long story through real Beijing (prompt §13, added 2026-09-29 night; before X12 and M6)
+- [ ] Z0 Story bible `story.md` (团圆 throughline, chapter tables, cast sheet), `facts.md`, coverage script
+- [ ] K1 Cutscene runner (data + zod, pure core, engine, letterbox/skip/replay, save v13, review strips)
+- [ ] K2 "You did it": step seals, quest seals, spirit-return + memory cutscene template, ⚙ Celebrations
+- [ ] K3 Chapter opening/finale template; ch1 opening + finale; lantern break, 景山 view, 回音壁, 画龙点睛 as cutscenes
+- [ ] Q1 Explicit side quests: marks over people, Journal → Side (no vague leads), counts on the metro map, arrival + chapter-end nudges
+- [ ] Q2 Sleep until a day / festival; general "wait here"
+- [ ] Q3 "Last time" recap card with the last session's words
+- [ ] V1 CC0 packs (license checked, credited, recoloured)
+- [ ] V2 Beijing architecture kit (3/4 roofs by rank and type, temple set, street props, N–S streets)
+- [ ] V3 Animation everywhere (animated tiles/props, NPC idle actions, seasons on tiles, light pools, depth-sort fix)
+- [ ] V4 Spirits redrawn + woodcut pictures; hero 4-frame walk through the composer
+- [ ] T1 鼓楼 · 南锣鼓巷 redone (N–S lane with 胡同 legs, 钟鼓楼 square, 烟袋斜街, 鼓楼东大街)
+- [ ] T2 什刹海 · 银锭桥 · 恭王府 gate · 北海 白塔 · 景山 pavilions
+- [ ] T3 Temples: 雍和宫 (2 maps), 孔庙, 天坛 祈年殿 + 圜丘, 白云观, 东岳庙, 地坛 庙会
+- [ ] T4 王府井 · 前门/大栅栏 · 故宫 axis realism pass
+- [ ] T5 Map checks and before/after renders
+- [ ] B1 Book format + reader + 书架 + Collection 书 view (books themselves are written in S/U/L)
+- [ ] S1 Ch. 1 新家 deepened (+ save v14 step/chapter upgrade)
+- [ ] S2 Ch. 2 水与山
+- [ ] S3 Ch. 3 书
+- [ ] S4 Ch. 4 回声
+- [ ] S5 Ch. 5 香火 (new: 雍和宫 · 白云观 · 东岳庙)
+- [ ] S6 Ch. 6 新北京
+- [ ] S7 Ch. 7 故事
+- [ ] S8 Ch. 8 龙
+- [ ] S9 Ch. 9 过年 (new: 小年 → 年夜饭 → 庙会)
+- [ ] S10 尾声 长城 + 元宵 lantern night + credits
+- [ ] U1 胡半仙 (fortune teller)
+- [ ] U2 老马 & 老牛 (煎饼 rivals)
+- [ ] U3 甜甜 (livestreamer, 弹幕)
+- [ ] U4 米沙 (tones)
+- [ ] U5 Substory checks
+- [ ] L1 Bike shop 自行车行 + 修车摊 (永久 / 凤凰 / 飞鸽, second-hand, test ride)
+- [ ] L2 Riding (get on/off, bell, no-ride gates, not on the subway, 骑车去 between near districts, parked bike, phone to fetch; save)
+- [ ] L3 Flat tyre, lock, photos, diary, notice
+- [ ] L4 Bike checks
+- [ ] N1 City voices (metro announcements, 吆喝, drums, temples, seasons) with tappable captions
+- [ ] N2 Sound checks
+- [ ] V5 Final look pass over every map
+- [ ] Z9 Whole-game solver run, coverage strict, probes, review/, morning notes
+
 ## Decisions made without the learner
 _(date — decision — why)_
+- 2026-09-29 night — **learner:** side quests become explicit (marks over givers, full list in Journal → Side); this reverses §10's "vague leads". CC0-only packs approved. Main story deepened, not rewritten.
 - 2026-09-28 — Phaser 4.2.1 (latest stable on npm), not 3.x — the brief says latest stable; the API we use (scenes, tilemaps, cameras, tweens) is the same.
 - 2026-09-28 — A8: polite words (你好/谢谢/再见/对不起) are checked *after* the scene's intents, not before — otherwise 「你好，请问地铁在哪里？」 would get only 「你好！」. Requests (再说一遍, 慢一点, X是什么意思, 听不懂) are checked first, as §4.4 says.
 - 2026-09-28 — A8: a match "by sound only" (卖 for 买) is accepted from the keyboard too, not only from voice, with the same "I heard …" note — a homophone picked by mistake in the IME is the same slip, and help is free.
