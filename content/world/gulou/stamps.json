@@ -83,5 +83,33 @@
     "en": "A cat of your own",
     "place": "hutong-home",
     "design": "cat"
+  },
+  {
+    "id": "xiangqi",
+    "name": "象棋",
+    "en": "Chinese chess",
+    "place": "nanluo-main",
+    "design": "xiangqi"
+  },
+  {
+    "id": "dance",
+    "name": "广场舞",
+    "en": "Square dancing",
+    "place": "gulou-square",
+    "design": "dance"
+  },
+  {
+    "id": "jiaozi",
+    "name": "饺子",
+    "en": "New Year dumplings",
+    "place": "siheyuan-yard",
+    "design": "jiaozi"
+  },
+  {
+    "id": "xiangsheng",
+    "name": "相声",
+    "en": "Crosstalk",
+    "place": "chaguan",
+    "design": "xiangsheng"
   }
 ]

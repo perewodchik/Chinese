@@ -40,5 +40,27 @@
         }
       }
     ]
+  },
+  {
+    "id": "side-kaoya",
+    "title": "Roast duck",
+    "chapter": 3,
+    "steps": [
+      {
+        "id": "do",
+        "now": "The waiter outside the roast-duck shop on 前门 shows you how to wrap it — do what he says."
+      }
+    ]
+  },
+  {
+    "id": "side-masks",
+    "title": "Opera faces",
+    "chapter": 3,
+    "steps": [
+      {
+        "id": "do",
+        "now": "The actor at the 前门 theatre explains the painted faces — pick the right one."
+      }
+    ]
   }
 ]

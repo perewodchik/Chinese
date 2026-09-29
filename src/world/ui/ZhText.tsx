@@ -2,6 +2,7 @@ import { itemForToken } from '../../domain/words';
 import { useLibrary } from '../../features/shared/library';
 import { useWordKnowledge } from '../../features/words/useWordKnowledge';
 import { useOpenItem } from '../../navigation/itemDrawer';
+import { gameWords } from './content';
 import { readLine } from './pinyin';
 
 /**
@@ -15,7 +16,7 @@ export function ZhText({ zh, pinyin, className = 'wd-zh' }: { zh: string; pinyin
   const known = useWordKnowledge();
   return (
     <span className={className} data-py={pinyin ? '' : undefined}>
-      {readLine(zh, lib).map((p, i) => {
+      {readLine(zh, lib, gameWords()).map((p, i) => {
         if (!p.word) {
           return (
             <span key={i} className="wd-p han">

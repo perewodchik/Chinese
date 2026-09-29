@@ -11,15 +11,16 @@ export interface Piece {
 }
 
 /**
- * A line cut into words with their readings: the syllabus word's own reading
- * where there is one (东西 dōngxi), else each character's first. Lines with a
- * manual `pinyin` in the script should use that instead.
+ * A line cut into words with their readings: the game's own words first (its
+ * 成语, 马马虎虎 mǎmǎhūhū — never 马 | 马虎 | 虎), then the syllabus word's own
+ * reading where there is one (东西 dōngxi), else each character's first. Lines
+ * with a manual `pinyin` in the script should use that instead.
  */
-export function readLine(zh: string, lib: Library, extra: ReadonlySet<string> = new Set()): Piece[] {
-  return segment(zh, lib, extra).map((t) => {
+export function readLine(zh: string, lib: Library, own: ReadonlyMap<string, string> = new Map()): Piece[] {
+  return segment(zh, lib, new Set(own.keys())).map((t) => {
     if (!t.word) return { text: t.text, py: '', word: false };
     const listed = lib.byWord.get(t.text);
-    const py = listed ? listed.py.replace(/ /g, '') : [...t.text].map((c) => lib.byChar.get(c)?.py[0] ?? '').join('');
+    const py = own.get(t.text) ?? (listed ? listed.py.replace(/ /g, '') : [...t.text].map((c) => lib.byChar.get(c)?.py[0] ?? '').join(''));
     return { text: t.text, py, word: true };
   });
 }

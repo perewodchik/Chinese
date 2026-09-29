@@ -1,35 +1,49 @@
 /**
- * The street's sounds, made in the browser (prompt G1): no recordings, so
- * nothing to license — pigeon whistles (鸽哨) are a few soft sine tones with
- * a slow glide as the flock passes, a bicycle bell two quick metallic
- * strikes, the murmur of people filtered noise that breathes, and the
- * station's chime three soft notes. `mix.ts` says what plays where.
+ * The street's sounds and the music, made in the browser (prompt G1): no
+ * recordings, so nothing to license — pigeon whistles (鸽哨) are a few soft
+ * sine tones in a bright chord that rise and fall as the flock passes, a
+ * bicycle bell two quick metallic strikes, the murmur of people filtered
+ * noise that breathes, and the station's chime three soft notes. `mix.ts`
+ * says what plays where; the music (`music.ts`, played by `band.ts`) has its
+ * own level.
  *
  * Silent until the page calls `wake()` from a tap (iOS lets audio start
- * only inside a gesture), quiet at volume 0, suspended while the tab is
- * hidden.
+ * only inside a gesture), quiet when both levels are 0, suspended while the
+ * tab is hidden.
  */
 
+import { Band } from './band';
 import { nextIn, SILENT, type Mix } from './mix';
+import type { Mood } from './music';
 
 type Ctor = typeof AudioContext;
 
 export class Ambient {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
+  private musicGain: GainNode | null = null;
   private crowd: GainNode | null = null;
+  private band: Band | null = null;
   private mix: Mix = SILENT;
+  private mood: Mood | null = null;
+  private ducked = 1;
   private volume: number;
+  private music: number;
   private timers: number[] = [];
   private hidden = false;
 
-  constructor(volume: number) {
+  constructor(volume: number, music: number) {
     this.volume = volume;
+    this.music = music;
+  }
+
+  private get silent() {
+    return this.volume <= 0 && this.music <= 0;
   }
 
   /** From a tap: make (or resume) the audio context and start the current mix. */
   wake() {
-    if (this.volume <= 0) return;
+    if (this.silent) return;
     if (!this.ctx) {
       const C = (window as unknown as { AudioContext?: Ctor; webkitAudioContext?: Ctor }).AudioContext ??
         (window as unknown as { webkitAudioContext?: Ctor }).webkitAudioContext;
@@ -38,6 +52,12 @@ export class Ambient {
       this.master = this.ctx.createGain();
       this.master.gain.value = this.volume * 0.5;
       this.master.connect(this.ctx.destination);
+      this.musicGain = this.ctx.createGain();
+      this.musicGain.gain.value = this.music * 1.6;
+      this.musicGain.connect(this.ctx.destination);
+      this.band = new Band(this.ctx, this.musicGain);
+      this.band.setMood(this.mood);
+      this.band.duck(this.ducked);
       this.startCrowd();
       this.schedule();
     }
@@ -47,13 +67,35 @@ export class Ambient {
   setVolume(v: number) {
     this.volume = v;
     if (this.master && this.ctx) this.master.gain.setTargetAtTime(v * 0.5, this.ctx.currentTime, 0.2);
-    if (v <= 0) void this.ctx?.suspend();
+    this.suspendIfSilent();
+  }
+
+  setMusicVolume(v: number) {
+    this.music = v;
+    if (this.musicGain && this.ctx) this.musicGain.gain.setTargetAtTime(v * 1.6, this.ctx.currentTime, 0.3);
+    this.suspendIfSilent();
+  }
+
+  private suspendIfSilent() {
+    if (this.silent) void this.ctx?.suspend();
     else if (this.ctx && !this.hidden) void this.ctx.resume();
+  }
+
+  /** The music for where you are now (`moodFor`); the same mood plays on. */
+  setMood(m: Mood | null) {
+    this.mood = m;
+    this.band?.setMood(m);
+  }
+
+  /** Quieter music while someone is talking or a panel is open (1 = full). */
+  duck(level: number) {
+    this.ducked = level;
+    this.band?.duck(level);
   }
 
   setMix(m: Mix) {
     this.mix = m;
-    if (this.crowd && this.ctx) this.crowd.gain.setTargetAtTime(m.crowd * 0.18, this.ctx.currentTime, 1.5);
+    if (this.crowd && this.ctx) this.crowd.gain.setTargetAtTime(m.crowd * 0.1, this.ctx.currentTime, 1.5);
     this.schedule();
   }
 
@@ -62,12 +104,14 @@ export class Ambient {
     this.hidden = hidden;
     if (!this.ctx) return;
     if (hidden) void this.ctx.suspend();
-    else if (this.volume > 0) void this.ctx.resume();
+    else if (!this.silent) void this.ctx.resume();
   }
 
   dispose() {
     for (const t of this.timers) window.clearTimeout(t);
     this.timers = [];
+    this.band?.dispose();
+    this.band = null;
     void this.ctx?.close();
     this.ctx = null;
   }
@@ -90,15 +134,15 @@ export class Ambient {
     src.loop = true;
     const band = ctx.createBiquadFilter();
     band.type = 'bandpass';
-    band.frequency.value = 700;
-    band.Q.value = 0.7;
+    band.frequency.value = 500;
+    band.Q.value = 0.5;
     this.crowd = ctx.createGain();
-    this.crowd.gain.value = this.mix.crowd * 0.18;
+    this.crowd.gain.value = this.mix.crowd * 0.1;
     // the murmur breathes: a slow wobble on its level
     const lfo = ctx.createOscillator();
     const depth = ctx.createGain();
     lfo.frequency.value = 0.13;
-    depth.gain.value = 0.03;
+    depth.gain.value = 0.015;
     lfo.connect(depth).connect(this.crowd.gain);
     src.connect(band).connect(this.crowd).connect(this.master!);
     src.start();
@@ -121,32 +165,29 @@ export class Ambient {
     loop(this.mix.bellsEvery, () => this.bell());
   }
 
-  /** 鸽哨: the flock's whistles, a soft chord that swells and glides down as it passes. */
+  /**
+   * 鸽哨: the flock's whistles passing over — a bright chord (do mi sol) that
+   * rises a little as it comes and falls as it goes, never a slow wail.
+   */
   private pigeons() {
     const ctx = this.ctx!;
     const t = ctx.currentTime;
-    const dur = 4 + Math.random() * 2;
+    const dur = 2.2 + Math.random() * 1.2;
     const out = ctx.createGain();
     out.gain.setValueAtTime(0, t);
-    out.gain.linearRampToValueAtTime(0.05, t + dur * 0.45);
+    out.gain.linearRampToValueAtTime(0.025, t + dur * 0.5);
     out.gain.linearRampToValueAtTime(0, t + dur);
     out.connect(this.master!);
-    const base = 900 + Math.random() * 300;
-    for (const k of [1, 1.5, 2.02]) {
+    const base = 1100 + Math.random() * 250;
+    for (const k of [1, 1.26, 1.5]) {
       const o = ctx.createOscillator();
       o.type = 'sine';
-      o.frequency.setValueAtTime(base * k * 1.03, t);
-      o.frequency.linearRampToValueAtTime(base * k * 0.97, t + dur);
-      const vib = ctx.createOscillator();
-      const vd = ctx.createGain();
-      vib.frequency.value = 5 + Math.random() * 2;
-      vd.gain.value = base * k * 0.006;
-      vib.connect(vd).connect(o.frequency);
+      o.frequency.setValueAtTime(base * k * 0.99, t);
+      o.frequency.linearRampToValueAtTime(base * k * 1.01, t + dur * 0.5);
+      o.frequency.linearRampToValueAtTime(base * k * 0.985, t + dur);
       o.connect(out);
       o.start(t);
-      vib.start(t);
       o.stop(t + dur);
-      vib.stop(t + dur);
     }
   }
 
@@ -173,7 +214,7 @@ export class Ambient {
 
   /** The station's chime: three soft falling notes (not any real line's jingle). */
   chime() {
-    if (!this.ctx || this.volume <= 0) return;
+    if (!this.ctx || this.silent) return;
     const ctx = this.ctx;
     const t = ctx.currentTime;
     [659.3, 523.3, 392].forEach((f, i) => {

@@ -1081,6 +1081,42 @@
   ]
  },
  {
+  "id": "lion-still",
+  "map": "gulou-square",
+  "object": "stone-lion",
+  "trigger": "look",
+  "priority": 4,
+  "when": {
+   "all": [
+    {
+     "hours": [
+      17,
+      6
+     ]
+    },
+    {
+     "not": {
+      "flag": "heard-lion"
+     }
+    },
+    {
+     "not": {
+      "spirit": "shishizi"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "它不动。它在睡觉吗？",
+    "translate": "The stone lion doesn't move. Is it asleep?",
+    "speaker": "hero"
+   }
+  ]
+ },
+ {
   "id": "lion-night",
   "map": "gulou-square",
   "object": "stone-lion",
@@ -1099,6 +1135,9 @@
      "not": {
       "spirit": "shishizi"
      }
+    },
+    {
+     "flag": "heard-lion"
     }
    ]
   },
@@ -1259,9 +1298,7 @@
   "map": "station-nanluoguxiang",
   "npc": "station-staff",
   "trigger": "talk",
-  "once": true,
   "priority": 0,
-  "stamp": "card",
   "start": "a",
   "words": [
    {
@@ -1396,12 +1433,8 @@
         "flag": "has-card"
        },
        {
-        "do": "flag",
-        "flag": "has-card"
-       },
-       {
-        "do": "flag",
-        "flag": "has-card"
+        "do": "stamp",
+        "stamp": "card"
        }
       ]
      },
@@ -1440,7 +1473,16 @@
    }
   ],
   "when": {
-   "money": 40
+   "all": [
+    {
+     "money": 40
+    },
+    {
+     "not": {
+      "flag": "has-card"
+     }
+    }
+   ]
   }
  },
  {
@@ -1871,7 +1913,7 @@
   "when": {
    "all": [
     {
-     "scene": "card"
+     "flag": "has-card"
     },
     {
      "money": 50
@@ -6647,6 +6689,747 @@
      {
       "do": "quest_done",
       "quest": "side-photo-wall"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "xiangqi",
+  "map": "nanluo-main",
+  "npc": "xiangqi-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "xiangqi",
+  "when": {
+   "chapter": 2
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "象棋",
+    "explain": "中国的棋，有马、象、炮。",
+    "en": "Chinese chess"
+   },
+   {
+    "w": "马",
+    "explain": "象棋里的马，走“日”。",
+    "en": "the horse (chess)"
+   },
+   {
+    "w": "象",
+    "explain": "象棋里的象，走“田”。",
+    "en": "the elephant (chess)"
+   },
+   {
+    "w": "炮",
+    "explain": "象棋里的炮。",
+    "en": "the cannon (chess)"
+   },
+   {
+    "w": "走",
+    "explain": "在象棋里，就是动一个。",
+    "en": "to move (a piece)"
+   },
+   {
+    "w": "田",
+    "explain": "一个口，里面有一个十。",
+    "en": "the character 田"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "来，我们下象棋！马走“日”，象走“田”。",
+    "translate": "Come, a game of chess! The horse moves like 日, the elephant like 田.",
+    "key": false,
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-xiangqi",
+      "step": "do"
+     }
+    ],
+    "why": "马走日: the horse goes one step and one diagonal — the shape of 日. 象走田: the elephant two diagonal steps — the shape of 田."
+   },
+   {
+    "id": "b",
+    "say": "我的炮在这儿。你的马可以吃我的炮！你走马，还是走象？",
+    "translate": "Look, my cannon is here. Your horse can take my cannon! What do you move?",
+    "simpler": "你走马，还是走象？象走田。",
+    "expect": [
+     {
+      "intent": "horse",
+      "match": [
+       [
+        "马"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "马",
+     "frame": "走___！",
+     "full": "走马！"
+    }
+   },
+   {
+    "id": "c",
+    "say": "好！马吃炮！你的象棋真好！",
+    "translate": "Good! Horse takes cannon! You play well!",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-xiangqi"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dance",
+  "map": "gulou-square",
+  "npc": "passer-dancer",
+  "trigger": "talk",
+  "priority": 0,
+  "stamp": "dance",
+  "when": {
+   "hours": [
+    17,
+    22
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "跳舞",
+    "explain": "听音乐，动手动脚。",
+    "en": "to dance"
+   },
+   {
+    "w": "左",
+    "explain": "你的心在这边。",
+    "en": "left"
+   },
+   {
+    "w": "右",
+    "explain": "左的那边。",
+    "en": "right"
+   },
+   {
+    "w": "拍手",
+    "explain": "两只手打在一起。",
+    "en": "clap"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "来跳舞！听我的：左！",
+    "translate": "Come and dance! Follow me: left!",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-dance",
+      "step": "do"
+     }
+    ],
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "⬅️",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "➡️"
+      },
+      {
+       "id": "o2",
+       "label": "⬆️"
+      },
+      {
+       "id": "o3",
+       "label": "⬇️"
+      },
+      {
+       "id": "o4",
+       "label": "🔄"
+      },
+      {
+       "id": "o5",
+       "label": "👏"
+      }
+     ],
+     "go": "b"
+    },
+    "why": "广场舞, square dancing: every evening the aunties dance on the squares. Do what she calls.",
+    "simpler": "左！"
+   },
+   {
+    "id": "b",
+    "say": "右！",
+    "translate": "Right!",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "⬅️"
+      },
+      {
+       "id": "o1",
+       "label": "➡️",
+       "right": true
+      },
+      {
+       "id": "o2",
+       "label": "⬆️"
+      },
+      {
+       "id": "o3",
+       "label": "⬇️"
+      },
+      {
+       "id": "o4",
+       "label": "🔄"
+      },
+      {
+       "id": "o5",
+       "label": "👏"
+      }
+     ],
+     "go": "c"
+    },
+    "simpler": "右！"
+   },
+   {
+    "id": "c",
+    "say": "前！",
+    "translate": "Forward!",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "⬅️"
+      },
+      {
+       "id": "o1",
+       "label": "➡️"
+      },
+      {
+       "id": "o2",
+       "label": "⬆️",
+       "right": true
+      },
+      {
+       "id": "o3",
+       "label": "⬇️"
+      },
+      {
+       "id": "o4",
+       "label": "🔄"
+      },
+      {
+       "id": "o5",
+       "label": "👏"
+      }
+     ],
+     "go": "d"
+    }
+   },
+   {
+    "id": "d",
+    "say": "后！",
+    "translate": "Back!",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "⬅️"
+      },
+      {
+       "id": "o1",
+       "label": "➡️"
+      },
+      {
+       "id": "o2",
+       "label": "⬆️"
+      },
+      {
+       "id": "o3",
+       "label": "⬇️",
+       "right": true
+      },
+      {
+       "id": "o4",
+       "label": "🔄"
+      },
+      {
+       "id": "o5",
+       "label": "👏"
+      }
+     ],
+     "go": "e"
+    }
+   },
+   {
+    "id": "e",
+    "say": "拍手！拍手！",
+    "translate": "Clap! Clap!",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "⬅️"
+      },
+      {
+       "id": "o1",
+       "label": "➡️"
+      },
+      {
+       "id": "o2",
+       "label": "⬆️"
+      },
+      {
+       "id": "o3",
+       "label": "⬇️"
+      },
+      {
+       "id": "o4",
+       "label": "🔄"
+      },
+      {
+       "id": "o5",
+       "label": "👏",
+       "right": true
+      }
+     ],
+     "go": "f"
+    }
+   },
+   {
+    "id": "f",
+    "say": "你的跳舞真好！明天晚上再来！",
+    "translate": "Well danced! Come again tomorrow evening!",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-dance"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "jiaozi-make",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -2,
+  "stamp": "jiaozi",
+  "when": {
+   "all": [
+    {
+     "any": [
+      {
+       "festival": "chunjie"
+      },
+      {
+       "festival": "yuanxiao"
+      }
+     ]
+    },
+    {
+     "scene": "chunjie-wang"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "和面",
+    "explain": "水和面在一起，用手做。",
+    "en": "to mix the dough"
+   },
+   {
+    "w": "擀皮",
+    "explain": "把面做得很小、很薄。",
+    "en": "to roll the wrappers"
+   },
+   {
+    "w": "包",
+    "explain": "把东西放在皮里面。",
+    "en": "to wrap"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "来，我们包饺子！第一，和面。",
+    "translate": "Come, let’s make dumplings together! First, mix the dough.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-jiaozi",
+      "step": "do"
+     }
+    ],
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🥣 flour and water",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "🔪 chop the meat"
+      },
+      {
+       "id": "o2",
+       "label": "🥟 fold them"
+      }
+     ],
+     "go": "b"
+    },
+    "simpler": "和面！"
+   },
+   {
+    "id": "b",
+    "say": "第二，擀皮。",
+    "translate": "Then roll the wrappers.",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🥟 fold them"
+      },
+      {
+       "id": "o1",
+       "label": "🪵 roll them thin",
+       "right": true
+      },
+      {
+       "id": "o2",
+       "label": "🔥 boil the water"
+      }
+     ],
+     "go": "c"
+    },
+    "simpler": "擀皮！"
+   },
+   {
+    "id": "c",
+    "say": "第三，包！",
+    "translate": "And last — wrap them!",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🥟 fold them",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "🥣 flour and water"
+      },
+      {
+       "id": "o2",
+       "label": "🪵 roll them thin"
+      }
+     ],
+     "go": "d"
+    }
+   },
+   {
+    "id": "d",
+    "say": "你包的饺子真好看！过年好！",
+    "translate": "You wrap them beautifully! Happy New Year!",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "wang-ayi",
+      "delta": 1
+     },
+     {
+      "do": "give",
+      "item": "jiaozi"
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-jiaozi"
+     }
+    ],
+    "why": "和面 mix, 擀皮 roll, 包 wrap — every family in the north makes 饺子 together on New Year’s Eve."
+   }
+  ]
+ },
+ {
+  "id": "xiangsheng",
+  "map": "chaguan",
+  "npc": "lao-liu",
+  "trigger": "talk",
+  "once": true,
+  "priority": 2,
+  "when": {
+   "chapter": 2
+  },
+  "stamp": "xiangsheng",
+  "start": "a",
+  "words": [
+   {
+    "w": "相声",
+    "explain": "两个人说笑话的表演。",
+    "en": "crosstalk"
+   },
+   {
+    "w": "吃亏",
+    "explain": "不好的事到了你身上。",
+    "en": "to lose out, “eat a loss”"
+   },
+   {
+    "w": "哈哈",
+    "explain": "笑的时候说的。",
+    "en": "ha ha"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我给你说一个相声！",
+    "translate": "Let me do a bit of crosstalk for you!",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-xiangsheng",
+      "step": "do"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "say": "“你吃了吗？”“吃了。”“吃了什么？”“我吃亏了！”",
+    "translate": "“Have you eaten?” “I have!” “What did you eat?” “A big loss!”",
+    "listen": true,
+    "expect": [
+     {
+      "intent": "laugh",
+      "match": [
+       [
+        "哈哈",
+        "好",
+        "有意思",
+        "笑"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "哈哈",
+     "frame": "___，有意思！",
+     "full": "哈哈，有意思！"
+    },
+    "why": "吃 “eat” is also what you do to a loss: 吃亏 is “to eat a loss”, to come off worse. So the answer to “what did you eat?” is a joke. 相声 lives on puns like this.",
+    "simpler": "他说：我吃亏了！"
+   },
+   {
+    "id": "c",
+    "say": "哈哈，你听懂了！这是相声。",
+    "translate": "You got it! That’s what 相声 is.",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-xiangsheng"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "waimai-lost",
+  "map": "hutong-home",
+  "npc": "waimai",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "start": "a",
+  "words": [
+   {
+    "w": "号",
+    "explain": "门上的数字，你家是几号？",
+    "en": "number (of a house)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！我找帽儿胡同十三号，是哪个门？",
+    "translate": "Hi! I’m looking for 帽儿胡同 number 13 — which door is it?",
+    "simpler": "十三号在哪儿？",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-waimai",
+      "step": "do"
+     }
+    ],
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "3"
+      },
+      {
+       "id": "o1",
+       "label": "13",
+       "right": true
+      },
+      {
+       "id": "o2",
+       "label": "30"
+      },
+      {
+       "id": "o3",
+       "label": "31"
+      }
+     ],
+     "go": "b"
+    }
+   },
+   {
+    "id": "b",
+    "say": "十三号！谢谢你！",
+    "translate": "Number thirteen! Thank you!",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "waimai",
+      "delta": 1
+     },
+     {
+      "do": "remember",
+      "npc": "waimai",
+      "note": "showed him the way to number 13"
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-waimai"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "polan",
+  "map": "hutong-home",
+  "npc": "polan-shifu",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "hours": [
+    7,
+    12
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "收破烂儿",
+    "explain": "买旧东西的人。",
+    "en": "the recycler"
+   },
+   {
+    "w": "旧",
+    "explain": "不新的，用了很久的。",
+    "en": "old, used"
+   },
+   {
+    "w": "收",
+    "explain": "买旧东西。",
+    "en": "to buy up (old things)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "收——旧手机、旧电脑、旧书！我是收破烂儿的。",
+    "translate": "Buying — old phones, old computers, old books! I’m the recycler.",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-polan",
+      "step": "do"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "say": "你有旧东西吗？",
+    "translate": "Have you got anything old?",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "没有",
+        "没",
+        "不"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "有"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "没有",
+     "frame": "___，我是新来的。",
+     "full": "没有，我是新来的。"
+    }
+   },
+   {
+    "id": "c",
+    "say": "没关系！明天早上我还来。你听到“收破烂儿”，是我来了！",
+    "translate": "No matter! I come every morning. Listen — when I come I call “收破烂儿”!",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "met-polan"
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-polan"
+     }
+    ]
+   },
+   {
+    "id": "d",
+    "say": "好！明天给我吧。",
+    "translate": "Good! Give it to me next time. I come every morning.",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "met-polan"
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-polan"
      }
     ]
    }

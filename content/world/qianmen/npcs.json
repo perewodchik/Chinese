@@ -90,5 +90,34 @@
       "tanghulu",
       "chaye"
     ]
+  },
+  {
+    "id": "kaoya-shifu",
+    "name": "烤鸭店的师傅",
+    "role": "a waiter from the roast-duck restaurant, handing out tastes at the door",
+    "look": {
+      "sprite": "uncle",
+      "palette": "apron"
+    },
+    "voice": "zhiyuan",
+    "character": "Theatrical; every duck is the best duck in Beijing.",
+    "knows": [
+      "How to wrap 烤鸭"
+    ],
+    "wants": [
+      "Customers"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "烤鸭": "北京很有名的鸭子。"
+    }
   }
 ]

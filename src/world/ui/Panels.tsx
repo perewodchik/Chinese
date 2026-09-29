@@ -484,6 +484,19 @@ function Settings({ settings, onChange }: { settings: WorldSettings; onChange: (
         />
       </label>
       <label>
+        <span>Music</span>
+        <Seg
+          value={settings.music <= 0 ? 'off' : settings.music < 0.5 ? 'soft' : 'on'}
+          options={[
+            { id: 'off', label: 'Off' },
+            { id: 'soft', label: 'Soft' },
+            { id: 'on', label: 'On' },
+          ]}
+          onChange={(v) => onChange({ music: v === 'off' ? 0 : v === 'soft' ? 0.35 : 0.8 })}
+          size="sm"
+        />
+      </label>
+      <label>
         <span>Text size</span>
         <Seg
           value={settings.textSize}

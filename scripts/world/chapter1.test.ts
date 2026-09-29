@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { libraryLexicon } from '../../src/world/core/dialogue/lexicon';
-import { ScriptedDialogue } from '../../src/world/core/dialogue/scripted';
+import { ScriptedDialogue, answerFor } from '../../src/world/core/dialogue/scripted';
 import { activeQuests, advanceQuests } from '../../src/world/core/quests';
 import { applyAll, newSave, type SaveAction } from '../../src/world/core/save';
 import { autoScene, sceneFor } from '../../src/world/core/scenes';
 import { board, fareOut, getOff, nextStop, runOn, startRide, trainsAt } from '../../src/world/core/ride';
 import type { DialogueNode, WorldSave } from '../../src/world/core/types';
 import { memoryLocal } from '../../src/world/sync/local';
+import { hintWithName } from '../../src/world/core/voice';
 import type { WorldGateway } from '../../src/world/sync/gateway';
 import { WorldSync } from '../../src/world/sync/sync';
 import { checkContent, readLibrary } from './check-content';
@@ -39,8 +40,12 @@ function play(s: WorldSave, sceneId: string, answers: string[] = []): { save: Wo
   const said = [t.say?.zh ?? ''];
   for (let i = 0, guard = 0; !t.state.ended && guard < 30; guard++) {
     const node: DialogueNode = scene.nodes.find((n) => n.id === t.state.node)!;
-    if (node.expect?.length) {
-      const answer = answers[i++] ?? node.hint?.full;
+    if (node.choose || node.trace) {
+      // a pick or a written character (X8): the right one moves on
+      t = src.reply(t.state, answerFor(node)!);
+      assert.equal(t.kind, 'match', `${sceneId}/${node.id}: the right pick did not move the talk on (${t.kind})`);
+    } else if (node.expect?.length) {
+      const answer = answers[i++] ?? (node.hint ? hintWithName(node.hint, t.state.name ?? '').full : undefined);
       assert.ok(answer, `${sceneId}/${node.id} expects an answer and gives no hint`);
       t = src.reply(t.state, { text: answer, via: 'keyboard' });
       assert.equal(t.kind, 'match', `${sceneId}/${node.id}: “${answer}” did not move the talk on (${t.kind})`);

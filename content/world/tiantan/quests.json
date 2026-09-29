@@ -117,5 +117,38 @@
         }
       }
     ]
+  },
+  {
+    "id": "side-dishu",
+    "title": "Water writing 地书",
+    "chapter": 4,
+    "steps": [
+      {
+        "id": "do",
+        "now": "Write with water beside the old man in the 天坛 park."
+      }
+    ]
+  },
+  {
+    "id": "side-kite-fly",
+    "title": "A kite at 天坛",
+    "chapter": 4,
+    "steps": [
+      {
+        "id": "do",
+        "now": "On a windy day the kite maker is in the 天坛 park. Pick the kite he describes."
+      }
+    ]
+  },
+  {
+    "id": "side-kongzhu",
+    "title": "The diabolo",
+    "chapter": 4,
+    "steps": [
+      {
+        "id": "do",
+        "now": "The grandmother in the 天坛 park teaches the 空竹 — do what she says."
+      }
+    ]
   }
 ]

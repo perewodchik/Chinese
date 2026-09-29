@@ -5,8 +5,8 @@ import type { CharacterEntry, Library, SyllabusWord } from '../../data/types';
 import { libraryLexicon } from '../core/dialogue/lexicon';
 import { ScriptedDialogue } from '../core/dialogue/scripted';
 import { newSave } from '../core/save';
-import type { Scene } from '../core/types';
-import { mergeContent } from './content';
+import type { Idiom, Scene } from '../core/types';
+import { mergeContent, wordsOf } from './content';
 import { readLine } from './pinyin';
 import { afterTurn, smallTalk, type TalkView } from './useTalk';
 
@@ -95,6 +95,12 @@ describe('lines on screen', () => {
     );
     assert.equal(p.at(-1)?.word, false);
     assert.equal(p.find((x) => x.text === '要')?.py, 'yào');
+  });
+
+  it('keeps the game\'s own 成语 whole, with their own reading', () => {
+    const own = wordsOf({ idioms: [{ id: '马马虎虎', pinyin: 'mǎmǎhūhū' } as Idiom] });
+    const p = readLine('我也马马虎虎！', lib, own);
+    assert.deepEqual(p.filter((x) => x.word).map((x) => [x.text, x.py]), [['我', 'wǒ'], ['也', 'yě'], ['马马虎虎', 'mǎmǎhūhū']]);
   });
 
   it('joins the districts\' content into one', () => {

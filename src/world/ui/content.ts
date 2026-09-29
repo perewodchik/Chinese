@@ -34,6 +34,13 @@ export function mergeContent(parts: Array<DistrictContent & { pinyin?: Record<st
 }
 
 let loading: Promise<WorldContent> | null = null;
+let own: ReadonlyMap<string, string> = new Map();
+
+/** The game's own words with their readings — its 成语 — for cutting lines into words (empty until loaded). */
+export const gameWords = () => own;
+
+export const wordsOf = (c: Pick<WorldContent, 'idioms'>): ReadonlyMap<string, string> =>
+  new Map(c.idioms.filter((i) => i.pinyin).map((i) => [i.id, i.pinyin.replace(/ /g, '')]));
 
 /** `/world/content/index.json` lists the built districts; each is one JSON file. */
 export function loadContent(): Promise<WorldContent> {
@@ -43,7 +50,9 @@ export function loadContent(): Promise<WorldContent> {
     if (!r.ok) return EMPTY_CONTENT;
     const ids = (await r.json()) as string[];
     const parts = await Promise.all(ids.map(async (id) => (await fetch(`/world/content/${id}.json`)).json()));
-    return mergeContent(parts);
+    const c = mergeContent(parts);
+    own = wordsOf(c);
+    return c;
   })().catch(() => EMPTY_CONTENT);
   return loading;
 }

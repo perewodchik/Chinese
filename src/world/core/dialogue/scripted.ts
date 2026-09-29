@@ -23,6 +23,10 @@ import { STICKER_REPLY, STICKERS } from '../photo';
 
 export const DEFAULT_MISSES = ['你说什么？', '什么？请再说一遍。'];
 export const NOT_CHINESE = { zh: '对不起，我听不懂……', en: "Sorry, I don't understand…" };
+export const WRONG_CHOICE = [
+  { zh: '不是这个，再看看！', en: 'Not that one — look again!' },
+  { zh: '不对，不对。你再听听。', en: 'No, no. Listen again.' },
+];
 export const DONT_KNOW = { zh: '这个……我不知道怎么说。', en: "Hmm… I don't know how to say it." };
 
 export interface ScriptContent {
@@ -39,6 +43,14 @@ export function nameFrom(text: string): string | null {
   if (!m) return null;
   const name = m[1]!.replace(/(吧|啊|呀|哦|呢)$/, '').slice(0, 12);
   return name || null;
+}
+
+/** What a patient player does at a line (tests and the solver): the right pick, the writing, or the hint's whole sentence. */
+export function answerFor(n: DialogueNode, name = ''): Utterance | null {
+  if (n.choose) return { text: '', via: 'keyboard', choice: n.choose.options.find((o) => o.right)?.id ?? '' };
+  if (n.trace) return { text: '', via: 'keyboard', traced: true };
+  if (n.expect?.length) return n.hint ? { text: hintWithName(n.hint, name).full, via: 'keyboard' } : null;
+  return null;
 }
 
 /** 「“附近”就是不远的地方。」 from the word and its HSK 1 explanation. */
@@ -124,7 +136,7 @@ export class ScriptedDialogue implements DialogueSource {
     const next = this.node(scene, to);
     actions.push(...this.enter(scene, next));
     // A node that expects nothing and leads nowhere is the last word.
-    const final = !next.expect?.length && !next.next;
+    const final = !next.expect?.length && !next.next && !next.choose && !next.trace;
     if (final) actions.push(...(next.onExit ?? []), ...this.finish(scene));
     return {
       say: this.line(scene, next, 'say', false, state.name),
@@ -138,6 +150,8 @@ export class ScriptedDialogue implements DialogueSource {
     const scene = this.scene(state.scene);
     const n = this.node(scene, state.node);
     if (state.ended) return { kind: 'continue', say: null, actions: [], end: true, state };
+    // a pick-or-write line waits for the pick, not a tap (X8)
+    if (n.choose || n.trace) return { kind: 'continue', say: null, actions: [], state };
     return { kind: 'continue', ...this.move(scene, n, n.next, false, [], state) };
   }
 
@@ -160,12 +174,35 @@ export class ScriptedDialogue implements DialogueSource {
     const scene = this.scene(state.scene);
     const n = this.node(scene, state.node);
     const npc = scene.npc ? this.npcs.get(scene.npc) : undefined;
+    // Doing what the line says (X8): a pick or a written character moves on; a wrong pick is never a dead end.
+    if (!state.ended && (n.choose || n.trace)) {
+      if (n.trace && u.traced) return { kind: 'match', intent: 'trace', ...this.move(scene, n, n.trace.go, !n.trace.go, n.trace.actions ?? [], state) };
+      if (n.choose && u.choice) {
+        const o = n.choose.options.find((x) => x.id === u.choice);
+        if (o?.right) return { kind: 'match', intent: o.id, ...this.move(scene, n, n.choose.go, !n.choose.go, n.choose.actions ?? [], state) };
+        const misses = state.misses + 1;
+        const w = WRONG_CHOICE[(misses - 1) % WRONG_CHOICE.length]!;
+        // from the second wrong pick the page shows the right one (hint 3)
+        return { kind: 'wrong', say: this.aside(scene, w.zh, w.en), actions: [], state: { ...state, misses, hint: misses >= 2 ? 3 : state.hint } };
+      }
+    }
     const input = normalize(u.text, this.lex);
     const stay = (kind: Turn['kind'], say: Line, extra: Partial<Turn> = {}): Turn => ({ kind, say, actions: [], state, ...extra });
 
     if (state.ended) return { kind: 'continue', say: null, actions: [], end: true, state };
     const nm = state.name;
     if (input.kind === 'empty') return stay('repeat', this.line(scene, n, 'say', false, nm));
+
+    // Words at a pick-or-write line: questions are answered, anything else hears the line again.
+    if (n.choose || n.trace) {
+      const known = [...Object.keys(npc?.explains ?? {}), ...(scene.words ?? []).map((w) => w.w)];
+      const word = explainWord(input, this.lex, known);
+      const explain = word ? (npc?.explains[word] ?? scene.words?.find((w) => w.w === word)?.explain) : undefined;
+      if (word && explain) return stay('explain', this.aside(scene, explanationLine(word, explain), `An explanation of ${word}.`), { intent: 'explain' });
+      const ask = askIntent(input, this.lex);
+      if (ask === 'slower' || ask === 'simpler') return stay(ask, this.line(scene, n, 'simpler', ask === 'slower', nm), { intent: ask });
+      return stay('repeat', this.line(scene, n, 'say', false, nm), { intent: 'repeat' });
+    }
 
     // A node with nothing to expect: whatever is said, go on.
     if (!n.expect?.length) {

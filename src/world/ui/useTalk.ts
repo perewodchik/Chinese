@@ -25,8 +25,8 @@ export interface TalkView {
   title?: string;
   history: Said[];
   state: DialogueState;
-  /** what the player does now: answer, tap to go on, or it is over */
-  mode: 'reply' | 'tap' | 'over';
+  /** what the player does now: answer, pick, write, tap to go on, or it is over */
+  mode: 'reply' | 'choose' | 'trace' | 'tap' | 'over';
   cue?: CompanionCue;
   /** misunderstood lines in a row (for the companion, E4) */
   misses: number;
@@ -36,6 +36,8 @@ export interface TalkView {
 export function modeOf(scene: Scene, t: Turn): TalkView['mode'] {
   if (t.end || t.state.ended) return 'over';
   const node = scene.nodes.find((n) => n.id === t.state.node);
+  if (node?.choose) return 'choose';
+  if (node?.trace) return 'trace';
   if (node?.expect?.length) return 'reply';
   // A first line that expects nothing and leads nowhere is all there is.
   return node?.next ? 'tap' : 'over';
@@ -46,7 +48,7 @@ export function afterTurn(v: TalkView, t: Turn, you?: string, sticker?: string):
   const history = [...v.history];
   if (you !== undefined) history.push({ who: 'you', text: you, ...(sticker ? { sticker } : {}) });
   if (t.say) history.push({ who: 'npc', line: t.say, kind: t.kind });
-  const misses = t.kind === 'miss' || t.kind === 'not_chinese' ? v.misses + 1 : t.kind === 'match' ? 0 : v.misses;
+  const misses = t.kind === 'miss' || t.kind === 'not_chinese' || t.kind === 'wrong' ? v.misses + 1 : t.kind === 'match' ? 0 : v.misses;
   return { ...v, history, state: t.state, mode: modeOf(v.scene, t), cue: t.companion, misses };
 }
 
@@ -113,6 +115,24 @@ export function useTalk(content: WorldContent, lex: Lexicon | null, dispatch: (a
     [source, take],
   );
 
+  /** a picture picked, or the characters written (X8) */
+  const pick = useCallback(
+    (id: string) => {
+      const v = cur.current;
+      if (!v || !source || v.mode !== 'choose') return;
+      const node = v.scene.nodes.find((n) => n.id === v.state.node);
+      const label = node?.choose?.options.find((o) => o.id === id)?.label ?? id;
+      take(source.reply(v.state, { text: '', via: 'keyboard', choice: id }), label);
+    },
+    [source, take],
+  );
+  const traced = useCallback(() => {
+    const v = cur.current;
+    if (!v || !source || v.mode !== 'trace') return;
+    const node = v.scene.nodes.find((n) => n.id === v.state.node);
+    take(source.reply(v.state, { text: '', via: 'keyboard', traced: true }), `✍ ${node?.trace?.chars ?? ''}`);
+  }, [source, take]);
+
   const proceed = useCallback(() => {
     const v = cur.current;
     if (!v || !source) return;
@@ -134,5 +154,5 @@ export function useTalk(content: WorldContent, lex: Lexicon | null, dispatch: (a
     setView(null);
   }, []);
 
-  return { view, start, reply, proceed, close };
+  return { view, start, reply, pick, traced, proceed, close };
 }

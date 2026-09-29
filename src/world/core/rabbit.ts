@@ -11,7 +11,8 @@
 
 import { festivalOf, seasonOf } from './calendar';
 import { dayOf } from './clock';
-import type { WorldSave } from './types';
+import { STEP, walkable, type Grid } from './grid';
+import type { Facing, Tile, WorldSave } from './types';
 
 export type Emote = 'happy' | 'sulky' | 'sleepy' | 'proud' | 'blush';
 export type Hat = 'none' | 'snow' | 'flower' | 'armour';
@@ -40,4 +41,34 @@ export function emoteFor(before: WorldSave, after: WorldSave): Emote | null {
   const friend = Object.keys(after.npcs).some((k) => (after.npcs[k]?.hearts ?? 0) >= 3 && (before.npcs[k]?.hearts ?? 0) < 3);
   if (friend || (after.cat.name && !before.cat.name)) return 'happy';
   return null;
+}
+
+/**
+ * Where he floats: over a free tile beside you, never over a wall, a
+ * building or someone standing there. He keeps his side while it stays free,
+ * and never waits on the tile you are about to step onto. Boxed in, it is
+ * [0, 0] and he rides on your shoulder.
+ */
+export function rabbitSpot(
+  g: Grid,
+  at: Tile,
+  facing: Facing,
+  keep: Tile | null,
+  occupied?: ReadonlySet<string>,
+): Tile {
+  const [fx, fy] = STEP[facing];
+  const free = ([dx, dy]: Tile) => !(dx === fx && dy === fy) && walkable(g, at[0] + dx, at[1] + dy, occupied);
+  const back: Tile = [-fx || 0, -fy || 0];
+  // his own sides for the way you face: right/left of you, then behind, then the corners behind
+  const side: Tile = fx === 0 ? [1, 0] : [0, 1];
+  const other: Tile = [-side[0] || 0, -side[1] || 0];
+  const order: Tile[] = [
+    ...(keep ? [keep] : []),
+    side,
+    other,
+    back,
+    [back[0] + side[0], back[1] + side[1]],
+    [back[0] + other[0], back[1] + other[1]],
+  ];
+  return order.find(free) ?? [0, 0];
 }

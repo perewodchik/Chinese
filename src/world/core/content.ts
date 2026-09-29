@@ -161,6 +161,13 @@ export const npcSchema: z.ZodType<NpcCard> = z.strictObject({
   dislikes: z.array(id).optional(),
 });
 
+const chooseSchema = z.strictObject({
+  options: z.array(z.strictObject({ id, label: text, right: z.boolean().optional() })).min(2),
+  go: id.optional(),
+  actions: z.array(actionSchema).optional(),
+});
+const traceSchema = z.strictObject({ chars: text, go: id.optional(), actions: z.array(actionSchema).optional() });
+
 const expectSchema: z.ZodType<Expect> = z.strictObject({
   intent: id,
   match: z.array(z.array(text).min(1)).min(1),
@@ -179,6 +186,8 @@ const nodeSchema: z.ZodType<DialogueNode> = z.strictObject({
   key: z.boolean().optional(),
   listen: z.boolean().optional(),
   expect: z.array(expectSchema).optional(),
+  choose: chooseSchema.optional(),
+  trace: traceSchema.optional(),
   next: id.optional(),
   hint: z.strictObject({ word: text, frame: text, full: text }).optional(),
   translate: text,
@@ -379,6 +388,18 @@ export function checkReferences(
         if (e.go && !nodes.has(e.go)) errors.push(`${nat}.expect[${ei}].go: no node "${e.go}"`);
         e.actions?.forEach((a, ai) => checkAction(a, `${nat}.expect[${ei}].actions[${ai}]`));
       });
+      // a "do what they say" step needs exactly one right answer, and nothing else to wait for (X8)
+      const asks = [n.expect?.length, n.choose, n.trace, n.next].filter(Boolean).length;
+      if (asks > 1) errors.push(`${nat}: a node waits for one thing — expect, choose, trace or next`);
+      if (n.choose) {
+        if (n.choose.options.filter((o) => o.right).length !== 1) errors.push(`${nat}.choose: needs exactly one right option`);
+        if (n.choose.go && !nodes.has(n.choose.go)) errors.push(`${nat}.choose.go: no node "${n.choose.go}"`);
+        n.choose.actions?.forEach((a, ai) => checkAction(a, `${nat}.choose.actions[${ai}]`));
+      }
+      if (n.trace) {
+        if (n.trace.go && !nodes.has(n.trace.go)) errors.push(`${nat}.trace.go: no node "${n.trace.go}"`);
+        n.trace.actions?.forEach((a, ai) => checkAction(a, `${nat}.trace.actions[${ai}]`));
+      }
       n.onEnter?.forEach((a, ai) => checkAction(a, `${nat}.onEnter[${ai}]`));
       n.onExit?.forEach((a, ai) => checkAction(a, `${nat}.onExit[${ai}]`));
     });

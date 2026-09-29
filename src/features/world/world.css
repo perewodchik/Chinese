@@ -141,6 +141,21 @@
   font-size: 16px;
   text-align: left;
   box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.world-note-ok {
+  flex: none;
+  min-width: 64px;
+  height: 36px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -168,6 +183,7 @@
   height: min(52%, 380px); /* fixed: new lines scroll inside, the box never grows */
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr); /* a long role line ellipses; it never widens the box past the Done button */
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--card);
@@ -1538,4 +1554,51 @@
   display: grid;
   place-items: center;
   pointer-events: none;
+}
+
+/* doing what the line says (X8): picture buttons in one scrolling row; the 地书 pad */
+.w-choose {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0;
+}
+
+.w-choice {
+  flex: none;
+  min-width: 56px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 18px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.w-choice[data-right] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.w-dishu {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+/* water on grey paving: the ink is wet slate, and a finished character dries away */
+.w-dishu canvas {
+  background: #b7b9c2;
+  border-radius: 8px;
+  filter: grayscale(1) contrast(0.9);
+  transition: opacity 1.6s ease-out;
+}
+
+.w-dishu[data-drying] canvas {
+  opacity: 0.15;
 }

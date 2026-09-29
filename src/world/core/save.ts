@@ -26,6 +26,7 @@ export const DEFAULT_SETTINGS: WorldSettings = {
   textSize: 'm',
   live: false,
   volume: 0.6,
+  music: 0.6,
 };
 
 /** What you arrive in Beijing with, in 元: enough for chapter 1 and a few treats, until the bank in chapter 3. */

@@ -432,5 +432,286 @@
     ]
    }
   ]
+ },
+ {
+  "id": "dishu",
+  "map": "tiantan-park",
+  "npc": "dishu-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "dishu",
+  "start": "a",
+  "words": [
+   {
+    "w": "地书",
+    "explain": "用水在地上写字。",
+    "en": "water calligraphy"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你看，我在地上写地书。地书是水写的字。",
+    "translate": "Look — I write 地书 on the ground, with water.",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-dishu",
+      "step": "do"
+     }
+    ],
+    "why": "地书 “ground writing”: old men write poems on the paving with a big water brush; the sun dries them in minutes."
+   },
+   {
+    "id": "b",
+    "say": "你也写一个吧！写一个“大”字。",
+    "translate": "You write one too! Write the character 大.",
+    "trace": {
+     "chars": "大",
+     "go": "c"
+    }
+   },
+   {
+    "id": "c",
+    "say": "好！再写一个“人”字。",
+    "translate": "Good! Now the character 人.",
+    "trace": {
+     "chars": "人",
+     "go": "d"
+    }
+   },
+   {
+    "id": "d",
+    "say": "写得真好！你看，水没有了，字也没有了。",
+    "translate": "Beautifully written! Look — the water dries and the characters are gone. That’s 地书.",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-dishu"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "kite-fly",
+  "map": "tiantan-park",
+  "npc": "fengzheng-shifu",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "kite",
+  "when": {
+   "weather": "wind"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "风筝",
+    "explain": "纸做的，天上飞的，有一条线。",
+    "en": "kite"
+   },
+   {
+    "w": "龙",
+    "explain": "很长的动物，在天上飞。",
+    "en": "dragon"
+   },
+   {
+    "w": "风",
+    "explain": "天上来的，树会动。",
+    "en": "wind"
+   },
+   {
+    "w": "放",
+    "explain": "放风筝：让风筝上天。",
+    "en": "to fly (a kite)"
+   },
+   {
+    "w": "像",
+    "explain": "差不多一样。",
+    "en": "to look like"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "今天风很大！放风筝吧！我给你一个风筝。",
+    "translate": "Windy today — fly a kite! I’ll give you one.",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-kite-fly",
+      "step": "do"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "say": "你的风筝是红色的，像龙！是哪个？",
+    "translate": "The kite for you is red and very long, like a dragon. Which one?",
+    "simpler": "红色的，像龙。",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🦋"
+      },
+      {
+       "id": "o1",
+       "label": "🐉",
+       "right": true
+      },
+      {
+       "id": "o2",
+       "label": "🐟"
+      },
+      {
+       "id": "o3",
+       "label": "🦅"
+      }
+     ],
+     "go": "c"
+    }
+   },
+   {
+    "id": "c",
+    "say": "对！去放风筝吧！",
+    "translate": "Right! Off you go and fly it!",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "long-fengzheng"
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-kite-fly"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "kongzhu",
+  "map": "tiantan-park",
+  "npc": "kongzhu-nainai",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "kongzhu",
+  "start": "a",
+  "words": [
+   {
+    "w": "空竹",
+    "explain": "两个棍子和一条线，让它转。",
+    "en": "diabolo"
+   },
+   {
+    "w": "抖",
+    "explain": "手很快地上下动。",
+    "en": "to shake, to spin (a diabolo)"
+   },
+   {
+    "w": "棍子",
+    "explain": "长长的，木头做的。",
+    "en": "stick"
+   },
+   {
+    "w": "左手",
+    "explain": "左边的手。",
+    "en": "left hand"
+   },
+   {
+    "w": "右手",
+    "explain": "右边的手。",
+    "en": "right hand"
+   },
+   {
+    "w": "转",
+    "explain": "一圈一圈地动。",
+    "en": "to spin"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你想学抖空竹吗？我教你！",
+    "translate": "Want to learn the diabolo? I’ll teach you!",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-kongzhu",
+      "step": "do"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "say": "第一，拿两个小棍子。",
+    "translate": "First take two little sticks, one in each hand.",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "one stick"
+      },
+      {
+       "id": "o1",
+       "label": "two sticks, one per hand",
+       "right": true
+      },
+      {
+       "id": "o2",
+       "label": "no sticks"
+      }
+     ],
+     "go": "c"
+    },
+    "simpler": "拿棍子！"
+   },
+   {
+    "id": "c",
+    "say": "左手上，右手下！快！",
+    "translate": "Left hand up, right hand down! A bit faster!",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "left up, right down",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "left down, right up"
+      },
+      {
+       "id": "o2",
+       "label": "both hands up"
+      }
+     ],
+     "go": "d"
+    },
+    "simpler": "左手上，右手下。"
+   },
+   {
+    "id": "d",
+    "say": "好！你会抖空竹了！你看，空竹转了！这个给你。",
+    "translate": "Good! Look — the diabolo is spinning! This one is yours.",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "kongzhu"
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-kongzhu"
+     }
+    ],
+    "simpler": "空竹转了！"
+   }
+  ]
  }
 ]

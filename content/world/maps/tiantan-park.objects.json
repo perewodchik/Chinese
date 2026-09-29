@@ -208,5 +208,38 @@
    41,
    16
   ]
+ },
+ {
+  "kind": "npc",
+  "id": "dishu",
+  "npc": "dishu-yeye",
+  "tile": [
+   30,
+   20
+  ],
+  "facing": "left"
+ },
+ {
+  "kind": "npc",
+  "id": "kite-maker",
+  "npc": "fengzheng-shifu",
+  "tile": [
+   26,
+   19
+  ],
+  "facing": "down",
+  "when": {
+   "weather": "wind"
+  }
+ },
+ {
+  "kind": "npc",
+  "id": "kongzhu",
+  "npc": "kongzhu-nainai",
+  "tile": [
+   34,
+   15
+  ],
+  "facing": "left"
  }
 ]

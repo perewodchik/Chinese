@@ -43,7 +43,7 @@
         "id": "card",
         "now": "The spirits could be anywhere in Beijing. Buy a 交通卡 at 南锣鼓巷 station, at the east end of the lanes.",
         "done": {
-          "scene": "card"
+          "flag": "has-card"
         }
       },
       {
@@ -368,6 +368,72 @@
       {
         "id": "show",
         "now": "Show 老刘 the photo at the teahouse."
+      }
+    ]
+  },
+  {
+    "id": "side-xiangqi",
+    "title": "A game of 象棋",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "do",
+        "now": "Play Chinese chess with the old man on 南锣鼓巷 — say which piece you move."
+      }
+    ]
+  },
+  {
+    "id": "side-dance",
+    "title": "Square dancing",
+    "chapter": 1,
+    "steps": [
+      {
+        "id": "do",
+        "now": "In the evening, dance with the aunties on the 鼓楼 square — do what she calls."
+      }
+    ]
+  },
+  {
+    "id": "side-jiaozi",
+    "title": "Dumplings with 王阿姨",
+    "chapter": 1,
+    "steps": [
+      {
+        "id": "do",
+        "now": "At New Year, make dumplings with 王阿姨 — do each step she says."
+      }
+    ]
+  },
+  {
+    "id": "side-xiangsheng",
+    "title": "A bit of 相声",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "do",
+        "now": "老刘 at the teahouse has a joke for you. Listen, and laugh if you get it."
+      }
+    ]
+  },
+  {
+    "id": "side-waimai",
+    "title": "The lost delivery",
+    "chapter": 1,
+    "steps": [
+      {
+        "id": "do",
+        "now": "The delivery rider in 帽儿胡同 (in the evening) cannot find a house number — help him."
+      }
+    ]
+  },
+  {
+    "id": "side-polan",
+    "title": "Old things for sale",
+    "chapter": 1,
+    "steps": [
+      {
+        "id": "do",
+        "now": "In the morning a recycler rides through 帽儿胡同 calling out — talk to him."
       }
     ]
   }

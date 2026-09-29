@@ -86,5 +86,16 @@
         }
       }
     ]
+  },
+  {
+    "id": "side-fishing",
+    "title": "Fishing on 后海",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "do",
+        "now": "Once he has his bait, the old fisherman on 后海 asks you to sit with him."
+      }
+    ]
   }
 ]

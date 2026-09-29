@@ -529,7 +529,7 @@
   "map": "xiyuan",
   "npc": "jingju-yanyuan",
   "trigger": "talk",
-  "priority": 2,
+  "priority": -1,
   "when": {
    "all": [
     {
@@ -616,6 +616,276 @@
     "id": "c",
     "say": "好，再见！",
     "translate": "All right, bye!"
+   }
+  ]
+ },
+ {
+  "id": "kaoya",
+  "map": "qianmen-street",
+  "npc": "kaoya-shifu",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "kaoya",
+  "start": "a",
+  "words": [
+   {
+    "w": "饼",
+    "explain": "很薄的，圆的，面做的。",
+    "en": "pancake"
+   },
+   {
+    "w": "酱",
+    "explain": "黑色的，有一点儿甜。",
+    "en": "sauce"
+   },
+   {
+    "w": "黄瓜",
+    "explain": "绿色的，长长的，可以吃。",
+    "en": "cucumber"
+   },
+   {
+    "w": "卷",
+    "explain": "一边到另一边，像一个小包。",
+    "en": "to roll up"
+   },
+   {
+    "w": "鸭子",
+    "explain": "水上的鸟，北京烤鸭就是它。",
+    "en": "duck"
+   },
+   {
+    "w": "放",
+    "explain": "把东西放在上面。",
+    "en": "to put"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "来，吃烤鸭！第一，拿饼。",
+    "translate": "Come, taste the roast duck! I’ll show you. First take a pancake.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-kaoya",
+      "step": "do"
+     }
+    ],
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🫓 pancake",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "🦆 duck"
+      },
+      {
+       "id": "o2",
+       "label": "🥒 cucumber"
+      }
+     ],
+     "go": "b"
+    },
+    "simpler": "拿饼！"
+   },
+   {
+    "id": "b",
+    "say": "第二，放一点儿酱。",
+    "translate": "A little sauce.",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🥒 cucumber"
+      },
+      {
+       "id": "o1",
+       "label": "🥣 sauce",
+       "right": true
+      },
+      {
+       "id": "o2",
+       "label": "🫓 pancake"
+      }
+     ],
+     "go": "c"
+    },
+    "simpler": "放酱！"
+   },
+   {
+    "id": "c",
+    "say": "第三，放鸭子和黄瓜。",
+    "translate": "Then the duck and the cucumber.",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🦆🥒 duck and cucumber",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "🥣 more sauce"
+      },
+      {
+       "id": "o2",
+       "label": "🫓 another pancake"
+      }
+     ],
+     "go": "d"
+    },
+    "simpler": "鸭子和黄瓜！"
+   },
+   {
+    "id": "d",
+    "say": "第四，卷！卷好了吃吧！",
+    "translate": "Roll it up and eat!",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🌯 roll it",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "🥢 chopsticks"
+      },
+      {
+       "id": "o2",
+       "label": "🍜 soup"
+      }
+     ],
+     "go": "e"
+    }
+   },
+   {
+    "id": "e",
+    "say": "好吃吧？这是北京烤鸭！",
+    "translate": "Delicious, eh? That’s Beijing roast duck!",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-kaoya"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "masks",
+  "map": "xiyuan",
+  "npc": "jingju-yanyuan",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "stamp": "lianpu",
+  "when": {
+   "scene": "opera"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "京剧",
+    "explain": "中国的老戏，有唱有打。",
+    "en": "Peking opera"
+   },
+   {
+    "w": "红脸",
+    "explain": "京剧里的红色的脸，是好人。",
+    "en": "the red face: loyal"
+   },
+   {
+    "w": "白脸",
+    "explain": "京剧里的白色的脸，是坏人。",
+    "en": "the white face: cunning"
+   },
+   {
+    "w": "黑脸",
+    "explain": "京剧里的黑色的脸，不说假话。",
+    "en": "the black face: honest"
+   },
+   {
+    "w": "假话",
+    "explain": "不是真的话。",
+    "en": "a lie"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "京剧里，红脸是好人，白脸是坏人，黑脸不说假话。",
+    "translate": "I’ll paint your face. The red face is a good man, the white face a bad one, the black face never lies.",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-masks",
+      "step": "do"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "say": "包公不说假话。他是红脸、白脸，还是黑脸？",
+    "translate": "包公 never lies. Which face is his?",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🟥 red"
+      },
+      {
+       "id": "o1",
+       "label": "⬜ white"
+      },
+      {
+       "id": "o2",
+       "label": "⬛ black",
+       "right": true
+      }
+     ],
+     "go": "c"
+    }
+   },
+   {
+    "id": "c",
+    "say": "对！关公是好人。他是红脸、白脸，还是黑脸？",
+    "translate": "Right! 关公 is a good, loyal man. And his?",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🟥 red",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "⬜ white"
+      },
+      {
+       "id": "o2",
+       "label": "⬛ black"
+      }
+     ],
+     "go": "d"
+    }
+   },
+   {
+    "id": "d",
+    "say": "对了！你是京剧的朋友了！",
+    "translate": "Right again! You’re a friend of the opera now!",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-masks"
+     }
+    ],
+    "why": "包公 was a famous honest judge; 关公, a general, stands for loyalty. The face tells the audience who someone is before he sings a note."
    }
   ]
  }

@@ -11,6 +11,7 @@
 
 import * as Phaser from 'phaser';
 import { ahead } from '../core/grid';
+import { rabbitSpot } from '../core/rabbit';
 import type { Facing, MapObject, PartOfDay, Tile } from '../core/types';
 import { DAY_LOOK, zoomFor } from './look';
 import { edgeAt, resolveArrival, throughEdge, type Arrival, type Door } from './doors';
@@ -83,6 +84,8 @@ export class WorldScene extends Phaser.Scene {
   info!: MapInfo;
   private hero!: Phaser.GameObjects.Sprite;
   private rabbit!: Phaser.GameObjects.Sprite;
+  /** his side of you, as a step from your tile; null on your shoulder */
+  private rabbitAt: Tile | null = null;
   private pet: Phaser.GameObjects.Sprite | null = null;
   /** 兔儿爷's hat for the day and the feeling over his head (X7) */
   private hat: Phaser.GameObjects.Sprite | null = null;
@@ -199,7 +202,8 @@ export class WorldScene extends Phaser.Scene {
 
     const { x, y } = feet(this.at);
     this.hero = this.add.sprite(x, y + 3, 'chars', `hero/${this.facing}-0`).setOrigin(0, 1).setDepth(y + 0.5);
-    this.rabbit = this.add.sprite(x + 12, y - 18, 'chars', 'rabbit/down-0').setOrigin(0, 1).setDepth(y + 0.6);
+    this.rabbit = this.add.sprite(x, y, 'chars', 'rabbit/down-0').setOrigin(0, 1);
+    this.rabbitAt = null;
     this.bikeSprite = null;
     if (this.opts.bike) this.setBike(true);
     this.hat = null;
@@ -208,6 +212,7 @@ export class WorldScene extends Phaser.Scene {
     this.setHat(this.opts.hat ?? 'none');
     this.events.on(Phaser.Scenes.Events.POST_UPDATE, () => this.dressRabbit());
     this.pet = this.opts.pet?.(this.opts.map) ? this.add.sprite(x - TILE, y + 1, 'props', 'cat/sit').setOrigin(0, 1).setDepth(y + 0.4) : null;
+    this.placeRabbit(this.at, 0, this.pet ? [this.at[0] - 1, this.at[1]] : null);
     // the bob is in the frames: 0 up, 1 down
     this.time.addEvent({
       delay: 450,
@@ -663,10 +668,39 @@ export class WorldScene extends Phaser.Scene {
         this.next();
       },
     });
-    // 兔儿爷 floats after, a little behind
-    this.tweens.add({ targets: this.rabbit, x: x + 12, duration: ms * 1.6, ease: 'Sine.easeOut' });
-    this.rabbit.setDepth(y + 0.6);
-    this.tweens.add({ targets: this.rabbit, y: y - 18, duration: ms * 1.6, ease: 'Sine.easeOut' });
+    this.placeRabbit(t, ms * 1.6, this.pet ? prev : null);
+  }
+
+  /**
+   * 兔儿爷 floats after you onto a free tile beside you — never over a wall,
+   * a building or a person — and sorts by that tile, so what stands in front
+   * of him hides him. Boxed in, he rides on your shoulder.
+   */
+  private placeRabbit(at: Tile, ms: number, cat: Tile | null) {
+    const taken = this.occupied();
+    if (cat) taken.add(`${cat[0]},${cat[1]}`);
+    const off = rabbitSpot(this.info.grid, at, this.facing, this.rabbitAt, taken);
+    const shoulder = off[0] === 0 && off[1] === 0;
+    this.rabbitAt = shoulder ? null : off;
+    const feetY = (at[1] + off[1] + 1) * TILE;
+    const x = (at[0] + off[0]) * TILE + (shoulder ? 12 : 0);
+    const y = shoulder ? feetY - 18 : feetY + 1;
+    const depth = shoulder ? feetY + 0.6 : feetY + 0.45;
+    this.tweens.killTweensOf(this.rabbit);
+    if (!ms) {
+      this.rabbit.setPosition(x, y).setDepth(depth);
+      return;
+    }
+    // sort by the lower of the two rows on the way, so he never slips under what he passes in front of
+    this.rabbit.setDepth(Math.max(this.rabbit.depth, depth));
+    this.tweens.add({
+      targets: this.rabbit,
+      x,
+      y,
+      duration: ms,
+      ease: 'Sine.easeOut',
+      onComplete: () => this.rabbit.setDepth(depth),
+    });
   }
 
   // ---------------------------------------------------------------- life (D5)

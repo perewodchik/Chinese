@@ -3,6 +3,7 @@ import { playLine } from './lineVoice';
 import type { Line } from '../core/dialogue/source';
 import type { NpcCard } from '../core/types';
 import { Hearts } from './Hearts';
+import { ChoiceRow, DishuPad } from './Doing';
 import { Portrait } from './Portrait';
 import { PropSprite } from './PropSprite';
 import { STICKERS } from '../core/photo';
@@ -80,6 +81,8 @@ export function Dialogue({
   setPinyin,
   onProceed,
   onClose,
+  onPick,
+  onTraced,
   children,
 }: {
   view: TalkView;
@@ -91,11 +94,15 @@ export function Dialogue({
   setPinyin: (on: boolean) => void;
   onProceed: () => void;
   onClose: () => void;
+  /** a picture picked, the characters written (X8) */
+  onPick: (id: string) => void;
+  onTraced: () => void;
   children?: ReactNode;
 }) {
   const list = useRef<HTMLOListElement>(null);
   const last = [...view.history].reverse().find((s): s is Said & { line: Line } => s.who === 'npc' && !!s.line)?.line;
   const name = view.title ?? nameOf(view.npc, view.sprite);
+  const node = view.scene.nodes.find((n) => n.id === view.state.node);
 
   // On an iPad the on-screen keyboard covers the bottom of the page without
   // resizing it: lift the bubble by what the visual viewport has lost.
@@ -135,7 +142,7 @@ export function Dialogue({
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
-      if ((e.key === ' ' || e.key === 'Enter') && view.mode !== 'reply') {
+      if ((e.key === ' ' || e.key === 'Enter') && (view.mode === 'tap' || view.mode === 'over')) {
         e.preventDefault();
         onProceed();
       } else if (e.key === 'Escape') onClose();
@@ -189,6 +196,10 @@ export function Dialogue({
       <footer className="wd-foot">
         {view.mode === 'reply' ? (
           children
+        ) : view.mode === 'choose' && node?.choose ? (
+          <ChoiceRow choose={node.choose} showRight={view.state.hint >= 3} onPick={onPick} />
+        ) : view.mode === 'trace' && node?.trace ? (
+          <DishuPad key={`${view.scene.id}/${node.id}`} chars={node.trace.chars} onDone={onTraced} />
         ) : (
           <button type="button" className="wd-go" onClick={onProceed} autoFocus>
             {view.mode === 'over' ? 'Done' : 'Go on ›'}

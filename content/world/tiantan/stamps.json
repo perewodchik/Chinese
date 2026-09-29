@@ -27,5 +27,26 @@
     "en": "Sang at the Temple of Heaven",
     "place": "tiantan-park",
     "design": "song"
+  },
+  {
+    "id": "dishu",
+    "name": "地书",
+    "en": "Water writing",
+    "place": "tiantan-park",
+    "design": "dishu"
+  },
+  {
+    "id": "kite",
+    "name": "风筝",
+    "en": "A kite at 天坛",
+    "place": "tiantan-park",
+    "design": "kite"
+  },
+  {
+    "id": "kongzhu",
+    "name": "空竹",
+    "en": "The diabolo",
+    "place": "tiantan-park",
+    "design": "kongzhu"
   }
 ]

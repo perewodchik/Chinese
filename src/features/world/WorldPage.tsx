@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { dayOf, partOfDay } from '../../world/core/clock';
 import { hintWithName } from '../../world/core/voice';
-import { skyOf, weatherOf } from '../../world/core/calendar';
+import { festivalOf, skyOf, weatherOf, type FestivalId } from '../../world/core/calendar';
 import { CAT_LANE } from '../../world/core/room';
 import { DOZE_AFTER_MS, emoteFor, hatFor } from '../../world/core/rabbit';
 import { districtInfo } from '../../world/core/districts';
@@ -25,6 +25,7 @@ import { RideSheet } from '../../world/ui/RideSheet';
 import { setVoiceCards } from '../../world/ui/lineVoice';
 import { Ambient } from '../../world/audio/ambient';
 import { mixFor } from '../../world/audio/mix';
+import { moodFor } from '../../world/audio/music';
 import type { MapLife } from '../../world/core/maptext';
 import { fareOut, stopMap } from '../../world/core/ride';
 import { rideKey, type Mode } from '../../world/core/travel';
@@ -168,7 +169,16 @@ export function WorldPage() {
   const remix = (minutes?: number) => {
     const h = here.current;
     const s = game.current();
-    if (h && s) ambient.current?.setMix(mixFor(h.id, h.life, partOfDay(minutes ?? s.clock)));
+    if (!h || !s) return;
+    const at = minutes ?? s.clock;
+    const time = partOfDay(at);
+    const day = dayOf(at);
+    ambient.current?.setMix(mixFor(h.id, h.life, time));
+    // the music follows the place, the hour, the weather and the day (?weather= tries one)
+    const sky = query.get('weather');
+    const weather = sky === 'rain' || sky === 'snow' ? sky : weatherOf(day);
+    const festival = (query.get('festival') as FestivalId | null) ?? festivalOf(day)?.id ?? null;
+    ambient.current?.setMood(moodFor({ mapId: h.id, life: h.life, time, weather, festival }));
   };
   const busy = useRef(false);
   busy.current = note !== null || talk.view !== null || panel !== null || riding !== null || photo;
@@ -386,6 +396,7 @@ export function WorldPage() {
       if (dayOf(minutes) !== dayOf(minutes - 1)) {
         world.current?.setSky(skyOf(weatherOf(dayOf(minutes))));
         world.current?.setHat(hatFor(minutes));
+        remix(minutes);
       }
       const now = partOfDay(minutes);
       if (now !== part) {
@@ -456,8 +467,20 @@ export function WorldPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
+  // Enter (or Escape) puts a note away, like its Ok button.
   useEffect(() => {
-    const a = new Ambient(game.current()?.settings.volume ?? 0.6);
+    if (note === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' && e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      setNote(null);
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [note]);
+  useEffect(() => {
+    const a = new Ambient(game.current()?.settings.volume ?? 0.6, game.current()?.settings.music ?? 0.6);
     ambient.current = a;
     const wake = () => a.wake();
     const vis = () => a.setHidden(document.visibilityState === 'hidden');
@@ -476,6 +499,15 @@ export function WorldPage() {
   useEffect(() => {
     if (volume !== undefined) ambient.current?.setVolume(volume);
   }, [volume]);
+  const music = game.save?.settings.music;
+  useEffect(() => {
+    if (music !== undefined) ambient.current?.setMusicVolume(music);
+  }, [music]);
+  // the music steps back while someone talks, and under a full-screen panel
+  const talking = talk.view !== null;
+  useEffect(() => {
+    ambient.current?.duck(talking ? 0.35 : panel !== null ? 0.6 : 1);
+  }, [talking, panel]);
   useEffect(() => {
     if (riding) ambient.current?.chime();
   }, [riding]);
@@ -553,6 +585,8 @@ export function WorldPage() {
           setPinyin={setPinyin}
           onProceed={talk.proceed}
           onClose={talk.close}
+          onPick={talk.pick}
+          onTraced={talk.traced}
         >
           <InputBar
             onSend={talk.reply}
@@ -624,9 +658,12 @@ export function WorldPage() {
         <Joystick onStick={(f, run) => world.current?.stick(f, run)} onAct={() => world.current?.act()} />
       )}
       {note !== null && (
-        <button type="button" className="world-note" onClick={() => setNote(null)}>
-          {note}
-        </button>
+        <div className="world-note" role="status">
+          <span>{note}</span>
+          <button type="button" className="world-note-ok" onClick={() => setNote(null)} autoFocus>
+            Ok
+          </button>
+        </div>
       )}
       {state !== 'ready' && (
         <div className="world-loading small">{state === 'failed' ? 'The game could not start. Reload to try again.' : 'Opening Beijing…'}</div>

@@ -192,5 +192,21 @@
   ],
   "text": "……",
   "en": "A dark corner between two walls"
+ },
+ {
+  "kind": "npc",
+  "id": "polan",
+  "npc": "polan-shifu",
+  "tile": [
+   28,
+   9
+  ],
+  "facing": "left",
+  "when": {
+   "hours": [
+    7,
+    12
+   ]
+  }
  }
 ]

@@ -567,5 +567,61 @@
     "misses": [
       "啊？糖葫芦！"
     ]
+  },
+  {
+    "id": "xiangqi-yeye",
+    "name": "下棋的爷爷",
+    "role": "an old man playing Chinese chess on a stool in the lane",
+    "look": {
+      "sprite": "grandpa"
+    },
+    "voice": "chen",
+    "character": "Loud, happy to lose to a beginner, very unhappy to lose to his neighbour.",
+    "knows": [
+      "马走日, 象走田 — the horse moves like 日, the elephant like 田"
+    ],
+    "wants": [
+      "An opponent"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "象棋": "中国的棋。"
+    }
+  },
+  {
+    "id": "polan-shifu",
+    "name": "收破烂儿的师傅",
+    "role": "the recycler who rides his tricycle through the hutongs, calling out",
+    "look": {
+      "sprite": "uncle"
+    },
+    "voice": "chen",
+    "character": "Cheerful, knows everyone’s old things and everyone’s news.",
+    "knows": [
+      "Who has moved, who has thrown out what"
+    ],
+    "wants": [
+      "Old things"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "旧": "不新的，用了很久的。"
+    }
   }
 ]

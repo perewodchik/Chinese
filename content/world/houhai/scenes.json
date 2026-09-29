@@ -395,5 +395,93 @@
     "why": "端午 remembers the poet 屈原: people raced boats to find him in the river and threw rice in for the fish."
    }
   ]
+ },
+ {
+  "id": "fishing",
+  "map": "houhai-lake",
+  "npc": "fisher-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": 2,
+  "when": {
+   "scene": "bait-give"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "钓鱼",
+    "explain": "用线在水里拿鱼。",
+    "en": "to fish"
+   },
+   {
+    "w": "鱼",
+    "explain": "水里的动物。",
+    "en": "fish"
+   },
+   {
+    "w": "拉",
+    "explain": "手往你这边动。",
+    "en": "to pull"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "来，坐这儿钓鱼。别说话……",
+    "translate": "Come, sit here, we’ll fish together. Slowly, no talking…",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-fishing",
+      "step": "do"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "say": "……鱼来了！拉！拉！",
+    "translate": "…A fish! Pull, quick!",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🎣 pull!",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "💤 wait"
+      },
+      {
+       "id": "o2",
+       "label": "🍞 more bait"
+      }
+     ],
+     "go": "c"
+    },
+    "simpler": "拉！"
+   },
+   {
+    "id": "c",
+    "say": "好！一条小鱼。钓鱼很好玩儿吧？",
+    "translate": "Good! A little fish. Fishing is fun, isn’t it?",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "xiaoyu"
+     },
+     {
+      "do": "hearts",
+      "npc": "fisher-yeye",
+      "delta": 1
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-fishing"
+     }
+    ]
+   }
+  ]
  }
 ]

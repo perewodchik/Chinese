@@ -37,6 +37,10 @@ export interface Utterance {
   via: 'voice' | 'keyboard';
   /** a sticker sent instead of words (X6): understood as the word it stands for */
   sticker?: string;
+  /** a button picked at a "do what they say" line (X8) */
+  choice?: string;
+  /** the characters written with a finger (X8) */
+  traced?: boolean;
 }
 
 export interface DialogueState {
@@ -62,7 +66,9 @@ export type TurnKind =
   | 'explain'
   | 'polite'
   | 'not_chinese'
-  | 'miss';
+  | 'miss'
+  /** a wrong pick at a choose line: "not that one", try again */
+  | 'wrong';
 
 /** What the companion should offer, unasked, after this turn. */
 export type CompanionCue =

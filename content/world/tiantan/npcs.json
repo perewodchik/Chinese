@@ -81,5 +81,92 @@
     "misses": [
       "你说什么呀？"
     ]
+  },
+  {
+    "id": "dishu-yeye",
+    "name": "写字的爷爷",
+    "role": "an old man who writes characters on the paving with a water brush",
+    "look": {
+      "sprite": "grandpa",
+      "palette": "blue"
+    },
+    "voice": "wei",
+    "character": "Unhurried; writes a poem a morning and lets the sun take it away.",
+    "knows": [
+      "Water writing — 地书 — is done every morning in Beijing parks"
+    ],
+    "wants": [
+      "Someone to write with"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "地书": "用水在地上写字。"
+    }
+  },
+  {
+    "id": "fengzheng-shifu",
+    "name": "卖风筝的师傅",
+    "role": "a kite maker who comes to the park on windy days",
+    "look": {
+      "sprite": "uncle",
+      "palette": "brown"
+    },
+    "voice": "zhiyuan",
+    "character": "Weathered, proud of his bamboo frames; talks about kites like old friends.",
+    "knows": [
+      "A good kite needs a windy day"
+    ],
+    "wants": [
+      "Wind"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "风筝": "在天上飞的东西，有线。"
+    }
+  },
+  {
+    "id": "kongzhu-nainai",
+    "name": "抖空竹的奶奶",
+    "role": "a grandmother spinning a diabolo in the park",
+    "look": {
+      "sprite": "auntie",
+      "palette": "green"
+    },
+    "voice": "wang",
+    "character": "Brisk and patient; has taught half the park.",
+    "knows": [
+      "How to spin a 空竹"
+    ],
+    "wants": [
+      "A pupil"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "空竹": "两根棍子，一条线，让它转。"
+    }
   }
 ]

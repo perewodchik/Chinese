@@ -715,11 +715,6 @@ fixed into STATUS.md. Only then go to §10.
 
 ## 10. After Beijing: Shanghai, then Chengdu (added 2026-09-28, 22:10)
 
-**When:** only after every task A–I **and X0–X12 (§9½)** is ticked, **and only if the local time
-is before 10:00** when you reach this point. Otherwise write in STATUS.md
-that you stopped before §10 and end. Once §10 has started, keep going like
-any other phase (commit per task, resume from STATUS.md).
-
 **This overrides concept §1 rule 5 ("only Beijing")** — the learner asked
 for more cities after Beijing is done. All other rules stay: no dialect
 (no 上海话, no 四川话 — standard Mandarin everywhere), help is free, no

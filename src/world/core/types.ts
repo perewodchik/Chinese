@@ -179,6 +179,33 @@ export interface Hint {
   full: string;
 }
 
+/** One button of a "do what they say" step (X8): a picture word, not Chinese — the Chinese is in the line. */
+export interface Choice {
+  id: string;
+  /** an emoji or a few English words on the button */
+  label: string;
+  right?: boolean;
+}
+
+/**
+ * Understanding shown by doing (X8): the line says in Chinese what to do,
+ * the player picks the matching picture — left, right, the red mask, door
+ * 13 … A wrong pick is a gentle "not that one"; from the second the right
+ * one is shown.
+ */
+export interface Choose {
+  options: Choice[];
+  go?: string;
+  actions?: Action[];
+}
+
+/** Write it with a finger (地书, X8): the characters, stroke by stroke, like the reader's writing pad. */
+export interface Trace {
+  chars: string;
+  go?: string;
+  actions?: Action[];
+}
+
 export interface DialogueNode {
   id: string;
   /** who says it: the scene's NPC by default, or another NPC id, or 'hero' */
@@ -193,6 +220,10 @@ export interface DialogueNode {
   /** a line to hear first (the Echo Wall's whisper): its words stay hidden until shown */
   listen?: boolean;
   expect?: Expect[];
+  /** pick what the line says (X8) */
+  choose?: Choose;
+  /** write what the line says with a finger (X8) */
+  trace?: Trace;
   /** when there is nothing to expect: tap to go on here (none = the end) */
   next?: string;
   hint?: Hint;
@@ -318,8 +349,10 @@ export interface WorldSettings {
   textSize: TextSize;
   /** the future Live conversation; off and unused in this build */
   live: boolean;
-  /** 0–1 */
+  /** 0–1, the street's sounds */
   volume: number;
+  /** 0–1, the music */
+  music: number;
 }
 
 export interface Place {

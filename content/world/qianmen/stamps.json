@@ -27,5 +27,19 @@
     "en": "A night at the opera",
     "place": "xiyuan",
     "design": "show"
+  },
+  {
+    "id": "kaoya",
+    "name": "烤鸭",
+    "en": "Roast duck",
+    "place": "qianmen-street",
+    "design": "kaoya"
+  },
+  {
+    "id": "lianpu",
+    "name": "脸谱",
+    "en": "Opera faces",
+    "place": "xiyuan",
+    "design": "lianpu"
   }
 ]

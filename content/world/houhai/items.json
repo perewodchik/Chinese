@@ -9,5 +9,11 @@
     "name": "粽子",
     "en": "zongzi",
     "gift": true
+  },
+  {
+    "id": "xiaoyu",
+    "name": "小鱼",
+    "en": "a little fish",
+    "gift": true
   }
 ]

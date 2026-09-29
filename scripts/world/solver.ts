@@ -16,12 +16,11 @@
 import { readFileSync } from 'node:fs';
 import { castMap } from '../../src/world/core/cast';
 import { libraryLexicon } from '../../src/world/core/dialogue/lexicon';
-import { ScriptedDialogue } from '../../src/world/core/dialogue/scripted';
+import { answerFor, ScriptedDialogue } from '../../src/world/core/dialogue/scripted';
 import { advanceQuests } from '../../src/world/core/quests';
 import { applyAll, newSave, type SaveAction } from '../../src/world/core/save';
 import { autoScene, sceneFor } from '../../src/world/core/scenes';
 import type { Scene, WorldSave } from '../../src/world/core/types';
-import { hintWithName } from '../../src/world/core/voice';
 import { readMap, type MapInfo } from '../../src/world/engine/mapdata';
 import { checkContent, readLibrary } from './check-content';
 
@@ -64,7 +63,8 @@ function play(s: WorldSave, scene: Scene, short: string[]): WorldSave {
   let save = act(s, t.actions, short, scene.id);
   for (let guard = 0; !t.state.ended && guard < 40; guard++) {
     const node = scene.nodes.find((n) => n.id === t.state.node)!;
-    t = node.expect?.length ? src.reply(t.state, { text: node.hint ? hintWithName(node.hint, t.state.name ?? '').full : '', via: 'keyboard' }) : src.proceed(t.state);
+    const answer = answerFor(node, t.state.name ?? '');
+    t = answer ? src.reply(t.state, answer) : node.expect?.length ? src.reply(t.state, { text: '', via: 'keyboard' }) : src.proceed(t.state);
     save = act(save, t.actions, short, scene.id);
   }
   return save;
