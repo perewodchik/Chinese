@@ -12,23 +12,13 @@ import { canRecognise } from '../../platform/audio/recognition';
 import { Seg } from '../../ui/Seg';
 import { rememberInput } from './typing';
 import type { WorldContent } from './content';
-import {
-  BAG_FILTERS,
-  bagRows,
-  filterOf,
-  itemFacts,
-  type BagFilter,
-  idiomRows,
-  spiritRows,
-  stampRows,
-} from './panelRows';
+import { BAG_FILTERS, bagRows, filterOf, itemFacts, type BagFilter } from './panelRows';
 import { leads } from '../core/journal';
 import { Diary, JournalNow, JournalStory, type RouteRequest } from './Journal';
 import { People } from './People';
 import { markSeen, MENU, menuNews, panelTarget, readMemory, remember, tabForKey, tabHasNews, viewKey, VIEWS, writeMemory, type MenuAt, type MenuMemory, type MenuTab, type PanelId } from './menu';
 import './menu.css';
-import { ALBUM_MAX, loadAlbum, postcardPng, saveAlbum, saveFile, type Photo } from './album';
-import { ZhText } from './ZhText';
+import { Album, Idioms, Spirits, Stamps } from './Collection';
 import { MapTab } from './MapTab';
 
 /**
@@ -185,72 +175,13 @@ export function Panels({
           {key === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} route={route} />}
           {key === 'people' && <People save={save} content={content} onTrack={(quest) => onAct?.({ do: 'track', quest, rev: Date.now() })} onShowRoute={showRoute} />}
           {key === 'collection/spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
-          {key === 'collection/idioms' && <Idioms save={save} content={content} pinyin={pinyin} />}
-          {key === 'collection/stamps' && <Stamps save={save} content={content} />}
+          {key === 'collection/idioms' && <Idioms save={save} content={content} pinyin={pinyin} onAct={onAct} />}
+          {key === 'collection/stamps' && <Stamps save={save} content={content} onShowRoute={showRoute} />}
           {key === 'collection/album' && <Album user={user} />}
           {key === 'settings' && <Settings settings={save.settings} onChange={onSettings} onReset={onReset} />}
         </div>
       </section>
     </div>
-  );
-}
-
-/** The album (X6): photos taken on this device; tap one to write a postcard or to throw it away. */
-function Album({ user }: { user: string }) {
-  const [list, setList] = useState<Photo[]>(() => loadAlbum(user));
-  const [open, setOpen] = useState<string | null>(null);
-  const [caption, setCaption] = useState('');
-  const [note, setNote] = useState<string | null>(null);
-  if (!list.length) return <Empty han="照">No photos yet. Tap 📷 at the top to take one.</Empty>;
-  const cur = list.find((p) => p.id === open) ?? null;
-  const pick = (p: Photo) => {
-    setOpen(open === p.id ? null : p.id);
-    setCaption(p.caption ?? '');
-    setNote(null);
-  };
-  const card = async () => {
-    if (!cur) return;
-    const text = caption.trim() || '北京，你好！';
-    setList(saveAlbum(user, list.map((p) => (p.id === cur.id ? { ...p, caption: text } : p))));
-    try {
-      saveFile(await postcardPng(cur, text, cur.place), `postcard-${cur.id}.png`);
-      setNote('Saved as a picture — send it or print it.');
-    } catch {
-      setNote('The postcard could not be made on this device.');
-    }
-  };
-  const drop = () => {
-    if (!cur) return;
-    setList(saveAlbum(user, list.filter((p) => p.id !== cur.id)));
-    setOpen(null);
-  };
-  return (
-    <>
-      <h3 className="wp-label">
-        相册 <span className="tiny muted">· on this device, the newest {ALBUM_MAX}</span>
-      </h3>
-      <ul className="w-album">
-        {list.map((p) => (
-          <li key={p.id}>
-            <button type="button" aria-pressed={open === p.id} onClick={() => pick(p)} aria-label={`Photo at ${p.place}`}>
-              <img src={p.img} alt="" width={400} height={300} />
-            </button>
-          </li>
-        ))}
-      </ul>
-      {cur && (
-        <div className="w-card-edit">
-          <input value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="写一句话：北京，你好！" lang="zh" maxLength={24} aria-label="Caption in Chinese" />
-          <button type="button" className="btn primary sm" onClick={() => void card()}>
-            Postcard
-          </button>
-          <button type="button" className="btn sm" onClick={drop}>
-            Delete
-          </button>
-          {note && <p className="tiny muted">{note}</p>}
-        </div>
-      )}
-    </>
   );
 }
 
@@ -526,91 +457,6 @@ function billName(who: string, content: WorldContent): string {
   if (who === 'bike') return '共享单车';
   if (who.startsWith('machine-')) return '售票机';
   return who ? '北京' : '—';
-}
-
-function Spirits({ save, content, pinyin }: { save: WorldSave; content: WorldContent; pinyin: boolean }) {
-  const rows = spiritRows(save, content.spirits);
-  if (!rows.length && !save.cat.name) return <Empty han="灵">The spirits of the broken lantern are still out there.</Empty>;
-  const found = rows.filter((r) => r.found).length;
-  return (
-    <>
-      <p className="small muted">
-        {found} of {rows.length} found
-      </p>
-      <ul className="wp-cards">
-        {rows.map(({ spirit: x, found }) =>
-          found ? (
-            <li key={x.id} className="wp-card">
-              <div className="wp-art">{x.image ? <img src={`/world/${x.image}`} alt="" width={96} height={96} /> : <span className="han">{x.hanzi}</span>}</div>
-              <div>
-                <b className="han wp-name">{x.hanzi}</b> <span className="small">{x.pinyin}</span> <span className="tiny muted">· {x.en} · {x.source}</span>
-                <ZhText zh={x.legend.zh} pinyin={pinyin} className="wd-zh wp-zh" />
-                <p className="small muted">{x.legend.en}</p>
-                {x.credit && <p className="tiny muted">{x.credit}</p>}
-              </div>
-            </li>
-          ) : (
-            <li key={x.id} className="wp-card" data-missing="">
-              <div className="wp-art">
-                <span className="han">？</span>
-              </div>
-              <p className="small muted">Not found yet. People talk about strange things — listen.</p>
-            </li>
-          ),
-        )}
-      </ul>
-    </>
-  );
-}
-
-function Idioms({ save, content, pinyin }: { save: WorldSave; content: WorldContent; pinyin: boolean }) {
-  const rows = idiomRows(save, content.idioms);
-  const npcName = (id?: string) => content.npcs.find((n) => n.id === id)?.name;
-  if (!rows.length) return <Empty han="成">No 成语 yet. When someone says one, it is written here.</Empty>;
-  return (
-    <>
-      {!save.flags.includes('idiom-book') && <p className="tiny muted">The book 《成语故事》 itself turns up in a bookshop later; until then they are kept here.</p>}
-      <ul className="wp-cards">
-        {rows.map(({ idiom: x, npc }) => (
-          <li key={x.id} className="wp-card wp-idiom">
-            <div>
-              <b className="han wp-name">{x.id}</b> <span className="small">{x.pinyin}</span>
-              {x.tier === 'story' && <span className="tiny muted"> · a story</span>}
-              {x.line && <span className="tiny muted"> · from the {x.line} line</span>}
-              <p className="wp-parts">
-                {x.parts.map((p, i) => (
-                  <span key={i}>
-                    <span className="han">{p.c}</span> <span className="tiny muted">{p.gloss}</span>
-                  </span>
-                ))}
-              </p>
-              <p className="small">{x.meaning}</p>
-              <ZhText zh={x.story.zh} pinyin={pinyin} className="wd-zh wp-zh" />
-              <p className="small muted">{x.story.en}</p>
-              {npcName(npc) && <p className="tiny muted">Heard from <span className="han">{npcName(npc)}</span>.</p>}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </>
-  );
-}
-
-function Stamps({ save, content }: { save: WorldSave; content: WorldContent }) {
-  const rows = stampRows(save, content.stamps);
-  if (!rows.length && !save.cat.name) return <Empty han="印">Your Beijing passport. Stamps come for what you do — buying a ticket, asking the way.</Empty>;
-  return (
-    <ul className="wp-stamps">
-      {rows.map(({ stamp: x, got }) => (
-        <li key={x.id} className="wp-stamp" data-got={got ? '' : undefined} data-landmark={x.landmark ? '' : undefined} title={x.en}>
-          <span className="wp-seal han" aria-hidden>
-            {got ? x.name : ''}
-          </span>
-          <span className="tiny">{got ? x.en : '…'}</span>
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 const ON_OFF = [

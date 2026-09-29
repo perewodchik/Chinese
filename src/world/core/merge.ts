@@ -116,6 +116,10 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
     // the quest followed: the later choice (§10 J2)
     ...(a.tracked || b.tracked ? { tracked: [a.tracked, b.tracked].filter((x) => !!x).sort((x, y) => y!.rev - x!.rev || (x!.quest < y!.quest ? -1 : 1))[0]! } : {}),
     ...(a.seen || b.seen ? { seen: byKey(a.seen ?? {}, b.seen ?? {}, Math.max) } : {}),
+    // 成语 Practise (§10 P3): the larger count of each, the later minute
+    ...(a.practised || b.practised
+      ? { practised: byKey(a.practised ?? {}, b.practised ?? {}, (x, y) => ({ right: Math.max(x.right, y.right), wrong: Math.max(x.wrong, y.wrong), last: Math.max(x.last, y.last) })) }
+      : {}),
     // a day's diary from both devices: the earlier device's lines first, the other's after
     diary: byKey(a.diary, b.diary, (x, y) => {
       const [first, second] = JSON.stringify(x) <= JSON.stringify(y) ? [x, y] : [y, x];

@@ -221,3 +221,542 @@
     box-shadow: inset 0 2px 0 var(--ink-2);
   }
 }
+
+/* --- the 📖 收藏 tab (§10 P3): 图鉴 grid, 成语 cards and Practise, the passport, the album */
+.cl-count {
+  margin: 0 0 10px;
+}
+
+.cl-one {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cl-two {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.3;
+}
+
+.cl-zh {
+  margin: 0;
+  font-family: var(--han);
+  font-size: 18px;
+}
+
+.cl-faint {
+  color: var(--line-2);
+}
+
+/* 图鉴: three across on a phone, five on the iPad; every tile the same height, found or not */
+.cl-spirits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cl-spirit {
+  display: grid;
+  grid-template-rows: 64px auto auto;
+  justify-items: center;
+  align-content: start;
+  gap: 2px;
+  width: 100%;
+  height: 128px;
+  padding: 8px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.12s;
+}
+
+.cl-spirit:hover {
+  border-color: var(--line-2);
+}
+
+.cl-spirit-art {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--card-2);
+  font-family: var(--han);
+  font-size: 34px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.cl-spirit[data-missing] {
+  border-style: dashed;
+  background: none;
+}
+
+.cl-spirit[data-missing] .cl-spirit-art {
+  background: color-mix(in srgb, var(--ink) 12%, var(--card-2));
+  color: var(--line-2);
+}
+
+.cl-spirit-name {
+  font-family: var(--han);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.cl-spirit .cl-one {
+  max-width: 100%;
+}
+
+.cl-hint {
+  line-height: 1.3;
+}
+
+.cl-hint b.han {
+  font-family: var(--han);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+/* 成语: one line of filters, the count and Practise */
+.cl-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  margin-bottom: 10px;
+  white-space: nowrap;
+}
+
+.cl-bar .spacer {
+  flex: 1;
+}
+
+.cl-bar .cl-count {
+  margin: 0;
+}
+
+.cl-filters {
+  grid-template-columns: repeat(3, auto);
+  margin: 0;
+}
+
+.cl-filters button {
+  min-width: 48px;
+  padding: 0 10px;
+}
+
+.cl-practise {
+  flex: none;
+}
+
+.cl-idioms {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.cl-idiom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.cl-idiom:hover {
+  border-color: var(--line-2);
+}
+
+.cl-idiom-zh {
+  flex: none;
+  font-family: var(--han);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.cl-idiom-text {
+  display: grid;
+  min-width: 0;
+}
+
+.cl-py {
+  color: var(--accent);
+}
+
+/* Practise: the question in a fixed stage, options below; marking changes colours only */
+.cl-practice .cl-bar {
+  margin-bottom: 6px;
+}
+
+.cl-steps {
+  display: flex;
+  gap: 4px;
+}
+
+.cl-steps i {
+  width: 14px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+}
+
+.cl-steps i[data-done] {
+  background: var(--ink-3);
+}
+
+.cl-steps i[data-at] {
+  background: var(--ink);
+}
+
+.cl-q {
+  display: grid;
+  gap: 10px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.cl-prompt {
+  margin: 0;
+  text-align: center;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cl-stage {
+  display: grid;
+  place-items: center;
+  min-height: 112px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.cl-meaning {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.cl-big {
+  font-family: var(--han);
+  font-size: 44px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+}
+
+.cl-gap {
+  display: inline-block;
+  width: 1em;
+  height: 1.1em;
+  vertical-align: bottom;
+  border-bottom: 3px solid var(--line-2);
+}
+
+.cl-gap[data-state='right'] {
+  color: var(--jade);
+  border-color: var(--jade);
+}
+
+.cl-gap[data-state='wrong'] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.cl-opts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cl-opt {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.cl-opt .han {
+  font-family: var(--han);
+  font-size: 22px;
+}
+
+.cl-opts-wide .cl-opt {
+  min-height: 64px;
+  text-align: center;
+}
+
+.cl-opt .key-hint {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+}
+
+.cl-opt:disabled {
+  cursor: default;
+}
+
+.cl-opt[data-state='right'],
+.cl-said[data-state='right'] {
+  border-color: var(--jade);
+  background: var(--jade-soft);
+  color: var(--jade);
+}
+
+.cl-opt[data-state='wrong'],
+.cl-said[data-state='wrong'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.cl-hear {
+  height: 44px;
+}
+
+.cl-say {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+}
+
+.cl-say .wi {
+  width: 100%;
+}
+
+.cl-said {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  min-height: 56px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.cl-said .han {
+  font-family: var(--han);
+  font-size: 22px;
+}
+
+/* what comes after an answer: a fixed slot, so the page does not jump when it fills */
+.cl-after {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  min-height: 84px;
+  text-align: center;
+}
+
+.cl-after p {
+  margin: 0;
+}
+
+.cl-after .han {
+  font-family: var(--han);
+  font-size: 16px;
+}
+
+.cl-end {
+  justify-items: center;
+  text-align: center;
+}
+
+.cl-end p {
+  margin: 0;
+}
+
+.cl-score {
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.cl-reward {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.cl-missed {
+  width: 100%;
+  text-align: left;
+}
+
+.cl-missed .han {
+  flex: none;
+  font-family: var(--han);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.cl-end-actions {
+  gap: 8px;
+  justify-content: center;
+}
+
+/* 印章: the passport, a page at a time */
+.cl-passport {
+  touch-action: pan-y;
+}
+
+.cl-pager {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  margin-bottom: 12px;
+  white-space: nowrap;
+}
+
+.cl-page-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.cl-page-title .han {
+  font-family: var(--han);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.cl-page-no {
+  flex: none;
+  width: 3.5em;
+  text-align: right;
+}
+
+.cl-stamps {
+  gap: 14px 10px;
+}
+
+.cl-stamp {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.cl-stamp:not([data-got]) .wp-seal {
+  border-color: color-mix(in srgb, var(--ink-3) 45%, var(--line-2));
+}
+
+.cl-stamp .cl-two {
+  max-width: 100%;
+}
+
+.cl-stamp .han {
+  font-family: var(--han);
+}
+
+.cl-cover {
+  display: grid;
+  gap: 8px;
+}
+
+.cl-cover-total {
+  margin: 0;
+  text-align: center;
+  font-size: 15px;
+}
+
+.cl-cover-total b {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.cl-pages .jn-row-top b {
+  font-family: var(--han);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.cl-sheet-title {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.cl-show {
+  justify-self: start;
+}
+
+/* 相册: the photo full width in its drawer, its box sized before it loads */
+.cl-photo {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--card-2);
+}
+
+.cl-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.w-sheet .w-sheet-head .han {
+  font-family: var(--han);
+}
+
+@media (min-width: 768px) {
+  .cl-spirits {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .cl-big {
+    font-size: 56px;
+  }
+}

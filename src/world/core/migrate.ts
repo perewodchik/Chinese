@@ -16,6 +16,7 @@ import type { WorldSave } from './types';
 import { DEFAULT_LOOK, DEFAULT_OUTFIT, DEFAULT_WARDROBE, fillWardrobe, itemOf } from './wardrobe';
 
 type Raw = Record<string, unknown>;
+type Practised = NonNullable<WorldSave['practised']>[string];
 
 /** version n → n + 1 */
 export type Upgrade = (save: Raw) => Raw;
@@ -71,6 +72,12 @@ export const UPGRADES: Record<number, Upgrade> = {
     outfits: Array.isArray(r.outfits) ? r.outfits : [null, null, null],
     worn: Array.isArray(r.worn) ? r.worn : Object.values(DEFAULT_OUTFIT).map(itemOf),
   }),
+  /**
+   * 11 → 12 (§10 P3): 成语 Practise keeps its counts in `practised`. Nothing
+   * to change — an old save has none — but an 11 build would drop the field
+   * it does not know on its next save, so it must refuse a 12 save instead.
+   */
+  11: (r) => ({ ...r, version: 12 }),
 };
 
 export type ReadResult =
@@ -132,6 +139,9 @@ function fill(r: Raw): WorldSave {
     daily: record(r.daily, isNum),
     fresh: record(r.fresh, isNum),
     ...(isObj(r.seen) ? { seen: record(r.seen, isNum) } : {}),
+    ...(isObj(r.practised)
+      ? { practised: record(r.practised, (x): x is Practised => isObj(x) && isNum(x.right) && isNum(x.wrong) && isNum(x.last)) }
+      : {}),
     ...(isObj(r.tracked) && typeof r.tracked.quest === 'string' && isNum(r.tracked.rev) ? { tracked: { quest: r.tracked.quest, rev: r.tracked.rev } } : {}),
     bills: Array.isArray(r.bills)
       ? r.bills.filter((b): b is WorldSave['bills'][number] => isObj(b) && typeof b.id === 'string' && isNum(b.at) && typeof b.who === 'string' && isNum(b.amount))

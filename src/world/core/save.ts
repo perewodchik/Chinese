@@ -14,8 +14,8 @@ import { MAX_SUBJECTS } from './photo';
 import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
 import { applyWardrobe, newWardrobe, wardrobeEvents, type WardrobeAction } from './wardrobe';
 
-/** 10 is the journal's (§10); 11 is §12's wardrobe */
-export const WORLD_SAVE_VERSION = 11;
+/** 10 is the journal's (§10); 11 is §12's wardrobe; 12 is 成语 Practise (§10 P3) */
+export const WORLD_SAVE_VERSION = 12;
 /** how many payments the 账单 keeps */
 export const BILLS = 20;
 
@@ -95,6 +95,8 @@ export type EngineAction =
   | { do: 'seen'; key: string; at: number }
   /** follow a quest in the journal ('' for the story again); `rev` is the wall-clock ms (§10 J2) */
   | { do: 'track'; quest: string; rev: number }
+  /** one 成语 Practise answer (§10 P3): right or missed, at the game's minute */
+  | { do: 'practised'; idiom: string; right: boolean }
   /** the creator, the wardrobe, the mirror, the racks and the barber (§12) */
   | WardrobeAction;
 
@@ -298,6 +300,11 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
       return { ...s, settings: { ...s.settings, ...a.patch } };
     case 'track':
       return s.tracked && s.tracked.rev >= a.rev ? s : { ...s, tracked: { quest: a.quest, rev: a.rev } };
+    case 'practised': {
+      const cur = s.practised?.[a.idiom] ?? { right: 0, wrong: 0, last: -1 };
+      const next = { right: cur.right + (a.right ? 1 : 0), wrong: cur.wrong + (a.right ? 0 : 1), last: Math.max(cur.last, Math.floor(s.clock)) };
+      return { ...s, practised: { ...s.practised, [a.idiom]: next } };
+    }
     case 'seen':
       return (s.seen?.[a.key] ?? -1) >= a.at ? s : { ...s, seen: { ...s.seen, [a.key]: a.at } };
     case 'reset':

@@ -38,12 +38,13 @@ export function InputBar({
   setSaved,
 }: {
   onSend: (text: string, via: InputMode) => void;
-  /** send a sticker instead of words (X6) */
-  onSticker: (id: string) => void;
+  /** send a sticker instead of words (X6); without it there is no 🙂 (成语 Practise) */
+  onSticker?: (id: string) => void;
   hint?: Hint;
   /** how far the hint has gone at this line (the companion may have gone ahead) */
   hintStep: number;
-  onHint: () => void;
+  /** without it there is no 💡 (成语 Practise: the answer is shown after a miss instead) */
+  onHint?: () => void;
   saved: InputMode;
   setSaved: (m: InputMode) => void;
 }) {
@@ -136,7 +137,7 @@ export function InputBar({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   setStickers(false);
-                  onSticker(st.id);
+                  onSticker?.(st.id);
                 }}
                 title={`${st.en} — means ${st.says}`}
               >
@@ -245,12 +246,16 @@ export function InputBar({
             {voice.phase === 'listening' ? <span className="han">{voice.text || '…'}</span> : 'Hold and talk'}
           </button>
         )}
-        <button type="button" className="wd-tool wi-hint" aria-pressed={stickers} onClick={() => setStickers((v) => !v)} aria-label="Stickers">
-          🙂
-        </button>
-        <button type="button" className="wd-tool wi-hint" onClick={onHint} disabled={!hint || hintStep >= 3} aria-label="What do I say?">
-          💡
-        </button>
+        {onSticker && (
+          <button type="button" className="wd-tool wi-hint" aria-pressed={stickers} onClick={() => setStickers((v) => !v)} aria-label="Stickers">
+            🙂
+          </button>
+        )}
+        {onHint && (
+          <button type="button" className="wd-tool wi-hint" onClick={onHint} disabled={!hint || hintStep >= 3} aria-label="What do I say?">
+            💡
+          </button>
+        )}
         <button
           type="button"
           className="wd-go wi-send"

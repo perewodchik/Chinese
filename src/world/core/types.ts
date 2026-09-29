@@ -541,6 +541,12 @@ export interface WorldSave {
    * chosen, so the later choice wins a merge; `quest: ''` is "none".
    */
   tracked?: { quest: string; rev: number };
+  /**
+   * 成语 Practise (§10 P3, save v12): 成语 → how often it was got right and
+   * missed, and the game minute it was last asked; weak ones are asked
+   * first. Merged by the larger of each; none before the first round.
+   */
+  practised?: Record<string, { right: number; wrong: number; last: number }>;
   /** you, dressed your way (§12, W2): body, face, hair and how people address you */
   look: HeroLook;
   /** false until the character creator's Done (a new game, or the first time after §12 shipped) */

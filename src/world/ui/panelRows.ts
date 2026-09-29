@@ -5,6 +5,8 @@
  */
 
 import { DISTRICTS, districtInfo, type DistrictInfo } from '../core/districts';
+import { HOODS, hoodOf } from '../core/hoods';
+import { placeOf } from '../core/places';
 import { activeQuests } from '../core/quests';
 import { dislikedNote, likedNote } from '../core/gifts';
 import type { Shop } from '../core/shop';
@@ -287,4 +289,66 @@ export function whereText(r: Pick<PersonRow, 'now' | 'usually'>, name: (map: str
   if (r.now) return r.now.until !== undefined ? `${name(r.now.map)} · until ${r.now.until % 24}:00` : name(r.now.map);
   if (r.usually) return `not about now · usually at ${name(r.usually.map)}${r.usually.from !== undefined ? ` from ${r.usually.from}:00` : ''}`;
   return 'somewhere in Beijing';
+}
+
+// ---------------------------------------------------------------------------
+// §10 P3: the Collection tab
+// ---------------------------------------------------------------------------
+
+/** Where a missing spirit is, never what (P3): the district's first name, 天坛 of 天坛 or 鼓楼 of 鼓楼 · 南锣鼓巷. */
+export const spiritPlace = (x: Spirit): string => districtInfo(x.district)?.name.split(' · ')[0] ?? '北京';
+
+/** A missing spirit's hint (P3): "Something stirs near 天坛." */
+export const spiritHint = (x: Spirit): string => `Something stirs near ${spiritPlace(x)}.`;
+
+/** The 成语 book's filter line (P3): every one, the ones heard in talk, the ones with a story. */
+export type IdiomFilter = 'all' | 'heard' | 'story';
+
+export const IDIOM_FILTERS: readonly { id: IdiomFilter; label: string; title: string }[] = [
+  { id: 'all', label: '全部', title: 'every 成语 heard' },
+  { id: 'heard', label: '听到的', title: 'heard in everyday talk' },
+  { id: 'story', label: '故事', title: 'the ones that come with a story' },
+];
+
+export const idiomFilter = (rows: readonly IdiomRow[], f: IdiomFilter): IdiomRow[] =>
+  f === 'all' ? [...rows] : rows.filter((r) => (r.idiom.tier === 'story') === (f === 'story'));
+
+export interface PassportStamp {
+  stamp: Stamp;
+  got: boolean;
+  /** where it is stamped, in full: "天坛 · 回音壁" */
+  where: string;
+  /** the same on its own page, where the neighbourhood is the page's title: "回音壁" */
+  place: string;
+}
+
+export interface PassportPage {
+  /** the neighbourhood (hoods.ts), or `beijing` for a place outside them */
+  id: string;
+  zh: string;
+  en: string;
+  stamps: PassportStamp[];
+  got: number;
+}
+
+/**
+ * The passport (P3): one page per neighbourhood in the order of the city's
+ * plan, the landmark's seal first, then the rest in content order. Missing
+ * stamps stay on their page as the place to go.
+ */
+export function passportPages(s: WorldSave, stamps: readonly Stamp[]): PassportPage[] {
+  const pages = new Map<string, PassportPage>();
+  const order = [...HOODS.map((h) => h.id), 'beijing'];
+  for (const x of [...stamps].sort((a, b) => Number(!!b.landmark) - Number(!!a.landmark))) {
+    const h = hoodOf(x.place);
+    const id = h?.id ?? 'beijing';
+    const page = pages.get(id) ?? { id, zh: h?.zh ?? '北京', en: h?.en ?? 'Beijing', stamps: [], got: 0 };
+    const place = placeOf(x.place)?.zh;
+    const where = place && place !== page.zh ? `${page.zh} · ${place}` : page.zh;
+    const got = x.id in s.stamps;
+    page.stamps.push({ stamp: x, got, where, place: place ?? page.zh });
+    if (got) page.got++;
+    pages.set(id, page);
+  }
+  return [...pages.values()].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
 }
