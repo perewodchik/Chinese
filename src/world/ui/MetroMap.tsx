@@ -21,13 +21,16 @@ import { usePanZoom } from './usePanZoom';
 /** drawing units per grid unit */
 const G = 10;
 
+/** screen pixels past the lines for the stations' names, and the key along the bottom */
+const PAD = { l: 44, r: 44, t: 12, b: 36 };
+
 /** the station a neighbourhood is drawn at on the diagram */
 const hoodAt = new Map(HOODS.map((h) => [h.stations[0]!, h]));
 
 export function MetroMap({ save, goals, onHood, route }: { save: WorldSave; goals: ReadonlySet<string>; onHood: (hood: string) => void; route?: readonly RouteLeg[] | null }) {
   const e = extent();
   const bounds = { x: (e.x - 2.5) * G, y: (e.y - 1.5) * G, w: (e.w + 6) * G, h: (e.h + 3) * G };
-  const pz = usePanZoom(bounds, 60);
+  const pz = usePanZoom(bounds, 60, PAD);
   const { view, u } = pz;
   const rides = (route ?? []).filter((l): l is Extract<RouteLeg, { kind: 'ride' }> => l.kind === 'ride');
   const walks = (route ?? []).flatMap((l) => {

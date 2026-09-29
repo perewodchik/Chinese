@@ -8,7 +8,7 @@ import { placeOf, type MapLinks } from '../core/places';
 import type { WorldSave } from '../core/types';
 import { loadIndex, PlaceCard } from './PlaceCard';
 import type { WorldContent } from './content';
-import { loadPlans, PlanDrawing } from './HoodPlan';
+import { loadPlans, PlanDrawing, planPad } from './HoodPlan';
 import { MetroMap } from './MetroMap';
 import { pinyinOf } from './pinyin';
 import { usePanZoom } from './usePanZoom';
@@ -135,9 +135,10 @@ function HoodView({
   onPick: (m: string) => void;
   onExit: (hood: string) => void;
 }) {
-  // room around the plan for the exit arrows' names
-  const bounds = plan ? { x: plan.x - 12, y: plan.y - 6, w: plan.w + 24, h: plan.h + 12 } : { x: 0, y: 0, w: 100, h: 60 };
-  const pz = usePanZoom(bounds, 16);
+  const bounds = plan ? { x: plan.x, y: plan.y, w: plan.w, h: plan.h } : { x: 0, y: 0, w: 100, h: 60 };
+  // room around the plan, in screen pixels, for the names of rooms and exits
+  const pad = useMemo(() => (plan ? planPad(plan) : undefined), [plan]);
+  const pz = usePanZoom(bounds, 16, pad);
   // A new plan (or the first): the whole neighbourhood when it fits at a readable size (8 px a
   // tile, where names stop running into each other); on a phone, the part around you — drag for the rest.
   const framed = useRef<string | null>(null);

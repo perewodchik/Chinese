@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { HOODS, heroOnPlan, type HoodLayout, type LaidExit } from '../core/hoods';
 import { placeOf } from '../core/places';
-import type { View } from './usePanZoom';
+import type { Pad, View } from './usePanZoom';
 
 /**
  * One neighbourhood drawn from its plan (core/hoods.ts): every street and
@@ -119,10 +119,23 @@ export function PlanDrawing({ plan, u, here, visited, goals, picked, onPick, onE
   );
 }
 
+/** Screen pixels past each side of a plan for the names drawn outside it: the rooms' names, and the exits' out to the side. */
+export function planPad(plan: HoodLayout): Pad {
+  const pad = { l: 24, r: 24, t: 24, b: 24 };
+  for (const e of plan.exits) {
+    const side = ({ left: 'l', right: 'r', up: 't', down: 'b' } as const)[e.side];
+    const across = e.side === 'left' || e.side === 'right' ? 14 + pillWidth(`${ARROW[e.side]} ${zhOfHood(e.hood)}`, 12.5, 1) + 4 : 14 + 12.5 + 10;
+    pad[side] = Math.max(pad[side], across);
+  }
+  return pad;
+}
+
+// hanzi are one em wide; arrows and spaces about half
+const pillWidth = (text: string, fs: number, u: number) => [...text].reduce((n, c) => n + (/[㐀-鿿]/.test(c) ? 1 : 0.55), 0) * fs + 10 * u;
+
 /** A name on a small pill, sized in screen pixels whatever the zoom. */
 function Label({ x, y, text, u, fs, picked, faint, anchor = 'middle', exit }: { x: number; y: number; text: string; u: number; fs: number; picked?: boolean; faint?: boolean; anchor?: 'start' | 'middle' | 'end'; exit?: boolean }) {
-  // hanzi are one em wide; arrows and spaces about half
-  const w = [...text].reduce((n, c) => n + (/[㐀-鿿]/.test(c) ? 1 : 0.55), 0) * fs + 10 * u;
+  const w = pillWidth(text, fs, u);
   const h = fs + 6 * u;
   const x0 = anchor === 'middle' ? x - w / 2 : anchor === 'end' ? x - w : x;
   return (

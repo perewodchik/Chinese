@@ -5,15 +5,19 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPoi
  * drawing whose view box follows the shape of its box on the page (the
  * neighbourhood plans and the metro diagram of the 🗺 panel).
  *
- * `bounds` is the drawing; the view never wanders more than most of a
- * screen off it, and never closes in beyond `minW` units across.
+ * `bounds` is the drawing; the view never goes past its edges (fully out,
+ * the whole of it, centred), and never closes in beyond `minW` units across.
+ * `pad` is room past each edge in screen pixels, for names that keep their
+ * size at any zoom.
  */
+
+export type Pad = { l: number; r: number; t: number; b: number };
 
 export type View = { x: number; y: number; w: number; h: number };
 
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function usePanZoom(bounds: View, minW: number) {
+export function usePanZoom(bounds: View, minW: number, pad: Pad = { l: 0, r: 0, t: 0, b: 0 }) {
   const svg = useRef<SVGSVGElement>(null);
   const [box, setBox] = useState({ w: 800, h: 500 });
   const [view, setView] = useState<View>(bounds);
@@ -21,21 +25,34 @@ export function usePanZoom(bounds: View, minW: number) {
   viewRef.current = view;
   const aspectRef = useRef(1.6);
   aspectRef.current = box.w / Math.max(1, box.h);
+  const boxRef = useRef(box);
+  boxRef.current = box;
   const boundsRef = useRef(bounds);
   boundsRef.current = bounds;
+  const padRef = useRef(pad);
+  padRef.current = pad;
   const anim = useRef(0);
   const dragged = useRef(false);
 
   const clamp = useCallback(
     (v: View, a = aspectRef.current): View => {
       const b = boundsRef.current;
-      const w = Math.min(Math.max(b.w, b.h * a) * 1.15, Math.max(minW, v.w));
+      const p = padRef.current;
+      const bw = boxRef.current.w;
+      const bh = bw / a;
+      // furthest out is the whole drawing and its padding, fitted to the box's shape
+      const most = Math.max((b.w * bw) / Math.max(1, bw - p.l - p.r), (b.h * bw) / Math.max(1, bh - p.t - p.b));
+      const w = Math.min(most, Math.max(minW, v.w));
       const h = w / a;
+      const u = w / bw;
+      // on each axis: wider than the drawing, it sits in the middle; narrower, its edges stay on it
+      const axis = (at: number, size: number, from: number, len: number) =>
+        size >= len ? from + (len - size) / 2 : Math.min(from + len - size, Math.max(from, at));
       return {
         w,
         h,
-        x: Math.min(b.x + b.w - w * 0.3, Math.max(b.x - w * 0.7, v.x)),
-        y: Math.min(b.y + b.h - h * 0.3, Math.max(b.y - h * 0.7, v.y)),
+        x: axis(v.x, w, b.x - p.l * u, b.w + (p.l + p.r) * u),
+        y: axis(v.y, h, b.y - p.t * u, b.h + (p.t + p.b) * u),
       };
     },
     [minW],
@@ -100,6 +117,7 @@ export function usePanZoom(bounds: View, minW: number) {
     const ro = new ResizeObserver(() => {
       const next = { w: el.clientWidth || 800, h: el.clientHeight || 500 };
       setBox(next);
+      boxRef.current = next;
       const v = viewRef.current;
       const a = next.w / Math.max(1, next.h);
       aspectRef.current = a;
