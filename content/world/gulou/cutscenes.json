@@ -19,10 +19,18 @@
    {
     "actor": "hero",
     "at": [
-     53,
-     9
+     10,
+     58
     ],
-    "facing": "left"
+    "facing": "up"
+   },
+   {
+    "actor": "zhao-yeye",
+    "at": [
+     8,
+     27
+    ],
+    "facing": "down"
    }
   ],
   "steps": [
@@ -43,13 +51,13 @@
    {
     "move": "hero",
     "to": [
-     29,
-     8
+     9,
+     28
     ]
    },
    {
     "face": "zhao-yeye",
-    "dir": "down"
+    "dir": "right"
    },
    {
     "say": "zhao-yeye",
@@ -69,8 +77,8 @@
    {
     "move": "hero",
     "to": [
-     4,
-     9
+     1,
+     30
     ]
    },
    {

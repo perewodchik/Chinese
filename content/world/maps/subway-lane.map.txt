@@ -1,6 +1,7 @@
 id: subway-lane
 size: 32x16
 tilesets: tiles
+below_keys: 5=side-wall-w 6=side-wall-e
 district: gulou
 crowd: 4
 bikes: 3
@@ -25,12 +26,12 @@ ppppppppppppppppppppRRRRRRRRRRRR
 pppppppppppppppppppprrrrrrrrrrrr
 pppppppppppppppppppprrrrrrrrrrrr
 [below]
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
-bbnbbbbnbbbbhhhbbbbbnbbbbbbbbbbb
-BBBBBBBBBBBBhhhBBBBBBBBBBBBBBBBB
+XXXXXXXX........XXXXXXXXXXXXXXXX
+xxxxxxxx........xxxxxxxxxxxxxxxx
+xxxxxxx5........6xxxxxxxxxxxxxxx
+eeeeeee5........6eeeeeeeeeeeeeee
+bbnbbbb5........6bbbnbbbbbbbbbbb
+BBBBBBB5........6BBBBBBBBBBBBBBB
 ................................
 ................................
 ................................

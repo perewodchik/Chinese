@@ -46,8 +46,8 @@ describe('neighbourhoods', () => {
     assert.deepEqual(heroOnPlan(p, 'nanluo-main', [3, 4]), [street.x + 3.5, street.y + 4.5]);
     const room = p.rooms.find((r) => r.map === 'chaguan')!;
     assert.deepEqual(heroOnPlan(p, 'chaguan', [1, 1]), [room.x + room.w / 2, room.y + room.h / 2]);
-    // the teahouse card sits by its door on 南锣鼓巷
-    assert.ok(Math.abs(room.door[0] - (street.x + 44)) < 1 && room.door[1] === street.y + 5);
+    // the teahouse card sits by its door on 南锣鼓巷's east side (§13 T1: the lane runs north–south)
+    assert.ok(Math.abs(room.door[0] - (street.x + 15)) < 1 && room.door[1] === street.y + 14);
   });
 
   it('show the ways on foot into the next neighbourhood', () => {

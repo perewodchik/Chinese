@@ -113,7 +113,19 @@ export function checkMaps(all: Compiled[], set: TilesetJson): string[] {
         else if (blocked(to, o.to.tile)) errors.push(`${at}: door lands on a blocked tile of ${o.to.map}`);
       }
       if (o.kind === 'edge') {
-        if (!byId.has(o.target.map)) errors.push(`${at}: edge to unknown map "${o.target.map}"`);
+        const to = byId.get(o.target.map);
+        if (!to) errors.push(`${at}: edge to unknown map "${o.target.map}"`);
+        else {
+          // §13 T1/T5: every tile of the exit is on the edge and open, and lands on an open tile of the next map
+          for (let along = o.from; along <= o.to; along++) {
+            const side = o.side;
+            const here: [number, number] = side === 'left' ? [0, along] : side === 'right' ? [map.width - 1, along] : side === 'up' ? [along, 0] : [along, map.height - 1];
+            const there: [number, number] =
+              side === 'left' ? [to.width - 1, along + o.target.offset] : side === 'right' ? [0, along + o.target.offset] : side === 'up' ? [along + o.target.offset, to.height - 1] : [along + o.target.offset, 0];
+            if (!inside(map, here) || blocked(map, here)) errors.push(`${at}: the exit's tile ${here.join(',')} is blocked`);
+            else if (!inside(to, there) || blocked(to, there)) errors.push(`${at}: leads onto ${there.join(',')} of ${to.id}, which is blocked or off the map`);
+          }
+        }
       }
       if (o.kind === 'npc' && blocked(map, o.tile)) errors.push(`${at}: ${o.npc} stands on a blocked tile`);
     }

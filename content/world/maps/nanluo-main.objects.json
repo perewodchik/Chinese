@@ -3,8 +3,8 @@
   "kind": "door",
   "id": "zaodian",
   "tile": [
-   8,
-   5
+   6,
+   46
   ],
   "to": {
    "map": "zaodian",
@@ -19,8 +19,8 @@
   "kind": "door",
   "id": "xiaomaibu",
   "tile": [
-   20,
-   5
+   15,
+   41
   ],
   "to": {
    "map": "xiaomaibu",
@@ -35,8 +35,8 @@
   "kind": "door",
   "id": "lifadian",
   "tile": [
-   32,
-   5
+   6,
+   19
   ],
   "to": {
    "map": "lifadian",
@@ -51,8 +51,8 @@
   "kind": "door",
   "id": "chaguan",
   "tile": [
-   44,
-   5
+   15,
+   14
   ],
   "to": {
    "map": "chaguan",
@@ -67,8 +67,8 @@
   "kind": "sign",
   "id": "s-zaodian",
   "tile": [
-   7,
-   4
+   6,
+   45
   ],
   "text": "早点",
   "en": "Breakfast"
@@ -77,8 +77,8 @@
   "kind": "sign",
   "id": "s-xiaomaibu",
   "tile": [
-   19,
-   4
+   15,
+   40
   ],
   "text": "小卖部",
   "en": "Corner shop"
@@ -87,8 +87,8 @@
   "kind": "sign",
   "id": "s-lifadian",
   "tile": [
-   31,
-   4
+   6,
+   18
   ],
   "text": "理发",
   "en": "Haircuts"
@@ -97,28 +97,198 @@
   "kind": "sign",
   "id": "s-chaguan",
   "tile": [
-   43,
-   4
+   15,
+   13
   ],
   "text": "茶馆",
   "en": "Teahouse"
  },
  {
   "kind": "sign",
+  "id": "s-wenchuang",
+  "tile": [
+   15,
+   26
+  ],
+  "text": "胡同文创",
+  "en": "A little gift shop"
+ },
+ {
+  "kind": "sign",
   "id": "street",
   "tile": [
-   1,
-   4
+   6,
+   57
   ],
   "text": "南锣鼓巷",
-  "en": "Nanluoguxiang"
+  "en": "Nanluoguxiang — runs north–south, 16 胡同 off it like a centipede’s legs"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w4",
+  "tile": [
+   6,
+   3
+  ],
+  "text": "前鼓楼苑胡同",
+  "en": "前鼓楼苑胡同 — a hutong going west"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w10",
+  "tile": [
+   6,
+   9
+  ],
+  "text": "黑芝麻胡同",
+  "en": "黑芝麻胡同 — a hutong going west"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w16",
+  "tile": [
+   6,
+   15
+  ],
+  "text": "沙井胡同",
+  "en": "沙井胡同 — a hutong going west"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w22",
+  "tile": [
+   6,
+   21
+  ],
+  "text": "景阳胡同",
+  "en": "景阳胡同 — a hutong going west"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w29",
+  "tile": [
+   6,
+   28
+  ],
+  "text": "帽儿胡同",
+  "en": "帽儿胡同 — a hutong going west"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w36",
+  "tile": [
+   6,
+   35
+  ],
+  "text": "雨儿胡同",
+  "en": "雨儿胡同 — a hutong going west"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w42",
+  "tile": [
+   6,
+   41
+  ],
+  "text": "蓑衣胡同",
+  "en": "蓑衣胡同 — a hutong going west"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w50",
+  "tile": [
+   6,
+   49
+  ],
+  "text": "福祥胡同",
+  "en": "福祥胡同 — a hutong going west"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e6",
+  "tile": [
+   15,
+   5
+  ],
+  "text": "菊儿胡同",
+  "en": "菊儿胡同 — a hutong going east"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e12",
+  "tile": [
+   15,
+   11
+  ],
+  "text": "后圆恩寺胡同",
+  "en": "后圆恩寺胡同 — a hutong going east"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e18",
+  "tile": [
+   15,
+   17
+  ],
+  "text": "前圆恩寺胡同",
+  "en": "前圆恩寺胡同 — a hutong going east"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e24",
+  "tile": [
+   15,
+   23
+  ],
+  "text": "秦老胡同",
+  "en": "秦老胡同 — a hutong going east"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e32",
+  "tile": [
+   15,
+   31
+  ],
+  "text": "北兵马司胡同",
+  "en": "北兵马司胡同 — a hutong going east"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e38",
+  "tile": [
+   15,
+   37
+  ],
+  "text": "东棉花胡同",
+  "en": "东棉花胡同 — a hutong going east"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e44",
+  "tile": [
+   15,
+   43
+  ],
+  "text": "板厂胡同",
+  "en": "板厂胡同 — a hutong going east"
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e52",
+  "tile": [
+   15,
+   51
+  ],
+  "text": "炒豆胡同",
+  "en": "炒豆胡同 — a hutong going east"
  },
  {
   "kind": "prop",
   "id": "l1",
   "tile": [
-   5,
-   5
+   14,
+   3
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -131,8 +301,8 @@
   "kind": "prop",
   "id": "l2",
   "tile": [
-   10,
-   5
+   14,
+   9
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -145,8 +315,8 @@
   "kind": "prop",
   "id": "l3",
   "tile": [
-   17,
-   5
+   14,
+   15
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -159,8 +329,8 @@
   "kind": "prop",
   "id": "l4",
   "tile": [
-   22,
-   5
+   14,
+   21
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -173,8 +343,8 @@
   "kind": "prop",
   "id": "l5",
   "tile": [
-   29,
-   5
+   7,
+   27
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -187,8 +357,8 @@
   "kind": "prop",
   "id": "l6",
   "tile": [
-   34,
-   5
+   7,
+   33
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -201,8 +371,8 @@
   "kind": "prop",
   "id": "l7",
   "tile": [
-   41,
-   5
+   7,
+   39
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -215,8 +385,36 @@
   "kind": "prop",
   "id": "l8",
   "tile": [
-   46,
-   5
+   7,
+   45
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l9",
+  "tile": [
+   7,
+   57
+  ],
+  "frame": "lantern/unlit",
+  "blocks": [
+   0,
+   0
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "l10",
+  "tile": [
+   14,
+   57
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -229,8 +427,8 @@
   "kind": "prop",
   "id": "tree1",
   "tile": [
-   12,
-   10
+   8,
+   12
   ],
   "frame": "tree/huai",
   "blocks": [
@@ -242,8 +440,8 @@
   "kind": "prop",
   "id": "tree2",
   "tile": [
-   36,
-   10
+   11,
+   36
   ],
   "frame": "tree/huai",
   "blocks": [
@@ -253,85 +451,88 @@
  },
  {
   "kind": "prop",
-  "id": "cage",
+  "id": "tree3",
   "tile": [
-   27,
-   6
+   8,
+   53
   ],
-  "frame": "bird-cage/cage",
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "wires-1",
+  "tile": [
+   9,
+   9
+  ],
+  "frame": "wires/sag",
   "blocks": [
    0,
    0
   ]
  },
  {
-  "kind": "npc",
-  "id": "grandpa",
-  "npc": "zhao-yeye",
+  "kind": "prop",
+  "id": "wires-2",
   "tile": [
-   27,
-   7
+   9,
+   34
   ],
-  "facing": "down"
+  "frame": "wires/sag",
+  "blocks": [
+   0,
+   0
+  ]
  },
  {
-  "kind": "npc",
-  "id": "kid",
-  "npc": "xiaoming",
+  "kind": "prop",
+  "id": "ac-1",
   "tile": [
-   48,
-   9
+   6,
+   33
   ],
-  "facing": "left"
+  "frame": "ac-box/white",
+  "blocks": [
+   0,
+   0
+  ]
  },
  {
-  "kind": "npc",
-  "id": "tourist-a",
-  "npc": "tourist-1",
+  "kind": "prop",
+  "id": "ac-2",
   "tile": [
-   24,
-   9
+   15,
+   47
   ],
-  "facing": "up"
+  "frame": "ac-box/white",
+  "blocks": [
+   0,
+   0
+  ]
  },
  {
-  "kind": "npc",
-  "id": "tourist-b",
-  "npc": "tourist-2",
+  "kind": "prop",
+  "id": "ads-1",
   "tile": [
-   25,
-   9
+   6,
+   24
   ],
-  "facing": "up"
- },
- {
-  "kind": "edge",
-  "id": "west",
-  "side": "left",
-  "from": 6,
-  "to": 10,
-  "target": {
-   "map": "hutong-home",
-   "offset": 0
-  }
- },
- {
-  "kind": "edge",
-  "id": "east",
-  "side": "right",
-  "from": 6,
-  "to": 10,
-  "target": {
-   "map": "subway-lane",
-   "offset": 0
-  }
+  "frame": "ads/wall",
+  "blocks": [
+   0,
+   0
+  ]
  },
  {
   "kind": "prop",
   "id": "stand-bike-0",
   "tile": [
-   50,
-   7
+   13,
+   55
   ],
   "frame": "bicycle/side",
   "blocks": [
@@ -343,58 +544,160 @@
   "kind": "bike",
   "id": "bike-stand-0",
   "tile": [
-   51,
-   7
+   12,
+   55
   ]
+ },
+ {
+  "kind": "prop",
+  "id": "xiangqi-table",
+  "tile": [
+   9,
+   21
+  ],
+  "frame": "table/wood",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "xiangqi-stool",
+  "tile": [
+   10,
+   21
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tanghulu-stand",
+  "tile": [
+   13,
+   44
+  ],
+  "frame": "tanghulu-stand/haws",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "grandpa",
+  "npc": "zhao-yeye",
+  "tile": [
+   8,
+   27
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "kid",
+  "npc": "xiaoming",
+  "tile": [
+   12,
+   24
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "tourist-a",
+  "npc": "tourist-1",
+  "tile": [
+   11,
+   50
+  ],
+  "facing": "up"
+ },
+ {
+  "kind": "npc",
+  "id": "tourist-b",
+  "npc": "tourist-2",
+  "tile": [
+   12,
+   50
+  ],
+  "facing": "up"
  },
  {
   "kind": "npc",
   "id": "tanghulu",
   "npc": "tanghulu-dashu",
   "tile": [
-   44,
-   8
+   13,
+   45
   ],
-  "facing": "down"
+  "facing": "left"
  },
  {
   "kind": "npc",
   "id": "xiangqi",
   "npc": "xiangqi-yeye",
   "tile": [
-   18,
-   8
+   9,
+   22
   ],
-  "facing": "right"
+  "facing": "up"
  },
  {
   "kind": "npc",
   "id": "xiangzi",
   "npc": "xiangzi",
   "tile": [
-   44,
-   9
+   11,
+   39
   ],
-  "facing": "left"
- },
- {
-  "kind": "sign",
-  "id": "s-wenchuang",
-  "tile": [
-   49,
-   4
-  ],
-  "text": "胡同文创",
-  "en": "A little gift shop"
+  "facing": "down"
  },
  {
   "kind": "npc",
   "id": "wenchuang",
   "npc": "wenchuang-jiejie",
   "tile": [
-   50,
-   6
+   14,
+   28
   ],
-  "facing": "down"
+  "facing": "left"
+ },
+ {
+  "kind": "edge",
+  "id": "north",
+  "side": "up",
+  "from": 7,
+  "to": 14,
+  "target": {
+   "map": "gulou-dongdajie",
+   "offset": 13
+  }
+ },
+ {
+  "kind": "edge",
+  "id": "south",
+  "side": "down",
+  "from": 7,
+  "to": 14,
+  "target": {
+   "map": "subway-lane",
+   "offset": 1
+  }
+ },
+ {
+  "kind": "edge",
+  "id": "west",
+  "side": "left",
+  "from": 29,
+  "to": 31,
+  "target": {
+   "map": "hutong-home",
+   "offset": -22
+  }
  }
 ]

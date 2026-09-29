@@ -14,7 +14,8 @@
     "xiaomaibu",
     "lifadian",
     "chaguan",
-    "station-nanluoguxiang"
+    "station-nanluoguxiang",
+    "gulou-dongdajie"
   ],
   "stations": [
     "nanluoguxiang",
@@ -63,7 +64,25 @@
     "潘家园",
     "支付宝",
     "到账",
-    "支付宝到账"
+    "支付宝到账",
+    "鼓楼东大街",
+    "地安门东大街",
+    "钟鼓楼",
+    "菊儿胡同",
+    "炒豆胡同",
+    "福祥胡同",
+    "雨儿胡同",
+    "蓑衣胡同",
+    "景阳胡同",
+    "沙井胡同",
+    "黑芝麻胡同",
+    "前鼓楼苑胡同",
+    "后圆恩寺胡同",
+    "前圆恩寺胡同",
+    "秦老胡同",
+    "北兵马司胡同",
+    "东棉花胡同",
+    "板厂胡同"
   ],
   "ambience": "hutong"
 }

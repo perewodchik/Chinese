@@ -3,8 +3,27 @@
   "name": "什刹海 · 后海",
   "en": "Shichahai · Houhai",
   "chapter": 2,
-  "maps": ["houhai-lake", "station-shichahai"],
-  "stations": ["shichahai"],
-  "names": ["什刹海", "后海", "前海", "银锭桥", "烟袋斜街", "北海", "景山", "鼓楼", "北京", "兔儿爷", "九尾狐", "端午节"],
+  "maps": [
+    "houhai-lake",
+    "station-shichahai",
+    "yandai-xiejie"
+  ],
+  "stations": [
+    "shichahai"
+  ],
+  "names": [
+    "什刹海",
+    "后海",
+    "前海",
+    "银锭桥",
+    "烟袋斜街",
+    "北海",
+    "景山",
+    "鼓楼",
+    "北京",
+    "兔儿爷",
+    "九尾狐",
+    "端午节"
+  ],
   "ambience": "lake"
 }

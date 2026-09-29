@@ -51,8 +51,8 @@
    21,
    9
   ],
-  "text": "平安大街",
-  "en": "Ping’an Avenue"
+  "text": "地安门东大街",
+  "en": "Di'anmen East Street (part of 平安大街) — 南锣鼓巷 goes north from here"
  },
  {
   "kind": "sign",
@@ -139,17 +139,6 @@
   ]
  },
  {
-  "kind": "edge",
-  "id": "west",
-  "side": "left",
-  "from": 6,
-  "to": 10,
-  "target": {
-   "map": "nanluo-main",
-   "offset": 0
-  }
- },
- {
   "kind": "prop",
   "id": "stand-bike-0",
   "tile": [
@@ -169,5 +158,16 @@
    18,
    9
   ]
+ },
+ {
+  "kind": "edge",
+  "id": "north",
+  "side": "up",
+  "from": 8,
+  "to": 15,
+  "target": {
+   "map": "nanluo-main",
+   "offset": -1
+  }
  }
 ]

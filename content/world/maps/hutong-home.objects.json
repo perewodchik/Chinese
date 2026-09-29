@@ -139,22 +139,22 @@
   "kind": "edge",
   "id": "west",
   "side": "left",
-  "from": 6,
-  "to": 10,
+  "from": 7,
+  "to": 9,
   "target": {
    "map": "gulou-square",
-   "offset": 8
+   "offset": 26
   }
  },
  {
   "kind": "edge",
   "id": "east",
   "side": "right",
-  "from": 6,
-  "to": 10,
+  "from": 7,
+  "to": 9,
   "target": {
    "map": "nanluo-main",
-   "offset": 0
+   "offset": 22
   }
  },
  {

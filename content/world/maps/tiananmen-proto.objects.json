@@ -110,7 +110,7 @@
   "id": "west",
   "side": "left",
   "from": 20,
-  "to": 24,
+  "to": 23,
   "target": {
    "map": "hutong-proto",
    "offset": -14

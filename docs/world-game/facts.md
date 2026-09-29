@@ -15,7 +15,8 @@ Checked 2026-09-30 unless dated otherwise.
 | id | Claim (as the game may use it) | Status | Source |
 |---|---|---|---|
 | `nlgx-centipede` | 南锣鼓巷 runs north–south, 786 m, with 16 胡同 branching off, 8 each side, like a fish bone or a centipede (蜈蚣街/蜈蚣巷) | ✓ | [beijing.gov.cn — 南锣鼓巷](https://www.beijing.gov.cn/renwen/jrbj/sjc/201701/t20170111_1874490.html); [visitbeijing](https://www.visitbeijing.com.cn/article/47QkViBYPUp) |
-| `nlgx-station-south` | 南锣鼓巷 station is at the lane's south end, on 地安门东大街/平安大街 (lines 6 and 8) | ? | check in T1 (metro.ts already models it) |
+| `nlgx-station-south` | 南锣鼓巷 station is at the lane's south end, on 地安门东大街 (lines 6 and 8); 鼓楼东大街 is at its north end | ✓ | [zh.wikipedia — 南锣鼓巷](https://zh.wikipedia.org/zh-hans/%E5%8D%97%E9%94%A3%E9%BC%93%E5%B7%B7) |
+| `nlgx-hutongs` | the eight 胡同 on each side, north to south — west: 前鼓楼苑, 黑芝麻, 沙井, 景阳, 帽儿, 雨儿, 蓑衣, 福祥; east: 菊儿, 后圆恩寺, 前圆恩寺, 秦老, 北兵马司, 东棉花, 板厂, 炒豆 | ✓ | same; [bjd.com.cn](https://xinwen.bjd.com.cn/content/s6304c4eee4b073338173a1d0.html) |
 | `zhonggulou-order` | on the axis the 鼓楼 is south, the 钟楼 north, with a square between | ✓ | common knowledge; [visitbeijing — 钟鼓楼](https://www.visitbeijing.com.cn/article/47Qt1dyCyxe) |
 | `gulou-drum-times` | the 鼓楼 drums are played for visitors several times a day, e.g. 9:30, 10:30, 11:30, 13:30, 14:30, 15:30 and a last show ~16:30–16:50 (the times shift by season) | ✓ (use "every hour or so in the day", not exact minutes) | [bendibao — 钟鼓楼表演时间](http://bj.bendibao.com/tour/2023423/346202.shtm); [bendibao](https://m.bj.bendibao.com/tour/125880_3.html) |
 | `chenzhong-mugu` | the towers kept the city's time: the bell and the drum marked the night watches (晨钟暮鼓) | ✓ | [china.com.cn — 暮鼓晨钟为古都报时](http://cul.china.com.cn/2024-04/15/content_42755289.htm) |

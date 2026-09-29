@@ -14,8 +14,10 @@ describe('places', () => {
 
   it('find the way on foot through doors and edges', () => {
     assert.deepEqual(walkPath(index, 'siheyuan-room', 'chaguan'), ['siheyuan-room', 'siheyuan-yard', 'hutong-home', 'nanluo-main', 'chaguan']);
-    // 鼓楼 to 后海 to 北海 is a walk
-    assert.deepEqual(walkPath(index, 'gulou-square', 'jingshan-park'), ['gulou-square', 'houhai-lake', 'beihai-north', 'jingshan-park']);
+    // 鼓楼 by 烟袋斜街 to 后海 to 北海 is a walk (§13 T1)
+    assert.deepEqual(walkPath(index, 'gulou-square', 'jingshan-park'), ['gulou-square', 'yandai-xiejie', 'houhai-lake', 'beihai-north', 'jingshan-park']);
+    // 南锣鼓巷 runs north to 鼓楼东大街 and south to the station's street
+    assert.deepEqual(walkPath(index, 'gulou-dongdajie', 'station-nanluoguxiang'), ['gulou-dongdajie', 'nanluo-main', 'subway-lane', 'station-nanluoguxiang']);
     // across town needs a ride
     assert.equal(walkPath(index, 'nanluo-main', 'panjiayuan-market'), null);
   });

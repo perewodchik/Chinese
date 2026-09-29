@@ -50,13 +50,23 @@
    "stop-badalingchangcheng"
   ]
  },
+ "gulou-dongdajie": {
+  "district": "gulou",
+  "width": 48,
+  "height": 16,
+  "links": [
+   "gulou-square",
+   "nanluo-main"
+  ]
+ },
  "gulou-square": {
   "district": "gulou",
-  "width": 32,
-  "height": 24,
+  "width": 24,
+  "height": 38,
   "links": [
-   "houhai-lake",
-   "hutong-home"
+   "gulou-dongdajie",
+   "hutong-home",
+   "yandai-xiejie"
   ]
  },
  "guomao-bank": {
@@ -91,8 +101,8 @@
   "height": 24,
   "links": [
    "beihai-north",
-   "gulou-square",
-   "station-shichahai"
+   "station-shichahai",
+   "yandai-xiejie"
   ]
  },
  "huiyinbi": {
@@ -165,10 +175,11 @@
  },
  "nanluo-main": {
   "district": "gulou",
-  "width": 56,
-  "height": 16,
+  "width": 22,
+  "height": 60,
   "links": [
    "chaguan",
+   "gulou-dongdajie",
    "hutong-home",
    "lifadian",
    "subway-lane",
@@ -469,6 +480,15 @@
   "height": 12,
   "links": [
    "qianmen-street"
+  ]
+ },
+ "yandai-xiejie": {
+  "district": "houhai",
+  "width": 40,
+  "height": 16,
+  "links": [
+   "gulou-square",
+   "houhai-lake"
   ]
  },
  "yaodian": {

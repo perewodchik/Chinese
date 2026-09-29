@@ -1,0 +1,41 @@
+id: yandai-xiejie
+size: 40x16
+tilesets: tiles
+district: houhai
+crowd: 6
+pigeons: 2
+
+[ground]
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppp
+[below]
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeexxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+bbbhhbbnbbeeeeeeeeeexxxxxxxxxxxxxxxxxxxx
+BBBBBBBBBBbbbhhhbbbneeeeeeeeeexxxxxxxxxx
+..........BBBBBBBBBBbbbbhhbbbneeeeeeeeee
+....................BBBBBBBBBBbbbhhbbnbb
+..............................BBBBBBBBBB
+TTTTTTTTTT..............................
+xxxxxxxxxxTTTTTTTTTT....................
+xxxxxxxxxxxxxxxxxxxxTTTTTTTTTT..........
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxTTTTTTTTTT
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

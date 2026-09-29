@@ -276,10 +276,10 @@
   "id": "east",
   "side": "right",
   "from": 5,
-  "to": 8,
+  "to": 7,
   "target": {
-   "map": "gulou-square",
-   "offset": 9
+   "map": "yandai-xiejie",
+   "offset": 0
   }
  },
  {

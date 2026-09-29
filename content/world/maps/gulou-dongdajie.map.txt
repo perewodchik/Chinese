@@ -1,0 +1,43 @@
+id: gulou-dongdajie
+size: 48x16
+tilesets: tiles
+below_keys: 5=side-wall-w 6=side-wall-e
+district: gulou
+crowd: 5
+pigeons: 2
+bikes: 4
+
+[ground]
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppppppp
+[below]
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+bbnbbbhhhhbbbbnbbbbbbbbbbnbbbbhhhbbbbnbbbbbbnbbb
+BBBBBBhhhhBBBBBBBBBBBBBBBBBBBBhhhBBBBBBBBBBBBBBB
+................................................
+................................................
+................................................
+................................................
+................................................
+................................................
+TTTTTTTTTTTTTTTTTTT5........6TTTTTTTTTTTTTTTTTTT
+xxxxxxxxxxxxxxxxxxx5........6xxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxx5........6xxxxxxxxxxxxxxxxxxx
+XXXXXXXXXXXXXXXXXXX5........6XXXXXXXXXXXXXXXXXXX

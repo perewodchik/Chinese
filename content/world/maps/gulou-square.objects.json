@@ -1,10 +1,23 @@
 [
  {
   "kind": "prop",
+  "id": "bell-tower",
+  "tile": [
+   9,
+   9
+  ],
+  "frame": "tower/bell",
+  "blocks": [
+   5,
+   6
+  ]
+ },
+ {
+  "kind": "prop",
   "id": "drum-tower",
   "tile": [
-   3,
-   11
+   9,
+   31
   ],
   "frame": "tower/drum",
   "blocks": [
@@ -16,8 +29,8 @@
   "kind": "prop",
   "id": "lion-left",
   "tile": [
-   2,
-   11
+   8,
+   32
   ],
   "frame": "lion/stone",
   "blocks": [
@@ -29,8 +42,8 @@
   "kind": "prop",
   "id": "stone-lion",
   "tile": [
-   8,
-   11
+   14,
+   32
   ],
   "frame": "lion/stone",
   "blocks": [
@@ -40,44 +53,41 @@
   "night": "lion/awake"
  },
  {
-  "kind": "prop",
-  "id": "bell-tower",
+  "kind": "sign",
+  "id": "bell",
   "tile": [
-   20,
-   11
+   11,
+   9
   ],
-  "frame": "tower/bell",
-  "blocks": [
-   5,
-   6
-  ]
+  "text": "钟楼",
+  "en": "The Bell Tower — the bell rang the hours of the night"
  },
  {
   "kind": "sign",
   "id": "drum",
   "tile": [
-   5,
-   12
+   11,
+   31
   ],
   "text": "鼓楼",
-  "en": "The Drum Tower"
+  "en": "The Drum Tower — its drums are still played for visitors"
  },
  {
   "kind": "sign",
-  "id": "bell",
+  "id": "square",
   "tile": [
-   22,
-   12
+   1,
+   18
   ],
-  "text": "钟楼",
-  "en": "The Bell Tower"
+  "text": "钟鼓楼广场",
+  "en": "The square between the Bell and Drum Towers"
  },
  {
   "kind": "prop",
   "id": "tree1",
   "tile": [
-   11,
-   20
+   2,
+   14
   ],
   "frame": "tree/huai",
   "blocks": [
@@ -89,8 +99,8 @@
   "kind": "prop",
   "id": "tree2",
   "tile": [
-   27,
-   20
+   19,
+   14
   ],
   "frame": "tree/huai",
   "blocks": [
@@ -102,12 +112,25 @@
   "kind": "prop",
   "id": "tree3",
   "tile": [
-   1,
-   21
-  ],
-  "frame": "tree/huai",
-  "blocks": [
    2,
+   22
+  ],
+  "frame": "urban-tall/tree-ginkgo",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree4",
+  "tile": [
+   20,
+   22
+  ],
+  "frame": "urban-tall/tree-ginkgo",
+  "blocks": [
+   1,
    1
   ]
  },
@@ -116,8 +139,8 @@
   "id": "dancer",
   "npc": "passer-dancer",
   "tile": [
-   14,
-   16
+   12,
+   18
   ],
   "facing": "down"
  },
@@ -126,31 +149,42 @@
   "id": "photo",
   "npc": "passer-photo",
   "tile": [
-   17,
+   15,
    14
   ],
   "facing": "up"
  },
  {
   "kind": "edge",
+  "id": "east-dong",
+  "side": "right",
+  "from": 26,
+  "to": 31,
+  "target": {
+   "map": "gulou-dongdajie",
+   "offset": -20
+  }
+ },
+ {
+  "kind": "edge",
   "id": "east",
   "side": "right",
-  "from": 14,
-  "to": 18,
+  "from": 33,
+  "to": 35,
   "target": {
    "map": "hutong-home",
-   "offset": -8
+   "offset": -26
   }
  },
  {
   "kind": "edge",
   "id": "west",
   "side": "left",
-  "from": 14,
-  "to": 17,
+  "from": 33,
+  "to": 35,
   "target": {
-   "map": "houhai-lake",
-   "offset": -9
+   "map": "yandai-xiejie",
+   "offset": -25
   }
  }
 ]

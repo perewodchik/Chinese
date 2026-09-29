@@ -37,9 +37,9 @@ export const HOODS: readonly Hood[] = [
     zh: '南锣鼓巷',
     en: 'Nanluoguxiang and the Drum Tower',
     stations: ['nanluoguxiang'],
-    maps: ['nanluo-main', 'hutong-home', 'siheyuan-yard', 'siheyuan-room', 'gulou-square', 'subway-lane', 'zaodian', 'xiaomaibu', 'lifadian', 'chaguan', 'station-nanluoguxiang'],
+    maps: ['nanluo-main', 'hutong-home', 'siheyuan-yard', 'siheyuan-room', 'gulou-square', 'gulou-dongdajie', 'subway-lane', 'zaodian', 'xiaomaibu', 'lifadian', 'chaguan', 'station-nanluoguxiang'],
   },
-  { id: 'shichahai', zh: '什刹海', en: 'Shichahai · Houhai', stations: ['shichahai'], maps: ['houhai-lake', 'station-shichahai'] },
+  { id: 'shichahai', zh: '什刹海', en: 'Shichahai · Houhai', stations: ['shichahai'], maps: ['houhai-lake', 'yandai-xiejie', 'station-shichahai'] },
   {
     id: 'beihai',
     zh: '北海 · 景山',

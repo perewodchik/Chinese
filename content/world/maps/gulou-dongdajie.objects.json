@@ -1,0 +1,216 @@
+[
+ {
+  "kind": "sign",
+  "id": "s-bikes",
+  "tile": [
+   7,
+   5
+  ],
+  "text": "自行车行",
+  "en": "A bike shop — bikes new and old"
+ },
+ {
+  "kind": "sign",
+  "id": "s-yanjiu",
+  "tile": [
+   31,
+   5
+  ],
+  "text": "烟酒",
+  "en": "A corner shop for drinks and snacks"
+ },
+ {
+  "kind": "sign",
+  "id": "street",
+  "tile": [
+   1,
+   5
+  ],
+  "text": "鼓楼东大街",
+  "en": "Gulou East Street — east from the Drum Tower"
+ },
+ {
+  "kind": "sign",
+  "id": "s-lane",
+  "tile": [
+   19,
+   12
+  ],
+  "text": "南锣鼓巷",
+  "en": "Nanluoguxiang — south from here"
+ },
+ {
+  "kind": "prop",
+  "id": "repair",
+  "tile": [
+   34,
+   8
+  ],
+  "frame": "repair-stall/tools",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bus-stop",
+  "tile": [
+   13,
+   8
+  ],
+  "frame": "urban-tall/bus-stop",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "bus-sign",
+  "tile": [
+   13,
+   8
+  ],
+  "text": "鼓楼东大街 站",
+  "en": "Bus stop: Gulou Dongdajie"
+ },
+ {
+  "kind": "prop",
+  "id": "rack",
+  "tile": [
+   22,
+   8
+  ],
+  "frame": "bike-rack/shared",
+  "blocks": [
+   3,
+   1
+  ]
+ },
+ {
+  "kind": "bike",
+  "id": "bike-stand-0",
+  "tile": [
+   25,
+   8
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "lamp0",
+  "tile": [
+   4,
+   7
+  ],
+  "frame": "urban-tall/lamp",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp1",
+  "tile": [
+   17,
+   7
+  ],
+  "frame": "urban-tall/lamp",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp2",
+  "tile": [
+   29,
+   7
+  ],
+  "frame": "urban-tall/lamp",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lamp3",
+  "tile": [
+   41,
+   7
+  ],
+  "frame": "urban-tall/lamp",
+  "blocks": [
+   1,
+   1
+  ],
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "ginkgo0",
+  "tile": [
+   9,
+   8
+  ],
+  "frame": "urban-tall/tree-ginkgo",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "ginkgo1",
+  "tile": [
+   39,
+   8
+  ],
+  "frame": "urban-tall/tree-ginkgo",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "kiosk",
+  "tile": [
+   44,
+   8
+  ],
+  "frame": "kiosk/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "edge",
+  "id": "west",
+  "side": "left",
+  "from": 6,
+  "to": 11,
+  "target": {
+   "map": "gulou-square",
+   "offset": 20
+  }
+ },
+ {
+  "kind": "edge",
+  "id": "south",
+  "side": "down",
+  "from": 20,
+  "to": 27,
+  "target": {
+   "map": "nanluo-main",
+   "offset": -13
+  }
+ }
+]

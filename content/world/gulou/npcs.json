@@ -248,7 +248,7 @@
         ],
         "map": "gulou-square",
         "tile": [
-          15,
+          10,
           19
         ],
         "facing": "down"
@@ -260,8 +260,8 @@
         ],
         "map": "nanluo-main",
         "tile": [
-          27,
-          7
+          8,
+          27
         ],
         "facing": "down"
       }
@@ -437,10 +437,10 @@
         ],
         "map": "nanluo-main",
         "tile": [
-          40,
-          8
+          10,
+          47
         ],
-        "facing": "left"
+        "facing": "up"
       },
       {
         "hours": [

@@ -9,10 +9,10 @@
   "to": {
    "map": "nanluo-main",
    "tile": [
-    44,
-    6
+    14,
+    14
    ],
-   "facing": "down"
+   "facing": "left"
   }
  },
  {

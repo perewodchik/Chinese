@@ -187,7 +187,7 @@
   "id": "east",
   "side": "right",
   "from": 6,
-  "to": 10,
+  "to": 9,
   "target": {
    "map": "tiananmen-proto",
    "offset": 14

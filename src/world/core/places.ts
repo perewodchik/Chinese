@@ -19,7 +19,8 @@ const P = (map: string, zh: string, en: string, kind: PlaceKind): Place => ({ ma
 
 export const PLACES: readonly Place[] = [
   // 鼓楼 · 南锣鼓巷
-  P('gulou-square', '鼓楼', 'Drum Tower square', 'sight'),
+  P('gulou-square', '钟鼓楼', 'The Drum and Bell Towers', 'sight'),
+  P('gulou-dongdajie', '鼓楼东大街', 'Gulou East Street', 'street'),
   P('siheyuan-yard', '四合院', 'The courtyard where you live', 'street'),
   P('siheyuan-room', '我的房间', 'Your room', 'inside'),
   P('hutong-home', '帽儿胡同', "Mao'er Hutong", 'street'),
@@ -28,12 +29,13 @@ export const PLACES: readonly Place[] = [
   P('xiaomaibu', '小卖部', 'Corner shop', 'inside'),
   P('lifadian', '理发店', 'Barber', 'inside'),
   P('chaguan', '茶馆', 'Teahouse', 'inside'),
-  P('subway-lane', '平安大街', "Ping'an Avenue", 'street'),
+  P('subway-lane', '地安门东大街', "Di'anmen East Street", 'street'),
   P('station-nanluoguxiang', '南锣鼓巷站', 'Nanluoguxiang station', 'station'),
   P('hutong-proto', '胡同', 'A hutong (the first sketch)', 'street'),
 
   // 什刹海 · 后海
   P('houhai-lake', '后海', 'Houhai lake', 'sight'),
+  P('yandai-xiejie', '烟袋斜街', 'Yandai Xiejie, the slanting street', 'street'),
   P('station-shichahai', '什刹海站', 'Shichahai station', 'station'),
 
   // 景山 · 北海
