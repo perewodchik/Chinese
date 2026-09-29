@@ -1,0 +1,2154 @@
+{
+ "frames": {
+  "outfit/body-broad-0": {
+   "frame": {
+    "x": 1,
+    "y": 1,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/body-broad-1": {
+   "frame": {
+    "x": 210,
+    "y": 1,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/body-broad-2": {
+   "frame": {
+    "x": 419,
+    "y": 1,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/body-broad-3": {
+   "frame": {
+    "x": 628,
+    "y": 1,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/body-broad-4": {
+   "frame": {
+    "x": 1,
+    "y": 34,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/body-slim-0": {
+   "frame": {
+    "x": 210,
+    "y": 34,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/body-slim-1": {
+   "frame": {
+    "x": 419,
+    "y": 34,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/body-slim-2": {
+   "frame": {
+    "x": 628,
+    "y": 34,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/body-slim-3": {
+   "frame": {
+    "x": 1,
+    "y": 67,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/body-slim-4": {
+   "frame": {
+    "x": 210,
+    "y": 67,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/brows-none": {
+   "frame": {
+    "x": 419,
+    "y": 67,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/brows-thick": {
+   "frame": {
+    "x": 628,
+    "y": 67,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/brows-thin": {
+   "frame": {
+    "x": 1,
+    "y": 100,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/eyes-dot": {
+   "frame": {
+    "x": 210,
+    "y": 100,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/eyes-narrow": {
+   "frame": {
+    "x": 419,
+    "y": 100,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/eyes-round": {
+   "frame": {
+    "x": 628,
+    "y": 100,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/eyes-smile": {
+   "frame": {
+    "x": 1,
+    "y": 133,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bald-black": {
+   "frame": {
+    "x": 210,
+    "y": 133,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bald-blonde": {
+   "frame": {
+    "x": 419,
+    "y": 133,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bald-brown": {
+   "frame": {
+    "x": 628,
+    "y": 133,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bald-chestnut": {
+   "frame": {
+    "x": 1,
+    "y": 166,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bald-dark": {
+   "frame": {
+    "x": 210,
+    "y": 166,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bald-grey": {
+   "frame": {
+    "x": 419,
+    "y": 166,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bald-red": {
+   "frame": {
+    "x": 628,
+    "y": 166,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bald-white": {
+   "frame": {
+    "x": 1,
+    "y": 199,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bob-black": {
+   "frame": {
+    "x": 210,
+    "y": 199,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bob-blonde": {
+   "frame": {
+    "x": 419,
+    "y": 199,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bob-brown": {
+   "frame": {
+    "x": 628,
+    "y": 199,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bob-chestnut": {
+   "frame": {
+    "x": 1,
+    "y": 232,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bob-dark": {
+   "frame": {
+    "x": 210,
+    "y": 232,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bob-grey": {
+   "frame": {
+    "x": 419,
+    "y": 232,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bob-red": {
+   "frame": {
+    "x": 628,
+    "y": 232,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-bob-white": {
+   "frame": {
+    "x": 1,
+    "y": 265,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buns-black": {
+   "frame": {
+    "x": 210,
+    "y": 265,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buns-blonde": {
+   "frame": {
+    "x": 419,
+    "y": 265,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buns-brown": {
+   "frame": {
+    "x": 628,
+    "y": 265,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buns-chestnut": {
+   "frame": {
+    "x": 1,
+    "y": 298,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buns-dark": {
+   "frame": {
+    "x": 210,
+    "y": 298,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buns-grey": {
+   "frame": {
+    "x": 419,
+    "y": 298,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buns-red": {
+   "frame": {
+    "x": 628,
+    "y": 298,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buns-white": {
+   "frame": {
+    "x": 1,
+    "y": 331,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buzz-black": {
+   "frame": {
+    "x": 210,
+    "y": 331,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buzz-blonde": {
+   "frame": {
+    "x": 419,
+    "y": 331,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buzz-brown": {
+   "frame": {
+    "x": 628,
+    "y": 331,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buzz-chestnut": {
+   "frame": {
+    "x": 1,
+    "y": 364,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buzz-dark": {
+   "frame": {
+    "x": 210,
+    "y": 364,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buzz-grey": {
+   "frame": {
+    "x": 419,
+    "y": 364,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buzz-red": {
+   "frame": {
+    "x": 628,
+    "y": 364,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-buzz-white": {
+   "frame": {
+    "x": 1,
+    "y": 397,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-curly-black": {
+   "frame": {
+    "x": 210,
+    "y": 397,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-curly-blonde": {
+   "frame": {
+    "x": 419,
+    "y": 397,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-curly-brown": {
+   "frame": {
+    "x": 628,
+    "y": 397,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-curly-chestnut": {
+   "frame": {
+    "x": 1,
+    "y": 430,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-curly-dark": {
+   "frame": {
+    "x": 210,
+    "y": 430,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-curly-grey": {
+   "frame": {
+    "x": 419,
+    "y": 430,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-curly-red": {
+   "frame": {
+    "x": 628,
+    "y": 430,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-curly-white": {
+   "frame": {
+    "x": 1,
+    "y": 463,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-fringe-black": {
+   "frame": {
+    "x": 210,
+    "y": 463,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-fringe-blonde": {
+   "frame": {
+    "x": 419,
+    "y": 463,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-fringe-brown": {
+   "frame": {
+    "x": 628,
+    "y": 463,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-fringe-chestnut": {
+   "frame": {
+    "x": 1,
+    "y": 496,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-fringe-dark": {
+   "frame": {
+    "x": 210,
+    "y": 496,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-fringe-grey": {
+   "frame": {
+    "x": 419,
+    "y": 496,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-fringe-red": {
+   "frame": {
+    "x": 628,
+    "y": 496,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-fringe-white": {
+   "frame": {
+    "x": 1,
+    "y": 529,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-long-black": {
+   "frame": {
+    "x": 210,
+    "y": 529,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-long-blonde": {
+   "frame": {
+    "x": 419,
+    "y": 529,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-long-brown": {
+   "frame": {
+    "x": 628,
+    "y": 529,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-long-chestnut": {
+   "frame": {
+    "x": 1,
+    "y": 562,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-long-dark": {
+   "frame": {
+    "x": 210,
+    "y": 562,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-long-grey": {
+   "frame": {
+    "x": 419,
+    "y": 562,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-long-red": {
+   "frame": {
+    "x": 628,
+    "y": 562,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-long-white": {
+   "frame": {
+    "x": 1,
+    "y": 595,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-ponytail-black": {
+   "frame": {
+    "x": 210,
+    "y": 595,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-ponytail-blonde": {
+   "frame": {
+    "x": 419,
+    "y": 595,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-ponytail-brown": {
+   "frame": {
+    "x": 628,
+    "y": 595,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-ponytail-chestnut": {
+   "frame": {
+    "x": 1,
+    "y": 628,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-ponytail-dark": {
+   "frame": {
+    "x": 210,
+    "y": 628,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-ponytail-grey": {
+   "frame": {
+    "x": 419,
+    "y": 628,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-ponytail-red": {
+   "frame": {
+    "x": 628,
+    "y": 628,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-ponytail-white": {
+   "frame": {
+    "x": 1,
+    "y": 661,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-short-black": {
+   "frame": {
+    "x": 210,
+    "y": 661,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-short-blonde": {
+   "frame": {
+    "x": 419,
+    "y": 661,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-short-brown": {
+   "frame": {
+    "x": 628,
+    "y": 661,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-short-chestnut": {
+   "frame": {
+    "x": 1,
+    "y": 694,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-short-dark": {
+   "frame": {
+    "x": 210,
+    "y": 694,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-short-grey": {
+   "frame": {
+    "x": 419,
+    "y": 694,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-short-red": {
+   "frame": {
+    "x": 628,
+    "y": 694,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-short-white": {
+   "frame": {
+    "x": 1,
+    "y": 727,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-side-black": {
+   "frame": {
+    "x": 210,
+    "y": 727,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-side-blonde": {
+   "frame": {
+    "x": 419,
+    "y": 727,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-side-brown": {
+   "frame": {
+    "x": 628,
+    "y": 727,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-side-chestnut": {
+   "frame": {
+    "x": 1,
+    "y": 760,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-side-dark": {
+   "frame": {
+    "x": 210,
+    "y": 760,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-side-grey": {
+   "frame": {
+    "x": 419,
+    "y": 760,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-side-red": {
+   "frame": {
+    "x": 628,
+    "y": 760,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/hair-side-white": {
+   "frame": {
+    "x": 1,
+    "y": 793,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/jacket-blue-broad": {
+   "frame": {
+    "x": 210,
+    "y": 793,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/jacket-blue-slim": {
+   "frame": {
+    "x": 419,
+    "y": 793,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/mouth-line": {
+   "frame": {
+    "x": 628,
+    "y": 793,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/mouth-smile": {
+   "frame": {
+    "x": 1,
+    "y": 826,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/scarf-red-broad": {
+   "frame": {
+    "x": 210,
+    "y": 826,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/scarf-red-slim": {
+   "frame": {
+    "x": 419,
+    "y": 826,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/sneakers-white-broad": {
+   "frame": {
+    "x": 628,
+    "y": 826,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/sneakers-white-slim": {
+   "frame": {
+    "x": 1,
+    "y": 859,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/trousers-dark-broad": {
+   "frame": {
+    "x": 210,
+    "y": 859,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  },
+  "outfit/trousers-dark-slim": {
+   "frame": {
+    "x": 419,
+    "y": 859,
+    "w": 208,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 32
+   }
+  }
+ },
+ "meta": {
+  "app": "zouzou art build",
+  "image": "outfit.png",
+  "size": {
+   "w": 1024,
+   "h": 1024
+  },
+  "scale": "1",
+  "format": "RGBA8888"
+ }
+}

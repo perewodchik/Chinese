@@ -47,6 +47,11 @@ import { useUser } from '../auth/session';
 import { oneOf, useQuery } from '../../navigation/query';
 import { paths } from '../../navigation/paths';
 import { useTitle } from '../../ui/useTitle';
+import { Creator, type CreatorMode } from '../../world/ui/Creator';
+import { dressOf } from '../../world/ui/HeroFigure';
+import { setCurrentDress } from '../../world/ui/heroPicture';
+import { WardrobeSheet } from '../../world/ui/WardrobeSheet';
+import { homeProp } from '../../world/core/wardrobe';
 
 const TIMES: PartOfDay[] = ['morning', 'day', 'evening', 'night'];
 
@@ -128,7 +133,7 @@ export function WorldPage() {
       return card ? talkRef.current.start(scene, card, lookOf(card, card.id), s) : startBare(scene, s);
     }
     missedWith(`look:${s.place.map}:${target.object}`, s, { look: target.object, map: s.place.map });
-    talkRef.current.start(lineScene('nothing', 'hero', NOTHING_HAPPENS.zh, NOTHING_HAPPENS.en), null, 'sign', s, '我');
+    talkRef.current.start(lineScene('nothing', 'hero', NOTHING_HAPPENS.zh, NOTHING_HAPPENS.en), null, 'hero', s, '我');
   };
 
   /**
@@ -157,7 +162,7 @@ export function WorldPage() {
     const who = scene.nodes.find((n) => n.id === scene.start)?.speaker ?? 'hero';
     const spirit = contentRef.current.spirits.find((x) => x.id === who);
     if (who === 'companion') talkRef.current.start(scene, null, 'rabbit', s, '兔儿爷');
-    else talkRef.current.start(scene, null, 'sign', s, spirit?.hanzi ?? '我');
+    else talkRef.current.start(scene, null, who === 'hero' ? 'hero' : 'sign', s, spirit?.hanzi ?? '我');
   };
   const talkRef = useRef(talk);
   talkRef.current = talk;
@@ -190,6 +195,12 @@ export function WorldPage() {
   const ambient = useRef<Ambient | null>(null);
   const here = useRef<{ id: string; life: MapLife; objects: MapObject[] } | null>(null);
   const [photo, setPhoto] = useState(false);
+  /** the character creator (§12, W3) — once per new game — or the mirror at home (W4) */
+  const [creator, setCreator] = useState<CreatorMode | null>(null);
+  /** a scene that starts by itself waits while the creator is open (the first morning comes after it) */
+  const pendingAuto = useRef<Scene | null>(null);
+  /** the 衣柜 at home (W4) */
+  const [wardrobe, setWardrobe] = useState(false);
   const remix = (minutes?: number) => {
     const h = here.current;
     const s = game.current();
@@ -205,7 +216,7 @@ export function WorldPage() {
     ambient.current?.setMood(moodFor({ mapId: h.id, life: h.life, time, weather, festival }));
   };
   const busy = useRef(false);
-  busy.current = note !== null || talk.view !== null || panel !== null || riding !== null || photo;
+  busy.current = note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null || wardrobe;
 
   // An error thrown inside the engine's loop never reaches React: hand it to the crash guard.
   useEffect(() => {
@@ -275,6 +286,12 @@ export function WorldPage() {
             if (info.id.startsWith('station-')) ambient.current?.chime();
             // a scene that starts by itself here (the first morning, a first visit)
             const auto = s && autoScene(contentRef.current.scenes, s, info.id);
+            // before the first morning: who you are (W3); the scene waits for the creator's Done
+            if (s && !s.created) {
+              pendingAuto.current = auto || null;
+              setCreator(s.scenes.length ? 'first' : 'new');
+              return;
+            }
             if (s && auto) {
               const card = contentRef.current.npcs.find((n) => n.id === auto.npc) ?? null;
               if (card) talkRef.current.start(auto, card, lookOf(card, card.id), s);
@@ -313,6 +330,10 @@ export function WorldPage() {
               applyItem(usingRef.current, { object: o.id }, s);
               return;
             }
+            // your room's 衣柜 and 镜子 (W4)
+            const home = homeProp(o, s.place.map);
+            if (home === 'wardrobe') return setWardrobe(true);
+            if (home === 'mirror') return setCreator('mirror');
             // the board on a platform or at a bus stop: what leaves from here
             // (subway maps are called station-<id>, bus and train stops stop-<id>);
             // a scene on the board (no ticket yet) comes first
@@ -386,6 +407,11 @@ export function WorldPage() {
           hat: hatFor(game.current()?.clock ?? 0),
           // the named cat follows you in 帽儿胡同 (X5)
           pet: (m) => m === CAT_LANE.map && !!game.current()?.cat.name,
+          // the player's own look and clothes (W1/W2), read at every map
+          dress: () => {
+            const s = game.current();
+            return s && people.clothes.clothes.length ? dressOf(s.look, s.outfit, people.clothes) : null;
+          },
           cast: (info) => {
             const s = game.current();
             return s ? castMap(info.objects, info.id, people.npcs, s) : info.objects;
@@ -569,7 +595,8 @@ export function WorldPage() {
             o.kind === 'sign' ||
             o.kind === 'bike' ||
             isMachine(o) ||
-            (o.kind === 'prop' && !!sceneFor(scenes, s, { look: o.id, map: s.place.map }))
+            (o.kind === 'prop' && !!sceneFor(scenes, s, { look: o.id, map: s.place.map })) ||
+            !!homeProp(o, s.place.map)
         : null,
     );
   }, [hints, state, game.save, content]);
@@ -598,8 +625,23 @@ export function WorldPage() {
 
   // A full-screen panel stops the world: no drawing, no clock (D7).
   useEffect(() => {
-    world.current?.setPaused(panel !== null || riding !== null);
-  }, [panel, riding]);
+    world.current?.setPaused(panel !== null || riding !== null || creator !== null || wardrobe);
+  }, [panel, riding, creator, wardrobe]);
+  // What you look like and wear (§12): the world sprite and 我's portrait follow the save.
+  const look = game.save?.look;
+  const outfit = game.save?.outfit;
+  useEffect(() => {
+    if (!look || !outfit || !content.clothes.clothes.length) return;
+    const d = dressOf(look, outfit, content.clothes);
+    setCurrentDress(d);
+    if (state === 'ready') world.current?.setDress(d);
+  }, [look, outfit, content, state]);
+  // A save that has not met the creator yet meets it once, wherever it opens (W3).
+  const uncreated = game.save ? !game.save.created : false;
+  useEffect(() => {
+    if (state === 'ready' && uncreated && creator === null) setCreator((game.current()?.scenes.length ?? 0) ? 'first' : 'new');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, uncreated]);
   useEffect(() => {
     if (!panel) return;
     const esc = (e: KeyboardEvent) => e.key === 'Escape' && setPanel(null);
@@ -719,6 +761,37 @@ export function WorldPage() {
           }}
           lex={lex}
           talking={!!talk.view}
+        />
+      )}
+      {creator && game.save && (
+        <Creator
+          mode={creator}
+          look={game.save.look}
+          worn={dressOf(game.save.look, game.save.outfit, content.clothes).worn}
+          onDone={(l) => {
+            game.dispatch([{ do: 'create', look: l }]);
+            setCreator(null);
+            // the scene that waited (the first morning) starts now
+            const auto = pendingAuto.current;
+            pendingAuto.current = null;
+            const s = game.current();
+            if (auto && s) {
+              const card = contentRef.current.npcs.find((n) => n.id === auto.npc) ?? null;
+              if (card) talkRef.current.start(auto, card, lookOf(card, card.id), s);
+              else startBare(auto, s);
+            }
+          }}
+          {...(creator === 'mirror' ? { onClose: () => setCreator(null) } : {})}
+        />
+      )}
+      {wardrobe && game.save && (
+        <WardrobeSheet
+          save={game.save}
+          clothes={content.clothes}
+          pinyin={game.save.settings.pinyin}
+          // a thing sold goes to the recycler: his name on the 账单 line
+          dispatch={(a, sold) => void game.dispatch(a, 'important', sold ? { npc: 'polan-shifu' } : undefined)}
+          onClose={() => setWardrobe(false)}
         />
       )}
       {riding && game.save && (

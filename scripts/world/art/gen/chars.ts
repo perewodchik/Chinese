@@ -229,11 +229,8 @@ export function rabbit(bob: number, dir: Dir | 'right' = 'down'): Grid {
   return dir === 'right' ? out.mirror() : out;
 }
 
+/** The people of Beijing (the player is drawn in layers instead: src/world/art/hero.ts). */
 export const LOOKS: Record<string, { look: Look; variants?: Array<[string, Record<string, string>]>; note: string }> = {
-  hero: {
-    note: 'the player: a young traveller, blue jacket and a red scarf',
-    look: { skin: ['s', 'S'], hair: 'short', hairC: ['H', 'k'], shirt: ['n', 'B'], pants: ['a', 'k'], shoes: 'w', trim: 'r' },
-  },
   auntie: {
     note: 'an auntie: permed hair, flowered top — 王阿姨 and the other aunties',
     look: { skin: ['s', 'S'], hair: 'perm', hairC: ['H', 'b'], shirt: ['p', 'r'], pants: ['b', 'a'], shoes: 'k' },

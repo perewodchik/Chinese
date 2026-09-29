@@ -15,12 +15,16 @@ import { LOOKS, rabbit, walkFrames } from './gen/chars';
 import { pxFile } from './gen/grid';
 import { PROPS } from './gen/props';
 import { TILES } from './gen/tiles';
+import { DEFAULT_WORN, heroFrames } from '../../../src/world/art/hero';
+import { DEFAULT_LOOK } from '../../../src/world/core/looks';
 
 const ROOT = 'content/world/art/sprites';
 
 export function sources(): Array<[string, string]> {
   const out: Array<[string, string]> = [];
   out.push(['tiles/beijing.px', pxFile('Beijing tiles, 16×16', TILES.map(([n, f]) => [n, f()]))]);
+  // the player: today's look from the layered drawer (W1) — the game composes the player's own look with the same code
+  out.push(['chars/hero.px', pxFile('the player as they arrive: short black hair, blue jacket, red scarf (src/world/art/hero.ts)', heroFrames(DEFAULT_LOOK, DEFAULT_WORN))]);
   for (const [name, { look, variants, note }] of Object.entries(LOOKS)) {
     const extra = (variants ?? []).map(([v, swap]) => `variant: ${v} ${Object.entries(swap).map(([a, b]) => `${a}>${b}`).join(' ')}`);
     out.push([`chars/${name}.px`, pxFile(note, walkFrames(look), extra)]);

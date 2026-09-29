@@ -68,6 +68,32 @@
   ]
  },
  {
+  "kind": "prop",
+  "id": "wardrobe",
+  "tile": [
+   6,
+   3
+  ],
+  "frame": "wardrobe/wood",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "mirror",
+  "tile": [
+   3,
+   3
+  ],
+  "frame": "mirror/stand",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
   "kind": "light",
   "id": "lamp",
   "tile": [

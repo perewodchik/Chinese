@@ -35,6 +35,8 @@ export function buildContent(root = 'content/world', out = CONTENT_OUT): string[
     ids.push(d.district.id);
   }
   writeFileSync(join(out, 'index.json'), JSON.stringify(ids) + '\n');
+  // the clothes and their racks (§12), one file beside the districts
+  writeFileSync(join(out, 'clothes.json'), JSON.stringify(r.clothes) + '\n');
   return ids;
 }
 

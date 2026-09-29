@@ -18,11 +18,16 @@ import { checkBudget, formatProblem, libraryLeveler, type BudgetProblem } from '
 import { checkReferences, DISTRICT_FILES, parseDistrict, type DistrictFiles } from '../../src/world/core/content';
 import { checkJournal } from '../../src/world/core/journal';
 import type { DistrictContent } from '../../src/world/core/types';
+import { checkClothes, parseClothes } from '../../src/world/core/clothes';
+import { EMPTY_CLOTHES, type ClothesContent } from '../../src/world/core/wardrobe';
+import { GARMENT_ART } from '../../src/world/art/hero';
 
 export interface CheckResult {
   districts: DistrictContent[];
   /** schema and reference errors, already formatted */
   errors: string[];
+  /** `clothes.json` (§12): the clothes and the racks that sell them */
+  clothes: ClothesContent;
   budget: BudgetProblem[];
 }
 
@@ -98,8 +103,18 @@ export function checkContent(contentRoot: string, lib: Library): CheckResult {
     const all = { quests: districts.flatMap((d) => d.quests), scenes: districts.flatMap((d) => d.scenes), npcs: districts.flatMap((d) => d.npcs), shops: districts.flatMap((d) => d.shops ?? []) };
     errors.push(...checkJournal(all, maps).map((e) => `quests.json: ${e}`));
   }
+  // clothes (§12, W2): the file, its drawings, measure words, racks and their sellers
+  let clothes: ClothesContent = EMPTY_CLOTHES;
+  const clothesPath = join(contentRoot, 'clothes.json');
+  if (existsSync(clothesPath)) {
+    const r = parseClothes(JSON.parse(readFileSync(clothesPath, 'utf8')));
+    if (r.ok) {
+      clothes = r.value;
+      errors.push(...checkClothes(clothes, { npcs: known.npcs, maps: districts.flatMap((d) => d.district.maps) }, GARMENT_ART));
+    } else errors.push(...r.errors);
+  }
   const budget = checkBudget({ leveler: libraryLeveler(lib), all: districts });
-  return { districts, errors: [...new Set(errors)], budget };
+  return { districts, errors: [...new Set(errors)], budget, clothes };
 }
 
 function main() {

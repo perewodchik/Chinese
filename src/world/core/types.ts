@@ -6,6 +6,7 @@
  */
 
 import type { Bargain } from './bargain';
+import type { HeroLook, Outfit } from './looks';
 
 /** A tile on a map, `[x, y]`, 0-based from the top left. */
 export type Tile = readonly [number, number];
@@ -540,6 +541,18 @@ export interface WorldSave {
    * chosen, so the later choice wins a merge; `quest: ''` is "none".
    */
   tracked?: { quest: string; rev: number };
+  /** you, dressed your way (§12, W2): body, face, hair and how people address you */
+  look: HeroLook;
+  /** false until the character creator's Done (a new game, or the first time after §12 shipped) */
+  created: boolean;
+  /** clothes you own, `item:colour` (not in the bag) */
+  wardrobe: string[];
+  /** what you wear now: slot → `item:colour` */
+  outfit: Outfit;
+  /** three saved sets (套装 1–3), null while empty */
+  outfits: (Outfit | null)[];
+  /** clothes ever worn, by item (W6: a neighbour notices a new thing once) */
+  worn: string[];
 
   settings: WorldSettings;
 }

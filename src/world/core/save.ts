@@ -12,8 +12,10 @@ import { eventsOf, logDay } from './diary';
 import { feedCat, fits, NO_CAT } from './room';
 import { MAX_SUBJECTS } from './photo';
 import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
+import { applyWardrobe, newWardrobe, wardrobeEvents, type WardrobeAction } from './wardrobe';
 
-export const WORLD_SAVE_VERSION = 10;
+/** 10 is the journal's (§10); 11 is §12's wardrobe */
+export const WORLD_SAVE_VERSION = 11;
 /** how many payments the 账单 keeps */
 export const BILLS = 20;
 
@@ -63,6 +65,7 @@ export function newSave(deviceId: string, now: number): WorldSave {
     bills: [],
     daily: {},
     fresh: {},
+    ...newWardrobe(),
     settings: DEFAULT_SETTINGS,
   };
 }
@@ -91,7 +94,9 @@ export type EngineAction =
   /** a menu view opened (its news seen), or a lead looked at (§10) */
   | { do: 'seen'; key: string; at: number }
   /** follow a quest in the journal ('' for the story again); `rev` is the wall-clock ms (§10 J2) */
-  | { do: 'track'; quest: string; rev: number };
+  | { do: 'track'; quest: string; rev: number }
+  /** the creator, the wardrobe, the mirror, the racks and the barber (§12) */
+  | WardrobeAction;
 
 export type SaveAction = Action | EngineAction;
 
@@ -297,6 +302,15 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
       return (s.seen?.[a.key] ?? -1) >= a.at ? s : { ...s, seen: { ...s.seen, [a.key]: a.at } };
     case 'reset':
       return { ...newSave(s.deviceId, s.updatedAt), born: a.born, settings: s.settings };
+    case 'create':
+    case 'wear':
+    case 'take_off':
+    case 'save_outfit':
+    case 'put_on':
+    case 'buy_clothes':
+    case 'sell_clothes':
+    case 'hair':
+      return applyWardrobe(s, a);
     case 'game':
       // The engine opens the game; the save only remembers where we were, which it already does.
       return s;
@@ -322,7 +336,8 @@ export function apply(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave
     changed = { ...changed, bills: [...changed.bills, bill(changed, a.amount, ctx)].slice(-BILLS) };
   }
   // the diary writes itself as things happen (X3); a night's sleep belongs to the day it ended
-  const next = logDay(changed, eventsOf(s, changed, a, ctx.npc), a.do === 'sleep' ? s.clock : changed.clock);
+  const codes = [...eventsOf(s, changed, a, ctx.npc), ...wardrobeEvents(s, changed, a as WardrobeAction)];
+  const next = logDay(changed, codes, a.do === 'sleep' ? s.clock : changed.clock);
   return { ...next, updatedAt: ctx.now, deviceId: ctx.deviceId ?? s.deviceId };
 }
 

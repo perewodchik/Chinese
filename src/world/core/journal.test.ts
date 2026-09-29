@@ -8,7 +8,7 @@ import type { MapLinks } from './places';
 import { whatNow } from './quests';
 import { merge } from './merge';
 import { readSave } from './migrate';
-import { applyAll, newSave } from './save';
+import { applyAll, newSave, WORLD_SAVE_VERSION } from './save';
 import type { NpcCard, Quest, Scene, WorldSave } from './types';
 
 const scene = (id: string, map: string, npc?: string): Scene => ({ id, map, ...(npc ? { npc } : {}), trigger: 'talk', start: 'a', nodes: [{ id: 'a', say: '你好', translate: 'Hi' }] });
@@ -32,10 +32,10 @@ describe('the journal: step stamps in the save (J1)', () => {
     assert.deepEqual(merge(a, b).quests.q, { step: 'b', index: 1, done: false });
   });
 
-  it('a version 9 save reads as version 10 with its quests as they were', () => {
+  it('a version 9 save reads as the current version with its quests as they were', () => {
     const r = readSave({ ...newSave('d', 0), version: 9, quests: { q: { step: 'b', index: 1, done: false } } });
     assert.ok(r.ok);
-    assert.equal(r.save.version, 10);
+    assert.equal(r.save.version, WORLD_SAVE_VERSION);
     assert.deepEqual(r.save.quests, { q: { step: 'b', index: 1, done: false } });
   });
 });
