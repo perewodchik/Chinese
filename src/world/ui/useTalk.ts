@@ -15,6 +15,8 @@ export interface Said {
   /** a sticker you sent (X6) */
   sticker?: string;
   kind?: Turn['kind'];
+  /** your line: whether they understood it (a small ✓ or ? on it) */
+  got?: boolean;
 }
 
 export interface TalkView {
@@ -48,12 +50,26 @@ export function modeOf(scene: Scene, t: Turn): TalkView['mode'] {
 /** The view after a turn: your line and the NPC's added, misses counted for the companion. */
 export function afterTurn(v: TalkView, t: Turn, you?: string, sticker?: string): TalkView {
   const history = [...v.history];
-  if (you !== undefined) history.push({ who: 'you', text: you, ...(sticker ? { sticker } : {}) });
+  const missed = t.kind === 'miss' || t.kind === 'not_chinese' || t.kind === 'wrong';
+  if (you !== undefined) history.push({ who: 'you', text: you, ...(sticker ? { sticker } : {}), got: !missed });
   // the speaker box's 「支付宝到账」 comes before the seller's thanks (Y2)
   if (t.chime) history.push({ who: 'npc', line: t.chime, kind: t.kind });
   if (t.say) history.push({ who: 'npc', line: t.say, kind: t.kind });
-  const misses = t.kind === 'miss' || t.kind === 'not_chinese' || t.kind === 'wrong' ? v.misses + 1 : t.kind === 'match' ? 0 : v.misses;
+  const misses = missed ? v.misses + 1 : t.kind === 'match' ? 0 : v.misses;
   return { ...v, history, state: t.state, mode: modeOf(v.scene, t), cue: t.companion, misses };
+}
+
+/**
+ * 再说一遍 / 慢一点 repeat what they said last — the running total of an
+ * order, the price on the table — not the script's line for the node, which
+ * may be the greeting from three turns ago. The script's own easier line is
+ * kept for 慢一点 when their last line was the node's own.
+ */
+export function againOf(t: Turn, history: readonly Said[]): Turn {
+  if ((t.kind !== 'repeat' && t.kind !== 'slower') || !t.say) return t;
+  const last = [...history].reverse().find((s) => s.who === 'npc' && s.line && s.line.speaker !== 'speaker-box')?.line;
+  if (!last || last.node === t.say.node) return t;
+  return { ...t, say: { ...last, ...(t.kind === 'slower' ? { slow: true } : {}) } };
 }
 
 /** One line said by someone, outside any script (a gift's thanks, "not this one"). */
@@ -129,7 +145,7 @@ export function useTalk(
     (text: string, via: 'voice' | 'keyboard', sticker?: string) => {
       const v = cur.current;
       if (!v || !source || v.mode !== 'reply') return;
-      take(source.reply(v.state, { text, via, ...(sticker ? { sticker } : {}) }), text, sticker);
+      take(againOf(source.reply(v.state, { text, via, ...(sticker ? { sticker } : {}) }), v.history), text, sticker);
     },
     [source, take],
   );

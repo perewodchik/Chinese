@@ -9,8 +9,7 @@ import type { Line } from '../core/dialogue/source';
 import { EMOTE_MS } from '../core/rabbit';
 import { FitChips, Typed } from './Bubble';
 import './bubble.css';
-import { companionOptions, glossLine, hintAnswer, keepable, phaseOf, translateAnswer, type Gloss } from './companionLines';
-import { voice } from './Dialogue';
+import { companionOptions, glossTurn, hintAnswer, keepable, phaseOf, translateAnswer, type Gloss } from './companionLines';
 import { PixelIcon } from './PixelIcon';
 import { Portrait } from './Portrait';
 import { PropSprite } from './PropSprite';
@@ -25,6 +24,8 @@ const LINES_WITH_WORDS = 2;
  * 兔儿爷, in the corner (concept §9, prompt §11). Tap him (or Tab) and his
  * speech bubble opens to his side: his answer, typed out, over one row of at
  * most three things you can ask him for the moment (`companionOptions`) —
+ * the meaning of their whole turn, a hint, what now; asking *them* again is
+ * said in the talk (「再说一遍」), not asked of him —
  * 1 / 2 / 3 pick one, Esc or a tap outside closes it. The bubble is the same
  * size for every answer; nothing in it scrolls. Everything is free. He speaks
  * up by himself only when the page gives him a `said` line.
@@ -33,9 +34,11 @@ export function Companion({
   open,
   setOpen,
   said,
-  line,
+  turn,
+  speakerName,
   why,
   canHint,
+  stuck,
   hintStep,
   onHint,
   now,
@@ -49,10 +52,14 @@ export function Companion({
   setOpen: (o: boolean) => void;
   /** a line he says by himself, shown when he opens */
   said: string | null;
-  /** the latest line in the conversation */
-  line: Line | undefined;
+  /** their turn: every line since your last reply (empty before they speak, or out of a talk) */
+  turn: readonly Line[];
+  /** a speaker's name, for a turn two people speak in */
+  speakerName?: (speaker: string) => string | null;
   why: string | undefined;
   canHint: boolean;
+  /** missed at a line where a hint is left: a "?" over his head says help is here */
+  stuck?: boolean;
   /** how far the hint has gone at this line (0–3) */
   hintStep: number;
   onHint: () => void;
@@ -72,7 +79,6 @@ export function Companion({
   const lib = useLibrary();
   const openItem = useOpenItem();
   const [show, setShow] = useState<Show | null>(null);
-  const [again, setAgain] = useState<{ line: Line | undefined; n: number }>({ line: undefined, n: 0 });
   // each answer is a new one, even the same words twice (it types again)
   const [asked, setAsked] = useState(0);
   const answer = (s: Show) => {
@@ -99,10 +105,13 @@ export function Companion({
     if (talking) setTalkWords([]);
   }, [talking]);
   useEffect(() => {
-    if (!talking || !line) return;
-    const add = keepable(glossLine(line, lex));
-    setTalkWords((ws) => [...ws, ...add.filter((g) => !ws.some((w) => w.w === g.w))]);
-  }, [talking, line, lex]);
+    if (!talking || !turn.length) return;
+    const add = keepable(glossTurn(turn, lex));
+    setTalkWords((ws) => {
+      const fresh = add.filter((g) => !ws.some((w) => w.w === g.w));
+      return fresh.length ? [...ws, ...fresh] : ws;
+    });
+  }, [talking, turn, lex]);
 
   // Kept is what "Words from Beijing" holds, so a star stays lit on every device.
   const beijing = useStore((s) => s.collections.find((c) => c.presetId === BEIJING_PRESET));
@@ -113,18 +122,11 @@ export function Companion({
     setGlad(Date.now());
   };
 
+  const line = turn.at(-1);
   const phase = phaseOf(talking, line);
   const options = companionOptions(
     { phase, canHint, learned: talkWords.length > 0 },
     {
-      again: line
-        ? () => {
-            const n = again.line === line ? again.n + 1 : 1;
-            setAgain({ line, n });
-            voice(line, n > 1);
-            answer({ kind: 'say', text: n > 1 ? 'Once more, slowly.' : 'Listen again.' });
-          }
-        : undefined,
       translate: line ? () => answer({ kind: 'translate' }) : undefined,
       hint: () => {
         onHint();
@@ -202,13 +204,13 @@ export function Companion({
     current.kind === 'say'
       ? current.text
       : current.kind === 'translate' && line
-        ? translateAnswer(line, why)
+        ? translateAnswer(turn, why, speakerName)
         : current.kind === 'learned'
           ? 'From that talk. Tap the star to keep a word.'
           : '';
-  const list = current.kind === 'translate' && line ? keepable(glossLine(line, lex)) : current.kind === 'learned' ? talkWords : null;
-  // over his head: "!" when he has something to say, "…" while he types
-  const mark = !open && said ? 'says' : open && typing ? 'thinking' : null;
+  const list = current.kind === 'translate' && line ? keepable(glossTurn(turn, lex)) : current.kind === 'learned' ? talkWords : null;
+  // over his head: "!" when he has something to say, "?" when you are stuck and he can help, "…" while he types
+  const mark = !open && said ? 'says' : !open && stuck ? 'help' : open && typing ? 'thinking' : null;
 
   return (
     <div
@@ -221,7 +223,7 @@ export function Companion({
         type="button"
         className="wc-rabbit"
         aria-expanded={open}
-        aria-label={!open && said ? '兔儿爷 has something to say (Tab)' : '兔儿爷 — help (Tab)'}
+        aria-label={!open && said ? '兔儿爷 has something to say (Tab)' : !open && stuck ? '兔儿爷 can help you answer (Tab)' : '兔儿爷 — help (Tab)'}
         onPointerDown={() => {
           patted.current = false;
           window.clearTimeout(hold.current);

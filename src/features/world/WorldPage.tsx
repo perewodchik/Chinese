@@ -36,7 +36,8 @@ import { NextHop } from '../../world/ui/NextHop';
 import { trackedMaps } from '../../world/core/journal';
 import { menuNewsFor, type PanelId } from '../../world/ui/menu';
 import { Companion } from '../../world/ui/Companion';
-import { cueLine, IDLE_MS, speaksUpAfterMisses } from '../../world/ui/companionLines';
+import { cueLine, glossTurn, IDLE_MS, keepable, speaksUpAfterMisses, turnOf } from '../../world/ui/companionLines';
+import { wantOf } from '../../world/ui/talkWant';
 import { activeQuests, whatNow } from '../../world/core/quests';
 import { TopBar } from '../../world/ui/TopBar';
 import { lineScene, signScene, smallTalk, useTalk } from '../../world/ui/useTalk';
@@ -650,11 +651,21 @@ export function WorldPage() {
   }, [panel]);
   const lastLine = talk.view ? [...talk.view.history].reverse().find((h) => h.who === 'npc' && h.line)?.line : undefined;
   const lastNode = talk.view && lastLine ? talk.view.scene.nodes.find((n) => n.id === lastLine.node) : undefined;
+  // their turn (every line since your last reply), and its words to ask about: 「旧是什么意思？」
+  const history = talk.view?.history;
+  const turn = useMemo(() => (history ? turnOf(history) : []), [history]);
+  const turnWords = useMemo(() => (lex ? keepable(glossTurn(turn, lex)).map((g) => g.w) : []), [turn, lex]);
 
   const npcNames = useMemo(
     () => Object.fromEntries([...content.npcs.map((n) => [n.id, n.name]), ...content.spirits.map((x) => [x.id, x.hanzi])]),
     [content],
   );
+  const speakerName = (id: string): string | null =>
+    id === 'speaker-box' ? '支付宝' : id === 'companion' ? '兔儿爷' : (npcNames[id] ?? null);
+  const want =
+    talk.view && game.save
+      ? wantOf(talk.view.state, talk.view.scene.nodes.find((n) => n.id === talk.view!.state.node), game.save.bag.money, (id) => content.items.find((it) => it.id === id)?.name ?? id)
+      : null;
   const setPinyin = (on: boolean) => void game.dispatch([{ do: 'settings', patch: { pinyin: on } }]);
 
   return (
@@ -717,6 +728,7 @@ export function WorldPage() {
           view={talk.view}
           names={npcNames}
           {...(talk.view.npc && game.save.npcs[talk.view.npc.id] ? { hearts: game.save.npcs[talk.view.npc.id]!.hearts } : {})}
+          want={want}
           pinyin={game.save.settings.pinyin}
           setPinyin={setPinyin}
           onProceed={talk.proceed}
@@ -732,7 +744,7 @@ export function WorldPage() {
             onSticker={(id) => talk.reply('', 'keyboard', id)}
             hint={hintNow}
             hintStep={hintStep}
-            onHint={() => setHint({ at: talkAt, step: hintStep + 1 })}
+            asks={turnWords}
             saved={game.save.settings.input}
             setSaved={(m) => void game.dispatch([{ do: 'settings', patch: { input: m } }])}
           />
@@ -743,9 +755,11 @@ export function WorldPage() {
           open={pal.open}
           setOpen={(open) => setPal((p) => ({ open, said: open ? p.said : null }))}
           said={pal.said}
-          line={lastLine ?? undefined}
+          turn={turn}
+          speakerName={speakerName}
           why={lastNode?.why}
           canHint={!!hintNow && hintStep < 3 && talk.view?.mode === 'reply'}
+          stuck={!!hintNow && hintStep < 3 && talk.view?.mode === 'reply' && misses >= 1}
           hintStep={hintStep}
           onBlip={() => ambient.current?.blip()}
           hat={hatFor(minutes)}

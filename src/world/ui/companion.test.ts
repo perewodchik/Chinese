@@ -5,12 +5,14 @@ import {
   companionOptions,
   cueLine,
   glossLine,
+  glossTurn,
   hintAnswer,
   keepable,
   MAX_OPTIONS,
   phaseOf,
   speaksUpAfterMisses,
   translateAnswer,
+  turnOf,
   type CompanionCtx,
 } from './companionLines';
 
@@ -54,6 +56,30 @@ describe('兔儿爷', () => {
     assert.equal(translateAnswer({ ...line, key: true }, 'x'), '“Where is the subway?”\nx');
   });
 
+  it('what did they say: the whole turn since your last reply, another speaker named', () => {
+    const a = { ...line, zh: '收——旧手机！', en: 'Buying old phones!' };
+    const b = { ...line, zh: '你有旧东西吗？', en: 'Have you got anything old?' };
+    const box = { ...line, speaker: 'speaker-box', en: 'Alipay: received.' };
+    const history = [
+      { who: 'npc' as const, line },
+      { who: 'you' as const, text: '你好' },
+      { who: 'npc' as const, line: a },
+      { who: 'npc' as const, line: b },
+    ];
+    assert.deepEqual(turnOf(history), [a, b]);
+    assert.deepEqual(turnOf([...history, { who: 'you' as const, text: '有' }]), []);
+    assert.equal(translateAnswer([a, b], undefined), '“Buying old phones!”\n“Have you got anything old?”');
+    assert.equal(translateAnswer([a, b], 'note'), '“Buying old phones!”\n“Have you got anything old?”\nnote');
+    assert.equal(translateAnswer([box, a], undefined, (s) => (s === 'x' ? '大叔' : '支付宝')), '“Alipay: received.”\n大叔: “Buying old phones!”');
+  });
+
+  it('glosses the words of a whole turn, each once', () => {
+    assert.deepEqual(
+      glossTurn([line, { ...line, zh: '你好！你好！' }, line], lex).map((g) => g.w),
+      ['地铁', '在', '哪儿', '你好'],
+    );
+  });
+
   it('help me answer says where the hint went, step by step', () => {
     assert.match(hintAnswer(1), /word you want/);
     assert.match(hintAnswer(2), /how it goes/);
@@ -73,7 +99,7 @@ describe('兔儿爷', () => {
 });
 
 describe('兔儿爷’s options', () => {
-  const all = { again: () => {}, translate: () => {}, hint: () => {}, now: () => {}, learned: () => {} };
+  const all = { translate: () => {}, hint: () => {}, now: () => {}, learned: () => {} };
   const ids = (ctx: CompanionCtx) => companionOptions(ctx, all).map((o) => o.id);
 
   it('knows the moment from the talk', () => {
@@ -87,9 +113,9 @@ describe('兔儿爷’s options', () => {
     assert.deepEqual(ids({ phase: 'walk', canHint: true, learned: true }), ['now', 'learned']);
   });
 
-  it('heard: again and what did they say; help me answer only with a hint left', () => {
-    assert.deepEqual(ids({ phase: 'heard', canHint: false, learned: true }), ['again', 'translate']);
-    assert.deepEqual(ids({ phase: 'heard', canHint: true, learned: false }), ['again', 'translate', 'hint']);
+  it('heard: what did they say, help me answer only with a hint left, what now — never "again" (that is said in the talk)', () => {
+    assert.deepEqual(ids({ phase: 'heard', canHint: false, learned: true }), ['translate', 'now']);
+    assert.deepEqual(ids({ phase: 'heard', canHint: true, learned: false }), ['translate', 'hint', 'now']);
   });
 
   it('reply with no line yet: help me answer (if any) and what now', () => {
@@ -113,8 +139,8 @@ describe('兔儿爷’s options', () => {
     }
     // an option whose action is missing is left out, not disabled
     assert.deepEqual(
-      companionOptions({ phase: 'heard', canHint: true, learned: false }, { again: () => {} }).map((o) => o.id),
-      ['again'],
+      companionOptions({ phase: 'heard', canHint: true, learned: false }, { translate: () => {} }).map((o) => o.id),
+      ['translate'],
     );
   });
 });

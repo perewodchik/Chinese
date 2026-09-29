@@ -178,23 +178,44 @@
   }
 }
 
-/* --- the conversation bubble: over the bottom of the world, which does not move */
-.wd {
+/* --- the conversation box: over the bottom of the world, which does not move.
+   The game's pixel frame (the same as 兔儿爷's bubble): a 3px notched edge in
+   ink and a hard drop under it, no rounded corners, warm paper inside. */
+.world-shell {
+  --px-edge: color-mix(in srgb, var(--ink) 78%, var(--card));
+  --px-drop: color-mix(in srgb, var(--ink) 22%, transparent);
+  --px-frame:
+    0 -3px 0 0 var(--px-edge),
+    0 3px 0 0 var(--px-edge),
+    -3px 0 0 0 var(--px-edge),
+    3px 0 0 0 var(--px-edge),
+    0 7px 0 0 var(--px-drop);
+}
+
+/* the box, and at a counter the phone beside it */
+.wd-stage {
   position: absolute;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
   transform: translateX(-50%);
   z-index: 4;
-  width: min(680px, calc(100% - 20px));
-  height: min(52%, 380px); /* fixed: new lines scroll inside, the box never grows */
+  width: min(680px, calc(100% - 26px));
+  height: min(46%, 330px); /* fixed: new lines scroll inside, the box never grows */
+  display: flex;
+  gap: 14px;
+  touch-action: auto;
+}
+
+.wd {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  grid-template-columns: minmax(0, 1fr); /* a long role line ellipses; it never widens the box past the Done button */
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  grid-template-columns: minmax(0, 1fr); /* a long line ellipses; it never widens the box */
   background: var(--card);
   color: var(--ink);
-  box-shadow: var(--shadow);
+  box-shadow: var(--px-frame);
   overflow: hidden;
   user-select: text;
   -webkit-user-select: text;
@@ -205,13 +226,28 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px 6px 10px;
-  border-bottom: 1px solid var(--line);
+  padding: 6px 8px;
+  background: var(--card-2);
+  border-bottom: 2px solid color-mix(in srgb, var(--px-edge) 35%, var(--line));
   white-space: nowrap;
 }
 
-.wd-head .spacer {
-  flex: 1;
+/* the portrait in a small pixel frame */
+.wd-face {
+  flex: none;
+  display: grid;
+  padding: 1px;
+  background: var(--card);
+  box-shadow:
+    0 -2px 0 0 var(--px-edge),
+    0 2px 0 0 var(--px-edge),
+    -2px 0 0 0 var(--px-edge),
+    2px 0 0 0 var(--px-edge);
+  margin: 2px;
+}
+
+.wd-face .wt-portrait {
+  border-radius: 0;
 }
 
 .wt-portrait {
@@ -223,9 +259,25 @@
   image-rendering: pixelated;
 }
 
+/* name and hearts, and under them what they want from you (or who they are) */
+.wd-plate {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.wd-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .wd-name {
   font-family: var(--han);
   font-size: 17px;
+  line-height: 1.2;
 }
 
 .wd-role {
@@ -233,23 +285,54 @@
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+  line-height: 1.3;
 }
 
+.wd-role[data-want] {
+  color: var(--ink-2);
+  font-weight: 520;
+}
+
+.wd-role[data-want]::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 6px 1px 1px;
+  background: var(--gold);
+  vertical-align: middle;
+}
+
+/* square pixel buttons: 拼, ×, the speaker on a line, stickers */
 .wd-tool {
   flex: none;
   width: 36px;
   height: 32px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid var(--line-2);
+  border-radius: 0;
   background: var(--card);
   color: var(--ink-2);
   font: inherit;
   font-size: 15px;
   cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+
+.wd-tool:hover {
+  border-color: var(--px-edge);
+}
+
+.wd-tool:active {
+  transform: translateY(1px);
 }
 
 .wd-tool[aria-pressed='true'] {
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
   color: var(--accent);
   background: var(--accent-soft);
 }
@@ -261,7 +344,7 @@
 
 .wd-list {
   margin: 0;
-  padding: 8px 12px;
+  padding: 10px 12px;
   list-style: none;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -271,17 +354,57 @@
   gap: 8px;
 }
 
+/* older lines step back; the newest one is the one to read */
 .wd-npc {
-  opacity: 0.62;
+  opacity: 0.55;
+  font-size: 0.86em;
 }
 
 .wd-npc[data-latest] {
   opacity: 1;
+  font-size: 1em;
 }
 
 .wd-who {
   display: block;
   color: var(--ink-3);
+}
+
+/* a line and its own speaker, at the end of it */
+.wd-line {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.wd-line > .wd-said {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.wd-hear {
+  flex: none;
+  width: 28px;
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  margin-bottom: 4px;
+  padding: 0;
+  border: 2px solid transparent;
+  background: none;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.wd-hear:hover,
+.wd-npc[data-latest] .wd-hear {
+  border-color: var(--line-2);
+  color: var(--ink-2);
+  background: var(--card-2);
+}
+
+.wd-hear:active {
+  transform: translateY(1px);
 }
 
 .wd-zh {
@@ -290,6 +413,10 @@
   align-items: flex-end;
   font-size: 22px;
   line-height: 1.35;
+}
+
+.wd-npc:not([data-latest]) .wd-zh {
+  font-size: 18px;
 }
 
 .wd-w {
@@ -341,14 +468,44 @@
   align-self: center;
 }
 
+/* your line: a small pixel tag on the right, a ✓ or a ? on its corner */
 .wd-you {
+  position: relative;
   align-self: flex-end;
   max-width: 85%;
-  padding: 4px 10px;
-  border-radius: 12px;
+  padding: 3px 10px;
   background: var(--card-2);
-  font-family: var(--han);
+  box-shadow:
+    0 -2px 0 0 var(--line-2),
+    0 2px 0 0 var(--line-2),
+    -2px 0 0 0 var(--line-2),
+    2px 0 0 0 var(--line-2);
+  margin: 2px 2px 2px 0;
   font-size: 18px;
+}
+
+.wd-you .han {
+  font-family: var(--han);
+}
+
+.wd-got {
+  position: absolute;
+  right: -8px;
+  top: -9px;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  background: var(--card);
+  box-shadow: 0 0 0 2px var(--line-2);
+}
+
+.wd-you[data-got='yes'] .wd-got {
+  color: var(--jade, #357d49);
+}
+
+.wd-you[data-got='no'] .wd-got {
+  color: var(--gold);
 }
 
 .wd-foot {
@@ -357,32 +514,111 @@
   gap: 6px;
   min-height: 52px;
   padding: 8px 10px;
-  border-top: 1px solid var(--line);
+  border-top: 2px solid color-mix(in srgb, var(--px-edge) 20%, var(--line));
 }
 
 .wd-go {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-width: 120px;
   height: 36px;
   border: 0;
-  border-radius: var(--radius);
+  border-radius: 0;
   background: var(--accent);
   color: #fff;
   font: inherit;
   font-weight: 600;
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--accent) 60%, #000);
   cursor: pointer;
 }
 
+.wd-go:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 color-mix(in srgb, var(--accent) 60%, #000);
+}
+
+/* a small blinking pixel ▼: there is more */
+.wd-go-more {
+  width: 8px;
+  height: 5px;
+  background: currentColor;
+  clip-path: polygon(0 0, 8px 0, 8px 1px, 6px 1px, 6px 3px, 5px 3px, 5px 5px, 3px 5px, 3px 3px, 2px 3px, 2px 1px, 0 1px);
+  animation: wd-blink 1s steps(2, jump-none) infinite;
+}
+
+@keyframes wd-blink {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wd-go-more {
+    animation: none;
+  }
+}
+
 @media (max-width: 689px) {
-  .wd {
-    height: min(56%, 400px);
+  .wd-stage {
+    height: min(52%, 360px);
   }
 
   .wd-zh {
     font-size: 20px;
   }
+
+  .wd-role:not([data-want]) {
+    display: none;
+  }
+
+  .wi-check {
+    display: none;
+  }
 }
 
-/* --- the input bar: [🎤|⌨] [field / hold to talk] [💡] [➤], a row of candidates or hint chips above */
+/* --- paying (Y2): the phone comes out beside the box, and the box keeps
+   only its latest lines and its row of things to say (再说一遍) */
+.wd-stage[data-phone] {
+  width: min(960px, calc(100% - 26px));
+  height: auto;
+  max-height: calc(100% - 70px);
+  align-items: flex-end;
+}
+
+.wd-stage[data-phone] .wd {
+  height: min(240px, 40vh);
+}
+
+.wd-stage[data-phone] .wi-main {
+  display: none;
+}
+
+.wd-stage[data-phone] .wi {
+  gap: 0;
+}
+
+@media (max-width: 689px) and (min-height: 561px) {
+  .wd-stage[data-phone] {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .wd-stage[data-phone] .wd {
+    flex: none;
+    height: 190px;
+  }
+
+  .wd-stage[data-phone] .w-phone {
+    align-self: center;
+    width: min(340px, 100%);
+  }
+}
+
+/* --- the input bar: [mic|keys] [field / talk] [stickers] [send], one row above it
+   that is always there (candidates, what was heard, the hint, things to say) */
 .wi {
   flex: 1;
   min-width: 0;
@@ -395,6 +631,7 @@
   align-items: center;
   gap: 6px;
   height: 40px; /* always there, empty or not */
+  padding: 0 2px;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
@@ -406,19 +643,42 @@
 }
 
 .wi-cand,
-.wi-chip {
+.wi-chip,
+.wi-act {
   flex: none;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   height: 36px;
   padding: 0 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 2px solid var(--line-2);
+  border-radius: 0;
   background: var(--card-2);
   color: var(--ink);
   font: inherit;
   cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+
+.wi-cand:hover,
+.wi-chip:hover,
+.wi-act:hover {
+  border-color: var(--px-edge);
+  background: var(--card);
+}
+
+.wi-cand:active,
+.wi-chip:active,
+.wi-act:active {
+  transform: translateY(1px);
+}
+
+.wi-act {
+  font-size: 12.5px;
+  font-weight: 520;
+  color: var(--ink-2);
 }
 
 .wi-cand .han,
@@ -440,8 +700,18 @@
 }
 
 .wi-chip[data-key] {
-  border-color: color-mix(in srgb, var(--gold) 50%, var(--line));
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--line));
   background: var(--gold-soft);
+}
+
+/* a thing you can always say: lighter, it is not the answer */
+.wi-say {
+  background: var(--card);
+  border-style: dashed;
+}
+
+.wi-say .han {
+  font-size: 16px;
 }
 
 .wi-chip-py {
@@ -450,8 +720,8 @@
 }
 
 .wi-note {
+  flex: none;
   color: var(--ink-3);
-  white-space: normal;
   line-height: 1.3;
 }
 
@@ -465,20 +735,25 @@
 .wi-mode {
   flex: none;
   display: inline-flex;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  overflow: hidden;
+  border: 2px solid var(--line-2);
 }
 
 .wi-mode button {
   width: 34px;
   height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
   border: 0;
+  border-radius: 0;
   background: var(--card);
   color: var(--ink-2);
   font: inherit;
-  font-size: 15px;
   cursor: pointer;
+}
+
+.wi-mode button + button {
+  border-left: 2px solid var(--line-2);
 }
 
 .wi-mode button[aria-pressed='true'] {
@@ -498,6 +773,12 @@
   font-size: 16px; /* Safari does not zoom a 16px field */
 }
 
+/* the site's own field style is rounder: here it is a pixel box */
+.wi input.wi-field {
+  border-radius: 0;
+  border-width: 2px;
+}
+
 .wi-hold,
 .wi-heard {
   flex: 1;
@@ -506,19 +787,31 @@
 }
 
 .wi-hold {
-  border: 1px dashed var(--line-2);
-  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 2px dashed var(--line-2);
+  border-radius: 0;
   background: var(--card-2);
   color: var(--ink-2);
   font: inherit;
   cursor: pointer;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
   touch-action: none;
   -webkit-touch-callout: none;
   user-select: none;
   -webkit-user-select: none;
+}
+
+.wi-hold-say {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wi-hold[data-on] {
@@ -531,33 +824,67 @@
 .wi-hold .han {
   font-family: var(--han);
   font-size: 19px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* listening: three pixel bars that hop */
+.wi-bars {
+  flex: none;
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+
+.wi-bars i {
+  width: 3px;
+  height: 4px;
+  background: var(--accent);
+  animation: wi-bar 0.6s steps(3, jump-none) infinite alternate;
+}
+
+.wi-bars i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.wi-bars i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes wi-bar {
+  to {
+    height: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wi-bars i {
+    animation: none;
+    height: 8px;
+  }
+}
+
+/* what was heard, waiting to be sent: tap it to change it */
 .wi-heard {
-  display: flex;
-  gap: 6px;
-}
-
-.wi-heard-text {
-  flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
   padding: 0 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border: 2px solid var(--accent);
+  border-radius: 0;
   background: var(--card);
   color: var(--ink);
   font: inherit;
   line-height: 1.15;
   text-align: left;
   overflow: hidden;
+  white-space: nowrap;
   cursor: pointer;
 }
 
-.wi-heard-text .han {
+.wi-heard .han {
   font-family: var(--han);
   font-size: 18px;
 }
@@ -570,6 +897,7 @@
 .wd-go:disabled {
   opacity: 0.45;
   cursor: default;
+  box-shadow: none;
 }
 
 @media (hover: none), (pointer: coarse) {
@@ -1517,8 +1845,14 @@
   }
 
   .wi-cand,
-  .wi-chip {
+  .wi-chip,
+  .wi-act {
     height: 40px;
+  }
+
+  .wd-hear {
+    width: 36px;
+    height: 32px;
   }
 
   .wd-go {
@@ -1810,20 +2144,45 @@
 /* the phone at the counter (Y2): our own drawing in a 支付宝-like blue */
 .w-phone {
   --pay: #1677ff;
+  --pay-edge: color-mix(in srgb, var(--pay) 70%, var(--ink));
+  flex: none;
+  width: 300px;
+  max-width: 100%;
   display: grid;
-  gap: 6px;
-  max-width: 340px;
-  margin: 0 auto;
-  padding: 10px;
-  border: 2px solid var(--pay);
-  border-radius: 14px;
+  gap: 8px;
+  padding: 12px 12px 14px;
   background: var(--card);
+  color: var(--ink);
+  box-shadow:
+    0 -3px 0 0 var(--pay-edge),
+    0 3px 0 0 var(--pay-edge),
+    -3px 0 0 0 var(--pay-edge),
+    3px 0 0 0 var(--pay-edge),
+    0 7px 0 0 var(--px-drop, rgba(0, 0, 0, 0.2));
+  animation: w-phone-up 0.18s ease-out both;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
+@keyframes w-phone-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .w-phone {
+    animation: none;
+  }
+}
+
+/* one line that never wraps: 支付宝 · 扫一扫 … 余额 */
 .w-phone-head {
   display: flex;
   align-items: baseline;
   gap: 8px;
+  min-width: 0;
   color: var(--pay);
   white-space: nowrap;
 }
@@ -1832,15 +2191,25 @@
   font-weight: 600;
 }
 
+.w-phone-head > .tiny:last-child {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
 .w-phone-shop {
   font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .w-phone-amount {
-  font-size: 26px;
+  font-size: 28px;
   font-variant-numeric: tabular-nums;
   text-align: center;
-  min-height: 36px;
+  line-height: 36px;
+  height: 36px;
+  white-space: nowrap;
 }
 
 .w-phone-amount[data-short] {
@@ -1849,19 +2218,25 @@
 
 .w-phone-keys {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
 }
 
 .w-phone-keys button {
   height: 40px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 2px solid var(--line-2);
+  border-radius: 0;
   background: var(--card-2);
   color: var(--ink);
   font: inherit;
   font-size: 18px;
   font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.w-phone-keys button:active {
+  transform: translateY(1px);
+  background: var(--card);
 }
 
 .w-phone-note {
@@ -1872,13 +2247,24 @@
 .w-phone-go {
   display: flex;
   justify-content: flex-end;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
 }
 
 .w-phone-pay {
-  width: auto;
-  padding: 0 18px;
+  flex: 1;
+  min-width: 0;
   background: var(--pay);
+  box-shadow: 0 3px 0 0 var(--pay-edge);
+}
+
+.w-phone-pay:active {
+  box-shadow: 0 1px 0 0 var(--pay-edge);
+}
+
+.w-phone-go .btn {
+  height: 36px;
+  border-radius: 0;
 }
 
 .w-phone-pay[data-touch] {
@@ -1888,6 +2274,25 @@
 @keyframes w-touch {
   50% {
     box-shadow: 0 0 0 8px color-mix(in srgb, var(--pay) 30%, transparent);
+  }
+}
+
+/* a short screen (a phone on its side): smaller keys before anything is cut off */
+@media (max-height: 560px) {
+  .w-phone {
+    gap: 5px;
+    padding: 8px 10px 10px;
+  }
+
+  .w-phone-keys button {
+    height: 30px;
+    font-size: 16px;
+  }
+
+  .w-phone-amount {
+    font-size: 22px;
+    line-height: 28px;
+    height: 28px;
   }
 }
 
@@ -2024,7 +2429,12 @@
 }
 
 .w-phone-home {
+  width: auto;
   max-width: 420px;
+  margin: 3px auto 10px;
+  animation: none;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .w-phone-home .w-phone-head {
@@ -2046,6 +2456,7 @@
 
 .w-phone-home .w-phone-amount {
   text-align: left;
+  height: auto;
   min-height: 0;
   font-size: 22px;
 }

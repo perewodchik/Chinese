@@ -39,15 +39,14 @@ export function PhonePay({ due, balance, fill, onPay, onDispute }: { due: Due; b
     <div className="w-phone" role="group" aria-label="支付宝">
       <div className="w-phone-head">
         <span className="han">支付宝</span>
-        <span className="tiny">{due.mode === 'scan' ? '扫一扫' : '付款码'}</span>
-        <span className="spacer" />
+        <span className="tiny han">{due.mode === 'scan' ? '扫一扫' : '付款码'}</span>
         <span className="tiny">
           <span className="han">余额</span> ¥{balance.toFixed(2)}
         </span>
       </div>
       <div className="w-phone-shop han">{due.name}</div>
       <div className="w-phone-amount" data-short={short ? '' : undefined}>
-        ¥{due.mode === 'code' ? due.charged.toFixed(2) : typed || '0'}
+        ¥{due.mode === 'code' ? due.charged.toFixed(2) : typed || '0.00'}
         {short && <span className="tiny han"> 余额不足</span>}
       </div>
       {due.mode === 'scan' ? (
@@ -68,7 +67,7 @@ export function PhonePay({ due, balance, fill, onPay, onDispute }: { due: Due; b
           </button>
         )}
         <button type="button" className="wd-go w-phone-pay" onClick={pay} disabled={!amount || short || touch} data-touch={touch ? '' : undefined}>
-          {touch ? '☝ …' : <span className="han">付款</span>}
+          <span className="han">{touch ? '验证中…' : '付款'}</span>
         </button>
       </div>
     </div>

@@ -360,6 +360,29 @@
   animation: wc-dots 0.9s steps(3, jump-none) infinite;
 }
 
+/* a pixel "?": you are stuck and he has a hint for you */
+.wc-mark[data-kind='help'] i {
+  left: 5px;
+  top: 4px;
+  width: 2px;
+  height: 2px;
+  background: transparent;
+  box-shadow:
+    2px 0 0 0 var(--gold),
+    4px 0 0 0 var(--gold),
+    0 2px 0 0 var(--gold),
+    6px 2px 0 0 var(--gold),
+    6px 4px 0 0 var(--gold),
+    4px 6px 0 0 var(--gold),
+    4px 10px 0 0 var(--gold);
+}
+
+.wc-mark[data-kind='help'] {
+  animation:
+    wc-pop 0.16s ease-out both,
+    wc-bob 1.2s steps(2, jump-none) 0.16s infinite;
+}
+
 .wc-emote {
   margin-left: -16px;
 }

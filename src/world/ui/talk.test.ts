@@ -8,7 +8,7 @@ import { newSave } from '../core/save';
 import type { Idiom, Scene } from '../core/types';
 import { mergeContent, wordsOf } from './content';
 import { readLine } from './pinyin';
-import { afterTurn, smallTalk, type TalkView } from './useTalk';
+import { afterTurn, againOf, smallTalk, type TalkView } from './useTalk';
 
 const read = <T>(p: string): T => JSON.parse(readFileSync(p, 'utf8')) as T;
 const chars = read<{ items: CharacterEntry[] }>('public/data/characters.json').items;
@@ -51,6 +51,21 @@ const open = (s: Scene): { src: ScriptedDialogue; v: TalkView } => {
 };
 
 describe('a conversation in the bubble', () => {
+  it('再说一遍 / 慢一点 repeat their last line when it was not the node’s own (an order’s total)', () => {
+    const { src, v } = open(scene);
+    const aside = { speaker: 'x', zh: '两个包子，一共六块。', en: 'Two buns, six yuan.', node: '' };
+    const said = [...v.history, { who: 'you' as const, text: '两个包子' }, { who: 'npc' as const, line: aside }];
+    const again = againOf(src.reply(v.state, { text: '再说一遍', via: 'keyboard' }), said);
+    assert.equal(again.kind, 'repeat');
+    assert.equal(again.say?.zh, '两个包子，一共六块。');
+    const slower = againOf(src.reply(v.state, { text: '慢一点', via: 'keyboard' }), said);
+    assert.equal(slower.say?.zh, '两个包子，一共六块。');
+    assert.equal(slower.say?.slow, true);
+    // their last line was the node's own: the script's answer stands
+    const plain = src.reply(v.state, { text: '再说一遍', via: 'keyboard' });
+    assert.equal(againOf(plain, v.history), plain);
+  });
+
   it('asks for an answer, then taps on, then is over', () => {
     const { src, v } = open(scene);
     assert.equal(v.mode, 'reply');

@@ -1,8 +1,8 @@
 // 兔儿爷's bubble, checked in WebKit (prompt §11 R4). Stand next to someone
 // in the game first (the save keeps where you are), then:
 //   .cache/webkit-probe http://localhost:5176/play/world 390 scripts/world/bubble-probe.js
-// It opens him while walking, starts the talk with Space, asks Again → What
-// did they say? → Help me answer → What did they say?, and reports anything
+// It opens him while walking, starts the talk with Space, asks What did they
+// say? → Help me answer → What did they say?, and reports anything
 // that moved, changed height, scrolled sideways or covered the talk's name,
 // tools, input or hint chips.
 (() => {
@@ -45,7 +45,7 @@
     else {
       await sleep(600); snap('talk');
       document.querySelector('.wc-rabbit').click(); await sleep(400); snap('open');
-      await pick('Again'); await pick('What did they say'); await pick('Help me answer');
+      await pick('What did they say'); await pick('Help me answer');
       await pick('What did they say');
       const hs = new Set(out.steps.filter((s) => s.wb).map((s) => s.wb.h)); if (hs.size !== 1) out.problems.push('bubble heights ' + [...hs]);
       const talkSteps = out.steps.filter((s) => s.tag !== 'walk-open');

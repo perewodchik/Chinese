@@ -80,3 +80,22 @@ export function rememberInput(m: InputMode) {
     /* a private window: the save still remembers */
   }
 }
+
+/**
+ * Things you can always say in a talk (the engine understands them anywhere,
+ * `core/dialogue/universal.ts`): tapped, they are sent as your own line, and
+ * the person answers — asking them again is a thing you say to them, not a
+ * button that replays a recording.
+ */
+export const ASKS: readonly { zh: string; en: string }[] = [
+  { zh: '再说一遍', en: 'Say it again, please' },
+  { zh: '慢一点', en: 'Slower, please' },
+  { zh: '听不懂', en: 'I do not understand' },
+];
+
+/** 「旧是什么意思？」: asking what one word of their line means. */
+export const askMeaning = (word: string) => `${word}是什么意思？`;
+
+/** A press on the talk button this long or longer is held (released = stop); shorter is a tap (tap again = stop). */
+export const HOLD_MS = 300;
+export const isHold = (pressedMs: number) => pressedMs >= HOLD_MS;

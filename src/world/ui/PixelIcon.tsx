@@ -6,8 +6,22 @@ import type { OptionIcon } from './companionLines';
  * text). Each is a small square grid, drawn at a whole number of screen
  * pixels per pixel (7 → 14px, 9 → 18px); `#` is a lit pixel.
  */
-const ICONS: Record<OptionIcon | 'star-full', readonly string[]> = {
-  // a round arrow: say it again
+export type IconName =
+  | OptionIcon
+  | 'star-full'
+  | 'again'
+  | 'speaker'
+  | 'mic'
+  | 'keys'
+  | 'send'
+  | 'face'
+  | 'edit'
+  | 'close'
+  | 'check'
+  | 'huh';
+
+const ICONS: Record<IconName, readonly string[]> = {
+  // a round arrow: once more
   again: ['..###..', '.#...#.', '#.....#', '#......', '#...###', '.#...##', '..####.'],
   // a speech bubble with a question in it
   ask: ['#######', '#..#..#', '#...#.#', '#..#..#', '#.....#', '#######', '.##....'],
@@ -19,9 +33,26 @@ const ICONS: Record<OptionIcon | 'star-full', readonly string[]> = {
   star: ['....#....', '...#.#...', '####.####', '#.......#', '.#.....#.', '..#...#..', '.#..#..#.', '.#.#.#.#.', '.##...##.'],
   // …and kept
   'star-full': ['....#....', '...###...', '#########', '#########', '.#######.', '..#####..', '.#######.', '.###.###.', '.##...##.'],
+  // a loudspeaker: hear the line
+  speaker: ['...#...', '..##.#.', '####..#', '####..#', '####..#', '..##.#.', '...#...'],
+  // a microphone: talk
+  mic: ['..###..', '..###..', '..###..', '#.###.#', '.#...#.', '..###..', '...#...'],
+  // a keyboard: type
+  keys: ['.......', '#######', '#.#.#.#', '#######', '#.###.#', '#######', '.......'],
+  // an arrow: send
+  send: ['...#...', '...##..', '######.', '#######', '######.', '...##..', '...#...'],
+  // a face: stickers
+  face: ['.#####.', '#.....#', '#.#.#.#', '#.....#', '#.###.#', '#.....#', '.#####.'],
+  // a pencil: change it
+  edit: ['.....##', '....###', '...###.', '..###..', '.###...', '##.....', '#......'],
+  close: ['#.....#', '.#...#.', '..#.#..', '...#...', '..#.#..', '.#...#.', '#.....#'],
+  // understood…
+  check: ['.......', '......#', '.....#.', '#...#..', '.#.#...', '..#....', '.......'],
+  // …or not
+  huh: ['..###..', '.#...#.', '.....#.', '....#..', '...#...', '.......', '...#...'],
 };
 
-export function PixelIcon({ name, size = 14 }: { name: OptionIcon | 'star-full'; size?: number }) {
+export function PixelIcon({ name, size = 14 }: { name: IconName; size?: number }) {
   const rows = ICONS[name];
   const n = rows.length;
   return (

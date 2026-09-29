@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import type { CharacterEntry, SyllabusWord } from '../../data/types';
 import { buildIme } from '../core/ime';
-import { fieldCandidates, hintChips, pickCandidate, splitField, startMode } from './typing';
+import { ASKS, askMeaning, fieldCandidates, HOLD_MS, hintChips, isHold, pickCandidate, splitField, startMode } from './typing';
 
 const read = <T>(p: string): T => JSON.parse(readFileSync(p, 'utf8')) as T;
 const ime = buildIme({
@@ -54,5 +54,20 @@ describe('the input mode', () => {
     assert.equal(startMode(null, 'voice', true), 'voice');
     assert.equal(startMode('voice', 'keyboard', false), 'keyboard');
     assert.equal(startMode('junk', 'keyboard', true), 'keyboard');
+  });
+});
+
+describe('things you can always say', () => {
+  it('are the asks the engine understands, and a word asked about reads as a question', () => {
+    assert.deepEqual(
+      ASKS.map((a) => a.zh),
+      ['再说一遍', '慢一点', '听不懂'],
+    );
+    assert.equal(askMeaning('旧'), '旧是什么意思？');
+  });
+
+  it('a short press is a tap, a long one is held', () => {
+    assert.equal(isHold(120), false);
+    assert.equal(isHold(HOLD_MS), true);
   });
 });

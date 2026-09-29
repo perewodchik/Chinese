@@ -50,14 +50,42 @@ export function glossLine(line: Line, lex: Lexicon): Gloss[] {
 }
 
 /**
- * What did they say?: the English line, and on its own line after it the
- * script's note (`why`) — or, at a key line with no note, where it is
- * pinned. With neither, nothing is added (prompt §11 R1: Why? is no longer
- * a button of its own).
+ * What did they say?: the English of every line of their turn — all they
+ * said since your last reply, in order, another speaker's line with their
+ * name before it — and on its own line after it the script's note (`why`),
+ * or, at a key line with no note, where it is pinned. With neither, nothing
+ * is added (prompt §11 R1: Why? is no longer a button of its own).
  */
-export function translateAnswer(line: Line, why: string | undefined): string {
-  const note = why ?? (line.key ? 'A key line — it is pinned to your tasks. Tap the hard words, or ask someone “……是什么意思？”.' : undefined);
-  return note ? `“${line.en}”\n${note}` : `“${line.en}”`;
+export function translateAnswer(turn: Line | readonly Line[], why: string | undefined, nameOf: (speaker: string) => string | null = () => null): string {
+  const lines = Array.isArray(turn) ? (turn as readonly Line[]) : [turn as Line];
+  const first = lines[0]?.speaker;
+  const en = lines
+    .map((l) => {
+      const who = l.speaker !== first ? nameOf(l.speaker) : null;
+      return `${who ? `${who}: ` : ''}“${l.en}”`;
+    })
+    .join('\n');
+  const key = lines.some((l) => l.key);
+  const note = why ?? (key ? 'A key line — it is pinned to your tasks. Tap the hard words, or ask someone “……是什么意思？”.' : undefined);
+  return note ? `${en}\n${note}` : en;
+}
+
+/** Their turn: every line said since your last reply (the chime of a speaker box included). */
+export function turnOf<T extends { who: 'npc' | 'you'; line?: Line }>(history: readonly T[]): Line[] {
+  const out: Line[] = [];
+  for (let i = history.length - 1; i >= 0; i--) {
+    const s = history[i]!;
+    if (s.who === 'you') break;
+    if (s.line) out.unshift(s.line);
+  }
+  return out;
+}
+
+/** Translate, word by word, for a whole turn: each word once, in the order said. */
+export function glossTurn(turn: readonly Line[], lex: Lexicon): Gloss[] {
+  const out: Gloss[] = [];
+  for (const l of turn) for (const g of glossLine(l, lex)) if (!out.some((o) => o.w === g.w)) out.push(g);
+  return out;
 }
 
 /** Help me answer: what he says as the next hint step shows above the field. */
@@ -80,9 +108,9 @@ export type CompanionPhase = 'walk' | 'heard' | 'reply';
 /** No talk: walking. A talk with somebody's line to go on: heard. A talk with no line yet: reply. */
 export const phaseOf = (talking: boolean, line: Line | undefined): CompanionPhase => (!talking ? 'walk' : line ? 'heard' : 'reply');
 
-export type OptionId = 'again' | 'translate' | 'hint' | 'now' | 'learned';
+export type OptionId = 'translate' | 'hint' | 'now' | 'learned';
 /** a pixel icon (`PixelIcon`) — never an emoji */
-export type OptionIcon = 'again' | 'ask' | 'hint' | 'now' | 'star';
+export type OptionIcon = 'ask' | 'hint' | 'now' | 'star';
 
 export interface CompanionCtx {
   phase: CompanionPhase;
@@ -101,7 +129,6 @@ export interface CompanionOption {
 
 /** Things you ask him, in English, short enough for a 375px row. */
 export const OPTIONS: Record<OptionId, { icon: OptionIcon; label: string }> = {
-  again: { icon: 'again', label: 'Again?' },
   translate: { icon: 'ask', label: 'What did they say?' },
   hint: { icon: 'hint', label: 'Help me answer' },
   now: { icon: 'now', label: 'What now?' },
@@ -118,7 +145,7 @@ export function optionIds(ctx: CompanionCtx): OptionId[] {
     ctx.phase === 'walk'
       ? ['now', ...(ctx.learned ? (['learned'] as OptionId[]) : [])]
       : ctx.phase === 'heard'
-        ? ['again', 'translate', ...hint]
+        ? ['translate', ...hint, 'now']
         : [...hint, 'now'];
   return ids.slice(0, MAX_OPTIONS);
 }
