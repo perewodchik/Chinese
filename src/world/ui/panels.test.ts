@@ -3,7 +3,8 @@ import { describe, it } from 'node:test';
 import { districtInfo } from '../core/districts';
 import { applyAll, newSave } from '../core/save';
 import type { Idiom, NpcCard, Quest, Scene, Stamp } from '../core/types';
-import { bagRows, friendRows, idiomRows, mapHint, riddleRows, stampRows, taskRows } from './panelRows';
+import { giveTo } from '../core/gifts';
+import { BAG_FILTERS, bagRows, filterOf, friendRows, itemFacts, idiomRows, mapHint, riddleRows, stampRows, taskRows } from './panelRows';
 
 const ctx = { now: 1 };
 const fresh = () => newSave('d', 0);
@@ -86,5 +87,20 @@ describe('the panels', () => {
       ['赵爷爷', 2, ['brought his bird back']],
       ['王阿姨', 0, []],
     ]);
+  });
+
+  it('the bag sorts things under six filters, and its card says where they are sold and who liked them (Y5)', () => {
+    assert.deepEqual(BAG_FILTERS.map((f) => f.label), ['全部', '食物', '礼物', '工具', '装饰', '重要']);
+    assert.deepEqual((['food', 'drink', 'gift', 'toy', 'tool', 'decor', 'key', undefined] as const).map((kind) => filterOf({ id: 'x', name: 'x', en: 'x', ...(kind ? { kind } : {}) })), ['food', 'food', 'gift', 'gift', 'tool', 'decor', 'key', 'tool']);
+    const hulu = { id: 'tanghulu', name: '糖葫芦', en: 'candied haws', kind: 'food' as const, gift: true, price: 10 };
+    const wang: NpcCard = { id: 'wang', name: '王阿姨', role: '', look: { sprite: 'auntie' }, character: '', knows: [], wants: [], actions: [], routine: [], explains: {}, likes: ['tanghulu'] };
+    const zhao: NpcCard = { ...wang, id: 'zhao', name: '赵爷爷', likes: [], dislikes: ['tanghulu'] };
+    const shops = [{ id: 's', npc: 'li', map: 'm', name: '李阿姨小卖部', stock: [{ item: 'tanghulu', price: 10, measure: '串' }] }];
+    let s = applyAll(fresh(), [{ do: 'give', item: 'tanghulu', count: 2 }], ctx);
+    assert.deepEqual(itemFacts(hulu, s, shops, [wang, zhao]), { sold: [{ shop: '李阿姨小卖部', price: 10, measure: '串' }], worth: 10, liked: [], disliked: [] });
+    s = applyAll(s, giveTo(wang, hulu, s).actions, ctx);
+    s = applyAll(s, giveTo(zhao, hulu, s).actions, ctx);
+    const f = itemFacts(hulu, s, shops, [wang, zhao]);
+    assert.deepEqual([f.liked, f.disliked], [['王阿姨'], ['赵爷爷']]);
   });
 });

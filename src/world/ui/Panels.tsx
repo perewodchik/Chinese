@@ -4,16 +4,22 @@ import type { SaveAction } from '../core/save';
 import { itemForToken } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useState } from 'react';
-import { dayOf } from '../core/clock';
+import { dayOf, formatTime } from '../core/clock';
 import { contentNames, diaryDays, diaryLines } from '../core/diary';
 import { dateZh, WEATHER_ICON, WEATHER_ZH, weatherOf } from '../core/calendar';
-import type { WorldSave, WorldSettings } from '../core/types';
+import type { Item, WorldSave, WorldSettings } from '../core/types';
+import { priceYen, priceZh } from '../core/shop';
+import { pinyinOf } from './pinyin';
 import { canRecognise } from '../../platform/audio/recognition';
 import { Seg } from '../../ui/Seg';
 import { rememberInput } from './typing';
 import type { WorldContent } from './content';
 import {
+  BAG_FILTERS,
   bagRows,
+  filterOf,
+  itemFacts,
+  type BagFilter,
   friendRows,
   idiomRows,
   PANELS,
@@ -266,87 +272,249 @@ function Tasks({ save, content, pinyin }: { save: WorldSave; content: WorldConte
   );
 }
 
+const KIND_ZH: Record<string, string> = { food: '食物', drink: '喝的', gift: '礼物', toy: '玩具', tool: '工具', decor: '装饰', key: '重要' };
+
+/**
+ * The bag (Y5): the phone's mini summary on top (余额, 交通卡, the last
+ * payment — tap it for the phone and its 账单), one fixed filter line, and
+ * the things as small tiles. A tile opens the thing's card: big hanzi,
+ * pinyin, what it is, where it is sold, who liked it as a present, and
+ * what you can do with it as Chinese verbs.
+ */
 function Bag({ save, content, onUse, onAct }: { save: WorldSave; content: WorldContent; onUse: (item: string) => void; onAct?: (a: SaveAction) => void }) {
-  const rows = bagRows(save, content.items);
-  const lib = useLibrary();
-  const openItem = useOpenItem();
+  const [filter, setFilter] = useState<BagFilter>('all');
+  const [open, setOpen] = useState<string | null>(null);
+  const [phone, setPhone] = useState(false);
   const byId = new Map(content.items.map((i) => [i.id, i]));
+  const rows = bagRows(save, content.items);
+  const counts = new Map<BagFilter, number>(BAG_FILTERS.map((f) => [f.id, f.id === 'all' ? rows.length : rows.filter((r) => filterOf(byId.get(r.id)) === f.id).length]));
+  const shown = filter === 'all' ? rows : rows.filter((r) => filterOf(byId.get(r.id)) === filter);
+  const last = save.bills.at(-1);
+  const cur = open ? rows.find((r) => r.id === open) : undefined;
+  if (phone) return <Phone save={save} content={content} onBack={() => setPhone(false)} />;
   return (
     <>
-      <div className="wp-money">
-        <span>
-          <span className="han">支付宝 余额</span> <b>{save.bag.money}</b> 元
-        </span>
-        <span>
-          <span className="han">交通卡</span> {save.bag.card === null ? <span className="muted">not yet</span> : <b>{save.bag.card} 元</b>}
-        </span>
+      <button type="button" className="w-mini" onClick={() => setPhone(true)} aria-label="Open the phone: 余额, 交通卡 and 账单">
+        <span aria-hidden>📱</span>
+        <span className="han">余额</span> <b>{save.bag.money}</b>
+        <span className="han">交通卡</span> {save.bag.card === null ? <span className="muted">—</span> : <b>{save.bag.card}</b>}
+        {last && (
+          <span className="w-mini-last">
+            <span className="han">{billName(last.who, content)}</span> <Amount n={last.amount} />
+          </span>
+        )}
+        <span className="spacer" />
+        <span aria-hidden>›</span>
+      </button>
+      <div className="w-filters" role="tablist" aria-label="Show">
+        {BAG_FILTERS.map((f) => (
+          <button key={f.id} type="button" role="tab" aria-selected={filter === f.id} title={f.title} disabled={!counts.get(f.id)} onClick={() => setFilter(f.id)}>
+            <span className="han">{f.label}</span>
+          </button>
+        ))}
       </div>
-      {rows.length ? (
+      {shown.length ? (
         <ul className="wp-grid">
-          {rows.map((r) => (
-            <li key={r.id} className="wp-item">
-              <span className="han">{r.name}</span>
-              <span className="tiny muted">{r.en}</span>
-              {r.count > 1 && <span className="wp-count">×{r.count}</span>}
-              {byId.get(r.id)?.kind === 'key' && (
-                <span className="w-seal han" title="A story thing: not a present, not for sale">
-                  印
-                </span>
-              )}
-              {/* what you can do with it, as Chinese verbs (Y4) */}
-              <span className="w-verbs">
-                {(byId.get(r.id) ? verbsOf(byId.get(r.id)!) : ['use' as const]).map((v) => (
-                  <button
-                    key={v}
-                    type="button"
-                    className="btn sm"
-                    title={VERB_ZH[v].en}
-                    onClick={() =>
-                      v === 'eat' || v === 'drink'
-                        ? onAct?.({ do: 'eat', item: r.id })
-                        : v === 'look'
-                          ? openItem(itemForToken(lib, r.name))
-                          : onUse(r.id)
-                    }
-                  >
-                    <span className="han">{VERB_ZH[v].zh}</span>
-                  </button>
-                ))}
-                {byId.get(r.id) &&
-                  combos(byId.get(r.id)!, save.bag.items).map((c) => (
-                    <button key={c.with} type="button" className="btn sm" title={`with the ${byId.get(c.with)?.en ?? c.with}: makes ${byId.get(c.makes)?.en ?? c.makes}`} onClick={() => onAct?.({ do: 'combine', a: r.id, b: c.with, makes: c.makes })}>
-                      <span className="han">
-                        +{byId.get(c.with)?.name} → {byId.get(c.makes)?.name}
-                      </span>
-                    </button>
-                  ))}
-              </span>
+          {shown.map((r) => (
+            <li key={r.id}>
+              <button type="button" className="wp-item" onClick={() => setOpen(r.id)}>
+                <span className="han">{r.name}</span>
+                <span className="tiny muted">{r.en}</span>
+                {r.count > 1 && <span className="wp-count">×{r.count}</span>}
+                {byId.get(r.id)?.kind === 'key' && (
+                  <span className="w-seal han" title="A story thing: not a present, not for sale">
+                    印
+                  </span>
+                )}
+              </button>
             </li>
           ))}
         </ul>
       ) : (
         <Empty han="空">Nothing in the bag yet.</Empty>
       )}
-      {save.bills.length > 0 && (
-        <>
-          <h3 className="wp-label">
-            账单 <span className="tiny muted">· the last payments on your phone</span>
-          </h3>
-          <ul className="wp-list w-bills">
-            {[...save.bills].reverse().map((b, i) => (
-              <li key={i}>
-                <span className="han">{billName(b.who, content)}</span>
-                <span className="spacer" />
-                <b className="w-bill" data-in={b.amount > 0 ? '' : undefined}>
-                  {b.amount > 0 ? '+' : '−'}
-                  {Math.abs(b.amount).toFixed(2)}
-                </b>
-              </li>
-            ))}
-          </ul>
-        </>
+      {cur && byId.get(cur.id) && (
+        <ItemSheet
+          item={byId.get(cur.id)!}
+          count={cur.count}
+          save={save}
+          content={content}
+          onClose={() => setOpen(null)}
+          onUse={(id) => {
+            setOpen(null);
+            onUse(id);
+          }}
+          onAct={(a) => {
+            onAct?.(a);
+            // the last one eaten, or made into something else: the card has nothing left to show
+            if ((save.bag.items[cur.id] ?? 0) <= 1) setOpen(null);
+          }}
+        />
       )}
     </>
+  );
+}
+
+function Amount({ n }: { n: number }) {
+  return (
+    <b className="w-bill" data-in={n > 0 ? '' : undefined}>
+      {n > 0 ? '+' : '−'}
+      {Math.abs(n).toFixed(2)}
+    </b>
+  );
+}
+
+/** One thing's card (Y5), over the bag like the app's word cards. */
+function ItemSheet({
+  item,
+  count,
+  save,
+  content,
+  onClose,
+  onUse,
+  onAct,
+}: {
+  item: Item;
+  count: number;
+  save: WorldSave;
+  content: WorldContent;
+  onClose: () => void;
+  onUse: (item: string) => void;
+  onAct: (a: SaveAction) => void;
+}) {
+  const lib = useLibrary();
+  const openItem = useOpenItem();
+  const facts = itemFacts(item, save, content.shops, content.npcs);
+  const names = new Map(content.items.map((i) => [i.id, i]));
+  const shop = facts.sold[0];
+  return (
+    <div className="w-sheet-scrim" onClick={onClose}>
+      <section className="w-sheet" role="dialog" aria-label={item.en} onClick={(e) => e.stopPropagation()}>
+        <header className="w-sheet-head">
+          <b className="han w-sheet-han">{item.name}</b>
+          <span>
+            <span className="small">{pinyinOf(item.name, lib)}</span>
+            <br />
+            <span className="small muted">
+              {item.en}
+              {count > 1 ? ` · ×${count}` : ''}
+            </span>
+          </span>
+          <span className="spacer" />
+          {item.kind && <span className="tag han">{KIND_ZH[item.kind] ?? item.kind}</span>}
+          <button type="button" className="wd-tool" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </header>
+        <dl className="w-facts small">
+          {shop ? (
+            <>
+              <dt className="han">哪儿有</dt>
+              <dd>
+                {facts.sold.map((x, i) => (
+                  <span key={i}>
+                    {i > 0 && ' · '}
+                    <span className="han">{x.shop}</span> {priceZh(x.price)}一{x.measure}
+                  </span>
+                ))}
+              </dd>
+            </>
+          ) : item.kind === 'key' ? (
+            <>
+              <dt className="han">重要</dt>
+              <dd className="muted">A story thing — not a present, never sold.</dd>
+            </>
+          ) : facts.worth !== undefined ? (
+            <>
+              <dt className="han">多少钱</dt>
+              <dd>about {facts.worth} 元 — the recycler pays part of it</dd>
+            </>
+          ) : null}
+          {facts.liked.length > 0 && (
+            <>
+              <dt className="han">喜欢</dt>
+              <dd className="han">{facts.liked.join('、')}</dd>
+            </>
+          )}
+          {facts.disliked.length > 0 && (
+            <>
+              <dt className="han">不喜欢</dt>
+              <dd className="han">{facts.disliked.join('、')}</dd>
+            </>
+          )}
+          {item.gift && !facts.liked.length && !facts.disliked.length && (
+            <>
+              <dt className="han">礼物</dt>
+              <dd className="muted">Give it to someone to find out who likes it.</dd>
+            </>
+          )}
+        </dl>
+        {/* what you can do with it, as Chinese verbs (Y4) */}
+        <div className="w-verbs">
+          {verbsOf(item).map((v) => (
+            <button
+              key={v}
+              type="button"
+              className="btn sm"
+              title={VERB_ZH[v].en}
+              onClick={() => (v === 'eat' || v === 'drink' ? onAct({ do: 'eat', item: item.id }) : v === 'look' ? openItem(itemForToken(lib, item.name)) : onUse(item.id))}
+            >
+              <span className="han">{VERB_ZH[v].zh}</span> <span className="tiny muted">{VERB_ZH[v].en}</span>
+            </button>
+          ))}
+          {combos(item, save.bag.items).map((c) => (
+            <button key={c.with} type="button" className="btn sm" title={`with the ${names.get(c.with)?.en ?? c.with}: makes ${names.get(c.makes)?.en ?? c.makes}`} onClick={() => onAct({ do: 'combine', a: item.id, b: c.with, makes: c.makes })}>
+              <span className="han">
+                +{names.get(c.with)?.name} → {names.get(c.makes)?.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/** The phone (Y5): 余额, the 交通卡 and the 账单 — the last payments in and out. */
+function Phone({ save, content, onBack }: { save: WorldSave; content: WorldContent; onBack: () => void }) {
+  return (
+    <div className="w-phone w-phone-home">
+      <div className="w-phone-head">
+        <button type="button" className="wd-tool" onClick={onBack} aria-label="Back to the bag">
+          ‹
+        </button>
+        <span className="han">支付宝</span>
+      </div>
+      <div className="w-phone-cards">
+        <span>
+          <span className="tiny muted han">余额</span>
+          <b className="w-phone-amount">{priceYen(save.bag.money)}</b>
+        </span>
+        <span>
+          <span className="tiny muted han">交通卡</span>
+          <b className="w-phone-amount">{save.bag.card === null ? '—' : priceYen(save.bag.card)}</b>
+        </span>
+      </div>
+      <h3 className="wp-label">
+        账单 <span className="tiny muted">· the last payments</span>
+      </h3>
+      {save.bills.length ? (
+        <ul className="wp-list w-bills">
+          {[...save.bills].reverse().map((b, i) => (
+            <li key={i}>
+              <span className="han">{billName(b.who, content)}</span>
+              <span className="tiny muted">
+                第{dayOf(b.at)}天 {formatTime(b.at)}
+              </span>
+              <span className="spacer" />
+              <Amount n={b.amount} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="small muted">Nothing paid yet.</p>
+      )}
+    </div>
   );
 }
 

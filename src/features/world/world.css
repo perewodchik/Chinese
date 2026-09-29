@@ -748,6 +748,7 @@
 }
 
 .wp {
+  position: relative;
   width: min(760px, 100%);
   height: min(640px, 100%);
   display: grid;
@@ -873,7 +874,12 @@
   position: relative;
   display: grid;
   gap: 2px;
+  width: 100%;
   padding: 10px;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--card);
@@ -2061,4 +2067,147 @@
   background: var(--accent);
   color: #fff;
   font-size: 11px;
+}
+
+/* the bag (Y5): the phone's mini summary, one fixed filter line, and a thing's card */
+.w-mini {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.w-mini .han {
+  font-family: var(--han);
+  color: var(--ink-2);
+}
+
+.w-mini-last {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink-3);
+}
+
+.w-filters {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.w-filters button {
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink-2);
+  font-family: var(--han);
+  font-size: 14px;
+}
+
+.w-filters button[aria-selected='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.w-filters button:disabled {
+  opacity: 0.4;
+}
+
+.w-sheet-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: flex-end;
+  background: color-mix(in srgb, var(--ink) 25%, transparent);
+}
+
+.w-sheet {
+  width: 100%;
+  max-height: 80%;
+  overflow-y: auto;
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--line);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.w-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.w-sheet-han {
+  font-family: var(--han);
+  font-size: 44px;
+  line-height: 1.1;
+}
+
+.w-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  margin: 0 0 12px;
+}
+
+.w-facts dt {
+  font-family: var(--han);
+  color: var(--ink-3);
+}
+
+.w-facts dd {
+  margin: 0;
+}
+
+.w-sheet .w-verbs {
+  flex-wrap: wrap;
+}
+
+.w-phone-home {
+  max-width: 420px;
+}
+
+.w-phone-home .w-phone-head {
+  align-items: center;
+}
+
+.w-phone-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.w-phone-cards > span {
+  display: grid;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--pay) 10%, var(--card));
+}
+
+.w-phone-home .w-phone-amount {
+  text-align: left;
+  min-height: 0;
+  font-size: 22px;
+}
+
+.w-phone-home .w-bills li {
+  padding: 8px 10px;
 }

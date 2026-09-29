@@ -6,6 +6,8 @@
 
 import { DISTRICTS, districtInfo, type DistrictInfo } from '../core/districts';
 import { activeQuests } from '../core/quests';
+import { dislikedNote, likedNote } from '../core/gifts';
+import type { Shop } from '../core/shop';
 import { findRoute, routeText, station } from '../core/travel';
 import type { Idiom, Item, NpcCard, Quest, Scene, Spirit, Stamp, WorldSave } from '../core/types';
 import { withName } from '../core/voice';
@@ -72,6 +74,57 @@ export function bagRows(s: WorldSave, items: readonly Item[]): BagRow[] {
   return Object.entries(s.bag.items)
     .filter(([, n]) => n > 0)
     .map(([id, count]) => ({ id, name: byId.get(id)?.name ?? id, en: byId.get(id)?.en ?? '', count }));
+}
+
+/** The bag's filter line (Y5): one fixed row that fits 375 px. */
+export type BagFilter = 'all' | 'food' | 'gift' | 'tool' | 'decor' | 'key';
+
+export const BAG_FILTERS: readonly { id: BagFilter; label: string; title: string }[] = [
+  { id: 'all', label: '全部', title: 'everything' },
+  { id: 'food', label: '食物', title: 'food and drink' },
+  { id: 'gift', label: '礼物', title: 'presents and toys' },
+  { id: 'tool', label: '工具', title: 'tools' },
+  { id: 'decor', label: '装饰', title: 'decorations' },
+  { id: 'key', label: '重要', title: 'story things' },
+];
+
+/** Which filter a thing falls under: drinks with food, toys with presents, an unknown kind with tools. */
+export function filterOf(item: Item | undefined): Exclude<BagFilter, 'all'> {
+  switch (item?.kind) {
+    case 'food':
+    case 'drink':
+      return 'food';
+    case 'gift':
+    case 'toy':
+      return 'gift';
+    case 'decor':
+      return 'decor';
+    case 'key':
+      return 'key';
+    default:
+      return 'tool';
+  }
+}
+
+export interface ItemFacts {
+  /** where it is sold, and for how much */
+  sold: { shop: string; price: number; measure: string }[];
+  /** what it is worth to the recycler's eye (its base price) */
+  worth?: number;
+  /** people who were glad of it as a present, and people who were not */
+  liked: string[];
+  disliked: string[];
+}
+
+/** What the bag's card says about a thing (Y5), learned from the shops and from your presents. */
+export function itemFacts(item: Item, s: WorldSave, shops: readonly Shop[], npcs: readonly NpcCard[]): ItemFacts {
+  const sold = shops.flatMap((sh) => sh.stock.filter((x) => x.item === item.id).map((x) => ({ shop: sh.name, price: x.price, measure: x.measure ?? '个' })));
+  const name = (id: string) => npcs.find((n) => n.id === id)?.name ?? id;
+  const who = (note: string) =>
+    Object.entries(s.npcs)
+      .filter(([, m]) => m.notes.includes(note))
+      .map(([id]) => name(id));
+  return { sold, ...(item.price !== undefined ? { worth: item.price } : {}), liked: who(likedNote(item)), disliked: who(dislikedNote(item)) };
 }
 
 export type MapHint =

@@ -31,6 +31,10 @@ export const GIFT_LINES: Record<GiftKind, { zh: string; en: string }> = {
 /** Using something on a thing that has no scene for it. */
 export const NOTHING_HAPPENS = { zh: '不是这个。', en: 'Not this one — nothing happens.' };
 
+/** What a person keeps in mind after a present (their notes are English, for a live talk later). */
+export const likedNote = (item: Pick<Item, 'en'>) => `liked the ${item.en} you gave`;
+export const dislikedNote = (item: Pick<Item, 'en'>) => `did not like the ${item.en} you gave`;
+
 export function giveTo(card: NpcCard, item: Item, save: WorldSave): GiftResult {
   const line = (kind: GiftKind, actions: SaveAction[] = []): GiftResult => ({ kind, ...GIFT_LINES[kind], actions });
   if (!item.gift) return line('not-a-gift');
@@ -38,6 +42,8 @@ export function giveTo(card: NpcCard, item: Item, save: WorldSave): GiftResult {
   if (mem && mem.gift === dayOf(save.clock)) return line('today');
   const kind: GiftKind = card.likes?.includes(item.id) ? 'like' : card.dislikes?.includes(item.id) ? 'dislike' : 'neutral';
   const actions: SaveAction[] = [{ do: 'meet', npc: card.id }, { do: 'take', item: item.id }, { do: 'gifted', npc: card.id, item: item.id }];
-  if (kind === 'like') actions.push({ do: 'hearts', npc: card.id, delta: 1 }, { do: 'remember', npc: card.id, note: `liked the ${item.en} you gave` });
+  if (kind === 'like') actions.push({ do: 'hearts', npc: card.id, delta: 1 }, { do: 'remember', npc: card.id, note: likedNote(item) });
+  // remembered either way, so the bag's card can say who liked what (Y5)
+  if (kind === 'dislike') actions.push({ do: 'remember', npc: card.id, note: dislikedNote(item) });
   return line(kind, actions);
 }
