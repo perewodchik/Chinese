@@ -40,7 +40,7 @@ import { TopBar } from '../../world/ui/TopBar';
 import { lineScene, signScene, smallTalk, useTalk } from '../../world/ui/useTalk';
 import { GIFT_LINES, giveTo, NOTHING_HAPPENS } from '../../world/core/gifts';
 import { useLibrary } from '../shared/library';
-import { useWorldSave } from '../../world/ui/useWorldSave';
+import { useWorldSave, type TalkWho } from '../../world/ui/useWorldSave';
 import { useUser } from '../auth/session';
 import { oneOf, useQuery } from '../../navigation/query';
 import { paths } from '../../navigation/paths';
@@ -73,12 +73,12 @@ export function WorldPage() {
   /** a shop door's 点单 game, opened when the talk is over */
   const pendingGame = useRef<string | null>(null);
   const navigate = useNavigate();
-  const talkDispatch = (actions: readonly SaveAction[]) => {
+  const talkDispatch = (actions: readonly SaveAction[], who: TalkWho) => {
     for (const a of actions) {
       if (a.do === 'teleport') pendingTravel.current = { map: a.map, tile: a.tile, facing: a.facing ?? 'down' };
       if (a.do === 'game') pendingGame.current = a.game;
     }
-    const after = game.dispatch(actions);
+    const after = game.dispatch(actions, 'important', who);
     // a decoration put up, or the cat named (X5): draw the map again where you stand once the talk ends
     if (after && !pendingTravel.current && actions.some((a) => a.do === 'place' || a.do === 'cat_name')) {
       pendingTravel.current = { map: after.place.map, tile: after.place.tile, facing: after.place.facing };
@@ -117,7 +117,7 @@ export function WorldPage() {
       if (!target.card) return talkRef.current.start(lineScene('no', target.npc, GIFT_LINES['not-a-gift'].zh, GIFT_LINES['not-a-gift'].en, target.npc), null, look, s);
       const r = giveTo(target.card, item, s);
       if (r.kind === 'not-a-gift') missedWith(`npc:${target.npc}`, s, { npc: target.npc });
-      if (r.actions.length) game.dispatch(r.actions);
+      if (r.actions.length) game.dispatch(r.actions, 'important', { npc: target.npc });
       return talkRef.current.start(lineScene(`gift-${r.kind}`, target.npc, r.zh, r.en, target.npc), target.card, look, s);
     }
     const scene = sceneFor(c.scenes, s, { look: target.object, map: s.place.map, use: itemId });
@@ -285,7 +285,7 @@ export function WorldPage() {
             const r = throughDoor(door, s);
             // nobody rides a bike indoors: it is parked at the door
             if (r.open && s.flags.includes('on-bike')) {
-              game.dispatch([{ do: 'flag', flag: 'on-bike', value: false }, { do: 'money', amount: -1 }]);
+              game.dispatch([{ do: 'flag', flag: 'on-bike', value: false }, { do: 'money', amount: -1 }], 'important', { scene: 'bike' });
               world.current?.setBike(false);
             }
             if (r.open) world.current?.travel(r.to);
@@ -351,7 +351,7 @@ export function WorldPage() {
                 s,
                 'Shared bikes',
               );
-              if (riding) game.dispatch([{ do: 'money', amount: -1 }]);
+              if (riding) game.dispatch([{ do: 'money', amount: -1 }], 'important', { scene: 'bike' });
             }
           },
           onGate: (tile, fromAbove) => gate(tile, fromAbove),

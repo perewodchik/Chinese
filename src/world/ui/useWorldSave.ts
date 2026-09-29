@@ -6,6 +6,12 @@ import { worldApi } from '../sync/gateway';
 import { browserLocal } from '../sync/local';
 import { WorldSync, type SyncPhase, type Urgency } from '../sync/sync';
 
+/** who an action happened with (a talk's person and scene) */
+export interface TalkWho {
+  npc?: string;
+  scene?: string;
+}
+
 const DEVICE_KEY = 'zouzou:device';
 
 /** This browser's id, kept so merges can tell two devices apart. */
@@ -25,7 +31,8 @@ export interface WorldSaveApi {
   save: WorldSave | null;
   phase: SyncPhase;
   /** Applies actions to the save (then lets quests move on) and schedules a sync. */
-  dispatch(actions: readonly SaveAction[], urgency?: Urgency): WorldSave | null;
+  /** `who`: the person and scene of a talk, for the 账单, the diary and the 成语 book */
+  dispatch(actions: readonly SaveAction[], urgency?: Urgency, who?: TalkWho): WorldSave | null;
   /** the latest save, for callbacks that must not wait for a render */
   current(): WorldSave | null;
   /** sends the save to the server now (before a reload) */
@@ -69,11 +76,11 @@ export function useWorldSave(userId: string, quests: readonly Quest[] = []): Wor
   }, [userId]);
 
   const dispatch = useCallback(
-    (actions: readonly SaveAction[], urgency: Urgency = 'important') => {
+    (actions: readonly SaveAction[], urgency: Urgency = 'important', who?: TalkWho) => {
       const cur = latest.current;
       const s = sync.current;
       if (!cur || !s) return null;
-      const ctx = { now: Date.now(), quests: questMap.current };
+      const ctx = { now: Date.now(), quests: questMap.current, ...(who?.npc ? { npc: who.npc } : {}), ...(who?.scene ? { scene: who.scene } : {}) };
       const next = advanceQuests(applyAll(cur, actions, ctx), [...questMap.current.values()], ctx);
       if (next === cur) return cur;
       latest.current = next;

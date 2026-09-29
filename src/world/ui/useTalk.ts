@@ -3,6 +3,7 @@ import type { Lexicon } from '../core/dialogue/lexicon';
 import { ScriptedDialogue } from '../core/dialogue/scripted';
 import type { CompanionCue, DialogueState, Line, Turn } from '../core/dialogue/source';
 import type { SaveAction } from '../core/save';
+import type { TalkWho } from './useWorldSave';
 import type { NpcCard, Scene, WorldSave } from '../core/types';
 import type { WorldContent } from './content';
 
@@ -84,7 +85,7 @@ export function smallTalk(npcId: string, _card: NpcCard | null): Scene {
 export function useTalk(
   content: WorldContent,
   lex: Lexicon | null,
-  dispatch: (a: readonly SaveAction[]) => WorldSave | null,
+  dispatch: (a: readonly SaveAction[], who: TalkWho) => WorldSave | null,
   /** 「给你糖葫芦」 said in a talk: hand it over (Y4) */
   onGift?: (item: string, npc: string) => void,
 ) {
@@ -98,7 +99,7 @@ export function useTalk(
     (t: Turn, you?: string, sticker?: string) => {
       const v = cur.current;
       if (!v) return;
-      if (t.actions.length) dispatch(t.actions);
+      if (t.actions.length) dispatch(t.actions, { npc: v.scene.npc, scene: v.scene.id });
       if (t.gift && v.scene.npc) {
         // the talk closes and the present (or the use) plays out as if the item had been tapped on them
         cur.current = null;
@@ -158,7 +159,7 @@ export function useTalk(
       // A one-line talk has not been finished by the script yet: do so, so the scene counts as done.
       if (!v.state.ended) {
         const t = source.proceed(v.state);
-        if (t.actions.length) dispatch(t.actions);
+        if (t.actions.length) dispatch(t.actions, { npc: v.scene.npc, scene: v.scene.id });
       }
       cur.current = null;
       setView(null);

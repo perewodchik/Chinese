@@ -330,6 +330,8 @@ function Bag({ save, content, onUse, onAct }: { save: WorldSave; content: WorldC
             </li>
           ))}
         </ul>
+      ) : rows.length ? (
+        <p className="small muted">Nothing of this kind in the bag now.</p>
       ) : (
         <Empty han="空">Nothing in the bag yet.</Empty>
       )}
@@ -530,6 +532,8 @@ function billName(who: string, content: WorldContent): string {
   if (shop) return shop.name;
   const npc = content.npcs.find((n) => n.id === who);
   if (npc) return npc.name;
+  if (who === 'bike') return '共享单车';
+  if (who.startsWith('machine-')) return '售票机';
   return who ? '北京' : '—';
 }
 

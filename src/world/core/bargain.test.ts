@@ -146,7 +146,10 @@ describe('a bargain in a talk (Y6)', () => {
     assert.deepEqual(t1.actions, []);
   });
 
-  it('💡 offers the fair price', () => {
-    assert.equal(d.hintAt(d.start(scene, rich).state)?.full, '三十块行吗？');
+  it('💡 offers the fair price, and English at the stall gets the same Chinese from 兔儿爷', () => {
+    const t0 = d.start(scene, rich);
+    assert.equal(d.hintAt(t0.state)?.full, '三十块行吗？');
+    const en = d.reply(t0.state, { text: 'too expensive', via: 'keyboard' });
+    assert.deepEqual([en.kind, en.companion?.text], ['not_chinese', '三十块行吗？']);
   });
 });

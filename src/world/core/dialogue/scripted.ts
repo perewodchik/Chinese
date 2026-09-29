@@ -560,9 +560,11 @@ export class ScriptedDialogue implements DialogueSource {
 
     // 4. Not Chinese.
     if (input.kind === 'other') {
+      // the Chinese for it: the line's own hint, or at a shop or a stall what 💡 would offer
+      const h = this.hintAt(state);
       return stay('not_chinese', this.aside(scene, NOT_CHINESE.zh, NOT_CHINESE.en), {
         intent: 'not_chinese',
-        ...(n.hint ? { companion: { kind: 'not_chinese' as const, text: hintWithName(n.hint, nm ?? '').full } } : {}),
+        ...(h ? { companion: { kind: 'not_chinese' as const, text: h.full } } : {}),
       });
     }
 
