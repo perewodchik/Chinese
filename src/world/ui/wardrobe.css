@@ -14,9 +14,45 @@
   image-rendering: pixelated;
 }
 
+/* the sheet itself: the old panels' frame (.wp), kept here since the §10 menu replaced it
+   (only inside the scrim: 兔儿爷's bubble is a .wc too) */
+.wc-scrim > .wc {
+  position: relative;
+  width: min(760px, 100%);
+  height: min(640px, 100%);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  /* undo the companion's .wc (world.css): its corner, flex row and gaps */
+  left: auto;
+  bottom: auto;
+  z-index: auto;
+  align-items: stretch;
+  gap: 0;
+  max-width: none;
+  pointer-events: auto;
+}
+
 /* the sheet's header: title, a line about it, the actions; one line, it scrolls if it must */
 .wc-head-bar {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.wc-head-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .wc-title {

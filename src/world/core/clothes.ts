@@ -96,6 +96,8 @@ export function checkClothes(
     if (seen.has(r.id)) errors.push(`clothes.json: racks[${i}].id: "${r.id}" twice`);
     seen.add(r.id);
   });
+  // a rack (not the barber's) sells something, at least in some season
+  for (const k of c.racks) if (!k.hair && !c.clothes.some((x) => x.shop === k.id)) errors.push(`clothes.json: rack ${k.id} sells nothing`);
   const ids = new Set<string>();
   c.clothes.forEach((x, i) => {
     const at = `clothes.json: clothes[${i}] (${x.id})`;

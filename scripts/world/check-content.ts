@@ -111,6 +111,26 @@ export function checkContent(contentRoot: string, lib: Library): CheckResult {
     if (r.ok) {
       clothes = r.value;
       errors.push(...checkClothes(clothes, { npcs: known.npcs, maps: districts.flatMap((d) => d.district.maps) }, GARMENT_ART));
+      // W7: every shop's name and facts are in brands.md with a source; every colour of every garment is in the built atlas
+      const root = join(contentRoot, '..', '..');
+      const brands = join(root, 'docs/world-game/brands.md');
+      if (existsSync(brands)) {
+        const text = readFileSync(brands, 'utf8');
+        for (const k of clothes.racks) if (!text.includes(`\`${k.id}\``)) errors.push(`clothes.json: rack ${k.id} (${k.name}) is not in docs/world-game/brands.md`);
+      }
+      const atlas = join(root, 'public/world/art/outfit.json');
+      if (existsSync(atlas)) {
+        const frames = (JSON.parse(readFileSync(atlas, 'utf8')) as { frames: Record<string, unknown> }).frames;
+        for (const x of clothes.clothes) {
+          for (const k of x.colours) {
+            for (const build of ['broad', 'slim']) {
+              if (!frames[`outfit/${x.id}-${k.id}-${build}`]) {
+                errors.push(`clothes.json: ${x.id} in ${k.id} (${build}) is not in the outfit atlas — run npm run world:art`);
+              }
+            }
+          }
+        }
+      }
     } else errors.push(...r.errors);
   }
   const budget = checkBudget({ leveler: libraryLeveler(lib), all: districts });
