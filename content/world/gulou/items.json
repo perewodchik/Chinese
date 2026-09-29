@@ -110,5 +110,20 @@
     "name": "元宵",
     "en": "sweet rice balls",
     "gift": true
+  },
+  {
+    "id": "huapen",
+    "name": "花",
+    "en": "a pot of flowers"
+  },
+  {
+    "id": "jianzhi",
+    "name": "剪纸",
+    "en": "a paper-cut"
+  },
+  {
+    "id": "xiaoyugan",
+    "name": "小鱼干",
+    "en": "dried fish (for the cat)"
   }
 ]

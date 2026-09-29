@@ -24,5 +24,10 @@
     "name": "月饼",
     "en": "a moon cake",
     "gift": true
+  },
+  {
+    "id": "shufa",
+    "name": "书法",
+    "en": "a scroll of calligraphy"
   }
 ]

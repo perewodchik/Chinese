@@ -740,6 +740,73 @@ export function kite(): Grid {
   return g.stamp(f, 0, 0);
 }
 
+// ---------------------------------------------------------------- X5: the room and the cat
+
+/** A red paper-cut 剪纸 window flower, 16×16: a round lattice of petals, to hang on a window or a wall. */
+export function jianzhi(): Grid {
+  const g = new Grid(16, 16);
+  const f = new Grid(16, 16);
+  f.oval(2, 2, 12, 12, 'r').oval(4, 4, 8, 8, 'w').oval(6, 6, 4, 4, 'r');
+  for (const [x, y] of [[7, 2], [8, 2], [2, 7], [2, 8], [13, 7], [13, 8], [7, 13], [8, 13]] as const) f.set(x, y, 'w');
+  for (const [x, y] of [[5, 5], [10, 5], [5, 10], [10, 10]] as const) f.set(x, y, 'r');
+  f.set(7, 7, 'j').set(8, 8, 'j');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A hanging scroll of calligraphy 书法, 16×16: a paper strip on a wooden rod with a few black strokes. */
+export function shufa(): Grid {
+  const g = new Grid(16, 16);
+  const f = new Grid(16, 16);
+  f.hline(3, 0, 10, 'M').rect(4, 1, 8, 14, 'w').hline(3, 15, 10, 'M').vline(11, 1, 14, 'e');
+  f.hline(6, 3, 4, 'k').vline(8, 3, 4, 'k').hline(5, 7, 6, 'k');
+  f.set(6, 9, 'k').set(7, 10, 'k').set(9, 9, 'k').set(10, 10, 'k').hline(6, 12, 4, 'k');
+  f.set(10, 13, 'r');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** A Peking-opera mask 京剧脸谱, 16×16: a red face (loyal), black brows and eyes, a white nose patch. */
+export function lianpu(): Grid {
+  const g = new Grid(16, 16);
+  const f = new Grid(16, 16);
+  f.oval(2, 1, 12, 14, 'r').oval(3, 2, 10, 12, 'r').vline(12, 4, 8, 'R');
+  f.rect(4, 5, 3, 2, 'k').rect(9, 5, 3, 2, 'k').set(5, 5, 'w').set(10, 5, 'w');
+  f.hline(3, 3, 4, 'k').hline(9, 3, 4, 'k').rect(7, 4, 2, 5, 'w').hline(6, 11, 4, 'q');
+  f.set(7, 1, 'y').set(8, 1, 'y');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/**
+ * The 胡同 cat, 16×16: a ginger tabby with white paws, sitting, curled up
+ * asleep, and two walking frames (facing left; the scene mirrors it).
+ */
+export function cat(pose: 'sit' | 'sleep' | 'walk-0' | 'walk-1'): Grid {
+  const g = new Grid(16, 16);
+  g.oval(3, 13, 11, 3, '_');
+  const f = new Grid(16, 16);
+  if (pose === 'sleep') {
+    f.oval(2, 8, 12, 6, 'Y').oval(3, 9, 10, 4, 'y').hline(4, 10, 3, 'o').hline(8, 11, 3, 'o');
+    f.oval(2, 8, 5, 5, 'y').set(3, 7, 'Y').set(6, 7, 'Y').hline(3, 10, 2, 'k');
+    f.hline(9, 13, 4, 'Y').set(13, 12, 'Y');
+  } else if (pose === 'sit') {
+    f.oval(4, 7, 8, 8, 'y').vline(11, 8, 6, 'Y').hline(5, 9, 5, 'o').hline(5, 11, 5, 'o');
+    f.oval(4, 2, 8, 7, 'y').set(4, 1, 'Y').set(5, 2, 'Y').set(11, 1, 'Y').set(10, 2, 'Y').set(5, 3, 'N').set(10, 3, 'N');
+    f.set(6, 5, 'k').set(9, 5, 'k').set(7, 6, 'N').set(8, 6, 'N').hline(6, 7, 4, 'w');
+    f.rect(5, 13, 2, 2, 'w').rect(9, 13, 2, 2, 'w');
+    f.hline(11, 13, 3, 'Y').set(13, 12, 'Y').set(13, 11, 'o');
+  } else {
+    const up = pose === 'walk-0' ? 0 : 1;
+    f.oval(4, 7, 10, 5, 'y').hline(6, 8, 6, 'o').hline(6, 10, 5, 'Y');
+    f.oval(1, 4, 6, 6, 'y').set(1, 3, 'Y').set(5, 3, 'Y').set(2, 6, 'k').set(1, 8, 'N');
+    f.rect(5, 11, 1, 3 - up, 'w').rect(8, 11 + up, 1, 3 - up, 'w').rect(10, 11, 1, 3 - up, 'w').rect(12, 11 + up, 1, 3 - up, 'w');
+    f.vline(14, 4 + up, 5, 'Y').set(13, 8, 'Y');
+  }
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -778,6 +845,10 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['dragon', 'the dragon, awake', () => [['fly-0', dragon(0)], ['fly-1', dragon(1)]]],
   ['rockery', 'a rockery of the Imperial Garden', () => [['rocks', rockery()]]],
   ['kite', 'a red paper kite', () => [['red', kite()]]],
+  ['jianzhi', 'a red paper-cut window flower', () => [['red', jianzhi()]]],
+  ['shufa', 'a hanging scroll of calligraphy', () => [['scroll', shufa()]]],
+  ['lianpu', 'a Peking-opera mask', () => [['red', lianpu()]]],
+  ['cat', 'the hutong cat', () => [['sit', cat('sit')], ['sleep', cat('sleep')], ['walk-0', cat('walk-0')], ['walk-1', cat('walk-1')], ['walk-0-r', cat('walk-0').mirror()], ['walk-1-r', cat('walk-1').mirror()]]],
   ['door-gods', 'an old gate with its door gods, faded and restored', () => [['faded', doorGods(true)], ['bright', doorGods(false)]]],
   ['pigeon', 'a pigeon of the hutongs', () => [['peck', pigeon('peck')], ['look', pigeon('look')], ['fly-0', pigeon('fly-0')], ['fly-1', pigeon('fly-1')]]],
 ];

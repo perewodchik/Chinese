@@ -34,6 +34,8 @@ export const UPGRADES: Record<number, Upgrade> = {
   }),
   /** 3 → 4 (X3): the diary, empty — it starts writing from today */
   3: (r) => ({ ...r, version: 4, diary: isObj(r.diary) ? r.diary : {} }),
+  /** 4 → 5 (X5): an empty room and a cat not yet met */
+  4: (r) => ({ ...r, version: 5, room: isObj(r.room) ? r.room : {}, cat: isObj(r.cat) ? r.cat : { fed: 0, day: 0, name: '' } }),
 };
 
 export type ReadResult =
@@ -83,6 +85,10 @@ function fill(r: Raw): WorldSave {
     ),
     rides: record(r.rides, isNum),
     diary: record(r.diary, (x): x is string[] => Array.isArray(x) && x.every((c) => typeof c === 'string')),
+    room: record(r.room, (x): x is string => typeof x === 'string'),
+    cat: isObj(r.cat)
+      ? { fed: isNum(r.cat.fed) ? r.cat.fed : 0, day: isNum(r.cat.day) ? r.cat.day : 0, name: typeof r.cat.name === 'string' ? r.cat.name : '' }
+      : { fed: 0, day: 0, name: '' },
     settings: { ...DEFAULT_SETTINGS, ...(isObj(r.settings) ? (r.settings as Partial<WorldSave['settings']>) : {}) },
   };
 }

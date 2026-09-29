@@ -8,6 +8,7 @@
  * nothing about this hour leaves the person at their spot on the map.
  */
 
+import { catProps, roomProps, ROOM_MAP } from './room';
 import { holds } from './flags';
 import { whereIs } from './schedule';
 import type { MapObject, NpcCard, WorldSave } from './types';
@@ -37,6 +38,9 @@ export function castMap(objects: readonly MapObject[], map: string, npcs: readon
     const stop = whereIs(card, minutes);
     if (stop?.map === map) out.push({ kind: 'npc', id: `routine-${card.id}`, npc: card.id, tile: stop.tile, ...(stop.facing ? { facing: stop.facing } : {}) });
   }
+  // your decorations in your room, and the cat (X5)
+  if (map === ROOM_MAP) out.push(...roomProps(save));
+  out.push(...catProps(save, map));
   return out;
 }
 

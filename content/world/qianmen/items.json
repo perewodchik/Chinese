@@ -4,5 +4,10 @@
     "name": "茶叶",
     "en": "tea leaves",
     "gift": true
+  },
+  {
+    "id": "lianpu",
+    "name": "脸谱",
+    "en": "an opera mask"
   }
 ]

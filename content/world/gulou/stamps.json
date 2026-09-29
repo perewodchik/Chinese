@@ -76,5 +76,12 @@
     "en": "A snowman",
     "place": "hutong-home",
     "design": "snowman"
+  },
+  {
+    "id": "cat",
+    "name": "小猫",
+    "en": "A cat of your own",
+    "place": "hutong-home",
+    "design": "cat"
   }
 ]

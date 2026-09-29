@@ -292,5 +292,47 @@
         }
       }
     ]
+  },
+  {
+    "id": "side-room",
+    "title": "A room of your own",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "decorate",
+        "now": "Buy something nice for your room — flowers or a paper-cut at 李阿姨’s, a lantern at 潘家园, calligraphy at the 王府井 bookshop, an opera mask at the 前门 theatre — and use it on a spot in your room (墙, 窗户, 地上).",
+        "done": {
+          "flag": "room-decorated"
+        }
+      },
+      {
+        "id": "show",
+        "now": "Talk to 王阿姨 — she wants to see your room.",
+        "done": {
+          "flag": "room-seen"
+        }
+      }
+    ]
+  },
+  {
+    "id": "side-cat",
+    "title": "The hutong cat",
+    "chapter": 1,
+    "steps": [
+      {
+        "id": "feed",
+        "now": "Feed the little cat in 帽儿胡同 on three different days: buy 小鱼干 at 李阿姨’s and use it on the cat.",
+        "done": {
+          "cat": "trusts"
+        }
+      },
+      {
+        "id": "name",
+        "now": "The cat trusts you. Look at it and give it a name: 它叫……",
+        "done": {
+          "cat": "named"
+        }
+      }
+    ]
   }
 ]

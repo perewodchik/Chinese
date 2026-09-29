@@ -53,6 +53,7 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.strictObject({ weather: z.enum(['clear', 'cloudy', 'rain', 'snow', 'wind']) }),
     z.strictObject({ festival: z.enum(['chunjie', 'yuanxiao', 'duanwu', 'qixi', 'zhongqiu', 'guoqing']) }),
     z.strictObject({ season: z.enum(['spring', 'summer', 'autumn', 'winter']) }),
+    z.strictObject({ cat: z.enum(['fed-today', 'trusts', 'named']) }),
   ]),
 );
 
@@ -75,6 +76,8 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
   z.strictObject({ do: z.literal('sleep') }),
   z.strictObject({ do: z.literal('wait'), until: hour }),
   z.strictObject({ do: z.literal('hearts'), npc: id, delta: z.number().int() }),
+  z.strictObject({ do: z.literal('place'), spot: id, item: id }),
+  z.strictObject({ do: z.literal('feed_cat') }),
   z.strictObject({ do: z.literal('pin'), riddle: text }),
   z.strictObject({ do: z.literal('solve'), riddle: text }),
   z.strictObject({ do: z.literal('remember'), npc: id, note: text }),
@@ -82,7 +85,7 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
 
 const actionKind = z.enum([
   'flag', 'give', 'take', 'money', 'card', 'quest', 'quest_done', 'stamp', 'spirit', 'idiom',
-  'station', 'district', 'chapter', 'teleport', 'game', 'sleep', 'wait', 'hearts', 'pin', 'solve', 'remember',
+  'station', 'district', 'chapter', 'teleport', 'game', 'sleep', 'wait', 'hearts', 'place', 'feed_cat', 'pin', 'solve', 'remember',
 ]);
 
 export const districtSchema: z.ZodType<District> = z.strictObject({
@@ -161,7 +164,7 @@ const expectSchema: z.ZodType<Expect> = z.strictObject({
   intent: id,
   match: z.array(z.array(text).min(1)).min(1),
   go: id.optional(),
-  capture: z.literal('name').optional(),
+  capture: z.enum(['name', 'cat']).optional(),
   actions: z.array(actionSchema).optional(),
   end: z.boolean().optional(),
 });

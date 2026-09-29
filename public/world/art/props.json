@@ -160,6 +160,126 @@
     "h": 16
    }
   },
+  "cat/sit": {
+   "frame": {
+    "x": 135,
+    "y": 196,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "cat/sleep": {
+   "frame": {
+    "x": 152,
+    "y": 196,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "cat/walk-0": {
+   "frame": {
+    "x": 169,
+    "y": 196,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "cat/walk-0-r": {
+   "frame": {
+    "x": 186,
+    "y": 196,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "cat/walk-1": {
+   "frame": {
+    "x": 203,
+    "y": 196,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "cat/walk-1-r": {
+   "frame": {
+    "x": 220,
+    "y": 196,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
   "corner-tower/jiaolou": {
    "frame": {
     "x": 422,
@@ -300,6 +420,26 @@
     "h": 24
    }
   },
+  "jianzhi/red": {
+   "frame": {
+    "x": 237,
+    "y": 196,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
   "jiulongbi/blind": {
    "frame": {
     "x": 50,
@@ -342,7 +482,7 @@
   },
   "kite/red": {
    "frame": {
-    "x": 135,
+    "x": 254,
     "y": 196,
     "w": 16,
     "h": 16
@@ -362,7 +502,7 @@
   },
   "lantern/broken": {
    "frame": {
-    "x": 152,
+    "x": 271,
     "y": 196,
     "w": 16,
     "h": 16
@@ -382,7 +522,7 @@
   },
   "lantern/lit-0": {
    "frame": {
-    "x": 169,
+    "x": 288,
     "y": 196,
     "w": 16,
     "h": 16
@@ -402,7 +542,7 @@
   },
   "lantern/lit-1": {
    "frame": {
-    "x": 186,
+    "x": 305,
     "y": 196,
     "w": 16,
     "h": 16
@@ -422,7 +562,27 @@
   },
   "lantern/unlit": {
    "frame": {
-    "x": 203,
+    "x": 322,
+    "y": 196,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "lianpu/red": {
+   "frame": {
+    "x": 339,
     "y": 196,
     "w": 16,
     "h": 16
@@ -482,7 +642,7 @@
   },
   "nianshou/awake": {
    "frame": {
-    "x": 220,
+    "x": 356,
     "y": 196,
     "w": 16,
     "h": 16
@@ -502,7 +662,7 @@
   },
   "nianshou/clay": {
    "frame": {
-    "x": 237,
+    "x": 373,
     "y": 196,
     "w": 16,
     "h": 16
@@ -562,8 +722,8 @@
   },
   "pigeon/fly-0": {
    "frame": {
-    "x": 472,
-    "y": 196,
+    "x": 136,
+    "y": 221,
     "w": 8,
     "h": 8
    },
@@ -582,8 +742,8 @@
   },
   "pigeon/fly-1": {
    "frame": {
-    "x": 481,
-    "y": 196,
+    "x": 145,
+    "y": 221,
     "w": 8,
     "h": 8
    },
@@ -602,8 +762,8 @@
   },
   "pigeon/look": {
    "frame": {
-    "x": 490,
-    "y": 196,
+    "x": 154,
+    "y": 221,
     "w": 8,
     "h": 8
    },
@@ -622,8 +782,8 @@
   },
   "pigeon/peck": {
    "frame": {
-    "x": 499,
-    "y": 196,
+    "x": 163,
+    "y": 221,
     "w": 8,
     "h": 8
    },
@@ -662,7 +822,7 @@
   },
   "plant/green": {
    "frame": {
-    "x": 254,
+    "x": 390,
     "y": 196,
     "w": 16,
     "h": 16
@@ -760,9 +920,29 @@
     "h": 32
    }
   },
+  "shufa/scroll": {
+   "frame": {
+    "x": 407,
+    "y": 196,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
   "stall/a": {
    "frame": {
-    "x": 271,
+    "x": 424,
     "y": 196,
     "w": 32,
     "h": 16
@@ -782,7 +962,7 @@
   },
   "stall/b": {
    "frame": {
-    "x": 304,
+    "x": 457,
     "y": 196,
     "w": 32,
     "h": 16
@@ -802,8 +982,8 @@
   },
   "stall/c": {
    "frame": {
-    "x": 337,
-    "y": 196,
+    "x": 1,
+    "y": 221,
     "w": 32,
     "h": 16
    },
@@ -822,8 +1002,8 @@
   },
   "steamer/steam-0": {
    "frame": {
-    "x": 370,
-    "y": 196,
+    "x": 34,
+    "y": 221,
     "w": 16,
     "h": 16
    },
@@ -842,8 +1022,8 @@
   },
   "steamer/steam-1": {
    "frame": {
-    "x": 387,
-    "y": 196,
+    "x": 51,
+    "y": 221,
     "w": 16,
     "h": 16
    },
@@ -862,8 +1042,8 @@
   },
   "stool/red": {
    "frame": {
-    "x": 404,
-    "y": 196,
+    "x": 68,
+    "y": 221,
     "w": 16,
     "h": 16
    },
@@ -922,8 +1102,8 @@
   },
   "table/wood": {
    "frame": {
-    "x": 421,
-    "y": 196,
+    "x": 85,
+    "y": 221,
     "w": 16,
     "h": 16
    },
@@ -962,8 +1142,8 @@
   },
   "tea-table/pot": {
    "frame": {
-    "x": 438,
-    "y": 196,
+    "x": 102,
+    "y": 221,
     "w": 16,
     "h": 16
    },
@@ -1162,8 +1342,8 @@
   },
   "wok/oil": {
    "frame": {
-    "x": 455,
-    "y": 196,
+    "x": 119,
+    "y": 221,
     "w": 16,
     "h": 16
    },

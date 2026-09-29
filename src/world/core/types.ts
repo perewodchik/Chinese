@@ -46,7 +46,9 @@ export type Condition =
   /** today's weather, festival or season (X4, `calendar.ts`) */
   | { weather: 'clear' | 'cloudy' | 'rain' | 'snow' | 'wind' }
   | { festival: 'chunjie' | 'yuanxiao' | 'duanwu' | 'qixi' | 'zhongqiu' | 'guoqing' }
-  | { season: 'spring' | 'summer' | 'autumn' | 'winter' };
+  | { season: 'spring' | 'summer' | 'autumn' | 'winter' }
+  /** the 胡同 cat (X5): fed today, trusts you (fed on three days), or has its name */
+  | { cat: 'fed-today' | 'trusts' | 'named' };
 
 export type Action =
   | { do: 'flag'; flag: string; value?: boolean }
@@ -75,7 +77,11 @@ export type Action =
   | { do: 'solve'; riddle: string }
   | { do: 'remember'; npc: string; note: string }
   /** friendship up or down (0–5) */
-  | { do: 'hearts'; npc: string; delta: number };
+  | { do: 'hearts'; npc: string; delta: number }
+  /** a decoration from the bag onto a spot in your room (X5); what stood there goes back to the bag */
+  | { do: 'place'; spot: string; item: string }
+  /** the 胡同 cat eats (once a day counts) */
+  | { do: 'feed_cat' };
 
 export type ActionKind = Action['do'];
 
@@ -156,8 +162,8 @@ export interface Expect {
   match: string[][];
   /** the next node; none ends the conversation */
   go?: string;
-  /** keep something from what the player said: `name` — the name after 我叫 / 我是 (X2) */
-  capture?: 'name';
+  /** keep something from what the player said: `name` — the name after 我叫 / 我是 (X2); `cat` — the cat's name (X5) */
+  capture?: 'name' | 'cat';
   actions?: Action[];
   end?: boolean;
 }
@@ -347,6 +353,15 @@ export interface NpcMemory {
   talk: number;
 }
 
+export interface CatState {
+  /** different days it has been fed */
+  fed: number;
+  /** the game day of the last feed, 0 for never */
+  day: number;
+  /** the name you gave it, '' before */
+  name: string;
+}
+
 export interface WorldSave {
   version: number;
   /** wall-clock ms of the last change */
@@ -386,6 +401,10 @@ export interface WorldSave {
   rides: Record<string, number>;
   /** the diary (X3): game day → what happened, as short codes (`diary.ts`) */
   diary: Record<string, string[]>;
+  /** your room (X5): spot → the decoration on it */
+  room: Record<string, string>;
+  /** the 胡同 cat (X5) */
+  cat: CatState;
 
   settings: WorldSettings;
 }

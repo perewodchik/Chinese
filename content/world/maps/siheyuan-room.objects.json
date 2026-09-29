@@ -76,5 +76,55 @@
   ],
   "color": "#fff1b3",
   "radius": 40
+ },
+ {
+  "kind": "sign",
+  "id": "spot-wall-l",
+  "tile": [
+   2,
+   1
+  ],
+  "text": "墙",
+  "en": "the wall — use a decoration from your bag here"
+ },
+ {
+  "kind": "sign",
+  "id": "spot-window",
+  "tile": [
+   4,
+   1
+  ],
+  "text": "窗户",
+  "en": "the window — use a decoration from your bag here"
+ },
+ {
+  "kind": "sign",
+  "id": "spot-wall-r",
+  "tile": [
+   6,
+   1
+  ],
+  "text": "墙",
+  "en": "the wall — use a decoration from your bag here"
+ },
+ {
+  "kind": "sign",
+  "id": "spot-floor-l",
+  "tile": [
+   3,
+   6
+  ],
+  "text": "地上",
+  "en": "the floor — use a decoration from your bag here"
+ },
+ {
+  "kind": "sign",
+  "id": "spot-floor-r",
+  "tile": [
+   8,
+   6
+  ],
+  "text": "地上",
+  "en": "the floor — use a decoration from your bag here"
  }
 ]

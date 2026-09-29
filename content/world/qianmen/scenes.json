@@ -523,5 +523,100 @@
     ]
    }
   ]
+ },
+ {
+  "id": "buy-lianpu",
+  "map": "xiyuan",
+  "npc": "jingju-yanyuan",
+  "trigger": "talk",
+  "priority": 2,
+  "when": {
+   "all": [
+    {
+     "quest": "side-room",
+     "step": "decorate"
+    },
+    {
+     "not": {
+      "item": "lianpu"
+     }
+    },
+    {
+     "not": {
+      "flag": "decor-lianpu"
+     }
+    },
+    {
+     "money": 30
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "脸谱",
+    "explain": "京剧里的脸，红的、白的、黑的。",
+    "en": "an opera mask"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你要脸谱吗？三十块。",
+    "translate": "Would you like an opera mask? 30 yuan.",
+    "simpler": "要脸谱吗？",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不要",
+        "不用",
+        "不买"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "要",
+        "买",
+        "好",
+        "可以"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -30
+       },
+       {
+        "do": "give",
+        "item": "lianpu"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "要",
+     "frame": "___，我要。",
+     "full": "要，我要。"
+    },
+    "why": "Take it home and use it on a spot in your room (墙, 窗户, 地上)."
+   },
+   {
+    "id": "b",
+    "say": "好，脸谱给你。",
+    "translate": "There you are — an opera mask."
+   },
+   {
+    "id": "c",
+    "say": "好，再见！",
+    "translate": "All right, bye!"
+   }
+  ]
  }
 ]

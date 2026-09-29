@@ -56,6 +56,8 @@ export interface SceneOptions {
   bike?: boolean;
   /** what falls from the sky today (X4); it only shows on maps out of doors */
   sky?: 'none' | 'rain' | 'snow';
+  /** whether the named 胡同 cat walks a step behind you on a map (X5) */
+  pet?: (map: string) => boolean;
 }
 
 interface TilesetNames {
@@ -79,6 +81,8 @@ export class WorldScene extends Phaser.Scene {
   info!: MapInfo;
   private hero!: Phaser.GameObjects.Sprite;
   private rabbit!: Phaser.GameObjects.Sprite;
+  private pet: Phaser.GameObjects.Sprite | null = null;
+  private petRight = false;
   /** the shared bike under the hero, while riding one */
   private bikeSprite: Phaser.GameObjects.Sprite | null = null;
   private npcSprites = new Map<string, Phaser.GameObjects.Sprite>();
@@ -192,6 +196,7 @@ export class WorldScene extends Phaser.Scene {
     this.rabbit = this.add.sprite(x + 12, y - 18, 'chars', 'rabbit/down-0').setOrigin(0, 1).setDepth(y + 0.6);
     this.bikeSprite = null;
     if (this.opts.bike) this.setBike(true);
+    this.pet = this.opts.pet?.(this.opts.map) ? this.add.sprite(x - TILE, y + 1, 'props', 'cat/sit').setOrigin(0, 1).setDepth(y + 0.4) : null;
     // the bob is in the frames: 0 up, 1 down
     this.time.addEvent({
       delay: 450,
@@ -302,6 +307,30 @@ export class WorldScene extends Phaser.Scene {
       })
       .setScrollFactor(0)
       .setDepth(20_002);
+  }
+
+  /** The cat pads after you onto the tile you just left (X5), and sits when you stop. */
+  private followPet(to: Tile, ms: number) {
+    const pet = this.pet;
+    if (!pet) return;
+    const x = to[0] * TILE;
+    const y = (to[1] + 1) * TILE;
+    if (x !== pet.x) this.petRight = x > pet.x;
+    const side = this.petRight ? '-r' : '';
+    pet.setFrame(`cat/walk-${this.stepFrame}${side}`);
+    this.tweens.killTweensOf(pet);
+    this.tweens.add({
+      targets: pet,
+      x,
+      y: y + 1,
+      duration: ms,
+      onUpdate: () => pet.setDepth(pet.y - 1 + 0.4),
+      onComplete: () => {
+        this.time.delayedCall(ms + 40, () => {
+          if (!this.tweens.isTweening(pet)) pet.setFrame('cat/sit');
+        });
+      },
+    });
   }
 
   /** Off to another map: a short fade, then the scene starts again there. */
@@ -524,6 +553,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private stepTo(t: Tile) {
+    const prev = this.at;
     const dx = t[0] - this.at[0];
     const dy = t[1] - this.at[1];
     this.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
@@ -535,6 +565,7 @@ export class WorldScene extends Phaser.Scene {
     const y = (t[1] + 1) * TILE;
     const ms = this.bikeSprite ? RUN_MS * 0.75 : this.running ? RUN_MS : WALK_MS;
     this.hero.setDepth(Math.max(this.hero.depth, y + 0.5));
+    this.followPet(prev, ms);
     this.tweens.add({
       targets: this.hero,
       x,

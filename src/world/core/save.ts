@@ -9,9 +9,10 @@
 
 import { dayOf, sleep as sleepClock, START_MINUTES, waitUntil } from './clock';
 import { eventsOf, logDay } from './diary';
+import { feedCat, fits, NO_CAT } from './room';
 import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
 
-export const WORLD_SAVE_VERSION = 4;
+export const WORLD_SAVE_VERSION = 5;
 
 /** Where a new game starts: your room in 王阿姨's 四合院. */
 export const HOME: Place = { map: 'siheyuan-room', tile: [4, 4], facing: 'down' };
@@ -52,6 +53,8 @@ export function newSave(deviceId: string, now: number): WorldSave {
     npcs: {},
     rides: {},
     diary: {},
+    room: {},
+    cat: { ...NO_CAT },
     settings: DEFAULT_SETTINGS,
   };
 }
@@ -67,6 +70,8 @@ export type EngineAction =
   | { do: 'talked'; npc: string }
   /** the name the player gave (X2) */
   | { do: 'name'; name: string }
+  /** the name the cat got (X5) */
+  | { do: 'cat_name'; name: string }
   | { do: 'scene_done'; scene: string }
   | { do: 'ride'; route: string }
   | { do: 'tick'; minutes: number }
@@ -192,6 +197,23 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
       const cur = s.npcs[a.npc] ?? { met: Math.floor(s.clock), notes: [], hearts: 0, gift: 0, talk: 0 };
       const hearts = Math.max(0, Math.min(5, cur.hearts + a.delta));
       return hearts === cur.hearts ? s : { ...s, npcs: { ...s.npcs, [a.npc]: { ...cur, hearts } } };
+    }
+    case 'place': {
+      if (!fits(a.item, a.spot) || !(s.bag.items[a.item] ?? 0)) return s;
+      const was = s.room[a.spot];
+      if (was === a.item) return s;
+      const items = { ...s.bag.items, [a.item]: (s.bag.items[a.item] ?? 0) - 1 };
+      if (items[a.item]! <= 0) delete items[a.item];
+      if (was) items[was] = (items[was] ?? 0) + 1;
+      const flags = [...new Set([...s.flags, 'room-decorated', `decor-${a.item}`])];
+      return { ...s, bag: { ...s.bag, items }, room: { ...s.room, [a.spot]: a.item }, flags };
+    }
+    case 'feed_cat':
+      return feedCat(s);
+    case 'cat_name': {
+      const name = a.name.trim().slice(0, 8);
+      if (!name || name === s.cat.name) return s;
+      return { ...s, cat: { ...s.cat, name }, flags: s.flags.includes('cat-named') ? s.flags : [...s.flags, 'cat-named'] };
     }
     case 'talked': {
       const cur = s.npcs[a.npc] ?? { met: Math.floor(s.clock), notes: [], hearts: 0, gift: 0, talk: 0 };

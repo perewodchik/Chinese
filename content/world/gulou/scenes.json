@@ -273,7 +273,7 @@
   "map": "siheyuan-yard",
   "npc": "wang-ayi",
   "trigger": "talk",
-  "priority": 2,
+  "priority": 5,
   "when": {
    "flag": "lantern-broken"
   },
@@ -5237,6 +5237,1219 @@
       "delta": 1
      }
     ]
+   }
+  ]
+ },
+ {
+  "id": "place-huapen-spot-floor-l",
+  "map": "siheyuan-room",
+  "object": "spot-floor-l",
+  "trigger": "look",
+  "use": "huapen",
+  "start": "a",
+  "words": [
+   {
+    "w": "花",
+    "explain": "红的、黄的，很好看，是植物。",
+    "en": "a pot of flowers"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！花真好看。",
+    "translate": "There! The pot of flowers looks lovely.",
+    "speaker": "hero",
+    "simpler": "花真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-floor-l",
+      "item": "huapen"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-huapen-spot-floor-r",
+  "map": "siheyuan-room",
+  "object": "spot-floor-r",
+  "trigger": "look",
+  "use": "huapen",
+  "start": "a",
+  "words": [
+   {
+    "w": "花",
+    "explain": "红的、黄的，很好看，是植物。",
+    "en": "a pot of flowers"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！花真好看。",
+    "translate": "There! The pot of flowers looks lovely.",
+    "speaker": "hero",
+    "simpler": "花真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-floor-r",
+      "item": "huapen"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-jianzhi-spot-wall-l",
+  "map": "siheyuan-room",
+  "object": "spot-wall-l",
+  "trigger": "look",
+  "use": "jianzhi",
+  "start": "a",
+  "words": [
+   {
+    "w": "剪纸",
+    "explain": "红纸做的，上面有花和字，放在窗户上。",
+    "en": "a paper-cut"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！剪纸真好看。",
+    "translate": "There! The paper-cut looks lovely.",
+    "speaker": "hero",
+    "simpler": "剪纸真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-wall-l",
+      "item": "jianzhi"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-jianzhi-spot-window",
+  "map": "siheyuan-room",
+  "object": "spot-window",
+  "trigger": "look",
+  "use": "jianzhi",
+  "start": "a",
+  "words": [
+   {
+    "w": "剪纸",
+    "explain": "红纸做的，上面有花和字，放在窗户上。",
+    "en": "a paper-cut"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！剪纸真好看。",
+    "translate": "There! The paper-cut looks lovely.",
+    "speaker": "hero",
+    "simpler": "剪纸真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-window",
+      "item": "jianzhi"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-jianzhi-spot-wall-r",
+  "map": "siheyuan-room",
+  "object": "spot-wall-r",
+  "trigger": "look",
+  "use": "jianzhi",
+  "start": "a",
+  "words": [
+   {
+    "w": "剪纸",
+    "explain": "红纸做的，上面有花和字，放在窗户上。",
+    "en": "a paper-cut"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！剪纸真好看。",
+    "translate": "There! The paper-cut looks lovely.",
+    "speaker": "hero",
+    "simpler": "剪纸真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-wall-r",
+      "item": "jianzhi"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-denglong-spot-wall-l",
+  "map": "siheyuan-room",
+  "object": "spot-wall-l",
+  "trigger": "look",
+  "use": "denglong",
+  "start": "a",
+  "words": [
+   {
+    "w": "灯笼",
+    "explain": "红色的灯，晚上很好看。",
+    "en": "a red lantern"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！灯笼真好看。",
+    "translate": "There! The red lantern looks lovely.",
+    "speaker": "hero",
+    "simpler": "灯笼真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-wall-l",
+      "item": "denglong"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-denglong-spot-window",
+  "map": "siheyuan-room",
+  "object": "spot-window",
+  "trigger": "look",
+  "use": "denglong",
+  "start": "a",
+  "words": [
+   {
+    "w": "灯笼",
+    "explain": "红色的灯，晚上很好看。",
+    "en": "a red lantern"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！灯笼真好看。",
+    "translate": "There! The red lantern looks lovely.",
+    "speaker": "hero",
+    "simpler": "灯笼真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-window",
+      "item": "denglong"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-denglong-spot-wall-r",
+  "map": "siheyuan-room",
+  "object": "spot-wall-r",
+  "trigger": "look",
+  "use": "denglong",
+  "start": "a",
+  "words": [
+   {
+    "w": "灯笼",
+    "explain": "红色的灯，晚上很好看。",
+    "en": "a red lantern"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！灯笼真好看。",
+    "translate": "There! The red lantern looks lovely.",
+    "speaker": "hero",
+    "simpler": "灯笼真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-wall-r",
+      "item": "denglong"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-denglong-spot-floor-l",
+  "map": "siheyuan-room",
+  "object": "spot-floor-l",
+  "trigger": "look",
+  "use": "denglong",
+  "start": "a",
+  "words": [
+   {
+    "w": "灯笼",
+    "explain": "红色的灯，晚上很好看。",
+    "en": "a red lantern"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！灯笼真好看。",
+    "translate": "There! The red lantern looks lovely.",
+    "speaker": "hero",
+    "simpler": "灯笼真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-floor-l",
+      "item": "denglong"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-denglong-spot-floor-r",
+  "map": "siheyuan-room",
+  "object": "spot-floor-r",
+  "trigger": "look",
+  "use": "denglong",
+  "start": "a",
+  "words": [
+   {
+    "w": "灯笼",
+    "explain": "红色的灯，晚上很好看。",
+    "en": "a red lantern"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！灯笼真好看。",
+    "translate": "There! The red lantern looks lovely.",
+    "speaker": "hero",
+    "simpler": "灯笼真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-floor-r",
+      "item": "denglong"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-shufa-spot-wall-l",
+  "map": "siheyuan-room",
+  "object": "spot-wall-l",
+  "trigger": "look",
+  "use": "shufa",
+  "start": "a",
+  "words": [
+   {
+    "w": "书法",
+    "explain": "用毛笔写的好看的字。",
+    "en": "a scroll of calligraphy"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！书法真好看。",
+    "translate": "There! The scroll of calligraphy looks lovely.",
+    "speaker": "hero",
+    "simpler": "书法真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-wall-l",
+      "item": "shufa"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-shufa-spot-window",
+  "map": "siheyuan-room",
+  "object": "spot-window",
+  "trigger": "look",
+  "use": "shufa",
+  "start": "a",
+  "words": [
+   {
+    "w": "书法",
+    "explain": "用毛笔写的好看的字。",
+    "en": "a scroll of calligraphy"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！书法真好看。",
+    "translate": "There! The scroll of calligraphy looks lovely.",
+    "speaker": "hero",
+    "simpler": "书法真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-window",
+      "item": "shufa"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-shufa-spot-wall-r",
+  "map": "siheyuan-room",
+  "object": "spot-wall-r",
+  "trigger": "look",
+  "use": "shufa",
+  "start": "a",
+  "words": [
+   {
+    "w": "书法",
+    "explain": "用毛笔写的好看的字。",
+    "en": "a scroll of calligraphy"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！书法真好看。",
+    "translate": "There! The scroll of calligraphy looks lovely.",
+    "speaker": "hero",
+    "simpler": "书法真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-wall-r",
+      "item": "shufa"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-lianpu-spot-wall-l",
+  "map": "siheyuan-room",
+  "object": "spot-wall-l",
+  "trigger": "look",
+  "use": "lianpu",
+  "start": "a",
+  "words": [
+   {
+    "w": "脸谱",
+    "explain": "京剧里的脸，红的、白的、黑的。",
+    "en": "an opera mask"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！脸谱真好看。",
+    "translate": "There! The opera mask looks lovely.",
+    "speaker": "hero",
+    "simpler": "脸谱真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-wall-l",
+      "item": "lianpu"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-lianpu-spot-window",
+  "map": "siheyuan-room",
+  "object": "spot-window",
+  "trigger": "look",
+  "use": "lianpu",
+  "start": "a",
+  "words": [
+   {
+    "w": "脸谱",
+    "explain": "京剧里的脸，红的、白的、黑的。",
+    "en": "an opera mask"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！脸谱真好看。",
+    "translate": "There! The opera mask looks lovely.",
+    "speaker": "hero",
+    "simpler": "脸谱真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-window",
+      "item": "lianpu"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "place-lianpu-spot-wall-r",
+  "map": "siheyuan-room",
+  "object": "spot-wall-r",
+  "trigger": "look",
+  "use": "lianpu",
+  "start": "a",
+  "words": [
+   {
+    "w": "脸谱",
+    "explain": "京剧里的脸，红的、白的、黑的。",
+    "en": "an opera mask"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "好了！脸谱真好看。",
+    "translate": "There! The opera mask looks lovely.",
+    "speaker": "hero",
+    "simpler": "脸谱真好看！",
+    "onEnter": [
+     {
+      "do": "place",
+      "spot": "spot-wall-r",
+      "item": "lianpu"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "room-idea",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 1,
+  "when": {
+   "all": [
+    {
+     "chapter": 2
+    },
+    {
+     "scene": "arrive"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "花",
+    "explain": "红的、黄的，很好看。",
+    "en": "flowers"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你的房间里什么都没有！买一点儿好看的东西吧。",
+    "translate": "There's nothing in your room! Buy a few nice things.",
+    "simpler": "买一点儿好看的东西吧！",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-room",
+      "step": "decorate"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "say": "李阿姨那儿有花。花很好看！",
+    "translate": "李阿姨 has flowers. Flowers are lovely!",
+    "why": "Around the city: flowers and paper-cuts at 李阿姨’s, a lantern at 潘家园, calligraphy at the 王府井 bookshop, an opera mask at the 前门 theatre. Use one on a spot in your room."
+   }
+  ]
+ },
+ {
+  "id": "room-comment-huapen",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 3,
+  "when": {
+   "flag": "decor-huapen"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "花",
+    "explain": "红的、黄的，很好看，是植物。",
+    "en": "a pot of flowers"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我看了你的房间。你的花真好看！",
+    "translate": "I had a look at your room. Your pot of flowers is lovely!",
+    "simpler": "花真好看！",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "room-seen"
+     },
+     {
+      "do": "remember",
+      "npc": "wang-ayi",
+      "note": "liked the pot of flowers in your room"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "room-comment-jianzhi",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 3,
+  "when": {
+   "flag": "decor-jianzhi"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "剪纸",
+    "explain": "红纸做的，上面有花和字，放在窗户上。",
+    "en": "a paper-cut"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我看了你的房间。你的剪纸真好看！",
+    "translate": "I had a look at your room. Your paper-cut is lovely!",
+    "simpler": "剪纸真好看！",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "room-seen"
+     },
+     {
+      "do": "remember",
+      "npc": "wang-ayi",
+      "note": "liked the paper-cut in your room"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "room-comment-denglong",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 3,
+  "when": {
+   "flag": "decor-denglong"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "灯笼",
+    "explain": "红色的灯，晚上很好看。",
+    "en": "a red lantern"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我看了你的房间。你的灯笼真好看！",
+    "translate": "I had a look at your room. Your red lantern is lovely!",
+    "simpler": "灯笼真好看！",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "room-seen"
+     },
+     {
+      "do": "remember",
+      "npc": "wang-ayi",
+      "note": "liked the red lantern in your room"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "room-comment-shufa",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 3,
+  "when": {
+   "flag": "decor-shufa"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "书法",
+    "explain": "用毛笔写的好看的字。",
+    "en": "a scroll of calligraphy"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我看了你的房间。你的书法真好看！",
+    "translate": "I had a look at your room. Your scroll of calligraphy is lovely!",
+    "simpler": "书法真好看！",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "room-seen"
+     },
+     {
+      "do": "remember",
+      "npc": "wang-ayi",
+      "note": "liked the scroll of calligraphy in your room"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "room-comment-lianpu",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 3,
+  "when": {
+   "flag": "decor-lianpu"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "脸谱",
+    "explain": "京剧里的脸，红的、白的、黑的。",
+    "en": "an opera mask"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我看了你的房间。你的脸谱真好看！",
+    "translate": "I had a look at your room. Your opera mask is lovely!",
+    "simpler": "脸谱真好看！",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "room-seen"
+     },
+     {
+      "do": "remember",
+      "npc": "wang-ayi",
+      "note": "liked the opera mask in your room"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cat-see",
+  "map": "hutong-home",
+  "object": "cat",
+  "trigger": "look",
+  "once": true,
+  "priority": 0,
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你看，一只小猫！它想吃东西。",
+    "translate": "Look — a little cat! It wants something to eat.",
+    "speaker": "companion",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "cat-seen"
+     },
+     {
+      "do": "quest",
+      "quest": "side-cat",
+      "step": "feed"
+     }
+    ],
+    "why": "The hutong cats are shy. Feed it on a few different days and it will trust you — 李阿姨 sells 小鱼干, dried fish."
+   }
+  ]
+ },
+ {
+  "id": "cat-wait",
+  "map": "hutong-home",
+  "object": "cat",
+  "trigger": "look",
+  "priority": 5,
+  "when": {
+   "not": {
+    "cat": "trusts"
+   }
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "小猫看着你。它想吃东西。",
+    "translate": "The little cat is watching you. It wants something to eat.",
+    "speaker": "hero"
+   }
+  ]
+ },
+ {
+  "id": "cat-feed",
+  "map": "hutong-home",
+  "object": "cat",
+  "trigger": "look",
+  "use": "xiaoyugan",
+  "when": {
+   "all": [
+    {
+     "not": {
+      "cat": "fed-today"
+     }
+    },
+    {
+     "not": {
+      "cat": "named"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "小鱼干",
+    "explain": "很小的鱼，干的，猫很喜欢吃。",
+    "en": "dried fish"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "小猫吃了小鱼干！它很高兴。",
+    "translate": "The little cat ate the dried fish! It is happy.",
+    "speaker": "hero",
+    "simpler": "小猫吃了小鱼干。",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "xiaoyugan"
+     },
+     {
+      "do": "feed_cat"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "cat-full",
+  "map": "hutong-home",
+  "object": "cat",
+  "trigger": "look",
+  "use": "xiaoyugan",
+  "when": {
+   "cat": "fed-today"
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "它今天吃了。明天再给它吧。",
+    "translate": "It has eaten today. Give it some tomorrow.",
+    "speaker": "hero"
+   }
+  ]
+ },
+ {
+  "id": "cat-name",
+  "map": "hutong-home",
+  "object": "cat",
+  "trigger": "look",
+  "once": true,
+  "priority": -1,
+  "stamp": "cat",
+  "when": {
+   "all": [
+    {
+     "cat": "trusts"
+    },
+    {
+     "not": {
+      "cat": "named"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "它是你的朋友了！它叫什么名字？",
+    "translate": "It's your friend now! What is it called?",
+    "speaker": "companion",
+    "expect": [
+     {
+      "intent": "name",
+      "match": [
+       [
+        "叫",
+        "名字",
+        "是"
+       ]
+      ],
+      "go": "b",
+      "capture": "cat"
+     }
+    ],
+    "hint": {
+     "word": "它叫",
+     "frame": "它叫___。",
+     "full": "它叫小花。"
+    },
+    "why": "Give it any name: 它叫 + the name. 小花 (little flower), 小白 (whitey) and 咪咪 are what Beijing cats are often called."
+   },
+   {
+    "id": "b",
+    "say": "好名字！它会和你一起回家。",
+    "translate": "A good name! It will come home with you.",
+    "speaker": "companion"
+   }
+  ]
+ },
+ {
+  "id": "cat-purr",
+  "map": "siheyuan-yard",
+  "object": "cat",
+  "trigger": "look",
+  "start": "a",
+  "words": [
+   {
+    "w": "呼噜",
+    "explain": "猫高兴的时候，说的“话”。",
+    "en": "purring"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "呼噜，呼噜……它很高兴。",
+    "translate": "Purr, purr… it is happy.",
+    "speaker": "hero",
+    "simpler": "呼噜呼噜。"
+   }
+  ]
+ },
+ {
+  "id": "buy-xiaoyugan",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": 1,
+  "when": {
+   "all": [
+    {
+     "quest": "side-cat",
+     "step": "feed"
+    },
+    {
+     "not": {
+      "item": "xiaoyugan"
+     }
+    },
+    {
+     "not": {
+      "cat": "fed-today"
+     }
+    },
+    {
+     "money": 3
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "小鱼干",
+    "explain": "很小的鱼，干的，猫很喜欢吃。",
+    "en": "dried fish"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "给小猫买小鱼干吗？三块。",
+    "translate": "Dried fish for the little cat? Three yuan.",
+    "simpler": "要小鱼干吗？",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不要",
+        "不用",
+        "不买"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "要",
+        "买",
+        "好",
+        "可以"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -3
+       },
+       {
+        "do": "give",
+        "item": "xiaoyugan"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "要",
+     "frame": "___，我要。",
+     "full": "要，我要。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好，小鱼干给你。",
+    "translate": "Here — your dried fish."
+   },
+   {
+    "id": "c",
+    "say": "好，再见！",
+    "translate": "All right, bye!"
+   }
+  ]
+ },
+ {
+  "id": "buy-huapen",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": 2,
+  "when": {
+   "all": [
+    {
+     "quest": "side-room",
+     "step": "decorate"
+    },
+    {
+     "not": {
+      "item": "huapen"
+     }
+    },
+    {
+     "not": {
+      "flag": "decor-huapen"
+     }
+    },
+    {
+     "money": 10
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "花",
+    "explain": "红的、黄的，很好看，是植物。",
+    "en": "a pot of flowers"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你要花吗？十块。",
+    "translate": "Would you like a pot of flowers? 10 yuan.",
+    "simpler": "要花吗？",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不要",
+        "不用",
+        "不买"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "要",
+        "买",
+        "好",
+        "可以"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -10
+       },
+       {
+        "do": "give",
+        "item": "huapen"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "要",
+     "frame": "___，我要。",
+     "full": "要，我要。"
+    },
+    "why": "Take it home and use it on a spot in your room (墙, 窗户, 地上)."
+   },
+   {
+    "id": "b",
+    "say": "好，花给你。",
+    "translate": "There you are — a pot of flowers."
+   },
+   {
+    "id": "c",
+    "say": "好，再见！",
+    "translate": "All right, bye!"
+   }
+  ]
+ },
+ {
+  "id": "buy-jianzhi",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": 2,
+  "when": {
+   "all": [
+    {
+     "quest": "side-room",
+     "step": "decorate"
+    },
+    {
+     "not": {
+      "item": "jianzhi"
+     }
+    },
+    {
+     "not": {
+      "flag": "decor-jianzhi"
+     }
+    },
+    {
+     "money": 10
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "剪纸",
+    "explain": "红纸做的，上面有花和字，放在窗户上。",
+    "en": "a paper-cut"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你要剪纸吗？十块。",
+    "translate": "Would you like a paper-cut? 10 yuan.",
+    "simpler": "要剪纸吗？",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不要",
+        "不用",
+        "不买"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "要",
+        "买",
+        "好",
+        "可以"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -10
+       },
+       {
+        "do": "give",
+        "item": "jianzhi"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "要",
+     "frame": "___，我要。",
+     "full": "要，我要。"
+    },
+    "why": "Take it home and use it on a spot in your room (墙, 窗户, 地上)."
+   },
+   {
+    "id": "b",
+    "say": "好，剪纸给你。",
+    "translate": "There you are — a paper-cut."
+   },
+   {
+    "id": "c",
+    "say": "好，再见！",
+    "translate": "All right, bye!"
    }
   ]
  }

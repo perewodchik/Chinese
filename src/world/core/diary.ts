@@ -32,6 +32,9 @@ export const TEMPLATES: Record<string, { zh: string; en: string }> = {
   t: { zh: '我坐车到了{x}。', en: 'I rode to {x}.' },
   s: { zh: '我找到了{x}！它现在是我的朋友。', en: 'I found {x}! It is my friend now.' },
   i: { zh: '我听到了一个成语：{x}。这个成语很有意思。', en: 'I heard a 成语: {x}. An interesting one.' },
+  r: { zh: '我的房间里有了{x}。', en: 'My room has {x} now.' },
+  c: { zh: '我的猫叫{x}。', en: 'My cat is called {x}.' },
+  k: { zh: '我给小猫吃了东西。', en: 'I fed the little cat.' },
   z: { zh: '晚上我在家睡觉了。', en: 'In the evening I slept at home.' },
 };
 export const EMPTY_DAY = { zh: '今天没有什么事。', en: 'Nothing much happened today.' };
@@ -72,6 +75,12 @@ export function eventsOf(before: WorldSave, after: WorldSave, a: { do: string },
       return npc ? [`n:${npc}:${after.name}`] : [];
     case 'sleep':
       return ['z'];
+    case 'place':
+      return [`r:${x.item}`];
+    case 'feed_cat':
+      return ['k'];
+    case 'cat_name':
+      return [`c:${after.cat.name}`];
     case 'hearts':
     case 'talked': {
       const id = String(x.npc);
@@ -159,6 +168,13 @@ export function diaryLines(codes: readonly string[], names: Names, day?: number)
       if (sp) fill(k, sp);
     } else if (k === 'i') {
       fill(k, { zh: a, en: a });
+    } else if (k === 'r') {
+      const it = names.item(a);
+      if (it) fill(k, it);
+    } else if (k === 'c') {
+      if (a) fill(k, { zh: a, en: a });
+    } else if (k === 'k') {
+      out.push({ ...TEMPLATES.k! });
     } else if (k === 'z') {
       out.push({ ...TEMPLATES.z! });
     }

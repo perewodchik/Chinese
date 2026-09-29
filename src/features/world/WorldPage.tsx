@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { dayOf, partOfDay } from '../../world/core/clock';
 import { hintWithName } from '../../world/core/voice';
 import { skyOf, weatherOf } from '../../world/core/calendar';
+import { CAT_LANE } from '../../world/core/room';
 import { libraryLexicon } from '../../world/core/dialogue/lexicon';
 import { autoScene, sceneFor } from '../../world/core/scenes';
 import type { SaveAction } from '../../world/core/save';
@@ -70,7 +71,12 @@ export function WorldPage() {
       if (a.do === 'teleport') pendingTravel.current = { map: a.map, tile: a.tile, facing: a.facing ?? 'down' };
       if (a.do === 'game') pendingGame.current = a.game;
     }
-    return game.dispatch(actions);
+    const after = game.dispatch(actions);
+    // a decoration put up, or the cat named (X5): draw the map again where you stand once the talk ends
+    if (after && !pendingTravel.current && actions.some((a) => a.do === 'place' || a.do === 'cat_name')) {
+      pendingTravel.current = { map: after.place.map, tile: after.place.tile, facing: after.place.facing };
+    }
+    return after;
   };
   const talk = useTalk(content, lex, talkDispatch);
   /**
@@ -286,6 +292,8 @@ export function WorldPage() {
           bike: game.current()?.flags.includes('on-bike') ?? false,
           // today's weather (X4); ?weather=rain|snow|none tries one out
           sky: oneOf(query.get('weather'), ['rain', 'snow', 'none'] as const, skyOf(weatherOf(dayOf(game.current()?.clock ?? 0)))),
+          // the named cat follows you in 帽儿胡同 (X5)
+          pet: (m) => m === CAT_LANE.map && !!game.current()?.cat.name,
           cast: (info) => {
             const s = game.current();
             return s ? castMap(info.objects, info.id, people.npcs, s) : info.objects;

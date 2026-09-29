@@ -70,6 +70,14 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
     name: late.name || (late === a ? b : a).name,
     clock: late.clock,
     bag: late.bag,
+    // what stands in the room goes with the bag it came out of
+    room: late.room,
+    // the cat remembers every day it was fed, and keeps a name once given
+    cat: {
+      fed: Math.max(a.cat.fed, b.cat.fed),
+      day: Math.max(a.cat.day, b.cat.day),
+      name: late.cat.name || (late === a ? b : a).cat.name,
+    },
     settings: late.settings,
     // only ever grow
     chapter: Math.max(a.chapter, b.chapter),

@@ -124,7 +124,7 @@ function Diary({ save, content, pinyin }: { save: WorldSave; content: WorldConte
 
 function Friends({ save, content }: { save: WorldSave; content: WorldContent }) {
   const rows = friendRows(save, content.npcs);
-  if (!rows.length) return <Empty han="友">Nobody yet. Say 你好 to the neighbours.</Empty>;
+  if (!rows.length && !save.cat.name) return <Empty han="友">Nobody yet. Say 你好 to the neighbours.</Empty>;
   return (
     <>
       <h3 className="wp-label">People you know{save.name && <span className="han"> · 我叫{save.name}</span>}</h3>
@@ -135,6 +135,11 @@ function Friends({ save, content }: { save: WorldSave; content: WorldContent }) 
             {r.notes.length > 0 && <p className="small muted">Remembers: {r.notes.join('; ')}.</p>}
           </li>
         ))}
+        {save.cat.name && (
+          <li key="cat">
+            <b className="han">{save.cat.name}</b> <span className="tiny muted">· your cat, fed on {save.cat.fed} days — it sleeps in the courtyard and follows you in 帽儿胡同</span>
+          </li>
+        )}
       </ul>
       <p className="tiny muted">Friendship grows when you talk (once a day), give something they like, or help. At three hearts some people tell you their own story.</p>
     </>
@@ -274,7 +279,7 @@ function BeijingMap({ save, onGo }: { save: WorldSave; onGo: (station: string) =
 
 function Spirits({ save, content, pinyin }: { save: WorldSave; content: WorldContent; pinyin: boolean }) {
   const rows = spiritRows(save, content.spirits);
-  if (!rows.length) return <Empty han="灵">The spirits of the broken lantern are still out there.</Empty>;
+  if (!rows.length && !save.cat.name) return <Empty han="灵">The spirits of the broken lantern are still out there.</Empty>;
   const found = rows.filter((r) => r.found).length;
   return (
     <>
@@ -310,7 +315,7 @@ function Spirits({ save, content, pinyin }: { save: WorldSave; content: WorldCon
 function Idioms({ save, content, pinyin }: { save: WorldSave; content: WorldContent; pinyin: boolean }) {
   const rows = idiomRows(save, content.idioms);
   const npcName = (id?: string) => content.npcs.find((n) => n.id === id)?.name;
-  if (!rows.length) return <Empty han="成">No 成语 yet. When someone says one, it is written here.</Empty>;
+  if (!rows.length && !save.cat.name) return <Empty han="成">No 成语 yet. When someone says one, it is written here.</Empty>;
   return (
     <>
       {!save.flags.includes('idiom-book') && <p className="tiny muted">The book 《成语故事》 itself turns up in a bookshop later; until then they are kept here.</p>}
@@ -341,7 +346,7 @@ function Idioms({ save, content, pinyin }: { save: WorldSave; content: WorldCont
 
 function Stamps({ save, content }: { save: WorldSave; content: WorldContent }) {
   const rows = stampRows(save, content.stamps);
-  if (!rows.length) return <Empty han="印">Your Beijing passport. Stamps come for what you do — buying a ticket, asking the way.</Empty>;
+  if (!rows.length && !save.cat.name) return <Empty han="印">Your Beijing passport. Stamps come for what you do — buying a ticket, asking the way.</Empty>;
   return (
     <ul className="wp-stamps">
       {rows.map(({ stamp: x, got }) => (

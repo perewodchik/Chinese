@@ -18,6 +18,7 @@ import { heardNote, matchIntent, normalize } from './match';
 import type { CompanionCue, DialogueSource, DialogueState, Line, Turn, Utterance } from './source';
 import { askIntent, explainWord, POLITE_REPLY, politeIntent } from './universal';
 import { hintWithName, NAME_SLOT, withName } from '../voice';
+import { catNameFrom } from '../room';
 
 export const DEFAULT_MISSES = ['你说什么？', '什么？请再说一遍。'];
 export const NOT_CHINESE = { zh: '对不起，我听不懂……', en: "Sorry, I don't understand…" };
@@ -192,7 +193,13 @@ export class ScriptedDialogue implements DialogueSource {
       const note = m.heard.length ? m.heard.map((h) => heardNote(h, this.lex)).join(' ') : undefined;
       // 「我叫大卫。」: the name is kept, and the lines from here on say it.
       const told = m.expect.capture === 'name' ? nameFrom(u.text) : null;
-      const via: SaveAction[] = [...(told ? [{ do: 'name' as const, name: told }] : []), ...(m.expect.actions ?? [])];
+      // 「它叫小花。」: the cat's name (X5)
+      const cat = m.expect.capture === 'cat' ? catNameFrom(u.text) : null;
+      const via: SaveAction[] = [
+        ...(told ? [{ do: 'name' as const, name: told }] : []),
+        ...(cat ? [{ do: 'cat_name' as const, name: cat }] : []),
+        ...(m.expect.actions ?? []),
+      ];
       const moved = this.move(scene, n, m.expect.go, !!m.expect.end, via, told ? { ...state, name: told } : state);
       return {
         kind: 'match',
