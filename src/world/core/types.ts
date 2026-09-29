@@ -380,6 +380,8 @@ export interface WorldSave {
   npcs: Record<string, NpcMemory>;
   /** route key → rides taken, to skip the announcement after three */
   rides: Record<string, number>;
+  /** the diary (X3): game day → what happened, as short codes (`diary.ts`) */
+  diary: Record<string, string[]>;
 
   settings: WorldSettings;
 }

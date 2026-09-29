@@ -32,6 +32,8 @@ export const UPGRADES: Record<number, Upgrade> = {
     name: typeof r.name === 'string' ? r.name : '',
     npcs: Object.fromEntries(Object.entries(isObj(r.npcs) ? r.npcs : {}).map(([k, v]) => [k, isObj(v) ? { talk: 0, ...v } : v])),
   }),
+  /** 3 → 4 (X3): the diary, empty — it starts writing from today */
+  3: (r) => ({ ...r, version: 4, diary: isObj(r.diary) ? r.diary : {} }),
 };
 
 export type ReadResult =
@@ -80,6 +82,7 @@ function fill(r: Raw): WorldSave {
       ]),
     ),
     rides: record(r.rides, isNum),
+    diary: record(r.diary, (x): x is string[] => Array.isArray(x) && x.every((c) => typeof c === 'string')),
     settings: { ...DEFAULT_SETTINGS, ...(isObj(r.settings) ? (r.settings as Partial<WorldSave['settings']>) : {}) },
   };
 }

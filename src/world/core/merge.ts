@@ -12,6 +12,7 @@
  * it. Content should use a new flag rather than clearing an old one.
  */
 
+import { DIARY_PER_DAY } from './diary';
 import type { NpcMemory, QuestState, Riddle, WorldSave } from './types';
 
 const union = (a: readonly string[], b: readonly string[]) => [...new Set([...a, ...b])].sort();
@@ -83,5 +84,10 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
     idioms: byKey(a.idioms, b.idioms, earlier),
     npcs: byKey(a.npcs, b.npcs, memory),
     rides: byKey(a.rides, b.rides, Math.max),
+    // a day's diary from both devices: the earlier device's lines first, the other's after
+    diary: byKey(a.diary, b.diary, (x, y) => {
+      const [first, second] = JSON.stringify(x) <= JSON.stringify(y) ? [x, y] : [y, x];
+      return [...first, ...second.filter((c) => !first.includes(c))].slice(0, DIARY_PER_DAY);
+    }),
   };
 }

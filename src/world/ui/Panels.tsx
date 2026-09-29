@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLibrary } from '../../features/shared/library';
 import { districtInfo, type DistrictInfo } from '../core/districts';
 import { formatTime, dayOf } from '../core/clock';
+import { contentNames, diaryDays, diaryLines } from '../core/diary';
 import type { WorldSave, WorldSettings } from '../core/types';
 import { canRecognise } from '../../platform/audio/recognition';
 import { Seg } from '../../ui/Seg';
@@ -74,10 +75,45 @@ export function Panels({
           {tab === 'idioms' && <Idioms save={save} content={content} pinyin={pinyin} />}
           {tab === 'stamps' && <Stamps save={save} content={content} />}
           {tab === 'friends' && <Friends save={save} content={content} />}
+          {tab === 'diary' && <Diary save={save} content={content} pinyin={pinyin} />}
           {tab === 'settings' && <Settings settings={save.settings} onChange={onSettings} />}
         </div>
       </section>
     </div>
+  );
+}
+
+/** The diary (X3): each game day in a few simple sentences, newest first; every word tappable. */
+function Diary({ save, content, pinyin }: { save: WorldSave; content: WorldContent; pinyin: boolean }) {
+  const [open, setOpen] = useState<number | null>(null);
+  const days = diaryDays(save);
+  if (!days.length) return <Empty han="记">The diary writes itself as you go. Come back at the end of the day.</Empty>;
+  const names = contentNames([content]);
+  const today = dayOf(save.clock);
+  return (
+    <>
+      <h3 className="wp-label">
+        日记 <span className="tiny muted">· tap a word for its card; tap a day for the English</span>
+      </h3>
+      <ul className="wp-list">
+        {days.map((d) => {
+          const lines = diaryLines(d.codes, names);
+          return (
+            <li key={d.day}>
+              <button type="button" className="w-diary-day tiny muted" aria-expanded={open === d.day} onClick={() => setOpen(open === d.day ? null : d.day)}>
+                <span className="han">第{d.day}天{d.day === today ? ' · 今天' : ''}</span>
+              </button>
+              <p>
+                {lines.map((l, i) => (
+                  <ZhText key={i} zh={l.zh} pinyin={pinyin} />
+                ))}
+              </p>
+              {open === d.day && <p className="small muted">{lines.map((l) => l.en).join(' ')}</p>}
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }
 

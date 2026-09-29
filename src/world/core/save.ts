@@ -8,9 +8,10 @@
  */
 
 import { dayOf, sleep as sleepClock, START_MINUTES, waitUntil } from './clock';
+import { eventsOf, logDay } from './diary';
 import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
 
-export const WORLD_SAVE_VERSION = 3;
+export const WORLD_SAVE_VERSION = 4;
 
 /** Where a new game starts: your room in 王阿姨's 四合院. */
 export const HOME: Place = { map: 'siheyuan-room', tile: [4, 4], facing: 'down' };
@@ -50,6 +51,7 @@ export function newSave(deviceId: string, now: number): WorldSave {
     districts: [HOME_DISTRICT],
     npcs: {},
     rides: {},
+    diary: {},
     settings: DEFAULT_SETTINGS,
   };
 }
@@ -60,7 +62,7 @@ export type EngineAction =
   | { do: 'enter'; map: string; tile: Tile; facing: Facing; district?: string }
   | { do: 'meet'; npc: string }
   /** a present given today (one a day) */
-  | { do: 'gifted'; npc: string }
+  | { do: 'gifted'; npc: string; item?: string }
   /** a finished talk with a person: one heart a game day (X2) */
   | { do: 'talked'; npc: string }
   /** the name the player gave (X2) */
@@ -225,8 +227,10 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
 }
 
 export function apply(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
-  const next = change(s, a, ctx);
-  if (next === s) return s;
+  const changed = change(s, a, ctx);
+  if (changed === s) return s;
+  // the diary writes itself as things happen (X3); a night's sleep belongs to the day it ended
+  const next = logDay(changed, eventsOf(s, changed, a, ctx.npc), a.do === 'sleep' ? s.clock : changed.clock);
   return { ...next, updatedAt: ctx.now, deviceId: ctx.deviceId ?? s.deviceId };
 }
 

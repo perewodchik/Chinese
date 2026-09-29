@@ -37,7 +37,7 @@ export function giveTo(card: NpcCard, item: Item, save: WorldSave): GiftResult {
   const mem = save.npcs[card.id];
   if (mem && mem.gift === dayOf(save.clock)) return line('today');
   const kind: GiftKind = card.likes?.includes(item.id) ? 'like' : card.dislikes?.includes(item.id) ? 'dislike' : 'neutral';
-  const actions: SaveAction[] = [{ do: 'meet', npc: card.id }, { do: 'take', item: item.id }, { do: 'gifted', npc: card.id }];
+  const actions: SaveAction[] = [{ do: 'meet', npc: card.id }, { do: 'take', item: item.id }, { do: 'gifted', npc: card.id, item: item.id }];
   if (kind === 'like') actions.push({ do: 'hearts', npc: card.id, delta: 1 }, { do: 'remember', npc: card.id, note: `liked the ${item.en} you gave` });
   return line(kind, actions);
 }

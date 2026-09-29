@@ -1390,3 +1390,14 @@
 .w-hearts [data-on] {
   color: var(--accent);
 }
+
+/* the diary's day heading (X3): a quiet button that shows the English */
+.w-diary-day {
+  display: block;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  cursor: pointer;
+}
