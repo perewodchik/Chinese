@@ -11,7 +11,7 @@
  */
 
 import { findPath, walkable, type Grid } from './grid';
-import type { Action, DialogueNode, Facing, MapObject, Quest, Scene, SituationWord, Tile, WorldSave } from './types';
+import type { Action, Condition, DialogueNode, Facing, MapObject, Quest, Scene, SituationWord, Tile, WorldSave } from './types';
 
 /**
  * Who moves or speaks: the hero, 兔儿爷, a person by their card id, a spirit
@@ -23,8 +23,9 @@ export type Actor = string;
 export type Emote = 'happy' | 'sulky' | 'sleepy' | 'proud' | 'blush' | 'surprised';
 export const EMOTES: readonly Emote[] = ['happy', 'sulky', 'sleepy', 'proud', 'blush', 'surprised'];
 
-export type Fx = 'sparkle' | 'petals' | 'snow' | 'lanterns-rise' | 'fireworks' | 'butterflies' | 'incense' | 'danmaku' | 'seal';
-export const FXS: readonly Fx[] = ['sparkle', 'petals', 'snow', 'lanterns-rise', 'fireworks', 'butterflies', 'incense', 'danmaku', 'seal'];
+/** `danmaku`, `seal` and `lantern` (the 走马灯 card, `text` = the spirit ids lighting now) are drawn by the page */
+export type Fx = 'sparkle' | 'petals' | 'snow' | 'lanterns-rise' | 'fireworks' | 'butterflies' | 'incense' | 'danmaku' | 'seal' | 'lantern';
+export const FXS: readonly Fx[] = ['sparkle', 'petals', 'snow', 'lanterns-rise', 'fireworks', 'butterflies', 'incense', 'danmaku', 'seal', 'lantern'];
 
 /** The synthesized sounds a cutscene can play (audio/ambient.ts). */
 export type CutSound = 'chime' | 'blip' | 'wood' | 'gong' | 'bell' | 'drum';
@@ -38,6 +39,8 @@ export type CutStep =
   | { camera: Tile | Actor; ms?: number; zoom?: number }
   /** walk along tiles, or by A* to one tile */
   | { move: Actor; to: Tile | Tile[]; speed?: 'walk' | 'run' | 'slow' }
+  /** float through the air by so many tiles (a spirit going home, a kite): not bound to the ground */
+  | { fly: Actor; by: readonly [number, number]; ms?: number }
   | { face: Actor; dir: Facing }
   | { emote: Actor; kind: Emote }
   /** a line in the dialogue box, read-only; tap to go on. 兔儿爷 speaks English only (no `zh`). */
@@ -80,6 +83,8 @@ export interface Cutscene {
   then?: Action[];
   /** situation words of its lines (as in a scene, §5) */
   words?: SituationWord[];
+  /** plays by itself on arriving on its map once this holds, once (a memory at home, §13 K2) */
+  auto?: Condition;
 }
 
 export const MAX_MS = 40_000;
@@ -110,7 +115,7 @@ export function actorsOf(cs: Cutscene): Actor[] {
   for (const c of cs.cast ?? []) out.add(c.actor);
   const walk = (s: CutStep) => {
     if ('together' in s) return s.together.forEach(walk);
-    for (const k of ['move', 'face', 'emote', 'say', 'spawn', 'despawn'] as const) {
+    for (const k of ['move', 'fly', 'face', 'emote', 'say', 'spawn', 'despawn'] as const) {
       const v = (s as Record<string, unknown>)[k];
       if (typeof v === 'string') out.add(v);
     }
@@ -174,6 +179,7 @@ export function checkCutscene(cs: Cutscene, ctx: CutsceneContext): string[] {
       if (from && s.move !== 'hero' && s.move !== 'rabbit') where.set(s.move, from);
       return;
     }
+    if ('fly' in s) return need(s.fly, p);
     if ('face' in s) return need(s.face, p);
     if ('emote' in s) return need(s.emote, p);
     if ('say' in s) {
@@ -254,6 +260,7 @@ export function durationMs(cs: Cutscene, grid?: Grid): number {
       pos.set(s.spawn, s.at);
       return 0;
     }
+    if ('fly' in s) return s.ms ?? 1200;
     if ('say' in s) return sayMs(s.zh, s.en);
     if ('wait' in s) return s.wait;
     if ('camera' in s) return s.ms ?? TIMING.cameraMs;

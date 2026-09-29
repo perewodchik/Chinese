@@ -525,6 +525,18 @@ function Settings({ settings, onChange, onReset }: { settings: WorldSettings; on
         <span>Music</span>
         <Seg value={level(settings.music)} options={LEVELS} onChange={(v) => onChange({ music: volumeOf(v) })} size="sm" />
       </label>
+      <label>
+        <span>Celebrations</span>
+        <Seg
+          value={settings.celebrate ?? 'full'}
+          options={[
+            { id: 'quiet', label: 'Quiet', title: 'Seals only, no sound' },
+            { id: 'full', label: 'Full', title: 'Seals with a sound, and the spirits’ flight home' },
+          ]}
+          onChange={(celebrate) => onChange({ celebrate })}
+          size="sm"
+        />
+      </label>
       <h3 className="wp-label">Text</h3>
       <label>
         <span>拼 under lines</span>

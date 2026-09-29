@@ -417,6 +417,8 @@ export interface WorldSettings {
   music: number;
   /** a small mark over whatever can be talked to or looked at (old saves: off) */
   highlight?: boolean;
+  /** §13 K2: seals, the spirit's flight home and their sounds (`full`, the default), or seals only, silent (`quiet`) */
+  celebrate?: 'full' | 'quiet';
 }
 
 export interface Place {

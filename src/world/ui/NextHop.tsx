@@ -23,7 +23,8 @@ export function NextHop({ save, content, onOpen }: { save: WorldSave; content: W
   const rideLine = ride?.kind === 'ride' ? line(ride.line) : undefined;
   const dest = walk ? placeZh(walk.maps.at(-1)!) : undefined;
   return (
-    <button type="button" className="wm-hop" onClick={onOpen} aria-label={`Next: ${dest ?? ''} ${rideLine?.zh ?? ''} — open the journal`}>
+    // keyed by where it points: a new next step mounts it again, and it glows once (§13 K2)
+    <button key={to} type="button" className="wm-hop" onClick={onOpen} aria-label={`Next: ${dest ?? ''} ${rideLine?.zh ?? ''} — open the journal`}>
       <span aria-hidden>→</span>
       {dest && <span className="han">{dest}</span>}
       {rideLine && (

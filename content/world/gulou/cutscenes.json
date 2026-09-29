@@ -1,0 +1,132 @@
+[
+ {
+  "id": "memory-1",
+  "map": "siheyuan-yard",
+  "chapter": 1,
+  "title": {
+   "zh": "回忆 · 爷爷的灯笼",
+   "en": "A memory · Grandfather's lantern"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "auto": {
+   "all": [
+    {
+     "spirit": "shishizi"
+    },
+    {
+     "flag": "lantern-broken"
+    }
+   ]
+  },
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     7,
+     10
+    ],
+    "facing": "up"
+   },
+   {
+    "actor": "wang-ayi",
+    "at": [
+     11,
+     7
+    ],
+    "facing": "left"
+   }
+  ],
+  "words": [
+   {
+    "w": "灯笼",
+    "explain": "晚上用的红色的灯，门口有，过年也有。",
+    "en": "lantern"
+   },
+   {
+    "w": "狮子",
+    "explain": "一个很大的动物，大门口有石头做的。",
+    "en": "lion"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     5,
+     7
+    ],
+    "ms": 900
+   },
+   {
+    "together": [
+     {
+      "move": "wang-ayi",
+      "to": [
+       5,
+       7
+      ]
+     },
+     {
+      "move": "hero",
+      "to": [
+       6,
+       8
+      ]
+     }
+    ]
+   },
+   {
+    "face": "wang-ayi",
+    "dir": "up"
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "这个灯笼，是我爷爷做的。",
+    "en": "This lantern — my grandfather made it."
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "我小的时候，元宵节的晚上，爷爷点上这个灯笼。",
+    "en": "When I was little, on the night of 元宵, Grandpa lit this lantern."
+   },
+   {
+    "together": [
+     {
+      "fx": "sparkle",
+      "at": [
+       4,
+       6
+      ],
+      "n": 14
+     },
+     {
+      "sound": "bell"
+     }
+    ]
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "灯笼上有一个小狮子。它一动，我很高兴！",
+    "en": "On the lantern there was a little lion. When it moved, I was so happy!"
+   },
+   {
+    "face": "wang-ayi",
+    "dir": "right"
+   },
+   {
+    "say": "rabbit",
+    "en": "The lion was the first figure she ever chased. And the first one home."
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "今天，小狮子回来了。",
+    "en": "Today the little lion has come back."
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "谢谢你，孩子。",
+    "en": "Thank you, child."
+   }
+  ]
+ }
+]

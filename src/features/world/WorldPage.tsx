@@ -58,6 +58,9 @@ import { PLACES } from '../../world/core/places';
 import { homeProp } from '../../world/core/wardrobe';
 import { cutsceneActions, cutscenesDue, isSpiritActor, type Actor } from '../../world/core/cutscene';
 import { CutsceneOverlay, EMPTY_CUT, type CutView } from '../../world/ui/CutsceneOverlay';
+import { autoCutscenes, isSpiritReturn, litFigures, SEAL_MS, sealsFor, spiritReturn, spiritsHome, SPIRIT_RETURN, type Seal } from '../../world/core/celebrate';
+import { LanternCard, SealToast } from '../../world/ui/Celebrate';
+import { holds } from '../../world/core/flags';
 import type { RunningCutscene } from '../../world/engine/cutscene';
 
 const TIMES: PartOfDay[] = ['morning', 'day', 'evening', 'night'];
@@ -316,6 +319,12 @@ export function WorldPage() {
               pendingCut.current = null;
               return;
             }
+            // a memory at home once its spirit is back (§13 K2): the content's `auto` cutscenes, one per arrival
+            const memory = s && autoCutscenes(s, contentRef.current.cutscenes, info.id, (c) => holds(c, s))[0];
+            if (memory && !cutQueue.current.some((q) => q.id === memory.id)) {
+              cutQueue.current.push({ id: memory.id });
+              return;
+            }
             if (info.id.startsWith('station-')) ambient.current?.chime();
             // 兔儿爷 on what you wear here (§12 W6): a T-shirt in the snow, a hat indoors — each once a day
             const kind = PLACES.find((p) => p.map === info.id)?.kind;
@@ -497,12 +506,34 @@ export function WorldPage() {
     const before = lastSave.current;
     lastSave.current = now;
     if (!before) return;
-    const due = cutscenesDue(before, now, contentRef.current.quests).filter((id) => !cutQueue.current.some((q) => q.id === id));
+    const c = contentRef.current;
+    const full = (now.settings.celebrate ?? 'full') === 'full';
+    // a spirit come home flies off first (full celebrations), then a step's own cutscene
+    const home = full ? spiritsHome(before, now).map((id) => `${SPIRIT_RETURN}${id}`) : [];
+    const due = [...home, ...cutscenesDue(before, now, c.quests)].filter((id) => !cutQueue.current.some((q) => q.id === id));
     if (due.length) {
       cutQueue.current.push(...due.map((id) => ({ id })));
       setCutTick((t) => t + 1);
     }
+    // a seal for each step done and each quest finished (K2)
+    const earned = sealsFor(before, now, c.quests, c);
+    if (earned.length) setSeals((q) => [...q, ...earned]);
   }, [game.save]);
+  // the seals one after another, each for its time, with a wood block (and a chime for a quest) unless quiet
+  const [seals, setSeals] = useState<Seal[]>([]);
+  const seal = seals[0];
+  useEffect(() => {
+    if (!seal) return;
+    if ((game.current()?.settings.celebrate ?? 'full') === 'full') {
+      ambient.current?.cue('wood');
+      if (seal.kind === 'quest') ambient.current?.chime();
+    }
+    const id = window.setTimeout(() => setSeals((q) => q.slice(1)), SEAL_MS[seal.kind]);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seal]);
+  /** the 走马灯 card in a spirit's return: the figures lighting now */
+  const [lantern, setLantern] = useState<string[] | null>(null);
   // ?cutscene=<id> plays one (development, and the review probe's frames)
   const askedCut = query.get('cutscene');
   useEffect(() => {
@@ -520,9 +551,13 @@ export function WorldPage() {
   };
   /** Plays the next cutscene when nothing else holds the screen: first travelling to its map if you are elsewhere. */
   const startCut = (item: { id: string; back?: WorldSave['place'] }) => {
-    const cs = contentRef.current.cutscenes.find((c) => c.id === item.id);
     const s = game.current();
     const w = world.current;
+    const h = here.current;
+    // a spirit's flight home is made for the map you are on (K2); the rest are the content's
+    const cs = isSpiritReturn(item.id)
+      ? s && h ? spiritReturn(item.id.slice(SPIRIT_RETURN.length), h.id, h.objects, s.place.tile) : undefined
+      : contentRef.current.cutscenes.find((c) => c.id === item.id);
     if (!cs || !s || !w) return;
     if (s.place.map !== cs.map) {
       const ix = mapIndex.current[cs.map];
@@ -553,6 +588,11 @@ export function WorldPage() {
         }),
       overlay: (fx, text) => {
         if (fx === 'seal') return setCut((c) => (c ? { ...c, seal: c.seal + 1 } : c));
+        if (fx === 'lantern') {
+          setLantern(text ?? []);
+          window.setTimeout(() => setLantern(null), 3000);
+          return;
+        }
         const base = Date.now();
         const flying = (text ?? []).map((t, i) => ({ id: base + i, text: t, row: (i * 3) % 7, delay: i * 450 }));
         setCut((c) => (c ? { ...c, danmaku: [...c.danmaku, ...flying] } : c));
@@ -931,6 +971,10 @@ export function WorldPage() {
             go?.();
           }}
         />
+      )}
+      {seal && <SealToast seal={seal} />}
+      {lantern && game.save && (
+        <LanternCard lit={litFigures(game.save).filter((f) => !lantern.includes(f))} now={lantern} names={(id) => content.spirits.find((x) => x.id === id)?.hanzi ?? (id === 'family' ? '家' : id)} />
       )}
       {/* 兔儿爷 is silent during a cutscene unless the script gives him a line */}
       {game.save && state === 'ready' && !cut && (

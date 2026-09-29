@@ -198,10 +198,10 @@
   "nodes": [
    {
     "id": "a",
-    "say": "你看，这个灯笼是我奶奶的。",
-    "translate": "Look — this lantern was my grandmother's.",
+    "say": "你看，这个灯笼是我爷爷做的。",
+    "translate": "Look — my grandfather made this lantern.",
     "next": "b",
-    "why": "的 at the end: 'is my grandmother's'."
+    "why": "是……的 says who did it: 我爷爷做的 — it was my grandfather who made it."
    },
    {
     "id": "b",

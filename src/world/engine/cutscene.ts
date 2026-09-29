@@ -13,6 +13,7 @@ import type * as Phaser from 'phaser';
 import { findPath, type Grid } from '../core/grid';
 import { isSpiritActor, TIMING, type Actor, type CutMusic, type CutSound, type Cutscene, type CutStep, type Fx } from '../core/cutscene';
 import type { Facing, Tile } from '../core/types';
+import { SPIRIT_FRAMES } from './spiritFrames';
 
 const TILE = 16;
 
@@ -23,7 +24,7 @@ export interface CutsceneHooks {
   /** the chapter card; resolves when it has been shown */
   title(t: { zh: string; en: string }): Promise<void>;
   /** 弹幕 across the screen, or the red seal */
-  overlay(fx: 'danmaku' | 'seal', text?: string[]): void;
+  overlay(fx: 'danmaku' | 'seal' | 'lantern', text?: string[]): void;
   sound(id: CutSound): void;
   music(m: CutMusic): void;
 }
@@ -143,7 +144,7 @@ export function runCutscene(stage: Stage, cs: Cutscene, hooks: CutsceneHooks): R
   };
 
   const fx = (kind: Fx, where: Tile | Actor | undefined, n = 16, text?: string[]) => {
-    if (kind === 'danmaku' || kind === 'seal') return hooks.overlay(kind, text);
+    if (kind === 'danmaku' || kind === 'seal' || kind === 'lantern') return hooks.overlay(kind, text);
     if (skipping) return;
     const cam = scene.cameras.main;
     const p = where ? at(where) : { x: cam.midPoint.x, y: cam.midPoint.y };
@@ -178,6 +179,13 @@ export function runCutscene(stage: Stage, cs: Cutscene, hooks: CutsceneHooks): R
       return;
     }
     if ('move' in s) return walk(s.move, s.to, s.speed);
+    if ('fly' in s) {
+      const sp = stage.sprite(s.fly);
+      if (!sp) return;
+      sp.setDepth(20_003);
+      await tween({ targets: sp, x: sp.x + s.by[0] * TILE, y: sp.y + s.by[1] * TILE, duration: s.ms ?? 1200, ease: 'Quad.easeIn' });
+      return;
+    }
     if ('face' in s) return face(s.face, s.dir);
     if ('emote' in s) {
       const sp = stage.sprite(s.emote);
@@ -274,7 +282,7 @@ interface FxLook {
   max: number;
 }
 
-const FX: Record<Exclude<Fx, 'danmaku' | 'seal'>, FxLook> = {
+const FX: Record<Exclude<Fx, 'danmaku' | 'seal' | 'lantern'>, FxLook> = {
   sparkle: { tex: 'spark', life: 900, speed: { min: 20, max: 60 }, angle: { min: 0, max: 360 }, gravity: -10, scale: { start: 1, end: 0.2 }, tint: [0xfff1b3, 0xffffff, 0xffd98a], add: true, max: 40 },
   petals: { tex: 'petal', life: 3000, speed: { min: 10, max: 30 }, angle: { min: 60, max: 120 }, gravity: 12, scale: { start: 1, end: 0.8 }, tint: [0xf2a7b8, 0xffd1dc], wide: true, max: 60 },
   snow: { tex: 'flake', life: 4000, speed: { min: 8, max: 20 }, angle: { min: 80, max: 100 }, gravity: 8, scale: { start: 1, end: 1 }, tint: 0xffffff, wide: true, max: 80 },
@@ -315,16 +323,5 @@ function makeFxTextures(scene: Phaser.Scene) {
   });
 }
 
-/** The picture a spirit is drawn with in a cutscene (the props atlas), by spirit id. */
-export const SPIRIT_FRAMES: Readonly<Record<string, string>> = {
-  shishizi: 'lion/awake',
-  jiuweihu: 'fox/sway-0',
-  menshen: 'door-gods/bright',
-  qilin: 'qilin/awake',
-  pixiu: 'pixiu/gold',
-  nianshou: 'nianshou/awake',
-  long: 'dragon/fly-0',
-};
-
-/** A spirit's frame, or a lantern for one not drawn yet (V4 draws the rest). */
+/** A spirit's frame, or a lit lantern for one not drawn yet (V4 draws the rest). */
 export const spiritFrame = (a: Actor) => (isSpiritActor(a) ? (SPIRIT_FRAMES[a.slice(7)] ?? 'lantern/lit-0') : null);

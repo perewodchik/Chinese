@@ -236,3 +236,140 @@
     animation-duration: 0.01s;
   }
 }
+
+/* --- §13 K2: the seal after a step or a quest — a fixed box at the top centre, never taking a tap */
+.cs-toast {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 54px);
+  left: 50%;
+  z-index: 7;
+  width: min(420px, calc(100% - 32px));
+  height: 52px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px 0 8px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--px-frame);
+  pointer-events: none;
+  animation: cs-toast 1.8s ease both;
+}
+
+.cs-toast[data-big] {
+  height: 64px;
+  animation-duration: 2.5s;
+}
+
+.cs-toast-seal {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  font-family: var(--han);
+  font-size: 22px;
+  color: var(--paper);
+  background: var(--accent);
+  border-radius: 5px;
+  transform: rotate(-5deg);
+  animation: cs-stamp-in 0.35s cubic-bezier(0.3, 1.6, 0.6, 1) both;
+}
+
+.cs-toast[data-big] .cs-toast-seal {
+  width: 46px;
+  height: 46px;
+  font-size: 28px;
+}
+
+.cs-toast-text {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.cs-toast-text > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cs-toast-reward {
+  color: var(--ink-3);
+}
+
+@keyframes cs-toast {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes cs-stamp-in {
+  from { transform: scale(1.8) rotate(-12deg); opacity: 0; }
+  to { transform: scale(1) rotate(-5deg); opacity: 1; }
+}
+
+/* the 走马灯: ten places on its wheel */
+.cs-lantern {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 7;
+  width: min(360px, calc(100% - 32px));
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--px-frame);
+  pointer-events: none;
+  animation: cs-fade 3s ease both;
+}
+
+.cs-lantern-title {
+  font-family: var(--han);
+  font-size: 20px;
+}
+
+.cs-lantern-wheel {
+  display: grid;
+  grid-template-columns: repeat(5, 40px);
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cs-lantern-wheel li {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--ink) 12%, var(--card-2));
+  border-radius: 4px;
+  filter: grayscale(1) opacity(0.35);
+}
+
+.cs-lantern-wheel li[data-on] {
+  background: color-mix(in srgb, var(--gold) 30%, var(--card));
+  filter: none;
+}
+
+.cs-lantern-wheel li[data-now] {
+  animation: cs-light 1.2s ease 0.4s both;
+}
+
+.cs-lantern-blank {
+  font-family: var(--han);
+  font-size: 20px;
+}
+
+@keyframes cs-light {
+  from { filter: grayscale(1) opacity(0.35); box-shadow: 0 0 0 0 var(--gold); }
+  60% { box-shadow: 0 0 14px 4px var(--gold); }
+  to { filter: none; box-shadow: 0 0 0 0 var(--gold); }
+}

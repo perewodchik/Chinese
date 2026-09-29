@@ -306,6 +306,7 @@ export const cutStepSchema: z.ZodType<CutStep> = z.lazy(() =>
   z.union([
     z.strictObject({ camera: tileOrActor, ms: z.number().int().min(0).optional(), zoom: z.number().int().min(1).max(4).optional() }),
     z.strictObject({ move: actor, to: z.union([tile, z.array(tile).min(1)]), speed: z.enum(['walk', 'run', 'slow']).optional() }),
+    z.strictObject({ fly: actor, by: z.tuple([z.number().int(), z.number().int()]), ms: z.number().int().min(0).optional() }),
     z.strictObject({ face: actor, dir: facing }),
     z.strictObject({ emote: actor, kind: z.enum(EMOTES as [string, ...string[]]) }),
     z.strictObject({ say: actor, zh: hanzi.optional(), en: text, pinyin: text.optional(), key: z.boolean().optional() }),
@@ -335,6 +336,7 @@ export const cutsceneSchema: z.ZodType<Cutscene> = z.strictObject({
   steps: z.array(cutStepSchema).min(1),
   then: z.array(actionSchema).optional(),
   words: z.array(z.strictObject({ w: hanzi, explain: hanzi, en: text })).optional(),
+  auto: conditionSchema.optional(),
 });
 
 /** The files of one district folder and the schema each is checked with. */

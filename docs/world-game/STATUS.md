@@ -36,7 +36,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1 done (2026-09-30) — continue at K2. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
+§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1, K2 done (2026-09-30) — continue at K3. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
 
 ## Tasks
 ### A — core logic
@@ -161,7 +161,7 @@ first unchecked box. Tick a box in the same commit as the work.
 ### §13 — one long story through real Beijing (prompt §13, added 2026-09-29 night; before X12 and M6)
 - [x] Z0 Story bible `story.md` (团圆 throughline, chapter tables, cast sheet), `facts.md`, coverage script
 - [x] K1 Cutscene runner (data + zod, pure core, engine, letterbox/skip/replay, save v13, review strips) — **not yet seen in a browser** (no dev server in unattended runs); `scripts/world/cutscene-probe.mjs` makes the strips
-- [ ] K2 "You did it": step seals, quest seals, spirit-return + memory cutscene template, ⚙ Celebrations
+- [x] K2 "You did it": step seals, quest seals, spirit-return + memory cutscene template, ⚙ Celebrations (memory-1 written)
 - [ ] K3 Chapter opening/finale template; ch1 opening + finale; lantern break, 景山 view, 回音壁, 画龙点睛 as cutscenes
 - [ ] Q1 Explicit side quests: marks over people, Journal → Side (no vague leads), counts on the metro map, arrival + chapter-end nudges
 - [ ] Q2 Sleep until a day / festival; general "wait here"
@@ -317,6 +317,9 @@ _(date — decision — why)_
 - 2026-09-30 — K1: a cutscene on another map **takes you there** and plays on arrival (the hero stands where the script's cast puts them, else the map's lower middle); a replay from Journal → Story plays on its map and brings you back, and gives nothing again. `?cutscene=<id>` plays one (development and the probe).
 - 2026-09-30 — K1: lines, the chapter card, 弹幕 and the seal are **DOM over the canvas** (crisp CJK, tappable words, the app's word drawer), the rest is the engine. Sounds are synthesized in `Ambient.cue` (wood block, gong, bell, drum) beside the chime and blip. `zoom` in a script is a step over the usual zoom (1 = as always). Spirits are drawn from their existing props frames; a spirit without one (石猴, 灶王爷 until V4) shows a lit lantern.
 - 2026-09-30 — K1: the §13 in-browser checks need a dev server, which unattended runs cannot start (preview_start refuses). Added the preview config `hanzi-workshop-mac-world-5183` (`.data/world-test-5183.db`) for a session with the learner present, and `scripts/world/cutscene-probe.mjs` (strips to `review/k/`, letterbox-as-transform, a word tap opens the drawer, ⏭ held skips).
+- 2026-09-30 — K2: the spirit's "3 s cut to the courtyard" is **the 走马灯 card over the world** (the wheel's ten places, its figure lighting up), not a trip to the yard and back — two map loads for three seconds would be slow on the iPad and lose where you stood. Memories stay in the yard (they play when you are next home, as the brief says).
+- 2026-09-30 — K2: **Celebrations: Quiet** = seals without sound and no flight home; story cutscenes still play (they carry the plot). Stored as the optional `settings.celebrate` (no save bump — settings keep keys an older build does not know).
+- 2026-09-30 — K2: 王阿姨's line 「你看，这个灯笼是我奶奶的。」 became 「你看，这个灯笼是我爷爷做的。」 now (not in S1) so the first memory agrees with it; her card's *knows* line too.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

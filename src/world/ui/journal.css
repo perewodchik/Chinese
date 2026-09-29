@@ -545,3 +545,20 @@
   flex: none;
   min-height: 28px;
 }
+
+/* §13 K2: the next hop glows once when it points somewhere new */
+.wm-hop {
+  animation: wm-hop-glow 1.6s ease-out 1;
+}
+
+@keyframes wm-hop-glow {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 70%, transparent); }
+  40% { box-shadow: 0 0 10px 3px color-mix(in srgb, var(--gold) 55%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-hop {
+    animation: none;
+  }
+}
