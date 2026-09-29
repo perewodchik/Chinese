@@ -533,6 +533,13 @@ export interface WorldSave {
    * was seen. Additive, merged by max; none in older saves.
    */
   seen?: Record<string, number>;
+  /**
+   * The quest the player follows (§10 J2): 兔儿爷's "What now?", the task
+   * rings on the maps and the journal's card follow it; none (or a finished
+   * one) means the current main step. `rev` is the wall-clock ms it was
+   * chosen, so the later choice wins a merge; `quest: ''` is "none".
+   */
+  tracked?: { quest: string; rev: number };
 
   settings: WorldSettings;
 }

@@ -9,6 +9,7 @@
  * seen gets a marker of its own (`lead:<quest>`).
  */
 
+import { leads, type JournalContent } from '../core/journal';
 import type { SaveAction } from '../core/save';
 import type { WorldSave } from '../core/types';
 
@@ -148,3 +149,6 @@ export function markSeen(s: WorldSave, at: MenuAt, leads: readonly string[] = []
 
 /** 1–5 on the keyboard: the tabs in order. */
 export const tabForKey = (key: string): MenuTab | null => MENU[Number(key) - 1]?.id ?? null;
+
+/** The news with the journal's leads (§10 J2) counted in. */
+export const menuNewsFor = (s: WorldSave, content: JournalContent) => menuNews(s, leads(s, content).map((l) => l.quest.id));

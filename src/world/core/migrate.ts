@@ -115,6 +115,7 @@ function fill(r: Raw): WorldSave {
     daily: record(r.daily, isNum),
     fresh: record(r.fresh, isNum),
     ...(isObj(r.seen) ? { seen: record(r.seen, isNum) } : {}),
+    ...(isObj(r.tracked) && typeof r.tracked.quest === 'string' && isNum(r.tracked.rev) ? { tracked: { quest: r.tracked.quest, rev: r.tracked.rev } } : {}),
     bills: Array.isArray(r.bills)
       ? r.bills.filter((b): b is WorldSave['bills'][number] => isObj(b) && typeof b.id === 'string' && isNum(b.at) && typeof b.who === 'string' && isNum(b.amount))
       : [],

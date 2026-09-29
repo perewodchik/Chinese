@@ -52,9 +52,14 @@ export function activeQuests(s: WorldSave, quests: readonly Quest[]): Now[] {
   return out.sort((a, b) => b.quest.chapter - a.quest.chapter || quests.indexOf(b.quest) - quests.indexOf(a.quest));
 }
 
-/** The companion's "What now?" in English. */
+/**
+ * The companion's "What now?" in English: the quest the player follows in
+ * the journal (§10 J2) while it is under way, else the story's current
+ * step, else the most important quest under way.
+ */
 export function whatNow(s: WorldSave, quests: readonly Quest[]): string {
-  const [first] = activeQuests(s, quests);
+  const active = activeQuests(s, quests);
+  const first = active.find((a) => a.quest.id === s.tracked?.quest) ?? active.find((a) => a.quest.kind === 'main') ?? active[0];
   if (first) return first.step.now;
   return 'Nothing urgent. Walk around, talk to people — someone always has a rumour.';
 }

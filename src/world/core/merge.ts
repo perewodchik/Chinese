@@ -110,6 +110,8 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
     rides: byKey(a.rides, b.rides, Math.max),
     daily: byKey(a.daily, b.daily, Math.max),
     fresh: byKey(a.fresh, b.fresh, Math.max),
+    // the quest followed: the later choice (§10 J2)
+    ...(a.tracked || b.tracked ? { tracked: [a.tracked, b.tracked].filter((x) => !!x).sort((x, y) => y!.rev - x!.rev || (x!.quest < y!.quest ? -1 : 1))[0]! } : {}),
     ...(a.seen || b.seen ? { seen: byKey(a.seen ?? {}, b.seen ?? {}, Math.max) } : {}),
     // a day's diary from both devices: the earlier device's lines first, the other's after
     diary: byKey(a.diary, b.diary, (x, y) => {

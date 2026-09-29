@@ -41,7 +41,7 @@ export function MapTab({ save, content, onGo, start }: { save: WorldSave; conten
   }, []);
 
   const visited = useMemo(() => (save.visited ? new Set(save.visited) : undefined), [save.visited]);
-  const goals = useMemo(() => new Set(goalMaps(save, content.quests, content.scenes, content.npcs)), [save, content]);
+  const goals = useMemo(() => new Set(goalMaps(save, content.quests, content.scenes, content.npcs, content.shops)), [save, content]);
   const goHood = (id: string) => {
     setHood(id);
     setCity(false);
