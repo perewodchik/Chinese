@@ -1,0 +1,145 @@
+[
+ {
+  "kind": "door",
+  "id": "pier",
+  "tile": [
+   15,
+   31
+  ],
+  "to": {
+   "map": "beihai-north",
+   "tile": [
+    23,
+    11
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "pier-2",
+  "tile": [
+   16,
+   31
+  ],
+  "to": {
+   "map": "beihai-north",
+   "tile": [
+    23,
+    11
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "pagoda",
+  "tile": [
+   15,
+   9
+  ],
+  "frame": "pagoda/white",
+  "blocks": [
+   2,
+   2
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "baita",
+  "tile": [
+   15,
+   9
+  ],
+  "text": "白塔",
+  "en": "The White Dagoba — built in 1651, a year before the Fifth Dalai Lama came to Beijing"
+ },
+ {
+  "kind": "sign",
+  "id": "temple",
+  "tile": [
+   6,
+   17
+  ],
+  "text": "永安寺",
+  "en": "Yong’an Temple, on the island’s slope"
+ },
+ {
+  "kind": "prop",
+  "id": "censer",
+  "tile": [
+   9,
+   22
+  ],
+  "frame": "censer/smoke-0",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "censer-2",
+  "tile": [
+   22,
+   22
+  ],
+  "frame": "censer/smoke-0",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-1",
+  "tile": [
+   4,
+   9
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-2",
+  "tile": [
+   26,
+   9
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "boat-1",
+  "tile": [
+   5,
+   28
+  ],
+  "frame": "boat/red",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "boat-2",
+  "tile": [
+   24,
+   29
+  ],
+  "frame": "boat/red",
+  "blocks": [
+   0,
+   0
+  ]
+ }
+]

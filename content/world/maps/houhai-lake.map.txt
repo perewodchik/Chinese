@@ -1,60 +1,66 @@
 id: houhai-lake
-size: 40x24
+size: 44x28
 tilesets: tiles
 district: houhai
-crowd: 5
+crowd: 6
 pigeons: 3
-bikes: 1
-
-# 后海: the lane of teahouses and bars above the lake, willows, boats, 银锭桥 over to the south shore; the subway at the east end, 鼓楼 to the east
+bikes: 2
 
 [ground]
-pppppppppppppppppppppppppppppppppppppppp
-pppppppppppppppppppppppppppppppppppppppp
-pppppppppppppppppppppppppppppppppppppppp
-pppppppppppppppppppppppppppppppppppppppp
-pppppppppppppppppppppppppppppppppppppppp
-pppppppppppppppppppppppppppppppppppppppp
-pppppppppppppppppppppppppppppppppppppppp
-pppppppppppppppppppppppppppppppppppppppp
-ppppppppppppppppppppppppppppppppppppzzpp
-wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwmmmmmwwwwwwwwwwwwwwwwww
-pppppppppppppppppppppppppppppppppppppppp
-pppppppppppppppppppppppppppppppppppppppp
-pppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppppppppppppppp
+wwwwwwwwwwwwwwwwwwwwwppppppppppppppppppppppp
+wwwwwwwwwwwwwwwwwwwwwppppppppppppppppppppppp
+wwwwwwwwwwwwwwwwwwwwwppppppppppppppppppppppp
+wwwwwwwwwwwwwwwwwwwwwppppppwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwmmmwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwppppppwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwppppppwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwppppppwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwppppppwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwppppppwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwppppppwwwwwwwwwwwwwwwww
+pppppppppppppppppppppppppppwwwwwwwwwwwwwwwww
+pppppppppppppppppppppppppppwwwwwwwwwwwwwwwww
+ppppppeepppppppppppppppppppwwwwwwwwwwwwwwwww
+ppppppeepppppppppppppppppppppppppppppppppppp
+ppppppeepppppppppppppppppppppppppppppppppppp
 [below]
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
-bbnbbhhhbbbnbbbbhhhbbbnbbbbbnbbbhhhbbbb.
-BBBBBhhhBBBBBBBBhhhBBBBBBBBBBBBBhhhBBBB.
-........................................
-........................................
-........................................
-........................................
-wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
-........................................
-........................................
-........................................
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+bbbbhhhbbbnbbbhhhbbbbbnbbbbbhhhbbbnbbbhhbbbb
+BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+............................................
+............................................
+............................................
+............................................
+wwwwwwwwwwwwwwwwwwwww.......................
+wwwwwwwwwwwwwwwwwwwww.......................
+wwwwwwwwwwwwwwwwwwwww.......................
+wwwwwwwwwwwwwwwwwwwww......wwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwl...lwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwww......wwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwww......wwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwww......wwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwww......wwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwww......wwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwww......wwwwwwwwwwwwwwwww
+...........................wwwwwwwwwwwwwwwww
+...........................wwwwwwwwwwwwwwwww
+TTTTTT..TTTTTTTTTTTT.......wwwwwwwwwwwwwwwww
+xxxxxx..xxxxxxxxxxxx........................
+xxxxxx..xxxxxxxxxxxx........................

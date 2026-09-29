@@ -1,0 +1,40 @@
+id: gongwangfu
+size: 24x16
+tilesets: tiles
+district: houhai
+pigeons: 2
+
+[ground]
+gggggggggggggggggggggggg
+gggggggggggggggggggggggg
+gggggggggggggggggggggggg
+gggggggggggqqggggggggggg
+gggggggggggqqggggggggggg
+gggggggggggqqgwwwwwwwggg
+gggggggggggqqgwwwwwwwggg
+gggggggggggqqgwwwwwwwggg
+gggggggggggqqgwwwwwwwggg
+gggggggggggqqgwwwwwwwggg
+gggggggggggqqgwwwwwwwggg
+gggggggggggqqggggggggggg
+gggggggggggqqggggggggggg
+gggggggggggqqggggggggggg
+gggggggggggqqggggggggggg
+gggggggggggeeggggggggggg
+[below]
+TTTTTTTTTTTTTTTTTTTTTTTT
+TbbbbbbbbbbbbbbbbbbbbbbT
+TBBBBBBBBBBBBBBBBBBBBBBT
+T......................T
+T......................T
+T.............wwwwwww..T
+T.............wwwwwww..T
+T.............wwwwwww..T
+T.............wwwwwww..T
+T.............wwwwwww..T
+T.............wwwwwww..T
+T......................T
+T......................T
+T......................T
+T......................T
+TTTTTTTTTTT..TTTTTTTTTTT

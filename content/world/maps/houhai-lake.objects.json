@@ -3,17 +3,17 @@
   "kind": "sign",
   "id": "lane",
   "tile": [
-   2,
-   3
+   42,
+   4
   ],
   "text": "烟袋斜街",
-  "en": "Yandai Xiejie (the lane to 鼓楼)"
+  "en": "Yandai Xiejie — east, back to the towers"
  },
  {
   "kind": "sign",
   "id": "shop-a",
   "tile": [
-   6,
+   5,
    3
   ],
   "text": "茶",
@@ -23,38 +23,78 @@
   "kind": "sign",
   "id": "shop-b",
   "tile": [
-   17,
+   15,
    3
   ],
   "text": "酒吧",
-  "en": "Bar"
+  "en": "A lakeside bar"
+ },
+ {
+  "kind": "sign",
+  "id": "shop-c",
+  "tile": [
+   29,
+   3
+  ],
+  "text": "冰糖葫芦",
+  "en": "Candied haws"
  },
  {
   "kind": "sign",
   "id": "bridge",
   "tile": [
-   19,
-   8
+   21,
+   13
   ],
   "text": "银锭桥",
-  "en": "Silver Ingot Bridge"
+  "en": "Yinding Bridge — shaped like a silver ingot, between 后海 and 前海"
+ },
+ {
+  "kind": "sign",
+  "id": "view",
+  "tile": [
+   25,
+   14
+  ],
+  "text": "银锭观山",
+  "en": "\"Seeing the hills from Yinding Bridge\" — once one of Beijing’s little eight sights: on a clear day the Western Hills rise beyond 后海"
  },
  {
   "kind": "sign",
   "id": "lake",
   "tile": [
    10,
-   21
+   23
   ],
   "text": "后海",
-  "en": "Houhai lake"
+  "en": "Houhai — the back lake"
+ },
+ {
+  "kind": "sign",
+  "id": "lake-2",
+  "tile": [
+   35,
+   26
+  ],
+  "text": "前海",
+  "en": "Qianhai — the front lake"
+ },
+ {
+  "kind": "sign",
+  "id": "prince",
+  "tile": [
+   5,
+   25
+  ],
+  "text": "恭王府",
+  "en": "Prince Gong’s Mansion — its garden gate"
  },
  {
   "kind": "door",
   "id": "station",
   "tile": [
-   36,
-   8
+   38,
+   5
   ],
   "to": {
    "map": "station-shichahai",
@@ -69,8 +109,8 @@
   "kind": "door",
   "id": "station-2",
   "tile": [
-   37,
-   8
+   39,
+   5
   ],
   "to": {
    "map": "station-shichahai",
@@ -85,14 +125,46 @@
   "kind": "prop",
   "id": "metro-sign",
   "tile": [
-   35,
-   8
+   40,
+   4
   ],
   "frame": "subway-sign/post",
   "blocks": [
    1,
    1
   ]
+ },
+ {
+  "kind": "door",
+  "id": "gongwangfu",
+  "tile": [
+   6,
+   25
+  ],
+  "to": {
+   "map": "gongwangfu",
+   "tile": [
+    11,
+    14
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "gongwangfu-2",
+  "tile": [
+   7,
+   25
+  ],
+  "to": {
+   "map": "gongwangfu",
+   "tile": [
+    12,
+    14
+   ],
+   "facing": "up"
+  }
  },
  {
   "kind": "prop",
@@ -124,7 +196,7 @@
   "kind": "prop",
   "id": "willow-3",
   "tile": [
-   26,
+   18,
    8
   ],
   "frame": "willow/green",
@@ -138,7 +210,7 @@
   "id": "willow-4",
   "tile": [
    31,
-   23
+   11
   ],
   "frame": "willow/green",
   "blocks": [
@@ -150,8 +222,34 @@
   "kind": "prop",
   "id": "willow-5",
   "tile": [
-   6,
-   23
+   41,
+   11
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "willow-6",
+  "tile": [
+   28,
+   27
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "willow-7",
+  "tile": [
+   14,
+   24
   ],
   "frame": "willow/green",
   "blocks": [
@@ -176,8 +274,21 @@
   "kind": "prop",
   "id": "boat-2",
   "tile": [
-   27,
-   12
+   33,
+   18
+  ],
+  "frame": "boat/red",
+  "blocks": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "boat-3",
+  "tile": [
+   38,
+   22
   ],
   "frame": "boat/red",
   "blocks": [
@@ -189,8 +300,8 @@
   "kind": "prop",
   "id": "l1",
   "tile": [
-   4,
-   4
+   2,
+   5
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -203,8 +314,8 @@
   "kind": "prop",
   "id": "l2",
   "tile": [
-   15,
-   4
+   12,
+   5
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -218,7 +329,7 @@
   "id": "l3",
   "tile": [
    24,
-   4
+   5
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -231,8 +342,8 @@
   "kind": "prop",
   "id": "l4",
   "tile": [
-   33,
-   4
+   32,
+   5
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -257,7 +368,7 @@
   "npc": "boat-shifu",
   "tile": [
    23,
-   7
+   11
   ],
   "facing": "down"
  },
@@ -267,9 +378,30 @@
   "npc": "houhai-tourist",
   "tile": [
    30,
+   7
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "prop",
+  "id": "stand-bike-0",
+  "tile": [
+   34,
    6
   ],
-  "facing": "left"
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "bike",
+  "id": "bike-stand-0",
+  "tile": [
+   35,
+   6
+  ]
  },
  {
   "kind": "edge",
@@ -286,42 +418,11 @@
   "kind": "edge",
   "id": "south",
   "side": "down",
-  "from": 17,
-  "to": 19,
+  "from": 22,
+  "to": 24,
   "target": {
    "map": "beihai-north",
-   "offset": 0
+   "offset": -5
   }
- },
- {
-  "kind": "prop",
-  "id": "stand-bike-0",
-  "tile": [
-   33,
-   6
-  ],
-  "frame": "bicycle/side",
-  "blocks": [
-   1,
-   1
-  ]
- },
- {
-  "kind": "bike",
-  "id": "bike-stand-0",
-  "tile": [
-   34,
-   6
-  ]
- },
- {
-  "kind": "npc",
-  "id": "shishe",
-  "npc": "shishe-guniang",
-  "tile": [
-   8,
-   6
-  ],
-  "facing": "down"
  }
 ]

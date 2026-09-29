@@ -486,7 +486,7 @@
  },
  {
   "id": "shishe",
-  "map": "houhai-lake",
+  "map": "gongwangfu",
   "npc": "shishe-guniang",
   "trigger": "talk",
   "once": true,

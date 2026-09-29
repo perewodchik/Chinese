@@ -1,0 +1,93 @@
+[
+ {
+  "kind": "door",
+  "id": "out",
+  "tile": [
+   11,
+   15
+  ],
+  "to": {
+   "map": "houhai-lake",
+   "tile": [
+    6,
+    24
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "out-2",
+  "tile": [
+   12,
+   15
+  ],
+  "to": {
+   "map": "houhai-lake",
+   "tile": [
+    7,
+    24
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "garden",
+  "tile": [
+   3,
+   1
+  ],
+  "text": "恭王府花园",
+  "en": "The garden of Prince Gong’s Mansion"
+ },
+ {
+  "kind": "prop",
+  "id": "pavilion",
+  "tile": [
+   3,
+   8
+  ],
+  "frame": "pavilion-small/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "rocks",
+  "tile": [
+   6,
+   13
+  ],
+  "frame": "rockery/rocks",
+  "blocks": [
+   3,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "willow",
+  "tile": [
+   19,
+   12
+  ],
+  "frame": "willow/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "shishe",
+  "npc": "shishe-guniang",
+  "tile": [
+   9,
+   9
+  ],
+  "facing": "right"
+ }
+]

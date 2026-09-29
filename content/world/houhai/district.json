@@ -6,7 +6,8 @@
   "maps": [
     "houhai-lake",
     "station-shichahai",
-    "yandai-xiejie"
+    "yandai-xiejie",
+    "gongwangfu"
   ],
   "stations": [
     "shichahai"
@@ -23,7 +24,16 @@
     "北京",
     "兔儿爷",
     "九尾狐",
-    "端午节"
+    "端午节",
+    "恭王府",
+    "琼华岛",
+    "永安寺",
+    "白塔",
+    "万春亭",
+    "富览亭",
+    "辑芳亭",
+    "观妙亭",
+    "周赏亭"
   ],
   "ambience": "lake"
 }

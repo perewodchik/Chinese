@@ -39,13 +39,13 @@ export const HOODS: readonly Hood[] = [
     stations: ['nanluoguxiang'],
     maps: ['nanluo-main', 'hutong-home', 'siheyuan-yard', 'siheyuan-room', 'gulou-square', 'gulou-dongdajie', 'subway-lane', 'zaodian', 'xiaomaibu', 'lifadian', 'chaguan', 'station-nanluoguxiang'],
   },
-  { id: 'shichahai', zh: '什刹海', en: 'Shichahai · Houhai', stations: ['shichahai'], maps: ['houhai-lake', 'yandai-xiejie', 'station-shichahai'] },
+  { id: 'shichahai', zh: '什刹海', en: 'Shichahai · Houhai', stations: ['shichahai'], maps: ['houhai-lake', 'yandai-xiejie', 'gongwangfu', 'station-shichahai'] },
   {
     id: 'beihai',
     zh: '北海 · 景山',
     en: 'Beihai and Jingshan',
     stations: ['beihaibei'],
-    maps: ['jingshan-park', 'beihai-north', 'jingshan-view', 'jiaolou', 'station-beihaibei'],
+    maps: ['jingshan-park', 'beihai-north', 'beihai-baita', 'jingshan-view', 'jiaolou', 'station-beihaibei'],
   },
   {
     id: 'tiananmen',

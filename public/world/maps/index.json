@@ -16,11 +16,20 @@
    "baihuo-1"
   ]
  },
+ "beihai-baita": {
+  "district": "jingshan",
+  "width": 32,
+  "height": 32,
+  "links": [
+   "beihai-north"
+  ]
+ },
  "beihai-north": {
   "district": "jingshan",
   "width": 36,
   "height": 20,
   "links": [
+   "beihai-baita",
    "houhai-lake",
    "jingshan-park",
    "station-beihaibei"
@@ -48,6 +57,14 @@
   "height": 24,
   "links": [
    "stop-badalingchangcheng"
+  ]
+ },
+ "gongwangfu": {
+  "district": "houhai",
+  "width": 24,
+  "height": 16,
+  "links": [
+   "houhai-lake"
   ]
  },
  "gulou-dongdajie": {
@@ -97,10 +114,11 @@
  },
  "houhai-lake": {
   "district": "houhai",
-  "width": 40,
-  "height": 24,
+  "width": 44,
+  "height": 28,
   "links": [
    "beihai-north",
+   "gongwangfu",
    "station-shichahai",
    "yandai-xiejie"
   ]

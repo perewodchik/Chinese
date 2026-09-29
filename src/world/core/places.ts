@@ -36,10 +36,12 @@ export const PLACES: readonly Place[] = [
   // 什刹海 · 后海
   P('houhai-lake', '后海', 'Houhai lake', 'sight'),
   P('yandai-xiejie', '烟袋斜街', 'Yandai Xiejie, the slanting street', 'street'),
+  P('gongwangfu', '恭王府', "Prince Gong's Mansion — its garden", 'sight'),
   P('station-shichahai', '什刹海站', 'Shichahai station', 'station'),
 
   // 景山 · 北海
   P('beihai-north', '北海北门', 'Beihai Park, north gate', 'sight'),
+  P('beihai-baita', '白塔', 'The White Dagoba on Qionghua Island', 'sight'),
   P('station-beihaibei', '北海北站', 'Beihai North station', 'station'),
   P('jingshan-park', '景山公园', 'Jingshan Park', 'sight'),
   P('jingshan-view', '万春亭', 'The view from Jingshan hill', 'sight'),

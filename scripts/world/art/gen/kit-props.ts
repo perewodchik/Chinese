@@ -384,6 +384,26 @@ export function bikeRack(): Grid {
   return g.stamp(f, 0, 0);
 }
 
+/** A small 攒尖 pavilion on 景山's ridge: a pointed roof over four red pillars on a stone base (§13 T2). */
+export function smallPavilion(tiles: 'green' | 'yellow'): Grid {
+  const [lt, mid, dk, deep] = tiles === 'green' ? ['i', 'h', 'G', 'g'] : ['j', 'y', 'Y', 'o'];
+  const g = new Grid(32, 32);
+  shadow(g, 2, 28, 28, 4);
+  const f = new Grid(32, 32);
+  f.rect(3, 25, 26, 4, 'd').hline(3, 25, 26, 'e').hline(3, 28, 26, 'c');
+  for (const x of [6, 13, 18, 24]) f.rect(x, 16, 2, 9, 'r').vline(x, 16, 9, 'p');
+  f.rect(5, 14, 22, 3, 'v').hline(5, 14, 22, 'Y').hline(5, 16, 22, 'u');
+  // the pointed roof, its eaves flying up at the corners, a gold finial on top
+  for (let y = 3; y < 14; y++) {
+    const half = Math.round(2 + (y - 3) * 1.25);
+    f.hline(16 - half, y, half * 2, (y % 3 === 0 ? dk : mid)).set(16 - half, y, lt).set(15 + half, y, deep);
+  }
+  f.hline(1, 13, 30, dk).set(0, 12, dk).set(31, 12, dk).set(0, 11, lt).set(31, 11, lt);
+  f.rect(15, 0, 2, 3, 'y').set(15, 0, 'j');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 /** Every kit prop: [file, note, frames] as `PROPS` has them. */
 export const KIT_PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['censer', 'a bronze 香炉 censer: cold, and smoking in two frames (§13 V2)', () => [['smoke-0', censer(0)], ['smoke-1', censer(1)], ['cold', censer(null)]]],
@@ -409,4 +429,5 @@ export const KIT_PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['repair-stall', 'a 修车摊 street bike-repair stand (§13 V2, L1)', () => [['tools', repairStall()]]],
   ['kiosk', 'a newspaper kiosk 报刊亭 (§13 V2)', () => [['green', kiosk()]]],
   ['bike-rack', 'a rack of 共享单车 shared bikes (§13 V2)', () => [['shared', bikeRack()]]],
+  ['pavilion-small', 'a small 攒尖 pavilion of 景山, green or yellow (§13 T2)', () => [['green', smallPavilion('green')], ['yellow', smallPavilion('yellow')]]],
 ];

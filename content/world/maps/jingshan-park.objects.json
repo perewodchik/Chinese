@@ -195,5 +195,107 @@
     }
    ]
   }
+ },
+ {
+  "kind": "prop",
+  "id": "pav-fulan",
+  "tile": [
+   1,
+   6
+  ],
+  "frame": "pavilion-small/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "pav-fulan-sign",
+  "tile": [
+   1,
+   6
+  ],
+  "text": "富览亭",
+  "en": "Fulan Pavilion — the westernmost"
+ },
+ {
+  "kind": "prop",
+  "id": "pav-jifang",
+  "tile": [
+   5,
+   6
+  ],
+  "frame": "pavilion-small/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "pav-jifang-sign",
+  "tile": [
+   5,
+   6
+  ],
+  "text": "辑芳亭",
+  "en": "Jifang Pavilion"
+ },
+ {
+  "kind": "prop",
+  "id": "pav-guanmiao",
+  "tile": [
+   19,
+   6
+  ],
+  "frame": "pavilion-small/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "pav-guanmiao-sign",
+  "tile": [
+   19,
+   6
+  ],
+  "text": "观妙亭",
+  "en": "Guanmiao Pavilion"
+ },
+ {
+  "kind": "prop",
+  "id": "pav-zhoushang",
+  "tile": [
+   24,
+   6
+  ],
+  "frame": "pavilion-small/green",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "pav-zhoushang-sign",
+  "tile": [
+   24,
+   6
+  ],
+  "text": "周赏亭",
+  "en": "Zhoushang Pavilion — the easternmost"
+ },
+ {
+  "kind": "sign",
+  "id": "wanchun-sign",
+  "tile": [
+   12,
+   5
+  ],
+  "text": "万春亭",
+  "en": "Wanchun Pavilion — the top of 景山, on the city's axis"
  }
 ]

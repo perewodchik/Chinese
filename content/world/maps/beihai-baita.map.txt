@@ -1,0 +1,73 @@
+id: beihai-baita
+size: 32x32
+tilesets: tiles
+district: jingshan
+pigeons: 3
+below_keys: 1=pitch-green-ridge-l 2=pitch-green-ridge 3=pitch-green-ridge-r 4=pitch-green-up-l 5=pitch-green-up 6=pitch-green-up-r 7=pitch-green-slope-l 8=pitch-green-slope 9=pitch-green-slope-r a=pitch-green-eave-l b=pitch-green-eave c=pitch-green-eave-r d=beam-xuanzi e=face-lattice f=face-pillar
+
+[ground]
+gggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggg
+gggggggggggggggggggggggggggggggg
+ggggggggmmmmmmmmmmmmmmmmgggggggg
+ggggggggmmmmmmmmmmmmmmmmgggggggg
+ggggggggmmmmmmmmmmmmmmmmgggggggg
+ggggggggmmmmmmmmmmmmmmmmgggggggg
+ggggggggmmmmmmmmmmmmmmmmgggggggg
+ggggggggmmmmmmmmmmmmmmmmgggggggg
+ggggggggmmmmmmmmmmmmmmmmgggggggg
+ggggggggmmmmmmmmmmmmmmmmgggggggg
+ggggggggggggggmmmmgggggggggggggg
+ggggggggggggggmmmmgggggggggggggg
+ggggggggggggggmmmmgggggggggggggg
+ggggggggggggggmmmmgggggggggggggg
+ggggggggggggggmmmmgggggggggggggg
+ggggggggggggggmmmmgggggggggggggg
+ggggggggggggggmmmmgggggggggggggg
+ggggggggggggggmmmmgggggggggggggg
+ggqqqqqqqqqqqqmmmmqqqqqqqqqqqqgg
+ggqqqqqqqqqqqqmmmmqqqqqqqqqqqqgg
+ggqqqqqqqqqqqqmmmmqqqqqqqqqqqqgg
+ggqqqqqqqqqqqqmmmmqqqqqqqqqqqqgg
+ggqqqqqqqqqqqqmmmmqqqqqqqqqqqqgg
+ggqqqqqqqqqqqqmmmmqqqqqqqqqqqqgg
+ggqqqqqqqqqqqqmmmmqqqqqqqqqqqqgg
+wwwwwwwwwwwwwwmmmmwwwwwwwwwwwwww
+wwwwwwwwwwwwwwmmmmwwwwwwwwwwwwww
+wwwwwwwwwwwwwwmmmmwwwwwwwwwwwwww
+wwwwwwwwwwwwwwmmmmwwwwwwwwwwwwww
+wwwwwwwwwwwwwwmmmmwwwwwwwwwwwwww
+wwwwwwwwwwwwwwmmmmwwwwwwwwwwwwww
+[below]
+................................
+................................
+.......llllllllllllllllll.......
+.......l................l.......
+.......l................l.......
+.......l................l.......
+.......l................l.......
+.......l................l.......
+.......l................l.......
+.......l................l.......
+.......l................l.......
+..............SSSS..............
+..............SSSS..............
+..1222222223..SSSS..1222222223..
+..4555555556..SSSS..4555555556..
+..7888888889..SSSS..7888888889..
+..abbbbbbbbc..SSSS..abbbbbbbbc..
+..dddddddddd..SSSS..dddddddddd..
+..feefeefeef..SSSS..feefeefeef..
+..............SSSS..............
+..............SSSS..............
+..............SSSS..............
+..............SSSS..............
+..............SSSS..............
+..............SSSS..............
+..............SSSS..............
+wwwwwwwwwwwwww....wwwwwwwwwwwwww
+wwwwwwwwwwwwww....wwwwwwwwwwwwww
+wwwwwwwwwwwwww....wwwwwwwwwwwwww
+wwwwwwwwwwwwww....wwwwwwwwwwwwww
+wwwwwwwwwwwwww....wwwwwwwwwwwwww
+wwwwwwwwwwwwww....wwwwwwwwwwwwww

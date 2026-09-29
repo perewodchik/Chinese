@@ -40,7 +40,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1–K3, Q1–Q3, V1–V4, T1 done (2026-09-30) — continue at T2. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
+§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1–K3, Q1–Q3, V1–V4, T1–T2 done (2026-09-30) — continue at T3. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
 
 ## Tasks
 ### A — core logic
@@ -175,7 +175,7 @@ first unchecked box. Tick a box in the same commit as the work.
 - [x] V3 Animation everywhere (animated tiles/props, NPC idle actions, seasons on tiles, light pools, depth-sort fix) — frame time on the iPad not measured (no dev server)
 - [x] V4 Spirits redrawn + woodcut pictures; hero 4-frame walk through the composer
 - [x] T1 鼓楼 · 南锣鼓巷 redone (N–S lane with 胡同 legs, 钟鼓楼 square, 烟袋斜街, 鼓楼东大街)
-- [ ] T2 什刹海 · 银锭桥 · 恭王府 gate · 北海 白塔 · 景山 pavilions
+- [x] T2 什刹海 · 银锭桥 · 恭王府 gate · 北海 白塔 · 景山 pavilions
 - [ ] T3 Temples: 雍和宫 (2 maps), 孔庙, 天坛 祈年殿 + 圜丘, 白云观, 东岳庙, 地坛 庙会
 - [ ] T4 王府井 · 前门/大栅栏 · 故宫 axis realism pass
 - [ ] T5 Map checks and before/after renders
@@ -339,6 +339,7 @@ _(date — decision — why)_
 - 2026-09-30 — V3: placed the national flag at the north end of 天安门 square (in line with the palace gate), three flags in front of 国贸's towers and a fountain at 奥林匹克 (each on a blocked tile, clear of doors and people). The winter snow lies on ridges, eaves and wall tops; the morning mist shows only on maps with water.
 - 2026-09-30 — V4: all ten figures (the eight spirits, 石猴, 灶王爷, 天官) redrawn as `spirit-<id>` sprites with idle frames; the woodcuts are **derived from the sprites** (flat inks, a doubled black line, a red-bordered paper card) rather than drawn twice, so a sprite fix fixes its picture; they live in a new `woodcut` atlas. The hero's passing frame is a one-pixel **dip** (a lift pushed tall hats out of the frame); the player now has 17 frames. Map statues stay statues.
 - 2026-09-30 — T1: **烟袋斜街 belongs to the 后海 district** (and the 什刹海 neighbourhood), since chapter 2 starts there; 鼓楼东大街 to 鼓楼. The shops on the north–south 南锣鼓巷 open as doorways in the side walls (a lit mat in a gap), their signs on the wall above. The 胡同 names and their order are from Wikipedia (two sources agree); only 帽儿胡同 leads anywhere — the others end at the map's edge, as side lanes do. 平安大街's place is now named 地安门东大街 (the street at 南锣鼓巷's south end, part of 平安大街).
+- 2026-09-30 — T2: the 诗社 (X9) moved from 后海's shore into a new **恭王府 garden** map behind the gate on 后海's south shore (its scenes' map changed; the talk is unchanged). 琼华岛 (`beihai-baita`) is reached **by boat** from a pier on 北海's north shore — a door, as the park's ferries do. 景山's four smaller pavilions are drawn green (the brief did not ask for their real glaze colours, and none were checked).
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

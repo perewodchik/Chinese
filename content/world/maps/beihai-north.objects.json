@@ -137,7 +137,7 @@
   "to": 19,
   "target": {
    "map": "houhai-lake",
-   "offset": 0
+   "offset": 5
   }
  },
  {
@@ -186,5 +186,31 @@
     }
    ]
   }
+ },
+ {
+  "kind": "door",
+  "id": "pier",
+  "tile": [
+   23,
+   10
+  ],
+  "to": {
+   "map": "beihai-baita",
+   "tile": [
+    15,
+    30
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "pier-sign",
+  "tile": [
+   22,
+   10
+  ],
+  "text": "游船 · 琼华岛",
+  "en": "Boats to Qionghua Island and the White Dagoba"
  }
 ]

@@ -8,7 +8,8 @@
     "station-beihaibei",
     "jingshan-park",
     "jingshan-view",
-    "jiaolou"
+    "jiaolou",
+    "beihai-baita"
   ],
   "stations": [
     "beihaibei"
@@ -27,7 +28,16 @@
     "王阿姨",
     "马良",
     "小融",
-    "小光"
+    "小光",
+    "恭王府",
+    "银锭桥",
+    "前海",
+    "琼华岛",
+    "永安寺",
+    "富览亭",
+    "辑芳亭",
+    "观妙亭",
+    "周赏亭"
   ],
   "ambience": "park"
 }
