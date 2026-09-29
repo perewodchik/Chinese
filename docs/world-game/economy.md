@@ -55,6 +55,28 @@ Two 「太贵了」 bring the price halfway down each time; your own fair
 offer is taken the second time you say it; walking away (「算了」) gets
 one call back at the lowest price.
 
+### Clothes (§12 W5 — `content/world/clothes.json`, the game's own prices)
+
+| Rack | Things (元) |
+|---|---|
+| 李宁 (三里屯) | T恤 35 · 短裤 35 (summer) · 运动裤 80 · 运动服 150 · 运动鞋 200 |
+| 回力 (三里屯) | 回力鞋 80 |
+| 胡同文创 (南锣鼓巷) | 帆布包 30 · 胡同T恤 40 · 熊猫帽 45 |
+| 百货大楼, ground floor (王府井) | 衬衫 90 · 墨镜 100 · 毛衣 150 (the red one at 春节) · 大衣 300 · 羽绒服 400 (winter) |
+| 百货大楼, upstairs | 裤子 45 · 牛仔裤 80 · 裙子 90 · 长裙 120 · 皮鞋 300 · 西装 600 |
+| 盛锡福 (王府井) | 草帽 40 (summer) · 毛线帽 50 (winter) · 鸭舌帽 60 · 礼帽 200 |
+| 瑞蚨祥 (大栅栏) | 汉服 100 (元宵 week only) · 丝巾 120 · 唐装 300 · 旗袍 500 |
+| 内联升 (大栅栏) | 布鞋 150 |
+| old clothes (潘家园, bargained to about ⅗) | 老帽子 30 → 18 · 圆眼镜 40 → 24 · 中山装 120 → 75 |
+| 张师傅's (after the first haircut) | a cut 30 · a colour 40 |
+
+A basic outfit — a T恤 and 裤子, 80 元 — is two game days of jobs; the
+旗袍 and the 西装 are things to save up for. Clothes are never needed by
+the story. The recycler takes clothes from the wardrobe at half price.
+`solver.test.ts` plays a spendthrift who buys the cheapest new thing at
+every rack on every visit (and has the barber cut shorter each time): it
+still finishes every quest without ever being short.
+
 ## Money coming in
 
 | From | How much | When |

@@ -30,7 +30,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-W5 → W7 (§12 clothes shops, people noticing, checks). The §10 menu is done (P1–P4, J1–J3; save v12 = Practise, after v10 = journal and v11 = wardrobe); checked in WebKit and Chromium on the Mac. The X12 play-through waits for the learner and comes after W7; M6 after the learner has looked at the maps.
+W6 → W7 (§12 people noticing, checks); W5 done (racks in the talk engine, the rack sheet, 10 racks). The §10 menu is done (P1–P4, J1–J3; save v12 = Practise, after v10 = journal and v11 = wardrobe); checked in WebKit and Chromium on the Mac. The X12 play-through waits for the learner and comes after W7; M6 after the learner has looked at the maps.
 
 ## Tasks
 ### A — core logic
@@ -148,7 +148,7 @@ W5 → W7 (§12 clothes shops, people noticing, checks). The §10 menu is done (
 - [x] W2 clothes.json (zod) + save +1: look, wardrobe, outfit, 3 saved outfits, `created`; old saves get today's hero as owned clothes; merge; actions + diary lines
 - [x] W3 Character creator 创建角色 once per new game (and once for existing saves, prefilled): build, skin, eyes/brows/mouth, hair + colour, "people call me"; 🎲
 - [x] W4 Your room: 衣柜 (wardrobe sheet — slots, wear/take off, 套装 1–3, item card, Sell) and 镜子 (body/face/hair) as props in siheyuan-room
-- [ ] W5 Clothes shops, real names: 瑞蚨祥, 内联升 (大栅栏), 盛锡福, 王府井百货大楼 (2 floors), 李宁 / 回力 (三里屯), 南锣鼓巷 文创, 潘家园 vintage (bargain), 理发店 hair menu; rack talk + 试衣间 + 支付宝 + 穿着走; seasonal stock; economy.md + solver
+- [x] W5 Clothes shops, real names: 瑞蚨祥, 内联升 (大栅栏), 盛锡福, 王府井百货大楼 (2 floors), 李宁 / 回力 (三里屯), 南锣鼓巷 文创, 潘家园 vintage (bargain), 理发店 hair menu; rack talk + 试衣间 + 支付宝 + 穿着走; seasonal stock; economy.md + solver
 - [ ] W6 People notice (one comment per new thing, red at 春节), 兔儿爷 remarks, photos and diary show the outfit
 - [ ] W7 Checks: composer/save/rack tests, world:check (art for every colour, a shop, a measure word; brands.md with sources), review/w/ renders, pane + WebKit 375/768/1024 light/dark
 
@@ -252,6 +252,11 @@ _(date — decision — why)_
 - 2026-09-29 — P4: **fixed on the way:** (1) between 690 and 860 px (an iPad upright) the site's bar wraps onto two rows and covered the game's top bar — ☰, 🗺, 🎒 and 📷 could not be reached; the game is now full screen up to 860 as on phones (`world.css`, one media query). (2) Esc in a quest's, a lead's, a person's or a bag thing's drawer closed the whole menu; `ui/useEscape.ts` closes only the drawer on top (a quest's over a person's first). (3) People rows at 375 cut names to 「王…」; the name no longer shrinks, the role does. Also checked by script: a perfect Practise round gives 王阿姨 one heart and sets the flag, a second perfect round gives nothing.
 - 2026-09-29 — P4 on the Mac: **WebKit and Chromium, 375/768/1024, light and dark — "no problems"** (`menu-probe.mjs`, the Mac's Chrome for Testing passed as `CHROMIUM`). One WebKit-only bug found by eye, not by the probe: at 375 the top bar was 9px wider than the screen (WebKit's emoji buttons are wider), ☰ hung off the edge, and when the menu opened WebKit scrolled the `overflow: hidden` `.world-shell` by 9px, so the whole menu sat 9px left. Buttons now shrink to 34px, then the place name ends in "…" (`world.css`, `.wt-btn` / `.wt-place`). The probe now also measures `.world-shell` sideways scroll (it flags the old CSS on every view). WebKit shots: `review/p/webkit-*.jpg`. It also asks `/api/auth/session` before seeding: a fresh browser was not signed in yet and the seed got a 400.
 - 2026-09-29 — the `hanzi-workshop-mac-5177` preview config had no `HANZI_DB`, so it ran on the production database; it now uses `.data/world-pj.db`.
+
+- 2026-09-29 — W5: **the rack talk is part of the talk engine** (`core/rack.ts`, a `rack` node generated per rack like Y1's shop scenes; `rackScenes(clothes)` joins the page's, the solver's and the tests' scenes, because racks live in `clothes.json`, not a district). Looking at a thing = naming it or tapping its card; the price line lists the colours on sale; 「有X的吗」 switches or says 「没有X的，有…」; 「我可以试试吗」 marks it tried (the sheet's 试衣间 then turns); 「太贵了」 is 「对不起，不能便宜。」 except at 潘家园, where Y6's `haggle` runs on the thing looked at (lowest ≈ ⅗, `rackBargain`); 「我要这件」 → Y2's phone; after paying 「谢谢！穿着走吗？」 waits for 穿着走 (the one change outside home) or a bag. Colour-level `when` added to clothes.json for the red 毛衣 at 春节.
+- 2026-09-29 — W5: **the rack sheet's buttons say the phrases** (`ui/RackSheet.tsx`): a card tap sends 「这件旗袍多少钱？」, a dot 「有绿的吗？」, the row 这件多少钱 · 试试 · (太贵了 at 潘家园) · 我要这件 · 再见 — so a tap is the same line as typing it, shown in your history. The sheet sits over the top of the talk at a fixed height (202px, a row that scrolls sideways; no 试衣间 column on short screens) and hides while the phone is out. Class prefix `wk-` (`wr-` is the ride sheet's).
+- 2026-09-29 — W5: shops. **Interiors** for 瑞蚨祥 and 内联升 (doors on 前门大街's 大栅栏 end) and 百货大楼 on **two floors** (a door on 王府井大街, stairs at the back); **sellers at their shopfronts** for 盛锡福 (王府井), 李宁 and 回力 (三里屯), a 文创 shop (南锣鼓巷) and an old-clothes rail at 潘家园 — a door with nothing inside it would have been a locked door. 汉服 is sold cheaply during the 元宵 week rather than hired (hiring needs a give-back). The first 30-元 haircut (side quest) is now `once`; after it 张师傅's scene is the hair menu (a cut 30, a colour 40; 剪短一点 goes one style shorter). The 穿着 / 发 readings the word list gets wrong are given as the game's own words (`RACK_WORDS`) and a manual reading on 「谢谢！穿着走吗？」.
+- 2026-09-29 — W5: new lines (the racks, the barber's menu) have no recorded voices yet — the system voice says them, as for Y3's.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_

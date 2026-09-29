@@ -52,6 +52,7 @@ import { Creator, type CreatorMode } from '../../world/ui/Creator';
 import { dressOf } from '../../world/ui/HeroFigure';
 import { setCurrentDress } from '../../world/ui/heroPicture';
 import { WardrobeSheet } from '../../world/ui/WardrobeSheet';
+import { RackSheet } from '../../world/ui/RackSheet';
 import { homeProp } from '../../world/core/wardrobe';
 
 const TIMES: PartOfDay[] = ['morning', 'day', 'evening', 'night'];
@@ -721,6 +722,16 @@ export function WorldPage() {
             if (mapIndex.current[map]) world.current?.travel({ map, tile: [Math.floor(mapIndex.current[map]!.width / 2), mapIndex.current[map]!.height - 3], facing: 'up' });
             else setNote('The station is not built yet — it comes with chapter 1’s subway ride.');
           }}
+        />
+      )}
+      {/* a clothes rack or the barber's (§12 W5): the rack over the talk, its buttons say the phrases */}
+      {talk.view?.state.rack && !talk.view.state.due && talk.view.mode === 'reply' && game.save && (
+        <RackSheet
+          rackId={talk.view.scene.nodes.find((n) => n.rack)?.rack?.rack ?? ''}
+          state={talk.view.state.rack}
+          save={game.save}
+          clothes={content.clothes}
+          onSay={(text) => talk.reply(text, 'keyboard')}
         />
       )}
       {talk.view && game.save && (

@@ -333,7 +333,7 @@ export class ScriptedDialogue implements DialogueSource {
     const after = { ...state, due: undefined, wallet: (state.wallet ?? 0) - paid, misses: 0, hint: 0 };
     // a rack (§12 W5): the thing is yours — wear it out, or into a bag; at the barber's the cut is done
     if (n.rack && state.rack && due.clothes) {
-      return { kind: 'match', intent: 'pay', chime, say: aside(RACK_LINES.thanks.zh, RACK_LINES.thanks.en), actions: buy, state: { ...after, rack: { ...state.rack, bought: due.clothes, haggle: undefined } } };
+      return { kind: 'match', intent: 'pay', chime, say: { ...aside(RACK_LINES.thanks.zh, RACK_LINES.thanks.en), pinyin: RACK_LINES.thanks.pinyin }, actions: buy, state: { ...after, rack: { ...state.rack, bought: due.clothes, haggle: undefined } } };
     }
     if (n.rack && due.hair) {
       return { kind: 'match', intent: 'pay', chime, say: aside(RACK_LINES.cutDone.zh, RACK_LINES.cutDone.en), actions: [...buy, ...this.finish(scene)], end: true, state: { ...after, ended: true } };

@@ -56,7 +56,8 @@ export const RACK_LINES = {
   tryOn: { zh: '可以！你试试。', en: 'Sure — try it on.' },
   nice: { zh: '很好看！', en: 'It looks good on you!' },
   firm: { zh: '对不起，不能便宜。', en: 'Sorry, the price is the price.' },
-  thanks: { zh: '谢谢！穿着走吗？', en: 'Thank you! Will you wear it out?' },
+  // a reading of its own: the word list reads 穿着 as chuānzhuó (clothing), here it is chuānzhe (wearing it)
+  thanks: { zh: '谢谢！穿着走吗？', en: 'Thank you! Will you wear it out?', pinyin: 'Xièxie! Chuānzhe zǒu ma?' },
   wear: { zh: '好看！再见！', en: 'Looks good! Bye!' },
   bag: { zh: '好，给你袋子。再见！', en: 'All right, here’s a bag. Bye!' },
   none: { zh: '对不起，这个我们没有。', en: 'Sorry, we don’t sell that here.' },
@@ -381,6 +382,12 @@ export function rackHint(rack: Rack, clothes: Pick<ClothesContent, 'clothes'>, r
   }
   return { word: '要', frame: `我___这${focus.measure}。`, full: `我要这${focus.measure}。` };
 }
+
+/** Readings the word list gets wrong here (发 is fà in hair, 着 is zhe when wearing): cut and read as whole words. */
+export const RACK_WORDS: Record<string, string> = {
+  短发: 'duǎnfà', 长发: 'chángfà', 卷发: 'juǎnfà', 短发齐耳: 'duǎnfàqí\'ěr', 寸头: 'cùntóu', 分头: 'fēntóu', 马尾: 'mǎwěi', 丸子头: 'wánzitóu',
+  刘海: 'liúhǎi', 光头: 'guāngtóu', 穿着走: 'chuānzhezǒu', 试衣间: 'shìyījiān',
+};
 
 export const rackOf = (clothes: Pick<ClothesContent, 'racks'>, id: string) => clothes.racks.find((r) => r.id === id);
 export { HAIR_STYLE_WORDS, HAIR_COLOUR_WORDS };

@@ -2,7 +2,7 @@ import type { Shop } from '../core/shop';
 import { useEffect, useState } from 'react';
 import type { DistrictContent, Idiom, Item, NpcCard, Quest, Scene, Spirit, Stamp } from '../core/types';
 import { EMPTY_CLOTHES, type ClothesContent } from '../core/wardrobe';
-import { rackScenes } from '../core/rack';
+import { RACK_WORDS, rackScenes } from '../core/rack';
 
 /** Everything the built content says, all districts together (it is small: text only). */
 export interface WorldContent {
@@ -64,7 +64,8 @@ export function loadContent(): Promise<WorldContent> {
     const merged = mergeContent(parts);
     // the clothes racks and the barber's menu talk like shops (§12 W5)
     const c = { ...merged, scenes: [...rackScenes(clothes), ...merged.scenes], clothes };
-    own = wordsOf(c);
+    // the barber's and the rack's words, read right (长发 is chángfà, 穿着走 chuānzhe zǒu)
+    own = new Map([...wordsOf(c), ...Object.entries(RACK_WORDS)]);
     return c;
   })().catch(() => EMPTY_CONTENT);
   return loading;

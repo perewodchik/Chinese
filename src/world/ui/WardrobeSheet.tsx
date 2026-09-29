@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { clothingOf, oneZh } from '../core/clothes';
-import { ALWAYS_WORN, LOOK_NAMES, SAVED_OUTFITS, SLOTS, type Outfit, type Slot } from '../core/looks';
+import { ALWAYS_WORN, DEFAULT_WARDROBE, LOOK_NAMES, SAVED_OUTFITS, SLOTS, type Outfit, type Slot } from '../core/looks';
 import type { SaveAction } from '../core/save';
 import type { WorldSave } from '../core/types';
 import type { ClothesContent } from '../core/wardrobe';
@@ -67,7 +67,9 @@ export function WardrobeSheet({
   };
   const sets = save.outfits.slice(0, SAVED_OUTFITS);
   const cardItem = card ? clothingOf(clothes, card) : null;
-  const rackName = (shop: string) => (shop === 'start' ? 'you came to Beijing in it' : `from ${clothes.racks.find((r) => r.id === shop)?.name ?? shop}`);
+  // what you arrived in says so, even when a shop sells the same thing (the trousers, the trainers)
+  const rackName = (shop: string, id: string) =>
+    shop === 'start' || DEFAULT_WARDROBE.includes(id) ? 'you came to Beijing in it' : `from ${clothes.racks.find((r) => r.id === shop)?.name ?? shop}`;
   return (
     <div className="wp-scrim wc-scrim" onClick={onClose}>
       <section className="wp wc" role="dialog" aria-label="衣柜 — your wardrobe" onClick={(e) => e.stopPropagation()}>
@@ -174,7 +176,7 @@ export function WardrobeSheet({
                 {cardItem.colour.en} {cardItem.item.en} · counted with <span className="han">{cardItem.item.measure}</span> — <span className="han">一{cardItem.item.measure}{cardItem.item.zh}</span>
               </p>
               <p className="tiny muted">
-                {cardItem.item.price} 元 · {rackName(cardItem.item.shop)}
+                {cardItem.item.price} 元 · {rackName(cardItem.item.shop, card)}
               </p>
               {cardItem.item.story && <p className="tiny muted">{cardItem.item.story}</p>}
               <div className="wc-card-acts">
