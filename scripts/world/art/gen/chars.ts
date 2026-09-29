@@ -276,6 +276,7 @@ export const LOOKS: Record<string, { look: Look; variants?: Array<[string, Recor
     variants: [
       ['uncle-apron', { c: 'w', b: 'e' }],
       ['uncle-brown', { c: 'M', b: 'm' }],
+      ['uncle-red', { c: 'r', b: 'R' }],
     ],
   },
 };

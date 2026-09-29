@@ -302,6 +302,8 @@ export interface Idiom {
   meaning: string;
   story: { zh: string; en: string };
   tier: 'basic' | 'story';
+  /** a side line it belongs to, shown in the 成语 book (X11: 天官赐福) */
+  line?: string;
 }
 
 export interface Stamp {

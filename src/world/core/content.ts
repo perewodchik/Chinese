@@ -241,6 +241,7 @@ export const idiomSchema: z.ZodType<Idiom> = z.strictObject({
   meaning: text,
   story: z.strictObject({ zh: hanzi, en: text }),
   tier: z.enum(['basic', 'story']),
+  line: text.optional(),
 });
 
 export const stampSchema: z.ZodType<Stamp> = z.strictObject({

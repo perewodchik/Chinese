@@ -13,5 +13,10 @@
     "id": "lingdang",
     "name": "铃铛",
     "en": "a small yellow camel bell"
+  },
+  {
+    "id": "changmingdeng",
+    "name": "长明灯",
+    "en": "an ever-burning lamp"
   }
 ]

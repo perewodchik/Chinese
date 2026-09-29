@@ -52,5 +52,34 @@
     "misses": [
       "啊？"
     ]
+  },
+  {
+    "id": "gui-maijia",
+    "name": "鬼市的卖家",
+    "role": "a seller at the night market whose face you can never quite see",
+    "look": {
+      "sprite": "grandpa",
+      "palette": "blue"
+    },
+    "voice": "chen",
+    "character": "Whispers, laughs at nothing, sells only for riddles.",
+    "knows": [
+      "Riddles"
+    ],
+    "wants": [
+      "A good answer"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "谜": "一个问题，你要想一想。"
+    }
   }
 ]

@@ -146,5 +146,12 @@
     "en": "The jade rabbit",
     "place": "siheyuan-yard",
     "design": "change"
+  },
+  {
+    "id": "tianguan",
+    "name": "天官赐福",
+    "en": "Heaven Official’s blessing",
+    "place": "hutong-home",
+    "design": "tianguan"
   }
 ]

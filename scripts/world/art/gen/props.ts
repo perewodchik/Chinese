@@ -892,6 +892,48 @@ export function magpie(): Grid {
   return g.stamp(f, 0, 0);
 }
 
+// ---------------------------------------------------------------- X11: the 天官赐福 line
+
+/**
+ * A tiny forgotten shrine 小庙 at the end of the lane, 32×32: a grey-tiled
+ * roof on two posts over an altar. `ruined`: the roof broken, no door;
+ * `half`: a new red door, the roof mended on one side; `done`: all mended,
+ * red posts, a lamp burning on the altar.
+ */
+export function shrine(stage: 'ruined' | 'half' | 'done'): Grid {
+  const g = new Grid(32, 32);
+  g.oval(4, 28, 24, 4, '_');
+  const f = new Grid(32, 32);
+  const post = stage === 'done' ? 'r' : 'M';
+  f.rect(6, 14, 20, 14, 'd').rect(7, 15, 18, 12, 'c');
+  f.rect(6, 14, 3, 14, post).rect(23, 14, 3, 14, post);
+  if (stage !== 'ruined') f.rect(12, 17, 8, 10, 'r').vline(16, 17, 10, 'R').set(14, 22, 'y').set(18, 22, 'y');
+  else f.rect(12, 17, 8, 10, 'a').set(13, 26, 'M').set(18, 25, 'M');
+  // the roof: whole, half mended, or with a gap
+  for (let i = 0; i < 6; i++) f.hline(3 + i, 13 - i, 26 - i * 2, i % 2 ? 'b' : 'a');
+  f.hline(1, 13, 30, 'a').set(1, 12, 'a').set(30, 12, 'a');
+  if (stage === 'ruined') f.rect(18, 8, 6, 5, '.').set(20, 13, '.').set(21, 13, '.');
+  if (stage === 'half') f.rect(20, 9, 3, 3, '.');
+  if (stage === 'done') f.rect(15, 11, 2, 2, 'L').set(15, 10, 'O');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** Silver butterflies 银蝶, 16×16: two small wings of silver light, flapping (two frames). */
+export function butterfly(open: boolean): Grid {
+  const g = new Grid(16, 16);
+  const f = new Grid(16, 16);
+  if (open) {
+    f.oval(2, 5, 6, 5, 'e').oval(8, 5, 6, 5, 'e').oval(3, 6, 4, 3, 'w').oval(9, 6, 4, 3, 'w');
+    f.oval(4, 9, 4, 3, 'd').oval(8, 9, 4, 3, 'd');
+  } else {
+    f.oval(5, 4, 3, 7, 'e').oval(8, 4, 3, 7, 'e').vline(6, 5, 4, 'w').vline(9, 5, 4, 'w');
+  }
+  f.vline(7, 5, 6, 'a').vline(8, 5, 6, 'a');
+  f.outline('B');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -932,6 +974,8 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['kite', 'a red paper kite', () => [['red', kite()]]],
   ['jianzhi', 'a red paper-cut window flower', () => [['red', jianzhi()]]],
   ['magpie', 'a magpie 喜鹊', () => [['sit', magpie()]]],
+  ['shrine', 'a tiny forgotten shrine: ruined, half mended, done', () => [['ruined', shrine('ruined')], ['half', shrine('half')], ['done', shrine('done')]]],
+  ['butterfly', 'silver butterflies 银蝶', () => [['open', butterfly(true)], ['shut', butterfly(false)]]],
   ['emote', "兔儿爷's feelings", () => (['happy', 'sulky', 'sleepy', 'proud', 'blush'] as const).map((k) => [k, emote(k)] as [string, Grid])],
   ['rabbit-hat', "兔儿爷's hats", () => (['snow', 'flower', 'armour'] as const).map((k) => [k, rabbitHat(k)] as [string, Grid])],
   ['sticker', 'chat stickers', () => (['hello', 'thanks', 'ok', 'haha', 'sorry', 'love'] as const).map((k) => [k, sticker(k)] as [string, Grid])],

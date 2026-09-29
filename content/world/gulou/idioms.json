@@ -2,7 +2,16 @@
   {
     "id": "马马虎虎",
     "pinyin": "mǎmǎhūhū",
-    "parts": [{ "c": "马马", "gloss": "horse, horse" }, { "c": "虎虎", "gloss": "tiger, tiger" }],
+    "parts": [
+      {
+        "c": "马马",
+        "gloss": "horse, horse"
+      },
+      {
+        "c": "虎虎",
+        "gloss": "tiger, tiger"
+      }
+    ],
     "meaning": "so-so; careless — neither good nor bad",
     "story": {
       "zh": "以前有一个画家，画了一个头是虎、身子是马的画。别人问：“这是马还是虎？”他说：“马马虎虎！”",
@@ -13,12 +22,88 @@
   {
     "id": "一心一意",
     "pinyin": "yìxīn-yíyì",
-    "parts": [{ "c": "一心", "gloss": "one heart" }, { "c": "一意", "gloss": "one mind" }],
+    "parts": [
+      {
+        "c": "一心",
+        "gloss": "one heart"
+      },
+      {
+        "c": "一意",
+        "gloss": "one mind"
+      }
+    ],
     "meaning": "wholeheartedly; with all your attention on one thing",
     "story": {
       "zh": "做一个事的时候，只想这个事，不想别的，就是一心一意。老刘做茶的时候，就是这样。",
       "en": "When you do one thing and think only of it, not of anything else, that is 一心一意 — the way 老刘 makes tea."
     },
     "tier": "basic"
+  },
+  {
+    "id": "百无禁忌",
+    "pinyin": "bǎiwújìnjì",
+    "parts": [
+      {
+        "c": "百",
+        "gloss": "a hundred"
+      },
+      {
+        "c": "无",
+        "gloss": "no"
+      },
+      {
+        "c": "禁忌",
+        "gloss": "taboos"
+      }
+    ],
+    "meaning": "nothing is unlucky — never mind, anything goes",
+    "story": {
+      "zh": "有的人很怕不好的事。可是有的人说：“百无禁忌！”什么都不怕。",
+      "en": "Some people are afraid of every bad omen. Others just say “百无禁忌!” — a hundred things, none forbidden — and carry on."
+    },
+    "tier": "basic",
+    "line": "天官赐福"
+  },
+  {
+    "id": "所向披靡",
+    "pinyin": "suǒxiàngpīmǐ",
+    "parts": [
+      {
+        "c": "所向",
+        "gloss": "wherever he goes"
+      },
+      {
+        "c": "披靡",
+        "gloss": "(the grass) is flattened"
+      }
+    ],
+    "meaning": "sweeping all before one; invincible",
+    "story": {
+      "zh": "他去哪儿，别人就都倒了，像风里的草。",
+      "en": "Wherever he went, everyone went down before him, like grass flattened by the wind."
+    },
+    "tier": "story",
+    "line": "天官赐福"
+  },
+  {
+    "id": "一念之间",
+    "pinyin": "yīniànzhījiān",
+    "parts": [
+      {
+        "c": "一念",
+        "gloss": "one thought"
+      },
+      {
+        "c": "之间",
+        "gloss": "the space of"
+      }
+    ],
+    "meaning": "in the space of a single thought — a moment decides",
+    "story": {
+      "zh": "做好人还是做坏人，常常只在一个想法里。",
+      "en": "Whether you become good or bad often comes down to a single thought."
+    },
+    "tier": "basic",
+    "line": "天官赐福"
   }
 ]

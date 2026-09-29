@@ -125,5 +125,20 @@
     "id": "xiaoyugan",
     "name": "小鱼干",
     "en": "dried fish (for the cat)"
+  },
+  {
+    "id": "mutou",
+    "name": "木头",
+    "en": "old wood"
+  },
+  {
+    "id": "hongbu",
+    "name": "红布",
+    "en": "red cloth"
+  },
+  {
+    "id": "xiang",
+    "name": "香",
+    "en": "incense"
   }
 ]

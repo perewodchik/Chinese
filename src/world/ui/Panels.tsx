@@ -325,7 +325,7 @@ function Spirits({ save, content, pinyin }: { save: WorldSave; content: WorldCon
 function Idioms({ save, content, pinyin }: { save: WorldSave; content: WorldContent; pinyin: boolean }) {
   const rows = idiomRows(save, content.idioms);
   const npcName = (id?: string) => content.npcs.find((n) => n.id === id)?.name;
-  if (!rows.length && !save.cat.name) return <Empty han="成">No 成语 yet. When someone says one, it is written here.</Empty>;
+  if (!rows.length) return <Empty han="成">No 成语 yet. When someone says one, it is written here.</Empty>;
   return (
     <>
       {!save.flags.includes('idiom-book') && <p className="tiny muted">The book 《成语故事》 itself turns up in a bookshop later; until then they are kept here.</p>}
@@ -335,6 +335,7 @@ function Idioms({ save, content, pinyin }: { save: WorldSave; content: WorldCont
             <div>
               <b className="han wp-name">{x.id}</b> <span className="small">{x.pinyin}</span>
               {x.tier === 'story' && <span className="tiny muted"> · a story</span>}
+              {x.line && <span className="tiny muted"> · from the {x.line} line</span>}
               <p className="wp-parts">
                 {x.parts.map((p, i) => (
                   <span key={i}>

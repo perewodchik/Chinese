@@ -63,6 +63,8 @@ export interface SceneOptions {
   sky?: 'none' | 'rain' | 'snow';
   /** 兔儿爷's hat for the day (X7) */
   hat?: 'none' | 'snow' | 'flower' | 'armour';
+  /** the silver butterflies (X11): after dark they circle you with a little light */
+  butterflies?: () => boolean;
   /** whether the named 胡同 cat walks a step behind you on a map (X5) */
   pet?: (map: string) => boolean;
   /** the "show what I can use" setting: which people and things get a small mark over them; off without it */
@@ -97,6 +99,7 @@ export class WorldScene extends Phaser.Scene {
   private hat: Phaser.GameObjects.Sprite | null = null;
   private emote: Phaser.GameObjects.Sprite | null = null;
   private blush: Phaser.GameObjects.Sprite | null = null;
+  private flies: { sprite: Phaser.GameObjects.Sprite; light: Phaser.GameObjects.Image; phase: number }[] = [];
   private petRight = false;
   /** the shared bike under the hero, while riding one */
   private bikeSprite: Phaser.GameObjects.Sprite | null = null;
@@ -238,6 +241,14 @@ export class WorldScene extends Phaser.Scene {
     this.blush = null;
     this.setHat(this.opts.hat ?? 'none');
     this.events.on(Phaser.Scenes.Events.POST_UPDATE, () => this.dressRabbit());
+    this.flies = this.opts.butterflies?.()
+      ? [0, Math.PI].map((phase) => ({
+          phase,
+          sprite: this.add.sprite(x, y, 'props', 'butterfly/open').setOrigin(0.5, 0.5).setScale(0.6).setDepth(20_002),
+          light: this.add.image(x, y, 'glow').setDisplaySize(56, 56).setTint(0xdfe8ff).setBlendMode(Phaser.BlendModes.ADD).setDepth(20_001),
+        }))
+      : [];
+    this.showFlies();
     this.pet = this.opts.pet?.(this.opts.map) ? this.add.sprite(x - TILE, y + 1, 'props', 'cat/sit').setOrigin(0, 1).setDepth(y + 0.4) : null;
     this.placeRabbit(this.at, 0, this.pet ? [this.at[0] - 1, this.at[1]] : null);
     // the bob is in the frames: 0 up, 1 down
@@ -285,6 +296,7 @@ export class WorldScene extends Phaser.Scene {
   setTime(time: PartOfDay, soft = true) {
     const look = DAY_LOOK[time];
     this.opts = { ...this.opts, time };
+    if (this.flies?.length) this.showFlies();
     const shade = this.shade!;
     const from = Phaser.Display.Color.IntegerToColor(shade.fillColor);
     const to = Phaser.Display.Color.IntegerToColor(look.tint);
@@ -353,8 +365,26 @@ export class WorldScene extends Phaser.Scene {
       .setDepth(20_002);
   }
 
-  /** His hat and feelings ride with him, bobbing as he bobs (X7). */
+  /** The butterflies only come out after dark. */
+  private showFlies() {
+    const dark = this.opts.time === 'evening' || this.opts.time === 'night';
+    for (const f of this.flies) {
+      f.sprite.setVisible(dark);
+      f.light.setVisible(dark).setAlpha(this.opts.time === 'night' ? 0.55 : 0.35);
+    }
+  }
+
+  /** His hat and feelings ride with him, bobbing as he bobs (X7); the butterflies circle you (X11). */
   private dressRabbit() {
+    if (this.flies.length && this.hero) {
+      const t = this.time.now / 1000;
+      for (const f of this.flies) {
+        const x = this.hero.x + 8 + Math.cos(t * 1.3 + f.phase) * 14;
+        const y = this.hero.y - 20 + Math.sin(t * 2.1 + f.phase) * 6;
+        f.sprite.setPosition(Math.round(x), Math.round(y)).setFrame(Math.sin(t * 12 + f.phase) > 0 ? 'butterfly/open' : 'butterfly/shut');
+        f.light.setPosition(x, y);
+      }
+    }
     const r = this.rabbit;
     if (!r) return;
     const bob = r.frame.name.endsWith('1') ? 1 : 0;

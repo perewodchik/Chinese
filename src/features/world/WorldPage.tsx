@@ -357,6 +357,8 @@ export function WorldPage() {
           bike: game.current()?.flags.includes('on-bike') ?? false,
           // today's weather (X4); ?weather=rain|snow|none tries one out
           sky: oneOf(query.get('weather'), ['rain', 'snow', 'none'] as const, skyOf(weatherOf(dayOf(game.current()?.clock ?? 0)))),
+          // the silver butterflies light the way after dark (X11)
+          butterflies: () => game.current()?.flags.includes('yindie') ?? false,
           // 兔儿爷 dresses for the day (X7)
           hat: hatFor(game.current()?.clock ?? 0),
           // the named cat follows you in 帽儿胡同 (X5)

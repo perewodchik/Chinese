@@ -208,5 +208,119 @@
     12
    ]
   }
+ },
+ {
+  "kind": "npc",
+  "id": "bai",
+  "npc": "bai-xiansheng",
+  "tile": [
+   30,
+   8
+  ],
+  "facing": "left",
+  "when": {
+   "hours": [
+    7,
+    12
+   ]
+  }
+ },
+ {
+  "kind": "npc",
+  "id": "bai-night",
+  "npc": "bai-xiansheng",
+  "tile": [
+   31,
+   7
+  ],
+  "facing": "up",
+  "when": {
+   "all": [
+    {
+     "festival": "yuanxiao"
+    },
+    {
+     "hours": [
+      19,
+      24
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "kind": "npc",
+  "id": "hong",
+  "npc": "hong-xiansheng",
+  "tile": [
+   34,
+   8
+  ],
+  "facing": "left",
+  "when": {
+   "hours": [
+    20,
+    5
+   ]
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "xiaomiao-ruined",
+  "tile": [
+   32,
+   5
+  ],
+  "frame": "shrine/ruined",
+  "blocks": [
+   2,
+   1
+  ],
+  "when": {
+   "not": {
+    "flag": "shrine-half"
+   }
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "xiaomiao-half",
+  "tile": [
+   32,
+   5
+  ],
+  "frame": "shrine/half",
+  "blocks": [
+   2,
+   1
+  ],
+  "when": {
+   "all": [
+    {
+     "flag": "shrine-half"
+    },
+    {
+     "not": {
+      "flag": "shrine-done"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "xiaomiao-done",
+  "tile": [
+   32,
+   5
+  ],
+  "frame": "shrine/done",
+  "blocks": [
+   2,
+   1
+  ],
+  "when": {
+   "flag": "shrine-done"
+  }
  }
 ]

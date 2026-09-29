@@ -582,5 +582,116 @@
     ]
    }
   ]
+ },
+ {
+  "id": "tg-guishi",
+  "map": "panjiayuan-market",
+  "npc": "gui-maijia",
+  "trigger": "talk",
+  "once": true,
+  "priority": -3,
+  "stamp": "guishi",
+  "when": {
+   "all": [
+    {
+     "quest": "side-tianguan",
+     "step": "lamp"
+    },
+    {
+     "hours": [
+      20,
+      5
+     ]
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "鬼市",
+    "explain": "晚上的市场，很奇怪的东西都有。",
+    "en": "ghost market"
+   },
+   {
+    "w": "长明灯",
+    "explain": "一直亮着的灯。",
+    "en": "ever-burning lamp"
+   },
+   {
+    "w": "谜",
+    "explain": "一个问题，你要想一想。",
+    "en": "riddle"
+   },
+   {
+    "w": "洗手",
+    "explain": "用水让手干净。",
+    "en": "to wash your hands"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这是鬼市。你要什么？",
+    "translate": "Heh heh… this is the ghost market. What do you want?",
+    "next": "b",
+    "simpler": "鬼市！你要什么？"
+   },
+   {
+    "id": "b",
+    "say": "长明灯？好。一个谜：洗手的时候，要它。它是什么？",
+    "translate": "The lamp? Fine. A riddle: when you wash your hands, you need it. What is it?",
+    "simpler": "一个谜：洗手要它。",
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "💧 water",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "🔥 fire"
+      },
+      {
+       "id": "o2",
+       "label": "🧦 a sock"
+      }
+     ],
+     "go": "c"
+    },
+    "why": "The answer is 水: you wash your hands in water."
+   },
+   {
+    "id": "c",
+    "say": "对！长明灯给你。",
+    "translate": "Right! The lamp is yours.",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "changmingdeng"
+     }
+    ],
+    "next": "d"
+   },
+   {
+    "id": "d",
+    "say": "好人坏人，一念之间。",
+    "translate": "Good or bad — it all comes down to a single thought.",
+    "speaker": "hong-xiansheng",
+    "key": true,
+    "onEnter": [
+     {
+      "do": "idiom",
+      "idiom": "一念之间"
+     },
+     {
+      "do": "quest",
+      "quest": "side-tianguan",
+      "step": "yuanxiao"
+     }
+    ],
+    "why": "一念之间, “in the space of one thought”. This is his market, it seems."
+   }
+  ]
  }
 ]

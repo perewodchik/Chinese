@@ -709,5 +709,65 @@
     "explains": {
       "说书": "一个人给大家说故事。"
     }
+  },
+  {
+    "id": "bai-xiansheng",
+    "name": "白先生",
+    "role": "a gentle man in plain white who collects scrap with the recycler",
+    "look": {
+      "sprite": "uncle",
+      "palette": "apron"
+    },
+    "voice": "zhiyuan",
+    "character": "Endlessly unlucky and never complains; kind to everyone, including people who are not kind back.",
+    "knows": [
+      "An old shrine at the end of the lane, forgotten for years"
+    ],
+    "wants": [
+      "To mend the shrine"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "小庙": "很小的庙。",
+      "百无禁忌": "什么都不怕，没关系。"
+    }
+  },
+  {
+    "id": "hong-xiansheng",
+    "name": "红衣人",
+    "role": "a young man in red who is only ever seen after dark",
+    "look": {
+      "sprite": "uncle",
+      "palette": "red"
+    },
+    "voice": "wei",
+    "character": "Quiet, amused, fiercely protective of the man in white — who does not seem to know him.",
+    "knows": [
+      "The ghost market at 潘家园"
+    ],
+    "wants": [
+      "That the shrine is mended"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "银蝶": "银色的蝴蝶，晚上会亮。",
+      "鬼市": "晚上的市场。"
+    }
   }
 ]

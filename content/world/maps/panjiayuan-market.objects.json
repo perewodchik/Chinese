@@ -263,5 +263,45 @@
    11
   ],
   "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "gui",
+  "npc": "gui-maijia",
+  "tile": [
+   30,
+   16
+  ],
+  "facing": "down",
+  "when": {
+   "hours": [
+    20,
+    5
+   ]
+  }
+ },
+ {
+  "kind": "npc",
+  "id": "hong-market",
+  "npc": "hong-xiansheng",
+  "tile": [
+   33,
+   16
+  ],
+  "facing": "left",
+  "when": {
+   "all": [
+    {
+     "hours": [
+      20,
+      5
+     ]
+    },
+    {
+     "quest": "side-tianguan",
+     "step": "lamp"
+    }
+   ]
+  }
  }
 ]

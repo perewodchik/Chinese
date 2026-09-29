@@ -26,5 +26,12 @@
     "en": "The camel bell",
     "place": "panjiayuan-market",
     "design": "yingzi"
+  },
+  {
+    "id": "guishi",
+    "name": "鬼市",
+    "en": "The ghost market",
+    "place": "panjiayuan-market",
+    "design": "guishi"
   }
 ]

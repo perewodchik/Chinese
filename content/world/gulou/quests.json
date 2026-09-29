@@ -515,5 +515,38 @@
         "now": "At 中秋, make mooncakes with 王阿姨 — and hear 兔儿爷’s own story."
       }
     ]
+  },
+  {
+    "id": "side-tianguan",
+    "title": "《天官赐福》 — the little shrine",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "meet",
+        "now": "A gentle man in white collects old things with the recycler in 帽儿胡同 in the mornings."
+      },
+      {
+        "id": "gather",
+        "now": "The shrine needs wood, red cloth and incense. Ask friends who like you (two hearts): 张师傅, 王阿姨, 李阿姨."
+      },
+      {
+        "id": "night",
+        "now": "Come back to the shrine in 帽儿胡同 after dark.",
+        "done": {
+          "flag": "yindie"
+        }
+      },
+      {
+        "id": "lamp",
+        "now": "Find the ever-burning lamp at the ghost market — 潘家园 after eight at night.",
+        "done": {
+          "item": "changmingdeng"
+        }
+      },
+      {
+        "id": "yuanxiao",
+        "now": "On the night of 元宵 (the Lantern Festival), bring the lamp to 白先生 at the shrine."
+      }
+    ]
   }
 ]

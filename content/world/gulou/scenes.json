@@ -8043,5 +8043,682 @@
     ]
    }
   ]
+ },
+ {
+  "id": "xiaomiao-look-ruined",
+  "map": "hutong-home",
+  "object": "xiaomiao-ruined",
+  "trigger": "look",
+  "priority": 5,
+  "start": "a",
+  "words": [
+   {
+    "w": "小庙",
+    "explain": "很小的庙，人们在里面说自己想要的。",
+    "en": "a little shrine"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "一个小庙。没有人来。",
+    "translate": "A little shrine, very old. Nobody comes.",
+    "speaker": "hero",
+    "simpler": "小庙没有人来。"
+   }
+  ]
+ },
+ {
+  "id": "xiaomiao-look-half",
+  "map": "hutong-home",
+  "object": "xiaomiao-half",
+  "trigger": "look",
+  "priority": 5,
+  "start": "a",
+  "words": [
+   {
+    "w": "小庙",
+    "explain": "很小的庙，人们在里面说自己想要的。",
+    "en": "a little shrine"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "小庙好了一半。",
+    "translate": "The little shrine is half mended.",
+    "speaker": "hero",
+    "simpler": "小庙快好了。"
+   }
+  ]
+ },
+ {
+  "id": "xiaomiao-look-done",
+  "map": "hutong-home",
+  "object": "xiaomiao-done",
+  "trigger": "look",
+  "priority": 5,
+  "start": "a",
+  "words": [
+   {
+    "w": "小庙",
+    "explain": "很小的庙，人们在里面说自己想要的。",
+    "en": "a little shrine"
+   },
+   {
+    "w": "长明灯",
+    "explain": "一直亮着的灯。",
+    "en": "ever-burning lamp"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "小庙里有长明灯，晚上也很好看。",
+    "translate": "The lamp in the little shrine never goes out.",
+    "speaker": "hero",
+    "simpler": "小庙的长明灯很好看。"
+   }
+  ]
+ },
+ {
+  "id": "tg-meet",
+  "map": "hutong-home",
+  "npc": "bai-xiansheng",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "flag": "met-polan"
+    },
+    {
+     "chapter": 2
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "小庙",
+    "explain": "很小的庙，人们在里面说自己想要的。",
+    "en": "a little shrine"
+   },
+   {
+    "w": "木头",
+    "explain": "树做的，可以做门。",
+    "en": "wood"
+   },
+   {
+    "w": "红布",
+    "explain": "红色的布。",
+    "en": "red cloth"
+   },
+   {
+    "w": "香",
+    "explain": "点了有好闻的味道，在庙里用。",
+    "en": "incense"
+   },
+   {
+    "w": "收破烂儿",
+    "explain": "买旧东西的人。",
+    "en": "the recycler"
+   },
+   {
+    "w": "掉",
+    "explain": "从上面到了地上。",
+    "en": "to drop"
+   },
+   {
+    "w": "胡同",
+    "explain": "北京的小路。",
+    "en": "hutong, lane"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好。我姓白。我是收破烂儿的。",
+    "translate": "Hello. My name is Bai. I collect old things with the recycler.",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-tianguan",
+      "step": "meet"
+     }
+    ],
+    "why": "Homage to 墨香铜臭’s novel 《天官赐福》 (Heaven Official’s Blessing): an unlucky god in white who collects scrap and never complains, and a man in red with silver butterflies. The characters here are new; the blessing itself, 天官赐福, is real folk custom — the Heavenly Official’s gift at the Lantern Festival.",
+    "simpler": "我是收破烂儿的。"
+   },
+   {
+    "id": "b",
+    "say": "啊……我的东西都掉了。",
+    "translate": "Ah… everything I was carrying has fallen.",
+    "next": "c",
+    "simpler": "东西掉了。"
+   },
+   {
+    "id": "c",
+    "say": "没关系。百无禁忌！",
+    "translate": "Never mind. 百无禁忌 — nothing is unlucky!",
+    "key": true,
+    "onEnter": [
+     {
+      "do": "idiom",
+      "idiom": "百无禁忌"
+     }
+    ],
+    "next": "d",
+    "why": "百无禁忌: “a hundred things, none forbidden” — what you say when something goes wrong and you refuse to call it a bad sign."
+   },
+   {
+    "id": "d",
+    "say": "胡同东边有一个小庙，没有人去。你能帮我吗？",
+    "translate": "At the east end of the lane there’s a little shrine, very old, nobody goes. Could you help me?",
+    "simpler": "胡同里的小庙，你帮我吗？",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "能",
+        "好",
+        "可以",
+        "帮"
+       ]
+      ],
+      "go": "e"
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，我帮你！",
+     "full": "好，我帮你！"
+    }
+   },
+   {
+    "id": "e",
+    "say": "谢谢你！小庙要木头、红布和香。你问问你的朋友吧。",
+    "translate": "Thank you! The shrine needs wood, red cloth and incense. Ask your friends.",
+    "simpler": "要木头、红布、香。",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-tianguan",
+      "step": "gather"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "tg-wood",
+  "map": "lifadian",
+  "npc": "zhang-shifu",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "side-tianguan",
+     "step": "gather"
+    },
+    {
+     "hearts": "zhang-shifu",
+     "min": 2
+    },
+    {
+     "not": {
+      "item": "mutou"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "木头",
+    "explain": "树做的，可以做门。",
+    "en": "wood"
+   },
+   {
+    "w": "小庙",
+    "explain": "很小的庙，人们在里面说自己想要的。",
+    "en": "a little shrine"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "小庙？我有一些木头，给你吧！",
+    "translate": "The shrine? I have some old wood — take it!",
+    "simpler": "木头给你，给小庙！",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "mutou"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "tg-cloth",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "side-tianguan",
+     "step": "gather"
+    },
+    {
+     "hearts": "wang-ayi",
+     "min": 2
+    },
+    {
+     "not": {
+      "item": "hongbu"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "红布",
+    "explain": "红色的布。",
+    "en": "red cloth"
+   },
+   {
+    "w": "小庙",
+    "explain": "很小的庙，人们在里面说自己想要的。",
+    "en": "a little shrine"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "红布？我有！给你，给小庙。",
+    "translate": "Red cloth? I have some! Here — for the shrine.",
+    "simpler": "红布给你，给小庙！",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "hongbu"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "tg-incense",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "side-tianguan",
+     "step": "gather"
+    },
+    {
+     "hearts": "li-ayi",
+     "min": 2
+    },
+    {
+     "not": {
+      "item": "xiang"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "香",
+    "explain": "点了有好闻的味道，在庙里用。",
+    "en": "incense"
+   },
+   {
+    "w": "小庙",
+    "explain": "很小的庙，人们在里面说自己想要的。",
+    "en": "a little shrine"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "香？我这儿有。给小庙的，不要钱。",
+    "translate": "Incense? I have some. For the shrine — no charge.",
+    "simpler": "香给你，给小庙！",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "xiang"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "tg-build",
+  "map": "hutong-home",
+  "npc": "bai-xiansheng",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "side-tianguan",
+     "step": "gather"
+    },
+    {
+     "item": "mutou"
+    },
+    {
+     "item": "hongbu"
+    },
+    {
+     "item": "xiang"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "木头",
+    "explain": "树做的，可以做门。",
+    "en": "wood"
+   },
+   {
+    "w": "红布",
+    "explain": "红色的布。",
+    "en": "red cloth"
+   },
+   {
+    "w": "香",
+    "explain": "点了有好闻的味道，在庙里用。",
+    "en": "incense"
+   },
+   {
+    "w": "小庙",
+    "explain": "很小的庙，人们在里面说自己想要的。",
+    "en": "a little shrine"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "木头、红布、香，都有了！我们一起做吧！",
+    "translate": "Wood, red cloth, incense — we have it all! Let’s do it together!",
+    "simpler": "木头、红布、香，都有了！",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "mutou"
+     },
+     {
+      "do": "take",
+      "item": "hongbu"
+     },
+     {
+      "do": "take",
+      "item": "xiang"
+     },
+     {
+      "do": "flag",
+      "flag": "shrine-half"
+     },
+     {
+      "do": "hearts",
+      "npc": "bai-xiansheng",
+      "delta": 1
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "say": "……小庙好了一半！下雨了？百无禁忌！",
+    "translate": "…The shrine is half mended! Oh — it’s raining. 百无禁忌!",
+    "key": true,
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "晚上，你再来看看小庙吧。",
+    "translate": "Come and look at the shrine again this evening.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-tianguan",
+      "step": "night"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "tg-red",
+  "map": "hutong-home",
+  "npc": "hong-xiansheng",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "flag": "shrine-half"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "银蝶",
+    "explain": "银色的小蝴蝶，晚上会亮。",
+    "en": "silver butterflies"
+   },
+   {
+    "w": "鬼市",
+    "explain": "晚上的市场，很奇怪的东西都有。",
+    "en": "ghost market"
+   },
+   {
+    "w": "长明灯",
+    "explain": "一直亮着的灯。",
+    "en": "ever-burning lamp"
+   },
+   {
+    "w": "小庙",
+    "explain": "很小的庙，人们在里面说自己想要的。",
+    "en": "a little shrine"
+   },
+   {
+    "w": "胡同",
+    "explain": "北京的小路。",
+    "en": "hutong, lane"
+   },
+   {
+    "w": "黑",
+    "explain": "晚上没有灯，看不见。",
+    "en": "dark"
+   },
+   {
+    "w": "带路",
+    "explain": "在前面走，让你跟着。",
+    "en": "to lead the way"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你也来看小庙？它很漂亮。",
+    "translate": "You’ve come to see the shrine too? It used to be beautiful.",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "晚上胡同里很黑。我的银蝶给你，它们给你带路。",
+    "translate": "The lanes are dark at night. My silver butterflies are yours — they’ll light your way.",
+    "simpler": "胡同很黑，银蝶给你带路。",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "yindie"
+     }
+    ],
+    "next": "c",
+    "why": "From tonight two silver butterflies circle you after dark."
+   },
+   {
+    "id": "c",
+    "say": "我说：所向披靡！",
+    "translate": "My motto: 所向披靡 — nothing stands in my way!",
+    "key": true,
+    "onEnter": [
+     {
+      "do": "idiom",
+      "idiom": "所向披靡"
+     }
+    ],
+    "next": "d"
+   },
+   {
+    "id": "d",
+    "say": "小庙还要一个长明灯。潘家园晚上有一个鬼市，那儿有长明灯。",
+    "translate": "The shrine still needs an ever-burning lamp. At night 潘家园 becomes a ghost market — there’s one there.",
+    "simpler": "鬼市有长明灯。",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-tianguan",
+      "step": "lamp"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "tg-finale",
+  "map": "hutong-home",
+  "npc": "bai-xiansheng",
+  "trigger": "talk",
+  "once": true,
+  "priority": -3,
+  "stamp": "tianguan",
+  "when": {
+   "all": [
+    {
+     "quest": "side-tianguan",
+     "step": "yuanxiao"
+    },
+    {
+     "festival": "yuanxiao"
+    },
+    {
+     "hours": [
+      19,
+      24
+     ]
+    },
+    {
+     "item": "changmingdeng"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "长明灯",
+    "explain": "一直亮着的灯。",
+    "en": "ever-burning lamp"
+   },
+   {
+    "w": "小庙",
+    "explain": "很小的庙，人们在里面说自己想要的。",
+    "en": "a little shrine"
+   },
+   {
+    "w": "灯",
+    "explain": "晚上亮的东西。",
+    "en": "lamp, lantern"
+   },
+   {
+    "w": "天上",
+    "explain": "上面，很高的地方。",
+    "en": "in the sky"
+   },
+   {
+    "w": "灯笼",
+    "explain": "红色的灯，挂在门上。",
+    "en": "lantern"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "长明灯在小庙里……好了！小庙好了！",
+    "translate": "The ever-burning lamp goes in the shrine… there! The shrine is mended!",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "changmingdeng"
+     },
+     {
+      "do": "flag",
+      "flag": "shrine-done"
+     }
+    ],
+    "next": "b",
+    "simpler": "长明灯在小庙里了！"
+   },
+   {
+    "id": "b",
+    "say": "你看天上！",
+    "translate": "Look at the sky!",
+    "next": "c",
+    "simpler": "天上！"
+   },
+   {
+    "id": "c",
+    "say": "很多很多灯！我的灯笼，现在好了！",
+    "translate": "Lanterns, so many! And my lantern — it’s mended now!",
+    "speaker": "companion",
+    "next": "d",
+    "why": "On 元宵 night people send lanterns up into the sky; 兔儿爷’s own lantern — the one that broke in chapter 1 — is mended too.",
+    "simpler": "我的灯笼好了！"
+   },
+   {
+    "id": "d",
+    "say": "上元快乐。",
+    "translate": "A happy 上元.",
+    "speaker": "hong-xiansheng",
+    "next": "e"
+   },
+   {
+    "id": "e",
+    "say": "谢谢你。天官赐福！",
+    "translate": "Thank you. 天官赐福 — may Heaven’s Official bless you!",
+    "onEnter": [
+     {
+      "do": "spirit",
+      "spirit": "tianguan"
+     },
+     {
+      "do": "hearts",
+      "npc": "bai-xiansheng",
+      "delta": 1
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-tianguan"
+     }
+    ]
+   }
+  ]
  }
 ]
