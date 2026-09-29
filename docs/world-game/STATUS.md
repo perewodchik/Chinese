@@ -30,7 +30,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-W6 → W7 (§12 people noticing, checks); W5 done (racks in the talk engine, the rack sheet, 10 racks). The §10 menu is done (P1–P4, J1–J3; save v12 = Practise, after v10 = journal and v11 = wardrobe); checked in WebKit and Chromium on the Mac. The X12 play-through waits for the learner and comes after W7; M6 after the learner has looked at the maps.
+W7 (§12 checks); W5 (racks) and W6 (people notice) done. The §10 menu is done (P1–P4, J1–J3; save v12 = Practise, after v10 = journal and v11 = wardrobe); checked in WebKit and Chromium on the Mac. The X12 play-through waits for the learner and comes after W7; M6 after the learner has looked at the maps.
 
 ## Tasks
 ### A — core logic
@@ -149,7 +149,7 @@ W6 → W7 (§12 people noticing, checks); W5 done (racks in the talk engine, the
 - [x] W3 Character creator 创建角色 once per new game (and once for existing saves, prefilled): build, skin, eyes/brows/mouth, hair + colour, "people call me"; 🎲
 - [x] W4 Your room: 衣柜 (wardrobe sheet — slots, wear/take off, 套装 1–3, item card, Sell) and 镜子 (body/face/hair) as props in siheyuan-room
 - [x] W5 Clothes shops, real names: 瑞蚨祥, 内联升 (大栅栏), 盛锡福, 王府井百货大楼 (2 floors), 李宁 / 回力 (三里屯), 南锣鼓巷 文创, 潘家园 vintage (bargain), 理发店 hair menu; rack talk + 试衣间 + 支付宝 + 穿着走; seasonal stock; economy.md + solver
-- [ ] W6 People notice (one comment per new thing, red at 春节), 兔儿爷 remarks, photos and diary show the outfit
+- [x] W6 People notice (one comment per new thing, red at 春节), 兔儿爷 remarks, photos and diary show the outfit
 - [ ] W7 Checks: composer/save/rack tests, world:check (art for every colour, a shop, a measure word; brands.md with sources), review/w/ renders, pane + WebKit 375/768/1024 light/dark
 
 ## Decisions made without the learner
@@ -256,6 +256,7 @@ _(date — decision — why)_
 - 2026-09-29 — W5: **the rack talk is part of the talk engine** (`core/rack.ts`, a `rack` node generated per rack like Y1's shop scenes; `rackScenes(clothes)` joins the page's, the solver's and the tests' scenes, because racks live in `clothes.json`, not a district). Looking at a thing = naming it or tapping its card; the price line lists the colours on sale; 「有X的吗」 switches or says 「没有X的，有…」; 「我可以试试吗」 marks it tried (the sheet's 试衣间 then turns); 「太贵了」 is 「对不起，不能便宜。」 except at 潘家园, where Y6's `haggle` runs on the thing looked at (lowest ≈ ⅗, `rackBargain`); 「我要这件」 → Y2's phone; after paying 「谢谢！穿着走吗？」 waits for 穿着走 (the one change outside home) or a bag. Colour-level `when` added to clothes.json for the red 毛衣 at 春节.
 - 2026-09-29 — W5: **the rack sheet's buttons say the phrases** (`ui/RackSheet.tsx`): a card tap sends 「这件旗袍多少钱？」, a dot 「有绿的吗？」, the row 这件多少钱 · 试试 · (太贵了 at 潘家园) · 我要这件 · 再见 — so a tap is the same line as typing it, shown in your history. The sheet sits over the top of the talk at a fixed height (202px, a row that scrolls sideways; no 试衣间 column on short screens) and hides while the phone is out. Class prefix `wk-` (`wr-` is the ride sheet's).
 - 2026-09-29 — W5: shops. **Interiors** for 瑞蚨祥 and 内联升 (doors on 前门大街's 大栅栏 end) and 百货大楼 on **two floors** (a door on 王府井大街, stairs at the back); **sellers at their shopfronts** for 盛锡福 (王府井), 李宁 and 回力 (三里屯), a 文创 shop (南锣鼓巷) and an old-clothes rail at 潘家园 — a door with nothing inside it would have been a locked door. 汉服 is sold cheaply during the 元宵 week rather than hired (hiring needs a give-back). The first 30-元 haircut (side quest) is now `once`; after it 张师傅's scene is the hair menu (a cut 30, a colour 40; 剪短一点 goes one style shorter). The 穿着 / 发 readings the word list gets wrong are given as the game's own words (`RACK_WORDS`) and a manual reading on 「谢谢！穿着走吗？」.
+- 2026-09-29 — W6: **a friend's remark is a line before their usual one** (`core/notice.ts`, asked by the talk engine as any talk starts, shown in the chime slot the 支付宝 box uses): only people with a heart or more; each new thing (not what you arrived in) is noticed once by whoever you talk to first (flag `noticed:<item>`, a note in their memory); 王阿姨, 老刘, 赵爷爷 and 李阿姨 have their own lines, the 旗袍, 西装, 中山装 and 熊猫帽 their own, the rest go by slot. In red at 春节 every friend says 「穿红的，过年好！」 and gains a heart, once each a festival (flag `red-<year>-<npc>`) — flags, so no save version. 兔儿爷's remarks come on arriving somewhere, each kind once a game day (kept by the page, not saved). Photos already show the outfit (they are canvas shots); the diary's 「今天我穿了…」 comes from W2. Checked by tests (`notice.test.ts`); in the pane only the chime slot itself (seen at the 支付宝 box) — the golden chapter-6 save has 王阿姨 away from the yard.
 - 2026-09-29 — W5: new lines (the racks, the barber's menu) have no recorded voices yet — the system voice says them, as for Y3's.
 
 ## Problems / notes

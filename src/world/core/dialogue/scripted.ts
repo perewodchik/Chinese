@@ -24,6 +24,7 @@ import { cartTotal, cartZh, DONE_WORDS, mischargeDay, parseOrder, PAY_LINES, pri
 import { dayOf } from '../clock';
 import { holds } from '../flags';
 import { bargainAnswer, haggle, startHaggle } from '../bargain';
+import { noticeAt } from '../notice';
 import { RACK_LINES, rackHint, rackOf, rackStock, rackTurn } from '../rack';
 import { EMPTY_CLOTHES, type ClothesContent } from '../wardrobe';
 
@@ -449,7 +450,15 @@ export class ScriptedDialogue implements DialogueSource {
           }
         : {}),
     };
-    return { kind: 'start', say: this.line(scene, n, 'say', false, state.name), actions: [...meet, ...this.enter(scene, n)], state };
+    // a friend notices what you wear, once for each new thing (§12 W6): a line before their usual one
+    const noticed = save && scene.npc && scene.trigger === 'talk' && !scene.id.startsWith('line-') ? noticeAt(save, scene.npc, this.clothes) : null;
+    return {
+      kind: 'start',
+      ...(noticed ? { chime: this.aside(scene, noticed.zh, noticed.en) } : {}),
+      say: this.line(scene, n, 'say', false, state.name),
+      actions: [...meet, ...(noticed?.actions ?? []), ...this.enter(scene, n)],
+      state,
+    };
   }
 
   /** Leave `from` for `to` (or end), with the actions on the way. */

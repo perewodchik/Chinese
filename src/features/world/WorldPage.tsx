@@ -53,6 +53,8 @@ import { dressOf } from '../../world/ui/HeroFigure';
 import { setCurrentDress } from '../../world/ui/heroPicture';
 import { WardrobeSheet } from '../../world/ui/WardrobeSheet';
 import { RackSheet } from '../../world/ui/RackSheet';
+import { remarkAt } from '../../world/core/notice';
+import { PLACES } from '../../world/core/places';
 import { homeProp } from '../../world/core/wardrobe';
 
 const TIMES: PartOfDay[] = ['morning', 'day', 'evening', 'night'];
@@ -201,6 +203,8 @@ export function WorldPage() {
   const [creator, setCreator] = useState<CreatorMode | null>(null);
   /** a scene that starts by itself waits while the creator is open (the first morning comes after it) */
   const pendingAuto = useRef<Scene | null>(null);
+  /** 兔儿爷's remarks on your clothes already made (W6): kind-day */
+  const remarked = useRef(new Set<string>());
   /** the 衣柜 at home (W4) */
   const [wardrobe, setWardrobe] = useState(false);
   const remix = (minutes?: number) => {
@@ -286,6 +290,13 @@ export function WorldPage() {
             here.current = { id: info.id, life: info.life, objects: info.objects };
             remix();
             if (info.id.startsWith('station-')) ambient.current?.chime();
+            // 兔儿爷 on what you wear here (§12 W6): a T-shirt in the snow, a hat indoors — each once a day
+            const kind = PLACES.find((p) => p.map === info.id)?.kind;
+            const remark = s && kind ? remarkAt(s, kind, (s.bag.items.yusan ?? 0) > 0) : null;
+            if (s && remark && !remarked.current.has(`${remark.kind}-${dayOf(s.clock)}`)) {
+              remarked.current.add(`${remark.kind}-${dayOf(s.clock)}`);
+              setPal((p) => ({ open: p.open, said: remark.text }));
+            }
             // a scene that starts by itself here (the first morning, a first visit)
             const auto = s && autoScene(contentRef.current.scenes, s, info.id);
             // before the first morning: who you are (W3); the scene waits for the creator's Done
