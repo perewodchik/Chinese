@@ -85,7 +85,7 @@ X9
 - [x] I2 iPad pass (code-level; the WebKit probe and frame rate need a running server — see notes)
 - [x] I3 Final summary
 
-### X — Beijing+ (prompt §9½, before other cities)
+### X — Beijing+ (prompt §9½)
 - [x] X0 QA harness: quest solver, golden saves, map probe, crash guard, stress; fix A–I (map probe written, not run — needs the server)
 - [x] X1 Usable items + gifts (umbrella, 红包, 春联/福 wait for X4's weather and festivals; kite/毽子/空竹 toys for X8)
 - [x] X2 Friendship hearts, NPC memory, personal stories
@@ -106,29 +106,6 @@ X9
 - [ ] Y6 Bargaining 砍价 + Chinese number parser
 - [ ] Y7 Save format +1 (ledger, freshness, jobs), buy/earn diary lines, checks
 - [ ] X12 Final bug hunt over everything
-
-### J — 上海
-- [ ] J0 The world knows about cities (types, save v+1, map switcher)
-- [ ] J1 Design concept-shanghai.md
-- [ ] J2 Home, 外滩, 南京路, 人民广场 maps
-- [ ] J3 NPCs + chapters 1–2
-- [ ] J4 豫园 · 城隍庙, 田子坊, 新天地
-- [ ] J5 武康路, 静安寺, 陆家嘴
-- [ ] J6 Day trips 朱家角, 杭州 西湖
-- [ ] J7 Finale on the Bund, side quests
-- [ ] J8 Train from Beijing, flight out to Chengdu
-- [ ] J9 Play-through check + notes
-
-### K — 成都
-- [ ] K1 Design concept-chengdu.md
-- [ ] K2 Home, 宽窄巷子, 人民公园 maps
-- [ ] K3 NPCs + chapters 1–2
-- [ ] K4 锦里 · 武侯祠, 春熙路 · 太古里
-- [ ] K5 熊猫基地, 文殊院, 杜甫草堂
-- [ ] K6 金沙, 玉林路 at night
-- [ ] K7 Day trips 都江堰 · 青城山, 三星堆; finale
-- [ ] K8 Side quests, ways back between cities
-- [ ] K9 Play-through check + notes
 
 ## Decisions made without the learner
 _(date — decision — why)_
