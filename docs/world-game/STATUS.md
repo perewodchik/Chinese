@@ -15,7 +15,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-X10
+M1
 
 ## Tasks
 ### A — core logic
@@ -96,8 +96,8 @@ X10
 - [x] X7 兔儿爷 alive
 - [x] X8 Beijing life activities
 - [x] X9 Book side quests (骆驼祥子, 茶馆, 城南旧事, 红楼梦, 孔乙己, 西游记, 三国演义)
-- [ ] X10 Tales and festival stories
-- [ ] M1 Neighbourhood layouts (streets, places on their street, station roundel, exits) + a thumbnail per map (prompt §9⅞)
+- [x] X10 Tales and festival stories
+- [ ] M1 **(taken by the interactive map session, 2026-09-29 — the builder skips M1–M5 and goes on to X11)** Neighbourhood layouts (streets, places on their street, station roundel, exits) + a thumbnail per map (prompt §9⅞)
 - [ ] M2 Minimap: always on, collapsible, auto-collapses indoors / expands outdoors
 - [ ] M3 🗺 panel reworked: your neighbourhood first, place cards with pictures, visited (save +1), task marker
 - [ ] M4 City as a metro diagram, drawn well (45°/90°, no label overlaps, neighbourhood bubbles)
@@ -177,6 +177,8 @@ _(date — decision — why)_
 - 2026-09-29 — X9: **side quests from books and theatre** — homages only: my own short lines, the source named in the first line's Why? note. 《骆驼祥子》: 祥子 on 南锣鼓巷 saves for a tricycle of his own; you take his two passengers where they ask (鼓楼, 后海). 《茶馆》: a guest in 老刘's teahouse keeps starting on the news under a new 「莫谈国事」 notice on the wall; steer him to the weather or food. 《城南旧事》: 英子 on 前门 street lost a small yellow camel bell; the antique seller at 潘家园 has three bells — pick the one she described. 《红楼梦》: a poetry club by the lake on 后海 (恭王府 is nearby) — pick the line that answers theirs (天上一个月亮 → 水里一个月亮). 《孔乙己》: an old scholar in the 国子监 courtyard asks you to write 回 (with a finger, X8's pad) and tells you there are four ways. 《西游记》: a boy dressed as 孙悟空 by the opera house turns into things — guess from his words (red, sweet → 🍎; four doors, carries people → 🚗). 《三国演义》: a storyteller in the teahouse, **one episode a day** — the Peach Garden oath, then (on another day) the Empty City; new condition `fresh` (you have not talked to that person yet today). Seven stamps. **Not built:** 猪八戒 on the snack street (who ordered what) and more 三国 episodes (the storyteller can easily take more: add `sanguo-3` with `{scene: sanguo-2}` + `fresh`).
 
 - 2026-09-29 — **Done with the learner (interactive session), before §9⅞:** a drawn city map with every place and walk routes (`core/places.ts`, `ui/CityMap.tsx`, `links` in `index.json`); held arrow keys walk continuously (Shift runs); "Mark what I can use" setting (diamonds over interactive things); every station's gates work (walk in with a card, out always; a gate sells a card) and every ticket machine sells/tops up the card (`core/machine.ts`); walking to the tracks opens the train board; the train list shows the next five stops; **Start over** in ⚙ (a `reset` action; `born` on the save — a newer game replaces an older one whole in the merge, `core/reset.test.ts`). Tests: all world tests pass. The learner then asked for §9⅞ (M1–M6).
+- 2026-09-29 — X10: **tales and festival stories.** 神笔马良: a boy painting by the lake at 北海 — tell him what to paint and it comes alive; he adds that a dragon's eyes are painted last (the palace finale's 画龙点睛). 孔融让梨 and 司马光砸缸: two boys in the 景山 park — the little brother picks the small pear; a friend has fallen into a water jar — break it with a stone. 牛郎织女: on 七夕 王阿姨 asks you to send magpies to the sky bridge; three magpies (new art) wait in the parks of 景山, 北海 and 天坛; when all three have flown she shows you the bridge. 兔儿爷's own story on 中秋: after 王阿姨's mooncake, you fill mooncakes with her and 兔儿爷 tells of 嫦娥 and the jade rabbit ('my… friend!'). 哪吒: a boy dressed as 哪吒 argues with the 孙悟空 boy (X9) who is stronger — say both, or pick one; every answer ends kindly. Six stamps.
+- 2026-09-29 — **Tests got slow, fixed:** since X4 the solver waits through a game year for weather and festivals, and the golden-save test ran it nine times (~20 minutes a suite, fought over with other sessions' test runs). Now (1) the solver indexes scenes by person / object / map instead of scanning all ~280 for every map × person × bag item — a full-game run went from ~60 s to 6 s with the same result; (2) the golden saves stop as soon as the main story is told. **On the learner's word ("test after you're done with everything else")** the tasks from X10 on are committed after the type check, the content check and a full solver run; the whole `npm test` runs once at the end.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
