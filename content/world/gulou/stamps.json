@@ -132,5 +132,19 @@
     "en": "The storyteller",
     "place": "chaguan",
     "design": "sanguo"
+  },
+  {
+    "id": "qixi",
+    "name": "七夕",
+    "en": "Magpies for 七夕",
+    "place": "siheyuan-yard",
+    "design": "qixi"
+  },
+  {
+    "id": "change",
+    "name": "玉兔",
+    "en": "The jade rabbit",
+    "place": "siheyuan-yard",
+    "design": "change"
   }
 ]

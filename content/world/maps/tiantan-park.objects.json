@@ -241,5 +241,31 @@
    15
   ],
   "facing": "left"
+ },
+ {
+  "kind": "prop",
+  "id": "magpie-3",
+  "tile": [
+   40,
+   20
+  ],
+  "frame": "magpie/sit",
+  "blocks": [
+   1,
+   1
+  ],
+  "when": {
+   "all": [
+    {
+     "quest": "side-magpies",
+     "step": "find"
+    },
+    {
+     "not": {
+      "flag": "magpie-3"
+     }
+    }
+   ]
+  }
  }
 ]

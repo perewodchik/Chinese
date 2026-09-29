@@ -91,5 +91,16 @@
         "now": "A boy dressed as 孙悟空 on 前门 street turns into things. Guess what from his words."
       }
     ]
+  },
+  {
+    "id": "side-nezha",
+    "title": "哪吒 or 孙悟空?",
+    "chapter": 3,
+    "steps": [
+      {
+        "id": "do",
+        "now": "Two boys on 前门 street argue who is stronger. Settle it."
+      }
+    ]
   }
 ]

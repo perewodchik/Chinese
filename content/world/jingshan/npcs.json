@@ -84,5 +84,90 @@
     "misses": [
       "哈？大声点儿！"
     ]
+  },
+  {
+    "id": "maliang",
+    "name": "马良",
+    "role": "a boy with a brush he says is magic, painting by the lake at 北海",
+    "look": {
+      "sprite": "kid"
+    },
+    "voice": "xiaoyu",
+    "character": "Serious, generous, sure that whatever he paints will come alive.",
+    "knows": [
+      "A painted thing comes alive — if you paint it right"
+    ],
+    "wants": [
+      "Someone to paint for"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "神笔": "画什么，什么就是真的的笔。"
+    }
+  },
+  {
+    "id": "rongrong",
+    "name": "小融",
+    "role": "a little boy in the park with a bag of pears",
+    "look": {
+      "sprite": "kid",
+      "palette": "blue"
+    },
+    "voice": "xiaoyu",
+    "character": "Polite beyond his years.",
+    "knows": [
+      "The youngest takes the smallest pear"
+    ],
+    "wants": [
+      "To do the right thing"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "梨": "黄色的水果，很甜。"
+    }
+  },
+  {
+    "id": "guangguang",
+    "name": "小光",
+    "role": "a quick-thinking boy playing by a big water jar",
+    "look": {
+      "sprite": "kid"
+    },
+    "voice": "xiaoyu",
+    "character": "Fast, brave, a little bossy.",
+    "knows": [
+      "A jar can be broken"
+    ],
+    "wants": [
+      "Help, now!"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "水缸": "很大的放水的东西。"
+    }
   }
 ]

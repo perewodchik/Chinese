@@ -150,5 +150,41 @@
    "map": "jingshan-park",
    "offset": 4
   }
+ },
+ {
+  "kind": "npc",
+  "id": "maliang",
+  "npc": "maliang",
+  "tile": [
+   20,
+   15
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "prop",
+  "id": "magpie-2",
+  "tile": [
+   30,
+   16
+  ],
+  "frame": "magpie/sit",
+  "blocks": [
+   1,
+   1
+  ],
+  "when": {
+   "all": [
+    {
+     "quest": "side-magpies",
+     "step": "find"
+    },
+    {
+     "not": {
+      "flag": "magpie-2"
+     }
+    }
+   ]
+  }
  }
 ]

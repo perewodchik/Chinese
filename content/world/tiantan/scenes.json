@@ -713,5 +713,49 @@
     "simpler": "空竹转了！"
    }
   ]
+ },
+ {
+  "id": "magpie-3",
+  "map": "tiantan-park",
+  "object": "magpie-3",
+  "trigger": "look",
+  "once": true,
+  "when": {
+   "quest": "side-magpies",
+   "step": "find"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "喜鹊",
+    "explain": "黑白色的鸟，中国人说它是好鸟。",
+    "en": "magpie"
+   },
+   {
+    "w": "天上",
+    "explain": "上面，很高的地方。",
+    "en": "in the sky"
+   },
+   {
+    "w": "桥",
+    "explain": "在水上，人从上面走过去。",
+    "en": "bridge"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "一只喜鹊！它飞了……去天上的桥那儿了。",
+    "translate": "A magpie! Off it flies… to the bridge in the sky.",
+    "speaker": "hero",
+    "simpler": "喜鹊飞了！去天上的桥！",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "magpie-3"
+     }
+    ]
+   }
+  ]
  }
 ]

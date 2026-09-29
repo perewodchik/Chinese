@@ -28,5 +28,26 @@
     "en": "Tai chi on Jingshan",
     "place": "jingshan-park",
     "design": "taiji"
+  },
+  {
+    "id": "maliang",
+    "name": "神笔",
+    "en": "The magic brush",
+    "place": "beihai-north",
+    "design": "maliang"
+  },
+  {
+    "id": "rangli",
+    "name": "让梨",
+    "en": "The small pear",
+    "place": "jingshan-park",
+    "design": "rangli"
+  },
+  {
+    "id": "simaguang",
+    "name": "砸缸",
+    "en": "The water jar",
+    "place": "jingshan-park",
+    "design": "simaguang"
   }
 ]

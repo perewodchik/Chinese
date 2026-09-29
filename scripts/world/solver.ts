@@ -90,22 +90,36 @@ const chapterOf = new Map(districts.flatMap((d) => d.district.maps.map((m) => [m
 /** Everything that could start now, in the parts of the city the story has reached (a player may wander ahead; the solver follows the story). */
 function candidates(s: WorldSave): Scene[] {
   const out: Scene[] = [];
+  const held = new Set(Object.entries(s.bag.items).filter(([, n]) => n > 0).map(([k]) => k));
   for (const m of maps) {
     if ((chapterOf.get(m.id) ?? 1) > s.chapter) continue;
-    const auto = autoScene(scenes, s, m.id);
+    const auto = autoScene(autoIdx.get(m.id) ?? [], s, m.id);
     if (auto) out.push(auto);
-    const held = Object.entries(s.bag.items).filter(([, n]) => n > 0).map(([k]) => k);
     for (const o of castMap(m.objects, m.id, npcs, s)) {
-      const sc = o.kind === 'npc' ? sceneFor(scenes, s, { npc: o.npc }) : o.kind === 'prop' || o.kind === 'sign' ? sceneFor(scenes, s, { look: o.id, map: m.id }) : null;
+      const list = o.kind === 'npc' ? talkIdx.get(o.npc) : o.kind === 'prop' || o.kind === 'sign' ? lookIdx.get(`${m.id}|${o.id}`) : undefined;
+      if (!list) continue;
+      const who = o.kind === 'npc' ? { npc: o.npc } : { look: o.id, map: m.id };
+      const sc = sceneFor(list, s, who);
       if (sc) out.push(sc);
-      // using what is in the bag on them (X1)
-      for (const use of held) {
-        const u = o.kind === 'npc' ? sceneFor(scenes, s, { npc: o.npc, use }) : o.kind === 'prop' || o.kind === 'sign' ? sceneFor(scenes, s, { look: o.id, map: m.id, use }) : null;
+      // using what is in the bag on them (X1): only the items some scene here is written for
+      for (const use of new Set(list.map((x) => x.use).filter((u): u is string => !!u && held.has(u)))) {
+        const u = sceneFor(list, s, { ...who, use });
         if (u) out.push(u);
       }
     }
   }
   return out;
+}
+
+/** Scenes by who or what they belong to, so a step looks at a handful instead of all of them. */
+const talkIdx = new Map<string, Scene[]>();
+const lookIdx = new Map<string, Scene[]>();
+const autoIdx = new Map<string, Scene[]>();
+for (const sc of scenes) {
+  const key = sc.trigger === 'talk' && sc.npc ? sc.npc : sc.trigger === 'look' ? `${sc.map}|${sc.object ?? sc.id}` : sc.trigger === 'auto' ? sc.map : null;
+  const idx = sc.trigger === 'talk' ? talkIdx : sc.trigger === 'look' ? lookIdx : sc.trigger === 'auto' ? autoIdx : null;
+  if (!key || !idx) continue;
+  idx.set(key, [...(idx.get(key) ?? []), sc]);
 }
 
 /** One talk with each person on the maps reached whom today's talk has not warmed yet (the page's small talk). */
@@ -143,13 +157,19 @@ function rideTo(s: WorldSave): { to: string; actions: SaveAction[] } | null {
   return null;
 }
 
-export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000): Run {
+/**
+ * `goal`: stop as soon as it holds (the golden saves only need the main
+ * story), and wait through the calendar only while it does not. Without one
+ * the solver plays everything: every quest and every stamp.
+ */
+export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000, goal?: (s: WorldSave) => boolean): Run {
   let s = start;
   const log: string[] = [];
   const short: string[] = [];
   const chapters = new Map<number, WorldSave>([[s.chapter, s]]);
   const tried = new Set<string>();
   for (let step = 0, idle = 0; step < maxSteps; step++) {
+    if (goal?.(s)) break;
     const key = progress(s);
     const next = candidates(s).find((sc) => !tried.has(`${sc.id}|${key}`));
     if (!next) {
@@ -190,7 +210,7 @@ export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000)
       }
       // nothing moves: let the day run on to the next part of it — through a whole
       // year of game days while a quest still waits for rain, snow or a festival (X4)
-      const waiting = quests.some((q) => !s.quests[q.id]?.done) || stampIds.some((id) => s.stamps[id] === undefined);
+      const waiting = goal ? !goal(s) : quests.some((q) => !s.quests[q.id]?.done) || stampIds.some((id) => s.stamps[id] === undefined);
       if (++idle > (waiting ? 4 * 60 : 8)) break;
       const hour = Math.floor(s.clock / 60) % 24;
       const to = [7, 12, 17, 20].find((h) => h > hour) ?? 31;

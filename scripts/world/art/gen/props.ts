@@ -877,6 +877,21 @@ export function rabbitHat(kind: 'snow' | 'flower' | 'armour'): Grid {
   return g.stamp(f, 0, 0);
 }
 
+// ---------------------------------------------------------------- X10: tales
+
+/** A magpie 喜鹊, 16×16: black head and back with a blue sheen, white belly and wing patch, a long tail. */
+export function magpie(): Grid {
+  const g = new Grid(16, 16);
+  g.oval(4, 13, 8, 3, '_');
+  const f = new Grid(16, 16);
+  f.oval(5, 6, 7, 6, 'H').oval(6, 8, 5, 4, 'w').hline(8, 7, 3, 'w');
+  f.oval(3, 3, 5, 5, 'H').set(4, 4, 'w').set(2, 5, 'a');
+  f.rect(11, 8, 4, 2, 'H').set(15, 9, 'B').hline(9, 6, 3, 'B');
+  f.vline(7, 12, 2, 'a').vline(9, 12, 2, 'a');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -916,6 +931,7 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['rockery', 'a rockery of the Imperial Garden', () => [['rocks', rockery()]]],
   ['kite', 'a red paper kite', () => [['red', kite()]]],
   ['jianzhi', 'a red paper-cut window flower', () => [['red', jianzhi()]]],
+  ['magpie', 'a magpie 喜鹊', () => [['sit', magpie()]]],
   ['emote', "兔儿爷's feelings", () => (['happy', 'sulky', 'sleepy', 'proud', 'blush'] as const).map((k) => [k, emote(k)] as [string, Grid])],
   ['rabbit-hat', "兔儿爷's hats", () => (['snow', 'flower', 'armour'] as const).map((k) => [k, rabbitHat(k)] as [string, Grid])],
   ['sticker', 'chat stickers', () => (['hello', 'thanks', 'ok', 'haha', 'sorry', 'love'] as const).map((k) => [k, sticker(k)] as [string, Grid])],

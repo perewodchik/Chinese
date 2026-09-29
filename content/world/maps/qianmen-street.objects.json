@@ -293,5 +293,15 @@
    12
   ],
   "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "nezha",
+  "npc": "nezha-xiaohai",
+  "tile": [
+   26,
+   12
+  ],
+  "facing": "left"
  }
 ]

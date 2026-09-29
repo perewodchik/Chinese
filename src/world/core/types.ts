@@ -440,6 +440,8 @@ export interface WorldSave {
   stamps: Record<string, number>;
   stations: string[];
   districts: string[];
+  /** every map you have stood on (the 🗺 panel draws the others faint); none in saves from before §9⅞ */
+  visited?: string[];
   npcs: Record<string, NpcMemory>;
   /** route key → rides taken, to skip the announcement after three */
   rides: Record<string, number>;

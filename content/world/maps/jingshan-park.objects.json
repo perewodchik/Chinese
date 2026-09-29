@@ -149,5 +149,51 @@
    ],
    "facing": "up"
   }
+ },
+ {
+  "kind": "npc",
+  "id": "rongrong",
+  "npc": "rongrong",
+  "tile": [
+   8,
+   17
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "guangguang",
+  "npc": "guangguang",
+  "tile": [
+   20,
+   23
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "prop",
+  "id": "magpie-1",
+  "tile": [
+   22,
+   9
+  ],
+  "frame": "magpie/sit",
+  "blocks": [
+   1,
+   1
+  ],
+  "when": {
+   "all": [
+    {
+     "quest": "side-magpies",
+     "step": "find"
+    },
+    {
+     "not": {
+      "flag": "magpie-1"
+     }
+    }
+   ]
+  }
  }
 ]

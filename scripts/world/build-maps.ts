@@ -16,6 +16,8 @@ import { pathToFileURL } from 'node:url';
 import { mapObjectSchema } from '../../src/world/core/content';
 import { LAYERS, parseMap, type Legend, type TextMap } from '../../src/world/core/maptext';
 import type { MapObject } from '../../src/world/core/types';
+import { HOODS, layoutHood, type MapGeo } from '../../src/world/core/hoods';
+import { placeOf } from '../../src/world/core/places';
 import type { TilesetJson } from './art/build';
 
 export const MAPS_SRC = 'content/world/maps';
@@ -161,6 +163,11 @@ export function buildMaps(src = MAPS_SRC, out = MAPS_OUT, tileset = TILESET): st
     [...new Set(c.objects.flatMap((o) => (o.kind === 'door' ? [o.to.map] : o.kind === 'edge' ? [o.target.map] : [])))].filter((m) => m !== c.map.id).sort();
   const index = Object.fromEntries(all.map((c) => [c.map.id, { district: c.map.district, width: c.map.width, height: c.map.height, links: linksOf(c) }]));
   writeFileSync(join(out, 'index.json'), JSON.stringify(index, null, 1) + '\n');
+  // the neighbourhood plans (core/hoods.ts) for the minimap and the 🗺 panel
+  const geo: Record<string, MapGeo> = Object.fromEntries(
+    all.map((c) => [c.map.id, { width: c.map.width, height: c.map.height, objects: c.objects, inside: placeOf(c.map.id)?.kind === 'inside' }]),
+  );
+  writeFileSync(join(out, 'hoods.json'), JSON.stringify(HOODS.map((h) => layoutHood(h, geo))) + '\n');
   return all.map((c) => `${c.map.id}: ${c.map.width}×${c.map.height}, ${c.objects.length} objects`);
 }
 

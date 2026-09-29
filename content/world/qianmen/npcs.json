@@ -176,5 +176,34 @@
     "explains": {
       "变": "一个东西成了别的东西。"
     }
+  },
+  {
+    "id": "nezha-xiaohai",
+    "name": "哪吒",
+    "role": "a boy in a 哪吒 costume with a red sash and wheels drawn on his shoes",
+    "look": {
+      "sprite": "kid",
+      "palette": "blue"
+    },
+    "voice": "xiaoyu",
+    "character": "Fierce, loyal, will not lose an argument to 孙悟空.",
+    "knows": [
+      "哪吒 rides wheels of fire"
+    ],
+    "wants": [
+      "To win"
+    ],
+    "actions": [
+      "flag",
+      "quest",
+      "stamp",
+      "give",
+      "remember",
+      "hearts"
+    ],
+    "routine": [],
+    "explains": {
+      "厉害": "很强，很好，别人不能比。"
+    }
   }
 ]

@@ -80,6 +80,7 @@ function fill(r: Raw): WorldSave {
     stamps: record(r.stamps, isNum),
     stations: strings(r.stations),
     districts: strings(r.districts).length ? strings(r.districts) : [HOME_DISTRICT],
+    ...(Array.isArray(r.visited) ? { visited: strings(r.visited) } : {}),
     npcs: Object.fromEntries(
       Object.entries(record(r.npcs, (x): x is WorldSave['npcs'][string] => isObj(x) && isNum(x.met))).map(([k, x]) => [
         k,

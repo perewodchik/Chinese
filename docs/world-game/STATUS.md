@@ -15,7 +15,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-M1
+X11 (M1–M5 are being built by another session in the tree right now — `core/hoods.ts`, `render-map.ts` — so this builder skipped ahead to X11 rather than write a second version)
 
 ## Tasks
 ### A — core logic

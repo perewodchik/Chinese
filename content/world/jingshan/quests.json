@@ -26,5 +26,38 @@
         }
       }
     ]
+  },
+  {
+    "id": "side-maliang",
+    "title": "The magic brush",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "do",
+        "now": "A boy paints by the lake at 北海 — tell him what to paint."
+      }
+    ]
+  },
+  {
+    "id": "side-rangli",
+    "title": "The small pear",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "do",
+        "now": "A little boy in the 景山 park has to choose a pear."
+      }
+    ]
+  },
+  {
+    "id": "side-simaguang",
+    "title": "The water jar",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "do",
+        "now": "A boy in the 景山 park needs help, fast."
+      }
+    ]
   }
 ]

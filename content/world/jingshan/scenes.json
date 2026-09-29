@@ -512,5 +512,324 @@
     ]
    }
   ]
+ },
+ {
+  "id": "maliang",
+  "map": "beihai-north",
+  "npc": "maliang",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "maliang",
+  "when": {
+   "chapter": 2
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "神笔",
+    "explain": "画什么，什么就是真的的笔。",
+    "en": "magic brush"
+   },
+   {
+    "w": "活",
+    "explain": "不是画，是真的，会动。",
+    "en": "alive"
+   },
+   {
+    "w": "画",
+    "explain": "用笔做一个东西的样子。",
+    "en": "to paint"
+   },
+   {
+    "w": "龙",
+    "explain": "很长的动物，在天上飞。",
+    "en": "dragon"
+   },
+   {
+    "w": "眼睛",
+    "explain": "看东西的，在脸上。",
+    "en": "eyes"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我叫马良。我有神笔：我画什么，什么就活了！",
+    "translate": "I’m 马良. I have a magic brush: whatever I paint comes alive!",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-maliang",
+      "step": "do"
+     }
+    ],
+    "why": "Homage to the folk tale 《神笔马良》 (Ma Liang and the Magic Brush): a poor boy’s brush makes his paintings real, and he paints only for people who need it."
+   },
+   {
+    "id": "b",
+    "say": "你说，神笔画什么？",
+    "translate": "Tell me — what shall I paint?",
+    "expect": [
+     {
+      "intent": "draw",
+      "match": [
+       [
+        "鸟",
+        "鱼",
+        "花",
+        "猫",
+        "马",
+        "狗",
+        "龙"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "鸟",
+     "frame": "画一只___吧！",
+     "full": "画一只鸟吧！"
+    }
+   },
+   {
+    "id": "c",
+    "say": "好！……你看，它活了！",
+    "translate": "Done! …Look, it’s alive!",
+    "next": "d"
+   },
+   {
+    "id": "d",
+    "say": "画龙的时候，眼睛要后画。有了眼睛，龙就活了。",
+    "translate": "When you paint a dragon, the eyes come last. Paint the eyes, and the dragon lives.",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-maliang"
+     }
+    ],
+    "why": "That is 画龙点睛 — the finale of the story in the palace."
+   }
+  ]
+ },
+ {
+  "id": "rangli",
+  "map": "jingshan-park",
+  "npc": "rongrong",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "rangli",
+  "when": {
+   "chapter": 2
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "梨",
+    "explain": "黄色的水果，很甜。",
+    "en": "pear"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "妈妈给我们梨。我是弟弟，我拿哪个梨？",
+    "translate": "Mum gave us pears. I’m the little brother — which pear do I take?",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-rangli",
+      "step": "do"
+     }
+    ],
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🍐 the big one"
+      },
+      {
+       "id": "o1",
+       "label": "🍐 the small one",
+       "right": true
+      }
+     ],
+     "go": "b"
+    },
+    "why": "孔融让梨: little 孔融, four years old, took the smallest pear — “I am small, so I take the small one.” Every Chinese child hears this story."
+   },
+   {
+    "id": "b",
+    "say": "对！我小，我拿小的梨。大的给哥哥。",
+    "translate": "Right! I’m small, so I take the small pear. The big one is for my brother.",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-rangli"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "simaguang",
+  "map": "jingshan-park",
+  "npc": "guangguang",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "simaguang",
+  "when": {
+   "chapter": 2
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "水缸",
+    "explain": "很大的放水的东西。",
+    "en": "big water jar"
+   },
+   {
+    "w": "打破",
+    "explain": "打了，它就不好了，有很多小的。",
+    "en": "to break"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "不好了！我的朋友在水缸里！水很多！快！",
+    "translate": "Help! My friend fell into the water jar! It’s full! Quick!",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-simaguang",
+      "step": "do"
+     }
+    ],
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🪨 break the jar with a stone",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "🧸 give him a toy"
+      },
+      {
+       "id": "o2",
+       "label": "💤 wait"
+      }
+     ],
+     "go": "b"
+    },
+    "why": "司马光砸缸: when a friend fell into a great water jar, little 司马光 broke it with a stone instead of trying to pull him out."
+   },
+   {
+    "id": "b",
+    "say": "对！打破水缸，水出来了！他没事了！",
+    "translate": "Yes! Break the jar and the water runs out! He’s fine!",
+    "simpler": "打破水缸！",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-simaguang"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "magpie-1",
+  "map": "jingshan-park",
+  "object": "magpie-1",
+  "trigger": "look",
+  "once": true,
+  "when": {
+   "quest": "side-magpies",
+   "step": "find"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "喜鹊",
+    "explain": "黑白色的鸟，中国人说它是好鸟。",
+    "en": "magpie"
+   },
+   {
+    "w": "天上",
+    "explain": "上面，很高的地方。",
+    "en": "in the sky"
+   },
+   {
+    "w": "桥",
+    "explain": "在水上，人从上面走过去。",
+    "en": "bridge"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "一只喜鹊！它飞了……去天上的桥那儿了。",
+    "translate": "A magpie! Off it flies… to the bridge in the sky.",
+    "speaker": "hero",
+    "simpler": "喜鹊飞了！去天上的桥！",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "magpie-1"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "magpie-2",
+  "map": "beihai-north",
+  "object": "magpie-2",
+  "trigger": "look",
+  "once": true,
+  "when": {
+   "quest": "side-magpies",
+   "step": "find"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "喜鹊",
+    "explain": "黑白色的鸟，中国人说它是好鸟。",
+    "en": "magpie"
+   },
+   {
+    "w": "天上",
+    "explain": "上面，很高的地方。",
+    "en": "in the sky"
+   },
+   {
+    "w": "桥",
+    "explain": "在水上，人从上面走过去。",
+    "en": "bridge"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "一只喜鹊！它飞了……去天上的桥那儿了。",
+    "translate": "A magpie! Off it flies… to the bridge in the sky.",
+    "speaker": "hero",
+    "simpler": "喜鹊飞了！去天上的桥！",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "magpie-2"
+     }
+    ]
+   }
+  ]
  }
 ]

@@ -476,5 +476,44 @@
         "now": "Hear the second episode at the teahouse."
       }
     ]
+  },
+  {
+    "id": "side-magpies",
+    "title": "Magpies for 七夕",
+    "chapter": 1,
+    "steps": [
+      {
+        "id": "find",
+        "now": "Find the three magpies — in the parks of 景山, 北海 and 天坛 — and send them to the bridge in the sky.",
+        "done": {
+          "all": [
+            {
+              "flag": "magpie-1"
+            },
+            {
+              "flag": "magpie-2"
+            },
+            {
+              "flag": "magpie-3"
+            }
+          ]
+        }
+      },
+      {
+        "id": "bridge",
+        "now": "Tell 王阿姨 — look at the sky together."
+      }
+    ]
+  },
+  {
+    "id": "side-change",
+    "title": "兔儿爷’s story",
+    "chapter": 1,
+    "steps": [
+      {
+        "id": "do",
+        "now": "At 中秋, make mooncakes with 王阿姨 — and hear 兔儿爷’s own story."
+      }
+    ]
   }
 ]

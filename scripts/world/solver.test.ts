@@ -59,8 +59,9 @@ describe('the golden saves', () => {
     it(`${f}: reads through the migration and the game plays on to the end from it`, () => {
       const r = readSave(JSON.parse(readFileSync(`${dir}/${f}`, 'utf8')));
       assert.ok(r.ok, r.ok ? '' : r.message);
-      const run = solve(r.save);
       const main = quests.filter((q) => /^(ch\d|epilogue)/.test(q.id));
+      // the main story only: stop once it is told (side quests are the whole-game run's job)
+      const run = solve(r.save, 40000, (s) => main.every((q) => s.quests[q.id]?.done));
       assert.deepEqual(main.filter((q) => !run.save.quests[q.id]?.done).map((q) => q.id), []);
     });
   }

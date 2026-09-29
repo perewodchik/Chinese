@@ -1106,5 +1106,123 @@
     ]
    }
   ]
+ },
+ {
+  "id": "nezha",
+  "map": "qianmen-street",
+  "npc": "nezha-xiaohai",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "stamp": "nezha",
+  "when": {
+   "scene": "wukong"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "厉害",
+    "explain": "很强，很好，别人不能比。",
+    "en": "awesome, formidable"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我是哪吒！哪吒最厉害！",
+    "translate": "I’m 哪吒! 哪吒 is the strongest!",
+    "next": "b",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-nezha",
+      "step": "do"
+     }
+    ],
+    "why": "哪吒 is the boy-god of 《封神演义》 who rides wheels of fire — lately the hero of China’s biggest films. Which of the two is stronger is a playground argument everywhere."
+   },
+   {
+    "id": "b",
+    "say": "不对！孙悟空最厉害！",
+    "translate": "Wrong! 孙悟空 is the strongest!",
+    "speaker": "wukong-xiaohai",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "你说，谁厉害？",
+    "translate": "You say — who’s stronger?",
+    "expect": [
+     {
+      "intent": "both",
+      "match": [
+       [
+        "都",
+        "一样",
+        "两个"
+       ]
+      ],
+      "go": "d"
+     },
+     {
+      "intent": "nezha",
+      "match": [
+       [
+        "哪吒"
+       ]
+      ],
+      "go": "e"
+     },
+     {
+      "intent": "wukong",
+      "match": [
+       [
+        "孙悟空",
+        "悟空"
+       ]
+      ],
+      "go": "f"
+     }
+    ],
+    "hint": {
+     "word": "都",
+     "frame": "你们___很厉害！",
+     "full": "你们都很厉害！"
+    }
+   },
+   {
+    "id": "d",
+    "say": "我们都很厉害？好！我们是朋友！",
+    "translate": "We’re both strong? All right — we’re friends!",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-nezha"
+     }
+    ]
+   },
+   {
+    "id": "e",
+    "say": "你看，我最厉害！",
+    "translate": "Ha! See? I’m the strongest!",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-nezha"
+     }
+    ]
+   },
+   {
+    "id": "f",
+    "say": "……好吧。明天我们再比！",
+    "translate": "…Fine. We’ll have it out again tomorrow!",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-nezha"
+     }
+    ]
+   }
+  ]
  }
 ]

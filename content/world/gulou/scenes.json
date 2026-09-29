@@ -7794,5 +7794,254 @@
    }
   ],
   "stamp": "sanguo"
+ },
+ {
+  "id": "qixi-magpies",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -2,
+  "when": {
+   "all": [
+    {
+     "festival": "qixi"
+    },
+    {
+     "scene": "arrive"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "喜鹊",
+    "explain": "黑白色的鸟，中国人说它是好鸟。",
+    "en": "magpie"
+   },
+   {
+    "w": "天上",
+    "explain": "上面，很高的地方。",
+    "en": "in the sky"
+   },
+   {
+    "w": "见面",
+    "explain": "两个人到一起，看到对方。",
+    "en": "to meet"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "今天是七夕。牛郎和织女要见面，要很多喜鹊。",
+    "translate": "It’s Qixi. The Cowherd and the Weaver Girl meet today — and they need lots of magpies.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-magpies",
+      "step": "find"
+     }
+    ],
+    "next": "b",
+    "simpler": "牛郎和织女要见面！"
+   },
+   {
+    "id": "b",
+    "say": "你看到喜鹊，告诉它们：去天上！",
+    "translate": "If you see a magpie, tell it: go up to the sky!",
+    "why": "牛郎 and 织女 are kept apart by the Milky Way; once a year, on the seventh night of the seventh month, magpies make a bridge. They were seen in the parks: 景山, 北海 and 天坛.",
+    "simpler": "喜鹊，去天上！"
+   }
+  ]
+ },
+ {
+  "id": "qixi-bridge",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -2,
+  "stamp": "qixi",
+  "when": {
+   "all": [
+    {
+     "flag": "magpie-1"
+    },
+    {
+     "flag": "magpie-2"
+    },
+    {
+     "flag": "magpie-3"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "喜鹊",
+    "explain": "黑白色的鸟，中国人说它是好鸟。",
+    "en": "magpie"
+   },
+   {
+    "w": "桥",
+    "explain": "在水上，人从上面走过去。",
+    "en": "bridge"
+   },
+   {
+    "w": "天上",
+    "explain": "上面，很高的地方。",
+    "en": "in the sky"
+   },
+   {
+    "w": "见面",
+    "explain": "两个人到一起，看到对方。",
+    "en": "to meet"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你看天上！喜鹊的桥！",
+    "translate": "Look at the sky! A bridge of magpies!",
+    "next": "b",
+    "simpler": "天上有喜鹊！"
+   },
+   {
+    "id": "b",
+    "say": "牛郎和织女在桥上见面了。谢谢你！",
+    "translate": "The Cowherd and the Weaver Girl meet on the bridge. Thank you!",
+    "simpler": "他们在桥上见面了！",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-magpies"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "zhongqiu-rabbit",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -2,
+  "stamp": "change",
+  "when": {
+   "all": [
+    {
+     "festival": "zhongqiu"
+    },
+    {
+     "scene": "zhongqiu-wang"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "玉兔",
+    "explain": "月亮上的白兔子。",
+    "en": "the jade rabbit"
+   },
+   {
+    "w": "月饼",
+    "explain": "中秋节吃的东西，圆的。",
+    "en": "mooncake"
+   },
+   {
+    "w": "馅儿",
+    "explain": "月饼里面的东西，很甜。",
+    "en": "filling"
+   },
+   {
+    "w": "放",
+    "explain": "把东西放进去。",
+    "en": "to put in"
+   },
+   {
+    "w": "故事",
+    "explain": "说一件以前的事。",
+    "en": "story"
+   },
+   {
+    "w": "月亮",
+    "explain": "晚上天上很亮的，圆的。",
+    "en": "the moon"
+   },
+   {
+    "w": "兔子",
+    "explain": "长耳朵的小动物。",
+    "en": "rabbit"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我们做月饼吧！第一，放馅儿。",
+    "translate": "Let’s make mooncakes! First, the filling.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-change",
+      "step": "do"
+     }
+    ],
+    "choose": {
+     "options": [
+      {
+       "id": "o0",
+       "label": "🫘 sweet bean filling",
+       "right": true
+      },
+      {
+       "id": "o1",
+       "label": "🔥 the oven"
+      },
+      {
+       "id": "o2",
+       "label": "🥣 the flour"
+      }
+     ],
+     "go": "b"
+    },
+    "simpler": "放馅儿！"
+   },
+   {
+    "id": "b",
+    "say": "好！月饼做好了。",
+    "translate": "Good! The mooncakes are made.",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "我给你说我的故事。月亮上有嫦娥。",
+    "translate": "Let me tell you my story. On the moon there is a woman called 嫦娥.",
+    "speaker": "companion",
+    "next": "d",
+    "simpler": "我的故事：月亮上有嫦娥。"
+   },
+   {
+    "id": "d",
+    "say": "嫦娥有一个兔子，叫玉兔。玉兔是我的……朋友！",
+    "translate": "嫦娥 has a white rabbit called the Jade Rabbit. The Jade Rabbit is my… friend!",
+    "speaker": "companion",
+    "next": "e",
+    "why": "嫦娥 flew to the moon; her jade rabbit pounds medicine there. Beijing’s clay 兔儿爷 is said to be the Jade Rabbit come down to cure the city — which is why he is so proud at 中秋."
+   },
+   {
+    "id": "e",
+    "say": "中秋节，你看月亮，可以看到兔子！",
+    "translate": "At Mid-Autumn, look at the moon and you can see the Jade Rabbit!",
+    "speaker": "companion",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "side-change"
+     }
+    ]
+   }
+  ]
  }
 ]

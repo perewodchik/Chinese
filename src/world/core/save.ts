@@ -122,7 +122,8 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
     case 'enter':
     case 'teleport': {
       const facing = a.facing ?? s.place.facing;
-      const next = { ...s, place: { map: a.map, tile: a.tile, facing } };
+      const been = s.visited ?? [];
+      const next = { ...s, place: { map: a.map, tile: a.tile, facing }, ...(been.includes(a.map) ? {} : { visited: [...been, a.map] }) };
       if (a.do === 'enter' && a.district && a.district !== s.district) {
         return { ...next, district: a.district, districts: addOnce(s.districts, a.district) };
       }

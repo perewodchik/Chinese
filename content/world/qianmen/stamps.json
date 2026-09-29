@@ -48,5 +48,12 @@
     "en": "The Monkey King",
     "place": "qianmen-street",
     "design": "wukong"
+  },
+  {
+    "id": "nezha",
+    "name": "哪吒",
+    "en": "哪吒 or 孙悟空",
+    "place": "qianmen-street",
+    "design": "nezha"
   }
 ]
