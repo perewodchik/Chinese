@@ -1,17 +1,20 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { districtInfo } from '../core/districts';
-import { applyAll, newSave } from '../core/save';
+import { apply, applyAll, newSave } from '../core/save';
 import type { Idiom, NpcCard, Quest, Scene, Stamp } from '../core/types';
 import { giveTo } from '../core/gifts';
-import { BAG_FILTERS, bagRows, filterOf, friendRows, itemFacts, idiomRows, mapHint, riddleRows, stampRows, taskRows } from './panelRows';
+import { merge } from '../core/merge';
+import { readSave } from '../core/migrate';
+import { FIRST_MEMORY, markSeen, menuNews, panelTarget, remember, tabForKey, tabHasNews } from './menu';
+import { BAG_FILTERS, bagRows, filterOf, friendRows, itemFacts, peopleRows, whereText, idiomRows, mapHint, riddleRows, stampRows, taskRows } from './panelRows';
 
 const ctx = { now: 1 };
 const fresh = () => newSave('d', 0);
 
 const quests: Quest[] = [
-  { id: 'arrive', title: 'A new home', chapter: 1, steps: [{ id: 'meet', now: 'Say hello to 王阿姨.' }, { id: 'eat', now: 'Find breakfast.' }] },
-  { id: 'done-one', title: 'Old', chapter: 1, steps: [{ id: 'x', now: 'x' }] },
+  { id: 'arrive', title: 'A new home', chapter: 1, kind: 'main', steps: [{ id: 'meet', past: '', now: 'Say hello to 王阿姨.' }, { id: 'eat', past: '', now: 'Find breakfast.' }] },
+  { id: 'done-one', title: 'Old', chapter: 1, kind: 'main', steps: [{ id: 'x', past: '', now: 'x' }] },
 ];
 const scene: Scene = {
   id: 'rumour',
@@ -102,5 +105,108 @@ describe('the panels', () => {
     s = applyAll(s, giveTo(zhao, hulu, s).actions, ctx);
     const f = itemFacts(hulu, s, shops, [wang, zhao]);
     assert.deepEqual([f.liked, f.disliked], [['王阿姨'], ['赵爷爷']]);
+  });
+});
+
+describe('the People tab (§10 P2)', () => {
+  const card = (id: string, name: string, extra: Partial<NpcCard> = {}): NpcCard => ({ id, name, role: 'r', look: { sprite: id }, character: '', knows: [], wants: [], actions: [], routine: [], explains: {}, ...extra });
+  const zhao = card('zhao', '赵爷爷', { routine: [{ hours: [6, 9], map: 'gulou-square', tile: [1, 1] }, { hours: [9, 18], map: 'nanluo-main', tile: [1, 1] }], explains: { 鸟: '会飞的动物' } });
+  const liu = card('liu', '老刘');
+  const wang = card('wang', '王阿姨');
+  const scenes: Scene[] = [{ ...scene, id: 'tea', map: 'chaguan', npc: 'liu' }];
+  const hulu = { id: 'tanghulu', name: '糖葫芦', en: 'candied haws' };
+  const qs: Quest[] = [{ id: 'bird', title: 'Bird', chapter: 1, kind: 'side', giver: 'zhao', blurb: 'b', steps: [{ id: 'a', now: 'a', past: 'a' }] }];
+  const c = { npcs: [zhao, liu, wang], scenes, quests: qs, items: [hulu] };
+
+  it('someone with a quest under way first, then the warmest; where each is at this hour', () => {
+    let s = applyAll(fresh(), [{ do: 'meet', npc: 'wang' }, { do: 'meet', npc: 'liu' }, { do: 'meet', npc: 'zhao' }, { do: 'hearts', npc: 'liu', delta: 3 }], ctx);
+    let rows = peopleRows(s, c);
+    assert.deepEqual(rows.map((r) => r.id), ['liu', 'wang', 'zhao']);
+    s = applyAll(s, [{ do: 'quest', quest: 'bird', step: 'a' }], ctx);
+    rows = peopleRows(s, c);
+    assert.deepEqual(rows.map((r) => [r.id, r.asking]), [['zhao', true], ['liu', false], ['wang', false]]);
+    // 7:00 — 赵爷爷 is on the 鼓楼 square until 9; 老刘 is where people talk to him; 王阿姨 has no place known
+    const name = (m: string) => m;
+    assert.equal(whereText(rows[0]!, name), 'gulou-square · until 9:00');
+    assert.equal(whereText(rows[1]!, name), 'chaguan');
+    assert.equal(whereText(rows[2]!, name), 'somewhere in Beijing');
+    const night = applyAll(s, [{ do: 'tick', minutes: 22 * 60 }], ctx);
+    assert.equal(whereText(peopleRows(night, c)[0]!, name), 'not about now · usually at gulou-square from 6:00');
+    assert.deepEqual(rows[0]!.topics, ['鸟']);
+    assert.deepEqual(rows[0]!.quests.map((q) => [q.quest.id, q.done]), [['bird', false]]);
+  });
+
+  it('gift notes become likes, the rest stay what they remember; the 成语 they taught', () => {
+    const s = applyAll(fresh(), [
+      { do: 'meet', npc: 'liu' },
+      { do: 'remember', npc: 'liu', note: 'likes 包子' },
+      { do: 'remember', npc: 'liu', note: 'liked the candied haws you gave' },
+    ], ctx);
+    const withIdiom = apply(s, { do: 'idiom', idiom: '一心一意' }, { ...ctx, npc: 'liu' });
+    const [r] = peopleRows(withIdiom, c);
+    assert.deepEqual([r!.notes, r!.likes, r!.dislikes, r!.idioms], [['likes 包子'], ['糖葫芦'], [], ['一心一意']]);
+  });
+});
+
+describe('the menu (§10 P1)', () => {
+  it('maps every old panel id onto a tab and view', () => {
+    assert.deepEqual(panelTarget('tasks'), { tab: 'journal', view: 'now' });
+    assert.deepEqual(panelTarget('diary'), { tab: 'journal', view: 'diary' });
+    assert.deepEqual(panelTarget('spirits'), { tab: 'collection', view: 'spirits' });
+    assert.deepEqual(panelTarget('idioms'), { tab: 'collection', view: 'idioms' });
+    assert.deepEqual(panelTarget('stamps'), { tab: 'collection', view: 'stamps' });
+    assert.deepEqual(panelTarget('album'), { tab: 'collection', view: 'album' });
+    assert.deepEqual(panelTarget('friends'), { tab: 'people' });
+    assert.deepEqual(panelTarget('settings'), { tab: 'settings' });
+    assert.deepEqual(panelTarget('bag'), { tab: 'bag' });
+    assert.deepEqual(panelTarget('map'), { tab: 'map' });
+  });
+
+  it('reopens on the last tab and on each tab’s last view', () => {
+    let mem = remember(FIRST_MEMORY, { tab: 'collection', view: 'stamps' });
+    mem = remember(mem, { tab: 'bag' });
+    mem = remember(mem, { tab: 'settings' });
+    assert.deepEqual(panelTarget('menu', mem), { tab: 'bag' });
+    assert.deepEqual(panelTarget('collection', mem), { tab: 'collection', view: 'stamps' });
+    assert.deepEqual(panelTarget('journal', mem), { tab: 'journal', view: 'now' });
+    assert.deepEqual(panelTarget('menu'), { tab: 'journal', view: 'now' });
+    // an unknown remembered view falls back to the first
+    assert.deepEqual(panelTarget('journal', { tab: 'journal', views: { journal: 'nope' } }), { tab: 'journal', view: 'now' });
+    assert.equal(remember(mem, { tab: 'bag' }), mem);
+  });
+
+  it('keys 1–5 are the tabs in order', () => {
+    assert.deepEqual(['1', '2', '3', '4', '5', '6', 'a'].map(tabForKey), ['journal', 'bag', 'map', 'people', 'collection', null, null]);
+  });
+
+  it('dots news until the view is opened, then clears it', () => {
+    let s = applyAll(fresh(), [{ do: 'idiom', idiom: '马马虎虎' }, { do: 'stamp', stamp: 'st' }], ctx);
+    let news = menuNews(s);
+    assert.ok(news.has('collection/idioms') && news.has('collection/stamps'));
+    assert.ok(tabHasNews(news, 'collection') && !tabHasNews(news, 'bag'));
+    s = applyAll(s, markSeen(s, { tab: 'collection', view: 'idioms' }), ctx);
+    news = menuNews(s);
+    assert.ok(!news.has('collection/idioms') && news.has('collection/stamps'));
+    // later news dots it again
+    s = applyAll(s, [{ do: 'tick', minutes: s.clock + 30 }, { do: 'idiom', idiom: '一心一意' }], ctx);
+    assert.ok(menuNews(s).has('collection/idioms'));
+  });
+
+  it('dots a lead until the journal is opened', () => {
+    let s = fresh();
+    assert.ok(menuNews(s, ['side-kite']).has('journal/now'));
+    s = applyAll(s, markSeen(s, { tab: 'journal', view: 'now' }, ['side-kite']), ctx);
+    assert.ok(!menuNews(s, ['side-kite']).has('journal/now'));
+    assert.ok(menuNews(s, ['side-kite', 'side-bird']).has('journal/now'));
+  });
+
+  it('merges seen markers by the later minute, and keeps them through a reload', () => {
+    const a = applyAll(fresh(), [{ do: 'seen', key: 'journal/now', at: 500 }, { do: 'seen', key: 'people', at: 10 }], ctx);
+    const b = applyAll(newSave('e', 0), [{ do: 'seen', key: 'journal/now', at: 400 }, { do: 'seen', key: 'bag', at: 7 }], ctx);
+    assert.deepEqual(merge(a, b).seen, { bag: 7, 'journal/now': 500, people: 10 });
+    assert.deepEqual(merge(b, a).seen, merge(a, b).seen);
+    const back = readSave(JSON.parse(JSON.stringify(a)));
+    assert.ok(back.ok);
+    assert.deepEqual(back.save.seen, a.seen);
   });
 });

@@ -3,10 +3,16 @@
     "id": "side-show",
     "title": "A night at the opera",
     "chapter": 3,
+    "kind": "side",
+    "giver": "xiyuan-laoban",
+    "blurb": "The old opera house in 前门 still puts on 京剧 every night.",
+    "lead": "The opera house in 前门 is selling tickets.",
     "steps": [
       {
         "id": "watch",
         "now": "Buy a ticket from the opera house owner and watch a show (50 元).",
+        "past": "Watched a 京剧 show at the 前门 opera house.",
+        "where": "xiyuan",
         "done": {
           "flag": "saw-show"
         }
@@ -17,10 +23,16 @@
     "id": "side-tea",
     "title": "Tea for the granny",
     "chapter": 3,
+    "kind": "side",
+    "giver": "dashilar-nainai",
+    "blurb": "A granny in 大栅栏 misses the tea 老刘 used to bring her.",
+    "lead": "A granny in 大栅栏 remembers a friend from the teahouse.",
     "steps": [
       {
         "id": "buy",
         "now": "The granny of 大栅栏 misses 老刘’s tea. Buy tea leaves 茶叶 at the teahouse on 南锣鼓巷.",
+        "past": "Bought tea leaves at 老刘's teahouse.",
+        "where": "chaguan",
         "done": {
           "any": [
             {
@@ -35,6 +47,8 @@
       {
         "id": "give",
         "now": "Bring the tea to the granny in 大栅栏.",
+        "past": "Brought the granny her tea.",
+        "where": "qianmen-street",
         "done": {
           "flag": "tea-given"
         }
@@ -45,10 +59,16 @@
     "id": "side-kaoya",
     "title": "Roast duck",
     "chapter": 3,
+    "kind": "side",
+    "giver": "kaoya-shifu",
+    "blurb": "The roast-duck waiter on 前门 loves showing people the right way to wrap it.",
+    "lead": "Something smells wonderful on 前门 street.",
     "steps": [
       {
         "id": "do",
-        "now": "The waiter outside the roast-duck shop on 前门 shows you how to wrap it — do what he says."
+        "now": "The waiter outside the roast-duck shop on 前门 shows you how to wrap it — do what he says.",
+        "past": "Wrapped roast duck the proper way.",
+        "where": "qianmen-street"
       }
     ]
   },
@@ -56,10 +76,16 @@
     "id": "side-masks",
     "title": "Opera faces",
     "chapter": 3,
+    "kind": "side",
+    "giver": "jingju-yanyuan",
+    "blurb": "An opera actor explains what the colours of the painted faces mean.",
+    "lead": "An actor at the 前门 opera house is painting his face.",
     "steps": [
       {
         "id": "do",
-        "now": "The actor at the 前门 theatre explains the painted faces — pick the right one."
+        "now": "The actor at the 前门 theatre explains the painted faces — pick the right one.",
+        "past": "Learned the opera faces from the actor.",
+        "where": "xiyuan"
       }
     ]
   },
@@ -67,17 +93,25 @@
     "id": "side-yingzi",
     "title": "《城南旧事》 — the camel bell",
     "chapter": 3,
+    "kind": "side",
+    "giver": "yingzi",
+    "blurb": "英子, like the girl in 《城南旧事》, lost a small camel bell she loved.",
+    "lead": "A girl on 前门 street is listening for something.",
     "steps": [
       {
         "id": "find",
         "now": "英子 on 前门 street lost a small yellow camel bell. Maybe the antique market at 潘家园 has one.",
+        "past": "Found a little yellow camel bell at 潘家园.",
+        "where": "panjiayuan-market",
         "done": {
           "item": "lingdang"
         }
       },
       {
         "id": "back",
-        "now": "Bring 英子 her bell."
+        "now": "Bring 英子 her bell.",
+        "past": "Gave 英子 her camel bell.",
+        "where": "qianmen-street"
       }
     ]
   },
@@ -85,10 +119,16 @@
     "id": "side-wukong",
     "title": "《西游记》 — the Monkey King",
     "chapter": 3,
+    "kind": "side",
+    "giver": "wukong-xiaohai",
+    "blurb": "A boy dressed as the Monkey King plays at 72 changes on 前门 street.",
+    "lead": "A boy with a golden stick jumps about on 前门 street.",
     "steps": [
       {
         "id": "do",
-        "now": "A boy dressed as 孙悟空 on 前门 street turns into things. Guess what from his words."
+        "now": "A boy dressed as 孙悟空 on 前门 street turns into things. Guess what from his words.",
+        "past": "Guessed every one of 孙悟空's changes.",
+        "where": "qianmen-street"
       }
     ]
   },
@@ -96,10 +136,16 @@
     "id": "side-nezha",
     "title": "哪吒 or 孙悟空?",
     "chapter": 3,
+    "kind": "side",
+    "giver": "nezha-xiaohai",
+    "blurb": "Two boys on 前门 street argue who is stronger, 哪吒 or 孙悟空.",
+    "lead": "Two boys on 前门 street are arguing loudly.",
     "steps": [
       {
         "id": "do",
-        "now": "Two boys on 前门 street argue who is stronger. Settle it."
+        "now": "Two boys on 前门 street argue who is stronger. Settle it.",
+        "past": "Settled the argument between 哪吒 and 孙悟空.",
+        "where": "qianmen-street"
       }
     ]
   }

@@ -13,7 +13,7 @@ import { feedCat, fits, NO_CAT } from './room';
 import { MAX_SUBJECTS } from './photo';
 import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
 
-export const WORLD_SAVE_VERSION = 9;
+export const WORLD_SAVE_VERSION = 10;
 /** how many payments the 账单 keeps */
 export const BILLS = 20;
 
@@ -87,7 +87,11 @@ export type EngineAction =
   | { do: 'reset'; born: number }
   | { do: 'ride'; route: string }
   | { do: 'tick'; minutes: number }
-  | { do: 'settings'; patch: Partial<WorldSettings> };
+  | { do: 'settings'; patch: Partial<WorldSettings> }
+  /** a menu view opened (its news seen), or a lead looked at (§10) */
+  | { do: 'seen'; key: string; at: number }
+  /** follow a quest in the journal ('' for the story again); `rev` is the wall-clock ms (§10 J2) */
+  | { do: 'track'; quest: string; rev: number };
 
 export type SaveAction = Action | EngineAction;
 
@@ -106,6 +110,10 @@ const money = (n: number) => Math.round(n * 100) / 100;
 const withFlag = (flags: string[], flag: string, on: boolean) =>
   on ? (flags.includes(flag) ? flags : [...flags, flag]) : flags.includes(flag) ? flags.filter((f) => f !== flag) : flags;
 const addOnce = (list: string[], v: string) => (list.includes(v) ? list : [...list, v]);
+
+/** The `QuestState.at` key for the minute a quest was finished (step ids are latin, so it cannot clash). */
+export const DONE_AT = '$done';
+const stamp = (at: Record<string, number> | undefined, key: string, clock: number) => (at?.[key] !== undefined ? at : { ...at, [key]: Math.floor(clock) });
 
 /** `scene/node` → its parts; a riddle id without a slash is its own scene. */
 export function riddleParts(riddle: string): { scene: string; node: string } {
@@ -164,7 +172,9 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
       const cur = s.quests[a.quest];
       // A quest only moves forward: replaying an old scene cannot take it back.
       if (cur && (cur.done || cur.index > index)) return s;
-      return { ...s, quests: { ...s.quests, [a.quest]: { step: a.step, index, done: false } } };
+      // the journal's clock (§10 J1): when each step was reached
+      const at = stamp(cur?.at, a.step, s.clock);
+      return { ...s, quests: { ...s.quests, [a.quest]: { step: a.step, index, done: false, at } } };
     }
     case 'quest_done': {
       const cur = s.quests[a.quest];
@@ -173,6 +183,7 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
         step: last?.id ?? cur?.step ?? 'done',
         index: last ? (ctx.quests!.get(a.quest)!.steps.length - 1) : (cur?.index ?? 0),
         done: true,
+        at: stamp(cur?.at, DONE_AT, s.clock),
       };
       return { ...s, quests: { ...s.quests, [a.quest]: done } };
     }
@@ -280,6 +291,10 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
       return a.minutes === s.clock ? s : { ...s, clock: Math.max(s.clock, a.minutes) };
     case 'settings':
       return { ...s, settings: { ...s.settings, ...a.patch } };
+    case 'track':
+      return s.tracked && s.tracked.rev >= a.rev ? s : { ...s, tracked: { quest: a.quest, rev: a.rev } };
+    case 'seen':
+      return (s.seen?.[a.key] ?? -1) >= a.at ? s : { ...s, seen: { ...s.seen, [a.key]: a.at } };
     case 'reset':
       return { ...newSave(s.deviceId, s.updatedAt), born: a.born, settings: s.settings };
     case 'game':

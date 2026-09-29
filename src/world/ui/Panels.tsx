@@ -3,10 +3,8 @@ import { combos, VERB_ZH, verbsOf } from '../core/verbs';
 import type { SaveAction } from '../core/save';
 import { itemForToken } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { dayOf, formatTime } from '../core/clock';
-import { contentNames, diaryDays, diaryLines } from '../core/diary';
-import { dateZh, WEATHER_ICON, WEATHER_ZH, weatherOf } from '../core/calendar';
 import type { Item, WorldSave, WorldSettings } from '../core/types';
 import { priceYen, priceZh } from '../core/shop';
 import { pinyinOf } from './pinyin';
@@ -20,24 +18,26 @@ import {
   filterOf,
   itemFacts,
   type BagFilter,
-  friendRows,
   idiomRows,
-  PANELS,
-  riddleRows,
   spiritRows,
   stampRows,
-  taskRows,
-  type PanelId,
 } from './panelRows';
-import { Hearts } from './Hearts';
+import { leads } from '../core/journal';
+import { Diary, JournalNow, JournalStory, type RouteRequest } from './Journal';
+import { People } from './People';
+import { markSeen, MENU, menuNews, panelTarget, readMemory, remember, tabForKey, tabHasNews, viewKey, VIEWS, writeMemory, type MenuAt, type MenuMemory, type MenuTab, type PanelId } from './menu';
+import './menu.css';
 import { ALBUM_MAX, loadAlbum, postcardPng, saveAlbum, saveFile, type Photo } from './album';
 import { ZhText } from './ZhText';
 import { MapTab } from './MapTab';
 
 /**
- * The game's sheets over the world (E5): tasks and riddles, the bag, the
- * map of Beijing, the 图鉴 of spirits, the 成语 book and the stamps
- * passport — one sheet, one tab row. The world is paused while it is open.
+ * The menu over the (paused) world (§10 P1): five tabs — 日志 journal, 包
+ * bag, 地图 map, 朋友 people, 收藏 collection — and ⚙ beside ×. A tab with
+ * inner views has one segmented control at its top, never a second tab row.
+ * On a phone the sheet fills the screen with the tabs at the bottom, in
+ * thumb reach; on the iPad they sit on top. Red dots mark news until the
+ * view is opened. The menu reopens where this device left it.
  */
 export function Panels({
   tab,
@@ -65,7 +65,7 @@ export function Panels({
   onSettings: (patch: Partial<WorldSettings>) => void;
   /** choose an item to use on someone or something (X1) */
   onUse: (item: string) => void;
-  /** 吃 / 喝, and two things made into a third (Y4) */
+  /** 吃 / 喝, two things made into a third (Y4), and the menu's own marks (seen, tracked) */
   onAct?: (a: SaveAction) => void;
   /** whose album this device keeps (X6) */
   user: string;
@@ -74,31 +74,121 @@ export function Panels({
   /** the neighbourhood the 🗺 tab opens on (a tap on the minimap), else yours */
   mapStart?: string | null;
 }) {
+  const [mem, setMem] = useState<MenuMemory>(readMemory);
+  const [at, setAt] = useState<MenuAt>(() => panelTarget(tab, mem));
+  // someone outside (the top bar, a key, the minimap) opened another tab
+  const asked = useRef(tab);
+  useEffect(() => {
+    if (asked.current === tab) return;
+    asked.current = tab;
+    setAt(panelTarget(tab, mem));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+  /** the journal's "Show on map" (J3b): the metro with the way drawn */
+  const [route, setRoute] = useState<RouteRequest | null>(null);
+  /** a Story entry's day, opened in the diary */
+  const [diaryDay, setDiaryDay] = useState<number | null>(null);
+  const go = (next: MenuAt) => {
+    if (next.tab !== 'map') setRoute(null);
+    if (next.view !== 'diary') setDiaryDay(null);
+    setAt(next);
+    asked.current = next.tab;
+    setTab(next.tab);
+  };
+  const openTab = (t: MenuTab) => go(panelTarget(t, mem));
+  const showRoute = (r: RouteRequest) => {
+    go({ tab: 'map' });
+    setRoute(r);
+  };
+  // the menu reopens on this tab and view (per device)
+  useEffect(() => {
+    const m = remember(mem, at);
+    if (m === mem) return;
+    setMem(m);
+    writeMemory(m);
+  }, [mem, at]);
+
+  const leadIds = useMemo(() => leads(save, content).map((l) => l.quest.id), [save, content]);
+  const news = useMemo(() => menuNews(save, leadIds), [save, leadIds]);
+  // opening a view clears its dot
+  const key = viewKey(at);
+  useEffect(() => {
+    if (news.has(key)) for (const a of markSeen(save, at, leadIds)) onAct?.(a);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, news]);
+
+  // 1–5 switch tabs (not while typing)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (e.metaKey || e.ctrlKey || e.altKey || el?.closest('input, textarea, [contenteditable]')) return;
+      const t = tabForKey(e.key);
+      if (t) openTab(t);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  const views = at.tab === 'settings' ? undefined : VIEWS[at.tab];
+  const cur = MENU.find((m) => m.id === at.tab);
   return (
-    <div className="wp-scrim" onClick={onClose}>
-      <section className="wp" role="dialog" aria-label="Game panels" onClick={(e) => e.stopPropagation()}>
-        <header className="wp-tabs" role="tablist">
-          {PANELS.map((p) => (
-            <button key={p.id} type="button" role="tab" aria-selected={tab === p.id} onClick={() => setTab(p.id)}>
-              {p.label}
+    <div className="mn-scrim" onClick={onClose}>
+      <section className="mn" role="dialog" aria-label="Menu" onClick={(e) => e.stopPropagation()}>
+        <nav className="mn-tabs" role="tablist" aria-label="Menu">
+          {MENU.map((m, i) => (
+            <button key={m.id} type="button" role="tab" aria-selected={at.tab === m.id} onClick={() => openTab(m.id)} title={`${m.en} (${i + 1})`}>
+              <span className="mn-icon" aria-hidden>
+                {m.icon}
+              </span>
+              <span className="han mn-zh">{m.zh}</span>
+              <span className="mn-en">{m.en}</span>
+              {tabHasNews(news, m.id) && at.tab !== m.id && <i className="mn-dot" aria-label="new" />}
             </button>
           ))}
+        </nav>
+        <header className="mn-head">
+          {views ? (
+            <div className="seg sm mn-views" role="group" aria-label={cur?.en}>
+              {views.map((v) => (
+                <button key={v.id} type="button" aria-pressed={at.view === v.id} title={v.title} onClick={() => go({ tab: at.tab, view: v.id })}>
+                  <span className={/[一-鿿]/.test(v.label) ? 'han' : undefined}>{v.label}</span>
+                  {news.has(`${at.tab}/${v.id}`) && at.view !== v.id && <i className="mn-dot" aria-label="new" />}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <b className="mn-title">
+              <span className="han">{at.tab === 'settings' ? '设置' : cur?.zh}</span> <span className="tiny muted">{at.tab === 'settings' ? 'Settings' : cur?.en}</span>
+            </b>
+          )}
           <span className="spacer" />
-          <button type="button" className="wd-tool" onClick={onClose} aria-label="Back to the world">
+          <button
+            type="button"
+            className="wd-tool mn-gear"
+            aria-pressed={at.tab === 'settings'}
+            onClick={() => go(at.tab === 'settings' ? panelTarget('menu', mem) : { tab: 'settings' })}
+            aria-label="Settings"
+          >
+            ⚙
+          </button>
+          <button type="button" className="wd-tool" onClick={onClose} aria-label="Back to the world (Esc)">
             ×
           </button>
         </header>
-        <div className="wp-body">
-          {tab === 'tasks' && <Tasks save={save} content={content} pinyin={pinyin} />}
-          {tab === 'bag' && <Bag save={save} content={content} onUse={onUse} onAct={onAct} />}
-          {tab === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} />}
-          {tab === 'spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
-          {tab === 'idioms' && <Idioms save={save} content={content} pinyin={pinyin} />}
-          {tab === 'stamps' && <Stamps save={save} content={content} />}
-          {tab === 'friends' && <Friends save={save} content={content} />}
-          {tab === 'diary' && <Diary save={save} content={content} pinyin={pinyin} />}
-          {tab === 'album' && <Album user={user} />}
-          {tab === 'settings' && <Settings settings={save.settings} onChange={onSettings} onReset={onReset} />}
+        <div className="mn-body" key={key}>
+          {key === 'journal/now' && (
+            <JournalNow save={save} content={content} pinyin={pinyin} onTrack={(quest) => onAct?.({ do: 'track', quest, rev: Date.now() })} onShowRoute={showRoute} />
+          )}
+          {key === 'journal/story' && <JournalStory save={save} content={content} onDay={(day) => (setDiaryDay(day), go({ tab: 'journal', view: 'diary' }))} />}
+          {key === 'journal/diary' && <Diary save={save} content={content} pinyin={pinyin} focus={diaryDay} onStory={() => go({ tab: 'journal', view: 'story' })} />}
+          {key === 'bag' && <Bag save={save} content={content} onUse={onUse} onAct={onAct} />}
+          {key === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} route={route} />}
+          {key === 'people' && <People save={save} content={content} onTrack={(quest) => onAct?.({ do: 'track', quest, rev: Date.now() })} onShowRoute={showRoute} />}
+          {key === 'collection/spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
+          {key === 'collection/idioms' && <Idioms save={save} content={content} pinyin={pinyin} />}
+          {key === 'collection/stamps' && <Stamps save={save} content={content} />}
+          {key === 'collection/album' && <Album user={user} />}
+          {key === 'settings' && <Settings settings={save.settings} onChange={onSettings} onReset={onReset} />}
         </div>
       </section>
     </div>
@@ -164,111 +254,12 @@ function Album({ user }: { user: string }) {
   );
 }
 
-/** The diary (X3): each game day in a few simple sentences, newest first; every word tappable. */
-function Diary({ save, content, pinyin }: { save: WorldSave; content: WorldContent; pinyin: boolean }) {
-  const [open, setOpen] = useState<number | null>(null);
-  const days = diaryDays(save);
-  if (!days.length) return <Empty han="记">The diary writes itself as you go. Come back at the end of the day.</Empty>;
-  const names = contentNames([content]);
-  const today = dayOf(save.clock);
-  return (
-    <>
-      <h3 className="wp-label">
-        日记 <span className="tiny muted">· tap a word for its card; tap a day for the English</span>
-      </h3>
-      <ul className="wp-list">
-        {days.map((d) => {
-          const lines = diaryLines(d.codes, names, d.day);
-          const w = weatherOf(d.day);
-          return (
-            <li key={d.day}>
-              <button type="button" className="w-diary-day tiny muted" aria-expanded={open === d.day} onClick={() => setOpen(open === d.day ? null : d.day)}>
-                <span className="han">
-                  {dateZh(d.day)} · {WEATHER_ICON[w]} {WEATHER_ZH[w]}
-                  {d.day === today ? ' · 今天' : ''}
-                </span>
-              </button>
-              <p>
-                {lines.map((l, i) => (
-                  <ZhText key={i} zh={l.zh} pinyin={pinyin} />
-                ))}
-              </p>
-              {open === d.day && <p className="small muted">{lines.map((l) => l.en).join(' ')}</p>}
-            </li>
-          );
-        })}
-      </ul>
-    </>
-  );
-}
-
-function Friends({ save, content }: { save: WorldSave; content: WorldContent }) {
-  const rows = friendRows(save, content.npcs);
-  if (!rows.length && !save.cat.name) return <Empty han="友">Nobody yet. Say 你好 to the neighbours.</Empty>;
-  return (
-    <>
-      <h3 className="wp-label">People you know{save.name && <span className="han"> · 我叫{save.name}</span>}</h3>
-      <ul className="wp-list">
-        {rows.map((r) => (
-          <li key={r.id}>
-            <b className="han">{r.name}</b> <Hearts n={r.hearts} /> <span className="tiny muted">{r.role}</span>
-            {r.notes.length > 0 && <p className="small muted">Remembers: {r.notes.join('; ')}.</p>}
-          </li>
-        ))}
-        {save.cat.name && (
-          <li key="cat">
-            <b className="han">{save.cat.name}</b> <span className="tiny muted">· your cat, fed on {save.cat.fed} days — it sleeps in the courtyard and follows you in 帽儿胡同</span>
-          </li>
-        )}
-      </ul>
-      <p className="tiny muted">Friendship grows when you talk (once a day), give something they like, or help. At three hearts some people tell you their own story.</p>
-    </>
-  );
-}
-
 function Empty({ han, children }: { han: string; children: React.ReactNode }) {
   return (
     <div className="empty wp-empty">
       <div className="big han">{han}</div>
       <p className="small muted">{children}</p>
     </div>
-  );
-}
-
-function Tasks({ save, content, pinyin }: { save: WorldSave; content: WorldContent; pinyin: boolean }) {
-  const tasks = taskRows(save, content.quests);
-  const riddles = riddleRows(save, content.scenes);
-  const npcName = (id?: string) => content.npcs.find((n) => n.id === id)?.name;
-  return (
-    <>
-      <h3 className="wp-label">Tasks</h3>
-      {tasks.length ? (
-        <ul className="wp-list">
-          {tasks.map((t) => (
-            <li key={t.quest.id} data-done={t.done ? '' : undefined}>
-              <b>{t.quest.title}</b>
-              {t.done ? <span className="tiny muted"> · done</span> : <p className="small">{t.now}</p>}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <Empty han="事">No tasks yet. Talk to people — someone always needs a hand.</Empty>
-      )}
-      <h3 className="wp-label">📌 Riddles</h3>
-      {riddles.length ? (
-        <ul className="wp-list">
-          {riddles.map((r) => (
-            <li key={r.id} data-done={r.solved ? '' : undefined}>
-              {npcName(r.npc) && <span className="tiny muted han">{npcName(r.npc)}：</span>}
-              <ZhText zh={r.zh} pinyin={pinyin} />
-              <p className="tiny muted">{r.solved ? `Worked out — “${r.en}”` : 'Tap the hard words, ask someone “……是什么意思？”, or ask 兔儿爷.'}</p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="small muted">Key lines 📌 — the hard ones that matter — pin themselves here.</p>
-      )}
-    </>
   );
 }
 
@@ -622,11 +613,52 @@ function Stamps({ save, content }: { save: WorldSave; content: WorldContent }) {
   );
 }
 
+const ON_OFF = [
+  { id: 'off', label: 'Off' },
+  { id: 'on', label: 'On' },
+] as const;
+const LEVELS = [
+  { id: 'off', label: 'Off' },
+  { id: 'soft', label: 'Soft' },
+  { id: 'on', label: 'On' },
+] as const;
+const level = (v: number) => (v <= 0 ? 'off' : v < 0.5 ? 'soft' : 'on');
+const volumeOf = (v: string) => (v === 'off' ? 0 : v === 'soft' ? 0.35 : 0.8);
+
+/** ⚙ (§10 P1): the game's settings in four groups — Sound, Text, Controls, Game. */
 function Settings({ settings, onChange, onReset }: { settings: WorldSettings; onChange: (patch: Partial<WorldSettings>) => void; onReset: () => void }) {
   const listenable = canRecognise();
   const [sure, setSure] = useState(false);
   return (
     <div className="wp-settings">
+      <h3 className="wp-label">Sound</h3>
+      <label>
+        <span>Street sounds</span>
+        <Seg value={level(settings.volume)} options={LEVELS} onChange={(v) => onChange({ volume: volumeOf(v) })} size="sm" />
+      </label>
+      <label>
+        <span>Music</span>
+        <Seg value={level(settings.music)} options={LEVELS} onChange={(v) => onChange({ music: volumeOf(v) })} size="sm" />
+      </label>
+      <h3 className="wp-label">Text</h3>
+      <label>
+        <span>拼 under lines</span>
+        <Seg value={settings.pinyin ? 'on' : 'off'} options={ON_OFF} onChange={(v) => onChange({ pinyin: v === 'on' })} size="sm" />
+      </label>
+      <label>
+        <span>Text size</span>
+        <Seg
+          value={settings.textSize}
+          options={[
+            { id: 's', label: 'Small' },
+            { id: 'm', label: 'Medium' },
+            { id: 'l', label: 'Large' },
+          ]}
+          onChange={(textSize) => onChange({ textSize })}
+          size="sm"
+        />
+      </label>
+      <h3 className="wp-label">Controls</h3>
       <label>
         <span>Answer by</span>
         <Seg
@@ -645,81 +677,15 @@ function Settings({ settings, onChange, onReset }: { settings: WorldSettings; on
       </label>
       {!listenable && <p className="tiny muted">This browser cannot listen, so the game uses the keyboard. On an iPad, Safari with Siri &amp; Dictation on can.</p>}
       <label>
-        <span>拼 under lines</span>
-        <Seg
-          value={settings.pinyin ? 'on' : 'off'}
-          options={[
-            { id: 'off', label: 'Off' },
-            { id: 'on', label: 'On' },
-          ]}
-          onChange={(v) => onChange({ pinyin: v === 'on' })}
-          size="sm"
-        />
-      </label>
-      <label>
         <span>On-screen joystick</span>
-        <Seg
-          value={settings.joystick ? 'on' : 'off'}
-          options={[
-            { id: 'off', label: 'Off' },
-            { id: 'on', label: 'On' },
-          ]}
-          onChange={(v) => onChange({ joystick: v === 'on' })}
-          size="sm"
-        />
+        <Seg value={settings.joystick ? 'on' : 'off'} options={ON_OFF} onChange={(v) => onChange({ joystick: v === 'on' })} size="sm" />
       </label>
       <label>
         <span>Mark what I can use</span>
-        <Seg
-          value={settings.highlight ? 'on' : 'off'}
-          options={[
-            { id: 'off', label: 'Off' },
-            { id: 'on', label: 'On' },
-          ]}
-          onChange={(v) => onChange({ highlight: v === 'on' })}
-          size="sm"
-        />
+        <Seg value={settings.highlight ? 'on' : 'off'} options={ON_OFF} onChange={(v) => onChange({ highlight: v === 'on' })} size="sm" />
       </label>
-      <label>
-        <span>Street sounds</span>
-        <Seg
-          value={settings.volume <= 0 ? 'off' : settings.volume < 0.5 ? 'soft' : 'on'}
-          options={[
-            { id: 'off', label: 'Off' },
-            { id: 'soft', label: 'Soft' },
-            { id: 'on', label: 'On' },
-          ]}
-          onChange={(v) => onChange({ volume: v === 'off' ? 0 : v === 'soft' ? 0.35 : 0.8 })}
-          size="sm"
-        />
-      </label>
-      <label>
-        <span>Music</span>
-        <Seg
-          value={settings.music <= 0 ? 'off' : settings.music < 0.5 ? 'soft' : 'on'}
-          options={[
-            { id: 'off', label: 'Off' },
-            { id: 'soft', label: 'Soft' },
-            { id: 'on', label: 'On' },
-          ]}
-          onChange={(v) => onChange({ music: v === 'off' ? 0 : v === 'soft' ? 0.35 : 0.8 })}
-          size="sm"
-        />
-      </label>
-      <label>
-        <span>Text size</span>
-        <Seg
-          value={settings.textSize}
-          options={[
-            { id: 's', label: 'Small' },
-            { id: 'm', label: 'Medium' },
-            { id: 'l', label: 'Large' },
-          ]}
-          onChange={(textSize) => onChange({ textSize })}
-          size="sm"
-        />
-      </label>
-      <p className="tiny muted">Settings are kept in your game save, so the iPad and the Mac share them.</p>
+      <h3 className="wp-label">Game</h3>
+      <p className="tiny muted">Settings are kept in your game save, so the iPad and the Mac share them. Keys: 1–5 switch tabs, Esc closes.</p>
       <div className="wp-reset">
         {sure ? (
           <>

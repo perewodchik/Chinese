@@ -3,10 +3,16 @@
     "id": "side-painting",
     "title": "A painting for 王阿姨",
     "chapter": 2,
+    "kind": "side",
+    "giver": "beihai-painter",
+    "blurb": "A painter at 北海 heard about 王阿姨 and made a small picture for her.",
+    "lead": "A painter at 北海 is painting the White Dagoba.",
     "steps": [
       {
         "id": "give",
         "now": "The painter at 北海 gave you a painting of the White Dagoba for 王阿姨. Bring it home.",
+        "past": "Brought 王阿姨 a painting of the White Dagoba.",
+        "where": "siheyuan-yard",
         "done": {
           "flag": "painting-given"
         }
@@ -17,10 +23,17 @@
     "id": "side-taiji",
     "title": "太极 on 景山",
     "chapter": 2,
+    "kind": "side",
+    "giver": "jingshan-ayi",
+    "blurb": "A woman does 太极 on 景山 every morning and likes to teach one move to newcomers.",
+    "lead": "Someone moves very slowly on 景山's path in the mornings.",
     "steps": [
       {
         "id": "learn",
         "now": "The woman on 景山’s path does 太极 every morning — learn a move with her.",
+        "past": "Learned a 太极 move on 景山.",
+        "where": "jingshan-park",
+        "when": "mornings",
         "done": {
           "flag": "taiji"
         }
@@ -31,10 +44,16 @@
     "id": "side-maliang",
     "title": "The magic brush",
     "chapter": 2,
+    "kind": "side",
+    "giver": "maliang",
+    "blurb": "A boy by the lake at 北海 has a brush that paints things alive, like 马良 in the old tale.",
+    "lead": "A boy at 北海 paints by the water — his pictures look almost real.",
     "steps": [
       {
         "id": "do",
-        "now": "A boy paints by the lake at 北海 — tell him what to paint."
+        "now": "A boy paints by the lake at 北海 — tell him what to paint.",
+        "past": "Told 马良 what to paint — and it came alive.",
+        "where": "beihai-north"
       }
     ]
   },
@@ -42,10 +61,16 @@
     "id": "side-rangli",
     "title": "The small pear",
     "chapter": 2,
+    "kind": "side",
+    "giver": "rongrong",
+    "blurb": "A little boy in the 景山 park must choose a pear, like 孔融 in the old story.",
+    "lead": "A little boy in the 景山 park is holding a bag of pears.",
     "steps": [
       {
         "id": "do",
-        "now": "A little boy in the 景山 park has to choose a pear."
+        "now": "A little boy in the 景山 park has to choose a pear.",
+        "past": "Watched 小融 choose the small pear.",
+        "where": "jingshan-park"
       }
     ]
   },
@@ -53,10 +78,16 @@
     "id": "side-simaguang",
     "title": "The water jar",
     "chapter": 2,
+    "kind": "side",
+    "giver": "guangguang",
+    "blurb": "A boy in the 景山 park needs help with a big water jar, like 司马光 in the old story.",
+    "lead": "Children shout near a big jar in the 景山 park.",
     "steps": [
       {
         "id": "do",
-        "now": "A boy in the 景山 park needs help, fast."
+        "now": "A boy in the 景山 park needs help, fast.",
+        "past": "Helped 小光 save his friend from the water jar.",
+        "where": "jingshan-park"
       }
     ]
   }

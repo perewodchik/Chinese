@@ -49,6 +49,11 @@ export const UPGRADES: Record<number, Upgrade> = {
     bills: Array.isArray(r.bills) ? r.bills.map((b, i) => (isObj(b) && typeof b.id !== 'string' ? { ...b, id: `old:${i}` } : b)) : [],
     fresh: isObj(r.fresh) ? r.fresh : {},
   }),
+  /**
+   * 9 → 10 (§10 J1–J2): nothing to change — quests gain `at` stamps from now on (older steps show as
+   * "earlier"), and the save may name a tracked quest; both are simply absent in an old save.
+   */
+  9: (r) => ({ ...r, version: 10 }),
 };
 
 export type ReadResult =
@@ -79,7 +84,12 @@ function fill(r: Raw): WorldSave {
     chapter: isNum(r.chapter) ? r.chapter : 1,
     flags: strings(r.flags),
     scenes: strings(r.scenes),
-    quests: record(r.quests, (x): x is WorldSave['quests'][string] => isObj(x) && typeof x.step === 'string'),
+    quests: Object.fromEntries(
+      Object.entries(record(r.quests, (x): x is WorldSave['quests'][string] => isObj(x) && typeof x.step === 'string')).map(([k, q]) => [
+        k,
+        { step: q.step, index: isNum(q.index) ? q.index : 0, done: !!q.done, ...(isObj(q.at) ? { at: record(q.at, isNum) } : {}) },
+      ]),
+    ),
     riddles: record(r.riddles, (x): x is WorldSave['riddles'][string] => isObj(x) && typeof x.scene === 'string'),
     bag: {
       items: record(bag.items, isNum),
@@ -104,6 +114,8 @@ function fill(r: Raw): WorldSave {
     photos: strings(r.photos),
     daily: record(r.daily, isNum),
     fresh: record(r.fresh, isNum),
+    ...(isObj(r.seen) ? { seen: record(r.seen, isNum) } : {}),
+    ...(isObj(r.tracked) && typeof r.tracked.quest === 'string' && isNum(r.tracked.rev) ? { tracked: { quest: r.tracked.quest, rev: r.tracked.rev } } : {}),
     bills: Array.isArray(r.bills)
       ? r.bills.filter((b): b is WorldSave['bills'][number] => isObj(b) && typeof b.id === 'string' && isNum(b.at) && typeof b.who === 'string' && isNum(b.amount))
       : [],

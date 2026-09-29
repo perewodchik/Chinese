@@ -4,7 +4,7 @@ import { dayOf } from './clock';
 import { diaryLines } from './diary';
 import { merge } from './merge';
 import { readSave } from './migrate';
-import { applyAll, newSave } from './save';
+import { WORLD_SAVE_VERSION, applyAll, newSave } from './save';
 
 const ctx = { now: 1 };
 const names = {
@@ -47,6 +47,6 @@ describe('the ledger, freshness and the money diary (Y7)', () => {
     assert.ok(r.ok);
     assert.deepEqual(r.save.bills, [{ id: 'old:0', at: 5, who: 'x', amount: -3 }]);
     assert.deepEqual(r.save.fresh, {});
-    assert.equal(r.save.version, 9);
+    assert.equal(r.save.version, WORLD_SAVE_VERSION);
   });
 });

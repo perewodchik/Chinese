@@ -54,7 +54,7 @@ describe('conditions', () => {
   });
 
   it('reads quest states', () => {
-    const q: Quest = { id: 'q', title: 'Q', chapter: 1, steps: [{ id: 'a', now: 'A' }, { id: 'b', now: 'B' }] };
+    const q: Quest = { id: 'q', title: 'Q', chapter: 1, kind: 'main', steps: [{ id: 'a', past: '', now: 'A' }, { id: 'b', past: '', now: 'B' }] };
     const c = { now: 1, quests: new Map([['q', q]]) };
     let t = apply(s, { do: 'quest', quest: 'q', step: 'b' }, c);
     assert.equal(holds({ quest: 'q' }, t), true);
@@ -74,14 +74,15 @@ describe('quests', () => {
     id: 'breakfast',
     title: 'Breakfast',
     chapter: 1,
+    kind: 'main',
     steps: [
-      { id: 'go', now: 'Find the 早点铺 in the lane.', done: { scene: 'breakfast-order' } },
-      { id: 'eat', now: 'Eat your 包子.', done: { not: { item: 'baozi' } } },
-      { id: 'back', now: 'Tell 王阿姨.', done: { flag: 'told_wang' } },
+      { id: 'go', past: '', now: 'Find the 早点铺 in the lane.', done: { scene: 'breakfast-order' } },
+      { id: 'eat', past: '', now: 'Eat your 包子.', done: { not: { item: 'baozi' } } },
+      { id: 'back', past: '', now: 'Tell 王阿姨.', done: { flag: 'told_wang' } },
     ],
     reward: [{ do: 'stamp', stamp: 'breakfast' }],
   };
-  const lantern: Quest = { id: 'lantern', title: 'The lantern', chapter: 1, steps: [{ id: 'look', now: 'Look at the lantern.' }] };
+  const lantern: Quest = { id: 'lantern', title: 'The lantern', chapter: 1, kind: 'main', steps: [{ id: 'look', past: '', now: 'Look at the lantern.' }] };
   const all = [breakfast, lantern];
   const c: ApplyContext = { now: 1, quests: new Map(all.map((q) => [q.id, q])) };
 

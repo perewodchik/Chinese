@@ -3,10 +3,12 @@
     "id": "ch5",
     "title": "New Beijing",
     "chapter": 5,
+    "kind": "main",
     "steps": [
       {
         "id": "go",
         "now": "兔儿爷: a spirit that loves gold would go where the money is. Start at 三里屯 — line 10 to 团结湖.",
+        "past": "Went to 三里屯, the shiny new Beijing.",
         "done": {
           "scene": "sanlitun-arrive"
         }
@@ -14,6 +16,8 @@
       {
         "id": "rumour",
         "now": "Ask around 三里屯 — the parcel courier hears everything.",
+        "past": "The courier in 三里屯 had heard where the gold-lover goes.",
+        "where": "sanlitun-street",
         "done": {
           "flag": "heard-pixiu"
         }
@@ -21,6 +25,9 @@
       {
         "id": "guomao",
         "now": "Ride line 10 south to 国贸 and go into the bank on the plaza.",
+        "past": "Rode to 国贸 and found something strange in the bank's hall.",
+        "where": "guomao-bank",
+        "when": "bank open 9:00–17:00",
         "done": {
           "flag": "saw-pixiu"
         }
@@ -28,6 +35,8 @@
       {
         "id": "gold",
         "now": "The 貔貅 loves golden things. The convenience store 便利店 next to the bank sells chocolate coins in gold paper.",
+        "past": "Bought chocolate coins in gold paper at the 便利店.",
+        "where": "bianlidian",
         "done": {
           "any": [
             {
@@ -42,6 +51,8 @@
       {
         "id": "pixiu",
         "now": "Give the golden coins to the 貔貅 in the bank's hall.",
+        "past": "Gave the golden coins to the 貔貅 — it was very pleased.",
+        "where": "guomao-bank",
         "done": {
           "spirit": "pixiu"
         }
@@ -49,6 +60,7 @@
       {
         "id": "olympic",
         "now": "兔儿爷 wants to see the Bird's Nest: line 8 north to 奥林匹克公园.",
+        "past": "Saw the Bird's Nest at 奥林匹克公园 with 兔儿爷.",
         "done": {
           "scene": "olympic-arrive"
         }
@@ -70,10 +82,16 @@
     "id": "side-bike",
     "title": "Shared bikes",
     "chapter": 5,
+    "kind": "side",
+    "giver": "kuaidi-xiaoge",
+    "blurb": "Shared bikes stand on every corner; the courier says they are the fastest way round.",
+    "lead": "The courier in 三里屯 zips past on a bike.",
     "steps": [
       {
         "id": "ride",
         "now": "The courier says: scan a shared bike 共享单车 at a stand and ride. Try one — park at any stand.",
+        "past": "Rode a shared bike for the first time.",
+        "where": "anywhere",
         "done": {
           "flag": "on-bike"
         }

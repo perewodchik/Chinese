@@ -3,10 +3,12 @@
     "id": "ch1",
     "title": "A new home in the hutong",
     "chapter": 1,
+    "kind": "main",
     "steps": [
       {
         "id": "meet-wang",
         "now": "Go out into the courtyard and say hello to 王阿姨, your landlady.",
+        "past": "Stepped out into the courtyard and met 王阿姨, my landlady.",
         "done": {
           "scene": "arrive"
         }
@@ -14,6 +16,8 @@
       {
         "id": "breakfast",
         "now": "Have breakfast at the 早点铺 on 南锣鼓巷: out of the courtyard gate, then east along the lane.",
+        "past": "Had 包子 and 豆浆 at the 早点铺 — my first order in Chinese.",
+        "when": "open 6:00–10:00",
         "done": {
           "scene": "breakfast"
         }
@@ -21,6 +25,8 @@
       {
         "id": "lantern",
         "now": "Go back to the courtyard and look at 王阿姨's old lantern.",
+        "past": "Looked at 王阿姨's old lantern — and it broke, and something ran out of it.",
+        "where": "siheyuan-yard",
         "done": {
           "flag": "lantern-broken"
         }
@@ -28,6 +34,8 @@
       {
         "id": "rumour",
         "now": "The lantern's spirits have run off. Ask people if they have seen anything strange — the teahouse 茶馆 and the corner shop 小卖部 on 南锣鼓巷 hear everything.",
+        "past": "Asked around the lanes until someone had seen something strange.",
+        "where": "chaguan",
         "done": {
           "flag": "heard-lion"
         }
@@ -35,6 +43,9 @@
       {
         "id": "lion",
         "now": "They say the stone lion by the Drum Tower 鼓楼 moves at night. Ask the way if you need to (it is west of your lane), and go after dark — 老刘 at the teahouse lets you sit till evening.",
+        "past": "Went to the 鼓楼 after dark and made friends with the stone lion.",
+        "where": "gulou-square",
+        "when": "after dark",
         "done": {
           "spirit": "shishizi"
         }
@@ -42,6 +53,8 @@
       {
         "id": "card",
         "now": "The spirits could be anywhere in Beijing. Buy a 交通卡 at 南锣鼓巷 station, at the east end of the lanes.",
+        "past": "Bought my own 交通卡 at 南锣鼓巷 station.",
+        "where": "station-nanluoguxiang",
         "done": {
           "flag": "has-card"
         }
@@ -49,6 +62,7 @@
       {
         "id": "ride",
         "now": "Take the subway to 天安门东: through the gates (tap your card), find the board on the platform, line 8 south to 王府井, then line 1 one stop.",
+        "past": "Rode the subway — line 8, then line 1 — all the way to 天安门.",
         "done": {
           "station": "tiananmendong"
         }
@@ -70,10 +84,16 @@
     "id": "side-bird",
     "title": "赵爷爷’s bird",
     "chapter": 2,
+    "kind": "side",
+    "giver": "zhao-yeye",
+    "blurb": "赵爷爷's songbird flew out of its cage. It is his oldest friend, and the lanes are quiet without it.",
+    "lead": "赵爷爷 on 南锣鼓巷 is staring at an empty cage.",
     "steps": [
       {
         "id": "find",
         "now": "赵爷爷’s bird flew off. The kid 小明 plays in the lanes — ask him.",
+        "past": "小明 helped me find 赵爷爷's bird.",
+        "where": "nanluo-main",
         "done": {
           "any": [
             {
@@ -88,6 +108,8 @@
       {
         "id": "back",
         "now": "Take the bird back to 赵爷爷 on 南锣鼓巷.",
+        "past": "Gave the bird back to 赵爷爷 — it sang at once.",
+        "where": "nanluo-main",
         "done": {
           "flag": "bird-back"
         }
@@ -98,10 +120,17 @@
     "id": "side-haircut",
     "title": "A haircut",
     "chapter": 1,
+    "kind": "side",
+    "giver": "zhang-shifu",
+    "blurb": "张师傅 has cut hair on 南锣鼓巷 for thirty years, and he thinks yours could do with a trim.",
+    "lead": "The barber 张师傅 on 南锣鼓巷 has an empty chair.",
     "steps": [
       {
         "id": "cut",
         "now": "Get a haircut at 张师傅’s on 南锣鼓巷 (30 元).",
+        "past": "Had my hair cut at 张师傅's — and said how I wanted it.",
+        "where": "lifadian",
+        "when": "open 9:00–21:00",
         "done": {
           "flag": "haircut"
         }
@@ -112,10 +141,16 @@
     "id": "side-kite",
     "title": "小明’s kite",
     "chapter": 2,
+    "kind": "side",
+    "giver": "xiaoming",
+    "blurb": "小明's kite is stuck high in a tree, and he is too small to reach it.",
+    "lead": "小明 keeps looking up at the trees in 帽儿胡同.",
     "steps": [
       {
         "id": "pole",
         "now": "小明’s kite is stuck in the 槐树 of 帽儿胡同. Buy a bamboo pole 竹竿 at the corner shop and use it on the kite (🎒 → Use).",
+        "past": "Got 小明's kite out of the tree with a bamboo pole.",
+        "where": "hutong-home",
         "done": {
           "flag": "kite-down"
         }
@@ -123,6 +158,8 @@
       {
         "id": "give",
         "now": "Give the kite back to 小明 (🎒 → Use on him).",
+        "past": "Gave 小明 his kite back.",
+        "where": "nanluo-main",
         "done": {
           "flag": "kite-back"
         }
@@ -133,10 +170,15 @@
     "id": "side-keys",
     "title": "Lost keys",
     "chapter": 3,
+    "kind": "side",
+    "blurb": "My keys were gone one morning. Someone in the lanes must have seen them.",
+    "lead": "Your pocket feels light — have you seen your keys?",
     "steps": [
       {
         "id": "ask",
         "now": "Your keys are gone. Ask the neighbours if they have seen them.",
+        "past": "Asked the neighbours about my keys; 小明 had seen them.",
+        "where": "nanluo-main",
         "done": {
           "any": [
             {
@@ -152,6 +194,8 @@
       {
         "id": "light",
         "now": "小明 saw them in the dark corner of 帽儿胡同. A torch 手电筒 from the corner shop — use it on the corner.",
+        "past": "Found my keys in a dark corner of 帽儿胡同 with a torch.",
+        "where": "hutong-home",
         "done": {
           "flag": "keys-found"
         }
@@ -162,10 +206,16 @@
     "id": "side-photo-gate",
     "title": "A photo for 王阿姨",
     "chapter": 3,
+    "kind": "side",
+    "giver": "wang-ayi",
+    "blurb": "王阿姨 grew up near an old red gate and would love a photo of one like it.",
+    "lead": "王阿姨 in the courtyard is talking about the red gates of her childhood.",
     "steps": [
       {
         "id": "photo",
         "now": "王阿姨 wants a photo of a red gate. Use your 手机 on the door gods’ gate in 大栅栏.",
+        "past": "Took a photo of the door gods' red gate in 大栅栏.",
+        "where": "qianmen-street",
         "done": {
           "flag": "photo-gate"
         }
@@ -173,6 +223,8 @@
       {
         "id": "show",
         "now": "Show 王阿姨 the photo (use your 手机 on her).",
+        "past": "Showed 王阿姨 the photo — she looked at it for a long time.",
+        "where": "siheyuan-yard",
         "done": {
           "flag": "photo-shown"
         }
@@ -183,10 +235,16 @@
     "id": "story-wang",
     "title": "王阿姨’s son",
     "chapter": 2,
+    "kind": "side",
+    "giver": "wang-ayi",
+    "blurb": "王阿姨's son lives far away. She misses him and is shy about calling.",
+    "lead": "王阿姨 looks at her phone a lot, and sighs.",
     "steps": [
       {
         "id": "talk",
         "now": "王阿姨 misses her son abroad. Listen to her — maybe she could call him?",
+        "past": "王阿姨 told me about her son abroad.",
+        "where": "siheyuan-yard",
         "done": {
           "quest": "story-wang",
           "step": "call"
@@ -194,7 +252,10 @@
       },
       {
         "id": "call",
-        "now": "Come back to the courtyard in the morning (7–11) and help 王阿姨 call her son."
+        "now": "Come back to the courtyard in the morning (7–11) and help 王阿姨 call her son.",
+        "past": "Helped 王阿姨 call her son — she laughed all morning.",
+        "where": "siheyuan-yard",
+        "when": "mornings 7:00–11:00"
       }
     ]
   },
@@ -202,10 +263,16 @@
     "id": "story-zhang",
     "title": "The first barber shop",
     "chapter": 2,
+    "kind": "side",
+    "giver": "zhang-shifu",
+    "blurb": "张师傅 remembers his very first barber shop and the first man who sat in his chair.",
+    "lead": "张师傅 at the barber's has a story, if you are a friend.",
     "steps": [
       {
         "id": "talk",
         "now": "张师傅 is telling you about his first shop.",
+        "past": "张师傅 told me about his first shop.",
+        "where": "lifadian",
         "done": {
           "quest": "story-zhang",
           "step": "ask"
@@ -214,6 +281,8 @@
       {
         "id": "ask",
         "now": "His first customer was 赵爷爷. Ask 赵爷爷 on 南锣鼓巷 about the old shop.",
+        "past": "Asked 赵爷爷 about the old shop — he still had a photo.",
+        "where": "nanluo-main",
         "done": {
           "quest": "story-zhang",
           "step": "bring"
@@ -221,7 +290,9 @@
       },
       {
         "id": "bring",
-        "now": "Take 赵爷爷’s old photo to 张师傅 at the barber’s."
+        "now": "Take 赵爷爷’s old photo to 张师傅 at the barber’s.",
+        "past": "Brought 赵爷爷's old photo to 张师傅.",
+        "where": "lifadian"
       }
     ]
   },
@@ -229,10 +300,16 @@
     "id": "story-bird",
     "title": "The bird that stopped singing",
     "chapter": 2,
+    "kind": "side",
+    "giver": "zhao-yeye",
+    "blurb": "赵爷爷's bird has stopped singing, and he has a morning ritual that might bring its song back.",
+    "lead": "赵爷爷 says his bird has gone quiet.",
     "steps": [
       {
         "id": "talk",
         "now": "赵爷爷 is telling you about his bird.",
+        "past": "赵爷爷 told me about his bird that stopped singing.",
+        "where": "nanluo-main",
         "done": {
           "quest": "story-bird",
           "step": "morning"
@@ -240,7 +317,10 @@
       },
       {
         "id": "morning",
-        "now": "Meet 赵爷爷 on the 鼓楼 square in the early morning (6–9)."
+        "now": "Meet 赵爷爷 on the 鼓楼 square in the early morning (6–9).",
+        "past": "Met 赵爷爷 on the 鼓楼 square at dawn — the bird sang again.",
+        "where": "gulou-square",
+        "when": "early morning 6:00–9:00"
       }
     ]
   },
@@ -248,10 +328,17 @@
     "id": "side-umbrella",
     "title": "Caught in the rain",
     "chapter": 1,
+    "kind": "side",
+    "giver": "zhao-yeye",
+    "blurb": "赵爷爷 was caught in the rain without an umbrella, and he will not ask for help.",
+    "lead": "On rainy days 赵爷爷 stands under the eaves on 南锣鼓巷.",
     "steps": [
       {
         "id": "lend",
         "now": "赵爷爷 has no umbrella. 李阿姨 sells them on rainy days — use one on him from your bag.",
+        "past": "Lent 赵爷爷 an umbrella in the rain.",
+        "where": "nanluo-main",
+        "when": "on a rainy day",
         "done": {
           "flag": "umbrella-lent"
         }
@@ -259,6 +346,9 @@
       {
         "id": "back",
         "now": "赵爷爷 will give your umbrella back on a dry day. Look for him on 南锣鼓巷.",
+        "past": "赵爷爷 gave my umbrella back on a dry day.",
+        "where": "nanluo-main",
+        "when": "on a dry day",
         "done": {
           "flag": "umbrella-back"
         }
@@ -269,10 +359,17 @@
     "id": "side-chunjie",
     "title": "New Year at the courtyard",
     "chapter": 1,
+    "kind": "side",
+    "giver": "wang-ayi",
+    "blurb": "At New Year every gate in the hutong gets red couplets and a 福 — and children get 红包.",
+    "lead": "王阿姨 is counting the days to New Year.",
     "steps": [
       {
         "id": "door",
         "now": "Put 春联 and a 福 on your gate: buy them at 李阿姨’s in winter, then use them on a lantern beside your red gate in 帽儿胡同.",
+        "past": "Put 春联 and a 福 on my red gate for New Year.",
+        "where": "hutong-home",
+        "when": "in winter",
         "done": {
           "all": [
             {
@@ -287,6 +384,9 @@
       {
         "id": "hongbao",
         "now": "Give 小明 a 红包 (李阿姨 sells them) and wish him a happy new year — during 春节 or 元宵.",
+        "past": "Gave 小明 a 红包 and wished him a happy new year.",
+        "where": "nanluo-main",
+        "when": "at 春节 or 元宵",
         "done": {
           "flag": "hongbao-given"
         }
@@ -297,10 +397,16 @@
     "id": "side-room",
     "title": "A room of your own",
     "chapter": 2,
+    "kind": "side",
+    "giver": "wang-ayi",
+    "blurb": "My room is bare. 王阿姨 thinks a home should have something nice in it.",
+    "lead": "王阿姨 thinks your room looks a little empty.",
     "steps": [
       {
         "id": "decorate",
         "now": "Buy something nice for your room — flowers or a paper-cut at 李阿姨’s, a lantern at 潘家园, calligraphy at the 王府井 bookshop, an opera mask at the 前门 theatre — and use it on a spot in your room (墙, 窗户, 地上).",
+        "past": "Made my room nicer with something I bought.",
+        "where": "siheyuan-room",
         "done": {
           "flag": "room-decorated"
         }
@@ -308,6 +414,8 @@
       {
         "id": "show",
         "now": "Talk to 王阿姨 — she wants to see your room.",
+        "past": "Showed 王阿姨 my room — she approved.",
+        "where": "siheyuan-yard",
         "done": {
           "flag": "room-seen"
         }
@@ -318,10 +426,15 @@
     "id": "side-cat",
     "title": "The hutong cat",
     "chapter": 1,
+    "kind": "side",
+    "blurb": "A thin little cat lives in 帽儿胡同. It is shy, but food helps.",
+    "lead": "Something small and furry watches you in 帽儿胡同.",
     "steps": [
       {
         "id": "feed",
         "now": "Feed the little cat in 帽儿胡同 on three different days: buy 小鱼干 at 李阿姨’s and use it on the cat.",
+        "past": "Fed the hutong cat on three days until it trusted me.",
+        "where": "hutong-home",
         "done": {
           "cat": "trusts"
         }
@@ -329,6 +442,8 @@
       {
         "id": "name",
         "now": "The cat trusts you. Look at it and give it a name: 它叫……",
+        "past": "Gave the cat a name.",
+        "where": "hutong-home",
         "done": {
           "cat": "named"
         }
@@ -339,17 +454,25 @@
     "id": "side-photo-drum",
     "title": "A photo for 小明",
     "chapter": 2,
+    "kind": "side",
+    "giver": "xiaoming",
+    "blurb": "小明 wants a good photo of the Drum Tower for his school project.",
+    "lead": "小明 in 帽儿胡同 needs a picture for school.",
     "steps": [
       {
         "id": "take",
         "now": "Take a photo of the Drum Tower 鼓楼 for 小明: tap 📷 on the 鼓楼 square and put the tower in the frame.",
+        "past": "Took a photo of the Drum Tower for 小明.",
+        "where": "gulou-square",
         "done": {
           "photo": "gulou-square:drum-tower"
         }
       },
       {
         "id": "show",
-        "now": "Show 小明 the photo — he is in 帽儿胡同."
+        "now": "Show 小明 the photo — he is in 帽儿胡同.",
+        "past": "Showed 小明 the Drum Tower photo.",
+        "where": "hutong-home"
       }
     ]
   },
@@ -357,17 +480,25 @@
     "id": "side-photo-wall",
     "title": "The Wall for 老刘",
     "chapter": 8,
+    "kind": "side",
+    "giver": "lao-liu",
+    "blurb": "老刘 has never been to the Great Wall and would love to see a photo of it.",
+    "lead": "老刘 at the teahouse talks about the Great Wall as if it were far away.",
     "steps": [
       {
         "id": "take",
         "now": "Take a photo of the Great Wall’s watchtower for 老刘: tap 📷 on the Wall.",
+        "past": "Photographed the Wall's watchtower for 老刘.",
+        "where": "changcheng",
         "done": {
           "photo": "changcheng:watchtower"
         }
       },
       {
         "id": "show",
-        "now": "Show 老刘 the photo at the teahouse."
+        "now": "Show 老刘 the photo at the teahouse.",
+        "past": "Showed 老刘 the Wall — he poured me a cup of his best tea.",
+        "where": "chaguan"
       }
     ]
   },
@@ -375,10 +506,16 @@
     "id": "side-xiangqi",
     "title": "A game of 象棋",
     "chapter": 2,
+    "kind": "side",
+    "giver": "xiangqi-yeye",
+    "blurb": "An old man plays Chinese chess on the lane every day and is always looking for a new opponent.",
+    "lead": "An old man on 南锣鼓巷 sits over a chess board, waiting.",
     "steps": [
       {
         "id": "do",
-        "now": "Play Chinese chess with the old man on 南锣鼓巷 — say which piece you move."
+        "now": "Play Chinese chess with the old man on 南锣鼓巷 — say which piece you move.",
+        "past": "Played a game of 象棋 on the lane.",
+        "where": "nanluo-main"
       }
     ]
   },
@@ -386,10 +523,17 @@
     "id": "side-dance",
     "title": "Square dancing",
     "chapter": 1,
+    "kind": "side",
+    "giver": "passer-dancer",
+    "blurb": "Every evening the aunties dance on the 鼓楼 square, and anyone can join.",
+    "lead": "Music drifts over the 鼓楼 square in the evenings.",
     "steps": [
       {
         "id": "do",
-        "now": "In the evening, dance with the aunties on the 鼓楼 square — do what she calls."
+        "now": "In the evening, dance with the aunties on the 鼓楼 square — do what she calls.",
+        "past": "Danced with the aunties on the 鼓楼 square.",
+        "where": "gulou-square",
+        "when": "evenings 18:00–21:00"
       }
     ]
   },
@@ -397,10 +541,17 @@
     "id": "side-jiaozi",
     "title": "Dumplings with 王阿姨",
     "chapter": 1,
+    "kind": "side",
+    "giver": "wang-ayi",
+    "blurb": "At New Year 王阿姨 makes dumplings, and she needs another pair of hands.",
+    "lead": "王阿姨 says New Year is not New Year without dumplings.",
     "steps": [
       {
         "id": "do",
-        "now": "At New Year, make dumplings with 王阿姨 — do each step she says."
+        "now": "At New Year, make dumplings with 王阿姨 — do each step she says.",
+        "past": "Made dumplings with 王阿姨 for New Year.",
+        "where": "siheyuan-yard",
+        "when": "at 春节"
       }
     ]
   },
@@ -408,10 +559,16 @@
     "id": "side-xiangsheng",
     "title": "A bit of 相声",
     "chapter": 2,
+    "kind": "side",
+    "giver": "lao-liu",
+    "blurb": "老刘 loves 相声, comic dialogue, and has a joke he has been saving for you.",
+    "lead": "老刘 at the teahouse is grinning about something.",
     "steps": [
       {
         "id": "do",
-        "now": "老刘 at the teahouse has a joke for you. Listen, and laugh if you get it."
+        "now": "老刘 at the teahouse has a joke for you. Listen, and laugh if you get it.",
+        "past": "Listened to 老刘's 相声 — and got the joke.",
+        "where": "chaguan"
       }
     ]
   },
@@ -419,10 +576,17 @@
     "id": "side-waimai",
     "title": "The lost delivery",
     "chapter": 1,
+    "kind": "side",
+    "giver": "waimai",
+    "blurb": "A delivery rider is lost in the hutong maze with someone's dinner going cold.",
+    "lead": "In the evening a delivery rider circles 帽儿胡同 again and again.",
     "steps": [
       {
         "id": "do",
-        "now": "The delivery rider in 帽儿胡同 (in the evening) cannot find a house number — help him."
+        "now": "The delivery rider in 帽儿胡同 (in the evening) cannot find a house number — help him.",
+        "past": "Helped the delivery rider find the right house.",
+        "where": "hutong-home",
+        "when": "evenings 17:00–20:00"
       }
     ]
   },
@@ -430,10 +594,17 @@
     "id": "side-polan",
     "title": "Old things for sale",
     "chapter": 1,
+    "kind": "side",
+    "giver": "polan-shifu",
+    "blurb": "A recycler rides through the hutong each morning, buying old things by the kilo.",
+    "lead": "In the mornings someone calls out 「收破烂儿」 in 帽儿胡同.",
     "steps": [
       {
         "id": "do",
-        "now": "In the morning a recycler rides through 帽儿胡同 calling out — talk to him."
+        "now": "In the morning a recycler rides through 帽儿胡同 calling out — talk to him.",
+        "past": "Talked to the recycler in 帽儿胡同.",
+        "where": "hutong-home",
+        "when": "mornings 7:00–12:00"
       }
     ]
   },
@@ -441,10 +612,16 @@
     "id": "side-xiangzi",
     "title": "《骆驼祥子》 — a cart of his own",
     "chapter": 2,
+    "kind": "side",
+    "giver": "xiangzi",
+    "blurb": "祥子 pulls a hired tricycle and dreams of owning one — like the rickshaw man in the old novel.",
+    "lead": "A tricycle driver on 南锣鼓巷 works very hard.",
     "steps": [
       {
         "id": "do",
-        "now": "祥子 on 南锣鼓巷 wants a tricycle of his own. Take his passengers where they ask."
+        "now": "祥子 on 南锣鼓巷 wants a tricycle of his own. Take his passengers where they ask.",
+        "past": "Helped 祥子 take his passengers where they asked.",
+        "where": "nanluo-main"
       }
     ]
   },
@@ -452,10 +629,16 @@
     "id": "side-chaguan",
     "title": "《茶馆》 — don’t talk politics",
     "chapter": 2,
+    "kind": "side",
+    "giver": "chaguan-keren",
+    "blurb": "A guest in 老刘's teahouse keeps bringing up the news, though the notice on the wall says not to.",
+    "lead": "A guest in the teahouse talks a little too loudly.",
     "steps": [
       {
         "id": "do",
-        "now": "In 老刘’s teahouse a guest keeps bringing up the news. Mind the notice on the wall — talk about the weather or food."
+        "now": "In 老刘’s teahouse a guest keeps bringing up the news. Mind the notice on the wall — talk about the weather or food.",
+        "past": "Kept the teahouse talk on the weather and the food.",
+        "where": "chaguan"
       }
     ]
   },
@@ -463,17 +646,26 @@
     "id": "side-sanguo",
     "title": "《三国演义》 — the storyteller",
     "chapter": 2,
+    "kind": "side",
+    "giver": "shuoshu-xiansheng",
+    "blurb": "A storyteller tells the Three Kingdoms in the teahouse, one episode a day.",
+    "lead": "A storyteller sets up his table in 老刘's teahouse.",
     "steps": [
       {
         "id": "one",
         "now": "The storyteller in 老刘’s teahouse tells one episode a day. Come back on another day for the next.",
+        "past": "Heard the storyteller's first episode.",
+        "where": "chaguan",
         "done": {
           "scene": "sanguo-1"
         }
       },
       {
         "id": "two",
-        "now": "Hear the second episode at the teahouse."
+        "now": "Hear the second episode at the teahouse.",
+        "past": "Came back for the second episode.",
+        "where": "chaguan",
+        "when": "on another day"
       }
     ]
   },
@@ -481,10 +673,17 @@
     "id": "side-magpies",
     "title": "Magpies for 七夕",
     "chapter": 1,
+    "kind": "side",
+    "giver": "wang-ayi",
+    "blurb": "On 七夕 the magpies make a bridge in the sky so the cowherd and the weaver girl can meet.",
+    "lead": "王阿姨 tells a story about magpies every summer.",
     "steps": [
       {
         "id": "find",
         "now": "Find the three magpies — in the parks of 景山, 北海 and 天坛 — and send them to the bridge in the sky.",
+        "past": "Found the three magpies in the parks and sent them to the sky.",
+        "where": "anywhere",
+        "when": "at 七夕",
         "done": {
           "all": [
             {
@@ -501,7 +700,9 @@
       },
       {
         "id": "bridge",
-        "now": "Tell 王阿姨 — look at the sky together."
+        "now": "Tell 王阿姨 — look at the sky together.",
+        "past": "Looked at the sky with 王阿姨 on 七夕.",
+        "where": "siheyuan-yard"
       }
     ]
   },
@@ -509,10 +710,17 @@
     "id": "side-change",
     "title": "兔儿爷’s story",
     "chapter": 1,
+    "kind": "side",
+    "giver": "wang-ayi",
+    "blurb": "At the Mid-Autumn festival 王阿姨 makes mooncakes, and 兔儿爷 has a story of his own.",
+    "lead": "兔儿爷 goes quiet when anyone mentions the moon.",
     "steps": [
       {
         "id": "do",
-        "now": "At 中秋, make mooncakes with 王阿姨 — and hear 兔儿爷’s own story."
+        "now": "At 中秋, make mooncakes with 王阿姨 — and hear 兔儿爷’s own story.",
+        "past": "Made mooncakes with 王阿姨 and heard 兔儿爷's own story.",
+        "where": "siheyuan-yard",
+        "when": "at 中秋"
       }
     ]
   },
@@ -520,18 +728,30 @@
     "id": "side-tianguan",
     "title": "《天官赐福》 — the little shrine",
     "chapter": 2,
+    "kind": "side",
+    "giver": "bai-xiansheng",
+    "blurb": "A quiet man in white is building a little shrine in the hutong. He says it is for someone who waits.",
+    "lead": "A man in white walks with the recycler in 帽儿胡同 on some mornings.",
     "steps": [
       {
         "id": "meet",
-        "now": "A gentle man in white collects old things with the recycler in 帽儿胡同 in the mornings."
+        "now": "A gentle man in white collects old things with the recycler in 帽儿胡同 in the mornings.",
+        "past": "Met 白先生, the gentle man in white.",
+        "where": "hutong-home",
+        "when": "mornings 7:00–12:00"
       },
       {
         "id": "gather",
-        "now": "The shrine needs wood, red cloth and incense. Ask friends who like you (two hearts): 张师傅, 王阿姨, 李阿姨."
+        "now": "The shrine needs wood, red cloth and incense. Ask friends who like you (two hearts): 张师傅, 王阿姨, 李阿姨.",
+        "past": "Asked friends for wood, red cloth and incense for the shrine.",
+        "where": "nanluo-main"
       },
       {
         "id": "night",
         "now": "Come back to the shrine in 帽儿胡同 after dark.",
+        "past": "Saw silver butterflies at the shrine after dark.",
+        "where": "hutong-home",
+        "when": "after dark",
         "done": {
           "flag": "yindie"
         }
@@ -539,13 +759,19 @@
       {
         "id": "lamp",
         "now": "Find the ever-burning lamp at the ghost market — 潘家园 after eight at night.",
+        "past": "Found the ever-burning lamp at the ghost market.",
+        "where": "panjiayuan-market",
+        "when": "after 20:00",
         "done": {
           "item": "changmingdeng"
         }
       },
       {
         "id": "yuanxiao",
-        "now": "On the night of 元宵 (the Lantern Festival), bring the lamp to 白先生 at the shrine."
+        "now": "On the night of 元宵 (the Lantern Festival), bring the lamp to 白先生 at the shrine.",
+        "past": "Brought the lamp to 白先生 on the night of 元宵.",
+        "where": "hutong-home",
+        "when": "at 元宵, after dark"
       }
     ]
   }

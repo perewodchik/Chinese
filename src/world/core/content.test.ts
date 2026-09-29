@@ -47,7 +47,7 @@ const valid = (): Record<string, unknown> => ({
       stamp: 'new-home',
     },
   ],
-  quests: [{ id: 'settle', title: 'Settle in', chapter: 1, steps: [{ id: 'meet', now: 'Say hello to 王阿姨.' }] }],
+  quests: [{ id: 'settle', title: 'Settle in', chapter: 1, kind: 'main', steps: [{ id: 'meet', now: 'Say hello to 王阿姨.', past: 'Said hello to 王阿姨.' }] }],
   stamps: [{ id: 'new-home', name: '新家', en: 'New home', place: 'siheyuan', design: 'stamp-home' }],
   items: [{ id: 'key', name: '钥匙', en: 'key' }],
 });

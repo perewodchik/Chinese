@@ -1,7 +1,10 @@
+import { useEffect } from 'react';
 import { HOODS, hoodOf } from '../core/hoods';
+import type { RouteLeg } from '../core/journal';
 import { AT, extent, labelBox, linePoints, linesThrough, roundedPath, WALK_LINKS } from '../core/metro';
 import { LINES, station } from '../core/travel';
 import type { WorldSave } from '../core/types';
+import { boxOf, routePoints } from './metroRoute';
 import { usePanZoom } from './usePanZoom';
 
 /**
@@ -9,6 +12,10 @@ import { usePanZoom } from './usePanZoom';
  * core/metro.ts: the game's lines in their colours, interchanges as white
  * rings, the stations with somewhere to go in bold — tap one for its
  * neighbourhood. You are a red ring; your task a gold one.
+ *
+ * With a `route` (§10 J3b, the journal's "Show on map"), the ride is drawn
+ * thick in its lines' colours over the others dimmed, with rings where you
+ * change and pins for you and for there, and the view fits the route.
  */
 
 /** drawing units per grid unit */
@@ -17,11 +24,30 @@ const G = 10;
 /** the station a neighbourhood is drawn at on the diagram */
 const hoodAt = new Map(HOODS.map((h) => [h.stations[0]!, h]));
 
-export function MetroMap({ save, goals, onHood }: { save: WorldSave; goals: ReadonlySet<string>; onHood: (hood: string) => void }) {
+export function MetroMap({ save, goals, onHood, route }: { save: WorldSave; goals: ReadonlySet<string>; onHood: (hood: string) => void; route?: readonly RouteLeg[] | null }) {
   const e = extent();
   const bounds = { x: (e.x - 2.5) * G, y: (e.y - 1.5) * G, w: (e.w + 6) * G, h: (e.h + 3) * G };
   const pz = usePanZoom(bounds, 60);
   const { view, u } = pz;
+  const rides = (route ?? []).filter((l): l is Extract<RouteLeg, { kind: 'ride' }> => l.kind === 'ride');
+  const walks = (route ?? []).flatMap((l) => {
+    if (l.kind !== 'walk' || l.maps.length !== 2) return [];
+    const [a, b] = l.maps.map((m) => m.replace(/^(station|stop)-/, ''));
+    return a && b && AT[a] && AT[b] ? [[a, b] as const] : [];
+  });
+  const changes = (route ?? []).flatMap((l) => (l.kind === 'change' && AT[l.at] ? [l.at] : []));
+  const start = rides[0]?.from;
+  const end = rides.at(-1)?.to;
+  const paths = rides.map((l) => ({ leg: l, points: routePoints(l.line, l.stops) }));
+  // fit the view to the route (once it is known and the box has its size)
+  const routeKey = rides.map((l) => `${l.line}:${l.from}>${l.to}`).join('|');
+  useEffect(() => {
+    const b = boxOf(paths.flatMap((p) => p.points));
+    if (!b || pz.box.w < 50) return;
+    const pad = 1.6;
+    pz.glide({ x: (b.x - pad) * G, y: (b.y - pad) * G, w: (b.w + pad * 2) * G, h: (b.h + pad * 2) * G }, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeKey, pz.box.w]);
   const here = hoodOf(save.place.map);
   const goalHoods = new Set([...goals].map((m) => hoodOf(m)?.id).filter(Boolean));
   const pxPerGrid = G / u;
@@ -35,6 +61,7 @@ export function MetroMap({ save, goals, onHood }: { save: WorldSave; goals: Read
       <svg
         ref={pz.svg}
         className="wp-city-svg wp-metro"
+        data-route={rides.length ? '' : undefined}
         viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}
         onPointerDown={pz.onPointerDown}
         role="img"
@@ -59,6 +86,13 @@ export function MetroMap({ save, goals, onHood }: { save: WorldSave; goals: Read
               {l.zh} · {l.en}
             </title>
           </path>
+        ))}
+        {/* the ride, thick in its lines' colours (J3b) */}
+        {walks.map(([a, b]) => (
+          <line key={`rw-${a}-${b}`} x1={AT[a]![0] * G} y1={AT[a]![1] * G} x2={AT[b]![0] * G} y2={AT[b]![1] * G} className="mm-route-walk" />
+        ))}
+        {paths.map(({ leg, points }, i) => (
+          <path key={`r-${i}`} d={roundedPath(points, 0.7, G)} className="mm-route" data-mode={leg.mode} style={{ stroke: LINES.find((l) => l.id === leg.line)?.color }} />
         ))}
         {Object.keys(AT).map((s) => {
           const [x, y] = AT[s]!;
@@ -86,6 +120,11 @@ export function MetroMap({ save, goals, onHood }: { save: WorldSave; goals: Read
             </g>
           );
         })}
+        {changes.map((c) => (
+          <circle key={`c-${c}`} cx={AT[c]![0] * G} cy={AT[c]![1] * G} r={9 * u} className="mm-change" />
+        ))}
+        {start && AT[start] && <Pin x={AT[start]![0] * G} y={AT[start]![1] * G} u={u} label="you" kind="you" />}
+        {end && AT[end] && <Pin x={AT[end]![0] * G} y={AT[end]![1] * G} u={u} label="there" kind="there" />}
         {Object.keys(AT).map((s) => {
           const hood = hoodAt.get(s);
           if (!hood && !minor) return null;
@@ -117,8 +156,22 @@ export function MetroMap({ save, goals, onHood }: { save: WorldSave; goals: Read
           −
         </button>
       </div>
-      <span className="mm-key tiny">Bold: places to go. Dashed: bus and train.</span>
+      <span className="mm-key tiny">{rides.length ? 'Your way there, in its lines’ colours. ↔ where you change.' : 'Bold: places to go. Dashed: bus and train.'}</span>
     </div>
   );
 }
 
+
+/** A pin over a station: where you get on, and where you are going (J3b). Sized in screen pixels. */
+function Pin({ x, y, u, label, kind }: { x: number; y: number; u: number; label: string; kind: 'you' | 'there' }) {
+  const h = 22 * u;
+  return (
+    <g className="mm-pin" data-kind={kind} transform={`translate(${x} ${y})`}>
+      <path d={`M0 ${-4 * u} L${-6 * u} ${-17 * u} H${6 * u} Z`} className="mm-pin-tail" />
+      <rect x={-19 * u} y={-8 * u - h - 8 * u} width={38 * u} height={h} rx={6 * u} className="mm-pin-box" />
+      <text x={0} y={-8 * u - h * 0.5 - 8 * u + 4.5 * u} textAnchor="middle" style={{ fontSize: 12 * u }} className="mm-pin-text">
+        {label}
+      </text>
+    </g>
+  );
+}

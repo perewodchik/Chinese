@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLibrary } from '../../features/shared/library';
 import { formatTime, dayOf } from '../core/clock';
 import { goalMaps } from '../core/goal';
+import type { RouteLeg } from '../core/journal';
 import { heroOnPlan, HOODS, hoodOf, type HoodLayout } from '../core/hoods';
 import { placeOf, type MapLinks } from '../core/places';
 import type { WorldSave } from '../core/types';
@@ -20,13 +21,26 @@ import { Seg } from '../../ui/Seg';
  * the whole city as a metro diagram (M4); a neighbourhood there, or an
  * arrow at a plan's edge, opens that neighbourhood.
  */
-export function MapTab({ save, content, onGo, start }: { save: WorldSave; content: WorldContent; onGo: (station: string) => void; start?: string | null }) {
+export function MapTab({
+  save,
+  content,
+  onGo,
+  start,
+  route,
+}: {
+  save: WorldSave;
+  content: WorldContent;
+  onGo: (station: string) => void;
+  start?: string | null;
+  /** the journal's "Show on map" (§10 J3b): the legs to draw on the metro, and the map they lead to */
+  route?: { legs: readonly RouteLeg[]; to: string } | null;
+}) {
   const lib = useLibrary();
   const [plans, setPlans] = useState<HoodLayout[]>([]);
   const [index, setIndex] = useState<MapLinks>({});
   const here = hoodOf(save.place.map)?.id ?? HOODS[0]!.id;
   const [hood, setHood] = useState(start ?? here);
-  const [city, setCity] = useState(false);
+  const [city, setCity] = useState(!!route);
   const [picked, setPicked] = useState<string | null>(null);
   useEffect(() => {
     let on = true;
@@ -41,7 +55,7 @@ export function MapTab({ save, content, onGo, start }: { save: WorldSave; conten
   }, []);
 
   const visited = useMemo(() => (save.visited ? new Set(save.visited) : undefined), [save.visited]);
-  const goals = useMemo(() => new Set(goalMaps(save, content.quests, content.scenes, content.npcs)), [save, content]);
+  const goals = useMemo(() => new Set([...goalMaps(save, content.quests, content.scenes, content.npcs, content.shops), ...(route ? [route.to] : [])]), [save, content, route]);
   const goHood = (id: string) => {
     setHood(id);
     setCity(false);
@@ -77,7 +91,7 @@ export function MapTab({ save, content, onGo, start }: { save: WorldSave; conten
         )}
       </div>
       {city ? (
-        <MetroMap save={save} goals={goals} onHood={goHood} />
+        <MetroMap save={save} goals={goals} onHood={goHood} route={route?.legs ?? null} />
       ) : (
         <HoodView key={hood} plan={plans.find((p) => p.id === hood)} save={save} visited={visited} goals={goals} picked={picked} onPick={setPicked} onExit={goHood} />
       )}

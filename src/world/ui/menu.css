@@ -1,0 +1,223 @@
+/* --- the menu (§10): five tabs and ⚙ over the paused world.
+   iPad and desktop: a sheet in the middle, tabs on top. Phones: the whole
+   screen, tabs at the bottom in thumb reach. Tokens only. */
+.mn-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  background: rgba(20, 18, 28, 0.45);
+  touch-action: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.mn {
+  position: relative;
+  width: min(780px, 100%);
+  height: min(680px, 100%);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas: 'tabs' 'head' 'body';
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.mn-tabs {
+  grid-area: tabs;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+}
+
+.mn-tabs [role='tab'] {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 1px;
+  height: 56px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.mn-tabs [role='tab'][aria-selected='true'] {
+  background: var(--card-2);
+  color: var(--ink);
+  box-shadow: inset 0 -2px 0 var(--ink-2);
+}
+
+.mn-icon {
+  font-size: 17px;
+  line-height: 1.1;
+}
+
+.mn-zh {
+  font-family: var(--han);
+  font-size: 15px;
+  line-height: 1.1;
+  color: inherit;
+}
+
+.mn-en {
+  font-size: 10.5px;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.mn-tabs [role='tab'][aria-selected='true'] .mn-zh {
+  font-weight: 600;
+}
+
+/* news: a small red dot, laid over — clearing it moves nothing */
+.mn-dot {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 20px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--card);
+  pointer-events: none;
+}
+
+.mn-views .mn-dot {
+  top: 1px;
+  right: 1px;
+  width: 6px;
+  height: 6px;
+}
+
+.wt-menu {
+  position: relative;
+}
+
+.wt-menu .mn-dot {
+  top: 5px;
+  right: 6px;
+  box-shadow: none;
+}
+
+.mn-head {
+  grid-area: head;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 48px;
+  padding: 0 8px 0 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+  white-space: nowrap;
+}
+
+.mn-head .spacer {
+  flex: 1;
+}
+
+.mn-views {
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mn-views::-webkit-scrollbar {
+  display: none;
+}
+
+.mn-views button {
+  position: relative;
+  min-width: 44px;
+  height: 30px;
+  font-size: 13px;
+}
+
+.mn-views .han {
+  font-family: var(--han);
+  font-size: 15px;
+}
+
+.mn-title .han {
+  font-family: var(--han);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.mn-gear[aria-pressed='true'] {
+  background: var(--card-2);
+  border-radius: 8px;
+}
+
+.mn-body {
+  grid-area: body;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 16px 20px;
+}
+
+/* quiet one-line rows for passive and finished things (cards only for what you act on) */
+.mn-rows {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.mn-rows > li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+}
+
+.mn-rows > li:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 767px) {
+  .mn-scrim {
+    padding: 0;
+    place-items: stretch;
+  }
+
+  .mn {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'head' 'body' 'tabs';
+  }
+
+  .mn-head {
+    height: calc(48px + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .mn-tabs {
+    border-top: 1px solid var(--line);
+    border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .mn-tabs [role='tab'][aria-selected='true'] {
+    box-shadow: inset 0 2px 0 var(--ink-2);
+  }
+}

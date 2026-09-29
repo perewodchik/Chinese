@@ -288,6 +288,12 @@ export interface QuestStep {
   id: string;
   /** the companion's "What now?", English */
   now: string;
+  /** the step told afterwards, in the journal: past tense, first person, one line (§10 J1) */
+  past: string;
+  /** where the step happens, when `done` names no place (a flag, an item); `anywhere` when it truly has none */
+  where?: string;
+  /** timing the player must know: "after dark", "open 9:00–17:00", "at 春节" */
+  when?: string;
   /** the step is finished when this holds (checked after every action) */
   done?: Condition;
 }
@@ -296,6 +302,14 @@ export interface Quest {
   id: string;
   title: string;
   chapter: number;
+  /** the story (`ch1`…`ch7`, `epilogue`) or a side quest (§10 J1) */
+  kind: 'main' | 'side';
+  /** who asks for it (an NPC id) */
+  giver?: string;
+  /** 1–2 English sentences: what it is about, and why it matters to the giver (required on side quests) */
+  blurb?: string;
+  /** the vague hint the journal shows before it starts — a person or a place, never the answer */
+  lead?: string;
   steps: QuestStep[];
   /** actions when the last step is done */
   reward?: Action[];
@@ -407,6 +421,12 @@ export interface QuestState {
   /** index of `step` in the quest, so two saves can say which is further */
   index: number;
   done: boolean;
+  /**
+   * The game minute each step was reached, and `$done` when the quest was
+   * finished (§10 J1). Merged by the earlier minute; older saves have none
+   * and their steps show as "earlier".
+   */
+  at?: Record<string, number>;
 }
 
 export interface Riddle {
@@ -507,6 +527,19 @@ export interface WorldSave {
   daily: Record<string, number>;
   /** the game day each thing was last bought (Y7): food bought today is still warm */
   fresh: Record<string, number>;
+  /**
+   * The menu's red dots (§10 P1): view key (`journal/now`, `collection/idioms` …)
+   * → the game minute it was last opened, and `lead:<quest>` → 1 once a lead
+   * was seen. Additive, merged by max; none in older saves.
+   */
+  seen?: Record<string, number>;
+  /**
+   * The quest the player follows (§10 J2): 兔儿爷's "What now?", the task
+   * rings on the maps and the journal's card follow it; none (or a finished
+   * one) means the current main step. `rev` is the wall-clock ms it was
+   * chosen, so the later choice wins a merge; `quest: ''` is "none".
+   */
+  tracked?: { quest: string; rev: number };
 
   settings: WorldSettings;
 }

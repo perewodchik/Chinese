@@ -28,10 +28,17 @@ function byKey<T>(a: Record<string, T>, b: Record<string, T>, pick: (x: T, y: T)
   return out;
 }
 
-const further = (x: QuestState, y: QuestState): QuestState => {
+const furthest = (x: QuestState, y: QuestState): QuestState => {
   if (x.done !== y.done) return x.done ? x : y;
   if (x.index !== y.index) return x.index > y.index ? x : y;
   return x.step <= y.step ? x : y;
+};
+
+/** The further step of the two; each step's `at` stamp is the earlier minute either device saw it (§10 J1). */
+const further = (x: QuestState, y: QuestState): QuestState => {
+  const { at: _x, ...base } = furthest(x, y);
+  if (!x.at && !y.at) return base;
+  return { ...base, at: byKey(x.at ?? {}, y.at ?? {}, Math.min) };
 };
 
 const riddle = (x: Riddle, y: Riddle): Riddle => ({
@@ -103,6 +110,9 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
     rides: byKey(a.rides, b.rides, Math.max),
     daily: byKey(a.daily, b.daily, Math.max),
     fresh: byKey(a.fresh, b.fresh, Math.max),
+    // the quest followed: the later choice (§10 J2)
+    ...(a.tracked || b.tracked ? { tracked: [a.tracked, b.tracked].filter((x) => !!x).sort((x, y) => y!.rev - x!.rev || (x!.quest < y!.quest ? -1 : 1))[0]! } : {}),
+    ...(a.seen || b.seen ? { seen: byKey(a.seen ?? {}, b.seen ?? {}, Math.max) } : {}),
     // a day's diary from both devices: the earlier device's lines first, the other's after
     diary: byKey(a.diary, b.diary, (x, y) => {
       const [first, second] = JSON.stringify(x) <= JSON.stringify(y) ? [x, y] : [y, x];

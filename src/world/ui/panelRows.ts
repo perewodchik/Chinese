@@ -11,21 +11,11 @@ import type { Shop } from '../core/shop';
 import { findRoute, routeText, station } from '../core/travel';
 import type { Idiom, Item, NpcCard, Quest, Scene, Spirit, Stamp, WorldSave } from '../core/types';
 import { withName } from '../core/voice';
+import { npcHome } from '../core/journal';
+import { whereIs } from '../core/schedule';
 
-export type PanelId = 'tasks' | 'bag' | 'map' | 'spirits' | 'idioms' | 'stamps' | 'friends' | 'diary' | 'album' | 'settings';
-
-export const PANELS: readonly { id: PanelId; label: string }[] = [
-  { id: 'tasks', label: '📜 Tasks' },
-  { id: 'bag', label: '🎒 Bag' },
-  { id: 'map', label: '🗺 Map' },
-  { id: 'spirits', label: '图鉴' },
-  { id: 'idioms', label: '成语' },
-  { id: 'stamps', label: '印章' },
-  { id: 'friends', label: '朋友' },
-  { id: 'diary', label: '日记' },
-  { id: 'album', label: '相册' },
-  { id: 'settings', label: '⚙' },
-];
+/** where the menu opens (§10 P1): the tabs, ⚙, and the old panel ids — see `menu.ts` */
+export type { PanelId } from './menu';
 
 export interface TaskRow {
   quest: Quest;
@@ -216,4 +206,85 @@ export function friendRows(s: WorldSave, npcs: readonly NpcCard[]): FriendRow[] 
     .filter(([id]) => cards.has(id))
     .sort(([, a], [, b]) => b.hearts - a.hearts || a.met - b.met)
     .map(([id, m]) => ({ id, name: cards.get(id)!.name, role: cards.get(id)!.role, hearts: m.hearts, notes: m.notes }));
+}
+
+// ---------------------------------------------------------------------------
+// §10 P2: the People tab
+// ---------------------------------------------------------------------------
+
+export interface PersonRow {
+  id: string;
+  name: string;
+  role: string;
+  sprite: string;
+  hearts: number;
+  /** where they are at this hour: a map and until when; or where they usually are */
+  now: { map: string; until?: number } | null;
+  usually?: { map: string; from?: number };
+  /** they asked you for something still under way */
+  asking: boolean;
+  /** what they remember of you, without the gift notes (those are `likes` / `dislikes`) */
+  notes: string[];
+  likes: string[];
+  dislikes: string[];
+  /** their quests: under way, then done */
+  quests: { quest: Quest; done: boolean }[];
+  /** the 成语 heard from them */
+  idioms: string[];
+  /** words they can explain — what to ask them about */
+  topics: string[];
+}
+
+/**
+ * The people met (P2): where each is now (their day's routine, else where
+ * the maps put them), what they remember, which presents they liked, their
+ * quests and 成语. Those with a quest under way first, then the warmest,
+ * then the one talked to last.
+ */
+export function peopleRows(s: WorldSave, c: { npcs: readonly NpcCard[]; scenes: readonly Scene[]; quests: readonly Quest[]; items: readonly Item[] }): PersonRow[] {
+  const cards = new Map(c.npcs.map((n) => [n.id, n]));
+  const giftNotes = new Map<string, { item: string; liked: boolean }>();
+  for (const it of c.items) {
+    giftNotes.set(likedNote(it), { item: it.name, liked: true });
+    giftNotes.set(dislikedNote(it), { item: it.name, liked: false });
+  }
+  const rows = Object.entries(s.npcs)
+    .filter(([id]) => cards.has(id))
+    .map(([id, m]): PersonRow & { talk: number; met: number } => {
+      const card = cards.get(id)!;
+      const stop = whereIs(card, s.clock);
+      const home = npcHome(id, c);
+      const first = card.routine.find((r) => r.map !== 'school');
+      const quests = c.quests.filter((q) => q.giver === id && s.quests[q.id]).map((q) => ({ quest: q, done: !!s.quests[q.id]!.done }));
+      return {
+        id,
+        name: card.name,
+        role: card.role,
+        sprite: card.look.sprite,
+        hearts: m.hearts,
+        now: stop && stop.map !== 'school' ? { map: stop.map, until: stop.hours[1] } : card.routine.length ? null : home ? { map: home } : null,
+        ...(first ? { usually: { map: first.map, from: first.hours[0] } } : home ? { usually: { map: home } } : {}),
+        asking: quests.some((q) => !q.done),
+        notes: m.notes.filter((n) => !giftNotes.has(n)),
+        likes: m.notes.flatMap((n) => (giftNotes.get(n)?.liked ? [giftNotes.get(n)!.item] : [])),
+        dislikes: m.notes.flatMap((n) => (giftNotes.get(n) && !giftNotes.get(n)!.liked ? [giftNotes.get(n)!.item] : [])),
+        quests: [...quests.filter((q) => !q.done), ...quests.filter((q) => q.done)],
+        idioms: Object.entries(s.idioms)
+          .filter(([, e]) => e.npc === id)
+          .map(([k]) => k),
+        topics: Object.keys(card.explains),
+        talk: m.talk,
+        met: m.met,
+      };
+    });
+  return rows
+    .sort((a, b) => Number(b.asking) - Number(a.asking) || b.hearts - a.hearts || b.talk - a.talk || a.met - b.met)
+    .map(({ talk: _t, met: _m, ...r }) => r);
+}
+
+/** "茶馆 · until 18:00", or "not about now · usually at 鼓楼 from 6:00" — the row's second line, place names in 汉字. */
+export function whereText(r: Pick<PersonRow, 'now' | 'usually'>, name: (map: string) => string): string {
+  if (r.now) return r.now.until !== undefined ? `${name(r.now.map)} · until ${r.now.until % 24}:00` : name(r.now.map);
+  if (r.usually) return `not about now · usually at ${name(r.usually.map)}${r.usually.from !== undefined ? ` from ${r.usually.from}:00` : ''}`;
+  return 'somewhere in Beijing';
 }

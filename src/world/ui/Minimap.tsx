@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { heroOnPlan, hoodOf, type HoodLayout } from '../core/hoods';
 import { placeOf } from '../core/places';
 import type { Place as SavePlace } from '../core/types';
@@ -33,7 +33,18 @@ const writeManual = (m: Manual) => {
   }
 };
 
-export function Minimap({ place, onOpen }: { place: SavePlace; onOpen: (hood: string) => void }) {
+export function Minimap({
+  place,
+  onOpen,
+  goals,
+  children,
+}: {
+  place: SavePlace;
+  onOpen: (hood: string) => void;
+  /** the followed quest's maps, ringed in gold (§10 J2) */
+  goals?: ReadonlySet<string>;
+  children?: ReactNode;
+}) {
   const [plans, setPlans] = useState<HoodLayout[]>([]);
   const [manual, setManual] = useState<Manual | null>(readManual);
   const box = useRef<SVGSVGElement>(null);
@@ -84,8 +95,10 @@ export function Minimap({ place, onOpen }: { place: SavePlace; onOpen: (hood: st
         onClick={() => onOpen(hood.id)}
         style={open ? undefined : { display: 'none' }}
       >
-        {plan && view && <PlanDrawing plan={plan} u={view.w / px.w} here={place} mini />}
+        {plan && view && <PlanDrawing plan={plan} u={view.w / px.w} here={place} goals={goals} mini />}
       </svg>
+      {/* under the map: the next hop of the quest you follow (§10 J3c); folded away with it */}
+      {open && children}
     </div>
   );
 }

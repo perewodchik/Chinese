@@ -3,10 +3,13 @@
     "id": "epilogue",
     "title": "The Great Wall",
     "chapter": 8,
+    "kind": "main",
     "steps": [
       {
         "id": "ticket",
         "now": "One last trip: the train to the Great Wall. Walk east from the 西直门 bus stop to 北京北站 and buy a ticket at the window (bring your passport).",
+        "past": "Bought a train ticket to the Great Wall at 北京北站.",
+        "where": "stop-beijingbeizhan",
         "done": {
           "flag": "train-ticket"
         }
@@ -14,6 +17,7 @@
       {
         "id": "ride",
         "now": "Take the train — 京张高铁 — from the board in the concourse to 八达岭长城.",
+        "past": "Rode the fast train to 八达岭.",
         "done": {
           "scene": "changcheng-arrive"
         }
@@ -21,6 +25,8 @@
       {
         "id": "climb",
         "now": "Climb the Wall east to the watchtower. The spirits are waiting.",
+        "past": "Climbed the Wall to the watchtower, with every spirit beside me.",
+        "where": "changcheng",
         "done": {
           "flag": "game-finished"
         }
@@ -37,10 +43,16 @@
     "id": "side-photo",
     "title": "A photo on the Wall",
     "chapter": 8,
+    "kind": "side",
+    "giver": "yugong-yeye",
+    "blurb": "An old man climbing the Great Wall wants a photo to prove he made it to the top.",
+    "lead": "An old man on the Great Wall is holding out his phone.",
     "steps": [
       {
         "id": "photo",
         "now": "The old man on the Wall wants a photo — count him in.",
+        "past": "Took the old man's photo on the Wall — he counted with me.",
+        "where": "changcheng",
         "done": {
           "flag": "photo"
         }
