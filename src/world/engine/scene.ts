@@ -56,6 +56,8 @@ export interface SceneOptions {
   bike?: boolean;
   /** what falls from the sky today (X4); it only shows on maps out of doors */
   sky?: 'none' | 'rain' | 'snow';
+  /** 兔儿爷's hat for the day (X7) */
+  hat?: 'none' | 'snow' | 'flower' | 'armour';
   /** whether the named 胡同 cat walks a step behind you on a map (X5) */
   pet?: (map: string) => boolean;
 }
@@ -82,6 +84,10 @@ export class WorldScene extends Phaser.Scene {
   private hero!: Phaser.GameObjects.Sprite;
   private rabbit!: Phaser.GameObjects.Sprite;
   private pet: Phaser.GameObjects.Sprite | null = null;
+  /** 兔儿爷's hat for the day and the feeling over his head (X7) */
+  private hat: Phaser.GameObjects.Sprite | null = null;
+  private emote: Phaser.GameObjects.Sprite | null = null;
+  private blush: Phaser.GameObjects.Sprite | null = null;
   private petRight = false;
   /** the shared bike under the hero, while riding one */
   private bikeSprite: Phaser.GameObjects.Sprite | null = null;
@@ -196,6 +202,11 @@ export class WorldScene extends Phaser.Scene {
     this.rabbit = this.add.sprite(x + 12, y - 18, 'chars', 'rabbit/down-0').setOrigin(0, 1).setDepth(y + 0.6);
     this.bikeSprite = null;
     if (this.opts.bike) this.setBike(true);
+    this.hat = null;
+    this.emote = null;
+    this.blush = null;
+    this.setHat(this.opts.hat ?? 'none');
+    this.events.on(Phaser.Scenes.Events.POST_UPDATE, () => this.dressRabbit());
     this.pet = this.opts.pet?.(this.opts.map) ? this.add.sprite(x - TILE, y + 1, 'props', 'cat/sit').setOrigin(0, 1).setDepth(y + 0.4) : null;
     // the bob is in the frames: 0 up, 1 down
     this.time.addEvent({
@@ -307,6 +318,40 @@ export class WorldScene extends Phaser.Scene {
       })
       .setScrollFactor(0)
       .setDepth(20_002);
+  }
+
+  /** His hat and feelings ride with him, bobbing as he bobs (X7). */
+  private dressRabbit() {
+    const r = this.rabbit;
+    if (!r) return;
+    const bob = r.frame.name.endsWith('1') ? 1 : 0;
+    this.hat?.setPosition(r.x, r.y).setDepth(r.depth + 0.01);
+    this.blush?.setPosition(r.x, r.y + bob).setDepth(r.depth + 0.02);
+    this.emote?.setPosition(r.x, r.y - 14).setDepth(20_003);
+    if (this.hat) this.hat.y = r.y + bob;
+  }
+
+  setHat(kind: 'none' | 'snow' | 'flower' | 'armour') {
+    this.opts = { ...this.opts, hat: kind };
+    this.hat?.destroy();
+    this.hat = kind === 'none' ? null : this.add.sprite(this.rabbit.x, this.rabbit.y, 'props', `rabbit-hat/${kind}`).setOrigin(0, 1);
+  }
+
+  /** A feeling over his head for a moment; `blush` sits on his cheeks instead. */
+  showEmote(kind: 'happy' | 'sulky' | 'sleepy' | 'proud' | 'blush', ms = 2400) {
+    const slot = kind === 'blush' ? 'blush' : 'emote';
+    this[slot]?.destroy();
+    const s = this.add.sprite(this.rabbit.x, this.rabbit.y, 'props', `emote/${kind}`).setOrigin(0, 1);
+    this[slot] = s;
+    if (kind !== 'blush') {
+      s.setScale(0.6);
+      this.tweens.add({ targets: s, scale: 1, duration: 160, ease: 'Back.easeOut' });
+    }
+    this.time.delayedCall(ms, () => {
+      if (this[slot] !== s) return;
+      this.tweens.add({ targets: s, alpha: 0, duration: 250, onComplete: () => s.destroy() });
+      this[slot] = null;
+    });
   }
 
   /** The part of the map on screen, in tiles (X6 photos). */

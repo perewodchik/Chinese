@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { itemForToken } from '../../domain/words';
 import { useLibrary } from '../../features/shared/library';
 import { useOpenItem } from '../../navigation/itemDrawer';
@@ -8,6 +8,7 @@ import type { Line } from '../core/dialogue/source';
 import { glossLine, whyText } from './companionLines';
 import { voice } from './Dialogue';
 import { Portrait } from './Portrait';
+import { PropSprite } from './PropSprite';
 
 type Show = { kind: 'say'; text: string } | { kind: 'translate' } | { kind: 'keep' };
 
@@ -29,6 +30,8 @@ export function Companion({
   now,
   lex,
   talking,
+  hat,
+  onPat,
 }: {
   open: boolean;
   setOpen: (o: boolean) => void;
@@ -42,7 +45,13 @@ export function Companion({
   now: () => string;
   lex: Lexicon;
   talking: boolean;
+  /** today's hat, drawn over his portrait too (X7) */
+  hat: 'none' | 'snow' | 'flower' | 'armour';
+  /** held down a moment: a pat on the head — he blushes */
+  onPat: () => void;
 }) {
+  const hold = useRef<number | undefined>(undefined);
+  const patted = useRef(false);
   const lib = useLibrary();
   const openItem = useOpenItem();
   const [show, setShow] = useState<Show | null>(null);
@@ -144,12 +153,31 @@ export function Companion({
         aria-expanded={open}
         aria-label="兔儿爷 — help (Tab)"
         data-says={!open && said ? '' : undefined}
+        onPointerDown={() => {
+          patted.current = false;
+          window.clearTimeout(hold.current);
+          hold.current = window.setTimeout(() => {
+            patted.current = true;
+            onPat();
+          }, 500);
+        }}
+        onPointerUp={() => window.clearTimeout(hold.current)}
+        onPointerCancel={() => window.clearTimeout(hold.current)}
+        onContextMenu={(e) => e.preventDefault()}
         onClick={() => {
+          // a pat is not a call for help
+          if (patted.current) return;
           setShow(null);
           setOpen(!open);
         }}
+        title="Tap for help — hold to pat him"
       >
         <Portrait sprite="rabbit" scale={3} />
+        {hat !== 'none' && (
+          <span className="wc-hat">
+            <PropSprite frame={`rabbit-hat/${hat}`} scale={3} />
+          </span>
+        )}
       </button>
     </div>
   );

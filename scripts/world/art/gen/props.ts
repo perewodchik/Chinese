@@ -839,6 +839,44 @@ export function sticker(kind: 'hello' | 'thanks' | 'ok' | 'haha' | 'sorry' | 'lo
   return g.stamp(f, 0, 0);
 }
 
+// ---------------------------------------------------------------- X7: 兔儿爷 alive
+
+/**
+ * What pops up over 兔儿爷's head, 16×16 (drawn at the top of the frame):
+ * a heart (happy), an angry cross (sulky), zz (sleepy), a sparkle (proud);
+ * `blush` is two pink cheeks placed over his face.
+ */
+export function emote(kind: 'happy' | 'sulky' | 'sleepy' | 'proud' | 'blush'): Grid {
+  const g = new Grid(16, 16);
+  const f = new Grid(16, 16);
+  if (kind === 'blush') {
+    f.hline(3, 9, 3, 'N').hline(10, 9, 3, 'N').hline(4, 10, 2, 'p').hline(10, 10, 2, 'p');
+    return g.stamp(f, 0, 0);
+  }
+  f.oval(3, 0, 10, 9, 'w');
+  if (kind === 'happy') f.set(6, 3, 'r').set(9, 3, 'r').hline(5, 4, 6, 'r').hline(6, 5, 4, 'r').hline(7, 6, 2, 'r');
+  if (kind === 'sulky') for (const [x, y] of [[5, 2], [6, 3], [9, 3], [10, 2], [5, 6], [6, 5], [9, 5], [10, 6]] as const) f.set(x, y, 'r');
+  if (kind === 'sleepy') f.hline(5, 2, 3, 'B').set(6, 3, 'B').hline(5, 4, 3, 'B').hline(8, 5, 3, 'n').set(9, 6, 'n').hline(8, 7, 3, 'n');
+  if (kind === 'proud') f.vline(8, 1, 7, 'Y').hline(5, 4, 7, 'Y').set(8, 4, 'j').set(7, 3, 'y').set(9, 5, 'y');
+  f.set(7, 9, 'w').set(8, 10, 'w');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
+/** 兔儿爷's hat for the day, 16×16, laid over his sprite: a snow cap, a festival flower, 中秋 armour and a pennant. */
+export function rabbitHat(kind: 'snow' | 'flower' | 'armour'): Grid {
+  const g = new Grid(16, 16);
+  const f = new Grid(16, 16);
+  if (kind === 'snow') f.rect(5, 0, 6, 3, 'r').hline(4, 3, 8, 'w').set(8, 0, 'w').set(9, 0, 'w');
+  if (kind === 'flower') f.oval(10, 1, 4, 4, 'N').set(11, 2, 'y').set(12, 3, 'p');
+  if (kind === 'armour') {
+    f.rect(4, 11, 8, 3, 'Y').hline(4, 11, 8, 'j').set(6, 12, 'o').set(9, 12, 'o');
+    f.vline(13, 2, 10, 'M').rect(14, 2, 2, 4, 'r').set(14, 3, 'y');
+  }
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs', () => [['huai', tree()]]],
@@ -878,6 +916,8 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['rockery', 'a rockery of the Imperial Garden', () => [['rocks', rockery()]]],
   ['kite', 'a red paper kite', () => [['red', kite()]]],
   ['jianzhi', 'a red paper-cut window flower', () => [['red', jianzhi()]]],
+  ['emote', "兔儿爷's feelings", () => (['happy', 'sulky', 'sleepy', 'proud', 'blush'] as const).map((k) => [k, emote(k)] as [string, Grid])],
+  ['rabbit-hat', "兔儿爷's hats", () => (['snow', 'flower', 'armour'] as const).map((k) => [k, rabbitHat(k)] as [string, Grid])],
   ['sticker', 'chat stickers', () => (['hello', 'thanks', 'ok', 'haha', 'sorry', 'love'] as const).map((k) => [k, sticker(k)] as [string, Grid])],
   ['shufa', 'a hanging scroll of calligraphy', () => [['scroll', shufa()]]],
   ['lianpu', 'a Peking-opera mask', () => [['red', lianpu()]]],

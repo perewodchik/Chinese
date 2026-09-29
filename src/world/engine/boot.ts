@@ -26,6 +26,9 @@ export interface RunningWorld {
   /** the part of the map on screen, in tiles, and a zoom step for photos (X6) */
   view(): { x: number; y: number; w: number; h: number } | null;
   zoomBy(d: 1 | -1): void;
+  /** 兔儿爷: today's hat, and a feeling for a moment (X7) */
+  setHat(kind: 'none' | 'snow' | 'flower' | 'armour'): void;
+  emote(kind: 'happy' | 'sulky' | 'sleepy' | 'proud' | 'blush', ms?: number): void;
   /** frames a second lately (for the map probe) */
   fps(): number;
   /** a PNG data URL of the canvas, for review screenshots */
@@ -63,6 +66,8 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions, snapsh
     setSky: (kind) => (game.scene.getScene('world') as Scene | null)?.setSky(kind),
     view: () => (game.scene.getScene('world') as Scene | null)?.viewTiles() ?? null,
     zoomBy: (d) => (game.scene.getScene('world') as Scene | null)?.zoomStep(d),
+    setHat: (kind) => (game.scene.getScene('world') as Scene | null)?.setHat(kind),
+    emote: (kind, ms) => (game.scene.getScene('world') as Scene | null)?.showEmote(kind, ms),
     snapshot: () =>
       new Promise((resolve) => {
         game.renderer.snapshot((img) => resolve((img as HTMLImageElement).src));

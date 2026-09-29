@@ -4,6 +4,7 @@ import { dayOf, partOfDay } from '../../world/core/clock';
 import { hintWithName } from '../../world/core/voice';
 import { skyOf, weatherOf } from '../../world/core/calendar';
 import { CAT_LANE } from '../../world/core/room';
+import { DOZE_AFTER_MS, emoteFor, hatFor } from '../../world/core/rabbit';
 import { districtInfo } from '../../world/core/districts';
 import { subjectsIn } from '../../world/core/photo';
 import { cropPhoto, loadAlbum, saveAlbum } from '../../world/ui/album';
@@ -318,6 +319,8 @@ export function WorldPage() {
           bike: game.current()?.flags.includes('on-bike') ?? false,
           // today's weather (X4); ?weather=rain|snow|none tries one out
           sky: oneOf(query.get('weather'), ['rain', 'snow', 'none'] as const, skyOf(weatherOf(dayOf(game.current()?.clock ?? 0)))),
+          // 兔儿爷 dresses for the day (X7)
+          hat: hatFor(game.current()?.clock ?? 0),
           // the named cat follows you in 帽儿胡同 (X5)
           pet: (m) => m === CAT_LANE.map && !!game.current()?.cat.name,
           cast: (info) => {
@@ -346,6 +349,17 @@ export function WorldPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [start]);
 
+  // 兔儿爷 feels what happens (X7): proud at a spirit, sulky at 守株待兔, glad of a stamp or a friend.
+  const seen = useRef<WorldSave | null>(null);
+  useEffect(() => {
+    const now = game.save;
+    if (!now) return;
+    const before = seen.current;
+    seen.current = now;
+    const e = before ? emoteFor(before, now) : null;
+    if (e) world.current?.emote(e);
+  }, [game.save]);
+
   // The game clock: one real second is one game minute, and it only runs
   // while you are free in the world — not in a conversation, a panel, or a
   // hidden tab (concept §2). The save hears of it every ten game minutes.
@@ -369,7 +383,10 @@ export function WorldPage() {
         game.dispatch([{ do: 'tick', minutes }], 'walk');
       }
       // a new day may bring other weather (X4)
-      if (dayOf(minutes) !== dayOf(minutes - 1)) world.current?.setSky(skyOf(weatherOf(dayOf(minutes))));
+      if (dayOf(minutes) !== dayOf(minutes - 1)) {
+        world.current?.setSky(skyOf(weatherOf(dayOf(minutes))));
+        world.current?.setHat(hatFor(minutes));
+      }
       const now = partOfDay(minutes);
       if (now !== part) {
         part = now;
@@ -401,11 +418,17 @@ export function WorldPage() {
   useEffect(() => {
     if (state !== 'ready') return;
     let told = false;
+    let dozed = 0;
     const id = window.setInterval(() => {
       const s = game.current();
       if (!s || busy.current || document.visibilityState === 'hidden') {
         lastActive.current = Date.now();
         return;
+      }
+      // standing still a while, 兔儿爷 nods off (X7)
+      if (Date.now() - lastActive.current > DOZE_AFTER_MS && Date.now() - dozed > 9000) {
+        dozed = Date.now();
+        world.current?.emote('sleepy', 6000);
       }
       if (Date.now() - lastActive.current < IDLE_MS) {
         told = false;
@@ -550,6 +573,12 @@ export function WorldPage() {
           line={lastLine ?? undefined}
           why={lastNode?.why}
           canHint={!!hintNow && hintStep < 3 && talk.view?.mode === 'reply'}
+          hat={hatFor(minutes)}
+          onPat={() => {
+            lastActive.current = Date.now();
+            world.current?.emote('blush', 2000);
+            world.current?.emote('happy', 2000);
+          }}
           onHint={() => setHint({ at: talkAt, step: hintStep + 1 })}
           now={() => {
             const s = game.current();

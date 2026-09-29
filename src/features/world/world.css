@@ -1526,3 +1526,16 @@
   font: inherit;
   font-family: var(--han);
 }
+
+/* 兔儿爷's hat over his portrait (X7), in the same square pixels */
+.wc-rabbit {
+  position: relative;
+}
+
+.wc-hat {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
