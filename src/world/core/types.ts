@@ -421,6 +421,8 @@ export interface WorldSettings {
   highlight?: boolean;
   /** §13 K2: seals, the spirit's flight home and their sounds (`full`, the default), or seals only, silent (`quiet`) */
   celebrate?: 'full' | 'quiet';
+  /** §13 Q1: 「!」 and 「…」 over people with something for you now (on unless set off) */
+  questMarks?: boolean;
 }
 
 export interface Place {

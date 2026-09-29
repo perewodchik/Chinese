@@ -13,10 +13,9 @@ import { Seg } from '../../ui/Seg';
 import { rememberInput } from './typing';
 import type { WorldContent } from './content';
 import { BAG_FILTERS, bagRows, filterOf, itemFacts, type BagFilter } from './panelRows';
-import { leads } from '../core/journal';
-import { Diary, JournalNow, JournalStory, type RouteRequest } from './Journal';
+import { Diary, JournalNow, JournalSide, JournalStory, type RouteRequest } from './Journal';
 import { People } from './People';
-import { markSeen, MENU, menuNews, panelTarget, readMemory, remember, tabForKey, tabHasNews, viewKey, VIEWS, writeMemory, type MenuAt, type MenuMemory, type MenuTab, type PanelId } from './menu';
+import { markSeen, MENU, menuNews, newSideIds, panelTarget, readMemory, remember, tabForKey, tabHasNews, viewKey, VIEWS, writeMemory, type MenuAt, type MenuMemory, type MenuTab, type PanelId } from './menu';
 import './menu.css';
 import { Album, Idioms, Spirits, Stamps } from './Collection';
 import { MapTab } from './MapTab';
@@ -103,7 +102,7 @@ export function Panels({
     writeMemory(m);
   }, [mem, at]);
 
-  const leadIds = useMemo(() => leads(save, content).map((l) => l.quest.id), [save, content]);
+  const leadIds = useMemo(() => newSideIds(save, content), [save, content]);
   const news = useMemo(() => menuNews(save, leadIds), [save, leadIds]);
   // opening a view clears its dot
   const key = viewKey(at);
@@ -176,8 +175,9 @@ export function Panels({
           )}
         <div className="mn-body" key={key}>
           {key === 'journal/now' && (
-            <JournalNow save={save} content={content} pinyin={pinyin} onTrack={(quest) => onAct?.({ do: 'track', quest, rev: Date.now() })} onShowRoute={showRoute} />
+            <JournalNow save={save} content={content} pinyin={pinyin} onTrack={(quest) => onAct?.({ do: 'track', quest, rev: Date.now() })} onShowRoute={showRoute} onSide={() => go({ tab: 'journal', view: 'side' })} />
           )}
+          {key === 'journal/side' && <JournalSide save={save} content={content} onShowRoute={showRoute} />}
           {key === 'journal/story' && <JournalStory save={save} content={content} onDay={(day) => (setDiaryDay(day), go({ tab: 'journal', view: 'diary' }))} {...(onReplay ? { onReplay } : {})} />}
           {key === 'journal/diary' && <Diary save={save} content={content} pinyin={pinyin} focus={diaryDay} onStory={() => go({ tab: 'journal', view: 'story' })} />}
           {key === 'bag' && <Bag save={save} content={content} onUse={onUse} onAct={onAct} />}
@@ -576,6 +576,10 @@ function Settings({ settings, onChange, onReset }: { settings: WorldSettings; on
       <label>
         <span>On-screen joystick</span>
         <Seg value={settings.joystick ? 'on' : 'off'} options={ON_OFF} onChange={(v) => onChange({ joystick: v === 'on' })} size="sm" />
+      </label>
+      <label>
+        <span>Quest marks 「!」</span>
+        <Seg value={settings.questMarks === false ? 'off' : 'on'} options={ON_OFF} onChange={(v) => onChange({ questMarks: v === 'on' })} size="sm" />
       </label>
       <label>
         <span>Mark what I can use</span>

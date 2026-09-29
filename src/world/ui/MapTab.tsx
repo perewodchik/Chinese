@@ -1,3 +1,4 @@
+import { hoodCounts, markedMaps } from '../core/sidequests';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLibrary } from '../../features/shared/library';
 import { formatTime, dayOf } from '../core/clock';
@@ -36,6 +37,9 @@ export function MapTab({
   route?: { legs: readonly RouteLeg[]; to: string } | null;
 }) {
   const lib = useLibrary();
+  // §13 Q1: side quests per neighbourhood on the metro map, quest marks on the plans
+  const counts = useMemo(() => hoodCounts(save, content), [save, content]);
+  const marks = useMemo(() => (save.settings.questMarks === false ? undefined : markedMaps(save, content)), [save, content]);
   const [plans, setPlans] = useState<HoodLayout[]>([]);
   const [index, setIndex] = useState<MapLinks>({});
   const here = hoodOf(save.place.map)?.id ?? HOODS[0]!.id;
@@ -91,9 +95,9 @@ export function MapTab({
         )}
       </div>
       {city ? (
-        <MetroMap save={save} goals={goals} onHood={goHood} route={route?.legs ?? null} />
+        <MetroMap save={save} goals={goals} onHood={goHood} route={route?.legs ?? null} counts={counts} />
       ) : (
-        <HoodView key={hood} plan={plans.find((p) => p.id === hood)} save={save} visited={visited} goals={goals} picked={picked} onPick={setPicked} onExit={goHood} />
+        <HoodView key={hood} plan={plans.find((p) => p.id === hood)} save={save} visited={visited} goals={goals} marks={marks} picked={picked} onPick={setPicked} onExit={goHood} />
       )}
       <div className="wp-route">
         {picked && placeOf(picked) ? (
@@ -123,6 +127,7 @@ function HoodView({
   save,
   visited,
   goals,
+  marks,
   picked,
   onPick,
   onExit,
@@ -131,6 +136,7 @@ function HoodView({
   save: WorldSave;
   visited: ReadonlySet<string> | undefined;
   goals: ReadonlySet<string>;
+  marks: ReadonlyMap<string, 'main' | 'side' | 'next'> | undefined;
   picked: string | null;
   onPick: (m: string) => void;
   onExit: (hood: string) => void;
@@ -170,6 +176,7 @@ function HoodView({
             here={save.place}
             visited={visited}
             goals={goals}
+            {...(marks ? { marks } : {})}
             picked={picked}
             onPick={(m) => tap(() => onPick(m))()}
             onExit={(h) => tap(() => onExit(h))()}

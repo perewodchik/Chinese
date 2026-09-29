@@ -60,6 +60,8 @@ import { cutsceneActions, cutscenesDue, isSpiritActor, type Actor } from '../../
 import { CutsceneOverlay, EMPTY_CUT, type CutView } from '../../world/ui/CutsceneOverlay';
 import { autoCutscenes, isSpiritReturn, litFigures, SEAL_MS, sealsFor, spiritReturn, spiritsHome, SPIRIT_RETURN, type Seal } from '../../world/core/celebrate';
 import { LanternCard, SealToast } from '../../world/ui/Celebrate';
+import { arrivalNudge, chapterHoods, markedMaps, nudgeKey, openBeforeFinale, questMarks, whoWhere, type SideEntry } from '../../world/core/sidequests';
+import { hoodOf } from '../../world/core/hoods';
 import { holds } from '../../world/core/flags';
 import type { RunningCutscene } from '../../world/engine/cutscene';
 
@@ -72,7 +74,7 @@ const USE_SIGNS = new Set(['board', 'bus-board', 'train-board', 'gates-in', 'gat
 
 type MapIndex = Record<string, { district: string; width: number; height: number }>;
 /** a cutscene waiting to play (§13 K1): `back` is where a replay returns you; `after` runs when it ends (the talk it came before) */
-type CutItem = { id: string; back?: WorldSave['place']; after?: () => void };
+type CutItem = { id: string; back?: WorldSave['place']; after?: () => void; nudged?: boolean };
 
 /**
  * 走走 on the page: a box the canvas fills. Below 690px it takes the whole
@@ -255,11 +257,15 @@ export function WorldPage() {
   };
   /** the cutscene on screen (§13 K1): what the overlay shows, how to go on or skip */
   const [cut, setCut] = useState<CutView | null>(null);
+  /** "Before we go…" (§13 Q1): the finale waiting while 兔儿爷 names what is still open here */
+  const [beforeGo, setBeforeGo] = useState<{ item: CutItem; open: SideEntry[] } | null>(null);
+  /** a finale put off with "Not yet": it plays on your next arrival somewhere */
+  const laterCut = useRef<CutItem | null>(null);
   const cutRun = useRef<RunningCutscene | null>(null);
   const sayNext = useRef<(() => void) | null>(null);
   const titleNext = useRef<(() => void) | null>(null);
   const busy = useRef(false);
-  busy.current = cut !== null || note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null || wardrobe;
+  busy.current = cut !== null || beforeGo !== null || note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null || wardrobe;
 
   // An error thrown inside the engine's loop never reaches React: hand it to the crash guard.
   useEffect(() => {
@@ -326,8 +332,21 @@ export function WorldPage() {
             const s = game.dispatch([{ do: 'enter', map: info.id, tile: t, facing, district: info.district || undefined }]);
             here.current = { id: info.id, life: info.life, objects: info.objects };
             remix();
+            // §13 Q1: into a neighbourhood with someone who could use a hand — 兔儿爷 says so, once a chapter
+            const hood = hoodOf(info.id)?.id;
+            const nudge = s && hood && hood !== lastHood.current ? arrivalNudge(s, contentRef.current, hood) : null;
+            lastHood.current = hood;
+            if (s && hood && nudge) {
+              game.dispatch([{ do: 'seen', key: nudgeKey(hood, s.chapter), at: 1 }]);
+              setPal((p) => ({ open: p.open, said: nudge }));
+            }
             // a cutscene that sent you here plays now (§13 K1); nothing else starts by itself first
             setCutTick((t) => t + 1);
+            // a finale put off with "Not yet" (§13 Q1) comes back on the next arrival
+            if (laterCut.current && !pendingCut.current) {
+              cutQueue.current.push(laterCut.current);
+              laterCut.current = null;
+            }
             if (pendingCut.current) {
               cutQueue.current.unshift(pendingCut.current);
               pendingCut.current = null;
@@ -548,6 +567,8 @@ export function WorldPage() {
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seal]);
+  /** the neighbourhood you were last in, for 兔儿爷's once-a-chapter line on arriving somewhere new */
+  const lastHood = useRef<string | undefined>(undefined);
   /** the 走马灯 card in a spirit's return: the figures lighting now */
   const [lantern, setLantern] = useState<string[] | null>(null);
   // ?cutscene=<id> plays one (development, and the review probe's frames)
@@ -575,6 +596,14 @@ export function WorldPage() {
       ? s && h ? spiritReturn(item.id.slice(SPIRIT_RETURN.length), h.id, h.objects, s.place.tile) : undefined
       : contentRef.current.cutscenes.find((c) => c.id === item.id);
     if (!cs || !s || !w) return;
+    // §13 Q1: before a chapter's finale, the side quests still open on its streets — one tap goes on anyway
+    if (cs.finale && cs.chapter && !item.back && !item.nudged) {
+      const open = openBeforeFinale(s, contentRef.current, chapterHoods(contentRef.current, cs.chapter));
+      if (open.length) {
+        setBeforeGo({ item: { ...item, nudged: true }, open });
+        return;
+      }
+    }
     if (s.place.map !== cs.map) {
       const ix = mapIndex.current[cs.map];
       if (!ix) return;
@@ -654,11 +683,11 @@ export function WorldPage() {
   };
   // The queue plays one cutscene at a time, when no talk, panel or sheet is open and no journey is under way.
   useEffect(() => {
-    if (state !== 'ready' || cut || talk.view || panel || riding || creator || wardrobe || photo || pendingTravel.current || pendingCut.current) return;
+    if (state !== 'ready' || cut || beforeGo || talk.view || panel || riding || creator || wardrobe || photo || pendingTravel.current || pendingCut.current) return;
     const next = cutQueue.current.shift();
     if (next) startCut(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, cutTick, cut, talk.view, panel, riding, creator, wardrobe, photo]);
+  }, [state, cutTick, cut, beforeGo, talk.view, panel, riding, creator, wardrobe, photo]);
 
   // The game clock: one real second is one game minute, and it only runs
   // while you are free in the world — not in a conversation, a panel, or a
@@ -797,15 +826,19 @@ export function WorldPage() {
   // places, and things that do something (bikes, machines, boards, gates, a
   // scene) — not over plain name signs, which only say what is written
   const hints = game.save?.settings.highlight ?? false;
+  const marksOn = game.save?.settings.questMarks !== false;
   useEffect(() => {
     const s = game.save;
     if (state !== 'ready' || !s) return;
     const scenes = contentRef.current.scenes;
+    // §13 Q1: 「!」 and 「…」 over the people with something for you now; the hint diamond steps aside for them
+    const marks = marksOn && here.current ? questMarks(s, contentRef.current, here.current.objects) : null;
+    world.current?.setQuestMarks(marks);
     const hasScene = (o: MapObject) => !!sceneFor(scenes, s, { look: o.id, map: s.place.map });
     world.current?.setHints(
       hints
         ? (o: MapObject) =>
-            o.kind === 'npc' ||
+            (o.kind === 'npc' && !marks?.[o.id]) ||
             o.kind === 'door' ||
             o.kind === 'edge' ||
             o.kind === 'bike' ||
@@ -815,7 +848,7 @@ export function WorldPage() {
             !!homeProp(o, s.place.map)
         : null,
     );
-  }, [hints, state, game.save, content]);
+  }, [hints, marksOn, state, game.save, content]);
   // the music steps back while someone talks, and under a full-screen panel
   const talking = talk.view !== null;
   useEffect(() => {
@@ -894,6 +927,7 @@ export function WorldPage() {
         <Minimap
           place={game.save.place}
           goals={new Set(trackedMaps(game.save, content))}
+          {...(game.save.settings.questMarks === false ? {} : { marks: markedMaps(game.save, content) })}
           onOpen={(hood) => {
             setMapStart(hood);
             setPanel('map');
@@ -1003,6 +1037,38 @@ export function WorldPage() {
         />
       )}
       {seal && <SealToast seal={seal} />}
+      {beforeGo && (
+        <div className="world-note cs-before" role="dialog" aria-label="Before we go">
+          <span>
+            <b>Before we go…</b> {beforeGo.open.map((e) => `${e.quest.title} (${whoWhere(e)})`).join(' · ')} — still here, if you like. The story waits.
+          </span>
+          <span className="cs-before-acts">
+            <button
+              type="button"
+              className="btn sm ghost"
+              onClick={() => {
+                laterCut.current = beforeGo.item;
+                setBeforeGo(null);
+              }}
+            >
+              Not yet
+            </button>
+            <button
+              type="button"
+              className="world-note-ok"
+              autoFocus
+              onClick={() => {
+                const next = beforeGo.item;
+                setBeforeGo(null);
+                cutQueue.current.unshift(next);
+                setCutTick((t) => t + 1);
+              }}
+            >
+              Go on
+            </button>
+          </span>
+        </div>
+      )}
       {lantern && game.save && (
         <LanternCard lit={litFigures(game.save).filter((f) => !lantern.includes(f))} now={lantern} names={(id) => content.spirits.find((x) => x.id === id)?.hanzi ?? (id === 'family' ? '家' : id)} />
       )}

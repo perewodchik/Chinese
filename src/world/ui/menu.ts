@@ -9,12 +9,14 @@
  * seen gets a marker of its own (`lead:<quest>`).
  */
 
-import { leads, type JournalContent } from '../core/journal';
+import type { JournalContent } from '../core/journal';
+import type { RewardNames } from '../core/celebrate';
+import { sideQuests } from '../core/sidequests';
 import type { SaveAction } from '../core/save';
 import type { WorldSave } from '../core/types';
 
 export type MenuTab = 'journal' | 'bag' | 'map' | 'people' | 'collection';
-export type JournalView = 'now' | 'story' | 'diary';
+export type JournalView = 'now' | 'side' | 'story' | 'diary';
 export type CollectionView = 'spirits' | 'idioms' | 'stamps' | 'album';
 
 /**
@@ -42,6 +44,7 @@ export const MENU: readonly { id: MenuTab; icon: string; zh: string; en: string 
 export const VIEWS: Partial<Record<MenuTab, readonly { id: string; label: string; title: string }[]>> = {
   journal: [
     { id: 'now', label: 'Now', title: 'What to do now, and where' },
+    { id: 'side', label: 'Side', title: 'Side quests: who, where, what to do first, and when' },
     { id: 'story', label: 'Story', title: 'What happened, chapter by chapter' },
     { id: 'diary', label: '日记', title: 'The diary' },
   ],
@@ -122,8 +125,8 @@ export const questNewest = (s: WorldSave) => newest(Object.values(s.quests).flat
 
 /**
  * The views with news (a red dot): a new spirit, 成语 or stamp, a riddle
- * pinned, a quest step that moved, a lead not yet looked at. `leads` are the
- * quest ids the journal shows as leads now.
+ * pinned, a quest step that moved, a side quest you could start that you
+ * have not looked at (§13 Q1: Journal → Side). `leads` are those quest ids.
  */
 export function menuNews(s: WorldSave, leads: readonly string[] = []): Set<string> {
   const out = new Set<string>();
@@ -133,7 +136,7 @@ export function menuNews(s: WorldSave, leads: readonly string[] = []): Set<strin
   add('collection/stamps', newest(Object.values(s.stamps)));
   const journal = Math.max(newest(Object.values(s.riddles).map((r) => r.pinnedAt)), questNewest(s));
   add('journal/now', journal);
-  if (leads.some((l) => !(s.seen?.[`lead:${l}`] ?? 0))) out.add('journal/now');
+  if (leads.some((l) => !(s.seen?.[`lead:${l}`] ?? 0))) out.add('journal/side');
   return out;
 }
 
@@ -144,12 +147,18 @@ export const tabHasNews = (news: ReadonlySet<string>, tab: MenuTab) => [...news]
 export function markSeen(s: WorldSave, at: MenuAt, leads: readonly string[] = []): SaveAction[] {
   const key = viewKey(at);
   const out: SaveAction[] = [{ do: 'seen', key, at: Math.floor(s.clock) }];
-  if (key === 'journal/now') for (const l of leads) if (!(s.seen?.[`lead:${l}`] ?? 0)) out.push({ do: 'seen', key: `lead:${l}`, at: 1 });
+  if (key === 'journal/side') for (const l of leads) if (!(s.seen?.[`lead:${l}`] ?? 0)) out.push({ do: 'seen', key: `lead:${l}`, at: 1 });
   return out;
 }
 
 /** 1–5 on the keyboard: the tabs in order. */
 export const tabForKey = (key: string): MenuTab | null => MENU[Number(key) - 1]?.id ?? null;
 
-/** The news with the journal's leads (§10 J2) counted in. */
-export const menuNewsFor = (s: WorldSave, content: JournalContent) => menuNews(s, leads(s, content).map((l) => l.quest.id));
+/** Side quests you could start now (§13 Q1) — the ones a red dot tells you about. */
+export const newSideIds = (s: WorldSave, content: JournalContent & RewardNames) =>
+  sideQuests(s, content)
+    .filter((e) => e.state === 'new' && e.when === null)
+    .map((e) => e.quest.id);
+
+/** The news with the side quests you could start counted in. */
+export const menuNewsFor = (s: WorldSave, content: JournalContent & RewardNames) => menuNews(s, newSideIds(s, content));

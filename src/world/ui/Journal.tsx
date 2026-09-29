@@ -3,9 +3,10 @@ import { useLibrary } from '../../features/shared/library';
 import { dayOf, formatTime } from '../core/clock';
 import { contentNames, diaryDays, diaryLines } from '../core/diary';
 import { dateZh, WEATHER_ICON, WEATHER_ZH, weatherOf } from '../core/calendar';
-import { hoodOf } from '../core/hoods';
+import { HOODS, hoodOf } from '../core/hoods';
 import { seenInChapter } from '../core/cutscene';
-import { directions, journal, story, type Directions, type Journal, type JournalQuest, type Lead, type RouteLeg, type StoryChapter } from '../core/journal';
+import { sideQuests, whoWhere, type SideEntry } from '../core/sidequests';
+import { directions, journal, story, type Directions, type Journal, type JournalQuest, type RouteLeg, type StoryChapter } from '../core/journal';
 import { placeOf, type MapLinks } from '../core/places';
 import { line, station } from '../core/travel';
 import type { Quest, WorldSave } from '../core/types';
@@ -16,7 +17,6 @@ import { pinyinOf } from './pinyin';
 import { Portrait } from './Portrait';
 import { useEscape } from './useEscape';
 import { ZhText } from './ZhText';
-import { PixelIcon } from './PixelIcon';
 import './journal.css';
 
 /**
@@ -242,35 +242,102 @@ export function QuestSheet({
   );
 }
 
-function LeadSheet({ save, lead, index, onClose, onShowRoute }: { save: WorldSave; lead: Lead; index: MapLinks; onClose: () => void; onShowRoute: (r: RouteRequest) => void }) {
-  const dir = lead.map ? directions(save, lead.map, index) : null;
+/** One side quest, spelled out (§13 Q1): who, where, the first thing to do, what it gives, when, and the way there. */
+function SideSheet({ save, content, entry, index, onClose, onShowRoute }: { save: WorldSave; content: WorldContent; entry: SideEntry; index: MapLinks; onClose: () => void; onShowRoute: (r: RouteRequest) => void }) {
+  const dir = entry.map ? directions(save, entry.map, index) : null;
   useEscape(onClose);
   return (
     <div className="w-sheet-scrim" onClick={onClose}>
-      <section className="w-sheet jn-sheet" role="dialog" aria-label="A lead" onClick={(e) => e.stopPropagation()}>
+      <section className="w-sheet jn-sheet" role="dialog" aria-label={entry.quest.title} onClick={(e) => e.stopPropagation()}>
         <header className="w-sheet-head">
-          <span aria-hidden>📍</span>
-          <b className="jn-title">A lead</b>
+          <Face content={content} npc={entry.giver} />
+          <b className="jn-title">{entry.quest.title}</b>
           <span className="spacer" />
           <button type="button" className="wd-tool" onClick={onClose} aria-label="Close">
             ×
           </button>
         </header>
-        <p>{lead.text}</p>
-        {lead.map && <Destination map={lead.map} />}
+        {entry.quest.blurb && <p className="small">{entry.quest.blurb}</p>}
+        <dl className="jn-facts small">
+          <dt>Who</dt>
+          <dd className="han">{whoWhere(entry)}</dd>
+          <dt>{entry.state === 'on' ? 'Next' : 'First'}</dt>
+          <dd>{entry.first}</dd>
+          <dt>When</dt>
+          <dd>{entry.when === null ? (entry.state === 'on' ? 'Under way' : 'Now') : entry.when}</dd>
+          {entry.gives.length > 0 && (
+            <>
+              <dt>Gives</dt>
+              <dd className="han">{entry.gives.join(' · ')}</dd>
+            </>
+          )}
+        </dl>
+        {entry.map && <Destination map={entry.map} />}
         {dir && (
           <>
             <RouteStrip dir={dir} />
             <FareNote dir={dir} />
           </>
         )}
-        {lead.map && dir?.kind === 'ride' && (
-          <button type="button" className="btn sm" onClick={() => onShowRoute({ legs: dir.legs, to: lead.map! })}>
+        {entry.map && dir?.kind === 'ride' && (
+          <button type="button" className="btn sm" onClick={() => onShowRoute({ legs: dir.legs, to: entry.map! })}>
             Show on map
           </button>
         )}
       </section>
     </div>
+  );
+}
+
+/**
+ * Journal → Side (§13 Q1): every side quest of the chapters reached, by
+ * neighbourhood (yours first) — under way, then ones you can start now,
+ * then ones that wait, each saying when. No vague leads.
+ */
+export function JournalSide({ save, content, onShowRoute }: { save: WorldSave; content: WorldContent; onShowRoute: (r: RouteRequest) => void }) {
+  const index = useMapIndex();
+  const all = useMemo(() => sideQuests(save, content), [save, content]);
+  const [open, setOpen] = useState<SideEntry | null>(null);
+  if (!all.length) return <Empty han="闲">No side quests right now — the next chapter brings new people.</Empty>;
+  const mine = hoodOf(save.place.map)?.id;
+  const order: (string | undefined)[] = [];
+  for (const e of all) if (!order.includes(e.hood)) order.push(e.hood);
+  order.sort((a, b) => Number(b === mine) - Number(a === mine));
+  const rank = (e: SideEntry) => (e.state === 'on' ? 0 : e.when === null ? 1 : 2);
+  return (
+    <>
+      {order.map((hood) => (
+        <section key={hood ?? '-'}>
+          <h3 className="wp-label han">{hood ? (HOODS.find((h) => h.id === hood)?.zh ?? hood) : '北京'}</h3>
+          <ul className="mn-rows jn-rows">
+            {all
+              .filter((e) => e.hood === hood)
+              .sort((a, b) => rank(a) - rank(b))
+              .map((e) => (
+                <li key={e.quest.id}>
+                  <button type="button" className="jn-row" data-wait={e.when !== null && e.state === 'new' ? '' : undefined} onClick={() => setOpen(e)}>
+                    <Face content={content} npc={e.giver} />
+                    <span className="jn-row-text">
+                      <span className="jn-row-top">
+                        <span className="jn-mark" data-kind={e.state === 'on' ? 'next' : 'side'} aria-hidden>
+                          {e.state === 'on' ? '…' : '!'}
+                        </span>
+                        <b>{e.quest.title}</b>
+                        <span className="jn-when tiny">{e.state === 'on' ? 'under way' : (e.when ?? 'now')}</span>
+                      </span>
+                      <span className="small muted jn-one">
+                        <span className="han">{whoWhere(e)}</span> — {e.first}
+                      </span>
+                      {e.gives.length > 0 && <span className="tiny jn-gives han">{e.gives.join(' · ')}</span>}
+                    </span>
+                  </button>
+                </li>
+              ))}
+          </ul>
+        </section>
+      ))}
+      {open && <SideSheet save={save} content={content} entry={open} index={index} onClose={() => setOpen(null)} onShowRoute={onShowRoute} />}
+    </>
   );
 }
 
@@ -290,17 +357,20 @@ export function JournalNow({
   pinyin,
   onTrack,
   onShowRoute,
+  onSide,
 }: {
   save: WorldSave;
   content: WorldContent;
   pinyin: boolean;
   onTrack: (quest: string) => void;
   onShowRoute: (r: RouteRequest) => void;
+  /** open Journal → Side (§13 Q1) */
+  onSide?: () => void;
 }) {
   const index = useMapIndex();
   const j = useMemo(() => journal(save, content), [save, content]);
+  const startable = useMemo(() => sideQuests(save, content).filter((e) => e.state === 'new' && e.when === null).length, [save, content]);
   const [open, setOpen] = useState<string | null>(null);
-  const [lead, setLead] = useState<Lead | null>(null);
   const [solvedOpen, setSolvedOpen] = useState(false);
   const riddles = riddleRows(save, content.scenes);
   const unsolved = riddles.filter((r) => !r.solved);
@@ -348,25 +418,13 @@ export function JournalNow({
           </ul>
         </>
       )}
-      {j.leads.length > 0 && (
-        <>
-          <h3 className="wp-label">Leads</h3>
-          <ul className="mn-rows jn-rows">
-            {j.leads.map((l) => (
-              <li key={l.quest.id} className="jn-lead">
-                <button type="button" className="jn-row" onClick={() => setLead(l)}>
-                  <span className="jn-pin" aria-hidden>
-                    <PixelIcon name="now" />
-                  </span>
-                  <span className="jn-row-text">
-                    {l.hood && <span className="jn-hood han">{hoodOf(l.map ?? '')?.zh}</span>}
-                    <span className="small jn-one">{l.text}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
+      {startable > 0 && onSide && (
+        <button type="button" className="jn-also small jn-side-link" onClick={onSide}>
+          <span className="jn-mark" data-kind="side" aria-hidden>
+            !
+          </span>
+          {startable === 1 ? 'A side quest you could start now' : `${startable} side quests you could start now`} — Side ›
+        </button>
       )}
       <h3 className="wp-label">📌 Riddles</h3>
       {riddles.length ? (
@@ -403,7 +461,6 @@ export function JournalNow({
       {openQuest && (
         <QuestSheet save={save} content={content} quest={openQuest.quest} jq={openQuest} index={index} onClose={() => setOpen(null)} onTrack={onTrack} onShowRoute={onShowRoute} />
       )}
-      {lead && <LeadSheet save={save} lead={lead} index={index} onClose={() => setLead(null)} onShowRoute={onShowRoute} />}
     </>
   );
 }

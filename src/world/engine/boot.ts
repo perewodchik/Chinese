@@ -36,6 +36,8 @@ export interface RunningWorld {
   emote(kind: 'happy' | 'sulky' | 'sleepy' | 'proud' | 'blush', ms?: number): void;
   /** walk through a station's ticket gates at this tile */
   passGate(gate: readonly [number, number], down: boolean): void;
+  /** §13 Q1: quest marks over people, by map object id; null for none */
+  setQuestMarks(marks: Readonly<Record<string, 'main' | 'side' | 'next'>> | null): void;
   /** marks over what can be talked to or looked at; null for none */
   setHints(pred: ((o: MapObject) => boolean) | null): void;
   /** play a cutscene on the map on screen (§13 K1); null when no map is running */
@@ -73,6 +75,7 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions, snapsh
     stick: (f, run) => (game.scene.getScene('world') as Scene | null)?.setStick(f, run),
     act: () => (game.scene.getScene('world') as Scene | null)?.act(),
     passGate: (gate, down) => (game.scene.getScene('world') as Scene | null)?.passGate([gate[0], gate[1]], down),
+    setQuestMarks: (marks) => (game.scene.getScene('world') as Scene | null)?.setQuestMarks(marks),
     setHints: (pred) => (game.scene.getScene('world') as Scene | null)?.setHints(pred),
     cutscene: (cs, hooks) => (game.scene.getScene('world') as Scene | null)?.playCutscene(cs, hooks) ?? null,
     fps: () => Math.round(game.loop.actualFps),

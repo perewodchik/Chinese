@@ -284,7 +284,7 @@ const comesRound = (c: Condition) => 'hours' in c || 'weather' in c || 'festival
 const starters = new WeakMap<readonly Scene[], Map<string, Scene[]>>();
 
 /** The scenes that start a quest. */
-function startScenes(q: Quest, scenes: readonly Scene[]): Scene[] {
+export function startScenes(q: Quest, scenes: readonly Scene[]): Scene[] {
   let by = starters.get(scenes);
   if (!by) {
     by = new Map();
@@ -303,7 +303,7 @@ function startScenes(q: Quest, scenes: readonly Scene[]): Scene[] {
 }
 
 /** How far a neighbourhood is from where you stand: 0 for this one, else the stops of the ride. */
-function hoodDistance(s: WorldSave, hood: string | undefined): number {
+export function hoodDistance(s: WorldSave, hood: string | undefined): number {
   const here = hoodOf(s.place.map);
   if (!hood || !here) return 99;
   if (hood === here.id) return 0;
@@ -316,6 +316,8 @@ function hoodDistance(s: WorldSave, hood: string | undefined): number {
 export const MAX_LEADS = 5;
 
 /**
+ * (Superseded in the UI by §13 Q1's explicit Journal → Side, `sidequests.ts`;
+ * kept for its tests and any caller that wants only the near ones.)
  * Side quests not yet started that the player has a way into (J2): their
  * giver met, or the giver's neighbourhood walked in — and whose start could
  * hold now or soon (a time of day, the weather, a festival and one more

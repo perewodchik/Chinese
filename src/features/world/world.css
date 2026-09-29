@@ -2464,3 +2464,48 @@
 .w-phone-home .w-bills li {
   padding: 8px 10px;
 }
+
+/* §13 Q1: quest marks on the plans (red story, gold side quest to start, paper 「…」 under way) and side-quest counts on the metro map */
+.hp-mark {
+  fill: var(--gold);
+  stroke: color-mix(in srgb, var(--ink) 75%, transparent);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.hp-mark[data-kind='main'] {
+  fill: var(--accent);
+}
+
+.hp-mark[data-kind='next'] {
+  fill: var(--card);
+}
+
+.mm-count rect {
+  fill: var(--card);
+  stroke: color-mix(in srgb, var(--ink) 55%, transparent);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.mm-count[data-new] rect {
+  fill: var(--gold-soft);
+  stroke: var(--gold);
+}
+
+.mm-count text {
+  fill: var(--ink);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.cs-before {
+  display: grid;
+  gap: 8px;
+}
+
+.cs-before-acts {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

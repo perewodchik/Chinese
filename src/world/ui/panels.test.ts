@@ -194,10 +194,11 @@ describe('the menu (§10 P1)', () => {
 
   it('dots a lead until the journal is opened', () => {
     let s = fresh();
-    assert.ok(menuNews(s, ['side-kite']).has('journal/now'));
-    s = applyAll(s, markSeen(s, { tab: 'journal', view: 'now' }, ['side-kite']), ctx);
-    assert.ok(!menuNews(s, ['side-kite']).has('journal/now'));
-    assert.ok(menuNews(s, ['side-kite', 'side-bird']).has('journal/now'));
+    // §13 Q1: a side quest you could start now is news in Journal → Side
+    assert.ok(menuNews(s, ['side-kite']).has('journal/side'));
+    s = applyAll(s, markSeen(s, { tab: 'journal', view: 'side' }, ['side-kite']), ctx);
+    assert.ok(!menuNews(s, ['side-kite']).has('journal/side'));
+    assert.ok(menuNews(s, ['side-kite', 'side-bird']).has('journal/side'));
   });
 
   it('merges seen markers by the later minute, and keeps them through a reload', () => {

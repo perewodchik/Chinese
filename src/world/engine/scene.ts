@@ -111,6 +111,8 @@ export class WorldScene extends Phaser.Scene {
   private propSprites = new Map<string, Phaser.GameObjects.Sprite>();
   /** the marks over what can be talked to or looked at, by object id */
   private hintMarks = new Map<string, Phaser.GameObjects.Image>();
+  /** §13 Q1: the quest marks over people (red 「!」, gold 「!」, 「…」), by object id, and what each shows */
+  private questTags = new Map<string, { img: Phaser.GameObjects.Image; kind: string }>();
 
   /** where the hero stands (the tile, not the sprite mid-step) */
   private at: Tile = [0, 0];
@@ -167,6 +169,7 @@ export class WorldScene extends Phaser.Scene {
     this.npcSprites.clear();
     this.propSprites.clear();
     this.hintMarks.clear();
+    this.questTags.clear();
   }
 
   preload() {
@@ -453,6 +456,59 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * The quest marks over people (§13 Q1): a red paper tag 「!」 for the one
+   * the story needs now, a gold 「!」 for a side quest to start, a small 「…」
+   * for the next step of a quest under way. Only redrawn where one changed.
+   */
+  setQuestMarks(marks: Readonly<Record<string, 'main' | 'side' | 'next'>> | null) {
+    this.makeQuestTextures();
+    const want = marks ?? {};
+    for (const [id, t] of this.questTags) {
+      if (want[id] === t.kind) continue;
+      t.img.destroy();
+      this.questTags.delete(id);
+    }
+    for (const [id, kind] of Object.entries(want)) {
+      if (this.questTags.has(id)) continue;
+      const s = this.npcSprites.get(id);
+      if (!s) continue;
+      const img = this.add.image(Math.round(s.x + s.width / 2), Math.round(s.y - s.height - 1), `qmark-${kind}`).setOrigin(0.5, 1).setDepth(20_003);
+      this.tweens.add({ targets: img, y: img.y - 2, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: Math.floor(Math.random() * 500) });
+      this.questTags.set(id, { img, kind });
+    }
+  }
+
+  private makeQuestTextures() {
+    if (this.textures.exists('qmark-main')) return;
+    // 8×10 paper tags with a dark rim; the 「!」 in paper white, the 「…」 bubble in ink
+    const tag = (key: string, fill: string, mark: 'bang' | 'dots') => {
+      const t = this.textures.createCanvas(key, 8, 10)!;
+      const c = t.getContext();
+      c.fillStyle = '#3a2f3f';
+      c.fillRect(1, 0, 6, 9);
+      c.fillRect(0, 1, 8, 7);
+      c.fillStyle = fill;
+      c.fillRect(1, 1, 6, 7);
+      c.fillStyle = mark === 'bang' ? '#fff6ea' : '#3a2f3f';
+      if (mark === 'bang') {
+        c.fillRect(3, 2, 2, 3);
+        c.fillRect(3, 6, 2, 1);
+      } else {
+        c.fillRect(1, 4, 1, 1);
+        c.fillRect(3, 4, 2, 1);
+        c.fillRect(6, 4, 1, 1);
+      }
+      // the little point under the tag
+      c.fillStyle = '#3a2f3f';
+      c.fillRect(3, 9, 2, 1);
+      t.refresh();
+    };
+    tag('qmark-main', '#c8352e', 'bang');
+    tag('qmark-side', '#d9a441', 'bang');
+    tag('qmark-next', '#f8f5ec', 'dots');
+  }
+
   /** Where a thing's mark sits (its foot is at the mark's bottom), or null for no mark of its own. */
   private hintSpot(o: MapObject, marked: readonly MapObject[]): { x: number; y: number } | null {
     if (o.kind === 'edge') {
@@ -514,6 +570,9 @@ export class WorldScene extends Phaser.Scene {
     this.held = [];
     this.stick = null;
     this.holding = false;
+    // the quest marks and hint diamonds step aside while it runs
+    const marks = [...[...this.questTags.values()].map((t) => t.img), ...this.hintMarks.values()];
+    for (const m of marks) m.setVisible(false);
     const spawned = new Map<Actor, Phaser.GameObjects.Sprite>();
     const tiles = new Map<Actor, Tile>();
     const before = new Map<Phaser.GameObjects.Sprite, { x: number; y: number; frame: string; depth: number }>();
@@ -615,6 +674,7 @@ export class WorldScene extends Phaser.Scene {
         cam.startFollow(this.hero, true, 0.15, 0.15, -8, 16);
         this.hero.setFrame(`hero/${this.facing}-0`);
         this.placeRabbit(this.at, 200, null);
+        for (const m of marks) if (m.active) m.setVisible(true);
         this.host.onStep(this.at, this.facing, false);
       },
     };

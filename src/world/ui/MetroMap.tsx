@@ -27,7 +27,20 @@ const PAD = { l: 44, r: 44, t: 12, b: 36 };
 /** the station a neighbourhood is drawn at on the diagram */
 const hoodAt = new Map(HOODS.map((h) => [h.stations[0]!, h]));
 
-export function MetroMap({ save, goals, onHood, route }: { save: WorldSave; goals: ReadonlySet<string>; onHood: (hood: string) => void; route?: readonly RouteLeg[] | null }) {
+export function MetroMap({
+  save,
+  goals,
+  onHood,
+  route,
+  counts,
+}: {
+  save: WorldSave;
+  goals: ReadonlySet<string>;
+  onHood: (hood: string) => void;
+  route?: readonly RouteLeg[] | null;
+  /** §13 Q1: side quests per neighbourhood — new ones you could start, ones under way */
+  counts?: ReadonlyMap<string, { new: number; on: number }>;
+}) {
   const e = extent();
   const bounds = { x: (e.x - 2.5) * G, y: (e.y - 1.5) * G, w: (e.w + 6) * G, h: (e.h + 3) * G };
   const pz = usePanZoom(bounds, 60, PAD);
@@ -120,6 +133,24 @@ export function MetroMap({ save, goals, onHood, route }: { save: WorldSave; goal
               {isGoal && <circle cx={x * G} cy={y * G} r={r + 6 * u} className="mm-goal" />}
               {isHere && <circle cx={x * G} cy={y * G} r={r + 4 * u} className="mm-here" />}
               <circle cx={x * G} cy={y * G} r={r} className="mm-dot" style={inter || hood ? undefined : { stroke: first?.color }} />
+            </g>
+          );
+        })}
+        {/* §13 Q1: "3 new · 1 on" over each neighbourhood with side quests */}
+        {Object.keys(AT).map((s) => {
+          const hood = hoodAt.get(s);
+          const n = hood && counts?.get(hood.id);
+          if (!n) return null;
+          const [x, y] = AT[s]!;
+          const text = [n.new ? `${n.new} new` : '', n.on ? `${n.on} on` : ''].filter(Boolean).join(' · ');
+          const fs = 9.5 * u;
+          const w = text.length * fs * 0.56 + 8 * u;
+          return (
+            <g key={`q-${s}`} className="mm-count" data-new={n.new ? '' : undefined} aria-label={`${hood!.en}: ${text}`}>
+              <rect x={x * G - w / 2} y={y * G - 26 * u} width={w} height={fs + 5 * u} rx={3 * u} />
+              <text x={x * G} y={y * G - 26 * u + fs + 0.5 * u} textAnchor="middle" style={{ fontSize: fs }}>
+                {text}
+              </text>
             </g>
           );
         })}

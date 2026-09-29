@@ -37,12 +37,15 @@ export function Minimap({
   place,
   onOpen,
   goals,
+  marks,
   children,
 }: {
   place: SavePlace;
   onOpen: (hood: string) => void;
   /** the followed quest's maps, ringed in gold (§10 J2) */
   goals?: ReadonlySet<string>;
+  /** §13 Q1: dots in the quest marks' colours */
+  marks?: ReadonlyMap<string, 'main' | 'side' | 'next'>;
   children?: ReactNode;
 }) {
   const [plans, setPlans] = useState<HoodLayout[]>([]);
@@ -95,7 +98,7 @@ export function Minimap({
         onClick={() => onOpen(hood.id)}
         style={open ? undefined : { display: 'none' }}
       >
-        {plan && view && <PlanDrawing plan={plan} u={view.w / px.w} here={place} goals={goals} mini />}
+        {plan && view && <PlanDrawing plan={plan} u={view.w / px.w} here={place} goals={goals} {...(marks ? { marks } : {})} mini />}
       </svg>
       {/* under the map: the next hop of the quest you follow (§10 J3c); folded away with it */}
       {open && children}

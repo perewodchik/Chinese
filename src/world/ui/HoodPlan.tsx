@@ -32,6 +32,8 @@ export interface PlanProps {
   visited?: ReadonlySet<string>;
   /** where the current task is */
   goals?: ReadonlySet<string>;
+  /** §13 Q1: places with a quest mark — red the story, gold a side quest to start, 「…」 a step under way */
+  marks?: ReadonlyMap<string, 'main' | 'side' | 'next'>;
   picked?: string | null;
   onPick?: (map: string) => void;
   onExit?: (hood: string) => void;
@@ -40,7 +42,7 @@ export interface PlanProps {
   children?: ReactNode;
 }
 
-export function PlanDrawing({ plan, u, here, visited, goals, picked, onPick, onExit, mini, children }: PlanProps) {
+export function PlanDrawing({ plan, u, here, visited, goals, marks, picked, onPick, onExit, mini, children }: PlanProps) {
   const seen = (m: string) => !visited || visited.has(m) || m === here?.map;
   const fs = (mini ? 10.5 : 12.5) * u;
   const dot = here ? heroOnPlan(plan, here.map, here.tile) : null;
@@ -107,6 +109,10 @@ export function PlanDrawing({ plan, u, here, visited, goals, picked, onPick, onE
         const at = heroOnPlan(plan, g, [0, 0]);
         const r = plan.rooms.find((x) => x.map === g) ?? plan.areas.find((x) => x.map === g);
         return at && r ? <rect key={`g-${g}`} x={r.x - 3 * u} y={r.y - 3 * u} width={r.w + 6 * u} height={r.h + 6 * u} rx={1} className="hp-goal" /> : null;
+      })}
+      {[...(marks ?? [])].map(([m, kind]) => {
+        const r = plan.rooms.find((x) => x.map === m) ?? plan.areas.find((x) => x.map === m);
+        return r ? <circle key={`m-${m}`} cx={r.x + r.w - 1} cy={r.y + 1} r={(mini ? 4 : 5.5) * u} className="hp-mark" data-kind={kind} /> : null;
       })}
       {dot && (
         <g className="hp-here" aria-label="You are here">
