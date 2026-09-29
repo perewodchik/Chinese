@@ -62,6 +62,7 @@ import { autoCutscenes, isSpiritReturn, litFigures, SEAL_MS, sealsFor, spiritRet
 import { LanternCard, SealToast } from '../../world/ui/Celebrate';
 import { arrivalNudge, chapterHoods, markedMaps, nudgeKey, openBeforeFinale, questMarks, whoWhere, type SideEntry } from '../../world/core/sidequests';
 import { hoodOf } from '../../world/core/hoods';
+import { bedScene, canWaitHere, sleepTarget } from '../../world/core/rest';
 import { holds } from '../../world/core/flags';
 import type { RunningCutscene } from '../../world/engine/cutscene';
 
@@ -430,7 +431,9 @@ export function WorldPage() {
               return;
             }
             const c = contentRef.current;
-            const scene = sceneFor(c.scenes, s, { look: o.id, map: s.place.map });
+            const found = sceneFor(c.scenes, s, { look: o.id, map: s.place.map });
+            // §13 Q2: the bed also offers 「睡到中秋节」 when what you follow waits for a later day
+            const scene = found?.id === 'bed' ? bedScene(found, sleepTarget(s, c)) : found;
             if (scene) {
               const card = c.npcs.find((n) => n.id === scene.npc) ?? null;
               if (card) talkRef.current.start(scene, card, lookOf(card, card.id), s);
@@ -933,7 +936,19 @@ export function WorldPage() {
             setPanel('map');
           }}
         >
-          <NextHop save={game.save} content={content} onOpen={() => setPanel('tasks')} />
+          <NextHop
+            save={game.save}
+            content={content}
+            onOpen={() => setPanel('tasks')}
+            {...(here.current && canWaitHere(here.current.id, here.current.objects)
+              ? {
+                  onWait: (hour: number) => {
+                    game.dispatch([{ do: 'wait', until: hour }]);
+                    world.current?.emote('sleepy', 2000);
+                  },
+                }
+              : {})}
+          />
         </Minimap>
       )}
       {game.save && state === 'ready' && !photo && !cut && <TopBar district={game.save.district} minutes={minutes} open={setPanel} onPhoto={() => setPhoto(true)} news={menuNewsFor(game.save, content).size > 0} />}

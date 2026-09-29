@@ -78,7 +78,8 @@ export type Action =
   | { do: 'teleport'; map: string; tile: Tile; facing?: Facing }
   /** open a 点单 game from `src/games` and come back to the same spot */
   | { do: 'game'; game: string }
-  | { do: 'sleep' }
+  /** to the next 7:00; with `until`, to 7:00 on that game day (§13 Q2), each day between in the diary */
+  | { do: 'sleep'; until?: number }
   /** let time pass until the next `until`:00 (resting in the teahouse till dark) */
   | { do: 'wait'; until: number }
   /** pin the current key line to 📜 as a riddle to work out */

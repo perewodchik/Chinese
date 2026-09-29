@@ -42,6 +42,8 @@ export const TEMPLATES: Record<string, { zh: string; en: string }> = {
   w: { zh: '我喝了{x}。', en: 'I drank {x}.' },
   p: { zh: '今天我拍了照片。照片拍得很好！', en: 'Today I took photos. They came out well!' },
   z: { zh: '晚上我在家睡觉了。', en: 'In the evening I slept at home.' },
+  // §13 Q2: a day slept through (睡到中秋)
+  q: { zh: '这一天我在家休息。', en: 'I rested at home all day.' },
   // §12: clothes (the codes carry their own names: 一件红毛衣, 旗袍)
   u: { zh: '我买了{x}。', en: 'I bought {x}.' },
   o: { zh: '今天我穿了{x}。', en: 'Today I wore {x}.' },
@@ -220,8 +222,8 @@ export function diaryLines(codes: readonly string[], names: Names, day?: number)
       if (a) fill(k, { zh: a, en: a });
     } else if (k === 'k' || k === 'p') {
       out.push({ ...TEMPLATES[k]! });
-    } else if (k === 'z') {
-      out.push({ ...TEMPLATES.z! });
+    } else if (k === 'z' || k === 'q') {
+      out.push({ ...TEMPLATES[k]! });
     }
   }
   return out.length ? out : [EMPTY_DAY];

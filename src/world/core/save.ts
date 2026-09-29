@@ -7,7 +7,7 @@
  * Nothing is mutated; unchanged parts are shared with the old save.
  */
 
-import { dayOf, sleep as sleepClock, START_MINUTES, waitUntil } from './clock';
+import { dayOf, MINUTES_PER_DAY, sleep as sleepClock, START_MINUTES, waitUntil } from './clock';
 import { eventsOf, logDay } from './diary';
 import { feedCat, fits, NO_CAT } from './room';
 import { MAX_SUBJECTS } from './photo';
@@ -212,8 +212,11 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
       return s.districts.includes(a.district) ? s : { ...s, districts: [...s.districts, a.district] };
     case 'chapter':
       return a.chapter > s.chapter ? { ...s, chapter: a.chapter } : s;
-    case 'sleep':
-      return { ...s, clock: sleepClock(s.clock) };
+    case 'sleep': {
+      // §13 Q2: sleeping till a later day wakes you at 7:00 on it
+      const wake = a.until !== undefined ? (a.until - 1) * MINUTES_PER_DAY + 7 * 60 : 0;
+      return { ...s, clock: Math.max(sleepClock(s.clock), wake) };
+    }
     case 'wait':
       return { ...s, clock: waitUntil(s.clock, a.until) };
     case 'pin': {
@@ -349,7 +352,9 @@ export function apply(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave
   }
   // the diary writes itself as things happen (X3); a night's sleep belongs to the day it ended
   const codes = [...eventsOf(s, changed, a, ctx.npc), ...wardrobeEvents(s, changed, a as WardrobeAction)];
-  const next = logDay(changed, codes, a.do === 'sleep' ? s.clock : changed.clock);
+  let next = logDay(changed, codes, a.do === 'sleep' ? s.clock : changed.clock);
+  // §13 Q2: each whole day slept through has its line, so the diary has no hole
+  if (a.do === 'sleep') for (let d = dayOf(s.clock) + 1; d < dayOf(changed.clock); d++) next = logDay(next, ['q'], (d - 1) * MINUTES_PER_DAY + 12 * 60);
   return { ...next, updatedAt: ctx.now, deviceId: ctx.deviceId ?? s.deviceId };
 }
 

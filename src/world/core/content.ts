@@ -78,7 +78,7 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
   z.strictObject({ do: z.literal('chapter'), chapter: z.number().int().min(1) }),
   z.strictObject({ do: z.literal('teleport'), map: id, tile, facing: facing.optional() }),
   z.strictObject({ do: z.literal('game'), game: id }),
-  z.strictObject({ do: z.literal('sleep') }),
+  z.strictObject({ do: z.literal('sleep'), until: z.number().int().min(1).optional() }),
   z.strictObject({ do: z.literal('wait'), until: hour }),
   z.strictObject({ do: z.literal('hearts'), npc: id, delta: z.number().int() }),
   z.strictObject({ do: z.literal('place'), spot: id, item: id }),

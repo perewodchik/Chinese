@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { directions, trackedMaps } from '../core/journal';
+import { stepWait } from '../core/rest';
 import { line } from '../core/travel';
 import type { WorldSave } from '../core/types';
 import type { WorldContent } from './content';
@@ -11,11 +12,39 @@ import './journal.css';
  * minimap: "→ 南锣鼓巷站 · 8号线". A tap opens Journal → Now. It shows
  * nothing when you are there already, or the step has no place.
  */
-export function NextHop({ save, content, onOpen }: { save: WorldSave; content: WorldContent; onOpen: () => void }) {
+export function NextHop({
+  save,
+  content,
+  onOpen,
+  onWait,
+}: {
+  save: WorldSave;
+  content: WorldContent;
+  onOpen: () => void;
+  /** §13 Q2: let the hours pass here (a seat is at hand); none where there is nowhere to sit */
+  onWait?: (hour: number) => void;
+}) {
   const index = useMapIndex();
   const to = useMemo(() => trackedMaps(save, content)[0], [save, content]);
+  // §13 Q2: the step waits for an hour — say so, and offer to wait where you can sit
+  const wait = useMemo(() => stepWait(save, content), [save, content]);
   if (!to || !Object.keys(index).length) return null;
   const dir = directions(save, to, index);
+  if (dir.kind === 'here' && wait) {
+    return (
+      <span className="wm-hop-row">
+        <button type="button" className="wm-hop" onClick={onOpen} aria-label={`It can happen ${wait.text} — open the journal`}>
+          <span aria-hidden>⏳</span>
+          <span>{wait.text}</span>
+        </button>
+        {onWait && (
+          <button type="button" className="wm-hop wm-wait" onClick={() => onWait(wait.from)}>
+            Wait here
+          </button>
+        )}
+      </span>
+    );
+  }
   if (dir.kind === 'here' || dir.kind === 'none' || !dir.legs.length) return null;
   const [first, second] = dir.legs;
   const walk = first!.kind === 'walk' ? first : undefined;
@@ -32,6 +61,7 @@ export function NextHop({ save, content, onOpen }: { save: WorldSave; content: W
           {rideLine.zh}
         </span>
       )}
+      {wait && <span className="wm-hop-when">· {wait.text}</span>}
     </button>
   );
 }

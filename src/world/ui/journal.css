@@ -635,3 +635,18 @@
 .jn-facts dd {
   margin: 0;
 }
+
+/* §13 Q2: a step that waits for an hour — the time, and waiting where you can sit */
+.wm-hop-row {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.wm-hop-when {
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.wm-wait {
+  animation: none;
+}
