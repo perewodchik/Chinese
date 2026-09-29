@@ -50,6 +50,9 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.strictObject({ met: id }),
     z.strictObject({ hearts: id, min: z.number().int().min(0).max(5) }),
     z.strictObject({ remembers: id, note: text }),
+    z.strictObject({ weather: z.enum(['clear', 'cloudy', 'rain', 'snow', 'wind']) }),
+    z.strictObject({ festival: z.enum(['chunjie', 'yuanxiao', 'duanwu', 'qixi', 'zhongqiu', 'guoqing']) }),
+    z.strictObject({ season: z.enum(['spring', 'summer', 'autumn', 'winter']) }),
   ]),
 );
 

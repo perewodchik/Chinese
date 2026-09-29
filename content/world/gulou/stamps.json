@@ -48,5 +48,33 @@
     "en": "A Beijing haircut",
     "place": "lifadian",
     "design": "haircut"
+  },
+  {
+    "id": "chunjie",
+    "name": "春节",
+    "en": "Spring Festival",
+    "place": "siheyuan-yard",
+    "design": "chunjie"
+  },
+  {
+    "id": "yuanxiao",
+    "name": "元宵",
+    "en": "Lantern Festival",
+    "place": "chaguan",
+    "design": "yuanxiao"
+  },
+  {
+    "id": "zhongqiu",
+    "name": "中秋",
+    "en": "Mid-Autumn",
+    "place": "siheyuan-yard",
+    "design": "zhongqiu"
+  },
+  {
+    "id": "snowman",
+    "name": "雪人",
+    "en": "A snowman",
+    "place": "hutong-home",
+    "design": "snowman"
   }
 ]

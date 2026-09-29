@@ -54,6 +54,8 @@ export interface SceneOptions {
   looks?: Record<string, string>;
   /** on a shared bike: faster, a bicycle under the hero */
   bike?: boolean;
+  /** what falls from the sky today (X4); it only shows on maps out of doors */
+  sky?: 'none' | 'rain' | 'snow';
 }
 
 interface TilesetNames {
@@ -218,6 +220,7 @@ export class WorldScene extends Phaser.Scene {
       .setDepth(20_000)
       .setBlendMode(Phaser.BlendModes.MULTIPLY);
     this.setTime(this.opts.time, false);
+    this.setSky(this.opts.sky ?? 'none');
     this.dots = this.add.graphics().setDepth(9_999);
     this.bindInput();
     this.startLife();
@@ -264,9 +267,16 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /**
-   * The weather hook (off for now): rain or snow falling over the view.
-   * Nothing calls it yet; seasons may later.
+   * Today's sky (X4): rain or snow over streets and parks — a map with
+   * passers-by, pigeons or bikes counts as out of doors; rooms stay dry.
    */
+  setSky(kind: 'none' | 'rain' | 'snow') {
+    this.opts = { ...this.opts, sky: kind };
+    const { crowd, pigeons, bikes } = this.info.life;
+    this.setWeather(crowd + pigeons + bikes > 0 ? kind : 'none');
+  }
+
+  /** Rain or snow falling over the view, or none. */
   setWeather(kind: 'none' | 'rain' | 'snow') {
     this.weather?.destroy();
     this.weather = undefined;

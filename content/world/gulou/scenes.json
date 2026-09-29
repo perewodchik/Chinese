@@ -4145,5 +4145,1099 @@
     "en": "bird"
    }
   ]
+ },
+ {
+  "id": "buy-yusan",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": 1,
+  "when": {
+   "all": [
+    {
+     "weather": "rain"
+    },
+    {
+     "not": {
+      "item": "yusan"
+     }
+    },
+    {
+     "money": 15
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "雨伞",
+    "explain": "下雨的时候，拿在手上，不让雨到身上。",
+    "en": "umbrella"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "下雨了！要雨伞吗？十五块。",
+    "translate": "It's raining! Want an umbrella? Fifteen yuan.",
+    "simpler": "要雨伞吗？",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不要",
+        "不用",
+        "不买"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "要",
+        "买",
+        "好",
+        "可以"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -15
+       },
+       {
+        "do": "give",
+        "item": "yusan"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "要",
+     "frame": "___，我要一个。",
+     "full": "要，我要一个。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好，雨伞给你。",
+    "translate": "There you go — your umbrella."
+   },
+   {
+    "id": "c",
+    "say": "好，再见！",
+    "translate": "All right, bye!"
+   }
+  ]
+ },
+ {
+  "id": "wang-rain",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "priority": 3,
+  "when": {
+   "all": [
+    {
+     "weather": "rain"
+    },
+    {
+     "not": {
+      "item": "yusan"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "雨伞",
+    "explain": "下雨的时候，拿在手上，不让雨到身上。",
+    "en": "umbrella"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "下雨了！你有雨伞吗？",
+    "translate": "It's raining! Do you have an umbrella?",
+    "simpler": "你有雨伞吗？",
+    "why": "李阿姨’s corner shop on 南锣鼓巷 sells umbrellas."
+   }
+  ]
+ },
+ {
+  "id": "umbrella-need",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "weather": "rain"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "雨伞",
+    "explain": "下雨的时候，拿在手上，不让雨到身上。",
+    "en": "umbrella"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "下雨了！我没有雨伞……",
+    "translate": "It's raining! And I have no umbrella…",
+    "simpler": "我没有雨伞。",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-umbrella",
+      "step": "lend"
+     }
+    ],
+    "why": "He is stuck under the eaves. If you have an umbrella, use it on him from your bag."
+   }
+  ]
+ },
+ {
+  "id": "umbrella-lend",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "use": "yusan",
+  "when": {
+   "all": [
+    {
+     "weather": "rain"
+    },
+    {
+     "not": {
+      "flag": "umbrella-lent"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "雨伞",
+    "explain": "下雨的时候，拿在手上，不让雨到身上。",
+    "en": "umbrella"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你的雨伞给我？太好了，谢谢你！",
+    "translate": "Your umbrella, for me? Wonderful — thank you!",
+    "simpler": "雨伞给我？谢谢！",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "yusan"
+     },
+     {
+      "do": "flag",
+      "flag": "umbrella-lent"
+     },
+     {
+      "do": "hearts",
+      "npc": "zhao-yeye",
+      "delta": 1
+     },
+     {
+      "do": "remember",
+      "npc": "zhao-yeye",
+      "note": "lent him an umbrella in the rain"
+     }
+    ],
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "明天我给你。",
+    "translate": "I'll give it back tomorrow."
+   }
+  ]
+ },
+ {
+  "id": "umbrella-back",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "flag": "umbrella-lent"
+    },
+    {
+     "not": {
+      "flag": "umbrella-back"
+     }
+    },
+    {
+     "not": {
+      "weather": "rain"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "雨伞",
+    "explain": "下雨的时候，拿在手上，不让雨到身上。",
+    "en": "umbrella"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "{name}，你的雨伞！谢谢你。",
+    "translate": "{name}, your umbrella! Thank you.",
+    "simpler": "这是你的雨伞。",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "yusan"
+     },
+     {
+      "do": "flag",
+      "flag": "umbrella-back"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "buy-hongbao",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": 2,
+  "when": {
+   "all": [
+    {
+     "season": "winter"
+    },
+    {
+     "not": {
+      "item": "hongbao"
+     }
+    },
+    {
+     "not": {
+      "flag": "hongbao-given"
+     }
+    },
+    {
+     "money": 5
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "红包",
+    "explain": "红色的小纸包，里面有钱。",
+    "en": "red envelope"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "春节快到了！要红包吗？五块。",
+    "translate": "The Spring Festival is coming! Want a red envelope? 5 yuan.",
+    "simpler": "要红包吗？",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不要",
+        "不用",
+        "不买"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "要",
+        "买",
+        "好",
+        "可以"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -5
+       },
+       {
+        "do": "give",
+        "item": "hongbao"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "要",
+     "frame": "___，我要。",
+     "full": "要，我要。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好，红包给你。",
+    "translate": "Here — your a red envelope."
+   },
+   {
+    "id": "c",
+    "say": "好，再见！",
+    "translate": "All right, bye!"
+   }
+  ]
+ },
+ {
+  "id": "buy-chunlian",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": 2,
+  "when": {
+   "all": [
+    {
+     "season": "winter"
+    },
+    {
+     "not": {
+      "item": "chunlian"
+     }
+    },
+    {
+     "not": {
+      "flag": "chunlian-up"
+     }
+    },
+    {
+     "money": 10
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "春联",
+    "explain": "春节的时候，门两边的红纸，上面有字。",
+    "en": "spring couplets"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "春节快到了！要春联吗？十块。",
+    "translate": "The Spring Festival is coming! Want spring couplets? 10 yuan.",
+    "simpler": "要春联吗？",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不要",
+        "不用",
+        "不买"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "要",
+        "买",
+        "好",
+        "可以"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -10
+       },
+       {
+        "do": "give",
+        "item": "chunlian"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "要",
+     "frame": "___，我要。",
+     "full": "要，我要。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好，春联给你。",
+    "translate": "Here — your spring couplets."
+   },
+   {
+    "id": "c",
+    "say": "好，再见！",
+    "translate": "All right, bye!"
+   }
+  ]
+ },
+ {
+  "id": "buy-fu",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": 2,
+  "when": {
+   "all": [
+    {
+     "season": "winter"
+    },
+    {
+     "not": {
+      "item": "fu"
+     }
+    },
+    {
+     "not": {
+      "flag": "fu-up"
+     }
+    },
+    {
+     "money": 5
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "福",
+    "explain": "好的事，好的日子。",
+    "en": "good fortune"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "春节快到了！要福吗？五块。",
+    "translate": "The Spring Festival is coming! Want a 福 sign? 5 yuan.",
+    "simpler": "要福吗？",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不要",
+        "不用",
+        "不买"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "buy",
+      "match": [
+       [
+        "要",
+        "买",
+        "好",
+        "可以"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "money",
+        "amount": -5
+       },
+       {
+        "do": "give",
+        "item": "fu"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "要",
+     "frame": "___，我要。",
+     "full": "要，我要。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好，福给你。",
+    "translate": "Here — your a 福 sign."
+   },
+   {
+    "id": "c",
+    "say": "好，再见！",
+    "translate": "All right, bye!"
+   }
+  ]
+ },
+ {
+  "id": "chunjie-wang",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "stamp": "chunjie",
+  "when": {
+   "all": [
+    {
+     "any": [
+      {
+       "festival": "chunjie"
+      },
+      {
+       "festival": "yuanxiao"
+      }
+     ]
+    },
+    {
+     "scene": "arrive"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "春联",
+    "explain": "春节的时候，门两边的红纸，上面有字。",
+    "en": "spring couplets"
+   },
+   {
+    "w": "福",
+    "explain": "好的事，好的日子。",
+    "en": "good fortune"
+   },
+   {
+    "w": "红包",
+    "explain": "红色的小纸包，里面有钱。",
+    "en": "red envelope"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "过年好！今天是春节。",
+    "translate": "Happy New Year! It’s the Spring Festival.",
+    "expect": [
+     {
+      "intent": "greet",
+      "match": [
+       [
+        "过年好",
+        "新年快乐",
+        "新年好",
+        "你好"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "过年好",
+     "frame": "___，王阿姨！",
+     "full": "过年好，王阿姨！"
+    },
+    "why": "过年好 — \"good passing of the year\" — is the Beijing way to wish a happy new year; 新年快乐 works too."
+   },
+   {
+    "id": "b",
+    "say": "我们吃饺子！给你。",
+    "translate": "We're having dumplings! Here's yours.",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "jiaozi"
+     }
+    ],
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "你家门上还没有春联和福吧？李阿姨那儿有。",
+    "translate": "There are no couplets or 福 on your gate yet, are there? 李阿姨 sells them.",
+    "simpler": "去买春联和福吧！",
+    "next": "d"
+   },
+   {
+    "id": "d",
+    "say": "还有，给小明一个红包吧！",
+    "translate": "And give 小明 a red envelope!",
+    "simpler": "给小明红包！",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-chunjie",
+      "step": "door"
+     }
+    ],
+    "why": "Children get 红包 with money from grown-ups at New Year — and they say 新年快乐 for it."
+   }
+  ]
+ },
+ {
+  "id": "door-chunlian-l1",
+  "map": "hutong-home",
+  "object": "l1",
+  "trigger": "look",
+  "use": "chunlian",
+  "start": "a",
+  "words": [
+   {
+    "w": "春联",
+    "explain": "春节的时候，门两边的红纸，上面有字。",
+    "en": "spring couplets"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "春联在门上了！真好看。",
+    "translate": "The couplets are up on the gate! They look lovely.",
+    "speaker": "companion",
+    "simpler": "春联真好看！",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "chunlian"
+     },
+     {
+      "do": "flag",
+      "flag": "chunlian-up"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "door-fu-l1",
+  "map": "hutong-home",
+  "object": "l1",
+  "trigger": "look",
+  "use": "fu",
+  "start": "a",
+  "words": [
+   {
+    "w": "福",
+    "explain": "好的事，好的日子。",
+    "en": "good fortune"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你看，福倒了！福倒了——福到了！",
+    "translate": "Look — the 福 is upside down! 福倒了, upside-down luck, sounds just like 福到了, luck has come!",
+    "speaker": "companion",
+    "key": true,
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "fu"
+     },
+     {
+      "do": "flag",
+      "flag": "fu-up"
+     }
+    ],
+    "why": "倒 dào (upside down) and 到 dào (arrive) sound the same. So people hang the 福 on the door upside down on purpose: “luck has arrived”."
+   }
+  ]
+ },
+ {
+  "id": "door-chunlian-l2",
+  "map": "hutong-home",
+  "object": "l2",
+  "trigger": "look",
+  "use": "chunlian",
+  "start": "a",
+  "words": [
+   {
+    "w": "春联",
+    "explain": "春节的时候，门两边的红纸，上面有字。",
+    "en": "spring couplets"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "春联在门上了！真好看。",
+    "translate": "The couplets are up on the gate! They look lovely.",
+    "speaker": "companion",
+    "simpler": "春联真好看！",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "chunlian"
+     },
+     {
+      "do": "flag",
+      "flag": "chunlian-up"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "door-fu-l2",
+  "map": "hutong-home",
+  "object": "l2",
+  "trigger": "look",
+  "use": "fu",
+  "start": "a",
+  "words": [
+   {
+    "w": "福",
+    "explain": "好的事，好的日子。",
+    "en": "good fortune"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你看，福倒了！福倒了——福到了！",
+    "translate": "Look — the 福 is upside down! 福倒了, upside-down luck, sounds just like 福到了, luck has come!",
+    "speaker": "companion",
+    "key": true,
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "fu"
+     },
+     {
+      "do": "flag",
+      "flag": "fu-up"
+     }
+    ],
+    "why": "倒 dào (upside down) and 到 dào (arrive) sound the same. So people hang the 福 on the door upside down on purpose: “luck has arrived”."
+   }
+  ]
+ },
+ {
+  "id": "hongbao-give",
+  "map": "hutong-home",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "use": "hongbao",
+  "when": {
+   "any": [
+    {
+     "festival": "chunjie"
+    },
+    {
+     "festival": "yuanxiao"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "红包",
+    "explain": "红色的小纸包，里面有钱。",
+    "en": "red envelope"
+   },
+   {
+    "w": "新年快乐",
+    "explain": "春节的时候说的话：新的一年，你要快乐！",
+    "en": "Happy New Year"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "红包？给我的吗？",
+    "translate": "A red envelope? For me?",
+    "simpler": "这是红包吗？",
+    "expect": [
+     {
+      "intent": "wish",
+      "match": [
+       [
+        "新年快乐",
+        "过年好",
+        "新年好"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "take",
+        "item": "hongbao"
+       },
+       {
+        "do": "flag",
+        "flag": "hongbao-given"
+       },
+       {
+        "do": "hearts",
+        "npc": "xiaoming",
+        "delta": 1
+       },
+       {
+        "do": "remember",
+        "npc": "xiaoming",
+        "note": "gave him a 红包 at New Year"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "新年快乐",
+     "frame": "___！",
+     "full": "新年快乐！"
+    },
+    "why": "When you give a 红包 you say a wish with it: 新年快乐!"
+   },
+   {
+    "id": "b",
+    "say": "谢谢！新年快乐！",
+    "translate": "Thank you! Happy New Year!"
+   }
+  ]
+ },
+ {
+  "id": "yuanxiao-liu",
+  "map": "chaguan",
+  "npc": "lao-liu",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "stamp": "yuanxiao",
+  "when": {
+   "festival": "yuanxiao"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "元宵",
+    "explain": "元宵节吃的东西，小小的，圆的，很甜。",
+    "en": "sweet rice balls"
+   },
+   {
+    "w": "灯谜",
+    "explain": "写在灯上的问题，你要想一想。",
+    "en": "lantern riddle"
+   },
+   {
+    "w": "木",
+    "explain": "就是树。",
+    "en": "tree, wood"
+   },
+   {
+    "w": "林",
+    "explain": "很多树。",
+    "en": "a wood"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "今天是元宵节！吃元宵，看灯谜。",
+    "translate": "It's the Lantern Festival! Sweet rice balls, and lantern riddles.",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "一个灯谜：两个“木”，是什么字？",
+    "translate": "A lantern riddle: two 木 — which character is it?",
+    "expect": [
+     {
+      "intent": "answer",
+      "match": [
+       [
+        "林"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "林",
+     "frame": "是“___”字。",
+     "full": "是“林”字。"
+    },
+    "why": "Two 木 (tree) side by side make 林 lín, a wood. 灯谜 are riddles hung on lanterns at 元宵.",
+    "simpler": "两个“木”是什么字？"
+   },
+   {
+    "id": "c",
+    "say": "对了！是“林”！这个元宵给你。",
+    "translate": "Right! It’s 林! Have a sweet rice ball.",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "yuanxiao"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "zhongqiu-wang",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "stamp": "zhongqiu",
+  "when": {
+   "all": [
+    {
+     "festival": "zhongqiu"
+    },
+    {
+     "scene": "arrive"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "月饼",
+    "explain": "中秋节吃的东西，圆的，像月亮。",
+    "en": "mooncake"
+   },
+   {
+    "w": "月亮",
+    "explain": "晚上在天上，很亮，有的时候是圆的。",
+    "en": "the moon"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "今天是中秋节！晚上我们看月亮，吃月饼。",
+    "translate": "It's the Mid-Autumn Festival! Tonight we look at the moon and eat mooncakes.",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "这个月饼给你。晚上吃月饼，看月亮！",
+    "translate": "This mooncake is for you. Tonight — mooncakes and the moon!",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "yuebing"
+     }
+    ],
+    "why": "中秋 is about the family being together — 团圆, “round and whole” — like the full moon."
+   }
+  ]
+ },
+ {
+  "id": "qixi-wang",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "festival": "qixi"
+    },
+    {
+     "scene": "arrive"
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "今天是七夕。牛郎和织女在一起！",
+    "translate": "It’s Qixi. The Cowherd and the Weaver Girl are together today!",
+    "why": "牛郎 and 织女 are two stars kept apart by the Milky Way; once a year magpies make a bridge so they can meet."
+   }
+  ]
+ },
+ {
+  "id": "snow-xiaoming",
+  "map": "hutong-home",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "stamp": "snowman",
+  "when": {
+   "weather": "snow"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "雪人",
+    "explain": "用雪做的人。",
+    "en": "snowman"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "下雪了！我们做雪人吧！",
+    "translate": "It's snowing! Let's make a snowman!",
+    "simpler": "我们做雪人吧！",
+    "expect": [
+     {
+      "intent": "ok",
+      "match": [
+       [
+        "好",
+        "可以",
+        "一起",
+        "做"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，我们做吧！",
+     "full": "好，我们做吧！"
+    }
+   },
+   {
+    "id": "b",
+    "say": "你做雪人的头，我来做大的。",
+    "translate": "You make the snowman's head, I'll make the big part.",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "好了！你看，我们的雪人！",
+    "translate": "Done! Look — our snowman!",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "xiaoming",
+      "delta": 1
+     }
+    ]
+   }
+  ]
  }
 ]

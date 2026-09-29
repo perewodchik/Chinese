@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { partOfDay } from '../../world/core/clock';
+import { dayOf, partOfDay } from '../../world/core/clock';
 import { hintWithName } from '../../world/core/voice';
+import { skyOf, weatherOf } from '../../world/core/calendar';
 import { libraryLexicon } from '../../world/core/dialogue/lexicon';
 import { autoScene, sceneFor } from '../../world/core/scenes';
 import type { SaveAction } from '../../world/core/save';
@@ -283,6 +284,8 @@ export function WorldPage() {
           host,
           looks: looksOf(people.npcs),
           bike: game.current()?.flags.includes('on-bike') ?? false,
+          // today's weather (X4); ?weather=rain|snow|none tries one out
+          sky: oneOf(query.get('weather'), ['rain', 'snow', 'none'] as const, skyOf(weatherOf(dayOf(game.current()?.clock ?? 0)))),
           cast: (info) => {
             const s = game.current();
             return s ? castMap(info.objects, info.id, people.npcs, s) : info.objects;
@@ -331,6 +334,8 @@ export function WorldPage() {
         told = minutes;
         game.dispatch([{ do: 'tick', minutes }], 'walk');
       }
+      // a new day may bring other weather (X4)
+      if (dayOf(minutes) !== dayOf(minutes - 1)) world.current?.setSky(skyOf(weatherOf(dayOf(minutes))));
       const now = partOfDay(minutes);
       if (now !== part) {
         part = now;

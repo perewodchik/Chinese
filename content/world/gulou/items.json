@@ -78,5 +78,37 @@
     "id": "lao-zhaopian",
     "name": "老照片",
     "en": "an old photo of the first barber shop"
+  },
+  {
+    "id": "yusan",
+    "name": "雨伞",
+    "en": "umbrella"
+  },
+  {
+    "id": "hongbao",
+    "name": "红包",
+    "en": "red envelope"
+  },
+  {
+    "id": "chunlian",
+    "name": "春联",
+    "en": "spring couplets"
+  },
+  {
+    "id": "fu",
+    "name": "福",
+    "en": "a 福 “luck” sign"
+  },
+  {
+    "id": "jiaozi",
+    "name": "饺子",
+    "en": "dumplings",
+    "gift": true
+  },
+  {
+    "id": "yuanxiao",
+    "name": "元宵",
+    "en": "sweet rice balls",
+    "gift": true
   }
 ]

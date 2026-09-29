@@ -21,6 +21,8 @@ export interface RunningWorld {
   act(): void;
   /** on or off a shared bike */
   setBike(on: boolean): void;
+  /** today's rain or snow (X4) */
+  setSky(kind: 'none' | 'rain' | 'snow'): void;
   /** frames a second lately (for the map probe) */
   fps(): number;
   /** a PNG data URL of the canvas, for review screenshots */
@@ -55,6 +57,7 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions, snapsh
     act: () => (game.scene.getScene('world') as Scene | null)?.act(),
     fps: () => Math.round(game.loop.actualFps),
     setBike: (on) => (game.scene.getScene('world') as Scene | null)?.setBike(on),
+    setSky: (kind) => (game.scene.getScene('world') as Scene | null)?.setSky(kind),
     snapshot: () =>
       new Promise((resolve) => {
         game.renderer.snapshot((img) => resolve((img as HTMLImageElement).src));

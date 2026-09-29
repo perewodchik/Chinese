@@ -243,5 +243,54 @@
         "now": "Meet 赵爷爷 on the 鼓楼 square in the early morning (6–9)."
       }
     ]
+  },
+  {
+    "id": "side-umbrella",
+    "title": "Caught in the rain",
+    "chapter": 1,
+    "steps": [
+      {
+        "id": "lend",
+        "now": "赵爷爷 has no umbrella. 李阿姨 sells them on rainy days — use one on him from your bag.",
+        "done": {
+          "flag": "umbrella-lent"
+        }
+      },
+      {
+        "id": "back",
+        "now": "赵爷爷 will give your umbrella back on a dry day. Look for him on 南锣鼓巷.",
+        "done": {
+          "flag": "umbrella-back"
+        }
+      }
+    ]
+  },
+  {
+    "id": "side-chunjie",
+    "title": "New Year at the courtyard",
+    "chapter": 1,
+    "steps": [
+      {
+        "id": "door",
+        "now": "Put 春联 and a 福 on your gate: buy them at 李阿姨’s in winter, then use them on a lantern beside your red gate in 帽儿胡同.",
+        "done": {
+          "all": [
+            {
+              "flag": "chunlian-up"
+            },
+            {
+              "flag": "fu-up"
+            }
+          ]
+        }
+      },
+      {
+        "id": "hongbao",
+        "now": "Give 小明 a 红包 (李阿姨 sells them) and wish him a happy new year — during 春节 or 元宵.",
+        "done": {
+          "flag": "hongbao-given"
+        }
+      }
+    ]
   }
 ]

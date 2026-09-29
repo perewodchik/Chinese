@@ -42,7 +42,11 @@ export type Condition =
   /** friendship with a person is at least `min` hearts (X2) */
   | { hearts: string; min: number }
   /** the person remembers this note (X2), e.g. that you told them your name */
-  | { remembers: string; note: string };
+  | { remembers: string; note: string }
+  /** today's weather, festival or season (X4, `calendar.ts`) */
+  | { weather: 'clear' | 'cloudy' | 'rain' | 'snow' | 'wind' }
+  | { festival: 'chunjie' | 'yuanxiao' | 'duanwu' | 'qixi' | 'zhongqiu' | 'guoqing' }
+  | { season: 'spring' | 'summer' | 'autumn' | 'winter' };
 
 export type Action =
   | { do: 'flag'; flag: string; value?: boolean }

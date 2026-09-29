@@ -110,3 +110,38 @@
     display: inline;
   }
 }
+
+/* a festival's name beside the label, and snow over the banner on a snowy day (X4) */
+.world-card-fest {
+  left: auto;
+  right: 8px;
+  background: rgba(184, 69, 47, 0.9);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.world-card-snow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 70px 90px, #fff 50%, transparent 51%),
+    radial-gradient(3px 3px at 130px 50px, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 170px 120px, #fff 50%, transparent 51%);
+  background-size: 200px 160px;
+  opacity: 0.85;
+  animation: world-card-snow 9s linear infinite;
+}
+
+@keyframes world-card-snow {
+  to {
+    background-position: 20px 160px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .world-card-snow {
+    animation: none;
+  }
+}

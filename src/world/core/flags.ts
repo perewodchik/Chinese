@@ -7,7 +7,8 @@
  * quest steps) asks here.
  */
 
-import { inHours } from './clock';
+import { festivalOf, seasonOf, weatherOf } from './calendar';
+import { dayOf, inHours } from './clock';
 import type { Condition, WorldSave } from './types';
 
 export function holds(c: Condition | undefined, s: WorldSave): boolean {
@@ -35,5 +36,8 @@ export function holds(c: Condition | undefined, s: WorldSave): boolean {
   if ('met' in c) return c.met in s.npcs;
   if ('hearts' in c) return (s.npcs[c.hearts]?.hearts ?? 0) >= c.min;
   if ('remembers' in c) return !!s.npcs[c.remembers]?.notes.includes(c.note);
+  if ('weather' in c) return weatherOf(dayOf(s.clock)) === c.weather;
+  if ('festival' in c) return festivalOf(dayOf(s.clock))?.id === c.festival;
+  if ('season' in c) return seasonOf(dayOf(s.clock)) === c.season;
   return false;
 }

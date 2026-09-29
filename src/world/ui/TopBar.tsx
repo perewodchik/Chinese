@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { formatTime, partOfDay } from '../core/clock';
+import { dayOf, formatTime, partOfDay } from '../core/clock';
+import { dateZh, festivalOf, WEATHER_EN, WEATHER_ICON, weatherOf } from '../core/calendar';
 import { districtInfo } from '../core/districts';
 import { useLibrary } from '../../features/shared/library';
 import { paths } from '../../navigation/paths';
@@ -19,6 +20,8 @@ export function TopBar({ district, minutes, open }: { district: string; minutes:
   const lib = useLibrary();
   const [py, setPy] = useState(false);
   const info = districtInfo(district);
+  const weather = weatherOf(dayOf(minutes));
+  const festival = festivalOf(dayOf(minutes));
   const name = info?.name ?? '北京';
   return (
     <div className="wt-bar">
@@ -29,8 +32,12 @@ export function TopBar({ district, minutes, open }: { district: string; minutes:
         <span className="han">{name}</span>
         {py && <span className="wt-py">{pinyinOf(name, lib)}</span>}
       </button>
-      <span className="wt-time" aria-label={`Game time ${formatTime(minutes)}`}>
+      <span className="wt-time" aria-label={`Game time ${formatTime(minutes)}, ${dateZh(dayOf(minutes))}, ${WEATHER_EN[weather]}`} title={`${dateZh(dayOf(minutes))}${festival ? ` ${festival.zh}` : ''}`}>
         <span aria-hidden>{DAY_ICON[partOfDay(minutes)]}</span> {formatTime(minutes)}
+        {/* today's weather (X4) in a slot of its own, so the chip never changes width */}
+        <span className="wt-sky" aria-hidden>
+          {festival ? '🏮' : weather === 'clear' ? '' : WEATHER_ICON[weather]}
+        </span>
       </span>
       <span className="spacer" />
       <button type="button" className="wt-btn" onClick={() => open('map')} aria-label="Map (M)">

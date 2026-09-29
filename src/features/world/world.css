@@ -1401,3 +1401,10 @@
   font: inherit;
   cursor: pointer;
 }
+
+/* today's weather in the clock chip (X4): a fixed slot, empty on a clear day */
+.wt-sky {
+  display: inline-block;
+  width: 1.2em;
+  text-align: center;
+}

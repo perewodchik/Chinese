@@ -31,6 +31,7 @@ export const districts = checkContent('content/world', lib).districts;
 const scenes = districts.flatMap((d) => d.scenes);
 export const npcs = districts.flatMap((d) => d.npcs);
 export const quests = districts.flatMap((d) => d.quests);
+const stampIds = districts.flatMap((d) => d.stamps.map((x) => x.id));
 const src = new ScriptedDialogue({ scenes, npcs }, lex);
 export const maps: MapInfo[] = districts
   .flatMap((d) => d.district.maps)
@@ -177,8 +178,10 @@ export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000)
         s = chatted;
         idle = 0;
       }
-      // nothing moves: let the day run on to the next part of it
-      if (++idle > 8) break;
+      // nothing moves: let the day run on to the next part of it — through a whole
+      // year of game days while a quest still waits for rain, snow or a festival (X4)
+      const waiting = quests.some((q) => !s.quests[q.id]?.done) || stampIds.some((id) => s.stamps[id] === undefined);
+      if (++idle > (waiting ? 4 * 60 : 8)) break;
       const hour = Math.floor(s.clock / 60) % 24;
       const to = [7, 12, 17, 20].find((h) => h > hour) ?? 31;
       s = act(s, [{ do: 'tick', minutes: Math.floor(s.clock / 1440) * 1440 + to * 60 }], short, 'clock');

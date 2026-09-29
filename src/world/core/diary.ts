@@ -10,6 +10,7 @@
  * checked by a test); what fills them are names.
  */
 
+import { festivalOf } from './calendar';
 import { dayOf } from './clock';
 import { districtInfo } from './districts';
 import { STATIONS } from './travel';
@@ -21,6 +22,7 @@ export const DIARY_PER_DAY = 16;
 
 /** What a template says; `{x}` is what the event names, `{y}` a second name. */
 export const TEMPLATES: Record<string, { zh: string; en: string }> = {
+  h: { zh: '今天是{x}。', en: 'Today is {x}.' },
   d: { zh: '今天我第一次去了{x}。', en: 'Today I went to {x} for the first time.' },
   m: { zh: '我认识了{x}。', en: 'I met {x}.' },
   n: { zh: '我告诉{x}，我叫{y}。', en: 'I told {x} my name is {y}.' },
@@ -115,9 +117,11 @@ export function contentNames(all: readonly Pick<DistrictContent, 'npcs' | 'items
 
 const stations = new Map(STATIONS.map((s) => [s.id, s]));
 
-/** One day's codes as sentences; codes naming something unknown are left out. */
-export function diaryLines(codes: readonly string[], names: Names): DiaryLine[] {
+/** One day's codes as sentences (a festival first, when the day is given); codes naming something unknown are left out. */
+export function diaryLines(codes: readonly string[], names: Names, day?: number): DiaryLine[] {
   const out: DiaryLine[] = [];
+  const fest = day === undefined ? null : festivalOf(day);
+  if (fest) out.push({ zh: TEMPLATES.h!.zh.replace('{x}', fest.zh), en: TEMPLATES.h!.en.replace('{x}', fest.en) });
   const fill = (key: string, x: { zh: string; en: string }, y?: { zh: string; en: string }) => {
     const t = TEMPLATES[key]!;
     out.push({

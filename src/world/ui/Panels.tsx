@@ -3,6 +3,7 @@ import { useLibrary } from '../../features/shared/library';
 import { districtInfo, type DistrictInfo } from '../core/districts';
 import { formatTime, dayOf } from '../core/clock';
 import { contentNames, diaryDays, diaryLines } from '../core/diary';
+import { dateZh, WEATHER_ICON, WEATHER_ZH, weatherOf } from '../core/calendar';
 import type { WorldSave, WorldSettings } from '../core/types';
 import { canRecognise } from '../../platform/audio/recognition';
 import { Seg } from '../../ui/Seg';
@@ -97,11 +98,15 @@ function Diary({ save, content, pinyin }: { save: WorldSave; content: WorldConte
       </h3>
       <ul className="wp-list">
         {days.map((d) => {
-          const lines = diaryLines(d.codes, names);
+          const lines = diaryLines(d.codes, names, d.day);
+          const w = weatherOf(d.day);
           return (
             <li key={d.day}>
               <button type="button" className="w-diary-day tiny muted" aria-expanded={open === d.day} onClick={() => setOpen(open === d.day ? null : d.day)}>
-                <span className="han">第{d.day}天{d.day === today ? ' · 今天' : ''}</span>
+                <span className="han">
+                  {dateZh(d.day)} · {WEATHER_ICON[w]} {WEATHER_ZH[w]}
+                  {d.day === today ? ' · 今天' : ''}
+                </span>
               </button>
               <p>
                 {lines.map((l, i) => (

@@ -660,5 +660,25 @@
     "translate": "OK, bye!"
    }
   ]
+ },
+ {
+  "id": "guoqing-square",
+  "map": "tiananmen-square",
+  "npc": "tam-photographer",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "festival": "guoqing"
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "今天是国庆节！你看，人真多！",
+    "translate": "It's National Day! Look how many people!",
+    "why": "国庆节, 1 October, begins a week of holidays: the square is full from dawn, when the flag is raised."
+   }
+  ]
  }
 ]

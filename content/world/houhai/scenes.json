@@ -349,5 +349,51 @@
     "translate": "All right, come tomorrow."
    }
   ]
+ },
+ {
+  "id": "duanwu-fisher",
+  "map": "houhai-lake",
+  "npc": "fisher-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "stamp": "duanwu",
+  "when": {
+   "festival": "duanwu"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "龙舟",
+    "explain": "很长的船，前面像一个龙头。",
+    "en": "dragon boat"
+   },
+   {
+    "w": "粽子",
+    "explain": "端午节吃的东西，里面有米。",
+    "en": "zongzi, sticky rice in leaves"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "今天是端午节。你看，水上有龙舟！",
+    "translate": "It's the Dragon Boat Festival. Look — dragon boats on the water!",
+    "simpler": "你看，龙舟！",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "来，吃一个粽子。粽子很好吃！",
+    "translate": "Here, have a zongzi. They’re delicious!",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "zongzi"
+     }
+    ],
+    "why": "端午 remembers the poet 屈原: people raced boats to find him in the river and threw rice in for the fish."
+   }
+  ]
  }
 ]

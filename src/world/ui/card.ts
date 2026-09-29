@@ -4,7 +4,8 @@
  * "Start" when there is none yet.
  */
 
-import { formatTime, partOfDay } from '../core/clock';
+import { dayOf, formatTime, partOfDay } from '../core/clock';
+import { dateZh, festivalOf, weatherOf } from '../core/calendar';
 import { districtInfo } from '../core/districts';
 import type { PartOfDay, WorldSave } from '../core/types';
 
@@ -18,8 +19,11 @@ export interface CardView {
   spirits: number;
   idioms: number;
   stamps: number;
-  /** 鼓楼 · 南锣鼓巷 · 7:40 */
+  /** 鼓楼 · 南锣鼓巷 · 9月6日 7:40 */
   where: string;
+  /** today's snow on the banner, and a festival's name beside the label (X4) */
+  snow: boolean;
+  festival: string | null;
 }
 
 /** A save counts as begun once anything has happened in it: a step, a talk, a scene. */
@@ -30,7 +34,7 @@ export function cardView(s: WorldSave | null, now: Date = new Date()): CardView 
   if (!s || !begun(s)) {
     // Before a first game the banner follows the real clock.
     const t = now.getHours() * 60 + now.getMinutes();
-    return { started: false, time: partOfDay(t), chapter: 1, spirits: 0, idioms: 0, stamps: 0, where: '' };
+    return { started: false, time: partOfDay(t), chapter: 1, spirits: 0, idioms: 0, stamps: 0, where: '', snow: false, festival: null };
   }
   const place = districtInfo(s.district)?.name ?? '北京';
   return {
@@ -40,7 +44,9 @@ export function cardView(s: WorldSave | null, now: Date = new Date()): CardView 
     spirits: Object.keys(s.spirits).length,
     idioms: Object.keys(s.idioms).length,
     stamps: Object.keys(s.stamps).length,
-    where: `${place} · ${formatTime(s.clock)}`,
+    where: `${place} · ${dateZh(dayOf(s.clock))} ${formatTime(s.clock)}`,
+    snow: weatherOf(dayOf(s.clock)) === 'snow',
+    festival: festivalOf(dayOf(s.clock))?.zh ?? null,
   };
 }
 

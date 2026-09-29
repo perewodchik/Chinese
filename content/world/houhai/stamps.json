@@ -12,5 +12,12 @@
     "en": "A boat on Houhai",
     "place": "houhai-lake",
     "design": "boat"
+  },
+  {
+    "id": "duanwu",
+    "name": "端午",
+    "en": "Dragon Boat Festival",
+    "place": "houhai-lake",
+    "design": "duanwu"
   }
 ]

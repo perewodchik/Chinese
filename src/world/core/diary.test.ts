@@ -57,6 +57,11 @@ describe('the diary (X3)', () => {
     assert.deepEqual(diaryLines(['m:nobody', 'x:nothing'], names), [EMPTY_DAY]);
   });
 
+  it('a festival day opens with the festival (X4)', () => {
+    assert.deepEqual(diaryLines(['m:wang-ayi'], names, 3).map((l) => l.zh), ['今天是中秋节。', '我认识了王阿姨。']);
+    assert.deepEqual(diaryLines([], names, 3).map((l) => l.zh), ['今天是中秋节。']);
+  });
+
   it('keeps a day short', () => {
     let s = newSave('d', 0);
     for (let i = 0; i < 40; i++) s = logDay(s, [`x:thing${i}`]);
