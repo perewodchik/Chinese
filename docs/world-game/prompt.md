@@ -1237,3 +1237,157 @@ world stays paused while the menu is open.
 - Check in the pane at 375 / 768 / 1024, light and dark: no horizontal
   scroll, no layout shift when a drawer opens or a dot clears. Run
   `scripts/webkit-probe.swift` at 390 and 1024.
+
+## 12. You, dressed your way — character creator, wardrobe, clothes shops (added 2026-09-29)
+
+**When:** after §11 (R1–R4) and §10 (P1–P4, J1–J3), before the X12
+play-through (so the browser pass covers it). Order: … R → P/J → **W1–W7**
+→ X12 → M6.
+
+**The learner's decisions (final):**
+- **Body and face too**, not only clothes: a character creator.
+- **Changing happens at home**: clothes at the 衣柜 (wardrobe), body, face
+  and hair at the 镜子 (mirror) — both in your room at the 四合院. Shops
+  only let you *try on* (试衣间); you change into what you bought when you
+  get home (or wear it out of the shop right after buying it — "穿着走",
+  one tap on the receipt; that is the one exception).
+- **Real famous shops and real brands**, by their real names.
+
+All standing rules apply (§0; own pixel art only; help is free, never a
+test; companion speaks English; stable compact UI — no layout shift, check
+at 375 / 768 / 1024 and in WebKit; hanzi-design tokens, dark mode; the
+§5 budget plus situation words for clothes).
+
+**Real names, done respectfully:** shop names and signs in Chinese as the
+shops really write them, drawn in our own pixel lettering — **no logos,
+no copied designs or photos, no slogans**. Facts in the companion's
+"About this" (Why?) note only when you are sure of them (look them up; if
+unsure, say less): 瑞蚨祥 — the silk and 旗袍 shop on 大栅栏; 内联升 —
+cloth shoes (布鞋) on 大栅栏, since the Qing; 盛锡福 — the hat maker on
+王府井; 王府井百货大楼 — the big department store; 李宁 and 回力 — Chinese
+sports brands (sneakers, tracksuits); 三里屯太古里 — the fashion streets.
+Prices are the game's own (economy.md), never claimed to be the shops' real
+prices. Nothing in the game mocks or misrepresents a real shop.
+
+**No gendered locks:** every garment (旗袍, skirts, 中山装, 西装) can be
+worn by any body. Nothing in content assumes the player's gender: lines
+that address you use your name or 你; if a line needs a word like
+小伙子 / 姑娘, it reads the creator's **address** choice (below).
+
+### W1 — the layered hero (art pipeline; the hard part first)
+- Split the people drawer (`scripts/world/art/gen/chars.ts`) into layers,
+  each drawn for the same 4 directions × 3 frames on the same 16×32 box:
+  **body** (build + skin), **face** (eyes, brows, mouth; blush optional),
+  **hair** (style + colour; back and front parts so hats sit right),
+  **bottom**, **top** (with sleeves on the arms), **shoes**, **hat**,
+  **accessory** (scarf, glasses, bag). Draw order per direction is data
+  (a scarf is in front going down, behind going up).
+- **Two builds** (a broader and a slimmer silhouette — shoulders, waist,
+  hips; same height) and **five skin tones**, all from the palette. Faces:
+  4 eye shapes × 3 brows × 2 mouths. Hair: at least 10 styles (short, buzz,
+  side part, long, ponytail, twin buns, bob, curly, 刘海 fringe, bald)
+  × 8 colours.
+- Garments are drawn once each and **recoloured by palette swap** (2–5
+  colours per item), packed into an `outfit` atlas (`public/world/art/
+  outfit.png/json`, built by `npm run world:art`).
+- **Runtime composer** `composeHero(look)` (engine): draws the chosen layers
+  into one canvas texture with **the same frame names as today**
+  (`hero/down-0` …), keyed by a hash of the look; the scene only swaps the
+  texture key, so walking, the bike, depth sorting, photos and emotes are
+  untouched. Re-compose only when the look changes. The same composer
+  (pure pixel code shared with the build) is used by `render-map.ts` for
+  review shots and postcards, and by the dialogue `Portrait` for 我.
+- Checks: every layer has every frame; nothing draws outside the box; the
+  outline stays closed for a sample of looks; frame time unchanged on the
+  iPad (compose once, not per frame).
+
+### W2 — data and save
+- `content/world/clothes.json` (zod, checked by `world:check`):
+  `{id, zh, en, slot: hat|top|bottom|shoes|accessory, measure: 件|条|双|顶|副|个,
+  colours: [{id, zh (红的/蓝的…), palette}], price, shop, when?, story?}`.
+  Hair styles, faces and builds are a catalogue in code (not bought).
+- **Save format +1**: `look` ({build, skin, face: {eyes, brows, mouth},
+  hair: {style, colour}, address: name|小伙子|姑娘}), `wardrobe` (owned
+  `item:colour` ids), `outfit` (slot → `item:colour`), `outfits` (3 saved
+  sets). Upgrade: old saves get today's hero look (short black hair, blue
+  jacket, red scarf, dark trousers, white shoes) as owned clothes and as
+  the outfit, and `created: false`. Merge: wardrobe union; look, outfit
+  and outfits from the later save.
+- Clothes are **not in the bag** (they would crowd it); the recycler can buy
+  one from the wardrobe sheet ("Sell" on its card) at half price.
+- Actions: `create`, `wear`, `take_off`, `save_outfit`, `buy_clothes`
+  (through the shop engine — a paid line whose item is clothing goes to the
+  wardrobe), diary: 「我买了一件红毛衣。」「今天我穿了旗袍。」.
+
+### W3 — the character creator (创建角色)
+- Shown **once**: on a new game (first open, or after Start over) before
+  the first morning; on an existing save the first time after this ships,
+  prefilled with today's hero, with "Keep this look" as one tap.
+- One screen, big preview in the middle turning through the 4 directions
+  (drag to turn), rows below: 身体 build (2) · 肤色 skin (5 swatches) · 眼睛
+  / 眉毛 / 嘴 · 发型 (grid) · 发色 (8 swatches) · "People call me" (your
+  name / 小伙子 / 姑娘). Chinese labels with English under them, as the
+  ⚙ panel does. 🎲 Surprise me. Done. No name here — 王阿姨 still asks it.
+- Tests: the creator's choices round-trip through the save; every
+  combination composes.
+
+### W4 — your room: 衣柜 and 镜子
+- Two new props in `siheyuan-room` (a wardrobe on the wall side, a mirror
+  on a stand), marked by "Mark what I can use". Look at the 衣柜 → the
+  **wardrobe sheet**; look at the 镜子 → the creator again (body, face,
+  hair; your clothes stay).
+- Wardrobe sheet: the turning preview on the left (on top on phones),
+  six slot rows on the right (帽子 · 上衣 · 裤子/裙子 · 鞋 · 配饰 · and 发型
+  shown for reference with "change at the mirror"); each row a strip of
+  owned things as small tiles with the colour; tap to wear, tap again to
+  take off (hat, accessory; a top and a bottom are always worn). 套装 1–3
+  to save and put on a set. A tile's long-press / ⓘ opens its card: hanzi,
+  pinyin, measure word (一件毛衣), where bought, Sell.
+- Changes show on the world sprite as soon as the sheet closes.
+
+### W5 — clothes shops (real ones)
+- A **rack talk** on top of Y1's shop engine: the seller's 「你好！随便看看。」;
+  the **rack sheet** shows the shop's clothes as cards (picture on your own
+  body, hanzi, price, colour dots). Tap → **试衣间**: your preview wearing it
+  (everything else as you are). Say or tap: 「这件多少钱？」→「一百五。」,
+  「有红的吗？」→ the colour switches (or 「没有红的，有蓝的。」), 「我可以试试吗？」,
+  「太贵了」 (bargain only at 潘家园, Y6's engine), 「我要这件」 → pay by the
+  支付宝 flow (Y2) → the receipt offers **穿着走** (wear it out) or 放进衣柜.
+  💡 offers each phrase; the rack's buttons always work too.
+- Shops (new doors on streets that exist, plus two small new maps):
+  - **瑞蚨祥** (前门 · 大栅栏, new interior): 旗袍, 唐装, silk scarves.
+  - **内联升** (前门 · 大栅栏, new interior): 布鞋 in several colours.
+  - **盛锡福** (王府井, a door on 王府井大街): hats — 毛线帽, 草帽, 鸭舌帽, 礼帽.
+  - **王府井百货大楼** (王府井, new two-floor interior with stairs): 毛衣,
+    外套, 羽绒服 (winter only), 衬衫, 裤子, 裙子, 西装.
+  - **李宁 / 回力** (三里屯 · a shopfront each on 三里屯 street): sneakers,
+    tracksuits, T恤.
+  - **南锣鼓巷 文创 shop** (a door on 南锣鼓巷): 胡同 T恤, 帆布包, 熊猫 caps.
+  - **潘家园 vintage stall**: 中山装, old caps, round glasses — bargained.
+  - **理发店** (exists): hair styles for 20–40 元 with a short talk
+    (「剪短一点」「染成棕色」) — the one place besides the mirror that
+    changes hair, and it's paid.
+- Stock by season and festival (`when`): 羽绒服 and 毛线帽 in winter, 草帽
+  in summer, red things around 春节, 汉服 hire at the 元宵 finale.
+- Economy: a basic outfit (T恤 + 裤子) is affordable after two days of
+  jobs; the 旗袍 and 西装 are things to save up for; update economy.md and
+  the solver's `spendAll` check (the whole game still finishes when a
+  player buys clothes).
+
+### W6 — people notice
+- The first time you wear something new, one friend comments once (a note
+  in NPC memory, X2): 王阿姨 「新衣服？真好看！」, 老刘 「穿得很精神！」. Red
+  at 春节: neighbours smile, +1 heart once per festival. 兔儿爷's English
+  remarks: a T-shirt in the snow, the umbrella and a 旗袍, a hat indoors.
+- Photos and postcards (X6) show your outfit; the diary mentions a new one.
+- No stats, no penalties, nothing in the story requires buying clothes.
+
+### W7 — checks
+- Tests: composer (every frame of every layer), save upgrade + merge,
+  wardrobe actions, rack talk played by the solver with hints, economy.
+- `world:check`: every clothes item has art for every colour and frame, a
+  shop that sells it, a measure word; shops' names and facts listed in
+  `docs/world-game/brands.md` with the source you checked.
+- Review renders: every garment in 4 directions on both builds
+  (`review/w/`), the creator, the wardrobe sheet and a rack at 375 / 768 /
+  1024 light/dark; WebKit probe.

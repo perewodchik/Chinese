@@ -133,6 +133,15 @@ P1 — the menu shell (prompt §10). The X12 play-through waits for the learner 
 - [ ] P4 Checks: journal/practise/merge tests, solver + golden saves, probe screenshots in review/p/, pane + WebKit at 375/768/1024 light/dark
 - [ ] M6 "Take me there" — footprint trail, right train marked (only after M1–M5 and the learner's look)
 
+### W — you, dressed your way (prompt §12, added 2026-09-29; after R and P/J, before the X12 play-through)
+- [ ] W1 Layered hero: body (2 builds × 5 skins), face, hair (10 styles × 8 colours), bottom/top/shoes/hat/accessory layers, palette-swapped garments in an `outfit` atlas; runtime `composeHero` with today's frame names (also render-map.ts and the 我 portrait); checks
+- [ ] W2 clothes.json (zod) + save +1: look, wardrobe, outfit, 3 saved outfits, `created`; old saves get today's hero as owned clothes; merge; actions + diary lines
+- [ ] W3 Character creator 创建角色 once per new game (and once for existing saves, prefilled): build, skin, eyes/brows/mouth, hair + colour, "people call me"; 🎲
+- [ ] W4 Your room: 衣柜 (wardrobe sheet — slots, wear/take off, 套装 1–3, item card, Sell) and 镜子 (body/face/hair) as props in siheyuan-room
+- [ ] W5 Clothes shops, real names: 瑞蚨祥, 内联升 (大栅栏), 盛锡福, 王府井百货大楼 (2 floors), 李宁 / 回力 (三里屯), 南锣鼓巷 文创, 潘家园 vintage (bargain), 理发店 hair menu; rack talk + 试衣间 + 支付宝 + 穿着走; seasonal stock; economy.md + solver
+- [ ] W6 People notice (one comment per new thing, red at 春节), 兔儿爷 remarks, photos and diary show the outfit
+- [ ] W7 Checks: composer/save/rack tests, world:check (art for every colour, a shop, a measure word; brands.md with sources), review/w/ renders, pane + WebKit 375/768/1024 light/dark
+
 ## Decisions made without the learner
 _(date — decision — why)_
 - 2026-09-28 — Phaser 4.2.1 (latest stable on npm), not 3.x — the brief says latest stable; the API we use (scenes, tilemaps, cameras, tweens) is the same.
