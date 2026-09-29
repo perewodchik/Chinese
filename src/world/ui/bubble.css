@@ -1,0 +1,286 @@
+/* --- 兔儿爷's speech bubble (prompt §11): a small pixel text box to his
+   right, with a stepped tail pointing at him. One size for every answer —
+   the text pages instead of scrolling, words that do not fit go behind +N —
+   so nothing around it (or in it) moves. */
+
+.wb {
+  --wb-edge: color-mix(in srgb, var(--ink) 78%, var(--card));
+  --wb-drop: color-mix(in srgb, var(--ink) 22%, transparent);
+  position: relative;
+  flex: none;
+  width: min(420px, calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 96px));
+  margin: 0 3px 3px 0;
+  padding: 8px 10px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 14px;
+  /* a 3px pixel frame with notched corners, and a hard drop under it */
+  box-shadow:
+    0 -3px 0 0 var(--wb-edge),
+    0 3px 0 0 var(--wb-edge),
+    -3px 0 0 0 var(--wb-edge),
+    3px 0 0 0 var(--wb-edge),
+    0 7px 0 0 var(--wb-drop);
+  transform-origin: -14px calc(100% - 18px);
+  animation: wb-pop 0.14s ease-out both;
+  user-select: text;
+  -webkit-user-select: text;
+  touch-action: manipulation;
+}
+
+@keyframes wb-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* the tail: a staircase from the frame down to him */
+.wb-tail {
+  position: absolute;
+  left: -15px;
+  bottom: 10px;
+  width: 15px;
+  height: 12px;
+  pointer-events: none;
+}
+
+.wb-tail::before,
+.wb-tail::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.wb-tail::before {
+  background: var(--wb-edge);
+  clip-path: polygon(0 9px, 3px 9px, 3px 6px, 6px 6px, 6px 3px, 9px 3px, 9px 0, 15px 0, 15px 12px, 0 12px);
+}
+
+.wb-tail::after {
+  background: var(--card);
+  clip-path: polygon(12px 0, 15px 0, 15px 9px, 6px 9px, 6px 6px, 9px 6px, 9px 3px, 12px 3px);
+}
+
+/* his answer: a fixed box — five lines, or two lines over two rows of words */
+.wb-say {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: calc(5 * 1.4em + 4px);
+}
+
+.wb-text {
+  position: relative;
+  flex: none;
+  height: calc(var(--lines) * 1.4em);
+  padding-right: 14px; /* the ▼'s own spot */
+  cursor: pointer;
+  overflow: hidden;
+  line-height: 1.4em;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.wb-text-in {
+  position: relative;
+}
+
+.wb-ghost {
+  color: transparent;
+}
+
+.wb-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* more to read: a small blinking pixel ▼ */
+.wb-more {
+  position: absolute;
+  right: 0;
+  bottom: 3px;
+  width: 9px;
+  height: 6px;
+  background: var(--ink);
+  clip-path: polygon(0 0, 9px 0, 9px 2px, 7px 2px, 7px 4px, 5px 4px, 5px 6px, 4px 6px, 4px 4px, 2px 4px, 2px 2px, 0 2px);
+  animation: wb-blink 1s steps(2, jump-none) infinite;
+}
+
+@keyframes wb-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* the words of the line: two rows at most, the rest behind +N */
+.wb-chips {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  max-height: calc(2 * 28px + 4px);
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 4px;
+  overflow: hidden;
+  cursor: default;
+}
+
+.wb-chip,
+.wb-plus {
+  display: inline-flex;
+  align-items: stretch;
+  height: 28px;
+  border: 2px solid var(--line-2);
+  background: var(--card-2);
+  color: var(--ink);
+}
+
+.wb-chip button,
+.wb-plus {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.wb-w {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 0 2px 0 6px !important;
+  line-height: 24px;
+}
+
+.wb-w .han {
+  font-family: var(--han);
+  font-size: 16px;
+}
+
+.wb-py {
+  color: var(--accent);
+  font-size: 11.5px;
+}
+
+.wb-star {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  color: var(--ink-3);
+}
+
+.wb-star[aria-pressed='true'] {
+  color: var(--gold);
+}
+
+.wb-plus {
+  justify-content: center;
+  align-items: center;
+  min-width: 36px;
+  padding: 0 6px;
+  border: 2px solid var(--line-2);
+  background: var(--card-2);
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* what you can ask him: one row, never more than three, never scrolling */
+.wb-opts {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.wb-opts button {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 7px;
+  border: 2px solid var(--line-2);
+  border-radius: 0;
+  background: var(--card-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 520;
+  line-height: 1.15;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+
+.wb-opts button:hover {
+  border-color: var(--wb-edge);
+  background: var(--card);
+}
+
+.wb-opts button:active {
+  transform: translateY(1px);
+}
+
+.wb-opts button > span {
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.wb-opts .w-px-icon {
+  flex: none;
+  color: var(--ink-2);
+}
+
+.wb-opts kbd {
+  flex: none;
+  padding: 0 3px;
+  border: 1px solid var(--line-2);
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 10.5px;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .wb-opts kbd {
+    display: none;
+  }
+}
+
+@media (max-width: 689px) {
+  .wb {
+    width: calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 88px);
+    max-width: 420px;
+  }
+
+  /* three options in a phone's bubble: the words need the room more than the icons */
+  .wb-opts .w-px-icon {
+    display: none;
+  }
+
+  .wb-opts button {
+    padding: 0 5px;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb,
+  .wb-more {
+    animation: none;
+  }
+}

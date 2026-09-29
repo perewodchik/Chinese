@@ -6,6 +6,8 @@ import { useStore } from '../../store/store';
 import { BEIJING_PRESET, keepBeijingWord } from '../../store/wordCommands';
 import type { Lexicon } from '../core/dialogue/lexicon';
 import type { Line } from '../core/dialogue/source';
+import { FitChips, Typed } from './Bubble';
+import './bubble.css';
 import { companionOptions, glossLine, hintAnswer, keepable, phaseOf, translateAnswer, type Gloss } from './companionLines';
 import { voice } from './Dialogue';
 import { PixelIcon } from './PixelIcon';
@@ -14,12 +16,17 @@ import { PropSprite } from './PropSprite';
 
 type Show = { kind: 'say'; text: string } | { kind: 'translate' } | { kind: 'learned' };
 
+/** a plain answer fills the box; one with words keeps two lines for them */
+const LINES_ALONE = 5;
+const LINES_WITH_WORDS = 2;
+
 /**
- * 兔儿爷, in the corner (concept §9, prompt §11): tap him (or Tab) and you
- * can ask him at most three things that fit the moment — options that do
- * not apply are left out (`companionOptions`). He answers in English.
- * Everything is free. He speaks up by himself only when the page gives him
- * a `said` line (two misses in a row, a long idle minute during a quest).
+ * 兔儿爷, in the corner (concept §9, prompt §11). Tap him (or Tab) and his
+ * speech bubble opens to his side: his answer, typed out, over one row of at
+ * most three things you can ask him for the moment (`companionOptions`) —
+ * 1 / 2 / 3 pick one, Esc or a tap outside closes it. The bubble is the same
+ * size for every answer; nothing in it scrolls. Everything is free. He speaks
+ * up by himself only when the page gives him a `said` line.
  */
 export function Companion({
   open,
@@ -57,13 +64,20 @@ export function Companion({
 }) {
   const hold = useRef<number | undefined>(undefined);
   const patted = useRef(false);
+  const self = useRef<HTMLDivElement>(null);
   const lib = useLibrary();
   const openItem = useOpenItem();
   const [show, setShow] = useState<Show | null>(null);
   const [again, setAgain] = useState<{ line: Line | undefined; n: number }>({ line: undefined, n: 0 });
+  // each answer is a new one, even the same words twice (it types again)
+  const [asked, setAsked] = useState(0);
+  const answer = (s: Show) => {
+    setShow(s);
+    setAsked((n) => n + 1);
+  };
   // A new line of his own replaces whatever he was showing.
   useEffect(() => setShow(null), [said]);
-  const current: Show | null = show ?? (said ? { kind: 'say', text: said } : null);
+  const current: Show = show ?? (said ? { kind: 'say', text: said } : { kind: 'say', text: talking ? 'Yes? Ask me anything.' : 'Yes?' });
 
   // The words of the talk you are in (or just had): "What did I learn?" after it.
   const [talkWords, setTalkWords] = useState<Gloss[]>([]);
@@ -93,63 +107,94 @@ export function Companion({
             const n = again.line === line ? again.n + 1 : 1;
             setAgain({ line, n });
             voice(line, n > 1);
-            setShow({ kind: 'say', text: n > 1 ? 'Once more, slowly.' : 'Listen again.' });
+            answer({ kind: 'say', text: n > 1 ? 'Once more, slowly.' : 'Listen again.' });
           }
         : undefined,
-      translate: line ? () => setShow({ kind: 'translate' }) : undefined,
+      translate: line ? () => answer({ kind: 'translate' }) : undefined,
       hint: () => {
         onHint();
-        setShow({ kind: 'say', text: hintAnswer(hintStep + 1) });
+        answer({ kind: 'say', text: hintAnswer(hintStep + 1) });
       },
-      now: () => setShow({ kind: 'say', text: now() }),
-      learned: () => setShow({ kind: 'learned' }),
+      now: () => answer({ kind: 'say', text: now() }),
+      learned: () => answer({ kind: 'learned' }),
     },
   );
 
-  const chips = (words: Gloss[]) => (
-    <div className="wc-words">
-      {words.map((g) => (
-        <span key={g.w} className="wc-word">
-          <button type="button" onClick={() => openItem(itemForToken(lib, g.w))} title={g.en || undefined}>
-            <span className="han">{g.w}</span> <span className="wi-chip-py">{g.py}</span>
-          </button>
-          <button type="button" aria-pressed={kept.has(g.w)} aria-label={kept.has(g.w) ? `${g.w} is kept` : `Keep ${g.w}`} onClick={() => keep(g)}>
-            <PixelIcon name={kept.has(g.w) ? 'star-full' : 'star'} />
-          </button>
-        </span>
-      ))}
-    </div>
+  // While open: 1 / 2 / 3 pick, Esc closes (before the talk hears it), a tap outside closes.
+  const keys = useRef(options);
+  keys.current = options;
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        setOpen(false);
+        return;
+      }
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      const i = ['1', '2', '3'].indexOf(e.key);
+      const o = keys.current[i];
+      if (i >= 0 && o && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        o.run();
+      }
+    };
+    const onDown = (e: PointerEvent) => {
+      if (self.current && !self.current.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener('keydown', onKey, true);
+    document.addEventListener('pointerdown', onDown, true);
+    return () => {
+      window.removeEventListener('keydown', onKey, true);
+      document.removeEventListener('pointerdown', onDown, true);
+    };
+  }, [open, setOpen]);
+
+  const chip = (g: Gloss) => (
+    <>
+      <button type="button" className="wb-w" onClick={() => openItem(itemForToken(lib, g.w))} title={g.en || undefined}>
+        <span className="han">{g.w}</span>
+        {g.py && <span className="wb-py">{g.py}</span>}
+      </button>
+      <button
+        type="button"
+        className="wb-star"
+        aria-pressed={kept.has(g.w)}
+        aria-label={kept.has(g.w) ? `${g.w} is kept in Words from Beijing` : `Keep ${g.w}`}
+        onClick={() => keep(g)}
+      >
+        <PixelIcon name={kept.has(g.w) ? 'star-full' : 'star'} size={18} />
+      </button>
+    </>
+  );
+  const words = (list: Gloss[]) => (
+    <FitChips
+      items={list}
+      keyOf={(g) => g.w}
+      render={chip}
+      more={(hidden) => (
+        <button type="button" className="wb-plus" onClick={() => openItem(itemForToken(lib, hidden[0]!.w))} aria-label={`${hidden.length} more words`}>
+          +{hidden.length}
+        </button>
+      )}
+    />
   );
 
+  const text =
+    current.kind === 'say'
+      ? current.text
+      : current.kind === 'translate' && line
+        ? translateAnswer(line, why)
+        : current.kind === 'learned'
+          ? 'From that talk. Tap the star to keep a word.'
+          : '';
+  const list = current.kind === 'translate' && line ? keepable(glossLine(line, lex)) : current.kind === 'learned' ? talkWords : null;
+
   return (
-    <div className="wc" data-talking={talking ? '' : undefined}>
-      {open && (
-        <div className="wc-panel" role="dialog" aria-label="兔儿爷, your companion">
-          <div className="wc-out">
-            {current?.kind === 'say' && <p>{current.text}</p>}
-            {current?.kind === 'translate' && line && (
-              <>
-                <p style={{ whiteSpace: 'pre-line' }}>{translateAnswer(line, why)}</p>
-                {chips(keepable(glossLine(line, lex)))}
-              </>
-            )}
-            {current?.kind === 'learned' && (
-              <>
-                <p>From that talk — tap the star to keep a word.</p>
-                {chips(talkWords)}
-              </>
-            )}
-            {!current && <p className="muted">Yes?</p>}
-          </div>
-          <div className="wc-acts">
-            {options.map((o) => (
-              <button key={o.id} type="button" onClick={o.run}>
-                <PixelIcon name={o.icon} /> {o.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+    <div className="wc" ref={self} data-talking={talking ? '' : undefined}>
       <button
         type="button"
         className="wc-rabbit"
@@ -182,6 +227,24 @@ export function Companion({
           </span>
         )}
       </button>
+      {open && (
+        <div className="wb" role="dialog" aria-label="兔儿爷 says">
+          <span className="wb-tail" aria-hidden />
+          <div className="wb-say">
+            <Typed key={asked} text={text} lines={list ? LINES_WITH_WORDS : LINES_ALONE} />
+            {list && words(list)}
+          </div>
+          <div className="wb-opts">
+            {options.map((o, i) => (
+              <button key={o.id} type="button" onClick={o.run}>
+                <PixelIcon name={o.icon} />
+                <span>{o.label}</span>
+                <kbd>{i + 1}</kbd>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

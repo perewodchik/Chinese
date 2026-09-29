@@ -694,7 +694,7 @@ export function WorldPage() {
       {game.save && state === 'ready' && (
         <Companion
           open={pal.open}
-          setOpen={(open) => setPal({ open, said: null })}
+          setOpen={(open) => setPal((p) => ({ open, said: open ? p.said : null }))}
           said={pal.said}
           line={lastLine ?? undefined}
           why={lastNode?.why}

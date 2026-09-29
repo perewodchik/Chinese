@@ -572,16 +572,16 @@
   }
 }
 
-/* --- 兔儿爷, the companion: bottom left; above the bubble while talking */
+/* --- 兔儿爷, the companion: bottom left; above the bubble while talking.
+   His speech bubble (ui/bubble.css) opens to his right. */
 .wc {
   position: absolute;
   left: calc(env(safe-area-inset-left, 0px) + 10px);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
   z-index: 5;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
+  align-items: flex-end;
+  gap: 12px;
   max-width: calc(100% - 20px);
   pointer-events: none;
 }
@@ -614,98 +614,6 @@
 
 .wc-rabbit[data-says] {
   border-color: var(--gold);
-}
-
-.wc-panel {
-  width: min(460px, calc(100vw - 20px));
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  background: var(--card);
-  color: var(--ink);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.wc-out {
-  max-height: 150px;
-  overflow-y: auto;
-  padding: 10px 12px 6px;
-  font-size: 14px;
-  line-height: 1.45;
-}
-
-.wc-out p {
-  margin: 0 0 6px;
-}
-
-.wc-words {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.wc-word {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 2px;
-  min-height: 32px;
-  padding: 2px 8px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--card-2);
-  color: var(--ink);
-  font: inherit;
-  cursor: pointer;
-}
-
-.wc-word .han {
-  font-family: var(--han);
-  font-size: 17px;
-}
-
-.wc-word button {
-  padding: 0 2px;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
-
-.wc-word button[aria-pressed='true'] {
-  color: var(--gold);
-}
-
-.wc-acts {
-  display: flex;
-  gap: 6px;
-  padding: 8px 10px;
-  border-top: 1px solid var(--line);
-  overflow-x: auto;
-  white-space: nowrap;
-  scrollbar-width: none;
-}
-
-.wc-acts::-webkit-scrollbar {
-  display: none;
-}
-
-.wc-acts button {
-  flex: none;
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--card);
-  color: var(--ink-2);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.wc-acts button:disabled {
-  opacity: 0.4;
-  cursor: default;
 }
 
 @media (max-width: 689px) {
@@ -1480,7 +1388,7 @@
 }
 
 .world-shell[data-textsize='l'] .wd-you,
-.world-shell[data-textsize='l'] .wc-out {
+.world-shell[data-textsize='l'] .wb {
   font-size: 16px;
 }
 
@@ -1689,7 +1597,7 @@
     height: 44px;
   }
 
-  .wc-acts button,
+  .wb-opts button,
   .wp-tabs [role='tab'] {
     height: 40px;
   }
