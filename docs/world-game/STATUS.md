@@ -26,7 +26,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-R1 — 兔儿爷's bubble, options as data (prompt §11), then R2–R4, then P1 — the menu shell (prompt §10). The X12 play-through waits for the learner and comes after §10.
+Two tracks, can run in parallel: P3 → P4 (§10 menu: collection + Practise, checks) and W5 → W7 (§12 clothes shops, people noticing, checks). R1–R4, P1–P2, J1–J3 and W1–W4 are merged (save v10 = journal, v11 = wardrobe). The X12 play-through waits for the learner and comes after both.
 
 ## Tasks
 ### A — core logic
