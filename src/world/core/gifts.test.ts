@@ -50,7 +50,7 @@ describe('presents', () => {
     const v1 = { ...newSave('d', 0), version: 1, npcs: { wang: { met: 3, notes: ['hi'] } } };
     const r = readSave(v1);
     assert.ok(r.ok);
-    assert.deepEqual(r.ok && r.save.npcs.wang, { met: 3, notes: ['hi'], hearts: 0, gift: 0 });
+    assert.deepEqual(r.ok && r.save.npcs.wang, { met: 3, notes: ['hi'], hearts: 0, gift: 0, talk: 0 });
   });
 
   it('the lines are HSK 1', () => {

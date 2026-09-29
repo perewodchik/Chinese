@@ -12,6 +12,29 @@ import type { NpcCard } from './types';
 export const VOICES = ['wang', 'xiaoyu', 'chen', 'zhiyuan', 'wei'] as const;
 export type VoiceId = (typeof VOICES)[number];
 
+/** Where a line says the player's name (X2): `{name}，你来了！` */
+export const NAME_SLOT = '{name}';
+const SLOT = /\{name\}[，,、]?\s*/g;
+
+/** The line as the voice renders it — the name left out, since a clip cannot know it. */
+export function spoken(text: string): string {
+  return text.includes(NAME_SLOT) ? text.replace(LEAD, '').replace(SLOT, '') : text;
+}
+/** 「谢谢你，{name}。」 without a name is 「谢谢你。」 */
+const LEAD = /[，,、]\s*\{name\}/g;
+
+/** The line as shown: the player's name in its slot, or the slot dropped while it is unknown. */
+export function withName(text: string, name: string): string {
+  if (!text.includes(NAME_SLOT)) return text;
+  return name ? text.split(NAME_SLOT).join(name) : text.replace(LEAD, '').replace(SLOT, '');
+}
+
+/** A hint that says the player's name (「我叫{name}。」) says theirs, or a stand-in before it is known. */
+export function hintWithName<H extends { word: string; frame: string; full: string }>(hint: H, name: string): H {
+  const n = name || '大卫';
+  return { ...hint, word: withName(hint.word, n), frame: withName(hint.frame, n), full: withName(hint.full, n) };
+}
+
 const isVoice = (v: string | undefined): v is VoiceId => !!v && (VOICES as readonly string[]).includes(v);
 
 /** 兔儿爷 and the spirits, who have no cards */

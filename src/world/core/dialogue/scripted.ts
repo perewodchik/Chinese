@@ -17,6 +17,7 @@ import type { Lexicon } from './lexicon';
 import { heardNote, matchIntent, normalize } from './match';
 import type { CompanionCue, DialogueSource, DialogueState, Line, Turn, Utterance } from './source';
 import { askIntent, explainWord, POLITE_REPLY, politeIntent } from './universal';
+import { hintWithName, NAME_SLOT, withName } from '../voice';
 
 export const DEFAULT_MISSES = ['你说什么？', '什么？请再说一遍。'];
 export const NOT_CHINESE = { zh: '对不起，我听不懂……', en: "Sorry, I don't understand…" };
@@ -25,6 +26,17 @@ export const DONT_KNOW = { zh: '这个……我不知道怎么说。', en: "Hmm�
 export interface ScriptContent {
   scenes: readonly Scene[];
   npcs: readonly NpcCard[];
+}
+
+/**
+ * The name in 「我叫大卫。」 / 「我是小白」 / 「我的名字是 Anna」 (X2), or null. Only
+ * the first word-like run after the marker, at most twelve characters.
+ */
+export function nameFrom(text: string): string | null {
+  const m = /(?:我的名字是|我的名字叫|名字是|名字叫|我叫|叫我|我是)\s*([^\s，。！？、,.!?~～]+)/.exec(text.trim());
+  if (!m) return null;
+  const name = m[1]!.replace(/(吧|啊|呀|哦|呢)$/, '').slice(0, 12);
+  return name || null;
 }
 
 /** 「“附近”就是不远的地方。」 from the word and its HSK 1 explanation. */
@@ -54,14 +66,16 @@ export class ScriptedDialogue implements DialogueSource {
     return n;
   }
 
-  private line(scene: Scene, n: DialogueNode, variant: 'say' | 'simpler' = 'say', slow = false): Line {
+  private line(scene: Scene, n: DialogueNode, variant: 'say' | 'simpler' = 'say', slow = false, name = ''): Line {
     const simpler = variant === 'simpler' && n.simpler;
+    const tpl = simpler ? n.simpler! : n.say;
     return {
       speaker: n.speaker ?? scene.npc ?? 'companion',
-      zh: simpler ? n.simpler! : n.say,
+      zh: withName(tpl, name),
+      ...(tpl.includes(NAME_SLOT) ? { tpl } : {}),
       // A manual reading belongs to `say`; the simpler line gets the build's.
       ...(n.pinyin && !simpler ? { pinyin: n.pinyin } : {}),
-      en: n.translate,
+      en: withName(n.translate, name),
       ...(n.key ? { key: true } : {}),
       ...(n.listen && !simpler ? { listen: true } : {}),
       node: n.id,
@@ -79,27 +93,31 @@ export class ScriptedDialogue implements DialogueSource {
     return [...(n.onEnter ?? []), ...(n.key ? [{ do: 'pin' as const, riddle: `${scene.id}/${n.id}` }] : [])];
   }
 
-  /** The talk is over by the script: the scene is done, its stamp given. */
+  /** The talk is over by the script: the scene is done, its stamp given, and a talk with someone warms the friendship (once a day). */
   private finish(scene: Scene): SaveAction[] {
-    return [{ do: 'scene_done', scene: scene.id }, ...(scene.stamp ? [{ do: 'stamp' as const, stamp: scene.stamp }] : [])];
+    return [
+      { do: 'scene_done', scene: scene.id },
+      ...(scene.stamp ? [{ do: 'stamp' as const, stamp: scene.stamp }] : []),
+      ...(scene.npc && !scene.id.startsWith('line-') ? [{ do: 'talked' as const, npc: scene.npc }] : []),
+    ];
   }
 
-  start(scene: Scene, _save?: WorldSave): Turn {
+  start(scene: Scene, save?: WorldSave): Turn {
     this.scenes.set(scene.id, scene);
     const n = this.node(scene, scene.start);
     const meet: SaveAction[] = scene.npc ? [{ do: 'meet', npc: scene.npc }] : [];
-    const state: DialogueState = { scene: scene.id, node: n.id, misses: 0, hint: 0, ended: false };
-    return { kind: 'start', say: this.line(scene, n), actions: [...meet, ...this.enter(scene, n)], state };
+    const state: DialogueState = { scene: scene.id, node: n.id, misses: 0, hint: 0, ended: false, ...(save?.name ? { name: save.name } : {}) };
+    return { kind: 'start', say: this.line(scene, n, 'say', false, state.name), actions: [...meet, ...this.enter(scene, n)], state };
   }
 
   /** Leave `from` for `to` (or end), with the actions on the way. */
-  private move(scene: Scene, from: DialogueNode, to: string | undefined, end: boolean, via: Action[], state: DialogueState): Omit<Turn, 'kind'> {
+  private move(scene: Scene, from: DialogueNode, to: string | undefined, end: boolean, via: readonly SaveAction[], state: DialogueState): Omit<Turn, 'kind'> {
     const actions: SaveAction[] = [...via, ...(from.onExit ?? [])];
     if (!to || end) {
       const last = to ? this.node(scene, to) : null;
       if (last) actions.push(...this.enter(scene, last), ...(last.onExit ?? []));
       actions.push(...this.finish(scene));
-      return { say: last ? this.line(scene, last) : null, actions, end: true, state: { ...state, node: to ?? state.node, misses: 0, hint: 0, ended: true } };
+      return { say: last ? this.line(scene, last, 'say', false, state.name) : null, actions, end: true, state: { ...state, node: to ?? state.node, misses: 0, hint: 0, ended: true } };
     }
     const next = this.node(scene, to);
     actions.push(...this.enter(scene, next));
@@ -107,7 +125,7 @@ export class ScriptedDialogue implements DialogueSource {
     const final = !next.expect?.length && !next.next;
     if (final) actions.push(...(next.onExit ?? []), ...this.finish(scene));
     return {
-      say: this.line(scene, next),
+      say: this.line(scene, next, 'say', false, state.name),
       actions,
       ...(final ? { end: true } : {}),
       state: { ...state, node: next.id, misses: 0, hint: 0, ended: final },
@@ -121,10 +139,11 @@ export class ScriptedDialogue implements DialogueSource {
     return { kind: 'continue', ...this.move(scene, n, n.next, false, [], state) };
   }
 
-  private hintCue(n: DialogueNode, step: number): CompanionCue | undefined {
+  private hintCue(n: DialogueNode, step: number, name = ''): CompanionCue | undefined {
     if (!n.hint || step < 1) return undefined;
     const s = Math.min(3, step) as 1 | 2 | 3;
-    return { kind: 'hint', step: s, text: s === 1 ? n.hint.word : s === 2 ? n.hint.frame : n.hint.full };
+    const h = hintWithName(n.hint, name);
+    return { kind: 'hint', step: s, text: s === 1 ? h.word : s === 2 ? h.frame : h.full };
   }
 
   reply(state: DialogueState, u: Utterance): Turn {
@@ -135,7 +154,8 @@ export class ScriptedDialogue implements DialogueSource {
     const stay = (kind: Turn['kind'], say: Line, extra: Partial<Turn> = {}): Turn => ({ kind, say, actions: [], state, ...extra });
 
     if (state.ended) return { kind: 'continue', say: null, actions: [], end: true, state };
-    if (input.kind === 'empty') return stay('repeat', this.line(scene, n));
+    const nm = state.name;
+    if (input.kind === 'empty') return stay('repeat', this.line(scene, n, 'say', false, nm));
 
     // A node with nothing to expect: whatever is said, go on.
     if (!n.expect?.length) {
@@ -161,16 +181,19 @@ export class ScriptedDialogue implements DialogueSource {
       });
     }
     const ask = askIntent(input, this.lex);
-    if (ask === 'repeat') return stay('repeat', this.line(scene, n), { intent: 'repeat' });
-    if (ask === 'slower') return stay('slower', this.line(scene, n, 'simpler', true), { intent: 'slower' });
-    if (ask === 'simpler') return stay('simpler', this.line(scene, n, 'simpler'), { intent: 'simpler' });
+    if (ask === 'repeat') return stay('repeat', this.line(scene, n, 'say', false, nm), { intent: 'repeat' });
+    if (ask === 'slower') return stay('slower', this.line(scene, n, 'simpler', true, nm), { intent: 'slower' });
+    if (ask === 'simpler') return stay('simpler', this.line(scene, n, 'simpler', false, nm), { intent: 'simpler' });
 
     // 2. The scene's own intents.
     const m = matchIntent(n.expect, input, this.lex);
     // A homophone picked by mistake from a keyboard is kept too, with the same note.
     if (m) {
       const note = m.heard.length ? m.heard.map((h) => heardNote(h, this.lex)).join(' ') : undefined;
-      const moved = this.move(scene, n, m.expect.go, !!m.expect.end, m.expect.actions ?? [], state);
+      // 「我叫大卫。」: the name is kept, and the lines from here on say it.
+      const told = m.expect.capture === 'name' ? nameFrom(u.text) : null;
+      const via: SaveAction[] = [...(told ? [{ do: 'name' as const, name: told }] : []), ...(m.expect.actions ?? [])];
+      const moved = this.move(scene, n, m.expect.go, !!m.expect.end, via, told ? { ...state, name: told } : state);
       return {
         kind: 'match',
         intent: m.expect.intent,
@@ -197,7 +220,7 @@ export class ScriptedDialogue implements DialogueSource {
     if (input.kind === 'other') {
       return stay('not_chinese', this.aside(scene, NOT_CHINESE.zh, NOT_CHINESE.en), {
         intent: 'not_chinese',
-        ...(n.hint ? { companion: { kind: 'not_chinese' as const, text: n.hint.full } } : {}),
+        ...(n.hint ? { companion: { kind: 'not_chinese' as const, text: hintWithName(n.hint, nm ?? '').full } } : {}),
       });
     }
 
@@ -206,7 +229,7 @@ export class ScriptedDialogue implements DialogueSource {
     const hint = misses >= 2 ? Math.min(3, Math.max(state.hint, 0) + 1) : state.hint;
     const lines = npc?.misses?.length ? npc.misses : DEFAULT_MISSES;
     const zh = lines[(misses - 1) % lines.length]!;
-    const cue = misses >= 2 ? this.hintCue(n, hint) : undefined;
+    const cue = misses >= 2 ? this.hintCue(n, hint, nm) : undefined;
     return {
       kind: 'miss',
       say: this.aside(scene, zh, 'What did you say?'),

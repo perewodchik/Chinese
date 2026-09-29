@@ -17,7 +17,7 @@ import { DEFAULT_MISSES, DONT_KNOW, explanationLine, NOT_CHINESE } from '../../s
 import { POLITE_REPLY } from '../../src/world/core/dialogue/universal';
 import { allCalls } from '../../src/world/core/ride';
 import type { DistrictContent } from '../../src/world/core/types';
-import { voiceKey, voiceOf, type VoiceId } from '../../src/world/core/voice';
+import { spoken, voiceKey, voiceOf, type VoiceId } from '../../src/world/core/voice';
 import { checkContent, readLibrary } from './check-content';
 
 export const VOICE_OUT = 'public/world/voice';
@@ -42,8 +42,8 @@ export function clipsOf(districts: readonly DistrictContent[]): Clip[] {
     for (const s of d.scenes) {
       for (const n of s.nodes) {
         const who = n.speaker ?? s.npc ?? 'companion';
-        add(who, n.say);
-        if (n.simpler) add(who, n.simpler);
+        add(who, spoken(n.say));
+        if (n.simpler) add(who, spoken(n.simpler));
       }
       if (!s.npc) continue;
       const card = cards.get(s.npc);

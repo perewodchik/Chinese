@@ -239,6 +239,11 @@
       "do": "remember",
       "npc": "fisher-yeye",
       "note": "brought him bait"
+     },
+     {
+      "do": "hearts",
+      "npc": "fisher-yeye",
+      "delta": 1
      }
     ]
    }

@@ -10,6 +10,7 @@ import type { WorldContent } from './content';
 import { pinyinOf } from './pinyin';
 import {
   bagRows,
+  friendRows,
   idiomRows,
   mapHint,
   mapSpots,
@@ -20,6 +21,7 @@ import {
   taskRows,
   type PanelId,
 } from './panelRows';
+import { Hearts } from './Hearts';
 import { ZhText } from './ZhText';
 
 /**
@@ -71,10 +73,30 @@ export function Panels({
           {tab === 'spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
           {tab === 'idioms' && <Idioms save={save} content={content} pinyin={pinyin} />}
           {tab === 'stamps' && <Stamps save={save} content={content} />}
+          {tab === 'friends' && <Friends save={save} content={content} />}
           {tab === 'settings' && <Settings settings={save.settings} onChange={onSettings} />}
         </div>
       </section>
     </div>
+  );
+}
+
+function Friends({ save, content }: { save: WorldSave; content: WorldContent }) {
+  const rows = friendRows(save, content.npcs);
+  if (!rows.length) return <Empty han="友">Nobody yet. Say 你好 to the neighbours.</Empty>;
+  return (
+    <>
+      <h3 className="wp-label">People you know{save.name && <span className="han"> · 我叫{save.name}</span>}</h3>
+      <ul className="wp-list">
+        {rows.map((r) => (
+          <li key={r.id}>
+            <b className="han">{r.name}</b> <Hearts n={r.hearts} /> <span className="tiny muted">{r.role}</span>
+            {r.notes.length > 0 && <p className="small muted">Remembers: {r.notes.join('; ')}.</p>}
+          </li>
+        ))}
+      </ul>
+      <p className="tiny muted">Friendship grows when you talk (once a day), give something they like, or help. At three hearts some people tell you their own story.</p>
+    </>
   );
 }
 

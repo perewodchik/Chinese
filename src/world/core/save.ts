@@ -10,7 +10,7 @@
 import { dayOf, sleep as sleepClock, START_MINUTES, waitUntil } from './clock';
 import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
 
-export const WORLD_SAVE_VERSION = 2;
+export const WORLD_SAVE_VERSION = 3;
 
 /** Where a new game starts: your room in 王阿姨's 四合院. */
 export const HOME: Place = { map: 'siheyuan-room', tile: [4, 4], facing: 'down' };
@@ -35,6 +35,7 @@ export function newSave(deviceId: string, now: number): WorldSave {
     deviceId,
     place: HOME,
     district: HOME_DISTRICT,
+    name: '',
     clock: START_MINUTES,
     chapter: 1,
     flags: [],
@@ -60,6 +61,10 @@ export type EngineAction =
   | { do: 'meet'; npc: string }
   /** a present given today (one a day) */
   | { do: 'gifted'; npc: string }
+  /** a finished talk with a person: one heart a game day (X2) */
+  | { do: 'talked'; npc: string }
+  /** the name the player gave (X2) */
+  | { do: 'name'; name: string }
   | { do: 'scene_done'; scene: string }
   | { do: 'ride'; route: string }
   | { do: 'tick'; minutes: number }
@@ -176,18 +181,28 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
       return { ...s, riddles: { ...s.riddles, [a.riddle]: { ...base, solved: true } } };
     }
     case 'meet':
-      return s.npcs[a.npc] ? s : { ...s, npcs: { ...s.npcs, [a.npc]: { met: Math.floor(s.clock), notes: [], hearts: 0, gift: 0 } } };
+      return s.npcs[a.npc] ? s : { ...s, npcs: { ...s.npcs, [a.npc]: { met: Math.floor(s.clock), notes: [], hearts: 0, gift: 0, talk: 0 } } };
+    case 'name': {
+      const name = a.name.trim().slice(0, 12);
+      return name && name !== s.name ? { ...s, name } : s;
+    }
     case 'hearts': {
-      const cur = s.npcs[a.npc] ?? { met: Math.floor(s.clock), notes: [], hearts: 0, gift: 0 };
+      const cur = s.npcs[a.npc] ?? { met: Math.floor(s.clock), notes: [], hearts: 0, gift: 0, talk: 0 };
       const hearts = Math.max(0, Math.min(5, cur.hearts + a.delta));
       return hearts === cur.hearts ? s : { ...s, npcs: { ...s.npcs, [a.npc]: { ...cur, hearts } } };
     }
+    case 'talked': {
+      const cur = s.npcs[a.npc] ?? { met: Math.floor(s.clock), notes: [], hearts: 0, gift: 0, talk: 0 };
+      const today = dayOf(s.clock);
+      if (cur.talk === today) return s;
+      return { ...s, npcs: { ...s.npcs, [a.npc]: { ...cur, talk: today, hearts: Math.min(5, cur.hearts + 1) } } };
+    }
     case 'gifted': {
-      const cur = s.npcs[a.npc] ?? { met: Math.floor(s.clock), notes: [], hearts: 0, gift: 0 };
+      const cur = s.npcs[a.npc] ?? { met: Math.floor(s.clock), notes: [], hearts: 0, gift: 0, talk: 0 };
       return { ...s, npcs: { ...s.npcs, [a.npc]: { ...cur, gift: dayOf(s.clock) } } };
     }
     case 'remember': {
-      const cur = s.npcs[a.npc] ?? { met: Math.floor(s.clock), notes: [], hearts: 0, gift: 0 };
+      const cur = s.npcs[a.npc] ?? { met: Math.floor(s.clock), notes: [], hearts: 0, gift: 0, talk: 0 };
       if (cur.notes.includes(a.note)) return s;
       // Keep the memory short: the last twenty things are what a neighbour recalls.
       const notes = [...cur.notes, a.note].slice(-20);

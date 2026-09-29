@@ -48,6 +48,8 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.strictObject({ idiom: text }),
     z.strictObject({ station: id }),
     z.strictObject({ met: id }),
+    z.strictObject({ hearts: id, min: z.number().int().min(0).max(5) }),
+    z.strictObject({ remembers: id, note: text }),
   ]),
 );
 
@@ -156,6 +158,7 @@ const expectSchema: z.ZodType<Expect> = z.strictObject({
   intent: id,
   match: z.array(z.array(text).min(1)).min(1),
   go: id.optional(),
+  capture: z.literal('name').optional(),
   actions: z.array(actionSchema).optional(),
   end: z.boolean().optional(),
 });

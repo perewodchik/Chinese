@@ -470,6 +470,11 @@
       "do": "remember",
       "npc": "dashilar-nainai",
       "note": "brought her tea leaves"
+     },
+     {
+      "do": "hearts",
+      "npc": "dashilar-nainai",
+      "delta": 1
      }
     ]
    }

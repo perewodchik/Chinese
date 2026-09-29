@@ -21,6 +21,7 @@ import { advanceQuests } from '../../src/world/core/quests';
 import { applyAll, newSave, type SaveAction } from '../../src/world/core/save';
 import { autoScene, sceneFor } from '../../src/world/core/scenes';
 import type { Scene, WorldSave } from '../../src/world/core/types';
+import { hintWithName } from '../../src/world/core/voice';
 import { readMap, type MapInfo } from '../../src/world/engine/mapdata';
 import { checkContent, readLibrary } from './check-content';
 
@@ -60,7 +61,7 @@ function play(s: WorldSave, scene: Scene, short: string[]): WorldSave {
   let save = act(s, t.actions, short, scene.id);
   for (let guard = 0; !t.state.ended && guard < 40; guard++) {
     const node = scene.nodes.find((n) => n.id === t.state.node)!;
-    t = node.expect?.length ? src.reply(t.state, { text: node.hint?.full ?? '', via: 'keyboard' }) : src.proceed(t.state);
+    t = node.expect?.length ? src.reply(t.state, { text: node.hint ? hintWithName(node.hint, t.state.name ?? '').full : '', via: 'keyboard' }) : src.proceed(t.state);
     save = act(save, t.actions, short, scene.id);
   }
   return save;
@@ -102,6 +103,23 @@ function candidates(s: WorldSave): Scene[] {
     }
   }
   return out;
+}
+
+/** One talk with each person on the maps reached whom today's talk has not warmed yet (the page's small talk). */
+function chatRound(s: WorldSave, short: string[]): WorldSave {
+  const today = Math.floor(s.clock / 1440) + 1;
+  const who = new Set<string>();
+  for (const m of maps) {
+    if ((chapterOf.get(m.id) ?? 1) > s.chapter) continue;
+    for (const o of castMap(m.objects, m.id, npcs, s)) if (o.kind === 'npc') who.add(o.npc);
+  }
+  const actions: SaveAction[] = [];
+  for (const npc of [...who].sort()) {
+    const mem = s.npcs[npc];
+    if (mem && (mem.hearts >= 5 || mem.talk === today)) continue;
+    actions.push({ do: 'meet', npc }, { do: 'talked', npc });
+  }
+  return actions.length ? act(s, actions, short, 'chat') : s;
 }
 
 /** The first station with a map not yet visited that a ride can reach now: a card for the subway and buses, a ticket for the train. */
@@ -151,6 +169,13 @@ export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000)
         s = after;
         idle = 0;
         continue;
+      }
+      // a patient player chats with everyone about once a day (X2): friendship grows, stories open
+      const chatted = chatRound(s, short);
+      if (chatted !== s) {
+        log.push('chat');
+        s = chatted;
+        idle = 0;
       }
       // nothing moves: let the day run on to the next part of it
       if (++idle > 8) break;

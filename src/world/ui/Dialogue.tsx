@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { playLine } from './lineVoice';
 import type { Line } from '../core/dialogue/source';
 import type { NpcCard } from '../core/types';
+import { Hearts } from './Hearts';
 import { Portrait } from './Portrait';
 import type { Said, TalkView } from './useTalk';
 import { ZhText } from './ZhText';
@@ -72,6 +73,7 @@ function SaidLine({ line, pinyin }: { line: Line; pinyin: boolean }) {
 export function Dialogue({
   view,
   names = {},
+  hearts,
   pinyin,
   setPinyin,
   onProceed,
@@ -81,6 +83,8 @@ export function Dialogue({
   view: TalkView;
   /** npc id → name, for other people who speak in a scene */
   names?: Record<string, string>;
+  /** friendship with the person talked to, when they have been met (X2) */
+  hearts?: number;
   pinyin: boolean;
   setPinyin: (on: boolean) => void;
   onProceed: () => void;
@@ -145,6 +149,7 @@ export function Dialogue({
       <header className="wd-head">
         {view.sprite !== 'sign' && <Portrait sprite={view.sprite} scale={2} />}
         <span className="wd-name han">{name}</span>
+        {hearts !== undefined && <Hearts n={hearts} />}
         {view.npc && <span className="wd-role tiny">{view.npc.role}</span>}
         <span className="spacer" />
         <button

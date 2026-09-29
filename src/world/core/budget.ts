@@ -15,6 +15,7 @@
  * Each problem names the file, the scene and node, the word and its level.
  */
 
+import { spoken } from './voice';
 import type { Library } from '../../data/types';
 import { segment } from '../../domain/segment';
 import type { DistrictContent, DialogueNode, NpcCard, Scene } from './types';
@@ -69,9 +70,10 @@ interface Texts {
 
 /** The lines of a node that the player reads or says. */
 function textsOf(n: DialogueNode): Texts[] {
-  const out: Texts[] = [{ field: 'say', zh: n.say }];
-  if (n.simpler) out.push({ field: 'simpler', zh: n.simpler });
-  if (n.hint) out.push({ field: 'hint', zh: n.hint.full });
+  // the player's name (X2) is a name: it does not count
+  const out: Texts[] = [{ field: 'say', zh: spoken(n.say) }];
+  if (n.simpler) out.push({ field: 'simpler', zh: spoken(n.simpler) });
+  if (n.hint) out.push({ field: 'hint', zh: spoken(n.hint.full) });
   return out;
 }
 

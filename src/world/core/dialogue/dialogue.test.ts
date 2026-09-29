@@ -154,7 +154,7 @@ describe('a scripted conversation', () => {
     const t2 = talk.proceed(t1.state);
     assert.equal(t2.say?.zh, '慢走！');
     assert.equal(t2.end, true);
-    assert.deepEqual(t2.actions, [{ do: 'scene_done', scene: 'ask-way' }, { do: 'stamp', stamp: 'asked-way' }]);
+    assert.deepEqual(t2.actions, [{ do: 'scene_done', scene: 'ask-way' }, { do: 'stamp', stamp: 'asked-way' }, { do: 'talked', npc: 'fruit-uncle' }]);
   });
 
   it('gives the expect\'s actions on the way', () => {

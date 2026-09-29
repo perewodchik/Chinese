@@ -27,6 +27,8 @@ export interface Line {
   node: string;
   /** said slowly (慢一点) */
   slow?: boolean;
+  /** the line as written, when it has the player's name in it (X2): its clip is of the nameless line */
+  tpl?: string;
 }
 
 export interface Utterance {
@@ -43,6 +45,8 @@ export interface DialogueState {
   /** how far the companion's hint has gone at this node, 0–3 */
   hint: number;
   ended: boolean;
+  /** the player's name, for lines that say it (X2) */
+  name?: string;
 }
 
 /** What happened to the player's line. */

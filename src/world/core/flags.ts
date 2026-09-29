@@ -33,5 +33,7 @@ export function holds(c: Condition | undefined, s: WorldSave): boolean {
   if ('idiom' in c) return c.idiom in s.idioms;
   if ('station' in c) return s.stations.includes(c.station);
   if ('met' in c) return c.met in s.npcs;
+  if ('hearts' in c) return (s.npcs[c.hearts]?.hearts ?? 0) >= c.min;
+  if ('remembers' in c) return !!s.npcs[c.remembers]?.notes.includes(c.note);
   return false;
 }

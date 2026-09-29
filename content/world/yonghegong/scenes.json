@@ -296,6 +296,11 @@
       "do": "remember",
       "npc": "lao-xiansheng",
       "note": "brought him a brush"
+     },
+     {
+      "do": "hearts",
+      "npc": "lao-xiansheng",
+      "delta": 1
      }
     ]
    }

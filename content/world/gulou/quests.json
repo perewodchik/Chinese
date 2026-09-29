@@ -178,5 +178,70 @@
         }
       }
     ]
+  },
+  {
+    "id": "story-wang",
+    "title": "王阿姨’s son",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "talk",
+        "now": "王阿姨 misses her son abroad. Listen to her — maybe she could call him?",
+        "done": {
+          "quest": "story-wang",
+          "step": "call"
+        }
+      },
+      {
+        "id": "call",
+        "now": "Come back to the courtyard in the morning (7–11) and help 王阿姨 call her son."
+      }
+    ]
+  },
+  {
+    "id": "story-zhang",
+    "title": "The first barber shop",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "talk",
+        "now": "张师傅 is telling you about his first shop.",
+        "done": {
+          "quest": "story-zhang",
+          "step": "ask"
+        }
+      },
+      {
+        "id": "ask",
+        "now": "His first customer was 赵爷爷. Ask 赵爷爷 on 南锣鼓巷 about the old shop.",
+        "done": {
+          "quest": "story-zhang",
+          "step": "bring"
+        }
+      },
+      {
+        "id": "bring",
+        "now": "Take 赵爷爷’s old photo to 张师傅 at the barber’s."
+      }
+    ]
+  },
+  {
+    "id": "story-bird",
+    "title": "The bird that stopped singing",
+    "chapter": 2,
+    "steps": [
+      {
+        "id": "talk",
+        "now": "赵爷爷 is telling you about his bird.",
+        "done": {
+          "quest": "story-bird",
+          "step": "morning"
+        }
+      },
+      {
+        "id": "morning",
+        "now": "Meet 赵爷爷 on the 鼓楼 square in the early morning (6–9)."
+      }
+    ]
   }
 ]

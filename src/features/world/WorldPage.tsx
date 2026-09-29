@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { partOfDay } from '../../world/core/clock';
+import { hintWithName } from '../../world/core/voice';
 import { libraryLexicon } from '../../world/core/dialogue/lexicon';
 import { autoScene, sceneFor } from '../../world/core/scenes';
 import type { SaveAction } from '../../world/core/save';
@@ -346,7 +347,8 @@ export function WorldPage() {
   const [hint, setHint] = useState({ at: '', step: 0 });
   const cueStep = talk.view?.cue?.kind === 'hint' ? talk.view.cue.step : 0;
   const hintStep = Math.max(hint.at === talkAt ? hint.step : 0, cueStep);
-  const hintNow = talk.view?.scene.nodes.find((n) => n.id === talk.view?.state.node)?.hint;
+  const hintRaw = talk.view?.scene.nodes.find((n) => n.id === talk.view?.state.node)?.hint;
+  const hintNow = hintRaw ? hintWithName(hintRaw, talk.view?.state.name ?? '') : undefined;
   // 兔儿爷 speaks up by himself: after two misses in a row (or a misheard word), one short line.
   const cue = talk.view?.cue;
   const misses = talk.view?.misses ?? 0;
@@ -482,6 +484,7 @@ export function WorldPage() {
         <Dialogue
           view={talk.view}
           names={npcNames}
+          {...(talk.view.npc && game.save.npcs[talk.view.npc.id] ? { hearts: game.save.npcs[talk.view.npc.id]!.hearts } : {})}
           pinyin={game.save.settings.pinyin}
           setPinyin={setPinyin}
           onProceed={talk.proceed}

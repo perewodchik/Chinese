@@ -45,7 +45,8 @@ const memory = (x: NpcMemory, y: NpcMemory): NpcMemory => {
   for (const n of second.notes) if (!notes.includes(n)) notes.push(n);
   const hearts = Math.max(x.hearts ?? 0, y.hearts ?? 0);
   const gift = Math.max(x.gift ?? 0, y.gift ?? 0);
-  return { met: first.met, notes: notes.slice(-20), hearts, gift };
+  const talk = Math.max(x.talk ?? 0, y.talk ?? 0);
+  return { met: first.met, notes: notes.slice(-20), hearts, gift, talk };
 };
 
 type Heard = WorldSave['idioms'][string];
@@ -64,6 +65,8 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
     deviceId: late.deviceId,
     place: late.place,
     district: late.district,
+    // a name once told is not forgotten by the device that did not hear it
+    name: late.name || (late === a ? b : a).name,
     clock: late.clock,
     bag: late.bag,
     settings: late.settings,

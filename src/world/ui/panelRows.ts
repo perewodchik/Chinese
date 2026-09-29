@@ -7,9 +7,10 @@
 import { DISTRICTS, districtInfo, type DistrictInfo } from '../core/districts';
 import { activeQuests } from '../core/quests';
 import { findRoute, routeText, station } from '../core/travel';
-import type { Idiom, Item, Quest, Scene, Spirit, Stamp, WorldSave } from '../core/types';
+import type { Idiom, Item, NpcCard, Quest, Scene, Spirit, Stamp, WorldSave } from '../core/types';
+import { withName } from '../core/voice';
 
-export type PanelId = 'tasks' | 'bag' | 'map' | 'spirits' | 'idioms' | 'stamps' | 'settings';
+export type PanelId = 'tasks' | 'bag' | 'map' | 'spirits' | 'idioms' | 'stamps' | 'friends' | 'settings';
 
 export const PANELS: readonly { id: PanelId; label: string }[] = [
   { id: 'tasks', label: '📜 Tasks' },
@@ -18,6 +19,7 @@ export const PANELS: readonly { id: PanelId; label: string }[] = [
   { id: 'spirits', label: '图鉴' },
   { id: 'idioms', label: '成语' },
   { id: 'stamps', label: '印章' },
+  { id: 'friends', label: '朋友' },
   { id: 'settings', label: '⚙' },
 ];
 
@@ -49,7 +51,7 @@ export function riddleRows(s: WorldSave, scenes: readonly Scene[]): RiddleRow[] 
   return Object.entries(s.riddles)
     .map(([id, r]) => {
       const node = byId.get(r.scene)?.nodes.find((n) => n.id === r.node);
-      return { id, zh: node?.say ?? '', en: node?.translate ?? '', solved: r.solved, npc: byId.get(r.scene)?.npc, at: r.pinnedAt };
+      return { id, zh: withName(node?.say ?? '', s.name), en: withName(node?.translate ?? '', s.name), solved: r.solved, npc: byId.get(r.scene)?.npc, at: r.pinnedAt };
     })
     .filter((r) => r.zh)
     .sort((a, b) => Number(a.solved) - Number(b.solved) || b.at - a.at)
@@ -141,4 +143,22 @@ export function stampRows(s: WorldSave, stamps: readonly Stamp[]): StampRow[] {
   return [...stamps]
     .sort((a, b) => Number(!!b.landmark) - Number(!!a.landmark))
     .map((x) => ({ stamp: x, got: x.id in s.stamps }));
+}
+
+export interface FriendRow {
+  id: string;
+  name: string;
+  role: string;
+  hearts: number;
+  /** what they remember of you, oldest first (English) */
+  notes: string[];
+}
+
+/** The people you have met who have cards (X2): warmest first, then the order you met them. */
+export function friendRows(s: WorldSave, npcs: readonly NpcCard[]): FriendRow[] {
+  const cards = new Map(npcs.map((n) => [n.id, n]));
+  return Object.entries(s.npcs)
+    .filter(([id]) => cards.has(id))
+    .sort(([, a], [, b]) => b.hearts - a.hearts || a.met - b.met)
+    .map(([id, m]) => ({ id, name: cards.get(id)!.name, role: cards.get(id)!.role, hearts: m.hearts, notes: m.notes }));
 }

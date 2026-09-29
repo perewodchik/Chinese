@@ -25,6 +25,13 @@ export const UPGRADES: Record<number, Upgrade> = {
     version: 2,
     npcs: Object.fromEntries(Object.entries(isObj(r.npcs) ? r.npcs : {}).map(([k, v]) => [k, isObj(v) ? { hearts: 0, gift: 0, ...v } : v])),
   }),
+  /** 2 → 3 (X2): the player's name, unknown until they tell someone; the day a talk last warmed each friendship */
+  2: (r) => ({
+    ...r,
+    version: 3,
+    name: typeof r.name === 'string' ? r.name : '',
+    npcs: Object.fromEntries(Object.entries(isObj(r.npcs) ? r.npcs : {}).map(([k, v]) => [k, isObj(v) ? { talk: 0, ...v } : v])),
+  }),
 };
 
 export type ReadResult =
@@ -49,6 +56,7 @@ function fill(r: Raw): WorldSave {
     ...base,
     place,
     district: typeof r.district === 'string' ? r.district : HOME_DISTRICT,
+    name: typeof r.name === 'string' ? r.name : '',
     clock: isNum(r.clock) ? r.clock : base.clock,
     chapter: isNum(r.chapter) ? r.chapter : 1,
     flags: strings(r.flags),
@@ -68,7 +76,7 @@ function fill(r: Raw): WorldSave {
     npcs: Object.fromEntries(
       Object.entries(record(r.npcs, (x): x is WorldSave['npcs'][string] => isObj(x) && isNum(x.met))).map(([k, x]) => [
         k,
-        { met: x.met, notes: strings(x.notes), hearts: isNum(x.hearts) ? x.hearts : 0, gift: isNum(x.gift) ? x.gift : 0 },
+        { met: x.met, notes: strings(x.notes), hearts: isNum(x.hearts) ? x.hearts : 0, gift: isNum(x.gift) ? x.gift : 0, talk: isNum(x.talk) ? x.talk : 0 },
       ]),
     ),
     rides: record(r.rides, isNum),

@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { districtInfo } from '../core/districts';
 import { applyAll, newSave } from '../core/save';
-import type { Idiom, Quest, Scene, Stamp } from '../core/types';
-import { bagRows, idiomRows, mapHint, riddleRows, stampRows, taskRows } from './panelRows';
+import type { Idiom, NpcCard, Quest, Scene, Stamp } from '../core/types';
+import { bagRows, friendRows, idiomRows, mapHint, riddleRows, stampRows, taskRows } from './panelRows';
 
 const ctx = { now: 1 };
 const fresh = () => newSave('d', 0);
@@ -69,6 +69,22 @@ describe('the panels', () => {
     assert.deepEqual(stampRows(s, [st('ticket'), st('鼓楼', true)]).map((r) => [r.stamp.id, r.got]), [
       ['鼓楼', false],
       ['ticket', true],
+    ]);
+  });
+
+  it('lists the people met, warmest first, with what they remember (X2)', () => {
+    const card = (id: string, name: string): NpcCard => ({ id, name, role: 'r', look: { sprite: 'x' }, character: '', knows: [], wants: [], actions: [], routine: [], explains: {} });
+    const s = applyAll(fresh(), [
+      { do: 'meet', npc: 'wang' },
+      { do: 'meet', npc: 'ghost' },
+      { do: 'meet', npc: 'zhao' },
+      { do: 'hearts', npc: 'zhao', delta: 2 },
+      { do: 'remember', npc: 'zhao', note: 'brought his bird back' },
+    ], ctx);
+    const rows = friendRows(s, [card('wang', '王阿姨'), card('zhao', '赵爷爷')]);
+    assert.deepEqual(rows.map((r) => [r.name, r.hearts, r.notes]), [
+      ['赵爷爷', 2, ['brought his bird back']],
+      ['王阿姨', 0, []],
     ]);
   });
 });

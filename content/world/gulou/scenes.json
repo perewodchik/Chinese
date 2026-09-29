@@ -89,7 +89,8 @@
         "npc": "wang-ayi",
         "note": "told her their name"
        }
-      ]
+      ],
+      "capture": "name"
      }
     ],
     "hint": {
@@ -97,7 +98,7 @@
      "frame": "我叫___。",
      "full": "我叫大卫。"
     },
-    "why": "叫 is 'to be called'. Answer with 我叫 + your name."
+    "why": "叫 is 'to be called'. Answer with 我叫 + your name — she will remember it."
    },
    {
     "id": "room",
@@ -1725,6 +1726,11 @@
         "do": "remember",
         "npc": "wang-ayi",
         "note": "brought her cold medicine"
+       },
+       {
+        "do": "hearts",
+        "npc": "wang-ayi",
+        "delta": 1
        }
       ]
      }
@@ -2074,6 +2080,11 @@
       "do": "remember",
       "npc": "zhao-yeye",
       "note": "brought his bird back"
+     },
+     {
+      "do": "hearts",
+      "npc": "zhao-yeye",
+      "delta": 1
      }
     ]
    }
@@ -2292,6 +2303,11 @@
       "do": "remember",
       "npc": "wang-ayi",
       "note": "gave her a painting of the White Dagoba"
+     },
+     {
+      "do": "hearts",
+      "npc": "wang-ayi",
+      "delta": 1
      }
     ]
    }
@@ -2376,6 +2392,11 @@
       "do": "remember",
       "npc": "xiaoming",
       "note": "gave him a storybook"
+     },
+     {
+      "do": "hearts",
+      "npc": "xiaoming",
+      "delta": 1
      }
     ]
    }
@@ -3102,6 +3123,1026 @@
       "delta": 1
      }
     ]
+   }
+  ]
+ },
+ {
+  "id": "zhang-shifu-askname",
+  "map": "lifadian",
+  "npc": "zhang-shifu",
+  "trigger": "talk",
+  "once": true,
+  "priority": 3,
+  "when": {
+   "hearts": "zhang-shifu",
+   "min": 1
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我们是朋友了吧？你叫什么名字？",
+    "translate": "We're friends now, right? What's your name?",
+    "expect": [
+     {
+      "intent": "name",
+      "match": [
+       [
+        "叫",
+        "名字",
+        "是"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "remember",
+        "npc": "zhang-shifu",
+        "note": "knows your name"
+       }
+      ],
+      "capture": "name"
+     }
+    ],
+    "hint": {
+     "word": "我叫",
+     "frame": "我叫___。",
+     "full": "我叫{name}。"
+    },
+    "why": "Tell them your name: 我叫 + name. From now on they will greet you by it."
+   },
+   {
+    "id": "b",
+    "say": "{name}，好名字！我记住了。",
+    "translate": "{name} — a good name! I will remember it."
+   }
+  ]
+ },
+ {
+  "id": "zhao-yeye-askname",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": 3,
+  "when": {
+   "hearts": "zhao-yeye",
+   "min": 1
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我们是朋友了！你叫什么名字？",
+    "translate": "We're friends now! What's your name?",
+    "expect": [
+     {
+      "intent": "name",
+      "match": [
+       [
+        "叫",
+        "名字",
+        "是"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "remember",
+        "npc": "zhao-yeye",
+        "note": "knows your name"
+       }
+      ],
+      "capture": "name"
+     }
+    ],
+    "hint": {
+     "word": "我叫",
+     "frame": "我叫___。",
+     "full": "我叫{name}。"
+    },
+    "why": "Tell them your name: 我叫 + name. From now on they will greet you by it."
+   },
+   {
+    "id": "b",
+    "say": "{name}，好名字！我记住了。",
+    "translate": "{name} — a good name! I will remember it."
+   }
+  ]
+ },
+ {
+  "id": "lao-liu-askname",
+  "map": "chaguan",
+  "npc": "lao-liu",
+  "trigger": "talk",
+  "once": true,
+  "priority": 3,
+  "when": {
+   "hearts": "lao-liu",
+   "min": 1
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你喜欢喝茶，我喜欢你！你叫什么名字？",
+    "translate": "You like tea, so I like you! What is your name?",
+    "expect": [
+     {
+      "intent": "name",
+      "match": [
+       [
+        "叫",
+        "名字",
+        "是"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "remember",
+        "npc": "lao-liu",
+        "note": "knows your name"
+       }
+      ],
+      "capture": "name"
+     }
+    ],
+    "hint": {
+     "word": "我叫",
+     "frame": "我叫___。",
+     "full": "我叫{name}。"
+    },
+    "why": "Tell them your name: 我叫 + name. From now on they will greet you by it."
+   },
+   {
+    "id": "b",
+    "say": "{name}，好名字！我记住了。",
+    "translate": "{name} — a good name! I will remember it."
+   }
+  ]
+ },
+ {
+  "id": "xiaoming-askname",
+  "map": "hutong-home",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "once": true,
+  "priority": 3,
+  "when": {
+   "hearts": "xiaoming",
+   "min": 1
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你叫什么名字？我叫小明！",
+    "translate": "What's your name? I'm 小明!",
+    "expect": [
+     {
+      "intent": "name",
+      "match": [
+       [
+        "叫",
+        "名字",
+        "是"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "remember",
+        "npc": "xiaoming",
+        "note": "knows your name"
+       }
+      ],
+      "capture": "name"
+     }
+    ],
+    "hint": {
+     "word": "我叫",
+     "frame": "我叫___。",
+     "full": "我叫{name}。"
+    },
+    "why": "Tell them your name: 我叫 + name. From now on they will greet you by it."
+   },
+   {
+    "id": "b",
+    "say": "{name}，好名字！我记住了。",
+    "translate": "{name} — a good name! I will remember it."
+   }
+  ]
+ },
+ {
+  "id": "li-ayi-askname",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 3,
+  "when": {
+   "hearts": "li-ayi",
+   "min": 1
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你是王阿姨家的吧？你叫什么名字？",
+    "translate": "You're staying at 王阿姨's, right? What's your name?",
+    "expect": [
+     {
+      "intent": "name",
+      "match": [
+       [
+        "叫",
+        "名字",
+        "是"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "remember",
+        "npc": "li-ayi",
+        "note": "knows your name"
+       }
+      ],
+      "capture": "name"
+     }
+    ],
+    "hint": {
+     "word": "我叫",
+     "frame": "我叫___。",
+     "full": "我叫{name}。"
+    },
+    "why": "Tell them your name: 我叫 + name. From now on they will greet you by it."
+   },
+   {
+    "id": "b",
+    "say": "{name}，好名字！我记住了。",
+    "translate": "{name} — a good name! I will remember it."
+   }
+  ]
+ },
+ {
+  "id": "wang-ayi-hi-name",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "priority": 4,
+  "when": {
+   "all": [
+    {
+     "hearts": "wang-ayi",
+     "min": 2
+    },
+    {
+     "remembers": "wang-ayi",
+     "note": "told her their name"
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "{name}，你回来了！吃饭了吗？",
+    "translate": "{name}, you're back! Have you eaten?",
+    "why": "Friends greet you by name. Just a hello — a talk a day warms the friendship."
+   }
+  ]
+ },
+ {
+  "id": "zhang-shifu-hi-name",
+  "map": "lifadian",
+  "npc": "zhang-shifu",
+  "trigger": "talk",
+  "priority": 4,
+  "when": {
+   "all": [
+    {
+     "hearts": "zhang-shifu",
+     "min": 2
+    },
+    {
+     "remembers": "zhang-shifu",
+     "note": "knows your name"
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "{name}，你好！今天天气不错。",
+    "translate": "Hello, {name}! Nice weather today.",
+    "why": "Friends greet you by name. Just a hello — a talk a day warms the friendship."
+   }
+  ]
+ },
+ {
+  "id": "zhao-yeye-hi-name",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "priority": 4,
+  "when": {
+   "all": [
+    {
+     "hearts": "zhao-yeye",
+     "min": 2
+    },
+    {
+     "remembers": "zhao-yeye",
+     "note": "knows your name"
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "{name}，你好！我的鸟今天很高兴。",
+    "translate": "Hello, {name}! My bird is happy today.",
+    "why": "Friends greet you by name. Just a hello — a talk a day warms the friendship."
+   }
+  ]
+ },
+ {
+  "id": "lao-liu-hi-name",
+  "map": "chaguan",
+  "npc": "lao-liu",
+  "trigger": "talk",
+  "priority": 4,
+  "when": {
+   "all": [
+    {
+     "hearts": "lao-liu",
+     "min": 2
+    },
+    {
+     "remembers": "lao-liu",
+     "note": "knows your name"
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "{name}，来了！坐，坐，喝茶！",
+    "translate": "{name}, you came! Sit, sit, have some tea!",
+    "why": "Friends greet you by name. Just a hello — a talk a day warms the friendship."
+   }
+  ]
+ },
+ {
+  "id": "xiaoming-hi-name",
+  "map": "hutong-home",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "priority": 4,
+  "when": {
+   "all": [
+    {
+     "hearts": "xiaoming",
+     "min": 2
+    },
+    {
+     "remembers": "xiaoming",
+     "note": "knows your name"
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "{name}！我们一起玩吧！",
+    "translate": "{name}! Let's play together!",
+    "why": "Friends greet you by name. Just a hello — a talk a day warms the friendship."
+   }
+  ]
+ },
+ {
+  "id": "li-ayi-hi-name",
+  "map": "xiaomaibu",
+  "npc": "li-ayi",
+  "trigger": "talk",
+  "priority": 4,
+  "when": {
+   "all": [
+    {
+     "hearts": "li-ayi",
+     "min": 2
+    },
+    {
+     "remembers": "li-ayi",
+     "note": "knows your name"
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "{name}，你好！今天买什么？",
+    "translate": "Hello, {name}! What are you buying today?",
+    "why": "Friends greet you by name. Just a hello — a talk a day warms the friendship."
+   }
+  ]
+ },
+ {
+  "id": "wang-son-1",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "hearts": "wang-ayi",
+     "min": 3
+    },
+    {
+     "chapter": 2
+    },
+    {
+     "hours": [
+      11,
+      23
+     ]
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "{name}，你看，这是我儿子。",
+    "translate": "{name}, look — this is my son.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "story-wang",
+      "step": "talk"
+     }
+    ],
+    "next": "b",
+    "why": "She is showing you a photo on her phone."
+   },
+   {
+    "id": "b",
+    "say": "他在国外工作，三年没回家了。我很想他。",
+    "translate": "He works abroad; he hasn't been home for three years. I miss him a lot.",
+    "simpler": "他在国外。我很想他。",
+    "expect": [
+     {
+      "intent": "call",
+      "match": [
+       [
+        "电话",
+        "打电话",
+        "视频"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "打电话",
+     "frame": "你给他___吧！",
+     "full": "你给他打电话吧！"
+    },
+    "why": "想 + a person is \"to miss\". 三年没回家 — \"three years not come home\": 没 with a time span before it means \"for that long, not\"."
+   },
+   {
+    "id": "c",
+    "say": "打电话？这个新手机，我不会……",
+    "translate": "Call him? This new phone — I can't work it…",
+    "simpler": "手机，我不会。",
+    "expect": [
+     {
+      "intent": "help",
+      "match": [
+       [
+        "帮",
+        "教",
+        "我来"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "帮",
+     "frame": "我___你！",
+     "full": "我帮你！"
+    }
+   },
+   {
+    "id": "d",
+    "say": "好！明天早上你来，我们一起给他打电话。",
+    "translate": "Good! Come tomorrow morning, and we'll call him together.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "story-wang",
+      "step": "call"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "wang-son-2",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "story-wang",
+     "step": "call"
+    },
+    {
+     "hours": [
+      7,
+      11
+     ]
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "{name}，你来了！手机在这儿，你来打吧。",
+    "translate": "{name}, you came! Here's the phone — you make the call.",
+    "simpler": "你来打电话吧。",
+    "expect": [
+     {
+      "intent": "call",
+      "match": [
+       [
+        "好",
+        "打",
+        "可以",
+        "没问题"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，我来打。",
+     "full": "好，我来打。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "喂？儿子！是妈妈！……你好吗？",
+    "translate": "Hello? Son! It's Mum! …How are you?",
+    "next": "c",
+    "why": "喂 (wéi) is how you answer or start a phone call."
+   },
+   {
+    "id": "c",
+    "say": "他说，今年他回家过年！",
+    "translate": "He says he's coming home for the New Year this year!",
+    "next": "d",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "wang-ayi",
+      "delta": 1
+     },
+     {
+      "do": "remember",
+      "npc": "wang-ayi",
+      "note": "helped her call her son"
+     }
+    ],
+    "why": "过年 — \"to pass the year\" — is spending the Spring Festival at home with family."
+   },
+   {
+    "id": "d",
+    "say": "谢谢你，{name}！你真是我的好孩子。",
+    "translate": "Thank you, {name}! You're like my own child.",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "story-wang"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "zhang-shop-1",
+  "map": "lifadian",
+  "npc": "zhang-shifu",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "hearts": "zhang-shifu",
+     "min": 3
+    },
+    {
+     "chapter": 2
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "理发店",
+    "explain": "给人做头发的店。",
+    "en": "barber shop"
+   },
+   {
+    "w": "照片",
+    "explain": "用手机拍的画。",
+    "en": "photo"
+   },
+   {
+    "w": "客人",
+    "explain": "来店里的人。",
+    "en": "customer"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "{name}，我的第一个理发店不在这儿。",
+    "translate": "{name}, my first barber shop wasn't here.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "story-zhang",
+      "step": "talk"
+     }
+    ],
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "那个理发店很小，里面有一个椅子。",
+    "translate": "That shop was tiny — one chair inside.",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "我的第一个客人是赵爷爷。三十年前！",
+    "translate": "My first customer was 赵爷爷. Thirty years ago!",
+    "next": "d",
+    "simpler": "第一个客人是赵爷爷。"
+   },
+   {
+    "id": "d",
+    "say": "现在那儿没有了。我也没有照片……",
+    "translate": "It's all gone now. And I don't have a photo…",
+    "expect": [
+     {
+      "intent": "ask",
+      "match": [
+       [
+        "赵爷爷",
+        "问"
+       ]
+      ],
+      "go": "e"
+     }
+    ],
+    "hint": {
+     "word": "赵爷爷",
+     "frame": "我去问___！",
+     "full": "我去问赵爷爷！"
+    },
+    "why": "Maybe his first customer kept something from those days?"
+   },
+   {
+    "id": "e",
+    "say": "好啊，你去问问他，他有没有照片。",
+    "translate": "Good idea — go and ask him if he has a photo.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "story-zhang",
+      "step": "ask"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "zhang-shop-zhao",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "quest": "story-zhang",
+   "step": "ask"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "理发店",
+    "explain": "给人做头发的店。",
+    "en": "barber shop"
+   },
+   {
+    "w": "照片",
+    "explain": "用手机拍的画。",
+    "en": "photo"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "张师傅的第一个理发店？我有照片！",
+    "translate": "张师傅's first barber shop? I have a photo!",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "你看，这是三十年前的理发店的照片。有张师傅，也有我。",
+    "translate": "Look — a photo of the shop thirty years ago. There's 张师傅, and me.",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "lao-zhaopian"
+     },
+     {
+      "do": "quest",
+      "quest": "story-zhang",
+      "step": "bring"
+     }
+    ],
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "你拿给他看吧！",
+    "translate": "Take it and show him!"
+   }
+  ]
+ },
+ {
+  "id": "zhang-shop-2",
+  "map": "lifadian",
+  "npc": "zhang-shifu",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "story-zhang",
+     "step": "bring"
+    },
+    {
+     "item": "lao-zhaopian"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "理发店",
+    "explain": "给人做头发的店。",
+    "en": "barber shop"
+   },
+   {
+    "w": "照片",
+    "explain": "用手机拍的画。",
+    "en": "photo"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你手里是什么？",
+    "translate": "What's that in your hand?",
+    "expect": [
+     {
+      "intent": "photo",
+      "match": [
+       [
+        "照片",
+        "赵爷爷"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "take",
+        "item": "lao-zhaopian"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "照片",
+     "frame": "这是你的理发店的___。",
+     "full": "这是你的理发店的照片。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "这是我的第一个理发店！那个时候我二十岁……",
+    "translate": "My first barber shop! I was twenty then…",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "谢谢你，{name}。我每天都要看这个照片。",
+    "translate": "Thank you, {name}. I will look at this photo every day.",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "zhang-shifu",
+      "delta": 1
+     },
+     {
+      "do": "remember",
+      "npc": "zhang-shifu",
+      "note": "brought him the photo of his first shop"
+     },
+     {
+      "do": "quest_done",
+      "quest": "story-zhang"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "zhao-bird-1",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "hearts": "zhao-yeye",
+     "min": 3
+    },
+    {
+     "flag": "bird-back"
+    },
+    {
+     "hours": [
+      9,
+      18
+     ]
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "{name}，这只鸟是我妻子的。",
+    "translate": "{name}, this bird was my wife's.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "story-bird",
+      "step": "talk"
+     }
+    ],
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "她走了，鸟也不唱了。",
+    "translate": "She has passed away, and the bird does not sing any more.",
+    "next": "c",
+    "why": "走了 — \"has gone\" — is a soft way to say someone has died."
+   },
+   {
+    "id": "c",
+    "say": "每天早上，她在鼓楼唱歌，鸟也唱。",
+    "translate": "Every morning she sang at 鼓楼, and the bird sang too.",
+    "simpler": "她早上在鼓楼唱歌。",
+    "expect": [
+     {
+      "intent": "go",
+      "match": [
+       [
+        "鼓楼",
+        "早上",
+        "一起"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "鼓楼",
+     "frame": "明天早上我们去___吧！",
+     "full": "明天早上我们去鼓楼吧！"
+    }
+   },
+   {
+    "id": "d",
+    "say": "好，明天早上，鼓楼见。",
+    "translate": "All right. Tomorrow morning, at 鼓楼.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "story-bird",
+      "step": "morning"
+     }
+    ]
+   }
+  ],
+  "words": [
+   {
+    "w": "鸟",
+    "explain": "会唱歌的小动物。",
+    "en": "bird"
+   }
+  ]
+ },
+ {
+  "id": "zhao-bird-2",
+  "map": "gulou-square",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "all": [
+    {
+     "quest": "story-bird",
+     "step": "morning"
+    },
+    {
+     "hours": [
+      6,
+      9
+     ]
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你来了！你听，鸟……",
+    "translate": "You came! Listen — the bird…",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "鸟唱了！它唱歌了！",
+    "translate": "The bird is singing! It's singing!",
+    "next": "c",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "zhao-yeye",
+      "delta": 1
+     },
+     {
+      "do": "remember",
+      "npc": "zhao-yeye",
+      "note": "heard his bird sing again on 鼓楼"
+     }
+    ]
+   },
+   {
+    "id": "c",
+    "say": "谢谢你，{name}。她也在这儿，对吧？",
+    "translate": "Thank you, {name}. She is here too, isn’t she?",
+    "onEnter": [
+     {
+      "do": "quest_done",
+      "quest": "story-bird"
+     }
+    ]
+   }
+  ],
+  "words": [
+   {
+    "w": "鸟",
+    "explain": "会唱歌的小动物。",
+    "en": "bird"
    }
   ]
  }

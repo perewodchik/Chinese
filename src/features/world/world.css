@@ -1375,3 +1375,18 @@
   margin-top: 6px;
   justify-self: start;
 }
+
+/* friendship hearts (X2): always five wide, so nothing shifts as they fill */
+.w-hearts {
+  flex: none;
+  display: inline-flex;
+  gap: 1px;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.w-hearts [data-on] {
+  color: var(--accent);
+}

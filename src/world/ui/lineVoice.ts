@@ -1,7 +1,7 @@
 import { playBytes, playBytesAtPace, say } from '../../platform/audio/voiceOut';
 import type { Line } from '../core/dialogue/source';
 import type { NpcCard } from '../core/types';
-import { voiceKey, voiceOf } from '../core/voice';
+import { spoken, voiceKey, voiceOf } from '../core/voice';
 
 /**
  * Plays an NPC's line in their voice (prompt G2): the clip rendered for it
@@ -30,7 +30,8 @@ export async function playLine(line: Line, slower = false): Promise<void> {
   const slow = slower || !!line.slow;
   try {
     const keys = await loadIndex();
-    const key = voice ? voiceKey(voice, line.zh) : null;
+    // a line with the player's name in it has a clip of the line without it
+    const key = voice ? voiceKey(voice, line.tpl ? spoken(line.tpl) : line.zh) : null;
     if (key && keys.has(key)) {
       const bytes = await (await fetch(`/world/voice/${key}.mp3`)).arrayBuffer();
       await (slow ? playBytesAtPace(bytes, 0.75) : playBytes(bytes));

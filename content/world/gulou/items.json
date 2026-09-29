@@ -73,5 +73,10 @@
     "id": "shouji",
     "name": "手机",
     "en": "your phone"
+  },
+  {
+    "id": "lao-zhaopian",
+    "name": "老照片",
+    "en": "an old photo of the first barber shop"
   }
 ]

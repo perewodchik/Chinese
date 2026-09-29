@@ -38,7 +38,11 @@ export type Condition =
   | { spirit: string }
   | { idiom: string }
   | { station: string }
-  | { met: string };
+  | { met: string }
+  /** friendship with a person is at least `min` hearts (X2) */
+  | { hearts: string; min: number }
+  /** the person remembers this note (X2), e.g. that you told them your name */
+  | { remembers: string; note: string };
 
 export type Action =
   | { do: 'flag'; flag: string; value?: boolean }
@@ -148,6 +152,8 @@ export interface Expect {
   match: string[][];
   /** the next node; none ends the conversation */
   go?: string;
+  /** keep something from what the player said: `name` — the name after 我叫 / 我是 (X2) */
+  capture?: 'name';
   actions?: Action[];
   end?: boolean;
 }
@@ -333,6 +339,8 @@ export interface NpcMemory {
   hearts: number;
   /** the game day of the last gift (one a day), 0 for never */
   gift: number;
+  /** the game day a talk last warmed friendship (one heart a day from talking), 0 for never */
+  talk: number;
 }
 
 export interface WorldSave {
@@ -344,6 +352,8 @@ export interface WorldSave {
 
   place: Place;
   district: string;
+  /** what the player told 王阿姨 their name was (X2); '' before */
+  name: string;
   /** game minutes since day 1 00:00 */
   clock: number;
   chapter: number;
