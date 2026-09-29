@@ -17,6 +17,8 @@ import { holds } from '../../src/world/core/flags';
 import { newSave } from '../../src/world/core/save';
 import type { MapObject, NpcCard, PartOfDay, Tile } from '../../src/world/core/types';
 import { DAY_LOOK, zoomFor } from '../../src/world/engine/look';
+import { heroFrame, toRgba, type WornOutfit } from '../../src/world/art/hero';
+import type { HeroLook } from '../../src/world/core/looks';
 import type { AtlasJson } from './art/pack';
 import { blank, decodePng, encodePng, type Image } from './art/png';
 
@@ -58,8 +60,14 @@ function frame(dst: Image, s: Sheet, name: string, x: number, y: number) {
   blit(dst, s.img, f.frame.x, f.frame.y, f.frame.w, f.frame.h, x, y - f.frame.h);
 }
 
-export function renderMap(mapId: string, width: number, height: number, time: PartOfDay, hero: Tile, focus: Tile = hero): Image {
-  const world = drawWorld(mapId, time, hero);
+/** The player as they look (W1): their own look and clothes instead of the atlas's plain hero. */
+export interface Me {
+  look: HeroLook;
+  worn: WornOutfit;
+}
+
+export function renderMap(mapId: string, width: number, height: number, time: PartOfDay, hero: Tile, focus: Tile = hero, me?: Me): Image {
+  const world = drawWorld(mapId, time, hero, me);
   const W = world.width;
   const H = world.height;
   // the camera: integer zoom, centred on the hero, clamped to the map
@@ -88,7 +96,7 @@ export function renderMap(mapId: string, width: number, height: number, time: Pa
 }
 
 /** The whole map at one pixel per pixel (16 per tile), without a camera; no hero when `hero` is null (the city map's miniatures). */
-export function drawWorld(mapId: string, time: PartOfDay, hero: Tile | null): Image {
+export function drawWorld(mapId: string, time: PartOfDay, hero: Tile | null, me?: Me): Image {
   const look = DAY_LOOK[time];
   const map = JSON.parse(readFileSync(`public/world/maps/${mapId}.json`, 'utf8'));
   const names = (JSON.parse(readFileSync('public/world/art/tiles-set.json', 'utf8')).names as string[]).map((n) => n.replace(/^[^/]+\//, ''));
@@ -151,7 +159,11 @@ export function drawWorld(mapId: string, time: PartOfDay, hero: Tile | null): Im
   if (hero) {
     const hx = hero[0] * T;
     const hy = (hero[1] + 1) * T;
-    draws.push({ y: hy + 0.5, draw: () => frame(world, chars, 'hero/down-0', hx, hy + 3) });
+    if (me) {
+      // the same composer the game uses (src/world/art/hero.ts)
+      const img: Image = { width: 16, height: 32, data: new Uint8Array(toRgba(heroFrame(me.look, me.worn, 'down', 0)).buffer) };
+      draws.push({ y: hy + 0.5, draw: () => blit(world, img, 0, 0, 16, 32, hx, hy + 3 - 32) });
+    } else draws.push({ y: hy + 0.5, draw: () => frame(world, chars, 'hero/down-0', hx, hy + 3) });
     draws.push({ y: hy + 0.6, draw: () => frame(world, chars, 'rabbit/down-0', hx + 12, hy - 18) });
   }
   draws.sort((a, b) => a.y - b.y).forEach((d) => d.draw());

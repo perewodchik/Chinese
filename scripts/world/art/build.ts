@@ -15,6 +15,7 @@ import { pathToFileURL } from 'node:url';
 import { pack, type Packable } from './pack';
 import { blank, encodePng } from './png';
 import { parsePx, render } from './px';
+import { buildOutfitAtlas } from './outfit';
 
 export const SPRITES = 'content/world/art/sprites';
 export const OUT = 'public/world/art';
@@ -86,4 +87,6 @@ export function buildAll(src = SPRITES, out = OUT): string[] {
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   for (const line of buildAll()) console.log(line);
+  // the hero's layers (W1): drawn by code, not from .px files
+  console.log(`outfit: ${buildOutfitAtlas()} strips`);
 }

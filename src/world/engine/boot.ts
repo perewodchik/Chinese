@@ -5,6 +5,7 @@
 
 import type { Facing, MapObject, PartOfDay } from '../core/types';
 import type { Arrival } from './doors';
+import type { HeroDress } from './look';
 import type { SceneOptions, WorldScene as Scene } from './scene';
 
 export interface RunningWorld {
@@ -26,6 +27,8 @@ export interface RunningWorld {
   /** the part of the map on screen, in tiles, and a zoom step for photos (X6) */
   view(): { x: number; y: number; w: number; h: number } | null;
   zoomBy(d: 1 | -1): void;
+  /** the player's clothes or look changed (W4): draw them */
+  setDress(d: HeroDress): void;
   /** 兔儿爷: today's hat, and a feeling for a moment (X7) */
   setHat(kind: 'none' | 'snow' | 'flower' | 'armour'): void;
   emote(kind: 'happy' | 'sulky' | 'sleepy' | 'proud' | 'blush', ms?: number): void;
@@ -72,6 +75,7 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions, snapsh
     setSky: (kind) => (game.scene.getScene('world') as Scene | null)?.setSky(kind),
     view: () => (game.scene.getScene('world') as Scene | null)?.viewTiles() ?? null,
     zoomBy: (d) => (game.scene.getScene('world') as Scene | null)?.zoomStep(d),
+    setDress: (d) => (game.scene.getScene('world') as Scene | null)?.setDress(d),
     setHat: (kind) => (game.scene.getScene('world') as Scene | null)?.setHat(kind),
     emote: (kind, ms) => (game.scene.getScene('world') as Scene | null)?.showEmote(kind, ms),
     snapshot: () =>

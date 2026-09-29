@@ -13,7 +13,7 @@ import * as Phaser from 'phaser';
 import { ahead, walkable, walkTo } from '../core/grid';
 import { rabbitSpot } from '../core/rabbit';
 import type { Facing, MapObject, PartOfDay, Tile } from '../core/types';
-import { DAY_LOOK, zoomFor } from './look';
+import { composeHero, DAY_LOOK, zoomFor, type HeroDress } from './look';
 import { edgeAt, resolveArrival, throughEdge, type Arrival, type Door } from './doors';
 import { crowdTrip, facingOf, idleNext, PASSERS, pigeonSpots, rand, scared, type Rand } from './life';
 import { readMap, type MapInfo } from './mapdata';
@@ -67,6 +67,8 @@ export interface SceneOptions {
   butterflies?: () => boolean;
   /** whether the named 胡同 cat walks a step behind you on a map (X5) */
   pet?: (map: string) => boolean;
+  /** the player's own look and clothes (W1), read at every map; the plain atlas hero without it */
+  dress?: () => HeroDress | null;
   /** the "show what I can use" setting: which people and things get a small mark over them; off without it */
   hints?: ((o: MapObject) => boolean) | null;
 }
@@ -231,7 +233,8 @@ export class WorldScene extends Phaser.Scene {
     });
 
     const { x, y } = feet(this.at);
-    this.hero = this.add.sprite(x, y + 3, 'chars', `hero/${this.facing}-0`).setOrigin(0, 1).setDepth(y + 0.5);
+    const dress = this.opts.dress?.();
+    this.hero = this.add.sprite(x, y + 3, dress ? composeHero(this.textures, dress) : 'chars', `hero/${this.facing}-0`).setOrigin(0, 1).setDepth(y + 0.5);
     this.rabbit = this.add.sprite(x, y, 'chars', 'rabbit/down-0').setOrigin(0, 1);
     this.rabbitAt = null;
     this.bikeSprite = null;
@@ -392,6 +395,12 @@ export class WorldScene extends Phaser.Scene {
     this.blush?.setPosition(r.x, r.y + bob).setDepth(r.depth + 0.02);
     this.emote?.setPosition(r.x, r.y - 14).setDepth(20_003);
     if (this.hat) this.hat.y = r.y + bob;
+  }
+
+  /** New clothes or a new look (W4): the hero's texture is swapped, the frame kept. */
+  setDress(d: HeroDress) {
+    if (!this.hero) return;
+    this.hero.setTexture(composeHero(this.textures, d), this.hero.frame.name);
   }
 
   setHat(kind: 'none' | 'snow' | 'flower' | 'armour') {
