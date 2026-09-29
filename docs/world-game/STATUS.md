@@ -39,7 +39,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1–K3, Q1–Q3 done (2026-09-30) — continue at V1. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
+§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1–K3, Q1–Q3, V1 done (2026-09-30) — continue at V2. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
 
 ## Tasks
 ### A — core logic
@@ -169,7 +169,7 @@ first unchecked box. Tick a box in the same commit as the work.
 - [x] Q1 Explicit side quests: marks over people, Journal → Side (no vague leads), counts on the metro map, arrival + chapter-end nudges
 - [x] Q2 Sleep until a day / festival; general "wait here"
 - [x] Q3 "Last time" recap card with the last session's words
-- [ ] V1 CC0 packs (license checked, credited, recoloured)
+- [x] V1 CC0 packs (license checked, credited, recoloured) — Kenney RPG Urban Pack only; placing them is V2/T/V5
 - [ ] V2 Beijing architecture kit (3/4 roofs by rank and type, temple set, street props, N–S streets)
 - [ ] V3 Animation everywhere (animated tiles/props, NPC idle actions, seasons on tiles, light pools, depth-sort fix)
 - [ ] V4 Spirits redrawn + woodcut pictures; hero 4-frame walk through the composer
@@ -331,6 +331,7 @@ _(date — decision — why)_
 - 2026-09-30 — Q1: the chapter-end nudge is a small card with **Go on** and **Not yet**; "Not yet" puts the finale off until your next arrival anywhere (it is never lost, never blocks). The nudge covers the neighbourhoods the chapter's main steps walk through. The arrival line is once per neighbourhood per chapter, kept in `seen` (`nudge:<hood>:<chapter>`).
 - 2026-09-30 — Q2: the calendar has no weekdays (a game day is a week of the year), so 「睡到星期六早上」 became **「睡到中秋节」 for a festival, else 「睡到9月24号」** (the date the calendar shows). The bed's variant is built by the page from the `bed` scene (`bedScene`), so the answer is *said*, like everything else; plain 睡觉 still works. "Wait here" is offered only where you can sit (a stool, a tea table, a table, a barber's chair, the parks and the 鼓楼 square) — waiting in the middle of a lane would feel like a cheat. A day slept through writes 「这一天我在家休息。」 (diary code `q`).
 - 2026-09-30 — Q3: **save v14** adds `lastWords` (the last session's words, eight at most; upgrade 13 → 14 gives an empty list; merge takes the later device's). "The words of the last session" = each finished talk's situation words and its hints' key words (at most four per talk) — the words the talk was built to teach, not every word heard. "Away" = the save last changed twelve or more real hours ago (`updatedAt`).
+- 2026-09-30 — V1: **only Kenney's RPG Urban Pack (CC0) is used.** Tiny Town (CC0) has thick dark outlines on its ground tiles; Ninja Adventure's itch.io page answered 403, so its license could not be read and it is not used; the pack's cars are drawn from straight above and fight the 3/4 view. 20 generic frames (lamps, bus-stop sign, traffic lights, bins, bench, hydrant, hedges, crates, barrier, trees) are in the props atlas, recoloured with per-frame letter swaps; the autumn trees became gold ginkgo 银杏 for V3's Beijing autumn. Placing them is left to V2/T/V5, where each map is looked at.
 
 ## Problems / notes
 _(anything blocked, skipped, or failing in someone else's code)_
