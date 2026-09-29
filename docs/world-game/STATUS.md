@@ -40,7 +40,7 @@ first unchecked box. Tick a box in the same commit as the work.
 **Try first:** start `hanzi-workshop-mac-world`, open `/play/world` on the Mac, play chapter 1 to the stone lion (≈ 20 min), then on the iPad: the card on /play → Continue → check that the save came across.
 
 ## Current task
-§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1–K3, Q1–Q3, V1–V4, T1–T4 done (2026-09-30) — continue at T5. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
+§13 (one long story, cutscenes, temples, books, substories, own bike, city sounds) — Z0, K1–K3, Q1–Q3, V1–V4, T1–T5 done (2026-09-30) — continue at B1. The learner approved CC0-only art packs and chose to deepen the chapters, not rewrite them (2026-09-29 night). §12 is done (W1–W7); the X12 play-through and M6 still wait for the learner, after §13.
 
 ## Tasks
 ### A — core logic
@@ -178,7 +178,7 @@ first unchecked box. Tick a box in the same commit as the work.
 - [x] T2 什刹海 · 银锭桥 · 恭王府 gate · 北海 白塔 · 景山 pavilions
 - [x] T3 Temples: 雍和宫 (2 maps), 孔庙, 天坛 祈年殿 + 圜丘, 白云观, 东岳庙, 地坛 庙会
 - [x] T4 王府井 · 前门/大栅栏 · 故宫 axis realism pass
-- [ ] T5 Map checks and before/after renders
+- [x] T5 Map checks and before/after renders (offline renders; the browser map-probe needs a dev server)
 - [ ] B1 Book format + reader + 书架 + Collection 书 view (books themselves are written in S/U/L)
 - [ ] S1 Ch. 1 新家 deepened (+ save v14 step/chapter upgrade)
 - [ ] S2 Ch. 2 水与山

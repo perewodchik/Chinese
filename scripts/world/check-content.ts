@@ -21,7 +21,8 @@ import type { DistrictContent } from '../../src/world/core/types';
 import { checkClothes, parseClothes } from '../../src/world/core/clothes';
 import { EMPTY_CLOTHES, type ClothesContent } from '../../src/world/core/wardrobe';
 import { GARMENT_ART } from '../../src/world/art/hero';
-import { coverage, coverageProblems, mapIds, readBooks } from './coverage';
+import { coverage, COVERAGE_EXCEPTIONS, coverageProblems, mapIds, readBooks } from './coverage';
+import { HOODS } from '../../src/world/core/hoods';
 import { checkCutscene, checkCutsceneLinks } from '../../src/world/core/cutscene';
 import { gridFromLayer } from '../../src/world/core/grid';
 import { loadAll } from './build-maps';
@@ -156,6 +157,16 @@ export function checkContent(contentRoot: string, lib: Library): CheckResult {
   errors.push(
     ...checkCutsceneLinks(cutscenes.map((x) => x.cs), districts.flatMap((d) => d.scenes), districts.flatMap((d) => d.quests), new Set(districts.flatMap((d) => d.district.maps))).map((e) => `cutscenes: ${e}`),
   );
+  // §13 T5: every map is in a district and a neighbourhood (M1), and has its thumbnail (the plans draw it)
+  const inDistrict = new Set(districts.flatMap((d) => d.district.maps));
+  const inHood = new Set(HOODS.flatMap((h) => h.maps));
+  const minis = join(contentRoot, '..', '..', 'public/world/minis');
+  for (const m of mapIds(contentRoot)) {
+    if (m in COVERAGE_EXCEPTIONS) continue;
+    if (!inDistrict.has(m)) errors.push(`maps: ${m} is in no district's district.json`);
+    if (!inHood.has(m)) errors.push(`maps: ${m} is in no neighbourhood (src/world/core/hoods.ts)`);
+    if (existsSync(minis) && !existsSync(join(minis, `${m}.png`))) errors.push(`maps: ${m} has no thumbnail — run npm run world:minis`);
+  }
   // §13 Z0: every map on some chapter's main route — strict only once the chapters are deepened (S10)
   if (process.env.WORLD_COVERAGE === 'strict') errors.push(...coverageProblems(coverage(districts, readBooks(contentRoot), mapIds(contentRoot))).map((e) => `coverage: ${e}`));
   const budget = checkBudget({ leveler: libraryLeveler(lib), all: districts });

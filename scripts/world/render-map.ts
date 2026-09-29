@@ -98,7 +98,8 @@ export function renderMap(mapId: string, width: number, height: number, time: Pa
 /** The whole map at one pixel per pixel (16 per tile), without a camera; no hero when `hero` is null (the city map's miniatures). */
 export function drawWorld(mapId: string, time: PartOfDay, hero: Tile | null, me?: Me): Image {
   const look = DAY_LOOK[time];
-  const map = JSON.parse(readFileSync(`public/world/maps/${mapId}.json`, 'utf8'));
+  // RENDER_MAP_FILE renders another build of the map (a before/after pair from git, §13 T5)
+  const map = JSON.parse(readFileSync(process.env.RENDER_MAP_FILE ?? `public/world/maps/${mapId}.json`, 'utf8'));
   const names = (JSON.parse(readFileSync('public/world/art/tiles-set.json', 'utf8')).names as string[]).map((n) => n.replace(/^[^/]+\//, ''));
   const set = decodePng(read('public/world/art/tiles-set.png'));
   const chars = sheet('chars');
