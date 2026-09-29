@@ -28,10 +28,17 @@ function byKey<T>(a: Record<string, T>, b: Record<string, T>, pick: (x: T, y: T)
   return out;
 }
 
-const further = (x: QuestState, y: QuestState): QuestState => {
+const furthest = (x: QuestState, y: QuestState): QuestState => {
   if (x.done !== y.done) return x.done ? x : y;
   if (x.index !== y.index) return x.index > y.index ? x : y;
   return x.step <= y.step ? x : y;
+};
+
+/** The further step of the two; each step's `at` stamp is the earlier minute either device saw it (§10 J1). */
+const further = (x: QuestState, y: QuestState): QuestState => {
+  const { at: _x, ...base } = furthest(x, y);
+  if (!x.at && !y.at) return base;
+  return { ...base, at: byKey(x.at ?? {}, y.at ?? {}, Math.min) };
 };
 
 const riddle = (x: Riddle, y: Riddle): Riddle => ({

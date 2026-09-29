@@ -3,10 +3,16 @@
     "id": "side-brush",
     "title": "A brush for the scholar",
     "chapter": 4,
+    "kind": "side",
+    "giver": "lao-xiansheng",
+    "blurb": "An old scholar at 国子监 wants a good brush to write with again.",
+    "lead": "An old scholar at 国子监 looks at his worn-out brush.",
     "steps": [
       {
         "id": "buy",
         "now": "The old scholar at 国子监 wants a writing brush 毛笔. The bookshop on 王府井 sells them.",
+        "past": "Bought a writing brush at the 王府井 bookshop.",
+        "where": "shudian",
         "done": {
           "any": [
             {
@@ -21,6 +27,8 @@
       {
         "id": "give",
         "now": "Bring the brush to the scholar at 国子监.",
+        "past": "Brought the scholar his new brush.",
+        "where": "guozijian",
         "done": {
           "flag": "brush-given"
         }
@@ -31,10 +39,16 @@
     "id": "side-kong",
     "title": "《孔乙己》 — the character 回",
     "chapter": 4,
+    "kind": "side",
+    "giver": "kong-xiansheng",
+    "blurb": "Like 孔乙己 in the old story, a scholar knows four ways to write 回 and wants to see yours.",
+    "lead": "A scholar in the Academy courtyard mutters about the character 回.",
     "steps": [
       {
         "id": "do",
-        "now": "An old scholar in the Academy courtyard wants to see you write 回."
+        "now": "An old scholar in the Academy courtyard wants to see you write 回.",
+        "past": "Wrote 回 for the old scholar.",
+        "where": "guozijian"
       }
     ]
   }

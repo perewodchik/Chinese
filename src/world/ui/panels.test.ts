@@ -13,8 +13,8 @@ const ctx = { now: 1 };
 const fresh = () => newSave('d', 0);
 
 const quests: Quest[] = [
-  { id: 'arrive', title: 'A new home', chapter: 1, steps: [{ id: 'meet', now: 'Say hello to 王阿姨.' }, { id: 'eat', now: 'Find breakfast.' }] },
-  { id: 'done-one', title: 'Old', chapter: 1, steps: [{ id: 'x', now: 'x' }] },
+  { id: 'arrive', title: 'A new home', chapter: 1, kind: 'main', steps: [{ id: 'meet', past: '', now: 'Say hello to 王阿姨.' }, { id: 'eat', past: '', now: 'Find breakfast.' }] },
+  { id: 'done-one', title: 'Old', chapter: 1, kind: 'main', steps: [{ id: 'x', past: '', now: 'x' }] },
 ];
 const scene: Scene = {
   id: 'rumour',

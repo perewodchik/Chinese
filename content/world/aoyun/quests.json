@@ -3,10 +3,16 @@
     "id": "side-run",
     "title": "A run round the park",
     "chapter": 5,
+    "kind": "side",
+    "giver": "paobu-dashu",
+    "blurb": "A jogger at the Olympic Park runs every day and would like company for one lap.",
+    "lead": "A jogger at 奥林匹克公园 keeps looking round for someone to run with.",
     "steps": [
       {
         "id": "run",
         "now": "The jogger wants company for a lap of the park.",
+        "past": "Ran a lap of the Olympic Park with the jogger.",
+        "where": "olympic-park",
         "done": {
           "flag": "ran"
         }

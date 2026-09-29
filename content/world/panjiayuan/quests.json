@@ -3,10 +3,16 @@
     "id": "side-map",
     "title": "An old map of Beijing",
     "chapter": 6,
+    "kind": "side",
+    "giver": "panjiayuan-dashu",
+    "blurb": "An old map of Beijing at 潘家园 shows the city walls that are gone.",
+    "lead": "The book-seller at 潘家园 has something old rolled up on his stall.",
     "steps": [
       {
         "id": "buy",
         "now": "The book-seller at 潘家园 has an old map of Beijing — bargain for it.",
+        "past": "Bargained for an old map of Beijing at 潘家园.",
+        "where": "panjiayuan-market",
         "done": {
           "item": "ditu"
         }

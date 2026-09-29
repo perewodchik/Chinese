@@ -16,6 +16,7 @@ import { pathToFileURL } from 'node:url';
 import type { CharacterEntry, Library, SyllabusWord } from '../../src/data/types';
 import { checkBudget, formatProblem, libraryLeveler, type BudgetProblem } from '../../src/world/core/budget';
 import { checkReferences, DISTRICT_FILES, parseDistrict, type DistrictFiles } from '../../src/world/core/content';
+import { checkJournal } from '../../src/world/core/journal';
 import type { DistrictContent } from '../../src/world/core/types';
 
 export interface CheckResult {
@@ -89,6 +90,13 @@ export function checkContent(contentRoot: string, lib: Library): CheckResult {
         seen.set(x.id, d.district.id);
       }
     }
+  }
+  // The journal (§10 J1): kinds, blurbs, a place for every main step, real maps in `where`.
+  const mapsDir = join(contentRoot, 'maps');
+  const maps = new Set(existsSync(mapsDir) ? readdirSync(mapsDir).filter((f) => f.endsWith('.map.txt')).map((f) => f.replace(/\.map\.txt$/, '')) : []);
+  if (maps.size) {
+    const all = { quests: districts.flatMap((d) => d.quests), scenes: districts.flatMap((d) => d.scenes), npcs: districts.flatMap((d) => d.npcs), shops: districts.flatMap((d) => d.shops ?? []) };
+    errors.push(...checkJournal(all, maps).map((e) => `quests.json: ${e}`));
   }
   const budget = checkBudget({ leveler: libraryLeveler(lib), all: districts });
   return { districts, errors: [...new Set(errors)], budget };

@@ -13,7 +13,7 @@ import { feedCat, fits, NO_CAT } from './room';
 import { MAX_SUBJECTS } from './photo';
 import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
 
-export const WORLD_SAVE_VERSION = 9;
+export const WORLD_SAVE_VERSION = 10;
 /** how many payments the 账单 keeps */
 export const BILLS = 20;
 
@@ -109,6 +109,10 @@ const withFlag = (flags: string[], flag: string, on: boolean) =>
   on ? (flags.includes(flag) ? flags : [...flags, flag]) : flags.includes(flag) ? flags.filter((f) => f !== flag) : flags;
 const addOnce = (list: string[], v: string) => (list.includes(v) ? list : [...list, v]);
 
+/** The `QuestState.at` key for the minute a quest was finished (step ids are latin, so it cannot clash). */
+export const DONE_AT = '$done';
+const stamp = (at: Record<string, number> | undefined, key: string, clock: number) => (at?.[key] !== undefined ? at : { ...at, [key]: Math.floor(clock) });
+
 /** `scene/node` → its parts; a riddle id without a slash is its own scene. */
 export function riddleParts(riddle: string): { scene: string; node: string } {
   const i = riddle.indexOf('/');
@@ -166,7 +170,9 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
       const cur = s.quests[a.quest];
       // A quest only moves forward: replaying an old scene cannot take it back.
       if (cur && (cur.done || cur.index > index)) return s;
-      return { ...s, quests: { ...s.quests, [a.quest]: { step: a.step, index, done: false } } };
+      // the journal's clock (§10 J1): when each step was reached
+      const at = stamp(cur?.at, a.step, s.clock);
+      return { ...s, quests: { ...s.quests, [a.quest]: { step: a.step, index, done: false, at } } };
     }
     case 'quest_done': {
       const cur = s.quests[a.quest];
@@ -175,6 +181,7 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
         step: last?.id ?? cur?.step ?? 'done',
         index: last ? (ctx.quests!.get(a.quest)!.steps.length - 1) : (cur?.index ?? 0),
         done: true,
+        at: stamp(cur?.at, DONE_AT, s.clock),
       };
       return { ...s, quests: { ...s.quests, [a.quest]: done } };
     }

@@ -8,10 +8,11 @@ const quest: Quest = {
   id: 'breakfast',
   title: 'Breakfast',
   chapter: 1,
+  kind: 'main',
   steps: [
-    { id: 'go', now: 'Go to the 早点铺.' },
-    { id: 'order', now: 'Order.' },
-    { id: 'pay', now: 'Pay.' },
+    { id: 'go', past: '', now: 'Go to the 早点铺.' },
+    { id: 'order', past: '', now: 'Order.' },
+    { id: 'pay', past: '', now: 'Pay.' },
   ],
 };
 const ctx: ApplyContext = { now: 2000, deviceId: 'ipad', quests: new Map([[quest.id, quest]]) };
@@ -79,11 +80,14 @@ describe('apply', () => {
 
   it('moves quests forward only, then finishes them', () => {
     let s = apply(fresh(), { do: 'quest', quest: 'breakfast', step: 'order' }, ctx);
-    assert.deepEqual(s.quests.breakfast, { step: 'order', index: 1, done: false });
+    const t0 = s.clock;
+    assert.deepEqual(s.quests.breakfast, { step: 'order', index: 1, done: false, at: { order: t0 } });
     s = apply(s, { do: 'quest', quest: 'breakfast', step: 'go' }, ctx);
     assert.equal(s.quests.breakfast.step, 'order');
+    s = apply(s, { do: 'tick', minutes: t0 + 90 }, ctx);
     s = apply(s, { do: 'quest_done', quest: 'breakfast' }, ctx);
-    assert.deepEqual(s.quests.breakfast, { step: 'pay', index: 2, done: true });
+    // the journal's stamps (§10 J1): when each step was reached, and when it was finished
+    assert.deepEqual(s.quests.breakfast, { step: 'pay', index: 2, done: true, at: { order: t0, $done: t0 + 90 } });
     assert.equal(apply(s, { do: 'quest', quest: 'breakfast', step: 'pay' }, ctx), s);
   });
 

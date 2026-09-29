@@ -288,6 +288,12 @@ export interface QuestStep {
   id: string;
   /** the companion's "What now?", English */
   now: string;
+  /** the step told afterwards, in the journal: past tense, first person, one line (§10 J1) */
+  past: string;
+  /** where the step happens, when `done` names no place (a flag, an item); `anywhere` when it truly has none */
+  where?: string;
+  /** timing the player must know: "after dark", "open 9:00–17:00", "at 春节" */
+  when?: string;
   /** the step is finished when this holds (checked after every action) */
   done?: Condition;
 }
@@ -296,6 +302,14 @@ export interface Quest {
   id: string;
   title: string;
   chapter: number;
+  /** the story (`ch1`…`ch7`, `epilogue`) or a side quest (§10 J1) */
+  kind: 'main' | 'side';
+  /** who asks for it (an NPC id) */
+  giver?: string;
+  /** 1–2 English sentences: what it is about, and why it matters to the giver (required on side quests) */
+  blurb?: string;
+  /** the vague hint the journal shows before it starts — a person or a place, never the answer */
+  lead?: string;
   steps: QuestStep[];
   /** actions when the last step is done */
   reward?: Action[];

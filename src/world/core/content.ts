@@ -227,7 +227,13 @@ export const questSchema: z.ZodType<Quest> = z.strictObject({
   id,
   title: text,
   chapter: z.number().int().min(1),
-  steps: z.array(z.strictObject({ id, now: text, done: conditionSchema.optional() })).min(1),
+  kind: z.enum(['main', 'side']),
+  giver: id.optional(),
+  blurb: text.optional(),
+  lead: text.optional(),
+  steps: z
+    .array(z.strictObject({ id, now: text, past: text, where: id.optional(), when: text.optional(), done: conditionSchema.optional() }))
+    .min(1),
   reward: z.array(actionSchema).optional(),
 });
 

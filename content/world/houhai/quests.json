@@ -3,10 +3,12 @@
     "id": "ch2",
     "title": "Water and the hill",
     "chapter": 2,
+    "kind": "main",
     "steps": [
       {
         "id": "go-houhai",
         "now": "兔儿爷 smells a spirit by the water. Walk west from the 鼓楼 square along 烟袋斜街 to 后海 — or ride line 8 one stop to 什刹海.",
+        "past": "Followed 兔儿爷's nose to the water at 后海.",
         "done": {
           "scene": "houhai-arrive"
         }
@@ -14,6 +16,8 @@
       {
         "id": "rumour",
         "now": "Ask the old man fishing by the lake what he saw last night.",
+        "past": "The old fisherman told me what he saw on the lake last night.",
+        "where": "houhai-lake",
         "done": {
           "flag": "heard-fox"
         }
@@ -21,6 +25,8 @@
       {
         "id": "jingshan",
         "now": "The fox went towards 景山. Cross 银锭桥, walk along 北海 and climb 景山 to the pavilion — someone up there sees everything.",
+        "past": "Climbed 景山 to the pavilion, where someone sees everything.",
+        "where": "jingshan-view",
         "done": {
           "flag": "saw-corner"
         }
@@ -28,6 +34,9 @@
       {
         "id": "fox",
         "now": "“故宫西北角附近” — near the north-west corner of the palace: the corner tower 角楼, down the south side of 景山. Go after dark; the bench on 景山 is a good place to wait.",
+        "past": "Waited for dark by the corner tower and met the fox with nine tails.",
+        "where": "jiaolou",
+        "when": "after dark",
         "done": {
           "spirit": "jiuweihu"
         }
@@ -49,10 +58,16 @@
     "id": "side-bait",
     "title": "Bait for the fisherman",
     "chapter": 2,
+    "kind": "side",
+    "giver": "fisher-yeye",
+    "blurb": "The old fisherman on 后海 has run out of bait and cannot leave his spot.",
+    "lead": "The old fisherman at 后海 is staring at an empty tin.",
     "steps": [
       {
         "id": "buy",
         "now": "The fisherman has run out of bait 鱼饵. The corner shop 小卖部 on 南锣鼓巷 sells it.",
+        "past": "Bought bait for the fisherman at the corner shop.",
+        "where": "xiaomaibu",
         "done": {
           "any": [
             {
@@ -67,6 +82,8 @@
       {
         "id": "give",
         "now": "Bring the bait to the fisherman at 后海.",
+        "past": "Brought the fisherman his bait.",
+        "where": "houhai-lake",
         "done": {
           "flag": "bait-given"
         }
@@ -77,10 +94,16 @@
     "id": "side-boat",
     "title": "A boat on the lake",
     "chapter": 2,
+    "kind": "side",
+    "giver": "boat-shifu",
+    "blurb": "The boatman on 后海 rows people across the lake, and the view from the water is the best in town.",
+    "lead": "A boatman on 后海 calls out to people walking by.",
     "steps": [
       {
         "id": "ride",
         "now": "Take a boat out on 后海 (30 元) — ask the boatman.",
+        "past": "Took a boat out on 后海.",
+        "where": "houhai-lake",
         "done": {
           "flag": "boat-ride"
         }
@@ -91,10 +114,16 @@
     "id": "side-fishing",
     "title": "Fishing on 后海",
     "chapter": 2,
+    "kind": "side",
+    "giver": "fisher-yeye",
+    "blurb": "The fisherman likes company, as long as you are quiet and patient.",
+    "lead": "The fisherman at 后海 has a spare stool.",
     "steps": [
       {
         "id": "do",
-        "now": "Once he has his bait, the old fisherman on 后海 asks you to sit with him."
+        "now": "Once he has his bait, the old fisherman on 后海 asks you to sit with him.",
+        "past": "Sat and fished with the old man on 后海.",
+        "where": "houhai-lake"
       }
     ]
   },
@@ -102,10 +131,16 @@
     "id": "side-shishe",
     "title": "《红楼梦》 — the poetry club",
     "chapter": 2,
+    "kind": "side",
+    "giver": "shishe-guniang",
+    "blurb": "A poetry club meets by the lake, like the girls' club in 《红楼梦》, and answers line with line.",
+    "lead": "Young women by the lake at 后海 are reading poems aloud.",
     "steps": [
       {
         "id": "do",
-        "now": "A poetry club meets by the lake on 后海. Pick the line that answers theirs."
+        "now": "A poetry club meets by the lake on 后海. Pick the line that answers theirs.",
+        "past": "Answered a line at the poetry club by the lake.",
+        "where": "houhai-lake"
       }
     ]
   }

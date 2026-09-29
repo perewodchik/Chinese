@@ -3,10 +3,12 @@
     "id": "ch6",
     "title": "Stories",
     "chapter": 6,
+    "kind": "main",
     "steps": [
       {
         "id": "go",
         "now": "兔儿爷 has a feeling about paintings that come alive. Go to the Summer Palace 颐和园: line 2 to 西直门, then bus 332 from the stop outside.",
+        "past": "Took line 2 and the 332 bus to the Summer Palace.",
         "done": {
           "scene": "yiheyuan-arrive"
         }
@@ -14,6 +16,8 @@
       {
         "id": "changlang",
         "now": "Walk into the Long Corridor 长廊 and look at the paintings on the beams.",
+        "past": "Walked the Long Corridor — one of its paintings moved.",
+        "where": "yiheyuan-changlang",
         "done": {
           "flag": "painting-alive"
         }
@@ -21,6 +25,8 @@
       {
         "id": "rumour",
         "now": "Ask the old painter in the corridor what he has seen.",
+        "past": "The old painter in the corridor told me about the 年兽.",
+        "where": "yiheyuan-changlang",
         "done": {
           "flag": "heard-nianshou"
         }
@@ -28,6 +34,7 @@
       {
         "id": "market",
         "now": "Go to 潘家园 antiques market — line 10 to 潘家园.",
+        "past": "Went to the antiques market at 潘家园.",
         "done": {
           "scene": "panjiayuan-arrive"
         }
@@ -35,6 +42,8 @@
       {
         "id": "bargain",
         "now": "The little clay 年兽 is on a stall. Bargain — say 便宜点儿; nobody pays the first price at 潘家园.",
+        "past": "Bargained for the little clay 年兽 — and it came home with me.",
+        "where": "panjiayuan-market",
         "done": {
           "spirit": "nianshou"
         }
@@ -56,10 +65,16 @@
     "id": "side-lost",
     "title": "The lost tourist",
     "chapter": 6,
+    "kind": "side",
+    "giver": "daoyou",
+    "blurb": "A tour guide at the Summer Palace has lost one of her group.",
+    "lead": "A guide at the 颐和园 gate is counting her group again.",
     "steps": [
       {
         "id": "find",
         "now": "The guide at the east gate has lost one of her group — a young woman. Look along the Long Corridor.",
+        "past": "Found the lost tourist in the Long Corridor.",
+        "where": "yiheyuan-changlang",
         "done": {
           "flag": "found-tourist"
         }
@@ -67,6 +82,8 @@
       {
         "id": "back",
         "now": "Tell the guide she’s found.",
+        "past": "Told the guide her tourist was found.",
+        "where": "stop-yiheyuan",
         "done": {
           "flag": "told-guide"
         }

@@ -3,10 +3,12 @@
     "id": "ch4",
     "title": "The echo",
     "chapter": 4,
+    "kind": "main",
     "steps": [
       {
         "id": "go",
         "now": "兔儿爷 has heard of a spirit that loves learning. Start at 天坛 — line 5 to 天坛东门.",
+        "past": "Went to 天坛, where the emperors prayed for rain.",
         "done": {
           "scene": "tiantan-arrive"
         }
@@ -14,6 +16,8 @@
       {
         "id": "echo",
         "now": "At the Echo Wall 回音壁, east of the Hall of Prayer, a boy wants to whisper you a secret through the wall. Talk to him, then put your ear to the wall.",
+        "past": "Put my ear to the Echo Wall and heard a whisper.",
+        "where": "huiyinbi",
         "done": {
           "flag": "heard-qilin"
         }
@@ -21,6 +25,7 @@
       {
         "id": "go-gzj",
         "now": "The whisper said 国子监. Ride line 5 north to 雍和宫 and walk along 国子监街 to the Academy's gate.",
+        "past": "Walked along 国子监街 to the old Academy's gate.",
         "done": {
           "scene": "gzj-arrive"
         }
@@ -28,6 +33,9 @@
       {
         "id": "qilin",
         "now": "The bronze 麒麟 in the Academy's courtyard wakes at dusk. Come after five in the afternoon.",
+        "past": "Waited for dusk in the Academy courtyard and met the 麒麟.",
+        "where": "guozijian",
+        "when": "after 17:00",
         "done": {
           "spirit": "qilin"
         }
@@ -49,10 +57,16 @@
     "id": "side-jianzi",
     "title": "毽子 with the grannies",
     "chapter": 4,
+    "kind": "side",
+    "giver": "tiantan-nainai",
+    "blurb": "The grannies at 天坛 kick a 毽子 every day and count every kick.",
+    "lead": "Grannies at 天坛 are counting out loud.",
     "steps": [
       {
         "id": "play",
         "now": "Kick the 毽子 with the grannies at 天坛 — count with them.",
+        "past": "Kicked the 毽子 with the grannies at 天坛.",
+        "where": "tiantan-park",
         "done": {
           "flag": "jianzi"
         }
@@ -63,10 +77,16 @@
     "id": "side-song",
     "title": "A song at 天坛",
     "chapter": 4,
+    "kind": "side",
+    "giver": "huqin-yeye",
+    "blurb": "An old man plays the 胡琴 at 天坛 and wants someone to sing along.",
+    "lead": "Music from a 胡琴 floats across the 天坛 park.",
     "steps": [
       {
         "id": "sing",
         "now": "The old man with the 胡琴 wants you to sing a line with him.",
+        "past": "Sang a line with the 胡琴 player.",
+        "where": "tiantan-park",
         "done": {
           "flag": "song"
         }
@@ -77,10 +97,16 @@
     "id": "side-thermos",
     "title": "Hot water for the 胡琴 player",
     "chapter": 4,
+    "kind": "side",
+    "giver": "huqin-yeye",
+    "blurb": "The 胡琴 player's hands are cold. Hot water would help him play.",
+    "lead": "The 胡琴 player at 天坛 keeps rubbing his hands.",
     "steps": [
       {
         "id": "flask",
         "now": "The old 胡琴 player is cold. Buy a thermos 保温杯 at the corner shop on 南锣鼓巷.",
+        "past": "Bought a thermos at the corner shop.",
+        "where": "xiaomaibu",
         "done": {
           "any": [
             {
@@ -98,6 +124,8 @@
       {
         "id": "fill",
         "now": "Fill it with hot water at 老刘’s teahouse (use the flask on him).",
+        "past": "Filled it with hot water at 老刘's.",
+        "where": "chaguan",
         "done": {
           "any": [
             {
@@ -112,6 +140,8 @@
       {
         "id": "give",
         "now": "Give the hot water to the old man at 天坛 (use it on him).",
+        "past": "Gave the old man hot water — he played better than ever.",
+        "where": "tiantan-park",
         "done": {
           "flag": "thermos-given"
         }
@@ -122,10 +152,16 @@
     "id": "side-dishu",
     "title": "Water writing 地书",
     "chapter": 4,
+    "kind": "side",
+    "giver": "dishu-yeye",
+    "blurb": "An old man writes characters on the ground with water; they fade as he writes.",
+    "lead": "An old man at 天坛 writes on the ground with a long brush.",
     "steps": [
       {
         "id": "do",
-        "now": "Write with water beside the old man in the 天坛 park."
+        "now": "Write with water beside the old man in the 天坛 park.",
+        "past": "Wrote with water beside the old man at 天坛.",
+        "where": "tiantan-park"
       }
     ]
   },
@@ -133,10 +169,17 @@
     "id": "side-kite-fly",
     "title": "A kite at 天坛",
     "chapter": 4,
+    "kind": "side",
+    "giver": "fengzheng-shifu",
+    "blurb": "On windy days a kite maker sells his kites in the 天坛 park.",
+    "lead": "On windy days kites fly over 天坛.",
     "steps": [
       {
         "id": "do",
-        "now": "On a windy day the kite maker is in the 天坛 park. Pick the kite he describes."
+        "now": "On a windy day the kite maker is in the 天坛 park. Pick the kite he describes.",
+        "past": "Picked the kite the kite maker described.",
+        "where": "tiantan-park",
+        "when": "on a windy day"
       }
     ]
   },
@@ -144,10 +187,16 @@
     "id": "side-kongzhu",
     "title": "The diabolo",
     "chapter": 4,
+    "kind": "side",
+    "giver": "kongzhu-nainai",
+    "blurb": "A grandmother at 天坛 spins a humming diabolo and teaches anyone who asks.",
+    "lead": "Something hums like a bee in the 天坛 park.",
     "steps": [
       {
         "id": "do",
-        "now": "The grandmother in the 天坛 park teaches the 空竹 — do what she says."
+        "now": "The grandmother in the 天坛 park teaches the 空竹 — do what she says.",
+        "past": "Spun the 空竹 with the grandmother.",
+        "where": "tiantan-park"
       }
     ]
   }

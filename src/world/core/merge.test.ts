@@ -15,7 +15,7 @@ function rng(seed: number) {
   };
 }
 
-const quest: Quest = { id: 'q', title: 'Q', chapter: 1, steps: ['a', 'b', 'c', 'd'].map((id) => ({ id, now: id })) };
+const quest: Quest = { id: 'q', title: 'Q', chapter: 1, kind: 'main', steps: ['a', 'b', 'c', 'd'].map((id) => ({ id, now: id, past: '' })) };
 const quests = new Map([[quest.id, quest]]);
 
 function randomSave(seed: number, device: string): WorldSave {

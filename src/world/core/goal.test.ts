@@ -8,7 +8,7 @@ const scene = (id: string, map: string): Scene => ({ id, map, trigger: 'talk', s
 
 describe('the task on the map', () => {
   it('is where the step still waits: the scene not yet played, the station not yet reached', () => {
-    const q: Quest = { id: 'q', title: 'Q', chapter: 1, steps: [{ id: 's', now: 'Go', done: { all: [{ scene: 'tea' }, { station: 'wangfujing' }, { flag: 'x' }] } }] };
+    const q: Quest = { id: 'q', title: 'Q', chapter: 1, kind: 'main', steps: [{ id: 's', past: '', now: 'Go', done: { all: [{ scene: 'tea' }, { station: 'wangfujing' }, { flag: 'x' }] } }] };
     let s = newSave('t', 0);
     s = { ...s, quests: { q: { step: 's', index: 0, done: false } } } as typeof s;
     assert.deepEqual(goalMaps(s, [q], [scene('tea', 'chaguan')], []).sort(), ['chaguan', 'station-wangfujing']);

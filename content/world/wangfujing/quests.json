@@ -3,10 +3,12 @@
     "id": "ch3",
     "title": "The book",
     "chapter": 3,
+    "kind": "main",
     "steps": [
       {
         "id": "go",
         "now": "兔儿爷: spirits like old books. Ride to 王府井 — line 8 south from 南锣鼓巷.",
+        "past": "Rode to 王府井, the big shopping street.",
         "done": {
           "scene": "wfj-arrive"
         }
@@ -14,6 +16,9 @@
       {
         "id": "money",
         "now": "Your money is nearly gone. Change money at the bank 银行 on 王府井 — you have your passport.",
+        "past": "Changed money at the bank on 王府井.",
+        "where": "yinhang",
+        "when": "open 9:00–17:00",
         "done": {
           "flag": "changed-money"
         }
@@ -21,6 +26,8 @@
       {
         "id": "book",
         "now": "Find a book of 成语 at the bookshop 新华书店 — 兔儿爷 wants to write down the ones you've heard.",
+        "past": "Found a book of 成语 at 新华书店 — now they have a home.",
+        "where": "shudian",
         "done": {
           "flag": "idiom-book"
         }
@@ -28,6 +35,8 @@
       {
         "id": "qianmen",
         "now": "The book talks of 门神, the door gods. Ride one stop south to 前门 and ask at the opera house 戏园.",
+        "past": "Asked at the opera house in 前门 about the door gods.",
+        "where": "xiyuan",
         "done": {
           "flag": "heard-menshen"
         }
@@ -35,6 +44,8 @@
       {
         "id": "red-paper",
         "now": "The door gods need red paper to be painted again. The bookshop on 王府井 sells 红纸.",
+        "past": "Bought red paper at the bookshop for the door gods.",
+        "where": "shudian",
         "done": {
           "any": [
             {
@@ -49,6 +60,8 @@
       {
         "id": "menshen",
         "now": "Take the red paper to the old gate in 大栅栏, at the east end of 前门大街.",
+        "past": "Brought red paper to the old gate in 大栅栏 — the door gods woke up.",
+        "where": "qianmen-street",
         "done": {
           "spirit": "menshen"
         }
@@ -70,10 +83,16 @@
     "id": "wang-cold",
     "title": "王阿姨 has a cold",
     "chapter": 3,
+    "kind": "side",
+    "giver": "wang-ayi",
+    "blurb": "王阿姨 has a cold and a fever, and she looks after everyone but herself.",
+    "lead": "王阿姨 is coughing in the courtyard.",
     "steps": [
       {
         "id": "medicine",
         "now": "王阿姨 has a cold and a little fever. Buy cold medicine at the pharmacy 药店 on 王府井 — say what's wrong.",
+        "past": "Bought cold medicine at the 药店 on 王府井.",
+        "where": "yaodian",
         "done": {
           "any": [
             {
@@ -88,6 +107,8 @@
       {
         "id": "give",
         "now": "Take the medicine back to 王阿姨 in the courtyard.",
+        "past": "Brought 王阿姨 her medicine.",
+        "where": "siheyuan-yard",
         "done": {
           "flag": "wang-got-medicine"
         }
@@ -98,10 +119,16 @@
     "id": "side-book",
     "title": "A book for 小明",
     "chapter": 3,
+    "kind": "side",
+    "giver": "xiaoming",
+    "blurb": "小明 has read all his books twice and wants a new storybook.",
+    "lead": "小明 says he has nothing new to read.",
     "steps": [
       {
         "id": "buy",
         "now": "小明 wants a storybook 故事书. The bookshop on 王府井 has them.",
+        "past": "Bought a storybook at the 王府井 bookshop.",
+        "where": "shudian",
         "done": {
           "any": [
             {
@@ -116,6 +143,8 @@
       {
         "id": "give",
         "now": "Give 小明 the storybook — he plays on 南锣鼓巷.",
+        "past": "Gave 小明 the storybook.",
+        "where": "nanluo-main",
         "done": {
           "flag": "book-given"
         }
