@@ -15,8 +15,8 @@ import { sideQuests } from '../core/sidequests';
 import type { SaveAction } from '../core/save';
 import type { WorldSave } from '../core/types';
 
-export type MenuTab = 'journal' | 'bag' | 'map' | 'people' | 'collection';
-export type JournalView = 'now' | 'side' | 'story' | 'diary';
+export type MenuTab = 'journal' | 'bag' | 'map' | 'collection';
+export type JournalView = 'now' | 'side' | 'people' | 'story' | 'diary';
 export type CollectionView = 'spirits' | 'idioms' | 'stamps' | 'books' | 'album';
 
 /**
@@ -24,7 +24,7 @@ export type CollectionView = 'spirits' | 'idioms' | 'stamps' | 'books' | 'album'
  * device had open), or one of the old panel ids from before §10, which the
  * top bar, the keys and the minimap may still send.
  */
-export type PanelId = MenuTab | 'settings' | 'menu' | 'tasks' | 'spirits' | 'idioms' | 'stamps' | 'friends' | 'diary' | 'album' | 'books';
+export type PanelId = MenuTab | 'people' | 'settings' | 'menu' | 'tasks' | 'spirits' | 'idioms' | 'stamps' | 'friends' | 'diary' | 'album' | 'books';
 
 export interface MenuAt {
   tab: MenuTab | 'settings';
@@ -32,12 +32,15 @@ export interface MenuAt {
   view?: string;
 }
 
-/** `icon` is a frame of the menu atlas (`ui/<icon>`, drawn in scripts/world/art/gen/items.ts). */
+/**
+ * `icon` is a frame of the menu atlas (`ui/<icon>`, drawn in scripts/world/art/gen/items.ts).
+ * The learner (2026-09-30, iPhone): four tabs with ⚙ and × as tabs of the same size beside
+ * them, names in Chinese only (English on hover and for screen readers), 朋友 inside 日志.
+ */
 export const MENU: readonly { id: MenuTab; icon: string; zh: string; en: string }[] = [
   { id: 'journal', icon: 'journal', zh: '日志', en: 'Journal' },
   { id: 'bag', icon: 'bag', zh: '包', en: 'Bag' },
   { id: 'map', icon: 'map', zh: '地图', en: 'Map' },
-  { id: 'people', icon: 'people', zh: '朋友', en: 'People' },
   { id: 'collection', icon: 'collection', zh: '收藏', en: 'Collection' },
 ];
 
@@ -45,6 +48,7 @@ export const VIEWS: Partial<Record<MenuTab, readonly { id: string; label: string
   journal: [
     { id: 'now', label: 'Now', title: 'What to do now, and where' },
     { id: 'side', label: 'Side', title: 'Side quests: who, where, what to do first, and when' },
+    { id: 'people', label: '朋友', title: 'People: where each one is now, and what they remember' },
     { id: 'story', label: 'Story', title: 'What happened, chapter by chapter' },
     { id: 'diary', label: '日记', title: 'The diary' },
   ],
@@ -66,7 +70,8 @@ const OLD: Record<string, MenuAt> = {
   stamps: { tab: 'collection', view: 'stamps' },
   album: { tab: 'collection', view: 'album' },
   books: { tab: 'collection', view: 'books' },
-  friends: { tab: 'people' },
+  friends: { tab: 'journal', view: 'people' },
+  people: { tab: 'journal', view: 'people' },
 };
 
 /** What this device remembers of the menu: the last tab, and the view last open in each tab. */
@@ -154,7 +159,7 @@ export function markSeen(s: WorldSave, at: MenuAt, leads: readonly string[] = []
   return out;
 }
 
-/** 1–5 on the keyboard: the tabs in order. */
+/** 1–4 on the keyboard: the tabs in order. */
 export const tabForKey = (key: string): MenuTab | null => MENU[Number(key) - 1]?.id ?? null;
 
 /** Side quests you could start now (§13 Q1) — the ones a red dot tells you about. */

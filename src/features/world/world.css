@@ -123,9 +123,27 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 76px; /* fixed: 9:05 and 23:59 take the same room */
+  gap: 6px;
+  width: 104px; /* fixed: 9:05 and 23:59, with or without weather, take the same room */
+  padding: 0 8px;
   font-variant-numeric: tabular-nums;
   font-size: 14px;
+}
+
+/* the part of the day, the time and the weather each in a slot of their own */
+.wt-when {
+  width: 14px;
+  text-align: center;
+}
+
+.wt-clock {
+  min-width: 3em;
+  text-align: center;
+}
+
+.wt-sky {
+  width: 16px;
+  text-align: center;
 }
 
 /* A line from the world (a sign, a locked door) until the dialogue bubble takes over. */
@@ -410,7 +428,11 @@
 .wd-zh {
   display: flex;
   flex-wrap: wrap;
+  /* every word on the hanzi's own baseline (a word is a column: its reading, then the hanzi),
+     so a 。 or ！ after it sits on the line even where a button is drawn taller than its text
+     (the learner's iPhone: 「东！」 with the ！ half a line low) */
   align-items: flex-end;
+  align-items: last baseline;
   font-size: 22px;
   line-height: 1.35;
 }
@@ -454,11 +476,7 @@
 .wd-g {
   display: inline-flex;
   align-items: flex-end;
-}
-
-/* with 拼 on, the punctuation sits on the hanzi's line, not the reading's */
-.wd-zh[data-py] .wd-p {
-  align-self: flex-end;
+  align-items: last baseline;
 }
 
 .wd-py-line {

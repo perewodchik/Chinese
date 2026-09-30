@@ -70,6 +70,7 @@ import { isAway, recapOf, wordsOfScene, type Recap } from '../../world/core/reca
 import { RecapCard } from '../../world/ui/Recap';
 import { holds } from '../../world/core/flags';
 import type { RunningCutscene } from '../../world/engine/cutscene';
+import { stamped } from '../../world/ui/stamped';
 
 const TIMES: PartOfDay[] = ['morning', 'day', 'evening', 'night'];
 
@@ -331,7 +332,7 @@ export function WorldPage() {
     setState('loading');
     void (async () => {
       try {
-        const index = (await (await fetch('/world/maps/index.json')).json()) as MapIndex;
+        const index = (await (await fetch(stamped('/world/maps/index.json'))).json()) as MapIndex;
         mapIndex.current = index;
         let { map, tile } = start.asked && index[start.asked] ? { map: start.asked, tile: null as Tile | null } : start.place;
         if (!index[map]) ({ map, tile } = FALLBACK);
@@ -1022,7 +1023,7 @@ export function WorldPage() {
           />
         </Minimap>
       )}
-      {game.save && state === 'ready' && !photo && !cut && <TopBar district={game.save.district} minutes={minutes} open={setPanel} onPhoto={() => setPhoto(true)} news={menuNewsFor(game.save, content).size > 0} />}
+      {game.save && state === 'ready' && !photo && !cut && <TopBar minutes={minutes} open={setPanel} news={menuNewsFor(game.save, content).size > 0} />}
       {photo && <PhotoMode onTake={takePhoto} onZoom={(d) => world.current?.zoomBy(d)} onClose={() => setPhoto(false)} />}
       {panel && game.save && (
         <Panels
@@ -1045,6 +1046,10 @@ export function WorldPage() {
             void game.flush().finally(() => window.location.replace(window.location.pathname));
           }}
           onClose={() => setPanel(null)}
+          onPhoto={() => {
+            setPanel(null);
+            setPhoto(true);
+          }}
           onUse={(item) => {
             setPanel(null);
             setUsing(item);
@@ -1124,38 +1129,6 @@ export function WorldPage() {
       )}
       {seal && <SealToast seal={seal} />}
       {recap && <RecapCard recap={recap} onClose={() => setRecap(null)} />}
-      {beforeGo && (
-        <div className="world-note cs-before" role="dialog" aria-label="Before we go">
-          <span>
-            <b>Before we go…</b> {beforeGo.open.map((e) => `${e.quest.title} (${whoWhere(e)})`).join(' · ')} — still here, if you like. The story waits.
-          </span>
-          <span className="cs-before-acts">
-            <button
-              type="button"
-              className="btn sm ghost"
-              onClick={() => {
-                laterCut.current = beforeGo.item;
-                setBeforeGo(null);
-              }}
-            >
-              Not yet
-            </button>
-            <button
-              type="button"
-              className="world-note-ok"
-              autoFocus
-              onClick={() => {
-                const next = beforeGo.item;
-                setBeforeGo(null);
-                cutQueue.current.unshift(next);
-                setCutTick((t) => t + 1);
-              }}
-            >
-              Go on
-            </button>
-          </span>
-        </div>
-      )}
       {lantern && game.save && (
         <LanternCard lit={litFigures(game.save).filter((f) => !lantern.includes(f))} now={lantern} names={(id) => content.spirits.find((x) => x.id === id)?.hanzi ?? (id === 'family' ? '家' : id)} />
       )}
@@ -1183,8 +1156,35 @@ export function WorldPage() {
             const s = game.current();
             return s ? whatNow(s, contentRef.current.quests) : '';
           }}
-          lex={lex}
           talking={!!talk.view}
+          // "Before we go…" (§13 Q1) is his to ask, in his bubble (the learner, 2026-09-30)
+          ask={
+            beforeGo
+              ? {
+                  text: `Before we go… ${beforeGo.open.map((e) => `${e.quest.title} (${whoWhere(e)})`).join(' · ')} — still here, if you like. The story waits.`,
+                  choices: [
+                    {
+                      id: 'later',
+                      label: 'Not yet',
+                      run: () => {
+                        laterCut.current = beforeGo.item;
+                        setBeforeGo(null);
+                      },
+                    },
+                    {
+                      id: 'go',
+                      label: 'Go on',
+                      run: () => {
+                        const next = beforeGo.item;
+                        setBeforeGo(null);
+                        cutQueue.current.unshift(next);
+                        setCutTick((t) => t + 1);
+                      },
+                    },
+                  ],
+                }
+              : null
+          }
         />
       )}
       {creator && game.save && (
@@ -1284,7 +1284,7 @@ export function WorldPage() {
           </button>
         </div>
       )}
-      {game.save?.settings.joystick && state === 'ready' && !talk.view && !panel && !cut && (
+      {game.save?.settings.joystick && state === 'ready' && !talk.view && !panel && !cut && !beforeGo && note === null && !newBook && (
         <Joystick onStick={(f, run) => world.current?.stick(f, run)} onAct={() => world.current?.act()} />
       )}
       {note !== null && (

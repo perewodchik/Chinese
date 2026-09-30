@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { stamped } from './stamped';
 
 interface Frame {
   frame: { x: number; y: number; w: number; h: number };
@@ -10,7 +11,7 @@ const atlases = new Map<string, Promise<Atlas>>();
 export type AtlasName = 'props' | 'menu' | 'woodcut';
 const loadAtlas = (name: AtlasName) => {
   let a = atlases.get(name);
-  if (!a) atlases.set(name, (a = fetch(`/world/art/${name}.json`).then((r) => r.json() as Promise<Atlas>)));
+  if (!a) atlases.set(name, (a = fetch(stamped(`/world/art/${name}.json`)).then((r) => r.json() as Promise<Atlas>)));
   return a;
 };
 
@@ -56,7 +57,7 @@ export function PropSprite({
       style={{
         width: size * scale,
         height: size * scale,
-        backgroundImage: f ? `url(/world/art/${atlas}.png)` : undefined,
+        backgroundImage: f ? `url(${stamped(`/world/art/${atlas}.png`)})` : undefined,
         backgroundSize: whole ? `${whole.w * scale}px ${whole.h * scale}px` : undefined,
         backgroundPosition: f ? `${-f.x * scale}px ${-f.y * scale}px` : undefined,
       }}
@@ -102,7 +103,7 @@ export function FitSprite({ frame, box, atlas = 'props', label }: { frame: strin
           style={{
             width: f.w * scale,
             height: f.h * scale,
-            backgroundImage: `url(/world/art/${atlas}.png)`,
+            backgroundImage: `url(${stamped(`/world/art/${atlas}.png`)})`,
             backgroundSize: `${whole.w * scale}px ${whole.h * scale}px`,
             backgroundPosition: `${-f.x * scale}px ${-f.y * scale}px`,
           }}

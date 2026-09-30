@@ -106,8 +106,8 @@ for (const [w, h] of SIZES) for (const t of ['light', 'dark']) {
   await p.waitForSelector('.mn');
   await view(1, 1, 'journal-now');
   await drawer('journal-quest', '.mn-body .jn-row');
-  await view(1, 2, 'journal-story');
-  await view(1, 3, 'journal-diary');
+  await view(1, 4, 'journal-story');
+  await view(1, 5, 'journal-diary');
   await view(2, 0, 'bag');
   // picking a thing changes the card only: the slots never move (the card sits above them on a phone)
   {
@@ -123,7 +123,7 @@ for (const [w, h] of SIZES) for (const t of ['light', 'dark']) {
     await shot('bag-picked');
   }
   await view(3, 0, 'map');
-  await view(4, 0, 'people');
+  await view(1, 3, 'people');
   await drawer('people-person', '.pp-cards .pp-open');
   // a person's quest drawer over their drawer
   await (await p.$('.pp-cards .pp-open'))?.click();
@@ -134,10 +134,10 @@ for (const [w, h] of SIZES) for (const t of ['light', 'dark']) {
   await p.waitForTimeout(200);
   if (await p.$('.w-sheet')) problems.push(`${tag} people: a drawer is still open after two Esc`);
   if (!(await p.$('.mn'))) { problems.push(`${tag} people: Esc closed the whole menu`); await p.click('.wt-menu'); }
-  await view(5, 1, 'col-spirits');
+  await view(4, 1, 'col-spirits');
   await drawer('col-spirit', '.cl-spirit:not([data-missing])');
   await drawer('col-spirit-missing', '.cl-spirit[data-missing]');
-  await view(5, 2, 'col-idioms');
+  await view(4, 2, 'col-idioms');
   await drawer('col-idiom', '.cl-idiom');
   // Practise: each question until the end, the first option each time
   await p.click('.cl-practise');
@@ -161,7 +161,7 @@ for (const [w, h] of SIZES) for (const t of ['light', 'dark']) {
   }
   await check('practise-end'); await shot('practise-end');
   await p.click('.cl-end-actions .btn.ghost');
-  await view(5, 3, 'col-stamps-cover');
+  await view(4, 3, 'col-stamps-cover');
   await p.click('.cl-pages .jn-row');
   await p.waitForTimeout(200);
   await check('col-stamps-page'); await shot('col-stamps-page');
@@ -169,7 +169,7 @@ for (const [w, h] of SIZES) for (const t of ['light', 'dark']) {
   await p.click('.cl-pager .wd-tool[aria-label="Next page"]');
   await p.waitForTimeout(200);
   await drawer('col-stamp-missing', '.cl-stamp:not([data-got])');
-  await view(5, 4, 'col-album');
+  await view(4, 5, 'col-album');
   await drawer('col-album-photo', '.w-album button');
   await p.click('.mn-gear');
   await p.waitForTimeout(200);

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { currentDress, heroPicture } from './heroPicture';
+import { stamped } from './stamped';
 
 interface Frame {
   frame: { x: number; y: number; w: number; h: number };
 }
 
 let atlas: Promise<{ frames: Record<string, Frame>; meta: { size: { w: number; h: number } } }> | null = null;
-const loadAtlas = () => (atlas ??= fetch('/world/art/chars.json').then((r) => r.json()));
+const loadAtlas = () => (atlas ??= fetch(stamped('/world/art/chars.json')).then((r) => r.json()));
 
 /**
  * A person's head, cut from the characters' atlas and drawn big with square
@@ -47,7 +48,7 @@ export function Portrait({ sprite, scale = 3 }: { sprite: string; scale?: number
       style={{
         width: w,
         height: h,
-        backgroundImage: f ? 'url(/world/art/chars.png)' : undefined,
+        backgroundImage: f ? `url(${stamped('/world/art/chars.png')})` : undefined,
         backgroundSize: size ? `${size.w * scale}px ${size.h * scale}px` : undefined,
         backgroundPosition: f ? `${-f.x * scale}px ${-(f.y + (f.h > 16 ? 3 : 0)) * scale}px` : undefined,
       }}

@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { HOODS, hoodOf } from '../core/hoods';
 import type { RouteLeg } from '../core/journal';
-import { AT, extent, labelBox, linePoints, linesThrough, roundedPath, WALK_LINKS } from '../core/metro';
+import { AT, extent, linePoints, linesThrough, roundedPath, WALK_LINKS } from '../core/metro';
 import { LINES, station } from '../core/travel';
 import type { WorldSave } from '../core/types';
 import { boxOf, routePoints } from './metroRoute';
+import { placeLabels, type LabelWant } from './metroLabels';
 import { usePanZoom } from './usePanZoom';
 
 /**
@@ -67,7 +68,38 @@ export function MetroMap({
   const here = hoodOf(save.place.map);
   const goalHoods = new Set([...goals].map((m) => hoodOf(m)?.id).filter(Boolean));
   const pxPerGrid = G / u;
-  const minor = pxPerGrid >= 24;
+  // names grow a little as you come closer (screen pixels), and only those with room are shown
+  const clamp = (lo: number, v: number, hi: number) => Math.min(hi, Math.max(lo, v));
+  const fsHood = clamp(11, pxPerGrid * 0.42, 15);
+  const fsMinor = clamp(9.5, pxPerGrid * 0.34, 12);
+  const minor = pxPerGrid >= 22;
+  const badgeText = (st: string) => {
+    const n = counts?.get(hoodAt.get(st)?.id ?? '');
+    return n ? [n.new ? `${n.new} new` : '', n.on ? `${n.on} on` : ''].filter(Boolean).join(' · ') : '';
+  };
+  const BADGE_FS = 9.5;
+  const wants: LabelWant[] = Object.keys(AT).flatMap((st) => {
+    const hood = hoodAt.get(st);
+    if (!hood && !minor) return [];
+    const fs = hood ? fsHood : fsMinor;
+    const text = badgeText(st);
+    const rank = !hood ? (linesThrough(st).length > 1 ? 20 : 10) : hood.id === here?.id ? 100 : goalHoods.has(hood.id) ? 90 : text ? 80 : 70;
+    return [
+      {
+        station: st,
+        fs: (fs * u) / G,
+        rank,
+        ...(text ? { badge: { w: ((text.length * BADGE_FS * 0.56 + 8) * u) / G, h: ((BADGE_FS + 5) * u) / G, above: (13 * u) / G } } : {}),
+      },
+    ];
+  });
+  // the zoom buttons (top right) and the key (along the bottom) sit over the map: no names under them
+  const px = (n: number) => (n * u) / G;
+  const vg = { x: view.x / G, y: view.y / G, w: view.w / G, h: view.h / G };
+  const placed = placeLabels(wants, vg, [
+    { x: vg.x + vg.w - px(110), y: vg.y, w: px(110), h: px(56) },
+    { x: vg.x, y: vg.y + vg.h - px(40), w: vg.w, h: px(40) },
+  ]);
   const tap = (fn: () => void) => () => {
     if (!pz.dragged.current) fn();
   };
@@ -136,19 +168,15 @@ export function MetroMap({
             </g>
           );
         })}
-        {/* §13 Q1: "3 new · 1 on" over each neighbourhood with side quests */}
-        {Object.keys(AT).map((s) => {
-          const hood = hoodAt.get(s);
-          const n = hood && counts?.get(hood.id);
-          if (!n) return null;
-          const [x, y] = AT[s]!;
-          const text = [n.new ? `${n.new} new` : '', n.on ? `${n.on} on` : ''].filter(Boolean).join(' · ');
-          const fs = 9.5 * u;
-          const w = text.length * fs * 0.56 + 8 * u;
+        {/* §13 Q1: "3 new · 1 on" over each neighbourhood with side quests — where there is room for it */}
+        {[...placed].map(([st, p]) => {
+          if (!p.badge) return null;
+          const text = badgeText(st);
+          const fs = BADGE_FS * u;
           return (
-            <g key={`q-${s}`} className="mm-count" data-new={n.new ? '' : undefined} aria-label={`${hood!.en}: ${text}`}>
-              <rect x={x * G - w / 2} y={y * G - 26 * u} width={w} height={fs + 5 * u} rx={3 * u} />
-              <text x={x * G} y={y * G - 26 * u + fs + 0.5 * u} textAnchor="middle" style={{ fontSize: fs }}>
+            <g key={`q-${st}`} className="mm-count" data-new={counts?.get(hoodAt.get(st)!.id)?.new ? '' : undefined} aria-label={`${hoodAt.get(st)!.en}: ${text}`}>
+              <rect x={p.badge.x * G} y={p.badge.y * G} width={p.badge.w * G} height={p.badge.h * G} rx={3 * u} />
+              <text x={(p.badge.x + p.badge.w / 2) * G} y={p.badge.y * G + fs + 0.5 * u} textAnchor="middle" style={{ fontSize: fs }}>
                 {text}
               </text>
             </g>
@@ -159,24 +187,23 @@ export function MetroMap({
         ))}
         {start && AT[start] && <Pin x={AT[start]![0] * G} y={AT[start]![1] * G} u={u} label="you" kind="you" />}
         {end && AT[end] && <Pin x={AT[end]![0] * G} y={AT[end]![1] * G} u={u} label="there" kind="there" />}
-        {Object.keys(AT).map((s) => {
-          const hood = hoodAt.get(s);
-          if (!hood && !minor) return null;
-          const fs = (hood ? 13 : 10.5) * u;
-          const b = labelBox(s, fs / G);
-          const tx = b.anchor === 'start' ? b.x : b.anchor === 'end' ? b.x + b.w : b.x + b.w / 2;
+        {[...placed].map(([st, p]) => {
+          const hood = hoodAt.get(st);
+          const b = p.box;
+          const tx = p.anchor === 'start' ? b.x : p.anchor === 'end' ? b.x + b.w : b.x + b.w / 2;
           return (
             <text
-              key={`t-${s}`}
+              key={`t-${st}`}
               x={tx * G}
               y={(b.y + b.h * 0.86) * G}
-              textAnchor={b.anchor}
+              textAnchor={p.anchor}
               className="mm-name"
               data-game={hood ? '' : undefined}
-              style={{ fontSize: fs }}
+              // a paper halo 3 screen pixels wide, so a name reads over the lines it sits on
+              style={{ fontSize: b.h * G, strokeWidth: 3.5 * u }}
               onClick={hood ? tap(() => onHood(hood.id)) : undefined}
             >
-              {station(s).zh}
+              {station(st).zh}
             </text>
           );
         })}

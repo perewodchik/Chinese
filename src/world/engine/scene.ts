@@ -22,6 +22,7 @@ import { edgeAt, resolveArrival, throughEdge, type Arrival, type Door } from './
 import { crowdTrip, facingOf, idleNext, PASSERS, pigeonSpots, rand, scared, type Rand } from './life';
 import { readMap, type MapInfo } from './mapdata';
 import { DOUBLE_TAP_MS, facingTo, KEY_FACING, objectAt, pinchTo, pinchZooms, planTap, RUN_MS, stepOnce, WALK_MS, type Plan } from './movement';
+import { stamped } from '../ui/stamped';
 
 export const TILE = 16;
 const ART = '/world/art';
@@ -200,11 +201,11 @@ export class WorldScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('tiles-set', `${ART}/tiles-set.png`);
-    this.load.json('tiles-names', `${ART}/tiles-set.json`);
-    this.load.atlas('chars', `${ART}/chars.png`, `${ART}/chars.json`);
-    this.load.atlas('props', `${ART}/props.png`, `${ART}/props.json`);
-    this.load.tilemapTiledJSON(this.opts.map, `/world/maps/${this.opts.map}.json`);
+    this.load.image('tiles-set', stamped(`${ART}/tiles-set.png`));
+    this.load.json('tiles-names', stamped(`${ART}/tiles-set.json`));
+    this.load.atlas('chars', stamped(`${ART}/chars.png`), stamped(`${ART}/chars.json`));
+    this.load.atlas('props', stamped(`${ART}/props.png`), stamped(`${ART}/props.json`));
+    this.load.tilemapTiledJSON(this.opts.map, stamped(`/world/maps/${this.opts.map}.json`));
   }
 
   create() {

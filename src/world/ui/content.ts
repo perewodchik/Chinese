@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import type { DistrictContent, Idiom, Item, NpcCard, Quest, Scene, Spirit, Stamp } from '../core/types';
 import { EMPTY_CLOTHES, type ClothesContent } from '../core/wardrobe';
 import { RACK_WORDS, rackScenes } from '../core/rack';
+import { stamped } from './stamped';
 
 /** Everything the built content says, all districts together (it is small: text only). */
 export interface WorldContent {
@@ -63,15 +64,15 @@ export const wordsOf = (c: Pick<WorldContent, 'idioms'>): ReadonlyMap<string, st
 export function loadContent(): Promise<WorldContent> {
   if (loading) return loading;
   loading = (async () => {
-    const r = await fetch('/world/content/index.json');
+    const r = await fetch(stamped('/world/content/index.json'));
     if (!r.ok) return EMPTY_CONTENT;
     const ids = (await r.json()) as string[];
-    const parts = await Promise.all(ids.map(async (id) => (await fetch(`/world/content/${id}.json`)).json()));
+    const parts = await Promise.all(ids.map(async (id) => (await fetch(stamped(`/world/content/${id}.json`))).json()));
     // the clothes (§12): a file of their own; a build without it has none
-    const clothes = await fetch('/world/content/clothes.json').then((x) => (x.ok ? (x.json() as Promise<ClothesContent>) : EMPTY_CLOTHES)).catch(() => EMPTY_CLOTHES);
+    const clothes = await fetch(stamped('/world/content/clothes.json')).then((x) => (x.ok ? (x.json() as Promise<ClothesContent>) : EMPTY_CLOTHES)).catch(() => EMPTY_CLOTHES);
     const merged = mergeContent(parts);
     // the books (§13 B1): a file of their own
-    const books = await fetch('/world/content/books.json').then((x) => (x.ok ? (x.json() as Promise<Book[]>) : [])).catch(() => [] as Book[]);
+    const books = await fetch(stamped('/world/content/books.json')).then((x) => (x.ok ? (x.json() as Promise<Book[]>) : [])).catch(() => [] as Book[]);
     // the clothes racks and the barber's menu talk like shops (§12 W5)
     const c = { ...merged, scenes: [...rackScenes(clothes), ...merged.scenes], clothes, books };
     // the barber's and the rack's words, read right (长发 is chángfà, 穿着走 chuānzhe zǒu)

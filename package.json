@@ -22,9 +22,10 @@
     "world": "npm run world:art && npm run world:maps && npm run world:content && npm run world:banners && npm run world:minis",
     "world:maps": "tsx scripts/world/build-maps.ts",
     "world:minis": "tsx scripts/world/build-minis.ts",
-    "world:content": "tsx scripts/world/build-content.ts",
-    "world:banners": "for t in morning day evening night; do tsx scripts/world/render-map.ts hutong-proto 960x320 $t public/world/art/banner-$t.png 14,7 16,6 || exit 1; done",
-    "world:art": "tsx scripts/world/art/build.ts",
+    "world:content": "tsx scripts/world/build-content.ts && tsx scripts/world/stamps.ts",
+    "world:banners": "for t in morning day evening night; do tsx scripts/world/render-map.ts hutong-proto 960x320 $t public/world/art/banner-$t.png 14,7 16,6 || exit 1; done && tsx scripts/world/stamps.ts",
+    "world:art": "tsx scripts/world/art/build.ts && tsx scripts/world/stamps.ts",
+    "world:stamps": "tsx scripts/world/stamps.ts",
     "world:check": "tsx scripts/world/check-content.ts"
   },
   "dependencies": {

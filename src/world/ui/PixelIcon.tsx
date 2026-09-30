@@ -8,6 +8,7 @@ import type { OptionIcon } from './companionLines';
  */
 export type IconName =
   | OptionIcon
+  | 'star'
   | 'star-full'
   | 'again'
   | 'speaker'
