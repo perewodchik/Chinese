@@ -13,6 +13,7 @@
 
 import { DEFAULT_SETTINGS, HOME, HOME_DISTRICT, newSave, WORLD_SAVE_VERSION } from './save';
 import type { WorldSave } from './types';
+import { readBike } from './bike';
 import { DEFAULT_LOOK, DEFAULT_OUTFIT, DEFAULT_WARDROBE, fillWardrobe, itemOf } from './wardrobe';
 
 type Raw = Record<string, unknown>;
@@ -92,6 +93,12 @@ export const UPGRADES: Record<number, Upgrade> = {
    * `reindexQuests`).
    */
   15: (r) => ({ ...r, version: 16, chapter: isNum(r.chapter) ? renumberChapter(r.chapter) : 1 }),
+  /**
+   * 16 → 17 (§13 L): your own bike. Nothing to change — an old save has none
+   * — but a 16 build would drop `bike` on its next save, so it must refuse a
+   * 17 save instead. The shared bikes' `on-bike` flag stays theirs.
+   */
+  16: (r) => ({ ...r, version: 17 }),
 };
 
 /** A chapter number before §13 S1 → after it (story.md §2). */
@@ -172,6 +179,7 @@ function fill(r: Raw): WorldSave {
       ? { fed: isNum(r.cat.fed) ? r.cat.fed : 0, day: isNum(r.cat.day) ? r.cat.day : 0, name: typeof r.cat.name === 'string' ? r.cat.name : '' }
       : { fed: 0, day: 0, name: '' },
     ...fillWardrobe(r),
+    ...(readBike(r.bike) ? { bike: readBike(r.bike)! } : {}),
     settings: { ...DEFAULT_SETTINGS, ...(isObj(r.settings) ? (r.settings as Partial<WorldSave['settings']>) : {}) },
   };
 }

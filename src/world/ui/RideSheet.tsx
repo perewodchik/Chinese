@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { playLine } from './lineVoice';
-import { arrivalCall, board, callNext, fareOut, getOff, nextStop, runOn, startRide, stationSign, trainsAt, type RideState, type Train } from '../core/ride';
+import { arrivalCall, board, callEn, callNext, fareOut, getOff, HOLD_ON, nextStop, runOn, startRide, stationSign, stopCalls, trainsAt, type RideState, type Train } from '../core/ride';
 import { station } from '../core/travel';
 import type { Mode } from '../core/travel';
 import type { RouteLeg } from '../core/journal';
@@ -58,6 +58,8 @@ export function RideSheet({
   const [ride, setRide] = useState<RideState>(() => startRide(from));
   const [phase, setPhase] = useState<Phase>('platform');
   const [line, setLine] = useState<string>('');
+  /** §13 N1: the call's English, as the trains say it after the Chinese */
+  const [lineEn, setLineEn] = useState<string>('');
   const timer = useRef<number | undefined>(undefined);
   const step = fast ? STEP_MS / 3 : STEP_MS;
 
@@ -71,20 +73,33 @@ export function RideSheet({
       const call = callNext(ride.train.line, ride.at, ride.train.dir);
       if (!call) {
         setLine('终点站到了。请下车。');
+        setLineEn('This is the terminal station. Please get off.');
         setRide((r) => getOff(r));
         setPhase('platform');
         return;
       }
-      setLine(call);
-      void playLine({ speaker: 'announcer', zh: call, en: '', node: '' });
+      // §13 N1: pulling out of the first station, 「请站稳扶好。」 first; the English after the Chinese
+      const first = ride.stops === 0;
+      setLine(first ? `${HOLD_ON.zh}${call}` : call);
+      setLineEn(callEn(ride.train.line, ride.at, ride.train.dir) ?? '');
+      void (async () => {
+        if (first) await playLine({ speaker: 'announcer', zh: HOLD_ON.zh, en: HOLD_ON.en, node: '' });
+        await playLine({ speaker: 'announcer', zh: call, en: '', node: '' });
+      })();
       timer.current = window.setTimeout(() => {
         setRide((r) => runOn(r));
         setPhase('stopped');
       }, step);
     } else if (phase === 'stopped') {
       const here = arrivalCall(ride.at);
-      setLine(here);
-      void playLine({ speaker: 'announcer', zh: here, en: '', node: '' });
+      // §13 N1: where to change, which doors open
+      const more = stopCalls(ride.train.line, ride.at);
+      setLine([here, ...more.map((m) => m.zh)].join(''));
+      setLineEn(more.map((m) => m.en).join(' '));
+      void (async () => {
+        await playLine({ speaker: 'announcer', zh: here, en: '', node: '' });
+        for (const m of more) await playLine({ speaker: 'announcer', zh: m.zh, en: m.en, node: '' });
+      })();
       timer.current = window.setTimeout(() => setPhase('moving'), step * 1.4);
     }
   }, [phase, ride.train, ride.at, step]);
@@ -98,6 +113,7 @@ export function RideSheet({
     setRide((r) => getOff(r));
     setPhase('platform');
     setLine('');
+    setLineEn('');
   };
 
   const trains = trainsAt(ride.at, mode);
@@ -133,7 +149,12 @@ export function RideSheet({
         </header>
         <div className="wr-body">
           <p className="wr-call" aria-live="polite">
-            {line ? <ZhText zh={line} pinyin={pinyin} /> : <span className="small muted">{mode === 'bus' ? 'Which bus? The sign says where each one goes.' : 'Which train? The signs say where each one goes.'}</span>}
+            {line ? (
+              <>
+                <ZhText zh={line} pinyin={pinyin} />
+                {lineEn && <span className="tiny muted wr-en">{lineEn}</span>}
+              </>
+            ) : <span className="small muted">{mode === 'bus' ? 'Which bus? The sign says where each one goes.' : 'Which train? The signs say where each one goes.'}</span>}
           </p>
           {onTrain ? (
             <div className="wr-acts">

@@ -82,8 +82,20 @@ export function noticeAt(s: WorldSave, npc: string, clothes: Pick<ClothesContent
     const l = THING[item] ?? OWN[npc] ?? BY_SLOT[slot];
     return { ...l, actions: [{ do: 'flag', flag: `noticed:${item}` }, { do: 'remember', npc, note: `saw your new ${c.en}` }] };
   }
+  // your own bike (§13 L3): the first friend you talk to once you have one
+  if (s.bike && !s.flags.includes('noticed:bike')) {
+    const l = BIKE_NOTICE[npc] ?? BIKE_NOTICE.any!;
+    return { ...l, actions: [{ do: 'flag', flag: 'noticed:bike' }, { do: 'remember', npc, note: 'saw your new bike' }] };
+  }
   return null;
 }
+
+/** A friend sees your bike (§13 L3), once: HSK 1–2 and 自行车. */
+export const BIKE_NOTICE: Record<string, { zh: string; en: string }> = {
+  'wang-ayi': { zh: '你买自行车了？真好！', en: 'You bought a bike? Wonderful!' },
+  'li-ayi': { zh: '新自行车？好看！在哪儿买的？', en: 'A new bike? Nice! Where did you get it?' },
+  any: { zh: '你有自行车了？真好！', en: 'You’ve got a bike now? Great!' },
+};
 
 export type RemarkKind = 'snow-tee' | 'rain-qipao' | 'hat-inside';
 

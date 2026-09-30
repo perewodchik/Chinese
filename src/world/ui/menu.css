@@ -74,11 +74,11 @@
   flex: 1;
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 4px;
 }
 
-.mn-tabs [role='tab'] {
+.mn-tabs > button {
   position: relative;
   display: grid;
   justify-items: center;
@@ -102,16 +102,16 @@
   transition: transform 0.1s, background 0.12s;
 }
 
-.mn-tabs [role='tab']:hover {
+.mn-tabs > button:hover {
   transform: translateY(1px);
 }
 
-.mn-tabs [role='tab'] .w-prop {
+.mn-tabs > button .w-prop {
   opacity: 0.85;
 }
 
 /* the open tab is part of the page: paper, raised, joined to it */
-.mn-tabs [role='tab'][aria-selected='true'] {
+.mn-tabs > button[aria-selected='true'] {
   z-index: 1;
   background: var(--mn-paper);
   color: var(--ink);
@@ -123,7 +123,7 @@
     0 3px 0 0 var(--mn-paper);
 }
 
-.mn-tabs [role='tab'][aria-selected='true'] .w-prop {
+.mn-tabs > button[aria-selected='true'] .w-prop {
   opacity: 1;
 }
 
@@ -134,66 +134,24 @@
   color: inherit;
 }
 
-.mn-en {
-  font-size: 10.5px;
-  line-height: 1.1;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  opacity: 0.85;
-}
-
-.mn-tabs [role='tab'][aria-selected='true'] .mn-zh {
+.mn-tabs > button[aria-selected='true'] .mn-zh {
   font-weight: 600;
 }
 
-/* ⚙ and ×: square pixel keys on the wood */
-.mn-keys {
-  flex: none;
-  display: flex;
-  gap: 8px;
-  align-self: center;
-  padding: 0 4px 6px;
-}
-
-.mn-key {
+/* ⚙ 设置 and × 关: bookmarks like the tabs, their glyph in a box the size of a tab's icon */
+.mn-glyph {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 0;
-  background: var(--mn-cream);
-  color: var(--mn-wood-deep);
-  cursor: pointer;
-  box-shadow:
-    0 -2px 0 0 var(--mn-wood-deep),
-    0 2px 0 0 var(--mn-wood-deep),
-    -2px 0 0 0 var(--mn-wood-deep),
-    2px 0 0 0 var(--mn-wood-deep),
-    0 5px 0 0 rgba(0, 0, 0, 0.3);
+  width: 32px;
+  height: 32px;
 }
 
-.mn-key:hover {
-  background: #fff;
+.mn-tabs > .mn-close {
+  background: color-mix(in srgb, #c2574a 55%, var(--mn-wood));
 }
 
-.mn-key:active {
-  transform: translateY(2px);
-  box-shadow:
-    0 -2px 0 0 var(--mn-wood-deep),
-    0 2px 0 0 var(--mn-wood-deep),
-    -2px 0 0 0 var(--mn-wood-deep),
-    2px 0 0 0 var(--mn-wood-deep);
-}
-
-.mn-key[aria-pressed='true'] {
-  background: var(--gold-soft, #f4e6c4);
-  color: var(--accent);
-}
-
-.mn-close {
-  background: #f2c9bd;
-  color: #761d25;
+.mn-tabs > .mn-close:hover {
+  background: color-mix(in srgb, #c2574a 70%, var(--mn-wood));
 }
 
 /* news: a small red pixel dot, laid over — clearing it moves nothing */
@@ -351,7 +309,7 @@
     gap: 2px;
   }
 
-  .mn-tabs [role='tab'] {
+  .mn-tabs > button {
     height: 58px;
     margin: 0 2px 3px;
     transform: translateY(-4px);
@@ -362,44 +320,17 @@
       3px 0 0 0 var(--mn-wood-deep);
   }
 
-  .mn-tabs [role='tab']:hover {
+  .mn-tabs > button:hover {
     transform: translateY(-1px);
   }
 
-  .mn-tabs [role='tab'][aria-selected='true'] {
+  .mn-tabs > button[aria-selected='true'] {
     transform: none;
     box-shadow:
       0 3px 0 0 var(--px-edge),
       -3px 0 0 0 var(--px-edge),
       3px 0 0 0 var(--px-edge),
       0 -3px 0 0 var(--mn-paper);
-  }
-
-  .mn-en {
-    font-size: 9.5px;
-  }
-
-  .mn-keys {
-    flex-direction: column;
-    align-self: stretch;
-    justify-content: center;
-    gap: 6px;
-    padding: 4px 3px 0;
-  }
-
-  .mn-key {
-    width: 40px;
-    height: 27px;
-    box-shadow:
-      0 -2px 0 0 var(--mn-wood-deep),
-      0 2px 0 0 var(--mn-wood-deep),
-      -2px 0 0 0 var(--mn-wood-deep),
-      2px 0 0 0 var(--mn-wood-deep);
-  }
-
-  .mn-key .w-px-icon {
-    width: 14px;
-    height: 14px;
   }
 
   .mn-views {
@@ -411,15 +342,10 @@
   }
 }
 
-/* at 375 the bar has no room for English under every tab and two keys beside */
+/* at 375 six bookmarks share the width: less margin between them */
 @media (max-width: 420px) {
-  .mn-tabs [role='tab'] {
+  .mn-tabs > button {
     margin: 0 1px 3px;
-  }
-
-  .mn-en {
-    font-size: 9px;
-    letter-spacing: 0;
   }
 }
 

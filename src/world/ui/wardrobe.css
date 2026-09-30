@@ -586,3 +586,52 @@ span.wc-opt[aria-disabled] {
     display: none;
   }
 }
+
+/* --- the bike shop (§13 L1): the rack sheet's frame; you with a bike, and the test ride */
+.wb-rider {
+  position: relative;
+  display: block;
+  flex: none;
+}
+
+.wb-rider > .wc-figure {
+  position: absolute;
+  inset: 0;
+}
+
+/* the bike stands in front of you, at your feet */
+.wb-bike {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  line-height: 0;
+}
+
+.wb-ride {
+  display: block;
+  line-height: 0;
+}
+
+/* the test ride: up and down the stage, and back — transform only, the box does not move */
+.wb-stage[data-riding] .wb-ride {
+  animation: wb-ride 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes wb-ride {
+  from {
+    transform: translateX(-14px);
+  }
+  to {
+    transform: translateX(14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-stage[data-riding] .wb-ride {
+    animation: none;
+  }
+}
+
+.wb-card .w-prop {
+  margin-top: 6px;
+}

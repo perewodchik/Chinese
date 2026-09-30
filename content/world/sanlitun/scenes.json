@@ -632,5 +632,51 @@
     "why": "The bike stands are by the stations and in the lanes. Tap one to ride; tap a stand again (or go indoors) to park — 1 元 a ride."
    }
   ]
+ },
+ {
+  "id": "bike-tip-after",
+  "map": "sanlitun-street",
+  "npc": "kuaidi-xiaoge",
+  "trigger": "talk",
+  "once": true,
+  "priority": 2,
+  "when": {
+   "all": [
+    {
+     "quest": "side-bike",
+     "done": true
+    },
+    {
+     "bike": "none"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "共享单车",
+    "explain": "在路边，大家都能用的车。",
+    "en": "shared bike"
+   },
+   {
+    "w": "自行车",
+    "explain": "两个轮子，人骑的车。",
+    "en": "bicycle"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "共享单车好吗？共享单车很多，很快！",
+    "translate": "Good, the shared bikes? There are loads of them — and quick!",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "你也可以买一个你的自行车。北边有个卖自行车的店！",
+    "translate": "You could buy a bike of your own too. Up north there's a shop that sells bikes!",
+    "why": "The bike shop is on 鼓楼东大街 (400–480 元); the recycler in 帽儿胡同 sometimes has an old one, cheaper. Your own bike is twice as fast as walking."
+   }
+  ]
  }
 ]

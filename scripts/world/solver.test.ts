@@ -119,6 +119,16 @@ describe('money goes round (Y3)', () => {
     assert.notEqual(run.save.look.hair.style, 'short', 'the barber cut something');
   });
 
+  it('§13 L4: a broke player in chapter 3 earns a bike with the jobs, and gets it', () => {
+    const golden = readSave(JSON.parse(readFileSync('content/world/test-saves/chapter-3.json', 'utf8')));
+    assert.ok(golden.ok);
+    const broke = { ...golden.save, bag: { ...golden.save.bag, money: 0 } };
+    const run = solve(broke, 6000, (s) => !!s.bike);
+    assert.ok(run.save.bike, `no bike after ${run.log.length} scenes, ${run.save.bag.money} 元`);
+    assert.ok(run.save.quests['side-ziche'], 'the quest that leads to it');
+    assert.deepEqual(run.short, []);
+  });
+
   it('a broke player earns a 交通卡 (40 元) within one game day of jobs', () => {
     const golden = readSave(JSON.parse(readFileSync('content/world/test-saves/chapter-2.json', 'utf8')));
     assert.ok(golden.ok);

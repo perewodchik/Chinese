@@ -192,9 +192,13 @@ export interface Box {
 /** how far a name sits from its station, in grid units */
 const GAP = 0.32;
 
-/** Where a station's name is drawn: its box (grid units) for a font `fs` grid units high, and the text anchor. */
-export function labelBox(station: string, fs: number): Box & { anchor: 'start' | 'middle' | 'end' } {
-  const [x, y, side] = AT[station]!;
+/**
+ * Where a station's name is drawn: its box (grid units) for a font `fs` grid units high, and the
+ * text anchor — on its own side, or on `on` (the map tries other sides when that one is taken).
+ */
+export function labelBox(station: string, fs: number, on?: Side): Box & { anchor: 'start' | 'middle' | 'end' } {
+  const [x, y, own] = AT[station]!;
+  const side = on ?? own;
   const name = STATIONS.find((s) => s.id === station)?.zh ?? station;
   const w = [...name].length * fs;
   const h = fs;

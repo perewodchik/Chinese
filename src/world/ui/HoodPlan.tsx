@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { HOODS, heroOnPlan, type HoodLayout, type LaidExit, type LaidRoom } from '../core/hoods';
 import { placeOf } from '../core/places';
 import { linesAt } from '../core/travel';
-import { HOODS_STAMP, MINI_STAMPS } from './stamps.gen';
+import { stamped } from './stamped';
 import type { Pad, View } from './usePanZoom';
 
 /**
@@ -18,11 +18,11 @@ import type { Pad, View } from './usePanZoom';
  */
 
 /** A map's miniature, by its build stamp. */
-export const miniUrl = (map: string) => `/world/minis/${map}.png?v=${MINI_STAMPS[map] ?? '0'}`;
+export const miniUrl = (map: string) => stamped(`/world/minis/${map}.png`);
 
 let plansOnce: Promise<HoodLayout[]> | null = null;
 export const loadPlans = () =>
-  (plansOnce ??= fetch(`/world/maps/hoods.json?v=${HOODS_STAMP}`)
+  (plansOnce ??= fetch(stamped('/world/maps/hoods.json'))
     .then((r) => r.json() as Promise<HoodLayout[]>)
     .catch(() => {
       plansOnce = null;

@@ -25,7 +25,8 @@ import { RideSheet } from '../../world/ui/RideSheet';
 import { useTakeMeThere } from '../../world/ui/takeMeThere';
 import { setVoiceCards } from '../../world/ui/lineVoice';
 import { Ambient } from '../../world/audio/ambient';
-import { isDrumShow, mixFor } from '../../world/audio/mix';
+import { isDrumShow, mixFor, nextIn, type Mix } from '../../world/audio/mix';
+import { say } from '../../platform/audio/voiceOut';
 import { moodFor } from '../../world/audio/music';
 import type { MapLife } from '../../world/core/maptext';
 import { fareOut, stopMap } from '../../world/core/ride';
@@ -56,6 +57,10 @@ import { WardrobeSheet } from '../../world/ui/WardrobeSheet';
 import { BookReader, BookShelf } from '../../world/ui/BookReader';
 import { owedBooks } from '../../world/core/books';
 import { RackSheet } from '../../world/ui/RackSheet';
+import { BikeSheet } from '../../world/ui/BikeSheet';
+import { BikeAway, BikeDock, BikeRide, StreetCaption, type RidePlan } from '../../world/ui/BikeRide';
+import { BIKE_HOME, bikePlace, callScene, flatToday, noRide, parkOnArrival, ridePlace, rideOptions, rideSights, timedNow, type BikeState } from '../../world/core/bike';
+import type { OwnBikeLook } from '../../world/engine/scene';
 import { remarkAt } from '../../world/core/notice';
 import { PLACES } from '../../world/core/places';
 import { homeProp } from '../../world/core/wardrobe';
@@ -70,8 +75,18 @@ import { isAway, recapOf, wordsOfScene, type Recap } from '../../world/core/reca
 import { RecapCard } from '../../world/ui/Recap';
 import { holds } from '../../world/core/flags';
 import type { RunningCutscene } from '../../world/engine/cutscene';
+import { stamped } from '../../world/ui/stamped';
 
 const TIMES: PartOfDay[] = ['morning', 'day', 'evening', 'night'];
+
+/** Your own bike as the engine draws it under you (§13 L2). */
+const lookOfBike = (b: BikeState): OwnBikeLook => ({ model: b.model, colour: b.colour, parts: b.parts, ...(b.flat !== undefined ? { push: true } : {}) });
+/** what the engine rides now: your own bike, a shared one, or nothing */
+const rideOf = (s: WorldSave | null) => (s?.bike?.at === 'riding' ? lookOfBike(s.bike) : (s?.flags.includes('on-bike') ?? false));
+/** a map is out of doors when its street life says so (as the engine's rain) */
+const outdoorsOf = (life: MapLife) => life.crowd + life.pigeons + life.bikes > 0;
+/** the name of a map as people say it (王府井大街), for the phone call */
+const placeZh = (map: string) => PLACES.find((p) => p.map === map)?.zh ?? map;
 
 /** Until chapter 1's maps exist, a save that points at a map this build lacks starts in the prototype lane. */
 const FALLBACK = { map: 'hutong-proto', tile: [14, 7] as Tile };
@@ -180,7 +195,10 @@ export function WorldPage() {
     const shot = await w.snapshot();
     const img = await cropPhoto(shot, FINDER);
     const v = w.view();
-    const subjects = v ? subjectsIn(h.objects, h.id, { x: v.x + v.w * FINDER.x, y: v.y + v.h * FINDER.y, w: v.w * FINDER.w, h: v.h * FINDER.h }) : [];
+    const seen = v ? subjectsIn(h.objects, h.id, { x: v.x + v.w * FINDER.x, y: v.y + v.h * FINDER.y, w: v.w * FINDER.w, h: v.h * FINDER.h }) : [];
+    // your own bike (§13 L3), parked in the picture or under you: `bike:mine`
+    const withBike = s.bike?.at === 'riding' || seen.some((x) => x.endsWith(':my-bike-pic'));
+    const subjects = [...seen.filter((x) => !x.endsWith(':my-bike-pic') && !x.endsWith(':my-bike-basket')), ...(withBike ? ['bike:mine'] : [])].sort();
     const place = districtInfo(s.district)?.name ?? '北京';
     const id = `${Date.now().toString(36)}`;
     saveAlbum(user.id, [{ id, at: s.clock, map: h.id, subjects, place, img }, ...loadAlbum(user.id)]);
@@ -219,6 +237,105 @@ export function WorldPage() {
   const world = useRef<RunningWorld | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'failed'>('loading');
   const [note, setNote] = useState<string | null>(null);
+  /** §13 L2: a ride between districts playing, the card of your bike when it is elsewhere, and the last street line heard */
+  const [bikeRide, setBikeRide] = useState<RidePlan | null>(null);
+  const [bikeAway, setBikeAway] = useState(false);
+  const [caption, setCaption] = useState<{ zh: string; en: string; who?: string; key: number } | null>(null);
+  /** where you last were while riding (the bike stays there when the next map cannot be ridden) */
+  const lastRide = useRef<{ map: string; tile: Tile } | null>(null);
+  /** 兔儿爷 has mentioned your bike left at this place (once for each place) */
+  const bikeMentioned = useRef<string>('');
+  const districtOfMap = (m: string) => mapIndex.current[m]?.district;
+  /** §13 L2: on your own bike, here — unless a tyre is flat (L3) */
+  const getOnBike = () => {
+    const s = game.current();
+    if (!s?.bike) return;
+    const h = here.current;
+    if (h && noRide(h.id, outdoorsOf(h.life))) return setNote('You can’t ride here — walk out to the street first.');
+    // §13 L3: now and then (at most once a week, never on a timed step) a tyre is flat — you walk it
+    const flat = s.bike.flat === undefined && flatToday(s) && !timedNow(activeQuests(s, contentRef.current.quests).map((a) => a.step));
+    if (flat) game.dispatch([{ do: 'bike_flat' }], 'important');
+    if (flat || s.bike.flat !== undefined) setPal((p) => ({ open: p.open, said: '车胎没气了！ The tyre is flat — you can walk it. The 修车摊 on 鼓楼东大街 patches it for 5 元 (补胎).' }));
+    if (s.flags.includes('on-bike')) game.dispatch([{ do: 'flag', flag: 'on-bike', value: false }, { do: 'money', amount: -1 }], 'important', { scene: 'bike' });
+    const after = game.dispatch([{ do: 'bike_on' }], 'important');
+    if (after?.bike) {
+      lastRide.current = { map: after.place.map, tile: after.place.tile };
+      // the parked bike's picture goes: draw the map again where you stand, riding
+      world.current?.setBike(lookOfBike(after.bike));
+      world.current?.travel({ map: after.place.map, tile: after.place.tile, facing: after.place.facing });
+    }
+  };
+  /** off your bike: it stays where you are — and, the first time with a lock, 兔儿爷 shows 🔒 (L3) */
+  const getOffBike = () => {
+    const s = game.current();
+    if (s?.bike?.at !== 'riding') return;
+    const after = game.dispatch([{ do: 'bike_off', map: s.place.map, tile: s.place.tile }], 'important');
+    if (after?.bike?.parts.includes('lock') && !after.flags.includes('bike-lock-tip')) {
+      game.dispatch([{ do: 'flag', flag: 'bike-lock-tip' }]);
+      setPal((p) => ({ open: p.open, said: 'Tap 🔒 to lock it — 锁车. Everybody in Beijing does, out of habit.' }));
+    }
+    world.current?.setBike(false);
+    if (after) world.current?.travel({ map: after.place.map, tile: after.place.tile, facing: after.place.facing });
+  };
+  /** the bell: a real ring, and now and then someone ahead says 「慢点儿！」 */
+  const ringBell = () => {
+    const s = game.current();
+    ambient.current?.wake();
+    ambient.current?.ring(s?.bike?.bell ?? 0);
+    const who = world.current?.ringBell();
+    if (who && Math.random() < 0.6) {
+      const name = contentRef.current.npcs.find((n) => n.id === who)?.name;
+      setCaption({ zh: '慢点儿！', en: 'Slow down!', ...(name ? { who: name } : {}), key: Date.now() });
+    }
+  };
+  /** 骑车去 (§13 L2): the ride's picture, then you arrive on the district's main street, still riding */
+  const rideTo = (district: string) => {
+    const s = game.current();
+    const from = s && ridePlace(s.district);
+    const opt = s && rideOptions(s, (d) => districtInfo(d)?.chapter ?? 99).find((o) => o.to.district === district);
+    if (!s || !from || !opt) return;
+    setPanel(null);
+    ambient.current?.ring(s.bike?.bell ?? 0);
+    setBikeRide({ to: opt.to, km: opt.km, minutes: opt.minutes, sights: rideSights(from, opt.to) });
+  };
+  const rideDone = () => {
+    const plan = bikeRide;
+    setBikeRide(null);
+    if (!plan) return;
+    game.dispatch([{ do: 'bike_ride', district: plan.to.district, minutes: plan.minutes }], 'important');
+    lastRide.current = { map: plan.to.arrive.map, tile: plan.to.arrive.tile };
+    world.current?.travel({ map: plan.to.arrive.map, tile: plan.to.arrive.tile, facing: plan.to.arrive.facing });
+  };
+  /** the phone (§13 L2): 「我的车在…，可以帮我送回来吗？」 to the 修车摊 master */
+  const callForBike = () => {
+    const s = game.current();
+    const at = s ? bikePlace(s) : null;
+    setBikeAway(false);
+    if (!s || !at || typeof at !== 'object') return;
+    const card = contentRef.current.npcs.find((n) => n.id === 'xiuche-shifu') ?? null;
+    talkRef.current.start(callScene(placeZh(at.map)), card, card ? lookOf(card, card.id) : 'sign', s, '📞 修车的老师傅');
+  };
+  /** your bike's 🚲 button: off, on, or where it is */
+  const bikeButton = (s: WorldSave) => {
+    if (!s.bike) return null;
+    const at = bikePlace(s);
+    const state: 'riding' | 'here' | 'away' = at === 'riding' ? 'riding' : at && typeof at === 'object' && at.map === s.place.map ? 'here' : 'away';
+    return {
+      frame: `bike/${s.bike.model}-${s.bike.colour}-side`,
+      state,
+      onBike: () => (state === 'riding' ? getOffBike() : state === 'here' ? getOnBike() : setBikeAway((v) => !v)),
+      onBell: ringBell,
+      // L3: parked here with a lock, not locked yet
+      ...(state === 'here' && s.bike.parts.includes('lock') && !s.bike.locked
+        ? {
+            onLock: () => {
+              game.dispatch([{ do: 'bike_lock' }], 'important');
+              setCaption({ zh: '锁好了。', en: 'Locked.', key: Date.now() });
+            },
+          }
+        : {}),
+    };
+  };
   const [minutes, setMinutes] = useState(0);
   const [pal, setPal] = useState<{ open: boolean; said: string | null }>({ open: false, said: null });
   // M6: "Take me there" — footprints on every map, the right train marked on the platform
@@ -240,6 +357,10 @@ export function WorldPage() {
   // the street's sounds (G1): made on first tap, mixed by where you are and the hour
   const ambient = useRef<Ambient | null>(null);
   const here = useRef<{ id: string; life: MapLife; objects: MapObject[] } | null>(null);
+  /** the street's mix now (G1, and §13 N1's sounds and voices) */
+  const mix = useRef<Mix | null>(null);
+  /** the last street voice heard (real ms), so they come one at a time */
+  const lastVoice = useRef(0);
   const [photo, setPhoto] = useState(false);
   /** the character creator (§12, W3) — once per new game — or the mirror at home (W4) */
   const [creator, setCreator] = useState<CreatorMode | null>(null);
@@ -262,7 +383,10 @@ export function WorldPage() {
     const at = minutes ?? s.clock;
     const time = partOfDay(at);
     const day = dayOf(at);
-    ambient.current?.setMix(mixFor(h.id, h.life, time));
+    // §13 N1: the city at this hour, season and festival
+    const cityTime = { hour: Math.floor((((at % 1440) + 1440) % 1440) / 60), season: seasonOf(day), festival: (query.get('festival') as FestivalId | null) ?? festivalOf(day)?.id ?? null };
+    mix.current = mixFor(h.id, h.life, time, cityTime);
+    ambient.current?.setMix(mix.current);
     // the music follows the place, the hour, the weather and the day (?weather= tries one)
     const sky = query.get('weather');
     const weather = sky === 'rain' || sky === 'snow' ? sky : weatherOf(day);
@@ -285,7 +409,7 @@ export function WorldPage() {
   const sayNext = useRef<(() => void) | null>(null);
   const titleNext = useRef<(() => void) | null>(null);
   const busy = useRef(false);
-  busy.current = cut !== null || beforeGo !== null || recap !== null || note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null || wardrobe || shelfOpen || reading !== null;
+  busy.current = cut !== null || beforeGo !== null || recap !== null || note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null || wardrobe || shelfOpen || reading !== null || bikeRide !== null;
 
   // An error thrown inside the engine's loop never reaches React: hand it to the crash guard.
   useEffect(() => {
@@ -331,7 +455,7 @@ export function WorldPage() {
     setState('loading');
     void (async () => {
       try {
-        const index = (await (await fetch('/world/maps/index.json')).json()) as MapIndex;
+        const index = (await (await fetch(stamped('/world/maps/index.json'))).json()) as MapIndex;
         mapIndex.current = index;
         let { map, tile } = start.asked && index[start.asked] ? { map: start.asked, tile: null as Tile | null } : start.place;
         if (!index[map]) ({ map, tile } = FALLBACK);
@@ -355,11 +479,28 @@ export function WorldPage() {
         const host: WorldHost = {
           onStep: (t, facing) => {
             lastActive.current = Date.now();
-            game.dispatch([{ do: 'move', tile: t, facing }], 'walk');
+            const s = game.dispatch([{ do: 'move', tile: t, facing }], 'walk');
+            if (s?.bike?.at === 'riding') lastRide.current = { map: s.place.map, tile: t };
           },
           onArrive: (info, t, facing) => {
-            const s = game.dispatch([{ do: 'enter', map: info.id, tile: t, facing, district: info.district || undefined }]);
+            let s = game.dispatch([{ do: 'enter', map: info.id, tile: t, facing, district: info.district || undefined }]);
             here.current = { id: info.id, life: info.life, objects: info.objects };
+            // §13 L2: your bike stays outside a door, at a park's gate, at the station's exit — where you last rode
+            const park = s ? parkOnArrival(s, info.id, outdoorsOf(info.life), lastRide.current, t) : null;
+            if (s && park) {
+              s = game.dispatch([park.off], 'important') ?? s;
+              world.current?.setBike(false);
+              if (park.sign) talkRef.current.start(signScene({ id: 'no-ride', text: park.sign.text, en: park.sign.en }), null, 'sign', s, 'A sign');
+            } else if (s?.bike?.at === 'riding') lastRide.current = { map: info.id, tile: t };
+            // walked off from your bike without locking it (L3): 王阿姨 will say so, once
+            const left = s ? bikePlace(s) : null;
+            if (s?.bike && left && typeof left === 'object' && left.map !== info.id && !s.bike.locked && !s.flags.includes('bike-unlocked')) game.dispatch([{ do: 'flag', flag: 'bike-unlocked' }]);
+            // coming home by subway with your bike elsewhere: 兔儿爷 says so, once for each place it waits
+            const parked = s ? bikePlace(s) : null;
+            if (s && parked && typeof parked === 'object' && info.district === 'gulou' && !info.id.startsWith('station-') && districtOfMap(parked.map) !== 'gulou' && bikeMentioned.current !== parked.map) {
+              bikeMentioned.current = parked.map;
+              setPal((p) => ({ open: p.open, said: `Your bike is still at ${placeZh(parked.map)}. Walk back for it — or tap 🚲 to phone the 修车摊 master, who brings it home for 10 元.` }));
+            }
             remix();
             // §13 Q1: into a neighbourhood with someone who could use a hand — 兔儿爷 says so, once a chapter
             const hood = hoodOf(info.id)?.id;
@@ -474,6 +615,11 @@ export function WorldPage() {
               talkRef.current.start(machineScene(s, o.id), null, 'sign', s, '售票机 · Ticket machine');
             } else if (o.kind === 'sign') {
               talkRef.current.start(signScene(o), null, 'sign', s, o.en ?? 'A sign');
+            } else if (o.kind === 'bike' && o.id === 'my-bike') {
+              // §13 L2: your own bike, parked here — get on
+              getOnBike();
+            } else if (o.kind === 'bike' && s.bike?.at === 'riding') {
+              talkRef.current.start(signScene({ id: o.id, text: '扫码骑车', en: 'Shared bikes — but you are on your own bike.' }), null, 'sign', s, 'Shared bikes');
             } else if (o.kind === 'bike') {
               // 共享单车 (H8): scan to ride, park at any stand; after chapter 1
               const riding = s.flags.includes('on-bike');
@@ -514,7 +660,7 @@ export function WorldPage() {
           facing: start.place.facing,
           host,
           looks: looksOf(people.npcs),
-          bike: game.current()?.flags.includes('on-bike') ?? false,
+          bike: rideOf(game.current()),
           // today's weather (X4); ?weather=rain|snow|none tries one out
           sky: oneOf(query.get('weather'), ['rain', 'snow', 'none'] as const, skyOf(weatherOf(dayOf(game.current()?.clock ?? 0)))),
           // the silver butterflies light the way after dark (X11)
@@ -533,7 +679,18 @@ export function WorldPage() {
           },
           cast: (info) => {
             const s = game.current();
-            return s ? castMap(info.objects, info.id, people.npcs, s) : info.objects;
+            if (!s) return info.objects;
+            const cast = castMap(info.objects, info.id, people.npcs, s);
+            // §13 L2: your bike, parked on this map — drawn, and a tap gets you on
+            const at = bikePlace(s);
+            if (!s.bike || !at || typeof at !== 'object' || at.map !== info.id) return cast;
+            const b = s.bike;
+            return [
+              ...cast,
+              { kind: 'prop', id: 'my-bike-pic', tile: at.tile, frame: `bike/${b.model}-${b.colour}-side`, blocks: [0, 0] },
+              ...(b.parts.includes('basket') ? [{ kind: 'prop' as const, id: 'my-bike-basket', tile: at.tile, frame: 'bike/basket-side', blocks: [0, 0] as const }] : []),
+              { kind: 'bike', id: 'my-bike', tile: at.tile },
+            ];
           },
           onReady: () => !gone && setState('ready'),
         }, !!frame);
@@ -556,6 +713,39 @@ export function WorldPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [start]);
+
+  // §13 N1: the street's voices — one at a time, never over a talk, at least 40 s apart; the caption shows it
+  useEffect(() => {
+    if (state !== 'ready') return;
+    let t = 0;
+    const tick = () => {
+      t = window.setTimeout(tick, 8000);
+      const s = game.current();
+      const voices = mix.current?.voices ?? [];
+      if (!s || busy.current || s.settings.cityVoices === false || s.settings.volume <= 0 || !voices.length) return;
+      if (Date.now() - lastVoice.current < 40_000) return;
+      // each voice about once in its `every` seconds (checked every 8 s)
+      const v = voices.find((x) => Math.random() < 8 / nextIn(x.every, Math.random));
+      if (!v) return;
+      lastVoice.current = Date.now();
+      setCaption({ zh: v.zh, en: v.en, who: v.who, key: Date.now() });
+      void say(v.zh.replace(/[——…]+/g, '，'));
+    };
+    t = window.setTimeout(tick, 8000);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
+  // §13 L3: the bike under you follows the save — a flat tyre patched at the 修车摊, a basket fitted
+  const drawnBike = useRef('');
+  useEffect(() => {
+    const b = game.save?.bike;
+    const key = b?.at === 'riding' ? JSON.stringify(lookOfBike(b)) : '';
+    if (key === drawnBike.current) return;
+    const was = drawnBike.current;
+    drawnBike.current = key;
+    if (key && was) world.current?.setBike(lookOfBike(b!));
+  }, [game.save]);
 
   // 兔儿爷 feels what happens (X7): proud at a spirit, sulky at 守株待兔, glad of a stamp or a friend.
   const seen = useRef<WorldSave | null>(null);
@@ -783,6 +973,9 @@ export function WorldPage() {
       if (now !== part) {
         part = now;
         world.current?.setTime(now);
+        remix(minutes);
+      } else if (minutes % 60 === 0) {
+        // §13 N1: the city's sounds and voices change by the hour
         remix(minutes);
       }
     }, 1000);
@@ -1022,13 +1215,14 @@ export function WorldPage() {
           />
         </Minimap>
       )}
-      {game.save && state === 'ready' && !photo && !cut && <TopBar district={game.save.district} minutes={minutes} open={setPanel} onPhoto={() => setPhoto(true)} news={menuNewsFor(game.save, content).size > 0} />}
+      {game.save && state === 'ready' && !photo && !cut && <TopBar minutes={minutes} open={setPanel} news={menuNewsFor(game.save, content).size > 0} />}
       {photo && <PhotoMode onTake={takePhoto} onZoom={(d) => world.current?.zoomBy(d)} onClose={() => setPhoto(false)} />}
       {panel && game.save && (
         <Panels
           tab={panel}
           setTab={setPanel}
           save={game.save}
+          ride={game.save.bike?.at === 'riding' && game.save.bike.flat === undefined ? { options: rideOptions(game.save, (d) => districtInfo(d)?.chapter ?? 99), onRide: rideTo } : null}
           content={content}
           pinyin={game.save.settings.pinyin}
           user={user.id}
@@ -1045,6 +1239,10 @@ export function WorldPage() {
             void game.flush().finally(() => window.location.replace(window.location.pathname));
           }}
           onClose={() => setPanel(null)}
+          onPhoto={() => {
+            setPanel(null);
+            setPhoto(true);
+          }}
           onUse={(item) => {
             setPanel(null);
             setUsing(item);
@@ -1072,6 +1270,25 @@ export function WorldPage() {
           clothes={content.clothes}
           onSay={(text) => talk.reply(text, 'keyboard')}
         />
+      )}
+      {/* §13 L2: riding between districts, your bike when it is elsewhere, and the street's lines */}
+      {bikeRide && game.save && <BikeRide plan={bikeRide} save={game.save} clothes={content.clothes} onDone={rideDone} />}
+      {bikeAway && game.save?.bike && !talk.view && (
+        <BikeAway
+          where={(() => {
+            const at = bikePlace(game.save);
+            return at && typeof at === 'object' ? placeZh(at.map) : placeZh(BIKE_HOME.map);
+          })()}
+          coming={bikePlace(game.save) === 'coming'}
+          onCall={callForBike}
+          onClose={() => setBikeAway(false)}
+        />
+      )}
+      {game.save && state === 'ready' && !photo && !cut && !talk.view && panel === null && bikeButton(game.save) && <BikeDock {...bikeButton(game.save)!} />}
+      {game.save && state === 'ready' && <StreetCaption line={caption} pinyin={game.save.settings.pinyin} />}
+      {/* the bike shop (§13 L1): the bikes (or, once you have one, the parts) over the talk */}
+      {talk.view?.state.bikes && !talk.view.state.due && talk.view.mode === 'reply' && game.save && (
+        <BikeSheet state={talk.view.state.bikes} save={game.save} clothes={content.clothes} onSay={(text) => talk.reply(text, 'keyboard')} />
       )}
       {talk.view && game.save && (
         <Dialogue
@@ -1124,38 +1341,6 @@ export function WorldPage() {
       )}
       {seal && <SealToast seal={seal} />}
       {recap && <RecapCard recap={recap} onClose={() => setRecap(null)} />}
-      {beforeGo && (
-        <div className="world-note cs-before" role="dialog" aria-label="Before we go">
-          <span>
-            <b>Before we go…</b> {beforeGo.open.map((e) => `${e.quest.title} (${whoWhere(e)})`).join(' · ')} — still here, if you like. The story waits.
-          </span>
-          <span className="cs-before-acts">
-            <button
-              type="button"
-              className="btn sm ghost"
-              onClick={() => {
-                laterCut.current = beforeGo.item;
-                setBeforeGo(null);
-              }}
-            >
-              Not yet
-            </button>
-            <button
-              type="button"
-              className="world-note-ok"
-              autoFocus
-              onClick={() => {
-                const next = beforeGo.item;
-                setBeforeGo(null);
-                cutQueue.current.unshift(next);
-                setCutTick((t) => t + 1);
-              }}
-            >
-              Go on
-            </button>
-          </span>
-        </div>
-      )}
       {lantern && game.save && (
         <LanternCard lit={litFigures(game.save).filter((f) => !lantern.includes(f))} now={lantern} names={(id) => content.spirits.find((x) => x.id === id)?.hanzi ?? (id === 'family' ? '家' : id)} />
       )}
@@ -1183,8 +1368,35 @@ export function WorldPage() {
             const s = game.current();
             return s ? whatNow(s, contentRef.current.quests) : '';
           }}
-          lex={lex}
           talking={!!talk.view}
+          // "Before we go…" (§13 Q1) is his to ask, in his bubble (the learner, 2026-09-30)
+          ask={
+            beforeGo
+              ? {
+                  text: `Before we go… ${beforeGo.open.map((e) => `${e.quest.title} (${whoWhere(e)})`).join(' · ')} — still here, if you like. The story waits.`,
+                  choices: [
+                    {
+                      id: 'later',
+                      label: 'Not yet',
+                      run: () => {
+                        laterCut.current = beforeGo.item;
+                        setBeforeGo(null);
+                      },
+                    },
+                    {
+                      id: 'go',
+                      label: 'Go on',
+                      run: () => {
+                        const next = beforeGo.item;
+                        setBeforeGo(null);
+                        cutQueue.current.unshift(next);
+                        setCutTick((t) => t + 1);
+                      },
+                    },
+                  ],
+                }
+              : null
+          }
         />
       )}
       {creator && game.save && (
@@ -1284,7 +1496,7 @@ export function WorldPage() {
           </button>
         </div>
       )}
-      {game.save?.settings.joystick && state === 'ready' && !talk.view && !panel && !cut && (
+      {game.save?.settings.joystick && state === 'ready' && !talk.view && !panel && !cut && !beforeGo && note === null && !newBook && (
         <Joystick onStick={(f, run) => world.current?.stick(f, run)} onAct={() => world.current?.act()} />
       )}
       {note !== null && (

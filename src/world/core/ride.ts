@@ -108,3 +108,37 @@ export function allCalls(): string[] {
 
 /** A station's name as its signs show it: 南锣鼓巷站. */
 export const stationSign = (id: string) => `${station(id).zh}站`;
+
+// ---------------------------------------------------------------------------
+// §13 N1 — the rest of what a Beijing train says (facts.md `metro-announcements`)
+// ---------------------------------------------------------------------------
+
+/** The English after the Chinese call, as Beijing's trains say it: "Next station: Wangfujing. You can transfer to Line 1." */
+export function callEn(lineId: string, at: string, dir: Dir): string | null {
+  const next = nextStop(lineId, at, dir);
+  if (!next) return null;
+  const l = line(lineId);
+  const st = station(next).en;
+  if (l.mode === 'bus') return `Next stop: ${st}.`;
+  const last = isTerminus(lineId, next, dir) ? ' This is the terminal station.' : '';
+  const changes = linesAt(next).filter((x) => x.mode === 'subway' && x.id !== lineId).map((x) => x.en);
+  return `Next station: ${st}.${last}${changes.length ? ` You can transfer to ${changes.join(', ')}.` : ''}`;
+}
+
+/** Said as the train pulls out of the first station: hold on. */
+export const HOLD_ON = { zh: '请站稳扶好。', en: 'Please hold on tight.' };
+
+/**
+ * Said as the train stops (after 「王府井到了。」): where to change, and which
+ * doors open. Which side is the game's own (it alternates down a line), not
+ * each real station's.
+ */
+export function stopCalls(lineId: string, at: string): Array<{ zh: string; en: string }> {
+  const l = line(lineId);
+  if (l.mode !== 'subway') return [];
+  const out: Array<{ zh: string; en: string }> = [];
+  for (const x of linesAt(at).filter((y) => y.mode === 'subway' && y.id !== lineId)) out.push({ zh: `换乘${x.zh}的乘客，请在本站下车。`, en: `Passengers for ${x.en}, please get off here.` });
+  const left = l.stops.indexOf(at) % 2 === 0;
+  out.push(left ? { zh: '开左侧门。', en: 'Doors open on the left.' } : { zh: '开右侧门。', en: 'Doors open on the right.' });
+  return out;
+}

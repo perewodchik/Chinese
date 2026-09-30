@@ -2,6 +2,7 @@ import { playBytes, playBytesAtPace, say } from '../../platform/audio/voiceOut';
 import type { Line } from '../core/dialogue/source';
 import type { NpcCard } from '../core/types';
 import { bitsOf, spoken, voiceKey, voiceOf } from '../core/voice';
+import { stamped } from './stamped';
 
 /**
  * Plays an NPC's line in their voice (prompt G2): the clip rendered for it
@@ -12,7 +13,7 @@ import { bitsOf, spoken, voiceKey, voiceOf } from '../core/voice';
 
 let index: Promise<Set<string>> | null = null;
 const loadIndex = () =>
-  (index ??= fetch('/world/voice/index.json')
+  (index ??= fetch(stamped('/world/voice/index.json'))
     .then((r) => (r.ok ? (r.json() as Promise<string[]>) : []))
     .then((keys) => new Set(keys))
     .catch(() => new Set<string>()));

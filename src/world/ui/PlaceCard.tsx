@@ -3,6 +3,7 @@ import { placeOf, type MapLinks, type Place } from '../core/places';
 import { districtInfo } from '../core/districts';
 import type { WorldSave } from '../core/types';
 import { takeMeTo, useGuide } from './takeMeThere';
+import { stamped } from './stamped';
 
 /**
  * What the 🗺 tab says about a place you tapped: its name, pinyin, English,
@@ -14,7 +15,7 @@ import { takeMeTo, useGuide } from './takeMeThere';
 let indexOnce: Promise<MapLinks> | null = null;
 /** public/world/maps/index.json: every map's district and where its doors and edges lead */
 export const loadIndex = () =>
-  (indexOnce ??= fetch('/world/maps/index.json')
+  (indexOnce ??= fetch(stamped('/world/maps/index.json'))
     .then((r) => r.json() as Promise<MapLinks>)
     .catch(() => {
       indexOnce = null;

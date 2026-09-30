@@ -8,6 +8,7 @@ import { worldApi } from '../sync/gateway';
 import { browserLocal } from '../sync/local';
 import { cardView, later, STORY_SPIRITS } from './card';
 import './card.css';
+import { stamped } from './stamped';
 
 const fromRaw = (raw: unknown): WorldSave | null => {
   if (raw == null) return null;
@@ -40,7 +41,7 @@ export function WorldCard() {
   return (
     <Link className="world-card" to={paths.world()} aria-label={`走走 Zǒuzou, walk Beijing — ${v.started ? 'continue' : 'start'}`}>
       <span className="world-card-art">
-        <img src={`/world/art/banner-${v.time}.png`} alt="" width={960} height={320} draggable={false} />
+        <img src={stamped(`/world/art/banner-${v.time}.png`)} alt="" width={960} height={320} draggable={false} />
         {v.snow && <span className="world-card-snow" aria-hidden />}
         <span className="world-card-label">Game</span>
         {v.festival && <span className="world-card-label world-card-fest hanzi">{v.festival}</span>}

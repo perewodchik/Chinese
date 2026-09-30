@@ -6,6 +6,7 @@
 
 import { sway } from './motion';
 import { Grid } from './grid';
+import { bikeFrames } from './bikes';
 
 /** A red lantern hung from a bracket, 16×16. `glow` 0 = unlit, 1–2 = lit flicker. */
 export function lantern(glow: number): Grid {
@@ -967,6 +968,7 @@ export const PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['lantern', 'a red lantern: unlit and two lit frames that flicker, and broken', () => [['unlit', lantern(0)], ['lit-0', lantern(1)], ['lit-1', lantern(2)], ['broken', brokenLantern()]]],
   ['tree', 'the 槐树 pagoda tree of the hutongs, and its sway frame (§13 V3)', () => [['huai', tree()], ['huai-1', sway(tree(), 26)]]],
   ['bicycle', 'a parked city bicycle', () => [['side', bicycle()], ['side-r', bicycle().mirror()]]],
+  ['bike', 'your own bike (§13 L): each model and colour from four sides, and the basket and rack overlays — scripts/world/art/gen/bikes.ts', bikeFrames],
   ['tricycle', 'a 三轮车 pedal tricycle', () => [['side', tricycle()], ['side-r', tricycle().mirror()]]],
   ['subway-sign', 'a subway entrance sign', () => [['post', subwaySign()]]],
   ['bird-cage', "an old man's bird cage", () => [['cage', birdCage()]]],

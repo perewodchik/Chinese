@@ -147,6 +147,45 @@ export function usePanZoom(bounds: View, minW: number, pad: Pad = { l: 0, r: 0, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoomAt]);
 
+  // Safari on the iPhone and iPad pinches with its own gesture events (and would zoom the page
+  // instead): take them, and let them do the pinch — the two-finger pointer pinch below stands
+  // down while one runs, so nothing zooms twice (the learner could not pinch the metro map)
+  const gesturing = useRef(false);
+  useEffect(() => {
+    const el = svg.current;
+    if (!el) return;
+    type Gesture = Event & { scale: number; clientX: number; clientY: number };
+    let last = 1;
+    const start = (e: Event) => {
+      e.preventDefault();
+      last = 1;
+      gesturing.current = true;
+      dragged.current = true;
+      cancelAnimationFrame(anim.current);
+    };
+    const change = (e: Event) => {
+      e.preventDefault();
+      const g = e as Gesture;
+      if (!g.scale) return;
+      const [fx, fy] = toUnits(g.clientX, g.clientY);
+      zoomAt(last / g.scale, fx, fy);
+      last = g.scale;
+    };
+    const end = (e: Event) => {
+      e.preventDefault();
+      gesturing.current = false;
+    };
+    el.addEventListener('gesturestart', start);
+    el.addEventListener('gesturechange', change);
+    el.addEventListener('gestureend', end);
+    return () => {
+      el.removeEventListener('gesturestart', start);
+      el.removeEventListener('gesturechange', change);
+      el.removeEventListener('gestureend', end);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoomAt]);
+
   // drag to move, two fingers to pinch; a drag is not a tap
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ d: number } | null>(null);
@@ -167,6 +206,7 @@ export function usePanZoom(bounds: View, minW: number, pad: Pad = { l: 0, r: 0, 
       const r = svg.current!.getBoundingClientRect();
       const v = viewRef.current;
       if (pointers.current.size === 2 && pinch.current) {
+        if (gesturing.current) return;
         const [a, b] = [...pointers.current.values()];
         const d = Math.hypot(a!.x - b!.x, a!.y - b!.y);
         const [fx, fy] = toUnits((a!.x + b!.x) / 2, (a!.y + b!.y) / 2);
@@ -174,7 +214,7 @@ export function usePanZoom(bounds: View, minW: number, pad: Pad = { l: 0, r: 0, 
         pinch.current = { d };
         return;
       }
-      if (!dragged.current) return;
+      if (!dragged.current || pointers.current.size > 1 || gesturing.current) return;
       setView(clamp({ ...v, x: v.x - ((ev.clientX - prev.x) / r.width) * v.w, y: v.y - ((ev.clientY - prev.y) / r.height) * v.h }));
     };
     const up = (ev: PointerEvent) => {

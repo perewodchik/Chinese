@@ -426,3 +426,14 @@
     animation: none;
   }
 }
+
+/* his question's answer that goes on (「Go on」): the one to press */
+.wb-opts button[data-main] {
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--ink));
+  background: var(--accent);
+  color: #fff;
+}
+
+.wb-opts button[data-main]:hover {
+  background: color-mix(in srgb, var(--accent) 88%, #000);
+}

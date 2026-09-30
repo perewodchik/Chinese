@@ -13,9 +13,10 @@ import { feedCat, fits, NO_CAT } from './room';
 import { MAX_SUBJECTS } from './photo';
 import type { Action, Facing, Place, Quest, QuestState, Tile, WorldSave, WorldSettings } from './types';
 import { applyWardrobe, newWardrobe, wardrobeEvents, type WardrobeAction } from './wardrobe';
+import { applyBike, bikeEvents, type BikeAction } from './bike';
 
-/** 10 is the journal's (§10); 11 is §12's wardrobe; 12 is 成语 Practise (§10 P3); 16 is §13 S1's chapter renumbering */
-export const WORLD_SAVE_VERSION = 16;
+/** 10 is the journal's (§10); 11 is §12's wardrobe; 12 is 成语 Practise (§10 P3); 16 is §13 S1's chapter renumbering; 17 is your own bike (§13 L) */
+export const WORLD_SAVE_VERSION = 17;
 /** how many payments the 账单 keeps */
 export const BILLS = 20;
 
@@ -107,7 +108,9 @@ export type EngineAction =
   /** one 成语 Practise answer (§10 P3): right or missed, at the game's minute */
   | { do: 'practised'; idiom: string; right: boolean }
   /** the creator, the wardrobe, the mirror, the racks and the barber (§12) */
-  | WardrobeAction;
+  | WardrobeAction
+  /** your own bike (§13 L): bought, fitted, ridden, parked, locked, a flat tyre */
+  | BikeAction;
 
 export type SaveAction = Action | EngineAction;
 
@@ -363,6 +366,17 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
     case 'sell_clothes':
     case 'hair':
       return applyWardrobe(s, a);
+    case 'bike':
+    case 'bike_part':
+    case 'bike_fix':
+    case 'bike_bell':
+    case 'bike_home':
+    case 'bike_on':
+    case 'bike_off':
+    case 'bike_lock':
+    case 'bike_flat':
+    case 'bike_ride':
+      return applyBike(s, a);
     case 'game':
       // The engine opens the game; the save only remembers where we were, which it already does.
       return s;
@@ -388,7 +402,7 @@ export function apply(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave
     changed = { ...changed, bills: [...changed.bills, bill(changed, a.amount, ctx)].slice(-BILLS) };
   }
   // the diary writes itself as things happen (X3); a night's sleep belongs to the day it ended
-  const codes = [...eventsOf(s, changed, a, ctx.npc), ...wardrobeEvents(s, changed, a as WardrobeAction)];
+  const codes = [...eventsOf(s, changed, a, ctx.npc), ...wardrobeEvents(s, changed, a as WardrobeAction), ...bikeEvents(s, changed, a)];
   let next = logDay(changed, codes, a.do === 'sleep' ? s.clock : changed.clock);
   // §13 Q2: each whole day slept through has its line, so the diary has no hole
   if (a.do === 'sleep') for (let d = dayOf(s.clock) + 1; d < dayOf(changed.clock); d++) next = logDay(next, ['q'], (d - 1) * MINUTES_PER_DAY + 12 * 60);

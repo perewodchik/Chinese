@@ -49,6 +49,10 @@ export const TEMPLATES: Record<string, { zh: string; en: string }> = {
   // §12: clothes (the codes carry their own names: 一件红毛衣, 旗袍)
   u: { zh: '我买了{x}。', en: 'I bought {x}.' },
   o: { zh: '今天我穿了{x}。', en: 'Today I wore {x}.' },
+  // §13 L: your own bike — bought (the code names it, like clothes: u:一辆红色的凤凰自行车) and ridden somewhere
+  y: { zh: '我骑自行车去了{x}。我喜欢骑自行车！', en: 'I rode my bike to {x}. I love riding my bike!' },
+  a: { zh: '我的自行车坏了，现在好了。', en: 'My bike had a flat tyre; it is mended now.' },
+  v: { zh: '我和我的自行车拍了照片！', en: 'I took a photo with my bike!' },
 };
 export const EMPTY_DAY = { zh: '今天没有什么事。', en: 'Nothing much happened today.' };
 
@@ -63,6 +67,8 @@ export const DIARY_SCENE: Scene = {
     { w: '照片', explain: '用手机拍的画。', en: 'photo' },
     { w: '拍', explain: '用手机做照片。', en: 'to take (a photo)' },
     { w: '挣', explain: '做事，有了钱。', en: 'to earn' },
+    { w: '骑', explain: '坐在自行车上走。', en: 'to ride' },
+    { w: '自行车', explain: '两个轮子，人骑的车。', en: 'bicycle' },
   ],
   nodes: [...Object.entries(TEMPLATES), ['empty', EMPTY_DAY] as const].map(([id, t]) => ({
     id,
@@ -226,6 +232,11 @@ export function diaryLines(codes: readonly string[], names: Names, day?: number)
     } else if (k === 'u' || k === 'o') {
       // bought or first worn (§12): the code names it, 「我买了一件红毛衣。」「今天我穿了旗袍。」
       if (a) fill(k, { zh: a, en: b || a });
+    } else if (k === 'y') {
+      const d = districtInfo(a);
+      if (d) fill(k, { zh: d.name.split(' · ')[0]!, en: d.en });
+    } else if (k === 'a' || k === 'v') {
+      out.push({ ...TEMPLATES[k]! });
     } else if (k === 'c') {
       if (a) fill(k, { zh: a, en: a });
     } else if (k === 'k' || k === 'p') {

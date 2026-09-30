@@ -916,6 +916,35 @@
     ]
   },
   {
+    "id": "side-ziche",
+    "title": "A bike of my own",
+    "chapter": 2,
+    "kind": "side",
+    "giver": "zhao-yeye",
+    "blurb": "赵爷爷 rode the same 永久 for twenty years. Now you live in Beijing, he says, you need a bike of your own.",
+    "lead": "赵爷爷 on 南锣鼓巷 remembers when all Beijing rode bikes.",
+    "steps": [
+      {
+        "id": "buy",
+        "now": "Buy a bike at the 自行车行 on 鼓楼东大街 (400–480 元) — or ask the recycler in 帽儿胡同 in the morning: he sometimes has an old one.",
+        "past": "Bought a bike of my own.",
+        "where": "gulou-dongdajie",
+        "done": {
+          "bike": "owned"
+        }
+      },
+      {
+        "id": "show",
+        "now": "Show 赵爷爷 your bike — mornings on the 鼓楼 square, in the day on 南锣鼓巷.",
+        "past": "Showed 赵爷爷 my bike.",
+        "where": "nanluo-main",
+        "done": {
+          "scene": "zhao-bike-show"
+        }
+      }
+    ]
+  },
+  {
     "id": "sub-mn-1",
     "title": "老马's 煎饼",
     "chapter": 1,

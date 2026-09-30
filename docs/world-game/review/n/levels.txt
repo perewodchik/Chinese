@@ -1,0 +1,10 @@
+sound          peak dBFS   rms dBFS   vs bell
+bell-g1            -19.2      -36.8       0.0
+muyu               -17.6      -37.6       1.6
+jingju             -27.8      -43.3      -8.6
+mahjong            -24.8      -58.0      -5.5
+cicadas            -29.9      -49.9     -10.7
+crows              -26.0      -54.9      -6.8
+firecrackers       -19.8      -48.2      -0.5
+dance              -19.8      -38.8      -0.6
+every city sound is audible and within 3 dB of the bell

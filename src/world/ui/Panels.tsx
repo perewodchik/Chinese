@@ -24,8 +24,9 @@ import { ItemSprite, MenuIcon } from './PropSprite';
 import { PixelIcon } from './PixelIcon';
 
 /**
- * The menu over the (paused) world (§10 P1): five tabs — 日志 journal, 包
- * bag, 地图 map, 朋友 people, 收藏 collection — and ⚙ beside ×. A tab with
+ * The menu over the (paused) world (§10 P1): four tabs — 日志 journal (with
+ * 朋友 people inside), 包 bag, 地图 map, 收藏 collection — and ⚙ 设置 and × 关
+ * as tabs of the same size. A tab with
  * inner views has one segmented control at its top, never a second tab row.
  * On a phone the sheet fills the screen with the tabs at the bottom, in
  * thumb reach; on the iPad they sit on top. Red dots mark news until the
@@ -46,6 +47,8 @@ export function Panels({
   onReset,
   mapStart,
   onReplay,
+  onPhoto,
+  ride,
 }: {
   tab: PanelId;
   setTab: (t: PanelId) => void;
@@ -68,6 +71,10 @@ export function Panels({
   mapStart?: string | null;
   /** watch a cutscene again (Journal → Story, §13 K1) */
   onReplay?: (cutscene: string) => void;
+  /** the camera in the bag: close the menu and take a photo (the learner moved it off the top bar) */
+  onPhoto?: () => void;
+  /** §13 L2: 骑车去 on the metro map while you ride your own bike */
+  ride?: Parameters<typeof MapTab>[0]['ride'];
 }) {
   const [mem, setMem] = useState<MenuMemory>(readMemory);
   const [at, setAt] = useState<MenuAt>(() => panelTarget(tab, mem));
@@ -132,31 +139,35 @@ export function Panels({
   return (
     <div className="mn-scrim" onClick={onClose}>
       <section className="mn" role="dialog" aria-label="Menu" data-tab={at.tab} onClick={(e) => e.stopPropagation()}>
-        {/* one bar: the five tabs as bookmarks, then ⚙ and × at its end — nothing between it and the page */}
+        {/* one bar: the four tabs as bookmarks, then ⚙ and × as bookmarks of the same size — nothing between it and the page */}
         <nav className="mn-bar" aria-label="Menu">
           <div className="mn-tabs" role="tablist">
             {MENU.map((m, i) => (
-              <button key={m.id} type="button" role="tab" aria-selected={at.tab === m.id} onClick={() => openTab(m.id)} title={`${m.en} (${i + 1})`}>
+              <button key={m.id} type="button" role="tab" aria-selected={at.tab === m.id} onClick={() => openTab(m.id)} aria-label={m.en} title={`${m.en} (${i + 1})`}>
                 <MenuIcon name={m.icon} />
                 <span className="han mn-zh">{m.zh}</span>
-                <span className="mn-en">{m.en}</span>
                 {tabHasNews(news, m.id) && at.tab !== m.id && <i className="mn-dot" aria-label="new" />}
               </button>
             ))}
-          </div>
-          <div className="mn-keys">
             <button
               type="button"
-              className="mn-key mn-gear"
-              aria-pressed={at.tab === 'settings'}
+              role="tab"
+              className="mn-gear"
+              aria-selected={at.tab === 'settings'}
               onClick={() => go(at.tab === 'settings' ? panelTarget('menu', mem) : { tab: 'settings' })}
               aria-label="Settings"
               title="Settings"
             >
-              <PixelIcon name="gear" size={18} />
+              <span className="mn-glyph">
+                <PixelIcon name="gear" size={22} />
+              </span>
+              <span className="han mn-zh">设置</span>
             </button>
-            <button type="button" className="mn-key mn-close" onClick={onClose} aria-label="Back to the world (Esc)" title="Back to the world (Esc)">
-              <PixelIcon name="close" size={14} />
+            <button type="button" className="mn-close" onClick={onClose} aria-label="Back to the world (Esc)" title="Back to the world (Esc)">
+              <span className="mn-glyph">
+                <PixelIcon name="close" size={16} />
+              </span>
+              <span className="han mn-zh">关</span>
             </button>
           </div>
         </nav>
@@ -184,9 +195,9 @@ export function Panels({
           {key === 'journal/side' && <JournalSide save={save} content={content} onShowRoute={showRoute} />}
           {key === 'journal/story' && <JournalStory save={save} content={content} onDay={(day) => (setDiaryDay(day), go({ tab: 'journal', view: 'diary' }))} {...(onReplay ? { onReplay } : {})} />}
           {key === 'journal/diary' && <Diary save={save} content={content} pinyin={pinyin} focus={diaryDay} onStory={() => go({ tab: 'journal', view: 'story' })} />}
-          {key === 'bag' && <Bag save={save} content={content} onUse={onUse} onAct={onAct} />}
-          {key === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} route={route} />}
-          {key === 'people' && <People save={save} content={content} onTrack={(quest) => onAct?.({ do: 'track', quest, rev: Date.now() })} onShowRoute={showRoute} />}
+          {key === 'bag' && <Bag save={save} content={content} onUse={onUse} onAct={onAct} {...(onPhoto ? { onPhoto } : {})} />}
+          {key === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} route={route} ride={ride ?? null} />}
+          {key === 'journal/people' && <People save={save} content={content} onTrack={(quest) => onAct?.({ do: 'track', quest, rev: Date.now() })} onShowRoute={showRoute} />}
           {key === 'collection/spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
           {key === 'collection/idioms' && <Idioms save={save} content={content} pinyin={pinyin} onAct={onAct} />}
           {key === 'collection/stamps' && <Stamps save={save} content={content} onShowRoute={showRoute} />}
@@ -225,19 +236,27 @@ const SLOT_MIN = 24;
  * them on a phone): big hanzi, pinyin, what it is, where it is sold, who
  * liked it, and what you can do with it as Chinese verbs.
  */
-function Bag({ save, content, onUse, onAct }: { save: WorldSave; content: WorldContent; onUse: (item: string) => void; onAct?: (a: SaveAction) => void }) {
+/** the camera's slot: always in the bag, first in 全部 and 工具, never sold or given */
+const CAMERA = '__camera';
+
+function Bag({ save, content, onUse, onAct, onPhoto }: { save: WorldSave; content: WorldContent; onUse: (item: string) => void; onAct?: (a: SaveAction) => void; onPhoto?: () => void }) {
   const [filter, setFilter] = useState<BagFilter>('all');
   const [picked, setPicked] = useState<string | null>(null);
   const [phone, setPhone] = useState(false);
   const byId = new Map(content.items.map((i) => [i.id, i]));
   const rows = bagRows(save, content.items);
-  const counts = new Map<BagFilter, number>(BAG_FILTERS.map((f) => [f.id, f.id === 'all' ? rows.length : rows.filter((r) => filterOf(byId.get(r.id)) === f.id).length]));
+  const counts = new Map<BagFilter, number>(
+    BAG_FILTERS.map((f) => [f.id, (f.id === 'all' ? rows.length : rows.filter((r) => filterOf(byId.get(r.id)) === f.id).length) + (onPhoto && (f.id === 'all' || f.id === 'tool') ? 1 : 0)]),
+  );
   const shown = filter === 'all' ? rows : rows.filter((r) => filterOf(byId.get(r.id)) === filter);
+  // the camera sits in the first slot of 全部 and 工具 (the learner: in the bag, "use" takes the photo)
+  const camera = !!onPhoto && (filter === 'all' || filter === 'tool');
+  const onCamera = camera && (picked === CAMERA || !shown.length);
   // the pick stays on its thing; when that is gone (eaten, given, another pocket) the first one here is picked
-  const cur = shown.find((r) => r.id === picked) ?? shown[0];
+  const cur = onCamera ? undefined : (shown.find((r) => r.id === picked) ?? shown[0]);
   const item = cur ? byId.get(cur.id) : undefined;
   const last = save.bills.at(-1);
-  const slots = Math.max(SLOT_MIN, Math.ceil(shown.length / SLOT_COLS) * SLOT_COLS);
+  const slots = Math.max(SLOT_MIN, Math.ceil((shown.length + (camera ? 1 : 0)) / SLOT_COLS) * SLOT_COLS);
   if (phone) return <Phone save={save} content={content} onBack={() => setPhone(false)} />;
   return (
     <div className="bg">
@@ -276,7 +295,15 @@ function Bag({ save, content, onUse, onAct }: { save: WorldSave; content: WorldC
       </div>
       <div className="bg-main">
         <ul className="bg-slots" aria-label={BAG_FILTERS.find((f) => f.id === filter)?.title}>
-          {Array.from({ length: slots }, (_, i) => {
+          {camera && (
+            <li className="bg-slot">
+              <button type="button" aria-pressed={onCamera} onClick={() => setPicked(CAMERA)} title="Camera">
+                <MenuIcon name="camera" />
+                <span className="han bg-name">相机</span>
+              </button>
+            </li>
+          )}
+          {Array.from({ length: slots - (camera ? 1 : 0) }, (_, i) => {
             const r = shown[i];
             if (!r) return <li key={`empty-${i}`} className="bg-slot" data-empty="" aria-hidden />;
             const kind = byId.get(r.id)?.kind;
@@ -292,7 +319,9 @@ function Bag({ save, content, onUse, onAct }: { save: WorldSave; content: WorldC
             );
           })}
         </ul>
-        {cur && item ? (
+        {onCamera && onPhoto ? (
+          <CameraCard onPhoto={onPhoto} />
+        ) : cur && item ? (
           <BagCard
             key={item.id}
             item={item}
@@ -450,6 +479,36 @@ function BagCard({
   );
 }
 
+/** The camera's card: the word, and 拍照 — which closes the menu and opens the viewfinder. */
+function CameraCard({ onPhoto }: { onPhoto: () => void }) {
+  const lib = useLibrary();
+  const openItem = useOpenItem();
+  return (
+    <section className="bg-card" aria-label="Camera">
+      <header className="bg-card-head">
+        <span className="bg-case">
+          <MenuIcon name="camera" scale={4} />
+        </span>
+        <span className="bg-card-word">
+          <button type="button" className="han bg-card-han" onClick={() => openItem(itemForToken(lib, '相机'))} title="Open the word">
+            相机
+          </button>
+          <span className="bg-card-py">{pinyinOf('相机', lib)}</span>
+          <span className="small muted bg-card-en">camera · the photos go to 收藏 → 相册</span>
+        </span>
+        <span className="bg-tag han" data-kind="tool">
+          {KIND_ZH.tool}
+        </span>
+      </header>
+      <div className="bg-verbs">
+        <button type="button" className="bg-verb" title="Take a photo" onClick={onPhoto}>
+          <span className="han">拍照</span> <span className="tiny">take a photo</span>
+        </button>
+      </div>
+    </section>
+  );
+}
+
 /** The phone (Y5): 余额, the 交通卡 and the 账单 — the last payments in and out. */
 function Phone({ save, content, onBack }: { save: WorldSave; content: WorldContent; onBack: () => void }) {
   return (
@@ -526,6 +585,10 @@ function Settings({ settings, onChange, onReset }: { settings: WorldSettings; on
       <label>
         <span>Street sounds</span>
         <Seg value={level(settings.volume)} options={LEVELS} onChange={(v) => onChange({ volume: volumeOf(v) })} size="sm" />
+      </label>
+      <label>
+        <span>City voices</span>
+        <Seg value={settings.cityVoices === false ? 'off' : 'on'} options={ON_OFF} onChange={(v) => onChange({ cityVoices: v === 'on' })} size="sm" />
       </label>
       <label>
         <span>Music</span>

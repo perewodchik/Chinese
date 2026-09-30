@@ -26,6 +26,7 @@ import { readMap, type MapInfo } from '../../src/world/engine/mapdata';
 import { checkContent, readLibrary } from './check-content';
 import { rackOf, rackScenes } from '../../src/world/core/rack';
 import { cutsceneActions, cutscenesDue } from '../../src/world/core/cutscene';
+import { BIKE_PARTS, BIKES } from '../../src/world/core/bike';
 
 const lib = readLibrary();
 const lex = libraryLexicon(lib);
@@ -92,6 +93,9 @@ function act(s: WorldSave, actions: readonly SaveAction[], short: string[], wher
   return act(after, then, short, `cutscene ${due.join(', ')}`);
 }
 
+/** A quest waits for your own bike and you have none (§13 L1): even a spendthrift saves up for it, and works the jobs until it can. */
+const saving = (s: WorldSave) => !s.bike && s.bag.money < 250 && activeQuests(s, quests).some((a) => JSON.stringify(a.step.done ?? {}).includes('"bike":"owned"'));
+
 /** What a patient player goes shopping for now: things the current step of a quest waits for, and things a scene could be used with right now. */
 let spendAll = false;
 
@@ -113,7 +117,7 @@ function play(s: WorldSave, scene: Scene, short: string[]): WorldSave {
     const node = scene.nodes.find((n) => n.id === t.state.node)!;
     // at a shop: buy one thing something is waiting for (or the first thing, for a story order), then pay (Y1)
     // paying on the phone (Y2): type the amount heard, or catch a wrong charge first
-    if ((node.order || node.bargain || node.rack) && t.state.due) {
+    if ((node.order || node.bargain || node.rack || node.bikes) && t.state.due) {
       t = src.reply(t.state, src.answer(t.state)!);
       for (const a of t.actions) if (a.do === 'give' || a.do === 'buy') bought.set(a.item, (bought.get(a.item) ?? 0) + 1);
       save = act(save, t.actions, short, scene.id);
@@ -125,7 +129,7 @@ function play(s: WorldSave, scene: Scene, short: string[]): WorldSave {
       const rack = rackOf(clothes, node.rack.rack)!;
       const r = t.state.rack!;
       let say: { text: string; choice?: string } = { text: '再见' };
-      if (spendAll && !r.bought) {
+      if (spendAll && !saving(save) && !r.bought) {
         const want = r.onSale
           .filter((id) => !save.wardrobe.includes(id))
           .map((id) => ({ id, price: clothes.clothes.find((c) => c.id === id.split(':')[0])!.price }))
@@ -137,13 +141,26 @@ function play(s: WorldSave, scene: Scene, short: string[]): WorldSave {
       save = act(save, t.actions, short, scene.id);
       continue;
     }
+    // the bike shop (§13 L1): a bike when a quest waits for one (and money enough), parts for a spendthrift; else goodbye
+    if (node.bikes) {
+      const r = t.state.bikes!;
+      const wantsBike = !r.owned && activeQuests(save, quests).some((a) => JSON.stringify(a.step.done ?? {}).includes('"bike":"owned"'));
+      const cheapest = Math.min(...BIKES.filter((b) => b.shop === 'zixingche').map((b) => b.price));
+      const go = r.owned ? spendAll && BIKE_PARTS.some((p) => !r.owned!.parts.includes(p.id) && p.price <= save.bag.money) : wantsBike && save.bag.money >= cheapest;
+      const hint = go ? src.answer(t.state) : null;
+      // the cheapest bike, then its test ride and 我要这辆 (the hint's own path)
+      const say = !go || !hint ? { text: '再见' } : !r.owned && !r.focus ? { text: '', choice: BIKES.filter((b) => b.shop === 'zixingche').sort((a, b) => a.price - b.price)[0]!.id } : { text: hint.text };
+      t = src.reply(t.state, { via: 'keyboard', ...say });
+      save = act(save, t.actions, short, scene.id);
+      continue;
+    }
     if (node.order) {
       const shop = shops.find((x) => x.id === node.order!.shop)!;
       const wanted = wantedNow(save);
       const need = shop.stock.find(
         (x) => wanted.has(x.item) && !(save.bag.items[x.item] ?? 0) && (t.state.onSale ?? []).includes(x.item) && (bought.get(x.item) ?? 0) < buyLimit(x.item),
       );
-      const any = spendAll ? shop.stock.find((x) => (t.state.onSale ?? []).includes(x.item) && !bought.has(x.item)) : undefined;
+      const any = spendAll && !saving(save) ? shop.stock.find((x) => (t.state.onSale ?? []).includes(x.item) && !bought.has(x.item)) : undefined;
       const pick = need ?? any ?? (node.order.go ? shop.stock.find((x) => (t.state.onSale ?? []).includes(x.item)) : undefined);
       const name = pick && items.get(pick.item)?.name;
       const say = t.state.cart?.length || !name ? '不要了' : `我要一${pick!.measure ?? '个'}${name}`;
@@ -174,7 +191,7 @@ const progress = (s: WorldSave) =>
     s.bag.card !== null,
     [...s.stations].sort(),
     // short of money, a day's job is worth doing (Y3)
-    s.bag.money < 100 ? s.daily : null,
+    s.bag.money < (saving(s) ? 250 : spendAll ? 160 : 100) ? s.daily : null,
     // a spendthrift's new clothes and haircuts count too (§12 W5)
     spendAll ? [s.wardrobe.length, s.look.hair.style] : null,
   ]);
@@ -198,7 +215,7 @@ function candidates(s: WorldSave): Scene[] {
       const sc = sceneFor(list, s, who);
       // a stall's bargain is struck once (buying a coin and selling it back forever moves nothing)
       // clothes racks only for the spendthrift check: nothing in the story needs them
-      if (sc && !(sc.nodes.some((n) => n.bargain) && s.scenes.includes(sc.id)) && (spendAll || !sc.id.startsWith('rack-'))) out.push(sc);
+      if (sc && !(sc.nodes.some((n) => n.bargain) && s.scenes.includes(sc.id)) && ((spendAll && !saving(s)) || !sc.id.startsWith('rack-'))) out.push(sc);
       // using what is in the bag on them (X1): only the items some scene here is written for
       for (const use of new Set(list.map((x) => x.use).filter((u): u is string => !!u && held.has(u)))) {
         const u = sceneFor(list, s, { ...who, use });
@@ -287,7 +304,7 @@ export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000,
     const key = progress(s);
     // a shop is worth another visit when something new is wanted (rain brings the umbrella, winter the couplets)
     const want = [...wantedNow(s)].sort().join(',');
-    const tryKey = (sc: Scene) => `${sc.id}|${key}${sc.id.startsWith('shop-') ? `|${want}|${Math.floor(s.bag.money / 10)}` : ''}`;
+    const tryKey = (sc: Scene) => `${sc.id}|${key}${sc.id.startsWith('shop-') || sc.id.startsWith('rack-') ? `|${want}|${Math.floor(s.bag.money / 10)}` : ''}`;
     // a patient player puts a decoration on an empty spot, and does not keep swapping them round
     const swaps = (sc: Scene) => sc.nodes.some((n) => n.onEnter?.some((x) => x.do === 'place' && s.room[x.spot]));
     const open = candidates(s).filter((sc) => !tried.has(tryKey(sc)) && !swaps(sc));

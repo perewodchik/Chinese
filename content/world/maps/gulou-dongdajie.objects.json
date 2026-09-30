@@ -212,5 +212,64 @@
    "map": "nanluo-main",
    "offset": -13
   }
+ },
+ {
+  "kind": "npc",
+  "id": "chehang",
+  "npc": "chehang-laoban",
+  "tile": [
+   8,
+   6
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "xiuche",
+  "npc": "xiuche-shifu",
+  "tile": [
+   33,
+   8
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "prop",
+  "id": "shop-bike-0",
+  "tile": [
+   10,
+   6
+  ],
+  "frame": "bike/yongjiu-black-side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "shop-bike-1",
+  "tile": [
+   11,
+   6
+  ],
+  "frame": "bike/fenghuang-red-side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "shop-bike-2",
+  "tile": [
+   5,
+   6
+  ],
+  "frame": "bike/feige-blue-side-r",
+  "blocks": [
+   1,
+   1
+  ]
  }
 ]

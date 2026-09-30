@@ -22,6 +22,7 @@ import { edgeAt, resolveArrival, throughEdge, type Arrival, type Door } from './
 import { crowdTrip, facingOf, idleNext, PASSERS, pigeonSpots, rand, scared, type Rand } from './life';
 import { readMap, type MapInfo } from './mapdata';
 import { DOUBLE_TAP_MS, facingTo, KEY_FACING, objectAt, pinchTo, pinchZooms, planTap, RUN_MS, stepOnce, WALK_MS, type Plan } from './movement';
+import { stamped } from '../ui/stamped';
 
 export const TILE = 16;
 const ART = '/world/art';
@@ -61,8 +62,8 @@ export interface SceneOptions {
   cast?: (info: MapInfo) => MapObject[];
   /** npc id → sprite frame prefix (the card's look); without it the id is the sprite */
   looks?: Record<string, string>;
-  /** on a shared bike: faster, a bicycle under the hero */
-  bike?: boolean;
+  /** on a shared bike (true: faster, a bicycle under the hero), or on your own (§13 L2: faster still, drawn by model, colour and parts) */
+  bike?: boolean | OwnBikeLook;
   /** what falls from the sky today (X4); it only shows on maps out of doors */
   sky?: 'none' | 'rain' | 'snow';
   /** 兔儿爷's hat for the day (X7) */
@@ -79,6 +80,15 @@ export interface SceneOptions {
   dress?: () => HeroDress | null;
   /** the "show what I can use" setting: which people and things get a small mark over them; off without it */
   hints?: ((o: MapObject) => boolean) | null;
+}
+
+/** Your own bike as drawn under you (§13 L2): `bike/<model>-<colour>-<view>`, and the basket and rack over it. */
+export interface OwnBikeLook {
+  model: string;
+  colour: string;
+  parts: readonly string[];
+  /** a flat tyre (§13 L3): you walk it beside you, at walking pace */
+  push?: boolean;
 }
 
 interface TilesetNames {
@@ -111,8 +121,11 @@ export class WorldScene extends Phaser.Scene {
   private blush: Phaser.GameObjects.Sprite | null = null;
   private flies: { sprite: Phaser.GameObjects.Sprite; light: Phaser.GameObjects.Image; phase: number }[] = [];
   private petRight = false;
-  /** the shared bike under the hero, while riding one */
+  /** the bike under the hero, while riding one (shared, or your own §13 L2) */
   private bikeSprite: Phaser.GameObjects.Sprite | null = null;
+  /** your own bike's look while riding it, and its basket and rack drawn over it; null on a shared bike */
+  private ownBike: OwnBikeLook | null = null;
+  private bikeParts: Phaser.GameObjects.Sprite[] = [];
   private npcSprites = new Map<string, Phaser.GameObjects.Sprite>();
   private propSprites = new Map<string, Phaser.GameObjects.Sprite>();
   /** the marks over what can be talked to or looked at, by object id */
@@ -200,11 +213,11 @@ export class WorldScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('tiles-set', `${ART}/tiles-set.png`);
-    this.load.json('tiles-names', `${ART}/tiles-set.json`);
-    this.load.atlas('chars', `${ART}/chars.png`, `${ART}/chars.json`);
-    this.load.atlas('props', `${ART}/props.png`, `${ART}/props.json`);
-    this.load.tilemapTiledJSON(this.opts.map, `/world/maps/${this.opts.map}.json`);
+    this.load.image('tiles-set', stamped(`${ART}/tiles-set.png`));
+    this.load.json('tiles-names', stamped(`${ART}/tiles-set.json`));
+    this.load.atlas('chars', stamped(`${ART}/chars.png`), stamped(`${ART}/chars.json`));
+    this.load.atlas('props', stamped(`${ART}/props.png`), stamped(`${ART}/props.json`));
+    this.load.tilemapTiledJSON(this.opts.map, stamped(`/world/maps/${this.opts.map}.json`));
   }
 
   create() {
@@ -285,7 +298,8 @@ export class WorldScene extends Phaser.Scene {
     this.rabbit = this.add.sprite(x, y, 'chars', 'rabbit/down-0').setOrigin(0, 1);
     this.rabbitAt = null;
     this.bikeSprite = null;
-    if (this.opts.bike) this.setBike(true);
+    this.bikeParts = [];
+    if (this.opts.bike) this.setBike(this.opts.bike);
     this.hat = null;
     this.emote = null;
     this.blush = null;
@@ -447,6 +461,13 @@ export class WorldScene extends Phaser.Scene {
     }
     const r = this.rabbit;
     if (!r) return;
+    // §13 L2: sitting in your bike's basket — at the handlebar, over the bike
+    if (this.hero && this.bikeSprite && this.inBasket()) {
+      const view = this.bikeView();
+      const x = view === 'side' ? this.hero.x + 9 : view === 'side-r' ? this.hero.x - 9 : this.hero.x + 5;
+      const y = view === 'down' ? this.hero.y - 1 : this.hero.y - 8;
+      r.setPosition(Math.round(x), Math.round(y)).setDepth(this.bikeSprite.depth + 0.02);
+    }
     // §13 V3: sorted by his feet every frame — behind you he is behind you, even mid-float (on your shoulder, just in front of you)
     if (this.hero) r.setDepth(this.rabbitAt === null ? this.hero.depth + 0.1 : r.y - 1 + 0.45);
     const bob = r.frame.name.endsWith('1') ? 1 : 0;
@@ -1005,24 +1026,79 @@ export class WorldScene extends Phaser.Scene {
     if (!this.moving) this.next();
   }
 
-  /** Get on or off a shared bike (H8): faster steps, a bicycle drawn under the hero. */
-  setBike(on: boolean) {
+  /** Get on or off a bike: a shared one (H8), or your own (§13 L2) — faster steps, the bicycle drawn under the hero. */
+  setBike(on: boolean | OwnBikeLook) {
     this.opts.bike = on;
-    if (on && !this.bikeSprite) {
+    this.bikeSprite?.destroy();
+    this.bikeSprite = null;
+    for (const p of this.bikeParts) p.destroy();
+    this.bikeParts = [];
+    this.ownBike = typeof on === 'object' ? on : null;
+    if (on) {
       this.bikeSprite = this.add.sprite(this.hero.x, this.hero.y, 'props', 'bicycle/side').setOrigin(0, 1);
+      if (this.ownBike) this.bikeParts = ['basket', 'rack'].filter((p) => this.ownBike!.parts.includes(p)).map((p) => this.add.sprite(this.hero.x, this.hero.y, 'props', `bike/${p}-side`).setOrigin(0, 1).setData('part', p));
       this.placeBike();
-    } else if (!on && this.bikeSprite) {
-      this.bikeSprite.destroy();
-      this.bikeSprite = null;
     }
+    if (this.hero) this.placeRabbit(this.at, 0, null);
+  }
+
+  /** your own bike's view for a facing: from the side either way, from behind going up, from the front coming down */
+  private bikeView(): 'side' | 'side-r' | 'up' | 'down' {
+    return this.facing === 'right' ? 'side' : this.facing === 'left' ? 'side-r' : this.facing;
   }
 
   private placeBike() {
     const b = this.bikeSprite;
     if (!b) return;
-    b.setPosition(this.hero.x, this.hero.y - 1).setDepth(this.hero.depth - 0.05);
-    b.setFlipX(this.facing === 'left');
-    b.setVisible(this.facing === 'left' || this.facing === 'right');
+    if (!this.ownBike) {
+      b.setPosition(this.hero.x, this.hero.y - 1).setDepth(this.hero.depth - 0.05);
+      b.setFlipX(this.facing === 'left');
+      b.setVisible(this.facing === 'left' || this.facing === 'right');
+      return;
+    }
+    // your own bike from all four sides; coming down the screen the handlebars are in front of you
+    const view = this.bikeView();
+    const depth = view === 'down' ? this.hero.depth + 0.05 : this.hero.depth - 0.05;
+    // walking a flat bike: it rolls beside you, a little ahead
+    const dx = this.ownBike.push ? (view === 'side' ? 7 : view === 'side-r' ? -7 : 9) : 0;
+    b.setFrame(`bike/${this.ownBike.model}-${this.ownBike.colour}-${view}`).setPosition(this.hero.x + dx, this.hero.y - 1).setDepth(depth).setVisible(true);
+    for (const p of this.bikeParts) {
+      const part = p.getData('part') as string;
+      // the basket shows from the side and the front, the rack from the side and behind
+      const shown = part === 'basket' ? view !== 'up' : view !== 'down';
+      const frame = part === 'basket' ? (view === 'down' ? 'basket-down' : `basket-${view}`) : view === 'up' ? 'rack-up' : `rack-${view}`;
+      p.setVisible(shown);
+      if (shown) p.setFrame(`bike/${frame}`).setPosition(this.hero.x + dx, this.hero.y - 1).setDepth(depth + 0.01);
+    }
+  }
+
+  /** 兔儿爷 rides in the basket of your own bike (§13 L2), when it has one and you are not riding away up the screen. */
+  private inBasket(): boolean {
+    return !!this.ownBike?.parts.includes('basket') && !this.ownBike.push && this.facing !== 'up';
+  }
+
+  /**
+   * The bell (§13 L2): somebody a few steps ahead, now and then, says 「慢点儿！」.
+   * Returns who, for the page's caption; null when nobody is there or they let it pass.
+   */
+  ringBell(): string | null {
+    if (!this.bikeSprite) return null;
+    const [dx, dy] = this.facing === 'up' ? [0, -1] : this.facing === 'down' ? [0, 1] : this.facing === 'left' ? [-1, 0] : [1, 0];
+    const near = this.info.objects.find((o) => {
+      if (o.kind !== 'npc' || !this.npcSprites.has(o.id)) return false;
+      const ax = o.tile[0] - this.at[0];
+      const ay = o.tile[1] - this.at[1];
+      const along = ax * dx + ay * dy;
+      const side = Math.abs(ax * dy - ay * dx);
+      return along >= 1 && along <= 4 && side <= 1;
+    });
+    if (!near || near.kind !== 'npc') return null;
+    const s = this.npcSprites.get(near.id)!;
+    // they turn to look at you
+    const look: Facing = dx ? (dx > 0 ? 'left' : 'right') : dy > 0 ? 'up' : 'down';
+    const base = this.opts.looks?.[near.npc] ?? near.npc;
+    if (!s.getData('idle')) s.setFrame(`${base}/${look}-0`);
+    return near.npc;
   }
 
   /** The on-screen joystick (E6): walk that way while held, step by step; null lets go. */
@@ -1166,7 +1242,8 @@ export class WorldScene extends Phaser.Scene {
     this.hero.setFrame(`hero/${this.facing}-${this.stepFrame + 1}`);
     const x = t[0] * TILE;
     const y = (t[1] + 1) * TILE;
-    const ms = this.bikeSprite ? RUN_MS * 0.75 : this.running ? RUN_MS : WALK_MS;
+    // §13 L2: your own bike is twice as fast as walking, a shared one ×1.6
+    const ms = this.bikeSprite ? (this.ownBike?.push ? WALK_MS : WALK_MS / (this.ownBike ? 2 : 1.6)) : this.running ? RUN_MS : WALK_MS;
     this.hero.setDepth(Math.max(this.hero.depth, y + 0.5));
     this.followPet(prev, ms);
     // §13 V4: a 4-frame walk — the foot forward, then the passing frame halfway (1 → 3 → 2 → 3)
@@ -1231,6 +1308,12 @@ export class WorldScene extends Phaser.Scene {
    * of him hides him. Boxed in, he rides on your shoulder.
    */
   private placeRabbit(at: Tile, ms: number, cat: Tile | null) {
+    // in your bike's basket (§13 L2): the frame keeps him there (dressRabbit)
+    if (this.inBasket()) {
+      this.tweens.killTweensOf(this.rabbit);
+      this.rabbitAt = null;
+      return;
+    }
     const taken = this.occupied();
     if (cat) taken.add(`${cat[0]},${cat[1]}`);
     const off = rabbitSpot(this.info.grid, at, this.facing, this.rabbitAt, taken);
@@ -1402,7 +1485,7 @@ export class WorldScene extends Phaser.Scene {
       }
     }
     // §13 V4: standing still, the player breathes — a pixel's dip now and then
-    if (!this.moving && !this.bikeSprite && this.hero && !this.hero.getData('cut')) {
+    if (!this.moving && (!this.bikeSprite || this.ownBike?.push) && this.hero && !this.hero.getData('cut')) {
       const name = this.hero.frame.name;
       const rest = `hero/${this.facing}-0`;
       const up = `hero/${this.facing}-3`;

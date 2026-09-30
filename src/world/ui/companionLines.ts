@@ -108,16 +108,14 @@ export type CompanionPhase = 'walk' | 'heard' | 'reply';
 /** No talk: walking. A talk with somebody's line to go on: heard. A talk with no line yet: reply. */
 export const phaseOf = (talking: boolean, line: Line | undefined): CompanionPhase => (!talking ? 'walk' : line ? 'heard' : 'reply');
 
-export type OptionId = 'translate' | 'hint' | 'now' | 'learned';
+export type OptionId = 'translate' | 'hint' | 'now';
 /** a pixel icon (`PixelIcon`) — never an emoji */
-export type OptionIcon = 'ask' | 'hint' | 'now' | 'star';
+export type OptionIcon = 'ask' | 'hint' | 'now';
 
 export interface CompanionCtx {
   phase: CompanionPhase;
   /** reply mode with a hint step left */
   canHint: boolean;
-  /** the last talk left words to look at and keep */
-  learned: boolean;
 }
 
 export interface CompanionOption {
@@ -132,7 +130,6 @@ export const OPTIONS: Record<OptionId, { icon: OptionIcon; label: string }> = {
   translate: { icon: 'ask', label: 'What did they say?' },
   hint: { icon: 'hint', label: 'Help me answer' },
   now: { icon: 'now', label: 'What now?' },
-  learned: { icon: 'star', label: 'What did I learn?' },
 };
 
 /** at most this many at once: one row that never scrolls */
@@ -143,7 +140,7 @@ export function optionIds(ctx: CompanionCtx): OptionId[] {
   const hint: OptionId[] = ctx.canHint ? ['hint'] : [];
   const ids: OptionId[] =
     ctx.phase === 'walk'
-      ? ['now', ...(ctx.learned ? (['learned'] as OptionId[]) : [])]
+      ? ['now']
       : ctx.phase === 'heard'
         ? ['translate', ...hint, 'now']
         : [...hint, 'now'];

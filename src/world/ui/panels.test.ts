@@ -156,7 +156,9 @@ describe('the menu (§10 P1)', () => {
     assert.deepEqual(panelTarget('idioms'), { tab: 'collection', view: 'idioms' });
     assert.deepEqual(panelTarget('stamps'), { tab: 'collection', view: 'stamps' });
     assert.deepEqual(panelTarget('album'), { tab: 'collection', view: 'album' });
-    assert.deepEqual(panelTarget('friends'), { tab: 'people' });
+    // 朋友 lives in 日志 now (the learner, 2026-09-30)
+    assert.deepEqual(panelTarget('friends'), { tab: 'journal', view: 'people' });
+    assert.deepEqual(panelTarget('people'), { tab: 'journal', view: 'people' });
     assert.deepEqual(panelTarget('settings'), { tab: 'settings' });
     assert.deepEqual(panelTarget('bag'), { tab: 'bag' });
     assert.deepEqual(panelTarget('map'), { tab: 'map' });
@@ -175,8 +177,8 @@ describe('the menu (§10 P1)', () => {
     assert.equal(remember(mem, { tab: 'bag' }), mem);
   });
 
-  it('keys 1–5 are the tabs in order', () => {
-    assert.deepEqual(['1', '2', '3', '4', '5', '6', 'a'].map(tabForKey), ['journal', 'bag', 'map', 'people', 'collection', null, null]);
+  it('keys 1–4 are the tabs in order', () => {
+    assert.deepEqual(['1', '2', '3', '4', '5', 'a'].map(tabForKey), ['journal', 'bag', 'map', 'collection', null, null]);
   });
 
   it('dots news until the view is opened, then clears it', () => {
