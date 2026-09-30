@@ -171,5 +171,36 @@
       "空竹": "两根棍子，一条线，让它转。"
     },
     "idle": "kongzhu"
+  },
+  {
+    "id": "xiaoming-laoshi",
+    "name": "小明的老师",
+    "role": "小明's teacher, on the class trip to 天坛",
+    "look": {
+      "sprite": "woman",
+      "palette": "teal"
+    },
+    "voice": "xiaoyu",
+    "character": "Warm, clear, a born explainer; turns everything into a question for the class.",
+    "knows": [
+      "Why the 祈年殿 roof is blue",
+      "天圆地方"
+    ],
+    "wants": [
+      "Children who ask why"
+    ],
+    "actions": [
+      "flag"
+    ],
+    "routine": [],
+    "explains": {
+      "蓝": "天的颜色。",
+      "圆": "像太阳一样，没有角。",
+      "屋顶": "房子最上面的地方。"
+    },
+    "misses": [
+      "嗯？再说一遍？",
+      "对不起，我没听懂。"
+    ]
   }
 ]

@@ -1,0 +1,81 @@
+{
+  "id": "keju",
+  "zh": "科举",
+  "en": "The imperial exams",
+  "level": 1,
+  "cover": "stele/tortoise",
+  "source": "gift",
+  "where": "The old scholar at 国子监 gives it to you (chapter 4).",
+  "place": "kongmiao",
+  "facts": [
+    "keju-exams",
+    "guozijian-school",
+    "jinshi-steles"
+  ],
+  "words": [
+    {
+      "w": "科举",
+      "en": "the imperial exams"
+    },
+    {
+      "w": "考试",
+      "en": "an exam"
+    },
+    {
+      "w": "进士",
+      "en": "a scholar who passed the highest exam"
+    },
+    {
+      "w": "石头",
+      "en": "stone"
+    },
+    {
+      "w": "国子监",
+      "en": "the Imperial Academy"
+    },
+    {
+      "w": "皇帝",
+      "en": "an emperor"
+    }
+  ],
+  "names": [
+    "孔庙",
+    "北京",
+    "中国"
+  ],
+  "pages": [
+    {
+      "zh": "很多年前，中国人想给皇帝做事，要考试。这个考试叫科举。",
+      "en": "Many years ago, Chinese people who wanted to work for the emperor had to take an exam. This exam was called 科举.",
+      "pic": "stele/tortoise"
+    },
+    {
+      "zh": "科举很不好考。学生们要读很多很多书，读好几年。",
+      "en": "科举 was very hard to pass. The students had to read many, many books, for years and years."
+    },
+    {
+      "zh": "北京的国子监，是那时候最高的学校。很多学生在这里读书。",
+      "en": "Beijing's 国子监 was the highest school of those days. Many students studied here."
+    },
+    {
+      "zh": "考到了最高的考试，考好了，你是进士。进士很少，大家都很高兴。",
+      "en": "If you reached the highest exam and did well in it, you were a 进士. There were very few 进士, and everyone was very happy for them."
+    },
+    {
+      "zh": "进士的名字，写在大石头上。这些石头在孔庙里。孔庙就在国子监的旁边。",
+      "en": "The names of the 进士 were written on great stones. The stones are in the 孔庙. The 孔庙 is right next to the 国子监."
+    },
+    {
+      "zh": "孔庙里有一百九十八块大石头，上面有五万多个名字！",
+      "en": "In the 孔庙 there are 198 great stones, with more than fifty thousand names on them!"
+    },
+    {
+      "zh": "一九零五年，科举没有了。但是，名字还在石头上。",
+      "en": "In 1905 the 科举 came to an end. But the names are still on the stones."
+    }
+  ],
+  "today": {
+    "zh": "今天的北京：你可以去孔庙，看看这些大石头。找一找：上面有没有一个你认识的字？",
+    "en": "In Beijing today: you can go to the 孔庙 and look at these great stones. Have a look: is there a character on them that you know?"
+  }
+}

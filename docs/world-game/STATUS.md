@@ -4,6 +4,14 @@ The builder reads `prompt.md` §0, then this file, and continues at the
 first unchecked box. Tick a box in the same commit as the work.
 
 ## For the learner (morning notes)
+**2026-10-01, ночью — §13 S4: глава 4 стала длиннее; на этом я остановился (главы 5–10 не тронуты).** Теперь в главе 11 шагов вместо 4:
+- **天坛:** у 小明 школьная экскурсия, он дарит **книгу 8 《天坛》**. У 祈年殿 учительница спрашивает класс, почему крыша синяя (ответ на с. 3: 天的颜色). На 圜丘 встань на **天心石**, скажи слово, и в сценке голос возвращается со всех сторон.
+- Дальше, как раньше, 回音壁 шепчет 国子监.
+- **国子监街:** прочитай 牌楼. Старый учёный объясняет экзамены и дарит **книгу 9 《科举》**. В 孔庙 兔儿爷 спрашивает, сколько имён на стелах (五万多, с. 6). 孔先生 учит **「三人行，必有我师」** (новое выражение в книге 成语).
+- **麒麟** в сумерках, потом воспоминание 王阿姨 о том, как она училась на учительницу.
+
+Главы 1–4 теперь 18 + 12 + 12 + 11 шагов; главы 5–10 ждут своих сессий (как написано в `s13/S-howto.md`). Всё запушено.
+
 **2026-09-30, ночью — §13 S3: глава 3 стала длиннее.** Теперь в ней 12 шагов вместо 6:
 - **王府井:** банк, потом **красный шарф в подарок 王阿姨** в 百货大楼 (продавщица спрашивает, кому подарок и какой цвет она любит).
 - **Аптека:** 兔儿爷 простудился на ветру на 景山. Опиши аптекарю **发烧, 咳嗽**, и услышишь классическое «多喝热水！».
@@ -208,7 +216,7 @@ first unchecked box. Tick a box in the same commit as the work.
 - [x] S1 Ch. 1 新家 deepened: 18 steps (list · shop · bring · haircut · lion-book · lions · drum-book · drum · bell · tell · yandai new), books 2 《石狮子》 and 3 《晨钟暮鼓》, the evening-drum cutscene, save v16 + chapter renumbering, `s13/S-howto.md` for S2–S10
 - [x] S2 Ch. 2 水与山: 12 steps (bridge · lake-book · prince · beihai · baita · pavilions · fox-book · tiger new), books 4 《什刹海》 and 5 《狐假虎威》, cutscenes ch2-open · c2-yinding · memory-2 · ch2-finale, 小明's toy tiger
 - [x] S3 Ch. 3 书: 12 steps (gift · cold · lianpu-book · outfit · show · home new), books 6 《门神》 and 7 《脸谱》, cutscenes ch3-open · c3-jingju · memory-3 · ch3-finale, the door gods face to face
-- [ ] S4 Ch. 4 回声
+- [x] S4 Ch. 4 回声: 11 steps (school · roof · huanqiu · paifang · keju-book · names · kong new), books 8 《天坛》 and 9 《科举》, cutscenes ch4-open · c4-huanqiu · memory-4 · ch4-finale, 三人行，必有我师
 - [ ] S5 Ch. 5 香火 (new: 雍和宫 · 白云观 · 东岳庙)
 - [ ] S6 Ch. 6 新北京
 - [ ] S7 Ch. 7 故事
@@ -243,6 +251,7 @@ _(date — decision — why)_
 - 2026-09-30 S2 — a cutscene may play on any district's map now (`world:check` dropped its "one of this district's maps" rule; every cutscene is still checked against the built maps), so each chapter keeps its memory cutscene on 王阿姨's yard in its own folder, as S-howto says.
 - 2026-09-30 S2 — the fox needs a tiger (book 5): 小明's toy tiger `laohu`, fetched from 南锣鼓巷 (a subway trip home, and a 鼓楼 friend in the chapter). Old saves at the fox step have no tiger and meet the fox the old way.
 - 2026-09-30 S3 — the door gods take the red paper only at the `menshen` step: the old `menshen-give` waits for every step before it, and the new `c3-menshen-face` asks for the step (before, a player could wake them on the first visit to 前门, which the solver did). The opera is free (the owner invites you) and 瑞蚨祥 lends the 唐装 to everyone, so the chapter needs no money beyond the 50 元 scarf after the bank's 700.
+- 2026-10-01 S4 — 小明 and his teacher appear at 天坛 only during their steps (map `npc` objects with `when`), so 小明's school-day routine elsewhere is unchanged. 「三人行，必有我师」 is a saying, not a 成语, but it goes in the 成语 book (`tier: story`) because that is where the learner collects what the characters teach.
 - 2026-09-30 S1 — minis: `npm run world:minis` rewrites every PNG with byte-level noise. I kept only `gulou-square.png`, the one whose map changed, and regenerated `stamps.gen.ts` from the files, so the other 40-odd pictures don't churn in the diff.
 - M 2026-09-30 (M8) — build stamps are a generated source file (`src/world/ui/stamps.gen.ts`: a 10-hex sha1 per mini and for hoods.json), not a query of the build time: a URL only changes when its file does, so nothing is re-downloaded needlessly, and world:check fails if someone rebuilds the maps without the minis. Room pictures on cards are cropped (`slice`), street pictures letterboxed (`meet`); neither is ever stretched.
 - M 2026-09-30 (M6) — the next step is the journal's `directions` except in one place: a bus or train leg leaves from its own stop map (`stop-xizhimen` for the 332), not the subway hall, so the guide sends you there (the journal's route text still reads "walk to 西直门站"); the next-hop chip now uses the guide's next hop, so it says "→ 332路" at the bus stop instead of pointing back into the station. The footprints are gold with a dark rim: dark prints alone could not be told from the pavement's own specks. "Take me there" does not close the menu (the place card has no way to); the chip under the corner map shows it is on.

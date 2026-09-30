@@ -18,5 +18,29 @@
       "en": "A frog lived at the bottom of a well. The sky it saw was only as big as the well's mouth, so it said: 'The sky is this big!'"
     },
     "tier": "story"
+  },
+  {
+    "id": "三人行，必有我师",
+    "pinyin": "sān rén xíng, bì yǒu wǒ shī",
+    "parts": [
+      {
+        "c": "三人行",
+        "gloss": "three people walking together"
+      },
+      {
+        "c": "必有",
+        "gloss": "there is sure to be"
+      },
+      {
+        "c": "我师",
+        "gloss": "my teacher"
+      }
+    ],
+    "meaning": "walk with any two others and one of them can teach you something — there is always someone to learn from",
+    "story": {
+      "zh": "孔子说：三个人一起走，里面一定有一个人，可以做我的老师。",
+      "en": "Confucius said: when three people walk together, one of them is sure to be someone I can learn from."
+    },
+    "tier": "story"
   }
 ]

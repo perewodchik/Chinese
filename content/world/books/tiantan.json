@@ -1,0 +1,84 @@
+{
+  "id": "tiantan",
+  "zh": "天坛",
+  "en": "The Temple of Heaven",
+  "level": 1,
+  "cover": "censer/cold",
+  "source": "gift",
+  "where": "小明 gives it to you at 天坛, on his school trip (chapter 4).",
+  "place": "huanqiu",
+  "facts": [
+    "tiantan-round-square",
+    "tiantan-prayers",
+    "qiniandian-1889",
+    "huanqiu-echo"
+  ],
+  "words": [
+    {
+      "w": "皇帝",
+      "en": "an emperor"
+    },
+    {
+      "w": "圆",
+      "en": "round"
+    },
+    {
+      "w": "方",
+      "en": "square"
+    },
+    {
+      "w": "蓝",
+      "en": "blue"
+    },
+    {
+      "w": "石头",
+      "en": "stone"
+    },
+    {
+      "w": "声音",
+      "en": "a sound, a voice"
+    }
+  ],
+  "names": [
+    "天坛",
+    "祈年殿",
+    "圜丘",
+    "天心石",
+    "北京"
+  ],
+  "pages": [
+    {
+      "zh": "很多年前，皇帝每年都来天坛。他来做什么？他来请天给大家一个好年。",
+      "en": "Many years ago the emperor came to 天坛 every year. What did he come for? He came to ask heaven for a good year for everyone."
+    },
+    {
+      "zh": "每年，皇帝在祈年殿请天多下雨，让大家有饭吃。",
+      "en": "Every year, at the 祈年殿, the emperor asked heaven for plenty of rain, so that everyone would have food to eat."
+    },
+    {
+      "zh": "祈年殿是圆的，上面是蓝的，是天的颜色。",
+      "en": "The 祈年殿 is round, and its roof is blue — the colour of the sky.",
+      "pic": "qiniandian/hall"
+    },
+    {
+      "zh": "人们说，天是圆的，地是方的。所以天坛北边是圆的，南边是方的。",
+      "en": "People said: heaven is round, the earth is square. So 天坛 is round on the north side and square on the south side."
+    },
+    {
+      "zh": "天坛的南边，有一个很大的圆的东西，叫圜丘，人可以走上去。圜丘的最里面，有一块石头，叫天心石。",
+      "en": "In the south of 天坛 there is a big round thing called 圜丘; people can walk up onto it. At its very centre there is a stone called 天心石, the heart of heaven."
+    },
+    {
+      "zh": "你站在天心石上说话，你的声音会从四边回来，很大，很好听。",
+      "en": "Stand on the 天心石 and speak, and your voice comes back to you from all around — loud and lovely."
+    },
+    {
+      "zh": "一八八九年，祈年殿没有了。人们再做了一个新的。你今天看见的，是那个新的。",
+      "en": "In 1889 the 祈年殿 was lost. People built a new one. The one you see today is that new one."
+    }
+  ],
+  "today": {
+    "zh": "今天的北京：早上，很多爷爷奶奶在天坛唱歌、跳舞。你也可以站在天心石上，说一个字，听听回来的声音。",
+    "en": "In Beijing today: in the morning lots of grandpas and grandmas sing and dance in 天坛. You can stand on the 天心石 too, say a word, and listen to it come back."
+  }
+}

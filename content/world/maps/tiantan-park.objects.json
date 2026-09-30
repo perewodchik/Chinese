@@ -309,5 +309,27 @@
   ],
   "text": "圜丘 ↓",
   "en": "South to the Circular Mound Altar"
+ },
+ {
+  "kind": "npc",
+  "id": "xiaoming-trip",
+  "npc": "xiaoming",
+  "tile": [
+   42,
+   14
+  ],
+  "facing": "left",
+  "when": {
+   "any": [
+    {
+     "quest": "ch4",
+     "step": "school"
+    },
+    {
+     "quest": "ch4",
+     "step": "roof"
+    }
+   ]
+  }
  }
 ]

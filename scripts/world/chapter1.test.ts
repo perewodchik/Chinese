@@ -387,12 +387,21 @@ describe('chapter 3, played through the core', () => {
 });
 
 describe('chapter 4, played through the core', () => {
-  it('天坛 → the Echo Wall whisper → 国子监 → the 麒麟 riddle', () => {
+  it('天坛 with 小明 and 《天坛》 → the blue roof → the 天心石 echo → the Echo Wall → 国子监: the 牌楼, 《科举》, the 进士 stones, 三人行 → the 麒麟 (§13 S4)', () => {
     let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 4 }, { do: 'quest', quest: 'ch4', step: 'go' }]);
     const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'ch4')?.step.id;
     s = play(s, 'tiantan-arrive').save;
     s = play(s, 'erhu').save;
     assert.ok('对牛弹琴' in s.idioms);
+    assert.equal(at(), 'school');
+    assert.equal(sceneFor(scenes, s, { npc: 'echo-boy' })?.id, 'echo-boy-later', 'the whisper waits for the new steps');
+    s = play(s, 'c4-xiaoming').save;
+    assert.ok(s.books.tiantan);
+    assert.equal(at(), 'roof');
+    s = play(s, 'c4-roof').save;
+    assert.equal(at(), 'huanqiu');
+    assert.equal(sceneFor(scenes, s, { look: 'heart', map: 'huanqiu' })?.id, 'c4-heart-stone');
+    s = play(s, 'c4-heart-stone').save;
     assert.equal(at(), 'echo');
     assert.equal(sceneFor(scenes, s, { look: 'wall-spot', map: 'huiyinbi' }), null);
     s = play(s, 'echo-boy').save;
@@ -403,6 +412,17 @@ describe('chapter 4, played through the core', () => {
     s = play(s, 'wall-listen').save;
     assert.equal(at(), 'go-gzj');
     s = play(s, 'gzj-arrive').save;
+    assert.equal(at(), 'paifang');
+    s = play(s, 'c4-paifang').save;
+    assert.equal(at(), 'keju-book');
+    s = play(s, 'c4-keju-book').save;
+    assert.ok(s.books.keju);
+    assert.equal(at(), 'names');
+    s = play(s, 'c4-names').save;
+    assert.equal(at(), 'kong');
+    s = play(s, 'c4-kong').save;
+    assert.ok('三人行，必有我师' in s.idioms);
+    assert.equal(at(), 'qilin');
     s = play(s, 'frog').save;
     assert.ok('井底之蛙' in s.idioms);
     assert.equal(sceneFor(scenes, { ...s, clock: 10 * 60 }, { look: 'qilin', map: 'guozijian' })?.id, 'qilin-day');

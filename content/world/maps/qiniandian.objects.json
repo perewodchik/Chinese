@@ -120,5 +120,19 @@
    "map": "tiantan-park",
    "offset": 8
   }
+ },
+ {
+  "kind": "npc",
+  "id": "teacher",
+  "npc": "xiaoming-laoshi",
+  "tile": [
+   16,
+   20
+  ],
+  "facing": "up",
+  "when": {
+   "quest": "ch4",
+   "step": "roof"
+  }
  }
 ]

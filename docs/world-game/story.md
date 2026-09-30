@@ -148,9 +148,9 @@ are §13 B1's list. Each chapter: one opening and one finale cutscene (K3),
 ### 4 回声 · The echo (天坛 · 国子监 · 孔庙) — *heaven and earth; learning; the exams*
 | | |
 |---|---|
-| Route | station-tiantandongmen → tiantan-park (morning life) → *qiniandian* (the blue roof) → 丹陛桥 → huiyinbi (回音壁) → *huanqiu* (天心石 echo: say a word, hear it back) → station-yonghegong → yonghegong-street → guozijian (the 牌楼 street) → *kongmiao* (find a name on the 进士 stones) → the 麒麟 at dusk |
+| Route | **as built in S4 — 11 steps of `ch4`:** go (opening `ch4-open`, then morning life in the park) → *school* (小明's school trip; he gives 《天坛》) → *roof* (his teacher at the 祈年殿: why is the roof blue? — book p. 3) → *huanqiu* (the 天心石: say a word, hear it come back — cutscene `c4-huanqiu`) → echo (the 回音壁 whisper, `echo-wall`) → go-gzj → *paifang* (read the 牌楼 over 国子监街) → *keju-book* (the old scholar: 《科举》) → *names* (the 进士 stones in the 孔庙: how many names? — book p. 6) → *kong* (孔先生: 三人行，必有我师) → qilin (at dusk; `memory-4`, finale `ch4-finale`) |
 | Culture | 天圆地方; praying for harvest; the colour blue; the imperial exams |
-| Books | 8 《天坛》 (the centre stone), 9 《科举》 |
+| Books | 8 《天坛》 (from 小明: praying for rain, 天圆地方, the blue roof, the centre stone, the 1889 fire), 9 《科举》 (from the old scholar: the exams, 国子监, 进士, the 198 steles and 51,624 names, the end in 1905) |
 | 成语 | 对牛弹琴, 井底之蛙 (existing); **三人行，必有我师** (new, 孔庙; a saying from 论语, flagged hard) |
 | Spirit | 麒麟 |
 | Cutscenes | opening · 回音壁 whisper (converted) · 圜丘 echo · the 进士 stones · spirit-return · memory 4 · finale |

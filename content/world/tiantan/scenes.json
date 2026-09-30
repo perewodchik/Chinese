@@ -94,9 +94,31 @@
   "trigger": "talk",
   "priority": 0,
   "when": {
-   "not": {
-    "flag": "heard-qilin"
-   }
+   "all": [
+    {
+     "not": {
+      "flag": "heard-qilin"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch4",
+      "step": "school"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch4",
+      "step": "roof"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch4",
+      "step": "huanqiu"
+     }
+    }
+   ]
   },
   "start": "a",
   "nodes": [
@@ -756,6 +778,245 @@
       "flag": "magpie-3"
      }
     ]
+   }
+  ]
+ },
+ {
+  "id": "c4-xiaoming",
+  "map": "tiantan-park",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch4",
+   "step": "school"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "学校",
+    "explain": "学生读书的地方。",
+    "en": "school"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你也来天坛了！我们学校今天来这儿玩。",
+    "translate": "You came to 天坛 too! Our school's here for the day.",
+    "expect": [
+     {
+      "intent": "hi",
+      "match": [
+       [
+        "你好",
+        "小明",
+        "是",
+        "对",
+        "玩",
+        "真好"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "你好",
+     "frame": "___，小明！",
+     "full": "你好，小明！"
+    }
+   },
+   {
+    "id": "b",
+    "say": "老师给了我一本书，叫《天坛》。我看完了，给你！",
+    "translate": "The teacher gave me a book called 《天坛》. I've finished it — here, for you!",
+    "onEnter": [
+     {
+      "do": "book",
+      "id": "tiantan"
+     },
+     {
+      "do": "flag",
+      "flag": "c4-tiantan-book"
+     },
+     {
+      "do": "hearts",
+      "npc": "xiaoming",
+      "delta": 1
+     }
+    ],
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "我们学校去祈年殿了！老师要问问题。你也来吧！",
+    "translate": "My school's off to the 祈年殿! The teacher's going to ask questions. Come too!",
+    "why": "The 祈年殿 is north up the park. The teacher's question is in 《天坛》, page 3."
+   }
+  ]
+ },
+ {
+  "id": "c4-roof",
+  "map": "qiniandian",
+  "npc": "xiaoming-laoshi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch4",
+   "step": "roof"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "蓝",
+    "explain": "天的颜色。",
+    "en": "blue"
+   },
+   {
+    "w": "圆",
+    "explain": "像太阳一样，没有角。",
+    "en": "round"
+   },
+   {
+    "w": "颜色",
+    "explain": "红、白、蓝……",
+    "en": "colour"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "同学们，你们看！祈年殿上面是什么颜色？",
+    "translate": "Everyone, look! What colour is the top of the 祈年殿?",
+    "expect": [
+     {
+      "intent": "blue",
+      "match": [
+       [
+        "蓝"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "蓝色",
+     "frame": "是___的。",
+     "full": "是蓝色的。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "对！为什么是蓝的？你们知道吗？",
+    "translate": "Right! And why is it blue? Do you know?",
+    "key": true,
+    "simpler": "为什么是蓝的？",
+    "expect": [
+     {
+      "intent": "sky",
+      "match": [
+       [
+        "天"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "天",
+     "frame": "是___的颜色。",
+     "full": "是天的颜色。"
+    },
+    "why": "It's in 《天坛》, page 3: 上面是蓝的，是天的颜色. The emperors prayed to heaven here."
+   },
+   {
+    "id": "c",
+    "say": "很好！是天的颜色。天是圆的，祈年殿也是圆的。",
+    "translate": "Very good! It's the colour of the sky. Heaven is round, and so is the hall.",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "c4-roof"
+     },
+     {
+      "do": "solve",
+      "riddle": "c4-roof/b"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c4-heart-stone",
+  "map": "huanqiu",
+  "object": "heart",
+  "trigger": "look",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch4",
+   "step": "huanqiu"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "声音",
+    "explain": "听见的东西。",
+    "en": "sound, voice"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "天心石。",
+    "translate": "天心石 — the heart-of-heaven stone.",
+    "speaker": "hero",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "在这儿说一个字吧！你的声音会回来！",
+    "translate": "Say a word here! Your voice will come back!",
+    "speaker": "companion",
+    "expect": [
+     {
+      "intent": "any",
+      "match": [
+       [
+        "你好",
+        "好",
+        "喂",
+        "天",
+        "我"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "你好",
+     "frame": "___！",
+     "full": "你好！"
+    }
+   },
+   {
+    "id": "c",
+    "say": "你听！声音回来了！",
+    "translate": "Listen! Your voice came back!",
+    "speaker": "companion",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "c4-echo-stone"
+     },
+     {
+      "do": "cutscene",
+      "id": "c4-huanqiu"
+     }
+    ],
+    "why": "The stone rails all round send your voice straight back — 《天坛》 page 6."
    }
   ]
  }

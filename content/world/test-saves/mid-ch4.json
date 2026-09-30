@@ -1,0 +1,1519 @@
+{
+ "version": 16,
+ "updatedAt": 1,
+ "deviceId": "golden",
+ "place": {
+  "map": "wumen",
+  "tile": [
+   16,
+   12
+  ],
+  "facing": "up"
+ },
+ "district": "gulou",
+ "name": "大卫",
+ "clock": 5460,
+ "chapter": 4,
+ "flags": [
+  "met-polan",
+  "cat-seen",
+  "c1-got-list",
+  "kite-down",
+  "kite-back",
+  "keys-found",
+  "room-decorated",
+  "decor-huapen",
+  "room-seen",
+  "decor-jianzhi",
+  "c1-list-given",
+  "lantern-broken",
+  "heard-lion",
+  "c1-welcome-cut",
+  "c1-lion-book",
+  "c1-lions-told",
+  "haircut",
+  "c1-drum-book",
+  "c1-heard-drum",
+  "has-card",
+  "palace-needs-ticket",
+  "c1-told-xiaoming",
+  "c1-saw-yandai",
+  "bird-back",
+  "c2-saw-hills",
+  "heard-fox",
+  "c2-lake-book",
+  "bait-given",
+  "boat-ride",
+  "c2-prince",
+  "painting-given",
+  "cat-named",
+  "taiji",
+  "rode-bike",
+  "c2-pavilions",
+  "saw-corner",
+  "c2-fox-book",
+  "photo-gate",
+  "photo-shown",
+  "heard-menshen",
+  "decor-lianpu",
+  "changed-money",
+  "saw-show",
+  "tea-given",
+  "idiom-book"
+ ],
+ "scenes": [
+  "first-morning",
+  "bed",
+  "arrive",
+  "wang-go-eat",
+  "kite-look",
+  "polan",
+  "polan-sell",
+  "xiaomiao-look-ruined",
+  "cat-see",
+  "cat-wait",
+  "shop-tanghulu",
+  "waimai-lost",
+  "job-waimai",
+  "gulou-visit",
+  "lion-day",
+  "ask-way",
+  "zhao-yeye-askname",
+  "zhao-later",
+  "breakfast",
+  "c1-list",
+  "shop-zaodian",
+  "job-zaodian",
+  "shop-li-ayi",
+  "cat-feed",
+  "li-ayi-askname",
+  "cat-full",
+  "kite-down",
+  "kite-back",
+  "xiaoming-askname",
+  "xiaoming-hi-name",
+  "keys-found",
+  "place-huapen-spot-floor-l",
+  "room-comment-huapen",
+  "place-jianzhi-spot-wall-l",
+  "room-comment-jianzhi",
+  "c1-list-give",
+  "lantern",
+  "lantern-rabbit",
+  "wang-ayi-hi-name",
+  "rumour-shop",
+  "job-li",
+  "c1-barber",
+  "c1-zhao-lions",
+  "c1-lions-which",
+  "barber",
+  "haircut",
+  "zhang-shifu-askname",
+  "rumour-tea",
+  "lion-night",
+  "lion-friend",
+  "dance",
+  "c1-liu-towers",
+  "c1-drum-when",
+  "zhongqiu-wang",
+  "zhongqiu-rabbit",
+  "tea",
+  "lao-liu-askname",
+  "lao-liu-hi-name",
+  "thermos-fill",
+  "job-chaguan",
+  "nlgx-gates-nocard",
+  "nlgx-gates-out",
+  "card",
+  "nlgx-gates-in",
+  "topup-station-staff",
+  "tam-arrive",
+  "tam-guard",
+  "tam-photo",
+  "first-ride",
+  "tamd-gates-in",
+  "tamd-gates-out",
+  "topup-tam-staff",
+  "staff",
+  "tam-staff",
+  "wumen-out",
+  "anjian",
+  "anjian-later",
+  "taihedian-arrive",
+  "gugong-guide",
+  "yuhuayuan-arrive",
+  "c1-xiaoming-tell",
+  "c1-yandai",
+  "wang-son-1",
+  "room-idea",
+  "bird-lost",
+  "zhao-yeye-hi-name",
+  "bird-kid",
+  "bird-back",
+  "kite-stuck",
+  "photo-drum-ask",
+  "photo-drum-show",
+  "xiangqi",
+  "xiangzi",
+  "xiangsheng",
+  "chaguan-keren",
+  "sanguo-1",
+  "houhai-arrive",
+  "c2-yinding",
+  "fisher-fox",
+  "c2-fisher-book",
+  "bait-ask",
+  "bait-give",
+  "fishing",
+  "fisher-later",
+  "boat-ride",
+  "boat",
+  "houhai-tourist",
+  "c2-shishe-baita",
+  "shishe",
+  "beihai-arrive",
+  "painter",
+  "painting-gift",
+  "painting-wang",
+  "maliang",
+  "bench",
+  "cat-name",
+  "cat-purr",
+  "sanguo-2",
+  "taiji",
+  "rangli",
+  "simaguang",
+  "jingshan-view",
+  "view-again",
+  "singer-later",
+  "c2-pavilions",
+  "singer",
+  "c2-singer-book",
+  "c2-xiaoming-tiger",
+  "c2-fox-tiger",
+  "keys-lost",
+  "wang-cold",
+  "book-want",
+  "qm-arrive",
+  "menshen-ask",
+  "photo-gate",
+  "photo-show",
+  "kaoya",
+  "yingzi-ask",
+  "wukong",
+  "nezha",
+  "opera",
+  "masks",
+  "shop-lianpu",
+  "place-lianpu-spot-window",
+  "room-comment-lianpu",
+  "opera-owner",
+  "granny",
+  "wfj-arrive",
+  "shopper",
+  "shop-yuebing",
+  "red-paper",
+  "menshen-give",
+  "photo-ask",
+  "menshen-friend",
+  "photo-gate-2",
+  "tea-want",
+  "pharmacy-later",
+  "bank",
+  "tea-buy",
+  "show",
+  "tea-give",
+  "book",
+  "tiantan-arrive"
+ ],
+ "quests": {
+  "ch1": {
+   "step": "ride",
+   "index": 17,
+   "done": true,
+   "at": {
+    "meet-wang": 420,
+    "breakfast": 1860,
+    "list": 1860,
+    "shop": 1860,
+    "bring": 1860,
+    "lantern": 1860,
+    "rumour": 1860,
+    "haircut": 1860,
+    "lion-book": 1860,
+    "lions": 1860,
+    "lion": 1860,
+    "drum-book": 2580,
+    "drum": 2580,
+    "bell": 4020,
+    "tell": 4020,
+    "yandai": 4020,
+    "card": 4020,
+    "ride": 4020,
+    "$done": 4020
+   }
+  },
+  "side-polan": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 1860,
+    "$done": 1860
+   }
+  },
+  "side-cat": {
+   "step": "name",
+   "index": 1,
+   "done": true,
+   "at": {
+    "feed": 1860,
+    "name": 5460,
+    "$done": 5460
+   }
+  },
+  "side-waimai": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 1860,
+    "$done": 1860
+   }
+  },
+  "side-haircut": {
+   "step": "cut",
+   "index": 0,
+   "done": true,
+   "at": {
+    "cut": 1860,
+    "$done": 1860
+   }
+  },
+  "side-dance": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 2580,
+    "$done": 2580
+   }
+  },
+  "side-change": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 4020,
+    "$done": 4020
+   }
+  },
+  "ch2": {
+   "step": "fox",
+   "index": 11,
+   "done": true,
+   "at": {
+    "go-houhai": 4020,
+    "bridge": 4020,
+    "rumour": 4020,
+    "lake-book": 4020,
+    "prince": 4020,
+    "beihai": 4020,
+    "baita": 4020,
+    "pavilions": 5460,
+    "jingshan": 5460,
+    "fox-book": 5460,
+    "tiger": 5460,
+    "fox": 5460,
+    "$done": 5460
+   }
+  },
+  "story-wang": {
+   "step": "call",
+   "index": 1,
+   "done": false,
+   "at": {
+    "talk": 4020,
+    "call": 4020
+   }
+  },
+  "side-room": {
+   "step": "show",
+   "index": 1,
+   "done": true,
+   "at": {
+    "decorate": 4020,
+    "show": 4020,
+    "$done": 4020
+   }
+  },
+  "side-bird": {
+   "step": "back",
+   "index": 1,
+   "done": true,
+   "at": {
+    "find": 4020,
+    "back": 4020,
+    "$done": 4020
+   }
+  },
+  "side-kite": {
+   "step": "give",
+   "index": 1,
+   "done": true,
+   "at": {
+    "pole": 4020,
+    "give": 4020,
+    "$done": 4020
+   }
+  },
+  "side-photo-drum": {
+   "step": "show",
+   "index": 1,
+   "done": true,
+   "at": {
+    "take": 4020,
+    "show": 4020,
+    "$done": 4020
+   }
+  },
+  "side-xiangqi": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 4020,
+    "$done": 4020
+   }
+  },
+  "side-xiangzi": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 4020,
+    "$done": 4020
+   }
+  },
+  "side-xiangsheng": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 4020,
+    "$done": 4020
+   }
+  },
+  "side-chaguan": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 4020,
+    "$done": 4020
+   }
+  },
+  "side-sanguo": {
+   "step": "two",
+   "index": 1,
+   "done": true,
+   "at": {
+    "one": 4020,
+    "two": 4020,
+    "$done": 5460
+   }
+  },
+  "side-bait": {
+   "step": "give",
+   "index": 1,
+   "done": true,
+   "at": {
+    "buy": 4020,
+    "give": 4020,
+    "$done": 4020
+   }
+  },
+  "side-fishing": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 4020,
+    "$done": 4020
+   }
+  },
+  "side-boat": {
+   "step": "ride",
+   "index": 0,
+   "done": true,
+   "at": {
+    "ride": 4020,
+    "$done": 4020
+   }
+  },
+  "side-shishe": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 4020,
+    "$done": 4020
+   }
+  },
+  "side-painting": {
+   "step": "give",
+   "index": 0,
+   "done": true,
+   "at": {
+    "give": 4020,
+    "$done": 4020
+   }
+  },
+  "side-maliang": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 4020,
+    "$done": 4020
+   }
+  },
+  "side-taiji": {
+   "step": "learn",
+   "index": 0,
+   "done": true,
+   "at": {
+    "learn": 5460,
+    "$done": 5460
+   }
+  },
+  "side-rangli": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 5460,
+    "$done": 5460
+   }
+  },
+  "side-simaguang": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 5460,
+    "$done": 5460
+   }
+  },
+  "ch3": {
+   "step": "menshen",
+   "index": 5,
+   "done": true,
+   "at": {
+    "go": 5460,
+    "money": 5460,
+    "book": 5460,
+    "qianmen": 5460,
+    "red-paper": 5460,
+    "menshen": 5460,
+    "$done": 5460
+   }
+  },
+  "side-keys": {
+   "step": "light",
+   "index": 1,
+   "done": true,
+   "at": {
+    "ask": 5460,
+    "light": 5460,
+    "$done": 5460
+   }
+  },
+  "wang-cold": {
+   "step": "medicine",
+   "index": 0,
+   "done": false,
+   "at": {
+    "medicine": 5460
+   }
+  },
+  "side-book": {
+   "step": "buy",
+   "index": 0,
+   "done": false,
+   "at": {
+    "buy": 5460
+   }
+  },
+  "side-kaoya": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 5460,
+    "$done": 5460
+   }
+  },
+  "side-yingzi": {
+   "step": "find",
+   "index": 0,
+   "done": false,
+   "at": {
+    "find": 5460
+   }
+  },
+  "side-wukong": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 5460,
+    "$done": 5460
+   }
+  },
+  "side-nezha": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 5460,
+    "$done": 5460
+   }
+  },
+  "side-masks": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 5460,
+    "$done": 5460
+   }
+  },
+  "side-photo-gate": {
+   "step": "show",
+   "index": 1,
+   "done": true,
+   "at": {
+    "photo": 5460,
+    "show": 5460,
+    "$done": 5460
+   }
+  },
+  "side-tea": {
+   "step": "give",
+   "index": 1,
+   "done": true,
+   "at": {
+    "buy": 5460,
+    "give": 5460,
+    "$done": 5460
+   }
+  },
+  "side-show": {
+   "step": "watch",
+   "index": 0,
+   "done": true,
+   "at": {
+    "watch": 5460,
+    "$done": 5460
+   }
+  },
+  "ch4": {
+   "step": "echo",
+   "index": 1,
+   "done": false,
+   "at": {
+    "go": 5460,
+    "echo": 5460
+   }
+  }
+ },
+ "riddles": {
+  "c1-list/c": {
+   "scene": "c1-list",
+   "node": "c",
+   "pinnedAt": 1860,
+   "solved": true
+  },
+  "lantern-rabbit/d": {
+   "scene": "lantern-rabbit",
+   "node": "d",
+   "pinnedAt": 1860,
+   "solved": true
+  },
+  "rumour-shop/rumour": {
+   "scene": "rumour-shop",
+   "node": "rumour",
+   "pinnedAt": 1860,
+   "solved": true
+  },
+  "c1-barber/b": {
+   "scene": "c1-barber",
+   "node": "b",
+   "pinnedAt": 1860,
+   "solved": true
+  },
+  "c1-zhao-lions/c": {
+   "scene": "c1-zhao-lions",
+   "node": "c",
+   "pinnedAt": 1860,
+   "solved": true
+  },
+  "barber/key": {
+   "scene": "barber",
+   "node": "key",
+   "pinnedAt": 1860,
+   "solved": false
+  },
+  "lion-night/b": {
+   "scene": "lion-night",
+   "node": "b",
+   "pinnedAt": 2580,
+   "solved": false
+  },
+  "lantern/d": {
+   "scene": "lantern",
+   "node": "d",
+   "pinnedAt": 2580,
+   "solved": true
+  },
+  "c1-liu-towers/b": {
+   "scene": "c1-liu-towers",
+   "node": "b",
+   "pinnedAt": 2580,
+   "solved": true
+  },
+  "c1-drum-when/a": {
+   "scene": "c1-drum-when",
+   "node": "a",
+   "pinnedAt": 2580,
+   "solved": true
+  },
+  "tea/key": {
+   "scene": "tea",
+   "node": "key",
+   "pinnedAt": 4020,
+   "solved": false
+  },
+  "c1-yandai/b": {
+   "scene": "c1-yandai",
+   "node": "b",
+   "pinnedAt": 4020,
+   "solved": true
+  },
+  "bird-lost/a": {
+   "scene": "bird-lost",
+   "node": "a",
+   "pinnedAt": 4020,
+   "solved": false
+  },
+  "c2-yinding/a": {
+   "scene": "c2-yinding",
+   "node": "a",
+   "pinnedAt": 4020,
+   "solved": true
+  },
+  "fisher-fox/b": {
+   "scene": "fisher-fox",
+   "node": "b",
+   "pinnedAt": 4020,
+   "solved": true
+  },
+  "c2-fisher-book/b": {
+   "scene": "c2-fisher-book",
+   "node": "b",
+   "pinnedAt": 4020,
+   "solved": true
+  },
+  "c2-shishe-baita/a": {
+   "scene": "c2-shishe-baita",
+   "node": "a",
+   "pinnedAt": 4020,
+   "solved": true
+  },
+  "c2-pavilions/a": {
+   "scene": "c2-pavilions",
+   "node": "a",
+   "pinnedAt": 5460,
+   "solved": true
+  },
+  "singer/key": {
+   "scene": "singer",
+   "node": "key",
+   "pinnedAt": 5460,
+   "solved": true
+  },
+  "c2-singer-book/b": {
+   "scene": "c2-singer-book",
+   "node": "b",
+   "pinnedAt": 5460,
+   "solved": true
+  },
+  "c2-fox-tiger/f": {
+   "scene": "c2-fox-tiger",
+   "node": "f",
+   "pinnedAt": 5460,
+   "solved": false
+  },
+  "granny/a": {
+   "scene": "granny",
+   "node": "a",
+   "pinnedAt": 5460,
+   "solved": false
+  },
+  "wfj-arrive/a": {
+   "scene": "wfj-arrive",
+   "node": "a",
+   "pinnedAt": 5460,
+   "solved": false
+  },
+  "menshen-give/c": {
+   "scene": "menshen-give",
+   "node": "c",
+   "pinnedAt": 5460,
+   "solved": false
+  },
+  "photo-ask/a": {
+   "scene": "photo-ask",
+   "node": "a",
+   "pinnedAt": 5460,
+   "solved": false
+  }
+ },
+ "bag": {
+  "items": {
+   "huzhao": 1,
+   "shouji": 1,
+   "baozi": 1,
+   "shoudiantong": 1,
+   "yaoshi": 1,
+   "yuebing": 1,
+   "reshui": 1,
+   "xiaoyu": 1,
+   "xiaoyugan": 1,
+   "laohu": 1,
+   "chengyu-shu": 1
+  },
+  "money": 614,
+  "card": 108
+ },
+ "spirits": {
+  "shishizi": 2580,
+  "jiuweihu": 5460,
+  "menshen": 5460
+ },
+ "idioms": {
+  "马马虎虎": {
+   "at": 1860
+  },
+  "一心一意": {
+   "at": 4020
+  },
+  "狐假虎威": {
+   "at": 5460
+  },
+  "人山人海": {
+   "at": 5460
+  },
+  "画蛇添足": {
+   "at": 5460
+  }
+ },
+ "stamps": {
+  "new-home": 1860,
+  "gulou": 1860,
+  "ask-way": 1860,
+  "breakfast": 1860,
+  "haircut": 1860,
+  "shishizi": 2580,
+  "dance": 2580,
+  "zhongqiu": 4020,
+  "change": 4020,
+  "card": 4020,
+  "tiananmen": 4020,
+  "subway": 4020,
+  "gugong": 4020,
+  "taihedian": 4020,
+  "yuhuayuan": 4020,
+  "xiangqi": 4020,
+  "xiangzi": 4020,
+  "xiangsheng": 4020,
+  "chaguan": 4020,
+  "houhai": 4020,
+  "boat": 4020,
+  "shishe": 4020,
+  "baita": 4020,
+  "maliang": 4020,
+  "cat": 5460,
+  "sanguo": 5460,
+  "taiji": 5460,
+  "rangli": 5460,
+  "simaguang": 5460,
+  "jingshan": 5460,
+  "jiuweihu": 5460,
+  "qianmen": 5460,
+  "kaoya": 5460,
+  "wukong": 5460,
+  "nezha": 5460,
+  "jingju": 5460,
+  "lianpu": 5460,
+  "wangfujing": 5460,
+  "menshen": 5460,
+  "huanqian": 5460,
+  "show": 5460,
+  "chengyu-shu": 5460,
+  "tiantan": 5460
+ },
+ "stations": [
+  "nanluoguxiang",
+  "tiananmendong",
+  "shichahai",
+  "beihaibei"
+ ],
+ "districts": [
+  "gulou"
+ ],
+ "npcs": {
+  "wang-ayi": {
+   "met": 1860,
+   "notes": [
+    "told her their name",
+    "liked the pot of flowers in your room",
+    "liked the paper-cut in your room",
+    "gave her a painting of the White Dagoba",
+    "liked the opera mask in your room"
+   ],
+   "hearts": 5,
+   "gift": 0,
+   "talk": 4
+  },
+  "polan-shifu": {
+   "met": 1860,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 2
+  },
+  "tanghulu-dashu": {
+   "met": 1860,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 2
+  },
+  "waimai": {
+   "met": 1860,
+   "notes": [
+    "showed him the way to number 13"
+   ],
+   "hearts": 4,
+   "gift": 0,
+   "talk": 4
+  },
+  "zhao-yeye": {
+   "met": 1860,
+   "notes": [
+    "knows your name",
+    "brought his bird back"
+   ],
+   "hearts": 3,
+   "gift": 0,
+   "talk": 3
+  },
+  "zaodian-shifu": {
+   "met": 1860,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 2
+  },
+  "li-ayi": {
+   "met": 1860,
+   "notes": [
+    "knows your name"
+   ],
+   "hearts": 3,
+   "gift": 0,
+   "talk": 4
+  },
+  "xiaoming": {
+   "met": 1860,
+   "notes": [
+    "knows your name",
+    "photographed the Drum Tower for him"
+   ],
+   "hearts": 5,
+   "gift": 0,
+   "talk": 4
+  },
+  "zhang-shifu": {
+   "met": 1860,
+   "notes": [
+    "knows your name"
+   ],
+   "hearts": 2,
+   "gift": 0,
+   "talk": 2
+  },
+  "passer-photo": {
+   "met": 1860,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 2
+  },
+  "lao-liu": {
+   "met": 1860,
+   "notes": [
+    "knows your name"
+   ],
+   "hearts": 3,
+   "gift": 0,
+   "talk": 4
+  },
+  "passer-dancer": {
+   "met": 2580,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 2
+  },
+  "gulou-ayi": {
+   "met": 2580,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "station-staff": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "tam-guard": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "tam-photographer": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "tam-staff": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "anjian-yuan": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "gugong-daoyou": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "xiangqi-yeye": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "xiangzi": {
+   "met": 4020,
+   "notes": [
+    "pedalled his tricycle for a morning"
+   ],
+   "hearts": 2,
+   "gift": 0,
+   "talk": 3
+  },
+  "chaguan-keren": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "shuoshu-xiansheng": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 3,
+   "gift": 0,
+   "talk": 4
+  },
+  "fisher-yeye": {
+   "met": 4020,
+   "notes": [
+    "brought him bait"
+   ],
+   "hearts": 3,
+   "gift": 0,
+   "talk": 3
+  },
+  "boat-shifu": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "houhai-tourist": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "shishe-guniang": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "beihai-painter": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "maliang": {
+   "met": 4020,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 3
+  },
+  "jingshan-ayi": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "rongrong": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "guangguang": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "jingshan-yeye": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "kaoya-shifu": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "yingzi": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "wukong-xiaohai": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "nezha-xiaohai": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "jingju-yanyuan": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "xiyuan-laoban": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "dashilar-nainai": {
+   "met": 5460,
+   "notes": [
+    "brought her tea leaves"
+   ],
+   "hearts": 2,
+   "gift": 0,
+   "talk": 4
+  },
+  "wfj-shopper": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "yuebing-ayi": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "shudian-ayi": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "yaoshi": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  },
+  "yinhang-yuan": {
+   "met": 5460,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 4
+  }
+ },
+ "rides": {},
+ "diary": {
+  "1": [
+   "x:huzhao",
+   "x:shouji",
+   "z"
+  ],
+  "2": [
+   "m:wang-ayi",
+   "m:polan-shifu",
+   "m:tanghulu-dashu",
+   "m:waimai",
+   "$:5",
+   "m:zhao-yeye",
+   "m:zaodian-shifu",
+   "b:baozi:3",
+   "x:danzi",
+   "$:15",
+   "m:li-ayi",
+   "b:xiaoyugan:3",
+   "k",
+   "b:zhugan:10",
+   "x:fengzheng",
+   "m:xiaoming"
+  ],
+  "3": [
+   "x:yuebing",
+   "f:wang-ayi",
+   "k",
+   "b:xiaoyugan:3",
+   "i:一心一意",
+   "x:reshui",
+   "$:10",
+   "m:station-staff",
+   "$:5",
+   "f:waimai",
+   "$:15",
+   "m:tam-guard",
+   "m:tam-photographer",
+   "m:tam-staff",
+   "m:anjian-yuan",
+   "m:gugong-daoyou"
+  ],
+  "4": [
+   "$:5",
+   "k",
+   "c:小花",
+   "$:15",
+   "b:xiaoyugan:3",
+   "f:li-ayi",
+   "$:10",
+   "f:shuoshu-xiansheng",
+   "m:jingshan-ayi",
+   "m:rongrong",
+   "m:guangguang",
+   "m:jingshan-yeye",
+   "t:shichahai",
+   "t:beihaibei",
+   "p",
+   "x:laohu"
+  ]
+ },
+ "room": {
+  "spot-floor-l": "huapen",
+  "spot-wall-l": "jianzhi",
+  "spot-window": "lianpu"
+ },
+ "cat": {
+  "fed": 3,
+  "day": 4,
+  "name": "小花"
+ },
+ "photos": [
+  "gulou-square:bell-tower",
+  "gulou-square:drum-tower",
+  "beihai-baita:baita"
+ ],
+ "bills": [
+  {
+   "id": "solver:4020:4",
+   "at": 4020,
+   "who": "",
+   "amount": 5
+  },
+  {
+   "id": "solver:4020:5",
+   "at": 4020,
+   "who": "",
+   "amount": -50
+  },
+  {
+   "id": "solver:4020:6",
+   "at": 4020,
+   "who": "",
+   "amount": 15
+  },
+  {
+   "id": "solver:4020:7",
+   "at": 4020,
+   "who": "",
+   "amount": 10
+  },
+  {
+   "id": "solver:4020:8",
+   "at": 4020,
+   "who": "",
+   "amount": -50
+  },
+  {
+   "id": "solver:4020:9",
+   "at": 4020,
+   "who": "",
+   "amount": 20
+  },
+  {
+   "id": "solver:4020:10",
+   "at": 4020,
+   "who": "",
+   "amount": -5
+  },
+  {
+   "id": "solver:4020:11",
+   "at": 4020,
+   "who": "",
+   "amount": -30
+  },
+  {
+   "id": "solver:5460",
+   "at": 5460,
+   "who": "",
+   "amount": 5
+  },
+  {
+   "id": "solver:5460:2",
+   "at": 5460,
+   "who": "",
+   "amount": 15
+  },
+  {
+   "id": "solver:5460:3",
+   "at": 5460,
+   "who": "",
+   "amount": -3
+  },
+  {
+   "id": "solver:5460:4",
+   "at": 5460,
+   "who": "",
+   "amount": 10
+  },
+  {
+   "id": "solver:5460:5",
+   "at": 5460,
+   "who": "",
+   "amount": 10
+  },
+  {
+   "id": "solver:5460:6",
+   "at": 5460,
+   "who": "",
+   "amount": -1
+  },
+  {
+   "id": "solver:5460:7",
+   "at": 5460,
+   "who": "",
+   "amount": -30
+  },
+  {
+   "id": "solver:5460:8",
+   "at": 5460,
+   "who": "",
+   "amount": -5
+  },
+  {
+   "id": "solver:5460:9",
+   "at": 5460,
+   "who": "",
+   "amount": 700
+  },
+  {
+   "id": "solver:5460:10",
+   "at": 5460,
+   "who": "",
+   "amount": -20
+  },
+  {
+   "id": "solver:5460:11",
+   "at": 5460,
+   "who": "",
+   "amount": -50
+  },
+  {
+   "id": "solver:5460:12",
+   "at": 5460,
+   "who": "",
+   "amount": -30
+  }
+ ],
+ "daily": {
+  "job-waimai": 4,
+  "job-zaodian": 4,
+  "job-li": 4,
+  "job-chaguan": 4
+ },
+ "fresh": {
+  "baozi": 2,
+  "xiaoyugan": 4,
+  "zhugan": 2,
+  "shoudiantong": 2,
+  "baowenbei": 2,
+  "huapen": 2,
+  "jianzhi": 2,
+  "niunai": 2,
+  "jidan": 2,
+  "yuer": 3,
+  "lianpu": 4
+ },
+ "cutscenes": [
+  "lantern-breaks",
+  "c1-drum",
+  "ch1-finale",
+  "c2-yinding",
+  "ch2-finale"
+ ],
+ "lastWords": [],
+ "books": {
+  "denglong": {
+   "got": 1860,
+   "read": []
+  },
+  "shishizi": {
+   "got": 1860,
+   "read": []
+  },
+  "chenzhong-mugu": {
+   "got": 2580,
+   "read": []
+  },
+  "shichahai": {
+   "got": 4020,
+   "read": []
+  },
+  "hujiahuwei": {
+   "got": 5460,
+   "read": []
+  }
+ },
+ "look": {
+  "build": "broad",
+  "skin": 1,
+  "face": {
+   "eyes": "dot",
+   "brows": "none",
+   "mouth": "line"
+  },
+  "hair": {
+   "style": "short",
+   "colour": "black"
+  },
+  "address": "name"
+ },
+ "created": false,
+ "wardrobe": [
+  "jacket:blue",
+  "trousers:dark",
+  "sneakers:white",
+  "scarf:red"
+ ],
+ "outfit": {
+  "top": "jacket:blue",
+  "bottom": "trousers:dark",
+  "shoes": "sneakers:white",
+  "accessory": "scarf:red"
+ },
+ "outfits": [
+  null,
+  null,
+  null
+ ],
+ "worn": [
+  "jacket",
+  "trousers",
+  "sneakers",
+  "scarf"
+ ],
+ "settings": {
+  "input": "keyboard",
+  "pinyin": true,
+  "joystick": false,
+  "textSize": "m",
+  "live": false,
+  "volume": 0.6,
+  "music": 0.6
+ },
+ "visited": [
+  "station-nanluoguxiang",
+  "station-tiananmendong",
+  "wumen"
+ ]
+}

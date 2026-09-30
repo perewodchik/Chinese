@@ -14,6 +14,33 @@
         }
       },
       {
+        "id": "school",
+        "now": "小明's class is on a school trip to 天坛 today! Find him in the park, near the east gate.",
+        "past": "Met 小明 on his school trip; he gave me 《天坛》.",
+        "where": "tiantan-park",
+        "done": {
+          "flag": "c4-tiantan-book"
+        }
+      },
+      {
+        "id": "roof",
+        "now": "Go north up to the Hall of Prayer 祈年殿. 小明's teacher is asking the class a question — 《天坛》 page 3 knows the answer.",
+        "past": "Answered the teacher at the 祈年殿: the roof is blue, the colour of the sky.",
+        "where": "qiniandian",
+        "done": {
+          "flag": "c4-roof"
+        }
+      },
+      {
+        "id": "huanqiu",
+        "now": "《天坛》 pages 5–6: in the south, on the round altar 圜丘, stand on the centre stone 天心石 and say something.",
+        "past": "Stood on the 天心石 and heard my own voice come back from all round.",
+        "where": "huanqiu",
+        "done": {
+          "flag": "c4-echo-stone"
+        }
+      },
+      {
         "id": "echo",
         "now": "At the Echo Wall 回音壁, east of the Hall of Prayer, a boy wants to whisper you a secret through the wall. Talk to him, then put your ear to the wall.",
         "past": "Put my ear to the Echo Wall and heard a whisper.",
@@ -31,6 +58,42 @@
         }
       },
       {
+        "id": "paifang",
+        "now": "国子监街 still has its old 牌楼, the painted gateways across the street. Look up at one and read it.",
+        "past": "Read the 牌楼 over 国子监街.",
+        "where": "yonghegong-street",
+        "done": {
+          "flag": "c4-paifang"
+        }
+      },
+      {
+        "id": "keju-book",
+        "now": "The old scholar at 国子监 knows the history of the Academy.",
+        "past": "The old scholar gave me 《科举》, about the imperial exams.",
+        "where": "guozijian",
+        "done": {
+          "flag": "c4-keju-book"
+        }
+      },
+      {
+        "id": "names",
+        "now": "Next door in the 孔庙, the 进士 names are carved on stone steles. Look at one — 兔儿爷 will ask how many names there are (《科举》 page 6).",
+        "past": "Looked at the 进士 steles in the 孔庙: more than fifty thousand names.",
+        "where": "kongmiao",
+        "done": {
+          "flag": "c4-names"
+        }
+      },
+      {
+        "id": "kong",
+        "now": "Back at 国子监, 孔先生 has a saying from 孔子 for you.",
+        "past": "孔先生 taught me 「三人行，必有我师」.",
+        "where": "guozijian",
+        "done": {
+          "idiom": "三人行，必有我师"
+        }
+      },
+      {
         "id": "qilin",
         "now": "The bronze 麒麟 in the Academy's courtyard wakes at dusk. Come after five in the afternoon.",
         "past": "Waited for dusk in the Academy courtyard and met the 麒麟.",
@@ -38,7 +101,8 @@
         "when": "after 17:00",
         "done": {
           "spirit": "qilin"
-        }
+        },
+        "onDone": "ch4-finale"
       }
     ],
     "reward": [

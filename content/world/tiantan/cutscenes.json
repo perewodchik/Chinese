@@ -98,5 +98,311 @@
     "en": "Ear to the wall. His whisper runs all the way round the curve to you — listen."
    }
   ]
+ },
+ {
+  "id": "ch4-open",
+  "map": "tiantan-park",
+  "chapter": 4,
+  "title": {
+   "zh": "第四章 · 回声",
+   "en": "Chapter four · The echo"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "on": "tiantan-park",
+  "auto": {
+   "all": [
+    {
+     "chapter": 4
+    },
+    {
+     "not": {
+      "spirit": "qilin"
+     }
+    }
+   ]
+  },
+  "talk": "tiantan-arrive",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     43,
+     17
+    ],
+    "facing": "left"
+   }
+  ],
+  "steps": [
+   {
+    "fade": "in",
+    "ms": 800
+   },
+   {
+    "camera": [
+     40,
+     16
+    ],
+    "ms": 500
+   },
+   {
+    "title": {
+     "zh": "第四章 · 回声",
+     "en": "Chapter four · The echo"
+    }
+   },
+   {
+    "camera": [
+     20,
+     12
+    ],
+    "ms": 2600
+   },
+   {
+    "fx": "butterflies",
+    "at": [
+     20,
+     12
+    ],
+    "n": 6
+   },
+   {
+    "wait": 900
+   },
+   {
+    "say": "rabbit",
+    "en": "天坛 — where emperors asked heaven for rain. Round for heaven, square for earth. Somewhere a spirit that loves learning is hiding."
+   },
+   {
+    "camera": "hero",
+    "ms": 1400
+   }
+  ]
+ },
+ {
+  "id": "c4-huanqiu",
+  "map": "huanqiu",
+  "chapter": 4,
+  "title": {
+   "zh": "天心石",
+   "en": "The heart-of-heaven stone"
+  },
+  "letterbox": true,
+  "music": "hush",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     15,
+     15
+    ],
+    "facing": "down"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     15,
+     14
+    ],
+    "ms": 600,
+    "zoom": 2
+   },
+   {
+    "sound": "chime"
+   },
+   {
+    "fx": "sparkle",
+    "at": [
+     15,
+     14
+    ],
+    "n": 12
+   },
+   {
+    "wait": 600
+   },
+   {
+    "sound": "chime"
+   },
+   {
+    "wait": 500
+   },
+   {
+    "sound": "chime"
+   },
+   {
+    "say": "rabbit",
+    "en": "Your voice, back from every side at once. The stone rails send it home — the emperors heard the same."
+   },
+   {
+    "camera": [
+     15,
+     14
+    ],
+    "ms": 800,
+    "zoom": 1
+   }
+  ]
+ },
+ {
+  "id": "memory-4",
+  "map": "siheyuan-yard",
+  "chapter": 4,
+  "title": {
+   "zh": "回忆 · 喜欢学习的人",
+   "en": "A memory · Someone who loves to learn"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "auto": {
+   "all": [
+    {
+     "spirit": "qilin"
+    },
+    {
+     "flag": "lantern-broken"
+    }
+   ]
+  },
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     7,
+     10
+    ],
+    "facing": "up"
+   },
+   {
+    "actor": "wang-ayi",
+    "at": [
+     11,
+     7
+    ],
+    "facing": "left"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     5,
+     7
+    ],
+    "ms": 900
+   },
+   {
+    "together": [
+     {
+      "move": "wang-ayi",
+      "to": [
+       5,
+       7
+      ]
+     },
+     {
+      "move": "hero",
+      "to": [
+       6,
+       8
+      ]
+     }
+    ]
+   },
+   {
+    "face": "wang-ayi",
+    "dir": "up"
+   },
+   {
+    "together": [
+     {
+      "fx": "sparkle",
+      "at": [
+       4,
+       6
+      ],
+      "n": 14
+     },
+     {
+      "sound": "bell"
+     }
+    ]
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "麒麟也回来了！",
+    "en": "The qilin's back too!"
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "我想做老师的时候，每天都学习。",
+    "en": "When I wanted to be a teacher, I studied every day."
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "爷爷说：麒麟喜欢学习的人。",
+    "en": "Grandpa said: the qilin loves people who learn."
+   },
+   {
+    "say": "rabbit",
+    "en": "Four figures home. …Hm. When the lantern's whole again — what happens to a clay rabbit? Never mind. Tea?"
+   }
+  ]
+ },
+ {
+  "id": "ch4-finale",
+  "map": "guozijian",
+  "chapter": 4,
+  "finale": true,
+  "title": {
+   "zh": "第四章 · 完",
+   "en": "End of chapter four"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     10,
+     11
+    ],
+    "facing": "up"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     10,
+     8
+    ],
+    "ms": 900
+   },
+   {
+    "fx": "lanterns-rise",
+    "at": [
+     10,
+     8
+    ],
+    "n": 6
+   },
+   {
+    "wait": 1200
+   },
+   {
+    "title": {
+     "zh": "第四章 · 完",
+     "en": "End of chapter four · The echo"
+    }
+   },
+   {
+    "say": "rabbit",
+    "en": "A blue roof, a stone that answers, fifty thousand names — and a qilin who likes a good student."
+   },
+   {
+    "say": "rabbit",
+    "en": "Next: incense and temples. People say a spirit hides among the stone monkeys of 白云观."
+   }
+  ]
  }
 ]
