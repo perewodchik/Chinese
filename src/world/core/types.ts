@@ -439,6 +439,8 @@ export interface WorldSettings {
   celebrate?: 'full' | 'quiet';
   /** §13 Q1: 「!」 and 「…」 over people with something for you now (on unless set off) */
   questMarks?: boolean;
+  /** §13 N1: the street's voices — cries, loudspeakers, riders — with their captions (on unless set off) */
+  cityVoices?: boolean;
 }
 
 export interface Place {

@@ -531,6 +531,10 @@ function Settings({ settings, onChange, onReset }: { settings: WorldSettings; on
         <Seg value={level(settings.volume)} options={LEVELS} onChange={(v) => onChange({ volume: volumeOf(v) })} size="sm" />
       </label>
       <label>
+        <span>City voices</span>
+        <Seg value={settings.cityVoices === false ? 'off' : 'on'} options={ON_OFF} onChange={(v) => onChange({ cityVoices: v === 'on' })} size="sm" />
+      </label>
+      <label>
         <span>Music</span>
         <Seg value={level(settings.music)} options={LEVELS} onChange={(v) => onChange({ music: volumeOf(v) })} size="sm" />
       </label>

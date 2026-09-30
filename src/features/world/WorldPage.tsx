@@ -25,7 +25,8 @@ import { RideSheet } from '../../world/ui/RideSheet';
 import { useTakeMeThere } from '../../world/ui/takeMeThere';
 import { setVoiceCards } from '../../world/ui/lineVoice';
 import { Ambient } from '../../world/audio/ambient';
-import { isDrumShow, mixFor } from '../../world/audio/mix';
+import { isDrumShow, mixFor, nextIn, type Mix } from '../../world/audio/mix';
+import { say } from '../../platform/audio/voiceOut';
 import { moodFor } from '../../world/audio/music';
 import type { MapLife } from '../../world/core/maptext';
 import { fareOut, stopMap } from '../../world/core/ride';
@@ -355,6 +356,10 @@ export function WorldPage() {
   // the street's sounds (G1): made on first tap, mixed by where you are and the hour
   const ambient = useRef<Ambient | null>(null);
   const here = useRef<{ id: string; life: MapLife; objects: MapObject[] } | null>(null);
+  /** the street's mix now (G1, and §13 N1's sounds and voices) */
+  const mix = useRef<Mix | null>(null);
+  /** the last street voice heard (real ms), so they come one at a time */
+  const lastVoice = useRef(0);
   const [photo, setPhoto] = useState(false);
   /** the character creator (§12, W3) — once per new game — or the mirror at home (W4) */
   const [creator, setCreator] = useState<CreatorMode | null>(null);
@@ -377,7 +382,10 @@ export function WorldPage() {
     const at = minutes ?? s.clock;
     const time = partOfDay(at);
     const day = dayOf(at);
-    ambient.current?.setMix(mixFor(h.id, h.life, time));
+    // §13 N1: the city at this hour, season and festival
+    const cityTime = { hour: Math.floor((((at % 1440) + 1440) % 1440) / 60), season: seasonOf(day), festival: (query.get('festival') as FestivalId | null) ?? festivalOf(day)?.id ?? null };
+    mix.current = mixFor(h.id, h.life, time, cityTime);
+    ambient.current?.setMix(mix.current);
     // the music follows the place, the hour, the weather and the day (?weather= tries one)
     const sky = query.get('weather');
     const weather = sky === 'rain' || sky === 'snow' ? sky : weatherOf(day);
@@ -705,6 +713,28 @@ export function WorldPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [start]);
 
+  // §13 N1: the street's voices — one at a time, never over a talk, at least 40 s apart; the caption shows it
+  useEffect(() => {
+    if (state !== 'ready') return;
+    let t = 0;
+    const tick = () => {
+      t = window.setTimeout(tick, 8000);
+      const s = game.current();
+      const voices = mix.current?.voices ?? [];
+      if (!s || busy.current || s.settings.cityVoices === false || s.settings.volume <= 0 || !voices.length) return;
+      if (Date.now() - lastVoice.current < 40_000) return;
+      // each voice about once in its `every` seconds (checked every 8 s)
+      const v = voices.find((x) => Math.random() < 8 / nextIn(x.every, Math.random));
+      if (!v) return;
+      lastVoice.current = Date.now();
+      setCaption({ zh: v.zh, en: v.en, who: v.who, key: Date.now() });
+      void say(v.zh.replace(/[——…]+/g, '，'));
+    };
+    t = window.setTimeout(tick, 8000);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
   // §13 L3: the bike under you follows the save — a flat tyre patched at the 修车摊, a basket fitted
   const drawnBike = useRef('');
   useEffect(() => {
@@ -942,6 +972,9 @@ export function WorldPage() {
       if (now !== part) {
         part = now;
         world.current?.setTime(now);
+        remix(minutes);
+      } else if (minutes % 60 === 0) {
+        // §13 N1: the city's sounds and voices change by the hour
         remix(minutes);
       }
     }, 1000);

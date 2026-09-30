@@ -13,7 +13,8 @@
  */
 
 import { Band } from './band';
-import { nextIn, SILENT, type Mix } from './mix';
+import { nextIn, SILENT, type CitySound, type Mix } from './mix';
+import { CITY_SOUNDS, danceBar } from './city';
 import type { Mood } from './music';
 
 type Ctor = typeof AudioContext;
@@ -22,6 +23,9 @@ export class Ambient {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private musicGain: GainNode | null = null;
+  /** §13 N1: the city's sounds, under the street's volume; ducked while someone talks, as the music is */
+  private cityGain: GainNode | null = null;
+  private danceBar = 0;
   private crowd: GainNode | null = null;
   private band: Band | null = null;
   private mix: Mix = SILENT;
@@ -52,6 +56,9 @@ export class Ambient {
       this.master = this.ctx.createGain();
       this.master.gain.value = this.volume * 0.5;
       this.master.connect(this.ctx.destination);
+      this.cityGain = this.ctx.createGain();
+      this.cityGain.gain.value = this.ducked;
+      this.cityGain.connect(this.master);
       this.musicGain = this.ctx.createGain();
       this.musicGain.gain.value = this.music * 1.6;
       this.musicGain.connect(this.ctx.destination);
@@ -91,6 +98,7 @@ export class Ambient {
   duck(level: number) {
     this.ducked = level;
     this.band?.duck(level);
+    if (this.cityGain && this.ctx) this.cityGain.gain.setTargetAtTime(level, this.ctx.currentTime, 0.3);
   }
 
   setMix(m: Mix) {
@@ -163,6 +171,18 @@ export class Ambient {
     };
     loop(this.mix.pigeonsEvery, () => this.pigeons());
     loop(this.mix.bellsEvery, () => this.bell());
+    // §13 N1: the city's own sounds here now; 广场舞 plays bar after bar while you stay
+    for (const [kind, every] of Object.entries(this.mix.sounds ?? {}) as [CitySound, number][]) {
+      if (kind === 'dance') continue;
+      loop(every, () => CITY_SOUNDS[kind](this.ctx!, this.cityGain!));
+    }
+    if (this.mix.sounds?.dance) {
+      const bar = () => {
+        if (!this.hidden && this.volume > 0 && this.ctx) danceBar(this.ctx, this.cityGain!, this.danceBar++);
+        this.timers.push(window.setTimeout(bar, 2400));
+      };
+      bar();
+    }
   }
 
   /**
