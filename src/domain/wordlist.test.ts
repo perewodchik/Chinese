@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { hydrate, serialise } from '../store/migrations';
 import { emptyState } from '../store/state';
-import { buildListPrompt, charsOfWords, emptyListPlan, parseWordList } from './wordlist';
+import type { CharacterEntry, Library, SyllabusWord } from '../data/types';
+import type { CollectionWord } from './collection';
+import { buildListPrompt, charsOfWords, checkedBand, emptyListPlan, hskLabel, listedParts, parseWordList } from './wordlist';
 
 const REPLY = `Here is your list:
 
@@ -104,5 +106,44 @@ describe('a collection written with Claude, saved and opened again', () => {
     const back = hydrate({ version: 6, collections: [{ id: 'a', name: 'HSK 1', items: ['c好'] }] });
     assert.equal(back.listPlan, null);
     assert.equal(back.collections[0].words, undefined);
+  });
+});
+
+describe('checking a band against the 2026 lists', () => {
+  const syllabus = (w: string, hsk: number): SyllabusWord => ({ w, py: '', d: '', hsk });
+  const listed = [syllabus('去', 1), syllabus('支', 5), syllabus('付', 4), syllabus('支付', 4), syllabus('糖', 3), syllabus('谢谢', 1)];
+  // 付款 is only among the characters' words, with an older list's band.
+  const fu = { c: '付', words: [{ w: '付款', p: 'fù kuǎn', d: 'to pay', hsk: 3 }] } as unknown as CharacterEntry;
+  const lib: Library = {
+    characters: [fu],
+    themes: [],
+    components: {},
+    strokes: {},
+    byChar: new Map([['付', fu]]),
+    words: listed,
+    byWord: new Map(listed.map((w) => [w.w, w])),
+  };
+  const said = (w: string, hsk: number | null): CollectionWord => ({ w, py: '', d: '', hsk, explain: '', examples: [] });
+
+  it('gives a listed word its band, whatever the writer said', () => {
+    assert.deepEqual(checkedBand(lib, said('支付', 2)), { hsk: 4, checked: true });
+  });
+
+  it('reads a chunk as the fewest list words, at the band of the hardest', () => {
+    assert.deepEqual(listedParts(lib, '去支付'), ['去', '支付']);
+    assert.deepEqual(checkedBand(lib, said('去支付', null)), { hsk: 4, checked: true, parts: ['去', '支付'] });
+  });
+
+  it('calls a word off the lists when a piece of it is on none, and ignores older lists', () => {
+    assert.equal(listedParts(lib, '糖度'), null);
+    assert.deepEqual(checkedBand(lib, said('糖度', 3)), { hsk: null, checked: false });
+    assert.deepEqual(checkedBand(lib, said('付款', null)), { hsk: null, checked: false });
+    assert.equal(hskLabel(null), 'off the HSK lists');
+  });
+
+  it('does not split a listed word, a single character, or anything with more than hanzi in it', () => {
+    assert.equal(listedParts(lib, '谢谢'), null);
+    assert.equal(listedParts(lib, '去'), null);
+    assert.equal(listedParts(lib, '去…支付'), null);
   });
 });
