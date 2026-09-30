@@ -60,6 +60,7 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.strictObject({ photo: text }),
     z.strictObject({ fresh: id }),
     z.strictObject({ daily: id }),
+    z.strictObject({ bike: z.enum(['owned', 'riding', 'flat', 'none']) }),
   ]),
 );
 
@@ -94,6 +95,11 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
   z.strictObject({ do: z.literal('remember'), npc: id, note: text }),
   z.strictObject({ do: z.literal('cutscene'), id }),
   z.strictObject({ do: z.literal('book'), id }),
+  z.strictObject({ do: z.literal('bike'), model: id, colour: id }),
+  z.strictObject({ do: z.literal('bike_part'), part: id }),
+  z.strictObject({ do: z.literal('bike_fix') }),
+  z.strictObject({ do: z.literal('bike_bell') }),
+  z.strictObject({ do: z.literal('bike_home') }),
 ]);
 
 const actionKind = z.enum([
@@ -205,6 +211,7 @@ const nodeSchema: z.ZodType<DialogueNode> = z.strictObject({
   sell: z.strictObject({ share: z.number().min(0).max(1) }).optional(),
   bargain: z.strictObject({ item: id.optional(), open: z.number().positive(), limit: z.number().positive(), sell: z.literal(true).optional(), go: id.optional() }).optional(),
   rack: z.strictObject({ rack: id }).optional(),
+  bikes: z.strictObject({ shop: id }).optional(),
   trace: traceSchema.optional(),
   next: id.optional(),
   hint: z.strictObject({ word: text, frame: text, full: text }).optional(),

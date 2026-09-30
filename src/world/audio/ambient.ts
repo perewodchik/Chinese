@@ -13,7 +13,8 @@
  */
 
 import { Band } from './band';
-import { nextIn, SILENT, type Mix } from './mix';
+import { nextIn, SILENT, type CitySound, type Mix } from './mix';
+import { CITY_SOUNDS, danceBar } from './city';
 import type { Mood } from './music';
 
 type Ctor = typeof AudioContext;
@@ -22,6 +23,9 @@ export class Ambient {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private musicGain: GainNode | null = null;
+  /** §13 N1: the city's sounds, under the street's volume; ducked while someone talks, as the music is */
+  private cityGain: GainNode | null = null;
+  private danceBar = 0;
   private crowd: GainNode | null = null;
   private band: Band | null = null;
   private mix: Mix = SILENT;
@@ -52,6 +56,9 @@ export class Ambient {
       this.master = this.ctx.createGain();
       this.master.gain.value = this.volume * 0.5;
       this.master.connect(this.ctx.destination);
+      this.cityGain = this.ctx.createGain();
+      this.cityGain.gain.value = this.ducked;
+      this.cityGain.connect(this.master);
       this.musicGain = this.ctx.createGain();
       this.musicGain.gain.value = this.music * 1.6;
       this.musicGain.connect(this.ctx.destination);
@@ -91,6 +98,7 @@ export class Ambient {
   duck(level: number) {
     this.ducked = level;
     this.band?.duck(level);
+    if (this.cityGain && this.ctx) this.cityGain.gain.setTargetAtTime(level, this.ctx.currentTime, 0.3);
   }
 
   setMix(m: Mix) {
@@ -163,6 +171,18 @@ export class Ambient {
     };
     loop(this.mix.pigeonsEvery, () => this.pigeons());
     loop(this.mix.bellsEvery, () => this.bell());
+    // §13 N1: the city's own sounds here now; 广场舞 plays bar after bar while you stay
+    for (const [kind, every] of Object.entries(this.mix.sounds ?? {}) as [CitySound, number][]) {
+      if (kind === 'dance') continue;
+      loop(every, () => CITY_SOUNDS[kind](this.ctx!, this.cityGain!));
+    }
+    if (this.mix.sounds?.dance) {
+      const bar = () => {
+        if (!this.hidden && this.volume > 0 && this.ctx) danceBar(this.ctx, this.cityGain!, this.danceBar++);
+        this.timers.push(window.setTimeout(bar, 2400));
+      };
+      bar();
+    }
   }
 
   /**
@@ -193,23 +213,38 @@ export class Ambient {
 
   /** A bicycle bell: two quick strikes of a few metallic partials. */
   private bell() {
+    this.strikes([0, 0.16], 1, 1);
+  }
+
+  /** Strikes of a bell's metallic partials at these offsets (s), pitched by `k`, loud by `loud`. */
+  private strikes(at: readonly number[], k: number, loud: number, pitches: readonly number[] = at.map(() => 1)) {
     const ctx = this.ctx!;
-    const strike = (at: number) => {
+    const t = ctx.currentTime;
+    at.forEach((dt, i) => {
       for (const [f, a] of [[2350, 0.05], [3620, 0.03], [5180, 0.015]] as const) {
         const o = ctx.createOscillator();
         const g = ctx.createGain();
         o.type = 'sine';
-        o.frequency.value = f;
-        g.gain.setValueAtTime(a, at);
-        g.gain.exponentialRampToValueAtTime(0.0001, at + 0.7);
+        o.frequency.value = f * k * pitches[i]!;
+        g.gain.setValueAtTime(a * loud, t + dt);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.7);
         o.connect(g).connect(this.master!);
-        o.start(at);
-        o.stop(at + 0.75);
+        o.start(t + dt);
+        o.stop(t + dt + 0.75);
       }
-    };
-    const t = ctx.currentTime;
-    strike(t);
-    strike(t + 0.16);
+    });
+  }
+
+  /**
+   * Your own bike's bell (§13 L2), close by and louder than the street's: the
+   * three the 修车摊 fits — 叮 (one strike), 叮当 (high, then lower), 铃铃
+   * (a quick run of four).
+   */
+  ring(bell: number) {
+    if (!this.ctx || this.volume <= 0) return;
+    if (bell === 1) this.strikes([0, 0.22], 1.05, 2.4, [1, 0.8]);
+    else if (bell === 2) this.strikes([0, 0.08, 0.16, 0.24], 0.95, 2);
+    else this.strikes([0], 1, 2.6);
   }
 
   /** 兔儿爷 answers: one short, soft rising blip (at the sound level; silent at 0). */

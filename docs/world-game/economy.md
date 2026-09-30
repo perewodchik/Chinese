@@ -70,6 +70,18 @@ one call back at the lowest price.
 | old clothes (潘家园, bargained to about ⅗) | 老帽子 30 → 18 · 圆眼镜 40 → 24 · 中山装 120 → 75 |
 | 张师傅's (after the first haircut) | a cut 30 · a colour 40 |
 
+### Bikes (§13 L1 — `src/world/core/bike.ts`, the game's own prices)
+
+| Where | Things (元) |
+|---|---|
+| 自行车行 (鼓楼东大街) | 飞鸽 400 · 凤凰 420 · 永久 480 · 车筐 30 · 车锁 25 · 后座 20 |
+| the recycler (帽儿胡同, mornings) | an old 永久: 250 asked → 150 lowest (bargained, Y6) |
+| 修车摊 (鼓楼东大街) | 打气 free · 补胎 5 · a new bell 10 · bringing your bike home (by phone) 10 |
+
+A new bike is ten days of jobs, or one visit to the bank in chapter 3; the
+old one from the recycler is reachable in chapter 2. Nothing in the story
+needs a bike.
+
 A basic outfit — a T恤 and 裤子, 80 元 — is two game days of jobs; the
 旗袍 and the 西装 are things to save up for. Clothes are never needed by
 the story. The recycler takes clothes from the wardrobe at half price.

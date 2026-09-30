@@ -4193,6 +4193,32 @@ label.field[data-invalid] input {
   color: var(--accent);
 }
 
+.word-open {
+  align-self: center;
+}
+
+/* A chunk the lists do not have, shown as the list words it is made of. */
+.word-parts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+.word-parts .pill.as-button {
+  font-family: var(--han);
+  font-size: 16px;
+  min-height: 30px;
+  padding: 2px 9px;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .word-parts .pill.as-button {
+    min-height: 36px;
+  }
+}
+
 .word-body {
   padding: 10px 14px 4px;
 }

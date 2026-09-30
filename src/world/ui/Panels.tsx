@@ -48,6 +48,7 @@ export function Panels({
   mapStart,
   onReplay,
   onPhoto,
+  ride,
 }: {
   tab: PanelId;
   setTab: (t: PanelId) => void;
@@ -72,6 +73,8 @@ export function Panels({
   onReplay?: (cutscene: string) => void;
   /** the camera in the bag: close the menu and take a photo (the learner moved it off the top bar) */
   onPhoto?: () => void;
+  /** §13 L2: 骑车去 on the metro map while you ride your own bike */
+  ride?: Parameters<typeof MapTab>[0]['ride'];
 }) {
   const [mem, setMem] = useState<MenuMemory>(readMemory);
   const [at, setAt] = useState<MenuAt>(() => panelTarget(tab, mem));
@@ -193,7 +196,7 @@ export function Panels({
           {key === 'journal/story' && <JournalStory save={save} content={content} onDay={(day) => (setDiaryDay(day), go({ tab: 'journal', view: 'diary' }))} {...(onReplay ? { onReplay } : {})} />}
           {key === 'journal/diary' && <Diary save={save} content={content} pinyin={pinyin} focus={diaryDay} onStory={() => go({ tab: 'journal', view: 'story' })} />}
           {key === 'bag' && <Bag save={save} content={content} onUse={onUse} onAct={onAct} {...(onPhoto ? { onPhoto } : {})} />}
-          {key === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} route={route} />}
+          {key === 'map' && <MapTab save={save} content={content} onGo={onGo} start={mapStart ?? null} route={route} ride={ride ?? null} />}
           {key === 'journal/people' && <People save={save} content={content} onTrack={(quest) => onAct?.({ do: 'track', quest, rev: Date.now() })} onShowRoute={showRoute} />}
           {key === 'collection/spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
           {key === 'collection/idioms' && <Idioms save={save} content={content} pinyin={pinyin} onAct={onAct} />}
@@ -582,6 +585,10 @@ function Settings({ settings, onChange, onReset }: { settings: WorldSettings; on
       <label>
         <span>Street sounds</span>
         <Seg value={level(settings.volume)} options={LEVELS} onChange={(v) => onChange({ volume: volumeOf(v) })} size="sm" />
+      </label>
+      <label>
+        <span>City voices</span>
+        <Seg value={settings.cityVoices === false ? 'off' : 'on'} options={ON_OFF} onChange={(v) => onChange({ cityVoices: v === 'on' })} size="sm" />
       </label>
       <label>
         <span>Music</span>

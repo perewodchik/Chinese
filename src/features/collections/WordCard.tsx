@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { CollectionWord } from '../../domain/collection';
-import { charId } from '../../domain/ids';
+import { charId, wordId } from '../../domain/ids';
 import { checkedBand, hskLabel } from '../../domain/wordlist';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useStore } from '../../store/store';
@@ -23,14 +23,18 @@ interface Props {
  *
  * Characters you have not learned yet are marked in the word, and each one
  * opens its own drawer — the word is where you meet a character, and the
- * drawer is where you find out what it is made of.
+ * drawer is where you find out what it is made of. The word opens its own
+ * drawer too, which is where it is added to a collection to learn. A chunk
+ * the lists do not have — 去支付 — shows the list words it is made of, each
+ * of which opens the same way.
  */
 export function WordCard({ word, pinyin = true, english = true, action, dimmed }: Props) {
   const lib = useLibrary();
   const learned = useStore((s) => s.learned);
   const openItem = useOpenItem();
   const band = checkedBand(lib, word);
-  const disagrees = band.checked && word.hsk !== null && band.hsk !== word.hsk;
+  const disagrees = band.checked && !band.parts && word.hsk !== null && band.hsk !== word.hsk;
+  const open = (w: string) => openItem([...w].length > 1 ? wordId(w) : charId(w));
 
   return (
     <article className={`word-card${dimmed ? ' skipped' : ''}`}>
@@ -54,16 +58,27 @@ export function WordCard({ word, pinyin = true, english = true, action, dimmed }
           </span>
           <Say text={word.w} />
           {pinyin && word.py && <span className="word-py">{word.py}</span>}
+          <button
+            className="btn ghost sm word-open"
+            title="Open the word — to hear it, see where you met it, or add it to a collection"
+            onClick={() => openItem(wordId(word.w))}
+          >
+            Open
+          </button>
         </div>
         <div className="spacer" />
         <span
           className={`fact${band.checked ? ' good' : ''}`}
           title={
-            band.checked
+            band.parts
+              ? `Not a word on the lists itself, but ${band.parts.join(' + ')} — the band of the hardest of them`
+              : band.checked
               ? disagrees
                 ? `The syllabus says ${hskLabel(band.hsk)}; Claude said ${hskLabel(word.hsk)}`
                 : 'Checked against the syllabus'
-              : 'As Claude gave it — not a word the library knows'
+              : word.hsk !== null
+                ? `Not on the 2026 HSK lists (Claude said ${hskLabel(word.hsk)})`
+                : 'Not on the 2026 HSK lists'
           }
         >
           {hskLabel(band.hsk)}
@@ -73,6 +88,16 @@ export function WordCard({ word, pinyin = true, english = true, action, dimmed }
       </header>
 
       <div className="word-body">
+        {band.parts && (
+          <p className="word-parts tiny muted">
+            <span>Made of</span>
+            {band.parts.map((p) => (
+              <button key={p} className="pill as-button hanzi" onClick={() => open(p)}>
+                {p}
+              </button>
+            ))}
+          </p>
+        )}
         {english && word.d && <p className="word-d">{word.d}</p>}
         {english && word.explain && <p className="word-explain">{word.explain}</p>}
         {word.examples.length > 0 && (

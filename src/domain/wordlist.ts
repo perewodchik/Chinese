@@ -12,7 +12,6 @@ import {
   type Route,
 } from './parse';
 import { hanziIn, type TextLine } from './text';
-import { wordIndex } from './vocab';
 
 /**
  * Collections written to order.
@@ -62,7 +61,7 @@ export const CEILINGS: Array<{ id: number; label: string }> = [
 ];
 
 export const hskLabel = (band: number | null) =>
-  band === null ? 'beyond HSK' : band >= 7 ? 'HSK 7–9' : `HSK ${band}`;
+  band === null ? 'off the HSK lists' : band >= 7 ? 'HSK 7–9' : `HSK ${band}`;
 
 /**
  * A list being written, kept between visits.
@@ -183,8 +182,8 @@ export function buildListPrompt(plan: WordListPlan, known: string[]): string {
       `**How many:** ${plan.size} entries.`,
       `**Level:** ${ceilingBrief(plan.ceiling)}`,
       plan.phrases
-        ? '**Kinds:** mostly single words. Up to a quarter may be short set phrases or chunks said as one piece (请问, 怎么办, 我想要…) where the situation is really carried by them. No full sentences as entries — those belong in the examples.'
-        : '**Kinds:** single words only — no phrases, no sentences.',
+        ? '**Kinds:** mostly single words. Up to a quarter may be short set phrases or chunks said as one piece (请问, 怎么办, 我想要…) where the situation is really carried by them. No full sentences as entries — those belong in the examples. A verb with its object or with 去 in front of it is not a phrase but two words: give 支付, not 去支付.'
+        : '**Kinds:** single words only — no phrases, no sentences, and no word with another stuck to it: 支付, not 去支付.',
       '**Order:** the order I should learn them in — the ones I cannot manage without first.',
       `**Language:** every explanation, meaning and translation in ${lang}.`,
     ]),
@@ -369,17 +368,59 @@ export function parseWordList(raw: string): ListParse {
 }
 
 /**
- * The band the syllabus gives a word, where it has one.
+ * A word off the lists, read as the list words it is made of.
  *
- * The library knows the ten thousand words of the 2026 lists and their bands,
- * and a few thousand more that its characters are read in; for those, its
- * answer beats the writer's memory of it. Everything else keeps what the
- * writer said.
+ * Claude writes a chunk as one entry now and then — 去支付 "go and pay" — and
+ * no list will ever have it, but it is 去 and 支付, and both are on the lists.
+ * The split with the fewest pieces wins, then the one whose hardest piece is
+ * easiest. Null when the word is listed itself, or when some part of it is on
+ * no list at all (糖度): a split that leaves a piece unexplained explains
+ * nothing.
  */
-export function checkedBand(lib: Library, w: CollectionWord): { hsk: number | null; checked: boolean } {
-  const known = lib.byWord.get(w.w) ?? wordIndex(lib).get(w.w);
-  if (known) return { hsk: known.hsk, checked: true };
-  return { hsk: w.hsk, checked: false };
+export function listedParts(lib: Library, word: string): string[] | null {
+  const chars = [...word];
+  if (chars.length < 2 || !chars.every((ch) => /[\u3400-\u9fff]/.test(ch)) || lib.byWord.has(word)) return null;
+  const n = chars.length;
+  // best[i]: the best split of the first i characters, as [pieces, top band, words]
+  const best: Array<[number, number, string[]] | null> = [[0, 0, []], ...Array<null>(n).fill(null)];
+  for (let i = 1; i <= n; i++) {
+    for (let j = Math.max(0, i - 6); j < i; j++) {
+      const prev = best[j];
+      const piece = chars.slice(j, i).join('');
+      const listed = prev && lib.byWord.get(piece);
+      if (!prev || !listed) continue;
+      const cand: [number, number, string[]] = [prev[0] + 1, Math.max(prev[1], listed.hsk), [...prev[2], piece]];
+      const had = best[i];
+      if (!had || cand[0] < had[0] || (cand[0] === had[0] && cand[1] < had[1])) best[i] = cand;
+    }
+  }
+  const done = best[n];
+  return done && done[2].length > 1 ? done[2] : null;
+}
+
+export interface CheckedBand {
+  /** the band on the 2026 lists; null when the lists do not have the word */
+  hsk: number | null;
+  /** true when the band comes from the lists rather than from the writer */
+  checked: boolean;
+  /** the list words an unlisted chunk is made of, when it is one */
+  parts?: string[];
+}
+
+/**
+ * The band the 2026 lists give a word.
+ *
+ * The lists are the only authority: a word on them has their band, a chunk
+ * made of list words has the band of its hardest one, and anything else is
+ * off the lists — whatever band the writer remembered for it, and whatever
+ * older list once had it.
+ */
+export function checkedBand(lib: Library, w: CollectionWord): CheckedBand {
+  const listed = lib.byWord.get(w.w);
+  if (listed) return { hsk: listed.hsk, checked: true };
+  const parts = listedParts(lib, w.w);
+  if (parts) return { hsk: Math.max(...parts.map((p) => lib.byWord.get(p)?.hsk ?? 0)), checked: true, parts };
+  return { hsk: null, checked: false };
 }
 
 /** Every distinct character in the words, in the order they are met. */

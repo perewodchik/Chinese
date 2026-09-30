@@ -35,7 +35,7 @@ export function WordList({ c }: { c: Collection }) {
         </div>
         <div className="spacer" />
         <span className="tiny muted">
-          {words.length} word{words.length === 1 ? '' : 's'} · click a character to open it
+          {words.length} word{words.length === 1 ? '' : 's'} · open a word, or tap one of its characters
         </span>
       </div>
 

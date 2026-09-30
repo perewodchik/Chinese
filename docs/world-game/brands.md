@@ -19,5 +19,17 @@ rack's name is missing here.
 | `jiuyi` | 旧衣服 | An old-clothes rail at 潘家园 — not a real brand. | — |
 | `lifadian` | 张师傅理发店 | The game's own barber (张师傅). | — |
 
+## Bikes (§13 L1)
+
+The bike shop on 鼓楼东大街 is **"a bike shop"**, not a real one. It sells
+three real makes by name only, drawn in the game's own pixel art; prices are
+the game's (`economy.md`).
+
+| Make | What the game says | Checked against |
+|---|---|---|
+| 永久 | A Shanghai make; the tall black 二八大杠 (28-inch wheels, a crossbar) that half of Beijing rode in the 1980s. | [Shine — The Forever bike that ruled the streets of Shanghai](https://www.shine.cn/feature/art-culture/2103266556/); [HKU MMEA — 28-Dang](https://mmea.hku.hk/28-dang-a-bicycle-that-moved-socialist-and-early-reform-china/) |
+| 凤凰 | The other old Shanghai make. | Shanghai Third Bicycle Factory, 1958 — [Wikipedia: Phoenix (bicycle company)](https://en.wikipedia.org/wiki/Phoenix_(bicycle_company)) |
+| 飞鸽 | From Tianjin; once the most-ridden bike in the world. | First bike 5 July 1950; the PA-02 the most-produced vehicle model — [Wikipedia: Flying Pigeon](https://en.wikipedia.org/wiki/Flying_Pigeon) |
+
 三里屯太古里 (the fashion streets the 李宁 and 回力 shopfronts stand on) is
 named only by its street sign, which was there before §12.

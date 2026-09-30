@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { board, callNext, fareOut, getOff, nextStop, runOn, startRide, stopMap, trainsAt } from './ride';
+import { board, callEn, callNext, fareOut, getOff, HOLD_ON, nextStop, runOn, startRide, stopCalls, stopMap, trainsAt } from './ride';
+import { LINES } from './travel';
 
 describe('a subway ride', () => {
   it('lists the trains at a station, both ways, named as the signs name them', () => {
@@ -53,5 +54,18 @@ describe('a subway ride', () => {
 
   it('no ride, no fare', () => {
     assert.equal(fareOut(startRide('nanluoguxiang')), 0);
+  });
+});
+
+describe('what the train says (§13 N1)', () => {
+  it('the English after the Chinese, the transfer and the doors, and hold on', () => {
+    const l = LINES.find((x) => x.id === 'l1')!;
+    const i = l.stops.indexOf('tiananmendong');
+    assert.ok(i >= 0);
+    assert.match(callEn('l1', 'tiananmendong', l.stops.indexOf('wangfujing') > i ? 1 : -1)!, /^Next station: Wangfujing\./);
+    const at = stopCalls('l1', 'dongdan');
+    assert.ok(at.some((c) => /^换乘.+的乘客，请在本站下车。$/.test(c.zh)));
+    assert.ok(/^开[左右]侧门。$/.test(at.at(-1)!.zh));
+    assert.equal(HOLD_ON.zh, '请站稳扶好。');
   });
 });

@@ -836,5 +836,77 @@
       "嗯？再说一遍？",
       "对不起，我没听懂。"
     ]
+  },
+  {
+    "id": "chehang-laoban",
+    "name": "车行老板",
+    "role": "the man who runs the bike shop on 鼓楼东大街",
+    "look": {
+      "sprite": "uncle",
+      "palette": "brown"
+    },
+    "voice": "zhiyuan",
+    "character": "Proud of every bike on his stand; talks about gears the way others talk about food.",
+    "knows": [
+      "The prices of his bikes",
+      "Which bike suits whom"
+    ],
+    "wants": [
+      "To see you ride out on one of his bikes"
+    ],
+    "actions": [
+      "money",
+      "quest",
+      "remember"
+    ],
+    "routine": [],
+    "explains": {
+      "自行车": "两个轮子，人骑的车。",
+      "辆": "说车的时候用：一辆车。",
+      "骑": "坐在自行车上走。",
+      "车筐": "车前面放东西的地方。",
+      "后座": "车后面，可以坐人、放东西。",
+      "车锁": "让别人不能骑走你的车。"
+    },
+    "misses": [
+      "你说什么？",
+      "什么？再说一遍。"
+    ]
+  },
+  {
+    "id": "xiuche-shifu",
+    "name": "修车的老师傅",
+    "role": "the old repairman at his stand on 鼓楼东大街",
+    "look": {
+      "sprite": "grandpa",
+      "palette": "blue"
+    },
+    "voice": "chen",
+    "character": "Has fixed bikes on this corner for thirty years; slow, exact, a little stern, warm underneath.",
+    "knows": [
+      "Every part of a bike",
+      "Where people leave their bikes"
+    ],
+    "wants": [
+      "People to look after their bikes"
+    ],
+    "actions": [
+      "money",
+      "remember"
+    ],
+    "routine": [],
+    "explains": {
+      "打气": "给车胎里放气。",
+      "补胎": "车胎坏了，把它补好。",
+      "车胎": "车轮外面的，里面有气。",
+      "车把": "骑车的时候手拿的地方。",
+      "车座": "骑车的时候坐的地方。",
+      "车链": "车下面的，让车轮走。",
+      "铃": "响的东西：叮铃铃！"
+    },
+    "misses": [
+      "啊？你说什么？",
+      "慢点儿说，师傅没听清楚。"
+    ]
   }
 ]

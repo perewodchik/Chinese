@@ -59,6 +59,9 @@ export interface Due {
   /** a garment bought at a rack, or the barber's cut and colour (§12 W5) */
   clothes?: RackState['bought'];
   hair?: RackState['hair'];
+  /** a bike or a part bought at the bike shop (§13 L1) */
+  bike?: { model: import('../bike').BikeModelId; colour: import('../bike').BikeColourId };
+  part?: import('../bike').BikePartId;
 }
 
 export interface DialogueState {
@@ -89,6 +92,8 @@ export interface DialogueState {
   haggle?: Haggle;
   /** at a clothes rack or the barber's (§12 W5) */
   rack?: RackState;
+  /** at the bike shop (§13 L1) */
+  bikes?: import('../bike').BikeShopState;
 }
 
 /** What happened to the player's line. */

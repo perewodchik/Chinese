@@ -6,7 +6,7 @@
 import type { Facing, MapObject, PartOfDay } from '../core/types';
 import type { Arrival } from './doors';
 import type { HeroDress } from './look';
-import type { SceneOptions, WorldScene as Scene } from './scene';
+import type { OwnBikeLook, SceneOptions, WorldScene as Scene } from './scene';
 import type { Cutscene } from '../core/cutscene';
 import type { TrailSpec } from '../core/guide';
 import type { CutsceneHooks, RunningCutscene } from './cutscene';
@@ -23,8 +23,10 @@ export interface RunningWorld {
   stick(f: Facing | null, run?: boolean): void;
   /** the joystick's action button */
   act(): void;
-  /** on or off a shared bike */
-  setBike(on: boolean): void;
+  /** on or off a shared bike, or your own (§13 L2) */
+  setBike(on: boolean | OwnBikeLook): void;
+  /** ring your bike's bell: who ahead says 「慢点儿！」, if anyone */
+  ringBell(): string | null;
   /** today's rain or snow (X4) */
   setSky(kind: 'none' | 'rain' | 'snow'): void;
   /** the part of the map on screen, in tiles, and a zoom step for photos (X6) */
@@ -87,6 +89,7 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions, snapsh
     cutscene: (cs, hooks) => (game.scene.getScene('world') as Scene | null)?.playCutscene(cs, hooks) ?? null,
     fps: () => Math.round(game.loop.actualFps),
     setBike: (on) => (game.scene.getScene('world') as Scene | null)?.setBike(on),
+    ringBell: () => (game.scene.getScene('world') as Scene | null)?.ringBell() ?? null,
     setSky: (kind) => (game.scene.getScene('world') as Scene | null)?.setSky(kind),
     view: () => (game.scene.getScene('world') as Scene | null)?.viewTiles() ?? null,
     zoomBy: (d) => (game.scene.getScene('world') as Scene | null)?.zoomStep(d),
