@@ -6,6 +6,7 @@ import { firstSense } from '../../domain/library';
 import { DAY } from '../../domain/memory';
 import { collectedItems } from '../../domain/sweep';
 import { hskLabel } from '../../domain/text';
+import { listedParts } from '../../domain/wordlist';
 import { wordInfo, wordKnowledge } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
@@ -56,6 +57,9 @@ export function WordDrawer({ id, onClose }: Props) {
   const w = idValue(id);
   const info = wordInfo(lib, w);
   const chars = [...w];
+  // A chunk the lists do not have is still the list words it is made of.
+  const parts = info?.listed ? null : listedParts(lib, w);
+  const partsBand = parts ? Math.max(...parts.map((p) => lib.byWord.get(p)?.hsk ?? 0)) : 0;
   const collected = useMemo(() => collectedItems(collections), [collections]);
   const status = wordKnowledge(lib, recall, collected).status(w);
   const r = recall[id]?.recognise;
@@ -133,7 +137,11 @@ export function WordDrawer({ id, onClose }: Props) {
             </div>
             <h1 className="word-meaning">{info?.d ?? fromList?.d ?? 'Not in the dictionary'}</h1>
             <p className="tiny muted" style={{ margin: 0 }}>
-              {info?.listed ? hskLabel(info.hsk) : 'Off the HSK lists'}
+              {info?.listed
+                ? hskLabel(info.hsk)
+                : parts
+                  ? `${parts.join(' + ')} · ${hskLabel(partsBand)}`
+                  : 'Off the HSK lists'}
               {info?.cl?.length ? ` · counted with ${info.cl.join('、')}` : ''}
             </p>
           </div>
