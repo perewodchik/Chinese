@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import type { CharacterEntry, Library, SyllabusWord } from '../../data/types';
-import { applyBike, BIKE_HOME, BIKE_LINES, bikeName, bikePlace, canGoFlat, flatToday, mergeBike, readBike, type BikeState } from './bike';
+import { applyBike, BIKE_HOME, BIKE_LINES, bikeName, bikePlace, callScene, canGoFlat, flatToday, mergeBike, noRide, readBike, RIDE_KM, RIDE_PLACES, rideMs, rideOptions, ridePlace, rideSights, type BikeState } from './bike';
+import { walkable } from './grid';
+import { readMap } from '../engine/mapdata';
 import { libraryLeveler } from './budget';
 import { libraryLexicon } from './dialogue/lexicon';
 import { ScriptedDialogue } from './dialogue/scripted';
@@ -153,5 +155,65 @@ describe('your bike in the save (§13 L2–L3)', () => {
     assert.equal(bikeName('yongjiu', 'green').zh, '一辆绿色的永久自行车');
     assert.equal(bikeName('jiuche', 'black').zh, '一辆旧自行车');
     assert.equal(applyBike(newSave('t', 0), { do: 'bike_on' }).bike, undefined);
+  });
+});
+
+describe('riding (§13 L2)', () => {
+  it('no riding into stations, parks, the palace and temples, or indoors; streets are fine', () => {
+    assert.equal(noRide('station-wangfujing', false), 'station');
+    assert.equal(noRide('tiantan-park', true), 'park');
+    assert.equal(noRide('taihedian', true), 'park');
+    assert.equal(noRide('zaodian', false), 'indoors');
+    assert.equal(noRide('wangfujing-street', true), null);
+    assert.equal(noRide('gulou-dongdajie', true), null);
+  });
+
+  it('骑车去: near districts only, the story’s ones, nearest first, minutes at 15 km/h', () => {
+    const all = () => 1;
+    const from = rideOptions({ district: 'gulou', chapter: 11 }, all);
+    assert.equal(from[0]!.to.district, 'houhai');
+    assert.ok(from.every((o) => o.km <= RIDE_KM));
+    assert.ok(from.every((o, i) => i === 0 || from[i - 1]!.km <= o.km));
+    assert.ok(!from.some((o) => o.to.district === 'panjiayuan'), 'too far from 鼓楼');
+    const houhai = from.find((o) => o.to.district === 'houhai')!;
+    assert.ok(houhai.km < 2 && houhai.minutes >= 5);
+    // not in chapter 1: only what the story has opened
+    assert.deepEqual(rideOptions({ district: 'gulou', chapter: 1 }, (d) => (d === 'houhai' ? 2 : 1)).map((o) => o.to.district).includes('houhai'), false);
+    // from 王府井 to 前门 you cross 长安街
+    const sights = rideSights(ridePlace('wangfujing')!, ridePlace('qianmen')!).map((x) => x.zh);
+    assert.deepEqual(sights, ['王府井', '长安街', '前门']);
+    assert.ok(rideSights(ridePlace('gulou')!, ridePlace('houhai')!).some((x) => x.zh === '什刹海'));
+    assert.equal(rideMs(0.5), 6000);
+    assert.equal(rideMs(40), 15000);
+  });
+
+  it('every arrival street and the bike’s place at home are tiles you can stand on', () => {
+    const check = (map: string, tile: readonly [number, number]) => {
+      const info = readMap(map, read(`public/world/maps/${map}.json`));
+      assert.ok(walkable(info.grid, tile[0], tile[1]), `${map} ${tile}`);
+      assert.equal(noRide(map, true), null, `${map} can be ridden`);
+    };
+    for (const p of RIDE_PLACES) check(p.arrive.map, p.arrive.tile);
+    check(BIKE_HOME.map, BIKE_HOME.tile);
+  });
+
+  it('the phone call: said in Chinese, 10 元, the bike home by the next morning', () => {
+    const s0 = applyAll({ ...rich(), clock: 15 * 60 }, [{ do: 'bike', model: 'feige', colour: 'green' }, { do: 'bike_on' }, { do: 'bike_off', map: 'wangfujing-street', tile: [3, 4] }], ctx);
+    const call = callScene('王府井大街');
+    const talked = new ScriptedDialogue({ scenes: [call], npcs: [] }, lex);
+    let t = talked.start(call, s0);
+    t = talked.reply(t.state, talked.answer(t.state)!);
+    const s = applyAll(s0, t.actions, ctx);
+    assert.equal(s.bag.money, s0.bag.money - 10);
+    assert.equal(bikePlace(s), 'coming');
+    assert.deepEqual(bikePlace({ ...s, clock: 2 * 1440 + 7 * 60 }), BIKE_HOME);
+  });
+
+  it('a ride between districts passes its minutes and writes the diary', () => {
+    const s = applyAll(rich(), [{ do: 'bike', model: 'yongjiu', colour: 'black' }, { do: 'bike_on' }, { do: 'bike_ride', district: 'houhai', minutes: 7 }], ctx);
+    assert.equal(s.clock, rich().clock + 7);
+    assert.ok(Object.values(s.diary).flat().includes('y:houhai'));
+    const walking = applyAll(rich(), [{ do: 'bike_ride', district: 'houhai', minutes: 7 }], ctx);
+    assert.equal(walking.clock, rich().clock);
   });
 });

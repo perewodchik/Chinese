@@ -1,0 +1,240 @@
+/* --- 走走 §13 L2: riding your own bike — the ride between districts, the bike away, the 骑车去 row,
+   and the street caption (the bell's 「慢点儿！」 and N1's city voices). Fixed boxes; only transforms move. */
+
+.wbr {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: #16141f;
+  color: #f8f5ec;
+}
+
+.wbr-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 10px;
+  white-space: nowrap;
+}
+
+.wbr-bar .han {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.wbr-bar .muted,
+.wbr-caption .muted {
+  color: #cbced8;
+}
+
+/* the road: a band of paving under a sky, what you pass sliding from right to left */
+.wbr-road {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(#86c3f0 0 62%, #cbb88f 62% 64%, #a4a9b9 64% 100%);
+  border-block: 6px solid #0d0c14;
+}
+
+.wbr-sight {
+  position: absolute;
+  left: 100%;
+  bottom: 30%;
+  line-height: 0;
+  animation: wbr-pass var(--wbr-each, 3000ms) linear forwards;
+}
+
+@keyframes wbr-pass {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100vw - 140px));
+  }
+}
+
+.wbr-rider {
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  transform: translateX(-50%);
+  line-height: 0;
+}
+
+/* pedalling: a pixel's bob */
+.wbr-rider[data-step='1'],
+.wbr-rider[data-step='3'] {
+  transform: translate(-50%, -2px);
+}
+
+.wbr-caption {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-height: 64px;
+  padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  text-align: center;
+}
+
+.wbr-zh {
+  font-size: 22px;
+}
+
+.wbr-zh .wd-w {
+  color: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wbr-sight {
+    animation: none;
+    left: 12%;
+  }
+}
+
+/* your bike, elsewhere: a small card over the world, above the bottom bar */
+.wbr-away {
+  position: absolute;
+  z-index: 25;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + 56px);
+  transform: translateX(-50%);
+  width: min(420px, calc(100% - 32px));
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--px-frame);
+}
+
+.wbr-away p {
+  margin: 0;
+}
+
+.wbr-away-row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* 骑车去 on the metro map: one row, it scrolls sideways */
+.wbr-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+  padding: 4px 0;
+}
+
+.wbr-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.wbr-chip {
+  flex: none;
+  display: inline-grid;
+  justify-items: center;
+  height: 40px;
+  padding: 1px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card-2);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.15;
+  cursor: pointer;
+}
+
+/* a street line heard: at the screen's edge for 4 s, under the top bar */
+.wsc {
+  position: absolute;
+  z-index: 6;
+  right: 12px;
+  top: calc(env(safe-area-inset-top, 0px) + 52px);
+  max-width: min(320px, calc(100% - 24px));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--px-frame);
+  animation: wsc-in 0.18s ease-out;
+}
+
+.wsc-zh {
+  font-size: 15px;
+  min-width: 0;
+}
+
+.wsc-who {
+  flex: none;
+}
+
+.wsc-en {
+  flex: none;
+  min-width: 28px;
+  max-width: 180px;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card-2);
+  color: var(--ink-2);
+  font: inherit;
+  cursor: pointer;
+  white-space: normal;
+  text-align: left;
+}
+
+@keyframes wsc-in {
+  from {
+    transform: translateY(-4px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wsc {
+    animation: none;
+  }
+}
+
+/* your bike's buttons: the right edge, above where the talk box sits */
+.wbd {
+  position: absolute;
+  z-index: 5;
+  right: 12px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+  display: grid;
+  gap: 8px;
+}
+
+.wbd-btn {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--px-frame);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.wbd-btn[data-state='riding'] {
+  background: var(--accent-soft);
+}
+
+.wbd-btn[data-state='away'] {
+  opacity: 0.7;
+}

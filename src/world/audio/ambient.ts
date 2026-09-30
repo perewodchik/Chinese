@@ -193,23 +193,38 @@ export class Ambient {
 
   /** A bicycle bell: two quick strikes of a few metallic partials. */
   private bell() {
+    this.strikes([0, 0.16], 1, 1);
+  }
+
+  /** Strikes of a bell's metallic partials at these offsets (s), pitched by `k`, loud by `loud`. */
+  private strikes(at: readonly number[], k: number, loud: number, pitches: readonly number[] = at.map(() => 1)) {
     const ctx = this.ctx!;
-    const strike = (at: number) => {
+    const t = ctx.currentTime;
+    at.forEach((dt, i) => {
       for (const [f, a] of [[2350, 0.05], [3620, 0.03], [5180, 0.015]] as const) {
         const o = ctx.createOscillator();
         const g = ctx.createGain();
         o.type = 'sine';
-        o.frequency.value = f;
-        g.gain.setValueAtTime(a, at);
-        g.gain.exponentialRampToValueAtTime(0.0001, at + 0.7);
+        o.frequency.value = f * k * pitches[i]!;
+        g.gain.setValueAtTime(a * loud, t + dt);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.7);
         o.connect(g).connect(this.master!);
-        o.start(at);
-        o.stop(at + 0.75);
+        o.start(t + dt);
+        o.stop(t + dt + 0.75);
       }
-    };
-    const t = ctx.currentTime;
-    strike(t);
-    strike(t + 0.16);
+    });
+  }
+
+  /**
+   * Your own bike's bell (§13 L2), close by and louder than the street's: the
+   * three the 修车摊 fits — 叮 (one strike), 叮当 (high, then lower), 铃铃
+   * (a quick run of four).
+   */
+  ring(bell: number) {
+    if (!this.ctx || this.volume <= 0) return;
+    if (bell === 1) this.strikes([0, 0.22], 1.05, 2.4, [1, 0.8]);
+    else if (bell === 2) this.strikes([0, 0.08, 0.16, 0.24], 0.95, 2);
+    else this.strikes([0], 1, 2.6);
   }
 
   /** 兔儿爷 answers: one short, soft rising blip (at the sound level; silent at 0). */

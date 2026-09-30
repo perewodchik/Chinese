@@ -164,7 +164,7 @@ export interface BikeState {
 }
 
 /** Where the bike waits at home: in 帽儿胡同, by your gate. */
-export const BIKE_HOME: { map: string; tile: Tile } = { map: 'hutong-home', tile: [20, 7] };
+export const BIKE_HOME: { map: string; tile: Tile } = { map: 'hutong-home', tile: [11, 7] };
 
 /** The bike's place now: `home` and a delivery that has arrived are the gate. */
 export function bikePlace(s: Pick<WorldSave, 'bike' | 'clock'>): { map: string; tile: Tile } | 'riding' | 'coming' | null {
@@ -570,10 +570,10 @@ export const RIDE_PLACES: readonly RidePlace[] = [
   { district: 'gulou', zh: '鼓楼', en: 'the Drum Tower', at: [39.9405, 116.3985], arrive: { map: 'gulou-dongdajie', tile: [18, 7], facing: 'right' }, sight: { pic: 'tower/drum', zh: '鼓楼', en: 'the Drum Tower' } },
   { district: 'houhai', zh: '后海', en: 'Houhai', at: [39.9395, 116.3874], arrive: { map: 'houhai-lake', tile: [22, 20], facing: 'down' }, sight: { pic: 'willow/green', zh: '后海', en: 'the lake at Houhai' } },
   { district: 'jingshan', zh: '北海', en: 'Beihai', at: [39.9285, 116.3860], arrive: { map: 'beihai-north', tile: [26, 14], facing: 'down' }, sight: { pic: 'pagoda/white', zh: '白塔', en: 'the White Dagoba' } },
-  { district: 'yonghegong', zh: '雍和宫', en: 'the Lama Temple', at: [39.9475, 116.4135], arrive: { map: 'yonghegong-street', tile: [44, 16], facing: 'left' }, sight: { pic: 'archway/green', zh: '国子监街', en: 'the archways of 国子监街' } },
+  { district: 'yonghegong', zh: '雍和宫', en: 'the Lama Temple', at: [39.9475, 116.4135], arrive: { map: 'yonghegong-street', tile: [42, 13], facing: 'left' }, sight: { pic: 'archway/green', zh: '国子监街', en: 'the archways of 国子监街' } },
   { district: 'wangfujing', zh: '王府井', en: 'Wangfujing', at: [39.9115, 116.4100], arrive: { map: 'wangfujing-street', tile: [11, 52], facing: 'up' }, sight: { pic: 'lantern/lit-0', zh: '王府井', en: 'the lanterns of Wangfujing' } },
-  { district: 'qianmen', zh: '前门', en: 'Qianmen', at: [39.8965, 116.3975], arrive: { map: 'qianmen-street', tile: [11, 4], facing: 'down' }, sight: { pic: 'tower/arrow', zh: '前门', en: 'the Arrow Tower of Qianmen' } },
-  { district: 'sanlitun', zh: '三里屯', en: 'Sanlitun', at: [39.9335, 116.4545], arrive: { map: 'sanlitun-street', tile: [40, 12], facing: 'left' }, sight: { pic: 'plant/green', zh: '三里屯', en: 'the glass shops of Sanlitun' } },
+  { district: 'qianmen', zh: '前门', en: 'Qianmen', at: [39.8965, 116.3975], arrive: { map: 'qianmen-street', tile: [13, 6], facing: 'down' }, sight: { pic: 'tower/arrow', zh: '前门', en: 'the Arrow Tower of Qianmen' } },
+  { district: 'sanlitun', zh: '三里屯', en: 'Sanlitun', at: [39.9335, 116.4545], arrive: { map: 'sanlitun-street', tile: [40, 11], facing: 'left' }, sight: { pic: 'plant/green', zh: '三里屯', en: 'the glass shops of Sanlitun' } },
   { district: 'panjiayuan', zh: '潘家园', en: 'Panjiayuan', at: [39.8745, 116.4580], arrive: { map: 'panjiayuan-market', tile: [40, 16], facing: 'left' }, sight: { pic: 'stall/a', zh: '潘家园', en: 'the flea market' } },
 ];
 

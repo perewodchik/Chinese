@@ -15,6 +15,8 @@ import { pinyinOf } from './pinyin';
 import { usePanZoom } from './usePanZoom';
 import { useGuide } from './takeMeThere';
 import { Seg } from '../../ui/Seg';
+import type { RidePlace } from '../core/bike';
+import { RideChips } from './BikeRide';
 
 /**
  * The 🗺 tab (prompt §9⅞ M3): it opens on your neighbourhood — the streets
@@ -29,6 +31,7 @@ export function MapTab({
   onGo,
   start,
   route,
+  ride,
 }: {
   save: WorldSave;
   content: WorldContent;
@@ -36,6 +39,8 @@ export function MapTab({
   start?: string | null;
   /** the journal's "Show on map" (§10 J3b): the legs to draw on the metro, and the map they lead to */
   route?: { legs: readonly RouteLeg[]; to: string } | null;
+  /** §13 L2: on your own bike, the districts within a ride — 骑车去 */
+  ride?: { options: Array<{ to: RidePlace; km: number; minutes: number }>; onRide: (district: string) => void } | null;
 }) {
   const lib = useLibrary();
   // §13 Q1: side quests per neighbourhood on the metro map, quest marks on the plans
@@ -99,6 +104,7 @@ export function MapTab({
           </span>
         )}
       </div>
+      {city && ride && <RideChips options={ride.options} onRide={ride.onRide} />}
       {city ? (
         <MetroMap save={save} goals={goals} onHood={goHood} route={shown?.legs ?? null} counts={counts} />
       ) : (

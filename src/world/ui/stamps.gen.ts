@@ -16,7 +16,7 @@ export const MINI_STAMPS: Readonly<Record<string, string>> = {
   'ditan': 'f23090b0a1',
   'dongyuemiao': 'e2dff3bfec',
   'gongwangfu': '4b6f046d9f',
-  'gulou-dongdajie': '8c01a67659',
+  'gulou-dongdajie': 'ee38be8ff6',
   'gulou-square': 'b82479a6c5',
   'guomao-bank': 'b76a968813',
   'guomao-plaza': '09772a1929',
