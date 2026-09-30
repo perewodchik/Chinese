@@ -177,6 +177,9 @@ export function bikePlace(s: Pick<WorldSave, 'bike' | 'clock'>): { map: string; 
 
 export const isRiding = (s: Pick<WorldSave, 'bike'>) => s.bike?.at === 'riding';
 
+/** Whether a step under way is timed (「after dark」, 「open 9:00–17:00」): no flat tyre then (L3). */
+export const timedNow = (steps: ReadonlyArray<{ when?: string }>) => steps.some((x) => !!x.when);
+
 /** What changes the bike: bought, a part, got on and off, locked, a flat and its mending, a new bell, sent home. */
 export type BikeAction =
   | { do: 'bike'; model: string; colour: string }
@@ -511,6 +514,8 @@ export function bikeEvents(before: WorldSave, after: WorldSave, a: { do: string 
     return [`u:${n.zh}:${n.en}`];
   }
   if (a.do === 'bike_fix' && before.bike?.flat !== undefined && after.bike?.flat === undefined) return ['a'];
+  // a photo with your bike in it (L3): the page names it `bike:mine`
+  if (a.do === 'photo' && ((a as unknown as { subjects: string[] }).subjects ?? []).includes('bike:mine')) return ['v'];
   if (a.do === 'bike_ride' && after.clock !== before.clock) return [`y:${(a as unknown as { district: string }).district}`];
   return [];
 }
@@ -565,7 +570,7 @@ export interface RidePlace {
   sight: { pic: string; zh: string; en: string };
 }
 
-/** The districts a bike goes between. Far ones (颐和园, 奥林匹克公园, 长城) and ones with no street to arrive on (天坛, 天安门) are not here. */
+/** The districts a bike goes between. Far ones (颐和园, 奥林匹克公园, 长城, 潘家园 — over 6 km by street from all of these) and ones with no street to arrive on (天坛, 天安门) are not here. */
 export const RIDE_PLACES: readonly RidePlace[] = [
   { district: 'gulou', zh: '鼓楼', en: 'the Drum Tower', at: [39.9405, 116.3985], arrive: { map: 'gulou-dongdajie', tile: [18, 7], facing: 'right' }, sight: { pic: 'tower/drum', zh: '鼓楼', en: 'the Drum Tower' } },
   { district: 'houhai', zh: '后海', en: 'Houhai', at: [39.9395, 116.3874], arrive: { map: 'houhai-lake', tile: [22, 20], facing: 'down' }, sight: { pic: 'willow/green', zh: '后海', en: 'the lake at Houhai' } },
@@ -574,7 +579,6 @@ export const RIDE_PLACES: readonly RidePlace[] = [
   { district: 'wangfujing', zh: '王府井', en: 'Wangfujing', at: [39.9115, 116.4100], arrive: { map: 'wangfujing-street', tile: [11, 52], facing: 'up' }, sight: { pic: 'lantern/lit-0', zh: '王府井', en: 'the lanterns of Wangfujing' } },
   { district: 'qianmen', zh: '前门', en: 'Qianmen', at: [39.8965, 116.3975], arrive: { map: 'qianmen-street', tile: [13, 6], facing: 'down' }, sight: { pic: 'tower/arrow', zh: '前门', en: 'the Arrow Tower of Qianmen' } },
   { district: 'sanlitun', zh: '三里屯', en: 'Sanlitun', at: [39.9335, 116.4545], arrive: { map: 'sanlitun-street', tile: [40, 11], facing: 'left' }, sight: { pic: 'plant/green', zh: '三里屯', en: 'the glass shops of Sanlitun' } },
-  { district: 'panjiayuan', zh: '潘家园', en: 'Panjiayuan', at: [39.8745, 116.4580], arrive: { map: 'panjiayuan-market', tile: [40, 16], facing: 'left' }, sight: { pic: 'stall/a', zh: '潘家园', en: 'the flea market' } },
 ];
 
 /** The farthest a ride goes: the brief's "about 6 km" — a 25-minute ride. */
@@ -647,4 +651,24 @@ export function callScene(whereZh: string): import('./types').Scene {
       { id: 'bye', say: '好，再见！', translate: 'All right, bye!' },
     ],
   };
+}
+
+/**
+ * Arriving on a map while riding (L2): where the bike stays when the map
+ * cannot be ridden — where you last rode on the map before (the doorstep, the
+ * gate, the station's exit), else where you arrive — and the sign to read.
+ * Null: ride on.
+ */
+export function parkOnArrival(
+  s: Pick<WorldSave, 'bike'>,
+  map: string,
+  outdoors: boolean,
+  last: { map: string; tile: Tile } | null,
+  arrival: Tile,
+): { off: BikeAction; sign: { text: string; en: string } | null } | null {
+  if (s.bike?.at !== 'riding') return null;
+  const why = noRide(map, outdoors);
+  if (!why) return null;
+  const at = last && last.map !== map ? last : { map, tile: arrival };
+  return { off: { do: 'bike_off', map: at.map, tile: at.tile }, sign: why === 'indoors' ? null : NO_RIDE_SIGNS[why] };
 }

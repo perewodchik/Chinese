@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import type { CharacterEntry, Library, SyllabusWord } from '../../data/types';
-import { applyBike, BIKE_HOME, BIKE_LINES, bikeName, bikePlace, callScene, canGoFlat, flatToday, mergeBike, noRide, readBike, RIDE_KM, RIDE_PLACES, rideMs, rideOptions, ridePlace, rideSights, type BikeState } from './bike';
+import { applyBike, BIKE_HOME, BIKE_LINES, bikeName, bikePlace, callScene, canGoFlat, flatToday, mergeBike, NO_RIDE_MAPS, NO_RIDE_SIGNS, noRide, parkOnArrival, timedNow, readBike, RIDE_KM, RIDE_PLACES, rideMs, rideOptions, ridePlace, rideSights, type BikeState } from './bike';
 import { walkable } from './grid';
 import { readMap } from '../engine/mapdata';
 import { libraryLeveler } from './budget';
@@ -10,6 +10,7 @@ import { libraryLexicon } from './dialogue/lexicon';
 import { ScriptedDialogue } from './dialogue/scripted';
 import type { Turn, Utterance } from './dialogue/source';
 import { holds } from './flags';
+import { BIKE_NOTICE } from './notice';
 import { merge } from './merge';
 import { readSave } from './migrate';
 import { applyAll, newSave, WORLD_SAVE_VERSION } from './save';
@@ -215,5 +216,71 @@ describe('riding (§13 L2)', () => {
     assert.ok(Object.values(s.diary).flat().includes('y:houhai'));
     const walking = applyAll(rich(), [{ do: 'bike_ride', district: 'houhai', minutes: 7 }], ctx);
     assert.equal(walking.clock, rich().clock);
+  });
+});
+
+describe('small life with the bike (§13 L3)', () => {
+  it('a friend notices your bike once; a photo with it has its diary line', () => {
+    const s0 = applyAll(rich(), [{ do: 'meet', npc: 'wang-ayi' }, { do: 'hearts', npc: 'wang-ayi', delta: 2 }, { do: 'bike', model: 'feige', colour: 'blue' }], ctx);
+    const hi: Scene = { id: 'hi', map: 'm', npc: 'wang-ayi', trigger: 'talk', start: 'a', nodes: [{ id: 'a', say: '你好！', translate: 'Hello!' }] };
+    const talkSrc = new ScriptedDialogue({ scenes: [hi], npcs: [] }, lex);
+    const t = talkSrc.start(hi, s0);
+    assert.equal(t.chime?.zh, BIKE_NOTICE['wang-ayi']!.zh);
+    const s1 = applyAll(s0, t.actions, ctx);
+    assert.equal(talkSrc.start(hi, s1).chime, undefined, 'once');
+    const lv = libraryLeveler(lib);
+    for (const l of Object.values(BIKE_NOTICE)) assert.deepEqual(lv(l.zh, new Set(['自行车'])).filter((w) => (w.level === 0 || w.level > 2) && w.w !== '自行车').map((w) => w.w), [], l.zh);
+    const shot = applyAll(s1, [{ do: 'photo', subjects: ['bike:mine'] }], ctx);
+    assert.ok(Object.values(shot.diary).flat().includes('v'));
+  });
+
+  it('no flat tyre on a timed step', () => {
+    assert.ok(timedNow([{ when: 'after dark' }]));
+    assert.ok(!timedNow([{}]));
+  });
+});
+
+describe('the bike checks (§13 L4)', () => {
+  it('arriving on a map you cannot ride: the bike stays where you last rode, and the right sign', () => {
+    const riding = applyAll(rich(), [{ do: 'bike', model: 'yongjiu', colour: 'black' }, { do: 'bike_on' }], ctx);
+    // down into the subway at 王府井: it waits at the station's door on the street
+    const sub = parkOnArrival(riding, 'station-wangfujing', false, { map: 'wangfujing-street', tile: [10, 55] }, [8, 11])!;
+    assert.deepEqual(sub.off, { do: 'bike_off', map: 'wangfujing-street', tile: [10, 55] });
+    assert.equal(sub.sign?.text, '自行车不能进站');
+    const after = applyAll(riding, [sub.off], ctx);
+    assert.deepEqual(bikePlace(after), { map: 'wangfujing-street', tile: [10, 55] });
+    // a park gate
+    assert.equal(parkOnArrival(riding, 'jingshan-park', true, { map: 'beihai-north', tile: [35, 14] }, [0, 10])?.sign?.text, NO_RIDE_SIGNS.park.text);
+    // a shop: no sign, parked at the door
+    const shop = parkOnArrival(riding, 'yaodian', false, { map: 'wangfujing-street', tile: [15, 16] }, [3, 6])!;
+    assert.equal(shop.sign, null);
+    // on along a street; and nothing at all when walking
+    assert.equal(parkOnArrival(riding, 'yandai-xiejie', true, null, [0, 5]), null);
+    assert.equal(parkOnArrival(rich(), 'station-wangfujing', false, null, [8, 11]), null);
+  });
+
+  it('every no-ride map is a real map, entered from a street you can ride', () => {
+    const maps = new Set(readdirSync('public/world/maps').filter((f) => f.endsWith('.json') && f !== 'index.json').map((f) => f.replace(/\.json$/, '')));
+    for (const m of NO_RIDE_MAPS) assert.ok(maps.has(m), m);
+  });
+
+  it('every 骑车去 pair can be ridden both ways, each with sights from where you set off to where you arrive', () => {
+    let pairs = 0;
+    for (const a of RIDE_PLACES) {
+      const opts = rideOptions({ district: a.district, chapter: 11 }, () => 1);
+      assert.ok(opts.length, `${a.district} is not alone`);
+      for (const o of opts) {
+        pairs++;
+        const back = rideOptions({ district: o.to.district, chapter: 11 }, () => 1).find((x) => x.to.district === a.district);
+        assert.ok(back && back.km === o.km, `${a.district} ⇄ ${o.to.district}`);
+        const sights = rideSights(a, o.to);
+        assert.equal(sights[0], a.sight);
+        assert.equal(sights.at(-1), o.to.sight);
+        const s = applyAll(rich(), [{ do: 'bike', model: 'feige', colour: 'blue' }, { do: 'bike_on' }, { do: 'bike_ride', district: o.to.district, minutes: o.minutes }, { do: 'enter', ...o.to.arrive, district: o.to.district }], ctx);
+        assert.equal(s.bike?.at, 'riding');
+        assert.equal(s.district, o.to.district);
+      }
+    }
+    assert.ok(pairs >= 20, `${pairs} rides`);
   });
 });

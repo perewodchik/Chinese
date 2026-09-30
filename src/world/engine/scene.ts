@@ -86,6 +86,8 @@ export interface OwnBikeLook {
   model: string;
   colour: string;
   parts: readonly string[];
+  /** a flat tyre (§13 L3): you walk it beside you, at walking pace */
+  push?: boolean;
 }
 
 interface TilesetNames {
@@ -1056,20 +1058,22 @@ export class WorldScene extends Phaser.Scene {
     // your own bike from all four sides; coming down the screen the handlebars are in front of you
     const view = this.bikeView();
     const depth = view === 'down' ? this.hero.depth + 0.05 : this.hero.depth - 0.05;
-    b.setFrame(`bike/${this.ownBike.model}-${this.ownBike.colour}-${view}`).setPosition(this.hero.x, this.hero.y - 1).setDepth(depth).setVisible(true);
+    // walking a flat bike: it rolls beside you, a little ahead
+    const dx = this.ownBike.push ? (view === 'side' ? 7 : view === 'side-r' ? -7 : 9) : 0;
+    b.setFrame(`bike/${this.ownBike.model}-${this.ownBike.colour}-${view}`).setPosition(this.hero.x + dx, this.hero.y - 1).setDepth(depth).setVisible(true);
     for (const p of this.bikeParts) {
       const part = p.getData('part') as string;
       // the basket shows from the side and the front, the rack from the side and behind
       const shown = part === 'basket' ? view !== 'up' : view !== 'down';
       const frame = part === 'basket' ? (view === 'down' ? 'basket-down' : `basket-${view}`) : view === 'up' ? 'rack-up' : `rack-${view}`;
       p.setVisible(shown);
-      if (shown) p.setFrame(`bike/${frame}`).setPosition(this.hero.x, this.hero.y - 1).setDepth(depth + 0.01);
+      if (shown) p.setFrame(`bike/${frame}`).setPosition(this.hero.x + dx, this.hero.y - 1).setDepth(depth + 0.01);
     }
   }
 
   /** 兔儿爷 rides in the basket of your own bike (§13 L2), when it has one and you are not riding away up the screen. */
   private inBasket(): boolean {
-    return !!this.ownBike?.parts.includes('basket') && this.facing !== 'up';
+    return !!this.ownBike?.parts.includes('basket') && !this.ownBike.push && this.facing !== 'up';
   }
 
   /**
@@ -1238,7 +1242,7 @@ export class WorldScene extends Phaser.Scene {
     const x = t[0] * TILE;
     const y = (t[1] + 1) * TILE;
     // §13 L2: your own bike is twice as fast as walking, a shared one ×1.6
-    const ms = this.bikeSprite ? WALK_MS / (this.ownBike ? 2 : 1.6) : this.running ? RUN_MS : WALK_MS;
+    const ms = this.bikeSprite ? (this.ownBike?.push ? WALK_MS : WALK_MS / (this.ownBike ? 2 : 1.6)) : this.running ? RUN_MS : WALK_MS;
     this.hero.setDepth(Math.max(this.hero.depth, y + 0.5));
     this.followPet(prev, ms);
     // §13 V4: a 4-frame walk — the foot forward, then the passing frame halfway (1 → 3 → 2 → 3)
@@ -1480,7 +1484,7 @@ export class WorldScene extends Phaser.Scene {
       }
     }
     // §13 V4: standing still, the player breathes — a pixel's dip now and then
-    if (!this.moving && !this.bikeSprite && this.hero && !this.hero.getData('cut')) {
+    if (!this.moving && (!this.bikeSprite || this.ownBike?.push) && this.hero && !this.hero.getData('cut')) {
       const name = this.hero.frame.name;
       const rest = `hero/${this.facing}-0`;
       const up = `hero/${this.facing}-3`;

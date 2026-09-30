@@ -9681,5 +9681,44 @@
     }
    }
   ]
+ },
+ {
+  "id": "bike-wang-lock",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": 2,
+  "when": {
+   "flag": "bike-unlocked"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "自行车",
+    "explain": "两个轮子，人骑的车。",
+    "en": "bicycle"
+   },
+   {
+    "w": "锁",
+    "explain": "让别人不能拿走、不能开。",
+    "en": "to lock; a lock"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你的自行车没锁吧？",
+    "translate": "You didn't lock your bike, did you?",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "没关系，这儿的人都很好。但是，自行车要锁！",
+    "translate": "Never mind — people round here are good. But a bike should be locked!",
+    "simpler": "自行车要锁！",
+    "why": "Nobody takes it — 王阿姨 just likes things done properly. With a 车锁 (the bike shop, 25 元), tap 🔒 after you get off: 锁车."
+   }
+  ]
  }
 ]

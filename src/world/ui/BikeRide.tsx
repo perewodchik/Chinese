@@ -124,9 +124,14 @@ export function RideChips({ options, onRide }: { options: Array<{ to: RidePlace;
  * on, get off, or where it is — and 🔔 while you ride. Not in the top bar:
  * at 375 px there is no room left there for the place's name.
  */
-export function BikeDock({ frame, state, onBike, onBell }: { frame: string; state: 'riding' | 'here' | 'away'; onBike: () => void; onBell: () => void }) {
+export function BikeDock({ frame, state, onBike, onBell, onLock }: { frame: string; state: 'riding' | 'here' | 'away'; onBike: () => void; onBell: () => void; onLock?: () => void }) {
   return (
     <div className="wbd" role="group" aria-label="Your bike">
+      {onLock && (
+        <button type="button" className="wbd-btn" onClick={onLock} aria-label="Lock your bike — 锁车">
+          <span aria-hidden>🔒</span>
+        </button>
+      )}
       {state === 'riding' && (
         <button type="button" className="wbd-btn" onClick={onBell} aria-label="Ring the bell">
           <span aria-hidden>🔔</span>
