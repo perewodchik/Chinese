@@ -2,7 +2,7 @@
   {
     "id": "ch5",
     "title": "New Beijing",
-    "chapter": 5,
+    "chapter": 6,
     "kind": "main",
     "steps": [
       {
@@ -69,7 +69,7 @@
     "reward": [
       {
         "do": "chapter",
-        "chapter": 6
+        "chapter": 7
       },
       {
         "do": "quest",
@@ -81,7 +81,7 @@
   {
     "id": "side-bike",
     "title": "Shared bikes",
-    "chapter": 5,
+    "chapter": 6,
     "kind": "side",
     "giver": "kuaidi-xiaoge",
     "blurb": "Shared bikes stand on every corner; the courier says they are the fastest way round.",

@@ -1,0 +1,293 @@
+{
+ "version": 15,
+ "updatedAt": 1,
+ "deviceId": "golden",
+ "place": {
+  "map": "siheyuan-room",
+  "tile": [
+   4,
+   4
+  ],
+  "facing": "down"
+ },
+ "district": "gulou",
+ "name": "大卫",
+ "clock": 1860,
+ "chapter": 1,
+ "flags": [
+  "met-polan",
+  "cat-seen",
+  "lantern-broken",
+  "heard-lion"
+ ],
+ "scenes": [
+  "first-morning",
+  "bed",
+  "arrive",
+  "wang-go-eat",
+  "kite-look",
+  "polan",
+  "polan-sell",
+  "xiaomiao-look-ruined",
+  "cat-see",
+  "cat-wait",
+  "shop-tanghulu",
+  "waimai-lost",
+  "job-waimai",
+  "gulou-visit",
+  "lion-day",
+  "ask-way",
+  "zhao-yeye-askname",
+  "zhao-later",
+  "breakfast",
+  "lantern",
+  "lantern-rabbit",
+  "wang-after",
+  "shop-zaodian",
+  "job-zaodian",
+  "rumour-shop"
+ ],
+ "quests": {
+  "ch1": {
+   "step": "lion",
+   "index": 4,
+   "done": false,
+   "at": {
+    "meet-wang": 420,
+    "breakfast": 1860,
+    "lantern": 1860,
+    "rumour": 1860,
+    "lion": 1860
+   }
+  },
+  "side-polan": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 1860,
+    "$done": 1860
+   }
+  },
+  "side-cat": {
+   "step": "feed",
+   "index": 0,
+   "done": false,
+   "at": {
+    "feed": 1860
+   }
+  },
+  "side-waimai": {
+   "step": "do",
+   "index": 0,
+   "done": true,
+   "at": {
+    "do": 1860,
+    "$done": 1860
+   }
+  }
+ },
+ "riddles": {
+  "lantern-rabbit/d": {
+   "scene": "lantern-rabbit",
+   "node": "d",
+   "pinnedAt": 1860,
+   "solved": false
+  },
+  "rumour-shop/rumour": {
+   "scene": "rumour-shop",
+   "node": "rumour",
+   "pinnedAt": 1860,
+   "solved": false
+  }
+ },
+ "bag": {
+  "items": {
+   "huzhao": 1,
+   "shouji": 1,
+   "baozi": 1
+  },
+  "money": 217,
+  "card": null
+ },
+ "spirits": {},
+ "idioms": {},
+ "stamps": {
+  "new-home": 1860,
+  "gulou": 1860,
+  "ask-way": 1860,
+  "breakfast": 1860
+ },
+ "stations": [],
+ "districts": [
+  "gulou"
+ ],
+ "npcs": {
+  "wang-ayi": {
+   "met": 1860,
+   "notes": [
+    "told her their name"
+   ],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 2
+  },
+  "polan-shifu": {
+   "met": 1860,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 2
+  },
+  "tanghulu-dashu": {
+   "met": 1860,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 2
+  },
+  "waimai": {
+   "met": 1860,
+   "notes": [
+    "showed him the way to number 13"
+   ],
+   "hearts": 2,
+   "gift": 0,
+   "talk": 2
+  },
+  "zhao-yeye": {
+   "met": 1860,
+   "notes": [
+    "knows your name"
+   ],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 2
+  },
+  "zaodian-shifu": {
+   "met": 1860,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 2
+  },
+  "li-ayi": {
+   "met": 1860,
+   "notes": [],
+   "hearts": 1,
+   "gift": 0,
+   "talk": 2
+  }
+ },
+ "rides": {},
+ "diary": {
+  "1": [
+   "x:huzhao",
+   "x:shouji",
+   "z"
+  ],
+  "2": [
+   "m:wang-ayi",
+   "m:polan-shifu",
+   "m:tanghulu-dashu",
+   "m:waimai",
+   "$:5",
+   "m:zhao-yeye",
+   "m:zaodian-shifu",
+   "b:baozi:3",
+   "$:15",
+   "m:li-ayi"
+  ]
+ },
+ "room": {},
+ "cat": {
+  "fed": 0,
+  "day": 0,
+  "name": ""
+ },
+ "photos": [],
+ "bills": [
+  {
+   "id": "solver:1860",
+   "at": 1860,
+   "who": "",
+   "amount": 5
+  },
+  {
+   "id": "solver:1860:2",
+   "at": 1860,
+   "who": "",
+   "amount": -3
+  },
+  {
+   "id": "solver:1860:3",
+   "at": 1860,
+   "who": "",
+   "amount": 15
+  }
+ ],
+ "daily": {
+  "job-waimai": 2,
+  "job-zaodian": 2
+ },
+ "fresh": {
+  "baozi": 2
+ },
+ "cutscenes": [
+  "lantern-breaks"
+ ],
+ "lastWords": [],
+ "books": {
+  "denglong": {
+   "got": 1860,
+   "read": []
+  }
+ },
+ "look": {
+  "build": "broad",
+  "skin": 1,
+  "face": {
+   "eyes": "dot",
+   "brows": "none",
+   "mouth": "line"
+  },
+  "hair": {
+   "style": "short",
+   "colour": "black"
+  },
+  "address": "name"
+ },
+ "created": false,
+ "wardrobe": [
+  "jacket:blue",
+  "trousers:dark",
+  "sneakers:white",
+  "scarf:red"
+ ],
+ "outfit": {
+  "top": "jacket:blue",
+  "bottom": "trousers:dark",
+  "shoes": "sneakers:white",
+  "accessory": "scarf:red"
+ },
+ "outfits": [
+  null,
+  null,
+  null
+ ],
+ "worn": [
+  "jacket",
+  "trousers",
+  "sneakers",
+  "scarf"
+ ],
+ "settings": {
+  "input": "keyboard",
+  "pinyin": true,
+  "joystick": false,
+  "textSize": "m",
+  "live": false,
+  "volume": 0.6,
+  "music": 0.6
+ }
+}

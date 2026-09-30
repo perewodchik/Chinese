@@ -84,7 +84,18 @@ export const UPGRADES: Record<number, Upgrade> = {
   13: (r) => ({ ...r, version: 14, lastWords: Array.isArray(r.lastWords) ? r.lastWords : [] }),
   /** 14 → 15 (§13 B1): no books yet — a book a scene you have seen gives comes on load (`owedBooks`) */
   14: (r) => ({ ...r, version: 15, books: isObj(r.books) ? r.books : {} }),
+  /**
+   * 15 → 16 (§13 S1): two chapters are new — 5 香火 and 9 过年 — so the ones
+   * after them move up: 新北京 5 → 6, 故事 6 → 7, 龙 7 → 8, the epilogue
+   * 8 → 10, the story told 9 → 11. Quest ids and step ids stay; a quest in
+   * the middle keeps its step (steps added before it count as done, see
+   * `reindexQuests`).
+   */
+  15: (r) => ({ ...r, version: 16, chapter: isNum(r.chapter) ? renumberChapter(r.chapter) : 1 }),
 };
+
+/** A chapter number before §13 S1 → after it (story.md §2). */
+export const renumberChapter = (n: number) => (n <= 4 ? n : n <= 7 ? n + 1 : n + 2);
 
 export type ReadResult =
   | { ok: true; save: WorldSave; upgraded: boolean }

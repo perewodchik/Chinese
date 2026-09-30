@@ -79,8 +79,8 @@ describe('books (§13 B1)', () => {
     assert.equal(todayText(denglong.today.zh).startsWith('今天的北京'), false);
   });
 
-  it('the save (v15): an old save gets no books; merge keeps both devices\' pages and the earlier minute', () => {
-    assert.equal(WORLD_SAVE_VERSION, 15);
+  it('the save (v15 on): an old save gets no books; merge keeps both devices\' pages and the earlier minute', () => {
+    assert.ok(WORLD_SAVE_VERSION >= 15);
     const old = { ...JSON.parse(JSON.stringify(newSave('d', 0))), version: 14 };
     delete old.books;
     const r = readSave(old);

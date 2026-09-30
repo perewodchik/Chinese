@@ -5,6 +5,7 @@ import { contentNames, diaryDays, diaryLines } from '../core/diary';
 import { dateZh, WEATHER_ICON, WEATHER_ZH, weatherOf } from '../core/calendar';
 import { HOODS, hoodOf } from '../core/hoods';
 import { seenInChapter } from '../core/cutscene';
+import { stepIndexOf } from '../core/save';
 import { sideQuests, whoWhere, type SideEntry } from '../core/sidequests';
 import { directions, journal, story, type Directions, type Journal, type JournalQuest, type RouteLeg, type StoryChapter } from '../core/journal';
 import { placeOf, type MapLinks } from '../core/places';
@@ -27,7 +28,8 @@ import './journal.css';
  * story by day. The work is done in core/journal.ts; this only draws it.
  */
 
-export const CHAPTER_ZH = ['', '第一章', '第二章', '第三章', '第四章', '第五章', '第六章', '第七章', '尾声', '尾声'];
+/** by chapter number (§13 S1: 5 香火 and 9 过年 are new; 10 is the epilogue, 11 the story told) */
+export const CHAPTER_ZH = ['', '第一章', '第二章', '第三章', '第四章', '第五章', '第六章', '第七章', '第八章', '第九章', '尾声', '尾声'];
 
 /** public/world/maps/index.json, for the walks (empty until it arrives) */
 export function useMapIndex(): MapLinks {
@@ -500,6 +502,13 @@ function TrackedCard({ save, jq, index, onOpen, onShowRoute }: { save: WorldSave
   );
 }
 
+/** The current step's "what now" of a quest under way. */
+const nowOf = (quests: readonly Quest[], s: WorldSave, id: string) => {
+  const q = quests.find((x) => x.id === id);
+  const st = s.quests[id];
+  return q && st ? q.steps[stepIndexOf(q, st)]?.now : undefined;
+};
+
 /** Journal → Story (J3): the chapters as a timeline; the current one open, finished ones one line each. */
 export function JournalStory({ save, content, onDay, onReplay }: { save: WorldSave; content: WorldContent; onDay: (day: number) => void; onReplay?: (cutscene: string) => void }) {
   const chapters = useMemo(() => journal(save, content).story, [save, content]);
@@ -539,7 +548,7 @@ export function JournalStory({ save, content, onDay, onReplay }: { save: WorldSa
               {c.entries.map((e) => (
                 <Entry key={e.step} day={e.day} past={e.past} onDay={onDay} />
               ))}
-              {!c.done && c.quest && <li className="jn-next tiny muted">… {content.quests.find((q) => q.id === c.quest)?.steps[save.quests[c.quest]?.index ?? 0]?.now}</li>}
+              {!c.done && c.quest && <li className="jn-next tiny muted">… {nowOf(content.quests, save, c.quest)}</li>}
               {c.side.map((x) => (
                 <li key={x.quest.id} className="jn-side">
                   <button type="button" className="jn-side-head small" aria-expanded={side === x.quest.id} onClick={() => setSide(side === x.quest.id ? null : x.quest.id)}>

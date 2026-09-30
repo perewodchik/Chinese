@@ -2,7 +2,7 @@
   {
     "id": "ch7",
     "title": "The dragon",
-    "chapter": 7,
+    "chapter": 8,
     "kind": "main",
     "steps": [
       {
@@ -51,12 +51,12 @@
     "reward": [
       {
         "do": "chapter",
-        "chapter": 8
+        "chapter": 9
       },
       {
         "do": "quest",
-        "quest": "epilogue",
-        "step": "ticket"
+        "quest": "ch-guonian",
+        "step": "go"
       }
     ]
   }

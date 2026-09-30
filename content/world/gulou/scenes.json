@@ -1597,7 +1597,7 @@
   "when": {
    "all": [
     {
-     "chapter": 7
+     "chapter": 8
     },
     {
      "not": {
@@ -5428,7 +5428,7 @@
   "once": true,
   "priority": 2,
   "when": {
-   "chapter": 8
+   "chapter": 10
   },
   "start": "a",
   "words": [

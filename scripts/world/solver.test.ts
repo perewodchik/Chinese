@@ -6,6 +6,7 @@ import { describe, it } from 'node:test';
 import { walkable } from '../../src/world/core/grid';
 import { readSave } from '../../src/world/core/migrate';
 import { DONE_AT } from '../../src/world/core/save';
+import { reindexQuests } from '../../src/world/core/quests';
 import { districts, maps, npcs, quests, solve } from './solver';
 
 describe('the quest solver', () => {
@@ -72,11 +73,27 @@ describe('the golden saves', () => {
     assert.ok(files.length >= 8, files.join(' '));
   });
 
+  it('a save in the middle of a chapter keeps its step through the upgrade (§13 S1)', () => {
+    const mids = files.filter((f) => f.startsWith('mid-'));
+    assert.ok(mids.length >= 2, mids.join(' '));
+    for (const f of mids) {
+      const raw = JSON.parse(readFileSync(`${dir}/${f}`, 'utf8')) as { chapter: number; quests: Record<string, { step: string; done: boolean }> };
+      const r = readSave(raw);
+      assert.ok(r.ok, r.ok ? '' : r.message);
+      const s = reindexQuests(r.save, quests);
+      for (const [id, st] of Object.entries(raw.quests)) {
+        assert.equal(s.quests[id]!.step, st.step, `${f}: ${id}`);
+        const q = quests.find((x) => x.id === id)!;
+        if (!st.done) assert.equal(s.quests[id]!.index, q.steps.findIndex((x) => x.id === st.step), `${f}: ${id}`);
+      }
+    }
+  });
+
   for (const f of files) {
     it(`${f}: reads through the migration and the game plays on to the end from it`, () => {
       const r = readSave(JSON.parse(readFileSync(`${dir}/${f}`, 'utf8')));
       assert.ok(r.ok, r.ok ? '' : r.message);
-      const main = quests.filter((q) => /^(ch\d|epilogue)/.test(q.id));
+      const main = quests.filter((q) => q.kind === 'main');
       // the main story only: stop once it is told (side quests are the whole-game run's job)
       const run = solve(r.save, 40000, (s) => main.every((q) => s.quests[q.id]?.done));
       assert.deepEqual(main.filter((q) => !run.save.quests[q.id]?.done).map((q) => q.id), []);

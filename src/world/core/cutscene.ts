@@ -12,6 +12,7 @@
 
 import { findPath, walkable, type Grid } from './grid';
 import type { Action, Condition, DialogueNode, Facing, MapObject, Quest, Scene, SituationWord, Tile, WorldSave } from './types';
+import { stepIndexOf } from './save';
 
 /**
  * Who moves or speaks: the hero, 兔儿爷, a person by their card id, a spirit
@@ -352,9 +353,9 @@ export function cutscenesDue(before: WorldSave, after: WorldSave, quests: readon
     const a = before.quests[q.id];
     const b = after.quests[q.id];
     if (!b) continue;
-    const from = a ? (a.done ? q.steps.length : a.index) : 0;
-    const to = b.done ? q.steps.length : b.index;
-    if (!a && !b.done && b.index === 0) continue;
+    const from = a ? (a.done ? q.steps.length : stepIndexOf(q, a)) : 0;
+    const to = b.done ? q.steps.length : stepIndexOf(q, b);
+    if (!a && !b.done && to === 0) continue;
     for (let i = from; i < to; i++) {
       const id = q.steps[i]?.onDone;
       if (id && !seen.has(id) && !out.includes(id)) out.push(id);

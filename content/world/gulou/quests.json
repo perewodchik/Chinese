@@ -82,6 +82,34 @@
     ]
   },
   {
+    "id": "ch-guonian",
+    "title": "New Year",
+    "chapter": 9,
+    "kind": "main",
+    "steps": [
+      {
+        "id": "go",
+        "now": "王阿姨 is getting the courtyard ready for 春节. (This chapter is still being written — the story goes on to the Great Wall for now.)",
+        "past": "Heard 王阿姨 getting ready for 春节 — a chapter still to come.",
+        "where": "siheyuan-yard",
+        "done": {
+          "chapter": 9
+        }
+      }
+    ],
+    "reward": [
+      {
+        "do": "chapter",
+        "chapter": 10
+      },
+      {
+        "do": "quest",
+        "quest": "epilogue",
+        "step": "ticket"
+      }
+    ]
+  },
+  {
     "id": "side-bird",
     "title": "赵爷爷’s bird",
     "chapter": 2,
@@ -480,7 +508,7 @@
   {
     "id": "side-photo-wall",
     "title": "The Wall for 老刘",
-    "chapter": 8,
+    "chapter": 10,
     "kind": "side",
     "giver": "lao-liu",
     "blurb": "老刘 has never been to the Great Wall and would love to see a photo of it.",

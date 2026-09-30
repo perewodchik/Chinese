@@ -10,7 +10,7 @@ import { holds } from './flags';
 import { HOODS, hoodOf, wayThere } from './hoods';
 import { placeOf, walkPath, type MapLinks } from './places';
 import { activeQuests, type Now } from './quests';
-import { DONE_AT } from './save';
+import { DONE_AT, stepIndexOf } from './save';
 import type { Shop } from './shop';
 import { findRoute, type Mode } from './travel';
 import type { Condition, NpcCard, Quest, QuestState, QuestStep, Scene, WorldSave } from './types';
@@ -116,7 +116,7 @@ const target = (map: string): Target => {
 export function stepTargets(s: WorldSave, quest: Quest, content: Omit<JournalContent, 'quests'>): Target[] {
   const st = s.quests[quest.id];
   if (!st || st.done) return [];
-  const step = quest.steps[st.index] ?? quest.steps.find((x) => x.id === st.step);
+  const step = quest.steps[stepIndexOf(quest, st)];
   return step ? stepMaps(step, content, s).map(target) : [];
 }
 
@@ -235,7 +235,8 @@ export interface Journal {
 
 /** The steps a quest has left behind it, each told in its past line, with the day it was done. */
 function logOf(q: Quest, st: QuestState): StoryEntry[] {
-  const upto = st.done ? q.steps.length : st.index;
+  // steps a deepened chapter put before the save's step count as done, dated by the next stamped step (§13 S1)
+  const upto = st.done ? q.steps.length : stepIndexOf(q, st);
   const out: StoryEntry[] = [];
   for (let i = 0; i < upto; i++) {
     const step = q.steps[i]!;

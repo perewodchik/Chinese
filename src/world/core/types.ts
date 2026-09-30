@@ -439,7 +439,11 @@ export interface Place {
 
 export interface QuestState {
   step: string;
-  /** index of `step` in the quest, so two saves can say which is further */
+  /**
+   * index of `step` in the quest, so two saves can say which is further.
+   * Content may add steps later (§13 S): readers find the step by its id
+   * (`stepIndexOf`) and `reindexQuests` brings this up to date on load.
+   */
   index: number;
   done: boolean;
   /**

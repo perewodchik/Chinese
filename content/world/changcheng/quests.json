@@ -2,7 +2,7 @@
   {
     "id": "epilogue",
     "title": "The Great Wall",
-    "chapter": 8,
+    "chapter": 10,
     "kind": "main",
     "steps": [
       {
@@ -35,14 +35,14 @@
     "reward": [
       {
         "do": "chapter",
-        "chapter": 9
+        "chapter": 11
       }
     ]
   },
   {
     "id": "side-photo",
     "title": "A photo on the Wall",
-    "chapter": 8,
+    "chapter": 10,
     "kind": "side",
     "giver": "yugong-yeye",
     "blurb": "An old man climbing the Great Wall wants a photo to prove he made it to the top.",

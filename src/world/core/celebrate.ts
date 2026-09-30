@@ -8,6 +8,7 @@
 
 import type { Cutscene } from './cutscene';
 import type { Action, Idiom, Item, MapObject, NpcCard, Quest, Tile, WorldSave } from './types';
+import { stepIndexOf } from './save';
 
 export type Seal =
   | { kind: 'step'; quest: string; step: string; past: string }
@@ -42,8 +43,8 @@ export function sealsFor(before: WorldSave, after: WorldSave, quests: readonly Q
     const a = before.quests[q.id];
     const b = after.quests[q.id];
     if (!b) continue;
-    const from = a ? (a.done ? q.steps.length : a.index) : 0;
-    const to = b.done ? q.steps.length : b.index;
+    const from = a ? (a.done ? q.steps.length : stepIndexOf(q, a)) : 0;
+    const to = b.done ? q.steps.length : stepIndexOf(q, b);
     for (let i = from; i < to; i++) {
       const st = q.steps[i];
       if (st) out.push({ kind: 'step', quest: q.id, step: st.id, past: st.past });

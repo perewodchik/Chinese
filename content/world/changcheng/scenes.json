@@ -174,7 +174,7 @@
   "priority": 0,
   "once": true,
   "when": {
-   "chapter": 8
+   "chapter": 10
   },
   "start": "a",
   "nodes": [

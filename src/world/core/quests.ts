@@ -9,21 +9,59 @@
  */
 
 import { holds } from './flags';
-import { apply, type ApplyContext } from './save';
+import { apply, stepIndexOf, type ApplyContext } from './save';
 import type { Quest, WorldSave } from './types';
 
-/** Moves every quest on as far as its conditions allow. */
-export function advanceQuests(s: WorldSave, quests: readonly Quest[], ctx: ApplyContext): WorldSave {
+/**
+ * Every quest's stored `index` brought up to date with the content (§13 S1):
+ * a chapter deepened after the save was made has new steps before the one
+ * the save is at — they count as done, and the save keeps its step. A
+ * finished quest sits on its last step. Returns the same save when nothing
+ * changes.
+ */
+export function reindexQuests(s: WorldSave, quests: readonly Quest[]): WorldSave {
+  let out: WorldSave['quests'] | null = null;
+  for (const q of quests) {
+    const st = s.quests[q.id];
+    if (!st || !q.steps.length) continue;
+    const index = st.done ? q.steps.length - 1 : stepIndexOf(q, st);
+    const step = st.done ? q.steps[index]!.id : st.step;
+    if (index === st.index && step === st.step) continue;
+    out ??= { ...s.quests };
+    out[q.id] = { ...st, index, step };
+  }
+  return out ? { ...s, quests: out } : s;
+}
+
+/**
+ * A main chapter written after the save went past it (§13 S1: 5 香火 and
+ * 9 过年 came between chapters an old save had played) opens now, at its
+ * first step, beside the chapter under way. Every main quest is started by
+ * the one before it, so one of a lower chapter than the save's that never
+ * started can only be such a newcomer. Its reward cannot take the save
+ * back: chapters and quests only move forward.
+ */
+export function openMissedChapters(s: WorldSave, quests: readonly Quest[], ctx: ApplyContext): WorldSave {
   let cur = s;
+  for (const q of quests) {
+    if (q.kind === 'main' && q.chapter < cur.chapter && !cur.quests[q.id] && q.steps[0]) cur = apply(cur, { do: 'quest', quest: q.id, step: q.steps[0].id }, ctx);
+  }
+  return cur;
+}
+
+/** Moves every quest on as far as its conditions allow (after bringing an older save up to the content: `reindexQuests`, `openMissedChapters`). */
+export function advanceQuests(s: WorldSave, quests: readonly Quest[], ctx: ApplyContext): WorldSave {
+  let cur = openMissedChapters(reindexQuests(s, quests), quests, ctx);
   // A reward can finish another quest's step, so go round until nothing moves (bounded).
   for (let round = 0; round < 10; round++) {
     const before = cur;
     for (const q of quests) {
       const st = cur.quests[q.id];
       if (!st || st.done) continue;
-      const step = q.steps[st.index];
+      const i = stepIndexOf(q, st);
+      const step = q.steps[i];
       if (!step?.done || !holds(step.done, cur)) continue;
-      const next = q.steps[st.index + 1];
+      const next = q.steps[i + 1];
       if (next) cur = apply(cur, { do: 'quest', quest: q.id, step: next.id }, ctx);
       else {
         cur = apply(cur, { do: 'quest_done', quest: q.id }, ctx);
@@ -46,7 +84,7 @@ export function activeQuests(s: WorldSave, quests: readonly Quest[]): Now[] {
   for (const q of quests) {
     const st = s.quests[q.id];
     if (!st || st.done) continue;
-    const step = q.steps[st.index] ?? q.steps.find((x) => x.id === st.step);
+    const step = q.steps[stepIndexOf(q, st)];
     if (step) out.push({ quest: q, step });
   }
   return out.sort((a, b) => b.quest.chapter - a.quest.chapter || quests.indexOf(b.quest) - quests.indexOf(a.quest));
