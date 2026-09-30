@@ -8,6 +8,7 @@ import type { Arrival } from './doors';
 import type { HeroDress } from './look';
 import type { SceneOptions, WorldScene as Scene } from './scene';
 import type { Cutscene } from '../core/cutscene';
+import type { TrailSpec } from '../core/guide';
 import type { CutsceneHooks, RunningCutscene } from './cutscene';
 
 export interface RunningWorld {
@@ -38,6 +39,10 @@ export interface RunningWorld {
   passGate(gate: readonly [number, number], down: boolean): void;
   /** §13 Q1: quest marks over people, by map object id; null for none */
   setQuestMarks(marks: Readonly<Record<string, 'main' | 'side' | 'next'>> | null): void;
+  /** M6: faint footprints to the next door, street end or train board on the way; null for none */
+  setTrail(spec: TrailSpec | null): void;
+  /** the footprints' tiles and yours, for probes */
+  trail(): { at: readonly [number, number]; path: (readonly [number, number])[] } | null;
   /** marks over what can be talked to or looked at; null for none */
   setHints(pred: ((o: MapObject) => boolean) | null): void;
   /** play a cutscene on the map on screen (§13 K1); null when no map is running */
@@ -77,6 +82,8 @@ export async function startWorld(parent: HTMLElement, opts: SceneOptions, snapsh
     passGate: (gate, down) => (game.scene.getScene('world') as Scene | null)?.passGate([gate[0], gate[1]], down),
     setQuestMarks: (marks) => (game.scene.getScene('world') as Scene | null)?.setQuestMarks(marks),
     setHints: (pred) => (game.scene.getScene('world') as Scene | null)?.setHints(pred),
+    setTrail: (spec) => (game.scene.getScene('world') as Scene | null)?.setTrail(spec),
+    trail: () => (game.scene.getScene('world') as Scene | null)?.trailTiles() ?? null,
     cutscene: (cs, hooks) => (game.scene.getScene('world') as Scene | null)?.playCutscene(cs, hooks) ?? null,
     fps: () => Math.round(game.loop.actualFps),
     setBike: (on) => (game.scene.getScene('world') as Scene | null)?.setBike(on),

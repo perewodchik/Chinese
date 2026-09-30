@@ -3,13 +3,16 @@ import { heroOnPlan, hoodOf, type HoodLayout } from '../core/hoods';
 import { placeOf } from '../core/places';
 import type { Place as SavePlace } from '../core/types';
 import { frameAround, loadPlans, PlanDrawing } from './HoodPlan';
+import { placeZh } from './Journal';
+import { takeMeTo, useGuide } from './takeMeThere';
 
 /**
  * The corner map (prompt §9⅞ M2): always there, over the world under the
  * top bar — your neighbourhood in small around you. It folds itself away
  * indoors (a shop, a room) and opens again outdoors; folding or opening it
  * by hand holds until you next go in or out. A tap opens the 🗺 panel on
- * this neighbourhood.
+ * this neighbourhood. While you are being taken somewhere (M6), it draws the
+ * way from you, and a chip under it says where to, with × to stop.
  */
 
 const KEY = 'zouzou:minimap';
@@ -49,6 +52,7 @@ export function Minimap({
   children?: ReactNode;
 }) {
   const [plans, setPlans] = useState<HoodLayout[]>([]);
+  const guide = useGuide();
   const [manual, setManual] = useState<Manual | null>(readManual);
   const box = useRef<SVGSVGElement>(null);
   const [px, setPx] = useState({ w: 200, h: 132 });
@@ -98,10 +102,32 @@ export function Minimap({
         onClick={() => onOpen(hood.id)}
         style={open ? undefined : { display: 'none' }}
       >
-        {plan && view && <PlanDrawing plan={plan} u={view.w / px.w} here={place} goals={goals} {...(marks ? { marks } : {})} mini />}
+        {plan && view && <PlanDrawing plan={plan} u={view.w / px.w} here={place} goals={goals} {...(marks ? { marks } : {})} route={guide.route} mini />}
       </svg>
       {/* under the map: the next hop of the quest you follow (§10 J3c); folded away with it */}
       {open && children}
+      {/* M6: where the footprints lead — shown folded or not, so it can always be stopped */}
+      {guide.to && (
+        <span className="wm-guide">
+          <Prints />
+          <span className="han">{placeZh(guide.to)}</span>
+          <button type="button" className="wm-guide-x" onClick={() => takeMeTo(null)} aria-label={`Stop the footprints to ${placeZh(guide.to)}`}>
+            ×
+          </button>
+        </span>
+      )}
     </div>
+  );
+}
+
+/** two small shoe prints, the "Take me there" sign */
+function Prints() {
+  return (
+    <svg className="wm-prints" viewBox="0 0 12 12" width="14" height="14" aria-hidden>
+      <rect x="1.5" y="5" width="3" height="4" rx="1.2" />
+      <rect x="2" y="9.6" width="2" height="1.6" rx="0.6" />
+      <rect x="7.5" y="1" width="3" height="4" rx="1.2" />
+      <rect x="8" y="5.6" width="2" height="1.6" rx="0.6" />
+    </svg>
   );
 }

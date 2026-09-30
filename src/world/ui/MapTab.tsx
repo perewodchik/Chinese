@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLibrary } from '../../features/shared/library';
 import { formatTime, dayOf } from '../core/clock';
 import { goalMaps } from '../core/goal';
-import type { RouteLeg } from '../core/journal';
+import { directions, type RouteLeg } from '../core/journal';
 import { heroOnPlan, HOODS, hoodOf, type HoodLayout } from '../core/hoods';
 import { placeOf, type MapLinks } from '../core/places';
 import type { WorldSave } from '../core/types';
@@ -13,6 +13,7 @@ import { loadPlans, PlanDrawing, planPad } from './HoodPlan';
 import { MetroMap } from './MetroMap';
 import { pinyinOf } from './pinyin';
 import { usePanZoom } from './usePanZoom';
+import { useGuide } from './takeMeThere';
 import { Seg } from '../../ui/Seg';
 
 /**
@@ -59,7 +60,11 @@ export function MapTab({
   }, []);
 
   const visited = useMemo(() => (save.visited ? new Set(save.visited) : undefined), [save.visited]);
-  const goals = useMemo(() => new Set([...goalMaps(save, content.quests, content.scenes, content.npcs, content.shops), ...(route ? [route.to] : [])]), [save, content, route]);
+  // M6: while you are being taken somewhere, the metro map shows that way (the journal's "Show on map" wins)
+  const guide = useGuide();
+  const guided = useMemo(() => (!route && guide.to && Object.keys(index).length ? { legs: directions(save, guide.to, index).legs, to: guide.to } : null), [route, guide.to, save, index]);
+  const shown = route ?? guided;
+  const goals = useMemo(() => new Set([...goalMaps(save, content.quests, content.scenes, content.npcs, content.shops), ...(shown ? [shown.to] : [])]), [save, content, shown]);
   const goHood = (id: string) => {
     setHood(id);
     setCity(false);
@@ -95,9 +100,9 @@ export function MapTab({
         )}
       </div>
       {city ? (
-        <MetroMap save={save} goals={goals} onHood={goHood} route={route?.legs ?? null} counts={counts} />
+        <MetroMap save={save} goals={goals} onHood={goHood} route={shown?.legs ?? null} counts={counts} />
       ) : (
-        <HoodView key={hood} plan={plans.find((p) => p.id === hood)} save={save} visited={visited} goals={goals} marks={marks} picked={picked} onPick={setPicked} onExit={goHood} />
+        <HoodView key={hood} plan={plans.find((p) => p.id === hood)} save={save} visited={visited} goals={goals} marks={marks} picked={picked} onPick={setPicked} onExit={goHood} route={guide.route} />
       )}
       <div className="wp-route">
         {picked && placeOf(picked) ? (
@@ -131,6 +136,7 @@ function HoodView({
   picked,
   onPick,
   onExit,
+  route,
 }: {
   plan: HoodLayout | undefined;
   save: WorldSave;
@@ -140,6 +146,7 @@ function HoodView({
   picked: string | null;
   onPick: (m: string) => void;
   onExit: (hood: string) => void;
+  route: readonly string[];
 }) {
   const bounds = plan ? { x: plan.x, y: plan.y, w: plan.w, h: plan.h } : { x: 0, y: 0, w: 100, h: 60 };
   // room around the plan, in screen pixels, for the names of rooms and exits
@@ -181,6 +188,7 @@ function HoodView({
             picked={picked}
             onPick={(m) => tap(() => onPick(m))()}
             onExit={(h) => tap(() => onExit(h))()}
+            route={route}
           />
         )}
       </svg>

@@ -58,10 +58,12 @@ export interface PlanProps {
   onExit?: (hood: string) => void;
   /** the small corner map: no card names, smaller type */
   mini?: boolean;
+  /** M6 "Take me there": the maps ahead on foot, the one you are on first — drawn as a line from you */
+  route?: readonly string[];
   children?: ReactNode;
 }
 
-export function PlanDrawing({ plan, u, here, visited, goals, marks, picked, onPick, onExit, mini, children }: PlanProps) {
+export function PlanDrawing({ plan, u, here, visited, goals, marks, picked, onPick, onExit, mini, route, children }: PlanProps) {
   const seen = (m: string) => !visited || visited.has(m) || m === here?.map;
   const fs = (mini ? 10.5 : 12.5) * u;
   const dot = here ? heroOnPlan(plan, here.map, here.tile) : null;
@@ -242,6 +244,7 @@ export function PlanDrawing({ plan, u, here, visited, goals, marks, picked, onPi
           </g>
         );
       })}
+      {dot && route && route.length > 1 && <polyline points={routePoints(plan, route, dot).map((p) => p.join(',')).join(' ')} className="hp-route" aria-label="The way there" />}
       {dot && (
         <g className="hp-here" aria-label="You are here">
           <circle cx={dot[0]} cy={dot[1]} r={(mini ? 7 : 10) * u} className="hp-here-ring" />
@@ -251,6 +254,29 @@ export function PlanDrawing({ plan, u, here, visited, goals, marks, picked, onPi
       {children}
     </g>
   );
+}
+
+/**
+ * M6: the way on foot through this plan — from you, through the door or the crossing
+ * between each map and the next, to the last one's card (or the middle of its street);
+ * it stops where the way leaves the plan.
+ */
+export function routePoints(plan: HoodLayout, route: readonly string[], from: readonly [number, number]): (readonly [number, number])[] {
+  const pts: (readonly [number, number])[] = [from];
+  const doors = plan.doors ?? [];
+  const joins = plan.joins ?? [];
+  for (let i = 0; i + 1 < route.length; i++) {
+    const [a, b] = [route[i]!, route[i + 1]!];
+    const d = doors.find((x) => x.from === a && x.to === b) ?? doors.find((x) => x.from === b && x.to === a);
+    const j = joins.find((x) => (x.a === a && x.b === b) || (x.a === b && x.b === a));
+    const room = plan.rooms.find((r) => r.map === b);
+    if (d) pts.push([d.x + 0.5, d.y + 0.5]);
+    else if (j) pts.push([j.x + j.w / 2, j.y + j.h / 2]);
+    else if (room) pts.push([room.door[0] + 0.5, room.door[1] + 0.5]);
+    else break;
+    if (room) pts.push([room.x + room.w / 2, room.y + room.h / 2]);
+  }
+  return pts;
 }
 
 /** Screen pixels past each side of a plan for the names drawn outside it: the rooms' names, and the exits' out to the side. */

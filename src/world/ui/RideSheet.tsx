@@ -3,6 +3,7 @@ import { playLine } from './lineVoice';
 import { arrivalCall, board, callNext, fareOut, getOff, nextStop, runOn, startRide, stationSign, trainsAt, type RideState, type Train } from '../core/ride';
 import { station } from '../core/travel';
 import type { Mode } from '../core/travel';
+import type { RouteLeg } from '../core/journal';
 import { ZhText } from './ZhText';
 
 /** the next few stops of a train, so a direction means something (bold: stops you can get off at) */
@@ -37,6 +38,7 @@ export function RideSheet({
   card,
   onExit,
   onClose,
+  guide = [],
 }: {
   from: string;
   /** a subway platform, a bus stop, or the railway station */
@@ -50,6 +52,8 @@ export function RideSheet({
   card: number;
   onExit: (ride: RideState) => void;
   onClose: () => void;
+  /** M6 "Take me there": the rides on the way — their trains are marked, and where to get off */
+  guide?: readonly Extract<RouteLeg, { kind: 'ride' }>[];
 }) {
   const [ride, setRide] = useState<RideState>(() => startRide(from));
   const [phase, setPhase] = useState<Phase>('platform');
@@ -100,6 +104,13 @@ export function RideSheet({
   const exitable = canExit(ride.at);
   const fare = fareOut(ride, mode);
   const onTrain = ride.train !== null;
+  // M6: the train to take from here, where to get off it, and whether this is the way out
+  const legHere = guide.find((l) => l.from === ride.at);
+  const isGuided = (t: Train) => !!legHere && t.line === legHere.line && t.towards === legHere.direction;
+  const onGuided = onTrain && guide.some((l) => l.line === ride.train!.line && l.stops.includes(ride.at));
+  const getOffHere = onTrain && guide.some((l) => l.line === ride.train!.line && l.to === ride.at);
+  // out here: the last stop, or a change to a bus or train that leaves from its own stop outside
+  const wayOut = !onTrain && guide.length > 0 && (guide.at(-1)!.to === ride.at || (!!legHere && legHere.mode !== mode));
 
   return (
     <div className="wp-scrim">
@@ -126,18 +137,27 @@ export function RideSheet({
           </p>
           {onTrain ? (
             <div className="wr-acts">
-              <button type="button" className="btn primary" disabled={phase !== 'stopped'} onClick={off}>
+              <button type="button" className="btn primary" data-guide={getOffHere && phase === 'stopped' ? '' : undefined} disabled={phase !== 'stopped'} onClick={off}>
                 <span className="han">下车</span> · Get off
               </button>
-              <span className="small muted">{phase === 'stopped' ? 'Get off here, or stay on.' : 'The train is moving…'}</span>
+              <span className="small muted">
+                {getOffHere && phase === 'stopped'
+                  ? 'Get off here — this is your stop.'
+                  : phase === 'stopped'
+                    ? onGuided
+                      ? 'Not yet — stay on.'
+                      : 'Get off here, or stay on.'
+                    : 'The train is moving…'}
+              </span>
             </div>
           ) : (
             <>
               <ul className="wr-trains">
                 {trains.map((t) => (
                   <li key={`${t.line}${t.dir}`}>
-                    <button type="button" className="wr-train-btn" onClick={() => take(t)}>
+                    <button type="button" className="wr-train-btn" data-guide={isGuided(t) ? '' : undefined} onClick={() => take(t)}>
                       <b className="han">{t.name}</b> <span className="han">{t.towards}</span>
+                      {isGuided(t) && <span className="wr-guide tiny">This one · {legHere!.stops.length - 1} {legHere!.stops.length === 2 ? 'stop' : 'stops'}</span>}
                       <span className="wr-next tiny muted">
                         {stopsAhead(t, ride.at).map((st, i) => (
                           <span key={st} className="han" data-open={canExit(st) ? '' : undefined}>
@@ -153,7 +173,7 @@ export function RideSheet({
               </ul>
               <div className="wr-acts">
                 {exitable && (ride.stops > 0 || ride.at !== from) && (
-                  <button type="button" className="btn primary" disabled={fare > card} onClick={() => onExit(ride)}>
+                  <button type="button" className="btn primary" data-guide={wayOut ? '' : undefined} disabled={fare > card} onClick={() => onExit(ride)}>
                     <span className="han">出站</span> · Go out ({fare} 元 from your card)
                   </button>
                 )}

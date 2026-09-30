@@ -10,7 +10,8 @@
  */
 
 import * as Phaser from 'phaser';
-import { ahead, walkable, walkTo } from '../core/grid';
+import { ahead, findPath, walkable, walkTo } from '../core/grid';
+import { trailGoals, type TrailSpec } from '../core/guide';
 import { rabbitSpot } from '../core/rabbit';
 import type { Facing, MapObject, PartOfDay, Tile } from '../core/types';
 import { composeHero, DAY_LOOK, zoomFor, type HeroDress } from './look';
@@ -116,6 +117,13 @@ export class WorldScene extends Phaser.Scene {
   private propSprites = new Map<string, Phaser.GameObjects.Sprite>();
   /** the marks over what can be talked to or looked at, by object id */
   private hintMarks = new Map<string, Phaser.GameObjects.Image>();
+  /** M6 "Take me there": what the footprints on this map lead to, and the prints drawn */
+  private trailTo: TrailSpec | null = null;
+  private prints: Phaser.GameObjects.Image[] = [];
+  /** the tiles the prints are on, you excluded (for the guide probe) */
+  private trailPath: Tile[] = [];
+  /** a cutscene is playing: no prints until it is over */
+  private inCut = false;
   /** §13 Q1: the quest marks over people (red 「!」, gold 「!」, 「…」), by object id, and what each shows */
   private questTags = new Map<string, { img: Phaser.GameObjects.Image; kind: string }>();
 
@@ -327,6 +335,10 @@ export class WorldScene extends Phaser.Scene {
     this.decorate(map);
     this.time.addEvent({ delay: 90, loop: true, callback: () => this.animate() });
     this.dots = this.add.graphics().setDepth(9_999);
+    // a new map: the page says where the footprints lead on it (after onArrive)
+    this.trailTo = null;
+    this.prints = [];
+    this.inCut = false;
     this.bindInput();
     this.setHints(this.opts.hints ?? null);
     this.startLife();
@@ -499,6 +511,75 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /**
+   * "Take me there" (M6): faint footprints from where you stand to the door or street end of
+   * the next map on the way, or to the train board on a platform; redrawn at every step, gone
+   * with null. The ticket gates count as open for the trail (you walk through them).
+   */
+  setTrail(spec: TrailSpec | null) {
+    this.trailTo = spec;
+    this.drawTrail();
+  }
+
+  private drawTrail() {
+    for (const p of this.prints) p.destroy();
+    this.prints = [];
+    this.trailPath = [];
+    const spec = this.trailTo;
+    if (!spec || !this.info || this.inCut) return;
+    const goals = trailGoals(spec, this.info.objects, this.info.width, this.info.height);
+    if (!goals.length) return;
+    let grid = this.info.grid;
+    if (this.gateRow !== null) {
+      const open = new Uint8Array(grid.blocked);
+      this.lightLayers[0]?.forEachTile((t) => {
+        if (t.y === this.gateRow && t.index === this.gid('gate')) open[t.y * grid.width + t.x] = 0;
+      });
+      grid = { ...grid, blocked: open };
+    }
+    const path = findPath(grid, this.at, goals);
+    if (!path?.length) return;
+    this.trailPath = path;
+    this.makePrintTexture();
+    let prev = this.at;
+    path.forEach((t, i) => {
+      const dx = t[0] - prev[0];
+      const dy = t[1] - prev[1];
+      const angle = dx > 0 ? 90 : dx < 0 ? -90 : dy > 0 ? 180 : 0;
+      // left foot, right foot: a little to either side of the way
+      const side = i % 2 ? 2.5 : -2.5;
+      const [ox, oy] = dx ? [0, side] : [side, 0];
+      const img = this.add
+        .image(t[0] * TILE + TILE / 2 + ox, t[1] * TILE + TILE / 2 + oy, 'print')
+        .setAngle(angle)
+        .setAlpha(Math.max(0.45, 0.85 - i * 0.015))
+        .setDepth(2);
+      this.prints.push(img);
+      prev = t;
+    });
+  }
+
+  /** Where the footprints are now, and the tile you stand on (the guide probe walks them). */
+  trailTiles(): { at: Tile; path: Tile[] } {
+    return { at: this.at, path: [...this.trailPath] };
+  }
+
+  private makePrintTexture() {
+    if (this.textures.exists('print')) return;
+    // a 5×8 shoe print, toes up: gold with a dark rim, the colour of the way on the maps
+    // (a dark print alone reads as the pavement's own specks)
+    const t = this.textures.createCanvas('print', 5, 8)!;
+    const c = t.getContext();
+    c.fillStyle = '#5a3a1c';
+    c.fillRect(1, 0, 3, 5);
+    c.fillRect(0, 1, 5, 3);
+    c.fillRect(1, 5, 3, 3);
+    c.fillStyle = '#f1c35a';
+    c.fillRect(1, 1, 3, 3);
+    c.fillRect(2, 6, 1, 1);
+    t.refresh();
+  }
+
+  /**
    * The quest marks over people (§13 Q1): a red paper tag 「!」 for the one
    * the story needs now, a gold 「!」 for a side quest to start, a small 「…」
    * for the next step of a quest under way. Only redrawn where one changed.
@@ -615,6 +696,9 @@ export class WorldScene extends Phaser.Scene {
     // the quest marks and hint diamonds step aside while it runs
     const marks = [...[...this.questTags.values()].map((t) => t.img), ...this.hintMarks.values()];
     for (const m of marks) m.setVisible(false);
+    // and so do the "Take me there" prints, until it is over
+    for (const p of this.prints) p.setVisible(false);
+    this.inCut = true;
     const spawned = new Map<Actor, Phaser.GameObjects.Sprite>();
     const tiles = new Map<Actor, Tile>();
     const before = new Map<Phaser.GameObjects.Sprite, { x: number; y: number; frame: string; depth: number }>();
@@ -720,6 +804,8 @@ export class WorldScene extends Phaser.Scene {
         this.hero.setFrame(`hero/${this.facing}-0`);
         this.placeRabbit(this.at, 200, null);
         for (const m of marks) if (m.active) m.setVisible(true);
+        this.inCut = false;
+        this.drawTrail();
         this.host.onStep(this.at, this.facing, false);
       },
     };
@@ -1101,6 +1187,7 @@ export class WorldScene extends Phaser.Scene {
       onComplete: () => {
         this.hero.setFrame(`hero/${this.facing}-0`);
         this.host.onStep(t, this.facing, this.running);
+        if (this.trailTo) this.drawTrail();
         this.scarePigeons();
         const door = this.info.objects.find((o): o is Door => o.kind === 'door' && o.tile[0] === t[0] && o.tile[1] === t[1]);
         const edge = door ? undefined : edgeAt(this.info.objects, t, this.info.width, this.info.height);
