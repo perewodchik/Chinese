@@ -279,7 +279,9 @@ export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000,
         }
       }
       // a shared bike (the page's stands): ride one, then park
-      if (s.chapter >= 2 && !s.flags.includes('rode-bike')) {
+      // …and again while a quest waits for a ride (side-bike): a real player rides whenever they like
+      const bikeWanted = activeQuests(s, quests).some((a) => JSON.stringify(a.step.done ?? {}).includes('"flag":"on-bike"'));
+      if (s.chapter >= 2 && (!s.flags.includes('rode-bike') || bikeWanted)) {
         const after = act(act(s, [{ do: 'flag', flag: 'on-bike' }], short, 'bike'), [{ do: 'flag', flag: 'on-bike', value: false }, { do: 'flag', flag: 'rode-bike' }, { do: 'money', amount: -1 }], short, 'bike');
         log.push('bike');
         s = after;

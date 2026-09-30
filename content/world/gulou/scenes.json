@@ -645,7 +645,8 @@
   "map": "chaguan",
   "npc": "lao-liu",
   "trigger": "talk",
-  "priority": 5,
+  "once": true,
+  "priority": 2,
   "start": "a",
   "nodes": [
    {
