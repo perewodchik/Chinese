@@ -2,11 +2,13 @@ import { hoodOf, wayThere } from '../core/hoods';
 import { placeOf, type MapLinks, type Place } from '../core/places';
 import { districtInfo } from '../core/districts';
 import type { WorldSave } from '../core/types';
+import { takeMeTo, useGuide } from './takeMeThere';
 
 /**
  * What the 🗺 tab says about a place you tapped: its name, pinyin, English,
  * its neighbourhood, and the way there — on foot, or the ride and the walk
- * from the station (core/hoods.ts `wayThere`).
+ * from the station (core/hoods.ts `wayThere`). "Take me there" (M6) lays
+ * footprints to it in the world; the same button stops them.
  */
 
 let indexOnce: Promise<MapLinks> | null = null;
@@ -26,6 +28,8 @@ export function PlaceCard({ place, save, index, onGo, py }: { place: Place; save
   const way = wayThere(save, place.map, index);
   const hood = hoodOf(place.map);
   const d = districtInfo(index[place.map]?.district ?? '');
+  const guide = useGuide();
+  const taking = guide.to === place.map;
   return (
     <>
       <b className="han">{place.zh}</b>{' '}
@@ -43,11 +47,18 @@ export function PlaceCard({ place, save, index, onGo, py }: { place: Place; save
               : way.text}
         {d && d.chapter > save.chapter && d.id !== save.district && ' (The story gets there later — you may go already.)'}
       </p>
-      {way.kind === 'ride' && way.card && (
-        <button type="button" className="btn sm primary" onClick={() => onGo(way.from)}>
-          Go — to the station
-        </button>
-      )}
+      <span className="wp-place-acts">
+        {way.kind !== 'here' && way.kind !== 'none' && (
+          <button type="button" className="btn sm primary wp-take" aria-pressed={taking} title={taking ? undefined : 'Footprints lead the way in the world — close the map to follow them'} onClick={() => takeMeTo(taking ? null : place.map)}>
+            {taking ? 'Stop the footprints' : 'Take me there'}
+          </button>
+        )}
+        {way.kind === 'ride' && way.card && (
+          <button type="button" className="btn sm" onClick={() => onGo(way.from)}>
+            Go — to the station
+          </button>
+        )}
+      </span>
     </>
   );
 }

@@ -59,11 +59,11 @@ export function MetroMap({
   const routeKey = rides.map((l) => `${l.line}:${l.from}>${l.to}`).join('|');
   useEffect(() => {
     const b = boxOf(paths.flatMap((p) => p.points));
-    if (!b || pz.box.w < 50) return;
+    if (!b || !pz.measured || pz.box.w < 50) return;
     const pad = 1.6;
     pz.glide({ x: (b.x - pad) * G, y: (b.y - pad) * G, w: (b.w + pad * 2) * G, h: (b.h + pad * 2) * G }, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routeKey, pz.box.w]);
+  }, [routeKey, pz.box.w, pz.measured]);
   const here = hoodOf(save.place.map);
   const goalHoods = new Set([...goals].map((m) => hoodOf(m)?.id).filter(Boolean));
   const pxPerGrid = G / u;

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLibrary } from '../../features/shared/library';
 import { formatTime, dayOf } from '../core/clock';
 import { goalMaps } from '../core/goal';
-import type { RouteLeg } from '../core/journal';
+import { directions, type RouteLeg } from '../core/journal';
 import { heroOnPlan, HOODS, hoodOf, type HoodLayout } from '../core/hoods';
 import { placeOf, type MapLinks } from '../core/places';
 import type { WorldSave } from '../core/types';
@@ -13,6 +13,7 @@ import { loadPlans, PlanDrawing, planPad } from './HoodPlan';
 import { MetroMap } from './MetroMap';
 import { pinyinOf } from './pinyin';
 import { usePanZoom } from './usePanZoom';
+import { useGuide } from './takeMeThere';
 import { Seg } from '../../ui/Seg';
 
 /**
@@ -59,7 +60,11 @@ export function MapTab({
   }, []);
 
   const visited = useMemo(() => (save.visited ? new Set(save.visited) : undefined), [save.visited]);
-  const goals = useMemo(() => new Set([...goalMaps(save, content.quests, content.scenes, content.npcs, content.shops), ...(route ? [route.to] : [])]), [save, content, route]);
+  // M6: while you are being taken somewhere, the metro map shows that way (the journal's "Show on map" wins)
+  const guide = useGuide();
+  const guided = useMemo(() => (!route && guide.to && Object.keys(index).length ? { legs: directions(save, guide.to, index).legs, to: guide.to } : null), [route, guide.to, save, index]);
+  const shown = route ?? guided;
+  const goals = useMemo(() => new Set([...goalMaps(save, content.quests, content.scenes, content.npcs, content.shops), ...(shown ? [shown.to] : [])]), [save, content, shown]);
   const goHood = (id: string) => {
     setHood(id);
     setCity(false);
@@ -95,9 +100,9 @@ export function MapTab({
         )}
       </div>
       {city ? (
-        <MetroMap save={save} goals={goals} onHood={goHood} route={route?.legs ?? null} counts={counts} />
+        <MetroMap save={save} goals={goals} onHood={goHood} route={shown?.legs ?? null} counts={counts} />
       ) : (
-        <HoodView key={hood} plan={plans.find((p) => p.id === hood)} save={save} visited={visited} goals={goals} marks={marks} picked={picked} onPick={setPicked} onExit={goHood} />
+        <HoodView key={hood} plan={plans.find((p) => p.id === hood)} save={save} visited={visited} goals={goals} marks={marks} picked={picked} onPick={setPicked} onExit={goHood} route={guide.route} />
       )}
       <div className="wp-route">
         {picked && placeOf(picked) ? (
@@ -131,6 +136,7 @@ function HoodView({
   picked,
   onPick,
   onExit,
+  route,
 }: {
   plan: HoodLayout | undefined;
   save: WorldSave;
@@ -140,6 +146,7 @@ function HoodView({
   picked: string | null;
   onPick: (m: string) => void;
   onExit: (hood: string) => void;
+  route: readonly string[];
 }) {
   const bounds = plan ? { x: plan.x, y: plan.y, w: plan.w, h: plan.h } : { x: 0, y: 0, w: 100, h: 60 };
   // room around the plan, in screen pixels, for the names of rooms and exits
@@ -149,18 +156,19 @@ function HoodView({
   // tile, where names stop running into each other); on a phone, the part around you — drag for the rest.
   const framed = useRef<string | null>(null);
   useEffect(() => {
-    if (!plan || framed.current === plan.id || pz.box.w < 50) return;
+    if (!plan || framed.current === plan.id || !pz.measured || pz.box.w < 50) return;
     framed.current = plan.id;
     const across = pz.box.w / 8;
     if (bounds.w <= across) {
-      pz.glide(bounds, true);
+      // ask for more than there is: the view stops at the whole plan with its padding (names past the edges)
+      pz.glide({ x: bounds.x - bounds.w, y: bounds.y - bounds.h, w: bounds.w * 3, h: bounds.h * 3 }, true);
       return;
     }
     const at = heroOnPlan(plan, save.place.map, save.place.tile) ?? [plan.areas[0]!.x + plan.areas[0]!.w / 2, plan.areas[0]!.y + plan.areas[0]!.h / 2];
     const h = across / (pz.box.w / Math.max(1, pz.box.h));
     pz.glide({ x: at[0] - across / 2, y: at[1] - h / 2, w: across, h }, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plan, pz.box.w]);
+  }, [plan, pz.box.w, pz.measured]);
   const tap = (fn: () => void) => () => {
     if (!pz.dragged.current) fn();
   };
@@ -180,6 +188,7 @@ function HoodView({
             picked={picked}
             onPick={(m) => tap(() => onPick(m))()}
             onExit={(h) => tap(() => onExit(h))()}
+            route={route}
           />
         )}
       </svg>

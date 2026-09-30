@@ -58,10 +58,12 @@ export interface PlanProps {
   onExit?: (hood: string) => void;
   /** the small corner map: no card names, smaller type */
   mini?: boolean;
+  /** M6 "Take me there": the maps ahead on foot, the one you are on first — drawn as a line from you */
+  route?: readonly string[];
   children?: ReactNode;
 }
 
-export function PlanDrawing({ plan, u, here, visited, goals, marks, picked, onPick, onExit, mini, children }: PlanProps) {
+export function PlanDrawing({ plan, u, here, visited, goals, marks, picked, onPick, onExit, mini, route, children }: PlanProps) {
   const seen = (m: string) => !visited || visited.has(m) || m === here?.map;
   const fs = (mini ? 10.5 : 12.5) * u;
   const dot = here ? heroOnPlan(plan, here.map, here.tile) : null;
@@ -191,13 +193,31 @@ export function PlanDrawing({ plan, u, here, visited, goals, marks, picked, onPi
             </g>
           );
         })}
+      {/* M7: a way on foot into the next neighbourhood — an arrow from the street's end out to the plan's edge, the name past it */}
       {plan.exits.map((e) => {
         const off = 14 * u;
-        const [dx, dy] = { up: [0, -off], down: [0, off], left: [-off, 0], right: [off, 0] }[e.side];
+        const flat = e.side === 'left' || e.side === 'right';
+        // the plan's edge on that side (a label never sits inside the plan, over a street or a card)
+        const edge = { left: plan.x, right: plan.x + plan.w, up: plan.y, down: plan.y + plan.h }[e.side];
+        const sign = e.side === 'left' || e.side === 'up' ? -1 : 1;
+        const tip = edge + sign * (off * 0.6);
+        const [x1, y1] = flat ? [tip, e.y] : [e.x, tip];
+        const head = 5 * u;
+        const arrow =
+          e.side === 'left'
+            ? `${x1},${y1} ${x1 + head},${y1 - head * 0.8} ${x1 + head},${y1 + head * 0.8}`
+            : e.side === 'right'
+              ? `${x1},${y1} ${x1 - head},${y1 - head * 0.8} ${x1 - head},${y1 + head * 0.8}`
+              : e.side === 'up'
+                ? `${x1},${y1} ${x1 - head * 0.8},${y1 + head} ${x1 + head * 0.8},${y1 + head}`
+                : `${x1},${y1} ${x1 - head * 0.8},${y1 - head} ${x1 + head * 0.8},${y1 - head}`;
         const text = e.side === 'left' || e.side === 'up' ? `${ARROW[e.side]} ${zhOfHood(e.hood)}` : `${zhOfHood(e.hood)} ${ARROW[e.side]}`;
+        const [lx, ly] = flat ? [edge + sign * off, e.y] : [e.x, edge + sign * (off + (fs + 6 * u) / 2)];
         return (
-          <g key={`x-${e.hood}-${e.map}`} className="hp-exit" onClick={onExit ? () => onExit(e.hood) : undefined} role={onExit ? 'button' : undefined}>
-            <Label x={e.x + dx!} y={e.y + dy!} text={text} u={u} fs={fs} anchor={e.side === 'left' ? 'end' : e.side === 'right' ? 'start' : 'middle'} exit />
+          <g key={`x-${e.hood}-${e.map}`} className="hp-exit" onClick={onExit ? () => onExit(e.hood) : undefined} role={onExit ? 'button' : undefined} aria-label={onExit ? `On foot to ${zhOfHood(e.hood)}` : undefined}>
+            <line x1={e.x} y1={e.y} x2={x1} y2={y1} className="hp-exit-way" />
+            <polygon points={arrow} className="hp-exit-head" />
+            <Label x={lx} y={ly} text={text} u={u} fs={fs} anchor={e.side === 'left' ? 'end' : e.side === 'right' ? 'start' : 'middle'} exit />
           </g>
         );
       })}
@@ -224,6 +244,7 @@ export function PlanDrawing({ plan, u, here, visited, goals, marks, picked, onPi
           </g>
         );
       })}
+      {dot && route && route.length > 1 && <polyline points={routePoints(plan, route, dot).map((p) => p.join(',')).join(' ')} className="hp-route" aria-label="The way there" />}
       {dot && (
         <g className="hp-here" aria-label="You are here">
           <circle cx={dot[0]} cy={dot[1]} r={(mini ? 7 : 10) * u} className="hp-here-ring" />
@@ -233,6 +254,29 @@ export function PlanDrawing({ plan, u, here, visited, goals, marks, picked, onPi
       {children}
     </g>
   );
+}
+
+/**
+ * M6: the way on foot through this plan — from you, through the door or the crossing
+ * between each map and the next, to the last one's card (or the middle of its street);
+ * it stops where the way leaves the plan.
+ */
+export function routePoints(plan: HoodLayout, route: readonly string[], from: readonly [number, number]): (readonly [number, number])[] {
+  const pts: (readonly [number, number])[] = [from];
+  const doors = plan.doors ?? [];
+  const joins = plan.joins ?? [];
+  for (let i = 0; i + 1 < route.length; i++) {
+    const [a, b] = [route[i]!, route[i + 1]!];
+    const d = doors.find((x) => x.from === a && x.to === b) ?? doors.find((x) => x.from === b && x.to === a);
+    const j = joins.find((x) => (x.a === a && x.b === b) || (x.a === b && x.b === a));
+    const room = plan.rooms.find((r) => r.map === b);
+    if (d) pts.push([d.x + 0.5, d.y + 0.5]);
+    else if (j) pts.push([j.x + j.w / 2, j.y + j.h / 2]);
+    else if (room) pts.push([room.door[0] + 0.5, room.door[1] + 0.5]);
+    else break;
+    if (room) pts.push([room.x + room.w / 2, room.y + room.h / 2]);
+  }
+  return pts;
 }
 
 /** Screen pixels past each side of a plan for the names drawn outside it: the rooms' names, and the exits' out to the side. */

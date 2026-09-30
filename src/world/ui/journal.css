@@ -650,3 +650,51 @@
 .wm-wait {
   animation: none;
 }
+
+/* M6: "Take me there" under the corner map — where to, and × to stop */
+.wm-guide {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 4px 0 10px;
+  border-radius: 9px;
+  background: rgba(34, 32, 46, 0.72);
+  color: #f8f5ec;
+  font-size: 13px;
+  white-space: nowrap;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.wm-guide .han {
+  font-family: var(--han);
+}
+
+.wm-prints {
+  fill: var(--gold);
+}
+
+.wm-guide-x {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* the prints beside the next-hop chip: pressed while the footprints lead there */
+.wm-take svg {
+  fill: currentColor;
+}
+
+.wm-take[aria-pressed='true'] {
+  color: var(--gold);
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}

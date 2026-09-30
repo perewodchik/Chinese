@@ -312,7 +312,22 @@ export function layoutHood(hood: Hood, geo: Record<string, MapGeo>, hoodOfMap: (
       rooms.push({ map: to, ...at, door });
     }
   }
-  // rooms reached from rooms (none today) or from nowhere are still drawn, below everything
+  // rooms reached from rooms (百货大楼's upper floor): a card beside the room you reach them from,
+  // the "door" in the middle of that room's card
+  for (let grew = true; grew; ) {
+    grew = false;
+    for (const m of hood.maps) {
+      if (!mine.has(m) || placed.has(m) || rooms.some((r) => r.map === m)) continue;
+      const from = rooms.find((r) => geo[r.map]!.objects.some((o) => o.kind === 'door' && o.to.map === m));
+      if (!from) continue;
+      const door = [from.x + Math.floor(from.w / 2), from.y + Math.floor(from.h / 2)] as const;
+      const at = cardAt(door, 'right', from, taken);
+      taken.push(at);
+      rooms.push({ map: m, ...at, door });
+      grew = true;
+    }
+  }
+  // rooms from nowhere (none today) are still drawn, below everything
   for (const m of hood.maps) {
     if (!mine.has(m) || placed.has(m) || rooms.some((r) => r.map === m)) continue;
     const bottom = Math.max(0, ...taken.map((t) => t.y + t.h));

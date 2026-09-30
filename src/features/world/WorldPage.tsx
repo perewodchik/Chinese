@@ -22,6 +22,7 @@ import { Dialogue, lookOf } from '../../world/ui/Dialogue';
 import { InputBar } from '../../world/ui/InputBar';
 import { reportCrash } from '../../world/ui/CrashGuard';
 import { RideSheet } from '../../world/ui/RideSheet';
+import { useTakeMeThere } from '../../world/ui/takeMeThere';
 import { setVoiceCards } from '../../world/ui/lineVoice';
 import { Ambient } from '../../world/audio/ambient';
 import { isDrumShow, mixFor } from '../../world/audio/mix';
@@ -220,6 +221,8 @@ export function WorldPage() {
   const [note, setNote] = useState<string | null>(null);
   const [minutes, setMinutes] = useState(0);
   const [pal, setPal] = useState<{ open: boolean; said: string | null }>({ open: false, said: null });
+  // M6: "Take me there" — footprints on every map, the right train marked on the platform
+  const guideRides = useTakeMeThere(world, game.save, (said) => setPal((p) => ({ open: p.open, said })));
   const [panel, setPanel] = useState<PanelId | null>(null);
   /** the neighbourhood the 🗺 tab opens on, when the minimap opened it */
   const [mapStart, setMapStart] = useState<string | null>(null);
@@ -1255,6 +1258,7 @@ export function WorldPage() {
           pinyin={game.save.settings.pinyin}
           fast={Object.values(game.save.rides).reduce((a, b) => a + b, 0) >= 3}
           canExit={(id) => !!mapIndex.current[stopMap(id, riding.mode)]}
+          guide={guideRides}
           card={game.save.bag.card ?? 0}
           onClose={() => setRiding(null)}
           onExit={(r) => {
