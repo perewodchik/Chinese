@@ -47,6 +47,22 @@ export const maps: MapInfo[] = districts
   .flatMap((d) => d.district.maps)
   .map((id) => readMap(id, JSON.parse(readFileSync(`public/world/maps/${id}.json`, 'utf8'))));
 
+/** A small seeded random generator (mulberry32), so a failing wander can be replayed. */
+function rng(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+let cap = Infinity;
+/** a save held under the cap */
+const capped = (s: WorldSave) => (s.chapter > cap ? { ...s, chapter: cap } : s);
+
 export interface Run {
   save: WorldSave;
   /** scenes in the order played */
@@ -64,7 +80,7 @@ function act(s: WorldSave, actions: readonly SaveAction[], short: string[], wher
     money += a.amount;
   }
   const ctx = { now: 1, quests: new Map(quests.map((q) => [q.id, q])) };
-  const after = advanceQuests(applyAll(s, actions, ctx), quests, ctx);
+  const after = capped(advanceQuests(applyAll(s, actions, ctx), quests, ctx));
   // cutscenes (§13 K1) play headless: said in these actions, or started by a quest step done — each ends, and what it gives is given
   const due = [...cutsceneActions(actions), ...cutscenesDue(s, after, quests)].filter((id, i, all) => all.indexOf(id) === i && !after.cutscenes.includes(id));
   if (!due.length) return after;
@@ -169,8 +185,10 @@ const chapterOf = new Map(districts.flatMap((d) => d.district.maps.map((m) => [m
 function candidates(s: WorldSave): Scene[] {
   const out: Scene[] = [];
   const held = new Set(Object.entries(s.bag.items).filter(([, n]) => n > 0).map(([k]) => k));
+  // a player who reads a quest's hint goes where it points, even into a district the story reaches later
+  const pointed = new Set(activeQuests(s, quests).map((a) => a.step.where).filter((w): w is string => !!w));
   for (const m of maps) {
-    if ((chapterOf.get(m.id) ?? 1) > s.chapter) continue;
+    if ((chapterOf.get(m.id) ?? 1) > s.chapter && !pointed.has(m.id)) continue;
     const auto = autoScene(autoIdx.get(m.id) ?? [], s, m.id);
     if (auto) out.push(auto);
     for (const o of castMap(m.objects, m.id, npcs, s)) {
@@ -245,12 +263,20 @@ function rideTo(s: WorldSave): { to: string; actions: SaveAction[] } | null {
 export interface SolveOptions {
   /** buy everything every shop offers (once each): the "can a spendthrift soft-lock?" check (Y3) */
   spendAll?: boolean;
+  /** play no further than this chapter: the chapter never rises above it (§13 S1 — "do chapters 1–4 hold up on their own?") */
+  cap?: number;
+  /** a wandering player: among what could happen now, pick at random (seeded) instead of the first — finds orders the story didn't plan for */
+  seed?: number;
 }
+
+
 
 export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000, goal?: (s: WorldSave) => boolean, opts: SolveOptions = {}): Run {
   spendAll = !!opts.spendAll;
+  cap = opts.cap ?? Infinity;
+  const random = opts.seed !== undefined ? rng(opts.seed) : null;
   // a save made before a chapter was deepened keeps its step (§13 S1)
-  let s = reindexQuests(start, quests);
+  let s = capped(reindexQuests(start, quests));
   bought.clear();
   const log: string[] = [];
   const short: string[] = [];
@@ -264,12 +290,13 @@ export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000,
     const tryKey = (sc: Scene) => `${sc.id}|${key}${sc.id.startsWith('shop-') ? `|${want}|${Math.floor(s.bag.money / 10)}` : ''}`;
     // a patient player puts a decoration on an empty spot, and does not keep swapping them round
     const swaps = (sc: Scene) => sc.nodes.some((n) => n.onEnter?.some((x) => x.do === 'place' && s.room[x.spot]));
-    const next = candidates(s).find((sc) => !tried.has(tryKey(sc)) && !swaps(sc));
+    const open = candidates(s).filter((sc) => !tried.has(tryKey(sc)) && !swaps(sc));
+    const next = random && open.length ? open[Math.floor(random() * open.length)] : open[0];
     if (!next) {
       // a ride somewhere new (the page's ride sheet: out at a station, the fare from the card)
       const ride = rideTo(s);
       if (ride) {
-        const after = act(s, ride.actions, short, `ride to ${ride.to}`);
+        const after = capped(act(s, ride.actions, short, `ride to ${ride.to}`));
         if (progress(after) !== key) {
           log.push(`ride:${ride.to}`);
           if (after.chapter !== s.chapter) chapters.set(after.chapter, after);
@@ -314,7 +341,7 @@ export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000,
     }
     tried.add(tryKey(next));
     const spent: string[] = [];
-    const after = play(s, next, spent);
+    const after = capped(play(s, next, spent));
     // a talk that moves nothing is as if it never happened (no buying water twenty times)
     if (progress(after) !== key) {
       idle = 0;

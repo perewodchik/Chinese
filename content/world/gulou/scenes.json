@@ -956,22 +956,8 @@
      "flag": "heard-lion"
     },
     {
-     "not": {
-      "quest": "ch1",
-      "step": "haircut"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch1",
-      "step": "lion-book"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch1",
-      "step": "lions"
-     }
+     "quest": "ch1",
+     "step": "lion"
     }
    ]
   },
@@ -1638,7 +1624,14 @@
   "when": {
    "all": [
     {
-     "chapter": 8
+     "any": [
+      {
+       "chapter": 8
+      },
+      {
+       "flag": "palace-needs-ticket"
+      }
+     ]
     },
     {
      "not": {

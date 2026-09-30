@@ -131,8 +131,18 @@
   ],
   "facing": "up",
   "when": {
-   "quest": "ch4",
-   "step": "roof"
+   "all": [
+    {
+     "hours": [
+      8,
+      16
+     ]
+    },
+    {
+     "quest": "ch4",
+     "step": "roof"
+    }
+   ]
   }
  }
 ]

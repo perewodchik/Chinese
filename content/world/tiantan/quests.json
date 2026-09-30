@@ -15,9 +15,10 @@
       },
       {
         "id": "school",
-        "now": "小明's class is on a school trip to 天坛 today! Find him in the park, near the east gate.",
+        "now": "小明's class is on a school trip to 天坛 today (school hours)! Find him in the park, near the east gate.",
         "past": "Met 小明 on his school trip; he gave me 《天坛》.",
         "where": "tiantan-park",
+        "when": "school hours, 8:00–16:00",
         "done": {
           "flag": "c4-tiantan-book"
         }
@@ -27,6 +28,7 @@
         "now": "Go north up to the Hall of Prayer 祈年殿. 小明's teacher is asking the class a question — 《天坛》 page 3 knows the answer.",
         "past": "Answered the teacher at the 祈年殿: the roof is blue, the colour of the sky.",
         "where": "qiniandian",
+        "when": "school hours, 8:00–16:00",
         "done": {
           "flag": "c4-roof"
         }

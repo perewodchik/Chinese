@@ -77,6 +77,7 @@ Checked 2026-09-30 unless dated otherwise.
 | `numbers-8-4` | 8 (八) sounds like 发 (get rich), 4 (四) like 死 (die) | ? | check in S6 (book 11) |
 | `chunyun-scale` | 春运 is the biggest yearly human migration; billions of trips over ~40 days | ? | check in S9 — use "hundreds of millions of people", never an exact number unless sourced |
 | `jianbing-debate` | 天津 煎饼馃子 are rolled round 馃篦儿 (a thin fried sheet) or 油条; in Beijing they mostly use 薄脆 — people from 天津 insist theirs is the real one | ✓ | [visitbeijing — 煎饼果子](https://www.visitbeijing.com.cn/article/4EY7son40fO); [sohu — 馃篦儿和薄脆](https://m.sohu.com/a/921875029_122446374/) |
+| `camel-bells` | camel trains with bells came into old Beijing (carrying coal); 林海音's 《城南旧事》 — whose girl is 英子 — opens with 「冬阳·童年·骆驼队」 and the slow sound of their bells | ✓ | [douban — 城南旧事](https://book.douban.com/subject/3321469/); [visitbeijing — 林海音的城南记忆](https://www.visitbeijing.com.cn/article/47QkLUQWZFK) |
 | `bikes-brands` | 永久 and 凤凰 are Shanghai brands, 飞鸽 is from Tianjin; the black 28-inch 二八大杠 | ? | check in L1 (brands.md) |
 
 ## Rules of the city (what the game makes you do)

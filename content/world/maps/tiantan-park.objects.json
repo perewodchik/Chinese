@@ -320,14 +320,24 @@
   ],
   "facing": "left",
   "when": {
-   "any": [
+   "all": [
     {
-     "quest": "ch4",
-     "step": "school"
+     "hours": [
+      8,
+      16
+     ]
     },
     {
-     "quest": "ch4",
-     "step": "roof"
+     "any": [
+      {
+       "quest": "ch4",
+       "step": "school"
+      },
+      {
+       "quest": "ch4",
+       "step": "roof"
+      }
+     ]
     }
    ]
   }

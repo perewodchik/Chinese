@@ -201,6 +201,7 @@
         "now": "Give 小明 the storybook — he plays on 南锣鼓巷.",
         "past": "Gave 小明 the storybook.",
         "where": "nanluo-main",
+        "when": "not 8:00–16:00 (school)",
         "done": {
           "flag": "book-given"
         }

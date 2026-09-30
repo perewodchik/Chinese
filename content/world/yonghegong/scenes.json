@@ -120,46 +120,8 @@
      }
     },
     {
-     "not": {
-      "quest": "ch4",
-      "step": "school"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch4",
-      "step": "roof"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch4",
-      "step": "huanqiu"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch4",
-      "step": "paifang"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch4",
-      "step": "keju-book"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch4",
-      "step": "names"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch4",
-      "step": "kong"
-     }
+     "quest": "ch4",
+     "step": "qilin"
     }
    ]
   },

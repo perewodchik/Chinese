@@ -313,52 +313,8 @@
      }
     },
     {
-     "not": {
-      "quest": "ch2",
-      "step": "bridge"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch2",
-      "step": "lake-book"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch2",
-      "step": "prince"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch2",
-      "step": "beihai"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch2",
-      "step": "baita"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch2",
-      "step": "pavilions"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch2",
-      "step": "fox-book"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch2",
-      "step": "tiger"
-     }
+     "quest": "ch2",
+     "step": "fox"
     }
    ]
   },
@@ -1069,6 +1025,10 @@
     },
     {
      "item": "laohu"
+    },
+    {
+     "quest": "ch2",
+     "step": "fox"
     }
    ]
   },

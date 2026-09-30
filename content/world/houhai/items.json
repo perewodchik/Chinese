@@ -17,11 +17,10 @@
     "id": "laohu",
     "name": "玩具老虎",
     "en": "小明's toy tiger — squeeze it and it roars",
-    "gift": true,
-    "kind": "toy",
+    "gift": false,
+    "kind": "key",
     "verbs": [
-      "play",
-      "give"
+      "play"
     ]
   }
 ]

@@ -59,5 +59,34 @@
         "step": "go"
       }
     ]
+  },
+  {
+    "id": "side-palace-ticket",
+    "title": "A ticket for the palace",
+    "chapter": 1,
+    "kind": "side",
+    "giver": "tam-guard",
+    "blurb": "The palace takes only tickets booked online, in your own name.",
+    "lead": "The guard at 天安门 says palace tickets are bought online.",
+    "steps": [
+      {
+        "id": "book",
+        "now": "Palace tickets are booked online in your own name. 王阿姨 books everything on her phone — ask her in the courtyard: 「阿姨，你能帮我买故宫的票吗？」",
+        "past": "王阿姨 booked me a palace ticket on her phone.",
+        "where": "siheyuan-yard",
+        "done": {
+          "flag": "palace-ticket"
+        }
+      },
+      {
+        "id": "visit",
+        "now": "You have a ticket! Go to 天安门 (line 1 to 天安门东), walk to the gate and show your passport at security.",
+        "past": "Went through security at 午门 into the palace with my own ticket.",
+        "where": "wumen",
+        "done": {
+          "scene": "anjian"
+        }
+      }
+    ]
   }
 ]

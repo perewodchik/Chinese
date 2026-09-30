@@ -196,58 +196,8 @@
      }
     },
     {
-     "not": {
-      "quest": "ch3",
-      "step": "go"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch3",
-      "step": "money"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch3",
-      "step": "gift"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch3",
-      "step": "book"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch3",
-      "step": "cold"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch3",
-      "step": "qianmen"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch3",
-      "step": "lianpu-book"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch3",
-      "step": "outfit"
-     }
-    },
-    {
-     "not": {
-      "quest": "ch3",
-      "step": "show"
-     }
+     "quest": "ch3",
+     "step": "menshen"
     }
    ]
   },
@@ -1479,13 +1429,7 @@
         "行"
        ]
       ],
-      "go": "b",
-      "actions": [
-       {
-        "do": "take",
-        "item": "hongzhi"
-       }
-      ]
+      "go": "b"
      }
     ],
     "hint": {
@@ -1525,6 +1469,10 @@
     "translate": "Yes! Face to face — you look at me, I look at you. We look fine again!",
     "speaker": "menshen",
     "onEnter": [
+     {
+      "do": "take",
+      "item": "hongzhi"
+     },
      {
       "do": "spirit",
       "spirit": "menshen"
@@ -1735,6 +1683,82 @@
      {
       "do": "flag",
       "flag": "c3-gift-given"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "granny-bell",
+  "map": "dashilar",
+  "npc": "dashilar-nainai",
+  "trigger": "talk",
+  "once": true,
+  "priority": -2,
+  "when": {
+   "all": [
+    {
+     "quest": "side-yingzi",
+     "step": "find"
+    },
+    {
+     "not": {
+      "item": "lingdang"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "铃铛",
+    "explain": "会响的小东西，叮当叮当。",
+    "en": "a bell"
+   },
+   {
+    "w": "骆驼",
+    "explain": "很高的动物，背上有两个大包。",
+    "en": "camel"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好，孩子！你找什么？",
+    "translate": "Hello, child! What are you looking for?",
+    "expect": [
+     {
+      "intent": "bell",
+      "match": [
+       [
+        "铃铛",
+        "骆驼"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "铃铛",
+     "frame": "我找一个骆驼的___。",
+     "full": "我找一个骆驼的铃铛。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "骆驼的铃铛？很多年前，骆驼来北京，我们听见铃铛，都去看。",
+    "translate": "A camel bell? Many years ago, camels came into Beijing — when we heard the bells, we all went to look.",
+    "next": "c",
+    "why": "Camel trains carried coal into the old city from the western hills; 《城南旧事》, where 英子 comes from, opens with them."
+   },
+   {
+    "id": "c",
+    "say": "我家还有一个铃铛。给那个小女孩吧！",
+    "translate": "We've still got a bell at home. Give it to that little girl!",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "lingdang"
      }
     ]
    }

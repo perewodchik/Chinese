@@ -5,7 +5,8 @@
  * people whose routine brings them here though the map does not name them.
  *
  * A card with no routine stays where the map puts it; a routine that says
- * nothing about this hour leaves the person at their spot on the map.
+ * nothing about this hour leaves the person at their spot on the map. A
+ * placement with its own `when` is a story moment and wins over the routine.
  */
 
 import { catProps, roomProps, ROOM_MAP } from './room';
@@ -27,6 +28,12 @@ export function castMap(objects: readonly MapObject[], map: string, npcs: readon
       continue;
     }
     if (o.when && !holds(o.when, save)) continue;
+    // a placement with its own condition is the story putting someone here (小明's school trip to 天坛): it wins over their routine
+    if (o.when) {
+      here.add(o.npc);
+      out.push(o);
+      continue;
+    }
     const card = cards.get(o.npc);
     const stop = card ? whereIs(card, minutes) : null;
     if (stop && stop.map !== map) continue;

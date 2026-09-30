@@ -88,6 +88,7 @@
         "now": "Ask 赵爷爷 on 南锣鼓巷 the way to the Drum Tower 鼓楼 (in the early morning he is at the 鼓楼 square).",
         "past": "Asked 赵爷爷 the way to the 鼓楼; he gave me a book about stone lions.",
         "where": "nanluo-main",
+        "when": "6:00–18:00",
         "done": {
           "flag": "c1-lion-book"
         }
@@ -247,6 +248,7 @@
         "now": "Take the bird back to 赵爷爷 on 南锣鼓巷.",
         "past": "Gave the bird back to 赵爷爷 — it sang at once.",
         "where": "nanluo-main",
+        "when": "6:00–18:00",
         "done": {
           "flag": "bird-back"
         }
@@ -297,6 +299,7 @@
         "now": "Give the kite back to 小明 (🎒 → Use on him).",
         "past": "Gave 小明 his kite back.",
         "where": "nanluo-main",
+        "when": "not 8:00–16:00 (school)",
         "done": {
           "flag": "kite-back"
         }
@@ -895,7 +898,7 @@
       },
       {
         "id": "lamp",
-        "now": "Find the ever-burning lamp at the ghost market — 潘家园 after eight at night.",
+        "now": "Find the ever-burning lamp at the ghost market — 潘家园 after eight at night. It's far to the south-east (line 10 to 潘家园); the story itself gets there later, but the market is open to you now.",
         "past": "Found the ever-burning lamp at the ghost market.",
         "where": "panjiayuan-market",
         "when": "after 20:00",

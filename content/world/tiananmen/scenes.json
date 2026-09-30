@@ -216,21 +216,32 @@
    },
    {
     "id": "d",
-    "say": "票要在网上买，要写你的名字。你明天再来吧。",
-    "translate": "Tickets are bought online, with your name on them. Come back another day.",
+    "say": "票要在网上买，要写你的名字。",
+    "translate": "Tickets are bought online, with your name on them.",
     "simpler": "票要在网上买。",
     "onEnter": [
      {
       "do": "flag",
       "flag": "palace-needs-ticket"
+     },
+     {
+      "do": "quest",
+      "quest": "side-palace-ticket",
+      "step": "book"
      }
     ],
-    "why": "A real Beijing rule: the Palace Museum sells tickets online only, booked days ahead in your own name (with your passport). The story comes back to it in chapter 7."
+    "next": "e"
    },
    {
     "id": "c",
     "say": "好。这儿很好看，你看看吧！",
     "translate": "All right. It's beautiful here — have a look around!"
+   },
+   {
+    "id": "e",
+    "say": "你的朋友可以帮你买。",
+    "translate": "A friend can buy one for you.",
+    "why": "A real Beijing rule: the Palace Museum sells tickets online only, booked in your own name with your passport. 王阿姨 books everything on her phone — ask her at home (Journal → Side)."
    }
   ]
  },
