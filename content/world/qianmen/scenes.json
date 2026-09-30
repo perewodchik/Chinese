@@ -1695,6 +1695,7 @@
   "trigger": "talk",
   "once": true,
   "priority": -2,
+  "stamp": "yingzi",
   "when": {
    "all": [
     {

@@ -111,7 +111,7 @@ drum, chapter 2's opening and bridge, chapter 3's opera.
 
 **Cutscenes:** `ch2-open` (第二章 · 水与山) · `c2-yinding` (银锭观山) · `jingshan-view` (景山 · 看故宫) · `memory-2` (回忆 · 后海的冰) · `ch2-finale` (第二章 · 完) · `sub-tt-1-danmaku` (弹幕)
 
-**Books:** 《狐假虎威》 — The old man singing on 景山 gives it to you after he has seen the fox (chapter 2).; 《什刹海》 — The old man fishing at 后海 gives it to you when he tells you about the fox (chapter 2).
+**Books:** 《狐假虎威》 — The old man singing on 景山 gives it to you after he has seen the fox (chapter 2).; 《什刹海》 — The old man fishing at 后海 gives it to you when he tells you about the fox (chapter 2).; 《自行车王国》 — 赵爷爷 on 南锣鼓巷 gives it to you when he says you should have a bike (a side quest, from chapter 2).
 
 ### Substories that open in chapter 2 (1)
 
@@ -119,7 +119,7 @@ drum, chapter 2's opening and bridge, chapter 3's opera.
 |---|---|---|---|
 | **甜甜 goes live** `sub-tt-1` | 甜甜 | 万春亭: always | On 景山's top pavilion at sunset (16:00–20:00), the streamer 甜甜 tells her viewers who built the palace. Is she right? *(late afternoon 16:00–20:00)* |
 
-### Side quests that open in chapter 2 (22)
+### Side quests that open in chapter 2 (23)
 
 | Quest | Who | Starts | Steps |
 |---|---|---|---|
@@ -136,6 +136,7 @@ drum, chapter 2's opening and bridge, chapter 3's opera.
 | **《茶馆》 — don’t talk politics** `side-chaguan` | 喝茶的客人 | 茶馆: chapter ≥ 2 | In 老刘’s teahouse a guest keeps bringing up the news. Mind the notice on the wall — talk about the weather or food. |
 | **《三国演义》 — the storyteller** `side-sanguo` | 说书的先生 | 茶馆: chapter ≥ 2 | The storyteller in 老刘’s teahouse tells one episode a day. Come back on another day for the next. → Hear the second episode at the teahouse. *(on another day)* |
 | **《天官赐福》 — the little shrine** `side-tianguan` | 白先生 | 帽儿胡同: flag met-polan and chapter ≥ 2 | A gentle man in white collects old things with the recycler in 帽儿胡同 in the mornings. *(mornings 7:00–12:00)* → The shrine needs wood, red cloth and incense. Ask friends who like you (two hearts): 张师傅, 王阿姨, 李阿姨. → Come back to the shrine in 帽儿胡同 after dark. *(after dark)* → Find the ever-burning lamp at the ghost market — 潘家园 after eight at night. It's far to the south-east (line 10 to 潘家园); the story itself gets there later, but the market is open to you now. *(after 20:00)* → On the night of 元宵 (the Lantern Festival), bring the lamp to 白先生 at the shrine. *(at 元宵, after dark)* |
+| **A bike of my own** `side-ziche` | 赵爷爷 | 南锣鼓巷: chapter ≥ 2 and not side-ziche started | Buy a bike at the 自行车行 on 鼓楼东大街 (400–480 元) — or ask the recycler in 帽儿胡同 in the morning: he sometimes has an old one. → Show 赵爷爷 your bike — mornings on the 鼓楼 square, in the day on 南锣鼓巷. *(6:00–18:00)* |
 | **Bait for the fisherman** `side-bait` | 钓鱼的爷爷 | 后海: flag heard-fox | The fisherman has run out of bait 鱼饵. The corner shop 小卖部 on 南锣鼓巷 sells it. → Bring the bait to the fisherman at 后海. |
 | **A boat on the lake** `side-boat` | 划船的师傅 | 后海: not flag boat-ride and money ≥ 30 | Take a boat out on 后海 (30 元) — ask the boatman. |
 | **Fishing on 后海** `side-fishing` | 钓鱼的爷爷 | 后海: after bait-give | Once he has his bait, the old fisherman on 后海 asks you to sit with him. |
@@ -235,4 +236,3 @@ drum, chapter 2's opening and bridge, chapter 3's opera.
 | **The diabolo** `side-kongzhu` | 抖空竹的奶奶 | 天坛公园: always | The grandmother in the 天坛 park teaches the 空竹 — do what she says. |
 | **A brush for the scholar** `side-brush` | 老先生 | 国子监: after frog | The old scholar at 国子监 wants a writing brush 毛笔. The bookshop on 王府井 sells them. → Bring the brush to the scholar at 国子监. |
 | **《孔乙己》 — the character 回** `side-kong` | 孔先生 | 国子监: chapter ≥ 4 | An old scholar in the Academy courtyard wants to see you write 回. |
-

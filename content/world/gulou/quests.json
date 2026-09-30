@@ -938,6 +938,7 @@
         "now": "Show 赵爷爷 your bike — mornings on the 鼓楼 square, in the day on 南锣鼓巷.",
         "past": "Showed 赵爷爷 my bike.",
         "where": "nanluo-main",
+        "when": "6:00–18:00",
         "done": {
           "scene": "zhao-bike-show"
         }

@@ -204,7 +204,8 @@ describe('chapter 1, played through the core', () => {
   it('the stone lion keeps still at night until you have heard the rumour, so the quest cannot skip it', () => {
     const night = { ...newSave('d', 0), clock: 20 * 60 };
     assert.equal(sceneFor(scenes, night, { look: 'stone-lion', map: 'gulou-square' })?.id, 'lion-still');
-    const heard = act(night, [{ do: 'flag', flag: 'heard-lion' }]);
+    // the spirit wakes only at its own step (review, 2026-09-30)
+    const heard = { ...act(night, [{ do: 'flag', flag: 'heard-lion' }]), quests: { ch1: { step: 'lion', index: 10, done: false } } };
     assert.equal(sceneFor(scenes, heard, { look: 'stone-lion', map: 'gulou-square' })?.id, 'lion-night');
 
   });

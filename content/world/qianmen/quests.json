@@ -101,7 +101,7 @@
       {
         "id": "find",
         "now": "英子 on 前门 street lost a small yellow camel bell. Ask the old granny in 大栅栏 — old Beijing families kept camel bells. (The antique market at 潘家园 has them too, far to the south-east.)",
-        "past": "Found a little yellow camel bell at 潘家园.",
+        "past": "Found a little yellow camel bell.",
         "where": "dashilar",
         "done": {
           "item": "lingdang"
