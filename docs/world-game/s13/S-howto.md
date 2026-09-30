@@ -67,6 +67,8 @@ In your chapter's quest (`<district>/quests.json`, indent 2):
   `{"all": [<its old condition>, {"not": {"quest": "ch1", "step": "list"}}, …]}`
   (`lantern` and `lion-night` in gulou/scenes.json do this). An old save is
   never at those steps, so nothing changes for it.
+- **The same goes for items.** A save past a new step never got what it gives: a later step (new or old) must not *need* it. If it would, write a second scene for the save without it (S3: `c3-home` gives 王阿姨 the scarf; `c3-home-plain` is the homecoming without one — the golden save `mid-ch3` caught this).
+- **Money for a purchase step:** give a free way for a player who can't pay (S3's `c3-gift-poor`: the shop's giveaway), or the spendthrift solver run fails.
 - A new step's scene is gated on its own step: `"when": {"quest": "chN", "step": "<id>"}`,
   `"once": true`, `"priority": -5` (lowest priority wins, so it beats the
   person's everyday scenes; a shop's generated scene is 4).

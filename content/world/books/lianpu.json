@@ -1,0 +1,65 @@
+{
+  "id": "lianpu",
+  "zh": "脸谱",
+  "en": "Opera faces",
+  "level": 1,
+  "cover": "lianpu/red",
+  "source": "gift",
+  "where": "The owner of the opera house at 前门 gives it to you before the show (chapter 3).",
+  "place": "xiyuan",
+  "facts": [
+    "lianpu-colours"
+  ],
+  "words": [
+    {
+      "w": "京剧",
+      "en": "Beijing opera"
+    },
+    {
+      "w": "脸谱",
+      "en": "opera face paint"
+    },
+    {
+      "w": "脸",
+      "en": "a face"
+    }
+  ],
+  "names": [
+    "关羽",
+    "包公",
+    "曹操",
+    "三国",
+    "北京",
+    "前门"
+  ],
+  "pages": [
+    {
+      "zh": "京剧里有唱歌，也有打。唱京剧的人，脸上画了很多颜色。这叫脸谱。",
+      "en": "Beijing opera has singing, and fighting too. The people who sing it have many colours painted on their faces. This is called 脸谱, the opera face."
+    },
+    {
+      "zh": "你看脸的颜色，就知道他是好人还是坏人。",
+      "en": "Look at the colour of a face, and you know whether he is good or bad."
+    },
+    {
+      "zh": "红色的脸：他很好，对朋友也很好。关羽是红色的脸。",
+      "en": "A red face: he is good, and good to his friends. 关羽 has a red face."
+    },
+    {
+      "zh": "黑色的脸：他很少笑，但是做事很对。包公是黑色的脸。",
+      "en": "A black face: he seldom smiles, but always does what is right. 包公 has a black face."
+    },
+    {
+      "zh": "白色的脸：他很坏，他说的都不是真的。曹操是白色的脸。",
+      "en": "A white face: he is bad, and nothing he says is true. 曹操 has a white face."
+    },
+    {
+      "zh": "所以，你一看脸谱，就知道他是谁了。",
+      "en": "So, one look at the face paint, and you know who he is."
+    }
+  ],
+  "today": {
+    "zh": "今天的北京：在北京，你还可以去看京剧。有的商店也卖脸谱，你可以买一个回家。",
+    "en": "In Beijing today: in Beijing you can still go and see Beijing opera. Some shops sell opera masks too — you can buy one to take home."
+  }
+}

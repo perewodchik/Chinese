@@ -1,0 +1,78 @@
+[
+ {
+  "id": "ch3-open",
+  "map": "wangfujing-street",
+  "chapter": 3,
+  "title": {
+   "zh": "第三章 · 书",
+   "en": "Chapter three · The book"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "on": "wangfujing-street",
+  "auto": {
+   "all": [
+    {
+     "chapter": 3
+    },
+    {
+     "not": {
+      "spirit": "menshen"
+     }
+    }
+   ]
+  },
+  "talk": "wfj-arrive",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     11,
+     50
+    ],
+    "facing": "up"
+   }
+  ],
+  "steps": [
+   {
+    "fade": "in",
+    "ms": 800
+   },
+   {
+    "camera": [
+     11,
+     48
+    ],
+    "ms": 500
+   },
+   {
+    "title": {
+     "zh": "第三章 · 书",
+     "en": "Chapter three · The book"
+    }
+   },
+   {
+    "camera": [
+     11,
+     24
+    ],
+    "ms": 2600
+   },
+   {
+    "camera": [
+     11,
+     8
+    ],
+    "ms": 1800
+   },
+   {
+    "say": "rabbit",
+    "en": "王府井 — shops as old as the city, and a bookshop. Spirits love old books. Achoo… that 景山 wind."
+   },
+   {
+    "camera": "hero",
+    "ms": 1400
+   }
+  ]
+ }
+]

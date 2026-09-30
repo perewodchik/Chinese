@@ -1,0 +1,296 @@
+[
+ {
+  "id": "c3-jingju",
+  "map": "xiyuan",
+  "chapter": 3,
+  "title": {
+   "zh": "京剧 · 关羽",
+   "en": "Beijing opera · 关羽"
+  },
+  "letterbox": true,
+  "music": "hush",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     7,
+     8
+    ],
+    "facing": "up"
+   },
+   {
+    "actor": "jingju-yanyuan",
+    "at": [
+     8,
+     4
+    ],
+    "facing": "down"
+   },
+   {
+    "actor": "xiyuan-laoban",
+    "at": [
+     12,
+     8
+    ],
+    "facing": "up"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     8,
+     5
+    ],
+    "ms": 800
+   },
+   {
+    "sound": "gong"
+   },
+   {
+    "wait": 500
+   },
+   {
+    "emote": "jingju-yanyuan",
+    "kind": "proud"
+   },
+   {
+    "say": "jingju-yanyuan",
+    "zh": "我是关羽！",
+    "en": "I am 关羽!"
+   },
+   {
+    "together": [
+     {
+      "sound": "drum"
+     },
+     {
+      "move": "jingju-yanyuan",
+      "to": [
+       5,
+       4
+      ]
+     }
+    ]
+   },
+   {
+    "together": [
+     {
+      "sound": "drum"
+     },
+     {
+      "move": "jingju-yanyuan",
+      "to": [
+       11,
+       4
+      ]
+     }
+    ]
+   },
+   {
+    "together": [
+     {
+      "sound": "gong"
+     },
+     {
+      "fx": "sparkle",
+      "at": [
+       11,
+       4
+      ],
+      "n": 10
+     }
+    ]
+   },
+   {
+    "say": "jingju-yanyuan",
+    "zh": "朋友有事，我就来！",
+    "en": "When a friend is in need, I will come!"
+   },
+   {
+    "move": "jingju-yanyuan",
+    "to": [
+     8,
+     4
+    ]
+   },
+   {
+    "sound": "gong"
+   },
+   {
+    "say": "xiyuan-laoban",
+    "zh": "好！",
+    "en": "Bravo!"
+   },
+   {
+    "say": "rabbit",
+    "en": "A red face: loyal to his friends. Now you'll never forget which colour 关羽 wears."
+   }
+  ],
+  "then": [
+   {
+    "do": "flag",
+    "flag": "c3-saw-jingju"
+   }
+  ]
+ },
+ {
+  "id": "memory-3",
+  "map": "siheyuan-yard",
+  "chapter": 3,
+  "title": {
+   "zh": "回忆 · 爸爸的门神",
+   "en": "A memory · Father's door gods"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "auto": {
+   "all": [
+    {
+     "spirit": "menshen"
+    },
+    {
+     "flag": "lantern-broken"
+    }
+   ]
+  },
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     7,
+     10
+    ],
+    "facing": "up"
+   },
+   {
+    "actor": "wang-ayi",
+    "at": [
+     11,
+     7
+    ],
+    "facing": "left"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     5,
+     7
+    ],
+    "ms": 900
+   },
+   {
+    "together": [
+     {
+      "move": "wang-ayi",
+      "to": [
+       5,
+       7
+      ]
+     },
+     {
+      "move": "hero",
+      "to": [
+       6,
+       8
+      ]
+     }
+    ]
+   },
+   {
+    "face": "wang-ayi",
+    "dir": "up"
+   },
+   {
+    "together": [
+     {
+      "fx": "sparkle",
+      "at": [
+       4,
+       6
+      ],
+      "n": 14
+     },
+     {
+      "sound": "bell"
+     }
+    ]
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "门神也回来了！",
+    "en": "The door gods are back too!"
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "我小的时候，爸爸画门神。",
+    "en": "When I was little, Dad painted the door gods."
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "他说：你看我，我看你。",
+    "en": "He said: you look at me, I look at you."
+   },
+   {
+    "say": "rabbit",
+    "en": "Three figures home: the lion, the fox, the door gods. The lantern is starting to glow again."
+   }
+  ]
+ },
+ {
+  "id": "ch3-finale",
+  "map": "siheyuan-yard",
+  "chapter": 3,
+  "finale": true,
+  "title": {
+   "zh": "第三章 · 完",
+   "en": "End of chapter three"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     7,
+     10
+    ],
+    "facing": "up"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     5,
+     7
+    ],
+    "ms": 900
+   },
+   {
+    "fx": "lanterns-rise",
+    "at": [
+     5,
+     7
+    ],
+    "n": 6
+   },
+   {
+    "wait": 1200
+   },
+   {
+    "title": {
+     "zh": "第三章 · 完",
+     "en": "End of chapter three · The book"
+    }
+   },
+   {
+    "say": "rabbit",
+    "en": "Books, a scarf, an opera, two door gods facing each other. Not bad for a rabbit with a cold."
+   },
+   {
+    "say": "rabbit",
+    "en": "Next: 天坛, where the emperors prayed — and a wall that whispers."
+   }
+  ]
+ }
+]

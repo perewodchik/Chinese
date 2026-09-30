@@ -13,5 +13,14 @@
     "en": "an opera mask",
     "kind": "decor",
     "price": 30
+  },
+  {
+    "id": "tangzhuang",
+    "name": "唐装",
+    "en": "a Chinese jacket 瑞蚨祥 lent you for the opera",
+    "kind": "key",
+    "verbs": [
+      "look"
+    ]
   }
 ]

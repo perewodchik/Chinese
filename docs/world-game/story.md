@@ -135,9 +135,9 @@ are §13 B1's list. Each chapter: one opening and one finale cutscene (K3),
 ### 3 书 · The book (王府井 · 前门 · 大栅栏) — *shopping, money, 京剧, door gods*
 | | |
 |---|---|
-| Route | station-wangfujing → wangfujing-street → yinhang (change money) → baihuo-1/2 (a gift for 王阿姨) → shudian (成语 book + 《门神》 + 《脸谱》) → *小吃街* → yaodian (兔儿爷's cold from the 景山 wind: 发烧, 咳嗽) → station-qianmen → qianmen-street (铛铛车) → ruifuxiang (an outfit for opera night — lent free if you can't pay) → neiliansheng → xiyuan (the 京剧 show) → the 门神 repainted facing each other |
+| Route | **as built in S3 — 12 steps of `ch3`:** go (opening `ch3-open`, then 人山人海) → money (the bank) → *gift* (百货大楼: a red scarf for 王阿姨 — who it's for, what colour) → book (the 成语 book) → *cold* (药店: 兔儿爷 has 发烧 and 咳嗽 — 「多喝热水！」) → qianmen (the actor: the door gods have lost their colour) → *lianpu-book* (the owner invites you to tonight's show; 《脸谱》) → *outfit* (瑞蚨祥 lends a 唐装, free) → *show* (「关羽是什么颜色的脸谱？」 — book p. 3 — then the 京剧 cutscene `c3-jingju`) → red-paper (the bookshop, now with 《门神》) → menshen (the door gods ask how to stand: 面对面, book p. 6; 画蛇添足) → *home* (the scarf for 王阿姨; she remembers her father painting 门神; `memory-3`, finale `ch3-finale`) |
 | Culture | 王府井 and old shop names (老字号); 京剧 faces; door gods at 春节 |
-| Books | 6 《门神》 (秦琼 and 尉迟恭 face each other — the step needs it), 7 《脸谱》 |
+| Books | 6 《门神》 (from the bookshop with the red paper: 唐太宗, 秦琼 and 尉迟恭; the step needs them face to face), 7 《脸谱》 (from the opera owner: red 关羽, black 包公, white 曹操) |
 | 成语 | 人山人海, 画蛇添足 |
 | Spirit | 门神 |
 | Cutscenes | opening · the 京剧 show · 门神 repainted · spirit-return · memory 3 · finale |

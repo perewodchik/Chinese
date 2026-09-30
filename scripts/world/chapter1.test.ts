@@ -326,7 +326,7 @@ describe('chapter 2, played through the core', () => {
 });
 
 describe('chapter 3, played through the core', () => {
-  it('王府井: the bank, the 成语 book; 前门: the opera, the door gods', () => {
+  it('王府井: the bank, a scarf, the 成语 book, the cold; 前门: 《脸谱》, 瑞蚨祥, the opera, 《门神》, the door gods face to face; home (§13 S3)', () => {
     let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 3 }, { do: 'quest', quest: 'ch3', step: 'go' }]);
     const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'ch3')?.step.id;
     s = play(s, 'wfj-arrive').save;
@@ -334,22 +334,42 @@ describe('chapter 3, played through the core', () => {
     assert.equal(at(), 'money');
     s = play(s, 'bank').save;
     assert.equal(s.bag.money, 900);
+    assert.equal(at(), 'gift');
+    s = play(s, 'c3-gift').save;
+    assert.equal(s.bag.items.weijin, 1);
+    assert.equal(s.bag.money, 850);
     assert.equal(at(), 'book');
     s = play(s, 'book').save;
     assert.ok(s.flags.includes('idiom-book'));
+    assert.equal(at(), 'cold');
+    assert.equal(sceneFor(scenes, s, { npc: 'yaoshi' })?.id, 'c3-cold');
+    s = play(s, 'c3-cold').save;
     assert.equal(at(), 'qianmen');
     s = play(s, 'qm-arrive').save;
     s = play(s, 'opera').save;
+    assert.equal(at(), 'lianpu-book');
+    s = play(s, 'c3-owner-book').save;
+    assert.ok(s.books.lianpu);
+    assert.equal(at(), 'outfit');
+    s = play(s, 'c3-outfit').save;
+    assert.equal(s.bag.items.tangzhuang, 1);
+    assert.equal(at(), 'show');
+    assert.equal(sceneFor(scenes, s, { npc: 'xiyuan-laoban' })?.id, 'c3-show');
+    s = play(s, 'c3-show').save;
+    assert.equal(Math.floor(s.clock / 60) % 24, 19);
     assert.equal(at(), 'red-paper');
-    assert.equal(sceneFor(scenes, s, { look: 'door-gods', map: 'qianmen-street' })?.id, 'menshen-ask');
-    assert.equal(sceneFor(scenes, s, { npc: 'shudian-ayi' })?.id, 'red-paper');
-    s = play(s, 'red-paper').save;
+    assert.equal(sceneFor(scenes, s, { npc: 'shudian-ayi' })?.id, 'c3-red-paper');
+    s = play(s, 'c3-red-paper').save;
+    assert.ok(s.books.menshen);
     assert.equal(at(), 'menshen');
-    assert.equal(sceneFor(scenes, s, { look: 'door-gods', map: 'qianmen-street' })?.id, 'menshen-give');
-    s = play(s, 'menshen-give').save;
+    assert.equal(sceneFor(scenes, s, { look: 'door-gods', map: 'qianmen-street' })?.id, 'c3-menshen-face');
+    s = play(s, 'c3-menshen-face').save;
     assert.ok('menshen' in s.spirits);
     assert.ok('画蛇添足' in s.idioms);
     assert.equal(s.bag.items.hongzhi ?? 0, 0);
+    assert.equal(at(), 'home');
+    assert.equal(sceneFor(scenes, s, { npc: 'wang-ayi' })?.id, 'c3-home');
+    s = play(s, 'c3-home').save;
     assert.equal(s.quests.ch3?.done, true);
     assert.equal(s.chapter, 4);
   });

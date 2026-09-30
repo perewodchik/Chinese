@@ -548,5 +548,419 @@
    }
   ],
   "priority": 5
+ },
+ {
+  "id": "c3-gift",
+  "map": "baihuo-1",
+  "npc": "baihuo-jiejie",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "all": [
+    {
+     "quest": "ch3",
+     "step": "gift"
+    },
+    {
+     "money": 50
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "围巾",
+    "explain": "天冷的时候，放在脖子上的长东西。",
+    "en": "scarf"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你想买什么？",
+    "translate": "Hello! What would you like?",
+    "expect": [
+     {
+      "intent": "gift",
+      "match": [
+       [
+        "送",
+        "阿姨",
+        "东西",
+        "围巾"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "送",
+     "frame": "我想买一个东西，___给王阿姨。",
+     "full": "我想买一个东西，送给王阿姨。"
+    },
+    "why": "送给 — to give (as a present) to."
+   },
+   {
+    "id": "b",
+    "say": "给阿姨的？她喜欢什么颜色？",
+    "translate": "For an auntie? What colour does she like?",
+    "expect": [
+     {
+      "intent": "colour",
+      "match": [
+       [
+        "红",
+        "白",
+        "黑",
+        "绿",
+        "黄",
+        "蓝",
+        "颜色"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "红色",
+     "frame": "她喜欢___。",
+     "full": "她喜欢红色。"
+    }
+   },
+   {
+    "id": "c",
+    "say": "红色的围巾很好看，五十块。你要吗？",
+    "translate": "A red scarf is lovely — fifty yuan. Would you like it?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "要",
+        "好",
+        "买"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "要",
+     "frame": "好，我___。",
+     "full": "好，我要。"
+    },
+    "why": "围巾 — a scarf. The measure word for long things is 条: 一条围巾."
+   },
+   {
+    "id": "d",
+    "say": "好！围巾给你。阿姨会很高兴！",
+    "translate": "Here you are — your scarf. She'll be very happy!",
+    "onEnter": [
+     {
+      "do": "money",
+      "amount": -50
+     },
+     {
+      "do": "give",
+      "item": "weijin"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c3-cold",
+  "map": "yaodian",
+  "npc": "yaoshi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch3",
+   "step": "cold"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "发烧",
+    "explain": "身体很热，不舒服。",
+    "en": "to have a fever"
+   },
+   {
+    "w": "咳嗽",
+    "explain": "嗓子不舒服，咳咳咳。",
+    "en": "to cough"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你怎么了？",
+    "translate": "Hello! What's the matter?",
+    "expect": [
+     {
+      "intent": "friend",
+      "match": [
+       [
+        "不是我",
+        "朋友",
+        "兔"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "朋友",
+     "frame": "不是我，是我的___。",
+     "full": "不是我，是我的朋友。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "你的朋友怎么了？发烧吗？咳嗽吗？",
+    "translate": "What's wrong with your friend? A fever? A cough?",
+    "key": true,
+    "simpler": "发烧吗？咳嗽吗？",
+    "expect": [
+     {
+      "intent": "symptoms",
+      "match": [
+       [
+        "发烧",
+        "咳嗽"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "发烧",
+     "frame": "他___，也咳嗽。",
+     "full": "他发烧，也咳嗽。"
+    },
+    "why": "A key line 📌: 发烧 a fever, 咳嗽 a cough. The two words you most need at a Chinese pharmacy."
+   },
+   {
+    "id": "c",
+    "say": "发烧，咳嗽……他要多喝热水，多休息！",
+    "translate": "A fever, a cough… he should drink lots of hot water and rest!",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "c3-cold"
+     },
+     {
+      "do": "solve",
+      "riddle": "c3-cold/b"
+     }
+    ],
+    "next": "d",
+    "why": "多喝热水 — “drink more hot water” — is what every Chinese doctor, mother and friend says."
+   },
+   {
+    "id": "d",
+    "say": "Hot water? I'm made of clay!",
+    "translate": "兔儿爷, sniffing.",
+    "speaker": "companion"
+   }
+  ]
+ },
+ {
+  "id": "c3-red-paper",
+  "map": "shudian",
+  "npc": "shudian-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "all": [
+    {
+     "quest": "ch3",
+     "step": "red-paper"
+    },
+    {
+     "money": 5
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "红纸",
+    "explain": "红色的纸。",
+    "en": "red paper"
+   },
+   {
+    "w": "门神",
+    "explain": "门上画的两个人。",
+    "en": "door gods"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你要什么？",
+    "translate": "Hello! What would you like?",
+    "expect": [
+     {
+      "intent": "paper",
+      "match": [
+       [
+        "红纸"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "红纸",
+     "frame": "我要___。",
+     "full": "我要红纸。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "红纸？五块。你要画门神吗？",
+    "translate": "Red paper? Five yuan. Are you going to paint door gods?",
+    "onEnter": [
+     {
+      "do": "money",
+      "amount": -5
+     },
+     {
+      "do": "give",
+      "item": "hongzhi"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "是",
+        "对",
+        "要",
+        "画"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "是",
+     "frame": "___，我要画门神。",
+     "full": "是，我要画门神。"
+    }
+   },
+   {
+    "id": "c",
+    "say": "门神有两个，要画对！这本书给你看看。",
+    "translate": "There are two door gods — paint them right! Have a look at this book.",
+    "onEnter": [
+     {
+      "do": "book",
+      "id": "menshen"
+     },
+     {
+      "do": "flag",
+      "flag": "c3-menshen-book"
+     }
+    ],
+    "why": "She gives you 《门神》. Page 6: how must the two stand?"
+   }
+  ]
+ },
+ {
+  "id": "c3-gift-poor",
+  "map": "baihuo-1",
+  "npc": "baihuo-jiejie",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "all": [
+    {
+     "quest": "ch3",
+     "step": "gift"
+    },
+    {
+     "not": {
+      "money": 50
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "围巾",
+    "explain": "天冷的时候，放在脖子上的长东西。",
+    "en": "scarf"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你想买什么？",
+    "translate": "Hello! What would you like?",
+    "expect": [
+     {
+      "intent": "gift",
+      "match": [
+       [
+        "送",
+        "阿姨",
+        "东西",
+        "围巾"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "送",
+     "frame": "我想买一个东西，___给王阿姨。",
+     "full": "我想买一个东西，送给王阿姨。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "给阿姨的？她喜欢红色吗？",
+    "translate": "For an auntie? Does she like red?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "喜欢",
+        "红",
+        "是",
+        "对"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "喜欢",
+     "frame": "她很___红色。",
+     "full": "她很喜欢红色。"
+    }
+   },
+   {
+    "id": "c",
+    "say": "没关系！今天有小围巾，不要钱。这个小围巾给你！",
+    "translate": "Never mind! Today there are little scarves for free. This little scarf is yours!",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "weijin"
+     }
+    ],
+    "why": "送 — here, a free gift from the shop."
+   }
+  ]
  }
 ]

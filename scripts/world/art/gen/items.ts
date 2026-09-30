@@ -83,6 +83,17 @@ export const ITEM_SPRITES: Record<string, () => Grid> = {
       f.set(10, 4, 'k').set(13, 4, 'k').hline(11, 6, 2, 'r').set(9, 2, 'o').set(14, 2, 'o');
       f.hline(1, 9, 2, 'o').set(0, 8, 'k');
     }),
+  weijin: () =>
+    sprite((f) => {
+      f.rect(2, 3, 12, 4, 'r').rect(9, 7, 4, 7, 'r').hline(2, 5, 12, 'R').vline(11, 7, 7, 'R');
+      for (const x of [9, 11]) f.set(x, 14, 'y');
+    }),
+  tangzhuang: () =>
+    sprite((f) => {
+      f.rect(3, 3, 10, 11, 'B').rect(1, 4, 2, 7, 'B').rect(13, 4, 2, 7, 'B').vline(8, 3, 11, 'y');
+      for (const y of [5, 8, 11]) f.hline(7, y, 3, 'y');
+      f.hline(6, 2, 4, 'B');
+    }),
   huzhao: () =>
     sprite((f) => {
       f.rect(3, 1, 10, 14, 'q').vline(12, 1, 14, 'R').vline(3, 1, 14, 'R');

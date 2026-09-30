@@ -1,0 +1,79 @@
+{
+  "id": "menshen",
+  "zh": "门神",
+  "en": "The door gods",
+  "level": 1,
+  "cover": "door-gods/bright",
+  "source": "gift",
+  "where": "The woman at the bookshop on 王府井 gives it to you with the red paper (chapter 3).",
+  "place": "qianmen-street",
+  "facts": [
+    "menshen-generals",
+    "menshen-face"
+  ],
+  "words": [
+    {
+      "w": "门神",
+      "en": "door gods — the two guardians painted on a gate"
+    },
+    {
+      "w": "皇帝",
+      "en": "an emperor"
+    },
+    {
+      "w": "鬼",
+      "en": "a ghost"
+    },
+    {
+      "w": "将军",
+      "en": "a general"
+    },
+    {
+      "w": "面对面",
+      "en": "face to face"
+    }
+  ],
+  "names": [
+    "唐太宗",
+    "秦琼",
+    "尉迟恭",
+    "春节",
+    "北京",
+    "胡同"
+  ],
+  "pages": [
+    {
+      "zh": "过年的时候，北京很多家的大门上，有两个画的人。他们叫门神。",
+      "en": "At New Year, on the big front doors of many Beijing homes, there are two painted men. They are called door gods.",
+      "pic": "figures/menshen"
+    },
+    {
+      "zh": "很多很多年前，有一个皇帝，叫唐太宗。他晚上睡不好，说门外有鬼。",
+      "en": "Many, many years ago there was an emperor called 唐太宗. He couldn't sleep at night; he said there were ghosts outside the door."
+    },
+    {
+      "zh": "他的两个将军，秦琼和尉迟恭，晚上站在他的门口。皇帝就睡得很好。",
+      "en": "His two generals, 秦琼 and 尉迟恭, stood at his door at night. Then the emperor slept well."
+    },
+    {
+      "zh": "但是，将军们也要睡觉。所以皇帝让人画了他们，画在门上。",
+      "en": "But the generals needed to sleep too. So the emperor had them painted — painted on the doors."
+    },
+    {
+      "zh": "画好了，门外没有鬼了。人们也在自己家的门上画他们。",
+      "en": "Once they were painted, there were no more ghosts outside the door. And people painted them on their own doors too."
+    },
+    {
+      "zh": "门神有两个，一个在左边，一个在右边。他们要面对面，你看我，我看你。",
+      "en": "There are two door gods, one on the left and one on the right. They must be face to face — you look at me, I look at you."
+    },
+    {
+      "zh": "人们说，两个门神面对面，一起看着大门，家就好。",
+      "en": "People say: when the two door gods face each other and watch the door together, all is well at home."
+    }
+  ],
+  "today": {
+    "zh": "今天的北京：春节的时候，你走在胡同里，还能看见门上的门神。你看看，他们是不是面对面？",
+    "en": "In Beijing today: at Spring Festival, walking through the hutongs, you can still see door gods on the doors. Have a look — are they face to face?"
+  }
+}

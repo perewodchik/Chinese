@@ -52,5 +52,13 @@
     "en": "a writing brush",
     "kind": "tool",
     "price": 20
+  },
+  {
+    "id": "weijin",
+    "name": "围巾",
+    "en": "a red scarf — a present for 王阿姨",
+    "gift": true,
+    "kind": "gift",
+    "price": 50
   }
 ]

@@ -24,12 +24,30 @@
         }
       },
       {
+        "id": "gift",
+        "now": "A present for 王阿姨, who has been so kind: the department store 百货大楼 on 王府井 has scarves. Tell the shop assistant who it's for and what colour she likes.",
+        "past": "Bought a red scarf for 王阿姨 at 百货大楼.",
+        "where": "baihuo-1",
+        "done": {
+          "item": "weijin"
+        }
+      },
+      {
         "id": "book",
-        "now": "Find a book of 成语 at the bookshop 新华书店 — 兔儿爷 wants to write down the ones you've heard.",
+        "now": "Find a book of 成语 at the bookshop 新华书店, north on 王府井 — 兔儿爷 wants to write down the ones you've heard.",
         "past": "Found a book of 成语 at 新华书店 — now they have a home.",
         "where": "shudian",
         "done": {
           "flag": "idiom-book"
+        }
+      },
+      {
+        "id": "cold",
+        "now": "兔儿爷 is sneezing — he caught a cold in the wind on 景山! Tell the doctor at the pharmacy 药店 what's wrong with him: 发烧, 咳嗽.",
+        "past": "Told the pharmacist 兔儿爷 had a fever and a cough. “多喝热水！”",
+        "where": "yaodian",
+        "done": {
+          "flag": "c3-cold"
         }
       },
       {
@@ -39,6 +57,34 @@
         "where": "xiyuan",
         "done": {
           "flag": "heard-menshen"
+        }
+      },
+      {
+        "id": "lianpu-book",
+        "now": "The owner of the opera house 戏园 has an invitation for you.",
+        "past": "The opera house owner invited me to tonight's show and gave me 《脸谱》.",
+        "where": "xiyuan",
+        "done": {
+          "flag": "c3-lianpu-book"
+        }
+      },
+      {
+        "id": "outfit",
+        "now": "“Wear something nice to the opera.” The silk shop 瑞蚨祥 in 大栅栏 lends clothes — tell the woman there where you're going.",
+        "past": "瑞蚨祥 lent me a Chinese jacket for the opera.",
+        "where": "ruifuxiang",
+        "done": {
+          "item": "tangzhuang"
+        }
+      },
+      {
+        "id": "show",
+        "now": "Go back to the opera house for the show. The owner will ask you something from 《脸谱》 (page 3).",
+        "past": "Watched 京剧 at 前门 — 关羽, the red face.",
+        "where": "xiyuan",
+        "onDone": "c3-jingju",
+        "done": {
+          "flag": "c3-saw-jingju"
         }
       },
       {
@@ -59,11 +105,21 @@
       },
       {
         "id": "menshen",
-        "now": "Take the red paper to the old gate in 大栅栏, at the east end of 前门大街.",
+        "now": "Take the red paper to the old gate at the south end of 前门大街. The door gods will ask how they should stand — 《门神》 page 6.",
         "past": "Brought red paper to the old gate in 大栅栏 — the door gods woke up.",
         "where": "qianmen-street",
         "done": {
           "spirit": "menshen"
+        }
+      },
+      {
+        "id": "home",
+        "now": "Take 王阿姨 her present and tell her about the door gods.",
+        "past": "Gave 王阿姨 her red scarf and told her about the door gods.",
+        "where": "siheyuan-yard",
+        "onDone": "ch3-finale",
+        "done": {
+          "flag": "c3-gift-given"
         }
       }
     ],

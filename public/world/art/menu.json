@@ -840,7 +840,7 @@
     "h": 16
    }
   },
-  "item/tongqian": {
+  "item/tangzhuang": {
    "frame": {
     "x": 205,
     "y": 18,
@@ -860,7 +860,7 @@
     "h": 16
    }
   },
-  "item/water": {
+  "item/tongqian": {
    "frame": {
     "x": 222,
     "y": 18,
@@ -880,7 +880,7 @@
     "h": 16
    }
   },
-  "item/xiang": {
+  "item/water": {
    "frame": {
     "x": 239,
     "y": 18,
@@ -900,7 +900,7 @@
     "h": 16
    }
   },
-  "item/xiaoyu": {
+  "item/weijin": {
    "frame": {
     "x": 256,
     "y": 18,
@@ -920,7 +920,7 @@
     "h": 16
    }
   },
-  "item/xiaoyugan": {
+  "item/xiang": {
    "frame": {
     "x": 273,
     "y": 18,
@@ -940,7 +940,7 @@
     "h": 16
    }
   },
-  "item/yaoshi": {
+  "item/xiaoyu": {
    "frame": {
     "x": 290,
     "y": 18,
@@ -960,7 +960,7 @@
     "h": 16
    }
   },
-  "item/youtiao": {
+  "item/xiaoyugan": {
    "frame": {
     "x": 307,
     "y": 18,
@@ -980,7 +980,7 @@
     "h": 16
    }
   },
-  "item/yuanxiao": {
+  "item/yaoshi": {
    "frame": {
     "x": 324,
     "y": 18,
@@ -1000,7 +1000,7 @@
     "h": 16
    }
   },
-  "item/yuebing": {
+  "item/youtiao": {
    "frame": {
     "x": 341,
     "y": 18,
@@ -1020,7 +1020,7 @@
     "h": 16
    }
   },
-  "item/yuer": {
+  "item/yuanxiao": {
    "frame": {
     "x": 358,
     "y": 18,
@@ -1040,7 +1040,7 @@
     "h": 16
    }
   },
-  "item/yusan": {
+  "item/yuebing": {
    "frame": {
     "x": 375,
     "y": 18,
@@ -1060,7 +1060,7 @@
     "h": 16
    }
   },
-  "item/zhugan": {
+  "item/yuer": {
    "frame": {
     "x": 392,
     "y": 18,
@@ -1080,7 +1080,7 @@
     "h": 16
    }
   },
-  "item/zongzi": {
+  "item/yusan": {
    "frame": {
     "x": 409,
     "y": 18,
@@ -1100,7 +1100,7 @@
     "h": 16
    }
   },
-  "ui/bag": {
+  "item/zhugan": {
    "frame": {
     "x": 426,
     "y": 18,
@@ -1120,7 +1120,7 @@
     "h": 16
    }
   },
-  "ui/camera": {
+  "item/zongzi": {
    "frame": {
     "x": 443,
     "y": 18,
@@ -1140,7 +1140,7 @@
     "h": 16
    }
   },
-  "ui/card": {
+  "ui/bag": {
    "frame": {
     "x": 460,
     "y": 18,
@@ -1160,7 +1160,7 @@
     "h": 16
    }
   },
-  "ui/clothes": {
+  "ui/camera": {
    "frame": {
     "x": 477,
     "y": 18,
@@ -1180,7 +1180,7 @@
     "h": 16
    }
   },
-  "ui/coin": {
+  "ui/card": {
    "frame": {
     "x": 494,
     "y": 18,
@@ -1200,7 +1200,7 @@
     "h": 16
    }
   },
-  "ui/collection": {
+  "ui/clothes": {
    "frame": {
     "x": 1,
     "y": 35,
@@ -1220,7 +1220,7 @@
     "h": 16
    }
   },
-  "ui/gift": {
+  "ui/coin": {
    "frame": {
     "x": 18,
     "y": 35,
@@ -1240,7 +1240,7 @@
     "h": 16
    }
   },
-  "ui/journal": {
+  "ui/collection": {
    "frame": {
     "x": 35,
     "y": 35,
@@ -1260,7 +1260,7 @@
     "h": 16
    }
   },
-  "ui/map": {
+  "ui/gift": {
    "frame": {
     "x": 52,
     "y": 35,
@@ -1280,7 +1280,7 @@
     "h": 16
    }
   },
-  "ui/people": {
+  "ui/journal": {
    "frame": {
     "x": 69,
     "y": 35,
@@ -1300,9 +1300,49 @@
     "h": 16
    }
   },
-  "ui/seal": {
+  "ui/map": {
    "frame": {
     "x": 86,
+    "y": 35,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "ui/people": {
+   "frame": {
+    "x": 103,
+    "y": 35,
+    "w": 16,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   }
+  },
+  "ui/seal": {
+   "frame": {
+    "x": 120,
     "y": 35,
     "w": 16,
     "h": 16

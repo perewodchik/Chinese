@@ -82,6 +82,8 @@ describe('the golden saves', () => {
       assert.ok(r.ok, r.ok ? '' : r.message);
       const s = reindexQuests(r.save, quests);
       for (const [id, st] of Object.entries(raw.quests)) {
+        // a finished quest stays finished (on the content's last step); one under way keeps its step
+        if (st.done) { assert.equal(s.quests[id]!.done, true, `${f}: ${id}`); continue; }
         assert.equal(s.quests[id]!.step, st.step, `${f}: ${id}`);
         const q = quests.find((x) => x.id === id)!;
         if (!st.done) assert.equal(s.quests[id]!.index, q.steps.findIndex((x) => x.id === st.step), `${f}: ${id}`);

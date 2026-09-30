@@ -194,6 +194,60 @@
      "not": {
       "spirit": "menshen"
      }
+    },
+    {
+     "not": {
+      "quest": "ch3",
+      "step": "go"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch3",
+      "step": "money"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch3",
+      "step": "gift"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch3",
+      "step": "book"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch3",
+      "step": "cold"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch3",
+      "step": "qianmen"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch3",
+      "step": "lianpu-book"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch3",
+      "step": "outfit"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch3",
+      "step": "show"
+     }
     }
    ]
   },
@@ -1125,6 +1179,562 @@
      {
       "do": "quest_done",
       "quest": "side-nezha"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c3-owner-book",
+  "map": "xiyuan",
+  "npc": "xiyuan-laoban",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch3",
+   "step": "lianpu-book"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "京剧",
+    "explain": "北京的老戏，有唱歌，有脸谱。",
+    "en": "Beijing opera"
+   },
+   {
+    "w": "脸谱",
+    "explain": "京剧里脸上画的颜色。",
+    "en": "opera face paint"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "请坐，请喝茶！你是来看京剧的吗？",
+    "translate": "Please sit, have some tea! Have you come to see the opera?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "是",
+        "对",
+        "看",
+        "想"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "是",
+     "frame": "___，我想看京剧。",
+     "full": "是，我想看京剧。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好！今天晚上七点有京剧，我请你看！穿好看一点的衣服来。",
+    "translate": "Good! There's a show at seven tonight — my treat! Come in something nice.",
+    "next": "c",
+    "why": "我请你 — “it's on me”, “I invite you”."
+   },
+   {
+    "id": "c",
+    "say": "脸谱是什么？你看看这本书，是说脸谱的。",
+    "translate": "What's 脸谱? Have a look at this book — it's about the face paint.",
+    "onEnter": [
+     {
+      "do": "book",
+      "id": "lianpu"
+     },
+     {
+      "do": "flag",
+      "flag": "c3-lianpu-book"
+     }
+    ],
+    "why": "He gives you 《脸谱》: the colours of the opera faces."
+   }
+  ]
+ },
+ {
+  "id": "c3-outfit",
+  "map": "ruifuxiang",
+  "npc": "ruifuxiang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch3",
+   "step": "outfit"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "唐装",
+    "explain": "中国的老衣服，有很好看的扣子。",
+    "en": "a Chinese jacket"
+   },
+   {
+    "w": "借",
+    "explain": "给你用，用完了还回来。",
+    "en": "to lend"
+   },
+   {
+    "w": "京剧",
+    "explain": "北京的老戏，有唱歌，有脸谱。",
+    "en": "Beijing opera"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你要买衣服吗？",
+    "translate": "Hello! Looking for clothes?",
+    "expect": [
+     {
+      "intent": "opera",
+      "match": [
+       [
+        "京剧",
+        "晚上",
+        "看戏"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "京剧",
+     "frame": "今天晚上我去看___。",
+     "full": "今天晚上我去看京剧。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "看京剧？穿这件唐装吧。借给你，不要钱！",
+    "translate": "The opera? Wear this Chinese jacket. I'll lend it to you — no charge!",
+    "expect": [
+     {
+      "intent": "thanks",
+      "match": [
+       [
+        "谢谢",
+        "好",
+        "太好了"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "谢谢",
+     "frame": "___阿姨！",
+     "full": "谢谢阿姨！"
+    }
+   },
+   {
+    "id": "c",
+    "say": "不客气！唐装借你穿，明天拿来吧。",
+    "translate": "You're welcome! Wear the jacket tonight — bring it back tomorrow.",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "tangzhuang"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c3-show",
+  "map": "xiyuan",
+  "npc": "xiyuan-laoban",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "all": [
+    {
+     "quest": "ch3",
+     "step": "show"
+    },
+    {
+     "item": "tangzhuang"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "脸谱",
+    "explain": "京剧里脸上画的颜色。",
+    "en": "opera face paint"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你来了！你的衣服真好看。",
+    "translate": "You came! Your jacket looks wonderful.",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "今天唱的是关羽。你知道吗，他是什么颜色的脸谱？",
+    "translate": "Tonight's is about 关羽. Do you know what colour his face is?",
+    "key": true,
+    "simpler": "关羽的脸谱是什么颜色？",
+    "expect": [
+     {
+      "intent": "red",
+      "match": [
+       [
+        "红"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "红色",
+     "frame": "___的脸谱。",
+     "full": "红色的脸谱。"
+    },
+    "why": "It's in 《脸谱》, page 3: 红色的脸 — a good man, loyal to his friends. 关羽 is the red face."
+   },
+   {
+    "id": "c",
+    "say": "对！红色的脸谱，是好人。七点了，我们看吧！",
+    "translate": "Right! A red face is a good man. It's seven — let's watch!",
+    "onEnter": [
+     {
+      "do": "solve",
+      "riddle": "c3-show/b"
+     },
+     {
+      "do": "wait",
+      "until": 19
+     },
+     {
+      "do": "flag",
+      "flag": "c3-saw-jingju"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c3-menshen-face",
+  "map": "qianmen-street",
+  "object": "door-gods",
+  "trigger": "look",
+  "priority": -5,
+  "stamp": "menshen",
+  "when": {
+   "all": [
+    {
+     "item": "hongzhi"
+    },
+    {
+     "not": {
+      "spirit": "menshen"
+     }
+    },
+    {
+     "quest": "ch3",
+     "step": "menshen"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "红纸",
+    "explain": "红色的纸。",
+    "en": "red paper"
+   },
+   {
+    "w": "面对面",
+    "explain": "你看我，我看你。",
+    "en": "face to face"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你有红纸？红纸给我们吧！",
+    "translate": "You've got red paper? Give the red paper to us!",
+    "speaker": "menshen",
+    "expect": [
+     {
+      "intent": "give",
+      "match": [
+       [
+        "给",
+        "好",
+        "这是",
+        "红纸",
+        "行"
+       ]
+      ],
+      "go": "b",
+      "actions": [
+       {
+        "do": "take",
+        "item": "hongzhi"
+       }
+      ]
+     }
+    ],
+    "hint": {
+     "word": "给",
+     "frame": "好，___你们。",
+     "full": "好，给你们。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "我们两个，要怎么站？",
+    "translate": "The two of us — how should we stand?",
+    "speaker": "menshen",
+    "expect": [
+     {
+      "intent": "face",
+      "match": [
+       [
+        "面对面",
+        "对着",
+        "看着"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "面对面",
+     "frame": "你们要___。",
+     "full": "你们要面对面。"
+    },
+    "why": "It's in 《门神》, page 6: 他们要面对面，你看我，我看你. Back to back is bad luck — the gods have quarrelled."
+   },
+   {
+    "id": "c",
+    "say": "对！面对面，你看我，我看你。我们好看了！",
+    "translate": "Yes! Face to face — you look at me, I look at you. We look fine again!",
+    "speaker": "menshen",
+    "onEnter": [
+     {
+      "do": "spirit",
+      "spirit": "menshen"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "more",
+      "match": [
+       [
+        "好看",
+        "漂亮",
+        "很好",
+        "再画",
+        "画"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "好看",
+     "frame": "很___！我再画一点？",
+     "full": "很好看！我再画一点？"
+    }
+   },
+   {
+    "id": "d",
+    "say": "别画了！再画是画蛇添足。",
+    "translate": "Stop painting! Any more would be 画蛇添足 — drawing feet on a snake.",
+    "speaker": "menshen",
+    "key": true,
+    "onEnter": [
+     {
+      "do": "idiom",
+      "idiom": "画蛇添足"
+     }
+    ],
+    "why": "A 成语 📌 with a story: a man who finished drawing his snake first added feet to it, and lost the prize. Adding more spoils it."
+   }
+  ]
+ },
+ {
+  "id": "c3-home",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -6,
+  "when": {
+   "all": [
+    {
+     "quest": "ch3",
+     "step": "home"
+    },
+    {
+     "item": "weijin"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "围巾",
+    "explain": "天冷的时候，放在脖子上的长东西。",
+    "en": "scarf"
+   },
+   {
+    "w": "门神",
+    "explain": "门上画的两个人。",
+    "en": "door gods"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你回来了！前门好玩吗？",
+    "translate": "You're back! Was 前门 fun?",
+    "expect": [
+     {
+      "intent": "fun",
+      "match": [
+       [
+        "好玩",
+        "京剧",
+        "门神",
+        "很好"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "好玩",
+     "frame": "很___！我还画了门神。",
+     "full": "很好玩！我还画了门神。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "门神！我爸爸也画门神。这是什么？",
+    "translate": "Door gods! My dad painted door gods too. What's this?",
+    "expect": [
+     {
+      "intent": "gift",
+      "match": [
+       [
+        "送",
+        "给您",
+        "围巾",
+        "礼物"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "送给您",
+     "frame": "这是围巾，___！",
+     "full": "这是围巾，送给您！"
+    }
+   },
+   {
+    "id": "c",
+    "say": "围巾！是红色的，我很喜欢。你真好，孩子！谢谢你！",
+    "translate": "A scarf! A red one — I love it. You're so kind, child! Thank you!",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "weijin"
+     },
+     {
+      "do": "hearts",
+      "npc": "wang-ayi",
+      "delta": 1
+     },
+     {
+      "do": "flag",
+      "flag": "c3-gift-given"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c3-home-plain",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "all": [
+    {
+     "quest": "ch3",
+     "step": "home"
+    },
+    {
+     "not": {
+      "item": "weijin"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "门神",
+    "explain": "门上画的两个人。",
+    "en": "door gods"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你回来了！前门好玩吗？",
+    "translate": "You're back! Was 前门 fun?",
+    "expect": [
+     {
+      "intent": "fun",
+      "match": [
+       [
+        "好玩",
+        "京剧",
+        "门神",
+        "很好"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "好玩",
+     "frame": "很___！我还画了门神。",
+     "full": "很好玩！我还画了门神。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "门神！我爸爸也画门神。你真好，孩子！",
+    "translate": "Door gods! My dad painted door gods too. You're a good one, child!",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "wang-ayi",
+      "delta": 1
+     },
+     {
+      "do": "flag",
+      "flag": "c3-gift-given"
      }
     ]
    }
