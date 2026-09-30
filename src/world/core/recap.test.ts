@@ -57,7 +57,7 @@ describe('"last time…" (§13 Q3)', () => {
   });
 
   it('the save keeps them (v14): upgrade, merge by the later device', () => {
-    assert.equal(WORLD_SAVE_VERSION, 14);
+    assert.ok(WORLD_SAVE_VERSION >= 14);
     const old = { ...JSON.parse(JSON.stringify(newSave('d', 0))), version: 13 };
     delete old.lastWords;
     const r = readSave(old);

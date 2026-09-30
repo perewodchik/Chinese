@@ -17,14 +17,14 @@ import type { WorldSave } from '../core/types';
 
 export type MenuTab = 'journal' | 'bag' | 'map' | 'people' | 'collection';
 export type JournalView = 'now' | 'side' | 'story' | 'diary';
-export type CollectionView = 'spirits' | 'idioms' | 'stamps' | 'album';
+export type CollectionView = 'spirits' | 'idioms' | 'stamps' | 'books' | 'album';
 
 /**
  * Whatever can open the menu: a tab, ⚙, `menu` (the last tab and view this
  * device had open), or one of the old panel ids from before §10, which the
  * top bar, the keys and the minimap may still send.
  */
-export type PanelId = MenuTab | 'settings' | 'menu' | 'tasks' | 'spirits' | 'idioms' | 'stamps' | 'friends' | 'diary' | 'album';
+export type PanelId = MenuTab | 'settings' | 'menu' | 'tasks' | 'spirits' | 'idioms' | 'stamps' | 'friends' | 'diary' | 'album' | 'books';
 
 export interface MenuAt {
   tab: MenuTab | 'settings';
@@ -52,6 +52,7 @@ export const VIEWS: Partial<Record<MenuTab, readonly { id: string; label: string
     { id: 'spirits', label: '图鉴', title: 'The spirits' },
     { id: 'idioms', label: '成语', title: 'The 成语 book' },
     { id: 'stamps', label: '印章', title: 'The stamps passport' },
+    { id: 'books', label: '书', title: 'Your books' },
     { id: 'album', label: '相册', title: 'Photos' },
   ],
 };
@@ -64,6 +65,7 @@ const OLD: Record<string, MenuAt> = {
   idioms: { tab: 'collection', view: 'idioms' },
   stamps: { tab: 'collection', view: 'stamps' },
   album: { tab: 'collection', view: 'album' },
+  books: { tab: 'collection', view: 'books' },
   friends: { tab: 'people' },
 };
 
@@ -134,6 +136,7 @@ export function menuNews(s: WorldSave, leads: readonly string[] = []): Set<strin
   add('collection/spirits', newest(Object.values(s.spirits)));
   add('collection/idioms', newest(Object.values(s.idioms).map((x) => x.at)));
   add('collection/stamps', newest(Object.values(s.stamps)));
+  add('collection/books', newest(Object.values(s.books ?? {}).map((b) => b.got)));
   const journal = Math.max(newest(Object.values(s.riddles).map((r) => r.pinnedAt)), questNewest(s));
   add('journal/now', journal);
   if (leads.some((l) => !(s.seen?.[`lead:${l}`] ?? 0))) out.add('journal/side');

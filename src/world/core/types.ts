@@ -103,7 +103,9 @@ export type Action =
   /** money earned by work or a sale (Y7): into 余额 and the diary's 「我挣了十块钱。」 */
   | { do: 'earn'; amount: number }
   /** play a cutscene (§13 K1) — after the talk it was said in is over */
-  | { do: 'cutscene'; id: string };
+  | { do: 'cutscene'; id: string }
+  /** a book comes to you (§13 B1): given, bought or found — it goes on your shelf */
+  | { do: 'book'; id: string };
 
 export type ActionKind = Action['do'];
 
@@ -581,6 +583,8 @@ export interface WorldSave {
   cutscenes: string[];
   /** the last session's words (§13 Q3, save v14): each talk's situation and key words, newest last, eight at most — the "last time" card */
   lastWords: string[];
+  /** your books (§13 B1, save v15): when each came, the pages read */
+  books: Record<string, import('./books').BookState>;
 
   settings: WorldSettings;
 }

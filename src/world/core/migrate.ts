@@ -82,6 +82,8 @@ export const UPGRADES: Record<number, Upgrade> = {
   12: (r) => ({ ...r, version: 13, cutscenes: Array.isArray(r.cutscenes) ? r.cutscenes : [] }),
   /** 13 → 14 (§13 Q3): no words kept from a session yet — the "last time" card shows the plot only until the next talk */
   13: (r) => ({ ...r, version: 14, lastWords: Array.isArray(r.lastWords) ? r.lastWords : [] }),
+  /** 14 → 15 (§13 B1): no books yet — a book a scene you have seen gives comes on load (`owedBooks`) */
+  14: (r) => ({ ...r, version: 15, books: isObj(r.books) ? r.books : {} }),
 };
 
 export type ReadResult =
@@ -144,6 +146,9 @@ function fill(r: Raw): WorldSave {
     fresh: record(r.fresh, isNum),
     cutscenes: strings(r.cutscenes),
     lastWords: strings(r.lastWords).slice(-8),
+    books: Object.fromEntries(
+      Object.entries(record(r.books, (x): x is WorldSave['books'][string] => isObj(x) && isNum(x.got))).map(([k, b]) => [k, { got: b.got, read: Array.isArray(b.read) ? b.read.filter(isNum) : [] }]),
+    ),
     ...(isObj(r.seen) ? { seen: record(r.seen, isNum) } : {}),
     ...(isObj(r.practised)
       ? { practised: record(r.practised, (x): x is Practised => isObj(x) && isNum(x.right) && isNum(x.wrong) && isNum(x.last)) }

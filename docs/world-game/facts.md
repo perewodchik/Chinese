@@ -52,8 +52,9 @@ Checked 2026-09-30 unless dated otherwise.
 ## Customs and culture
 | id | Claim | Status | Source |
 |---|---|---|---|
-| `zoumadeng` | a 走马灯 turns by itself: the candle's warm air spins a vane, and the figures on the inner wheel run round the shade | ? | check in B1 (book 1) |
-| `tuerye` | 兔儿爷 is a Beijing clay rabbit figure, a 中秋 toy and folk deity | ? | check in B1 |
+| `zoumadeng` | a 走马灯 turns by itself: the candle's warm air spins a vane, and the figures on the inner wheel run round the shade (the horses seem to run — hence the name); seen at 除夕, 元宵 and 中秋 | ✓ | [kepuchina — 走马灯](https://www.kepuchina.cn/wiki/faq/201901/t20190130_928387.shtml); [baike — 走马灯](https://baike.baidu.com/item/%E8%B5%B0%E9%A9%AC%E7%81%AF/1129002) |
+| `yuanxiao-dengmi` | 元宵节 is the 15th of the first lunar month: people look at lanterns and guess 灯谜, riddles written on lanterns; Beijing parks hold lantern shows with riddles | ✓ | [beijing.gov.cn — 元宵节](https://www.beijing.gov.cn/renwen/zt/wmdjr/yxj/202303/t20230303_2928272.html); [news.cn](http://www.news.cn/local/20240224/0a7ff1310d8045fe856100c112d2f1a2/c.html) |
+| `tuerye` | 兔儿爷 is a Beijing clay rabbit figure (rabbit face, a person's body), made for 中秋 since the late Ming: worshipped with the moon, then a children's toy | ✓ | [ihchina — 北京兔儿爷](https://www.ihchina.cn/project_details/14052.html); [beijing.gov.cn](https://www.beijing.gov.cn/renwen/zt/2018zq/jrjs/201809/t20180911_1868299.html) |
 | `lions-pair` | guardian lions come in pairs: the male (east/right as you face out) with a ball under his paw, the female with a cub | ? | check in S1 (book 2) |
 | `xiaonian-23` | in the north 小年 is 腊月二十三 (the south: 二十四); 灶王爷 goes up to heaven to report, sent off with 糖瓜; he comes back on 除夕 | ? | check in S9 (book 16) |
 | `menshen-generals` | the door gods 秦琼 and 尉迟恭 guarded 唐太宗's door; the pair should face each other | ? | check in S3 (book 6) |

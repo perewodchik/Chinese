@@ -18,6 +18,7 @@ import { People } from './People';
 import { markSeen, MENU, menuNews, newSideIds, panelTarget, readMemory, remember, tabForKey, tabHasNews, viewKey, VIEWS, writeMemory, type MenuAt, type MenuMemory, type MenuTab, type PanelId } from './menu';
 import './menu.css';
 import { Album, Idioms, Spirits, Stamps } from './Collection';
+import { BookReader, Books } from './BookReader';
 import { MapTab } from './MapTab';
 import { ItemSprite, MenuIcon } from './PropSprite';
 import { PixelIcon } from './PixelIcon';
@@ -82,6 +83,9 @@ export function Panels({
   const [route, setRoute] = useState<RouteRequest | null>(null);
   /** a Story entry's day, opened in the diary */
   const [diaryDay, setDiaryDay] = useState<number | null>(null);
+  /** a book open over the menu (收藏 → 书) */
+  const [reading, setReading] = useState<string | null>(null);
+  const book = reading ? content.books.find((b) => b.id === reading) : undefined;
   const go = (next: MenuAt) => {
     if (next.tab !== 'map') setRoute(null);
     if (next.view !== 'diary') setDiaryDay(null);
@@ -186,11 +190,13 @@ export function Panels({
           {key === 'collection/spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
           {key === 'collection/idioms' && <Idioms save={save} content={content} pinyin={pinyin} onAct={onAct} />}
           {key === 'collection/stamps' && <Stamps save={save} content={content} onShowRoute={showRoute} />}
+          {key === 'collection/books' && <Books save={save} books={content.books} onOpen={setReading} />}
           {key === 'collection/album' && <Album user={user} />}
           {key === 'settings' && <Settings settings={save.settings} onChange={onSettings} onReset={onReset} />}
         </div>
         </div>
       </section>
+      {book && <BookReader book={book} save={save} pinyin={pinyin} onAct={(a) => onAct?.(a)} onClose={() => setReading(null)} />}
     </div>
   );
 }

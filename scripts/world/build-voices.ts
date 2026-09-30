@@ -19,6 +19,7 @@ import { POLITE_REPLY } from '../../src/world/core/dialogue/universal';
 import { allCalls } from '../../src/world/core/ride';
 import { STICKER_REPLY } from '../../src/world/core/photo';
 import type { DistrictContent } from '../../src/world/core/types';
+import type { Book } from '../../src/world/core/books';
 import { SAY_BITS, spoken, voiceKey, voiceOf, VOICES, type VoiceId } from '../../src/world/core/voice';
 import { checkContent, readLibrary } from './check-content';
 
@@ -31,7 +32,7 @@ export interface Clip {
 }
 
 /** Every (voice, text) a script can make someone say: lines, simpler lines, and each person's stock replies. */
-export function clipsOf(districts: readonly DistrictContent[]): Clip[] {
+export function clipsOf(districts: readonly DistrictContent[], books: readonly Book[] = []): Clip[] {
   const cards = new Map(districts.flatMap((d) => d.npcs).map((n) => [n.id, n]));
   const out = new Map<string, Clip>();
   const add = (speaker: string, text: string) => {
@@ -60,6 +61,8 @@ export function clipsOf(districts: readonly DistrictContent[]): Clip[] {
   }
   // cutscene lines (§13 K1), in their speakers' voices
   for (const d of districts) for (const cs of d.cutscenes ?? []) for (const l of cutsceneLines(cs)) if (l.zh) add(speakerOf(l.actor), spoken(l.zh));
+  // the books' pages (§13 B1), in the narrator's voice
+  for (const b of books) for (const p of [...b.pages, b.today]) add('narrator', p.zh);
   // the train's calls, in the announcer's voice
   for (const c of allCalls()) add('announcer', c);
   // the pieces prices are said in, in every voice (Y2)
@@ -105,7 +108,8 @@ export function writeIndex() {
 }
 
 async function main() {
-  const clips = clipsOf(checkContent('content/world', readLibrary()).districts);
+  const c = checkContent('content/world', readLibrary());
+  const clips = clipsOf(c.districts, c.books);
   mkdirSync(VOICE_OUT, { recursive: true });
   if (process.argv.includes('--dry')) {
     const missing = clips.filter((c) => !existsSync(join(VOICE_OUT, `${c.key}.mp3`)));

@@ -467,6 +467,32 @@ export function tram(): Grid {
   return g.stamp(f, 0, 0);
 }
 
+/** 书架: a wooden bookcase for your room — three shelves of books, a little pot on top (§13 B1). */
+export function bookcase(): Grid {
+  const g = new Grid(16, 32);
+  shadow(g, 1, 29, 14);
+  const f = new Grid(16, 32);
+  f.rect(1, 6, 14, 24, 'M').vline(1, 6, 24, 'z').vline(14, 6, 24, 'm').hline(1, 6, 14, 'z');
+  const books = ['r', 'n', 'y', 'h', 'e', 'R', 'B', 'o'];
+  for (const [y, h] of [[8, 6], [15, 6], [22, 6]] as const) {
+    f.rect(2, y, 12, h, 'm');
+    let x = 2;
+    let i = y;
+    while (x < 14) {
+      const w = 1 + (i % 2);
+      const c = books[i % books.length]!;
+      const top = y + (i % 3 === 0 ? 1 : 0);
+      f.rect(x, top, w, y + h - top, c);
+      x += w;
+      i += 3;
+    }
+    f.hline(1, y + h, 14, 'z');
+  }
+  f.oval(5, 1, 6, 5, 'o').rect(6, 0, 4, 2, 'h').set(7, 0, 'i');
+  f.outline('k');
+  return g.stamp(f, 0, 0);
+}
+
 /** Every kit prop: [file, note, frames] as `PROPS` has them. */
 export const KIT_PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['censer', 'a bronze 香炉 censer: cold, and smoking in two frames (§13 V2)', () => [['smoke-0', censer(0)], ['smoke-1', censer(1)], ['cold', censer(null)]]],
@@ -492,6 +518,7 @@ export const KIT_PROPS: Array<[string, string, () => Array<[string, Grid]>]> = [
   ['repair-stall', 'a 修车摊 street bike-repair stand (§13 V2, L1)', () => [['tools', repairStall()]]],
   ['kiosk', 'a newspaper kiosk 报刊亭 (§13 V2)', () => [['green', kiosk()]]],
   ['bike-rack', 'a rack of 共享单车 shared bikes (§13 V2)', () => [['shared', bikeRack()]]],
+  ['bookcase', 'your 书架, a bookcase for the books you are given (§13 B1)', () => [['wood', bookcase()]]],
   ['tram', '铛铛车, the 前门大街 tram (§13 T4)', () => [['red', tram()]]],
   ['maitreya', 'the Maitreya of 万福阁, in gold on a lotus base (§13 T3)', () => [['gold', maitreya()]]],
   ['big-coin', 'the giant coin with a bell under 白云观\'s 窝风桥 (§13 T3)', () => [['bell', bigCoin()]]],

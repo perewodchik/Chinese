@@ -1,5 +1,6 @@
 import type { Shop } from '../core/shop';
 import type { Cutscene } from '../core/cutscene';
+import type { Book } from '../core/books';
 import { useEffect, useState } from 'react';
 import type { DistrictContent, Idiom, Item, NpcCard, Quest, Scene, Spirit, Stamp } from '../core/types';
 import { EMPTY_CLOTHES, type ClothesContent } from '../core/wardrobe';
@@ -19,6 +20,8 @@ export interface WorldContent {
   shops: Shop[];
   /** scripted moments (§13 K1) */
   cutscenes: Cutscene[];
+  /** the books (§13 B1) */
+  books: Book[];
   /** manual or generated pinyin per line text, from the content build */
   pinyin: Record<string, string>;
   /** the clothes and the racks that sell them (§12) */
@@ -26,7 +29,7 @@ export interface WorldContent {
 }
 
 export const EMPTY_CONTENT: WorldContent = {
-  districts: [], npcs: [], scenes: [], quests: [], spirits: [], idioms: [], stamps: [], items: [], shops: [], cutscenes: [], pinyin: {}, clothes: EMPTY_CLOTHES,
+  districts: [], npcs: [], scenes: [], quests: [], spirits: [], idioms: [], stamps: [], items: [], shops: [], cutscenes: [], books: [], pinyin: {}, clothes: EMPTY_CLOTHES,
 };
 
 export function mergeContent(parts: Array<DistrictContent & { pinyin?: Record<string, string> }>): WorldContent {
@@ -41,6 +44,7 @@ export function mergeContent(parts: Array<DistrictContent & { pinyin?: Record<st
     items: parts.flatMap((p) => p.items),
     shops: parts.flatMap((p) => p.shops ?? []),
     cutscenes: parts.flatMap((p) => p.cutscenes ?? []),
+    books: [],
     pinyin: Object.assign({}, ...parts.map((p) => p.pinyin ?? {})),
     clothes: EMPTY_CLOTHES,
   };
@@ -66,8 +70,10 @@ export function loadContent(): Promise<WorldContent> {
     // the clothes (§12): a file of their own; a build without it has none
     const clothes = await fetch('/world/content/clothes.json').then((x) => (x.ok ? (x.json() as Promise<ClothesContent>) : EMPTY_CLOTHES)).catch(() => EMPTY_CLOTHES);
     const merged = mergeContent(parts);
+    // the books (§13 B1): a file of their own
+    const books = await fetch('/world/content/books.json').then((x) => (x.ok ? (x.json() as Promise<Book[]>) : [])).catch(() => [] as Book[]);
     // the clothes racks and the barber's menu talk like shops (§12 W5)
-    const c = { ...merged, scenes: [...rackScenes(clothes), ...merged.scenes], clothes };
+    const c = { ...merged, scenes: [...rackScenes(clothes), ...merged.scenes], clothes, books };
     // the barber's and the rack's words, read right (长发 is chángfà, 穿着走 chuānzhe zǒu)
     own = new Map([...wordsOf(c), ...Object.entries(RACK_WORDS)]);
     return c;

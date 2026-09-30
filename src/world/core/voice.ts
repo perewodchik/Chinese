@@ -41,6 +41,8 @@ const isVoice = (v: string | undefined): v is VoiceId => !!v && (VOICES as reado
 const OTHERS: Record<string, VoiceId> = {
   companion: 'zhiyuan',
   announcer: 'xiaoyu',
+  /** reads the books aloud (§13 B1) */
+  narrator: 'wang',
   /** the stall's 支付宝 speaker box (Y2) */
   'speaker-box': 'xiaoyu',
   shishizi: 'wei',

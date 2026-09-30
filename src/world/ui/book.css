@@ -1,0 +1,318 @@
+/* --- 走走 §13 B1: books — the reader, the shelf (the 书架 at home and 收藏 → 书).
+   The reader is a fixed page box: turning a page never moves anything around it. */
+
+.bk-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  background: rgba(20, 18, 28, 0.55);
+  touch-action: pan-y;
+}
+
+.bk {
+  width: min(560px, 100%);
+  height: min(600px, 100%);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border: 2px solid var(--px-edge);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--card) 86%, #e6d7b6);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.bk-head,
+.bk-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  background: var(--card);
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.bk-head {
+  border-bottom: 1px solid var(--line);
+}
+
+.bk-foot {
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+}
+
+.bk-title {
+  flex: none;
+  font-family: var(--han);
+  font-size: 17px;
+}
+
+.bk-sub {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bk-head .wd-tool[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--card);
+}
+
+.bk-en {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.bk-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 16px 20px;
+  overflow-y: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.bk-pic {
+  display: grid;
+  place-items: center;
+  flex: none;
+  height: 96px;
+}
+
+.bk-today-head {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 96px;
+  margin: 0;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.bk-today-head .han {
+  font-family: var(--han);
+  font-size: 22px;
+  color: var(--accent);
+}
+
+.bk-zh {
+  font-size: 22px;
+  line-height: 1.9;
+}
+
+.bk-en-text {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.bk-peek {
+  align-self: start;
+  padding: 4px 10px;
+  border: 1px dashed var(--line-2);
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* the words glossed here for the first time sit at the bottom of the page */
+.bk-gloss {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: auto 0 0;
+  padding-top: 8px;
+  border-top: 1px dotted var(--line-2);
+}
+
+.bk-gloss .han {
+  font-family: var(--han);
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.bk-turn {
+  flex: none;
+  width: 44px;
+  height: 36px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--card-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bk-turn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.bk-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bk-dot {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.bk-dot::before {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin: auto;
+  border: 1.5px solid var(--ink-3);
+  border-radius: 50%;
+}
+
+.bk-dot[data-read]::before {
+  background: var(--ink-3);
+}
+
+.bk-dot[aria-current='page']::before {
+  width: 10px;
+  height: 10px;
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+/* --- the shelf --- */
+
+.bk-shelf {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bk-cover,
+.bk-spine {
+  display: grid;
+  grid-template-rows: 52px auto auto auto;
+  justify-items: center;
+  align-content: start;
+  gap: 2px;
+  width: 100%;
+  height: 132px;
+  padding: 8px 6px;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--accent);
+  border-radius: 4px var(--radius) var(--radius) 4px;
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  overflow: hidden;
+}
+
+.bk-cover {
+  cursor: pointer;
+}
+
+.bk-cover:hover {
+  border-color: var(--line-2);
+  border-left-color: var(--accent);
+}
+
+.bk-cover-art {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+}
+
+.bk-cover-title {
+  font-family: var(--han);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.bk-one {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bk-progress {
+  color: var(--ink-3);
+}
+
+.bk-progress[data-done] {
+  color: var(--jade);
+  font-weight: 600;
+}
+
+/* a book you don't have: a grey spine that says where it comes from */
+.bk-spine {
+  grid-template-rows: auto 1fr;
+  border-style: dashed;
+  border-left: 5px solid color-mix(in srgb, var(--ink) 18%, var(--card-2));
+  background: none;
+  color: var(--ink-3);
+}
+
+.bk-where {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.3;
+}
+
+.bk-case-body {
+  min-height: 0;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+  .bk-shelf {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 599px) {
+  .bk-scrim {
+    padding: env(safe-area-inset-top, 0px) 0 0;
+    place-items: stretch;
+  }
+
+  .bk {
+    width: 100%;
+    height: 100%;
+    border-width: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .bk-page {
+    padding: 14px 16px;
+  }
+}

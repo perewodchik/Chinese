@@ -290,7 +290,21 @@
     "id": "f",
     "say": "你问问人吧。他们看见了什么？",
     "translate": "Ask people. What have they seen?",
-    "speaker": "companion"
+    "speaker": "companion",
+    "next": "g"
+   },
+   {
+    "id": "g",
+    "say": "这本书给你。书里有很多灯笼。",
+    "translate": "This book is for you. It has lots of lanterns in it.",
+    "speaker": "wang-ayi",
+    "onEnter": [
+     {
+      "do": "book",
+      "id": "denglong"
+     }
+    ],
+    "why": "给你 — for you. 王阿姨 gives you 《灯笼》: how a 走马灯 turns, and the lantern night of 元宵节. It goes on the 书架 in your room."
    }
   ],
   "words": [

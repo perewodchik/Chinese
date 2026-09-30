@@ -450,6 +450,12 @@
   color: var(--accent);
 }
 
+/* a word and the punctuation after it wrap as one (a 。 never starts a line) */
+.wd-g {
+  display: inline-flex;
+  align-items: flex-end;
+}
+
 /* with 拼 on, the punctuation sits on the hanzi's line, not the reading's */
 .wd-zh[data-py] .wd-p {
   align-self: flex-end;

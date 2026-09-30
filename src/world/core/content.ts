@@ -93,6 +93,7 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion('do', [
   z.strictObject({ do: z.literal('solve'), riddle: text }),
   z.strictObject({ do: z.literal('remember'), npc: id, note: text }),
   z.strictObject({ do: z.literal('cutscene'), id }),
+  z.strictObject({ do: z.literal('book'), id }),
 ]);
 
 const actionKind = z.enum([

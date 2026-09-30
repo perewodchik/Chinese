@@ -24,8 +24,22 @@ import { GARMENT_ART } from '../../src/world/art/hero';
 import { coverage, COVERAGE_EXCEPTIONS, coverageProblems, mapIds, readBooks } from './coverage';
 import { HOODS } from '../../src/world/core/hoods';
 import { checkCutscene, checkCutsceneLinks } from '../../src/world/core/cutscene';
+import { bookSchema, checkBook, type Book } from '../../src/world/core/books';
 import { gridFromLayer } from '../../src/world/core/grid';
 import { loadAll } from './build-maps';
+
+/** Books on disk (§13 B1): `content/world/books/<id>.json`, checked against the schema. */
+export function readBookFiles(contentRoot: string, errors: string[]): Book[] {
+  const dir = join(contentRoot, 'books');
+  if (!existsSync(dir)) return [];
+  const out: Book[] = [];
+  for (const f of readdirSync(dir).filter((x) => x.endsWith('.json')).sort()) {
+    const r = bookSchema.safeParse(JSON.parse(readFileSync(join(dir, f), 'utf8')));
+    if (r.success) out.push(r.data);
+    else errors.push(...r.error.issues.map((i) => `books/${f}: ${i.path.join('.')}: ${i.message}`));
+  }
+  return out;
+}
 
 export interface CheckResult {
   districts: DistrictContent[];
@@ -34,6 +48,8 @@ export interface CheckResult {
   /** `clothes.json` (§12): the clothes and the racks that sell them */
   clothes: ClothesContent;
   budget: BudgetProblem[];
+  /** the books (§13 B1) */
+  books: Book[];
 }
 
 export function readLibrary(root = '.'): Library {
@@ -167,10 +183,21 @@ export function checkContent(contentRoot: string, lib: Library): CheckResult {
     if (!inHood.has(m)) errors.push(`maps: ${m} is in no neighbourhood (src/world/core/hoods.ts)`);
     if (existsSync(minis) && !existsSync(join(minis, `${m}.png`))) errors.push(`maps: ${m} has no thumbnail — run npm run world:minis`);
   }
+  // §13 B1: the books — their level (the budget's `book` rules), facts, places; every book an action gives exists
+  const books = readBookFiles(contentRoot, errors);
+  {
+    const factsPath = join(contentRoot, '..', '..', 'docs/world-game/facts.md');
+    const facts = new Set(existsSync(factsPath) ? [...readFileSync(factsPath, 'utf8').matchAll(/`([a-z0-9-]+)`/g)].map((m) => m[1]!) : []);
+    const names = new Set(districts.flatMap((d) => d.district.names));
+    const leveler = libraryLeveler(lib);
+    for (const b of books) errors.push(...checkBook(b, { leveler, names, facts, maps: new Set(mapIds(contentRoot)) }).map((e) => `books: ${e}`));
+    const ids = new Set(books.map((b) => b.id));
+    for (const m of JSON.stringify(districts).matchAll(/"do":"book","id":"([^"]+)"/g)) if (!ids.has(m[1]!)) errors.push(`an action gives book "${m[1]}", which does not exist`);
+  }
   // §13 Z0: every map on some chapter's main route — strict only once the chapters are deepened (S10)
   if (process.env.WORLD_COVERAGE === 'strict') errors.push(...coverageProblems(coverage(districts, readBooks(contentRoot), mapIds(contentRoot))).map((e) => `coverage: ${e}`));
   const budget = checkBudget({ leveler: libraryLeveler(lib), all: districts });
-  return { districts, errors: [...new Set(errors)], budget, clothes };
+  return { districts, errors: [...new Set(errors)], budget, clothes, books };
 }
 
 function main() {

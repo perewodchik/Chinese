@@ -152,5 +152,18 @@
   ],
   "text": "地上",
   "en": "the floor — use a decoration from your bag here"
+ },
+ {
+  "kind": "prop",
+  "id": "bookcase",
+  "tile": [
+   5,
+   3
+  ],
+  "frame": "bookcase/wood",
+  "blocks": [
+   1,
+   1
+  ]
  }
 ]

@@ -52,6 +52,8 @@ import { Creator, type CreatorMode } from '../../world/ui/Creator';
 import { dressOf } from '../../world/ui/HeroFigure';
 import { setCurrentDress } from '../../world/ui/heroPicture';
 import { WardrobeSheet } from '../../world/ui/WardrobeSheet';
+import { BookReader, BookShelf } from '../../world/ui/BookReader';
+import { owedBooks } from '../../world/core/books';
 import { RackSheet } from '../../world/ui/RackSheet';
 import { remarkAt } from '../../world/core/notice';
 import { PLACES } from '../../world/core/places';
@@ -244,6 +246,12 @@ export function WorldPage() {
   const remarked = useRef(new Set<string>());
   /** the 衣柜 at home (W4) */
   const [wardrobe, setWardrobe] = useState(false);
+  /** the 书架 at home, and a book open from it or from the "new book" note (§13 B1) */
+  const [shelfOpen, setShelfOpen] = useState(false);
+  const [reading, setReading] = useState<string | null>(null);
+  /** a book just come to you, told once the talk it came in is over */
+  const [newBook, setNewBook] = useState<string | null>(null);
+  const booksHad = useRef<Set<string> | null>(null);
   const remix = (minutes?: number) => {
     const h = here.current;
     const s = game.current();
@@ -274,7 +282,7 @@ export function WorldPage() {
   const sayNext = useRef<(() => void) | null>(null);
   const titleNext = useRef<(() => void) | null>(null);
   const busy = useRef(false);
-  busy.current = cut !== null || beforeGo !== null || recap !== null || note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null || wardrobe;
+  busy.current = cut !== null || beforeGo !== null || recap !== null || note !== null || talk.view !== null || panel !== null || riding !== null || photo || creator !== null || wardrobe || shelfOpen || reading !== null;
 
   // An error thrown inside the engine's loop never reaches React: hand it to the crash guard.
   useEffect(() => {
@@ -294,6 +302,14 @@ export function WorldPage() {
   }, []);
 
   const opened = game.save !== null;
+  // a book a scene you've already seen gives (a chapter deepened after you played it) comes now (§13 B1)
+  useEffect(() => {
+    const s = game.current();
+    if (!s || !content.books.length) return;
+    const owed = owedBooks(s, content.scenes, content.books);
+    if (owed.length) void game.dispatch(owed.map((id) => ({ do: 'book' as const, id })));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, opened]);
   const start = useMemo(() => {
     const s = game.current();
     if (!s) return null;
@@ -428,6 +444,7 @@ export function WorldPage() {
             const home = homeProp(o, s.place.map);
             if (home === 'wardrobe') return setWardrobe(true);
             if (home === 'mirror') return setCreator('mirror');
+            if (home === 'bookcase') return setShelfOpen(true);
             // the board on a platform or at a bus stop: what leaves from here
             // (subway maps are called station-<id>, bus and train stops stop-<id>);
             // a scene on the board (no ticket yet) comes first
@@ -698,11 +715,11 @@ export function WorldPage() {
   };
   // The queue plays one cutscene at a time, when no talk, panel or sheet is open and no journey is under way.
   useEffect(() => {
-    if (state !== 'ready' || cut || beforeGo || talk.view || panel || riding || creator || wardrobe || photo || pendingTravel.current || pendingCut.current) return;
+    if (state !== 'ready' || cut || beforeGo || talk.view || panel || riding || creator || wardrobe || shelfOpen || reading || photo || pendingTravel.current || pendingCut.current) return;
     const next = cutQueue.current.shift();
     if (next) startCut(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, cutTick, cut, beforeGo, talk.view, panel, riding, creator, wardrobe, photo]);
+  }, [state, cutTick, cut, beforeGo, talk.view, panel, riding, creator, wardrobe, shelfOpen, reading, photo]);
 
   // §13 Q3: a finished talk leaves its words for next time's recap
   useEffect(() => {
@@ -916,8 +933,20 @@ export function WorldPage() {
 
   // A full-screen panel stops the world: no drawing, no clock (D7).
   useEffect(() => {
-    world.current?.setPaused(panel !== null || riding !== null || creator !== null || wardrobe);
-  }, [panel, riding, creator, wardrobe]);
+    world.current?.setPaused(panel !== null || riding !== null || creator !== null || wardrobe || shelfOpen || reading !== null);
+  }, [panel, riding, creator, wardrobe, shelfOpen, reading]);
+  // a book that came to you (§13 B1): noted once, not for the books a loaded save already has
+  useEffect(() => {
+    const have = game.save ? Object.keys(game.save.books) : null;
+    if (!have) return;
+    if (!booksHad.current) {
+      booksHad.current = new Set(have);
+      return;
+    }
+    const fresh = have.find((id) => !booksHad.current!.has(id));
+    booksHad.current = new Set(have);
+    if (fresh) setNewBook(fresh);
+  }, [game.save]);
   // What you look like and wear (§12): the world sprite and 我's portrait follow the save.
   const look = game.save?.look;
   const outfit = game.save?.outfit;
@@ -1187,6 +1216,38 @@ export function WorldPage() {
           onClose={() => setWardrobe(false)}
         />
       )}
+      {shelfOpen && game.save && <BookShelf save={game.save} books={content.books} onOpen={setReading} onClose={() => setShelfOpen(false)} />}
+      {newBook && game.save && !talk.view && !cut && !reading && (() => {
+        const b = content.books.find((x) => x.id === newBook);
+        if (!b) return null;
+        return (
+          <div className="world-note" role="status">
+            <span>
+              📕 A book: <b className="han">《{b.zh}》</b> {b.en} — on your 书架 at home, and in 收藏 → 书.
+            </span>
+            <span className="cs-before-acts">
+              <button type="button" className="btn sm ghost" onClick={() => setNewBook(null)}>
+                Later
+              </button>
+              <button
+                type="button"
+                className="world-note-ok"
+                autoFocus
+                onClick={() => {
+                  setNewBook(null);
+                  setReading(b.id);
+                }}
+              >
+                Read
+              </button>
+            </span>
+          </div>
+        );
+      })()}
+      {reading && game.save && (() => {
+        const b = content.books.find((x) => x.id === reading);
+        return b ? <BookReader book={b} save={game.save} pinyin={game.save.settings.pinyin} onAct={(a) => void game.dispatch([a])} onClose={() => setReading(null)} /> : null;
+      })()}
       {riding && game.save && (
         <RideSheet
           from={riding.at}

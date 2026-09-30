@@ -42,6 +42,8 @@ export const TEMPLATES: Record<string, { zh: string; en: string }> = {
   w: { zh: '我喝了{x}。', en: 'I drank {x}.' },
   p: { zh: '今天我拍了照片。照片拍得很好！', en: 'Today I took photos. They came out well!' },
   z: { zh: '晚上我在家睡觉了。', en: 'In the evening I slept at home.' },
+  // §13 B1: a book read to its last page (the code carries the title: l:《灯笼》)
+  l: { zh: '我读了{x}。', en: 'I read {x}.' },
   // §13 Q2: a day slept through (睡到中秋)
   q: { zh: '这一天我在家休息。', en: 'I rested at home all day.' },
   // §12: clothes (the codes carry their own names: 一件红毛衣, 旗袍)
@@ -89,6 +91,12 @@ export function eventsOf(before: WorldSave, after: WorldSave, a: { do: string },
       return x.item ? [`g:${x.npc}:${x.item}`] : [];
     case 'name':
       return npc ? [`n:${npc}:${after.name}`] : [];
+    case 'read': {
+      // the diary says so when the last unread page of a book is read (§13 B1)
+      const was = before.books[String(x.id)]?.read.length ?? 0;
+      const now = after.books[String(x.id)]?.read.length ?? 0;
+      return was < Number(x.of) && now >= Number(x.of) ? [`l:《${String(x.zh)}》`] : [];
+    }
     case 'sleep':
       return ['z'];
     case 'place':
@@ -222,6 +230,8 @@ export function diaryLines(codes: readonly string[], names: Names, day?: number)
       if (a) fill(k, { zh: a, en: a });
     } else if (k === 'k' || k === 'p') {
       out.push({ ...TEMPLATES[k]! });
+    } else if (k === 'l') {
+      if (a) fill(k, { zh: a, en: a });
     } else if (k === 'z' || k === 'q') {
       out.push({ ...TEMPLATES[k]! });
     }

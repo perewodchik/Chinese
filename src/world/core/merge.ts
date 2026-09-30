@@ -107,6 +107,8 @@ export function merge(a: WorldSave, b: WorldSave): WorldSave {
     cutscenes: union(a.cutscenes, b.cutscenes),
     // the last session's words are the later device's (§13 Q3)
     lastWords: late.lastWords,
+    // books (§13 B1): every book either device has, the earlier minute it came, every page read on either
+    books: byKey(a.books, b.books, (x, y) => ({ got: Math.min(x.got, y.got), read: [...new Set([...x.read, ...y.read])].sort((p, q) => p - q) })),
     quests: byKey(a.quests, b.quests, further),
     riddles: byKey(a.riddles, b.riddles, riddle),
     spirits: byKey(a.spirits, b.spirits, Math.min),

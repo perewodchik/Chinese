@@ -83,9 +83,9 @@ export const EMPTY_CLOTHES: ClothesContent = { racks: [], clothes: [] };
 
 /** Your room's 衣柜 and 镜子 (W4): the props that open the wardrobe sheet and the mirror. */
 export const HOME_ROOM = 'siheyuan-room';
-export function homeProp(o: { kind: string; id: string }, map: string): 'wardrobe' | 'mirror' | null {
+export function homeProp(o: { kind: string; id: string }, map: string): 'wardrobe' | 'mirror' | 'bookcase' | null {
   if (map !== HOME_ROOM || o.kind !== 'prop') return null;
-  return o.id === 'wardrobe' ? 'wardrobe' : o.id === 'mirror' ? 'mirror' : null;
+  return o.id === 'wardrobe' ? 'wardrobe' : o.id === 'mirror' ? 'mirror' : o.id === 'bookcase' ? 'bookcase' : null;
 }
 
 // ---------------------------------------------------------------------------
