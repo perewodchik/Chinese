@@ -265,5 +265,25 @@
         "where": "tiantan-park"
       }
     ]
+  },
+  {
+    "id": "sub-tt-2",
+    "title": "甜甜 and the whispering wall",
+    "chapter": 4,
+    "kind": "side",
+    "giver": "tiantian",
+    "blurb": "甜甜 is streaming the Echo Wall — and her viewers can hear you.",
+    "lead": "The streamer 甜甜 is at the Echo Wall.",
+    "steps": [
+      {
+        "id": "whisper",
+        "now": "甜甜 is streaming at the Echo Wall 回音壁. Whisper something for her viewers.",
+        "past": "Whispered through the Echo Wall for 甜甜's viewers. 666!",
+        "where": "huiyinbi",
+        "done": {
+          "flag": "sub-tt-2"
+        }
+      }
+    ]
   }
 ]

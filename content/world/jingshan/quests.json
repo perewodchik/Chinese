@@ -90,5 +90,26 @@
         "where": "jingshan-park"
       }
     ]
+  },
+  {
+    "id": "sub-tt-1",
+    "title": "甜甜 goes live",
+    "chapter": 2,
+    "kind": "side",
+    "giver": "tiantian",
+    "blurb": "A livestreamer films the sunset over the palace from 景山 — and tells her viewers some interesting history.",
+    "lead": "Someone is streaming the sunset from the top of 景山.",
+    "steps": [
+      {
+        "id": "correct",
+        "now": "On 景山's top pavilion at sunset (16:00–20:00), the streamer 甜甜 tells her viewers who built the palace. Is she right?",
+        "past": "Put 甜甜 right, live: the palace was built in the Ming. 弹幕 everywhere.",
+        "where": "jingshan-view",
+        "when": "late afternoon 16:00–20:00",
+        "done": {
+          "flag": "sub-tt-1"
+        }
+      }
+    ]
   }
 ]

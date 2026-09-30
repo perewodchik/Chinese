@@ -699,5 +699,21 @@
    "map": "hutong-home",
    "offset": -22
   }
+ },
+ {
+  "kind": "npc",
+  "id": "lao-ma",
+  "npc": "lao-ma",
+  "tile": [
+   10,
+   30
+  ],
+  "facing": "left",
+  "when": {
+   "hours": [
+    6,
+    11
+   ]
+  }
  }
 ]

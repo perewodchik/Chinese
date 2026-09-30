@@ -51,5 +51,75 @@
         "where": "guozijian"
       }
     ]
+  },
+  {
+    "id": "sub-hu-1",
+    "title": "胡半仙 reads your face",
+    "chapter": 4,
+    "kind": "side",
+    "giver": "hu-banxian",
+    "blurb": "A fortune teller on 雍和宫 street reads faces. Very confidently.",
+    "lead": "A man with a cloth sign 「算命」 sits on 国子监街.",
+    "steps": [
+      {
+        "id": "fortune",
+        "now": "On 雍和宫 street, 胡半仙 the fortune teller wants to tell your fortune — and your rabbit's.",
+        "past": "胡半仙 told my fortune (「你今天会吃饭！」) and found out my rabbit is a rabbit. He gave me 《属相》.",
+        "where": "yonghegong-street",
+        "done": {
+          "flag": "sub-hu-1"
+        }
+      }
+    ]
+  },
+  {
+    "id": "sub-mn-3",
+    "title": "The 煎饼 message",
+    "chapter": 4,
+    "kind": "side",
+    "giver": "lao-ma",
+    "blurb": "老马 and 老牛 won't talk to each other. They talk through you.",
+    "lead": "老马 on 南锣鼓巷 has a message for someone.",
+    "steps": [
+      {
+        "id": "message",
+        "now": "老马 on 南锣鼓巷 (mornings) has a message for 老牛.",
+        "past": "老马 gave me a message for 老牛. It wasn't polite.",
+        "where": "nanluo-main",
+        "when": "mornings 6:00–11:00",
+        "done": {
+          "flag": "sub-mn-3-msg"
+        }
+      },
+      {
+        "id": "deliver",
+        "now": "Take 老马's message to 老牛 at the 王府井 snack street. Say it exactly — or a little kinder. Your choice.",
+        "past": "Took 老马's message to 老牛 — and chose how to say it.",
+        "where": "wangfujing-street",
+        "done": {
+          "flag": "sub-mn-3"
+        }
+      }
+    ]
+  },
+  {
+    "id": "sub-misha-3",
+    "title": "米沙 asks a question",
+    "chapter": 4,
+    "kind": "side",
+    "giver": "misha",
+    "blurb": "米沙 wants to ask a girl at 国子监 something. What could go wrong?",
+    "lead": "米沙 is at 国子监, working up his courage.",
+    "steps": [
+      {
+        "id": "help",
+        "now": "米沙 is at 国子监. He wants to ask the girl reading on the steps where the library is.",
+        "past": "Rescued 米沙: he wanted to 问 (ask), not 吻 (kiss). He gave me 《声调》.",
+        "where": "guozijian",
+        "done": {
+          "flag": "sub-misha-3"
+        }
+      }
+    ]
   }
 ]

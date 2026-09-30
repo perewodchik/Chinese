@@ -1,0 +1,65 @@
+{
+  "id": "shengdiao",
+  "zh": "声调",
+  "en": "Tones",
+  "level": 1,
+  "cover": "figures/qilin",
+  "source": "gift",
+  "where": "米沙 gives it to you at 国子监, after the library disaster (chapter 4).",
+  "place": "guozijian",
+  "facts": [
+    "tone-pairs"
+  ],
+  "words": [
+    {
+      "w": "声调",
+      "en": "tone"
+    },
+    {
+      "w": "豹子",
+      "en": "a leopard"
+    },
+    {
+      "w": "水饺",
+      "en": "boiled dumplings"
+    },
+    {
+      "w": "吻",
+      "en": "to kiss"
+    }
+  ],
+  "names": [
+    "米沙",
+    "北京"
+  ],
+  "pages": [
+    {
+      "zh": "中文有四个声调。一个字，声调不对，意思就不对。",
+      "en": "Chinese has four tones. Get a syllable's tone wrong, and you get the meaning wrong."
+    },
+    {
+      "zh": "包子是 bāozi，豹子是 bàozi。包子可以吃，豹子……不能吃！",
+      "en": "包子 is bāozi, 豹子 is bàozi. You can eat a bun. A leopard… you can't!"
+    },
+    {
+      "zh": "水饺是 shuǐjiǎo，睡觉是 shuìjiào。想吃东西，吃水饺；累了，去睡觉。",
+      "en": "水饺 is shuǐjiǎo, 睡觉 is shuìjiào. Want to eat: dumplings. Tired: go to sleep."
+    },
+    {
+      "zh": "问是 wèn，吻是 wěn。问问题，可以。吻……不可以！",
+      "en": "问 is wèn, 吻 is wěn. Asking a question — fine. Kissing… not fine!"
+    },
+    {
+      "zh": "米沙说：我说错了很多很多。但是，我每天都听，每天都说。",
+      "en": "米沙 says: I've got it wrong lots and lots. But I listen every day, and speak every day."
+    },
+    {
+      "zh": "你也是：多听，多说。说错了，没关系！",
+      "en": "You too: listen a lot, speak a lot. Getting it wrong is fine!"
+    }
+  ],
+  "today": {
+    "zh": "今天的北京：北京人说话很快。听不懂的时候，你可以说：“请慢一点说！”",
+    "en": "In Beijing today: Beijing people talk fast. When you don't understand, you can say: “Please speak a bit more slowly!”"
+  }
+}

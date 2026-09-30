@@ -57,5 +57,32 @@
    1
   ],
   "facing": "up"
+ },
+ {
+  "kind": "npc",
+  "id": "tiantian-echo",
+  "npc": "tiantian",
+  "tile": [
+   18,
+   3
+  ],
+  "facing": "left",
+  "when": {
+   "all": [
+    {
+     "chapter": 4
+    },
+    {
+     "quest": "sub-tt-1",
+     "done": true
+    },
+    {
+     "not": {
+      "quest": "sub-tt-2",
+      "done": true
+     }
+    }
+   ]
+  }
  }
 ]

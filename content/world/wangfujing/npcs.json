@@ -236,5 +236,35 @@
       "你说什么？",
       "什么？你再说一遍。"
     ]
+  },
+  {
+    "id": "lao-niu",
+    "name": "老牛",
+    "role": "a huge, slow 煎饼果子 seller at the 王府井 snack street",
+    "look": {
+      "sprite": "uncle",
+      "palette": "brown"
+    },
+    "voice": "zhiyuan",
+    "character": "Huge and slow, drawn-out vowels; says 「牛！」 about everything good. From 天津, and sure his 煎饼 is the real one.",
+    "knows": [
+      "His 煎饼 is the 天津 one",
+      "老马 on 南锣鼓巷 says his is the real one"
+    ],
+    "wants": [],
+    "actions": [
+      "flag",
+      "give",
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "煎饼": "一种早饭，像很薄的饼，里面有鸡蛋。",
+      "饿": "想吃东西。"
+    },
+    "misses": [
+      "牛……？再说一遍？",
+      "嗯？再说一遍？"
+    ]
   }
 ]

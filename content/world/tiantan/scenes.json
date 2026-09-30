@@ -1019,5 +1019,99 @@
     "why": "The stone rails all round send your voice straight back — 《天坛》 page 6."
    }
   ]
+ },
+ {
+  "id": "sub-tt-2-echo",
+  "map": "huiyinbi",
+  "npc": "tiantian",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "start": "a",
+  "words": [
+   {
+    "w": "直播",
+    "explain": "用手机让很多人一起看你。",
+    "en": "live stream"
+   },
+   {
+    "w": "墙",
+    "explain": "房子外面高高的，不能走过去。",
+    "en": "wall"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "是你！家人们，我在回音壁直播！你在那边说话，我在这边听，好吗？",
+    "translate": "It's you! Fam, I'm streaming at the Echo Wall! You speak over there and I'll listen over here, OK?",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "sub-tt-2",
+      "step": "whisper"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "ok",
+      "match": [
+       [
+        "好",
+        "行",
+        "可以"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___！我去那边。",
+     "full": "好！我去那边。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "你在墙那边，小声说吧！",
+    "translate": "You go by the wall over there, and say it quietly!",
+    "expect": [
+     {
+      "intent": "any",
+      "match": [
+       [
+        "你好",
+        "家人们",
+        "谢谢",
+        "我",
+        "好"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "家人们好",
+     "frame": "___！",
+     "full": "家人们好！"
+    },
+    "why": "Whisper at the wall: the curved wall carries your voice all the way round."
+   },
+   {
+    "id": "c",
+    "say": "听见了！这个墙真好！家人们，直播里你们听见了吗？",
+    "translate": "Heard it! What a wall! Fam, did you hear it on the stream?",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "sub-tt-2"
+     },
+     {
+      "do": "cutscene",
+      "id": "sub-tt-2-danmaku"
+     }
+    ]
+   }
+  ]
  }
 ]

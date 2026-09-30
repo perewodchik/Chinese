@@ -20,7 +20,8 @@
     ],
     "routine": [],
     "explains": {
-      "香": "在庙里点的东西，有很好的味道。"
+      "香": "在庙里点的东西，有很好的味道。",
+      "不过": "但是。"
     },
     "misses": [
       "啊？"
@@ -85,7 +86,11 @@
       "只有": "没有别的，就一个。",
       "街": "城里走路、走车的地方。",
       "行": "走。",
-      "必": "一定。"
+      "必": "一定。",
+      "姑娘": "年轻的女人。",
+      "图书馆": "有很多书的地方。",
+      "泄露": "说出去。",
+      "可": "能。"
     },
     "misses": [
       "我不知道你说什么！"
@@ -118,5 +123,62 @@
     "explains": {
       "写法": "怎么写。"
     }
+  },
+  {
+    "id": "hu-banxian",
+    "name": "胡半仙",
+    "role": "a fortune teller with a folding stool and a cloth sign 「算命」",
+    "look": {
+      "sprite": "grandpa",
+      "palette": "blue"
+    },
+    "voice": "wei",
+    "character": "Grand and slow, then a tiny, very safe prediction. Round glasses, enormous confidence, a kind heart.",
+    "knows": [
+      "Everyone's 生肖",
+      "Very little about the future"
+    ],
+    "wants": [],
+    "actions": [
+      "flag",
+      "give",
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "算命": "说你以后会怎么样。",
+      "属": "你是哪年的动物。"
+    },
+    "misses": [
+      "天机……不可泄露。",
+      "嗯？再说一遍？"
+    ]
+  },
+  {
+    "id": "gzj-guniang",
+    "name": "看书的姑娘",
+    "role": "a student reading on the steps of 国子监",
+    "look": {
+      "sprite": "woman"
+    },
+    "voice": "xiaoyu",
+    "character": "Quiet, polite, amused.",
+    "knows": [
+      "Where the library is"
+    ],
+    "wants": [],
+    "actions": [
+      "flag",
+      "give",
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "问": "有问题，说给别人听。"
+    },
+    "misses": [
+      "嗯？",
+      "嗯？再说一遍？"
+    ]
   }
 ]

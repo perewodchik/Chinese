@@ -107,5 +107,45 @@
    10
   ],
   "facing": "left"
+ },
+ {
+  "kind": "npc",
+  "id": "misha-gzj",
+  "npc": "misha",
+  "tile": [
+   13,
+   11
+  ],
+  "facing": "left",
+  "when": {
+   "all": [
+    {
+     "chapter": 4
+    },
+    {
+     "quest": "sub-misha-2",
+     "done": true
+    },
+    {
+     "not": {
+      "quest": "sub-misha-3",
+      "done": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "kind": "npc",
+  "id": "reader",
+  "npc": "gzj-guniang",
+  "tile": [
+   16,
+   7
+  ],
+  "facing": "down",
+  "when": {
+   "chapter": 4
+  }
  }
 ]

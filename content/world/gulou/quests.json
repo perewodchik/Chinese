@@ -914,5 +914,47 @@
         "when": "at 元宵, after dark"
       }
     ]
+  },
+  {
+    "id": "sub-mn-1",
+    "title": "老马's 煎饼",
+    "chapter": 1,
+    "kind": "side",
+    "giver": "lao-ma",
+    "blurb": "A tiny man sells 煎饼果子 on 南锣鼓巷 in the mornings — the real Beijing one, he says.",
+    "lead": "Someone on 南锣鼓巷 shouts 「正宗！」 every morning.",
+    "steps": [
+      {
+        "id": "order",
+        "now": "Order a 煎饼果子 from 老马 on 南锣鼓巷 (mornings 6:00–11:00) — your way: an egg? spring onion? spicy?",
+        "past": "Ordered my first 煎饼果子 from 老马, my way. 「正宗！」",
+        "where": "nanluo-main",
+        "when": "mornings 6:00–11:00",
+        "done": {
+          "flag": "sub-mn-1"
+        }
+      }
+    ]
+  },
+  {
+    "id": "sub-misha-1",
+    "title": "米沙 and the leopards",
+    "chapter": 1,
+    "kind": "side",
+    "giver": "misha",
+    "blurb": "A Russian student at the breakfast shop orders with great confidence.",
+    "lead": "A foreign student at the 早点铺 is having trouble with his order.",
+    "steps": [
+      {
+        "id": "help",
+        "now": "At the breakfast shop 早点铺 (6:00–10:00), a student called 米沙 is trying to order. Help him.",
+        "past": "Helped 米沙 order 包子, not leopards.",
+        "where": "zaodian",
+        "when": "open 6:00–10:00",
+        "done": {
+          "flag": "sub-misha-1"
+        }
+      }
+    ]
   }
 ]

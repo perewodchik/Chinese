@@ -1,0 +1,208 @@
+[
+ {
+  "id": "sub-hu-1-rabbit",
+  "map": "yonghegong-street",
+  "chapter": 4,
+  "title": {
+   "zh": "你属兔！",
+   "en": "Year of the rabbit!"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     12,
+     8
+    ],
+    "facing": "up"
+   },
+   {
+    "actor": "hu-banxian",
+    "at": [
+     12,
+     7
+    ],
+    "facing": "down"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     12,
+     7
+    ],
+    "ms": 500,
+    "zoom": 2
+   },
+   {
+    "emote": "hu-banxian",
+    "kind": "proud"
+   },
+   {
+    "fx": "sparkle",
+    "at": [
+     12,
+     7
+    ],
+    "n": 8
+   },
+   {
+    "wait": 500
+   },
+   {
+    "emote": "rabbit",
+    "kind": "sulky"
+   },
+   {
+    "say": "hu-banxian",
+    "zh": "我什么都知道！",
+    "en": "I know everything!"
+   },
+   {
+    "say": "rabbit",
+    "en": "He guessed the rabbit is a rabbit. A great mind. Still — look in his book for your own animal."
+   },
+   {
+    "camera": [
+     12,
+     7
+    ],
+    "ms": 500,
+    "zoom": 1
+   }
+  ]
+ },
+ {
+  "id": "sub-mn-3-phones",
+  "map": "wangfujing-street",
+  "chapter": 4,
+  "title": {
+   "zh": "马和牛",
+   "en": "The horse and the ox"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     10,
+     42
+    ],
+    "facing": "left"
+   },
+   {
+    "actor": "lao-niu",
+    "at": [
+     9,
+     42
+    ],
+    "facing": "right"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     9,
+     42
+    ],
+    "ms": 600
+   },
+   {
+    "emote": "lao-niu",
+    "kind": "sulky"
+   },
+   {
+    "wait": 700
+   },
+   {
+    "emote": "lao-niu",
+    "kind": "blush"
+   },
+   {
+    "say": "lao-niu",
+    "zh": "他……还好吗？",
+    "en": "Is he… all right?"
+   },
+   {
+    "say": "rabbit",
+    "en": "Rivals don't usually ask that. There's an old story between 老马 and 老牛 — somewhere, someday."
+   }
+  ]
+ },
+ {
+  "id": "sub-misha-3-blush",
+  "map": "guozijian",
+  "chapter": 4,
+  "title": {
+   "zh": "问，不是吻",
+   "en": "Ask, not kiss"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     12,
+     11
+    ],
+    "facing": "right"
+   },
+   {
+    "actor": "misha",
+    "at": [
+     13,
+     11
+    ],
+    "facing": "left"
+   },
+   {
+    "actor": "gzj-guniang",
+    "at": [
+     16,
+     7
+    ],
+    "facing": "down"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     14,
+     9
+    ],
+    "ms": 500
+   },
+   {
+    "emote": "gzj-guniang",
+    "kind": "surprised"
+   },
+   {
+    "wait": 500
+   },
+   {
+    "emote": "misha",
+    "kind": "blush"
+   },
+   {
+    "wait": 600
+   },
+   {
+    "emote": "gzj-guniang",
+    "kind": "happy"
+   },
+   {
+    "say": "misha",
+    "zh": "对不起！我说错了……",
+    "en": "Sorry! I said it wrong…"
+   },
+   {
+    "say": "rabbit",
+    "en": "wèn to ask, wěn to kiss. He'll never mix them up again. Neither will you."
+   }
+  ]
+ }
+]

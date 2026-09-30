@@ -464,5 +464,45 @@
    20
   ],
   "facing": "left"
+ },
+ {
+  "kind": "npc",
+  "id": "lao-niu",
+  "npc": "lao-niu",
+  "tile": [
+   9,
+   42
+  ],
+  "facing": "right",
+  "when": {
+   "chapter": 3
+  }
+ },
+ {
+  "kind": "npc",
+  "id": "misha-wfj",
+  "npc": "misha",
+  "tile": [
+   12,
+   44
+  ],
+  "facing": "left",
+  "when": {
+   "all": [
+    {
+     "chapter": 3
+    },
+    {
+     "quest": "sub-misha-1",
+     "done": true
+    },
+    {
+     "not": {
+      "quest": "sub-misha-2",
+      "done": true
+     }
+    }
+   ]
+  }
  }
 ]

@@ -161,5 +161,31 @@
   ],
   "text": "帮忙：一天十五块。",
   "en": "Help wanted: 15 元 a day (tap to help)"
+ },
+ {
+  "kind": "npc",
+  "id": "misha-zaodian",
+  "npc": "misha",
+  "tile": [
+   8,
+   5
+  ],
+  "facing": "up",
+  "when": {
+   "all": [
+    {
+     "hours": [
+      6,
+      10
+     ]
+    },
+    {
+     "not": {
+      "quest": "sub-misha-1",
+      "done": true
+     }
+    }
+   ]
+  }
  }
 ]

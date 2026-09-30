@@ -962,5 +962,239 @@
     "why": "送 — here, a free gift from the shop."
    }
   ]
+ },
+ {
+  "id": "sub-mn-2-order",
+  "map": "wangfujing-street",
+  "npc": "lao-niu",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "start": "a",
+  "words": [
+   {
+    "w": "煎饼",
+    "explain": "一种早饭，像很薄的饼，里面有鸡蛋。",
+    "en": "a Chinese crêpe"
+   },
+   {
+    "w": "辣",
+    "explain": "吃了嘴里很热。",
+    "en": "spicy"
+   },
+   {
+    "w": "正宗",
+    "explain": "真的，老的，最对的。",
+    "en": "the real thing"
+   },
+   {
+    "w": "加",
+    "explain": "多放一个。",
+    "en": "to add"
+   },
+   {
+    "w": "牛",
+    "explain": "很好，很厉害。",
+    "en": "brilliant (slang; also “ox”)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "煎饼——。正宗的。我的煎饼，牛！要吗？",
+    "translate": "Jianbing. The real one. My jianbing — brilliant! Want one?",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "sub-mn-2",
+      "step": "order"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "要",
+        "好",
+        "一个",
+        "来"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "要",
+     "frame": "我___一个。",
+     "full": "我要一个。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "加——个——蛋？加一个？",
+    "translate": "An — egg?",
+    "expect": [
+     {
+      "intent": "egg",
+      "match": [
+       [
+        "加",
+        "要",
+        "好",
+        "不加",
+        "不要"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "加",
+     "frame": "___一个鸡蛋。",
+     "full": "加一个鸡蛋。"
+    },
+    "why": "Same order as 老马's, fewer words: 加个蛋 is short for 加个鸡蛋."
+   },
+   {
+    "id": "c",
+    "say": "辣——的？",
+    "translate": "Spi — cy?",
+    "expect": [
+     {
+      "intent": "spicy",
+      "match": [
+       [
+        "辣",
+        "不辣",
+        "要",
+        "不要",
+        "一点"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "一点",
+     "frame": "要___辣的。",
+     "full": "要一点辣的。"
+    }
+   },
+   {
+    "id": "d",
+    "say": "好了。牛吧！南锣鼓巷的老马？他的煎饼，不正宗！",
+    "translate": "There. Brilliant, eh! 老马 on 南锣鼓巷? His jianbing isn't the real thing!",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "sub-mn-2"
+     },
+     {
+      "do": "book",
+      "id": "jianbing"
+     },
+     {
+      "do": "cutscene",
+      "id": "sub-mn-2-slow"
+     }
+    ],
+    "why": "Your first one is on the house. 牛 — “ox”, and slang for brilliant. He gives you 《煎饼果子》: the 天津 and Beijing 煎饼 argument."
+   }
+  ]
+ },
+ {
+  "id": "sub-misha-2-jiaozi",
+  "map": "wangfujing-street",
+  "npc": "misha",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "quest": "sub-misha-1",
+   "done": true
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "水饺",
+    "explain": "水里做的饺子。",
+    "en": "boiled dumplings"
+   },
+   {
+    "w": "睡觉",
+    "explain": "晚上在床上。",
+    "en": "to sleep"
+   },
+   {
+    "w": "饿",
+    "explain": "想吃东西。",
+    "en": "hungry"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "朋友！我饿了。我问他：这儿哪里可以睡觉？他笑了！为什么？",
+    "translate": "Friend! I'm hungry. I asked him where I can sleep around here. He laughed! Why?",
+    "key": true,
+    "simpler": "哪里可以睡觉？",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "sub-misha-2",
+      "step": "help"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "jiaozi",
+      "match": [
+       [
+        "水饺"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "水饺",
+     "frame": "不是睡觉，是___。",
+     "full": "不是睡觉，是水饺。"
+    },
+    "why": "A key line 📌: 睡觉 shuìjiào (to sleep) vs 水饺 shuǐjiǎo (boiled dumplings). Hungry people want 水饺."
+   },
+   {
+    "id": "b",
+    "say": "水饺！对，对！我饿了，我不想睡觉！",
+    "translate": "Dumplings! Yes, yes! I'm hungry, I don't want to sleep!",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "shuǐjiǎo — dumplings. shuìjiào — sleep. He was asking where to take a nap.",
+    "translate": "水饺 shuǐjiǎo · 睡觉 shuìjiào",
+    "speaker": "companion",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "sub-misha-2"
+     },
+     {
+      "do": "solve",
+      "riddle": "sub-misha-2-jiaozi/a"
+     },
+     {
+      "do": "hearts",
+      "npc": "misha",
+      "delta": 1
+     },
+     {
+      "do": "cutscene",
+      "id": "sub-misha-2-nap"
+     }
+    ]
+   }
+  ]
  }
 ]

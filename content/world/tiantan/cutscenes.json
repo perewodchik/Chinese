@@ -404,5 +404,67 @@
     "en": "Next: incense and temples. People say a spirit hides among the stone monkeys of 白云观."
    }
   ]
+ },
+ {
+  "id": "sub-tt-2-danmaku",
+  "map": "huiyinbi",
+  "chapter": 4,
+  "title": {
+   "zh": "回音壁 · 直播",
+   "en": "The Echo Wall, live"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     16,
+     3
+    ],
+    "facing": "left"
+   },
+   {
+    "actor": "tiantian",
+    "at": [
+     18,
+     3
+    ],
+    "facing": "left"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     17,
+     3
+    ],
+    "ms": 600
+   },
+   {
+    "sound": "chime"
+   },
+   {
+    "fx": "danmaku",
+    "text": [
+     "听见了！",
+     "好神奇",
+     "666",
+     "回音壁打卡",
+     "哈哈哈"
+    ]
+   },
+   {
+    "wait": 2400
+   },
+   {
+    "emote": "tiantian",
+    "kind": "happy"
+   },
+   {
+    "say": "rabbit",
+    "en": "Four hundred years of whispers round that wall, and now a live stream. 666 indeed."
+   }
+  ]
  }
 ]

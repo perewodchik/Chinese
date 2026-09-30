@@ -1035,6 +1035,10 @@
      {
       "do": "solve",
       "riddle": "lantern-rabbit/d"
+     },
+     {
+      "do": "solve",
+      "riddle": "lion-night/b"
      }
     ]
    }
@@ -9115,6 +9119,266 @@
      }
     ],
     "why": "The lakes are for chapter 2. First, the spirits could be anywhere in Beijing — you will need a 交通卡."
+   }
+  ]
+ },
+ {
+  "id": "sub-mn-1-order",
+  "map": "nanluo-main",
+  "npc": "lao-ma",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "start": "a",
+  "words": [
+   {
+    "w": "煎饼",
+    "explain": "一种早饭，像很薄的饼，里面有鸡蛋。",
+    "en": "a Chinese crêpe"
+   },
+   {
+    "w": "辣",
+    "explain": "吃了嘴里很热。",
+    "en": "spicy"
+   },
+   {
+    "w": "正宗",
+    "explain": "真的，老的，最对的。",
+    "en": "the real thing"
+   },
+   {
+    "w": "加",
+    "explain": "多放一个。",
+    "en": "to add"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "煎饼！正宗的煎饼！你要一个吗？",
+    "translate": "煎饼! The real thing! Want one?",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "sub-mn-1",
+      "step": "order"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "要",
+        "好",
+        "一个",
+        "来"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "要",
+     "frame": "我___一个。",
+     "full": "我要一个。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "加鸡蛋吗？加一个鸡蛋，好吃！",
+    "translate": "Add an egg? With an egg it's delicious!",
+    "expect": [
+     {
+      "intent": "egg",
+      "match": [
+       [
+        "加",
+        "要",
+        "好",
+        "不加",
+        "不要"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "加",
+     "frame": "___一个鸡蛋。",
+     "full": "加一个鸡蛋。"
+    },
+    "why": "加 — to add. 加个鸡蛋 is how every Beijinger orders it."
+   },
+   {
+    "id": "c",
+    "say": "要辣的吗？",
+    "translate": "Spicy?",
+    "expect": [
+     {
+      "intent": "spicy",
+      "match": [
+       [
+        "辣",
+        "不辣",
+        "要",
+        "不要",
+        "一点"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "不要辣的",
+     "frame": "___，谢谢。",
+     "full": "不要辣的，谢谢。"
+    }
+   },
+   {
+    "id": "d",
+    "say": "好了！你吃吃看。怎么样？正宗吧！",
+    "translate": "There you go! Try it. Well? The real thing, right?",
+    "key": true,
+    "simpler": "好吃吗？",
+    "expect": [
+     {
+      "intent": "tasty",
+      "match": [
+       [
+        "好吃",
+        "正宗",
+        "很好",
+        "不错"
+       ]
+      ],
+      "go": "e"
+     }
+    ],
+    "hint": {
+     "word": "好吃",
+     "frame": "很___！",
+     "full": "很好吃！"
+    },
+    "why": "A key line 📌: 正宗 — genuine, the real thing. 老马 says it about everything."
+   },
+   {
+    "id": "e",
+    "say": "对吧！王府井的老牛说他的正宗？不对，我的正宗！",
+    "translate": "Right?! 老牛 on 王府井 says his is the real one? Wrong — mine is!",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "sub-mn-1"
+     },
+     {
+      "do": "solve",
+      "riddle": "sub-mn-1-order/d"
+     },
+     {
+      "do": "cutscene",
+      "id": "sub-mn-1-flip"
+     }
+    ],
+    "why": "Your first one is on the house — a 煎饼 is usually 6 元. Beijing puts crispy 薄脆 inside; 天津 people say theirs is the real one — you'll meet 老牛 later."
+   }
+  ]
+ },
+ {
+  "id": "sub-misha-1-baozi",
+  "map": "zaodian",
+  "npc": "misha",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "start": "a",
+  "words": [
+   {
+    "w": "包子",
+    "explain": "里面有肉或者菜的，白白的，早上吃。",
+    "en": "steamed bun"
+   },
+   {
+    "w": "豹子",
+    "explain": "一种很大的猫，身上有很多黑点。",
+    "en": "leopard"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！我是米沙，俄罗斯人。我的中文很好！你看：我要两个豹子！",
+    "translate": "Hi! I'm 米沙, from Russia. My Chinese is great! Watch: two leopards, please!",
+    "key": true,
+    "simpler": "我要两个豹子！",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "sub-misha-1",
+      "step": "help"
+     }
+    ],
+    "next": "b",
+    "why": "A key line 📌: he said 豹子 bàozi (leopard, falling tone) instead of 包子 bāozi (bun, high flat tone)."
+   },
+   {
+    "id": "b",
+    "say": "豹子？我们这儿没有豹子。",
+    "translate": "Leopards? We haven't got any leopards here.",
+    "speaker": "zaodian-shifu",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "为什么没有？你说，怎么说？",
+    "translate": "Why not? You tell me — how do I say it?",
+    "expect": [
+     {
+      "intent": "baozi",
+      "match": [
+       [
+        "包子"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "包子",
+     "frame": "不是豹子，是___。",
+     "full": "不是豹子，是包子。"
+    }
+   },
+   {
+    "id": "d",
+    "say": "包子，包子……你好，我要两个包子！",
+    "translate": "Bāozi, bāozi… Hello, two buns please!",
+    "next": "e"
+   },
+   {
+    "id": "e",
+    "say": "bāozi, steamed buns. bàozi, leopards. Same sounds, different tones — and a very different breakfast.",
+    "translate": "包子 bāozi · 豹子 bàozi",
+    "speaker": "companion",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "sub-misha-1"
+     },
+     {
+      "do": "solve",
+      "riddle": "sub-misha-1-baozi/a"
+     },
+     {
+      "do": "hearts",
+      "npc": "misha",
+      "delta": 1
+     },
+     {
+      "do": "cutscene",
+      "id": "sub-misha-1-leopard"
+     }
+    ]
    }
   ]
  }

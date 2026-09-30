@@ -42,5 +42,29 @@
       "en": "Confucius said: when three people walk together, one of them is sure to be someone I can learn from."
     },
     "tier": "story"
+  },
+  {
+    "id": "天机不可泄露",
+    "pinyin": "tiānjī bù kě xièlòu",
+    "parts": [
+      {
+        "c": "天机",
+        "gloss": "heaven's secrets"
+      },
+      {
+        "c": "不可",
+        "gloss": "must not"
+      },
+      {
+        "c": "泄露",
+        "gloss": "be leaked"
+      }
+    ],
+    "meaning": "heaven's secrets must not be told — said with a wink by fortune tellers who don't know the answer",
+    "story": {
+      "zh": "算命的人常说：天机不可泄露。意思是：我不能告诉你。",
+      "en": "Fortune tellers love to say it: heaven's secrets must not be told. It means: I can't tell you."
+    },
+    "tier": "story"
   }
 ]

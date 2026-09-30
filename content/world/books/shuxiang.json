@@ -1,0 +1,74 @@
+{
+  "id": "shuxiang",
+  "zh": "属相",
+  "en": "The twelve animals",
+  "level": 1,
+  "cover": "figures/shishizi",
+  "source": "gift",
+  "where": "胡半仙 the fortune teller on 雍和宫 street gives it to you (chapter 4).",
+  "place": "yonghegong-street",
+  "facts": [
+    "shengxiao"
+  ],
+  "words": [
+    {
+      "w": "动物",
+      "en": "an animal"
+    },
+    {
+      "w": "属",
+      "en": "to be born in the year of"
+    },
+    {
+      "w": "兔年",
+      "en": "the year of the rabbit"
+    }
+  ],
+  "names": [
+    "鼠",
+    "牛",
+    "虎",
+    "兔",
+    "龙",
+    "蛇",
+    "马",
+    "羊",
+    "猴",
+    "鸡",
+    "狗",
+    "猪",
+    "中国",
+    "北京",
+    "春节"
+  ],
+  "pages": [
+    {
+      "zh": "中国人说，一年有一个动物。有十二个动物，一个一个地来。",
+      "en": "Chinese people say every year has an animal. There are twelve animals, and they come one after another."
+    },
+    {
+      "zh": "它们是：鼠、牛、虎、兔、龙、蛇、马、羊、猴、鸡、狗、猪。",
+      "en": "They are: rat, ox, tiger, rabbit, dragon, snake, horse, goat, monkey, rooster, dog, pig."
+    },
+    {
+      "zh": "你是哪一年来的？那一年是什么动物，你就属什么。",
+      "en": "Which year did you come into the world? Whatever animal that year has, that is your animal — you 属 it."
+    },
+    {
+      "zh": "二〇二三年是兔年。那一年的孩子，都属兔。",
+      "en": "2023 was a rabbit year. That year's babies are all rabbits."
+    },
+    {
+      "zh": "十二年过去了，兔年再来。",
+      "en": "Twelve years go by, and the rabbit year comes again."
+    },
+    {
+      "zh": "大家问：“你属什么？”这是问你多大。",
+      "en": "People ask: “What animal are you?” It's a way of asking how old you are."
+    }
+  ],
+  "today": {
+    "zh": "今天的北京：春节的时候，很多商店里都有那一年的动物。你属什么？找一找你的动物吧！",
+    "en": "In Beijing today: at Spring Festival, that year's animal is everywhere. What's your animal? Go and find it!"
+  }
+}

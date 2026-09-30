@@ -207,5 +207,45 @@
         }
       }
     ]
+  },
+  {
+    "id": "sub-mn-2",
+    "title": "老牛's 煎饼",
+    "chapter": 3,
+    "kind": "side",
+    "giver": "lao-niu",
+    "blurb": "A huge, slow man at the 王府井 snack street sells 煎饼 — the real 天津 one, he says.",
+    "lead": "At the 王府井 snack street someone says 「牛！」 very slowly.",
+    "steps": [
+      {
+        "id": "order",
+        "now": "Order a 煎饼 from 老牛 at the 王府井 snack street 小吃街 — the same order as 老马's, in his words.",
+        "past": "Ordered a 煎饼 from 老牛. 「牛——！」 He says 老马's isn't real.",
+        "where": "wangfujing-street",
+        "done": {
+          "flag": "sub-mn-2"
+        }
+      }
+    ]
+  },
+  {
+    "id": "sub-misha-2",
+    "title": "米沙 wants to sleep",
+    "chapter": 3,
+    "kind": "side",
+    "giver": "misha",
+    "blurb": "米沙 is hungry on 王府井 — or sleepy?",
+    "lead": "米沙 is at the 王府井 snack street, looking lost.",
+    "steps": [
+      {
+        "id": "help",
+        "now": "米沙 is at the 王府井 snack street. He wants something — help him say it.",
+        "past": "Helped 米沙: he wanted 水饺, not 睡觉.",
+        "where": "wangfujing-street",
+        "done": {
+          "flag": "sub-misha-2"
+        }
+      }
+    ]
   }
 ]

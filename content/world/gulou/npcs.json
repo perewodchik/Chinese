@@ -836,5 +836,63 @@
       "嗯？再说一遍？",
       "对不起，我没听懂。"
     ]
+  },
+  {
+    "id": "lao-ma",
+    "name": "老马",
+    "role": "a tiny, fast 煎饼果子 seller on 南锣鼓巷, mornings",
+    "look": {
+      "sprite": "uncle",
+      "palette": "apron"
+    },
+    "voice": "chen",
+    "character": "Tiny, quick, proud; every sentence ends in 「正宗！」. Rival of 老牛 on 王府井, though he pretends not to care.",
+    "knows": [
+      "His 煎饼 is the real Beijing one, with 薄脆",
+      "老牛 on 王府井 says his is the real one"
+    ],
+    "wants": [],
+    "actions": [
+      "flag",
+      "give",
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "煎饼": "一种早饭，像很薄的饼，里面有鸡蛋。"
+    },
+    "misses": [
+      "正宗！再说一遍？",
+      "嗯？再说一遍？"
+    ]
+  },
+  {
+    "id": "misha",
+    "name": "米沙",
+    "role": "a Russian exchange student, three months ahead of you",
+    "look": {
+      "sprite": "tourist",
+      "palette": "green"
+    },
+    "voice": "zhiyuan",
+    "character": "Brave, cheerful, sure his Chinese is perfect; his tones go wrong in the famous ways, and he always tries again.",
+    "knows": [
+      "He has studied Chinese for six months",
+      "Tones are hard"
+    ],
+    "wants": [],
+    "actions": [
+      "flag",
+      "give",
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "声调": "说话的时候，声音高高低低。"
+    },
+    "misses": [
+      "没问题！……你说什么？",
+      "嗯？再说一遍？"
+    ]
   }
 ]

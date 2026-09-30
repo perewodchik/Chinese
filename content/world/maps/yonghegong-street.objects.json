@@ -249,5 +249,18 @@
   ],
   "text": "地坛",
   "en": "Ditan Park, the Temple of Earth — north across the road"
+ },
+ {
+  "kind": "npc",
+  "id": "hu-banxian",
+  "npc": "hu-banxian",
+  "tile": [
+   12,
+   7
+  ],
+  "facing": "down",
+  "when": {
+   "chapter": 4
+  }
  }
 ]

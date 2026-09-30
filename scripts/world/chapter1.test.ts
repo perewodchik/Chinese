@@ -589,3 +589,34 @@ describe('stress: odd input never breaks a conversation', () => {
     assert.equal(t.companion?.kind === 'hint' && t.companion.step, 3);
   });
 });
+
+describe('the substories of chapters 1–4, played through the core (U1–U4)', () => {
+  it('老马, 米沙, 甜甜, 老牛, 胡半仙: each episode plays with its hints and ends its quest', () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 4 }]);
+    for (const [scene, quest] of [
+      ['sub-mn-1-order', 'sub-mn-1'],
+      ['sub-misha-1-baozi', 'sub-misha-1'],
+      ['sub-tt-1-live', 'sub-tt-1'],
+      ['sub-mn-2-order', 'sub-mn-2'],
+      ['sub-misha-2-jiaozi', 'sub-misha-2'],
+      ['sub-tt-2-echo', 'sub-tt-2'],
+      ['sub-hu-1-face', 'sub-hu-1'],
+      ['sub-mn-3-message', 'sub-mn-3'],
+      ['sub-mn-3-deliver', 'sub-mn-3'],
+      ['sub-misha-3-wen', 'sub-misha-3'],
+    ] as const) {
+      s = play(s, scene).save;
+      assert.ok(s.quests[quest], `${scene} starts ${quest}`);
+    }
+    for (const q of ['sub-mn-1', 'sub-misha-1', 'sub-tt-1', 'sub-mn-2', 'sub-misha-2', 'sub-tt-2', 'sub-hu-1', 'sub-mn-3', 'sub-misha-3']) assert.equal(s.quests[q]?.done, true, q);
+    for (const b of ['jianbing', 'shuxiang', 'shengdiao']) assert.ok(s.books[b], b);
+    assert.ok('天机不可泄露' in s.idioms);
+  });
+
+  it('the 煎饼 message can be passed on exactly, too (the rude way leads on as well)', () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 4 }, { do: 'quest', quest: 'sub-mn-3', step: 'deliver' }]);
+    const { save, said } = play(s, 'sub-mn-3-deliver', ['他说：你的煎饼马马虎虎。']);
+    assert.ok(said.some((l) => l.startsWith('马马虎虎？！')));
+    assert.equal(save.quests['sub-mn-3']?.done, true);
+  });
+});

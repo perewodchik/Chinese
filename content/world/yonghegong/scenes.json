@@ -660,5 +660,442 @@
     ]
    }
   ]
+ },
+ {
+  "id": "sub-hu-1-face",
+  "map": "yonghegong-street",
+  "npc": "hu-banxian",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "start": "a",
+  "words": [
+   {
+    "w": "算命",
+    "explain": "说你以后会怎么样。",
+    "en": "fortune telling"
+   },
+   {
+    "w": "属",
+    "explain": "你是哪年的动物。",
+    "en": "to be born in the year of"
+   },
+   {
+    "w": "兔",
+    "explain": "长耳朵的小动物。",
+    "en": "rabbit"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！我给你算命。你想知道明天吗？",
+    "translate": "Hello! Let me tell your fortune. Want to know about tomorrow?",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "sub-hu-1",
+      "step": "fortune"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "想",
+        "好",
+        "要",
+        "可以"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "想",
+     "frame": "___！我想知道。",
+     "full": "想！我想知道。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "天机不可泄露……我说一点点吧。",
+    "translate": "Heaven's secrets must not be told… I'll tell you just a little.",
+    "key": true,
+    "simpler": "我说一点点。",
+    "onEnter": [
+     {
+      "do": "idiom",
+      "idiom": "天机不可泄露"
+     }
+    ],
+    "next": "c",
+    "why": "A 成语 📌: 天机不可泄露 — heaven's secrets must not be told. Every fortune teller's favourite way of not answering."
+   },
+   {
+    "id": "c",
+    "say": "你今天……会吃饭！",
+    "translate": "Today, you… will eat!",
+    "expect": [
+     {
+      "intent": "laugh",
+      "match": [
+       [
+        "对",
+        "是",
+        "哈",
+        "真的",
+        "会"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "对",
+     "frame": "___，我会吃饭！",
+     "full": "对，我会吃饭！"
+    }
+   },
+   {
+    "id": "d",
+    "say": "你的朋友呢？我看看……你属兔！是兔！",
+    "translate": "And your friend? Let me see… you were born in a rabbit year! A rabbit!",
+    "next": "e",
+    "why": "属兔 — born in a rabbit year. Said to a rabbit."
+   },
+   {
+    "id": "e",
+    "say": "I am a rabbit. That is not fortune telling, that is looking.",
+    "translate": "兔儿爷, unimpressed.",
+    "speaker": "companion",
+    "next": "f"
+   },
+   {
+    "id": "f",
+    "say": "这本书给你，是算命的书！你看看，你属什么？",
+    "translate": "Here's a book for you — a fortune book! Have a look: what's your animal?",
+    "onEnter": [
+     {
+      "do": "book",
+      "id": "shuxiang"
+     },
+     {
+      "do": "flag",
+      "flag": "sub-hu-1"
+     },
+     {
+      "do": "solve",
+      "riddle": "sub-hu-1-face/b"
+     },
+     {
+      "do": "cutscene",
+      "id": "sub-hu-1-rabbit"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sub-mn-3-message",
+  "map": "nanluo-main",
+  "npc": "lao-ma",
+  "trigger": "talk",
+  "once": true,
+  "priority": -2,
+  "when": {
+   "all": [
+    {
+     "chapter": 4
+    },
+    {
+     "quest": "sub-mn-1",
+     "done": true
+    },
+    {
+     "quest": "sub-mn-2",
+     "done": true
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "煎饼",
+    "explain": "一种早饭，像很薄的饼，里面有鸡蛋。",
+    "en": "a Chinese crêpe"
+   },
+   {
+    "w": "正宗",
+    "explain": "真的，老的，最对的。",
+    "en": "the real thing"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你去王府井了？看见老牛了？他的煎饼正宗吗？",
+    "translate": "You've been to 王府井? Seen 老牛? Is his jianbing the real thing?",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "sub-mn-3",
+      "step": "message"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "看见",
+        "去了",
+        "是",
+        "对"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "看见了",
+     "frame": "___，他也卖煎饼。",
+     "full": "看见了，他也卖煎饼。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "你告诉他：他的煎饼，马马虎虎！我的，正宗！",
+    "translate": "Tell him: his 煎饼 is so-so! Mine's the real thing!",
+    "key": true,
+    "simpler": "他的煎饼不好，我的好！",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "sub-mn-3-msg"
+     }
+    ],
+    "why": "A key line 📌 — and 马马虎虎 from 张师傅 finally has a use."
+   }
+  ]
+ },
+ {
+  "id": "sub-mn-3-deliver",
+  "map": "wangfujing-street",
+  "npc": "lao-niu",
+  "trigger": "talk",
+  "once": true,
+  "priority": -2,
+  "when": {
+   "quest": "sub-mn-3",
+   "step": "deliver"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "煎饼",
+    "explain": "一种早饭，像很薄的饼，里面有鸡蛋。",
+    "en": "a Chinese crêpe"
+   },
+   {
+    "w": "正宗",
+    "explain": "真的，老的，最对的。",
+    "en": "the real thing"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "老马……说什么了？说我的煎饼不正宗？",
+    "translate": "老马… said what? That my jianbing isn't the real thing?",
+    "expect": [
+     {
+      "intent": "exact",
+      "match": [
+       [
+        "马马虎虎",
+        "不好"
+       ]
+      ],
+      "go": "b"
+     },
+     {
+      "intent": "kind",
+      "match": [
+       [
+        "好吃",
+        "很好",
+        "不错"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "好吃",
+     "frame": "他说：你的煎饼也很___。",
+     "full": "他说：你的煎饼也很好吃。"
+    },
+    "why": "Pass it on exactly (「他说：你的煎饼马马虎虎。」) — or a little kinder (「他说：你的煎饼也很好吃。」). Either is right; they lead different ways."
+   },
+   {
+    "id": "b",
+    "say": "马马虎虎？！你告诉他：天津的，正宗！",
+    "translate": "So-so?! Tell him: 天津's is the real thing!",
+    "next": "d",
+    "key": true,
+    "simpler": "他的煎饼不好！"
+   },
+   {
+    "id": "c",
+    "say": "他说……我的煎饼好吃？他的……也还可以。",
+    "translate": "He said… my jianbing is good? His is… not bad either.",
+    "next": "d"
+   },
+   {
+    "id": "d",
+    "say": "他……还好吗？",
+    "translate": "Is he… doing all right?",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "sub-mn-3"
+     },
+     {
+      "do": "solve",
+      "riddle": "sub-mn-3-message/b"
+     },
+     {
+      "do": "cutscene",
+      "id": "sub-mn-3-phones"
+     }
+    ],
+    "why": "He can't help asking. There's a story between these two — you'll hear it later."
+   }
+  ]
+ },
+ {
+  "id": "sub-misha-3-wen",
+  "map": "guozijian",
+  "npc": "misha",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "when": {
+   "quest": "sub-misha-2",
+   "done": true
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "问",
+    "explain": "有问题，说给别人听。",
+    "en": "to ask"
+   },
+   {
+    "w": "吻",
+    "explain": "嘴对着嘴，很爱一个人。",
+    "en": "to kiss"
+   },
+   {
+    "w": "声调",
+    "explain": "说话的时候，声音高高低低。",
+    "en": "tone"
+   },
+   {
+    "w": "姑娘",
+    "explain": "年轻的女人。",
+    "en": "a young woman"
+   },
+   {
+    "w": "图书馆",
+    "explain": "有很多书，可以去看书的地方。",
+    "en": "library"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "朋友！你看，那个姑娘。我想去吻她：图书馆在哪儿？",
+    "translate": "Friend! See that girl? I want to go and kiss her: where's the library?",
+    "key": true,
+    "simpler": "我想吻她。",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "sub-misha-3",
+      "step": "help"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "wen",
+      "match": [
+       [
+        "问"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "问",
+     "frame": "不是吻，是___！",
+     "full": "不是吻，是问！"
+    },
+    "why": "A key line 📌: 吻 wěn (to kiss, dipping tone) vs 问 wèn (to ask, falling tone). Stop him!"
+   },
+   {
+    "id": "b",
+    "say": "问！问那个姑娘！不是……啊，她听见了……",
+    "translate": "Ask! Ask that girl! Not… oh no, she heard…",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "没关系。图书馆在后面。你的声调，要多听。",
+    "translate": "Never mind. The library is round the back. Your tones — listen more.",
+    "speaker": "gzj-guniang",
+    "next": "d"
+   },
+   {
+    "id": "d",
+    "say": "我的书给你，说的是声调。我还要看很多很多！",
+    "translate": "Take my book — it's about tones. I've still got lots to read!",
+    "onEnter": [
+     {
+      "do": "book",
+      "id": "shengdiao"
+     }
+    ],
+    "next": "e"
+   },
+   {
+    "id": "e",
+    "say": "wèn — to ask. wěn — to kiss. One tone, and the library becomes a romance.",
+    "translate": "问 wèn · 吻 wěn",
+    "speaker": "companion",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "sub-misha-3"
+     },
+     {
+      "do": "solve",
+      "riddle": "sub-misha-3-wen/a"
+     },
+     {
+      "do": "hearts",
+      "npc": "misha",
+      "delta": 1
+     },
+     {
+      "do": "cutscene",
+      "id": "sub-misha-3-blush"
+     }
+    ]
+   }
+  ]
  }
 ]

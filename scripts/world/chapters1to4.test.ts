@@ -1,5 +1,5 @@
 /**
- * Chapters 1–4 on their own (the learner's review, 2026-10-01): everything a
+ * Chapters 1–4 on their own (the learner's review, 2026-09-30): everything a
  * player can start in them can be finished in them, whatever order they
  * play in, and the traps found in review stay fixed — a promise the story
  * can't keep yet (the palace ticket), a spirit met before its step, a story
@@ -126,5 +126,18 @@ describe('the traps found in review', () => {
     const here = (hour: number) => castMap(park.objects, park.id, npcs, at(hour)).some((o) => o.kind === 'npc' && o.npc === 'xiaoming');
     assert.equal(here(10), true, 'on the trip at 10:00');
     assert.equal(here(18), false, 'home again by evening');
+  });
+});
+
+describe('📌 key lines of chapters 1–4', () => {
+  it('a key line the player answers on the spot is marked worked out (it does not stay pinned forever)', () => {
+    const solved = new Set([...JSON.stringify(districts.map((d) => [d.scenes, d.cutscenes])).matchAll(/"do":"solve","riddle":"([^"]+)"/g)].map((m) => m[1]!));
+    const bad: string[] = [];
+    for (const d of districts)
+      for (const s of d.scenes) {
+        if (d.district.chapter > 4 && !/^(c[1-4]|sub-)/.test(s.id)) continue;
+        for (const n of s.nodes) if (n.key && n.expect?.length && !solved.has(`${s.id}/${n.id}`)) bad.push(`${s.id}/${n.id}`);
+      }
+    assert.deepEqual(bad, []);
   });
 });

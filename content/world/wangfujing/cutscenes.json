@@ -74,5 +74,146 @@
     "ms": 1400
    }
   ]
+ },
+ {
+  "id": "sub-mn-2-slow",
+  "map": "wangfujing-street",
+  "chapter": 3,
+  "title": {
+   "zh": "牛！",
+   "en": "Brilliant!"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     10,
+     42
+    ],
+    "facing": "left"
+   },
+   {
+    "actor": "lao-niu",
+    "at": [
+     9,
+     42
+    ],
+    "facing": "right"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     9,
+     42
+    ],
+    "ms": 600,
+    "zoom": 2
+   },
+   {
+    "sound": "wood"
+   },
+   {
+    "wait": 900
+   },
+   {
+    "sound": "wood"
+   },
+   {
+    "wait": 900
+   },
+   {
+    "fx": "sparkle",
+    "at": [
+     9,
+     42
+    ],
+    "n": 6
+   },
+   {
+    "say": "lao-niu",
+    "zh": "牛！牛——！",
+    "en": "Brilli — ant!"
+   },
+   {
+    "say": "rabbit",
+    "en": "Twice as big as 老马 and half as fast. Two 煎饼 men, each sure the other is a fake. This will not end quietly."
+   },
+   {
+    "camera": [
+     9,
+     42
+    ],
+    "ms": 500,
+    "zoom": 1
+   }
+  ],
+  "words": [
+   {
+    "w": "牛",
+    "explain": "很好，很厉害。",
+    "en": "brilliant"
+   }
+  ]
+ },
+ {
+  "id": "sub-misha-2-nap",
+  "map": "wangfujing-street",
+  "chapter": 3,
+  "title": {
+   "zh": "水饺！",
+   "en": "Dumplings!"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     11,
+     44
+    ],
+    "facing": "right"
+   },
+   {
+    "actor": "misha",
+    "at": [
+     12,
+     44
+    ],
+    "facing": "left"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     12,
+     44
+    ],
+    "ms": 500
+   },
+   {
+    "emote": "misha",
+    "kind": "sleepy"
+   },
+   {
+    "wait": 700
+   },
+   {
+    "emote": "misha",
+    "kind": "happy"
+   },
+   {
+    "say": "misha",
+    "zh": "水饺！不是睡觉！",
+    "en": "Dumplings! Not sleep!"
+   },
+   {
+    "say": "rabbit",
+    "en": "shuǐjiǎo, shuìjiào. Hungry, not sleepy. Brave man."
+   }
+  ]
  }
 ]

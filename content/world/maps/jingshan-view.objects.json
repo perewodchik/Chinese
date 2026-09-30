@@ -34,5 +34,34 @@
    15
   ],
   "facing": "up"
+ },
+ {
+  "kind": "npc",
+  "id": "tiantian",
+  "npc": "tiantian",
+  "tile": [
+   27,
+   15
+  ],
+  "facing": "up",
+  "when": {
+   "all": [
+    {
+     "chapter": 2
+    },
+    {
+     "hours": [
+      16,
+      20
+     ]
+    },
+    {
+     "not": {
+      "quest": "sub-tt-1",
+      "done": true
+     }
+    }
+   ]
+  }
  }
 ]

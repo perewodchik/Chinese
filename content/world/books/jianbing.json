@@ -1,0 +1,76 @@
+{
+  "id": "jianbing",
+  "zh": "煎饼果子",
+  "en": "Jianbing guozi",
+  "level": 1,
+  "cover": "lianpu/red",
+  "source": "gift",
+  "where": "老牛 at the 王府井 snack street gives it to you with his 煎饼 (chapter 3).",
+  "place": "wangfujing-street",
+  "facts": [
+    "jianbing-debate",
+    "jianbing-order"
+  ],
+  "words": [
+    {
+      "w": "煎饼",
+      "en": "a thin savoury crêpe"
+    },
+    {
+      "w": "饼",
+      "en": "a flat round cake"
+    },
+    {
+      "w": "薄脆",
+      "en": "a crispy fried cracker"
+    },
+    {
+      "w": "葱",
+      "en": "spring onion"
+    },
+    {
+      "w": "辣",
+      "en": "spicy"
+    },
+    {
+      "w": "正宗",
+      "en": "genuine, the real thing"
+    }
+  ],
+  "names": [
+    "北京",
+    "天津",
+    "馃篦儿",
+    "煎饼果子"
+  ],
+  "pages": [
+    {
+      "zh": "煎饼果子是北京人很喜欢的早饭。",
+      "en": "煎饼果子 is a breakfast Beijing people love."
+    },
+    {
+      "zh": "做煎饼的时候，要一个很大的饼。饼上面，还有一个鸡蛋。",
+      "en": "To make a 煎饼 you need a big pancake. On top of it there's an egg."
+    },
+    {
+      "zh": "北京的煎饼，里面有一块薄脆，吃的时候，很好听！",
+      "en": "A Beijing 煎饼 has a piece of 薄脆 inside — it sounds great when you bite it!"
+    },
+    {
+      "zh": "你可以说：“要鸡蛋！不要葱！要辣的！”",
+      "en": "You can say: “With egg! No spring onion! Make it spicy!”"
+    },
+    {
+      "zh": "天津人说：不对！正宗的煎饼果子在天津，里面是馃篦儿。",
+      "en": "Tianjin people say: wrong! The real 煎饼果子 is from Tianjin, and there's 馃篦儿 inside."
+    },
+    {
+      "zh": "北京人和天津人说了很多年，现在还在说。你喜欢哪一个？",
+      "en": "Beijing people and Tianjin people have argued for years, and they still do. Which one do you like?"
+    }
+  ],
+  "today": {
+    "zh": "今天的北京：早上，路上有很多卖煎饼的。你去买一个，说：“要鸡蛋，不要葱！”",
+    "en": "In Beijing today: in the morning, lots of places sell 煎饼. Go and buy one, and say: “With egg, no spring onion!”"
+  }
+}

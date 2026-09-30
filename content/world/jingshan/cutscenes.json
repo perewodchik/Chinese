@@ -226,5 +226,66 @@
     "en": "Next: the shops of 王府井, and a stage at 前门 where the door gods are missing."
    }
   ]
+ },
+ {
+  "id": "sub-tt-1-danmaku",
+  "map": "jingshan-view",
+  "chapter": 2,
+  "title": {
+   "zh": "弹幕",
+   "en": "The comments fly"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     26,
+     15
+    ],
+    "facing": "right"
+   },
+   {
+    "actor": "tiantian",
+    "at": [
+     27,
+     15
+    ],
+    "facing": "up"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     26,
+     13
+    ],
+    "ms": 600
+   },
+   {
+    "fx": "danmaku",
+    "text": [
+     "哈哈哈",
+     "明朝！",
+     "666",
+     "主播加油",
+     "打卡",
+     "好美！",
+     "学到了"
+    ]
+   },
+   {
+    "wait": 2600
+   },
+   {
+    "emote": "tiantian",
+    "kind": "blush"
+   },
+   {
+    "say": "rabbit",
+    "en": "Her viewers are on your side — 666 means “awesome”. Built in the Ming, 1406 to 1420. 秦始皇 would be very surprised."
+   }
+  ]
  }
 ]

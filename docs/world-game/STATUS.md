@@ -4,6 +4,26 @@ The builder reads `prompt.md` §0, then this file, and continues at the
 first unchecked box. Tick a box in the same commit as the work.
 
 ## For the learner (morning notes)
+**2026-09-30 — главы 1–4: проверка, подсюжеты, исправления. Главы 5–10 заморожены, пока ты не будешь уверен в первых четырёх.** Полная картина (все шаги по порядку, где и когда; все побочные квесты и подсюжеты с тем, что их запускает; список ловушек и тестов) — `docs/world-game/review/chapters-1-4.md`, собрана из данных игры.
+- **Твой баг с билетом:** охранник у 天安门 говорил «купи в интернете, приходи завтра», а купить можно было только в главе 8. Теперь он говорит, что билет может купить друг, и открывает квест **«A ticket for the palace»**: 王阿姨 бронирует его с первой главы, и с билетом можно войти во дворец.
+- **Похожие ловушки, которые я нашёл и закрыл:**
+  - Лису можно было встретить раньше времени, и тогда глава 2 навсегда застревала. Так было ещё до меня, и 10 из 12 случайных прохождений в это попадали. Теперь каждого духа встречаешь только на его шаге.
+  - Игрушечного тигра 小明 можно было подарить кому угодно, и тогда шаг с лисой было не пройти. Теперь его нельзя подарить.
+  - Экскурсия 小明 в 天坛 была не видна днём: его «школьное» расписание её перекрывало.
+  - Старые сохранения посреди главы 3 застревали на подарке для 王阿姨.
+  - Не хватало денег на шарф и 煎饼.
+  - Колокольчик для 英子 был только в 潘家园 (глава 7); теперь его даёт бабушка на 大栅栏.
+  - Разгаданная загадка льва так и оставалась в списке 📌.
+  - Добавлены недостающие подсказки «когда»: 赵爷爷 с 6 до 18, 小明 после школы.
+- **Подсюжеты в главах 1–4 (9 эпизодов):**
+  - глава 1: 老马 и его 煎饼 (「正宗！」); 米沙 заказывает «豹子» вместо 包子;
+  - глава 2: стрим 甜甜 на 景山 (「不对，是明朝。」, 弹幕);
+  - глава 3: 老牛 на 小吃街; 米沙: 水饺 и 睡觉;
+  - глава 4: 甜甜 у 回音壁; 胡半仙 гадает (「你属兔！」 — кролику); передай ругательство от 老马 к 老牛 дословно или помягче; 米沙: 问 и 吻.
+
+  Новые книги: 《煎饼果子》, 《属相》, 《声调》. Новое выражение: 天机不可泄露.
+- **Как проверено:** автоматический «игрок» проходит главы 1–4 целиком (глава ограничена четвёртой), а 13 «блуждающих» игроков — в случайном порядке. Тесты стерегут каждую найденную ловушку. В браузере проверены билет от охранника до 王阿姨 и эпизод 老马 со сценкой.
+
 **2026-10-01, ночью — §13 S4: глава 4 стала длиннее; на этом я остановился (главы 5–10 не тронуты).** Теперь в главе 11 шагов вместо 4:
 - **天坛:** у 小明 школьная экскурсия, он дарит **книгу 8 《天坛》**. У 祈年殿 учительница спрашивает класс, почему крыша синяя (ответ на с. 3: 天的颜色). На 圜丘 встань на **天心石**, скажи слово, и в сценке голос возвращается со всех сторон.
 - Дальше, как раньше, 回音壁 шепчет 国子监.
@@ -252,6 +272,11 @@ _(date — decision — why)_
 - 2026-09-30 S2 — the fox needs a tiger (book 5): 小明's toy tiger `laohu`, fetched from 南锣鼓巷 (a subway trip home, and a 鼓楼 friend in the chapter). Old saves at the fox step have no tiger and meet the fox the old way.
 - 2026-09-30 S3 — the door gods take the red paper only at the `menshen` step: the old `menshen-give` waits for every step before it, and the new `c3-menshen-face` asks for the step (before, a player could wake them on the first visit to 前门, which the solver did). The opera is free (the owner invites you) and 瑞蚨祥 lends the 唐装 to everyone, so the chapter needs no money beyond the 50 元 scarf after the bank's 700.
 - 2026-10-01 S4 — 小明 and his teacher appear at 天坛 only during their steps (map `npc` objects with `when`), so 小明's school-day routine elsewhere is unchanged. 「三人行，必有我师」 is a saying, not a 成语, but it goes in the 成语 book (`tier: story`) because that is where the learner collects what the characters teach.
+- 2026-09-30 review — **chapters 1–4 frozen** at the learner's request (no chapters 5–10 until they are confident in these). Substory episodes that fall in chapters 1–4 by story.md are built (9 of the U1–U4 episodes); the rest of U, and U's endings, wait with their chapters. U1–U4 stay unticked.
+- 2026-09-30 review — a spirit is met only at its own step (positive `{"quest", "step"}` in each spirit scene's `when`), not "not at an earlier step": the negative lists missed the steps before a chapter began and let the fox strand chapter 2.
+- 2026-09-30 review — a map `npc` placement with its own `when` wins over the person's routine (`castMap`): story placements (小明's school trip) are deliberate; no other conditional placement had a routine, so nothing else moved.
+- 2026-09-30 review — the solver learned three things: `cap` (never past a chapter), `seed` (a wandering player picking at random among what could happen), and following a quest's hint (`where`) into a district the story reaches later. `chapters1to4.test.ts` uses all three.
+- 2026-09-30 review — the relay between 老马 and 老牛 has two right answers (exactly, or kinder) with different replies; a `choose` node needs exactly one right option, so it is two spoken intents instead.
 - 2026-09-30 S1 — minis: `npm run world:minis` rewrites every PNG with byte-level noise. I kept only `gulou-square.png`, the one whose map changed, and regenerated `stamps.gen.ts` from the files, so the other 40-odd pictures don't churn in the diff.
 - M 2026-09-30 (M8) — build stamps are a generated source file (`src/world/ui/stamps.gen.ts`: a 10-hex sha1 per mini and for hoods.json), not a query of the build time: a URL only changes when its file does, so nothing is re-downloaded needlessly, and world:check fails if someone rebuilds the maps without the minis. Room pictures on cards are cropped (`slice`), street pictures letterboxed (`meet`); neither is ever stretched.
 - M 2026-09-30 (M6) — the next step is the journal's `directions` except in one place: a bus or train leg leaves from its own stop map (`stop-xizhimen` for the 332), not the subway hall, so the guide sends you there (the journal's route text still reads "walk to 西直门站"); the next-hop chip now uses the guide's next hop, so it says "→ 332路" at the bus stop instead of pointing back into the station. The footprints are gold with a dark rim: dark prints alone could not be told from the pavement's own specks. "Take me there" does not close the menu (the place card has no way to); the chip under the corner map shows it is on.

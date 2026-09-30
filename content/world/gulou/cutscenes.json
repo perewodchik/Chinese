@@ -614,5 +614,188 @@
     "flag": "c1-heard-drum"
    }
   ]
+ },
+ {
+  "id": "sub-mn-1-flip",
+  "map": "nanluo-main",
+  "chapter": 1,
+  "title": {
+   "zh": "正宗！",
+   "en": "The real thing!"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     9,
+     30
+    ],
+    "facing": "right"
+   },
+   {
+    "actor": "lao-ma",
+    "at": [
+     10,
+     30
+    ],
+    "facing": "left"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     10,
+     30
+    ],
+    "ms": 600,
+    "zoom": 2
+   },
+   {
+    "together": [
+     {
+      "sound": "wood"
+     },
+     {
+      "shake": 200
+     }
+    ]
+   },
+   {
+    "fx": "sparkle",
+    "at": [
+     10,
+     30
+    ],
+    "n": 8
+   },
+   {
+    "wait": 400
+   },
+   {
+    "together": [
+     {
+      "sound": "wood"
+     },
+     {
+      "emote": "lao-ma",
+      "kind": "proud"
+     }
+    ]
+   },
+   {
+    "say": "lao-ma",
+    "zh": "好吃！",
+    "en": "Delicious!"
+   },
+   {
+    "say": "rabbit",
+    "en": "An egg, the crispy bit, the sauce — and one very proud man. 老马 says 正宗 about everything. Remember that word."
+   },
+   {
+    "camera": [
+     10,
+     30
+    ],
+    "ms": 500,
+    "zoom": 1
+   }
+  ]
+ },
+ {
+  "id": "sub-misha-1-leopard",
+  "map": "zaodian",
+  "chapter": 1,
+  "title": {
+   "zh": "豹子？",
+   "en": "Leopards?"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     7,
+     5
+    ],
+    "facing": "up"
+   },
+   {
+    "actor": "misha",
+    "at": [
+     8,
+     5
+    ],
+    "facing": "up"
+   },
+   {
+    "actor": "zaodian-shifu",
+    "at": [
+     4,
+     3
+    ],
+    "facing": "down"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     6,
+     4
+    ],
+    "ms": 500
+   },
+   {
+    "say": "misha",
+    "zh": "我要两个豹子！",
+    "en": "Two leopards, please!"
+   },
+   {
+    "say": "misha",
+    "zh": "包子！包子！",
+    "en": "Buns! Buns!"
+   },
+   {
+    "emote": "zaodian-shifu",
+    "kind": "surprised"
+   },
+   {
+    "wait": 500
+   },
+   {
+    "emote": "misha",
+    "kind": "blush"
+   },
+   {
+    "wait": 400
+   },
+   {
+    "say": "zaodian-shifu",
+    "zh": "两个包子！不是豹子！",
+    "en": "Two buns! Not leopards!"
+   },
+   {
+    "emote": "misha",
+    "kind": "happy"
+   },
+   {
+    "say": "rabbit",
+    "en": "bāozi — buns. bàozi — leopards. He'll try again tomorrow. So will you."
+   }
+  ],
+  "words": [
+   {
+    "w": "豹子",
+    "explain": "一种很大的猫，身上有很多黑点。",
+    "en": "leopard"
+   },
+   {
+    "w": "包子",
+    "explain": "里面有肉或者菜的，白白的，早上吃。",
+    "en": "steamed bun"
+   }
+  ]
  }
 ]

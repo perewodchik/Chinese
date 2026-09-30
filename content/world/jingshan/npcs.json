@@ -172,5 +172,33 @@
     "explains": {
       "水缸": "很大的放水的东西。"
     }
+  },
+  {
+    "id": "tiantian",
+    "name": "甜甜",
+    "role": "a cheerful livestreamer with a phone on a stick",
+    "look": {
+      "sprite": "woman",
+      "palette": "teal"
+    },
+    "voice": "xiaoyu",
+    "character": "Bright, fast, kind; greets her viewers with 「家人们！」 and says 「打卡！」 at every landmark. Gets history cheerfully wrong.",
+    "knows": [
+      "Her viewers love sunsets"
+    ],
+    "wants": [],
+    "actions": [
+      "flag",
+      "give",
+      "money"
+    ],
+    "routine": [],
+    "explains": {
+      "直播": "用手机让很多人一起看你。"
+    },
+    "misses": [
+      "家人们，她说什么？",
+      "嗯？再说一遍？"
+    ]
   }
 ]

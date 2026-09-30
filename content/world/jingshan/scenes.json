@@ -1189,5 +1189,98 @@
     ]
    }
   ]
+ },
+ {
+  "id": "sub-tt-1-live",
+  "map": "jingshan-view",
+  "npc": "tiantian",
+  "trigger": "talk",
+  "once": true,
+  "priority": -1,
+  "start": "a",
+  "words": [
+   {
+    "w": "直播",
+    "explain": "用手机让很多人一起看你。",
+    "en": "live stream"
+   },
+   {
+    "w": "明朝",
+    "explain": "很多年前中国的一个朝代。",
+    "en": "the Ming dynasty"
+   },
+   {
+    "w": "打卡",
+    "explain": "去一个有名的地方，拍照说“我来了”。",
+    "en": "check in at a sight"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "家人们！我在景山直播，打卡！你们看，故宫！",
+    "translate": "Fam! I'm streaming from 景山 — check-in! Look, the palace!",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "sub-tt-1",
+      "step": "correct"
+     }
+    ],
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "故宫是秦始皇做的，很多很多年了！对吧？",
+    "translate": "The palace was built by 秦始皇 — ages and ages ago! Right?",
+    "key": true,
+    "simpler": "故宫是秦始皇做的！",
+    "expect": [
+     {
+      "intent": "ming",
+      "match": [
+       [
+        "不对",
+        "明朝",
+        "明"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "明朝",
+     "frame": "不对，是___。",
+     "full": "不对，是明朝。"
+    },
+    "why": "A key line 📌. The palace was built in the Ming (1406–1420) — 秦始皇 lived more than 1,600 years earlier. Say it kindly: 「不对，是明朝。」"
+   },
+   {
+    "id": "c",
+    "say": "啊？明朝？家人们，他说是明朝！你们说呢？",
+    "translate": "Huh? The Ming? Fam, they say it's the Ming! What do you think?",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "sub-tt-1"
+     },
+     {
+      "do": "solve",
+      "riddle": "sub-tt-1-live/b"
+     },
+     {
+      "do": "cutscene",
+      "id": "sub-tt-1-danmaku"
+     }
+    ],
+    "next": "d"
+   },
+   {
+    "id": "d",
+    "say": "谢谢你！我的直播，家人们都来打卡了。他们说：666！",
+    "translate": "Thank you! Everyone's checking in on my stream. They say: 666 — awesome!",
+    "why": "666 (liù liù liù, like 溜) is internet Chinese for “awesome”."
+   }
+  ]
  }
 ]
