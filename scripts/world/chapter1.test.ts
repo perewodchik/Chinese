@@ -19,6 +19,7 @@ const content = checkContent('content/world', lib).districts;
 const scenes = content.flatMap((d) => d.scenes);
 const npcs = content.flatMap((d) => d.npcs);
 const quests = content.flatMap((d) => d.quests);
+const cutscenes = content.flatMap((d) => d.cutscenes ?? []);
 const src = new ScriptedDialogue({ scenes, npcs, shops: content.flatMap((d) => d.shops ?? []), items: content.flatMap((d) => d.items) }, lex);
 
 /** Applies a turn's actions the way the page does: the save, then quests move on. */
@@ -84,6 +85,21 @@ describe('chapter 1, played through the core', () => {
     assert.equal(s.bag.money, 194);
     assert.equal(s.bag.items.baozi, 1);
     assert.equal(s.bag.items.doujiang, 1);
+    assert.equal(step(s), 'list');
+
+    // §13 S1: 王阿姨's list — read it back, buy it at 李阿姨's, bring it home
+    assert.equal(sceneFor(scenes, { ...s, flags: [...s.flags, 'lantern-broken'] }, { look: 'old-lantern', map: 'siheyuan-yard' }), null, 'no lantern before the errand');
+    assert.equal(sceneFor(scenes, s, { npc: 'wang-ayi' })?.id, 'c1-list');
+    s = play(s, 'c1-list').save;
+    assert.equal(s.bag.money, 214);
+    assert.equal(s.bag.items.danzi, 1);
+    assert.equal(step(s), 'shop');
+    assert.equal(sceneFor(scenes, s, { npc: 'li-ayi' })?.id, 'shop-li-ayi');
+    s = play(s, 'shop-li-ayi', ['我要一瓶牛奶，一盒鸡蛋。', '不要了。']).save;
+    assert.equal(s.bag.money, 199);
+    assert.equal(step(s), 'bring');
+    s = play(s, 'c1-list-give').save;
+    assert.equal(s.bag.items.niunai ?? 0, 0);
     assert.equal(step(s), 'lantern');
 
     assert.equal(sceneFor(scenes, s, { look: 'old-lantern', map: 'siheyuan-yard' })?.id, 'lantern');
@@ -98,8 +114,20 @@ describe('chapter 1, played through the core', () => {
     // the teahouse: the rumour, then a rest until evening
     assert.equal(sceneFor(scenes, s, { npc: 'lao-liu' })?.id, 'rumour-tea');
     s = play(s, 'rumour-tea').save;
-    assert.equal(step(s), 'lion');
+    assert.equal(step(s), 'haircut');
     assert.equal(Math.floor(s.clock / 60) % 24, 19);
+
+    // the welcome haircut is free; 赵爷爷 shows the way and gives 《石狮子》; its page 3 answers the visitor
+    assert.equal(sceneFor(scenes, s, { npc: 'zhang-shifu' })?.id, 'c1-barber');
+    s = play(s, 'c1-barber').save;
+    assert.equal(s.bag.money, 199);
+    assert.equal(step(s), 'lion-book');
+    assert.equal(sceneFor(scenes, s, { look: 'stone-lion', map: 'gulou-square' })?.id, 'lion-day', 'the lion waits for the book steps');
+    s = play(s, 'c1-zhao-lions').save;
+    assert.ok(s.books.shishizi);
+    assert.equal(step(s), 'lions');
+    s = play(s, 'c1-lions-which').save;
+    assert.equal(step(s), 'lion');
 
     // by day the lion sleeps; after dark it asks its riddle
     assert.equal(sceneFor(scenes, { ...s, clock: 12 * 60 }, { look: 'stone-lion', map: 'gulou-square' })?.id, 'lion-day');
@@ -108,12 +136,29 @@ describe('chapter 1, played through the core', () => {
     assert.ok('shishizi' in s.spirits);
     assert.ok('shishizi' in s.stamps);
     assert.equal(s.riddles['lantern-rabbit/d']?.solved, true);
+    assert.equal(step(s), 'drum-book');
+
+    // 老刘's 《晨钟暮鼓》; the attendant's question is on its page 3; the evening drum (a cutscene) — then the bell tower photo for 小明
+    assert.equal(sceneFor(scenes, s, { npc: 'lao-liu' })?.id, 'c1-liu-towers');
+    s = play(s, 'c1-liu-towers').save;
+    assert.ok(s.books['chenzhong-mugu']);
+    assert.equal(step(s), 'drum');
+    const drum = play(s, 'c1-drum-when');
+    assert.equal(Math.floor(drum.save.clock / 60) % 24, 19);
+    s = act(drum.save, cutscenes.find((c) => c.id === 'c1-drum')!.then ?? []);
+    assert.equal(step(s), 'bell');
+    s = act(s, [{ do: 'photo', subjects: ['gulou-square:bell-tower'] }]);
+    assert.equal(step(s), 'tell');
+    s = play(s, 'c1-xiaoming-tell').save;
+    assert.equal(step(s), 'yandai');
+    assert.equal(sceneFor(scenes, s, { look: 'to-yandai', map: 'gulou-square' })?.id, 'c1-yandai');
+    s = play(s, 'c1-yandai').save;
     assert.equal(step(s), 'card');
 
     assert.equal(sceneFor(scenes, s, { npc: 'station-staff' })?.id, 'card');
     s = play(s, 'card').save;
     assert.equal(s.bag.card, 20);
-    assert.equal(s.bag.money, 154);
+    assert.equal(s.bag.money, 159);
     assert.equal(step(s), 'ride');
     assert.ok(s.flags.includes('has-card'));
 

@@ -185,7 +185,29 @@
   "trigger": "look",
   "once": true,
   "when": {
-   "scene": "breakfast"
+   "all": [
+    {
+     "scene": "breakfast"
+    },
+    {
+     "not": {
+      "quest": "ch1",
+      "step": "list"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch1",
+      "step": "shop"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch1",
+      "step": "bring"
+     }
+    }
+   ]
   },
   "start": "a",
   "words": [
@@ -931,6 +953,24 @@
     },
     {
      "flag": "heard-lion"
+    },
+    {
+     "not": {
+      "quest": "ch1",
+      "step": "haircut"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch1",
+      "step": "lion-book"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch1",
+      "step": "lions"
+     }
     }
    ]
   },
@@ -8127,6 +8167,960 @@
     "id": "b",
     "say": "好，好！",
     "translate": "Ha ha, good!"
+   }
+  ]
+ },
+ {
+  "id": "c1-list",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch1",
+   "step": "list"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "单子",
+    "explain": "写着要买什么的纸。",
+    "en": "a list"
+   },
+   {
+    "w": "鸡蛋",
+    "explain": "鸡的蛋，可以吃。",
+    "en": "egg"
+   },
+   {
+    "w": "盒",
+    "explain": "放东西的小方东西。",
+    "en": "a box (of)"
+   },
+   {
+    "w": "瓶",
+    "explain": "放水、放牛奶的东西。",
+    "en": "a bottle (of)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "吃饭了吗？包子好吃吗？",
+    "translate": "Have you eaten? Were the buns good?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好吃",
+        "吃了",
+        "很好",
+        "不错"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "好吃",
+     "frame": "吃了，很___！",
+     "full": "吃了，很好吃！"
+    }
+   },
+   {
+    "id": "b",
+    "say": "孩子，你能帮我买点儿东西吗？",
+    "translate": "Child, could you buy a few things for me?",
+    "expect": [
+     {
+      "intent": "ok",
+      "match": [
+       [
+        "好",
+        "行",
+        "可以",
+        "能",
+        "没问题"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "没问题",
+     "frame": "好，___！",
+     "full": "好，没问题！"
+    },
+    "why": "能……吗 asks if someone can do something for you. 帮 — to help."
+   },
+   {
+    "id": "c",
+    "say": "这是我的单子：「牛奶一瓶，鸡蛋一盒」。你看看，要买什么？",
+    "translate": "Here's my list: “milk, one bottle; eggs, one box”. Have a look — what do we need?",
+    "key": true,
+    "simpler": "单子上写着：牛奶，鸡蛋。要买什么？",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "danzi"
+     }
+    ],
+    "expect": [
+     {
+      "intent": "read",
+      "match": [
+       [
+        "牛奶"
+       ],
+       [
+        "鸡蛋"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "牛奶 · 鸡蛋",
+     "frame": "要买一瓶___，一盒___。",
+     "full": "要买一瓶牛奶，一盒鸡蛋。"
+    },
+    "why": "A key line 📌: read the list back to her. 瓶 is the measure word for bottles, 盒 for boxes — you will need them in the shop. The list is in your bag too."
+   },
+   {
+    "id": "d",
+    "say": "对！一瓶牛奶，一盒鸡蛋。单子在你的包里。这是二十块钱。",
+    "translate": "Right! A bottle of milk, a box of eggs. The list is in your bag. Here's twenty yuan.",
+    "onEnter": [
+     {
+      "do": "money",
+      "amount": 20
+     },
+     {
+      "do": "flag",
+      "flag": "c1-got-list"
+     },
+     {
+      "do": "solve",
+      "riddle": "c1-list/c"
+     }
+    ],
+    "why": "李阿姨's 小卖部 is on 南锣鼓巷. Say what you want and how many: 「我要一瓶牛奶，一盒鸡蛋」. Then pay with your phone."
+   }
+  ]
+ },
+ {
+  "id": "c1-list-give",
+  "map": "siheyuan-yard",
+  "npc": "wang-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "all": [
+    {
+     "flag": "c1-got-list"
+    },
+    {
+     "item": "niunai"
+    },
+    {
+     "item": "jidan"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "鸡蛋",
+    "explain": "鸡的蛋，可以吃。",
+    "en": "egg"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "回来了！牛奶和鸡蛋买了吗？",
+    "translate": "You're back! Did you get the milk and eggs?",
+    "expect": [
+     {
+      "intent": "give",
+      "match": [
+       [
+        "买了",
+        "买好了",
+        "给你",
+        "给您",
+        "这是"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "给您",
+     "frame": "买了，___。",
+     "full": "买好了，给您。"
+    },
+    "why": "给您 — 'here you are', the polite 您 for an older person."
+   },
+   {
+    "id": "b",
+    "say": "谢谢你，孩子！牛奶，鸡蛋，都对。",
+    "translate": "Thank you, child! Milk, eggs — all right.",
+    "onEnter": [
+     {
+      "do": "take",
+      "item": "niunai"
+     },
+     {
+      "do": "take",
+      "item": "jidan"
+     },
+     {
+      "do": "take",
+      "item": "danzi"
+     },
+     {
+      "do": "flag",
+      "flag": "c1-list-given"
+     },
+     {
+      "do": "hearts",
+      "npc": "wang-ayi",
+      "delta": 1
+     }
+    ],
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "来，我给你看一个东西。",
+    "translate": "Come — I'll show you something.",
+    "why": "The lantern hangs in the yard. Tap it."
+   }
+  ]
+ },
+ {
+  "id": "c1-barber",
+  "map": "lifadian",
+  "npc": "zhang-shifu",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch1",
+   "step": "haircut"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "头发",
+    "explain": "头上长的发。",
+    "en": "hair"
+   },
+   {
+    "w": "剪",
+    "explain": "用剪刀把长的变短。",
+    "en": "to cut"
+   },
+   {
+    "w": "短",
+    "explain": "不长。",
+    "en": "short"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你是王阿姨家新来的吧？",
+    "translate": "Hello! You're the new one at 王阿姨's, aren't you?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "是",
+        "对"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "对",
+     "frame": "___，我是新来的。",
+     "full": "对，我是新来的。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "坐！新来的人，第一次剪头发，不要钱。你要短一点，还是长一点？",
+    "translate": "Sit! For a newcomer the first haircut is free. Do you want it a bit shorter, or a bit longer?",
+    "key": true,
+    "simpler": "短一点，还是长一点？",
+    "expect": [
+     {
+      "intent": "short",
+      "match": [
+       [
+        "短"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "long",
+      "match": [
+       [
+        "长"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "短一点",
+     "frame": "___吧，谢谢！",
+     "full": "短一点吧，谢谢！"
+    },
+    "why": "A key line 📌: 还是 asks 'A or B?'. Answer with the one you want: 短一点 (a bit shorter) or 长一点 (a bit longer)."
+   },
+   {
+    "id": "c",
+    "say": "头发剪好了！你看看，怎么样？",
+    "translate": "Your hair's done! Take a look — how is it?",
+    "expect": [
+     {
+      "intent": "nice",
+      "match": [
+       [
+        "好看",
+        "很好",
+        "不错",
+        "喜欢",
+        "谢谢"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "好看",
+     "frame": "很___！谢谢张师傅！",
+     "full": "很好看！谢谢张师傅！"
+    },
+    "onEnter": [
+     {
+      "do": "solve",
+      "riddle": "c1-barber/b"
+     }
+    ]
+   },
+   {
+    "id": "d",
+    "say": "好看！再来啊！",
+    "translate": "Looks good! Come again!",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "c1-welcome-cut"
+     },
+     {
+      "do": "hearts",
+      "npc": "zhang-shifu",
+      "delta": 1
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c1-zhao-lions",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch1",
+   "step": "lion-book"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "狮子",
+    "explain": "一个很大的动物，大门口有石头做的。",
+    "en": "lion"
+   },
+   {
+    "w": "石狮子",
+    "explain": "石头的狮子，在大门两边。",
+    "en": "stone lion"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你去哪儿？",
+    "translate": "Hello! Where are you off to?",
+    "expect": [
+     {
+      "intent": "gulou",
+      "match": [
+       [
+        "鼓楼"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "鼓楼",
+     "frame": "我去___。请问，在哪儿？",
+     "full": "我去鼓楼。请问，鼓楼在哪儿？"
+    },
+    "why": "请问 — 'may I ask' — opens any question to a stranger."
+   },
+   {
+    "id": "b",
+    "say": "鼓楼在西边，不远。你去看石狮子吗？",
+    "translate": "The Drum Tower is to the west, not far. Going to see the stone lions?",
+    "simpler": "你去看石狮子吗？",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "是",
+        "对",
+        "看",
+        "狮子"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "对",
+     "frame": "___，我去看石狮子。",
+     "full": "对，我去看石狮子。"
+    }
+   },
+   {
+    "id": "c",
+    "say": "鼓楼那儿有两个石狮子：一个是爸爸，一个是妈妈。你知道哪个是爸爸吗？",
+    "translate": "There are two stone lions at the Drum Tower: one is the father, one the mother. Do you know which is the father?",
+    "key": true,
+    "simpler": "哪个是狮子爸爸？你知道吗？",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不知道",
+        "不",
+        "没"
+       ]
+      ],
+      "go": "d"
+     },
+     {
+      "intent": "ball",
+      "match": [
+       [
+        "球"
+       ]
+      ],
+      "go": "e"
+     }
+    ],
+    "hint": {
+     "word": "不知道",
+     "frame": "我___。",
+     "full": "我不知道。"
+    }
+   },
+   {
+    "id": "d",
+    "say": "这本书给你，书里有！",
+    "translate": "Here, take this book — it's in there!",
+    "onEnter": [
+     {
+      "do": "book",
+      "id": "shishizi"
+     },
+     {
+      "do": "flag",
+      "flag": "c1-lion-book"
+     },
+     {
+      "do": "solve",
+      "riddle": "c1-zhao-lions/c"
+     }
+    ],
+    "why": "赵爷爷 gives you 《石狮子》. It is on the 书架 in your room and in 收藏 → 书 — page 3 tells the father from the mother."
+   },
+   {
+    "id": "e",
+    "say": "你知道啊！这本书也给你看看。",
+    "translate": "You know already! Have this book too.",
+    "onEnter": [
+     {
+      "do": "book",
+      "id": "shishizi"
+     },
+     {
+      "do": "flag",
+      "flag": "c1-lion-book"
+     },
+     {
+      "do": "solve",
+      "riddle": "c1-zhao-lions/c"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c1-lions-which",
+  "map": "gulou-square",
+  "npc": "passer-photo",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch1",
+   "step": "lions"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "狮子",
+    "explain": "一个很大的动物，大门口有石头做的。",
+    "en": "lion"
+   },
+   {
+    "w": "球",
+    "explain": "圆的，可以玩的东西。",
+    "en": "ball"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！我女儿问我：哪个是狮子爸爸？我也不知道。你知道吗？",
+    "translate": "Hi! My daughter asked me which one is the father lion. I don't know either. Do you?",
+    "expect": [
+     {
+      "intent": "ball",
+      "match": [
+       [
+        "球"
+       ]
+      ],
+      "go": "b"
+     },
+     {
+      "intent": "east",
+      "match": [
+       [
+        "东边",
+        "右边"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "球",
+     "frame": "有___的是狮子爸爸。",
+     "full": "有球的是狮子爸爸。"
+    },
+    "why": "It's in 《石狮子》, page 3: the father has a ball under his paw, the mother a little lion. Here the father is the east one — on your right as you face the tower."
+   },
+   {
+    "id": "b",
+    "say": "有球的是爸爸！那狮子妈妈呢？",
+    "translate": "The one with the ball is the father! And the mother?",
+    "expect": [
+     {
+      "intent": "cub",
+      "match": [
+       [
+        "小狮子",
+        "孩子"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "west",
+      "match": [
+       [
+        "西边",
+        "左边"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "小狮子",
+     "frame": "有___的是狮子妈妈。",
+     "full": "有小狮子的是狮子妈妈。"
+    },
+    "onEnter": [
+     {
+      "do": "solve",
+      "riddle": "c1-zhao-lions/c"
+     }
+    ]
+   },
+   {
+    "id": "c",
+    "say": "谢谢你！我女儿很高兴。",
+    "translate": "Thank you! My daughter's delighted.",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "c1-lions-told"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c1-liu-towers",
+  "map": "chaguan",
+  "npc": "lao-liu",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch1",
+   "step": "drum-book"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "鼓",
+    "explain": "打的时候，咚咚咚响的东西。",
+    "en": "drum"
+   },
+   {
+    "w": "钟",
+    "explain": "很大的，敲的时候当当响的东西。",
+    "en": "bell"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "喝茶，喝茶。你去鼓楼了吗？",
+    "translate": "Tea, have some tea. Have you been to the Drum Tower?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "去了",
+        "去过",
+        "是",
+        "对"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "去了",
+     "frame": "___，我去鼓楼了。",
+     "full": "去了，我去鼓楼了。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "好！很多年前，北京人没有手机。听鼓楼的鼓，钟楼的钟，就知道几点了。",
+    "translate": "Good! Many years ago Beijing people had no phones. They listened to the Drum Tower's drum and the Bell Tower's bell, and knew the time.",
+    "key": true,
+    "simpler": "听鼓，听钟，就知道几点了。",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "这本书给你。晚上几点打鼓？书里有。你去鼓楼听听吧！",
+    "translate": "Here's a book for you. What time in the evening was the drum beaten? It's in the book. Go and listen at the Drum Tower!",
+    "onEnter": [
+     {
+      "do": "book",
+      "id": "chenzhong-mugu"
+     },
+     {
+      "do": "flag",
+      "flag": "c1-drum-book"
+     }
+    ],
+    "why": "老刘 gives you 《晨钟暮鼓》. The attendant at the 鼓楼 will ask you what page 3 says."
+   }
+  ]
+ },
+ {
+  "id": "c1-drum-when",
+  "map": "gulou-square",
+  "npc": "gulou-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch1",
+   "step": "drum"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "鼓",
+    "explain": "打的时候，咚咚咚响的东西。",
+    "en": "drum"
+   },
+   {
+    "w": "打鼓",
+    "explain": "用手或者东西打鼓，让它响。",
+    "en": "to beat a drum"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！我问你：很多年前，鼓楼晚上几点打鼓？",
+    "translate": "Hello! A question for you: many years ago, what time in the evening was the Drum Tower's drum beaten?",
+    "key": true,
+    "simpler": "晚上几点打鼓？",
+    "expect": [
+     {
+      "intent": "seven",
+      "match": [
+       [
+        "七点",
+        "7点",
+        "七",
+        "7"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "七点",
+     "frame": "晚上___打鼓。",
+     "full": "晚上七点打鼓。"
+    },
+    "why": "It's in 《晨钟暮鼓》, page 3: 晚上七点，鼓楼打鼓 — then the Bell Tower rang, and the city gates stayed shut.",
+    "onEnter": [
+     {
+      "do": "solve",
+      "riddle": "c1-liu-towers/b"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "say": "对！你看书了！今天晚上七点，我们也打鼓。你来听吧！",
+    "translate": "Right! You've read the book! Tonight at seven we'll beat the drum too. Come and listen!",
+    "expect": [
+     {
+      "intent": "ok",
+      "match": [
+       [
+        "好",
+        "来",
+        "听",
+        "行"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，我来听！",
+     "full": "好，我来听！"
+    },
+    "onEnter": [
+     {
+      "do": "solve",
+      "riddle": "c1-drum-when/a"
+     }
+    ]
+   },
+   {
+    "id": "c",
+    "say": "好！七点见！",
+    "translate": "Great! See you at seven!",
+    "onEnter": [
+     {
+      "do": "wait",
+      "until": 19
+     },
+     {
+      "do": "cutscene",
+      "id": "c1-drum"
+     }
+    ],
+    "why": "Time runs on to seven in the evening."
+   }
+  ]
+ },
+ {
+  "id": "c1-xiaoming-tell",
+  "map": "nanluo-main",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch1",
+   "step": "tell"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "鼓",
+    "explain": "打的时候，咚咚咚响的东西。",
+    "en": "drum"
+   },
+   {
+    "w": "钟",
+    "explain": "很大的，敲的时候当当响的东西。",
+    "en": "bell"
+   },
+   {
+    "w": "照片",
+    "explain": "用手机拍的画。",
+    "en": "photo"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你去哪儿了？",
+    "translate": "Where have you been?",
+    "expect": [
+     {
+      "intent": "gulou",
+      "match": [
+       [
+        "鼓楼",
+        "钟楼"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "鼓楼",
+     "frame": "我去___了。",
+     "full": "我去鼓楼了。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "你听见什么了？",
+    "translate": "What did you hear?",
+    "expect": [
+     {
+      "intent": "drum",
+      "match": [
+       [
+        "鼓",
+        "钟"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "打鼓",
+     "frame": "我听见___了，还有钟！",
+     "full": "我听见打鼓了，还有钟！"
+    },
+    "why": "听见 — to hear (and catch). Tell him what you heard."
+   },
+   {
+    "id": "c",
+    "say": "太好了！我也想听！钟楼的照片呢？给我看看！",
+    "translate": "Great! I want to hear it too! And the photo of the Bell Tower? Let me see!",
+    "expect": [
+     {
+      "intent": "show",
+      "match": [
+       [
+        "给你",
+        "这是",
+        "看"
+       ]
+      ],
+      "go": "d"
+     }
+    ],
+    "hint": {
+     "word": "给你看",
+     "frame": "___，这是钟楼。",
+     "full": "给你看，这是钟楼。"
+    }
+   },
+   {
+    "id": "d",
+    "say": "照片上的钟楼好大啊！谢谢你！",
+    "translate": "The Bell Tower in the photo is so big! Thank you!",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "c1-told-xiaoming"
+     },
+     {
+      "do": "hearts",
+      "npc": "xiaoming",
+      "delta": 1
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c1-yandai",
+  "map": "gulou-square",
+  "object": "to-yandai",
+  "trigger": "look",
+  "priority": -5,
+  "when": {
+   "quest": "ch1",
+   "step": "yandai"
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "烟袋斜街。后海在前面。",
+    "translate": "烟袋斜街, the Tobacco Pouch Lane. 后海 is ahead.",
+    "speaker": "hero",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "听说后海那儿，也有一个小神……",
+    "translate": "They say there's a little spirit over by 后海 too…",
+    "speaker": "companion",
+    "key": true,
+    "simpler": "后海也有一个小神。",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "c1-saw-yandai"
+     }
+    ],
+    "why": "The lakes are for chapter 2. First, the spirits could be anywhere in Beijing — you will need a 交通卡."
    }
   ]
  }

@@ -433,5 +433,186 @@
     "en": "Thank you, child."
    }
   ]
+ },
+ {
+  "id": "c1-drum",
+  "map": "gulou-square",
+  "chapter": 1,
+  "title": {
+   "zh": "暮鼓",
+   "en": "The evening drum"
+  },
+  "letterbox": true,
+  "music": "hush",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     11,
+     34
+    ],
+    "facing": "up"
+   },
+   {
+    "actor": "gulou-ayi",
+    "at": [
+     12,
+     33
+    ],
+    "facing": "up"
+   }
+  ],
+  "words": [
+   {
+    "w": "鼓",
+    "explain": "打的时候，咚咚咚响的东西。",
+    "en": "drum"
+   },
+   {
+    "w": "钟",
+    "explain": "很大的，敲的时候当当响的东西。",
+    "en": "bell"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     11,
+     28
+    ],
+    "ms": 900
+   },
+   {
+    "say": "gulou-ayi",
+    "zh": "七点了。你听，鼓！",
+    "en": "It's seven. Listen — the drum!"
+   },
+   {
+    "together": [
+     {
+      "sound": "drum"
+     },
+     {
+      "shake": 300
+     }
+    ]
+   },
+   {
+    "wait": 350
+   },
+   {
+    "together": [
+     {
+      "sound": "drum"
+     },
+     {
+      "shake": 300
+     }
+    ]
+   },
+   {
+    "wait": 350
+   },
+   {
+    "together": [
+     {
+      "sound": "drum"
+     },
+     {
+      "shake": 300
+     },
+     {
+      "fx": "sparkle",
+      "at": [
+       11,
+       27
+      ],
+      "n": 10
+     }
+    ]
+   },
+   {
+    "wait": 700
+   },
+   {
+    "together": [
+     {
+      "sound": "drum"
+     },
+     {
+      "shake": 500
+     }
+    ]
+   },
+   {
+    "wait": 900
+   },
+   {
+    "say": "rabbit",
+    "en": "Eighteen fast, eighteen slow, eighteen in between — twice. Just like page five."
+   },
+   {
+    "say": "gulou-ayi",
+    "zh": "鼓好了。现在，钟！",
+    "en": "That's the drum. Now — the bell!"
+   },
+   {
+    "camera": [
+     11,
+     8
+    ],
+    "ms": 1600
+   },
+   {
+    "together": [
+     {
+      "sound": "bell"
+     },
+     {
+      "fx": "sparkle",
+      "at": [
+       11,
+       7
+      ],
+      "n": 14
+     }
+    ]
+   },
+   {
+    "wait": 1200
+   },
+   {
+    "sound": "bell"
+   },
+   {
+    "wait": 1000
+   },
+   {
+    "camera": [
+     11,
+     30
+    ],
+    "ms": 1200
+   },
+   {
+    "face": "gulou-ayi",
+    "dir": "down"
+   },
+   {
+    "say": "gulou-ayi",
+    "zh": "很多年前，北京人听见钟，就睡觉了。",
+    "en": "Many years ago, when Beijing heard the bell, it went to bed."
+   },
+   {
+    "say": "rabbit",
+    "en": "Drum first, then the bell — and once, at that hour, the city gates shut for the night. The bell answered from the north: the Bell Tower."
+   }
+  ],
+  "then": [
+   {
+    "do": "flag",
+    "flag": "c1-heard-drum"
+   }
+  ]
  }
 ]

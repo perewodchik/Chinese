@@ -193,5 +193,30 @@
     "en": "fishing bait",
     "kind": "tool",
     "price": 5
+  },
+  {
+    "id": "niunai",
+    "name": "牛奶",
+    "en": "milk",
+    "gift": true,
+    "kind": "drink",
+    "price": 5
+  },
+  {
+    "id": "jidan",
+    "name": "鸡蛋",
+    "en": "a box of eggs",
+    "gift": true,
+    "kind": "food",
+    "price": 10
+  },
+  {
+    "id": "danzi",
+    "name": "单子",
+    "en": "王阿姨's shopping list: 牛奶一瓶，鸡蛋一盒 — a bottle of milk, a box of eggs",
+    "kind": "key",
+    "verbs": [
+      "look"
+    ]
   }
 ]

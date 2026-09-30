@@ -111,12 +111,12 @@ are §13 B1's list. Each chapter: one opening and one finale cutscene (K3),
 ### 1 新家 · A new home (鼓楼 · 南锣鼓巷) — *arriving; the hutong; being a neighbour*
 | | |
 |---|---|
-| Route | siheyuan-room → siheyuan-yard → hutong-home → nanluo-main → **xiaomaibu** (王阿姨's list) → zaodian → chaguan → lifadian (张师傅 cuts your hair for your first day — optional price 0 for this once) → subway-lane → gulou-square (鼓楼 + *钟楼*) → *yandai-xiejie* (a glimpse, for ch2) → station-nanluoguxiang |
+| Route | **as built in S1 — 18 steps of `ch1`:** meet-wang (yard) → breakfast (早点铺) → *list* (王阿姨's list, read back) → *shop* (李阿姨's 小卖部: 一瓶牛奶，一盒鸡蛋, paid by phone with the 20 元 she gives) → *bring* → lantern (breaks) → rumour → *haircut* (张师傅's free welcome cut) → *lion-book* (ask 赵爷爷 the way; 《石狮子》) → *lions* (tell the photographer which lion is the father — book p. 3) → lion (night) → *drum-book* (老刘: 《晨钟暮鼓》) → *drum* (the 鼓楼 attendant asks the hour — book p. 3 — then the evening drum) → *bell* (photo of the 钟楼 for 小明) → *tell* (tell 小明 what you heard) → *yandai* (the sign to 烟袋斜街, a hint of ch2) → card → ride |
 | Culture | the 四合院 and 胡同 life; lanterns and 元宵; guardian lions; the towers that kept time |
 | Books | 1 《灯笼》 (given by 王阿姨 when it breaks), 2 《石狮子》 (which is the lion, which the lioness), 3 《晨钟暮鼓》 (the drum at the hour the book says) |
 | 成语 | 马马虎虎, 一心一意 (existing) |
 | Spirit | 石狮子 |
-| Cutscenes | opening (suitcase, 南锣鼓巷 at morning) · the lantern breaks · drum at the tower · spirit-return · memory 1 · finale |
+| Cutscenes | opening `ch1-open` · the lantern breaks `lantern-breaks` · the evening drum `c1-drum` (drum first, then the bell answers from the north) · spirit-return · memory 1 `memory-1` · finale `ch1-finale` |
 | Substories | 老马 ep1 (煎饼 order, 南锣鼓巷 morning) · 米沙 ep1 (豹子/包子 at the 早点铺) |
 | Side quests passed | side-bird, side-kite, side-keys, side-haircut, story-zhang, story-bird, story-wang, side-cat, side-room, side-xiangqi, side-dance, side-chaguan, side-sanguo, side-xiangzi, side-polan, side-waimai |
 
@@ -280,6 +280,7 @@ still follow §5). "Ch" = the chapters they appear in (◆ = outside 鼓楼).
 | 东岳庙 guide `dym-jiangjieyuan` | dongyuemiao | xiaoyu | the departments, with a smile |
 | 灶王爷 (spirit) | the kitchen | wei | speaks only in ch9's 除夕 scene |
 | 石猴 (spirit) | baiyunguan | xiaoyu | cheeky, hides in carvings |
+| 鼓楼的阿姨 `gulou-ayi` (S1) | gulou-square, by the Drum Tower | xiaoyu | the attendant who plays the drums; quizzes visitors from 《晨钟暮鼓》 |
 
 ### 3.4 Everyone else (existing, unchanged)
 Kept as their cards say (`content/world/*/npcs.json`); they stay in their
@@ -297,6 +298,7 @@ district. Those that gain a §13 beat: 早点铺师傅 (米沙 ep1), 卖糖葫�
   `sub-tt-2`, `sub-misha-4`), `kind: 'side'`; the coverage script counts
   them as substory episodes by the `sub-` prefix.
 - **New main steps** get new ids; old step ids stay (S1's save upgrade).
+- **New scenes, flags and cutscenes of chapter N** are prefixed `c<N>-` (`c1-list`, `c1-drum`); how to add steps, books and cutscenes, the hand-off contract and the chapter-9 hooks are in `s13/S-howto.md`.
 - **Cutscene ids:** `<chapter>-open`, `<chapter>-finale`,
   `spirit-return-<spirit>`, `memory-<n>`, `sub-<who>-<n>-<beat>`.
 - **Books:** `content/world/books/<id>.json`, id = pinyin of the title
