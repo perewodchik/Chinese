@@ -55,7 +55,7 @@
   "once": true,
   "stamp": "changlang",
   "when": {
-   "chapter": 6
+   "chapter": 7
   },
   "start": "a",
   "words": [
@@ -182,7 +182,7 @@
   "priority": 0,
   "once": true,
   "when": {
-   "chapter": 6
+   "chapter": 7
   },
   "start": "a",
   "words": [

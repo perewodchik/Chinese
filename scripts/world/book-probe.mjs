@@ -5,14 +5,14 @@
 //
 // Needs the dev server on a test database (never the production one) and Playwright:
 //
-//   node scripts/world/book-probe.mjs [chromium|webkit] [base] [golden save] [out]
+//   node scripts/world/book-probe.mjs [chromium|webkit] [base] [golden save] [out] [book id]
 //
 // Use localhost for WebKit (it does not resolve *.localhost). The save gets 《灯笼》 on its shelf.
 
 import { mkdirSync, readFileSync } from 'node:fs';
 import { chromium, webkit } from 'playwright';
 
-const [engine = 'chromium', BASE = 'http://localhost:5183', SAVE = 'content/world/test-saves/chapter-6.json', OUT = 'docs/world-game/review/b1'] = process.argv.slice(2);
+const [engine = 'chromium', BASE = 'http://localhost:5183', SAVE = 'content/world/test-saves/chapter-6.json', OUT = 'docs/world-game/review/b1', BOOK = 'denglong'] = process.argv.slice(2);
 
 async function seeded(b, file, { width, height, dark }) {
   const ctx = await b.newContext({ viewport: { width, height }, colorScheme: dark ? 'dark' : 'light', deviceScaleFactor: 1 });
@@ -25,12 +25,13 @@ async function seeded(b, file, { width, height, dark }) {
     const { readSave } = await import('/src/world/core/migrate.ts');
     const up = readSave(save);
     if (!up.ok) return `unreadable: ${up.message}`;
-    save = { ...up.save, created: true, books: { denglong: { got: Math.floor(up.save.clock), read: [] } } };
+    const got = { got: Math.floor(up.save.clock), read: [] };
+    save = { ...up.save, created: true, books: { denglong: got, [save.book]: got } };
     await fetch('/api/auth/session');
     const cur = await (await fetch('/api/world')).json();
     const r = await fetch('/api/world', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ baseRevision: cur.revision, save: { ...save, updatedAt: Date.now() } }) });
     return `${r.status} ${(await r.text()).slice(0, 120)}`;
-  }, save);
+  }, { ...save, book: BOOK });
   if (!st.startsWith('200')) console.log('seed:', st);
   await p.goto(`${BASE}/play/world`);
   await p.waitForSelector('.wt-menu', { timeout: 30000 });
@@ -65,7 +66,10 @@ for (const [w, h] of SIZES) for (const t of ['light', 'dark']) {
   await p.waitForTimeout(400);
   await sideways('shelf');
   await shot('shelf');
-  const cover = await p.$('.bk-cover');
+  const covers = await p.$$('.bk-cover');
+  const titles = await p.$$eval('.bk-cover', (c) => c.map((x) => x.getAttribute('aria-label') ?? ''));
+  const want = JSON.parse(readFileSync(`content/world/books/${BOOK}.json`, 'utf8')).zh;
+  const cover = covers[Math.max(0, titles.findIndex((t) => t.startsWith(`《${want}》`)))];
   if (!cover) { problems.push(`${tag}: no cover on the shelf`); await p.context().close(); continue; }
   await cover.click();
   await p.waitForSelector('.bk', { timeout: 3000 });

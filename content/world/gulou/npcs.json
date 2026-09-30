@@ -804,5 +804,37 @@
       "你说什么？",
       "什么？你再说一遍。"
     ]
+  },
+  {
+    "id": "gulou-ayi",
+    "name": "鼓楼的阿姨",
+    "role": "an attendant at the Drum Tower, who plays the drums for visitors",
+    "look": {
+      "sprite": "woman",
+      "palette": "black"
+    },
+    "voice": "xiaoyu",
+    "character": "Proud of the towers, a bit of a showman; asks visitors quiz questions and beams when they know.",
+    "knows": [
+      "The drum was beaten at seven in the evening, then the bell rang",
+      "The drums are still played for visitors in the day"
+    ],
+    "wants": [
+      "Visitors who know the towers' story"
+    ],
+    "actions": [
+      "flag",
+      "wait"
+    ],
+    "routine": [],
+    "explains": {
+      "鼓": "打的时候，咚咚咚响的东西。",
+      "钟": "很大的，敲的时候当当响的东西。",
+      "打鼓": "用手或者东西打鼓，让它响。"
+    },
+    "misses": [
+      "嗯？再说一遍？",
+      "对不起，我没听懂。"
+    ]
   }
 ]

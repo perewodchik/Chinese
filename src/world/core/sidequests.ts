@@ -20,6 +20,7 @@ import { placeOf } from './places';
 import { activeQuests } from './quests';
 import { sceneFor } from './scenes';
 import type { Action, Condition, MapObject, Quest, QuestStep, Scene, WorldSave } from './types';
+import { stepIndexOf } from './save';
 
 export interface SideEntry {
   quest: Quest;
@@ -85,7 +86,7 @@ export function sideQuests(s: WorldSave, content: Content): SideEntry[] {
     const gives = rewardLine(q.reward, content);
     const giverName = nameOf(q.giver);
     if (st) {
-      const step = q.steps[st.index] ?? q.steps[0]!;
+      const step = q.steps[stepIndexOf(q, st)] ?? q.steps[0]!;
       const map = stepMaps(step, content, s)[0];
       const hood = map ? hoodOf(map)?.id : undefined;
       out.push({ quest: q, state: 'on', ...(q.giver ? { giver: q.giver } : {}), ...(giverName ? { giverName } : {}), ...(map ? { map } : {}), ...(hood ? { hood } : {}), first: step.now, gives, when: step.when ?? null, dist: hoodDistance(s, hood) });

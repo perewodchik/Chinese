@@ -19,6 +19,7 @@ const content = checkContent('content/world', lib).districts;
 const scenes = content.flatMap((d) => d.scenes);
 const npcs = content.flatMap((d) => d.npcs);
 const quests = content.flatMap((d) => d.quests);
+const cutscenes = content.flatMap((d) => d.cutscenes ?? []);
 const src = new ScriptedDialogue({ scenes, npcs, shops: content.flatMap((d) => d.shops ?? []), items: content.flatMap((d) => d.items) }, lex);
 
 /** Applies a turn's actions the way the page does: the save, then quests move on. */
@@ -84,6 +85,21 @@ describe('chapter 1, played through the core', () => {
     assert.equal(s.bag.money, 194);
     assert.equal(s.bag.items.baozi, 1);
     assert.equal(s.bag.items.doujiang, 1);
+    assert.equal(step(s), 'list');
+
+    // §13 S1: 王阿姨's list — read it back, buy it at 李阿姨's, bring it home
+    assert.equal(sceneFor(scenes, { ...s, flags: [...s.flags, 'lantern-broken'] }, { look: 'old-lantern', map: 'siheyuan-yard' }), null, 'no lantern before the errand');
+    assert.equal(sceneFor(scenes, s, { npc: 'wang-ayi' })?.id, 'c1-list');
+    s = play(s, 'c1-list').save;
+    assert.equal(s.bag.money, 214);
+    assert.equal(s.bag.items.danzi, 1);
+    assert.equal(step(s), 'shop');
+    assert.equal(sceneFor(scenes, s, { npc: 'li-ayi' })?.id, 'shop-li-ayi');
+    s = play(s, 'shop-li-ayi', ['我要一瓶牛奶，一盒鸡蛋。', '不要了。']).save;
+    assert.equal(s.bag.money, 199);
+    assert.equal(step(s), 'bring');
+    s = play(s, 'c1-list-give').save;
+    assert.equal(s.bag.items.niunai ?? 0, 0);
     assert.equal(step(s), 'lantern');
 
     assert.equal(sceneFor(scenes, s, { look: 'old-lantern', map: 'siheyuan-yard' })?.id, 'lantern');
@@ -98,8 +114,20 @@ describe('chapter 1, played through the core', () => {
     // the teahouse: the rumour, then a rest until evening
     assert.equal(sceneFor(scenes, s, { npc: 'lao-liu' })?.id, 'rumour-tea');
     s = play(s, 'rumour-tea').save;
-    assert.equal(step(s), 'lion');
+    assert.equal(step(s), 'haircut');
     assert.equal(Math.floor(s.clock / 60) % 24, 19);
+
+    // the welcome haircut is free; 赵爷爷 shows the way and gives 《石狮子》; its page 3 answers the visitor
+    assert.equal(sceneFor(scenes, s, { npc: 'zhang-shifu' })?.id, 'c1-barber');
+    s = play(s, 'c1-barber').save;
+    assert.equal(s.bag.money, 199);
+    assert.equal(step(s), 'lion-book');
+    assert.equal(sceneFor(scenes, s, { look: 'stone-lion', map: 'gulou-square' })?.id, 'lion-day', 'the lion waits for the book steps');
+    s = play(s, 'c1-zhao-lions').save;
+    assert.ok(s.books.shishizi);
+    assert.equal(step(s), 'lions');
+    s = play(s, 'c1-lions-which').save;
+    assert.equal(step(s), 'lion');
 
     // by day the lion sleeps; after dark it asks its riddle
     assert.equal(sceneFor(scenes, { ...s, clock: 12 * 60 }, { look: 'stone-lion', map: 'gulou-square' })?.id, 'lion-day');
@@ -108,12 +136,29 @@ describe('chapter 1, played through the core', () => {
     assert.ok('shishizi' in s.spirits);
     assert.ok('shishizi' in s.stamps);
     assert.equal(s.riddles['lantern-rabbit/d']?.solved, true);
+    assert.equal(step(s), 'drum-book');
+
+    // 老刘's 《晨钟暮鼓》; the attendant's question is on its page 3; the evening drum (a cutscene) — then the bell tower photo for 小明
+    assert.equal(sceneFor(scenes, s, { npc: 'lao-liu' })?.id, 'c1-liu-towers');
+    s = play(s, 'c1-liu-towers').save;
+    assert.ok(s.books['chenzhong-mugu']);
+    assert.equal(step(s), 'drum');
+    const drum = play(s, 'c1-drum-when');
+    assert.equal(Math.floor(drum.save.clock / 60) % 24, 19);
+    s = act(drum.save, cutscenes.find((c) => c.id === 'c1-drum')!.then ?? []);
+    assert.equal(step(s), 'bell');
+    s = act(s, [{ do: 'photo', subjects: ['gulou-square:bell-tower'] }]);
+    assert.equal(step(s), 'tell');
+    s = play(s, 'c1-xiaoming-tell').save;
+    assert.equal(step(s), 'yandai');
+    assert.equal(sceneFor(scenes, s, { look: 'to-yandai', map: 'gulou-square' })?.id, 'c1-yandai');
+    s = play(s, 'c1-yandai').save;
     assert.equal(step(s), 'card');
 
     assert.equal(sceneFor(scenes, s, { npc: 'station-staff' })?.id, 'card');
     s = play(s, 'card').save;
     assert.equal(s.bag.card, 20);
-    assert.equal(s.bag.money, 154);
+    assert.equal(s.bag.money, 159);
     assert.equal(step(s), 'ride');
     assert.ok(s.flags.includes('has-card'));
 
@@ -315,13 +360,13 @@ describe('chapter 4, played through the core', () => {
     s = play({ ...s, clock: 18 * 60 }, 'qilin').save;
     assert.ok('qilin' in s.spirits);
     assert.equal(s.quests.ch4?.done, true);
-    assert.equal(s.chapter, 5);
+    assert.equal(s.chapter, 6); // 5 香火 is a placeholder until S5: it hands straight on (§13 S1)
   });
 });
 
 describe('chapter 5, played through the core', () => {
   it('三里屯 → the courier → 国贸 bank → gold coins → 貔貅 → the Bird\'s Nest', () => {
-    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 5 }, { do: 'quest', quest: 'ch5', step: 'go' }, { do: 'money', amount: 100 }]);
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 6 }, { do: 'quest', quest: 'ch5', step: 'go' }, { do: 'money', amount: 100 }]);
     const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'ch5')?.step.id;
     s = play(s, 'sanlitun-arrive').save;
     s = play(s, 'courier').save;
@@ -339,7 +384,7 @@ describe('chapter 5, played through the core', () => {
     assert.equal(at(), 'olympic');
     s = play(s, 'olympic-arrive').save;
     assert.equal(s.quests.ch5?.done, true);
-    assert.equal(s.chapter, 6);
+    assert.equal(s.chapter, 7);
   });
 
   it('a shop door opens its 点单 game', () => {
@@ -351,7 +396,7 @@ describe('chapter 5, played through the core', () => {
 
 describe('chapter 6, played through the core', () => {
   it('颐和园 → the rabbit painting → 潘家园 → bargaining for the 年兽', () => {
-    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 6 }, { do: 'quest', quest: 'ch6', step: 'go' }, { do: 'money', amount: 200 }]);
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 7 }, { do: 'quest', quest: 'ch6', step: 'go' }, { do: 'money', amount: 200 }]);
     const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'ch6')?.step.id;
     s = play(s, 'yiheyuan-arrive').save;
     assert.equal(sceneFor(scenes, s, { look: 'painting-rabbit', map: 'yiheyuan-changlang' })?.id, 'painting-rabbit');
@@ -367,13 +412,13 @@ describe('chapter 6, played through the core', () => {
     assert.equal(s.bag.money, before - 100);
     assert.ok('nianshou' in s.spirits);
     assert.equal(s.quests.ch6?.done, true);
-    assert.equal(s.chapter, 7);
+    assert.equal(s.chapter, 8);
   });
 });
 
 describe('chapter 7, played through the core', () => {
   it('the ticket in your name → security → 太和殿 → 画龙点睛 → the garden', () => {
-    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 7 }, { do: 'quest', quest: 'ch7', step: 'ticket' }]);
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 8 }, { do: 'quest', quest: 'ch7', step: 'ticket' }]);
     const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'ch7')?.step.id;
     assert.equal(sceneFor(scenes, s, { npc: 'wang-ayi' })?.id, 'ticket');
     s = play(s, 'ticket').save;
@@ -392,13 +437,13 @@ describe('chapter 7, played through the core', () => {
     assert.ok('画龙点睛' in s.idioms);
     s = play(s, 'yuhuayuan-arrive').save;
     assert.equal(s.quests.ch7?.done, true);
-    assert.equal(s.chapter, 8);
+    assert.equal(s.chapter, 10); // 9 过年 is a placeholder until S9: it hands straight on to the epilogue (§13 S1)
   });
 });
 
 describe('the epilogue, played through the core', () => {
   it('a train ticket in your name → the train → 愚公移山 → 一路平安', () => {
-    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 8 }, { do: 'quest', quest: 'epilogue', step: 'ticket' }]);
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 10 }, { do: 'quest', quest: 'epilogue', step: 'ticket' }]);
     const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'epilogue')?.step.id;
     assert.equal(sceneFor(scenes, s, { look: 'train-board', map: 'stop-beijingbeizhan' })?.id, 'no-train-ticket');
     s = play(s, 'train-ticket').save;
@@ -414,13 +459,13 @@ describe('the epilogue, played through the core', () => {
     s = play(s, 'farewell').save;
     assert.ok('一路平安' in s.idioms);
     assert.equal(s.quests.epilogue?.done, true);
-    assert.equal(s.chapter, 9);
+    assert.equal(s.chapter, 11);
   });
 });
 
 describe('every scene, and the side quests', () => {
   it('every scene in the city plays to its end with its own hints — no dead ends', () => {
-    const rich = act(newSave('d', 0), [{ do: 'chapter', chapter: 9 }, { do: 'money', amount: 5000 }]);
+    const rich = act(newSave('d', 0), [{ do: 'chapter', chapter: 11 }, { do: 'money', amount: 5000 }]);
     for (const sc of scenes) play(rich, sc.id);
   });
 

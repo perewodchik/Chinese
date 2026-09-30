@@ -48,7 +48,7 @@
       },
       {
         "do": "quest",
-        "quest": "ch5",
+        "quest": "ch-xianghuo",
         "step": "go"
       }
     ]

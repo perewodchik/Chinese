@@ -26,11 +26,11 @@ export const DISTRICTS: readonly DistrictInfo[] = [
   { id: 'qianmen', name: '前门 · 大栅栏', en: 'Qianmen · Dashilar', chapter: 3, stations: ['qianmen', 'zhushikou'], at: [47, 62] },
   { id: 'tiantan', name: '天坛', en: 'Temple of Heaven', chapter: 4, stations: ['tiantandongmen'], at: [55, 70] },
   { id: 'yonghegong', name: '雍和宫 · 国子监', en: 'Lama Temple · Imperial Academy', chapter: 4, stations: ['yonghegong', 'andingmen'], at: [58, 26] },
-  { id: 'sanlitun', name: '三里屯 · 国贸', en: 'Sanlitun · Guomao', chapter: 5, stations: ['tuanjiehu', 'guomao', 'dongdaqiao'], at: [76, 46] },
-  { id: 'aoyun', name: '奥林匹克公园', en: 'Olympic Park', chapter: 5, stations: ['aolinpikegongyuan'], at: [54, 8] },
-  { id: 'yiheyuan', name: '颐和园', en: 'Summer Palace', chapter: 6, stations: ['yiheyuan'], at: [10, 14] },
-  { id: 'panjiayuan', name: '潘家园', en: 'Panjiayuan', chapter: 6, stations: ['panjiayuan'], at: [74, 72] },
-  { id: 'changcheng', name: '长城 · 八达岭', en: 'Great Wall · Badaling', chapter: 8, stations: ['badalingchangcheng'], at: [8, 2] },
+  { id: 'sanlitun', name: '三里屯 · 国贸', en: 'Sanlitun · Guomao', chapter: 6, stations: ['tuanjiehu', 'guomao', 'dongdaqiao'], at: [76, 46] },
+  { id: 'aoyun', name: '奥林匹克公园', en: 'Olympic Park', chapter: 6, stations: ['aolinpikegongyuan'], at: [54, 8] },
+  { id: 'yiheyuan', name: '颐和园', en: 'Summer Palace', chapter: 7, stations: ['yiheyuan'], at: [10, 14] },
+  { id: 'panjiayuan', name: '潘家园', en: 'Panjiayuan', chapter: 7, stations: ['panjiayuan'], at: [74, 72] },
+  { id: 'changcheng', name: '长城 · 八达岭', en: 'Great Wall · Badaling', chapter: 10, stations: ['badalingchangcheng'], at: [8, 2] },
 ];
 
 const byId = new Map(DISTRICTS.map((d) => [d.id, d]));

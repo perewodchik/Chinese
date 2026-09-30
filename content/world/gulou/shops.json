@@ -71,6 +71,16 @@
         "when": {
           "season": "winter"
         }
+      },
+      {
+        "item": "niunai",
+        "price": 5,
+        "measure": "瓶"
+      },
+      {
+        "item": "jidan",
+        "price": 10,
+        "measure": "盒"
       }
     ]
   },

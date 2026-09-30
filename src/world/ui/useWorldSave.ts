@@ -14,6 +14,9 @@ export interface TalkWho {
 
 const DEVICE_KEY = 'zouzou:device';
 
+/** A save brought up to the content it is played with (§13 S1): quests found by step id, chapters it missed opened. */
+const settle = (s: WorldSave, quests: ReadonlyMap<string, Quest>) => advanceQuests(s, [...quests.values()], { now: Date.now(), quests });
+
 /** This browser's id, kept so merges can tell two devices apart. */
 function deviceId(): string {
   try {
@@ -61,6 +64,8 @@ export function useWorldSave(userId: string, quests: readonly Quest[] = []): Wor
     let gone = false;
     void s.open().then((opened) => {
       if (gone) return;
+      // a chapter deepened or added since this save was made: it keeps its step, a missed chapter opens (§13 S1)
+      if (opened && questMap.current.size) opened = settle(opened, questMap.current);
       latest.current = opened;
       setSave(opened);
       setPhase(s.phase);
@@ -74,6 +79,17 @@ export function useWorldSave(userId: string, quests: readonly Quest[] = []): Wor
       sync.current = null;
     };
   }, [userId]);
+
+  // the content arrived after the save: bring its quests' step indexes up to date once (§13 S1)
+  useEffect(() => {
+    const cur = latest.current;
+    if (!cur || !quests.length) return;
+    const next = settle(cur, questMap.current);
+    if (next === cur) return;
+    latest.current = next;
+    setSave(next);
+    sync.current?.update(next, 'important');
+  }, [quests, save === null]);
 
   const dispatch = useCallback(
     (actions: readonly SaveAction[], urgency: Urgency = 'important', who?: TalkWho) => {

@@ -11,11 +11,11 @@ import { dayOf, MINUTES_PER_DAY, sleep as sleepClock, START_MINUTES, waitUntil }
 import { eventsOf, logDay } from './diary';
 import { feedCat, fits, NO_CAT } from './room';
 import { MAX_SUBJECTS } from './photo';
-import type { Action, Facing, Place, Quest, Tile, WorldSave, WorldSettings } from './types';
+import type { Action, Facing, Place, Quest, QuestState, Tile, WorldSave, WorldSettings } from './types';
 import { applyWardrobe, newWardrobe, wardrobeEvents, type WardrobeAction } from './wardrobe';
 
-/** 10 is the journal's (§10); 11 is §12's wardrobe; 12 is 成语 Practise (§10 P3) */
-export const WORLD_SAVE_VERSION = 15;
+/** 10 is the journal's (§10); 11 is §12's wardrobe; 12 is 成语 Practise (§10 P3); 16 is §13 S1's chapter renumbering */
+export const WORLD_SAVE_VERSION = 16;
 /** how many payments the 账单 keeps */
 export const BILLS = 20;
 
@@ -151,6 +151,17 @@ function stepIndex(ctx: ApplyContext, quest: string, step: string): number {
   return i < 0 ? 0 : i;
 }
 
+/**
+ * Where a quest under way stands in its steps (§13 S1): found by the step's
+ * id, because a chapter deepened after the save was made has new steps
+ * before it — those count as done, the save keeps its place. The stored
+ * `index` is only the fallback for a step id the content no longer has.
+ */
+export function stepIndexOf(q: Pick<Quest, 'steps'>, st: Pick<QuestState, 'step' | 'index'>): number {
+  const i = q.steps.findIndex((x) => x.id === st.step);
+  return i >= 0 ? i : Math.max(0, Math.min(st.index, q.steps.length - 1));
+}
+
 /** The save's own changes, before `updatedAt` is stamped. Unknown actions change nothing. */
 function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
   switch (a.do) {
@@ -194,8 +205,9 @@ function change(s: WorldSave, a: SaveAction, ctx: ApplyContext): WorldSave {
     case 'quest': {
       const index = stepIndex(ctx, a.quest, a.step);
       const cur = s.quests[a.quest];
+      const q = ctx.quests?.get(a.quest);
       // A quest only moves forward: replaying an old scene cannot take it back.
-      if (cur && (cur.done || cur.index > index)) return s;
+      if (cur && (cur.done || (q ? stepIndexOf(q, cur) : cur.index) > index)) return s;
       // the journal's clock (§10 J1): when each step was reached
       const at = stamp(cur?.at, a.step, s.clock);
       return { ...s, quests: { ...s.quests, [a.quest]: { step: a.step, index, done: false, at } } };

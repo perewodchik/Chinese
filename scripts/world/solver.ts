@@ -17,7 +17,7 @@ import { readFileSync } from 'node:fs';
 import { castMap } from '../../src/world/core/cast';
 import { libraryLexicon } from '../../src/world/core/dialogue/lexicon';
 import { answerFor, ScriptedDialogue } from '../../src/world/core/dialogue/scripted';
-import { activeQuests, advanceQuests } from '../../src/world/core/quests';
+import { activeQuests, advanceQuests, reindexQuests } from '../../src/world/core/quests';
 import { holds } from '../../src/world/core/flags';
 import { applyAll, newSave, type SaveAction } from '../../src/world/core/save';
 import { autoScene, sceneFor } from '../../src/world/core/scenes';
@@ -249,7 +249,8 @@ export interface SolveOptions {
 
 export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000, goal?: (s: WorldSave) => boolean, opts: SolveOptions = {}): Run {
   spendAll = !!opts.spendAll;
-  let s = start;
+  // a save made before a chapter was deepened keeps its step (§13 S1)
+  let s = reindexQuests(start, quests);
   bought.clear();
   const log: string[] = [];
   const short: string[] = [];
@@ -278,7 +279,9 @@ export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000,
         }
       }
       // a shared bike (the page's stands): ride one, then park
-      if (s.chapter >= 2 && !s.flags.includes('rode-bike')) {
+      // …and again while a quest waits for a ride (side-bike): a real player rides whenever they like
+      const bikeWanted = activeQuests(s, quests).some((a) => JSON.stringify(a.step.done ?? {}).includes('"flag":"on-bike"'));
+      if (s.chapter >= 2 && (!s.flags.includes('rode-bike') || bikeWanted)) {
         const after = act(act(s, [{ do: 'flag', flag: 'on-bike' }], short, 'bike'), [{ do: 'flag', flag: 'on-bike', value: false }, { do: 'flag', flag: 'rode-bike' }, { do: 'money', amount: -1 }], short, 'bike');
         log.push('bike');
         s = after;

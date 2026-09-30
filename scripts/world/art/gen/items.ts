@@ -61,6 +61,21 @@ export const ITEM_SPRITES: Record<string, () => Grid> = {
       f.rect(5, 5, 6, 9, 'X').rect(6, 3, 4, 2, 'X').rect(6, 1, 4, 2, 'n');
       f.rect(5, 8, 6, 3, 'n').hline(6, 9, 2, 'l').vline(6, 5, 3, 'w').vline(6, 11, 2, 'w').vline(10, 5, 9, 'W');
     }),
+  niunai: () =>
+    sprite((f) => {
+      f.rect(5, 5, 6, 9, 'w').rect(6, 3, 4, 2, 'w').rect(6, 1, 4, 2, 'n');
+      f.rect(5, 8, 6, 3, 'n').hline(6, 9, 2, 'l').vline(10, 5, 9, 'e');
+    }),
+  jidan: () =>
+    sprite((f) => {
+      f.rect(1, 7, 14, 6, 'o').hline(1, 12, 14, 'j').vline(14, 7, 6, 'j');
+      for (const x of [2, 6, 10]) f.oval(x, 4, 4, 5, 'w').set(x + 3, 6, 'e').set(x + 3, 7, 'e');
+    }),
+  danzi: () =>
+    sprite((f) => {
+      f.rect(3, 1, 10, 14, 'w').vline(12, 1, 14, 'e');
+      f.hline(5, 4, 6, 'r').hline(5, 7, 5, 'e').hline(5, 10, 6, 'e').hline(5, 13, 3, 'e');
+    }),
   huzhao: () =>
     sprite((f) => {
       f.rect(3, 1, 10, 14, 'q').vline(12, 1, 14, 'R').vline(3, 1, 14, 'R');

@@ -1,0 +1,30 @@
+[
+ {
+  "id": "ch-xianghuo",
+  "title": "Incense",
+  "chapter": 5,
+  "kind": "main",
+  "steps": [
+   {
+    "id": "go",
+    "now": "兔儿爷 says the next spirit hides in one of Beijing's temples. (This chapter is still being written — the story goes on to 三里屯 for now.)",
+    "past": "Heard that a spirit hides among Beijing's temples — a chapter still to come.",
+    "where": "yonghegong-street",
+    "done": {
+     "chapter": 5
+    }
+   }
+  ],
+  "reward": [
+   {
+    "do": "chapter",
+    "chapter": 6
+   },
+   {
+    "do": "quest",
+    "quest": "ch5",
+    "step": "go"
+   }
+  ]
+ }
+]

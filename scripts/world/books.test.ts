@@ -32,7 +32,7 @@ describe('books (§13 B1)', () => {
 
   it('王阿姨 gives it in chapter 1: the action puts it on the shelf, once', () => {
     const scenes = checkContent('content/world', lib).districts.flatMap((d) => d.scenes);
-    const gives = scenes.flatMap((s) => s.nodes.flatMap((n) => (n.onEnter ?? []).filter((a) => a.do === 'book').map(() => s.id)));
+    const gives = scenes.flatMap((s) => s.nodes.flatMap((n) => (n.onEnter ?? []).flatMap((a) => (a.do === 'book' && a.id === 'denglong' ? [s.id] : []))));
     assert.deepEqual(gives, ['lantern-rabbit']);
     let s = applyAll(newSave('d', 0), [{ do: 'book', id: 'denglong' }], ctx);
     const got = s.books.denglong!.got;
@@ -79,8 +79,8 @@ describe('books (§13 B1)', () => {
     assert.equal(todayText(denglong.today.zh).startsWith('今天的北京'), false);
   });
 
-  it('the save (v15): an old save gets no books; merge keeps both devices\' pages and the earlier minute', () => {
-    assert.equal(WORLD_SAVE_VERSION, 15);
+  it('the save (v15 on): an old save gets no books; merge keeps both devices\' pages and the earlier minute', () => {
+    assert.ok(WORLD_SAVE_VERSION >= 15);
     const old = { ...JSON.parse(JSON.stringify(newSave('d', 0))), version: 14 };
     delete old.books;
     const r = readSave(old);

@@ -23,6 +23,40 @@
         }
       },
       {
+        "id": "list",
+        "now": "Back in the courtyard, 王阿姨 wants a hand with her shopping. Talk to her and read her list.",
+        "past": "Read 王阿姨's shopping list: a bottle of milk, a box of eggs.",
+        "where": "siheyuan-yard",
+        "done": {
+          "flag": "c1-got-list"
+        }
+      },
+      {
+        "id": "shop",
+        "now": "Buy what is on 王阿姨's list at 李阿姨's corner shop 小卖部 on 南锣鼓巷: 「我要一瓶牛奶，一盒鸡蛋」, then pay with your phone.",
+        "past": "Bought milk and eggs at 李阿姨's 小卖部 and paid with my phone.",
+        "where": "xiaomaibu",
+        "done": {
+          "all": [
+            {
+              "item": "niunai"
+            },
+            {
+              "item": "jidan"
+            }
+          ]
+        }
+      },
+      {
+        "id": "bring",
+        "now": "Take the milk and eggs back to 王阿姨 in the courtyard.",
+        "past": "Brought 王阿姨 her milk and eggs.",
+        "where": "siheyuan-yard",
+        "done": {
+          "flag": "c1-list-given"
+        }
+      },
+      {
         "id": "lantern",
         "now": "Go back to the courtyard and look at 王阿姨's old lantern.",
         "past": "Looked at 王阿姨's old lantern — and it broke, and something ran out of it.",
@@ -41,6 +75,33 @@
         }
       },
       {
+        "id": "haircut",
+        "now": "张师傅 the barber on 南锣鼓巷 gives every new neighbour a first haircut for free. Go and sit in his chair.",
+        "past": "Got my first Beijing haircut from 张师傅 — free, for a new neighbour.",
+        "where": "lifadian",
+        "done": {
+          "flag": "c1-welcome-cut"
+        }
+      },
+      {
+        "id": "lion-book",
+        "now": "Ask 赵爷爷 on 南锣鼓巷 the way to the Drum Tower 鼓楼 (in the early morning he is at the 鼓楼 square).",
+        "past": "Asked 赵爷爷 the way to the 鼓楼; he gave me a book about stone lions.",
+        "where": "nanluo-main",
+        "done": {
+          "flag": "c1-lion-book"
+        }
+      },
+      {
+        "id": "lions",
+        "now": "At the 鼓楼, a man with a camera wants to know which stone lion is the father. 《石狮子》 page 3 tells you.",
+        "past": "Told a visitor at the 鼓楼 which lion is the father: the one with the ball.",
+        "where": "gulou-square",
+        "done": {
+          "flag": "c1-lions-told"
+        }
+      },
+      {
         "id": "lion",
         "now": "They say the stone lion by the Drum Tower 鼓楼 moves at night. Ask the way if you need to (it is west of your lane), and go after dark — 老刘 at the teahouse lets you sit till evening.",
         "past": "Went to the 鼓楼 after dark and made friends with the stone lion.",
@@ -48,6 +109,53 @@
         "when": "after dark",
         "done": {
           "spirit": "shishizi"
+        }
+      },
+      {
+        "id": "drum-book",
+        "now": "Tell 老刘 at the teahouse 茶馆 about the lion — he has something for you.",
+        "past": "老刘 gave me 《晨钟暮鼓》, about the towers that kept the city's time.",
+        "where": "chaguan",
+        "done": {
+          "flag": "c1-drum-book"
+        }
+      },
+      {
+        "id": "drum",
+        "now": "The attendant by the Drum Tower asks visitors a question from the book: at what time in the evening was the drum beaten? (《晨钟暮鼓》 page 3)",
+        "past": "Knew the answer — seven in the evening — and heard the drum and then the bell.",
+        "where": "gulou-square",
+        "onDone": "c1-drum",
+        "done": {
+          "flag": "c1-heard-drum"
+        }
+      },
+      {
+        "id": "bell",
+        "now": "小明 has never seen the Bell Tower 钟楼. Walk north across the square and take a photo of it: 📷, with the tower in the frame.",
+        "past": "Took a photo of the Bell Tower for 小明.",
+        "where": "gulou-square",
+        "done": {
+          "photo": "gulou-square:bell-tower"
+        }
+      },
+      {
+        "id": "tell",
+        "now": "Tell 小明 on 南锣鼓巷 what you heard at the towers, and show him the photo (he is at school 8:00–16:00).",
+        "past": "Told 小明 about the drum and the bell, and showed him the 钟楼.",
+        "where": "nanluo-main",
+        "when": "not 8:00–16:00",
+        "done": {
+          "flag": "c1-told-xiaoming"
+        }
+      },
+      {
+        "id": "yandai",
+        "now": "At the west edge of the 鼓楼 square a sign points down 烟袋斜街. Go and read it.",
+        "past": "Read the sign to 烟袋斜街 — the lakes of 后海 are just beyond.",
+        "where": "gulou-square",
+        "done": {
+          "flag": "c1-saw-yandai"
         }
       },
       {
@@ -78,6 +186,34 @@
         "do": "quest",
         "quest": "ch2",
         "step": "go-houhai"
+      }
+    ]
+  },
+  {
+    "id": "ch-guonian",
+    "title": "New Year",
+    "chapter": 9,
+    "kind": "main",
+    "steps": [
+      {
+        "id": "go",
+        "now": "王阿姨 is getting the courtyard ready for 春节. (This chapter is still being written — the story goes on to the Great Wall for now.)",
+        "past": "Heard 王阿姨 getting ready for 春节 — a chapter still to come.",
+        "where": "siheyuan-yard",
+        "done": {
+          "chapter": 9
+        }
+      }
+    ],
+    "reward": [
+      {
+        "do": "chapter",
+        "chapter": 10
+      },
+      {
+        "do": "quest",
+        "quest": "epilogue",
+        "step": "ticket"
       }
     ]
   },
@@ -480,7 +616,7 @@
   {
     "id": "side-photo-wall",
     "title": "The Wall for 老刘",
-    "chapter": 8,
+    "chapter": 10,
     "kind": "side",
     "giver": "lao-liu",
     "blurb": "老刘 has never been to the Great Wall and would love to see a photo of it.",

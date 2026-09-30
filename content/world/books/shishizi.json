@@ -1,0 +1,78 @@
+{
+  "id": "shishizi",
+  "zh": "石狮子",
+  "en": "Stone lions",
+  "level": 1,
+  "cover": "lion/stone",
+  "source": "gift",
+  "where": "赵爷爷 on 南锣鼓巷 gives it to you when you ask the way to the 鼓楼 (chapter 1).",
+  "place": "gulou-square",
+  "facts": [
+    "lions-pair",
+    "lions-axis"
+  ],
+  "words": [
+    {
+      "w": "狮子",
+      "en": "lion"
+    },
+    {
+      "w": "石狮子",
+      "en": "a stone lion"
+    },
+    {
+      "w": "球",
+      "en": "a ball"
+    },
+    {
+      "w": "脚",
+      "en": "foot, paw"
+    },
+    {
+      "w": "铁",
+      "en": "iron"
+    }
+  ],
+  "names": [
+    "北京",
+    "鼓楼",
+    "天安门",
+    "故宫",
+    "太和门"
+  ],
+  "pages": [
+    {
+      "zh": "北京有很多石狮子。它们在大门口，左边一个，右边一个。",
+      "en": "Beijing has many stone lions. They stand at big gates, one on the left and one on the right.",
+      "pic": "lion/stone"
+    },
+    {
+      "zh": "石狮子都是两个一起的：一个是狮子爸爸，一个是狮子妈妈。",
+      "en": "Stone lions always come two together: one is the father lion, one is the mother lion."
+    },
+    {
+      "zh": "怎么知道哪个是爸爸？狮子爸爸的脚下有一个球。狮子妈妈的脚下有一个小狮子。",
+      "en": "How do you know which is the father? Under the father lion's paw there is a ball. Under the mother lion's paw there is a little lion."
+    },
+    {
+      "zh": "你在门里，往外看：左边的是爸爸，右边的是妈妈。",
+      "en": "Stand inside the gate and look out: the one on the left is the father, the one on the right is the mother."
+    },
+    {
+      "zh": "你从外面走到门口，看到的是：右边的是爸爸，左边的是妈妈。",
+      "en": "Walk up to the gate from outside, and what you see is: the one on the right is the father, the one on the left is the mother."
+    },
+    {
+      "zh": "门口为什么有狮子？人们说，有狮子在门口，坏人就不来了。它们看着门，也看着家里的人。",
+      "en": "Why are there lions at gates? People say that with lions at the gate, bad people stay away. They watch the gate, and they watch over the people of the house too."
+    },
+    {
+      "zh": "有人说，很多很多年前，鼓楼前面也有两个铁狮子。现在没有了。",
+      "en": "Some say that many, many years ago there were two iron lions in front of the 鼓楼 as well. Now they are gone."
+    }
+  ],
+  "today": {
+    "zh": "今天的北京：天安门前面有石狮子。故宫的太和门前面，有两个很大的狮子。你去看看：哪个是爸爸？",
+    "en": "In Beijing today: there are stone lions in front of 天安门. In front of the palace's 太和门 there are two very big lions. Go and look: which one is the father?"
+  }
+}

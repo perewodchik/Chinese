@@ -1,0 +1,89 @@
+{
+  "id": "chenzhong-mugu",
+  "zh": "晨钟暮鼓",
+  "en": "The morning bell, the evening drum",
+  "level": 1,
+  "cover": "temple-bell/bronze",
+  "source": "gift",
+  "where": "老刘 at the teahouse gives it to you after you meet the stone lion (chapter 1).",
+  "place": "gulou-square",
+  "facts": [
+    "chenzhong-mugu",
+    "gengs-drum-bell",
+    "gulou-25-drums",
+    "zhonglou-bell",
+    "gulou-drum-times"
+  ],
+  "words": [
+    {
+      "w": "鼓",
+      "en": "a drum"
+    },
+    {
+      "w": "钟",
+      "en": "a bell"
+    },
+    {
+      "w": "敲",
+      "en": "to strike, to ring (a bell)"
+    },
+    {
+      "w": "节气",
+      "en": "the 24 solar terms of the farmer's year"
+    },
+    {
+      "w": "吨",
+      "en": "a tonne"
+    },
+    {
+      "w": "城门",
+      "en": "a city gate"
+    }
+  ],
+  "names": [
+    "北京",
+    "鼓楼",
+    "钟楼",
+    "晨钟暮鼓"
+  ],
+  "pages": [
+    {
+      "zh": "很多年前，北京人没有手机。那他们怎么知道几点了？",
+      "en": "Many years ago the people of Beijing had no phones. So how did they know what time it was?",
+      "pic": "tower/drum"
+    },
+    {
+      "zh": "听！鼓楼上有鼓，钟楼上有钟。鼓楼在南边，钟楼在北边。",
+      "en": "Listen! On the Drum Tower there are drums, on the Bell Tower there is a bell. The Drum Tower is to the south, the Bell Tower to the north.",
+      "pic": "tower/bell"
+    },
+    {
+      "zh": "晚上七点，鼓楼打鼓。打完鼓，钟楼再敲钟。这时候，城门都不开了。",
+      "en": "At seven in the evening the Drum Tower beat its drum. When the drum had finished, the Bell Tower rang its bell. From then on the city gates stayed shut."
+    },
+    {
+      "zh": "夜里，钟两个小时敲一次。早上很早的时候，也是打完鼓，再敲钟。",
+      "en": "In the night the bell rang once every two hours. Very early in the morning, too, the drum came first, and then the bell."
+    },
+    {
+      "zh": "一次打多少下？快的十八下，慢的十八下，不快不慢的十八下，再来一次：一百零八下！",
+      "en": "How many strokes each time? Eighteen fast, eighteen slow, eighteen neither fast nor slow, and all of it once more: a hundred and eight!"
+    },
+    {
+      "zh": "很多年前，鼓楼有二十五个鼓：一个大鼓是一年，二十四个小鼓是二十四个节气。",
+      "en": "Many years ago the Drum Tower had twenty-five drums: one big drum for the year, and twenty-four small drums for the twenty-four 节气."
+    },
+    {
+      "zh": "钟楼的钟非常大，有六十三吨。很远的家里也能听见它。",
+      "en": "The Bell Tower's bell is enormous: sixty-three tonnes. Even homes far away could hear it."
+    },
+    {
+      "zh": "所以人们说“晨钟暮鼓”：早上的钟，晚上的鼓。",
+      "en": "That is why people say 晨钟暮鼓: the bell of the morning, the drum of the evening."
+    }
+  ],
+  "today": {
+    "zh": "今天的北京：白天，鼓楼上一天打好几次鼓。你可以上去听听。钟楼的大钟也还在。",
+    "en": "In Beijing today: in the daytime the drums on the Drum Tower are played several times a day. You can go up and listen. The Bell Tower's big bell is still there too."
+  }
+}
