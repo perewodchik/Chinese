@@ -149,18 +149,19 @@ function HoodView({
   // tile, where names stop running into each other); on a phone, the part around you — drag for the rest.
   const framed = useRef<string | null>(null);
   useEffect(() => {
-    if (!plan || framed.current === plan.id || pz.box.w < 50) return;
+    if (!plan || framed.current === plan.id || !pz.measured || pz.box.w < 50) return;
     framed.current = plan.id;
     const across = pz.box.w / 8;
     if (bounds.w <= across) {
-      pz.glide(bounds, true);
+      // ask for more than there is: the view stops at the whole plan with its padding (names past the edges)
+      pz.glide({ x: bounds.x - bounds.w, y: bounds.y - bounds.h, w: bounds.w * 3, h: bounds.h * 3 }, true);
       return;
     }
     const at = heroOnPlan(plan, save.place.map, save.place.tile) ?? [plan.areas[0]!.x + plan.areas[0]!.w / 2, plan.areas[0]!.y + plan.areas[0]!.h / 2];
     const h = across / (pz.box.w / Math.max(1, pz.box.h));
     pz.glide({ x: at[0] - across / 2, y: at[1] - h / 2, w: across, h }, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plan, pz.box.w]);
+  }, [plan, pz.box.w, pz.measured]);
   const tap = (fn: () => void) => () => {
     if (!pz.dragged.current) fn();
   };

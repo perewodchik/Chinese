@@ -20,6 +20,8 @@ const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-r
 export function usePanZoom(bounds: View, minW: number, pad: Pad = { l: 0, r: 0, t: 0, b: 0 }) {
   const svg = useRef<SVGSVGElement>(null);
   const [box, setBox] = useState({ w: 800, h: 500 });
+  /** the box has been measured once (a frame set before that is lost to the first measure) */
+  const [measured, setMeasured] = useState(false);
   const [view, setView] = useState<View>(bounds);
   const viewRef = useRef(view);
   viewRef.current = view;
@@ -125,6 +127,7 @@ export function usePanZoom(bounds: View, minW: number, pad: Pad = { l: 0, r: 0, 
       if (first) setView(fit(v));
       else setView(clamp({ x: v.x, y: v.y + v.h / 2 - v.w / a / 2, w: v.w, h: v.w / a }, a));
       first = false;
+      setMeasured(true);
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -189,5 +192,5 @@ export function usePanZoom(bounds: View, minW: number, pad: Pad = { l: 0, r: 0, 
 
   /** one screen pixel in the drawing's units: marks and names keep their size at any zoom */
   const u = view.w / Math.max(1, box.w);
-  return { svg, view, box, u, glide, zoomBy, onPointerDown, dragged };
+  return { svg, view, box, measured, u, glide, zoomBy, onPointerDown, dragged };
 }

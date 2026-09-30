@@ -80,6 +80,31 @@ describe('neighbourhoods', () => {
     assert.ok(p.doors.some((d) => d.to === 'station-nanluoguxiang'), 'the station has its way in');
   });
 
+  it('mark every way into another place: doors, street ends, other neighbourhoods (M7)', () => {
+    for (const p of plans) {
+      const h = HOODS.find((x) => x.id === p.id)!;
+      for (const a of p.areas) {
+        for (const to of index[a.map]!.links ?? []) {
+          if (to === a.map) continue;
+          const other = hoodOf(to);
+          if (other && other.id !== h.id) {
+            assert.ok(p.exits.some((e) => e.map === a.map && e.hood === other.id), `${p.id}: no arrow from ${a.map} to ${other.id}`);
+            continue;
+          }
+          const door = p.doors.some((d) => d.from === a.map && d.to === to) || p.doors.some((d) => d.from === to && d.to === a.map);
+          const join = p.joins.some((j) => (j.a === a.map && j.b === to) || (j.b === a.map && j.a === to));
+          assert.ok(door || join, `${p.id}: the way from ${a.map} to ${to} is not marked`);
+        }
+      }
+      // every room with a door on a street has its door mark (a room inside a room hangs off that room's card)
+      for (const r of p.rooms) {
+        const onStreet = p.areas.some((a) => (index[a.map]!.links ?? []).includes(r.map));
+        if (onStreet) assert.ok(p.doors.some((d) => d.to === r.map), `${p.id}: ${r.map} has no door mark`);
+        else assert.ok(p.rooms.some((o) => o !== r && (index[o.map]!.links ?? []).includes(r.map)), `${p.id}: ${r.map} hangs off nothing`);
+      }
+    }
+  });
+
   it('put the hero where he stands', () => {
     const p = plans.find((x) => x.id === 'nanluoguxiang')!;
     const street = p.areas.find((a) => a.map === 'nanluo-main')!;
