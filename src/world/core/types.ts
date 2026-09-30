@@ -57,7 +57,9 @@ export type Condition =
   /** this person has not had a talk with you yet today (X9: one story episode a day) */
   | { fresh: string }
   /** a once-a-day thing (a job, Y3) was done today */
-  | { daily: string };
+  | { daily: string }
+  /** your own bike (§13 L): you have one, you are on it, a tyre is flat, or you have none */
+  | { bike: 'owned' | 'riding' | 'flat' | 'none' };
 
 export type Action =
   | { do: 'flag'; flag: string; value?: boolean }
@@ -105,7 +107,13 @@ export type Action =
   /** play a cutscene (§13 K1) — after the talk it was said in is over */
   | { do: 'cutscene'; id: string }
   /** a book comes to you (§13 B1): given, bought or found — it goes on your shelf */
-  | { do: 'book'; id: string };
+  | { do: 'book'; id: string }
+  /** your own bike (§13 L, `bike.ts`): bought (it stands where you are), a part fitted, a tyre mended, the bell changed, sent home */
+  | { do: 'bike'; model: string; colour: string }
+  | { do: 'bike_part'; part: string }
+  | { do: 'bike_fix' }
+  | { do: 'bike_bell' }
+  | { do: 'bike_home' };
 
 export type ActionKind = Action['do'];
 
@@ -257,6 +265,8 @@ export interface DialogueNode {
   bargain?: Bargain;
   /** a clothes rack or the barber's menu (§12 W5, `rack.ts`): look, ask, try, buy — then 穿着走 */
   rack?: { rack: string };
+  /** the bike shop (§13 L1, `bike.ts`): look, ride, buy a bike or a part */
+  bikes?: { shop: string };
   /** when there is nothing to expect: tap to go on here (none = the end) */
   next?: string;
   hint?: Hint;
@@ -589,6 +599,8 @@ export interface WorldSave {
   lastWords: string[];
   /** your books (§13 B1, save v15): when each came, the pages read */
   books: Record<string, import('./books').BookState>;
+  /** your own bike (§13 L, save v17): none until bought */
+  bike?: import('./bike').BikeState;
 
   settings: WorldSettings;
 }

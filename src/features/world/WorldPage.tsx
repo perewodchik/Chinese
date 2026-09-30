@@ -56,6 +56,7 @@ import { WardrobeSheet } from '../../world/ui/WardrobeSheet';
 import { BookReader, BookShelf } from '../../world/ui/BookReader';
 import { owedBooks } from '../../world/core/books';
 import { RackSheet } from '../../world/ui/RackSheet';
+import { BikeSheet } from '../../world/ui/BikeSheet';
 import { remarkAt } from '../../world/core/notice';
 import { PLACES } from '../../world/core/places';
 import { homeProp } from '../../world/core/wardrobe';
@@ -1072,6 +1073,10 @@ export function WorldPage() {
           clothes={content.clothes}
           onSay={(text) => talk.reply(text, 'keyboard')}
         />
+      )}
+      {/* the bike shop (§13 L1): the bikes (or, once you have one, the parts) over the talk */}
+      {talk.view?.state.bikes && !talk.view.state.due && talk.view.mode === 'reply' && game.save && (
+        <BikeSheet state={talk.view.state.bikes} save={game.save} clothes={content.clothes} onSay={(text) => talk.reply(text, 'keyboard')} />
       )}
       {talk.view && game.save && (
         <Dialogue

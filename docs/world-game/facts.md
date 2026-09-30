@@ -77,7 +77,9 @@ Checked 2026-09-30 unless dated otherwise.
 | `numbers-8-4` | 8 (八) sounds like 发 (get rich), 4 (四) like 死 (die) | ? | check in S6 (book 11) |
 | `chunyun-scale` | 春运 is the biggest yearly human migration; billions of trips over ~40 days | ? | check in S9 — use "hundreds of millions of people", never an exact number unless sourced |
 | `jianbing-debate` | 天津 煎饼馃子 are rolled round 馃篦儿 (a thin fried sheet) or 油条; in Beijing they mostly use 薄脆 — people from 天津 insist theirs is the real one | ✓ | [visitbeijing — 煎饼果子](https://www.visitbeijing.com.cn/article/4EY7son40fO); [sohu — 馃篦儿和薄脆](https://m.sohu.com/a/921875029_122446374/) |
-| `bikes-brands` | 永久 and 凤凰 are Shanghai brands, 飞鸽 is from Tianjin; the black 28-inch 二八大杠 | ? | check in L1 (brands.md) |
+| `bikes-brands` | 永久 and 凤凰 are Shanghai brands, 飞鸽 is from Tianjin; the black 28-inch 二八大杠 | ✓ (L1) | [Wikipedia — Flying Pigeon](https://en.wikipedia.org/wiki/Flying_Pigeon) (Tianjin, first bike 1950); [Wikipedia — Phoenix (bicycle company)](https://en.wikipedia.org/wiki/Phoenix_(bicycle_company)) (Shanghai, 1958); [Shine — The Forever bike that ruled the streets of Shanghai](https://www.shine.cn/feature/art-culture/2103266556/) |
+| `bike-kingdom` | China was called "the kingdom of bicycles" (自行车王国); in the 1980s most people in Beijing rode to work, the three big makers being Tianjin (飞鸽) and Shanghai (永久, 凤凰) | ✓ (L1) | [The World of Chinese — Backpedaling the History of Bicycles in China](https://www.theworldofchinese.com/2023/06/backpedaling-the-history-of-bicycles-in-china/); [HKU MMEA — 28-Dang](https://mmea.hku.hk/28-dang-a-bicycle-that-moved-socialist-and-early-reform-china/) |
+| `erba-dagang` | the 二八大杠: 28-inch wheels and a crossbar (杠); a child rode on the crossbar; a new bike cost a lot and was a family's pride | ✓ (L1) — the game gives no price for the 1980s | [HKU MMEA — 28-Dang, a bicycle that moved socialist and early-reform China](https://mmea.hku.hk/28-dang-a-bicycle-that-moved-socialist-and-early-reform-china/) |
 
 ## Rules of the city (what the game makes you do)
 | id | Claim | Status | Source |

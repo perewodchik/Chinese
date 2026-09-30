@@ -228,7 +228,7 @@ first unchecked box. Tick a box in the same commit as the work.
 - [ ] U3 甜甜 (livestreamer, 弹幕)
 - [ ] U4 米沙 (tones)
 - [ ] U5 Substory checks
-- [ ] L1 Bike shop 自行车行 + 修车摊 (永久 / 凤凰 / 飞鸽, second-hand, test ride)
+- [x] L1 Bike shop 自行车行 + 修车摊 (永久 / 凤凰 / 飞鸽, second-hand, test ride) — the bike sheet on the rack sheet's frame (look, colours, 骑一圈 test ride, 支付宝, then parts 车筐/车锁/后座), the recycler's old 永久 bargained, the 修车摊 (打气, 补胎, a new bell, the parts named), `side-ziche` from 赵爷爷 with book 19 《自行车王国》, save v17 `bike`, bike art (`gen/bikes.ts`), `s13/L1.md`
 - [ ] L2 Riding (get on/off, bell, no-ride gates, not on the subway, 骑车去 between near districts, parked bike, phone to fetch; save)
 - [ ] L3 Flat tyre, lock, photos, diary, notice
 - [ ] L4 Bike checks
@@ -393,6 +393,9 @@ _(date — decision — why)_
 - 2026-09-30 — T1: **烟袋斜街 belongs to the 后海 district** (and the 什刹海 neighbourhood), since chapter 2 starts there; 鼓楼东大街 to 鼓楼. The shops on the north–south 南锣鼓巷 open as doorways in the side walls (a lit mat in a gap), their signs on the wall above. The 胡同 names and their order are from Wikipedia (two sources agree); only 帽儿胡同 leads anywhere — the others end at the map's edge, as side lanes do. 平安大街's place is now named 地安门东大街 (the street at 南锣鼓巷's south end, part of 平安大街).
 - 2026-09-30 — T2: the 诗社 (X9) moved from 后海's shore into a new **恭王府 garden** map behind the gate on 后海's south shore (its scenes' map changed; the talk is unchanged). 琼华岛 (`beihai-baita`) is reached **by boat** from a pier on 北海's north shore — a door, as the park's ferries do. 景山's four smaller pavilions are drawn green (the brief did not ask for their real glaze colours, and none were checked).
 - 2026-09-30 — T3: 雍和宫's two maps are **the courtyards** and **inside 万福阁** (the Maitreya is the point; a second courtyard would add walking, not Chinese). Line 1 now starts at **木樨地** (+ 南礼士路) so 白云观 has its real station; 东岳庙 uses 朝阳门 (lines 2 and 6, already modelled). A new district `xianghuo` holds 白云观 and 东岳庙 (chapter 5 until S1 renumbers). 地坛's 庙会 is props that appear only at 春节. Line 1's direction west now reads 「往木樨地方向」 (the game's line ends there; the real line runs on to 古城 — a simplification, as before with 复兴门).
+- 2026-09-30 L1 — **save v17** adds `bike` (your own bike: model, colour, parts, bell, where it is, a flat tyre) in L1 rather than L2, because buying one must already be saved; the upgrade changes nothing (an old save has no bike) but a 16 build must refuse a 17 save. Merge: either device's bike, the later save's colour, parts and place. The shared bikes' `on-bike` flag stays theirs.
+- 2026-09-30 L1 — the four bikes and three parts live in code (`core/bike.ts`), not a content file: each is tied to its drawing (`gen/bikes.ts`). One bike at a time — with one, the shop sells parts only. The 修车摊's bell swap cycles three bells (叮, 叮当, 铃铃) instead of the shop selling bells.
+- 2026-09-30 L1 — book 19 《自行车王国》 is **level 3**: 自行车 and 骑 are HSK 3 in the 2026 lists, so a level-2 bike book is impossible; they and the bike words are glossed. The bike shop is "a bike shop" on 鼓楼东大街 (brands.md); prices in economy.md. `side-ziche` opens in chapter 2 (the recycler's 150 元 bike is reachable then; a new one after the bank in chapter 3).
 - 2026-09-30 — T4: the old 戏园 map is signed **老舍茶馆** (tea and opera on one stage — the X9 茶馆 homage stays with 老刘 in 鼓楼's teahouse). 瑞蚨祥, 内联升 and the 大栅栏 granny moved to a new **大栅栏** lane west off 前门大街. Doors can be **`oneWay`** (神武门: out only); walking routes respect it. The palace gained one map (中和殿 · 保和殿 · 乾清宫) between 太和殿 and 御花园; 御花园 is no longer reached from 太和殿's west side.
 
 ## Problems / notes

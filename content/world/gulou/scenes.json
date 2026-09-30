@@ -9124,5 +9124,562 @@
     "why": "The lakes are for chapter 2. First, the spirits could be anywhere in Beijing — you will need a 交通卡."
    }
   ]
+ },
+ {
+  "id": "bike-shop",
+  "map": "gulou-dongdajie",
+  "npc": "chehang-laoban",
+  "trigger": "talk",
+  "priority": 3,
+  "start": "a",
+  "words": [
+   {
+    "w": "自行车",
+    "explain": "两个轮子，人骑的车。",
+    "en": "bicycle"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！买自行车吗？看看吧。",
+    "simpler": "自行车，你看看吧！",
+    "translate": "Hello! Buying a bike? Have a look.",
+    "bikes": {
+     "shop": "zixingche"
+    },
+    "why": "A bike shop (not a real one): 永久 480 元, 凤凰 420 元, 飞鸽 400 元; a 车筐 30, a 车锁 25, a 后座 20. Tap a bike or name it and ask 「这辆多少钱？」, 「有红的吗？」, 「我可以试试吗？」, then 「我要这辆」. The measure word for bikes is 辆. A test ride is 骑一圈 — 'ride a lap'."
+   }
+  ]
+ },
+ {
+  "id": "xiuche-nobike",
+  "map": "gulou-dongdajie",
+  "npc": "xiuche-shifu",
+  "trigger": "talk",
+  "priority": 4,
+  "when": {
+   "bike": "none"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "修车",
+    "explain": "把坏的车弄好。",
+    "en": "to fix bikes"
+   },
+   {
+    "w": "自行车",
+    "explain": "两个轮子，人骑的车。",
+    "en": "bicycle"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！我修车。你没有自行车？",
+    "simpler": "我修车。你没有自行车吗？",
+    "translate": "Hello! I fix bikes. No bike of your own?",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "前面有个自行车行，你去看看吧。",
+    "translate": "There's a bike shop up the street — go and have a look."
+   }
+  ]
+ },
+ {
+  "id": "xiuche-flat",
+  "map": "gulou-dongdajie",
+  "npc": "xiuche-shifu",
+  "trigger": "talk",
+  "priority": 2,
+  "when": {
+   "bike": "flat"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "车胎",
+    "explain": "车轮外面的，里面有气。",
+    "en": "tyre"
+   },
+   {
+    "w": "补胎",
+    "explain": "车胎坏了，把它补好。",
+    "en": "to patch a tyre"
+   },
+   {
+    "w": "没气",
+    "explain": "里面的气没有了。",
+    "en": "flat (no air)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "车胎没气了？我看看……车胎坏了，要补胎。五块钱，好吗？",
+    "translate": "Flat tyre? Let me see… it's punctured — it needs a patch. Five kuai, all right?",
+    "simpler": "没气了。补胎，五块钱。好吗？",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不用",
+        "不要",
+        "不补"
+       ]
+      ],
+      "go": "no"
+     },
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "行",
+        "可以",
+        "补"
+       ]
+      ],
+      "go": "done"
+     }
+    ],
+    "hint": {
+     "word": "好",
+     "frame": "___，谢谢。",
+     "full": "好，谢谢。"
+    }
+   },
+   {
+    "id": "done",
+    "say": "好了！车胎好了。你走吧！",
+    "translate": "There — the tyre's patched. Off you go!",
+    "onEnter": [
+     {
+      "do": "money",
+      "amount": -5
+     },
+     {
+      "do": "bike_fix"
+     }
+    ]
+   },
+   {
+    "id": "no",
+    "say": "好吧。车胎没气，你走回家吧。",
+    "translate": "All right. With a flat tyre you'll have to walk it home."
+   }
+  ]
+ },
+ {
+  "id": "xiuche",
+  "map": "gulou-dongdajie",
+  "npc": "xiuche-shifu",
+  "trigger": "talk",
+  "priority": 3,
+  "when": {
+   "bike": "owned"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "修车",
+    "explain": "把坏的车弄好。",
+    "en": "to fix bikes"
+   },
+   {
+    "w": "打气",
+    "explain": "给车胎里放气。",
+    "en": "to pump up (a tyre)"
+   },
+   {
+    "w": "铃",
+    "explain": "响的东西：叮铃铃！",
+    "en": "bell"
+   },
+   {
+    "w": "车把",
+    "explain": "骑车的时候手拿的地方。",
+    "en": "handlebars"
+   },
+   {
+    "w": "车座",
+    "explain": "骑车的时候坐的地方。",
+    "en": "saddle"
+   },
+   {
+    "w": "车轮",
+    "explain": "车下面圆的，会走。",
+    "en": "wheel"
+   },
+   {
+    "w": "车链",
+    "explain": "车下面的，让车轮走。",
+    "en": "chain"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！修车吗？打气不要钱。",
+    "simpler": "修车吗？打气，不要钱。",
+    "translate": "Hello! Something to fix? Pumping up is free.",
+    "expect": [
+     {
+      "intent": "pump",
+      "match": [
+       [
+        "打气",
+        "气"
+       ]
+      ],
+      "go": "pump"
+     },
+     {
+      "intent": "bell",
+      "match": [
+       [
+        "铃"
+       ]
+      ],
+      "go": "bell"
+     },
+     {
+      "intent": "parts",
+      "match": [
+       [
+        "什么",
+        "哪儿",
+        "怎么"
+       ]
+      ],
+      "go": "parts"
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不用",
+        "不修",
+        "再见",
+        "没有"
+       ]
+      ],
+      "go": "bye"
+     }
+    ],
+    "hint": {
+     "word": "打气",
+     "frame": "我想___。",
+     "full": "我想打气。"
+    },
+    "why": "Say 「打气」 to pump up the tyres (free), 「我想要新的铃」 for another bell (10 元), or ask 「这是什么？」 and he names the bike's parts."
+   },
+   {
+    "id": "pump",
+    "say": "好，打气了！不要钱。",
+    "translate": "There, pumped up! No charge."
+   },
+   {
+    "id": "bell",
+    "say": "新的铃？好，十块钱。你听，这个铃好听吗？",
+    "translate": "A new bell? All right — ten kuai. Listen — nice, isn't it?",
+    "onEnter": [
+     {
+      "do": "money",
+      "amount": -10
+     },
+     {
+      "do": "bike_bell"
+     }
+    ]
+   },
+   {
+    "id": "parts",
+    "say": "你看：这是车把，这是车座，这是车轮，这是车链。",
+    "translate": "Look: these are the handlebars, this is the saddle, these are the wheels, this is the chain.",
+    "next": "parts2"
+   },
+   {
+    "id": "parts2",
+    "say": "车把、车座、车轮、车链，你会说了吗？",
+    "translate": "Handlebars, saddle, wheels, chain — can you say them now?"
+   },
+   {
+    "id": "bye",
+    "say": "好，慢一点！",
+    "translate": "All right — ride carefully!"
+   }
+  ]
+ },
+ {
+  "id": "zhao-bike",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": 2,
+  "when": {
+   "all": [
+    {
+     "chapter": 2
+    },
+    {
+     "not": {
+      "quest": "side-ziche"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "自行车",
+    "explain": "两个轮子，人骑的车。",
+    "en": "bicycle"
+   },
+   {
+    "w": "骑",
+    "explain": "坐在自行车上走。",
+    "en": "to ride"
+   },
+   {
+    "w": "辆",
+    "explain": "说车的时候用：一辆车。",
+    "en": "(measure word for vehicles)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你知道吗？我小的时候，北京人都骑自行车。我有一辆永久，骑了二十年！",
+    "translate": "You know what? When I was young, everyone in Beijing rode a bike. I had a Yongjiu — rode it twenty years!",
+    "simpler": "我小的时候，北京人都骑自行车。",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "你现在也住在北京，你也要有一辆自行车！",
+    "translate": "You live in Beijing now too — you should have a bike of your own!",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "好",
+        "对",
+        "想",
+        "要",
+        "买"
+       ]
+      ],
+      "go": "c"
+     },
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不",
+        "没有钱",
+        "贵"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "想",
+     "frame": "好，我也___买一辆。",
+     "full": "好，我也想买一辆。"
+    }
+   },
+   {
+    "id": "c",
+    "say": "这本书给你，书里有很多自行车。鼓楼旁边有个自行车行，你去看看吧！",
+    "translate": "Here, this book is for you — it's full of bikes. There's a bike shop on 鼓楼东大街; go and have a look!",
+    "onEnter": [
+     {
+      "do": "book",
+      "id": "ziche"
+     },
+     {
+      "do": "quest",
+      "quest": "side-ziche",
+      "step": "buy"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "zhao-bike-show",
+  "map": "nanluo-main",
+  "npc": "zhao-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": 1,
+  "when": {
+   "all": [
+    {
+     "quest": "side-ziche",
+     "step": "show"
+    },
+    {
+     "bike": "owned"
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这是你的自行车？真好看！",
+    "translate": "Is this your bike? Lovely!",
+    "next": "b"
+   },
+   {
+    "id": "b",
+    "say": "骑自行车，要慢一点。我小的时候，天天骑！",
+    "translate": "Ride slowly, mind. When I was young, I rode every day!",
+    "onEnter": [
+     {
+      "do": "hearts",
+      "npc": "zhao-yeye",
+      "delta": 1
+     },
+     {
+      "do": "quest_done",
+      "quest": "side-ziche"
+     }
+    ]
+   }
+  ],
+  "words": [
+   {
+    "w": "自行车",
+    "explain": "两个轮子，人骑的车。",
+    "en": "bicycle"
+   },
+   {
+    "w": "骑",
+    "explain": "坐在自行车上走。",
+    "en": "to ride"
+   }
+  ]
+ },
+ {
+  "id": "polan-bike",
+  "map": "hutong-home",
+  "npc": "polan-shifu",
+  "trigger": "talk",
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "scene": "polan"
+    },
+    {
+     "hours": [
+      7,
+      12
+     ]
+    },
+    {
+     "bike": "none"
+    },
+    {
+     "quest": "side-ziche"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "旧",
+    "explain": "不新的，用了很久的。",
+    "en": "old, used"
+   },
+   {
+    "w": "自行车",
+    "explain": "两个轮子，人骑的车。",
+    "en": "bicycle"
+   },
+   {
+    "w": "辆",
+    "explain": "说车的时候用：一辆车。",
+    "en": "(measure word for vehicles)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "今天我有一辆旧自行车！永久的，二八大杠。你要吗？",
+    "translate": "I've got an old bike today! A Yongjiu — a 28-inch roadster. Want it?",
+    "expect": [
+     {
+      "intent": "no",
+      "match": [
+       [
+        "不要",
+        "不用",
+        "不买"
+       ]
+      ],
+      "go": "s"
+     },
+     {
+      "intent": "want",
+      "match": [
+       [
+        "要",
+        "多少钱",
+        "想",
+        "买"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "多少钱",
+     "frame": "这辆车___？",
+     "full": "这辆车多少钱？"
+    }
+   },
+   {
+    "id": "b",
+    "say": "两百五十块。",
+    "translate": "Two hundred and fifty kuai.",
+    "bargain": {
+     "open": 250,
+     "limit": 150,
+     "go": "c"
+    },
+    "why": "A second-hand bike — bargain it down: 「太贵了！」, 「一百五行吗？」. His lowest is about 150 元. A new bike in the shop on 鼓楼东大街 costs 400–480."
+   },
+   {
+    "id": "c",
+    "say": "好！这辆车是你的了。旧自行车，也很好！",
+    "translate": "Done! It's yours. An old bike — but a good one!",
+    "onEnter": [
+     {
+      "do": "bike",
+      "model": "jiuche",
+      "colour": "black"
+     }
+    ]
+   },
+   {
+    "id": "s",
+    "say": "好吧。那你有旧东西吗？我都要！",
+    "translate": "All right. Got anything old to sell then? I'll take it all!",
+    "sell": {
+     "share": 0.5
+    }
+   }
+  ]
  }
 ]

@@ -43,6 +43,7 @@ export function holds(c: Condition | undefined, s: WorldSave): boolean {
   if ('photo' in c) return s.photos.includes(c.photo);
   if ('daily' in c) return s.daily[c.daily] === dayOf(s.clock);
   if ('fresh' in c) return (s.npcs[c.fresh]?.talk ?? 0) !== dayOf(s.clock);
+  if ('bike' in c) return c.bike === 'none' ? !s.bike : c.bike === 'owned' ? !!s.bike : c.bike === 'riding' ? s.bike?.at === 'riding' : s.bike?.flat !== undefined;
   if ('cat' in c) return c.cat === 'named' ? !!s.cat.name : c.cat === 'trusts' ? s.cat.fed >= CAT_TRUST_DAYS : s.cat.day === dayOf(s.clock);
   return false;
 }

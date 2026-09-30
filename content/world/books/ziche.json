@@ -1,0 +1,114 @@
+{
+ "id": "ziche",
+ "zh": "自行车王国",
+ "en": "The kingdom of bicycles",
+ "level": 3,
+ "cover": "bicycle/side",
+ "source": "gift",
+ "where": "赵爷爷 on 南锣鼓巷 gives it to you when he says you should have a bike (a side quest, from chapter 2).",
+ "place": "gulou-dongdajie",
+ "facts": [
+  "bikes-brands",
+  "bike-kingdom",
+  "erba-dagang"
+ ],
+ "words": [
+  {
+   "w": "自行车",
+   "en": "bicycle"
+  },
+  {
+   "w": "骑",
+   "en": "to ride"
+  },
+  {
+   "w": "王国",
+   "en": "kingdom"
+  },
+  {
+   "w": "牌子",
+   "en": "brand, make"
+  },
+  {
+   "w": "车轮",
+   "en": "wheel"
+  },
+  {
+   "w": "寸",
+   "en": "inch (Chinese measure)"
+  },
+  {
+   "w": "杠",
+   "en": "bar, crossbar"
+  },
+  {
+   "w": "修车",
+   "en": "to fix bikes"
+  },
+  {
+   "w": "师傅",
+   "en": "master (polite for a craftsman)"
+  },
+  {
+   "w": "打气",
+   "en": "to pump up (a tyre)"
+  },
+  {
+   "w": "补胎",
+   "en": "to patch a tyre"
+  },
+  {
+   "w": "共享单车",
+   "en": "shared bike"
+  }
+ ],
+ "names": [
+  "北京",
+  "中国",
+  "永久",
+  "凤凰",
+  "飞鸽",
+  "上海",
+  "天津",
+  "长安街"
+ ],
+ "pages": [
+  {
+   "zh": "北京人很喜欢骑自行车。以前，别的国家的人叫中国“自行车王国”。",
+   "en": "Beijing people love riding bikes. In the past, people from other countries called China “the kingdom of bicycles”.",
+   "pic": "bicycle/side"
+  },
+  {
+   "zh": "很多年以前，北京的路上都是自行车。早上，很多很多人骑车去上班。",
+   "en": "Many years ago, Beijing's roads were full of bikes. In the morning, a great many people rode to work."
+  },
+  {
+   "zh": "那时候，大家都想要三个牌子的车：永久、凤凰和飞鸽。永久和凤凰是上海的，飞鸽是天津的。",
+   "en": "In those days, everyone wanted one of three makes: Yongjiu, Fenghuang and Feige. Yongjiu and Fenghuang were from Shanghai, Feige from Tianjin."
+  },
+  {
+   "zh": "最有名的车叫“二八大杠”：车轮是二十八寸的，前面有一个大杠。爸爸骑车，孩子坐在大杠上。",
+   "en": "The most famous bike was called the “二八大杠”: its wheels were 28 inches, and it had a big crossbar in front. Dad rode, and the child sat on the crossbar."
+  },
+  {
+   "zh": "那时候，自行车很贵。家里买一辆新自行车，大家都很高兴。",
+   "en": "In those days bikes were expensive. When a family bought a new bike, everyone was very happy."
+  },
+  {
+   "zh": "车坏了也没关系，路边有修车的师傅。打气、补胎，一会儿就好了。",
+   "en": "If your bike broke, no problem: there were repairmen by the roadside. Pumping up a tyre, patching it — done in a moment."
+  },
+  {
+   "zh": "后来，很多人开车、坐地铁，骑自行车的人少了。",
+   "en": "Later, many people drove cars or took the subway, and fewer people rode bikes."
+  },
+  {
+   "zh": "现在，北京有很多共享单车。用手机扫一下，就可以骑走了。",
+   "en": "Now Beijing has lots of shared bikes. Scan one with your phone and you can ride it away."
+  }
+ ],
+ "today": {
+  "zh": "今天的北京：早上，路上还有很多人骑车。长安街旁边有自行车走的路。你也骑一骑吧！",
+  "en": "In Beijing today: in the morning, lots of people still ride on the roads. 长安街 has bike lanes beside it. Have a ride yourself!"
+ }
+}
