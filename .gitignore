@@ -9,3 +9,6 @@ worksheets/
 __pycache__/
 .vercel/
 .env
+
+# Claude Code session worktrees (each is its own checkout)
+.claude/worktrees/
