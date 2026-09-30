@@ -12,5 +12,16 @@
     "en": "a little fish",
     "gift": true,
     "kind": "food"
+  },
+  {
+    "id": "laohu",
+    "name": "玩具老虎",
+    "en": "小明's toy tiger — squeeze it and it roars",
+    "gift": true,
+    "kind": "toy",
+    "verbs": [
+      "play",
+      "give"
+    ]
   }
 ]

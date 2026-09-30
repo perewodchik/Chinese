@@ -14,6 +14,15 @@
         }
       },
       {
+        "id": "bridge",
+        "now": "Stand on 银锭桥, the little bridge between 后海 and 前海, and read the sign 银锭观山 beside it.",
+        "past": "Stood on 银锭桥 and looked west, the way people have for hundreds of years.",
+        "where": "houhai-lake",
+        "done": {
+          "flag": "c2-saw-hills"
+        }
+      },
+      {
         "id": "rumour",
         "now": "Ask the old man fishing by the lake what he saw last night.",
         "past": "The old fisherman told me what he saw on the lake last night.",
@@ -23,12 +32,76 @@
         }
       },
       {
+        "id": "lake-book",
+        "now": "Ask the old man fishing where to look next — he knows every corner of the lakes.",
+        "past": "The fisherman gave me 《什刹海》, a little book about the three lakes.",
+        "where": "houhai-lake",
+        "done": {
+          "flag": "c2-lake-book"
+        }
+      },
+      {
+        "id": "prince",
+        "now": "In 恭王府's garden by 后海, a girl from the poetry club wants to see the 白塔 too. 《什刹海》 page 5 tells you where it stands.",
+        "past": "Told the poetry club girl where the 白塔 stands: on the island in 北海.",
+        "where": "gongwangfu",
+        "done": {
+          "flag": "c2-prince"
+        }
+      },
+      {
+        "id": "beihai",
+        "now": "Go to 北海's north shore — line 6 to 北海北, or walk.",
+        "past": "Came to the north shore of 北海.",
+        "where": "beihai-north",
+        "done": {
+          "scene": "beihai-arrive"
+        }
+      },
+      {
+        "id": "baita",
+        "now": "Take the boat from the pier to the island and go up to the 白塔. Someone will phone you.",
+        "past": "Crossed to the island and took a photo of the 白塔 for 王阿姨.",
+        "where": "beihai-baita",
+        "done": {
+          "photo": "beihai-baita:baita"
+        }
+      },
+      {
+        "id": "pavilions",
+        "now": "On 景山, the woman doing 太极 asks which of the five pavilions is the highest. Read the pavilion signs along the ridge.",
+        "past": "Read the five pavilion signs on 景山 and found the highest, 万春亭.",
+        "where": "jingshan-park",
+        "done": {
+          "flag": "c2-pavilions"
+        }
+      },
+      {
         "id": "jingshan",
-        "now": "The fox went towards 景山. Cross 银锭桥, walk along 北海 and climb 景山 to the pavilion — someone up there sees everything.",
+        "now": "Climb 景山 from its north gate to the highest pavilion, 万春亭 — the old man who sings there sees everything.",
         "past": "Climbed 景山 to the pavilion, where someone sees everything.",
         "where": "jingshan-view",
         "done": {
           "flag": "saw-corner"
+        }
+      },
+      {
+        "id": "fox-book",
+        "now": "Talk to the old singer on 万春亭 again — he knows a story about foxes.",
+        "past": "The singer gave me 《狐假虎威》, the fox who borrowed a tiger's power.",
+        "where": "jingshan-view",
+        "done": {
+          "flag": "c2-fox-book"
+        }
+      },
+      {
+        "id": "tiger",
+        "now": "《狐假虎威》 page 4: the fox walks in front, the tiger behind. You need a tiger! 小明 on 南锣鼓巷 has a toy one that roars (he is at school 8:00–16:00; line 6 from 北海北 to 南锣鼓巷 is one stop).",
+        "past": "Borrowed 小明's roaring toy tiger — well, he gave it to me.",
+        "where": "nanluo-main",
+        "when": "not 8:00–16:00",
+        "done": {
+          "item": "laohu"
         }
       },
       {
@@ -39,7 +112,8 @@
         "when": "after dark",
         "done": {
           "spirit": "jiuweihu"
-        }
+        },
+        "onDone": "ch2-finale"
       }
     ],
     "reward": [

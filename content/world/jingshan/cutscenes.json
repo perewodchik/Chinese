@@ -54,5 +54,177 @@
     "ms": 900
    }
   ]
+ },
+ {
+  "id": "memory-2",
+  "map": "siheyuan-yard",
+  "chapter": 2,
+  "title": {
+   "zh": "回忆 · 后海的冰",
+   "en": "A memory · Ice on 后海"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "auto": {
+   "all": [
+    {
+     "spirit": "jiuweihu"
+    },
+    {
+     "flag": "lantern-broken"
+    }
+   ]
+  },
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     7,
+     10
+    ],
+    "facing": "up"
+   },
+   {
+    "actor": "wang-ayi",
+    "at": [
+     11,
+     7
+    ],
+    "facing": "left"
+   }
+  ],
+  "words": [
+   {
+    "w": "冰",
+    "explain": "很冷的时候，水变得很硬。",
+    "en": "ice"
+   },
+   {
+    "w": "狐狸",
+    "explain": "像小狗，住在山里。",
+    "en": "fox"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     5,
+     7
+    ],
+    "ms": 900
+   },
+   {
+    "together": [
+     {
+      "move": "wang-ayi",
+      "to": [
+       5,
+       7
+      ]
+     },
+     {
+      "move": "hero",
+      "to": [
+       6,
+       8
+      ]
+     }
+    ]
+   },
+   {
+    "face": "wang-ayi",
+    "dir": "up"
+   },
+   {
+    "together": [
+     {
+      "fx": "sparkle",
+      "at": [
+       4,
+       6
+      ],
+      "n": 14
+     },
+     {
+      "sound": "bell"
+     }
+    ]
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "小狐狸回来了！",
+    "en": "The little fox is back!"
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "天冷的时候，我和爷爷去后海，在冰上玩。",
+    "en": "When it was cold, Grandpa and I went to 后海 and played on the ice."
+   },
+   {
+    "say": "wang-ayi",
+    "zh": "这个小狐狸，是看书画的。在冰上，我也是一个小狐狸！",
+    "en": "This little fox was painted from a book. On the ice, I was a little fox too!"
+   },
+   {
+    "say": "rabbit",
+    "en": "A fox from a book, painted by a lantern maker. Two figures home now."
+   }
+  ]
+ },
+ {
+  "id": "ch2-finale",
+  "map": "jiaolou",
+  "chapter": 2,
+  "finale": true,
+  "title": {
+   "zh": "第二章 · 完",
+   "en": "End of chapter two"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     12,
+     15
+    ],
+    "facing": "up"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     12,
+     12
+    ],
+    "ms": 900
+   },
+   {
+    "fx": "lanterns-rise",
+    "at": [
+     12,
+     12
+    ],
+    "n": 6
+   },
+   {
+    "wait": 1200
+   },
+   {
+    "title": {
+     "zh": "第二章 · 完",
+     "en": "End of chapter two · Water and the hill"
+    }
+   },
+   {
+    "say": "rabbit",
+    "en": "Two figures home: the lion and the fox. The fox even taught you a 成语."
+   },
+   {
+    "say": "rabbit",
+    "en": "Next: the shops of 王府井, and a stage at 前门 where the door gods are missing."
+   }
+  ]
  }
 ]

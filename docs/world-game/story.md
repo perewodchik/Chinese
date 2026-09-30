@@ -123,9 +123,9 @@ are §13 B1's list. Each chapter: one opening and one finale cutscene (K3),
 ### 2 水与山 · Water and the hill (后海 · 北海 · 景山) — *the lakes; the view over the palace; foxes in stories*
 | | |
 |---|---|
-| Route | *yandai-xiejie* → houhai-lake (*银锭桥* view cutscene, the fisherman, *恭王府 gate*) → boat or walk → beihai-north → *beihai-baita* (永安寺 steps, the 白塔) → station-beihaibei → jingshan-park (the five pavilions) → jingshan-view (万春亭) → jiaolou |
+| Route | **as built in S2 — 12 steps of `ch2`:** go-houhai (opening `ch2-open`) → *bridge* (银锭桥: the sign 银锭观山, cutscene `c2-yinding`) → rumour (the fisherman) → *lake-book* (《什刹海》) → *prince* (恭王府's poetry girl: where is the 白塔? — book p. 5–6) → *beihai* → *baita* (boat to 琼华岛; 王阿姨 phones for a photo of the 白塔) → *pavilions* (景山's five signs: which is highest?) → jingshan (the singer on 万春亭, `jingshan-view`) → *fox-book* (《狐假虎威》) → *tiger* (back to 南锣鼓巷: 小明's roaring toy tiger) → fox (at 角楼 after dark: the fox asks where the tiger walks — book p. 4 — and the toy roars; finale `ch2-finale`, memory `memory-2`) |
 | Culture | 什刹海 life, 银锭观山, skating in winter; the 白塔; 景山 and the city's axis; 狐假虎威 |
-| Books | 4 《什刹海》, 5 《狐假虎威》 — the fox borrows the tiger's power: you bring a tiger's roar (the recording from 小明's toy tiger — 小明 lends it, a 鼓楼 friend on the route by phone) |
+| Books | 4 《什刹海》 (the fisherman: three lakes, 银锭桥, ice in winter, the 白塔 on its island), 5 《狐假虎威》 (the singer; from 《战国策·楚策一》) — the tiger's roar is 小明's toy tiger, which he gives you |
 | 成语 | 狐假虎威 |
 | Spirit | 九尾狐 |
 | Cutscenes | opening · 银锭桥 view · 万春亭 view (converted, K3) · the fox and the roar · spirit-return · memory 2 · finale |

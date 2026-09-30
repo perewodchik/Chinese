@@ -1,0 +1,90 @@
+{
+  "id": "shichahai",
+  "zh": "什刹海",
+  "en": "Shichahai, the three lakes",
+  "level": 1,
+  "cover": "boat/red",
+  "source": "gift",
+  "where": "The old man fishing at 后海 gives it to you when he tells you about the fox (chapter 2).",
+  "place": "houhai-lake",
+  "facts": [
+    "shichahai-lakes",
+    "yinding-guanshan",
+    "houhai-qianhai",
+    "shichahai-skating",
+    "beihai-qionghua",
+    "baita-1651"
+  ],
+  "words": [
+    {
+      "w": "湖",
+      "en": "a lake"
+    },
+    {
+      "w": "桥",
+      "en": "a bridge"
+    },
+    {
+      "w": "山",
+      "en": "a hill, a mountain"
+    },
+    {
+      "w": "冰",
+      "en": "ice"
+    },
+    {
+      "w": "船",
+      "en": "a boat"
+    },
+    {
+      "w": "岛",
+      "en": "an island"
+    }
+  ],
+  "names": [
+    "什刹海",
+    "前海",
+    "后海",
+    "西海",
+    "银锭桥",
+    "银锭观山",
+    "北海",
+    "白塔",
+    "北京"
+  ],
+  "pages": [
+    {
+      "zh": "北京的什刹海，有三个湖：前海、后海和西海。",
+      "en": "Beijing's 什刹海 has three lakes: 前海, 后海 and 西海.",
+      "pic": "boat/red"
+    },
+    {
+      "zh": "从前海到后海，要走过一个小小的桥。这个桥叫银锭桥。",
+      "en": "To go from 前海 to 后海 you walk over a tiny bridge. The bridge is called 银锭桥."
+    },
+    {
+      "zh": "天气好的时候，站在桥上往前看，能看见很远的山。人们说，这是“银锭观山”。",
+      "en": "When the weather is good, stand on the bridge and look ahead, and you can see hills far away. People call this 银锭观山, “the hills seen from 银锭桥”."
+    },
+    {
+      "zh": "天热的时候，人们在湖上坐船。天冷的时候，湖水都是冰，大家在冰上玩。",
+      "en": "When it is hot, people go out on the lakes in boats. When it is cold, the lake water is all ice, and everyone plays on the ice."
+    },
+    {
+      "zh": "什刹海的南边是北海。北海的湖里有一个小岛，岛上有一个白塔。",
+      "en": "South of 什刹海 is 北海. In 北海's lake there is a little island, and on the island stands the white pagoda, the 白塔."
+    },
+    {
+      "zh": "去白塔，你可以在北海的北边坐船。",
+      "en": "To get to the 白塔, you can take a boat from the north side of 北海."
+    },
+    {
+      "zh": "白塔有很多很多年了。它是一六五一年做好的。",
+      "en": "The 白塔 has stood for many, many years. It was finished in 1651."
+    }
+  ],
+  "today": {
+    "zh": "今天的北京：天冷的时候，前海和后海的冰上还有很多人玩，你也可以去。天热的时候，你可以坐船去看白塔。",
+    "en": "In Beijing today: when it is cold there are still lots of people playing on the ice of 前海 and 后海, and you can go too. When it is hot you can take a boat to see the 白塔."
+  }
+}

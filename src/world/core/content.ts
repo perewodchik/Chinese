@@ -514,11 +514,11 @@ export function checkReferences(
     if (keys > 1) errors.push(`${at}: ${keys} key lines — at most one per scene`);
   });
   c.quests.forEach((q, qi) => q.reward?.forEach((a, ai) => checkAction(a, `quests[${qi}].reward[${ai}]`)));
-  // cutscenes (§13 K1): unique ids, their actions; the map and the actors are checked against the built maps by world:check
+  // cutscenes (§13 K1): unique ids, their actions; the map and the actors are checked against the built maps by world:check.
+  // A cutscene may play on any district's map (§13 S: a chapter's memory at 王阿姨's lantern lives in the chapter's own folder).
   idsOf(c.cutscenes ?? [], 'cutscenes');
   (c.cutscenes ?? []).forEach((cs, ci) => {
     cs.then?.forEach((a, ai) => checkAction(a, `cutscenes[${ci}].then[${ai}]`));
-    if (!c.district.maps.includes(cs.map)) errors.push(`cutscenes[${ci}].map: "${cs.map}" is not one of this district's maps`);
   });
   // shops (Y1): a seller who exists, and only the district's own things (so the menu has their names)
   const own = new Set(c.items.map((i) => i.id));

@@ -264,30 +264,59 @@ describe('chapter 1, played through the core', () => {
 });
 
 describe('chapter 2, played through the core', () => {
-  it('后海 → the fisherman → 景山 → the fox at the corner tower', () => {
+  it('后海 → 银锭桥 → the fisherman and 《什刹海》 → 恭王府 → the 白塔 → 景山 → 《狐假虎威》 → 小明’s tiger → the fox (§13 S2)', () => {
     let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 2 }, { do: 'quest', quest: 'ch2', step: 'go-houhai' }]);
     const at = () => activeQuests(s, quests).find((a) => a.quest.id === 'ch2')?.step.id;
     assert.equal(autoScene(scenes, s, 'houhai-lake')?.id, 'houhai-arrive');
     s = play(s, 'houhai-arrive').save;
+    assert.equal(at(), 'bridge');
+    assert.equal(sceneFor(scenes, s, { look: 'view', map: 'houhai-lake' })?.id, 'c2-yinding');
+    s = play(s, 'c2-yinding').save;
     assert.equal(at(), 'rumour');
     assert.equal(sceneFor(scenes, s, { npc: 'fisher-yeye' })?.id, 'fisher-fox');
     s = play(s, 'fisher-fox').save;
-    assert.equal(at(), 'jingshan');
+    assert.equal(at(), 'lake-book');
+    s = play(s, 'c2-fisher-book').save;
+    assert.ok(s.books.shichahai);
+    assert.equal(at(), 'prince');
+    assert.equal(sceneFor(scenes, s, { npc: 'shishe-guniang' })?.id, 'c2-shishe-baita');
+    s = play(s, 'c2-shishe-baita').save;
+    assert.equal(at(), 'beihai');
     s = play(s, 'beihai-arrive').save;
+    assert.equal(at(), 'baita');
+    s = act(s, [{ do: 'photo', subjects: ['beihai-baita:baita'] }]);
+    assert.equal(at(), 'pavilions');
+    assert.equal(sceneFor(scenes, s, { npc: 'jingshan-yeye' })?.id, 'singer-later', 'the singer waits for the pavilions');
+    s = play(s, 'c2-pavilions').save;
+    assert.equal(at(), 'jingshan');
     assert.equal(sceneFor(scenes, s, { look: 'view', map: 'jingshan-view' })?.id, 'jingshan-view');
     s = play(s, 'jingshan-view').save;
     assert.equal(sceneFor(scenes, s, { npc: 'jingshan-yeye' })?.id, 'singer');
     s = play(s, 'singer').save;
+    assert.equal(at(), 'fox-book');
+    s = play(s, 'c2-singer-book').save;
+    assert.ok(s.books.hujiahuwei);
+    assert.equal(at(), 'tiger');
+    assert.equal(sceneFor(scenes, s, { look: 'fox', map: 'jiaolou' }), null, 'the fox waits for the tiger');
+    s = play(s, 'c2-xiaoming-tiger').save;
+    assert.equal(s.bag.items.laohu, 1);
     assert.equal(at(), 'fox');
     s = play(s, 'bench').save;
     assert.equal(Math.floor(s.clock / 60) % 24, 19);
-    assert.equal(sceneFor(scenes, s, { look: 'fox', map: 'jiaolou' })?.id, 'fox');
-    s = play(s, 'fox').save;
+    assert.equal(sceneFor(scenes, s, { look: 'fox', map: 'jiaolou' })?.id, 'c2-fox-tiger');
+    s = play(s, 'c2-fox-tiger').save;
     assert.ok('jiuweihu' in s.spirits);
     assert.ok('狐假虎威' in s.idioms);
     assert.equal(s.quests.ch2?.done, true);
     assert.equal(s.chapter, 3);
-    for (const st of ['houhai', 'baita', 'jingshan', 'jiuweihu']) assert.ok(st in s.stamps, st);
+    for (const st of ['houhai', 'jingshan', 'jiuweihu']) assert.ok(st in s.stamps, st);
+  });
+
+  it('an old save at the fox step (no tiger) still meets the fox as before', () => {
+    let s = act(newSave('d', 0), [{ do: 'chapter', chapter: 2 }, { do: 'quest', quest: 'ch2', step: 'fox' }]);
+    assert.equal(sceneFor(scenes, s, { look: 'fox', map: 'jiaolou' })?.id, 'fox');
+    s = play(s, 'fox').save;
+    assert.equal(s.quests.ch2?.done, true);
   });
 
   it('chapter 1 hands over to chapter 2', () => {

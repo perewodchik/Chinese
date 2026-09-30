@@ -105,6 +105,7 @@ the cutscene `c1-drum` sets the flag its step waits for), `finale: true` for
 a chapter's last (90 s instead of 40 s). Start one from a node
 (`{"do": "cutscene", "id": …}`, runs when the talk closes), from a step
 (`"onDone"`), or by itself on arrival (`"auto": <condition>`, `"on": <map>`).
+An opening that plays by itself on arriving at a map (`auto` + `on`) takes that arrival: if the map also has an `auto` arrival scene (后海's `houhai-arrive`), name it in the cutscene's `talk` so it follows the cutscene, or it never runs and a step waiting for it is stuck (S2 found this). A key line (`key: true`) pins itself as a riddle — solve it (`{"do": "solve", "riddle": "<scene>/<node>"}`) where the player shows they understood it.
 The spirit-return cutscene is automatic when a spirit comes home; the
 **memory** (王阿姨 by the lantern) is yours: an `auto` cutscene on
 `siheyuan-yard` with `{"spirit": "<your spirit>"}`, like `memory-1`. Lines

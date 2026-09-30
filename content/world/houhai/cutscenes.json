@@ -1,0 +1,145 @@
+[
+ {
+  "id": "ch2-open",
+  "map": "houhai-lake",
+  "chapter": 2,
+  "title": {
+   "zh": "第二章 · 水与山",
+   "en": "Chapter two · Water and the hill"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "on": "houhai-lake",
+  "auto": {
+   "all": [
+    {
+     "chapter": 2
+    },
+    {
+     "not": {
+      "spirit": "jiuweihu"
+     }
+    }
+   ]
+  },
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     40,
+     6
+    ],
+    "facing": "left"
+   }
+  ],
+  "steps": [
+   {
+    "fade": "in",
+    "ms": 800
+   },
+   {
+    "camera": [
+     30,
+     10
+    ],
+    "ms": 600
+   },
+   {
+    "title": {
+     "zh": "第二章 · 水与山",
+     "en": "Chapter two · Water and the hill"
+    }
+   },
+   {
+    "camera": [
+     20,
+     16
+    ],
+    "ms": 2400
+   },
+   {
+    "camera": [
+     10,
+     20
+    ],
+    "ms": 1800
+   },
+   {
+    "say": "rabbit",
+    "en": "Water, water everywhere — 后海, and 前海 beyond the little bridge. Somewhere out here a fox with nine tails is playing tricks."
+   },
+   {
+    "camera": "hero",
+    "ms": 1200
+   }
+  ],
+  "talk": "houhai-arrive"
+ },
+ {
+  "id": "c2-yinding",
+  "map": "houhai-lake",
+  "chapter": 2,
+  "title": {
+   "zh": "银锭观山",
+   "en": "The hills from 银锭桥"
+  },
+  "letterbox": true,
+  "music": "soft",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     23,
+     14
+    ],
+    "facing": "left"
+   }
+  ],
+  "steps": [
+   {
+    "camera": [
+     23,
+     14
+    ],
+    "ms": 600
+   },
+   {
+    "face": "hero",
+    "dir": "left"
+   },
+   {
+    "camera": [
+     6,
+     12
+    ],
+    "ms": 2600
+   },
+   {
+    "fx": "butterflies",
+    "at": [
+     10,
+     12
+    ],
+    "n": 6
+   },
+   {
+    "wait": 1400
+   },
+   {
+    "say": "rabbit",
+    "en": "Far past the water: the Western Hills. On a clear day, this is the view the old city loved."
+   },
+   {
+    "camera": [
+     23,
+     14
+    ],
+    "ms": 1800
+   },
+   {
+    "say": "rabbit",
+    "en": "And the fisherman — he was out here all night. Let's ask him."
+   }
+  ]
+ }
+]

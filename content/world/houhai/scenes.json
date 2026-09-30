@@ -586,5 +586,361 @@
     ]
    }
   ]
+ },
+ {
+  "id": "c2-yinding",
+  "map": "houhai-lake",
+  "object": "view",
+  "trigger": "look",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch2",
+   "step": "bridge"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "山",
+    "explain": "很高很高的地方，上面有树。",
+    "en": "hill, mountain"
+   },
+   {
+    "w": "桥",
+    "explain": "在水上面走过去的路。",
+    "en": "bridge"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "银锭观山。",
+    "translate": "银锭观山 — the hills seen from 银锭桥.",
+    "speaker": "hero",
+    "next": "b",
+    "why": "A sign by the bridge. 观 is to look at; 山 hills. This view is one of the old city's famous sights.",
+    "key": true,
+    "simpler": "银锭观山。"
+   },
+   {
+    "id": "b",
+    "say": "在桥上往前看，你能看见山吗？",
+    "translate": "Look ahead from the bridge — can you see the hills?",
+    "speaker": "companion",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "看见",
+        "能",
+        "山"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "看见",
+     "frame": "我___山了！",
+     "full": "我看见山了！"
+    }
+   },
+   {
+    "id": "c",
+    "say": "对！很多很多年前的人，也站在这个桥上，看这些山。",
+    "translate": "Yes! People many, many years ago stood on this bridge too and looked at these same hills.",
+    "speaker": "companion",
+    "onEnter": [
+     {
+      "do": "solve",
+      "riddle": "c2-yinding/a"
+     },
+     {
+      "do": "flag",
+      "flag": "c2-saw-hills"
+     },
+     {
+      "do": "cutscene",
+      "id": "c2-yinding"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c2-fisher-book",
+  "map": "houhai-lake",
+  "npc": "fisher-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch2",
+   "step": "lake-book"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "湖",
+    "explain": "很大很大的水。",
+    "en": "lake"
+   },
+   {
+    "w": "白塔",
+    "explain": "北海岛上的白色的塔。",
+    "en": "the White Pagoda"
+   },
+   {
+    "w": "狐狸",
+    "explain": "像小狗，住在山里。",
+    "en": "fox"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你还在找狐狸吗？",
+    "translate": "Still looking for the fox?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "是",
+        "对",
+        "找",
+        "狐狸"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "是",
+     "frame": "___，我还在找。",
+     "full": "是，我还在找。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "狐狸往南边跑了，过了三个湖，去北海了，白塔那边。",
+    "translate": "The fox ran south, past the three lakes, to 北海 — over by the White Pagoda.",
+    "key": true,
+    "simpler": "狐狸去北海了。",
+    "next": "c",
+    "why": "A key line 📌: 往南边 towards the south; 过了 past; 湖 lakes. The 白塔 is on the island in 北海."
+   },
+   {
+    "id": "c",
+    "say": "这本书给你。书里有三个湖，也有白塔。",
+    "translate": "Here's a book for you. It has the three lakes in it, and the White Pagoda too.",
+    "onEnter": [
+     {
+      "do": "book",
+      "id": "shichahai"
+     },
+     {
+      "do": "flag",
+      "flag": "c2-lake-book"
+     },
+     {
+      "do": "solve",
+      "riddle": "c2-fisher-book/b"
+     }
+    ],
+    "why": "He gives you 《什刹海》 — it is on your 书架 and in 收藏 → 书."
+   }
+  ]
+ },
+ {
+  "id": "c2-shishe-baita",
+  "map": "gongwangfu",
+  "npc": "shishe-guniang",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch2",
+   "step": "prince"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "白塔",
+    "explain": "北海岛上的白色的塔。",
+    "en": "the White Pagoda"
+   },
+   {
+    "w": "岛",
+    "explain": "水中间的一块地。",
+    "en": "island"
+   },
+   {
+    "w": "船",
+    "explain": "在水上走的，人坐在里面。",
+    "en": "boat"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！我想去看白塔。白塔在哪儿？你知道吗？",
+    "translate": "Hi! I want to go and see the White Pagoda. Where is it? Do you know?",
+    "key": true,
+    "simpler": "白塔在哪儿？",
+    "expect": [
+     {
+      "intent": "beihai",
+      "match": [
+       [
+        "北海",
+        "岛"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "北海",
+     "frame": "白塔在___的小岛上。",
+     "full": "白塔在北海的小岛上。"
+    },
+    "why": "It's in 《什刹海》, page 5: 北海的湖里有一个小岛，岛上有一个白塔."
+   },
+   {
+    "id": "b",
+    "say": "北海的小岛上！坐车去，还是坐船去？",
+    "translate": "On the little island in 北海! Do you go by car, or by boat?",
+    "expect": [
+     {
+      "intent": "boat",
+      "match": [
+       [
+        "坐船",
+        "船"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "坐船",
+     "frame": "在北海的北边___。",
+     "full": "在北海的北边坐船。"
+    },
+    "why": "Page 6 of the book: you take a boat from the north side of 北海."
+   },
+   {
+    "id": "c",
+    "say": "好，我也坐船去岛上看看。谢谢你！",
+    "translate": "Great — I'll take a boat to the island too. Thank you!",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "c2-prince"
+     },
+     {
+      "do": "solve",
+      "riddle": "c2-shishe-baita/a"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c2-xiaoming-tiger",
+  "map": "nanluo-main",
+  "npc": "xiaoming",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch2",
+   "step": "tiger"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "老虎",
+    "explain": "很大的猫，大家都怕它。",
+    "en": "tiger"
+   },
+   {
+    "w": "狐狸",
+    "explain": "像小狗，住在山里。",
+    "en": "fox"
+   },
+   {
+    "w": "怕",
+    "explain": "看见不好的东西，想跑。",
+    "en": "to be afraid"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你回来了！你去哪儿了？",
+    "translate": "You're back! Where have you been?",
+    "expect": [
+     {
+      "intent": "where",
+      "match": [
+       [
+        "景山",
+        "北海",
+        "后海",
+        "白塔"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "景山",
+     "frame": "我去___了。",
+     "full": "我去景山了。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "你看见狐狸了吗？狐狸怕什么？",
+    "translate": "Did you see the fox? What is a fox afraid of?",
+    "expect": [
+     {
+      "intent": "tiger",
+      "match": [
+       [
+        "老虎"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "老虎",
+     "frame": "大家都怕___。",
+     "full": "大家都怕老虎。"
+    },
+    "why": "In the story 《狐假虎威》 everyone is afraid of the tiger — so you need one."
+   },
+   {
+    "id": "c",
+    "say": "老虎！我有一个小老虎，它会叫！送给你吧！",
+    "translate": "A tiger! I've got a little tiger — it roars! You can have it!",
+    "onEnter": [
+     {
+      "do": "give",
+      "item": "laohu"
+     },
+     {
+      "do": "hearts",
+      "npc": "xiaoming",
+      "delta": 1
+     }
+    ],
+    "why": "小明 gives you his toy tiger. Squeeze it and it roars."
+   }
+  ]
  }
 ]

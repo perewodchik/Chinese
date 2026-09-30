@@ -76,6 +76,13 @@ export const ITEM_SPRITES: Record<string, () => Grid> = {
       f.rect(3, 1, 10, 14, 'w').vline(12, 1, 14, 'e');
       f.hline(5, 4, 6, 'r').hline(5, 7, 5, 'e').hline(5, 10, 6, 'e').hline(5, 13, 3, 'e');
     }),
+  laohu: () =>
+    sprite((f) => {
+      f.oval(2, 6, 12, 8, 'o').oval(9, 2, 6, 6, 'o');
+      for (const x of [4, 7, 10]) f.vline(x, 7, 5, 'k');
+      f.set(10, 4, 'k').set(13, 4, 'k').hline(11, 6, 2, 'r').set(9, 2, 'o').set(14, 2, 'o');
+      f.hline(1, 9, 2, 'o').set(0, 8, 'k');
+    }),
   huzhao: () =>
     sprite((f) => {
       f.rect(3, 1, 10, 14, 'q').vline(12, 1, 14, 'R').vline(3, 1, 14, 'R');

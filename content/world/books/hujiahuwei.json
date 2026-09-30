@@ -1,0 +1,79 @@
+{
+  "id": "hujiahuwei",
+  "zh": "狐假虎威",
+  "en": "The fox and the tiger",
+  "level": 1,
+  "cover": "figures/jiuweihu",
+  "source": "gift",
+  "where": "The old man singing on 景山 gives it to you after he has seen the fox (chapter 2).",
+  "place": "jiaolou",
+  "facts": [
+    "hujiahuwei",
+    "hujiahuwei-school"
+  ],
+  "words": [
+    {
+      "w": "老虎",
+      "en": "a tiger"
+    },
+    {
+      "w": "狐狸",
+      "en": "a fox"
+    },
+    {
+      "w": "动物",
+      "en": "an animal"
+    },
+    {
+      "w": "怕",
+      "en": "to be afraid of"
+    },
+    {
+      "w": "王",
+      "en": "a king"
+    },
+    {
+      "w": "故事",
+      "en": "a story"
+    }
+  ],
+  "names": [
+    "战国策",
+    "狐假虎威",
+    "天帝"
+  ],
+  "pages": [
+    {
+      "zh": "很多很多年前，有一个老虎。它想吃东西，就去找。它看见了一个狐狸。",
+      "en": "Many, many years ago there was a tiger. It wanted something to eat, so it went looking. It saw a fox."
+    },
+    {
+      "zh": "狐狸说：“你不能吃我！天帝让我做动物的王。”",
+      "en": "The fox said: “You can't eat me! The Emperor of Heaven made me king of the animals.”"
+    },
+    {
+      "zh": "“你说不对？我走在前面，你跟在我后面。你看看，大家怕不怕我！”",
+      "en": "“You say it's not true? I'll walk in front and you follow behind me. You'll see whether everyone is afraid of me!”"
+    },
+    {
+      "zh": "老虎说：“好。”狐狸走在前面，老虎走在后面。",
+      "en": "The tiger said: “All right.” The fox walked in front, and the tiger walked behind."
+    },
+    {
+      "zh": "动物们看见了，都很快地跑了。",
+      "en": "The animals saw them, and all ran off fast."
+    },
+    {
+      "zh": "老虎想：它们真的怕狐狸！但是，动物们怕的是后面的老虎。",
+      "en": "The tiger thought: they really are afraid of the fox! But what the animals were afraid of was the tiger behind."
+    },
+    {
+      "zh": "这个故事在一本很多年前的书里，叫《战国策》。所以人们说“狐假虎威”：自己不大，让后面的老虎帮自己，大家就怕了。",
+      "en": "This story is in a book from many years ago called 《战国策》. That is why people say 狐假虎威: you are small yourself, you let the tiger behind you help, and everyone is afraid."
+    }
+  ],
+  "today": {
+    "zh": "今天的北京：中国的孩子上小学的时候，在学校学这个故事。你说“狐假虎威”，大家都知道是什么意思。",
+    "en": "In Beijing today: Chinese children learn this story at primary school. Say 狐假虎威, and everyone knows what it means."
+  }
+}

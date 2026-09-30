@@ -182,6 +182,42 @@
      "not": {
       "spirit": "jiuweihu"
      }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "bridge"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "lake-book"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "prince"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "beihai"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "baita"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "pavilions"
+     }
     }
    ]
   },
@@ -270,9 +306,61 @@
   "priority": 0,
   "stamp": "jiuweihu",
   "when": {
-   "not": {
-    "spirit": "jiuweihu"
-   }
+   "all": [
+    {
+     "not": {
+      "spirit": "jiuweihu"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "bridge"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "lake-book"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "prince"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "beihai"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "baita"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "pavilions"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "fox-book"
+     }
+    },
+    {
+     "not": {
+      "quest": "ch2",
+      "step": "tiger"
+     }
+    }
+   ]
   },
   "start": "a",
   "words": [
@@ -828,6 +916,315 @@
      {
       "do": "flag",
       "flag": "magpie-2"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c2-pavilions",
+  "map": "jingshan-park",
+  "npc": "jingshan-ayi",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch2",
+   "step": "pavilions"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "亭子",
+    "explain": "有顶没有墙的小房子，在山上、在水边。",
+    "en": "pavilion"
+   },
+   {
+    "w": "最",
+    "explain": "比所有的都。",
+    "en": "the most"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！景山上有五个亭子。你看看，最高的亭子叫什么？",
+    "translate": "Hello! There are five pavilions on 景山. Have a look — what is the highest one called?",
+    "key": true,
+    "simpler": "最高的亭子叫什么？",
+    "expect": [
+     {
+      "intent": "wanchun",
+      "match": [
+       [
+        "万春亭",
+        "万春"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "万春亭",
+     "frame": "最高的叫___。",
+     "full": "最高的叫万春亭。"
+    },
+    "why": "Read the signs along the ridge: 富览亭, 辑芳亭, 万春亭 (in the middle, on top), 观妙亭, 周赏亭. The middle one, on the city's axis, is the highest."
+   },
+   {
+    "id": "b",
+    "say": "对！万春亭最高。在那儿，你能看见故宫。",
+    "translate": "Right! 万春亭 is the highest. From there you can see the palace.",
+    "onEnter": [
+     {
+      "do": "flag",
+      "flag": "c2-pavilions"
+     },
+     {
+      "do": "solve",
+      "riddle": "c2-pavilions/a"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c2-singer-book",
+  "map": "jingshan-view",
+  "npc": "jingshan-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "when": {
+   "quest": "ch2",
+   "step": "fox-book"
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "狐狸",
+    "explain": "像小狗，住在山里。",
+    "en": "fox"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你要去找那个狐狸吗？",
+    "translate": "Are you going to find that fox?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "是",
+        "对",
+        "要",
+        "找",
+        "去"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "是",
+     "frame": "___，我今天晚上去。",
+     "full": "是，我今天晚上去。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "那个狐狸说，老虎也怕它。你看看这本书吧。",
+    "translate": "That fox says even tigers are afraid of it. Have a look at this book.",
+    "onEnter": [
+     {
+      "do": "book",
+      "id": "hujiahuwei"
+     },
+     {
+      "do": "flag",
+      "flag": "c2-fox-book"
+     }
+    ],
+    "why": "He gives you 《狐假虎威》. Page 4: who walks in front, and who behind?",
+    "key": true,
+    "simpler": "狐狸说，老虎怕它。"
+   }
+  ]
+ },
+ {
+  "id": "c2-fox-tiger",
+  "map": "jiaolou",
+  "object": "fox",
+  "trigger": "look",
+  "priority": -5,
+  "stamp": "jiuweihu",
+  "when": {
+   "all": [
+    {
+     "not": {
+      "spirit": "jiuweihu"
+     }
+    },
+    {
+     "item": "laohu"
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "老虎",
+    "explain": "很大的猫，大家都怕它。",
+    "en": "tiger"
+   },
+   {
+    "w": "怕",
+    "explain": "看见不好的东西，想跑。",
+    "en": "to be afraid"
+   },
+   {
+    "w": "后面",
+    "explain": "不在前面的地方。",
+    "en": "behind"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你是谁？你也怕我吧？老虎都怕我！",
+    "translate": "Who are you? You're scared of me too, aren't you? Even tigers are scared of me!",
+    "speaker": "jiuweihu",
+    "expect": [
+     {
+      "intent": "brave",
+      "match": [
+       [
+        "不怕",
+        "不",
+        "朋友",
+        "兔儿爷",
+        "我是"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "不怕",
+     "frame": "我___你。",
+     "full": "我不怕你。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "你不怕？好，我在前面，老虎在哪儿？",
+    "translate": "Not scared? Fine — when I'm in front, where is the tiger?",
+    "speaker": "jiuweihu",
+    "expect": [
+     {
+      "intent": "behind",
+      "match": [
+       [
+        "后面"
+       ]
+      ],
+      "go": "c"
+     }
+    ],
+    "hint": {
+     "word": "后面",
+     "frame": "老虎在___。",
+     "full": "老虎在后面。"
+    },
+    "why": "It's in 《狐假虎威》, page 4: 狐狸走在前面，老虎走在后面 — the animals ran from the tiger, not the fox."
+   },
+   {
+    "id": "c",
+    "say": "你看，我也有一个老虎！",
+    "translate": "Look — I've got a tiger too!",
+    "speaker": "hero",
+    "next": "d",
+    "why": "Squeeze 小明's toy tiger."
+   },
+   {
+    "id": "d",
+    "say": "你听！",
+    "translate": "Listen! (The toy tiger roars.)",
+    "speaker": "hero",
+    "next": "e"
+   },
+   {
+    "id": "e",
+    "say": "啊！……好吧，好吧。大家怕的不是我，是后面的老虎。",
+    "translate": "Aah! … All right, all right. It isn't me they're afraid of — it's the tiger behind.",
+    "speaker": "jiuweihu",
+    "next": "f"
+   },
+   {
+    "id": "f",
+    "say": "它这是狐假虎威。",
+    "translate": "That's 狐假虎威 — the fox borrowing the tiger's might.",
+    "speaker": "companion",
+    "key": true,
+    "next": "g",
+    "onEnter": [
+     {
+      "do": "idiom",
+      "idiom": "狐假虎威"
+     },
+     {
+      "do": "solve",
+      "riddle": "singer/key"
+     },
+     {
+      "do": "solve",
+      "riddle": "fisher-fox/b"
+     },
+     {
+      "do": "solve",
+      "riddle": "c1-yandai/b"
+     },
+     {
+      "do": "solve",
+      "riddle": "c2-singer-book/b"
+     }
+    ],
+    "why": "A 成语 📌 with a story — the one in the book. Look it up in your 成语 book."
+   },
+   {
+    "id": "g",
+    "say": "你知道我叫什么吗？",
+    "translate": "Do you know my name?",
+    "speaker": "jiuweihu",
+    "expect": [
+     {
+      "intent": "name",
+      "match": [
+       [
+        "九尾狐"
+       ]
+      ],
+      "go": "h"
+     }
+    ],
+    "hint": {
+     "word": "九尾狐",
+     "frame": "你是___！",
+     "full": "你是九尾狐！"
+    },
+    "why": "九 nine, 尾 tail, 狐 fox: jiǔ wěi hú."
+   },
+   {
+    "id": "h",
+    "say": "对！我是九尾狐。我们是朋友了！",
+    "translate": "Yes! I'm the nine-tailed fox. We're friends now!",
+    "speaker": "jiuweihu",
+    "onEnter": [
+     {
+      "do": "spirit",
+      "spirit": "jiuweihu"
      }
     ]
    }
