@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { heroOnPlan, HOODS, hoodOf, type HoodLayout } from './hoods';
 import { walkPath, type MapLinks } from './places';
+import { checkStamps } from '../../../scripts/world/stamps';
 
 const index = JSON.parse(readFileSync('public/world/maps/index.json', 'utf8')) as MapLinks;
 const plans = JSON.parse(readFileSync('public/world/maps/hoods.json', 'utf8')) as HoodLayout[];
@@ -38,6 +39,45 @@ describe('neighbourhoods', () => {
 
   it('have a miniature for every map (npm run world:minis)', () => {
     for (const m of real) assert.ok(existsSync(`public/world/minis/${m}.png`), `no miniature of ${m}`);
+  });
+
+  it('have miniatures the shape of their maps, so none is drawn stretched (M8)', () => {
+    const size = (m: string) => {
+      const b = readFileSync(`public/world/minis/${m}.png`);
+      return [b.readUInt32BE(16), b.readUInt32BE(20)];
+    };
+    for (const p of plans) for (const a of p.areas) assert.deepEqual(size(a.map), [a.w * 4, a.h * 4], `${a.map}: its miniature is not its map's shape — run npm run world:minis`);
+  });
+
+  it('load the plans and miniatures by a build stamp that matches the files (M8)', () => {
+    assert.equal(checkStamps(), null);
+  });
+
+  it('put each room card by its door, with a gap between cards (M8)', () => {
+    for (const p of plans) {
+      for (const r of p.rooms) {
+        const [dx, dy] = [r.door[0] + 0.5, r.door[1] + 0.5];
+        const gap = Math.hypot(Math.max(r.x - dx, 0, dx - (r.x + r.w)), Math.max(r.y - dy, 0, dy - (r.y + r.h)));
+        // a door deep in a courtyard can only have its card outside the courtyard
+        const a = p.areas.find((x) => x.x <= dx && dx <= x.x + x.w && x.y <= dy && dy <= x.y + x.h);
+        const depth = a ? Math.min(dx - a.x, a.x + a.w - dx, dy - a.y, a.y + a.h - dy) : 0;
+        assert.ok(gap <= 9 + depth, `${p.id}: ${r.map}'s card is ${gap.toFixed(1)} tiles from its door`);
+        for (const o of p.rooms) if (o !== r) assert.ok(!overlap({ x: r.x - 1, y: r.y - 1, w: r.w + 2, h: r.h + 2 }, o), `${p.id}: ${r.map}'s card touches ${o.map}'s`);
+      }
+    }
+    // the learner's 南锣鼓巷: 理发店 level with its door at row 19, not stacked under 早点铺; 我的房间 near its door
+    const p = plans.find((x) => x.id === 'nanluoguxiang')!;
+    const street = p.areas.find((a) => a.map === 'nanluo-main')!;
+    const barber = p.rooms.find((r) => r.map === 'lifadian')!;
+    assert.ok(barber.y <= street.y + 19 && street.y + 19 < barber.y + barber.h, 'the barber card is level with its door');
+    const room = p.rooms.find((r) => r.map === 'siheyuan-room')!;
+    assert.ok(Math.hypot(room.x + room.w / 2 - room.door[0], room.y + room.h / 2 - room.door[1]) < 12, 'my room is near its door');
+  });
+
+  it('mark where one street runs on into the next (M8)', () => {
+    const p = plans.find((x) => x.id === 'nanluoguxiang')!;
+    for (const b of ['gulou-dongdajie', 'subway-lane', 'hutong-home']) assert.ok(p.joins.some((j) => (j.a === 'nanluo-main' && j.b === b) || (j.b === 'nanluo-main' && j.a === b)), `no crossing of 南锣鼓巷 and ${b}`);
+    assert.ok(p.doors.some((d) => d.to === 'station-nanluoguxiang'), 'the station has its way in');
   });
 
   it('put the hero where he stands', () => {

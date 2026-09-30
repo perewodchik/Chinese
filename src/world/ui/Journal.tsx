@@ -13,6 +13,7 @@ import { line, station } from '../core/travel';
 import type { Quest, WorldSave } from '../core/types';
 import type { WorldContent } from './content';
 import { riddleRows } from './panelRows';
+import { miniUrl } from './HoodPlan';
 import { loadIndex } from './PlaceCard';
 import { pinyinOf } from './pinyin';
 import { Portrait } from './Portrait';
@@ -120,7 +121,7 @@ export function Destination({ map, more = 0 }: { map: string; more?: number }) {
   return (
     <div className="jn-dest">
       <span className="jn-mini">
-        <img src={`/world/minis/${map}.png`} alt="" width={96} height={72} onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
+        <img src={miniUrl(map)} alt="" width={96} height={72} onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
       </span>
       <span className="jn-dest-text">
         <b className="han">{zh}</b>

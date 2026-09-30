@@ -18,6 +18,7 @@ import { LAYERS, parseMap, type Legend, type TextMap } from '../../src/world/cor
 import type { MapObject } from '../../src/world/core/types';
 import { HOODS, layoutHood, type MapGeo } from '../../src/world/core/hoods';
 import { placeOf } from '../../src/world/core/places';
+import { writeStamps } from './stamps';
 import type { TilesetJson } from './art/build';
 
 export const MAPS_SRC = 'content/world/maps';
@@ -184,6 +185,8 @@ export function buildMaps(src = MAPS_SRC, out = MAPS_OUT, tileset = TILESET): st
     all.map((c) => [c.map.id, { width: c.map.width, height: c.map.height, objects: c.objects, inside: placeOf(c.map.id)?.kind === 'inside' }]),
   );
   writeFileSync(join(out, 'hoods.json'), JSON.stringify(HOODS.map((h) => layoutHood(h, geo))) + '\n');
+  // the plans load hoods.json and the miniatures by a content hash (M8)
+  if (out === MAPS_OUT) writeStamps();
   return all.map((c) => `${c.map.id}: ${c.map.width}×${c.map.height}, ${c.objects.length} objects`);
 }
 

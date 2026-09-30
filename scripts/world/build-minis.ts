@@ -6,6 +6,9 @@
  * station halls to 8, as the pictures on their cards.
  *
  *   npx tsx scripts/world/build-minis.ts      → public/world/minis/<map>.png
+ *
+ * Then it stamps them (stamps.ts): src/world/ui/stamps.gen.ts holds a content hash of each,
+ * which the plans put on the image URLs.
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -15,6 +18,7 @@ import { isRoom } from '../../src/world/core/hoods';
 import { placeOf } from '../../src/world/core/places';
 import { blank, encodePng, type Image } from './art/png';
 import { drawWorld } from './render-map';
+import { writeStamps } from './stamps';
 
 const OUT = 'public/world/minis';
 
@@ -50,6 +54,7 @@ export function buildMinis(out = OUT): string[] {
     writeFileSync(join(out, `${map}.png`), encodePng(img));
     done.push(`${map}: ${img.width}×${img.height}`);
   }
+  if (out === OUT) writeStamps();
   return done;
 }
 

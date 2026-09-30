@@ -1236,10 +1236,47 @@
 }
 
 .hp-roundel {
-  fill: var(--card);
+  fill: #fff;
   stroke: var(--indigo);
   stroke-width: 2.5px;
   vector-effect: non-scaling-stroke;
+}
+
+/* M8: a station's way in is a metro roundel (a ring with a bar) on the tile you step on */
+.hp-roundel-bar {
+  fill: var(--indigo);
+}
+
+/* M8: a shop's or a room's door, on the street tile in front of it */
+.hp-door-mark {
+  fill: #f8f5ec;
+  stroke: #5a3a1c;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.hp-door,
+.hp-join,
+.hp-line {
+  pointer-events: none;
+}
+
+/* M8: where two streets meet, a crossing over the seam (the pictures' own paving colour) */
+.hp-join-road {
+  fill: #cdbd98;
+}
+
+.hp-join-zebra {
+  fill: none;
+  stroke: #f8f5ec;
+  stroke-opacity: 0.85;
+}
+
+/* a station's lines beside its name */
+.hp-line text {
+  fill: #fff;
+  font-family: var(--sans, system-ui);
+  font-weight: 700;
 }
 
 .hp-path {
@@ -2473,18 +2510,33 @@
 
 /* §13 Q1: quest marks on the plans (red story, gold side quest to start, paper 「…」 under way) and side-quest counts on the metro map */
 .hp-mark {
+  pointer-events: none;
+}
+
+.hp-mark circle {
   fill: var(--gold);
   stroke: color-mix(in srgb, var(--ink) 75%, transparent);
   stroke-width: 1.5px;
   vector-effect: non-scaling-stroke;
 }
 
-.hp-mark[data-kind='main'] {
+.hp-mark[data-kind='main'] circle {
   fill: var(--accent);
 }
 
-.hp-mark[data-kind='next'] {
+.hp-mark[data-kind='next'] circle {
   fill: var(--card);
+}
+
+/* the glyph in a mark: "!" on red and gold, "…" on paper */
+.hp-mark text {
+  fill: #fff;
+  font-family: var(--sans, system-ui);
+  font-weight: 800;
+}
+
+.hp-mark[data-kind='next'] text {
+  fill: var(--ink);
 }
 
 .mm-count rect {
