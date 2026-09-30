@@ -120,6 +120,31 @@ export interface HoodLayout {
   areas: LaidArea[];
   rooms: LaidRoom[];
   exits: LaidExit[];
+  /** where a street's edge runs on into the next street (drawn as a crossing) */
+  joins: LaidJoin[];
+  /** the doors on the streets, each to a place of this neighbourhood */
+  doors: LaidDoor[];
+}
+
+/** The shared stretch of two streets' edges: a line on the plan (`w` or `h` is 0). */
+export interface LaidJoin {
+  a: string;
+  b: string;
+  /** the side of `a` it is on */
+  side: Facing;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** A door on a street (the tile you step on), and where it leads. */
+export interface LaidDoor {
+  from: string;
+  to: string;
+  x: number;
+  y: number;
+  side: Facing;
 }
 
 /** a room card on the plan, in tiles */
@@ -134,6 +159,47 @@ function doorSide(tile: readonly [number, number], w: number, h: number): Facing
   const [x, y] = tile;
   const d = { left: x, right: w - 1 - x, up: y, down: h - 1 - y };
   return (Object.keys(d) as Facing[]).reduce((a, b) => (d[b] < d[a] ? b : a));
+}
+
+/** Tiles between a street and the cards beside it. */
+const CARD_GAP = 1;
+/** the room an exit's name needs past a street's end, in tiles (along × across) */
+const EXIT_ROOM: readonly [number, number] = [12, 4];
+
+/**
+ * The spot for a room's card: level with its door and just off the street, on the door's side
+ * if that is free, else slid along the street or out a little, else on another side — whichever
+ * free spot is nearest the door. `overlaps` pads by a tile, so cards keep a gap between them.
+ */
+function cardAt(door: readonly [number, number], side: Facing, a: Rect, taken: readonly Rect[]): Rect {
+  const [cw, ch] = CARD;
+  const [dx, dy] = [door[0] + 0.5, door[1] + 0.5];
+  const base = (s: Facing): Rect =>
+    s === 'up'
+      ? { x: Math.round(dx - cw / 2), y: a.y - ch - CARD_GAP, w: cw, h: ch }
+      : s === 'down'
+        ? { x: Math.round(dx - cw / 2), y: a.y + a.h + CARD_GAP, w: cw, h: ch }
+        : s === 'left'
+          ? { x: a.x - cw - CARD_GAP, y: Math.round(dy - ch / 2), w: cw, h: ch }
+          : { x: a.x + a.w + CARD_GAP, y: Math.round(dy - ch / 2), w: cw, h: ch };
+  const outward = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] } as const;
+  const gapTo = (r: Rect) => Math.hypot(Math.max(r.x - dx, 0, dx - (r.x + r.w)), Math.max(r.y - dy, 0, dy - (r.y + r.h)));
+  let best: { r: Rect; cost: number } | null = null;
+  for (const s of ['up', 'down', 'left', 'right'] as const) {
+    const b = base(s);
+    const [ox, oy] = outward[s];
+    const alongX = s === 'up' || s === 'down';
+    for (let out = 0; out <= 10; out++)
+      for (let k = 0; k <= 40; k++) {
+        const slide = k % 2 ? (k + 1) / 2 : -k / 2;
+        const r = { ...b, x: b.x + ox * out + (alongX ? slide : 0), y: b.y + oy * out + (alongX ? 0 : slide) };
+        if (taken.some((t) => overlaps(r, t))) continue;
+        const cost = gapTo(r) + (s === side ? 0 : 2);
+        if (!best || cost < best.cost) best = { r, cost };
+        break; // the nearest free slide at this distance out
+      }
+  }
+  return best?.r ?? base(side);
 }
 
 /** Lays out one neighbourhood; `hoodOfMap` names the neighbourhood of any map (for exits). */
@@ -206,44 +272,6 @@ export function layoutHood(hood: Hood, geo: Record<string, MapGeo>, hoodOfMap: (
     }
   }
 
-  // rooms: a card across from the door that opens onto them
-  for (const [m, a] of placed) {
-    const seen = new Set<string>();
-    for (const o of geo[m]!.objects) {
-      if (o.kind !== 'door' || seen.has(o.to.map)) continue;
-      seen.add(o.to.map);
-      const to = o.to.map;
-      if (!mine.has(to) || area(to)) continue;
-      const side = doorSide(o.tile, a.w, a.h);
-      const door = [a.x + o.tile[0], a.y + o.tile[1]] as const;
-      const [cw, ch] = CARD;
-      const r: Rect =
-        side === 'up'
-          ? { x: door[0] - Math.floor(cw / 2), y: a.y - ch - GAP, w: cw, h: ch }
-          : side === 'down'
-            ? { x: door[0] - Math.floor(cw / 2), y: a.y + a.h + GAP, w: cw, h: ch }
-            : side === 'left'
-              ? { x: a.x - cw - GAP, y: door[1] - Math.floor(ch / 2), w: cw, h: ch }
-              : { x: a.x + a.w + GAP, y: door[1] - Math.floor(ch / 2), w: cw, h: ch };
-      // cards along a street sit side by side: slide along it first, then outwards
-      const along: Facing = side === 'up' || side === 'down' ? 'right' : 'down';
-      let at = r;
-      for (let i = 0; i < 40 && taken.some((t) => overlaps(at, t)); i++) at = { ...at, ...(along === 'right' ? { x: at.x + 1 } : { y: at.y + 1 }) };
-      if (taken.some((t) => overlaps(at, t))) at = free(r, side);
-      taken.push(at);
-      rooms.push({ map: to, ...at, door });
-    }
-  }
-  // rooms reached from rooms (none today) or from nowhere are still drawn, below everything
-  for (const m of hood.maps) {
-    if (!mine.has(m) || placed.has(m) || rooms.some((r) => r.map === m)) continue;
-    const bottom = Math.max(0, ...taken.map((t) => t.y + t.h));
-    const r = { x: 0, y: bottom + GAP, w: CARD[0], h: CARD[1] };
-    const at = free(r, 'right');
-    taken.push(at);
-    rooms.push({ map: m, ...at, door: [at.x + CARD[0] / 2, at.y] });
-  }
-
   // ways out on foot, into the next neighbourhood
   for (const [m, a] of placed) {
     for (const o of geo[m]!.objects) {
@@ -261,13 +289,68 @@ export function layoutHood(hood: Hood, geo: Record<string, MapGeo>, hoodOfMap: (
       }
     }
   }
+  // an exit's name goes out past the street's end: no card there
+  for (const e of exits) {
+    const [w, h] = e.side === 'left' || e.side === 'right' ? [EXIT_ROOM[0], EXIT_ROOM[1]] : [EXIT_ROOM[1], EXIT_ROOM[0]];
+    const x = e.side === 'left' ? e.x - w : e.side === 'right' ? e.x : e.x - w / 2;
+    const y = e.side === 'up' ? e.y - h : e.side === 'down' ? e.y : e.y - h / 2;
+    taken.push({ x, y, w, h });
+  }
+
+  // rooms: a card beside the door that opens onto them — level with it, just off the street,
+  // on the door's side when there is room there (else the nearest free spot on any side)
+  for (const [m, a] of placed) {
+    const seen = new Set<string>();
+    for (const o of geo[m]!.objects) {
+      if (o.kind !== 'door' || seen.has(o.to.map)) continue;
+      seen.add(o.to.map);
+      const to = o.to.map;
+      if (!mine.has(to) || area(to)) continue;
+      const door = [a.x + o.tile[0], a.y + o.tile[1]] as const;
+      const at = cardAt(door, doorSide(o.tile, a.w, a.h), a, taken);
+      taken.push(at);
+      rooms.push({ map: to, ...at, door });
+    }
+  }
+  // rooms reached from rooms (none today) or from nowhere are still drawn, below everything
+  for (const m of hood.maps) {
+    if (!mine.has(m) || placed.has(m) || rooms.some((r) => r.map === m)) continue;
+    const bottom = Math.max(0, ...taken.map((t) => t.y + t.h));
+    const r = { x: 0, y: bottom + GAP, w: CARD[0], h: CARD[1] };
+    const at = free(r, 'right');
+    taken.push(at);
+    rooms.push({ map: m, ...at, door: [at.x + CARD[0] / 2, at.y] });
+  }
+
+  // where one street runs on into the next: the stretch of the seam they share
+  const joins: LaidJoin[] = [];
+  for (const [m, a] of placed) {
+    for (const o of geo[m]!.objects) {
+      if (o.kind !== 'edge') continue;
+      const b = placed.get(o.target.map);
+      if (!b || joins.some((j) => j.a === o.target.map && j.b === m)) continue;
+      const [lo, hi] = [Math.min(o.from, o.to), Math.max(o.from, o.to) + 1];
+      const across = o.side === 'up' || o.side === 'down';
+      const seam = o.side === 'up' ? a.y : o.side === 'down' ? a.y + a.h : o.side === 'left' ? a.x : a.x + a.w;
+      joins.push({ a: m, b: o.target.map, side: o.side, ...(across ? { x: a.x + lo, y: seam, w: hi - lo, h: 0 } : { x: seam, y: a.y + lo, w: 0, h: hi - lo }) });
+    }
+  }
+  // every door on a street into another place of the neighbourhood (a shop, a room, a station, a yard)
+  const doors: LaidDoor[] = [];
+  for (const [m, a] of placed) {
+    for (const o of geo[m]!.objects) {
+      if (o.kind !== 'door' || o.to.map === m || !mine.has(o.to.map)) continue;
+      if (doors.some((d) => d.from === m && d.to === o.to.map)) continue;
+      doors.push({ from: m, to: o.to.map, x: a.x + o.tile[0], y: a.y + o.tile[1], side: doorSide(o.tile, a.w, a.h) });
+    }
+  }
 
   const all = [...placed.values(), ...rooms];
   const x0 = Math.min(...all.map((r) => r.x));
   const y0 = Math.min(...all.map((r) => r.y));
   const x1 = Math.max(...all.map((r) => r.x + r.w));
   const y1 = Math.max(...all.map((r) => r.y + r.h));
-  return { id: hood.id, x: x0, y: y0, w: x1 - x0, h: y1 - y0, areas: [...placed.values()], rooms, exits };
+  return { id: hood.id, x: x0, y: y0, w: x1 - x0, h: y1 - y0, areas: [...placed.values()], rooms, exits, joins, doors };
 }
 
 /** Where the hero is on a neighbourhood's plan: the tile on an area, or the middle of a room's card. */

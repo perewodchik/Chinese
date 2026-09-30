@@ -27,6 +27,7 @@ import { checkCutscene, checkCutsceneLinks } from '../../src/world/core/cutscene
 import { bookSchema, checkBook, type Book } from '../../src/world/core/books';
 import { gridFromLayer } from '../../src/world/core/grid';
 import { loadAll } from './build-maps';
+import { checkStamps } from './stamps';
 
 /** Books on disk (§13 B1): `content/world/books/<id>.json`, checked against the schema. */
 export function readBookFiles(contentRoot: string, errors: string[]): Book[] {
@@ -182,6 +183,11 @@ export function checkContent(contentRoot: string, lib: Library): CheckResult {
     if (!inDistrict.has(m)) errors.push(`maps: ${m} is in no district's district.json`);
     if (!inHood.has(m)) errors.push(`maps: ${m} is in no neighbourhood (src/world/core/hoods.ts)`);
     if (existsSync(minis) && !existsSync(join(minis, `${m}.png`))) errors.push(`maps: ${m} has no thumbnail — run npm run world:minis`);
+  }
+  // M8: the plans load hoods.json and the miniatures by content hash; the hashes must be the files'
+  if (existsSync(minis)) {
+    const stale = checkStamps(join(contentRoot, '..', '..'));
+    if (stale) errors.push(`maps: ${stale}`);
   }
   // §13 B1: the books — their level (the budget's `book` rules), facts, places; every book an action gives exists
   const books = readBookFiles(contentRoot, errors);
