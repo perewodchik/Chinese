@@ -101,8 +101,11 @@ export function allCalls(): string[] {
         const c = callNext(l.id, at, dir);
         if (c) out.add(c);
       }
+      for (const c of stopCalls(l.id, at)) out.add(c.zh);
     }
   }
+  out.add(HOLD_ON.zh);
+  out.add(END_OF_LINE.zh);
   return [...out];
 }
 
@@ -127,6 +130,9 @@ export function callEn(lineId: string, at: string, dir: Dir): string | null {
 
 /** Said as the train pulls out of the first station: hold on. */
 export const HOLD_ON = { zh: '请站稳扶好。', en: 'Please hold on tight.' };
+
+/** Said at the end of the line (MT), after 「……到了。」 */
+export const END_OF_LINE = { zh: '终点站到了，请全部下车。', en: 'This is the terminal station. Everyone please get off.' };
 
 /**
  * Said as the train stops (after 「王府井到了。」): where to change, and which

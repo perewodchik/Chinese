@@ -286,6 +286,62 @@ export class Ambient {
   }
 
   /**
+   * MT (2026-10-01) — the train's sounds, made on the spot (no real line's jingle):
+   * `doors` a two-note ding-dong as the doors open; `closing` quick beeps before they shut;
+   * `arrive` / `leave` a rumble that falls or rises over `secs`; `run` a low hum while riding.
+   */
+  train(kind: 'doors' | 'closing' | 'arrive' | 'leave' | 'run', secs = 2) {
+    if (!this.ctx || this.volume <= 0) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const tone = (f: number, at: number, len: number, peak: number, type: OscillatorType = 'sine') => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type;
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0, t + at);
+      g.gain.linearRampToValueAtTime(peak, t + at + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + at + len);
+      o.connect(g).connect(this.master!);
+      o.start(t + at);
+      o.stop(t + at + len + 0.05);
+    };
+    if (kind === 'doors') {
+      tone(880, 0, 0.6, 0.09);
+      tone(698.5, 0.38, 0.9, 0.09);
+      return;
+    }
+    if (kind === 'closing') {
+      for (let i = 0; i < 6; i++) tone(1046.5, i * 0.22, 0.12, 0.06, 'square');
+      return;
+    }
+    // a rumble: filtered noise, its loudness and pitch following the train's speed
+    const len = Math.max(0.5, secs);
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * len), ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < d.length; i++) {
+      last = last * 0.97 + (Math.random() * 2 - 1) * 0.03;
+      d[i] = last * 6;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const f = ctx.createBiquadFilter();
+    f.type = 'lowpass';
+    const g = ctx.createGain();
+    const [g0, g1, f0, f1] = kind === 'arrive' ? [0.5, 0.05, 900, 180] : kind === 'leave' ? [0.05, 0.5, 180, 900] : [0.18, 0.18, 260, 260];
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(g0, t + 0.15);
+    g.gain.linearRampToValueAtTime(g1, t + len - 0.2);
+    g.gain.linearRampToValueAtTime(0.0001, t + len);
+    f.frequency.setValueAtTime(f0, t);
+    f.frequency.linearRampToValueAtTime(f1, t + len);
+    src.connect(f).connect(g).connect(this.master!);
+    src.start(t);
+    src.stop(t + len);
+  }
+
+  /**
    * A cutscene's sound (§13 K1), made on the spot: a wood block (a step
    * done), a temple gong, a small bell, a drum beat.
    */

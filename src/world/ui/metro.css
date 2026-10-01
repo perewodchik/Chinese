@@ -1,0 +1,433 @@
+/* MT — the subway as a place (MetroRide.tsx): the platform, the train, the carriage.
+   Like the bike ride (bike.css), the scene is game art with its own colours in both themes;
+   the bars use the page's tokens. Only transforms and opacity move; nothing changes size. */
+
+.mr {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: #16141f;
+  color: #f8f5ec;
+}
+
+/* --- the bar at the top: the line, and where you are */
+.mr-head {
+  container-type: inline-size;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px;
+  background: #1f3f78; /* the station's blue sign, in both themes */
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.mr-chip {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mr-station {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.mr-station b {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.mr-station .tiny {
+  color: #cdd6ea;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mr-x {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(248, 245, 236, 0.4);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* the line map over the doors: passed stops dim, here lit, the next one blinking */
+.mr-map {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mr-map li {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: #cdd6ea;
+}
+
+.mr-map li::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--mr-line);
+}
+
+.mr-map li:first-child::before {
+  left: 50%;
+}
+
+.mr-map li:last-child::before {
+  right: 50%;
+}
+
+.mr-map i {
+  position: relative;
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--mr-line);
+  border-radius: 50%;
+  background: #f8f5ec;
+}
+
+.mr-map span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.mr-map li[data-state='past'] {
+  opacity: 0.45;
+}
+
+/* a phone: names only where you are and where you go next; the other stops are dots */
+@container (max-width: 520px) {
+  .mr-map li[data-state='past'] span,
+  .mr-map li[data-state='ahead'] span {
+    visibility: hidden;
+  }
+  .mr-map li[data-state='here'] span,
+  .mr-map li[data-state='next'] span {
+    overflow: visible;
+    white-space: nowrap;
+  }
+}
+
+.mr-map li[data-state='past'] i {
+  background: #8e96a8;
+}
+
+.mr-map li[data-state='here'] {
+  color: #fff;
+  font-weight: 600;
+}
+
+.mr-map li[data-state='here'] i {
+  background: #e8483c;
+  box-shadow: 0 0 0 3px rgba(232, 72, 60, 0.35);
+}
+
+.mr-map li[data-state='next'] {
+  color: #fff;
+  font-weight: 600;
+}
+
+.mr-map li[data-state='next'] i {
+  background: #3ccf7a;
+  animation: mr-blink 0.9s steps(2, jump-none) infinite;
+}
+
+@keyframes mr-blink {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.25;
+  }
+}
+
+/* --- the scene */
+.mr-stage {
+  position: relative;
+  overflow: hidden;
+  border-block: 4px solid #0d0c14;
+}
+
+.mr-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  shape-rendering: crispEdges;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+}
+
+.mr-svg image {
+  image-rendering: pixelated;
+}
+
+.mr-svg text {
+  shape-rendering: auto;
+}
+
+/* the station */
+.mr-wall { fill: #3b4150; }
+.mr-wall-line { stroke: #2d323e; stroke-width: 0.5; fill: none; }
+.mr-floor { fill: #cfcabd; }
+.mr-floor-line { stroke: #bdb7a8; stroke-width: 0.5; fill: none; }
+.mr-tactile { fill: #e6b422; }
+.mr-bed { fill: #2a2a31; }
+.mr-sleeper { fill: #4a443c; }
+.mr-rail { fill: #9aa0ab; }
+.mr-pillar { fill: #e7e2d6; stroke: #a9a293; stroke-width: 0.5; }
+.mr-poster { fill: #6f9bd1; }
+.mr-bench { fill: #8b6a48; }
+.mr-glass { fill: rgba(170, 215, 235, 0.55); }
+.mr-post { fill: #6d7686; }
+.mr-sleaf { fill: rgba(205, 235, 248, 0.9); stroke: #6d7686; stroke-width: 0.4; }
+
+.mr-board-bg { fill: #1f3f78; }
+.mr-board-zh {
+  fill: #fff;
+  font-family: var(--han);
+  font-size: 7.5px;
+  font-weight: 600;
+}
+.mr-board-py {
+  fill: #dfe6f3;
+  font-size: 3.4px;
+  letter-spacing: 0.04em;
+}
+
+/* the sign over each side, and its screen */
+.mr-sign-bg { fill: #14213d; stroke: #0b1428; stroke-width: 0.5; }
+.mr-sign[data-guide] .mr-sign-bg { stroke: #e6b422; stroke-width: 1.2; }
+.mr-sign-zh {
+  fill: #fff;
+  font-family: var(--han);
+  font-size: 4.6px;
+  font-weight: 600;
+}
+.mr-sign-next {
+  fill: #c3cde3;
+  font-family: var(--han);
+  font-size: 3.2px;
+}
+.mr-pids { fill: #000; }
+.mr-pids-t {
+  fill: #ff9a3c;
+  font-family: var(--han);
+  font-size: 3.6px;
+}
+
+/* the train from above */
+.mr-car { fill: #e9eaee; stroke: #9da2ad; stroke-width: 0.6; }
+.mr-roof { fill: #d3d6dd; }
+.mr-ac { fill: #b9bec8; }
+.mr-door-gap { fill: #f6e7b0; }
+.mr-leaf { fill: #c7ccd5; transition: transform var(--mr-doors, 600ms) ease-in-out; }
+.mr-door[data-open] .mr-leaf-l,
+.mr-sdoor[data-open] .mr-leaf-l { transform: translateX(-6.5px); }
+.mr-door[data-open] .mr-leaf-r,
+.mr-sdoor[data-open] .mr-leaf-r { transform: translateX(6.5px); }
+.mr-lamp { fill: #fff6c9; }
+.mr-glow { fill: rgba(255, 240, 180, 0.28); opacity: 0; }
+.mr-train[data-state='arriving'] .mr-glow { opacity: 1; }
+
+/* coming in from the side it travels from, braking; going out the other way, speeding up */
+.mr-train[data-side='top'] { --mr-from: 520px; --mr-to: -540px; }
+.mr-train[data-side='bottom'] { --mr-from: -520px; --mr-to: 540px; }
+.mr-train[data-state='arriving'] { animation: mr-in var(--mr-arrive, 2000ms) cubic-bezier(0.12, 0.62, 0.28, 1) both; }
+.mr-train[data-state='leaving'] { animation: mr-out var(--mr-leave, 1700ms) cubic-bezier(0.6, 0, 0.92, 0.55) both; }
+
+@keyframes mr-in {
+  from { transform: translateX(var(--mr-from)); }
+  to { transform: translateX(0); }
+}
+
+@keyframes mr-out {
+  from { transform: translateX(0); }
+  to { transform: translateX(var(--mr-to)); }
+}
+
+/* people: you walk; riders step off the train when its doors open */
+.mr-me {
+  transition-property: transform, opacity;
+  transition-timing-function: linear;
+}
+.mr-me[data-boarding] { opacity: 0; transition-duration: 520ms; }
+.mr-alight[data-side='top'] { animation: mr-off-down 1.4s ease-out both; }
+.mr-alight[data-side='bottom'] { animation: mr-off-up 1.4s ease-out both; }
+
+@keyframes mr-off-down {
+  from { transform: translateY(0); opacity: 0; }
+  20% { opacity: 1; }
+  to { transform: translateY(36px); opacity: 0; }
+}
+
+@keyframes mr-off-up {
+  from { transform: translateY(0); opacity: 0; }
+  20% { opacity: 1; }
+  to { transform: translateY(-36px); opacity: 0; }
+}
+
+/* --- inside the train */
+.mr-tunnel { fill: #121119; }
+.mr-streak { fill: #ffd98a; }
+.mr-streak-dim { fill: #6f6a7a; }
+.mr-streaks { animation: mr-stream 0.35s linear infinite; }
+.mr-streaks[data-state='braking'] { animation-duration: 1.1s; }
+.mr-streaks[data-state='stopped'],
+.mr-streaks[data-state='off'] { animation-play-state: paused; opacity: 0; }
+
+@keyframes mr-stream {
+  from { transform: translateX(0); }
+  to { transform: translateX(-60px); }
+}
+
+/* the station outside the windows: it slides in as the train brakes, then stands */
+.mr-outside { transform: translateX(500px); }
+.mr-outside[data-state='braking'] { animation: mr-station-in var(--mr-brake, 2200ms) cubic-bezier(0.1, 0.6, 0.3, 1) both; }
+.mr-outside[data-state='stopped'],
+.mr-outside[data-state='off'] { transform: translateX(0); }
+
+@keyframes mr-station-in {
+  from { transform: translateX(500px); }
+  to { transform: translateX(0); }
+}
+
+.mr-swall { fill: #3b4150; }
+.mr-spillar { fill: #e7e2d6; }
+.mr-sfloor { fill: #cfcabd; }
+
+.mr-panel { fill: #dfe2e8; }
+.mr-ceiling { fill: #f2f3f5; }
+.mr-light { fill: #fffbe6; }
+.mr-cdoor { fill: #c9ced8; stroke: #a3a9b5; stroke-width: 0.6; }
+.mr-cglass { fill: rgba(30, 30, 40, 0.35); }
+.mr-cdoor-top { fill: #b5bbc6; }
+.mr-cdoor-lamp { fill: #7a7f8a; }
+.mr-cdoors[data-open] .mr-cdoor-lamp { fill: #3ccf7a; }
+.mr-cleaf { transition: transform 600ms ease-in-out; }
+.mr-cdoors[data-open] .mr-cleaf-l { transform: translateX(-22px); }
+.mr-cdoors[data-open] .mr-cleaf-r { transform: translateX(22px); }
+.mr-seat { fill: #3f6fb5; }
+.mr-cfloor { fill: #8e8b84; }
+.mr-cfloor-edge { fill: #e6b422; }
+.mr-pole { fill: #c8ccd3; }
+
+/* the car sways a little while it runs */
+.mr-sway[data-state='running'] { animation: mr-sway 1.6s ease-in-out infinite; }
+
+@keyframes mr-sway {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(0.6px, -0.6px); }
+}
+
+.mr-me[data-state='off'] { transform: translateY(-34px); opacity: 0; transition-duration: 520ms; }
+
+/* the passage between lines */
+.mr-arrow { stroke: #8a8070; stroke-width: 1.4; fill: none; }
+.mr-walk-across { animation: mr-across 1.5s linear both; }
+
+@keyframes mr-across {
+  from { transform: translateX(0); }
+  to { transform: translateX(490px); }
+}
+
+/* --- the bar at the bottom: what is said, and what you can do */
+.mr-foot {
+  display: grid;
+  gap: 8px;
+  padding: 10px 14px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  background: var(--card);
+  color: var(--ink);
+}
+
+.mr-call {
+  height: 100px; /* a call with its pinyin and English, or a hint: always the same room */
+  overflow-y: auto;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 2px;
+  font-size: 17px;
+}
+
+.mr-en {
+  color: var(--ink-3);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mr-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: center;
+  gap: 8px;
+  min-height: 96px; /* two rows of buttons: the bar never changes height (no layout shift) */
+}
+
+.mr-acts .btn {
+  min-height: 44px;
+}
+
+.mr-side .han,
+.mr-change .han {
+  font-size: 16px;
+}
+
+.mr-side[aria-pressed='true'] {
+  border-color: var(--ink-3);
+}
+
+.mr-change {
+  border-left: 5px solid var(--mr-to);
+}
+
+.mr-hint {
+  color: var(--ink-3);
+}
+
+.mr-acts .btn[data-guide] {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mr-streaks,
+  .mr-sway[data-state='running'],
+  .mr-map li[data-state='next'] i {
+    animation: none;
+  }
+}

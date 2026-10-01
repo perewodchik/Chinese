@@ -22,6 +22,7 @@ import { Dialogue, lookOf } from '../../world/ui/Dialogue';
 import { InputBar } from '../../world/ui/InputBar';
 import { reportCrash } from '../../world/ui/CrashGuard';
 import { RideSheet } from '../../world/ui/RideSheet';
+import { MetroRide } from '../../world/ui/MetroRide';
 import { useTakeMeThere } from '../../world/ui/takeMeThere';
 import { setVoiceCards } from '../../world/ui/lineVoice';
 import { Ambient } from '../../world/audio/ambient';
@@ -1463,7 +1464,32 @@ export function WorldPage() {
         const b = content.books.find((x) => x.id === reading);
         return b ? <BookReader book={b} save={game.save} pinyin={game.save.settings.pinyin} onAct={(a) => void game.dispatch([a])} onClose={() => setReading(null)} /> : null;
       })()}
-      {riding && game.save && (
+      {riding && game.save && riding.mode === 'subway' && (
+        <MetroRide
+          from={riding.at}
+          save={game.save}
+          clothes={content.clothes}
+          pinyin={game.save.settings.pinyin}
+          fast={Object.values(game.save.rides).reduce((a, b) => a + b, 0) >= 3}
+          canExit={(id) => !!mapIndex.current[stopMap(id, 'subway')]}
+          guide={guideRides}
+          card={game.save.bag.card ?? 0}
+          sound={(k, secs) => ambient.current?.train(k, secs)}
+          onClose={() => setRiding(null)}
+          onExit={(r) => {
+            setRiding(null);
+            const fare = fareOut(r, riding.mode);
+            game.dispatch([
+              ...(fare ? [{ do: 'card' as const, amount: -fare }] : []),
+              { do: 'station', station: r.at },
+              ...(r.at !== r.from ? [{ do: 'ride' as const, route: rideKey(r.from, r.at) }] : []),
+            ]);
+            // every station map has its board at [8, 10]: you step off in front of it
+            if (r.at !== riding.at) world.current?.travel({ map: stopMap(r.at, riding.mode), tile: [8, 11], facing: 'down' });
+          }}
+        />
+      )}
+      {riding && game.save && riding.mode !== 'subway' && (
         <RideSheet
           from={riding.at}
           mode={riding.mode}
