@@ -58,6 +58,8 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.strictObject({ season: z.enum(['spring', 'summer', 'autumn', 'winter']) }),
     z.strictObject({ cat: z.enum(['fed-today', 'trusts', 'named']) }),
     z.strictObject({ photo: text }),
+    z.strictObject({ visited: id }),
+    z.strictObject({ read: text }),
     z.strictObject({ fresh: id }),
     z.strictObject({ daily: id }),
     z.strictObject({ bike: z.enum(['owned', 'riding', 'flat', 'none']) }),
@@ -354,6 +356,20 @@ export const cutsceneSchema: z.ZodType<Cutscene> = z.strictObject({
   talk: id.optional(),
 });
 
+/** RW2: a place card and its facts (core/cards.ts) */
+export const placeCardSchema = z.strictObject({
+  id,
+  map: id,
+  zh: hanzi,
+  pinyin: text,
+  en: text,
+  words: z.array(z.strictObject({ w: hanzi, en: text })).optional(),
+  souvenir: z.strictObject({ frame: text, zh: hanzi, en: text }).optional(),
+  facts: z
+    .array(z.strictObject({ id, zh: hanzi, en: text, fact: text, open: conditionSchema, how: text }))
+    .min(2),
+});
+
 /** The files of one district folder and the schema each is checked with. */
 export const DISTRICT_FILES = {
   district: districtSchema,
@@ -366,6 +382,7 @@ export const DISTRICT_FILES = {
   items: z.array(itemSchema),
   shops: z.array(shopSchema),
   cutscenes: z.array(cutsceneSchema),
+  cards: z.array(placeCardSchema),
 } as const;
 
 export type DistrictFiles = { [K in keyof typeof DISTRICT_FILES]?: unknown };

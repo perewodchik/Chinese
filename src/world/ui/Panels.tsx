@@ -17,7 +17,7 @@ import { Diary, JournalNow, JournalSide, JournalStory, type RouteRequest } from 
 import { People } from './People';
 import { markSeen, MENU, menuNews, newSideIds, panelTarget, readMemory, remember, tabForKey, tabHasNews, viewKey, VIEWS, writeMemory, type MenuAt, type MenuMemory, type MenuTab, type PanelId } from './menu';
 import './menu.css';
-import { Album, Idioms, Spirits, Stamps } from './Collection';
+import { Album, Places, Idioms, Spirits, Stamps } from './Collection';
 import { BookReader, Books } from './BookReader';
 import { MapTab } from './MapTab';
 import { ItemSprite, MenuIcon } from './PropSprite';
@@ -201,6 +201,7 @@ export function Panels({
           {key === 'collection/spirits' && <Spirits save={save} content={content} pinyin={pinyin} />}
           {key === 'collection/idioms' && <Idioms save={save} content={content} pinyin={pinyin} onAct={onAct} />}
           {key === 'collection/stamps' && <Stamps save={save} content={content} onShowRoute={showRoute} />}
+          {key === 'collection/places' && <Places save={save} content={content} pinyin={pinyin} onShowRoute={showRoute} />}
           {key === 'collection/books' && <Books save={save} books={content.books} onOpen={setReading} />}
           {key === 'collection/album' && <Album user={user} />}
           {key === 'settings' && <Settings settings={save.settings} onChange={onSettings} onReset={onReset} />}

@@ -1,57 +1,879 @@
 [
  {
-  "kind": "door",
-  "id": "zaodian",
-  "tile": [
-   6,
-   46
-  ],
-  "to": {
-   "map": "zaodian",
-   "tile": [
-    6,
-    7
-   ],
-   "facing": "up"
-  }
- },
- {
-  "kind": "door",
-  "id": "xiaomaibu",
+  "kind": "sign",
+  "id": "hutong-w0",
   "tile": [
    15,
-   41
+   7
+  ],
+  "text": "前鼓楼苑胡同",
+  "en": "前鼓楼苑胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-gate-w0",
+  "tile": [
+   5,
+   7
   ],
   "to": {
-   "map": "xiaomaibu",
+   "map": "nanluo-main",
    "tile": [
     5,
-    6
+    8
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "大杂院 — a courtyard where several families live. You knock; someone calls 「找谁啊？」 (Who are you looking for?) and the gate stays shut."
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-w0-a",
+  "tile": [
+   4,
+   9
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-w0-b",
+  "tile": [
+   8,
+   8
+  ],
+  "frame": "bird-cage/cage",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w1",
+  "tile": [
+   15,
+   14
+  ],
+  "text": "黑芝麻胡同",
+  "en": "黑芝麻胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-gate-w1",
+  "tile": [
+   5,
+   14
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    5,
+    15
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "大杂院 — a courtyard where several families live. You knock; someone calls 「找谁啊？」 (Who are you looking for?) and the gate stays shut."
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-w1-a",
+  "tile": [
+   4,
+   16
+  ],
+  "frame": "coal/stack",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w2",
+  "tile": [
+   15,
+   21
+  ],
+  "text": "沙井胡同",
+  "en": "沙井胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-gate-w2",
+  "tile": [
+   5,
+   21
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    5,
+    22
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "大杂院 — a courtyard where several families live. You knock; someone calls 「找谁啊？」 (Who are you looking for?) and the gate stays shut."
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-w2-a",
+  "tile": [
+   4,
+   23
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-w2-b",
+  "tile": [
+   8,
+   22
+  ],
+  "frame": "coal/stack",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w3",
+  "tile": [
+   15,
+   28
+  ],
+  "text": "景阳胡同",
+  "en": "景阳胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-gate-w3",
+  "tile": [
+   5,
+   28
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    5,
+    29
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "大杂院 — a courtyard where several families live. You knock; someone calls 「找谁啊？」 (Who are you looking for?) and the gate stays shut."
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-w3-a",
+  "tile": [
+   4,
+   30
+  ],
+  "frame": "cat/sleep",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w4",
+  "tile": [
+   15,
+   35
+  ],
+  "text": "帽儿胡同",
+  "en": "帽儿胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-w4-a",
+  "tile": [
+   4,
+   37
+  ],
+  "frame": "cabbages/stack",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-w4-b",
+  "tile": [
+   8,
+   36
+  ],
+  "frame": "cat/sleep",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w5",
+  "tile": [
+   15,
+   42
+  ],
+  "text": "雨儿胡同",
+  "en": "雨儿胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-qibaishi",
+  "tile": [
+   5,
+   42
+  ],
+  "to": {
+   "map": "qibaishi",
+   "tile": [
+    9,
+    12
    ],
    "facing": "up"
   }
  },
  {
-  "kind": "door",
-  "id": "lifadian",
+  "kind": "prop",
+  "id": "g-lane-w5-a",
   "tile": [
-   6,
-   19
+   4,
+   44
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w6",
+  "tile": [
+   15,
+   49
+  ],
+  "text": "蓑衣胡同",
+  "en": "蓑衣胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-gate-w6",
+  "tile": [
+   5,
+   49
   ],
   "to": {
-   "map": "lifadian",
+   "map": "nanluo-main",
    "tile": [
-    8,
-    6
+    5,
+    50
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "大杂院 — a courtyard where several families live. You knock; someone calls 「找谁啊？」 (Who are you looking for?) and the gate stays shut."
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-w6-a",
+  "tile": [
+   4,
+   51
+  ],
+  "frame": "bird-cage/cage",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-w6-b",
+  "tile": [
+   8,
+   50
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-w7",
+  "tile": [
+   15,
+   56
+  ],
+  "text": "福祥胡同",
+  "en": "福祥胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-gate-w7",
+  "tile": [
+   5,
+   56
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    5,
+    57
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "大杂院 — a courtyard where several families live. You knock; someone calls 「找谁啊？」 (Who are you looking for?) and the gate stays shut."
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-w7-a",
+  "tile": [
+   4,
+   58
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e0",
+  "tile": [
+   24,
+   9
+  ],
+  "text": "菊儿胡同",
+  "en": "菊儿胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-juer",
+  "tile": [
+   34,
+   9
+  ],
+  "to": {
+   "map": "juer",
+   "tile": [
+    9,
+    12
    ],
    "facing": "up"
   }
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-e0-a",
+  "tile": [
+   36,
+   11
+  ],
+  "frame": "cat/sleep",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-e0-b",
+  "tile": [
+   32,
+   10
+  ],
+  "frame": "cabbages/stack",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e1",
+  "tile": [
+   24,
+   16
+  ],
+  "text": "后圆恩寺胡同",
+  "en": "后圆恩寺胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-maodun",
+  "tile": [
+   34,
+   16
+  ],
+  "to": {
+   "map": "maodun",
+   "tile": [
+    9,
+    12
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-e1-a",
+  "tile": [
+   36,
+   18
+  ],
+  "frame": "cabbages/stack",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e2",
+  "tile": [
+   24,
+   23
+  ],
+  "text": "前圆恩寺胡同",
+  "en": "前圆恩寺胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-gate-e2",
+  "tile": [
+   34,
+   23
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    34,
+    24
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "大杂院 — a courtyard where several families live. You knock; someone calls 「找谁啊？」 (Who are you looking for?) and the gate stays shut."
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-e2-a",
+  "tile": [
+   36,
+   25
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-e2-b",
+  "tile": [
+   32,
+   24
+  ],
+  "frame": "bird-cage/cage",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e3",
+  "tile": [
+   24,
+   30
+  ],
+  "text": "秦老胡同",
+  "en": "秦老胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-gate-e3",
+  "tile": [
+   34,
+   30
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    34,
+    31
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "大杂院 — a courtyard where several families live. You knock; someone calls 「找谁啊？」 (Who are you looking for?) and the gate stays shut."
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-e3-a",
+  "tile": [
+   36,
+   32
+  ],
+  "frame": "bird-cage/cage",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e4",
+  "tile": [
+   24,
+   37
+  ],
+  "text": "北兵马司胡同",
+  "en": "北兵马司胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-gate-e4",
+  "tile": [
+   34,
+   37
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    34,
+    38
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "大杂院 — a courtyard where several families live. You knock; someone calls 「找谁啊？」 (Who are you looking for?) and the gate stays shut."
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-e4-a",
+  "tile": [
+   36,
+   39
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-e4-b",
+  "tile": [
+   32,
+   38
+  ],
+  "frame": "coal/stack",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e5",
+  "tile": [
+   24,
+   44
+  ],
+  "text": "东棉花胡同",
+  "en": "东棉花胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-e5-a",
+  "tile": [
+   36,
+   46
+  ],
+  "frame": "coal/stack",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e6",
+  "tile": [
+   24,
+   51
+  ],
+  "text": "板厂胡同",
+  "en": "板厂胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-gate-e6",
+  "tile": [
+   34,
+   51
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    34,
+    52
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "大杂院 — a courtyard where several families live. You knock; someone calls 「找谁啊？」 (Who are you looking for?) and the gate stays shut."
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-e6-a",
+  "tile": [
+   36,
+   53
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-e6-b",
+  "tile": [
+   32,
+   52
+  ],
+  "frame": "cat/sleep",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "hutong-e7",
+  "tile": [
+   24,
+   58
+  ],
+  "text": "炒豆胡同",
+  "en": "炒豆胡同 — a lane off 南锣鼓巷"
+ },
+ {
+  "kind": "door",
+  "id": "g-gate-e7",
+  "tile": [
+   34,
+   58
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    34,
+    59
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "大杂院 — a courtyard where several families live. You knock; someone calls 「找谁啊？」 (Who are you looking for?) and the gate stays shut."
+ },
+ {
+  "kind": "prop",
+  "id": "g-lane-e7-a",
+  "tile": [
+   36,
+   60
+  ],
+  "frame": "cat/sleep",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-st-tricycle-1",
+  "tile": [
+   22,
+   22
+  ],
+  "frame": "tricycle/side",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-st-tricycle-2",
+  "tile": [
+   16,
+   55
+  ],
+  "frame": "tricycle/side-r",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-st-bike-1",
+  "tile": [
+   23,
+   30
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-st-bike-2",
+  "tile": [
+   16,
+   27
+  ],
+  "frame": "bicycle/side-r",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-st-bike-3",
+  "tile": [
+   23,
+   52
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-st-plant-1",
+  "tile": [
+   16,
+   21
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-st-plant-2",
+  "tile": [
+   23,
+   16
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-st-cage",
+  "tile": [
+   16,
+   34
+  ],
+  "frame": "bird-cage/cage",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-wash-w2",
+  "tile": [
+   6,
+   23
+  ],
+  "frame": "washing-line/clothes",
+  "blocks": [
+   3,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "g-wash-e6",
+  "tile": [
+   33,
+   53
+  ],
+  "frame": "washing-line/clothes",
+  "blocks": [
+   3,
+   1
+  ]
  },
  {
   "kind": "door",
   "id": "chaguan",
   "tile": [
-   15,
+   24,
    14
   ],
   "to": {
@@ -65,50 +887,138 @@
  },
  {
   "kind": "sign",
-  "id": "s-zaodian",
+  "id": "s-chaguan",
   "tile": [
-   6,
-   45
+   24,
+   13
   ],
-  "text": "早点",
-  "en": "Breakfast"
+  "text": "茶馆"
  },
  {
-  "kind": "sign",
-  "id": "s-xiaomaibu",
+  "kind": "door",
+  "id": "lifadian",
   "tile": [
    15,
-   40
+   19
   ],
-  "text": "小卖部",
-  "en": "Corner shop"
+  "to": {
+   "map": "lifadian",
+   "tile": [
+    8,
+    6
+   ],
+   "facing": "up"
+  }
  },
  {
   "kind": "sign",
   "id": "s-lifadian",
   "tile": [
-   6,
+   15,
    18
   ],
-  "text": "理发",
-  "en": "Haircuts"
+  "text": "理发"
+ },
+ {
+  "kind": "door",
+  "id": "xiaomaibu",
+  "tile": [
+   24,
+   42
+  ],
+  "to": {
+   "map": "xiaomaibu",
+   "tile": [
+    5,
+    6
+   ],
+   "facing": "up"
+  }
  },
  {
   "kind": "sign",
-  "id": "s-chaguan",
+  "id": "s-xiaomaibu",
+  "tile": [
+   24,
+   41
+  ],
+  "text": "小卖部"
+ },
+ {
+  "kind": "door",
+  "id": "zaodian",
   "tile": [
    15,
-   13
+   47
   ],
-  "text": "茶馆",
-  "en": "Teahouse"
+  "to": {
+   "map": "zaodian",
+   "tile": [
+    6,
+    7
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "s-zaodian",
+  "tile": [
+   15,
+   46
+  ],
+  "text": "早点"
+ },
+ {
+  "kind": "edge",
+  "id": "north",
+  "side": "up",
+  "from": 16,
+  "to": 23,
+  "target": {
+   "map": "gulou-dongdajie",
+   "offset": 4
+  }
+ },
+ {
+  "kind": "edge",
+  "id": "south",
+  "side": "down",
+  "from": 16,
+  "to": 23,
+  "target": {
+   "map": "subway-lane",
+   "offset": -8
+  }
+ },
+ {
+  "kind": "edge",
+  "id": "west",
+  "side": "left",
+  "from": 36,
+  "to": 37,
+  "target": {
+   "map": "hutong-home",
+   "offset": -29
+  }
+ },
+ {
+  "kind": "edge",
+  "id": "east",
+  "side": "right",
+  "from": 45,
+  "to": 46,
+  "target": {
+   "map": "dongmianhua",
+   "offset": -39
+  }
  },
  {
   "kind": "sign",
   "id": "s-wenchuang",
   "tile": [
-   15,
-   26
+   24,
+   28
   ],
   "text": "胡同文创",
   "en": "A little gift shop"
@@ -117,178 +1027,18 @@
   "kind": "sign",
   "id": "street",
   "tile": [
-   6,
-   57
+   15,
+   61
   ],
   "text": "南锣鼓巷",
   "en": "Nanluoguxiang — runs north–south, 16 胡同 off it like a centipede’s legs"
  },
  {
-  "kind": "sign",
-  "id": "hutong-w4",
-  "tile": [
-   6,
-   3
-  ],
-  "text": "前鼓楼苑胡同",
-  "en": "前鼓楼苑胡同 — a hutong going west"
- },
- {
-  "kind": "sign",
-  "id": "hutong-w10",
-  "tile": [
-   6,
-   9
-  ],
-  "text": "黑芝麻胡同",
-  "en": "黑芝麻胡同 — a hutong going west"
- },
- {
-  "kind": "sign",
-  "id": "hutong-w16",
-  "tile": [
-   6,
-   15
-  ],
-  "text": "沙井胡同",
-  "en": "沙井胡同 — a hutong going west"
- },
- {
-  "kind": "sign",
-  "id": "hutong-w22",
-  "tile": [
-   6,
-   21
-  ],
-  "text": "景阳胡同",
-  "en": "景阳胡同 — a hutong going west"
- },
- {
-  "kind": "sign",
-  "id": "hutong-w29",
-  "tile": [
-   6,
-   28
-  ],
-  "text": "帽儿胡同",
-  "en": "帽儿胡同 — a hutong going west"
- },
- {
-  "kind": "sign",
-  "id": "hutong-w36",
-  "tile": [
-   6,
-   35
-  ],
-  "text": "雨儿胡同",
-  "en": "雨儿胡同 — a hutong going west"
- },
- {
-  "kind": "sign",
-  "id": "hutong-w42",
-  "tile": [
-   6,
-   41
-  ],
-  "text": "蓑衣胡同",
-  "en": "蓑衣胡同 — a hutong going west"
- },
- {
-  "kind": "sign",
-  "id": "hutong-w50",
-  "tile": [
-   6,
-   49
-  ],
-  "text": "福祥胡同",
-  "en": "福祥胡同 — a hutong going west"
- },
- {
-  "kind": "sign",
-  "id": "hutong-e6",
-  "tile": [
-   15,
-   5
-  ],
-  "text": "菊儿胡同",
-  "en": "菊儿胡同 — a hutong going east"
- },
- {
-  "kind": "sign",
-  "id": "hutong-e12",
-  "tile": [
-   15,
-   11
-  ],
-  "text": "后圆恩寺胡同",
-  "en": "后圆恩寺胡同 — a hutong going east"
- },
- {
-  "kind": "sign",
-  "id": "hutong-e18",
-  "tile": [
-   15,
-   17
-  ],
-  "text": "前圆恩寺胡同",
-  "en": "前圆恩寺胡同 — a hutong going east"
- },
- {
-  "kind": "sign",
-  "id": "hutong-e24",
-  "tile": [
-   15,
-   23
-  ],
-  "text": "秦老胡同",
-  "en": "秦老胡同 — a hutong going east"
- },
- {
-  "kind": "sign",
-  "id": "hutong-e32",
-  "tile": [
-   15,
-   31
-  ],
-  "text": "北兵马司胡同",
-  "en": "北兵马司胡同 — a hutong going east"
- },
- {
-  "kind": "sign",
-  "id": "hutong-e38",
-  "tile": [
-   15,
-   37
-  ],
-  "text": "东棉花胡同",
-  "en": "东棉花胡同 — a hutong going east"
- },
- {
-  "kind": "sign",
-  "id": "hutong-e44",
-  "tile": [
-   15,
-   43
-  ],
-  "text": "板厂胡同",
-  "en": "板厂胡同 — a hutong going east"
- },
- {
-  "kind": "sign",
-  "id": "hutong-e52",
-  "tile": [
-   15,
-   51
-  ],
-  "text": "炒豆胡同",
-  "en": "炒豆胡同 — a hutong going east"
- },
- {
   "kind": "prop",
   "id": "l1",
   "tile": [
-   14,
-   3
+   23,
+   4
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -301,8 +1051,8 @@
   "kind": "prop",
   "id": "l2",
   "tile": [
-   14,
-   9
+   23,
+   11
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -315,8 +1065,8 @@
   "kind": "prop",
   "id": "l3",
   "tile": [
-   14,
-   15
+   23,
+   18
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -329,8 +1079,8 @@
   "kind": "prop",
   "id": "l4",
   "tile": [
-   14,
-   21
+   23,
+   25
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -343,8 +1093,8 @@
   "kind": "prop",
   "id": "l5",
   "tile": [
-   7,
-   27
+   16,
+   32
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -357,8 +1107,8 @@
   "kind": "prop",
   "id": "l6",
   "tile": [
-   7,
-   33
+   16,
+   40
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -371,8 +1121,8 @@
   "kind": "prop",
   "id": "l7",
   "tile": [
-   7,
-   39
+   16,
+   45
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -385,8 +1135,8 @@
   "kind": "prop",
   "id": "l8",
   "tile": [
-   7,
-   45
+   16,
+   50
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -399,8 +1149,8 @@
   "kind": "prop",
   "id": "l9",
   "tile": [
-   7,
-   57
+   16,
+   61
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -413,8 +1163,8 @@
   "kind": "prop",
   "id": "l10",
   "tile": [
-   14,
-   57
+   23,
+   61
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -427,8 +1177,8 @@
   "kind": "prop",
   "id": "tree1",
   "tile": [
-   8,
-   12
+   17,
+   14
   ],
   "frame": "tree/huai",
   "blocks": [
@@ -440,8 +1190,8 @@
   "kind": "prop",
   "id": "tree2",
   "tile": [
-   11,
-   36
+   20,
+   42
   ],
   "frame": "tree/huai",
   "blocks": [
@@ -453,8 +1203,8 @@
   "kind": "prop",
   "id": "tree3",
   "tile": [
-   8,
-   53
+   17,
+   58
   ],
   "frame": "tree/huai",
   "blocks": [
@@ -466,8 +1216,8 @@
   "kind": "prop",
   "id": "wires-1",
   "tile": [
-   9,
-   9
+   18,
+   11
   ],
   "frame": "wires/sag",
   "blocks": [
@@ -479,8 +1229,8 @@
   "kind": "prop",
   "id": "wires-2",
   "tile": [
-   9,
-   34
+   18,
+   41
   ],
   "frame": "wires/sag",
   "blocks": [
@@ -492,8 +1242,8 @@
   "kind": "prop",
   "id": "ac-1",
   "tile": [
-   6,
-   33
+   15,
+   40
   ],
   "frame": "ac-box/white",
   "blocks": [
@@ -505,8 +1255,8 @@
   "kind": "prop",
   "id": "ac-2",
   "tile": [
-   15,
-   47
+   24,
+   50
   ],
   "frame": "ac-box/white",
   "blocks": [
@@ -518,8 +1268,8 @@
   "kind": "prop",
   "id": "ads-1",
   "tile": [
-   6,
-   24
+   15,
+   27
   ],
   "frame": "ads/wall",
   "blocks": [
@@ -531,8 +1281,8 @@
   "kind": "prop",
   "id": "stand-bike-0",
   "tile": [
-   13,
-   55
+   22,
+   59
   ],
   "frame": "bicycle/side",
   "blocks": [
@@ -544,16 +1294,16 @@
   "kind": "bike",
   "id": "bike-stand-0",
   "tile": [
-   12,
-   55
+   21,
+   59
   ]
  },
  {
   "kind": "prop",
   "id": "xiangqi-table",
   "tile": [
-   9,
-   21
+   18,
+   25
   ],
   "frame": "table/wood",
   "blocks": [
@@ -565,8 +1315,8 @@
   "kind": "prop",
   "id": "xiangqi-stool",
   "tile": [
-   10,
-   21
+   19,
+   25
   ],
   "frame": "stool/red",
   "blocks": [
@@ -578,8 +1328,8 @@
   "kind": "prop",
   "id": "tanghulu-stand",
   "tile": [
-   13,
-   44
+   22,
+   50
   ],
   "frame": "tanghulu-stand/haws",
   "blocks": [
@@ -592,8 +1342,8 @@
   "id": "grandpa",
   "npc": "zhao-yeye",
   "tile": [
-   8,
-   27
+   17,
+   32
   ],
   "facing": "down"
  },
@@ -602,8 +1352,8 @@
   "id": "kid",
   "npc": "xiaoming",
   "tile": [
-   12,
-   24
+   21,
+   29
   ],
   "facing": "down"
  },
@@ -612,8 +1362,8 @@
   "id": "tourist-a",
   "npc": "tourist-1",
   "tile": [
-   11,
-   50
+   20,
+   55
   ],
   "facing": "up"
  },
@@ -622,8 +1372,8 @@
   "id": "tourist-b",
   "npc": "tourist-2",
   "tile": [
-   12,
-   50
+   21,
+   55
   ],
   "facing": "up"
  },
@@ -632,8 +1382,8 @@
   "id": "tanghulu",
   "npc": "tanghulu-dashu",
   "tile": [
-   13,
-   45
+   22,
+   51
   ],
   "facing": "left"
  },
@@ -642,8 +1392,8 @@
   "id": "xiangqi",
   "npc": "xiangqi-yeye",
   "tile": [
-   9,
-   22
+   18,
+   26
   ],
   "facing": "up"
  },
@@ -652,8 +1402,8 @@
   "id": "xiangzi",
   "npc": "xiangzi",
   "tile": [
-   11,
-   39
+   20,
+   45
   ],
   "facing": "down"
  },
@@ -662,51 +1412,18 @@
   "id": "wenchuang",
   "npc": "wenchuang-jiejie",
   "tile": [
-   14,
-   28
+   23,
+   34
   ],
   "facing": "left"
- },
- {
-  "kind": "edge",
-  "id": "north",
-  "side": "up",
-  "from": 7,
-  "to": 14,
-  "target": {
-   "map": "gulou-dongdajie",
-   "offset": 13
-  }
- },
- {
-  "kind": "edge",
-  "id": "south",
-  "side": "down",
-  "from": 7,
-  "to": 14,
-  "target": {
-   "map": "subway-lane",
-   "offset": 1
-  }
- },
- {
-  "kind": "edge",
-  "id": "west",
-  "side": "left",
-  "from": 29,
-  "to": 31,
-  "target": {
-   "map": "hutong-home",
-   "offset": -22
-  }
  },
  {
   "kind": "npc",
   "id": "lao-ma",
   "npc": "lao-ma",
   "tile": [
-   10,
-   30
+   19,
+   36
   ],
   "facing": "left",
   "when": {

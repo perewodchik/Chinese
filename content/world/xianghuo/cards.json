@@ -1,0 +1,80 @@
+[
+ {
+  "id": "card-baiyunguan",
+  "map": "baiyunguan",
+  "zh": "白云观",
+  "pinyin": "Báiyúnguàn",
+  "en": "The White Cloud Temple",
+  "words": [
+   {
+    "w": "石猴",
+    "en": "stone monkey"
+   },
+   {
+    "w": "钱",
+    "en": "coin, money"
+   }
+  ],
+  "facts": [
+   {
+    "id": "monkeys",
+    "zh": "白云观有三个小石猴，要找一找。",
+    "en": "Three little stone monkeys are hidden around the temple — you have to look for them.",
+    "fact": "baiyunguan-monkeys",
+    "open": {
+     "read": "baiyunguan:monkey-1"
+    },
+    "how": "Find a stone monkey."
+   },
+   {
+    "id": "coin",
+    "zh": "桥下有一个大钱，大家往里面打钱。",
+    "en": "Under the bridge hangs a big wooden coin; people throw coins to ring its bell.",
+    "fact": "baiyunguan-coin",
+    "open": {
+     "read": "baiyunguan:bridge"
+    },
+    "how": "Look under 窝风桥."
+   }
+  ]
+ },
+ {
+  "id": "card-dongyuemiao",
+  "map": "dongyuemiao",
+  "zh": "东岳庙",
+  "pinyin": "Dōngyuèmiào",
+  "en": "The Dongyue Temple",
+  "words": [
+   {
+    "w": "司",
+    "en": "department"
+   },
+   {
+    "w": "庙",
+    "en": "temple"
+   }
+  ],
+  "facts": [
+   {
+    "id": "old",
+    "zh": "东岳庙很老，一三一九年就有了。",
+    "en": "It was founded in 1319.",
+    "fact": "dongyuemiao",
+    "open": {
+     "read": "dongyuemiao:name"
+    },
+    "how": "Read the temple's name."
+   },
+   {
+    "id": "depts",
+    "zh": "这里有七十多个“司”，每个司管一件事。",
+    "en": "Its galleries hold more than seventy 'departments' of the afterlife, each with its own job.",
+    "fact": "dongyuemiao",
+    "open": {
+     "read": "dongyuemiao:dept-1"
+    },
+    "how": "Read a department's sign."
+   }
+  ]
+ }
+]

@@ -316,3 +316,60 @@
     padding: 14px 16px;
   }
 }
+
+/* RW5: souvenirs on the shelf — one per place card, home when the card is full */
+.bk-souvenirs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.bk-souvenir {
+  display: grid;
+  grid-template-rows: 52px auto auto;
+  justify-items: center;
+  gap: 2px;
+  width: 100%;
+  height: 92px;
+  padding: 4px;
+  border: 1px dashed var(--line-2);
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.bk-souvenir[data-got] {
+  border-style: solid;
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, var(--card));
+}
+
+.bk-souvenir-art {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  font-family: var(--han);
+  font-size: 22px;
+  color: var(--ink-3);
+}
+
+.bk-souvenir-card {
+  position: absolute;
+  inset: auto 0 0 0;
+  max-height: 70%;
+  overflow-y: auto;
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.bk-case {
+  position: relative;
+}

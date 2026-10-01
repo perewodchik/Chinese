@@ -1,0 +1,120 @@
+[
+ {
+  "kind": "door",
+  "id": "gate",
+  "tile": [
+   9,
+   13
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    34,
+    17
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "plaque",
+  "tile": [
+   8,
+   4
+  ],
+  "text": "茅盾故居",
+  "en": "Mao Dun's Former Residence — the writer's home from 1974 to 1981"
+ },
+ {
+  "kind": "door",
+  "id": "study",
+  "tile": [
+   9,
+   4
+  ],
+  "to": {
+   "map": "maodun",
+   "tile": [
+    9,
+    5
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "His study and sitting room, as he left them: books to the ceiling, a desk, his pens and glasses."
+ },
+ {
+  "kind": "prop",
+  "id": "bust",
+  "tile": [
+   9,
+   8
+  ],
+  "frame": "bust/marble",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bookcase",
+  "tile": [
+   2,
+   5
+  ],
+  "frame": "bookcase/wood",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree",
+  "tile": [
+   15,
+   9
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   5,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "guide",
+  "npc": "md-yeye",
+  "tile": [
+   6,
+   9
+  ],
+  "facing": "right"
+ },
+ {
+  "kind": "sign",
+  "id": "bust-sign",
+  "tile": [
+   9,
+   8
+  ],
+  "text": "茅盾像",
+  "en": "A white marble bust of Mao Dun stands in the courtyard."
+ }
+]

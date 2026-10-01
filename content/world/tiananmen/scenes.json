@@ -728,5 +728,195 @@
     "why": "国庆节, 1 October, begins a week of holidays: the square is full from dawn, when the flag is raised."
    }
   ]
+ },
+ {
+  "id": "tam-flag-tip",
+  "map": "tiananmen-square",
+  "npc": "tam-photographer",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "not": {
+    "flag": "tam-flag-seen"
+   }
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "升国旗",
+    "explain": "把国旗慢慢地送到上面。",
+    "en": "raise the national flag"
+   },
+   {
+    "w": "国旗",
+    "explain": "一个国家的旗子。",
+    "en": "national flag"
+   },
+   {
+    "w": "太阳",
+    "explain": "天上很热、很亮的东西。白天有，晚上没有。",
+    "en": "the sun"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你是第一次来天安门吗？",
+    "translate": "Hello! Is this your first time at Tiananmen?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "是",
+        "对",
+        "第一次",
+        "不是"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "是",
+     "frame": "___，我第一次来。",
+     "full": "是，我第一次来。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "那你要来看升国旗！天天早上，太阳出来的时候，这里升国旗。",
+    "translate": "Then come and see the flag go up! Every morning, when the sun comes up, they raise the flag here.",
+    "key": true,
+    "simpler": "早上来看升国旗！",
+    "next": "c",
+    "why": "A key line 📌: 升国旗 — to raise the national flag; 太阳出来的时候 — when the sun comes up."
+   },
+   {
+    "id": "c",
+    "say": "太阳出来的时候，很多人来这里看。",
+    "translate": "When the sun comes up, lots of people come here to watch.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-flag",
+      "step": "dawn"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "tam-dawn",
+  "map": "tiananmen-square",
+  "trigger": "auto",
+  "once": true,
+  "priority": -10,
+  "when": {
+   "all": [
+    {
+     "hours": [
+      5,
+      11
+     ]
+    },
+    {
+     "not": {
+      "flag": "tam-flag-seen"
+     }
+    },
+    {
+     "scene": "tam-arrive"
+    }
+   ]
+  },
+  "start": "a",
+  "nodes": [
+   {
+    "id": "a",
+    "speaker": "hero",
+    "say": "早上的天安门！人很多！",
+    "translate": "Tiananmen in the morning! So many people!",
+    "onEnter": [
+     {
+      "do": "cutscene",
+      "id": "tam-flag"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "tam-flag-after",
+  "map": "tiananmen-square",
+  "npc": "tam-photographer",
+  "trigger": "talk",
+  "once": true,
+  "priority": 0,
+  "when": {
+   "all": [
+    {
+     "flag": "tam-flag-seen"
+    },
+    {
+     "not": {
+      "scene": "tam-flag-tip"
+     }
+    }
+   ]
+  },
+  "start": "a",
+  "words": [
+   {
+    "w": "升国旗",
+    "explain": "把国旗慢慢地送到上面。",
+    "en": "raise the national flag"
+   },
+   {
+    "w": "国旗",
+    "explain": "一个国家的旗子。",
+    "en": "national flag"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "早上你来看升国旗了吗？",
+    "translate": "Did you come to see the flag go up this morning?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "看了",
+        "来了",
+        "是",
+        "对",
+        "看"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "看了",
+     "frame": "我___！",
+     "full": "我看了！"
+    }
+   },
+   {
+    "id": "b",
+    "say": "太好了！国旗很好看吧？很多人天天来看升国旗。",
+    "translate": "Great! The flag looks wonderful, doesn't it? Lots of people come to see it every day.",
+    "onEnter": [
+     {
+      "do": "quest",
+      "quest": "side-flag",
+      "step": "dawn"
+     }
+    ]
+   }
+  ]
  }
 ]

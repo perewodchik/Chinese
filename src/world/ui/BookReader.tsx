@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ENGLISH_KEY, glossesByPage, openAt, pageCount, shelfRows, TODAY_HEAD, todayText, type Book } from '../core/books';
+import { souvenirs, type PlaceCard } from '../core/cards';
 import type { SaveAction } from '../core/save';
 import type { WorldSave } from '../core/types';
 import { playLine } from './lineVoice';
@@ -200,7 +201,10 @@ export function Books({ save, books, onOpen }: { save: WorldSave; books: readonl
 }
 
 /** The 书架 in your room (§13 B1): the same shelf in a sheet of its own. */
-export function BookShelf({ save, books, onOpen, onClose }: { save: WorldSave; books: readonly Book[]; onOpen: (id: string) => void; onClose: () => void }) {
+export function BookShelf({ save, books, cards = [], onOpen, onClose }: { save: WorldSave; books: readonly Book[]; cards?: readonly PlaceCard[]; onOpen: (id: string) => void; onClose: () => void }) {
+  const [card, setCard] = useState<string | null>(null);
+  const shelf = souvenirs(save, cards);
+  const open = shelf.find((x) => x.state.card.id === card);
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', esc);
@@ -221,8 +225,60 @@ export function BookShelf({ save, books, onOpen, onClose }: { save: WorldSave; b
           </button>
         </header>
         <div className="bk-case-body">
+          {shelf.length > 0 && (
+            <>
+              <h3 className="wp-label">
+                <span className="han">纪念品</span> · souvenirs {shelf.filter((x) => x.got).length} / {shelf.length}
+              </h3>
+              <p className="tiny muted">Fill a place's card (收藏 → 地方) and its souvenir comes home to this shelf.</p>
+              <ul className="bk-souvenirs">
+                {shelf.map(({ state: st, got }) => (
+                  <li key={st.card.id}>
+                    <button type="button" className="bk-souvenir" data-got={got ? '' : undefined} onClick={() => setCard(st.card.id)} aria-label={got ? st.card.souvenir!.en : `${st.card.en}: ${st.open.length} of ${st.card.facts.length}`}>
+                      <span className="bk-souvenir-art">{got ? <FitSprite frame={st.card.souvenir!.frame} box={48} /> : <span className="han">?</span>}</span>
+                      <b className="han tiny">{got ? st.card.souvenir!.zh : st.card.zh}</b>
+                      {!got && (
+                        <span className="tiny muted">
+                          {st.open.length} / {st.card.facts.length}
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <h3 className="wp-label">
+                <span className="han">书</span> · books
+              </h3>
+            </>
+          )}
           <Books save={save} books={books} onOpen={onOpen} />
         </div>
+        {open && (
+          <div className="bk-souvenir-card" role="dialog" aria-label={open.state.card.en}>
+            <header className="w-sheet-head">
+              <b className="han">{open.state.card.zh}</b> <span className="small">{open.state.card.pinyin}</span>
+              <span className="spacer" />
+              <button type="button" className="wd-tool" onClick={() => setCard(null)} aria-label="Close">
+                ×
+              </button>
+            </header>
+            <p className="small">{open.got ? `${open.state.card.souvenir!.zh} — ${open.state.card.souvenir!.en}.` : 'Its souvenir comes home when the card is full.'}</p>
+            <ol className="cl-facts">
+              {open.state.card.facts.map((f) =>
+                open.state.open.includes(f) ? (
+                  <li key={f.id} data-open="">
+                    <ZhText zh={f.zh} pinyin={save.settings.pinyin} className="wd-zh wp-zh" />
+                    <span className="small muted">{f.en}</span>
+                  </li>
+                ) : (
+                  <li key={f.id}>
+                    <span className="small">Not yet — {f.how}</span>
+                  </li>
+                ),
+              )}
+            </ol>
+          </div>
+        )}
       </section>
     </div>
   );

@@ -85,6 +85,14 @@
    "yonghegong-street"
   ]
  },
+ "dongmianhua": {
+  "district": "gulou",
+  "width": 32,
+  "height": 12,
+  "links": [
+   "nanluo-main"
+  ]
+ },
  "dongyuemiao": {
   "district": "xianghuo",
   "width": 34,
@@ -225,6 +233,14 @@
    "taihedian"
   ]
  },
+ "juer": {
+  "district": "gulou",
+  "width": 20,
+  "height": 14,
+  "links": [
+   "nanluo-main"
+  ]
+ },
  "kongmiao": {
   "district": "yonghegong",
   "width": 32,
@@ -241,15 +257,27 @@
    "nanluo-main"
   ]
  },
+ "maodun": {
+  "district": "gulou",
+  "width": 20,
+  "height": 14,
+  "links": [
+   "nanluo-main"
+  ]
+ },
  "nanluo-main": {
   "district": "gulou",
-  "width": 22,
-  "height": 60,
+  "width": 40,
+  "height": 64,
   "links": [
    "chaguan",
+   "dongmianhua",
    "gulou-dongdajie",
    "hutong-home",
+   "juer",
    "lifadian",
+   "maodun",
+   "qibaishi",
    "subway-lane",
    "xiaomaibu",
    "zaodian"
@@ -296,6 +324,14 @@
   "links": [
    "taihedian",
    "yuhuayuan"
+  ]
+ },
+ "qibaishi": {
+  "district": "gulou",
+  "width": 20,
+  "height": 14,
+  "links": [
+   "nanluo-main"
   ]
  },
  "qiniandian": {
@@ -529,8 +565,8 @@
  },
  "tiananmen-square": {
   "district": "tiananmen",
-  "width": 39,
-  "height": 30,
+  "width": 48,
+  "height": 66,
   "links": [
    "station-tiananmendong",
    "wumen"

@@ -31,6 +31,8 @@ import { say } from '../../platform/audio/voiceOut';
 import { moodFor } from '../../world/audio/music';
 import type { MapLife } from '../../world/core/maptext';
 import { fareOut, stopMap } from '../../world/core/ride';
+import { HUTONG_SIGNS, hutongsRead, readHutongSign } from '../../world/core/hutongs';
+import type { PlaceCard } from '../../world/core/cards';
 import { rideKey, type Mode } from '../../world/core/travel';
 import { Joystick } from '../../world/ui/Joystick';
 import { Panels } from '../../world/ui/Panels';
@@ -74,7 +76,7 @@ import { hoodOf } from '../../world/core/hoods';
 import { bedScene, canWaitHere, sleepTarget } from '../../world/core/rest';
 import { isAway, recapOf, wordsOfScene, type Recap } from '../../world/core/recap';
 import { RecapCard } from '../../world/ui/Recap';
-import { holds } from '../../world/core/flags';
+import { holds, readFlag } from '../../world/core/flags';
 import type { RunningCutscene } from '../../world/engine/cutscene';
 import { stamped } from '../../world/ui/stamped';
 
@@ -614,7 +616,17 @@ export function WorldPage() {
             } else if (isMachine(o)) {
               // every station's ticket machine sells and tops up the 交通卡
               talkRef.current.start(machineScene(s, o.id), null, 'sign', s, '售票机 · Ticket machine');
+            } else if (o.kind === 'sign' && HUTONG_SIGNS.includes(o.id) && s.place.map === 'nanluo-main') {
+              // MH2: the sixteen lanes' names, collected by reading them (the sixteenth gives 蜈蚣巷)
+              const acts = readHutongSign(s, o.id);
+              const after = acts.length ? game.dispatch(acts, 'important') : s;
+              const n = after ? hutongsRead(after) : hutongsRead(s);
+              const en = `${o.en ?? ''} · ${n} of 16 lanes read${n === 16 ? ' — 南锣鼓巷 has eight 胡同 each side, like a centipede’s legs: people call it 蜈蚣巷.' : ''}`;
+              talkRef.current.start(signScene({ ...o, en }), null, 'sign', s, o.text);
             } else if (o.kind === 'sign') {
+              // RW2: a sign read is remembered (place cards open facts by it)
+              const flag = readFlag(`${s.place.map}:${o.id}`);
+              if (!s.flags.includes(flag)) game.dispatch([{ do: 'flag', flag }]);
               talkRef.current.start(signScene(o), null, 'sign', s, o.en ?? 'A sign');
             } else if (o.kind === 'bike' && o.id === 'my-bike') {
               // §13 L2: your own bike, parked here — get on
@@ -1432,7 +1444,7 @@ export function WorldPage() {
           onClose={() => setWardrobe(false)}
         />
       )}
-      {shelfOpen && game.save && <BookShelf save={game.save} books={content.books} onOpen={setReading} onClose={() => setShelfOpen(false)} />}
+      {shelfOpen && game.save && <BookShelf save={game.save} books={content.books} cards={byChapter(content)} onOpen={setReading} onClose={() => setShelfOpen(false)} />}
       {newBook && game.save && !talk.view && !cut && !reading && (() => {
         const b = content.books.find((x) => x.id === newBook);
         if (!b) return null;
@@ -1540,3 +1552,8 @@ export function WorldPage() {
   );
 }
 
+/** RW5: the place cards in story order (the chapter of each card's district), for the shelf */
+function byChapter(c: { cards: readonly PlaceCard[]; districts: ReadonlyArray<{ district: { maps: string[]; chapter: number } }> }): PlaceCard[] {
+  const chapterOf = new Map(c.districts.flatMap((d) => d.district.maps.map((m) => [m, d.district.chapter] as const)));
+  return [...c.cards].sort((a, b) => (chapterOf.get(a.map) ?? 99) - (chapterOf.get(b.map) ?? 99));
+}

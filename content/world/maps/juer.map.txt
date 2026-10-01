@@ -1,0 +1,37 @@
+id: juer
+size: 20x14
+tilesets: tiles
+district: gulou
+pigeons: 3
+# 菊儿胡同's new courtyards: two-storey houses round a shared yard, washing, bikes, a 槐树 — homes, not a museum
+
+[ground]
+pppppppppppppppppppp
+pppppppppppppppppppp
+pppppppppppppppppppp
+pppppppppppppppppppp
+pppppppppppppppppppp
+ppPppppppPppppppPppp
+pPppppppPppppppPpppp
+PppppppPppppppPppppp
+ppppppPppppppPpppppp
+pppppPppppppPppppppP
+ppppPppppppPppppppPp
+pppPppppppPppppppPpp
+ppPppppppPppppppPppp
+pppppppppppppppppppp
+[below]
+XXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeee
+onoonoonooonoonoonoo
+OOOOOOOOOOOOOOOOOOOO
+bnbbdbbnbbbnbbdbbnbb
+BBBBDBBBBBBBBBDBBBBB
+T..................T
+T..................T
+T..................T
+T..................T
+T..................T
+T..................T
+TTTTTTTTT.TTTTTTTTTT

@@ -1,0 +1,45 @@
+[
+ {
+  "id": "card-olympic",
+  "map": "olympic-park",
+  "zh": "奥林匹克公园",
+  "pinyin": "Àolínpǐkè gōngyuán",
+  "en": "The Olympic Park",
+  "words": [
+   {
+    "w": "鸟巢",
+    "en": "the Bird's Nest"
+   },
+   {
+    "w": "冰立方",
+    "en": "the Ice Cube"
+   },
+   {
+    "w": "奥运会",
+    "en": "the Olympic Games"
+   }
+  ],
+  "facts": [
+   {
+    "id": "double",
+    "zh": "北京有过两次奥运会，都在鸟巢开始。",
+    "en": "Beijing is the first city to host both the Summer (2008) and Winter (2022) Olympics.",
+    "fact": "olympics-double",
+    "open": {
+     "read": "olympic-park:nest-name"
+    },
+    "how": "Read the Bird's Nest's sign."
+   },
+   {
+    "id": "cube",
+    "zh": "二零二二年，水立方叫“冰立方”。",
+    "en": "The Water Cube became the 'Ice Cube' for curling in 2022.",
+    "fact": "olympics-double",
+    "open": {
+     "read": "olympic-park:cube-name"
+    },
+    "how": "Read the Water Cube's sign."
+   }
+  ]
+ }
+]

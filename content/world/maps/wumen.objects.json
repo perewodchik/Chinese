@@ -35,7 +35,7 @@
   "to": {
    "map": "tiananmen-square",
    "tile": [
-    19,
+    24,
     17
    ],
    "facing": "down"

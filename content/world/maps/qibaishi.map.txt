@@ -1,0 +1,37 @@
+id: qibaishi
+size: 20x14
+tilesets: tiles
+district: gulou
+pigeons: 2
+# 齐白石旧居 on 雨儿胡同: the painter's last home — the north hall as he kept it, two side rooms with shows, a 槐树
+
+[ground]
+pppppppppppppppppppp
+pppppppppppppppppppp
+pppppppppppppppppppp
+pppppppppppppppppppp
+pppppppppppppppppppp
+ppPppppppPppppppPppp
+pPppppppPppppppPpppp
+PppppppPppppppPppppp
+ppppppPppppppPpppppp
+pppppPppppppPppppppP
+ppppPppppppPppppppPp
+pppPppppppPppppppPpp
+ppPppppppPppppppPppp
+pppppppppppppppppppp
+[below]
+XXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeee
+bnbbnbbbbdbbbbnbbnbb
+BBBBBBBBBDBBBBBBBBBB
+T..................T
+T..................T
+Tb................bT
+TB................BT
+T..................T
+T..................T
+T..................T
+T..................T
+TTTTTTTTT.TTTTTTTTTT

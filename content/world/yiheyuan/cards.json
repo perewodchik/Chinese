@@ -1,0 +1,45 @@
+[
+ {
+  "id": "card-changlang",
+  "map": "yiheyuan-changlang",
+  "zh": "长廊",
+  "pinyin": "Chángláng",
+  "en": "The Long Corridor",
+  "words": [
+   {
+    "w": "画",
+    "en": "painting"
+   },
+   {
+    "w": "故事",
+    "en": "story"
+   },
+   {
+    "w": "长",
+    "en": "long"
+   }
+  ],
+  "facts": [
+   {
+    "id": "long",
+    "zh": "长廊很长，有七百多米。",
+    "en": "The Long Corridor is 728 m long.",
+    "fact": "changlang-paintings",
+    "open": {
+     "read": "yiheyuan-changlang:name"
+    },
+    "how": "Read the corridor's name."
+   },
+   {
+    "id": "paintings",
+    "zh": "长廊上有一万多张画，很多是老故事。",
+    "en": "It has more than 14,000 paintings, many of them scenes from old stories.",
+    "fact": "changlang-paintings",
+    "open": {
+     "read": "yiheyuan-changlang:painting-1"
+    },
+    "how": "Look at a painting."
+   }
+  ]
+ }
+]

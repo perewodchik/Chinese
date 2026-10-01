@@ -44,6 +44,11 @@ export function holds(c: Condition | undefined, s: WorldSave): boolean {
   if ('daily' in c) return s.daily[c.daily] === dayOf(s.clock);
   if ('fresh' in c) return (s.npcs[c.fresh]?.talk ?? 0) !== dayOf(s.clock);
   if ('bike' in c) return c.bike === 'none' ? !s.bike : c.bike === 'owned' ? !!s.bike : c.bike === 'riding' ? s.bike?.at === 'riding' : s.bike?.flat !== undefined;
+  if ('visited' in c) return (s.visited ?? []).includes(c.visited) || s.place.map === c.visited;
+  if ('read' in c) return s.flags.includes(readFlag(c.read));
   if ('cat' in c) return c.cat === 'named' ? !!s.cat.name : c.cat === 'trusts' ? s.cat.fed >= CAT_TRUST_DAYS : s.cat.day === dayOf(s.clock);
   return false;
 }
+
+/** RW2: the flag that remembers a sign was read (`<map>:<sign id>`) */
+export const readFlag = (sign: string) => `read:${sign}`;

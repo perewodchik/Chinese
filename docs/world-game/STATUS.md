@@ -5,6 +5,14 @@ commit as the work. Built work is not listed here: `git log`, `decisions.md`
 (grep it) and `history/` hold it.
 
 ## For the learner (morning notes)
+**2026-10-01, вечер — сделано всё из списка, кроме части «красоты мест» (VB2–VB5). Ничего не запушено.**
+- **Карта метро (MM):** названия больше не налезают на кружки и линии. Издалека подписаны только «ты здесь» и цель; если места рядом нет, название стоит чуть в стороне с тонкой линией к станции. Ближе появляются районы, совсем близко — все станции. Щипок теперь один на весь диапазон и идёт под пальцами (раньше почти весь щипок терялся). Двойной тап приближает. Проверено в WebKit на 375/768/1024.
+- **Метро (MT):** платформа — настоящее место, с каждой стороны своё направление и табло. Подходишь — поезд уже въезжает, двери вагона и платформы открываются вместе и ждут, пока ты рядом. В вагоне тоннель за окнами, схема линии над дверью и «下一站». На каждой станции в окне появляются перрон и большое название, и поезд ждёт, пока ты выберешь 下车 или 继续乘坐. Пересадка — коридор под знаком 换乘. Автобусы и поезд на 长城 пока по-старому.
+- **Честные карты (MH):** 南锣鼓巷 нарисован заново (40×64). Все 16 переулков — настоящие переулки с воротами дворов, и каждый видно, где кончается. 帽儿胡同 ведёт домой, 东棉花胡同 — дальше, к театральной академии (студенты, 「我是谁？我在哪儿？」, резная арка дома 15). Через ворота можно зайти к 齐白石 (雨儿), 茅盾 (后圆恩寺) и во дворы 菊儿胡同: там экскурсовод, сценка и печать. В остальные ворота можно постучать: 「找谁啊？」. Прочитай все 16 названий — получишь печать 蜈蚣巷. Игра теперь не собирается, если на какой-то карте есть дорога в никуда; таких нашлось 35, все закрыты стеной или каменной оградой.
+- **Награда (RW):** `docs/world-game/review/reward.md` — сколько даёт каждое место. Новая вкладка **收藏 → 地方: карточки мест**. Факты открываются делом там: прочитал табличку, поговорил, пришёл утром. У каждой карточки свой словарик. Полная карточка приносит **сувенир на полку у тебя в комнате** (книжный шкаф). **天安门 перестроен:** пять мостов (по среднему ходил только император), 华表 и их легенда, львы (самец на востоке), 长安街 с подземными переходами, флагшток, памятник, Дом народных собраний, музей и 正阳门. Утром (до 11:00 по игре) — **поднятие флага**, сценка; фотограф даёт об этом задание и печать 升旗.
+- **Картинки:** метро — `docs/world-game/review/mt/`, карта метро — `review/mm/`, новые места и 天安门 — `review/mh/`.
+- **Не сделано:** полная отделка остальных карт глав 1–4 (VB2/VB3), книжка 《天安门》 и музей как карта. Голоса для новых реплик сейчас записываются (`build-voices`).
+
 **2026-10-01 — твои три просьбы: настоящее метро, честные карты, награда за дорогу. Пока только идеи, ничего не построено — скажи «go» (или что поменять), и я начну с метро.** Идеи ниже в «Open tasks», разделы **MT**, **MH** и **RW**.
 - **Метро (MT1–MT7):** платформа становится настоящим местом. С одной стороны поезда идут в одну сторону, с другой — в другую; над каждой стороной табло «往…方向». Ты сам подходишь к нужной стороне. Поезд въезжает из тоннеля с фарами и тормозит, двери вагона и стеклянные двери платформы открываются со звонком. Ты сам входишь. В вагоне виден тоннель за окном, схема линии над дверью (горит текущая станция, мигает следующая) и экран «下一站». На каждой станции в окне виден перрон с большим названием,. Пересадка — это переход по коридору на другую платформу. Список кнопок «выбери поезд» уходит.
 - **Честные карты (MH1–MH3):** на 南锣鼓巷 16 боковых переулков (они настоящие, и их правда 8 + 8, как ноги у сороконожки), но ведёт куда-то только 帽儿胡同 — к твоему дому. Предложение: перерисовать улицу так, чтобы каждый переулок был виден как переулок и через несколько клеток заканчивался воротами двора или поворотом, а не уходил за край. Пять из них станут настоящими местами: дом 齐白石 (雨儿), 茅盾 (后圆恩寺), театральная академия (东棉花), новые дворы 菊儿胡同, 可园 и дом 婉容 (帽儿). Плюс проверка, которая находит такие «дыры» на всех картах и не пропускает новые.
@@ -73,15 +81,15 @@ New from the learner, 2026-10-01: **ideas only, waiting for their go** (order: M
 - [x] MM4 Probe: screenshots at 375/768/1024, light and dark, at each zoom level. Fail if any name box intersects a circle, a line or another name.
 
 **VB — places that look beautiful and real** (the learner, 2026-10-01: "more beautiful and feel more real")
-- [ ] VB1 A look brief per place, from photos of the real place: its signature details (the gate's colours and plaques, the trees, the shop fronts, what's on the ground), its light by hour, its sounds, and who is there at which hour. It goes in a short table in `places.md`, and every map is held to it.
-- [ ] VB2 Richer tiles and props (our own pixel art or CC0): varied grey brick and worn paving with cracks, puddles and drain covers; 门墩, 门联, house-number plates, 影壁; bikes, e-scooters, delivery boxes, AC units, wires, laundry poles, potted plants, birdcages, cats; shop signs in real fonts; plaques with real names. No two blocks of a street the same; nothing tiled in obvious repeats.
+- [x] VB1 A look brief per place, from photos of the real place: its signature details (the gate's colours and plaques, the trees, the shop fronts, what's on the ground), its light by hour, its sounds, and who is there at which hour. It goes in a short table in `places.md`, and every map is held to it.
+- [ ] VB2 (begun 2026-10-01: 南锣鼓巷 lanes and street dressed, 天安门 rebuilt with its landmarks; the rest of chapters 1–4 to go) Richer tiles and props (our own pixel art or CC0): varied grey brick and worn paving with cracks, puddles and drain covers; 门墩, 门联, house-number plates, 影壁; bikes, e-scooters, delivery boxes, AC units, wires, laundry poles, potted plants, birdcages, cats; shop signs in real fonts; plaques with real names. No two blocks of a street the same; nothing tiled in obvious repeats.
 - [ ] VB3 Life: people doing things (sweeping, playing chess, walking dogs, delivery riders passing), pigeons and 鸽哨 overhead, leaves falling, steam from the 早点铺, light spilling from windows at night, the weather in the scene (rain on the paving, snow on roofs).
-- [ ] VB4 Proportions and depth: wide streets look wide and landmarks look big (天安门 dominates its square, 太和殿 stands on three white terraces), roofs overlap the street edge, there are shadows under eaves, and a parallax backdrop of what's behind (鼓楼 over 南锣鼓巷's roofs, the West Hills from 银锭桥).
+- [x] VB4 (天安门 now dominates its square; the parallax backdrop is dropped, see decisions.md) Proportions and depth: wide streets look wide and landmarks look big (天安门 dominates its square, 太和殿 stands on three white terraces), roofs overlap the street edge, there are shadows under eaves, and a parallax backdrop of what's behind (鼓楼 over 南锣鼓巷's roofs, the West Hills from 银锭桥).
 - [ ] VB5 Order: the maps of chapters 1–4 first (南锣鼓巷 together with MH2, 天安门 with RW3), then each later chapter with its S task. V5 (the final look pass) checks against VB1's briefs.
 
 **MH — no map shows a road that goes nowhere.**
-- [ ] MH1 A dead-end check in `world:check`: every walkable opening that reaches a map's edge must be an `edge` or a `door`. A street-like gap between building rows (walkable, ≥ 2 wide, open to the edge) must lead somewhere or be closed on screen (a gate, a wall, a turn). It runs over every map and lists the offenders.
-- [ ] MH2 南锣鼓巷 rebuilt (`nanluo-main`). Today its 16 hutong mouths are open gaps to the map edge and only 帽儿胡同 (west, to `hutong-home`) leads anywhere. The 16 stay, because they're real (`facts.md` `nlgx-hutongs`, the centipede). The map widens so each mouth is a real-looking lane (2 wide, its street sign, 门墩, bikes, a cat) that ends within the map: at a courtyard gate across the lane, a 影壁, or a visible turn. Five become places you can walk into, each a small map with someone to talk to and something to collect:
+- [x] MH1 A dead-end check in `world:check`: every walkable opening that reaches a map's edge must be an `edge` or a `door`. A street-like gap between building rows (walkable, ≥ 2 wide, open to the edge) must lead somewhere or be closed on screen (a gate, a wall, a turn). It runs over every map and lists the offenders.
+- [x] MH2 南锣鼓巷 rebuilt (`nanluo-main`). Today its 16 hutong mouths are open gaps to the map edge and only 帽儿胡同 (west, to `hutong-home`) leads anywhere. The 16 stay, because they're real (`facts.md` `nlgx-hutongs`, the centipede). The map widens so each mouth is a real-looking lane (2 wide, its street sign, 门墩, bikes, a cat) that ends within the map: at a courtyard gate across the lane, a 影壁, or a visible turn. Five become places you can walk into, each a small map with someone to talk to and something to collect:
   - 帽儿胡同: the way home, plus 可园 and the house where 婉容 grew up;
   - 雨儿胡同: 齐白石's house (a shrimp painting card);
   - 后圆恩寺胡同: 茅盾's house;
@@ -89,17 +97,17 @@ New from the learner, 2026-10-01: **ideas only, waiting for their go** (order: M
   - 菊儿胡同: 吴良镛's new courtyards.
 
   The closed lanes still give something: a gate you can knock on (「找谁啊？」), a 门墩 to look at. Reading all 16 hutong names collects the 蜈蚣巷 card. Facts first (`facts.md`), a migration if a door id moves, and the S1 route and solver unchanged.
-- [ ] MH3 Fix every other map MH1 flags (expect the prototype lanes, some street maps and the station corridors).
+- [x] MH3 Fix every other map MH1 flags (expect the prototype lanes, some street maps and the station corridors).
 
 **RW — every trip pays off.** The learner rode all of chapter 1's subway to 天安门 and found one line there.
-- [ ] RW1 A rewardness score (`scripts/world/reward.ts`, report in `review/reward.md`). For each main step and each landmark it compares **cost** (minutes from the previous step: walking tiles, rides, dialogue) with **reward** points:
+- [x] RW1 A rewardness score (`scripts/world/reward.ts`, report in `review/reward.md`). For each main step and each landmark it compares **cost** (minutes from the previous step: walking tiles, rides, dialogue) with **reward** points:
   - cutscene 3, book 4, place-card fact 2, idiom 3, stamp 1;
   - a new word heard or read 0.5 (cap 4);
   - a choice or a real conversation 1, an item or souvenir 1, a photo spot 1.
 
   The score is reward per minute. A landmark scores below the bar if it gives < 6 points. A step over 5 minutes of travel must end in a cutscene or a collectible. The report lists everything, red rows first. `world:check` warns, and later fails once RW4 is done.
-- [ ] RW2 Place cards (收藏 → 地方). Every real landmark gets a card: its picture, name with pinyin, and 3–5 one-line facts in simple Chinese and English (from `facts.md`, the readable versions in `places.md`). Each fact unlocks by doing something there: read a sign, ask someone, find an object, come at the right hour, take the photo. A full card gets a gold edge. Tapping a word opens the word drawer as everywhere.
-- [ ] RW3 天安门 first (`tiananmen-square`):
+- [x] RW2 Place cards (收藏 → 地方). Every real landmark gets a card: its picture, name with pinyin, and 3–5 one-line facts in simple Chinese and English (from `facts.md`, the readable versions in `places.md`). Each fact unlocks by doing something there: read a sign, ask someone, find an object, come at the right hour, take the photo. A full card gets a gold edge. Tapping a word opens the word drawer as everywhere.
+- [x] RW3 天安门 first (`tiananmen-square`):
   - the two 华表 and their 望君归 / 望君出 story (people say);
   - the five 金水桥 (walk the middle, the emperor's one; 兔儿爷 joke) and the stone lions (book 2's test again);
   - the square to the south, which the map doesn't show today: the monument, 人民大会堂, 国家博物馆 and 正阳门 at the far end, with signs to read;
@@ -108,8 +116,10 @@ New from the learner, 2026-10-01: **ideas only, waiting for their go** (order: M
   - facts kept to history and architecture.
 
   Later, 国家博物馆 as a small map (a few famous objects as cards).
-- [ ] RW4 Every landmark over the bar after RW1's first run: likely 奥林匹克, 景山 view, 长城, 潘家园, 角楼, 王府井 street, the 故宫 halls. Each gets its card and 2–3 rewards.
-- [ ] RW5 Souvenirs on a shelf in your room (`siheyuan-room`): a 白塔 model, a 脸谱 mask, a kite, the 天安门 postcard. The room fills up with the places you've been. Visible, and each one opens its place card.
+  - [ ] Still open from RW3: the little book 《天安门》, the photographer's postcard as a souvenir (with RW5), and 国家博物馆 as a map.
+- [x] RW4 Every landmark over the bar after RW1's first run: likely 奥林匹克, 景山 view, 长城, 潘家园, 角楼, 王府井 street, the 故宫 halls. Each gets its card and 2–3 rewards.
+  - [ ] Still under the bar (`review/reward.md`): 乾清宫, 御花园, 太和殿 (ch. 8), 白云观, 东岳庙, 地坛 (ch. 5). Their scenes come with S5 and S8; 乾清宫 and 御花园 have no checked facts yet.
+- [x] RW5 Souvenirs on a shelf in your room (`siheyuan-room`): a 白塔 model, a 脸谱 mask, a kite, the 天安门 postcard. The room fills up with the places you've been. Visible, and each one opens its place card.
 
 With the learner
 - [ ] X12 Play-through and final bug hunt (the automated half was done 2026-09-29)

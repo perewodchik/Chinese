@@ -9977,5 +9977,503 @@
     ]
    }
   ]
+ },
+ {
+  "id": "qbs-tour",
+  "map": "qibaishi",
+  "npc": "qbs-guide",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "stamp": "qibaishi",
+  "start": "a",
+  "words": [
+   {
+    "w": "画家",
+    "explain": "画画的人。",
+    "en": "painter"
+   },
+   {
+    "w": "虾",
+    "explain": "水里的小动物，有很多脚。",
+    "en": "shrimp"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！这是齐白石的家。齐白石是一个画家。",
+    "translate": "Hello! This is Qi Baishi's home. Qi Baishi was a painter.",
+    "expect": [
+     {
+      "intent": "ask",
+      "match": [
+       [
+        "什么",
+        "画什么",
+        "是吗",
+        "真的"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "什么",
+     "frame": "他画___？",
+     "full": "他画什么？"
+    }
+   },
+   {
+    "id": "b",
+    "say": "他最喜欢画虾。你看，这些虾，像活的一样！",
+    "translate": "What he loved most was painting shrimp. Look — these shrimp look alive!",
+    "key": true,
+    "simpler": "他很喜欢画虾。这些虾很好看！",
+    "next": "c",
+    "why": "A key line 📌: 像……一样 — 'just like…'; 活 — alive."
+   },
+   {
+    "id": "c",
+    "say": "一九五五年，这个画家住在这里。那时候他九十多岁，还天天画。",
+    "translate": "In 1955 the painter lived here. He was over ninety then, and still painted every day.",
+    "next": "d"
+   },
+   {
+    "id": "d",
+    "say": "你也想画虾吗？",
+    "translate": "Would you like to paint shrimp too?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "想",
+        "好",
+        "要",
+        "不想",
+        "不"
+       ]
+      ],
+      "go": "e"
+     }
+    ],
+    "hint": {
+     "word": "想",
+     "frame": "我___画！",
+     "full": "我想画！"
+    }
+   },
+   {
+    "id": "e",
+    "say": "好！下次你也来画。再见！",
+    "translate": "Good! Next time, come and paint too. Goodbye!"
+   }
+  ]
+ },
+ {
+  "id": "qbs-again",
+  "map": "qibaishi",
+  "npc": "qbs-guide",
+  "trigger": "talk",
+  "priority": 0,
+  "start": "a",
+  "words": [
+   {
+    "w": "虾",
+    "explain": "水里的小动物，有很多脚。",
+    "en": "shrimp"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你看，这只虾！再看那只虾！",
+    "translate": "Look at this shrimp! And look at that one!"
+   }
+  ],
+  "when": {
+   "scene": "qbs-tour"
+  }
+ },
+ {
+  "id": "md-visit",
+  "map": "maodun",
+  "npc": "md-yeye",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "stamp": "maodun",
+  "start": "a",
+  "words": [
+   {
+    "w": "作家",
+    "explain": "写书的人。",
+    "en": "writer"
+   },
+   {
+    "w": "小说",
+    "explain": "很长的故事书。",
+    "en": "novel"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！这是茅盾的家。茅盾是作家。",
+    "translate": "Hello! This is Mao Dun's home. Mao Dun was a writer.",
+    "expect": [
+     {
+      "intent": "ask",
+      "match": [
+       [
+        "什么",
+        "作家",
+        "写什么",
+        "是吗"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "什么",
+     "frame": "作家是___？",
+     "full": "作家是什么？"
+    }
+   },
+   {
+    "id": "b",
+    "say": "作家是写书的人。他写了很多小说。",
+    "translate": "A writer is someone who writes books. He wrote a lot of novels.",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "他在这里住了七年，从一九七四年到一九八一年。",
+    "translate": "He lived here for seven years, from 1974 to 1981.",
+    "next": "d"
+   },
+   {
+    "id": "d",
+    "say": "你看，这是他的桌子，他的书。你喜欢看小说吗？",
+    "translate": "Look — his desk, his books. Do you like reading novels?",
+    "expect": [
+     {
+      "intent": "answer",
+      "match": [
+       [
+        "喜欢",
+        "不喜欢",
+        "看",
+        "不"
+       ]
+      ],
+      "go": "e"
+     }
+    ],
+    "hint": {
+     "word": "喜欢",
+     "frame": "我___看小说。",
+     "full": "我喜欢看小说。"
+    }
+   },
+   {
+    "id": "e",
+    "say": "好！看书很好。作家会很高兴的！",
+    "translate": "Good! Reading is very good. The writer would be happy!"
+   }
+  ]
+ },
+ {
+  "id": "md-again",
+  "map": "maodun",
+  "npc": "md-yeye",
+  "trigger": "talk",
+  "priority": 0,
+  "start": "a",
+  "words": [
+   {
+    "w": "作家",
+    "explain": "写书的人。",
+    "en": "writer"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "这个作家，一天写很多字。他是一个好作家。",
+    "translate": "This writer wrote a great many characters a day. He was a good writer."
+   }
+  ],
+  "when": {
+   "scene": "md-visit"
+  }
+ },
+ {
+  "id": "juer-talk",
+  "map": "juer",
+  "npc": "juer-dama",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "stamp": "juer",
+  "start": "a",
+  "words": [
+   {
+    "w": "院子",
+    "explain": "房子中间的地方，可以坐，可以晒衣服。",
+    "en": "courtyard"
+   },
+   {
+    "w": "奖",
+    "explain": "做得好，别人给你的东西。",
+    "en": "award, prize"
+   },
+   {
+    "w": "房子",
+    "explain": "人住的地方。",
+    "en": "house"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "你好！你来看我们的院子吗？",
+    "translate": "Hello! Have you come to see our courtyard?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "是",
+        "对",
+        "看",
+        "嗯",
+        "看看"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "是",
+     "frame": "___，我来看看。",
+     "full": "是，我来看看。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "我小时候，这里房子很小，人很多。",
+    "translate": "When I was little, the houses here were tiny, and there were lots of people.",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "有一个先生，给我们做了新房子。我们的院子得过联合国的奖！",
+    "translate": "A gentleman made us new houses. Our courtyard won a United Nations award!",
+    "key": true,
+    "simpler": "我们的院子，有一个奖！",
+    "next": "d",
+    "why": "A key line 📌: 得奖 — to win an award. The architect was 吴良镛; the award was the UN's World Habitat Award for 1992."
+   },
+   {
+    "id": "d",
+    "say": "房子是新的，院子还在。你喜欢吗？",
+    "translate": "The houses are new, and the courtyard is still here. Do you like it?",
+    "expect": [
+     {
+      "intent": "like",
+      "match": [
+       [
+        "喜欢",
+        "好",
+        "漂亮",
+        "不错"
+       ]
+      ],
+      "go": "e"
+     }
+    ],
+    "hint": {
+     "word": "喜欢",
+     "frame": "我很___！",
+     "full": "我很喜欢！"
+    }
+   },
+   {
+    "id": "e",
+    "say": "谢谢！这个奖，也是我们大家的。",
+    "translate": "Thank you! That award belongs to all of us, too."
+   }
+  ]
+ },
+ {
+  "id": "juer-again",
+  "map": "juer",
+  "npc": "juer-dama",
+  "trigger": "talk",
+  "priority": 0,
+  "start": "a",
+  "words": [
+   {
+    "w": "院子",
+    "explain": "房子中间的地方，可以坐，可以晒衣服。",
+    "en": "courtyard"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "下午我们在院子里喝茶。院子很好，你也来吧！",
+    "translate": "In the afternoon we drink tea in the courtyard. It's lovely — come too!"
+   }
+  ],
+  "when": {
+   "scene": "juer-talk"
+  }
+ },
+ {
+  "id": "zx-scene",
+  "map": "dongmianhua",
+  "npc": "zx-xuesheng",
+  "trigger": "talk",
+  "once": true,
+  "priority": -5,
+  "stamp": "zhongxi",
+  "start": "a",
+  "words": [
+   {
+    "w": "演员",
+    "explain": "在电视里、在台上演别人的人。",
+    "en": "actor"
+   },
+   {
+    "w": "话剧",
+    "explain": "人在台上说话，演一个故事，不唱。",
+    "en": "a stage play (spoken drama)"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我……是谁？我……在哪儿？",
+    "translate": "Who… am I? Where… am I?",
+    "why": "「我是谁？我在哪儿？」 — a famous line for being completely lost; people say it as a joke.",
+    "expect": [
+     {
+      "intent": "help",
+      "match": [
+       [
+        "这是",
+        "你是",
+        "东棉花胡同",
+        "南锣鼓巷",
+        "北京",
+        "学生",
+        "中戏"
+       ]
+      ],
+      "go": "b"
+     }
+    ],
+    "hint": {
+     "word": "你是",
+     "frame": "你是___。",
+     "full": "你是学生。"
+    }
+   },
+   {
+    "id": "b",
+    "say": "谢谢！我是学生，我在学做演员。",
+    "translate": "Thanks! I'm a student — I'm learning to be an actor.",
+    "next": "c"
+   },
+   {
+    "id": "c",
+    "say": "这是我们的学校。我们演话剧：说话，不唱。",
+    "translate": "This is our school — the Central Academy of Drama. We do stage plays: talking, no singing.",
+    "key": true,
+    "simpler": "我们演话剧。",
+    "next": "d",
+    "why": "A key line 📌: 演 — to act; 话剧 — spoken drama (京剧 is the sung kind)."
+   },
+   {
+    "id": "d",
+    "say": "你想看我们的话剧吗？",
+    "translate": "Would you like to see our play?",
+    "expect": [
+     {
+      "intent": "yes",
+      "match": [
+       [
+        "想",
+        "好",
+        "要",
+        "看"
+       ]
+      ],
+      "go": "e"
+     }
+    ],
+    "hint": {
+     "word": "想",
+     "frame": "我___看！",
+     "full": "我想看！"
+    }
+   },
+   {
+    "id": "e",
+    "say": "好！我们会是很好的演员！再见！",
+    "translate": "Great! We're going to be very good actors! Bye!"
+   }
+  ]
+ },
+ {
+  "id": "zx-again",
+  "map": "dongmianhua",
+  "npc": "zx-xuesheng",
+  "trigger": "talk",
+  "priority": 0,
+  "start": "a",
+  "words": [
+   {
+    "w": "演员",
+    "explain": "在电视里、在台上演别人的人。",
+    "en": "actor"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "我是谁？……我是演员！一个好演员！",
+    "translate": "Who am I? …I'm an actor! A good actor!"
+   }
+  ],
+  "when": {
+   "scene": "zx-scene"
+  }
+ },
+ {
+  "id": "zx-partner",
+  "map": "dongmianhua",
+  "npc": "zx-xuesheng-2",
+  "trigger": "talk",
+  "priority": -20,
+  "start": "a",
+  "words": [
+   {
+    "w": "演员",
+    "explain": "在电视里、在台上演别人的人。",
+    "en": "actor"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "a",
+    "say": "他是演员，好演员！他天天说“我是谁”。",
+    "translate": "He's an actor — a good one! Every day he says 'Who am I?'."
+   }
+  ]
  }
 ]

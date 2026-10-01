@@ -3,6 +3,8 @@ import { useLibrary } from '../../features/shared/library';
 import { libraryLexicon } from '../core/dialogue/lexicon';
 import { dayOf } from '../core/clock';
 import { directions } from '../core/journal';
+import { cardState, factsOpen, type CardState } from '../core/cards';
+import { miniUrl } from './HoodPlan';
 import { bestTeacher, buildRound, canPractise, isRight, PERFECT_FLAG, PRACTISE_MIN, QUESTION_KINDS, type Question } from '../core/practise';
 import type { SaveAction } from '../core/save';
 import type { InputMode, Spirit, WorldSave } from '../core/types';
@@ -623,6 +625,110 @@ function StampSheet({ save, x, onClose, onShowRoute }: { save: WorldSave; x: Pas
           )}
           {dir?.kind === 'ride' && (
             <button type="button" className="btn sm cl-show" onClick={() => onShowRoute({ legs: dir.legs, to })}>
+              Show on map
+            </button>
+          )}
+        </>
+      )}
+    </Sheet>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 地方 — place cards (RW2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Every landmark's card: its picture, its name, and facts that open as you look around there.
+ * A closed fact says how to open it (help is free); a full card has a gold edge.
+ */
+export function Places({ save, content, pinyin, onShowRoute }: { save: WorldSave; content: WorldContent; pinyin: boolean; onShowRoute: (r: RouteRequest) => void }) {
+  const [open, setOpen] = useState<string | null>(null);
+  // in story order: by the chapter of the district each card's place is in
+  const chapterOf = new Map(content.districts.flatMap((d) => d.district.maps.map((m) => [m, d.district.chapter] as const)));
+  const rows = [...content.cards].sort((a, b) => (chapterOf.get(a.map) ?? 99) - (chapterOf.get(b.map) ?? 99)).map((c) => cardState(save, c));
+  if (!rows.length) return <CollectionEmpty han="地">The places you visit get their cards here.</CollectionEmpty>;
+  const n = factsOpen(save, content.cards);
+  const full = rows.filter((r) => r.full).length;
+  const cur = rows.find((r) => r.card.id === open);
+  return (
+    <>
+      <p className="cl-count small muted">
+        <b>{n.open}</b> / {n.total} facts · {full} {full === 1 ? 'card' : 'cards'} full
+      </p>
+      <ul className="cl-places">
+        {rows.map((r) => (
+          <li key={r.card.id}>
+            <button type="button" className="cl-place" data-full={r.full ? '' : undefined} data-missing={r.found ? undefined : ''} onClick={() => setOpen(r.card.id)} aria-label={`${r.card.en}: ${r.open.length} of ${r.card.facts.length} facts`}>
+              <span className="cl-place-pic">
+                <img src={miniUrl(r.card.map)} alt="" width={96} height={64} onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
+              </span>
+              <b className="han cl-place-name">{r.card.zh}</b>
+              <span className="tiny muted cl-one">{r.card.en}</span>
+              <span className="cl-place-dots" aria-hidden>
+                {r.card.facts.map((f) => (
+                  <i key={f.id} data-open={r.open.includes(f) ? '' : undefined} />
+                ))}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      {cur && <PlaceSheet save={save} st={cur} pinyin={pinyin} onClose={() => setOpen(null)} onShowRoute={onShowRoute} />}
+    </>
+  );
+}
+
+function PlaceSheet({ save, st, pinyin, onClose, onShowRoute }: { save: WorldSave; st: CardState; pinyin: boolean; onClose: () => void; onShowRoute: (r: RouteRequest) => void }) {
+  const index = useMapIndex();
+  const c = st.card;
+  const dir = save.place.map !== c.map && Object.keys(index).length ? directions(save, c.map, index) : null;
+  return (
+    <Sheet
+      label={c.en}
+      onClose={onClose}
+      head={
+        <span>
+          <b className="han cl-sheet-title">{c.zh}</b> <span className="small">{c.pinyin}</span>
+          <br />
+          <span className="tiny muted">
+            {c.en} · {st.open.length} / {c.facts.length}
+          </span>
+        </span>
+      }
+    >
+      <ol className="cl-facts">
+        {c.facts.map((f) =>
+          st.open.includes(f) ? (
+            <li key={f.id} data-open="">
+              <ZhText zh={f.zh} pinyin={pinyin} className="wd-zh wp-zh" />
+              <span className="small muted">{f.en}</span>
+            </li>
+          ) : (
+            <li key={f.id}>
+              <span className="small">Not yet — {f.how}</span>
+            </li>
+          ),
+        )}
+      </ol>
+      {!!c.words?.length && (
+        <>
+          <h3 className="wp-label">Words</h3>
+          <ul className="cl-card-words">
+            {c.words.map((w) => (
+              <li key={w.w}>
+                <ZhText zh={w.w} pinyin={pinyin} /> <span className="small muted">{w.en}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {st.closed.length > 0 && <Destination map={c.map} />}
+      {dir && st.closed.length > 0 && (
+        <>
+          <RouteStrip dir={dir} />
+          {dir.kind === 'ride' && (
+            <button type="button" className="btn sm cl-show" onClick={() => onShowRoute({ legs: dir.legs, to: c.map })}>
               Show on map
             </button>
           )}

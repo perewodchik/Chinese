@@ -1613,3 +1613,132 @@
   transform: translateY(2px);
   box-shadow: inset 0 0 0 2px rgba(248, 245, 236, 0.14);
 }
+
+/* --- 地方: place cards (RW2) */
+.cl-places {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cl-place {
+  display: grid;
+  grid-template-rows: 64px auto auto 10px;
+  justify-items: center;
+  align-content: start;
+  gap: 3px;
+  width: 100%;
+  height: 142px;
+  padding: 8px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.cl-place:hover {
+  border-color: var(--line-2);
+}
+
+/* a full card: every fact open */
+.cl-place[data-full] {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, var(--card));
+}
+
+.cl-place[data-missing] {
+  border-style: dashed;
+  background: none;
+}
+
+.cl-place-pic {
+  display: block;
+  width: 96px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--card-2);
+}
+
+.cl-place-pic img {
+  display: block;
+  width: 96px;
+  height: 64px;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.cl-place[data-missing] .cl-place-pic img {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.cl-place-name {
+  font-size: 17px;
+  font-weight: 600;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cl-place-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.cl-place-dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--ink-3);
+}
+
+.cl-place-dots i[data-open] {
+  border-color: var(--gold);
+  background: var(--gold);
+}
+
+.cl-facts {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 0 0 0 20px;
+}
+
+.cl-facts li {
+  display: grid;
+  gap: 2px;
+}
+
+.cl-facts li:not([data-open]) {
+  color: var(--ink-3);
+}
+
+.cl-card-words {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+/* six views (收藏 with 地方): on a narrow phone they still fit on one line */
+@media (max-width: 420px) {
+  .mn-views {
+    gap: 4px;
+    padding-inline: 12px;
+  }
+  .mn-views button {
+    min-width: 0;
+    padding: 0 8px;
+  }
+}

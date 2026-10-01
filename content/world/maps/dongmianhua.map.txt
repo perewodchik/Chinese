@@ -1,0 +1,34 @@
+id: dongmianhua
+size: 32x12
+tilesets: tiles
+district: gulou
+crowd: 2
+pigeons: 2
+# 东棉花胡同: the lane east of 南锣鼓巷 — the drama academy's gate with students running lines, the carved brick arch of No. 15; the lane ends at a courtyard wall
+
+[ground]
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+ppPppppppppppPppppppppppPppppppp
+pppppppppPppppppppppPppppppppppP
+pppppPppppppppppPppppppppppPpppp
+pPppppppppppPppppppppppPpppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+pppppppppppppppppppppppppppppppp
+[below]
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+bbnbbnbbbbbnbbbdddbbbnbbnbbbnbbb
+BBBBBBBBBBBBBBBDDDBBBBBBBBBBBBBB
+T..........................TTTTT
+...........................TTTTT
+...........................TTTTT
+T..........................TTTTT
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

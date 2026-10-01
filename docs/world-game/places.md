@@ -33,8 +33,12 @@ does there, and how to get there for real.
     - the writer **茅盾** (后圆恩寺胡同);
     - **婉容**, the last empress, grew up in 帽儿胡同, which also has the small classical garden 可园;
     - the **中央戏剧学院** (Central Academy of Drama), where China's actors study, is on 东棉花胡同.
-  - **菊儿胡同** has new courtyard houses designed by the architect 吴良镛 around 1990. They won a UN World Habitat Award for showing how old lanes can be rebuilt without being torn down.
-- **In the game:** the 早点铺, 小卖部, 理发店, 茶馆; 老马's 煎饼 and 米沙's 豹子. The 16 lane names are signed, but today their mouths lead nowhere. See STATUS, MH2.
+  - **菊儿胡同** has new courtyard houses by the architect 吴良镛, built from 1987. They won the UN World Habitat Award for 1992 for showing how old lanes can be rebuilt without being torn down. ✓
+- **In the game:**
+  - the 早点铺, 小卖部, 理发店 and 茶馆; 老马's 煎饼 and 米沙's 豹子;
+  - all 16 lanes are real lanes with courtyard gates, and reading all 16 names gives the 蜈蚣巷 stamp;
+  - 帽儿胡同 leads home, and 东棉花胡同 runs on to the drama academy;
+  - through gates you can visit 齐白石's house (雨儿胡同), 茅盾's (后圆恩寺胡同) and the 菊儿胡同 courtyards.
 - **For real:** line 6/8 南锣鼓巷 station at its south end. ✓ Very crowded at weekends; the side lanes are quiet.
 
 ### 鼓楼 Gǔlóu and 钟楼 Zhōnglóu — the Drum and Bell Towers
@@ -63,7 +67,10 @@ does there, and how to get there for real.
     - the 国家博物馆 (National Museum) to the east;
     - 正阳门 (前门) to the south.
   - **The flag is raised every morning at sunrise** by a guard of honour that marches out of the gate. People come before dawn to see it.
-- **In the game:** the end of chapter 1, after a long subway ride, but today there is almost nothing there (one line, a guard and a photographer). See STATUS, RW3.
+- **In the game:** the end of chapter 1.
+  - You can walk the bridges, read the 华表 and the lions, cross 长安街 by the underpass and walk the square to 正阳门.
+  - Come in the morning to see the flag raised.
+  - The place card fills as you look around.
 - **For real:** line 1, 天安门东 or 天安门西. You need your passport and a security check; the square needs a free booking in advance.
 
 ---
@@ -276,3 +283,27 @@ does there, and how to get there for real.
 - Trains say 「下一站是……」, 「列车即将到达……站」, 「换乘……的乘客，请在……站下车」, 「请站稳扶好」. ✓
 - Most stations have platform screen doors, and a screen above each one counts down the next two trains for that direction.
 - No bicycles, not even folding ones. ✓ Every station has a bag scanner at the entrance.
+
+---
+
+## How each place should look (VB1)
+
+What makes each place recognisable at a glance. Every map is held to its row; V5 (the final look pass) checks it. Chapters 1–4 first.
+
+| Place (map) | Signature details | Light and hours | Who is there |
+|---|---|---|---|
+| 南锣鼓巷 `nanluo-main` | grey brick, roofs with the ridge along the street; red lanterns on wires; shop signs in calligraphy; 16 lane mouths with blue street signs; bikes, e-scooters, delivery boxes | busy 10:00–22:00, lanterns lit at dusk; quiet at 7:00 (the 早点铺 steaming) | tourists in pairs, a 糖葫芦 seller, chess players, delivery riders |
+| the 16 lanes | narrow, red courtyard gates with 门墩, doorplates, coal stacks and cabbages in winter, a cat on a wall, wires overhead, AC boxes | dim and quiet; a radio playing 京剧 | old residents, a neighbour sweeping, a child on a bike |
+| 帽儿胡同 `hutong-home` | your red gate, the neighbour's gate, the public toilet, a 槐树 | — | 王阿姨 in the morning |
+| 齐白石旧居 `qibaishi` | a small Qing courtyard, the north hall with its painting room, a 槐树, shrimp in the window | museum hours | a guide, a few visitors |
+| 茅盾故居 `maodun` | two courtyards, books to the ceiling, the white bust in the yard | — | the old man at the gate |
+| 菊儿胡同 `juer` | two-storey grey and white houses round shared yards; washing, bikes, potted plants | evening: windows lit, people chatting | residents, not tourists |
+| 东棉花胡同 `dongmianhua` | the drama academy's gate, students in black running lines, the carved brick arch of No. 15 | afternoon | students |
+| 钟鼓楼 `gulou-square` | two towers face each other across a square: red 鼓楼, grey stone 钟楼; old men with birdcages; square dancing at night | drum shows by day, dancing after dark | dancers, kite fliers, the birdcage men |
+| 天安门 `tiananmen-square` | the red gate tower with yellow roofs, five arches, white bridges over the moat, 华表 and lions, the vast stone square with the flagpole and the monument | dawn: flag-raising crowds; day: tourists with selfie sticks; night: lit gate | guards, tourists, a photographer |
+| 什刹海 `houhai-lake` | willows, the hump-backed 银锭桥, bars and tea houses along the water, rickshaws, boats; ice in winter | evening: lights on the water | rickshaw drivers, fishermen, skaters in winter |
+| 景山 `jingshan-park` | a path up through pines to five pavilions; the gold roofs of the palace below | sunset crowds at 万春亭 | morning singers, tai chi, 甜甜 streaming |
+| 天坛 `tiantan-park` | the round blue-roofed hall on three white terraces, old cypresses, the long walkway | morning: locals doing exercise, singing, 毽子 | retirees, school groups |
+| 国子监 · 孔庙 `guozijian` `kongmiao` | the painted 牌楼 over the lane, old cypresses, rows of stone tablets, the round 辟雍 in its pool | quiet | students, a scholar |
+| 王府井 `wangfujing-street` | a wide pedestrian street, department stores, the snack street's arch, neon at night | evening busiest | shoppers, snack sellers |
+| 前门 `qianmen-street` | the tall gate tower and arrow tower, the 铛铛车 tram, old shop fronts with gilded signs | night: shop fronts lit | tourists, the tram driver |

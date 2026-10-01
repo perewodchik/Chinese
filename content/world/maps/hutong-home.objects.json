@@ -151,10 +151,10 @@
   "id": "east",
   "side": "right",
   "from": 7,
-  "to": 9,
+  "to": 8,
   "target": {
    "map": "nanluo-main",
-   "offset": 22
+   "offset": 29
   }
  },
  {

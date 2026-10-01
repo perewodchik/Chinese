@@ -153,5 +153,41 @@
     "en": "Heaven Official’s blessing",
     "place": "hutong-home",
     "design": "tianguan"
+  },
+  {
+    "id": "qibaishi",
+    "name": "齐白石",
+    "en": "Qi Baishi's house",
+    "place": "qibaishi",
+    "design": "qibaishi",
+    "landmark": true
+  },
+  {
+    "id": "maodun",
+    "name": "茅盾",
+    "en": "Mao Dun's house",
+    "place": "maodun",
+    "design": "maodun"
+  },
+  {
+    "id": "juer",
+    "name": "菊儿胡同",
+    "en": "The new old courtyards",
+    "place": "juer",
+    "design": "juer"
+  },
+  {
+    "id": "zhongxi",
+    "name": "中戏",
+    "en": "The drama school",
+    "place": "dongmianhua",
+    "design": "zhongxi"
+  },
+  {
+    "id": "hutong16",
+    "name": "蜈蚣巷",
+    "en": "All sixteen lanes read",
+    "place": "nanluo-main",
+    "design": "hutong16"
   }
 ]

@@ -1,0 +1,225 @@
+[
+ {
+  "id": "card-kongmiao",
+  "map": "kongmiao",
+  "zh": "孔庙",
+  "pinyin": "Kǒngmiào",
+  "en": "The Confucius Temple",
+  "souvenir": {
+   "frame": "stele/tortoise",
+   "zh": "石碑",
+   "en": "a little stone tablet"
+  },
+  "words": [
+   {
+    "w": "碑",
+    "en": "stone tablet"
+   },
+   {
+    "w": "考试",
+    "en": "exam"
+   },
+   {
+    "w": "名字",
+    "en": "name"
+   }
+  ],
+  "facts": [
+   {
+    "id": "names",
+    "zh": "孔庙里有很多碑，上面有五万多个名字。",
+    "en": "198 stone tablets carry more than 51,000 names.",
+    "fact": "jinshi-steles",
+    "open": {
+     "scene": "c4-names"
+    },
+    "how": "Count the names with 兔儿爷."
+   },
+   {
+    "id": "exam",
+    "zh": "这些人都考过最难的考试。",
+    "en": "Every one of them passed the highest imperial exam.",
+    "fact": "keju-exams",
+    "open": {
+     "read": "kongmiao:steles-sign"
+    },
+    "how": "Read the sign by the tablets."
+   }
+  ]
+ },
+ {
+  "id": "card-guozijian",
+  "map": "guozijian",
+  "zh": "国子监",
+  "pinyin": "Guózǐjiàn",
+  "en": "The Imperial Academy",
+  "souvenir": {
+   "frame": "qilin/bronze",
+   "zh": "麒麟",
+   "en": "a bronze 麒麟"
+  },
+  "words": [
+   {
+    "w": "学校",
+    "en": "school"
+   },
+   {
+    "w": "牌楼",
+    "en": "decorated archway"
+   }
+  ],
+  "facts": [
+   {
+    "id": "school",
+    "zh": "国子监是以前最高的学校。",
+    "en": "For the Yuan, Ming and Qing it was the highest school in the land.",
+    "fact": "guozijian-school",
+    "open": {
+     "scene": "gzj-arrive"
+    },
+    "how": "Walk in through the gate."
+   },
+   {
+    "id": "paifang",
+    "zh": "国子监街上还有老牌楼。",
+    "en": "国子监街 is the only street in Beijing that still has its archways.",
+    "fact": "gzj-pailou",
+    "open": {
+     "scene": "c4-paifang"
+    },
+    "how": "Read the archway on 国子监街."
+   },
+   {
+    "id": "teacher",
+    "zh": "三人行，必有我师。",
+    "en": "Of any three people walking together, one can teach me something.",
+    "fact": "sanrenxing",
+    "open": {
+     "idiom": "三人行，必有我师"
+    },
+    "how": "Learn the saying from 孔先生."
+   }
+  ]
+ },
+ {
+  "id": "card-yonghegong",
+  "map": "yonghegong-front",
+  "zh": "雍和宫",
+  "pinyin": "Yōnghégōng",
+  "en": "The Lama Temple",
+  "souvenir": {
+   "frame": "censer/cold",
+   "zh": "香炉",
+   "en": "a little incense burner"
+  },
+  "words": [
+   {
+    "w": "王爷",
+    "en": "prince"
+   },
+   {
+    "w": "大佛",
+    "en": "great Buddha"
+   },
+   {
+    "w": "树",
+    "en": "tree"
+   },
+   {
+    "w": "香",
+    "en": "incense"
+   },
+   {
+    "w": "拜",
+    "en": "to bow (in worship)"
+   },
+   {
+    "w": "根",
+    "en": "measure word for sticks"
+   }
+  ],
+  "facts": [
+   {
+    "id": "prince",
+    "zh": "雍和宫以前是一个王爷的家。",
+    "en": "It was a prince's mansion before it became a temple in 1744.",
+    "fact": "yhg-1744",
+    "open": {
+     "read": "yonghegong-front:hall-name"
+    },
+    "how": "Read the temple's name."
+   },
+   {
+    "id": "buddha",
+    "zh": "万福阁里的大佛，是用一棵树做的。",
+    "en": "The great Buddha in 万福阁 is carved from one single tree.",
+    "fact": "yhg-maitreya",
+    "open": {
+     "read": "yonghegong-wanfuge:buddha"
+    },
+    "how": "Look at the great Buddha in 万福阁."
+   },
+   {
+    "id": "incense",
+    "zh": "在这里，人们拿三根香，拜一拜。",
+    "en": "Visitors light three sticks of incense and bow.",
+    "fact": "yhg-incense",
+    "open": {
+     "read": "yonghegong-front:rule"
+    },
+    "how": "Read the sign about incense."
+   }
+  ]
+ },
+ {
+  "id": "card-ditan",
+  "map": "ditan",
+  "zh": "地坛",
+  "pinyin": "Dìtán",
+  "en": "The Altar of Earth",
+  "words": [
+   {
+    "w": "地",
+    "en": "the earth"
+   },
+   {
+    "w": "庙会",
+    "en": "temple fair"
+   },
+   {
+    "w": "春节",
+    "en": "Spring Festival"
+   },
+   {
+    "w": "圆",
+    "en": "round"
+   },
+   {
+    "w": "方",
+    "en": "square"
+   }
+  ],
+  "facts": [
+   {
+    "id": "square",
+    "zh": "天是圆的，地是方的。这里是方的。",
+    "en": "Heaven is round and earth is square: so the Altar of Earth is square.",
+    "fact": "tiantan-round-square",
+    "open": {
+     "read": "ditan:altar"
+    },
+    "how": "Read the altar's sign."
+   },
+   {
+    "id": "fair",
+    "zh": "春节的时候，地坛有很大的庙会。",
+    "en": "At Spring Festival it holds one of Beijing's biggest temple fairs.",
+    "fact": "ditan-miaohui",
+    "open": {
+     "read": "ditan:fair"
+    },
+    "how": "Read the temple fair's sign."
+   }
+  ]
+ }
+]

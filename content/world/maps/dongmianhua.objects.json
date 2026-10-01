@@ -1,0 +1,142 @@
+[
+ {
+  "kind": "edge",
+  "id": "west",
+  "side": "left",
+  "from": 6,
+  "to": 7,
+  "target": {
+   "map": "nanluo-main",
+   "offset": 39
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "lane",
+  "tile": [
+   1,
+   4
+  ],
+  "text": "东棉花胡同",
+  "en": "东棉花胡同 — a lane east off 南锣鼓巷"
+ },
+ {
+  "kind": "sign",
+  "id": "academy",
+  "tile": [
+   13,
+   4
+  ],
+  "text": "中央戏剧学院",
+  "en": "The Central Academy of Drama (中戏), founded 1950 — China's best-known school for actors and directors"
+ },
+ {
+  "kind": "prop",
+  "id": "arch",
+  "tile": [
+   22,
+   8
+  ],
+  "frame": "brick-arch/carved",
+  "blocks": [
+   3,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "arch-sign",
+  "tile": [
+   23,
+   8
+  ],
+  "text": "东棉花胡同15号 砖雕拱门",
+  "en": "No. 15: a carved brick arch from a Qing general's house — flowers, animals, pine, bamboo and plum, the Eight Immortals"
+ },
+ {
+  "kind": "sign",
+  "id": "end",
+  "tile": [
+   26,
+   6
+  ],
+  "text": "院墙",
+  "en": "The lane bends behind this courtyard wall towards 交道口南大街 — the way on is closed here."
+ },
+ {
+  "kind": "prop",
+  "id": "bike",
+  "tile": [
+   6,
+   5
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   10,
+   8
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "lamp",
+  "tile": [
+   18,
+   5
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "npc",
+  "id": "student-a",
+  "npc": "zx-xuesheng",
+  "tile": [
+   15,
+   6
+  ],
+  "facing": "down"
+ },
+ {
+  "kind": "npc",
+  "id": "student-b",
+  "npc": "zx-xuesheng-2",
+  "tile": [
+   17,
+   6
+  ],
+  "facing": "left"
+ },
+ {
+  "kind": "door",
+  "id": "academy-gate",
+  "tile": [
+   16,
+   4
+  ],
+  "to": {
+   "map": "dongmianhua",
+   "tile": [
+    16,
+    5
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "中央戏剧学院's gate. Students only — but you can hear someone inside practising a speech, very loudly."
+ }
+]

@@ -1,0 +1,115 @@
+[
+ {
+  "id": "card-qiniandian",
+  "map": "qiniandian",
+  "zh": "祈年殿",
+  "pinyin": "Qíniándiàn",
+  "en": "The Hall of Prayer for Good Harvests",
+  "souvenir": {
+   "frame": "qiniandian/hall",
+   "zh": "祈年殿",
+   "en": "a model of the Hall of Prayer"
+  },
+  "words": [
+   {
+    "w": "皇帝",
+    "en": "emperor"
+   },
+   {
+    "w": "屋顶",
+    "en": "roof"
+   },
+   {
+    "w": "蓝色",
+    "en": "blue"
+   },
+   {
+    "w": "着火",
+    "en": "to catch fire"
+   },
+   {
+    "w": "圆",
+    "en": "round"
+   },
+   {
+    "w": "一样",
+    "en": "the same"
+   }
+  ],
+  "facts": [
+   {
+    "id": "fire",
+    "zh": "一八八九年，祈年殿着火了。现在的祈年殿，和以前的一样。",
+    "en": "It burned in 1889 and was rebuilt just as before.",
+    "fact": "qiniandian-1889",
+    "open": {
+     "read": "qiniandian:hall-name"
+    },
+    "how": "Read the hall's name."
+   },
+   {
+    "id": "blue",
+    "zh": "天坛的房子是圆的，屋顶是蓝色的，是天的颜色。",
+    "en": "Its buildings are round and roofed in blue, like the sky.",
+    "fact": "tiantan-round-square",
+    "open": {
+     "scene": "c4-roof"
+    },
+    "how": "Answer the teacher: why is the roof blue?"
+   },
+   {
+    "id": "prayer",
+    "zh": "以前，皇帝春天来这里，请天给大家好吃的。",
+    "en": "In spring the emperor came here to pray for a good harvest.",
+    "fact": "tiantan-prayers",
+    "open": {
+     "read": "tiantan-park:park"
+    },
+    "how": "Read the park's sign."
+   }
+  ]
+ },
+ {
+  "id": "card-huanqiu",
+  "map": "huanqiu",
+  "zh": "圜丘",
+  "pinyin": "Yuánqiū",
+  "en": "The Circular Mound Altar",
+  "words": [
+   {
+    "w": "声音",
+    "en": "voice, sound"
+   },
+   {
+    "w": "皇帝",
+    "en": "emperor"
+   },
+   {
+    "w": "冬天",
+    "en": "winter"
+   }
+  ],
+  "facts": [
+   {
+    "id": "echo",
+    "zh": "站在天心石上说话，声音会回来。",
+    "en": "Speak on the centre stone and your voice comes back from all round.",
+    "fact": "huanqiu-echo",
+    "open": {
+     "scene": "c4-heart-stone"
+    },
+    "how": "Stand on the centre stone and say something."
+   },
+   {
+    "id": "solstice",
+    "zh": "冬天最冷的时候，皇帝在这里拜天。",
+    "en": "At the winter solstice the emperor worshipped heaven here.",
+    "fact": "tiantan-prayers",
+    "open": {
+     "read": "huanqiu:altar"
+    },
+    "how": "Read the altar's sign."
+   }
+  ]
+ }
+]

@@ -31,6 +31,11 @@ export const PLACES: readonly Place[] = [
   P('chaguan', '茶馆', 'Teahouse', 'inside'),
   P('subway-lane', '地安门东大街', "Di'anmen East Street", 'street'),
   P('station-nanluoguxiang', '南锣鼓巷站', 'Nanluoguxiang station', 'station'),
+  // behind a lane's gate: drawn as a card by its gate on the neighbourhood plan, like a shop
+  P('qibaishi', '齐白石旧居', "Qi Baishi's old home on 雨儿胡同", 'inside'),
+  P('maodun', '茅盾故居', "Mao Dun's old home on 后圆恩寺胡同", 'inside'),
+  P('juer', '菊儿胡同', 'The new courtyards of Juer Hutong', 'inside'),
+  P('dongmianhua', '东棉花胡同', 'Dongmianhua Hutong and the drama school', 'street'),
   P('hutong-proto', '胡同', 'A hutong (the first sketch)', 'street'),
 
   // 什刹海 · 后海

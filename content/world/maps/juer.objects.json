@@ -1,0 +1,130 @@
+[
+ {
+  "kind": "door",
+  "id": "gate",
+  "tile": [
+   9,
+   13
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    34,
+    10
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "plaque",
+  "tile": [
+   9,
+   6
+  ],
+  "text": "菊儿胡同 新四合院",
+  "en": "The new courtyard houses of 菊儿胡同 (1990s), by the architect 吴良镛: two and three storeys round shared yards, grey walls and white plaster, in the old pattern"
+ },
+ {
+  "kind": "door",
+  "id": "home-a",
+  "tile": [
+   4,
+   6
+  ],
+  "to": {
+   "map": "juer",
+   "tile": [
+    4,
+    7
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "Someone's home. A pair of slippers by the door."
+ },
+ {
+  "kind": "door",
+  "id": "home-b",
+  "tile": [
+   14,
+   6
+  ],
+  "to": {
+   "map": "juer",
+   "tile": [
+    14,
+    7
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "Someone's home. You can hear a radio playing 京剧."
+ },
+ {
+  "kind": "prop",
+  "id": "tree",
+  "tile": [
+   9,
+   9
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "washing",
+  "tile": [
+   2,
+   8
+  ],
+  "frame": "washing-line/clothes",
+  "blocks": [
+   3,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "bike",
+  "tile": [
+   16,
+   8
+  ],
+  "frame": "bicycle/side",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plants",
+  "tile": [
+   12,
+   8
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "npc",
+  "id": "dama",
+  "npc": "juer-dama",
+  "tile": [
+   7,
+   10
+  ],
+  "facing": "down"
+ }
+]

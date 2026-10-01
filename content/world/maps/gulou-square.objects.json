@@ -206,5 +206,96 @@
    "map": "yandai-xiejie",
    "offset": -25
   }
+ },
+ {
+  "kind": "prop",
+  "id": "cage-1",
+  "tile": [
+   4,
+   14
+  ],
+  "frame": "bird-cage/cage",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "cage-2",
+  "tile": [
+   18,
+   14
+  ],
+  "frame": "bird-cage/cage",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stool-1",
+  "tile": [
+   4,
+   15
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "stool-2",
+  "tile": [
+   18,
+   15
+  ],
+  "frame": "stool/red",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant-1",
+  "tile": [
+   4,
+   22
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant-2",
+  "tile": [
+   18,
+   22
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "kite-1",
+  "tile": [
+   11,
+   24
+  ],
+  "frame": "kite/red",
+  "blocks": [
+   1,
+   1
+  ]
  }
 ]

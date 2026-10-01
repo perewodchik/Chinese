@@ -153,6 +153,8 @@
   bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
   transform: translateX(-50%);
   z-index: 2;
+  /* centred from the middle, a box shrinks to half the screen: size it to its text, up to the screen */
+  width: max-content;
   max-width: min(520px, calc(100% - 32px));
   padding: 12px 16px;
   border: 1px solid var(--line);

@@ -13,6 +13,7 @@
  * chapter — the golden saves.
  */
 
+import { HUTONG_SIGNS, readHutongSign } from '../../src/world/core/hutongs';
 import { readFileSync } from 'node:fs';
 import { castMap } from '../../src/world/core/cast';
 import { libraryLexicon } from '../../src/world/core/dialogue/lexicon';
@@ -337,6 +338,14 @@ export function solve(start: WorldSave = newSave("solver", 0), maxSteps = 40000,
       if (shots.length) {
         log.push('photo');
         s = act(s, [{ do: 'photo', subjects: shots }], short, 'photo');
+        idle = 0;
+        continue;
+      }
+      // MH2: a curious player reads the sixteen lane names on 南锣鼓巷 (the page's sign; the sixteenth gives 蜈蚣巷)
+      const lanes = HUTONG_SIGNS.flatMap((id) => readHutongSign(s, id));
+      if (lanes.length) {
+        log.push('hutongs');
+        s = HUTONG_SIGNS.reduce((acc, id) => act(acc, readHutongSign(acc, id), short, `sign ${id}`), s);
         idle = 0;
         continue;
       }

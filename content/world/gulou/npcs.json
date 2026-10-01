@@ -260,8 +260,8 @@
         ],
         "map": "nanluo-main",
         "tile": [
-          8,
-          27
+          17,
+          32
         ],
         "facing": "down"
       }
@@ -437,8 +437,8 @@
         ],
         "map": "nanluo-main",
         "tile": [
-          10,
-          47
+          19,
+          52
         ],
         "facing": "up"
       },
@@ -965,6 +965,151 @@
     "misses": [
       "没问题！……你说什么？",
       "嗯？再说一遍？"
+    ]
+  },
+  {
+    "id": "qbs-guide",
+    "name": "讲解员",
+    "role": "a museum guide at 齐白石's old home on 雨儿胡同",
+    "look": {
+      "sprite": "woman",
+      "palette": "black"
+    },
+    "voice": "xiaoyu",
+    "character": "Warm and quick; loves to point at the shrimp.",
+    "knows": [
+      "齐白石 lived here from 1955",
+      "He painted shrimp all his life"
+    ],
+    "wants": [
+      "Visitors who look closely"
+    ],
+    "actions": [
+      "stamp"
+    ],
+    "routine": [],
+    "explains": {
+      "画家": "画画的人。",
+      "虾": "水里的小动物，有很多脚。"
+    },
+    "misses": [
+      "你说什么？",
+      "您再说一遍？"
+    ]
+  },
+  {
+    "id": "md-yeye",
+    "name": "看门的爷爷",
+    "role": "the old man who keeps the gate at 茅盾's house",
+    "look": {
+      "sprite": "grandpa",
+      "palette": "blue"
+    },
+    "voice": "wei",
+    "character": "Slow, proud of his writer.",
+    "knows": [
+      "茅盾 lived here from 1974 to 1981"
+    ],
+    "wants": [
+      "Someone to read a book"
+    ],
+    "actions": [
+      "stamp"
+    ],
+    "routine": [],
+    "explains": {
+      "作家": "写书的人。",
+      "小说": "很长的故事书。"
+    },
+    "misses": [
+      "啊？",
+      "你说什么？"
+    ]
+  },
+  {
+    "id": "juer-dama",
+    "name": "菊儿胡同的大妈",
+    "role": "a woman who has lived in 菊儿胡同 all her life",
+    "look": {
+      "sprite": "auntie",
+      "palette": "purple"
+    },
+    "voice": "chen",
+    "character": "Chatty; remembers the old yard and loves the new one.",
+    "knows": [
+      "The new courtyards won a United Nations award in 1992"
+    ],
+    "wants": [
+      "To tell you about her yard"
+    ],
+    "actions": [
+      "stamp"
+    ],
+    "routine": [],
+    "explains": {
+      "院子": "房子中间的地方，可以坐，可以晒衣服。",
+      "奖": "做得好，别人给你的东西。",
+      "像": "看起来一样。",
+      "活": "不是死的，会动。",
+      "一样": "没有不同。"
+    },
+    "misses": [
+      "什么？",
+      "你再说一遍。"
+    ]
+  },
+  {
+    "id": "zx-xuesheng",
+    "name": "中戏的学生",
+    "role": "a drama student running lines outside the 中戏 gate",
+    "look": {
+      "sprite": "tourist",
+      "palette": "green"
+    },
+    "voice": "zhiyuan",
+    "character": "Dramatic about everything.",
+    "knows": [
+      "中戏 trains actors"
+    ],
+    "wants": [
+      "An audience"
+    ],
+    "actions": [
+      "stamp"
+    ],
+    "routine": [],
+    "explains": {
+      "演员": "在电视里、在台上演别人的人。",
+      "话剧": "人在台上说话，演一个故事，不唱。"
+    },
+    "misses": [
+      "我……我忘了！你说什么？"
+    ]
+  },
+  {
+    "id": "zx-xuesheng-2",
+    "name": "中戏的学生",
+    "role": "another drama student, the first one's scene partner",
+    "look": {
+      "sprite": "woman",
+      "palette": "teal"
+    },
+    "voice": "xiaoyu",
+    "character": "Patient with her dramatic friend.",
+    "knows": [
+      "中戏 trains actors"
+    ],
+    "wants": [
+      "To finish the scene"
+    ],
+    "actions": [],
+    "routine": [],
+    "explains": {
+      "演员": "在电视里、在台上演别人的人。",
+      "演": "做别人，说别人的话。"
+    },
+    "misses": [
+      "嗯？"
     ]
   }
 ]

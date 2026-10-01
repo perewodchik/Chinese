@@ -56,6 +56,7 @@ export const VIEWS: Partial<Record<MenuTab, readonly { id: string; label: string
     { id: 'spirits', label: '图鉴', title: 'The spirits' },
     { id: 'idioms', label: '成语', title: 'The 成语 book' },
     { id: 'stamps', label: '印章', title: 'The stamps passport' },
+    { id: 'places', label: '地方', title: 'Place cards: what you learned about each place' },
     { id: 'books', label: '书', title: 'Your books' },
     { id: 'album', label: '相册', title: 'Photos' },
   ],

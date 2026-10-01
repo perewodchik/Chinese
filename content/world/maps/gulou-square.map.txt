@@ -2,7 +2,7 @@ id: gulou-square
 size: 24x38
 tilesets: tiles
 district: gulou
-crowd: 5
+crowd: 8
 pigeons: 8
 
 [ground]

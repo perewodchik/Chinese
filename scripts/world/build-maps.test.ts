@@ -2,11 +2,11 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { MapError, parseMap, type Legend } from '../../src/world/core/maptext';
 import { zoomFor } from '../../src/world/engine/look';
-import { checkMaps, loadAll, toTiled } from './build-maps';
+import { checkMaps, deadEnds, loadAll, toTiled } from './build-maps';
 import { findPath, gridFromLayer } from '../../src/world/core/grid';
 import { hoodOf } from '../../src/world/core/hoods';
 import { STATIONS } from '../../src/world/core/travel';
-import type { Tile } from '../../src/world/core/types';
+import type { MapObject, Tile } from '../../src/world/core/types';
 import type { TilesetJson } from './art/build';
 
 const legend: Legend = {
@@ -65,7 +65,20 @@ describe('text maps', () => {
       ] }],
       set,
     );
-    assert.equal(errs.length, 3, errs.join('\n'));
+    const others = errs.filter((e) => !e.includes('leads nowhere'));
+    assert.equal(others.length, 3, others.join('\n'));
+  });
+
+  it('finds open ground that runs off the map and leads nowhere (MH1), and lets an exit cover it', () => {
+    const map = parseMap(text(), legend);
+    const runs = deadEnds(map, []);
+    assert.ok(runs.length > 0);
+    const exits: MapObject[] = runs.map((r, i) => {
+      const [side, span] = r.split(' ') as ['up' | 'down' | 'left' | 'right', string];
+      const [from, to = from] = span.split('–').map(Number) as [number, number?];
+      return { kind: 'edge', id: `e${i}`, side, from, to, target: { map: 'x', offset: 0 } };
+    });
+    assert.deepEqual(deadEnds(map, exits), []);
   });
 
   it('the real maps build clean', () => {

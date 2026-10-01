@@ -1,0 +1,333 @@
+[
+ {
+  "id": "card-nanluoguxiang",
+  "map": "nanluo-main",
+  "zh": "南锣鼓巷",
+  "pinyin": "Nánluógǔxiàng",
+  "en": "Nanluoguxiang, the centipede lane",
+  "souvenir": {
+   "frame": "lantern/unlit",
+   "zh": "红灯笼",
+   "en": "a red lantern from 南锣鼓巷"
+  },
+  "words": [
+   {
+    "w": "胡同",
+    "en": "lane, hutong"
+   },
+   {
+    "w": "演员",
+    "en": "actor"
+   },
+   {
+    "w": "作家",
+    "en": "writer"
+   }
+  ],
+  "facts": [
+   {
+    "id": "lanes",
+    "zh": "南锣鼓巷两边有十六个胡同，一边八个。",
+    "en": "Sixteen 胡同 branch off it, eight on each side, like a centipede's legs.",
+    "fact": "nlgx-centipede",
+    "open": {
+     "read": "nanluo-main:hutong-e7"
+    },
+    "how": "Read the lane signs along the street — all the way to the south end."
+   },
+   {
+    "id": "home",
+    "zh": "帽儿胡同是你住的胡同。",
+    "en": "帽儿胡同, one of the sixteen, is your lane.",
+    "fact": "nlgx-hutongs",
+    "open": {
+     "read": "nanluo-main:hutong-w4"
+    },
+    "how": "Read the sign at the corner of your own lane."
+   },
+   {
+    "id": "qibaishi",
+    "zh": "雨儿胡同里有画家齐白石的家。",
+    "en": "The painter 齐白石 lived in 雨儿胡同.",
+    "fact": "qibaishi-yuer",
+    "open": {
+     "scene": "qbs-tour"
+    },
+    "how": "Go in by the gate in 雨儿胡同 and talk to the guide."
+   },
+   {
+    "id": "maodun",
+    "zh": "作家茅盾的家，也在这里的一个胡同里。",
+    "en": "The writer 茅盾 lived in 后圆恩寺胡同.",
+    "fact": "maodun-house",
+    "open": {
+     "scene": "md-visit"
+    },
+    "how": "Go in by the gate in 后圆恩寺胡同."
+   },
+   {
+    "id": "zhongxi",
+    "zh": "东棉花胡同里有一个学校，学生在学做演员。",
+    "en": "东棉花胡同 has the drama academy, where students learn to be actors.",
+    "fact": "zhongxi-dongmianhua",
+    "open": {
+     "scene": "zx-scene"
+    },
+    "how": "Walk east along 东棉花胡同 and listen to the students."
+   }
+  ]
+ },
+ {
+  "id": "card-qibaishi",
+  "map": "qibaishi",
+  "zh": "齐白石旧居",
+  "pinyin": "Qí Báishí jiùjū",
+  "en": "Qi Baishi's old home",
+  "souvenir": {
+   "frame": "shufa/scroll",
+   "zh": "虾的画",
+   "en": "a print of 齐白石’s shrimp"
+  },
+  "words": [
+   {
+    "w": "虾",
+    "en": "shrimp"
+   },
+   {
+    "w": "画室",
+    "en": "painting room"
+   }
+  ],
+  "facts": [
+   {
+    "id": "shrimp",
+    "zh": "齐白石最喜欢画虾。",
+    "en": "齐白石 is most famous for his shrimp.",
+    "fact": "qibaishi-shrimp",
+    "open": {
+     "read": "qibaishi:xia"
+    },
+    "how": "Look at the picture in the window."
+   },
+   {
+    "id": "old",
+    "zh": "一九五五年，他九十多岁，住在这里。",
+    "en": "In 1955, over ninety, he lived here.",
+    "fact": "qibaishi-yuer",
+    "open": {
+     "scene": "qbs-tour"
+    },
+    "how": "Ask the guide what he painted."
+   },
+   {
+    "id": "room",
+    "zh": "他的画室还在，桌子上有笔和纸。",
+    "en": "His painting room is still as it was, brushes and paper on the table.",
+    "fact": "qibaishi-yuer",
+    "open": {
+     "read": "qibaishi:huashi"
+    },
+    "how": "Read the sign on the painting room."
+   }
+  ]
+ },
+ {
+  "id": "card-maodun",
+  "map": "maodun",
+  "zh": "茅盾故居",
+  "pinyin": "Máo Dùn gùjū",
+  "en": "Mao Dun's old home",
+  "words": [
+   {
+    "w": "院子",
+    "en": "courtyard"
+   },
+   {
+    "w": "石像",
+    "en": "stone statue"
+   }
+  ],
+  "facts": [
+   {
+    "id": "writer",
+    "zh": "茅盾是作家，写了很多书。",
+    "en": "茅盾 was a writer who wrote many novels.",
+    "fact": "maodun-house",
+    "open": {
+     "scene": "md-visit"
+    },
+    "how": "Talk to the old man at the gate."
+   },
+   {
+    "id": "years",
+    "zh": "他在这里住了七年。",
+    "en": "He lived here for seven years, 1974–1981.",
+    "fact": "maodun-house",
+    "open": {
+     "scene": "md-visit"
+    },
+    "how": "Ask how long he lived here."
+   },
+   {
+    "id": "bust",
+    "zh": "院子里有他的白色石像。",
+    "en": "His white marble bust stands in the yard.",
+    "fact": "maodun-house",
+    "open": {
+     "read": "maodun:bust-sign"
+    },
+    "how": "Look at the bust in the yard."
+   }
+  ]
+ },
+ {
+  "id": "card-juer",
+  "map": "juer",
+  "zh": "菊儿胡同",
+  "pinyin": "Júr hútòng",
+  "en": "The new courtyards of 菊儿胡同",
+  "souvenir": {
+   "frame": "plant/green",
+   "zh": "花",
+   "en": "a pot of flowers from the shared yard"
+  },
+  "words": [
+   {
+    "w": "院子",
+    "en": "courtyard"
+   },
+   {
+    "w": "像",
+    "en": "look like"
+   }
+  ],
+  "facts": [
+   {
+    "id": "new",
+    "zh": "这些院子是新的，也像老的。",
+    "en": "These courtyards are new, and still look like the old ones.",
+    "fact": "juer-habitat",
+    "open": {
+     "read": "juer:plaque"
+    },
+    "how": "Read the plaque in the yard."
+   },
+   {
+    "id": "award",
+    "zh": "这里的院子得过联合国的奖。",
+    "en": "They won a United Nations award (the World Habitat Award, 1992).",
+    "fact": "juer-habitat",
+    "open": {
+     "scene": "juer-talk"
+    },
+    "how": "Talk to the woman who lives here."
+   }
+  ]
+ },
+ {
+  "id": "card-dongmianhua",
+  "map": "dongmianhua",
+  "zh": "东棉花胡同",
+  "pinyin": "Dōngmiánhuā hútòng",
+  "en": "Dongmianhua Hutong",
+  "souvenir": {
+   "frame": "lianpu/red",
+   "zh": "脸谱",
+   "en": "an opera mask from the drama students"
+  },
+  "facts": [
+   {
+    "id": "school",
+    "zh": "这里有一个学校，学生学做演员。",
+    "en": "The drama academy is here; its students learn to be actors.",
+    "fact": "zhongxi-dongmianhua",
+    "open": {
+     "read": "dongmianhua:academy"
+    },
+    "how": "Read the academy's sign."
+   },
+   {
+    "id": "arch",
+    "zh": "十五号有一个很老、很好看的门。",
+    "en": "No. 15 has a very old, beautiful carved brick arch.",
+    "fact": "dongmianhua-arch",
+    "open": {
+     "read": "dongmianhua:arch-sign"
+    },
+    "how": "Look at the arch."
+   }
+  ]
+ },
+ {
+  "id": "card-gulou",
+  "map": "gulou-square",
+  "zh": "钟鼓楼",
+  "pinyin": "Zhōnggǔlóu",
+  "en": "The Drum and Bell Towers",
+  "souvenir": {
+   "frame": "temple-bell/bronze",
+   "zh": "小钟",
+   "en": "a little bronze bell"
+  },
+  "words": [
+   {
+    "w": "钟",
+    "en": "bell"
+   },
+   {
+    "w": "鼓",
+    "en": "drum"
+   },
+   {
+    "w": "吨",
+    "en": "tonne"
+   },
+   {
+    "w": "狮子",
+    "en": "lion"
+   }
+  ],
+  "facts": [
+   {
+    "id": "time",
+    "zh": "以前，钟和鼓告诉大家现在几点。",
+    "en": "In the old days the bell and the drum told the city the time.",
+    "fact": "chenzhong-mugu",
+    "open": {
+     "read": "gulou-square:drum"
+    },
+    "how": "Read the sign on the Drum Tower."
+   },
+   {
+    "id": "drums",
+    "zh": "鼓楼上有二十五个鼓。",
+    "en": "The Drum Tower had twenty-five drums: one for the year, twenty-four for the solar terms.",
+    "fact": "gulou-25-drums",
+    "open": {
+     "read": "gulou-square:square"
+    },
+    "how": "Read the square's sign."
+   },
+   {
+    "id": "bell",
+    "zh": "钟楼的钟很大，有六十多吨。",
+    "en": "The Bell Tower's bronze bell weighs about 63 tonnes.",
+    "fact": "zhonglou-bell",
+    "open": {
+     "read": "gulou-square:bell"
+    },
+    "how": "Read the sign on the Bell Tower."
+   },
+   {
+    "id": "lions",
+    "zh": "门口的两个狮子，一个是男的，一个是女的。",
+    "en": "Guardian lions come in pairs: a male with a ball, a female with a cub.",
+    "fact": "lions-pair",
+    "open": {
+     "scene": "c1-lions-which"
+    },
+    "how": "Find out which lion is which, by the towers."
+   }
+  ]
+ }
+]

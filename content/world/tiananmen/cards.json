@@ -1,0 +1,186 @@
+[
+ {
+  "id": "card-tiananmen",
+  "map": "tiananmen-square",
+  "zh": "天安门",
+  "pinyin": "Tiān'ānmén",
+  "en": "Tiananmen, the Gate of Heavenly Peace",
+  "souvenir": {
+   "frame": "flag/red-0",
+   "zh": "小国旗",
+   "en": "a little flag from the square"
+  },
+  "words": [
+   {
+    "w": "桥",
+    "en": "bridge"
+   },
+   {
+    "w": "皇帝",
+    "en": "emperor"
+   },
+   {
+    "w": "华表",
+    "en": "carved marble column"
+   },
+   {
+    "w": "动物",
+    "en": "animal"
+   },
+   {
+    "w": "国旗",
+    "en": "national flag"
+   },
+   {
+    "w": "升",
+    "en": "to raise"
+   },
+   {
+    "w": "太阳",
+    "en": "the sun"
+   },
+   {
+    "w": "广场",
+    "en": "square"
+   },
+   {
+    "w": "碑",
+    "en": "monument, stone tablet"
+   },
+   {
+    "w": "以前",
+    "en": "before, in the old days"
+   }
+  ],
+  "facts": [
+   {
+    "id": "name",
+    "zh": "天安门很老了。一四一七年就有了。",
+    "en": "It is very old: it was first built in 1417 (as 承天门), and named 天安门 in 1651.",
+    "fact": "tam-1417",
+    "open": {
+     "read": "tiananmen-square:gate-name"
+    },
+    "how": "Read the gate's name, under the middle arch."
+   },
+   {
+    "id": "bridges",
+    "zh": "门前有五个桥。中间的桥，以前只有皇帝能走。",
+    "en": "Five bridges cross the river before the gate. The middle one was once for the emperor alone.",
+    "fact": "tam-bridges",
+    "open": {
+     "read": "tiananmen-square:jinshuiqiao"
+    },
+    "how": "Read the sign by the bridges (金水桥)."
+   },
+   {
+    "id": "huabiao",
+    "zh": "门前门后都有华表。上面的小动物在看皇帝。",
+    "en": "There are 华表 columns in front of the gate and behind it. People say the little beasts on top keep an eye on the emperor.",
+    "fact": "tam-huabiao",
+    "open": {
+     "read": "tiananmen-square:huabiao-w"
+    },
+    "how": "Look at a 华表 — the carved white columns."
+   },
+   {
+    "id": "flag",
+    "zh": "天天早上，太阳出来的时候，这里升国旗。",
+    "en": "Every morning at sunrise the national flag is raised here.",
+    "fact": "tam-flag",
+    "open": {
+     "flag": "tam-flag-seen"
+    },
+    "how": "Come to the square in the morning, before 11:00."
+   },
+   {
+    "id": "square",
+    "zh": "这是很大很大的广场。中间有一个高高的碑。",
+    "en": "It is one of the biggest squares in the world, with a tall monument in the middle.",
+    "fact": "tam-square",
+    "open": {
+     "read": "tiananmen-square:monument"
+    },
+    "how": "Walk across 长安街 by the underpass and find the monument."
+   }
+  ]
+ },
+ {
+  "id": "card-wumen",
+  "map": "wumen",
+  "zh": "午门",
+  "pinyin": "Wǔmén",
+  "en": "The Meridian Gate",
+  "words": [
+   {
+    "w": "门钉",
+    "en": "door studs"
+   },
+   {
+    "w": "明朝",
+    "en": "the Ming dynasty"
+   }
+  ],
+  "facts": [
+   {
+    "id": "ming",
+    "zh": "故宫是明朝建的，一四二零年建好。",
+    "en": "The palace was built under the Ming, finished in 1420.",
+    "fact": "gugong-ming",
+    "open": {
+     "read": "wumen:name"
+    },
+    "how": "Read the gate's name."
+   },
+   {
+    "id": "studs",
+    "zh": "大门上有八十一个门钉：九九八十一。",
+    "en": "The great gates have 81 door studs: nine rows of nine.",
+    "fact": "menting-81",
+    "open": {
+     "visited": "wumen"
+    },
+    "how": "Look at the gate's doors."
+   }
+  ]
+ },
+ {
+  "id": "card-taihedian",
+  "map": "taihedian",
+  "zh": "太和殿",
+  "pinyin": "Tàihédiàn",
+  "en": "The Hall of Supreme Harmony",
+  "words": [
+   {
+    "w": "屋顶",
+    "en": "roof"
+   },
+   {
+    "w": "动物",
+    "en": "animal"
+   }
+  ],
+  "facts": [
+   {
+    "id": "beasts",
+    "zh": "太和殿屋顶上有十个小动物，别的房子没有这么多。",
+    "en": "Ten little beasts sit on each ridge of its roof — more than on any other building.",
+    "fact": "taihedian-beasts",
+    "open": {
+     "read": "taihedian:name"
+    },
+    "how": "Read the hall's name."
+   },
+   {
+    "id": "old",
+    "zh": "这里是故宫里最大的房子。",
+    "en": "It is the biggest hall in the palace.",
+    "fact": "gugong-ming",
+    "open": {
+     "scene": "gugong-guide"
+    },
+    "how": "Talk to the guide."
+   }
+  ]
+ }
+]

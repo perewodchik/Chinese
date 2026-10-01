@@ -10,6 +10,7 @@
  * check-content.test.ts, so bad content fails the tests.
  */
 
+import { checkCards } from '../../src/world/core/cards';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -197,6 +198,18 @@ export function checkContent(contentRoot: string, lib: Library): CheckResult {
     const names = new Set(districts.flatMap((d) => d.district.names));
     const leveler = libraryLeveler(lib);
     for (const b of books) errors.push(...checkBook(b, { leveler, names, facts, maps: new Set(mapIds(contentRoot)) }).map((e) => `books: ${e}`));
+    // RW2: the place cards — their maps, signs, scenes, facts and level
+    const built = new Map(loadAll(join(contentRoot, 'maps')).map((c) => [c.map.id, new Set(c.objects.map((o) => o.id))]));
+    errors.push(
+      ...checkCards(districts.flatMap((d) => d.cards ?? []), {
+        leveler,
+        names,
+        facts,
+        objects: built,
+        scenes: new Set(districts.flatMap((d) => d.scenes.map((x) => x.id))),
+        frames: propFrames(join(contentRoot, '..', '..', 'public/world/art/props.json')),
+      }).map((e) => `cards: ${e}`),
+    );
     const ids = new Set(books.map((b) => b.id));
     for (const m of JSON.stringify(districts).matchAll(/"do":"book","id":"([^"]+)"/g)) if (!ids.has(m[1]!)) errors.push(`an action gives book "${m[1]}", which does not exist`);
   }
@@ -218,3 +231,10 @@ function main() {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) main();
+
+/** the frame names of the props atlas, when it is built */
+function propFrames(path: string): ReadonlySet<string> | undefined {
+  if (!existsSync(path)) return undefined;
+  const j = JSON.parse(readFileSync(path, 'utf8')) as { frames: Record<string, unknown> | Array<{ filename: string }> };
+  return new Set(Array.isArray(j.frames) ? j.frames.map((f) => f.filename) : Object.keys(j.frames));
+}

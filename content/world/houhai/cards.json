@@ -1,0 +1,125 @@
+[
+ {
+  "id": "card-houhai",
+  "map": "houhai-lake",
+  "zh": "什刹海",
+  "pinyin": "Shíchàhǎi",
+  "en": "Shichahai, the three lakes",
+  "souvenir": {
+   "frame": "boat/red",
+   "zh": "小船",
+   "en": "a little rowing boat"
+  },
+  "words": [
+   {
+    "w": "湖",
+    "en": "lake"
+   },
+   {
+    "w": "桥",
+    "en": "bridge"
+   },
+   {
+    "w": "滑冰",
+    "en": "to skate"
+   }
+  ],
+  "facts": [
+   {
+    "id": "lakes",
+    "zh": "什刹海有三个湖：前海、后海、西海。",
+    "en": "Shichahai is three lakes in a row, more than 700 years old.",
+    "fact": "shichahai-lakes",
+    "open": {
+     "read": "houhai-lake:lake"
+    },
+    "how": "Read the sign by the lake."
+   },
+   {
+    "id": "view",
+    "zh": "在银锭桥上，可以看到西边的山。",
+    "en": "From 银锭桥 you can see the Western Hills — one of old Beijing's eight little views.",
+    "fact": "yinding-guanshan",
+    "open": {
+     "read": "houhai-lake:view"
+    },
+    "how": "Read the sign on 银锭桥."
+   },
+   {
+    "id": "ice",
+    "zh": "冬天，湖上可以滑冰。",
+    "en": "In winter the lakes freeze and everyone goes skating.",
+    "fact": "shichahai-skating",
+    "open": {
+     "all": [
+      {
+       "season": "winter"
+      },
+      {
+       "visited": "houhai-lake"
+      }
+     ]
+    },
+    "how": "Come back in winter."
+   }
+  ]
+ },
+ {
+  "id": "card-gongwangfu",
+  "map": "gongwangfu",
+  "zh": "恭王府",
+  "pinyin": "Gōngwángfǔ",
+  "en": "Prince Gong's Mansion",
+  "souvenir": {
+   "frame": "jianzhi/red",
+   "zh": "福",
+   "en": "a 福 paper-cut"
+  },
+  "words": [
+   {
+    "w": "花园",
+    "en": "garden"
+   },
+   {
+    "w": "福",
+    "en": "good fortune"
+   },
+   {
+    "w": "皇帝",
+    "en": "emperor"
+   }
+  ],
+  "facts": [
+   {
+    "id": "garden",
+    "zh": "恭王府在后海边上，有一个很大的花园。",
+    "en": "It stands by 后海, with a large garden.",
+    "fact": "gongwangfu-houhai",
+    "open": {
+     "read": "gongwangfu:garden"
+    },
+    "how": "Read the garden's sign."
+   },
+   {
+    "id": "heshen",
+    "zh": "它的第一个主人是和珅，很有钱。",
+    "en": "Its first owner was 和珅, one of the richest men in Chinese history.",
+    "fact": "gongwangfu-heshen",
+    "open": {
+     "visited": "gongwangfu"
+    },
+    "how": "Go in."
+   },
+   {
+    "id": "fu",
+    "zh": "花园里有一个“福”字，是皇帝写的。",
+    "en": "In the garden is a 福 written by the 康熙 emperor; people touch it for luck.",
+    "fact": "gongwangfu-fu",
+    "open": {
+     "scene": "shishe"
+    },
+    "how": "Talk to the people in the garden."
+   }
+  ]
+ }
+]

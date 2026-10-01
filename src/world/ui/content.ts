@@ -1,3 +1,4 @@
+import type { PlaceCard } from '../core/cards';
 import type { Shop } from '../core/shop';
 import type { Cutscene } from '../core/cutscene';
 import type { Book } from '../core/books';
@@ -23,6 +24,8 @@ export interface WorldContent {
   cutscenes: Cutscene[];
   /** the books (§13 B1) */
   books: Book[];
+  /** RW2: every landmark's place card */
+  cards: PlaceCard[];
   /** manual or generated pinyin per line text, from the content build */
   pinyin: Record<string, string>;
   /** the clothes and the racks that sell them (§12) */
@@ -30,7 +33,7 @@ export interface WorldContent {
 }
 
 export const EMPTY_CONTENT: WorldContent = {
-  districts: [], npcs: [], scenes: [], quests: [], spirits: [], idioms: [], stamps: [], items: [], shops: [], cutscenes: [], books: [], pinyin: {}, clothes: EMPTY_CLOTHES,
+  districts: [], npcs: [], scenes: [], quests: [], spirits: [], idioms: [], stamps: [], items: [], shops: [], cutscenes: [], books: [], cards: [], pinyin: {}, clothes: EMPTY_CLOTHES,
 };
 
 export function mergeContent(parts: Array<DistrictContent & { pinyin?: Record<string, string> }>): WorldContent {
@@ -45,6 +48,7 @@ export function mergeContent(parts: Array<DistrictContent & { pinyin?: Record<st
     items: parts.flatMap((p) => p.items),
     shops: parts.flatMap((p) => p.shops ?? []),
     cutscenes: parts.flatMap((p) => p.cutscenes ?? []),
+    cards: parts.flatMap((p) => p.cards ?? []),
     books: [],
     pinyin: Object.assign({}, ...parts.map((p) => p.pinyin ?? {})),
     clothes: EMPTY_CLOTHES,

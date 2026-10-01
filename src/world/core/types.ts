@@ -59,7 +59,11 @@ export type Condition =
   /** a once-a-day thing (a job, Y3) was done today */
   | { daily: string }
   /** your own bike (§13 L): you have one, you are on it, a tyre is flat, or you have none */
-  | { bike: 'owned' | 'riding' | 'flat' | 'none' };
+  | { bike: 'owned' | 'riding' | 'flat' | 'none' }
+  /** RW2: you have been to this map */
+  | { visited: string }
+  /** RW2: you have read this sign (`<map>:<sign id>`; `readSign` remembers it) */
+  | { read: string };
 
 export type Action =
   | { do: 'flag'; flag: string; value?: boolean }
@@ -412,6 +416,8 @@ export interface DistrictContent {
   shops?: import('./shop').Shop[];
   /** scripted moments on this district's maps (§13 K1) */
   cutscenes?: import('./cutscene').Cutscene[];
+  /** RW2: the place cards of its landmarks */
+  cards?: import('./cards').PlaceCard[];
 }
 
 // ---------------------------------------------------------------------------

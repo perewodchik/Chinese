@@ -1,76 +1,10 @@
 [
  {
-  "kind": "prop",
-  "id": "lantern-1",
-  "tile": [
-   14,
-   8
-  ],
-  "frame": "lantern/unlit",
-  "light": "#ffb44c"
- },
- {
-  "kind": "prop",
-  "id": "lantern-2",
-  "tile": [
-   24,
-   8
-  ],
-  "frame": "lantern/unlit",
-  "light": "#ffb44c"
- },
- {
-  "kind": "prop",
-  "id": "lantern-3",
-  "tile": [
-   10,
-   8
-  ],
-  "frame": "lantern/unlit",
-  "light": "#ffb44c"
- },
- {
-  "kind": "prop",
-  "id": "lantern-4",
-  "tile": [
-   28,
-   8
-  ],
-  "frame": "lantern/unlit",
-  "light": "#ffb44c"
- },
- {
-  "kind": "prop",
-  "id": "tree-w",
-  "tile": [
-   0,
-   24
-  ],
-  "frame": "tree/huai",
-  "blocks": [
-   2,
-   1
-  ]
- },
- {
-  "kind": "prop",
-  "id": "tree-e",
-  "tile": [
-   37,
-   24
-  ],
-  "frame": "tree/huai",
-  "blocks": [
-   2,
-   1
-  ]
- },
- {
   "kind": "door",
   "id": "station",
   "tile": [
-   34,
-   23
+   44,
+   24
   ],
   "to": {
    "map": "station-tiananmendong",
@@ -85,8 +19,8 @@
   "kind": "door",
   "id": "station-2",
   "tile": [
-   35,
-   23
+   45,
+   24
   ],
   "to": {
    "map": "station-tiananmendong",
@@ -101,8 +35,8 @@
   "kind": "prop",
   "id": "metro-sign",
   "tile": [
-   33,
-   23
+   43,
+   24
   ],
   "frame": "subway-sign/post",
   "blocks": [
@@ -114,17 +48,17 @@
   "kind": "sign",
   "id": "gate-name",
   "tile": [
-   19,
+   22,
    15
   ],
   "text": "天安门",
-  "en": "Tiananmen, the Gate of Heavenly Peace"
+  "en": "Tiananmen, the Gate of Heavenly Peace: built in 1417 as 承天门, rebuilt in 1651 and named 天安门"
  },
  {
   "kind": "sign",
   "id": "palace",
   "tile": [
-   15,
+   26,
    15
   ],
   "text": "故宫  午门方向",
@@ -134,7 +68,7 @@
   "kind": "door",
   "id": "palace-gate",
   "tile": [
-   19,
+   24,
    16
   ],
   "to": {
@@ -151,12 +85,274 @@
   "locked": "The way into the palace. You need a ticket booked online in your own name — ask someone to help you book it."
  },
  {
+  "kind": "sign",
+  "id": "jinshuiqiao",
+  "tile": [
+   21,
+   20
+  ],
+  "text": "金水桥",
+  "en": "金水桥: five marble bridges over the 金水河, one for each arch of the gate. The wide one in the middle was for the emperor alone."
+ },
+ {
+  "kind": "prop",
+  "id": "p-huabiao-w",
+  "tile": [
+   17,
+   24
+  ],
+  "frame": "huabiao/stone",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "p-huabiao-e",
+  "tile": [
+   31,
+   24
+  ],
+  "frame": "huabiao/stone",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "huabiao-w",
+  "tile": [
+   17,
+   24
+  ],
+  "text": "华表",
+  "en": "华表: a carved marble column with a cloud plate and a little beast (犼) on top. People say the pair facing south watch for the emperor to come home."
+ },
+ {
+  "kind": "sign",
+  "id": "huabiao-e",
+  "tile": [
+   31,
+   24
+  ],
+  "text": "华表",
+  "en": "华表: a carved marble column. People say the pair behind the gate watch the emperor, so that he does not stay away too long."
+ },
+ {
+  "kind": "prop",
+  "id": "p-lioness",
+  "tile": [
+   20,
+   22
+  ],
+  "frame": "lioness/stone",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "p-lion",
+  "tile": [
+   28,
+   22
+  ],
+  "frame": "lion/stone",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "lioness",
+  "tile": [
+   20,
+   22
+  ],
+  "text": "石狮子",
+  "en": "A stone lioness, a cub under her paw — on the west, your left as you face the gate."
+ },
+ {
+  "kind": "sign",
+  "id": "lion",
+  "tile": [
+   28,
+   22
+  ],
+  "text": "石狮子",
+  "en": "A stone lion, a ball under his paw — on the east, your right as you face the gate."
+ },
+ {
+  "kind": "sign",
+  "id": "changanjie",
+  "tile": [
+   11,
+   24
+  ],
+  "text": "地下通道",
+  "en": "The underpass under 长安街 (Chang'an Avenue) — nobody crosses the avenue on foot above ground."
+ },
+ {
+  "kind": "door",
+  "id": "under-w-n",
+  "tile": [
+   11,
+   25
+  ],
+  "to": {
+   "map": "tiananmen-square",
+   "tile": [
+    11,
+    33
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "under-w-s",
+  "tile": [
+   11,
+   32
+  ],
+  "to": {
+   "map": "tiananmen-square",
+   "tile": [
+    11,
+    24
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "under-e-n",
+  "tile": [
+   36,
+   25
+  ],
+  "to": {
+   "map": "tiananmen-square",
+   "tile": [
+    36,
+    33
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "door",
+  "id": "under-e-s",
+  "tile": [
+   36,
+   32
+  ],
+  "to": {
+   "map": "tiananmen-square",
+   "tile": [
+    36,
+    24
+   ],
+   "facing": "up"
+  }
+ },
+ {
+  "kind": "prop",
+  "id": "p-flagpole",
+  "tile": [
+   24,
+   36
+  ],
+  "frame": "flagpole/top",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "flag",
+  "tile": [
+   24,
+   36
+  ],
+  "text": "国旗",
+  "en": "The national flag. Every morning at sunrise a guard of honour marches out of 天安门 and raises it; people come before dawn to watch."
+ },
+ {
+  "kind": "prop",
+  "id": "p-monument",
+  "tile": [
+   23,
+   49
+  ],
+  "frame": "monument/stone",
+  "blocks": [
+   2,
+   2
+  ]
+ },
+ {
+  "kind": "sign",
+  "id": "monument",
+  "tile": [
+   23,
+   49
+  ],
+  "text": "人民英雄纪念碑",
+  "en": "The Monument to the People's Heroes, in the middle of the square"
+ },
+ {
+  "kind": "sign",
+  "id": "dahuitang",
+  "tile": [
+   7,
+   45
+  ],
+  "text": "人民大会堂",
+  "en": "The Great Hall of the People, on the west side of the square"
+ },
+ {
+  "kind": "sign",
+  "id": "bowuguan",
+  "tile": [
+   40,
+   45
+  ],
+  "text": "中国国家博物馆",
+  "en": "The National Museum of China, on the east side of the square"
+ },
+ {
+  "kind": "sign",
+  "id": "zhengyangmen",
+  "tile": [
+   22,
+   64
+  ],
+  "text": "正阳门",
+  "en": "正阳门 (前门), the great south gate of the old inner city, built 1419. 前门大街 runs on south of it — take line 8 to 前门."
+ },
+ {
+  "kind": "sign",
+  "id": "square",
+  "tile": [
+   0,
+   40
+  ],
+  "text": "天安门广场",
+  "en": "天安门广场, one of the largest city squares in the world"
+ },
+ {
   "kind": "npc",
   "id": "guard",
   "npc": "tam-guard",
   "tile": [
-   20,
-   18
+   25,
+   21
   ],
   "facing": "down"
  },
@@ -165,8 +361,8 @@
   "id": "tourist-a",
   "npc": "tourist-1",
   "tile": [
-   17,
-   21
+   16,
+   22
   ],
   "facing": "up"
  },
@@ -175,8 +371,8 @@
   "id": "tourist-b",
   "npc": "tourist-2",
   "tile": [
-   22,
-   23
+   30,
+   38
   ],
   "facing": "left"
  },
@@ -185,21 +381,74 @@
   "id": "photo",
   "npc": "tam-photographer",
   "tile": [
-   12,
-   20
+   21,
+   38
   ],
   "facing": "right"
  },
  {
   "kind": "prop",
-  "id": "national-flag",
+  "id": "lantern-1",
+  "tile": [
+   14,
+   8
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lantern-2",
   "tile": [
    19,
-   22
+   8
   ],
-  "frame": "flag/red-0",
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lantern-3",
+  "tile": [
+   29,
+   8
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "lantern-4",
+  "tile": [
+   34,
+   8
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "prop",
+  "id": "tree-w",
+  "tile": [
+   2,
+   24
+  ],
+  "frame": "tree/huai",
   "blocks": [
-   1,
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "tree-e",
+  "tile": [
+   39,
+   23
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
    1
   ]
  }

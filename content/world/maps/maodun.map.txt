@@ -1,0 +1,37 @@
+id: maodun
+size: 20x14
+tilesets: tiles
+district: gulou
+pigeons: 2
+# 茅盾故居 on 后圆恩寺胡同: a two-courtyard house, the writer's study as he left it, his bust in the yard
+
+[ground]
+pppppppppppppppppppp
+pppppppppppppppppppp
+pppppppppppppppppppp
+pppppppppppppppppppp
+pppppppppppppppppppp
+ppPppppppPppppppPppp
+pPppppppPppppppPpppp
+PppppppPppppppPppppp
+ppppppPppppppPpppppp
+pppppPppppppPppppppP
+ppppPppppppPppppppPp
+pppPppppppPppppppPpp
+ppPppppppPppppppPppp
+pppppppppppppppppppp
+[below]
+XXXXXXXXXXXXXXXXXXXX
+xxxxxxxxxxxxxxxxxxxx
+eeeeeeeeeeeeeeeeeeee
+bbnbbnbbbdbbbnbbnbbb
+BBBBBBBBBDBBBBBBBBBB
+T..................T
+T..................T
+T..................T
+T..................T
+T..................T
+T..................T
+T..................T
+T..................T
+TTTTTTTTT.TTTTTTTTTT

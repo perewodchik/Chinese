@@ -38,9 +38,9 @@ describe('take me there (M6)', () => {
   });
 
   it('ends the trail on the door or the street end into the next map, or beside the train board', () => {
-    const doors = trailGoals({ to: 'chaguan' }, objects('nanluo-main'), 22, 60);
-    assert.deepEqual(doors, [[15, 14]]);
-    const edge = trailGoals({ to: 'gulou-dongdajie' }, objects('nanluo-main'), 22, 60);
+    const doors = trailGoals({ to: 'chaguan' }, objects('nanluo-main'), 40, 64);
+    assert.deepEqual(doors, [[24, 14]]);
+    const edge = trailGoals({ to: 'gulou-dongdajie' }, objects('nanluo-main'), 40, 64);
     assert.ok(edge.length === 8 && edge.every(([, y]) => y === 0), JSON.stringify(edge));
     const board = trailGoals({ board: true }, objects('station-nanluoguxiang'), 20, 20);
     assert.ok(board.length >= 1, 'the station has its board');

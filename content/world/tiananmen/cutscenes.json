@@ -217,5 +217,202 @@
    }
   ],
   "talk": "dragon-after"
+ },
+ {
+  "id": "tam-flag",
+  "map": "tiananmen-square",
+  "title": {
+   "zh": "升国旗",
+   "en": "The flag at sunrise"
+  },
+  "letterbox": true,
+  "music": "hush",
+  "cast": [
+   {
+    "actor": "hero",
+    "at": [
+     20,
+     38
+    ],
+    "facing": "up"
+   }
+  ],
+  "words": [
+   {
+    "w": "升国旗",
+    "explain": "把国旗慢慢地送到上面。",
+    "en": "raise the national flag"
+   },
+   {
+    "w": "国旗",
+    "explain": "一个国家的旗子。",
+    "en": "national flag"
+   },
+   {
+    "w": "太阳",
+    "explain": "天上很热、很亮的东西。白天有，晚上没有。",
+    "en": "the sun"
+   }
+  ],
+  "steps": [
+   {
+    "prop": "p-flagpole",
+    "frame": "flagpole/low"
+   },
+   {
+    "fade": "in",
+    "ms": 900
+   },
+   {
+    "camera": [
+     24,
+     20
+    ],
+    "ms": 900
+   },
+   {
+    "say": "hero",
+    "zh": "我来看升国旗！",
+    "en": "I've come to see the flag go up!"
+   },
+   {
+    "say": "rabbit",
+    "en": "Sunrise. The guard of honour has marched out of 天安门 and across 长安街 — they stop the traffic for it."
+   },
+   {
+    "camera": [
+     24,
+     33
+    ],
+    "ms": 1200
+   },
+   {
+    "spawn": "extra:uncle",
+    "at": [
+     23,
+     33
+    ],
+    "facing": "down"
+   },
+   {
+    "spawn": "extra:uncle-blue",
+    "at": [
+     24,
+     33
+    ],
+    "facing": "down"
+   },
+   {
+    "spawn": "extra:rider-blue",
+    "at": [
+     25,
+     33
+    ],
+    "facing": "down"
+   },
+   {
+    "together": [
+     {
+      "move": "extra:uncle",
+      "to": [
+       [
+        23,
+        34
+       ],
+       [
+        23,
+        35
+       ]
+      ],
+      "speed": "slow"
+     },
+     {
+      "move": "extra:uncle-blue",
+      "to": [
+       [
+        24,
+        34
+       ],
+       [
+        24,
+        35
+       ]
+      ],
+      "speed": "slow"
+     },
+     {
+      "move": "extra:rider-blue",
+      "to": [
+       [
+        25,
+        34
+       ],
+       [
+        25,
+        35
+       ]
+      ],
+      "speed": "slow"
+     }
+    ]
+   },
+   {
+    "say": "tam-photographer",
+    "zh": "天天早上，太阳出来的时候，这里升国旗。",
+    "en": "Every morning, when the sun comes up, the flag goes up here."
+   },
+   {
+    "together": [
+     {
+      "prop": "p-flagpole",
+      "frame": "flagpole/mid"
+     },
+     {
+      "sound": "drum"
+     }
+    ]
+   },
+   {
+    "wait": 1600
+   },
+   {
+    "together": [
+     {
+      "prop": "p-flagpole",
+      "frame": "flagpole/top"
+     },
+     {
+      "sound": "gong"
+     }
+    ]
+   },
+   {
+    "wait": 900
+   },
+   {
+    "say": "hero",
+    "zh": "太阳出来了！你看，国旗！",
+    "en": "The sun is up! Look — the flag!"
+   },
+   {
+    "say": "rabbit",
+    "en": "Hundreds of people got up before dawn for this, and so did you. It happens every single day, and it's free."
+   },
+   {
+    "despawn": "extra:uncle"
+   },
+   {
+    "despawn": "extra:uncle-blue"
+   },
+   {
+    "despawn": "extra:rider-blue"
+   }
+  ],
+  "then": [
+   {
+    "do": "flag",
+    "flag": "tam-flag-seen"
+   }
+  ]
  }
 ]

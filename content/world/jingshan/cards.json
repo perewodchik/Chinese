@@ -1,0 +1,156 @@
+[
+ {
+  "id": "card-baita",
+  "map": "beihai-baita",
+  "zh": "白塔",
+  "pinyin": "Báitǎ",
+  "en": "The White Dagoba of 北海",
+  "souvenir": {
+   "frame": "pagoda/white",
+   "zh": "白塔",
+   "en": "a little White Dagoba"
+  },
+  "words": [
+   {
+    "w": "塔",
+    "en": "pagoda, dagoba"
+   },
+   {
+    "w": "岛",
+    "en": "island"
+   },
+   {
+    "w": "湖",
+    "en": "lake"
+   }
+  ],
+  "facts": [
+   {
+    "id": "built",
+    "zh": "白塔是一六五一年建的。",
+    "en": "The White Dagoba was built in 1651.",
+    "fact": "baita-1651",
+    "open": {
+     "read": "beihai-baita:baita"
+    },
+    "how": "Read the sign by the White Dagoba."
+   },
+   {
+    "id": "island",
+    "zh": "白塔在湖中间的岛上。",
+    "en": "It stands on an island in the middle of the lake.",
+    "fact": "beihai-qionghua",
+    "open": {
+     "read": "beihai-north:pier-sign"
+    },
+    "how": "Read the sign at the boat pier."
+   },
+   {
+    "id": "old",
+    "zh": "北海很老，八百多年以前就有了。",
+    "en": "北海 is China's oldest imperial garden, begun more than 800 years ago.",
+    "fact": "beihai-oldest",
+    "open": {
+     "read": "beihai-north:beihai"
+    },
+    "how": "Read the park's sign on the north shore."
+   }
+  ]
+ },
+ {
+  "id": "card-jingshan",
+  "map": "jingshan-park",
+  "zh": "景山",
+  "pinyin": "Jǐngshān",
+  "en": "Jingshan, the hill behind the palace",
+  "souvenir": {
+   "frame": "pavilion-small/green",
+   "zh": "亭子",
+   "en": "a little pavilion"
+  },
+  "words": [
+   {
+    "w": "亭子",
+    "en": "pavilion"
+   },
+   {
+    "w": "故宫",
+    "en": "the Palace Museum"
+   },
+   {
+    "w": "明朝",
+    "en": "the Ming dynasty"
+   }
+  ],
+  "facts": [
+   {
+    "id": "pavilions",
+    "zh": "景山上有五个亭子，中间的万春亭最高。",
+    "en": "Five pavilions line the ridge; 万春亭 in the middle is the highest.",
+    "fact": "jingshan-pavilions",
+    "open": {
+     "read": "jingshan-park:wanchun-sign"
+    },
+    "how": "Read the sign at 万春亭."
+   },
+   {
+    "id": "ming",
+    "zh": "故宫是明朝建的，不是秦始皇。",
+    "en": "The palace was built under the Ming, not by 秦始皇.",
+    "fact": "gugong-ming",
+    "open": {
+     "scene": "sub-tt-1-live"
+    },
+    "how": "Help 甜甜 get her history right."
+   }
+  ]
+ },
+ {
+  "id": "card-jiaolou",
+  "map": "jiaolou",
+  "zh": "角楼",
+  "pinyin": "Jiǎolóu",
+  "en": "The corner tower and the fox",
+  "souvenir": {
+   "frame": "fox/sway-0",
+   "zh": "狐狸",
+   "en": "a little fox"
+  },
+  "words": [
+   {
+    "w": "狐狸",
+    "en": "fox"
+   },
+   {
+    "w": "老虎",
+    "en": "tiger"
+   },
+   {
+    "w": "故事",
+    "en": "story"
+   }
+  ],
+  "facts": [
+   {
+    "id": "fox",
+    "zh": "狐狸走在前面，老虎走在后面，动物们怕的是老虎。",
+    "en": "The fox walks in front, the tiger behind — and the animals run from the tiger.",
+    "fact": "hujiahuwei",
+    "open": {
+     "scene": "c2-fox-tiger"
+    },
+    "how": "Meet the fox at night."
+   },
+   {
+    "id": "school",
+    "zh": "这个故事，中国小学生都学。",
+    "en": "Every Chinese primary school pupil learns this story.",
+    "fact": "hujiahuwei-school",
+    "open": {
+     "scene": "c2-fox-tiger"
+    },
+    "how": "Meet the fox at night."
+   }
+  ]
+ }
+]

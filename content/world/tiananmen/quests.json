@@ -88,5 +88,31 @@
         }
       }
     ]
+  },
+  {
+    "id": "side-flag",
+    "title": "The flag at sunrise",
+    "chapter": 1,
+    "kind": "side",
+    "giver": "tam-photographer",
+    "blurb": "Every morning at sunrise the flag goes up on 天安门广场.",
+    "lead": "The photographer on the square says to come and watch the flag go up at sunrise.",
+    "steps": [
+      {
+        "id": "dawn",
+        "now": "Be on 天安门广场 in the morning, before 11:00 — the guard of honour raises the flag (in real life at sunrise; the game keeps it all morning). Sleep at home, then take the subway straight here.",
+        "past": "Saw the guard of honour raise the flag at sunrise on 天安门广场.",
+        "where": "tiananmen-square",
+        "done": {
+          "flag": "tam-flag-seen"
+        }
+      }
+    ],
+    "reward": [
+      {
+        "do": "stamp",
+        "stamp": "shengqi"
+      }
+    ]
   }
 ]

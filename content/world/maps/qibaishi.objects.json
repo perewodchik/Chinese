@@ -1,0 +1,147 @@
+[
+ {
+  "kind": "door",
+  "id": "gate",
+  "tile": [
+   9,
+   13
+  ],
+  "to": {
+   "map": "nanluo-main",
+   "tile": [
+    5,
+    43
+   ],
+   "facing": "down"
+  }
+ },
+ {
+  "kind": "sign",
+  "id": "plaque",
+  "tile": [
+   8,
+   4
+  ],
+  "text": "齐白石旧居纪念馆",
+  "en": "Qi Baishi's Former Residence — the painter lived here in his last years (from 1955)"
+ },
+ {
+  "kind": "door",
+  "id": "hall",
+  "tile": [
+   9,
+   4
+  ],
+  "to": {
+   "map": "qibaishi",
+   "tile": [
+    9,
+    5
+   ],
+   "facing": "down"
+  },
+  "when": {
+   "flag": "never"
+  },
+  "locked": "The north hall, kept as he had it: the sitting room, the painting room with brushes and ink on the table, and the bedroom. Visitors look in from the door."
+ },
+ {
+  "kind": "sign",
+  "id": "huashi",
+  "tile": [
+   4,
+   3
+  ],
+  "text": "画室",
+  "en": "The painting room — brushes, an ink stone, and paper weighted down on a long table."
+ },
+ {
+  "kind": "sign",
+  "id": "xia",
+  "tile": [
+   14,
+   3
+  ],
+  "text": "虾",
+  "en": "A picture of shrimp in the window: a few strokes of ink, and they look alive. He painted shrimp all his life."
+ },
+ {
+  "kind": "sign",
+  "id": "show-w",
+  "tile": [
+   1,
+   7
+  ],
+  "text": "展厅",
+  "en": "The side room: a show of his paintings, changed every few months."
+ },
+ {
+  "kind": "sign",
+  "id": "show-e",
+  "tile": [
+   18,
+   7
+  ],
+  "text": "展厅",
+  "en": "The side room: his seals and letters."
+ },
+ {
+  "kind": "prop",
+  "id": "tree",
+  "tile": [
+   5,
+   9
+  ],
+  "frame": "tree/huai",
+  "blocks": [
+   2,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant",
+  "tile": [
+   13,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "plant2",
+  "tile": [
+   6,
+   6
+  ],
+  "frame": "plant/green",
+  "blocks": [
+   1,
+   1
+  ]
+ },
+ {
+  "kind": "prop",
+  "id": "lantern",
+  "tile": [
+   9,
+   6
+  ],
+  "frame": "lantern/unlit",
+  "light": "#ffb44c"
+ },
+ {
+  "kind": "npc",
+  "id": "guide",
+  "npc": "qbs-guide",
+  "tile": [
+   12,
+   9
+  ],
+  "facing": "down"
+ }
+]

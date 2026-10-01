@@ -15,7 +15,11 @@
     "lifadian",
     "chaguan",
     "station-nanluoguxiang",
-    "gulou-dongdajie"
+    "gulou-dongdajie",
+    "qibaishi",
+    "maodun",
+    "juer",
+    "dongmianhua"
   ],
   "stations": [
     "nanluoguxiang",
@@ -98,7 +102,16 @@
     "飞鸽",
     "自行车行",
     "修车摊",
-    "二八大杠"
+    "二八大杠",
+    "齐白石",
+    "茅盾",
+    "吴良镛",
+    "中央戏剧学院",
+    "中戏",
+    "齐白石旧居纪念馆",
+    "茅盾故居",
+    "交道口南大街",
+    "联合国"
   ],
   "ambience": "hutong"
 }

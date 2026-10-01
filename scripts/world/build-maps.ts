@@ -130,8 +130,44 @@ export function checkMaps(all: Compiled[], set: TilesetJson): string[] {
       }
       if (o.kind === 'npc' && blocked(map, o.tile)) errors.push(`${at}: ${o.npc} stands on a blocked tile`);
     }
+    for (const run of deadEnds(map, objects)) errors.push(`${map.id}: open ground runs off the map at ${run} and leads nowhere — make it an edge to the next map, or close it (a wall, a gate)`);
   }
   return errors;
+}
+
+/**
+ * MH1 (the learner, 2026-10-01: "this kind of map should never exist"): every open tile on a map's
+ * border must be part of an exit (an edge, or a door on it). Open ground that runs off the map and
+ * goes nowhere looks like a road you can take and isn't. Returns each such run, like `left 12–14`.
+ */
+export function deadEnds(map: Compiled['map'], objects: readonly MapObject[]): string[] {
+  const out: string[] = [];
+  const exits = objects.filter((o): o is Extract<MapObject, { kind: 'edge' }> => o.kind === 'edge');
+  const doors = new Set(objects.flatMap((o) => (o.kind === 'door' ? [o.tile.join(',')] : [])));
+  // a corner belongs to two sides: an exit on either covers it
+  const onExit = (e: Extract<MapObject, { kind: 'edge' }>, [x, y]: [number, number]) =>
+    e.side === 'left' ? x === 0 && y >= e.from && y <= e.to : e.side === 'right' ? x === map.width - 1 && y >= e.from && y <= e.to : e.side === 'up' ? y === 0 && x >= e.from && x <= e.to : y === map.height - 1 && x >= e.from && x <= e.to;
+  const sides = [
+    ['up', map.width, (i: number) => [i, 0]],
+    ['down', map.width, (i: number) => [i, map.height - 1]],
+    ['left', map.height, (i: number) => [0, i]],
+    ['right', map.height, (i: number) => [map.width - 1, i]],
+  ] as const;
+  for (const [side, n, tileAt] of sides) {
+    let start = -1;
+    const close = (end: number) => {
+      if (start >= 0) out.push(`${side} ${start === end ? start : `${start}–${end}`}`);
+      start = -1;
+    };
+    for (let i = 0; i < n; i++) {
+      const t = tileAt(i) as [number, number];
+      const open = !blocked(map, t) && !doors.has(t.join(',')) && !exits.some((e) => onExit(e, t));
+      if (open && start < 0) start = i;
+      if (!open) close(i - 1);
+    }
+    close(n - 1);
+  }
+  return out;
 }
 
 export function loadAll(src = MAPS_SRC): Compiled[] {

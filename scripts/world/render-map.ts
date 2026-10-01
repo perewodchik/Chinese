@@ -10,7 +10,7 @@
  *   npx tsx scripts/world/render-map.ts <map> <WxH> <time> <out.png> [heroX,heroY] [focusX,focusY]
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, globSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { looksOf } from '../../src/world/core/cast';
 import { holds } from '../../src/world/core/flags';
@@ -108,6 +108,8 @@ export function drawWorld(mapId: string, time: PartOfDay, hero: Tile | null, me?
   for (const id of existsSync('public/world/content/index.json') ? (JSON.parse(readFileSync('public/world/content/index.json', 'utf8')) as string[]) : []) {
     Object.assign(looks, looksOf(JSON.parse(readFileSync(`public/world/content/${id}.json`, 'utf8')).npcs as NpcCard[]));
   }
+  // a person added since the last content build: their card in the source files (thumbnails come before content)
+  for (const f of globSync('content/world/*/npcs.json')) for (const [id, l] of Object.entries(looksOf(JSON.parse(readFileSync(f, 'utf8')) as NpcCard[]))) looks[id] ??= l;
   const props = sheet('props');
   const W = map.width * T;
   const H = map.height * T;
