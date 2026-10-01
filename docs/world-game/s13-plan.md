@@ -2,12 +2,12 @@
 
 The parts of the §13 brief that are still open: what the learner asked for
 (13.0, read it first, it decides every trade-off), the chapters S5–S10, the
-substories U1–U5, the final look pass V5 and the end check Z9. How to write a
+substories U1–U10 (one per chapter) and U-check, the final look pass V5 and the end check Z9. How to write a
 chapter is `S-howto.md`; the story itself is `story.md`. The §13 tasks already
 built (Z0, K, Q, V1–V4, T, B, L, N, S1–S4) are in `history/built-specs.md`.
 
 **Chapters 5–10 are frozen** (the learner, 2026-09-30) until they are confident
-in chapters 1–4. Nine U episodes that fall in chapters 1–4 are already built;
+in chapters 1–4. Nine U episodes that fall in chapters 1–4 are already built (U1–U4);
 see `review/chapters-1-4.md`.
 
 ### 13.0 What the learner asked for, and why (read this first; it decides every trade-off)
@@ -118,7 +118,7 @@ connecting steps):
 - **S3 · 3 书 (王府井 · 前门)** — 王府井 north–south: the 银行 (exists),
   百货大楼 (a gift for 王阿姨, a proper outfit for 京剧 night → 瑞蚨祥 on
   大栅栏; lend if poor), 书店 (the 成语 book + 《门神》 + 《脸谱》),
-  小吃街 (老牛, U2), 药店 (兔儿爷 caught a cold from the 景山 wind — you
+  小吃街 (老牛, U3), 药店 (兔儿爷 caught a cold from the 景山 wind — you
   describe his symptoms: 发烧, 咳嗽 — funny and very useful), 前门 by the
   铛铛车, the 京剧 show cutscene, the 门神 repainted facing each other.
 - **S4 · 4 回声 (天坛 · 国子监 · 孔庙)** — 天坛 by the axis: 祈年殿 (book
@@ -132,12 +132,12 @@ connecting steps):
   wheels; the Maitreya of 万福阁), 白云观 (the stone monkeys: a spirit
   hides as a fourth monkey — the chapter's spirit is **石猴** or another
   from the lantern; decide in Z0 and keep the 图鉴 consistent), 东岳庙
-  (the funny "departments" — a 胡半仙 episode, U1). Book 10 《三教》.
+  (the funny "departments" — a 胡半仙 episode, U5). Book 10 《三教》.
   Nothing mocks belief; the jokes are about people, not faith.
 - **S6 · 6 新北京 (三里屯 · 国贸 · 奥林匹克)** — keep the 貔貅 line;
   add 国贸 plaza (office lunch: order by phone QR), a 快递 pickup (you
   sign for a parcel from 小军! — the throughline), 甜甜's stream at
-  三里屯 (U3), 鸟巢 at night cutscene; book 11 《数字》.
+  三里屯 (U6), 鸟巢 at night cutscene; book 11 《数字》.
 - **S7 · 7 故事 (颐和园 · 潘家园)** — 长廊 paintings come alive (a
   cutscene per painting you "enter": 3 short ones from 西游记, 三国,
   红楼梦 — homages, own lines), 十七孔桥 at sunset, 潘家园 bargaining for
@@ -154,7 +154,7 @@ connecting steps):
   son, and the lantern with every panel lit but one), 包饺子 (exists as
   side-jiaozi — fold it in), 年夜饭 cutscene with the whole cast, 守岁,
   fireworks, 初一 拜年 round the 胡同 (「新年好」「恭喜发财」 — 红包), the
-  **地坛 or 白云观 庙会** (U2's 煎饼 contest, U1's finale). Book 17.
+  **地坛 or 白云观 庙会** (U9: the 煎饼 contest, 胡半仙's finale). Book 17.
   If the player reaches chapter 9 away from 春节, Q2's 睡到… takes them
   to 腊月; if they're past it this year, to next year's (the calendar
   loops every 52 days).
@@ -184,7 +184,25 @@ phrase on their instrument — keep it bright, the music rule). Each has
 a book (B1) and a stamp. Kind humour: laugh with people, never at a
 culture, a belief or an accent.
 
-#### U1 — 胡半仙 Hú Bànxiān, the fortune teller who is always a bit wrong
+**Tasks are one per chapter** (the learner, 2026-10-01): a chapter's U task
+builds every substory episode on that chapter's route, together with or
+right after its S task. The characters below say who they are and what
+their five episodes are; `story.md`'s chapter tables place each episode.
+
+| Task | Chapter | Episodes | State |
+|---|---|---|---|
+| U1 | 1 新家 | 老马 ep1 · 米沙 ep1 | built |
+| U2 | 2 水与山 | 甜甜 ep1 | built |
+| U3 | 3 书 | 老牛 ep2 · 米沙 ep2 | built |
+| U4 | 4 回声 | 甜甜 ep2 · 胡半仙 ep1 · 老马 & 老牛 ep3 · 米沙 ep3 | built |
+| U5 | 5 香火 | 胡半仙 ep2 | |
+| U6 | 6 新北京 | 甜甜 ep3 · 胡半仙 ep3 | |
+| U7 | 7 故事 | 老马 & 老牛 ep4 · 米沙 ep4 · 胡半仙 ep4 | |
+| U8 | 8 龙 | 甜甜 ep4 | |
+| U9 | 9 过年 | the finales: 胡半仙 ep5 · 老马 & 老牛 ep5 · 米沙 ep5 | |
+| U10 | 尾声 | 甜甜 ep5 | |
+
+#### 胡半仙 Hú Bànxiān, the fortune teller who is always a bit wrong
 - **Who:** a sixty-ish man with a folding stool, a cloth sign 「算命」,
   round glasses and enormous confidence. Catchphrase:
   「天机不可泄露……不过，可以告诉你一点点。」 (the 成语 天机不可泄露 goes in
@@ -201,7 +219,7 @@ culture, a belief or an accent.
   admits he's a retired maths teacher who just likes talking to people.
 - **Language:** zodiac animals, numbers, 今天/明天, 会 (will), 好运.
 
-#### U2 — 老马 and 老牛, the 煎饼 rivals
+#### 老马 and 老牛, the 煎饼 rivals
 - **Who:** two 煎饼果子 sellers: **老马** (南锣鼓巷, mornings, tiny,
   fast, says 「正宗！」 about everything) and **老牛** (王府井 小吃街, huge,
   slow, says 「牛！」). Each insists his is the *real* one — the real
@@ -219,7 +237,7 @@ culture, a belief or an accent.
 - **Language:** food orders, likes/dislikes, 比 comparisons (他的比他的
   好吃), 马马虎虎 finally makes sense.
 
-#### U3 — 甜甜 Tiántian, the livestreamer
+#### 甜甜 Tiántian, the livestreamer
 - **Who:** a cheerful 直播 streamer with a phone on a stick, who greets
   her audience with 「家人们！」 and says 「打卡！」 at every landmark.
   Gets history cheerfully wrong.
@@ -237,7 +255,7 @@ culture, a belief or an accent.
   666), correcting someone politely (不对，是……), directions for a
   camera (左边一点).
 
-#### U4 — 米沙 Mǐshā, the other learner (tones!)
+#### 米沙 Mǐshā, the other learner (tones!)
 - **Who:** a Russian exchange student, three months ahead of you and
   sure he speaks perfectly. He doesn't: his tones go wrong in the famous
   ways. He's kind, brave, always ready to try again — a mirror for the
@@ -255,7 +273,7 @@ culture, a belief or an accent.
   with his mistakes as examples.
 - **Language:** tones, the thing learners fear most, made funny.
 
-#### U5 — checks
+#### U-check — checks
 Every episode played by the solver with its hints; `world:check`: each
 substory has ≥ 4 episodes, each on some chapter's route, each with a
 cutscene; the four motifs render (offline audio check, as for music).

@@ -194,7 +194,7 @@ missing (a chapter that is still a placeholder).
 | 石猴 | S5's spirit id **`shihou`** | as above; a placeholder 香火 means it is missing: S9's line must not claim it |
 | 老刘's brush | the 地书 mechanic (exists, side-dishu / trace nodes) | 春联 with 老刘 |
 | 包饺子 | `side-jiaozi` (gulou, exists) | folded into ch9 by S9 (S9 owns gulou after S1) |
-| substory finales at the 庙会 | U1 (胡半仙), U2 (老马 & 老牛) — wave 3 | S9 leaves a step **`miaohui`** in `ch-guonian` whose scene U1/U2 can join with `{"quest": "ch-guonian", "step": "miaohui"}` |
+| substory finales at the 庙会 | U9 (胡半仙, 老马 & 老牛, 米沙) — wave 3 | S9 leaves a step **`miaohui`** in `ch-guonian` whose scene U9 can join with `{"quest": "ch-guonian", "step": "miaohui"}` |
 | the calendar | `core/calendar.ts` knows 春节 (week 5) and 元宵 but no 小年 / 除夕 | S9 adds them (and their weeks) to `FESTIVALS`; Q2's 睡到… takes a player there |
 | 尾声 after 过年 | S10 reads `{"quest": "ch-guonian", "done": true}` only through the reward chain above | — |
 

@@ -1,7 +1,7 @@
 # 走走 — the story bible (§13 Z0)
 
 The one place that holds the truth for §13. Every content task (K3, S1–S10,
-U1–U4, L1–L3, N1, B-books) reads this first and updates it when it
+U1–U10, L1–L3, N1, B-books) reads this first and updates it when it
 decides something new. Facts live in `facts.md`; every real-world claim in a
 line, a book or a note has a row there.
 
@@ -261,7 +261,7 @@ still follow §5). "Ch" = the chapters they appear in (◆ = outside 鼓楼).
 | 小军 `xiaojun` **new** | young man with a suitcase · zhiyuan | HSK 2, gentle, a little formal after years away; says 妈 | 「妈，我回来了。」 | phone (story-wang), 6 (parcel note), 9, 尾声 |
 | 兔儿爷 | rabbit | English only, one line at a time | "Leave it to me — well, to you." | all |
 
-### 3.2 Substory people (U1–U4) — new
+### 3.2 Substory people (U1–U10, one task per chapter) — new
 | Person | Look · voice | How they speak | Catchphrase | Episodes (chapter) |
 |---|---|---|---|---|
 | 胡半仙 `hu-banxian` | 60-ish, round glasses, folding stool, cloth sign 「算命」 · wei | grand and slow, then a tiny safe prediction | 「天机不可泄露……不过，可以告诉你一点点。」 | 4, 5, 6, 7, 9 |

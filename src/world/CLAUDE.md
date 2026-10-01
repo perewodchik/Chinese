@@ -9,6 +9,7 @@ docs are in `docs/world-game/`. Read only the row your task needs:
 | Writing or changing content (scenes, quests, NPC lines, books) | `docs/world-game/spec.md` §3–§6 (content model, dialogue rules, word budget, formats), `content/world/README.md` |
 | A chapter or substory (§13 S/U) | `docs/world-game/s13-plan.md` (13.0 + your task), `S-howto.md`, `story.md` |
 | A real-world claim (a place, a custom, a date) | `docs/world-game/facts.md` — every claim needs an entry with a source |
+| A place card, a landmark's content (RW) | `docs/world-game/places.md` (readable facts per place; still check each in `facts.md`) |
 | Prices, shops, money | `docs/world-game/economy.md`; real brand names: `brands.md` (`world:check` reads it) |
 | Running parallel §13 sessions | `docs/world-game/parallel-sessions.md` |
 | "Why does it work like this?" | grep `docs/world-game/decisions.md` for the feature — never read it whole (125 KB) |

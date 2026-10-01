@@ -5,27 +5,12 @@ commit as the work. Built work is not listed here: `git log`, `decisions.md`
 (grep it) and `history/` hold it.
 
 ## For the learner (morning notes)
-**2026-09-30 — главы 1–4: проверка, подсюжеты, исправления. Главы 5–10 заморожены, пока ты не будешь уверен в первых четырёх.** Полная картина (все шаги по порядку, где и когда; все побочные квесты и подсюжеты с тем, что их запускает; список ловушек и тестов) — `docs/world-game/review/chapters-1-4.md`, собрана из данных игры.
-- **Твой баг с билетом:** охранник у 天安门 говорил «купи в интернете, приходи завтра», а купить можно было только в главе 8. Теперь он говорит, что билет может купить друг, и открывает квест **«A ticket for the palace»**: 王阿姨 бронирует его с первой главы, и с билетом можно войти во дворец.
-- **Похожие ловушки, которые я нашёл и закрыл:**
-  - Лису можно было встретить раньше времени, и тогда глава 2 навсегда застревала. Так было ещё до меня, и 10 из 12 случайных прохождений в это попадали. Теперь каждого духа встречаешь только на его шаге.
-  - Игрушечного тигра 小明 можно было подарить кому угодно, и тогда шаг с лисой было не пройти. Теперь его нельзя подарить.
-  - Экскурсия 小明 в 天坛 была не видна днём: его «школьное» расписание её перекрывало.
-  - Старые сохранения посреди главы 3 застревали на подарке для 王阿姨.
-  - Не хватало денег на шарф и 煎饼.
-  - Колокольчик для 英子 был только в 潘家园 (глава 7); теперь его даёт бабушка на 大栅栏.
-  - Разгаданная загадка льва так и оставалась в списке 📌.
-  - Добавлены недостающие подсказки «когда»: 赵爷爷 с 6 до 18, 小明 после школы.
-- **Подсюжеты в главах 1–4 (9 эпизодов):**
-  - глава 1: 老马 и его 煎饼 (「正宗！」); 米沙 заказывает «豹子» вместо 包子;
-  - глава 2: стрим 甜甜 на 景山 (「不对，是明朝。」, 弹幕);
-  - глава 3: 老牛 на 小吃街; 米沙: 水饺 и 睡觉;
-  - глава 4: 甜甜 у 回音壁; 胡半仙 гадает (「你属兔！」 — кролику); передай ругательство от 老马 к 老牛 дословно или помягче; 米沙: 问 и 吻.
-
-  Новые книги: 《煎饼果子》, 《属相》, 《声调》. Новое выражение: 天机不可泄露.
-- **Как проверено:** автоматический «игрок» проходит главы 1–4 целиком (глава ограничена четвёртой), а 13 «блуждающих» игроков — в случайном порядке. Тесты стерегут каждую найденную ловушку. В браузере проверены билет от охранника до 王阿姨 и эпизод 老马 со сценкой.
-
-**2026-09-30, поздно вечером — правки по твоим скриншотам с iPhone; ничего не запушено.** **Иконки меню** (сундук вместо дневника, подарок вместо карты) — это браузер смешал старый и новый файл картинок: теперь у всех файлов игры (картинки, карты, тексты) в адресе хэш содержимого, так что такого больше не будет. **Меню внизу:** четыре вкладки — 日志 · 包 · 地图 · 收藏 — и ⚙ 设置 и × 关 такими же вкладками того же размера; английских подписей нет (они во всплывающей подсказке); **朋友 теперь внутри 日志** (Now · Side · 朋友 · Story · 日记). **Верхняя строка:** только ‹, время и ☰ — место уже написано на мини-карте, карта и сумка есть в меню, у времени нормальные отступы. **Камера — в сумке:** первый слот 相机, в карточке кнопка **拍照** — меню закрывается и открывается видоискатель. **兔儿爷:** убрал ряды слов со звёздочками и «What did I learn?» — в «What did they say?» теперь только перевод, а слова и так нажимаются в самом диалоге (там же карточка слова, из неё можно добавить в коллекцию). **«Before we go…»** теперь говорит сам 兔儿爷 в своём пузыре, с кнопками Not yet / Go on, а джойстик в это время спрятан. **「！」 в диалоге** больше не проваливается ниже строки. **Карта метро:** на iPhone работает щипок (жест Safari), названия подбираются под масштаб — издалека только главные, ближе появляются остальные, ничего не налезает друг на друга и не уходит за край, под кнопки +/− и под подпись внизу тоже; «2 new» показывается только там, где есть место. Картинки: `docs/world-game/review/ui/` (WebKit 390 и 1024, Chromium 375, светлая и тёмная). **Не проверено:** настоящий iPhone (щипок в WebKit на Mac не проверить) и сам пузырь «Before we go…» — я не смог вызвать его в тесте.
+**2026-10-01 — твои три просьбы: настоящее метро, честные карты, награда за дорогу. Пока только идеи, ничего не построено — скажи «go» (или что поменять), и я начну с метро.** Идеи ниже в «Open tasks», разделы **MT**, **MH** и **RW**.
+- **Метро (MT1–MT7):** платформа становится настоящим местом. С одной стороны поезда идут в одну сторону, с другой — в другую; над каждой стороной табло «往…方向» и обратный отсчёт «下一班 2分钟». Ты сам подходишь к нужной стороне. Поезд въезжает из тоннеля с фарами и тормозит, двери вагона и стеклянные двери платформы открываются со звонком. Ты сам входишь, пока двери открыты (около 10 секунд, со счётчиком и «车门即将关闭»). В вагоне виден тоннель за окном, схема линии над дверью (горит текущая станция, мигает следующая) и экран «下一站». На каждой станции в окне виден перрон с большим названием, и у тебя есть время решить, выходить или ехать дальше. Пересадка — это переход по коридору на другую платформу. Список кнопок «выбери поезд» уходит.
+- **Честные карты (MH1–MH3):** на 南锣鼓巷 16 боковых переулков (они настоящие, и их правда 8 + 8, как ноги у сороконожки), но ведёт куда-то только 帽儿胡同 — к твоему дому. Предложение: перерисовать улицу так, чтобы каждый переулок был виден как переулок и через несколько клеток заканчивался воротами двора или поворотом, а не уходил за край. Пять из них станут настоящими местами: дом 齐白石 (雨儿), 茅盾 (后圆恩寺), театральная академия (东棉花), новые дворы 菊儿胡同, 可园 и дом 婉容 (帽儿). Плюс проверка, которая находит такие «дыры» на всех картах и не пропускает новые.
+- **Награда (RW1–RW5):** скрипт считает «наградность» каждого шага и каждого места: сколько минут дороги и что ты за них получил (сценка, книга, карточка места, новые слова, предмет, вид для фото). Места ниже планки он показывает красным. Новая коллекция **地方 — карточки мест**: у каждого настоящего места карточка с 3–5 фактами, и каждый открывается делом там (прочитать табличку, спросить человека, прийти в нужный час). Сувениры с мест становятся на полку в твоей комнате. Первым чиним **天安门**: 华表 и легенда о них, пять мостов (средний — только для императора), львы, подъём флага на рассвете как событие по часам, площадь целиком (памятник, музей, Дом народных собраний, 前门), открытка от фотографа и книга.
+- **Все настоящие места игры с интересными фактами — для чтения:** `docs/world-game/places.md` (по главам; отмечено, что уже проверено в `facts.md`).
+- **Подсюжеты U:** теперь один U на главу. U1–U4 (главы 1–4, девять эпизодов) отмечены как сделанные, U5–U10 — эпизоды глав 5–10, U-check — проверки.
 
 **2026-10-01, ночью — §13 S4: глава 4 стала длиннее; на этом я остановился (главы 5–10 не тронуты).** Теперь в главе 11 шагов вместо 4:
 - **天坛:** у 小明 школьная экскурсия, он дарит **книгу 8 《天坛》**. У 祈年殿 учительница спрашивает класс, почему крыша синяя (ответ на с. 3: 天的颜色). На 圜丘 встань на **天心石**, скажи слово, и в сценке голос возвращается со всех сторон.
@@ -40,7 +25,7 @@ commit as the work. Built work is not listed here: `git log`, `decisions.md`
 ## Where things stand (2026-10-01)
 
 Built: phases A–I, X0–X11, Y1–Y7, M1–M8, R1–R4, P1–P4 / J1–J3, W1–W7, and of
-§13 Z0, K1–K3, Q1–Q3, V1–V4, T1–T5, B1, S1–S4, L1–L4, N1–N2. Save format v17.
+§13 Z0, K1–K3, Q1–Q3, V1–V4, T1–T5, B1, S1–S4, U1–U4, L1–L4, N1–N2. Save format v17.
 
 **Chapters 1–4 are frozen for the learner's review**; chapters 5–10 wait until
 they say go. The full picture of chapters 1–4 is `review/chapters-1-4.md`.
@@ -54,10 +39,63 @@ they say go. The full picture of chapters 1–4 is `review/chapters-1-4.md`.
 - [ ] S8 Ch. 8 龙
 - [ ] S9 Ch. 9 过年 (new: 小年 → 年夜饭 → 庙会) — today a one-step placeholder `ch-guonian`
 - [ ] S10 尾声 长城 + 元宵 lantern night + credits
-- [ ] U1 胡半仙 · U2 老马 & 老牛 · U3 甜甜 · U4 米沙 — the chapter 1–4 episodes are built; the rest and the finales wait for their chapters
-- [ ] U5 Substory checks
+- Substories, one U per chapter (the characters are in `s13-plan.md` U; each chapter's episodes are in `story.md`'s chapter table):
+  - [x] U1 Ch. 1: 老马 ep1 (煎饼 order) · 米沙 ep1 (豹子 / 包子)
+  - [x] U2 Ch. 2: 甜甜 ep1 (景山 stream, 「不对，是明朝。」)
+  - [x] U3 Ch. 3: 老牛 ep2 (小吃街) · 米沙 ep2 (水饺 / 睡觉)
+  - [x] U4 Ch. 4: 甜甜 ep2 (回音壁) · 胡半仙 ep1 (「你属兔！」) · 老马 & 老牛 ep3 (the message relay) · 米沙 ep3 (问 / 吻)
+  - [ ] U5 Ch. 5: 胡半仙 ep2 (东岳庙, the department of luck)
+  - [ ] U6 Ch. 6: 甜甜 ep3 (三里屯 网红 café) · 胡半仙 ep3 (lucky phone numbers, 8s and 4s)
+  - [ ] U7 Ch. 7: 老马 & 老牛 ep4 (the old photo at 潘家园, sepia flashback) · 米沙 ep4 (买 / 卖, sells his watch) · 胡半仙 ep4 (your room's 风水)
+  - [ ] U8 Ch. 8: 甜甜 ep4 (角楼, film her)
+  - [ ] U9 Ch. 9: the finales: 胡半仙 ep5 (his one true prediction) · 老马 & 老牛 ep5 (the 煎饼 contest) · 米沙 ep5 (the toast)
+  - [ ] U10 尾声: 甜甜 ep5 (长城 stream, the 弹幕 thank-you)
+  - [ ] U-check Substory checks (each character ≥ 4 episodes, each with a cutscene, the motifs)
 - [ ] V5 Final look pass over every map
 - [ ] Z9 Whole-game solver run, coverage strict, probes, review/, morning notes
+
+New from the learner, 2026-10-01: **ideas only, waiting for their go** (order: MT first, then MH, then RW)
+
+**MT — a metro that feels like the real one.** Today a ride is a sheet with a list of train buttons and calls in text (`ui/RideSheet.tsx`, `core/ride.ts`). It becomes a place you stand in:
+- [ ] MT1 Timetable (core, tested): every line and direction runs trains on a headway from the game clock (about every 3 game-minutes by day, 6 late, none 23:30–5:00, and then 兔儿爷 suggests the bike or 睡到…). It answers "next two trains on this side" and "where is the train now", deterministically, so the solver and tests can ride.
+- [ ] MT2 The platform as a map: most stations get an island platform (岛式站台) with a track on each side and one direction per side. Over each side hang the sign 「往天桥方向」 and the stops strip (bold = stops you can get off at), and the PIDS screen 「下一班 2分钟 · 再下一班 5分钟」. Big station name boards (hanzi + pinyin) sit on the track walls. You walk to the side you want; "Take me there" marks the side, not a button. Line 2's sides read 内环 / 外环.
+- [ ] MT3 The train comes in: headlights in the tunnel and a rising rumble, then the train slides in from the side its direction implies, brakes and stops at the screen doors. A chime, then the train doors and screen doors slide open together. A few passengers get off first. You walk in through any open door. Doors stay open about 10 s; the last 3 s play the 「车门即将关闭，请注意安全」 chime and flash the lights; then it leaves and the screen counts down the next one. First three rides: doors wait until you're in or step back. Missing a train costs nothing.
+- [ ] MT4 Inside the carriage: a short walkable carriage map (seats, poles, a few riders, a 兔儿爷 seat). Through the windows the tunnel lights stream past and the car sways. Over each door is the line map (动态地图): passed stops dim, the current stop lit, the next one blinking, change marks. A screen shows 「下一站 王府井 Wángfǔjǐng · Next: Wangfujing」 and the call plays. At a station the platform and its big name board slide into the window and stop, and the doors open on one side. You have the same ~10 s with the countdown to walk out, or you stay on. Real door sides per station would be nice but are not modelled (`facts.md` `metro-doors` ✗); either check them or keep calling the side that opens.
+- [ ] MT5 Always know where you are: while riding, a thin top strip shows the line colour chip, ○—●—○ (last · here · next two) and 「到站：王府井」 / 「下一站：…」. On a platform, the name boards say it too. Fixed widths, no layout shift.
+- [ ] MT6 Changing lines: at an interchange, the 换乘 signs lead down a short corridor map to the other line's platform (a few seconds' walk, not instant). Leaving: 出站 through the gates, which tap the card (fare as today).
+- [ ] MT7 Checks: the solver rides with MT1. Guided rides, fares, the "can't go out here" stations and old saves still work. `prefers-reduced-motion` skips the slides but keeps the door timing. Probes at 375/768/1024 in WebKit, light and dark. Train calls recorded with `build-voices`.
+
+**MH — no map shows a road that goes nowhere.**
+- [ ] MH1 A dead-end check in `world:check`: every walkable opening that reaches a map's edge must be an `edge` or a `door`. A street-like gap between building rows (walkable, ≥ 2 wide, open to the edge) must lead somewhere or be closed on screen (a gate, a wall, a turn). It runs over every map and lists the offenders.
+- [ ] MH2 南锣鼓巷 rebuilt (`nanluo-main`). Today its 16 hutong mouths are open gaps to the map edge and only 帽儿胡同 (west, to `hutong-home`) leads anywhere. The 16 stay, because they're real (`facts.md` `nlgx-hutongs`, the centipede). The map widens so each mouth is a real-looking lane (2 wide, its street sign, 门墩, bikes, a cat) that ends within the map: at a courtyard gate across the lane, a 影壁, or a visible turn. Five become places you can walk into, each a small map with someone to talk to and something to collect:
+  - 帽儿胡同: the way home, plus 可园 and the house where 婉容 grew up;
+  - 雨儿胡同: 齐白石's house (a shrimp painting card);
+  - 后圆恩寺胡同: 茅盾's house;
+  - 东棉花胡同: the 中央戏剧学院 gate, with students rehearsing lines you can listen to;
+  - 菊儿胡同: 吴良镛's new courtyards.
+
+  The closed lanes still give something: a gate you can knock on (「找谁啊？」), a 门墩 to look at. Reading all 16 hutong names collects the 蜈蚣巷 card. Facts first (`facts.md`), a migration if a door id moves, and the S1 route and solver unchanged.
+- [ ] MH3 Fix every other map MH1 flags (expect the prototype lanes, some street maps and the station corridors).
+
+**RW — every trip pays off.** The learner rode all of chapter 1's subway to 天安门 and found one line there.
+- [ ] RW1 A rewardness score (`scripts/world/reward.ts`, report in `review/reward.md`). For each main step and each landmark it compares **cost** (minutes from the previous step: walking tiles, rides with MT1's waits, dialogue) with **reward** points:
+  - cutscene 3, book 4, place-card fact 2, idiom 3, stamp 1;
+  - a new word heard or read 0.5 (cap 4);
+  - a choice or a real conversation 1, an item or souvenir 1, a photo spot 1.
+
+  The score is reward per minute. A landmark scores below the bar if it gives < 6 points. A step over 5 minutes of travel must end in a cutscene or a collectible. The report lists everything, red rows first. `world:check` warns, and later fails once RW4 is done.
+- [ ] RW2 Place cards (收藏 → 地方). Every real landmark gets a card: its picture, name with pinyin, and 3–5 one-line facts in simple Chinese and English (from `facts.md`, the readable versions in `places.md`). Each fact unlocks by doing something there: read a sign, ask someone, find an object, come at the right hour, take the photo. A full card gets a gold edge. Tapping a word opens the word drawer as everywhere.
+- [ ] RW3 天安门 first (`tiananmen-square`):
+  - the two 华表 and their 望君归 / 望君出 story (people say);
+  - the five 金水桥 (walk the middle, the emperor's one; 兔儿爷 joke) and the stone lions (book 2's test again);
+  - the square to the south, which the map doesn't show today: the monument, 人民大会堂, 国家博物馆 and 正阳门 at the far end, with signs to read;
+  - **the flag-raising at sunrise** as a timed event: a cutscene, a crowd, a side quest "see the flag go up" with 睡到… to dawn;
+  - the photographer's postcard (a souvenir), a little book 《天安门》 (1417 / 1651, the name), and chapter 1's arrival as a real cutscene;
+  - facts kept to history and architecture.
+
+  Later, 国家博物馆 as a small map (a few famous objects as cards).
+- [ ] RW4 Every landmark over the bar after RW1's first run: likely 奥林匹克, 景山 view, 长城, 潘家园, 角楼, 王府井 street, the 故宫 halls. Each gets its card and 2–3 rewards.
+- [ ] RW5 Souvenirs on a shelf in your room (`siheyuan-room`): a 白塔 model, a 脸谱 mask, a kite, the 天安门 postcard. The room fills up with the places you've been. Visible, and each one opens its place card.
 
 With the learner
 - [ ] X12 Play-through and final bug hunt (the automated half was done 2026-09-29)

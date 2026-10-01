@@ -9,7 +9,7 @@ the bike, city sounds, the map plan) and S2–S4 have landed.
 | Wave | Start when | Sessions (run at the same time) |
 |---|---|---|
 | **2** | the learner unfreezes chapters 5–10 | **F** S5 · **G** S6 + S7 · **H** S8 |
-| **3** | F–H have landed | **I** S9 + S10 · **J** U1 胡半仙 · **K** U2 老马 & 老牛 · **L** U3 甜甜 · **M** U4 米沙 |
+| **3** | F–H have landed (L: after I) | **I** S9 + S10 · **J** U5 + U6 · **K** U7 + U8 · **L** U9 + U10 |
 | **4** | everything above has landed | **N** V5, then Z9 (one session, in order) |
 | — | with the learner | X12 play-through |
 
@@ -156,29 +156,25 @@ Ch. 9 touches many districts; the other wave-3 sessions (U) write in the same fo
 After S10, WORLD_COVERAGE=strict npm run world:check must pass. Tick S9, S10 in STATUS.md.
 ```
 
-### J / K / L / M — one substory each
+### J / K / L — substory episodes, by chapter
 
-Paste the common part, this shared block, then the character line.
+Paste the common part, this shared block, then the session's line. The U
+tasks are one per chapter (s13-plan.md U, the table); U1–U4 are built.
 
 ```
-Your track: a §13 U substory (U1–U4 in s13-plan.md; story.md §3.2 and the chapter tables put each episode on a chapter's route).
-- ≥ 4 episodes on main routes, each 3–6 minutes, each with ≥ 1 cutscene.
-- Q1-style marks with the character's small portrait badge.
-- A catchphrase the learner will end up saying.
-- A warm ending cutscene with the character's own 4–6-note motif in src/world/audio/music.ts. Add yours as its own entry; the others add theirs.
-- A book (B1 format, facts in facts.md first) and a stamp.
+Your track: the §13 U substory episodes of your chapters (s13-plan.md U: the table and the characters; story.md's chapter tables put each episode on the route).
+- Each episode on its chapter's main route, 3–6 minutes, with ≥ 1 cutscene; Q1-style marks with the character's portrait badge.
+- Keep each character's catchphrase and voice as U1–U4 set them (story.md §3.2); the books 《属相》, 《煎饼果子》, 《声调》 exist — add pages, don't start new ones; 甜甜's book per s13-plan.md.
+- The finales (U9) each end in a warm cutscene with the character's own 4–6-note motif in src/world/audio/music.ts.
 - Kind humour: laugh with people, never at a culture, a belief or an accent.
-- Namespace every id: hu-*, ma-niu-*, tiantian-*, misha-*.
+- Namespace every id: hu-*, ma-niu-*, tiantian-*, misha-*; quest ids start sub-.
 - Append to the district files; never reformat them.
-- Episode 5 (the finale in ch. 9) goes into the hooks S9 left (see S-howto). If session I hasn't landed yet, write episodes 1–4 first and land them, then ep. 5 after.
-- U5 checks for your character: the solver plays every episode with its hints, and the motif renders offline. Session J also adds the generic world:check rule: each substory has ≥ 4 episodes, each on some chapter's route, each with a cutscene.
-- Tick your U box in STATUS.md. The last one of you to land ticks U5.
+- The solver plays every episode with its hints. Tick your U boxes in STATUS.md; the last one of you to land does U-check (each character ≥ 4 episodes, each with a cutscene; the motifs render offline).
 ```
 
-- **J** — `Your character: U1 胡半仙 (branch track/u1). Launch config: add one with PORT=5185, HANZI_DB=.data/world-test-5185.db. Book 《属相》: the 12 animals.`
-- **K** — `Your characters: U2 老马 & 老牛, the 煎饼 rivals (branch track/u2). Launch config: PORT=5186, .data/world-test-5186.db. Book 《煎饼果子》.`
-- **L** — `Your character: U3 甜甜, the livestreamer with 弹幕 (branch track/u3). Launch config: PORT=5187, .data/world-test-5187.db. Her book per s13-plan.md U3.`
-- **M** — `Your character: U4 米沙, the other learner with wrong tones in real minimal pairs (branch track/u4). Launch config: PORT=5188, .data/world-test-5188.db. He has no recorded voice, so decide per s13-plan.md U4 and note it in Decisions.`
+- **J** — `Your tasks: U5 (ch. 5) + U6 (ch. 6), after S5 and S6 have landed (branch track/u56). Launch config: PORT=5185, HANZI_DB=.data/world-test-5185.db.`
+- **K** — `Your tasks: U7 (ch. 7) + U8 (ch. 8), after S7 and S8 have landed (branch track/u78). Launch config: PORT=5186, .data/world-test-5186.db. 米沙 has no recorded voice; keep U1–U4's choice.`
+- **L** — `Your tasks: U9 (the finales at the 庙会 and 年夜饭) + U10 (甜甜 on the Wall), after session I (S9 + S10) has landed — use the miaohui hook (S-howto) (branch track/u910). Launch config: PORT=5187, .data/world-test-5187.db.`
 
 ---
 
