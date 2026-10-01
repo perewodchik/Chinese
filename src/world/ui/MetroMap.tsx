@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { HOODS, hoodOf } from '../core/hoods';
 import type { RouteLeg } from '../core/journal';
 import { AT, extent, linePoints, linesThrough, roundedPath, WALK_LINKS } from '../core/metro';
 import { LINES, station } from '../core/travel';
 import type { WorldSave } from '../core/types';
 import { boxOf, routePoints } from './metroRoute';
-import { placeLabels, type LabelWant } from './metroLabels';
+import { circleBoxes, lineBoxes, placeLabels, zoomLevel, type LabelWant } from './metroLabels';
 import { usePanZoom } from './usePanZoom';
 
 /**
@@ -72,34 +72,53 @@ export function MetroMap({
   const clamp = (lo: number, v: number, hi: number) => Math.min(hi, Math.max(lo, v));
   const fsHood = clamp(11, pxPerGrid * 0.42, 15);
   const fsMinor = clamp(9.5, pxPerGrid * 0.34, 12);
-  const minor = pxPerGrid >= 22;
+  // 2026-10-01: fully out only where you are and your task; closer every neighbourhood; closest every station
+  const level = zoomLevel(pxPerGrid);
   const badgeText = (st: string) => {
     const n = counts?.get(hoodAt.get(st)?.id ?? '');
     return n ? [n.new ? `${n.new} new` : '', n.on ? `${n.on} on` : ''].filter(Boolean).join(' · ') : '';
   };
   const BADGE_FS = 9.5;
+  /** a station's circle in screen pixels, with the here / task rings round it */
+  const radiusPx = (st: string) => {
+    const hood = hoodAt.get(st);
+    const r = hood ? 6.5 : linesThrough(st).length > 1 ? 5 : 3.2;
+    return r + (hood && goalHoods.has(hood.id) ? 6 : hood && hood.id === here?.id ? 4 : 0);
+  };
+  const toGrid = (px: number) => (px * u) / G;
   const wants: LabelWant[] = Object.keys(AT).flatMap((st) => {
     const hood = hoodAt.get(st);
-    if (!hood && !minor) return [];
+    const key = hood && (hood.id === here?.id || goalHoods.has(hood.id));
+    if (!key && (level === 0 || (!hood && level < 2))) return [];
     const fs = hood ? fsHood : fsMinor;
-    const text = badgeText(st);
+    const text = level >= 1 ? badgeText(st) : '';
     const rank = !hood ? (linesThrough(st).length > 1 ? 20 : 10) : hood.id === here?.id ? 100 : goalHoods.has(hood.id) ? 90 : text ? 80 : 70;
     return [
       {
         station: st,
-        fs: (fs * u) / G,
+        fs: toGrid(fs),
+        gap: toGrid(radiusPx(st) + 3),
+        key: !!key,
         rank,
-        ...(text ? { badge: { w: ((text.length * BADGE_FS * 0.56 + 8) * u) / G, h: ((BADGE_FS + 5) * u) / G, above: (13 * u) / G } } : {}),
+        ...(text ? { badge: { w: toGrid(text.length * BADGE_FS * 0.56 + 8), h: toGrid(BADGE_FS + 5), above: toGrid(13) } } : {}),
       },
     ];
   });
-  // the zoom buttons (top right) and the key (along the bottom) sit over the map: no names under them
-  const px = (n: number) => (n * u) / G;
+  // the zoom buttons (top right) and the key (along the bottom) sit over the map, and no name covers
+  // a station's circle; only where you are and your task may cross a line, when nothing else fits
+  const px = toGrid;
   const vg = { x: view.x / G, y: view.y / G, w: view.w / G, h: view.h / G };
-  const placed = placeLabels(wants, vg, [
-    { x: vg.x + vg.w - px(110), y: vg.y, w: px(110), h: px(56) },
-    { x: vg.x, y: vg.y + vg.h - px(40), w: vg.w, h: px(40) },
-  ]);
+  // during a pinch or a drag the names keep their last places (they scale with the map) and are
+  // placed again when the fingers lift, so the pinch stays smooth
+  const cache = useRef<{ placed: ReturnType<typeof placeLabels> } | null>(null);
+  if (!pz.moving || !cache.current) {
+    const ui = [
+      { x: vg.x + vg.w - px(110), y: vg.y, w: px(110), h: px(56) },
+      { x: vg.x, y: vg.y + vg.h - px(40), w: vg.w, h: px(40) },
+    ];
+    cache.current = { placed: placeLabels(wants, vg, [...ui, ...circleBoxes((st) => toGrid(radiusPx(st) + 1.5))], lineBoxes(toGrid(4))) };
+  }
+  const placed = cache.current.placed;
   const tap = (fn: () => void) => () => {
     if (!pz.dragged.current) fn();
   };
@@ -171,7 +190,7 @@ export function MetroMap({
         {/* §13 Q1: "3 new · 1 on" over each neighbourhood with side quests — where there is room for it */}
         {[...placed].map(([st, p]) => {
           if (!p.badge) return null;
-          const text = badgeText(st);
+          const text = level >= 1 ? badgeText(st) : '';
           const fs = BADGE_FS * u;
           return (
             <g key={`q-${st}`} className="mm-count" data-new={counts?.get(hoodAt.get(st)!.id)?.new ? '' : undefined} aria-label={`${hoodAt.get(st)!.en}: ${text}`}>
@@ -191,9 +210,14 @@ export function MetroMap({
           const hood = hoodAt.get(st);
           const b = p.box;
           const tx = p.anchor === 'start' ? b.x : p.anchor === 'end' ? b.x + b.w : b.x + b.w / 2;
+          // a key name set further out: a thin line from the station to the nearest point of its name
+          const [sx, sy] = AT[st]!;
           return (
+            <g key={`t-${st}`}>
+              {p.leader && (
+                <line x1={sx * G} y1={sy * G} x2={Math.min(b.x + b.w, Math.max(b.x, sx)) * G} y2={Math.min(b.y + b.h, Math.max(b.y, sy)) * G} className="mm-leader" />
+              )}
             <text
-              key={`t-${st}`}
               x={tx * G}
               y={(b.y + b.h * 0.86) * G}
               textAnchor={p.anchor}
@@ -205,6 +229,7 @@ export function MetroMap({
             >
               {station(st).zh}
             </text>
+            </g>
           );
         })}
       </svg>

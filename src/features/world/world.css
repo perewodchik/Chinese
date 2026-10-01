@@ -1475,6 +1475,13 @@
   font-weight: 600;
 }
 
+/* a key name set away from its station (no room beside it): a thin line back */
+.mm-leader {
+  stroke: var(--ink-3);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
 .mm-marks {
   opacity: 0.8;
 }

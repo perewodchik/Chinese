@@ -194,16 +194,17 @@ const GAP = 0.32;
 
 /**
  * Where a station's name is drawn: its box (grid units) for a font `fs` grid units high, and the
- * text anchor — on its own side, or on `on` (the map tries other sides when that one is taken).
+ * text anchor — on its own side, or on `on` (the map tries other sides when that one is taken);
+ * `gap` is how far from the station's centre (the map passes its circle's radius and some air).
  */
-export function labelBox(station: string, fs: number, on?: Side): Box & { anchor: 'start' | 'middle' | 'end' } {
+export function labelBox(station: string, fs: number, on?: Side, gap = GAP): Box & { anchor: 'start' | 'middle' | 'end' } {
   const [x, y, own] = AT[station]!;
   const side = on ?? own;
   const name = STATIONS.find((s) => s.id === station)?.zh ?? station;
   const w = [...name].length * fs;
   const h = fs;
-  const d = GAP;
-  const dd = GAP * 0.8;
+  const d = gap;
+  const dd = gap * 0.75;
   switch (side) {
     case 'n':
       return { x: x - w / 2, y: y - d - h, w, h, anchor: 'middle' };
