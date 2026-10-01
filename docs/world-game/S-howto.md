@@ -1,6 +1,6 @@
 # S — how to deepen a chapter (for S2–S10, written by S1)
 
-Read first: `prompt.md` §13 "S" (the rules for all of S), `story.md` (your
+Read first: `s13-plan.md` 13.0 and "S" (the rules for all of S), `story.md` (your
 chapter's table, the cast sheet, §4 conventions), `facts.md`, and chapter 1
 as the worked example: `content/world/gulou/quests.json` (`ch1`, 18 steps),
 the `c1-*` scenes in `gulou/scenes.json`, `gulou/cutscenes.json` (`c1-drum`),

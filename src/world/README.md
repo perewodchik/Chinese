@@ -1,8 +1,8 @@
 # 走走 Zǒuzou — the game
 
-A Pokémon-style walk through Beijing on `/play/world`. Design:
-`docs/world-game/concept.md`; build brief and task list:
-`docs/world-game/prompt.md` and `STATUS.md`.
+A Pokémon-style walk through Beijing on `/play/world`. Which doc to read for
+which task: `CLAUDE.md` beside this file; status and open work:
+`docs/world-game/STATUS.md`.
 
 ```
 core/     pure TypeScript — no Phaser, no React, no DOM. All game rules.

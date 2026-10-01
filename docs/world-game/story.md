@@ -298,7 +298,7 @@ district. Those that gain a §13 beat: 早点铺师傅 (米沙 ep1), 卖糖葫�
   `sub-tt-2`, `sub-misha-4`), `kind: 'side'`; the coverage script counts
   them as substory episodes by the `sub-` prefix.
 - **New main steps** get new ids; old step ids stay (S1's save upgrade).
-- **New scenes, flags and cutscenes of chapter N** are prefixed `c<N>-` (`c1-list`, `c1-drum`); how to add steps, books and cutscenes, the hand-off contract and the chapter-9 hooks are in `s13/S-howto.md`.
+- **New scenes, flags and cutscenes of chapter N** are prefixed `c<N>-` (`c1-list`, `c1-drum`); how to add steps, books and cutscenes, the hand-off contract and the chapter-9 hooks are in `S-howto.md`.
 - **Cutscene ids:** `<chapter>-open`, `<chapter>-finale`,
   `spirit-return-<spirit>`, `memory-<n>`, `sub-<who>-<n>-<beat>`.
 - **Books:** `content/world/books/<id>.json`, id = pinyin of the title

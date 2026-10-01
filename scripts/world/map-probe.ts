@@ -8,8 +8,7 @@
  *   swiftc -O scripts/webkit-probe.swift -o .cache/webkit-probe
  *   npx tsx scripts/world/map-probe.ts http://localhost:5179
  *
- * Unattended builder sessions cannot start the server, so this has not been
- * run yet (see STATUS.md).
+ * Not run yet: it needs a dev server (docs/world-game/STATUS.md, loose ends).
  */
 
 import { execFileSync } from 'node:child_process';

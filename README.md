@@ -1118,14 +1118,21 @@ src/
     radicals/         the radical sheet: its sizes, its block, its renderer
     draw.ts           the page as a top-left coordinate system, theme-aware
     render.ts         document assembly
-  features/           auth, review, library (characters and radicals),
-                      collections, reader, settings — one each, and shared/
+  features/           one folder per screen area — today, learn, review, stats,
+                      library, words, families, pinyin, reader, videos,
+                      collections, play, world, settings, auth — and shared/
                       for what several of them use
+  games/              the /play mini-games, one folder each (README.md)
+  world/              走走, the walking game: core/ rules, engine/ (Phaser),
+                      ui/, sync/ (README.md, CLAUDE.md)
   ui/                 the pieces they share: a card, a glyph, a modal, a toast,
                       drag-to-reorder, a square to write in, a voice
   app/                the app assembled: providers, routes, the page frame, and
                       the gates in front of it — signed in, workspace open, data here
 printable/            the reference PDFs this design was drawn from
+content/world/        the game's source content (maps as text, scenes JSON)
+docs/                 the game's design and status (world-game/), the
+                      ordering games' notes, the backlog of open work
 ```
 
 The rules the folders enforce. `domain` knows nothing about React, the DOM or

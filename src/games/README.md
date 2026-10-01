@@ -4,6 +4,27 @@ Small games for HSK 1–2, shown on `/play`. Each game is a mini-app: a folder
 here and one line in `registry.ts`. Nothing else in the app needs to change —
 not the router, not the store, not the navigation.
 
+## Rules every game keeps
+
+- **iPad first, the phone must work**: check at 768×1024 and 375×812; tap
+  targets ≥ 44px mid-game (56–72px is better); no sideways page scroll.
+- **No layout shift**: controls render from the start, changing labels have a
+  fixed width, pictures reserve their box (`aspect-ratio`).
+- **No extra cost**: no paid APIs; images and audio are built on the Mac and
+  shipped static.
+- **Native voices only** for anything that teaches pronunciation; a word
+  without a native clip is not offered in a listening game.
+- **The design language** (`.claude/skills/hanzi-design`): tokens only, dark
+  mode, right = jade, wrong = the accent, nearly = gold, never colour-coded
+  tones; warmer and bigger inside the stage, not louder (≤ 180ms motion, no
+  bouncing loops, `prefers-reduced-motion`).
+- **The picture comes after retrieval**, not as the prompt, when the skill is
+  reading hanzi (unless the picture is the answer).
+- **Only real HSK material**: the 2026 HSK 1–2 words and their characters;
+  nothing invented (the ordering games below are the one exception).
+- **Honest scoring**: a game never claims more than it measured, and never
+  reaches the review schedule.
+
 ## What a game gets, and what it gives back
 
 A game is a React component that receives `GameProps` (see `types.ts`):
@@ -57,8 +78,7 @@ the seal. A game never touches the store or the router.
 ## The ordering games (`order-kit/`, `order-<brand>/`)
 
 The 点单 games copy real shops' WeChat mini-programs, and are the one
-documented exception to "only HSK material" (R8 in
-`docs/visual-learning/requirements.md`): a menu's words are whatever the real
+documented exception to "only HSK material": a menu's words are whatever the real
 app shows — 生椰拿铁, 不另外加糖, 取餐码 — because reading those is the skill.
 Every Chinese string they show has a glossary entry (pinyin, English, a
 note), and a test fails on one that does not. What they report is still only

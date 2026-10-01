@@ -241,12 +241,6 @@ export async function anyVoiceFor(text: string): Promise<string | undefined> {
   return ids[Math.floor(Math.random() * ids.length)];
 }
 
-/** Something a voice says, to hear what it sounds like: a word if it has one. */
-export async function sampleFor(voice: string): Promise<string | null> {
-  const clips = Object.entries((await loadPack())?.clips ?? {}).filter(([, c]) => c.voices.includes(voice));
-  return (clips.find(([text]) => [...text].length > 1) ?? clips[0])?.[0] ?? null;
-}
-
 /** The voices the pack has, for choosing between. */
 export async function packVoices(): Promise<NaturalVoice[]> {
   return (await loadPack())?.voices ?? [];

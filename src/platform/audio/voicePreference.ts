@@ -1,5 +1,3 @@
-import { useSyncExternalStore } from 'react';
-
 /**
  * Which recorded voice the learner would rather hear, when the pack has more
  * than one for a text.
@@ -29,17 +27,9 @@ function read(): string | null {
 }
 
 let voice: string | null = typeof localStorage === 'undefined' ? null : read();
-const listeners = new Set<() => void>();
-
-const subscribe = (l: () => void) => {
-  listeners.add(l);
-  return () => listeners.delete(l);
-};
 
 /** The chosen voice by id, or null for whichever the pack has. */
 export const preferredVoice = () => voice;
-
-export const usePreferredVoice = () => useSyncExternalStore(subscribe, preferredVoice);
 
 export function saveVoice(next: string | null) {
   voice = next;
@@ -48,5 +38,4 @@ export function saveVoice(next: string | null) {
   } catch {
     // Private browsing, or storage full: it holds for this sitting anyway.
   }
-  for (const l of listeners) l();
 }

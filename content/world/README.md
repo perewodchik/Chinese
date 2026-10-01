@@ -4,8 +4,8 @@ Everything the game shows is authored here as text and compiled by
 `npm run world` (art → maps → content → check) into `public/world/`.
 The built files are committed, so Vercel needs none of the tools.
 
-The design is `docs/world-game/concept.md`; the build brief is
-`docs/world-game/prompt.md`. Types and zod schemas for every format below
+The content rules (word budget, dialogue, formats) are
+`docs/world-game/spec.md`; the story is `docs/world-game/story.md`. Types and zod schemas for every format below
 live in `src/world/core/types.ts` and `src/world/core/content.ts` — when this
 file and the schema disagree, the schema wins.
 

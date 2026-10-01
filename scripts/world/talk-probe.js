@@ -1,4 +1,4 @@
-// The dialogue box (dialogue rework, docs/world-game/dialogue-rework.md), run by
+// The dialogue box (the 2026-09-29 dialogue rework), run by
 // talk-probe.mjs in Playwright (the off-screen webkit-probe runs no animation
 // frames, so the game never starts a talk there). It walks you to the 早点铺
 // cook by itself (window.__world), starts the talk with Space, orders a 包子, says 再说一遍, says 就这些 and
