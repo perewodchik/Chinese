@@ -159,7 +159,7 @@ export function Panels({
               title="Settings"
             >
               <span className="mn-glyph">
-                <PixelIcon name="gear" size={22} />
+                <PixelIcon name="gear" size={26} />
               </span>
               <span className="han mn-zh">设置</span>
             </button>
