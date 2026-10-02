@@ -32,7 +32,7 @@ for (const [w, h] of [[375, 812], [768, 1024], [1024, 768]]) {
     await p.screenshot({ path: `${OUT}/${w}-${t}-phone.jpg`, quality: 70 });
     const out = JSON.parse(r);
     bad += out.problems.length;
-    console.log(`${w}-${t}`, JSON.stringify({ problems: out.problems, want: out.want, again: out.again, paying: out.paying }));
+    console.log(`${w}-${t}`, JSON.stringify({ problems: out.problems, answers: out.answers, want: out.want, again: out.again, paying: out.paying }));
     await ctx.close();
   }
 }

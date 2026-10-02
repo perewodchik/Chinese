@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { Lexicon } from '../core/dialogue/lexicon';
 import {
+  answersAnswer,
   companionOptions,
   cueLine,
   glossLine,
@@ -99,7 +100,7 @@ describe('兔儿爷', () => {
 });
 
 describe('兔儿爷’s options', () => {
-  const all = { translate: () => {}, hint: () => {}, now: () => {} };
+  const all = { translate: () => {}, answers: () => {}, hint: () => {}, now: () => {} };
   const ids = (ctx: CompanionCtx) => companionOptions(ctx, all).map((o) => o.id);
 
   it('knows the moment from the talk', () => {
@@ -116,6 +117,11 @@ describe('兔儿爷’s options', () => {
   it('heard: what did they say, help me answer only with a hint left, what now — never "again" (that is said in the talk)', () => {
     assert.deepEqual(ids({ phase: 'heard', canHint: false }), ['translate', 'now']);
     assert.deepEqual(ids({ phase: 'heard', canHint: true }), ['translate', 'hint', 'now']);
+  });
+
+  it('answers to tap: he translates them in place of help me answer (the learner, 2026-10-02)', () => {
+    assert.deepEqual(ids({ phase: 'heard', canHint: false, answers: true }), ['translate', 'answers', 'now']);
+    assert.match(answersAnswer([{ zh: '是明字。', en: "It's 明." }]), /是明字。 — “It's 明.”/);
   });
 
   it('reply with no line yet: help me answer (if any) and what now', () => {

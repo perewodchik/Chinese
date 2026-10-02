@@ -69,6 +69,16 @@
      "frame": "你晚上___什么了？",
      "full": "你晚上看见什么了？"
     },
+    "answers": [
+     {
+      "zh": "你晚上看见什么了？",
+      "en": "What did you see at night?"
+     },
+     {
+      "zh": "请问，你听说什么了？",
+      "en": "Excuse me, have you heard anything?"
+     }
+    ],
     "why": "He fishes at night and at dawn — ask what he has seen."
    },
    {
@@ -335,7 +345,17 @@
      "word": "好",
      "frame": "___，我坐船。",
      "full": "好，我坐船。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我坐船。",
+      "en": "Yes, I'll take a boat."
+     },
+     {
+      "zh": "不用了，谢谢。",
+      "en": "No need, thanks."
+     }
+    ]
    },
    {
     "id": "b",
@@ -644,7 +664,17 @@
      "word": "看见",
      "frame": "我___山了！",
      "full": "我看见山了！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我看见山了！",
+      "en": "I can see the hills!"
+     },
+     {
+      "zh": "能看见！",
+      "en": "Yes, I can!"
+     }
+    ]
    },
    {
     "id": "c",
@@ -720,7 +750,17 @@
      "word": "是",
      "frame": "___，我还在找。",
      "full": "是，我还在找。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "是，我还在找。",
+      "en": "Yes, I'm still looking."
+     },
+     {
+      "zh": "对，我在找狐狸。",
+      "en": "Yes, I'm looking for the fox."
+     }
+    ]
    },
    {
     "id": "b",
@@ -806,6 +846,22 @@
      "frame": "白塔在___的小岛上。",
      "full": "白塔在北海的小岛上。"
     },
+    "answers": [
+     {
+      "zh": "白塔在景山上。",
+      "en": "It's on Jingshan hill.",
+      "wrong": true
+     },
+     {
+      "zh": "白塔在北海的小岛上。",
+      "en": "It's on the little island in Beihai."
+     },
+     {
+      "zh": "白塔在后海。",
+      "en": "It's at Houhai.",
+      "wrong": true
+     }
+    ],
     "why": "It's in 《什刹海》, page 5: 北海的湖里有一个小岛，岛上有一个白塔."
    },
    {
@@ -829,6 +885,17 @@
      "frame": "在北海的北边___。",
      "full": "在北海的北边坐船。"
     },
+    "answers": [
+     {
+      "zh": "坐车去。",
+      "en": "Go by car.",
+      "wrong": true
+     },
+     {
+      "zh": "在北海的北边坐船。",
+      "en": "Take a boat from the north side of Beihai."
+     }
+    ],
     "why": "Page 6 of the book: you take a boat from the north side of 北海."
    },
    {
@@ -900,7 +967,17 @@
      "word": "景山",
      "frame": "我去___了。",
      "full": "我去景山了。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我去景山了。",
+      "en": "I went to Jingshan."
+     },
+     {
+      "zh": "我去北海了。",
+      "en": "I went to Beihai."
+     }
+    ]
    },
    {
     "id": "b",
@@ -922,6 +999,22 @@
      "frame": "大家都怕___。",
      "full": "大家都怕老虎。"
     },
+    "answers": [
+     {
+      "zh": "狐狸怕猫。",
+      "en": "The fox is afraid of cats.",
+      "wrong": true
+     },
+     {
+      "zh": "大家都怕老虎。",
+      "en": "Everyone is afraid of the tiger."
+     },
+     {
+      "zh": "狐狸怕水。",
+      "en": "The fox is afraid of water.",
+      "wrong": true
+     }
+    ],
     "why": "In the story 《狐假虎威》 everyone is afraid of the tiger — so you need one."
    },
    {

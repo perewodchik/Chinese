@@ -66,7 +66,17 @@
      "word": "你好",
      "frame": "___，王阿姨！",
      "full": "你好，王阿姨！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "你好，王阿姨！",
+      "en": "Hello, Auntie Wang!"
+     },
+     {
+      "zh": "阿姨好！我是新来的。",
+      "en": "Hello, Auntie! I'm the new one."
+     }
+    ]
    },
    {
     "id": "name",
@@ -98,6 +108,16 @@
      "frame": "我叫___。",
      "full": "我叫大卫。"
     },
+    "answers": [
+     {
+      "zh": "我叫{name}。",
+      "en": "My name is {name}."
+     },
+     {
+      "zh": "我的名字是{name}。",
+      "en": "My name is {name}."
+     }
+    ],
     "why": "叫 is 'to be called'. Answer with 我叫 + your name — she will remember it."
    },
    {
@@ -133,6 +153,16 @@
      "frame": "___，我还没吃。",
      "full": "没有，我还没吃。"
     },
+    "answers": [
+     {
+      "zh": "没有，我还没吃。",
+      "en": "No, I haven't eaten yet."
+     },
+     {
+      "zh": "吃了，谢谢！",
+      "en": "I have, thanks!"
+     }
+    ],
     "why": "吃了吗 — 'have you eaten?' — is also just a friendly hello in Beijing."
    },
    {
@@ -306,7 +336,17 @@
      "word": "好",
      "frame": "___，我们去吧！",
      "full": "好，我们去吧！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我们去吧！",
+      "en": "OK, let's go!"
+     },
+     {
+      "zh": "走！我们去找！",
+      "en": "Come on! Let's go and look!"
+     }
+    ]
    },
    {
     "id": "f",
@@ -459,6 +499,20 @@
      "frame": "你___什么了？",
      "full": "请问，你看见什么了？"
     },
+    "answers": [
+     {
+      "zh": "请问，你看见什么了？",
+      "en": "Excuse me, did you see anything?"
+     },
+     {
+      "zh": "我要买水。",
+      "en": "I'd like to buy water."
+     },
+     {
+      "zh": "我要一个面包。",
+      "en": "I'd like a bread roll."
+     }
+    ],
     "why": "看见 is 'to see (and notice)'. Ask what people have seen."
    },
    {
@@ -508,7 +562,17 @@
      "word": "看见",
      "frame": "你___什么了？",
      "full": "请问，你看见什么了？"
-    }
+    },
+    "answers": [
+     {
+      "zh": "请问，你看见什么了？",
+      "en": "Excuse me, did you see anything?"
+     },
+     {
+      "zh": "不要了，谢谢。",
+      "en": "Nothing else, thanks."
+     }
+    ]
    },
    {
     "id": "rumour",
@@ -620,7 +684,21 @@
      "word": "想",
      "frame": "我___看。",
      "full": "我想看。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我想看。",
+      "en": "I want to see it."
+     },
+     {
+      "zh": "好，我在这儿坐。",
+      "en": "OK, I'll sit here."
+     },
+     {
+      "zh": "不用了，谢谢。",
+      "en": "No need, thanks."
+     }
+    ]
    },
    {
     "id": "d",
@@ -688,7 +766,17 @@
      "word": "喝",
      "frame": "我___茶。",
      "full": "好，我喝茶。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我喝茶。",
+      "en": "Yes, I'll have tea."
+     },
+     {
+      "zh": "不用了，谢谢。",
+      "en": "No need, thanks."
+     }
+    ]
    },
    {
     "id": "key",
@@ -726,7 +814,21 @@
      "word": "好喝",
      "frame": "很___！",
      "full": "很好喝！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "很好喝！",
+      "en": "It's very good!"
+     },
+     {
+      "zh": "我很喜欢。",
+      "en": "I like it a lot."
+     },
+     {
+      "zh": "不错！",
+      "en": "Not bad!"
+     }
+    ]
    },
    {
     "id": "c",
@@ -792,6 +894,20 @@
      "frame": "很___！",
      "full": "很好看！"
     },
+    "answers": [
+     {
+      "zh": "很好看！",
+      "en": "It's very pretty!"
+     },
+     {
+      "zh": "请问，鼓楼在哪儿？",
+      "en": "Excuse me, where is the Drum Tower?"
+     },
+     {
+      "zh": "请问，地铁站在哪儿？",
+      "en": "Excuse me, where is the subway station?"
+     }
+    ],
     "why": "The old men of Beijing take their birds for a walk in the morning, cage and all."
    },
    {
@@ -824,6 +940,16 @@
      "frame": "我去___。请问，在哪儿？",
      "full": "请问，鼓楼在哪儿？"
     },
+    "answers": [
+     {
+      "zh": "请问，鼓楼在哪儿？",
+      "en": "Excuse me, where is the Drum Tower?"
+     },
+     {
+      "zh": "我去地铁站。",
+      "en": "I'm going to the subway station."
+     }
+    ],
     "why": "请问 — 'may I ask' — opens any question to a stranger."
    },
    {
@@ -987,7 +1113,17 @@
      "word": "朋友",
      "frame": "我是兔儿爷的___。",
      "full": "我是兔儿爷的朋友。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我是兔儿爷的朋友。",
+      "en": "I'm the rabbit's friend."
+     },
+     {
+      "zh": "你好，我是{name}。",
+      "en": "Hello, I'm {name}."
+     }
+    ]
    },
    {
     "id": "b",
@@ -1012,6 +1148,22 @@
      "frame": "是___字。",
      "full": "是明字。"
     },
+    "answers": [
+     {
+      "zh": "是朋字。",
+      "en": "It's 朋.",
+      "wrong": true
+     },
+     {
+      "zh": "是明字。",
+      "en": "It's 明."
+     },
+     {
+      "zh": "是早字。",
+      "en": "It's 早.",
+      "wrong": true
+     }
+    ],
     "why": "A 灯谜, a character riddle: 日 (sun) + 月 (moon) side by side make 明 — bright."
    },
    {
@@ -1097,7 +1249,21 @@
      "word": "可以",
      "frame": "我的中文还___。",
      "full": "我的中文还可以。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我的中文还可以。",
+      "en": "My Chinese is OK."
+     },
+     {
+      "zh": "不太好，我在学习。",
+      "en": "Not great — I'm learning."
+     },
+     {
+      "zh": "很好！",
+      "en": "Very good!"
+     }
+    ]
    },
    {
     "id": "key",
@@ -1192,7 +1358,17 @@
      "word": "交通卡",
      "frame": "我要买___。",
      "full": "我要买交通卡。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我要买交通卡。",
+      "en": "I'd like to buy a transport card."
+     },
+     {
+      "zh": "好的，坐地铁。",
+      "en": "Yes, I'm taking the subway."
+     }
+    ]
    },
    {
     "id": "have",
@@ -1225,7 +1401,17 @@
      "word": "没有",
      "frame": "___，我要买一个。",
      "full": "没有，我要买交通卡。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "没有，我要买交通卡。",
+      "en": "No, I'd like to buy one."
+     },
+     {
+      "zh": "没有。",
+      "en": "No, I don't."
+     }
+    ]
    },
    {
     "id": "b",
@@ -1285,6 +1471,16 @@
      "frame": "___，给你。",
      "full": "好，给你。"
     },
+    "answers": [
+     {
+      "zh": "好，给你。",
+      "en": "OK, here you are."
+     },
+     {
+      "zh": "不要了，谢谢。",
+      "en": "No, thanks."
+     }
+    ],
     "why": "押金 is a deposit — you get it back when you return the card. 充值 is topping the card up."
    },
    {
@@ -1381,7 +1577,17 @@
      "word": "睡觉",
      "frame": "我要___。",
      "full": "好，我要睡觉。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我要睡觉。",
+      "en": "Yes, time for bed."
+     },
+     {
+      "zh": "不，我不累。",
+      "en": "No, I'm not tired."
+     }
+    ]
    },
    {
     "id": "b",
@@ -1609,7 +1815,17 @@
      "word": "药",
      "frame": "对，这是你的___。",
      "full": "对，这是你的药。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "对，这是你的药。",
+      "en": "Yes, here's your medicine."
+     },
+     {
+      "zh": "买了，给您。",
+      "en": "I did — here you are."
+     }
+    ]
    },
    {
     "id": "b",
@@ -1691,7 +1907,17 @@
      "word": "故宫",
      "frame": "对，我要去___。",
      "full": "对，我要去故宫。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "对，我要去故宫。",
+      "en": "Yes, I want to go to the Palace Museum."
+     },
+     {
+      "zh": "好的！",
+      "en": "Sure!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -1729,7 +1955,17 @@
      "word": "护照",
      "frame": "好，这是我的___。",
      "full": "好，这是我的护照。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，这是我的护照。",
+      "en": "OK, here's my passport."
+     },
+     {
+      "zh": "给你。",
+      "en": "Here you are."
+     }
+    ]
    },
    {
     "id": "d",
@@ -1815,7 +2051,17 @@
      "word": "充值",
      "frame": "好，我要___。",
      "full": "好，我要充值。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我要充值。",
+      "en": "Yes, I'd like to top up."
+     },
+     {
+      "zh": "不用了，谢谢。",
+      "en": "No need, thanks."
+     }
+    ]
    },
    {
     "id": "b",
@@ -2052,7 +2298,17 @@
      "word": "好",
      "frame": "___，谢谢。",
      "full": "好，谢谢。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，谢谢。",
+      "en": "Yes, thanks."
+     },
+     {
+      "zh": "不用了，谢谢。",
+      "en": "No need, thanks."
+     }
+    ]
    },
    {
     "id": "b",
@@ -2271,7 +2527,17 @@
      "word": "茶叶",
      "frame": "我要买___。",
      "full": "我要买茶叶。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我要买茶叶。",
+      "en": "I'd like to buy tea leaves."
+     },
+     {
+      "zh": "我要一点儿茶。",
+      "en": "I'd like some tea."
+     }
+    ]
    },
    {
     "id": "b",
@@ -2721,6 +2987,16 @@
      "frame": "我叫___。",
      "full": "我叫{name}。"
     },
+    "answers": [
+     {
+      "zh": "我叫{name}。",
+      "en": "My name is {name}."
+     },
+     {
+      "zh": "我的名字是{name}。",
+      "en": "My name is {name}."
+     }
+    ],
     "why": "Tell them your name: 我叫 + name. From now on they will greet you by it."
    },
    {
@@ -2773,6 +3049,16 @@
      "frame": "我叫___。",
      "full": "我叫{name}。"
     },
+    "answers": [
+     {
+      "zh": "我叫{name}。",
+      "en": "My name is {name}."
+     },
+     {
+      "zh": "我的名字是{name}。",
+      "en": "My name is {name}."
+     }
+    ],
     "why": "Tell them your name: 我叫 + name. From now on they will greet you by it."
    },
    {
@@ -2825,6 +3111,16 @@
      "frame": "我叫___。",
      "full": "我叫{name}。"
     },
+    "answers": [
+     {
+      "zh": "我叫{name}。",
+      "en": "My name is {name}."
+     },
+     {
+      "zh": "我的名字是{name}。",
+      "en": "My name is {name}."
+     }
+    ],
     "why": "Tell them your name: 我叫 + name. From now on they will greet you by it."
    },
    {
@@ -2877,6 +3173,16 @@
      "frame": "我叫___。",
      "full": "我叫{name}。"
     },
+    "answers": [
+     {
+      "zh": "我叫{name}。",
+      "en": "My name is {name}."
+     },
+     {
+      "zh": "我的名字是{name}。",
+      "en": "My name is {name}."
+     }
+    ],
     "why": "Tell them your name: 我叫 + name. From now on they will greet you by it."
    },
    {
@@ -2929,6 +3235,16 @@
      "frame": "我叫___。",
      "full": "我叫{name}。"
     },
+    "answers": [
+     {
+      "zh": "我叫{name}。",
+      "en": "My name is {name}."
+     },
+     {
+      "zh": "我的名字是{name}。",
+      "en": "My name is {name}."
+     }
+    ],
     "why": "Tell them your name: 我叫 + name. From now on they will greet you by it."
    },
    {
@@ -3169,6 +3485,16 @@
      "frame": "你给他___吧！",
      "full": "你给他打电话吧！"
     },
+    "answers": [
+     {
+      "zh": "你给他打电话吧！",
+      "en": "Why don't you call him?"
+     },
+     {
+      "zh": "我们给他打视频电话吧！",
+      "en": "Let's video-call him!"
+     }
+    ],
     "why": "想 + a person is \"to miss\". 三年没回家 — \"three years not come home\": 没 with a time span before it means \"for that long, not\"."
    },
    {
@@ -3193,7 +3519,17 @@
      "word": "帮",
      "frame": "我___你！",
      "full": "我帮你！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我帮你！",
+      "en": "I'll help you!"
+     },
+     {
+      "zh": "我来教你！",
+      "en": "Let me show you!"
+     }
+    ]
    },
    {
     "id": "d",
@@ -3255,7 +3591,17 @@
      "word": "好",
      "frame": "___，我来打。",
      "full": "好，我来打。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我来打。",
+      "en": "OK, I'll make the call."
+     },
+     {
+      "zh": "没问题！",
+      "en": "No problem!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -3380,6 +3726,16 @@
      "frame": "我去问___！",
      "full": "我去问赵爷爷！"
     },
+    "answers": [
+     {
+      "zh": "我去问赵爷爷！",
+      "en": "I'll go and ask Grandpa Zhao!"
+     },
+     {
+      "zh": "我问问赵爷爷吧。",
+      "en": "Let me ask Grandpa Zhao."
+     }
+    ],
     "why": "Maybe his first customer kept something from those days?"
    },
    {
@@ -3509,7 +3865,17 @@
      "word": "照片",
      "frame": "这是你的理发店的___。",
      "full": "这是你的理发店的照片。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "这是你的理发店的照片。",
+      "en": "It's a photo of your barbershop."
+     },
+     {
+      "zh": "赵爷爷给我的照片！",
+      "en": "A photo Grandpa Zhao gave me!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -3608,7 +3974,17 @@
      "word": "鼓楼",
      "frame": "明天早上我们去___吧！",
      "full": "明天早上我们去鼓楼吧！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "明天早上我们去鼓楼吧！",
+      "en": "Let's go to the Drum Tower tomorrow morning!"
+     },
+     {
+      "zh": "我们一起去听吧！",
+      "en": "Let's go and listen together!"
+     }
+    ]
    },
    {
     "id": "d",
@@ -3947,6 +4323,16 @@
      "frame": "___，王阿姨！",
      "full": "过年好，王阿姨！"
     },
+    "answers": [
+     {
+      "zh": "过年好，王阿姨！",
+      "en": "Happy New Year, Auntie Wang!"
+     },
+     {
+      "zh": "新年快乐！",
+      "en": "Happy New Year!"
+     }
+    ],
     "why": "过年好 — \"good passing of the year\" — is the Beijing way to wish a happy new year; 新年快乐 works too."
    },
    {
@@ -4195,6 +4581,16 @@
      "frame": "___！",
      "full": "新年快乐！"
     },
+    "answers": [
+     {
+      "zh": "新年快乐！",
+      "en": "Happy New Year!"
+     },
+     {
+      "zh": "过年好！给你的！",
+      "en": "Happy New Year! It's for you!"
+     }
+    ],
     "why": "When you give a 红包 you say a wish with it: 新年快乐!"
    },
    {
@@ -4265,6 +4661,22 @@
      "frame": "是“___”字。",
      "full": "是“林”字。"
     },
+    "answers": [
+     {
+      "zh": "是“森”字。",
+      "en": "It's 森.",
+      "wrong": true
+     },
+     {
+      "zh": "是“林”字。",
+      "en": "It's 林."
+     },
+     {
+      "zh": "是“本”字。",
+      "en": "It's 本.",
+      "wrong": true
+     }
+    ],
     "why": "Two 木 (tree) side by side make 林 lín, a wood. 灯谜 are riddles hung on lanterns at 元宵.",
     "simpler": "两个“木”是什么字？"
    },
@@ -4403,7 +4815,17 @@
      "word": "好",
      "frame": "___，我们做吧！",
      "full": "好，我们做吧！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我们做吧！",
+      "en": "OK, let's make one!"
+     },
+     {
+      "zh": "好啊，一起做！",
+      "en": "Yes, let's do it together!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -5321,6 +5743,20 @@
      "frame": "它叫___。",
      "full": "它叫小花。"
     },
+    "answers": [
+     {
+      "zh": "它叫小花。",
+      "en": "Its name is Xiaohua."
+     },
+     {
+      "zh": "它叫咪咪。",
+      "en": "Its name is Mimi."
+     },
+     {
+      "zh": "它叫小白。",
+      "en": "Its name is Xiaobai."
+     }
+    ],
     "why": "Give it any name: 它叫 + the name. 小花 (little flower), 小白 (whitey) and 咪咪 are what Beijing cats are often called."
    },
    {
@@ -5633,7 +6069,18 @@
      "word": "马",
      "frame": "走___！",
      "full": "走马！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "走象！",
+      "en": "Move the elephant!",
+      "wrong": true
+     },
+     {
+      "zh": "走马！",
+      "en": "Move the horse!"
+     }
+    ]
    },
    {
     "id": "c",
@@ -6095,6 +6542,16 @@
      "frame": "___，有意思！",
      "full": "哈哈，有意思！"
     },
+    "answers": [
+     {
+      "zh": "哈哈，有意思！",
+      "en": "Haha, that's funny!"
+     },
+     {
+      "zh": "哈哈哈！我笑了！",
+      "en": "Hahaha! That made me laugh!"
+     }
+    ],
     "why": "吃 “eat” is also what you do to a loss: 吃亏 is “to eat a loss”, to come off worse. So the answer to “what did you eat?” is a joke. 相声 lives on puns like this.",
     "simpler": "他说：我吃亏了！"
    },
@@ -6260,7 +6717,17 @@
      "word": "没有",
      "frame": "___，我是新来的。",
      "full": "没有，我是新来的。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "没有，我是新来的。",
+      "en": "No, I'm new here."
+     },
+     {
+      "zh": "有。",
+      "en": "Yes, I do."
+     }
+    ]
    },
    {
     "id": "c",
@@ -6467,6 +6934,20 @@
      "frame": "今天___很好！",
      "full": "今天天气很好！"
     },
+    "answers": [
+     {
+      "zh": "今天天气很好！",
+      "en": "The weather's nice today!"
+     },
+     {
+      "zh": "你吃饭了吗？",
+      "en": "Have you eaten?"
+     },
+     {
+      "zh": "我们喝茶吧！",
+      "en": "Let's drink our tea!"
+     }
+    ],
     "why": "Homage to 老舍’s play 《茶馆》 (Teahouse, 1957): the old teahouse hung a notice, 莫谈国事 — “don’t talk about affairs of state”. A good guest steers the talk to the weather and food."
    },
    {
@@ -6633,7 +7114,17 @@
      "word": "喜欢",
      "frame": "我很___！",
      "full": "我很喜欢！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我很喜欢！",
+      "en": "I love it!"
+     },
+     {
+      "zh": "很有意思！",
+      "en": "It's really interesting!"
+     }
+    ]
    },
    {
     "id": "e",
@@ -7095,7 +7586,17 @@
      "word": "好",
      "frame": "___，我帮你！",
      "full": "好，我帮你！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我帮你！",
+      "en": "OK, I'll help you!"
+     },
+     {
+      "zh": "可以！",
+      "en": "Sure!"
+     }
+    ]
    },
    {
     "id": "e",
@@ -8096,6 +8597,16 @@
      "frame": "___阿姨！新年快乐！",
      "full": "谢谢阿姨！新年快乐！"
     },
+    "answers": [
+     {
+      "zh": "谢谢阿姨！新年快乐！",
+      "en": "Thank you, Auntie! Happy New Year!"
+     },
+     {
+      "zh": "谢谢！过年好！",
+      "en": "Thanks! Happy New Year!"
+     }
+    ],
     "why": "At New Year the older ones give the younger ones 红包 with money in — you say 谢谢 and a wish back."
    },
    {
@@ -8159,7 +8670,17 @@
      "word": "谢谢",
      "frame": "___！过年好！",
      "full": "谢谢！过年好！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "谢谢！过年好！",
+      "en": "Thanks! Happy New Year!"
+     },
+     {
+      "zh": "谢谢爷爷！新年快乐！",
+      "en": "Thank you, Grandpa! Happy New Year!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -8225,7 +8746,17 @@
      "word": "好吃",
      "frame": "吃了，很___！",
      "full": "吃了，很好吃！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "吃了，很好吃！",
+      "en": "I have — it was delicious!"
+     },
+     {
+      "zh": "包子很好吃！",
+      "en": "The baozi are tasty!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -8251,6 +8782,16 @@
      "frame": "好，___！",
      "full": "好，没问题！"
     },
+    "answers": [
+     {
+      "zh": "好，没问题！",
+      "en": "Sure, no problem!"
+     },
+     {
+      "zh": "可以！",
+      "en": "Of course!"
+     }
+    ],
     "why": "能……吗 asks if someone can do something for you. 帮 — to help."
    },
    {
@@ -8284,6 +8825,22 @@
      "frame": "要买一瓶___，一盒___。",
      "full": "要买一瓶牛奶，一盒鸡蛋。"
     },
+    "answers": [
+     {
+      "zh": "要买一瓶可乐，一个面包。",
+      "en": "A bottle of cola and a bread roll.",
+      "wrong": true
+     },
+     {
+      "zh": "要买一瓶牛奶，一盒鸡蛋。",
+      "en": "A bottle of milk and a box of eggs."
+     },
+     {
+      "zh": "要买牛奶和水。",
+      "en": "Milk and water.",
+      "wrong": true
+     }
+    ],
     "why": "A key line 📌: read the list back to her. 瓶 is the measure word for bottles, 盒 for boxes — you will need them in the shop. The list is in your bag too."
    },
    {
@@ -8361,6 +8918,16 @@
      "frame": "买了，___。",
      "full": "买好了，给您。"
     },
+    "answers": [
+     {
+      "zh": "买好了，给您。",
+      "en": "All bought — here you are."
+     },
+     {
+      "zh": "买了！给你。",
+      "en": "I did! Here."
+     }
+    ],
     "why": "给您 — 'here you are', the polite 您 for an older person."
    },
    {
@@ -8450,7 +9017,17 @@
      "word": "对",
      "frame": "___，我是新来的。",
      "full": "对，我是新来的。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "对，我是新来的。",
+      "en": "Yes, I'm new here."
+     },
+     {
+      "zh": "是的。",
+      "en": "Yes."
+     }
+    ]
    },
    {
     "id": "b",
@@ -8483,6 +9060,16 @@
      "frame": "___吧，谢谢！",
      "full": "短一点吧，谢谢！"
     },
+    "answers": [
+     {
+      "zh": "短一点吧，谢谢！",
+      "en": "A bit shorter, please!"
+     },
+     {
+      "zh": "长一点吧。",
+      "en": "Leave it a bit longer."
+     }
+    ],
     "why": "A key line 📌: 还是 asks 'A or B?'. Answer with the one you want: 短一点 (a bit shorter) or 长一点 (a bit longer)."
    },
    {
@@ -8509,6 +9096,16 @@
      "frame": "很___！谢谢张师傅！",
      "full": "很好看！谢谢张师傅！"
     },
+    "answers": [
+     {
+      "zh": "很好看！谢谢张师傅！",
+      "en": "Looks great! Thank you, Master Zhang!"
+     },
+     {
+      "zh": "不错，我很喜欢！",
+      "en": "Not bad, I really like it!"
+     }
+    ],
     "onEnter": [
      {
       "do": "solve",
@@ -8579,6 +9176,16 @@
      "frame": "我去___。请问，在哪儿？",
      "full": "我去鼓楼。请问，鼓楼在哪儿？"
     },
+    "answers": [
+     {
+      "zh": "我去鼓楼。请问，鼓楼在哪儿？",
+      "en": "I'm going to the Drum Tower. Where is it, please?"
+     },
+     {
+      "zh": "我去鼓楼。",
+      "en": "I'm going to the Drum Tower."
+     }
+    ],
     "why": "请问 — 'may I ask' — opens any question to a stranger."
    },
    {
@@ -8604,7 +9211,17 @@
      "word": "对",
      "frame": "___，我去看石狮子。",
      "full": "对，我去看石狮子。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "对，我去看石狮子。",
+      "en": "Yes, I'm going to see the stone lions."
+     },
+     {
+      "zh": "是，我想看狮子。",
+      "en": "Yes, I want to see the lions."
+     }
+    ]
    },
    {
     "id": "c",
@@ -8638,7 +9255,17 @@
      "word": "不知道",
      "frame": "我___。",
      "full": "我不知道。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我不知道。",
+      "en": "I don't know."
+     },
+     {
+      "zh": "有球的是爸爸？",
+      "en": "The one with the ball?"
+     }
+    ]
    },
    {
     "id": "d",
@@ -8736,6 +9363,22 @@
      "frame": "有___的是狮子爸爸。",
      "full": "有球的是狮子爸爸。"
     },
+    "answers": [
+     {
+      "zh": "有小狮子的是狮子爸爸。",
+      "en": "The one with the cub is the father.",
+      "wrong": true
+     },
+     {
+      "zh": "有球的是狮子爸爸。",
+      "en": "The one with the ball is the father."
+     },
+     {
+      "zh": "大的是狮子爸爸。",
+      "en": "The big one is the father.",
+      "wrong": true
+     }
+    ],
     "why": "It's in 《石狮子》, page 3: the father has a ball under his paw, the mother a little lion. Here the father is the east one — on your right as you face the tower."
    },
    {
@@ -8769,6 +9412,22 @@
      "frame": "有___的是狮子妈妈。",
      "full": "有小狮子的是狮子妈妈。"
     },
+    "answers": [
+     {
+      "zh": "有球的是狮子妈妈。",
+      "en": "The one with the ball is the mother.",
+      "wrong": true
+     },
+     {
+      "zh": "高的是狮子妈妈。",
+      "en": "The tall one is the mother.",
+      "wrong": true
+     },
+     {
+      "zh": "有小狮子的是狮子妈妈。",
+      "en": "The one with the cub is the mother."
+     }
+    ],
     "onEnter": [
      {
       "do": "solve",
@@ -8836,7 +9495,17 @@
      "word": "去了",
      "frame": "___，我去鼓楼了。",
      "full": "去了，我去鼓楼了。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "去了，我去鼓楼了。",
+      "en": "Yes, I went to the Drum Tower."
+     },
+     {
+      "zh": "去了！",
+      "en": "I did!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -8914,6 +9583,22 @@
      "frame": "晚上___打鼓。",
      "full": "晚上七点打鼓。"
     },
+    "answers": [
+     {
+      "zh": "晚上六点打鼓。",
+      "en": "At six in the evening.",
+      "wrong": true
+     },
+     {
+      "zh": "晚上七点打鼓。",
+      "en": "At seven in the evening."
+     },
+     {
+      "zh": "晚上八点打鼓。",
+      "en": "At eight in the evening.",
+      "wrong": true
+     }
+    ],
     "why": "It's in 《晨钟暮鼓》, page 3: 晚上七点，鼓楼打鼓 — then the Bell Tower rang, and the city gates stayed shut.",
     "onEnter": [
      {
@@ -8945,6 +9630,16 @@
      "frame": "___，我来听！",
      "full": "好，我来听！"
     },
+    "answers": [
+     {
+      "zh": "好，我来听！",
+      "en": "OK, I'll come and listen!"
+     },
+     {
+      "zh": "太好了，我来！",
+      "en": "Great, I'll come!"
+     }
+    ],
     "onEnter": [
      {
       "do": "solve",
@@ -9020,7 +9715,17 @@
      "word": "鼓楼",
      "frame": "我去___了。",
      "full": "我去鼓楼了。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我去鼓楼了。",
+      "en": "I went to the Drum Tower."
+     },
+     {
+      "zh": "我去钟楼了。",
+      "en": "I went to the Bell Tower."
+     }
+    ]
    },
    {
     "id": "b",
@@ -9043,6 +9748,16 @@
      "frame": "我听见___了，还有钟！",
      "full": "我听见打鼓了，还有钟！"
     },
+    "answers": [
+     {
+      "zh": "我听见打鼓了，还有钟！",
+      "en": "I heard the drums, and the bell!"
+     },
+     {
+      "zh": "我听见钟了！",
+      "en": "I heard the bell!"
+     }
+    ],
     "why": "听见 — to hear (and catch). Tell him what you heard."
    },
    {
@@ -9066,7 +9781,17 @@
      "word": "给你看",
      "frame": "___，这是钟楼。",
      "full": "给你看，这是钟楼。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "给你看，这是钟楼。",
+      "en": "Look, this is the Bell Tower."
+     },
+     {
+      "zh": "这是我的照片！",
+      "en": "Here's my photo!"
+     }
+    ]
    },
    {
     "id": "d",
@@ -9248,7 +9973,17 @@
      "word": "好",
      "frame": "___，谢谢。",
      "full": "好，谢谢。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，谢谢。",
+      "en": "Yes, thanks."
+     },
+     {
+      "zh": "不用了。",
+      "en": "No need."
+     }
+    ]
    },
    {
     "id": "done",
@@ -9373,6 +10108,20 @@
      "frame": "我想___。",
      "full": "我想打气。"
     },
+    "answers": [
+     {
+      "zh": "我想打气。",
+      "en": "I'd like some air in my tyres."
+     },
+     {
+      "zh": "我要一个铃。",
+      "en": "I'd like a bell."
+     },
+     {
+      "zh": "不用，谢谢。",
+      "en": "No need, thanks."
+     }
+    ],
     "why": "Say 「打气」 to pump up the tyres (free), 「我想要新的铃」 for another bell (10 元), or ask 「这是什么？」 and he names the bike's parts."
    },
    {
@@ -9491,7 +10240,17 @@
      "word": "想",
      "frame": "好，我也___买一辆。",
      "full": "好，我也想买一辆。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我也想买一辆。",
+      "en": "Yes, I'd like to buy one too."
+     },
+     {
+      "zh": "自行车太贵了。",
+      "en": "Bikes are too expensive."
+     }
+    ]
    },
    {
     "id": "c",
@@ -9644,7 +10403,17 @@
      "word": "多少钱",
      "frame": "这辆车___？",
      "full": "这辆车多少钱？"
-    }
+    },
+    "answers": [
+     {
+      "zh": "这辆车多少钱？",
+      "en": "How much is this bike?"
+     },
+     {
+      "zh": "不要，谢谢。",
+      "en": "No, thanks."
+     }
+    ]
    },
    {
     "id": "b",
@@ -9778,7 +10547,17 @@
      "word": "要",
      "frame": "我___一个。",
      "full": "我要一个。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我要一个。",
+      "en": "One, please."
+     },
+     {
+      "zh": "好，来一个！",
+      "en": "Sure, give me one!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -9804,6 +10583,16 @@
      "frame": "___一个鸡蛋。",
      "full": "加一个鸡蛋。"
     },
+    "answers": [
+     {
+      "zh": "加一个鸡蛋。",
+      "en": "Add an egg."
+     },
+     {
+      "zh": "不加，谢谢。",
+      "en": "No egg, thanks."
+     }
+    ],
     "why": "加 — to add. 加个鸡蛋 is how every Beijinger orders it."
    },
    {
@@ -9829,7 +10618,17 @@
      "word": "不要辣的",
      "frame": "___，谢谢。",
      "full": "不要辣的，谢谢。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "不要辣的，谢谢。",
+      "en": "Not spicy, thanks."
+     },
+     {
+      "zh": "要一点辣的。",
+      "en": "A little spicy, please."
+     }
+    ]
    },
    {
     "id": "d",
@@ -9856,6 +10655,16 @@
      "frame": "很___！",
      "full": "很好吃！"
     },
+    "answers": [
+     {
+      "zh": "很好吃！",
+      "en": "Delicious!"
+     },
+     {
+      "zh": "正宗！",
+      "en": "The real thing!"
+     }
+    ],
     "why": "A key line 📌: 正宗 — genuine, the real thing. 老马 says it about everything."
    },
    {
@@ -9943,7 +10752,18 @@
      "word": "包子",
      "frame": "不是豹子，是___。",
      "full": "不是豹子，是包子。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "是饺子。",
+      "en": "They're jiaozi.",
+      "wrong": true
+     },
+     {
+      "zh": "不是豹子，是包子。",
+      "en": "Not bàozi (leopard) — bāozi (buns)!"
+     }
+    ]
    },
    {
     "id": "d",
@@ -10022,7 +10842,17 @@
      "word": "什么",
      "frame": "他画___？",
      "full": "他画什么？"
-    }
+    },
+    "answers": [
+     {
+      "zh": "他画什么？",
+      "en": "What does he paint?"
+     },
+     {
+      "zh": "是吗？",
+      "en": "Really?"
+     }
+    ]
    },
    {
     "id": "b",
@@ -10062,7 +10892,17 @@
      "word": "想",
      "frame": "我___画！",
      "full": "我想画！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我想画！",
+      "en": "I'd love to!"
+     },
+     {
+      "zh": "好啊！",
+      "en": "Sure!"
+     }
+    ]
    },
    {
     "id": "e",

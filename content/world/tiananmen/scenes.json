@@ -188,7 +188,17 @@
      "word": "故宫",
      "frame": "对，我去___。",
      "full": "对，我去故宫。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "对，我去故宫。",
+      "en": "Yes, I'm going to the Palace Museum."
+     },
+     {
+      "zh": "不去，谢谢。",
+      "en": "No, thanks."
+     }
+    ]
    },
    {
     "id": "b",
@@ -212,7 +222,17 @@
      "word": "没有",
      "frame": "___，我没有票。",
      "full": "没有，我没有票。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "没有，我没有票。",
+      "en": "No, I don't have a ticket."
+     },
+     {
+      "zh": "没有。",
+      "en": "No."
+     }
+    ]
    },
    {
     "id": "d",
@@ -321,6 +341,16 @@
      "frame": "好，这是我的___。",
      "full": "好，这是我的护照。"
     },
+    "answers": [
+     {
+      "zh": "好，这是我的护照。",
+      "en": "OK, here's my passport."
+     },
+     {
+      "zh": "给你。",
+      "en": "Here you are."
+     }
+    ],
     "why": "The ticket is in your name, so the passport is checked at the gate. 安检 — the security check."
    },
    {
@@ -495,7 +525,17 @@
      "word": "点睛",
      "frame": "我来___！",
      "full": "我来点睛！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我来点睛！",
+      "en": "I'll dot the eyes!"
+     },
+     {
+      "zh": "好，我来画眼睛。",
+      "en": "OK, I'll paint the eyes."
+     }
+    ]
    },
    {
     "id": "e",
@@ -694,7 +734,17 @@
      "word": "充值",
      "frame": "好，我要___。",
      "full": "好，我要充值。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我要充值。",
+      "en": "Yes, I'd like to top up."
+     },
+     {
+      "zh": "不用了，谢谢。",
+      "en": "No need, thanks."
+     }
+    ]
    },
    {
     "id": "b",
@@ -782,7 +832,17 @@
      "word": "是",
      "frame": "___，我第一次来。",
      "full": "是，我第一次来。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "是，我第一次来。",
+      "en": "Yes, it's my first time."
+     },
+     {
+      "zh": "不是，我来过。",
+      "en": "No, I've been before."
+     }
+    ]
    },
    {
     "id": "b",
@@ -903,7 +963,17 @@
      "word": "看了",
      "frame": "我___！",
      "full": "我看了！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我看了！",
+      "en": "I did!"
+     },
+     {
+      "zh": "来了，很好看！",
+      "en": "I came — it was beautiful!"
+     }
+    ]
    },
    {
     "id": "b",

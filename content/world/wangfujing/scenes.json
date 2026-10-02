@@ -75,7 +75,17 @@
      "word": "换钱",
      "frame": "我要___。",
      "full": "我要换钱。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我要换钱。",
+      "en": "I'd like to change money."
+     },
+     {
+      "zh": "换钱。",
+      "en": "Change money."
+     }
+    ]
    },
    {
     "id": "b",
@@ -99,7 +109,17 @@
      "word": "护照",
      "frame": "好，这是我的___。",
      "full": "好，这是我的护照。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，这是我的护照。",
+      "en": "OK, here's my passport."
+     },
+     {
+      "zh": "给你。",
+      "en": "Here you are."
+     }
+    ]
    },
    {
     "id": "c",
@@ -123,6 +143,16 @@
      "frame": "我有___美元。",
      "full": "我有一百美元。"
     },
+    "answers": [
+     {
+      "zh": "我有一百美元。",
+      "en": "I have a hundred dollars."
+     },
+     {
+      "zh": "一百。",
+      "en": "A hundred."
+     }
+    ],
     "why": "Only a hundred to change today."
    },
    {
@@ -158,7 +188,17 @@
      "word": "好",
      "frame": "___。",
      "full": "好。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好。",
+      "en": "OK."
+     },
+     {
+      "zh": "好，我签字。",
+      "en": "OK, I'll sign."
+     }
+    ]
    },
    {
     "id": "e",
@@ -219,7 +259,17 @@
      "word": "成语",
      "frame": "我找___的书。",
      "full": "我找成语的书。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我找成语的书。",
+      "en": "I'm looking for a book of idioms."
+     },
+     {
+      "zh": "有成语的书吗？",
+      "en": "Do you have books of idioms?"
+     }
+    ]
    },
    {
     "id": "b",
@@ -271,7 +321,17 @@
      "word": "买",
      "frame": "好，我___。",
      "full": "好，我买。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我买。",
+      "en": "OK, I'll buy it."
+     },
+     {
+      "zh": "不要了，谢谢。",
+      "en": "No, thanks."
+     }
+    ]
    },
    {
     "id": "c",
@@ -339,7 +399,17 @@
      "word": "红纸",
      "frame": "我要买___。",
      "full": "我要买红纸。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我要买红纸。",
+      "en": "I'd like to buy red paper."
+     },
+     {
+      "zh": "有红纸吗？",
+      "en": "Do you have red paper?"
+     }
+    ]
    },
    {
     "id": "b",
@@ -445,6 +515,16 @@
      "frame": "我的朋友___了。",
      "full": "我的朋友感冒了。"
     },
+    "answers": [
+     {
+      "zh": "我的朋友感冒了。",
+      "en": "My friend has a cold."
+     },
+     {
+      "zh": "我的朋友头疼。",
+      "en": "My friend has a headache."
+     }
+    ],
     "why": "Say who is ill and how: 感冒 a cold, 发烧 a fever."
    },
    {
@@ -470,7 +550,17 @@
      "word": "发烧",
      "frame": "有一点___。",
      "full": "有一点发烧。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "有一点发烧。",
+      "en": "A slight fever."
+     },
+     {
+      "zh": "不发烧。",
+      "en": "No fever."
+     }
+    ]
    },
    {
     "id": "c",
@@ -509,7 +599,17 @@
      "word": "药",
      "frame": "好，我要这个___。",
      "full": "好，我要这个药。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我要这个药。",
+      "en": "OK, I'll take this medicine."
+     },
+     {
+      "zh": "好的，谢谢。",
+      "en": "OK, thanks."
+     }
+    ]
    },
    {
     "id": "d",
@@ -599,6 +699,16 @@
      "frame": "我想买一个东西，___给王阿姨。",
      "full": "我想买一个东西，送给王阿姨。"
     },
+    "answers": [
+     {
+      "zh": "我想买一个东西，送给王阿姨。",
+      "en": "I'd like to buy something for Auntie Wang."
+     },
+     {
+      "zh": "我想买一条围巾。",
+      "en": "I'd like to buy a scarf."
+     }
+    ],
     "why": "送给 — to give (as a present) to."
    },
    {
@@ -626,7 +736,17 @@
      "word": "红色",
      "frame": "她喜欢___。",
      "full": "她喜欢红色。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "她喜欢红色。",
+      "en": "She likes red."
+     },
+     {
+      "zh": "红色吧！",
+      "en": "Red, I think!"
+     }
+    ]
    },
    {
     "id": "c",
@@ -650,6 +770,16 @@
      "frame": "好，我___。",
      "full": "好，我要。"
     },
+    "answers": [
+     {
+      "zh": "好，我要。",
+      "en": "Yes, I'll take it."
+     },
+     {
+      "zh": "好，我买。",
+      "en": "OK, I'll buy it."
+     }
+    ],
     "why": "围巾 — a scarf. The measure word for long things is 条: 一条围巾."
    },
    {
@@ -715,7 +845,17 @@
      "word": "朋友",
      "frame": "不是我，是我的___。",
      "full": "不是我，是我的朋友。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "不是我，是我的朋友。",
+      "en": "Not me — my friend."
+     },
+     {
+      "zh": "我的朋友病了。",
+      "en": "My friend is ill."
+     }
+    ]
    },
    {
     "id": "b",
@@ -740,6 +880,16 @@
      "frame": "他___，也咳嗽。",
      "full": "他发烧，也咳嗽。"
     },
+    "answers": [
+     {
+      "zh": "他发烧，也咳嗽。",
+      "en": "He has a fever and a cough."
+     },
+     {
+      "zh": "他咳嗽。",
+      "en": "He's coughing."
+     }
+    ],
     "why": "A key line 📌: 发烧 a fever, 咳嗽 a cough. The two words you most need at a Chinese pharmacy."
    },
    {
@@ -818,7 +968,17 @@
      "word": "红纸",
      "frame": "我要___。",
      "full": "我要红纸。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我要红纸。",
+      "en": "I'd like red paper."
+     },
+     {
+      "zh": "有红纸吗？",
+      "en": "Do you have red paper?"
+     }
+    ]
    },
    {
     "id": "b",
@@ -852,7 +1012,17 @@
      "word": "是",
      "frame": "___，我要画门神。",
      "full": "是，我要画门神。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "是，我要画门神。",
+      "en": "Yes, I'm going to paint door gods."
+     },
+     {
+      "zh": "对！",
+      "en": "That's right!"
+     }
+    ]
    },
    {
     "id": "c",
@@ -923,7 +1093,17 @@
      "word": "送",
      "frame": "我想买一个东西，___给王阿姨。",
      "full": "我想买一个东西，送给王阿姨。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我想买一个东西，送给王阿姨。",
+      "en": "I'd like to buy something for Auntie Wang."
+     },
+     {
+      "zh": "我想买一条围巾。",
+      "en": "I'd like to buy a scarf."
+     }
+    ]
    },
    {
     "id": "b",
@@ -947,7 +1127,17 @@
      "word": "喜欢",
      "frame": "她很___红色。",
      "full": "她很喜欢红色。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "她很喜欢红色。",
+      "en": "She loves red."
+     },
+     {
+      "zh": "对，她喜欢红色。",
+      "en": "Yes, she likes red."
+     }
+    ]
    },
    {
     "id": "c",
@@ -1028,7 +1218,17 @@
      "word": "要",
      "frame": "我___一个。",
      "full": "我要一个。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我要一个。",
+      "en": "One, please."
+     },
+     {
+      "zh": "好，来一个！",
+      "en": "Sure, give me one!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -1054,6 +1254,16 @@
      "frame": "___一个鸡蛋。",
      "full": "加一个鸡蛋。"
     },
+    "answers": [
+     {
+      "zh": "加一个鸡蛋。",
+      "en": "Add an egg."
+     },
+     {
+      "zh": "不加，谢谢。",
+      "en": "No egg, thanks."
+     }
+    ],
     "why": "Same order as 老马's, fewer words: 加个蛋 is short for 加个鸡蛋."
    },
    {
@@ -1079,7 +1289,17 @@
      "word": "一点",
      "frame": "要___辣的。",
      "full": "要一点辣的。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "要一点辣的。",
+      "en": "A little spicy, please."
+     },
+     {
+      "zh": "不要辣的，谢谢。",
+      "en": "Not spicy, thanks."
+     }
+    ]
    },
    {
     "id": "d",
@@ -1162,6 +1382,17 @@
      "frame": "不是睡觉，是___。",
      "full": "不是睡觉，是水饺。"
     },
+    "answers": [
+     {
+      "zh": "他想睡觉。",
+      "en": "He wants to sleep.",
+      "wrong": true
+     },
+     {
+      "zh": "不是睡觉，是水饺。",
+      "en": "Not shuìjiào (sleep) — shuǐjiǎo (dumplings)!"
+     }
+    ],
     "why": "A key line 📌: 睡觉 shuìjiào (to sleep) vs 水饺 shuǐjiǎo (boiled dumplings). Hungry people want 水饺."
    },
    {

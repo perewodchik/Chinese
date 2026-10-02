@@ -46,7 +46,17 @@
      "word": "好听",
      "frame": "很___！",
      "full": "很好听！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "很好听！",
+      "en": "It sounds lovely!"
+     },
+     {
+      "zh": "我很喜欢！",
+      "en": "I really like it!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -156,6 +166,16 @@
      "frame": "___，我去听。",
      "full": "好，我去听。"
     },
+    "answers": [
+     {
+      "zh": "好，我去听。",
+      "en": "OK, I'll go and listen."
+     },
+     {
+      "zh": "好的！",
+      "en": "Sure!"
+     }
+    ],
     "why": "The Echo Wall carries a whisper all the way round: go to the wall on the far side (the 墙 sign) and listen."
    },
    {
@@ -237,7 +257,23 @@
      "word": "国子监",
      "frame": "麒麟在___。",
      "full": "麒麟在国子监。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "麒麟在天坛。",
+      "en": "The qilin is at the Temple of Heaven.",
+      "wrong": true
+     },
+     {
+      "zh": "麒麟在国子监。",
+      "en": "The qilin is at the Imperial Academy."
+     },
+     {
+      "zh": "麒麟在故宫。",
+      "en": "The qilin is at the Palace Museum.",
+      "wrong": true
+     }
+    ]
    },
    {
     "id": "c",
@@ -305,7 +341,18 @@
      "word": "三",
      "frame": "一，二，___！",
      "full": "三！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "三！",
+      "en": "Three!"
+     },
+     {
+      "zh": "四！",
+      "en": "Four!",
+      "wrong": true
+     }
+    ]
    },
    {
     "id": "b",
@@ -373,7 +420,17 @@
      "word": "我爱北京",
      "frame": "___！",
      "full": "我爱北京！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我爱北京！",
+      "en": "I love Beijing!"
+     },
+     {
+      "zh": "我爱北京天安门！",
+      "en": "I love Beijing's Tiananmen!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -825,7 +882,17 @@
      "word": "你好",
      "frame": "___，小明！",
      "full": "你好，小明！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "你好，小明！",
+      "en": "Hi, Xiaoming!"
+     },
+     {
+      "zh": "对，我也来了！",
+      "en": "Yes, I came too!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -905,7 +972,23 @@
      "word": "蓝色",
      "frame": "是___的。",
      "full": "是蓝色的。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "是红色的。",
+      "en": "It's red.",
+      "wrong": true
+     },
+     {
+      "zh": "是蓝色的。",
+      "en": "It's blue."
+     },
+     {
+      "zh": "是黄色的。",
+      "en": "It's yellow.",
+      "wrong": true
+     }
+    ]
    },
    {
     "id": "b",
@@ -929,6 +1012,22 @@
      "frame": "是___的颜色。",
      "full": "是天的颜色。"
     },
+    "answers": [
+     {
+      "zh": "是水的颜色。",
+      "en": "It's the colour of water.",
+      "wrong": true
+     },
+     {
+      "zh": "因为好看。",
+      "en": "Because it's pretty.",
+      "wrong": true
+     },
+     {
+      "zh": "是天的颜色。",
+      "en": "It's the colour of the sky."
+     }
+    ],
     "why": "It's in 《天坛》, page 3: 上面是蓝的，是天的颜色. The emperors prayed to heaven here."
    },
    {
@@ -999,7 +1098,21 @@
      "word": "你好",
      "frame": "___！",
      "full": "你好！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "你好！",
+      "en": "Hello!"
+     },
+     {
+      "zh": "天！",
+      "en": "Sky!"
+     },
+     {
+      "zh": "喂！",
+      "en": "Hey!"
+     }
+    ]
    },
    {
     "id": "c",
@@ -1069,7 +1182,17 @@
      "word": "好",
      "frame": "___！我去那边。",
      "full": "好！我去那边。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好！我去那边。",
+      "en": "OK! I'll go over there."
+     },
+     {
+      "zh": "可以！",
+      "en": "Sure!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -1095,6 +1218,16 @@
      "frame": "___！",
      "full": "家人们好！"
     },
+    "answers": [
+     {
+      "zh": "家人们好！",
+      "en": "Hi, everyone!"
+     },
+     {
+      "zh": "谢谢家人们！",
+      "en": "Thank you, everyone!"
+     }
+    ],
     "why": "Whisper at the wall: the curved wall carries your voice all the way round."
    },
    {

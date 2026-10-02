@@ -88,6 +88,15 @@ export function glossTurn(turn: readonly Line[], lex: Lexicon): Gloss[] {
   return out;
 }
 
+/**
+ * Translate answers: the English of each answer you can tap, in their order (the learner,
+ * 2026-10-02: with answers to tap, "help me answer" is no help, but a hard answer needs its
+ * English). Never a riddle's: its guesses in English would only give it away or say nothing.
+ */
+export function answersAnswer(answers: readonly { zh: string; en: string }[]): string {
+  return answers.map((a) => `${a.zh} — “${a.en}”`).join('\n');
+}
+
 /** Help me answer: what he says as the next hint step shows above the field. */
 export function hintAnswer(step: number): string {
   return step <= 1
@@ -108,7 +117,7 @@ export type CompanionPhase = 'walk' | 'heard' | 'reply';
 /** No talk: walking. A talk with somebody's line to go on: heard. A talk with no line yet: reply. */
 export const phaseOf = (talking: boolean, line: Line | undefined): CompanionPhase => (!talking ? 'walk' : line ? 'heard' : 'reply');
 
-export type OptionId = 'translate' | 'hint' | 'now';
+export type OptionId = 'translate' | 'answers' | 'hint' | 'now';
 /** a pixel icon (`PixelIcon`) — never an emoji */
 export type OptionIcon = 'ask' | 'hint' | 'now';
 
@@ -116,6 +125,8 @@ export interface CompanionCtx {
   phase: CompanionPhase;
   /** reply mode with a hint step left */
   canHint: boolean;
+  /** answers to tap are showing (not a riddle's): he translates them in place of a hint */
+  answers?: boolean;
 }
 
 export interface CompanionOption {
@@ -128,6 +139,7 @@ export interface CompanionOption {
 /** Things you ask him, in English, short enough for a 375px row. */
 export const OPTIONS: Record<OptionId, { icon: OptionIcon; label: string }> = {
   translate: { icon: 'ask', label: 'What did they say?' },
+  answers: { icon: 'ask', label: 'Translate answers' },
   hint: { icon: 'hint', label: 'Help me answer' },
   now: { icon: 'now', label: 'What now?' },
 };
@@ -137,7 +149,7 @@ export const MAX_OPTIONS = 3;
 
 /** Which options, in order, fit the moment — the ones that do not apply are left out. */
 export function optionIds(ctx: CompanionCtx): OptionId[] {
-  const hint: OptionId[] = ctx.canHint ? ['hint'] : [];
+  const hint: OptionId[] = ctx.answers ? ['answers'] : ctx.canHint ? ['hint'] : [];
   const ids: OptionId[] =
     ctx.phase === 'walk'
       ? ['now']

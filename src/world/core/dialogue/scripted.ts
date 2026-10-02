@@ -12,7 +12,7 @@
  */
 
 import type { SaveAction } from '../save';
-import type { Action, DialogueNode, Hint, Item, NpcCard, Scene, WorldSave } from '../types';
+import type { Action, Answer, DialogueNode, Hint, Item, NpcCard, Scene, WorldSave } from '../types';
 import type { Lexicon } from './lexicon';
 import { heardNote, matchIntent, normalize } from './match';
 import type { CompanionCue, DialogueSource, DialogueState, Line, Turn, Utterance } from './source';
@@ -34,6 +34,11 @@ export const NOT_CHINESE = { zh: '对不起，我听不懂……', en: "Sorry, I
 export const WRONG_CHOICE = [
   { zh: '不是这个，再看看！', en: 'Not that one — look again!' },
   { zh: '不对，不对。你再听听。', en: 'No, no. Listen again.' },
+];
+/** a riddle's or a quiz's wrong guess, tapped from the answers (never a dead end: 兔儿爷's hint goes on) */
+export const WRONG_ANSWER = [
+  { zh: '不对，再想想！', en: 'Not quite — think again!' },
+  { zh: '不对。你再想一想。', en: 'No… have another think.' },
 ];
 export const DONT_KNOW = { zh: '这个……我不知道怎么说。', en: "Hmm… I don't know how to say it." };
 
@@ -140,6 +145,49 @@ export class ScriptedDialogue implements DialogueSource {
       return h ? { text: h.full, via: 'keyboard' } : null;
     }
     return answerFor(n, state.name ?? '');
+  }
+
+  /**
+   * What you can tap to say now (the learner, 2026-10-02): the line's own answers, or at a
+   * shop, a stall or the recycler, a few that work there — every one tried on the talk first,
+   * so each leads on. None at a free-speech person's lines, while paying, or at a pick.
+   */
+  answers(state: DialogueState): Answer[] {
+    if (state.ended || state.due) return [];
+    const scene = this.scenes.get(state.scene);
+    const n = scene?.nodes.find((x) => x.id === state.node);
+    if (!scene || !n || n.choose || n.trace) return [];
+    if (scene.npc && this.npcs.get(scene.npc)?.free) return [];
+    const name = state.name || '大卫';
+    if (n.answers) return n.answers.map((a) => ({ ...a, zh: withName(a.zh, name), en: withName(a.en, name) }));
+    const out: Answer[] = [];
+    const add = (zh: string, en: string) => {
+      if (out.some((a) => a.zh === zh)) return;
+      const t = this.reply(state, { text: zh, via: 'keyboard' });
+      if (t.kind !== 'miss' && t.kind !== 'not_chinese' && t.kind !== 'wrong' && t.kind !== 'repeat') out.push({ zh, en });
+    };
+    const bare = (en: string) => en.replace(/^(a|an|some) /, '');
+    const itemEn = (id: string) => bare(this.items.get(id)?.en ?? id);
+    if (n.order) {
+      const on = this.stock(n.order.shop, state).filter((x) => x.now);
+      const cart = state.cart ?? [];
+      for (const x of on.slice(0, cart.length ? 2 : 3)) add(`我要一${x.measure}${x.name}。`, `I'd like ${bare(x.en)}, please.`);
+      if (cart.length) add('不要了，谢谢。', "That's all, thanks.");
+      else if (on[0]) add(`${on[0].name}多少钱？`, `How much for ${bare(on[0].en)}?`);
+    } else if (n.sell) {
+      if (state.offer) {
+        add('好，卖给你。', "OK, it's yours.");
+        add('不卖了，谢谢。', "I'll keep it, thanks.");
+      } else {
+        for (const x of (state.sellable ?? []).slice(0, 3)) add(`我有${x.name}。`, `I have ${itemEn(x.item)}.`);
+        add('没有了。', "That's all I have.");
+      }
+    } else if (n.bargain) {
+      const h = this.hintAt(state);
+      if (h) add(h.full, `Would ¥${n.bargain.limit} do?`);
+      add('太贵了！', 'Too expensive!');
+    }
+    return out;
   }
 
   /** An order line at a shop (Y1): things named with numbers go into the order, 多少钱 is answered, 不要了 pays. */
@@ -581,6 +629,15 @@ export class ScriptedDialogue implements DialogueSource {
         // from the second wrong pick the page shows the right one (hint 3)
         return { kind: 'wrong', say: this.aside(scene, w.zh, w.en), actions: [], state: { ...state, misses, hint: misses >= 2 ? 3 : state.hint } };
       }
+    }
+    // A riddle's wrong guess, tapped from the answers: 「不对」 — and from the second, 兔儿爷's hint opens.
+    const guess = n.answers?.find((a) => a.wrong && withName(a.zh, state.name || '大卫') === u.text.trim());
+    if (!state.ended && guess) {
+      const misses = state.misses + 1;
+      const hint = misses >= 2 ? Math.min(3, Math.max(state.hint, 0) + 1) : state.hint;
+      const w = WRONG_ANSWER[(misses - 1) % WRONG_ANSWER.length]!;
+      const cue = misses >= 2 ? this.hintCue(this.hintAt(state), hint) : undefined;
+      return { kind: 'wrong', say: { ...this.aside(scene, w.zh, w.en), speaker: n.speaker ?? scene.npc ?? 'companion' }, actions: [], ...(cue ? { companion: cue } : {}), state: { ...state, misses, hint } };
     }
     const input = normalize(u.text, this.lex);
     const stay = (kind: Turn['kind'], say: Line, extra: Partial<Turn> = {}): Turn => ({ kind, say, actions: [], state, ...extra });

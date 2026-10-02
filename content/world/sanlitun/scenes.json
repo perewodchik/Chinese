@@ -64,7 +64,17 @@
      "word": "看见",
      "frame": "你___什么了？",
      "full": "你看见什么了？"
-    }
+    },
+    "answers": [
+     {
+      "zh": "你看见什么了？",
+      "en": "Did you see anything?"
+     },
+     {
+      "zh": "你听说什么了？",
+      "en": "Have you heard anything?"
+     }
+    ]
    },
    {
     "id": "b",
@@ -191,6 +201,16 @@
      "frame": "___，我去。",
      "full": "好，我去。"
     },
+    "answers": [
+     {
+      "zh": "好，我去。",
+      "en": "Sure, I'll go."
+     },
+     {
+      "zh": "不用了，谢谢。",
+      "en": "No need, thanks."
+     }
+    ],
     "why": "This door opens the luckin coffee ordering game from Play (点单). When you leave it, you are back here."
    },
    {
@@ -269,6 +289,16 @@
      "frame": "___，我去。",
      "full": "好，我去。"
     },
+    "answers": [
+     {
+      "zh": "好，我去。",
+      "en": "Sure, I'll go."
+     },
+     {
+      "zh": "不用了，谢谢。",
+      "en": "No need, thanks."
+     }
+    ],
     "why": "This door opens the Mixue milk tea ordering game from Play (点单). When you leave it, you are back here."
    },
    {
@@ -347,6 +377,16 @@
      "frame": "___，我去。",
      "full": "好，我去。"
     },
+    "answers": [
+     {
+      "zh": "好，我去。",
+      "en": "Sure, I'll go."
+     },
+     {
+      "zh": "不用了，谢谢。",
+      "en": "No need, thanks."
+     }
+    ],
     "why": "This door opens the Haidilao hot pot ordering game from Play (点单). When you leave it, you are back here."
    },
    {
@@ -423,7 +463,17 @@
      "word": "第一次",
      "frame": "对，我___来。",
      "full": "对，我第一次来。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "对，我第一次来。",
+      "en": "Yes, it's my first time."
+     },
+     {
+      "zh": "不是。",
+      "en": "No."
+     }
+    ]
    },
    {
     "id": "b",
@@ -558,7 +608,17 @@
      "word": "给",
      "frame": "好，___你。",
      "full": "好，给你。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，给你。",
+      "en": "Sure, here you are."
+     },
+     {
+      "zh": "这是给你的。",
+      "en": "This is for you."
+     }
+    ]
    },
    {
     "id": "b",

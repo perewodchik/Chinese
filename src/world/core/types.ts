@@ -191,6 +191,8 @@ export interface NpcCard {
   dislikes?: string[];
   /** their own ways of saying "what?" when they do not understand */
   misses?: string[];
+  /** free speech (the learner, 2026-10-02): no answers to tap — you say it yourself; a live conversation later */
+  free?: boolean;
   /** what they do while they stand about (§13 V3): fan themselves, swing a bird cage, play chess, 太极 … */
   idle?: import('../art/anims').IdleAction;
 }
@@ -205,6 +207,18 @@ export interface Expect {
   capture?: 'name' | 'cat';
   actions?: Action[];
   end?: boolean;
+}
+
+/**
+ * One thing you can tap to say at a line (the learner, 2026-10-02: "let me choose instead
+ * of guessing what to type"). Every one the person understands leads on; a `wrong` one is a
+ * riddle's or a quiz's wrong guess — they say 「不对，再想想！」 and 兔儿爷's hint goes on.
+ */
+export interface Answer {
+  /** may hold `{name}` */
+  zh: string;
+  en: string;
+  wrong?: boolean;
 }
 
 export interface Hint {
@@ -274,6 +288,8 @@ export interface DialogueNode {
   /** when there is nothing to expect: tap to go on here (none = the end) */
   next?: string;
   hint?: Hint;
+  /** what you can tap to say here (none at a free-speech person's lines) */
+  answers?: Answer[];
   translate: string;
   why?: string;
   onEnter?: Action[];

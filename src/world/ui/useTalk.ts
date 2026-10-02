@@ -207,5 +207,8 @@ export function useTalk(
   /** what 💡 offers now (a shop's order line makes its own) */
   const hint = useCallback(() => (cur.current && source ? source.hintAt(cur.current.state) : undefined), [source]);
 
-  return { view, start, reply, pick, traced, proceed, close, hint, pay, dispute };
+  /** what you can tap to say now (none at a free-speech person's lines, a pick, or the phone) */
+  const answers = useMemo(() => (view && source && view.mode === 'reply' ? source.answers(view.state) : []), [view, source]);
+
+  return { view, start, reply, pick, traced, proceed, close, hint, answers, pay, dispute };
 }

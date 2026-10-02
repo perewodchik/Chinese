@@ -14,8 +14,10 @@
     const R = (el) => { if (!el) return null; const r = el.getBoundingClientRect(); return { l: Math.round(r.left), t: Math.round(r.top), r: Math.round(r.right), b: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) }; };
     const out = { problems: [], steps: {} };
     const key = (k) => { for (const type of ['keydown', 'keyup']) window.dispatchEvent(new KeyboardEvent(type, { key: k, bubbles: true })); };
+    const tap = (el) => { if (!el) return; el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); el.click(); };
     const settle = () => { for (const a of document.getAnimations()) { try { a.finish(); } catch { a.cancel(); } } };
     const say = async (text) => {
+      if (!document.querySelector('.wi-field')) { tap(document.querySelector('.wi-own')); await sleep(200); }
       const f = document.querySelector('.wi-field');
       if (!f) { out.problems.push('no field for ' + text); return; }
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(f, text);
@@ -48,10 +50,14 @@
     for (let i = 0; i < 3 && !document.querySelector('.wd'); i++) { window.__world?.act(); await sleep(1500); }
     if (!document.querySelector('.wd')) { out.problems.push('no talk open'); window.__r = JSON.stringify(out); return; }
     await sleep(500); check('open');
-    document.querySelector('.wi-mode button[aria-label="Type"]')?.click(); await sleep(200);
+    // the answers to tap (2026-10-02); a press must begin in the box, as a finger's does
+    out.answers = [...document.querySelectorAll('.wi-answer .han')].map((b) => b.textContent);
+    if (!out.answers.length) out.problems.push('no answers to tap');
+    for (const b of document.querySelectorAll('.wi-answer')) { const r = R(b); if (r.r > innerWidth + 1) out.problems.push('open: an answer past the edge'); }
+    tap(document.querySelector('.wi-own')); await sleep(200);
     out.want = document.querySelector('.wd-role')?.textContent;
     await say('我要一个包子'); check('ordered');
-    [...document.querySelectorAll('.wi-row button')].find((b) => b.textContent.includes('再说一遍'))?.click(); await sleep(900); check('again');
+    tap([...document.querySelectorAll('.wi-row button')].find((b) => b.textContent.includes('再说一遍'))); await sleep(900); check('again');
     out.again = [...document.querySelectorAll('.wd-list li')].slice(-1)[0]?.textContent;
     await say('就这些'); await sleep(600); check('phone');
     out.paying = !!document.querySelector('.w-phone');

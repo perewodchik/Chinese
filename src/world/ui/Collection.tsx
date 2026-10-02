@@ -276,7 +276,7 @@ function Practise({ save, content, onAct, onDone }: { save: WorldSave; content: 
   const [at, setAt] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [missed, setMissed] = useState<Question[]>([]);
-  const [input, setInput] = useState<InputMode>(save.settings.input);
+  const input: InputMode = save.settings.input;
   const [reward, setReward] = useState<string | null | undefined>(undefined);
   // the first-time reward is decided against the save as the round began
   const first = useRef(!save.flags.includes(PERFECT_FLAG));
@@ -427,7 +427,7 @@ function Practise({ save, content, onAct, onDone }: { save: WorldSave; content: 
         {q.kind === 'say' ? (
           picked === null ? (
             <div className="cl-say">
-              <InputBar onSend={(t) => answer(t)} hintStep={0} saved={input} setSaved={setInput} />
+              <InputBar onSend={(t) => answer(t)} hintStep={0} saved={input} />
               <button type="button" className="btn sm ghost" onClick={() => answer('')}>
                 Show me
               </button>

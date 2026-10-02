@@ -643,7 +643,7 @@
   }
 }
 
-/* --- the input bar: [mic|keys] [field / talk] [stickers] [send], one row above it
+/* --- the input bar: the answers to tap, or [field / talk] [stickers] [send]; one row above it
    that is always there (candidates, what was heard, the hint, things to say) */
 .wi {
   flex: 1;
@@ -751,6 +751,66 @@
   line-height: 1.3;
 }
 
+/* the answers the person understands (the learner, 2026-10-02): tap one to say it */
+.wi-answers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 6px;
+  max-height: 140px; /* three rows at most; more scroll inside, the box never grows */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.wi-answer {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  padding: 4px 12px;
+  border: 2px solid var(--px-edge);
+  border-radius: 0;
+  background: var(--card-2);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  line-height: 1.15;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+
+.wi-answer:hover {
+  background: var(--card);
+}
+
+.wi-answer:active {
+  transform: translateY(1px);
+}
+
+.wi-answer .han {
+  font-family: var(--han);
+  font-size: 18px;
+}
+
+/* 兔儿爷's hint has gone all the way: this one works */
+.wi-answer[data-right] {
+  border-color: color-mix(in srgb, var(--gold) 70%, var(--px-edge));
+  background: var(--gold-soft);
+}
+
+.wi-own {
+  min-height: 44px;
+  height: auto;
+  border-style: dashed;
+  background: var(--card);
+}
+
 .wi-main {
   display: flex;
   align-items: center;
@@ -758,39 +818,6 @@
   min-width: 0;
 }
 
-.wi-mode {
-  flex: none;
-  display: inline-flex;
-  border: 2px solid var(--line-2);
-}
-
-.wi-mode button {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: var(--card);
-  color: var(--ink-2);
-  font: inherit;
-  cursor: pointer;
-}
-
-.wi-mode button + button {
-  border-left: 2px solid var(--line-2);
-}
-
-.wi-mode button[aria-pressed='true'] {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.wi-mode button:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
 
 .wi-field {
   flex: 1;
@@ -1974,11 +2001,6 @@
 
   .wd-show {
     width: auto;
-  }
-
-  .wi-mode button {
-    width: 44px;
-    height: 44px;
   }
 
   .wi-field,

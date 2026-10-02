@@ -2,12 +2,13 @@ import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 're
 import type { Line } from '../core/dialogue/source';
 import { Typed } from './Bubble';
 import './bubble.css';
-import { companionOptions, hintAnswer, phaseOf, translateAnswer } from './companionLines';
+import { answersAnswer, companionOptions, hintAnswer, phaseOf, translateAnswer } from './companionLines';
+import type { Answer } from '../core/types';
 import { PixelIcon } from './PixelIcon';
 import { Portrait } from './Portrait';
 import { PropSprite } from './PropSprite';
 
-type Show = { kind: 'say'; text: string } | { kind: 'translate' };
+type Show = { kind: 'say'; text: string } | { kind: 'translate' } | { kind: 'answers' };
 
 /**
  * His answer fills the box. (The learner, 2026-09-30: the rows of word chips with keep-stars
@@ -34,6 +35,7 @@ export function Companion({
   speakerName,
   why,
   canHint,
+  answers = [],
   stuck,
   hintStep,
   onHint,
@@ -54,6 +56,8 @@ export function Companion({
   speakerName?: (speaker: string) => string | null;
   why: string | undefined;
   canHint: boolean;
+  /** the answers you can tap now (none for a riddle's): he can say them in English */
+  answers?: readonly Answer[];
   /** missed at a line where a hint is left: a "?" over his head says help is here */
   stuck?: boolean;
   /** how far the hint has gone at this line (0–3) */
@@ -95,9 +99,10 @@ export function Companion({
   const line = turn.at(-1);
   const phase = phaseOf(talking, line);
   const options = companionOptions(
-    { phase, canHint },
+    { phase, canHint, answers: answers.length > 0 },
     {
       translate: line ? () => answer({ kind: 'translate' }) : undefined,
+      answers: () => answer({ kind: 'answers' }),
       hint: () => {
         onHint();
         answer({ kind: 'say', text: hintAnswer(hintStep + 1) });
@@ -144,7 +149,14 @@ export function Companion({
     };
   }, [shown, setOpen]);
 
-  const text = current.kind === 'say' ? current.text : current.kind === 'translate' && line ? translateAnswer(turn, why, speakerName) : '';
+  const text =
+    current.kind === 'say'
+      ? current.text
+      : current.kind === 'answers'
+        ? answersAnswer(answers)
+        : current.kind === 'translate' && line
+          ? translateAnswer(turn, why, speakerName)
+          : '';
   // over his head: "!" when he has something to say, "?" when you are stuck and he can help, "…" while he types
   const mark = !shown && said ? 'says' : !shown && stuck ? 'help' : shown && typing ? 'thinking' : null;
 
@@ -215,6 +227,8 @@ export function Companion({
 
 /** how long his hop onto the dialogue box's rim takes */
 const HOP_MS = 250;
+/** how long a talk must have stood before he hops onto it */
+const SETTLE_MS = 180;
 
 /**
  * Where he sits during a talk: on the top-left rim of the dialogue box, as
@@ -247,9 +261,15 @@ function useRim(self: RefObject<HTMLDivElement | null>, talking: boolean): { x: 
       const x = d.left - s.left + 10 - left;
       setRim((r) => (r && Math.abs(r.x - x) < 1 && Math.abs(r.y - y) < 1 ? r : { x: Math.round(x), y: Math.round(y) }));
     };
-    measure();
+    // a moment's wait: a talk that closes at once (nothing to say after all) never makes him hop
+    let ready = false;
+    const wait = window.setTimeout(() => {
+      ready = true;
+      measure();
+    }, SETTLE_MS);
     let raf = 0;
     const later = () => {
+      if (!ready) return;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(measure);
     };
@@ -262,6 +282,7 @@ function useRim(self: RefObject<HTMLDivElement | null>, talking: boolean): { x: 
     vv?.addEventListener('scroll', later);
     window.addEventListener('resize', later);
     return () => {
+      window.clearTimeout(wait);
       cancelAnimationFrame(raf);
       ro?.disconnect();
       vv?.removeEventListener('resize', later);

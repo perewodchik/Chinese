@@ -162,7 +162,17 @@
      "word": "学习",
      "frame": "对，我来___。",
      "full": "对，我来学习。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "对，我来学习。",
+      "en": "Yes, I've come to learn."
+     },
+     {
+      "zh": "好的！",
+      "en": "Sure!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -192,6 +202,22 @@
      "frame": "是___字。",
      "full": "是休字。"
     },
+    "answers": [
+     {
+      "zh": "是林字。",
+      "en": "It's 林.",
+      "wrong": true
+     },
+     {
+      "zh": "是休字。",
+      "en": "It's 休."
+     },
+     {
+      "zh": "是体字。",
+      "en": "It's 体.",
+      "wrong": true
+     }
+    ],
     "why": "A 灯谜: a person 人 leaning on a tree 木 is 休 — to rest."
    },
    {
@@ -456,7 +482,17 @@
      "word": "是吗",
      "frame": "___？我不知道。",
      "full": "是吗？我不知道。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "是吗？我不知道。",
+      "en": "Really? I didn't know."
+     },
+     {
+      "zh": "我知道！",
+      "en": "I know!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -548,6 +584,22 @@
      "frame": "有___多个名字。",
      "full": "有五万多个名字。"
     },
+    "answers": [
+     {
+      "zh": "有五千多个名字。",
+      "en": "Over five thousand.",
+      "wrong": true
+     },
+     {
+      "zh": "有五万多个名字。",
+      "en": "Over fifty thousand."
+     },
+     {
+      "zh": "有五百多个名字。",
+      "en": "Over five hundred.",
+      "wrong": true
+     }
+    ],
     "why": "It's in 《科举》, page 6: 一百九十八块大石头，上面有五万多个名字."
    },
    {
@@ -607,7 +659,17 @@
      "word": "去了",
      "frame": "___，我看了进士的名字。",
      "full": "去了，我看了进士的名字。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "去了，我看了进士的名字。",
+      "en": "I did — I saw the scholars' names."
+     },
+     {
+      "zh": "去了！",
+      "en": "I did!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -646,7 +708,21 @@
      "word": "你",
      "frame": "___是我的老师！",
      "full": "你是我的老师！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "你是我的老师！",
+      "en": "You are my teacher!"
+     },
+     {
+      "zh": "你们都是我的老师！",
+      "en": "You're all my teachers!"
+     },
+     {
+      "zh": "兔儿爷是我的老师！",
+      "en": "The rabbit is my teacher!"
+     }
+    ]
    },
    {
     "id": "d",
@@ -716,7 +792,17 @@
      "word": "想",
      "frame": "___！我想知道。",
      "full": "想！我想知道。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "想！我想知道。",
+      "en": "Yes! I want to know."
+     },
+     {
+      "zh": "好啊！",
+      "en": "Sure!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -756,7 +842,17 @@
      "word": "对",
      "frame": "___，我会吃饭！",
      "full": "对，我会吃饭！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "对，我会吃饭！",
+      "en": "Sure — I will eat!"
+     },
+     {
+      "zh": "哈哈，真的吗？",
+      "en": "Haha, really?"
+     }
+    ]
    },
    {
     "id": "d",
@@ -862,7 +958,17 @@
      "word": "看见了",
      "frame": "___，他也卖煎饼。",
      "full": "看见了，他也卖煎饼。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "看见了，他也卖煎饼。",
+      "en": "I did — he sells jianbing too."
+     },
+     {
+      "zh": "去了！",
+      "en": "I went!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -937,6 +1043,16 @@
      "frame": "他说：你的煎饼也很___。",
      "full": "他说：你的煎饼也很好吃。"
     },
+    "answers": [
+     {
+      "zh": "他说：你的煎饼也很好吃。",
+      "en": "He said your jianbing is tasty too."
+     },
+     {
+      "zh": "他说：你的煎饼马马虎虎。",
+      "en": "He said your jianbing is so-so."
+     }
+    ],
     "why": "Pass it on exactly (「他说：你的煎饼马马虎虎。」) — or a little kinder (「他说：你的煎饼也很好吃。」). Either is right; they lead different ways."
    },
    {
@@ -1044,6 +1160,17 @@
      "frame": "不是吻，是___！",
      "full": "不是吻，是问！"
     },
+    "answers": [
+     {
+      "zh": "图书馆在那边。",
+      "en": "The library's over there.",
+      "wrong": true
+     },
+     {
+      "zh": "不是吻，是问！",
+      "en": "Not wěn (kiss) — wèn (ask)!"
+     }
+    ],
     "why": "A key line 📌: 吻 wěn (to kiss, dipping tone) vs 问 wèn (to ask, falling tone). Stop him!"
    },
    {

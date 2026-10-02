@@ -171,10 +171,29 @@ export function Dialogue({
     return () => window.removeEventListener('keydown', onKey);
   }, [view.mode, onProceed, onClose, last]);
 
+  // The tap that opened the talk ends on the world; its click lands on whatever the box put
+  // under the finger ("Done" on a one-line talk) and closed it before it was seen — and a
+  // Space that opened it let go on the focused "Go on". A press must begin in the box.
+  const armed = useRef(false);
+  const arm = () => {
+    armed.current = true;
+  };
+
   const speakerName = (id: string) => (id === 'hero' ? '我' : id === 'companion' ? '兔儿爷' : id === 'speaker-box' ? '支付宝' : id === view.npc?.id || id === view.scene.npc ? name : (names[id] ?? id));
 
   return (
-    <div className="wd-stage" data-phone={paying ? '' : undefined} style={lift ? { bottom: lift + 8, maxHeight: `calc(100% - ${lift + 60}px)` } : undefined}>
+    <div
+      className="wd-stage"
+      data-phone={paying ? '' : undefined}
+      style={lift ? { bottom: lift + 8, maxHeight: `calc(100% - ${lift + 60}px)` } : undefined}
+      onPointerDownCapture={arm}
+      onKeyDownCapture={arm}
+      onClickCapture={(e) => {
+        if (armed.current) return;
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+    >
       <section className="wd" aria-label={`Talking with ${name}`}>
         <header className="wd-head">
           {view.sprite !== 'sign' && (

@@ -1024,7 +1024,8 @@
     "misses": [
       "啊？",
       "你说什么？"
-    ]
+    ],
+    "free": true
   },
   {
     "id": "juer-dama",
@@ -1056,7 +1057,8 @@
     "misses": [
       "什么？",
       "你再说一遍。"
-    ]
+    ],
+    "free": true
   },
   {
     "id": "zx-xuesheng",
@@ -1084,7 +1086,8 @@
     },
     "misses": [
       "我……我忘了！你说什么？"
-    ]
+    ],
+    "free": true
   },
   {
     "id": "zx-xuesheng-2",

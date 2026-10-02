@@ -46,7 +46,17 @@
      "word": "好看",
      "frame": "很___！",
      "full": "很好看！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "很好看！",
+      "en": "It's very beautiful!"
+     },
+     {
+      "zh": "我很喜欢！",
+      "en": "I really like it!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -102,7 +112,17 @@
      "word": "坐",
      "frame": "好，我___一会儿。",
      "full": "好，我坐一会儿。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我坐一会儿。",
+      "en": "Sure, I'll sit for a while."
+     },
+     {
+      "zh": "不用了，谢谢。",
+      "en": "No need, thanks."
+     }
+    ]
    },
    {
     "id": "b",
@@ -253,7 +273,17 @@
      "word": "不累",
      "frame": "我___。",
      "full": "我不累。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我不累。",
+      "en": "I'm not tired."
+     },
+     {
+      "zh": "有一点累。",
+      "en": "A little tired."
+     }
+    ]
    },
    {
     "id": "b",
@@ -357,7 +387,17 @@
      "word": "不怕",
      "frame": "我___你。",
      "full": "我不怕你。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我不怕你。",
+      "en": "I'm not afraid of you."
+     },
+     {
+      "zh": "我是兔儿爷的朋友！",
+      "en": "I'm the rabbit's friend!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -403,6 +443,22 @@
      "frame": "你是___！",
      "full": "你是九尾狐！"
     },
+    "answers": [
+     {
+      "zh": "你是老虎！",
+      "en": "You're a tiger!",
+      "wrong": true
+     },
+     {
+      "zh": "你是九尾狐！",
+      "en": "You're the nine-tailed fox!"
+     },
+     {
+      "zh": "你是小狗！",
+      "en": "You're a puppy!",
+      "wrong": true
+     }
+    ],
     "why": "Say its name: 九尾狐 — 九 nine, 尾 tail, 狐 fox. Tones: jiǔ wěi hú."
    },
    {
@@ -515,7 +571,18 @@
      "word": "左手",
      "frame": "___！",
      "full": "左手！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "左手！",
+      "en": "Left hand!"
+     },
+     {
+      "zh": "右手！",
+      "en": "Right hand!",
+      "wrong": true
+     }
+    ]
    },
    {
     "id": "b",
@@ -538,7 +605,18 @@
      "word": "右手",
      "frame": "___！",
      "full": "右手！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "左手！",
+      "en": "Left hand!",
+      "wrong": true
+     },
+     {
+      "zh": "右手！",
+      "en": "Right hand!"
+     }
+    ]
    },
    {
     "id": "c",
@@ -637,7 +715,21 @@
      "word": "鸟",
      "frame": "画一只___吧！",
      "full": "画一只鸟吧！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "画一只鸟吧！",
+      "en": "Paint a bird!"
+     },
+     {
+      "zh": "画一条鱼吧！",
+      "en": "Paint a fish!"
+     },
+     {
+      "zh": "画一只猫吧！",
+      "en": "Paint a cat!"
+     }
+    ]
    },
    {
     "id": "c",
@@ -925,6 +1017,22 @@
      "frame": "最高的叫___。",
      "full": "最高的叫万春亭。"
     },
+    "answers": [
+     {
+      "zh": "最高的叫观妙亭。",
+      "en": "The highest is called Guanmiao Pavilion.",
+      "wrong": true
+     },
+     {
+      "zh": "最高的叫富览亭。",
+      "en": "The highest is called Fulan Pavilion.",
+      "wrong": true
+     },
+     {
+      "zh": "最高的叫万春亭。",
+      "en": "The highest is called Wanchun Pavilion."
+     }
+    ],
     "why": "Read the signs along the ridge: 富览亭, 辑芳亭, 万春亭 (in the middle, on top), 观妙亭, 周赏亭. The middle one, on the city's axis, is the highest."
    },
    {
@@ -987,7 +1095,17 @@
      "word": "是",
      "frame": "___，我今天晚上去。",
      "full": "是，我今天晚上去。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "是，我今天晚上去。",
+      "en": "Yes, I'm going tonight."
+     },
+     {
+      "zh": "对，我要找它。",
+      "en": "Yes, I'm going to find it."
+     }
+    ]
    },
    {
     "id": "b",
@@ -1075,7 +1193,17 @@
      "word": "不怕",
      "frame": "我___你。",
      "full": "我不怕你。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我不怕你。",
+      "en": "I'm not afraid of you."
+     },
+     {
+      "zh": "我是兔儿爷的朋友！",
+      "en": "I'm the rabbit's friend!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -1098,6 +1226,22 @@
      "frame": "老虎在___。",
      "full": "老虎在后面。"
     },
+    "answers": [
+     {
+      "zh": "老虎在前面。",
+      "en": "The tiger is in front.",
+      "wrong": true
+     },
+     {
+      "zh": "老虎在后面。",
+      "en": "The tiger is behind."
+     },
+     {
+      "zh": "老虎在左边。",
+      "en": "The tiger is on the left.",
+      "wrong": true
+     }
+    ],
     "why": "It's in 《狐假虎威》, page 4: 狐狸走在前面，老虎走在后面 — the animals ran from the tiger, not the fox."
    },
    {
@@ -1174,6 +1318,22 @@
      "frame": "你是___！",
      "full": "你是九尾狐！"
     },
+    "answers": [
+     {
+      "zh": "你是老虎！",
+      "en": "You're a tiger!",
+      "wrong": true
+     },
+     {
+      "zh": "你是九尾狐！",
+      "en": "You're the nine-tailed fox!"
+     },
+     {
+      "zh": "你是小狗！",
+      "en": "You're a puppy!",
+      "wrong": true
+     }
+    ],
     "why": "九 nine, 尾 tail, 狐 fox: jiǔ wěi hú."
    },
    {
@@ -1253,6 +1413,22 @@
      "frame": "不对，是___。",
      "full": "不对，是明朝。"
     },
+    "answers": [
+     {
+      "zh": "对，是秦始皇。",
+      "en": "Yes, it was Qin Shi Huang.",
+      "wrong": true
+     },
+     {
+      "zh": "不对，是清朝。",
+      "en": "No — it was the Qing dynasty.",
+      "wrong": true
+     },
+     {
+      "zh": "不对，是明朝。",
+      "en": "No — it was the Ming dynasty."
+     }
+    ],
     "why": "A key line 📌. The palace was built in the Ming (1406–1420) — 秦始皇 lived more than 1,600 years earlier. Say it kindly: 「不对，是明朝。」"
    },
    {

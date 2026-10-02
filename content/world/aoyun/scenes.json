@@ -103,7 +103,21 @@
      "word": "好",
      "frame": "___，我们跑吧！",
      "full": "好，我们跑吧！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我们跑吧！",
+      "en": "OK, let's run!"
+     },
+     {
+      "zh": "好的，一起跑！",
+      "en": "Sure, let's run together!"
+     },
+     {
+      "zh": "不要，谢谢。",
+      "en": "No, thanks."
+     }
+    ]
    },
    {
     "id": "b",

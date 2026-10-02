@@ -14,7 +14,7 @@ import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import { pathToFileURL } from 'node:url';
-import { DEFAULT_MISSES, DONT_KNOW, explanationLine, NOT_CHINESE } from '../../src/world/core/dialogue/scripted';
+import { DEFAULT_MISSES, DONT_KNOW, explanationLine, NOT_CHINESE, WRONG_ANSWER } from '../../src/world/core/dialogue/scripted';
 import { POLITE_REPLY } from '../../src/world/core/dialogue/universal';
 import { allCalls } from '../../src/world/core/ride';
 import { STICKER_REPLY } from '../../src/world/core/photo';
@@ -47,6 +47,8 @@ export function clipsOf(districts: readonly DistrictContent[], books: readonly B
         const who = n.speaker ?? s.npc ?? 'companion';
         add(who, spoken(n.say));
         if (n.simpler) add(who, spoken(n.simpler));
+        // a riddle's 「不对，再想想！」, in whoever asked it
+        if (n.answers?.some((x) => x.wrong)) for (const w of WRONG_ANSWER) add(who, w.zh);
       }
       if (!s.npc) continue;
       const card = cards.get(s.npc);

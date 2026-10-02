@@ -181,6 +181,7 @@ export const npcSchema: z.ZodType<NpcCard> = z.strictObject({
   likes: z.array(id).optional(),
   dislikes: z.array(id).optional(),
   idle: z.enum(IDLE_ACTIONS as unknown as [IdleAction, ...IdleAction[]]).optional(),
+  free: z.literal(true).optional(),
 });
 
 const chooseSchema = z.strictObject({
@@ -217,6 +218,7 @@ const nodeSchema: z.ZodType<DialogueNode> = z.strictObject({
   trace: traceSchema.optional(),
   next: id.optional(),
   hint: z.strictObject({ word: text, frame: text, full: text }).optional(),
+  answers: z.array(z.strictObject({ zh: text, en: text, wrong: z.literal(true).optional() })).min(2).optional(),
   translate: text,
   why: z.string().optional(),
   onEnter: z.array(actionSchema).optional(),

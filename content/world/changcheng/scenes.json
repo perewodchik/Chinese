@@ -42,7 +42,17 @@
      "word": "长城",
      "frame": "我去___。",
      "full": "我去长城。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我去长城。",
+      "en": "I'm going to the Great Wall."
+     },
+     {
+      "zh": "去八达岭长城。",
+      "en": "To the Great Wall at Badaling."
+     }
+    ]
    },
    {
     "id": "b",
@@ -77,7 +87,17 @@
      "word": "护照",
      "frame": "好，这是我的___。",
      "full": "好，这是我的护照。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，这是我的护照。",
+      "en": "OK, here's my passport."
+     },
+     {
+      "zh": "给你。",
+      "en": "Here you are."
+     }
+    ]
    },
    {
     "id": "c",
@@ -308,7 +328,23 @@
      "word": "三",
      "frame": "一，二，___！",
      "full": "三！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "四！",
+      "en": "Four!",
+      "wrong": true
+     },
+     {
+      "zh": "三！",
+      "en": "Three!"
+     },
+     {
+      "zh": "五！",
+      "en": "Five!",
+      "wrong": true
+     }
+    ]
    },
    {
     "id": "b",

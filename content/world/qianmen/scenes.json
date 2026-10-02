@@ -72,7 +72,17 @@
      "word": "喜欢",
      "frame": "我很___！",
      "full": "我很喜欢！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我很喜欢！",
+      "en": "I love it!"
+     },
+     {
+      "zh": "我不知道，没看过。",
+      "en": "I don't know — I've never seen it."
+     }
+    ]
    },
    {
     "id": "b",
@@ -245,7 +255,17 @@
      "word": "给",
      "frame": "好，___你们。",
      "full": "好，给你们。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，给你们。",
+      "en": "Sure, here you are."
+     },
+     {
+      "zh": "这是红纸。",
+      "en": "Here's the red paper."
+     }
+    ]
    },
    {
     "id": "b",
@@ -271,7 +291,17 @@
      "word": "好看",
      "frame": "很___！我再画一点？",
      "full": "很好看！我再画一点？"
-    }
+    },
+    "answers": [
+     {
+      "zh": "很好看！我再画一点？",
+      "en": "Very nice! Shall I paint a bit more?"
+     },
+     {
+      "zh": "很漂亮！",
+      "en": "Beautiful!"
+     }
+    ]
    },
    {
     "id": "c",
@@ -380,7 +410,17 @@
      "word": "好",
      "frame": "___，我看。",
      "full": "好，我看。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，我看。",
+      "en": "Yes, I'll watch."
+     },
+     {
+      "zh": "不用了，谢谢。",
+      "en": "No need, thanks."
+     }
+    ]
    },
    {
     "id": "b",
@@ -1097,7 +1137,21 @@
      "word": "都",
      "frame": "你们___很厉害！",
      "full": "你们都很厉害！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "你们都很厉害！",
+      "en": "You're both amazing!"
+     },
+     {
+      "zh": "哪吒厉害！",
+      "en": "Nezha is!"
+     },
+     {
+      "zh": "孙悟空厉害！",
+      "en": "Sun Wukong is!"
+     }
+    ]
    },
    {
     "id": "d",
@@ -1181,7 +1235,17 @@
      "word": "是",
      "frame": "___，我想看京剧。",
      "full": "是，我想看京剧。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "是，我想看京剧。",
+      "en": "Yes, I want to see the opera."
+     },
+     {
+      "zh": "对！",
+      "en": "That's right!"
+     }
+    ]
    },
    {
     "id": "b",
@@ -1259,7 +1323,17 @@
      "word": "京剧",
      "frame": "今天晚上我去看___。",
      "full": "今天晚上我去看京剧。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "今天晚上我去看京剧。",
+      "en": "I'm going to the opera tonight."
+     },
+     {
+      "zh": "我晚上要去看戏。",
+      "en": "I'm going to see a show tonight."
+     }
+    ]
    },
    {
     "id": "b",
@@ -1282,7 +1356,17 @@
      "word": "谢谢",
      "frame": "___阿姨！",
      "full": "谢谢阿姨！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "谢谢阿姨！",
+      "en": "Thank you, Auntie!"
+     },
+     {
+      "zh": "太好了！",
+      "en": "Wonderful!"
+     }
+    ]
    },
    {
     "id": "c",
@@ -1352,6 +1436,22 @@
      "frame": "___的脸谱。",
      "full": "红色的脸谱。"
     },
+    "answers": [
+     {
+      "zh": "白色的脸谱。",
+      "en": "A white mask.",
+      "wrong": true
+     },
+     {
+      "zh": "红色的脸谱。",
+      "en": "A red mask."
+     },
+     {
+      "zh": "黑色的脸谱。",
+      "en": "A black mask.",
+      "wrong": true
+     }
+    ],
     "why": "It's in 《脸谱》, page 3: 红色的脸 — a good man, loyal to his friends. 关羽 is the red face."
    },
    {
@@ -1436,7 +1536,17 @@
      "word": "给",
      "frame": "好，___你们。",
      "full": "好，给你们。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "好，给你们。",
+      "en": "Sure, here you are."
+     },
+     {
+      "zh": "这是红纸。",
+      "en": "Here's the red paper."
+     }
+    ]
    },
    {
     "id": "b",
@@ -1461,6 +1571,22 @@
      "frame": "你们要___。",
      "full": "你们要面对面。"
     },
+    "answers": [
+     {
+      "zh": "你们要背对背。",
+      "en": "Back to back.",
+      "wrong": true
+     },
+     {
+      "zh": "你们要面对面。",
+      "en": "You should face each other."
+     },
+     {
+      "zh": "一个在前面，一个在后面。",
+      "en": "One in front, one behind.",
+      "wrong": true
+     }
+    ],
     "why": "It's in 《门神》, page 6: 他们要面对面，你看我，我看你. Back to back is bad luck — the gods have quarrelled."
    },
    {
@@ -1497,7 +1623,17 @@
      "word": "好看",
      "frame": "很___！我再画一点？",
      "full": "很好看！我再画一点？"
-    }
+    },
+    "answers": [
+     {
+      "zh": "很好看！我再画一点？",
+      "en": "Very nice! Shall I paint a bit more?"
+     },
+     {
+      "zh": "很漂亮！",
+      "en": "Beautiful!"
+     }
+    ]
    },
    {
     "id": "d",
@@ -1569,7 +1705,17 @@
      "word": "好玩",
      "frame": "很___！我还画了门神。",
      "full": "很好玩！我还画了门神。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "很好玩！我还画了门神。",
+      "en": "Lots of fun! I painted door gods too."
+     },
+     {
+      "zh": "很好玩！我看了京剧。",
+      "en": "Lots of fun! I saw an opera."
+     }
+    ]
    },
    {
     "id": "b",
@@ -1593,7 +1739,17 @@
      "word": "送给您",
      "frame": "这是围巾，___！",
      "full": "这是围巾，送给您！"
-    }
+    },
+    "answers": [
+     {
+      "zh": "这是围巾，送给您！",
+      "en": "It's a scarf — for you!"
+     },
+     {
+      "zh": "这是我送您的礼物。",
+      "en": "It's a present for you."
+     }
+    ]
    },
    {
     "id": "c",
@@ -1668,7 +1824,17 @@
      "word": "好玩",
      "frame": "很___！我还画了门神。",
      "full": "很好玩！我还画了门神。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "很好玩！我还画了门神。",
+      "en": "Lots of fun! I painted door gods too."
+     },
+     {
+      "zh": "很好玩！我看了京剧。",
+      "en": "Lots of fun! I saw an opera."
+     }
+    ]
    },
    {
     "id": "b",
@@ -1743,7 +1909,17 @@
      "word": "铃铛",
      "frame": "我找一个骆驼的___。",
      "full": "我找一个骆驼的铃铛。"
-    }
+    },
+    "answers": [
+     {
+      "zh": "我找一个骆驼的铃铛。",
+      "en": "I'm looking for a camel's bell."
+     },
+     {
+      "zh": "我找铃铛。",
+      "en": "I'm looking for a bell."
+     }
+    ]
    },
    {
     "id": "b",

@@ -118,7 +118,17 @@
      "word": "年兽",
      "frame": "这个___多少钱？",
      "full": "这个年兽多少钱？"
-    }
+    },
+    "answers": [
+     {
+      "zh": "这个年兽多少钱？",
+      "en": "How much is this Nian beast?"
+     },
+     {
+      "zh": "这个多少钱？",
+      "en": "How much is this one?"
+     }
+    ]
    },
    {
     "id": "b",

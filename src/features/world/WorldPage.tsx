@@ -1003,6 +1003,10 @@ export function WorldPage() {
   const hintStep = Math.max(hint.at === talkAt ? hint.step : 0, cueStep);
   // the line's own hint, or at a shop the thing to order (Y1)
   const hintNow = talk.view ? talk.hint() : undefined;
+  // answers to tap (the learner, 2026-10-02); a riddle's include wrong guesses, so 兔儿爷's hint still helps there
+  const answers = talk.answers;
+  const riddle = answers.some((a) => a.wrong);
+  const canHint = !!hintNow && hintStep < 3 && talk.view?.mode === 'reply' && (!answers.length || riddle);
   // 兔儿爷 speaks up by himself: after two misses in a row (or a misheard word), one short line.
   const cue = talk.view?.cue;
   const misses = talk.view?.misses ?? 0;
@@ -1325,8 +1329,10 @@ export function WorldPage() {
             hint={hintNow}
             hintStep={hintStep}
             asks={turnWords}
+            answers={answers}
+            showRight={hintStep >= 3}
+            pinyin={game.save.settings.pinyin}
             saved={game.save.settings.input}
-            setSaved={(m) => void game.dispatch([{ do: 'settings', patch: { input: m } }])}
           />
         </Dialogue>
       )}
@@ -1366,8 +1372,9 @@ export function WorldPage() {
           turn={turn}
           speakerName={speakerName}
           why={lastNode?.why}
-          canHint={!!hintNow && hintStep < 3 && talk.view?.mode === 'reply'}
-          stuck={!!hintNow && hintStep < 3 && talk.view?.mode === 'reply' && misses >= 1}
+          canHint={canHint}
+          stuck={canHint && misses >= 1}
+          answers={riddle ? [] : answers}
           hintStep={hintStep}
           onBlip={() => ambient.current?.blip()}
           hat={hatFor(minutes)}
