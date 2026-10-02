@@ -4,7 +4,8 @@ tilesets: tiles
 district: jingshan
 crowd: 2
 
-# The north-west corner of the palace: the moat, the red wall and the corner tower 角楼; at night a white fox
+# The north-west corner of the palace, seen from the north: the road by 景山 on top, the railing,
+# the moat, and across it the red wall with the corner tower 角楼; at night a white fox
 
 [ground]
 pppppppppppppppppppppppppppppppp
@@ -28,23 +29,23 @@ pppppppppppppppppppppppppppppppp
 pppppppppppppppppppppppppppppppp
 pppppppppppppppppppppppppppppppp
 [below]
-WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+llllllllllllllll.lllllllllllllll
+l..............................l
+l..............................l
+l..............................l
+l..............................l
+l..............................l
+l..............................l
 llllllllllllllllllllllllllllllll
-l..............................l
-l..............................l
-l..............................l
-l..............................l
-l..............................l
-l..............................l
-llllllllllllllll.lll..lllll..lll
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW

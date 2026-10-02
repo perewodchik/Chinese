@@ -4,7 +4,7 @@
   "id": "tower",
   "tile": [
    12,
-   7
+   16
   ],
   "frame": "corner-tower/jiaolou",
   "blocks": [
@@ -17,7 +17,7 @@
   "id": "name",
   "tile": [
    12,
-   13
+   6
   ],
   "text": "角楼",
   "en": "The corner tower of the palace"
@@ -26,8 +26,8 @@
   "kind": "prop",
   "id": "willow-1",
   "tile": [
-   20,
-   19
+   21,
+   5
   ],
   "frame": "willow/green",
   "blocks": [
@@ -39,8 +39,8 @@
   "kind": "prop",
   "id": "willow-2",
   "tile": [
-   27,
-   19
+   28,
+   5
   ],
   "frame": "willow/green",
   "blocks": [
@@ -53,7 +53,7 @@
   "id": "fox",
   "tile": [
    15,
-   16
+   3
   ],
   "frame": "spirit-jiuweihu/idle-0",
   "blocks": [
@@ -81,7 +81,7 @@
   "id": "l1",
   "tile": [
    8,
-   13
+   6
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -95,7 +95,7 @@
   "id": "l2",
   "tile": [
    24,
-   13
+   6
   ],
   "frame": "lantern/unlit",
   "blocks": [
@@ -109,7 +109,7 @@
   "id": "to-jingshan",
   "tile": [
    16,
-   19
+   0
   ],
   "to": {
    "map": "jingshan-park",
@@ -125,7 +125,7 @@
   "id": "shenwumen-sign",
   "tile": [
    11,
-   19
+   7
   ],
   "text": "神武门",
   "en": "Shenwumen, the palace’s north gate — a way out only; you go in at 午门"

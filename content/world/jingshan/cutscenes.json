@@ -187,16 +187,16 @@
     "actor": "hero",
     "at": [
      12,
-     15
+     4
     ],
-    "facing": "up"
+    "facing": "down"
    }
   ],
   "steps": [
    {
     "camera": [
      12,
-     12
+     9
     ],
     "ms": 900
    },
@@ -204,7 +204,7 @@
     "fx": "lanterns-rise",
     "at": [
      12,
-     12
+     10
     ],
     "n": 6
    },
