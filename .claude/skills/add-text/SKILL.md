@@ -1,7 +1,7 @@
 ---
 name: add-text
-description: Put Chinese text the learner typed in from a real book (十万个为什么 and the like) on their Texts shelf, in the reading session they choose — with pinyin, English, words, grammar, a note and questions, the same as a generated text. Use when the user pastes Chinese to add to Texts or a reading session, or types /add-text.
-argument-hint: "[session] <the Chinese text>"
+description: Put Chinese text from a real book (十万个为什么 and the like) on the learner's Texts shelf, in the reading session they choose — with pinyin, English, words, grammar, a note and questions, the same as a generated text. Use when the user types /add-text, pastes Chinese to add to Texts or a reading session, or sends a photo of a page of Chinese with nothing else asked of it.
+argument-hint: "[session] <the Chinese text, or a photo of the page>"
 ---
 
 # A book passage onto the Texts shelf
@@ -18,14 +18,26 @@ the app is in English, as the app is.
 
 ## 1. The text
 
-The text is in the arguments: `$ARGUMENTS`. Nothing there → ask for it and stop.
-A photo instead → transcribe the Chinese exactly, and list the characters you
-were unsure of in the report.
+It comes as text in the arguments (`$ARGUMENTS`), as photos of the book's
+pages, or both. Neither → ask for it and stop.
 
-One paste may hold several passages: each heading with its text is one passage
-(in 十万个为什么 the heading is the question, 为什么…？). A short phrase before
-the text that names a session ("в сессию 十万个为什么", "into Evening") is the
-session, not text.
+From a photo, transcribe — from the photo, not from memory of the book:
+- the Chinese exactly, in reading order (columns right to left on a vertical
+  page);
+- only the passages: no page numbers, running heads, picture captions, or
+  pinyin printed over the characters;
+- several photos are pages in the order sent, and a passage running from one
+  onto the next is one passage;
+- a passage cut off at the edge of the last photo is not added: add the whole
+  ones and ask for the next page for that one;
+- a character you could not read with confidence gets your best reading, and
+  goes in the report with what else it might be.
+
+Then it is the same as typed text. One paste or page may hold several
+passages: each heading with its text is one passage (in 十万个为什么 the heading
+is the question, 为什么…？). A short phrase beside the text or the photo that
+names a session ("в сессию 十万个为什么", "into Evening") is the session, not
+text.
 
 ## 2. The account
 

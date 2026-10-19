@@ -960,10 +960,10 @@ block a worksheet uses. Print the session and you get one file: a contents page,
 every passage in order, and one run of practice sheets at the back covering
 everything the session taught.
 
-**From a book.** A passage typed in from a real book goes on the same shelf:
-`/add-text` in Claude Code, then the text. Claude asks which session it goes
-in, writes the pinyin, translation, words, grammar and questions around the
-book's own sentences, and `npm run texts -- add` saves it into the account
+**From a book.** A passage from a real book goes on the same shelf:
+`/add-text` in Claude Code, then the text or a photo of the page. Claude asks
+which session it goes in, writes the pinyin, translation, words, grammar and
+questions around the book's own sentences, and `npm run texts -- add` saves it into the account
 (`npm run texts -- sets` lists the sessions). Its new characters are every one
 you have not learned, counted again for each passage: a book does not teach
 them, so later writing sessions are not told you have met them. It writes to
