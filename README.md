@@ -966,8 +966,10 @@ the pinyin, translation, words, grammar and questions around the book's own
 sentences, and before saving says what it is about and how much of it you can
 read (`npm run texts -- check`: the share of its characters you know, counted
 as read, and the new ones). Too hard, and it offers a retelling first — the
-same facts in Chinese you can nearly read, a handful of new characters each
-set up to be guessed — to go in the session before the book's own. Then it
+same facts in Chinese you can nearly read, about ten new characters each set
+up to be guessed — to go in the session before the book's own. "Too hard" is
+under two thirds of it known: set low, for a learner with a few hundred
+characters, so that most pages still go in as they are. Then it
 asks which session, and `npm run texts -- add` saves them into the account
 (`npm run texts -- sets` lists the sessions). A book passage's new characters
 are every one you have not learned: a book does not teach them, so later

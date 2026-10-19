@@ -140,9 +140,10 @@ Then give the learner a summary, in their language, before anything is saved:
 - how long it is, and how much of it they can read: "из 210 иероглифов знакомы
   62%, новых — 48";
 - the three to five words it hangs on (面包, 二氧化碳, 酵母菌…), with meanings;
-- a verdict: **comfortable** (95% or more known), **with help** (85–95%, up to
-  about 12 new characters), or **too hard** (below 85%, or more new characters
-  than that).
+- a verdict: **comfortable** (85% or more known), **with help** (65–85%, up to
+  about 20 new characters), or **too hard** (below 65%, or more new characters
+  than that). The learner knows a few hundred characters, so these are set low
+  on purpose: most of a book page should still go in as it is.
 
 Comfortable or with help → go on to the session. Too hard → offer an easier
 version in the same question as the session (step 5).
@@ -177,15 +178,15 @@ shape and the same rules as step 3, except for `lines`:
 - built from `knownChars`, `met` and `knownWords` first; short sentences (6 to
   14 characters), one idea each, still flowing like a paragraph;
 - new characters only where the subject cannot do without them (面包, 小孔) —
-  about 8 at most, each introduced in a sentence where everything else is
+  about 10 at most, each introduced in a sentence where everything else is
   known, and used at least twice;
 - a detail that would cost several new characters (酶, 淀粉) is said more
   simply or left out — never explained in yet more new words;
 - `titleZh` the book's heading, `title` the English one with " (easier)".
 
-Check it with `npm run -s texts -- check <file> --adapted`: aim for 95% of the
+Check it with `npm run -s texts -- check <file> --adapted`: aim for 90% of the
 characters known, and rewrite the sentences that carry the most new ones until
-it is at least 90%.
+it is at least 80%.
 
 ## 7. Onto the shelf
 
