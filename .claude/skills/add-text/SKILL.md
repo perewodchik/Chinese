@@ -29,10 +29,16 @@ session, not text.
 
 ## 2. The account
 
+The learner has given standing permission: sign in to their **admin** account
+on the site, https://chinese-inky.vercel.app, and add the texts there, without
+asking first. The password comes from `HANZI_PASSWORD` in the environment.
+Every `npm run texts` call carries the site and the account, since shell
+variables do not survive from one command to the next:
+
 ```bash
 export PATH=/opt/homebrew/bin:$PATH   # on the Mac; harmless elsewhere
 [ -d node_modules ] || npm ci --no-audit --no-fund
-NODE_USE_ENV_PROXY=1 npm run -s texts -- sets
+HANZI_SITE=https://chinese-inky.vercel.app HANZI_USER=admin NODE_USE_ENV_PROXY=1 npm run -s texts -- sets
 ```
 
 It prints JSON: `account`, `sessions` (most recently added to first — `id`,
@@ -40,16 +46,19 @@ It prints JSON: `account`, `sessions` (most recently added to first — `id`,
 book passage went), `knownChars`, `knownWords`, and `met` (characters generated
 passages taught — not new to the learner).
 
-**"No account to write to"** → nothing is set up here. Tell the learner, in a
-few lines, and stop:
-- on the Mac: `POSTGRES_URL` in `.env` (see README, "Working on the site's own data");
-- in a cloud session: in the environment's settings (the cloud environment menu
-  in the session's title bar → Edit), the environment variables `HANZI_SITE`
-  (the site's address, `https://…`), `HANZI_USER` (`admin`) and `HANZI_PASSWORD`,
-  and the site's host allowed under Network access; a new session picks them up.
-
-Never ask for the password in the chat. A 403 from the proxy names a host the
-network policy blocks: say which.
+When it fails, tell the learner in a few lines and stop:
+- **No password** ("HANZI_SITE is set and HANZI_PASSWORD is not"): in a cloud
+  session it goes in the environment's settings (the cloud environment menu in
+  the session's title bar → Edit) as the variable `HANZI_PASSWORD`; a new
+  session picks it up. On the Mac, the same command without `HANZI_SITE=…` goes
+  through `POSTGRES_URL` in `.env` instead. Never ask for the password in the
+  chat.
+- **The site cannot be reached** (a 403 or a refused connection through the
+  proxy, `fetch failed`): the cloud environment's network policy blocks
+  `chinese-inky.vercel.app`; it goes under Network access → Allowed domains in
+  the same settings, then a new session.
+- **Signing in is refused**: the password in `HANZI_PASSWORD` is not the
+  account's any more.
 
 ## 3. The session
 
@@ -119,8 +128,10 @@ Valid JSON only — the script refuses a file that needs repairs.
 ## 5. Onto the shelf
 
 ```bash
-NODE_USE_ENV_PROXY=1 npm run -s texts -- add <file> --set <session id> --source "<book>" --genre description
-NODE_USE_ENV_PROXY=1 npm run -s texts -- add <file> --new-set "<name>" --source "<book>" --genre description
+HANZI_SITE=https://chinese-inky.vercel.app HANZI_USER=admin NODE_USE_ENV_PROXY=1 \
+  npm run -s texts -- add <file> --set <session id> --source "<book>" --genre description
+HANZI_SITE=https://chinese-inky.vercel.app HANZI_USER=admin NODE_USE_ENV_PROXY=1 \
+  npm run -s texts -- add <file> --new-set "<name>" --source "<book>" --genre description
 ```
 
 `--genre` is `description` for an explanation, `story` for a narrative,
