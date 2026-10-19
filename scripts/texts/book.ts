@@ -11,9 +11,12 @@
  *
  *   npm run texts -- sets
  *       the reading sessions, and what the account can already read (JSON)
+ *   npm run texts -- check <reply.json> [--adapted]
+ *       how much of each passage the account can read already; nothing saved
  *   npm run texts -- add <reply.json> --set <id or name> [--source 十万个为什么] [--genre description] [--dry-run]
  *   npm run texts -- add <reply.json> --new-set <name> …
  *       a session by that name is reused when there is one, so nothing is made twice
+ *   --adapted: the passages are Claude's simpler retelling of the book's, not the book's own
  *
  * Which account, and where it lives: with HANZI_SITE (plus HANZI_PASSWORD) it
  * signs in to the deployed site over HTTPS — the way from a cloud session,
@@ -36,19 +39,22 @@ import { openStores } from '../../server/src/infrastructure/stores';
 import { API, type ApiErrorBody, type SaveWorkspaceRequest, type WorkspaceDto } from '../../shared/api';
 import { usernameKey } from '../../shared/credentials';
 import { idValue, isCharId, isWordId } from '../../src/domain/ids';
-import { parseResponse, toText } from '../../src/domain/parse';
+import { parseResponse, toText, type DraftText } from '../../src/domain/parse';
 import { taughtAlready } from '../../src/domain/teach';
 import {
   bookModel,
   coverageOf,
   fromBook,
   GENRES,
+  isHanzi,
   LENGTHS,
+  textCharCount,
   type Coverage,
   type GeneratedText,
   type Genre,
   type Level,
   type TextLength,
+  type TextLine,
   type TextSet,
 } from '../../src/domain/text';
 import { newId } from '../../src/platform/ids';
@@ -133,27 +139,29 @@ export function describeShelf(doc: Doc): ShelfSummary {
   };
 }
 
-/* ----------------------------------------------------------- adding some */
+/* ---------------------------------------------------------- reading them */
 
-export interface BookOptions {
-  /** an existing session, by id or by name */
-  set?: string;
-  /** a session by this name, made when there is none */
-  newSet?: string;
+/** How a passage goes on the shelf: as the book printed it, or retold more simply. */
+export interface PassageOptions {
   /** the book, shown as the passage's topic */
   source: string;
   genre: Genre;
-  now: number;
-  id: () => string;
+  /**
+   * Retold at the learner's level rather than as printed. Written the way a
+   * generated passage is — a few new characters, each set up to be guessed —
+   * so it teaches like one, and what it taught counts as met.
+   */
+  adapted?: boolean;
 }
 
-export interface BookResult {
-  document: Doc;
-  set: TextSet;
-  madeSet: boolean;
-  added: Array<{ text: GeneratedText; cover: Coverage }>;
-  /** already on the shelf, by Chinese title */
-  skipped: string[];
+/** What `model` says on a passage retold from a book: Claude's writing, not the book's. */
+export const adaptedModel = (source: string) => `Claude · adapted from ${source || 'a book'}`;
+
+export interface Measured {
+  text: Omit<GeneratedText, 'id' | 'createdAt' | 'read'>;
+  cover: Coverage;
+  /** the share of the running text already known */
+  running: number;
 }
 
 /** Sentences per length, as the plan's lengths count them. */
@@ -167,6 +175,94 @@ const lengthFor = (lines: number): TextLength =>
  */
 const levelFor = (known: number): Level =>
   known >= 0.95 ? 'comfort' : known >= 0.85 ? 'edge' : known >= 0.7 ? 'stretch' : 'beyond';
+
+/**
+ * How much of a passage can be read already, counted the way it is read: a
+ * character that comes up nine times is nine of its characters. The distinct
+ * count says how much there is to learn; this says how the reading will go.
+ */
+export function runningCoverage(lines: Array<Pick<TextLine, 'zh'>>, known: ReadonlySet<string>): number {
+  let all = 0;
+  let mine = 0;
+  for (const l of lines) {
+    for (const c of l.zh) {
+      if (!isHanzi(c)) continue;
+      all++;
+      if (known.has(c)) mine++;
+    }
+  }
+  return all ? mine / all : 1;
+}
+
+/** The passages in Claude's JSON, read as strictly as a person's paste is read loosely. */
+function draftsOf(reply: string): DraftText[] {
+  const parsed = parseResponse(reply);
+  if (parsed.route !== 'clean') {
+    throw new Error(
+      parsed.problems.join(' ') ||
+        'The JSON only read after repairs (a trailing comma, a raw newline, a curly quote): write it again as valid JSON.',
+    );
+  }
+  return parsed.drafts;
+}
+
+interface Inventory {
+  /** the characters marked learned */
+  basis: string[];
+  /** what generated passages taught besides */
+  met: string[];
+  known: Set<string>;
+}
+
+function inventoryOf(doc: Doc): Inventory {
+  const basis = knownChars(doc);
+  const inBasis = new Set(basis);
+  const met = [...taughtAlready(shelfOf(doc).texts)].filter((c) => !inBasis.has(c));
+  return { basis, met, known: new Set([...basis, ...met]) };
+}
+
+function measure(draft: DraftText, inv: Inventory, o: PassageOptions): Measured {
+  const model = o.adapted ? adaptedModel(o.source) : bookModel(o.source);
+  const base = toText({ draft, spec: null }, { basis: inv.basis, met: inv.met, supplement: '' }, model);
+  const cover = coverageOf(base, inv.known);
+  return {
+    text: {
+      ...base,
+      topic: o.source || base.topic,
+      genre: o.genre,
+      length: lengthFor(base.lines.length),
+      level: levelFor(cover.ratio),
+    },
+    cover,
+    running: runningCoverage(base.lines, inv.known),
+  };
+}
+
+/** The passages measured against what the account can read, and saved nowhere. */
+export function checkBookTexts(doc: Doc, reply: string, o: PassageOptions): Measured[] {
+  const inv = inventoryOf(doc);
+  return draftsOf(reply).map((d) => measure(d, inv, o));
+}
+
+/* ----------------------------------------------------------- adding some */
+
+export interface BookOptions extends PassageOptions {
+  /** an existing session, by id or by name */
+  set?: string;
+  /** a session by this name, made when there is none */
+  newSet?: string;
+  now: number;
+  id: () => string;
+}
+
+export interface BookResult {
+  document: Doc;
+  set: TextSet;
+  madeSet: boolean;
+  added: Array<Measured & { text: GeneratedText }>;
+  /** already on the shelf, by Chinese title */
+  skipped: string[];
+}
 
 /** A passage is on the shelf already when its title and first line are. */
 const shelfKey = (t: Pick<GeneratedText, 'titleZh' | 'lines'>) => `${t.titleZh}|${t.lines[0]?.zh ?? ''}`;
@@ -201,45 +297,32 @@ export function addBookTexts(doc: Doc, reply: string, o: BookOptions): BookResul
   if (typeof doc.version !== 'number' || doc.version > VERSION) {
     throw new Error(`The workspace is version ${String(doc.version)} and this checkout writes ${VERSION}: pull main first.`);
   }
-  const parsed = parseResponse(reply);
-  if (parsed.route !== 'clean') {
-    throw new Error(
-      parsed.problems.join(' ') ||
-        'The JSON only read after repairs (a trailing comma, a raw newline, a curly quote): write it again as valid JSON.',
-    );
-  }
-
+  const drafts = draftsOf(reply);
   const { texts, sets } = shelfOf(doc);
   const target = pickSet(sets, o);
-  const basis = knownChars(doc);
-  const inBasis = new Set(basis);
-  const met = [...taughtAlready(texts)].filter((c) => !inBasis.has(c));
-  const known = new Set([...basis, ...met]);
+  const inv = inventoryOf(doc);
   const shelved = new Set(texts.map(shelfKey));
 
   const added: BookResult['added'] = [];
   const skipped: string[] = [];
-  for (const draft of parsed.drafts) {
-    const base = toText({ draft, spec: null }, { basis, met, supplement: '' }, bookModel(o.source));
-    if (shelved.has(shelfKey(base))) {
-      skipped.push(base.titleZh);
+  for (const draft of drafts) {
+    const m = measure(draft, inv, o);
+    if (shelved.has(shelfKey(m.text))) {
+      skipped.push(m.text.titleZh);
       continue;
     }
-    shelved.add(shelfKey(base));
-    const cover = coverageOf(base, known);
-    const text: GeneratedText = {
-      ...base,
-      topic: o.source || base.topic,
-      genre: o.genre,
-      length: lengthFor(base.lines.length),
-      level: levelFor(cover.ratio),
-      setId: target.set.id,
-      id: o.id(),
-      // A millisecond apart, as a pasted batch is.
-      createdAt: o.now + added.length,
-      read: false,
-    };
-    added.push({ text, cover });
+    shelved.add(shelfKey(m.text));
+    added.push({
+      ...m,
+      text: {
+        ...m.text,
+        setId: target.set.id,
+        id: o.id(),
+        // A millisecond apart, as a pasted batch is.
+        createdAt: o.now + added.length,
+        read: false,
+      },
+    });
   }
 
   const fresh = added.map((a) => a.text);
@@ -355,11 +438,21 @@ async function siteAccount(site: string, user: string, password: string): Promis
 
 const USAGE = `
   npm run texts -- sets
-  npm run texts -- add <reply.json> --set <id or name> [--source <book>] [--genre <genre>] [--dry-run]
-  npm run texts -- add <reply.json> --new-set <name> [--source <book>] [--genre <genre>] [--dry-run]
+  npm run texts -- check <reply.json> [--adapted]
+  npm run texts -- add <reply.json> --set <id or name> [--source <book>] [--genre <genre>] [--adapted] [--dry-run]
+  npm run texts -- add <reply.json> --new-set <name> [--source <book>] [--genre <genre>] [--adapted] [--dry-run]
 `;
 
 const percent = (r: number) => `${Math.round(r * 100)}%`;
+
+function describe({ text, cover, running }: Measured, path = '') {
+  console.log(`\n  ${text.titleZh} — ${text.title}${path ? `   ${path}` : ''}`);
+  console.log(
+    `    ${text.lines.length} sentences · ${textCharCount(text)} characters, ${percent(running)} of them known · ${cover.total} distinct, ${cover.fresh.length} new · ${text.level}`,
+  );
+  console.log(`    new: ${text.teach.join('') || 'none'}`);
+  console.log(`    ${text.vocab.length} words · ${text.grammar.length} grammar · ${text.questions.length} questions`);
+}
 
 function report(result: BookResult, where: string, dryRun: boolean) {
   const n = result.added.length;
@@ -368,13 +461,7 @@ function report(result: BookResult, where: string, dryRun: boolean) {
       ? `\n  ${dryRun ? 'Would add' : 'Added'} ${n} text${n === 1 ? '' : 's'} to ${result.madeSet ? 'the new' : 'the'} session “${result.set.name}” · ${where}`
       : `\n  Nothing new for “${result.set.name}” · ${where}`,
   );
-  for (const { text, cover } of result.added) {
-    console.log(`\n  ${text.titleZh} — ${text.title}   /texts/${text.id}`);
-    console.log(
-      `    ${text.lines.length} sentences · ${cover.total} characters, ${percent(cover.ratio)} known · ${text.level} · ${text.vocab.length} words · ${text.grammar.length} grammar · ${text.questions.length} questions`,
-    );
-    console.log(`    new: ${text.teach.join('') || 'none'}`);
-  }
+  for (const a of result.added) describe(a, `/texts/${a.text.id}`);
   for (const title of result.skipped) console.log(`\n  ${title} — already on the shelf, left as it was`);
   console.log('');
 }
@@ -389,11 +476,12 @@ async function main(argv: string[]) {
       'new-set': { type: 'string' },
       source: { type: 'string', default: '' },
       genre: { type: 'string', default: 'description' },
+      adapted: { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
     },
   });
 
-  if (command !== 'sets' && command !== 'add') {
+  if (command !== 'sets' && command !== 'check' && command !== 'add') {
     console.log(USAGE);
     if (command) process.exitCode = 1;
     return;
@@ -401,7 +489,8 @@ async function main(argv: string[]) {
   const genre = GENRES.find((g) => g.id === values.genre)?.id;
   if (!genre) throw new Error(`--genre is one of ${GENRES.map((g) => g.id).join(', ')}.`);
   const file = positionals[0];
-  if (command === 'add' && !file) throw new Error(`Which file?\n${USAGE}`);
+  if (command !== 'sets' && !file) throw new Error(`Which file?\n${USAGE}`);
+  const passage = { source: values.source.trim(), genre, adapted: values.adapted };
   const reply = file ? readFileSync(file, 'utf8') : '';
 
   const account = await openAccount();
@@ -412,14 +501,21 @@ async function main(argv: string[]) {
       console.log(JSON.stringify({ account: account.where, ...describeShelf(document) }, null, 2));
       return;
     }
+    if (command === 'check') {
+      const { document } = await account.read();
+      if (!isDoc(document)) throw new Error(`${account.where} has never saved anything: open the app on it once first.`);
+      console.log(`\n  Measured against what ${account.where} can read; nothing saved.`);
+      for (const m of checkBookTexts(document, reply, passage)) describe(m);
+      console.log('');
+      return;
+    }
     for (let attempt = 1; ; attempt++) {
       const { revision, document } = await account.read();
       if (!isDoc(document)) throw new Error(`${account.where} has never saved anything: open the app on it once first.`);
       const result = addBookTexts(document, reply, {
         set: values.set,
         newSet: values['new-set'],
-        source: values.source.trim(),
-        genre,
+        ...passage,
         now: Date.now(),
         id: newId,
       });

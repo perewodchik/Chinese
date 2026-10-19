@@ -961,15 +961,20 @@ every passage in order, and one run of practice sheets at the back covering
 everything the session taught.
 
 **From a book.** A passage from a real book goes on the same shelf:
-`/add-text` in Claude Code, then the text or a photo of the page. Claude asks
-which session it goes in, writes the pinyin, translation, words, grammar and
-questions around the book's own sentences, and `npm run texts -- add` saves it into the account
-(`npm run texts -- sets` lists the sessions). Its new characters are every one
-you have not learned, counted again for each passage: a book does not teach
-them, so later writing sessions are not told you have met them. It writes to
-the database `.env` names, or — from a cloud session, which cannot reach
-Postgres — signs in to the site with `HANZI_SITE`, `HANZI_USER` and
-`HANZI_PASSWORD`.
+`/add-text` in Claude Code, then the text or a photo of the page. Claude writes
+the pinyin, translation, words, grammar and questions around the book's own
+sentences, and before saving says what it is about and how much of it you can
+read (`npm run texts -- check`: the share of its characters you know, counted
+as read, and the new ones). Too hard, and it offers a retelling first — the
+same facts in Chinese you can nearly read, a handful of new characters each
+set up to be guessed — to go in the session before the book's own. Then it
+asks which session, and `npm run texts -- add` saves them into the account
+(`npm run texts -- sets` lists the sessions). A book passage's new characters
+are every one you have not learned: a book does not teach them, so later
+writing sessions are not told you have met them; a retelling does, and they
+are. It writes to the database `.env` names, or — from a cloud session, which
+cannot reach Postgres — signs in to the site with `HANZI_SITE`, `HANZI_USER`
+and `HANZI_PASSWORD`.
 
 ## Rebuilding the data
 

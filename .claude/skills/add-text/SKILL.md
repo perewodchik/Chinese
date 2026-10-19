@@ -1,6 +1,6 @@
 ---
 name: add-text
-description: Put Chinese text from a real book (十万个为什么 and the like) on the learner's Texts shelf, in the reading session they choose — with pinyin, English, words, grammar, a note and questions, the same as a generated text. Use when the user types /add-text, pastes Chinese to add to Texts or a reading session, or sends a photo of a page of Chinese with nothing else asked of it.
+description: Put Chinese text from a real book (十万个为什么 and the like) on the learner's Texts shelf, in the reading session they choose — with pinyin, English, words, grammar, a note and questions, the same as a generated text — after a summary of how hard it is, offering an easier retelling when it is too hard. Use when the user types /add-text, pastes Chinese to add to Texts or a reading session, or sends a photo of a page of Chinese with nothing else asked of it.
 argument-hint: "[session] <the Chinese text, or a photo of the page>"
 ---
 
@@ -69,23 +69,11 @@ When it fails, tell the learner in a few lines and stop:
 - **Signing in is refused**: the password has changed. Say so, and that this
   file holds the one to update.
 
-## 3. The session
+## 3. The study material
 
-The learner named one → match it to a session's `name` (or say it will be new)
-and do not ask. Otherwise ask once with AskUserQuestion, header "Session":
-`suggested` first, marked (Recommended), then up to two other recent sessions,
-then "New session" named after the book (e.g. 十万个为什么). Put the count in
-each description ("12 texts, 9 from the book"). Their own words under "Other"
-are a session name: an existing one is used, a new one is made. No sessions at
-all → a new one named after the book, without asking.
-
-The book: the learner's word for it, else the chosen session's `books[0]`, else
-ask along with the session.
-
-## 4. The study material
-
-Write one JSON file — in the session's scratchpad if it has one, otherwise
-`.data/book-texts/<timestamp>.json` — shaped as the generation prompt's answer:
+Write one JSON file for the book's passages — in the session's scratchpad if it
+has one, otherwise `.data/book-texts/<timestamp>.json` — shaped as the
+generation prompt's answer:
 
 ```json
 {
@@ -134,15 +122,82 @@ Rules — the book's text is the point, so it is never rewritten:
 
 Valid JSON only — the script refuses a file that needs repairs.
 
-## 5. Onto the shelf
+## 4. How hard it is
+
+Every command below starts with the same `HANZI_SITE=… HANZI_USER=…
+HANZI_PASSWORD=… NODE_USE_ENV_PROXY=1` as the `sets` command in step 2.
+
+```bash
+<the same variables as in step 2> npm run -s texts -- check <file>
+```
+
+It saves nothing. Per passage: sentences, characters and the share of them
+already known — counted as read, each time a character appears — then the
+distinct characters, how many are new, and the new ones themselves.
+
+Then give the learner a summary, in their language, before anything is saved:
+- what the passage says, in one or two sentences;
+- how long it is, and how much of it they can read: "из 210 иероглифов знакомы
+  62%, новых — 48";
+- the three to five words it hangs on (面包, 二氧化碳, 酵母菌…), with meanings;
+- a verdict: **comfortable** (95% or more known), **with help** (85–95%, up to
+  about 12 new characters), or **too hard** (below 85%, or more new characters
+  than that).
+
+Comfortable or with help → go on to the session. Too hard → offer an easier
+version in the same question as the session (step 5).
+
+## 5. The session, and an easier version
+
+Ask everything still open in one AskUserQuestion — no second round.
+
+**Session** (header "Session"): the learner named one → match it to a
+session's `name` (or say it will be new) and do not ask. Otherwise `suggested`
+first, marked (Recommended), then up to two other recent sessions, then "New
+session" named after the book (e.g. 十万个为什么). Put the count in each
+description ("12 texts, 9 from the book"). Their own words under "Other" are a
+session name: an existing one is used, a new one is made. No sessions at all →
+a new one named after the book, without asking.
+
+**Easier version** (header "Simplify"), only when the verdict was too hard:
+- "Easier version first, then the book's" (Recommended) — both go in the
+  session, the retelling before the original: read the easy one, then the real
+  one with most of it already met;
+- "Only the easier version";
+- "Only the book's text, as it is".
+
+The book: the learner's word for it, else the chosen session's `books[0]`, else
+ask it in the same question round.
+
+## 6. An easier version
+
+A retelling of the same passage for this learner — the book's facts, in the
+book's order, in Chinese they can nearly read. A second JSON file, the same
+shape and the same rules as step 3, except for `lines`:
+- built from `knownChars`, `met` and `knownWords` first; short sentences (6 to
+  14 characters), one idea each, still flowing like a paragraph;
+- new characters only where the subject cannot do without them (面包, 小孔) —
+  about 8 at most, each introduced in a sentence where everything else is
+  known, and used at least twice;
+- a detail that would cost several new characters (酶, 淀粉) is said more
+  simply or left out — never explained in yet more new words;
+- `titleZh` the book's heading, `title` the English one with " (easier)".
+
+Check it with `npm run -s texts -- check <file> --adapted`: aim for 95% of the
+characters known, and rewrite the sentences that carry the most new ones until
+it is at least 90%.
+
+## 7. Onto the shelf
 
 ```bash
 <the same variables as in step 2> npm run -s texts -- add <file> --set <session id> --source "<book>" --genre description
 <the same variables as in step 2> npm run -s texts -- add <file> --new-set "<name>" --source "<book>" --genre description
 ```
 
-Each starts with the same `HANZI_SITE=… HANZI_USER=… HANZI_PASSWORD=…
-NODE_USE_ENV_PROXY=1` as the `sets` command in step 2.
+Only what the learner chose. The easier version goes first, with `--adapted`
+added; the book's text after it, without. In that order the retelling teaches
+its new characters as a generated passage does, and the book's passage counts
+them as met.
 
 `--genre` is `description` for an explanation, `story` for a narrative,
 `dialogue` for a conversation. `--dry-run` shows what would happen without
@@ -152,9 +207,10 @@ already on the shelf (same title, same first line) is left alone and said so.
 It saves the way a device does, so an iPad open at the time keeps its own
 changes and picks these up on its next sync.
 
-## 6. The report
+## 8. The report
 
-Short, in the learner's language: the session, then per passage its title, how
-many sentences, what share of its characters they already know, how many new
-ones, and its address (`/texts/<id>`). Any corrected typo and any character you
-were unsure of. Not the JSON.
+Short, in the learner's language: the session, then per passage — the easier
+version marked as such — its title, how many sentences, what share of its
+characters they already know, how many new ones, and its address
+(`/texts/<id>`). Any corrected typo and any character you were unsure of. Not
+the JSON.

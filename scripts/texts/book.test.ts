@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { GeneratedText, TextSet } from '../../src/domain/text';
-import { addBookTexts, describeShelf, type BookOptions } from './book';
+import { adaptedModel, addBookTexts, checkBookTexts, describeShelf, runningCoverage, type BookOptions } from './book';
 
 const reply = JSON.stringify({
   texts: [
@@ -131,5 +131,27 @@ describe('book passages onto the shelf', () => {
     // What a book passage met stays new: only the generated passage's 猫 is.
     assert.equal(shelf.met, '猫');
     assert.equal(describeShelf(doc()).suggested, null);
+  });
+
+  it('measures without saving: the running text, each character counted every time it appears', () => {
+    assert.equal(runningCoverage([{ zh: '蓝蓝的天。' }], new Set(['的', '天'])), 0.5);
+    const [sky, cat] = checkBookTexts(doc(), reply, { source: '十万个为什么', genre: 'description' });
+    // 天是蓝的 · 为什么天是蓝的: eleven characters, 蓝 twice the only ones not known.
+    assert.equal(sky.running, 9 / 11);
+    assert.deepEqual(sky.text.teach, ['蓝', '颜', '色']);
+    assert.equal(cat.text.titleZh, '猫为什么爱睡觉？');
+    assert.equal(sky.text.model, 'Book · 十万个为什么');
+  });
+
+  it('an easier retelling teaches: what it brought in is not new again in the book passage after it', () => {
+    const easier = JSON.stringify({
+      texts: [{ title: 'Why is the sky blue? (easier)', titleZh: '天为什么是蓝的？', lines: [{ zh: '天是蓝的。蓝天很好。' }] }],
+    });
+    const first = addBookTexts(doc(), easier, options({ set: 's1', adapted: true }));
+    assert.equal(first.added[0].text.model, adaptedModel('十万个为什么'));
+    assert.deepEqual(first.added[0].text.teach, ['蓝', '很', '好']);
+    const then = addBookTexts(first.document, reply, options({ set: 's1' }));
+    assert.deepEqual(then.added[0].text.teach, ['颜', '色']);
+    assert.equal(describeShelf(then.document).sessions[0].fromBook, 2);
   });
 });
