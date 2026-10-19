@@ -526,7 +526,7 @@ export function matchToSpecs(drafts: DraftText[], specs: TextSpec[]): Match[] {
  */
 export function toText(
   match: Match,
-  plan: TextPlan,
+  plan: Pick<TextPlan, 'basis' | 'met' | 'supplement'>,
   model: string,
 ): Omit<GeneratedText, 'id' | 'createdAt' | 'read'> {
   const { draft, spec } = match;

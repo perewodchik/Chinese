@@ -1,6 +1,6 @@
 import type { Library } from '../data/types';
 import { charId, type ItemId } from './ids';
-import type { GeneratedText, TextSpec } from './text';
+import { fromBook, type GeneratedText, type TextSpec } from './text';
 
 /**
  * The part of the app that behaves like a teacher.
@@ -114,10 +114,16 @@ export const cardsFor = (
 
 /* ------------------------------------------------------------ the session */
 
-/** Characters some earlier text already introduced. */
+/**
+ * Characters some earlier text already introduced.
+ *
+ * Not a book's: a passage typed in from a book uses its new characters
+ * without teaching them — twenty at a time, none set up to be guessed — so
+ * they stay new, and the writer is not told to treat them as mine.
+ */
 export function taughtAlready(texts: GeneratedText[]): Set<string> {
   const out = new Set<string>();
-  for (const t of texts) for (const c of t.teach) out.add(c);
+  for (const t of texts) if (!fromBook(t)) for (const c of t.teach) out.add(c);
   return out;
 }
 

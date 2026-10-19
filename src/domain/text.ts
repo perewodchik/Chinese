@@ -355,6 +355,18 @@ export interface GeneratedText {
   lastReadAt?: number;
 }
 
+/**
+ * What `model` says on a passage typed in from a book rather than written by
+ * Claude: `Book · 十万个为什么`. Kept in `model` because a document is read
+ * back field by field, and that field already travels.
+ */
+export const BOOK = 'Book';
+
+export const bookModel = (source: string) => (source ? `${BOOK} · ${source}` : BOOK);
+
+export const fromBook = (t: Pick<GeneratedText, 'model'>) =>
+  t.model === BOOK || t.model.startsWith(`${BOOK} · `);
+
 export const TOPICS = [
   'A day at home',
   'Ordering in a restaurant',
