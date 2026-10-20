@@ -149,7 +149,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  padding: env(safe-area-inset-top) 0 0;
+  padding: var(--top-clear) 0 0;
 }
 
 .cs-bar {

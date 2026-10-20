@@ -380,6 +380,8 @@ export interface TextStudy {
   written?: string[];
   /** the questions answered, by index */
   answered?: number[];
+  /** how many of its characters have been copied out, in order, in Write */
+  copied?: number;
 }
 
 /** Two records of the same text from two devices, keeping everything either did. */
@@ -393,6 +395,7 @@ export function mergeStudy(a: TextStudy | undefined, b: TextStudy | undefined): 
     ...optionalField('translated', max(a.translated, b.translated)),
     ...optionalField('written', union(a.written, b.written)),
     ...optionalField('answered', union(a.answered, b.answered)),
+    ...optionalField('copied', max(a.copied, b.copied)),
   };
 }
 

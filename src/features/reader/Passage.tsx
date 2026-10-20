@@ -130,8 +130,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
     [text, story, path, byNode],
   );
   const comic = view.comic && (text.genre === 'dialogue' || text.lines.some((l) => l.who)) && !story;
-  // "Tap a line" needs lines to tap: it reads sentence by sentence whatever the layout says.
-  const layout = view.translation === 'lines' ? 'sentences' : view.layout;
+  const layout = view.layout;
   const showTrad = view.traditional && text.lines.some((l) => l.zht);
 
   const ownWords = useMemo(() => new Set(text.vocab.map((w) => w.w)), [text.vocab]);

@@ -129,6 +129,9 @@
   --shadow-sm: none;
   --scrim: rgb(20 26 33 / 34%);
   --gutter: 20px;
+  /* What the top of a page keeps clear: the status bar, and on a phone the
+     band under it that iOS blurs. */
+  --top-clear: env(safe-area-inset-top, 0px);
 
   --sans: 'Fira Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --read: 'Literata', Georgia, serif;
@@ -225,6 +228,17 @@ textarea {
 a {
   color: var(--accent);
   text-underline-offset: 2px;
+}
+
+/* Bold is Fira's 600, the heaviest weight served. Asked for more, Safari would
+   smear 600 into a fake 700; it is told not to, and b and strong ask for 600. */
+html {
+  font-synthesis-weight: none;
+}
+
+b,
+strong {
+  font-weight: 600;
 }
 
 :focus-visible {
@@ -498,6 +512,10 @@ a {
 }
 
 @media (max-width: 699px) {
+  :root {
+    --top-clear: max(env(safe-area-inset-top, 0px), 24px);
+  }
+
   .app {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr) auto;
@@ -531,6 +549,12 @@ a {
 
   .more-scrim {
     background: var(--scrim);
+    touch-action: none;
+    transition: opacity 0.18s;
+  }
+
+  .more-scrim[data-leaving] {
+    opacity: 0;
   }
 
   .more-sheet {
@@ -538,14 +562,46 @@ a {
     right: 0;
     bottom: 0;
     width: auto;
+    max-height: 88dvh;
     border-radius: 26px 26px 0 0;
     border: 0;
     padding: 8px var(--gutter) max(16px, env(safe-area-inset-bottom));
     animation: slide-up 0.18s ease-out;
+    overscroll-behavior: contain;
+    /* Every gesture on it is the sheet's: dragged down it closes, and nothing
+       behind it scrolls. Its rows fit on any phone held upright. */
+    touch-action: none;
+    transition: transform 0.18s ease-out;
+  }
+
+  .more-sheet[data-dragging] {
+    transition: none;
   }
 
   .sheet-grab {
     display: block;
+    width: 64px;
+    height: 22px;
+    margin: -4px auto 2px;
+    background: transparent;
+    position: relative;
+    touch-action: none;
+  }
+
+  .sheet-grab::after {
+    content: '';
+    position: absolute;
+    left: 13px;
+    right: 13px;
+    top: 8px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--line-2);
+  }
+
+  /* While a sheet is up, the page under it does not move. */
+  :root[data-sheet] .main {
+    overflow: hidden;
   }
 }
 
@@ -4032,7 +4088,7 @@ button.progress-meter:hover {
 /* ------------------------------------------------------ tablets and below */
 @media (max-width: 1024px) {
   .page {
-    padding: 18px 16px 90px;
+    padding: 18px var(--gutter) 90px;
   }
 
   /* One column below the desktop split, and let the passage use the height it
@@ -4188,12 +4244,14 @@ button.progress-meter:hover {
     font-size: 16px;
   }
 
+  /* The gutter is the gutter on a phone too. The top clears the status bar
+     and the blur iOS lays under it: a title up there comes out smeared. */
   .page {
-    padding: 14px 12px 80px;
+    padding: calc(var(--top-clear) + 16px) var(--gutter) 80px;
   }
 
   h1 {
-    font-size: 20px;
+    font-size: 24px;
   }
 
   .grid {

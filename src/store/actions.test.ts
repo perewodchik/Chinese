@@ -250,11 +250,12 @@ describe('text collections', () => {
 
   it('keeps everything done with a text, from either side, and never undoes it', () => {
     let state = run(start(), { type: 'text/study', id: 'a1', study: { heard: 5, written: ['好'] } });
-    state = run(state, { type: 'text/study', id: 'a1', study: { heard: 3, written: ['你'], answered: [1] } });
-    assert.deepEqual(state.texts.find((t) => t.id === 'a1')?.study, { heard: 5, written: ['好', '你'], answered: [1] });
+    state = run(state, { type: 'text/study', id: 'a1', study: { heard: 3, written: ['你'], answered: [1], copied: 12 } });
+    state = run(state, { type: 'text/study', id: 'a1', study: { copied: 4 } });
+    assert.deepEqual(state.texts.find((t) => t.id === 'a1')?.study, { heard: 5, written: ['好', '你'], answered: [1], copied: 12 });
     const other = run(start(), { type: 'text/study', id: 'a1', study: { translated: 9, answered: [0] } });
     const merged = mergeStates(state, other).texts.find((t) => t.id === 'a1')?.study;
-    assert.deepEqual(merged, { heard: 5, translated: 9, written: ['好', '你'], answered: [1, 0] });
+    assert.deepEqual(merged, { heard: 5, translated: 9, written: ['好', '你'], answered: [1, 0], copied: 12 });
   });
 
   it('keeps a shelf’s own list of things to learn, once each, and takes them off again', () => {

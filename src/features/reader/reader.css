@@ -22,7 +22,7 @@
   gap: 10px;
   height: 56px;
   padding: 0 var(--gutter);
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--top-clear);
   box-sizing: content-box;
   background: var(--paper);
 }
@@ -118,7 +118,7 @@
 /* ------------------------------------------------------------ the six parts */
 .rd-parts {
   position: sticky;
-  top: calc(56px + env(safe-area-inset-top));
+  top: calc(56px + var(--top-clear));
   z-index: 7;
   display: grid;
   grid-auto-flow: column;
@@ -249,8 +249,7 @@
 }
 
 .rd-para {
-  margin: 0 0 0.5em;
-  text-indent: 2em;
+  margin: 0 0 0.9em;
 }
 
 .rd-zh ruby {
@@ -763,108 +762,41 @@
 }
 
 /* ----------------------------------------------------------------- the dock */
+/* The text's own controls: inside the text, stuck to the bottom of the
+   screen while the text is on it, gone with it when the parts come up. */
 .rd-dock {
   position: sticky;
   bottom: 0;
-  z-index: 8;
-  display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr);
-  gap: 6px;
-  padding: 8px calc(var(--gutter) - 8px) max(8px, env(safe-area-inset-bottom));
+  /* Under the bar and the parts at the top, so it slides away beneath them. */
+  z-index: 5;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 10px calc(-1 * var(--gutter)) 0;
+  padding: 8px var(--gutter) max(10px, env(safe-area-inset-bottom));
   background: var(--paper);
   border-top: 1px solid var(--line);
 }
 
-.rd-listen-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 52px;
-  min-width: 0;
-  padding: 0 8px;
-  border: 0;
-  border-radius: 14px;
-  background: var(--card-2);
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
-}
-
-.rd-disc {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--accent);
-  color: var(--on-accent);
-  flex: none;
-}
-
-.rd-listen-label {
+.rd-dock-group {
   display: grid;
   gap: 4px;
-  min-width: 0;
 }
 
-.rd-listen-label b,
-.rd-listen-label small {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.rd-listen-label b {
-  font-size: 13.5px;
-  font-weight: 600;
-  line-height: 1;
-}
-
-.rd-listen-label small {
-  font-size: 11px;
-  line-height: 1;
+.rd-dock-label {
+  font-size: 11.5px;
+  font-weight: 500;
   color: var(--ink-3);
 }
 
-.rd-dock-btn {
-  height: 52px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  border: 0;
-  border-radius: 14px;
-  background: transparent;
-  color: var(--ink-2);
-  cursor: pointer;
+.rd-dock .seg {
+  flex-wrap: nowrap;
 }
 
-.rd-dock-btn .hanzi {
-  font-size: 21px;
-  line-height: 1;
-  color: var(--ink);
-}
-
-.rd-dock-btn small {
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.rd-dock-btn[data-on] {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.rd-dock-btn[data-on] .hanzi {
-  color: var(--accent);
-}
-
-.rd-dock-btn:hover:not([data-on]) {
-  background: var(--card-2);
+.rd-dock .seg button {
+  min-height: 36px;
+  min-width: 40px;
+  padding: 0 10px;
 }
 
 .rd-aa {
@@ -873,13 +805,19 @@
 }
 
 .rd-aa-btn {
-  width: 100%;
-  font: 500 20px/1 var(--read);
+  width: 44px;
+  height: 42px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--card-2);
+  font: 500 19px/1 var(--read);
   color: var(--ink);
+  cursor: pointer;
 }
 
 .rd-aa-btn[aria-expanded='true'] {
-  background: var(--card-2);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .rd-aa-panel {
@@ -927,18 +865,371 @@ label.rd-aa-row {
   flex: none;
 }
 
+/* --------------------------------------------------------------- the player */
+.rd-player {
+  margin: 4px 0 14px;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--card-2);
+}
+
+/* The lines as a bar, each as long as it is: tap one to go on from there. */
+.rd-seek {
+  display: flex;
+  gap: 3px;
+  height: 22px;
+  align-items: center;
+}
+
+.rd-seek-line {
+  flex: 1 1 0;
+  min-width: 6px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.rd-seek-line::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 9px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-2);
+}
+
+.rd-seek-line[data-state='past']::after {
+  background: color-mix(in srgb, var(--accent) 45%, var(--line-2));
+}
+
+.rd-seek-line[data-state='now']::after {
+  top: 7px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--accent);
+}
+
+.rd-player-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.rd-player-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 10px;
+}
+
+.rd-skip,
+.rd-play {
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex: none;
+}
+
+.rd-skip {
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  color: var(--ink);
+}
+
+.rd-skip:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.rd-play {
+  width: 54px;
+  height: 54px;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.rd-play:disabled {
+  opacity: 0.45;
+}
+
+.rd-player-where {
+  flex: 1;
+  min-width: 0;
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.rd-speed {
+  flex: none;
+  flex-wrap: nowrap;
+}
+
+.rd-listen-n {
+  width: 22px;
+  padding-top: 4px;
+  font: 600 12px/1 var(--sans);
+  color: var(--ink-3);
+  flex: none;
+}
+
+.rd-listen-line[data-on] .rd-listen-n,
+.rd-listen-line[data-current] .rd-listen-n {
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------ copying it out */
+.rd-copy {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--card-2);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-copy .grow {
+  display: grid;
+  gap: 2px;
+}
+
+.rd-copy b {
+  font-weight: 600;
+}
+
+.rd-copy .icon {
+  color: var(--accent);
+}
+
+.rd-write-lede {
+  margin-top: 6px;
+}
+
+.co-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--paper);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.co {
+  max-width: 560px;
+  min-height: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--top-clear) + 8px) var(--gutter) max(16px, env(safe-area-inset-bottom));
+}
+
+.co-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+}
+
+.co-head .icon-btn {
+  margin-left: -10px;
+}
+
+.co-progress {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.co-progress i {
+  display: block;
+  height: 100%;
+  background: var(--jade);
+}
+
+.co-count {
+  min-width: 64px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.co-switches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 16px;
+}
+
+.co-line {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.7;
+  color: var(--ink-3);
+}
+
+.co-line [data-state='done'] {
+  color: var(--ink);
+}
+
+.co-line [data-state='now'] {
+  color: var(--ink);
+  background: var(--hl);
+  border-radius: 3px;
+}
+
+.co-now {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 24px 0;
+}
+
+.co-boxes {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.co-char {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.co-py {
+  min-height: 22px;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--py);
+}
+
+.co-box {
+  width: 132px;
+  height: 132px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--grid);
+  border-radius: 4px;
+  font-size: 100px;
+  line-height: 1;
+  background:
+    linear-gradient(var(--grid), var(--grid)) 50% 0 / 1px 100% no-repeat,
+    linear-gradient(var(--grid), var(--grid)) 0 50% / 100% 1px no-repeat;
+}
+
+.co-boxes[data-n='3'] .co-box {
+  width: 100px;
+  height: 100px;
+  font-size: 76px;
+}
+
+.co-boxes[data-n='4'] .co-box {
+  width: 76px;
+  height: 76px;
+  font-size: 58px;
+}
+
+.co-trace {
+  display: block;
+}
+
+.co-ahead {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 8px 0 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.co-ahead-chars {
+  font-size: 22px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  color: var(--ink-2);
+}
+
+.co-ahead-chars [data-punct] {
+  color: var(--ink-3);
+}
+
+.co-actions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+.co-actions .btn.lg:first-child {
+  width: 56px;
+  padding: 0;
+}
+
+.co-end {
+  flex: 1;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.co-end h2 {
+  margin: 0;
+  font-size: 21px;
+}
+
+@media (max-width: 420px) {
+  .co-box {
+    width: 112px;
+    height: 112px;
+    font-size: 84px;
+  }
+
+  .co-boxes[data-n='2'] .co-box,
+  .co-boxes[data-n='3'] .co-box {
+    width: 92px;
+    height: 92px;
+    font-size: 70px;
+  }
+}
+
 /* -------------------------------------------------- wide: parts beside the text */
 @media (min-width: 1100px) {
   .rd[data-mode='single'] {
     max-width: none;
     height: 100dvh;
     grid-template-columns: minmax(0, 1fr) 420px;
-    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto minmax(0, 1fr);
     grid-template-areas:
       'top top'
       'text parts'
-      'text study'
-      'dock study';
+      'text study';
   }
 
   .rd[data-mode='single'] .rd-top {
@@ -974,10 +1265,13 @@ label.rd-aa-row {
     border-top: 0;
   }
 
+  .rd[data-mode='single'] .rd-text {
+    padding-bottom: 0;
+  }
+
   .rd[data-mode='single'] .rd-dock {
-    grid-area: dock;
-    position: static;
-    padding: 10px max(40px, calc((100% - 760px) / 2)) 14px;
+    margin: 16px calc(-1 * max(48px, calc((100% - 760px) / 2))) 0;
+    padding: 10px max(48px, calc((100% - 760px) / 2)) 14px;
   }
 
   .rd-zh {

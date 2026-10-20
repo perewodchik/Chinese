@@ -16,7 +16,6 @@ import { usePdfExport } from '../shared/usePdfExport';
 import { Passage, useStanding, type ReaderView } from './Passage';
 import { onReadThrough, prefetchPassage, useReading } from './readAloud';
 import {
-  nextOf,
   PINYIN_LABEL,
   PINYIN_MODES,
   TRANSLATION_LABEL,
@@ -159,7 +158,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       }),
     [spoken, text.id],
   );
-  const playing = reading.at !== null || reading.loading;
 
   /* -------------------------------------------------------- moving about */
   const address = useCallback(
@@ -325,6 +323,38 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             {text.reads && text.reads > 1 ? <span className="small muted">Read {text.reads} times</span> : null}
           </div>
         )}
+
+        {/* The text's own controls, stuck to the bottom of the screen while the
+            text is on it, and gone with the text when the parts below come up. */}
+        <div className="rd-dock no-print">
+          <div className="rd-dock-group">
+            <span className="rd-dock-label">Pinyin</span>
+            <div className="seg sm" role="group" aria-label="Pinyin">
+              {PINYIN_MODES.map((m) => (
+                <button key={m} aria-pressed={pinyin === m} onClick={() => setPinyin(m)}>
+                  {PINYIN_LABEL[m]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="rd-dock-group">
+            <span className="rd-dock-label">Translation</span>
+            <div className="seg sm" role="group" aria-label="Translation">
+              {TRANSLATION_MODES.map((m) => (
+                <button key={m} aria-pressed={translation === m} onClick={() => setTranslation(m)}>
+                  {TRANSLATION_LABEL[m]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <span className="spacer" />
+          <AaMenu
+            hasTrad={list.some((t) => t.lines.some((l) => l.zht))}
+            hasDialogue={list.some((t) => t.genre === 'dialogue' || t.lines.some((l) => l.who))}
+            comic={comic}
+            setComic={setComic}
+          />
+        </div>
       </div>
 
       {mode === 'single' && (
@@ -339,7 +369,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             onShowLine={showLine}
             partId={partId('words')}
           />
-          {text.teach.length > 0 && <WritePart text={text} partId={partId('write')} />}
+          <WritePart text={text} partId={partId('write')} />
           {text.questions.length > 0 && (
             <QuestionsPart key={`q${text.id}`} text={text} partId={partId('questions')} showPinyin={pinyin === 'all'} />
           )}
@@ -360,64 +390,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
         </div>
       )}
 
-      <div className="rd-dock no-print">
-        <button
-          className="rd-listen-btn"
-          data-on={playing || undefined}
-          disabled={!reading.choices.length && !reading.system}
-          onClick={() => (playing ? reading.stop() : reading.readAll(spoken))}
-          aria-label={playing ? 'Stop' : 'Listen to the whole text'}
-        >
-          <span className="rd-disc">
-            <Icon name={playing ? 'pause' : 'play'} size={18} />
-          </span>
-          <span className="rd-listen-label">
-            <b>
-              {reading.made
-                ? `Getting ready ${reading.made.done}/${reading.made.total}`
-                : reading.at !== null
-                  ? `Line ${reading.at + 1} of ${spoken.length}`
-                  : 'Listen'}
-            </b>
-            <small>{voiceName(reading)}</small>
-          </span>
-        </button>
-        <button
-          className="rd-dock-btn"
-          data-on={pinyin !== 'off' || undefined}
-          onClick={() => setPinyin(nextOf(PINYIN_MODES, pinyin))}
-          aria-label={`Pinyin: ${PINYIN_LABEL[pinyin]}`}
-        >
-          <span className="hanzi">拼</span>
-          <small>{PINYIN_LABEL[pinyin]}</small>
-        </button>
-        <button
-          className="rd-dock-btn"
-          data-on={translation !== 'hidden' || undefined}
-          onClick={() => setTranslation(nextOf(TRANSLATION_MODES, translation))}
-          aria-label={`Translation: ${TRANSLATION_LABEL[translation]}`}
-        >
-          <span className="hanzi">译</span>
-          <small>{TRANSLATION_LABEL[translation]}</small>
-        </button>
-        <AaMenu
-          hasTrad={list.some((t) => t.lines.some((l) => l.zht))}
-          hasDialogue={list.some((t) => t.genre === 'dialogue' || t.lines.some((l) => l.who))}
-          comic={comic}
-          setComic={setComic}
-        />
-      </div>
     </div>
   );
-}
-
-/** The voice Listen will read with, short enough for the button under it. */
-function voiceName(reading: ReturnType<typeof useReading>): string {
-  const server = reading.voices.find((v) => v.id === reading.voice);
-  if (server) return server.name;
-  const name = reading.systemName;
-  if (!name) return reading.system ? 'This device' : 'No voice';
-  return name.replace(/\s*\(.*\)\s*$/, '');
 }
 
 /**

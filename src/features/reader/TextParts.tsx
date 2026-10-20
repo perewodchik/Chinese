@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { charId, type ItemId } from '../../domain/ids';
 import { cardsFor } from '../../domain/teach';
 import { hskLabel, type GeneratedText } from '../../domain/text';
@@ -12,8 +12,9 @@ import { Modal } from '../../ui/Modal';
 import { WritePad } from '../review/WritePad';
 import { useLibrary } from '../shared/library';
 import { AnswerBox } from './AnswerBox';
+import { CopyOut } from './CopyOut';
 import type { Standing } from './Passage';
-import { SYSTEM_VOICE, type Reading } from './readAloud';
+import { onReadThrough, RATES, SYSTEM_VOICE, type Reading } from './readAloud';
 
 /**
  * The parts of a text, as the strip at the top of the page names them.
@@ -39,7 +40,11 @@ export const PARTS: Array<{ id: PartId; han: string; label: string }> = [
 export function partFill(text: GeneratedText, standing: (w: string) => Standing): Record<PartId, number> {
   const s = text.study ?? {};
   const words = text.vocab.length ? text.vocab.filter((w) => standing(w.w) !== 'new').length / text.vocab.length : 1;
-  const write = text.teach.length ? (s.written ?? []).filter((c) => text.teach.includes(c)).length / text.teach.length : 1;
+  const chars = text.lines.reduce((n, l) => n + [...l.zh].filter((c) => /\p{Script=Han}/u.test(c)).length, 0) || 1;
+  const copied = Math.min(1, (s.copied ?? 0) / chars);
+  const taught = text.teach.length ? (s.written ?? []).filter((c) => text.teach.includes(c)).length / text.teach.length : copied;
+  // Writing is the new characters and the text copied out, half each.
+  const write = (taught + copied) / 2;
   const answered = text.questions.length ? (s.answered ?? []).length / text.questions.length : 1;
   return {
     read: text.read ? 1 : 0,
@@ -51,11 +56,9 @@ export function partFill(text: GeneratedText, standing: (w: string) => Standing)
   };
 }
 
-/** The parts a text has: no questions, no Questions; nothing new to write, no Write. */
+/** The parts a text has: no questions, no Questions. Every text can be copied out, so Write is always there. */
 export function partsOf(text: GeneratedText): typeof PARTS {
-  return PARTS.filter(
-    (p) => (p.id !== 'questions' || text.questions.length > 0) && (p.id !== 'write' || text.teach.length > 0),
-  );
+  return PARTS.filter((p) => p.id !== 'questions' || text.questions.length > 0);
 }
 
 function Section({ id, han, title, aside, children }: { id: string; han: string; title: string; aside?: ReactNode; children: ReactNode }) {
@@ -76,6 +79,11 @@ function Section({ id, han, title, aside, children }: { id: string; han: string;
 
 /* ---------------------------------------------------------------- 听 Listen */
 
+/**
+ * The player: the whole text, or from any line; back and on a line at a time;
+ * slower to follow; and every line in a list to follow along, lit as it is
+ * read. Stopping remembers the line, so Play goes on from there.
+ */
 export function ListenPart({
   text,
   reading,
@@ -87,18 +95,74 @@ export function ListenPart({
   spoken: string[];
   partId: string;
 }) {
+  const [last, setLast] = useState(0);
+  const playing = reading.at !== null || reading.loading;
+  const at = reading.at ?? last;
+  // Wherever the voice is, that is where Play will go on from.
+  useEffect(() => {
+    if (reading.at !== null) setLast(reading.at);
+  }, [reading.at]);
+  useEffect(() => setLast(0), [text.id]);
+  // Heard to the end: next time starts at the top.
+  useEffect(() => onReadThrough(() => setLast(0)), []);
+
+  const from = (i: number) => {
+    const n = Math.max(0, Math.min(spoken.length - 1, i));
+    setLast(n);
+    reading.readFrom(spoken, n);
+  };
+  const total = spoken.reduce((n, l) => n + [...l].length, 0) || 1;
+
   return (
-    <Section
-      id={partId}
-      han="听"
-      title="Listen"
-      aside={text.study?.heard ? 'Heard to the end' : `${text.lines.length} lines`}
-    >
+    <Section id={partId} han="听" title="Listen" aside={text.study?.heard ? 'Heard to the end' : `${spoken.length} lines`}>
       <p className="rd-part-lede">
-        Hear it once following the text, then once more without looking. Tap a line to hear it on its own and say it after
-        the voice.
+        Hear it once following the text, then once more without looking. Tap any line to go on from there.
       </p>
       {reading.voice === SYSTEM_VOICE && reading.systemHint && <p className="rd-voice-hint">{reading.systemHint}</p>}
+
+      <div className="rd-player">
+        <div className="rd-player-top">
+          <span className="rd-player-where">
+            {reading.made ? `Getting ready ${reading.made.done}/${reading.made.total}` : `Line ${at + 1} of ${spoken.length}`}
+          </span>
+          <div className="seg sm rd-speed" role="group" aria-label="Speed">
+            {RATES.map((r) => (
+              <button key={r} aria-pressed={reading.rate === r} onClick={() => reading.setRate(r)}>
+                {r === 1 ? 'Normal' : 'Slow'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="rd-seek" role="group" aria-label="Lines">
+          {spoken.map((l, i) => (
+            <button
+              key={i}
+              className="rd-seek-line"
+              style={{ flexGrow: [...l].length / total }}
+              data-state={i < at ? 'past' : i === at ? 'now' : undefined}
+              aria-label={`From line ${i + 1}`}
+              onClick={() => from(i)}
+            />
+          ))}
+        </div>
+        <div className="rd-player-row">
+          <button className="rd-skip" onClick={() => from(at - 1)} disabled={at <= 0} aria-label="Previous line">
+            <Icon name="prev" />
+          </button>
+          <button
+            className="rd-play"
+            onClick={() => (playing ? reading.stop() : from(at))}
+            aria-label={playing ? 'Pause' : at > 0 ? `Play from line ${at + 1}` : 'Play'}
+            disabled={!reading.choices.length && !reading.system}
+          >
+            <Icon name={playing ? 'pause' : 'play'} size={22} />
+          </button>
+          <button className="rd-skip" onClick={() => from(at + 1)} disabled={at >= spoken.length - 1} aria-label="Next line">
+            <Icon name="next" />
+          </button>
+        </div>
+      </div>
+
       {reading.choices.length > 1 && (
         <div className="rd-voices" role="radiogroup" aria-label="Voice">
           {reading.choices.map((v) => (
@@ -108,20 +172,14 @@ export function ListenPart({
           ))}
         </div>
       )}
+
       <ol className="rd-listen">
         {text.lines.map((l, i) => {
           const on = reading.at === i;
           return (
             <li key={i}>
-              <button
-                className="rd-listen-line"
-                data-on={on || undefined}
-                onClick={() => (on ? reading.stop() : reading.readLine(spoken, i))}
-                aria-label={on ? 'Stop' : `Hear line ${i + 1}`}
-              >
-                <span className="rd-listen-ic">
-                  <Icon name={on ? 'stop' : 'play'} size={14} />
-                </span>
+              <button className="rd-listen-line" data-on={on || undefined} data-current={!playing && i === at && at > 0 ? true : undefined} onClick={() => from(i)}>
+                <span className="rd-listen-n">{i + 1}</span>
                 <span className="hanzi">{l.zh}</span>
               </button>
             </li>
@@ -304,9 +362,32 @@ export function WritePart({ text, partId }: { text: GeneratedText; partId: strin
   const [writing, setWriting] = useState<number | null>(null);
   const card = writing === null ? null : cards[writing];
 
+  const [copying, setCopying] = useState(false);
+  const total = text.lines.reduce((n, l) => n + [...l.zh].filter((c) => /\p{Script=Han}/u.test(c)).length, 0);
+  const copied = Math.min(total, text.study?.copied ?? 0);
+
   return (
-    <Section id={partId} han="写" title="Write" aside={`${cards.filter((c) => written.has(c.c)).length} of ${cards.length} written`}>
-      <p className="rd-part-lede">The characters this text brought in. Look at each one, then write it from memory.</p>
+    <Section id={partId} han="写" title="Write">
+      <button className="rd-copy" onClick={() => setCopying(true)}>
+        <span className="grow">
+          <b>Copy out the text</b>
+          <span className="small muted">
+            {copied >= total
+              ? 'Copied out to the end. Again?'
+              : copied
+                ? `${copied} of ${total} characters so far: go on from there`
+                : 'A word or a character at a time, in your notebook or on screen'}
+          </span>
+        </span>
+        <Icon name="chevron" />
+      </button>
+      {copying && <CopyOut text={text} onClose={() => setCopying(false)} />}
+      {cards.length > 0 && (
+        <>
+          <p className="rd-part-lede rd-write-lede">
+            The characters this text brought in, {cards.filter((c) => written.has(c.c)).length} of {cards.length} written. Look at
+            each one, then write it from memory.
+          </p>
       <div className="rd-write">
         {cards.map((c, i) => (
           <button key={c.c} className="rd-box" data-done={written.has(c.c) || undefined} onClick={() => setWriting(i)}>
@@ -315,6 +396,8 @@ export function WritePart({ text, partId }: { text: GeneratedText; partId: strin
           </button>
         ))}
       </div>
+        </>
+      )}
       {card && (
         <WriteOne
           key={card.c}

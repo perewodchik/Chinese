@@ -8,16 +8,17 @@ import { useCallback, useEffect, useState } from 'react';
  * Pinyin over every word turns reading Chinese into reading pinyin: the eye
  * goes to the letters and the characters are looked through. So the default
  * is pinyin only over the words you do not know yet, which is exactly where
- * it helps, and the translation is hidden until a line is asked for.
+ * it helps, and the translation stays off until it is turned on — or, line
+ * by line, until a line's number is tapped.
  */
 export type PinyinMode = 'off' | 'new' | 'all';
-export type TranslationMode = 'hidden' | 'lines' | 'shown';
+export type TranslationMode = 'hidden' | 'shown';
 
 export const PINYIN_MODES: PinyinMode[] = ['off', 'new', 'all'];
-export const TRANSLATION_MODES: TranslationMode[] = ['hidden', 'lines', 'shown'];
+export const TRANSLATION_MODES: TranslationMode[] = ['hidden', 'shown'];
 
-export const PINYIN_LABEL: Record<PinyinMode, string> = { off: 'Off', new: 'New words', all: 'All' };
-export const TRANSLATION_LABEL: Record<TranslationMode, string> = { hidden: 'Hidden', lines: 'Tap a line', shown: 'Shown' };
+export const PINYIN_LABEL: Record<PinyinMode, string> = { off: 'Off', new: 'New', all: 'All' };
+export const TRANSLATION_LABEL: Record<TranslationMode, string> = { hidden: 'Off', shown: 'On' };
 
 function stored<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
   try {

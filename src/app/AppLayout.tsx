@@ -15,6 +15,7 @@ import { useScrollRestoration } from '../navigation/useScrollRestoration';
 import { preloadFonts } from '../pdf/fonts';
 import { useStore, useSyncStatus } from '../store/store';
 import { useColorScheme } from '../ui/colorScheme';
+import { useSheetDrag } from '../ui/useSheetDrag';
 import { Icon } from '../ui/Icon';
 import { SyncIndicator } from './SyncIndicator';
 
@@ -140,21 +141,29 @@ function MoreSheet({ onClose }: { onClose: () => void }) {
   const user = useUser();
   const { leave, leaving } = useSignOut();
   const panel = useRef<HTMLDivElement>(null);
+  // Pulled down, it goes the way it came, like every other sheet on a phone.
+  const sheet = useSheetDrag(onClose);
+  const { close } = sheet;
 
   useEffect(() => {
     const escape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') close();
     };
     document.addEventListener('keydown', escape);
     panel.current?.focus();
-    return () => document.removeEventListener('keydown', escape);
-  }, [onClose]);
+    // The page behind stays where it is while the sheet is up.
+    document.documentElement.dataset.sheet = 'open';
+    return () => {
+      document.removeEventListener('keydown', escape);
+      delete document.documentElement.dataset.sheet;
+    };
+  }, [close]);
 
   return (
     <>
-      <div className="more-scrim" onClick={onClose} />
-      <div className="more-sheet" role="dialog" aria-label="More" ref={panel} tabIndex={-1}>
-        <span className="sheet-grab" aria-hidden />
+      <div className="more-scrim" data-leaving={sheet.leaving || undefined} onClick={close} onTouchMove={(e) => e.preventDefault()} />
+      <div className="more-sheet" role="dialog" aria-label="More" ref={panel} tabIndex={-1} {...sheet.sheetProps}>
+        <span className="sheet-grab" aria-hidden {...sheet.gripProps} />
         <div className="more-list">
           {MORE.map((m) => (
             <Link key={m.to} to={m.to} className="more-row">

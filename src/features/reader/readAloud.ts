@@ -32,6 +32,20 @@ import {
 
 export const SYSTEM_VOICE = 'system';
 const STORED = 'hanzi.reading.voice';
+const RATE = 'hanzi.reading.rate';
+
+/** How fast a passage is read: 1 as it is, or slower to follow it. Kept on the device. */
+export const RATES = [0.75, 1] as const;
+export type ReadingRate = (typeof RATES)[number];
+
+let rate: ReadingRate = (() => {
+  try {
+    return Number(localStorage.getItem(RATE)) === 0.75 ? 0.75 : 1;
+  } catch {
+    return 1;
+  }
+})();
+const rateWatchers = new Set<(r: ReadingRate) => void>();
 
 function stored(): string | null {
   try {
@@ -224,7 +238,7 @@ function step() {
 
   if (here.voice === SYSTEM_VOICE) {
     announce({ at: here.at, loading: false });
-    if (!speak(here.lines[here.at]!, { rate: 0.85, onEnd: next })) fail('This device has no Chinese voice.');
+    if (!speak(here.lines[here.at]!, { rate: 0.85 * rate, onEnd: next })) fail('This device has no Chinese voice.');
     stopCurrent = stopSpeaking;
     return;
   }
@@ -254,6 +268,8 @@ function step() {
       el.onended = next;
       el.onerror = () => run === here && fail('The voice could not be played.');
       el.src = url;
+      el.defaultPlaybackRate = rate;
+      el.playbackRate = rate;
       void el.play().then(
         () => run === here && announce({ loading: false }),
         (err: unknown) => {
@@ -323,6 +339,10 @@ export interface Reading extends ReadingState {
   readLine: (lines: string[], i: number) => void;
   /** read the whole passage from the top */
   readAll: (lines: string[]) => void;
+  /** read on from line `i` to the end */
+  readFrom: (lines: string[], i: number) => void;
+  rate: ReadingRate;
+  setRate: (r: ReadingRate) => void;
   stop: () => void;
   /** the device's own voice in use, by name — "Lili (Premium)" */
   systemName: string | null;
@@ -340,6 +360,7 @@ export function useReading(): Reading {
   const [deviceTick, setDeviceTick] = useState(0);
   const [voice, setChosen] = useState(chosen);
   const [now, setNow] = useState(state);
+  const [speed, setSpeed] = useState<ReadingRate>(rate);
 
   useEffect(() => {
     let live = true;
@@ -350,11 +371,13 @@ export function useReading(): Reading {
     });
     watchers.add(setNow);
     choosers.add(setChosen);
+    rateWatchers.add(setSpeed);
     return () => {
       live = false;
       off();
       watchers.delete(setNow);
       choosers.delete(setChosen);
+      rateWatchers.delete(setSpeed);
     };
   }, []);
 
@@ -407,6 +430,19 @@ export function useReading(): Reading {
     setVoice,
     readLine: useCallback((lines, i) => start(lines, i, usable, false), [usable]),
     readAll: useCallback((lines) => start(lines, 0, usable, true), [usable]),
+    readFrom: useCallback((lines, i) => start(lines, i, usable, true), [usable]),
+    rate: speed,
+    setRate: useCallback((r: ReadingRate) => {
+      rate = r;
+      for (const w of rateWatchers) w(r);
+      // A clip already playing changes pace at once; the system voice from its next line.
+      if (player) player.playbackRate = r;
+      try {
+        localStorage.setItem(RATE, String(r));
+      } catch {
+        // remembered for this visit only
+      }
+    }, []),
     stop: hushReading,
   };
 }
