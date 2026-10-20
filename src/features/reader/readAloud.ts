@@ -8,6 +8,7 @@ import {
   chooseChineseVoice,
   onVoicesReady,
   speak,
+  speechBusy,
   stopSpeaking,
   unlockSpeech,
   voiceLabel,
@@ -223,17 +224,26 @@ function announce(patch: Partial<ReadingState>) {
   for (const w of watchers) w(state);
 }
 
-export function hushReading() {
-  stopCurrent?.();
+/**
+ * Stops it. The run is let go of before the voice is silenced: cancelling
+ * speech sends the line's `end` at once on some browsers, and a run still
+ * current at that moment took it as the line finished and read the next —
+ * which is how Pause went on talking.
+ */
+function halt() {
+  const stop = stopCurrent;
   stopCurrent = null;
   run = null;
+  stop?.();
+}
+
+export function hushReading() {
+  halt();
   announce({ at: null, loading: false, made: null });
 }
 
 function fail(message: string) {
-  stopCurrent?.();
-  stopCurrent = null;
-  run = null;
+  halt();
   announce({ at: null, loading: false, made: null, error: message });
 }
 
@@ -264,7 +274,18 @@ function step() {
 
   if (here.voice === SYSTEM_VOICE) {
     announce({ at: here.at, loading: false });
-    if (!speak(here.lines[here.at]!, { rate: 0.85 * rate, onEnd: next })) fail('This device has no Chinese voice.');
+    const said = speak(here.lines[here.at]!, {
+      rate: 0.85 * rate,
+      // One line after another, nothing cancelled in between (see `speak`).
+      queue: true,
+      onEnd: (how) => {
+        if (run !== here) return;
+        // Cut off by something else that spoke: that is a stop, not the end of the line.
+        if (how === 'interrupted') hushReading();
+        else next();
+      },
+    });
+    if (!said) fail('This device has no Chinese voice.');
     stopCurrent = stopSpeaking;
     return;
   }
@@ -313,14 +334,28 @@ function step() {
 }
 
 function start(lines: string[], from: number, voice: string, through: boolean) {
+  // Something still talking is cut off first; Safari takes a moment over a
+  // cancel, and a line spoken straight after one is sometimes the line it
+  // cancels. So after a cancel the first line waits a moment; with nothing
+  // to cancel it is said at once, inside the tap, which is what iOS needs.
+  const busy = voice === SYSTEM_VOICE && speechBusy();
   hushReading();
-  // iOS starts sound only inside the tap that asked for it; this is inside one.
-  unlockSpeech();
-  if (voice !== SYSTEM_VOICE) unlockAudio();
+  if (voice !== SYSTEM_VOICE) {
+    // iOS starts sound only inside the tap that asked for it; this is inside one.
+    unlockSpeech();
+    unlockAudio();
+  }
   const here: Run = { lines, at: from, voice, through };
   run = here;
   announce({ error: null });
-  if (voice === SYSTEM_VOICE || !through) {
+  if (voice === SYSTEM_VOICE) {
+    if (busy) {
+      announce({ at: from, loading: true });
+      setTimeout(() => run === here && step(), 180);
+    } else step();
+    return;
+  }
+  if (!through) {
     step();
     return;
   }

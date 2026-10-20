@@ -21,6 +21,15 @@ import { answeredSince, startOfToday } from './today';
  */
 
 export const CARD_SIZES = [10, 20, 30, 50] as const;
+
+/**
+ * What a card can ask, and the learner chooses which: what an item means and
+ * how it is said (turned over), its pinyin typed with the tones, or the
+ * character written from memory. A kind switched off is not asked at all —
+ * not turned into another kind — and its schedule waits until it is back.
+ */
+export type CardSkill = 'recognise' | 'sound' | 'write';
+export const CARD_SKILLS: readonly CardSkill[] = ['recognise', 'sound', 'write'];
 export const DEFAULT_CARDS = 20;
 
 /** About how long a card takes, for "about 6 minutes". */
@@ -74,7 +83,7 @@ export function planCards(
   book: RecallBook,
   sets: TextSet[],
   now: number,
-  opts: { size: number; newPerDay: number },
+  opts: { size: number; newPerDay: number; skills?: readonly CardSkill[] },
 ): CardPlan {
   const today = startOfToday(now);
   const answeredToday = answeredSince(book, today);
@@ -82,7 +91,7 @@ export function planCards(
   const waiting = waitingCards(sets, book, lib);
   const freshRoom = Math.max(0, opts.newPerDay - metSince(book, today));
   // A minute holds about five cards in the planner's own reckoning.
-  const review = planReview(lib, book, now, Math.max(1, (left * SECONDS_PER_CARD) / 60));
+  const review = planReview(lib, book, now, Math.max(1, (left * SECONDS_PER_CARD) / 60), opts.skills ?? CARD_SKILLS);
   const fresh = waiting.slice(0, Math.min(freshRoom, Math.ceil(left / 4)));
   const due = review.targets.slice(0, Math.max(0, left - fresh.length));
   return { cards: dealIn(due, fresh), answeredToday, left, due: review.dueItems, waiting };

@@ -29,6 +29,26 @@ describe('the cards', () => {
     assert.ok(plan.due > 10);
   });
 
+  it('asks only the kinds of card chosen, and nothing of a kind switched off', () => {
+    const book = backlog();
+    for (const c of all.slice(0, 6)) {
+      const id = charId(c.c);
+      book[id] = { ...book[id], sound: grade(undefined, 'good', NOW - 40 * DAY, 'sound'), write: grade(undefined, 'good', NOW - 40 * DAY, 'write') };
+    }
+    // One question an item, the one most at risk: here the writing.
+    const every = planCards(lib, book, [], NOW, { size: 50, newPerDay: 0 });
+    assert.ok(every.cards.some((c) => c.skill === 'write'));
+    // Writing off, the same items are asked the next most at risk instead.
+    const noWriting = planCards(lib, book, [], NOW, { size: 50, newPerDay: 0, skills: ['recognise', 'sound'] });
+    assert.equal(noWriting.cards.length, every.cards.length);
+    assert.ok(noWriting.cards.every((c) => c.skill !== 'write'));
+    assert.ok(noWriting.cards.some((c) => c.skill === 'sound'));
+    const onlyWriting = planCards(lib, book, [], NOW, { size: 50, newPerDay: 0, skills: ['write'] });
+    assert.deepEqual([...new Set(onlyWriting.cards.map((c) => c.skill))], ['write']);
+    // The six due, and a couple of known characters asked to be written for the first time.
+    assert.ok(onlyWriting.cards.length >= 6);
+  });
+
   it('counts what was answered today against the size', () => {
     const book = backlog();
     for (const c of all.slice(0, 4)) book[charId(c.c)] = { recognise: grade(book[charId(c.c)]!.recognise, 'good', NOW - 60_000, 'recognise') };

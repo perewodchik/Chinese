@@ -1,15 +1,17 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router';
-import { CARD_SIZES, planCards } from '../../domain/cards';
+import { CARD_SIZES, CARD_SKILLS, planCards } from '../../domain/cards';
 import { idValue } from '../../domain/ids';
 import { NEW_PER_DAY } from '../../domain/lesson';
 import { pendingSheets } from '../../domain/memory';
 import { paths } from '../../navigation/paths';
 import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
+import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { DRILLS } from '../review/drills';
 import { useLibrary } from '../shared/library';
+import { ASKS } from './asks';
 import { minutesFor } from './CardSession';
 import './cards.css';
 
@@ -20,8 +22,9 @@ export function useCardsToday() {
   const sets = useStore((s) => s.sets);
   const size = useStore((s) => s.settings.cardsPerDay);
   const newPerDay = useStore((s) => s.settings.newPerDay);
+  const skills = useStore((s) => s.settings.cardSkills);
   return useMemo(() => {
-    const plan = planCards(lib, recall, sets, Date.now(), { size, newPerDay });
+    const plan = planCards(lib, recall, sets, Date.now(), { size, newPerDay, skills });
     return {
       plan,
       count: plan.cards.length,
@@ -29,7 +32,7 @@ export function useCardsToday() {
       done: plan.answeredToday > 0 && plan.cards.length === 0,
       inRotation: Object.keys(recall).length,
     };
-  }, [lib, recall, sets, size, newPerDay]);
+  }, [lib, recall, sets, size, newPerDay, skills]);
 }
 
 /**
@@ -98,6 +101,42 @@ export function CardsPage() {
               </div>
             </>
           )}
+        </div>
+      </section>
+
+      <section className="block">
+        <h2 className="block-title">What the cards ask</h2>
+        <div className="list">
+          {ASKS.map((a) => {
+            const on = settings.cardSkills.includes(a.skill);
+            // A deck that asks nothing is not a choice: the last kind stays on.
+            const last = on && settings.cardSkills.length === 1;
+            return (
+              <label key={a.skill} className="ask-row" title={last ? 'At least one kind of card stays on' : undefined}>
+                <span className="hanzi way-mark" aria-hidden>
+                  {a.mark}
+                </span>
+                <span className="grow">
+                  <b>{a.name}</b>
+                  <span className="small muted">{a.blurb}</span>
+                </span>
+                <input
+                  type="checkbox"
+                  className="ask-input"
+                  checked={on}
+                  disabled={last}
+                  onChange={() =>
+                    setSettings({
+                      cardSkills: on ? settings.cardSkills.filter((k) => k !== a.skill) : CARD_SKILLS.filter((k) => k === a.skill || settings.cardSkills.includes(k)),
+                    })
+                  }
+                />
+                <span className="ask-box" aria-hidden>
+                  <Icon name="check" size={18} />
+                </span>
+              </label>
+            );
+          })}
         </div>
       </section>
 

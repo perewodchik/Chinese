@@ -2,6 +2,7 @@ import { hasPicture } from '../data/pictures';
 import { scenesOf, storyFrom } from '../domain/story';
 import { playFrom } from '../domain/play';
 import { activityFrom } from '../domain/activity';
+import { CARD_SKILLS, type CardSkill } from '../domain/cards';
 import { videoFrom, type Video } from '../domain/video';
 import { DEFAULT_SCOPE, type Collection, type CollectionWord } from '../domain/collection';
 import { isCharId, isItemId, wordId, type ItemId } from '../domain/ids';
@@ -412,6 +413,7 @@ function settingsFrom(v: unknown, version: number): AppSettings {
     hardMode: s.hardMode === true,
     reviewMinutes: clamp(Math.round(num(s.reviewMinutes, DEFAULT_SETTINGS.reviewMinutes)), 3, 60),
     cardsPerDay: clamp(Math.round(num(s.cardsPerDay, DEFAULT_SETTINGS.cardsPerDay)), 5, 100),
+    cardSkills: cardSkillsFrom(s.cardSkills),
     dailyGoal: s.dailyGoal === 'minutes' ? 'minutes' : 'plan',
     goalMinutes: clamp(Math.round(num(s.goalMinutes, DEFAULT_SETTINGS.goalMinutes)), 5, 120),
     restDays: s.restDays !== false,
@@ -421,6 +423,12 @@ function settingsFrom(v: unknown, version: number): AppSettings {
 }
 
 const clamp = (n: number, least: number, most: number) => Math.min(most, Math.max(least, n));
+
+/** The kinds of card asked, in their own order; never none, which would be a deck that asks nothing. */
+function cardSkillsFrom(v: unknown): CardSkill[] {
+  const asked = Array.isArray(v) ? CARD_SKILLS.filter((k) => v.includes(k)) : [];
+  return asked.length ? asked : [...DEFAULT_SETTINGS.cardSkills];
+}
 
 /* ------------------------------------------------------------- version 3 */
 

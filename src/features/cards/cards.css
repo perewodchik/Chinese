@@ -78,6 +78,68 @@
   margin-top: 14px;
 }
 
+/* What the cards ask: a row per kind, the whole row a checkbox. */
+.ask-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 68px;
+  padding: 10px 0;
+  cursor: pointer;
+}
+
+.ask-row .grow {
+  display: grid;
+  gap: 2px;
+}
+
+.ask-row b {
+  font-weight: 500;
+}
+
+.ask-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.ask-box {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--card);
+  color: transparent;
+  transition:
+    background-color 0.12s,
+    border-color 0.12s;
+}
+
+.ask-input:checked + .ask-box {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.ask-input:disabled + .ask-box {
+  opacity: 0.55;
+}
+
+.ask-input:focus-visible + .ask-box {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ask-row:has(.ask-input:disabled) {
+  cursor: default;
+}
+
 .deck-row {
   display: flex;
   align-items: center;
@@ -193,13 +255,16 @@
   padding: 12px 0 max(16px, env(safe-area-inset-bottom));
 }
 
+/* The card is as tall as what is on it, from a floor: a card stretched to
+   the screen was mostly an empty frame on an iPad. What it is answered with
+   stays at the foot of the screen, under the thumb, wherever the card ends. */
 .cs-card {
-  flex: 1;
+  flex: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  min-height: 420px;
+  min-height: 380px;
   padding: 40px 20px 22px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sheet);
@@ -392,6 +457,7 @@
 .cs-actions {
   display: grid;
   min-height: 60px;
+  margin-top: auto;
 }
 
 .cs-show {
@@ -496,4 +562,16 @@
   .cs-han {
     font-size: 72px;
   }
+}
+
+/* Turning a kind of card off, from one of its cards: last in the card, quiet. */
+.btn.quiet.cs-off {
+  align-self: center;
+  margin-top: 14px;
+  color: var(--ink-3);
+  font-weight: 400;
+}
+
+.btn.quiet.cs-off:hover {
+  color: var(--accent);
 }

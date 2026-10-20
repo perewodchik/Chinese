@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { planCards, planShelf, SECONDS_PER_CARD, type CardPlan } from '../../domain/cards';
+import { planCards, planShelf, SECONDS_PER_CARD, type CardPlan, type CardSkill } from '../../domain/cards';
 import { checkPinyin, type PinyinCheck } from '../../domain/exercises/check';
 import { itemInfo, senses, type ItemInfo } from '../../domain/exercises/items';
 import { charId, idValue, isCharId } from '../../domain/ids';
@@ -10,13 +10,14 @@ import { DAY, grade, type Rating } from '../../domain/memory';
 import type { SessionTarget } from '../../domain/reviewSession';
 import { answeredSince, startOfToday } from '../../domain/today';
 import { paths } from '../../navigation/paths';
-import { gradeItem } from '../../store/commands';
+import { gradeItem, setSettings } from '../../store/commands';
 import { getState, useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { Say } from '../../ui/Say';
 import { useTitle } from '../../ui/useTitle';
 import { WritePad } from '../review/WritePad';
 import { useLibrary } from '../shared/library';
+import { ASKS } from './asks';
 import './cards.css';
 
 type Card = SessionTarget & { fresh: boolean };
@@ -43,7 +44,7 @@ export function CardSessionPage() {
     // ten" on a fresh day, "ten more" on a finished one.
     const answered = answeredSince(s.recall, startOfToday(Date.now()));
     const size = n ? answered + n : s.settings.cardsPerDay;
-    return planCards(lib, s.recall, s.sets, Date.now(), { size, newPerDay: s.settings.newPerDay });
+    return planCards(lib, s.recall, s.sets, Date.now(), { size, newPerDay: s.settings.newPerDay, skills: s.settings.cardSkills });
     // A new round is a new plan; nothing else should re-plan a sitting under way.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lib, round]);
@@ -74,6 +75,18 @@ function Session({ plan, shelf, onMore }: { plan: CardPlan; shelf: string | null
     }
     setAt((i) => i + 1);
   }
+
+  /**
+   * This kind of card, turned off from the card itself: the setting changes,
+   * and this card and the rest of its kind leave the sitting without a grade.
+   */
+  function turnOff(skill: CardSkill) {
+    const kept = getState().settings.cardSkills.filter((k) => k !== skill);
+    if (!kept.length) return;
+    setSettings({ cardSkills: kept });
+    setQueue((q) => q.filter((c, i) => i < at || c.fresh || c.skill !== skill));
+  }
+  const skills = useStore((s) => s.settings.cardSkills);
 
   if (!plan.cards.length) {
     return (
@@ -128,7 +141,13 @@ function Session({ plan, shelf, onMore }: { plan: CardPlan; shelf: string | null
   return (
     <div className="cs">
       <SessionBar exit={exit} at={at} total={total} />
-      <OneCard key={`${at}-${card.id}-${card.skill}`} card={card} info={itemInfo(lib, card.id)} onAnswer={answer} />
+      <OneCard
+        key={`${at}-${card.id}-${card.skill}`}
+        card={card}
+        info={itemInfo(lib, card.id)}
+        onAnswer={answer}
+        onTurnOff={!card.fresh && card.skill !== 'use' && skills.length > 1 ? () => turnOff(card.skill as CardSkill) : undefined}
+      />
     </div>
   );
 }
@@ -193,7 +212,18 @@ function Marked({ zh, mark }: { zh: string; mark: string }) {
  * the character — because a card you only look at is easy to fool yourself
  * with; those grade themselves from what you did.
  */
-function OneCard({ card, info, onAnswer }: { card: Card; info: ItemInfo | null; onAnswer: (r: Rating) => void }) {
+function OneCard({
+  card,
+  info,
+  onAnswer,
+  onTurnOff,
+}: {
+  card: Card;
+  info: ItemInfo | null;
+  onAnswer: (r: Rating) => void;
+  /** this kind of card off, where another kind is still on */
+  onTurnOff?: () => void;
+}) {
   const lib = useLibrary();
   const [open, setOpen] = useState(card.fresh);
   const [typed, setTyped] = useState('');
@@ -249,6 +279,7 @@ function OneCard({ card, info, onAnswer }: { card: Card; info: ItemInfo | null; 
         <div className="cs-card cs-write">
           <p className="small muted">Write it from memory</p>
           <WritePad char={text} py={info.py} gloss={info.gloss} onDone={onAnswer} />
+          {onTurnOff && <TurnOff skill="write" onClick={onTurnOff} />}
         </div>
       </div>
     );
@@ -351,6 +382,7 @@ function OneCard({ card, info, onAnswer }: { card: Card; info: ItemInfo | null; 
             <p className="tiny muted">{context.from}</p>
           </div>
         )}
+        {mode === 'type' && onTurnOff && <TurnOff skill="sound" onClick={onTurnOff} />}
       </div>
 
       <div className="cs-actions">
@@ -395,3 +427,12 @@ function OneCard({ card, info, onAnswer }: { card: Card; info: ItemInfo | null; 
 }
 
 export const minutesFor = (cards: number) => Math.max(1, Math.round((cards * SECONDS_PER_CARD) / 60));
+
+/** A kind of card turned off from one of its cards; it comes back on the Cards tab. */
+function TurnOff({ skill, onClick }: { skill: CardSkill; onClick: () => void }) {
+  return (
+    <button type="button" className="btn quiet sm cs-off" onClick={onClick}>
+      {ASKS.find((a) => a.skill === skill)?.off}
+    </button>
+  );
+}

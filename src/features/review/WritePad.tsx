@@ -67,6 +67,12 @@ export function WritePad({ char, py, gloss, onDone }: { char: string; py: string
       return;
     }
 
+    // A tap is a finger or a palm landing, not a try at the stroke: said, and not counted.
+    if (m.reason === 'tiny') {
+      setNote('That was a tap. Draw the whole stroke.');
+      return;
+    }
+
     const tries = wrong + 1;
     setWrong(tries);
     setMisses((n) => n + 1);
@@ -75,8 +81,6 @@ export function WritePad({ char, py, gloss, onDone }: { char: string; py: string
 
     if (m.reason === 'direction') {
       setNote('Right line, wrong way round — start at the dot.');
-    } else if (m.reason === 'tiny') {
-      setNote('That was a tap. Draw the whole stroke.');
     } else {
       const later = bestMatch(
         pts,
@@ -134,7 +138,7 @@ export function WritePad({ char, py, gloss, onDone }: { char: string; py: string
           onClick={() => setPenOnly(false)}
           title="Turn this off to write with a finger again"
         >
-          ✎ Pencil only — rest your hand
+          Pencil only — rest your hand
         </button>
       )}
 
@@ -146,11 +150,9 @@ export function WritePad({ char, py, gloss, onDone }: { char: string; py: string
               : `Done — ${misses} ${misses === 1 ? 'miss' : 'misses'}.`
             : over === 'gave-up'
               ? `${char} — ${total} strokes`
-              : `stroke ${done + 1} of ${total}`}
+              : `Stroke ${done + 1} of ${total}`}
         </span>
-        <span className="tiny" style={{ color: 'var(--accent)', minHeight: 16 }}>
-          {note}
-        </span>
+        <span className="tiny write-note">{note}</span>
       </div>
 
       {over === 'gave-up' ? (
@@ -163,18 +165,18 @@ export function WritePad({ char, py, gloss, onDone }: { char: string; py: string
       ) : (
         !over && (
           <div className="write-actions">
-            <button className="btn ghost sm" onClick={() => setHint(true)} disabled={hint}>
+            <button className="btn tonal sm" onClick={() => setHint(true)} disabled={hint}>
               Show the stroke
             </button>
             <button
-              className="btn ghost sm"
+              className="btn quiet sm"
               onClick={() => {
                 setDone(total);
                 setOver('gave-up');
                 setNote('');
               }}
             >
-              I can't write it
+              I can’t write it
             </button>
           </div>
         )

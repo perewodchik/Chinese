@@ -50,10 +50,10 @@ const FRESH: Partial<Record<Skill, number>> = { sound: 3, write: 2 };
 
 export const secondsFor = (t: Pick<SessionTarget, 'skill'>) => SECONDS[t.skill];
 
-function dueSkill(book: RecallBook, id: ItemId, now: number): SessionTarget | null {
+function dueSkill(book: RecallBook, id: ItemId, now: number, asked: readonly Skill[]): SessionTarget | null {
   const sk = book[id];
   if (!sk) return null;
-  const skills = isWordId(id) ? (['recognise'] as Skill[]) : REVIEW_SKILLS;
+  const skills = (isWordId(id) ? (['recognise'] as Skill[]) : REVIEW_SKILLS).filter((s) => asked.includes(s));
   let best: SessionTarget | null = null;
   let risk = Infinity;
   for (const s of skills) {
@@ -68,11 +68,18 @@ function dueSkill(book: RecallBook, id: ItemId, now: number): SessionTarget | nu
   return best;
 }
 
-export function planReview(lib: Library, book: RecallBook, now: number, minutes: number): SessionPlan {
+export function planReview(
+  lib: Library,
+  book: RecallBook,
+  now: number,
+  minutes: number,
+  /** the kinds of question to ask; the rest are left for a session that asks them */
+  skills: readonly Skill[] = REVIEW_SKILLS,
+): SessionPlan {
   const due: SessionTarget[] = [];
   for (const id in book) {
     if (isCharId(id) ? !lib.byChar.has(idValue(id)) : !isWordId(id)) continue;
-    const t = dueSkill(book, id, now);
+    const t = dueSkill(book, id, now, skills);
     if (t) due.push(t);
   }
 
@@ -99,7 +106,7 @@ export function planReview(lib: Library, book: RecallBook, now: number, minutes:
   // asked before: the sound, then the writing, of characters already known.
   if (!left) {
     const asked = new Set(out.map((t) => t.id));
-    for (const skill of ['sound', 'write'] as Skill[]) {
+    for (const skill of (['sound', 'write'] as Skill[]).filter((k) => skills.includes(k))) {
       let n = 0;
       for (const id in book) {
         if (n >= (FRESH[skill] ?? 0) || spent + SECONDS[skill] > budget) break;

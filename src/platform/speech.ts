@@ -119,18 +119,32 @@ export function onVoicesReady(cb: () => void): () => void {
 
 export const canSpeak = () => chineseVoice() !== null;
 
+/** How an utterance stopped: said to the end, cut off by a cancel, or failed. */
+export type SpeechEnd = 'end' | 'interrupted' | 'error';
+
+/**
+ * The utterance being said, held on to: Chrome and Safari both drop an
+ * utterance nobody references, and its `end` never comes.
+ */
+let current: SpeechSynthesisUtterance | null = null;
+
 /**
  * Says one word, character or sentence.
  *
  * Anything still being said is cancelled first: clicking down a list of
  * characters should sound like a list of characters, not like all of them at
  * once. Slightly under normal speed, because the point is to hear the tone.
+ *
+ * `queue` leaves what is being said alone, for a passage read a line after
+ * another: the line before has ended, and a cancel there is worse than
+ * useless — Safari carries it out a moment late, on the line just queued,
+ * which is how every second line of a passage went missing.
  */
-export function speak(text: string, opts: { rate?: number; onEnd?: () => void } = {}) {
+export function speak(text: string, opts: { rate?: number; queue?: boolean; onEnd?: (how: SpeechEnd) => void } = {}) {
   const s = synth();
   const voice = chineseVoice();
   if (!s || !voice || !text.trim()) return false;
-  s.cancel();
+  if (!opts.queue) s.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = voice.lang;
   u.rate = opts.rate ?? 0.85;
@@ -141,14 +155,26 @@ export function speak(text: string, opts: { rate?: number; onEnd?: () => void } 
     // still lands on a Mandarin voice. Better than throwing out of a click.
     void 0;
   }
-  if (opts.onEnd) {
-    const end = opts.onEnd;
-    u.onend = () => end();
-    u.onerror = () => end();
-  }
+  // Told once: Safari has been seen to send both an error and an end.
+  let told = false;
+  const tell = (how: SpeechEnd) => {
+    if (told) return;
+    told = true;
+    if (current === u) current = null;
+    opts.onEnd?.(how);
+  };
+  u.onend = () => tell('end');
+  u.onerror = (e) => tell(e.error === 'interrupted' || e.error === 'canceled' ? 'interrupted' : 'error');
+  current = u;
   s.speak(u);
   return true;
 }
+
+/** Whether something is being said, or waiting to be. */
+export const speechBusy = () => {
+  const s = synth();
+  return Boolean(s && (s.speaking || s.pending));
+};
 
 /**
  * iOS lets speech synthesis start only inside a tap. Saying nothing, quietly,

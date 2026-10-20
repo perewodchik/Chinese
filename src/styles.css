@@ -3301,12 +3301,19 @@ select.mt {
   align-items: center;
   gap: 3px;
   min-height: 36px;
+  margin-top: 8px;
 }
 
 .write-actions {
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+/* What went wrong with the last stroke, in the red pen; the line is kept whether or not there is a note. */
+.write-note {
+  min-height: 16px;
+  color: var(--red);
 }
 
 /* ---------------------------------------------------------------- the end */

@@ -1,6 +1,7 @@
 import { emptyPlay, type PlayRecord } from '../domain/play';
 import type { Activity } from '../domain/activity';
 import type { Collection } from '../domain/collection';
+import type { CardSkill } from '../domain/cards';
 import type { ItemId } from '../domain/ids';
 import type { PrintedSheet, RecallBook } from '../domain/memory';
 import type { PaletteId } from '../domain/sheet';
@@ -75,6 +76,8 @@ export interface AppSettings {
   reviewMinutes: number;
   /** how many cards a day: what is due beyond it waits, and is never shown as a debt */
   cardsPerDay: number;
+  /** what the cards ask: the meaning, the pinyin typed, the character written; at least one */
+  cardSkills: CardSkill[];
   /** what a day's goal is: the day's plan (learn + clear what is due), or a number of minutes */
   dailyGoal: 'plan' | 'minutes';
   /** the minutes a day that meet the goal, when the goal is minutes */
@@ -114,6 +117,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   hardMode: false,
   reviewMinutes: 10,
   cardsPerDay: 20,
+  cardSkills: ['recognise', 'sound', 'write'],
   dailyGoal: 'plan',
   goalMinutes: 15,
   restDays: true,
