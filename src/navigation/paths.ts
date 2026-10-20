@@ -15,6 +15,12 @@ export type CollectionTab = EditorTab | 'words';
 /** What the Collections page shows: both kinds, or one. */
 export type CollectionsShow = 'all' | 'characters' | 'texts';
 
+/** What a shelf shows: its texts, its words, or its characters. */
+export type ShelfTab = 'texts' | 'words' | 'characters';
+
+/** Which version of a text with two: the easier retelling, or the book's own. */
+export type TextVersion = 'easy' | 'book';
+
 /** A session read one text at a time, or all of it on one page. */
 export type ReadMode = 'single' | 'all';
 
@@ -59,15 +65,20 @@ export const paths = {
   /** a word list being written with Claude: describe, prompt, paste */
   buildList: (step: ListStep = 'describe') => `/collections/build/${step}`,
 
-  /** the texts on the Collections page — where every "back to the shelf" goes */
-  texts: () => '/collections?show=texts',
+  /** Read: where you stopped, and every shelf — where every "back to the shelf" goes */
+  read: () => '/read',
+  texts: () => '/read',
+  /** one shelf: its texts, the words it is teaching, or its characters */
+  shelf: (setId: string, tab: ShelfTab = 'texts') =>
+    withQuery(`/read/${encodeURIComponent(setId)}`, { tab: tab === 'texts' ? undefined : tab }),
   /** one text; within a session it redirects to its page there */
   text: (id: string) => `/texts/${encodeURIComponent(id)}`,
   /** a session of texts: `?page=2` for the second on its own, `?mode=all` for every one */
-  reading: (setId: string, at: { page?: number; mode?: ReadMode } = {}) =>
+  reading: (setId: string, at: { page?: number; mode?: ReadMode; version?: TextVersion } = {}) =>
     withQuery(`/texts/${encodeURIComponent(setId)}`, {
       mode: at.mode === 'all' ? 'all' : undefined,
       page: at.mode !== 'all' && at.page && at.page > 1 ? String(at.page) : undefined,
+      v: at.mode !== 'all' ? at.version : undefined,
     }),
   session: (step: PlanStep = 'plan') => `/texts/session/${step}`,
 
@@ -110,6 +121,10 @@ export const paths = {
     withQuery(`/play/${encodeURIComponent(id)}`, { band: band ? String(band) : undefined, seed }),
 
   settings: () => '/settings',
+  /** the cards: how many today, and the ways to practise one kind */
+  cards: () => '/cards',
+  /** one sitting of cards; `n` asks for fewer (or more) than the day's size */
+  cardSession: (n?: number) => withQuery('/cards/session', { n: n ? String(n) : undefined }),
   /** today's lesson: meet a few new things, practise them, check them */
   learn: () => '/learn',
   /** the daily review: everything due, mixed, in one sitting */

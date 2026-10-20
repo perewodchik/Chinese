@@ -15,7 +15,7 @@ import {
   type Skill,
 } from '../domain/memory';
 import type { SheetChoice } from '../domain/sheet';
-import type { GeneratedText, TextPlan, TextSet } from '../domain/text';
+import { mergeStudy, type GeneratedText, type TextPlan, type TextSet, type TextStudy } from '../domain/text';
 import {
   mergeVideo,
   type DictationCheck,
@@ -112,6 +112,10 @@ export type Action =
   | { type: 'activity/log'; at: number; add: Partial<DayLog> }
   | { type: 'play/finish'; game: FinishedGame }
   | { type: 'text/ending'; id: string; node: string }
+  /** something done with a text besides reading it: heard, translated, a character written, a question answered */
+  | { type: 'text/study'; id: string; study: TextStudy }
+  /** items chosen to learn from a shelf, or taken off its list */
+  | { type: 'set/study'; id: string; items: ItemId[]; add: boolean }
   /** a video onto the shelf; one already there takes whatever the new copy has more of */
   | { type: 'video/add'; video: Video }
   | { type: 'video/patch'; id: string; patch: VideoPatch; at: number }
@@ -332,6 +336,27 @@ export function reduce(state: AppState, action: Action): AppState {
 
     case 'play/finish':
       return { ...state, play: recordGame(state.play, action.game) };
+
+    case 'text/study':
+      return {
+        ...state,
+        texts: state.texts.map((t) => (t.id === action.id ? { ...t, study: mergeStudy(t.study, action.study) } : t)),
+      };
+
+    case 'set/study': {
+      if (!state.sets.some((s) => s.id === action.id)) return state;
+      return {
+        ...state,
+        sets: state.sets.map((s) => {
+          if (s.id !== action.id) return s;
+          const had = s.study ?? [];
+          const study = action.add
+            ? [...had, ...action.items.filter((id) => !had.includes(id))]
+            : had.filter((id) => !action.items.includes(id));
+          return { ...s, study };
+        }),
+      };
+    }
 
     case 'text/ending':
       return {

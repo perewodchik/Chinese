@@ -1,10 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { AccountMenu } from '../features/auth/AccountMenu';
+import { useUser } from '../features/auth/session';
+import { useSignOut } from '../features/auth/useSignOut';
 import { ItemDrawer } from '../features/library/ItemDrawer';
 import { ProgressDrawer } from '../features/library/ProgressDrawer';
-import { ProgressMeter } from '../features/library/ProgressMeter';
-import { useDueCount } from '../features/review/useDueCount';
 import { LegacyWorkNotice } from '../features/settings/LegacyWorkNotice';
 import { WordDrawer } from '../features/words/WordDrawer';
 import { isWordId } from '../domain/ids';
@@ -13,97 +13,88 @@ import { useProgressDrawer } from '../navigation/progressDrawer';
 import { paths } from '../navigation/paths';
 import { useScrollRestoration } from '../navigation/useScrollRestoration';
 import { preloadFonts } from '../pdf/fonts';
-import { useStore } from '../store/store';
+import { useStore, useSyncStatus } from '../store/store';
 import { useColorScheme } from '../ui/colorScheme';
+import { Icon } from '../ui/Icon';
 import { SyncIndicator } from './SyncIndicator';
 
-/** A review sitting's address: one drill, the words, the daily session, or the day's lesson. */
-const SITTING = /^\/(review\/(recognise|sound|tone|confuse|word|write|words|session)|learn)\/?$/;
+/** A review sitting's address: one drill, the words, the daily session, the cards, or the day's lesson. */
+const SITTING = /^\/(review\/(recognise|sound|tone|confuse|word|write|words|session)|learn|cards\/session)\/?$/;
 
-/** The frame every signed-in page sits in: the bar across the top, the page, and the drawer for a character or a word. */
+/** Where each section of More lives, so its tab stays lit while you are in one of them. */
+const MORE_PATHS = ['/speaking', '/videos', '/play', '/account', '/settings', '/collections', '/families'];
+
+/**
+ * The frame every signed-in page sits in: the sections, the page, and the
+ * drawer for a character or a word.
+ *
+ * Four places and a fifth for everything else. On a phone they sit along the
+ * bottom edge, where a thumb already is, and never scroll: seven tabs across
+ * the top had to scroll sideways and hid where you were. On an iPad or a
+ * computer the same five stand in a narrow rail on the left, out of the
+ * reading column's way. Each is named in English with its character above
+ * it — 今 读 卡 字 — which is one more thing read every day.
+ */
 export function AppLayout() {
   const theme = useStore((s) => s.settings.theme);
-  const collections = useStore((s) => s.collections.length);
-  const textSets = useStore((s) => s.sets.filter((set) => s.texts.some((t) => t.setId === set.id)).length);
   const { pathname } = useLocation();
-  const due = useDueCount();
   const drawer = useItemDrawer();
   const progress = useProgressDrawer();
   const main = useRef<HTMLElement>(null);
-  const tabs = useRef<HTMLElement>(null);
+  const [more, setMore] = useState(false);
   // A sitting has the whole screen: the question and its own way out, nothing
-  // else to glance at or tap by mistake. Sheets and the sweep keep the bar.
+  // else to glance at or tap by mistake.
   const sitting = SITTING.test(pathname);
+  // Reading has the screen edge to edge; on a phone the text page has its own
+  // bar and dock, and the sections wait behind its back button.
+  const immersive = /^\/texts\/(?!session)/.test(pathname);
 
   useColorScheme(theme);
-
-  // On a phone the tabs scroll sideways and the last ones start off-screen;
-  // the section you are in is always brought into view, so the bar never
-  // hides where you are.
-  useEffect(() => {
-    const current = tabs.current?.querySelector<HTMLElement>('[aria-current="page"]');
-    const bar = tabs.current;
-    if (!current || !bar || bar.scrollWidth <= bar.clientWidth) return;
-    const left = current.offsetLeft - bar.offsetLeft;
-    if (left < bar.scrollLeft || left + current.offsetWidth > bar.scrollLeft + bar.clientWidth) {
-      bar.scrollTo({ left: left - 12, behavior: 'smooth' });
-    }
-  }, [pathname]);
-
   useScrollRestoration(main);
   useEffect(() => {
     preloadFonts().catch(() => undefined);
   }, []);
+  // Going somewhere closes the sheet that took you there.
+  useEffect(() => setMore(false), [pathname]);
 
-  // Today comes first because it is the one page that knows what you should be
-  // doing, all of it in order, with Review inside it — hence the count. The
-  // rest are places you go once you have decided for yourself.
-  //
-  // A count is a badge beside the name: cinnabar where it is something to do
-  // (reviews due), quiet where it is only how many there are.
   const sections = [
-    // Review is part of Today, so its sittings under /review keep this tab lit.
-    { to: paths.today(), label: 'Today', count: due, alert: true, also: '/review' },
-    { to: paths.library(), label: 'Library', count: 0 },
-    // Texts live in collections now; reading or writing one is still being
-    // in Collections, so the tab stays lit there too.
-    { to: paths.collections(), label: 'Collections', count: collections + textSets, also: '/texts' },
-    { to: paths.speaking(), label: 'Speaking', count: 0 },
-    { to: paths.videos(), label: 'Videos', count: 0 },
-    { to: paths.play(), label: 'Play', count: 0 },
-    { to: paths.settings(), label: 'Settings', count: 0 },
+    { to: paths.today(), han: '今', label: 'Today', also: ['/review', '/learn'] },
+    { to: paths.read(), han: '读', label: 'Read', also: ['/texts'] },
+    { to: paths.cards(), han: '卡', label: 'Cards', also: [] },
+    { to: paths.library(), han: '字', label: 'Library', also: [] },
   ];
+  const lit = (s: (typeof sections)[number]) =>
+    pathname.startsWith(s.to) || s.also.some((p) => pathname.startsWith(p));
+  const inMore = !sections.some(lit) && MORE_PATHS.some((p) => pathname.startsWith(p));
 
   return (
-    <div className="app" data-focus={sitting || undefined}>
-      <header className="topbar">
-        <Link to={paths.today()} className="brand" aria-label="Hanzi Workshop">
-          <span className="mark">写</span>
-          Hanzi Workshop
-        </Link>
-        <nav className="tabs" aria-label="Sections" ref={tabs}>
-          {sections.map((s) => (
-            <Link
-              key={s.to}
-              to={s.to}
-              aria-current={
-                pathname.startsWith(s.to) || (s.also && pathname.startsWith(s.also)) ? 'page' : undefined
-              }
-            >
-              {s.label}
-              {s.count > 0 && (
-                <span className="nav-badge" data-alert={s.alert || undefined} aria-label={`, ${s.count}`}>
-                  {s.count > 99 ? '99+' : s.count}
-                </span>
-              )}
-            </Link>
-          ))}
-        </nav>
-        <div className="spacer" />
-        <ProgressMeter />
-        <SyncIndicator />
-        <AccountMenu />
-      </header>
+    <div className="app" data-focus={sitting || undefined} data-immersive={immersive || undefined}>
+      <nav className="nav" aria-label="Sections">
+        {sections.map((s) => (
+          <Link key={s.to} to={s.to} className="nav-tab" aria-current={lit(s) ? 'page' : undefined}>
+            <span className="nav-ic hanzi" aria-hidden>
+              {s.han}
+            </span>
+            {s.label}
+          </Link>
+        ))}
+        <button
+          className="nav-tab"
+          aria-haspopup="dialog"
+          aria-expanded={more}
+          aria-current={inMore ? 'page' : undefined}
+          onClick={() => setMore((m) => !m)}
+        >
+          <span className="nav-ic" aria-hidden>
+            <Icon name="more" />
+            <SyncDot />
+          </span>
+          More
+        </button>
+        <div className="nav-foot">
+          <AccountMenu up />
+        </div>
+      </nav>
 
       <main className="main" ref={main}>
         <div className="page">
@@ -111,6 +102,8 @@ export function AppLayout() {
           <Outlet />
         </div>
       </main>
+
+      {more && <MoreSheet onClose={() => setMore(false)} />}
 
       {drawer.item &&
         (isWordId(drawer.item) ? (
@@ -120,5 +113,82 @@ export function AppLayout() {
         ))}
       {progress.open && !drawer.item && <ProgressDrawer onClose={progress.close} />}
     </div>
+  );
+}
+
+/** A dot on More when the work on screen has not reached the server: the one thing worth interrupting for. */
+function SyncDot() {
+  const status = useSyncStatus();
+  const trouble = status && (status.phase === 'offline' || status.phase === 'failing' || status.phase === 'signed-out');
+  return trouble ? <i className="nav-dot" aria-label="Not saved" /> : null;
+}
+
+const MORE = [
+  { to: paths.speaking(), han: '说', label: 'Speaking', blurb: 'Tones, sounds, talking with Claude' },
+  { to: paths.videos(), han: '视', label: 'Videos', blurb: 'Watch, write it out, check it' },
+  { to: paths.play(), han: '玩', label: 'Play', blurb: 'Games and the walk through Beijing' },
+  { to: paths.collections(), han: '印', label: 'Lists to print', blurb: 'Character lists and worksheets' },
+  { to: paths.stats(), han: '进', label: 'Your progress', blurb: 'Days, words and characters over time' },
+];
+
+/**
+ * Everything that is not one of the four places: a sheet from the bottom on a
+ * phone, a panel beside the rail on anything wider. Settings are not here a
+ * second time — they are under your name, at the foot of the sheet.
+ */
+function MoreSheet({ onClose }: { onClose: () => void }) {
+  const user = useUser();
+  const { leave, leaving } = useSignOut();
+  const panel = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const escape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', escape);
+    panel.current?.focus();
+    return () => document.removeEventListener('keydown', escape);
+  }, [onClose]);
+
+  return (
+    <>
+      <div className="more-scrim" onClick={onClose} />
+      <div className="more-sheet" role="dialog" aria-label="More" ref={panel} tabIndex={-1}>
+        <span className="sheet-grab" aria-hidden />
+        <div className="more-list">
+          {MORE.map((m) => (
+            <Link key={m.to} to={m.to} className="more-row">
+              <span className="more-ic hanzi" aria-hidden>
+                {m.han}
+              </span>
+              <span className="more-text">
+                <b>{m.label}</b>
+                <span className="small muted">{m.blurb}</span>
+              </span>
+              <Icon name="chevron" className="muted" />
+            </Link>
+          ))}
+        </div>
+        <div className="more-foot">
+          <Link to={paths.settings()} className="more-row">
+            <span className="more-ic" aria-hidden>
+              <span className="avatar">{[...user.username][0]?.toUpperCase()}</span>
+            </span>
+            <span className="more-text">
+              <b>{user.username}</b>
+              <span className="small muted">Account and settings</span>
+            </span>
+            <Icon name="chevron" className="muted" />
+          </Link>
+          <div className="row more-sync">
+            <SyncIndicator />
+            <span className="spacer" />
+            <button className="btn quiet sm" onClick={() => void leave()} disabled={leaving}>
+              {leaving ? 'Signing out…' : 'Sign out'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

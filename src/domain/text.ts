@@ -1,3 +1,4 @@
+import type { ItemId } from './ids';
 import type { Scene, Story } from './story';
 /**
  * Reading passages, and the plan that produces them.
@@ -295,6 +296,12 @@ export interface TextSet {
   createdAt: number;
   note?: string;
   /**
+   * What was chosen to learn from this shelf's texts — a word tapped and
+   * "Learn this word", by item id — in the order chosen. A shelf is its own
+   * word list: nothing has to be gathered into a collection to be studied.
+   */
+  study?: ItemId[];
+  /**
    * The reading order, by text id, once somebody has rearranged it. Texts not
    * listed (added since) follow in the order they were written.
    */
@@ -353,6 +360,93 @@ export interface GeneratedText {
    */
   reads?: number;
   lastReadAt?: number;
+  /** what has been done with it besides reading: see `TextStudy` */
+  study?: TextStudy;
+}
+
+/**
+ * The parts of a text that leave a trace, so the page can show how far each
+ * has got and the shelf can say which texts are mastered rather than only
+ * opened. Not steps: any part can be done in any order, and none is required.
+ * The words part has no record of its own here — it is read off the memory,
+ * which already knows which of the text's words are being learned.
+ */
+export interface TextStudy {
+  /** when it was last heard to the end */
+  heard?: number;
+  /** when the translation was last opened, line by line or whole */
+  translated?: number;
+  /** the characters written out in the Write part */
+  written?: string[];
+  /** the questions answered, by index */
+  answered?: number[];
+}
+
+/** Two records of the same text from two devices, keeping everything either did. */
+export function mergeStudy(a: TextStudy | undefined, b: TextStudy | undefined): TextStudy | undefined {
+  if (!a) return b;
+  if (!b) return a;
+  const max = (x?: number, y?: number) => (x === undefined ? y : y === undefined ? x : Math.max(x, y));
+  const union = <T,>(x?: T[], y?: T[]) => (x || y ? [...new Set([...(x ?? []), ...(y ?? [])])] : undefined);
+  return {
+    ...optionalField('heard', max(a.heard, b.heard)),
+    ...optionalField('translated', max(a.translated, b.translated)),
+    ...optionalField('written', union(a.written, b.written)),
+    ...optionalField('answered', union(a.answered, b.answered)),
+  };
+}
+
+const optionalField = <K extends string, V>(k: K, v: V | undefined) => (v === undefined ? {} : ({ [k]: v } as Record<K, V>));
+
+/**
+ * The easier retelling of a book's passage: written by Claude for this
+ * learner, put on the shelf just before the book's own (see /add-text).
+ */
+export const isRetelling = (t: Pick<GeneratedText, 'model' | 'title'>) =>
+  / adapted from /.test(t.model) || /\(easier\)\s*$/.test(t.title);
+
+/** A title without the "(easier)" a retelling's English title ends with. */
+export const plainTitle = (title: string) => title.replace(/\s*\(easier\)\s*$/, '');
+
+/**
+ * A shelf's texts as the reader meets them: a retelling and the book's own
+ * passage with the same Chinese title are one entry with two versions, read
+ * through the 简 / 原 switch rather than as two texts in a row.
+ */
+export interface ShelfEntry {
+  /** the version the entry opens on: the original when there is one */
+  main: GeneratedText;
+  easier: GeneratedText | null;
+  original: GeneratedText | null;
+}
+
+export function shelfEntries(list: GeneratedText[]): ShelfEntry[] {
+  const out: ShelfEntry[] = [];
+  const byTitle = new Map<string, ShelfEntry>();
+  for (const t of list) {
+    const key = t.titleZh.trim();
+    const easy = isRetelling(t);
+    const had = key ? byTitle.get(key) : undefined;
+    if (had && (easy ? !had.easier : !had.original)) {
+      if (easy) had.easier = t;
+      else {
+        had.original = t;
+        had.main = t;
+      }
+      continue;
+    }
+    const entry: ShelfEntry = { main: t, easier: easy ? t : null, original: easy ? null : t };
+    out.push(entry);
+    if (key) byTitle.set(key, entry);
+  }
+  return out;
+}
+
+/** The other version of a text on the same shelf, if it has one. */
+export function otherVersion(t: GeneratedText, list: GeneratedText[]): GeneratedText | null {
+  const entry = shelfEntries(list).find((e) => e.easier?.id === t.id || e.original?.id === t.id);
+  if (!entry) return null;
+  return entry.easier?.id === t.id ? entry.original : entry.easier;
 }
 
 /**

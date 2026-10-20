@@ -61,7 +61,7 @@ import { newId } from '../../src/platform/ids';
 import type { PersistedState } from '../../src/store/state';
 
 /** The workspace version this checkout writes. A newer document is left alone. */
-const VERSION: PersistedState['version'] = 10;
+const VERSION: PersistedState['version'] = 11;
 
 type Doc = Record<string, unknown>;
 

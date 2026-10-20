@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { TalkVoice } from '../../../shared/talk';
 import { talkStatus } from '../../api/talk';
-import { canSpeak, onVoicesReady, speak, stopSpeaking, unlockSpeech } from '../../platform/speech';
+import {
+  betterVoiceHint,
+  canSpeak,
+  chineseVoice,
+  chineseVoices,
+  chooseChineseVoice,
+  onVoicesReady,
+  speak,
+  stopSpeaking,
+  unlockSpeech,
+} from '../../platform/speech';
 
 /**
  * Hearing a passage read.
@@ -187,10 +197,19 @@ function fail(message: string) {
   announce({ at: null, loading: false, made: null, error: message });
 }
 
+/** Told when a whole passage has been read to its last line, with the lines it read. */
+const throughWatchers = new Set<(lines: string[]) => void>();
+
+export function onReadThrough(cb: (lines: string[]) => void): () => void {
+  throughWatchers.add(cb);
+  return () => throughWatchers.delete(cb);
+}
+
 function step() {
   const here = run;
   if (!here || here.at >= here.lines.length) {
     hushReading();
+    if (here?.through && here.at >= here.lines.length) for (const w of throughWatchers) w(here.lines);
     return;
   }
   const next = () => {
@@ -305,19 +324,30 @@ export interface Reading extends ReadingState {
   /** read the whole passage from the top */
   readAll: (lines: string[]) => void;
   stop: () => void;
+  /** the device's own voice in use, by name — "Lili (Premium)" */
+  systemName: string | null;
+  /** where the device has only a robotic voice, how to get a natural one */
+  systemHint: string | null;
+  /** every voice that can read the passage here: the device's Mandarin voices, then the server's */
+  choices: Array<{ key: string; name: string; active: boolean; pick: () => void }>;
 }
 
 export function useReading(): Reading {
   /** null until the server has said which models it has */
   const [voices, setVoices] = useState<TalkVoice[] | null>(null);
   const [system, setSystem] = useState(canSpeak);
+  /** bumped when the device's voices arrive or one is chosen, so the names are read again */
+  const [deviceTick, setDeviceTick] = useState(0);
   const [voice, setChosen] = useState(chosen);
   const [now, setNow] = useState(state);
 
   useEffect(() => {
     let live = true;
     void localVoices().then((list) => live && setVoices(list));
-    const off = onVoicesReady(() => setSystem(canSpeak()));
+    const off = onVoicesReady(() => {
+      setSystem(canSpeak());
+      setDeviceTick((n) => n + 1);
+    });
     watchers.add(setNow);
     choosers.add(setChosen);
     return () => {
@@ -350,8 +380,27 @@ export function useReading(): Reading {
     }
   }, []);
 
+  const device = chineseVoice();
+  const choices = [
+    ...chineseVoices().map((v) => ({
+      key: `device:${v.voiceURI}`,
+      name: v.name,
+      active: usable === SYSTEM_VOICE && device?.voiceURI === v.voiceURI,
+      pick: () => {
+        chooseChineseVoice(v.voiceURI);
+        setVoice(SYSTEM_VOICE);
+        setDeviceTick((n) => n + 1);
+      },
+    })),
+    ...(voices ?? []).map((v) => ({ key: v.id, name: v.name, active: usable === v.id, pick: () => setVoice(v.id) })),
+  ];
+  void deviceTick;
+
   return {
     ...now,
+    systemName: device?.name ?? null,
+    systemHint: betterVoiceHint(),
+    choices,
     voices: voices ?? [],
     system,
     voice: usable,

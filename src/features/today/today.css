@@ -133,10 +133,8 @@
 
 .today-label {
   margin: 0 0 2px;
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--ink-3);
 }
 
@@ -407,17 +405,6 @@
 .today-week dd {
   margin: 0;
   color: var(--ink-2);
-}
-
-/* --------------------------------------------------------- focus sittings */
-/* A review sitting takes the whole screen: the bar across the top goes, and
-   the sitting's own "Stop" is the way out. */
-.app[data-focus] > .topbar {
-  display: none;
-}
-
-.app[data-focus] {
-  grid-template-rows: 1fr;
 }
 
 /* ------------------------------------------------------------ narrower */

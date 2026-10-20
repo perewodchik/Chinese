@@ -2,7 +2,7 @@ import { DEFAULT_SCOPE, type Collection, type CollectionWord, type PrintScope } 
 import type { ItemId } from '../domain/ids';
 import type { PrintedSheet, Rating, Skill } from '../domain/memory';
 import { defaultSheet, type SheetChoice } from '../domain/sheet';
-import { shelve, type GeneratedText, type TextPlan, type TextSet } from '../domain/text';
+import { shelve, type GeneratedText, type TextPlan, type TextSet, type TextStudy } from '../domain/text';
 import { emptyListPlan, type WordListPlan } from '../domain/wordlist';
 import { newId } from '../platform/ids';
 import { serialise } from './migrations';
@@ -192,6 +192,13 @@ export const setTextRead = (id: string, read: boolean) => dispatch({ type: 'text
  * event: it happened, and the count only goes up.
  */
 export const markRead = (id: string) => dispatch({ type: 'text/markRead', id, at: now() });
+
+/** Something done with a text: heard to the end, translation opened, a character written, a question answered. */
+export const studyText = (id: string, study: TextStudy) => dispatch({ type: 'text/study', id, study });
+
+/** Items chosen to learn from a shelf's texts, or taken off its list. */
+export const setShelfStudy = (setId: string, items: ItemId[], add: boolean) =>
+  dispatch({ type: 'set/study', id: setId, items, add });
 
 /**
  * A story with choices read through to one of its endings: the ending is

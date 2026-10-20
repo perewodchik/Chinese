@@ -4,7 +4,7 @@ import { DEFAULT_SCOPE, type Collection } from '../domain/collection';
 import { DEFAULT_RADICAL_SCOPE } from '../domain/radicals/sets';
 import { DEFAULT_RADICAL_SHEET } from '../domain/radicals/sheet';
 import { defaultSheet } from '../domain/sheet';
-import { shelve, type GeneratedText, type TextPlan } from '../domain/text';
+import { shelfEntries, shelve, type GeneratedText, type TextPlan } from '../domain/text';
 import { coalesce, reduce, type Action } from './actions';
 import { mergeStates } from './merge';
 import { emptyState, type AppState } from './state';
@@ -246,5 +246,33 @@ describe('text collections', () => {
   it('reads a reordered set in its new order, with newcomers after', () => {
     const state = run(start(), { type: 'set/reorder', id: 'a', order: ['a2'] });
     assert.deepEqual(shelve(state.texts, state.sets).bySet.get('a')?.map((t) => t.id), ['a2', 'a1']);
+  });
+
+  it('keeps everything done with a text, from either side, and never undoes it', () => {
+    let state = run(start(), { type: 'text/study', id: 'a1', study: { heard: 5, written: ['好'] } });
+    state = run(state, { type: 'text/study', id: 'a1', study: { heard: 3, written: ['你'], answered: [1] } });
+    assert.deepEqual(state.texts.find((t) => t.id === 'a1')?.study, { heard: 5, written: ['好', '你'], answered: [1] });
+    const other = run(start(), { type: 'text/study', id: 'a1', study: { translated: 9, answered: [0] } });
+    const merged = mergeStates(state, other).texts.find((t) => t.id === 'a1')?.study;
+    assert.deepEqual(merged, { heard: 5, translated: 9, written: ['好', '你'], answered: [1, 0] });
+  });
+
+  it('keeps a shelf’s own list of things to learn, once each, and takes them off again', () => {
+    let state = run(start(), { type: 'set/study', id: 'a', items: ['w你好', 'c好'], add: true });
+    state = run(state, { type: 'set/study', id: 'a', items: ['c好', 'w谢谢'], add: true });
+    assert.deepEqual(state.sets.find((s) => s.id === 'a')?.study, ['w你好', 'c好', 'w谢谢']);
+    state = run(state, { type: 'set/study', id: 'a', items: ['c好'], add: false });
+    assert.deepEqual(state.sets.find((s) => s.id === 'a')?.study, ['w你好', 'w谢谢']);
+    assert.equal(run(state, { type: 'set/study', id: 'gone', items: ['c你'], add: true }), state);
+  });
+
+  it('reads a retelling and the book’s passage with the same title as one text with two versions', () => {
+    const easy = { ...text('e', 'a', 1), titleZh: '为什么？', title: 'Why? (easier)', model: 'Claude · adapted from 十万个为什么' };
+    const book = { ...text('o', 'a', 2), titleZh: '为什么？', title: 'Why?', model: 'Book · 十万个为什么' };
+    const entries = shelfEntries([easy, book, text('x', 'a', 3)]);
+    assert.equal(entries.length, 2);
+    assert.equal(entries[0]?.main.id, 'o');
+    assert.equal(entries[0]?.easier?.id, 'e');
+    assert.equal(entries[1]?.easier, null);
   });
 });

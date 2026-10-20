@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Link, useMatch } from 'react-router';
+import { useReadingShelf } from '../reader/readingShelf';
 import { nextCollectionName } from '../../domain/collection';
 import { charId, idValue, type ItemId } from '../../domain/ids';
 import { firstSense } from '../../domain/library';
@@ -10,9 +11,10 @@ import { listedParts } from '../../domain/wordlist';
 import { wordInfo, wordKnowledge } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
-import { toggleLearned } from '../../store/commands';
+import { setShelfStudy, toggleLearned } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Glyph } from '../../ui/Glyph';
+import { Icon } from '../../ui/Icon';
 import { Say } from '../../ui/Say';
 import { useSheetDrag } from '../../ui/useSheetDrag';
 import { CollectionPicker, useCollect } from '../shared/collect';
@@ -78,6 +80,16 @@ export function WordDrawer({ id, onClose }: Props) {
   const fromList = explained[0]?.cw;
 
   const current = collections.find((x) => x.id === match?.params.collectionId) ?? null;
+  // Opened from a text or a shelf: learning it means putting it on that shelf's list.
+  const shelf = useReadingShelf();
+  const onShelf = shelf?.set.study?.includes(id) ?? false;
+  const line = useMemo(() => {
+    for (const t of shelf?.texts ?? []) {
+      const l = t.lines.find((x) => x.zh.includes(w));
+      if (l) return l;
+    }
+    return null;
+  }, [shelf, w]);
   const addTo = (target: string) => collect(target, [id], { newName: nextCollectionName(collections) });
 
   return (
@@ -96,8 +108,8 @@ export function WordDrawer({ id, onClose }: Props) {
             <span />
           </div>
           <div className="row sheet-top" style={{ justifyContent: 'space-between' }}>
-            <button className="btn ghost sm close" onClick={close}>
-              ✕ Close
+            <button className="btn ghost sm close" onClick={close} aria-label="Close">
+              <Icon name="close" />
             </button>
             <div className="row">
               <button
@@ -105,9 +117,25 @@ export function WordDrawer({ id, onClose }: Props) {
                 onClick={() => toggleLearned(id)}
                 title={learned ? 'Counted as known — tap to take that back' : 'Count this word as known'}
               >
-                {learned ? '✓ Known' : 'I know it'}
+                {learned ? 'Known' : 'I know it'}
               </button>
-              {current ? (
+              {shelf ? (
+                <button
+                  className={`btn sm ${onShelf ? 'tonal' : 'primary'}`}
+                  onClick={() => setShelfStudy(shelf.set.id, [id], !onShelf)}
+                  title={onShelf ? `On the ${shelf.set.name} list: tap to take it off` : `Add it to the ${shelf.set.name} list and to your cards`}
+                >
+                  {onShelf ? (
+                    <>
+                      <Icon name="check" /> Learning
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="plus" /> Learn this word
+                    </>
+                  )}
+                </button>
+              ) : current ? (
                 <button
                   className="btn sm primary"
                   disabled={current.items.includes(id)}
@@ -146,6 +174,15 @@ export function WordDrawer({ id, onClose }: Props) {
             </p>
           </div>
         </div>
+
+        {line && (
+          <div className="word-here">
+            <p className="hanzi word-here-zh" lang="zh-CN">
+              {line.zh.split(w).flatMap((part, i) => (i ? [<mark key={i}>{w}</mark>, part] : [part]))}
+            </p>
+            {line.en && <p className="word-here-en">{line.en}</p>}
+          </div>
+        )}
 
         <WordPicture word={w} />
 

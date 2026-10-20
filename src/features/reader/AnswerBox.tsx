@@ -19,7 +19,16 @@ const SAID: Record<AnswerCheck['verdict'], string> = {
  * Claude step in the app works there. The model answer the writer left is
  * always a tap away either way, and needs neither.
  */
-export function AnswerBox({ text, question }: { text: GeneratedText; question: TextLine }) {
+export function AnswerBox({
+  text,
+  question,
+  onDone,
+}: {
+  text: GeneratedText;
+  question: TextLine;
+  /** told once the question has been answered and checked, or its answer looked at */
+  onDone?: () => void;
+}) {
   const claude = useClaude();
   const [answer, setAnswer] = useState('');
   const [check, setCheck] = useState<AnswerCheck | null>(null);
@@ -35,8 +44,10 @@ export function AnswerBox({ text, question }: { text: GeneratedText; question: T
     const reply = await claude.ask(prompt(), 'check');
     if (reply === null) return;
     const read = readCheck(reply);
-    if (read) setCheck(read);
-    else setTrouble('Claude answered, but not with a verdict this page can read. Try again.');
+    if (read) {
+      setCheck(read);
+      onDone?.();
+    } else setTrouble('Claude answered, but not with a verdict this page can read. Try again.');
   }
 
   async function copy() {
@@ -52,6 +63,7 @@ export function AnswerBox({ text, question }: { text: GeneratedText; question: T
     setTrouble(value.trim() && !read ? 'That does not look like Claude’s verdict yet — paste the whole reply.' : null);
     if (read) {
       setCheck(read);
+      onDone?.();
       setRelay('idle');
       setPasted('');
     }
@@ -66,7 +78,7 @@ export function AnswerBox({ text, question }: { text: GeneratedText; question: T
         className="answer-input"
         value={answer}
         rows={2}
-        placeholder="Your answer — in Chinese if you can, English is fine"
+        placeholder="Your answer, in Chinese if you can. English is fine."
         aria-label={`Your answer to: ${question.zh}`}
         onChange={(e) => {
           setAnswer(e.target.value);
@@ -85,7 +97,7 @@ export function AnswerBox({ text, question }: { text: GeneratedText; question: T
             onClick={() => void copy()}
             title="Copy a short prompt to paste into Claude, then paste its reply back here"
           >
-            {relay === 'copied' ? 'Copied ✓' : 'Check with Claude'}
+            {relay === 'copied' ? 'Copied' : 'Check with Claude'}
           </button>
         )}
         {waiting && (
@@ -94,7 +106,14 @@ export function AnswerBox({ text, question }: { text: GeneratedText; question: T
           </button>
         )}
         {question.a && (
-          <button className="btn ghost sm" onClick={() => setShowModel((s) => !s)} aria-pressed={showModel}>
+          <button
+            className="btn ghost sm"
+            onClick={() => {
+              if (!showModel) onDone?.();
+              setShowModel((s) => !s);
+            }}
+            aria-pressed={showModel}
+          >
             Model answer
           </button>
         )}

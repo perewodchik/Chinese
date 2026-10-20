@@ -78,7 +78,7 @@ describe('a workspace written before radicals had a place of their own', () => {
 
   it('writes the workspace back at the version it has now', () => {
     const written = serialise(state);
-    assert.equal(written.version, 10);
+    assert.equal(written.version, 11);
     assert.equal(written.radicals.sets.length, 1);
   });
 });
@@ -209,5 +209,40 @@ describe('a collection written when a sheet had eight settings', () => {
   it("makes the texts' colour the print colour", () => {
     assert.equal(sheetOf({}, { readerPalette: 'pine' }).settings.printPalette, 'pine');
     assert.equal(sheetOf({}).settings.printPalette, 'cinnabar');
+  });
+});
+
+describe('what has been done with a text, and a shelf’s list (version 11)', () => {
+  const base = {
+    version: 11,
+    collections: [],
+    recall: {},
+    sheets: [],
+    learned: [],
+    plan: null,
+    settings: {},
+    sets: [{ id: 's', name: 'Book', createdAt: 1, study: ['w面包', 'c孔', 5, ''] }],
+    texts: [
+      {
+        id: 't',
+        setId: 's',
+        lines: [{ zh: '你好。', py: 'nǐ hǎo', en: 'Hello.' }],
+        study: { heard: 7, translated: 'yesterday', written: ['孔', 3], answered: [0, -1, 1.5, 2] },
+      },
+      { id: 'u', lines: [{ zh: '好。', py: 'hǎo', en: 'Good.' }], study: { written: [] } },
+    ],
+  };
+
+  it('keeps what is well formed and drops the rest', () => {
+    const state = hydrate(base);
+    assert.deepEqual(state.sets[0]?.study, ['w面包', 'c孔']);
+    assert.deepEqual(state.texts.find((t) => t.id === 't')?.study, { heard: 7, written: ['孔'], answered: [0, 2] });
+    assert.equal(state.texts.find((t) => t.id === 'u')?.study, undefined);
+  });
+
+  it('writes them back as they are', () => {
+    const written = serialise(hydrate(base));
+    assert.deepEqual(written.sets[0]?.study, ['w面包', 'c孔']);
+    assert.deepEqual(written.texts.find((t) => t.id === 't')?.study, { heard: 7, written: ['孔'], answered: [0, 2] });
   });
 });

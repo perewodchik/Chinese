@@ -1,5 +1,6 @@
 import { mergeActivity } from '../domain/activity';
 import { mergePlay } from '../domain/play';
+import { mergeStudy } from '../domain/text';
 import { mergeVideo } from '../domain/video';
 import { learnedFrom, SKILLS, type RecallBook, type SkillBook } from '../domain/memory';
 import { mergeRadicals } from './radicalState';
@@ -31,9 +32,13 @@ export function mergeStates(account: AppState, incoming: AppState): AppState {
       const kept = (theirs.reads ?? 0) > (ours.reads ?? 0) ? theirs : ours;
       // endings found on either device stay found
       const endings = [...new Set([...(ours.endings ?? []), ...(theirs.endings ?? [])])];
-      return endings.length ? { ...kept, endings } : kept;
+      // and so does anything done with the text on either
+      const study = mergeStudy(ours.study, theirs.study);
+      return { ...kept, ...(endings.length ? { endings } : {}), ...(study ? { study } : {}) };
     }).sort((a, b) => b.createdAt - a.createdAt),
-    sets: union(account.sets, incoming.sets, (ours) => ours).sort((a, b) => b.createdAt - a.createdAt),
+    sets: union(account.sets, incoming.sets, (ours, theirs) =>
+      theirs.study?.length ? { ...ours, study: [...new Set([...(ours.study ?? []), ...theirs.study])] } : ours,
+    ).sort((a, b) => b.createdAt - a.createdAt),
     plan: account.plan ?? incoming.plan,
     listPlan: account.listPlan ?? incoming.listPlan,
     radicals: mergeRadicals(account.radicals, incoming.radicals),

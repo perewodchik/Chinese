@@ -49,7 +49,7 @@ const older: GeneratedText = {
 };
 const set: TextSet = { id: 's1', name: 'Evening', createdAt: 1 };
 const doc = () => ({
-  version: 10,
+  version: 11,
   learned: ['c天', 'c是', 'c的', 'c为', 'c什', 'c么', 'w天'],
   texts: [older],
   sets: [set],
@@ -115,7 +115,7 @@ describe('book passages onto the shelf', () => {
     assert.throws(() => addBookTexts(doc(), reply, options({ set: 'nope' })), /No reading session “nope”/);
     assert.throws(() => addBookTexts(doc(), reply, options({})), /Which reading session/);
     assert.throws(() => addBookTexts(doc(), reply.replace('}]', '},]'), options({ set: 's1' })), /valid JSON/);
-    assert.throws(() => addBookTexts({ ...doc(), version: 11 }, reply, options({ set: 's1' })), /pull main/);
+    assert.throws(() => addBookTexts({ ...doc(), version: 12 }, reply, options({ set: 's1' })), /pull main/);
   });
 
   it('describes the sessions, newest first, and suggests where the last book passage went', () => {

@@ -15,7 +15,7 @@ import {
   type SkillBook,
 } from '../domain/memory';
 import { DEFAULT_SHEET, LAYOUT_IDS, layoutFor, type LayoutId, type PaletteId, type SheetChoice } from '../domain/sheet';
-import { clampBand, type GeneratedText, type TextLine, type TextPlan, type TextSet, type TextSpec } from '../domain/text';
+import { clampBand, type GeneratedText, type TextLine, type TextPlan, type TextSet, type TextSpec, type TextStudy } from '../domain/text';
 import { emptyListPlan, LIST_STEPS, type WordListPlan } from '../domain/wordlist';
 import {
   isRadicalId,
@@ -239,6 +239,7 @@ function textFrom(v: unknown): GeneratedText | null {
     ...optional('story', storyFrom(t.story)),
     ...optional('endings', arr<string>(t.endings).filter((e) => typeof e === 'string')),
     ...optional('scenes', scenesOf(t.scenes, hasPicture)),
+    ...optional('study', studyFrom(t.study)),
   };
 }
 
@@ -252,7 +253,22 @@ function setFrom(v: unknown): TextSet | null {
     createdAt: typeof s.createdAt === 'number' ? s.createdAt : Date.now(),
     note: typeof s.note === 'string' ? s.note : undefined,
     order: Array.isArray(s.order) ? s.order.filter((x): x is string => typeof x === 'string') : undefined,
+    ...optional('study', arr<string>(s.study).filter((x): x is ItemId => typeof x === 'string' && x.length > 1)),
   };
+}
+
+/** What has been done with a text besides reading it; anything malformed is simply not there. */
+function studyFrom(v: unknown): TextStudy | undefined {
+  if (!v || typeof v !== 'object') return undefined;
+  const s = v as Loose;
+  const when = (x: unknown) => (typeof x === 'number' && Number.isFinite(x) ? x : undefined);
+  const out: TextStudy = {
+    ...optional('heard', when(s.heard)),
+    ...optional('translated', when(s.translated)),
+    ...optional('written', arr<string>(s.written).filter((c) => typeof c === 'string')),
+    ...optional('answered', arr<number>(s.answered).filter((n) => Number.isInteger(n) && n >= 0)),
+  };
+  return Object.keys(out).length ? out : undefined;
 }
 
 /** The session in progress. Anything malformed simply means no session. */
@@ -603,7 +619,7 @@ function withListWords(items: ItemId[], words: unknown, version: number): ItemId
 
 export function serialise(s: AppState): PersistedState {
   return {
-    version: 10,
+    version: 11,
     collections: s.collections,
     recall: s.recall,
     sheets: s.sheets,

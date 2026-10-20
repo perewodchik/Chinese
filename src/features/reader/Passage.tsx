@@ -1,51 +1,37 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Library } from '../../data/types';
-import { charId } from '../../domain/ids';
-import { alignPinyin, bandSpread, paragraphs, stepsAbove, wordBands } from '../../domain/reading';
+import { charId, type ItemId } from '../../domain/ids';
+import { alignPinyin, paragraphs, stepsAbove, wordBands, type Token } from '../../domain/reading';
 import { segment, writerHints } from '../../domain/segment';
-import { itemForToken } from '../../domain/words';
-import { cardsFor } from '../../domain/teach';
-import {
-  coverageOf,
-  genreLabel,
-  hskLabel,
-  isHanzi,
-  levelLabel,
-  textCharCount,
-  type GeneratedText,
-  type TextLine,
-} from '../../domain/text';
+import { itemForToken, type WordKnowledge } from '../../domain/words';
+import { coverageOf, hskLabel, isHanzi, plainTitle, type GeneratedText } from '../../domain/text';
 import { useOpenItem } from '../../navigation/itemDrawer';
-import { markRead, setLearned, setTextRead, toggleLearned } from '../../store/commands';
 import { useStore } from '../../store/store';
-import { Glyph } from '../../ui/Glyph';
-import { useToast } from '../../ui/toast';
-import { CollectionPicker, useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
 import { useWordKnowledge } from '../words/useWordKnowledge';
-import { AnswerBox } from './AnswerBox';
 import { Comic } from './Comic';
 import { SceneView } from './SceneView';
 import { StoryChoices, StoryMap } from './StoryPath';
+import type { PinyinMode, TranslationMode } from './readerView';
 import './stories.css';
-import { Menu } from '../../ui/Menu';
-import { SYSTEM_VOICE, prefetchPassage, useReading, type Reading } from './readAloud';
 
-/** What the options bar has switched on, shared by every passage on the page. */
+/** What the reader has switched on, shared by every passage on the page. */
 export interface ReaderView {
   layout: 'paragraph' | 'sentences';
-  pinyin: boolean;
-  english: boolean;
+  pinyin: PinyinMode;
+  translation: TranslationMode;
   traditional: boolean;
-  markNew: boolean;
-  markAbove: boolean;
-  /** underline the words you have not learned */
+  /** underline the words you do not know yet, and the ones you are learning */
   markUnknown: boolean;
-  /** the band above which a word is marked */
+  /** underline words above the band below */
+  markAbove: boolean;
   target: number;
   /** a dialogue drawn as speech bubbles from faces */
   comic: boolean;
 }
+
+/** Where a word stands for this reader: the marks and the pinyin follow it. */
+export type Standing = 'known' | 'learning' | 'new';
 
 /** The library's words, indexed once per library rather than once per sentence. */
 const bandCache = new WeakMap<Library, Map<string, number>>();
@@ -55,45 +41,70 @@ const bandsOf = (lib: Library) => {
   return m;
 };
 
-/**
- * Which passage the voice is reading. The reading voice is one for the whole
- * app, and with a whole session on the page every passage would otherwise
- * light up its own third sentence while the second passage is being read.
- */
-let speaking: string | null = null;
+/** Opening punctuation, which goes with the word after it rather than the one before. */
+const OPENERS = /^[“‘《「『（(【〈]+$/;
 
 /**
- * One passage, on the page: the reading itself, and everything that comes
- * after it.
+ * How well you know a word, for this page.
  *
- * The reading is the thing, so it takes the whole width of the column and
- * nothing sits beside it. What used to be a side panel — the new characters,
- * the words, the grammar, how much of it you know — is now underneath, folded
- * away until it is wanted, in the order a reader wants it: the questions
- * first, because they are what you do next.
+ * What review knows about the word decides it when it knows anything. A word
+ * review has never seen is read off its characters: every one of them learned
+ * and the word reads itself; one of them new and it is new. Chosen on this
+ * shelf to learn, it is being learned from that moment.
  */
-export function Passage({ text, view, heading }: { text: GeneratedText; view: ReaderView; heading?: ReactNode }) {
+export function useStanding(study: ReadonlySet<ItemId>): (word: string) => Standing {
+  const lib = useLibrary();
+  const known = useWordKnowledge();
+  const learned = useStore((s) => s.learned);
+  return useMemo(() => standingOf(lib, known, learned, study), [lib, known, learned, study]);
+}
+
+export function standingOf(
+  lib: Library,
+  known: WordKnowledge,
+  learned: ReadonlySet<ItemId>,
+  study: ReadonlySet<ItemId>,
+): (word: string) => Standing {
+  return (word) => {
+    const chars = [...word].filter(isHanzi);
+    if (!chars.length) return 'known';
+    const s = known.status(word);
+    if (s === 'known') return 'known';
+    if (s === 'learning' || study.has(itemForToken(lib, word))) return 'learning';
+    return chars.every((c) => learned.has(charId(c))) ? 'known' : 'new';
+  };
+}
+
+interface PassageProps {
+  text: GeneratedText;
+  view: ReaderView;
+  /** the line being read aloud, if it is in this passage */
+  reading: number | null;
+  /** a line just pointed at from elsewhere on the page — a grammar note — lit for a moment */
+  flash: number | null;
+  /** lines whose translation has been asked for, in "tap a line" */
+  revealed: ReadonlySet<number>;
+  onReveal: (i: number) => void;
+  /** the shelf's own list of things being learned */
+  study: ReadonlySet<ItemId>;
+  /** above the title, when several passages share the page */
+  heading?: ReactNode;
+}
+
+/**
+ * The text itself: its title, how much of it you can read, and the Chinese.
+ *
+ * Every word is a button for its drawer. Pinyin goes over the words the
+ * reader asked for — by default only the ones not known yet — and the room
+ * for it is kept on every line whether it is shown or not, so turning it on
+ * and off never moves a line. Punctuation stays with the word before it: a
+ * line never begins with a comma.
+ */
+export function Passage({ text, view, reading, flash, revealed, onReveal, study, heading }: PassageProps) {
   const lib = useLibrary();
   const openItem = useOpenItem();
-  const known = useWordKnowledge();
-  const voice = useReading();
-  // The shared voice, seen from this passage: reading when it is this one.
-  const reading = {
-    ...voice,
-    at: speaking === text.id ? voice.at : null,
-    loading: speaking === text.id && voice.loading,
-    made: speaking === text.id ? voice.made : null,
-    readAll: (lines: string[]) => {
-      speaking = text.id;
-      voice.readAll(lines);
-    },
-    readLine: (lines: string[], i: number) => {
-      speaking = text.id;
-      voice.readLine(lines, i);
-    },
-  };
-  const [revealed, setRevealed] = useState<Set<number>>(new Set());
-  useEffect(() => setRevealed(new Set()), [text.id]);
+  const learned = useStore((s) => s.learned);
+  const standing = useStanding(study);
 
   // A story with choices shows the nodes on the way taken so far, in the order
   // they were reached; a plain passage shows everything.
@@ -114,30 +125,17 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
     () => (story ? path.flatMap((n) => byNode.get(n) ?? []) : text.lines.map((_, i) => i)),
     [story, path, byNode, text.lines],
   );
-  const comic = view.comic && (text.genre === 'dialogue' || text.lines.some((l) => l.who)) && !story;
-
-  const spoken = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
-  const canHear = reading.system || reading.voices.length > 0 || reading.voice !== SYSTEM_VOICE;
-  const toast = useToast();
-
-  // The chosen voice's clips, on their way while the title is read.
-  useEffect(() => prefetchPassage(spoken), [spoken, reading.voice]);
-
-  // A reading that stopped short says why — once, from the passage it was in.
-  const failed = speaking === text.id ? voice.error : null;
-  useEffect(() => {
-    if (failed) toast(failed);
-  }, [failed, toast]);
   const paras = useMemo(
     () => (story ? path.map((n) => byNode.get(n) ?? []).filter((p) => p.length) : paragraphs(text)),
     [text, story, path, byNode],
   );
-  const teachSet = useMemo(() => new Set(text.teach), [text.teach]);
-  const newWords = useMemo(() => new Set(text.vocab.filter((w) => w.isNew).map((w) => w.w)), [text.vocab]);
-  const ownWords = useMemo(() => new Set(text.vocab.map((w) => w.w)), [text.vocab]);
-  const bands = bandsOf(lib);
+  const comic = view.comic && (text.genre === 'dialogue' || text.lines.some((l) => l.who)) && !story;
+  // "Tap a line" needs lines to tap: it reads sentence by sentence whatever the layout says.
+  const layout = view.translation === 'lines' ? 'sentences' : view.layout;
   const showTrad = view.traditional && text.lines.some((l) => l.zht);
 
+  const ownWords = useMemo(() => new Set(text.vocab.map((w) => w.w)), [text.vocab]);
+  const teach = useMemo(() => new Set(text.teach), [text.teach]);
   /** Each sentence cut into words, once per passage. */
   const tokens = useMemo(
     // The writer's own grouping, read out of its pinyin, joins the passage's
@@ -147,202 +145,159 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
     [text.lines, lib, ownWords],
   );
   const syllables = useMemo(() => text.lines.map((l) => alignPinyin(l, lib)), [text.lines, lib]);
+  const bands = bandsOf(lib);
 
-  const toggleLine = (i: number) =>
-    setRevealed((prev) => {
-      const next = new Set(prev);
-      if (next.has(i)) next.delete(i);
-      else next.add(i);
-      return next;
-    });
+  const cover = useMemo(() => {
+    const chars = new Set<string>();
+    for (const id of learned) if (id.startsWith('c')) chars.add(id.slice(1));
+    return coverageOf(text, chars);
+  }, [text, learned]);
 
-  /**
-   * The punctuation a sentence ends on, kept apart so the highlight on the
-   * sentence being read stops at its last word rather than lighting up the 。
-   */
-  function ending(i: number): string {
-    const line = text.lines[i];
-    if (showTrad && line.zht) return line.zht.match(TAIL)?.[0] ?? '';
-    const last = tokens[i][tokens[i].length - 1];
-    return last && !last.word ? last.text : '';
-  }
-
-  /** One sentence's characters, word by word, marked as the bar asks — less its ending, when asked. */
-  function sentence(i: number, withRuby: boolean, bare = false) {
-    const line = text.lines[i];
-    const cut = bare ? ending(i).length : 0;
-    // Traditional is shown when there is a whole line of it; the marks and the
-    // lookups stay on the simplified, which is what the library knows.
-    if (showTrad && line.zht) return <span className="trad">{cut ? line.zht.slice(0, -cut) : line.zht}</span>;
-    const py = syllables[i];
+  /** One sentence, word by word, punctuation held to its word. */
+  function sentence(i: number): ReactNode {
+    const line = text.lines[i]!;
+    if (showTrad && line.zht) return <span className="trad">{line.zht}</span>;
+    const py = syllables[i]!;
     let h = 0;
-    const shown = cut ? tokens[i].slice(0, -1) : tokens[i];
-    return shown.map((t, k) => {
-      if (!t.word) return <Fragment key={k}>{t.text}</Fragment>;
-      // A word's reading goes over the word, as one — péngyou over 朋友, the
-      // way pinyin is written — not a syllable over each character, which made
-      // 朋 and 友 look like two things.
-      const said: string[] = [];
-      const glyphs = [...t.text].map((ch, j) => {
-        const e = lib.byChar.get(ch);
-        if (withRuby && isHanzi(ch)) said.push(py[h++] ?? '');
-        return e ? (
-          <span
-            key={j}
-            className="ch"
-            role="button"
-            tabIndex={0}
-            title={`${e.py[0]} — ${e.def}`}
-            onClick={() => openItem(itemForToken(lib, t.text))}
-            onKeyDown={(ev) => {
-              if (ev.key === 'Enter') openItem(itemForToken(lib, t.text));
-            }}
-          >
-            {ch}
-          </span>
-        ) : (
-          <span key={j} className="ch-plain">
-            {ch}
-          </span>
+    const out: ReactNode[] = [];
+    let opener = '';
+    tokens[i]!.forEach((t: Token, k) => {
+      if (!t.word) {
+        if (OPENERS.test(t.text.trim())) {
+          opener += t.text;
+          return;
+        }
+        // Closing punctuation joins the word before it, so it never starts a line.
+        const last = out.pop();
+        out.push(
+          <span key={`p${k}`} className="nb">
+            {last}
+            {t.text}
+          </span>,
         );
-      });
-      const reading = said.join('');
-      const chars = reading ? (
-        <ruby>
-          {glyphs}
-          <rt>{reading}</rt>
-        </ruby>
-      ) : (
-        glyphs
-      );
-      const isNew = view.markNew && (newWords.has(t.text) || [...t.text].some((c) => teachSet.has(c)));
+        return;
+      }
+      const s = standing(t.text);
+      const said: string[] = [];
+      for (const ch of t.text) if (isHanzi(ch)) said.push(py[h++] ?? '');
+      const showPy = view.pinyin === 'all' || (view.pinyin === 'new' && s !== 'known');
       const step = view.markAbove ? stepsAbove(t, view.target) : 0;
-      // Only once something is known about words at all: before the sweep,
-      // every word in the passage would be underlined.
-      const standing = view.markUnknown && known.any ? known.status(t.text) : 'known';
-      return (
+      const mark = view.markUnknown && s !== 'known' ? s : undefined;
+      const isNew = mark === 'new' || (view.markUnknown && [...t.text].some((c) => teach.has(c)) && s !== 'known');
+      const id = itemForToken(lib, t.text);
+      const band = bands.get(t.text);
+      const word = (
         <span
           key={k}
           className="w"
-          data-new={isNew || undefined}
+          role="button"
+          tabIndex={0}
+          data-mark={isNew ? 'new' : mark}
           data-above={step || undefined}
-          data-unknown={standing === 'known' ? undefined : standing}
-          title={step ? `${t.text} · ${t.band ? hskLabel(t.band) : 'outside the syllabus'}` : undefined}
+          title={step && band ? `${t.text} · ${hskLabel(band)}` : undefined}
+          onClick={() => openItem(id)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') openItem(id);
+          }}
         >
-          {chars}
+          {opener && <span className="opener">{opener}</span>}
+          <ruby>
+            {t.text}
+            <rt>{showPy ? said.join('') : ''}</rt>
+          </ruby>
         </span>
       );
+      opener = '';
+      out.push(word);
     });
+    return out;
   }
 
   return (
-    <article className="passage-doc" lang="zh">
-      <header className="passage-head">
-        <div style={{ minWidth: 0 }}>
-          {heading}
-          <h1 className="passage-title hanzi">{text.titleZh || text.title}</h1>
-          <p className="small muted" style={{ margin: 0 }}>
-            {text.title}
-          </p>
-          <p className="tiny muted passage-meta">
-            {text.topic && text.topic !== text.title ? `${text.topic} · ` : ''}
-            {genreLabel(text.genre)}, {levelLabel(text.level).toLowerCase()}
-            {text.hsk ? ` · written at ${hskLabel(text.hsk)}` : ''} · {textCharCount(text)} characters
-          </p>
-        </div>
-        {/* Fixed widths and always present — a label that changes, or a picker
-            that turns up once the voices have loaded, must not move anything. */}
-        <div className="passage-tools no-print">
-          <ReadToggle text={text} />
-          <ListenButton reading={reading} canHear={canHear} onListen={() => reading.readAll(spoken)} />
+    <article className="rd-passage" lang="zh">
+      <header className="rd-head">
+        {heading}
+        <h1 className="rd-title hanzi">{text.titleZh || text.title}</h1>
+        <p className="rd-subtitle">{plainTitle(text.title)}</p>
+        <div className="rd-know" title={`${cover.known} of ${cover.total} different characters`}>
+          <span className="rd-meter" aria-hidden>
+            <i style={{ width: `${Math.round(cover.ratio * 100)}%` }} />
+          </span>
+          <span>You know {Math.round(cover.ratio * 100)}%</span>
         </div>
       </header>
 
       {story && (
         <div className="story-bar no-print">
           <StoryMap story={story} path={path} endings={text.endings ?? []} />
-          <span className="tiny muted">A story with choices — you decide what happens.</span>
+          <span className="tiny muted">A story with choices: you decide what happens.</span>
         </div>
       )}
 
-      {comic ? (
-        <div className="prose-zh comic-wrap" data-pinyin={view.pinyin || undefined}>
+      <div
+        className="rd-zh"
+        data-layout={comic ? 'comic' : layout}
+        data-pinyin={view.pinyin !== 'off' || undefined}
+      >
+        {comic ? (
           <Comic
-            lines={shownLines.map((i) => ({ i, line: text.lines[i] }))}
-            reading={reading.at}
-            english={view.english}
-            sentence={(i) => (
-              <>
-                {sentence(i, view.pinyin, true)}
-                {ending(i)}
-              </>
-            )}
+            lines={shownLines.map((i) => ({ i, line: text.lines[i]! }))}
+            reading={reading}
+            english={view.translation === 'shown'}
+            sentence={(i) => sentence(i)}
           />
-        </div>
-      ) : view.layout === 'paragraph' ? (
-        <>
-          <div className="prose-zh" data-pinyin={view.pinyin || undefined}>
-            {paras.map((p, n) => (
-              <Fragment key={n}>
-                {(text.scenes ?? [])
-                  .filter((sc) => sc.para === n)
-                  .map((sc, k) => (
-                    <SceneView key={`s${k}`} scene={sc} />
-                  ))}
-                <p>
-                  {p.map((i) => (
-                    <Fragment key={i}>
-                      <span className="sent" data-reading={reading.at === i || undefined}>
-                        {sentence(i, view.pinyin, true)}
-                      </span>
-                      {ending(i)}
-                    </Fragment>
-                  ))}
-                </p>
-              </Fragment>
-            ))}
-          </div>
-          {view.english && (
-            <section className="prose-en" aria-label="Translation">
-              <h2 className="doc-label">Translation</h2>
-              {paras.map((p, n) => (
-                <p key={n}>{p.map((i) => text.lines[i].en).filter(Boolean).join(' ')}</p>
-              ))}
-            </section>
-          )}
-        </>
-      ) : (
-        <div className="passage">
-          {shownLines.map((i) => {
-            const l = text.lines[i];
-            const open = revealed.has(i);
-            return (
-              <p key={i} className="passage-line" data-revealed={open || undefined} data-reading={reading.at === i || undefined}>
-                <button
-                  className="n"
-                  onClick={() => toggleLine(i)}
-                  title={open ? 'Hide the help for this line' : 'Show the reading and the translation for this line'}
-                >
-                  {i + 1}
-                </button>
-                {(view.pinyin || open) && <span className="py">{l.py}</span>}
-                <span className="zh">{sentence(i, false)}</span>
-                {(view.english || open) && <span className="en">{l.en}</span>}
-                {canHear && (
-                  <button
-                    className="say no-print"
-                    title={reading.at === i ? 'Stop' : 'Hear this sentence'}
-                    aria-label={reading.at === i ? 'Stop reading' : `Hear sentence ${i + 1}`}
-                    onClick={() => (reading.at === i ? reading.stop() : reading.readLine(spoken, i))}
-                  >
-                    {reading.at === i ? '◼' : '🔊'}
-                  </button>
-                )}
+        ) : layout === 'paragraph' ? (
+          paras.map((p, n) => (
+            <Fragment key={n}>
+              {(text.scenes ?? [])
+                .filter((sc) => sc.para === n)
+                .map((sc, k) => (
+                  <SceneView key={`s${k}`} scene={sc} />
+                ))}
+              <p className="rd-para">
+                {p.map((i) => (
+                  <span key={i} id={`line-${text.id}-${i}`} className="sent" data-reading={reading === i || undefined} data-flash={flash === i || undefined}>
+                    {sentence(i)}
+                  </span>
+                ))}
               </p>
-            );
-          })}
-        </div>
-      )}
+              {view.translation === 'shown' && (
+                <p className="rd-en-para">{p.map((i) => text.lines[i]!.en).filter(Boolean).join(' ')}</p>
+              )}
+            </Fragment>
+          ))
+        ) : (
+          <ol className="rd-lines">
+            {shownLines.map((i) => {
+              const open = view.translation === 'shown' || revealed.has(i);
+              return (
+                <li
+                  key={i}
+                  id={`line-${text.id}-${i}`}
+                  className="rd-line"
+                  data-reading={reading === i || undefined}
+                  data-flash={flash === i || undefined}
+                  data-open={open || undefined}
+                >
+                  <button
+                    className="rd-n"
+                    onClick={() => onReveal(i)}
+                    aria-label={open ? `Hide the translation of line ${i + 1}` : `Show the translation of line ${i + 1}`}
+                    aria-expanded={open}
+                    disabled={view.translation === 'shown'}
+                  >
+                    {i + 1}
+                  </button>
+                  <div className="rd-line-body">
+                    <p className="rd-line-zh sent">{sentence(i)}</p>
+                    {open && <p className="rd-line-en">{text.lines[i]!.en}</p>}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </div>
 
       {story && (
         <StoryChoices
@@ -354,329 +309,7 @@ export function Passage({ text, view, heading }: { text: GeneratedText; view: Re
           onRestart={() => setPath([story.start])}
         />
       )}
-
-      {text.note.trim() && <p className="notice teacher">{text.note}</p>}
-
-      <div className="doc-sections">
-        {text.questions.length > 0 && (
-          <Fold title="Questions" count={text.questions.length} open>
-            <ol className="questions">
-              {text.questions.map((q, i) => (
-                <li key={i}>
-                  <Question q={q} view={view} />
-                  <div className="no-print">
-                    <AnswerBox text={text} question={q} />
-                  </div>
-                  <div className="print-only answer-lines" aria-hidden />
-                </li>
-              ))}
-            </ol>
-          </Fold>
-        )}
-
-        {text.vocab.length > 0 && (
-          <Fold title="Vocabulary" count={text.vocab.length}>
-            <div className="vocab">
-              {text.vocab.map((w) => {
-                const band = bands.get(w.w);
-                return (
-                  <div key={w.w} className="vocab-row" data-new={w.isNew || undefined}>
-                    <span className="hanzi">{w.w}</span>
-                    <span className="tiny" style={{ color: 'var(--accent)' }}>
-                      {w.py}
-                    </span>
-                    <span className="tiny muted">
-                      {w.d}
-                      {band ? <span className="band-tag">{hskLabel(band)}</span> : null}
-                      {w.isNew ? <span className="band-tag new">new</span> : null}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </Fold>
-        )}
-
-        {text.grammar.length > 0 && (
-          <Fold title="Grammar" count={text.grammar.length}>
-            {text.grammar.map((g, i) => (
-              <div key={i} className="grammar">
-                <b>{g.point}</b>
-                {g.zh && <span className="hanzi">{g.zh}</span>}
-                {g.en && <span className="tiny muted">{g.en}</span>}
-              </div>
-            ))}
-          </Fold>
-        )}
-
-        <NewCharacters text={text} />
-        <Shape text={text} target={view.target} />
-      </div>
     </article>
   );
 }
 
-function Question({ q, view }: { q: TextLine; view: ReaderView }) {
-  return (
-    <p className="question">
-      {view.pinyin && <span className="py">{q.py}</span>}
-      <span className="zh hanzi">{view.traditional && q.zht ? q.zht : q.zh}</span>
-      {view.english && q.en && <span className="en">{q.en}</span>}
-    </p>
-  );
-}
-
-/**
- * A section under the passage that can be folded away.
- *
- * Not a `<details>`: a closed one is left out of the printout, and the grammar
- * and questions are exactly what a printed passage should carry. This one is
- * only hidden on screen — print shows everything in it.
- */
-export function Fold({
-  title,
-  count,
-  open: initial = false,
-  children,
-  printable = true,
-}: {
-  title: string;
-  count?: number;
-  open?: boolean;
-  children: ReactNode;
-  printable?: boolean;
-}) {
-  const [open, setOpen] = useState(initial);
-  return (
-    <section className={`fold${printable ? '' : ' no-print'}`} data-open={open || undefined}>
-      <button className="fold-head" aria-expanded={open} onClick={() => setOpen(!open)}>
-        <span className="fold-title">{title}</span>
-        {count !== undefined && <span className="tiny muted">{count}</span>}
-        <span className="spacer" />
-        <span className="fold-mark" aria-hidden>
-          ‹
-        </span>
-      </button>
-      <div className="fold-body">{children}</div>
-    </section>
-  );
-}
-
-/**
- * The characters this passage taught, and the moment to say you have them.
- *
- * The moment to decide you have learned one is the moment you have just read
- * it in a sentence — not a week later in a grid.
- */
-function NewCharacters({ text }: { text: GeneratedText }) {
-  const lib = useLibrary();
-  const toast = useToast();
-  const collect = useCollect();
-  const learned = useStore((s) => s.learned);
-  const known = useMemo(() => new Set(text.basis), [text.basis]);
-  const cards = useMemo(() => cardsFor(lib, text.teach, known, text.glosses), [lib, text.teach, known, text.glosses]);
-  if (!cards.length) return null;
-  const unlearned = text.teach.filter((c) => !learned.has(charId(c)));
-
-  return (
-    <Fold title="New characters" count={cards.length} printable={false}>
-      <div className="row" style={{ gap: 8, marginBottom: 8 }}>
-        <span className="tiny muted">Tap one you now know to mark it learned.</span>
-        <div className="spacer" />
-        {unlearned.length > 0 && (
-          <button
-            className="btn ghost sm"
-            onClick={() => {
-              setLearned(unlearned.map(charId), true);
-              toast(`Marked ${unlearned.length} as learned`);
-            }}
-          >
-            Mark all learned
-          </button>
-        )}
-      </div>
-      <div className="teach-list teach-grid">
-        {cards.map((c) => {
-          const id = charId(c.c);
-          const got = learned.has(id);
-          return (
-            <button
-              key={c.c}
-              className="teach-row"
-              data-learned={got}
-              onClick={() => toggleLearned(id)}
-              title={got ? 'Marked learned — tap to undo' : 'Mark as learned'}
-            >
-              <Glyph char={c.c} strokes={lib.strokes} size={30} />
-              <span className="meta">
-                <b>{c.py}</b>
-                <i>{c.def}</i>
-                {c.words[0] && (
-                  <em className="hanzi">
-                    {c.words[0].w} <span className="tiny muted">{c.words[0].py}</span>
-                  </em>
-                )}
-              </span>
-              <span className="tick">{got ? '✓' : '+'}</span>
-            </button>
-          );
-        })}
-      </div>
-      <CollectionPicker
-        className="mt"
-        placeholder={`Queue these ${cards.length} for handwriting…`}
-        onPick={(target) => collect(target, text.teach.map(charId), { newName: `New from “${text.title}”` })}
-      />
-    </Fold>
-  );
-}
-
-/**
- * How much of the passage was yours, and where the rest of it came from.
- *
- * Counted here from the characters themselves. The writer is asked for its
- * own count too, and where it has one it is shown beside ours: a writer that
- * thinks it stayed inside HSK 2 and did not is worth knowing about when
- * planning the next session.
- */
-function Shape({ text, target }: { text: GeneratedText; target: number }) {
-  const lib = useLibrary();
-  const known = useMemo(() => new Set(text.basis), [text.basis]);
-  const cover = useMemo(() => coverageOf(text, known), [text, known]);
-  const spread = useMemo(() => bandSpread(text, lib), [text, lib]);
-  const total = [...spread.values()].reduce((a, b) => a + b, 0) || 1;
-  const rows = [1, 2, 3, 4, 5, 6, 7, 0].filter((b) => spread.get(b));
-  const reported = text.hskReported;
-
-  return (
-    <Fold title="How it is made" printable={false}>
-      <div style={{ display: 'grid', gap: 14 }}>
-        <div>
-          <h3 className="field-title" style={{ marginTop: 0 }}>
-            How much of it you knew
-          </h3>
-          <div className="bar">
-            <i className="learned" style={{ width: `${cover.ratio * 100}%` }} />
-          </div>
-          <p className="tiny muted" style={{ margin: '6px 0 0' }}>
-            {cover.known} of {cover.total} distinct characters were already yours; {cover.fresh.length}{' '}
-            {cover.fresh.length === 1 ? 'was' : 'were'} new.
-          </p>
-        </div>
-        <div>
-          <h3 className="field-title" style={{ marginTop: 0 }}>
-            Characters by band
-          </h3>
-          <div className="band-spread">
-            {rows.map((b) => (
-              <div key={b} className="band-row" data-above={stepsAbove({ word: true, band: b }, target) || undefined}>
-                <span className="tiny">{b ? hskLabel(b) : 'Other'}</span>
-                <span className="band-bar">
-                  <i style={{ width: `${((spread.get(b) ?? 0) / total) * 100}%` }} />
-                </span>
-                <span className="tiny muted">
-                  {spread.get(b)}
-                  {reported?.[String(b)] !== undefined && reported[String(b)] !== spread.get(b)
-                    ? ` · Claude said ${reported[String(b)]}`
-                    : ''}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <p className="tiny muted" style={{ margin: 0 }}>
-          {new Date(text.createdAt).toLocaleDateString()} · {text.model} · from {text.basis.length} characters you knew
-        </p>
-      </div>
-    </Fold>
-  );
-}
-
-/**
- * Read, or not. A passage sits in a page with others, so its own state is
- * on it rather than on the bar above them all. Marking it read still counts
- * the reading and when it was — the reader just does not need to see a tally.
- */
-function ReadToggle({ text }: { text: GeneratedText }) {
-  return (
-    <button
-      className="btn sm read-toggle"
-      data-read={text.read || undefined}
-      aria-pressed={text.read}
-      onClick={() => (text.read ? setTextRead(text.id, false) : markRead(text.id))}
-      title={text.read ? 'Read — tap to mark it unread' : 'Mark it read'}
-    >
-      {text.read ? '✓ Read' : 'Mark read'}
-    </button>
-  );
-}
-
-/** Punctuation and space at the end of a line: everything after its last character. */
-const TAIL = /[^\p{Script=Han}\p{L}\p{N}]+$/u;
-
-/**
- * Listen, with the voice it listens in behind a chevron on its right: one
- * control, not a button and a dropdown competing for the same line. While the
- * clip is being made — a second or three, longer if the model has to load —
- * the button spins rather than sitting there looking broken.
- */
-function ListenButton({ reading, canHear, onListen }: { reading: Reading; canHear: boolean; onListen: () => void }) {
-  const playing = reading.at !== null;
-  // Waiting for the passage to be made counts as started: the tap that
-  // started it is the tap that stops it.
-  const busy = playing || reading.loading;
-  const name =
-    reading.voice === SYSTEM_VOICE ? 'System voice' : (reading.voices.find((v) => v.id === reading.voice)?.name ?? '…');
-  return (
-    <div className="split-btn" data-on={busy || undefined}>
-      <button
-        className="btn sm listen"
-        disabled={!canHear}
-        onClick={() => (busy ? reading.stop() : onListen())}
-        title={
-          !canHear
-            ? 'No voice on this device'
-            : reading.made
-              ? `Making the audio — ${reading.made.done} of ${reading.made.total} sentences. Tap to stop.`
-              : playing
-                ? 'Stop reading'
-                : `Read the whole passage aloud — ${name}`
-        }
-        aria-busy={reading.loading || undefined}
-      >
-        {reading.loading ? (
-          <span className="spinner" aria-label="Loading the voice" />
-        ) : (
-          <span aria-hidden>{playing ? '◼' : '▶'}</span>
-        )}
-        <span>
-          {reading.made ? `${reading.made.done}/${reading.made.total}` : playing && !reading.loading ? 'Stop' : 'Listen'}
-        </span>
-      </button>
-      <Menu label={<span className="chev" aria-hidden>⌄</span>} title={`Voice: ${name}`} className="btn sm split-chev">
-        {(close) => (
-          <>
-            <div className="tiny muted menu-label">Read by</div>
-            {[{ id: SYSTEM_VOICE, name: 'System voice' }, ...reading.voices].map((v) => (
-              <button
-                key={v.id}
-                role="menuitemradio"
-                aria-checked={reading.voice === v.id}
-                className="btn ghost sm"
-                onClick={() => {
-                  close();
-                  reading.setVoice(v.id);
-                }}
-              >
-                <span className="menu-check" aria-hidden>
-                  {reading.voice === v.id ? '✓' : ''}
-                </span>
-                {v.name}
-              </button>
-            ))}
-          </>
-        )}
-      </Menu>
-    </div>
-  );
-}

@@ -5,7 +5,7 @@ import { useUser } from './session';
 import { useSignOut } from './useSignOut';
 
 /** Who is signed in, and the way out. */
-export function AccountMenu() {
+export function AccountMenu({ up = false }: { up?: boolean }) {
   const user = useUser();
   const { leave, leaving } = useSignOut();
   const [open, setOpen] = useState(false);
@@ -42,7 +42,7 @@ export function AccountMenu() {
         <span className="account-name">{user.username}</span>
       </button>
       {open && (
-        <div className="account-menu" role="menu">
+        <div className="account-menu" role="menu" data-up={up || undefined}>
           <div className="tiny muted">Signed in as</div>
           <b className="account-who">{user.username}</b>
           <Link role="menuitem" className="btn ghost sm" to={paths.stats()} onClick={() => setOpen(false)}>

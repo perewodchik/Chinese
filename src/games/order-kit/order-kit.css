@@ -134,7 +134,7 @@
 }
 
 /* the site's bars go while a shop fills the phone (see OrderGame) */
-html[data-ok-full] .topbar {
+html[data-ok-full] .nav {
   display: none;
 }
 

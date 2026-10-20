@@ -134,9 +134,13 @@ export const DEFAULT_SETTINGS: AppSettings = {
  * 10: a day's `activity` carries the time worked (`ms`) and a snapshot of
  * how much was known that evening (`snap`), for the Stats page. A build
  * before it reads the activity field by field and would drop both.
+ *
+ * 11: a text carries `study` (heard, translated, written, answered) and a
+ * shelf its own list of things to learn (`study`). Read field by field again,
+ * so an older build would drop them.
  */
 export interface PersistedState {
-  version: 10;
+  version: 11;
   collections: Collection[];
   /**
    * What the app knows about your memory, by item.

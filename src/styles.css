@@ -4,31 +4,106 @@
   font-display: swap;
 }
 
-/* ------------------------------------------------------------------ theme */
+/* Latin type, served from here so the iPad offline still has it: Fira Sans
+   for everything the app says (and pinyin — its tone marks are clear at
+   11px), Literata for what is read rather than operated: translations,
+   notes, grammar. Latin and Latin Extended only; the Chinese is WenKai. */
+@font-face {
+  font-family: 'Fira Sans';
+  font-weight: 400;
+  src: url('/fonts/fira-400-latin-ext.woff2') format('woff2');
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Fira Sans';
+  font-weight: 400;
+  src: url('/fonts/fira-400-latin.woff2') format('woff2');
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Fira Sans';
+  font-weight: 500;
+  src: url('/fonts/fira-500-latin-ext.woff2') format('woff2');
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Fira Sans';
+  font-weight: 500;
+  src: url('/fonts/fira-500-latin.woff2') format('woff2');
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Fira Sans';
+  font-weight: 600;
+  src: url('/fonts/fira-600-latin-ext.woff2') format('woff2');
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Fira Sans';
+  font-weight: 600;
+  src: url('/fonts/fira-600-latin.woff2') format('woff2');
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Literata';
+  font-weight: 400 600;
+  src: url('/fonts/literata-400-600-latin-ext.woff2') format('woff2');
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Literata';
+  font-weight: 400 600;
+  src: url('/fonts/literata-400-600-latin.woff2') format('woff2');
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ------------------------------------------------------------------ theme
+   练习本, the exercise book. Every colour is a thing on a student's desk and
+   has one job, so a screen reads without a legend:
+
+     ink          the text itself                            --ink
+     pencil       help: pinyin, glosses, hints — it recedes  --ink-3
+     blue ink     what you do, and your own marks            --accent
+     red pen      the teacher: new to you, wrong, due        --red
+     highlighter  where you are right now                    --hl
+     grid         structure: rules, 田字格                    --grid
+
+   Depth comes from a fill and a line, not from shadows. */
 :root {
   color-scheme: light;
 
-  --paper: #f7f4ef;
-  --card: #fffdfa;
-  --card-2: #f2ede5;
-  --ink: #241f1b;
-  --ink-2: #57504a;
-  --ink-3: #8a827a;
-  --line: #e4ddd2;
-  --line-2: #d3cabc;
+  --paper: #fafbf8;
+  --card: #ffffff;
+  --card-2: #f1f4ef;
+  --ink: #18202b;
+  --ink-2: #4a5464;
+  --ink-3: #7a838f;
+  --line: #dce2da;
+  --line-2: #c8d1c6;
 
-  --accent: #b8452f;
-  --accent-soft: #f6e4de;
-  --jade: #3d7a68;
-  --jade-soft: #dfeee8;
-  --gold: #a07524;
-  --gold-soft: #f6ecd8;
+  /* Blue ink: buttons, links, the words you are learning. Kept under its old
+     name so every primary action in the app moved with it. */
+  --accent: #1e4a8a;
+  --accent-soft: #e2eaf5;
+  --red: #cc2f2a;
+  --red-soft: #fae3e0;
+  --hl: rgb(255 212 60 / 48%);
+  --grid: #a4c7b1;
+  --jade: #1f7a55;
+  --jade-soft: #dcefe4;
+  --gold: #9a6f1c;
+  --gold-soft: #f5ebd5;
   --violet: #6b5a8e;
-  /* Indigo is the reader's second ink: the translation's rule and the mark
-     under a word above your band. Structure and reference, never an action —
-     those stay cinnabar. */
-  --indigo: #3e4f86;
-  --indigo-soft: #e3e7f3;
+  --indigo: #3e5a96;
+  --indigo-soft: #e3e8f3;
 
   /* The voices have faces (src/features/pinyin/Portrait.tsx), and a face
      needs a few colours the rest of the app never asks for: three skins,
@@ -44,36 +119,45 @@
   --face-ink: #2a211a;
   --face-lit: #fdf9f3;
 
-  --radius: 10px;
+  --radius: 12px;
   --radius-lg: 16px;
-  --shadow: 0 1px 2px rgb(60 45 30 / 6%), 0 6px 20px rgb(60 45 30 / 6%);
-  --shadow-sm: 0 1px 2px rgb(60 45 30 / 8%);
+  --radius-sheet: 24px;
+  /* Only what floats — a menu, a sheet — casts anything. */
+  --shadow: 0 8px 28px rgb(24 32 43 / 12%), 0 1px 3px rgb(24 32 43 / 8%);
+  --shadow-sm: none;
+  --scrim: rgb(20 26 33 / 34%);
+  --gutter: 20px;
 
-  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --sans: 'Fira Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --read: 'Literata', Georgia, serif;
   --han: 'WenKai', 'Kaiti SC', 'KaiTi', 'STKaiti', serif;
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --paper: #16130f;
-  --card: #1f1b16;
-  --card-2: #2a251e;
-  --ink: #ece5da;
-  --ink-2: #b3a99c;
-  --ink-3: #857b6f;
-  --line: #322c24;
-  --line-2: #443c32;
+  --paper: #14191e;
+  --card: #1a2026;
+  --card-2: #1f262d;
+  --ink: #e5e8ec;
+  --ink-2: #aab2bc;
+  --ink-3: #7e8792;
+  --line: #273039;
+  --line-2: #36414c;
 
-  --accent: #e0705a;
-  --accent-soft: #3a231d;
-  --jade: #6fb49c;
-  --jade-soft: #1b2b26;
-  --gold: #cfa551;
+  --accent: #8eb0e6;
+  --accent-soft: #1c2a40;
+  --red: #f07c6e;
+  --red-soft: #3a201d;
+  --hl: rgb(240 205 80 / 26%);
+  --grid: #355443;
+  --jade: #5dc395;
+  --jade-soft: #163327;
+  --gold: #d2a64f;
   --gold-soft: #302719;
   --violet: #a795c9;
-  --indigo: #8f9fd6;
-  --indigo-soft: #232838;
+  --indigo: #9fb2e3;
+  --indigo-soft: #222b3d;
 
   --face-1: #d9b695;
   --face-2: #c39a76;
@@ -82,8 +166,17 @@
   --face-ink: #241c16;
   --face-lit: #f2e8db;
 
-  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 6px 20px rgb(0 0 0 / 25%);
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 35%);
+  --shadow: 0 8px 28px rgb(0 0 0 / 45%), 0 1px 3px rgb(0 0 0 / 30%);
+  --scrim: rgb(0 0 0 / 50%);
+}
+
+/* The text on a filled blue button: white on the light theme's dark ink,
+   the page's own dark on the dark theme's pale ink. */
+:root {
+  --on-accent: #fff;
+}
+:root[data-theme='dark'] {
+  --on-accent: #10151a;
 }
 
 * {
@@ -110,7 +203,7 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font: 14px/1.55 var(--sans);
+  font: 15px/1.5 var(--sans);
   -webkit-font-smoothing: antialiased;
   /* No grey flash under every tap, and no accidental text selection when a
      drag or a stroke starts a pixel off target. */
@@ -124,6 +217,11 @@ select,
 textarea {
   font: inherit;
   color: inherit;
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 2px;
 }
 
 :focus-visible {
@@ -143,36 +241,6 @@ textarea {
      column `minmax(0, 1fr)` says the opposite: fit the screen, and let what
      is inside scroll or wrap. */
   grid-template-columns: minmax(0, 1fr);
-}
-
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 0 20px;
-  height: 56px;
-  background: var(--card);
-  border-bottom: 1px solid var(--line);
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-.brand {
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-  font-weight: 640;
-  letter-spacing: -0.01em;
-  color: inherit;
-  text-decoration: none;
-}
-
-.brand .mark {
-  font-family: var(--han);
-  font-size: 21px;
-  color: var(--accent);
-  line-height: 1;
 }
 
 .tabs {
@@ -226,35 +294,6 @@ textarea {
   box-shadow: var(--shadow-sm);
 }
 
-/* A count beside a tab's name: a small pill rather than "(17)", which cost
-   a word's width on a bar that has none to spare. */
-.tabs a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.nav-badge {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 999px;
-  display: inline-grid;
-  place-items: center;
-  font-size: 10.5px;
-  font-weight: 600;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  background: var(--line);
-  color: var(--ink-2);
-}
-
-.nav-badge[data-alert] {
-  background: var(--accent);
-  color: #fff;
-}
-
 /* Takes the slack in a `.row`, so whatever follows is pushed to the end. */
 .grow {
   flex: 1;
@@ -263,6 +302,286 @@ textarea {
 
 .spacer {
   flex: 1;
+}
+
+/* ------------------------------------------------------------- navigation
+   Four places and More. Along the bottom edge on a phone, where the thumb is;
+   a narrow rail on the left of anything wider. */
+.app {
+  grid-template-columns: 84px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.app > .main {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.nav {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: max(18px, env(safe-area-inset-top)) 0 14px max(0px, env(safe-area-inset-left));
+  border-right: 1px solid var(--line);
+  background: var(--paper);
+  z-index: 20;
+}
+
+.nav-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 72px;
+  height: 62px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ink-3);
+  font: 500 11.5px/1 var(--sans);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nav-ic {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  font-size: 21px;
+  line-height: 1;
+  color: var(--ink-2);
+  transition: background 0.12s, color 0.12s;
+}
+
+.nav-ic .icon {
+  width: 22px;
+  height: 22px;
+}
+
+.nav-tab:hover .nav-ic {
+  background: var(--card-2);
+}
+
+.nav-tab[aria-current='page'] {
+  color: var(--ink);
+}
+
+.nav-tab[aria-current='page'] .nav-ic {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.nav-dot {
+  position: absolute;
+  top: 2px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 0 2px var(--paper);
+}
+
+.nav-foot {
+  margin-top: auto;
+}
+
+.nav-foot .account-name {
+  display: none;
+}
+
+.nav-foot .account-button {
+  padding: 3px;
+}
+
+.account-menu[data-up] {
+  top: auto;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: auto;
+}
+
+/* The app's line icons: one weight, round ends, the colour of their text. */
+.icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* More: a panel beside the rail, or a sheet from the bottom on a phone. */
+.more-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: transparent;
+}
+
+.more-sheet {
+  position: fixed;
+  z-index: 41;
+  left: 92px;
+  bottom: 16px;
+  width: 340px;
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 8px 16px 12px;
+  animation: rise 0.14s ease-out;
+  outline: none;
+}
+
+.sheet-grab {
+  display: none;
+  width: 38px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--line-2);
+  margin: 2px auto 10px;
+}
+
+.more-list > * + *,
+.more-foot {
+  border-top: 1px solid var(--line);
+}
+
+.more-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 60px;
+  padding: 8px 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.more-ic {
+  width: 30px;
+  display: grid;
+  place-items: center;
+  font-size: 23px;
+  line-height: 1;
+  color: var(--ink-2);
+  flex: none;
+}
+
+.more-text {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.more-text b {
+  font-weight: 500;
+}
+
+.more-sync {
+  padding: 4px 0 2px;
+}
+
+@media (max-width: 699px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .app > .main {
+    grid-column: 1;
+  }
+
+  .nav {
+    grid-row: 2;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: stretch;
+    gap: 0;
+    padding: 6px max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    border-right: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .nav-tab {
+    flex: 1;
+    width: auto;
+    height: 52px;
+    font-size: 11px;
+  }
+
+  .nav-foot {
+    display: none;
+  }
+
+  .more-scrim {
+    background: var(--scrim);
+  }
+
+  .more-sheet {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    border-radius: 26px 26px 0 0;
+    border: 0;
+    padding: 8px var(--gutter) max(16px, env(safe-area-inset-bottom));
+    animation: slide-up 0.18s ease-out;
+  }
+
+  .sheet-grab {
+    display: block;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+/* A text page reaches the edges: its bar and dock replace the page's margins. */
+.app[data-immersive] .page {
+  max-width: none;
+  padding: 0;
+}
+
+@media (max-width: 699px) {
+  .app[data-immersive] {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .app[data-immersive] > .nav {
+    display: none;
+  }
+}
+
+/* A sitting has the screen to itself. */
+.app[data-focus] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.app[data-focus] > .nav {
+  display: none;
+}
+
+.app[data-focus] > .main {
+  grid-column: 1;
+  grid-row: 1;
 }
 
 /* ----------------------------------------------------------------- layout */
@@ -299,14 +618,15 @@ textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  border: 1px solid var(--line-2);
+  gap: 8px;
+  border: 1px solid var(--line);
   background: var(--card);
   color: var(--ink);
-  padding: 7px 13px;
-  border-radius: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius);
   cursor: pointer;
-  font-weight: 520;
+  font-weight: 500;
   text-decoration: none;
   transition: background 0.12s, border-color 0.12s, transform 0.06s;
   white-space: nowrap;
@@ -328,7 +648,7 @@ textarea {
 .btn.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .btn.primary:hover:not(:disabled) {
@@ -344,25 +664,51 @@ textarea {
   color: var(--ink-2);
 }
 
+/* The second action beside a primary one: blue ink on its own tint. */
+.btn.tonal {
+  border-color: transparent;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.btn.tonal:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 16%, var(--card));
+}
+
+/* A link that is a button: text in blue ink, nothing around it until touched. */
+.btn.quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--accent);
+  padding: 0 8px;
+}
+
 .btn.ghost:hover:not(:disabled) {
   background: var(--card-2);
   color: var(--ink);
 }
 
 .btn.sm {
-  padding: 4px 9px;
-  font-size: 12.5px;
-  border-radius: 7px;
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 13.5px;
+  border-radius: 10px;
+}
+
+.btn.lg {
+  min-height: 50px;
+  padding: 0 20px;
+  font-size: 16px;
 }
 
 .btn.danger {
-  color: var(--accent);
+  color: var(--red);
   border-color: transparent;
   background: transparent;
 }
 
 .btn.danger:hover:not(:disabled) {
-  background: var(--accent-soft);
+  background: var(--red-soft);
 }
 
 input[type='text'],
@@ -373,8 +719,8 @@ select,
 textarea {
   border: 1px solid var(--line-2);
   background: var(--card);
-  padding: 7px 11px;
-  border-radius: 8px;
+  padding: 9px 12px;
+  border-radius: 10px;
   width: 100%;
 }
 
@@ -407,8 +753,8 @@ label.field {
 
 .card > header h2 {
   margin: 0;
-  font-size: 14.5px;
-  font-weight: 620;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 /* the app's own icon on the install card, squared off as a home screen would */
@@ -436,17 +782,22 @@ label.field {
 }
 
 .small {
-  font-size: 12.5px;
+  font-size: 13.5px;
 }
 
 .tiny {
-  font-size: 11.5px;
+  font-size: 12px;
 }
 
 h1 {
-  font-size: 21px;
-  margin: 0 0 3px;
-  letter-spacing: -0.015em;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 4px;
+}
+
+h2 {
+  font-weight: 600;
 }
 
 .subtle-rule {
@@ -463,13 +814,14 @@ h1 {
 }
 
 .chip {
-  border: 1px solid var(--line-2);
+  border: 1px solid var(--line);
   background: var(--card);
   color: var(--ink-2);
-  padding: 4px 11px;
+  min-height: 34px;
+  padding: 0 13px;
   border-radius: 999px;
   cursor: pointer;
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 500;
   white-space: nowrap;
   display: inline-flex;
@@ -483,9 +835,9 @@ h1 {
 }
 
 .chip[aria-pressed='true'] {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--paper);
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent);
 }
 
 .chip .count {
@@ -766,9 +1118,7 @@ h1 {
 
 .kv dt {
   color: var(--ink-3);
-  font-size: 11.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 12.5px;
   padding-top: 2px;
 }
 
@@ -1855,7 +2205,7 @@ select.mt {
 
 .stepper .step[aria-current='true'] .dot {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .stepper .step[aria-current='true'] .txt b {
@@ -1963,9 +2313,8 @@ select.mt {
 .seg {
   display: inline-flex;
   background: var(--card-2);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 2px;
+  border-radius: 12px;
+  padding: 3px;
   gap: 2px;
   flex-wrap: wrap;
 }
@@ -1974,18 +2323,20 @@ select.mt {
   border: 0;
   background: transparent;
   color: var(--ink-3);
-  padding: 4px 10px;
-  border-radius: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 9px;
   cursor: pointer;
-  font-size: 12.5px;
-  font-weight: 520;
+  font-size: 13.5px;
+  font-weight: 500;
   transition: background 0.12s, color 0.12s;
   white-space: nowrap;
 }
 
 .seg.sm button {
-  padding: 3px 8px;
-  font-size: 12px;
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 13px;
 }
 
 .seg button:hover {
@@ -1995,7 +2346,12 @@ select.mt {
 .seg button[aria-pressed='true'] {
   background: var(--card);
   color: var(--ink);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px rgb(24 32 43 / 14%);
+}
+
+:root[data-theme='dark'] .seg button[aria-pressed='true'] {
+  background: var(--line-2);
+  box-shadow: none;
 }
 
 /* A number with a minus and a plus, for the small counts. */
@@ -3005,7 +3361,7 @@ select.mt {
 .marks-row .mark.again[aria-pressed='true'] {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 /* -------------------------------------------------------------- in a word */
@@ -3297,10 +3653,8 @@ button.progress-meter:hover {
 .progress-label {
   margin: 22px 0 8px;
   color: var(--ink-3);
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .progress-bands {
@@ -3453,10 +3807,8 @@ button.progress-meter:hover {
 
 .progress-skills thead th {
   color: var(--ink-3);
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .progress-skills tbody th {
@@ -3566,50 +3918,6 @@ button.progress-meter:hover {
 
 /* ------------------------------------------------------------ narrow bars */
 @media (max-width: 860px) {
-  .topbar {
-    height: auto;
-    min-height: 48px;
-    flex-wrap: wrap;
-    gap: 6px 12px;
-    padding: 6px max(14px, env(safe-area-inset-right)) 6px
-      max(14px, env(safe-area-inset-left));
-  }
-
-  .brand {
-    font-size: 0;
-    gap: 0;
-  }
-
-  .brand .mark {
-    font-size: 24px;
-  }
-
-  /* The tabs take their own line and scroll sideways rather than wrapping
-     into a ragged block that moves as the badges change.
-
-     `min-width: 0` is the whole trick: a flex item defaults to `min-width:
-     auto`, which means it refuses to be narrower than its contents. Five tabs
-     are 425px wide, so without this the header pushed the document out to
-     453px on a 390px screen and took the library grid with it — the page did
-     not overflow, it simply became wider than the phone. */
-  .topbar .tabs {
-    order: 3;
-    flex: 1 1 100%;
-    min-width: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .topbar .tabs::-webkit-scrollbar {
-    display: none;
-  }
-
-  .topbar .tabs button,
-  .topbar .tabs a {
-    white-space: nowrap;
-  }
-
   /* The first row is the mark, this and two small icons: let it take the
      room between them rather than wrapping its numbers onto two lines. */
   .progress-meter {
@@ -4442,7 +4750,7 @@ label.field[data-invalid] input {
 .split-btn[data-on] .btn {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .split-btn[data-on] .split-chev {
@@ -4457,8 +4765,6 @@ label.field[data-invalid] input {
 
 .menu-label {
   padding: 2px 8px 4px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .menu-check {
@@ -4503,8 +4809,6 @@ label.field[data-invalid] input {
 
 .passage-kicker {
   margin: 0 0 4px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .passage-title {
@@ -4520,10 +4824,8 @@ label.field[data-invalid] input {
 }
 
 .doc-label {
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: var(--ink-3);
   margin: 0 0 8px;
 }
@@ -4665,10 +4967,8 @@ label.field[data-invalid] input {
 }
 
 .fold-title {
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: var(--ink-2);
 }
 
@@ -5062,7 +5362,7 @@ label.field[data-invalid] input {
     -webkit-print-color-adjust: exact;
   }
 
-  .topbar,
+  .nav,
   .no-print,
   .legacy-notice,
   .modal-scrim,
@@ -5231,10 +5531,8 @@ label.field[data-invalid] input {
 }
 
 .shelf-title {
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: var(--ink-3);
   margin: 0 0 2px;
 }

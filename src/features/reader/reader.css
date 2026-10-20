@@ -1,0 +1,987 @@
+/* ----------------------------------------------------------------------------
+   The text page. One column on a phone and an upright iPad: the bar, the six
+   parts, the text, the parts underneath, and the dock on the bottom edge. On
+   anything wide, the parts get a column of their own beside the text, each
+   column scrolling by itself.
+---------------------------------------------------------------------------- */
+
+.rd {
+  max-width: 780px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ------------------------------------------------------------------ the bar */
+.rd-top {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 var(--gutter);
+  padding-top: env(safe-area-inset-top);
+  box-sizing: content-box;
+  background: var(--paper);
+}
+
+.rd-back {
+  width: 40px;
+  height: 40px;
+  margin-left: -10px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  flex: none;
+}
+
+.rd-back:hover {
+  background: var(--card-2);
+}
+
+.rd-where {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  line-height: 1.25;
+}
+
+.rd-where b,
+.rd-where span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rd-where b {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.rd-where span {
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.rd-versions {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--card-2);
+  flex: none;
+}
+
+.rd-versions button {
+  width: 42px;
+  height: 32px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  font: 400 18px/1 var(--han);
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.rd-versions button[aria-pressed='true'] {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgb(24 32 43 / 14%);
+}
+
+:root[data-theme='dark'] .rd-versions button[aria-pressed='true'] {
+  background: var(--line-2);
+  box-shadow: none;
+}
+
+.rd-menu-btn {
+  width: 40px;
+  height: 40px;
+  margin-right: -10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.rd-menu-btn:hover,
+.rd-menu-btn[aria-expanded='true'] {
+  background: var(--card-2);
+}
+
+/* ------------------------------------------------------------ the six parts */
+.rd-parts {
+  position: sticky;
+  top: calc(56px + env(safe-area-inset-top));
+  z-index: 7;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  padding: 0 calc(var(--gutter) - 6px);
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+.rd-part-tab {
+  position: relative;
+  height: 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  min-width: 0;
+}
+
+.rd-part-tab .hanzi {
+  font-size: 19px;
+  line-height: 1;
+  color: var(--ink-2);
+}
+
+.rd-part-tab small {
+  font: 500 10.5px/1 var(--sans);
+  white-space: nowrap;
+}
+
+/* How much of the part is done, as the line under its name. */
+.rd-part-tab::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--jade) var(--fill, 0%), transparent var(--fill, 0%));
+}
+
+.rd-part-tab[aria-current='true'] {
+  color: var(--ink);
+}
+
+.rd-part-tab[aria-current='true'] .hanzi {
+  color: var(--accent);
+}
+
+.rd-part-tab[aria-current='true']::after {
+  height: 3px;
+  background: linear-gradient(90deg, var(--jade) var(--fill, 0%), var(--accent) var(--fill, 0%));
+}
+
+/* ------------------------------------------------------------------ the text */
+.rd-text {
+  padding: 22px var(--gutter) 6px;
+  scroll-margin-top: 120px;
+}
+
+.rd-kicker {
+  margin: 0 0 4px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.rd-passage + .rd-passage {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.rd-title {
+  font: 400 calc(24px * var(--reader-scale, 1)) / 1.3 var(--han);
+  margin: 0;
+}
+
+@media (min-width: 700px) {
+  .rd-title {
+    font-size: calc(28px * var(--reader-scale, 1));
+  }
+}
+
+.rd-subtitle {
+  font: 400 15px/1.4 var(--read);
+  color: var(--ink-3);
+  margin: 4px 0 0;
+}
+
+.rd-know {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.rd-meter {
+  flex: 1;
+  max-width: 320px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.rd-meter i {
+  display: block;
+  height: 100%;
+  background: var(--jade);
+}
+
+.rd-zh {
+  font-family: var(--han);
+  font-size: calc(25px * var(--reader-scale, 1));
+  /* Room for pinyin on every line, shown or not: turning it on moves nothing. */
+  line-height: 2.35;
+  letter-spacing: 0.02em;
+}
+
+.rd-para {
+  margin: 0 0 0.5em;
+  text-indent: 2em;
+}
+
+.rd-zh ruby {
+  ruby-align: center;
+}
+
+.rd-zh rt {
+  font: 500 calc(11.5px * var(--reader-scale, 1)) / 1 var(--sans);
+  color: var(--ink-3);
+  letter-spacing: 0;
+  text-indent: 0;
+  padding: 0 1px;
+}
+
+.rd-zh .w {
+  /* A word with its reading over it is one piece: never 二 at the end of a
+     line and 氧化碳 at the start of the next. */
+  white-space: nowrap;
+  cursor: pointer;
+  border-radius: 3px;
+  --u: transparent;
+  background-image: linear-gradient(var(--u), var(--u));
+  background-size: 100% 1.5px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  padding-bottom: 1px;
+}
+
+.rd-zh .w:hover {
+  background-color: var(--card-2);
+}
+
+/* The teacher's red pen under what is new to you; your own blue under what you are learning. */
+.rd-zh .w[data-mark='new'] {
+  --u: var(--red);
+}
+
+.rd-zh .w[data-mark='learning'] {
+  --u: var(--accent);
+}
+
+.rd-zh .nb {
+  white-space: nowrap;
+}
+
+/* The line being read: the highlighter. */
+.rd-zh .sent[data-reading] {
+  background-color: var(--hl);
+  border-radius: 3px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.rd-zh .sent[data-flash] {
+  animation: rd-flash 1.6s ease-out;
+  border-radius: 3px;
+}
+
+@keyframes rd-flash {
+  0%,
+  40% {
+    background-color: var(--hl);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.rd-en-para {
+  font: 400 calc(15px * var(--reader-scale, 1)) / 1.6 var(--read);
+  color: var(--ink-2);
+  letter-spacing: 0;
+  margin: -0.1em 0 1.1em;
+}
+
+.rd-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.rd-line {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 6px;
+  margin: 0 -10px;
+  padding: 0 10px;
+  border-radius: 14px;
+  scroll-margin-top: 130px;
+}
+
+.rd-line[data-open] {
+  background: var(--card-2);
+  padding-bottom: 10px;
+}
+
+.rd-n {
+  width: 28px;
+  height: 28px;
+  margin-top: calc(0.62em * var(--reader-scale, 1) + 6px);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-3);
+  font: 600 12px/1 var(--sans);
+  cursor: pointer;
+}
+
+.rd-n:hover:not(:disabled) {
+  background: var(--card-2);
+  color: var(--accent);
+}
+
+.rd-n:disabled {
+  cursor: default;
+}
+
+.rd-line-zh {
+  margin: 0;
+}
+
+.rd-line-en {
+  margin: -0.3em 0 0;
+  font: 400 calc(15px * var(--reader-scale, 1)) / 1.5 var(--read);
+  color: var(--ink-2);
+  letter-spacing: 0;
+}
+
+.rd-done {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0 6px;
+}
+
+/* ----------------------------------------------------------- the parts below */
+.rd-study {
+  padding: 0 var(--gutter) 28px;
+}
+
+.rd-part {
+  padding: 26px 0 8px;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 120px;
+}
+
+.rd-part-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.rd-part-head .hanzi {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink-2);
+}
+
+.rd-part-head h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.rd-part-aside {
+  font-size: 13px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.rd-part-aside .btn.quiet {
+  margin-right: -8px;
+}
+
+.rd-part-lede {
+  font: 400 15px/1.5 var(--read);
+  color: var(--ink-2);
+  margin: 0 0 12px;
+}
+
+.rd-voices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.rd-voice-hint {
+  margin: 10px 0 0;
+}
+
+.rd-listen,
+.rd-pairs,
+.rd-words,
+.rd-questions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rd-listen li + li,
+.rd-pairs li + li,
+.rd-words li + li {
+  border-top: 1px solid var(--line);
+}
+
+.rd-listen-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--ink);
+  font: 400 19px/1.6 var(--han);
+  cursor: pointer;
+}
+
+.rd-listen-ic {
+  width: 30px;
+  height: 30px;
+  margin-top: 1px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--card-2);
+  color: var(--accent);
+  flex: none;
+}
+
+.rd-listen-line[data-on] .rd-listen-ic {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.rd-listen-line[data-on] .hanzi {
+  background: var(--hl);
+  border-radius: 3px;
+}
+
+.rd-pair {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.rd-pair-zh {
+  font-size: 19px;
+  line-height: 1.6;
+}
+
+.rd-pair-en {
+  font: 400 15px/1.5 var(--read);
+  color: var(--ink-2);
+}
+
+.rd-pair-en[data-hidden] {
+  font: 400 13.5px/1.5 var(--sans);
+  color: var(--ink-3);
+}
+
+.rd-word {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.rd-word-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.rd-word-zh {
+  font-size: 22px;
+  width: 96px;
+  flex: none;
+  line-height: 1.3;
+}
+
+.rd-word-text {
+  display: grid;
+  min-width: 0;
+}
+
+.rd-word-py {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.rd-word-d {
+  font: 400 14.5px/1.35 var(--read);
+}
+
+.rd-add {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  flex: none;
+  cursor: pointer;
+}
+
+.rd-add[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.rd-add[data-state='known'] {
+  border-color: transparent;
+  background: var(--jade-soft);
+  color: var(--jade);
+  cursor: default;
+}
+
+.rd-add:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.rd-more {
+  margin: 4px 0 0 -8px;
+}
+
+.rd-grammar {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--card-2);
+}
+
+.rd-grammar b {
+  font-weight: 600;
+}
+
+.rd-grammar .btn.quiet {
+  margin-right: -8px;
+}
+
+.rd-grammar-en {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.rd-grammar-zh {
+  margin: 6px 0 0;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.rd-note {
+  margin: 14px 0 0;
+  font: 400 15px/1.5 var(--read);
+  color: var(--ink-2);
+}
+
+/* Each new character in its own 田字格 square. */
+.rd-write {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  gap: 8px;
+}
+
+.rd-box {
+  position: relative;
+  padding: 0 0 6px;
+  border: 1.5px solid var(--grid);
+  border-radius: 4px;
+  background: var(--card);
+  display: grid;
+  justify-items: center;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.rd-box .hanzi {
+  position: relative;
+  width: 100%;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  font-size: 40px;
+  line-height: 1;
+  background:
+    linear-gradient(var(--grid), var(--grid)) 50% 0 / 1px 100% no-repeat,
+    linear-gradient(var(--grid), var(--grid)) 0 50% / 100% 1px no-repeat;
+}
+
+.rd-box-py {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.rd-box[data-done] {
+  border-color: var(--jade);
+  background: var(--jade-soft);
+}
+
+.rd-look {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.rd-look-box {
+  width: 204px;
+  height: 204px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--grid);
+  border-radius: 4px;
+  background:
+    linear-gradient(var(--grid), var(--grid)) 50% 0 / 1px 100% no-repeat,
+    linear-gradient(var(--grid), var(--grid)) 0 50% / 100% 1px no-repeat;
+}
+
+.rd-questions li + li {
+  margin-top: 22px;
+}
+
+.rd-q-py {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.rd-q-zh {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.rd-q-en {
+  margin: 0 0 8px;
+  font: 400 14px/1.4 var(--read);
+  color: var(--ink-3);
+}
+
+.rd-next {
+  padding: 26px 0 6px;
+  border-top: 1px solid var(--line);
+}
+
+.rd-next-btn {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px 12px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--card-2);
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.rd-next-btn .hanzi {
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+.rd-next-btn .icon {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  color: var(--accent);
+}
+
+/* ----------------------------------------------------------------- the dock */
+.rd-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr);
+  gap: 6px;
+  padding: 8px calc(var(--gutter) - 8px) max(8px, env(safe-area-inset-bottom));
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+}
+
+.rd-listen-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  min-width: 0;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card-2);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-disc {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--on-accent);
+  flex: none;
+}
+
+.rd-listen-label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rd-listen-label b,
+.rd-listen-label small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rd-listen-label b {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.rd-listen-label small {
+  font-size: 11px;
+  line-height: 1;
+  color: var(--ink-3);
+}
+
+.rd-dock-btn {
+  height: 52px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.rd-dock-btn .hanzi {
+  font-size: 21px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.rd-dock-btn small {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.rd-dock-btn[data-on] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.rd-dock-btn[data-on] .hanzi {
+  color: var(--accent);
+}
+
+.rd-dock-btn:hover:not([data-on]) {
+  background: var(--card-2);
+}
+
+.rd-aa {
+  position: relative;
+  display: grid;
+}
+
+.rd-aa-btn {
+  width: 100%;
+  font: 500 20px/1 var(--read);
+  color: var(--ink);
+}
+
+.rd-aa-btn[aria-expanded='true'] {
+  background: var(--card-2);
+}
+
+.rd-aa-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 12px);
+  z-index: 20;
+  width: min(340px, calc(100vw - 24px));
+  padding: 4px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  animation: rise 0.12s ease-out;
+}
+
+.rd-aa-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 0;
+  cursor: default;
+}
+
+.rd-aa-row + .rd-aa-row {
+  border-top: 1px solid var(--line);
+}
+
+label.rd-aa-row {
+  cursor: pointer;
+}
+
+.rd-aa-row small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.rd-aa-row input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+  flex: none;
+}
+
+/* -------------------------------------------------- wide: parts beside the text */
+@media (min-width: 1100px) {
+  .rd[data-mode='single'] {
+    max-width: none;
+    height: 100dvh;
+    grid-template-columns: minmax(0, 1fr) 420px;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'top top'
+      'text parts'
+      'text study'
+      'dock study';
+  }
+
+  .rd[data-mode='single'] .rd-top {
+    grid-area: top;
+    position: static;
+    border-bottom: 1px solid var(--line);
+    padding: 0 28px;
+  }
+
+  .rd[data-mode='single'] .rd-parts {
+    grid-area: parts;
+    position: static;
+    border-left: 1px solid var(--line);
+    padding: 0 12px;
+  }
+
+  .rd[data-mode='single'] .rd-text {
+    grid-area: text;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 30px max(48px, calc((100% - 760px) / 2)) 24px;
+  }
+
+  .rd[data-mode='single'] .rd-study {
+    grid-area: study;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border-left: 1px solid var(--line);
+    padding: 0 24px 28px;
+  }
+
+  .rd[data-mode='single'] .rd-study > .rd-part:first-child {
+    border-top: 0;
+  }
+
+  .rd[data-mode='single'] .rd-dock {
+    grid-area: dock;
+    position: static;
+    padding: 10px max(40px, calc((100% - 760px) / 2)) 14px;
+  }
+
+  .rd-zh {
+    font-size: calc(28px * var(--reader-scale, 1));
+  }
+
+  .rd-title {
+    font-size: calc(32px * var(--reader-scale, 1));
+  }
+}
+
+@media print {
+  .rd {
+    display: block;
+    height: auto;
+  }
+
+  .rd-text {
+    padding: 0;
+  }
+}
