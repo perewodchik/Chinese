@@ -1136,9 +1136,10 @@ src/
     radicals/         the radical sheet: its sizes, its block, its renderer
     draw.ts           the page as a top-left coordinate system, theme-aware
     render.ts         document assembly
-  features/           one folder per screen area — today, learn, review, stats,
-                      library, words, families, pinyin, reader, videos,
-                      collections, play, world, settings, auth — and shared/
+  features/           one folder per screen area — today, reader (Read, its
+                      shelves and the text page), cards, learn, review, stats,
+                      library, words, families, pinyin, videos, collections
+                      (lists to print), play, world, settings, auth — and shared/
                       for what several of them use
   games/              the /play mini-games, one folder each (README.md)
   world/              走走, the walking game: core/ rules, engine/ (Phaser),

@@ -98,6 +98,7 @@ export function ListenPart({
         Hear it once following the text, then once more without looking. Tap a line to hear it on its own and say it after
         the voice.
       </p>
+      {reading.voice === SYSTEM_VOICE && reading.systemHint && <p className="rd-voice-hint">{reading.systemHint}</p>}
       {reading.choices.length > 1 && (
         <div className="rd-voices" role="radiogroup" aria-label="Voice">
           {reading.choices.map((v) => (
@@ -127,7 +128,6 @@ export function ListenPart({
           );
         })}
       </ol>
-      {reading.voice === SYSTEM_VOICE && reading.systemHint && <p className="tiny muted rd-voice-hint">{reading.systemHint}</p>}
     </Section>
   );
 }

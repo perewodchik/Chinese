@@ -96,8 +96,8 @@ export function betterVoiceHint(): string | null {
   const apple = typeof navigator !== 'undefined' && /iPhone|iPad|Macintosh/.test(navigator.userAgent);
   if (!apple) return null;
   return /Macintosh/.test(navigator.userAgent) && !('ontouchend' in document)
-    ? 'For a natural voice: System Settings, Accessibility, Spoken Content, System voice, Manage Voices, Chinese (China mainland), and download Lili (Premium). Then reload this page.'
-    : 'For a natural voice: Settings, Accessibility, Spoken Content, Voices, Chinese (China mainland), and download Lili (Premium). Then reopen this page.';
+    ? 'This Mac has only the basic Chinese voice. For a natural one: System Settings, Accessibility, Spoken Content, System voice, Manage Voices, Chinese (China mainland), and download a voice marked Premium (Enhanced if there is none). Then reload this page.'
+    : 'This device has only the basic Chinese voice. For a natural one: Settings, Accessibility, Spoken Content, Voices, Chinese (China mainland), and download a voice marked Premium (Enhanced if there is none). Then reopen this page.';
 }
 
 /** Fires when the voice list arrives, which on some browsers is after load. */

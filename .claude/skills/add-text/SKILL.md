@@ -198,7 +198,8 @@ it is at least 80%.
 Only what the learner chose. The easier version goes first, with `--adapted`
 added; the book's text after it, without. In that order the retelling teaches
 its new characters as a generated passage does, and the book's passage counts
-them as met.
+them as met. Keep the same `titleZh` on both: the reader shows them as one
+text with a 简 / 原 switch, which it finds by that title.
 
 `--genre` is `description` for an explanation, `story` for a narrative,
 `dialogue` for a conversation. `--dry-run` shows what would happen without

@@ -1,108 +1,130 @@
 ---
 name: hanzi-design
-description: The visual language of Hanzi Workshop — tokens, type, components, touch rules and the pronunciation visuals. Load before building or restyling any screen in src/features or src/ui, so a new section looks like the rest of the app and not like a template.
+description: The visual language of Hanzi Workshop — 练习本, the exercise book: tokens, type, page parts, components, touch rules and what never to do. Load before building or restyling any screen in src/features or src/ui, so a new section looks like the rest of the app and not like a template.
 ---
 
-# Hanzi Workshop — design
+# Hanzi Workshop — design: 练习本, the exercise book
 
-The app looks like **good paper with one red stamp on it**: warm off-white, ink
-greys that lean brown, one cinnabar accent, and Chinese set in a brush-like 楷体
-(WenKai). It is calm, dense where it helps, and made for an iPad held in one
-hand. A new screen is right when a user cannot tell it was added later.
+Everything on screen is a thing on the desk of someone learning Chinese from
+a book: the page, ink, a pencil, the teacher's red pen, a highlighter, and an
+exercise book ruled in 田字格. Each colour has one job, so a screen reads
+without a legend. The boldness is spent in one place — the Chinese itself, in
+the brush 楷体 (WenKai); everything around it is quiet. A new screen is right
+when a user cannot tell it was added later.
 
-Read `src/styles.css` (tokens at the top, sections marked `/* --- name */`) and
-one existing page of the same kind before writing anything. Reuse before you
-invent: most things a new screen needs already have a class.
+Read the tokens at the top of `src/styles.css`, the **page parts** section in
+it, and one redesigned page of the same kind (`src/features/reader/`,
+`src/features/cards/`, `src/features/today/`) before writing anything.
 
-## The rules that hold it together
+## Colour: roles, not decoration
 
-1. **One accent, one job.** `--accent` (cinnabar) means *pronunciation* —
-   pinyin, the sound, the newest stroke — and primary actions. Nothing
-   decorative is red. Rules, labels and panels stay neutral.
-2. **Right and wrong have fixed colours.** Right = `--jade` on `--jade-soft`,
-   wrong = `--accent` on `--accent-soft`, "shaky / nearly" = `--gold` on
-   `--gold-soft`. Use the existing `[data-state='right'|'wrong']` pattern.
-3. **No rainbow.** Never colour-code the four tones. Tones are told apart by
-   *shape* — the contour, the mark (ā á ǎ à), the number — which also works
-   for colour-blind users and in the Graphite print style.
-4. **Tokens only.** Every colour is a `var(--…)` from `:root`, which is
-   redefined under `:root[data-theme='dark']`. A hard-coded hex breaks dark
-   mode. For tints use `color-mix(in srgb, var(--accent) 40%, var(--line))`.
-5. **Few sizes.** Body 14px/1.55; `.small` 12.5px; `.tiny` 11.5px; card
-   titles 14.5–15px weight 620; `h1` 21px, letter-spacing −0.015em. Big
-   hanzi 44–132px in `var(--han)`; pinyin display 24–30px in `--accent`.
-   Weights used: 500, 520, 600, 620, 640 — not 700/bold.
-6. **Labels index the page.** Small, tracked uppercase (`letter-spacing:
-   0.04em`), `--ink-3`. They are never the loudest thing on a card.
-7. **Surfaces.** Page `--paper`; cards `--card` with `1px solid var(--line)`,
-   `--radius-lg` (16px), `--shadow-sm`; hover lifts to `--line-2` +
-   `--shadow` + `translateY(-1px)`. Inset wells use `--card-2`. Small controls
-   `--radius` (10px) or 8px.
-8. **Motion is small.** 0.12–0.14s on background/border/transform. No
-   bouncing, no spinners where a skeleton or a line of text will do.
+| Role | Token | Job |
+| --- | --- | --- |
+| Ink | `--ink`, `--ink-2` | the text; headings |
+| Pencil | `--ink-3` | help that recedes: captions, glosses, hints |
+| Pinyin | `--py` | pinyin anywhere (a darker pencil). Never blue, never red |
+| Blue ink | `--accent`, `--accent-soft`, `--on-accent` | what you do (buttons, links, the current tab) and your own marks (words you are learning) |
+| Red pen | `--red`, `--red-soft` | the teacher: new to you, wrong, an error. Thin and rare |
+| Highlighter | `--hl` | where you are now: the line being read, the word open in a drawer. Background only |
+| Grid | `--grid` | structure: 田字格 squares, the frame of an exercise |
+| Jade | `--jade`, `--jade-soft` | right, known, done (progress lines too) |
+| Gold | `--gold`, `--gold-soft` | nearly / shaky |
+| Surfaces | `--paper` (page), `--card`, `--card-2` (a well), `--line`, `--line-2` | |
 
-## Parts to reuse
+- Right / wrong / nearly use the `[data-state='right'|'wrong'|'nearly']`
+  pattern with jade / red / gold. Wrong is **red**, not `--accent`.
+- Every colour is a `var(--…)`: `:root[data-theme='dark']` redefines them all.
+  Text on a filled blue button is `var(--on-accent)`, never `#fff`.
+- Never colour-code the four tones. Tones are told apart by shape: the
+  contour, the mark (ā á ǎ à), the number.
+
+## Type
+
+- **WenKai** (`var(--han)`, class `.hanzi`): all Chinese. Reading 25–28px on a
+  phone, 28–32 on an iPad; a text's title 24 / 28; a card's character 72–84.
+- **Fira Sans** (`var(--sans)`): everything the app says, and pinyin. Body 15px
+  /1.5 (`.small` 13.5, `.tiny` 12). Headings 600: page 26–30, section 19.
+  Weights 400, 500, 600 only.
+- **Literata** (`var(--read)`): what is read rather than operated —
+  translations, notes, grammar explanations, ledes of a part.
+- Labels are sentence case. **No uppercase tracked labels**, ever.
+
+## Shape and space
+
+- Phone gutter `var(--gutter)` (20px) on every page; a 4px grid. Related things
+  8–12px apart, groups 24–32.
+- Radii by size: a sheet or a big block 20–24, a block 14–16, a control 12, a
+  田字格 square 4.
+- Depth is a fill (`--card-2`) and a hairline (`--line`), **not a shadow**.
+  Only what floats casts one (`--shadow`: a menu, the Aa panel, More).
+- Lists are rows divided by hairlines (`.list`), not a grid of boxed cards.
+  Never a card inside a card.
+
+## Page parts (in `src/styles.css`)
 
 | Need | Use |
 | --- | --- |
-| Page frame | content sits in `.page` via `AppLayout`; start with a `.row` holding `h1` + `.small.muted` subline, `.spacer`, controls |
-| Buttons | `.btn`, `.btn.primary`, `.btn.ghost`, `.btn.sm`, `.btn.danger` |
-| Choice of 2–5 | `<Seg>` (`src/ui/Seg.tsx`, `.seg`) |
-| Filters / toggles | `.chips` > `.chip[aria-pressed]` |
-| Grid of big tappable options | `.drill-grid` > `.drill-card` (mark hanzi + name + blurb + figures) |
-| A drill screen | `DrillFrame` layout: `.drill`, `.drill-head`, `.drill-stage`, `.prompt-card` |
-| Five answer tiles | `.tone-row` > `.tone` (b = mark, span = name, i = hint) |
-| Big options with glyphs | `.choice-row` > `.choice` |
-| Hear it | `<Say text=… />` (`src/ui/Say.tsx`) — hides itself when there is no voice |
-| Character | `<Glyph>` (`src/ui/Glyph.tsx`) |
-| Empty state | `.empty` with `.big` single hanzi in `--line-2` (e.g. 空), one sentence, one action |
-| Card with header | `.card` > `header` (h2) + `.body` |
-| Notice | `.notice` |
-| Toast | `useToast()` |
+| Top of a page | `.page-head` with `h1`, `.spacer`, then `.icon-btn` (`.accent` for an add) |
+| Back to the parent | `.back-link` with `<Icon name="back" />` and the parent's name |
+| A section | `.block` > `.block-title` (or `.block-head` with a quiet button) |
+| Rows | `.list` with rows inside; hairlines come by themselves |
+| The page's one action at the end | `.page-foot` > `.btn.primary.lg` |
+| Search | `.search` > `<Icon name="search" />` + `input[type=search]` |
+| Icons | `<Icon name=…>` (`src/ui/Icon.tsx`): line icons that take the text colour. **No emoji** as icons |
 
-## Touch and small screens (the iPad is the main device)
+## Controls
 
-- Everything reachable only by hover must also work under
-  `@media (hover: none), (pointer: coarse)` — iPadOS can report hover.
-- Tap targets ≥ 44px for anything used mid-exercise; ≥ 36px for chips.
-- Breakpoints the app already uses: 1080 (split → one column), 1024, 860
-  (bars wrap), 640 (phones; inputs 16px so Safari does not zoom).
-- Grids use `minmax(0, 1fr)` so nothing pushes the page wider than the phone.
-- Respect `env(safe-area-inset-*)` on anything pinned to an edge.
-- Keyboard: digits for choices, Space/Enter for the main action — and hide
-  the printed hints on touch (`.key-hint` is already hidden there).
+- `.btn` (40px), `.btn.sm` (34), `.btn.lg` (50). **One `.btn.primary` per
+  screen**; the second action is `.btn.tonal`, a third `.btn.quiet` (a text
+  button in blue ink). `.btn.danger` is red text.
+- Choice of 2–5: `<Seg>` / `.seg`. Filters: `.chip[aria-pressed]` (pressed is
+  blue tonal). Counts inside go in `<span class="count">`.
+- Add / chosen: `.rd-add` — a 40px square with `+`, filled blue with a check
+  once chosen, jade when already known.
+- Bottom sheets and panels: the More sheet and the word drawer are the models.
+- Changing labels keep a fixed width (the dock's buttons are grid cells; text
+  that can grow is ellipsised), and the room for pinyin is kept whether it is
+  shown or not. Nothing moves when something is switched.
 
-## Pronunciation visuals (the Pinyin section)
+## Navigation
 
-- **The pitch staff.** Tone contours are drawn on a five-line Chao scale
-  (1 = lowest, 5 = highest): four hairlines in `--line`, labels 1–5 in
-  `.tiny` `--ink-3` on the left. The reference contour is a dashed
-  `--ink-3` line, 2px; the learner's is a solid `--accent` line, 3px, round
-  caps. Where a syllable was judged, a thin band under it carries the verdict
-  colour (jade / accent / gold) — the line itself keeps its own colour.
-- **Syllables as tiles.** A syllable is a tile: hanzi (han font) over pinyin
-  (accent). The verdict goes on the tile border/background via `data-state`,
-  never by recolouring the pinyin.
-- **Recording.** One big round record button (≥ 64px), `--accent` fill while
-  recording with a soft pulsing ring (opacity only), a live level meter as a
-  thin bar. Always show a text state: "Listening…", "Too quiet", "Got it".
-- **Honesty.** When a judgement is uncertain (long phrase, noisy input), say
-  so in `.tiny.muted` next to it rather than showing a confident score.
-- **Explanations** of a sound are short cards: *mouth* (what the tongue/lips
-  do), *like English* (the nearest English sound, and how it differs), *the
-  usual mistake*. Example words in hanzi + pinyin, each with a `<Say>`.
+Four places and More: Today 今, Read 读, Cards 卡, Library 字. Along the
+bottom edge under 700px, a rail on the left above it. A sitting
+(`data-focus`) has the whole screen; a text page (`data-immersive`) hides the
+bar on a phone and has its own bar and dock.
 
-## Writing style on screen
+## Never — the tells of a generated page
 
-Plain sentences, second person, no exclamation marks, no emoji in UI text
-(the 🔊 on `<Say>` is the one exception). Headings say what is there ("12 to
-go over"), not what the feature is called. Code comments follow the file
-they are in: prose paragraphs explaining *why*.
+- Cream background with a terracotta accent (what this app used to be).
+- Gradients, glow, glass, blurred blobs, coloured side stripes.
+- Uppercase tracked eyebrows over every heading; "A · B · C" meta strings;
+  `→` appended to buttons; emoji for icons.
+- A grid of identical boxed cards giving everything the same weight; a 1px
+  border plus a wide soft shadow on the same box; cards in cards.
+- Pulsing dots and status circles where a word would do; bouncing motion.
+  Motion is 120–160ms and only in answer to something the learner did.
+
+## Touch and small screens (iPad and iPhone are the main devices)
+
+- Tap targets ≥ 44px for anything used mid-exercise, ≥ 36px for chips.
+- Everything reachable by hover also works under `(hover: none)`.
+- Grids use `minmax(0, 1fr)`; nothing pushes the page wider than the phone.
+  A word with pinyin over it is one unbreakable `inline-block`; punctuation is
+  held to the word before it.
+- `env(safe-area-inset-*)` on anything pinned to an edge; inputs ≥ 16px on a
+  phone so Safari does not zoom.
+
+## Writing on screen
+
+Plain sentences, second person, sentence case, no exclamation marks, no
+emoji. Headings say what is there ("20 for today"), buttons say what happens
+("Learn this word", "Show the answer"). Never show a debt ("520 due"): show
+what is for today. Code comments follow the file they are in: prose
+paragraphs explaining *why*.
 
 ## Checking your work
 
-Open the page in the preview at tablet (768×1024) and phone (375×812) sizes
-and in dark mode (`data-theme='dark'` via Settings, or `resize_window`
-`colorScheme`). Look for: text wider than the screen, a hard-coded colour that
-vanishes in dark mode, a control you could only reach by hovering, and more
-than one red thing competing for attention.
+Look at 375, 768, 1024 and 1194 wide, light and dark. Look for: anything
+wider than the screen or cut off, a padding that is not the gutter, a
+hard-coded colour that vanishes in dark mode, a control you can reach only by
+hovering, more than one primary button, and anything from the Never list.

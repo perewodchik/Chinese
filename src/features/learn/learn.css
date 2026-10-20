@@ -56,7 +56,7 @@
   align-items: center;
   gap: 8px;
   font-size: 28px;
-  color: var(--accent);
+  color: var(--py);
   line-height: 1.2;
 }
 
@@ -154,7 +154,7 @@
 .meet-sentence-py {
   min-height: 1.4em;
   font-size: 13px;
-  color: var(--accent);
+  color: var(--py);
 }
 
 .meet-sentence-say {
@@ -204,7 +204,7 @@
 }
 
 .learn-list-py {
-  color: var(--accent);
+  color: var(--py);
   font-size: 13px;
 }
 

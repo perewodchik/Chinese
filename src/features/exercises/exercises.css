@@ -75,7 +75,7 @@
 }
 
 .ex-py {
-  color: var(--accent);
+  color: var(--py);
   font-size: 22px;
   line-height: 1.25;
 }

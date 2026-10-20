@@ -57,6 +57,12 @@ export function WordDrawer({ id, onClose }: Props) {
   }, [close]);
 
   const w = idValue(id);
+  const shelfForGloss = useReadingShelf();
+  // A word the dictionary lacks may still be glossed by the text it came from.
+  const fromText = useMemo(
+    () => shelfForGloss?.texts.flatMap((t) => t.vocab).find((v) => v.w === w) ?? null,
+    [shelfForGloss, w],
+  );
   const info = wordInfo(lib, w);
   const chars = [...w];
   // A chunk the lists do not have is still the list words it is made of.
@@ -160,10 +166,10 @@ export function WordDrawer({ id, onClose }: Props) {
           </span>
           <div className="word-said">
             <div className="row" style={{ gap: 8 }}>
-              {(info ?? fromList) && <span className="word-py">{info?.py ?? fromList?.py}</span>}
+              {(info ?? fromList ?? fromText) && <span className="word-py">{info?.py ?? fromList?.py ?? fromText?.py}</span>}
               <Say text={w} size="lg" />
             </div>
-            <h1 className="word-meaning">{info?.d ?? fromList?.d ?? 'Not in the dictionary'}</h1>
+            <h1 className="word-meaning">{info?.d ?? fromList?.d ?? fromText?.d ?? 'Not in the dictionary'}</h1>
             <p className="tiny muted" style={{ margin: 0 }}>
               {info?.listed
                 ? hskLabel(info.hsk)

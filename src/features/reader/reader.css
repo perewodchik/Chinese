@@ -267,8 +267,11 @@
 
 .rd-zh .w {
   /* A word with its reading over it is one piece: never 二 at the end of a
-     line and 氧化碳 at the start of the next. */
-  white-space: nowrap;
+     line and 氧化碳 at the start of the next. An inline block cannot be split,
+     and the line still breaks between words. */
+  display: inline-block;
+  text-indent: 0;
+  line-height: 1.25;
   cursor: pointer;
   border-radius: 3px;
   --u: transparent;
@@ -293,7 +296,13 @@
 }
 
 .rd-zh .nb {
-  white-space: nowrap;
+  display: inline-block;
+  text-indent: 0;
+  line-height: 1.25;
+}
+
+.rd-zh .nb > .w {
+  line-height: inherit;
 }
 
 /* The line being read: the highlighter. */
@@ -442,7 +451,12 @@
 }
 
 .rd-voice-hint {
-  margin: 10px 0 0;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card-2);
+  font-size: 13.5px;
+  color: var(--ink-2);
 }
 
 .rd-listen,

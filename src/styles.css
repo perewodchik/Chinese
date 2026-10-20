@@ -97,6 +97,8 @@
   --red-soft: #fae3e0;
   --hl: rgb(255 212 60 / 48%);
   --grid: #a4c7b1;
+  /* Pinyin: help, in pencil's darker shade — never the blue of an action. */
+  --py: #4a5464;
   --jade: #1f7a55;
   --jade-soft: #dcefe4;
   --gold: #9a6f1c;
@@ -151,6 +153,7 @@
   --red-soft: #3a201d;
   --hl: rgb(240 205 80 / 26%);
   --grid: #355443;
+  --py: #aab2bc;
   --jade: #5dc395;
   --jade-soft: #163327;
   --gold: #d2a64f;
@@ -1011,7 +1014,7 @@ h2 {
 
 .item .py {
   font-size: 12px;
-  color: var(--accent);
+  color: var(--py);
   line-height: 1.25;
 }
 
@@ -1047,9 +1050,8 @@ h2 {
 /* Learned is shown as a ring rather than by fading the character out: you
    still want to read it, you just want to know you have done it. */
 .item[data-learned='true'] {
-  border-color: var(--jade);
-  box-shadow: inset 0 0 0 1px var(--jade);
-  background: var(--jade-soft);
+  border-color: color-mix(in srgb, var(--jade) 55%, var(--line));
+  background: color-mix(in srgb, var(--jade-soft) 60%, var(--card));
 }
 
 .item[data-learned='true'][data-selected='true'] {
@@ -1127,7 +1129,7 @@ h2 {
 }
 
 .bar .learned {
-  background: var(--violet);
+  background: var(--jade);
 }
 
 /* ----------------------------------------------------------------- detail */
@@ -2078,7 +2080,7 @@ a.tpl-card:hover {
 .passage-line .py {
   display: block;
   font-size: 12px;
-  color: var(--accent);
+  color: var(--py);
   line-height: 1.4;
 }
 
@@ -3714,12 +3716,12 @@ select.mt {
 
 /* Ticked, not yet confirmed in review: the same hue, pale. */
 .meter-band .believed {
-  background: var(--violet);
+  background: var(--jade);
   opacity: 0.35;
 }
 
 .meter-band .proven {
-  background: var(--violet);
+  background: var(--jade);
 }
 
 .meter-band[data-complete] .believed,
@@ -3857,11 +3859,11 @@ button.progress-meter:hover {
 }
 
 .progress-sheet .swatch.believed {
-  background: color-mix(in srgb, var(--violet) 35%, var(--card-2));
+  background: color-mix(in srgb, var(--jade) 35%, var(--card-2));
 }
 
 .progress-sheet .swatch.proven {
-  background: var(--violet);
+  background: var(--jade);
 }
 
 .holding-bar {
@@ -3883,7 +3885,7 @@ button.progress-meter:hover {
 }
 
 .progress-sheet [data-band='holding']:is(i, .swatch) {
-  background: var(--violet);
+  background: var(--jade);
 }
 
 .progress-sheet [data-band='shaky']:is(i, .swatch) {
@@ -4627,7 +4629,7 @@ label.field[data-invalid] input {
 
 .word-py {
   font-size: 13px;
-  color: var(--accent);
+  color: var(--py);
 }
 
 .word-open {
@@ -5201,7 +5203,7 @@ label.field[data-invalid] input {
 .question .py {
   display: block;
   font-size: 12px;
-  color: var(--accent);
+  color: var(--py);
 }
 
 .question .zh {
@@ -5761,4 +5763,48 @@ label.field[data-invalid] input {
 .spots-card p a:hover {
   color: var(--ink);
   text-decoration-color: currentColor;
+}
+
+/* -------------------------------------------------------- lists from texts */
+/* The lists texts made before shelves had their own, folded at the foot of
+   Lists to print until they are moved where they belong. */
+.from-texts {
+  margin: 22px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.from-texts summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 0;
+  list-style: none;
+  cursor: pointer;
+}
+
+.from-texts summary::-webkit-details-marker {
+  display: none;
+}
+
+.from-texts summary .grow {
+  display: grid;
+  gap: 2px;
+}
+
+.from-texts summary b {
+  font-weight: 600;
+}
+
+.from-texts[open] summary .icon {
+  transform: rotate(180deg);
+}
+
+.from-texts .tpl-grid {
+  margin-bottom: 12px;
+}
+
+.from-texts .page-foot {
+  margin: 0 0 16px;
 }

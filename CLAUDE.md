@@ -15,7 +15,7 @@ game docs especially are not background reading.
 |---|---|---|
 | 走走, the Beijing walking game (`/play/world`) | `src/world/`, `src/features/world/`, `content/world/`, `scripts/world/` | `src/world/CLAUDE.md` says what to read for which task |
 | Play mini-games and 点单 ordering | `src/games/`, `src/features/play/` | `src/games/README.md`; ordering: `docs/ordering-game/` |
-| Learn, Review, Stats, Videos, Today, the reader, words, pinyin | `src/features/<name>/`, `src/domain/` | the code; open items in `docs/backlog.md` |
+| Today, Read and its shelves, the text page, Cards, Learn, Review drills, Stats, Videos, words, pinyin | `src/features/<name>/` (Read and the text page are `reader/`), `src/domain/` | the code; open items in `docs/backlog.md`; adding a text from a photo: `docs/photo-to-text.md` |
 | Images and voices pipelines | `scripts/images/`, `scripts/voices/` | `scripts/images/README.md` |
 
 ## Environment (this Mac)
@@ -60,4 +60,6 @@ Several sessions edit and commit in this working tree on `main` at once.
 - UI in English; meanings in English.
 - Native recordings for anything that teaches pronunciation.
 - Check every screen at 375, 768 and 1024 px, light and dark.
-- Load the `hanzi-design` skill before styling any screen.
+- Load the `hanzi-design` skill before styling any screen: 练习本, blue ink for
+  actions, the red pen only for new and wrong, no uppercase labels, no emoji
+  icons, one primary button a screen.

@@ -41,7 +41,9 @@ import { RequireSession } from './RequireSession';
  * Every page, and the address it lives at.
  *
  *   /login  /register
- *   /review                        what is due, and the drills
+ *   /cards                         today's cards, how many a day, and the other ways to practise
+ *   /cards/session?n&shelf         one sitting of cards; ?shelf=<id> for one shelf's words
+ *   /review                        moved: the drills are on /cards
  *   /review/:drill?n=30            one sitting of one drill
  *   /review/sheets/:sheetId        marking a printed test sheet
  *   /review/sweep?band             sorting a band's words: known, not sure, new
@@ -52,12 +54,14 @@ import { RequireSession } from './RequireSession';
  *   /play?band                     the games, and the seals they have won
  *   /play/world?map&time           走走, the walk through Beijing (Phaser, loaded lazily)
  *   /play/:gameId?band&seed        one round of one game
- *   /collections?show              every collection, of characters and of texts, and the ready-made sets
+ *   /read                          where you stopped, every shelf, and search
+ *   /read/:setId?tab               one shelf: its texts, its words, its characters
+ *   /collections                   lists to print, and the ready-made sets (?show=texts goes to /read)
  *   /collections/build/:step       a word list written with Claude: describe, prompt, paste
  *   /collections/:id[/items|words] one collection: its design, what is in it, its words
- *   /texts                         moved: the texts are on /collections?show=texts
+ *   /texts                         moved: the texts are on /read
  *   /texts/session/:step           a writing session: plan, prompt, paste
- *   /texts/:sessionId?page&mode    a session: ?page=2 one text, ?mode=all every one
+ *   /texts/:sessionId?page&v&mode  a shelf read a text at a time: ?page=2, ?v=easy|book, ?mode=all
  *   /texts/:textId                 one passage — within a session, its page there
  *   /speaking                      pronunciation: the four tones and the twenty pairs
  *   /speaking/practice/:set        saying things out loud: pair-3-3, tone-2
