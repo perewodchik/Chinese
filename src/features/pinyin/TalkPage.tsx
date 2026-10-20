@@ -14,7 +14,7 @@ import {
   type TalkStatusResponse,
   type TalkVocab,
 } from '../../../shared/talk';
-import { openConversation, saveConversation, talkReply, talkStatus } from '../../api/talk';
+import { forConversation, openConversation, saveConversation, talkReply, talkStatus } from '../../api/talk';
 import { wordInventory } from '../../domain/words';
 import { paths } from '../../navigation/paths';
 import { micUnavailable, MIC_MESSAGE } from '../../platform/audio/mic';
@@ -134,7 +134,7 @@ export function TalkPage() {
         setTurns(c.turns.map((t, i) => ({ ...t, id: i + 1 })));
         return talkStatus(c.voice && c.voice !== SYSTEM ? c.voice : undefined);
       })
-      .then((s) => s && live && setStatus(s))
+      .then((s) => s && live && setStatus(forConversation(s)))
       .catch(() => {
         if (!live) return;
         setGone(true);
@@ -238,7 +238,9 @@ export function TalkPage() {
       void say(turn.hanzi, { mark: turn.id });
     } catch (e) {
       setError((e as Error).message);
-      void talkStatus().then(setStatus).catch(() => undefined);
+      void talkStatus()
+        .then((s) => setStatus(forConversation(s)))
+        .catch(() => undefined);
     } finally {
       setThinking(false);
     }

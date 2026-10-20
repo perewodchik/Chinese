@@ -1,6 +1,7 @@
 import type { DatabaseSync } from 'node:sqlite';
 import type { Stores } from '../../composition';
 import { SqliteConversationRepository } from './conversation-repository';
+import { SqliteRecordingRepository } from './recording-repository';
 import { SqliteSessionRepository } from './session-repository';
 import { SqliteUserRepository } from './user-repository';
 import { SqliteWorkspaceRepository } from './workspace-repository';
@@ -13,4 +14,5 @@ export const sqliteStores = (db: DatabaseSync): Stores => ({
   workspaces: new SqliteWorkspaceRepository(db),
   worldSaves: new SqliteWorldSaveRepository(db),
   conversations: new SqliteConversationRepository(db),
+  recordings: new SqliteRecordingRepository(db),
 });

@@ -67,4 +67,18 @@ export const MIGRATIONS: readonly string[] = [
     updated_at BIGINT NOT NULL
   );
   `,
+  // Sentences read aloud at home, for the website to play; see the SQLite migrations.
+  `
+  CREATE TABLE recordings (
+    key        TEXT PRIMARY KEY,
+    voice      TEXT NOT NULL,
+    voice_name TEXT NOT NULL,
+    gender     TEXT NOT NULL,
+    text       TEXT NOT NULL,
+    mp3        BYTEA NOT NULL,
+    created_at BIGINT NOT NULL
+  );
+
+  CREATE INDEX recordings_by_voice ON recordings (voice);
+  `,
 ];

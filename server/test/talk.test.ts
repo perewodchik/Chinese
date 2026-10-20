@@ -67,8 +67,13 @@ function stubVoices() {
   return { voices, warmed, asked };
 }
 
-function appWith(tutor: Tutor | null, talkVoices: TalkSynthesizer | null = null, clock: TestClock = new TestClock()) {
-  const services = createServices(sqliteStores(openDatabase(':memory:')), {
+function appWith(
+  tutor: Tutor | null,
+  talkVoices: TalkSynthesizer | null = null,
+  clock: TestClock = new TestClock(),
+  db = openDatabase(':memory:'),
+) {
+  const services = createServices(sqliteStores(db), {
     hasher: cheapHasher,
     clock,
     tutor,
@@ -183,6 +188,73 @@ describe('talking with Claude over HTTP', () => {
     // Anything else is somebody's stale link, not a fifth way of reading.
     await say('screaming');
     assert.equal(stub.asked.at(-1)!.mode, 'conversation');
+  });
+});
+
+describe('recordings of a text, for the website', () => {
+  const line = (t: string) => `/api/talk/audio?text=${encodeURIComponent(t)}&voice=chen&mode=teaching`;
+
+  it('keeps what home reads for a text, and the website plays it without the model', async () => {
+    const db = openDatabase(':memory:');
+    const stub = stubVoices();
+    const home = appWith(null, stub.voices, new TestClock(), db);
+    const cookie = await signedIn(home);
+    assert.equal((await call(home, 'GET', `${line('天空是蓝色的。')}&keep=1`, { cookie })).status, 200);
+    // A conversation's turn is read and let go.
+    assert.equal((await call(home, 'GET', line('你好！'), { cookie })).status, 200);
+
+    const site = appWith(null, null, new TestClock(), db);
+    const status = await call(site, 'GET', '/api/talk', { cookie });
+    assert.deepEqual(((await status.json()) as { voices: unknown }).voices, [
+      { id: 'chen', name: 'Chen', gender: 'male', recorded: true },
+    ]);
+    const kept = await call(site, 'GET', line('天空是蓝色的。'), { cookie });
+    assert.equal(kept.status, 200);
+    assert.equal(new TextDecoder().decode(await kept.arrayBuffer()), 'mp3:chen:teaching:天空是蓝色的。');
+    assert.equal((await call(site, 'GET', line('你好！'), { cookie })).status, 404);
+    // Played from the recording, not read again.
+    assert.equal(stub.asked.length, 2);
+
+    const res = await call(site, 'POST', '/api/talk/recorded', {
+      cookie,
+      body: { voice: 'chen', mode: 'teaching', texts: ['天空是蓝色的。', '你好！', ' 天空是蓝色的。 '] },
+    });
+    assert.deepEqual(await res.json(), { have: [true, false, true] });
+  });
+
+  it('offers the models, not the recordings, where the models are', async () => {
+    const db = openDatabase(':memory:');
+    const stub = stubVoices();
+    const home = appWith(null, stub.voices, new TestClock(), db);
+    const cookie = await signedIn(home);
+    await call(home, 'GET', `${line('一')}&keep=1`, { cookie });
+    const status = await call(home, 'GET', '/api/talk', { cookie });
+    assert.deepEqual(((await status.json()) as { voices: unknown }).voices, [{ id: 'chen', name: 'Chen', gender: 'male' }]);
+  });
+
+  it('records a shelf of texts once, sentence by sentence, and skips what is recorded', async () => {
+    const stub = stubVoices();
+    const { recordings } = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, talkVoices: stub.voices });
+    const said: string[] = [];
+    const texts = [
+      { title: '天', lines: ['天空是蓝色的。', '太阳很大。'] },
+      { title: '水', lines: ['太阳很大。', ' ', '水是蓝色的。'] },
+    ];
+    assert.deepEqual(await recordings.recordAll(texts, 'chen', (l) => said.push(l)), { recorded: 3, already: 1 });
+    assert.deepEqual(said, ['天: 2 of 2 sentences recorded', '水: 1 of 2 sentences recorded']);
+    assert.deepEqual(await recordings.recordAll(texts, 'chen', () => undefined), { recorded: 0, already: 4 });
+    assert.equal(stub.asked.length, 3);
+    assert.ok(stub.asked.every((a) => a.mode === 'teaching'));
+  });
+
+  it('asks about a passage only for somebody signed in, and only so many sentences at once', async () => {
+    const app = appWith(null);
+    assert.equal((await call(app, 'POST', '/api/talk/recorded', { body: { voice: 'chen', texts: [] } })).status, 401);
+    const cookie = await signedIn(app);
+    const many = Array.from({ length: 401 }, (_, i) => String(i));
+    assert.equal((await call(app, 'POST', '/api/talk/recorded', { cookie, body: { voice: 'chen', texts: many } })).status, 400);
+    const none = await call(app, 'POST', '/api/talk/recorded', { cookie, body: { voice: 'chen', texts: ['好'] } });
+    assert.deepEqual(await none.json(), { have: [false] });
   });
 });
 

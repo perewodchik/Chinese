@@ -326,6 +326,7 @@ var TALK_LENGTHS = ["short", "normal", "long"];
 var TALK_MODES = ["breakdown", "teaching", "conversation", "skim"];
 var TALK_TOPIC_MAX_CHARS = 60;
 var TALK_VOCAB_MAX = { known: 1e3, learning: 15 };
+var TALK_RECORDED_MAX = 400;
 var TALK_MAX_LINES = 40;
 var TALK_LINE_MAX_CHARS = 300;
 var TALK_TITLE_MAX_CHARS = 80;
@@ -390,6 +391,76 @@ var ConversationService = class {
   }
   async remove(userId, id) {
     if (!await this.conversations.delete(userId, id)) throw new NotFoundError("That conversation");
+  }
+};
+
+// server/src/application/recording-service.ts
+import { createHash } from "node:crypto";
+var recordingKey = (voice, mode, text) => createHash("sha256").update(`${voice}
+${mode}
+${text}`).digest("hex");
+var RecordingService = class {
+  constructor(deps) {
+    this.deps = deps;
+  }
+  /**
+   * The voices to offer. Where the models are on this machine, those: they
+   * read anything. Elsewhere, the voices something has been recorded in,
+   * marked as reading only what was recorded.
+   */
+  async voices() {
+    const live = this.deps.live?.voices ?? [];
+    if (live.length) return live;
+    return (await this.deps.recordings.voices()).map((v) => ({ ...v, recorded: true }));
+  }
+  /**
+   * One sentence as MP3: the recording if there is one, otherwise read now by
+   * the model — and kept, when `keep` says it is a sentence of a text rather
+   * than a turn of a conversation that will never be said again.
+   */
+  async read(text, voice, mode, keep) {
+    const key = recordingKey(voice, mode, text);
+    const kept = await this.deps.recordings.find(key);
+    if (kept) return kept;
+    const live = this.deps.live;
+    if (!live) throw new AppError("not_found", "This sentence has not been recorded in that voice yet.");
+    const info = live.voices.find((v) => v.id === voice);
+    if (!info) throw new ValidationError(`There is no voice called ${voice}.`);
+    let mp3;
+    try {
+      mp3 = await live.synthesize(text, voice, mode);
+    } catch {
+      throw new AppError("unavailable", "The voice did not answer. The system voice will have to do for now.");
+    }
+    if (keep) await this.deps.recordings.save({ key, voice: info, text, mp3, createdAt: this.deps.clock.now() });
+    return mp3;
+  }
+  /** For each sentence, whether it has been recorded in this voice. */
+  async have(voice, mode, texts) {
+    const keys = texts.map((t) => recordingKey(voice, mode, t.trim()));
+    const kept = await this.deps.recordings.have([...new Set(keys)]);
+    return keys.map((k) => kept.has(k));
+  }
+  /**
+   * Records every sentence of these passages that is not recorded in this
+   * voice yet. One at a time, as the model reads about as fast as it speaks:
+   * a shelf of texts is minutes. Says how far it has got after each passage.
+   */
+  async recordAll(passages, voice, say) {
+    let recorded = 0;
+    let already = 0;
+    for (const p of passages) {
+      const lines = [...new Set(p.lines.map((l) => l.trim()).filter(Boolean))];
+      const have = await this.have(voice, "teaching", lines);
+      const missing = lines.filter((_, i) => !have[i]);
+      already += lines.length - missing.length;
+      for (const line of missing) {
+        await this.read(line, voice, "teaching", true);
+        recorded += 1;
+      }
+      say(`${p.title}: ${missing.length ? `${missing.length} of ${lines.length} sentences recorded` : "recorded already"}`);
+    }
+    return { recorded, already };
   }
 };
 
@@ -516,11 +587,11 @@ function derive(password, salt, cost, length) {
 }
 
 // server/src/infrastructure/crypto/tokens.ts
-import { createHash, randomBytes as randomBytes2, randomUUID } from "node:crypto";
+import { createHash as createHash2, randomBytes as randomBytes2, randomUUID } from "node:crypto";
 var cryptoTokens = {
   // 256 bits: not something to guess, and base64url so it needs no escaping in a cookie.
   secret: () => randomBytes2(32).toString("base64url"),
-  digest: (secret) => createHash("sha256").update(secret).digest("base64url"),
+  digest: (secret) => createHash2("sha256").update(secret).digest("base64url"),
   id: () => randomUUID()
 };
 
@@ -546,7 +617,8 @@ function createServices(stores, options = {}) {
     clock,
     speech: options.speech ?? null,
     tutor: options.tutor ?? null,
-    talkVoices: options.talkVoices ?? null
+    talkVoices: options.talkVoices ?? null,
+    recordings: new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock })
   };
 }
 
@@ -712,7 +784,7 @@ var RateLimiter = class {
 };
 
 // server/src/http/routes/ask.ts
-import { createHash as createHash2 } from "node:crypto";
+import { createHash as createHash3 } from "node:crypto";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -752,7 +824,7 @@ function askRoutes({ auth, clock, trustProxy, tutor }) {
     const run = () => tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind] });
     let text;
     if (input.kind === "video") {
-      const key = createHash2("sha256").update(`${user}
+      const key = createHash3("sha256").update(`${user}
 ${input.prompt}`).digest("hex");
       const now = clock.now();
       for (const [k, v] of kept) if (now - v.at > KEEP_MS) kept.delete(k);
@@ -927,6 +999,11 @@ var savedTurn = z3.object({
   hints: z3.array(savedWord).max(10).optional(),
   note: z3.string().max(TALK_LINE_MAX_CHARS * 2).optional()
 });
+var recordedRequest = z3.object({
+  voice: z3.string().min(1).max(64),
+  mode: z3.enum(TALK_MODES).optional(),
+  texts: z3.array(z3.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
+});
 var startRequest = z3.object({
   options: talkOptions,
   voice: z3.string().max(64).nullable()
@@ -944,7 +1021,7 @@ var replyRequest = z3.object({
     learning: z3.array(z3.string().max(12)).max(TALK_VOCAB_MAX.learning)
   }).optional()
 });
-function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations }) {
+function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations, recordings }) {
   const routes = new Hono4();
   const session = requireSession(auth, { trustProxy, clock });
   const turns = new RateLimiter(120, 10 * 6e4, clock);
@@ -955,7 +1032,7 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations 
     talkVoices?.warm?.(c.req.query("voice"));
     const body = {
       claude: { state: tutor ? await tutor.status() : "missing" },
-      voices: talkVoices?.voices ?? []
+      voices: await recordings.voices()
     };
     return c.json(body);
   });
@@ -972,24 +1049,24 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations 
     return c.json(reply);
   });
   routes.get("/audio", session, async (c) => {
-    if (!talkVoices) throw new AppError("not_found", "No local voice is set up on this server.");
     const text = (c.req.query("text") ?? "").trim();
-    const voice = c.req.query("voice") ?? talkVoices.voices[0].id;
+    const voice = c.req.query("voice") ?? talkVoices?.voices[0]?.id;
     const asked = c.req.query("mode");
     const mode = TALK_MODES.includes(asked ?? "") ? asked : "conversation";
+    if (!voice) throw new AppError("not_found", "No local voice is set up on this server.");
     if (!text) throw new ValidationError("Nothing to say.");
     if ([...text].length > SPEECH_MAX_CHARS) throw new ValidationError(`At most ${SPEECH_MAX_CHARS} characters at a time.`);
-    if (!talkVoices.voices.some((v) => v.id === voice)) throw new ValidationError(`There is no voice called ${voice}.`);
     clips.consume(c.get("session").user.id);
-    let audio;
-    try {
-      audio = await talkVoices.synthesize(text, voice, mode);
-    } catch {
-      throw new AppError("unavailable", "The voice did not answer. The system voice will have to do for now.");
-    }
+    const audio = await recordings.read(text, voice, mode, c.req.query("keep") === "1");
     c.header("Content-Type", "audio/mpeg");
     c.header("Cache-Control", "private, max-age=31536000, immutable");
     return c.body(audio);
+  });
+  routes.post("/recorded", session, async (c) => {
+    const input = await readJson(c, recordedRequest);
+    c.header("Cache-Control", "no-store");
+    const body = { have: await recordings.have(input.voice, input.mode ?? "teaching", input.texts) };
+    return c.json(body);
   });
   routes.get("/conversations", session, async (c) => {
     c.header("Cache-Control", "no-store");
@@ -1508,6 +1585,20 @@ var MIGRATIONS = [
     save       TEXT NOT NULL,
     updated_at BIGINT NOT NULL
   );
+  `,
+  // Sentences read aloud at home, for the website to play; see the SQLite migrations.
+  `
+  CREATE TABLE recordings (
+    key        TEXT PRIMARY KEY,
+    voice      TEXT NOT NULL,
+    voice_name TEXT NOT NULL,
+    gender     TEXT NOT NULL,
+    text       TEXT NOT NULL,
+    mp3        BYTEA NOT NULL,
+    created_at BIGINT NOT NULL
+  );
+
+  CREATE INDEX recordings_by_voice ON recordings (voice);
   `
 ];
 
@@ -1672,6 +1763,38 @@ var PostgresConversationRepository = class {
   async delete(userId, id) {
     const result = await this.db.query("DELETE FROM conversations WHERE id = $1 AND user_id = $2", [id, userId]);
     return result.rowCount === 1;
+  }
+};
+
+// server/src/infrastructure/postgres/recording-repository.ts
+var PostgresRecordingRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async find(key) {
+    const { rows } = await this.db.query("SELECT mp3 FROM recordings WHERE key = $1", [key]);
+    const row = rows[0];
+    return row ? new Uint8Array(row.mp3) : null;
+  }
+  async have(keys) {
+    if (!keys.length) return /* @__PURE__ */ new Set();
+    const { rows } = await this.db.query("SELECT key FROM recordings WHERE key = ANY($1::text[])", [[...keys]]);
+    return new Set(rows.map((r) => r.key));
+  }
+  async save(r) {
+    await this.db.query(
+      `INSERT INTO recordings (key, voice, voice_name, gender, text, mp3, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (key) DO NOTHING`,
+      [r.key, r.voice.id, r.voice.name, r.voice.gender, r.text, Buffer.from(r.mp3), r.createdAt]
+    );
+  }
+  async voices() {
+    const { rows } = await this.db.query(
+      `SELECT voice, MIN(voice_name) AS voice_name, MIN(gender) AS gender
+       FROM recordings GROUP BY voice ORDER BY voice`
+    );
+    return rows.map((r) => ({ id: r.voice, name: r.voice_name, gender: r.gender === "male" ? "male" : "female" }));
   }
 };
 
@@ -1850,7 +1973,8 @@ var postgresStores = (db) => ({
   sessions: new PostgresSessionRepository(db),
   workspaces: new PostgresWorkspaceRepository(db),
   worldSaves: new PostgresWorldSaveRepository(db),
-  conversations: new PostgresConversationRepository(db)
+  conversations: new PostgresConversationRepository(db),
+  recordings: new PostgresRecordingRepository(db)
 });
 
 // server/src/vercel.ts

@@ -134,4 +134,17 @@ describe('Postgres storage', () => {
     const { rows } = await pool.query('SELECT COUNT(*)::int AS n FROM sessions WHERE user_id = $1', ['u3']);
     assert.equal((rows[0] as { n: number }).n, 0);
   });
+
+  it('keeps a recording as bytes, once, and says which keys it has', async () => {
+    const wang = { id: 'wang', name: 'Teacher Wang', gender: 'female' as const };
+    const mp3 = new Uint8Array([0xff, 0xfb, 0x90, 0x00, 0x01]);
+    await stores.recordings.save({ key: 'k1', voice: wang, text: '天空是蓝色的。', mp3, createdAt: T });
+    // A second recording under the same key leaves the first as it was.
+    await stores.recordings.save({ key: 'k1', voice: wang, text: '天空是蓝色的。', mp3: new Uint8Array([1]), createdAt: T + 1 });
+    assert.deepEqual(await stores.recordings.find('k1'), mp3);
+    assert.equal(await stores.recordings.find('k2'), null);
+    assert.deepEqual([...(await stores.recordings.have(['k1', 'k2']))], ['k1']);
+    assert.deepEqual([...(await stores.recordings.have([]))], []);
+    assert.deepEqual(await stores.recordings.voices(), [wang]);
+  });
 });

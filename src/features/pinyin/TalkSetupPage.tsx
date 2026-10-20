@@ -6,7 +6,7 @@ import {
   type TalkConversationSummary,
   type TalkStatusResponse,
 } from '../../../shared/talk';
-import { deleteConversation, listConversations, startConversation, talkStatus } from '../../api/talk';
+import { deleteConversation, forConversation, listConversations, startConversation, talkStatus } from '../../api/talk';
 import { paths } from '../../navigation/paths';
 import { useStore } from '../../store/store';
 import { Seg } from '../../ui/Seg';
@@ -63,7 +63,7 @@ export function TalkSetupPage() {
     // Naming the likely voice gets its model loading while the page is read.
     const likely = readPrefs().voice ?? 'chen';
     talkStatus(likely === SYSTEM ? undefined : likely)
-      .then((s) => live && setStatus(s))
+      .then((s) => live && setStatus(forConversation(s)))
       .catch(() => live && setStatus({ claude: { state: 'missing' }, voices: [] }));
     listConversations()
       .then((c) => live && setSaved(c))

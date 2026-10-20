@@ -147,9 +147,9 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   };
 
   /* -------------------------------------------------------- the voice */
-  const reading = useReading();
   const spoken = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
-  useEffect(() => prefetchPassage(spoken), [spoken, reading.voice]);
+  const reading = useReading(spoken);
+  useEffect(() => prefetchPassage(spoken, reading.voice), [spoken, reading.voice]);
   // Heard to the end is the Listen part done.
   useEffect(
     () =>

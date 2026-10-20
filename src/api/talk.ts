@@ -4,6 +4,7 @@ import type {
   TalkLine,
   TalkMode,
   TalkOptions,
+  TalkRecordedResponse,
   TalkReply,
   TalkSavedTurn,
   TalkStatusResponse,
@@ -17,6 +18,21 @@ import { request } from './http';
  */
 export function talkStatus(voice?: string): Promise<TalkStatusResponse> {
   return request<TalkStatusResponse>('GET', `/api/talk${voice ? `?voice=${encodeURIComponent(voice)}` : ''}`);
+}
+
+/**
+ * The status as a conversation sees it: the voices that can read anything.
+ * A recorded voice reads only the texts recorded in it, and Claude's answers
+ * are never among them.
+ */
+export const forConversation = (s: TalkStatusResponse): TalkStatusResponse => ({
+  ...s,
+  voices: s.voices.filter((v) => !v.recorded),
+});
+
+/** Which of these sentences are recorded in a voice, for a site that plays recordings rather than reading. */
+export function talkRecorded(voice: string, texts: string[]): Promise<TalkRecordedResponse> {
+  return request<TalkRecordedResponse>('POST', '/api/talk/recorded', { body: { voice, mode: 'teaching', texts } });
 }
 
 /** Claude's next turn. Slow by nature — Claude is writing — so it is given two minutes. */

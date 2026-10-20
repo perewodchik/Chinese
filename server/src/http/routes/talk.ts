@@ -6,11 +6,13 @@ import {
   TALK_LINE_MAX_CHARS,
   TALK_MAX_LINES,
   TALK_MODES,
+  TALK_RECORDED_MAX,
   TALK_SAVED_TURNS_MAX,
   TALK_TOPIC_MAX_CHARS,
   TALK_VOCAB_MAX,
   type TalkMode,
   type TalkOptions,
+  type TalkRecordedResponse,
   type TalkReply,
   type TalkSavedTurn,
   type TalkStatusResponse,
@@ -50,6 +52,12 @@ const savedTurn = z.object({
   note: z.string().max(TALK_LINE_MAX_CHARS * 2).optional(),
 });
 
+const recordedRequest = z.object({
+  voice: z.string().min(1).max(64),
+  mode: z.enum(TALK_MODES as [string, ...string[]]).optional(),
+  texts: z.array(z.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX),
+});
+
 const startRequest = z.object({
   options: talkOptions,
   voice: z.string().max(64).nullable(),
@@ -80,7 +88,9 @@ const replyRequest = z.object({
  *
  *   GET    /api/talk?voice=chen   whether Claude can be asked from here, and the voices that can read its answers
  *   POST   /api/talk/reply        { lines, options } → Claude's next turn
- *   GET    /api/talk/audio?text&voice&mode=teaching   an MP3 of one turn, in a local voice
+ *   GET    /api/talk/audio?text&voice&mode=teaching&keep=1   an MP3 of one sentence: its recording, or a
+ *                                                     local voice reading it now (and, with keep, recording it)
+ *   POST   /api/talk/recorded     { voice, mode, texts } → which of these sentences are recorded in that voice
  *
  * and the conversations that are kept, so one can be come back to:
  *
@@ -94,7 +104,7 @@ const replyRequest = z.object({
  * several seconds it takes are spent while the learner is still reading the
  * page rather than after their first sentence.
  */
-export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations }: RouteDeps) {
+export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations, recordings }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // Far more than anyone talking will reach, and a stop to a page stuck in a loop
@@ -109,7 +119,7 @@ export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, convers
     talkVoices?.warm?.(c.req.query('voice'));
     const body: TalkStatusResponse = {
       claude: { state: tutor ? await tutor.status() : 'missing' },
-      voices: talkVoices?.voices ?? [],
+      voices: await recordings.voices(),
     };
     return c.json(body);
   });
@@ -128,25 +138,28 @@ export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, convers
   });
 
   routes.get('/audio', session, async (c) => {
-    if (!talkVoices) throw new AppError('not_found', 'No local voice is set up on this server.');
     const text = (c.req.query('text') ?? '').trim();
-    const voice = c.req.query('voice') ?? talkVoices.voices[0]!.id;
+    const voice = c.req.query('voice') ?? talkVoices?.voices[0]?.id;
     const asked = c.req.query('mode');
     const mode = (TALK_MODES as readonly string[]).includes(asked ?? '') ? (asked as TalkMode) : 'conversation';
+    if (!voice) throw new AppError('not_found', 'No local voice is set up on this server.');
     if (!text) throw new ValidationError('Nothing to say.');
     if ([...text].length > SPEECH_MAX_CHARS) throw new ValidationError(`At most ${SPEECH_MAX_CHARS} characters at a time.`);
-    if (!talkVoices.voices.some((v) => v.id === voice)) throw new ValidationError(`There is no voice called ${voice}.`);
 
     clips.consume(c.get('session').user.id);
-    let audio: Uint8Array;
-    try {
-      audio = await talkVoices.synthesize(text, voice, mode);
-    } catch {
-      throw new AppError('unavailable', 'The voice did not answer. The system voice will have to do for now.');
-    }
+    // A sentence of a text is kept as it is read, for the website to play;
+    // a turn of a conversation is never asked for twice.
+    const audio = await recordings.read(text, voice, mode, c.req.query('keep') === '1');
     c.header('Content-Type', 'audio/mpeg');
     c.header('Cache-Control', 'private, max-age=31536000, immutable');
     return c.body(audio as Uint8Array<ArrayBuffer>);
+  });
+
+  routes.post('/recorded', session, async (c) => {
+    const input = await readJson(c, recordedRequest);
+    c.header('Cache-Control', 'no-store');
+    const body: TalkRecordedResponse = { have: await recordings.have(input.voice, (input.mode as TalkMode | undefined) ?? 'teaching', input.texts) };
+    return c.json(body);
   });
 
   // Kept conversations. The page saves the whole thread after each turn, so

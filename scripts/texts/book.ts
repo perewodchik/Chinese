@@ -17,6 +17,10 @@
  *   npm run texts -- add <reply.json> --new-set <name> …
  *       a session by that name is reused when there is one, so nothing is made twice
  *   --adapted: the passages are Claude's simpler retelling of the book's, not the book's own
+ *   npm run texts -- record [--voice wang] [--set <id or name>]
+ *       reads every text's sentences aloud in one of the app's voices and keeps the
+ *       recordings, so the website plays the text in that voice (on the Mac only:
+ *       the voices are models on it, set up once by `npm run voices`)
  *
  * Which account, and where it lives: with HANZI_SITE (plus HANZI_PASSWORD) it
  * signs in to the deployed site over HTTPS — the way from a cloud session,
@@ -35,6 +39,7 @@ import { createServices } from '../../server/src/composition';
 import { describeDatabase, loadConfig, loadEnvFile } from '../../server/src/config';
 import { RevisionConflictError } from '../../server/src/domain/errors';
 import { SESSION_COOKIE } from '../../server/src/http/request';
+import { localVoicesFromEnv } from '../../server/src/infrastructure/local-voices';
 import { openStores } from '../../server/src/infrastructure/stores';
 import { API, type ApiErrorBody, type SaveWorkspaceRequest, type WorkspaceDto } from '../../shared/api';
 import { usernameKey } from '../../shared/credentials';
@@ -340,6 +345,49 @@ export function addBookTexts(doc: Doc, reply: string, o: BookOptions): BookResul
   };
 }
 
+/* ------------------------------------------------------------ the voice */
+
+/**
+ * Every text on the shelf, read aloud once in one of the app's own voices and
+ * kept in the database the site uses — newest first, so the text being read
+ * this week is ready first. Safari will not let a web page use the natural
+ * voices downloaded in Settings, so this is how a text sounds like a person
+ * on the iPhone. Sentences already recorded are skipped, so running it again
+ * after adding a text records only that text.
+ */
+async function record(o: { voice?: string; set?: string }) {
+  loadEnvFile();
+  const env = process.env;
+  const live = localVoicesFromEnv(env, process.cwd());
+  if (!live) throw new Error('The voices are not on this computer. This runs on the Mac that ran `npm run voices`.');
+  const voice = live.voices.find((v) => v.id === (o.voice ?? 'wang')) ?? (o.voice ? null : live.voices[0]);
+  if (!voice) throw new Error(`There is no voice “${o.voice}”. These are: ${live.voices.map((v) => v.id).join(', ')}.`);
+  if (![env.HANZI_DB, env.POSTGRES_URL, env.DATABASE_URL].some((v) => v?.trim())) throw new Error(SETUP);
+  const config = loadConfig(env, { port: 4173, serveStatic: false });
+  const { stores, close } = await openStores(config.database);
+  try {
+    const user = env.HANZI_USER?.trim() || 'admin';
+    const found = await stores.users.findByUsernameKey(usernameKey(user));
+    if (!found) throw new Error(`No account “${user}” in ${describeDatabase(config.database)}.`);
+    const services = createServices(stores, { talkVoices: live });
+    const { document } = await services.workspaces.get(found.id);
+    if (!isDoc(document)) throw new Error(`${found.username} has never saved anything.`);
+    const { texts, sets } = shelfOf(document);
+    const set = o.set ? sets.find((s) => s.id === o.set || s.name === o.set) : null;
+    if (o.set && !set) throw new Error(`No reading session “${o.set}”.`);
+    const passages = texts
+      .filter((t) => !set || t.setId === set.id)
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map((t) => ({ title: t.titleZh || t.title, lines: t.lines.map((l) => l.zh) }));
+    console.log(`\n  ${passages.length} texts of ${found.username}'s, in ${voice.name}, into ${describeDatabase(config.database)}.\n`);
+    const { recorded, already } = await services.recordings.recordAll(passages, voice.id, (line) => console.log(`  ${line}`));
+    console.log(`\n  ${recorded} sentences recorded; ${already} were already.\n`);
+  } finally {
+    live.close();
+    await close();
+  }
+}
+
 /* ------------------------------------------------------------ an account */
 
 interface Account {
@@ -441,6 +489,7 @@ const USAGE = `
   npm run texts -- check <reply.json> [--adapted]
   npm run texts -- add <reply.json> --set <id or name> [--source <book>] [--genre <genre>] [--adapted] [--dry-run]
   npm run texts -- add <reply.json> --new-set <name> [--source <book>] [--genre <genre>] [--adapted] [--dry-run]
+  npm run texts -- record [--voice wang] [--set <id or name>]    on the Mac: the texts, read aloud for the site
 `;
 
 const percent = (r: number) => `${Math.round(r * 100)}%`;
@@ -478,9 +527,14 @@ async function main(argv: string[]) {
       genre: { type: 'string', default: 'description' },
       adapted: { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
+      voice: { type: 'string' },
     },
   });
 
+  if (command === 'record') {
+    await record({ voice: values.voice, set: values.set });
+    return;
+  }
   if (command !== 'sets' && command !== 'check' && command !== 'add') {
     console.log(USAGE);
     if (command) process.exitCode = 1;

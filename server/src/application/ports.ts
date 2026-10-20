@@ -81,6 +81,31 @@ export interface ConversationRepository {
   delete(userId: string, id: string): Promise<boolean>;
 }
 
+/**
+ * A sentence read aloud once, by a model on the home computer, and kept: the
+ * website has no model, and plays the passage from these instead. One row a
+ * sentence, voice and way of reading, whoever asked for it — a recording of
+ * 天空是蓝色的 is the same recording for everybody.
+ */
+export interface Recording {
+  /** the voice, the mode and the text, digested (recordings.ts) */
+  key: string;
+  voice: VoiceInfo;
+  text: string;
+  mp3: Uint8Array;
+  createdAt: number;
+}
+
+export interface RecordingRepository {
+  find(key: string): Promise<Uint8Array | null>;
+  /** which of these keys are kept */
+  have(keys: readonly string[]): Promise<Set<string>>;
+  /** keeps it; a recording already kept under the key stays as it is */
+  save(recording: Recording): Promise<void>;
+  /** every voice anything is kept in */
+  voices(): Promise<VoiceInfo[]>;
+}
+
 export interface PasswordHasher {
   hash(password: string): Promise<string>;
   verify(password: string, hash: string): Promise<boolean>;

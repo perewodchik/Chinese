@@ -209,6 +209,18 @@ already on the shelf (same title, same first line) is left alone and said so.
 It saves the way a device does, so an iPad open at the time keeps its own
 changes and picks these up on its next sync.
 
+Then, on the Mac only (it needs the voice models, set up by `npm run voices`),
+read the new texts aloud for the site:
+
+```bash
+npm run -s texts -- record --set <session id>
+```
+
+Safari offers a web page only the device's robotic voice, so this is how the
+iPhone hears the text in Teacher Wang's voice (`--voice` picks another).
+Sentences already recorded are skipped. From a cloud session there are no
+models: say in the report that the text still needs recording on the Mac.
+
 ## 8. The report
 
 Short, in the learner's language: the session, then per passage — the easier

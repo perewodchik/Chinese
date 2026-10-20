@@ -1,9 +1,11 @@
 import { AuthService, DEFAULT_AUTH_POLICY, type AuthPolicy } from './application/auth-service';
 import { ConversationService } from './application/conversation-service';
+import { RecordingService } from './application/recording-service';
 import type {
   Clock,
   ConversationRepository,
   PasswordHasher,
+  RecordingRepository,
   SessionRepository,
   SpeechSynthesizer,
   TalkSynthesizer,
@@ -31,6 +33,8 @@ export interface Services {
   tutor: Tutor | null;
   /** voices that can read any sentence — for Claude's answers — where the models are on this machine */
   talkVoices: TalkSynthesizer | null;
+  /** those voices again, as recordings the website can play where the models are not */
+  recordings: RecordingService;
 }
 
 /** Where each kind of record is kept. */
@@ -40,6 +44,7 @@ export interface Stores {
   workspaces: WorkspaceRepository;
   worldSaves: WorldSaveRepository;
   conversations: ConversationRepository;
+  recordings: RecordingRepository;
 }
 
 /**
@@ -82,5 +87,6 @@ export function createServices(
     speech: options.speech ?? null,
     tutor: options.tutor ?? null,
     talkVoices: options.talkVoices ?? null,
+    recordings: new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock }),
   };
 }

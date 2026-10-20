@@ -143,13 +143,33 @@ export interface TalkVoice {
   id: string;
   name: string;
   gender: 'female' | 'male';
+  /**
+   * true where the voice is only recordings — the website, which has no
+   * model: it reads the sentences recorded in it at home and nothing else.
+   * Ask /api/talk/recorded which those are.
+   */
+  recorded?: boolean;
 }
 
 export interface TalkStatusResponse {
   claude: { state: ClaudeState };
-  /** voices the server can read any sentence with; none where it has no local model */
+  /** voices the server can read sentences with: any sentence where it has the models, recorded ones elsewhere */
   voices: TalkVoice[];
 }
+
+/** Which of a passage's sentences are recorded in a voice. */
+export interface TalkRecordedRequest {
+  voice: string;
+  mode?: TalkMode;
+  texts: string[];
+}
+
+export interface TalkRecordedResponse {
+  have: boolean[];
+}
+
+/** How many sentences one question about recordings may name. */
+export const TALK_RECORDED_MAX = 400;
 
 /** A conversation longer than this is cut to its last lines: enough context, and a prompt that stays small. */
 export const TALK_MAX_LINES = 40;

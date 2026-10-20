@@ -865,6 +865,17 @@ live voices are used for the conversation only: in the rest of the section a
 word without a pack clip falls back to the system voice on purpose, because its
 machine clip failed the tone check.
 
+**Texts in a person's voice, on the iPhone too.** Safari gives a web page only
+the voice the system ships with — a voice downloaded in Settings, Premium or
+not, works in Live Speech and never reaches the page (WebKit bugs 250665 and
+290497). So a text's sentences are read once by the models at home and kept
+in the database (`recordings`), and the website plays those. Listening to a
+text on the Mac records it as it plays; `npm run texts -- record [--voice wang]
+[--set <session>]` records every text on the shelf in one go, newest first,
+skipping what is there — a minute or so a text. Listen starts a recorded text
+in the recorded voice unless another has been chosen, and says when a voice
+has recordings but not of this text.
+
 **Every voice has a face.** Talking to a voice with no face is talking to a
 loudspeaker: you wait for it rather than answer it. So each voice is drawn as a
 portrait — Chen, the native speaker who reads the syllables, and a little

@@ -446,9 +446,13 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  min-height: 36px;
   margin-bottom: 10px;
 }
 
+.rd-voice-note {
+  margin: -4px 0 10px;
+}
 
 .rd-listen,
 .rd-pairs,

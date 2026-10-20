@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { TalkVoice } from '../../../shared/talk';
-import { talkStatus } from '../../api/talk';
+import { talkRecorded, talkStatus } from '../../api/talk';
 import {
   canSpeak,
   chineseVoice,
@@ -23,6 +23,13 @@ import {
  * one to imitate, and the models on this computer — the same ones that read
  * Claude's half of a conversation — which sound like a person and exist only
  * where `npm run voices` has been run.
+ *
+ * The website has no models, and Safari offers it only the device's robotic
+ * voice. So what the models read for a text at home is kept, and the website
+ * plays those recordings: a recorded voice reads the texts recorded in it and
+ * nothing else, and is offered for a passage only when every sentence of it
+ * is there. Where one is, it is the voice a passage starts in, unless the
+ * learner has chosen another.
  *
  * The choice is the learner's and it sticks, because it is a preference about
  * how they read rather than something about this passage. It is kept on the
@@ -57,9 +64,11 @@ function stored(): string | null {
 
 /**
  * The chosen voice, one for the page. Every passage's button shows it and
- * every passage reads with it; changing it in one changes it in all.
+ * every passage reads with it; changing it in one changes it in all. Null
+ * until the learner chooses: then a recorded voice where the passage has one,
+ * and the device's otherwise.
  */
-let chosen: string = stored() ?? SYSTEM_VOICE;
+let chosen: string | null = stored();
 const choosers = new Set<(id: string) => void>();
 
 /**
@@ -70,9 +79,25 @@ const choosers = new Set<(id: string) => void>();
  */
 let known: Promise<TalkVoice[]> | null = null;
 const localVoices = () =>
-  (known ??= talkStatus(chosen === SYSTEM_VOICE ? undefined : chosen)
+  (known ??= talkStatus(chosen === SYSTEM_VOICE || chosen === null ? undefined : chosen)
     .then((s) => s.voices)
     .catch(() => []));
+
+/**
+ * Which sentences each voice has, asked once a sentence and kept for the
+ * page: `voice|sentence` → whether it can be played. A voice that reads
+ * anything is not asked about; it has them all.
+ */
+const recorded = new Map<string, boolean>();
+
+async function hasPassage(voice: string, lines: string[]): Promise<boolean> {
+  const unknown = [...new Set(lines.filter((l) => !recorded.has(`${voice}|${l}`)))];
+  if (unknown.length) {
+    const { have } = await talkRecorded(voice, unknown);
+    unknown.forEach((l, i) => recorded.set(`${voice}|${l}`, have[i] === true));
+  }
+  return lines.every((l) => recorded.get(`${voice}|${l}`));
+}
 
 /* ------------------------------------------------------------ the clips */
 
@@ -93,7 +118,8 @@ function clip(text: string, voice: string): Promise<string> {
   const key = `${voice}|${text}`;
   let p = clips.get(key);
   if (!p) {
-    const q = new URLSearchParams({ text, voice, mode: 'teaching' });
+    // keep: a sentence of a text, read by a model at home, is recorded for the website.
+    const q = new URLSearchParams({ text, voice, mode: 'teaching', keep: '1' });
     p = fetch(`/api/talk/audio?${q}`, { credentials: 'same-origin' })
       .then((r) => {
         if (!r.ok) throw new Error(`voice ${r.status}`);
@@ -115,9 +141,9 @@ function clip(text: string, voice: string): Promise<string> {
  * asks for them. Listen waits for the whole passage (see `start`), so every
  * sentence made while the title is being read is a second less to wait.
  */
-export function prefetchPassage(lines: string[]) {
-  if (chosen === SYSTEM_VOICE) return;
-  for (const line of lines) void clip(line, chosen).catch(() => undefined);
+export function prefetchPassage(lines: string[], voice: string) {
+  if (voice === SYSTEM_VOICE) return;
+  for (const line of lines) void clip(line, voice).catch(() => undefined);
 }
 
 /**
@@ -346,13 +372,21 @@ export interface Reading extends ReadingState {
   stop: () => void;
   /** the device's own voice in use, by name — "Lili (Premium)" */
   systemName: string | null;
-  /** every voice that can read the passage here: the device's Mandarin voices, then the server's */
+  /** every voice that can read the passage here: a recorded person's voice, the device's Mandarin voices, the server's models */
   choices: Array<{ key: string; name: string; active: boolean; pick: () => void }>;
+  /** a voice the website has recordings in, but not of this passage: its name */
+  notRecorded: string | null;
 }
 
-export function useReading(): Reading {
+/**
+ * The player for one passage, `passage` being its sentences: which voices can
+ * read all of it, and the one it reads in.
+ */
+export function useReading(passage?: string[]): Reading {
   /** null until the server has said which models it has */
   const [voices, setVoices] = useState<TalkVoice[] | null>(null);
+  /** the server's voices with every sentence of this passage recorded; null until asked */
+  const [covering, setCovering] = useState<Set<string> | null>(null);
   const [system, setSystem] = useState(canSpeak);
   /** bumped when the device's voices arrive or one is chosen, so the names are read again */
   const [deviceTick, setDeviceTick] = useState(0);
@@ -379,14 +413,43 @@ export function useReading(): Reading {
     };
   }, []);
 
+  useEffect(() => {
+    if (!voices || !passage?.length) {
+      setCovering(voices ? new Set() : null);
+      return;
+    }
+    let live = true;
+    void Promise.all(
+      voices.map((v) =>
+        hasPassage(v.id, passage).then(
+          (all) => (all ? v.id : null),
+          () => null,
+        ),
+      ),
+    ).then((ids) => live && setCovering(new Set(ids.filter((id): id is string => id !== null))));
+    return () => {
+      live = false;
+    };
+  }, [voices, passage]);
+
   // Leaving the passage, or opening the next one, stops the voice with it.
   useEffect(() => hushReading, []);
 
-  // A voice remembered from a machine that had the models, opened on one that
-  // does not, would be a button promising a voice nothing can play. But only
-  // once the list is in: before that, the remembered voice is the one meant.
+  // A voice that reads anything can read this; a recorded one only if all of
+  // it was recorded. A voice remembered from a machine that had the models,
+  // opened on one that does not, would be a button promising a voice nothing
+  // can play — so the remembered voice stands only while it can play this
+  // passage, and before the server has answered, when it is the one meant.
+  const playable = (voices ?? []).filter((v) => !v.recorded || covering?.has(v.id));
+  const recordedHere = (voices ?? []).find((v) => covering?.has(v.id));
   const usable =
-    voice === SYSTEM_VOICE || voices === null || voices.some((v) => v.id === voice) ? voice : SYSTEM_VOICE;
+    voices === null || covering === null
+      ? (voice ?? SYSTEM_VOICE)
+      : voice === SYSTEM_VOICE
+        ? SYSTEM_VOICE
+        : voice !== null && playable.some((v) => v.id === voice)
+          ? voice
+          : (recordedHere?.id ?? SYSTEM_VOICE);
 
   const setVoice = useCallback((id: string) => {
     hushReading();
@@ -402,7 +465,10 @@ export function useReading(): Reading {
   }, []);
 
   const device = chineseVoice();
+  const server = (v: TalkVoice) => ({ key: v.id, name: v.name, active: usable === v.id, pick: () => setVoice(v.id) });
+  // A person's voice first where there is one for this passage, then the device's.
   const choices = [
+    ...playable.filter((v) => covering?.has(v.id)).map(server),
     ...chineseVoices().map((v) => ({
       key: `device:${v.voiceURI}`,
       name: voiceLabel(v),
@@ -413,7 +479,7 @@ export function useReading(): Reading {
         setDeviceTick((n) => n + 1);
       },
     })),
-    ...(voices ?? []).map((v) => ({ key: v.id, name: v.name, active: usable === v.id, pick: () => setVoice(v.id) })),
+    ...playable.filter((v) => !covering?.has(v.id)).map(server),
   ];
   void deviceTick;
 
@@ -421,6 +487,7 @@ export function useReading(): Reading {
     ...now,
     systemName: device ? voiceLabel(device) : null,
     choices,
+    notRecorded: (voices ?? []).find((v) => v.recorded && covering && !covering.has(v.id))?.name ?? null,
     voices: voices ?? [],
     system,
     voice: usable,

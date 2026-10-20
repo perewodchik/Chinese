@@ -65,4 +65,22 @@ export const MIGRATIONS: readonly string[] = [
     updated_at INTEGER NOT NULL
   ) STRICT;
   `,
+  // Sentences read aloud by a model on the home computer, kept for the
+  // website, which has none: a text's Listen plays them in that voice. Not
+  // anybody's in particular — the same sentence in the same voice is the
+  // same recording — so there is no user column, and nothing to delete with
+  // an account.
+  `
+  CREATE TABLE recordings (
+    key        TEXT PRIMARY KEY,
+    voice      TEXT NOT NULL,
+    voice_name TEXT NOT NULL,
+    gender     TEXT NOT NULL,
+    text       TEXT NOT NULL,
+    mp3        BLOB NOT NULL,
+    created_at INTEGER NOT NULL
+  ) STRICT;
+
+  CREATE INDEX recordings_by_voice ON recordings (voice);
+  `,
 ];

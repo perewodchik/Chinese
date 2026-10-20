@@ -162,14 +162,18 @@ export function ListenPart({
         </div>
       </div>
 
-      {reading.choices.length > 1 && (
-        <div className="rd-voices" role="radiogroup" aria-label="Voice">
-          {reading.choices.map((v) => (
-            <button key={v.key} role="radio" aria-checked={v.active} className="chip" aria-pressed={v.active} onClick={v.pick}>
-              {v.name}
-            </button>
-          ))}
-        </div>
+      {/* The row is there from the start: the voices arrive a moment after the page, and the lines below should not jump. */}
+      <div className="rd-voices" role="radiogroup" aria-label="Voice">
+        {reading.choices.map((v) => (
+          <button key={v.key} role="radio" aria-checked={v.active} className="chip" aria-pressed={v.active} onClick={v.pick}>
+            {v.name}
+          </button>
+        ))}
+      </div>
+      {reading.notRecorded && (
+        <p className="tiny muted rd-voice-note">
+          {reading.notRecorded} has not recorded this text yet. On the Mac: npm run texts -- record
+        </p>
       )}
 
       <ol className="rd-listen">
