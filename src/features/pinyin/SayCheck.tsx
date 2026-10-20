@@ -8,6 +8,7 @@ import { useLibrary } from '../shared/library';
 import { RecordButton } from './RecordButton';
 import { say } from '../../platform/audio/voiceOut';
 import { useRecorder } from './useRecorder';
+import { Icon } from '../../ui/Icon';
 
 /**
  * One word to say, and what came out.
@@ -73,7 +74,7 @@ export function SayCheck({ word, onResult }: { word: SaidWord; onResult?: (r: He
       {recognises ? (
         <div className="speak-controls">
           <button className="btn speak-side" onClick={() => void say(word.word, { slow: true })}>
-            <span aria-hidden>🔊</span> Listen
+            <Icon name="sound" size={18} /> Listen
           </button>
           <button className="btn primary say-go" disabled={busy || !!blocked} onClick={() => void listen()}>
             {busy ? 'Listening…' : 'Say it'}
@@ -84,7 +85,7 @@ export function SayCheck({ word, onResult }: { word: SaidWord; onResult?: (r: He
         <>
           <div className="speak-controls">
             <button className="btn speak-side" onClick={() => void say(word.word, { slow: true })}>
-              <span aria-hidden>🔊</span> Listen
+              <Icon name="sound" size={18} /> Listen
             </button>
             <RecordButton state={rec.state} level={rec.level} onToggle={rec.toggle} disabled={!!blocked} />
             <button className="btn speak-side" disabled={!mine} onClick={() => mine && rec.play(mine)}>

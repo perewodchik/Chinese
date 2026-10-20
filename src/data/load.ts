@@ -35,6 +35,8 @@ export function loadLibrary(): Promise<Library> {
       json<{ items: Theme[] }>('/data/themes.json'),
       json<StrokeMap>('/data/strokes-core.json'),
     ]);
+    const byWord = new Map(words.items.map((w) => [w.w, w]));
+    leadWithUse(chars.items, byWord);
     return {
       characters: chars.items,
       components: chars.components ?? {},
@@ -42,7 +44,7 @@ export function loadLibrary(): Promise<Library> {
       strokes,
       byChar: new Map(chars.items.map((c) => [c.c, c])),
       words: words.items,
-      byWord: new Map(words.items.map((w) => [w.w, w])),
+      byWord,
     };
   })();
   // A failed load is not cached, so trying again tries again.
@@ -50,6 +52,22 @@ export function loadLibrary(): Promise<Library> {
     cached = null;
   });
   return cached;
+}
+
+/**
+ * A character's meaning as it is used today, where the syllabus has it as a
+ * word on its own at the same level: 穿 is "to wear", not the dictionary's
+ * first "to drill, to pierce"; 呢 is a question particle, not "wool"; 周 is a
+ * week, not a dynasty. The character dictionary orders senses by history, and
+ * the first sense is the one every card, list and drill shows. Where the word
+ * comes only at a later level (中 as "within" at HSK 3), the character's own
+ * reading stands.
+ */
+export function leadWithUse(chars: CharacterEntry[], byWord: ReadonlyMap<string, SyllabusWord>) {
+  for (const c of chars) {
+    const w = byWord.get(c.c);
+    if (w?.d && w.hsk && c.hsk && w.hsk <= c.hsk) c.def = w.d;
+  }
 }
 
 /**

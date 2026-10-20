@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { canSpeak, onVoicesReady } from '../platform/speech';
 import { canPronounce, say } from '../platform/audio/voiceOut';
+import { Icon } from './Icon';
 
 /**
  * A speaker you can click, which disappears when there is nothing to click it
@@ -51,7 +52,7 @@ export function Say({
         void say(text);
       }}
     >
-      🔊
+      <Icon name="sound" size={size === 'lg' ? 22 : 15} />
     </button>
   );
 }

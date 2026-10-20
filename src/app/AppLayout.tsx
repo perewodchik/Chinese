@@ -190,7 +190,7 @@ function MoreSheet({ onClose }: { onClose: () => void }) {
             <Icon name="chevron" className="muted" />
           </Link>
           <div className="row more-sync">
-            <SyncIndicator />
+            <SyncIndicator quiet />
             <span className="spacer" />
             <button className="btn quiet sm" onClick={() => void leave()} disabled={leaving}>
               {leaving ? 'Signing out…' : 'Sign out'}

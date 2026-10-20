@@ -10,6 +10,7 @@ import { SayCheck } from './SayCheck';
 import { hearKey, record, recentScore, sayKey, usePinyinMemory } from './voice';
 import { anyVoiceFor, say } from '../../platform/audio/voiceOut';
 import './pinyin.css';
+import { Icon } from '../../ui/Icon';
 
 type Step = 'learn' | 'hear' | 'say';
 const STEPS: Array<{ id: Step; label: string }> = [
@@ -70,7 +71,7 @@ function Learn({ lesson, onNext }: { lesson: SoundLesson; onNext: () => void }) 
               <span className="note-example">
                 <span className="hanzi">{n.example.word}</span> <span className="note-py">{n.example.reading}</span>
                 <button className="say" aria-label={`Hear ${n.example.word}`} onClick={() => void say(n.example.word, { slow: true })}>
-                  🔊
+                  <Icon name="sound" size={20} />
                 </button>
               </span>
             </header>
@@ -236,7 +237,7 @@ function Hear({ lesson, onNext }: { lesson: SoundLesson; onNext: () => void }) {
         Which one did you hear?
       </p>
       <button className="btn hear-again" onClick={play}>
-        <span aria-hidden>🔊</span> Play again
+        <Icon name="sound" size={18} /> Play again
       </button>
       <div className="choice-row">{[option('a', 1), option('b', 2)]}</div>
       {picked && (
@@ -247,10 +248,10 @@ function Hear({ lesson, onNext }: { lesson: SoundLesson; onNext: () => void }) {
           </p>
           <div className="row" style={{ justifyContent: 'center' }}>
             <button className="btn" onClick={() => void say(round.pair.a.word)}>
-              <span aria-hidden>🔊</span> {round.pair.a.word}
+              <Icon name="sound" size={18} /> {round.pair.a.word}
             </button>
             <button className="btn" onClick={() => void say(round.pair.b.word)}>
-              <span aria-hidden>🔊</span> {round.pair.b.word}
+              <Icon name="sound" size={18} /> {round.pair.b.word}
             </button>
             <button className="btn primary" onClick={next}>
               Next <span className="key-hint tiny">↵</span>

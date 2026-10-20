@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { planCards, planShelf, SECONDS_PER_CARD, type CardPlan } from '../../domain/cards';
 import { checkPinyin, type PinyinCheck } from '../../domain/exercises/check';
-import { itemInfo, type ItemInfo } from '../../domain/exercises/items';
+import { itemInfo, senses, type ItemInfo } from '../../domain/exercises/items';
 import { charId, idValue, isCharId } from '../../domain/ids';
 import { firstSense } from '../../domain/library';
 import { wordInfo } from '../../domain/words';
@@ -267,7 +267,7 @@ function OneCard({ card, info, onAnswer }: { card: Card; info: ItemInfo | null; 
         <span className="cs-py">{inWord ? (wordInfo(lib, inWord.w)?.py ?? info.py) : info.py}</span>
         <Say text={shown} size="lg" />
       </div>
-      <p className="cs-meaning">{inWord ? inWord.d : info.gloss}</p>
+      <p className="cs-meaning">{senses(inWord ? inWord.d : info.def)}</p>
       {[...shown].length > 1 && (
         <ul className="cs-chars">
           {[...shown].map((c, i) => {
@@ -286,7 +286,6 @@ function OneCard({ card, info, onAnswer }: { card: Card; info: ItemInfo | null; 
           })}
         </ul>
       )}
-      {context?.en && <p className="cs-context-en">{context.en}</p>}
     </div>
   );
 
@@ -347,6 +346,8 @@ function OneCard({ card, info, onAnswer }: { card: Card; info: ItemInfo | null; 
             <p className="hanzi cs-context-zh">
               <Marked zh={context.zh} mark={shown} />
             </p>
+            {/* The sentence's English goes with the sentence, and only once the card is turned. */}
+            {open && context.en && <p className="cs-context-en">{context.en}</p>}
             <p className="tiny muted">{context.from}</p>
           </div>
         )}

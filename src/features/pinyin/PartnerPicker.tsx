@@ -8,6 +8,7 @@ import { Modal } from '../../ui/Modal';
 import { Portrait } from './Portrait';
 import { readPrefs, writePrefs } from './talkPrefs';
 import { hush, playBytes, playBytesAtPace, unlockAudio } from '../../platform/audio/voiceOut';
+import { Icon } from '../../ui/Icon';
 
 interface Line {
   zh: string;
@@ -118,7 +119,7 @@ function PartnerCard({
             onClick={() => void play(p, line)}
             title={line.en}
           >
-            <span aria-hidden>🔊</span>
+            <Icon name="sound" size={18} />
             <span className="hanzi" lang="zh-CN">
               {line.zh}
             </span>

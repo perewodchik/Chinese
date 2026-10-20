@@ -3601,33 +3601,31 @@ select.mt {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  margin-left: 6px;
+  width: 26px;
+  height: 26px;
+  margin-left: 4px;
   padding: 0;
-  font-size: 11px;
   line-height: 1;
   background: none;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: 50%;
   color: var(--ink-3);
   cursor: pointer;
-  opacity: 0.55;
   transition:
-    opacity 0.12s,
-    border-color 0.12s;
+    color 0.12s,
+    background-color 0.12s;
   vertical-align: middle;
 }
 
 .say:hover {
-  opacity: 1;
-  border-color: var(--line-2);
+  color: var(--accent);
+  background: var(--card-2);
 }
 
 .say.lg {
-  width: 26px;
-  height: 26px;
-  font-size: 13px;
+  width: 40px;
+  height: 40px;
+  color: var(--accent);
 }
 
 .passage-line .say {
@@ -3636,10 +3634,6 @@ select.mt {
 
 .passage-line:hover .say,
 .passage-line .say:focus-visible {
-  opacity: 0.55;
-}
-
-.passage-line:hover .say:hover {
   opacity: 1;
 }
 
@@ -4247,7 +4241,7 @@ button.progress-meter:hover {
   /* The gutter is the gutter on a phone too. The top clears the status bar
      and the blur iOS lays under it: a title up there comes out smeared. */
   .page {
-    padding: calc(var(--top-clear) + 16px) var(--gutter) 80px;
+    padding: calc(var(--top-clear) + 16px) var(--gutter) 32px;
   }
 
   h1 {
@@ -4525,7 +4519,7 @@ label.field[data-invalid] input {
 
 @media (max-width: 860px) {
   .account-name,
-  .sync-label {
+  .sync:not([data-words]) .sync-label {
     display: none;
   }
 

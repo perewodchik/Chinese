@@ -17,6 +17,7 @@ import { useRecorder } from './useRecorder';
 import { pairKey, record, toneKey, voiceRange } from './voice';
 import { anyVoiceFor, packTexts, packVoices, referenceSamples, say, voicesFor } from '../../platform/audio/voiceOut';
 import './pinyin.css';
+import { Icon } from '../../ui/Icon';
 
 interface PracticeSet {
   id: string;
@@ -336,7 +337,7 @@ function Sitting({ set }: { set: PracticeSet }) {
 
         <div className="speak-controls">
           <button className="btn speak-side" onClick={listen} title="Listen (L)">
-            <span aria-hidden>🔊</span> Listen
+            <Icon name="sound" size={18} /> Listen
           </button>
           <RecordButton state={rec.state} level={rec.level} onToggle={rec.toggle} disabled={!!blocked} />
           <button

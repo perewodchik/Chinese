@@ -4,6 +4,7 @@ import { makeRng } from '../../domain/exercises/rng';
 import type { ItemId } from '../../domain/ids';
 import { say } from '../../platform/audio/voiceOut';
 import { FaceView, Settle, useAutoNext, useClock, type ExerciseResult } from './parts';
+import { Icon } from '../../ui/Icon';
 
 type MatchExercise = Extract<Exercise, { kind: 'match' }>;
 
@@ -93,7 +94,7 @@ export function MatchCard({ ex, onDone }: { ex: MatchExercise; onDone: (r: Exerc
             <button key={p.id} type="button" className="ex-match-card" data-state={state('r', p.id)} onClick={() => tap('r', p.id)}>
               {ex.mode === 'listen' ? (
                 <span className="ex-match-sound" aria-label="a sound">
-                  🔊
+                  <Icon name="sound" size={20} />
                 </span>
               ) : (
                 <FaceView face={p.right} size="sm" autoPlay={false} />

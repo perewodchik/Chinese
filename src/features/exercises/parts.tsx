@@ -5,6 +5,7 @@ import type { ItemId } from '../../domain/ids';
 import type { Rating, Skill } from '../../domain/memory';
 import { say } from '../../platform/audio/voiceOut';
 import { Say } from '../../ui/Say';
+import { Icon } from '../../ui/Icon';
 
 /** How one item fared on one card. */
 export interface ExerciseResult {
@@ -50,7 +51,7 @@ export function Listen({ text, auto = true, size = 'lg' }: { text: string; auto?
   }, [text, auto]);
   return (
     <button type="button" className="ex-listen" data-size={size} onClick={() => void say(text)} aria-label="Play it again">
-      <span aria-hidden>🔊</span>
+      <Icon name="sound" size={18} />
     </button>
   );
 }

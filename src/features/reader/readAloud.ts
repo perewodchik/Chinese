@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import type { TalkVoice } from '../../../shared/talk';
 import { talkStatus } from '../../api/talk';
 import {
-  betterVoiceHint,
   canSpeak,
   chineseVoice,
   chineseVoices,
@@ -11,6 +10,7 @@ import {
   speak,
   stopSpeaking,
   unlockSpeech,
+  voiceLabel,
 } from '../../platform/speech';
 
 /**
@@ -346,8 +346,6 @@ export interface Reading extends ReadingState {
   stop: () => void;
   /** the device's own voice in use, by name — "Lili (Premium)" */
   systemName: string | null;
-  /** where the device has only a robotic voice, how to get a natural one */
-  systemHint: string | null;
   /** every voice that can read the passage here: the device's Mandarin voices, then the server's */
   choices: Array<{ key: string; name: string; active: boolean; pick: () => void }>;
 }
@@ -407,7 +405,7 @@ export function useReading(): Reading {
   const choices = [
     ...chineseVoices().map((v) => ({
       key: `device:${v.voiceURI}`,
-      name: v.name,
+      name: voiceLabel(v),
       active: usable === SYSTEM_VOICE && device?.voiceURI === v.voiceURI,
       pick: () => {
         chooseChineseVoice(v.voiceURI);
@@ -421,8 +419,7 @@ export function useReading(): Reading {
 
   return {
     ...now,
-    systemName: device?.name ?? null,
-    systemHint: betterVoiceHint(),
+    systemName: device ? voiceLabel(device) : null,
     choices,
     voices: voices ?? [],
     system,

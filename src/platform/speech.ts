@@ -36,26 +36,44 @@ export function voiceQuality(v: SpeechSynthesisVoice): 'premium' | 'enhanced' | 
   return 'basic';
 }
 
+/** A mainland voice: the Mandarin of the textbooks, the HSK and the recordings. */
+const mainland = (v: SpeechSynthesisVoice) => v.lang.toLowerCase().replace('_', '-') === 'zh-cn';
+
 /**
- * Every Mandarin voice on this device, the best first: a mainland voice before
- * any other Chinese one, and within those the most natural. A Taiwanese voice
- * reads simplified text correctly and is far better than silence; the
- * system default for another language, which would read 好 as h-a-o, is never
- * on the list.
+ * Every Mandarin voice on this device worth offering, the most natural first.
+ * A mainland voice where there is one; only where there is none, the
+ * Taiwanese ones, which read simplified text correctly with an accent of
+ * their own. Safari lists some voices twice, under two addresses — one of
+ * each name is enough. The system default for another language, which would
+ * read 好 as h-a-o, is never on the list.
+ *
+ * Safari offers web pages only the voices the system ships with: a voice
+ * downloaded in Settings — "Han (Premium)" and the like — works in Live
+ * Speech and Spoken Content and never shows up here (WebKit bugs 250665 and
+ * 290497). Chrome on a Mac lists them.
  */
 export function chineseVoices(): SpeechSynthesisVoice[] {
   const s = synth();
   if (!s) return [];
   const rank = (v: SpeechSynthesisVoice) => {
-    const lang = v.lang.toLowerCase().replace('_', '-');
-    const where = lang === 'zh-cn' ? 2 : lang.startsWith('zh') && !lang.includes('hk') ? 1 : 0;
     const q = voiceQuality(v);
-    return where * 10 + (q === 'premium' ? 3 : q === 'enhanced' ? 2 : 1);
+    return q === 'premium' ? 3 : q === 'enhanced' ? 2 : 1;
   };
-  return s
+  const seen = new Set<string>();
+  const all = s
     .getVoices()
     .filter((v) => v.lang.toLowerCase().startsWith('zh') && !/hk|yue/i.test(v.lang))
-    .sort((a, b) => rank(b) - rank(a));
+    .sort((a, b) => rank(b) - rank(a))
+    .filter((v) => !seen.has(v.name) && Boolean(seen.add(v.name)));
+  const home = all.filter(mainland);
+  return home.length ? home : all;
+}
+
+/** A voice's name as a chip shows it: its quality where the name does not say, and Taiwan where it is from there. */
+export function voiceLabel(v: SpeechSynthesisVoice): string {
+  const q = voiceQuality(v);
+  const named = /\(/.test(v.name) || q === 'basic' ? v.name : `${v.name} (${q === 'premium' ? 'Premium' : 'Enhanced'})`;
+  return mainland(v) ? named : `${named}, Taiwan`;
 }
 
 /**
@@ -83,21 +101,6 @@ export function chooseChineseVoice(uri: string) {
     // remembered for this visit only
   }
   cached = undefined;
-}
-
-/**
- * Where the device has only its basic voice and could have a natural one for
- * the asking, what to tap to get it. Apple's devices only: elsewhere there is
- * nothing comparable to point at.
- */
-export function betterVoiceHint(): string | null {
-  const best = chineseVoices()[0];
-  if (best && voiceQuality(best) !== 'basic') return null;
-  const apple = typeof navigator !== 'undefined' && /iPhone|iPad|Macintosh/.test(navigator.userAgent);
-  if (!apple) return null;
-  return /Macintosh/.test(navigator.userAgent) && !('ontouchend' in document)
-    ? 'This Mac has only the basic Chinese voice. For a natural one: System Settings, Accessibility, Spoken Content, System voice, Manage Voices, Chinese (China mainland), and download a voice marked Premium (Enhanced if there is none). Then reload this page.'
-    : 'This device has only the basic Chinese voice. For a natural one: Settings, Accessibility, Spoken Content, Voices, Chinese (China mainland), and download a voice marked Premium (Enhanced if there is none). Then reopen this page.';
 }
 
 /** Fires when the voice list arrives, which on some browsers is after load. */

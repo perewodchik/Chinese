@@ -14,7 +14,7 @@ import { useLibrary } from '../shared/library';
 import { AnswerBox } from './AnswerBox';
 import { CopyOut } from './CopyOut';
 import type { Standing } from './Passage';
-import { onReadThrough, RATES, SYSTEM_VOICE, type Reading } from './readAloud';
+import { onReadThrough, RATES, type Reading } from './readAloud';
 
 /**
  * The parts of a text, as the strip at the top of the page names them.
@@ -118,7 +118,6 @@ export function ListenPart({
       <p className="rd-part-lede">
         Hear it once following the text, then once more without looking. Tap any line to go on from there.
       </p>
-      {reading.voice === SYSTEM_VOICE && reading.systemHint && <p className="rd-voice-hint">{reading.systemHint}</p>}
 
       <div className="rd-player">
         <div className="rd-player-top">

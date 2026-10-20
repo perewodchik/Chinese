@@ -17,11 +17,13 @@ const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 
  * about it when it has not, because "offline" on a tablet is the difference
  * between work that is safe and work that is only on the tablet.
  */
-export function SyncIndicator() {
+export function SyncIndicator({ quiet = false }: { quiet?: boolean }) {
   const status = useSyncStatus();
   if (!status) return null;
 
   const { phase, unsaved, lastSavedAt, message } = status;
+  // Where there is room to say it in words, all being well needs no saying.
+  if (quiet && phase === 'saved') return null;
   const title =
     message ??
     (phase === 'saved'
@@ -31,7 +33,7 @@ export function SyncIndicator() {
       : `${unsaved} change${unsaved === 1 ? '' : 's'} on the way to the server`);
 
   return (
-    <span className="sync" data-phase={phase} title={title}>
+    <span className="sync" data-phase={phase} data-words={quiet || undefined} title={title}>
       <i aria-hidden />
       <span className="sync-label">{LABEL[phase]}</span>
     </span>

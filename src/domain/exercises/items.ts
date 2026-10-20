@@ -36,6 +36,16 @@ export function gist(d: string): string {
   return first.replace(/\([^)]*\)/g, '').replace(/^to\s+/i, '').replace(/\s+/g, ' ').trim() || d.trim();
 }
 
+/** The first few senses, as the dictionary gives them: "to wear; to put on; to dress". */
+export function senses(d: string, n = 3): string {
+  return d
+    .split(';')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, n)
+    .join('; ');
+}
+
 /** A reading in syllables: "huǒchē" or "huǒ chē" → ["huǒ", "chē"]. */
 export function syllablesOf(py: string): string[] {
   return py
