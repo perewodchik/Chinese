@@ -1,23 +1,21 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, Navigate, useNavigate } from 'react-router';
 import { nextCollectionName, statsOf, type Collection } from '../../domain/collection';
 import { itemsLabel, wordId, type ItemId } from '../../domain/ids';
 import { glyphOf } from '../../domain/library';
 import { allPresets, GROUP_BLURB, GROUP_LABEL, type Preset, type PresetGroup } from '../../domain/presets';
 import { LAYOUTS } from '../../domain/sheet';
-import { shelve } from '../../domain/text';
 import { paths, type CollectionsShow } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
 import { PALETTES } from '../../pdf/theme';
-import { createCollection, discardListPlan, startListPlan } from '../../store/commands';
+import { createCollection, deleteCollection, discardListPlan, setShelfStudy, startListPlan } from '../../store/commands';
 import { useStore } from '../../store/store';
+import { Icon } from '../../ui/Icon';
 import { Menu } from '../../ui/Menu';
-import { Seg } from '../../ui/Seg';
 import { Strip } from '../../ui/Strip';
 import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
-import { TextShelf, useStartSession } from '../reader/TextsPage';
 import { BlankPaper } from './BlankPaper';
 import { NewCollectionDialog } from './NewCollectionDialog';
 
@@ -71,6 +69,58 @@ function CollectionCard({ c, learned }: { c: Collection; learned: ReadonlySet<It
 
 const SHOWS: CollectionsShow[] = ['all', 'characters', 'texts'];
 
+/** “New from “Reading, 14 September””: a list a text made, before shelves kept their own. */
+const FROM_TEXT = /^New from “(.+)”$/;
+
+/**
+ * Lists made from texts, folded away at the foot of the page, with the way to
+ * put each back where it belongs: its items onto its shelf's list, and the
+ * list gone. Nothing is moved without being asked.
+ */
+function FromTexts({ lists }: { lists: Collection[] }) {
+  const sets = useStore((s) => s.sets);
+  const learned = useStore((s) => s.learned);
+  const toast = useToast();
+  const home = (c: Collection) => sets.find((s) => s.name === FROM_TEXT.exec(c.name)?.[1]) ?? null;
+  const movable = lists.filter((c) => home(c));
+  return (
+    <details className="from-texts">
+      <summary>
+        <span className="grow">
+          <b>Made from texts</b>
+          <span className="small muted">
+            {lists.length} list{lists.length === 1 ? '' : 's'} from before shelves kept their own words
+          </span>
+        </span>
+        <Icon name="down" />
+      </summary>
+      <div className="tpl-grid">
+        {lists.map((c) => (
+          <CollectionCard key={c.id} c={c} learned={learned} />
+        ))}
+      </div>
+      {movable.length > 0 && (
+        <div className="page-foot">
+          <button
+            className="btn tonal"
+            onClick={() => {
+              if (!confirm(`Put the characters of ${movable.length} list${movable.length === 1 ? '' : 's'} onto their shelves, and remove the lists?`)) return;
+              for (const c of movable) {
+                setShelfStudy(home(c)!.id, c.items, true);
+                deleteCollection(c.id);
+              }
+              toast(`Moved ${movable.length} list${movable.length === 1 ? '' : 's'} onto their shelves`);
+            }}
+          >
+            Move them onto their shelves
+          </button>
+          <p className="tiny muted">Their characters join each shelf’s list, where the texts are.</p>
+        </div>
+      )}
+    </details>
+  );
+}
+
 /**
  * Every collection, at /collections — of characters and of texts, on one
  * page, because they are one idea: a subject you are working through. Forty
@@ -88,10 +138,6 @@ export function CollectionsPage() {
   const [query, setQuery] = useQuery();
   const group = oneOf(query.get('sets'), GROUPS, 'hsk');
   const show = oneOf(query.get('show'), SHOWS, 'all');
-  const startSession = useStartSession();
-  const texts = useStore((s) => s.texts);
-  const sets = useStore((s) => s.sets);
-  const textCollections = useMemo(() => shelve(texts, sets).bySet.size, [texts, sets]);
 
   const collections = useStore((s) => s.collections);
   const learned = useStore((s) => s.learned);
@@ -99,6 +145,10 @@ export function CollectionsPage() {
   const [adding, setAdding] = useState<Preset | null>(null);
   const presets = useMemo(() => allPresets(lib), [lib]);
   const added = useMemo(() => new Set(collections.map((c) => c.presetId ?? c.name)), [collections]);
+  // The lists a text's "queue these for handwriting" used to make, one per
+  // session: their words live on the shelves now.
+  const fromTexts = collections.filter((c) => FROM_TEXT.test(c.name));
+  const own = collections.filter((c) => !FROM_TEXT.test(c.name));
 
   /** An empty collection opens on its items, where there is a search box to fill it from. */
   function startEmpty() {
@@ -115,17 +165,18 @@ export function CollectionsPage() {
     navigate(paths.buildList('describe'));
   }
 
+  if (show === 'texts') return <Navigate to={paths.read()} replace />;
+
   return (
-    <section>
-      <div className="row" style={{ alignItems: 'flex-end', marginBottom: 14 }}>
-        <div>
-          <h1>Collections</h1>
+    <section className="lists-page">
+      <header className="page-head">
+        <div className="grow">
+          <h1>Lists to print</h1>
           <p className="small muted" style={{ margin: 0 }}>
-            Characters to write and texts to read — one subject each, however big you want it.
+            Characters and words to write out by hand, each list printing as much or as little of itself as you ask for.
           </p>
         </div>
-        <div className="spacer" />
-        <Menu label="+ New ▾" className="btn primary" title="Start a new collection">
+        <Menu label={<Icon name="plus" size={22} />} className="icon-btn accent" title="New list">
           {(close) => (
             <>
               <button
@@ -136,7 +187,7 @@ export function CollectionsPage() {
                   startEmpty();
                 }}
               >
-                Characters, empty
+                An empty list
                 <span className="tiny muted">fill it from the library</span>
               </button>
               <button
@@ -147,103 +198,60 @@ export function CollectionsPage() {
                   startList();
                 }}
               >
-                ✦ Words, written with Claude
+                Words, written with Claude
                 <span className="tiny muted">a topic in, explained words out</span>
-              </button>
-              <button
-                role="menuitem"
-                className="btn ghost sm"
-                onClick={() => {
-                  close();
-                  startSession();
-                }}
-              >
-                ✦ Texts, written with Claude
-                <span className="tiny muted">passages out of what you know</span>
               </button>
             </>
           )}
         </Menu>
-      </div>
+      </header>
 
-      <div className="show-bar">
-        <Seg
-          label="Show"
-          value={show}
-          onChange={(v) => setQuery('show', v, 'all')}
-          options={[
-            { id: 'all', label: 'All' },
-            { id: 'characters', label: `Characters · ${collections.length}` },
-            { id: 'texts', label: `Texts · ${textCollections}` },
-          ]}
-        />
-      </div>
-
-      {show !== 'texts' && (
-        <section className="shelf">
-          <div className="shelf-head">
-            <div>
-              <h2 className="shelf-title">Characters</h2>
-              <p className="small muted" style={{ margin: 0 }}>
-                {collections.length === 0
-                  ? 'Take a ready-made set below, or start an empty one.'
-                  : `${collections.length} collection${collections.length === 1 ? '' : 's'}, each printing as much or as little of itself as you ask for.`}
-              </p>
-            </div>
-            <div className="spacer" />
-            <button className="btn sm" onClick={startEmpty}>
-              + Empty
-            </button>
+      {listPlan && (
+        <div className="resume">
+          <span className="mark">词</span>
+          <div style={{ minWidth: 0 }}>
+            <b>{listPlan.name}</b>
+            <p className="tiny muted" style={{ margin: 0 }}>
+              {listPlan.size} words,{' '}
+              {listPlan.step === 'describe'
+                ? 'still being described'
+                : listPlan.step === 'prompt'
+                  ? listPlan.copiedAt
+                    ? 'prompt copied, waiting for Claude’s answer'
+                    : 'prompt ready to copy'
+                  : listPlan.response.trim()
+                    ? 'an answer is pasted and waiting to be saved'
+                    : 'waiting for you to paste the answer'}
+            </p>
           </div>
-
-          {listPlan && (
-            <div className="resume">
-              <span className="mark">词</span>
-              <div style={{ minWidth: 0 }}>
-                <b>{listPlan.name}</b>
-                <p className="tiny muted" style={{ margin: 0 }}>
-                  {listPlan.size} words ·{' '}
-                  {listPlan.step === 'describe'
-                    ? 'still being described'
-                    : listPlan.step === 'prompt'
-                      ? listPlan.copiedAt
-                        ? 'prompt copied — waiting for Claude’s answer'
-                        : 'prompt ready to copy'
-                      : listPlan.response.trim()
-                        ? 'an answer is pasted and waiting to be saved'
-                        : 'waiting for you to paste the answer'}
-                </p>
-              </div>
-              <div className="spacer" />
-              <button
-                className="btn ghost sm"
-                onClick={() => {
-                  if (confirm('Throw this word list away?')) discardListPlan();
-                }}
-              >
-                Discard
-              </button>
-              <Link className="btn primary sm" to={paths.buildList(listPlan.step)}>
-                Continue →
-              </Link>
-            </div>
-          )}
-
-          {collections.length > 0 && (
-            <div className="tpl-grid">
-              {collections.map((c) => (
-                <CollectionCard key={c.id} c={c} learned={learned} />
-              ))}
-            </div>
-          )}
-        </section>
+          <div className="spacer" />
+          <button
+            className="btn ghost sm"
+            onClick={() => {
+              if (confirm('Throw this word list away?')) discardListPlan();
+            }}
+          >
+            Discard
+          </button>
+          <Link className="btn primary sm" to={paths.buildList(listPlan.step)}>
+            Continue
+          </Link>
+        </div>
       )}
 
-      {show !== 'characters' && <TextShelf />}
+      {own.length > 0 && (
+        <div className="tpl-grid" style={{ marginTop: 16 }}>
+          {own.map((c) => (
+            <CollectionCard key={c.id} c={c} learned={learned} />
+          ))}
+        </div>
+      )}
 
-      {show !== 'texts' && <BlankPaper />}
+      {fromTexts.length > 0 && <FromTexts lists={fromTexts} />}
 
-      {show !== 'texts' && (
+      <BlankPaper />
+
+      {(
         <div className="card presets-card">
           <header>
             <h2>Start from a ready-made set</h2>

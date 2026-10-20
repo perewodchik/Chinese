@@ -73,6 +73,8 @@ export interface AppSettings {
   hardMode: boolean;
   /** how long the daily review session runs, in minutes */
   reviewMinutes: number;
+  /** how many cards a day: what is due beyond it waits, and is never shown as a debt */
+  cardsPerDay: number;
   /** what a day's goal is: the day's plan (learn + clear what is due), or a number of minutes */
   dailyGoal: 'plan' | 'minutes';
   /** the minutes a day that meet the goal, when the goal is minutes */
@@ -111,6 +113,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   fourButtons: false,
   hardMode: false,
   reviewMinutes: 10,
+  cardsPerDay: 20,
   dailyGoal: 'plan',
   goalMinutes: 15,
   restDays: true,

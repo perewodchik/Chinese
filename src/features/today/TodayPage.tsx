@@ -1,424 +1,183 @@
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { Link } from 'react-router';
-import { isCharId, isWordId } from '../../domain/ids';
-import { dueItemCount, REVIEW_SKILLS, throttleFor } from '../../domain/lesson';
-import { isDue } from '../../domain/memory';
-import { days as dayStats, goalStreak, weeklyNote } from '../../domain/stats';
-import { bandName, progressOf } from '../../domain/progress';
-import {
-  answeredSince,
-  forecast,
-  nextReading,
-  readSince,
-  reviewMinutes,
-  startedSince,
-  startOfToday,
-  type ForecastDay,
-} from '../../domain/today';
+import { dayKey } from '../../domain/activity';
+import { DAY } from '../../domain/memory';
+import { touchedAt } from '../../domain/video';
 import { paths } from '../../navigation/paths';
 import { useStore } from '../../store/store';
+import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
-import { calendar, dayKey, type CalendarDay } from '../../domain/activity';
-import { latestChecks, nextPart, touchedAt } from '../../domain/video';
-import { usePinyinMemory } from '../pinyin/voice';
-import { spotPath, useWeakSpots, WeakSpotsCard } from '../pinyin/WeakSpots';
-import { ReviewSection } from '../review/ReviewPage';
-import { useLibrary } from '../shared/library';
+import { AccountMenu } from '../auth/AccountMenu';
+import { useCardsToday } from '../cards/CardsPage';
+import { useContinue } from '../reader/ReadPage';
+import { useStanding } from '../reader/Passage';
+import { partFill, PARTS } from '../reader/TextParts';
+import type { ItemId } from '../../domain/ids';
 import './today.css';
 
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
-const DAY_MS = 86_400_000;
-
-interface Step {
-  id: string;
-  mark: string;
-  title: string;
-  detail: ReactNode;
-  done: boolean;
-  /** what doing it would take, in minutes; 0 when there is nothing to estimate */
-  minutes: number;
-  to: string;
-  action: string;
-  onGo?: () => void;
-}
+const WEEKDAY = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 /**
- * The front door: the day's plan, and everything Review can ask, on one page.
+ * The front door, kept light on purpose: one thing to carry on with — the
+ * text you were reading — and one small thing — today's cards — and nothing
+ * that counts what was missed.
  *
- * Everywhere else the learner decides what to do. Here the app does, from
- * what it already knows — what is due, where pronunciation keeps going wrong,
- * which text is next — in the order that serves a short daily sitting best:
- * recall first while it is due, something new while the head is fresh, the
- * weakest sound while the mouth is warm, then reading, then whole sentences
- * out loud. One button carries on from wherever the day has got to. Each
- * step ticks itself off once it has happened today, read off records the
- * app already keeps; the days themselves are kept too, so a run of them can
- * be seen and kept going.
+ * It used to be a plan of four or five steps, a ring of how many were done,
+ * the review's every drill, a forecast and a calendar. All of it was true,
+ * and together it said "you are behind" every time the app opened, which is
+ * the one thing that keeps somebody from opening it. The rest is still there,
+ * a tap away: Cards for the drills, Your progress for the calendar.
  */
 export function TodayPage() {
   useTitle('Today');
-  const lib = useLibrary();
-  const recall = useStore((s) => s.recall);
-  const learned = useStore((s) => s.learned);
-  const sheets = useStore((s) => s.sheets);
-  const texts = useStore((s) => s.texts);
-  const sets = useStore((s) => s.sets);
-  const activity = useStore((s) => s.activity);
-  const settings = useStore((s) => s.settings);
-  const tallies = usePinyinMemory().tallies;
-  const videos = useStore((s) => s.videos);
-  const spots = useWeakSpots();
-
-  // "Today" is fixed when the page opens, which is when a plan for the day is
-  // made; the numbers follow the records as they change.
   const now = useMemo(() => Date.now(), []);
-  const today = startOfToday(now);
-  const weekStart = today - 6 * DAY_MS;
-
-  const plan = useMemo(() => {
-    // Items, not skills: the daily session asks one question per item.
-    let charsDue = 0;
-    let wordsDue = 0;
-    for (const id in recall) {
-      const sk = recall[id]!;
-      const due = (isWordId(id) ? (['recognise'] as const) : REVIEW_SKILLS).some((s) => sk[s] && isDue(sk[s]!, now));
-      if (!due) continue;
-      if (isCharId(id) && lib.byChar.has(id.slice(1))) charsDue++;
-      else if (isWordId(id)) wordsDue++;
-    }
-    return {
-      charsDue,
-      wordsDue,
-      lesson: activity[dayKey(now)]?.lesson ?? null,
-      answered: answeredSince(recall, today),
-      started: startedSince(recall, today),
-      read: readSince(texts, today),
-      next: nextReading(texts, sets),
-      videoToday: activity[dayKey(now)]?.videos ?? 0,
-      // The video in hand: the one being worked on that was touched last.
-      video: [...videos].filter((v) => v.status === 'working').sort((a, b) => touchedAt(b) - touchedAt(a))[0] ?? null,
-      practised: Object.values(tallies).some((t) => (t.last ?? 0) >= today),
-      progress: progressOf(lib, recall, learned, sheets, now),
-      readWeek: readSince(texts, weekStart),
-      checkedWeek: videos.reduce((n, v) => n + v.checks.filter((c) => c.at >= weekStart).length, 0),
-    };
-  }, [lib, recall, learned, sheets, now, today, weekStart, texts, sets, videos, activity, tallies]);
-
-  const streak = useMemo(
-    () => goalStreak(activity, now, { dailyGoal: settings.dailyGoal, goalMinutes: settings.goalMinutes, restDays: settings.restDays }),
-    [activity, now, settings.dailyGoal, settings.goalMinutes, settings.restDays],
+  const go = useContinue();
+  const cards = useCardsToday();
+  const activity = useStore((s) => s.activity);
+  const videos = useStore((s) => s.videos);
+  const sets = useStore((s) => s.sets);
+  const study = useMemo(() => new Set<ItemId>(sets.find((s) => s.id === go?.set?.id)?.study ?? []), [sets, go?.set?.id]);
+  const standing = useStanding(study);
+  const video = useMemo(
+    () => [...videos].filter((v) => v.status === 'working').sort((a, b) => touchedAt(b) - touchedAt(a))[0] ?? null,
+    [videos],
   );
-  const note = useMemo(() => weeklyNote(dayStats(activity, recall, now, 21), now), [activity, recall, now]);
-  const weeks = useMemo(() => calendar(activity, now, 5), [activity, now]);
-  const coming = useMemo(() => forecast(recall, now, 7), [recall, now]);
-
-  const due = plan.charsDue + plan.wordsDue;
-  const throttle = throttleFor(dueItemCount(recall, now));
-  const lessonSize = throttle === 'stop' ? 0 : throttle === 'half' ? Math.ceil(settings.newPerDay / 2) : settings.newPerDay;
-  const learnedToday = plan.lesson?.done ? plan.lesson.ids.length : 0;
-  // A session's worth of answers, or nothing left due, and the review is done for the day.
-  const reviewDone = plan.answered > 0 && (!due || plan.answered >= settings.reviewMinutes * 5);
-  const spot = spots.weak[0] ?? spots.untried[0] ?? null;
-  const band = plan.progress.current;
-
-  const video = plan.video;
-  const videoPart = video ? nextPart(video) : 0;
-  const videoChecked = video ? latestChecks(video).has(videoPart) : false;
-
-  const steps: Step[] = [
-    {
-      id: 'review',
-      mark: '复',
-      title: due ? `Go over ${due} due` : 'Nothing due',
-      detail: due
-        ? [plan.charsDue && plural(plan.charsDue, 'character'), plan.wordsDue && plural(plan.wordsDue, 'word')].filter(Boolean).join(' and ') +
-          ` — one mixed session, ${settings.reviewMinutes} minutes at most.`
-        : plan.answered
-          ? `${plural(plan.answered, 'answer')} given today. Everything is holding.`
-          : 'Everything in rotation is holding.',
-      done: reviewDone,
-      minutes: due ? Math.min(settings.reviewMinutes, reviewMinutes(due)) : 0,
-      to: due ? paths.reviewSession() : '#review',
-      action: 'Review',
-    },
-    {
-      id: 'new',
-      mark: '新',
-      title: learnedToday ? `Learned ${learnedToday} new` : lessonSize ? `Learn ${lessonSize} new` : 'Catch up first',
-      detail: learnedToday
-        ? 'They come back in review on their own schedule. More, if you like.'
-        : throttle === 'stop'
-          ? `${plural(due, 'item')} due — the lesson waits until the queue is shorter.`
-          : throttle === 'half'
-            ? `Fewer than usual: ${plural(due, 'item')} are due.`
-            : band
-              ? `Picture, sound, parts and a sentence each, then a few quick exercises. ${band.size - band.done} left in ${bandName(band.band)}.`
-              : 'Picture, sound, parts and a sentence each, then a few quick exercises.',
-      done: Boolean(plan.lesson?.done),
-      minutes: lessonSize ? Math.ceil(lessonSize * 1.4) : 0,
-      to: throttle === 'stop' && !learnedToday ? paths.reviewSession() : paths.learn(),
-      action: learnedToday ? 'More' : 'Learn',
-    },
-    {
-      id: 'spot',
-      mark: '声',
-      title: spot ? `${spots.weak[0] ? 'Practise' : 'Try'} ${spot.title.toLowerCase()}` : 'Practise a sound',
-      detail: spot
-        ? spots.weak[0]
-          ? spot.score === null
-            ? `Your weakest spot: ${spot.detail}.`
-            : `Your weakest spot: ${Math.round(spot.score * 100)}% right lately.`
-          : 'Not tried yet on this device.'
-        : 'Pick anything on the Speaking page.',
-      done: plan.practised,
-      minutes: 5,
-      to: spot ? spotPath(spot.target) : paths.speaking(),
-      action: 'Practise',
-    },
-    plan.next
-      ? {
-          id: 'read',
-          mark: '读',
-          title: `Read ${plan.next.titleZh || plan.next.title}`,
-          detail: plan.read
-            ? `${plural(plan.read, 'text')} read today.`
-            : plan.next.titleZh
-              ? plan.next.title
-              : 'The next text on your shelf.',
-          done: plan.read > 0,
-          minutes: 5,
-          to: paths.text(plan.next.id),
-          action: 'Read',
-        }
-      : {
-          id: 'read',
-          mark: '读',
-          title: texts.length ? 'Everything is read' : 'Nothing to read yet',
-          detail: plan.read
-            ? `${plural(plan.read, 'text')} read today.`
-            : 'Write a few texts out of the characters you know.',
-          done: plan.read > 0,
-          minutes: 0,
-          to: paths.session(),
-          action: 'Write texts',
-        },
-    // Only while a video is being worked on: a video is a sitting of its
-    // own, a couple of times a week, not something every day asks for.
-    ...(video
-      ? [
-          {
-            id: 'video',
-            mark: '视',
-            title: `Your video: ${video.title}`,
-            detail: plan.videoToday
-              ? 'Worked on today.'
-              : `${video.parts.length > 1 ? `Part ${videoPart + 1}: ` : ''}${videoChecked ? 'write it out again and check it' : 'write it out in your notebook and check it'}.`,
-            done: plan.videoToday > 0,
-            minutes: 20,
-            to: paths.video(video.id, { part: videoPart }),
-            action: 'Open',
-          },
-        ]
-      : []),
-  ];
-
-  const left = steps.filter((s) => !s.done);
-  const next = left[0] ?? null;
-  const minutes = left.reduce((n, s) => n + s.minutes, 0);
-  const finished = steps.length - left.length;
   const date = new Date(now).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
 
+  const days = useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, k) => {
+        const at = now - (6 - k) * DAY;
+        const log = activity[dayKey(at)];
+        const worked = Boolean(log && (log.answers || log.read || log.spoken || log.videos || log.ms > 60_000));
+        return { key: dayKey(at), label: WEEKDAY[new Date(at).getDay()]!, worked, today: k === 6 };
+      }),
+    [activity, now],
+  );
+  const worked = days.filter((d) => d.worked).length;
+
+  const fill = go ? partFill(go.text, standing) : null;
+  const firstLine = go?.text.lines.slice(0, 2).map((l) => l.zh).join('') ?? '';
+
   return (
-    <div className="today">
-      <header className="today-hero" data-done={!next || undefined}>
-        <Ring done={finished} total={steps.length} />
-        <div className="today-hero-text">
-          <h1>{next ? (finished ? 'Keep going' : 'Today') : 'Done for today'}</h1>
-          <p className="small muted">
-            {date}
-            {next && minutes > 0 && <> · about {minutes} minutes left</>}
-          </p>
-          <p className="today-streak small">
-            {streak.current ? (
-              <>
-                <b>{plural(streak.current, 'day')}</b> in a row
-                {!streak.today && ' — today keeps it going'}
-              </>
-            ) : (
-              'Start a run of days today'
-            )}
-            {streak.best > streak.current && <span className="muted"> · best {streak.best}</span>}
-            {' · '}
-            <Link to={paths.stats()}>Your progress</Link>
-          </p>
-          {note && <p className="small today-note">{note}</p>}
+    <div className="today2">
+      <header className="today2-head">
+        <div className="grow">
+          <p className="small muted">{date}</p>
+          <h1>Today</h1>
         </div>
-        {next ? (
-          <Link className="btn primary today-go" to={next.to} onClick={next.onGo}>
-            <span className="today-go-what">
-              {`${finished ? 'Continue' : 'Start'}: ${next.title.replace(/^./, (c) => c.toLowerCase())}`}
-            </span>
-          </Link>
-        ) : (
-          <span className="today-seal hanzi" aria-label="All done">
-            好
-          </span>
-        )}
+        <div className="today2-account">
+          <AccountMenu />
+        </div>
       </header>
 
-      <div className="today-grid">
-        <div className="today-main-col">
-          <h2 className="today-label">The plan</h2>
-          <ol className="today-steps">
-            {steps.map((s) => (
-              <li key={s.id} data-done={s.done || undefined} data-next={s === next || undefined}>
-                <Link className="today-step" to={s.to} onClick={s.onGo}>
-                  <span className="today-mark hanzi" aria-hidden>
-                    {s.done ? '✓' : s.mark}
-                  </span>
-                  <span className="today-main">
-                    <b>{s.title}</b>
-                    <span className="small muted">{s.detail}</span>
-                  </span>
-                  <span className="today-side">
-                    {!s.done && s.minutes > 0 && <span className="tiny muted">{s.minutes} min</span>}
-                    <span className="btn sm">{s.done ? 'Again' : s.action}</span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ol>
-          <p className="tiny muted today-aside">
-            Rather talk? <Link to={paths.speakingNew()}>Have a conversation with Claude</Link>, or{' '}
-            <Link to={paths.videos()}>work on a video</Link>.
-          </p>
-
-          <ReviewSection />
-        </div>
-
-        <aside className="today-side-col">
-          <section className="today-card">
-            <h2 className="today-label">Your days</h2>
-            <Calendar weeks={weeks} />
-            <p className="tiny muted" style={{ margin: '8px 0 0' }}>
-              A day fills in when you review, read, practise out loud or work on a video. Darker is more.
-            </p>
-          </section>
-
-          <section className="today-card">
-            <h2 className="today-label">Coming up</h2>
-            <Forecast days={coming} />
-          </section>
-
-          {spots.weak.length > 1 && <WeakSpotsCard />}
-
-          <section className="today-card">
-            <h2 className="today-label">This week</h2>
-            <dl className="today-week">
-              <dt>{plan.progress.week.answered}</dt>
-              <dd>characters answered in review</dd>
-              <dt>{plan.progress.week.started}</dt>
-              <dd>new characters started</dd>
-              <dt>{plan.readWeek}</dt>
-              <dd>{plan.readWeek === 1 ? 'text' : 'texts'} read</dd>
-              <dt>{plan.checkedWeek}</dt>
-              <dd>{plan.checkedWeek === 1 ? 'video part' : 'video parts'} checked in the notebook</dd>
-            </dl>
-          </section>
-        </aside>
-      </div>
-    </div>
-  );
-}
-
-/** How much of the day's plan is done, as a ring. */
-function Ring({ done, total }: { done: number; total: number }) {
-  const r = 26;
-  const c = 2 * Math.PI * r;
-  return (
-    <svg className="today-ring" viewBox="0 0 64 64" role="img" aria-label={`${done} of ${total} steps done`}>
-      <circle cx="32" cy="32" r={r} className="track" />
-      {done > 0 && (
-        <circle
-          cx="32"
-          cy="32"
-          r={r}
-          className="fill"
-          strokeDasharray={`${(c * done) / total} ${c}`}
-          transform="rotate(-90 32 32)"
-        />
+      {go ? (
+        <section className="today2-read">
+          <p className="small muted">Continue reading{go.set ? ` in ${go.set.name}` : ''}</p>
+          <h2 className="hanzi">{go.text.titleZh || go.text.title}</h2>
+          <p className="hanzi today2-excerpt">{firstLine}</p>
+          {fill && (
+            <div className="today2-parts" aria-label="Parts of this text">
+              {PARTS.map((p) => (
+                <span key={p.id} style={{ '--fill': `${Math.round(fill[p.id] * 100)}%` } as CSSProperties} data-started={fill[p.id] > 0 || undefined}>
+                  <span className="hanzi">{p.han}</span>
+                  <i />
+                </span>
+              ))}
+            </div>
+          )}
+          <Link className="btn primary lg today2-go" to={go.to}>
+            Continue reading
+          </Link>
+        </section>
+      ) : (
+        <section className="today2-read">
+          <h2>Something to read</h2>
+          <p className="muted">Claude can write a few short texts out of the characters you know.</p>
+          <Link className="btn primary lg today2-go" to={paths.read()}>
+            Go to Read
+          </Link>
+        </section>
       )}
-      <text x="32" y="37" textAnchor="middle">
-        {done}/{total}
-      </text>
-    </svg>
-  );
-}
 
-const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
-/** The last five weeks, a square a day, shaded by how much was done. */
-function Calendar({ weeks }: { weeks: CalendarDay[][] }) {
-  return (
-    <div className="cal" role="table" aria-label="Days practised over the last five weeks">
-      <div className="cal-row cal-head" role="row">
-        {WEEKDAYS.map((d, i) => (
-          <span key={i} role="columnheader">
-            {d}
-          </span>
-        ))}
-      </div>
-      {weeks.map((row) => (
-        <div key={row[0]!.key} className="cal-row" role="row">
-          {row.map((d) => (
-            <span
-              key={d.key}
-              role="cell"
-              className="cal-day"
-              data-level={d.level}
-              data-today={d.today || undefined}
-              data-future={d.future || undefined}
-              title={
-                d.future
-                  ? undefined
-                  : d.log
-                    ? `${d.key}: ${d.log.answers} answers, ${d.log.spoken} said, ${d.log.read} read${d.log.videos ? `, ${d.log.videos} on videos` : ''}`
-                    : `${d.key}: nothing`
-              }
-            >
-              {d.date}
+      <section className="today2-cards">
+        <div className="deck-stack small" aria-hidden>
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="hanzi" data-i={i}>
+              {i === 0 ? (cards.plan.cards[0] ? cards.plan.cards[0].id.slice(1, 2) : '好') : ''}
             </span>
           ))}
         </div>
-      ))}
-    </div>
-  );
-}
+        <div className="grow">
+          <h2>Cards</h2>
+          {cards.count ? (
+            <>
+              <p className="small">
+                {cards.count} for today, about {cards.minutes} minute{cards.minutes === 1 ? '' : 's'}
+              </p>
+              <div className="row" style={{ gap: 6, marginTop: 10 }}>
+                <Link className="btn tonal sm" to={paths.cardSession()}>
+                  Start
+                </Link>
+                {cards.count > 10 && (
+                  <Link className="btn quiet sm" to={paths.cardSession({ n: 10 })}>
+                    Only 10 today
+                  </Link>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="small">{cards.done ? 'Done for today.' : 'Nothing to ask yet.'}</p>
+              {cards.done && (
+                <div className="row" style={{ marginTop: 10 }}>
+                  <Link className="btn quiet sm" to={paths.cardSession({ n: 10 })}>
+                    10 more
+                  </Link>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </section>
 
-/** Questions falling due over the next seven days, as bars. */
-function Forecast({ days }: { days: ForecastDay[] }) {
-  const most = Math.max(1, ...days.map((d) => d.due));
-  const total = days.reduce((n, d) => n + d.due, 0);
-  return (
-    <>
-      <div className="forecast" role="img" aria-label={`Due each day this week: ${days.map((d) => d.due).join(', ')}`}>
-        {days.map((d, i) => (
-          <div key={d.start} className="forecast-day" data-today={i === 0 || undefined}>
-            <span className="forecast-n tiny">{d.due || ''}</span>
-            <span className="forecast-bar">
-              <i style={{ height: `${(d.due / most) * 100}%` }} />
-            </span>
-            <span className="tiny muted">
-              {i === 0 ? 'today' : new Date(d.start).toLocaleDateString(undefined, { weekday: 'short' })}
-            </span>
-          </div>
-        ))}
-      </div>
-      <p className="tiny muted" style={{ margin: '8px 0 0' }}>
-        {total
-          ? `${total} questions this week, before anything new is added. Today's bar counts everything due by midnight, not only what is due now.`
-          : 'Nothing falls due this week.'}
-      </p>
-    </>
+      <section className="today2-week">
+        <div className="row">
+          <h2>Last 7 days</h2>
+          <span className="spacer" />
+          <span className="small muted">
+            {worked} day{worked === 1 ? '' : 's'} with practice
+          </span>
+        </div>
+        <ol className="week-strip">
+          {days.map((d) => (
+            <li key={d.key} data-worked={d.worked || undefined} data-today={d.today || undefined}>
+              <i />
+              <span className="tiny muted">{d.label}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <nav className="list today2-more" aria-label="When there is more time">
+        <Link className="way-row" to={paths.speakingNew()}>
+          <span className="hanzi way-mark">说</span>
+          <span className="grow">Talk with Claude</span>
+          <Icon name="chevron" className="muted" />
+        </Link>
+        {video && (
+          <Link className="way-row" to={paths.video(video.id)}>
+            <span className="hanzi way-mark">视</span>
+            <span className="grow">Your video: {video.title}</span>
+            <Icon name="chevron" className="muted" />
+          </Link>
+        )}
+        <Link className="way-row" to={paths.stats()}>
+          <span className="hanzi way-mark">进</span>
+          <span className="grow">Your progress</span>
+          <Icon name="chevron" className="muted" />
+        </Link>
+      </nav>
+    </div>
   );
 }

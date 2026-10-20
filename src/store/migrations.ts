@@ -410,6 +410,7 @@ function settingsFrom(v: unknown, version: number): AppSettings {
     fourButtons: s.fourButtons === true,
     hardMode: s.hardMode === true,
     reviewMinutes: clamp(Math.round(num(s.reviewMinutes, DEFAULT_SETTINGS.reviewMinutes)), 3, 60),
+    cardsPerDay: clamp(Math.round(num(s.cardsPerDay, DEFAULT_SETTINGS.cardsPerDay)), 5, 100),
     dailyGoal: s.dailyGoal === 'minutes' ? 'minutes' : 'plan',
     goalMinutes: clamp(Math.round(num(s.goalMinutes, DEFAULT_SETTINGS.goalMinutes)), 5, 120),
     restDays: s.restDays !== false,

@@ -25,6 +25,7 @@ import {
   useTranslationMode,
 } from './readerView';
 import { readerSheet } from './readerSheet';
+import { rememberReading } from './lastRead';
 import {
   ListenPart,
   partFill,
@@ -167,6 +168,12 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     [set, text.id],
   );
   const go = (to: number) => navigate(address({ page: to }));
+
+  // Where Read and Today offer to come back to.
+  useEffect(() => {
+    if (mode !== 'single') return;
+    rememberReading({ textId: text.id, setId: set?.id ?? null, page, version: both ? (text === entry.easier ? 'easy' : 'book') : null, at: Date.now() });
+  }, [text, set?.id, page, mode, both, entry.easier]);
 
   // A new text starts at its top, not wherever the last one was scrolled to.
   useEffect(() => {

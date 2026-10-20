@@ -38,10 +38,10 @@ export const paths = {
   /** the day's plan and everything Review can ask: the front door */
   today: () => '/today',
   /**
-   * Review is a section of Today now. Kept as a name because sittings and
-   * sheets still live under /review/…, and every "back to Review" means Today.
+   * Review is the Cards tab now. Kept as a name because the single drills and
+   * the sheets still live under /review/…, and every "back to Review" means Cards.
    */
-  review: () => '/today',
+  review: () => '/cards',
   drill: (drill: DrillId, size?: number) => withQuery(`/review/${drill}`, { n: size ? String(size) : undefined }),
   gradeSheet: (sheetId: string) => `/review/sheets/${encodeURIComponent(sheetId)}`,
   /** one sitting of words: the due ones, and today's new ones among them */
@@ -124,7 +124,8 @@ export const paths = {
   /** the cards: how many today, and the ways to practise one kind */
   cards: () => '/cards',
   /** one sitting of cards; `n` asks for fewer (or more) than the day's size */
-  cardSession: (n?: number) => withQuery('/cards/session', { n: n ? String(n) : undefined }),
+  cardSession: (at: { n?: number; shelf?: string } = {}) =>
+    withQuery('/cards/session', { n: at.n ? String(at.n) : undefined, shelf: at.shelf }),
   /** today's lesson: meet a few new things, practise them, check them */
   learn: () => '/learn',
   /** the daily review: everything due, mixed, in one sitting */

@@ -1,0 +1,499 @@
+/* ----------------------------------------------------------------------------
+   Cards: the deck on its tab, and a sitting — one card at a time, the answer
+   under it, the grades at the bottom edge.
+---------------------------------------------------------------------------- */
+.cards-page {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.deck {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 8px;
+  padding: 22px 20px;
+  border-radius: 20px;
+  background: var(--card-2);
+}
+
+/* Three cards, the top one showing what comes first. */
+.deck-stack {
+  position: relative;
+  width: 84px;
+  height: 100px;
+  flex: none;
+}
+
+.deck-stack span {
+  position: absolute;
+  width: 66px;
+  height: 84px;
+  border-radius: 10px;
+  border: 1px solid var(--line-2);
+  background: var(--card);
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.deck-stack span[data-i='0'] {
+  left: 0;
+  top: 14px;
+  z-index: 3;
+  border-color: var(--grid);
+}
+
+.deck-stack span[data-i='1'] {
+  left: 8px;
+  top: 7px;
+  z-index: 2;
+}
+
+.deck-stack span[data-i='2'] {
+  left: 16px;
+  top: 0;
+  z-index: 1;
+}
+
+.deck-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.deck-text h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.deck-text p {
+  margin: 4px 0 0;
+}
+
+.deck-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.deck-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 0;
+}
+
+.deck-row .grow {
+  display: grid;
+  gap: 2px;
+}
+
+.deck-row small {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.other-ways summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.other-ways summary::-webkit-details-marker {
+  display: none;
+}
+
+.other-ways summary .block-title::after {
+  content: ' ›';
+  color: var(--ink-3);
+}
+
+.other-ways[open] summary .block-title::after {
+  content: ' ⌄';
+}
+
+.way-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 60px;
+  padding: 10px 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.way-row .grow {
+  display: grid;
+  gap: 1px;
+}
+
+.way-row b {
+  font-weight: 500;
+}
+
+.way-mark {
+  width: 30px;
+  font-size: 22px;
+  color: var(--ink-2);
+  text-align: center;
+  flex: none;
+}
+
+/* ------------------------------------------------------------------ a sitting */
+.cs {
+  max-width: 560px;
+  /* The whole screen in a sitting: the page's own margin at the top, nothing under. */
+  min-height: calc(100dvh - 40px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) 0 0;
+}
+
+.cs-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  flex: none;
+}
+
+.cs-bar .icon-btn {
+  margin-left: -10px;
+}
+
+.cs-progress {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.cs-progress i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.16s ease-out;
+}
+
+.cs-count {
+  width: 64px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.cs-card-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 0 max(16px, env(safe-area-inset-bottom));
+}
+
+.cs-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 420px;
+  padding: 40px 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sheet);
+  background: var(--card);
+}
+
+.cs-new {
+  margin: -18px 0 14px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--red-soft);
+  color: var(--red);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.cs-han {
+  font-size: 84px;
+  line-height: 1.05;
+}
+
+.cs-han[data-len='3'] {
+  font-size: 68px;
+}
+
+.cs-han[data-len='4'] {
+  font-size: 56px;
+}
+
+.cs-han mark,
+.cs-context-zh mark {
+  background: var(--hl);
+  color: inherit;
+  border-radius: 4px;
+}
+
+.cs-prompt {
+  margin: 22px 0 0;
+}
+
+.cs-back {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.cs-said {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cs-py {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.cs-meaning {
+  margin: 0;
+  font: 400 19px/1.4 var(--read);
+}
+
+.cs-chars {
+  list-style: none;
+  width: 100%;
+  margin: 14px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  text-align: left;
+}
+
+.cs-chars li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.cs-chars .hanzi {
+  width: 30px;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.cs-chars .muted {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+}
+
+.cs-char-state {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--red);
+}
+
+.cs-char-state[data-known] {
+  color: var(--jade);
+}
+
+.cs-context-en {
+  margin: 10px 0 0;
+  font: 400 14px/1.45 var(--read);
+  color: var(--ink-2);
+}
+
+.cs-context {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.cs-back + .cs-context,
+.cs-type + .cs-context {
+  margin-top: 18px;
+}
+
+.cs-context-zh {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+.cs-context p.tiny {
+  margin: 4px 0 0;
+}
+
+.cs-type {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+  text-align: left;
+}
+
+.cs-type-row {
+  display: flex;
+  gap: 8px;
+}
+
+.cs-type-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  font-size: 18px;
+}
+
+.cs-type-row input[data-state='right'] {
+  border-color: var(--jade);
+  background: var(--jade-soft);
+}
+
+.cs-type-row input[data-state='nearly'] {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+
+.cs-type-row input[data-state='wrong'] {
+  border-color: var(--red);
+  background: var(--red-soft);
+}
+
+.cs-verdict {
+  margin: 0;
+  font-weight: 600;
+}
+
+.cs-verdict[data-state='right'] {
+  color: var(--jade);
+}
+
+.cs-verdict[data-state='nearly'] {
+  color: var(--gold);
+}
+
+.cs-verdict[data-state='wrong'] {
+  color: var(--red);
+}
+
+.cs-write {
+  padding-top: 20px;
+}
+
+.cs-actions {
+  display: grid;
+  min-height: 60px;
+}
+
+.cs-show {
+  width: 100%;
+}
+
+.cs-grades {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cs-grades.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cs-grade {
+  min-height: 60px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 4px;
+}
+
+.cs-grade b {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.cs-grade span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.cs-grade[data-rating='again'] b {
+  color: var(--red);
+}
+
+.cs-grade[data-rating='good'],
+.cs-grade[data-good] {
+  background: var(--accent-soft);
+  border-color: transparent;
+}
+
+.cs-grade[data-rating='good'] b,
+.cs-grade[data-good] b {
+  color: var(--accent);
+}
+
+.cs-grade[data-rating='easy'] b {
+  color: var(--jade);
+}
+
+.cs-end {
+  flex: 1;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 40px 0;
+}
+
+.cs-end h1 {
+  margin: 0;
+}
+
+.cs-end p {
+  margin: 0 0 10px;
+}
+
+.cs-seal {
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--red);
+  border-radius: 12px;
+  color: var(--red);
+  font-size: 52px;
+  line-height: 1;
+  transform: rotate(-4deg);
+}
+
+.cs-end-actions {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 420px) {
+  .deck {
+    gap: 16px;
+    padding: 18px 16px;
+  }
+
+  .cs-card {
+    min-height: 380px;
+    padding: 32px 16px 18px;
+  }
+
+  .cs-han {
+    font-size: 72px;
+  }
+}

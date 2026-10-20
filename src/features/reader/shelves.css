@@ -1,0 +1,272 @@
+/* ----------------------------------------------------------------------------
+   Read and a shelf: lists of texts and words, divided by hairlines.
+---------------------------------------------------------------------------- */
+.read-page,
+.shelf-page {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.resume-row,
+.continue {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--card-2);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.resume-row > .hanzi {
+  font-size: 22px;
+  color: var(--ink-2);
+}
+
+.resume-row .grow,
+.continue .grow {
+  display: grid;
+  gap: 2px;
+}
+
+.continue-title {
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+.shelf-row,
+.text-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.shelf-row .grow,
+.text-row .grow {
+  display: grid;
+  gap: 2px;
+}
+
+.shelf-name {
+  font-size: 16.5px;
+  font-weight: 600;
+}
+
+.shelf-name.zh {
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.text-row-zh {
+  font-size: 19px;
+  line-height: 1.35;
+}
+
+.read-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 8px;
+}
+
+.read-dots i {
+  width: 14px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+}
+
+.read-dots i[data-read] {
+  background: var(--jade);
+}
+
+/* ------------------------------------------------------------------- a shelf */
+.sh-title {
+  margin: 4px 0 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.sh-title.zh {
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.sh-sub {
+  margin: 4px 0 0;
+}
+
+.seg.sh-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 18px 0 6px;
+  flex-wrap: nowrap;
+}
+
+.sh-tabs button {
+  min-height: 36px;
+  padding: 0 6px;
+}
+
+.shelf-text {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.shelf-text-n {
+  width: 16px;
+  padding-top: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
+  flex: none;
+}
+
+.shelf-text .grow {
+  display: grid;
+  gap: 1px;
+}
+
+.shelf-text-zh {
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+.shelf-text-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* The six parts of a text, each a short line filled as far as it is done. */
+.part-ticks {
+  display: inline-grid;
+  grid-template-columns: repeat(6, 12px);
+  gap: 3px;
+}
+
+.part-ticks i {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--jade) var(--fill, 0%), var(--line) var(--fill, 0%));
+}
+
+.versions-tag {
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.shelf-filters {
+  margin: 14px 0 4px;
+}
+
+.shelf-word {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+}
+
+.shelf-word-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.shelf-word-zh {
+  width: 96px;
+  flex: none;
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.shelf-word-text {
+  display: grid;
+  min-width: 0;
+}
+
+.shelf-word-py {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.shelf-word-d {
+  font: 400 14.5px/1.35 var(--read);
+}
+
+.shelf-word-n {
+  width: 50px;
+  text-align: right;
+  flex: none;
+}
+
+.char-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.char-tile {
+  display: grid;
+  justify-items: center;
+  padding: 0 0 6px;
+  border: 1.5px solid var(--grid);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.char-tile .hanzi {
+  width: 100%;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  font-size: 38px;
+  line-height: 1;
+  background:
+    linear-gradient(var(--grid), var(--grid)) 50% 0 / 1px 100% no-repeat,
+    linear-gradient(var(--grid), var(--grid)) 0 50% / 100% 1px no-repeat;
+}
+
+.char-tile-py {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.char-tile[data-learned] {
+  border-color: var(--jade);
+  background: var(--jade-soft);
+}
+
+@media (max-width: 420px) {
+  .shelf-word-n {
+    display: none;
+  }
+}

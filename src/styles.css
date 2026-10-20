@@ -584,6 +584,135 @@ a {
   grid-row: 1;
 }
 
+.app[data-focus] .page {
+  padding-bottom: 0;
+}
+
+/* -------------------------------------------------------------- page parts
+   The pieces every redesigned page is built from: a head with the title and
+   its one or two icon buttons, blocks with a plain title, lists divided by
+   hairlines rather than boxed into cards, and a foot for the page's action. */
+.page-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  margin-bottom: 8px;
+}
+
+.page-head h1 {
+  margin: 0;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex: none;
+}
+
+.icon-btn.accent {
+  color: var(--accent);
+}
+
+.icon-btn:hover,
+.icon-btn[aria-expanded='true'] {
+  background: var(--card-2);
+}
+
+.page-head > .menu-wrap:last-child,
+.page-head > .icon-btn:last-child {
+  margin-right: -10px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 40px;
+  margin-left: -8px;
+  padding-right: 8px;
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.block {
+  margin-top: 28px;
+}
+
+.block-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.block-head .btn.quiet {
+  margin-right: -8px;
+}
+
+.block-title {
+  margin: 0 0 4px;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.list > * + * {
+  border-top: 1px solid var(--line);
+}
+
+ol.list,
+ul.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.page-foot {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.page-foot p {
+  margin: 0;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: var(--card-2);
+  color: var(--ink-3);
+}
+
+.search input[type='search'] {
+  border: 0;
+  background: transparent;
+  padding: 10px 0;
+  min-width: 0;
+  outline: none;
+  color: var(--ink);
+}
+
+.chip .count,
+.seg .count {
+  margin-left: 6px;
+  font-weight: 400;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ----------------------------------------------------------------- layout */
 .main {
   min-height: 0;

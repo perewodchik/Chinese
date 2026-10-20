@@ -18,9 +18,11 @@ import { TalkSetupPage } from '../features/pinyin/TalkSetupPage';
 import { VoicePage } from '../features/pinyin/VoicePage';
 import { SessionPage } from '../features/reader/SessionPage';
 import { ReaderPage } from '../features/reader/ReaderPage';
+import { ReadPage, ShelfPage } from '../features/reader/ReadPage';
+import { CardsPage } from '../features/cards/CardsPage';
+import { CardSessionPage } from '../features/cards/CardSession';
 import { DrillPage } from '../features/review/DrillPage';
 import { GradeSheetPage } from '../features/review/GradeSheetPage';
-import { ReviewPage } from '../features/review/ReviewPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { StatsPage } from '../features/stats/StatsPage';
 import { LearnPage } from '../features/learn/LearnPage';
@@ -110,7 +112,10 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <Navigate to={paths.today()} replace /> },
               { path: 'today', element: <TodayPage /> },
-              { path: 'review', element: <ReviewPage /> },
+              // Review became Cards; what the old page held is on the Cards tab.
+              { path: 'review', element: <Navigate to={paths.cards()} replace /> },
+              { path: 'cards', element: <CardsPage /> },
+              { path: 'cards/session', element: <CardSessionPage /> },
               { path: 'review/sheets/:sheetId', element: <GradeSheetPage /> },
               { path: 'review/sweep', element: <SweepPage /> },
               { path: 'review/words', element: <WordsDrillPage /> },
@@ -134,7 +139,9 @@ export const router = createBrowserRouter([
               { path: 'radicals/*', element: <MovedToLibrary /> },
               // Texts were a tab of their own until they became what they
               // always were: collections, beside the character ones.
-              { path: 'texts', element: <Navigate to={paths.texts()} replace /> },
+              { path: 'read', element: <ReadPage /> },
+              { path: 'read/:setId', element: <ShelfPage /> },
+              { path: 'texts', element: <Navigate to={paths.read()} replace /> },
               { path: 'texts/session/:step?', element: <SessionPage /> },
               { path: 'texts/:textId', element: <ReaderPage /> },
               { path: 'speaking', element: <PinyinPage /> },

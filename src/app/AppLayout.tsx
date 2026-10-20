@@ -58,9 +58,9 @@ export function AppLayout() {
   useEffect(() => setMore(false), [pathname]);
 
   const sections = [
-    { to: paths.today(), han: '今', label: 'Today', also: ['/review', '/learn'] },
+    { to: paths.today(), han: '今', label: 'Today', also: [] },
     { to: paths.read(), han: '读', label: 'Read', also: ['/texts'] },
-    { to: paths.cards(), han: '卡', label: 'Cards', also: [] },
+    { to: paths.cards(), han: '卡', label: 'Cards', also: ['/review', '/learn'] },
     { to: paths.library(), han: '字', label: 'Library', also: [] },
   ];
   const lit = (s: (typeof sections)[number]) =>
