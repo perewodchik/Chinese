@@ -87,7 +87,7 @@ export function AnswerBox({
       />
       <div className="answer-actions">
         {claude.ready ? (
-          <button className="btn sm primary check-btn" disabled={empty || waiting} onClick={() => void ask()}>
+          <button className="btn sm tonal check-btn" disabled={empty || waiting} onClick={() => void ask()}>
             {waiting ? `Checking… ${claude.waiting}s` : 'Check answer'}
           </button>
         ) : (

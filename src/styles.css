@@ -476,6 +476,13 @@ strong {
   border-top: 1px solid var(--line);
 }
 
+/* Beside the rail the account has its own button at the rail's foot; the panel need not say it twice. */
+@media (min-width: 700px) {
+  .more-foot {
+    display: none;
+  }
+}
+
 .more-row {
   display: flex;
   align-items: center;
@@ -917,7 +924,8 @@ input[type='range'] {
   width: 100%;
 }
 
-label.field {
+label.field,
+div.field {
   display: grid;
   gap: 5px;
   font-size: 12.5px;
@@ -1352,10 +1360,9 @@ h2 {
 }
 
 .strokestep-bar .btn.sm {
-  min-width: 30px;
-  min-height: 28px;
-  padding: 2px 6px;
-  font-size: 17px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
   line-height: 1;
 }
 
@@ -1457,17 +1464,19 @@ h2 {
 
 .toggle {
   display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 6px 0;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
 }
 
+/* The box lines up with the setting's name, not with the middle of its description. */
 .toggle input {
   accent-color: var(--accent);
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
   flex: none;
 }
 
@@ -1546,9 +1555,8 @@ a.tpl-card:hover {
   font-weight: 600;
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* A list's name is what tells it from the next one: whole, over two lines if it must. */
+  overflow-wrap: anywhere;
 }
 
 .strip {
@@ -1690,6 +1698,9 @@ a.tpl-card:hover {
   padding: 15px 18px;
   overflow: auto;
   display: grid;
+  /* One column no wider than the modal: a writing square measures the width it
+     is given, and an auto column gave it its own 380px back on a phone. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -2228,11 +2239,12 @@ select.mt {
   flex: none;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
+  margin: -8px -10px -8px 0;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 12px;
   background: transparent;
   color: var(--ink-3);
   font-size: 12px;
@@ -4057,10 +4069,8 @@ button.progress-meter:hover {
   }
 
   .say {
-    width: 30px;
-    height: 30px;
-    font-size: 14px;
-    opacity: 0.7;
+    width: 32px;
+    height: 32px;
   }
 
   .marks-row .mark {
@@ -4069,10 +4079,17 @@ button.progress-meter:hover {
     font-size: 18px;
   }
 
-  /* The `i` is always on show here, so the definition has to stop before it
-     rather than run underneath. */
-  .item .gloss {
-    padding-right: 26px;
+  /* A choice of two to five, and a filter, are aimed at with a thumb. */
+  .seg button {
+    min-height: 36px;
+  }
+
+  .seg.sm button {
+    min-height: 34px;
+  }
+
+  .chip {
+    min-height: 36px;
   }
 
   .tabs button,
@@ -4404,11 +4421,11 @@ a.waiting {
 }
 
 label.field[data-invalid] input {
-  border-color: var(--accent);
+  border-color: var(--red);
 }
 
 .field-error {
-  color: var(--accent);
+  color: var(--red);
 }
 
 .password-form {
@@ -5378,9 +5395,23 @@ label.field[data-invalid] input {
 .menu .btn {
   justify-content: flex-start;
   text-align: left;
-  min-height: 36px;
+  min-height: 40px;
   flex-wrap: wrap;
   column-gap: 8px;
+}
+
+/* An item with a line under it: the line belongs to the item, on its own row, close under the label. */
+.menu .btn:has(> .tiny) {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+.menu .btn > .tiny {
+  font-weight: 400;
 }
 
 /* ------------------------------------------------ the shelf, collected */
@@ -5866,4 +5897,9 @@ label.field[data-invalid] input {
 
 .from-texts .page-foot {
   margin: 0 0 16px;
+}
+
+/* A short phrase that should not break across two lines: "its family". */
+.nowrap {
+  white-space: nowrap;
 }

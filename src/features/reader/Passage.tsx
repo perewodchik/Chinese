@@ -182,7 +182,8 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
       const showPy = view.pinyin === 'all' || (view.pinyin === 'new' && s !== 'known');
       const step = view.markAbove ? stepsAbove(t, view.target) : 0;
       const mark = view.markUnknown && s !== 'known' ? s : undefined;
-      const isNew = mark === 'new' || (view.markUnknown && [...t.text].some((c) => teach.has(c)) && s !== 'known');
+      // A word holding one of the text's new characters is new too — until it is chosen to learn, when it turns blue like any other.
+      const isNew = mark === 'new' || (view.markUnknown && [...t.text].some((c) => teach.has(c)) && s !== 'known' && s !== 'learning');
       const id = itemForToken(lib, t.text);
       const band = bands.get(t.text);
       const word = (
@@ -202,7 +203,8 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
           {opener && <span className="opener">{opener}</span>}
           <ruby>
             {t.text}
-            <rt>{showPy ? said.join('') : ''}</rt>
+            {/* Always there, hidden when not asked for: its width is the word's, and switching pinyin on must not move a line. */}
+            <rt data-hidden={!showPy || undefined}>{said.join('')}</rt>
           </ruby>
         </span>
       );

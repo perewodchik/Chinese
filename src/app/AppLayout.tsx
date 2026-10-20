@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { AccountMenu } from '../features/auth/AccountMenu';
 import { useUser } from '../features/auth/session';
@@ -42,6 +42,7 @@ export function AppLayout() {
   const drawer = useItemDrawer();
   const progress = useProgressDrawer();
   const main = useRef<HTMLElement>(null);
+  const moreButton = useRef<HTMLButtonElement>(null);
   const [more, setMore] = useState(false);
   // A sitting has the whole screen: the question and its own way out, nothing
   // else to glance at or tap by mistake.
@@ -80,6 +81,7 @@ export function AppLayout() {
           </Link>
         ))}
         <button
+          ref={moreButton}
           className="nav-tab"
           aria-haspopup="dialog"
           aria-expanded={more}
@@ -104,7 +106,7 @@ export function AppLayout() {
         </div>
       </main>
 
-      {more && <MoreSheet onClose={() => setMore(false)} />}
+      {more && <MoreSheet anchor={moreButton} onClose={() => setMore(false)} />}
 
       {drawer.item &&
         (isWordId(drawer.item) ? (
@@ -137,10 +139,19 @@ const MORE = [
  * phone, a panel beside the rail on anything wider. Settings are not here a
  * second time — they are under your name, at the foot of the sheet.
  */
-function MoreSheet({ onClose }: { onClose: () => void }) {
+function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | null>; onClose: () => void }) {
   const user = useUser();
   const { leave, leaving } = useSignOut();
   const panel = useRef<HTMLDivElement>(null);
+  // Beside the rail, the panel opens level with More rather than at the foot
+  // of the screen, a hand's width away from what was tapped.
+  const [top, setTop] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const at = anchor.current?.getBoundingClientRect();
+    const el = panel.current;
+    if (!at || !el || !window.matchMedia('(min-width: 700px)').matches) return;
+    setTop(Math.max(16, Math.min(at.top - 8, window.innerHeight - el.offsetHeight - 16)));
+  }, [anchor]);
   // Pulled down, it goes the way it came, like every other sheet on a phone.
   const sheet = useSheetDrag(onClose);
   const { close } = sheet;
@@ -162,7 +173,15 @@ function MoreSheet({ onClose }: { onClose: () => void }) {
   return (
     <>
       <div className="more-scrim" data-leaving={sheet.leaving || undefined} onClick={close} onTouchMove={(e) => e.preventDefault()} />
-      <div className="more-sheet" role="dialog" aria-label="More" ref={panel} tabIndex={-1} {...sheet.sheetProps}>
+      <div
+        className="more-sheet"
+        role="dialog"
+        aria-label="More"
+        ref={panel}
+        tabIndex={-1}
+        {...sheet.sheetProps}
+        style={top === null ? sheet.sheetProps.style : { ...sheet.sheetProps.style, top, bottom: 'auto' }}
+      >
         <span className="sheet-grab" aria-hidden {...sheet.gripProps} />
         <div className="more-list">
           {MORE.map((m) => (

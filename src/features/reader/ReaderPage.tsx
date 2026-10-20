@@ -4,6 +4,7 @@ import type { ItemId } from '../../domain/ids';
 import { hskLabel, shelfEntries, shelve, type GeneratedText, type ShelfEntry, type TextSet } from '../../domain/text';
 import { paths, type ReadMode, type TextVersion } from '../../navigation/paths';
 import { renderReading, renderTextSet } from '../../pdf/render';
+import { dayKey } from '../../domain/activity';
 import { deleteText, markRead, setSettings, setTextRead, studyText } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
@@ -185,6 +186,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement;
       if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) return;
+      // Something open over the text — copying it out, a drawer, a panel — has the keys to itself.
+      if (e.defaultPrevented || document.querySelector('[role="dialog"], .drawer, .rd-aa-panel')) return;
       if (e.key === 'ArrowRight' && page < total) go(page + 1);
       if (e.key === 'ArrowLeft' && page > 1) go(page - 1);
     };
@@ -216,9 +219,10 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
 
   const parts = partsOf(text);
   const fill = partFill(text, standing);
-  const current = useCurrentPart(text.id, parts.map((p) => p.id));
+  const [current, holdPart] = useCurrentPart(text.id, parts.map((p) => p.id));
   const partId = (p: PartId) => `part-${p}`;
   function goPart(p: PartId) {
+    holdPart(p);
     if (p === 'read') {
       top.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       document.querySelector('.rd-study')?.scrollTo({ top: 0, behavior: 'smooth' });
@@ -308,9 +312,16 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
         {mode === 'single' && (
           <div className="rd-done no-print">
             <button
-              className={`btn ${text.read ? 'tonal' : ''}`}
+              className={`btn rd-done-btn ${text.read ? 'tonal' : ''}`}
               aria-pressed={text.read}
-              onClick={() => (text.read ? setTextRead(text.id, false) : markRead(text.id))}
+              onClick={() =>
+                text.read
+                  ? setTextRead(text.id, false)
+                  : // Ticked again the same day is a slip taken back, not a second reading.
+                    text.lastReadAt && dayKey(text.lastReadAt) === dayKey(Date.now())
+                    ? setTextRead(text.id, true)
+                    : markRead(text.id)
+              }
             >
               {text.read ? (
                 <>
@@ -399,25 +410,67 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
  * of the page. On a wide screen the parts scroll in their own column, so both
  * scrollers are listened to.
  */
-function useCurrentPart(textId: string, ids: PartId[]): PartId {
+/**
+ * The part being looked at, for the parts bar: the last one whose top has
+ * come up to the line under the bars — in two columns, to the top of the
+ * study column, with the text itself current while that column is at its
+ * top. Scrolled to the very end, the last part is current even when it is
+ * too short to reach the line.
+ *
+ * A part tapped in the bar is current at once and stays so while the page
+ * glides to it; the next thing the learner does with a finger, a wheel or a
+ * key hands it back to the scrolling.
+ */
+function useCurrentPart(textId: string, ids: PartId[]): [PartId, (p: PartId) => void] {
   const [current, setCurrent] = useState<PartId>('read');
+  const held = useRef<PartId | null>(null);
   const key = ids.join(',');
   useEffect(() => {
+    held.current = null;
     const look = () => {
-      const bar = document.querySelector('.rd-parts')?.getBoundingClientRect().bottom ?? 120;
+      if (held.current) return;
+      const list = key.split(',') as PartId[];
+      const study = document.querySelector<HTMLElement>('.rd-study');
+      const wide = Boolean(study && getComputedStyle(study).overflowY === 'auto');
+      const scroller = wide ? study : document.querySelector<HTMLElement>('.main');
+      const line = wide
+        ? study!.getBoundingClientRect().top + 24
+        : (document.querySelector('.rd-parts')?.getBoundingClientRect().bottom ?? 120) + 48;
       let at: PartId = 'read';
-      for (const id of key.split(',') as PartId[]) {
-        if (id === 'read') continue;
-        const el = document.getElementById(`part-${id}`);
-        if (el && el.getBoundingClientRect().top <= bar + 48) at = id;
+      if (!wide || study!.scrollTop > 0) {
+        for (const id of list) {
+          if (id === 'read') continue;
+          const el = document.getElementById(`part-${id}`);
+          if (el && el.getBoundingClientRect().top <= line) at = id;
+        }
+        if (scroller && scroller.scrollTop > 0 && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4) {
+          at = list[list.length - 1]!;
+        }
       }
       setCurrent(at);
     };
+    const release = () => {
+      if (!held.current) return;
+      held.current = null;
+      look();
+    };
     look();
     document.addEventListener('scroll', look, true);
-    return () => document.removeEventListener('scroll', look, true);
+    window.addEventListener('wheel', release, { passive: true });
+    window.addEventListener('touchstart', release, { passive: true });
+    window.addEventListener('keydown', release);
+    return () => {
+      document.removeEventListener('scroll', look, true);
+      window.removeEventListener('wheel', release);
+      window.removeEventListener('touchstart', release);
+      window.removeEventListener('keydown', release);
+    };
   }, [key, textId]);
-  return current;
+  const hold = useCallback((p: PartId) => {
+    held.current = p;
+    setCurrent(p);
+  }, []);
+  return [current, hold];
 }
 
 const SCALE_MIN = 0.8;
@@ -576,7 +629,7 @@ function ReaderMenu({
 
   return (
     <>
-      <Menu label={busy ? <span className="small">Building…</span> : <Icon name="more" size={22} />} title="More" className="rd-menu-btn">
+      <Menu label={<Icon name="more" size={22} />} title={busy ? 'Building the PDF…' : 'More'} className={`rd-menu-btn${busy ? ' busy' : ''}`}>
         {(close) => (
           <>
             {list.length > 1 && (

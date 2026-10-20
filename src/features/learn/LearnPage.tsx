@@ -371,9 +371,14 @@ function Empty({ throttle, due }: { throttle: Throttle; due: number }) {
           {due} things are due for review. New ones would only add to the pile, so today is for catching up — the
           lesson comes back when the queue is shorter.
         </p>
-        <Link className="btn primary" to={paths.reviewSession()} replace>
-          Start reviewing
-        </Link>
+        <div className="row" style={{ justifyContent: 'center' }}>
+          <Link className="btn primary" to={paths.cards()} replace>
+            Go to the cards
+          </Link>
+          <Link className="btn" to={paths.today()}>
+            Back to Today
+          </Link>
+        </div>
       </div>
     );
   }

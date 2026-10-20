@@ -82,7 +82,7 @@ export function LearningSettings() {
               </option>
             ))}
           </select>
-          <span className="tiny muted">What keeps the streak going, on Today and on the Stats page.</span>
+          <span className="tiny muted">What keeps the streak going, on Today and in Your progress.</span>
         </label>
 
         <label className="toggle">
@@ -98,7 +98,7 @@ export function LearningSettings() {
         <p className="small muted" style={{ margin: 0 }}>
           Sorting the words of a band into known, not sure and new is under{' '}
           <Link to={paths.sweep()}>Review → Which words do you know?</Link> — the ones you mark new are what lessons
-          teach first. Your progress is on the <Link to={paths.stats()}>Stats page</Link>.
+          teach first. Your progress is in <Link to={paths.stats()}>Your progress</Link>.
         </p>
       </div>
     </div>

@@ -11,11 +11,20 @@ import { AccountMenu } from '../auth/AccountMenu';
 import { useCardsToday } from '../cards/CardsPage';
 import { useContinue } from '../reader/ReadPage';
 import { useStanding } from '../reader/Passage';
-import { partFill, PARTS } from '../reader/TextParts';
+import { partFill, partsOf, type PartId } from '../reader/TextParts';
 import type { ItemId } from '../../domain/ids';
 import './today.css';
 
 const WEEKDAY = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+/** Where the text has got to, in words: what is done, and the part to go on with. */
+function nextStep(parts: ReadonlyArray<{ id: PartId; label: string }>, fill: Record<PartId, number>): string {
+  const done = parts.filter((p) => fill[p.id] >= 1);
+  const next = parts.find((p) => fill[p.id] < 1);
+  if (!next) return 'Every part done. Read it once more, or go on to the next text.';
+  if (!done.length) return `${parts.length} parts, from the text itself to ${parts[parts.length - 1]!.label.toLowerCase()}.`;
+  return `${done.map((p) => p.label).join(', ')} done. Next: ${next.label.toLowerCase()}.`;
+}
 
 /**
  * The front door, kept light on purpose: one thing to carry on with — the
@@ -57,6 +66,7 @@ export function TodayPage() {
   const worked = days.filter((d) => d.worked).length;
 
   const fill = go ? partFill(go.text, standing) : null;
+  const parts = go ? partsOf(go.text) : null;
   const firstLine = go?.text.lines.slice(0, 2).map((l) => l.zh).join('') ?? '';
 
   return (
@@ -76,15 +86,15 @@ export function TodayPage() {
           <p className="small muted">Continue reading{go.set ? ` in ${go.set.name}` : ''}</p>
           <h2 className="hanzi">{go.text.titleZh || go.text.title}</h2>
           <p className="hanzi today2-excerpt">{firstLine}</p>
-          {fill && (
-            <div className="today2-parts" aria-label="Parts of this text">
-              {PARTS.map((p) => (
-                <span key={p.id} style={{ '--fill': `${Math.round(fill[p.id] * 100)}%` } as CSSProperties} data-started={fill[p.id] > 0 || undefined}>
-                  <span className="hanzi">{p.han}</span>
-                  <i />
-                </span>
-              ))}
-            </div>
+          {fill && parts && (
+            <>
+              <div className="today2-parts" aria-hidden>
+                {parts.map((p) => (
+                  <i key={p.id} style={{ '--fill': `${Math.round(fill[p.id] * 100)}%` } as CSSProperties} />
+                ))}
+              </div>
+              <p className="small muted today2-next">{nextStep(parts, fill)}</p>
+            </>
           )}
           <Link className="btn primary lg today2-go" to={go.to}>
             Continue reading
@@ -131,7 +141,7 @@ export function TodayPage() {
               <p className="small">{cards.done ? 'Done for today.' : 'Nothing to ask yet.'}</p>
               {cards.done && (
                 <div className="row" style={{ marginTop: 10 }}>
-                  <Link className="btn quiet sm" to={paths.cardSession({ n: 10 })}>
+                  <Link className="btn tonal sm" to={paths.cardSession({ n: 10 })}>
                     10 more
                   </Link>
                 </div>

@@ -57,6 +57,14 @@ export { useContinue };
  * gathered into a collection to be learned. Texts come first in this app,
  * and this is the tab that finds them.
  */
+/** Pinyin as typed on a phone: no tone marks, no ü's dots, no spaces. */
+const bare = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\s'’]/g, '')
+    .toLowerCase();
+
 export function ReadPage() {
   useTitle('Read');
   const navigate = useNavigate();
@@ -71,14 +79,26 @@ export function ReadPage() {
   const found = useMemo(() => {
     const needle = q.trim().toLowerCase();
     if (!needle) return null;
-    return texts
+    // Pinyin matches with or without its tone marks and spaces: "lan" finds lán, which is hard to type on a phone.
+    const sound = bare(needle);
+    const sounds = (py: string) => Boolean(sound) && bare(py).includes(sound);
+    const seen = new Set<string>();
+    return [...texts]
+      .sort((a, b) => b.createdAt - a.createdAt)
       .filter(
         (t) =>
           t.titleZh.includes(needle) ||
           t.title.toLowerCase().includes(needle) ||
-          t.lines.some((l) => l.zh.includes(needle) || l.en.toLowerCase().includes(needle)) ||
-          t.vocab.some((w) => w.w.includes(needle) || w.d.toLowerCase().includes(needle) || w.py.replace(/\s/g, '').includes(needle.replace(/\s/g, ''))),
+          t.lines.some((l) => l.zh.includes(needle) || l.en.toLowerCase().includes(needle) || sounds(l.py)) ||
+          t.vocab.some((w) => w.w.includes(needle) || w.d.toLowerCase().includes(needle) || sounds(w.py)),
       )
+      // A text with an easier version is one result, as it is one text on its shelf.
+      .filter((t) => {
+        const key = `${t.setId ?? ''}|${t.titleZh}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
       .slice(0, 30);
   }, [q, texts]);
 
@@ -601,7 +621,7 @@ function ShelfWords({
       {learning > 0 && (
         <div className="page-foot">
           <Link className="btn tonal lg" to={paths.cardSession({ shelf: setId })}>
-            Practise these {learning} as cards
+            {learning === 1 ? 'Practise it as a card' : `Practise these ${learning} as cards`}
           </Link>
         </div>
       )}

@@ -26,8 +26,8 @@ function CollectionCard({ c, learned }: { c: Collection; learned: ReadonlySet<It
   const printPalette = useStore((st) => st.settings.printPalette);
   const s = statsOf(c, learned);
   const done = s.total ? s.learned / s.total : 0;
+  // Said only where the list has a colour of its own; the default is in Settings.
   const palette = PALETTES.find((p) => p.id === (c.sheet.palette ?? printPalette));
-  const swatch = palette?.swatch;
   return (
     <Link className="tpl-card" to={paths.collection(c.id)}>
       <div className="row" style={{ gap: 8 }}>
@@ -52,16 +52,9 @@ function CollectionCard({ c, learned }: { c: Collection; learned: ReadonlySet<It
         ) : null}
         <span>·</span>
         <span>
-          {s.pages} page{s.pages === 1 ? '' : 's'}, {LAYOUTS[c.sheet.layout].name}
+          {s.pages} page{s.pages === 1 ? '' : 's'}, {LAYOUTS[c.sheet.layout].name.toLowerCase()}
+          {c.sheet.palette && palette ? `, in ${palette.name.toLowerCase()}` : ''}
         </span>
-        <div className="spacer" />
-        {swatch && (
-          <span
-            className="theme-dot"
-            title={`${palette?.name ?? ''}${c.sheet.palette ? '' : ', the default'}`}
-            style={{ background: swatch[0], borderColor: swatch[1] }}
-          />
-        )}
       </div>
     </Link>
   );
@@ -89,7 +82,7 @@ function FromTexts({ lists }: { lists: Collection[] }) {
         <span className="grow">
           <b>Made from texts</b>
           <span className="small muted">
-            {lists.length} list{lists.length === 1 ? '' : 's'} from before shelves kept their own words
+            {lists.length} list{lists.length === 1 ? '' : 's'} of new characters, made by texts before shelves had word lists of their own
           </span>
         </span>
         <Icon name="down" />
@@ -284,7 +277,7 @@ export function CollectionsPage() {
                     </p>
                     <div className="row">
                       <span className="tiny muted grow">{itemsLabel(p.items(lib))}</span>
-                      <button className="btn sm primary" onClick={() => setAdding(p)}>
+                      <button className="btn sm tonal" onClick={() => setAdding(p)}>
                         Add
                       </button>
                     </div>

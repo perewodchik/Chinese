@@ -80,7 +80,7 @@
   width: 14px;
   height: 4px;
   border-radius: 2px;
-  background: var(--line);
+  background: var(--line-2);
 }
 
 .read-dots i[data-read] {

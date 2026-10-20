@@ -76,8 +76,8 @@
 }
 
 .rd-versions button {
-  width: 42px;
-  height: 32px;
+  width: 44px;
+  height: 36px;
   border: 0;
   border-radius: 9px;
   background: transparent;
@@ -264,6 +264,10 @@
   padding: 0 1px;
 }
 
+.rd-zh rt[data-hidden] {
+  visibility: hidden;
+}
+
 .rd-zh .w {
   /* A word with its reading over it is one piece: never 二 at the end of a
      line and 氧化碳 at the start of the next. An inline block cannot be split,
@@ -344,7 +348,7 @@
 
 .rd-line {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-columns: 36px minmax(0, 1fr);
   gap: 6px;
   margin: 0 -10px;
   padding: 0 10px;
@@ -358,9 +362,10 @@
 }
 
 .rd-n {
-  width: 28px;
-  height: 28px;
-  margin-top: calc(0.62em * var(--reader-scale, 1) + 6px);
+  width: 36px;
+  height: 36px;
+  margin-top: calc(0.62em * var(--reader-scale, 1) + 2px);
+  margin-left: -6px;
   border: 0;
   border-radius: 8px;
   background: transparent;
@@ -789,7 +794,8 @@
   flex-wrap: nowrap;
 }
 
-.rd-dock .seg button {
+.rd-dock .seg button,
+.rd-dock .seg.sm button {
   min-height: 36px;
   min-width: 40px;
   padding: 0 10px;
@@ -1167,8 +1173,10 @@ label.rd-aa-row {
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: clip;
   color: var(--ink-2);
+  /* What does not fit fades out rather than stopping halfway through a character. */
+  -webkit-mask-image: linear-gradient(90deg, #000 80%, transparent);
+  mask-image: linear-gradient(90deg, #000 80%, transparent);
 }
 
 .co-ahead-chars [data-punct] {
@@ -1265,9 +1273,20 @@ label.rd-aa-row {
     padding-bottom: 0;
   }
 
+  /* A short text still has its dock on the column's bottom edge, not floating under the last line. */
+  .rd[data-mode='single'] .rd-text {
+    display: flex;
+    flex-direction: column;
+  }
+
   .rd[data-mode='single'] .rd-dock {
-    margin: 16px calc(-1 * max(48px, calc((100% - 760px) / 2))) 0;
+    margin: auto calc(-1 * max(48px, calc((100% - 760px) / 2))) 0;
     padding: 10px max(48px, calc((100% - 760px) / 2)) 14px;
+  }
+
+  /* In its own column a part comes to the column's top, not to below bars it does not have. */
+  .rd[data-mode='single'] .rd-study .rd-part {
+    scroll-margin-top: 0;
   }
 
   .rd-zh {
@@ -1288,4 +1307,19 @@ label.rd-aa-row {
   .rd-text {
     padding: 0;
   }
+}
+
+/* While the PDF is being made the menu is quietly busy, its icon unchanged. */
+.rd-menu-btn.busy {
+  color: var(--ink-3);
+  cursor: progress;
+}
+
+/* Labels that change keep the width of the longer one, so nothing beside them moves. */
+.rd-done-btn {
+  min-width: 132px;
+}
+
+.rd-show-all {
+  min-width: 78px;
 }

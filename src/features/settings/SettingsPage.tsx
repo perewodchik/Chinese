@@ -84,7 +84,7 @@ export function SettingsPage() {
         </header>
         <div className="body" style={{ display: 'grid', gap: 12 }}>
           <p className="small" style={{ margin: 0 }}>
-            Signed in as <b>{user.username}</b>, since {new Date(user.createdAt).toLocaleDateString()}.
+            Signed in as <b>{user.username}</b>, since {new Date(user.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}.
           </p>
           <p className="small muted" style={{ margin: 0 }}>
             {whereWorkIs(status)}
@@ -301,9 +301,8 @@ export function SettingsPage() {
         </header>
         <div className="body">
           <p className="small muted" style={{ marginTop: 0 }}>
-            Collections, progress, review schedules, printed sheets and texts are kept in your account on the
-            computer that runs this app, saved as you go. Whoever runs it can take a copy at any time with{' '}
-            <code>npm run admin -- backup</code>.
+            Your texts, shelves, cards, lists and progress are kept in your account and saved as you go, the same on
+            every device you sign in on.
           </p>
           <div className="row">
             <div className="spacer" />

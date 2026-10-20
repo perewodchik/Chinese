@@ -23,6 +23,7 @@ import { FitChips, newWordsLine } from './FitChips';
 import { useFits } from './hooks';
 import { SUGGESTIONS } from './suggestions';
 import './videos.css';
+import { Icon } from '../../ui/Icon';
 
 const SORTS = [
   { id: 'fit', label: 'Best fit' },
@@ -87,7 +88,7 @@ export function VideosPage() {
         <input
           type="text"
           inputMode="url"
-          placeholder="Paste a YouTube link to add a video"
+          placeholder="Paste a YouTube link"
           value={link}
           onChange={(e) => setLink(e.target.value)}
           aria-label="YouTube link"
@@ -129,18 +130,16 @@ export function VideosPage() {
           <h2 className="videos-label">Good ones to start with</h2>
           <div className="video-idea-list">
             {ideas.map((s) => (
-              <div key={s.videoId} className="video-idea">
+              <Link key={s.videoId} className="video-idea" to={paths.addVideo(`https://youtu.be/${s.videoId}`)}>
                 <img src={`https://i.ytimg.com/vi/${s.videoId}/mqdefault.jpg`} alt="" loading="lazy" />
                 <span className="video-idea-text">
                   <b>{s.title}</b>
                   <span className="tiny muted">
-                    {s.channel} · {s.why}
+                    {s.channel}. {s.why}
                   </span>
                 </span>
-                <Link className="btn sm" to={paths.addVideo(`https://youtu.be/${s.videoId}`)}>
-                  Look at it
-                </Link>
-              </div>
+                <Icon name="chevron" className="muted" />
+              </Link>
             ))}
           </div>
         </section>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FIT_FLOOR, strokeBounds } from '../data/bounds';
 import type { StrokeMap } from '../data/types';
+import { Icon } from './Icon';
 
 const PALETTE = ['#b8452f', '#2a6673', '#70571f', '#59487a', '#33693f'];
 
@@ -217,7 +218,7 @@ export function StrokeStepper({
       {total > 0 && (
         <div className="strokestep-bar">
           <button type="button" className="btn ghost sm" onClick={prev} disabled={step <= 0} aria-label="Previous stroke">
-            ‹
+            <Icon name="back" size={18} />
           </button>
           <button
             type="button"
@@ -225,10 +226,10 @@ export function StrokeStepper({
             onClick={toggle}
             aria-label={playing ? 'Pause' : 'Play the strokes'}
           >
-            {playing ? '❚❚' : '▶'}
+            <Icon name={playing ? 'pause' : 'play'} size={16} />
           </button>
           <button type="button" className="btn ghost sm" onClick={next} disabled={whole} aria-label="Next stroke">
-            ›
+            <Icon name="chevron" size={18} />
           </button>
           <span className="strokestep-count tiny muted">
             {step}/{total}

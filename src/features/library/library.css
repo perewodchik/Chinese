@@ -13,18 +13,32 @@
 }
 
 .library-head .seg button {
-  padding: 7px 12px;
+  padding: 0 12px;
   font-size: 13px;
 }
 
+/* One bar, one height: the switch, the search and the order are all 40px. */
+.library-head .seg button,
+.library-head input[type='search'],
+.library-head select {
+  height: 40px;
+  min-height: 40px;
+}
+
+.library-head .seg button {
+  height: 34px;
+  min-height: 34px;
+}
+
 .library-head input[type='search'] {
-  flex: 1 1 140px;
+  flex: 1 1 110px;
   min-width: 0;
   max-width: 300px;
 }
 
 .library-head .field {
-  width: 156px;
+  width: auto;
+  flex: none;
 }
 
 /* The band and the filters on one line where there is room; the chips scroll
@@ -97,7 +111,7 @@
   }
 
   .library-head .field {
-    width: 146px;
+    width: auto;
   }
 
   /* The band strip spans the phone, so each number is a thumb's width. */

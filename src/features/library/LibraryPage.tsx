@@ -243,7 +243,7 @@ export function LibraryPage() {
               setQuery('q', e.target.value);
             }}
             placeholder={
-              radicals ? 'Search 氵, shui, water, 三点水…' : words ? 'Search 东西, dongxi, thing…' : 'Search 好, hao, good…'
+              radicals ? '氵, shui or water' : words ? '东西, dongxi or thing' : '好, hao or good'
             }
           />
 

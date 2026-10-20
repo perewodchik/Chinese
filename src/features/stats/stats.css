@@ -194,6 +194,15 @@
   font-size: 10px;
 }
 
+/* A goal's name in its line's colour: two "HSK 2"s, one for characters and one for words, are told apart at a glance. */
+.st-goal[data-series='chars'] text {
+  fill: var(--st-chars);
+}
+
+.st-goal[data-series='words'] text {
+  fill: var(--st-words);
+}
+
 .st-cross line {
   stroke: var(--ink-3);
   stroke-width: 1;

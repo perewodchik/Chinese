@@ -75,12 +75,13 @@
 .tone-card {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
+  /* The middle row takes what a taller neighbour adds, so every card's foot sits on the same line. */
+  grid-template-rows: auto 1fr auto;
   gap: 2px 14px;
   padding: 16px 16px 13px;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
   color: inherit;
   text-decoration: none;
   transition:
@@ -1070,6 +1071,14 @@
   background: var(--card-2);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
+}
+
+/* As a card's own body it is the card, not a box drawn inside it. */
+.card > .body.opt-panel {
+  margin: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
 }
 
 /* One setting to a line, its label in a column of its own: on a phone the

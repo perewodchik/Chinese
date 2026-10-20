@@ -22,6 +22,7 @@ import { Say } from '../../ui/Say';
 import { useSheetDrag } from '../../ui/useSheetDrag';
 import { CollectionPicker, useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
+import { Icon } from '../../ui/Icon';
 
 interface Props {
   id: ItemId;
@@ -98,20 +99,23 @@ export function ItemDrawer({ id, onClose }: Props) {
             <span />
           </div>
           <div className="row sheet-top" style={{ justifyContent: 'space-between' }}>
-            <button className="btn ghost sm close" onClick={close}>
-              ✕ Close
+            <button className="btn ghost sm close" onClick={close} aria-label="Close">
+              <Icon name="close" />
             </button>
             {char && (
               <div className="row">
-                <button
-                  className={`btn sm${learned ? ' primary' : ''}`}
-                  onClick={() => toggleLearned(id)}
-                >
-                  {learned ? '✓ Learned' : 'Mark as learned'}
+                <button className={`btn sm${learned ? ' tonal' : ''}`} onClick={() => toggleLearned(id)} aria-pressed={learned}>
+                  {learned ? (
+                    <>
+                      <Icon name="check" /> Learned
+                    </>
+                  ) : (
+                    'Mark as learned'
+                  )}
                 </button>
                 {current ? (
                   <button
-                    className="btn sm primary"
+                    className="btn sm tonal"
                     disabled={current.items.includes(id)}
                     onClick={() => addTo(current.id)}
                   >
@@ -119,9 +123,9 @@ export function ItemDrawer({ id, onClose }: Props) {
                   </button>
                 ) : (
                   <CollectionPicker
-                    placeholder="Add to a collection…"
+                    placeholder="Add to a list…"
                     onPick={addTo}
-                    style={{ width: 'auto', maxWidth: 210 }}
+                    style={{ width: 'auto', maxWidth: 190 }}
                   />
                 )}
               </div>
@@ -169,7 +173,7 @@ export function ItemDrawer({ id, onClose }: Props) {
                     {c.radNum ? (
                       <>
                         {' '}
-                        <Link className="small" to={paths.family(c.radNum)} title="Every character this radical grows into">
+                        <Link className="small nowrap" to={paths.family(c.radNum)} title="Every character this radical grows into">
                           its family
                         </Link>
                       </>

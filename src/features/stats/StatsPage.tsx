@@ -98,10 +98,6 @@ export function StatsPage() {
             {streak.current > 0 ? `${plural(streak.current, 'day')} in a row.` : 'Start a run today.'}
           </div>
         </div>
-        <div className="spacer" />
-        <Link className="btn sm" to={paths.today()}>
-          Today’s plan
-        </Link>
       </div>
 
       <section className="st-tiles" aria-label="Today">
@@ -325,7 +321,7 @@ export function StatsPage() {
                 <b>{m.label}</b>
                 <i className="tiny muted">
                   {m.reached === null
-                    ? `${Math.max(0, m.need - m.have)} to go`
+                    ? `${Math.max(0, m.need - m.have).toLocaleString('en')} to go`
                     : m.reached
                       ? fmtDay(m.reached)
                       : 'reached'}

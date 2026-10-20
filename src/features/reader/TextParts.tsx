@@ -170,11 +170,7 @@ export function ListenPart({
           </button>
         ))}
       </div>
-      {reading.notRecorded && (
-        <p className="tiny muted rd-voice-note">
-          {reading.notRecorded} has not recorded this text yet. On the Mac: npm run texts -- record
-        </p>
-      )}
+
 
       <ol className="rd-listen">
         {text.lines.map((l, i) => {
@@ -208,7 +204,7 @@ export function TranslatePart({ text, partId }: { text: GeneratedText; partId: s
       han="译"
       title="Translate"
       aside={
-        <button className="btn quiet sm" onClick={() => reveal(all ? new Set() : new Set(text.lines.map((_, i) => i)))}>
+        <button className="btn quiet sm rd-show-all" onClick={() => reveal(all ? new Set() : new Set(text.lines.map((_, i) => i)))}>
           {all ? 'Hide all' : 'Show all'}
         </button>
       }
@@ -438,7 +434,7 @@ function WriteOne({
 }) {
   const [stage, setStage] = useState<'look' | 'write'>('look');
   return (
-    <Modal title={`${py}: ${gloss}`} onClose={onClose}>
+    <Modal title={stage === 'look' ? `${py}: ${gloss}` : 'Write it from memory'} onClose={onClose}>
       {stage === 'look' ? (
         <div className="rd-look">
           <span className="rd-look-box">

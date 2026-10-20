@@ -124,14 +124,21 @@ export function LineChart({
               </text>
             ) : null,
           )}
-          {shown.map((g) => (
-            <g key={`${g.series}-${g.value}`} className="st-goal" data-series={g.series}>
-              <line x1={PAD.left} x2={PAD.left + w} y1={y(g.value)} y2={y(g.value)} />
-              <text x={PAD.left + w + 4} y={y(g.value) + 3.5}>
-                {g.label}
-              </text>
-            </g>
-          ))}
+          {shown.map((g) => {
+            // A goal's name gives way to a line's own number where the two would print over each other.
+            // Two goals of one name ("HSK 2") are told apart by the colour of the line they belong to.
+            const crowded = series.some((s) => Math.abs(y(s.values[n - 1] ?? 0) - y(g.value)) < 14);
+            return (
+              <g key={`${g.series}-${g.value}`} className="st-goal" data-series={g.series}>
+                <line x1={PAD.left} x2={PAD.left + w} y1={y(g.value)} y2={y(g.value)} />
+                {!crowded && (
+                  <text x={PAD.left + w + 4} y={y(g.value) + 3.5}>
+                    {g.label}
+                  </text>
+                )}
+              </g>
+            );
+          })}
           {series.map((s) => (
             <g key={s.id} className="st-line" data-series={s.id}>
               {dashedTo >= 0 && <path d={path(s.values, 0, Math.min(n - 1, dashedTo + 1))} data-estimated />}

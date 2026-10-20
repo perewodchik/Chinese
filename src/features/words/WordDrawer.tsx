@@ -72,10 +72,19 @@ export function WordDrawer({ id, onClose }: Props) {
   const status = wordKnowledge(lib, recall, collected).status(w);
   const r = recall[id]?.recognise;
   const inCollections = collections.filter((c) => c.items.includes(id));
-  const seenIn = useMemo(
-    () => texts.filter((t) => t.lines.some((l) => l.zh.includes(w))).slice(0, 5),
-    [texts, w],
-  );
+  // A text with an easier version is one text here too.
+  const seenIn = useMemo(() => {
+    const seen = new Set<string>();
+    return texts
+      .filter((t) => t.lines.some((l) => l.zh.includes(w)))
+      .filter((t) => {
+        const key = `${t.setId ?? ''}|${t.titleZh}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 5);
+  }, [texts, w]);
 
   // A list Claude wrote to order explains its words for the situation it was
   // written for — worth more than a gloss where there is one.
@@ -119,7 +128,8 @@ export function WordDrawer({ id, onClose }: Props) {
             </button>
             <div className="row">
               <button
-                className={`btn sm word-known${learned ? ' primary' : ''}`}
+                className={`btn sm word-known${learned ? ' tonal' : ''}`}
+                aria-pressed={learned}
                 onClick={() => toggleLearned(id)}
                 title={learned ? 'Counted as known — tap to take that back' : 'Count this word as known'}
               >

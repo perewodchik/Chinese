@@ -397,11 +397,11 @@ export function milestones(
 
   for (const n of CHAR_STEPS) {
     const reached = snap.chars >= n ? (firstAt(history, (d) => d.chars, (d) => d.key, n) ?? '') : null;
-    out.push({ id: `chars-${n}`, mark: '字', label: `${n} characters`, reached, have: snap.chars, need: n });
+    out.push({ id: `chars-${n}`, mark: '字', label: `${n.toLocaleString('en')} characters`, reached, have: snap.chars, need: n });
   }
   for (const n of WORD_STEPS) {
     const reached = snap.words >= n ? (firstAt(history, (d) => d.words, (d) => d.key, n) ?? '') : null;
-    out.push({ id: `words-${n}`, mark: '词', label: `${n} words`, reached, have: snap.words, need: n });
+    out.push({ id: `words-${n}`, mark: '词', label: `${n.toLocaleString('en')} words`, reached, have: snap.words, need: n });
   }
 
   // HSK 1 characters, all of them: reached the day the last of them was first met.
