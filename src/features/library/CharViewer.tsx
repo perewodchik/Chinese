@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
-import { charId } from '../../domain/ids';
-import { useBrowseList, useCharViewer } from '../../navigation/charViewer';
+import { useEffect, useRef, type CSSProperties } from 'react';
+import { charId, wordId } from '../../domain/ids';
+import { isHanzi } from '../../domain/text';
+import { browseInfo, useBrowseList, useCharViewer } from '../../navigation/charViewer';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { Glyph, useStrokeSteps } from '../../ui/Glyph';
 import { Icon } from '../../ui/Icon';
@@ -14,17 +15,28 @@ import './viewer.css';
  * on, the whole. The order is the point — the square is big enough to copy
  * from, stroke by stroke, into the notebook beside the iPad.
  *
+ * A word is its characters in squares side by side, and its strokes run on
+ * from one square into the next, the order it is written in.
+ *
  * Opened from a set, the buttons underneath (and a swipe) go to the
- * characters either side of it in that set, as the set is filtered and
- * ordered.
+ * characters (or words) either side of it in that set, as the set is
+ * filtered and ordered.
  */
 export function CharViewer() {
   const lib = useLibrary();
   const { char, show, close } = useCharViewer();
   const openItem = useOpenItem();
   const list = useBrowseList();
-  const c = char ? lib.byChar.get(char) : undefined;
-  const total = char ? (lib.strokes[char]?.s.length ?? 0) : 0;
+  const glyphs = [...(char ?? '')].filter(isHanzi);
+  const isWord = glyphs.length > 1;
+  const c = !isWord && char ? lib.byChar.get(char) : undefined;
+  const w = isWord && char ? (lib.byWord.get(char) ?? browseInfo(char)) : undefined;
+  const py = isWord ? w?.py : c?.py.join(' / ');
+  const def = isWord ? w?.d : c?.def;
+  // Where each square's strokes start in the run through the whole word.
+  const counts = glyphs.map((g) => lib.strokes[g]?.s.length ?? 0);
+  const starts = counts.map((_, i) => counts.slice(0, i).reduce((a, b) => a + b, 0));
+  const total = counts.reduce((a, b) => a + b, 0);
   const steps = useStrokeSteps(char ?? '', total);
   const { step, playing, go, prev, next, toggle } = steps;
   const whole = step >= total;
@@ -73,7 +85,7 @@ export function CharViewer() {
           <Icon name="close" size={22} />
         </button>
         <span className="cv-count small muted">{at >= 0 && list.length > 1 ? `${at + 1} of ${list.length.toLocaleString('en')}` : ''}</span>
-        <button className="btn quiet sm" onClick={() => openItem(charId(char))}>
+        <button className="btn quiet sm" onClick={() => openItem(isWord ? wordId(char) : charId(char))}>
           About it
         </button>
       </header>
@@ -92,27 +104,37 @@ export function CharViewer() {
           if (dx > 0 && before) show(before);
         }}
       >
-        <button
-          className="cv-sq"
-          onClick={whole ? toggle : next}
-          aria-label={whole ? 'Play the strokes' : 'Next stroke'}
-          disabled={!total}
-        >
-          <Glyph
-            char={char}
-            strokes={lib.strokes}
-            size={480}
-            upto={step}
-            highlight={whole ? undefined : 'var(--accent)'}
-            ghost={whole ? undefined : 'var(--line)'}
-          />
-        </button>
+        <div className="cv-row" style={{ '--n': glyphs.length } as CSSProperties}>
+          {glyphs.map((g, i) => {
+            // Strokes into this square: none before the run reaches it, all once past it.
+            const upto = Math.max(0, Math.min(counts[i]!, step - starts[i]!));
+            const writing = !whole && step > starts[i]! && step <= starts[i]! + counts[i]!;
+            return (
+              <button
+                key={`${g}${i}`}
+                className="cv-sq"
+                onClick={whole ? toggle : next}
+                aria-label={whole ? 'Play the strokes' : 'Next stroke'}
+                disabled={!total}
+              >
+                <Glyph
+                  char={g}
+                  strokes={lib.strokes}
+                  size={480}
+                  upto={upto}
+                  highlight={writing ? 'var(--accent)' : undefined}
+                  ghost={whole ? undefined : 'var(--line)'}
+                />
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="cv-info">
-        <span className="cv-py">{c?.py.join(' / ')}</span>
+        <span className="cv-py">{py}</span>
         <Say text={char} />
-        <span className="cv-def">{c?.def.split(';').slice(0, 2).join(';')}</span>
+        <span className="cv-def">{def?.split(';').slice(0, 2).join(';')}</span>
       </div>
 
       {total > 0 && (
@@ -129,7 +151,7 @@ export function CharViewer() {
           <button className="icon-btn" onClick={next} disabled={whole} aria-label="Next stroke">
             <Icon name="chevron" size={22} />
           </button>
-          <button className="icon-btn" onClick={() => go(total)} disabled={whole} aria-label="The whole character">
+          <button className="icon-btn" onClick={() => go(total)} disabled={whole} aria-label={isWord ? 'The whole word' : 'The whole character'}>
             <Icon name="next" size={20} />
           </button>
           <span className="cv-stroke-n small muted" aria-live="polite">
@@ -139,7 +161,7 @@ export function CharViewer() {
       )}
 
       {at >= 0 && list.length > 1 && (
-        <nav className="cv-chars" aria-label="Characters">
+        <nav className="cv-chars" aria-label={isWord ? 'Words' : 'Characters'}>
           <button className="btn" onClick={() => before && show(before)} disabled={!before} aria-label={before ? `Previous: ${before}` : 'Previous'}>
             <Icon name="back" size={18} />
             <span className="hanzi cv-near">{before ?? ''}</span>

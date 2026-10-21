@@ -47,11 +47,18 @@
   container-type: size;
 }
 
+/* A word's squares side by side, each as large as the row allows. */
+.cv-row {
+  --side: min(calc((100cqw - (var(--n) - 1) * 8px) / var(--n)), 100cqh, 560px);
+  display: flex;
+  gap: 8px;
+}
+
 .cv-sq {
   display: grid;
   place-items: center;
-  width: min(100cqw, 100cqh, 560px);
-  height: min(100cqw, 100cqh, 560px);
+  width: var(--side);
+  height: var(--side);
   padding: 7%;
   border: 1.5px solid var(--grid);
   border-radius: 6px;
@@ -156,6 +163,8 @@
   font-size: 24px;
   line-height: 1;
   min-width: 1em;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 @media (max-height: 640px) {
@@ -178,6 +187,12 @@
   position: absolute;
   top: -6px;
   right: -10px;
+  width: 36px;
+  height: 36px;
+  color: var(--ink-3);
+}
+
+.word-full {
   width: 36px;
   height: 36px;
   color: var(--ink-3);

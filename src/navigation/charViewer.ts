@@ -25,10 +25,17 @@ interface ViewState {
 let browse: readonly string[] = [];
 const listeners = new Set<() => void>();
 
-export function setBrowseList(chars: readonly string[]) {
+/** A reading and a meaning for a word off the syllabus, which the library cannot look up. */
+export type BrowseInfo = ReadonlyMap<string, { py: string; d: string }>;
+let info: BrowseInfo = new Map();
+
+export function setBrowseList(chars: readonly string[], extra: BrowseInfo = new Map()) {
   browse = chars;
+  info = extra;
   for (const l of listeners) l();
 }
+
+export const browseInfo = (key: string) => info.get(key);
 
 export function useBrowseList(): readonly string[] {
   return useSyncExternalStore(

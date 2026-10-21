@@ -91,7 +91,7 @@ export function SetPage() {
 
   const words = useMemo(() => {
     if (!set) return [];
-    const extra = new Map((set.collection?.words ?? []).map((w) => [w.w, w]));
+    const extra = new Map([...(set.preset?.words ?? []), ...(set.collection?.words ?? [])].map((w) => [w.w, w]));
     return set.words
       .map((w) => lib.byWord.get(w) ?? (extra.get(w) as SyllabusWord | undefined))
       .filter((w): w is SyllabusWord => Boolean(w))
@@ -99,11 +99,12 @@ export function SetPage() {
   }, [set, lib, wordShow, know]);
 
   // The full-screen view walks through what this page shows, in its order.
-  const glyphs = useMemo(() => chars.map((c) => c.c), [chars]);
+  const glyphs = useMemo(() => (tab === 'chars' ? chars.map((c) => c.c) : words.map((w) => w.w)), [tab, chars, words]);
+  const offList = useMemo(() => new Map((set?.preset?.words ?? set?.collection?.words ?? []).map((w) => [w.w, w])), [set]);
   useEffect(() => {
-    setBrowseList(glyphs);
+    setBrowseList(glyphs, offList);
     return () => setBrowseList([]);
-  }, [glyphs]);
+  }, [glyphs, offList]);
 
   const ordering = useMemo<ItemId[]>(
     () => (tab === 'chars' ? chars.map((c) => charId(c.c)) : words.map((w) => wordId(w.w))),
@@ -160,7 +161,7 @@ export function SetPage() {
               {glyphs.length > 0 && (
                 <button role="menuitem" className="btn ghost sm" onClick={() => (close(), openViewer(glyphs[0]!))}>
                   Full screen
-                  <span className="tiny muted">one character at a time, stroke by stroke</span>
+                  <span className="tiny muted">one {tab === 'chars' ? 'character' : 'word'} at a time, stroke by stroke</span>
                 </button>
               )}
               {band && Number(band) <= 4 && (

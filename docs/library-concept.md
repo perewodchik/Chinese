@@ -64,7 +64,9 @@ kept there) and the set and the list stay one row, not two.
 - Full screen (`?view=好`, from ⋯ or the drawer's corner): the character in a
   米字格 square as large as the screen allows; from the first stroke, back,
   play, on, the whole; the count above the buttons so they never move; the
-  characters either side of it in the set as buttons, a swipe, or ↑ ↓.
+  characters either side of it in the set as buttons, a swipe, or ↑ ↓. On
+  the words tab (and from the word drawer) a word: its squares side by side,
+  the strokes running on from one into the next.
 - Radicals at `/library/radicals` as squares, search and "Several shapes"; the
   reference sheet under ⋯. Blank paper at `/library/paper` as rows.
 - "Made from texts" folded under your lists, with Move them onto their shelves.

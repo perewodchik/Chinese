@@ -9,6 +9,7 @@ import { collectedItems } from '../../domain/sweep';
 import { hskLabel } from '../../domain/text';
 import { listedParts } from '../../domain/wordlist';
 import { wordInfo, wordKnowledge } from '../../domain/words';
+import { useOpenViewer } from '../../navigation/charViewer';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
 import { setShelfStudy, toggleLearned } from '../../store/commands';
@@ -40,6 +41,7 @@ export function WordDrawer({ id, onClose }: Props) {
   const lib = useLibrary();
   const collect = useCollect();
   const openItem = useOpenItem();
+  const openViewer = useOpenViewer();
   const recall = useStore((s) => s.recall);
   const collections = useStore((s) => s.collections);
   const texts = useStore((s) => s.texts);
@@ -178,6 +180,9 @@ export function WordDrawer({ id, onClose }: Props) {
             <div className="row" style={{ gap: 8 }}>
               {(info ?? fromList ?? fromText) && <span className="word-py">{info?.py ?? fromList?.py ?? fromText?.py}</span>}
               <Say text={w} size="lg" />
+              <button className="icon-btn word-full" onClick={() => openViewer(w, { from: 'item' })} aria-label="Full screen, stroke by stroke">
+                <Icon name="expand" size={18} />
+              </button>
             </div>
             <h1 className="word-meaning">{info?.d ?? fromList?.d ?? fromText?.d ?? 'Not in the dictionary'}</h1>
             <p className="tiny muted" style={{ margin: 0 }}>
