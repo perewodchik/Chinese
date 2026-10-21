@@ -1316,3 +1316,15 @@ label.rd-aa-row {
     --co-base: calc(220px - var(--n, 1) * 30px);
   }
 }
+
+/* Lines read by the system's own Speak: their text is selectable, as a finger would select it. */
+.rd-listen[data-select] .rd-listen-line,
+.rd-listen[data-select] .hanzi {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+.rd-listen[data-select] .rd-listen-n::before {
+  content: attr(data-n);
+}

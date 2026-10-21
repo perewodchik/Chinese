@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { charId, type ItemId } from '../../domain/ids';
 import { cardsFor } from '../../domain/teach';
 import { hskLabel, type GeneratedText } from '../../domain/text';
@@ -96,6 +96,8 @@ export function ListenPart({
   partId: string;
 }) {
   const [last, setLast] = useState(0);
+  const [ios, setIos] = useIosSpeak();
+  const lines = useRef<HTMLOListElement>(null);
   const playing = reading.at !== null || reading.loading;
   const at = reading.at ?? last;
   // Wherever the voice is, that is where Play will go on from.
@@ -109,7 +111,8 @@ export function ListenPart({
   const from = (i: number) => {
     const n = Math.max(0, Math.min(spoken.length - 1, i));
     setLast(n);
-    reading.readFrom(spoken, n);
+    if (ios) selectLines(lines.current, n, n);
+    else reading.readFrom(spoken, n);
   };
   const total = spoken.reduce((n, l) => n + [...l].length, 0) || 1;
 
@@ -150,7 +153,7 @@ export function ListenPart({
           </button>
           <button
             className="rd-play"
-            onClick={() => (playing ? reading.stop() : from(at))}
+            onClick={() => (ios ? selectLines(lines.current, 0, spoken.length - 1) : playing ? reading.stop() : from(at))}
             aria-label={playing ? 'Pause' : at > 0 ? `Play from line ${at + 1}` : 'Play'}
             disabled={!reading.choices.length && !reading.system}
           >
@@ -165,28 +168,112 @@ export function ListenPart({
       {/* The row is there from the start: the voices arrive a moment after the page, and the lines below should not jump. */}
       <div className="rd-voices" role="radiogroup" aria-label="Voice">
         {reading.choices.map((v) => (
-          <button key={v.key} role="radio" aria-checked={v.active} className="chip" aria-pressed={v.active} onClick={v.pick}>
+          <button
+            key={v.key}
+            role="radio"
+            aria-checked={v.active && !ios}
+            className="chip"
+            aria-pressed={v.active && !ios}
+            onClick={() => {
+              setIos(false);
+              v.pick();
+            }}
+          >
             {v.name}
           </button>
         ))}
+        {IOS_SPEAK && (
+          <button
+            role="radio"
+            aria-checked={ios}
+            className="chip"
+            aria-pressed={ios}
+            onClick={() => {
+              reading.stop();
+              setIos(true);
+            }}
+          >
+            Your iPhone’s voice
+          </button>
+        )}
       </div>
+      {ios && (
+        <p className="tiny muted rd-voice-note">
+          Tap a line, or Play for the whole text: it is selected, and Speak in the menu reads it in the voice set for
+          Chinese in Settings, Accessibility, Spoken Content.
+        </p>
+      )}
 
 
-      <ol className="rd-listen">
+      <ol className="rd-listen" ref={lines} data-select={ios || undefined}>
         {text.lines.map((l, i) => {
           const on = reading.at === i;
           return (
             <li key={i}>
-              <button className="rd-listen-line" data-on={on || undefined} data-current={!playing && i === at && at > 0 ? true : undefined} onClick={() => from(i)}>
-                <span className="rd-listen-n">{i + 1}</span>
-                <span className="hanzi">{l.zh}</span>
-              </button>
+              {ios ? (
+                // A button's text cannot be selected on iOS, and selected is what Speak needs.
+                <div className="rd-listen-line" role="button" tabIndex={0} onClick={() => from(i)}>
+                  {/* The number is drawn, not written, so a selection of several lines reads no numbers aloud. */}
+                  <span className="rd-listen-n" data-n={i + 1} aria-hidden />
+                  <span className="hanzi" data-line={i}>
+                    {l.zh}
+                  </span>
+                </div>
+              ) : (
+                <button className="rd-listen-line" data-on={on || undefined} data-current={!playing && i === at && at > 0 ? true : undefined} onClick={() => from(i)}>
+                  <span className="rd-listen-n">{i + 1}</span>
+                  <span className="hanzi">{l.zh}</span>
+                </button>
+              )}
             </li>
           );
         })}
       </ol>
     </Section>
   );
+}
+
+/**
+ * Safari will not lend a page the voices downloaded in Settings — "Han
+ * (Premium)" — but iOS reads any selected text in them itself: Speak, in the
+ * menu over a selection. So on an iPhone or iPad Listen can do the selecting
+ * and leave the reading to the system.
+ */
+const IOS_SPEAK =
+  typeof navigator !== 'undefined' &&
+  (/iPhone|iPad/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1));
+const IOS_KEY = 'hanzi.listen.iosSpeak';
+
+function useIosSpeak(): [boolean, (on: boolean) => void] {
+  const [on, setOn] = useState(() => {
+    try {
+      return IOS_SPEAK && localStorage.getItem(IOS_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const set = (v: boolean) => {
+    setOn(v);
+    try {
+      localStorage.setItem(IOS_KEY, v ? '1' : '0');
+    } catch {
+      // remembered for this visit only
+    }
+  };
+  return [on, set];
+}
+
+/** Selects lines `from` to `to` of the list, the way a finger would, so the system's menu offers Speak. */
+function selectLines(list: HTMLElement | null, from: number, to: number) {
+  const first = list?.querySelector(`[data-line="${from}"]`);
+  const last = list?.querySelector(`[data-line="${to}"]`);
+  const sel = window.getSelection();
+  if (!first || !last || !sel) return;
+  const range = document.createRange();
+  range.setStart(first, 0);
+  range.setEnd(last, last.childNodes.length);
+  sel.removeAllRanges();
+  sel.addRange(range);
 }
 
 /* ---------------------------------------------------------------- 译 Translate */
