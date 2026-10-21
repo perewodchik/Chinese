@@ -443,3 +443,9 @@
 .paper-name .hanzi {
   font-size: 17px;
 }
+
+/* "All 16" and "Fewer" take the same room, so the heading does not move. */
+.lib-more {
+  min-width: 68px;
+  justify-content: flex-end;
+}

@@ -63,6 +63,7 @@ export function LibraryHome() {
   const progress = useSetProgress();
   const [q, setQ] = useState('');
   const [allTopics, setAllTopics] = useState(false);
+  const [allLists, setAllLists] = useState(false);
 
   const bands = useMemo(() => HSK_BANDS.map((b) => withList(bandSet(lib, b.id), collections)), [lib, collections]);
   const topics = useMemo(() => topicSets(lib).map((t) => withList(t, collections)), [lib, collections]);
@@ -86,6 +87,9 @@ export function LibraryHome() {
   }
 
   const shownTopics = allTopics ? topics : topics.slice(0, 4);
+  // Newest first: the three made last, the rest behind All.
+  const newest = useMemo(() => [...mine].reverse(), [mine]);
+  const shownLists = allLists ? newest : newest.slice(0, 3);
 
   return (
     <div className="lib-home">
@@ -187,13 +191,19 @@ export function LibraryHome() {
                 <div className="block-head">
                   <h2 className="block-title">Your lists</h2>
                   <span className="spacer" />
-                  <button className="btn quiet sm" onClick={newList}>
-                    New list
-                  </button>
+                  {mine.length > 3 ? (
+                    <button className="btn quiet sm lib-more" onClick={() => setAllLists((a) => !a)}>
+                      {allLists ? 'Fewer' : `All ${mine.length}`}
+                    </button>
+                  ) : (
+                    <button className="btn quiet sm" onClick={newList}>
+                      New list
+                    </button>
+                  )}
                 </div>
                 {mine.length ? (
                   <div className="list">
-                    {mine.map((s) => (
+                    {shownLists.map((s) => (
                       <SetRow key={s.id} set={s} progress={progress(s)} strip />
                     ))}
                   </div>
