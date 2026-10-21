@@ -1001,7 +1001,7 @@ label.rd-aa-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 0 16px;
+  margin: 0 0 10px;
   padding: 14px 16px;
   border: 0;
   border-radius: 16px;
@@ -1327,4 +1327,73 @@ label.rd-aa-row {
 
 .rd-listen[data-select] .rd-listen-n::before {
   content: attr(data-n);
+}
+
+/* ------------------------------------------------------------- dictation */
+.dc-now {
+  flex: 1;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 22px;
+  padding: 16px 0 24px;
+}
+
+.dc-play {
+  width: 72px;
+  height: 72px;
+}
+
+/* A square for each character: how much to write, before it is shown. */
+.dc-boxes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.dc-box {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--grid);
+  border-radius: 4px;
+  font-size: 32px;
+  line-height: 1;
+  background:
+    linear-gradient(var(--grid), var(--grid)) 50% 0 / 1px 100% no-repeat,
+    linear-gradient(var(--grid), var(--grid)) 0 50% / 100% 1px no-repeat;
+}
+
+/* The sentence with its reading and English, its room kept before it is shown. */
+.dc-check {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+  visibility: hidden;
+}
+
+.dc-check[data-shown] {
+  visibility: visible;
+}
+
+.dc-check p {
+  margin: 0;
+}
+
+.dc-zh {
+  font-size: 22px;
+  line-height: 1.5;
+}
+
+.dc-py {
+  font-size: 15px;
+  color: var(--py);
+}
+
+.dc-en {
+  font: 400 15px/1.45 var(--read);
+  color: var(--ink-2);
 }

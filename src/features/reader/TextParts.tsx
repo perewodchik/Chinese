@@ -13,6 +13,7 @@ import { WritePad } from '../review/WritePad';
 import { useLibrary } from '../shared/library';
 import { AnswerBox } from './AnswerBox';
 import { CopyOut } from './CopyOut';
+import { Dictation, openDictation } from './Dictation';
 import type { Standing } from './Passage';
 import { onReadThrough, RATES, type Reading } from './readAloud';
 
@@ -43,8 +44,9 @@ export function partFill(text: GeneratedText, standing: (w: string) => Standing)
   const chars = text.lines.reduce((n, l) => n + [...l.zh].filter((c) => /\p{Script=Han}/u.test(c)).length, 0) || 1;
   const copied = Math.min(1, (s.copied ?? 0) / chars);
   const taught = text.teach.length ? (s.written ?? []).filter((c) => text.teach.includes(c)).length / text.teach.length : copied;
-  // Writing is the new characters and the text copied out, half each.
-  const write = (taught + copied) / 2;
+  const dictated = Math.min(1, (s.dictated ?? 0) / Math.max(1, text.lines.length));
+  // Writing is the new characters, the text copied out and the text written from dictation, a third each.
+  const write = (taught + copied + dictated) / 3;
   const answered = text.questions.length ? (s.answered ?? []).length / text.questions.length : 1;
   return {
     read: text.read ? 1 : 0,
@@ -451,6 +453,8 @@ export function WritePart({ text, partId }: { text: GeneratedText; partId: strin
   const [copying, setCopying] = useState(false);
   const total = text.lines.reduce((n, l) => n + [...l.zh].filter((c) => /\p{Script=Han}/u.test(c)).length, 0);
   const copied = Math.min(total, text.study?.copied ?? 0);
+  const [dictating, setDictating] = useState(false);
+  const dictated = Math.min(text.lines.length, text.study?.dictated ?? 0);
 
   return (
     <Section id={partId} han="写" title="Write">
@@ -462,12 +466,32 @@ export function WritePart({ text, partId }: { text: GeneratedText; partId: strin
               ? 'Copied out to the end. Again?'
               : copied
                 ? `${copied} of ${total} characters so far: go on from there`
-                : 'A word or a character at a time, in your notebook or on screen'}
+                : 'A word or a character at a time, in your notebook'}
+          </span>
+        </span>
+        <Icon name="chevron" />
+      </button>
+      <button
+        className="rd-copy"
+        onClick={() => {
+          openDictation(text);
+          setDictating(true);
+        }}
+      >
+        <span className="grow">
+          <b>Dictation</b>
+          <span className="small muted">
+            {dictated >= text.lines.length
+              ? 'Written to the end. Again?'
+              : dictated
+                ? `${dictated} of ${text.lines.length} sentences so far: go on from there`
+                : 'Hear a sentence, write it in your notebook, then see it'}
           </span>
         </span>
         <Icon name="chevron" />
       </button>
       {copying && <CopyOut text={text} onClose={() => setCopying(false)} />}
+      {dictating && <Dictation text={text} onClose={() => setDictating(false)} />}
       {cards.length > 0 && (
         <>
           <p className="rd-part-lede rd-write-lede">

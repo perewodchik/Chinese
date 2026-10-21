@@ -269,6 +269,7 @@ function studyFrom(v: unknown): TextStudy | undefined {
     ...optional('written', arr<string>(s.written).filter((c) => typeof c === 'string')),
     ...optional('answered', arr<number>(s.answered).filter((n) => Number.isInteger(n) && n >= 0)),
     ...optional('copied', typeof s.copied === 'number' && Number.isInteger(s.copied) && s.copied > 0 ? s.copied : undefined),
+    ...optional('dictated', typeof s.dictated === 'number' && Number.isInteger(s.dictated) && s.dictated > 0 ? s.dictated : undefined),
   };
   return Object.keys(out).length ? out : undefined;
 }

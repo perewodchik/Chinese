@@ -382,6 +382,8 @@ export interface TextStudy {
   answered?: number[];
   /** how many of its characters have been copied out, in order, in Write */
   copied?: number;
+  /** how many of its sentences have been written from dictation, in order, in Write */
+  dictated?: number;
 }
 
 /** Two records of the same text from two devices, keeping everything either did. */
@@ -396,6 +398,7 @@ export function mergeStudy(a: TextStudy | undefined, b: TextStudy | undefined): 
     ...optionalField('written', union(a.written, b.written)),
     ...optionalField('answered', union(a.answered, b.answered)),
     ...optionalField('copied', max(a.copied, b.copied)),
+    ...optionalField('dictated', max(a.dictated, b.dictated)),
   };
 }
 
