@@ -9,7 +9,9 @@ import { FamiliesPage } from '../features/families/FamiliesPage';
 import { GamePage } from '../features/play/GamePage';
 import { PlayPage } from '../features/play/PlayPage';
 import { WorldRoute } from '../features/world/WorldRoute';
+import { LibraryHome } from '../features/library/LibraryHome';
 import { LibraryPage } from '../features/library/LibraryPage';
+import { SetPage } from '../features/library/SetPage';
 import { PinyinPage } from '../features/pinyin/PinyinPage';
 import { PracticePage } from '../features/pinyin/PracticePage';
 import { SoundLessonPage } from '../features/pinyin/SoundLessonPage';
@@ -124,7 +126,8 @@ export const router = createBrowserRouter([
               { path: 'learn', element: <Navigate to={paths.cards()} replace /> },
               { path: 'review/session', element: <Navigate to={paths.cards()} replace /> },
               { path: 'review/:drill', element: <Navigate to={paths.cards()} replace /> },
-              { path: 'library', element: <LibraryPage /> },
+              { path: 'library', element: <LibraryRoute /> },
+              { path: 'library/:setId', element: <SetPage /> },
               { path: 'families/:radical?', element: <FamiliesPage /> },
               { path: 'play', element: <PlayPage /> },
               { path: 'play/world', element: <WorldRoute /> },
@@ -177,6 +180,12 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
+
+/** The library's sets; the radicals still on the old page behind `?kind=`. */
+function LibraryRoute() {
+  const kind = new URLSearchParams(useLocation().search).get('kind');
+  return kind ? <LibraryPage /> : <LibraryHome />;
+}
 
 /** An old /radicals address, sent to the library with its radical intact. */
 function MovedToLibrary() {

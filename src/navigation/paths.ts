@@ -41,6 +41,8 @@ export const paths = {
   sweep: (band?: number) => withQuery('/review/sweep', { band: band ? String(band) : undefined }),
 
   library: () => '/library',
+  /** one set in the library: a band (`hsk-1`), a topic, or a list of yours (`list-<id>`) */
+  librarySet: (id: string) => `/library/${encodeURIComponent(id)}`,
   /** the library showing the 214 radicals rather than a band of characters */
   radicals: () => '/library?kind=radicals',
   /** the same, with one radical's drawer open over it */

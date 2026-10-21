@@ -1,0 +1,362 @@
+/* ----------------------------------------------------------------------------
+   The library: every set in one place, and one set's page.
+---------------------------------------------------------------------------- */
+.lib-home,
+.set-page {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* Two columns once there is room for two lists side by side: your lists and
+   the bands on the left, what you look things up in on the right. */
+@media (min-width: 1000px) {
+  .lib-home {
+    max-width: 1080px;
+  }
+
+  .lib-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 48px;
+  }
+}
+
+.lib-set,
+.lib-band,
+.lib-ref {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 60px;
+  padding: 12px 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.lib-set .grow,
+.lib-band .grow,
+.lib-ref .grow {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.lib-set b,
+.lib-ref b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* A list's characters, in a line that fades out rather than cutting one in two. */
+.lib-strip {
+  font-size: 21px;
+  line-height: 1.3;
+  letter-spacing: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  color: var(--ink-2);
+  mask-image: linear-gradient(to right, #000 80%, transparent);
+}
+
+.lib-bar {
+  display: block;
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.lib-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--jade);
+}
+
+/* A band: its number in a 田 square, as on the cover of a workbook. */
+.lib-band-n {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--grid);
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-2);
+  background-color: var(--paper);
+  /* the guide sits under the number, faint */
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--grid) 45%, transparent), color-mix(in srgb, var(--grid) 45%, transparent)),
+    linear-gradient(color-mix(in srgb, var(--grid) 45%, transparent), color-mix(in srgb, var(--grid) 45%, transparent));
+  background-size: 100% 1px, 1px 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.lib-band-n:has(+ .grow .lib-now) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.lib-band-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 15px;
+}
+
+.lib-now {
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.lib-ref-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--card-2);
+  font-size: 24px;
+  color: var(--ink-2);
+}
+
+.lib-home .continue b {
+  font-size: 16px;
+}
+
+/* ------------------------------------------------------------------ a set */
+.set-title {
+  margin: 4px 0 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.set-blurb {
+  margin: 6px 0 0;
+  font-family: var(--read);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 60ch;
+}
+
+.set-done {
+  margin-top: 16px;
+  max-width: 420px;
+}
+
+.set-done b {
+  font-weight: 600;
+}
+
+.set-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+/* What is shown and the filter on one line; on a phone the chips scroll
+   sideways rather than wrap. */
+.set-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 26px 0 14px;
+  min-width: 0;
+}
+
+.set-filter .seg {
+  flex: none;
+  flex-wrap: nowrap;
+}
+
+.set-filter .seg button {
+  min-height: 34px;
+  min-width: 64px;
+}
+
+.set-filter .chips {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+}
+
+.set-empty {
+  padding: 32px 0;
+  text-align: center;
+}
+
+/* ------------------------------------------------- squares and word rows */
+
+/* The characters as squares from the exercise book: four across a phone,
+   eight or more across an iPad. The square is the 田字格; the reading and
+   the sense sit under it, in pencil. */
+.lib-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+  gap: 14px 8px;
+}
+
+@media (min-width: 700px) {
+  .lib-tiles {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 18px 10px;
+  }
+}
+
+.lib-tile {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+}
+
+.lib-sq {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  margin-bottom: 5px;
+  border: 1px solid var(--grid);
+  border-radius: 4px;
+  background-color: var(--card);
+  background-image:
+    repeating-linear-gradient(to right, var(--grid) 0 3px, transparent 3px 7px),
+    repeating-linear-gradient(to bottom, var(--grid) 0 3px, transparent 3px 7px);
+  background-size: 100% 1px, 1px 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  font-size: clamp(34px, 11vw, 44px);
+  line-height: 1;
+}
+
+/* Learned: the square is done in jade — the guide stays, the ink stays. */
+.lib-tile[data-learned] .lib-sq {
+  border-color: color-mix(in srgb, var(--jade) 70%, var(--grid));
+}
+
+.lib-tile[data-learned] .lib-sq::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--jade);
+}
+
+.lib-tile:active .lib-sq {
+  border-color: var(--accent);
+}
+
+.lib-tile:focus-visible {
+  outline: none;
+}
+
+.lib-tile:focus-visible .lib-sq {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.lib-py {
+  font-size: 13px;
+  color: var(--py);
+  line-height: 1.3;
+}
+
+.lib-tile .lib-gloss {
+  width: 100%;
+  font-size: 11.5px;
+  line-height: 1.3;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, #000 82%, transparent);
+}
+
+/* Words: rows, two columns on an iPad, the word in brush type on the left. */
+.lib-words {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 32px;
+}
+
+@media (min-width: 700px) {
+  .lib-words {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.lib-word {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 60px;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lib-word-zh {
+  flex: none;
+  min-width: 56px;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.lib-word-text {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+}
+
+.lib-word .lib-gloss {
+  font-size: 13.5px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, #000 85%, transparent);
+}
+
+.lib-word-state {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.lib-word-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--jade);
+}
+
+.lib-word[data-status='learning'] .lib-word-state {
+  color: var(--accent);
+}
