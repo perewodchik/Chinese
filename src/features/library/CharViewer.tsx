@@ -3,9 +3,9 @@ import { charId, wordId } from '../../domain/ids';
 import { isHanzi } from '../../domain/text';
 import { browseInfo, useBrowseList, useCharViewer } from '../../navigation/charViewer';
 import { useOpenItem } from '../../navigation/itemDrawer';
-import { Glyph, useStrokeSteps } from '../../ui/Glyph';
 import { Icon } from '../../ui/Icon';
 import { Say } from '../../ui/Say';
+import { RunGlyph, StrokeButtons, useStrokeRun } from '../../ui/StrokeOrder';
 import { useLibrary } from '../shared/library';
 import './viewer.css';
 
@@ -33,13 +33,9 @@ export function CharViewer() {
   const w = isWord && char ? (lib.byWord.get(char) ?? browseInfo(char)) : undefined;
   const py = isWord ? w?.py : c?.py.join(' / ');
   const def = isWord ? w?.d : c?.def;
-  // Where each square's strokes start in the run through the whole word.
-  const counts = glyphs.map((g) => lib.strokes[g]?.s.length ?? 0);
-  const starts = counts.map((_, i) => counts.slice(0, i).reduce((a, b) => a + b, 0));
-  const total = counts.reduce((a, b) => a + b, 0);
-  const steps = useStrokeSteps(char ?? '', total);
-  const { step, playing, go, prev, next, toggle } = steps;
-  const whole = step >= total;
+  const run = useStrokeRun(lib, glyphs);
+  const { total, next, toggle } = run.steps;
+  const whole = run.whole;
 
   const at = char ? list.indexOf(char) : -1;
   const before = at > 0 ? list[at - 1] : undefined;
@@ -105,29 +101,17 @@ export function CharViewer() {
         }}
       >
         <div className="cv-row" style={{ '--n': glyphs.length } as CSSProperties}>
-          {glyphs.map((g, i) => {
-            // Strokes into this square: none before the run reaches it, all once past it.
-            const upto = Math.max(0, Math.min(counts[i]!, step - starts[i]!));
-            const writing = !whole && step > starts[i]! && step <= starts[i]! + counts[i]!;
-            return (
-              <button
-                key={`${g}${i}`}
-                className="cv-sq"
-                onClick={whole ? toggle : next}
-                aria-label={whole ? 'Play the strokes' : 'Next stroke'}
-                disabled={!total}
-              >
-                <Glyph
-                  char={g}
-                  strokes={lib.strokes}
-                  size={480}
-                  upto={upto}
-                  highlight={writing ? 'var(--accent)' : undefined}
-                  ghost={whole ? undefined : 'var(--line)'}
-                />
-              </button>
-            );
-          })}
+          {glyphs.map((g, i) => (
+            <button
+              key={`${g}${i}`}
+              className="cv-sq"
+              onClick={whole ? toggle : next}
+              aria-label={whole ? 'Play the strokes' : 'Next stroke'}
+              disabled={!total}
+            >
+              <RunGlyph lib={lib} run={run} i={i} char={g} />
+            </button>
+          ))}
         </div>
       </div>
 
@@ -137,28 +121,7 @@ export function CharViewer() {
         <span className="cv-def">{def?.split(';').slice(0, 2).join(';')}</span>
       </div>
 
-      {total > 0 && (
-        <div className="cv-strokes" role="group" aria-label="Stroke order">
-          <button className="icon-btn" onClick={() => go(0)} disabled={step === 0} aria-label="From the first stroke">
-            <Icon name="prev" size={20} />
-          </button>
-          <button className="icon-btn" onClick={prev} disabled={step === 0} aria-label="Previous stroke">
-            <Icon name="back" size={22} />
-          </button>
-          <button className="cv-play" onClick={toggle} aria-label={playing ? 'Pause' : 'Play the strokes'}>
-            <Icon name={playing ? 'pause' : 'play'} size={22} />
-          </button>
-          <button className="icon-btn" onClick={next} disabled={whole} aria-label="Next stroke">
-            <Icon name="chevron" size={22} />
-          </button>
-          <button className="icon-btn" onClick={() => go(total)} disabled={whole} aria-label={isWord ? 'The whole word' : 'The whole character'}>
-            <Icon name="next" size={20} />
-          </button>
-          <span className="cv-stroke-n small muted" aria-live="polite">
-            {whole ? `${total} stroke${total === 1 ? '' : 's'}` : `Stroke ${step} of ${total}`}
-          </span>
-        </div>
-      )}
+      <StrokeButtons run={run} what={isWord ? 'word' : 'character'} />
 
       {at >= 0 && list.length > 1 && (
         <nav className="cv-chars" aria-label={isWord ? 'Words' : 'Characters'}>

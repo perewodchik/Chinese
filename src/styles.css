@@ -5783,3 +5783,44 @@ label.field[data-invalid] input {
 .nowrap {
   white-space: nowrap;
 }
+
+/* ------------------------------------------------------------ stroke order */
+/* Stroke order buttons (ui/StrokeOrder.tsx): five, and the count over them. */
+.stroke-btns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.stroke-btns .icon-btn {
+  width: 44px;
+  height: 44px;
+}
+
+.stroke-play {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+}
+
+/* The count sits over the buttons, so they keep their places as it changes. */
+.stroke-n {
+  order: -1;
+  flex-basis: 100%;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A square's character with no outline to draw, in the font, filling the square. */
+.run-font {
+  font-size: calc(var(--side, 100px) * 0.76);
+  line-height: 1;
+}

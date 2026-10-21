@@ -4,6 +4,7 @@ import { segment, writerHints } from '../../domain/segment';
 import { isHanzi, type GeneratedText } from '../../domain/text';
 import { studyText } from '../../store/commands';
 import { Icon } from '../../ui/Icon';
+import { RunGlyph, StrokeButtons, useStrokeRun } from '../../ui/StrokeOrder';
 import { useLibrary } from '../shared/library';
 
 /**
@@ -100,6 +101,8 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
   const [at, setAt] = useState(() => Math.max(0, units.findIndex((u) => u.before >= resumeAt)));
   const unit = units[Math.min(at, units.length - 1)];
   const done = at >= units.length;
+  // Its strokes, square after square; the arrows stay with moving on.
+  const run = useStrokeRun(lib, [...(unit?.text ?? '')], { keys: false });
 
   // The place is kept, as characters copied, whenever it moves on.
   useEffect(() => {
@@ -210,11 +213,19 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
                 {[...unit.text].map((c, i) => (
                   <div key={`${at}-${i}`} className="co-char">
                     <span className="co-py">{unit.py[i]}</span>
-                    <span className="co-box hanzi">{c}</span>
+                    <button
+                      className="co-box"
+                      onClick={run.whole ? run.steps.toggle : run.steps.next}
+                      aria-label={run.whole ? `${c}: play the strokes` : 'Next stroke'}
+                    >
+                      <RunGlyph lib={lib} run={run} i={i} char={c} />
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
+
+            <StrokeButtons run={run} what={[...unit.text].length > 1 ? 'word' : 'character'} />
 
             <div className="co-ahead" aria-label="Coming next">
               <span className="tiny muted">Next</span>

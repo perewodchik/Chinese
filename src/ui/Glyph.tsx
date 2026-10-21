@@ -128,7 +128,7 @@ export interface StrokeSteps {
   toggle: () => void;
 }
 
-export function useStrokeSteps(key: string, total: number): StrokeSteps {
+export function useStrokeSteps(key: string, total: number, { keys = true }: { keys?: boolean } = {}): StrokeSteps {
   const [step, setStep] = useState(total);
   const [playing, setPlaying] = useState(false);
 
@@ -162,9 +162,10 @@ export function useStrokeSteps(key: string, total: number): StrokeSteps {
     setPlaying(true);
   }, [playing, step, total]);
 
-  // ← and → walk the strokes, unless a field has the keys.
+  // ← and → walk the strokes, unless a field has the keys — or the page
+  // uses them for something else (copying out moves on with them).
   useEffect(() => {
-    if (!total) return;
+    if (!total || !keys) return;
     const onKey = (e: KeyboardEvent) => {
       const t = e.target;
       if (t instanceof Element && t.closest('input, textarea, select, [contenteditable="true"]')) return;
@@ -175,7 +176,7 @@ export function useStrokeSteps(key: string, total: number): StrokeSteps {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [total, prev, next]);
+  }, [total, keys, prev, next]);
 
   return { total, step, playing, go, prev, next, toggle };
 }
