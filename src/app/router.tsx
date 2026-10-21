@@ -3,13 +3,15 @@ import { GuestOnly } from '../features/auth/gates';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
 import { CollectionPage } from '../features/collections/CollectionPage';
-import { CollectionsPage } from '../features/collections/CollectionsPage';
+import { PaperPage } from '../features/collections/BlankPaper';
 import { BuildListPage } from '../features/collections/build/BuildListPage';
 import { FamiliesPage } from '../features/families/FamiliesPage';
 import { GamePage } from '../features/play/GamePage';
 import { PlayPage } from '../features/play/PlayPage';
 import { WorldRoute } from '../features/world/WorldRoute';
-import { LibraryPage } from '../features/library/LibraryPage';
+import { LibraryHome } from '../features/library/LibraryHome';
+import { RadicalsPage } from '../features/library/RadicalShelf';
+import { SetPage } from '../features/library/SetPage';
 import { PinyinPage } from '../features/pinyin/PinyinPage';
 import { PracticePage } from '../features/pinyin/PracticePage';
 import { SoundLessonPage } from '../features/pinyin/SoundLessonPage';
@@ -30,6 +32,7 @@ import { VideoPage } from '../features/videos/VideoPage';
 import { VideosPage } from '../features/videos/VideosPage';
 import { SweepPage } from '../features/words/SweepPage';
 import { paths } from '../navigation/paths';
+import { useStore } from '../store/store';
 import { NotFoundPage, RouteError } from './errors';
 import { RequireSession } from './RequireSession';
 
@@ -44,15 +47,17 @@ import { RequireSession } from './RequireSession';
  *   /review/sheets/:sheetId        marking a printed test sheet
  *   /review/sweep?band             sorting a band's words: known, not sure, new
  *   /review/words?n=30             one sitting of words
- *   /library?q&show&sort           browsing, filters in the query
- *   /library?kind=radicals         the same page showing all 214 radicals
+ *   /library                       every set: your lists, the HSK bands, the topics; search
+ *   /library/:setId?tab&show&order one set: hsk-1, theme-food, list-<id>; ?tab=words
+ *   /library/radicals?q            the 214 radicals
+ *   /library/paper                 blank paper to print
  *   /families/:radical?band        a radical's family: what it grows into, as a tree
  *   /play?band                     the games, and the seals they have won
  *   /play/world?map&time           走走, the walk through Beijing (Phaser, loaded lazily)
  *   /play/:gameId?band&seed        one round of one game
  *   /read                          where you stopped, every shelf, and search
  *   /read/:setId?tab               one shelf: its texts, its words, its characters
- *   /collections                   lists to print, and the ready-made sets (?show=texts goes to /read)
+ *   /collections                   moved: lists are in the library
  *   /collections/build/:step       a word list written with Claude: describe, prompt, paste
  *   /collections/:id[/items|words] one collection: its design, what is in it, its words
  *   /texts                         moved: the texts are on /read
@@ -70,8 +75,8 @@ import { RequireSession } from './RequireSession';
  *   /speaking/voice                the voice range, and a check of the sounds
  *   /settings
  *
- * and, on any page, ?item=c好 for the character drawer — or, in the library,
- * ?radical=61 for a radical.
+ * and, on any page, ?item=c好 for the character drawer and ?view=好 for a
+ * character full screen — or, on the radicals, ?radical=61 for a radical.
  *
  * The section answered to /pinyin until the conversation grew into the largest
  * thing in it; every old address redirects to its new one.
@@ -124,12 +129,16 @@ export const router = createBrowserRouter([
               { path: 'learn', element: <Navigate to={paths.cards()} replace /> },
               { path: 'review/session', element: <Navigate to={paths.cards()} replace /> },
               { path: 'review/:drill', element: <Navigate to={paths.cards()} replace /> },
-              { path: 'library', element: <LibraryPage /> },
+              { path: 'library', element: <LibraryRoute /> },
+              { path: 'library/radicals', element: <RadicalsPage /> },
+              { path: 'library/paper', element: <PaperPage /> },
+              { path: 'library/:setId', element: <SetPage /> },
               { path: 'families/:radical?', element: <FamiliesPage /> },
               { path: 'play', element: <PlayPage /> },
               { path: 'play/world', element: <WorldRoute /> },
               { path: 'play/:gameId', element: <GamePage /> },
-              { path: 'collections', element: <CollectionsPage /> },
+              // Lists to print became part of the library: a list is a set you made.
+              { path: 'collections', element: <Navigate to={paths.library()} replace /> },
               { path: 'collections/build/:step?', element: <BuildListPage /> },
               { path: 'collections/:collectionId/:tab?', element: <CollectionPage /> },
               // Radicals were a section of their own, with sets and sheets to
@@ -177,6 +186,31 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
+
+/**
+ * The library's sets — and the addresses of the page it was before them, a
+ * switch and a band strip in the query: `?kind=radicals`, `?kind=words`,
+ * `?show=todo` for what is left of the band you were in.
+ */
+function LibraryRoute() {
+  const { search } = useLocation();
+  const band = useStore((s) => s.settings.hskBand);
+  const q = new URLSearchParams(search);
+  const kind = q.get('kind');
+  if (kind === 'radicals' || q.get('band') === 'radicals') {
+    const n = q.get('radical');
+    return <Navigate to={n && /^\d+$/.test(n) ? paths.radical(Number(n)) : paths.radicals()} replace />;
+  }
+  if (kind || q.has('show')) {
+    const set = paths.librarySet(`hsk-${band >= 1 && band <= 7 ? band : 1}`);
+    const show = q.get('show');
+    const rest = new URLSearchParams();
+    if (kind === 'words') rest.set('tab', 'words');
+    if (show && show !== 'all') rest.set('show', show);
+    return <Navigate to={`${set}${rest.size ? `?${rest}` : ''}`} replace />;
+  }
+  return <LibraryHome />;
+}
 
 /** An old /radicals address, sent to the library with its radical intact. */
 function MovedToLibrary() {

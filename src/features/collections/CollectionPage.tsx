@@ -27,8 +27,8 @@ function Missing() {
     <div className="empty">
       <span className="big">空</span>
       <p>This collection is not here. It may have been deleted — on this device, or on another one.</p>
-      <Link className="btn" to={paths.collections()}>
-        All collections
+      <Link className="btn" to={paths.library()}>
+        Library
       </Link>
     </div>
   );

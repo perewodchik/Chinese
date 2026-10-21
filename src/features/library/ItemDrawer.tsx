@@ -17,6 +17,7 @@ import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
 import { toggleLearned } from '../../store/commands';
 import { useStore } from '../../store/store';
+import { useOpenViewer } from '../../navigation/charViewer';
 import { Glyph, StrokeStepper, useStrokeSteps } from '../../ui/Glyph';
 import { Say } from '../../ui/Say';
 import { useSheetDrag } from '../../ui/useSheetDrag';
@@ -75,6 +76,7 @@ export function ItemDrawer({ id, onClose }: Props) {
   const char = c?.c ?? '';
   const strokes = lib.strokes[char];
   const steps = useStrokeSteps(char ?? '', strokes?.s.length ?? 0);
+  const openViewer = useOpenViewer();
   const family = c ? seriesFor(lib, c.c) : null;
 
   // Opened from inside a collection, that collection is the obvious place for it.
@@ -141,7 +143,12 @@ export function ItemDrawer({ id, onClose }: Props) {
         ) : (
           <>
             <div className="row" style={{ gap: 22, alignItems: 'flex-start', margin: '16px 0 6px' }}>
-              <StrokeStepper steps={steps} char={char} strokes={lib.strokes} size={104} />
+              <div className="drawer-glyph">
+                <StrokeStepper steps={steps} char={char} strokes={lib.strokes} size={104} />
+                <button className="icon-btn drawer-full" onClick={() => openViewer(char, { from: 'item' })} aria-label="Full screen">
+                  <Icon name="expand" size={18} />
+                </button>
+              </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="row" style={{ gap: 8 }}>
                   <span style={{ fontSize: 22, color: 'var(--accent)' }}>{c?.py.join(' / ')}</span>

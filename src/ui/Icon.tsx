@@ -21,7 +21,8 @@ export type IconName =
   | 'camera'
   | 'print'
   | 'prev'
-  | 'next';
+  | 'next'
+  | 'expand';
 
 const PATHS: Record<IconName, JSX.Element> = {
   back: <path d="M15 5l-7 7 7 7" />,
@@ -71,6 +72,7 @@ const PATHS: Record<IconName, JSX.Element> = {
   ),
   prev: <path d="M11 6l-6 6 6 6M19 6l-6 6 6 6" />,
   next: <path d="M13 6l6 6-6 6M5 6l6 6-6 6" />,
+  expand: <path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" />,
 };
 
 export function Icon({ name, size, className }: { name: IconName; size?: number; className?: string }) {

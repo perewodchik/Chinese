@@ -1516,58 +1516,6 @@ h2 {
   color: var(--accent);
 }
 
-/* ------------------------------------------------------- template gallery */
-.tpl-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
-  gap: 12px;
-}
-
-.tpl-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  text-align: left;
-  padding: 13px 14px;
-  border: 1px solid var(--line);
-  background: var(--card);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
-  transition: border-color 0.12s, box-shadow 0.12s, transform 0.08s;
-}
-
-button.tpl-card:hover,
-a.tpl-card:hover {
-  border-color: var(--line-2);
-  box-shadow: var(--shadow);
-  transform: translateY(-1px);
-}
-
-.tpl-card.preset {
-  cursor: default;
-  background: linear-gradient(var(--card), var(--card-2));
-}
-
-.tpl-card .name {
-  font-weight: 600;
-  flex: 1;
-  min-width: 0;
-  /* A list's name is what tells it from the next one: whole, over two lines if it must. */
-  overflow-wrap: anywhere;
-}
-
-.strip {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  min-height: 24px;
-  color: var(--ink-2);
-  overflow: hidden;
-}
-
 /* ---------------------------------------------------------- editor shell */
 .editor-bar {
   position: sticky;
@@ -2740,44 +2688,6 @@ select.mt {
 }
 
 /* ------------------------------------------------------------- the shelf */
-.resume {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  margin-bottom: 20px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--accent);
-  background: var(--accent-soft);
-}
-
-.resume .mark {
-  font-size: 18px;
-  color: var(--accent);
-  line-height: 1;
-}
-
-/* On a phone the buttons take a line of their own under the text, instead of
-   squeezing the title into a column two words wide. */
-@media (max-width: 640px) {
-  .resume {
-    flex-wrap: wrap;
-    row-gap: 8px;
-  }
-
-  .resume > div:not(.spacer) {
-    flex: 1 1 calc(100% - 42px);
-  }
-
-  .resume > .spacer {
-    display: none;
-  }
-
-  .resume > .btn.ghost {
-    margin-left: auto;
-  }
-}
-
 .set-bar {
   display: flex;
   align-items: center;
@@ -4352,7 +4262,6 @@ button.progress-meter:hover {
    whether the work on screen has reached the server.
    ========================================================================== */
 
-a.tpl-card,
 a.waiting {
   color: inherit;
   text-decoration: none;
@@ -5392,6 +5301,28 @@ label.field[data-invalid] input {
   animation: rise 0.12s ease-out;
 }
 
+.menu.up {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
+/* A few choices of one kind (an order), set off from the actions above them. */
+.menu-group {
+  display: grid;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.menu-group .btn {
+  justify-content: space-between;
+}
+
+.menu-group .btn .icon {
+  color: var(--accent);
+}
+
 .menu .btn {
   justify-content: flex-start;
   text-align: left;
@@ -5424,11 +5355,6 @@ label.field[data-invalid] input {
   height: 20px;
   accent-color: var(--ink);
   flex: none;
-}
-
-.tpl-card.pickable[aria-pressed='true'] {
-  border-color: var(--ink);
-  box-shadow: 0 0 0 1px var(--ink);
 }
 
 .pick-mark {
@@ -5679,25 +5605,6 @@ label.field[data-invalid] input {
 }
 
 /* ------------------------------------------------------- blank paper */
-.tpl-card.blank-card {
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.blank-text {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-  flex: 1;
-}
-
-.blank-zh {
-  font-family: var(--han);
-  color: var(--ink-3);
-  font-size: 15px;
-}
-
 .blank-thumb {
   flex: none;
   width: 56px;
@@ -5729,33 +5636,6 @@ label.field[data-invalid] input {
 
 .blank-preview .preview {
   height: min(62dvh, 720px);
-}
-
-/* ---------------------------------------------- collections, both kinds */
-.show-bar {
-  margin-bottom: 20px;
-}
-
-.shelf + .shelf,
-.shelf + .presets-card {
-  margin-top: 30px;
-}
-
-.shelf-head {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--line);
-}
-
-.shelf-title {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-3);
-  margin: 0 0 2px;
 }
 
 .empty.compact {
@@ -5891,7 +5771,7 @@ label.field[data-invalid] input {
   transform: rotate(180deg);
 }
 
-.from-texts .tpl-grid {
+.from-texts .list {
   margin-bottom: 12px;
 }
 

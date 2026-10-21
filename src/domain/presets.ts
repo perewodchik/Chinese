@@ -104,28 +104,3 @@ export function allPresets(lib: Library): Preset[] {
 
   return [...[1, 2, 3, 4, 5, 6, 7].map(bandPreset), ...[1, 2, 3, 4].map(wordBandPreset), zouzouFirst, ...themes];
 }
-
-export const GROUP_LABEL: Record<PresetGroup, string> = {
-  hsk: 'By HSK band',
-  words: 'Words',
-  theme: 'By topic',
-};
-
-export const GROUP_BLURB: Record<PresetGroup, string> = {
-  hsk: 'The official syllabus, in an order that never puts a character before its parts.',
-  words: 'The words of each band on the 2026 lists, commonest first. Their characters print as practice sheets; the words come round in Review, a few new ones a day.',
-  theme: 'A set about one thing — useful when you have a trip or a menu coming up.',
-};
-
-/**
- * How many items to suggest taking from a set of this size.
- *
- * A three-hundred-character band is a term's work, not a collection; forty is
- * a fortnight of sheets and still one card in the gallery. Small sets are
- * taken whole.
- */
-export function suggestedSize(count: number): number {
-  if (count <= 60) return count;
-  if (count <= 120) return 60;
-  return 40;
-}

@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router';
 import { AccountMenu } from '../features/auth/AccountMenu';
 import { useUser } from '../features/auth/session';
 import { useSignOut } from '../features/auth/useSignOut';
+import { CharViewer } from '../features/library/CharViewer';
 import { ItemDrawer } from '../features/library/ItemDrawer';
 import { ProgressDrawer } from '../features/library/ProgressDrawer';
 import { LegacyWorkNotice } from '../features/settings/LegacyWorkNotice';
@@ -23,7 +24,7 @@ import { SyncIndicator } from './SyncIndicator';
 const SITTING = /^\/(review\/(recognise|sound|tone|confuse|word|write|words|session)|learn|cards\/session)\/?$/;
 
 /** Where each section of More lives, so its tab stays lit while you are in one of them. */
-const MORE_PATHS = ['/speaking', '/videos', '/play', '/account', '/settings', '/collections', '/families'];
+const MORE_PATHS = ['/speaking', '/videos', '/play', '/account', '/settings'];
 
 /**
  * The frame every signed-in page sits in: the sections, the page, and the
@@ -40,6 +41,7 @@ export function AppLayout() {
   const theme = useStore((s) => s.settings.theme);
   const { pathname } = useLocation();
   const drawer = useItemDrawer();
+  const viewing = new URLSearchParams(useLocation().search).has('view');
   const progress = useProgressDrawer();
   const main = useRef<HTMLElement>(null);
   const moreButton = useRef<HTMLButtonElement>(null);
@@ -63,7 +65,7 @@ export function AppLayout() {
     { to: paths.today(), han: '今', label: 'Today', also: [] },
     { to: paths.read(), han: '读', label: 'Read', also: ['/texts'] },
     { to: paths.cards(), han: '卡', label: 'Cards', also: ['/review', '/learn'] },
-    { to: paths.library(), han: '字', label: 'Library', also: [] },
+    { to: paths.library(), han: '字', label: 'Library', also: ['/collections', '/families'] },
   ];
   const lit = (s: (typeof sections)[number]) =>
     pathname.startsWith(s.to) || s.also.some((p) => pathname.startsWith(p));
@@ -108,6 +110,8 @@ export function AppLayout() {
 
       {more && <MoreSheet anchor={moreButton} onClose={() => setMore(false)} />}
 
+      {viewing && <CharViewer />}
+
       {drawer.item &&
         (isWordId(drawer.item) ? (
           <WordDrawer id={drawer.item} onClose={drawer.close} />
@@ -130,7 +134,6 @@ const MORE = [
   { to: paths.speaking(), han: '说', label: 'Speaking', blurb: 'Tones, sounds, talking with Claude' },
   { to: paths.videos(), han: '视', label: 'Videos', blurb: 'Watch, write it out, check it' },
   { to: paths.play(), han: '玩', label: 'Play', blurb: 'Games and the walk through Beijing' },
-  { to: paths.collections(), han: '印', label: 'Lists to print', blurb: 'Character lists and worksheets' },
   { to: paths.stats(), han: '进', label: 'Your progress', blurb: 'Days, words and characters over time' },
 ];
 

@@ -9,7 +9,7 @@ Open work and unconfirmed defaults for the learning app's features. The game
 The cards are the one way to practise. The drills, the daily review and the
 lessons of new characters (`/learn`, `/review/session`, `/review/:drill`,
 `/review/words`) were removed on 2026-10-21; their addresses go to Cards. What
-stayed under /review: marking a printed sheet (linked from Lists to print) and
+stayed under /review: marking a printed sheet (linked from the top of the Library) and
 sorting the HSK words (linked from the Cards tab).
 
 Defaults taken without the learner's answer — confirm or change:
@@ -19,6 +19,23 @@ Defaults taken without the learner's answer — confirm or change:
 - Library "mark learned": first check in 1–4 days (was 7–16).
 - Streak: one rest day a week allowed. Daily goal: any work that day counts.
 - A wrong claim still counts as a lapse (only its first answer's weight is full).
+
+## Library (`/library`, `/library/:set` — rebuilt 2026-10-21)
+
+Every set in one place (your lists, HSK bands, topics) with one page for a
+set; Lists to print folded in, /collections redirects to /library. Plan and
+reasoning: `docs/library-concept.md`.
+
+Open:
+- A topic's character shows the character's own first sense (面 "face" in
+  Food & drink, 包 "wrap"): the word sense would be better, but a character
+  belongs to several words and there is no rule yet for which one a topic
+  means.
+- The word lists made from a band's words (`wordset-hsk-N`) show as lists of
+  their own rather than under their band.
+- Full screen walks the characters of the set page underneath; opened from
+  anywhere else it holds the one character.
+- Not seen in Safari: the full-screen square (container query units), swipe.
 
 Ideas offered and not started: a text to reread on Today after a few days;
 fill-the-gap cards from the learner's own texts; repeat-after-the-voice per

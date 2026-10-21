@@ -12,6 +12,7 @@ import {
 } from '../../domain/collection';
 import { itemsLabel } from '../../domain/ids';
 import { perPageOf, printSheet } from '../../domain/sheet';
+import { setIdOfList } from '../library/sets';
 import { paths, type CollectionTab } from '../../navigation/paths';
 import { renderCollection, renderRecall } from '../../pdf/render';
 import {
@@ -154,13 +155,13 @@ export function CollectionEditor({ c, tab }: Props) {
     const copy = duplicateCollection(c.id);
     if (!copy) return;
     navigate(paths.collection(copy.id));
-    toast(`This is the copy, “${copy.name}”. The original is still in Collections.`);
+    toast(`This is the copy, “${copy.name}”. The original is still in the library.`);
   }
 
   function remove() {
     if (!confirm(`Delete “${c.name}”? The characters stay in the library.`)) return;
     // Off the page first: once the collection is gone there is nothing here to show.
-    navigate(paths.collections(), { replace: true, flushSync: true });
+    navigate(paths.library(), { replace: true, flushSync: true });
     deleteCollection(c.id);
   }
 
@@ -170,7 +171,7 @@ export function CollectionEditor({ c, tab }: Props) {
     <section>
       {/* --------------------------------------------------------- toolbar */}
       <div className="editor-bar">
-        <Link className="btn ghost sm" to={paths.collections()} title="Back to all collections">
+        <Link className="btn ghost sm" to={paths.librarySet(setIdOfList(c))} title="Back to the list">
           ←
         </Link>
         <input

@@ -21,7 +21,7 @@ characters.
   characters you happen to know.
 - **214 radicals, and every way each one is written.** 心 is 忄 on the left of
   快, flat and wide under 想, and ⺗ under 恭 — three shapes, one radical, and a
-  practice row for each. In the library behind the same dropdown as the bands,
+  practice row for each. In the library, at /library/radicals,
   as reference: nothing about them is marked learned, queued or reviewed, and
   one button prints the whole sheet.
 - **Collections, not templates.** One card per subject — "HSK 1", "Food", "The
@@ -234,24 +234,19 @@ character drawer, because the drawer is part of the address.
 1. **Today** — the front door: the text to carry on with, and the day's
    **Cards** — a fixed number a day, asking what you chose on the Cards tab
    (the meaning, the pinyin typed, or the character written). A printed test
-   sheet waiting to be marked shows up under Lists to print.
-2. **Library** — filter to an HSK band (or all 3000) and browse in teaching
-   order. Filter by
-   Everything, Learned, Not learned, *In no collection*, or *Ready — parts
-   known*: the characters every piece of which you can already write, sorted
-   by how many words each one would finish off. Click to select, shift-click
-   for a range, the `i` button for everything known about one character —
-   including its sound family, the other characters built on the same phonetic
-   and whether they kept its reading. A gold dot means some collection has
-   already claimed it.
-3. A tray appears at the bottom: **add the selection to a collection**, new or
-   existing. Anything already there is skipped, and the toast says so.
-4. **Collections** — or start from a ready-made set: an HSK band or one of
-   fifteen topics. **Add** asks the only question that matters —
-   *how many of these do you want?* — and offers to skip whatever is already in
-   another collection. You get one collection, the size you asked for, and can
-   top it up later.
-5. In a collection, **Design** decides what the PDF looks like and **Items** is
+   sheet waiting to be marked shows up at the top of the Library.
+2. **Library** — every set in one place: your lists, the HSK bands, the
+   topics, and beside them the radicals, their families and blank paper. One
+   search finds characters, words and sets. A set's page shows its characters
+   as squares from the exercise book and its words as rows, filtered to what is
+   still to learn or already learned. A tap opens a character's drawer; ⋯ has
+   the rest: Print, Full screen (one character at a time, its strokes stepped
+   through with buttons), Sort what you know, Pick some out.
+3. **Pick some out** turns taps into picks; a tray marks them learned or adds
+   them to a list, new or existing. Anything already there is skipped.
+4. **Print** a ready-made set and it becomes one of your lists, where its
+   sheet design is kept; set and list stay one row in the library.
+5. In a list, **Design** decides what the PDF looks like and **Items** is
    what is in it: the same cards as the library, dragged into whatever order
    you like, ticked off as you learn them. Search at the top of **Items** to
    put a specific character in — by shape, reading or meaning — and click it
@@ -262,7 +257,7 @@ character drawer, because the drawer is part of the address.
 7. **Download** the worksheet, or **Test sheet** for the same characters with
    nothing to copy from. Either lands in your worksheets folder (Settings →
    choose one) or downloads normally, named after the collection and the
-   slice. A test sheet then waits under Lists to print to be marked.
+   slice. A test sheet then waits at the top of the Library to be marked.
 8. **Texts** — plan a session of several passages at once, each with its own
    topic, length, level, form and however many new characters you want it to
    teach you. Copy the prompt into Claude, paste the reply back, and the set
@@ -285,10 +280,12 @@ it was made on.
 | `/read`, `/read/<shelf>?tab=words` | the shelves; one shelf's texts, words and characters |
 | `/review/sheets/<id>` | marking a printed test sheet |
 | `/review/sweep` | sorting the HSK words into known, not sure and new |
-| `/library` | browsing; `?q=hao&show=learned&sort=freq` keeps the filters |
-| `/collections` | every collection, and the ready-made sets |
-| `/collections/<id>`, `/collections/<id>/items` | one collection: how it prints, and what is in it |
-| `/library?band=radicals` | all 214, ordered by how much of the syllabus each unlocks |
+| `/library` | every set: your lists, the HSK bands, the topics; search |
+| `/library/<set>?tab=words&show=todo&order=strokes` | one set: `hsk-1`, `theme-food`, `list-<id>` |
+| `/library/radicals?q=shui` | all 214, ordered by how much of the syllabus each unlocks |
+| `/library/paper` | blank paper to print |
+| `/collections/<id>`, `/collections/<id>/items` | one list: how it prints, and what is in it |
+| `?item=c好`, `?view=好` on any page | a character's drawer; the character full screen |
 | `/texts` | the shelf |
 | `/texts/session/plan`, `…/prompt`, `…/paste` | a writing session, step by step |
 | `/texts/<id>` | one passage |
@@ -527,8 +524,8 @@ rather than insetting the block.
 
 ## Radicals
 
-The pieces characters are built from, in the **library** — pick Radicals in the
-same dropdown as the HSK bands. They are reference and nothing else: a radical
+The pieces characters are built from, in the **library** — Radicals, under
+Look things up. They are reference and nothing else: a radical
 cannot be marked learned, cannot be put in a collection, and never comes round
 in a review. You learn the common ones early, as shapes, and then stop studying
 them; characters you study for years and the app schedules for review. So there
@@ -1153,8 +1150,9 @@ src/
   features/           one folder per screen area — today, reader (Read, its
                       shelves and the text page), cards, review (marking a
                       printed sheet; the writing pad), stats,
-                      library, words, families, pinyin, videos, collections
-                      (lists to print), play, world, settings, auth — and shared/
+                      library (every set, a set's page, radicals, the
+                      full-screen character), words, families, pinyin, videos,
+                      collections (a list's design and contents), play, world, settings, auth — and shared/
                       for what several of them use
   games/              the /play mini-games, one folder each (README.md)
   world/              走走, the walking game: core/ rules, engine/ (Phaser),

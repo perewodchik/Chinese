@@ -36,6 +36,14 @@ actions to the foot of the screen, where the thumb is.
 tonal buttons. A "Learned/Known" state is tonal and `aria-pressed`, not
 primary.
 
+**Actions under ⋯ on a page for looking.** A set's page is for looking at
+the characters: Print, Full screen, Sort, Pick some out are in its ⋯ menu,
+each with a line under it saying what it does, so nothing stands between the
+title and the squares.
+
+**Filters you let go of.** Two or three chips with no "All": tapping the
+pressed one again lets it go. It keeps a phone's filter row on one line.
+
 **Whole rows, not rows with a button.** A suggestion, a list, a printed sheet
 to mark: the row is the link, with a chevron. Per-item actions sit on the item.
 
@@ -95,8 +103,8 @@ voice, the size of the copying squares, the iPhone's own Speak) goes in
 **Removing a feature.** Delete the pages and what only they used; turn their
 routes into `<Navigate>` to where the job lives now (`router.tsx`); remove
 their `paths` helpers and the settings only they read; move the entry points
-that still matter (marking a printed sheet went to Lists to print, sorting
-words to the Cards tab); update `docs/backlog.md` and the README. Find what is
+that still matter (marking a printed sheet went to the top of the Library,
+sorting words to the Cards tab); update `docs/backlog.md` and the README. Find what is
 no longer reachable with an esbuild metafile from `src/main.tsx`.
 
 **Speech on iOS.**

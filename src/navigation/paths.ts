@@ -12,8 +12,6 @@ import type { ListStep } from '../domain/wordlist';
 export type EditorTab = 'design' | 'items';
 /** A collection has a third tab, for the words it was written around. */
 export type CollectionTab = EditorTab | 'words';
-/** What the Collections page shows: both kinds, or one. */
-export type CollectionsShow = 'all' | 'characters' | 'texts';
 
 /** What a shelf shows: its texts, its words, or its characters. */
 export type ShelfTab = 'texts' | 'words' | 'characters';
@@ -41,16 +39,17 @@ export const paths = {
   sweep: (band?: number) => withQuery('/review/sweep', { band: band ? String(band) : undefined }),
 
   library: () => '/library',
-  /** the library showing the 214 radicals rather than a band of characters */
-  radicals: () => '/library?kind=radicals',
+  /** one set in the library: a band (`hsk-1`), a topic, or a list of yours (`list-<id>`) */
+  librarySet: (id: string) => `/library/${encodeURIComponent(id)}`,
+  /** the 214 radicals, with what was typed in the library's search */
+  radicals: (q?: string) => withQuery('/library/radicals', { q }),
   /** the same, with one radical's drawer open over it */
-  radical: (n: number) => `/library?kind=radicals&radical=${n}`,
+  radical: (n: number) => `/library/radicals?radical=${n}`,
+  /** blank paper to print: grids, writing paper, dictation sheets */
+  paper: () => '/library/paper',
   /** a radical's family: the characters it grows into, drawn as a tree */
   family: (n?: number) => (n ? `/families/${n}` : '/families'),
 
-  /** characters and texts together, or narrowed to one of them */
-  collections: (show?: CollectionsShow) =>
-    withQuery('/collections', { show: show && show !== 'all' ? show : undefined }),
   collection: (id: string, tab: CollectionTab = 'design') =>
     `/collections/${encodeURIComponent(id)}${tab === 'design' ? '' : `/${tab}`}`,
   /** a word list being written with Claude: describe, prompt, paste */

@@ -35,8 +35,8 @@ function NoList() {
     <div className="empty">
       <span className="big">词</span>
       <p>There is no word list being written. It was saved or thrown away — here, or on another device.</p>
-      <Link className="btn" to={paths.collections()}>
-        Back to collections
+      <Link className="btn" to={paths.library()}>
+        Back to the library
       </Link>
     </div>
   );
@@ -62,14 +62,14 @@ function Builder({ plan, step }: { plan: WordListPlan; step: ListStep }) {
 
   function discard() {
     if (!confirm('Throw this word list away? What you described and anything pasted go with it.')) return;
-    navigate(paths.collections(), { replace: true, flushSync: true });
+    navigate(paths.library(), { replace: true, flushSync: true });
     discardListPlan();
   }
 
   return (
     <section className="studio">
       <div className="editor-bar">
-        <Link className="btn ghost sm" to={paths.collections()} title="Back to all collections">
+        <Link className="btn ghost sm" to={paths.library()} title="Back to the library">
           ←
         </Link>
         <input

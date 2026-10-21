@@ -12,11 +12,14 @@ export function Menu({
   label,
   title,
   className = 'btn sm',
+  up,
   children,
 }: {
   label: ReactNode;
   title?: string;
   className?: string;
+  /** opens above the button: for one at the foot of the screen */
+  up?: boolean;
   children: (close: () => void) => ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -51,7 +54,7 @@ export function Menu({
         {label}
       </button>
       {open && (
-        <div className="menu" role="menu">
+        <div className={up ? 'menu up' : 'menu'} role="menu">
           {children(() => setOpen(false))}
         </div>
       )}

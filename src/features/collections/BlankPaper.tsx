@@ -1,4 +1,9 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
+import { paths } from '../../navigation/paths';
+import { Icon } from '../../ui/Icon';
+import { useTitle } from '../../ui/useTitle';
+import '../library/home.css';
 import { BLANKS, renderBlank, type BlankId, type BlankTemplate } from '../../pdf/blank';
 import { useStore } from '../../store/store';
 import { Modal } from '../../ui/Modal';
@@ -9,42 +14,43 @@ type Pages = '1' | '2' | '5' | '10';
 const PAGES: Pages[] = ['1', '2', '5', '10'];
 
 /**
- * Blank paper, on the Collections page because that is where everything that
- * prints lives. For characters that are in no collection — yet, or ever — and
- * for writing out a text by hand.
+ * Blank paper, at /library/paper: for characters that are in no list — yet,
+ * or ever — and for writing out a text by hand.
  *
  * Nothing to set up and nothing saved: pick a kind of paper, see it, take as
  * many pages as you want. The colour is the one in Settings.
  */
-export function BlankPaper() {
+export function PaperPage() {
+  useTitle('Blank paper');
   const [open, setOpen] = useState<BlankTemplate | null>(null);
   return (
-    <section className="shelf">
-      <div className="shelf-head">
-        <div>
-          <h2 className="shelf-title">Blank paper</h2>
-          <p className="small muted" style={{ margin: 0 }}>
-            Empty squares for characters you have not picked yet, or for writing out a text.
-          </p>
-        </div>
-      </div>
-      <div className="tpl-grid">
+    <div className="set-page">
+      <header className="page-head">
+        <Link className="back-link" to={paths.library()}>
+          <Icon name="back" />
+          Library
+        </Link>
+      </header>
+      <h1 className="set-title">Blank paper</h1>
+      <p className="set-blurb">Empty squares for characters you have not picked yet, or for writing out a text.</p>
+      <div className="list paper-list">
         {BLANKS.map((t) => (
-          <button key={t.id} className="tpl-card blank-card" onClick={() => setOpen(t)}>
+          <button key={t.id} className="paper-row" onClick={() => setOpen(t)}>
             <BlankThumb id={t.id} />
-            <span className="blank-text">
-              <span className="row" style={{ gap: 8 }}>
-                <span className="name">{t.name}</span>
-                <span className="blank-zh">{t.zh}</span>
+            <span className="grow">
+              <span className="paper-name">
+                <b>{t.name}</b>
+                <span className="hanzi muted">{t.zh}</span>
               </span>
-              <span className="tiny muted">{t.blurb}</span>
+              <span className="small muted">{t.blurb}</span>
               <span className="tiny muted">{t.holds}</span>
             </span>
+            <Icon name="chevron" className="muted" />
           </button>
         ))}
       </div>
       {open && <BlankDialog t={open} onClose={() => setOpen(null)} />}
-    </section>
+    </div>
   );
 }
 

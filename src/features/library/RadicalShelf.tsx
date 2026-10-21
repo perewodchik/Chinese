@@ -1,48 +1,60 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router';
 import type { RadicalEntry } from '../../data/radicals';
 import { mainForm, searchScore } from '../../domain/radicals/forms';
 import { RADICAL_TEMPLATE } from '../../domain/radicals/sheet';
-import { useOpenRadical } from '../../navigation/radicalDrawer';
+import { paths } from '../../navigation/paths';
+import { oneOf, useQuery } from '../../navigation/query';
+import { useOpenRadical, useRadicalDrawer } from '../../navigation/radicalDrawer';
 import { renderRadicals } from '../../pdf/radicals/render';
 import { useStore } from '../../store/store';
-import { ItemCard } from '../../ui/ItemCard';
+import { Glyph } from '../../ui/Glyph';
+import { Icon } from '../../ui/Icon';
+import { Menu } from '../../ui/Menu';
+import { useTitle } from '../../ui/useTitle';
 import { usePdfExport } from '../shared/usePdfExport';
-import { useRadicalLibrary } from './radicalData';
+import { RadicalDrawer } from './RadicalDrawer';
+import { RadicalGate, useRadicalLibrary } from './radicalData';
+import './home.css';
 
-export type RadicalShow = 'all' | 'forms';
-
-export const RADICAL_SHOW: Array<{ id: RadicalShow; label: string }> = [
-  { id: 'all', label: 'Everything' },
-  { id: 'forms', label: 'Written more than one way' },
-];
-
-interface Props {
-  /** what is in the library's search box */
-  q: string;
-  show: RadicalShow;
-}
+type RadicalShow = 'all' | 'forms';
 
 /**
- * The 214 radicals, inside the library, as reference.
+ * The 214 radicals, at /library/radicals, as reference.
  *
  * They used to be a section of their own with sets, sheets to design and a
  * tick against each one, which made them look like a second syllabus to get
  * through. They are not: they are the parts characters are made of, and the
- * use of them is to look one up and recognise it next time. So they live in
- * the library behind the same dropdown as the bands, they cannot be marked,
- * queued or reviewed, and the only thing to do with them besides reading is
- * to print the reference sheet.
+ * use of them is to look one up and recognise it next time. So they cannot
+ * be marked, queued or reviewed, and the only thing to do with them besides
+ * reading is to print the reference sheet.
  *
  * Ordered by how much of the syllabus each one unlocks rather than by Kangxi
  * number — the number is a place in a dictionary; this order is what to look
  * at first.
  */
-export function RadicalShelf({ q, show }: Props) {
+export function RadicalsPage() {
+  useTitle('Radicals');
+  const drawer = useRadicalDrawer();
+  return (
+    <RadicalGate>
+      <RadicalShelf />
+      {drawer.radical !== null && <RadicalDrawer n={drawer.radical} onClose={drawer.close} />}
+    </RadicalGate>
+  );
+}
+
+function RadicalShelf() {
   const rlib = useRadicalLibrary();
   const openRadical = useOpenRadical();
   const pdf = usePdfExport();
   const footerNote = useStore((s) => s.settings.footerNote);
   const printPalette = useStore((s) => s.settings.printPalette);
+  const [query, setQuery] = useQuery();
+  const show = oneOf<RadicalShow>(query.get('show'), ['forms'], 'all');
+  // The box keeps its own state and writes it into the address behind
+  // itself, so a search from the library's box arrives already typed.
+  const [q, setQ] = useState(query.get('q') ?? '');
 
   const rows = useMemo(() => {
     const needle = q.trim();
@@ -65,49 +77,88 @@ export function RadicalShelf({ q, show }: Props) {
   }
 
   return (
-    <>
-      <p className="small muted" style={{ margin: '0 0 12px' }}>
-        The pieces characters are built from. Learn to see the common ones and a new character stops
-        being a picture and becomes two or three parts you already recognise. Nothing here is marked
-        learned or comes round in review — open one to read it, or print the sheet.
+    <div className="set-page">
+      <header className="page-head">
+        <Link className="back-link" to={paths.library()}>
+          <Icon name="back" />
+          Library
+        </Link>
+        <span className="spacer" />
+        <Menu label={<Icon name="more" size={22} />} title="What to do with them" className="icon-btn">
+          {(close) => (
+            <>
+              <button
+                role="menuitem"
+                className="btn ghost sm"
+                disabled={pdf.busy !== null || !rows.length}
+                onClick={() => (close(), template(rows))}
+              >
+                Print the reference sheet
+                <span className="tiny muted">
+                  {rows.length} radical{rows.length === 1 ? '' : 's'}, {pageCount(rows.length)} page{pageCount(rows.length) === 1 ? '' : 's'}
+                </span>
+              </button>
+              <Link role="menuitem" className="btn ghost sm" to={paths.family()} onClick={close}>
+                Families
+                <span className="tiny muted">what one part grows into, drawn as a tree</span>
+              </Link>
+            </>
+          )}
+        </Menu>
+      </header>
+
+      <h1 className="set-title">Radicals</h1>
+      <p className="set-blurb">
+        The parts characters are built from. Learn to see the common ones and a new character stops being a picture
+        and becomes two or three parts you already recognise. Commonest first.
       </p>
+      {pdf.busy === 'radical-template' && <p className="small muted">Making the sheet…</p>}
+
+      <div className="set-filter">
+        <label className="search set-search">
+          <Icon name="search" />
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setQuery('q', e.target.value);
+            }}
+            placeholder="氵, shui or water"
+            aria-label="Search the radicals"
+          />
+        </label>
+        <div className="chips">
+          <button className="chip" aria-pressed={show === 'forms'} onClick={() => setQuery('show', show === 'forms' ? 'all' : 'forms', 'all')}>
+            Several shapes
+          </button>
+        </div>
+      </div>
 
       {rows.length === 0 ? (
-        <div className="empty">
-          <span className="big">空</span>
-          No radical matches that.
-        </div>
+        <p className="muted set-empty">No radical matches that.</p>
       ) : (
-        <div className="grid">
+        <div className="lib-tiles">
           {rows.map((r) => {
             const form = mainForm(r);
             return (
-              <ItemCard
+              <button
                 key={r.n}
-                glyph={form.k}
-                fit
-                fallback={form.g}
-                py={r.py}
-                gloss={r.forms.length > 1 ? `${r.mean} · ${r.forms.length} forms` : r.mean}
-                strokes={rlib.strokes}
-                index={r.rank}
-                title={`${r.mean} — ${r.forms.length === 1 ? 'one shape' : `${r.forms.length} shapes`}`}
+                className="lib-tile"
                 onClick={() => openRadical(r.n)}
-                onOpen={() => openRadical(r.n)}
-              />
+                aria-label={`${form.g}, ${r.py}, ${r.mean}${r.forms.length > 1 ? `, ${r.forms.length} shapes` : ''}`}
+              >
+                <span className="lib-sq lib-sq-glyph" aria-hidden>
+                  <Glyph char={form.k} strokes={rlib.strokes} size={64} fit fallback={form.g} />
+                </span>
+                <span className="lib-py">{r.py}</span>
+                <span className="lib-gloss">{r.mean}</span>
+              </button>
             );
           })}
         </div>
       )}
-
-      <div className="row" style={{ justifyContent: 'center', marginTop: 18 }}>
-        <button className="btn" disabled={pdf.busy !== null || !rows.length} onClick={() => template(rows)}>
-          {pdf.busy === 'radical-template'
-            ? 'Building…'
-            : `Download the template — ${rows.length} radical${rows.length === 1 ? '' : 's'}, ${pageCount(rows.length)} pages`}
-        </button>
-      </div>
-    </>
+    </div>
   );
 }
 

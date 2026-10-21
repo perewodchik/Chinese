@@ -3,7 +3,6 @@ import { Link } from 'react-router';
 import { SKILL_META } from '../../domain/memory';
 import { bandName, progressOf, type BandProgress } from '../../domain/progress';
 import { paths } from '../../navigation/paths';
-import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { InkWall } from './InkWall';
 import { useSheetDrag } from '../../ui/useSheetDrag';
@@ -49,11 +48,8 @@ export function ProgressDrawer({ onClose }: { onClose: () => void }) {
   const rotation = Object.values(p.holding).reduce((a, b) => a + b, 0);
   const lastStarted = p.current ? p.current.band : 0;
 
-  /** Opens the library on what is left in one band. */
-  const leftIn = (b: BandProgress) => ({
-    to: `${paths.library()}?show=todo`,
-    onClick: () => setSettings({ hskBand: b.band }),
-  });
+  /** Opens the band's page on what is left of it. */
+  const leftIn = (b: BandProgress) => ({ to: `${paths.librarySet(`hsk-${b.band}`)}?show=todo` });
 
   return (
     <div className="drawer" data-leaving={sheet.leaving || undefined} onClick={close}>
@@ -104,7 +100,7 @@ export function ProgressDrawer({ onClose }: { onClose: () => void }) {
             </Link>
           )}
           {p.sheetsWaiting > 0 && (
-            <Link className="btn" to={paths.collections()}>
+            <Link className="btn" to={paths.library()}>
               {plural(p.sheetsWaiting, 'sheet')} to mark
             </Link>
           )}
