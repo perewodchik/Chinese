@@ -35,11 +35,11 @@ interface Piece {
 
 type By = 'word' | 'char';
 
-/** How large the squares are, chosen on each device: a phone at arm's length wants them bigger than an iPad does. */
+/** How much of the room the squares take, chosen on each device: Large fills it. */
 const SIZES = [
-  { id: 'small', scale: 0.8, label: 'Small', px: 13 },
-  { id: 'medium', scale: 1, label: 'Medium', px: 16 },
-  { id: 'large', scale: 1.3, label: 'Large', px: 20 },
+  { id: 'small', scale: 0.55, label: 'Small', px: 13 },
+  { id: 'medium', scale: 0.75, label: 'Medium', px: 16 },
+  { id: 'large', scale: 1, label: 'Large', px: 20 },
 ] as const;
 type Size = (typeof SIZES)[number]['id'];
 const SIZE_KEY = 'hanzi.copy.size';
@@ -142,7 +142,7 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
 
   return (
     <div className="co-scrim" role="dialog" aria-modal="true" aria-label="Copy out the text">
-      <div className="co" style={{ '--co-scale': SIZES.find((x) => x.id === size)!.scale } as CSSProperties}>
+      <div className="co co-fill" style={{ '--co-scale': SIZES.find((x) => x.id === size)!.scale } as CSSProperties}>
         <header className="co-head">
           <button className="icon-btn" onClick={onClose} aria-label="Close">
             <Icon name="close" size={22} />
@@ -202,7 +202,11 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
             </p>
 
             <div className="co-now">
-              <div className="co-boxes" style={{ '--n': Math.min(4, [...unit.text].length) } as CSSProperties}>
+              <div
+                className="co-boxes"
+                data-n={Math.min(4, [...unit.text].length)}
+                style={{ '--n': Math.min(4, [...unit.text].length) } as CSSProperties}
+              >
                 {[...unit.text].map((c, i) => (
                   <div key={`${at}-${i}`} className="co-char">
                     <span className="co-py">{unit.py[i]}</span>

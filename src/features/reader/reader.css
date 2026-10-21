@@ -1110,21 +1110,46 @@ label.rd-aa-row {
   border-radius: 3px;
 }
 
-.co-now {
-  flex: 1;
-  display: grid;
-  place-items: center;
-  padding: 24px 0;
-  /* The squares are measured against this width, so the largest still fits a phone. */
-  container-type: inline-size;
+/* Copying out measures its squares against the screen, so its page is the
+   screen's height exactly, not "at least": a container's height has to be
+   known before what is inside it is laid out. */
+.co.co-fill {
+  height: 100%;
 }
 
+.co-now {
+  flex: 1;
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  padding: 16px 0;
+  /* The squares are measured against the room this leaves them, across and down. */
+  container-type: size;
+}
+
+/* The squares share out the room: Large fills it, Medium and Small take less
+   of it. Three or four on a phone go two to a row, so each stays big enough to
+   write beside. A square never grows past what a hand copies comfortably. */
 .co-boxes {
-  /* One character large, four a little smaller each, before the chosen size scales them. */
-  --co-base: calc(156px - var(--n, 1) * 20px);
+  --cols: var(--n, 1);
+  --rows: 1;
+  --across: calc((100cqw - (var(--cols) - 1) * 10px) / var(--cols));
+  /* each row also carries its pinyin (22px) and the gap under it */
+  --down: calc((100cqh - var(--rows) * 28px - (var(--rows) - 1) * 14px) / var(--rows));
+  --side: max(56px, calc(min(var(--across), var(--down), 520px) * var(--co-scale, 1)));
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
+  gap: 14px 10px;
+  width: calc(var(--cols) * var(--side) + (var(--cols) - 1) * 10px);
+}
+
+@container (max-width: 480px) {
+  .co-boxes[data-n='3'],
+  .co-boxes[data-n='4'] {
+    --cols: 2;
+    --rows: 2;
+  }
 }
 
 .co-char {
@@ -1142,7 +1167,6 @@ label.rd-aa-row {
 
 /* A square's side: the chosen size, by how many there are, never more than the width shares out. */
 .co-box {
-  --side: min(calc(var(--co-base, 132px) * var(--co-scale, 1)), calc((100cqw - (var(--n, 1) - 1) * 10px) / var(--n, 1)));
   width: var(--side);
   height: var(--side);
   display: grid;
@@ -1308,13 +1332,6 @@ label.rd-aa-row {
 
 .rd-show-all {
   min-width: 78px;
-}
-
-/* An iPad has the room for squares a hand can write beside, not just look at. */
-@media (min-width: 700px) {
-  .co-boxes {
-    --co-base: calc(220px - var(--n, 1) * 30px);
-  }
 }
 
 /* Lines read by the system's own Speak: their text is selectable, as a finger would select it. */
