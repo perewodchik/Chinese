@@ -1079,9 +1079,18 @@ label.rd-aa-row {
 
 .co-switches {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
   margin: 4px 0 16px;
+}
+
+.co-sizes button {
+  min-width: 40px;
+  padding: 0 6px;
+}
+
+.co-sizes .hanzi {
+  line-height: 1;
 }
 
 .co-line {
@@ -1106,9 +1115,13 @@ label.rd-aa-row {
   display: grid;
   place-items: center;
   padding: 24px 0;
+  /* The squares are measured against this width, so the largest still fits a phone. */
+  container-type: inline-size;
 }
 
 .co-boxes {
+  /* One character large, four a little smaller each, before the chosen size scales them. */
+  --co-base: calc(156px - var(--n, 1) * 20px);
   display: flex;
   justify-content: center;
   gap: 10px;
@@ -1127,35 +1140,22 @@ label.rd-aa-row {
   color: var(--py);
 }
 
+/* A square's side: the chosen size, by how many there are, never more than the width shares out. */
 .co-box {
-  width: 132px;
-  height: 132px;
+  --side: min(calc(var(--co-base, 132px) * var(--co-scale, 1)), calc((100cqw - (var(--n, 1) - 1) * 10px) / var(--n, 1)));
+  width: var(--side);
+  height: var(--side);
   display: grid;
   place-items: center;
   border: 2px solid var(--grid);
   border-radius: 4px;
-  font-size: 100px;
+  font-size: calc(var(--side) * 0.76);
   line-height: 1;
   background:
     linear-gradient(var(--grid), var(--grid)) 50% 0 / 1px 100% no-repeat,
     linear-gradient(var(--grid), var(--grid)) 0 50% / 100% 1px no-repeat;
 }
 
-.co-boxes[data-n='3'] .co-box {
-  width: 100px;
-  height: 100px;
-  font-size: 76px;
-}
-
-.co-boxes[data-n='4'] .co-box {
-  width: 76px;
-  height: 76px;
-  font-size: 58px;
-}
-
-.co-trace {
-  display: block;
-}
 
 .co-ahead {
   display: flex;
@@ -1208,20 +1208,6 @@ label.rd-aa-row {
   font-size: 21px;
 }
 
-@media (max-width: 420px) {
-  .co-box {
-    width: 112px;
-    height: 112px;
-    font-size: 84px;
-  }
-
-  .co-boxes[data-n='2'] .co-box,
-  .co-boxes[data-n='3'] .co-box {
-    width: 92px;
-    height: 92px;
-    font-size: 70px;
-  }
-}
 
 /* -------------------------------------------------- wide: parts beside the text */
 @media (min-width: 1100px) {
@@ -1322,4 +1308,11 @@ label.rd-aa-row {
 
 .rd-show-all {
   min-width: 78px;
+}
+
+/* An iPad has the room for squares a hand can write beside, not just look at. */
+@media (min-width: 700px) {
+  .co-boxes {
+    --co-base: calc(220px - var(--n, 1) * 30px);
+  }
 }
