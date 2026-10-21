@@ -404,15 +404,11 @@ function settingsFrom(v: unknown, version: number): AppSettings {
     // stay however they were left.
     markAbove: version < 7 ? false : s.markAbove !== false,
     markUnknown: s.markUnknown !== false,
-    newWordsPerDay: clamp(Math.round(num(s.newWordsPerDay, DEFAULT_SETTINGS.newWordsPerDay)), 1, 50),
     // 0 once meant "work it out"; the level is chosen in Settings now, from HSK 1.
     targetHsk: clamp(Math.round(num(s.targetHsk, DEFAULT_SETTINGS.targetHsk)), 1, 7),
     readerTraditional: s.readerTraditional === true,
     readerScale: clamp(num(s.readerScale, DEFAULT_SETTINGS.readerScale), 0.8, 1.6),
     newPerDay: clamp(Math.round(num(s.newPerDay, DEFAULT_SETTINGS.newPerDay)), 1, 20),
-    fourButtons: s.fourButtons === true,
-    hardMode: s.hardMode === true,
-    reviewMinutes: clamp(Math.round(num(s.reviewMinutes, DEFAULT_SETTINGS.reviewMinutes)), 3, 60),
     cardsPerDay: clamp(Math.round(num(s.cardsPerDay, DEFAULT_SETTINGS.cardsPerDay)), 5, 100),
     cardSkills: cardSkillsFrom(s.cardSkills),
     dailyGoal: s.dailyGoal === 'minutes' ? 'minutes' : 'plan',

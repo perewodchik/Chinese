@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router';
 import { dayKey, dayWeight, shift, type Activity, type DaySnap } from '../../domain/activity';
 import { bandName, progressOf } from '../../domain/progress';
 import {
@@ -20,7 +19,6 @@ import {
 import { itemInfo } from '../../domain/exercises/items';
 import { leeches } from '../../domain/reviewSession';
 import { wordBands } from '../../domain/wordProgress';
-import { paths } from '../../navigation/paths';
 import { useStore } from '../../store/store';
 import { Seg } from '../../ui/Seg';
 import { useTitle } from '../../ui/useTitle';
@@ -345,11 +343,7 @@ function Stubborn() {
     <section className="card st-card">
       <header className="st-head">
         <h2>Stubborn</h2>
-        <span className="tiny muted">missed four times or more</span>
-        <div className="spacer" />
-        <Link className="btn sm" to={`${paths.learn()}?again=${encodeURIComponent(list.slice(0, 8).map((l) => l.id).join(','))}`}>
-          Meet {list.length > 8 ? 'eight of them' : list.length === 1 ? 'it' : 'them'} again
-        </Link>
+        <span className="tiny muted">missed four times or more; the cards keep asking them</span>
       </header>
       <div className="body st-stubborn">
         {list.map((l) => {

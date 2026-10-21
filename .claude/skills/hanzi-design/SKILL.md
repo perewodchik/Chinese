@@ -122,6 +122,13 @@ emoji. Headings say what is there ("20 for today"), buttons say what happens
 what is for today. Code comments follow the file they are in: prose
 paragraphs explaining *why*.
 
+## The craft around it
+
+`docs/guidelines.md` holds what the redesign learned the hard way: keeping
+room for what can appear, sizing cards to their content, whole-row links,
+touch sizes, copy, overflow, speech on iOS, and how to check a change. Read it
+with this.
+
 ## Checking your work
 
 Look at 375, 768, 1024 and 1194 wide, light and dark. Look for: anything

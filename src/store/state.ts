@@ -58,8 +58,6 @@ export interface AppSettings {
   markAbove: boolean;
   /** underline the words you have not learned yet */
   markUnknown: boolean;
-  /** how many new words a day the Words drill may introduce */
-  newWordsPerDay: number;
   /** the learner's HSK band: words above it are marked, and new sessions are pitched at it */
   targetHsk: number;
   /** show a passage in traditional characters where it has them */
@@ -68,12 +66,6 @@ export interface AppSettings {
   readerScale: number;
   /** how many new items (characters and words together) a day's lesson brings in */
   newPerDay: number;
-  /** grade self-graded cards with Again / Hard / Good / Easy rather than Forgot / Got it */
-  fourButtons: boolean;
-  /** ask for typed answers wherever an exercise has a typed form */
-  hardMode: boolean;
-  /** how long the daily review session runs, in minutes */
-  reviewMinutes: number;
   /** how many cards a day: what is due beyond it waits, and is never shown as a debt */
   cardsPerDay: number;
   /** what the cards ask: the meaning, the pinyin typed, the character written; at least one */
@@ -108,14 +100,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   markNew: true,
   markAbove: false,
   markUnknown: true,
-  newWordsPerDay: 10,
   targetHsk: 1,
   readerTraditional: false,
   readerScale: 1,
   newPerDay: 5,
-  fourButtons: false,
-  hardMode: false,
-  reviewMinutes: 10,
   cardsPerDay: 20,
   cardSkills: ['recognise', 'sound', 'write'],
   dailyGoal: 'plan',

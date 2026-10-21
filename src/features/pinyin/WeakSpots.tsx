@@ -14,8 +14,9 @@ export function spotPath(t: SpotTarget): string {
       return paths.speakingPractice(t.set);
     case 'sound':
       return paths.speakingSounds(t.lesson, t.step);
-    case 'drill':
-      return paths.drill(t.drill);
+    case 'cards':
+      // The pinyin cards ask exactly these: a character's reading, tones and all.
+      return paths.cards();
   }
 }
 

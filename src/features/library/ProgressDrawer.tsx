@@ -92,7 +92,7 @@ export function ProgressDrawer({ onClose }: { onClose: () => void }) {
 
         <div className="progress-next">
           {p.due > 0 ? (
-            <Link className="btn primary" to={paths.review()}>
+            <Link className="btn primary" to={paths.cardSession()}>
               Go over {p.due} due
             </Link>
           ) : (
@@ -104,7 +104,7 @@ export function ProgressDrawer({ onClose }: { onClose: () => void }) {
             </Link>
           )}
           {p.sheetsWaiting > 0 && (
-            <Link className="btn" to={paths.review()}>
+            <Link className="btn" to={paths.collections()}>
               {plural(p.sheetsWaiting, 'sheet')} to mark
             </Link>
           )}

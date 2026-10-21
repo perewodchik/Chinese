@@ -24,8 +24,6 @@ export type TextVersion = 'easy' | 'book';
 /** A session read one text at a time, or all of it on one page. */
 export type ReadMode = 'single' | 'all';
 
-export type DrillId = 'recognise' | 'sound' | 'tone' | 'confuse' | 'write' | 'word';
-
 /** What is being done with a video: its tabs. */
 export type VideoStep = 'watch' | 'check' | 'words' | 'study' | 'ask';
 export const VIDEO_STEPS: readonly VideoStep[] = ['watch', 'check', 'words', 'study', 'ask'];
@@ -35,17 +33,10 @@ export const paths = {
     withQuery('/login', { next: next && next !== '/' ? next : undefined, expired: expired ? '1' : undefined }),
   register: (next?: string) => withQuery('/register', { next }),
 
-  /** the day's plan and everything Review can ask: the front door */
+  /** the front door: the text to carry on with, and the day's cards */
   today: () => '/today',
-  /**
-   * Review is the Cards tab now. Kept as a name because the single drills and
-   * the sheets still live under /review/…, and every "back to Review" means Cards.
-   */
-  review: () => '/cards',
-  drill: (drill: DrillId, size?: number) => withQuery(`/review/${drill}`, { n: size ? String(size) : undefined }),
+  /** marking a printed sheet; kept under /review, where printed links point */
   gradeSheet: (sheetId: string) => `/review/sheets/${encodeURIComponent(sheetId)}`,
-  /** one sitting of words: the due ones, and today's new ones among them */
-  wordDrill: (size?: number) => withQuery('/review/words', { n: size ? String(size) : undefined }),
   /** sorting a band's words into known, not sure and new */
   sweep: (band?: number) => withQuery('/review/sweep', { band: band ? String(band) : undefined }),
 
@@ -126,10 +117,6 @@ export const paths = {
   /** one sitting of cards; `n` asks for fewer (or more) than the day's size */
   cardSession: (at: { n?: number; shelf?: string } = {}) =>
     withQuery('/cards/session', { n: at.n ? String(at.n) : undefined, shelf: at.shelf }),
-  /** today's lesson: meet a few new things, practise them, check them */
-  learn: () => '/learn',
-  /** the daily review: everything due, mixed, in one sitting */
-  reviewSession: (minutes?: number) => withQuery('/review/session', { min: minutes ? String(minutes) : undefined }),
   /** how much has been learned, day by day and week by week */
   stats: () => '/account/stats',
 };

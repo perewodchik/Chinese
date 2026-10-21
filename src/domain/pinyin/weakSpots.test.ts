@@ -38,7 +38,7 @@ describe('weakSpots', () => {
     const r = weakSpots({}, book, lib);
     const chars = r.weak.find((w) => w.id === 'chars');
     assert.deepEqual(chars?.chars, ['了']);
-    assert.deepEqual(chars?.target, { kind: 'drill', drill: 'tone' });
+    assert.deepEqual(chars?.target, { kind: 'cards' });
     assert.equal(r.judged, false);
   });
 });

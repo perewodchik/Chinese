@@ -1,13 +1,11 @@
 import { Link } from 'react-router';
-import { NEW_PER_DAY } from '../../domain/lesson';
 import { paths } from '../../navigation/paths';
 import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 
-const SESSION_MINUTES = [5, 10, 15, 20, 30];
 const GOAL_MINUTES = [10, 15, 20, 30, 45];
 
-/** How much is new each day, how long a review runs, how answers are given, and what counts as a day done. */
+/** What counts as a day done. Everything about the cards is on the Cards tab. */
 export function LearningSettings() {
   const settings = useStore((s) => s.settings);
   return (
@@ -16,55 +14,6 @@ export function LearningSettings() {
         <h2>Learning</h2>
       </header>
       <div className="body" style={{ display: 'grid', gap: 12 }}>
-        <label className="field">
-          New a day
-          <select value={settings.newPerDay} onChange={(e) => setSettings({ newPerDay: Number(e.target.value) })}>
-            {NEW_PER_DAY.map((n) => (
-              <option key={n} value={n}>
-                {n} characters and words
-              </option>
-            ))}
-          </select>
-          <span className="tiny muted">
-            How many new things the day’s lesson brings in. Each is back in review within a day or two, so every
-            one taken today is a review tomorrow — and when reviews pile up, the lesson takes fewer on its own.
-            {` At ${settings.newPerDay} a day, expect about ${settings.newPerDay * 3} more reviews a day within two weeks.`}
-          </span>
-        </label>
-
-        <label className="field">
-          Daily review
-          <select value={settings.reviewMinutes} onChange={(e) => setSettings({ reviewMinutes: Number(e.target.value) })}>
-            {SESSION_MINUTES.map((n) => (
-              <option key={n} value={n}>
-                {n} minutes
-              </option>
-            ))}
-          </select>
-          <span className="tiny muted">How long one review session runs. What does not fit stays due for the next.</span>
-        </label>
-
-        <label className="toggle">
-          <input type="checkbox" checked={settings.hardMode} onChange={(e) => setSettings({ hardMode: e.target.checked })} />
-          <span>
-            Hard mode
-            <span className="d">
-              Type the answers — pinyin, characters with the Chinese keyboard, or the meaning — wherever a card can be
-              typed. A typed answer counts in full.
-            </span>
-          </span>
-        </label>
-
-        <label className="toggle">
-          <input type="checkbox" checked={settings.fourButtons} onChange={(e) => setSettings({ fourButtons: e.target.checked })} />
-          <span>
-            Grade with four buttons
-            <span className="d">
-              Again / Hard / Good / Easy instead of Forgot / Got it. With two, how long you took to answer decides the rest.
-            </span>
-          </span>
-        </label>
-
         <label className="field">
           A day counts when
           <select
@@ -96,9 +45,8 @@ export function LearningSettings() {
         </label>
 
         <p className="small muted" style={{ margin: 0 }}>
-          Sorting the words of a band into known, not sure and new is under{' '}
-          <Link to={paths.sweep()}>Review → Which words do you know?</Link> — the ones you mark new are what lessons
-          teach first. Your progress is in <Link to={paths.stats()}>Your progress</Link>.
+          How many cards a day, what they ask, and how many new words come in are on the{' '}
+          <Link to={paths.cards()}>Cards</Link> tab. The streak itself is in <Link to={paths.stats()}>Your progress</Link>.
         </p>
       </div>
     </div>

@@ -4,19 +4,25 @@ Open work and unconfirmed defaults for the learning app's features. The game
 走走 keeps its own list in `world-game/STATUS.md`; the ordering games' list is
 `ordering-game/plan.md` §13.
 
-## Learn & Review (`/learn`, `/review/session`, `/account/stats` — built 2026-09-27)
+## Cards (`/cards`, `/cards/session` — built 2026-10-20)
+
+The cards are the one way to practise. The drills, the daily review and the
+lessons of new characters (`/learn`, `/review/session`, `/review/:drill`,
+`/review/words`) were removed on 2026-10-21; their addresses go to Cards. What
+stayed under /review: marking a printed sheet (linked from Lists to print) and
+sorting the HSK words (linked from the Cards tab).
 
 Defaults taken without the learner's answer — confirm or change:
-- 5 new items a day, characters and words together (not separate caps).
-- Two-button grading (Forgot / Got it); four buttons behind a setting.
-- `use` is out of the daily session, **but mastery still averages all four
-  skills including `use`**, so mastery can lag for items that are never asked
-  `use` any more.
+- 20 cards a day, 5 new words a day; the kinds asked chosen on the Cards tab.
+- `use` is never asked any more, **but mastery still averages all four skills
+  including `use`**, so mastery can lag for items that are never asked `use`.
 - Library "mark learned": first check in 1–4 days (was 7–16).
-- Hard mode is a switch, off by default.
-- Streak: one rest day a week allowed.
-- Daily goal: any work that day counts.
+- Streak: one rest day a week allowed. Daily goal: any work that day counts.
 - A wrong claim still counts as a lapse (only its first answer's weight is full).
+
+Ideas offered and not started: a text to reread on Today after a few days;
+fill-the-gap cards from the learner's own texts; repeat-after-the-voice per
+line with the pitch chart; "you know 88% of this one" for the next text.
 
 Later, not started:
 - Claude-written mnemonics and known-only example sentences for items without

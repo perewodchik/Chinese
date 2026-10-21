@@ -21,18 +21,14 @@ import { ReaderPage } from '../features/reader/ReaderPage';
 import { ReadPage, ShelfPage } from '../features/reader/ReadPage';
 import { CardsPage } from '../features/cards/CardsPage';
 import { CardSessionPage } from '../features/cards/CardSession';
-import { DrillPage } from '../features/review/DrillPage';
 import { GradeSheetPage } from '../features/review/GradeSheetPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { StatsPage } from '../features/stats/StatsPage';
-import { LearnPage } from '../features/learn/LearnPage';
-import { DailyReviewPage } from '../features/review/DailyReviewPage';
 import { TodayPage } from '../features/today/TodayPage';
 import { AddVideoPage } from '../features/videos/AddVideoPage';
 import { VideoPage } from '../features/videos/VideoPage';
 import { VideosPage } from '../features/videos/VideosPage';
 import { SweepPage } from '../features/words/SweepPage';
-import { WordsDrillPage } from '../features/words/WordsDrillPage';
 import { paths } from '../navigation/paths';
 import { NotFoundPage, RouteError } from './errors';
 import { RequireSession } from './RequireSession';
@@ -122,10 +118,12 @@ export const router = createBrowserRouter([
               { path: 'cards/session', element: <CardSessionPage /> },
               { path: 'review/sheets/:sheetId', element: <GradeSheetPage /> },
               { path: 'review/sweep', element: <SweepPage /> },
-              { path: 'review/words', element: <WordsDrillPage /> },
-              { path: 'learn', element: <LearnPage /> },
-              { path: 'review/session', element: <DailyReviewPage /> },
-              { path: 'review/:drill', element: <DrillPage /> },
+              // The drills, the daily review and the lessons of new characters
+              // were folded into the cards: one way to practise, not six.
+              { path: 'review/words', element: <Navigate to={paths.cards()} replace /> },
+              { path: 'learn', element: <Navigate to={paths.cards()} replace /> },
+              { path: 'review/session', element: <Navigate to={paths.cards()} replace /> },
+              { path: 'review/:drill', element: <Navigate to={paths.cards()} replace /> },
               { path: 'library', element: <LibraryPage /> },
               { path: 'families/:radical?', element: <FamiliesPage /> },
               { path: 'play', element: <PlayPage /> },

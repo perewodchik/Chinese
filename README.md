@@ -231,9 +231,10 @@ character drawer, because the drawer is part of the address.
 
 ## How you use it
 
-1. **Review** — the front door. It says what is due and you pick how long you
-   have got: recognise, say, tones, look-alikes, in a word, or write it. A
-   printed test sheet waiting to be marked shows up here too.
+1. **Today** — the front door: the text to carry on with, and the day's
+   **Cards** — a fixed number a day, asking what you chose on the Cards tab
+   (the meaning, the pinyin typed, or the character written). A printed test
+   sheet waiting to be marked shows up under Lists to print.
 2. **Library** — filter to an HSK band (or all 3000) and browse in teaching
    order. Filter by
    Everything, Learned, Not learned, *In no collection*, or *Ready — parts
@@ -261,7 +262,7 @@ character drawer, because the drawer is part of the address.
 7. **Download** the worksheet, or **Test sheet** for the same characters with
    nothing to copy from. Either lands in your worksheets folder (Settings →
    choose one) or downloads normally, named after the collection and the
-   slice. A test sheet then waits in Review to be marked.
+   slice. A test sheet then waits under Lists to print to be marked.
 8. **Texts** — plan a session of several passages at once, each with its own
    topic, length, level, form and however many new characters you want it to
    teach you. Copy the prompt into Claude, paste the reply back, and the set
@@ -279,9 +280,11 @@ it was made on.
 
 | Address | Page |
 | --- | --- |
-| `/review` | what is due, and the drills |
-| `/review/write?n=30` | one sitting of one drill (`recognise`, `sound`, `tone`, `confuse`, `word`, `write`) |
+| `/today` | the text to carry on with, the day's cards, the week |
+| `/cards`, `/cards/session?n=10` | the deck and what it asks; one sitting |
+| `/read`, `/read/<shelf>?tab=words` | the shelves; one shelf's texts, words and characters |
 | `/review/sheets/<id>` | marking a printed test sheet |
+| `/review/sweep` | sorting the HSK words into known, not sure and new |
 | `/library` | browsing; `?q=hao&show=learned&sort=freq` keeps the filters |
 | `/collections` | every collection, and the ready-made sets |
 | `/collections/<id>`, `/collections/<id>/items` | one collection: how it prints, and what is in it |
@@ -367,14 +370,14 @@ Marking a character learned used to be a promise you made to yourself, and the
 app believed it forever. Now it is one record per character *per skill*, and
 each one carries how long the memory is expected to hold:
 
+The cards ask three of them, as the learner chooses on the Cards tab (the
+drills that asked the rest were folded into the cards on 2026-10-21):
+
 | | what it asks | how it is graded |
 | --- | --- | --- |
-| **Recognise** | the character — what does it mean? | you say how it went |
-| **Say it** | the character — how is it read? | you say how it went, and hear it |
-| **Tones** | the syllable without its mark — which of five? | right or wrong, and how fast |
-| **Look-alikes** | the reading and the meaning — which of these four? | right or wrong |
-| **In a word** | the character inside a word you can already reach | you say how it went |
-| **Write it** | the meaning and the sound, and an empty square | stroke by stroke, against the real medians |
+| **Meaning** | the character or word — what is it, how is it said? | you say how it went: Again, Hard, Good, Easy |
+| **Pinyin** | the character — type its reading, tones included | right, the tones wrong, or wrong |
+| **Writing** | the meaning and the sound, and an empty square | stroke by stroke, against the real medians |
 
 Two findings do all the work and neither is controversial: you remember what
 you were made to *retrieve*, not what you were shown again, and you remember it
@@ -393,7 +396,7 @@ hundred characters against every other stroke of the same character.
 Nothing on screen can see the one thing that matters most, which is your hand
 on paper. **Test sheet** prints the answers away — the reading, the meaning,
 empty squares, and the key below a fold line — and remembers that it did. The
-sheet waits in Review until you mark it, one click a line, and then a dozen
+sheet waits under Lists to print until you mark it, one click a line, and then a dozen
 honest results about your handwriting arrive at once.
 
 ## What is on a sheet
@@ -1148,7 +1151,8 @@ src/
     draw.ts           the page as a top-left coordinate system, theme-aware
     render.ts         document assembly
   features/           one folder per screen area — today, reader (Read, its
-                      shelves and the text page), cards, learn, review, stats,
+                      shelves and the text page), cards, review (marking a
+                      printed sheet; the writing pad), stats,
                       library, words, families, pinyin, videos, collections
                       (lists to print), play, world, settings, auth — and shared/
                       for what several of them use

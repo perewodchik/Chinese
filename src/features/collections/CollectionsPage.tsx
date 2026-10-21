@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router';
 import { nextCollectionName, statsOf, type Collection } from '../../domain/collection';
 import { itemsLabel, wordId, type ItemId } from '../../domain/ids';
 import { glyphOf } from '../../domain/library';
+import { pendingSheets } from '../../domain/memory';
 import { allPresets, GROUP_BLURB, GROUP_LABEL, type Preset, type PresetGroup } from '../../domain/presets';
 import { LAYOUTS } from '../../domain/sheet';
 import { paths, type CollectionsShow } from '../../navigation/paths';
@@ -135,6 +136,7 @@ export function CollectionsPage() {
   const collections = useStore((s) => s.collections);
   const learned = useStore((s) => s.learned);
   const listPlan = useStore((s) => s.listPlan);
+  const waiting = pendingSheets(useStore((s) => s.sheets));
   const [adding, setAdding] = useState<Preset | null>(null);
   const presets = useMemo(() => allPresets(lib), [lib]);
   const added = useMemo(() => new Set(collections.map((c) => c.presetId ?? c.name)), [collections]);
@@ -238,6 +240,26 @@ export function CollectionsPage() {
             <CollectionCard key={c.id} c={c} learned={learned} />
           ))}
         </div>
+      )}
+
+      {waiting.length > 0 && (
+        <section className="block">
+          <h2 className="block-title">Printed, not marked yet</h2>
+          <div className="list">
+            {waiting.map((w) => (
+              <Link key={w.id} className="way-row" to={paths.gradeSheet(w.id)}>
+                <span className="hanzi way-mark">纸</span>
+                <span className="grow">
+                  <b>Mark “{w.name}”</b>
+                  <span className="small muted">
+                    Printed {new Date(w.printedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}: tick what you got right, and the cards learn from it.
+                  </span>
+                </span>
+                <Icon name="chevron" className="muted" />
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
 
       {fromTexts.length > 0 && <FromTexts lists={fromTexts} />}

@@ -575,3 +575,8 @@
 .btn.quiet.cs-off:hover {
   color: var(--accent);
 }
+
+.deck-link {
+  color: inherit;
+  text-decoration: none;
+}

@@ -145,7 +145,7 @@ export function CollectionEditor({ c, tab }: Props) {
       render: () => renderRecall(lib, items, printSheet(c.sheet, printPalette), { title, footerNote }),
       after: () => {
         recordSheet(title, items);
-        return 'Mark it in Review once you have written it.';
+        return 'Mark it under Lists to print once you have written it.';
       },
     });
   }

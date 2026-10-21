@@ -31,8 +31,8 @@ function NoSheet() {
     <div className="empty">
       <span className="big">纸</span>
       <p>That sheet has been marked already, or thrown away — here or on another device.</p>
-      <Link className="btn" to={paths.review()}>
-        Back to Review
+      <Link className="btn" to={paths.collections()}>
+        Back to Lists to print
       </Link>
     </div>
   );
@@ -81,14 +81,14 @@ function GradeSheet({ sheet }: { sheet: PrintedSheet }) {
     const results = lines.filter((l) => marks[l.id]).map((l) => ({ id: l.id, rating: marks[l.id]! }));
     const missed = results.filter((r) => r.rating === 'again').length;
     // Off this page first: once the sheet is marked there is nothing here to show.
-    navigate(paths.review(), { replace: true, flushSync: true });
+    navigate(paths.collections(), { replace: true, flushSync: true });
     gradeSheet(sheet.id, results);
     toast(`Marked ${results.length} — ${missed} to come back sooner.`);
   }
 
   function throwAway() {
     if (!confirm('Throw this sheet away unmarked?')) return;
-    navigate(paths.review(), { replace: true, flushSync: true });
+    navigate(paths.collections(), { replace: true, flushSync: true });
     discardSheet(sheet.id);
   }
 
@@ -103,7 +103,7 @@ function GradeSheet({ sheet }: { sheet: PrintedSheet }) {
   return (
     <section className="drill">
       <div className="drill-head">
-        <Link className="btn ghost sm" to={paths.review()}>
+        <Link className="btn ghost sm" to={paths.collections()}>
           ← Later
         </Link>
         <div style={{ minWidth: 0 }}>

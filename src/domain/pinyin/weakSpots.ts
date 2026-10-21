@@ -29,7 +29,7 @@ export interface TallyLike {
 export type SpotTarget =
   | { kind: 'practice'; set: string }
   | { kind: 'sound'; lesson: string; step: 'hear' | 'say' }
-  | { kind: 'drill'; drill: 'tone' };
+  | { kind: 'cards' };
 
 export interface WeakSpot {
   /** stable across renders: "pair:3-3", "hear:jqx", "chars" */
@@ -165,7 +165,7 @@ export function weakSpots(
       score: null,
       tries: missed.reduce((n, x) => n + x.lapses, 0),
       chars: missed.slice(0, 8).map((x) => x.char),
-      target: { kind: 'drill', drill: 'tone' },
+      target: { kind: 'cards' },
     });
   }
 

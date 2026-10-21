@@ -3,13 +3,11 @@ import { Link } from 'react-router';
 import { CARD_SIZES, CARD_SKILLS, planCards } from '../../domain/cards';
 import { idValue } from '../../domain/ids';
 import { NEW_PER_DAY } from '../../domain/lesson';
-import { pendingSheets } from '../../domain/memory';
 import { paths } from '../../navigation/paths';
 import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
-import { DRILLS } from '../review/drills';
 import { useLibrary } from '../shared/library';
 import { ASKS } from './asks';
 import { minutesFor } from './CardSession';
@@ -43,8 +41,6 @@ export function CardsPage() {
   useTitle('Cards');
   const today = useCardsToday();
   const settings = useStore((s) => s.settings);
-  const sheets = useStore((s) => s.sheets);
-  const waiting = pendingSheets(sheets);
   const next = today.plan.cards.slice(0, 3).map((c) => idValue(c.id));
 
   return (
@@ -178,48 +174,16 @@ export function CardsPage() {
               </small>
             </span>
           </div>
+          <Link className="deck-row deck-link" to={paths.sweep()}>
+            <span className="grow">
+              Tell it what you know already
+              <small>The HSK words a screenful at a time: known, not sure, new. Known ones never become cards.</small>
+            </span>
+            <Icon name="chevron" className="muted" />
+          </Link>
         </div>
       </section>
 
-      <details className="block other-ways">
-        <summary>
-          <h2 className="block-title">Other ways to practise</h2>
-        </summary>
-        <div className="list">
-          {DRILLS.map((d) => (
-            <Link key={d.id} className="way-row" to={paths.drill(d.id)}>
-              <span className="hanzi way-mark">{d.mark}</span>
-              <span className="grow">
-                <b>{d.name}</b>
-                <span className="small muted">{d.blurb}</span>
-              </span>
-            </Link>
-          ))}
-          <Link className="way-row" to={paths.sweep()}>
-            <span className="hanzi way-mark">分</span>
-            <span className="grow">
-              <b>Sort the HSK words</b>
-              <span className="small muted">Known, not sure, new: a screenful at a time.</span>
-            </span>
-          </Link>
-          <Link className="way-row" to={paths.learn()}>
-            <span className="hanzi way-mark">新</span>
-            <span className="grow">
-              <b>A lesson of new characters</b>
-              <span className="small muted">Picture, sound, parts and a sentence each.</span>
-            </span>
-          </Link>
-          {waiting.map((w) => (
-            <Link key={w.id} className="way-row" to={paths.gradeSheet(w.id)}>
-              <span className="hanzi way-mark">纸</span>
-              <span className="grow">
-                <b>Mark “{w.name}”</b>
-                <span className="small muted">Printed {new Date(w.printedAt).toLocaleDateString()}, not marked yet.</span>
-              </span>
-            </Link>
-          ))}
-        </div>
-      </details>
     </div>
   );
 }

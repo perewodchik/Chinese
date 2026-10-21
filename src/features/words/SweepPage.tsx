@@ -137,8 +137,8 @@ export function SweepPage() {
                   {home.name}
                 </Link>
               )}
-              <Link className="btn ghost" to={paths.review()}>
-                Back to Review
+              <Link className="btn ghost" to={paths.cards()}>
+                Back to Cards
               </Link>
             </div>
           </div>
