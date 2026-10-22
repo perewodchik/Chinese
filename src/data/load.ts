@@ -86,15 +86,41 @@ export function loadExtendedStrokes(lib: Library): Promise<void> {
   return extended;
 }
 
-/** Ensures every one of `chars` has an outline loaded, if one exists at all. */
+/** Characters asked of the server, by the request that asks: each is asked once at a time. */
+const askingServer = new Map<string, Promise<void>>();
+
+/**
+ * Ensures every one of `chars` has an outline loaded, if one exists at all:
+ * the syllabus from the built data, anything else (圳, a name in a book) from
+ * the server, which looks it up in the same source.
+ */
 export async function ensureStrokes(
   lib: Library,
   chars: Iterable<string>,
 ): Promise<void> {
-  for (const c of chars) {
-    if (!lib.strokes[c]) {
-      await loadExtendedStrokes(lib);
-      return;
+  const want = [...new Set(chars)].filter((c) => /\p{Script=Han}/u.test(c));
+  if (want.some((c) => !lib.strokes[c])) await loadExtendedStrokes(lib);
+  const missing = want.filter((c) => !lib.strokes[c]);
+  const fresh = missing.filter((c) => !askingServer.has(c));
+  if (fresh.length) {
+    const asked = askServer(lib, fresh);
+    for (const c of fresh) askingServer.set(c, asked);
+  }
+  // A second page asking for the same character waits for the same answer.
+  await Promise.all(missing.map((c) => askingServer.get(c)));
+}
+
+async function askServer(lib: Library, chars: string[]): Promise<void> {
+  try {
+    const { lookUpStrokes } = await import('../api/strokes');
+    const { STROKES_PER_REQUEST } = await import('../../shared/strokes');
+    for (let i = 0; i < chars.length; i += STROKES_PER_REQUEST) {
+      const { strokes } = await lookUpStrokes(chars.slice(i, i + STROKES_PER_REQUEST));
+      Object.assign(lib.strokes, strokes);
     }
+  } catch {
+    // Offline, or the source did not answer: the font stands in, and the
+    // next page that needs one asks again.
+    for (const c of chars) askingServer.delete(c);
   }
 }

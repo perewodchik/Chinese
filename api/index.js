@@ -420,8 +420,8 @@ var RecordingService = class {
    */
   async read(text, voice, mode, keep) {
     const key = recordingKey(voice, mode, text);
-    const kept = await this.deps.recordings.find(key);
-    if (kept) return kept;
+    const kept2 = await this.deps.recordings.find(key);
+    if (kept2) return kept2;
     const live = this.deps.live;
     if (!live) throw new AppError("not_found", "This sentence has not been recorded in that voice yet.");
     const info = live.voices.find((v) => v.id === voice);
@@ -438,8 +438,8 @@ var RecordingService = class {
   /** For each sentence, whether it has been recorded in this voice. */
   async have(voice, mode, texts) {
     const keys = texts.map((t) => recordingKey(voice, mode, t.trim()));
-    const kept = await this.deps.recordings.have([...new Set(keys)]);
-    return keys.map((k) => kept.has(k));
+    const kept2 = await this.deps.recordings.have([...new Set(keys)]);
+    return keys.map((k) => kept2.has(k));
   }
   /**
    * Records every sentence of these passages that is not recorded in this
@@ -623,7 +623,7 @@ function createServices(stores, options = {}) {
 }
 
 // server/src/http/app.ts
-import { Hono as Hono9 } from "hono";
+import { Hono as Hono10 } from "hono";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
 
@@ -815,7 +815,7 @@ function askRoutes({ auth, clock, trustProxy, tutor }) {
     const body = { claude: { state: tutor ? await tutor.status() : "missing" } };
     return c.json(body);
   });
-  const kept = /* @__PURE__ */ new Map();
+  const kept2 = /* @__PURE__ */ new Map();
   const KEEP_MS = 60 * 6e4;
   routes.post("/", session, async (c) => {
     if (!tutor) throw new TutorUnavailableError("Claude Code is not installed on this server.");
@@ -827,13 +827,13 @@ function askRoutes({ auth, clock, trustProxy, tutor }) {
       const key = createHash3("sha256").update(`${user}
 ${input.prompt}`).digest("hex");
       const now = clock.now();
-      for (const [k, v] of kept) if (now - v.at > KEEP_MS) kept.delete(k);
-      let entry = kept.get(key);
+      for (const [k, v] of kept2) if (now - v.at > KEEP_MS) kept2.delete(k);
+      let entry = kept2.get(key);
       if (!entry) {
         asks.consume(user);
         entry = { at: now, answer: run() };
-        kept.set(key, entry);
-        entry.answer.catch(() => kept.delete(key));
+        kept2.set(key, entry);
+        entry.answer.catch(() => kept2.delete(key));
       }
       text = await entry.answer;
     } else {
@@ -971,8 +971,62 @@ function speechRoutes({ auth, clock, trustProxy, speech }) {
   return routes;
 }
 
-// server/src/http/routes/talk.ts
+// server/src/http/routes/strokes.ts
 import { Hono as Hono4 } from "hono";
+
+// shared/strokes.ts
+var STROKES_PER_REQUEST = 24;
+
+// server/src/infrastructure/stroke-outlines.ts
+var SOURCE = "https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0.1/";
+var TIMEOUT_MS = 1e4;
+var kept = /* @__PURE__ */ new Map();
+async function lookUpOutlines(chars, get2 = fetch) {
+  const out = {};
+  await Promise.all(
+    chars.map(async (c) => {
+      if (!kept.has(c)) {
+        const found2 = await fetchOne(c, get2);
+        if (found2 !== "failed") kept.set(c, found2);
+      }
+      const found = kept.get(c);
+      if (found) out[c] = found;
+    })
+  );
+  return out;
+}
+async function fetchOne(c, get2) {
+  try {
+    const r = await get2(SOURCE + encodeURIComponent(c) + ".json", { signal: AbortSignal.timeout(TIMEOUT_MS) });
+    if (r.status === 404) return null;
+    if (!r.ok) return "failed";
+    const d = await r.json();
+    if (!Array.isArray(d.strokes) || !d.strokes.every((s) => typeof s === "string")) return null;
+    return { s: d.strokes, m: Array.isArray(d.medians) ? d.medians : void 0 };
+  } catch {
+    return "failed";
+  }
+}
+
+// server/src/http/routes/strokes.ts
+var HANZI = /^\p{Script=Han}$/u;
+function strokeRoutes({ auth, clock, trustProxy }) {
+  const routes = new Hono4();
+  const session = requireSession(auth, { trustProxy, clock });
+  routes.get("/", session, async (c) => {
+    const chars = [.../* @__PURE__ */ new Set([...c.req.query("c") ?? ""])];
+    if (!chars.length || chars.length > STROKES_PER_REQUEST || !chars.every((x) => HANZI.test(x))) {
+      throw new ValidationError(`Ask for one to ${STROKES_PER_REQUEST} Chinese characters.`);
+    }
+    const body = { strokes: await lookUpOutlines(chars) };
+    c.header("Cache-Control", "private, max-age=2592000, immutable");
+    return c.json(body);
+  });
+  return routes;
+}
+
+// server/src/http/routes/talk.ts
+import { Hono as Hono5 } from "hono";
 import { z as z3 } from "zod";
 var talkOptions = z3.object({
   level: z3.enum(TALK_LEVELS),
@@ -1022,7 +1076,7 @@ var replyRequest = z3.object({
   }).optional()
 });
 function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations, recordings }) {
-  const routes = new Hono4();
+  const routes = new Hono5();
   const session = requireSession(auth, { trustProxy, clock });
   const turns = new RateLimiter(120, 10 * 6e4, clock);
   const clips = new RateLimiter(600, 10 * 6e4, clock);
@@ -1102,7 +1156,7 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations,
 }
 
 // server/src/http/routes/videos.ts
-import { Hono as Hono5 } from "hono";
+import { Hono as Hono6 } from "hono";
 
 // shared/videos.ts
 var PLAYLIST_ID = /^[A-Za-z0-9_-]{10,64}$/;
@@ -1118,9 +1172,9 @@ var HEADERS = {
   "Accept-Language": "en-US,en;q=0.8",
   "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
 };
-var TIMEOUT_MS = 15e3;
+var TIMEOUT_MS2 = 15e3;
 async function get(url, init = {}) {
-  const res = await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+  const res = await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS2) });
   if (res.status === 429 || res.status === 403) throw new YouTubeRefused(`YouTube answered ${res.status}.`);
   return res;
 }
@@ -1253,7 +1307,7 @@ async function lookUpPlaylist(playlistId) {
 
 // server/src/http/routes/videos.ts
 function videoRoutes({ auth, clock, trustProxy, log }) {
-  const routes = new Hono5();
+  const routes = new Hono6();
   const session = requireSession(auth, { trustProxy, clock });
   const lookups = new RateLimiter(60, 60 * 6e4, clock);
   routes.get("/youtube/:id", session, async (c) => {
@@ -1294,7 +1348,7 @@ function videoRoutes({ auth, clock, trustProxy, log }) {
 }
 
 // server/src/http/routes/workspace.ts
-import { Hono as Hono6 } from "hono";
+import { Hono as Hono7 } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { z as z4 } from "zod";
 
@@ -1308,7 +1362,7 @@ var saveRequest2 = z4.object({
   document: z4.record(z4.string(), z4.unknown())
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
-  const routes = new Hono6();
+  const routes = new Hono7();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -1346,7 +1400,7 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 }
 
 // server/src/http/routes/world.ts
-import { Hono as Hono7 } from "hono";
+import { Hono as Hono8 } from "hono";
 import { bodyLimit as bodyLimit2 } from "hono/body-limit";
 import { z as z5 } from "zod";
 
@@ -1360,7 +1414,7 @@ var putRequest = z5.object({
   save: z5.record(z5.string(), z5.unknown())
 });
 function worldRoutes({ auth, world, clock, trustProxy }) {
-  const routes = new Hono7();
+  const routes = new Hono8();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -1397,9 +1451,9 @@ function worldRoutes({ auth, world, clock, trustProxy }) {
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Hono as Hono8 } from "hono";
+import { Hono as Hono9 } from "hono";
 function staticSite(root) {
-  const site = new Hono8();
+  const site = new Hono9();
   const index = join(root, "index.html");
   site.use("*", caching());
   site.use("*", serveStatic({ root }));
@@ -1437,7 +1491,7 @@ function createHttpApp(services, options) {
     devUserCreate: options.devUserCreate ?? true,
     log: options.log
   };
-  const api = new Hono9();
+  const api = new Hono10();
   api.onError(onError);
   api.use("*", sameOriginOnly());
   api.get("/health", (c) => c.json({ ok: true }));
@@ -1448,10 +1502,11 @@ function createHttpApp(services, options) {
   api.route("/speech", speechRoutes(deps));
   api.route("/talk", talkRoutes(deps));
   api.route("/videos", videoRoutes(deps));
+  api.route("/strokes", strokeRoutes(deps));
   api.all("*", () => {
     throw new NotFoundError("That API route");
   });
-  const app = new Hono9();
+  const app = new Hono10();
   app.onError(onError);
   if (options.compress !== false) app.use("*", compress());
   app.use(

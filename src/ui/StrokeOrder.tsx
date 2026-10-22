@@ -19,6 +19,8 @@ export interface StrokeRun {
   writing: (i: number) => boolean;
   /** square `i` has an outline to draw; without one it is shown in the font */
   drawn: (i: number) => boolean;
+  /** the run has got as far as square `i` */
+  reached: (i: number) => boolean;
 }
 
 export function useStrokeRun(lib: Library, glyphs: readonly string[], opts: { keys?: boolean } = {}): StrokeRun {
@@ -44,12 +46,14 @@ export function useStrokeRun(lib: Library, glyphs: readonly string[], opts: { ke
     upto: (i) => Math.max(0, Math.min(counts[i]!, steps.step - starts[i]!)),
     writing: (i) => !whole && steps.step > starts[i]! && steps.step <= starts[i]! + counts[i]!,
     drawn: (i) => counts[i]! > 0,
+    reached: (i) => whole || steps.step >= starts[i]! + counts[i]!,
   };
 }
 
 /** One square's character, drawn as far as the run has got. */
 export function RunGlyph({ lib, run, i, char }: { lib: Library; run: StrokeRun; i: number; char: string }) {
-  if (!run.drawn(i)) return <span className="hanzi run-font">{char}</span>;
+  // No outline anywhere: the font, faint until the strokes before it are done.
+  if (!run.drawn(i)) return <span className="hanzi run-font" data-ahead={!run.reached(i) || undefined}>{char}</span>;
   return (
     <Glyph
       char={char}

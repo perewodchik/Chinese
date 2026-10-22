@@ -5824,3 +5824,7 @@ label.field[data-invalid] input {
   font-size: calc(var(--side, 100px) * 0.76);
   line-height: 1;
 }
+
+.run-font[data-ahead] {
+  color: var(--line);
+}

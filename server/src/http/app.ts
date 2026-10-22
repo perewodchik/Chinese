@@ -9,6 +9,7 @@ import { sameOriginOnly } from './guards';
 import { askRoutes } from './routes/ask';
 import { authRoutes } from './routes/auth';
 import { speechRoutes } from './routes/speech';
+import { strokeRoutes } from './routes/strokes';
 import { talkRoutes } from './routes/talk';
 import { videoRoutes } from './routes/videos';
 import { workspaceRoutes } from './routes/workspace';
@@ -61,6 +62,7 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   api.route('/speech', speechRoutes(deps));
   api.route('/talk', talkRoutes(deps));
   api.route('/videos', videoRoutes(deps));
+  api.route('/strokes', strokeRoutes(deps));
   api.all('*', () => {
     throw new NotFoundError('That API route');
   });
