@@ -37,13 +37,28 @@ export function gist(d: string): string {
 }
 
 /** The first few senses, as the dictionary gives them: "to wear; to put on; to dress". */
-export function senses(d: string, n = 3): string {
-  return d
+export function senses(d: string, n = 3, example?: string): string {
+  const all = d
     .split(';')
     .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, n)
-    .join('; ');
+    .filter(Boolean);
+  const shown = all.slice(0, n);
+  // The sense the example sentence uses is never the one cut off: 给 is "to;
+  // for; for the benefit of; to give", and its example is "I'll give you
+  // money". Past the first few, it comes first.
+  const used = example ? all.find((x) => usedIn(x, example)) : undefined;
+  if (used && !shown.includes(used)) return [used, ...shown.slice(0, n - 1)].join('; ');
+  return shown.join('; ');
+}
+
+/** Whether a sense's main word ("to give" → give) is in an English sentence. */
+function usedIn(sense: string, en: string): boolean {
+  const word = sense
+    .replace(/\([^)]*\)/g, '')
+    .toLowerCase()
+    .replace(/^(to|a|an|the|be)\s+/, '')
+    .match(/[a-z]{3,}/)?.[0];
+  return Boolean(word && new RegExp(`\\b${word}`, 'i').test(en));
 }
 
 /** A reading in syllables: "huǒchē" or "huǒ chē" → ["huǒ", "chē"]. */

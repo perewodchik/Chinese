@@ -298,7 +298,7 @@ function OneCard({
         <span className="cs-py">{inWord ? (wordInfo(lib, inWord.w)?.py ?? info.py) : info.py}</span>
         <Say text={shown} size="lg" />
       </div>
-      <p className="cs-meaning">{senses(inWord ? inWord.d : info.def)}</p>
+      <p className="cs-meaning">{senses(inWord ? inWord.d : info.def, 3, context?.en)}</p>
       {[...shown].length > 1 && (
         <ul className="cs-chars">
           {[...shown].map((c, i) => {
