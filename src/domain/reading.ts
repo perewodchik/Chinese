@@ -75,6 +75,20 @@ function readingsOf(ch: string, lib: Library): string[] {
 }
 
 /**
+ * For a character the library has no reading for (圳 in Shēnzhèn), the
+ * syllables it could be: the rest of the word if it is the last character,
+ * else any start of the rest that holds a vowel. The other characters' known
+ * readings decide which cut fits.
+ */
+function unknownReadings(ch: string, bare: string, pos: number, last: boolean, lib: Library): string[] {
+  if (readingsOf(ch, lib).length) return [];
+  const rest = bare.slice(pos);
+  const syllable = (x: string) => x.length > 0 && x.length <= 6 && /[aeiouü]/.test(x);
+  if (last) return syllable(rest) ? [rest] : [];
+  return [6, 5, 4, 3, 2, 1].map((n) => rest.slice(0, n)).filter((x, i, all) => syllable(x) && all.indexOf(x) === i);
+}
+
+/**
  * One pinyin word cut into exactly `k` syllables for the characters from `at`,
  * each piece one of its character's readings; null when no cut fits.
  */
@@ -83,7 +97,7 @@ function cutWord(word: string, chars: string[], at: number, k: number, lib: Libr
   if (bare.length !== word.length) return null;
   const go = (pos: number, i: number): string[] | null => {
     if (i === k) return pos === bare.length ? [] : null;
-    for (const r of readingsOf(chars[at + i]!, lib)) {
+    for (const r of readingsOf(chars[at + i]!, lib).concat(unknownReadings(chars[at + i]!, bare, pos, i === k - 1, lib))) {
       if (!r || !bare.startsWith(r, pos)) continue;
       const rest = go(pos + r.length, i + 1);
       if (rest) return [word.slice(pos, pos + r.length), ...rest];

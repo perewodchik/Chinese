@@ -44,6 +44,7 @@ const L = lib([
   entry('咖', 4, 'kā', [['咖啡', 4]]),
   entry('啡', 4, 'fēi'),
   entry('了', 1, 'le'),
+  entry('深', 4, 'shēn'),
 ]);
 
 const line = (zh: string, py = '', extra: Partial<TextLine> = {}): TextLine => ({ zh, py, en: '', ...extra });
@@ -68,6 +69,11 @@ describe('alignPinyin', () => {
 
   it('cuts a word the writer ran together along the library’s readings, keeping the writer’s tones', () => {
     assert.deepEqual(alignPinyin(line('我喜欢', 'wǒ xǐhuan'), L), ['wǒ', 'xǐ', 'huan']);
+  });
+
+  it('gives a character the library does not know its syllable from the writer’s word', () => {
+    assert.deepEqual(alignPinyin(line('深圳很好', 'Shēnzhèn hěn hǎo'), L), ['shēn', 'zhèn', 'hěn', 'hǎo']);
+    assert.deepEqual(alignPinyin(line('圳深', 'zhènshēn'), L), ['zhèn', 'shēn']);
   });
 
   it('falls back to the library only for a word it cannot cut', () => {
