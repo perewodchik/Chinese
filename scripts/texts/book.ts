@@ -17,6 +17,9 @@
  *   npm run texts -- add <reply.json> --new-set <name> …
  *       a session by that name is reused when there is one, so nothing is made twice
  *   --adapted: the passages are Claude's simpler retelling of the book's, not the book's own
+ *   --story: a story Claude wrote for the learner (/story), its chapters in order, each
+ *       counting what the one before taught as met; --preface: the first passage is its
+ *       preface of names and key words; --collect: the new characters into a collection
  *   npm run texts -- record [--voice wang] [--set <id or name>]
  *       reads every text's sentences aloud in one of the app's voices and keeps the
  *       recordings, so the website plays the text in that voice (on the Mac only:
@@ -43,8 +46,11 @@ import { localVoicesFromEnv } from '../../server/src/infrastructure/local-voices
 import { openStores } from '../../server/src/infrastructure/stores';
 import { API, type ApiErrorBody, type SaveWorkspaceRequest, type WorkspaceDto } from '../../shared/api';
 import { usernameKey } from '../../shared/credentials';
-import { idValue, isCharId, isWordId } from '../../src/domain/ids';
+import { DEFAULT_SCOPE, type Collection } from '../../src/domain/collection';
+import { charId, idValue, isCharId, isItemId, isWordId } from '../../src/domain/ids';
+import { isDue, type RecallBook } from '../../src/domain/memory';
 import { parseResponse, toText, type DraftText } from '../../src/domain/parse';
+import { defaultSheet } from '../../src/domain/sheet';
 import { taughtAlready } from '../../src/domain/teach';
 import {
   bookModel,
@@ -113,6 +119,10 @@ export interface ShelfSummary {
   knownWords: string[];
   /** characters earlier passages taught: not new again */
   met: string;
+  /** characters and words Review says are due: worth meeting again in a sentence */
+  due: string[];
+  /** what the collections hold that is not learned yet, words and characters */
+  learning: string[];
 }
 
 export function describeShelf(doc: Doc): ShelfSummary {
@@ -141,7 +151,25 @@ export function describeShelf(doc: Doc): ShelfSummary {
     knownChars: [...known].join(''),
     knownWords: learnedOf(doc).filter(isWordId).map(idValue),
     met: [...taughtAlready(texts)].filter((c) => !known.has(c)).join(''),
+    due: dueOf(doc, Date.now()),
+    learning: learningOf(doc).slice(0, 300),
   };
+}
+
+/** Characters and words with any skill due, as Review counts it. */
+function dueOf(doc: Doc, now: number): string[] {
+  const recall = isDoc(doc.recall) ? (doc.recall as RecallBook) : {};
+  return Object.entries(recall)
+    .filter(([id, book]) => isItemId(id) && Object.values(book ?? {}).some((r) => r && isDue(r, now)))
+    .map(([id]) => idValue(id));
+}
+
+/** What the collections hold that is not learned yet. */
+function learningOf(doc: Doc): string[] {
+  const learned = new Set(learnedOf(doc));
+  const collections = Array.isArray(doc.collections) ? (doc.collections as Collection[]) : [];
+  const ids = collections.flatMap((c) => c.items ?? []).filter((id) => isItemId(id) && !learned.has(id));
+  return [...new Set(ids)].map(idValue);
 }
 
 /* ---------------------------------------------------------- reading them */
@@ -157,7 +185,18 @@ export interface PassageOptions {
    * so it teaches like one, and what it taught counts as met.
    */
   adapted?: boolean;
+  /** a story Claude wrote for the learner: it teaches the way a generated passage does */
+  story?: boolean;
+  /**
+   * The first passage is a story's preface — its names and key words, which
+   * the learner marks as known before reading. Its new characters count as
+   * known for the chapters, and stay out of the collection.
+   */
+  preface?: boolean;
 }
+
+/** What `model` says on a story Claude wrote for the learner. */
+export const STORY_MODEL = 'Claude · story';
 
 /** What `model` says on a passage retold from a book: Claude's writing, not the book's. */
 export const adaptedModel = (source: string) => `Claude · adapted from ${source || 'a book'}`;
@@ -167,6 +206,8 @@ export interface Measured {
   cover: Coverage;
   /** the share of the running text already known */
   running: number;
+  /** the story's preface */
+  preface?: boolean;
 }
 
 /** Sentences per length, as the plan's lengths count them. */
@@ -227,7 +268,7 @@ function inventoryOf(doc: Doc): Inventory {
 }
 
 function measure(draft: DraftText, inv: Inventory, o: PassageOptions): Measured {
-  const model = o.adapted ? adaptedModel(o.source) : bookModel(o.source);
+  const model = o.story ? STORY_MODEL : o.adapted ? adaptedModel(o.source) : bookModel(o.source);
   const base = toText({ draft, spec: null }, { basis: inv.basis, met: inv.met, supplement: '' }, model);
   const cover = coverageOf(base, inv.known);
   return {
@@ -243,10 +284,29 @@ function measure(draft: DraftText, inv: Inventory, o: PassageOptions): Measured 
   };
 }
 
+/**
+ * Each passage measured in turn. What Claude wrote teaches, so what one
+ * passage brought in is known by the next: chapter two counts chapter one's
+ * new words as met, as it will when it is read. A book's passages do not.
+ */
+function measureAll(drafts: DraftText[], inv: Inventory, o: PassageOptions): Measured[] {
+  const teaches = o.story || o.adapted;
+  return drafts.map((d, i) => {
+    const m = measure(d, inv, o);
+    if (teaches) {
+      for (const c of m.text.teach) {
+        if (inv.known.has(c)) continue;
+        inv.met.push(c);
+        inv.known.add(c);
+      }
+    }
+    return o.preface && i === 0 ? { ...m, preface: true } : m;
+  });
+}
+
 /** The passages measured against what the account can read, and saved nowhere. */
 export function checkBookTexts(doc: Doc, reply: string, o: PassageOptions): Measured[] {
-  const inv = inventoryOf(doc);
-  return draftsOf(reply).map((d) => measure(d, inv, o));
+  return measureAll(draftsOf(reply), inventoryOf(doc), o);
 }
 
 /* ----------------------------------------------------------- adding some */
@@ -256,6 +316,8 @@ export interface BookOptions extends PassageOptions {
   set?: string;
   /** a session by this name, made when there is none */
   newSet?: string;
+  /** the new characters into the collection “New from <session>”, for Review and practice sheets */
+  collect?: boolean;
   now: number;
   id: () => string;
 }
@@ -264,6 +326,8 @@ export interface BookResult {
   document: Doc;
   set: TextSet;
   madeSet: boolean;
+  /** the collection the new characters went into, and how many were new to it */
+  collection?: { name: string; added: number; made: boolean };
   added: Array<Measured & { text: GeneratedText }>;
   /** already on the shelf, by Chinese title */
   skipped: string[];
@@ -310,8 +374,7 @@ export function addBookTexts(doc: Doc, reply: string, o: BookOptions): BookResul
 
   const added: BookResult['added'] = [];
   const skipped: string[] = [];
-  for (const draft of drafts) {
-    const m = measure(draft, inv, o);
+  for (const m of measureAll(drafts, inv, o)) {
     if (shelved.has(shelfKey(m.text))) {
       skipped.push(m.text.titleZh);
       continue;
@@ -332,17 +395,43 @@ export function addBookTexts(doc: Doc, reply: string, o: BookOptions): BookResul
 
   const fresh = added.map((a) => a.text);
   const made = target.made && fresh.length > 0;
-  return {
-    document: {
-      ...doc,
-      sets: made ? [target.set, ...sets] : sets,
-      texts: [...fresh].reverse().concat(texts),
-    },
-    set: target.set,
-    madeSet: made,
-    added,
-    skipped,
+  const document: Doc = {
+    ...doc,
+    sets: made ? [target.set, ...sets] : sets,
+    texts: [...fresh].reverse().concat(texts),
   };
+  const taught = [...new Set(added.filter((a) => !a.preface).flatMap((a) => a.text.teach))];
+  const collection = o.collect && taught.length ? collectInto(document, `New from “${target.set.name}”`, taught, o) : undefined;
+  return { document, set: target.set, madeSet: made, collection, added, skipped };
+}
+
+/**
+ * New characters into a collection by name — made the way the app makes one,
+ * or topped up when it is there — so Review asks them and the practice
+ * sheets print them, as "Paste back" offers to.
+ */
+function collectInto(doc: Doc, name: string, chars: string[], o: { now: number; id: () => string }) {
+  const collections = Array.isArray(doc.collections) ? (doc.collections as Collection[]) : [];
+  const items = chars.map(charId);
+  const there = collections.find((c) => c.name === name);
+  if (there) {
+    const fresh = items.filter((id) => !there.items.includes(id));
+    doc.collections = collections.map((c) =>
+      c === there ? { ...c, items: [...c.items, ...fresh], updatedAt: o.now } : c,
+    );
+    return { name, added: fresh.length, made: false };
+  }
+  const made: Collection = {
+    id: o.id(),
+    name,
+    items,
+    sheet: defaultSheet(),
+    scope: { ...DEFAULT_SCOPE },
+    createdAt: o.now,
+    updatedAt: o.now,
+  };
+  doc.collections = [...collections, made];
+  return { name, added: items.length, made: true };
 }
 
 /* ------------------------------------------------------------ the voice */
@@ -486,16 +575,17 @@ async function siteAccount(site: string, user: string, password: string): Promis
 
 const USAGE = `
   npm run texts -- sets
-  npm run texts -- check <reply.json> [--adapted]
+  npm run texts -- check <reply.json> [--adapted | --story [--preface]]
   npm run texts -- add <reply.json> --set <id or name> [--source <book>] [--genre <genre>] [--adapted] [--dry-run]
   npm run texts -- add <reply.json> --new-set <name> [--source <book>] [--genre <genre>] [--adapted] [--dry-run]
+  npm run texts -- add <story.json> --new-set <title> --story [--preface] [--collect] [--genre story]
   npm run texts -- record [--voice wang] [--set <id or name>]    on the Mac: the texts, read aloud for the site
 `;
 
 const percent = (r: number) => `${Math.round(r * 100)}%`;
 
-function describe({ text, cover, running }: Measured, path = '') {
-  console.log(`\n  ${text.titleZh} — ${text.title}${path ? `   ${path}` : ''}`);
+function describe({ text, cover, running, preface }: Measured, path = '') {
+  console.log(`\n  ${preface ? '(preface) ' : ''}${text.titleZh} — ${text.title}${path ? `   ${path}` : ''}`);
   console.log(
     `    ${text.lines.length} sentences · ${textCharCount(text)} characters, ${percent(running)} of them known · ${cover.total} distinct, ${cover.fresh.length} new · ${text.level}`,
   );
@@ -512,6 +602,8 @@ function report(result: BookResult, where: string, dryRun: boolean) {
   );
   for (const a of result.added) describe(a, `/texts/${a.text.id}`);
   for (const title of result.skipped) console.log(`\n  ${title} — already on the shelf, left as it was`);
+  const c = result.collection;
+  if (c) console.log(`\n  ${c.added} new characters ${dryRun ? 'would go' : 'went'} into ${c.made ? 'the new collection ' : ''}${c.name}`);
   console.log('');
 }
 
@@ -526,6 +618,9 @@ async function main(argv: string[]) {
       source: { type: 'string', default: '' },
       genre: { type: 'string', default: 'description' },
       adapted: { type: 'boolean', default: false },
+      story: { type: 'boolean', default: false },
+      preface: { type: 'boolean', default: false },
+      collect: { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
       voice: { type: 'string' },
     },
@@ -544,7 +639,13 @@ async function main(argv: string[]) {
   if (!genre) throw new Error(`--genre is one of ${GENRES.map((g) => g.id).join(', ')}.`);
   const file = positionals[0];
   if (command !== 'sets' && !file) throw new Error(`Which file?\n${USAGE}`);
-  const passage = { source: values.source.trim(), genre, adapted: values.adapted };
+  const passage = {
+    source: values.source.trim(),
+    genre,
+    adapted: values.adapted,
+    story: values.story,
+    preface: values.preface,
+  };
   const reply = file ? readFileSync(file, 'utf8') : '';
 
   const account = await openAccount();
@@ -569,6 +670,7 @@ async function main(argv: string[]) {
       const result = addBookTexts(document, reply, {
         set: values.set,
         newSet: values['new-set'],
+        collect: values.collect,
         ...passage,
         now: Date.now(),
         id: newId,

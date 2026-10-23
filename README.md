@@ -989,6 +989,17 @@ are. It writes to the database `.env` names, or — from a cloud session, which
 cannot reach Postgres — signs in to the site with `HANZI_SITE`, `HANZI_USER`
 and `HANZI_PASSWORD`.
 
+**Stories.** `/story` in Claude Code writes one to learn from — your topic
+and characters, pitched so you know the share of the characters you ask for
+(80–90% unless you say), in as many chapters as you like. It asks what the
+brief leaves open, shows the plan, and saves a reading session: a preface of
+the names and key words, which you mark as known before reading, then the
+chapters, each counting what the one before taught as met (`npm run texts --
+check --story --preface`). New words come from what Review has due and what
+your collections hold first, then the next HSK words, then what the plot
+needs, and each comes back in a later chapter; the new characters go into a
+collection, so Review asks them.
+
 ## Rebuilding the data
 
 The JSON in `public/data/` and the fonts in `public/fonts/` are generated. To
