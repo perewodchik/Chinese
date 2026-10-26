@@ -19,7 +19,7 @@
  *   --adapted: the passages are Claude's simpler retelling of the book's, not the book's own
  *   --story: a story Claude wrote for the learner (/story), its chapters in order, each
  *       counting what the one before taught as met; --preface: the first passage is its
- *       preface of names and key words; --collect: the new characters into a collection
+ *       preface of names and key words; --learn: the chapters' new words onto the shelf's list
  *   npm run texts -- record [--voice wang] [--set <id or name>]
  *       reads every text's sentences aloud in one of the app's voices and keeps the
  *       recordings, so the website plays the text in that voice (on the Mac only:
@@ -36,6 +36,7 @@
  */
 
 import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { createServices } from '../../server/src/composition';
@@ -46,11 +47,12 @@ import { localVoicesFromEnv } from '../../server/src/infrastructure/local-voices
 import { openStores } from '../../server/src/infrastructure/stores';
 import { API, type ApiErrorBody, type SaveWorkspaceRequest, type WorkspaceDto } from '../../shared/api';
 import { usernameKey } from '../../shared/credentials';
-import { DEFAULT_SCOPE, type Collection } from '../../src/domain/collection';
-import { charId, idValue, isCharId, isItemId, isWordId } from '../../src/domain/ids';
+import type { Collection } from '../../src/domain/collection';
+import { charId, idValue, isCharId, isItemId, isWordId, wordId, type ItemId } from '../../src/domain/ids';
 import { isDue, type RecallBook } from '../../src/domain/memory';
+import type { CharacterEntry, Library, SyllabusWord } from '../../src/data/types';
 import { parseResponse, toText, type DraftText } from '../../src/domain/parse';
-import { defaultSheet } from '../../src/domain/sheet';
+import { segment, writerHints } from '../../src/domain/segment';
 import { taughtAlready } from '../../src/domain/teach';
 import {
   bookModel,
@@ -190,9 +192,11 @@ export interface PassageOptions {
   /**
    * The first passage is a story's preface — its names and key words, which
    * the learner marks as known before reading. Its new characters count as
-   * known for the chapters, and stay out of the collection.
+   * known for the chapters, and stay off the shelf's list.
    */
   preface?: boolean;
+  /** the syllabus, to find the words a passage leaves unexplained; none, and nothing is looked for */
+  lib?: Library;
 }
 
 /** What `model` says on a story Claude wrote for the learner. */
@@ -208,6 +212,13 @@ export interface Measured {
   running: number;
   /** the story's preface */
   preface?: boolean;
+  /**
+   * Words the reader will cut out of it — off the HSK lists — that its
+   * `vocab` gives no meaning for. Tapped, they would open a drawer with no
+   * translation, or the dictionary's first sense, so they are found before
+   * saving. Empty when no library was given to cut by.
+   */
+  unglossed: string[];
 }
 
 /** Sentences per length, as the plan's lengths count them. */
@@ -281,7 +292,48 @@ function measure(draft: DraftText, inv: Inventory, o: PassageOptions): Measured 
     },
     cover,
     running: runningCoverage(base.lines, inv.known),
+    unglossed: o.lib ? unglossedWords(base, o.lib) : [],
   };
+}
+
+/**
+ * The words the text page will cut out of a passage, the way it cuts them —
+ * its own vocabulary and the writer's grouping in the pinyin included — that
+ * are on no HSK list and that the passage gives no meaning for.
+ */
+export function unglossedWords(text: Pick<GeneratedText, 'lines' | 'vocab'>, lib: Library): string[] {
+  const glossed = new Set(text.vocab.filter((v) => v.d.trim()).map((v) => v.w));
+  const own = new Set(text.vocab.map((v) => v.w));
+  const out = new Set<string>();
+  for (const l of text.lines) {
+    for (const t of segment(l.zh, lib, new Set([...own, ...writerHints(l.zh, l.py, lib)]))) {
+      if (t.word && [...t.text].length > 1 && !lib.byWord.has(t.text) && !glossed.has(t.text)) out.add(t.text);
+    }
+  }
+  return [...out];
+}
+
+/** The syllabus as the app ships it, read once, for the commands that cut words. */
+let shipped: Library | null | undefined;
+export function libraryOnDisk(root = '.'): Library | null {
+  if (shipped !== undefined) return shipped;
+  try {
+    const read = <T>(f: string): T => JSON.parse(readFileSync(join(root, 'public/data', f), 'utf8')) as T;
+    const characters = read<{ items: CharacterEntry[] }>('characters.json').items;
+    const words = read<{ items: SyllabusWord[] }>('words.json').items;
+    shipped = {
+      characters,
+      themes: [],
+      components: {},
+      strokes: {},
+      byChar: new Map(characters.map((c) => [c.c, c])),
+      words,
+      byWord: new Map(words.map((w) => [w.w, w])),
+    };
+  } catch {
+    shipped = null;
+  }
+  return shipped;
 }
 
 /**
@@ -316,8 +368,8 @@ export interface BookOptions extends PassageOptions {
   set?: string;
   /** a session by this name, made when there is none */
   newSet?: string;
-  /** the new characters into the collection “New from <session>”, for Review and practice sheets */
-  collect?: boolean;
+  /** the chapters' new words onto the shelf's own list, which Cards ask from */
+  learn?: boolean;
   now: number;
   id: () => string;
 }
@@ -326,8 +378,8 @@ export interface BookResult {
   document: Doc;
   set: TextSet;
   madeSet: boolean;
-  /** the collection the new characters went into, and how many were new to it */
-  collection?: { name: string; added: number; made: boolean };
+  /** how many new things went onto the shelf's list */
+  onList?: { added: number };
   added: Array<Measured & { text: GeneratedText }>;
   /** already on the shelf, by Chinese title */
   skipped: string[];
@@ -400,38 +452,38 @@ export function addBookTexts(doc: Doc, reply: string, o: BookOptions): BookResul
     sets: made ? [target.set, ...sets] : sets,
     texts: [...fresh].reverse().concat(texts),
   };
-  const taught = [...new Set(added.filter((a) => !a.preface).flatMap((a) => a.text.teach))];
-  const collection = o.collect && taught.length ? collectInto(document, `New from “${target.set.name}”`, taught, o) : undefined;
-  return { document, set: target.set, madeSet: made, collection, added, skipped };
+  const learn = o.learn ? toLearn(added.filter((a) => !a.preface).map((a) => a.text)) : [];
+  const onList = learn.length ? onShelfList(document, target.set.id, learn) : undefined;
+  return { document, set: target.set, madeSet: made, onList, added, skipped };
 }
 
 /**
- * New characters into a collection by name — made the way the app makes one,
- * or topped up when it is there — so Review asks them and the practice
- * sheets print them, as "Paste back" offers to.
+ * What a story's chapters bring that is worth learning, as the shelf's list
+ * holds it: the new words, as words — 东西 is learned as 东西, not as 东 and
+ * 西 — and any new character no new word covers, as itself.
  */
-function collectInto(doc: Doc, name: string, chars: string[], o: { now: number; id: () => string }) {
-  const collections = Array.isArray(doc.collections) ? (doc.collections as Collection[]) : [];
-  const items = chars.map(charId);
-  const there = collections.find((c) => c.name === name);
-  if (there) {
-    const fresh = items.filter((id) => !there.items.includes(id));
-    doc.collections = collections.map((c) =>
-      c === there ? { ...c, items: [...c.items, ...fresh], updatedAt: o.now } : c,
-    );
-    return { name, added: fresh.length, made: false };
+function toLearn(texts: GeneratedText[]): ItemId[] {
+  const out: ItemId[] = [];
+  for (const t of texts) {
+    const words = t.vocab.filter((v) => v.isNew).map((v) => v.w);
+    out.push(...words.map(wordId));
+    out.push(...t.teach.filter((c) => !words.some((w) => w.includes(c))).map(charId));
   }
-  const made: Collection = {
-    id: o.id(),
-    name,
-    items,
-    sheet: defaultSheet(),
-    scope: { ...DEFAULT_SCOPE },
-    createdAt: o.now,
-    updatedAt: o.now,
-  };
-  doc.collections = [...collections, made];
-  return { name, added: items.length, made: true };
+  return [...new Set(out)];
+}
+
+/**
+ * Onto the shelf's own list, after what is there, each once: the list the
+ * text page's "Learn this word" adds to, which Cards ask from. A shelf is its
+ * own word list now, so nothing is gathered into a collection.
+ */
+function onShelfList(doc: Doc, setId: string, items: ItemId[]) {
+  const sets = Array.isArray(doc.sets) ? (doc.sets as TextSet[]) : [];
+  const set = sets.find((x) => x.id === setId);
+  if (!set) return undefined;
+  const fresh = items.filter((id) => !(set.study ?? []).includes(id));
+  doc.sets = sets.map((x) => (x === set ? { ...x, study: [...(x.study ?? []), ...fresh] } : x));
+  return { added: fresh.length };
 }
 
 /* ------------------------------------------------------------ the voice */
@@ -578,19 +630,20 @@ const USAGE = `
   npm run texts -- check <reply.json> [--adapted | --story [--preface]]
   npm run texts -- add <reply.json> --set <id or name> [--source <book>] [--genre <genre>] [--adapted] [--dry-run]
   npm run texts -- add <reply.json> --new-set <name> [--source <book>] [--genre <genre>] [--adapted] [--dry-run]
-  npm run texts -- add <story.json> --new-set <title> --story [--preface] [--collect] [--genre story]
+  npm run texts -- add <story.json> --new-set <title> --story [--preface] [--learn] [--genre story]
   npm run texts -- record [--voice wang] [--set <id or name>]    on the Mac: the texts, read aloud for the site
 `;
 
 const percent = (r: number) => `${Math.round(r * 100)}%`;
 
-function describe({ text, cover, running, preface }: Measured, path = '') {
+function describe({ text, cover, running, preface, unglossed }: Measured, path = '') {
   console.log(`\n  ${preface ? '(preface) ' : ''}${text.titleZh} — ${text.title}${path ? `   ${path}` : ''}`);
   console.log(
     `    ${text.lines.length} sentences · ${textCharCount(text)} characters, ${percent(running)} of them known · ${cover.total} distinct, ${cover.fresh.length} new · ${text.level}`,
   );
   console.log(`    new: ${text.teach.join('') || 'none'}`);
   console.log(`    ${text.vocab.length} words · ${text.grammar.length} grammar · ${text.questions.length} questions`);
+  if (unglossed.length) console.log(`    off the HSK lists, with no meaning in vocab: ${unglossed.join('、')}`);
 }
 
 function report(result: BookResult, where: string, dryRun: boolean) {
@@ -602,8 +655,7 @@ function report(result: BookResult, where: string, dryRun: boolean) {
   );
   for (const a of result.added) describe(a, `/texts/${a.text.id}`);
   for (const title of result.skipped) console.log(`\n  ${title} — already on the shelf, left as it was`);
-  const c = result.collection;
-  if (c) console.log(`\n  ${c.added} new characters ${dryRun ? 'would go' : 'went'} into ${c.made ? 'the new collection ' : ''}${c.name}`);
+  if (result.onList) console.log(`\n  ${result.onList.added} new words and characters ${dryRun ? 'would go' : 'went'} onto the shelf’s list`);
   console.log('');
 }
 
@@ -620,7 +672,7 @@ async function main(argv: string[]) {
       adapted: { type: 'boolean', default: false },
       story: { type: 'boolean', default: false },
       preface: { type: 'boolean', default: false },
-      collect: { type: 'boolean', default: false },
+      learn: { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
       voice: { type: 'string' },
     },
@@ -645,6 +697,7 @@ async function main(argv: string[]) {
     adapted: values.adapted,
     story: values.story,
     preface: values.preface,
+    lib: libraryOnDisk() ?? undefined,
   };
   const reply = file ? readFileSync(file, 'utf8') : '';
 
@@ -670,7 +723,7 @@ async function main(argv: string[]) {
       const result = addBookTexts(document, reply, {
         set: values.set,
         newSet: values['new-set'],
-        collect: values.collect,
+        learn: values.learn,
         ...passage,
         now: Date.now(),
         id: newId,
@@ -678,6 +731,15 @@ async function main(argv: string[]) {
       if (!result.added.length || values['dry-run']) {
         report(result, account.where, true);
         return;
+      }
+      // Every word the page will offer to explain has to have an explanation.
+      const bare = result.added.filter((a) => a.unglossed.length);
+      if (bare.length) {
+        throw new Error(
+          `Off the HSK lists and not in vocab, so a tap would find no meaning — add them to the passage's vocab with py and d:\n${bare
+            .map((a) => `    ${a.text.titleZh}: ${a.unglossed.join('、')}`)
+            .join('\n')}`,
+        );
       }
       if (await account.write(revision, result.document)) {
         report(result, account.where, false);

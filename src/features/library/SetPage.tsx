@@ -70,7 +70,8 @@ export function SetPage() {
   const [cap, setCap] = useState(STEP);
   const progress = useSetProgress();
 
-  const set = useMemo(() => findSet(lib, collections, setId), [lib, collections, setId]);
+  const texts = useStore((s) => s.texts);
+  const set = useMemo(() => findSet(lib, collections, setId, texts), [lib, collections, setId, texts]);
   useTitle(set?.name ?? 'Library');
   const know = useMemo(() => wordKnowledge(lib, recall, collectedItems(collections)), [lib, recall, collections]);
 
@@ -91,7 +92,7 @@ export function SetPage() {
 
   const words = useMemo(() => {
     if (!set) return [];
-    const extra = new Map([...(set.preset?.words ?? []), ...(set.collection?.words ?? [])].map((w) => [w.w, w]));
+    const extra = new Map([...(set.preset?.words ?? []), ...(set.collection?.words ?? []), ...(set.extra ?? [])].map((w) => [w.w, w]));
     return set.words
       .map((w) => lib.byWord.get(w) ?? (extra.get(w) as SyllabusWord | undefined))
       .filter((w): w is SyllabusWord => Boolean(w))
@@ -100,7 +101,7 @@ export function SetPage() {
 
   // The full-screen view walks through what this page shows, in its order.
   const glyphs = useMemo(() => (tab === 'chars' ? chars.map((c) => c.c) : words.map((w) => w.w)), [tab, chars, words]);
-  const offList = useMemo(() => new Map((set?.preset?.words ?? set?.collection?.words ?? []).map((w) => [w.w, w])), [set]);
+  const offList = useMemo(() => new Map((set?.preset?.words ?? set?.collection?.words ?? set?.extra ?? []).map((w) => [w.w, w])), [set]);
   useEffect(() => {
     setBrowseList(glyphs, offList);
     return () => setBrowseList([]);
@@ -122,7 +123,7 @@ export function SetPage() {
     if (!set) return;
     if (set.collection) return navigate(paths.collection(set.collection.id));
     const items = set.chars.length ? set.chars.map(charId) : set.words.map(wordId);
-    const c = createCollection({ name: set.name, items, presetId: set.id, words: set.preset?.words });
+    const c = createCollection({ name: set.name, items, presetId: set.id, words: set.preset?.words ?? set.extra });
     navigate(paths.collection(c.id));
   }
 

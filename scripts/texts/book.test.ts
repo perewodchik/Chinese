@@ -155,11 +155,16 @@ describe('book passages onto the shelf', () => {
     assert.equal(describeShelf(then.document).sessions[0].fromBook, 2);
   });
 
-  it('a story: the preface names are known by chapter one, each chapter new words by the next, the rest go to a collection', () => {
+  it('a story: the preface names are known by chapter one, each chapter new words by the next, the rest go on the shelf list', () => {
     const story = JSON.stringify({
       texts: [
         { title: 'Before you read', titleZh: '读前', lines: [{ zh: '小智和皮卡丘。' }] },
-        { title: 'Chapter 1', titleZh: '第一章', lines: [{ zh: '小智是人。皮卡丘很好。' }] },
+        {
+          title: 'Chapter 1',
+          titleZh: '第一章',
+          lines: [{ zh: '小智是人。皮卡丘很好。' }],
+          vocab: [{ w: '很好', py: 'hěn hǎo', d: 'very good', new: true }],
+        },
         { title: 'Chapter 2', titleZh: '第二章', lines: [{ zh: '皮卡丘很好，小智很好。' }] },
       ],
     });
@@ -172,14 +177,15 @@ describe('book passages onto the shelf', () => {
     assert.equal(two.running, 1);
     assert.equal(one.text.model, STORY_MODEL);
 
-    const r = addBookTexts(doc(), story, options({ ...o, newSet: 'Ash and Pikachu', collect: true }));
-    assert.deepEqual(r.collection, { name: 'New from “Ash and Pikachu”', added: 3, made: true });
-    const [made] = r.document.collections as Array<{ name: string; items: string[] }>;
-    assert.deepEqual(made.items, ['c人', 'c很', 'c好']);
-    const again = addBookTexts(r.document, story.replace('第二章', '第三章'), options({ ...o, set: 'Ash and Pikachu', collect: true }));
-    // Chapter three brings nothing new: the collection is left as it was.
-    assert.equal(again.collection, undefined);
+    // Onto the shelf's own list: the new word as a word, the character no new word covers as itself.
+    const r = addBookTexts(doc(), story, options({ ...o, newSet: 'Ash and Pikachu', learn: true }));
+    assert.deepEqual(r.onList, { added: 2 });
+    const shelf = (r.document.sets as TextSet[]).find((x) => x.name === 'Ash and Pikachu');
+    assert.deepEqual(shelf?.study, ['w很好', 'c人']);
+    assert.equal(r.document.collections, undefined);
+    const again = addBookTexts(r.document, story.replace('第二章', '第三章'), options({ ...o, set: 'Ash and Pikachu', learn: true }));
+    // Chapter three brings nothing new: the list is left as it was.
+    assert.equal(again.onList, undefined);
     assert.deepEqual(again.added.map((x) => x.text.titleZh), ['第三章']);
-    assert.equal((again.document.collections as unknown[]).length, 1);
   });
 });

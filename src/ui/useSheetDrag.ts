@@ -29,6 +29,19 @@ const FLICK_DISTANCE = 40;
 
 const START_THRESHOLD = 10;
 
+/** How many sheets are up: a word drawer over the More sheet is two, and closing one must not free the page. */
+let sheetsUp = 0;
+
+function lockPage() {
+  sheetsUp++;
+  document.documentElement.dataset.sheet = 'open';
+}
+
+function unlockPage() {
+  sheetsUp = Math.max(0, sheetsUp - 1);
+  if (!sheetsUp) delete document.documentElement.dataset.sheet;
+}
+
 interface Origin {
   y: number;
   x: number;
@@ -83,6 +96,14 @@ export function useSheetDrag(onClose: () => void): SheetDrag {
     },
     [],
   );
+
+  // The page behind stays where it is while a sheet is up. Without it a swipe
+  // on the word drawer's scrim scrolled the text behind it, and on an iPhone
+  // the whole screen went up with it.
+  useEffect(() => {
+    lockPage();
+    return unlockPage;
+  }, []);
 
   const close = useCallback(() => {
     if (!phone) {

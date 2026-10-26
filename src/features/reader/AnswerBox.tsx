@@ -1,76 +1,36 @@
 import { useState } from 'react';
-import { checkPrompt, readCheck, type AnswerCheck } from '../../domain/answer';
 import type { GeneratedText, TextLine } from '../../domain/text';
-import { copyText } from '../../platform/clipboard';
-import { useClaude } from '../shared/useClaude';
-
-const SAID: Record<AnswerCheck['verdict'], string> = {
-  right: 'Right',
-  nearly: 'Nearly',
-  wrong: 'Not quite',
-};
+import { studyText } from '../../store/commands';
 
 /**
- * Somewhere to answer a question, and a way to find out whether you were right.
+ * Somewhere to answer a question, kept with the text.
  *
- * Where the server can reach Claude, Check asks it and the verdict appears
- * under the answer. Where it cannot — the iPad, the website — the same prompt
- * goes on the clipboard and the reply is pasted back, which is how every other
- * Claude step in the app works there. The model answer the writer left is
- * always a tap away either way, and needs neither.
+ * Saving the answer is answering the question: it counts towards the part,
+ * and the answer is there again next time the text is opened, on any device.
+ * There is no marking. Asking Claude to grade it meant a copy into a chat and
+ * a paste back on the phone, for one line of feedback; the writer's own
+ * answer is a tap away instead, to compare with what you wrote.
  */
 export function AnswerBox({
   text,
+  index,
   question,
-  onDone,
 }: {
   text: GeneratedText;
+  /** the question's place in the text, which is how its answer is kept */
+  index: number;
   question: TextLine;
-  /** told once the question has been answered and checked, or its answer looked at */
-  onDone?: () => void;
 }) {
-  const claude = useClaude();
-  const [answer, setAnswer] = useState('');
-  const [check, setCheck] = useState<AnswerCheck | null>(null);
+  const saved = text.study?.answers?.[String(index)] ?? '';
+  const [answer, setAnswer] = useState(saved);
   const [showModel, setShowModel] = useState(false);
-  const [relay, setRelay] = useState<'idle' | 'copied'>('idle');
-  const [pasted, setPasted] = useState('');
-  const [trouble, setTrouble] = useState<string | null>(null);
 
-  const prompt = () => checkPrompt(text, question, answer);
-
-  async function ask() {
-    setTrouble(null);
-    const reply = await claude.ask(prompt(), 'check');
-    if (reply === null) return;
-    const read = readCheck(reply);
-    if (read) {
-      setCheck(read);
-      onDone?.();
-    } else setTrouble('Claude answered, but not with a verdict this page can read. Try again.');
-  }
-
-  async function copy() {
-    setTrouble(null);
-    const ok = await copyText(prompt());
-    setRelay('copied');
-    if (!ok) setTrouble('Could not reach the clipboard. Try once more, or check on the computer.');
-  }
-
-  function takePaste(value: string) {
-    setPasted(value);
-    const read = readCheck(value);
-    setTrouble(value.trim() && !read ? 'That does not look like Claude’s verdict yet — paste the whole reply.' : null);
-    if (read) {
-      setCheck(read);
-      onDone?.();
-      setRelay('idle');
-      setPasted('');
-    }
-  }
-
-  const waiting = claude.waiting !== null;
+  const changed = answer.trim() !== saved;
   const empty = !answer.trim();
+
+  function save() {
+    studyText(text.id, { answered: [index], answers: { [String(index)]: answer.trim() } });
+  }
 
   return (
     <div className="answer">
@@ -80,55 +40,18 @@ export function AnswerBox({
         rows={2}
         placeholder="Your answer, in Chinese if you can. English is fine."
         aria-label={`Your answer to: ${question.zh}`}
-        onChange={(e) => {
-          setAnswer(e.target.value);
-          setCheck(null);
-        }}
+        onChange={(e) => setAnswer(e.target.value)}
       />
       <div className="answer-actions">
-        {claude.ready ? (
-          <button className="btn sm tonal check-btn" disabled={empty || waiting} onClick={() => void ask()}>
-            {waiting ? `Checking… ${claude.waiting}s` : 'Check answer'}
-          </button>
-        ) : (
-          <button
-            className="btn sm check-btn"
-            disabled={empty}
-            onClick={() => void copy()}
-            title="Copy a short prompt to paste into Claude, then paste its reply back here"
-          >
-            {relay === 'copied' ? 'Copied' : 'Check with Claude'}
-          </button>
-        )}
-        {waiting && (
-          <button className="btn ghost sm" onClick={claude.cancel}>
-            Stop
-          </button>
-        )}
+        <button className="btn sm tonal save-btn" disabled={empty || !changed} onClick={save}>
+          {saved && !changed ? 'Saved' : 'Save answer'}
+        </button>
         {question.a && (
-          <button
-            className="btn ghost sm"
-            onClick={() => {
-              if (!showModel) onDone?.();
-              setShowModel((s) => !s);
-            }}
-            aria-pressed={showModel}
-          >
+          <button className="btn quiet sm" onClick={() => setShowModel((s) => !s)} aria-pressed={showModel}>
             Model answer
           </button>
         )}
       </div>
-
-      {relay === 'copied' && !claude.ready && (
-        <textarea
-          className="answer-input"
-          rows={2}
-          value={pasted}
-          placeholder="Paste Claude’s reply here"
-          aria-label="Claude’s reply"
-          onChange={(e) => takePaste(e.target.value)}
-        />
-      )}
 
       {showModel && question.a && (
         <p className="answer-model">
@@ -136,16 +59,6 @@ export function AnswerBox({
           <span className="hanzi">{question.a}</span>
         </p>
       )}
-
-      {check && (
-        <div className="answer-verdict" data-state={check.verdict}>
-          <b>{SAID[check.verdict]}</b>
-          {check.feedback && <span>{check.feedback}</span>}
-          {check.better && <span className="hanzi">{check.better}</span>}
-        </div>
-      )}
-
-      {(trouble || claude.error) && <p className="tiny muted">{trouble ?? claude.error}</p>}
     </div>
   );
 }

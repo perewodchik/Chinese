@@ -268,9 +268,20 @@ function studyFrom(v: unknown): TextStudy | undefined {
     ...optional('translated', when(s.translated)),
     ...optional('written', arr<string>(s.written).filter((c) => typeof c === 'string')),
     ...optional('answered', arr<number>(s.answered).filter((n) => Number.isInteger(n) && n >= 0)),
+    ...optional('answers', answersFrom(s.answers)),
     ...optional('copied', typeof s.copied === 'number' && Number.isInteger(s.copied) && s.copied > 0 ? s.copied : undefined),
     ...optional('dictated', typeof s.dictated === 'number' && Number.isInteger(s.dictated) && s.dictated > 0 ? s.dictated : undefined),
   };
+  return Object.keys(out).length ? out : undefined;
+}
+
+/** Answers to a text's questions: a question's index to the text written, nothing longer than a page. */
+function answersFrom(v: unknown): Record<string, string> | undefined {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return undefined;
+  const out: Record<string, string> = {};
+  for (const [k, a] of Object.entries(v as Loose)) {
+    if (/^\d{1,3}$/.test(k) && typeof a === 'string' && a.trim()) out[k] = a.trim().slice(0, 2000);
+  }
   return Object.keys(out).length ? out : undefined;
 }
 

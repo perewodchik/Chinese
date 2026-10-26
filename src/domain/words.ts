@@ -1,6 +1,8 @@
 import type { Library, SyllabusWord } from '../data/types';
+import type { CollectionWord } from './collection';
 import { charId, wordId, type ItemId } from './ids';
 import { isDue, isLearned, type RecallBook } from './memory';
+import type { GeneratedText } from './text';
 import { wordIndex } from './vocab';
 
 /**
@@ -112,4 +114,27 @@ export function wordInventory(lib: Library, recall: RecallBook, now: number, max
   known.sort((a, b) => (rank.get(a) ?? 1e9) - (rank.get(b) ?? 1e9));
   again.sort((a, b) => a.due - b.due);
   return { known, learning: again.slice(0, maxLearning).map((x) => x.w) };
+}
+
+/**
+ * The words your texts gave a meaning for that the 2026 lists do not have —
+ * 热汤, 雪地, a name — newest text first, each once, with the gloss the text
+ * gave it. They are words too: the drawer explains them from here wherever
+ * they turn up, and the library keeps them as a set of their own, outside
+ * the bands.
+ */
+export function wordsFromTexts(
+  lib: Library,
+  texts: ReadonlyArray<Pick<GeneratedText, 'vocab' | 'createdAt'>>,
+): CollectionWord[] {
+  const out = new Map<string, CollectionWord>();
+  for (const t of [...texts].sort((a, b) => b.createdAt - a.createdAt)) {
+    for (const v of t.vocab) {
+      const w = v.w.trim();
+      if (!w || out.has(w) || lib.byWord.has(w) || !v.d) continue;
+      if (![...w].every((c) => /[一-鿿]/.test(c))) continue;
+      out.set(w, { w, py: v.py, d: v.d, hsk: null, explain: '', examples: [] });
+    }
+  }
+  return [...out.values()];
 }

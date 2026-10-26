@@ -4076,10 +4076,14 @@ button.progress-meter:hover {
      the bottom edge where the thumb is, and it can be pushed back down. A
      panel sliding in from the right is a desktop idea — on a phone the side
      it comes from is the side nothing else is. */
+  /* It starts below the status bar, with a strip of the page showing above
+     it: a sheet that began at the very top put its Close button under the
+     clock, and read as the page itself rather than something over it. */
   .drawer {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 0 minmax(0, 1fr);
+    grid-template-rows: calc(var(--top-clear) + 12px) minmax(0, 1fr);
     transition: background 0.18s ease-out;
+    overscroll-behavior: contain;
   }
 
   .drawer[data-leaving] {
@@ -5225,10 +5229,9 @@ label.field[data-invalid] input {
   min-height: 36px;
 }
 
-/* "Checking… 12s" in the space "Check answer" took. */
-.check-btn {
-  min-width: 136px;
-  font-variant-numeric: tabular-nums;
+/* "Saved" in the space "Save answer" takes. */
+.save-btn {
+  min-width: 118px;
 }
 
 .answer-model {
@@ -5240,44 +5243,8 @@ label.field[data-invalid] input {
   background: var(--card-2);
 }
 
-.answer-model .hanzi,
-.answer-verdict .hanzi {
+.answer-model .hanzi {
   font-size: 16px;
-}
-
-.answer-verdict {
-  display: grid;
-  gap: 3px;
-  padding: 9px 12px;
-  border-radius: 9px;
-  border: 1px solid var(--line);
-}
-
-.answer-verdict[data-state='right'] {
-  background: var(--jade-soft);
-  border-color: var(--jade);
-}
-
-.answer-verdict[data-state='right'] b {
-  color: var(--jade);
-}
-
-.answer-verdict[data-state='nearly'] {
-  background: var(--gold-soft);
-  border-color: var(--gold);
-}
-
-.answer-verdict[data-state='nearly'] b {
-  color: var(--gold);
-}
-
-.answer-verdict[data-state='wrong'] {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-}
-
-.answer-verdict[data-state='wrong'] b {
-  color: var(--accent);
 }
 
 /* ------------------------------------------------------------------ menus */

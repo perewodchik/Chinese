@@ -997,8 +997,14 @@ the names and key words, which you mark as known before reading, then the
 chapters, each counting what the one before taught as met (`npm run texts --
 check --story --preface`). New words come from what Review has due and what
 your collections hold first, then the next HSK words, then what the plot
-needs, and each comes back in a later chapter; the new characters go into a
-collection, so Review asks them.
+needs, and each comes back in a later chapter; the new words go onto the
+shelf's own list, which Cards ask from.
+
+**Words off the lists.** A word a text uses that no HSK list has — 热汤, 雪地,
+a name — is explained from that text's vocabulary wherever it turns up, and
+the library keeps all of them as a set of their own, *From your texts*, beside
+the topics. `/add-text` and `/story` gloss every such word, and `npm run texts
+-- add` will not save a passage that leaves one unexplained.
 
 ## Rebuilding the data
 

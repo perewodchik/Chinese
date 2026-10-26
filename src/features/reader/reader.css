@@ -13,10 +13,16 @@
 }
 
 /* ------------------------------------------------------------------ the bar */
-.rd-top {
+/* The bar and the six parts, stuck to the top together and opaque from the
+   screen's edge down, so nothing scrolls into view between them. */
+.rd-pin {
   position: sticky;
   top: 0;
   z-index: 8;
+  background: var(--paper);
+}
+
+.rd-top {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -117,9 +123,6 @@
 
 /* ------------------------------------------------------------ the six parts */
 .rd-parts {
-  position: sticky;
-  top: calc(56px + var(--top-clear));
-  z-index: 7;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
@@ -1257,6 +1260,11 @@ label.rd-aa-row {
       'top top'
       'text parts'
       'text study';
+  }
+
+  /* Beside the text, the bar spans the top and the parts head their column. */
+  .rd[data-mode='single'] .rd-pin {
+    display: contents;
   }
 
   .rd[data-mode='single'] .rd-top {

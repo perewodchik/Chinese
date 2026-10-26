@@ -258,6 +258,13 @@ describe('text collections', () => {
     assert.deepEqual(merged, { heard: 5, translated: 9, written: ['好', '你'], answered: [1, 0], copied: 12 });
   });
 
+  it('keeps the answers written to a text’s questions, an edit over the answer before it', () => {
+    let state = run(start(), { type: 'text/study', id: 'a1', study: { answered: [0], answers: { '0': '在家' } } });
+    state = run(state, { type: 'text/study', id: 'a1', study: { answered: [1], answers: { '1': '吃饭' } } });
+    state = run(state, { type: 'text/study', id: 'a1', study: { answered: [0], answers: { '0': '在家里' } } });
+    assert.deepEqual(state.texts.find((t) => t.id === 'a1')?.study, { answered: [0, 1], answers: { '0': '在家里', '1': '吃饭' } });
+  });
+
   it('keeps a shelf’s own list of things to learn, once each, and takes them off again', () => {
     let state = run(start(), { type: 'set/study', id: 'a', items: ['w你好', 'c好'], add: true });
     state = run(state, { type: 'set/study', id: 'a', items: ['c好', 'w谢谢'], add: true });

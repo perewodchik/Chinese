@@ -15,7 +15,7 @@ import { Menu } from '../../ui/Menu';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { FromTexts } from './FromTexts';
-import { bandSet, FROM_TEXT, ownLists, topicSets, withList, type LibSet } from './sets';
+import { bandSet, FROM_TEXT, ownLists, textWordsSet, topicSets, withList, type LibSet } from './sets';
 import { CharTile, WordRow } from './SetPage';
 import './home.css';
 
@@ -66,7 +66,12 @@ export function LibraryHome() {
   const [allLists, setAllLists] = useState(false);
 
   const bands = useMemo(() => HSK_BANDS.map((b) => withList(bandSet(lib, b.id), collections)), [lib, collections]);
-  const topics = useMemo(() => topicSets(lib).map((t) => withList(t, collections)), [lib, collections]);
+  const texts = useStore((s) => s.texts);
+  // The words your texts brought that no band has come first: they are the ones you have met.
+  const topics = useMemo(() => {
+    const own = textWordsSet(lib, texts);
+    return [...(own ? [withList(own, collections)] : []), ...topicSets(lib).map((t) => withList(t, collections))];
+  }, [lib, collections, texts]);
   const mine = useMemo(() => ownLists(collections), [collections]);
   const fromTexts = useMemo(() => collections.filter((c) => FROM_TEXT.test(c.name)), [collections]);
 

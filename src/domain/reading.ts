@@ -107,6 +107,25 @@ function cutWord(word: string, chars: string[], at: number, k: number, lib: Libr
   return go(0, 0);
 }
 
+/**
+ * A syllabus word read as the syllabus reads it.
+ *
+ * A cut only checks each syllable against what its character can be read as,
+ * and 和 can be hé — so a writer's 暖和 nuǎnhé passed, though the word is
+ * nuǎnhuo. When the characters make a syllabus word and the writer's
+ * syllables are none of its readings, the word's own reading goes over them.
+ */
+function asTheWordIsRead(w: string, cut: string[], lib: Library): string[] {
+  // A library built for one test may have no word list at all.
+  const word = lib.byWord?.get(w);
+  if (!word) return cut;
+  const syllables = (py: string) => flat(py).split(/\s+/).filter(Boolean).join(' ');
+  const mine = cut.map(flat).join(' ');
+  if ([word.py, ...(word.alt ?? []).map((a) => a.py)].some((py) => syllables(py) === mine)) return cut;
+  const own = word.py.normalize('NFC').split(/\s+/).filter(Boolean);
+  return own.length === cut.length ? own : cut;
+}
+
 /** Longest word worth trying to lay over characters: 4 covers 成语 and most names. */
 const MAX_SPAN = 4;
 
@@ -144,7 +163,7 @@ function alignWords(chars: string[], words: string[], lib: Library): string[] {
       offer(i + 1, j, here.cost + 3, [i, j], []);
       for (let k = 1; k <= MAX_SPAN && j + k <= n; k++) {
         const cut = cutWord(words[i]!, chars, j, k, lib);
-        if (cut) offer(i + 1, j + k, here.cost, [i, j], cut);
+        if (cut) offer(i + 1, j + k, here.cost, [i, j], k > 1 ? asTheWordIsRead(chars.slice(j, j + k).join(''), cut, lib) : cut);
         // One syllable over one character is trusted even when the library
         // does not list that reading; a longer word it cannot cut is not.
         else if (k === 1) offer(i + 1, j + 1, here.cost + 1, [i, j], [words[i]!]);

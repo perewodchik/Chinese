@@ -105,15 +105,21 @@ Rules — the book's text is the point, so it is never rewritten:
   **`title`**: the same in English.
 - **`py`**: tone marks, lower case, no punctuation, one group per word — the
   syllables of a word together, words apart (`wǒ de péngyou zài chī zǎofàn`); a
-  name is one word; 了, 的 and 吗 stand alone; the neutral tone unmarked. The
-  reader finds the words from this grouping, so it matters as much as the tones.
+  name is one word; 了, 的 and 吗 stand alone; the neutral tone unmarked. A word
+  on the HSK lists is read as the dictionary reads it (暖和 nuǎnhuo, not nuǎnhé).
+  The reader finds the words from this grouping, so it matters as much as the
+  tones.
 - **`en`**: a natural translation of the whole sentence.
 - **`teach`**: every character in the passage that is in neither `knownChars`
   nor `met`, in order of first appearance, with its reading here and a short
   meaning. The script recounts the list itself; your glosses are what it keeps.
 - **`vocab`**: every word the passage uses that is not in `knownWords` and is
   worth learning — up to 14, words with new characters first (`"new": true`),
-  names and places included. `d` is the sense it has here.
+  names and places included. `d` is the sense it has here. Beyond those, and
+  with no limit: **every word off the HSK lists** the passage uses (热汤, 雪地,
+  a name), with `py` and `d` — the app explains such a word from here wherever
+  it turns up, and keeps them all in the library as a set of their own.
+  `check` names any that are missing, and `add` refuses to save without them.
 - **`grammar`**: 1–3 patterns the passage really uses that matter at HSK 1–3
   (把, 是…的, 因为…所以, 越来越…), each with its sentence from the passage.
 - **`note`**: one or two sentences in English: what to watch for.

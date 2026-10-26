@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { CharacterEntry, Library } from '../data/types';
-import { readCheck } from './answer';
 import { parseResponse } from './parse';
 import { alignPinyin, bandSpread, paragraphs, stepsAbove, tokenize, wordBands } from './reading';
 import type { TextLine } from './text';
@@ -76,6 +75,16 @@ describe('alignPinyin', () => {
     assert.deepEqual(alignPinyin(line('圳深', 'zhènshēn'), L), ['zhèn', 'shēn']);
   });
 
+  it('reads a syllabus word as the syllabus does when the writer gave it another character reading', () => {
+    const W = lib([entry('暖', 4, 'nuǎn'), { ...entry('和', 1, 'hé'), py: ['hé', 'huo'] }, entry('了', 1, 'le')]);
+    W.byWord.set('暖和', { w: '暖和', py: 'nuǎn huo', d: 'warm', hsk: 4 });
+    assert.deepEqual(alignPinyin(line('暖和了', 'nuǎnhé le'), W), ['nuǎn', 'huo', 'le']);
+    assert.deepEqual(alignPinyin(line('暖和了', 'nuǎnhuo le'), W), ['nuǎn', 'huo', 'le']);
+    // A reading the syllabus lists for the word is the writer's to choose.
+    W.byWord.set('暖和', { w: '暖和', py: 'nuǎn huo', d: 'warm', hsk: 4, alt: [{ py: 'nuǎn hé', d: '' }] });
+    assert.deepEqual(alignPinyin(line('暖和了', 'nuǎnhé le'), W), ['nuǎn', 'hé', 'le']);
+  });
+
   it('falls back to the library only for a word it cannot cut', () => {
     assert.deepEqual(alignPinyin(line('我喜欢', 'wǒ zzzz'), L), ['wǒ', 'xǐ', 'huān']);
   });
@@ -141,17 +150,6 @@ describe('parsing the reader’s metadata', () => {
     const [draft] = parseResponse(raw).drafts;
     assert.equal(draft.lines[0].py, 'wǒ');
     assert.equal(draft.lines[0].p, undefined);
-  });
-});
-
-describe('reading an answer check', () => {
-  it('takes the verdict from a fenced block with prose around it', () => {
-    const got = readCheck('Here you go:\n```json\n{"verdict":"Nearly","feedback":"Close.","better":"它在屋上睡觉。"}\n```');
-    assert.deepEqual(got, { verdict: 'nearly', feedback: 'Close.', better: '它在屋上睡觉。' });
-  });
-
-  it('gives up on something that is not a verdict', () => {
-    assert.equal(readCheck('I think it is fine.'), null);
   });
 });
 

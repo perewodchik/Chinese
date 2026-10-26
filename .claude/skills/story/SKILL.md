@@ -1,6 +1,6 @@
 ---
 name: story
-description: Write a story in chapters for the learner to read in the app — their topic and characters (Ash and Pikachu, say), pitched so they know a chosen share of the characters (80–90% by default), opening with a preface of names and key words, its new words coming back chapter after chapter, and its new characters queued for Review. Use when the user types /story or asks for a story, a series or chapters to read for their Chinese.
+description: Write a story in chapters for the learner to read in the app — their topic and characters (Ash and Pikachu, say), pitched so they know a chosen share of the characters (80–90% by default), opening with a preface of names and key words, its new words coming back chapter after chapter, and its new words put on the shelf's list for Cards. Use when the user types /story or asks for a story, a series or chapters to read for their Chinese.
 argument-hint: "<topic, characters, how much known, chapters, tone>"
 ---
 
@@ -118,18 +118,20 @@ measured.
 ## 7. Onto the shelf
 
 ```bash
-<the variables> npm run -s texts -- add <file> --new-set "<title>" --story --preface --collect --genre story
+<the variables> npm run -s texts -- add <file> --new-set "<title>" --story --preface --learn --genre story
 ```
 
 `--genre dialogue` when the chapters are mostly talk. A new reading session
 named after the story, the preface first and the chapters in order. Every
-chapter's new characters go into the collection "New from “<title>”", so Review
-asks them and the practice sheets print them; the preface's names and words do
-not — the learner marks those known.
+chapter's new words go onto the shelf's own list — as words, and any new
+character no new word covers as itself — which Cards ask from, as a word the
+learner taps and learns on the text page; the preface's names and words do not:
+the learner marks those known. Every word off the HSK lists needs a `vocab`
+entry, or `add` refuses (see the `vocab` rule in `/add-text`).
 
 ## 8. The report
 
 Short, in their language: the session and its address (`/texts/<id>` of the
 preface), a reminder to open the preface first and mark its words as known,
 then per chapter its title, what share of it they know and how many new
-characters, and the collection the new ones went to. Not the JSON.
+characters, and how many went onto the shelf's list. Not the JSON.

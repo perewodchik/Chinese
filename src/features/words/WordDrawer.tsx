@@ -8,7 +8,7 @@ import { DAY } from '../../domain/memory';
 import { collectedItems } from '../../domain/sweep';
 import { hskLabel } from '../../domain/text';
 import { listedParts } from '../../domain/wordlist';
-import { wordInfo, wordKnowledge } from '../../domain/words';
+import { wordInfo, wordKnowledge, wordsFromTexts } from '../../domain/words';
 import { useOpenViewer } from '../../navigation/charViewer';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
@@ -60,10 +60,15 @@ export function WordDrawer({ id, onClose }: Props) {
 
   const w = idValue(id);
   const shelfForGloss = useReadingShelf();
-  // A word the dictionary lacks may still be glossed by the text it came from.
+  // A word the dictionary lacks may still be glossed by a text: the one on
+  // this shelf first, then any other — 热汤 is explained in every text it
+  // turns up in, not only the one that glossed it.
   const fromText = useMemo(
-    () => shelfForGloss?.texts.flatMap((t) => t.vocab).find((v) => v.w === w) ?? null,
-    [shelfForGloss, w],
+    () =>
+      shelfForGloss?.texts.flatMap((t) => t.vocab).find((v) => v.w === w && v.d) ??
+      wordsFromTexts(lib, texts).find((v) => v.w === w) ??
+      null,
+    [shelfForGloss, w, lib, texts],
   );
   const info = wordInfo(lib, w);
   const chars = [...w];
@@ -184,7 +189,10 @@ export function WordDrawer({ id, onClose }: Props) {
                 <Icon name="expand" size={18} />
               </button>
             </div>
-            <h1 className="word-meaning">{info?.d ?? fromList?.d ?? fromText?.d ?? 'Not in the dictionary'}</h1>
+            <h1 className="word-meaning">
+              {/* Off the lists, the sense a text or a list gave it beats the dictionary's first one. */}
+              {(info?.listed ? info.d : null) ?? fromList?.d ?? fromText?.d ?? info?.d ?? 'Not in the dictionary'}
+            </h1>
             <p className="tiny muted" style={{ margin: 0 }}>
               {info?.listed
                 ? hskLabel(info.hsk)

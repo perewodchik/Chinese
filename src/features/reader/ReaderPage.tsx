@@ -236,7 +236,11 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
 
   return (
     <div className="rd" ref={top} data-mode={mode} style={{ '--reader-scale': settings.readerScale } as CSSProperties}>
-      <header className="rd-top no-print">
+      {/* The bar and the parts are stuck to the top as one block: two sticky
+          pieces, each with its own offset, left a sliver between them on an
+          iPhone where the text showed through. */}
+      <div className="rd-pin no-print">
+      <header className="rd-top">
         <Link className="rd-back" to={set ? paths.shelf(set.id) : paths.read()} aria-label="Back to the shelf">
           <Icon name="back" size={24} />
         </Link>
@@ -278,7 +282,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       </header>
 
       {mode === 'single' && (
-        <nav className="rd-parts no-print" aria-label="Parts of this text">
+        <nav className="rd-parts" aria-label="Parts of this text">
           {parts.map((p) => (
             <button
               key={p.id}
@@ -294,6 +298,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           ))}
         </nav>
       )}
+      </div>
 
       <div className="rd-text">
         {shown.map((t, i) => (

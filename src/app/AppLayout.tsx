@@ -165,12 +165,7 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
     };
     document.addEventListener('keydown', escape);
     panel.current?.focus();
-    // The page behind stays where it is while the sheet is up.
-    document.documentElement.dataset.sheet = 'open';
-    return () => {
-      document.removeEventListener('keydown', escape);
-      delete document.documentElement.dataset.sheet;
-    };
+    return () => document.removeEventListener('keydown', escape);
   }, [close]);
 
   return (

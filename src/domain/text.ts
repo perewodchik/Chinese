@@ -380,6 +380,8 @@ export interface TextStudy {
   written?: string[];
   /** the questions answered, by index */
   answered?: number[];
+  /** what was written as the answer, by the question's index */
+  answers?: Record<string, string>;
   /** how many of its characters have been copied out, in order, in Write */
   copied?: number;
   /** how many of its sentences have been written from dictation, in order, in Write */
@@ -397,6 +399,9 @@ export function mergeStudy(a: TextStudy | undefined, b: TextStudy | undefined): 
     ...optionalField('translated', max(a.translated, b.translated)),
     ...optionalField('written', union(a.written, b.written)),
     ...optionalField('answered', union(a.answered, b.answered)),
+    // The later edit is the one passed second; a question answered on both
+    // devices keeps that one.
+    ...optionalField('answers', a.answers || b.answers ? { ...a.answers, ...b.answers } : undefined),
     ...optionalField('copied', max(a.copied, b.copied)),
     ...optionalField('dictated', max(a.dictated, b.dictated)),
   };

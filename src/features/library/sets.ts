@@ -1,8 +1,9 @@
 import type { Library } from '../../data/types';
-import type { Collection } from '../../domain/collection';
+import type { Collection, CollectionWord } from '../../domain/collection';
 import { charId, idValue, isWordId, wordId, type ItemId } from '../../domain/ids';
 import { allPresets, type Preset } from '../../domain/presets';
-import { hskLabel } from '../../domain/text';
+import { hskLabel, type GeneratedText } from '../../domain/text';
+import { wordsFromTexts } from '../../domain/words';
 
 /**
  * Everything the library holds, as sets: a band of the syllabus, a topic, or
@@ -27,6 +28,8 @@ export interface LibSet {
   collection?: Collection;
   /** a ready-made set, to make a list from */
   preset?: Preset;
+  /** words off the lists, with the reading and meaning they were given */
+  extra?: CollectionWord[];
 }
 
 export const listSetId = (c: Collection) => `list-${c.id}`;
@@ -86,7 +89,33 @@ export function ownLists(collections: readonly Collection[]): LibSet[] {
 /** “New from “Reading, 14 September””: a list a text made, before shelves kept their own. */
 export const FROM_TEXT = /^New from “(.+)”$/;
 
-export function findSet(lib: Library, collections: readonly Collection[], id: string): LibSet | null {
+export const TEXT_WORDS = 'text-words';
+
+/**
+ * The words your texts use that the HSK lists do not have, as a set beside
+ * the topics — outside the bands, since no band has them. Null when there are none.
+ */
+export function textWordsSet(lib: Library, texts: readonly GeneratedText[]): LibSet | null {
+  const extra = wordsFromTexts(lib, texts);
+  if (!extra.length) return null;
+  return {
+    id: TEXT_WORDS,
+    group: 'topic',
+    name: 'From your texts',
+    blurb: 'Words your texts use that the HSK lists do not have',
+    chars: [],
+    words: extra.map((w) => w.w),
+    extra,
+  };
+}
+
+export function findSet(
+  lib: Library,
+  collections: readonly Collection[],
+  id: string,
+  texts: readonly GeneratedText[] = [],
+): LibSet | null {
+  if (id === TEXT_WORDS) return textWordsSet(lib, texts);
   const band = /^hsk-(\d)$/.exec(id);
   if (band) return withList(bandSet(lib, Number(band[1])), collections);
   if (id.startsWith('list-')) {

@@ -575,7 +575,7 @@ export function QuestionsPart({ text, partId, showPinyin }: { text: GeneratedTex
             {showPinyin && <p className="rd-q-py">{q.py}</p>}
             <p className="hanzi rd-q-zh">{q.zh}</p>
             {q.en && <p className="rd-q-en">{q.en}</p>}
-            <AnswerBox text={text} question={q} onDone={() => !answered.has(i) && studyText(text.id, { answered: [i] })} />
+            <AnswerBox text={text} index={i} question={q} />
           </li>
         ))}
       </ol>
