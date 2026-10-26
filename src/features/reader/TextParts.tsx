@@ -45,8 +45,11 @@ export function partFill(text: GeneratedText, standing: (w: string) => Standing)
   const copied = Math.min(1, (s.copied ?? 0) / chars);
   const taught = text.teach.length ? (s.written ?? []).filter((c) => text.teach.includes(c)).length / text.teach.length : copied;
   const dictated = Math.min(1, (s.dictated ?? 0) / Math.max(1, text.lines.length));
-  // Writing is the new characters, the text copied out and the text written from dictation, a third each.
-  const write = (taught + copied + dictated) / 3;
+  // Three ways to write a text — its new characters, the whole text copied
+  // out, the whole text from dictation — and any one done to the end is the
+  // part done. As a third each, copying out every character showed a third of
+  // a line, which read as work left over.
+  const write = Math.max(taught, copied, dictated);
   const answered = text.questions.length ? (s.answered ?? []).length / text.questions.length : 1;
   return {
     read: text.read ? 1 : 0,
