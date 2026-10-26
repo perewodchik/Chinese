@@ -652,66 +652,6 @@
 }
 
 /* Each new character in its own 田字格 square. */
-.rd-write {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
-  gap: 8px;
-}
-
-.rd-box {
-  position: relative;
-  padding: 0 0 6px;
-  border: 1.5px solid var(--grid);
-  border-radius: 4px;
-  background: var(--card);
-  display: grid;
-  justify-items: center;
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.rd-box .hanzi {
-  position: relative;
-  width: 100%;
-  height: 58px;
-  display: grid;
-  place-items: center;
-  font-size: 40px;
-  line-height: 1;
-  background:
-    linear-gradient(var(--grid), var(--grid)) 50% 0 / 1px 100% no-repeat,
-    linear-gradient(var(--grid), var(--grid)) 0 50% / 100% 1px no-repeat;
-}
-
-.rd-box-py {
-  font-size: 11.5px;
-  color: var(--ink-3);
-}
-
-.rd-box[data-done] {
-  border-color: var(--jade);
-  background: var(--jade-soft);
-}
-
-.rd-look {
-  display: grid;
-  justify-items: center;
-  gap: 14px;
-  text-align: center;
-}
-
-.rd-look-box {
-  width: 204px;
-  height: 204px;
-  display: grid;
-  place-items: center;
-  border: 2px solid var(--grid);
-  border-radius: 4px;
-  background:
-    linear-gradient(var(--grid), var(--grid)) 50% 0 / 1px 100% no-repeat,
-    linear-gradient(var(--grid), var(--grid)) 0 50% / 100% 1px no-repeat;
-}
-
 .rd-questions li + li {
   margin-top: 22px;
 }
@@ -1025,10 +965,6 @@ label.rd-aa-row {
 
 .rd-copy .icon {
   color: var(--accent);
-}
-
-.rd-write-lede {
-  margin-top: 6px;
 }
 
 .co-scrim {

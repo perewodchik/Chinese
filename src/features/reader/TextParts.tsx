@@ -1,15 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { charId, type ItemId } from '../../domain/ids';
-import { cardsFor } from '../../domain/teach';
+import type { ItemId } from '../../domain/ids';
 import { hskLabel, type GeneratedText } from '../../domain/text';
 import { itemForToken } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
-import { gradeItem, setShelfStudy, studyText } from '../../store/commands';
-import { useStore } from '../../store/store';
-import { Glyph } from '../../ui/Glyph';
+import { setShelfStudy, studyText } from '../../store/commands';
 import { Icon } from '../../ui/Icon';
-import { Modal } from '../../ui/Modal';
-import { WritePad } from '../review/WritePad';
 import { useLibrary } from '../shared/library';
 import { AnswerBox } from './AnswerBox';
 import { CopyOut } from './CopyOut';
@@ -43,13 +38,10 @@ export function partFill(text: GeneratedText, standing: (w: string) => Standing)
   const words = text.vocab.length ? text.vocab.filter((w) => standing(w.w) !== 'new').length / text.vocab.length : 1;
   const chars = text.lines.reduce((n, l) => n + [...l.zh].filter((c) => /\p{Script=Han}/u.test(c)).length, 0) || 1;
   const copied = Math.min(1, (s.copied ?? 0) / chars);
-  const taught = text.teach.length ? (s.written ?? []).filter((c) => text.teach.includes(c)).length / text.teach.length : copied;
   const dictated = Math.min(1, (s.dictated ?? 0) / Math.max(1, text.lines.length));
-  // Three ways to write a text — its new characters, the whole text copied
-  // out, the whole text from dictation — and any one done to the end is the
-  // part done. As a third each, copying out every character showed a third of
-  // a line, which read as work left over.
-  const write = Math.max(taught, copied, dictated);
+  // Two ways to write a text — copied out, or from dictation — and either one
+  // done to the end is the part done.
+  const write = Math.max(copied, dictated);
   const answered = text.questions.length ? (s.answered ?? []).length / text.questions.length : 1;
   return {
     read: text.read ? 1 : 0,
@@ -445,14 +437,6 @@ export function WordsPart({
 /* ---------------------------------------------------------------- 写 Write */
 
 export function WritePart({ text, partId }: { text: GeneratedText; partId: string }) {
-  const lib = useLibrary();
-  const recall = useStore((s) => s.recall);
-  const known = useMemo(() => new Set(text.basis), [text.basis]);
-  const cards = useMemo(() => cardsFor(lib, text.teach, known, text.glosses), [lib, text.teach, known, text.glosses]);
-  const written = new Set(text.study?.written ?? []);
-  const [writing, setWriting] = useState<number | null>(null);
-  const card = writing === null ? null : cards[writing];
-
   const [copying, setCopying] = useState(false);
   const total = text.lines.reduce((n, l) => n + [...l.zh].filter((c) => /\p{Script=Han}/u.test(c)).length, 0);
   const copied = Math.min(total, text.study?.copied ?? 0);
@@ -495,74 +479,7 @@ export function WritePart({ text, partId }: { text: GeneratedText; partId: strin
       </button>
       {copying && <CopyOut text={text} onClose={() => setCopying(false)} />}
       {dictating && <Dictation text={text} onClose={() => setDictating(false)} />}
-      {cards.length > 0 && (
-        <>
-          <p className="rd-part-lede rd-write-lede">
-            The characters this text brought in, {cards.filter((c) => written.has(c.c)).length} of {cards.length} written. Look at
-            each one, then write it from memory.
-          </p>
-      <div className="rd-write">
-        {cards.map((c, i) => (
-          <button key={c.c} className="rd-box" data-done={written.has(c.c) || undefined} onClick={() => setWriting(i)}>
-            <span className="hanzi">{c.c}</span>
-            <span className="rd-box-py">{c.py}</span>
-          </button>
-        ))}
-      </div>
-        </>
-      )}
-      {card && (
-        <WriteOne
-          key={card.c}
-          char={card.c}
-          py={card.py}
-          gloss={card.def}
-          strokes={lib.strokes}
-          onClose={() => setWriting(null)}
-          onDone={(rating) => {
-            studyText(text.id, { written: [card.c] });
-            // Writing it counts towards its writing schedule once it has one.
-            if (recall[charId(card.c)]) gradeItem(charId(card.c), 'write', rating);
-            setWriting(writing! + 1 < cards.length ? writing! + 1 : null);
-          }}
-        />
-      )}
     </Section>
-  );
-}
-
-function WriteOne({
-  char,
-  py,
-  gloss,
-  strokes,
-  onClose,
-  onDone,
-}: {
-  char: string;
-  py: string;
-  gloss: string;
-  strokes: Parameters<typeof Glyph>[0]['strokes'];
-  onClose: () => void;
-  onDone: Parameters<typeof WritePad>[0]['onDone'];
-}) {
-  const [stage, setStage] = useState<'look' | 'write'>('look');
-  return (
-    <Modal title={stage === 'look' ? `${py}: ${gloss}` : 'Write it from memory'} onClose={onClose}>
-      {stage === 'look' ? (
-        <div className="rd-look">
-          <span className="rd-look-box">
-            <Glyph char={char} strokes={strokes} size={180} />
-          </span>
-          <p className="small muted">Trace it with your eyes, stroke by stroke, then write it without looking.</p>
-          <button className="btn primary lg" onClick={() => setStage('write')}>
-            Write it from memory
-          </button>
-        </div>
-      ) : (
-        <WritePad char={char} py={py} gloss={gloss} onDone={onDone} />
-      )}
-    </Modal>
   );
 }
 
