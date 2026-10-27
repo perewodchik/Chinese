@@ -1339,12 +1339,21 @@ label.rd-aa-row {
      screen left the squares stranded between two bands of empty paper. */
   justify-content: center;
   gap: 18px;
-  padding: 18px var(--gutter) max(18px, env(safe-area-inset-bottom));
+  --pad: var(--gutter);
+  padding: 18px var(--pad) max(18px, env(safe-area-inset-bottom));
   overflow: hidden;
 }
 
 .cw[data-wide] .cw-pane {
-  padding: 20px 34px 22px;
+  --pad: 34px;
+  padding: 20px var(--pad) 22px;
+}
+
+/* The whole text runs edge to edge of its side of the screen. */
+.cw-row-wrap[data-whole] {
+  align-self: stretch;
+  max-width: none;
+  margin-inline: calc(-1 * var(--pad));
 }
 
 .cw-word {

@@ -265,18 +265,22 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
   const across = Math.min(sq.across, Math.max(2, n));
   const slots = across * sq.side + (across - 1) * GAP;
 
-  // The row of squares shows the place: its first square at the left edge,
-  // as far as the row goes.
+  // The row of squares shows the place. A word's squares start at the left
+  // edge, as far as the row goes. The whole text runs across the full width
+  // and keeps the square being written in the middle, its neighbours on
+  // either side; a tap on any square brings that one to the middle.
   const row = useRef<HTMLDivElement>(null);
   const rowEdges = useEdges(row, [n, sq.side, at, by]);
+  const placed = useRef(false);
   useEffect(() => {
     const r = row.current;
     if (!r || !unit) return;
-    const first = whole ? track.findIndex((t) => t.unit === at) : Math.min(charAt, Math.max(0, n - across));
-    // At once: a glide here, with Safari's bounce at its end, read as the row springing back.
-    r.scrollTo({ left: Math.max(0, first) * (sq.side + GAP) });
+    const first = whole ? track.findIndex((t) => t.unit === at) + charAt : Math.min(charAt, Math.max(0, n - across));
+    // The first placing is at once; after that the whole text glides, with no snapping to spring back from.
+    r.scrollTo({ left: Math.max(0, first) * (sq.side + GAP), behavior: whole && placed.current ? 'smooth' : 'auto' });
+    placed.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [at, by, sq.side, across]);
+  }, [at, by, sq.side, across, whole ? charAt : -1]);
 
   // The strokes of the whole word in one row, the character being written at its left edge.
   const strip = useRef<HTMLDivElement>(null);
@@ -434,8 +438,19 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
                   </div>
                 )}
 
-                <div className="cw-row-wrap" data-l={rowEdges.l || undefined} data-r={rowEdges.r || undefined} style={{ width: slots + 2 * edge(wide), '--edge': `${edge(wide)}px` } as CSSProperties}>
-                  <div className="cw-row" ref={row} data-one={n === 1 || undefined} style={{ paddingInline: edge(wide) }}>
+                <div
+                  className="cw-row-wrap"
+                  data-whole={whole || undefined}
+                  data-l={rowEdges.l || undefined}
+                  data-r={rowEdges.r || undefined}
+                  style={{ width: whole ? undefined : slots + 2 * edge(wide), '--edge': whole ? '64px' : `${edge(wide)}px` } as CSSProperties}
+                >
+                  <div
+                    className="cw-row"
+                    ref={row}
+                    data-one={n === 1 || undefined}
+                    style={{ paddingInline: whole ? `calc(50% - ${sq.side / 2}px)` : edge(wide) }}
+                  >
                     {whole
                       ? track.map((t, k) =>
                           square(t.c, t.py, k, t.unit < at || (t.unit === at && t.j < charAt) ? 'done' : t.unit === at && t.j === charAt ? 'now' : 'ahead', () =>
