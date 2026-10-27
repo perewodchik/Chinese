@@ -306,6 +306,18 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
   const reading = unit?.py.join('') ?? '';
   const nextUnit = units[at + 1];
 
+  // The sentence over the squares has room for two lines and never more, so
+  // nothing under it moves from one sentence to the next; a longer one
+  // scrolls inside that room to keep the word being copied in view.
+  const sentence = useRef<HTMLParagraphElement>(null);
+  useLayoutEffect(() => {
+    const p = sentence.current;
+    const now = p?.querySelector<HTMLElement>('.cw-line-now');
+    if (!p || !now) return;
+    const lh = parseFloat(getComputedStyle(p).lineHeight) || 33;
+    p.scrollTop = Math.max(0, Math.floor(now.offsetTop / lh) * lh - lh);
+  }, [at, by]);
+
   // The text on the left keeps the line being copied in view.
   const page = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -409,12 +421,14 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
                       {unit.text}
                     </button>
                     <span className="cw-word-py">{reading}</span>
-                    {meaning && <span className="cw-word-d">{meaning}</span>}
-                    <Say text={unit.text} />
+                    <span className="cw-word-d">{meaning}</span>
+                    <span className="cw-say">
+                      <Say text={unit.text} />
+                    </span>
                   </div>
                 ) : (
                   <div className="cw-line">
-                    <p className="hanzi cw-line-zh">
+                    <p className="hanzi cw-line-zh" ref={sentence}>
                       {lines[unit.line]!.map((p, k) =>
                         p.unit === at ? (
                           <button key={k} className="cw-line-now" onClick={() => openItem(itemForToken(lib, unit.text))}>
@@ -427,11 +441,15 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
                         ),
                       )}
                     </p>
-                    <span className="cw-line-gloss">
-                      {reading}
-                      {meaning ? ` · ${meaning}` : ''}
-                    </span>
-                    <Say text={unit.text} />
+                    <div className="cw-line-meta">
+                      <span className="cw-say">
+                        <Say text={unit.text} />
+                      </span>
+                      <span className="cw-line-gloss">
+                        {reading}
+                        {meaning ? ` · ${meaning}` : ''}
+                      </span>
+                    </div>
                   </div>
                 )}
 
