@@ -27,14 +27,14 @@ import {
 import { readerSheet } from './readerSheet';
 import { rememberReading } from './lastRead';
 import {
-  ListenPart,
+  MORE,
+  MorePart,
   partFill,
   partsOf,
   QuestionsPart,
-  TranslatePart,
   WordsPart,
   WritePart,
-  type PartId,
+  type TabId,
 } from './TextParts';
 import './reader.css';
 
@@ -219,9 +219,10 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
 
   const parts = partsOf(text);
   const fill = partFill(text, standing);
-  const [current, holdPart] = useCurrentPart(text.id, parts.map((p) => p.id));
-  const partId = (p: PartId) => `part-${p}`;
-  function goPart(p: PartId) {
+  const tabs = [...parts, MORE];
+  const [current, holdPart] = useCurrentPart(text.id, tabs.map((p) => p.id));
+  const partId = (p: TabId) => `part-${p}`;
+  function goPart(p: TabId) {
     holdPart(p);
     if (p === 'read') {
       top.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -283,14 +284,15 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
 
       {mode === 'single' && (
         <nav className="rd-parts" aria-label="Parts of this text">
-          {parts.map((p) => (
+          {tabs.map((p) => (
             <button
               key={p.id}
               className="rd-part-tab"
               aria-current={current === p.id ? 'true' : undefined}
-              style={{ '--fill': `${Math.round(fill[p.id] * 100)}%` } as CSSProperties}
+              data-more={p.id === 'more' || undefined}
+              style={p.id === 'more' ? undefined : ({ '--fill': `${Math.round(fill[p.id] * 100)}%` } as CSSProperties)}
               onClick={() => goPart(p.id)}
-              title={`${p.label}: ${fill[p.id] >= 1 ? 'done' : fill[p.id] > 0 ? 'started' : 'not yet'}`}
+              title={p.id === 'more' ? 'Listen, translate, dictation: practice that is not counted' : `${p.label}: ${fill[p.id] >= 1 ? 'done' : fill[p.id] > 0 ? 'started' : 'not yet'}`}
             >
               <span className="hanzi">{p.han}</span>
               <small>{p.label}</small>
@@ -375,8 +377,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
 
       {mode === 'single' && (
         <div className="rd-study no-print">
-          <ListenPart text={text} reading={reading} spoken={spoken} partId={partId('listen')} />
-          <TranslatePart key={`t${text.id}`} text={text} partId={partId('translate')} />
+          <WritePart text={text} partId={partId('write')} />
           <WordsPart
             text={text}
             setId={set?.id ?? null}
@@ -385,10 +386,10 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             onShowLine={showLine}
             partId={partId('words')}
           />
-          <WritePart text={text} partId={partId('write')} />
           {text.questions.length > 0 && (
             <QuestionsPart key={`q${text.id}`} text={text} partId={partId('questions')} showPinyin={pinyin === 'all'} />
           )}
+          <MorePart text={text} reading={reading} spoken={spoken} partId={partId('more')} />
           <div className="rd-next">
             {next ? (
               <button className="rd-next-btn" onClick={() => go(page + 1)}>
@@ -426,22 +427,22 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
  * glides to it; the next thing the learner does with a finger, a wheel or a
  * key hands it back to the scrolling.
  */
-function useCurrentPart(textId: string, ids: PartId[]): [PartId, (p: PartId) => void] {
-  const [current, setCurrent] = useState<PartId>('read');
-  const held = useRef<PartId | null>(null);
+function useCurrentPart(textId: string, ids: TabId[]): [TabId, (p: TabId) => void] {
+  const [current, setCurrent] = useState<TabId>('read');
+  const held = useRef<TabId | null>(null);
   const key = ids.join(',');
   useEffect(() => {
     held.current = null;
     const look = () => {
       if (held.current) return;
-      const list = key.split(',') as PartId[];
+      const list = key.split(',') as TabId[];
       const study = document.querySelector<HTMLElement>('.rd-study');
       const wide = Boolean(study && getComputedStyle(study).overflowY === 'auto');
       const scroller = wide ? study : document.querySelector<HTMLElement>('.main');
       const line = wide
         ? study!.getBoundingClientRect().top + 24
         : (document.querySelector('.rd-parts')?.getBoundingClientRect().bottom ?? 120) + 48;
-      let at: PartId = 'read';
+      let at: TabId = 'read';
       if (!wide || study!.scrollTop > 0) {
         for (const id of list) {
           if (id === 'read') continue;
@@ -471,7 +472,7 @@ function useCurrentPart(textId: string, ids: PartId[]): [PartId, (p: PartId) => 
       window.removeEventListener('keydown', release);
     };
   }, [key, textId]);
-  const hold = useCallback((p: PartId) => {
+  const hold = useCallback((p: TabId) => {
     held.current = p;
     setCurrent(p);
   }, []);

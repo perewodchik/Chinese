@@ -15,40 +15,39 @@ import { onReadThrough, RATES, type Reading } from './readAloud';
 /**
  * The parts of a text, as the strip at the top of the page names them.
  *
- * They are parts of one text, not steps: read it, hear it, check what it
- * says, take the words worth having, write the new characters, answer the
- * questions — in any order, as often as you like. Each fills the line under
- * its name as it is done, so coming back to a text shows at a glance what is
- * left of it.
+ * They are parts of one text, not steps: read it, write it out, take the
+ * words worth having, answer the questions — in any order, as often as you
+ * like. Each fills the line under its name as it is done, so coming back to a
+ * text shows at a glance what is left of it.
+ *
+ * Listening, translating and dictation are there too, under More, and count
+ * for nothing: they are ways of going over the text, not things to finish.
+ * As parts with lines of their own they turned a text into a list of seven
+ * chores, two of them done by opening the page.
  */
-export type PartId = 'read' | 'listen' | 'translate' | 'words' | 'write' | 'questions';
+export type PartId = 'read' | 'write' | 'words' | 'questions';
+export type TabId = PartId | 'more';
 
 export const PARTS: Array<{ id: PartId; han: string; label: string }> = [
   { id: 'read', han: '读', label: 'Text' },
-  { id: 'listen', han: '听', label: 'Listen' },
-  { id: 'translate', han: '译', label: 'Translate' },
-  { id: 'words', han: '词', label: 'Words' },
   { id: 'write', han: '写', label: 'Write' },
+  { id: 'words', han: '词', label: 'Words' },
   { id: 'questions', han: '问', label: 'Questions' },
 ];
+
+export const MORE = { id: 'more' as const, han: '更', label: 'More' };
+
+const hanCount = (text: GeneratedText) => text.lines.reduce((n, l) => n + [...l.zh].filter((c) => /\p{Script=Han}/u.test(c)).length, 0);
 
 /** How far each part has got, from nothing (0) to done (1). */
 export function partFill(text: GeneratedText, standing: (w: string) => Standing): Record<PartId, number> {
   const s = text.study ?? {};
   const words = text.vocab.length ? text.vocab.filter((w) => standing(w.w) !== 'new').length / text.vocab.length : 1;
-  const chars = text.lines.reduce((n, l) => n + [...l.zh].filter((c) => /\p{Script=Han}/u.test(c)).length, 0) || 1;
-  const copied = Math.min(1, (s.copied ?? 0) / chars);
-  const dictated = Math.min(1, (s.dictated ?? 0) / Math.max(1, text.lines.length));
-  // Two ways to write a text — copied out, or from dictation — and either one
-  // done to the end is the part done.
-  const write = Math.max(copied, dictated);
   const answered = text.questions.length ? (s.answered ?? []).length / text.questions.length : 1;
   return {
     read: text.read ? 1 : 0,
-    listen: s.heard ? 1 : 0,
-    translate: s.translated ? 1 : 0,
+    write: Math.min(1, (s.copied ?? 0) / (hanCount(text) || 1)),
     words: Math.min(1, words),
-    write: Math.min(1, write),
     questions: Math.min(1, answered),
   };
 }
@@ -81,17 +80,7 @@ function Section({ id, han, title, aside, children }: { id: string; han: string;
  * slower to follow; and every line in a list to follow along, lit as it is
  * read. Stopping remembers the line, so Play goes on from there.
  */
-export function ListenPart({
-  text,
-  reading,
-  spoken,
-  partId,
-}: {
-  text: GeneratedText;
-  reading: Reading;
-  spoken: string[];
-  partId: string;
-}) {
+function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: Reading; spoken: string[] }) {
   const [last, setLast] = useState(0);
   const [ios, setIos] = useIosSpeak();
   const lines = useRef<HTMLOListElement>(null);
@@ -114,7 +103,7 @@ export function ListenPart({
   const total = spoken.reduce((n, l) => n + [...l].length, 0) || 1;
 
   return (
-    <Section id={partId} han="听" title="Listen" aside={text.study?.heard ? 'Heard to the end' : `${spoken.length} lines`}>
+    <>
       <p className="rd-part-lede">
         Hear it once following the text, then once more without looking. Tap any line to go on from there.
       </p>
@@ -190,17 +179,17 @@ export function ListenPart({
               setIos(true);
             }}
           >
-            Your iPhone’s voice
+            Your device’s voice
           </button>
         )}
       </div>
-      {ios && (
-        <p className="tiny muted rd-voice-note">
-          Tap a line, or Play for the whole text: it is selected, and Speak in the menu reads it in the voice set for
-          Chinese in Settings, Accessibility, Spoken Content.
+      {IOS_SPEAK && (
+        <p className="small muted rd-voice-note">
+          <b>Your device’s voice</b> reads in the Chinese voice set in Settings › Accessibility › Spoken Content ›
+          Voices, on an iPhone or an iPad. Tap a line or Play: the text is selected, then tap <b>Speak</b> in the menu
+          over it. The best voices, marked Premium, are a free download there.
         </p>
       )}
-
 
       <ol className="rd-listen" ref={lines} data-select={ios || undefined}>
         {text.lines.map((l, i) => {
@@ -226,7 +215,7 @@ export function ListenPart({
           );
         })}
       </ol>
-    </Section>
+    </>
   );
 }
 
@@ -275,7 +264,7 @@ function selectLines(list: HTMLElement | null, from: number, to: number) {
 
 /* ---------------------------------------------------------------- 译 Translate */
 
-export function TranslatePart({ text, partId }: { text: GeneratedText; partId: string }) {
+function TranslateBody({ text }: { text: GeneratedText }) {
   const [open, setOpen] = useState<Set<number>>(new Set());
   const all = open.size === text.lines.length;
   const reveal = (next: Set<number>) => {
@@ -283,17 +272,13 @@ export function TranslatePart({ text, partId }: { text: GeneratedText; partId: s
     if (next.size && !text.study?.translated) studyText(text.id, { translated: Date.now() });
   };
   return (
-    <Section
-      id={partId}
-      han="译"
-      title="Translate"
-      aside={
+    <>
+      <div className="row rd-more-lede">
+        <p className="rd-part-lede grow">Say to yourself what each line means, then tap it to check.</p>
         <button className="btn quiet sm rd-show-all" onClick={() => reveal(all ? new Set() : new Set(text.lines.map((_, i) => i)))}>
           {all ? 'Hide all' : 'Show all'}
         </button>
-      }
-    >
-      <p className="rd-part-lede">Say to yourself what each line means, then tap it to check.</p>
+      </div>
       <ol className="rd-pairs">
         {text.lines.map((l, i) => {
           const shown = open.has(i);
@@ -318,6 +303,73 @@ export function TranslatePart({ text, partId }: { text: GeneratedText; partId: s
           );
         })}
       </ol>
+    </>
+  );
+}
+
+/* ---------------------------------------------------------------- 更 More */
+
+/**
+ * Listening, translating and dictation: three ways of going over the text
+ * again, folded away until one is wanted, and counted nowhere. Listen and
+ * Translate open where they are; dictation has the screen to itself.
+ */
+export function MorePart({ text, reading, spoken, partId }: { text: GeneratedText; reading: Reading; spoken: string[]; partId: string }) {
+  const [open, setOpen] = useState<'listen' | 'translate' | null>(null);
+  const [dictating, setDictating] = useState(false);
+  useEffect(() => setOpen(null), [text.id]);
+  const dictated = Math.min(text.lines.length, text.study?.dictated ?? 0);
+  const row = (id: 'listen' | 'translate', han: string, title: string, sub: string) => (
+    <button className="rd-more-row" aria-expanded={open === id} onClick={() => setOpen(open === id ? null : id)}>
+      <span className="hanzi" aria-hidden>
+        {han}
+      </span>
+      <span className="grow">
+        <b>{title}</b>
+        <span className="small muted">{sub}</span>
+      </span>
+      <Icon name="chevron" />
+    </button>
+  );
+  return (
+    <Section id={partId} han="更" title="More" aside="Practice, not counted">
+      <div className="rd-more-list">
+        {row('listen', '听', 'Listen', 'The text read aloud, line by line')}
+        {open === 'listen' && (
+          <div className="rd-more-body">
+            <ListenBody text={text} reading={reading} spoken={spoken} />
+          </div>
+        )}
+        {row('translate', '译', 'Translate', 'Say what a line means, then check')}
+        {open === 'translate' && (
+          <div className="rd-more-body">
+            <TranslateBody key={text.id} text={text} />
+          </div>
+        )}
+        <button
+          className="rd-more-row"
+          onClick={() => {
+            openDictation(text);
+            setDictating(true);
+          }}
+        >
+          <span className="hanzi" aria-hidden>
+            默
+          </span>
+          <span className="grow">
+            <b>Dictation</b>
+            <span className="small muted">
+              {dictated >= text.lines.length
+                ? 'Written to the end. Again?'
+                : dictated
+                  ? `${dictated} of ${text.lines.length} sentences so far: go on from there`
+                  : 'Hear a sentence, write it down, then see it'}
+            </span>
+          </span>
+          <Icon name="chevron" />
+        </button>
+      </div>
+      {dictating && <Dictation text={text} onClose={() => setDictating(false)} />}
     </Section>
   );
 }
@@ -436,52 +488,78 @@ export function WordsPart({
 
 /* ---------------------------------------------------------------- 写 Write */
 
+/**
+ * Copying out, the part the learner likes best, shown as what it is: a strip
+ * of the exercise book with the characters copied so far in ink, the next one
+ * waiting in its square, and the ones after it faint, the way the copying
+ * screen itself shows them. Tapping the strip is the same as the button.
+ */
 export function WritePart({ text, partId }: { text: GeneratedText; partId: string }) {
   const [copying, setCopying] = useState(false);
-  const total = text.lines.reduce((n, l) => n + [...l.zh].filter((c) => /\p{Script=Han}/u.test(c)).length, 0);
+  const chars = useMemo(() => text.lines.flatMap((l) => [...l.zh].filter((c) => /\p{Script=Han}/u.test(c))), [text.lines]);
+  const total = chars.length;
   const copied = Math.min(total, text.study?.copied ?? 0);
-  const [dictating, setDictating] = useState(false);
-  const dictated = Math.min(text.lines.length, text.study?.dictated ?? 0);
+  const done = total > 0 && copied >= total;
+  // A window of the text around the place: two copied behind it, the rest ahead.
+  const from = done ? Math.max(0, total - WRITE_SQUARES) : Math.max(0, Math.min(copied - 2, total - WRITE_SQUARES));
+  const shown = chars.slice(from, from + WRITE_SQUARES);
+  // The rest of the sentence the place is in, so the strip has a sentence to it.
+  const where = useMemo(() => {
+    let n = 0;
+    for (const l of text.lines) {
+      const han = [...l.zh].filter((c) => /\p{Script=Han}/u.test(c)).length;
+      if (copied < n + han) {
+        let k = copied - n;
+        let i = 0;
+        const zh = [...l.zh];
+        while (k > 0 && i < zh.length) if (/\p{Script=Han}/u.test(zh[i++]!)) k--;
+        return zh.slice(i).join('');
+      }
+      n += han;
+    }
+    return '';
+  }, [text.lines, copied]);
 
   return (
-    <Section id={partId} han="写" title="Write">
-      <button className="rd-copy" onClick={() => setCopying(true)}>
-        <span className="grow">
-          <b>Copy out the text</b>
-          <span className="small muted">
-            {copied >= total
-              ? 'Copied out to the end. Again?'
-              : copied
-                ? `${copied} of ${total} characters so far: go on from there`
-                : 'A word or a character at a time, in your notebook'}
+    <Section id={partId} han="写" title="Write" aside={done ? 'Copied out' : `${copied} of ${total} characters`}>
+      <p className="rd-part-lede">Copy the text into your notebook, a word at a time, with its strokes beside it. Copied to the end, the text counts as written.</p>
+      <button className="rd-write" onClick={() => setCopying(true)} aria-label={done ? 'Copy the text out again' : 'Go on copying'}>
+        <span className="rd-write-squares" aria-hidden>
+          {Array.from({ length: WRITE_SQUARES }, (_, k) => {
+            const c = shown[k];
+            const at = from + k;
+            return (
+              <span key={k} className="rd-write-sq" data-state={!c ? 'empty' : done || at < copied ? 'done' : at === copied ? 'now' : undefined}>
+                {c && <span className="hanzi">{c}</span>}
+              </span>
+            );
+          })}
+        </span>
+        <span className="rd-write-line" aria-hidden>
+          <i style={{ width: `${(copied / Math.max(1, total)) * 100}%` }} />
+        </span>
+        <span className="rd-write-foot">
+          <span className="small muted grow">
+            {done ? (
+              'The whole text, copied out.'
+            ) : (
+              <>
+                {copied ? 'Go on from' : 'Start with'} <span className="hanzi">{where}</span>
+              </>
+            )}
           </span>
         </span>
-        <Icon name="chevron" />
       </button>
-      <button
-        className="rd-copy"
-        onClick={() => {
-          openDictation(text);
-          setDictating(true);
-        }}
-      >
-        <span className="grow">
-          <b>Dictation</b>
-          <span className="small muted">
-            {dictated >= text.lines.length
-              ? 'Written to the end. Again?'
-              : dictated
-                ? `${dictated} of ${text.lines.length} sentences so far: go on from there`
-                : 'Hear a sentence, write it in your notebook, then see it'}
-          </span>
-        </span>
-        <Icon name="chevron" />
+      <button className="btn primary lg rd-write-go" onClick={() => setCopying(true)}>
+        {done ? 'Copy it out again' : copied ? 'Go on copying' : 'Start copying'}
       </button>
       {copying && <CopyOut text={text} onClose={() => setCopying(false)} />}
-      {dictating && <Dictation text={text} onClose={() => setDictating(false)} />}
     </Section>
   );
 }
+
+/** How many squares of the exercise book the Write part shows. */
+const WRITE_SQUARES = 8;
 
 /* ---------------------------------------------------------------- 问 Questions */
 

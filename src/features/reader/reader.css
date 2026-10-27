@@ -939,13 +939,128 @@ label.rd-aa-row {
 }
 
 /* ------------------------------------------------------------ copying it out */
-.rd-copy {
+/* 写: a strip of the exercise book — copied in ink, the next square in blue, the rest faint. */
+.rd-write {
   width: 100%;
+  display: grid;
+  gap: 12px;
+  margin: 4px 0 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-write-squares {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.rd-write-sq {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--grid);
+  border-radius: 4px;
+  background:
+    linear-gradient(var(--grid), var(--grid)) 50% 0 / 1px 100% no-repeat,
+    linear-gradient(var(--grid), var(--grid)) 0 50% / 100% 1px no-repeat;
+  background-color: var(--card);
+  container-type: inline-size;
+}
+
+.rd-write-sq .hanzi {
+  font-size: 70cqi;
+  line-height: 1;
+  color: var(--ink-3);
+  opacity: 0.45;
+}
+
+.rd-write-sq[data-state] .hanzi {
+  opacity: 1;
+}
+
+/* Six on a phone, so each square is big enough to read. */
+@media (max-width: 520px) {
+  .rd-write-squares {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .rd-write-sq:nth-child(n + 7) {
+    display: none;
+  }
+}
+
+.rd-write-sq[data-state='done'] .hanzi {
+  color: var(--ink);
+}
+
+.rd-write-sq[data-state='now'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.rd-write-sq[data-state='now'] .hanzi {
+  color: var(--ink-2);
+}
+
+.rd-write-sq[data-state='empty'] {
+  border-style: dashed;
+  opacity: 0.6;
+}
+
+.rd-write-line {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.rd-write-line i {
+  display: block;
+  height: 100%;
+  background: var(--jade);
+}
+
+.rd-write-foot {
+  display: flex;
+  min-width: 0;
+}
+
+.rd-write-foot .small {
+  white-space: nowrap;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
+  mask-image: linear-gradient(90deg, #000 85%, transparent);
+}
+
+.rd-write-foot .hanzi {
+  font-size: 17px;
+  color: var(--ink-2);
+}
+
+.rd-write-go {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+/* 更: practice that is not counted — rows that open where they are. */
+.rd-more-list {
+  display: grid;
+  gap: 8px;
+}
+
+.rd-more-row {
+  width: 100%;
+  min-height: 64px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 0 0 10px;
-  padding: 14px 16px;
+  gap: 14px;
+  padding: 12px 16px;
   border: 0;
   border-radius: 16px;
   background: var(--card-2);
@@ -954,17 +1069,46 @@ label.rd-aa-row {
   cursor: pointer;
 }
 
-.rd-copy .grow {
+.rd-more-row > .hanzi {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink-2);
+}
+
+.rd-more-row .grow {
   display: grid;
   gap: 2px;
 }
 
-.rd-copy b {
+.rd-more-row b {
   font-weight: 600;
 }
 
-.rd-copy .icon {
+.rd-more-row .icon {
   color: var(--accent);
+  transition: transform 140ms;
+}
+
+.rd-more-row[aria-expanded='true'] .icon {
+  transform: rotate(90deg);
+}
+
+.rd-more-body {
+  padding: 6px 2px 14px;
+}
+
+.rd-more-lede {
+  align-items: baseline;
+  gap: 8px;
+}
+
+/* More counts nothing, so it has no line under its name. */
+.rd-part-tab[data-more]::after {
+  background: none;
+}
+
+.rd-part-tab[data-more][aria-current='true']::after {
+  background: var(--accent);
 }
 
 .co-scrim {
@@ -1023,142 +1167,6 @@ label.rd-aa-row {
   margin: 4px 0 16px;
 }
 
-.co-sizes button {
-  min-width: 40px;
-  padding: 0 6px;
-}
-
-.co-sizes .hanzi {
-  line-height: 1;
-}
-
-.co-line {
-  margin: 0;
-  font-size: 21px;
-  line-height: 1.7;
-  color: var(--ink-3);
-}
-
-.co-line [data-state='done'] {
-  color: var(--ink);
-}
-
-.co-line [data-state='now'] {
-  color: var(--ink);
-  background: var(--hl);
-  border-radius: 3px;
-}
-
-/* Copying out measures its squares against the screen, so its page is the
-   screen's height exactly, not "at least": a container's height has to be
-   known before what is inside it is laid out. */
-.co.co-fill {
-  height: 100%;
-}
-
-.co-now {
-  flex: 1;
-  min-height: 220px;
-  display: grid;
-  place-items: center;
-  padding: 16px 0;
-  /* The squares are measured against the room this leaves them, across and down. */
-  container-type: size;
-}
-
-/* The squares share out the room: Large fills it, Medium and Small take less
-   of it. Three or four on a phone go two to a row, so each stays big enough to
-   write beside. A square never grows past what a hand copies comfortably. */
-.co-boxes {
-  --cols: var(--n, 1);
-  --rows: 1;
-  --across: calc((100cqw - (var(--cols) - 1) * 10px) / var(--cols));
-  /* each row also carries its pinyin (22px) and the gap under it */
-  --down: calc((100cqh - var(--rows) * 28px - (var(--rows) - 1) * 14px) / var(--rows));
-  --side: max(56px, calc(min(var(--across), var(--down), 520px) * var(--co-scale, 1)));
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px 10px;
-  width: calc(var(--cols) * var(--side) + (var(--cols) - 1) * 10px);
-}
-
-@container (max-width: 480px) {
-  .co-boxes[data-n='3'],
-  .co-boxes[data-n='4'] {
-    --cols: 2;
-    --rows: 2;
-  }
-}
-
-.co-char {
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-}
-
-.co-py {
-  min-height: 22px;
-  font-size: 17px;
-  font-weight: 500;
-  color: var(--py);
-}
-
-/* A square's side: the chosen size, by how many there are, never more than the width shares out. */
-.co-box {
-  width: var(--side);
-  height: var(--side);
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 2px solid var(--grid);
-  border-radius: 4px;
-  color: var(--ink);
-  cursor: pointer;
-  font: inherit;
-  font-size: calc(var(--side) * 0.76);
-  line-height: 1;
-  background:
-    linear-gradient(var(--grid), var(--grid)) 50% 0 / 1px 100% no-repeat,
-    linear-gradient(var(--grid), var(--grid)) 0 50% / 100% 1px no-repeat;
-}
-
-
-.co-box svg {
-  width: 84%;
-  height: 84%;
-}
-
-.co .stroke-btns {
-  margin-top: 4px;
-}
-
-.co-ahead {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin: 8px 0 16px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: var(--card-2);
-  overflow: hidden;
-}
-
-.co-ahead-chars {
-  font-size: 22px;
-  line-height: 1.4;
-  white-space: nowrap;
-  overflow: hidden;
-  color: var(--ink-2);
-  /* What does not fit fades out rather than stopping halfway through a character. */
-  -webkit-mask-image: linear-gradient(90deg, #000 80%, transparent);
-  mask-image: linear-gradient(90deg, #000 80%, transparent);
-}
-
-.co-ahead-chars [data-punct] {
-  color: var(--ink-3);
-}
-
 .co-actions {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -1184,6 +1192,462 @@ label.rd-aa-row {
   font-size: 21px;
 }
 
+
+/* ------------------------------------------- copying out: the squares, the strokes */
+:root[data-copying] .drawer {
+  z-index: 70;
+}
+
+.cw {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding-top: var(--top-clear);
+}
+
+.cw-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 0 var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+
+.cw-top > .icon-btn:first-child {
+  margin-left: -10px;
+}
+
+.cw-title {
+  font-size: 18px;
+  font-weight: 400;
+  white-space: nowrap;
+  max-width: 9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cw-textbtn .hanzi {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.cw-textbtn[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.cw-by button {
+  white-space: nowrap;
+}
+
+/* A phone has the title row, then the three ways through on a row of their own. */
+@media (max-width: 699px) {
+  .cw-top {
+    flex-wrap: wrap;
+    row-gap: 0;
+    padding-bottom: 10px;
+  }
+  .cw-title {
+    display: none;
+  }
+  .cw-by {
+    order: 5;
+    flex-basis: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.cw-body {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.cw[data-text] .cw-body {
+  grid-template-columns: 430px minmax(0, 1fr);
+}
+
+/* The text, on ruled paper: what is copied in ink, the word now highlighted, the rest in pencil. */
+.cw-page {
+  overflow-y: auto;
+  padding: 18px 28px 28px 44px;
+  border-right: 1px solid var(--line);
+  background: var(--card);
+}
+
+.cw-page-hint {
+  margin: 0 0 6px;
+}
+
+.cw-para {
+  position: relative;
+}
+
+.cw-para-n {
+  position: absolute;
+  left: -26px;
+  top: 0;
+  font: 500 11px/56px var(--sans);
+  color: var(--ink-3);
+}
+
+.cw-para p.hanzi {
+  margin: 0;
+  line-break: strict;
+  font-size: 27px;
+  line-height: 56px;
+  color: var(--ink-3);
+  background: repeating-linear-gradient(transparent 0 55px, var(--line) 55px 56px);
+}
+
+.cw-para button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.cw-para [data-state='done'] {
+  color: var(--ink);
+}
+
+.cw-para [data-state='now'] {
+  color: var(--ink);
+  background: var(--hl);
+}
+
+.cw-en {
+  margin: 4px 0 10px;
+  padding: 6px 12px;
+  border-left: 2px solid var(--line-2);
+  font: 14.5px/1.5 var(--read);
+  color: var(--ink-2);
+}
+
+.cw-pane {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Everything in one block in the middle: spread to the edges, a tall
+     screen left the squares stranded between two bands of empty paper. */
+  justify-content: center;
+  gap: 18px;
+  padding: 18px var(--gutter) max(18px, env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
+.cw[data-wide] .cw-pane {
+  padding: 20px 34px 22px;
+}
+
+.cw-word {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 56px;
+}
+
+.cw-word-zh {
+  padding: 0 4px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink);
+  font-size: 34px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.cw-word-py {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--py);
+}
+
+.cw-word-d {
+  font-family: var(--read);
+  color: var(--ink-2);
+}
+
+.cw-line {
+  width: var(--slots);
+  max-width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cw-line-zh {
+  flex: 1;
+  line-break: strict;
+  min-width: 0;
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+.cw-line-zh [data-done] {
+  color: var(--ink);
+}
+
+.cw-line-now {
+  padding: 0 2px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--hl);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.cw-line-gloss {
+  font-weight: 500;
+  color: var(--py);
+  text-align: right;
+}
+
+@media (max-width: 699px) {
+  .cw-line {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+  .cw-line-zh {
+    flex-basis: 100%;
+  }
+  .cw-line-gloss {
+    flex: 1;
+    text-align: left;
+  }
+}
+
+/* The squares: as many as fit, the rest a swipe away behind a fade. */
+.cw-row-wrap,
+.cw-strip-wrap {
+  position: relative;
+  max-width: 100%;
+}
+
+.cw-row-wrap::before,
+.cw-row-wrap::after,
+.cw-strip-wrap::before,
+.cw-strip-wrap::after {
+  content: '';
+  position: absolute;
+  top: 28px;
+  bottom: 0;
+  width: 48px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 140ms;
+}
+
+.cw-strip-wrap::before,
+.cw-strip-wrap::after {
+  top: 24px;
+}
+
+.cw-row-wrap::before,
+.cw-strip-wrap::before {
+  left: 0;
+  background: linear-gradient(to right, var(--paper), transparent);
+}
+
+.cw-row-wrap::after,
+.cw-strip-wrap::after {
+  right: 0;
+  background: linear-gradient(to left, var(--paper), transparent);
+}
+
+.cw-row-wrap[data-l]::before,
+.cw-row-wrap[data-r]::after,
+.cw-strip-wrap[data-l]::before,
+.cw-strip-wrap[data-r]::after {
+  opacity: 1;
+}
+
+.cw-row,
+.cw-strip {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+.cw-row::-webkit-scrollbar,
+.cw-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.cw-row {
+  gap: 22px;
+  justify-content: space-between;
+  scroll-snap-type: x mandatory;
+}
+
+.cw-row > .cw-cell {
+  scroll-snap-align: start;
+}
+
+.cw-row[data-one] {
+  justify-content: center;
+}
+
+.cw-cell {
+  flex: none;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.cw-py {
+  min-height: 24px;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--py);
+}
+
+.cw-py[data-now] {
+  color: var(--accent);
+}
+
+.cw-box {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid var(--grid);
+  border-radius: 4px;
+  color: var(--ink);
+  cursor: pointer;
+  background:
+    repeating-linear-gradient(to bottom, var(--grid) 0 6px, transparent 6px 12px) 50% 0 / 1px 100% no-repeat,
+    repeating-linear-gradient(to right, var(--grid) 0 6px, transparent 6px 12px) 0 50% / 100% 1px no-repeat,
+    var(--card);
+}
+
+.cw-box svg {
+  display: block;
+}
+
+.cw-box[data-state='now'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* In the whole text, the word being copied is underlined in highlighter. */
+.cw-box[data-word] {
+  box-shadow: 0 9px 0 -3px var(--hl);
+}
+
+.cw-box[data-word][data-state='now'] {
+  box-shadow:
+    0 0 0 3px var(--accent-soft),
+    0 9px 0 -3px var(--hl);
+}
+
+.cw-row-wrap .cw-row {
+  padding-bottom: 8px;
+}
+
+/* The strokes of the word, one run through all its characters. */
+.cw-strip {
+  gap: 14px;
+  align-items: flex-end;
+}
+
+.cs-group {
+  flex: none;
+  display: grid;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.cs-label {
+  margin-left: 2px;
+  font: 500 12px var(--sans);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.cs-label .hanzi {
+  font-size: 17px;
+  color: var(--ink-2);
+}
+
+.cs-group[data-now] .cs-label,
+.cs-group[data-now] .cs-label .hanzi {
+  color: var(--accent);
+}
+
+.cs-group[data-later] .cs-cells {
+  opacity: 0.55;
+}
+
+.cs-cells {
+  display: flex;
+  gap: 4px;
+}
+
+.cs-cell {
+  position: relative;
+  width: var(--cell);
+  height: var(--cell);
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--grid);
+  border-radius: 4px;
+  background:
+    linear-gradient(var(--line), var(--line)) 50% 0 / 1px 100% no-repeat,
+    linear-gradient(var(--line), var(--line)) 0 50% / 100% 1px no-repeat,
+    var(--card);
+  color: var(--ink);
+}
+
+.cs-n {
+  position: absolute;
+  right: 3px;
+  bottom: 1px;
+  font: 500 10px var(--sans);
+  color: var(--ink-3);
+}
+
+.cs-tail {
+  flex: none;
+}
+
+.cw-actions {
+  max-width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cw-actions .btn {
+  min-width: 0;
+  height: 56px;
+  font-size: 16px;
+}
+
+.cw-next .hanzi {
+  font-size: 18px;
+  margin-left: 4px;
+}
 
 /* -------------------------------------------------- wide: parts beside the text */
 @media (min-width: 1100px) {
