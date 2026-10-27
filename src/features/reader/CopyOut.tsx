@@ -264,6 +264,8 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
   const n = whole ? track.length : chars.length;
   const across = Math.min(sq.across, Math.max(2, n));
   const slots = across * sq.side + (across - 1) * GAP;
+  // The strokes and Back and Next stay two squares wide whatever the word: a longer word widens its squares, not them.
+  const pair = 2 * sq.side + GAP;
 
   // The row of squares shows the place. A word's squares start at the left
   // edge, as far as the row goes. The whole text runs across the full width
@@ -385,7 +387,7 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
             </div>
           )}
 
-          <div className="cw-pane" ref={pane} style={{ '--slots': `${slots}px` } as CSSProperties}>
+          <div className="cw-pane" ref={pane} style={{ '--slots': `${pair}px` } as CSSProperties}>
             {done || !unit ? (
               <div className="co-end">
                 <span className="cs-seal hanzi">好</span>
@@ -456,7 +458,7 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
                   </div>
                 </div>
 
-                <div className="cw-strip-wrap" data-l={stripEdges.l || undefined} data-r={stripEdges.r || undefined} style={{ width: slots }}>
+                <div className="cw-strip-wrap" data-l={stripEdges.l || undefined} data-r={stripEdges.r || undefined} style={{ width: pair }}>
                   <div className="cw-strip" ref={strip} style={{ '--cell': `${strokeSize}px` } as CSSProperties}>
                     {stroked && (
                       <div className="cs-group">
@@ -476,7 +478,7 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
                   </div>
                 </div>
 
-                <div className="cw-actions" style={{ width: slots }}>
+                <div className="cw-actions" style={{ width: pair }}>
                   <button className="btn tonal lg" style={{ width: sq.side }} onClick={back} disabled={at === 0}>
                     <Icon name="back" /> Back
                   </button>
