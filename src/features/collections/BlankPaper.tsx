@@ -153,38 +153,49 @@ function BlankThumb({ id }: { id: BlankId }) {
   const lines: Array<[number, number, number]> = [];
   /** upright lines: x, top, length */
   const ticks: Array<[number, number, number]> = [];
-  const top = 26;
 
-  const rowOf = (y: number, from = 0, to = 12, size = c) => {
-    for (let i = from; i < to; i++) cells.push([x0 + i * c, y, size]);
+  const rowOf = (y: number, from = 0, to = 12, size = c, x = x0) => {
+    for (let i = from; i < to; i++) cells.push([x + i * size, y, size]);
   };
+  // The page's body, in millimetres, as blank.ts lays it out in points.
+  const bodyTop = 23.3;
+  const bodyH = 252.6;
+  const spread = (n: number, h: number, t = bodyTop, height = bodyTop + bodyH - t) =>
+    Array.from({ length: n }, (_, r) => t + r * (h + (n > 1 ? (height - n * h) / (n - 1) : 0)));
+  const boxes = (y: number, n: number, size: number, h: number, x = x0) => {
+    lines.push([x, y, n * size], [x, y + h / 3, n * size], [x, y + (2 * h) / 3, n * size]);
+    for (let i = 0; i <= n; i++) ticks.push([x + i * size, y, h]);
+  };
+  const small = W / 16;
   if (id === 'mizi' || id === 'tian') {
-    for (let r = 0; r < 16; r++) rowOf(top + r * c);
+    for (let r = 0; r < 16; r++) rowOf(29.6 + r * c);
   } else if (id === 'pinyin') {
-    // 24pt of pinyin box over each 15 mm square: 8.5 mm, with its column lines.
-    for (let r = 0; r < 10; r++) {
-      const y = top + r * 26;
-      lines.push([x0, y, W], [x0, y + 2.8, W], [x0, y + 5.7, W]);
-      for (let i = 0; i <= 12; i++) ticks.push([x0 + i * c, y, 8.5]);
+    for (const y of spread(10, 8.5 + c)) {
+      boxes(y, 12, c, 8.5);
       rowOf(y + 8.5);
     }
   } else if (id === 'newchar') {
-    for (let b = 0; b < 5; b++) {
-      const y = top + b * 50;
+    for (const y of spread(5, c * 3)) {
       cells.push([x0, y, c * 2]);
-      lines.push([x0 + 34, y + 6, 70], [x0 + 110, y + 6, 70]);
+      lines.push([x0 + 34, y + 5, 38], [x0 + 80, y + 5, 40], [x0 + 128, y + 5, 52]);
+      rowOf(y + c / 2, 0, 20, c / 2, x0 + 2 * c);
       rowOf(y + c, 2);
       rowOf(y + c * 2);
     }
+  } else if (id === 'text') {
+    for (const y of spread(10, 5.3 + small + 5.3)) {
+      boxes(y, 16, small, 5.3);
+      rowOf(y + 5.3, 0, 16, small);
+      lines.push([x0, y + 5.3 + small + 4.6, W]);
+    }
   } else if (id === 'compose') {
-    lines.push([x0, top, 110], [x0 + 120, top, 60]);
-    for (let r = 0; r < 13; r++) rowOf(top + 6 + r * 18);
+    lines.push([x0 + 10, bodyTop + 3.6, W - 10]);
+    for (const y of spread(17, small, bodyTop + 7.8)) rowOf(y, 0, 16, small);
   } else {
-    for (let r = 0; r < 10; r++) {
-      const y = top + r * 26;
+    for (const y of spread(10, 6.35 + c)) {
       for (const h of [0, 6 * c]) {
-        lines.push([x0 + h + c, y, 4 * c], [x0 + h + c, y + 6, 4 * c]);
-        for (let i = 1; i <= 4; i++) cells.push([x0 + h + i * c, y + 7, c]);
+        boxes(y, 4, c, 6.35, x0 + h + c);
+        for (let i = 1; i <= 4; i++) cells.push([x0 + h + i * c, y + 6.35, c]);
       }
     }
   }

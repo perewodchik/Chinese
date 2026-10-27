@@ -8,7 +8,7 @@ import { describe, footer, header } from './layout/furniture';
 import { CELL, COLS } from './layout/grid';
 import { bodyHeight, bodyTop, contentLeft, contentRight, contentWidth, PAGE } from './layout/page';
 import type { RenderResult } from './render';
-import { LABEL_TRACKING, T, themeOf } from './theme';
+import { T, themeOf } from './theme';
 
 /**
  * Blank paper: sheets with nothing printed in the squares, for characters and
@@ -21,7 +21,7 @@ import { LABEL_TRACKING, T, themeOf } from './theme';
  * squares: a pinyin staff, a box for the model, a number.
  */
 
-export type BlankId = 'mizi' | 'tian' | 'pinyin' | 'newchar' | 'compose' | 'dictation';
+export type BlankId = 'newchar' | 'text' | 'compose' | 'pinyin' | 'dictation' | 'mizi' | 'tian';
 
 export interface BlankTemplate {
   id: BlankId;
@@ -38,8 +38,36 @@ export const BLANKS: BlankTemplate[] = [
     id: 'newchar',
     name: 'New characters',
     zh: '生字',
-    blurb: 'A big square for the model, lines for pinyin, meaning and words, then 22 goes.',
+    blurb: 'The model in a big square, its pinyin, meaning and words, its stroke order in small squares, then 22 goes.',
     holds: '5 characters a page',
+  },
+  {
+    id: 'text',
+    name: 'Copy a text',
+    zh: '抄写',
+    blurb: 'Smaller squares for a text, each with a box for its pinyin, and a line under every row for the English.',
+    holds: '10 rows, 160 characters',
+  },
+  {
+    id: 'compose',
+    name: 'Writing paper',
+    zh: '作文纸',
+    blurb: 'Rows of plain squares with room between them for notes, and the count in the margin, like a Chinese composition book.',
+    holds: '17 rows, 272 characters',
+  },
+  {
+    id: 'pinyin',
+    name: 'Pinyin and squares',
+    zh: '拼音田字格',
+    blurb: 'Every square with a box for its pinyin on top, four lines high, like a Chinese first-grade book.',
+    holds: '10 rows, 120 squares',
+  },
+  {
+    id: 'dictation',
+    name: 'Dictation',
+    zh: '听写',
+    blurb: 'Twenty numbered words, each with four squares and a pinyin box over each, and a score.',
+    holds: '20 words a page',
   },
   {
     id: 'mizi',
@@ -55,149 +83,145 @@ export const BLANKS: BlankTemplate[] = [
     blurb: 'Just the cross, which is easier on the eye once proportions come naturally.',
     holds: '192 squares a page',
   },
-  {
-    id: 'pinyin',
-    name: 'Pinyin and squares',
-    zh: '拼音田字格',
-    blurb: 'Every square with a box for its pinyin on top, four lines high, like a Chinese first-grade book.',
-    holds: '10 rows, 120 squares',
-  },
-  {
-    id: 'compose',
-    name: 'Writing paper',
-    zh: '作文纸',
-    blurb: 'Plain squares with a gap between rows for notes. For copying out or writing a text.',
-    holds: '156 characters a page',
-  },
-  {
-    id: 'dictation',
-    name: 'Dictation',
-    zh: '听写',
-    blurb: 'Twenty numbered words, each with a pinyin staff and four squares, and a score.',
-    holds: '20 words a page',
-  },
 ];
 
-/** A pinyin staff: four lines, three spaces, like the one in a school book. */
-const STAFF = 18;
 const bodyBottom = bodyTop + bodyHeight;
 
-function staff(s: Sheet, x: number, y: number, w: number) {
-  const step = STAFF / 3;
-  for (let i = 0; i < 4; i++) {
-    const outer = i === 0 || i === 3;
-    s.line(x, y + i * step, x + w, y + i * step, {
-      width: outer ? 0.4 : 0.28,
-      color: s.c.grid,
-      dash: outer ? undefined : [1.2, 2.1],
-    });
-  }
-}
+/** The smaller square of a text: sixteen to the line, about 11 mm. */
+const SMALL = contentWidth / 16;
 
 /**
- * The pinyin box over a row of squares, as a first-grade book draws it: the
- * four lines of the staff, framed and divided column by column, so each
- * square has its own box for its reading right on top of it, sharing the
- * square's top edge.
+ * Pinyin boxes over a row of squares, as a first-grade book draws them: the
+ * four lines of the staff, framed and divided square by square, so each
+ * square has its own box for its reading, sharing the square's top edge.
  */
-const PINYIN_BOX = 24;
-
-function pinyinBoxes(s: Sheet, y: number) {
-  const x0 = contentLeft;
-  const x1 = contentLeft + COLS * CELL;
-  const step = PINYIN_BOX / 3;
+function pinyinBoxes(s: Sheet, x0: number, y: number, n: number, size: number, h: number) {
+  const x1 = x0 + n * size;
   const frame = { width: s.st.cellWeight, color: s.c.grid };
   s.line(x0, y, x1, y, frame);
-  for (const i of [1, 2]) s.line(x0, y + i * step, x1, y + i * step, { width: 0.28, color: s.c.gridInner, dash: [1.2, 2.1] });
-  for (let c = 0; c <= COLS; c++) s.line(x0 + c * CELL, y, x0 + c * CELL, y + PINYIN_BOX, frame);
+  for (const i of [1, 2]) s.line(x0, y + (i * h) / 3, x1, y + (i * h) / 3, { width: 0.28, color: s.c.gridInner, dash: [1.2, 2.1] });
+  for (let c = 0; c <= n; c++) s.line(x0 + c * size, y, x0 + c * size, y + h, frame);
 }
 
-function row(s: Sheet, y: number, guide: GridStyle, from = 0, to = COLS) {
-  for (let i = from; i < to; i++) s.cell(contentLeft + i * CELL, y, CELL, guide);
+function row(s: Sheet, y: number, guide: GridStyle, from = 0, to = COLS, size = CELL, x0 = contentLeft) {
+  for (let i = from; i < to; i++) s.cell(x0 + i * size, y, size, guide);
 }
 
-/** A tracked label followed by a line to write on, up to `end`. */
-function blank(s: Sheet, label: string, x: number, y: number, end: number): void {
-  const w = s.text(label, x, y, { size: T.label, color: s.c.ink3, bold: true, tracking: LABEL_TRACKING });
-  s.line(x + w + 6, y + 1.5, end, y + 1.5, { width: 0.4, color: s.c.rule });
+/** A label in sentence case and a line to write on after it, up to `end`; `y` is the baseline. */
+function field(s: Sheet, label: string, x: number, y: number, end: number): void {
+  const w = s.text(label, x, y, { size: T.small, color: s.c.ink3 });
+  s.line(x + w + 5, y + 1.5, end, y + 1.5, { width: 0.4, color: s.c.rule });
 }
 
-/** As many rows of `h` as fit, with `gap` between them. */
-const fits = (h: number, gap: number, height = bodyHeight) => Math.floor((height + gap + 0.5) / (h + gap));
+/** As many rows of `h` as fit with at least `gap` between them. */
+const fits = (h: number, gap: number, height = bodyHeight) => Math.max(1, Math.floor((height + gap + 0.5) / (h + gap)));
+
+/**
+ * The tops of `n` rows of `h`, the air between them shared out so the last
+ * row ends at the foot of the page: no band of empty paper under the last.
+ */
+function spread(n: number, h: number, top = bodyTop, height = bodyBottom - top): number[] {
+  const gap = n > 1 ? (height - n * h) / (n - 1) : 0;
+  return Array.from({ length: n }, (_, r) => top + r * (h + gap));
+}
 
 const DRAW: Record<BlankId, (s: Sheet) => void> = {
+  // A whole grid, centred on the page so the margins above and below match.
   mizi: (s) => {
     const n = fits(CELL, 0);
-    for (let r = 0; r < n; r++) row(s, bodyTop + r * CELL, 'mizi');
+    const top = bodyTop + (bodyHeight - n * CELL) / 2;
+    for (let r = 0; r < n; r++) row(s, top + r * CELL, 'mizi');
   },
 
   tian: (s) => {
     const n = fits(CELL, 0);
-    for (let r = 0; r < n; r++) row(s, bodyTop + r * CELL, 'tian');
+    const top = bodyTop + (bodyHeight - n * CELL) / 2;
+    for (let r = 0; r < n; r++) row(s, top + r * CELL, 'tian');
   },
 
-  // As many rows as fit with a little air between them, and that air shared
-  // out so the last row ends at the foot of the page, not above an empty band.
   pinyin: (s) => {
-    const h = PINYIN_BOX + CELL;
-    const n = fits(h, 4);
-    const gap = n > 1 ? (bodyHeight - n * h) / (n - 1) : 0;
-    for (let r = 0; r < n; r++) {
-      const y = bodyTop + r * (h + gap);
-      pinyinBoxes(s, y);
-      row(s, y + PINYIN_BOX, 'tian');
+    const box = 24;
+    const h = box + CELL;
+    for (const y of spread(fits(h, 4), h)) {
+      pinyinBoxes(s, contentLeft, y, COLS, CELL, box);
+      row(s, y + box, 'tian');
     }
   },
 
-  // A block per character: the model in a double square on the left, its
-  // facts on lines to the right, ten goes under those and twelve more below.
+  // A block per character. The model goes in the double square on the left;
+  // beside it, a line for its pinyin, meaning and words, and under that a row
+  // of half squares for its stroke order, one stroke to a square. Then ten
+  // goes beside the model and twelve under it.
   newchar: (s) => {
     const h = CELL * 3;
-    const gap = 14;
-    const n = fits(h, gap);
     const big = CELL * 2;
-    for (let b = 0; b < n; b++) {
-      const y = bodyTop + b * (h + gap);
-      if (b > 0) s.line(contentLeft, y - gap / 2, contentRight, y - gap / 2, { width: 0.4, color: s.c.hair });
+    const half = CELL / 2;
+    const ys = spread(fits(h, 16), h);
+    ys.forEach((y, b) => {
+      if (b > 0) {
+        const mid = (ys[b - 1]! + h + y) / 2;
+        s.line(contentLeft, mid, contentRight, mid, { width: 0.4, color: s.c.hair });
+      }
       s.cell(contentLeft, y, big, 'mizi');
-      const x = contentLeft + big + 10;
-      const mid = contentLeft + big + (contentWidth - big) * 0.52;
-      blank(s, 'PINYIN', x, y + 15, mid - 12);
-      blank(s, 'MEANING', mid, y + 15, contentRight);
-      blank(s, 'STROKES', x, y + 34, mid - 12);
-      blank(s, 'WORDS', mid, y + 34, contentRight);
+      const x = contentLeft + big;
+      const w = contentRight - x;
+      const base = y + half - 6;
+      field(s, 'Pinyin', x + 8, base, x + w * 0.27);
+      field(s, 'Meaning', x + w * 0.31, base, x + w * 0.62);
+      field(s, 'Words', x + w * 0.66, base, contentRight);
+      row(s, y + half, 'tian', 0, 20, half, x);
       row(s, y + CELL, 'mizi', 2, COLS);
       row(s, y + big, 'mizi');
+    });
+  },
+
+  // A text to copy out: smaller squares, each with its pinyin box, and a
+  // dotted line under the row for what it means.
+  text: (s) => {
+    const box = 15;
+    const line = 15;
+    const h = box + SMALL + line;
+    for (const y of spread(fits(h, 6), h)) {
+      pinyinBoxes(s, contentLeft, y, 16, SMALL, box);
+      row(s, y + box, 'tian', 0, 16, SMALL);
+      s.line(contentLeft, y + box + SMALL + line - 2, contentRight, y + box + SMALL + line - 2, {
+        width: 0.35,
+        color: s.c.gridInner,
+        dash: [1.2, 2.1],
+      });
     }
   },
 
+  // A title, then rows of plain squares with room between them for a note or
+  // a correction. The count of squares so far stands in the margin every five
+  // rows, as a composition book's does, so a 200-character piece is easy to
+  // measure.
   compose: (s) => {
-    blank(s, 'TITLE', contentLeft, bodyTop + 8, contentLeft + contentWidth * 0.62);
-    blank(s, 'DATE', contentLeft + contentWidth * 0.68, bodyTop + 8, contentRight);
+    field(s, 'Title', contentLeft, bodyTop + 9, contentRight);
     const top = bodyTop + 22;
-    const gap = 9;
-    const n = fits(CELL, gap, bodyBottom - top);
-    for (let r = 0; r < n; r++) row(s, top + r * (CELL + gap), 'blank');
+    const ys = spread(fits(SMALL, 8, bodyBottom - top), SMALL, top);
+    ys.forEach((y, r) => {
+      row(s, y, 'blank', 0, 16, SMALL);
+      if ((r + 1) % 5 === 0) s.text(String((r + 1) * 16), contentRight + 4, y + SMALL - 2, { size: T.micro, color: s.c.ink3 });
+    });
   },
 
-  // Two columns of ten. Each word gets a number, a staff for its pinyin and
-  // four squares, which holds anything up to 出租汽车 and leaves the sixth
-  // column clear for the tick or the correction.
+  // Two columns of ten. Each word gets a number, four squares with a pinyin
+  // box over each, which holds anything up to 出租汽车, and the sixth column
+  // clear for the tick or the correction.
   dictation: (s) => {
-    const h = STAFF + CELL;
-    const gap = 8;
-    const n = fits(h, gap);
+    const box = 18;
+    const h = box + CELL;
+    const ys = spread(10, h);
     const half = COLS / 2;
-    for (let r = 0; r < n; r++) {
-      const y = bodyTop + r * (h + gap);
+    ys.forEach((y, r) => {
       for (let c = 0; c < 2; c++) {
         const x0 = contentLeft + c * half * CELL;
-        const no = String(c * n + r + 1);
-        s.textRight(no, x0 + CELL - 8, y + STAFF + CELL / 2 + 3, { size: T.lead, color: s.c.ink3 });
-        staff(s, x0 + CELL, y, CELL * 4);
-        for (let i = 1; i <= 4; i++) s.cell(x0 + i * CELL, y + STAFF, CELL, 'tian');
+        s.textRight(String(c * 10 + r + 1), x0 + CELL - 8, y + box + CELL / 2 + 3, { size: T.lead, color: s.c.ink3 });
+        pinyinBoxes(s, x0 + CELL, y, 4, CELL, box);
+        row(s, y + box, 'tian', 0, 4, CELL, x0 + CELL);
       }
-    }
+    });
   },
 };
 
@@ -208,7 +232,6 @@ const DRAW: Record<BlankId, (s: Sheet) => void> = {
  */
 function rightOf(id: BlankId): string {
   if (id === 'dictation') return 'score ______ / 20      page ______      date ____________';
-  if (id === 'compose') return 'page ______';
   return 'page ______      date ____________';
 }
 
