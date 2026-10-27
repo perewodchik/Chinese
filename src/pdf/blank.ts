@@ -59,7 +59,7 @@ export const BLANKS: BlankTemplate[] = [
     id: 'pinyin',
     name: 'Pinyin and squares',
     zh: '拼音田字格',
-    blurb: 'A four-line pinyin staff over every row, like a Chinese first-grade book.',
+    blurb: 'Every square with a box for its pinyin on top, four lines high, like a Chinese first-grade book.',
     holds: '10 rows, 120 squares',
   },
   {
@@ -94,6 +94,24 @@ function staff(s: Sheet, x: number, y: number, w: number) {
   }
 }
 
+/**
+ * The pinyin box over a row of squares, as a first-grade book draws it: the
+ * four lines of the staff, framed and divided column by column, so each
+ * square has its own box for its reading right on top of it, sharing the
+ * square's top edge.
+ */
+const PINYIN_BOX = 24;
+
+function pinyinBoxes(s: Sheet, y: number) {
+  const x0 = contentLeft;
+  const x1 = contentLeft + COLS * CELL;
+  const step = PINYIN_BOX / 3;
+  const frame = { width: s.st.cellWeight, color: s.c.grid };
+  s.line(x0, y, x1, y, frame);
+  for (const i of [1, 2]) s.line(x0, y + i * step, x1, y + i * step, { width: 0.28, color: s.c.gridInner, dash: [1.2, 2.1] });
+  for (let c = 0; c <= COLS; c++) s.line(x0 + c * CELL, y, x0 + c * CELL, y + PINYIN_BOX, frame);
+}
+
 function row(s: Sheet, y: number, guide: GridStyle, from = 0, to = COLS) {
   for (let i = from; i < to; i++) s.cell(contentLeft + i * CELL, y, CELL, guide);
 }
@@ -118,14 +136,16 @@ const DRAW: Record<BlankId, (s: Sheet) => void> = {
     for (let r = 0; r < n; r++) row(s, bodyTop + r * CELL, 'tian');
   },
 
+  // As many rows as fit with a little air between them, and that air shared
+  // out so the last row ends at the foot of the page, not above an empty band.
   pinyin: (s) => {
-    const h = STAFF + CELL;
-    const gap = 6;
-    const n = fits(h, gap);
+    const h = PINYIN_BOX + CELL;
+    const n = fits(h, 4);
+    const gap = n > 1 ? (bodyHeight - n * h) / (n - 1) : 0;
     for (let r = 0; r < n; r++) {
       const y = bodyTop + r * (h + gap);
-      staff(s, contentLeft, y, contentWidth);
-      row(s, y + STAFF, 'tian');
+      pinyinBoxes(s, y);
+      row(s, y + PINYIN_BOX, 'tian');
     }
   },
 
@@ -181,10 +201,15 @@ const DRAW: Record<BlankId, (s: Sheet) => void> = {
   },
 };
 
+/**
+ * The page's own facts, written in by hand: its number among the pages of
+ * the exercise book (a printed "3 / 10" says nothing once the pages are
+ * spread across weeks and folders), and the date.
+ */
 function rightOf(id: BlankId): string {
-  if (id === 'dictation') return 'score ______ / 20      date ____________';
-  if (id === 'compose') return '';
-  return 'date ____________';
+  if (id === 'dictation') return 'score ______ / 20      page ______      date ____________';
+  if (id === 'compose') return 'page ______';
+  return 'page ______      date ____________';
 }
 
 export async function renderBlank(
@@ -204,7 +229,7 @@ export async function renderBlank(
     const s = new Sheet(doc.addPage([PAGE.width, PAGE.height]), fonts, strokes, theme);
     header(s, title, rightOf(t.id));
     DRAW[t.id](s);
-    footer(s, opts.footerNote?.trim() ?? '', `${p + 1} / ${pages}`);
+    footer(s, opts.footerNote?.trim() ?? '', '');
   }
   return { bytes: await doc.save(), pages };
 }

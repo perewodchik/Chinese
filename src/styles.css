@@ -5601,6 +5601,43 @@ label.field[data-invalid] input {
   stroke-width: 0.6;
 }
 
+/* The page count: − and + either side of a field, so 30 pages is not thirty taps. */
+.pages-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 36px;
+  padding: 0 2px;
+  border-radius: 12px;
+  background: var(--card-2);
+}
+
+.pages-step .icon-btn {
+  width: 36px;
+  height: 32px;
+}
+
+.pages-step input {
+  width: 3.2em;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+  font: 500 16px var(--sans);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.pages-step input::-webkit-outer-spin-button,
+.pages-step input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 .blank-preview .preview {
   height: min(62dvh, 720px);
 }

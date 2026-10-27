@@ -7,11 +7,11 @@ import '../library/home.css';
 import { BLANKS, renderBlank, type BlankId, type BlankTemplate } from '../../pdf/blank';
 import { useStore } from '../../store/store';
 import { Modal } from '../../ui/Modal';
-import { Seg } from '../../ui/Seg';
 import { usePdfExport } from '../shared/usePdfExport';
 
-type Pages = '1' | '2' | '5' | '10';
-const PAGES: Pages[] = ['1', '2', '5', '10'];
+/** As many pages as a term's exercise book, and then some. */
+const MAX_PAGES = 200;
+const clampPages = (n: number) => Math.max(1, Math.min(MAX_PAGES, Math.round(n) || 1));
 
 /**
  * Blank paper, at /library/paper: for characters that are in no list — yet,
@@ -58,7 +58,14 @@ function BlankDialog({ t, onClose }: { t: BlankTemplate; onClose: () => void }) 
   const palette = useStore((s) => s.settings.printPalette);
   const footerNote = useStore((s) => s.settings.footerNote);
   const pdf = usePdfExport();
-  const [pages, setPages] = useState<Pages>('1');
+  const [pages, setPages] = useState(1);
+  // What is typed, kept apart from the number so the field can be empty while it is being retyped.
+  const [typed, setTyped] = useState('1');
+  const step = (by: number) => {
+    const n = clampPages(pages + by);
+    setPages(n);
+    setTyped(String(n));
+  };
   const [url, setUrl] = useState<string | null>(null);
 
   // One page is the whole preview: every page of blank paper is the same.
@@ -76,7 +83,6 @@ function BlankDialog({ t, onClose }: { t: BlankTemplate; onClose: () => void }) 
     };
   }, [t.id, palette, footerNote]);
 
-  const n = Number(pages);
   return (
     <Modal
       wide
@@ -86,13 +92,27 @@ function BlankDialog({ t, onClose }: { t: BlankTemplate; onClose: () => void }) 
       footer={
         <>
           <span className="small muted">Pages</span>
-          <Seg
-            label="Pages"
-            size="sm"
-            value={pages}
-            onChange={setPages}
-            options={PAGES.map((p) => ({ id: p, label: p }))}
-          />
+          <div className="pages-step" role="group" aria-label="Pages">
+            <button className="icon-btn" onClick={() => step(-1)} disabled={pages <= 1} aria-label="One page fewer">
+              <Icon name="minus" size={18} />
+            </button>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={MAX_PAGES}
+              value={typed}
+              aria-label="Number of pages"
+              onChange={(e) => {
+                setTyped(e.target.value);
+                if (e.target.value !== '') setPages(clampPages(Number(e.target.value)));
+              }}
+              onBlur={() => setTyped(String(pages))}
+            />
+            <button className="icon-btn" onClick={() => step(1)} disabled={pages >= MAX_PAGES} aria-label="One page more">
+              <Icon name="plus" size={18} />
+            </button>
+          </div>
           <div className="spacer" />
           <button
             className="btn primary sm"
@@ -100,7 +120,7 @@ function BlankDialog({ t, onClose }: { t: BlankTemplate; onClose: () => void }) 
             onClick={() =>
               void pdf.run('blank', {
                 title: `${t.name} ${t.zh}`,
-                render: () => renderBlank(t.id, { pages: n, palette, footerNote }),
+                render: () => renderBlank(t.id, { pages, palette, footerNote }),
               })
             }
           >
@@ -131,6 +151,8 @@ function BlankThumb({ id }: { id: BlankId }) {
   const W = 180;
   const cells: Array<[number, number, number]> = [];
   const lines: Array<[number, number, number]> = [];
+  /** upright lines: x, top, length */
+  const ticks: Array<[number, number, number]> = [];
   const top = 26;
 
   const rowOf = (y: number, from = 0, to = 12, size = c) => {
@@ -139,10 +161,12 @@ function BlankThumb({ id }: { id: BlankId }) {
   if (id === 'mizi' || id === 'tian') {
     for (let r = 0; r < 16; r++) rowOf(top + r * c);
   } else if (id === 'pinyin') {
+    // 24pt of pinyin box over each 15 mm square: 8.5 mm, with its column lines.
     for (let r = 0; r < 10; r++) {
       const y = top + r * 26;
-      lines.push([x0, y, W], [x0, y + 3, W], [x0, y + 6, W]);
-      rowOf(y + 7);
+      lines.push([x0, y, W], [x0, y + 2.8, W], [x0, y + 5.7, W]);
+      for (let i = 0; i <= 12; i++) ticks.push([x0 + i * c, y, 8.5]);
+      rowOf(y + 8.5);
     }
   } else if (id === 'newchar') {
     for (let b = 0; b < 5; b++) {
@@ -172,6 +196,9 @@ function BlankThumb({ id }: { id: BlankId }) {
       <rect className="head" x={x0} y="12" width="50" height="5" rx="1" />
       {lines.map(([x, y, w], i) => (
         <line key={`l${i}`} className="rule" x1={x} y1={y} x2={x + w} y2={y} />
+      ))}
+      {ticks.map(([x, y, h], i) => (
+        <line key={`t${i}`} className="rule" x1={x} y1={y} x2={x} y2={y + h} />
       ))}
       {cells.map(([x, y, s], i) => (
         <g key={i}>

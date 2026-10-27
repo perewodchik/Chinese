@@ -16,6 +16,7 @@ export type IconName =
   | 'stop'
   | 'sound'
   | 'plus'
+  | 'minus'
   | 'check'
   | 'search'
   | 'camera'
@@ -51,6 +52,7 @@ const PATHS: Record<IconName, JSX.Element> = {
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
+  minus: <path d="M5 12h14" />,
   check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
   search: (
     <>
