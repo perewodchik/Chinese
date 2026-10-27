@@ -1481,7 +1481,8 @@ label.rd-aa-row {
   display: flex;
   overflow-x: auto;
   scrollbar-width: none;
-  overscroll-behavior-x: contain;
+  /* No rubber band at the ends. */
+  overscroll-behavior-x: none;
 }
 
 .cw-row::-webkit-scrollbar,
@@ -1492,11 +1493,12 @@ label.rd-aa-row {
 .cw-row {
   gap: 22px;
   justify-content: space-between;
-  scroll-snap-type: x mandatory;
 }
 
-.cw-row > .cw-cell {
-  scroll-snap-align: start;
+/* The squares' fades sit in the gap beside the row, over the squares beyond it, never over one in the row. */
+.cw-row-wrap::before,
+.cw-row-wrap::after {
+  width: var(--edge);
 }
 
 .cw-row[data-one] {
@@ -1540,20 +1542,9 @@ label.rd-aa-row {
   display: block;
 }
 
+/* The square being written is the one in blue ink: its frame changes colour, nothing more. */
 .cw-box[data-state='now'] {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
-/* In the whole text, the word being copied is underlined in highlighter. */
-.cw-box[data-word] {
-  box-shadow: 0 9px 0 -3px var(--hl);
-}
-
-.cw-box[data-word][data-state='now'] {
-  box-shadow:
-    0 0 0 3px var(--accent-soft),
-    0 9px 0 -3px var(--hl);
 }
 
 .cw-row-wrap .cw-row {
@@ -1629,6 +1620,10 @@ label.rd-aa-row {
 
 .cs-tail {
   flex: none;
+}
+
+.cw-strip {
+  position: relative;
 }
 
 .cw-actions {

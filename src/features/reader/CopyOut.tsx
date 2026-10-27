@@ -102,6 +102,12 @@ function cut(text: GeneratedText, lib: ReturnType<typeof useLibrary>, by: 'word'
 /** The gap between squares, and the text column beside them on a wide screen. */
 const GAP = 22;
 const TEXT_W = 430;
+/**
+ * The room beside the row of squares: on a wide screen the next square shows
+ * 20px of itself there, under a fade; a phone keeps only a sliver.
+ */
+const edge = (wide: boolean) => (wide ? GAP + 20 : 12);
+
 /** Wide enough for the text beside the squares. */
 const WIDE = 1000;
 
@@ -121,11 +127,12 @@ function useSquares(pane: RefObject<HTMLDivElement | null>, wide: boolean, strip
       const w = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
       const h = el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
       const besideText = window.innerWidth - TEXT_W - 2 * 34;
-      const across = wide ? Math.min(w, besideText) : w;
+      // Room is kept on each side, where the squares beyond the row peek out under a fade.
+      const across = (wide ? Math.min(w, besideText) : w) - 2 * edge(wide);
       // heading 56, pinyin 30, the strokes and their label, the buttons 56, and the gaps between
       const down = h - 56 - 30 - (strip + 24) - 56 - 4 * 18;
       const side = Math.floor(Math.max(72, Math.min((across - GAP) / 2, down)));
-      setBox({ side, across: Math.max(2, Math.floor((w + GAP) / (side + GAP))), width: w });
+      setBox({ side, across: Math.max(2, Math.floor((w - 2 * edge(wide) + GAP) / (side + GAP))), width: w });
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -266,27 +273,34 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
     const r = row.current;
     if (!r || !unit) return;
     const first = whole ? track.findIndex((t) => t.unit === at) : Math.min(charAt, Math.max(0, n - across));
-    r.scrollTo({ left: Math.max(0, first) * (sq.side + GAP), behavior: 'smooth' });
+    // At once: a glide here, with Safari's bounce at its end, read as the row springing back.
+    r.scrollTo({ left: Math.max(0, first) * (sq.side + GAP) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [at, by, sq.side, across]);
 
   // The strokes of the whole word in one row, the character being written at its left edge.
   const strip = useRef<HTMLDivElement>(null);
   const stripEdges = useEdges(strip, [unit?.text, charAt, sq.side]);
+  // A new word starts at its first stroke at once; another character of the same word glides there.
+  const stripWord = useRef<string | undefined>(undefined);
   useLayoutEffect(() => {
     const s = strip.current;
     if (!s) return;
     const tail = s.querySelector<HTMLElement>('.cs-tail');
     if (tail) tail.style.width = `${Math.max(0, s.clientWidth - 40)}px`;
     const g = s.querySelectorAll<HTMLElement>('.cs-group')[charAt];
-    if (g) s.scrollTo({ left: s.scrollLeft + g.getBoundingClientRect().left - s.getBoundingClientRect().left, behavior: 'smooth' });
-  }, [charAt, unit?.text, slots]);
+    const same = stripWord.current === `${at}`;
+    stripWord.current = `${at}`;
+    // Measured from the strip itself, not from where it happens to be scrolled to.
+    s.scrollTo({ left: g ? g.offsetLeft : 0, behavior: same ? 'smooth' : 'auto' });
+  }, [charAt, at, unit?.text, slots]);
 
   const meaning = unit
     ? (text.vocab.find((v) => v.w === unit.text)?.d ??
       text.glosses?.[unit.text]?.d ??
       lib.byWord.get(unit.text)?.d ??
-      lib.byChar.get(unit.text)?.def.split(/[;,]/)[0])
+      lib.byChar.get(unit.text)?.def
+    )?.split(/;\s*/)[0]
     : undefined;
   const reading = unit?.py.join('') ?? '';
   const nextUnit = units[at + 1];
@@ -297,7 +311,7 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
     page.current?.querySelector('[data-now]')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [at, sideText]);
 
-  const square = (c: string, py: string, key: string | number, state: 'done' | 'now' | 'ahead', inWord: boolean, onTap: () => void) => (
+  const square = (c: string, py: string, key: string | number, state: 'done' | 'now' | 'ahead', onTap: () => void) => (
     <div key={key} className="cw-cell" style={{ width: sq.side }}>
       <span className="cw-py" data-now={state === 'now' || undefined}>
         {py}
@@ -305,7 +319,6 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
       <button
         className="cw-box"
         data-state={state}
-        data-word={inWord || undefined}
         style={{ width: sq.side, height: sq.side }}
         onClick={onTap}
         aria-label={`${c}: its strokes`}
@@ -421,15 +434,15 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
                   </div>
                 )}
 
-                <div className="cw-row-wrap" data-l={rowEdges.l || undefined} data-r={rowEdges.r || undefined} style={{ width: slots }}>
-                  <div className="cw-row" ref={row} data-one={n === 1 || undefined}>
+                <div className="cw-row-wrap" data-l={rowEdges.l || undefined} data-r={rowEdges.r || undefined} style={{ width: slots + 2 * edge(wide), '--edge': `${edge(wide)}px` } as CSSProperties}>
+                  <div className="cw-row" ref={row} data-one={n === 1 || undefined} style={{ paddingInline: edge(wide) }}>
                     {whole
                       ? track.map((t, k) =>
-                          square(t.c, t.py, k, t.unit < at || (t.unit === at && t.j < charAt) ? 'done' : t.unit === at && t.j === charAt ? 'now' : 'ahead', t.unit === at, () =>
+                          square(t.c, t.py, k, t.unit < at || (t.unit === at && t.j < charAt) ? 'done' : t.unit === at && t.j === charAt ? 'now' : 'ahead', () =>
                             setAt(t.unit, t.j),
                           ),
                         )
-                      : chars.map((c, j) => square(c, unit.py[j] ?? '', `${at}-${j}`, j < charAt ? 'done' : j === charAt ? 'now' : 'ahead', false, () => setCharAt(j)))}
+                      : chars.map((c, j) => square(c, unit.py[j] ?? '', `${at}-${j}`, j < charAt ? 'done' : j === charAt ? 'now' : 'ahead', () => setCharAt(j)))}
                   </div>
                 </div>
 
