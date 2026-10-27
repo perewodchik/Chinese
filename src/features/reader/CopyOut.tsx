@@ -285,19 +285,14 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
   // The strokes of the whole word in one row, the character being written at its left edge.
   const strip = useRef<HTMLDivElement>(null);
   const stripEdges = useEdges(strip, [unit?.text, charAt, sq.side]);
-  // A new word starts at its first stroke at once; another character of the same word glides there.
-  const stripWord = useRef<string | undefined>(undefined);
+  // The strokes of the character chosen in the squares, and only that one:
+  // a tap on another square shows its strokes instead.
+  const stroked = chars[charAt];
+  const strokeCount = (stroked && lib.strokes[stroked]?.s.length) || 0;
+  // Another character starts its strokes from the first.
   useLayoutEffect(() => {
-    const s = strip.current;
-    if (!s) return;
-    const tail = s.querySelector<HTMLElement>('.cs-tail');
-    if (tail) tail.style.width = `${Math.max(0, s.clientWidth - 40)}px`;
-    const g = s.querySelectorAll<HTMLElement>('.cs-group')[charAt];
-    const same = stripWord.current === `${at}`;
-    stripWord.current = `${at}`;
-    // Measured from the strip itself, not from where it happens to be scrolled to.
-    s.scrollTo({ left: g ? g.offsetLeft : 0, behavior: same ? 'smooth' : 'auto' });
-  }, [charAt, at, unit?.text, slots]);
+    strip.current?.scrollTo({ left: 0 });
+  }, [charAt, at]);
 
   const meaning = unit
     ? (text.vocab.find((v) => v.w === unit.text)?.d ??
@@ -463,25 +458,21 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
 
                 <div className="cw-strip-wrap" data-l={stripEdges.l || undefined} data-r={stripEdges.r || undefined} style={{ width: slots }}>
                   <div className="cw-strip" ref={strip} style={{ '--cell': `${strokeSize}px` } as CSSProperties}>
-                    {chars.map((c, j) => {
-                      const count = lib.strokes[c]?.s.length ?? 0;
-                      return (
-                        <button key={`${at}-${j}`} className="cs-group" data-now={j === charAt || undefined} data-later={j > charAt || undefined} onClick={() => setCharAt(j)}>
-                          <span className="cs-label">
-                            <span className="hanzi">{c}</span> {count} stroke{count === 1 ? '' : 's'}
-                          </span>
-                          <span className="cs-cells">
-                            {Array.from({ length: count }, (_, i) => (
-                              <span key={i} className="cs-cell">
-                                <Glyph char={c} strokes={lib.strokes} size={strokeSize - 4} upto={i + 1} highlight="var(--accent)" />
-                                <span className="cs-n">{i + 1}</span>
-                              </span>
-                            ))}
-                          </span>
-                        </button>
-                      );
-                    })}
-                    <span className="cs-tail" />
+                    {stroked && (
+                      <div className="cs-group">
+                        <span className="cs-label">
+                          <span className="hanzi">{stroked}</span> {strokeCount} stroke{strokeCount === 1 ? '' : 's'}
+                        </span>
+                        <span className="cs-cells">
+                          {Array.from({ length: strokeCount }, (_, i) => (
+                            <span key={i} className="cs-cell">
+                              <Glyph char={stroked} strokes={lib.strokes} size={strokeSize - 4} upto={i + 1} highlight="var(--accent)" />
+                              <span className="cs-n">{i + 1}</span>
+                            </span>
+                          ))}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

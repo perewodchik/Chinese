@@ -1570,12 +1570,6 @@ label.rd-aa-row {
   flex: none;
   display: grid;
   gap: 5px;
-  padding: 0;
-  border: 0;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
 }
 
 .cs-label {
@@ -1588,15 +1582,6 @@ label.rd-aa-row {
 .cs-label .hanzi {
   font-size: 17px;
   color: var(--ink-2);
-}
-
-.cs-group[data-now] .cs-label,
-.cs-group[data-now] .cs-label .hanzi {
-  color: var(--accent);
-}
-
-.cs-group[data-later] .cs-cells {
-  opacity: 0.55;
 }
 
 .cs-cells {
@@ -1625,10 +1610,6 @@ label.rd-aa-row {
   bottom: 1px;
   font: 500 10px var(--sans);
   color: var(--ink-3);
-}
-
-.cs-tail {
-  flex: none;
 }
 
 .cw-strip {
