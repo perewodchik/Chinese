@@ -40,6 +40,20 @@ export function charsOf(ids: Iterable<ItemId>): Set<string> {
   return out;
 }
 
+/**
+ * The characters you can read: those learned as characters, and every
+ * character of a word learned as a word. Learning 一直 in Cards is learning to
+ * read 一 and 直 in it, and a text's "You know" has to move when it happens.
+ */
+export function readableChars(ids: Iterable<ItemId>): Set<string> {
+  const out = new Set<string>();
+  for (const id of ids) {
+    if (isCharId(id)) out.add(idValue(id));
+    else if (isWordId(id)) for (const c of idValue(id)) out.add(c);
+  }
+  return out;
+}
+
 /** The words among a set of ids, as words. */
 export function wordsOf(ids: Iterable<ItemId>): Set<string> {
   const out = new Set<string>();

@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Library } from '../../data/types';
-import { charId, type ItemId } from '../../domain/ids';
+import { charId, readableChars, type ItemId } from '../../domain/ids';
 import { alignPinyin, paragraphs, stepsAbove, wordBands, type Token } from '../../domain/reading';
 import { segment, writerHints } from '../../domain/segment';
 import { itemForToken, type WordKnowledge } from '../../domain/words';
@@ -146,11 +146,9 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
   const syllables = useMemo(() => text.lines.map((l) => alignPinyin(l, lib)), [text.lines, lib]);
   const bands = bandsOf(lib);
 
-  const cover = useMemo(() => {
-    const chars = new Set<string>();
-    for (const id of learned) if (id.startsWith('c')) chars.add(id.slice(1));
-    return coverageOf(text, chars);
-  }, [text, learned]);
+  // Worked out from what is learned now, not what was when the text was
+  // written: it moves as characters and words are learned.
+  const cover = useMemo(() => coverageOf(text, readableChars(learned)), [text, learned]);
 
   /** One sentence, word by word, punctuation held to its word. */
   function sentence(i: number): ReactNode {

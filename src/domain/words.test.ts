@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { Library } from '../data/types';
+import { readableChars } from './ids';
 import { wordsFromTexts } from './words';
 
 const lib = {
@@ -29,5 +30,11 @@ describe('wordsFromTexts', () => {
         ['雪地', 'snowfield', null],
       ],
     );
+  });
+});
+
+describe('readableChars', () => {
+  it('counts the characters of a learned word as readable, beside the characters learned on their own', () => {
+    assert.deepEqual([...readableChars(['c好', 'w一直', 'w你好'])].sort(), ['一', '你', '好', '直'].sort());
   });
 });
