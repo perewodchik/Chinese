@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from './Icon';
 
 interface Props {
@@ -12,7 +13,13 @@ interface Props {
   wide?: boolean;
 }
 
-/** A dialog that closes on Escape and on a click outside it. */
+/**
+ * A dialog that closes on Escape and on a click outside it.
+ *
+ * It is drawn at the end of the document, not where it is used: inside a
+ * page, the page's own box held it, and on a phone the tab bar under the page
+ * covered its footer and the buttons in it.
+ */
 export function Modal({
   title,
   subtitle,
@@ -35,7 +42,7 @@ export function Modal({
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose, onConfirm]);
 
-  return (
+  return createPortal(
     <div className="modal-scrim" onClick={onClose} role="presentation">
       <div
         className={`modal${wide ? ' wide' : ''}`}
@@ -60,6 +67,7 @@ export function Modal({
         <div className="modal-body">{children}</div>
         {footer && <footer>{footer}</footer>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
