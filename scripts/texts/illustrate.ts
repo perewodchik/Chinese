@@ -203,6 +203,25 @@ export interface Painter {
 
 const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** A refusal no later picture of this run would get past: no quota, a bad key. The run stops on it. */
+export class PainterUnavailable extends Error {}
+
+/**
+ * What a 429 means: a quota of nothing (the free tier gives the image models
+ * none) or one used up for hours is the end of this run; a minute's limit is
+ * worth waiting out.
+ */
+function quotaGone(message: string): string | null {
+  if (/limit: 0\b/.test(message) && /free_tier/.test(message)) {
+    return 'This Gemini key’s free tier draws no pictures: turn on billing for its project in Google AI Studio (aistudio.google.com → Billing), then run this again.';
+  }
+  const wait = /retry in (?:(\d+)h)?(?:(\d+)m)?/.exec(message);
+  if (wait && (Number(wait[1] ?? 0) > 0 || Number(wait[2] ?? 0) > 5)) {
+    return `This Gemini key’s quota is used up for now (it says to retry in ${wait[1] ? `${wait[1]}h ` : ''}${wait[2] ?? 0}m).`;
+  }
+  return null;
+}
+
 /** Gemini, through its REST API. Null when there is no key. */
 export function geminiFromEnv(env: NodeJS.ProcessEnv): Painter | null {
   const key = env.GEMINI_API_KEY?.trim() || env.GOOGLE_API_KEY?.trim();
@@ -230,13 +249,20 @@ export function geminiFromEnv(env: NodeJS.ProcessEnv): Painter | null {
           headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
           body: JSON.stringify(body),
         });
-        // Busy or rate-limited: wait and ask again, a few times.
+        const answer = (await res.json().catch(() => null)) as GeminiAnswer | null;
+        const message = answer?.error?.message ?? res.statusText;
+        if (res.status === 429) {
+          const gone = quotaGone(message);
+          if (gone) throw new PainterUnavailable(gone);
+        }
+        if (res.status === 400 && /API key/i.test(message)) throw new PainterUnavailable(`Gemini refused the key: ${message}`);
+        if (res.status === 401 || res.status === 403) throw new PainterUnavailable(`Gemini refused the key: ${message}`);
+        // Busy or rate-limited for a moment: wait and ask again, a few times.
         if ((res.status === 429 || res.status >= 500) && attempt < 4) {
           await pause(attempt * 15_000);
           continue;
         }
-        const answer = (await res.json().catch(() => null)) as GeminiAnswer | null;
-        if (!res.ok) throw new Error(`Gemini said ${res.status}: ${answer?.error?.message ?? res.statusText}`);
+        if (!res.ok) throw new Error(`Gemini said ${res.status}: ${message.split('\n')[0]}`);
         const parts = answer?.candidates?.[0]?.content?.parts ?? [];
         const image = parts.find((p) => p.inlineData?.data ?? p.inline_data?.data);
         const data = image?.inlineData?.data ?? image?.inline_data?.data;
@@ -334,6 +360,11 @@ export async function illustrate(account: PictureAccount, painter: Painter | nul
       o.say(`${job.title} ¶${job.para + 1}: drawn, ${size.w}×${size.h}, ${Math.round(small.bytes.length / 1024)} KB`);
     } catch (err) {
       failed += 1;
+      if (err instanceof PainterUnavailable) {
+        o.say(err.message);
+        failed = jobs.length - drawn;
+        break;
+      }
       o.say(`${job.title} ¶${job.para + 1}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }

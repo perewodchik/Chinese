@@ -139,3 +139,32 @@ describe('describing the pictures of a text already on the shelf', () => {
     );
   });
 });
+
+describe('a painter that cannot draw at all', () => {
+  it('stops the run at once and says why', async () => {
+    const { PainterUnavailable } = await import('./illustrate');
+    let doc: Record<string, unknown> = {
+      sets: [{ id: 's1', name: 'Story', createdAt: 0 }],
+      texts: [text('ch1', 1, [{ para: 0, prompt: 'a' }, { para: 1, prompt: 'b' }])],
+    };
+    const account: PictureAccount = {
+      where: 'test',
+      read: async () => ({ revision: 1, document: structuredClone(doc) }),
+      write: async (_b, next) => ((doc = next), true),
+      getPicture: async () => null,
+      putPicture: async () => undefined,
+    };
+    let asked = 0;
+    const painter = {
+      model: 'fake',
+      async paint(): Promise<Uint8Array> {
+        asked += 1;
+        throw new PainterUnavailable('No quota.');
+      },
+    };
+    const lines: string[] = [];
+    assert.deepEqual(await illustrate(account, painter, { set: 'Story', say: (l) => lines.push(l) }), { drawn: 0, failed: 2 });
+    assert.equal(asked, 1);
+    assert.ok(lines.includes('No quota.'));
+  });
+});
