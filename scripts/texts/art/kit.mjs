@@ -32,13 +32,46 @@ export const apple = (x, y, r = 14) => `<g transform="translate(${x} ${y})">
 
 /* ------------------------------------------------------------------ Ash */
 
-const POSES = {
-  stand: { hipY: -84, legs: [[[-12, -84], [-13, -46], [-15, -12]], [[12, -84], [13, -46], [15, -12]]] },
-  walk: { hipY: -84, legs: [[[-12, -84], [-22, -48], [-30, -12]], [[12, -84], [16, -46], [22, -12]]] },
-  run: { hipY: -84, legs: [[[-12, -84], [-36, -56], [-58, -40]], [[12, -84], [24, -46], [34, -12]]] },
-  brace: { hipY: -84, legs: [[[-12, -84], [-34, -50], [-52, -12]], [[12, -84], [6, -46], [-2, -12]]] },
-  hang: { hipY: -84, legs: [[[-12, -84], [-18, -46], [-12, -10]], [[12, -84], [26, -52], [30, -18]]] },
-  sit: { hipY: -30, legs: [[[-10, -30], [30, -52], [58, -12]], [[10, -30], [46, -38], [78, -12]]] },
+/*
+ * The skeleton. Bones keep their length; a pose is the angle of each bone, in
+ * degrees from straight down (90 points to +x, 180 straight up). A hand goes
+ * only as far as the arm reaches: to reach higher, the body moves, the arm
+ * does not stretch. Feet are put on the ground by moving the hips.
+ */
+const BONES = { upper: 38, fore: 36, thigh: 38, shin: 36 };
+const dir = (a) => [Math.sin((a * Math.PI) / 180), Math.cos((a * Math.PI) / 180)];
+const step = ([x0, y0], a, len) => { const [dx, dy] = dir(a); return [x0 + dx * len, y0 + dy * len]; };
+
+/**
+ * Arms, [left, right], each [upper arm, forearm] angles; and where they are
+ * drawn: behind the body, over it (front), or over the head too (over).
+ */
+export const ARMS = {
+  rest: { a: [[-12, -6], [12, 6]], layer: 'back' },
+  tummy: { a: [[-16, 72], [16, -72]], layer: 'front' },
+  head: { a: [[-158, 176], [158, -176]], layer: 'over' },
+  hang: { a: [[-170, -172], [170, 172]], layer: 'back' },
+  pull: { a: [[46, 78], [62, 86]], layer: 'front' },
+  hold: { a: [[-14, 86], [14, -86]], layer: 'front' },
+  fist: { a: [[-12, -6], [156, 176]], layer: 'back' },
+  shade: { a: [[-12, -6], [150, -118]], layer: 'over' },
+  run: { a: [[-36, 44], [34, 146]], layer: 'back' },
+  surprise: { a: [[-128, -150], [128, 150]], layer: 'back' },
+  point: { a: [[-12, -6], [112, 118]], layer: 'back' },
+  reach: { a: [[-12, -6], [86, 92]], layer: 'back' },
+  lap: { a: [[-22, 24], [14, -150]], layer: 'front' },
+  fork: { a: [[-12, -6], [34, 172]], layer: 'back' },
+  clap: { a: [[-20, 110], [20, -110]], layer: 'front' },
+};
+
+/** Legs, [left, right], each [thigh, shin] angles; cross: sitting cross-legged. */
+export const LEGS = {
+  stand: [[-4, -2], [4, 2]],
+  walk: [[-14, -4], [16, 8]],
+  run: [[-30, -78], [28, 6]],
+  brace: [[-6, -4], [36, 44]],
+  hang: [[-4, 8], [8, -8]],
+  cross: 'cross',
 };
 
 /**
@@ -55,36 +88,74 @@ const LOOKS = {
   walker2: { top: '#d6a3c4', upper: '#d6a3c4', fore: SKIN, hand: SKIN, pants: '#e8d9b5', shin: SKIN, shoe: '#b05050', head: 'bob', hair: '#c9893a' },
 };
 
-/**
- * A figure of the cast. look: a key of LOOKS. pose: stand | walk | run |
- * brace | hang | sit. arms: [left, right], each [elbow, hand] relative to the
- * standing shoulders; front: arms drawn over the body (hands on the tummy, a
- * hand held out in front); face: smile | worried | ouch | happy | shock |
- * determined | laugh; look: front | left | right | up. hold: 'apple' | 'fork'
- * in the right hand. scale: the figure's size against Ash's.
- */
-export function figure(lookName, { x, y, s = 1, flip = false, pose = 'stand', arms, front = false, face = 'smile', look = 'front', hold = null, hair = false }) {
-  const K = LOOKS[lookName];
-  const P = POSES[pose];
-  const dy = P.hipY + 84; // the upper body comes down when sitting
-  const at = ([px, py]) => [px, py + dy];
-  const L = at([-27, -150]);
-  const R = at([27, -150]);
-  const [al, ar] = arms ?? [[[-36, -118], [-40, -92]], [[36, -118], [40, -92]]];
-  const arm = (shoulder, [elbow, hand]) =>
-    limb([shoulder, at(elbow)], 17, K.upper) + limb([at(elbow), at(hand)], 12, K.fore) +
-    `<circle cx="${at(hand)[0]}" cy="${at(hand)[1]}" r="10" fill="${K.hand}" ${ink(3)}/>`;
-  const legs = P.legs.map((pts) => {
-    const foot = pts[2];
-    const toe = pose === 'sit' ? 1 : foot[0] < 0 ? -1 : 1;
-    const knee = pts[1];
-    const leg = K.shin === K.pants
-      ? limb(pts, 20, K.pants)
-      : limb([pts[0], knee], 20, K.pants) + limb([knee, foot], 13, K.shin);
-    return leg +
-      `<path d="M${foot[0] - 14 * toe} ${foot[1] + 8} q${2 * toe} -18 ${18 * toe} -16 q${14 * toe} 2 ${16 * toe} 16 Z" fill="${K.shoe}" ${ink(3)}/>` +
-      `<path d="M${foot[0] - 14 * toe} ${foot[1] + 8} h${32 * toe}" ${ink(4)}/>`;
+/** Where every joint of a figure is, before it is placed: the legs, the hips, the arms. */
+function skeleton({ legs: legName = 'stand', arms: armName = 'rest' }) {
+  const A = typeof armName === 'string' ? ARMS[armName] : armName;
+  const legSpec = LEGS[legName];
+  const cross = legSpec === 'cross';
+  // The legs from the hips, then the hips lifted so the lowest foot is on the ground.
+  const legPts = cross ? null : legSpec.map(([t, sh], i) => {
+    const hip = [i ? 12 : -12, 0];
+    const knee = step(hip, t, BONES.thigh);
+    return [hip, knee, step(knee, sh, BONES.shin)];
   });
+  const lowest = cross ? 0 : Math.max(...legPts.map((p) => p[2][1]));
+  const hipY = cross ? -26 : -10 - lowest;
+  const dy = hipY + 84; // the upper body's offset from standing
+  const shoulders = [[-27, -150 + dy], [27, -150 + dy]];
+  const armPts = A.a.map(([u, f], i) => {
+    const el = step(shoulders[i], u, BONES.upper);
+    return [shoulders[i], el, step(el, f, BONES.fore)];
+  });
+  return { A, cross, legPts, hipY, dy, armPts };
+}
+
+/**
+ * Where a figure's hand is in the picture (0 left, 1 right — the figure's own,
+ * before a flip), for putting a rod, a rope or someone else's paw in it.
+ */
+export function handOf(lookName, { x, y, s = 1, flip = false, lean = 0, legs = 'stand', arms = 'rest' }, i = 1) {
+  const k = lookName === 'boy' ? s * 0.86 : s;
+  const { hipY, armPts } = skeleton({ legs, arms });
+  const [hx, hy] = armPts[i][2];
+  const r = (lean * Math.PI) / 180;
+  const rx = hx * Math.cos(r) - (hy - hipY) * Math.sin(r);
+  const ry = hx * Math.sin(r) + (hy - hipY) * Math.cos(r) + hipY;
+  return [x + (flip ? -rx : rx) * k, y + ry * k];
+}
+
+/**
+ * A figure of the cast. look: a key of LOOKS. legs: a key of LEGS; arms: a key
+ * of ARMS, or { a: [[upper, fore], [upper, fore]], layer }; lean: degrees the
+ * body leans from the hips (negative: back to the left); face: smile | worried
+ * | ouch | happy | shock | determined | laugh; look: front | left | right |
+ * up. hold: 'apple' | 'fork' in the right hand. hair: standing on end.
+ */
+export function figure(lookName, { x, y, s = 1, flip = false, legs: legName = 'stand', arms: armName = 'rest', lean = 0, face = 'smile', look = 'front', hold = null, hair = false, shadowless = false }) {
+  const K = LOOKS[lookName];
+  const { A, cross, legPts, hipY, dy, armPts } = skeleton({ legs: legName, arms: armName });
+  const at = ([px, py]) => [px, py + hipY];
+  const arm = ([sh, el, hand]) =>
+    limb([sh, el], 17, K.upper) + limb([el, hand], 12, K.fore) +
+    `<circle cx="${hand[0]}" cy="${hand[1]}" r="10" fill="${K.hand}" ${ink(3)}/>`;
+  const shoe = (foot, toe) =>
+    `<path d="M${foot[0] - 14 * toe} ${foot[1] + 8} q${2 * toe} -18 ${18 * toe} -16 q${14 * toe} 2 ${16 * toe} 16 Z" fill="${K.shoe}" ${ink(3)}/>` +
+    `<path d="M${foot[0] - 14 * toe} ${foot[1] + 8} h${32 * toe}" ${ink(4)}/>`;
+  const leg = (pts) => {
+    const [hip, knee, foot] = pts.map(at);
+    const drawn = K.shin === K.pants ? limb([hip, knee, foot], 20, K.pants) : limb([hip, knee], 20, K.pants) + limb([knee, foot], 13, K.shin);
+    return drawn + shoe(foot, foot[0] < 0 ? -1 : 1);
+  };
+  const legs = cross
+    ? (() => {
+        // Cross-legged, seen from the front: thighs out to the knees, shins crossing in front.
+        const l = [[-12, hipY], [-54, hipY + 12], [10, hipY + 20]];
+        const r = [[12, hipY], [54, hipY + 12], [-10, hipY + 24]];
+        const one = ([hip, knee, foot]) => (K.shin === K.pants ? limb([hip, knee], 20, K.pants) + limb([knee, foot], 18, K.pants) : limb([hip, knee], 20, K.pants) + limb([knee, foot], 13, K.shin));
+        const sole = (f, t) => `<ellipse cx="${f[0] + 8 * t}" cy="${f[1] + 2}" rx="15" ry="9" fill="${K.shoe}" ${ink(3)}/>`;
+        return [one(l) + sole(l[2], 1), one(r) + sole(r[2], -1)];
+      })()
+    : legPts.map(leg);
   const hy = -204 + dy; // head centre
   const eye = (ex) => {
     const ox = look === 'left' ? -3 : look === 'right' ? 3 : 0;
@@ -109,7 +180,7 @@ export function figure(lookName, { x, y, s = 1, flip = false, pose = 'stand', ar
     shock: `<ellipse cx="0" cy="${hy + 19}" rx="7" ry="9" fill="#a8423a" ${ink(2.5)}/>`,
     determined: `<path d="M-10 ${hy + 14} q10 9 20 0 Z" fill="#fff" ${ink(2.5)}/>`,
   }[face];
-  const hand = at(ar[1]);
+  const hand = armPts[1][2];
   const held = hold === 'apple' ? apple(hand[0] + 4, hand[1] - 10, 13)
     : hold === 'fork' ? `<path d="M${hand[0]} ${hand[1] - 6} v-46" ${ink(7)}/><path d="M${hand[0]} ${hand[1] - 6} v-46" stroke="#c9cdd2" stroke-width="3"/><path d="M${hand[0] - 8} ${hand[1] - 62} v14 q8 8 16 0 v-14 M${hand[0]} ${hand[1] - 62} v14" ${ink(3)} fill="none"/>` : '';
   const head = {
@@ -135,14 +206,17 @@ export function figure(lookName, { x, y, s = 1, flip = false, pose = 'stand', ar
   const torso = `<path d="M-31 ${-152 + dy} Q0 ${-160 + dy} 31 ${-152 + dy} L35 ${-82 + dy} Q0 ${-74 + dy} -35 ${-82 + dy} Z" fill="${K.top}" ${ink()}/>` +
     (K.tee ? `<path d="M-9 ${-155 + dy} L9 ${-155 + dy} L10 ${-79 + dy} L-10 ${-79 + dy} Z" fill="${K.tee}" ${ink(2)}/><path d="M-18 ${-153 + dy} l9 14 M18 ${-153 + dy} l-9 14" ${ink(2.5)}/>` : '') +
     (K.apron ? `<path d="M-20 ${-140 + dy} L20 ${-140 + dy} L26 ${-76 + dy} L-26 ${-76 + dy} Z" fill="${K.apron}" ${ink(2.5)}/>` : '');
-  const body = `${pose === 'hang' ? '' : shadow(pose === 'sit' ? 70 : 46)}
-    ${legs.join('')}
-    ${front ? '' : arm(L, al) + arm(R, ar)}
+  const arms = armPts.map(arm).join('');
+  const upper = `${A.layer === 'back' ? arms : ''}
     ${torso}
-    ${front ? arm(L, al) + arm(R, ar) : ''}
+    ${A.layer === 'front' ? arms : ''}
     <rect x="-8" y="${-172 + dy}" width="16" height="20" fill="${SKIN}" ${ink(2.5)}/>
     ${spiky}${head}
-    ${eye(-14)}${eye(14)}${brows}${marks}${mouth}${held}`;
+    ${eye(-14)}${eye(14)}${brows}${marks}${mouth}
+    ${A.layer === 'over' ? arms : ''}${held}`;
+  const body = `${shadowless || legName === 'hang' ? '' : shadow(cross ? 64 : 46)}
+    ${legs.join('')}
+    <g transform="rotate(${lean} 0 ${hipY})">${upper}</g>`;
   return place(x, y, s, flip, body);
 }
 

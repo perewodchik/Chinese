@@ -31,6 +31,29 @@ look made with care. Children's picture book, soft and warm, never busy.
 - Proportions stay fixed between pictures: Ash about 2.6 heads tall, Pikachu
   about half Ash's height, its head larger than its body.
 
+## Poses: natural, so they go with the text instead of drawing the eye
+
+The second try was told: Ash's arms grew to twice their length to reach a
+branch, and he sat under the tree with a knee up and both legs off to one
+side — nobody sits like that. A pose a reader notices is a pose that takes
+them away from the Chinese.
+
+- Bones keep their length. A pose is the angle at each joint (`ARMS`, `LEGS`
+  in the kit), never a point the hand is dragged to. If a hand cannot reach
+  something, move the figure or the thing, not the arm. `handOf` says where a
+  hand is, to put a rod, a branch or a paw in it.
+- Use the poses people actually make: arms hanging, hands on the tummy, hands
+  on the head, a hand shading the eyes, holding something at the chest,
+  pulling with the body leaning back (`lean`), running with the arms bent,
+  hanging from a branch with the arms straight up beside the head.
+- Sitting on the ground is cross-legged, the back against something; the
+  hands in the lap or holding something at the chest.
+- Joints bend the way joints bend: elbows and knees one way only, no arm
+  through the head, no foot off the ground unless the figure is running,
+  hanging or jumping.
+- One pose, one idea: the pose says what the paragraph says (hungry → hands
+  on the tummy), and nothing more.
+
 ## The cast, as the kit draws them
 
 - **Ash (小智)**: spiky black hair showing under a red cap with a white front
