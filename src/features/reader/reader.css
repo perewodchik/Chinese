@@ -1888,3 +1888,28 @@ label.rd-aa-row {
     padding-left: 0;
   }
 }
+
+/* Beside: small, at the paragraph's top right, the text running round it — a
+   glance, not a page. A third of the column, never wider than a thumb's reach
+   of picture, never so narrow it is a stamp. */
+.rd-pic[data-size='beside'] {
+  float: right;
+  width: clamp(104px, 32%, 200px);
+  margin: 6px 0 8px 14px;
+}
+
+.rd-pic[data-size='beside'] .rd-pic-frame {
+  width: 100%;
+  border-radius: 12px;
+}
+
+/* in the line-by-line layout it floats in the first line of its paragraph */
+.rd-line-body .rd-pic[data-size='beside'] {
+  margin-top: 4px;
+}
+
+/* a paragraph holds its picture, however short the paragraph */
+.rd-para:has(> .rd-pic[data-size='beside']),
+.rd-line-body:has(> .rd-pic[data-size='beside']) {
+  display: flow-root;
+}

@@ -14,7 +14,7 @@ import { Comic } from './Comic';
 import { ParagraphPicture } from './ParagraphPicture';
 import { SceneView } from './SceneView';
 import { StoryChoices, StoryMap } from './StoryPath';
-import type { PinyinMode, TranslationMode } from './readerView';
+import type { PictureMode, PinyinMode, TranslationMode } from './readerView';
 import './stories.css';
 
 /** What the reader has switched on, shared by every passage on the page. */
@@ -30,6 +30,8 @@ export interface ReaderView {
   target: number;
   /** a dialogue drawn as speech bubbles from faces */
   comic: boolean;
+  /** the pictures above or beside the paragraphs */
+  pictures: PictureMode;
 }
 
 /** Where a word stands for this reader: the marks and the pinyin follow it. */
@@ -132,7 +134,8 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
     [text, story, path, byNode],
   );
   // Pictures go by the passage's own paragraphs, which a story with choices does not show as such.
-  const pictureOf = (n: number) => (story ? undefined : pictureAbove(text, n));
+  const pictureOf = (n: number) => (story || view.pictures === 'off' ? undefined : pictureAbove(text, n));
+  const beside = view.pictures === 'beside';
   const paraStarts = useMemo(() => new Map(paragraphs(text).map((p, n) => [p[0]!, n])), [text]);
   const comic = view.comic && (text.genre === 'dialogue' || text.lines.some((l) => l.who)) && !story;
   const layout = view.layout;
@@ -258,8 +261,9 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
                 .map((sc, k) => (
                   <SceneView key={`s${k}`} scene={sc} />
                 ))}
-              {pictureOf(n) && <ParagraphPicture picture={pictureOf(n)!} />}
+              {pictureOf(n) && !beside && <ParagraphPicture picture={pictureOf(n)!} size="large" />}
               <p className="rd-para">
+                {pictureOf(n) && beside && <ParagraphPicture picture={pictureOf(n)!} size="beside" />}
                 {p.map((i) => (
                   <span key={i} id={`line-${text.id}-${i}`} className="sent" data-reading={reading === i || undefined} data-flash={flash === i || undefined}>
                     {sentence(i)}
@@ -278,9 +282,9 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
               const pic = paraStarts.has(i) ? pictureOf(paraStarts.get(i)!) : undefined;
               return (
                 <Fragment key={i}>
-                  {pic && (
+                  {pic && !beside && (
                     <li className="rd-line-pic">
-                      <ParagraphPicture picture={pic} />
+                      <ParagraphPicture picture={pic} size="large" />
                     </li>
                   )}
                   <li
@@ -300,6 +304,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
                       {i + 1}
                     </button>
                     <div className="rd-line-body">
+                      {pic && beside && <ParagraphPicture picture={pic} size="beside" />}
                       <p className="rd-line-zh sent">{sentence(i)}</p>
                       {open && <p className="rd-line-en">{text.lines[i]!.en}</p>}
                     </div>

@@ -14,7 +14,16 @@ import { useCallback, useEffect, useState } from 'react';
 export type PinyinMode = 'off' | 'new' | 'all';
 export type TranslationMode = 'hidden' | 'shown';
 
+/**
+ * A text's pictures: off, small beside the paragraph they go with, or large
+ * above it. Beside is the default: the picture is there for a glance and a
+ * tap, and the Chinese stays the thing on the page.
+ */
+export type PictureMode = 'off' | 'beside' | 'large';
+
 export const PINYIN_MODES: PinyinMode[] = ['off', 'new', 'all'];
+export const PICTURE_MODES: PictureMode[] = ['off', 'beside', 'large'];
+export const PICTURE_LABEL: Record<PictureMode, string> = { off: 'Off', beside: 'Beside', large: 'Large' };
 export const TRANSLATION_MODES: TranslationMode[] = ['hidden', 'shown'];
 
 export const PINYIN_LABEL: Record<PinyinMode, string> = { off: 'Off', new: 'New', all: 'All' };
@@ -57,6 +66,8 @@ function useStoredChoice<T extends string>(key: string, allowed: readonly T[], f
 export const usePinyinMode = () => useStoredChoice<PinyinMode>('hanzi.reader.pinyin', PINYIN_MODES, 'new');
 export const useTranslationMode = () =>
   useStoredChoice<TranslationMode>('hanzi.reader.english', TRANSLATION_MODES, 'hidden');
+
+export const usePictureMode = () => useStoredChoice<PictureMode>('hanzi.reader.pictures', PICTURE_MODES, 'beside');
 
 /** The next choice round, for a button that steps through them. */
 export const nextOf = <T,>(list: readonly T[], at: T): T => list[(list.indexOf(at) + 1) % list.length]!;

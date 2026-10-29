@@ -17,12 +17,16 @@ import { usePdfExport } from '../shared/usePdfExport';
 import { Passage, useStanding, type ReaderView } from './Passage';
 import { onReadThrough, prefetchPassage, useReading } from './readAloud';
 import {
+  PICTURE_LABEL,
+  PICTURE_MODES,
   PINYIN_LABEL,
   PINYIN_MODES,
   TRANSLATION_LABEL,
   TRANSLATION_MODES,
+  usePictureMode,
   usePinyinMode,
   useTranslationMode,
+  type PictureMode,
 } from './readerView';
 import { readerSheet } from './readerSheet';
 import { rememberReading } from './lastRead';
@@ -131,6 +135,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [pinyin, setPinyin] = usePinyinMode();
   const [translation, setTranslation] = useTranslationMode();
   const [comic, setComic] = useComicView();
+  const [pictures, setPictures] = usePictureMode();
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [flash, setFlash] = useState<number | null>(null);
   const top = useRef<HTMLDivElement>(null);
@@ -145,6 +150,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     markAbove: settings.markAbove,
     target: settings.targetHsk,
     comic,
+    pictures,
   };
 
   /* -------------------------------------------------------- the voice */
@@ -371,6 +377,9 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             hasDialogue={list.some((t) => t.genre === 'dialogue' || t.lines.some((l) => l.who))}
             comic={comic}
             setComic={setComic}
+            hasPictures={list.some((t) => t.pictures?.some((p) => p.key))}
+            pictures={pictures}
+            setPictures={setPictures}
           />
         </div>
       </div>
@@ -492,11 +501,17 @@ function AaMenu({
   hasDialogue,
   comic,
   setComic,
+  hasPictures,
+  pictures,
+  setPictures,
 }: {
   hasTrad: boolean;
   hasDialogue: boolean;
   comic: boolean;
   setComic: (on: boolean) => void;
+  hasPictures: boolean;
+  pictures: PictureMode;
+  setPictures: (m: PictureMode) => void;
 }) {
   const settings = useStore((s) => s.settings);
   const [open, setOpen] = useState(false);
@@ -554,6 +569,19 @@ function AaMenu({
               </button>
             </div>
           </div>
+          {hasPictures && (
+            <div className="rd-aa-row">
+              <span>Pictures</span>
+              <span className="spacer" />
+              <div className="seg sm" role="group" aria-label="Pictures">
+                {PICTURE_MODES.map((m) => (
+                  <button key={m} aria-pressed={pictures === m} onClick={() => setPictures(m)}>
+                    {PICTURE_LABEL[m]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <label className="rd-aa-row">
             <span>
               Underline words to learn
