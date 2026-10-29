@@ -371,6 +371,23 @@ export async function illustrate(account: PictureAccount, painter: Painter | nul
   return { drawn, failed };
 }
 
+/**
+ * Pictures drawn some other way (by hand, with art/kit.mjs) into a text, one
+ * file a paragraph in order: each kept on the server and put in as illustrate
+ * puts a drawing in. The paragraph keeps its description.
+ */
+export async function putDrawn(account: PictureAccount, textId: string, files: string[], say: (line: string) => void) {
+  for (const [para, file] of files.entries()) {
+    const small = shrink(new Uint8Array(readFileSync(file)));
+    const size = imageSize(small.bytes);
+    if (!size) throw new Error(`${file} is not a picture this can read.`);
+    const key = createHash('sha256').update(small.bytes).digest('hex');
+    await account.putPicture(key, small.mime, small.bytes);
+    await save(account, { textId, title: textId, para, prompt: '' }, { key, w: size.w, h: size.h, at: Date.now() });
+    say(`¶${para + 1}: ${file}, ${size.w}×${size.h}, ${Math.round(small.bytes.length / 1024)} KB`);
+  }
+}
+
 /** One drawn picture into its text, on the revision just read; read again if a device saved in between. */
 async function save(account: PictureAccount, job: Job, drawn: Required<Pick<TextPicture, 'key' | 'w' | 'h' | 'at'>>) {
   for (let attempt = 1; attempt <= 5; attempt++) {

@@ -148,6 +148,13 @@ to be drawn differently): a file `{ "pictures": { "<text id>": [{ "para": 0,
 "prompt": "…" }] } }`, then `describe <file>` and `illustrate --set "<title>"`.
 A paragraph whose description is unchanged keeps its picture.
 
+No Gemini to draw with: draw them by hand, by `scripts/texts/art/BRIEF.md`,
+with the puppets in `scripts/texts/art/kit.mjs` (a chapter's scenes in
+`scripts/texts/art/stories/`, as `pikachu-ch1.mjs` does), render them with
+`node scripts/texts/art/render.mjs <scenes.mjs> <out dir>` and put them in
+with `put <text id> <¶1.jpg> <¶2.jpg> …`. Look at every picture before putting
+it in.
+
 ## 8. The report
 
 Short, in their language: the session and its address (`/texts/<id>` of the

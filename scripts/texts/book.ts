@@ -27,6 +27,8 @@
  *   npm run texts -- describe <pictures.json>
  *       what to draw for texts already on the shelf: { "pictures": { "<text id>": [{ para, prompt }] } };
  *       then illustrate draws them
+ *   npm run texts -- put <text id> <picture for ¶1> <picture for ¶2> …
+ *       pictures drawn by hand (art/BRIEF.md) into a text, a paragraph each
  *   npm run texts -- record [--voice wang] [--set <id or name>]
  *       reads every text's sentences aloud in one of the app's voices and keeps the
  *       recordings, so the website plays the text in that voice (on the Mac only:
@@ -78,7 +80,7 @@ import {
   type TextSet,
 } from '../../src/domain/text';
 import { newId } from '../../src/platform/ids';
-import { geminiFromEnv, illustrate, withDescribed, type PictureAccount } from './illustrate';
+import { geminiFromEnv, illustrate, putDrawn, withDescribed, type PictureAccount } from './illustrate';
 import type { PersistedState } from '../../src/store/state';
 
 /** The workspace version this checkout writes. A newer document is left alone. */
@@ -678,6 +680,7 @@ const USAGE = `
   npm run texts -- add <story.json> --new-set <title> --story [--preface] [--learn] [--genre story]
   npm run texts -- illustrate [--set <id or name>] [--text <id>] [--redo] [--style "…"] [--dry-run]
   npm run texts -- describe <pictures.json>    { "pictures": { "<text id>": [{ "para": 0, "prompt": "…" }] } }
+  npm run texts -- put <text id> <picture for ¶1> <picture for ¶2> …
   npm run texts -- record [--voice wang] [--set <id or name>]    on the Mac: the texts, read aloud for the site
 `;
 
@@ -730,6 +733,17 @@ async function main(argv: string[]) {
 
   if (command === 'record') {
     await record({ voice: values.voice, set: values.set });
+    return;
+  }
+  if (command === 'put') {
+    const [textId, ...files] = positionals;
+    if (!textId || !files.length) throw new Error(`Which text, and which pictures?\n${USAGE}`);
+    const account = await openAccount();
+    try {
+      await putDrawn(account, textId, files, (line) => console.log(`  ${line}`));
+    } finally {
+      await account.close();
+    }
     return;
   }
   if (command === 'describe') {
