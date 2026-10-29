@@ -1889,23 +1889,35 @@ label.rd-aa-row {
   }
 }
 
-/* Beside: small, at the paragraph's top right, the text running round it — a
-   glance, not a page. A third of the column, never wider than a thumb's reach
-   of picture, never so narrow it is a stamp. */
+/* Beside: small, at the top right of its paragraph, held to the lines' grid.
+   A line is 2.35em tall with the room for pinyin at its top and the
+   character's square in the 1em below that, from 0.67em down. The picture
+   starts level with the first line's characters and ends level with the last
+   line's beside it, and with its margins takes exactly that many whole lines,
+   so the text runs round it line for line and goes back to the full width on
+   the line after. Two lines on a phone, cropped square; three on a wider
+   screen, at 4:3. */
 .rd-pic[data-size='beside'] {
+  --lh: 2.35em;
+  --lines: 2;
+  --glyph-top: 0.67em;
   float: right;
-  width: clamp(104px, 32%, 200px);
-  margin: 6px 0 8px 14px;
+  height: calc((var(--lines) - 1) * var(--lh) + 1em);
+  aspect-ratio: 1;
+  margin: var(--glyph-top) 0 calc(var(--lh) - var(--glyph-top) - 1em) 0.5em;
+}
+
+@media (min-width: 700px) {
+  .rd-pic[data-size='beside'] {
+    --lines: 3;
+    aspect-ratio: 4 / 3;
+  }
 }
 
 .rd-pic[data-size='beside'] .rd-pic-frame {
   width: 100%;
-  border-radius: 12px;
-}
-
-/* in the line-by-line layout it floats in the first line of its paragraph */
-.rd-line-body .rd-pic[data-size='beside'] {
-  margin-top: 4px;
+  height: 100%;
+  border-radius: 8px;
 }
 
 /* a paragraph holds its picture, however short the paragraph */

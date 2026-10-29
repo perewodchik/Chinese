@@ -17,7 +17,7 @@ export function ParagraphPicture({ picture, size }: { picture: TextPicture; size
   const Box = size === 'beside' ? 'span' : 'figure';
   return (
     <Box className="rd-pic no-print" data-size={size}>
-      <button className="rd-pic-frame" style={{ aspectRatio: ratio }} onClick={() => setOpen(true)} aria-label="Show the picture larger">
+      <button className="rd-pic-frame" style={size === 'large' ? { aspectRatio: ratio } : undefined} onClick={() => setOpen(true)} aria-label="Show the picture larger">
         <img src={src} alt="" width={picture.w} height={picture.h} loading="lazy" decoding="async" />
       </button>
       {open && (
