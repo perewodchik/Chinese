@@ -54,6 +54,29 @@ them away from the Chinese.
 - One pose, one idea: the pose says what the paragraph says (hungry → hands
   on the tummy), and nothing more.
 
+## Layers: what is in front of what
+
+- Back to front, a figure is: long hair, the arms that hang behind, the body,
+  what it holds against its chest (`inArms`), the arms in front of the body,
+  the neck and the head, a hand on the head (`over`). Each arm has its own
+  layer when the two arms do different things (`scratch`, `carry`).
+- Something held in both arms sits below the chin: the forearms cross its
+  body, never its face, and its ears stop short of the holder's mouth.
+- A thing carried over the shoulder (a sack) is drawn before the figure, the
+  gripping hand in front of its neck.
+- Behind a desk or a counter, the furniture is drawn after the figure; a
+  figure in front of it, before.
+- Put held things where `handOf` says the hand is, and a hand that touches
+  something (a blanket, a paw) by standing the figure where its arm reaches.
+
+## Check before putting anything in
+
+Render the chapter, then look at a contact sheet and at close crops of every
+hand, every held thing and every place two things meet. Look for: a limb
+longer than its bone, a hand in the air short of what it should touch, an arm
+through a head, hair over arms, a face hidden by something held, a figure
+drawn twice, a figure overlapping a car or a table it should stand beside.
+
 ## The cast, as the kit draws them
 
 - **Ash (小智)**: spiky black hair showing under a red cap with a white front

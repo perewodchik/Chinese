@@ -62,6 +62,13 @@ export const ARMS = {
   lap: { a: [[-22, 24], [14, -150]], layer: 'front' },
   fork: { a: [[-12, -6], [34, 172]], layer: 'back' },
   clap: { a: [[-20, 110], [20, -110]], layer: 'front' },
+  cradle: { a: [[-8, 62], [8, -62]], layer: 'front' },
+  scratch: { a: [[-12, -6], [158, -176]], layer: ['back', 'over'] },
+  restLap: { a: [[-14, 38], [14, -38]], layer: 'front' },
+  carry: { a: [[-12, -6], [150, -128]], layer: ['back', 'front'] },
+  sneak: { a: [[-34, 120], [34, -120]], layer: 'front' },
+  catch: { a: [[-120, -150], [120, 150]], layer: 'back' },
+  hips: { a: [[-48, 34], [48, -34]], layer: 'back' },
 };
 
 /** Legs, [left, right], each [thigh, shin] angles; cross: sitting cross-legged. */
@@ -72,6 +79,7 @@ export const LEGS = {
   brace: [[-6, -4], [36, 44]],
   hang: [[-4, 8], [8, -8]],
   cross: 'cross',
+  chair: 'chair',
 };
 
 /**
@@ -85,6 +93,10 @@ const LOOKS = {
   baker: { top: '#e9879e', apron: '#ffffff', upper: '#e9879e', fore: SKIN, hand: SKIN, pants: '#5d5a6a', shin: '#5d5a6a', shoe: '#5a4a3a', head: 'bun', hair: '#4a3328' },
   cook: { top: '#7fb0d6', apron: '#ffffff', upper: '#7fb0d6', fore: SKIN, hand: SKIN, pants: '#5d5a6a', shin: '#5d5a6a', shoe: '#5a4a3a', head: 'toque', hair: '#c9893a' },
   walker1: { top: '#9fbf86', upper: '#9fbf86', fore: '#9fbf86', hand: SKIN, pants: '#6a6a78', shin: '#6a6a78', shoe: '#4a4a52', head: 'short', hair: '#3a2a22' },
+  doctor: { top: '#ffffff', upper: '#ffffff', fore: '#ffffff', hand: SKIN, pants: '#8fb4d9', shin: '#8fb4d9', shoe: '#ffffff', head: 'loops', hair: '#f29bb8', steth: true },
+  jessie: { top: '#ffffff', upper: '#ffffff', fore: '#ffffff', hand: SKIN, pants: '#3e3a52', shin: '#3e3a52', shoe: '#3e3a52', head: 'long', hair: '#c2477e' },
+  james: { top: '#ffffff', upper: '#ffffff', fore: '#ffffff', hand: SKIN, pants: '#3e3a52', shin: '#3e3a52', shoe: '#3e3a52', head: 'side', hair: '#a99be0' },
+  clerk: { top: '#2f4a74', upper: '#2f4a74', fore: '#2f4a74', hand: SKIN, pants: '#2f4a74', shin: '#2f4a74', shoe: '#2a2a33', head: 'bun', hair: '#3a2a22', scarf: '#e9879e' },
   walker2: { top: '#d6a3c4', upper: '#d6a3c4', fore: SKIN, hand: SKIN, pants: '#e8d9b5', shin: SKIN, shoe: '#b05050', head: 'bob', hair: '#c9893a' },
 };
 
@@ -93,21 +105,23 @@ function skeleton({ legs: legName = 'stand', arms: armName = 'rest' }) {
   const A = typeof armName === 'string' ? ARMS[armName] : armName;
   const legSpec = LEGS[legName];
   const cross = legSpec === 'cross';
+  const chair = legSpec === 'chair';
   // The legs from the hips, then the hips lifted so the lowest foot is on the ground.
-  const legPts = cross ? null : legSpec.map(([t, sh], i) => {
+  const legPts = cross || chair ? null : legSpec.map(([t, sh], i) => {
     const hip = [i ? 12 : -12, 0];
     const knee = step(hip, t, BONES.thigh);
     return [hip, knee, step(knee, sh, BONES.shin)];
   });
-  const lowest = cross ? 0 : Math.max(...legPts.map((p) => p[2][1]));
-  const hipY = cross ? -26 : -10 - lowest;
+  const lowest = cross || chair ? 0 : Math.max(...legPts.map((p) => p[2][1]));
+  // On a chair, seen from the front: the thighs come towards us, so they are short; the shins hang to the floor.
+  const hipY = cross ? -26 : chair ? -10 - BONES.shin - 8 : -10 - lowest;
   const dy = hipY + 84; // the upper body's offset from standing
   const shoulders = [[-27, -150 + dy], [27, -150 + dy]];
   const armPts = A.a.map(([u, f], i) => {
     const el = step(shoulders[i], u, BONES.upper);
     return [shoulders[i], el, step(el, f, BONES.fore)];
   });
-  return { A, cross, legPts, hipY, dy, armPts };
+  return { A, cross, chair, legPts, hipY, dy, armPts };
 }
 
 /**
@@ -131,9 +145,9 @@ export function handOf(lookName, { x, y, s = 1, flip = false, lean = 0, legs = '
  * | ouch | happy | shock | determined | laugh; look: front | left | right |
  * up. hold: 'apple' | 'fork' in the right hand. hair: standing on end.
  */
-export function figure(lookName, { x, y, s = 1, flip = false, legs: legName = 'stand', arms: armName = 'rest', lean = 0, face = 'smile', look = 'front', hold = null, hair = false, shadowless = false }) {
+export function figure(lookName, { x, y, s = 1, flip = false, legs: legName = 'stand', arms: armName = 'rest', lean = 0, face = 'smile', look = 'front', hold = null, hair = false, shadowless = false, inArms = '' }) {
   const K = LOOKS[lookName];
-  const { A, cross, legPts, hipY, dy, armPts } = skeleton({ legs: legName, arms: armName });
+  const { A, cross, chair, legPts, hipY, dy, armPts } = skeleton({ legs: legName, arms: armName });
   const at = ([px, py]) => [px, py + hipY];
   const arm = ([sh, el, hand]) =>
     limb([sh, el], 17, K.upper) + limb([el, hand], 12, K.fore) +
@@ -155,12 +169,21 @@ export function figure(lookName, { x, y, s = 1, flip = false, legs: legName = 's
         const sole = (f, t) => `<ellipse cx="${f[0] + 8 * t}" cy="${f[1] + 2}" rx="15" ry="9" fill="${K.shoe}" ${ink(3)}/>`;
         return [one(l) + sole(l[2], 1), one(r) + sole(r[2], -1)];
       })()
-    : legPts.map(leg);
+    : chair
+      ? [[-1, 0], [1, 0]].map(([sx]) => {
+          const hip = [12 * sx, hipY];
+          const knee = [17 * sx, hipY + 8];
+          const foot = [19 * sx, -10];
+          const shin = K.shin === K.pants ? limb([knee, foot], 18, K.pants) : limb([knee, foot], 13, K.shin);
+          return shin + `<ellipse cx="${hip[0] + 2 * sx}" cy="${hipY + 4}" rx="15" ry="12" fill="${K.pants}" ${ink(3)}/>` + shoe(foot, sx);
+        })
+      : legPts.map(leg);
   const hy = -204 + dy; // head centre
   const eye = (ex) => {
     const ox = look === 'left' ? -3 : look === 'right' ? 3 : 0;
     const oy = look === 'up' ? -3 : 0;
     if (face === 'ouch') return `<path d="M${ex - 6} ${hy - 4} l10 4 l-10 4" ${ink(3)} fill="none" transform="${ex > 0 ? `rotate(180 ${ex} ${hy})` : ''}"/>`;
+    if (face === 'sleep') return `<path d="M${ex - 6} ${hy - 1} q6 7 12 0" ${ink(3)} fill="none"/>`;
     if (face === 'happy' || face === 'laugh') return `<path d="M${ex - 6} ${hy + 1} q6 -8 12 0" ${ink(3)} fill="none"/>`;
     if (face === 'shock') return `<circle cx="${ex}" cy="${hy}" r="7" fill="#fff" ${ink(2.5)}/><circle cx="${ex}" cy="${hy}" r="3" fill="${INK}"/>`;
     return `<ellipse cx="${ex + ox}" cy="${hy + oy}" rx="4.5" ry="6.5" fill="${INK}"/><circle cx="${ex + ox + 1.5}" cy="${hy + oy - 2.5}" r="1.8" fill="#fff"/>`;
@@ -179,6 +202,8 @@ export function figure(lookName, { x, y, s = 1, flip = false, legs: legName = 's
     ouch: `<ellipse cx="0" cy="${hy + 18}" rx="6" ry="7" fill="#a8423a" ${ink(2.5)}/>`,
     shock: `<ellipse cx="0" cy="${hy + 19}" rx="7" ry="9" fill="#a8423a" ${ink(2.5)}/>`,
     determined: `<path d="M-10 ${hy + 14} q10 9 20 0 Z" fill="#fff" ${ink(2.5)}/>`,
+    sleep: `<ellipse cx="0" cy="${hy + 17}" rx="4" ry="3" fill="#a8423a" ${ink(2)}/>`,
+    sly: `<path d="M-10 ${hy + 13} q12 6 22 -4" ${ink(3)} fill="none"/>`,
   }[face];
   const hand = armPts[1][2];
   const held = hold === 'apple' ? apple(hand[0] + 4, hand[1] - 10, 13)
@@ -199,22 +224,39 @@ export function figure(lookName, { x, y, s = 1, flip = false, legs: legName = 's
     short: `<circle cx="0" cy="${hy}" r="38" fill="${SKIN}" ${ink()}/><path d="M-38 ${hy - 4} C-40 ${hy - 50} 40 ${hy - 50} 38 ${hy - 4} C26 ${hy - 26} -20 ${hy - 30} -38 ${hy - 4} Z" fill="${K.hair}" ${ink()}/>`,
     bob: `<path d="M-44 ${hy + 24} C-52 ${hy - 50} 52 ${hy - 50} 44 ${hy + 24} Z" fill="${K.hair}" ${ink()}/><circle cx="0" cy="${hy}" r="36" fill="${SKIN}" ${ink()}/><path d="M-36 ${hy - 6} C-30 ${hy - 44} 30 ${hy - 44} 36 ${hy - 6} C20 ${hy - 22} -20 ${hy - 22} -36 ${hy - 6} Z" fill="${K.hair}" ${ink()}/>`,
     bun: `<circle cx="0" cy="${hy - 44}" r="16" fill="${K.hair}" ${ink()}/><circle cx="0" cy="${hy}" r="37" fill="${SKIN}" ${ink()}/><path d="M-37 ${hy - 4} C-34 ${hy - 46} 34 ${hy - 46} 37 ${hy - 4} C22 ${hy - 26} -22 ${hy - 26} -37 ${hy - 4} Z" fill="${K.hair}" ${ink()}/>`,
+    loops: `<circle cx="-40" cy="${hy - 10}" r="17" fill="${K.hair}" ${ink()}/><circle cx="40" cy="${hy - 10}" r="17" fill="${K.hair}" ${ink()}/>
+      <circle cx="0" cy="${hy}" r="37" fill="${SKIN}" ${ink()}/>
+      <path d="M-37 ${hy - 4} C-34 ${hy - 46} 34 ${hy - 46} 37 ${hy - 4} C24 ${hy - 20} 4 ${hy - 26} 0 ${hy - 12} C-6 ${hy - 26} -24 ${hy - 20} -37 ${hy - 4} Z" fill="${K.hair}" ${ink()}/>
+      <path d="M-18 ${hy - 36} L18 ${hy - 36} L14 ${hy - 54} L-14 ${hy - 54} Z" fill="#ffffff" ${ink(2.5)}/><path d="M0 ${hy - 50} v10 M-5 ${hy - 45} h10" stroke="#e5533e" stroke-width="3"/>`,
+    long: `<circle cx="0" cy="${hy}" r="37" fill="${SKIN}" ${ink()}/>
+      <path d="M-39 ${hy + 2} C-40 ${hy - 50} 40 ${hy - 50} 39 ${hy + 2} C30 ${hy - 26} 10 ${hy - 30} -4 ${hy - 20} C-16 ${hy - 28} -30 ${hy - 22} -39 ${hy + 2} Z" fill="${K.hair}" ${ink()}/>`,
+    side: `<circle cx="0" cy="${hy}" r="37" fill="${SKIN}" ${ink()}/>
+      <path d="M-38 ${hy + 4} C-44 ${hy - 50} 40 ${hy - 56} 40 ${hy - 6} C30 ${hy - 26} 10 ${hy - 26} -4 ${hy - 14} C-14 ${hy - 6} -26 ${hy - 6} -38 ${hy + 4} Z" fill="${K.hair}" ${ink()}/>`,
     toque: `<circle cx="0" cy="${hy}" r="37" fill="${SKIN}" ${ink()}/><path d="M-30 ${hy - 20} L-30 ${hy - 40} C-50 ${hy - 50} -40 ${hy - 86} -14 ${hy - 76} C-8 ${hy - 96} 22 ${hy - 94} 22 ${hy - 76} C46 ${hy - 82} 52 ${hy - 50} 30 ${hy - 40} L30 ${hy - 20} Z" fill="#ffffff" ${ink()}/>`,
   }[K.head];
   const marks = K.marks ? `<path d="M-25 ${hy + 9} l3 3 l3 -3 M25 ${hy + 9} l-3 3 l-3 -3" ${ink(2)} fill="none"/>` : '';
   const spiky = hair ? `<path d="M-24 ${hy - 46} l-10 -26 M0 ${hy - 52} v-30 M24 ${hy - 46} l10 -26 M-40 ${hy - 30} l-22 -14 M40 ${hy - 30} l22 -14" ${ink(4)}/>` : '';
   const torso = `<path d="M-31 ${-152 + dy} Q0 ${-160 + dy} 31 ${-152 + dy} L35 ${-82 + dy} Q0 ${-74 + dy} -35 ${-82 + dy} Z" fill="${K.top}" ${ink()}/>` +
     (K.tee ? `<path d="M-9 ${-155 + dy} L9 ${-155 + dy} L10 ${-79 + dy} L-10 ${-79 + dy} Z" fill="${K.tee}" ${ink(2)}/><path d="M-18 ${-153 + dy} l9 14 M18 ${-153 + dy} l-9 14" ${ink(2.5)}/>` : '') +
-    (K.apron ? `<path d="M-20 ${-140 + dy} L20 ${-140 + dy} L26 ${-76 + dy} L-26 ${-76 + dy} Z" fill="${K.apron}" ${ink(2.5)}/>` : '');
-  const arms = armPts.map(arm).join('');
-  const upper = `${A.layer === 'back' ? arms : ''}
+    (K.apron ? `<path d="M-20 ${-140 + dy} L20 ${-140 + dy} L26 ${-76 + dy} L-26 ${-76 + dy} Z" fill="${K.apron}" ${ink(2.5)}/>` : '') +
+    (K.top === '#ffffff' ? `<path d="M0 ${-154 + dy} V${-78 + dy} M-14 ${-154 + dy} l12 22 M14 ${-154 + dy} l-12 22" ${ink(2.5)}/>` : '') +
+    (K.steth ? `<path d="M-12 ${-152 + dy} q0 40 14 44 q14 -4 14 -44" stroke="#5a6a7a" stroke-width="4" fill="none"/><circle cx="2" cy="${-106 + dy}" r="6" fill="#9aa8b4" ${ink(2)}/>` : '') +
+    (K.scarf ? `<path d="M-14 ${-154 + dy} L14 ${-154 + dy} L4 ${-132 + dy} Z" fill="${K.scarf}" ${ink(2)}/>` : '');
+  // Long hair falls behind the shoulders: it is drawn before the body and the arms.
+  const backHair = K.head === 'long'
+    ? `<path d="M-40 ${hy - 10} C-70 ${hy + 30} -60 ${hy + 90} -30 ${hy + 110} C-12 ${hy + 80} -6 ${hy + 60} 0 ${hy + 40} C6 ${hy + 60} 12 ${hy + 80} 30 ${hy + 110} C60 ${hy + 90} 70 ${hy + 30} 40 ${hy - 10} Z" fill="${K.hair}" ${ink()}/>`
+    : '';
+  const layerOf = (i) => (Array.isArray(A.layer) ? A.layer[i] : A.layer);
+  const armsIn = (layer) => armPts.filter((_, i) => layerOf(i) === layer).map(arm).join('');
+  const upper = `${backHair}${armsIn('back')}
     ${torso}
-    ${A.layer === 'front' ? arms : ''}
+    ${inArms}
+    ${armsIn('front')}
     <rect x="-8" y="${-172 + dy}" width="16" height="20" fill="${SKIN}" ${ink(2.5)}/>
     ${spiky}${head}
     ${eye(-14)}${eye(14)}${brows}${marks}${mouth}
-    ${A.layer === 'over' ? arms : ''}${held}`;
-  const body = `${shadowless || legName === 'hang' ? '' : shadow(cross ? 64 : 46)}
+    ${armsIn('over')}${held}`;
+  const body = `${shadowless || legName === 'hang' ? '' : shadow(cross ? 64 : chair ? 0 : 46)}
     ${legs.join('')}
     <g transform="rotate(${lean} 0 ${hipY})">${upper}</g>`;
   return place(x, y, s, flip, body);
@@ -252,6 +294,7 @@ export function pikachu({ x, y, s = 1, flip = false, mood = 'smile', arms = 'dow
     laugh: `<path d="M-22 -102 q7 -10 14 0 M8 -102 q7 -10 14 0" ${ink(3.5)} fill="none"/>`,
     worried: `<circle cx="-15" cy="-103" r="6" fill="#2a2522"/><circle cx="15" cy="-103" r="6" fill="#2a2522"/><path d="M-22 -116 l10 4 M22 -116 l-10 4" ${ink(2.5)}/>`,
     eat: `<path d="M-22 -104 q7 -8 14 0 M8 -104 q7 -8 14 0" ${ink(3)} fill="none"/>`,
+    sleep: `<path d="M-22 -104 q7 7 14 0 M8 -104 q7 7 14 0" ${ink(3)} fill="none"/>`,
     full: `<path d="M-22 -104 q7 6 14 0 M8 -104 q7 6 14 0" ${ink(3)} fill="none"/>`,
   }[mood];
   const mouth = mood === 'laugh'
@@ -383,6 +426,8 @@ export const marks = {
   star: (x, y, r = 12, colour = '#f4c430') => `<path d="M${x} ${y - r} L${x + r * 0.3} ${y - r * 0.3} L${x + r} ${y} L${x + r * 0.3} ${y + r * 0.3} L${x} ${y + r} L${x - r * 0.3} ${y + r * 0.3} L${x - r} ${y} L${x - r * 0.3} ${y - r * 0.3} Z" fill="${colour}" ${ink(2)}/>`,
   sweat: (x, y) => `<path d="M${x} ${y} q-7 12 0 16 q7 -4 0 -16 Z" fill="#9fd0ea" ${ink(2)}/>`,
   shout: (x, y) => `<path d="M${x - 20} ${y} l-14 -14 M${x} ${y - 6} v-20 M${x + 20} ${y} l14 -14" ${ink(3)}/>`,
+  zzz: (x, y, k = 1) => `<g transform="translate(${x} ${y}) scale(${k})" ${ink(3)} fill="none"><path d="M0 0 h16 l-16 16 h16"/><path d="M22 -22 h12 l-12 12 h12"/><path d="M40 -40 h9 l-9 9 h9"/></g>`,
+  heart: (x, y, k = 1) => `<path transform="translate(${x} ${y}) scale(${k})" d="M0 8 C-18 -6 -14 -22 0 -14 C14 -22 18 -6 0 8 Z" fill="#e5533e" ${ink(2)}/>`,
   bump: (x, y) => `<path d="M${x - 16} ${y} a16 10 0 0 1 32 0" ${ink(3)} fill="none"/>`,
 };
 
@@ -432,5 +477,82 @@ export const bunting = (x1, x2, y, colours = ['#f4a3b8', '#f4c430', '#9fcbe0', '
   return `<path d="M${x1} ${y} Q${(x1 + x2) / 2} ${y + 80} ${x2} ${y}" stroke="${INK}" stroke-width="2.5" fill="none"/>` +
     Array.from({ length: n }, (_, i) => { const t = (i + 0.5) / n; const px = x1 + (x2 - x1) * t; const py = sag(t); return `<path d="M${px - 16} ${py} L${px + 16} ${py} L${px} ${py + 30} Z" fill="${colours[i % colours.length]}" ${ink(2)}/>`; }).join('');
 };
+
+/* ------------------------------------------------- rooms, beds, vehicles */
+
+/** A bed seen from the side, its head to the left: ground at y, from x, w wide. */
+export const bed = (x, y, w, sheet = '#f4f1ea', wood = '#b48a64') => `<g>
+  <rect x="${x - 12}" y="${y - 150}" width="22" height="150" rx="8" fill="${wood}" ${ink(2.5)}/>
+  <rect x="${x + w - 10}" y="${y - 100}" width="20" height="100" rx="8" fill="${wood}" ${ink(2.5)}/>
+  <rect x="${x}" y="${y - 70}" width="${w}" height="36" fill="${wood}" ${ink(2.5)}/>
+  <rect x="${x}" y="${y - 96}" width="${w}" height="30" rx="10" fill="${sheet}" ${ink(2.5)}/>
+  <ellipse cx="${x + 54}" cy="${y - 104}" rx="44" ry="16" fill="#ffffff" ${ink(2.5)}/></g>`;
+
+/** A blanket over a bed from x to x2 at the mattress top y, a hump where someone lies. */
+export const blanket = (x, x2, y, colour = '#8fb4d9', hump = 0.3) => {
+  const hx = x + (x2 - x) * hump;
+  return `<path d="M${x} ${y + 26} L${x} ${y} C${hx - 40} ${y - 4} ${hx - 30} ${y - 40} ${hx + 20} ${y - 40} C${hx + 80} ${y - 40} ${hx + 90} ${y - 6} ${x2} ${y - 4} L${x2 + 6} ${y + 30} Z" fill="${colour}" ${ink(2.5)}/>
+    <path d="M${x + 20} ${y + 12} q40 -10 80 0 M${hx + 40} ${y - 14} q30 6 60 6" stroke="#ffffff" stroke-width="4" fill="none" opacity="0.5" stroke-linecap="round"/>`;
+};
+
+/** A chair seen from the front, its seat at height h above the ground y. Drawn behind whoever sits on it. */
+export const chair = (x, y, h = 58, wood = '#9a7452') => `<g>
+  <rect x="${x - 44}" y="${y - h - 120}" width="88" height="120" rx="12" fill="${wood}" ${ink(2.5)}/>
+  <rect x="${x - 32}" y="${y - h - 106}" width="64" height="88" rx="8" fill="#b88e66"/>
+  <path d="M${x - 40} ${y - h} V${y} M${x + 40} ${y - h} V${y}" ${ink(10)}/><path d="M${x - 40} ${y - h} V${y} M${x + 40} ${y - h} V${y}" stroke="${wood}" stroke-width="5"/>
+  <rect x="${x - 50}" y="${y - h - 10}" width="100" height="18" rx="6" fill="${wood}" ${ink(2.5)}/></g>`;
+
+/** A window at night with the moon in it. */
+export const nightWindow = (x, y, w = 180, h = 200) => `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#2a3a5e" ${ink(3)}/>
+  <circle cx="${x + w * 0.66}" cy="${y + h * 0.3}" r="${w * 0.14}" fill="#f6eec8" ${ink(2)}/>
+  <circle cx="${x + w * 0.2}" cy="${y + h * 0.2}" r="2.5" fill="#f6eec8"/><circle cx="${x + w * 0.35}" cy="${y + h * 0.6}" r="2" fill="#f6eec8"/>
+  <path d="M${x + w / 2} ${y} V${y + h} M${x} ${y + h / 2} H${x + w}" stroke="#7a6a5a" stroke-width="10"/><path d="M${x + w / 2} ${y} V${y + h} M${x} ${y + h / 2} H${x + w}" ${ink(2)} opacity="0.6"/></g>`;
+
+/** A taxi seen from the side, facing right, wheels on the ground y. faces: [[x, colour of hair], …] in its windows. */
+export const taxi = (x, y, k = 1, faces = []) => `<g transform="translate(${x} ${y}) scale(${k})">
+  <path d="M-150 -36 L-118 -100 L88 -100 L128 -40 L170 -32 L172 -10 L-172 -10 L-172 -32 Z" fill="#f2c13d" ${ink()}/>
+  <path d="M-104 -90 L-80 -48 L-4 -48 L-4 -90 Z M10 -90 L10 -48 L102 -48 L80 -90 Z" fill="#cfe3ea" ${ink(2.5)}/>
+  ${faces.map(([fx, hair]) => `<circle cx="${fx}" cy="-64" r="15" fill="${SKIN}" ${ink(2)}/><path d="M${fx - 16} -64 C${fx - 16} -86 ${fx + 16} -86 ${fx + 16} -64 C${fx + 6} -74 ${fx - 6} -74 ${fx - 16} -64 Z" fill="${hair}" ${ink(2)}/>`).join('')}
+  <path d="M-150 -36 L-118 -100 L88 -100 L128 -40 L170 -32 L172 -10 L-172 -10 L-172 -32 Z" fill="none" ${ink()}/>
+  <path d="M-172 -24 H172" stroke="#2a2a2a" stroke-width="6" opacity="0.5"/>
+  <rect x="-22" y="-120" width="44" height="18" rx="4" fill="#3a3a3a" ${ink(2)}/>
+  <circle cx="-100" cy="-8" r="30" fill="#3a3a3a" ${ink()}/><circle cx="-100" cy="-8" r="12" fill="#c9cdd2"/><circle cx="104" cy="-8" r="30" fill="#3a3a3a" ${ink()}/><circle cx="104" cy="-8" r="12" fill="#c9cdd2"/></g>`;
+
+/** An airliner, side on, facing right. */
+export const plane = (x, y, k = 1) => `<g transform="translate(${x} ${y}) scale(${k})">
+  <path d="M-150 -20 L-190 -84 L-160 -84 L-110 -24 Z" fill="#c9d6e0" ${ink(2.5)}/>
+  <path d="M-200 0 C-200 -30 160 -40 206 -14 C222 -4 206 16 176 16 L-184 16 C-200 16 -200 8 -200 0 Z" fill="#f4f6f8" ${ink(2.5)}/>
+  <path d="M-30 6 L-110 70 L-74 70 L40 10 Z" fill="#c9d6e0" ${ink(2.5)}/>
+  ${Array.from({ length: 9 }, (_, i) => `<circle cx="${-120 + i * 30}" cy="-8" r="6" fill="#9cc7d9" ${ink(1.5)}/>`).join('')}
+  <path d="M176 -12 q14 2 18 10" stroke="#9cc7d9" stroke-width="6" fill="none"/></g>`;
+
+/** A burlap sack, its mouth at the top; something peeking out. */
+export const sack = (x, y, k = 1, peek = '') => `<g transform="translate(${x} ${y}) scale(${k})">
+  ${peek}
+  <path d="M-44 -60 C-62 -20 -60 30 -30 44 C-10 52 14 52 34 44 C62 30 62 -20 44 -60 C24 -50 -24 -50 -44 -60 Z" fill="#cdb48e" ${ink()}/>
+  <path d="M-46 -58 C-24 -46 24 -46 46 -58" ${ink(4)} fill="none"/><path d="M-20 0 q10 6 22 2 M-8 22 q12 4 24 -2" stroke="#a88f68" stroke-width="3" fill="none"/></g>`;
+
+/** A hospital: a pale building with a red cross on its sign; ground at y. */
+export const hospital = (x, y, w = 380, h = 280) => `<g>
+  <rect x="${x}" y="${y - h}" width="${w}" height="${h}" rx="10" fill="#f5efe6" ${ink(2.5)}/>
+  <rect x="${x - 8}" y="${y - h - 18}" width="${w + 16}" height="30" rx="8" fill="#f29bb8" ${ink(2.5)}/>
+  <rect x="${x + w / 2 - 34}" y="${y - h - 96}" width="68" height="68" rx="12" fill="#ffffff" ${ink(2.5)}/>
+  <path d="M${x + w / 2} ${y - h - 84} v44 M${x + w / 2 - 22} ${y - h - 62} h44" stroke="#e5533e" stroke-width="14" stroke-linecap="round"/>
+  ${[0.15, 0.4, 0.65].map((f) => `<rect x="${x + w * f}" y="${y - h + 50}" width="${w * 0.17}" height="60" rx="6" fill="#cfe3ea" ${ink(2)}/>`).join('')}
+  <rect x="${x + w / 2 - 40}" y="${y - 110}" width="80" height="110" rx="6" fill="#9cc7d9" ${ink(2.5)}/><path d="M${x + w / 2} ${y - 110} V${y}" ${ink(2)}/></g>`;
+
+/** A big window wall of an airport hall, from x1 to x2, top at y, with the sky behind. */
+export const glassWall = (x1, x2, y, h) => {
+  const n = Math.round((x2 - x1) / 200);
+  return `<rect x="${x1}" y="${y}" width="${x2 - x1}" height="${h}" fill="#d7ecf4" ${ink(2.5)}/>` +
+    Array.from({ length: n - 1 }, (_, i) => `<path d="M${x1 + ((i + 1) * (x2 - x1)) / n} ${y} V${y + h}" stroke="#8fa3b2" stroke-width="10"/>`).join('') +
+    `<path d="M${x1} ${y + h * 0.62} H${x2}" stroke="#8fa3b2" stroke-width="6"/>`;
+};
+
+/** A desk seen from the front: top at y, from x1 to x2. */
+export const desk = (x1, x2, y, colour = '#7f97b0') => `<rect x="${x1}" y="${y}" width="${x2 - x1}" height="${H}" fill="${colour}" ${ink(2.5)}/><rect x="${x1 - 8}" y="${y - 12}" width="${x2 - x1 + 16}" height="16" rx="4" fill="#dfe6ec" ${ink(2.5)}/>`;
+
+/** A suitcase standing at ground y. */
+export const suitcase = (x, y, colour = '#c48a2c') => `<rect x="${x - 26}" y="${y - 70}" width="52" height="66" rx="8" fill="${colour}" ${ink(2.5)}/><path d="M${x - 12} ${y - 70} v-14 h24 v14" ${ink(3)} fill="none"/><circle cx="${x - 16}" cy="${y - 2}" r="5" fill="#3a3a3a"/><circle cx="${x + 16}" cy="${y - 2}" r="5" fill="#3a3a3a"/>`;
 
 export const svg = (inner) => `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${defs}<g filter="url(#paper)">${inner}</g></svg>`;
