@@ -125,3 +125,17 @@ describe('drawing a shelf’s pictures', () => {
     assert.ok(!again.some((l) => l.includes('forest')));
   });
 });
+
+describe('describing the pictures of a text already on the shelf', () => {
+  it('keeps a drawing whose description is unchanged, and asks again for one that changed', async () => {
+    const { withDescribed } = await import('./illustrate');
+    const t = text('a', 1, [
+      { para: 0, prompt: 'same', key: K('a'), w: 4, h: 3 },
+      { para: 1, prompt: 'old', key: K('b'), w: 4, h: 3 },
+    ]);
+    assert.deepEqual(
+      withDescribed(t, [{ para: 0, prompt: 'same' }, { para: 1, prompt: 'new' }, { para: 2, prompt: 'more' }]).pictures,
+      [{ para: 0, prompt: 'same', key: K('a'), w: 4, h: 3 }, { para: 1, prompt: 'new' }, { para: 2, prompt: 'more' }],
+    );
+  });
+});

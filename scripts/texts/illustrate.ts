@@ -98,6 +98,20 @@ export function referencesFor(job: Job, texts: GeneratedText[], n = 2): string[]
   return [...earlier, ...before].map((p) => p.key!).slice(0, n);
 }
 
+/**
+ * The text with these descriptions for its paragraphs, for a text already on
+ * the shelf. A paragraph whose description is unchanged keeps its drawing; a
+ * new description is drawn afresh.
+ */
+export function withDescribed(text: GeneratedText, described: Array<{ para: number; prompt: string }>): GeneratedText {
+  const had = new Map((text.pictures ?? []).map((p) => [p.para, p]));
+  const pictures = picturesOf(described).map((d) => {
+    const old = had.get(d.para);
+    return old && old.prompt === d.prompt ? old : d;
+  });
+  return { ...text, pictures };
+}
+
 /** The text with a drawn picture put in for one paragraph. */
 export function withDrawn(text: GeneratedText, para: number, drawn: Required<Pick<TextPicture, 'key' | 'w' | 'h' | 'at'>>): GeneratedText {
   const pictures = (text.pictures ?? []).map((p) => (p.para === para ? { para, prompt: p.prompt, ...drawn } : p));

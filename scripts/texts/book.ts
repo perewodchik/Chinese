@@ -24,6 +24,9 @@
  *       draws, with Gemini, the pictures the texts describe for their paragraphs
  *       (`pictures: [{ para, prompt }]`) and puts them in; `add` does it by itself for
  *       what it adds when GEMINI_API_KEY is set (illustrate.ts)
+ *   npm run texts -- describe <pictures.json>
+ *       what to draw for texts already on the shelf: { "pictures": { "<text id>": [{ para, prompt }] } };
+ *       then illustrate draws them
  *   npm run texts -- record [--voice wang] [--set <id or name>]
  *       reads every text's sentences aloud in one of the app's voices and keeps the
  *       recordings, so the website plays the text in that voice (on the Mac only:
@@ -75,7 +78,7 @@ import {
   type TextSet,
 } from '../../src/domain/text';
 import { newId } from '../../src/platform/ids';
-import { geminiFromEnv, illustrate, type PictureAccount } from './illustrate';
+import { geminiFromEnv, illustrate, withDescribed, type PictureAccount } from './illustrate';
 import type { PersistedState } from '../../src/store/state';
 
 /** The workspace version this checkout writes. A newer document is left alone. */
@@ -674,6 +677,7 @@ const USAGE = `
   npm run texts -- add <reply.json> --new-set <name> [--source <book>] [--genre <genre>] [--adapted] [--dry-run]
   npm run texts -- add <story.json> --new-set <title> --story [--preface] [--learn] [--genre story]
   npm run texts -- illustrate [--set <id or name>] [--text <id>] [--redo] [--style "…"] [--dry-run]
+  npm run texts -- describe <pictures.json>    { "pictures": { "<text id>": [{ "para": 0, "prompt": "…" }] } }
   npm run texts -- record [--voice wang] [--set <id or name>]    on the Mac: the texts, read aloud for the site
 `;
 
@@ -727,6 +731,31 @@ async function main(argv: string[]) {
   if (command === 'record') {
     await record({ voice: values.voice, set: values.set });
     return;
+  }
+  if (command === 'describe') {
+    const file = positionals[0];
+    if (!file) throw new Error(`Which file?\n${USAGE}`);
+    const wanted = (JSON.parse(readFileSync(file, 'utf8')) as { pictures?: Record<string, Array<{ para: number; prompt: string }>> }).pictures ?? {};
+    const account = await openAccount();
+    try {
+      for (let attempt = 1; ; attempt++) {
+        const { revision, document } = await account.read();
+        if (!isDoc(document)) throw new Error(`${account.where} has never saved anything.`);
+        const { texts } = shelfOf(document);
+        const missing = Object.keys(wanted).filter((id) => !texts.some((t) => t.id === id));
+        if (missing.length) throw new Error(`No text ${missing.join(', ')} on ${account.where}.`);
+        const next = { ...document, texts: texts.map((t) => (wanted[t.id] ? withDescribed(t, wanted[t.id]!) : t)) };
+        if (values['dry-run'] || (await account.write(revision, next))) {
+          for (const t of texts.filter((x) => wanted[x.id])) {
+            console.log(`  ${t.titleZh || t.title}: ${wanted[t.id]!.length} pictures described${values['dry-run'] ? ' (dry run)' : ''}`);
+          }
+          return;
+        }
+        if (attempt === 3) throw new Error('The workspace kept changing under this save. Try again in a minute.');
+      }
+    } finally {
+      await account.close();
+    }
   }
   if (command === 'illustrate') {
     const account = await openAccount();

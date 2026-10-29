@@ -143,6 +143,11 @@ More chapters of a story already on the shelf go into its session with
 Then the pictures are drawn, as step 7 of `/add-text` says — by `add` itself
 when `GEMINI_API_KEY` is set, otherwise later with `illustrate --set "<title>"`.
 
+Pictures for chapters already on the shelf (written before they had any, or
+to be drawn differently): a file `{ "pictures": { "<text id>": [{ "para": 0,
+"prompt": "…" }] } }`, then `describe <file>` and `illustrate --set "<title>"`.
+A paragraph whose description is unchanged keeps its picture.
+
 ## 8. The report
 
 Short, in their language: the session and its address (`/texts/<id>` of the
