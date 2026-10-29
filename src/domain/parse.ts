@@ -1,4 +1,5 @@
 import { hasPicture } from '../data/pictures';
+import { picturesOf, type TextPicture } from './pictures';
 import { scenesOf, storyOf, type Scene, type Story } from './story';
 import {
   coverageOf,
@@ -54,6 +55,8 @@ export interface DraftText {
   /** a story with choices, when the passage is one */
   story?: Story;
   scenes?: Scene[];
+  /** what to draw above each paragraph */
+  pictures?: TextPicture[];
 }
 
 export interface ParseResult {
@@ -364,6 +367,8 @@ function asText(v: unknown): DraftText | null {
         .filter((l): l is TextLine => l !== null);
   if (!lines.length) return null;
   const scenes = scenesOf(o.scenes, hasPicture);
+  // Only described here: a key arrives when the picture is drawn, never with the text.
+  const pictures = picturesOf(o.pictures).map(({ para, prompt }) => ({ para, prompt }));
 
   const id = pick(o, 'id', 'specId', 'ref', 'key');
   return {
@@ -387,6 +392,7 @@ function asText(v: unknown): DraftText | null {
     hsk: asCounts(o.hsk ?? o.hskDistribution),
     ...(told ? { story: told.story } : {}),
     ...(scenes.length ? { scenes } : {}),
+    ...(pictures.length ? { pictures } : {}),
   };
 }
 
@@ -568,5 +574,6 @@ export function toText(
     basis,
     ...(draft.story ? { story: draft.story } : {}),
     ...(draft.scenes ? { scenes: draft.scenes } : {}),
+    ...(draft.pictures ? { pictures: draft.pictures } : {}),
   };
 }

@@ -4,12 +4,14 @@ import { charId, readableChars, type ItemId } from '../../domain/ids';
 import { alignPinyin, paragraphs, stepsAbove, wordBands, type Token } from '../../domain/reading';
 import { segment, writerHints } from '../../domain/segment';
 import { itemForToken, type WordKnowledge } from '../../domain/words';
+import { pictureAbove } from '../../domain/pictures';
 import { coverageOf, hskLabel, isHanzi, plainTitle, type GeneratedText } from '../../domain/text';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useStore } from '../../store/store';
 import { useLibrary } from '../shared/library';
 import { useWordKnowledge } from '../words/useWordKnowledge';
 import { Comic } from './Comic';
+import { ParagraphPicture } from './ParagraphPicture';
 import { SceneView } from './SceneView';
 import { StoryChoices, StoryMap } from './StoryPath';
 import type { PinyinMode, TranslationMode } from './readerView';
@@ -129,6 +131,9 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
     () => (story ? path.map((n) => byNode.get(n) ?? []).filter((p) => p.length) : paragraphs(text)),
     [text, story, path, byNode],
   );
+  // Pictures go by the passage's own paragraphs, which a story with choices does not show as such.
+  const pictureOf = (n: number) => (story ? undefined : pictureAbove(text, n));
+  const paraStarts = useMemo(() => new Map(paragraphs(text).map((p, n) => [p[0]!, n])), [text]);
   const comic = view.comic && (text.genre === 'dialogue' || text.lines.some((l) => l.who)) && !story;
   const layout = view.layout;
   const showTrad = view.traditional && text.lines.some((l) => l.zht);
@@ -253,6 +258,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
                 .map((sc, k) => (
                   <SceneView key={`s${k}`} scene={sc} />
                 ))}
+              {pictureOf(n) && <ParagraphPicture picture={pictureOf(n)!} />}
               <p className="rd-para">
                 {p.map((i) => (
                   <span key={i} id={`line-${text.id}-${i}`} className="sent" data-reading={reading === i || undefined} data-flash={flash === i || undefined}>
@@ -269,29 +275,36 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
           <ol className="rd-lines">
             {shownLines.map((i) => {
               const open = view.translation === 'shown' || revealed.has(i);
+              const pic = paraStarts.has(i) ? pictureOf(paraStarts.get(i)!) : undefined;
               return (
-                <li
-                  key={i}
-                  id={`line-${text.id}-${i}`}
-                  className="rd-line"
-                  data-reading={reading === i || undefined}
-                  data-flash={flash === i || undefined}
-                  data-open={open || undefined}
-                >
-                  <button
-                    className="rd-n"
-                    onClick={() => onReveal(i)}
-                    aria-label={open ? `Hide the translation of line ${i + 1}` : `Show the translation of line ${i + 1}`}
-                    aria-expanded={open}
-                    disabled={view.translation === 'shown'}
+                <Fragment key={i}>
+                  {pic && (
+                    <li className="rd-line-pic">
+                      <ParagraphPicture picture={pic} />
+                    </li>
+                  )}
+                  <li
+                    id={`line-${text.id}-${i}`}
+                    className="rd-line"
+                    data-reading={reading === i || undefined}
+                    data-flash={flash === i || undefined}
+                    data-open={open || undefined}
                   >
-                    {i + 1}
-                  </button>
-                  <div className="rd-line-body">
-                    <p className="rd-line-zh sent">{sentence(i)}</p>
-                    {open && <p className="rd-line-en">{text.lines[i]!.en}</p>}
-                  </div>
-                </li>
+                    <button
+                      className="rd-n"
+                      onClick={() => onReveal(i)}
+                      aria-label={open ? `Hide the translation of line ${i + 1}` : `Show the translation of line ${i + 1}`}
+                      aria-expanded={open}
+                      disabled={view.translation === 'shown'}
+                    >
+                      {i + 1}
+                    </button>
+                    <div className="rd-line-body">
+                      <p className="rd-line-zh sent">{sentence(i)}</p>
+                      {open && <p className="rd-line-en">{text.lines[i]!.en}</p>}
+                    </div>
+                  </li>
+                </Fragment>
               );
             })}
           </ol>

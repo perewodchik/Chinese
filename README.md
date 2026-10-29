@@ -353,6 +353,8 @@ The server reads a few settings from the environment:
 | `HANZI_STATIC_DIR` | `dist` | the built app `npm start` serves |
 | `AZURE_SPEECH_KEY` | unset | optional: a cloud voice behind the voice pack (see Pronunciation) |
 | `AZURE_SPEECH_REGION` | unset | the key's region, e.g. `eastus` |
+| `GEMINI_API_KEY` | unset | for `npm run texts -- illustrate` only (never the server): draws the pictures above a text's paragraphs |
+| `GEMINI_IMAGE_MODEL` | `gemini-2.5-flash-image` | the Gemini model that draws them |
 
 How it holds together: passwords are hashed with scrypt; a session is a random
 token in an HttpOnly, SameSite cookie that the server stores only as a digest,

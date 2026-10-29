@@ -1841,3 +1841,50 @@ label.rd-aa-row {
   font: 400 15px/1.45 var(--read);
   color: var(--ink-2);
 }
+
+/* A picture above a paragraph: its box has the picture's shape from the start,
+   so the text under it never moves when it arrives; a fill until then. */
+.rd-pic {
+  margin: 4px 0 16px;
+}
+
+.rd-pic-frame {
+  display: block;
+  width: min(560px, 100%);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--card-2);
+  cursor: zoom-in;
+}
+
+.rd-pic-frame img,
+.rd-pic-large img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rd-pic-large {
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--card-2);
+}
+
+/* in the line-by-line layout it sits between the lines, under the numbers' column */
+.rd-line-pic {
+  padding-left: 42px;
+}
+
+.rd-line-pic .rd-pic {
+  margin: 8px 0 12px;
+}
+
+@media (max-width: 520px) {
+  .rd-line-pic {
+    padding-left: 0;
+  }
+}

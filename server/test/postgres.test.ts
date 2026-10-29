@@ -147,4 +147,11 @@ describe('Postgres storage', () => {
     assert.deepEqual([...(await stores.recordings.have([]))], []);
     assert.deepEqual(await stores.recordings.voices(), [wang]);
   });
+  it('keeps a picture as bytes, once, with its owner', async () => {
+    const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x02]);
+    await stores.pictures.save({ key: 'p1', userId: 'u1', mime: 'image/jpeg', bytes, createdAt: T });
+    await stores.pictures.save({ key: 'p1', userId: 'u1', mime: 'image/png', bytes: new Uint8Array([1]), createdAt: T + 1 });
+    assert.deepEqual(await stores.pictures.find('p1'), { key: 'p1', userId: 'u1', mime: 'image/jpeg', bytes, createdAt: T });
+    assert.equal(await stores.pictures.find('p2'), null);
+  });
 });

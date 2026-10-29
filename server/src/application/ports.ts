@@ -106,6 +106,26 @@ export interface RecordingRepository {
   voices(): Promise<VoiceInfo[]>;
 }
 
+/**
+ * A picture drawn for a paragraph of a text, kept under the digest of its
+ * bytes. The workspace holds where it goes and what it shows; this holds the
+ * picture, for its owner only.
+ */
+export interface Picture {
+  /** SHA-256 of the bytes, in hex */
+  key: string;
+  userId: string;
+  mime: string;
+  bytes: Uint8Array;
+  createdAt: number;
+}
+
+export interface PictureRepository {
+  find(key: string): Promise<Picture | null>;
+  /** keeps it; a picture already kept under the key stays as it is */
+  save(picture: Picture): Promise<void>;
+}
+
 export interface PasswordHasher {
   hash(password: string): Promise<string>;
   verify(password: string, hash: string): Promise<boolean>;

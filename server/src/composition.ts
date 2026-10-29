@@ -1,10 +1,12 @@
 import { AuthService, DEFAULT_AUTH_POLICY, type AuthPolicy } from './application/auth-service';
 import { ConversationService } from './application/conversation-service';
+import { PictureService } from './application/picture-service';
 import { RecordingService } from './application/recording-service';
 import type {
   Clock,
   ConversationRepository,
   PasswordHasher,
+  PictureRepository,
   RecordingRepository,
   SessionRepository,
   SpeechSynthesizer,
@@ -35,6 +37,8 @@ export interface Services {
   talkVoices: TalkSynthesizer | null;
   /** those voices again, as recordings the website can play where the models are not */
   recordings: RecordingService;
+  /** the pictures beside texts' paragraphs */
+  pictures: PictureService;
 }
 
 /** Where each kind of record is kept. */
@@ -45,6 +49,7 @@ export interface Stores {
   worldSaves: WorldSaveRepository;
   conversations: ConversationRepository;
   recordings: RecordingRepository;
+  pictures: PictureRepository;
 }
 
 /**
@@ -88,5 +93,6 @@ export function createServices(
     tutor: options.tutor ?? null,
     talkVoices: options.talkVoices ?? null,
     recordings: new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock }),
+    pictures: new PictureService({ pictures: stores.pictures, clock }),
   };
 }

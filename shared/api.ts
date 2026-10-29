@@ -103,7 +103,13 @@ export const API = {
   logout: '/api/auth/logout',
   password: '/api/auth/password',
   workspace: '/api/workspace',
+  /** a text's picture, by the digest of its bytes: GET to show it, PUT to keep it */
+  pictures: '/api/pictures',
 } as const;
+
+/** The picture types the server keeps, and the largest it takes. */
+export const PICTURE_TYPES = ['image/jpeg', 'image/webp', 'image/png'] as const;
+export const PICTURE_MAX_BYTES = 2 * 1024 * 1024;
 
 /** The largest workspace document the server accepts, in bytes of JSON. */
 export const WORKSPACE_MAX_BYTES = 16 * 1024 * 1024;

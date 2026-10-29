@@ -1,5 +1,6 @@
 import { mergeActivity } from '../domain/activity';
 import { mergePlay } from '../domain/play';
+import { mergePictures } from '../domain/pictures';
 import { mergeStudy } from '../domain/text';
 import { mergeVideo } from '../domain/video';
 import { learnedFrom, SKILLS, type RecallBook, type SkillBook } from '../domain/memory';
@@ -34,7 +35,9 @@ export function mergeStates(account: AppState, incoming: AppState): AppState {
       const endings = [...new Set([...(ours.endings ?? []), ...(theirs.endings ?? [])])];
       // and so does anything done with the text on either
       const study = mergeStudy(ours.study, theirs.study);
-      return { ...kept, ...(endings.length ? { endings } : {}), ...(study ? { study } : {}) };
+      // and a picture drawn for it on either stays drawn
+      const pictures = mergePictures(ours.pictures, theirs.pictures);
+      return { ...kept, ...(endings.length ? { endings } : {}), ...(study ? { study } : {}), ...(pictures ? { pictures } : {}) };
     }).sort((a, b) => b.createdAt - a.createdAt),
     sets: union(account.sets, incoming.sets, (ours, theirs) =>
       theirs.study?.length ? { ...ours, study: [...new Set([...(ours.study ?? []), ...theirs.study])] } : ours,

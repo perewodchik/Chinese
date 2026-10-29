@@ -20,6 +20,10 @@
  *   --story: a story Claude wrote for the learner (/story), its chapters in order, each
  *       counting what the one before taught as met; --preface: the first passage is its
  *       preface of names and key words; --learn: the chapters' new words onto the shelf's list
+ *   npm run texts -- illustrate [--set <id or name>] [--text <id>] [--redo] [--style "…"] [--dry-run]
+ *       draws, with Gemini, the pictures the texts describe for their paragraphs
+ *       (`pictures: [{ para, prompt }]`) and puts them in; `add` does it by itself for
+ *       what it adds when GEMINI_API_KEY is set (illustrate.ts)
  *   npm run texts -- record [--voice wang] [--set <id or name>]
  *       reads every text's sentences aloud in one of the app's voices and keeps the
  *       recordings, so the website plays the text in that voice (on the Mac only:
@@ -71,6 +75,7 @@ import {
   type TextSet,
 } from '../../src/domain/text';
 import { newId } from '../../src/platform/ids';
+import { geminiFromEnv, illustrate, type PictureAccount } from './illustrate';
 import type { PersistedState } from '../../src/store/state';
 
 /** The workspace version this checkout writes. A newer document is left alone. */
@@ -531,7 +536,7 @@ async function record(o: { voice?: string; set?: string }) {
 
 /* ------------------------------------------------------------ an account */
 
-interface Account {
+interface Account extends PictureAccount {
   /** who and where, for the report */
   where: string;
   read(): Promise<{ revision: number; document: unknown }>;
@@ -564,10 +569,12 @@ async function databaseAccount(user: string): Promise<Account> {
     await close();
     throw new Error(`No account “${user}” in ${describeDatabase(config.database)}.`);
   }
-  const { workspaces } = createServices(stores);
+  const { workspaces, pictures } = createServices(stores);
   return {
     where: `${found.username} on ${describeDatabase(config.database)}`,
     read: () => workspaces.get(found.id),
+    getPicture: (key) => pictures.get(found.id, key).catch(() => null),
+    putPicture: (key, mime, bytes) => pictures.put(found.id, key, mime, bytes),
     async write(baseRevision, document) {
       try {
         await workspaces.save(found.id, baseRevision, document);
@@ -616,11 +623,46 @@ async function siteAccount(site: string, user: string, password: string): Promis
       if (res.status === 409 && refusal?.error?.code === 'conflict') return false;
       throw new Error(`Saving the workspace: ${refusal?.error?.message ?? `${res.status} ${res.statusText}`}`);
     },
+    async getPicture(key) {
+      const res = await fetch(`${site}${API.pictures}/${key}`, { headers: { cookie } });
+      if (!res.ok) return null;
+      return { mime: res.headers.get('content-type') ?? 'image/jpeg', bytes: new Uint8Array(await res.arrayBuffer()) };
+    },
+    async putPicture(key, mime, bytes) {
+      const res = await fetch(`${site}${API.pictures}/${key}`, {
+        method: 'PUT',
+        headers: { cookie, 'content-type': mime },
+        body: bytes as Uint8Array<ArrayBuffer>,
+      });
+      if (!res.ok) throw new Error(`Keeping the picture: ${await failure(res)}`);
+    },
     // One sign-in per run, signed out again so the account's sessions do not pile up.
     async close() {
       await fetch(`${site}${API.logout}`, { method: 'POST', headers }).catch(() => undefined);
     },
   };
+}
+
+/**
+ * The pictures the texts just added describe, drawn straight away when there
+ * is a key to draw them with; otherwise said, so they can be drawn later.
+ */
+async function drawAdded(account: Account, result: BookResult, style?: string) {
+  const described = result.added.filter((a) => a.text.pictures?.length);
+  if (!described.length) return;
+  const count = described.reduce((n, a) => n + (a.text.pictures?.length ?? 0), 0);
+  const painter = geminiFromEnv(process.env);
+  if (!painter) {
+    console.log(`  ${count} picture${count === 1 ? '' : 's'} described. GEMINI_API_KEY is not set, so they are not drawn yet:`);
+    console.log(`  npm run texts -- illustrate --set "${result.set.name}" once it is.\n`);
+    return;
+  }
+  const { failed } = await illustrate(account, painter, {
+    textIds: described.map((a) => a.text.id),
+    style,
+    say: (line) => console.log(`  ${line}`),
+  });
+  console.log(failed ? `\n  ${failed} not drawn: npm run texts -- illustrate --set "${result.set.name}" tries them again.\n` : '');
 }
 
 /* ------------------------------------------------------------ the command */
@@ -631,6 +673,7 @@ const USAGE = `
   npm run texts -- add <reply.json> --set <id or name> [--source <book>] [--genre <genre>] [--adapted] [--dry-run]
   npm run texts -- add <reply.json> --new-set <name> [--source <book>] [--genre <genre>] [--adapted] [--dry-run]
   npm run texts -- add <story.json> --new-set <title> --story [--preface] [--learn] [--genre story]
+  npm run texts -- illustrate [--set <id or name>] [--text <id>] [--redo] [--style "…"] [--dry-run]
   npm run texts -- record [--voice wang] [--set <id or name>]    on the Mac: the texts, read aloud for the site
 `;
 
@@ -675,11 +718,31 @@ async function main(argv: string[]) {
       learn: { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
       voice: { type: 'string' },
+      text: { type: 'string', multiple: true },
+      redo: { type: 'boolean', default: false },
+      style: { type: 'string' },
     },
   });
 
   if (command === 'record') {
     await record({ voice: values.voice, set: values.set });
+    return;
+  }
+  if (command === 'illustrate') {
+    const account = await openAccount();
+    try {
+      const { failed } = await illustrate(account, geminiFromEnv(process.env), {
+        set: values.set,
+        textIds: values.text,
+        redo: values.redo,
+        style: values.style,
+        dryRun: values['dry-run'],
+        say: (line) => console.log(`  ${line}`),
+      });
+      if (failed) process.exitCode = 1;
+    } finally {
+      await account.close();
+    }
     return;
   }
   if (command !== 'sets' && command !== 'check' && command !== 'add') {
@@ -743,6 +806,7 @@ async function main(argv: string[]) {
       }
       if (await account.write(revision, result.document)) {
         report(result, account.where, false);
+        await drawAdded(account, result, values.style);
         return;
       }
       if (attempt === 3) throw new Error('The workspace kept changing under this save. Try again in a minute.');

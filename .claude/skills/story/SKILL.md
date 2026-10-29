@@ -101,6 +101,14 @@ yours to write:
   chapter. A chapter after the first opens with one line of where things
   stand.
 - 2–3 questions a chapter, and the grammar thread in `grammar` each time.
+- **A picture for every paragraph** of every chapter (`pictures`, by the rule
+  in `/add-text`); none for the preface. Write the characters down once — what
+  each looks like, the clothes, the colours — and use those exact words in
+  every prompt they appear in, so Gemini draws the same people each time; the
+  pictures already drawn go along as references too. Gemini may refuse a famous
+  character by name (Pikachu): describe them instead ("a small round yellow
+  electric mouse with red cheeks, long black-tipped ears and a lightning-bolt
+  tail") and leave the name out.
 
 ## 6. Checking it
 
@@ -129,9 +137,16 @@ learner taps and learns on the text page; the preface's names and words do not:
 the learner marks those known. Every word off the HSK lists needs a `vocab`
 entry, or `add` refuses (see the `vocab` rule in `/add-text`).
 
+More chapters of a story already on the shelf go into its session with
+`--set "<title>"` instead of `--new-set`, and no `--preface`.
+
+Then the pictures are drawn, as step 7 of `/add-text` says — by `add` itself
+when `GEMINI_API_KEY` is set, otherwise later with `illustrate --set "<title>"`.
+
 ## 8. The report
 
 Short, in their language: the session and its address (`/texts/<id>` of the
 preface), a reminder to open the preface first and mark its words as known,
 then per chapter its title, what share of it they know and how many new
-characters, and how many went onto the shelf's list. Not the JSON.
+characters, and how many went onto the shelf's list; how many pictures were
+drawn, and any Gemini refused. Not the JSON.

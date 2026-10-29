@@ -81,4 +81,17 @@ export const MIGRATIONS: readonly string[] = [
 
   CREATE INDEX recordings_by_voice ON recordings (voice);
   `,
+  // The pictures beside a text's paragraphs, drawn away from the app and sent
+  // in; filed by the digest of their bytes, and only ever shown to their owner.
+  `
+  CREATE TABLE pictures (
+    key        TEXT PRIMARY KEY,
+    user_id    TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    mime       TEXT NOT NULL,
+    bytes      BYTEA NOT NULL,
+    created_at BIGINT NOT NULL
+  );
+
+  CREATE INDEX pictures_by_user ON pictures (user_id);
+  `,
 ];

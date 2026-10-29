@@ -1,5 +1,6 @@
 import { hasPicture } from '../data/pictures';
 import { scenesOf, storyFrom } from '../domain/story';
+import { picturesOf } from '../domain/pictures';
 import { playFrom } from '../domain/play';
 import { activityFrom } from '../domain/activity';
 import { CARD_SKILLS, type CardSkill } from '../domain/cards';
@@ -240,6 +241,7 @@ function textFrom(v: unknown): GeneratedText | null {
     ...optional('story', storyFrom(t.story)),
     ...optional('endings', arr<string>(t.endings).filter((e) => typeof e === 'string')),
     ...optional('scenes', scenesOf(t.scenes, hasPicture)),
+    ...optional('pictures', picturesOf(t.pictures)),
     ...optional('study', studyFrom(t.study)),
   };
 }

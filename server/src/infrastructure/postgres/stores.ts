@@ -1,6 +1,7 @@
 import type pg from 'pg';
 import type { Stores } from '../../composition';
 import { PostgresConversationRepository } from './conversation-repository';
+import { PostgresPictureRepository } from './picture-repository';
 import { PostgresRecordingRepository } from './recording-repository';
 import { PostgresSessionRepository } from './session-repository';
 import { PostgresUserRepository } from './user-repository';
@@ -15,4 +16,5 @@ export const postgresStores = (db: pg.Pool): Stores => ({
   worldSaves: new PostgresWorldSaveRepository(db),
   conversations: new PostgresConversationRepository(db),
   recordings: new PostgresRecordingRepository(db),
+  pictures: new PostgresPictureRepository(db),
 });

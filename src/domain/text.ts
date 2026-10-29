@@ -1,4 +1,5 @@
 import type { ItemId } from './ids';
+import type { TextPicture } from './pictures';
 import type { Scene, Story } from './story';
 /**
  * Reading passages, and the plan that produces them.
@@ -348,6 +349,8 @@ export interface GeneratedText {
   endings?: string[];
   /** scenes drawn beside the paragraphs */
   scenes?: Scene[];
+  /** pictures above the paragraphs, drawn from the writer's descriptions */
+  pictures?: TextPicture[];
   /** true once you have read it */
   read: boolean;
   /**

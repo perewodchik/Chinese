@@ -394,9 +394,45 @@ var ConversationService = class {
   }
 };
 
-// server/src/application/recording-service.ts
+// server/src/application/picture-service.ts
 import { createHash } from "node:crypto";
-var recordingKey = (voice, mode, text) => createHash("sha256").update(`${voice}
+
+// shared/api.ts
+var PICTURE_TYPES = ["image/jpeg", "image/webp", "image/png"];
+var PICTURE_MAX_BYTES = 2 * 1024 * 1024;
+var WORKSPACE_MAX_BYTES = 16 * 1024 * 1024;
+var workspaceTag = (revision) => `"r${revision}"`;
+
+// server/src/application/picture-service.ts
+var pictureKey = (bytes) => createHash("sha256").update(bytes).digest("hex");
+var PictureService = class {
+  constructor(deps) {
+    this.deps = deps;
+  }
+  async put(userId, key, mime, bytes) {
+    if (!PICTURE_TYPES.includes(mime)) {
+      throw new ValidationError(`A picture is one of ${PICTURE_TYPES.join(", ")}.`);
+    }
+    if (!bytes.length) throw new ValidationError("The picture is empty.");
+    if (bytes.length > PICTURE_MAX_BYTES) {
+      throw new ValidationError(`A picture is at most ${Math.round(PICTURE_MAX_BYTES / 1024)} KB.`);
+    }
+    if (pictureKey(bytes) !== key) throw new ValidationError("The key is not the digest of this picture.");
+    const kept2 = await this.deps.pictures.find(key);
+    if (kept2 && kept2.userId !== userId) throw new ValidationError("That picture is kept under another account.");
+    if (kept2) return;
+    await this.deps.pictures.save({ key, userId, mime, bytes, createdAt: this.deps.clock.now() });
+  }
+  async get(userId, key) {
+    const kept2 = /^[0-9a-f]{64}$/.test(key) ? await this.deps.pictures.find(key) : null;
+    if (!kept2 || kept2.userId !== userId) throw new NotFoundError("That picture");
+    return { mime: kept2.mime, bytes: kept2.bytes };
+  }
+};
+
+// server/src/application/recording-service.ts
+import { createHash as createHash2 } from "node:crypto";
+var recordingKey = (voice, mode, text) => createHash2("sha256").update(`${voice}
 ${mode}
 ${text}`).digest("hex");
 var RecordingService = class {
@@ -587,11 +623,11 @@ function derive(password, salt, cost, length) {
 }
 
 // server/src/infrastructure/crypto/tokens.ts
-import { createHash as createHash2, randomBytes as randomBytes2, randomUUID } from "node:crypto";
+import { createHash as createHash3, randomBytes as randomBytes2, randomUUID } from "node:crypto";
 var cryptoTokens = {
   // 256 bits: not something to guess, and base64url so it needs no escaping in a cookie.
   secret: () => randomBytes2(32).toString("base64url"),
-  digest: (secret) => createHash2("sha256").update(secret).digest("base64url"),
+  digest: (secret) => createHash3("sha256").update(secret).digest("base64url"),
   id: () => randomUUID()
 };
 
@@ -618,12 +654,13 @@ function createServices(stores, options = {}) {
     speech: options.speech ?? null,
     tutor: options.tutor ?? null,
     talkVoices: options.talkVoices ?? null,
-    recordings: new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock })
+    recordings: new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock }),
+    pictures: new PictureService({ pictures: stores.pictures, clock })
   };
 }
 
 // server/src/http/app.ts
-import { Hono as Hono10 } from "hono";
+import { Hono as Hono11 } from "hono";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
 
@@ -784,7 +821,7 @@ var RateLimiter = class {
 };
 
 // server/src/http/routes/ask.ts
-import { createHash as createHash3 } from "node:crypto";
+import { createHash as createHash4 } from "node:crypto";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -824,7 +861,7 @@ function askRoutes({ auth, clock, trustProxy, tutor }) {
     const run = () => tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind] });
     let text;
     if (input.kind === "video") {
-      const key = createHash3("sha256").update(`${user}
+      const key = createHash4("sha256").update(`${user}
 ${input.prompt}`).digest("hex");
       const now = clock.now();
       for (const [k, v] of kept2) if (now - v.at > KEEP_MS) kept2.delete(k);
@@ -936,11 +973,35 @@ function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }) {
   return routes;
 }
 
-// server/src/http/routes/speech.ts
+// server/src/http/routes/pictures.ts
 import { Hono as Hono3 } from "hono";
+function pictureRoutes({ auth, clock, trustProxy, pictures }) {
+  const routes = new Hono3();
+  const session = requireSession(auth, { trustProxy, clock });
+  const uploads = new RateLimiter(300, 10 * 6e4, clock);
+  routes.get("/:key", session, async (c) => {
+    const { mime, bytes } = await pictures.get(c.get("session").user.id, c.req.param("key"));
+    c.header("Content-Type", mime);
+    c.header("Cache-Control", "private, max-age=31536000, immutable");
+    return c.body(bytes);
+  });
+  routes.put("/:key", session, async (c) => {
+    const user = c.get("session").user.id;
+    uploads.consume(user);
+    const mime = (c.req.header("content-type") ?? "").split(";")[0].trim().toLowerCase();
+    const bytes = new Uint8Array(await c.req.arrayBuffer());
+    await pictures.put(user, c.req.param("key"), mime, bytes);
+    c.header("Cache-Control", "no-store");
+    return c.json({ ok: true });
+  });
+  return routes;
+}
+
+// server/src/http/routes/speech.ts
+import { Hono as Hono4 } from "hono";
 var SPEECH_MAX_CHARS = 240;
 function speechRoutes({ auth, clock, trustProxy, speech }) {
-  const routes = new Hono3();
+  const routes = new Hono4();
   const session = requireSession(auth, { trustProxy, clock });
   const limiter = new RateLimiter(300, 10 * 6e4, clock);
   routes.get("/", session, (c) => {
@@ -972,7 +1033,7 @@ function speechRoutes({ auth, clock, trustProxy, speech }) {
 }
 
 // server/src/http/routes/strokes.ts
-import { Hono as Hono4 } from "hono";
+import { Hono as Hono5 } from "hono";
 
 // shared/strokes.ts
 var STROKES_PER_REQUEST = 24;
@@ -1011,7 +1072,7 @@ async function fetchOne(c, get2) {
 // server/src/http/routes/strokes.ts
 var HANZI = /^\p{Script=Han}$/u;
 function strokeRoutes({ auth, clock, trustProxy }) {
-  const routes = new Hono4();
+  const routes = new Hono5();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const chars = [.../* @__PURE__ */ new Set([...c.req.query("c") ?? ""])];
@@ -1026,7 +1087,7 @@ function strokeRoutes({ auth, clock, trustProxy }) {
 }
 
 // server/src/http/routes/talk.ts
-import { Hono as Hono5 } from "hono";
+import { Hono as Hono6 } from "hono";
 import { z as z3 } from "zod";
 var talkOptions = z3.object({
   level: z3.enum(TALK_LEVELS),
@@ -1076,7 +1137,7 @@ var replyRequest = z3.object({
   }).optional()
 });
 function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations, recordings }) {
-  const routes = new Hono5();
+  const routes = new Hono6();
   const session = requireSession(auth, { trustProxy, clock });
   const turns = new RateLimiter(120, 10 * 6e4, clock);
   const clips = new RateLimiter(600, 10 * 6e4, clock);
@@ -1156,7 +1217,7 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations,
 }
 
 // server/src/http/routes/videos.ts
-import { Hono as Hono6 } from "hono";
+import { Hono as Hono7 } from "hono";
 
 // shared/videos.ts
 var PLAYLIST_ID = /^[A-Za-z0-9_-]{10,64}$/;
@@ -1307,7 +1368,7 @@ async function lookUpPlaylist(playlistId) {
 
 // server/src/http/routes/videos.ts
 function videoRoutes({ auth, clock, trustProxy, log }) {
-  const routes = new Hono6();
+  const routes = new Hono7();
   const session = requireSession(auth, { trustProxy, clock });
   const lookups = new RateLimiter(60, 60 * 6e4, clock);
   routes.get("/youtube/:id", session, async (c) => {
@@ -1348,21 +1409,15 @@ function videoRoutes({ auth, clock, trustProxy, log }) {
 }
 
 // server/src/http/routes/workspace.ts
-import { Hono as Hono7 } from "hono";
+import { Hono as Hono8 } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { z as z4 } from "zod";
-
-// shared/api.ts
-var WORKSPACE_MAX_BYTES = 16 * 1024 * 1024;
-var workspaceTag = (revision) => `"r${revision}"`;
-
-// server/src/http/routes/workspace.ts
 var saveRequest2 = z4.object({
   baseRevision: z4.number().int().min(0),
   document: z4.record(z4.string(), z4.unknown())
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
-  const routes = new Hono7();
+  const routes = new Hono8();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -1400,7 +1455,7 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 }
 
 // server/src/http/routes/world.ts
-import { Hono as Hono8 } from "hono";
+import { Hono as Hono9 } from "hono";
 import { bodyLimit as bodyLimit2 } from "hono/body-limit";
 import { z as z5 } from "zod";
 
@@ -1414,7 +1469,7 @@ var putRequest = z5.object({
   save: z5.record(z5.string(), z5.unknown())
 });
 function worldRoutes({ auth, world, clock, trustProxy }) {
-  const routes = new Hono8();
+  const routes = new Hono9();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -1451,9 +1506,9 @@ function worldRoutes({ auth, world, clock, trustProxy }) {
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Hono as Hono9 } from "hono";
+import { Hono as Hono10 } from "hono";
 function staticSite(root) {
-  const site = new Hono9();
+  const site = new Hono10();
   const index = join(root, "index.html");
   site.use("*", caching());
   site.use("*", serveStatic({ root }));
@@ -1491,7 +1546,7 @@ function createHttpApp(services, options) {
     devUserCreate: options.devUserCreate ?? true,
     log: options.log
   };
-  const api = new Hono10();
+  const api = new Hono11();
   api.onError(onError);
   api.use("*", sameOriginOnly());
   api.get("/health", (c) => c.json({ ok: true }));
@@ -1503,10 +1558,11 @@ function createHttpApp(services, options) {
   api.route("/talk", talkRoutes(deps));
   api.route("/videos", videoRoutes(deps));
   api.route("/strokes", strokeRoutes(deps));
+  api.route("/pictures", pictureRoutes(deps));
   api.all("*", () => {
     throw new NotFoundError("That API route");
   });
-  const app = new Hono10();
+  const app = new Hono11();
   app.onError(onError);
   if (options.compress !== false) app.use("*", compress());
   app.use(
@@ -1654,6 +1710,19 @@ var MIGRATIONS = [
   );
 
   CREATE INDEX recordings_by_voice ON recordings (voice);
+  `,
+  // The pictures beside a text's paragraphs, drawn away from the app and sent
+  // in; filed by the digest of their bytes, and only ever shown to their owner.
+  `
+  CREATE TABLE pictures (
+    key        TEXT PRIMARY KEY,
+    user_id    TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    mime       TEXT NOT NULL,
+    bytes      BYTEA NOT NULL,
+    created_at BIGINT NOT NULL
+  );
+
+  CREATE INDEX pictures_by_user ON pictures (user_id);
   `
 ];
 
@@ -1818,6 +1887,29 @@ var PostgresConversationRepository = class {
   async delete(userId, id) {
     const result = await this.db.query("DELETE FROM conversations WHERE id = $1 AND user_id = $2", [id, userId]);
     return result.rowCount === 1;
+  }
+};
+
+// server/src/infrastructure/postgres/picture-repository.ts
+var PostgresPictureRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async find(key) {
+    const { rows } = await this.db.query(
+      "SELECT user_id, mime, bytes, created_at FROM pictures WHERE key = $1",
+      [key]
+    );
+    const row = rows[0];
+    return row ? { key, userId: row.user_id, mime: row.mime, bytes: new Uint8Array(row.bytes), createdAt: Number(row.created_at) } : null;
+  }
+  async save(p) {
+    await this.db.query(
+      `INSERT INTO pictures (key, user_id, mime, bytes, created_at)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (key) DO NOTHING`,
+      [p.key, p.userId, p.mime, Buffer.from(p.bytes), p.createdAt]
+    );
   }
 };
 
@@ -2029,7 +2121,8 @@ var postgresStores = (db) => ({
   workspaces: new PostgresWorkspaceRepository(db),
   worldSaves: new PostgresWorldSaveRepository(db),
   conversations: new PostgresConversationRepository(db),
-  recordings: new PostgresRecordingRepository(db)
+  recordings: new PostgresRecordingRepository(db),
+  pictures: new PostgresPictureRepository(db)
 });
 
 // server/src/vercel.ts

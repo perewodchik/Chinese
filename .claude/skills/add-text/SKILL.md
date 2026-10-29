@@ -88,7 +88,8 @@ generation prompt's answer:
       "vocab": [{ "w": "蓝色", "py": "lánsè", "d": "blue", "new": true }],
       "questions": [{ "zh": "天是什么颜色的？", "py": "tiān shì shénme yánsè de", "en": "What colour is the sky?", "a": "天是蓝色的。" }],
       "grammar": [{ "point": "把 + thing + verb + result", "zh": "空气把蓝色的光散开了。", "en": "The air scatters the blue light." }],
-      "note": "The heading asks; the last sentence answers — look for 所以."
+      "note": "The heading asks; the last sentence answers — look for 所以.",
+      "pictures": [{ "para": 0, "prompt": "A child lies in green grass looking up at a bright blue summer sky with a few small white clouds." }]
     }
   ]
 }
@@ -125,6 +126,13 @@ Rules — the book's text is the point, so it is never rewritten:
 - **`note`**: one or two sentences in English: what to watch for.
 - **`questions`**: 2–3 comprehension questions in plain Chinese (HSK 1–2 words
   where you can), each with `py`, `en` and `a`, a short answer from the passage.
+
+- **`pictures`**: one a paragraph — `para` is the paragraph's number from 0
+  (the first line, then each `"p": true`), `prompt` an English description of
+  one scene a painter can draw: who is there, what they are doing, where, the
+  light and the mood, in two or three sentences. What the paragraph *shows*,
+  not what it explains: for "why is the sky blue", a child under a blue sky,
+  not a diagram. No words, letters or Chinese in the picture.
 
 Valid JSON only — the script refuses a file that needs repairs.
 
@@ -215,10 +223,27 @@ already on the shelf (same title, same first line) is left alone and said so.
 It saves the way a device does, so an iPad open at the time keeps its own
 changes and picks these up on its next sync.
 
+Then it draws the pictures, with Gemini, when `GEMINI_API_KEY` is set in the
+environment (the cloud environment's settings, or `.env` on the Mac): each
+paragraph's picture is drawn beside the ones already drawn in the session, so
+the people in it look the same, made small, kept on the site and put above its
+paragraph. A minute or so for a chapter. A picture Gemini refuses (it will not
+draw some famous characters) is named and left; without the key it says so and
+draws nothing. Either way, later:
+
+```bash
+<the same variables as in step 2> npm run -s texts -- illustrate --set "<session>"           # what is not drawn yet
+<the same variables as in step 2> npm run -s texts -- illustrate --text <id> --redo           # one text drawn again
+```
+
+`--style "…"` changes the look (a watercolour picture book unless said);
+`--dry-run` lists what would be drawn.
+
 ## 8. The report
 
 Short, in the learner's language: the session, then per passage — the easier
 version marked as such — its title, how many sentences, what share of its
 characters they already know, how many new ones, and its address
-(`/texts/<id>`). Any corrected typo and any character you were unsure of. Not
-the JSON.
+(`/texts/<id>`) and how many of its pictures were drawn. Any corrected typo and
+any character you were unsure of, and any picture that was refused. Not the
+JSON.
