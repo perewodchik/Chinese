@@ -31,6 +31,7 @@ import {
 import { readerSheet } from './readerSheet';
 import { rememberReading } from './lastRead';
 import {
+  ListenPart,
   MORE,
   MorePart,
   partFill,
@@ -157,11 +158,15 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const spoken = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
   const reading = useReading(spoken);
   useEffect(() => prefetchPassage(spoken, reading.voice), [spoken, reading.voice]);
-  // Heard to the end is the Listen part done.
+  // Heard to the end is the Listen part done, once more; read through a ref so a listening ending counts the latest number.
+  const listensRef = useRef(text.study?.listens ?? (text.study?.heard ? 1 : 0));
+  listensRef.current = text.study?.listens ?? (text.study?.heard ? 1 : 0);
   useEffect(
     () =>
       onReadThrough((lines) => {
-        if (lines.length === spoken.length && lines.every((l, i) => l === spoken[i])) studyText(text.id, { heard: Date.now() });
+        if (lines.length === spoken.length && lines.every((l, i) => l === spoken[i])) {
+          studyText(text.id, { heard: Date.now(), listened: spoken.length, listens: (listensRef.current ?? 0) + 1 });
+        }
       }),
     [spoken, text.id],
   );
@@ -306,7 +311,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
               data-more={p.id === 'more' || undefined}
               style={p.id === 'more' ? undefined : ({ '--fill': `${Math.round(fill[p.id] * 100)}%` } as CSSProperties)}
               onClick={() => goPart(p.id)}
-              title={p.id === 'more' ? 'Listen, translate, dictation: practice that is not counted' : `${p.label}: ${fill[p.id] >= 1 ? 'done' : fill[p.id] > 0 ? 'started' : 'not yet'}`}
+              title={p.id === 'more' ? 'Translate and dictation: practice that is not counted' : `${p.label}: ${fill[p.id] >= 1 ? 'done' : fill[p.id] > 0 ? 'started' : 'not yet'}`}
             >
               <span className="hanzi">{p.han}</span>
               <small>{p.label}</small>
@@ -397,6 +402,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       {mode === 'single' && (
         <div className="rd-study no-print">
           <WritePart text={text} partId={partId('write')} />
+          <ListenPart text={text} reading={reading} spoken={spoken} partId={partId('listen')} />
           <WordsPart
             text={text}
             setId={set?.id ?? null}
@@ -408,7 +414,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           {text.questions.length > 0 && (
             <QuestionsPart key={`q${text.id}`} text={text} partId={partId('questions')} showPinyin={pinyin === 'all'} />
           )}
-          <MorePart text={text} reading={reading} spoken={spoken} partId={partId('more')} />
+          <MorePart text={text} partId={partId('more')} />
           <div className="rd-next">
             {next ? (
               <button className="rd-next-btn" onClick={() => go(page + 1)}>

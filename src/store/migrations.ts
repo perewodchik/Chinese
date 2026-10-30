@@ -267,6 +267,8 @@ function studyFrom(v: unknown): TextStudy | undefined {
   const when = (x: unknown) => (typeof x === 'number' && Number.isFinite(x) ? x : undefined);
   const out: TextStudy = {
     ...optional('heard', when(s.heard)),
+    ...optional('listened', typeof s.listened === 'number' && Number.isInteger(s.listened) && s.listened > 0 ? s.listened : undefined),
+    ...optional('listens', typeof s.listens === 'number' && Number.isInteger(s.listens) && s.listens > 0 ? s.listens : undefined),
     ...optional('translated', when(s.translated)),
     ...optional('written', arr<string>(s.written).filter((c) => typeof c === 'string')),
     ...optional('answered', arr<number>(s.answered).filter((n) => Number.isInteger(n) && n >= 0)),

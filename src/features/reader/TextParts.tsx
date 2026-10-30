@@ -16,22 +16,22 @@ import { onReadThrough, RATES, type Reading } from './readAloud';
 /**
  * The parts of a text, as the strip at the top of the page names them.
  *
- * They are parts of one text, not steps: read it, write it out, take the
- * words worth having, answer the questions — in any order, as often as you
- * like. Each fills the line under its name as it is done, so coming back to a
- * text shows at a glance what is left of it.
+ * They are parts of one text, not steps: read it, write it out, hear it, take
+ * the words worth having, answer the questions — in any order, as often as
+ * you like. Each fills the line under its name as it is done, so coming back
+ * to a text shows at a glance what is left of it. Listening counts as far as
+ * the voice has got, and is done once the text has been heard to the end.
  *
- * Listening, translating and dictation are there too, under More, and count
- * for nothing: they are ways of going over the text, not things to finish.
- * As parts with lines of their own they turned a text into a list of seven
- * chores, two of them done by opening the page.
+ * Translating and dictation are there too, under More, and count for nothing:
+ * they are ways of going over the text, not things to finish.
  */
-export type PartId = 'read' | 'write' | 'words' | 'questions';
+export type PartId = 'read' | 'write' | 'listen' | 'words' | 'questions';
 export type TabId = PartId | 'more';
 
 export const PARTS: Array<{ id: PartId; han: string; label: string }> = [
   { id: 'read', han: '读', label: 'Text' },
   { id: 'write', han: '写', label: 'Write' },
+  { id: 'listen', han: '听', label: 'Listen' },
   { id: 'words', han: '词', label: 'Words' },
   { id: 'questions', han: '问', label: 'Questions' },
 ];
@@ -48,6 +48,7 @@ export function partFill(text: GeneratedText, standing: (w: string) => Standing)
   return {
     read: text.read ? 1 : 0,
     write: Math.min(1, (s.copied ?? 0) / (hanCount(text) || 1)),
+    listen: s.listens || s.heard ? 1 : Math.min(1, (s.listened ?? 0) / (text.lines.length || 1)),
     words: Math.min(1, words),
     questions: Math.min(1, answered),
   };
@@ -76,6 +77,22 @@ function Section({ id, han, title, aside, children }: { id: string; han: string;
 
 /* ---------------------------------------------------------------- 听 Listen */
 
+/** 听 Listen: the text read aloud, counted as far as the voice gets. */
+export function ListenPart({ text, reading, spoken, partId }: { text: GeneratedText; reading: Reading; spoken: string[]; partId: string }) {
+  const st = text.study ?? {};
+  const listens = st.listens ?? (st.heard ? 1 : 0);
+  const aside = listens
+    ? `Heard to the end ${listens === 1 ? 'once' : `${listens} times`}`
+    : st.listened
+      ? `Heard to line ${Math.min(st.listened, spoken.length)} of ${spoken.length}`
+      : 'Not heard yet';
+  return (
+    <Section id={partId} han="听" title="Listen" aside={aside}>
+      <ListenBody text={text} reading={reading} spoken={spoken} />
+    </Section>
+  );
+}
+
 /**
  * The player: the whole text, or from any line; back and on a line at a time;
  * slower to follow; and every line in a list to follow along, lit as it is
@@ -94,6 +111,11 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
   useEffect(() => setLast(0), [text.id]);
   // Heard to the end: next time starts at the top.
   useEffect(() => onReadThrough(() => setLast(0)), []);
+  // How far the voice has got counts: once a line, the furthest only.
+  const furthest = text.study?.listened ?? 0;
+  useEffect(() => {
+    if (reading.at !== null && reading.at + 1 > furthest) studyText(text.id, { listened: reading.at + 1 });
+  }, [reading.at, furthest, text.id]);
 
   const from = (i: number) => {
     const n = Math.max(0, Math.min(spoken.length - 1, i));
@@ -184,7 +206,7 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
           </button>
         )}
       </div>
-      <Narrate spoken={spoken} reading={reading} />
+      <Narrate key={text.id} spoken={spoken} reading={reading} />
       {IOS_SPEAK && (
         <p className="small muted rd-voice-note">
           <b>Your device’s voice</b> reads in the Chinese voice set in Settings › Accessibility › Spoken Content ›
@@ -312,16 +334,16 @@ function TranslateBody({ text }: { text: GeneratedText }) {
 /* ---------------------------------------------------------------- 更 More */
 
 /**
- * Listening, translating and dictation: three ways of going over the text
- * again, folded away until one is wanted, and counted nowhere. Listen and
- * Translate open where they are; dictation has the screen to itself.
+ * Translating and dictation: two ways of going over the text again, folded
+ * away until one is wanted, and counted nowhere. Translate opens where it is;
+ * dictation has the screen to itself.
  */
-export function MorePart({ text, reading, spoken, partId }: { text: GeneratedText; reading: Reading; spoken: string[]; partId: string }) {
-  const [open, setOpen] = useState<'listen' | 'translate' | null>(null);
+export function MorePart({ text, partId }: { text: GeneratedText; partId: string }) {
+  const [open, setOpen] = useState<'translate' | null>(null);
   const [dictating, setDictating] = useState(false);
   useEffect(() => setOpen(null), [text.id]);
   const dictated = Math.min(text.lines.length, text.study?.dictated ?? 0);
-  const row = (id: 'listen' | 'translate', han: string, title: string, sub: string) => (
+  const row = (id: 'translate', han: string, title: string, sub: string) => (
     <button className="rd-more-row" aria-expanded={open === id} onClick={() => setOpen(open === id ? null : id)}>
       <span className="hanzi" aria-hidden>
         {han}
@@ -336,12 +358,6 @@ export function MorePart({ text, reading, spoken, partId }: { text: GeneratedTex
   return (
     <Section id={partId} han="更" title="More" aside="Practice, not counted">
       <div className="rd-more-list">
-        {row('listen', '听', 'Listen', 'The text read aloud, line by line')}
-        {open === 'listen' && (
-          <div className="rd-more-body">
-            <ListenBody text={text} reading={reading} spoken={spoken} />
-          </div>
-        )}
         {row('translate', '译', 'Translate', 'Say what a line means, then check')}
         {open === 'translate' && (
           <div className="rd-more-body">

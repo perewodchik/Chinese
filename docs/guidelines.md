@@ -9,7 +9,7 @@ learner, and how to check a change before it ships.
 ## The learner, in one paragraph
 
 One person, HSK 1–2, 20–30 minutes a day, on an iPhone and an iPad in Safari.
-Learns from texts: read, write, words, questions (listening, translating and dictation sit under More and count for nothing). Practises
+Learns from texts: read, write, listen, words, questions (listening counts as far as the voice has got; translating and dictation sit under More and count for nothing). Practises
 with cards, a fixed number a day. Wants it calm and light, never a list of
 debts, never a game that can be clicked through. Notices everything: a label
 that shifts by 5px, a heading under the status bar, two blue buttons.

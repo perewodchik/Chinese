@@ -386,6 +386,10 @@ export interface GeneratedText {
 export interface TextStudy {
   /** when it was last heard to the end */
   heard?: number;
+  /** how far into it the furthest listening got, in sentences */
+  listened?: number;
+  /** how many times it has been heard to the end */
+  listens?: number;
   /** when the translation was last opened, line by line or whole */
   translated?: number;
   /** the characters written out in the Write part */
@@ -408,6 +412,8 @@ export function mergeStudy(a: TextStudy | undefined, b: TextStudy | undefined): 
   const union = <T,>(x?: T[], y?: T[]) => (x || y ? [...new Set([...(x ?? []), ...(y ?? [])])] : undefined);
   return {
     ...optionalField('heard', max(a.heard, b.heard)),
+    ...optionalField('listened', max(a.listened, b.listened)),
+    ...optionalField('listens', max(a.listens, b.listens)),
     ...optionalField('translated', max(a.translated, b.translated)),
     ...optionalField('written', union(a.written, b.written)),
     ...optionalField('answered', union(a.answered, b.answered)),

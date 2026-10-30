@@ -2008,41 +2008,71 @@ label.rd-aa-row {
 }
 
 
-/* Recording a text in a natural voice, under the voices in Listen: one row, a
-   narrator and the button; a line under it that keeps its height. */
-.rd-narrate {
+/* A natural voice for the text: a quiet line under Listen's voices that opens
+   a well: the narrator and the button on one row, a progress line, a note
+   that keeps its height. */
+.rd-natural {
+  margin: 2px 0 14px;
+}
+
+.rd-natural-toggle {
+  gap: 6px;
+  padding-left: 0;
+}
+
+.rd-natural-toggle[aria-expanded='true'] svg {
+  transform: rotate(90deg);
+}
+
+.rd-natural-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 8px 12px;
-  margin: 4px 0 16px;
+  gap: 10px;
+  margin-top: 6px;
   padding: 12px 14px;
   border-radius: 14px;
   background: var(--card-2);
 }
 
-.rd-narrate-pick {
+.rd-natural-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.rd-natural-pick {
   display: grid;
   gap: 4px;
   min-width: 0;
 }
 
-.rd-narrate-pick select {
+.rd-natural-pick select {
   width: 100%;
   min-height: 36px;
   font-size: 16px;
 }
 
-.rd-narrate-go {
-  min-width: 156px;
+.rd-natural-go {
+  min-width: 150px;
 }
 
-.rd-narrate-msg {
-  grid-column: 1 / -1;
+.rd-natural-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(var(--jade), var(--jade)) 0 0 / var(--fill, 0%) 100% no-repeat, var(--line);
+  transition: background-size 160ms;
+}
+
+.rd-natural-msg {
   margin: 0;
   min-height: 2.6em;
 }
 
-.rd-narrate-note {
-  margin: 4px 0 16px;
+@media (max-width: 420px) {
+  .rd-natural-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rd-natural-go {
+    width: 100%;
+  }
 }
