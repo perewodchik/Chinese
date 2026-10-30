@@ -218,6 +218,12 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     if (!text.study?.translated) studyText(text.id, { translated: Date.now() });
   }
 
+  /** A line tapped on its comic page's photo: lit in the text (the photo says what it is). */
+  function point(i: number) {
+    setFlash(i);
+    window.setTimeout(() => setFlash((f) => (f === i ? null : f)), 1600);
+  }
+
   // Shown whole is the translation looked at.
   useEffect(() => {
     if (translation === 'shown' && !text.study?.translated) studyText(text.id, { translated: Date.now() });
@@ -318,6 +324,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             flash={t.id === text.id ? flash : null}
             revealed={t.id === text.id ? revealed : new Set()}
             onReveal={reveal}
+            onPoint={point}
             study={study}
             heading={mode === 'all' ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
           />

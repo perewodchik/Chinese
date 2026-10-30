@@ -1925,3 +1925,87 @@ label.rd-aa-row {
 .rd-line-body:has(> .rd-pic[data-size='beside']) {
   display: flow-root;
 }
+
+/* A comic's page photo: a spot over each bubble, caption and sound effect.
+   Drawn faintly in blue ink, since a tap there is something to do; a tap on
+   the rest of the photo still shows it larger. The spot's tap area reaches
+   past a small box, so a two-character sound effect is still a finger wide. */
+.rd-pic-page {
+  position: relative;
+  cursor: default;
+}
+
+.rd-pic-zoom {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.rd-pic-spot {
+  position: absolute;
+  padding: 0;
+  border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 6px;
+  /* the photo is the same in both themes: a pale edge keeps the spot visible on a dark page */
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 45%);
+  background: none;
+  cursor: pointer;
+}
+
+.rd-pic-spot::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
+.rd-pic-spot:active,
+.rd-pic-spot:focus-visible {
+  border-color: var(--accent);
+  background: var(--hl);
+}
+
+/* a line found from its spot on a comic's page: lit for a moment */
+.rd-line[data-flash] {
+  animation: rd-flash 1.6s ease-out;
+  border-radius: 8px;
+}
+
+.rd-pic-spot[data-on] {
+  border-color: var(--accent);
+  background: var(--hl);
+}
+
+/* Under a comic's page: what the last tapped spot says. Kept three lines
+   tall whether filled or not, so the text below never moves. */
+.rd-pic-say {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  width: min(560px, 100%);
+  min-height: 5.6em;
+  padding: 10px 2px 0;
+}
+
+.rd-pic-say-zh {
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.rd-pic-say-py {
+  color: var(--py);
+  font-size: 13.5px;
+}
+
+.rd-pic-say-en {
+  font: 400 15px/1.45 var(--read);
+  color: var(--ink-2);
+}
+
+.rd-pic-say-hint {
+  color: var(--ink-3);
+  font-size: 13.5px;
+}

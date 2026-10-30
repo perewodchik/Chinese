@@ -113,6 +113,9 @@ export const GENRES: Array<{ id: Genre; label: string; brief: string }> = [
   },
 ];
 
+export const LINE_KINDS = ['bubble', 'caption', 'sfx', 'sign', 'note'] as const;
+export type LineKind = (typeof LINE_KINDS)[number];
+
 export interface TextLine {
   zh: string;
   py: string;
@@ -125,6 +128,12 @@ export interface TextLine {
   a?: string;
   /** in a dialogue: who says it */
   who?: string;
+  /** in a comic: what on the page the line is — a speech bubble, a caption, a
+   *  sound effect or a sign drawn into the picture, or the book's footnote */
+  kind?: LineKind;
+  /** in a comic: where it is on its page's photo, in % of the photo — left,
+   *  top, width, height — so a tap there finds the line */
+  box?: [number, number, number, number];
   /** in a story with choices: the node it belongs to */
   node?: string;
 }

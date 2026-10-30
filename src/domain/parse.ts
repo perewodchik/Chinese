@@ -5,8 +5,10 @@ import {
   coverageOf,
   hanziIn,
   isHanzi,
+  LINE_KINDS,
   type GeneratedText,
   type GrammarNote,
+  type LineKind,
   type TextLine,
   type TextPlan,
   type TextSpec,
@@ -297,7 +299,19 @@ export function asLine(v: unknown): TextLine | null {
   if (a) line.a = a;
   const who = pick(o, 'who', 'speaker', 'name');
   if (who) line.who = who.slice(0, 12);
+  const kind = pick(o, 'kind');
+  if ((LINE_KINDS as readonly string[]).includes(kind)) line.kind = kind as LineKind;
+  const box = asBox(o.box);
+  if (box) line.box = box;
   return line;
+}
+
+/** Where a comic's line is on its page, in % of the photo; anything off the photo is no place at all. */
+function asBox(v: unknown): TextLine['box'] | undefined {
+  if (!Array.isArray(v) || v.length !== 4 || !v.every((n) => typeof n === 'number' && Number.isFinite(n))) return undefined;
+  const [x, y, w, h] = v as number[];
+  if (x! < 0 || y! < 0 || w! <= 0 || h! <= 0 || x! + w! > 100.5 || y! + h! > 100.5) return undefined;
+  return [x!, y!, w!, h!].map((n) => Math.round(n * 10) / 10) as TextLine['box'];
 }
 
 function asCounts(v: unknown): Record<string, number> | undefined {

@@ -261,10 +261,16 @@ is a comic: the panels say so.
 **What the learner gets.** The chapter as a text, a line per bubble. The
 easier version is the same chapter told bubble for bubble in Chinese they can
 nearly read, and it opens first. 简 / 原 at the top of the text page switches
-the whole chapter. Each page's photo sits above that page's bubbles in the
-line view. Aa → "Dialogue as a comic" draws the bubbles with the speakers'
-faces, without the photos. Before the first chapter of a book comes a primer
-of who is who.
+the whole chapter.
+
+Each page's photo sits large above that page's lines, cleaned up to look like
+a scan. Every piece of writing on it is a faint spot. A tap on a spot says
+under the photo what is written there, with its pinyin and meaning, and
+lights its line. Sound effects and signs drawn into the art, which have no
+bubble, get their meaning this way. Aa → "Dialogue as a comic" draws the
+bubbles with the speakers' faces, without the photos.
+
+Before the first chapter of a book comes a primer of who is who.
 
 ### Reading the pages (step 1)
 
@@ -272,15 +278,22 @@ of who is who.
   order sent. If the chapter stops mid-scene at the last photo, ask whether
   to add what is there or wait for the rest.
 - A photo lying on its side or upside down (the second page of a spread is
-  often shot that way) is read the right way up, and turned the right way up
-  before it goes in (step 7).
+  often shot that way) is read the right way up. It is turned the right way up
+  when the page is cleaned (**The photos** below).
+- A photo of a whole spread is two pages: clean each one out of it on its own.
 - On each page, read the panels in the book's order: left to right and top to
   bottom for a horizontal Chinese comic, right to left for vertical text. In
   each panel, read the bubbles in the order they are spoken.
-- Transcribe speech and thought bubbles, captions (narration boxes), the
-  book's own footnotes (※通灵阵：…), and a sign or sound effect only when it
-  is a word the story needs. Leave out page numbers, running heads and
-  credits.
+- Transcribe every piece of Chinese writing on the page:
+  - speech and thought bubbles;
+  - captions (narration boxes);
+  - the book's own footnotes (※通灵阵：…);
+  - writing drawn into the art: sound effects (轰隆隆, 砰, 哗), shouts drawn
+    as lettering, signs, plaques, banners, letters.
+
+  Brush lettering is hard to read: take it from the strokes and the scene
+  (thunder over a stormy sky is 轰隆隆), and list it in the report when you
+  were unsure. Leave out page numbers, running heads and credits.
 - Leave out a page with no words at all, and its photo. Say so in the report.
 
 ### The chapter (step 3)
@@ -288,16 +301,28 @@ of who is who.
 - One chapter is one text. **`titleZh`** is the chapter as the book numbers
   it: 第一话, plus its name when the page gives one. **`title`** is "Chapter 1",
   with the English name when it has one.
-- **`lines`**: one bubble is one line. Never split a bubble even when it holds
-  two sentences, and never join two bubbles. `"p": true` goes on the first
-  line of each page: a page is a paragraph, and that is what puts the page's
-  photo above its bubbles.
+- **`lines`**: one bubble is one line, and so is each caption, footnote, sound
+  effect and sign. Never split a bubble even when it holds two sentences, and
+  never join two bubbles. `"p": true` goes on the first line of each page: a
+  page is a paragraph, and that is what puts the page's photo above its lines.
+- **`kind`** on every line: `bubble` (speech or thought), `caption`, `sfx` (a
+  sound effect), `sign` (other writing in the art), or `note` (the book's
+  footnote).
+- **`box`** on every line: where the writing is on the cleaned page, in % of
+  its width and height: `[left, top, width, height]`. Read it off the cleaned
+  page with `page.mjs grid` (**The photos** below). Box the whole bubble or
+  the whole lettering, a little generously, since it is what a finger taps.
+  Boxes may touch, but should not overlap.
 - **`who`** on every line: the speaker as the book names them (谢怜, 灵文). Use
-  旁白 for a caption and 注 for a footnote. When the panel does not show who
-  speaks (by the tail, the face beside the bubble, a name in it), take the
-  likeliest from the story and list it in the report as a guess.
+  旁白 for a caption, 注 for a footnote, 音效 for a sound effect, and 字 for a
+  sign. When the panel does not show who speaks (by the tail, the face beside
+  the bubble, a name in it), take the likeliest from the story and list it in
+  the report as a guess.
 - **`en`** gives the sense of the bubble. For a 成语 or a line of poetry
-  (偷得浮生半日闲), give its sense here and put it in `vocab` as one word.
+  (偷得浮生半日闲), give its sense here and put it in `vocab` as one word. For
+  a sound effect or sign, say what it is as well as what it means, since this
+  is what the tap shows: "Boom, rumble: thunder. A sound effect drawn into the
+  sky." Put each sound effect in `vocab` too.
 - **`vocab`**: every name, and every title a person goes by, with who it
   is in `d` ("帝君 — the Lord Emperor: 君吾"). A comic calls people by title
   more often than by name.
@@ -317,9 +342,10 @@ whatever the verdict, with "Easier version first, then the book's" marked
 (the session shows it), without asking.
 
 The easier version goes **line for line**: the same number of lines, line n
-retelling bubble n, the same `who`, and `"p": true` in the same places. So 简 /
-原 swaps a bubble for the same bubble, and each page photo sits above the
-same bubbles in both. Within a bubble, step 6's rules apply:
+retelling bubble n, and the same `who`, `kind`, `box`, and `"p": true` in the
+same places. So 简 / 原 swaps a bubble for the same bubble, and each page photo
+has the same spots in both. A sound effect stays as the book draws it, with
+the same `en`. Within a bubble, step 6's rules apply:
 - short sentences;
 - a 成语 said plainly (地大物博 → 国家很大，东西很多);
 - a dropped subject given back (劈钟伤了手 → 他砍钟的时候手受伤了).
@@ -368,18 +394,72 @@ texts of the chapter, never into the primer:
   files, and their paths come with the message. If no paths come, ask the
   learner to put the photos in `.data/comic/<book>/` and say when they are
   there.
-- **Turn each photo upright first**, into the scratchpad: `sips -r 90 in.jpg
-  --out page-2.jpg` on the Mac (90, 180 or 270 degrees clockwise). Elsewhere,
-  use `magick in.jpg -rotate 90 page-2.jpg`, or Python's PIL. Look at each
-  turned photo before putting it in.
+- **Never the raw photos.** Each page goes in cleaned, as below.
 - **The photos stay in the learner's account.** They are pages of a book the
   learner bought: never commit them to the repository.
+
+### The photos
+
+Every page goes in looking like a scan of the book, and every page of a book
+looks the same. To do that:
+- square up the angle the photo was taken at;
+- cut away the table, fingers, the next page and the spine's shadow;
+- make the paper white and the ink black, in the book's own colours;
+- give every page the same width, shape and margins.
+
+`scripts/texts/page.mjs` does it, with Chromium as `art/render.mjs` does. Run
+it from the repository, with the files in the scratchpad.
+
+1. **The grid.** Turn the photo upright and draw a grid on it, to read the
+   corners off:
+   ```bash
+   node scripts/texts/page.mjs grid <photo> <scratch>/grid-1.jpg --turn 90
+   ```
+   `--turn` is 0, 90, 180 or 270 degrees clockwise. Look at the grid: is the
+   page upright?
+2. **The corners.** Read off the outer corners of all the page's panels taken
+   together, in the grid's pixels: top left, top right, bottom right, bottom
+   left. These are the outer corners of the block the panels make, not of the
+   paper. The book printed those lines straight, so pulling them square undoes
+   the angle. Read them to within 10 px; zoom into each corner (crop the grid
+   image) if the line is not plain.
+3. **The page.**
+   ```bash
+   node scripts/texts/page.mjs fix <photo> <scratch>/page-1.jpg --turn 90 \
+     --corners 129,186 1351,156 1399,1930 104,1927 --margin 0.12,0.035,0.07,0.035
+   ```
+   - `--margin` is the space kept around the panels, as a fraction of the
+     width: top, right, bottom, left. It has to take in the captions outside
+     the panels and the page number.
+   - On the first page, set a margin that does that, and note the ratio the
+     command prints. On every later page of the book, pass the same
+     `--ratio` and `--margin`, so the pages match. Change them only for a page
+     laid out differently (a full-bleed spread, a title page), and say so.
+4. **Look at it** before it goes in:
+   - the panels' frames are straight and square;
+   - nothing is cut off: captions, the outer panels, the page number;
+   - no finger, no table, no edge of the next page;
+   - the paper is white, not grey or yellow, and the colours are not
+     overdone;
+   - no glare over the writing.
+
+   The command says when part of the page lay outside the photo, and stretches
+   the edge into it: check that corner. A wrong corner shows as a bent frame:
+   read it again and redo the page. If the photo itself fails (blurred
+   writing, glare across a bubble, the page cut off), do not put it in. Ask
+   for that page again, and say what to do differently: straight over the
+   page, light from the side, a step back and 2×.
+5. **The boxes.** Draw a grid on the cleaned page
+   (`page.mjs grid <scratch>/page-1.jpg <scratch>/grid-page-1.jpg`) and read
+   each line's `box` off it, as % of the cleaned page's width and height.
 
 ### The report (step 8)
 
 Add these to the report:
 - the pages read and the pages left out as wordless;
-- how many bubbles;
+- how many bubbles, and how many sound effects and signs;
+- lettering you were unsure of;
+- any page you asked to have photographed again, and why;
 - the speakers taken as guesses;
 - whether the primer went in;
 - how many photos each text got.

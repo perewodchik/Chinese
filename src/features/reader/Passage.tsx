@@ -11,7 +11,7 @@ import { useStore } from '../../store/store';
 import { useLibrary } from '../shared/library';
 import { useWordKnowledge } from '../words/useWordKnowledge';
 import { Comic } from './Comic';
-import { ParagraphPicture } from './ParagraphPicture';
+import { ParagraphPicture, type PictureMark } from './ParagraphPicture';
 import { SceneView } from './SceneView';
 import { StoryChoices, StoryMap } from './StoryPath';
 import type { PictureMode, PinyinMode, TranslationMode } from './readerView';
@@ -79,6 +79,14 @@ export function standingOf(
   };
 }
 
+const KIND_LABEL: Record<NonNullable<GeneratedText['lines'][number]['kind']>, string> = {
+  bubble: 'a speech bubble',
+  caption: 'a caption',
+  sfx: 'a sound effect',
+  sign: 'writing in the picture',
+  note: 'a footnote',
+};
+
 interface PassageProps {
   text: GeneratedText;
   view: ReaderView;
@@ -89,6 +97,8 @@ interface PassageProps {
   /** lines whose translation has been asked for, in "tap a line" */
   revealed: ReadonlySet<number>;
   onReveal: (i: number) => void;
+  /** a line pointed at on a comic's page photo: found and its English opened */
+  onPoint?: (i: number) => void;
   /** the shelf's own list of things being learned */
   study: ReadonlySet<ItemId>;
   /** above the title, when several passages share the page */
@@ -104,7 +114,7 @@ interface PassageProps {
  * and off never moves a line. Punctuation stays with the word before it: a
  * line never begins with a comma.
  */
-export function Passage({ text, view, reading, flash, revealed, onReveal, study, heading }: PassageProps) {
+export function Passage({ text, view, reading, flash, revealed, onReveal, onPoint, study, heading }: PassageProps) {
   const lib = useLibrary();
   const openItem = useOpenItem();
   const learned = useStore((s) => s.learned);
@@ -135,8 +145,20 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
   );
   // Pictures go by the passage's own paragraphs, which a story with choices does not show as such.
   const pictureOf = (n: number) => (story || view.pictures === 'off' ? undefined : pictureAbove(text, n));
-  const beside = view.pictures === 'beside';
+  // A comic's page photo is what is being read, not an illustration: always large, with its spots.
+  const beside = view.pictures === 'beside' && !text.lines.some((l) => l.box);
   const paraStarts = useMemo(() => new Map(paragraphs(text).map((p, n) => [p[0]!, n])), [text]);
+  // A comic's lines, by the page (paragraph) whose photo they are on.
+  const marks = useMemo(
+    () =>
+      paragraphs(text).map((p) =>
+        p.flatMap((i): PictureMark[] => {
+          const l = text.lines[i]!;
+          return l.box ? [{ i, box: l.box, label: `Line ${i + 1}, ${KIND_LABEL[l.kind ?? 'bubble']}`, line: l }] : [];
+        }),
+      ),
+    [text],
+  );
   const comic = view.comic && (text.genre === 'dialogue' || text.lines.some((l) => l.who)) && !story;
   const layout = view.layout;
   const showTrad = view.traditional && text.lines.some((l) => l.zht);
@@ -261,7 +283,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
                 .map((sc, k) => (
                   <SceneView key={`s${k}`} scene={sc} />
                 ))}
-              {pictureOf(n) && !beside && <ParagraphPicture picture={pictureOf(n)!} size="large" />}
+              {pictureOf(n) && !beside && <ParagraphPicture picture={pictureOf(n)!} size="large" marks={marks[n]} onMark={onPoint} />}
               <p className="rd-para">
                 {pictureOf(n) && beside && <ParagraphPicture picture={pictureOf(n)!} size="beside" />}
                 {p.map((i) => (
@@ -284,7 +306,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, study,
                 <Fragment key={i}>
                   {pic && !beside && (
                     <li className="rd-line-pic">
-                      <ParagraphPicture picture={pic} size="large" />
+                      <ParagraphPicture picture={pic} size="large" marks={marks[paraStarts.get(i)!]} onMark={onPoint} />
                     </li>
                   )}
                   <li
