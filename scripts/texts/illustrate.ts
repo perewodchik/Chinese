@@ -112,10 +112,20 @@ export function withDescribed(text: GeneratedText, described: Array<{ para: numb
   return { ...text, pictures };
 }
 
-/** The text with a drawn picture put in for one paragraph. */
-export function withDrawn(text: GeneratedText, para: number, drawn: Required<Pick<TextPicture, 'key' | 'w' | 'h' | 'at'>>): GeneratedText {
-  const pictures = (text.pictures ?? []).map((p) => (p.para === para ? { para, prompt: p.prompt, ...drawn } : p));
-  return { ...text, pictures: picturesOf(pictures) };
+/**
+ * The text with a drawn picture put in for one paragraph. A paragraph nothing
+ * described gets one too, under `prompt`: a photo of a comic's page goes in
+ * this way, and nothing should have asked Gemini to draw over the book's own
+ * page first.
+ */
+export function withDrawn(
+  text: GeneratedText,
+  para: number,
+  drawn: Required<Pick<TextPicture, 'key' | 'w' | 'h' | 'at'>>,
+  prompt = 'Put in by hand',
+): GeneratedText {
+  const had = (text.pictures ?? []).find((p) => p.para === para);
+  return { ...text, pictures: picturesOf([...(text.pictures ?? []), { para, prompt: had?.prompt ?? prompt, ...drawn }]) };
 }
 
 /* ------------------------------------------------------------ the bytes */
@@ -171,8 +181,9 @@ export function shrink(bytes: Uint8Array): { mime: string; bytes: Uint8Array } {
     writeFileSync(src, bytes);
     const tools: Array<[string, string[]]> = [
       ['sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '80', '-Z', String(KEEP_WIDTH), src, '--out', out]],
-      ['magick', [src, '-resize', `${KEEP_WIDTH}x${KEEP_WIDTH}>`, '-quality', '80', '-strip', out]],
-      ['convert', [src, '-resize', `${KEEP_WIDTH}x${KEEP_WIDTH}>`, '-quality', '80', '-strip', out]],
+      // -strip drops the camera's orientation tag, so a phone photo is turned upright first.
+      ['magick', [src, '-auto-orient', '-resize', `${KEEP_WIDTH}x${KEEP_WIDTH}>`, '-quality', '80', '-strip', out]],
+      ['convert', [src, '-auto-orient', '-resize', `${KEEP_WIDTH}x${KEEP_WIDTH}>`, '-quality', '80', '-strip', out]],
       ['ffmpeg', ['-loglevel', 'error', '-y', '-i', src, '-vf', `scale='min(${KEEP_WIDTH},iw)':-2`, '-q:v', '4', out]],
     ];
     for (const [tool, args] of tools) {
@@ -374,7 +385,8 @@ export async function illustrate(account: PictureAccount, painter: Painter | nul
 /**
  * Pictures drawn some other way (by hand, with art/kit.mjs) into a text, one
  * file a paragraph in order: each kept on the server and put in as illustrate
- * puts a drawing in. The paragraph keeps its description.
+ * puts a drawing in. The paragraph keeps its description; one without gets
+ * the picture all the same (a comic's page photos, /add-text).
  */
 export async function putDrawn(account: PictureAccount, textId: string, files: string[], say: (line: string) => void) {
   for (const [para, file] of files.entries()) {
@@ -395,7 +407,7 @@ async function save(account: PictureAccount, job: Job, drawn: Required<Pick<Text
     if (!isDoc(document)) throw new Error('The workspace is gone.');
     const texts = textsOf(document);
     if (!texts.some((t) => t.id === job.textId)) throw new Error('The text is no longer on the shelf.');
-    const next = { ...document, texts: texts.map((t) => (t.id === job.textId ? withDrawn(t, job.para, drawn) : t)) };
+    const next = { ...document, texts: texts.map((t) => (t.id === job.textId ? withDrawn(t, job.para, drawn, job.prompt || undefined) : t)) };
     if (await account.write(revision, next)) return;
   }
   throw new Error('The workspace kept changing under this save; the picture is kept, run it again to put it in.');

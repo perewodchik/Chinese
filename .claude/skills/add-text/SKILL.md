@@ -1,6 +1,6 @@
 ---
 name: add-text
-description: Put Chinese text from a real book (十万个为什么 and the like) on the learner's Texts shelf, in the reading session they choose — with pinyin, English, words, grammar, a note and questions, the same as a generated text — after a summary of how hard it is, offering an easier retelling when it is too hard. Use when the user types /add-text, pastes Chinese to add to Texts or a reading session, or sends a photo of a page of Chinese with nothing else asked of it.
+description: Put Chinese text from a real book (十万个为什么 and the like) on the learner's Texts shelf, in the reading session they choose — with pinyin, English, words, grammar, a note and questions, the same as a generated text — after a summary of how hard it is, offering an easier retelling when it is too hard. Also a comic (漫画, manga such as 天官赐福): a chapter's photographed pages become a chapter to read bubble by bubble, an easier version bubble for bubble, the page photos above their bubbles, and a primer of who is who before the first chapter. Use when the user types /add-text, pastes Chinese to add to Texts or a reading session, or sends a photo of a page of Chinese (or of a comic) with nothing else asked of it.
 argument-hint: "[session] <the Chinese text, or a photo of the page>"
 ---
 
@@ -20,6 +20,10 @@ the app is in English, as the app is.
 
 It comes as text in the arguments (`$ARGUMENTS`), as photos of the book's
 pages, or both. Neither → ask for it and stop.
+
+Photos of a comic — panels, speech bubbles, captions — are a chapter of a
+comic, not passages: read **A comic** at the end of this file before going on.
+It changes steps 1, 3, 5, 6 and 7 and adds a primer.
 
 From a photo, transcribe — from the photo, not from memory of the book:
 - the Chinese exactly, in reading order (columns right to left on a vertical
@@ -247,3 +251,138 @@ characters they already know, how many new ones, and its address
 (`/texts/<id>`) and how many of its pictures were drawn. Any corrected typo and
 any character you were unsure of, and any picture that was refused. Not the
 JSON.
+
+## A comic
+
+Photos of a comic's pages (天官赐福's 漫画 and the like) are read as one
+chapter. Everything above holds, with these differences. Do not ask whether it
+is a comic: the panels say so.
+
+**What the learner gets.** The chapter as a text, a line per bubble. The
+easier version is the same chapter told bubble for bubble in Chinese they can
+nearly read, and it opens first. 简 / 原 at the top of the text page switches
+the whole chapter. Each page's photo sits above that page's bubbles in the
+line view. Aa → "Dialogue as a comic" draws the bubbles with the speakers'
+faces, without the photos. Before the first chapter of a book comes a primer
+of who is who.
+
+### Reading the pages (step 1)
+
+- The learner photographs a whole chapter, in order. Read the photos in the
+  order sent. If the chapter stops mid-scene at the last photo, ask whether
+  to add what is there or wait for the rest.
+- A photo lying on its side or upside down (the second page of a spread is
+  often shot that way) is read the right way up, and turned the right way up
+  before it goes in (step 7).
+- On each page, read the panels in the book's order: left to right and top to
+  bottom for a horizontal Chinese comic, right to left for vertical text. In
+  each panel, read the bubbles in the order they are spoken.
+- Transcribe speech and thought bubbles, captions (narration boxes), the
+  book's own footnotes (※通灵阵：…), and a sign or sound effect only when it
+  is a word the story needs. Leave out page numbers, running heads and
+  credits.
+- Leave out a page with no words at all, and its photo. Say so in the report.
+
+### The chapter (step 3)
+
+- One chapter is one text. **`titleZh`** is the chapter as the book numbers
+  it: 第一话, plus its name when the page gives one. **`title`** is "Chapter 1",
+  with the English name when it has one.
+- **`lines`**: one bubble is one line. Never split a bubble even when it holds
+  two sentences, and never join two bubbles. `"p": true` goes on the first
+  line of each page: a page is a paragraph, and that is what puts the page's
+  photo above its bubbles.
+- **`who`** on every line: the speaker as the book names them (谢怜, 灵文). Use
+  旁白 for a caption and 注 for a footnote. When the panel does not show who
+  speaks (by the tail, the face beside the bubble, a name in it), take the
+  likeliest from the story and list it in the report as a guess.
+- **`en`** gives the sense of the bubble. For a 成语 or a line of poetry
+  (偷得浮生半日闲), give its sense here and put it in `vocab` as one word.
+- **`vocab`**: every name, and every title a person goes by, with who it
+  is in `d` ("帝君 — the Lord Emperor: 君吾"). A comic calls people by title
+  more often than by name.
+- **`note`**: who is speaking to whom on the pages, and anyone new who comes
+  in under more than one name.
+- **`grammar`**: the written-Chinese patterns HSK 1–2 do not teach that the
+  chapter leans on (看来, 怕是, 并不, 如 for 像, 名 for 个).
+- **No `pictures`.** The photos go in at step 7. A described picture would
+  have Gemini draw over the book's own page.
+
+### The easier version (steps 5 and 6)
+
+A comic's chapter is nearly always too hard as it is, and the easier bubbles
+are the point. Ask the Simplify question for every first chapter of a book,
+whatever the verdict, with "Easier version first, then the book's" marked
+(Recommended). For the next chapters, do what was chosen for the first
+(the session shows it), without asking.
+
+The easier version goes **line for line**: the same number of lines, line n
+retelling bubble n, the same `who`, and `"p": true` in the same places. So 简 /
+原 swaps a bubble for the same bubble, and each page photo sits above the
+same bubbles in both. Within a bubble, step 6's rules apply:
+- short sentences;
+- a 成语 said plainly (地大物博 → 国家很大，东西很多);
+- a dropped subject given back (劈钟伤了手 → 他砍钟的时候手受伤了).
+
+Names and titles stay as the book has them; the primer teaches them. Check it
+with `--adapted` and aim for 90% known, as step 6 says.
+
+### Before you read: the primer
+
+When the session has no chapter of this book yet, write a primer and put it
+first in the easier file, before the chapter. It is written from what you
+know of the book, and nothing in it goes past the chapter being added.
+- `titleZh` 人物和词语; `title` "Before you read: <the book in English>".
+- **`lines`**: one paragraph per person, in Chinese the learner can nearly read,
+  one sentence per name they go by: 谢怜是仙乐国的太子。大家叫他"太子殿下"。
+  No `who`.
+- **`note`**: the story's start in English, three to five sentences: who the
+  hero is and where things stand when the book opens. Keep hidden what the
+  book means the reader to find out, such as a character's real identity.
+- **`vocab`**: every name, every title, and the 10 to 15 words the book stands
+  on (神官, 飞升, 香火, 通灵阵), with `py` and `d`.
+- **`grammar`**: the patterns from the chapter's `grammar`, each with its
+  sentence from the chapter.
+- **`questions`**: who is who (太子殿下是谁？ — 谢怜。).
+- No pictures.
+
+A later chapter gets no primer. A new person in it with several names goes in
+that chapter's `note` and `vocab`.
+
+### Onto the shelf, with the photos (step 7)
+
+Use one session per volume, named after it (天官赐福 1), with `--genre story`.
+Make two adds per chapter, in this order: the easier file (the primer, if
+there is one, then the chapter) with `--adapted`, then the book's chapter
+without it. `add`'s report gives each text's id (`/texts/<id>`).
+
+Then put the photos in, one per page with words, in order. They go into both
+texts of the chapter, never into the primer:
+
+```bash
+<the same variables as in step 2> npm run -s texts -- put <easier text id> page-1.jpg page-2.jpg …
+<the same variables as in step 2> npm run -s texts -- put <book text id> page-1.jpg page-2.jpg …
+```
+
+- **Where the photos are.** The photos attached to the message are saved as
+  files, and their paths come with the message. If no paths come, ask the
+  learner to put the photos in `.data/comic/<book>/` and say when they are
+  there.
+- **Turn each photo upright first**, into the scratchpad: `sips -r 90 in.jpg
+  --out page-2.jpg` on the Mac (90, 180 or 270 degrees clockwise). Elsewhere,
+  use `magick in.jpg -rotate 90 page-2.jpg`, or Python's PIL. Look at each
+  turned photo before putting it in.
+- **The photos stay in the learner's account.** They are pages of a book the
+  learner bought: never commit them to the repository.
+
+### The report (step 8)
+
+Add these to the report:
+- the pages read and the pages left out as wordless;
+- how many bubbles;
+- the speakers taken as guesses;
+- whether the primer went in;
+- how many photos each text got.
+
+Then tell the learner how the chapter opens: in the easier version, with 简 /
+原 to switch.

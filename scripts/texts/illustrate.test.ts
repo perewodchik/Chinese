@@ -76,6 +76,11 @@ describe('drawing a shelf’s pictures', () => {
     assert.deepEqual(t.pictures, [{ para: 0, prompt: 'x' }, { para: 1, prompt: 'y', key: K('c'), w: 4, h: 3, at: 7 }]);
   });
 
+  it('puts a picture into a paragraph nothing described, as a comic’s page photo goes in', () => {
+    const t = withDrawn(text('a', 2, [{ para: 1, prompt: 'y' }]), 0, { key: K('d'), w: 4, h: 3, at: 7 }, 'A photo of the book’s page');
+    assert.deepEqual(t.pictures, [{ para: 0, prompt: 'A photo of the book’s page', key: K('d'), w: 4, h: 3, at: 7 }, { para: 1, prompt: 'y' }]);
+  });
+
   it('draws, keeps and saves each picture, and carries on past one that fails', async () => {
     let doc: Record<string, unknown> = {
       version: 11,
