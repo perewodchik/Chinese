@@ -325,6 +325,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             revealed={t.id === text.id ? revealed : new Set()}
             onReveal={reveal}
             onPoint={point}
+            retold={Boolean(entry.original) && t.id === entry.easier?.id}
             study={study}
             heading={mode === 'all' ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
           />

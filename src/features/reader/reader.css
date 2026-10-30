@@ -1974,6 +1974,34 @@ label.rd-aa-row {
   border-radius: 8px;
 }
 
+/* The easier line laid over a bubble or caption of the book's page: paper and
+   ink of the page itself in either theme, since it sits on a photo; sized
+   from the page's width so it matches the book's own lettering, and growing
+   downward when the easier line is longer than the book's. */
+.rd-pic-page {
+  container-type: inline-size;
+}
+
+.rd-pic-spot[data-patch] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8cqw 1.2cqw;
+  border: 1px solid rgb(24 32 43 / 55%);
+  border-radius: 2px;
+  background: #fbfaf5;
+  color: #18202b;
+  box-shadow: none;
+  font-size: max(10px, 2.5cqw);
+  line-height: 1.35;
+  text-align: left;
+}
+
+.rd-pic-spot[data-patch][data-on] {
+  background: #fbfaf5;
+  box-shadow: 0 0 0 3px var(--hl), 0 0 0 4.5px var(--accent);
+}
+
 .rd-pic-spot[data-on] {
   border-color: var(--accent);
   background: var(--hl);

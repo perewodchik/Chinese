@@ -264,7 +264,8 @@ nearly read, and it opens first. 简 / 原 at the top of the text page switches
 the whole chapter.
 
 Each page's photo sits large above that page's lines, cleaned up to look like
-a scan. Every piece of writing on it is a faint spot. A tap on a spot says
+a scan. Every piece of writing on it is a faint spot; in the easier version
+each bubble and caption on the photo is covered with its easier line. A tap on a spot says
 under the photo what is written there, with its pinyin and meaning, and
 lights its line. Sound effects and signs drawn into the art, which have no
 bubble, get their meaning this way. Aa → "Dialogue as a comic" draws the
@@ -452,6 +453,10 @@ it from the repository, with the files in the scratchpad.
 5. **The boxes.** Draw a grid on the cleaned page
    (`page.mjs grid <scratch>/page-1.jpg <scratch>/grid-page-1.jpg`) and read
    each line's `box` off it, as % of the cleaned page's width and height.
+   A box found wrong after the chapter is on the shelf (in the easier version
+   a patch leaves the book's lettering showing round it) is fixed in place, in
+   both texts: `npm run -s texts -- boxes <text id> <file>`, the file
+   `{ "<line number from 0>": [left, top, width, height] }`.
 
 ### The report (step 8)
 

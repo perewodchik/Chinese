@@ -27,6 +27,9 @@
  *   npm run texts -- describe <pictures.json>
  *       what to draw for texts already on the shelf: { "pictures": { "<text id>": [{ para, prompt }] } };
  *       then illustrate draws them
+ *   npm run texts -- boxes <text id> <boxes.json>
+ *       a comic's lines put where they are on their pages again: { "<line number from 0>": [left, top, width, height] },
+ *       for a box read wrong off the photo
  *   npm run texts -- put <text id> <picture for ¶1> <picture for ¶2> …
  *       pictures drawn by hand (art/BRIEF.md) into a text, a paragraph each
  *   npm run texts -- record [--voice wang] [--set <id or name>]
@@ -60,7 +63,7 @@ import type { Collection } from '../../src/domain/collection';
 import { charId, idValue, isCharId, isItemId, isWordId, wordId, type ItemId } from '../../src/domain/ids';
 import { isDue, type RecallBook } from '../../src/domain/memory';
 import type { CharacterEntry, Library, SyllabusWord } from '../../src/data/types';
-import { parseResponse, toText, type DraftText } from '../../src/domain/parse';
+import { asLine, parseResponse, toText, type DraftText } from '../../src/domain/parse';
 import { segment, writerHints } from '../../src/domain/segment';
 import { taughtAlready } from '../../src/domain/teach';
 import {
@@ -680,6 +683,7 @@ const USAGE = `
   npm run texts -- add <story.json> --new-set <title> --story [--preface] [--learn] [--genre story]
   npm run texts -- illustrate [--set <id or name>] [--text <id>] [--redo] [--style "…"] [--dry-run]
   npm run texts -- describe <pictures.json>    { "pictures": { "<text id>": [{ "para": 0, "prompt": "…" }] } }
+  npm run texts -- boxes <text id> <boxes.json>
   npm run texts -- put <text id> <picture for ¶1> <picture for ¶2> …
   npm run texts -- record [--voice wang] [--set <id or name>]    on the Mac: the texts, read aloud for the site
 `;
@@ -745,6 +749,36 @@ async function main(argv: string[]) {
       await account.close();
     }
     return;
+  }
+  if (command === 'boxes') {
+    const [textId, file] = positionals;
+    if (!textId || !file) throw new Error(`Which text, and which boxes?\n${USAGE}`);
+    const wanted = JSON.parse(readFileSync(file, 'utf8')) as Record<string, unknown>;
+    const account = await openAccount();
+    try {
+      for (let attempt = 1; ; attempt++) {
+        const { revision, document } = await account.read();
+        if (!isDoc(document)) throw new Error(`${account.where} has never saved anything.`);
+        const { texts } = shelfOf(document);
+        const text = texts.find((t) => t.id === textId);
+        if (!text) throw new Error(`No text ${textId} on ${account.where}.`);
+        const lines = text.lines.map((l, i) => {
+          if (!(String(i) in wanted)) return l;
+          // Read through the same parser as a pasted line, so a box off the photo is refused here too.
+          const box = asLine({ zh: l.zh, box: wanted[String(i)] })?.box;
+          if (!box) throw new Error(`Line ${i}: ${JSON.stringify(wanted[String(i)])} is not a place on the page.`);
+          return { ...l, box };
+        });
+        const next = { ...document, texts: texts.map((t) => (t.id === textId ? { ...t, lines } : t)) };
+        if (values['dry-run'] || (await account.write(revision, next))) {
+          console.log(`  ${text.titleZh || text.title}: ${Object.keys(wanted).length} boxes put${values['dry-run'] ? ' (dry run)' : ''}`);
+          return;
+        }
+        if (attempt === 3) throw new Error('The workspace kept changing under this save. Try again in a minute.');
+      }
+    } finally {
+      await account.close();
+    }
   }
   if (command === 'describe') {
     const file = positionals[0];

@@ -99,6 +99,8 @@ interface PassageProps {
   onReveal: (i: number) => void;
   /** a line pointed at on a comic's page photo: found and its English opened */
   onPoint?: (i: number) => void;
+  /** this is the easier retelling of a book's text: a comic's page shows its lines */
+  retold?: boolean;
   /** the shelf's own list of things being learned */
   study: ReadonlySet<ItemId>;
   /** above the title, when several passages share the page */
@@ -114,7 +116,7 @@ interface PassageProps {
  * and off never moves a line. Punctuation stays with the word before it: a
  * line never begins with a comma.
  */
-export function Passage({ text, view, reading, flash, revealed, onReveal, onPoint, study, heading }: PassageProps) {
+export function Passage({ text, view, reading, flash, revealed, onReveal, onPoint, retold, study, heading }: PassageProps) {
   const lib = useLibrary();
   const openItem = useOpenItem();
   const learned = useStore((s) => s.learned);
@@ -283,7 +285,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
                 .map((sc, k) => (
                   <SceneView key={`s${k}`} scene={sc} />
                 ))}
-              {pictureOf(n) && !beside && <ParagraphPicture picture={pictureOf(n)!} size="large" marks={marks[n]} onMark={onPoint} />}
+              {pictureOf(n) && !beside && <ParagraphPicture picture={pictureOf(n)!} size="large" marks={marks[n]} onMark={onPoint} retold={retold} />}
               <p className="rd-para">
                 {pictureOf(n) && beside && <ParagraphPicture picture={pictureOf(n)!} size="beside" />}
                 {p.map((i) => (
@@ -306,7 +308,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
                 <Fragment key={i}>
                   {pic && !beside && (
                     <li className="rd-line-pic">
-                      <ParagraphPicture picture={pic} size="large" marks={marks[paraStarts.get(i)!]} onMark={onPoint} />
+                      <ParagraphPicture picture={pic} size="large" marks={marks[paraStarts.get(i)!]} onMark={onPoint} retold={retold} />
                     </li>
                   )}
                   <li
