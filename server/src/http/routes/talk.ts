@@ -58,6 +58,22 @@ const recordedRequest = z.object({
   texts: z.array(z.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX),
 });
 
+/** One sentence's recording, as MP3 in base64: a sentence of a text is a few seconds, well under a megabyte. */
+export const RECORDING_MAX_BYTES = 1024 * 1024;
+const keepRequest = z.object({
+  voice: z.object({ id: z.string().min(2).max(64), name: z.string().min(1).max(80), gender: z.enum(['female', 'male']) }),
+  mode: z.enum(TALK_MODES as [string, ...string[]]).optional(),
+  text: z.string().trim().min(1).max(TALK_LINE_MAX_CHARS),
+  mp3: z.string().min(1).max(Math.ceil((RECORDING_MAX_BYTES * 4) / 3) + 8),
+});
+
+/**
+ * Who may put recordings in: they are kept for everybody (a sentence's
+ * reading is the same reading whoever asks), so only the accounts named in
+ * HANZI_RECORDERS, the admin account unless it says otherwise.
+ */
+const recorders = () => new Set((process.env.HANZI_RECORDERS ?? 'admin').split(',').map((n) => n.trim().toLowerCase()).filter(Boolean));
+
 const startRequest = z.object({
   options: talkOptions,
   voice: z.string().max(64).nullable(),
@@ -160,6 +176,18 @@ export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, convers
     c.header('Cache-Control', 'no-store');
     const body: TalkRecordedResponse = { have: await recordings.have(input.voice, (input.mode as TalkMode | undefined) ?? 'teaching', input.texts) };
     return c.json(body);
+  });
+
+  routes.put('/recordings', session, async (c) => {
+    const user = c.get('session').user;
+    if (!recorders().has(user.username.toLowerCase())) throw new AppError('forbidden', 'This account cannot put recordings in.');
+    clips.consume(user.id);
+    const input = await readJson(c, keepRequest);
+    const mp3 = new Uint8Array(Buffer.from(input.mp3, 'base64'));
+    if (mp3.length > RECORDING_MAX_BYTES) throw new ValidationError('A sentence’s recording is at most a megabyte.');
+    await recordings.keep(input.voice, (input.mode as TalkMode | undefined) ?? 'teaching', input.text, mp3);
+    c.header('Cache-Control', 'no-store');
+    return c.json({ ok: true });
   });
 
   // Kept conversations. The page saves the whole thread after each turn, so

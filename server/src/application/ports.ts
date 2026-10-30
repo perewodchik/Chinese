@@ -102,6 +102,8 @@ export interface RecordingRepository {
   have(keys: readonly string[]): Promise<Set<string>>;
   /** keeps it; a recording already kept under the key stays as it is */
   save(recording: Recording): Promise<void>;
+  /** keeps it, in place of whatever was kept under the key: a sentence read again */
+  replace(recording: Recording): Promise<void>;
   /** every voice anything is kept in */
   voices(): Promise<VoiceInfo[]>;
 }

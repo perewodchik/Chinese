@@ -6,6 +6,7 @@ export class SqliteRecordingRepository implements RecordingRepository {
   private readonly byKey: StatementSync;
   private readonly insert: StatementSync;
   private readonly voiceList: StatementSync;
+  private readonly upsert: StatementSync;
 
   constructor(private readonly db: DatabaseSync) {
     this.byKey = db.prepare('SELECT mp3 FROM recordings WHERE key = ?');
@@ -13,6 +14,11 @@ export class SqliteRecordingRepository implements RecordingRepository {
       `INSERT INTO recordings (key, voice, voice_name, gender, text, mp3, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT (key) DO NOTHING`,
+    );
+    this.upsert = db.prepare(
+      `INSERT INTO recordings (key, voice, voice_name, gender, text, mp3, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT (key) DO UPDATE SET voice_name = excluded.voice_name, gender = excluded.gender, mp3 = excluded.mp3, created_at = excluded.created_at`,
     );
     this.voiceList = db.prepare(
       `SELECT voice, MIN(voice_name) AS voice_name, MIN(gender) AS gender
@@ -35,6 +41,10 @@ export class SqliteRecordingRepository implements RecordingRepository {
 
   async save(r: Recording): Promise<void> {
     this.insert.run(r.key, r.voice.id, r.voice.name, r.voice.gender, r.text, r.mp3, r.createdAt);
+  }
+
+  async replace(r: Recording): Promise<void> {
+    this.upsert.run(r.key, r.voice.id, r.voice.name, r.voice.gender, r.text, r.mp3, r.createdAt);
   }
 
   async voices(): Promise<VoiceInfo[]> {

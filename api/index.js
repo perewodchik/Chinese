@@ -471,6 +471,18 @@ var RecordingService = class {
     if (keep) await this.deps.recordings.save({ key, voice: info, text, mp3, createdAt: this.deps.clock.now() });
     return mp3;
   }
+  /**
+   * A sentence someone recorded elsewhere — read by a voice service on its
+   * own site and cut out of the whole passage — kept as this voice's reading
+   * of it, in place of any reading kept before.
+   */
+  async keep(voice, mode, text, mp3) {
+    const line = text.trim();
+    if (!line) throw new ValidationError("Which sentence is this a recording of?");
+    if (!/^[a-z0-9-]{2,64}$/.test(voice.id)) throw new ValidationError("A voice is named in lower-case letters, digits and dashes.");
+    if (mp3.length < 200) throw new ValidationError("The recording is empty.");
+    await this.deps.recordings.replace({ key: recordingKey(voice.id, mode, line), voice, text: line, mp3, createdAt: this.deps.clock.now() });
+  }
   /** For each sentence, whether it has been recorded in this voice. */
   async have(voice, mode, texts) {
     const keys = texts.map((t) => recordingKey(voice, mode, t.trim()));
@@ -672,6 +684,7 @@ var STATUS = {
   unauthorized: 401,
   registration_closed: 403,
   forbidden_origin: 403,
+  forbidden: 403,
   not_found: 404,
   username_taken: 409,
   conflict: 409,
@@ -1119,6 +1132,14 @@ var recordedRequest = z3.object({
   mode: z3.enum(TALK_MODES).optional(),
   texts: z3.array(z3.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
 });
+var RECORDING_MAX_BYTES = 1024 * 1024;
+var keepRequest = z3.object({
+  voice: z3.object({ id: z3.string().min(2).max(64), name: z3.string().min(1).max(80), gender: z3.enum(["female", "male"]) }),
+  mode: z3.enum(TALK_MODES).optional(),
+  text: z3.string().trim().min(1).max(TALK_LINE_MAX_CHARS),
+  mp3: z3.string().min(1).max(Math.ceil(RECORDING_MAX_BYTES * 4 / 3) + 8)
+});
+var recorders = () => new Set((process.env.HANZI_RECORDERS ?? "admin").split(",").map((n) => n.trim().toLowerCase()).filter(Boolean));
 var startRequest = z3.object({
   options: talkOptions,
   voice: z3.string().max(64).nullable()
@@ -1182,6 +1203,17 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations,
     c.header("Cache-Control", "no-store");
     const body = { have: await recordings.have(input.voice, input.mode ?? "teaching", input.texts) };
     return c.json(body);
+  });
+  routes.put("/recordings", session, async (c) => {
+    const user = c.get("session").user;
+    if (!recorders().has(user.username.toLowerCase())) throw new AppError("forbidden", "This account cannot put recordings in.");
+    clips.consume(user.id);
+    const input = await readJson(c, keepRequest);
+    const mp3 = new Uint8Array(Buffer.from(input.mp3, "base64"));
+    if (mp3.length > RECORDING_MAX_BYTES) throw new ValidationError("A sentence\u2019s recording is at most a megabyte.");
+    await recordings.keep(input.voice, input.mode ?? "teaching", input.text, mp3);
+    c.header("Cache-Control", "no-store");
+    return c.json({ ok: true });
   });
   routes.get("/conversations", session, async (c) => {
     c.header("Cache-Control", "no-store");
@@ -1933,6 +1965,14 @@ var PostgresRecordingRepository = class {
       `INSERT INTO recordings (key, voice, voice_name, gender, text, mp3, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (key) DO NOTHING`,
+      [r.key, r.voice.id, r.voice.name, r.voice.gender, r.text, Buffer.from(r.mp3), r.createdAt]
+    );
+  }
+  async replace(r) {
+    await this.db.query(
+      `INSERT INTO recordings (key, voice, voice_name, gender, text, mp3, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (key) DO UPDATE SET voice_name = EXCLUDED.voice_name, gender = EXCLUDED.gender, mp3 = EXCLUDED.mp3, created_at = EXCLUDED.created_at`,
       [r.key, r.voice.id, r.voice.name, r.voice.gender, r.text, Buffer.from(r.mp3), r.createdAt]
     );
   }

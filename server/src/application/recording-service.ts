@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { TalkMode, TalkVoice } from '../../../shared/talk';
 import { AppError, ValidationError } from '../domain/errors';
-import type { Clock, RecordingRepository, TalkSynthesizer } from './ports';
+import type { Clock, RecordingRepository, TalkSynthesizer, VoiceInfo } from './ports';
 
 /** What a recording is filed under: the voice, the way it reads, and the sentence exactly. */
 export const recordingKey = (voice: string, mode: TalkMode, text: string) =>
@@ -53,6 +53,19 @@ export class RecordingService {
     }
     if (keep) await this.deps.recordings.save({ key, voice: info, text, mp3, createdAt: this.deps.clock.now() });
     return mp3;
+  }
+
+  /**
+   * A sentence someone recorded elsewhere — read by a voice service on its
+   * own site and cut out of the whole passage — kept as this voice's reading
+   * of it, in place of any reading kept before.
+   */
+  async keep(voice: VoiceInfo, mode: TalkMode, text: string, mp3: Uint8Array): Promise<void> {
+    const line = text.trim();
+    if (!line) throw new ValidationError('Which sentence is this a recording of?');
+    if (!/^[a-z0-9-]{2,64}$/.test(voice.id)) throw new ValidationError('A voice is named in lower-case letters, digits and dashes.');
+    if (mp3.length < 200) throw new ValidationError('The recording is empty.');
+    await this.deps.recordings.replace({ key: recordingKey(voice.id, mode, line), voice, text: line, mp3, createdAt: this.deps.clock.now() });
   }
 
   /** For each sentence, whether it has been recorded in this voice. */

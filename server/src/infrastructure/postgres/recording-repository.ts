@@ -26,6 +26,15 @@ export class PostgresRecordingRepository implements RecordingRepository {
     );
   }
 
+  async replace(r: Recording): Promise<void> {
+    await this.db.query(
+      `INSERT INTO recordings (key, voice, voice_name, gender, text, mp3, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (key) DO UPDATE SET voice_name = EXCLUDED.voice_name, gender = EXCLUDED.gender, mp3 = EXCLUDED.mp3, created_at = EXCLUDED.created_at`,
+      [r.key, r.voice.id, r.voice.name, r.voice.gender, r.text, Buffer.from(r.mp3), r.createdAt],
+    );
+  }
+
   async voices(): Promise<VoiceInfo[]> {
     const { rows } = await this.db.query<{ voice: string; voice_name: string; gender: string }>(
       `SELECT voice, MIN(voice_name) AS voice_name, MIN(gender) AS gender
