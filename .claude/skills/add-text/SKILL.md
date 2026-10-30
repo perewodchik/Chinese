@@ -264,11 +264,10 @@ nearly read, and it opens first. 简 / 原 at the top of the text page switches
 the whole chapter.
 
 Each page's photo sits large above that page's lines, cleaned up to look like
-a scan. Every piece of writing on it is a faint spot; in the easier version
-each bubble and caption on the photo is covered with its easier line. A tap on a spot says
-under the photo what is written there, with its pinyin and meaning, and
-lights its line. Sound effects and signs drawn into the art, which have no
-bubble, get their meaning this way. Aa → "Dialogue as a comic" draws the
+a scan. Every piece of writing on it is a faint spot, and a tap on one lights
+its line below and opens its English. Sound effects and signs drawn into the
+art, which have no bubble, get their meaning this way. In the easier version
+each bubble and caption on the photo is covered with its easier line. Aa → "Dialogue as a comic" draws the
 bubbles with the speakers' faces, without the photos.
 
 Before the first chapter of a book comes a primer of who is who.

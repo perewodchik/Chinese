@@ -18,12 +18,11 @@ export interface PictureMark {
  * beside its first lines, the text running round it. A tap shows it larger.
  *
  * A comic's page photo carries its lines' places (`marks`): each is a spot on
- * the photo, and a tap there says under the photo what is written there —
- * the Chinese, its pinyin, what it means — and lights the line in the text.
- * That is how a sound effect or a sign drawn into the art, which has no
- * bubble to point at, gets its meaning. The spots are drawn faintly, not left
- * to hover, since the iPad has none; the room for what a tap says is there
- * from the start, so the text never moves when it is filled.
+ * the photo, and a tap there lights that line in the text under the photo and
+ * opens its English — every piece of writing on the page is a line there, so
+ * nothing needs saying twice. That is how a sound effect or a sign drawn into
+ * the art, which has no bubble to point at, gets its meaning. The spots are
+ * drawn faintly, not left to hover, since the iPad has none.
  *
  * In the easier retelling (`retold`), the page is read in its words: each
  * bubble, caption and footnote is covered with a paper patch carrying the
@@ -89,21 +88,6 @@ export function ParagraphPicture({
         <button className="rd-pic-frame" style={size === 'large' ? { aspectRatio: ratio } : undefined} onClick={() => setOpen(true)} aria-label="Show the picture larger">
           <img src={src} alt="" width={picture.w} height={picture.h} loading="lazy" decoding="async" />
         </button>
-      )}
-      {spots.length > 0 && (
-        <figcaption className="rd-pic-say" aria-live="polite">
-          {said ? (
-            <>
-              <span className="hanzi rd-pic-say-zh" lang="zh">
-                {said.line.zh}
-              </span>
-              {said.line.py && <span className="rd-pic-say-py">{said.line.py}</span>}
-              <span className="rd-pic-say-en">{said.line.en}</span>
-            </>
-          ) : (
-            <span className="rd-pic-say-hint">Tap the writing on the page to see what it says.</span>
-          )}
-        </figcaption>
       )}
       {open && (
         <Modal title="Picture" onClose={() => setOpen(false)} wide>

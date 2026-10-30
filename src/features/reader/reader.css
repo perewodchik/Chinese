@@ -2007,33 +2007,3 @@ label.rd-aa-row {
   background: var(--hl);
 }
 
-/* Under a comic's page: what the last tapped spot says. Kept three lines
-   tall whether filled or not, so the text below never moves. */
-.rd-pic-say {
-  display: grid;
-  align-content: start;
-  gap: 2px;
-  width: min(560px, 100%);
-  min-height: 5.6em;
-  padding: 10px 2px 0;
-}
-
-.rd-pic-say-zh {
-  font-size: 22px;
-  line-height: 1.3;
-}
-
-.rd-pic-say-py {
-  color: var(--py);
-  font-size: 13.5px;
-}
-
-.rd-pic-say-en {
-  font: 400 15px/1.45 var(--read);
-  color: var(--ink-2);
-}
-
-.rd-pic-say-hint {
-  color: var(--ink-3);
-  font-size: 13.5px;
-}

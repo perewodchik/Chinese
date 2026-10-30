@@ -218,8 +218,10 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     if (!text.study?.translated) studyText(text.id, { translated: Date.now() });
   }
 
-  /** A line tapped on its comic page's photo: lit in the text (the photo says what it is). */
+  /** A line tapped on its comic page's photo: brought into view, lit, and its English opened. */
   function point(i: number) {
+    if (!revealed.has(i)) reveal(i);
+    document.getElementById(`line-${text.id}-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     setFlash(i);
     window.setTimeout(() => setFlash((f) => (f === i ? null : f)), 1600);
   }
