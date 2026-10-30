@@ -2,6 +2,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import type { Stores } from '../../composition';
 import { SqliteConversationRepository } from './conversation-repository';
 import { SqlitePictureRepository } from './picture-repository';
+import { SqliteSecretRepository } from './secret-repository';
 import { SqliteRecordingRepository } from './recording-repository';
 import { SqliteSessionRepository } from './session-repository';
 import { SqliteUserRepository } from './user-repository';
@@ -17,4 +18,5 @@ export const sqliteStores = (db: DatabaseSync): Stores => ({
   conversations: new SqliteConversationRepository(db),
   recordings: new SqliteRecordingRepository(db),
   pictures: new SqlitePictureRepository(db),
+  secrets: new SqliteSecretRepository(db),
 });

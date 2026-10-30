@@ -394,6 +394,138 @@ var ConversationService = class {
   }
 };
 
+// shared/narration.ts
+var narratorRecordingId = (voice) => `mm-${voice.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`.slice(0, 64);
+var SOUNDS = [
+  [/哈哈|大笑/, "(laughs)"],
+  [/笑/, "(chuckle)"],
+  [/叹气/, "(sighs)"],
+  [/打喷嚏|阿嚏/, "(sneezes)"],
+  [/咳/, "(coughs)"]
+];
+function soundOf(zh) {
+  for (const [re, tag] of SOUNDS) if (re.test(zh)) return tag;
+  return null;
+}
+
+// server/src/infrastructure/minimax.ts
+var BASE = "https://api.minimax.io/v1";
+var NarratorRefused = class extends Error {
+  constructor(message, reason) {
+    super(message);
+    this.reason = reason;
+  }
+};
+function refusal(base, status) {
+  const code = base?.status_code ?? status;
+  const msg = base?.status_msg ?? `HTTP ${status}`;
+  if (code === 1004 || code === 2049 || status === 401) return new NarratorRefused("MiniMax did not accept the key.", "key");
+  if (code === 1008 || /balance|insufficient/i.test(msg)) return new NarratorRefused("The MiniMax account has no balance left for the API.", "balance");
+  if (code === 1002 || status === 429) return new NarratorRefused("MiniMax asked to slow down. Try again in a minute.", "busy");
+  return new NarratorRefused(`MiniMax said: ${msg}`, "other");
+}
+function minimaxNarrator(fetcher = fetch) {
+  const post = async (path, key, body) => {
+    const res = await fetcher(`${BASE}${path}`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok || !json || (json.base_resp?.status_code ?? 0) !== 0) throw refusal(json?.base_resp, res.status);
+    return json;
+  };
+  return {
+    async voices(key) {
+      const out = await post("/get_voice", key, { voice_type: "system" });
+      return (out.system_voice ?? []).filter((v) => /^Chinese \(Mandarin\)/.test(v.voice_id)).map((v) => ({ id: v.voice_id, name: v.voice_name || v.voice_id.replace(/^Chinese \(Mandarin\)_/, "").replace(/_/g, " "), description: (v.description ?? []).join(" ") }));
+    },
+    async read(key, text, voice, speed) {
+      const out = await post("/t2a_v2", key, {
+        model: "speech-2.8-hd",
+        text,
+        stream: false,
+        language_boost: "Chinese",
+        voice_setting: { voice_id: voice, speed, vol: 1, pitch: 0 },
+        audio_setting: { sample_rate: 32e3, bitrate: 64e3, format: "mp3", channel: 1 }
+      });
+      const hex = out.data?.audio;
+      if (!hex) throw new NarratorRefused("MiniMax sent no audio back.", "other");
+      return new Uint8Array(Buffer.from(hex, "hex"));
+    }
+  };
+}
+
+// server/src/application/narration-service.ts
+var KEY = "minimax";
+var NarrationService = class {
+  constructor(deps) {
+    this.deps = deps;
+  }
+  voiceCache = /* @__PURE__ */ new Map();
+  async status(userId) {
+    const key = await this.deps.secrets.get(userId, KEY);
+    return { key: { set: Boolean(key), hint: key ? `\u2026${key.slice(-4)}` : null } };
+  }
+  async setKey(userId, raw) {
+    const key = raw.trim();
+    if (key.length < 16 || /\s/.test(key)) throw new ValidationError("That does not look like a MiniMax API key.", { key: "Not a key." });
+    await this.voicesFor(key, true);
+    await this.deps.secrets.set(userId, KEY, key, this.deps.clock.now());
+    return this.status(userId);
+  }
+  async deleteKey(userId) {
+    await this.deps.secrets.delete(userId, KEY);
+    return this.status(userId);
+  }
+  async voices(userId) {
+    return this.voicesFor(await this.keyOf(userId));
+  }
+  /** One sentence read aloud and kept; the voice's id in Listen. */
+  async line(userId, voice, text) {
+    const key = await this.keyOf(userId);
+    const line = text.trim();
+    if (!line) throw new ValidationError("Nothing to read.");
+    const info = (await this.voicesFor(key)).find((v) => v.id === voice);
+    if (!info) throw new ValidationError(`MiniMax has no voice ${voice}.`);
+    const sound = soundOf(line);
+    const mp3 = await this.call(() => this.narrator().read(key, sound ? `${line} ${sound}` : line, voice, 1));
+    const id = narratorRecordingId(voice);
+    await this.deps.recordings.keep({ id, name: `${info.name.replace(/\s*\((?:Female|Male)\)\s*/i, "")} \xB7 MiniMax`, gender: info.gender }, "teaching", line, mp3);
+    return id;
+  }
+  narrator() {
+    if (!this.deps.narrator) throw new AppError("unavailable", "This server cannot reach MiniMax.");
+    return this.deps.narrator;
+  }
+  async keyOf(userId) {
+    const key = await this.deps.secrets.get(userId, KEY);
+    if (!key) throw new AppError("not_found", "Add your MiniMax API key in Settings first.");
+    return key;
+  }
+  async voicesFor(key, fresh = false) {
+    const kept2 = this.voiceCache.get(key);
+    if (kept2 && !fresh && this.deps.clock.now() - kept2.at < 36e5) return kept2.voices;
+    const list = await this.call(() => this.narrator().voices(key));
+    const voices = list.map((v) => ({ ...v, gender: genderOf(`${v.name} ${v.description}`) }));
+    this.voiceCache.set(key, { at: this.deps.clock.now(), voices });
+    return voices;
+  }
+  async call(fn) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (err instanceof NarratorRefused) {
+        if (err.reason === "key") throw new ValidationError(err.message, { key: "MiniMax did not accept it." });
+        throw new AppError("unavailable", err.message);
+      }
+      if (err instanceof AppError) throw err;
+      throw new AppError("unavailable", "MiniMax did not answer. Try again in a minute.");
+    }
+  }
+};
+var genderOf = (s) => /\b(male|man|boy|gentleman|uncle|executive|lord)\b/i.test(s) && !/\b(female|woman|girl|lady)\b/i.test(s) ? "male" : "female";
+
 // server/src/application/picture-service.ts
 import { createHash } from "node:crypto";
 
@@ -656,6 +788,7 @@ function createServices(stores, options = {}) {
   });
   const workspaces = new WorkspaceService({ workspaces: stores.workspaces, clock });
   const world = new WorldService({ saves: stores.worldSaves, clock });
+  const recordings = new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
   return {
     auth,
@@ -666,13 +799,14 @@ function createServices(stores, options = {}) {
     speech: options.speech ?? null,
     tutor: options.tutor ?? null,
     talkVoices: options.talkVoices ?? null,
-    recordings: new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock }),
-    pictures: new PictureService({ pictures: stores.pictures, clock })
+    recordings,
+    pictures: new PictureService({ pictures: stores.pictures, clock }),
+    narration: new NarrationService({ secrets: stores.secrets, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, recordings, clock })
   };
 }
 
 // server/src/http/app.ts
-import { Hono as Hono11 } from "hono";
+import { Hono as Hono12 } from "hono";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
 
@@ -684,7 +818,6 @@ var STATUS = {
   unauthorized: 401,
   registration_closed: 403,
   forbidden_origin: 403,
-  forbidden: 403,
   not_found: 404,
   username_taken: 409,
   conflict: 409,
@@ -986,10 +1119,48 @@ function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }) {
   return routes;
 }
 
-// server/src/http/routes/pictures.ts
+// server/src/http/routes/narration.ts
 import { Hono as Hono3 } from "hono";
-function pictureRoutes({ auth, clock, trustProxy, pictures }) {
+import { z as z3 } from "zod";
+var keyRequest = z3.object({ key: z3.string().min(1).max(400) });
+var lineRequest = z3.object({ voice: z3.string().min(1).max(120), text: z3.string().trim().min(1).max(240) });
+function narrationRoutes({ auth, clock, trustProxy, narration }) {
   const routes = new Hono3();
+  const session = requireSession(auth, { trustProxy, clock });
+  const lines = new RateLimiter(400, 10 * 6e4, clock);
+  const keys = new RateLimiter(20, 10 * 6e4, clock);
+  const user = (c) => c.get("session").user.id;
+  routes.get("/", session, async (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json(await narration.status(user(c)));
+  });
+  routes.put("/key", session, async (c) => {
+    keys.consume(user(c));
+    const { key } = await readJson(c, keyRequest);
+    c.header("Cache-Control", "no-store");
+    return c.json(await narration.setKey(user(c), key));
+  });
+  routes.delete("/key", session, async (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json(await narration.deleteKey(user(c)));
+  });
+  routes.get("/voices", session, async (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json({ voices: await narration.voices(user(c)) });
+  });
+  routes.post("/line", session, async (c) => {
+    lines.consume(user(c));
+    const input = await readJson(c, lineRequest);
+    c.header("Cache-Control", "no-store");
+    return c.json({ recordedAs: await narration.line(user(c), input.voice, input.text) });
+  });
+  return routes;
+}
+
+// server/src/http/routes/pictures.ts
+import { Hono as Hono4 } from "hono";
+function pictureRoutes({ auth, clock, trustProxy, pictures }) {
+  const routes = new Hono4();
   const session = requireSession(auth, { trustProxy, clock });
   const uploads = new RateLimiter(300, 10 * 6e4, clock);
   routes.get("/:key", session, async (c) => {
@@ -1011,10 +1182,10 @@ function pictureRoutes({ auth, clock, trustProxy, pictures }) {
 }
 
 // server/src/http/routes/speech.ts
-import { Hono as Hono4 } from "hono";
+import { Hono as Hono5 } from "hono";
 var SPEECH_MAX_CHARS = 240;
 function speechRoutes({ auth, clock, trustProxy, speech }) {
-  const routes = new Hono4();
+  const routes = new Hono5();
   const session = requireSession(auth, { trustProxy, clock });
   const limiter = new RateLimiter(300, 10 * 6e4, clock);
   routes.get("/", session, (c) => {
@@ -1046,7 +1217,7 @@ function speechRoutes({ auth, clock, trustProxy, speech }) {
 }
 
 // server/src/http/routes/strokes.ts
-import { Hono as Hono5 } from "hono";
+import { Hono as Hono6 } from "hono";
 
 // shared/strokes.ts
 var STROKES_PER_REQUEST = 24;
@@ -1085,7 +1256,7 @@ async function fetchOne(c, get2) {
 // server/src/http/routes/strokes.ts
 var HANZI = /^\p{Script=Han}$/u;
 function strokeRoutes({ auth, clock, trustProxy }) {
-  const routes = new Hono5();
+  const routes = new Hono6();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const chars = [.../* @__PURE__ */ new Set([...c.req.query("c") ?? ""])];
@@ -1100,65 +1271,57 @@ function strokeRoutes({ auth, clock, trustProxy }) {
 }
 
 // server/src/http/routes/talk.ts
-import { Hono as Hono6 } from "hono";
-import { z as z3 } from "zod";
-var talkOptions = z3.object({
-  level: z3.enum(TALK_LEVELS),
-  length: z3.enum(TALK_LENGTHS),
-  explain: z3.boolean(),
-  words: z3.boolean(),
-  hints: z3.boolean(),
+import { Hono as Hono7 } from "hono";
+import { z as z4 } from "zod";
+var talkOptions = z4.object({
+  level: z4.enum(TALK_LEVELS),
+  length: z4.enum(TALK_LENGTHS),
+  explain: z4.boolean(),
+  words: z4.boolean(),
+  hints: z4.boolean(),
   // The learner's own words, and they go into a prompt: a topic the length
   // of an essay is a way of talking past everything above it.
-  topic: z3.string().trim().max(TALK_TOPIC_MAX_CHARS),
-  persona: z3.string().max(64).optional()
+  topic: z4.string().trim().max(TALK_TOPIC_MAX_CHARS),
+  persona: z4.string().max(64).optional()
 });
-var savedWord = z3.object({
-  hanzi: z3.string().max(TALK_LINE_MAX_CHARS),
-  pinyin: z3.string().max(TALK_LINE_MAX_CHARS * 2),
-  english: z3.string().max(TALK_LINE_MAX_CHARS)
+var savedWord = z4.object({
+  hanzi: z4.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z4.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z4.string().max(TALK_LINE_MAX_CHARS)
 });
-var savedTurn = z3.object({
-  who: z3.enum(["tutor", "learner"]),
-  hanzi: z3.string().max(TALK_LINE_MAX_CHARS),
-  pinyin: z3.string().max(TALK_LINE_MAX_CHARS * 2),
-  english: z3.string().max(TALK_LINE_MAX_CHARS * 2),
-  words: z3.array(savedWord).max(10).optional(),
-  hints: z3.array(savedWord).max(10).optional(),
-  note: z3.string().max(TALK_LINE_MAX_CHARS * 2).optional()
+var savedTurn = z4.object({
+  who: z4.enum(["tutor", "learner"]),
+  hanzi: z4.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z4.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z4.string().max(TALK_LINE_MAX_CHARS * 2),
+  words: z4.array(savedWord).max(10).optional(),
+  hints: z4.array(savedWord).max(10).optional(),
+  note: z4.string().max(TALK_LINE_MAX_CHARS * 2).optional()
 });
-var recordedRequest = z3.object({
-  voice: z3.string().min(1).max(64),
-  mode: z3.enum(TALK_MODES).optional(),
-  texts: z3.array(z3.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
+var recordedRequest = z4.object({
+  voice: z4.string().min(1).max(64),
+  mode: z4.enum(TALK_MODES).optional(),
+  texts: z4.array(z4.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
 });
-var RECORDING_MAX_BYTES = 1024 * 1024;
-var keepRequest = z3.object({
-  voice: z3.object({ id: z3.string().min(2).max(64), name: z3.string().min(1).max(80), gender: z3.enum(["female", "male"]) }),
-  mode: z3.enum(TALK_MODES).optional(),
-  text: z3.string().trim().min(1).max(TALK_LINE_MAX_CHARS),
-  mp3: z3.string().min(1).max(Math.ceil(RECORDING_MAX_BYTES * 4 / 3) + 8)
-});
-var recorders = () => new Set((process.env.HANZI_RECORDERS ?? "admin").split(",").map((n) => n.trim().toLowerCase()).filter(Boolean));
-var startRequest = z3.object({
+var startRequest = z4.object({
   options: talkOptions,
-  voice: z3.string().max(64).nullable()
+  voice: z4.string().max(64).nullable()
 });
-var saveRequest = z3.object({
+var saveRequest = z4.object({
   options: talkOptions,
-  voice: z3.string().max(64).nullable(),
-  turns: z3.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
+  voice: z4.string().max(64).nullable(),
+  turns: z4.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
 });
-var replyRequest = z3.object({
-  lines: z3.array(z3.object({ who: z3.enum(["tutor", "learner"]), text: z3.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
+var replyRequest = z4.object({
+  lines: z4.array(z4.object({ who: z4.enum(["tutor", "learner"]), text: z4.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
   options: talkOptions,
-  vocab: z3.object({
-    known: z3.array(z3.string().max(12)).max(TALK_VOCAB_MAX.known),
-    learning: z3.array(z3.string().max(12)).max(TALK_VOCAB_MAX.learning)
+  vocab: z4.object({
+    known: z4.array(z4.string().max(12)).max(TALK_VOCAB_MAX.known),
+    learning: z4.array(z4.string().max(12)).max(TALK_VOCAB_MAX.learning)
   }).optional()
 });
 function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations, recordings }) {
-  const routes = new Hono6();
+  const routes = new Hono7();
   const session = requireSession(auth, { trustProxy, clock });
   const turns = new RateLimiter(120, 10 * 6e4, clock);
   const clips = new RateLimiter(600, 10 * 6e4, clock);
@@ -1204,17 +1367,6 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations,
     const body = { have: await recordings.have(input.voice, input.mode ?? "teaching", input.texts) };
     return c.json(body);
   });
-  routes.put("/recordings", session, async (c) => {
-    const user = c.get("session").user;
-    if (!recorders().has(user.username.toLowerCase())) throw new AppError("forbidden", "This account cannot put recordings in.");
-    clips.consume(user.id);
-    const input = await readJson(c, keepRequest);
-    const mp3 = new Uint8Array(Buffer.from(input.mp3, "base64"));
-    if (mp3.length > RECORDING_MAX_BYTES) throw new ValidationError("A sentence\u2019s recording is at most a megabyte.");
-    await recordings.keep(input.voice, input.mode ?? "teaching", input.text, mp3);
-    c.header("Cache-Control", "no-store");
-    return c.json({ ok: true });
-  });
   routes.get("/conversations", session, async (c) => {
     c.header("Cache-Control", "no-store");
     return c.json({ conversations: await conversations.list(c.get("session").user.id) });
@@ -1249,7 +1401,7 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations,
 }
 
 // server/src/http/routes/videos.ts
-import { Hono as Hono7 } from "hono";
+import { Hono as Hono8 } from "hono";
 
 // shared/videos.ts
 var PLAYLIST_ID = /^[A-Za-z0-9_-]{10,64}$/;
@@ -1400,7 +1552,7 @@ async function lookUpPlaylist(playlistId) {
 
 // server/src/http/routes/videos.ts
 function videoRoutes({ auth, clock, trustProxy, log }) {
-  const routes = new Hono7();
+  const routes = new Hono8();
   const session = requireSession(auth, { trustProxy, clock });
   const lookups = new RateLimiter(60, 60 * 6e4, clock);
   routes.get("/youtube/:id", session, async (c) => {
@@ -1441,15 +1593,15 @@ function videoRoutes({ auth, clock, trustProxy, log }) {
 }
 
 // server/src/http/routes/workspace.ts
-import { Hono as Hono8 } from "hono";
+import { Hono as Hono9 } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { z as z4 } from "zod";
-var saveRequest2 = z4.object({
-  baseRevision: z4.number().int().min(0),
-  document: z4.record(z4.string(), z4.unknown())
+import { z as z5 } from "zod";
+var saveRequest2 = z5.object({
+  baseRevision: z5.number().int().min(0),
+  document: z5.record(z5.string(), z5.unknown())
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
-  const routes = new Hono8();
+  const routes = new Hono9();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -1487,21 +1639,21 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 }
 
 // server/src/http/routes/world.ts
-import { Hono as Hono9 } from "hono";
+import { Hono as Hono10 } from "hono";
 import { bodyLimit as bodyLimit2 } from "hono/body-limit";
-import { z as z5 } from "zod";
+import { z as z6 } from "zod";
 
 // shared/world.ts
 var WORLD_SAVE_MAX_BYTES = 512 * 1024;
 var worldTag = (revision) => `"w${revision}"`;
 
 // server/src/http/routes/world.ts
-var putRequest = z5.object({
-  baseRevision: z5.number().int().min(0),
-  save: z5.record(z5.string(), z5.unknown())
+var putRequest = z6.object({
+  baseRevision: z6.number().int().min(0),
+  save: z6.record(z6.string(), z6.unknown())
 });
 function worldRoutes({ auth, world, clock, trustProxy }) {
-  const routes = new Hono9();
+  const routes = new Hono10();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -1538,9 +1690,9 @@ function worldRoutes({ auth, world, clock, trustProxy }) {
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Hono as Hono10 } from "hono";
+import { Hono as Hono11 } from "hono";
 function staticSite(root) {
-  const site = new Hono10();
+  const site = new Hono11();
   const index = join(root, "index.html");
   site.use("*", caching());
   site.use("*", serveStatic({ root }));
@@ -1578,7 +1730,7 @@ function createHttpApp(services, options) {
     devUserCreate: options.devUserCreate ?? true,
     log: options.log
   };
-  const api = new Hono11();
+  const api = new Hono12();
   api.onError(onError);
   api.use("*", sameOriginOnly());
   api.get("/health", (c) => c.json({ ok: true }));
@@ -1591,10 +1743,11 @@ function createHttpApp(services, options) {
   api.route("/videos", videoRoutes(deps));
   api.route("/strokes", strokeRoutes(deps));
   api.route("/pictures", pictureRoutes(deps));
+  api.route("/narration", narrationRoutes(deps));
   api.all("*", () => {
     throw new NotFoundError("That API route");
   });
-  const app = new Hono11();
+  const app = new Hono12();
   app.onError(onError);
   if (options.compress !== false) app.use("*", compress());
   app.use(
@@ -1755,6 +1908,16 @@ var MIGRATIONS = [
   );
 
   CREATE INDEX pictures_by_user ON pictures (user_id);
+  `,
+  // A learner's keys for services the app calls on their behalf; never sent back to a page.
+  `
+  CREATE TABLE user_secrets (
+    user_id    TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    name       TEXT NOT NULL,
+    value      TEXT NOT NULL,
+    updated_at BIGINT NOT NULL,
+    PRIMARY KEY (user_id, name)
+  );
   `
 ];
 
@@ -1942,6 +2105,27 @@ var PostgresPictureRepository = class {
        ON CONFLICT (key) DO NOTHING`,
       [p.key, p.userId, p.mime, Buffer.from(p.bytes), p.createdAt]
     );
+  }
+};
+
+// server/src/infrastructure/postgres/secret-repository.ts
+var PostgresSecretRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async get(userId, name) {
+    const { rows } = await this.db.query("SELECT value FROM user_secrets WHERE user_id = $1 AND name = $2", [userId, name]);
+    return rows[0]?.value ?? null;
+  }
+  async set(userId, name, value, at) {
+    await this.db.query(
+      `INSERT INTO user_secrets (user_id, name, value, updated_at) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (user_id, name) DO UPDATE SET value = EXCLUDED.value, updated_at = EXCLUDED.updated_at`,
+      [userId, name, value, at]
+    );
+  }
+  async delete(userId, name) {
+    await this.db.query("DELETE FROM user_secrets WHERE user_id = $1 AND name = $2", [userId, name]);
   }
 };
 
@@ -2162,7 +2346,8 @@ var postgresStores = (db) => ({
   worldSaves: new PostgresWorldSaveRepository(db),
   conversations: new PostgresConversationRepository(db),
   recordings: new PostgresRecordingRepository(db),
-  pictures: new PostgresPictureRepository(db)
+  pictures: new PostgresPictureRepository(db),
+  secrets: new PostgresSecretRepository(db)
 });
 
 // server/src/vercel.ts

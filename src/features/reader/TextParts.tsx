@@ -9,6 +9,7 @@ import { useLibrary } from '../shared/library';
 import { AnswerBox } from './AnswerBox';
 import { CopyOut } from './CopyOut';
 import { Dictation, openDictation } from './Dictation';
+import { Narrate } from './Narrate';
 import type { Standing } from './Passage';
 import { onReadThrough, RATES, type Reading } from './readAloud';
 
@@ -183,6 +184,7 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
           </button>
         )}
       </div>
+      <Narrate spoken={spoken} reading={reading} />
       {IOS_SPEAK && (
         <p className="small muted rd-voice-note">
           <b>Your device’s voice</b> reads in the Chinese voice set in Settings › Accessibility › Spoken Content ›

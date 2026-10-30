@@ -245,25 +245,9 @@ draws nothing. Either way, later:
 
 ## A voice from MiniMax
 
-The learner reads texts aloud with the free credits on MiniMax's own site
-(Text to Speech, speech-2.8-hd; its API is paid, so it is not used). On the
-text page, ⋯ → **Copy for the narrator** copies the script: a sentence a line,
-a sound tag where the sentence says the sound (笑了 → `(chuckle)`), and a
-`<#1.5#>` pause after every sentence. They paste it there, generate, and send
-the recording back — the MP3 if the site lets them download it, otherwise a
-screen recording (sound on). Then, with the variables of step 2:
-
-```bash
-<the variables> npm run -s texts -- narration <text id> <recording> --voice "<the voice's name>" [--gender male] --dry-run
-<the variables> npm run -s texts -- narration <text id> <recording> --voice "<the voice's name>"
-```
-
-It finds the long pauses, cuts the recording into the text's sentences and
-keeps each as "<name> · MiniMax"'s reading of it; Listen then offers that
-voice on the text. The dry run lists each sentence with its length: a
-sentence of half a second, or one three times its neighbours, means a pause
-was missed or added — ask for the recording again rather than keep it. One
-text per recording.
+A text is recorded in a natural voice from the app itself: Listen on the text
+page, with the learner's own MiniMax API key saved in Settings (the API is
+paid, a few cents a chapter). Nothing to run from here.
 
 ## 8. The report
 

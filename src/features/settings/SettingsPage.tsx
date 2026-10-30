@@ -12,6 +12,7 @@ import { useUser } from '../auth/session';
 import { useSignOut } from '../auth/useSignOut';
 import { InstallCard } from './InstallCard';
 import { LearningSettings } from './LearningSettings';
+import { NarrationKey } from './NarrationKey';
 
 const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 
@@ -294,6 +295,8 @@ export function SettingsPage() {
           </label>
         </div>
       </div>
+
+      <NarrationKey />
 
       <div className="card">
         <header>

@@ -7,10 +7,7 @@ import { renderReading, renderTextSet } from '../../pdf/render';
 import { dayKey } from '../../domain/activity';
 import { deleteText, markRead, setSettings, setTextRead, studyText } from '../../store/commands';
 import { useStore } from '../../store/store';
-import { narratorScript } from '../../domain/narration';
-import { copyText } from '../../platform/clipboard';
 import { Icon } from '../../ui/Icon';
-import { useToast } from '../../ui/toast';
 import { Menu } from '../../ui/Menu';
 import { Modal } from '../../ui/Modal';
 import { PalettePicker } from '../../ui/PalettePicker';
@@ -660,7 +657,6 @@ function ReaderMenu({
   const pdf = usePdfExport();
   const settings = useStore((s) => s.settings);
   const [look, setLook] = useState(false);
-  const toast = useToast();
   const sheet = readerSheet(settings);
   const printOptions = { footerNote: settings.footerNote, practice: settings.readerPractice };
   const busy = pdf.busy !== null;
@@ -716,16 +712,6 @@ function ReaderMenu({
             )}
             <button role="menuitem" className="btn ghost sm" onClick={then(close, () => setLook(true))}>
               How the PDF looks…
-            </button>
-            <button
-              role="menuitem"
-              className="btn ghost sm"
-              onClick={then(close, () =>
-                void copyText(narratorScript(text)).then((ok) => toast(ok ? 'Copied. Paste it into MiniMax and send the recording back.' : 'Could not copy here.')),
-              )}
-            >
-              Copy for the narrator
-              <span className="tiny muted">to read aloud in MiniMax, a pause after every sentence</span>
             </button>
             {mode === 'single' && (
               <button role="menuitem" className="btn ghost sm danger" onClick={then(close, remove)}>

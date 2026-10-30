@@ -32,10 +32,6 @@
  *       for a box read wrong off the photo
  *   npm run texts -- put <text id> <picture for ¶1> <picture for ¶2> …
  *       pictures drawn by hand (art/BRIEF.md) into a text, a paragraph each
- *   npm run texts -- narration <text id> <recording> [--voice Serene] [--gender female] [--dry-run]
- *       a text read aloud on MiniMax's site from its narrator script (the text page's
- *       ⋯ → Copy for the narrator), cut at the script's pauses into its sentences and
- *       kept as that voice's reading of each (narration.ts)
  *   npm run texts -- record [--voice wang] [--set <id or name>]
  *       reads every text's sentences aloud in one of the app's voices and keeps the
  *       recordings, so the website plays the text in that voice (on the Mac only:
@@ -88,7 +84,6 @@ import {
 } from '../../src/domain/text';
 import { newId } from '../../src/platform/ids';
 import { geminiFromEnv, illustrate, putDrawn, withDescribed, type PictureAccount } from './illustrate';
-import { narrate, voiceId, type RecordingAccount } from './narration';
 import type { PersistedState } from '../../src/store/state';
 
 /** The workspace version this checkout writes. A newer document is left alone. */
@@ -549,7 +544,7 @@ async function record(o: { voice?: string; set?: string }) {
 
 /* ------------------------------------------------------------ an account */
 
-interface Account extends PictureAccount, RecordingAccount {
+interface Account extends PictureAccount {
   /** who and where, for the report */
   where: string;
   read(): Promise<{ revision: number; document: unknown }>;
@@ -582,12 +577,11 @@ async function databaseAccount(user: string): Promise<Account> {
     await close();
     throw new Error(`No account “${user}” in ${describeDatabase(config.database)}.`);
   }
-  const { workspaces, pictures, recordings } = createServices(stores);
+  const { workspaces, pictures } = createServices(stores);
   return {
     where: `${found.username} on ${describeDatabase(config.database)}`,
     read: () => workspaces.get(found.id),
     getPicture: (key) => pictures.get(found.id, key).catch(() => null),
-    putRecording: (voice, text, mp3) => recordings.keep(voice, 'teaching', text, mp3),
     putPicture: (key, mime, bytes) => pictures.put(found.id, key, mime, bytes),
     async write(baseRevision, document) {
       try {
@@ -642,14 +636,6 @@ async function siteAccount(site: string, user: string, password: string): Promis
       if (!res.ok) return null;
       return { mime: res.headers.get('content-type') ?? 'image/jpeg', bytes: new Uint8Array(await res.arrayBuffer()) };
     },
-    async putRecording(voice, text, mp3) {
-      const res = await fetch(`${site}/api/talk/recordings`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ voice, mode: 'teaching', text, mp3: Buffer.from(mp3).toString('base64') }),
-      });
-      if (!res.ok) throw new Error(`Keeping the recording of ${text}: ${await failure(res)}`);
-    },
     async putPicture(key, mime, bytes) {
       const res = await fetch(`${site}${API.pictures}/${key}`, {
         method: 'PUT',
@@ -699,7 +685,6 @@ const USAGE = `
   npm run texts -- describe <pictures.json>    { "pictures": { "<text id>": [{ "para": 0, "prompt": "…" }] } }
   npm run texts -- boxes <text id> <boxes.json>
   npm run texts -- put <text id> <picture for ¶1> <picture for ¶2> …
-  npm run texts -- narration <text id> <recording.mp3|.m4a|.mov> [--voice Serene] [--gender female|male] [--dry-run]
   npm run texts -- record [--voice wang] [--set <id or name>]    on the Mac: the texts, read aloud for the site
 `;
 
@@ -747,31 +732,11 @@ async function main(argv: string[]) {
       text: { type: 'string', multiple: true },
       redo: { type: 'boolean', default: false },
       style: { type: 'string' },
-      gender: { type: 'string', default: 'female' },
     },
   });
 
   if (command === 'record') {
     await record({ voice: values.voice, set: values.set });
-    return;
-  }
-  if (command === 'narration') {
-    const [textId, file] = positionals;
-    if (!textId || !file) throw new Error(`Which text, and which recording?\n${USAGE}`);
-    const name = values.voice?.trim() || 'Serene';
-    const gender = values.gender === 'male' ? 'male' : 'female';
-    const account = await openAccount();
-    try {
-      await narrate(account, {
-        textId,
-        file,
-        voice: { id: voiceId(name), name: `${name} · MiniMax`, gender },
-        dryRun: values['dry-run'],
-        say: (line) => console.log(`  ${line}`),
-      });
-    } finally {
-      await account.close();
-    }
     return;
   }
   if (command === 'put') {

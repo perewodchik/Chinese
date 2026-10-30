@@ -94,4 +94,14 @@ export const MIGRATIONS: readonly string[] = [
 
   CREATE INDEX pictures_by_user ON pictures (user_id);
   `,
+  // A learner's keys for services the app calls on their behalf; never sent back to a page.
+  `
+  CREATE TABLE user_secrets (
+    user_id    TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    name       TEXT NOT NULL,
+    value      TEXT NOT NULL,
+    updated_at BIGINT NOT NULL,
+    PRIMARY KEY (user_id, name)
+  );
+  `,
 ];

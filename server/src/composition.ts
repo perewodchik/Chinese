@@ -1,12 +1,15 @@
 import { AuthService, DEFAULT_AUTH_POLICY, type AuthPolicy } from './application/auth-service';
 import { ConversationService } from './application/conversation-service';
+import { NarrationService } from './application/narration-service';
 import { PictureService } from './application/picture-service';
 import { RecordingService } from './application/recording-service';
 import type {
   Clock,
   ConversationRepository,
+  Narrator,
   PasswordHasher,
   PictureRepository,
+  SecretRepository,
   RecordingRepository,
   SessionRepository,
   SpeechSynthesizer,
@@ -19,6 +22,7 @@ import type {
 import { WorkspaceService } from './application/workspace-service';
 import { WorldService } from './application/world-service';
 import { systemClock } from './infrastructure/clock';
+import { minimaxNarrator } from './infrastructure/minimax';
 import { ScryptHasher } from './infrastructure/crypto/scrypt-hasher';
 import { cryptoTokens } from './infrastructure/crypto/tokens';
 
@@ -39,6 +43,8 @@ export interface Services {
   recordings: RecordingService;
   /** the pictures beside texts' paragraphs */
   pictures: PictureService;
+  /** texts read aloud by MiniMax with the learner's own key */
+  narration: NarrationService;
 }
 
 /** Where each kind of record is kept. */
@@ -50,6 +56,7 @@ export interface Stores {
   conversations: ConversationRepository;
   recordings: RecordingRepository;
   pictures: PictureRepository;
+  secrets: SecretRepository;
 }
 
 /**
@@ -69,6 +76,8 @@ export function createServices(
     speech?: SpeechSynthesizer | null;
     tutor?: Tutor | null;
     talkVoices?: TalkSynthesizer | null;
+    /** MiniMax by default; a stand-in in the tests */
+    narrator?: Narrator | null;
   } = {},
 ): Services {
   const clock = options.clock ?? systemClock;
@@ -82,6 +91,7 @@ export function createServices(
   });
   const workspaces = new WorkspaceService({ workspaces: stores.workspaces, clock });
   const world = new WorldService({ saves: stores.worldSaves, clock });
+  const recordings = new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
   return {
     auth,
@@ -92,7 +102,8 @@ export function createServices(
     speech: options.speech ?? null,
     tutor: options.tutor ?? null,
     talkVoices: options.talkVoices ?? null,
-    recordings: new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock }),
+    recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
+    narration: new NarrationService({ secrets: stores.secrets, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, recordings, clock }),
   };
 }

@@ -128,6 +128,24 @@ export interface PictureRepository {
   save(picture: Picture): Promise<void>;
 }
 
+/**
+ * A learner's own secrets for services the app calls on their behalf (a voice
+ * service's API key): kept on the server, never sent back to a page.
+ */
+export interface SecretRepository {
+  get(userId: string, name: string): Promise<string | null>;
+  set(userId: string, name: string, value: string, at: number): Promise<void>;
+  delete(userId: string, name: string): Promise<void>;
+}
+
+/** A voice service that reads Mandarin aloud with a key the learner gives. */
+export interface Narrator {
+  /** the service's Mandarin voices; refused if the key is not good */
+  voices(key: string): Promise<Array<{ id: string; name: string; description: string }>>;
+  /** one sentence as MP3 */
+  read(key: string, text: string, voice: string, speed: number): Promise<Uint8Array>;
+}
+
 export interface PasswordHasher {
   hash(password: string): Promise<string>;
   verify(password: string, hash: string): Promise<boolean>;

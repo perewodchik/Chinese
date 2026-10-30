@@ -2007,3 +2007,42 @@ label.rd-aa-row {
   background: var(--hl);
 }
 
+
+/* Recording a text in a natural voice, under the voices in Listen: one row, a
+   narrator and the button; a line under it that keeps its height. */
+.rd-narrate {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px 12px;
+  margin: 4px 0 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--card-2);
+}
+
+.rd-narrate-pick {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rd-narrate-pick select {
+  width: 100%;
+  min-height: 36px;
+  font-size: 16px;
+}
+
+.rd-narrate-go {
+  min-width: 156px;
+}
+
+.rd-narrate-msg {
+  grid-column: 1 / -1;
+  margin: 0;
+  min-height: 2.6em;
+}
+
+.rd-narrate-note {
+  margin: 4px 0 16px;
+}

@@ -84,6 +84,24 @@ const localVoices = () =>
     .then((s) => s.voices)
     .catch(() => []));
 
+/** The players on the page, told when a voice gained recordings, so they ask again. */
+const voiceWatchers = new Set<() => void>();
+
+/**
+ * A voice has just been recorded reading a text (MiniMax, from Listen): forget
+ * what was known about it and what the server offers, so the players ask
+ * again and offer it.
+ */
+export function voiceRecorded(voice: string) {
+  known = null;
+  for (const k of [...recorded.keys()]) if (k.startsWith(`${voice}|`)) recorded.delete(k);
+  for (const k of [...clips.keys()]) if (k.startsWith(`${voice}|`)) {
+    clips.delete(k);
+    ready.delete(k);
+  }
+  for (const w of voiceWatchers) w();
+}
+
 /**
  * Which sentences each voice has, asked once a sentence and kept for the
  * page: `voice|sentence` → whether it can be played. A voice that reads
@@ -432,6 +450,8 @@ export function useReading(passage?: string[]): Reading {
   useEffect(() => {
     let live = true;
     void localVoices().then((list) => live && setVoices(list));
+    const again = () => void localVoices().then((list) => live && setVoices([...list]));
+    voiceWatchers.add(again);
     const off = onVoicesReady(() => {
       setSystem(canSpeak());
       setDeviceTick((n) => n + 1);
@@ -442,6 +462,7 @@ export function useReading(passage?: string[]): Reading {
     return () => {
       live = false;
       off();
+      voiceWatchers.delete(again);
       watchers.delete(setNow);
       choosers.delete(setChosen);
       rateWatchers.delete(setSpeed);

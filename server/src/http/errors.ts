@@ -11,7 +11,6 @@ const STATUS: Record<ApiErrorCode, ContentfulStatusCode> = {
   unauthorized: 401,
   registration_closed: 403,
   forbidden_origin: 403,
-  forbidden: 403,
   not_found: 404,
   username_taken: 409,
   conflict: 409,
