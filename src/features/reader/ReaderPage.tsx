@@ -139,12 +139,19 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const standing = useStanding(study);
   const [pinyin, setPinyin] = usePinyinMode();
   const [translation, setTranslation] = useTranslationMode();
-  const [comic, setComic] = useComicView();
   const [pictures, setPictures] = usePictureMode();
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [flash, setFlash] = useState<number | null>(null);
-  // The line the bottom bar's narrator is reading, lit in the text.
+  // The line the bottom bar's narrator is reading, lit in the text, and kept in sight.
   const [narrLine, setNarrLine] = useState<number | null>(null);
+  useEffect(() => {
+    if (narrLine === null) return;
+    const el = document.getElementById(`line-${text.id}-${narrLine}`);
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    // Above the bar at the top or under the dock at the bottom: brought back, gently.
+    if (r.top < 120 || r.bottom > window.innerHeight - 110) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [narrLine, text.id]);
   const top = useRef<HTMLDivElement>(null);
   useEffect(() => setRevealed(new Set()), [text.id]);
 
@@ -156,7 +163,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     markUnknown: settings.markUnknown,
     markAbove: settings.markAbove,
     target: settings.targetHsk,
-    comic,
+    // Dialogue as a comic is no longer offered: a dialogue reads as any text.
+    comic: false,
     pictures,
   };
 
@@ -379,9 +387,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             translation={translation}
             setTranslation={setTranslation}
             hasTrad={list.some((t) => t.lines.some((l) => l.zht))}
-            hasDialogue={list.some((t) => t.genre === 'dialogue' || t.lines.some((l) => l.who))}
-            comic={comic}
-            setComic={setComic}
             hasPictures={list.some((t) => t.pictures?.some((p) => p.key))}
             pictures={pictures}
             setPictures={setPictures}
@@ -508,9 +513,6 @@ function AaMenu({
   translation,
   setTranslation,
   hasTrad,
-  hasDialogue,
-  comic,
-  setComic,
   hasPictures,
   pictures,
   setPictures,
@@ -520,9 +522,6 @@ function AaMenu({
   translation: TranslationMode;
   setTranslation: (m: TranslationMode) => void;
   hasTrad: boolean;
-  hasDialogue: boolean;
-  comic: boolean;
-  setComic: (on: boolean) => void;
   hasPictures: boolean;
   pictures: PictureMode;
   setPictures: (m: PictureMode) => void;
@@ -643,13 +642,6 @@ function AaMenu({
                 checked={settings.readerTraditional}
                 onChange={(e) => setSettings({ readerTraditional: e.target.checked })}
               />
-            </label>
-          )}
-          {hasDialogue && (
-            <label className="rd-aa-row">
-              <span>Dialogue as a comic</span>
-              <span className="spacer" />
-              <input type="checkbox" checked={comic} onChange={(e) => setComic(e.target.checked)} />
             </label>
           )}
         </div>
@@ -773,29 +765,4 @@ function PdfLook({ onClose, teaches }: { onClose: () => void; teaches: number })
       </label>
     </Modal>
   );
-}
-
-const COMIC_KEY = 'hanzi.reader.comic';
-
-/**
- * Whether dialogues are drawn as comics — kept on this device only: the iPad
- * held in the hand may want bubbles where the laptop wants prose.
- */
-function useComicView(): [boolean, (on: boolean) => void] {
-  const [on, setOn] = useState(() => {
-    try {
-      return localStorage.getItem(COMIC_KEY) === '1';
-    } catch {
-      return false;
-    }
-  });
-  const set = (v: boolean) => {
-    setOn(v);
-    try {
-      localStorage.setItem(COMIC_KEY, v ? '1' : '0');
-    } catch {
-      // private browsing: it holds for this visit
-    }
-  };
-  return [on, set];
 }

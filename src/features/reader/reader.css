@@ -364,6 +364,15 @@
   padding-bottom: 10px;
 }
 
+/* The line being read, in Lines as in Paragraphs: the highlighter, its number in blue ink. */
+.rd-line[data-reading] {
+  background: var(--hl);
+}
+
+.rd-line[data-reading] .rd-n {
+  color: var(--accent);
+}
+
 .rd-n {
   width: 36px;
   height: 36px;
