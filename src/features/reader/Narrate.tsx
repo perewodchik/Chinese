@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import type { NarratorDto, TextNarrationDto } from '../../../shared/narration';
 import { chooseNarrator, chosenNarrator, listNarrators, narrationOf, narrationStatus } from '../../api/narration';
@@ -6,8 +6,8 @@ import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 
 /**
- * A narrator for the text, under Listen's voices: a quiet button that opens a
- * panel, so the player stays the thing on the screen. There one of the
+ * A narrator for the text: a + at the end of Listen's voices that drops a
+ * panel over the lines, so the player stays the thing on the screen. There one of the
  * learner's narrators (made and tuned in Speaking › Voices) reads the whole
  * text in one go with their own key; the reading is kept, so it is never paid
  * for twice, and plays above with a slider.
@@ -21,6 +21,24 @@ export function Narrate({ lines, onMade }: { lines: string[]; onMade: (n: TextNa
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const narrator = narrators?.find((n) => n.id === narratorId) ?? narrators?.[0] ?? null;
+  const panel = useRef<HTMLDivElement>(null);
+  const toggle = useRef<HTMLButtonElement>(null);
+
+  // A dropdown: a tap anywhere else, or Escape, closes it.
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (!panel.current?.contains(t) && !toggle.current?.contains(t)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('pointerdown', away);
+    document.addEventListener('keydown', esc);
+    return () => {
+      document.removeEventListener('pointerdown', away);
+      document.removeEventListener('keydown', esc);
+    };
+  }, [open]);
 
   // Asked only once the panel is opened: most visits to Listen never need MiniMax.
   useEffect(() => {
@@ -83,13 +101,21 @@ export function Narrate({ lines, onMade }: { lines: string[]; onMade: (n: TextNa
   }
 
   return (
-    <div className="rd-natural">
-      <button className="btn quiet sm rd-natural-toggle" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <Icon name={open ? 'chevron' : 'plus'} size={16} />
-        {busy ? `${narrator?.name ?? 'A narrator'} is reading the text…` : 'A narrator for this text'}
+    <>
+      <button
+        ref={toggle}
+        className="chip rd-natural-add"
+        aria-expanded={open}
+        aria-label="A narrator for this text"
+        title="A narrator for this text"
+        data-busy={busy || undefined}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <Icon name="plus" size={18} />
       </button>
       {open && (
-        <div className="rd-natural-panel">
+        <div className="rd-natural-panel" ref={panel}>
+          <b className="small">A narrator for this text</b>
           {hasKey === false ? (
             <p className="small" style={{ margin: 0 }}>
               Narrators read texts in natural Mandarin voices with your own MiniMax key. Add the key and make a narrator in{' '}
@@ -142,6 +168,6 @@ export function Narrate({ lines, onMade }: { lines: string[]; onMade: (n: TextNa
           )}
         </div>
       )}
-    </div>
+    </>
   );
 }

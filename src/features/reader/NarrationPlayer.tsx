@@ -5,7 +5,6 @@ import type { GeneratedText } from '../../domain/text';
 import { studyText } from '../../store/commands';
 import { Icon } from '../../ui/Icon';
 
-const RATES = [0.8, 1] as const;
 const clock = (ms: number) => {
   const s = Math.max(0, Math.round(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -13,19 +12,18 @@ const clock = (ms: number) => {
 
 /**
  * A narrator's reading of the whole text, played as one recording: a slider
- * to go anywhere in it, back and on a line at a time, slower, and the lines
+ * to go anywhere in it, back and on a line at a time, and the lines
  * below lit as they are read — the reading's timings say where each line is.
  *
  * It counts the way the sentence player does: how far in it has got, and,
  * heard to the end, once more.
  */
-export function NarrationPlayer({ text, narration, name, between }: { text: GeneratedText; narration: TextNarrationDto; name: string; between?: ReactNode }) {
+export function NarrationPlayer({ text, narration, between }: { text: GeneratedText; narration: TextNarrationDto; between?: ReactNode }) {
   return (
     <ReadingPlayer
       lines={text.lines.map((l) => l.zh)}
       narration={narration}
       between={between}
-      lede={`${name} reads the whole text. Hear it once following the lines, then once more without looking. Tap a line to go to it.`}
       furthest={text.study?.listened ?? 0}
       onReached={(n) => studyText(text.id, { listened: n })}
       onEnded={() => {
@@ -60,7 +58,6 @@ export function ReadingPlayer({
   const [failed, setFailed] = useState<string | null>(null);
   const [at, setAt] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [rate, setRate] = useState<(typeof RATES)[number]>(1);
   const [dragging, setDragging] = useState<number | null>(null);
   const duration = narration.durationMs;
   const timings = narration.timings;
@@ -79,10 +76,6 @@ export function ReadingPlayer({
       audio.current?.pause();
     };
   }, [narration]);
-
-  useEffect(() => {
-    if (audio.current) audio.current.playbackRate = rate;
-  }, [rate, src]);
 
   const line = useMemo(() => {
     const ms = dragging ?? at;
@@ -127,13 +120,6 @@ export function ReadingPlayer({
           <span className="rd-player-where">
             {failed ?? (src ? `Line ${line + 1} of ${timings.length}` : 'Getting the reading…')}
           </span>
-          <div className="seg sm rd-speed" role="group" aria-label="Speed">
-            {RATES.map((r) => (
-              <button key={r} aria-pressed={rate === r} onClick={() => setRate(r)}>
-                {r === 1 ? 'Normal' : 'Slow'}
-              </button>
-            ))}
-          </div>
         </div>
         <div className="rd-scrub">
           <input

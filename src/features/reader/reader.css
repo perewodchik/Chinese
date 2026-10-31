@@ -1774,6 +1774,23 @@ label.rd-aa-row {
 }
 
 /* ------------------------------------------------------------- dictation */
+/* Whose voice says the sentence: a narrator's, cut from their reading, or the device's. */
+.co-switches .seg {
+  flex: none;
+}
+
+.co-switches .small {
+  white-space: nowrap;
+}
+
+.dc-voice {
+  flex: 0 1 220px;
+  min-width: 0;
+  min-height: 34px;
+  font-size: 16px;
+  text-overflow: ellipsis;
+}
+
 .dc-now {
   flex: 1;
   display: grid;
@@ -2008,29 +2025,47 @@ label.rd-aa-row {
 }
 
 
-/* A natural voice for the text: a quiet line under Listen's voices that opens
-   a well: the narrator and the button on one row, a progress line, a note
-   that keeps its height. */
-.rd-natural {
-  margin: 2px 0 14px;
+/* A narrator for the text: a + at the end of the voices that drops a panel
+   over what is below, so nothing under it moves. */
+.rd-voices {
+  position: relative;
 }
 
-.rd-natural-toggle {
-  gap: 6px;
-  padding-left: 0;
+.rd-natural-add {
+  width: 36px;
+  padding: 0;
+  justify-content: center;
 }
 
-.rd-natural-toggle[aria-expanded='true'] svg {
-  transform: rotate(90deg);
+.rd-natural-add[aria-expanded='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.rd-natural-add[data-busy] svg {
+  animation: rd-natural-spin 1.2s linear infinite;
+}
+
+@keyframes rd-natural-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .rd-natural-panel {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-width: 420px;
   display: grid;
   gap: 10px;
-  margin-top: 6px;
   padding: 12px 14px;
   border-radius: 14px;
-  background: var(--card-2);
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.18);
 }
 
 .rd-natural-row {

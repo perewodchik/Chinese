@@ -3,6 +3,18 @@ import { isHanzi, type GeneratedText } from '../../domain/text';
 import { canSpeak, speak, stopSpeaking } from '../../platform/speech';
 import { studyText } from '../../store/commands';
 import { Icon } from '../../ui/Icon';
+import {
+  chooseDictationVoice,
+  dictationVoice,
+  narratedReadings,
+  pickReading,
+  playLine,
+  prepareClips,
+  readyClips,
+  stopLine,
+  type Clips,
+  type Narrated,
+} from './narratedClips';
 
 /**
  * Dictation: a sentence of the text is said, and written in the notebook
@@ -12,9 +24,15 @@ import { Icon } from '../../ui/Icon';
  * Nothing is marked right or wrong: the notebook is where the checking
  * happens. On screen there is only how much to write — a square for each
  * character — and the sentence again, as often and as slowly as wanted.
+ *
+ * Where a narrator has read the text, the sentence is theirs: cut out of the
+ * whole reading by its timings, a sentence at a time. Otherwise the device
+ * says it.
  */
 
 const RATE = { normal: 0.85, slow: 0.6 } as const;
+/** A narrator already speaks at a dictating pace; slow is a little slower, not stretched. */
+const NARRATED = { normal: 1, slow: 0.75 } as const;
 type Pace = keyof typeof RATE;
 
 /** Where a dictation of this text starts: where the last one stopped, unless that was the end. */
@@ -25,8 +43,10 @@ export const dictationStart = (text: GeneratedText) => {
 
 /** Opened by a tap, the first sentence is said inside it. */
 export function openDictation(text: GeneratedText) {
-  const l = text.lines[dictationStart(text)];
-  if (l) speak(l.zh, { rate: RATE.normal });
+  const i = dictationStart(text);
+  const clips = dictationVoice() === 'device' ? null : readyClips(text.id);
+  if (clips) playLine(clips, i, NARRATED.normal);
+  else if (text.lines[i]) speak(text.lines[i]!.zh, { rate: RATE.normal });
 }
 
 export function Dictation({ text, onClose }: { text: GeneratedText; onClose: () => void }) {
@@ -35,22 +55,59 @@ export function Dictation({ text, onClose }: { text: GeneratedText; onClose: () 
   const [at, setAt] = useState(() => dictationStart(text));
   const [shown, setShown] = useState(false);
   const [pace, setPace] = useState<Pace>('normal');
-  const [voice] = useState(canSpeak);
+  const [device] = useState(canSpeak);
+  const [voices, setVoices] = useState<Narrated[]>([]);
+  const [choice, setChoice] = useState(() => dictationVoice() ?? '');
+  const [clips, setClips] = useState<Clips | null>(() => (dictationVoice() === 'device' ? null : readyClips(text.id)));
+  const voice = device || clips !== null;
   const done = at >= total;
   const line = lines[Math.min(at, total - 1)]!;
   const chars = [...line.zh].filter(isHanzi);
 
+  useEffect(() => {
+    let live = true;
+    void narratedReadings(lines.map((l) => l.zh)).then(
+      (list) => live && setVoices(list),
+      () => undefined,
+    );
+    return () => {
+      live = false;
+    };
+  }, [lines]);
+
+  // The narrator chosen, its audio fetched; the device's voice when none.
+  const reading = pickReading(voices, choice || null);
+  useEffect(() => {
+    if (!reading) {
+      if (voices.length || choice === 'device') setClips(null);
+      return;
+    }
+    let live = true;
+    prepareClips(text.id, reading).then(
+      (c) => live && setClips(c),
+      () => live && setClips(null),
+    );
+    return () => {
+      live = false;
+    };
+  }, [reading, voices.length, choice, text.id]);
+
   // Said from the tap that asks for it: iOS lets a page speak only inside one.
   const say = (i: number, p: Pace = pace) => {
     const l = lines[i];
-    if (l) speak(l.zh, { rate: RATE[p] });
+    if (!l) return;
+    if (clips) playLine(clips, i, NARRATED[p]);
+    else speak(l.zh, { rate: RATE[p] });
   };
   const go = (i: number) => {
     const n = Math.max(0, Math.min(total, i));
     setAt(n);
     setShown(false);
     if (n < total) say(n);
-    else stopSpeaking();
+    else {
+      stopSpeaking();
+      stopLine();
+    }
   };
 
   // The place is kept, as sentences written, whenever it moves on.
@@ -58,7 +115,13 @@ export function Dictation({ text, onClose }: { text: GeneratedText; onClose: () 
     if (at > (text.study?.dictated ?? 0)) studyText(text.id, { dictated: at });
   }, [at, text.id, text.study?.dictated]);
 
-  useEffect(() => stopSpeaking, []);
+  useEffect(
+    () => () => {
+      stopSpeaking();
+      stopLine();
+    },
+    [],
+  );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -124,6 +187,26 @@ export function Dictation({ text, onClose }: { text: GeneratedText; onClose: () 
                   </button>
                 ))}
               </div>
+              {voices.length > 0 && (
+                <select
+                  className="dc-voice"
+                  aria-label="Voice"
+                  value={reading?.n.narratorId ?? 'device'}
+                  onChange={(e) => {
+                    setChoice(e.target.value);
+                    chooseDictationVoice(e.target.value);
+                    stopLine();
+                    stopSpeaking();
+                  }}
+                >
+                  {voices.map((v) => (
+                    <option key={v.n.narratorId} value={v.n.narratorId}>
+                      {v.name}
+                    </option>
+                  ))}
+                  {device && <option value="device">Device voice</option>}
+                </select>
+              )}
               <span className="spacer" />
               <span className="small muted">
                 {chars.length} character{chars.length === 1 ? '' : 's'}
@@ -134,7 +217,9 @@ export function Dictation({ text, onClose }: { text: GeneratedText; onClose: () 
               <button className="rd-play dc-play" onClick={() => say(at)} disabled={!voice} aria-label="Say it again">
                 <Icon name="sound" size={26} />
               </button>
-              {!voice && <p className="small muted">This device has no Chinese voice: read the sentence to yourself, or ask someone to.</p>}
+              {!voice && (
+                <p className="small muted">This device has no Chinese voice: read the sentence to yourself, or ask someone to. A narrator who has read the text in Listen says it here.</p>
+              )}
 
               {/* How much to write, and once shown, what was said: the squares never move. */}
               <div className="dc-boxes" aria-label={shown ? line.zh : `${chars.length} characters`}>

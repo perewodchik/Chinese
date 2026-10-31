@@ -11,7 +11,7 @@ import { CopyOut } from './CopyOut';
 import { Dictation, openDictation } from './Dictation';
 import { NarrationPlayer } from './NarrationPlayer';
 import { Narrate } from './Narrate';
-import { listNarrators, readingsOf } from '../../api/narration';
+import { addReading, narratedReadings, pickReading, prepareClips } from './narratedClips';
 import type { TextNarrationDto } from '../../../shared/narration';
 import type { Standing } from './Passage';
 import { onReadThrough, RATES, type Reading } from './readAloud';
@@ -125,11 +125,8 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
   useEffect(() => {
     let live = true;
     setReadings([]);
-    void Promise.all([listNarrators(), readingsOf(linesZh)]).then(
-      ([narrators, kept]) => {
-        if (!live) return;
-        setReadings(kept.map((n) => ({ n, name: narrators.find((x) => x.id === n.narratorId)?.name ?? 'Narrator' })));
-      },
+    void narratedReadings(linesZh).then(
+      (list) => live && setReadings(list),
       () => undefined,
     );
     return () => {
@@ -167,6 +164,7 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
       lines={linesZh}
       onMade={(n, name) => {
         reading.stop();
+        addReading(linesZh, { n, name });
         setReadings((list) => [...list.filter((r) => r.n.narratorId !== n.narratorId), { n, name }]);
         choose(n.narratorId);
       }}
@@ -179,7 +177,6 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
         key={current.n.key}
         text={text}
         narration={current.n}
-        name={current.name}
         between={
           <>
             <div className="rd-voices" role="radiogroup" aria-label="Voice">
@@ -199,8 +196,8 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
                   {v.name}
                 </button>
               ))}
+              {narrate}
             </div>
-            {narrate}
           </>
         }
       />
@@ -252,10 +249,6 @@ function SentenceListen({
 
   return (
     <>
-      <p className="rd-part-lede">
-        Hear it once following the text, then once more without looking. Tap any line to go on from there.
-      </p>
-
       <div className="rd-player">
         <div className="rd-player-top">
           <span className="rd-player-where">
@@ -332,8 +325,8 @@ function SentenceListen({
             Your device’s voice
           </button>
         )}
+        {narrate}
       </div>
-      {narrate}
       {IOS_SPEAK && (
         <p className="small muted rd-voice-note">
           <b>Your device’s voice</b> reads in the Chinese voice set in Settings › Accessibility › Spoken Content ›
@@ -469,6 +462,18 @@ export function MorePart({ text, partId }: { text: GeneratedText; partId: string
   const [open, setOpen] = useState<'translate' | null>(null);
   const [dictating, setDictating] = useState(false);
   useEffect(() => setOpen(null), [text.id]);
+  // A narrator's reading, fetched before Dictation is opened, so its first
+  // sentence can be said inside the tap that opens it.
+  useEffect(() => {
+    let live = true;
+    void narratedReadings(text.lines.map((l) => l.zh)).then((list) => {
+      const r = pickReading(list);
+      if (live && r) void prepareClips(text.id, r).catch(() => undefined);
+    }, () => undefined);
+    return () => {
+      live = false;
+    };
+  }, [text.id, text.lines]);
   const dictated = Math.min(text.lines.length, text.study?.dictated ?? 0);
   const row = (id: 'translate', han: string, title: string, sub: string) => (
     <button className="rd-more-row" aria-expanded={open === id} onClick={() => setOpen(open === id ? null : id)}>
