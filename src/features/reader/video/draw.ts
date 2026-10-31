@@ -3,7 +3,7 @@ import { pinyinOf } from '../../../domain/ownText';
 import { alignPinyin } from '../../../domain/reading';
 import { segment } from '../../../domain/segment';
 import { isHanzi, type GeneratedText, type TextLine } from '../../../domain/text';
-import { breakAtCommas, type VideoLook, type VideoMoment, type VideoPlan } from '../../../domain/textVideo';
+import { breakAtCommas, speakerOf, type VideoLook, type VideoMoment, type VideoPlan } from '../../../domain/textVideo';
 
 /**
  * One frame of a text's video, drawn on a 1080×1920 canvas — the same drawing
@@ -70,10 +70,22 @@ interface Ink {
   lit: string;
   right: string;
   accent: string;
+  /** light writing on a dark ground */
+  dark: boolean;
+  /** the title band over the top */
+  band: string;
 }
 
-const PAPER: Ink = { bg: '#fbf8f1', ink: '#18202b', py: '#4a5464', lit: 'rgba(255, 212, 60, 0.5)', right: '#1f7a55', accent: '#1e4a8a' };
-const NIGHT: Ink = { bg: '#1b2027', ink: '#eef1f4', py: '#b4bcc6', lit: 'rgba(255, 212, 60, 0.3)', right: '#6fc39a', accent: '#9db8e8' };
+const PAPER: Ink = { bg: '#fbf8f1', ink: '#18202b', py: '#4a5464', lit: 'rgba(255, 212, 60, 0.5)', right: '#1f7a55', accent: '#1e4a8a', dark: false, band: 'rgba(251, 248, 241, 0.92)' };
+const NIGHT: Ink = { bg: '#1b2027', ink: '#eef1f4', py: '#b4bcc6', lit: 'rgba(255, 212, 60, 0.3)', right: '#6fc39a', accent: '#9db8e8', dark: true, band: 'rgba(27, 32, 39, 0.88)' };
+/** A green chalkboard, chalk on it, the line being read under yellow chalk. */
+const BOARD: Ink = { bg: '#2e4a3c', ink: '#f3f1e7', py: '#c7d6c9', lit: 'rgba(255, 236, 140, 0.26)', right: '#bfe6a8', accent: '#f2d16b', dark: true, band: 'rgba(38, 61, 50, 0.92)' };
+/** Old book paper: warm, brown ink. */
+const SEPIA: Ink = { bg: '#f2e6cc', ink: '#3b2b1c', py: '#6e5a42', lit: 'rgba(230, 170, 70, 0.4)', right: '#5d7a2e', accent: '#8a5a2b', dark: false, band: 'rgba(242, 230, 204, 0.93)' };
+const THEMES = { paper: PAPER, night: NIGHT, board: BOARD, sepia: SEPIA } as const;
+
+/** Each speaker's own colour, in the order they first speak. */
+const SPEAKER_COLOURS = ['#c2410c', '#1d4ed8', '#7e22ce', '#0f766e', '#a16207'];
 const ON_PICTURE: Ink = { ...NIGHT, ink: '#ffffff', py: '#d7dde4' };
 
 const hanFont = (look: VideoLook, px: number) =>
@@ -315,6 +327,32 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 }
 
+/* ------------------------------------------------------------ speakers */
+
+/** A speaker's colour: the same one all through the text, in the order they first speak. */
+function speakerColour(text: GeneratedText, name: string): string {
+  const order: string[] = [];
+  for (const l of text.lines) {
+    const who = speakerOf(l);
+    if (who && !order.includes(who)) order.push(who);
+  }
+  return SPEAKER_COLOURS[Math.max(0, order.indexOf(name)) % SPEAKER_COLOURS.length]!;
+}
+
+const NAME_H = 74;
+
+/** A speaker's name in their colour, as a tab over the line they say. */
+function nameTab(ctx: CanvasRenderingContext2D, f: FrameInput, name: string, x: number, y: number, align: 'center' | 'left') {
+  ctx.font = hanFont(f.look, 44);
+  const w = ctx.measureText(name).width + 44;
+  const left = align === 'center' ? x - w / 2 : x;
+  ctx.fillStyle = speakerColour(f.text, name);
+  roundRect(ctx, left, y, w, 60, 14);
+  ctx.fill();
+  ctx.textAlign = 'center';
+  text(ctx, name, left + w / 2, y + 45, '#ffffff', 0);
+}
+
 /* ------------------------------------------------------------ pictures */
 
 /** A picture filling the box, cropped to it, a little larger by `zoom` (1 = as it is). */
@@ -359,7 +397,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, f: FrameInput) {
   const { look, moment, text: t } = f;
   G = geometry(look.shape);
   const wide = look.shape === '16:9';
-  const ink = look.background === 'night' ? NIGHT : PAPER;
+  const ink = THEMES[look.background];
   const zh = SIZES[look.size];
   ctx.save();
   ctx.fillStyle = ink.bg;
@@ -434,11 +472,16 @@ export function drawFrame(ctx: CanvasRenderingContext2D, f: FrameInput) {
       const all = lines.map((i) => ({ ...t.lines[i]!, noPinyin: i !== current }));
       const x = G.w / 2 + 70;
       const b = fitted(ctx, all, { look, zh: Math.round(zh * 0.8), maxW: G.w / 2 - 140, commas: false, lib: f.lib }, G.safe.bottom - from - 60);
-      drawBlock(ctx, b, x, from + (G.safe.bottom - from - b.h) / 2, { look, ink, align: 'left', lit: lines.indexOf(current) });
+      const y = from + (G.safe.bottom - from - b.h) / 2;
+      speakerOver(ctx, f, line, b, x, y);
+      drawBlock(ctx, b, x, y, { look, ink, align: 'left', lit: lines.indexOf(current) });
     } else if (wide) {
       const all = lines.map((i) => ({ ...t.lines[i]!, noPinyin: i !== current }));
       const b = fitted(ctx, all, { look, zh: Math.round(zh * 0.9), maxW: 1400, commas: false, lib: f.lib }, G.safe.bottom - from - 60);
-      drawBlock(ctx, b, (G.w - Math.min(b.w, 1400)) / 2, from + (G.safe.bottom - from - b.h) / 2, { look, ink, align: 'left', lit: lines.indexOf(current) });
+      const x = (G.w - Math.min(b.w, 1400)) / 2;
+      const y = from + (G.safe.bottom - from - b.h) / 2;
+      speakerOver(ctx, f, line, b, x, y);
+      drawBlock(ctx, b, x, y, { look, ink, align: 'left', lit: lines.indexOf(current) });
     } else if (look.layout === 'above') {
       const picBottom = 1110;
       picture(ctx, f, para, [0, look.title === 'off' ? G.safe.top : below, G.w, picBottom - (look.title === 'off' ? G.safe.top : below)]);
@@ -461,6 +504,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, f: FrameInput) {
       const all = lines.map((i) => ({ ...t.lines[i]!, noPinyin: i !== current }));
       const b = fitted(ctx, all, { look, zh: Math.round(zh * (side ? 0.78 : 0.9)), maxW: G.textW, commas: false, lib: f.lib }, G.safe.bottom - top);
       const y = side ? top : top + (G.safe.bottom - top - b.h) / 2;
+      speakerOver(ctx, f, line, b, G.left, y);
       drawBlock(ctx, b, G.left, y, { look, ink, align: 'left', lit: lines.indexOf(current) });
     }
   } else {
@@ -507,12 +551,46 @@ export function drawFrame(ctx: CanvasRenderingContext2D, f: FrameInput) {
     text(ctx, label, G.w - 40 - w / 2, y + 37, '#ffffff', 0);
   }
 
+  if (look.mark.trim()) {
+    // The learner's signature: top left under the title upright (the bottom and right are the apps'), bottom right wide.
+    ctx.save();
+    ctx.font = pyFont(wide ? 30 : 32);
+    ctx.globalAlpha = 0.75;
+    const onDark = ink.dark || over || step.kind === 'hook';
+    if (wide) {
+      ctx.textAlign = 'right';
+      text(ctx, look.mark.trim(), G.w - 48, G.h - 40, onDark ? '#ffffff' : ink.ink, onDark ? 4 : 0);
+    } else {
+      ctx.textAlign = 'left';
+      const y = step.kind === 'hook' || step.kind === 'title' || look.title === 'off' ? G.safe.top + 50 : below + 50;
+      text(ctx, look.mark.trim(), G.left, y, onDark ? '#ffffff' : ink.ink, onDark ? 4 : 0);
+    }
+    ctx.restore();
+  }
+
   if (look.progress) {
-    ctx.fillStyle = look.background === 'night' || over ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.1)';
+    ctx.fillStyle = ink.dark || over ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.1)';
     ctx.fillRect(0, G.h - 12, G.w, 12);
     ctx.fillStyle = ink.accent;
     ctx.fillRect(0, G.h - 12, G.w * moment.progress, 12);
   }
+  ctx.restore();
+}
+
+/** In a whole paragraph, the name of who says the line being read, at the left of that line, just above it. */
+function speakerOver(ctx: CanvasRenderingContext2D, f: FrameInput, line: TextLine, b: Block, x: number, y: number) {
+  const name = f.look.speakers ? speakerOf(line) : null;
+  if (!name) return;
+  const i = f.text.lines.indexOf(line);
+  const lines = f.plan.paras.find((p) => p.includes(i)) ?? [];
+  const span = b.spans[lines.indexOf(i)];
+  if (!span) return;
+  ctx.save();
+  ctx.globalAlpha = 0.95;
+  // After the row's last mark, its closing quote included, at the height of its characters.
+  const row = b.rows[span[1] - 1]!;
+  const rowTop = y + rowTops(b)[span[1] - 1]!;
+  nameTab(ctx, f, name, x + row.w + 24, rowTop + (row.py && b.py ? b.py * 1.3 : 0) + (b.zh * 1.28 - 60) / 2, 'left');
   ctx.restore();
 }
 
@@ -523,9 +601,12 @@ function subtitle(ctx: CanvasRenderingContext2D, f: FrameInput, line: TextLine, 
   ctx.font = enFont(enPx);
   const enH = look.english && line.en ? measureEnglish(ctx, line.en, G.centredW, enPx) : 0;
   // Breaking at commas is for the narrow upright frame; a wide one has the room for the line.
-  const b = fitted(ctx, [line], { look, zh, maxW: G.centredW, commas: look.breakLines && G.h > G.w, lib: f.lib }, area[1] - area[0] - (enH ? enH + 14 : 0) - (onPicture ? 60 : 0));
+  const name = look.speakers ? speakerOf(line) : null;
+  const nameH = name ? NAME_H : 0;
+  const b = fitted(ctx, [line], { look, zh, maxW: G.centredW, commas: look.breakLines && G.h > G.w, lib: f.lib }, area[1] - area[0] - (enH ? enH + 14 : 0) - (onPicture ? 60 : 0) - nameH);
   const h = b.h + (enH ? enH + 14 : 0);
-  const top = onPicture ? Math.max(area[0] + 22, area[1] - h - 30) : area[0] + (area[1] - area[0] - h) / 2;
+  const top = (onPicture ? Math.max(area[0] + 22 + nameH, area[1] - h - 30) : area[0] + (area[1] - area[0] - h + nameH) / 2);
+  if (name) nameTab(ctx, f, name, G.cx, top - nameH - (onPicture && look.overLook === 'box' ? 24 : 0), 'center');
   const box = onPicture && look.overLook === 'box';
   if (box) {
     ctx.fillStyle = 'rgba(20, 24, 29, 0.72)';
@@ -554,7 +635,7 @@ function measureEnglish(ctx: CanvasRenderingContext2D, s: string, maxW: number, 
 function titleBand(ctx: CanvasRenderingContext2D, f: FrameInput, ink: Ink, h: number, over: boolean) {
   const { look, text: t } = f;
   if (look.titleLook === 'band') {
-    ctx.fillStyle = look.background === 'night' || over ? 'rgba(27, 32, 39, 0.88)' : 'rgba(251, 248, 241, 0.92)';
+    ctx.fillStyle = over ? NIGHT.band : THEMES[look.background].band;
     ctx.fillRect(0, G.safe.top, G.w, h);
   }
   const outline = look.titleLook === 'plain' && over ? 6 : 0;
@@ -577,7 +658,7 @@ function ring(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, st
   const left = into < ask ? 1 : Math.max(0, 1 - (into - ask) / look.think);
   ctx.lineWidth = 12;
   ctx.lineCap = 'round';
-  ctx.strokeStyle = look.background === 'night' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.1)';
+  ctx.strokeStyle = ink.dark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.1)';
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.stroke();

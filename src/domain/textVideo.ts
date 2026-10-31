@@ -23,7 +23,14 @@ export interface VideoLook {
   /** the chapter's name at the top of every scene */
   title: 'off' | 'chapter' | 'book';
   titleLook: 'band' | 'plain';
-  background: 'paper' | 'night';
+  /** the colours: exercise-book paper, night, a green chalkboard, old sepia paper */
+  background: 'paper' | 'night' | 'board' | 'sepia';
+  /** who says a line, over it in their own colour (小智, 皮卡丘) */
+  speakers: boolean;
+  /** quiet music under the voice, lower while it speaks */
+  music: 'off' | 'calm' | 'bright';
+  /** the learner's own signature in a corner: a name, a channel; empty for none */
+  mark: string;
   type: 'kai' | 'print';
   /** how the line sits on the picture when it is drawn over it */
   overLook: 'box' | 'outline';
@@ -57,6 +64,9 @@ export const DEFAULT_LOOK: VideoLook = {
   title: 'chapter',
   titleLook: 'band',
   background: 'paper',
+  speakers: false,
+  music: 'off',
+  mark: '',
   type: 'kai',
   overLook: 'box',
   progress: true,
@@ -84,7 +94,8 @@ export function lookOf(raw: unknown): VideoLook {
     layout: ['above', 'over', 'side', 'words'],
     title: ['off', 'chapter', 'book'],
     titleLook: ['band', 'plain'],
-    background: ['paper', 'night'],
+    background: ['paper', 'night', 'board', 'sepia'],
+    music: ['off', 'calm', 'bright'],
     type: ['kai', 'print'],
     overLook: ['box', 'outline'],
     size: ['s', 'm', 'l', 'xl'],
@@ -95,6 +106,7 @@ export function lookOf(raw: unknown): VideoLook {
     const got = o[k];
     if (allowed[k] ? allowed[k]!.includes(got) : typeof got === typeof v) out[k] = got;
   }
+  out.mark = String(out.mark).slice(0, 40);
   return out as unknown as VideoLook;
 }
 
@@ -284,6 +296,21 @@ export function momentAt(plan: VideoPlan, t: number, timings: Array<[number, num
   const part = partAt(plan, time);
   const span = plan.parts[part]!;
   return { step, into, line, progress: span.dur ? (time - span.at) / span.dur : 0, part, of: plan.parts.length };
+}
+
+/**
+ * Who says a line: the writer's own mark (\`who\`), else the name before a
+ * verb of saying and a colon (小智也笑了：“…”), else 皮卡丘 for a line that
+ * is nothing but its 皮卡 sounds. A quotation with no name before it is left
+ * unnamed rather than guessed.
+ */
+export function speakerOf(line: Pick<TextLine, 'zh' | 'who'>): string | null {
+  if (line.who?.trim()) return line.who.trim();
+  const said = line.zh.match(/^([\p{Script=Han}]{1,4}?)(?:也|又|就|还)?(?:说|问|叫|大叫|喊|笑了|笑着说|回答)[^：:“”]{0,4}[：:]\s*“/u);
+  if (said) return said[1]!;
+  const quoted = line.zh.match(/^“([^”]*)”$/);
+  if (quoted && /^[皮卡丘，、！!？?。…\s]+$/u.test(quoted[1]!) && /皮卡/.test(quoted[1]!)) return '皮卡丘';
+  return null;
 }
 
 /** A line cut where its commas are, each piece keeping its comma. */

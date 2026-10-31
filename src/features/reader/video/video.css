@@ -560,6 +560,17 @@
   color: #fff;
 }
 
+/* Wide: less height, so the tick and the words sit closer. */
+.vs-ready[data-shape='16:9'] .vs-ready-note {
+  gap: 4px;
+  padding: 8px;
+}
+
+.vs-ready[data-shape='16:9'] .vs-ready-mark {
+  width: 40px;
+  height: 40px;
+}
+
 .vs-ready-mark {
   width: 56px;
   height: 56px;
@@ -568,6 +579,98 @@
   place-items: center;
   background: var(--jade);
   color: #fff;
+}
+
+.vs-field-row {
+  padding: 10px 0 12px;
+  border-top: 1px solid var(--line);
+}
+
+.vs-field-row input {
+  font-size: 16px;
+}
+
+.vs-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.vs-preset {
+  display: inline-flex;
+  align-items: center;
+}
+
+.vs-preset-x {
+  width: 30px;
+  height: 34px;
+  margin-left: -4px;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.vs-preset-add {
+  gap: 4px;
+  color: var(--accent);
+}
+
+.vs-preset-name {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.vs-preset-name input {
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 16px;
+}
+
+/* The thumbnail beside its words; its box is the right shape before it is made. */
+.vs-thumb {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  background: var(--card-2);
+}
+
+.vs-thumb-img {
+  width: 72px;
+  aspect-ratio: 9 / 16;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.vs-thumb-img[data-shape='16:9'] {
+  width: 128px;
+  aspect-ratio: 16 / 9;
+}
+
+.vs-thumb-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.vs-thumb-text {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
 }
 
 /* The one action, kept in reach at the bottom while the settings scroll. */

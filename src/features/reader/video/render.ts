@@ -1,5 +1,6 @@
 import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
-import type { VideoPlan } from '../../../domain/textVideo';
+import type { VideoLook, VideoPlan } from '../../../domain/textVideo';
+import { scoreMusic } from './music';
 
 /**
  * Makes a text's video faster than it plays, where the browser can encode
@@ -72,6 +73,8 @@ export function renderFast(o: {
   audio: Blob;
   /** the narrator's reading of the questions and answers, when the plan says them */
   asked?: Blob | null;
+  /** quiet music under it, or none */
+  music?: VideoLook['music'];
   /** draws the moment at t (ms into the video) on the canvas */
   draw: (t: number) => void;
   onTime?: (t: number) => void;
@@ -121,6 +124,7 @@ export function renderFast(o: {
     // The sound: the reading's stretches at their places in the part.
     const length = Math.max(1, Math.ceil((part.dur / 1000) * RATE));
     const mix = new OfflineAudioContext(channels, length, RATE);
+    const voice: Array<[number, number]> = [];
     for (const s of o.plan.steps) {
       if (s.at < part.at || s.at >= part.at + part.dur) continue;
       // A paragraph's stretch of the reading, or a question's or answer's of the questions' reading.
@@ -137,7 +141,9 @@ export function renderFast(o: {
       gain.gain.linearRampToValueAtTime(0, when + dur);
       src.connect(gain).connect(mix.destination);
       src.start(when, said.from / 1000, dur);
+      voice.push([when, when + dur]);
     }
+    if (o.music && o.music !== 'off') scoreMusic(mix, o.music, part.dur / 1000, voice);
     const sound = await mix.startRendering();
 
     const audio = new AudioEncoder({ output: (chunk, meta) => muxer.addAudioChunk(chunk, meta), error: fail });

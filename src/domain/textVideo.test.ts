@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { breakAtCommas, DEFAULT_LOOK, lookOf, momentAt, videoPlan } from './textVideo';
+import { breakAtCommas, DEFAULT_LOOK, lookOf, momentAt, speakerOf, videoPlan } from './textVideo';
 
 const line = (zh: string, p = false) => ({ zh, py: '', en: '', ...(p ? { p: true } : {}) });
 const text = {
@@ -68,6 +68,20 @@ describe('a text as a video', () => {
     const long = { ...reading, timings: [[0, 900], [30_000, 31_000], [40_000, 41_000], [70_000, 71_000]] as Array<[number, number]>, durationMs: 90_000 };
     assert.equal(videoPlan(text, long, { ...DEFAULT_LOOK, parts: true, shape: '16:9' }).parts.length, 1);
     assert.equal(lookOf({ shape: '4:3' }).shape, '9:16');
+  });
+
+  it('names who says a line where the text says so, and guesses nothing else', () => {
+    assert.equal(speakerOf({ zh: '小智也笑了：“好吧，我们有吃的了！”' }), '小智');
+    assert.equal(speakerOf({ zh: '妈妈说：“吃饭吧。”' }), '妈妈');
+    assert.equal(speakerOf({ zh: '“皮卡，皮卡！”' }), '皮卡丘');
+    assert.equal(speakerOf({ zh: '“皮卡丘，我下不来了！”' }), null);
+    assert.equal(speakerOf({ zh: '他们坐在树下吃苹果。' }), null);
+    assert.equal(speakerOf({ zh: '你好。', who: '老师' }), '老师');
+  });
+
+  it('keeps a signature short and a theme it knows', () => {
+    assert.equal(lookOf({ mark: 'x'.repeat(60), background: 'board' }).mark.length, 40);
+    assert.equal(lookOf({ background: 'pink' }).background, 'paper');
   });
 
   it('breaks a long line at its commas, never leaving a scrap', () => {

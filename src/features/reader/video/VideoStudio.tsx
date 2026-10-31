@@ -11,6 +11,7 @@ import { narratedReadings, type Narrated } from '../narratedClips';
 import { drawFrame, geometry } from './draw';
 import { forgetVideo, keepVideo, keptVideo, type KeptVideo } from './kept';
 import { canRecord, run, type Run } from './record';
+import { makeThumbnail } from './thumbnail';
 import { canRenderFast, renderFast, type Render } from './render';
 import './video.css';
 
@@ -70,6 +71,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   const [video, setVideo] = useState<Made | null>(null);
   const [shown, setShown] = useState(0);
   const [watching, setWatching] = useState(false);
+  const [thumb, setThumb] = useState<{ url: string; blob: Blob } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [safe, setSafe] = useState(true);
   const running = useRef<Run | Render | null>(null);
@@ -247,6 +249,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
           canvas: canvas.current,
           plan: use,
           audio: await narrationBlob(reading.n),
+          music: look.music,
           asked: askedNow && use.steps.some((s) => (s.kind === 'question' || s.kind === 'answer') && s.said) ? await narrationBlob(askedNow) : null,
           draw: (time) => {
             const c = ctx();
@@ -320,6 +323,37 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
       a.download = f.name;
       a.click();
     });
+  }
+
+  // The thumbnail, made as soon as the video is: the cover, the chapter large, the signature.
+  useEffect(() => {
+    if (mode !== 'done' || !video) return;
+    let live = true;
+    const cover = plan?.cover ? (pictures.get(plan.cover) ?? null) : null;
+    void makeThumbnail({ title: text.titleZh || text.title, book, cover, look: { ...look, shape: video.shape ?? '9:16' } }).then((b) => {
+      if (live && b) setThumb({ url: URL.createObjectURL(b), blob: b });
+    });
+    return () => {
+      live = false;
+    };
+  }, [mode, video]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => void (thumb && URL.revokeObjectURL(thumb.url)), [thumb]);
+
+  async function saveThumbnail() {
+    if (!thumb) return;
+    const file = new File([thumb.blob], `${text.titleZh || text.title} cover.jpg`, { type: 'image/jpeg' });
+    try {
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] });
+        return;
+      }
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return;
+    }
+    const a = document.createElement('a');
+    a.href = thumb.url;
+    a.download = file.name;
+    a.click();
   }
 
   async function remove() {
@@ -493,6 +527,16 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
                 <button className="btn primary lg" onClick={() => void save()}>
                   {video.parts.length > 1 ? `Save all ${video.parts.length} parts` : 'Save the video'}
                 </button>
+                <div className="vs-thumb">
+                  <div className="vs-thumb-img" data-shape={video.shape ?? '9:16'}>{thumb && <img src={thumb.url} alt="The thumbnail" />}</div>
+                  <span className="vs-thumb-text">
+                    <b>Thumbnail</b>
+                    <span className="tiny muted">The cover with the chapter's name, for YouTube or a feed to show before it plays.</span>
+                    <button className="btn tonal sm" onClick={() => void saveThumbnail()} disabled={!thumb}>
+                      Save the thumbnail
+                    </button>
+                  </span>
+                </div>
                 <button
                   className="btn tonal"
                   onClick={() => {
@@ -636,6 +680,8 @@ function Settings({
 }) {
   return (
     <>
+      <Presets look={look} change={change} disabled={disabled} />
+
       <section className="vs-section">
         <h2 className="block-title">Shape</h2>
         <div className="vs-shapes">
@@ -692,9 +738,30 @@ function Settings({
             <Seg label="Title look" value={look.titleLook} onPick={(v) => change({ titleLook: v })} disabled={disabled} options={[['band', 'Band'], ['plain', 'Plain']]} />
           </Row>
         )}
-        <Row title="Background">
-          <Seg label="Background" value={look.background} onPick={(v) => change({ background: v })} disabled={disabled} options={[['paper', 'Paper'], ['night', 'Night']]} />
+        <Row title="Theme">
+          <Seg
+            label="Theme"
+            value={look.background}
+            onPick={(v) => change({ background: v })}
+            disabled={disabled}
+            options={[
+              ['paper', 'Paper'],
+              ['night', 'Night'],
+              ['board', 'Board'],
+              ['sepia', 'Sepia'],
+            ]}
+          />
         </Row>
+        <Row title="Who is speaking" note="Their name over their line, in their own colour, where the text says who (小智说：…)">
+          <Switch label="Who is speaking" on={look.speakers} onChange={(v) => change({ speakers: v })} disabled={disabled} />
+        </Row>
+        <label className="vs-field vs-field-row">
+          <span className="vs-row-name">
+            Your signature
+            <span className="tiny muted">In a corner of every scene and on the thumbnail; empty for none</span>
+          </span>
+          <input value={look.mark} maxLength={40} placeholder="@your_channel" onChange={(e) => change({ mark: e.target.value })} disabled={disabled} />
+        </label>
         <Row title="Characters">
           <Seg
             label="Typeface of the Chinese"
@@ -753,6 +820,19 @@ function Settings({
       <section className="vs-section">
         <h2 className="block-title">Voice and pace</h2>
         {children}
+        <Row title="Music" note="Quiet, under the voice and lower while it speaks; in the made video">
+          <Seg
+            label="Music"
+            value={look.music}
+            onPick={(v) => change({ music: v })}
+            disabled={disabled}
+            options={[
+              ['off', 'Off'],
+              ['calm', 'Calm'],
+              ['bright', 'Bright'],
+            ]}
+          />
+        </Row>
         <Row title="Pause between paragraphs" note="Time to look at the picture">
           <Seg
             label="Pause"
@@ -834,5 +914,99 @@ function Settings({
         )}
       </section>
     </>
+  );
+}
+
+/* ------------------------------------------------------------ presets */
+
+interface Preset {
+  name: string;
+  look: Partial<VideoLook>;
+}
+
+/** Two to start from; the signature is never part of a preset. */
+const BUILT_IN: Preset[] = [
+  {
+    name: 'Shorts',
+    look: { shape: '9:16', layout: 'above', size: 'l', hook: true, parts: true, titleCard: false, pause: 0, english: false, pinyin: true, breakLines: true, music: 'bright', questions: true, think: 3000 },
+  },
+  {
+    name: 'YouTube lesson',
+    look: { shape: '16:9', layout: 'side', size: 'm', hook: false, parts: false, titleCard: true, title: 'book', pause: 1000, english: true, pinyin: true, music: 'calm', questions: true, think: 5000 },
+  },
+];
+
+const PRESETS = 'hanzi.video.presets';
+const keptPresets = (): Preset[] => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(PRESETS) ?? '[]') as unknown;
+    return Array.isArray(raw) ? raw.filter((p): p is Preset => Boolean(p && typeof p.name === 'string' && p.look && typeof p.look === 'object')) : [];
+  } catch {
+    return [];
+  }
+};
+
+const same = (look: VideoLook, p: Partial<VideoLook>) => Object.entries(p).every(([k, v]) => k === 'mark' || look[k as keyof VideoLook] === v);
+
+/**
+ * Presets: a whole look at a tap. Shorts and YouTube lesson to start from, and
+ * the learner's own, saved from the look as it is now and kept on this device.
+ */
+function Presets({ look, change, disabled }: { look: VideoLook; change: (p: Partial<VideoLook>) => void; disabled: boolean }) {
+  const [own, setOwn] = useState<Preset[]>(keptPresets);
+  const [naming, setNaming] = useState<string | null>(null);
+  const keep = (list: Preset[]) => {
+    setOwn(list);
+    try {
+      localStorage.setItem(PRESETS, JSON.stringify(list));
+    } catch {
+      // kept for this visit only
+    }
+  };
+  const saveAs = (name: string) => {
+    const { mark: _mark, ...rest } = look;
+    keep([...own.filter((p) => p.name !== name), { name, look: rest }]);
+    setNaming(null);
+  };
+  return (
+    <section className="vs-section">
+      <h2 className="block-title">Presets</h2>
+      <div className="vs-presets">
+        {[...BUILT_IN, ...own].map((p, i) => (
+          <span key={`${i}-${p.name}`} className="vs-preset">
+            <button className="chip" aria-pressed={same(look, p.look)} onClick={() => change(p.look)} disabled={disabled}>
+              {p.name}
+            </button>
+            {i >= BUILT_IN.length && (
+              <button className="vs-preset-x" aria-label={`Remove the preset ${p.name}`} onClick={() => keep(own.filter((x) => x !== p))} disabled={disabled}>
+                <Icon name="close" size={14} />
+              </button>
+            )}
+          </span>
+        ))}
+        {naming === null && (
+          <button className="chip vs-preset-add" onClick={() => setNaming('')} disabled={disabled}>
+            <Icon name="plus" size={14} /> Save this look
+          </button>
+        )}
+      </div>
+      {naming !== null && (
+        <form
+          className="vs-preset-name"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (naming.trim()) saveAs(naming.trim());
+          }}
+        >
+          <input value={naming} maxLength={30} placeholder="A name for this look" autoFocus onChange={(e) => setNaming(e.target.value)} />
+          <button className="btn tonal sm" type="submit" disabled={!naming.trim()}>
+            Save
+          </button>
+          <button className="btn quiet sm" type="button" onClick={() => setNaming(null)}>
+            Cancel
+          </button>
+        </form>
+      )}
+    </section>
   );
 }
