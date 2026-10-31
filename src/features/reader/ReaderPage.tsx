@@ -27,7 +27,10 @@ import {
   usePinyinMode,
   useTranslationMode,
   type PictureMode,
+  type PinyinMode,
+  type TranslationMode,
 } from './readerView';
+import { DockPlayer } from './DockPlayer';
 import { readerSheet } from './readerSheet';
 import { rememberReading } from './lastRead';
 import {
@@ -117,7 +120,8 @@ interface ReaderProps {
  * a screen wide enough to have both.
  *
  * Everything that changes how it reads is in four buttons at the bottom
- * edge, under the thumb: Listen, pinyin, translation, and Aa for the rest.
+ * edge, under the thumb: the narrator's reading to listen to, and Aa for
+ * pinyin, translation and the rest.
  * Printing, which used to be the loudest button on the page, is in ⋯.
  */
 function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
@@ -139,6 +143,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [pictures, setPictures] = usePictureMode();
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [flash, setFlash] = useState<number | null>(null);
+  // The line the bottom bar's narrator is reading, lit in the text.
+  const [narrLine, setNarrLine] = useState<number | null>(null);
   const top = useRef<HTMLDivElement>(null);
   useEffect(() => setRevealed(new Set()), [text.id]);
 
@@ -327,7 +333,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             key={t.id}
             text={t}
             view={view}
-            reading={t.id === text.id ? reading.at : null}
+            reading={t.id === text.id ? (narrLine ?? reading.at) : null}
             flash={t.id === text.id ? flash : null}
             revealed={t.id === text.id ? revealed : new Set()}
             onReveal={reveal}
@@ -366,28 +372,12 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
         {/* The text's own controls, stuck to the bottom of the screen while the
             text is on it, and gone with the text when the parts below come up. */}
         <div className="rd-dock no-print">
-          <div className="rd-dock-group">
-            <span className="rd-dock-label">Pinyin</span>
-            <div className="seg sm" role="group" aria-label="Pinyin">
-              {PINYIN_MODES.map((m) => (
-                <button key={m} aria-pressed={pinyin === m} onClick={() => setPinyin(m)}>
-                  {PINYIN_LABEL[m]}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="rd-dock-group">
-            <span className="rd-dock-label">Translation</span>
-            <div className="seg sm" role="group" aria-label="Translation">
-              {TRANSLATION_MODES.map((m) => (
-                <button key={m} aria-pressed={translation === m} onClick={() => setTranslation(m)}>
-                  {TRANSLATION_LABEL[m]}
-                </button>
-              ))}
-            </div>
-          </div>
-          <span className="spacer" />
+          {mode === 'single' ? <DockPlayer text={text} reading={reading} spoken={spoken} onLine={setNarrLine} /> : <span className="spacer" />}
           <AaMenu
+            pinyin={pinyin}
+            setPinyin={setPinyin}
+            translation={translation}
+            setTranslation={setTranslation}
             hasTrad={list.some((t) => t.lines.some((l) => l.zht))}
             hasDialogue={list.some((t) => t.genre === 'dialogue' || t.lines.some((l) => l.who))}
             comic={comic}
@@ -402,7 +392,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       {mode === 'single' && (
         <div className="rd-study no-print">
           <WritePart text={text} partId={partId('write')} />
-          <ListenPart text={text} reading={reading} spoken={spoken} partId={partId('listen')} />
           <WordsPart
             text={text}
             setId={set?.id ?? null}
@@ -414,6 +403,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           {text.questions.length > 0 && (
             <QuestionsPart key={`q${text.id}`} text={text} partId={partId('questions')} showPinyin={pinyin === 'all'} />
           )}
+          <ListenPart text={text} reading={reading} spoken={spoken} partId={partId('listen')} />
           <MorePart text={text} partId={partId('more')} />
           <div className="rd-next">
             {next ? (
@@ -513,6 +503,10 @@ const stepScale = (at: number, by: number) =>
 
 /** Aa: the size, the layout, and the marks — everything about the look that is not pinyin or translation. */
 function AaMenu({
+  pinyin,
+  setPinyin,
+  translation,
+  setTranslation,
   hasTrad,
   hasDialogue,
   comic,
@@ -521,6 +515,10 @@ function AaMenu({
   pictures,
   setPictures,
 }: {
+  pinyin: PinyinMode;
+  setPinyin: (m: PinyinMode) => void;
+  translation: TranslationMode;
+  setTranslation: (m: TranslationMode) => void;
   hasTrad: boolean;
   hasDialogue: boolean;
   comic: boolean;
@@ -553,6 +551,28 @@ function AaMenu({
       </button>
       {open && (
         <div className="rd-aa-panel" role="dialog" aria-label="How the text looks">
+          <div className="rd-aa-row">
+            <span>Pinyin</span>
+            <span className="spacer" />
+            <div className="seg sm" role="group" aria-label="Pinyin">
+              {PINYIN_MODES.map((m) => (
+                <button key={m} aria-pressed={pinyin === m} onClick={() => setPinyin(m)}>
+                  {PINYIN_LABEL[m]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="rd-aa-row">
+            <span>Translation</span>
+            <span className="spacer" />
+            <div className="seg sm" role="group" aria-label="Translation">
+              {TRANSLATION_MODES.map((m) => (
+                <button key={m} aria-pressed={translation === m} onClick={() => setTranslation(m)}>
+                  {TRANSLATION_LABEL[m]}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="rd-aa-row">
             <span>Text size</span>
             <span className="spacer" />

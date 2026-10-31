@@ -37,9 +37,10 @@ export type TabId = PartId | 'more';
 export const PARTS: Array<{ id: PartId; han: string; label: string }> = [
   { id: 'read', han: '读', label: 'Text' },
   { id: 'write', han: '写', label: 'Write' },
-  { id: 'listen', han: '听', label: 'Listen' },
   { id: 'words', han: '词', label: 'Words' },
   { id: 'questions', han: '问', label: 'Questions' },
+  // Last: the bottom bar plays the reading while the text is read; the part is for listening again.
+  { id: 'listen', han: '听', label: 'Listen' },
 ];
 
 export const MORE = { id: 'more' as const, han: '更', label: 'More' };

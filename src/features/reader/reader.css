@@ -714,7 +714,7 @@
   /* Under the bar and the parts at the top, so it slides away beneath them. */
   z-index: 5;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 12px;
   margin: 10px calc(-1 * var(--gutter)) 0;
   padding: 8px var(--gutter) max(10px, env(safe-area-inset-bottom));
@@ -742,6 +742,115 @@
   min-height: 36px;
   min-width: 40px;
   padding: 0 10px;
+}
+
+/* The narrator's reading in the bottom bar: play, whose voice and how far, a slider. */
+.rd-dock-play {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rd-dock-playbtn {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.rd-dock-playbtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.rd-dock-track {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.rd-dock-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rd-dock-meta .rd-dock-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.rd-dock-time {
+  flex: none;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.rd-dock-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.rd-dock-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.rd-dock-range {
+  --fill: 0%;
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+.rd-dock-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(var(--accent), var(--accent)) 0 0 / var(--fill) 100% no-repeat, var(--line);
+}
+
+.rd-dock-range::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(var(--accent), var(--accent)) 0 0 / var(--fill) 100% no-repeat, var(--line);
+}
+
+.rd-dock-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--accent);
+}
+
+.rd-dock-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--accent);
 }
 
 .rd-aa {

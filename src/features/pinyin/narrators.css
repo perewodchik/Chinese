@@ -310,3 +310,25 @@
   padding: 0 0 16px;
   min-width: 0;
 }
+
+/* A text the narrator has read can be heard here, from its row. */
+.narrator-texts > li.narrator-text-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.narrator-text-row .narrator-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.narrator-listen {
+  flex: none;
+  color: var(--accent);
+}
+
+.narrator-listen:disabled {
+  color: var(--ink-3);
+  opacity: 0.4;
+}

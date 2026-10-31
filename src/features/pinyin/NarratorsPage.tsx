@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import { EMOTIONS, SPEED_RANGE, PITCH_RANGE, type Emotion, type NarrationStatus, type NarratorDto, type NarratorVoice } from '../../../shared/narration';
+import { EMOTIONS, SPEED_RANGE, PITCH_RANGE, type Emotion, type NarrationStatus, type NarratorDto, type NarratorVoice, type TextNarrationDto } from '../../../shared/narration';
 import {
   adoptNarrator,
   changeNarrator,
@@ -9,6 +9,7 @@ import {
   keepVoice,
   tryVoices,
   listNarrators,
+  narrationAudio,
   narrationOf,
   narrationStatus,
   narratorVoices,
@@ -497,8 +498,11 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
   const [shelf, setShelf] = useState(() => shelves[0]?.id ?? '');
   const narrator = narrators.find((n) => n.id === narratorId) ?? narrators[0]!;
   const list = useMemo(() => texts.filter((t) => t.setId === shelf).sort((a, b) => a.createdAt - b.createdAt), [texts, shelf]);
-  /** whether the narrator, as it sounds now, has read each text */
-  const [read, setRead] = useState<Record<string, boolean>>({});
+  /** the narrator's reading of each text, as it sounds now; null for none yet */
+  const [readings, setReadings] = useState<Record<string, TextNarrationDto | null>>({});
+  const read = useMemo(() => Object.fromEntries(Object.entries(readings).map(([id, n]) => [id, n !== null])) as Record<string, boolean>, [readings]);
+  const player = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState<string | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [again, setAgain] = useState(false);
   const [running, setRunning] = useState<string | null>(null);
@@ -507,23 +511,52 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
 
   useEffect(() => {
     let live = true;
-    setRead({});
+    setReadings({});
     void Promise.all(
       list.map((t) =>
         narrationOf(narrator.id, linesOf(t)).then(
-          (n) => [t.id, n !== null] as const,
-          () => [t.id, false] as const,
+          (n) => [t.id, n] as const,
+          () => [t.id, null] as const,
         ),
       ),
     ).then((rows) => {
       if (!live) return;
-      setRead(Object.fromEntries(rows));
-      setPicked(new Set(rows.filter(([, done]) => !done).map(([id]) => id)));
+      setReadings(Object.fromEntries(rows));
+      setPicked(new Set(rows.filter(([, n]) => !n).map(([id]) => id)));
     });
     return () => {
       live = false;
     };
   }, [list, narrator.id]);
+
+  // Stopped when the page is left.
+  useEffect(() => () => player.current?.pause(), []);
+
+  /** Plays a text's kept reading here, or stops it. The element is made and started inside the tap, as iOS wants. */
+  function listen(id: string) {
+    const n = readings[id];
+    player.current?.pause();
+    if (playing === id || !n) {
+      setPlaying(null);
+      return;
+    }
+    const a = new Audio();
+    player.current = a;
+    a.onended = () => setPlaying((p) => (p === id ? null : p));
+    void a.play().catch(() => undefined);
+    setPlaying(id);
+    narrationAudio(n).then(
+      (url) => {
+        if (player.current !== a) return;
+        a.src = url;
+        void a.play().catch(() => undefined);
+      },
+      (err: Error) => {
+        setError(err.message);
+        setPlaying(null);
+      },
+    );
+  }
 
   async function run() {
     setMessage(null);
@@ -532,8 +565,8 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
     try {
       for (const t of chosen) {
         setRunning(t.id);
-        await narrationOf(narrator.id, linesOf(t), again ? { again: true } : { generate: true });
-        setRead((r) => ({ ...r, [t.id]: true }));
+        const n = await narrationOf(narrator.id, linesOf(t), again ? { again: true } : { generate: true });
+        setReadings((r) => ({ ...r, [t.id]: n }));
         setPicked((p) => {
           const n = new Set(p);
           n.delete(t.id);
@@ -588,7 +621,7 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
           {list.map((t) => {
             const done = read[t.id];
             return (
-              <li key={t.id}>
+              <li key={t.id} className="narrator-text-row">
                 <label className="narrator-text">
                   <input type="checkbox" checked={picked.has(t.id)} onChange={() => toggle(t.id)} disabled={running !== null} />
                   <span className="grow hanzi">{t.titleZh || t.title}</span>
@@ -596,6 +629,15 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
                     {running === t.id ? 'Reading…' : done === undefined ? '…' : done ? 'Read' : 'Not read yet'}
                   </span>
                 </label>
+                {/* Always there, so the rows do not shift as the readings are found. */}
+                <button
+                  className="icon-btn narrator-listen"
+                  onClick={() => listen(t.id)}
+                  disabled={!done}
+                  aria-label={playing === t.id ? `Stop ${t.titleZh || t.title}` : `Listen to ${t.titleZh || t.title}`}
+                >
+                  <Icon name={playing === t.id ? 'pause' : 'play'} size={18} />
+                </button>
               </li>
             );
           })}
