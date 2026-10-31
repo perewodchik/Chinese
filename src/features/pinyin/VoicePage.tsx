@@ -34,8 +34,8 @@ export function VoicePage() {
   return (
     <section className="pinyin voice-page">
       <div className="row" style={{ marginBottom: 18 }}>
-        <Link className="btn ghost sm" to={paths.speaking()}>
-          ← Speaking
+        <Link className="btn ghost sm" to={paths.speakingTones()}>
+          ← Tones and sounds
         </Link>
       </div>
       <h1 style={{ margin: 0 }}>Your voice</h1>

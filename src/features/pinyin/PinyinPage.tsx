@@ -6,7 +6,6 @@ import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { ConversationBlock } from './PartnerPicker';
-import { usePinyinMemory } from './voice';
 import './pinyin.css';
 
 /**
@@ -16,7 +15,6 @@ import './pinyin.css';
  */
 export function PinyinPage() {
   useTitle('Speaking');
-  const memory = usePinyinMemory();
   const { hash } = useLocation();
 
   // Arriving from the conversation's "hear them first": the partners are
@@ -34,28 +32,10 @@ export function PinyinPage() {
             The voices that read your texts, talking with Claude, and your own tones.
           </p>
         </div>
-        <div className="spacer" />
-        <Link className="btn sm" to={paths.speakingVoice()}>
-          {memory.range ? 'Your voice' : 'Set up your voice'}
-        </Link>
       </div>
 
       <VoicesBlock />
 
-      {!memory.range && (
-        <Link className="voice-invite" to={paths.speakingVoice()}>
-          <span className="voice-invite-mark hanzi" aria-hidden>
-            声
-          </span>
-          <span>
-            <b>First, twenty seconds to measure your voice.</b>
-            <span className="small muted">
-              Say mā má mǎ mà once. Everyone's high and low are different, and the tones are judged against yours.
-            </span>
-          </span>
-          <span className="go">Start →</span>
-        </Link>
-      )}
 
       <ConversationBlock />
 

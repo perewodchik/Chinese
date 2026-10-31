@@ -52,7 +52,26 @@ export function TonesPage() {
       </Link>
       <div className="page-head">
         <h1>Tones and sounds</h1>
+        <span className="spacer" />
+        <Link className="btn sm" to={paths.speakingVoice()}>
+          {memory.range ? 'Your voice' : 'Set up your voice'}
+        </Link>
       </div>
+
+      {!memory.range && (
+        <Link className="voice-invite" to={paths.speakingVoice()}>
+          <span className="voice-invite-mark hanzi" aria-hidden>
+            声
+          </span>
+          <span>
+            <b>First, twenty seconds to measure your voice.</b>
+            <span className="small muted">
+              Say mā má mǎ mà once. Everyone's high and low are different, and the tones are judged against yours.
+            </span>
+          </span>
+          <span className="go">Start →</span>
+        </Link>
+      )}
 
       <WeakSpotsCard />
 
