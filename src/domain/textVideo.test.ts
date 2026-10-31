@@ -52,6 +52,18 @@ describe('a text as a video', () => {
     assert.equal(m.progress, 0.5);
   });
 
+  it('says the questions and their answers in the narrator\'s voice when they were read', () => {
+    const asked = { timings: [[0, 3000], [3500, 4500]] as Array<[number, number]>, durationMs: 5000 };
+    const withA = { ...text, questions: [{ zh: '谁？', py: '', en: '', a: '小智。' }] };
+    const plan = videoPlan(withA, reading, DEFAULT_LOOK, {}, asked);
+    const q = plan.steps.find((s) => s.kind === 'question')!;
+    const a = plan.steps.find((s) => s.kind === 'answer')!;
+    assert.deepEqual([q.kind === 'question' && q.said, q.dur], [{ from: 0, to: 3400 }, 3900 + 5000]);
+    assert.deepEqual([a.kind === 'answer' && a.said, a.dur], [{ from: 3500, to: 4900 }, 3000]);
+    // Not asked to: the questions are silent, as before.
+    assert.equal(videoPlan(withA, reading, { ...DEFAULT_LOOK, voiceQuestions: false }, {}, asked).steps.find((s) => s.kind === 'question')!.dur, 7500);
+  });
+
   it('breaks a long line at its commas, never leaving a scrap', () => {
     assert.deepEqual(breakAtCommas('小智饿了，皮卡丘也饿了。'), ['小智饿了，', '皮卡丘也饿了。']);
     assert.deepEqual(breakAtCommas('好吧，我们有吃的了！'), ['好吧，我们有吃的了！']);

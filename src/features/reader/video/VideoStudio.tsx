@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { narrationAudio, narrationBlob } from '../../../api/narration';
+import { narrationAudio, narrationBlob, narrationOf } from '../../../api/narration';
+import type { TextNarrationDto } from '../../../../shared/narration';
 import { pictureUrl } from '../../../api/pictures';
-import { DEFAULT_LOOK, lookOf, mmss, momentAt, videoPlan, type VideoLook } from '../../../domain/textVideo';
+import { DEFAULT_LOOK, lookOf, mmss, momentAt, questionLines, videoPlan, type VideoLook } from '../../../domain/textVideo';
 import type { GeneratedText } from '../../../domain/text';
 import { useStore } from '../../../store/store';
 import { Icon } from '../../../ui/Icon';
@@ -79,7 +80,37 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   }, []);
 
   const reading = readings?.find((r) => r.n.narratorId === narratorId) ?? readings?.[0] ?? null;
-  const plan = useMemo(() => (reading ? videoPlan(text, reading.n, look, own) : null), [text, reading, look, own]);
+  // The narrator's reading of the questions and answers: undefined while it is looked for, null when there is none yet.
+  const asking = useMemo(() => questionLines(text.questions).lines, [text.questions]);
+  const [asked, setAsked] = useState<TextNarrationDto | null | undefined>(undefined);
+  const [askedUrl, setAskedUrl] = useState<string | null>(null);
+  const [askingNow, setAskingNow] = useState(false);
+  useEffect(() => {
+    if (!reading || !asking.length) {
+      setAsked(null);
+      return;
+    }
+    let live = true;
+    setAsked(undefined);
+    narrationOf(reading.n.narratorId, asking).then(
+      (n) => live && setAsked(n),
+      () => live && setAsked(null),
+    );
+    return () => {
+      live = false;
+    };
+  }, [reading, asking]);
+  useEffect(() => {
+    if (!asked) return setAskedUrl(null);
+    let live = true;
+    narrationAudio(asked).then((u) => live && setAskedUrl(u), () => undefined);
+    return () => {
+      live = false;
+    };
+  }, [asked]);
+
+  const planWith = (a: TextNarrationDto | null | undefined) => (reading ? videoPlan(text, reading.n, look, own, a ?? null) : null);
+  const plan = useMemo(() => planWith(asked), [text, reading, look, own, asked]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const changeOwn = (patch: Partial<Own>) =>
     setOwn((o) => {
@@ -195,27 +226,44 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   async function start(record: boolean) {
     if (!plan || !reading || !audioUrl || !canvas.current) return;
     setError(null);
+    let use = plan;
+    let askedNow = asked;
+    // The questions said by the narrator: read once, the first time a video asks for them.
+    if (record && fast && look.questions && look.voiceQuestions && asking.length && asked === null) {
+      setAskingNow(true);
+      try {
+        askedNow = await narrationOf(reading.n.narratorId, asking, { generate: true });
+        setAsked(askedNow);
+        use = planWith(askedNow) ?? plan;
+      } catch (err) {
+        setError(`The questions could not be read: ${err instanceof Error ? err.message : 'MiniMax did not answer'}. The video is made with them silent.`);
+      } finally {
+        setAskingNow(false);
+      }
+    }
     const r = record && fast
       ? renderFast({
           canvas: canvas.current,
-          plan,
+          plan: use,
           audio: await narrationBlob(reading.n),
+          asked: askedNow && use.steps.some((s) => (s.kind === 'question' || s.kind === 'answer') && s.said) ? await narrationBlob(askedNow) : null,
           draw: (time) => {
             const c = ctx();
-            if (c) drawFrame(c, { text, book, plan, moment: momentAt(plan, time, reading.n.timings), look, pictures, lib });
+            if (c) drawFrame(c, { text, book, plan: use, moment: momentAt(use, time, reading.n.timings), look, pictures, lib });
           },
           onTime: setT,
         })
       : run({
       canvas: canvas.current,
-      plan,
+      plan: use,
       timings: reading.n.timings,
       audioUrl,
+      askedUrl,
       record,
-      from: record ? 0 : t >= plan.duration - 50 ? 0 : t,
+      from: record ? 0 : t >= use.duration - 50 ? 0 : t,
       draw: (m) => {
         const c = ctx();
-        if (c) drawFrame(c, { text, book, plan, moment: m, look, pictures, lib });
+        if (c) drawFrame(c, { text, book, plan: use, moment: m, look, pictures, lib });
       },
       onTime: setT,
     });
@@ -228,7 +276,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
       (blobs) => {
         running.current = null;
         if (blobs?.length && blobs.every((b) => b.size)) {
-          const made: KeptVideo = { textId: text.id, parts: blobs, duration: plan.duration, narrator: reading.name, at: Date.now() };
+          const made: KeptVideo = { textId: text.id, parts: blobs, duration: use.duration, narrator: reading.name, at: Date.now() };
           void keepVideo(made);
           setVideo(withUrls(made));
           setShown(0);
@@ -356,6 +404,13 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
                       />
                     </>
                   )}
+                  {askingNow && (
+                    <div className="vs-loader" role="status">
+                      <span className="vs-spinner" aria-hidden />
+                      <b>The narrator is reading the questions</b>
+                      <span className="small muted">Once, up to a minute; kept for every video after</span>
+                    </div>
+                  )}
                   {mode === 'making' && plan && (
                     // Made out of sight: a loader over the canvas the frames are drawn on.
                     <div className="vs-loader" role="status">
@@ -461,6 +516,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
                 safe={safe}
                 setSafe={setSafe}
                 hasQuestions={text.questions.length > 0}
+                questionsRead={Boolean(asked)}
                 own={own}
                 changeOwn={changeOwn}
                 covers={plan ? [...new Set(plan.pictureOf)].map((key) => ({ key, para: plan.pictureOf.indexOf(key) })).filter((c): c is { key: string; para: number } => Boolean(c.key)) : []}
@@ -557,6 +613,7 @@ function Settings({
   safe,
   setSafe,
   hasQuestions,
+  questionsRead,
   own,
   changeOwn,
   covers,
@@ -569,6 +626,7 @@ function Settings({
   safe: boolean;
   setSafe: (v: boolean) => void;
   hasQuestions: boolean;
+  questionsRead: boolean;
   own: Own;
   changeOwn: (p: Partial<Own>) => void;
   covers: Array<{ key: string; para: number }>;
@@ -728,6 +786,14 @@ function Settings({
         <Row title="Questions at the end" note={hasQuestions ? 'Each shown, then time to answer aloud, then the answer' : 'This text has none'}>
           <Switch label="Questions at the end" on={look.questions && hasQuestions} onChange={(v) => change({ questions: v })} disabled={disabled || !hasQuestions} />
         </Row>
+        {look.questions && hasQuestions && (
+          <Row
+            title="Said by the narrator"
+            note={questionsRead ? 'The questions and answers, read once and kept' : 'Read once by MiniMax when the video is first made, then kept'}
+          >
+            <Switch label="Said by the narrator" on={look.voiceQuestions} onChange={(v) => change({ voiceQuestions: v })} disabled={disabled} />
+          </Row>
+        )}
         {look.questions && hasQuestions && (
           <Row title="Time to answer">
             <Seg

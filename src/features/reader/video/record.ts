@@ -35,6 +35,8 @@ export function run(o: {
   plan: VideoPlan;
   timings: Array<[number, number]>;
   audioUrl: string;
+  /** the questions' reading, when the plan says them */
+  askedUrl?: string | null;
   draw: (m: VideoMoment) => void;
   record: boolean;
   /** where to start, ms into the video */
@@ -43,6 +45,9 @@ export function run(o: {
 }): Run {
   const audio = new Audio(o.audioUrl);
   audio.preload = 'auto';
+  const asked = o.askedUrl ? new Audio(o.askedUrl) : null;
+  if (asked) asked.preload = 'auto';
+  let askedTo = Infinity;
   let stopped = false;
   let finish: (b: Blob[] | null) => void = () => undefined;
   const done = new Promise<Blob[] | null>((r) => (finish = r));
@@ -80,12 +85,14 @@ export function run(o: {
     const source = ac.createMediaElementSource(audio);
     const dest = ac.createMediaStreamDestination();
     source.connect(dest);
+    if (asked) ac.createMediaElementSource(asked).connect(dest);
     // Not to the speakers: it is made quietly, to be watched once it is saved.
     const video = o.canvas.captureStream(30);
     tracks = [...video.getVideoTracks(), ...dest.stream.getAudioTracks()];
     stream = new MediaStream(tracks);
   }
   // Unlocked inside the tap; played for real when the first paragraph comes.
+  if (asked) void asked.play().then(() => asked.pause(), () => undefined);
   void audio.play().then(
     () => {
       if (!playingAudio) audio.pause();
@@ -106,6 +113,7 @@ export function run(o: {
     over = true;
     cancelAnimationFrame(frame);
     audio.pause();
+    asked?.pause();
     playingAudio = false;
     if (recorder && recorder.state !== 'inactive') recorder.stop();
     settle();
@@ -146,6 +154,12 @@ export function run(o: {
         next();
       }
     } else {
+      if (!entered && (step.kind === 'question' || step.kind === 'answer') && step.said && asked) {
+        asked.currentTime = step.said.from / 1000;
+        askedTo = step.said.to;
+        void asked.play().catch(() => undefined);
+      }
+      if (asked && !asked.paused && asked.currentTime * 1000 >= askedTo) asked.pause();
       entered = true;
       const into = performance.now() - enteredAt;
       t = step.at + Math.min(into, step.dur);

@@ -71,6 +71,8 @@ export function renderFast(o: {
   plan: VideoPlan;
   /** the narrator's reading, the file itself */
   audio: Blob;
+  /** the narrator's reading of the questions and answers, when the plan says them */
+  asked?: Blob | null;
   /** draws the moment at t (ms into the video) on the canvas */
   draw: (t: number) => void;
   onTime?: (t: number) => void;
@@ -79,6 +81,7 @@ export function renderFast(o: {
   const done = (async () => {
     const bytes = await o.audio.arrayBuffer();
     const reading = await new OfflineAudioContext(1, 1, RATE).decodeAudioData(bytes);
+    const asked = o.asked ? await new OfflineAudioContext(1, 1, RATE).decodeAudioData(await o.asked.arrayBuffer()) : null;
     const channels = Math.min(2, reading.numberOfChannels);
     const vc = await videoConfig();
     const ac = await audioConfig(channels);
@@ -86,7 +89,7 @@ export function renderFast(o: {
     const out: Blob[] = [];
     for (const part of o.plan.parts) {
       if (stopped) return null;
-      out.push(await renderPart(part, reading, channels, vc, ac));
+      out.push(await renderPart(part, reading, asked, channels, vc, ac));
     }
     return stopped ? null : out;
   })();
@@ -94,6 +97,7 @@ export function renderFast(o: {
   async function renderPart(
     part: { at: number; dur: number },
     reading: AudioBuffer,
+    asked: AudioBuffer | null,
     channels: number,
     vc: { config: VideoEncoderConfig; codec: 'avc' | 'vp9' },
     ac: { config: AudioEncoderConfig; codec: 'aac' | 'opus' },
@@ -115,18 +119,21 @@ export function renderFast(o: {
     const length = Math.max(1, Math.ceil((part.dur / 1000) * RATE));
     const mix = new OfflineAudioContext(channels, length, RATE);
     for (const s of o.plan.steps) {
-      if (s.kind !== 'para' || s.at < part.at || s.at >= part.at + part.dur || s.to <= s.from) continue;
-      const when = (s.at - part.at) / 1000;
-      const dur = (s.to - s.from) / 1000;
+      if (s.at < part.at || s.at >= part.at + part.dur) continue;
+      // A paragraph's stretch of the reading, or a question's or answer's of the questions' reading.
+      const said = s.kind === 'para' ? { from: s.from, to: s.to, buffer: reading } : (s.kind === 'question' || s.kind === 'answer') && s.said && asked ? { ...s.said, buffer: asked } : null;
+      if (!said || said.to <= said.from) continue;
+      const when = (s.at - part.at) / 1000 + (s.kind === 'para' ? 0 : 0.25);
+      const dur = (said.to - said.from) / 1000;
       const src = mix.createBufferSource();
-      src.buffer = reading;
+      src.buffer = said.buffer;
       const gain = mix.createGain();
       gain.gain.setValueAtTime(0, when);
       gain.gain.linearRampToValueAtTime(1, when + 0.02);
       gain.gain.setValueAtTime(1, Math.max(when + 0.02, when + dur - 0.06));
       gain.gain.linearRampToValueAtTime(0, when + dur);
       src.connect(gain).connect(mix.destination);
-      src.start(when, s.from / 1000, dur);
+      src.start(when, said.from / 1000, dur);
     }
     const sound = await mix.startRendering();
 

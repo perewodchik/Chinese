@@ -1,5 +1,5 @@
 import { paragraphs } from './reading';
-import type { GeneratedText } from './text';
+import type { GeneratedText, TextLine } from './text';
 
 /**
  * A text as a video: its pictures one a paragraph, the narrator's reading of
@@ -43,6 +43,8 @@ export interface VideoLook {
   /** quiet after each paragraph, ms */
   pause: 0 | 1000 | 2000;
   questions: boolean;
+  /** the questions and answers said by the narrator too (one more reading, made once) */
+  voiceQuestions: boolean;
   /** time to answer each question, ms */
   think: 3000 | 5000 | 8000;
 }
@@ -66,6 +68,7 @@ export const DEFAULT_LOOK: VideoLook = {
   parts: false,
   pause: 1000,
   questions: true,
+  voiceQuestions: true,
   think: 5000,
 };
 
@@ -98,8 +101,26 @@ export type VideoStep =
   | { kind: 'para'; at: number; dur: number; para: number; from: number; to: number }
   /** quiet after a paragraph, its last line still up */
   | { kind: 'pause'; at: number; dur: number; para: number }
-  | { kind: 'question'; at: number; dur: number; q: number }
-  | { kind: 'answer'; at: number; dur: number; q: number };
+  /** a question; `said` is its stretch of the questions' reading, when they were read */
+  | { kind: 'question'; at: number; dur: number; q: number; said?: Said }
+  | { kind: 'answer'; at: number; dur: number; q: number; said?: Said };
+
+/** A stretch of the questions' reading, ms. */
+export interface Said {
+  from: number;
+  to: number;
+}
+
+/** What the narrator reads for the questions: each question, then its answer when it has one. */
+export function questionLines(questions: Array<Pick<TextLine, 'zh' | 'a'>>): { lines: string[]; at: Array<{ q: number; a: number | null }> } {
+  const lines: string[] = [];
+  const at = questions.map((q) => {
+    const qi = lines.push(q.zh.trim()) - 1;
+    const answer = q.a?.trim();
+    return { q: qi, a: answer ? lines.push(answer) - 1 : null };
+  });
+  return { lines, at };
+}
 
 /** A step before it is put on the clock. */
 type StepWithoutTime = VideoStep extends infer S ? (S extends unknown ? Omit<S, 'at'> : never) : never;
@@ -133,6 +154,8 @@ export function videoPlan(
   look: VideoLook,
   /** the opening question as the learner wrote it, and the paragraph whose picture is the cover */
   own: { hook?: string; cover?: number } = {},
+  /** the narrator's reading of `questionLines`, when there is one */
+  asked: { timings: Array<[number, number]>; durationMs: number } | null = null,
 ): VideoPlan {
   const paras = paragraphs(text);
   const hook = look.hook ? own.hook?.trim() || null : null;
@@ -161,9 +184,21 @@ export function videoPlan(
     if (look.pause && next) push({ kind: 'pause', dur: look.pause, para: p });
   });
   if (look.questions) {
+    const { at: where } = questionLines(text.questions);
+    // A line of the questions' reading, to just before the next one starts, or the end.
+    const said = (i: number | null): Said | undefined => {
+      if (!asked || !look.voiceQuestions || i === null) return undefined;
+      const t = asked.timings[i];
+      if (!t) return undefined;
+      const next = asked.timings[i + 1]?.[0];
+      return { from: t[0], to: Math.min(next ?? asked.durationMs, t[1] + 400, asked.durationMs) };
+    };
     text.questions.forEach((_, q) => {
-      push({ kind: 'question', dur: ASK_MS + look.think, q });
-      push({ kind: 'answer', dur: ANSWER_MS, q });
+      const ask = said(where[q]!.q);
+      const answer = said(where[q]!.a);
+      const askMs = ask ? Math.max(ASK_MS, ask.to - ask.from + 500) : ASK_MS;
+      push({ kind: 'question', dur: askMs + look.think, q, ...(ask ? { said: ask } : {}) });
+      push({ kind: 'answer', dur: answer ? Math.max(ANSWER_MS, answer.to - answer.from + 900) : ANSWER_MS, q, ...(answer ? { said: answer } : {}) });
     });
   }
   let last: string | null = null;
