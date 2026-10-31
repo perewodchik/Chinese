@@ -69,14 +69,15 @@ export interface Render {
 export function renderFast(o: {
   canvas: HTMLCanvasElement;
   plan: VideoPlan;
-  audioUrl: string;
+  /** the narrator's reading, the file itself */
+  audio: Blob;
   /** draws the moment at t (ms into the video) on the canvas */
   draw: (t: number) => void;
   onTime?: (t: number) => void;
 }): Render {
   let stopped = false;
   const done = (async () => {
-    const bytes = await (await fetch(o.audioUrl)).arrayBuffer();
+    const bytes = await o.audio.arrayBuffer();
     const reading = await new OfflineAudioContext(1, 1, RATE).decodeAudioData(bytes);
     const channels = Math.min(2, reading.numberOfChannels);
     const vc = await videoConfig();

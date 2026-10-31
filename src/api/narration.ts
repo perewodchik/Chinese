@@ -62,18 +62,34 @@ export const changeOwnText = (id: string, change: { title?: string; textId?: str
   request<{ text: OwnTextDto }>('PATCH', `/api/narration/own/${encodeURIComponent(id)}`, { body: change }).then((r) => r.text);
 export const removeOwnText = (id: string) => request<{ ok: true }>('DELETE', `/api/narration/own/${encodeURIComponent(id)}`);
 
+const audioBlobs = new Map<string, Promise<Blob>>();
 const audioUrls = new Map<string, Promise<string>>();
-/** A kept reading's audio as an object URL, fetched once a page: a blob seeks in every browser, Safari too. */
+
+/**
+ * A kept reading's audio itself, fetched once a page. The page's own copy is
+ * handed on as it is: fetching its object URL again is a request the page's
+ * connect-src does not allow (Safari: "Load failed").
+ */
+export function narrationBlob(n: TextNarrationDto): Promise<Blob> {
+  const id = `${n.key}:${n.createdAt}`;
+  let p = audioBlobs.get(id);
+  if (!p) {
+    p = fetch(`/api/narration/texts/${n.key}/audio?v=${n.createdAt}`, { credentials: 'same-origin' }).then((r) => {
+      if (!r.ok) throw new Error('The reading could not be fetched.');
+      return r.blob();
+    });
+    p.catch(() => audioBlobs.delete(id));
+    audioBlobs.set(id, p);
+  }
+  return p;
+}
+
+/** A kept reading's audio as an object URL: a blob seeks in every browser, Safari too. */
 export function narrationAudio(n: TextNarrationDto): Promise<string> {
   const id = `${n.key}:${n.createdAt}`;
   let p = audioUrls.get(id);
   if (!p) {
-    p = fetch(`/api/narration/texts/${n.key}/audio?v=${n.createdAt}`, { credentials: 'same-origin' })
-      .then((r) => {
-        if (!r.ok) throw new Error('The reading could not be fetched.');
-        return r.blob();
-      })
-      .then((b) => URL.createObjectURL(b));
+    p = narrationBlob(n).then((b) => URL.createObjectURL(b));
     p.catch(() => audioUrls.delete(id));
     audioUrls.set(id, p);
   }

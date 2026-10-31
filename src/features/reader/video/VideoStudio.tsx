@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { narrationAudio } from '../../../api/narration';
+import { narrationAudio, narrationBlob } from '../../../api/narration';
 import { pictureUrl } from '../../../api/pictures';
 import { DEFAULT_LOOK, lookOf, mmss, momentAt, videoPlan, type VideoLook } from '../../../domain/textVideo';
 import type { GeneratedText } from '../../../domain/text';
@@ -191,14 +191,14 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   );
   useEffect(() => () => video?.urls.forEach((u) => URL.revokeObjectURL(u)), [video]);
 
-  function start(record: boolean) {
+  async function start(record: boolean) {
     if (!plan || !reading || !audioUrl || !canvas.current) return;
     setError(null);
     const r = record && fast
       ? renderFast({
           canvas: canvas.current,
           plan,
-          audioUrl,
+          audio: await narrationBlob(reading.n),
           draw: (time) => {
             const c = ctx();
             if (c) drawFrame(c, { text, book, plan, moment: momentAt(plan, time, reading.n.timings), look, pictures, lib });
@@ -375,7 +375,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
                       </button>
                     </div>
                   ) : (
-                    <button className="rd-play" onClick={() => (mode === 'playing' ? stop() : start(false))} disabled={!audioUrl} aria-label={mode === 'playing' ? 'Pause' : 'Play the preview'}>
+                    <button className="rd-play" onClick={() => (mode === 'playing' ? stop() : void start(false))} disabled={!audioUrl} aria-label={mode === 'playing' ? 'Pause' : 'Play the preview'}>
                       <Icon name={mode === 'playing' ? 'pause' : 'play'} size={22} />
                     </button>
                   )}
@@ -456,7 +456,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
 
         {mode !== 'done' && (
           <footer className="vs-foot">
-            <button className="btn primary lg" onClick={() => start(true)} disabled={!plan || !audioUrl || busy || fast === null || (!fast && !canRecord())}>
+            <button className="btn primary lg" onClick={() => void start(true)} disabled={!plan || !audioUrl || busy || fast === null || (!fast && !canRecord())}>
               {mode === 'making' ? 'Making…' : 'Make the video'}
             </button>
             <span className="tiny muted">
