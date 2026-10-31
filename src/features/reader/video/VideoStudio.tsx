@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { narrationAudio, narrationBlob, narrationOf } from '../../../api/narration';
+import { narrationBlob, narrationOf } from '../../../api/narration';
 import type { TextNarrationDto } from '../../../../shared/narration';
 import { pictureUrl } from '../../../api/pictures';
 import { DEFAULT_LOOK, lookOf, mmss, momentAt, questionLines, videoPlan, type VideoLook } from '../../../domain/textVideo';
@@ -10,9 +10,8 @@ import { useLibrary } from '../../shared/library';
 import { narratedReadings, type Narrated } from '../narratedClips';
 import { drawFrame, geometry } from './draw';
 import { forgetVideo, keepVideo, keptVideo, type KeptVideo } from './kept';
-import { canRecord, run, type Run } from './record';
+import { canRecord, decodeReading, run, type Run } from './record';
 import { makeThumbnail } from './thumbnail';
-import { renderFast, SilentVideo, type Render } from './render';
 import './video.css';
 
 const KEPT = 'hanzi.video.look';
@@ -61,7 +60,6 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   const [look, setLook] = useState<VideoLook>(keptLook);
   const [readings, setReadings] = useState<Narrated[] | null>(null);
   const [narratorId, setNarratorId] = useState<string | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [pictures, setPictures] = useState<Map<string, HTMLImageElement>>(new Map());
   // Bumped as each picture and the fonts arrive, so the preview is drawn again.
   const [, setReady] = useState(0);
@@ -74,18 +72,15 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   const [thumb, setThumb] = useState<{ url: string; blob: Blob } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [safe, setSafe] = useState(true);
-  const running = useRef<Run | Render | null>(null);
-  // Whether this browser makes the video in seconds (WebCodecs) or as it plays.
-  const [fast, setFast] = useState<boolean | null>(null);
-  // Made as it plays, recorded, as it was first made: the quick making (WebCodecs)
-  // came out silent on an iPhone. It stays in render.ts, off, until it is proven there.
-  useEffect(() => setFast(false), []);
+  const running = useRef<Run | null>(null);
 
   const reading = readings?.find((r) => r.n.narratorId === narratorId) ?? readings?.[0] ?? null;
   // The narrator's reading of the questions and answers: undefined while it is looked for, null when there is none yet.
   const asking = useMemo(() => questionLines(text.questions).lines, [text.questions]);
   const [asked, setAsked] = useState<TextNarrationDto | null | undefined>(undefined);
   const [askingNow, setAskingNow] = useState(false);
+  // The readings decoded before any tap, so a tap starts the video at once (iOS lets sound begin only there).
+  const [sound, setSound] = useState<{ reading: AudioBuffer; asked: AudioBuffer | null } | null>(null);
   useEffect(() => {
     if (!reading || !asking.length) {
       setAsked(null);
@@ -105,7 +100,39 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   const planWith = (a: TextNarrationDto | null | undefined) => (reading ? videoPlan(text, reading.n, look, own, a ?? null) : null);
   const g = geometry(look.shape);
   // Recorded as it plays, the video carries the reading alone: the questions are shown silent, and there is no music.
-  const plan = useMemo(() => planWith(fast ? asked : null), [text, reading, look, own, asked, fast]); // eslint-disable-line react-hooks/exhaustive-deps
+  const plan = useMemo(() => planWith(asked), [text, reading, look, own, asked]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!reading) return;
+    let live = true;
+    setSound(null);
+    void (async () => {
+      try {
+        const r = await decodeReading(await narrationBlob(reading.n));
+        const a = asked ? await decodeReading(await narrationBlob(asked)) : null;
+        if (live) setSound({ reading: r, asked: a });
+      } catch (err) {
+        if (live) setError(err instanceof Error ? err.message : 'The reading could not be loaded.');
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [reading, asked]);
+
+  /** The questions read by the narrator, once, asked for with a tap; kept for every video after. */
+  async function readQuestions() {
+    if (!reading || !asking.length) return;
+    setAskingNow(true);
+    setError(null);
+    try {
+      setAsked(await narrationOf(reading.n.narratorId, asking, { generate: true }));
+    } catch (err) {
+      setError(`The questions could not be read: ${err instanceof Error ? err.message : 'MiniMax did not answer'}.`);
+    } finally {
+      setAskingNow(false);
+    }
+  }
 
   const changeOwn = (patch: Partial<Own>) =>
     setOwn((o) => {
@@ -157,19 +184,6 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
     };
   }, [text.lines]);
 
-  useEffect(() => {
-    if (!reading) return;
-    let live = true;
-    setAudioUrl(null);
-    narrationAudio(reading.n).then(
-      (u) => live && setAudioUrl(u),
-      (err: Error) => live && setError(err.message),
-    );
-    return () => {
-      live = false;
-    };
-  }, [reading]);
-
   // The pictures and the fonts, before anything is drawn for real.
   useEffect(() => {
     const keys = [...new Set((text.pictures ?? []).map((p) => p.key).filter((k): k is string => Boolean(k)))];
@@ -218,42 +232,17 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   );
   useEffect(() => () => video?.urls.forEach((u) => URL.revokeObjectURL(u)), [video]);
 
-  async function start(record: boolean) {
-    if (!plan || !reading || !audioUrl || !canvas.current) return;
+  function start(record: boolean) {
+    if (!plan || !reading || !sound || !canvas.current) return;
     setError(null);
-    let use = plan;
-    let askedNow = asked;
-    // The questions said by the narrator: read once, the first time a video asks for them.
-    if (record && fast && look.questions && look.voiceQuestions && asking.length && asked === null) {
-      setAskingNow(true);
-      try {
-        askedNow = await narrationOf(reading.n.narratorId, asking, { generate: true });
-        setAsked(askedNow);
-        use = planWith(askedNow) ?? plan;
-      } catch (err) {
-        setError(`The questions could not be read: ${err instanceof Error ? err.message : 'MiniMax did not answer'}. The video is made with them silent.`);
-      } finally {
-        setAskingNow(false);
-      }
-    }
-    const r = record && fast
-      ? renderFast({
-          canvas: canvas.current,
-          plan: use,
-          audio: await narrationBlob(reading.n),
-          music: look.music,
-          asked: askedNow && use.steps.some((s) => (s.kind === 'question' || s.kind === 'answer') && s.said) ? await narrationBlob(askedNow) : null,
-          draw: (time) => {
-            const c = ctx();
-            if (c) drawFrame(c, { text, book, plan: use, moment: momentAt(use, time, reading.n.timings), look, pictures, lib });
-          },
-          onTime: setT,
-        })
-      : run({
+    const use = plan;
+    const r = run({
       canvas: canvas.current,
       plan: use,
       timings: reading.n.timings,
-      audioUrl,
+      reading: sound.reading,
+      asked: sound.asked,
+      music: record ? look.music : 'off',
       record,
       from: record ? 0 : t >= use.duration - 50 ? 0 : t,
       draw: (m) => {
@@ -281,11 +270,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
       },
       (err: Error) => {
         running.current = null;
-        if (err instanceof SilentVideo) {
-          // This device's quick making loses the sound: from now on it records as it plays, which keeps it.
-          setFast(false);
-          setError('This device made the video without sound, so it was not kept. Tap Make the video again: it will be recorded as it plays, with its sound — that takes as long as the video.');
-        } else setError(err.message);
+        setError(err.message);
         setMode('idle');
       },
     );
@@ -485,8 +470,8 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
                 <div className="vs-controls">
                   <button
                     className="rd-play"
-                    onClick={() => (mode === 'playing' ? stop() : void start(false))}
-                    disabled={!audioUrl || mode === 'making'}
+                    onClick={() => (mode === 'playing' ? stop() : start(false))}
+                    disabled={!sound || mode === 'making'}
                     aria-label={mode === 'playing' ? 'Pause' : 'Play the preview'}
                   >
                     <Icon name={mode === 'playing' ? 'pause' : 'play'} size={22} />
@@ -557,7 +542,9 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
                 setSafe={setSafe}
                 hasQuestions={text.questions.length > 0}
                 questionsRead={Boolean(asked)}
-                quick={Boolean(fast)}
+                quick
+                onReadQuestions={() => void readQuestions()}
+                readingQuestions={askingNow}
                 own={own}
                 changeOwn={changeOwn}
                 covers={plan ? [...new Set(plan.pictureOf)].map((key) => ({ key, para: plan.pictureOf.indexOf(key) })).filter((c): c is { key: string; para: number } => Boolean(c.key)) : []}
@@ -586,7 +573,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
 
         {mode !== 'done' && (
           <footer className="vs-foot">
-            <button className="btn primary lg" onClick={() => void start(true)} disabled={!plan || !audioUrl || busy || fast === null || (!fast && !canRecord())}>
+            <button className="btn primary lg" onClick={() => start(true)} disabled={!plan || !sound || busy || !canRecord()}>
               {mode === 'making' ? 'Making…' : 'Make the video'}
             </button>
           </footer>
@@ -647,6 +634,8 @@ function Settings({
   hasQuestions,
   questionsRead,
   quick,
+  onReadQuestions,
+  readingQuestions,
   own,
   changeOwn,
   covers,
@@ -662,6 +651,8 @@ function Settings({
   questionsRead: boolean;
   /** made quickly: the music and the questions' voice can go in; recorded as it plays, they cannot */
   quick: boolean;
+  onReadQuestions: () => void;
+  readingQuestions: boolean;
   own: Own;
   changeOwn: (p: Partial<Own>) => void;
   covers: Array<{ key: string; para: number }>;
@@ -884,10 +875,21 @@ function Settings({
         {quick && look.questions && hasQuestions && (
           <Row
             title="Said by the narrator"
-            note={questionsRead ? 'The questions and answers, read once and kept' : 'Read once by MiniMax when the video is first made, then kept'}
+            note={questionsRead ? 'The questions and answers, read once and kept' : 'Read once by MiniMax, then kept for every video'}
           >
             <Switch label="Said by the narrator" on={look.voiceQuestions} onChange={(v) => change({ voiceQuestions: v })} disabled={disabled} />
           </Row>
+        )}
+        {look.questions && hasQuestions && look.voiceQuestions && !questionsRead && (
+          <div className="vs-row">
+            <span className="vs-row-name">
+              Not read yet
+              <span className="tiny muted">Until then they are shown silent</span>
+            </span>
+            <button className="btn tonal sm" onClick={onReadQuestions} disabled={disabled || readingQuestions}>
+              {readingQuestions ? 'Reading…' : 'Read them now'}
+            </button>
+          </div>
         )}
         {look.questions && hasQuestions && (
           <Row title="Time to answer">
