@@ -32,6 +32,25 @@ describe('a text as a video', () => {
     assert.equal(momentAt(plan, 3100, reading.timings).line, 3);
   });
 
+  it('opens with the question asked, over the cover chosen', () => {
+    const plan = videoPlan(text, reading, DEFAULT_LOOK, { hook: ' 他饿了吗？ ', cover: 1 });
+    assert.deepEqual(plan.steps.slice(0, 2).map((s) => [s.kind, s.at]), [['hook', 0], ['title', 2200]]);
+    assert.equal(plan.hook, '他饿了吗？');
+    assert.equal(plan.cover, 'a'.repeat(64));
+    assert.equal(videoPlan(text, reading, DEFAULT_LOOK, { hook: '  ' }).steps[0]!.kind, 'title');
+  });
+
+  it('cuts a long video into parts of under a minute, at paragraphs and questions only', () => {
+    const long = { ...reading, timings: [[0, 900], [30_000, 31_000], [40_000, 41_000], [70_000, 71_000]] as Array<[number, number]>, durationMs: 90_000 };
+    const plan = videoPlan(text, long, { ...DEFAULT_LOOK, parts: true });
+    // title 2.5 s + ¶1 40 s + pause 1 s = 43.5 s; ¶2 is 50 s more, so it starts part 2; the questions fit after it? 50 + 10.5 > 59: a third part.
+    assert.deepEqual(plan.parts, [{ at: 0, dur: 43_500 }, { at: 43_500, dur: 50_000 }, { at: 93_500, dur: 10_500 }]);
+    const m = momentAt(plan, 43_500 + 25_000, long.timings);
+    assert.equal(m.part, 1);
+    assert.equal(m.of, 3);
+    assert.equal(m.progress, 0.5);
+  });
+
   it('breaks a long line at its commas, never leaving a scrap', () => {
     assert.deepEqual(breakAtCommas('小智饿了，皮卡丘也饿了。'), ['小智饿了，', '皮卡丘也饿了。']);
     assert.deepEqual(breakAtCommas('好吧，我们有吃的了！'), ['好吧，我们有吃的了！']);

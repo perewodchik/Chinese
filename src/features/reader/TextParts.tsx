@@ -9,7 +9,9 @@ import { useLibrary } from '../shared/library';
 import { AnswerBox } from './AnswerBox';
 import { CopyOut } from './CopyOut';
 import { Dictation, openDictation } from './Dictation';
+import { keptVideo, type KeptVideo } from './video/kept';
 import { VideoStudio } from './video/VideoStudio';
+import { mmss } from '../../domain/textVideo';
 import { NarrationPlayer } from './NarrationPlayer';
 import { Narrate } from './Narrate';
 import { addReading, narratedReadings, pickReading, prepareClips } from './narratedClips';
@@ -463,6 +465,16 @@ export function MorePart({ text, partId }: { text: GeneratedText; partId: string
   const [open, setOpen] = useState<'translate' | null>(null);
   const [dictating, setDictating] = useState(false);
   const [filming, setFilming] = useState(false);
+  const [film, setFilm] = useState<KeptVideo | null>(null);
+  // A video made of this text, kept on this device: the row says so.
+  useEffect(() => {
+    if (filming) return;
+    let live = true;
+    void keptVideo(text.id).then((v) => live && setFilm(v));
+    return () => {
+      live = false;
+    };
+  }, [text.id, filming]);
   useEffect(() => setOpen(null), [text.id]);
   // A narrator's reading, fetched before Dictation is opened, so its first
   // sentence can be said inside the tap that opens it.
@@ -526,7 +538,11 @@ export function MorePart({ text, partId }: { text: GeneratedText; partId: string
           </span>
           <span className="grow">
             <b>Video</b>
-            <span className="small muted">The text as an upright video: its pictures, the narrator, subtitles</span>
+            <span className="small muted">
+              {film
+                ? `A video, ${mmss(film.duration)}${film.parts.length > 1 ? ` in ${film.parts.length} parts` : ''}: watch it or make it again`
+                : 'The text as an upright video: its pictures, the narrator, subtitles'}
+            </span>
           </span>
           <Icon name="chevron" />
         </button>

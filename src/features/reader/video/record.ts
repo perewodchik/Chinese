@@ -1,4 +1,4 @@
-import { momentAt, type VideoMoment, type VideoPlan } from '../../../domain/textVideo';
+import { momentAt, partAt, type VideoMoment, type VideoPlan } from '../../../domain/textVideo';
 
 /**
  * Plays a text's video plan — and, when asked, records it — on this device.
@@ -12,12 +12,16 @@ import { momentAt, type VideoMoment, type VideoPlan } from '../../../domain/text
  * from the element through Web Audio, into a MediaRecorder — MP4 in Safari,
  * WebM elsewhere. It must start inside a tap: iOS lets a page make sound only
  * there, and the first tap is what unlocks the audio for the rest.
+ *
+ * A plan cut into parts is still played once, the reading going straight on;
+ * the recorder is only changed where a part begins, so each part is a video
+ * of its own.
  */
 
 export interface Run {
   stop(): void;
-  /** the recording when recording, once the plan has played to the end; null when stopped */
-  done: Promise<Blob | null>;
+  /** the recordings, a part each, once the plan has played to the end; null when stopped or not recording */
+  done: Promise<Blob[] | null>;
 }
 
 export const canRecord = () =>
@@ -40,13 +44,35 @@ export function run(o: {
   const audio = new Audio(o.audioUrl);
   audio.preload = 'auto';
   let stopped = false;
-  let finish: (b: Blob | null) => void = () => undefined;
-  const done = new Promise<Blob | null>((r) => (finish = r));
+  let finish: (b: Blob[] | null) => void = () => undefined;
+  const done = new Promise<Blob[] | null>((r) => (finish = r));
 
   let recorder: MediaRecorder | null = null;
   let ac: AudioContext | null = null;
-  const chunks: Blob[] = [];
   let tracks: MediaStreamTrack[] = [];
+  let stream: MediaStream | null = null;
+  const type = recordingType();
+  const blobs: Blob[] = [];
+  let recording = 0;
+  let over = false;
+  const settle = () => {
+    if (over && recording === 0) finish(stopped || !blobs.length ? null : blobs);
+  };
+  /** A recorder for the part beginning now. */
+  const record = (part: number) => {
+    if (!stream) return;
+    const chunks: Blob[] = [];
+    const r = new MediaRecorder(stream, { ...(type ? { mimeType: type } : {}), videoBitsPerSecond: 3_500_000 });
+    r.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    r.onstop = () => {
+      blobs[part] = new Blob(chunks, { type: r.mimeType || type || 'video/mp4' });
+      recording -= 1;
+      settle();
+    };
+    recording += 1;
+    r.start(1000);
+    recorder = r;
+  };
   if (o.record) {
     const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     ac = new AC();
@@ -57,10 +83,7 @@ export function run(o: {
     source.connect(ac.destination);
     const video = o.canvas.captureStream(30);
     tracks = [...video.getVideoTracks(), ...dest.stream.getAudioTracks()];
-    const type = recordingType();
-    recorder = new MediaRecorder(new MediaStream(tracks), { ...(type ? { mimeType: type } : {}), videoBitsPerSecond: 3_500_000 });
-    recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
-    recorder.onstop = () => finish(stopped ? null : new Blob(chunks, { type: recorder!.mimeType || type || 'video/mp4' }));
+    stream = new MediaStream(tracks);
   }
   // Unlocked inside the tap; played for real when the first paragraph comes.
   void audio.play().then(
@@ -76,8 +99,8 @@ export function run(o: {
   let entered = false;
   let playingAudio = false;
   let frame = 0;
+  let part = partAt(o.plan, o.from ?? 0);
 
-  let over = false;
   const end = () => {
     if (over) return;
     over = true;
@@ -85,9 +108,12 @@ export function run(o: {
     audio.pause();
     playingAudio = false;
     if (recorder && recorder.state !== 'inactive') recorder.stop();
-    else finish(null);
-    for (const t of tracks) t.stop();
-    void ac?.close();
+    settle();
+    // The tracks end once the last recorder has its data.
+    void done.finally(() => {
+      for (const t of tracks) t.stop();
+      void ac?.close();
+    });
   };
 
   const tick = () => {
@@ -127,6 +153,12 @@ export function run(o: {
     }
     const m = momentAt(o.plan, t, o.timings);
     o.draw(m);
+    if (o.record && m.part !== part) {
+      // A new part begins with this frame: the last part's video ends, the next one's starts.
+      part = m.part;
+      recorder?.stop();
+      record(part);
+    }
     o.onTime?.(t);
     frame = requestAnimationFrame(tick);
   };
@@ -144,7 +176,7 @@ export function run(o: {
 
   // The first frame is on the canvas before the recorder starts.
   o.draw(momentAt(o.plan, o.from ?? 0, o.timings));
-  recorder?.start(1000);
+  if (o.record) record(part);
   frame = requestAnimationFrame(tick);
 
   return {

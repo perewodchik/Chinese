@@ -304,9 +304,19 @@ export function drawFrame(ctx: CanvasRenderingContext2D, f: FrameInput) {
   const titleH = look.title === 'off' ? 0 : look.title === 'book' ? 150 : 112;
   const below = SAFE.top + titleH;
 
-  if (step.kind === 'title') {
-    const first = f.plan.pictureOf[0];
-    const img = first ? f.pictures.get(first) : undefined;
+  if (step.kind === 'hook') {
+    // The opening: the cover picture filling the screen, darkened, and the question over it.
+    const img = f.plan.cover ? f.pictures.get(f.plan.cover) : undefined;
+    if (img?.naturalWidth) {
+      cover(ctx, img, 0, 0, W, H, look.zoom ? 1.04 + (0.04 * moment.into) / step.dur : 1.04);
+      ctx.fillStyle = 'rgba(12, 15, 19, 0.45)';
+      ctx.fillRect(0, 0, W, H);
+    }
+    const ask = f.plan.hook ?? '';
+    const b = fitted(ctx, [{ zh: ask, py: pinyinOf(ask, f.lib) }], { look, zh: Math.round(zh * 1.45), maxW: TEXT_W, commas: true, lib: f.lib }, 700);
+    drawBlock(ctx, b, LEFT, SAFE.top + 260, { look, ink: img?.naturalWidth ? ON_PICTURE : ink, align: 'left', outline: Boolean(img?.naturalWidth) });
+  } else if (step.kind === 'title') {
+    const img = f.plan.cover ? f.pictures.get(f.plan.cover) : undefined;
     if (img?.naturalWidth) cover(ctx, img, 0, SAFE.top - 60, W, 760, look.zoom ? 1 + (0.04 * moment.into) / step.dur : 1);
     let y = SAFE.top + 760;
     if (f.book) {
@@ -376,7 +386,20 @@ export function drawFrame(ctx: CanvasRenderingContext2D, f: FrameInput) {
     }
   }
 
-  if (look.title !== 'off' && step.kind !== 'title') titleBand(ctx, f, over ? ON_PICTURE : ink, titleH, over);
+  if (look.title !== 'off' && step.kind !== 'title' && step.kind !== 'hook') titleBand(ctx, f, over ? ON_PICTURE : ink, titleH, over);
+
+  if (moment.of > 1) {
+    // Which part, in the corner under the title, clear of the buttons further down.
+    const label = `Part ${moment.part + 1} of ${moment.of}`;
+    ctx.font = pyFont(32);
+    const w = ctx.measureText(label).width + 36;
+    const y = step.kind === 'hook' || step.kind === 'title' || look.title === 'off' ? SAFE.top + 20 : below + 20;
+    ctx.fillStyle = 'rgba(20, 24, 29, 0.72)';
+    roundRect(ctx, W - 40 - w, y, w, 52, 16);
+    ctx.fill();
+    ctx.textAlign = 'center';
+    text(ctx, label, W - 40 - w / 2, y + 37, '#ffffff', 0);
+  }
 
   if (look.progress) {
     ctx.fillStyle = look.background === 'night' || over ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.1)';

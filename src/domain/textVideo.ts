@@ -36,6 +36,10 @@ export interface VideoLook {
   /** pictures fade into each other */
   fade: boolean;
   titleCard: boolean;
+  /** the first seconds: a question the text answers, over its cover picture */
+  hook: boolean;
+  /** cut into parts of under a minute, at paragraphs, for Shorts */
+  parts: boolean;
   /** quiet after each paragraph, ms */
   pause: 0 | 1000 | 2000;
   questions: boolean;
@@ -58,6 +62,8 @@ export const DEFAULT_LOOK: VideoLook = {
   zoom: true,
   fade: true,
   titleCard: true,
+  hook: true,
+  parts: false,
   pause: 1000,
   questions: true,
   think: 5000,
@@ -86,6 +92,7 @@ export function lookOf(raw: unknown): VideoLook {
 }
 
 export type VideoStep =
+  | { kind: 'hook'; at: number; dur: number }
   | { kind: 'title'; at: number; dur: number }
   /** a paragraph read: the reading from `from` to `to` (ms in the reading) */
   | { kind: 'para'; at: number; dur: number; para: number; from: number; to: number }
@@ -103,10 +110,20 @@ export interface VideoPlan {
   paras: number[][];
   /** the picture shown with each paragraph: its own, or the last one before it */
   pictureOf: Array<string | null>;
+  /** the picture of the opening and the title card */
+  cover: string | null;
+  /** the opening question, when there is one */
+  hook: string | null;
+  /** the parts it is cut into, on the whole video's clock; one when it is not cut */
+  parts: Array<{ at: number; dur: number }>;
   duration: number;
 }
 
+/** Shorts are a minute at most; a second kept in hand. */
+export const PART_MS = 59_000;
+
 const TITLE_MS = 2500;
+const HOOK_MS = 2200;
 const ASK_MS = 2500;
 const ANSWER_MS = 3000;
 
@@ -114,14 +131,18 @@ export function videoPlan(
   text: Pick<GeneratedText, 'lines' | 'genre' | 'questions' | 'pictures'>,
   reading: { timings: Array<[number, number]>; durationMs: number },
   look: VideoLook,
+  /** the opening question as the learner wrote it, and the paragraph whose picture is the cover */
+  own: { hook?: string; cover?: number } = {},
 ): VideoPlan {
   const paras = paragraphs(text);
+  const hook = look.hook ? own.hook?.trim() || null : null;
   const steps: VideoStep[] = [];
   let at = 0;
   const push = (s: StepWithoutTime) => {
     steps.push({ ...s, at } as VideoStep);
     at += s.dur;
   };
+  if (hook) push({ kind: 'hook', dur: HOOK_MS });
   if (look.titleCard) push({ kind: 'title', dur: TITLE_MS });
   paras.forEach((lines, p) => {
     // From where the paragraph's first line starts (the very start for the
@@ -145,8 +166,46 @@ export function videoPlan(
     last = own ?? last ?? first;
     return last;
   });
-  return { steps, paras, pictureOf, duration: at };
+  const cover = pictureOf[own.cover ?? 0] ?? first;
+  return { steps, paras, pictureOf, cover, hook, parts: look.parts ? partsOf(steps) : [{ at: 0, dur: at }], duration: at };
 }
+
+/**
+ * Where the video is cut into parts of under a minute: only before a
+ * paragraph (its pause goes with it) or before a question (its answer goes
+ * with it), so nothing is cut mid-sentence. A paragraph longer than a part on
+ * its own is a part on its own.
+ */
+function partsOf(steps: VideoStep[]): Array<{ at: number; dur: number }> {
+  const parts: Array<{ at: number; dur: number }> = [];
+  let start = 0;
+  let i = 0;
+  while (i < steps.length) {
+    // The unit: a paragraph and its pause, a question and its answer, or one step.
+    let j = i + 1;
+    if (steps[i]!.kind === 'para' && steps[j]?.kind === 'pause') j++;
+    if (steps[i]!.kind === 'question' && steps[j]?.kind === 'answer') j++;
+    const unitEnd = steps[j - 1]!.at + steps[j - 1]!.dur;
+    const startsUnit = steps[i]!.kind === 'para' || steps[i]!.kind === 'question';
+    if (startsUnit && steps[i]!.at > start && unitEnd - start > PART_MS) {
+      parts.push({ at: start, dur: steps[i]!.at - start });
+      start = steps[i]!.at;
+    }
+    i = j;
+  }
+  const end = steps.length ? steps[steps.length - 1]!.at + steps[steps.length - 1]!.dur : 0;
+  parts.push({ at: start, dur: end - start });
+  return parts;
+}
+
+/** Which part a moment of the video is in. */
+export const partAt = (plan: VideoPlan, t: number) => {
+  let n = 0;
+  plan.parts.forEach((p, i) => {
+    if (t >= p.at) n = i;
+  });
+  return n;
+};
 
 /** What is on screen at a moment of the video. */
 export interface VideoMoment {
@@ -155,8 +214,11 @@ export interface VideoMoment {
   into: number;
   /** the line being read, in a paragraph or its pause */
   line: number | null;
-  /** the whole video's progress, 0–1 */
+  /** progress through the part it is in (the whole video when it is not cut), 0–1 */
   progress: number;
+  /** which part, from 0, of how many */
+  part: number;
+  of: number;
 }
 
 export function momentAt(plan: VideoPlan, t: number, timings: Array<[number, number]>): VideoMoment {
@@ -173,7 +235,9 @@ export function momentAt(plan: VideoPlan, t: number, timings: Array<[number, num
   } else if (step.kind === 'pause') {
     line = plan.paras[step.para]!.at(-1)!;
   }
-  return { step, into, line, progress: plan.duration ? time / plan.duration : 0 };
+  const part = partAt(plan, time);
+  const span = plan.parts[part]!;
+  return { step, into, line, progress: span.dur ? (time - span.at) / span.dur : 0, part, of: plan.parts.length };
 }
 
 /** A line cut where its commas are, each piece keeping its comma. */

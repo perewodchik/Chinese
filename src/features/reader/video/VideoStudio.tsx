@@ -8,6 +8,7 @@ import { Icon } from '../../../ui/Icon';
 import { useLibrary } from '../../shared/library';
 import { narratedReadings, type Narrated } from '../narratedClips';
 import { drawFrame, H, SAFE, W } from './draw';
+import { forgetVideo, keepVideo, keptVideo, type KeptVideo } from './kept';
 import { canRecord, recordingType, run, type Run } from './record';
 import './video.css';
 
@@ -21,6 +22,25 @@ const keptLook = () => {
 };
 
 type Mode = 'idle' | 'playing' | 'making' | 'done';
+
+/** What is the text's own: its opening question, and whose picture is the cover. */
+interface Own {
+  hook: string;
+  cover: number;
+}
+const ownKey = (id: string) => `hanzi.video.own.${id}`;
+function keptOwn(text: GeneratedText): Own {
+  try {
+    const o = JSON.parse(localStorage.getItem(ownKey(text.id)) ?? 'null') as Partial<Own> | null;
+    if (o) return { hook: typeof o.hook === 'string' ? o.hook : '', cover: Number.isInteger(o.cover) ? o.cover! : 0 };
+  } catch {
+    // as new
+  }
+  return { hook: text.questions[0]?.zh ?? '', cover: 0 };
+}
+
+type Made = KeptVideo & { urls: string[] };
+const withUrls = (v: KeptVideo): Made => ({ ...v, urls: v.parts.map((b) => URL.createObjectURL(b)) });
 
 /**
  * Video: the text made into an upright video, on this device, from what it
@@ -44,13 +64,39 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   const [, setReady] = useState(0);
   const [t, setT] = useState(0);
   const [mode, setMode] = useState<Mode>('idle');
-  const [video, setVideo] = useState<{ url: string; blob: Blob } | null>(null);
+  const [own, setOwn] = useState<Own>(() => keptOwn(text));
+  const [video, setVideo] = useState<Made | null>(null);
+  const [shown, setShown] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [safe, setSafe] = useState(true);
   const running = useRef<Run | null>(null);
 
   const reading = readings?.find((r) => r.n.narratorId === narratorId) ?? readings?.[0] ?? null;
-  const plan = useMemo(() => (reading ? videoPlan(text, reading.n, look) : null), [text, reading, look]);
+  const plan = useMemo(() => (reading ? videoPlan(text, reading.n, look, own) : null), [text, reading, look, own]);
+
+  const changeOwn = (patch: Partial<Own>) =>
+    setOwn((o) => {
+      const next = { ...o, ...patch };
+      try {
+        localStorage.setItem(ownKey(text.id), JSON.stringify(next));
+      } catch {
+        // kept for this visit only
+      }
+      return next;
+    });
+
+  // A video made before opens first.
+  useEffect(() => {
+    let live = true;
+    void keptVideo(text.id).then((v) => {
+      if (!live || !v?.parts.length) return;
+      setVideo(withUrls(v));
+      setMode((m) => (m === 'idle' ? 'done' : m));
+    });
+    return () => {
+      live = false;
+    };
+  }, [text.id]);
 
   const change = (patch: Partial<VideoLook>) =>
     setLook((l) => {
@@ -137,7 +183,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
     },
     [],
   );
-  useEffect(() => () => void (video && URL.revokeObjectURL(video.url)), [video]);
+  useEffect(() => () => video?.urls.forEach((u) => URL.revokeObjectURL(u)), [video]);
 
   function start(record: boolean) {
     if (!plan || !reading || !audioUrl || !canvas.current) return;
@@ -161,10 +207,13 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
     const lock = record && 'wakeLock' in navigator ? navigator.wakeLock.request('screen').catch(() => null) : Promise.resolve(null);
     void r.done.finally(() => void lock.then((l) => l?.release()));
     r.done.then(
-      (blob) => {
+      (blobs) => {
         running.current = null;
-        if (blob && blob.size) {
-          setVideo({ url: URL.createObjectURL(blob), blob });
+        if (blobs?.length && blobs.every((b) => b.size)) {
+          const made: KeptVideo = { textId: text.id, parts: blobs, duration: plan.duration, narrator: reading.name, at: Date.now() };
+          void keepVideo(made);
+          setVideo(withUrls(made));
+          setShown(0);
           setMode('done');
         } else setMode('idle');
       },
@@ -184,26 +233,39 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
 
   async function save() {
     if (!video) return;
-    const ext = video.blob.type.includes('mp4') ? 'mp4' : 'webm';
-    const file = new File([video.blob], `${text.titleZh || text.title}.${ext}`, { type: video.blob.type });
+    const n = video.parts.length;
+    const files = video.parts.map((b, i) => {
+      const ext = b.type.includes('mp4') ? 'mp4' : 'webm';
+      return new File([b], `${text.titleZh || text.title}${n > 1 ? ` ${i + 1} of ${n}` : ''}.${ext}`, { type: b.type });
+    });
     try {
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file] });
+      if (navigator.canShare?.({ files })) {
+        await navigator.share({ files });
         return;
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return;
     }
-    const a = document.createElement('a');
-    a.href = video.url;
-    a.download = file.name;
-    a.click();
+    files.forEach((f, i) => {
+      const a = document.createElement('a');
+      a.href = video.urls[i]!;
+      a.download = f.name;
+      a.click();
+    });
+  }
+
+  async function remove() {
+    await forgetVideo(text.id);
+    setVideo(null);
+    setMode('idle');
   }
 
   const busy = mode === 'playing' || mode === 'making';
+  const stepAt = (kind: string) => plan?.steps.find((x) => x.kind === kind)?.at ?? 0;
   const scenes = plan
     ? [
-        ...(look.titleCard ? [{ id: 'title', label: 'Title', at: 0, pic: null as string | null, han: '题' }] : []),
+        ...(plan.hook ? [{ id: 'hook', label: 'Opening', at: 600, pic: plan.cover, han: '问' }] : []),
+        ...(look.titleCard ? [{ id: 'title', label: 'Title', at: stepAt('title') + 600, pic: null as string | null, han: '题' }] : []),
         ...plan.paras.map((_, p) => {
           const s = plan.steps.find((x) => x.kind === 'para' && x.para === p)!;
           return { id: `p${p}`, label: `¶${p + 1}`, at: s.at + Math.min(1500, s.dur / 2), pic: plan.pictureOf[p] ?? null, han: '' };
@@ -215,9 +277,11 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
     : [];
   const sceneAt = (time: number) => {
     let id = scenes[0]?.id;
-    for (const s of scenes) if (time >= s.at - (s.id.startsWith('p') ? 1500 : 3000)) id = s.id;
+    for (const s of scenes) if (time >= s.at - (s.id.startsWith('p') ? 1500 : s.id === 'q' ? 3000 : 600)) id = s.id;
     return id;
   };
+  const partNow = plan ? momentAt(plan, t, reading?.n.timings ?? []).part : 0;
+  const parts = plan?.parts.length ?? 1;
 
   return (
     <div className="co-scrim vs-scrim" role="dialog" aria-modal="true" aria-label="Video">
@@ -237,7 +301,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
           <div className="vs-stage">
             {mode === 'done' && video ? (
               <div className="vs-box">
-                <video className="vs-video" src={video.url} controls playsInline />
+                <video key={shown} className="vs-video" src={video.urls[shown]} controls playsInline />
               </div>
             ) : (
               <div className="vs-box">
@@ -286,7 +350,9 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
                       <div className="vs-bar">
                         <i style={{ width: `${Math.round((t / plan.duration) * 100)}%` }} />
                       </div>
-                      <span className="small">Making the video · {Math.round((t / plan.duration) * 100)}%</span>
+                      <span className="small">
+                        {parts > 1 ? `Making part ${partNow + 1} of ${parts}` : 'Making the video'} · {Math.round((t / plan.duration) * 100)}%
+                      </span>
                       <button className="btn quiet sm" onClick={stop}>
                         Stop
                       </button>
@@ -314,18 +380,42 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
               <div className="vs-done">
                 <b className="hanzi vs-done-title">{text.titleZh || text.title}</b>
                 <span className="small muted">
-                  {mmss(plan?.duration ?? 0)} · 9:16, 1080 × 1920 · {(video.blob.size / 1e6).toFixed(1)} MB · {reading?.name}
+                  {mmss(video.duration)} · 9:16, 1080 × 1920 · {(video.parts.reduce((n, b) => n + b.size, 0) / 1e6).toFixed(1)} MB · {video.narrator}
                 </span>
+                {video.parts.length > 1 && (
+                  <Seg
+                    label="Part"
+                    value={shown}
+                    onPick={setShown}
+                    options={video.parts.map((_, i) => [i, `Part ${i + 1}`] as [number, ReactNode])}
+                  />
+                )}
                 <button className="btn primary lg" onClick={() => void save()}>
-                  Save or share
+                  {video.parts.length > 1 ? `Save or share all ${video.parts.length}` : 'Save or share'}
                 </button>
                 <button className="btn tonal" onClick={() => setMode('idle')}>
                   Change and make again
                 </button>
-                <p className="tiny muted">On an iPhone or iPad, Save Video in the sheet puts it in Photos. It is kept here until this page is closed.</p>
+                <button className="btn quiet danger" onClick={() => void remove()}>
+                  Delete this video
+                </button>
+                <p className="tiny muted">
+                  On an iPhone or iPad, Save Video in the sheet puts it in Photos. It is kept on this device: Video opens it until it is made again.
+                </p>
               </div>
             ) : (
-              <Settings look={look} change={change} disabled={busy} safe={safe} setSafe={setSafe} hasQuestions={text.questions.length > 0}>
+              <Settings
+                look={look}
+                change={change}
+                disabled={busy}
+                safe={safe}
+                setSafe={setSafe}
+                hasQuestions={text.questions.length > 0}
+                own={own}
+                changeOwn={changeOwn}
+                covers={plan ? [...new Set(plan.pictureOf)].map((key) => ({ key, para: plan.pictureOf.indexOf(key) })).filter((c): c is { key: string; para: number } => Boolean(c.key)) : []}
+                parts={parts}
+              >
                 {readings && readings.length > 1 && (
                   <Row title="Narrator">
                     <select value={reading?.n.narratorId} onChange={(e) => setNarratorId(e.target.value)} disabled={busy}>
@@ -415,6 +505,10 @@ function Settings({
   safe,
   setSafe,
   hasQuestions,
+  own,
+  changeOwn,
+  covers,
+  parts,
   children,
 }: {
   look: VideoLook;
@@ -423,6 +517,10 @@ function Settings({
   safe: boolean;
   setSafe: (v: boolean) => void;
   hasQuestions: boolean;
+  own: Own;
+  changeOwn: (p: Partial<Own>) => void;
+  covers: Array<{ key: string; para: number }>;
+  parts: number;
   children: ReactNode;
 }) {
   return (
@@ -536,6 +634,37 @@ function Settings({
               [2000, '2 s'],
             ]}
           />
+        </Row>
+      </section>
+
+      <section className="vs-section">
+        <h2 className="block-title">For Reels and Shorts</h2>
+        <Row title="Open with a question" note="Two seconds over the cover picture, before anything else">
+          <Switch label="Open with a question" on={look.hook} onChange={(v) => change({ hook: v })} disabled={disabled} />
+        </Row>
+        {look.hook && (
+          <label className="vs-field">
+            <span className="tiny muted">The question</span>
+            <input className="hanzi" value={own.hook} maxLength={40} placeholder="皮卡丘能吃到苹果吗？" onChange={(e) => changeOwn({ hook: e.target.value })} disabled={disabled} />
+          </label>
+        )}
+        {covers.length > 1 && (
+          <div className="vs-cover-row">
+            <span className="vs-row-name">
+              Cover
+              <span className="tiny muted">The first frame, which a feed shows before it plays</span>
+            </span>
+            <div className="vs-covers">
+              {covers.map((c) => (
+                <button key={c.key} className="vs-cover" aria-pressed={own.cover === c.para} aria-label={`Paragraph ${c.para + 1}'s picture`} onClick={() => changeOwn({ cover: c.para })} disabled={disabled}>
+                  <img src={pictureUrl(c.key)} alt="" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <Row title="Split into parts" note={look.parts ? (parts > 1 ? `${parts} parts, each under a minute, cut at paragraphs` : 'Short enough to stay whole') : 'Each under a minute, cut at paragraphs, “Part 1 of 2” in the corner'}>
+          <Switch label="Split into parts" on={look.parts} onChange={(v) => change({ parts: v })} disabled={disabled} />
         </Row>
       </section>
 

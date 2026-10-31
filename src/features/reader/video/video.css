@@ -380,6 +380,57 @@
   margin: 0;
 }
 
+.vs-field {
+  display: grid;
+  gap: 4px;
+  padding: 0 0 12px;
+}
+
+.vs-field input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 20px;
+}
+
+.vs-cover-row {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.vs-covers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 8px;
+}
+
+.vs-cover {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.vs-cover img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  border-radius: 8px;
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+}
+
+.vs-cover[aria-pressed='true'] img {
+  outline-color: var(--accent);
+}
+
 /* The one action, kept in reach at the bottom while the settings scroll. */
 .vs-foot {
   position: sticky;
