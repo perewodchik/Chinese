@@ -1,30 +1,25 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import type { NarratorDto } from '../../../shared/narration';
-import { chooseNarrator, chosenNarrator, listNarrators, narrateLine, narrationStatus } from '../../api/narration';
-import { talkRecorded } from '../../api/talk';
+import type { NarratorDto, TextNarrationDto } from '../../../shared/narration';
+import { chooseNarrator, chosenNarrator, listNarrators, narrationOf, narrationStatus } from '../../api/narration';
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
-import { voiceRecorded, type Reading } from './readAloud';
 
 /**
  * A narrator for the text, under Listen's voices: a quiet button that opens a
  * panel, so the player stays the thing on the screen. There one of the
- * learner's narrators (made and tuned in Speaking › Voices) reads the text a
- * sentence at a time with their own key; a sentence it has read already is
- * not read again, as it costs money. Once done, its voice is among the voices
- * above and reads the text.
+ * learner's narrators (made and tuned in Speaking › Voices) reads the whole
+ * text in one go with their own key; the reading is kept, so it is never paid
+ * for twice, and plays above with a slider.
  */
-export function Narrate({ spoken, reading }: { spoken: string[]; reading: Reading }) {
+export function Narrate({ lines, onMade }: { lines: string[]; onMade: (n: TextNarrationDto, name: string) => void }) {
   const [open, setOpen] = useState(false);
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [narrators, setNarrators] = useState<NarratorDto[] | null>(null);
   const [narratorId, setNarratorId] = useState<string | null>(chosenNarrator);
-  const [recorded, setRecorded] = useState<number | null>(null);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [kept, setKept] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [made, setMade] = useState<string | null>(null);
-  const lines = [...new Set(spoken.map((l) => l.trim()).filter(Boolean))];
   const narrator = narrators?.find((n) => n.id === narratorId) ?? narrators?.[0] ?? null;
 
   // Asked only once the panel is opened: most visits to Listen never need MiniMax.
@@ -56,66 +51,42 @@ export function Narrate({ spoken, reading }: { spoken: string[]; reading: Readin
     };
   }, [hasKey, narrators]);
 
-  // How much of the text the narrator has read already.
+  // Has the narrator, as it sounds now, read this text already?
   useEffect(() => {
     if (!narrator) return;
     let live = true;
-    setRecorded(null);
-    void talkRecorded(narrator.recordingId, lines).then(
-      ({ have }) => live && setRecorded(have.filter(Boolean).length),
-      () => live && setRecorded(null),
+    setKept(null);
+    narrationOf(narrator.id, lines).then(
+      (n) => live && setKept(n !== null),
+      () => live && setKept(null),
     );
     return () => {
       live = false;
     };
-    // lines is derived from spoken
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [narrator?.recordingId, spoken]);
+  }, [narrator, lines]);
 
-  // Once the new recordings are offered above, read with them.
-  useEffect(() => {
-    if (!made) return;
-    const choice = reading.choices.find((c) => c.key === made);
-    if (choice) {
-      if (!choice.active) choice.pick();
-      setMade(null);
-    }
-  }, [made, reading.choices]);
-
-  async function record() {
+  async function read(again = false) {
     if (!narrator) return;
+    setBusy(true);
     setMessage(null);
-    const id = narrator.recordingId;
     try {
-      const { have } = await talkRecorded(id, lines);
-      const todo = lines.filter((_, i) => !have[i]);
-      setProgress({ done: 0, total: todo.length });
-      for (const [i, line] of todo.entries()) {
-        await narrateLine(narrator.id, line);
-        setProgress({ done: i + 1, total: todo.length });
-      }
-      setRecorded(lines.length);
-      voiceRecorded(id);
-      setMade(id);
-      setMessage(todo.length ? `Done. Play reads the text in ${narrator.name}’s voice now.` : `${narrator.name} has read this text already.`);
+      const n = await narrationOf(narrator.id, lines, again ? { again: true } : { generate: true });
+      if (!n) throw new Error('MiniMax sent nothing back.');
+      setKept(true);
+      onMade(n, narrator.name);
+      setMessage(`${narrator.name} has read the text. It is kept: playing it costs nothing.`);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'MiniMax did not answer.');
-      void talkRecorded(id, lines).then(({ have }) => setRecorded(have.filter(Boolean).length), () => undefined);
     } finally {
-      setProgress(null);
+      setBusy(false);
     }
   }
-
-  const busy = progress !== null;
-  const all = recorded !== null && recorded >= lines.length;
-  const fill = busy ? progress.done / (progress.total || 1) : recorded !== null ? recorded / (lines.length || 1) : 0;
-  const label = busy ? `Reading ${progress.done} of ${progress.total}…` : all ? 'Read' : recorded ? `Read the other ${lines.length - recorded}` : 'Read this text';
 
   return (
     <div className="rd-natural">
       <button className="btn quiet sm rd-natural-toggle" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         <Icon name={open ? 'chevron' : 'plus'} size={16} />
-        {busy ? `${narrator?.name ?? 'A narrator'} is reading, ${progress.done} of ${progress.total}` : 'A narrator for this text'}
+        {busy ? `${narrator?.name ?? 'A narrator'} is reading the text…` : 'A narrator for this text'}
       </button>
       {open && (
         <div className="rd-natural-panel">
@@ -150,15 +121,22 @@ export function Narrate({ spoken, reading }: { spoken: string[]; reading: Readin
                     ))}
                   </select>
                 </label>
-                <button className="btn tonal sm rd-natural-go" onClick={() => void record()} disabled={!narrator || busy || all}>
-                  {label}
-                </button>
+                {kept ? (
+                  <button className="btn quiet sm rd-natural-go" onClick={() => void read(true)} disabled={busy}>
+                    {busy ? 'Reading…' : 'Read it again'}
+                  </button>
+                ) : (
+                  <button className="btn tonal sm rd-natural-go" onClick={() => void read()} disabled={!narrator || busy || kept === null}>
+                    {busy ? 'Reading… up to a minute' : 'Read the whole text'}
+                  </button>
+                )}
               </div>
-              <div className="rd-natural-bar" style={{ '--fill': `${Math.round(fill * 100)}%` } as CSSProperties} aria-hidden />
               <p className="tiny muted rd-natural-msg">
                 {message ??
-                  (narrator && recorded !== null ? `${recorded} of ${lines.length} sentences read by ${narrator.name}. ` : '')}
-                <Link to={paths.speakingNarrators()}>Voices</Link>
+                  (kept
+                    ? `${narrator?.name} has read this text; it plays above. Read it again only after changing the voice.`
+                    : 'One request for the whole text, kept on the server: it is paid for once. ')}
+                {!message && !kept && <Link to={paths.speakingNarrators()}>Voices</Link>}
               </p>
             </>
           )}

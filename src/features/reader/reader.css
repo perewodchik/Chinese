@@ -2076,3 +2076,56 @@ label.rd-aa-row {
     width: 100%;
   }
 }
+
+/* A narrator's whole reading: a slider through it, the times under it. The
+   track fills to where the voice is; the thumb is big enough for a thumb. */
+.rd-scrub {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0 4px;
+}
+
+.rd-scrub input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.rd-scrub input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(var(--accent), var(--accent)) 0 0 / var(--fill, 0%) 100% no-repeat, var(--line-2);
+}
+
+.rd-scrub input[type='range']::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(var(--accent), var(--accent)) 0 0 / var(--fill, 0%) 100% no-repeat, var(--line-2);
+}
+
+.rd-scrub input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--accent);
+}
+
+.rd-scrub input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--accent);
+}
+
+.rd-scrub-times {
+  display: flex;
+  justify-content: space-between;
+  font-variant-numeric: tabular-nums;
+}

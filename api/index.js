@@ -411,8 +411,30 @@ function soundOf(zh) {
   return null;
 }
 
+// server/src/application/narration-service.ts
+import { createHash } from "node:crypto";
+
 // server/src/infrastructure/minimax.ts
 var BASE = "https://api.minimax.io/v1";
+async function subtitles(fetcher, url) {
+  if (!url) return null;
+  try {
+    const res = await fetcher(url);
+    if (!res.ok) return null;
+    const raw = await res.json();
+    const list = Array.isArray(raw) ? raw : Array.isArray(raw?.subtitles) ? raw.subtitles : null;
+    if (!list) return null;
+    const out = list.map((e) => {
+      const o = e;
+      const start = Number(o.time_begin ?? o.start ?? o.begin);
+      const end = Number(o.time_end ?? o.end);
+      return { text: String(o.text ?? ""), start, end };
+    }).filter((e) => Number.isFinite(e.start) && Number.isFinite(e.end) && e.end > e.start);
+    return out.length ? out : null;
+  } catch {
+    return null;
+  }
+}
 var NarratorRefused = class extends Error {
   constructor(message, reason) {
     super(message);
@@ -447,6 +469,21 @@ function minimaxNarrator(fetcher = fetch) {
       const out = await post("/voice_design", key, { prompt, preview_text: previewText });
       if (!out.voice_id) throw new NarratorRefused("MiniMax made no voice from that description.", "other");
       return { voiceId: out.voice_id, trial: new Uint8Array(Buffer.from(out.trial_audio ?? "", "hex")) };
+    },
+    async readText(key, text, voice, tuning) {
+      const out = await post("/t2a_v2", key, {
+        model: "speech-2.8-hd",
+        text,
+        stream: false,
+        language_boost: "Chinese",
+        subtitle_enable: true,
+        subtitle_type: "sentence",
+        voice_setting: { voice_id: voice, speed: tuning.speed, vol: 1, pitch: tuning.pitch, ...tuning.emotion ? { emotion: tuning.emotion } : {} },
+        audio_setting: { sample_rate: 32e3, bitrate: 64e3, format: "mp3", channel: 1 }
+      });
+      const hex = out.data?.audio;
+      if (!hex) throw new NarratorRefused("MiniMax sent no audio back.", "other");
+      return { audio: new Uint8Array(Buffer.from(hex, "hex")), segments: await subtitles(fetcher, out.data?.subtitle_file) };
     },
     async read(key, text, voice, tuning) {
       const out = await post("/t2a_v2", key, {
@@ -573,17 +610,51 @@ var NarrationService = class {
     const line = text.trim() || n.previewText || "\u4F60\u597D\uFF0C\u6211\u4EEC\u4ECA\u5929\u4E00\u8D77\u8BFB\u4E00\u4E2A\u5C0F\u6545\u4E8B\u3002";
     return this.call(() => this.narrator().read(key, line, n.voiceId, tuningOf(n)));
   }
-  /** One sentence of a text read by the narrator and kept; the id Listen offers it under. */
-  async line(userId, narratorId, text) {
-    const key = await this.keyOf(userId);
+  /**
+   * A text read whole by a narrator, in one request, and kept: found when it
+   * was read before by the narrator as it is now (its voice, speed, pitch and
+   * mood), read only when asked to, and read again only when asked again.
+   */
+  async text(userId, narratorId, lines2, o = {}) {
     const n = await this.find(userId, narratorId);
-    const line = text.trim();
-    if (!line) throw new ValidationError("Nothing to read.");
-    const sound = soundOf(line);
-    const mp32 = await this.call(() => this.narrator().read(key, sound ? `${line} ${sound}` : line, n.voiceId, tuningOf(n)));
-    const id = narratorRecordingId(n.id);
-    await this.deps.recordings.keep({ id, name: n.name, gender: "female" }, "teaching", line, mp32);
-    return id;
+    const said = lines2.map((l) => l.trim());
+    if (!said.some(Boolean)) throw new ValidationError("Nothing to read.");
+    const key = narrationKey(n, said);
+    const [kept2] = await this.deps.narrations.have([key]);
+    if (kept2 && !o.again) return toNarrationDto(kept2);
+    if (!o.generate && !o.again) return null;
+    const apiKey = await this.keyOf(userId);
+    const script = said.filter(Boolean).map((l) => {
+      const sound = soundOf(l);
+      return sound ? `${l} ${sound}` : l;
+    }).join(" <#0.6#> ");
+    if (script.length > 9e3) throw new ValidationError("The text is too long to read in one go.");
+    const read = await this.call(() => this.narrator().readText(apiKey, script, n.voiceId, tuningOf(n)));
+    const durationMs = Math.round(read.audio.length * 8 / 64);
+    const record = {
+      key,
+      userId,
+      narratorId: n.id,
+      mp3: read.audio,
+      timings: timingsFor(said, read.segments, durationMs),
+      durationMs,
+      createdAt: this.deps.clock.now()
+    };
+    await this.deps.narrations.save(record);
+    return toNarrationDto(record);
+  }
+  /** Every reading of this text the learner's narrators have, as each sounds now. */
+  async readingsOf(userId, lines2) {
+    const said = lines2.map((l) => l.trim());
+    const narrators = await this.deps.narrators.list(userId);
+    const kept2 = await this.deps.narrations.have(narrators.map((n) => narrationKey(n, said)));
+    return kept2.filter((k) => k.userId === userId).map(toNarrationDto);
+  }
+  /** The audio of a kept reading, for its owner. */
+  async audio(userId, key) {
+    const kept2 = /^[0-9a-f]{64}$/.test(key) ? await this.deps.narrations.find(key) : null;
+    if (!kept2 || kept2.userId !== userId) throw new NotFoundError("That reading");
+    return kept2.mp3;
   }
   /* ------------------------------------------------------------ helpers */
   async find(userId, id) {
@@ -622,6 +693,41 @@ var NarrationService = class {
   }
 };
 var tuningOf = (n) => ({ speed: n.speed, pitch: n.pitch, emotion: n.emotion });
+var narrationKey = (n, lines2) => createHash("sha256").update(`${n.id}|${n.voiceId}|${n.speed}|${n.pitch}|${n.emotion ?? ""}
+${lines2.join("\n")}`).digest("hex");
+var toNarrationDto = (k) => ({
+  key: k.key,
+  narratorId: k.narratorId,
+  durationMs: k.durationMs,
+  timings: k.timings,
+  createdAt: k.createdAt
+});
+var counted = (s) => [...s].filter((c) => /[\p{Script=Han}\p{N}]/u.test(c)).length;
+function timingsFor(lines2, segments, durationMs) {
+  const segs = segments?.length ? segments : [{ text: lines2.join(""), start: 0, end: durationMs }];
+  const runs = [];
+  let at = 0;
+  for (const sg of segs) {
+    const n = counted(sg.text) || 1;
+    runs.push({ from: at, to: at + n, start: sg.start, end: sg.end });
+    at += n;
+  }
+  const total = at;
+  const timeAt = (c2, edge) => {
+    const x = Math.min(Math.max(c2, 0), total);
+    const r = runs.find((r2) => edge === "start" ? x < r2.to : x <= r2.to) ?? runs[runs.length - 1];
+    return Math.round(r.start + (x - r.from) / (r.to - r.from || 1) * (r.end - r.start));
+  };
+  const lineCounts = lines2.map(counted);
+  const sum = lineCounts.reduce((a, b) => a + b, 0) || 1;
+  const scale = total / sum;
+  let c = 0;
+  return lineCounts.map((n) => {
+    const from = c;
+    c += n * scale;
+    return [timeAt(from, "start"), timeAt(c, "end")];
+  });
+}
 var toDto = (n) => ({
   id: n.id,
   name: n.name,
@@ -638,7 +744,7 @@ var toDto = (n) => ({
 var genderOf = (s) => /\b(male|man|boy|gentleman|uncle|executive|lord)\b/i.test(s) && !/\b(female|woman|girl|lady)\b/i.test(s) ? "male" : "female";
 
 // server/src/application/picture-service.ts
-import { createHash } from "node:crypto";
+import { createHash as createHash2 } from "node:crypto";
 
 // shared/api.ts
 var PICTURE_TYPES = ["image/jpeg", "image/webp", "image/png"];
@@ -647,7 +753,7 @@ var WORKSPACE_MAX_BYTES = 16 * 1024 * 1024;
 var workspaceTag = (revision) => `"r${revision}"`;
 
 // server/src/application/picture-service.ts
-var pictureKey = (bytes) => createHash("sha256").update(bytes).digest("hex");
+var pictureKey = (bytes) => createHash2("sha256").update(bytes).digest("hex");
 var PictureService = class {
   constructor(deps) {
     this.deps = deps;
@@ -674,8 +780,8 @@ var PictureService = class {
 };
 
 // server/src/application/recording-service.ts
-import { createHash as createHash2 } from "node:crypto";
-var recordingKey = (voice, mode, text) => createHash2("sha256").update(`${voice}
+import { createHash as createHash3 } from "node:crypto";
+var recordingKey = (voice, mode, text) => createHash3("sha256").update(`${voice}
 ${mode}
 ${text}`).digest("hex");
 var RecordingService = class {
@@ -741,15 +847,15 @@ var RecordingService = class {
     let recorded = 0;
     let already = 0;
     for (const p of passages) {
-      const lines = [...new Set(p.lines.map((l) => l.trim()).filter(Boolean))];
-      const have = await this.have(voice, "teaching", lines);
-      const missing = lines.filter((_, i) => !have[i]);
-      already += lines.length - missing.length;
+      const lines2 = [...new Set(p.lines.map((l) => l.trim()).filter(Boolean))];
+      const have = await this.have(voice, "teaching", lines2);
+      const missing = lines2.filter((_, i) => !have[i]);
+      already += lines2.length - missing.length;
       for (const line of missing) {
         await this.read(line, voice, "teaching", true);
         recorded += 1;
       }
-      say(`${p.title}: ${missing.length ? `${missing.length} of ${lines.length} sentences recorded` : "recorded already"}`);
+      say(`${p.title}: ${missing.length ? `${missing.length} of ${lines2.length} sentences recorded` : "recorded already"}`);
     }
     return { recorded, already };
   }
@@ -878,11 +984,11 @@ function derive(password, salt, cost, length) {
 }
 
 // server/src/infrastructure/crypto/tokens.ts
-import { createHash as createHash3, randomBytes as randomBytes2, randomUUID } from "node:crypto";
+import { createHash as createHash4, randomBytes as randomBytes2, randomUUID } from "node:crypto";
 var cryptoTokens = {
   // 256 bits: not something to guess, and base64url so it needs no escaping in a cookie.
   secret: () => randomBytes2(32).toString("base64url"),
-  digest: (secret) => createHash3("sha256").update(secret).digest("base64url"),
+  digest: (secret) => createHash4("sha256").update(secret).digest("base64url"),
   id: () => randomUUID()
 };
 
@@ -912,7 +1018,7 @@ function createServices(stores, options = {}) {
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, recordings, clock })
+    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock })
   };
 }
 
@@ -1078,7 +1184,7 @@ var RateLimiter = class {
 };
 
 // server/src/http/routes/ask.ts
-import { createHash as createHash4 } from "node:crypto";
+import { createHash as createHash5 } from "node:crypto";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -1118,7 +1224,7 @@ function askRoutes({ auth, clock, trustProxy, tutor }) {
     const run = () => tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind] });
     let text;
     if (input.kind === "video") {
-      const key = createHash4("sha256").update(`${user}
+      const key = createHash5("sha256").update(`${user}
 ${input.prompt}`).digest("hex");
       const now = clock.now();
       for (const [k, v] of kept2) if (now - v.at > KEEP_MS) kept2.delete(k);
@@ -1234,7 +1340,9 @@ function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }) {
 import { Hono as Hono3 } from "hono";
 import { z as z3 } from "zod";
 var keyRequest = z3.object({ key: z3.string().min(1).max(400) });
-var lineRequest = z3.object({ narrator: z3.string().min(1).max(80), text: z3.string().trim().min(1).max(240), again: z3.boolean().optional() });
+var lines = z3.array(z3.string().max(240)).min(1).max(300);
+var textRequest = z3.object({ narrator: z3.string().min(1).max(80), lines, generate: z3.boolean().optional(), again: z3.boolean().optional() });
+var ofRequest = z3.object({ lines });
 var designRequest = z3.object({ name: z3.string().trim().min(1).max(60), prompt: z3.string().trim().min(1).max(2e3), previewText: z3.string().trim().min(1).max(200) });
 var adoptRequest = z3.object({ name: z3.string().max(60), voice: z3.string().min(1).max(120) });
 var changeRequest = z3.object({
@@ -1252,7 +1360,7 @@ var mp3 = (c, bytes) => {
 function narrationRoutes({ auth, clock, trustProxy, narration }) {
   const routes = new Hono3();
   const session = requireSession(auth, { trustProxy, clock });
-  const lines = new RateLimiter(600, 10 * 6e4, clock);
+  const reads = new RateLimiter(200, 10 * 6e4, clock);
   const keys = new RateLimiter(20, 10 * 6e4, clock);
   const makes = new RateLimiter(30, 10 * 6e4, clock);
   const user = (c) => c.get("session").user.id;
@@ -1289,14 +1397,24 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
     return json(c, { ok: true });
   });
   routes.post("/narrators/:id/preview", session, async (c) => {
-    lines.consume(user(c));
+    reads.consume(user(c));
     const { text } = await readJson(c, previewRequest);
     return mp3(c, await narration.preview(user(c), c.req.param("id"), text));
   });
-  routes.post("/line", session, async (c) => {
-    lines.consume(user(c));
-    const input = await readJson(c, lineRequest);
-    return json(c, { recordedAs: await narration.line(user(c), input.narrator, input.text) });
+  routes.post("/texts", session, async (c) => {
+    const input = await readJson(c, textRequest);
+    if (input.generate || input.again) reads.consume(user(c));
+    return json(c, { narration: await narration.text(user(c), input.narrator, input.lines, input) });
+  });
+  routes.post("/texts/of", session, async (c) => {
+    const { lines: said } = await readJson(c, ofRequest);
+    return json(c, { narrations: await narration.readingsOf(user(c), said) });
+  });
+  routes.get("/texts/:key/audio", session, async (c) => {
+    const bytes = await narration.audio(user(c), c.req.param("key"));
+    c.header("Content-Type", "audio/mpeg");
+    c.header("Cache-Control", "private, max-age=31536000, immutable");
+    return c.body(bytes);
   });
   return routes;
 }
@@ -1903,6 +2021,8 @@ function createHttpApp(services, options) {
         styleSrc: ["'self'", "'unsafe-inline'"],
         // Video thumbnails on the Videos shelf.
         imgSrc: ["'self'", "data:", "blob:", "https://i.ytimg.com"],
+        // Audio fetched and played from a blob: a sentence's recording, a narrator's reading of a text.
+        mediaSrc: ["'self'", "data:", "blob:"],
         fontSrc: ["'self'", "data:"],
         connectSrc: ["'self'"],
         // The worksheet preview is the PDF itself, in a frame, from a blob; a
@@ -2081,6 +2201,18 @@ var MIGRATIONS = [
   );
 
   CREATE INDEX narrators_by_user ON narrators (user_id, created_at);
+  `,
+  // A whole text read by a narrator in one go, kept so it is never paid for twice.
+  `
+  CREATE TABLE text_narrations (
+    key          TEXT PRIMARY KEY,
+    user_id      TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    narrator_id  TEXT NOT NULL,
+    mp3          BYTEA NOT NULL,
+    timings      TEXT NOT NULL,
+    duration_ms  BIGINT NOT NULL,
+    created_at   BIGINT NOT NULL
+  );
   `
 ];
 
@@ -2312,6 +2444,43 @@ var PostgresNarratorRepository = class {
   async delete(userId, id) {
     const r = await this.db.query("DELETE FROM narrators WHERE user_id = $1 AND id = $2", [userId, id]);
     return (r.rowCount ?? 0) > 0;
+  }
+};
+
+// server/src/infrastructure/sqlite/text-narration-repository.ts
+var narrationFromRow = (r) => ({
+  key: r.key,
+  userId: r.user_id,
+  narratorId: r.narrator_id,
+  timings: JSON.parse(r.timings),
+  durationMs: Number(r.duration_ms),
+  createdAt: Number(r.created_at)
+});
+
+// server/src/infrastructure/postgres/text-narration-repository.ts
+var PostgresTextNarrationRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async find(key) {
+    const { rows } = await this.db.query("SELECT * FROM text_narrations WHERE key = $1", [key]);
+    const r = rows[0];
+    return r ? { ...narrationFromRow(r), mp3: new Uint8Array(r.mp3) } : null;
+  }
+  async have(keys) {
+    if (!keys.length) return [];
+    const { rows } = await this.db.query(
+      "SELECT key, user_id, narrator_id, timings, duration_ms, created_at FROM text_narrations WHERE key = ANY($1::text[])",
+      [[...keys]]
+    );
+    return rows.map(narrationFromRow);
+  }
+  async save(n) {
+    await this.db.query(
+      `INSERT INTO text_narrations (key, user_id, narrator_id, mp3, timings, duration_ms, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (key) DO UPDATE SET mp3 = EXCLUDED.mp3, timings = EXCLUDED.timings, duration_ms = EXCLUDED.duration_ms, created_at = EXCLUDED.created_at`,
+      [n.key, n.userId, n.narratorId, Buffer.from(n.mp3), JSON.stringify(n.timings), n.durationMs, n.createdAt]
+    );
   }
 };
 
@@ -2555,7 +2724,8 @@ var postgresStores = (db) => ({
   recordings: new PostgresRecordingRepository(db),
   pictures: new PostgresPictureRepository(db),
   secrets: new PostgresSecretRepository(db),
-  narrators: new PostgresNarratorRepository(db)
+  narrators: new PostgresNarratorRepository(db),
+  narrations: new PostgresTextNarrationRepository(db)
 });
 
 // server/src/vercel.ts

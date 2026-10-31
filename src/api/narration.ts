@@ -1,10 +1,10 @@
 import type {
   DesignNarratorResponse,
-  NarrateLineResponse,
   NarrationStatus,
   NarratorChange,
   NarratorDto,
   NarratorVoice,
+  TextNarrationDto,
 } from '../../shared/narration';
 import { request } from './http';
 
@@ -39,9 +39,34 @@ export async function previewNarrator(id: string, text: string): Promise<string>
   return URL.createObjectURL(await res.blob());
 }
 
-/** One sentence read by a narrator and kept; a sentence takes a few seconds. */
-export const narrateLine = (narrator: string, text: string) =>
-  request<NarrateLineResponse>('POST', '/api/narration/line', { body: { narrator, text }, timeoutMs: 60_000 });
+/**
+ * A narrator's reading of a whole text: the kept one, or null; made in one
+ * request when `generate` (MiniMax takes up to a minute), made again when `again`.
+ */
+export const narrationOf = (narrator: string, lines: string[], o: { generate?: boolean; again?: boolean } = {}) =>
+  request<{ narration: TextNarrationDto | null }>('POST', '/api/narration/texts', { body: { narrator, lines, ...o }, timeoutMs: 120_000 }).then((r) => r.narration);
+
+/** Every kept reading of this text, by any of the learner's narrators as they sound now. */
+export const readingsOf = (lines: string[]) =>
+  request<{ narrations: TextNarrationDto[] }>('POST', '/api/narration/texts/of', { body: { lines } }).then((r) => r.narrations);
+
+const audioUrls = new Map<string, Promise<string>>();
+/** A kept reading's audio as an object URL, fetched once a page: a blob seeks in every browser, Safari too. */
+export function narrationAudio(n: TextNarrationDto): Promise<string> {
+  const id = `${n.key}:${n.createdAt}`;
+  let p = audioUrls.get(id);
+  if (!p) {
+    p = fetch(`/api/narration/texts/${n.key}/audio?v=${n.createdAt}`, { credentials: 'same-origin' })
+      .then((r) => {
+        if (!r.ok) throw new Error('The reading could not be fetched.');
+        return r.blob();
+      })
+      .then((b) => URL.createObjectURL(b));
+    p.catch(() => audioUrls.delete(id));
+    audioUrls.set(id, p);
+  }
+  return p;
+}
 
 /** The narrator Listen reads with, kept on this device. */
 const CHOSEN = 'hanzi.narrator';

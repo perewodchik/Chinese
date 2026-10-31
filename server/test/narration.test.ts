@@ -12,6 +12,7 @@ const GOOD = 'sk-api-good-key-0123456789';
 
 function stub() {
   const read: Array<{ text: string; voice: string; tuning: VoiceTuning }> = [];
+  const whole: string[] = [];
   const narrator: Narrator = {
     async voices(key) {
       if (key !== GOOD) throw new NarratorRefused('MiniMax did not accept the key.', 'key');
@@ -24,13 +25,19 @@ function stub() {
       if (key !== GOOD) throw new NarratorRefused('MiniMax did not accept the key.', 'key');
       return { voiceId: `designed-${prompt.length}`, trial: new Uint8Array(300).fill(3) };
     },
+    async readText(key, text) {
+      if (key !== GOOD) throw new NarratorRefused('MiniMax did not accept the key.', 'key');
+      whole.push(text);
+      // 8000 bytes at 64 kbit/s: a second of audio; two sentences, half a second each.
+      return { audio: new Uint8Array(8000).fill(9), segments: [{ text: '你好。', start: 0, end: 400 }, { text: '我很好。', start: 600, end: 1000 }] };
+    },
     async read(key, text, voice, tuning) {
       if (key !== GOOD) throw new NarratorRefused('MiniMax did not accept the key.', 'key');
       read.push({ text, voice, tuning });
       return new Uint8Array(500).fill(7);
     },
   };
-  return { narrator, read };
+  return { narrator, read, whole };
 }
 
 function appWith(narrator: Narrator) {
@@ -56,8 +63,8 @@ describe('reading texts aloud with MiniMax and the learner’s key', () => {
     assert.equal(((await (await call(app, 'GET', '/api/narration', { cookie })).json()) as { key: { set: boolean } }).key.set, false);
   });
 
-  it('makes a narrator from a description, tunes it, and reads with it — a sentence kept for Listen', async () => {
-    const { narrator, read } = stub();
+  it('makes a narrator from a description, tunes it, and reads a whole text with it, kept so it is paid for once', async () => {
+    const { narrator, read, whole } = stub();
     const app = appWith(narrator);
     const cookie = await signedIn(app);
     assert.equal((await call(app, 'POST', '/api/narration/narrators/design', { cookie, body: { name: 'Tutor', prompt: 'A calm young man from Beijing', previewText: '你好。' } })).status, 404);
@@ -79,14 +86,35 @@ describe('reading texts aloud with MiniMax and the learner’s key', () => {
     assert.equal(preview.headers.get('content-type'), 'audio/mpeg');
     assert.deepEqual(read.at(-1)!.tuning, { speed: 0.85, pitch: -2, emotion: 'calm' });
 
-    const line = await call(app, 'POST', '/api/narration/line', { cookie, body: { narrator: tutor.id, text: '医生看了看皮卡丘，笑了。' } });
-    const { recordedAs } = (await line.json()) as { recordedAs: string };
-    assert.equal(recordedAs, tutor.recordingId);
-    assert.equal(read.at(-1)!.text, '医生看了看皮卡丘，笑了。 (chuckle)');
-    const audio = await call(app, 'GET', `/api/talk/audio?voice=${recordedAs}&mode=teaching&text=${encodeURIComponent('医生看了看皮卡丘，笑了。')}`, { cookie });
+    // A whole text, read in one request when asked, and kept.
+    const lines = ['你好。', '我很好。'];
+    const none = await call(app, 'POST', '/api/narration/texts', { cookie, body: { narrator: tutor.id, lines } });
+    assert.deepEqual(await none.json(), { narration: null });
+    const made2 = await call(app, 'POST', '/api/narration/texts', { cookie, body: { narrator: tutor.id, lines, generate: true } });
+    const { narration } = (await made2.json()) as { narration: { key: string; durationMs: number; timings: Array<[number, number]> } };
+    assert.equal(narration.durationMs, 1000);
+    assert.deepEqual(narration.timings, [[0, 400], [600, 1000]]);
+    assert.equal(whole.length, 1);
+    assert.match(whole[0]!, /你好。 <#0.6#> 我很好。/);
+
+    // Asked again: the kept reading, MiniMax not asked.
+    await call(app, 'POST', '/api/narration/texts', { cookie, body: { narrator: tutor.id, lines, generate: true } });
+    assert.equal(whole.length, 1);
+    const of = (await (await call(app, 'POST', '/api/narration/texts/of', { cookie, body: { lines } })).json()) as { narrations: Array<{ key: string }> };
+    assert.deepEqual(of.narrations.map((n) => n.key), [narration.key]);
+    const audio = await call(app, 'GET', `/api/narration/texts/${narration.key}/audio`, { cookie });
     assert.equal(audio.status, 200);
-    const talk = (await (await call(app, 'GET', '/api/talk', { cookie })).json()) as { voices: Array<{ name: string }> };
-    assert.deepEqual(talk.voices.map((v) => v.name), ['Tutor']);
+    assert.equal((await audio.arrayBuffer()).byteLength, 8000);
+
+    // Read again on purpose: MiniMax asked again. Changed: a new reading, none kept for it yet.
+    await call(app, 'POST', '/api/narration/texts', { cookie, body: { narrator: tutor.id, lines, again: true } });
+    assert.equal(whole.length, 2);
+    await call(app, 'PATCH', `/api/narration/narrators/${tutor.id}`, { cookie, body: { speed: 0.8 } });
+    assert.deepEqual(await (await call(app, 'POST', '/api/narration/texts/of', { cookie, body: { lines } })).json(), { narrations: [] });
+
+    // Nobody else hears it.
+    const other = await signedIn(app, 'masha');
+    assert.equal((await call(app, 'GET', `/api/narration/texts/${narration.key}/audio`, { cookie: other })).status, 404);
   });
 
   it('adopts one of MiniMax’s voices; nobody else sees or reads with a learner’s narrator', async () => {
@@ -102,5 +130,14 @@ describe('reading texts aloud with MiniMax and the learner’s key', () => {
     assert.deepEqual(await (await call(app, 'GET', '/api/narration/narrators', { cookie: other })).json(), { narrators: [] });
     assert.equal((await call(app, 'DELETE', `/api/narration/narrators/${narrator.id}`, { cookie: other })).status, 404);
     assert.equal((await call(app, 'DELETE', `/api/narration/narrators/${narrator.id}`, { cookie })).status, 200);
+  });
+});
+
+describe('where each line falls in a reading', () => {
+  it('follows the service’s sentences, characters only, and scales when the counts differ', async () => {
+    const { timingsFor } = await import('../src/application/narration-service');
+    assert.deepEqual(timingsFor(['你好。', '我很好！'], [{ text: '你好。', start: 0, end: 400 }, { text: '我很好！ (laughs)', start: 600, end: 1000 }], 1000), [[0, 400], [600, 1000]]);
+    // No times from the service: the reading is one run, the lines by their length.
+    assert.deepEqual(timingsFor(['你好', '我很好呀'], null, 1200), [[0, 400], [400, 1200]]);
   });
 });

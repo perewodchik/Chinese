@@ -86,6 +86,8 @@ export function createHttpApp(services: Services, options: HttpOptions) {
         styleSrc: ["'self'", "'unsafe-inline'"],
         // Video thumbnails on the Videos shelf.
         imgSrc: ["'self'", 'data:', 'blob:', 'https://i.ytimg.com'],
+        // Audio fetched and played from a blob: a sentence's recording, a narrator's reading of a text.
+        mediaSrc: ["'self'", 'data:', 'blob:'],
         fontSrc: ["'self'", 'data:'],
         connectSrc: ["'self'"],
         // The worksheet preview is the PDF itself, in a frame, from a blob; a

@@ -11,6 +11,7 @@ import type {
   PasswordHasher,
   PictureRepository,
   SecretRepository,
+  TextNarrationRepository,
   RecordingRepository,
   SessionRepository,
   SpeechSynthesizer,
@@ -59,6 +60,7 @@ export interface Stores {
   pictures: PictureRepository;
   secrets: SecretRepository;
   narrators: NarratorRepository;
+  narrations: TextNarrationRepository;
 }
 
 /**
@@ -106,6 +108,6 @@ export function createServices(
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, recordings, clock }),
+    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock }),
   };
 }

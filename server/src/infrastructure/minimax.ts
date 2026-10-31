@@ -8,6 +8,34 @@ interface BaseResp {
   status_msg?: string;
 }
 
+/**
+ * Where each sentence of a reading begins and ends, from the subtitle file
+ * MiniMax links to. The file's shape is read loosely — an array of entries
+ * with the text and its times in milliseconds — and anything else is null:
+ * the page then places the sentences by their length.
+ */
+async function subtitles(fetcher: typeof fetch, url: string | undefined) {
+  if (!url) return null;
+  try {
+    const res = await fetcher(url);
+    if (!res.ok) return null;
+    const raw = (await res.json()) as unknown;
+    const list = Array.isArray(raw) ? raw : Array.isArray((raw as { subtitles?: unknown })?.subtitles) ? (raw as { subtitles: unknown[] }).subtitles : null;
+    if (!list) return null;
+    const out = list
+      .map((e) => {
+        const o = e as Record<string, unknown>;
+        const start = Number(o.time_begin ?? o.start ?? o.begin);
+        const end = Number(o.time_end ?? o.end);
+        return { text: String(o.text ?? ''), start, end };
+      })
+      .filter((e) => Number.isFinite(e.start) && Number.isFinite(e.end) && e.end > e.start);
+    return out.length ? out : null;
+  } catch {
+    return null;
+  }
+}
+
 /** A refusal from MiniMax that the learner can act on: a bad key, no balance, too fast. */
 export class NarratorRefused extends Error {
   constructor(
@@ -54,6 +82,21 @@ export function minimaxNarrator(fetcher: typeof fetch = fetch): Narrator {
       const out = await post<{ voice_id?: string; trial_audio?: string }>('/voice_design', key, { prompt, preview_text: previewText });
       if (!out.voice_id) throw new NarratorRefused('MiniMax made no voice from that description.', 'other');
       return { voiceId: out.voice_id, trial: new Uint8Array(Buffer.from(out.trial_audio ?? '', 'hex')) };
+    },
+    async readText(key, text, voice, tuning) {
+      const out = await post<{ data?: { audio?: string; subtitle_file?: string } | null }>('/t2a_v2', key, {
+        model: 'speech-2.8-hd',
+        text,
+        stream: false,
+        language_boost: 'Chinese',
+        subtitle_enable: true,
+        subtitle_type: 'sentence',
+        voice_setting: { voice_id: voice, speed: tuning.speed, vol: 1, pitch: tuning.pitch, ...(tuning.emotion ? { emotion: tuning.emotion } : {}) },
+        audio_setting: { sample_rate: 32000, bitrate: 64000, format: 'mp3', channel: 1 },
+      });
+      const hex = out.data?.audio;
+      if (!hex) throw new NarratorRefused('MiniMax sent no audio back.', 'other');
+      return { audio: new Uint8Array(Buffer.from(hex, 'hex')), segments: await subtitles(fetcher, out.data?.subtitle_file) };
     },
     async read(key, text, voice, tuning) {
       const out = await post<{ data?: { audio?: string } | null }>('/t2a_v2', key, {

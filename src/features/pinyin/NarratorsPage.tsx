@@ -8,25 +8,23 @@ import {
   chosenNarrator,
   designNarrator,
   listNarrators,
-  narrateLine,
+  narrationOf,
   narrationStatus,
   narratorVoices,
   previewNarrator,
   removeNarrator,
 } from '../../api/narration';
-import { talkRecorded } from '../../api/talk';
 import type { GeneratedText } from '../../domain/text';
 import { paths } from '../../navigation/paths';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
-import { voiceRecorded } from '../reader/readAloud';
 import { NarrationKey } from '../settings/NarrationKey';
 import './narrators.css';
 
 const SAMPLE = '你好！我们今天一起读一个小故事。你准备好了吗？';
 const plain = (name: string) => name.replace(/\s*\((?:Female|Male)\)\s*/i, '');
-const sentencesOf = (t: GeneratedText) => [...new Set(t.lines.map((l) => l.zh.trim()).filter(Boolean))];
+const linesOf = (t: GeneratedText) => t.lines.map((l) => l.zh);
 
 /**
  * Voices: the narrators who read texts aloud in Listen, made and tuned here.
@@ -413,8 +411,6 @@ function NewNarrator({ onMade }: { onMade: (n: NarratorDto) => void }) {
 
 /* ------------------------------------------------------------ giving it texts */
 
-type Count = { have: number; total: number };
-
 function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
   const texts = useStore((s) => s.texts);
   const sets = useStore((s) => s.sets);
@@ -426,56 +422,48 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
   const [shelf, setShelf] = useState(() => shelves[0]?.id ?? '');
   const narrator = narrators.find((n) => n.id === narratorId) ?? narrators[0]!;
   const list = useMemo(() => texts.filter((t) => t.setId === shelf).sort((a, b) => a.createdAt - b.createdAt), [texts, shelf]);
-  const [counts, setCounts] = useState<Record<string, Count>>({});
+  /** whether the narrator, as it sounds now, has read each text */
+  const [read, setRead] = useState<Record<string, boolean>>({});
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [again, setAgain] = useState(false);
-  const [running, setRunning] = useState<{ text: string; done: number; total: number } | null>(null);
+  const [running, setRunning] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  // How much of each text this narrator has read already.
   useEffect(() => {
     let live = true;
-    setCounts({});
+    setRead({});
     void Promise.all(
       list.map((t) =>
-        talkRecorded(narrator.recordingId, sentencesOf(t)).then(
-          ({ have }) => [t.id, { have: have.filter(Boolean).length, total: have.length }] as const,
-          () => [t.id, { have: 0, total: sentencesOf(t).length }] as const,
+        narrationOf(narrator.id, linesOf(t)).then(
+          (n) => [t.id, n !== null] as const,
+          () => [t.id, false] as const,
         ),
       ),
     ).then((rows) => {
       if (!live) return;
-      const next = Object.fromEntries(rows);
-      setCounts(next);
-      setPicked(new Set(rows.filter(([, c]) => c.have < c.total).map(([id]) => id)));
+      setRead(Object.fromEntries(rows));
+      setPicked(new Set(rows.filter(([, done]) => !done).map(([id]) => id)));
     });
     return () => {
       live = false;
     };
-  }, [list, narrator.recordingId]);
+  }, [list, narrator.id]);
 
   async function run() {
     setMessage(null);
     const chosen = list.filter((t) => picked.has(t.id));
     try {
       for (const t of chosen) {
-        const lines = sentencesOf(t);
-        const { have } = await talkRecorded(narrator.recordingId, lines);
-        const todo = again ? lines : lines.filter((_, i) => !have[i]);
-        setRunning({ text: t.titleZh || t.title, done: 0, total: todo.length });
-        for (const [i, line] of todo.entries()) {
-          await narrateLine(narrator.id, line);
-          setRunning({ text: t.titleZh || t.title, done: i + 1, total: todo.length });
-        }
-        setCounts((c) => ({ ...c, [t.id]: { have: lines.length, total: lines.length } }));
+        setRunning(t.id);
+        await narrationOf(narrator.id, linesOf(t), again ? { again: true } : { generate: true });
+        setRead((r) => ({ ...r, [t.id]: true }));
         setPicked((p) => {
           const n = new Set(p);
           n.delete(t.id);
           return n;
         });
       }
-      voiceRecorded(narrator.recordingId);
-      setMessage(`Done: ${chosen.length} ${chosen.length === 1 ? 'text' : 'texts'} read by ${narrator.name}. Listen offers the voice on them.`);
+      setMessage(`Done: ${chosen.length} ${chosen.length === 1 ? 'text' : 'texts'} read by ${narrator.name} and kept. Listen plays them.`);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'MiniMax did not answer.');
     } finally {
@@ -521,15 +509,14 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
         </div>
         <ul className="list narrator-texts">
           {list.map((t) => {
-            const c = counts[t.id];
-            const now = running && running.text === (t.titleZh || t.title);
+            const done = read[t.id];
             return (
               <li key={t.id}>
                 <label className="narrator-text">
                   <input type="checkbox" checked={picked.has(t.id)} onChange={() => toggle(t.id)} disabled={running !== null} />
                   <span className="grow hanzi">{t.titleZh || t.title}</span>
                   <span className="tiny muted narrator-count">
-                    {now ? `Reading ${running.done} of ${running.total}` : c ? (c.have >= c.total ? 'All read' : `${c.have} of ${c.total} read`) : '…'}
+                    {running === t.id ? 'Reading…' : done === undefined ? '…' : done ? 'Read' : 'Not read yet'}
                   </span>
                 </label>
               </li>
@@ -540,12 +527,12 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
           <input type="checkbox" checked={again} onChange={(e) => setAgain(e.target.checked)} disabled={running !== null} />
           <span>
             Read again what it has read
-            <span className="d">After you changed how it sounds. It costs the same again.</span>
+            <span className="d">Changing a narrator’s voice already asks for new readings; this reads the same again. It costs the same again.</span>
           </span>
         </label>
         <div className="narrator-actions">
           <button className="btn tonal" onClick={() => void run()} disabled={running !== null || picked.size === 0}>
-            {running ? `Reading ${running.text}…` : `Read ${picked.size} ${picked.size === 1 ? 'text' : 'texts'}`}
+            {running ? `Reading ${list.find((t) => t.id === running)?.titleZh ?? ''}… up to a minute each` : `Read ${picked.size} ${picked.size === 1 ? 'text' : 'texts'}`}
           </button>
         </div>
         <p className="tiny muted narrator-msg">{message ?? ''}</p>

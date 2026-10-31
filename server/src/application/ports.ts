@@ -154,6 +154,11 @@ export interface Narrator {
   voices(key: string): Promise<Array<{ id: string; name: string; description: string }>>;
   /** one sentence as MP3 */
   read(key: string, text: string, voice: string, tuning: VoiceTuning): Promise<Uint8Array>;
+  /**
+   * A whole text read in one go, and where each of the service's sentences
+   * begins and ends in it, in milliseconds, when it says.
+   */
+  readText(key: string, text: string, voice: string, tuning: VoiceTuning): Promise<{ audio: Uint8Array; segments: Array<{ text: string; start: number; end: number }> | null }>;
   /** a new voice made from a description, and its first words read in it */
   design(key: string, prompt: string, previewText: string): Promise<{ voiceId: string; trial: Uint8Array }>;
 }
@@ -172,6 +177,26 @@ export interface NarratorRecord extends VoiceTuning {
   previewText: string;
   createdAt: number;
   updatedAt: number;
+}
+
+/** A whole text read by a narrator, kept so it is never paid for twice. */
+export interface TextNarration {
+  /** the narrator and the sentences, digested */
+  key: string;
+  userId: string;
+  narratorId: string;
+  mp3: Uint8Array;
+  /** where each sentence starts and ends, in milliseconds, in the text's order */
+  timings: Array<[number, number]>;
+  durationMs: number;
+  createdAt: number;
+}
+
+export interface TextNarrationRepository {
+  find(key: string): Promise<TextNarration | null>;
+  /** what is kept under these keys, without the audio */
+  have(keys: readonly string[]): Promise<Array<Omit<TextNarration, 'mp3'>>>;
+  save(n: TextNarration): Promise<void>;
 }
 
 export interface NarratorRepository {

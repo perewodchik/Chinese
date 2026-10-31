@@ -9,7 +9,10 @@ import { useLibrary } from '../shared/library';
 import { AnswerBox } from './AnswerBox';
 import { CopyOut } from './CopyOut';
 import { Dictation, openDictation } from './Dictation';
+import { NarrationPlayer } from './NarrationPlayer';
 import { Narrate } from './Narrate';
+import { listNarrators, readingsOf } from '../../api/narration';
+import type { TextNarrationDto } from '../../../shared/narration';
 import type { Standing } from './Passage';
 import { onReadThrough, RATES, type Reading } from './readAloud';
 
@@ -98,7 +101,129 @@ export function ListenPart({ text, reading, spoken, partId }: { text: GeneratedT
  * slower to follow; and every line in a list to follow along, lit as it is
  * read. Stopping remembers the line, so Play goes on from there.
  */
+/** The narrators' readings of this text, and which one Listen plays; "sentences" for the sentence player. */
+const LISTEN_CHOICE = 'hanzi.listen.reading';
+const SENTENCES = 'sentences';
+const storedChoice = () => {
+  try {
+    return localStorage.getItem(LISTEN_CHOICE);
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Listen: a narrator's reading of the whole text where there is one — played
+ * with a slider — and otherwise the sentence player, which reads line by line
+ * in any other voice. The narrators come first among the voices.
+ */
 function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: Reading; spoken: string[] }) {
+  const [readings, setReadings] = useState<Array<{ n: TextNarrationDto; name: string }>>([]);
+  const [choice, setChoice] = useState<string | null>(storedChoice);
+  const linesZh = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
+
+  useEffect(() => {
+    let live = true;
+    setReadings([]);
+    void Promise.all([listNarrators(), readingsOf(linesZh)]).then(
+      ([narrators, kept]) => {
+        if (!live) return;
+        setReadings(kept.map((n) => ({ n, name: narrators.find((x) => x.id === n.narratorId)?.name ?? 'Narrator' })));
+      },
+      () => undefined,
+    );
+    return () => {
+      live = false;
+    };
+  }, [linesZh]);
+
+  const choose = (id: string) => {
+    setChoice(id);
+    try {
+      localStorage.setItem(LISTEN_CHOICE, id);
+    } catch {
+      // forgotten between visits
+    }
+  };
+  const current = choice === SENTENCES ? null : (readings.find((r) => r.n.narratorId === choice) ?? readings[0] ?? null);
+  const chips = readings.map((r) => (
+    <button
+      key={`n:${r.n.narratorId}`}
+      role="radio"
+      aria-checked={current === r}
+      className="chip"
+      aria-pressed={current === r}
+      onClick={() => {
+        reading.stop();
+        choose(r.n.narratorId);
+      }}
+    >
+      {r.name}
+    </button>
+  ));
+  const narrate = (
+    <Narrate
+      key={text.id}
+      lines={linesZh}
+      onMade={(n, name) => {
+        reading.stop();
+        setReadings((list) => [...list.filter((r) => r.n.narratorId !== n.narratorId), { n, name }]);
+        choose(n.narratorId);
+      }}
+    />
+  );
+
+  if (current) {
+    return (
+      <NarrationPlayer
+        key={current.n.key}
+        text={text}
+        narration={current.n}
+        name={current.name}
+        between={
+          <>
+            <div className="rd-voices" role="radiogroup" aria-label="Voice">
+              {chips}
+              {reading.choices.map((v) => (
+                <button
+                  key={v.key}
+                  role="radio"
+                  aria-checked={false}
+                  className="chip"
+                  aria-pressed={false}
+                  onClick={() => {
+                    choose(SENTENCES);
+                    v.pick();
+                  }}
+                >
+                  {v.name}
+                </button>
+              ))}
+            </div>
+            {narrate}
+          </>
+        }
+      />
+    );
+  }
+  return <SentenceListen text={text} reading={reading} spoken={spoken} extraChips={chips} onSentences={() => choose(SENTENCES)} narrate={narrate} />;
+}
+
+function SentenceListen({
+  text,
+  reading,
+  spoken,
+  extraChips,
+  onSentences,
+  narrate,
+}: {
+  text: GeneratedText;
+  reading: Reading;
+  spoken: string[];
+  extraChips: ReactNode;
+  onSentences: () => void;
+  narrate: ReactNode;
+}) {
   const [last, setLast] = useState(0);
   const [ios, setIos] = useIosSpeak();
   const lines = useRef<HTMLOListElement>(null);
@@ -176,6 +301,7 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
 
       {/* The row is there from the start: the voices arrive a moment after the page, and the lines below should not jump. */}
       <div className="rd-voices" role="radiogroup" aria-label="Voice">
+        {extraChips}
         {reading.choices.map((v) => (
           <button
             key={v.key}
@@ -185,6 +311,7 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
             aria-pressed={v.active && !ios}
             onClick={() => {
               setIos(false);
+              onSentences();
               v.pick();
             }}
           >
@@ -206,7 +333,7 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
           </button>
         )}
       </div>
-      <Narrate key={text.id} spoken={spoken} reading={reading} />
+      {narrate}
       {IOS_SPEAK && (
         <p className="small muted rd-voice-note">
           <b>Your device’s voice</b> reads in the Chinese voice set in Settings › Accessibility › Spoken Content ›

@@ -8,11 +8,12 @@ import {
   type NarratorChange,
   type NarratorDto,
   type NarratorVoice,
+  type TextNarrationDto,
 } from '../../../shared/narration';
+import { createHash } from 'node:crypto';
 import { NarratorRefused } from '../infrastructure/minimax';
 import { AppError, NotFoundError, ValidationError } from '../domain/errors';
-import type { Clock, Narrator, NarratorRecord, NarratorRepository, SecretRepository, Tokens, VoiceTuning } from './ports';
-import type { RecordingService } from './recording-service';
+import type { Clock, Narrator, NarratorRecord, NarratorRepository, SecretRepository, TextNarration, TextNarrationRepository, Tokens, VoiceTuning } from './ports';
 
 const KEY = 'minimax';
 const clamp = (v: number, [lo, hi]: readonly [number, number]) => Math.min(hi, Math.max(lo, v));
@@ -38,7 +39,7 @@ export class NarrationService {
       secrets: SecretRepository;
       narrators: NarratorRepository;
       narrator: Narrator | null;
-      recordings: RecordingService;
+      narrations: TextNarrationRepository;
       tokens: Tokens;
       clock: Clock;
     },
@@ -157,17 +158,57 @@ export class NarrationService {
     return this.call(() => this.narrator().read(key, line, n.voiceId, tuningOf(n)));
   }
 
-  /** One sentence of a text read by the narrator and kept; the id Listen offers it under. */
-  async line(userId: string, narratorId: string, text: string): Promise<string> {
-    const key = await this.keyOf(userId);
+  /**
+   * A text read whole by a narrator, in one request, and kept: found when it
+   * was read before by the narrator as it is now (its voice, speed, pitch and
+   * mood), read only when asked to, and read again only when asked again.
+   */
+  async text(userId: string, narratorId: string, lines: string[], o: { generate?: boolean; again?: boolean } = {}): Promise<TextNarrationDto | null> {
     const n = await this.find(userId, narratorId);
-    const line = text.trim();
-    if (!line) throw new ValidationError('Nothing to read.');
-    const sound = soundOf(line);
-    const mp3 = await this.call(() => this.narrator().read(key, sound ? `${line} ${sound}` : line, n.voiceId, tuningOf(n)));
-    const id = narratorRecordingId(n.id);
-    await this.deps.recordings.keep({ id, name: n.name, gender: 'female' }, 'teaching', line, mp3);
-    return id;
+    const said = lines.map((l) => l.trim());
+    if (!said.some(Boolean)) throw new ValidationError('Nothing to read.');
+    const key = narrationKey(n, said);
+    const [kept] = await this.deps.narrations.have([key]);
+    if (kept && !o.again) return toNarrationDto(kept);
+    if (!o.generate && !o.again) return null;
+    const apiKey = await this.keyOf(userId);
+    const script = said
+      .filter(Boolean)
+      .map((l) => {
+        const sound = soundOf(l);
+        return sound ? `${l} ${sound}` : l;
+      })
+      .join(' <#0.6#> ');
+    if (script.length > 9000) throw new ValidationError('The text is too long to read in one go.');
+    const read = await this.call(() => this.narrator().readText(apiKey, script, n.voiceId, tuningOf(n)));
+    // MiniMax's MP3 is a constant 64 kbit/s, so its length is its size.
+    const durationMs = Math.round((read.audio.length * 8) / 64);
+    const record: TextNarration = {
+      key,
+      userId,
+      narratorId: n.id,
+      mp3: read.audio,
+      timings: timingsFor(said, read.segments, durationMs),
+      durationMs,
+      createdAt: this.deps.clock.now(),
+    };
+    await this.deps.narrations.save(record);
+    return toNarrationDto(record);
+  }
+
+  /** Every reading of this text the learner's narrators have, as each sounds now. */
+  async readingsOf(userId: string, lines: string[]): Promise<TextNarrationDto[]> {
+    const said = lines.map((l) => l.trim());
+    const narrators = await this.deps.narrators.list(userId);
+    const kept = await this.deps.narrations.have(narrators.map((n) => narrationKey(n, said)));
+    return kept.filter((k) => k.userId === userId).map(toNarrationDto);
+  }
+
+  /** The audio of a kept reading, for its owner. */
+  async audio(userId: string, key: string): Promise<Uint8Array> {
+    const kept = /^[0-9a-f]{64}$/.test(key) ? await this.deps.narrations.find(key) : null;
+    if (!kept || kept.userId !== userId) throw new NotFoundError('That reading');
+    return kept.mp3;
   }
 
   /* ------------------------------------------------------------ helpers */
@@ -213,6 +254,56 @@ export class NarrationService {
 }
 
 const tuningOf = (n: VoiceTuning): VoiceTuning => ({ speed: n.speed, pitch: n.pitch, emotion: n.emotion });
+
+/** A reading's key: the narrator as it sounds now, and the sentences. A change to either is a new reading. */
+const narrationKey = (n: NarratorRecord, lines: string[]) =>
+  createHash('sha256').update(`${n.id}|${n.voiceId}|${n.speed}|${n.pitch}|${n.emotion ?? ''}\n${lines.join('\n')}`).digest('hex');
+
+const toNarrationDto = (k: Omit<TextNarration, 'mp3'>): TextNarrationDto => ({
+  key: k.key,
+  narratorId: k.narratorId,
+  durationMs: k.durationMs,
+  timings: k.timings,
+  createdAt: k.createdAt,
+});
+
+const counted = (s: string) => [...s].filter((c) => /[\p{Script=Han}\p{N}]/u.test(c)).length;
+
+/**
+ * Where each line is in the reading. The service's sentences, with their
+ * times, are laid end to end as one run of characters; a line starts and ends
+ * where its characters fall in that run, time read off within the sentence it
+ * falls in. Without the service's times, the whole reading is one sentence.
+ * Only characters and digits count, so punctuation and sound tags do not
+ * shift anything.
+ */
+export function timingsFor(lines: string[], segments: Array<{ text: string; start: number; end: number }> | null, durationMs: number): Array<[number, number]> {
+  const segs = segments?.length ? segments : [{ text: lines.join(''), start: 0, end: durationMs }];
+  const runs: Array<{ from: number; to: number; start: number; end: number }> = [];
+  let at = 0;
+  for (const sg of segs) {
+    const n = counted(sg.text) || 1;
+    runs.push({ from: at, to: at + n, start: sg.start, end: sg.end });
+    at += n;
+  }
+  const total = at;
+  // A line starting where a sentence ends starts with the next sentence, after the pause.
+  const timeAt = (c: number, edge: 'start' | 'end') => {
+    const x = Math.min(Math.max(c, 0), total);
+    const r = runs.find((r) => (edge === 'start' ? x < r.to : x <= r.to)) ?? runs[runs.length - 1]!;
+    return Math.round(r.start + ((x - r.from) / (r.to - r.from || 1)) * (r.end - r.start));
+  };
+  // The lines' own characters, scaled to the run's in case the counts differ.
+  const lineCounts = lines.map(counted);
+  const sum = lineCounts.reduce((a, b) => a + b, 0) || 1;
+  const scale = total / sum;
+  let c = 0;
+  return lineCounts.map((n) => {
+    const from = c;
+    c += n * scale;
+    return [timeAt(from, 'start'), timeAt(c, 'end')];
+  });
+}
 
 const toDto = (n: NarratorRecord): NarratorDto => ({
   id: n.id,

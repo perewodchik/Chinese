@@ -496,8 +496,9 @@ export function useReading(passage?: string[]): Reading {
   // opened on one that does not, would be a button promising a voice nothing
   // can play — so the remembered voice stands only while it can play this
   // passage, and before the server has answered, when it is the one meant.
-  const playable = (voices ?? []).filter((v) => !v.recorded || covering?.has(v.id));
-  const recordedHere = (voices ?? []).find((v) => covering?.has(v.id));
+  // Narrators' sentence-by-sentence recordings (mm-…) gave way to whole readings, which Listen plays itself.
+  const playable = (voices ?? []).filter((v) => !v.id.startsWith('mm-') && (!v.recorded || covering?.has(v.id)));
+  const recordedHere = (voices ?? []).find((v) => !v.id.startsWith('mm-') && covering?.has(v.id));
   const usable =
     voices === null || covering === null
       ? (voice ?? SYSTEM_VOICE)

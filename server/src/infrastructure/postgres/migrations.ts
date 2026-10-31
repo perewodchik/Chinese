@@ -123,4 +123,16 @@ export const MIGRATIONS: readonly string[] = [
 
   CREATE INDEX narrators_by_user ON narrators (user_id, created_at);
   `,
+  // A whole text read by a narrator in one go, kept so it is never paid for twice.
+  `
+  CREATE TABLE text_narrations (
+    key          TEXT PRIMARY KEY,
+    user_id      TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    narrator_id  TEXT NOT NULL,
+    mp3          BYTEA NOT NULL,
+    timings      TEXT NOT NULL,
+    duration_ms  BIGINT NOT NULL,
+    created_at   BIGINT NOT NULL
+  );
+  `,
 ];

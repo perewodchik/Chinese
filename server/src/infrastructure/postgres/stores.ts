@@ -3,6 +3,7 @@ import type { Stores } from '../../composition';
 import { PostgresConversationRepository } from './conversation-repository';
 import { PostgresPictureRepository } from './picture-repository';
 import { PostgresNarratorRepository } from './narrator-repository';
+import { PostgresTextNarrationRepository } from './text-narration-repository';
 import { PostgresSecretRepository } from './secret-repository';
 import { PostgresRecordingRepository } from './recording-repository';
 import { PostgresSessionRepository } from './session-repository';
@@ -21,4 +22,5 @@ export const postgresStores = (db: pg.Pool): Stores => ({
   pictures: new PostgresPictureRepository(db),
   secrets: new PostgresSecretRepository(db),
   narrators: new PostgresNarratorRepository(db),
+  narrations: new PostgresTextNarrationRepository(db),
 });

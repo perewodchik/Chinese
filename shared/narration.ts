@@ -12,7 +12,9 @@
  *   PATCH  /api/narration/narrators/:id       { name?, speed?, pitch?, emotion? }
  *   DELETE /api/narration/narrators/:id
  *   POST   /api/narration/narrators/:id/preview { text } → MP3, nothing kept
- *   POST   /api/narration/line               { narrator, text, again? } → one sentence read and kept
+ *   POST   /api/narration/texts               { narrator, lines, generate?, again? } → the narrator's reading of the text (made when asked)
+ *   POST   /api/narration/texts/of            { lines } → every narrator's reading of the text there is
+ *   GET    /api/narration/texts/:key/audio    the reading itself, MP3
  */
 
 export interface NarrationStatus {
@@ -70,16 +72,14 @@ export interface NarratorChange {
   emotion?: Emotion | null;
 }
 
-export interface NarrateLineRequest {
-  narrator: string;
-  text: string;
-  /** read it again even if it was read before (after the narrator changed) */
-  again?: boolean;
-}
-
-export interface NarrateLineResponse {
-  /** the voice the recording is kept under, as Listen offers it */
-  recordedAs: string;
+/** A whole text read by a narrator, kept on the server. */
+export interface TextNarrationDto {
+  key: string;
+  narratorId: string;
+  durationMs: number;
+  /** where each of the text's lines starts and ends, in milliseconds */
+  timings: Array<[number, number]>;
+  createdAt: number;
 }
 
 export const SPEED_RANGE = [0.5, 2] as const;
