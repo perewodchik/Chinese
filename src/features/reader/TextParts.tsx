@@ -9,6 +9,7 @@ import { useLibrary } from '../shared/library';
 import { AnswerBox } from './AnswerBox';
 import { CopyOut } from './CopyOut';
 import { Dictation, openDictation } from './Dictation';
+import { VideoStudio } from './video/VideoStudio';
 import { NarrationPlayer } from './NarrationPlayer';
 import { Narrate } from './Narrate';
 import { addReading, narratedReadings, pickReading, prepareClips } from './narratedClips';
@@ -461,6 +462,7 @@ function TranslateBody({ text }: { text: GeneratedText }) {
 export function MorePart({ text, partId }: { text: GeneratedText; partId: string }) {
   const [open, setOpen] = useState<'translate' | null>(null);
   const [dictating, setDictating] = useState(false);
+  const [filming, setFilming] = useState(false);
   useEffect(() => setOpen(null), [text.id]);
   // A narrator's reading, fetched before Dictation is opened, so its first
   // sentence can be said inside the tap that opens it.
@@ -518,8 +520,19 @@ export function MorePart({ text, partId }: { text: GeneratedText; partId: string
           </span>
           <Icon name="chevron" />
         </button>
+        <button className="rd-more-row" onClick={() => setFilming(true)}>
+          <span className="hanzi" aria-hidden>
+            影
+          </span>
+          <span className="grow">
+            <b>Video</b>
+            <span className="small muted">The text as an upright video: its pictures, the narrator, subtitles</span>
+          </span>
+          <Icon name="chevron" />
+        </button>
       </div>
       {dictating && <Dictation text={text} onClose={() => setDictating(false)} />}
+      {filming && <VideoStudio text={text} onClose={() => setFilming(false)} />}
     </Section>
   );
 }

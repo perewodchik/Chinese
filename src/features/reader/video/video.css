@@ -1,0 +1,421 @@
+/* Video: the studio that makes a text into an upright video. The preview is
+   the video's own canvas, in a box sized before anything is drawn; the
+   settings run below it on a phone and beside it on an iPad. */
+
+.vs {
+  max-width: 1120px;
+  min-height: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--top-clear) + 8px) var(--gutter) 0;
+}
+
+.vs-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.vs-title {
+  flex: 1 1 auto;
+  display: grid;
+  min-width: 0;
+}
+
+.vs-title b {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.vs-title .hanzi {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vs-body {
+  display: grid;
+  gap: 24px;
+}
+
+.vs-stage {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* The same box whatever is in it: the canvas, the finished video. */
+.vs-box {
+  --h: min(56vh, 520px);
+  height: var(--h);
+  border-radius: var(--radius-lg);
+  background: var(--card-2);
+  display: grid;
+  place-items: center;
+}
+
+.vs-frame,
+.vs-video {
+  height: calc(var(--h) - 20px);
+  aspect-ratio: 9 / 16;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  background: #fbf8f1;
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.vs-video {
+  background: #000;
+}
+
+.vs-frame canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.vs-safe {
+  position: absolute;
+  pointer-events: none;
+  background: repeating-linear-gradient(135deg, rgb(204 47 42 / 0.2) 0 5px, rgb(204 47 42 / 0.06) 5px 10px);
+}
+
+.vs-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  text-align: center;
+  color: var(--ink-2);
+  background: var(--card);
+}
+
+.vs-line {
+  display: flex;
+  gap: 3px;
+  height: 20px;
+  align-items: center;
+}
+
+.vs-line button {
+  flex-basis: 0;
+  min-width: 3px;
+  height: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: var(--line);
+  cursor: pointer;
+}
+
+.vs-line button[data-state='past'] {
+  background: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.vs-line button[data-state='now'] {
+  background: var(--accent);
+}
+
+.vs-times {
+  display: flex;
+  justify-content: space-between;
+  font-variant-numeric: tabular-nums;
+  margin-top: -6px;
+}
+
+.vs-controls {
+  min-height: 56px;
+  display: grid;
+  place-items: center;
+}
+
+.vs-making {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.vs-making .vs-bar {
+  grid-column: 1 / -1;
+}
+
+.vs-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.vs-bar i {
+  display: block;
+  height: 100%;
+  background: var(--jade);
+}
+
+.vs-scenes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  gap: 8px;
+}
+
+.vs-scene {
+  display: grid;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  cursor: pointer;
+  min-width: 0;
+}
+
+.vs-scene img,
+.vs-scene .hanzi {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  object-fit: cover;
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+}
+
+.vs-scene .hanzi {
+  display: grid;
+  place-items: center;
+  background: var(--card-2);
+  font-size: 20px;
+  color: var(--ink-2);
+}
+
+.vs-scene[aria-pressed='true'] {
+  color: var(--accent);
+}
+
+.vs-scene[aria-pressed='true'] img,
+.vs-scene[aria-pressed='true'] .hanzi {
+  outline-color: var(--accent);
+}
+
+.vs-settings {
+  display: grid;
+  gap: 28px;
+  min-width: 0;
+  align-content: start;
+}
+
+.vs-section .block-title {
+  margin-bottom: 6px;
+}
+
+.vs-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  border-top: 1px solid var(--line);
+}
+
+.vs-section .block-title + .vs-row,
+.vs-section > .vs-row:first-child {
+  border-top: 0;
+}
+
+.vs-row-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  font-size: 15px;
+}
+
+.vs-row select {
+  max-width: 55%;
+  min-height: 40px;
+  font-size: 16px;
+}
+
+.vs-switch {
+  flex: none;
+  width: 46px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--line-2);
+  position: relative;
+  cursor: pointer;
+}
+
+.vs-switch span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: #fff;
+  transition: left 140ms;
+}
+
+.vs-switch[aria-checked='true'] {
+  background: var(--accent);
+}
+
+.vs-switch[aria-checked='true'] span {
+  left: 21px;
+}
+
+.vs-switch:disabled {
+  opacity: 0.45;
+}
+
+.vs-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.vs-tile {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 8px 6px 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink-2);
+  cursor: pointer;
+  min-width: 0;
+  text-align: center;
+}
+
+.vs-tile[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* A tile's little picture of its layout, upright like the video. */
+.vs-mini {
+  width: 34px;
+  aspect-ratio: 9 / 16;
+  border-radius: 4px;
+  background: var(--card-2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 3px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.vs-mini i {
+  display: block;
+  border-radius: 2px;
+}
+
+.vs-mini .p {
+  background: #a9c79a;
+  height: 45%;
+}
+
+.vs-mini .t {
+  height: 3px;
+  background: var(--ink-3);
+  width: 80%;
+  align-self: center;
+}
+
+.vs-mini[data-layout='over'] .p {
+  position: absolute;
+  inset: 0;
+  height: auto;
+  border-radius: 0;
+}
+
+.vs-mini[data-layout='over'] .t {
+  position: relative;
+  margin-top: 60%;
+  background: #2b3036;
+}
+
+.vs-mini[data-layout='over'] .t + .t {
+  margin-top: 0;
+}
+
+.vs-mini[data-layout='side'] .p {
+  height: 32%;
+}
+
+.vs-mini[data-layout='side'] .t + .t {
+  background: #e9c24a;
+}
+
+.vs-mini[data-layout='words'] .p {
+  display: none;
+}
+
+.vs-print {
+  font-family: 'PingFang SC', 'Noto Sans SC', sans-serif;
+}
+
+.vs-done {
+  display: grid;
+  gap: 10px;
+}
+
+.vs-done-title {
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.vs-done .tiny {
+  margin: 0;
+}
+
+/* The one action, kept in reach at the bottom while the settings scroll. */
+.vs-foot {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  gap: 6px;
+  margin: 24px calc(-1 * var(--gutter)) 0;
+  padding: 12px var(--gutter) max(12px, env(safe-area-inset-bottom));
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+}
+
+.vs-foot .tiny {
+  text-align: center;
+  min-height: 1.4em;
+}
+
+/* An iPad: the video on the left, held while the settings scroll on the right. */
+@media (min-width: 900px) {
+  .vs-body {
+    grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+
+  .vs-stage {
+    position: sticky;
+    top: 12px;
+  }
+
+  .vs-box {
+    --h: min(68vh, 700px);
+  }
+
+  .vs-foot {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
