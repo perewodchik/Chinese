@@ -68,6 +68,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   const [own, setOwn] = useState<Own>(() => keptOwn(text));
   const [video, setVideo] = useState<Made | null>(null);
   const [shown, setShown] = useState(0);
+  const [watching, setWatching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [safe, setSafe] = useState(true);
   const running = useRef<Run | Render | null>(null);
@@ -231,6 +232,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
           void keepVideo(made);
           setVideo(withUrls(made));
           setShown(0);
+          setWatching(false);
           setMode('done');
         } else setMode('idle');
       },
@@ -318,7 +320,27 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
           <div className="vs-stage">
             {mode === 'done' && video ? (
               <div className="vs-box">
-                <video key={shown} className="vs-video" src={video.urls[shown]} controls playsInline />
+                {watching ? (
+                  <video key={shown} className="vs-video" src={video.urls[shown]} controls playsInline autoPlay />
+                ) : (
+                  // Ready: the cover and a word, not a player to sit through.
+                  <div className="vs-frame vs-ready">
+                    {plan?.cover && <img src={pictureUrl(plan.cover)} alt="" />}
+                    <div className="vs-ready-note">
+                      <span className="vs-ready-mark" aria-hidden>
+                        <Icon name="check" size={28} />
+                      </span>
+                      <b>Ready</b>
+                      <span className="small">
+                        {mmss(video.duration)}
+                        {video.parts.length > 1 ? `, ${video.parts.length} parts` : ''}
+                      </span>
+                      <button className="btn quiet sm" onClick={() => setWatching(true)}>
+                        Watch it
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="vs-box">
@@ -333,6 +355,20 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
                         style={{ top: `${(SAFE.buttonsFrom / H) * 100}%`, bottom: `${((H - SAFE.bottom) / H) * 100}%`, right: 0, width: `${(SAFE.right / W) * 100}%` }}
                       />
                     </>
+                  )}
+                  {mode === 'making' && plan && (
+                    // Made out of sight: a loader over the canvas the frames are drawn on.
+                    <div className="vs-loader" role="status">
+                      <span className="vs-spinner" aria-hidden />
+                      <b>{parts > 1 ? `Making part ${partNow + 1} of ${parts}` : 'Making the video'}</b>
+                      <span className="vs-loader-pct">{Math.round((t / plan.duration) * 100)}%</span>
+                      <div className="vs-bar">
+                        <i style={{ width: `${Math.round((t / plan.duration) * 100)}%` }} />
+                      </div>
+                      <button className="btn quiet sm" onClick={stop}>
+                        Stop
+                      </button>
+                    </div>
                   )}
                   {!plan && (
                     <div className="vs-empty small">
@@ -362,23 +398,14 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
                   <span>{mmss(plan.duration)}</span>
                 </div>
                 <div className="vs-controls">
-                  {mode === 'making' ? (
-                    <div className="vs-making">
-                      <div className="vs-bar">
-                        <i style={{ width: `${Math.round((t / plan.duration) * 100)}%` }} />
-                      </div>
-                      <span className="small">
-                        {parts > 1 ? `Making part ${partNow + 1} of ${parts}` : 'Making the video'} · {Math.round((t / plan.duration) * 100)}%
-                      </span>
-                      <button className="btn quiet sm" onClick={stop}>
-                        Stop
-                      </button>
-                    </div>
-                  ) : (
-                    <button className="rd-play" onClick={() => (mode === 'playing' ? stop() : void start(false))} disabled={!audioUrl} aria-label={mode === 'playing' ? 'Pause' : 'Play the preview'}>
-                      <Icon name={mode === 'playing' ? 'pause' : 'play'} size={22} />
-                    </button>
-                  )}
+                  <button
+                    className="rd-play"
+                    onClick={() => (mode === 'playing' ? stop() : void start(false))}
+                    disabled={!audioUrl || mode === 'making'}
+                    aria-label={mode === 'playing' ? 'Pause' : 'Play the preview'}
+                  >
+                    <Icon name={mode === 'playing' ? 'pause' : 'play'} size={22} />
+                  </button>
                 </div>
                 <div className="vs-scenes">
                   {scenes.map((s) => (
@@ -408,9 +435,15 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
                   />
                 )}
                 <button className="btn primary lg" onClick={() => void save()}>
-                  {video.parts.length > 1 ? `Save or share all ${video.parts.length}` : 'Save or share'}
+                  {video.parts.length > 1 ? `Save all ${video.parts.length} parts` : 'Save the video'}
                 </button>
-                <button className="btn tonal" onClick={() => setMode('idle')}>
+                <button
+                  className="btn tonal"
+                  onClick={() => {
+                    setWatching(false);
+                    setMode('idle');
+                  }}
+                >
                   Change and make again
                 </button>
                 <button className="btn quiet danger" onClick={() => void remove()}>

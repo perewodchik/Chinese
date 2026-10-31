@@ -135,18 +135,6 @@
   place-items: center;
 }
 
-.vs-making {
-  width: 100%;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 4px 12px;
-}
-
-.vs-making .vs-bar {
-  grid-column: 1 / -1;
-}
-
 .vs-bar {
   height: 4px;
   border-radius: 2px;
@@ -447,6 +435,78 @@
 
 .vs-cover[aria-pressed='true'] img {
   outline-color: var(--accent);
+}
+
+.vs-loader,
+.vs-ready-note {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 20px;
+  text-align: center;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.vs-loader .vs-bar {
+  width: 70%;
+}
+
+.vs-loader-pct {
+  font-size: 28px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  min-width: 3.5ch;
+}
+
+.vs-spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid var(--line);
+  border-top-color: var(--accent);
+  animation: vs-spin 900ms linear infinite;
+}
+
+@keyframes vs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vs-spinner {
+    animation: none;
+  }
+}
+
+.vs-ready img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.vs-ready-note {
+  background: rgb(0 0 0 / 0.45);
+  color: #fff;
+}
+
+.vs-ready-note .btn {
+  color: #fff;
+}
+
+.vs-ready-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--jade);
+  color: #fff;
 }
 
 /* The one action, kept in reach at the bottom while the settings scroll. */

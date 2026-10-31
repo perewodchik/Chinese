@@ -80,7 +80,7 @@ export function run(o: {
     const source = ac.createMediaElementSource(audio);
     const dest = ac.createMediaStreamDestination();
     source.connect(dest);
-    source.connect(ac.destination);
+    // Not to the speakers: it is made quietly, to be watched once it is saved.
     const video = o.canvas.captureStream(30);
     tracks = [...video.getVideoTracks(), ...dest.stream.getAudioTracks()];
     stream = new MediaStream(tracks);
