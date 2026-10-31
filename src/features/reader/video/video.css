@@ -37,11 +37,13 @@
 
 .vs-body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
 }
 
 .vs-stage {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   min-width: 0;
 }
@@ -204,6 +206,7 @@
 
 .vs-settings {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 28px;
   min-width: 0;
   align-content: start;
@@ -231,6 +234,17 @@
   min-width: 0;
   display: grid;
   font-size: 15px;
+}
+
+/* A choice keeps to one line; the name beside it wraps instead. */
+.vs-row .seg {
+  flex: none;
+  flex-wrap: nowrap;
+}
+
+.vs-row .seg button {
+  white-space: nowrap;
+  padding: 0 9px;
 }
 
 .vs-row select {
@@ -382,11 +396,15 @@
 
 .vs-field {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 4px;
   padding: 0 0 12px;
 }
 
 .vs-field input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   min-height: 44px;
   padding: 0 12px;
   border: 1px solid var(--line-2);

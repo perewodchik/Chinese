@@ -9,7 +9,7 @@ import { useLibrary } from '../../shared/library';
 import { narratedReadings, type Narrated } from '../narratedClips';
 import { drawFrame, H, SAFE, W } from './draw';
 import { forgetVideo, keepVideo, keptVideo, type KeptVideo } from './kept';
-import { canRecord, recordingType, run, type Run } from './record';
+import { canRecord, run, type Run } from './record';
 import { canRenderFast, renderFast, type Render } from './render';
 import './video.css';
 
@@ -463,10 +463,10 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
               {!plan || fast === null
                 ? ''
                 : fast
-                  ? `${mmss(plan.duration)}, made on this device faster than it plays. MP4, nothing paid.`
+                  ? `A ${mmss(plan.duration)} video. Making it takes less than watching it; nothing is paid.`
                   : !canRecord()
                     ? 'This browser cannot make a video.'
-                    : `${mmss(plan.duration)}, made in real time, the screen kept on. ${recordingType().includes('mp4') ? 'MP4' : 'WebM'}, nothing paid.`}
+                    : `A ${mmss(plan.duration)} video. Making it takes as long as watching it, the screen kept on; nothing is paid.`}
             </span>
           </footer>
         )}
@@ -562,7 +562,7 @@ function Settings({
 
       <section className="vs-section">
         <h2 className="block-title">On screen</h2>
-        <Row title="Chapter name at the top">
+        <Row title="Title at the top">
           <Seg
             label="What the top says"
             value={look.title}
