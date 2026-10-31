@@ -16,6 +16,10 @@
  *   POST   /api/narration/texts               { narrator, lines, generate?, again? } → the narrator's reading of the text (made when asked)
  *   POST   /api/narration/texts/of            { lines } → every narrator's reading of the text there is
  *   GET    /api/narration/texts/:key/audio    the reading itself, MP3
+ *   GET    /api/narration/own                 the learner's own texts read aloud, newest first
+ *   POST   /api/narration/own                 { title, narrator, lines } → read now and kept
+ *   PATCH  /api/narration/own/:id             { title?, textId? } → renamed, or tied to the Read text made from it
+ *   DELETE /api/narration/own/:id             forgotten (its reading stays, for a Read text made from it)
  */
 
 export interface NarrationStatus {
@@ -80,6 +84,19 @@ export interface TextNarrationDto {
   durationMs: number;
   /** where each of the text's lines starts and ends, in milliseconds */
   timings: Array<[number, number]>;
+  createdAt: number;
+}
+
+/** A text of the learner's own, written in Voices and read aloud there. */
+export interface OwnTextDto {
+  id: string;
+  title: string;
+  lines: string[];
+  narratorId: string;
+  /** null if the reading was lost */
+  narration: TextNarrationDto | null;
+  /** the text in Read made from it */
+  textId: string | null;
   createdAt: number;
 }
 

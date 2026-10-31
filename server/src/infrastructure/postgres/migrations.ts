@@ -135,4 +135,18 @@ export const MIGRATIONS: readonly string[] = [
     created_at   BIGINT NOT NULL
   );
   `,
+  // Texts of the learner's own, written in Voices to be read aloud, perhaps saved to Read.
+  `
+  CREATE TABLE own_texts (
+    id             TEXT PRIMARY KEY,
+    user_id        TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    title          TEXT NOT NULL,
+    lines          TEXT NOT NULL,
+    narrator_id    TEXT NOT NULL,
+    narration_key  TEXT NOT NULL,
+    text_id        TEXT,
+    created_at     BIGINT NOT NULL
+  );
+  CREATE INDEX own_texts_user ON own_texts (user_id, created_at);
+  `,
 ];

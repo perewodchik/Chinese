@@ -199,6 +199,27 @@ export interface TextNarrationRepository {
   save(n: TextNarration): Promise<void>;
 }
 
+/** A text of the learner's own, read by a narrator: kept with its reading, and the Read text made from it. */
+export interface OwnText {
+  id: string;
+  userId: string;
+  title: string;
+  lines: string[];
+  narratorId: string;
+  /** the reading in text_narrations, as it was when read */
+  narrationKey: string;
+  /** the text in Read made from it, once saved there */
+  textId: string | null;
+  createdAt: number;
+}
+
+export interface OwnTextRepository {
+  list(userId: string): Promise<OwnText[]>;
+  find(userId: string, id: string): Promise<OwnText | null>;
+  save(text: OwnText): Promise<void>;
+  delete(userId: string, id: string): Promise<boolean>;
+}
+
 export interface NarratorRepository {
   list(userId: string): Promise<NarratorRecord[]>;
   find(userId: string, id: string): Promise<NarratorRecord | null>;

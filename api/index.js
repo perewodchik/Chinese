@@ -669,6 +669,51 @@ var NarrationService = class {
     if (!kept2 || kept2.userId !== userId) throw new NotFoundError("That reading");
     return kept2.mp3;
   }
+  /* ------------------------------------------------------------ own texts */
+  /** The learner's own texts read aloud, newest first, each with its reading. */
+  async ownTexts(userId) {
+    const list = await this.deps.ownTexts.list(userId);
+    const kept2 = new Map((await this.deps.narrations.have(list.map((t) => t.narrationKey))).map((k) => [k.key, k]));
+    return list.map((t) => ownDto(t, kept2.get(t.narrationKey) ?? null));
+  }
+  /**
+   * A text the learner wrote, read now by one of their narrators and kept.
+   * The reading is the same as any text's: a Read text with the same
+   * sentences finds it in Listen without being read again.
+   */
+  async readOwn(userId, input) {
+    const lines2 = input.lines.map((l) => l.trim()).filter(Boolean);
+    if (!lines2.length) throw new ValidationError("Write something to read.", { text: "Some Chinese." });
+    const narration = await this.text(userId, input.narrator, lines2, { generate: true });
+    if (!narration) throw new AppError("unavailable", "MiniMax sent nothing back.");
+    const record = {
+      id: this.deps.tokens.id(),
+      userId,
+      title: input.title.trim() || lines2[0].slice(0, 20),
+      lines: lines2,
+      narratorId: input.narrator,
+      narrationKey: narration.key,
+      textId: null,
+      createdAt: this.deps.clock.now()
+    };
+    await this.deps.ownTexts.save(record);
+    return ownDto(record, narration);
+  }
+  async changeOwn(userId, id, change) {
+    const t = await this.deps.ownTexts.find(userId, id);
+    if (!t) throw new NotFoundError("That text");
+    const next = {
+      ...t,
+      title: change.title?.trim() || t.title,
+      textId: change.textId === void 0 ? t.textId : change.textId
+    };
+    await this.deps.ownTexts.save(next);
+    const [kept2] = await this.deps.narrations.have([next.narrationKey]);
+    return ownDto(next, kept2 ?? null);
+  }
+  async removeOwn(userId, id) {
+    if (!await this.deps.ownTexts.delete(userId, id)) throw new NotFoundError("That text");
+  }
   /* ------------------------------------------------------------ helpers */
   async find(userId, id) {
     const n = await this.deps.narrators.find(userId, id);
@@ -714,6 +759,15 @@ var toNarrationDto = (k) => ({
   durationMs: k.durationMs,
   timings: k.timings,
   createdAt: k.createdAt
+});
+var ownDto = (t, kept2) => ({
+  id: t.id,
+  title: t.title,
+  lines: t.lines,
+  narratorId: t.narratorId,
+  narration: kept2 ? toNarrationDto(kept2) : null,
+  textId: t.textId,
+  createdAt: t.createdAt
 });
 var counted = (s) => [...s].filter((c) => /[\p{Script=Han}\p{N}]/u.test(c)).length;
 function timingsFor(lines2, segments, durationMs) {
@@ -1031,7 +1085,7 @@ function createServices(stores, options = {}) {
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock })
+    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock })
   };
 }
 
@@ -1365,6 +1419,8 @@ var changeRequest = z3.object({
   pitch: z3.number().min(-12).max(12).optional(),
   emotion: z3.enum(EMOTIONS).nullable().optional()
 });
+var ownRequest = z3.object({ title: z3.string().max(80), narrator: z3.string().min(1).max(80), lines });
+var ownChange = z3.object({ title: z3.string().max(80).optional(), textId: z3.string().min(1).max(80).nullable().optional() });
 var previewRequest = z3.object({ text: z3.string().max(200) });
 var mp3 = (c, bytes) => {
   c.header("Content-Type", "audio/mpeg");
@@ -1433,6 +1489,20 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
     c.header("Content-Type", "audio/mpeg");
     c.header("Cache-Control", "private, max-age=31536000, immutable");
     return c.body(bytes);
+  });
+  routes.get("/own", session, async (c) => json(c, { texts: await narration.ownTexts(user(c)) }));
+  routes.post("/own", session, async (c) => {
+    reads.consume(user(c));
+    const input = await readJson(c, ownRequest);
+    return json(c, { text: await narration.readOwn(user(c), input) });
+  });
+  routes.patch("/own/:id", session, async (c) => {
+    const change = await readJson(c, ownChange);
+    return json(c, { text: await narration.changeOwn(user(c), c.req.param("id"), change) });
+  });
+  routes.delete("/own/:id", session, async (c) => {
+    await narration.removeOwn(user(c), c.req.param("id"));
+    return json(c, { ok: true });
   });
   return routes;
 }
@@ -2231,6 +2301,20 @@ var MIGRATIONS = [
     duration_ms  BIGINT NOT NULL,
     created_at   BIGINT NOT NULL
   );
+  `,
+  // Texts of the learner's own, written in Voices to be read aloud, perhaps saved to Read.
+  `
+  CREATE TABLE own_texts (
+    id             TEXT PRIMARY KEY,
+    user_id        TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    title          TEXT NOT NULL,
+    lines          TEXT NOT NULL,
+    narrator_id    TEXT NOT NULL,
+    narration_key  TEXT NOT NULL,
+    text_id        TEXT,
+    created_at     BIGINT NOT NULL
+  );
+  CREATE INDEX own_texts_user ON own_texts (user_id, created_at);
   `
 ];
 
@@ -2502,6 +2586,45 @@ var PostgresTextNarrationRepository = class {
   }
 };
 
+// server/src/infrastructure/sqlite/own-text-repository.ts
+var ownTextFromRow = (r) => ({
+  id: r.id,
+  userId: r.user_id,
+  title: r.title,
+  lines: JSON.parse(r.lines),
+  narratorId: r.narrator_id,
+  narrationKey: r.narration_key,
+  textId: r.text_id,
+  createdAt: Number(r.created_at)
+});
+
+// server/src/infrastructure/postgres/own-text-repository.ts
+var PostgresOwnTextRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async list(userId) {
+    const { rows } = await this.db.query("SELECT * FROM own_texts WHERE user_id = $1 ORDER BY created_at DESC", [userId]);
+    return rows.map(ownTextFromRow);
+  }
+  async find(userId, id) {
+    const { rows } = await this.db.query("SELECT * FROM own_texts WHERE user_id = $1 AND id = $2", [userId, id]);
+    return rows[0] ? ownTextFromRow(rows[0]) : null;
+  }
+  async save(t) {
+    await this.db.query(
+      `INSERT INTO own_texts (id, user_id, title, lines, narrator_id, narration_key, text_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, lines = EXCLUDED.lines, narrator_id = EXCLUDED.narrator_id,
+         narration_key = EXCLUDED.narration_key, text_id = EXCLUDED.text_id`,
+      [t.id, t.userId, t.title, JSON.stringify(t.lines), t.narratorId, t.narrationKey, t.textId, t.createdAt]
+    );
+  }
+  async delete(userId, id) {
+    const { rowCount } = await this.db.query("DELETE FROM own_texts WHERE user_id = $1 AND id = $2", [userId, id]);
+    return (rowCount ?? 0) > 0;
+  }
+};
+
 // server/src/infrastructure/postgres/secret-repository.ts
 var PostgresSecretRepository = class {
   constructor(db) {
@@ -2743,7 +2866,8 @@ var postgresStores = (db) => ({
   pictures: new PostgresPictureRepository(db),
   secrets: new PostgresSecretRepository(db),
   narrators: new PostgresNarratorRepository(db),
-  narrations: new PostgresTextNarrationRepository(db)
+  narrations: new PostgresTextNarrationRepository(db),
+  ownTexts: new PostgresOwnTextRepository(db)
 });
 
 // server/src/vercel.ts

@@ -121,9 +121,27 @@ describe('reading texts aloud with MiniMax and the learner’s key', () => {
     await call(app, 'PATCH', `/api/narration/narrators/${tutor.id}`, { cookie, body: { speed: 0.8 } });
     assert.deepEqual(await (await call(app, 'POST', '/api/narration/texts/of', { cookie, body: { lines } })).json(), { narrations: [] });
 
+
+    // A text of the learner's own: read and kept, renamed, tied to a Read text, forgotten.
+    const own = await call(app, 'POST', '/api/narration/own', { cookie, body: { title: '', narrator: tutor.id, lines: ['我饿了。', ' ', '我们吃饭吧。'] } });
+    const { text } = (await own.json()) as { text: { id: string; title: string; lines: string[]; narration: { key: string } | null; textId: string | null } };
+    assert.equal(text.title, '我饿了。');
+    assert.deepEqual(text.lines, ['我饿了。', '我们吃饭吧。']);
+    assert.ok(text.narration);
+    assert.equal(whole.length, 3);
+    const tied = await call(app, 'PATCH', `/api/narration/own/${text.id}`, { cookie, body: { title: '饿了', textId: 'read-1' } });
+    assert.deepEqual(((await tied.json()) as { text: { title: string; textId: string } }).text.title, '饿了');
+    const mine = (await (await call(app, 'GET', '/api/narration/own', { cookie })).json()) as { texts: Array<{ textId: string; narration: { key: string } }> };
+    assert.equal(mine.texts.length, 1);
+    assert.equal(mine.texts[0]!.textId, 'read-1');
+    assert.equal(mine.texts[0]!.narration.key, text.narration.key);
     // Nobody else hears it.
     const other = await signedIn(app, 'masha');
     assert.equal((await call(app, 'GET', `/api/narration/texts/${narration.key}/audio`, { cookie: other })).status, 404);
+    assert.deepEqual(await (await call(app, 'GET', '/api/narration/own', { cookie: other })).json(), { texts: [] });
+    assert.equal((await call(app, 'DELETE', `/api/narration/own/${text.id}`, { cookie: other })).status, 404);
+    assert.equal((await call(app, 'DELETE', `/api/narration/own/${text.id}`, { cookie })).status, 200);
+    assert.deepEqual(await (await call(app, 'GET', '/api/narration/own', { cookie })).json(), { texts: [] });
   });
 
   it('adopts one of MiniMax’s voices; nobody else sees or reads with a learner’s narrator', async () => {

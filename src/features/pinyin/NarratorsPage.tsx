@@ -21,6 +21,7 @@ import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { NarrationKey } from '../settings/NarrationKey';
+import { OwnTexts } from './OwnTexts';
 import './narrators.css';
 
 const SAMPLE = '你好！我们今天一起读一个小故事。你准备好了吗？';
@@ -65,8 +66,8 @@ export function NarratorsPage() {
         <h1>Voices</h1>
       </div>
       <p className="small muted narrators-lede">
-        The narrators who read your texts aloud in Listen. Make a voice from a description, tune how it speaks, hear it,
-        then give it texts to read. MiniMax reads with your own key; every sentence is read once and kept for every
+        The narrators who read aloud. Make a voice from a description, tune how it speaks, then give it your own text
+        to read, or texts from Read. MiniMax reads with your own key; every reading is made once and kept for every
         device.
       </p>
 
@@ -105,7 +106,12 @@ export function NarratorsPage() {
             }}
           />
 
-          {narrators && narrators.length > 0 && <ReadTexts narrators={narrators} />}
+          {narrators && narrators.length > 0 && (
+            <>
+              <OwnTexts narrators={narrators} />
+              <ReadTexts narrators={narrators} />
+            </>
+          )}
 
           <details className="narrators-key">
             <summary className="small muted">MiniMax key {status?.key.hint ?? ''}</summary>
@@ -553,7 +559,7 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
   return (
     <div className="block">
       <div className="block-head">
-        <h2 className="block-title">Read texts aloud</h2>
+        <h2 className="block-title">Texts from Read</h2>
       </div>
       <div className="narrator-read">
         <div className="narrator-read-pick">
@@ -603,7 +609,7 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
         </label>
         <div className="narrator-actions">
           <button className="btn tonal" onClick={() => void run()} disabled={running !== null || picked.size === 0}>
-            {running ? `Reading ${list.find((t) => t.id === running)?.titleZh ?? ''}… up to a minute each` : `Read ${picked.size} ${picked.size === 1 ? 'text' : 'texts'}`}
+            {running ? 'Reading… up to a minute each' : `Read ${picked.size} ${picked.size === 1 ? 'text' : 'texts'}`}
           </button>
         </div>
         {error && (

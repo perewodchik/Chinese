@@ -4,6 +4,7 @@ import { SqliteConversationRepository } from './conversation-repository';
 import { SqlitePictureRepository } from './picture-repository';
 import { SqliteNarratorRepository } from './narrator-repository';
 import { SqliteTextNarrationRepository } from './text-narration-repository';
+import { SqliteOwnTextRepository } from './own-text-repository';
 import { SqliteSecretRepository } from './secret-repository';
 import { SqliteRecordingRepository } from './recording-repository';
 import { SqliteSessionRepository } from './session-repository';
@@ -23,4 +24,5 @@ export const sqliteStores = (db: DatabaseSync): Stores => ({
   secrets: new SqliteSecretRepository(db),
   narrators: new SqliteNarratorRepository(db),
   narrations: new SqliteTextNarrationRepository(db),
+  ownTexts: new SqliteOwnTextRepository(db),
 });

@@ -8,12 +8,13 @@ import {
   type NarratorChange,
   type NarratorDto,
   type NarratorVoice,
+  type OwnTextDto,
   type TextNarrationDto,
 } from '../../../shared/narration';
 import { createHash } from 'node:crypto';
 import { NarratorRefused } from '../infrastructure/minimax';
 import { AppError, NotFoundError, ValidationError } from '../domain/errors';
-import type { Clock, Narrator, NarratorRecord, NarratorRepository, SecretRepository, TextNarration, TextNarrationRepository, Tokens, VoiceTuning } from './ports';
+import type { Clock, Narrator, NarratorRecord, NarratorRepository, OwnText, OwnTextRepository, SecretRepository, TextNarration, TextNarrationRepository, Tokens, VoiceTuning } from './ports';
 
 const KEY = 'minimax';
 const clamp = (v: number, [lo, hi]: readonly [number, number]) => Math.min(hi, Math.max(lo, v));
@@ -40,6 +41,7 @@ export class NarrationService {
       narrators: NarratorRepository;
       narrator: Narrator | null;
       narrations: TextNarrationRepository;
+      ownTexts: OwnTextRepository;
       tokens: Tokens;
       clock: Clock;
     },
@@ -225,6 +227,56 @@ export class NarrationService {
     return kept.mp3;
   }
 
+  /* ------------------------------------------------------------ own texts */
+
+  /** The learner's own texts read aloud, newest first, each with its reading. */
+  async ownTexts(userId: string): Promise<OwnTextDto[]> {
+    const list = await this.deps.ownTexts.list(userId);
+    const kept = new Map((await this.deps.narrations.have(list.map((t) => t.narrationKey))).map((k) => [k.key, k]));
+    return list.map((t) => ownDto(t, kept.get(t.narrationKey) ?? null));
+  }
+
+  /**
+   * A text the learner wrote, read now by one of their narrators and kept.
+   * The reading is the same as any text's: a Read text with the same
+   * sentences finds it in Listen without being read again.
+   */
+  async readOwn(userId: string, input: { title: string; narrator: string; lines: string[] }): Promise<OwnTextDto> {
+    const lines = input.lines.map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) throw new ValidationError('Write something to read.', { text: 'Some Chinese.' });
+    const narration = await this.text(userId, input.narrator, lines, { generate: true });
+    if (!narration) throw new AppError('unavailable', 'MiniMax sent nothing back.');
+    const record: OwnText = {
+      id: this.deps.tokens.id(),
+      userId,
+      title: input.title.trim() || lines[0]!.slice(0, 20),
+      lines,
+      narratorId: input.narrator,
+      narrationKey: narration.key,
+      textId: null,
+      createdAt: this.deps.clock.now(),
+    };
+    await this.deps.ownTexts.save(record);
+    return ownDto(record, narration);
+  }
+
+  async changeOwn(userId: string, id: string, change: { title?: string; textId?: string | null }): Promise<OwnTextDto> {
+    const t = await this.deps.ownTexts.find(userId, id);
+    if (!t) throw new NotFoundError('That text');
+    const next: OwnText = {
+      ...t,
+      title: change.title?.trim() || t.title,
+      textId: change.textId === undefined ? t.textId : change.textId,
+    };
+    await this.deps.ownTexts.save(next);
+    const [kept] = await this.deps.narrations.have([next.narrationKey]);
+    return ownDto(next, kept ?? null);
+  }
+
+  async removeOwn(userId: string, id: string): Promise<void> {
+    if (!(await this.deps.ownTexts.delete(userId, id))) throw new NotFoundError('That text');
+  }
+
   /* ------------------------------------------------------------ helpers */
 
   private async find(userId: string, id: string) {
@@ -273,12 +325,22 @@ const tuningOf = (n: VoiceTuning): VoiceTuning => ({ speed: n.speed, pitch: n.pi
 const narrationKey = (n: NarratorRecord, lines: string[]) =>
   createHash('sha256').update(`${n.id}|${n.voiceId}|${n.speed}|${n.pitch}|${n.emotion ?? ''}\n${lines.join('\n')}`).digest('hex');
 
-const toNarrationDto = (k: Omit<TextNarration, 'mp3'>): TextNarrationDto => ({
+const toNarrationDto = (k: Omit<TextNarration, 'mp3' | 'userId'>): TextNarrationDto => ({
   key: k.key,
   narratorId: k.narratorId,
   durationMs: k.durationMs,
   timings: k.timings,
   createdAt: k.createdAt,
+});
+
+const ownDto = (t: OwnText, kept: Omit<TextNarration, 'mp3'> | TextNarrationDto | null): OwnTextDto => ({
+  id: t.id,
+  title: t.title,
+  lines: t.lines,
+  narratorId: t.narratorId,
+  narration: kept ? toNarrationDto(kept) : null,
+  textId: t.textId,
+  createdAt: t.createdAt,
 });
 
 const counted = (s: string) => [...s].filter((c) => /[\p{Script=Han}\p{N}]/u.test(c)).length;

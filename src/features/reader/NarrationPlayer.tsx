@@ -20,6 +20,41 @@ const clock = (ms: number) => {
  * heard to the end, once more.
  */
 export function NarrationPlayer({ text, narration, name, between }: { text: GeneratedText; narration: TextNarrationDto; name: string; between?: ReactNode }) {
+  return (
+    <ReadingPlayer
+      lines={text.lines.map((l) => l.zh)}
+      narration={narration}
+      between={between}
+      lede={`${name} reads the whole text. Hear it once following the lines, then once more without looking. Tap a line to go to it.`}
+      furthest={text.study?.listened ?? 0}
+      onReached={(n) => studyText(text.id, { listened: n })}
+      onEnded={() => {
+        const s = text.study ?? {};
+        studyText(text.id, { heard: Date.now(), listened: text.lines.length, listens: (s.listens ?? (s.heard ? 1 : 0)) + 1 });
+      }}
+    />
+  );
+}
+
+/** The player itself, for any lines with a kept reading: a Read text's, or one of the learner's own in Voices. */
+export function ReadingPlayer({
+  lines,
+  narration,
+  lede,
+  between,
+  furthest = 0,
+  onReached,
+  onEnded,
+}: {
+  lines: string[];
+  narration: TextNarrationDto;
+  lede?: ReactNode;
+  between?: ReactNode;
+  /** how many lines in it has got before */
+  furthest?: number;
+  onReached?: (lines: number) => void;
+  onEnded?: () => void;
+}) {
   const audio = useRef<HTMLAudioElement>(null);
   const [src, setSrc] = useState<string | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
@@ -57,10 +92,9 @@ export function NarrationPlayer({ text, narration, name, between }: { text: Gene
   }, [at, dragging, timings, duration]);
 
   // How far the voice has got counts, as it does for the sentence player.
-  const furthest = text.study?.listened ?? 0;
   useEffect(() => {
-    if (playing && line + 1 > furthest) studyText(text.id, { listened: line + 1 });
-  }, [playing, line, furthest, text.id]);
+    if (playing && line + 1 > furthest) onReached?.(line + 1);
+  }, [playing, line, furthest, onReached]);
 
   const seek = (ms: number, play = false) => {
     const el = audio.current;
@@ -73,10 +107,7 @@ export function NarrationPlayer({ text, narration, name, between }: { text: Gene
 
   return (
     <>
-      <p className="rd-part-lede">
-        {name} reads the whole text. Hear it once following the lines, then once more without looking. Tap a line to go
-        to it.
-      </p>
+      {lede && <p className="rd-part-lede">{lede}</p>}
       <div className="rd-player rd-narration">
         {src && (
           <audio
@@ -88,8 +119,7 @@ export function NarrationPlayer({ text, narration, name, between }: { text: Gene
             onPause={() => setPlaying(false)}
             onEnded={() => {
               setPlaying(false);
-              const s = text.study ?? {};
-              studyText(text.id, { heard: Date.now(), listened: text.lines.length, listens: (s.listens ?? (s.heard ? 1 : 0)) + 1 });
+              onEnded?.();
             }}
           />
         )}
@@ -160,11 +190,11 @@ export function NarrationPlayer({ text, narration, name, between }: { text: Gene
       {between}
 
       <ol className="rd-listen">
-        {text.lines.map((l, i) => (
+        {lines.map((zh, i) => (
           <li key={i}>
             <button className="rd-listen-line" data-on={(playing && line === i) || undefined} data-current={!playing && i === line && at > 0 ? true : undefined} onClick={() => toLine(i)}>
               <span className="rd-listen-n">{i + 1}</span>
-              <span className="hanzi">{l.zh}</span>
+              <span className="hanzi">{zh}</span>
             </button>
           </li>
         ))}

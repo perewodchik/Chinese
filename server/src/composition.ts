@@ -12,6 +12,7 @@ import type {
   PictureRepository,
   SecretRepository,
   TextNarrationRepository,
+  OwnTextRepository,
   RecordingRepository,
   SessionRepository,
   SpeechSynthesizer,
@@ -61,6 +62,7 @@ export interface Stores {
   secrets: SecretRepository;
   narrators: NarratorRepository;
   narrations: TextNarrationRepository;
+  ownTexts: OwnTextRepository;
 }
 
 /**
@@ -108,6 +110,6 @@ export function createServices(
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock }),
+    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock }),
   };
 }

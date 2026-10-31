@@ -3,6 +3,7 @@ import type {
   NarratorChange,
   NarratorDto,
   NarratorVoice,
+  OwnTextDto,
   TextNarrationDto,
   TriedVoicesResponse,
 } from '../../shared/narration';
@@ -52,6 +53,14 @@ export const narrationOf = (narrator: string, lines: string[], o: { generate?: b
 /** Every kept reading of this text, by any of the learner's narrators as they sound now. */
 export const readingsOf = (lines: string[]) =>
   request<{ narrations: TextNarrationDto[] }>('POST', '/api/narration/texts/of', { body: { lines } }).then((r) => r.narrations);
+
+export const ownTexts = () => request<{ texts: OwnTextDto[] }>('GET', '/api/narration/own').then((r) => r.texts);
+/** A text of the learner's own, read now: up to a minute, like any whole text. */
+export const readOwnText = (title: string, narrator: string, lines: string[]) =>
+  request<{ text: OwnTextDto }>('POST', '/api/narration/own', { body: { title, narrator, lines }, timeoutMs: 120_000 }).then((r) => r.text);
+export const changeOwnText = (id: string, change: { title?: string; textId?: string | null }) =>
+  request<{ text: OwnTextDto }>('PATCH', `/api/narration/own/${encodeURIComponent(id)}`, { body: change }).then((r) => r.text);
+export const removeOwnText = (id: string) => request<{ ok: true }>('DELETE', `/api/narration/own/${encodeURIComponent(id)}`);
 
 const audioUrls = new Map<string, Promise<string>>();
 /** A kept reading's audio as an object URL, fetched once a page: a blob seeks in every browser, Safari too. */

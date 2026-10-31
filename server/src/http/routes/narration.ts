@@ -18,6 +18,8 @@ const changeRequest = z.object({
   pitch: z.number().min(-12).max(12).optional(),
   emotion: z.enum(EMOTIONS).nullable().optional(),
 });
+const ownRequest = z.object({ title: z.string().max(80), narrator: z.string().min(1).max(80), lines });
+const ownChange = z.object({ title: z.string().max(80).optional(), textId: z.string().min(1).max(80).nullable().optional() });
 const previewRequest = z.object({ text: z.string().max(200) });
 
 const mp3 = (c: Context<AppEnv>, bytes: Uint8Array) => {
@@ -110,6 +112,24 @@ export function narrationRoutes({ auth, clock, trustProxy, narration }: RouteDep
     c.header('Content-Type', 'audio/mpeg');
     c.header('Cache-Control', 'private, max-age=31536000, immutable');
     return c.body(bytes as Uint8Array<ArrayBuffer>);
+  });
+
+  routes.get('/own', session, async (c) => json(c, { texts: await narration.ownTexts(user(c)) }));
+
+  routes.post('/own', session, async (c) => {
+    reads.consume(user(c));
+    const input = await readJson(c, ownRequest);
+    return json(c, { text: await narration.readOwn(user(c), input) });
+  });
+
+  routes.patch('/own/:id', session, async (c) => {
+    const change = await readJson(c, ownChange);
+    return json(c, { text: await narration.changeOwn(user(c), c.req.param('id'), change) });
+  });
+
+  routes.delete('/own/:id', session, async (c) => {
+    await narration.removeOwn(user(c), c.req.param('id'));
+    return json(c, { ok: true });
   });
 
   return routes;

@@ -250,3 +250,63 @@
   color: var(--red);
   font-size: 14px;
 }
+
+/* Nothing on Voices may push the page wider than the phone: a long label wraps. */
+.narrators .btn {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.narrator-edit > *,
+.narrator-new > *,
+.narrator-read > * {
+  min-width: 0;
+}
+
+/* A text of the learner's own: written, read, played here. */
+.own-compose textarea {
+  font-size: 18px;
+}
+
+.own-compose-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.own-compose-row select {
+  width: 100%;
+  font-size: 16px;
+}
+
+/* The label changes while it reads; the button keeps its width. */
+.own-go {
+  min-width: 15.5em;
+}
+
+@media (max-width: 480px) {
+  .own-compose-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .own-go {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+.own-title {
+  font-size: 18px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.own-open {
+  display: grid;
+  gap: 12px;
+  padding: 0 0 16px;
+  min-width: 0;
+}
