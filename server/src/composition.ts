@@ -7,6 +7,7 @@ import type {
   Clock,
   ConversationRepository,
   Narrator,
+  NarratorRepository,
   PasswordHasher,
   PictureRepository,
   SecretRepository,
@@ -57,6 +58,7 @@ export interface Stores {
   recordings: RecordingRepository;
   pictures: PictureRepository;
   secrets: SecretRepository;
+  narrators: NarratorRepository;
 }
 
 /**
@@ -104,6 +106,6 @@ export function createServices(
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets: stores.secrets, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, recordings, clock }),
+    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, recordings, clock }),
   };
 }

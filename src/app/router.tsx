@@ -17,6 +17,7 @@ import { PracticePage } from '../features/pinyin/PracticePage';
 import { SoundLessonPage } from '../features/pinyin/SoundLessonPage';
 import { TalkPage } from '../features/pinyin/TalkPage';
 import { TalkSetupPage } from '../features/pinyin/TalkSetupPage';
+import { NarratorsPage } from '../features/pinyin/NarratorsPage';
 import { VoicePage } from '../features/pinyin/VoicePage';
 import { SessionPage } from '../features/reader/SessionPage';
 import { ReaderPage } from '../features/reader/ReaderPage';
@@ -164,6 +165,7 @@ export const router = createBrowserRouter([
               { path: 'videos/add', element: <AddVideoPage /> },
               { path: 'videos/:videoId', element: <VideoPage /> },
               { path: 'speaking/voice', element: <VoicePage /> },
+              { path: 'speaking/voices', element: <NarratorsPage /> },
               // Setting one up, and the conversation itself. `new` is matched
               // before `:conversationId` so a conversation can never be named
               // out of reach of the page that starts one.

@@ -7,7 +7,7 @@ import { forgetNarrationKey, narrationStatus, saveNarrationKey } from '../../api
  * Listen. It goes to the server, which tries it with MiniMax before keeping
  * it and never sends it back: the page only ever sees its last characters.
  */
-export function NarrationKey() {
+export function NarrationKey({ onChange }: { onChange?: (s: NarrationStatus) => void } = {}) {
   const [status, setStatus] = useState<NarrationStatus | null>(null);
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
@@ -21,7 +21,9 @@ export function NarrationKey() {
     setBusy(true);
     setMessage(null);
     try {
-      setStatus(await fn());
+      const next = await fn();
+      setStatus(next);
+      onChange?.(next);
       setKey('');
       setMessage(done);
     } catch (err) {
@@ -34,13 +36,12 @@ export function NarrationKey() {
   return (
     <div className="card">
       <header>
-        <h2>Natural voice</h2>
+        <h2>MiniMax key</h2>
       </header>
       <div className="body" style={{ display: 'grid', gap: 12 }}>
         <p className="small muted" style={{ margin: 0 }}>
-          MiniMax can read a text aloud in a natural Mandarin voice, from Listen on the text page. It uses your own
-          API key from platform.minimax.io (API Keys), and its balance there: a chapter costs a few cents. The key
-          stays on the server and is never shown again.
+          Narrators read with your own MiniMax API key, from platform.minimax.io (API Keys), and its balance there:
+          a chapter costs a few cents. The key stays on the server and is never shown again.
         </p>
         <p className="small" style={{ margin: 0, minHeight: '1.5em' }}>
           {status === null ? '' : status.key.set ? `A key ending ${status.key.hint} is saved.` : 'No key saved yet.'}

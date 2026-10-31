@@ -395,7 +395,10 @@ var ConversationService = class {
 };
 
 // shared/narration.ts
-var narratorRecordingId = (voice) => `mm-${voice.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`.slice(0, 64);
+var EMOTIONS = ["calm", "happy", "sad", "surprised", "angry", "fearful"];
+var SPEED_RANGE = [0.5, 2];
+var PITCH_RANGE = [-12, 12];
+var narratorRecordingId = (narrator) => `mm-${narrator.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`.slice(0, 64);
 var SOUNDS = [
   [/哈哈|大笑/, "(laughs)"],
   [/笑/, "(chuckle)"],
@@ -440,13 +443,18 @@ function minimaxNarrator(fetcher = fetch) {
       const out = await post("/get_voice", key, { voice_type: "system" });
       return (out.system_voice ?? []).filter((v) => /^Chinese \(Mandarin\)/.test(v.voice_id)).map((v) => ({ id: v.voice_id, name: v.voice_name || v.voice_id.replace(/^Chinese \(Mandarin\)_/, "").replace(/_/g, " "), description: (v.description ?? []).join(" ") }));
     },
-    async read(key, text, voice, speed) {
+    async design(key, prompt, previewText) {
+      const out = await post("/voice_design", key, { prompt, preview_text: previewText });
+      if (!out.voice_id) throw new NarratorRefused("MiniMax made no voice from that description.", "other");
+      return { voiceId: out.voice_id, trial: new Uint8Array(Buffer.from(out.trial_audio ?? "", "hex")) };
+    },
+    async read(key, text, voice, tuning) {
       const out = await post("/t2a_v2", key, {
         model: "speech-2.8-hd",
         text,
         stream: false,
         language_boost: "Chinese",
-        voice_setting: { voice_id: voice, speed, vol: 1, pitch: 0 },
+        voice_setting: { voice_id: voice, speed: tuning.speed, vol: 1, pitch: tuning.pitch, ...tuning.emotion ? { emotion: tuning.emotion } : {} },
         audio_setting: { sample_rate: 32e3, bitrate: 64e3, format: "mp3", channel: 1 }
       });
       const hex = out.data?.audio;
@@ -458,11 +466,13 @@ function minimaxNarrator(fetcher = fetch) {
 
 // server/src/application/narration-service.ts
 var KEY = "minimax";
+var clamp = (v, [lo, hi]) => Math.min(hi, Math.max(lo, v));
 var NarrationService = class {
   constructor(deps) {
     this.deps = deps;
   }
   voiceCache = /* @__PURE__ */ new Map();
+  /* ------------------------------------------------------------ the key */
   async status(userId) {
     const key = await this.deps.secrets.get(userId, KEY);
     return { key: { set: Boolean(key), hint: key ? `\u2026${key.slice(-4)}` : null } };
@@ -478,21 +488,108 @@ var NarrationService = class {
     await this.deps.secrets.delete(userId, KEY);
     return this.status(userId);
   }
+  /** MiniMax's own Mandarin voices. */
   async voices(userId) {
     return this.voicesFor(await this.keyOf(userId));
   }
-  /** One sentence read aloud and kept; the voice's id in Listen. */
-  async line(userId, voice, text) {
+  /* ------------------------------------------------------- the narrators */
+  async narrators(userId) {
+    return (await this.deps.narrators.list(userId)).map(toDto);
+  }
+  /** A narrator with a new voice made from a description, and the preview sentence read in it. */
+  async design(userId, input) {
     const key = await this.keyOf(userId);
+    const name = input.name.trim();
+    const prompt = input.prompt.trim();
+    const previewText = input.previewText.trim();
+    if (!name) throw new ValidationError("Give the voice a name.", { name: "A name." });
+    if (prompt.length < 10) throw new ValidationError("Describe the voice in a sentence or two.", { prompt: "Too short." });
+    if (!previewText) throw new ValidationError("A sentence for it to read first.", { previewText: "A sentence." });
+    const made = await this.call(() => this.narrator().design(key, prompt, previewText));
+    const now = this.deps.clock.now();
+    const record = {
+      id: this.deps.tokens.id(),
+      userId,
+      name,
+      kind: "designed",
+      voiceId: made.voiceId,
+      prompt,
+      previewText,
+      speed: 1,
+      pitch: 0,
+      emotion: null,
+      createdAt: now,
+      updatedAt: now
+    };
+    await this.deps.narrators.save(record);
+    return { narrator: toDto(record), trial: made.trial };
+  }
+  /** A narrator with one of MiniMax's own voices. */
+  async adopt(userId, input) {
+    const key = await this.keyOf(userId);
+    const voice = (await this.voicesFor(key)).find((v) => v.id === input.voice);
+    if (!voice) throw new ValidationError(`MiniMax has no voice ${input.voice}.`);
+    const now = this.deps.clock.now();
+    const record = {
+      id: this.deps.tokens.id(),
+      userId,
+      name: input.name.trim() || voice.name.replace(/\s*\((?:Female|Male)\)\s*/i, ""),
+      kind: "system",
+      voiceId: voice.id,
+      prompt: voice.description,
+      previewText: "",
+      speed: 1,
+      pitch: 0,
+      emotion: null,
+      createdAt: now,
+      updatedAt: now
+    };
+    await this.deps.narrators.save(record);
+    return toDto(record);
+  }
+  async change(userId, id, change) {
+    const n = await this.find(userId, id);
+    if (change.emotion !== void 0 && change.emotion !== null && !EMOTIONS.includes(change.emotion)) {
+      throw new ValidationError(`An emotion is one of ${EMOTIONS.join(", ")}.`);
+    }
+    const next = {
+      ...n,
+      name: change.name?.trim() || n.name,
+      speed: change.speed === void 0 ? n.speed : Math.round(clamp(change.speed, SPEED_RANGE) * 100) / 100,
+      pitch: change.pitch === void 0 ? n.pitch : Math.round(clamp(change.pitch, PITCH_RANGE)),
+      emotion: change.emotion === void 0 ? n.emotion : change.emotion,
+      updatedAt: this.deps.clock.now()
+    };
+    await this.deps.narrators.save(next);
+    return toDto(next);
+  }
+  async remove(userId, id) {
+    if (!await this.deps.narrators.delete(userId, id)) throw new NotFoundError("That narrator");
+  }
+  /** A sentence read by the narrator as it is now; nothing kept. */
+  async preview(userId, id, text) {
+    const key = await this.keyOf(userId);
+    const n = await this.find(userId, id);
+    const line = text.trim() || n.previewText || "\u4F60\u597D\uFF0C\u6211\u4EEC\u4ECA\u5929\u4E00\u8D77\u8BFB\u4E00\u4E2A\u5C0F\u6545\u4E8B\u3002";
+    return this.call(() => this.narrator().read(key, line, n.voiceId, tuningOf(n)));
+  }
+  /** One sentence of a text read by the narrator and kept; the id Listen offers it under. */
+  async line(userId, narratorId, text) {
+    const key = await this.keyOf(userId);
+    const n = await this.find(userId, narratorId);
     const line = text.trim();
     if (!line) throw new ValidationError("Nothing to read.");
-    const info = (await this.voicesFor(key)).find((v) => v.id === voice);
-    if (!info) throw new ValidationError(`MiniMax has no voice ${voice}.`);
     const sound = soundOf(line);
-    const mp3 = await this.call(() => this.narrator().read(key, sound ? `${line} ${sound}` : line, voice, 1));
-    const id = narratorRecordingId(voice);
-    await this.deps.recordings.keep({ id, name: `${info.name.replace(/\s*\((?:Female|Male)\)\s*/i, "")} \xB7 MiniMax`, gender: info.gender }, "teaching", line, mp3);
+    const mp32 = await this.call(() => this.narrator().read(key, sound ? `${line} ${sound}` : line, n.voiceId, tuningOf(n)));
+    const id = narratorRecordingId(n.id);
+    await this.deps.recordings.keep({ id, name: n.name, gender: "female" }, "teaching", line, mp32);
     return id;
+  }
+  /* ------------------------------------------------------------ helpers */
+  async find(userId, id) {
+    const n = await this.deps.narrators.find(userId, id);
+    if (!n) throw new NotFoundError("That narrator");
+    return n;
   }
   narrator() {
     if (!this.deps.narrator) throw new AppError("unavailable", "This server cannot reach MiniMax.");
@@ -500,7 +597,7 @@ var NarrationService = class {
   }
   async keyOf(userId) {
     const key = await this.deps.secrets.get(userId, KEY);
-    if (!key) throw new AppError("not_found", "Add your MiniMax API key in Settings first.");
+    if (!key) throw new AppError("not_found", "Add your MiniMax API key first.");
     return key;
   }
   async voicesFor(key, fresh = false) {
@@ -524,6 +621,20 @@ var NarrationService = class {
     }
   }
 };
+var tuningOf = (n) => ({ speed: n.speed, pitch: n.pitch, emotion: n.emotion });
+var toDto = (n) => ({
+  id: n.id,
+  name: n.name,
+  kind: n.kind,
+  voiceId: n.voiceId,
+  prompt: n.prompt,
+  previewText: n.previewText,
+  speed: n.speed,
+  pitch: n.pitch,
+  emotion: EMOTIONS.includes(n.emotion ?? "") ? n.emotion : null,
+  recordingId: narratorRecordingId(n.id),
+  createdAt: n.createdAt
+});
 var genderOf = (s) => /\b(male|man|boy|gentleman|uncle|executive|lord)\b/i.test(s) && !/\b(female|woman|girl|lady)\b/i.test(s) ? "male" : "female";
 
 // server/src/application/picture-service.ts
@@ -594,26 +705,26 @@ var RecordingService = class {
     if (!live) throw new AppError("not_found", "This sentence has not been recorded in that voice yet.");
     const info = live.voices.find((v) => v.id === voice);
     if (!info) throw new ValidationError(`There is no voice called ${voice}.`);
-    let mp3;
+    let mp32;
     try {
-      mp3 = await live.synthesize(text, voice, mode);
+      mp32 = await live.synthesize(text, voice, mode);
     } catch {
       throw new AppError("unavailable", "The voice did not answer. The system voice will have to do for now.");
     }
-    if (keep) await this.deps.recordings.save({ key, voice: info, text, mp3, createdAt: this.deps.clock.now() });
-    return mp3;
+    if (keep) await this.deps.recordings.save({ key, voice: info, text, mp3: mp32, createdAt: this.deps.clock.now() });
+    return mp32;
   }
   /**
    * A sentence someone recorded elsewhere — read by a voice service on its
    * own site and cut out of the whole passage — kept as this voice's reading
    * of it, in place of any reading kept before.
    */
-  async keep(voice, mode, text, mp3) {
+  async keep(voice, mode, text, mp32) {
     const line = text.trim();
     if (!line) throw new ValidationError("Which sentence is this a recording of?");
     if (!/^[a-z0-9-]{2,64}$/.test(voice.id)) throw new ValidationError("A voice is named in lower-case letters, digits and dashes.");
-    if (mp3.length < 200) throw new ValidationError("The recording is empty.");
-    await this.deps.recordings.replace({ key: recordingKey(voice.id, mode, line), voice, text: line, mp3, createdAt: this.deps.clock.now() });
+    if (mp32.length < 200) throw new ValidationError("The recording is empty.");
+    await this.deps.recordings.replace({ key: recordingKey(voice.id, mode, line), voice, text: line, mp3: mp32, createdAt: this.deps.clock.now() });
   }
   /** For each sentence, whether it has been recorded in this voice. */
   async have(voice, mode, texts) {
@@ -645,13 +756,13 @@ var RecordingService = class {
 };
 
 // server/src/application/workspace-service.ts
-var toDto = (w) => w ? { revision: w.revision, document: w.document, updatedAt: w.updatedAt } : { revision: 0, document: null, updatedAt: null };
+var toDto2 = (w) => w ? { revision: w.revision, document: w.document, updatedAt: w.updatedAt } : { revision: 0, document: null, updatedAt: null };
 var WorkspaceService = class {
   constructor(deps) {
     this.deps = deps;
   }
   async get(userId) {
-    return toDto(await this.deps.workspaces.find(userId));
+    return toDto2(await this.deps.workspaces.find(userId));
   }
   revision(userId) {
     return this.deps.workspaces.revisionOf(userId);
@@ -673,7 +784,7 @@ var WorkspaceService = class {
     if (current && current.revision === baseRevision && versionOf(current.document) > document.version) {
       throw new OutdatedAppError();
     }
-    throw new RevisionConflictError(toDto(current));
+    throw new RevisionConflictError(toDto2(current));
   }
 };
 function isDocument(v) {
@@ -687,13 +798,13 @@ function versionOf(document) {
 }
 
 // server/src/application/world-service.ts
-var toDto2 = (w) => w ? { revision: w.revision, save: w.save, updatedAt: w.updatedAt } : { revision: 0, save: null, updatedAt: null };
+var toDto3 = (w) => w ? { revision: w.revision, save: w.save, updatedAt: w.updatedAt } : { revision: 0, save: null, updatedAt: null };
 var WorldService = class {
   constructor(deps) {
     this.deps = deps;
   }
   async get(userId) {
-    return toDto2(await this.deps.saves.find(userId));
+    return toDto3(await this.deps.saves.find(userId));
   }
   revision(userId) {
     return this.deps.saves.revisionOf(userId);
@@ -711,7 +822,7 @@ var WorldService = class {
     if (current && current.revision === baseRevision && versionOf2(current.save) > save.version) {
       throw new OutdatedAppError();
     }
-    throw new WorldConflictError(toDto2(current));
+    throw new WorldConflictError(toDto3(current));
   }
 };
 function isSave(v) {
@@ -801,7 +912,7 @@ function createServices(stores, options = {}) {
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets: stores.secrets, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, recordings, clock })
+    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, recordings, clock })
   };
 }
 
@@ -1123,36 +1234,69 @@ function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }) {
 import { Hono as Hono3 } from "hono";
 import { z as z3 } from "zod";
 var keyRequest = z3.object({ key: z3.string().min(1).max(400) });
-var lineRequest = z3.object({ voice: z3.string().min(1).max(120), text: z3.string().trim().min(1).max(240) });
+var lineRequest = z3.object({ narrator: z3.string().min(1).max(80), text: z3.string().trim().min(1).max(240), again: z3.boolean().optional() });
+var designRequest = z3.object({ name: z3.string().trim().min(1).max(60), prompt: z3.string().trim().min(1).max(2e3), previewText: z3.string().trim().min(1).max(200) });
+var adoptRequest = z3.object({ name: z3.string().max(60), voice: z3.string().min(1).max(120) });
+var changeRequest = z3.object({
+  name: z3.string().trim().min(1).max(60).optional(),
+  speed: z3.number().min(0.5).max(2).optional(),
+  pitch: z3.number().min(-12).max(12).optional(),
+  emotion: z3.enum(EMOTIONS).nullable().optional()
+});
+var previewRequest = z3.object({ text: z3.string().max(200) });
+var mp3 = (c, bytes) => {
+  c.header("Content-Type", "audio/mpeg");
+  c.header("Cache-Control", "no-store");
+  return c.body(bytes);
+};
 function narrationRoutes({ auth, clock, trustProxy, narration }) {
   const routes = new Hono3();
   const session = requireSession(auth, { trustProxy, clock });
-  const lines = new RateLimiter(400, 10 * 6e4, clock);
+  const lines = new RateLimiter(600, 10 * 6e4, clock);
   const keys = new RateLimiter(20, 10 * 6e4, clock);
+  const makes = new RateLimiter(30, 10 * 6e4, clock);
   const user = (c) => c.get("session").user.id;
-  routes.get("/", session, async (c) => {
+  const json = (c, body) => {
     c.header("Cache-Control", "no-store");
-    return c.json(await narration.status(user(c)));
-  });
+    return c.json(body);
+  };
+  routes.get("/", session, async (c) => json(c, await narration.status(user(c))));
   routes.put("/key", session, async (c) => {
     keys.consume(user(c));
     const { key } = await readJson(c, keyRequest);
-    c.header("Cache-Control", "no-store");
-    return c.json(await narration.setKey(user(c), key));
+    return json(c, await narration.setKey(user(c), key));
   });
-  routes.delete("/key", session, async (c) => {
-    c.header("Cache-Control", "no-store");
-    return c.json(await narration.deleteKey(user(c)));
+  routes.delete("/key", session, async (c) => json(c, await narration.deleteKey(user(c))));
+  routes.get("/voices", session, async (c) => json(c, { voices: await narration.voices(user(c)) }));
+  routes.get("/narrators", session, async (c) => json(c, { narrators: await narration.narrators(user(c)) }));
+  routes.post("/narrators/design", session, async (c) => {
+    makes.consume(user(c));
+    const input = await readJson(c, designRequest);
+    const { narrator, trial } = await narration.design(user(c), input);
+    return json(c, { narrator, trial: Buffer.from(trial).toString("base64") });
   });
-  routes.get("/voices", session, async (c) => {
-    c.header("Cache-Control", "no-store");
-    return c.json({ voices: await narration.voices(user(c)) });
+  routes.post("/narrators", session, async (c) => {
+    makes.consume(user(c));
+    const input = await readJson(c, adoptRequest);
+    return json(c, { narrator: await narration.adopt(user(c), input) });
+  });
+  routes.patch("/narrators/:id", session, async (c) => {
+    const change = await readJson(c, changeRequest);
+    return json(c, { narrator: await narration.change(user(c), c.req.param("id"), change) });
+  });
+  routes.delete("/narrators/:id", session, async (c) => {
+    await narration.remove(user(c), c.req.param("id"));
+    return json(c, { ok: true });
+  });
+  routes.post("/narrators/:id/preview", session, async (c) => {
+    lines.consume(user(c));
+    const { text } = await readJson(c, previewRequest);
+    return mp3(c, await narration.preview(user(c), c.req.param("id"), text));
   });
   routes.post("/line", session, async (c) => {
     lines.consume(user(c));
     const input = await readJson(c, lineRequest);
-    c.header("Cache-Control", "no-store");
-    return c.json({ recordedAs: await narration.line(user(c), input.voice, input.text) });
+    return json(c, { recordedAs: await narration.line(user(c), input.narrator, input.text) });
   });
   return routes;
 }
@@ -1918,6 +2062,25 @@ var MIGRATIONS = [
     updated_at BIGINT NOT NULL,
     PRIMARY KEY (user_id, name)
   );
+  `,
+  // The narrators a learner made for reading texts aloud: a voice, a name, how it sounds.
+  `
+  CREATE TABLE narrators (
+    id           TEXT PRIMARY KEY,
+    user_id      TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    name         TEXT NOT NULL,
+    kind         TEXT NOT NULL,
+    voice_id     TEXT NOT NULL,
+    prompt       TEXT NOT NULL,
+    preview_text TEXT NOT NULL,
+    speed        DOUBLE PRECISION NOT NULL,
+    pitch        BIGINT NOT NULL,
+    emotion      TEXT,
+    created_at   BIGINT NOT NULL,
+    updated_at   BIGINT NOT NULL
+  );
+
+  CREATE INDEX narrators_by_user ON narrators (user_id, created_at);
   `
 ];
 
@@ -2105,6 +2268,50 @@ var PostgresPictureRepository = class {
        ON CONFLICT (key) DO NOTHING`,
       [p.key, p.userId, p.mime, Buffer.from(p.bytes), p.createdAt]
     );
+  }
+};
+
+// server/src/infrastructure/sqlite/narrator-repository.ts
+var narratorFromRow = (r) => ({
+  id: r.id,
+  userId: r.user_id,
+  name: r.name,
+  kind: r.kind === "system" ? "system" : "designed",
+  voiceId: r.voice_id,
+  prompt: r.prompt,
+  previewText: r.preview_text,
+  speed: Number(r.speed),
+  pitch: Number(r.pitch),
+  emotion: r.emotion,
+  createdAt: Number(r.created_at),
+  updatedAt: Number(r.updated_at)
+});
+
+// server/src/infrastructure/postgres/narrator-repository.ts
+var PostgresNarratorRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async list(userId) {
+    const { rows } = await this.db.query("SELECT * FROM narrators WHERE user_id = $1 ORDER BY created_at", [userId]);
+    return rows.map(narratorFromRow);
+  }
+  async find(userId, id) {
+    const { rows } = await this.db.query("SELECT * FROM narrators WHERE user_id = $1 AND id = $2", [userId, id]);
+    return rows[0] ? narratorFromRow(rows[0]) : null;
+  }
+  async save(n) {
+    await this.db.query(
+      `INSERT INTO narrators (id, user_id, name, kind, voice_id, prompt, preview_text, speed, pitch, emotion, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, voice_id = EXCLUDED.voice_id, prompt = EXCLUDED.prompt,
+         preview_text = EXCLUDED.preview_text, speed = EXCLUDED.speed, pitch = EXCLUDED.pitch, emotion = EXCLUDED.emotion, updated_at = EXCLUDED.updated_at`,
+      [n.id, n.userId, n.name, n.kind, n.voiceId, n.prompt, n.previewText, n.speed, n.pitch, n.emotion, n.createdAt, n.updatedAt]
+    );
+  }
+  async delete(userId, id) {
+    const r = await this.db.query("DELETE FROM narrators WHERE user_id = $1 AND id = $2", [userId, id]);
+    return (r.rowCount ?? 0) > 0;
   }
 };
 
@@ -2347,7 +2554,8 @@ var postgresStores = (db) => ({
   conversations: new PostgresConversationRepository(db),
   recordings: new PostgresRecordingRepository(db),
   pictures: new PostgresPictureRepository(db),
-  secrets: new PostgresSecretRepository(db)
+  secrets: new PostgresSecretRepository(db),
+  narrators: new PostgresNarratorRepository(db)
 });
 
 // server/src/vercel.ts

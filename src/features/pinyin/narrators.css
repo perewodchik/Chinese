@@ -1,0 +1,214 @@
+/* Voices: the narrators who read texts aloud. Rows that open into their
+   settings; a well for a new voice; a list of a shelf's texts to give them. */
+.narrators-lede {
+  margin: 0 0 20px;
+  max-width: 60ch;
+}
+
+.narrators .block {
+  margin-bottom: 28px;
+}
+
+.narrator-list > li {
+  padding: 0;
+}
+
+.narrator-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+  min-height: 56px;
+}
+
+.narrator-head .grow {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.narrator-head .tag {
+  justify-self: start;
+  font-size: 12px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 6px;
+  padding: 1px 7px;
+}
+
+.narrator-head > svg {
+  color: var(--ink-3);
+  transition: transform 140ms;
+}
+
+.narrator-row[data-open] .narrator-head > svg {
+  transform: rotate(90deg);
+}
+
+.narrator-mark {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--card-2);
+  font-size: 22px;
+  flex: none;
+}
+
+.narrator-edit,
+.narrator-new,
+.narrator-read {
+  display: grid;
+  gap: 14px;
+  padding: 14px 16px 16px;
+  margin-bottom: 12px;
+  border-radius: 16px;
+  background: var(--card-2);
+}
+
+.narrator-edit .field,
+.narrator-new .field,
+.narrator-read .field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.narrator-edit input:not([type]),
+.narrator-new input:not([type]),
+.narrator-new textarea,
+.narrator-edit select,
+.narrator-new select,
+.narrator-read select {
+  width: 100%;
+  font-size: 16px;
+}
+
+.narrator-slider > span:first-child {
+  display: flex;
+  justify-content: space-between;
+}
+
+.narrator-slider output {
+  min-width: 4.5ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+
+.narrator-slider input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+  min-height: 32px;
+}
+
+.narrator-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.narrator-chips .chip {
+  text-transform: none;
+}
+
+.narrator-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.narrator-audio {
+  min-height: 0;
+}
+
+.narrator-audio audio {
+  width: 100%;
+}
+
+.narrator-msg {
+  margin: 0;
+  min-height: 1.4em;
+}
+
+.narrator-prompt summary {
+  cursor: pointer;
+}
+
+.narrator-read-pick {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .narrator-read-pick {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.narrator-texts {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 0 12px;
+}
+
+.narrator-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  cursor: pointer;
+}
+
+.narrator-text .hanzi {
+  font-size: 18px;
+  min-width: 0;
+}
+
+.narrator-count {
+  min-width: 9ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.narrators-key {
+  margin-top: 8px;
+}
+
+.narrators-key summary {
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.narrator-edit input:not([type]),
+.narrator-new input:not([type]),
+.narrator-new textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+
+.narrator-edit input:not([type]):focus-visible,
+.narrator-new input:not([type]):focus-visible,
+.narrator-new textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.narrator-new textarea {
+  resize: vertical;
+  line-height: 1.45;
+}

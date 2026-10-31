@@ -28,8 +28,9 @@ function refusal(base: BaseResp | undefined, status: number): NarratorRefused {
 }
 
 /**
- * MiniMax's speech API: the Mandarin voices, and one sentence read aloud by
- * speech-2.8-hd, which also understands sound tags like (laughs).
+ * MiniMax's speech API: the Mandarin voices, a new voice made from a
+ * description, and one sentence read aloud by speech-2.8-hd, which also
+ * understands sound tags like (laughs).
  */
 export function minimaxNarrator(fetcher: typeof fetch = fetch): Narrator {
   const post = async <T,>(path: string, key: string, body: unknown): Promise<T> => {
@@ -49,13 +50,18 @@ export function minimaxNarrator(fetcher: typeof fetch = fetch): Narrator {
         .filter((v) => /^Chinese \(Mandarin\)/.test(v.voice_id))
         .map((v) => ({ id: v.voice_id, name: v.voice_name || v.voice_id.replace(/^Chinese \(Mandarin\)_/, '').replace(/_/g, ' '), description: (v.description ?? []).join(' ') }));
     },
-    async read(key, text, voice, speed) {
+    async design(key, prompt, previewText) {
+      const out = await post<{ voice_id?: string; trial_audio?: string }>('/voice_design', key, { prompt, preview_text: previewText });
+      if (!out.voice_id) throw new NarratorRefused('MiniMax made no voice from that description.', 'other');
+      return { voiceId: out.voice_id, trial: new Uint8Array(Buffer.from(out.trial_audio ?? '', 'hex')) };
+    },
+    async read(key, text, voice, tuning) {
       const out = await post<{ data?: { audio?: string } | null }>('/t2a_v2', key, {
         model: 'speech-2.8-hd',
         text,
         stream: false,
         language_boost: 'Chinese',
-        voice_setting: { voice_id: voice, speed, vol: 1, pitch: 0 },
+        voice_setting: { voice_id: voice, speed: tuning.speed, vol: 1, pitch: tuning.pitch, ...(tuning.emotion ? { emotion: tuning.emotion } : {}) },
         audio_setting: { sample_rate: 32000, bitrate: 64000, format: 'mp3', channel: 1 },
       });
       const hex = out.data?.audio;

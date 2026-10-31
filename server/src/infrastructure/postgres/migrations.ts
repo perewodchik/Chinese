@@ -104,4 +104,23 @@ export const MIGRATIONS: readonly string[] = [
     PRIMARY KEY (user_id, name)
   );
   `,
+  // The narrators a learner made for reading texts aloud: a voice, a name, how it sounds.
+  `
+  CREATE TABLE narrators (
+    id           TEXT PRIMARY KEY,
+    user_id      TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    name         TEXT NOT NULL,
+    kind         TEXT NOT NULL,
+    voice_id     TEXT NOT NULL,
+    prompt       TEXT NOT NULL,
+    preview_text TEXT NOT NULL,
+    speed        DOUBLE PRECISION NOT NULL,
+    pitch        BIGINT NOT NULL,
+    emotion      TEXT,
+    created_at   BIGINT NOT NULL,
+    updated_at   BIGINT NOT NULL
+  );
+
+  CREATE INDEX narrators_by_user ON narrators (user_id, created_at);
+  `,
 ];

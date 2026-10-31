@@ -82,6 +82,17 @@ export function PinyinPage() {
         </Link>
       )}
 
+      <Link className="voice-invite" to={paths.speakingNarrators()}>
+        <span className="voice-invite-mark hanzi" aria-hidden>
+          读
+        </span>
+        <span>
+          <b>Voices that read your texts</b>
+          <span className="small muted">Make a narrator from a description, tune it, and give it texts to read aloud in Listen.</span>
+        </span>
+        <span className="go">Voices →</span>
+      </Link>
+
       <WeakSpotsCard />
 
       <h2 className="pinyin-label">The four tones, one at a time</h2>

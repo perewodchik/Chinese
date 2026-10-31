@@ -138,12 +138,47 @@ export interface SecretRepository {
   delete(userId: string, name: string): Promise<void>;
 }
 
+/** How a narrator sounds, beyond its voice. */
+export interface VoiceTuning {
+  /** 0.5–2, 1 is the service's normal pace */
+  speed: number;
+  /** -12–12 semitones */
+  pitch: number;
+  /** the service's emotion, or null to let it follow the text */
+  emotion: string | null;
+}
+
 /** A voice service that reads Mandarin aloud with a key the learner gives. */
 export interface Narrator {
   /** the service's Mandarin voices; refused if the key is not good */
   voices(key: string): Promise<Array<{ id: string; name: string; description: string }>>;
   /** one sentence as MP3 */
-  read(key: string, text: string, voice: string, speed: number): Promise<Uint8Array>;
+  read(key: string, text: string, voice: string, tuning: VoiceTuning): Promise<Uint8Array>;
+  /** a new voice made from a description, and its first words read in it */
+  design(key: string, prompt: string, previewText: string): Promise<{ voiceId: string; trial: Uint8Array }>;
+}
+
+/** A narrator the learner made: a voice of the service's, a name, how it sounds. */
+export interface NarratorRecord extends VoiceTuning {
+  id: string;
+  userId: string;
+  name: string;
+  /** made from a description, or one of the service's own voices */
+  kind: 'designed' | 'system';
+  /** the service's id for the voice */
+  voiceId: string;
+  /** what it was made from, kept to make it again */
+  prompt: string;
+  previewText: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface NarratorRepository {
+  list(userId: string): Promise<NarratorRecord[]>;
+  find(userId: string, id: string): Promise<NarratorRecord | null>;
+  save(narrator: NarratorRecord): Promise<void>;
+  delete(userId: string, id: string): Promise<boolean>;
 }
 
 export interface PasswordHasher {

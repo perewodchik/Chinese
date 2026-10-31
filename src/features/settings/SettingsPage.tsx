@@ -12,7 +12,8 @@ import { useUser } from '../auth/session';
 import { useSignOut } from '../auth/useSignOut';
 import { InstallCard } from './InstallCard';
 import { LearningSettings } from './LearningSettings';
-import { NarrationKey } from './NarrationKey';
+import { Link } from 'react-router';
+import { paths } from '../../navigation/paths';
 
 const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 
@@ -296,7 +297,19 @@ export function SettingsPage() {
         </div>
       </div>
 
-      <NarrationKey />
+      <div className="card">
+        <header>
+          <h2>Voices for texts</h2>
+        </header>
+        <div className="body" style={{ display: 'grid', gap: 8 }}>
+          <p className="small muted" style={{ margin: 0 }}>
+            Narrators read your texts aloud in Listen, in natural Mandarin voices, with your MiniMax key.
+          </p>
+          <Link className="btn tonal sm" to={paths.speakingNarrators()} style={{ justifySelf: 'start' }}>
+            Voices
+          </Link>
+        </div>
+      </div>
 
       <div className="card">
         <header>
