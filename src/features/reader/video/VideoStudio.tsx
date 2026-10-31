@@ -12,7 +12,7 @@ import { drawFrame, geometry } from './draw';
 import { forgetVideo, keepVideo, keptVideo, type KeptVideo } from './kept';
 import { canRecord, run, type Run } from './record';
 import { makeThumbnail } from './thumbnail';
-import { canRenderFast, renderFast, type Render } from './render';
+import { canRenderFast, renderFast, SilentVideo, type Render } from './render';
 import './video.css';
 
 const KEPT = 'hanzi.video.look';
@@ -290,7 +290,11 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
       },
       (err: Error) => {
         running.current = null;
-        setError(err.message);
+        if (err instanceof SilentVideo) {
+          // This device's quick making loses the sound: from now on it records as it plays, which keeps it.
+          setFast(false);
+          setError('This device made the video without sound, so it was not kept. Tap Make the video again: it will be recorded as it plays, with its sound — that takes as long as the video.');
+        } else setError(err.message);
         setMode('idle');
       },
     );

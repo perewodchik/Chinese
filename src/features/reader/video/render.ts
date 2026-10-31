@@ -36,13 +36,20 @@ async function videoConfig(W: number, H: number): Promise<{ config: VideoEncoder
   return null;
 }
 
+/**
+ * AAC where it can be made; Opus only where an MP4 with Opus in it will also
+ * play — Safari and Photos play none, so a video with Opus sound there would
+ * be silent.
+ */
 async function audioConfig(channels: number): Promise<{ config: AudioEncoderConfig; codec: 'aac' | 'opus' } | null> {
   if (typeof AudioEncoder === 'undefined') return null;
+  const opusPlays = typeof document !== 'undefined' && document.createElement('video').canPlayType('video/mp4; codecs="avc1.42E01E, opus"') !== '';
   for (const [codec, kind] of [
     ['mp4a.40.2', 'aac'],
     ['opus', 'opus'],
   ] as const) {
-    const c: AudioEncoderConfig = { codec, sampleRate: RATE, numberOfChannels: channels, bitrate: 128_000 };
+    if (kind === 'opus' && !opusPlays) continue;
+    const c: AudioEncoderConfig = { codec, sampleRate: RATE, numberOfChannels: channels, bitrate: 128_000, ...(kind === 'aac' ? { aac: { format: 'aac' as const } } : {}) };
     try {
       if ((await AudioEncoder.isConfigSupported(c)).supported) return { config: c, codec: kind };
     } catch {
@@ -56,6 +63,26 @@ async function audioConfig(channels: number): Promise<{ config: AudioEncoderConf
 export async function canRenderFast(): Promise<boolean> {
   if (typeof VideoFrame === 'undefined' || typeof AudioData === 'undefined' || typeof OfflineAudioContext === 'undefined') return false;
   return (await videoConfig(1080, 1920)) !== null && (await audioConfig(1)) !== null;
+}
+
+/** The video came out without sound: this browser's encoding cannot be trusted, and it is made as it plays instead. */
+export class SilentVideo extends Error {
+  constructor() {
+    super('This device made the video without sound.');
+  }
+}
+
+/** Whether a made video's sound decodes and is not silence. */
+async function hasSound(video: Blob): Promise<boolean> {
+  try {
+    const buffer = await new OfflineAudioContext(1, 1, RATE).decodeAudioData(await video.arrayBuffer());
+    const data = buffer.getChannelData(0);
+    let peak = 0;
+    for (let i = 0; i < data.length; i += 64) peak = Math.max(peak, Math.abs(data[i]!));
+    return peak > 0.01;
+  } catch {
+    return false;
+  }
 }
 
 const breathe = () => new Promise((r) => setTimeout(r, 0));
@@ -95,7 +122,10 @@ export function renderFast(o: {
       if (stopped) return null;
       out.push(await renderPart(part, reading, asked, channels, vc, ac, W, H));
     }
-    return stopped ? null : out;
+    if (stopped) return null;
+    // Heard back before it is handed over: a video that came out silent is an error, not a video.
+    if (!(await hasSound(out[0]!))) throw new SilentVideo();
+    return out;
   })();
 
   async function renderPart(
@@ -146,7 +176,21 @@ export function renderFast(o: {
     if (o.music && o.music !== 'off') scoreMusic(mix, o.music, part.dur / 1000, voice);
     const sound = await mix.startRendering();
 
-    const audio = new AudioEncoder({ output: (chunk, meta) => muxer.addAudioChunk(chunk, meta), error: fail });
+    // Every encoder's AAC needs its description in the file, or players hear
+    // nothing; where the encoder leaves it out, it is written here (AAC-LC,
+    // the rate, the channels).
+    const asc = new Uint8Array([(2 << 3) | (3 >> 1), ((3 & 1) << 7) | (channels << 3)]);
+    let described = false;
+    const audio = new AudioEncoder({
+      output: (chunk, meta) => {
+        if (!described && ac.codec === 'aac' && !meta?.decoderConfig?.description) {
+          meta = { decoderConfig: { codec: 'mp4a.40.2', sampleRate: RATE, numberOfChannels: channels, description: asc } };
+        }
+        described = true;
+        muxer.addAudioChunk(chunk, meta);
+      },
+      error: fail,
+    });
     audio.configure(ac.config);
     for (let i = 0; i < length; i += 1024) {
       const n = Math.min(1024, length - i);
