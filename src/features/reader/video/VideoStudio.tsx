@@ -12,7 +12,7 @@ import { drawFrame, geometry } from './draw';
 import { forgetVideo, keepVideo, keptVideo, type KeptVideo } from './kept';
 import { canRecord, run, type Run } from './record';
 import { makeThumbnail } from './thumbnail';
-import { canRenderFast, renderFast, SilentVideo, type Render } from './render';
+import { renderFast, SilentVideo, type Render } from './render';
 import './video.css';
 
 const KEPT = 'hanzi.video.look';
@@ -77,9 +77,9 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   const running = useRef<Run | Render | null>(null);
   // Whether this browser makes the video in seconds (WebCodecs) or as it plays.
   const [fast, setFast] = useState<boolean | null>(null);
-  useEffect(() => {
-    void canRenderFast().then(setFast, () => setFast(false));
-  }, []);
+  // Made as it plays, recorded, as it was first made: the quick making (WebCodecs)
+  // came out silent on an iPhone. It stays in render.ts, off, until it is proven there.
+  useEffect(() => setFast(false), []);
 
   const reading = readings?.find((r) => r.n.narratorId === narratorId) ?? readings?.[0] ?? null;
   // The narrator's reading of the questions and answers: undefined while it is looked for, null when there is none yet.
@@ -263,6 +263,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
       timings: reading.n.timings,
       audioUrl,
       askedUrl,
+      music: record ? look.music : 'off',
       record,
       from: record ? 0 : t >= use.duration - 50 ? 0 : t,
       draw: (m) => {

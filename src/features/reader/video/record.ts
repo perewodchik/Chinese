@@ -1,4 +1,5 @@
-import { momentAt, partAt, type VideoMoment, type VideoPlan } from '../../../domain/textVideo';
+import { momentAt, partAt, type VideoLook, type VideoMoment, type VideoPlan } from '../../../domain/textVideo';
+import { scoreMusic } from './music';
 
 /**
  * Plays a text's video plan — and, when asked, records it — on this device.
@@ -37,6 +38,8 @@ export function run(o: {
   audioUrl: string;
   /** the questions' reading, when the plan says them */
   askedUrl?: string | null;
+  /** quiet music under it, when recording */
+  music?: VideoLook['music'];
   draw: (m: VideoMoment) => void;
   record: boolean;
   /** where to start, ms into the video */
@@ -85,8 +88,27 @@ export function run(o: {
     const source = ac.createMediaElementSource(audio);
     const dest = ac.createMediaStreamDestination();
     source.connect(dest);
-    if (asked) ac.createMediaElementSource(asked).connect(dest);
-    // Not to the speakers: it is made quietly, to be watched once it is saved.
+    // To the speakers too, as when it was first made — through a gain of nothing,
+    // so the graph is pulled along as Safari wants and nothing is heard.
+    const hush = ac.createGain();
+    hush.gain.value = 0;
+    hush.connect(ac.destination);
+    source.connect(hush);
+    if (asked) {
+      const q = ac.createMediaElementSource(asked);
+      q.connect(dest);
+      q.connect(hush);
+    }
+    if (o.music && o.music !== 'off') {
+      // The music laid out on the plan's clock from now; lower under each paragraph and question said.
+      const voice = o.plan.steps
+        .filter((s) => s.kind === 'para' || ((s.kind === 'question' || s.kind === 'answer') && s.said))
+        .map((s): [number, number] => [s.at / 1000, (s.at + s.dur) / 1000]);
+      const into = ac.createGain();
+      into.connect(dest);
+      into.connect(hush);
+      scoreMusic(ac, o.music, o.plan.duration / 1000, voice, into, ac.currentTime + 0.05);
+    }
     const video = o.canvas.captureStream(30);
     tracks = [...video.getVideoTracks(), ...dest.stream.getAudioTracks()];
     stream = new MediaStream(tracks);
