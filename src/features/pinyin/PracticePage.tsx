@@ -82,7 +82,7 @@ export function PracticePage() {
   const { set: setId } = useParams();
   const set = usePracticeSet(setId);
   if (set === undefined) return null;
-  if (!set || !set.words.length) return <Navigate to={paths.speaking()} replace />;
+  if (!set || !set.words.length) return <Navigate to={paths.speakingTones()} replace />;
   return <Sitting key={set.id} set={set} />;
 }
 
@@ -133,7 +133,7 @@ function Sitting({ set }: { set: PracticeSet }) {
   const chart = useStore((s) => s.settings.pitchChart);
 
   const word = set.words[at];
-  const exit = () => navigate(paths.speaking(), { replace: true });
+  const exit = () => navigate(paths.speakingTones(), { replace: true });
 
   const onRecorded = useCallback(
     (s: Float32Array) => {

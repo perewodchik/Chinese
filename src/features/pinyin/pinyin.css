@@ -2868,3 +2868,43 @@
 .mouth-credit a {
   color: inherit;
 }
+
+/* Voices at the top of Speaking: the learner's narrators as rows. */
+.speaking-voices {
+  margin-bottom: 20px;
+}
+
+.speaking-voices-empty {
+  min-height: 72px;
+}
+
+.speaking-voice-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.speaking-voice-row .grow {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.speaking-voice-row > svg {
+  color: var(--ink-3);
+}
+
+.speaking-voice-row .narrator-mark {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--card-2);
+  font-size: 22px;
+  flex: none;
+}

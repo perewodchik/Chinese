@@ -26,15 +26,15 @@ export function SoundLessonPage() {
   const [query, setQuery] = useQuery();
   const step = oneOf(query.get('step'), ['learn', 'hear', 'say'] as const, 'learn');
   useTitle(lesson?.title);
-  if (!lesson) return <Navigate to={paths.speaking()} replace />;
+  if (!lesson) return <Navigate to={paths.speakingTones()} replace />;
 
   const go = (s: Step) => setQuery('step', s, 'learn');
 
   return (
     <section className="pinyin lesson">
       <div className="row" style={{ marginBottom: 14 }}>
-        <Link className="btn ghost sm" to={paths.speaking()}>
-          ← Speaking
+        <Link className="btn ghost sm" to={paths.speakingTones()}>
+          ← Tones and sounds
         </Link>
       </div>
       <div className="row" style={{ marginBottom: 18, alignItems: 'flex-end' }}>

@@ -90,6 +90,8 @@ export const paths = {
   speakingTalk: (id: string) => `/speaking/${encodeURIComponent(id)}`,
   /** the microphone, the voice range, and whether speech recognition works here */
   speakingVoice: () => '/speaking/voice',
+  /** the tone and sound drills: four tones, tone pairs, sounds English does not have */
+  speakingTones: () => '/speaking/pinyin',
   /** the narrators who read texts aloud: made, tuned, given texts */
   speakingNarrators: () => '/speaking/voices',
 
