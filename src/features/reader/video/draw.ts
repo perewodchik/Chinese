@@ -17,15 +17,38 @@ import { breakAtCommas, type VideoLook, type VideoMoment, type VideoPlan } from 
  * the buttons.
  */
 
-export const W = 1080;
-export const H = 1920;
-export const SAFE = { top: 230, bottom: 1536, right: 162, buttonsFrom: 576 };
-const LEFT = 60;
-/** Left-aligned text runs from LEFT to the buttons' edge. */
-const TEXT_W = W - SAFE.right - LEFT;
-/** Centred text is centred on the screen, as wide as keeps it clear of the buttons on both sides. */
-const TEXT_CX = W / 2;
-const CENTRED_W = W - 2 * SAFE.right;
+export interface Geometry {
+  w: number;
+  h: number;
+  /** what may be read stays between `top` and `bottom`, and left of `right` from `buttonsFrom` down */
+  safe: { top: number; bottom: number; right: number; buttonsFrom: number };
+  /** left-aligned text starts here and is `textW` wide */
+  left: number;
+  textW: number;
+  /** centred text is centred here and at most `centredW` wide */
+  cx: number;
+  centredW: number;
+}
+
+/**
+ * The frame for each shape. Upright (9:16) is watched in apps that draw over
+ * it, so it keeps clear of their bars and buttons; wide (16:9) is watched on
+ * a screen of its own, with only a margin.
+ */
+export function geometry(shape: VideoLook['shape']): Geometry {
+  if (shape === '16:9') {
+    const w = 1920;
+    const h = 1080;
+    return { w, h, safe: { top: 0, bottom: h - 40, right: 0, buttonsFrom: h }, left: 140, textW: w - 280, cx: w / 2, centredW: 1500 };
+  }
+  const w = 1080;
+  const h = 1920;
+  const safe = { top: 230, bottom: 1536, right: 162, buttonsFrom: 576 };
+  return { w, h, safe, left: 60, textW: w - safe.right - 60, cx: w / 2, centredW: w - 2 * safe.right };
+}
+
+/** The frame being drawn: set as each one begins. */
+let G = geometry('9:16');
 
 const SIZES = { s: 64, m: 80, l: 96, xl: 112 } as const;
 
@@ -334,94 +357,136 @@ function picture(ctx: CanvasRenderingContext2D, f: FrameInput, para: number, box
 
 export function drawFrame(ctx: CanvasRenderingContext2D, f: FrameInput) {
   const { look, moment, text: t } = f;
+  G = geometry(look.shape);
+  const wide = look.shape === '16:9';
   const ink = look.background === 'night' ? NIGHT : PAPER;
   const zh = SIZES[look.size];
   ctx.save();
   ctx.fillStyle = ink.bg;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, G.w, G.h);
 
   const step = moment.step;
   const over = look.layout === 'over' && (step.kind === 'para' || step.kind === 'pause');
-  const titleH = look.title === 'off' ? 0 : look.title === 'book' ? 150 : 112;
-  const below = SAFE.top + titleH;
+  const titleH = look.title === 'off' ? 0 : look.title === 'book' ? (wide ? 130 : 150) : wide ? 96 : 112;
+  const below = G.safe.top + titleH;
 
   if (step.kind === 'hook') {
     // The opening: the cover picture filling the screen, darkened, and the question over it.
     const img = f.plan.cover ? f.pictures.get(f.plan.cover) : undefined;
     if (img?.naturalWidth) {
-      cover(ctx, img, 0, 0, W, H, look.zoom ? 1.04 + (0.04 * moment.into) / step.dur : 1.04);
+      cover(ctx, img, 0, 0, G.w, G.h, look.zoom ? 1.04 + (0.04 * moment.into) / step.dur : 1.04);
       ctx.fillStyle = 'rgba(12, 15, 19, 0.45)';
-      ctx.fillRect(0, 0, W, H);
+      ctx.fillRect(0, 0, G.w, G.h);
     }
     const ask = f.plan.hook ?? '';
-    const b = fitted(ctx, [{ zh: ask, py: pinyinOf(ask, f.lib) }], { look, zh: Math.round(zh * 1.45), maxW: TEXT_W, commas: true, lib: f.lib }, 700);
-    drawBlock(ctx, b, LEFT, SAFE.top + 260, { look, ink: img?.naturalWidth ? ON_PICTURE : ink, align: 'left', outline: Boolean(img?.naturalWidth) });
-  } else if (step.kind === 'title') {
+    const b = fitted(ctx, [{ zh: ask, py: pinyinOf(ask, f.lib) }], { look, zh: Math.round(zh * 1.45), maxW: wide ? 1100 : G.textW, commas: true, lib: f.lib }, wide ? 640 : 700);
+    drawBlock(ctx, b, G.left, wide ? (G.h - b.h) / 2 : G.safe.top + 260, { look, ink: img?.naturalWidth ? ON_PICTURE : ink, align: 'left', outline: Boolean(img?.naturalWidth) });
+  } else if (step.kind === 'title' && wide) {
+    // Wide: the cover on the left half, the book and the chapter on the right.
     const img = f.plan.cover ? f.pictures.get(f.plan.cover) : undefined;
-    if (img?.naturalWidth) cover(ctx, img, 0, SAFE.top - 60, W, 760, look.zoom ? 1 + (0.04 * moment.into) / step.dur : 1);
-    let y = SAFE.top + 760;
+    if (img?.naturalWidth) cover(ctx, img, 0, 0, G.w / 2, G.h, look.zoom ? 1 + (0.04 * moment.into) / step.dur : 1);
+    const x = (G.w * 3) / 4;
+    const title = fitted(ctx, [{ zh: t.titleZh || t.title, py: '' }], { look: { ...look, pinyin: false }, zh: 80, maxW: G.w / 2 - 100, commas: false, lib: f.lib }, 420);
+    const en = t.title && t.titleZh && t.title !== t.titleZh;
+    const h = (f.book ? 70 : 0) + title.h + (en ? 70 : 0);
+    let y = (G.h - h) / 2;
     if (f.book) {
       ctx.font = hanFont(look, 44);
       ctx.textAlign = 'center';
-      text(ctx, f.book, W / 2, y + 30, ink.py, 0);
+      text(ctx, f.book, x, y + 44, ink.py, 0);
+      y += 70;
+    }
+    drawBlock(ctx, title, x, y, { look, ink, align: 'center' });
+    if (en) english(ctx, t.title, x, y + title.h + 10, 40, G.w / 2 - 200, ink.py);
+  } else if (step.kind === 'title') {
+    const img = f.plan.cover ? f.pictures.get(f.plan.cover) : undefined;
+    if (img?.naturalWidth) cover(ctx, img, 0, G.safe.top - 60, G.w, 760, look.zoom ? 1 + (0.04 * moment.into) / step.dur : 1);
+    let y = G.safe.top + 760;
+    if (f.book) {
+      ctx.font = hanFont(look, 44);
+      ctx.textAlign = 'center';
+      text(ctx, f.book, G.w / 2, y + 30, ink.py, 0);
       y += 40;
     }
-    const title = fitted(ctx, [{ zh: t.titleZh || t.title, py: '' }], { look: { ...look, pinyin: false }, zh: 104, maxW: W - 160, commas: false, lib: f.lib }, 360);
-    drawBlock(ctx, title, W / 2, y + 30, { look, ink, align: 'center' });
+    const title = fitted(ctx, [{ zh: t.titleZh || t.title, py: '' }], { look: { ...look, pinyin: false }, zh: 104, maxW: G.w - 160, commas: false, lib: f.lib }, 360);
+    drawBlock(ctx, title, G.w / 2, y + 30, { look, ink, align: 'center' });
     y += 30 + title.h + 10;
-    if (t.title && t.titleZh && t.title !== t.titleZh) english(ctx, t.title, W / 2, y, 40, W - 200, ink.py);
+    if (t.title && t.titleZh && t.title !== t.titleZh) english(ctx, t.title, G.w / 2, y, 40, G.w - 200, ink.py);
   } else if (step.kind === 'para' || step.kind === 'pause') {
     const para = step.para;
     const lines = f.plan.paras[para]!;
     const current = moment.line ?? lines[0]!;
     const line = t.lines[current]!;
-    if (look.layout === 'above') {
+    const from = look.title === 'off' ? G.safe.top : below;
+    if (wide && look.layout === 'above') {
+      // Wide: the picture as drawn, centred, the line under it.
+      const picH = Math.round((G.h - from) * 0.64);
+      const picW = Math.round((picH * 4) / 3);
+      picture(ctx, f, para, [(G.w - picW) / 2, from + 16, picW, picH]);
+      subtitle(ctx, f, line, ink, zh, [from + 16 + picH + 10, G.safe.bottom]);
+    } else if (wide && look.layout === 'over') {
+      // Wide: the picture fills the screen; the line sits on it at the bottom.
+      picture(ctx, f, para, [0, 0, G.w, G.h]);
+      subtitle(ctx, f, line, ON_PICTURE, zh, [Math.round(G.h * 0.55), G.safe.bottom], true);
+    } else if (wide && look.layout === 'side') {
+      // Wide: the picture on the left half, the paragraph on the right, the line being read lit.
+      picture(ctx, f, para, [0, from, G.w / 2, G.h - from]);
+      const all = lines.map((i) => ({ ...t.lines[i]!, noPinyin: i !== current }));
+      const x = G.w / 2 + 70;
+      const b = fitted(ctx, all, { look, zh: Math.round(zh * 0.8), maxW: G.w / 2 - 140, commas: false, lib: f.lib }, G.safe.bottom - from - 60);
+      drawBlock(ctx, b, x, from + (G.safe.bottom - from - b.h) / 2, { look, ink, align: 'left', lit: lines.indexOf(current) });
+    } else if (wide) {
+      const all = lines.map((i) => ({ ...t.lines[i]!, noPinyin: i !== current }));
+      const b = fitted(ctx, all, { look, zh: Math.round(zh * 0.9), maxW: 1400, commas: false, lib: f.lib }, G.safe.bottom - from - 60);
+      drawBlock(ctx, b, (G.w - Math.min(b.w, 1400)) / 2, from + (G.safe.bottom - from - b.h) / 2, { look, ink, align: 'left', lit: lines.indexOf(current) });
+    } else if (look.layout === 'above') {
       const picBottom = 1110;
-      picture(ctx, f, para, [0, look.title === 'off' ? SAFE.top : below, W, picBottom - (look.title === 'off' ? SAFE.top : below)]);
-      subtitle(ctx, f, line, ink, zh, [picBottom + 30, SAFE.bottom]);
+      picture(ctx, f, para, [0, look.title === 'off' ? G.safe.top : below, G.w, picBottom - (look.title === 'off' ? G.safe.top : below)]);
+      subtitle(ctx, f, line, ink, zh, [picBottom + 30, G.safe.bottom]);
     } else if (look.layout === 'over') {
       const img = f.plan.pictureOf[para] ? f.pictures.get(f.plan.pictureOf[para]!) : undefined;
       if (img?.naturalWidth) {
-        cover(ctx, img, 0, 0, W, H, 1.02);
+        cover(ctx, img, 0, 0, G.w, G.h, 1.02);
         ctx.fillStyle = 'rgba(12, 15, 19, 0.55)';
-        ctx.fillRect(0, 0, W, H);
+        ctx.fillRect(0, 0, G.w, G.h);
       }
-      picture(ctx, f, para, [0, below, W, 810], 'width');
-      subtitle(ctx, f, line, ON_PICTURE, zh, [below + 830, SAFE.bottom], true);
+      picture(ctx, f, para, [0, below, G.w, 810], 'width');
+      subtitle(ctx, f, line, ON_PICTURE, zh, [below + 830, G.safe.bottom], true);
     } else {
       const side = look.layout === 'side';
       const picH = side ? 520 : 0;
-      if (side) picture(ctx, f, para, [0, look.title === 'off' ? SAFE.top : below, W, picH]);
-      const top = (look.title === 'off' ? SAFE.top : below) + picH + 40;
+      if (side) picture(ctx, f, para, [0, look.title === 'off' ? G.safe.top : below, G.w, picH]);
+      const top = (look.title === 'off' ? G.safe.top : below) + picH + 40;
       // Pinyin over the line being read only: over a whole paragraph it would crowd it out.
       const all = lines.map((i) => ({ ...t.lines[i]!, noPinyin: i !== current }));
-      const b = fitted(ctx, all, { look, zh: Math.round(zh * (side ? 0.78 : 0.9)), maxW: TEXT_W, commas: false, lib: f.lib }, SAFE.bottom - top);
-      const y = side ? top : top + (SAFE.bottom - top - b.h) / 2;
-      drawBlock(ctx, b, LEFT, y, { look, ink, align: 'left', lit: lines.indexOf(current) });
+      const b = fitted(ctx, all, { look, zh: Math.round(zh * (side ? 0.78 : 0.9)), maxW: G.textW, commas: false, lib: f.lib }, G.safe.bottom - top);
+      const y = side ? top : top + (G.safe.bottom - top - b.h) / 2;
+      drawBlock(ctx, b, G.left, y, { look, ink, align: 'left', lit: lines.indexOf(current) });
     }
   } else {
     const q = t.questions[step.q]!;
     ctx.font = pyFont(38);
     ctx.textAlign = 'center';
-    text(ctx, `Question ${step.q + 1} of ${t.questions.length}`, TEXT_CX, below + 90, ink.py, 0);
+    text(ctx, `Question ${step.q + 1} of ${t.questions.length}`, G.cx, below + (wide ? 70 : 90), ink.py, 0);
     if (step.kind === 'question') {
-      const b = fitted(ctx, [q], { look, zh: Math.round(zh * 1.15), maxW: CENTRED_W, commas: look.breakLines, lib: f.lib }, 520);
-      const top = 640;
-      drawBlock(ctx, b, TEXT_CX, top, { look, ink, align: 'center' });
+      const b = fitted(ctx, [q], { look, zh: Math.round(zh * 1.15), maxW: G.centredW, commas: look.breakLines, lib: f.lib }, wide ? 360 : 520);
+      const top = wide ? below + 150 : 640;
+      drawBlock(ctx, b, G.cx, top, { look, ink, align: 'center' });
       let y = top + b.h + 20;
-      if (look.english && q.en) y += english(ctx, q.en, TEXT_CX, y, Math.round(zh * 0.45), CENTRED_W, ink.py) + 20;
-      ring(ctx, TEXT_CX, Math.max(y + 140, 1240), 74, step, moment.into, look, ink);
+      if (look.english && q.en) y += english(ctx, q.en, G.cx, y, Math.round(zh * 0.45), G.centredW, ink.py) + 20;
+      ring(ctx, G.cx, wide ? Math.min(G.h - 110, y + 110) : Math.max(y + 140, 1240), 74, step, moment.into, look, ink);
     } else {
-      const ask = fitted(ctx, [q], { look: { ...look, pinyin: false }, zh: Math.round(zh * 0.75), maxW: CENTRED_W, commas: false, lib: f.lib }, 300);
-      drawBlock(ctx, ask, TEXT_CX, 520, { look, ink: { ...ink, ink: ink.py }, align: 'center' });
+      const ask = fitted(ctx, [q], { look: { ...look, pinyin: false }, zh: Math.round(zh * 0.75), maxW: G.centredW, commas: false, lib: f.lib }, 300);
+      const askTop = wide ? below + 130 : 520;
+      drawBlock(ctx, ask, G.cx, askTop, { look, ink: { ...ink, ink: ink.py }, align: 'center' });
       const answer = q.a ?? '';
       if (answer) {
-        const a = fitted(ctx, [{ zh: answer, py: pinyinOf(answer, f.lib) }], { look, zh: Math.round(zh * 1.3), maxW: CENTRED_W, commas: look.breakLines, lib: f.lib }, 600);
-        const top = 560 + ask.h + 80;
-        drawBlock(ctx, a, TEXT_CX, top, { look, ink: { ...ink, ink: ink.right }, align: 'center' });
+        const a = fitted(ctx, [{ zh: answer, py: pinyinOf(answer, f.lib) }], { look, zh: Math.round(zh * 1.3), maxW: G.centredW, commas: look.breakLines, lib: f.lib }, 600);
+        const top = askTop + 40 + ask.h + 80;
+        drawBlock(ctx, a, G.cx, top, { look, ink: { ...ink, ink: ink.right }, align: 'center' });
         ctx.fillStyle = ink.right;
         ctx.globalAlpha = 0.35;
-        ctx.fillRect(TEXT_CX - a.rows[a.rows.length - 1]!.seen / 2, top + a.h + 6, a.rows[a.rows.length - 1]!.seen, 8);
+        ctx.fillRect(G.cx - a.rows[a.rows.length - 1]!.seen / 2, top + a.h + 6, a.rows[a.rows.length - 1]!.seen, 8);
         ctx.globalAlpha = 1;
       }
     }
@@ -434,19 +499,19 @@ export function drawFrame(ctx: CanvasRenderingContext2D, f: FrameInput) {
     const label = `Part ${moment.part + 1} of ${moment.of}`;
     ctx.font = pyFont(32);
     const w = ctx.measureText(label).width + 36;
-    const y = step.kind === 'hook' || step.kind === 'title' || look.title === 'off' ? SAFE.top + 20 : below + 20;
+    const y = step.kind === 'hook' || step.kind === 'title' || look.title === 'off' ? G.safe.top + 20 : below + 20;
     ctx.fillStyle = 'rgba(20, 24, 29, 0.72)';
-    roundRect(ctx, W - 40 - w, y, w, 52, 16);
+    roundRect(ctx, G.w - 40 - w, y, w, 52, 16);
     ctx.fill();
     ctx.textAlign = 'center';
-    text(ctx, label, W - 40 - w / 2, y + 37, '#ffffff', 0);
+    text(ctx, label, G.w - 40 - w / 2, y + 37, '#ffffff', 0);
   }
 
   if (look.progress) {
     ctx.fillStyle = look.background === 'night' || over ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.1)';
-    ctx.fillRect(0, H - 12, W, 12);
+    ctx.fillRect(0, G.h - 12, G.w, 12);
     ctx.fillStyle = ink.accent;
-    ctx.fillRect(0, H - 12, W * moment.progress, 12);
+    ctx.fillRect(0, G.h - 12, G.w * moment.progress, 12);
   }
   ctx.restore();
 }
@@ -456,20 +521,21 @@ function subtitle(ctx: CanvasRenderingContext2D, f: FrameInput, line: TextLine, 
   const { look } = f;
   const enPx = Math.round(zh * 0.42);
   ctx.font = enFont(enPx);
-  const enH = look.english && line.en ? measureEnglish(ctx, line.en, CENTRED_W, enPx) : 0;
-  const b = fitted(ctx, [line], { look, zh, maxW: CENTRED_W, commas: look.breakLines, lib: f.lib }, area[1] - area[0] - (enH ? enH + 14 : 0) - (onPicture ? 60 : 0));
+  const enH = look.english && line.en ? measureEnglish(ctx, line.en, G.centredW, enPx) : 0;
+  // Breaking at commas is for the narrow upright frame; a wide one has the room for the line.
+  const b = fitted(ctx, [line], { look, zh, maxW: G.centredW, commas: look.breakLines && G.h > G.w, lib: f.lib }, area[1] - area[0] - (enH ? enH + 14 : 0) - (onPicture ? 60 : 0));
   const h = b.h + (enH ? enH + 14 : 0);
   const top = onPicture ? Math.max(area[0] + 22, area[1] - h - 30) : area[0] + (area[1] - area[0] - h) / 2;
   const box = onPicture && look.overLook === 'box';
   if (box) {
     ctx.fillStyle = 'rgba(20, 24, 29, 0.72)';
     const boxW = Math.max(200, ...b.rows.map((r) => r.seen));
-    roundRect(ctx, TEXT_CX - boxW / 2 - 30, top - 22, boxW + 60, h + 44, 24);
+    roundRect(ctx, G.cx - boxW / 2 - 30, top - 22, boxW + 60, h + 44, 24);
     ctx.fill();
   }
   const outline = onPicture && !box;
-  drawBlock(ctx, b, TEXT_CX, top, { look, ink, align: 'center', outline });
-  if (enH) english(ctx, line.en, TEXT_CX, top + b.h + 14, enPx, CENTRED_W, ink.py, outline ? 5 : 0);
+  drawBlock(ctx, b, G.cx, top, { look, ink, align: 'center', outline });
+  if (enH) english(ctx, line.en, G.cx, top + b.h + 14, enPx, G.centredW, ink.py, outline ? 5 : 0);
 }
 
 function measureEnglish(ctx: CanvasRenderingContext2D, s: string, maxW: number, px: number) {
@@ -489,21 +555,21 @@ function titleBand(ctx: CanvasRenderingContext2D, f: FrameInput, ink: Ink, h: nu
   const { look, text: t } = f;
   if (look.titleLook === 'band') {
     ctx.fillStyle = look.background === 'night' || over ? 'rgba(27, 32, 39, 0.88)' : 'rgba(251, 248, 241, 0.92)';
-    ctx.fillRect(0, SAFE.top, W, h);
+    ctx.fillRect(0, G.safe.top, G.w, h);
   }
   const outline = look.titleLook === 'plain' && over ? 6 : 0;
   ctx.textAlign = 'center';
-  let y = SAFE.top;
+  let y = G.safe.top;
   if (look.title === 'book' && f.book) {
     ctx.font = hanFont(look, 34);
-    text(ctx, f.book, W / 2, y + 50, ink.py, outline);
+    text(ctx, f.book, G.w / 2, y + 50, ink.py, outline);
     y += 44;
   }
   let px = 54;
   ctx.font = hanFont(look, px);
   const name = t.titleZh || t.title;
-  while (ctx.measureText(name).width > W - 120 && px > 30) ctx.font = hanFont(look, --px);
-  text(ctx, name, W / 2, y + 76, ink.ink, outline);
+  while (ctx.measureText(name).width > G.w - 120 && px > 30) ctx.font = hanFont(look, --px);
+  text(ctx, name, G.w / 2, y + 76, ink.ink, outline);
 }
 
 function ring(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, step: { dur: number }, into: number, look: VideoLook, ink: Ink) {

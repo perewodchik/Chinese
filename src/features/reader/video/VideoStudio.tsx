@@ -8,7 +8,7 @@ import { useStore } from '../../../store/store';
 import { Icon } from '../../../ui/Icon';
 import { useLibrary } from '../../shared/library';
 import { narratedReadings, type Narrated } from '../narratedClips';
-import { drawFrame, H, SAFE, W } from './draw';
+import { drawFrame, geometry } from './draw';
 import { forgetVideo, keepVideo, keptVideo, type KeptVideo } from './kept';
 import { canRecord, run, type Run } from './record';
 import { canRenderFast, renderFast, type Render } from './render';
@@ -110,6 +110,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   }, [asked]);
 
   const planWith = (a: TextNarrationDto | null | undefined) => (reading ? videoPlan(text, reading.n, look, own, a ?? null) : null);
+  const g = geometry(look.shape);
   const plan = useMemo(() => planWith(asked), [text, reading, look, own, asked]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const changeOwn = (patch: Partial<Own>) =>
@@ -276,7 +277,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
       (blobs) => {
         running.current = null;
         if (blobs?.length && blobs.every((b) => b.size)) {
-          const made: KeptVideo = { textId: text.id, parts: blobs, duration: use.duration, narrator: reading.name, at: Date.now() };
+          const made: KeptVideo = { textId: text.id, parts: blobs, duration: use.duration, narrator: reading.name, at: Date.now(), shape: look.shape };
           void keepVideo(made);
           setVideo(withUrls(made));
           setShown(0);
@@ -361,18 +362,18 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
             <b>Video</b>
             <span className="small muted hanzi">{text.titleZh || text.title}</span>
           </div>
-          <span className="tiny muted">9:16</span>
+          <span className="tiny muted">{look.shape}</span>
         </header>
 
         <div className="vs-body">
           <div className="vs-stage">
             {mode === 'done' && video ? (
-              <div className="vs-box">
+              <div className="vs-box" data-shape={mode === 'done' && video ? (video.shape ?? '9:16') : look.shape}>
                 {watching ? (
-                  <video key={shown} className="vs-video" src={video.urls[shown]} controls playsInline autoPlay />
+                  <video key={shown} className="vs-video" data-shape={video.shape ?? '9:16'} src={video.urls[shown]} controls playsInline autoPlay />
                 ) : (
                   // Ready: the cover and a word, not a player to sit through.
-                  <div className="vs-frame vs-ready">
+                  <div className="vs-frame vs-ready" data-shape={video.shape ?? '9:16'}>
                     {plan?.cover && <img src={pictureUrl(plan.cover)} alt="" />}
                     <div className="vs-ready-note">
                       <span className="vs-ready-mark" aria-hidden>
@@ -391,16 +392,16 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
                 )}
               </div>
             ) : (
-              <div className="vs-box">
-                <div className="vs-frame">
-                  <canvas ref={canvas} width={W} height={H} aria-label="The video, as it will be" />
-                  {safe && mode === 'idle' && (
+              <div className="vs-box" data-shape={mode === 'done' && video ? (video.shape ?? '9:16') : look.shape}>
+                <div className="vs-frame" data-shape={look.shape}>
+                  <canvas ref={canvas} width={g.w} height={g.h} aria-label="The video, as it will be" />
+                  {safe && mode === 'idle' && look.shape === '9:16' && (
                     <>
-                      <span className="vs-safe" style={{ top: 0, height: `${(SAFE.top / H) * 100}%`, left: 0, right: 0 }} />
-                      <span className="vs-safe" style={{ bottom: 0, height: `${((H - SAFE.bottom) / H) * 100}%`, left: 0, right: 0 }} />
+                      <span className="vs-safe" style={{ top: 0, height: `${(g.safe.top / g.h) * 100}%`, left: 0, right: 0 }} />
+                      <span className="vs-safe" style={{ bottom: 0, height: `${((g.h - g.safe.bottom) / g.h) * 100}%`, left: 0, right: 0 }} />
                       <span
                         className="vs-safe"
-                        style={{ top: `${(SAFE.buttonsFrom / H) * 100}%`, bottom: `${((H - SAFE.bottom) / H) * 100}%`, right: 0, width: `${(SAFE.right / W) * 100}%` }}
+                        style={{ top: `${(g.safe.buttonsFrom / g.h) * 100}%`, bottom: `${((g.h - g.safe.bottom) / g.h) * 100}%`, right: 0, width: `${(g.safe.right / g.w) * 100}%` }}
                       />
                     </>
                   )}
@@ -479,7 +480,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
               <div className="vs-done">
                 <b className="hanzi vs-done-title">{text.titleZh || text.title}</b>
                 <span className="small muted">
-                  {mmss(video.duration)} · 9:16, 1080 × 1920 · {(video.parts.reduce((n, b) => n + b.size, 0) / 1e6).toFixed(1)} MB · {video.narrator}
+                  {mmss(video.duration)} · {video.shape === '16:9' ? '16:9, 1920 × 1080' : '9:16, 1080 × 1920'} · {(video.parts.reduce((n, b) => n + b.size, 0) / 1e6).toFixed(1)} MB · {video.narrator}
                 </span>
                 {video.parts.length > 1 && (
                   <Seg
@@ -636,16 +637,36 @@ function Settings({
   return (
     <>
       <section className="vs-section">
+        <h2 className="block-title">Shape</h2>
+        <div className="vs-shapes">
+          {(
+            [
+              ['9:16', 'Upright', 'Reels, Shorts, TikTok, a phone held up'],
+              ['16:9', 'Wide', 'YouTube, a TV, a laptop'],
+            ] as const
+          ).map(([id, name, note]) => (
+            <button key={id} className="vs-tile vs-shape" aria-pressed={look.shape === id} onClick={() => change({ shape: id })} disabled={disabled}>
+              <span className="vs-shape-box" data-shape={id} aria-hidden />
+              <span className="vs-shape-name">
+                <b>{name}</b> <span className="tiny muted">{id}</span>
+                <span className="tiny muted">{note}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="vs-section">
         <h2 className="block-title">Layout</h2>
         <div className="vs-tiles">
           {LAYOUTS.map(([id, name]) => (
             <button key={id} className="vs-tile" aria-pressed={look.layout === id} onClick={() => change({ layout: id })} disabled={disabled}>
-              <span className="vs-mini" data-layout={id} aria-hidden>
+              <span className="vs-mini" data-layout={id} data-shape={look.shape} aria-hidden>
                 <i className="p" />
                 <i className="t" />
                 <i className="t" />
               </span>
-              <span className="tiny">{name}</span>
+              <span className="tiny">{look.shape === '16:9' && id === 'side' ? 'Side by side' : name}</span>
             </button>
           ))}
         </div>
@@ -748,7 +769,7 @@ function Settings({
       </section>
 
       <section className="vs-section">
-        <h2 className="block-title">For Reels and Shorts</h2>
+        <h2 className="block-title">{look.shape === '16:9' ? 'The opening' : 'For Reels and Shorts'}</h2>
         <Row title="Open with a question" note="Two seconds over the cover picture, before anything else">
           <Switch label="Open with a question" on={look.hook} onChange={(v) => change({ hook: v })} disabled={disabled} />
         </Row>
@@ -773,9 +794,11 @@ function Settings({
             </div>
           </div>
         )}
+        {look.shape === '9:16' && (
         <Row title="Split into parts" note={look.parts ? (parts > 1 ? `${parts} parts, each under a minute, cut at paragraphs` : 'Short enough to stay whole') : 'Each under a minute, cut at paragraphs, “Part 1 of 2” in the corner'}>
           <Switch label="Split into parts" on={look.parts} onChange={(v) => change({ parts: v })} disabled={disabled} />
         </Row>
+        )}
       </section>
 
       <section className="vs-section">

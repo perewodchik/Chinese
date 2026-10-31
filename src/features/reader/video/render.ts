@@ -1,6 +1,5 @@
 import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import type { VideoPlan } from '../../../domain/textVideo';
-import { H, W } from './draw';
 
 /**
  * Makes a text's video faster than it plays, where the browser can encode
@@ -17,7 +16,7 @@ const FPS = 30;
 const RATE = 48_000;
 
 /** H.264 where there is an encoder for it (Safari, Chrome on a Mac); VP9 in an MP4 where there is not. */
-async function videoConfig(): Promise<{ config: VideoEncoderConfig; codec: 'avc' | 'vp9' } | null> {
+async function videoConfig(W: number, H: number): Promise<{ config: VideoEncoderConfig; codec: 'avc' | 'vp9' } | null> {
   if (typeof VideoEncoder === 'undefined') return null;
   const tries: Array<[string, 'avc' | 'vp9']> = [
     ['avc1.640028', 'avc'],
@@ -55,7 +54,7 @@ async function audioConfig(channels: number): Promise<{ config: AudioEncoderConf
 /** Whether this browser makes the video quickly. */
 export async function canRenderFast(): Promise<boolean> {
   if (typeof VideoFrame === 'undefined' || typeof AudioData === 'undefined' || typeof OfflineAudioContext === 'undefined') return false;
-  return (await videoConfig()) !== null && (await audioConfig(1)) !== null;
+  return (await videoConfig(1080, 1920)) !== null && (await audioConfig(1)) !== null;
 }
 
 const breathe = () => new Promise((r) => setTimeout(r, 0));
@@ -83,13 +82,15 @@ export function renderFast(o: {
     const reading = await new OfflineAudioContext(1, 1, RATE).decodeAudioData(bytes);
     const asked = o.asked ? await new OfflineAudioContext(1, 1, RATE).decodeAudioData(await o.asked.arrayBuffer()) : null;
     const channels = Math.min(2, reading.numberOfChannels);
-    const vc = await videoConfig();
+    const W = o.canvas.width;
+    const H = o.canvas.height;
+    const vc = await videoConfig(W, H);
     const ac = await audioConfig(channels);
     if (!vc || !ac) throw new Error('This browser cannot make the video quickly.');
     const out: Blob[] = [];
     for (const part of o.plan.parts) {
       if (stopped) return null;
-      out.push(await renderPart(part, reading, asked, channels, vc, ac));
+      out.push(await renderPart(part, reading, asked, channels, vc, ac, W, H));
     }
     return stopped ? null : out;
   })();
@@ -101,6 +102,8 @@ export function renderFast(o: {
     channels: number,
     vc: { config: VideoEncoderConfig; codec: 'avc' | 'vp9' },
     ac: { config: AudioEncoderConfig; codec: 'aac' | 'opus' },
+    W: number,
+    H: number,
   ): Promise<Blob> {
     const target = new ArrayBufferTarget();
     const muxer = new Muxer({

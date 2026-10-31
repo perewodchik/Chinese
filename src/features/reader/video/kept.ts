@@ -15,6 +15,8 @@ export interface KeptVideo {
   duration: number;
   narrator: string;
   at: number;
+  /** its shape; upright when it was made before there was a choice */
+  shape?: '9:16' | '16:9';
 }
 
 const DB = 'hanzi-videos';

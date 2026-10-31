@@ -17,6 +17,8 @@ export type VideoLayout = 'above' | 'over' | 'side' | 'words';
 export type VideoSize = 's' | 'm' | 'l' | 'xl';
 
 export interface VideoLook {
+  /** upright for Reels and Shorts, wide for a screen of its own */
+  shape: '9:16' | '16:9';
   layout: VideoLayout;
   /** the chapter's name at the top of every scene */
   title: 'off' | 'chapter' | 'book';
@@ -38,7 +40,7 @@ export interface VideoLook {
   titleCard: boolean;
   /** the first seconds: a question the text answers, over its cover picture */
   hook: boolean;
-  /** cut into parts of under a minute, at paragraphs, for Shorts */
+  /** cut into parts of under a minute, at paragraphs, for Shorts (upright only) */
   parts: boolean;
   /** quiet after each paragraph, ms */
   pause: 0 | 1000 | 2000;
@@ -50,6 +52,7 @@ export interface VideoLook {
 }
 
 export const DEFAULT_LOOK: VideoLook = {
+  shape: '9:16',
   layout: 'above',
   title: 'chapter',
   titleLook: 'band',
@@ -77,6 +80,7 @@ export function lookOf(raw: unknown): VideoLook {
   const o = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
   const out = { ...DEFAULT_LOOK } as Record<string, unknown>;
   const allowed: Record<string, readonly unknown[]> = {
+    shape: ['9:16', '16:9'],
     layout: ['above', 'over', 'side', 'words'],
     title: ['off', 'chapter', 'book'],
     titleLook: ['band', 'plain'],
@@ -209,7 +213,7 @@ export function videoPlan(
     return last;
   });
   const cover = pictureOf[own.cover ?? 0] ?? first;
-  return { steps, paras, pictureOf, cover, hook, parts: look.parts ? partsOf(steps) : [{ at: 0, dur: at }], duration: at };
+  return { steps, paras, pictureOf, cover, hook, parts: look.parts && look.shape === '9:16' ? partsOf(steps) : [{ at: 0, dur: at }], duration: at };
 }
 
 /**

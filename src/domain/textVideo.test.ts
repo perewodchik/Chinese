@@ -64,6 +64,12 @@ describe('a text as a video', () => {
     assert.equal(videoPlan(withA, reading, { ...DEFAULT_LOOK, voiceQuestions: false }, {}, asked).steps.find((s) => s.kind === 'question')!.dur, 7500);
   });
 
+  it('cuts only an upright video into parts: a wide one stays whole', () => {
+    const long = { ...reading, timings: [[0, 900], [30_000, 31_000], [40_000, 41_000], [70_000, 71_000]] as Array<[number, number]>, durationMs: 90_000 };
+    assert.equal(videoPlan(text, long, { ...DEFAULT_LOOK, parts: true, shape: '16:9' }).parts.length, 1);
+    assert.equal(lookOf({ shape: '4:3' }).shape, '9:16');
+  });
+
   it('breaks a long line at its commas, never leaving a scrap', () => {
     assert.deepEqual(breakAtCommas('小智饿了，皮卡丘也饿了。'), ['小智饿了，', '皮卡丘也饿了。']);
     assert.deepEqual(breakAtCommas('好吧，我们有吃的了！'), ['好吧，我们有吃的了！']);
