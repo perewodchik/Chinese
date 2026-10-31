@@ -1,10 +1,10 @@
 import type {
-  DesignNarratorResponse,
   NarrationStatus,
   NarratorChange,
   NarratorDto,
   NarratorVoice,
   TextNarrationDto,
+  TriedVoicesResponse,
 } from '../../shared/narration';
 import { request } from './http';
 
@@ -15,9 +15,12 @@ export const forgetNarrationKey = () => request<NarrationStatus>('DELETE', '/api
 export const narratorVoices = () => request<{ voices: NarratorVoice[] }>('GET', '/api/narration/voices').then((r) => r.voices);
 
 export const listNarrators = () => request<{ narrators: NarratorDto[] }>('GET', '/api/narration/narrators').then((r) => r.narrators);
-/** A narrator with a new voice made from a description: MiniMax takes several seconds. */
-export const designNarrator = (name: string, prompt: string, previewText: string) =>
-  request<DesignNarratorResponse>('POST', '/api/narration/narrators/design', { body: { name, prompt, previewText }, timeoutMs: 90_000 });
+/** Up to three new voices made from a description, to choose among; MiniMax takes several seconds. Nothing is kept. */
+export const tryVoices = (prompt: string, previewText: string, count = 3) =>
+  request<TriedVoicesResponse>('POST', '/api/narration/narrators/try', { body: { prompt, previewText, count }, timeoutMs: 90_000 });
+/** The voice chosen, kept as a narrator. */
+export const keepVoice = (name: string, prompt: string, previewText: string, voiceId: string) =>
+  request<{ narrator: NarratorDto }>('POST', '/api/narration/narrators/keep', { body: { name, prompt, previewText, voiceId } }).then((r) => r.narrator);
 export const adoptNarrator = (name: string, voice: string) =>
   request<{ narrator: NarratorDto }>('POST', '/api/narration/narrators', { body: { name, voice } }).then((r) => r.narrator);
 export const changeNarrator = (id: string, change: NarratorChange) =>

@@ -7,7 +7,8 @@
  *   DELETE /api/narration/key                 forget it
  *   GET    /api/narration/voices              the service's own Mandarin voices
  *   GET    /api/narration/narrators           the learner's narrators
- *   POST   /api/narration/narrators/design    { name, prompt, previewText } → a narrator with a new voice, and its first words
+ *   POST   /api/narration/narrators/try       { prompt, previewText, count? } → up to three new voices to choose among, nothing kept
+ *   POST   /api/narration/narrators/keep      { name, prompt, previewText, voiceId } → the one chosen, kept as a narrator
  *   POST   /api/narration/narrators           { name, voice } → a narrator with one of the service's voices
  *   PATCH  /api/narration/narrators/:id       { name?, speed?, pitch?, emotion? }
  *   DELETE /api/narration/narrators/:id
@@ -53,16 +54,16 @@ export interface NarratorDto {
   createdAt: number;
 }
 
-export interface DesignNarratorRequest {
-  name: string;
-  prompt: string;
-  previewText: string;
-}
-
-export interface DesignNarratorResponse {
-  narrator: NarratorDto;
-  /** the preview sentence read in the new voice, MP3 in base64 */
-  trial: string;
+/** Voices just made from a description, to choose among; none kept yet. */
+export interface TriedVoicesResponse {
+  voices: Array<{
+    /** the service's id for the new voice */
+    voiceId: string;
+    /** its first words read in it, MP3 in base64 */
+    trial: string;
+  }>;
+  /** how many of those asked for did not come back */
+  failed: number;
 }
 
 export interface NarratorChange {

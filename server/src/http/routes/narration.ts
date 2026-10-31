@@ -9,7 +9,8 @@ const keyRequest = z.object({ key: z.string().min(1).max(400) });
 const lines = z.array(z.string().max(240)).min(1).max(300);
 const textRequest = z.object({ narrator: z.string().min(1).max(80), lines, generate: z.boolean().optional(), again: z.boolean().optional() });
 const ofRequest = z.object({ lines });
-const designRequest = z.object({ name: z.string().trim().min(1).max(60), prompt: z.string().trim().min(1).max(2000), previewText: z.string().trim().min(1).max(200) });
+const tryRequest = z.object({ prompt: z.string().trim().min(1).max(2000), previewText: z.string().trim().min(1).max(200), count: z.number().int().min(1).max(3).optional() });
+const keepRequest = z.object({ name: z.string().trim().min(1).max(60), prompt: z.string().trim().min(1).max(2000), previewText: z.string().trim().max(200), voiceId: z.string().min(1).max(128) });
 const adoptRequest = z.object({ name: z.string().max(60), voice: z.string().min(1).max(120) });
 const changeRequest = z.object({
   name: z.string().trim().min(1).max(60).optional(),
@@ -58,11 +59,16 @@ export function narrationRoutes({ auth, clock, trustProxy, narration }: RouteDep
 
   routes.get('/narrators', session, async (c) => json(c, { narrators: await narration.narrators(user(c)) }));
 
-  routes.post('/narrators/design', session, async (c) => {
+  routes.post('/narrators/try', session, async (c) => {
     makes.consume(user(c));
-    const input = await readJson(c, designRequest);
-    const { narrator, trial } = await narration.design(user(c), input);
-    return json(c, { narrator, trial: Buffer.from(trial).toString('base64') });
+    const input = await readJson(c, tryRequest);
+    const { voices, failed } = await narration.tryDesigns(user(c), input);
+    return json(c, { voices: voices.map((v) => ({ voiceId: v.voiceId, trial: Buffer.from(v.trial).toString('base64') })), failed });
+  });
+
+  routes.post('/narrators/keep', session, async (c) => {
+    const input = await readJson(c, keepRequest);
+    return json(c, { narrator: await narration.keepDesigned(user(c), input) });
   });
 
   routes.post('/narrators', session, async (c) => {

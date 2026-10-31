@@ -76,25 +76,39 @@ export class NarrationService {
     return (await this.deps.narrators.list(userId)).map(toDto);
   }
 
-  /** A narrator with a new voice made from a description, and the preview sentence read in it. */
-  async design(userId: string, input: { name: string; prompt: string; previewText: string }): Promise<{ narrator: NarratorDto; trial: Uint8Array }> {
+  /**
+   * Voices made from a description, several at once, to choose among — as
+   * MiniMax's own site offers three. Nothing is kept: each comes back with
+   * its first words read in it, and the one chosen is kept with `keepDesigned`.
+   * One that fails does not lose the others; all failing says why.
+   */
+  async tryDesigns(userId: string, input: { prompt: string; previewText: string; count?: number }): Promise<{ voices: Array<{ voiceId: string; trial: Uint8Array }>; failed: number }> {
     const key = await this.keyOf(userId);
-    const name = input.name.trim();
     const prompt = input.prompt.trim();
     const previewText = input.previewText.trim();
-    if (!name) throw new ValidationError('Give the voice a name.', { name: 'A name.' });
     if (prompt.length < 10) throw new ValidationError('Describe the voice in a sentence or two.', { prompt: 'Too short.' });
     if (!previewText) throw new ValidationError('A sentence for it to read first.', { previewText: 'A sentence.' });
-    const made = await this.call(() => this.narrator().design(key, prompt, previewText));
+    const count = Math.min(3, Math.max(1, input.count ?? 3));
+    const tries = await Promise.allSettled(Array.from({ length: count }, () => this.call(() => this.narrator().design(key, prompt, previewText))));
+    const voices = tries.flatMap((t) => (t.status === 'fulfilled' ? [t.value] : []));
+    if (!voices.length) throw (tries[0] as PromiseRejectedResult).reason;
+    return { voices, failed: count - voices.length };
+  }
+
+  /** The voice chosen among those tried, kept as a narrator. */
+  async keepDesigned(userId: string, input: { name: string; prompt: string; previewText: string; voiceId: string }): Promise<NarratorDto> {
+    const name = input.name.trim();
+    if (!name) throw new ValidationError('Give the voice a name.', { name: 'A name.' });
+    if (!/^[A-Za-z0-9_-]{4,128}$/.test(input.voiceId)) throw new ValidationError('That is not one of the voices just made.');
     const now = this.deps.clock.now();
     const record: NarratorRecord = {
       id: this.deps.tokens.id(),
       userId,
       name,
       kind: 'designed',
-      voiceId: made.voiceId,
-      prompt,
-      previewText,
+      voiceId: input.voiceId,
+      prompt: input.prompt.trim(),
+      previewText: input.previewText.trim(),
       speed: 1,
       pitch: 0,
       emotion: null,
@@ -102,7 +116,7 @@ export class NarrationService {
       updatedAt: now,
     };
     await this.deps.narrators.save(record);
-    return { narrator: toDto(record), trial: made.trial };
+    return toDto(record);
   }
 
   /** A narrator with one of MiniMax's own voices. */

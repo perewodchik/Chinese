@@ -533,25 +533,38 @@ var NarrationService = class {
   async narrators(userId) {
     return (await this.deps.narrators.list(userId)).map(toDto);
   }
-  /** A narrator with a new voice made from a description, and the preview sentence read in it. */
-  async design(userId, input) {
+  /**
+   * Voices made from a description, several at once, to choose among — as
+   * MiniMax's own site offers three. Nothing is kept: each comes back with
+   * its first words read in it, and the one chosen is kept with `keepDesigned`.
+   * One that fails does not lose the others; all failing says why.
+   */
+  async tryDesigns(userId, input) {
     const key = await this.keyOf(userId);
-    const name = input.name.trim();
     const prompt = input.prompt.trim();
     const previewText = input.previewText.trim();
-    if (!name) throw new ValidationError("Give the voice a name.", { name: "A name." });
     if (prompt.length < 10) throw new ValidationError("Describe the voice in a sentence or two.", { prompt: "Too short." });
     if (!previewText) throw new ValidationError("A sentence for it to read first.", { previewText: "A sentence." });
-    const made = await this.call(() => this.narrator().design(key, prompt, previewText));
+    const count = Math.min(3, Math.max(1, input.count ?? 3));
+    const tries = await Promise.allSettled(Array.from({ length: count }, () => this.call(() => this.narrator().design(key, prompt, previewText))));
+    const voices = tries.flatMap((t) => t.status === "fulfilled" ? [t.value] : []);
+    if (!voices.length) throw tries[0].reason;
+    return { voices, failed: count - voices.length };
+  }
+  /** The voice chosen among those tried, kept as a narrator. */
+  async keepDesigned(userId, input) {
+    const name = input.name.trim();
+    if (!name) throw new ValidationError("Give the voice a name.", { name: "A name." });
+    if (!/^[A-Za-z0-9_-]{4,128}$/.test(input.voiceId)) throw new ValidationError("That is not one of the voices just made.");
     const now = this.deps.clock.now();
     const record = {
       id: this.deps.tokens.id(),
       userId,
       name,
       kind: "designed",
-      voiceId: made.voiceId,
-      prompt,
-      previewText,
+      voiceId: input.voiceId,
+      prompt: input.prompt.trim(),
+      previewText: input.previewText.trim(),
       speed: 1,
       pitch: 0,
       emotion: null,
@@ -559,7 +572,7 @@ var NarrationService = class {
       updatedAt: now
     };
     await this.deps.narrators.save(record);
-    return { narrator: toDto(record), trial: made.trial };
+    return toDto(record);
   }
   /** A narrator with one of MiniMax's own voices. */
   async adopt(userId, input) {
@@ -1343,7 +1356,8 @@ var keyRequest = z3.object({ key: z3.string().min(1).max(400) });
 var lines = z3.array(z3.string().max(240)).min(1).max(300);
 var textRequest = z3.object({ narrator: z3.string().min(1).max(80), lines, generate: z3.boolean().optional(), again: z3.boolean().optional() });
 var ofRequest = z3.object({ lines });
-var designRequest = z3.object({ name: z3.string().trim().min(1).max(60), prompt: z3.string().trim().min(1).max(2e3), previewText: z3.string().trim().min(1).max(200) });
+var tryRequest = z3.object({ prompt: z3.string().trim().min(1).max(2e3), previewText: z3.string().trim().min(1).max(200), count: z3.number().int().min(1).max(3).optional() });
+var keepRequest = z3.object({ name: z3.string().trim().min(1).max(60), prompt: z3.string().trim().min(1).max(2e3), previewText: z3.string().trim().max(200), voiceId: z3.string().min(1).max(128) });
 var adoptRequest = z3.object({ name: z3.string().max(60), voice: z3.string().min(1).max(120) });
 var changeRequest = z3.object({
   name: z3.string().trim().min(1).max(60).optional(),
@@ -1377,11 +1391,15 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
   routes.delete("/key", session, async (c) => json(c, await narration.deleteKey(user(c))));
   routes.get("/voices", session, async (c) => json(c, { voices: await narration.voices(user(c)) }));
   routes.get("/narrators", session, async (c) => json(c, { narrators: await narration.narrators(user(c)) }));
-  routes.post("/narrators/design", session, async (c) => {
+  routes.post("/narrators/try", session, async (c) => {
     makes.consume(user(c));
-    const input = await readJson(c, designRequest);
-    const { narrator, trial } = await narration.design(user(c), input);
-    return json(c, { narrator, trial: Buffer.from(trial).toString("base64") });
+    const input = await readJson(c, tryRequest);
+    const { voices, failed: failed2 } = await narration.tryDesigns(user(c), input);
+    return json(c, { voices: voices.map((v) => ({ voiceId: v.voiceId, trial: Buffer.from(v.trial).toString("base64") })), failed: failed2 });
+  });
+  routes.post("/narrators/keep", session, async (c) => {
+    const input = await readJson(c, keepRequest);
+    return json(c, { narrator: await narration.keepDesigned(user(c), input) });
   });
   routes.post("/narrators", session, async (c) => {
     makes.consume(user(c));

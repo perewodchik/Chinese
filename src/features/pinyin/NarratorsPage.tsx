@@ -6,7 +6,8 @@ import {
   changeNarrator,
   chooseNarrator,
   chosenNarrator,
-  designNarrator,
+  keepVoice,
+  tryVoices,
   listNarrators,
   narrationOf,
   narrationStatus,
@@ -191,17 +192,19 @@ function NarratorEditor({
   const [busy, setBusy] = useState<'save' | 'hear' | 'delete' | null>(null);
   const [sure, setSure] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const dirty = name.trim() !== narrator.name || speed !== narrator.speed || pitch !== narrator.pitch || emotion !== narrator.emotion;
 
   async function save() {
     setBusy('save');
     setMessage(null);
+    setError(null);
     try {
       const n = await changeNarrator(narrator.id, { name: name.trim(), speed, pitch, emotion });
       onSaved(n);
       setMessage('Saved. Texts read from now on sound like this; read a text again in “Read texts aloud” to change one already read.');
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'That did not work.');
+      setError(err instanceof Error ? err.message : 'That did not work.');
     } finally {
       setBusy(null);
     }
@@ -210,12 +213,13 @@ function NarratorEditor({
   async function hear() {
     setBusy('hear');
     setMessage(null);
+    setError(null);
     try {
       // Saved first, so what is heard is what texts will be read with.
       if (dirty) onSaved(await changeNarrator(narrator.id, { name: name.trim(), speed, pitch, emotion }));
       setAudio(await previewNarrator(narrator.id, sample));
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'MiniMax did not answer.');
+      setError(err instanceof Error ? err.message : 'MiniMax did not answer.');
     } finally {
       setBusy(null);
     }
@@ -227,7 +231,7 @@ function NarratorEditor({
       await removeNarrator(narrator.id);
       onRemoved();
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'That did not work.');
+      setError(err instanceof Error ? err.message : 'That did not work.');
       setBusy(null);
     }
   }
@@ -297,6 +301,11 @@ function NarratorEditor({
         )}
       </div>
       <div className="narrator-audio">{audio && <audio controls autoPlay src={audio} />}</div>
+      {error && (
+        <p className="narrator-error" role="alert">
+          {error}
+        </p>
+      )}
       <p className="tiny muted narrator-msg">{message ?? ''}</p>
     </div>
   );
@@ -304,6 +313,16 @@ function NarratorEditor({
 
 /* ------------------------------------------------------------ a new voice */
 
+const toAudioUrl = (b64: string) => {
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  return bytes.length ? URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })) : null;
+};
+
+/**
+ * A new voice. Described: MiniMax makes three from the description at once,
+ * each heard saying its first words, and the one chosen is kept — the others
+ * are not. From MiniMax's library: one of its own voices, kept as it is.
+ */
 function NewNarrator({ onMade }: { onMade: (n: NarratorDto) => void }) {
   const [how, setHow] = useState<'describe' | 'library'>('describe');
   const [name, setName] = useState('');
@@ -311,42 +330,68 @@ function NewNarrator({ onMade }: { onMade: (n: NarratorDto) => void }) {
   const [sample, setSample] = useState(SAMPLE);
   const [voices, setVoices] = useState<NarratorVoice[] | null>(null);
   const [voice, setVoice] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [trial, setTrial] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [busy, setBusy] = useState<'try' | 'keep' | 'add' | null>(null);
+  /** the voices just made, to choose among; what they were made from, so a kept one is kept with it */
+  const [tried, setTried] = useState<{ prompt: string; sample: string; voices: Array<{ voiceId: string; url: string | null }> } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
 
   useEffect(() => {
     if (how !== 'library' || voices) return;
-    void narratorVoices().then(setVoices, (err: Error) => setMessage(err.message));
+    void narratorVoices().then(setVoices, (err: Error) => setError(err.message));
   }, [how, voices]);
 
-  async function make() {
-    setBusy(true);
-    setMessage(null);
-    setTrial(null);
+  async function makeThree() {
+    setBusy('try');
+    setError(null);
+    setNote(null);
     try {
-      if (how === 'describe') {
-        const made = await designNarrator(name.trim(), prompt.trim(), sample.trim());
-        const bytes = Uint8Array.from(atob(made.trial), (c) => c.charCodeAt(0));
-        if (bytes.length) setTrial(URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })));
-        onMade(made.narrator);
-        setMessage(`${made.narrator.name} is made: listen below, then tune it in Your narrators.`);
-        setPrompt('');
-        setName('');
-      } else {
-        const n = await adoptNarrator(name.trim(), voice);
-        onMade(n);
-        setMessage(`${n.name} is added to Your narrators.`);
-        setName('');
-      }
+      const out = await tryVoices(prompt.trim(), sample.trim());
+      setTried({ prompt: prompt.trim(), sample: sample.trim(), voices: out.voices.map((v) => ({ voiceId: v.voiceId, url: toAudioUrl(v.trial) })) });
+      if (out.failed) setNote(`${out.failed} of the three did not come back; here are the others.`);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'MiniMax did not answer.');
+      setError(err instanceof Error ? err.message : 'MiniMax did not answer. Try again in a minute.');
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
-  const ready = how === 'describe' ? name.trim() && prompt.trim().length >= 10 && sample.trim() : voice;
+  async function keep(voiceId: string, i: number) {
+    if (!tried) return;
+    if (!name.trim()) {
+      setError('Give the voice a name first, above.');
+      return;
+    }
+    setBusy('keep');
+    setError(null);
+    try {
+      const n = await keepVoice(name.trim(), tried.prompt, tried.sample, voiceId);
+      onMade(n);
+      setNote(`Voice ${i + 1} is kept as ${n.name}: tune it in Your narrators.`);
+      setTried(null);
+      setName('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'That did not work.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function add() {
+    setBusy('add');
+    setError(null);
+    try {
+      const n = await adoptNarrator(name.trim(), voice);
+      onMade(n);
+      setNote(`${n.name} is added to Your narrators.`);
+      setName('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'That did not work.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <div className="block">
       <div className="block-head">
@@ -363,47 +408,71 @@ function NewNarrator({ onMade }: { onMade: (n: NarratorDto) => void }) {
         </div>
         <label className="field">
           Name
-          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder={how === 'describe' ? 'Tutor, Grandma, Ash…' : 'Leave empty for its own name'} />
+          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder={how === 'describe' ? 'Tutor, Storyteller, Ash…' : 'Leave empty for its own name'} />
         </label>
         {how === 'describe' ? (
           <>
             <label className="field">
               What it sounds like
               <textarea
-                rows={6}
+                rows={7}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 maxLength={2000}
-                placeholder="A young man from Beijing, 20–25, perfect standard Putonghua, a little slower than normal, warm and patient, every tone clear…"
+                placeholder="A young man from Beijing, about 25, perfect standard Putonghua, a little slower than normal, warm and patient, every tone clear…"
               />
-              <span className="tiny muted">Who it is, age, accent, pace, mood, the room it is recorded in. English is fine.</span>
+              <span className="tiny muted">Who it is, age, accent, pitch, pace, mood, the room it is recorded in. English is fine.</span>
             </label>
             <label className="field">
               Its first words
               <input className="hanzi" value={sample} onChange={(e) => setSample(e.target.value)} maxLength={200} />
             </label>
+            <div className="narrator-actions">
+              <button className="btn primary" onClick={() => void makeThree()} disabled={busy !== null || prompt.trim().length < 10 || !sample.trim()}>
+                {busy === 'try' ? 'Making three voices… about half a minute' : tried ? 'Make three more' : 'Make three voices'}
+              </button>
+            </div>
+            {tried && (
+              <ul className="narrator-candidates">
+                {tried.voices.map((v, i) => (
+                  <li key={v.voiceId}>
+                    <b>Voice {i + 1}</b>
+                    {v.url ? <audio controls preload="auto" src={v.url} /> : <span className="tiny muted">No sample came back.</span>}
+                    <button className="btn tonal sm" onClick={() => void keep(v.voiceId, i)} disabled={busy !== null}>
+                      {busy === 'keep' ? 'Keeping…' : 'Keep this one'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </>
         ) : (
-          <label className="field">
-            Voice
-            <select value={voice} onChange={(e) => setVoice(e.target.value)} disabled={!voices}>
-              <option value="">{voices ? 'Choose a voice' : 'Loading the voices…'}</option>
-              {(voices ?? []).map((v) => (
-                <option key={v.id} value={v.id}>
-                  {plain(v.name)} · {v.gender === 'male' ? 'man' : 'woman'}
-                </option>
-              ))}
-            </select>
-            <span className="tiny muted">{voices?.find((v) => v.id === voice)?.description ?? ''}</span>
-          </label>
+          <>
+            <label className="field">
+              Voice
+              <select value={voice} onChange={(e) => setVoice(e.target.value)} disabled={!voices}>
+                <option value="">{voices ? 'Choose a voice' : 'Loading the voices…'}</option>
+                {(voices ?? []).map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {plain(v.name)} · {v.gender === 'male' ? 'man' : 'woman'}
+                  </option>
+                ))}
+              </select>
+              <span className="tiny muted">{voices?.find((v) => v.id === voice)?.description ?? ''}</span>
+            </label>
+            <div className="narrator-actions">
+              <button className="btn primary" onClick={() => void add()} disabled={!voice || busy !== null}>
+                {busy === 'add' ? 'Adding…' : 'Add the voice'}
+              </button>
+            </div>
+          </>
         )}
-        <div className="narrator-actions">
-          <button className="btn primary" onClick={() => void make()} disabled={!ready || busy}>
-            {busy ? (how === 'describe' ? 'Making the voice…' : 'Adding…') : how === 'describe' ? 'Make the voice' : 'Add the voice'}
-          </button>
-        </div>
-        <div className="narrator-audio">{trial && <audio controls autoPlay src={trial} />}</div>
-        <p className="tiny muted narrator-msg">{message ?? ''}</p>
+        {error && (
+          <p className="narrator-error" role="alert">
+            {error}
+          </p>
+        )}
+        <p className="tiny muted narrator-msg">{note ?? ''}</p>
       </div>
     </div>
   );
@@ -428,6 +497,7 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
   const [again, setAgain] = useState(false);
   const [running, setRunning] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -451,6 +521,7 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
 
   async function run() {
     setMessage(null);
+    setError(null);
     const chosen = list.filter((t) => picked.has(t.id));
     try {
       for (const t of chosen) {
@@ -465,7 +536,7 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
       }
       setMessage(`Done: ${chosen.length} ${chosen.length === 1 ? 'text' : 'texts'} read by ${narrator.name} and kept. Listen plays them.`);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'MiniMax did not answer.');
+      setError(err instanceof Error ? err.message : 'MiniMax did not answer.');
     } finally {
       setRunning(null);
     }
@@ -535,6 +606,11 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
             {running ? `Reading ${list.find((t) => t.id === running)?.titleZh ?? ''}… up to a minute each` : `Read ${picked.size} ${picked.size === 1 ? 'text' : 'texts'}`}
           </button>
         </div>
+        {error && (
+          <p className="narrator-error" role="alert">
+            {error}
+          </p>
+        )}
         <p className="tiny muted narrator-msg">{message ?? ''}</p>
       </div>
     </div>

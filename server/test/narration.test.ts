@@ -13,6 +13,7 @@ const GOOD = 'sk-api-good-key-0123456789';
 function stub() {
   const read: Array<{ text: string; voice: string; tuning: VoiceTuning }> = [];
   const whole: string[] = [];
+  let designs = 0;
   const narrator: Narrator = {
     async voices(key) {
       if (key !== GOOD) throw new NarratorRefused('MiniMax did not accept the key.', 'key');
@@ -21,9 +22,10 @@ function stub() {
         { id: 'Chinese (Mandarin)_Reliable_Executive', name: 'Steady Executive', description: 'A steady male executive' },
       ];
     },
-    async design(key, prompt) {
+    async design(key) {
       if (key !== GOOD) throw new NarratorRefused('MiniMax did not accept the key.', 'key');
-      return { voiceId: `designed-${prompt.length}`, trial: new Uint8Array(300).fill(3) };
+      designs += 1;
+      return { voiceId: `designed-${designs}`, trial: new Uint8Array(300).fill(3) };
     },
     async readText(key, text) {
       if (key !== GOOD) throw new NarratorRefused('MiniMax did not accept the key.', 'key');
@@ -67,14 +69,21 @@ describe('reading texts aloud with MiniMax and the learner’s key', () => {
     const { narrator, read, whole } = stub();
     const app = appWith(narrator);
     const cookie = await signedIn(app);
-    assert.equal((await call(app, 'POST', '/api/narration/narrators/design', { cookie, body: { name: 'Tutor', prompt: 'A calm young man from Beijing', previewText: '你好。' } })).status, 404);
+    const body = { prompt: 'A calm young man from Beijing', previewText: '你好。' };
+    assert.equal((await call(app, 'POST', '/api/narration/narrators/try', { cookie, body })).status, 404);
     await call(app, 'PUT', '/api/narration/key', { cookie, body: { key: GOOD } });
 
-    const made = await call(app, 'POST', '/api/narration/narrators/design', { cookie, body: { name: 'Tutor', prompt: 'A calm young man from Beijing', previewText: '你好。' } });
-    assert.equal(made.status, 200);
-    const { narrator: tutor, trial } = (await made.json()) as { narrator: { id: string; recordingId: string; voiceId: string }; trial: string };
-    assert.equal(tutor.voiceId, 'designed-29');
-    assert.equal(Buffer.from(trial, 'base64').length, 300);
+    // Three to choose among, none kept until one is chosen.
+    const tried = await call(app, 'POST', '/api/narration/narrators/try', { cookie, body });
+    assert.equal(tried.status, 200);
+    const { voices, failed } = (await tried.json()) as { voices: Array<{ voiceId: string; trial: string }>; failed: number };
+    assert.equal(voices.length, 3);
+    assert.equal(failed, 0);
+    assert.equal(Buffer.from(voices[0]!.trial, 'base64').length, 300);
+    assert.deepEqual(await (await call(app, 'GET', '/api/narration/narrators', { cookie })).json(), { narrators: [] });
+    const made = await call(app, 'POST', '/api/narration/narrators/keep', { cookie, body: { ...body, name: 'Tutor', voiceId: voices[1]!.voiceId } });
+    const { narrator: tutor } = (await made.json()) as { narrator: { id: string; recordingId: string; voiceId: string } };
+    assert.equal(tutor.voiceId, voices[1]!.voiceId);
 
     const changed = await call(app, 'PATCH', `/api/narration/narrators/${tutor.id}`, { cookie, body: { speed: 0.85, pitch: -2, emotion: 'calm' } });
     assert.deepEqual(
@@ -130,6 +139,31 @@ describe('reading texts aloud with MiniMax and the learner’s key', () => {
     assert.deepEqual(await (await call(app, 'GET', '/api/narration/narrators', { cookie: other })).json(), { narrators: [] });
     assert.equal((await call(app, 'DELETE', `/api/narration/narrators/${narrator.id}`, { cookie: other })).status, 404);
     assert.equal((await call(app, 'DELETE', `/api/narration/narrators/${narrator.id}`, { cookie })).status, 200);
+  });
+});
+
+describe('making voices to choose among', () => {
+  it('keeps the ones that came back when some fail, and says why when none does', async () => {
+    let n = 0;
+    const flaky: Narrator = {
+      ...stub().narrator,
+      async design() {
+        n += 1;
+        if (n === 2) throw new NarratorRefused('MiniMax said: busy', 'other');
+        if (n > 3) throw new NarratorRefused('MiniMax said: prompt too long', 'other');
+        return { voiceId: `v-${n}`, trial: new Uint8Array(10) };
+      },
+    };
+    const app = appWith(flaky);
+    const cookie = await signedIn(app);
+    await call(app, 'PUT', '/api/narration/key', { cookie, body: { key: GOOD } });
+    const body = { prompt: 'A calm young man from Beijing', previewText: '你好。' };
+    const some = (await (await call(app, 'POST', '/api/narration/narrators/try', { cookie, body })).json()) as { voices: unknown[]; failed: number };
+    assert.equal(some.voices.length, 2);
+    assert.equal(some.failed, 1);
+    const none = await call(app, 'POST', '/api/narration/narrators/try', { cookie, body });
+    assert.equal(none.status, 503);
+    assert.match(((await none.json()) as { error: { message: string } }).error.message, /prompt too long/);
   });
 });
 
