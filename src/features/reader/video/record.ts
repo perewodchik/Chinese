@@ -1,5 +1,4 @@
-import { momentAt, partAt, type VideoLook, type VideoMoment, type VideoPlan } from '../../../domain/textVideo';
-import { scoreMusic } from './music';
+import { momentAt, partAt, type VideoMoment, type VideoPlan } from '../../../domain/textVideo';
 
 /**
  * Plays a text's video plan — and, when asked, records it — on this device.
@@ -36,10 +35,6 @@ export function run(o: {
   plan: VideoPlan;
   timings: Array<[number, number]>;
   audioUrl: string;
-  /** the questions' reading, when the plan says them */
-  askedUrl?: string | null;
-  /** quiet music under it, when recording */
-  music?: VideoLook['music'];
   draw: (m: VideoMoment) => void;
   record: boolean;
   /** where to start, ms into the video */
@@ -48,9 +43,6 @@ export function run(o: {
 }): Run {
   const audio = new Audio(o.audioUrl);
   audio.preload = 'auto';
-  const asked = o.askedUrl ? new Audio(o.askedUrl) : null;
-  if (asked) asked.preload = 'auto';
-  let askedTo = Infinity;
   let stopped = false;
   let finish: (b: Blob[] | null) => void = () => undefined;
   const done = new Promise<Blob[] | null>((r) => (finish = r));
@@ -88,33 +80,12 @@ export function run(o: {
     const source = ac.createMediaElementSource(audio);
     const dest = ac.createMediaStreamDestination();
     source.connect(dest);
-    // To the speakers too, as when it was first made — through a gain of nothing,
-    // so the graph is pulled along as Safari wants and nothing is heard.
-    const hush = ac.createGain();
-    hush.gain.value = 0;
-    hush.connect(ac.destination);
-    source.connect(hush);
-    if (asked) {
-      const q = ac.createMediaElementSource(asked);
-      q.connect(dest);
-      q.connect(hush);
-    }
-    if (o.music && o.music !== 'off') {
-      // The music laid out on the plan's clock from now; lower under each paragraph and question said.
-      const voice = o.plan.steps
-        .filter((s) => s.kind === 'para' || ((s.kind === 'question' || s.kind === 'answer') && s.said))
-        .map((s): [number, number] => [s.at / 1000, (s.at + s.dur) / 1000]);
-      const into = ac.createGain();
-      into.connect(dest);
-      into.connect(hush);
-      scoreMusic(ac, o.music, o.plan.duration / 1000, voice, into, ac.currentTime + 0.05);
-    }
+    source.connect(ac.destination);
     const video = o.canvas.captureStream(30);
     tracks = [...video.getVideoTracks(), ...dest.stream.getAudioTracks()];
     stream = new MediaStream(tracks);
   }
   // Unlocked inside the tap; played for real when the first paragraph comes.
-  if (asked) void asked.play().then(() => asked.pause(), () => undefined);
   void audio.play().then(
     () => {
       if (!playingAudio) audio.pause();
@@ -135,7 +106,6 @@ export function run(o: {
     over = true;
     cancelAnimationFrame(frame);
     audio.pause();
-    asked?.pause();
     playingAudio = false;
     if (recorder && recorder.state !== 'inactive') recorder.stop();
     settle();
@@ -176,12 +146,6 @@ export function run(o: {
         next();
       }
     } else {
-      if (!entered && (step.kind === 'question' || step.kind === 'answer') && step.said && asked) {
-        asked.currentTime = step.said.from / 1000;
-        askedTo = step.said.to;
-        void asked.play().catch(() => undefined);
-      }
-      if (asked && !asked.paused && asked.currentTime * 1000 >= askedTo) asked.pause();
       entered = true;
       const into = performance.now() - enteredAt;
       t = step.at + Math.min(into, step.dur);

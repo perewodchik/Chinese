@@ -85,7 +85,6 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   // The narrator's reading of the questions and answers: undefined while it is looked for, null when there is none yet.
   const asking = useMemo(() => questionLines(text.questions).lines, [text.questions]);
   const [asked, setAsked] = useState<TextNarrationDto | null | undefined>(undefined);
-  const [askedUrl, setAskedUrl] = useState<string | null>(null);
   const [askingNow, setAskingNow] = useState(false);
   useEffect(() => {
     if (!reading || !asking.length) {
@@ -102,18 +101,11 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
       live = false;
     };
   }, [reading, asking]);
-  useEffect(() => {
-    if (!asked) return setAskedUrl(null);
-    let live = true;
-    narrationAudio(asked).then((u) => live && setAskedUrl(u), () => undefined);
-    return () => {
-      live = false;
-    };
-  }, [asked]);
 
   const planWith = (a: TextNarrationDto | null | undefined) => (reading ? videoPlan(text, reading.n, look, own, a ?? null) : null);
   const g = geometry(look.shape);
-  const plan = useMemo(() => planWith(asked), [text, reading, look, own, asked]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Recorded as it plays, the video carries the reading alone: the questions are shown silent, and there is no music.
+  const plan = useMemo(() => planWith(fast ? asked : null), [text, reading, look, own, asked, fast]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const changeOwn = (patch: Partial<Own>) =>
     setOwn((o) => {
@@ -262,8 +254,6 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
       plan: use,
       timings: reading.n.timings,
       audioUrl,
-      askedUrl,
-      music: record ? look.music : 'off',
       record,
       from: record ? 0 : t >= use.duration - 50 ? 0 : t,
       draw: (m) => {
@@ -567,6 +557,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
                 setSafe={setSafe}
                 hasQuestions={text.questions.length > 0}
                 questionsRead={Boolean(asked)}
+                quick={Boolean(fast)}
                 own={own}
                 changeOwn={changeOwn}
                 covers={plan ? [...new Set(plan.pictureOf)].map((key) => ({ key, para: plan.pictureOf.indexOf(key) })).filter((c): c is { key: string; para: number } => Boolean(c.key)) : []}
@@ -598,15 +589,6 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
             <button className="btn primary lg" onClick={() => void start(true)} disabled={!plan || !audioUrl || busy || fast === null || (!fast && !canRecord())}>
               {mode === 'making' ? 'Making…' : 'Make the video'}
             </button>
-            <span className="tiny muted">
-              {!plan || fast === null
-                ? ''
-                : fast
-                  ? `A ${mmss(plan.duration)} video. Making it takes less than watching it; nothing is paid.`
-                  : !canRecord()
-                    ? 'This browser cannot make a video.'
-                    : `A ${mmss(plan.duration)} video. Making it takes as long as watching it, the screen kept on; nothing is paid.`}
-            </span>
           </footer>
         )}
       </div>
@@ -664,6 +646,7 @@ function Settings({
   setSafe,
   hasQuestions,
   questionsRead,
+  quick,
   own,
   changeOwn,
   covers,
@@ -677,6 +660,8 @@ function Settings({
   setSafe: (v: boolean) => void;
   hasQuestions: boolean;
   questionsRead: boolean;
+  /** made quickly: the music and the questions' voice can go in; recorded as it plays, they cannot */
+  quick: boolean;
   own: Own;
   changeOwn: (p: Partial<Own>) => void;
   covers: Array<{ key: string; para: number }>;
@@ -825,6 +810,7 @@ function Settings({
       <section className="vs-section">
         <h2 className="block-title">Voice and pace</h2>
         {children}
+        {quick && (
         <Row title="Music" note="Quiet, under the voice and lower while it speaks; in the made video">
           <Seg
             label="Music"
@@ -838,6 +824,7 @@ function Settings({
             ]}
           />
         </Row>
+        )}
         <Row title="Pause between paragraphs" note="Time to look at the picture">
           <Seg
             label="Pause"
@@ -894,7 +881,7 @@ function Settings({
         <Row title="Questions at the end" note={hasQuestions ? 'Each shown, then time to answer aloud, then the answer' : 'This text has none'}>
           <Switch label="Questions at the end" on={look.questions && hasQuestions} onChange={(v) => change({ questions: v })} disabled={disabled || !hasQuestions} />
         </Row>
-        {look.questions && hasQuestions && (
+        {quick && look.questions && hasQuestions && (
           <Row
             title="Said by the narrator"
             note={questionsRead ? 'The questions and answers, read once and kept' : 'Read once by MiniMax when the video is first made, then kept'}
