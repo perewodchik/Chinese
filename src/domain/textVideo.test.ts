@@ -12,11 +12,11 @@ const text = {
 const reading = { timings: [[0, 900], [1000, 1900], [2000, 2900], [3000, 3900]] as Array<[number, number]>, durationMs: 4000 };
 
 describe('a text as a video', () => {
-  it('plays each paragraph from where it starts to where the next starts, with the pauses, title and questions', () => {
+  it('plays each paragraph to the middle of the quiet before the next, with the pauses, title and questions', () => {
     const plan = videoPlan(text, reading, DEFAULT_LOOK);
     assert.deepEqual(
       plan.steps.map((s) => [s.kind, s.at, s.dur]),
-      [['title', 0, 2500], ['para', 2500, 2000], ['pause', 4500, 1000], ['para', 5500, 2000], ['question', 7500, 7500], ['answer', 15000, 3000]],
+      [['title', 0, 2500], ['para', 2500, 1950], ['pause', 4450, 1000], ['para', 5450, 2050], ['question', 7500, 7500], ['answer', 15000, 3000]],
     );
     assert.equal(plan.duration, 18000);
   });
@@ -43,9 +43,10 @@ describe('a text as a video', () => {
   it('cuts a long video into parts of under a minute, at paragraphs and questions only', () => {
     const long = { ...reading, timings: [[0, 900], [30_000, 31_000], [40_000, 41_000], [70_000, 71_000]] as Array<[number, number]>, durationMs: 90_000 };
     const plan = videoPlan(text, long, { ...DEFAULT_LOOK, parts: true });
-    // title 2.5 s + ¶1 40 s + pause 1 s = 43.5 s; ¶2 is 50 s more, so it starts part 2; the questions fit after it? 50 + 10.5 > 59: a third part.
-    assert.deepEqual(plan.parts, [{ at: 0, dur: 43_500 }, { at: 43_500, dur: 50_000 }, { at: 93_500, dur: 10_500 }]);
-    const m = momentAt(plan, 43_500 + 25_000, long.timings);
+    // ¶1 is cut at 35.5 s, midway between 31 s and 40 s: title 2.5 + 35.5 + pause 1 = 39 s; ¶2 is 54.5 s more,
+    // so it starts part 2; the questions after it would make 65 s: a third part.
+    assert.deepEqual(plan.parts, [{ at: 0, dur: 39_000 }, { at: 39_000, dur: 54_500 }, { at: 93_500, dur: 10_500 }]);
+    const m = momentAt(plan, 39_000 + 27_250, long.timings);
     assert.equal(m.part, 1);
     assert.equal(m.of, 3);
     assert.equal(m.progress, 0.5);

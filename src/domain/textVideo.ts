@@ -144,12 +144,19 @@ export function videoPlan(
   };
   if (hook) push({ kind: 'hook', dur: HOOK_MS });
   if (look.titleCard) push({ kind: 'title', dur: TITLE_MS });
-  paras.forEach((lines, p) => {
-    // From where the paragraph's first line starts (the very start for the
-    // first) to where the next paragraph's starts, so nothing said is cut.
-    const from = p === 0 ? 0 : (reading.timings[lines[0]!]?.[0] ?? 0);
+  // Between two paragraphs the reading is cut in the middle of the quiet
+  // between them — never where the next one starts, where a syllable's onset
+  // or the last one's tail can still be sounding, and a cut there clicks.
+  const cut = (p: number) => {
+    const end = reading.timings[paras[p]!.at(-1)!]?.[1];
+    const start = reading.timings[paras[p + 1]![0]!]?.[0];
+    if (start === undefined) return reading.durationMs;
+    return end !== undefined && start > end ? Math.round((end + start) / 2) : start;
+  };
+  paras.forEach((_, p) => {
     const next = paras[p + 1];
-    const to = next ? (reading.timings[next[0]!]?.[0] ?? reading.durationMs) : reading.durationMs;
+    const from = p === 0 ? 0 : cut(p - 1);
+    const to = next ? cut(p) : reading.durationMs;
     push({ kind: 'para', dur: Math.max(0, to - from), para: p, from, to });
     if (look.pause && next) push({ kind: 'pause', dur: look.pause, para: p });
   });

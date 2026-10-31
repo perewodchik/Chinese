@@ -33,6 +33,7 @@
     "@hono/node-server": "^2.1.1",
     "@pdf-lib/fontkit": "^1.1.1",
     "hono": "^4.13.7",
+    "mp4-muxer": "^5.2.2",
     "pdf-lib": "^1.17.1",
     "pg": "^8.23.0",
     "phaser": "^4.2.1",

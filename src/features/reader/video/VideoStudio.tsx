@@ -10,6 +10,7 @@ import { narratedReadings, type Narrated } from '../narratedClips';
 import { drawFrame, H, SAFE, W } from './draw';
 import { forgetVideo, keepVideo, keptVideo, type KeptVideo } from './kept';
 import { canRecord, recordingType, run, type Run } from './record';
+import { canRenderFast, renderFast, type Render } from './render';
 import './video.css';
 
 const KEPT = 'hanzi.video.look';
@@ -69,7 +70,12 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   const [shown, setShown] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [safe, setSafe] = useState(true);
-  const running = useRef<Run | null>(null);
+  const running = useRef<Run | Render | null>(null);
+  // Whether this browser makes the video in seconds (WebCodecs) or as it plays.
+  const [fast, setFast] = useState<boolean | null>(null);
+  useEffect(() => {
+    void canRenderFast().then(setFast, () => setFast(false));
+  }, []);
 
   const reading = readings?.find((r) => r.n.narratorId === narratorId) ?? readings?.[0] ?? null;
   const plan = useMemo(() => (reading ? videoPlan(text, reading.n, look, own) : null), [text, reading, look, own]);
@@ -188,7 +194,18 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
   function start(record: boolean) {
     if (!plan || !reading || !audioUrl || !canvas.current) return;
     setError(null);
-    const r = run({
+    const r = record && fast
+      ? renderFast({
+          canvas: canvas.current,
+          plan,
+          audioUrl,
+          draw: (time) => {
+            const c = ctx();
+            if (c) drawFrame(c, { text, book, plan, moment: momentAt(plan, time, reading.n.timings), look, pictures, lib });
+          },
+          onTime: setT,
+        })
+      : run({
       canvas: canvas.current,
       plan,
       timings: reading.n.timings,
@@ -439,15 +456,17 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
 
         {mode !== 'done' && (
           <footer className="vs-foot">
-            <button className="btn primary lg" onClick={() => start(true)} disabled={!plan || !audioUrl || busy || !canRecord()}>
+            <button className="btn primary lg" onClick={() => start(true)} disabled={!plan || !audioUrl || busy || fast === null || (!fast && !canRecord())}>
               {mode === 'making' ? 'Making…' : 'Make the video'}
             </button>
             <span className="tiny muted">
-              {!canRecord()
-                ? 'This browser cannot record a video.'
-                : plan
-                  ? `${mmss(plan.duration)}, made in real time, the screen kept on. ${recordingType().includes('mp4') ? 'MP4' : 'WebM'}, nothing paid.`
-                  : ''}
+              {!plan || fast === null
+                ? ''
+                : fast
+                  ? `${mmss(plan.duration)}, made on this device faster than it plays. MP4, nothing paid.`
+                  : !canRecord()
+                    ? 'This browser cannot make a video.'
+                    : `${mmss(plan.duration)}, made in real time, the screen kept on. ${recordingType().includes('mp4') ? 'MP4' : 'WebM'}, nothing paid.`}
             </span>
           </footer>
         )}

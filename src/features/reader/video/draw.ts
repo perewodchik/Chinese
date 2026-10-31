@@ -21,8 +21,11 @@ export const W = 1080;
 export const H = 1920;
 export const SAFE = { top: 230, bottom: 1536, right: 162, buttonsFrom: 576 };
 const LEFT = 60;
+/** Left-aligned text runs from LEFT to the buttons' edge. */
 const TEXT_W = W - SAFE.right - LEFT;
-const TEXT_CX = LEFT + TEXT_W / 2;
+/** Centred text is centred on the screen, as wide as keeps it clear of the buttons on both sides. */
+const TEXT_CX = W / 2;
+const CENTRED_W = W - 2 * SAFE.right;
 
 const SIZES = { s: 64, m: 80, l: 96, xl: 112 } as const;
 
@@ -65,6 +68,8 @@ interface Cell {
 interface Row {
   cells: Cell[];
   w: number;
+  /** its width without the punctuation at its end, which hangs: what it is centred by */
+  seen: number;
   /** pinyin over this row */
   py: boolean;
 }
@@ -78,6 +83,9 @@ interface Block {
   py: number;
 }
 
+const OPENING = /[“‘「『（《【(]/;
+const HANGING = /[，。！？、；：,.!?;:”’」』）》】)\s]/;
+
 const unitsCache = new Map<string, Array<Array<{ c: string; py: string }>>>();
 
 /** A sentence as words, each its characters with the pinyin over them; punctuation held to the word before it. */
@@ -88,12 +96,24 @@ function unitsOf(line: Pick<TextLine, 'zh' | 'py'>, lib: Library) {
   const syllables = alignPinyin(line, lib);
   let k = 0;
   const units: Array<Array<{ c: string; py: string }>> = [];
+  // An opening quote or bracket goes with the word after it, never at the end of a row.
+  let opening: Array<{ c: string; py: string }> = [];
   for (const t of segment(line.zh, lib)) {
     const chars = [...t.text].map((c) => ({ c, py: isHanzi(c) ? (syllables[k++] ?? '') : '' }));
-    // Punctuation is held to the word before it; a space stays a space (第一章 森林里的苹果).
-    if (!t.word && units.length) units[units.length - 1]!.push(...chars);
-    else if (chars.some((x) => x.c.trim())) units.push(chars);
+    if (t.word) {
+      units.push([...opening, ...chars]);
+      opening = [];
+      continue;
+    }
+    // Other punctuation is held to the word before it; a space stays a space (第一章 森林里的苹果).
+    for (const ch of chars) {
+      if (OPENING.test(ch.c)) opening.push(ch);
+      else if (opening.length) opening.push(ch);
+      else if (units.length) units[units.length - 1]!.push(ch);
+      else if (ch.c.trim()) units.push([ch]);
+    }
   }
+  if (opening.length) units.push(opening);
   unitsCache.set(id, units);
   return units;
 }
@@ -121,7 +141,7 @@ function layout(
       acc += [...piece].length;
       breaks.add(acc);
     }
-    let row: Row = { cells: [], w: 0, py: withPy };
+    let row: Row = { cells: [], w: 0, seen: 0, py: withPy };
     let at = 0;
     for (const unit of units) {
       const cells = unit.map(({ c, py: s }) => {
@@ -134,18 +154,23 @@ function layout(
       const w = cells.reduce((n, c) => n + c.w, 0);
       if (row.cells.length && row.w + w > o.maxW) {
         rows.push(row);
-        row = { cells: [], w: 0, py: withPy };
+        row = { cells: [], w: 0, seen: 0, py: withPy };
       }
       row.cells.push(...cells);
       row.w += w;
       at += unit.length;
       if (breaks.has(at) || [...breaks].some((b) => b > at - unit.length && b < at)) {
         rows.push(row);
-        row = { cells: [], w: 0, py: withPy };
+        row = { cells: [], w: 0, seen: 0, py: withPy };
       }
     }
     if (row.cells.length) rows.push(row);
     spans.push([start, rows.length]);
+  }
+  for (const r of rows) {
+    let hang = 0;
+    for (let i = r.cells.length - 1; i >= 0 && HANGING.test(r.cells[i]!.c); i--) hang += r.cells[i]!.w;
+    r.seen = r.w - hang;
   }
   const b: Block = { rows, spans, w: Math.max(0, ...rows.map((r) => r.w)), h: 0, zh: o.zh, py };
   b.h = rows.reduce((n, r) => n + rowHeight(b, r), 0);
@@ -163,13 +188,29 @@ const rowTops = (b: Block) => {
   });
 };
 
+/**
+ * A sentence wrapped into rows of about the same length, not a full row and
+ * a scrap (他们坐在树下吃 | 苹果。): the narrowest width that needs no more
+ * rows than the full width did.
+ */
+function balanced(ctx: CanvasRenderingContext2D, lines: Said[], o: Parameters<typeof layout>[2]): Block {
+  const b = layout(ctx, lines, o);
+  if (lines.length !== 1 || b.rows.length < 2) return b;
+  const total = b.rows.reduce((n, r) => n + r.w, 0);
+  for (let w = total / b.rows.length; w < o.maxW; w *= 1.05) {
+    const tried = layout(ctx, lines, { ...o, maxW: w });
+    if (tried.rows.length <= b.rows.length) return tried;
+  }
+  return b;
+}
+
 /** The largest layout up to `zh` that fits `maxH`. */
 function fitted(ctx: CanvasRenderingContext2D, lines: Said[], o: Parameters<typeof layout>[2], maxH: number): Block {
   let zh = o.zh;
-  let b = layout(ctx, lines, { ...o, zh });
+  let b = balanced(ctx, lines, { ...o, zh });
   while (b.h > maxH && zh > o.zh * 0.45) {
     zh = Math.round(zh * 0.9);
-    b = layout(ctx, lines, { ...o, zh });
+    b = balanced(ctx, lines, { ...o, zh });
   }
   return b;
 }
@@ -187,7 +228,7 @@ function drawBlock(
     ctx.fillStyle = o.ink.lit;
     for (let r = from; r < to; r++) {
       const row = b.rows[r]!;
-      const left = o.align === 'center' ? x - row.w / 2 : x;
+      const left = o.align === 'center' ? x - row.seen / 2 : x;
       roundRect(ctx, left - 10, top + tops[r]! + (row.py && b.py ? b.py * 1.1 : 0) + b.zh * 0.04, row.w + 20, b.zh * 1.2, 12);
       ctx.fill();
     }
@@ -195,7 +236,7 @@ function drawBlock(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
   b.rows.forEach((row, r) => {
-    let cx = o.align === 'center' ? x - row.w / 2 : x;
+    let cx = o.align === 'center' ? x - row.seen / 2 : x;
     const y = top + tops[r]!;
     const pyH = row.py && b.py ? b.py * 1.3 : 0;
     for (const cell of row.cells) {
@@ -364,23 +405,23 @@ export function drawFrame(ctx: CanvasRenderingContext2D, f: FrameInput) {
     ctx.textAlign = 'center';
     text(ctx, `Question ${step.q + 1} of ${t.questions.length}`, TEXT_CX, below + 90, ink.py, 0);
     if (step.kind === 'question') {
-      const b = fitted(ctx, [q], { look, zh: Math.round(zh * 1.15), maxW: TEXT_W, commas: look.breakLines, lib: f.lib }, 520);
+      const b = fitted(ctx, [q], { look, zh: Math.round(zh * 1.15), maxW: CENTRED_W, commas: look.breakLines, lib: f.lib }, 520);
       const top = 640;
       drawBlock(ctx, b, TEXT_CX, top, { look, ink, align: 'center' });
       let y = top + b.h + 20;
-      if (look.english && q.en) y += english(ctx, q.en, TEXT_CX, y, Math.round(zh * 0.45), TEXT_W, ink.py) + 20;
+      if (look.english && q.en) y += english(ctx, q.en, TEXT_CX, y, Math.round(zh * 0.45), CENTRED_W, ink.py) + 20;
       ring(ctx, TEXT_CX, Math.max(y + 140, 1240), 74, step, moment.into, look, ink);
     } else {
-      const ask = fitted(ctx, [q], { look: { ...look, pinyin: false }, zh: Math.round(zh * 0.75), maxW: TEXT_W, commas: false, lib: f.lib }, 300);
+      const ask = fitted(ctx, [q], { look: { ...look, pinyin: false }, zh: Math.round(zh * 0.75), maxW: CENTRED_W, commas: false, lib: f.lib }, 300);
       drawBlock(ctx, ask, TEXT_CX, 520, { look, ink: { ...ink, ink: ink.py }, align: 'center' });
       const answer = q.a ?? '';
       if (answer) {
-        const a = fitted(ctx, [{ zh: answer, py: pinyinOf(answer, f.lib) }], { look, zh: Math.round(zh * 1.3), maxW: TEXT_W, commas: look.breakLines, lib: f.lib }, 600);
+        const a = fitted(ctx, [{ zh: answer, py: pinyinOf(answer, f.lib) }], { look, zh: Math.round(zh * 1.3), maxW: CENTRED_W, commas: look.breakLines, lib: f.lib }, 600);
         const top = 560 + ask.h + 80;
         drawBlock(ctx, a, TEXT_CX, top, { look, ink: { ...ink, ink: ink.right }, align: 'center' });
         ctx.fillStyle = ink.right;
         ctx.globalAlpha = 0.35;
-        ctx.fillRect(TEXT_CX - a.w / 2, top + a.h + 6, a.w, 8);
+        ctx.fillRect(TEXT_CX - a.rows[a.rows.length - 1]!.seen / 2, top + a.h + 6, a.rows[a.rows.length - 1]!.seen, 8);
         ctx.globalAlpha = 1;
       }
     }
@@ -415,19 +456,20 @@ function subtitle(ctx: CanvasRenderingContext2D, f: FrameInput, line: TextLine, 
   const { look } = f;
   const enPx = Math.round(zh * 0.42);
   ctx.font = enFont(enPx);
-  const enH = look.english && line.en ? measureEnglish(ctx, line.en, TEXT_W - 40, enPx) : 0;
-  const b = fitted(ctx, [line], { look, zh, maxW: TEXT_W - 40, commas: look.breakLines, lib: f.lib }, area[1] - area[0] - (enH ? enH + 14 : 0) - (onPicture ? 60 : 0));
+  const enH = look.english && line.en ? measureEnglish(ctx, line.en, CENTRED_W, enPx) : 0;
+  const b = fitted(ctx, [line], { look, zh, maxW: CENTRED_W, commas: look.breakLines, lib: f.lib }, area[1] - area[0] - (enH ? enH + 14 : 0) - (onPicture ? 60 : 0));
   const h = b.h + (enH ? enH + 14 : 0);
   const top = onPicture ? Math.max(area[0] + 22, area[1] - h - 30) : area[0] + (area[1] - area[0] - h) / 2;
   const box = onPicture && look.overLook === 'box';
   if (box) {
     ctx.fillStyle = 'rgba(20, 24, 29, 0.72)';
-    roundRect(ctx, TEXT_CX - Math.max(b.w, 200) / 2 - 30, top - 22, Math.max(b.w, 200) + 60, h + 44, 24);
+    const boxW = Math.max(200, ...b.rows.map((r) => r.seen));
+    roundRect(ctx, TEXT_CX - boxW / 2 - 30, top - 22, boxW + 60, h + 44, 24);
     ctx.fill();
   }
   const outline = onPicture && !box;
   drawBlock(ctx, b, TEXT_CX, top, { look, ink, align: 'center', outline });
-  if (enH) english(ctx, line.en, TEXT_CX, top + b.h + 14, enPx, TEXT_W - 40, ink.py, outline ? 5 : 0);
+  if (enH) english(ctx, line.en, TEXT_CX, top + b.h + 14, enPx, CENTRED_W, ink.py, outline ? 5 : 0);
 }
 
 function measureEnglish(ctx: CanvasRenderingContext2D, s: string, maxW: number, px: number) {
