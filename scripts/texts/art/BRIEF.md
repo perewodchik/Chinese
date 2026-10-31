@@ -31,6 +31,16 @@ look made with care. Children's picture book, soft and warm, never busy.
 - Proportions stay fixed between pictures: Ash about 2.6 heads tall, Pikachu
   about half Ash's height, its head larger than its body.
 
+## Drawn by hand
+
+`svg()` gives every picture the look of coloured pencil on paper; a scene
+draws nothing for it. The lines wander a little and tremble (a slow, small
+displacement of the whole picture, so parts that touch move together — unlike
+the wash, it never pulls a figure apart), colours are a touch softer on
+grained paper, and pencil strokes at one slant show in the colour, more in the
+darker parts and none on white. Keep shapes flat-coloured and outlined: the
+hand is added at the end, not drawn into each shape.
+
 ## Poses: natural, so they go with the text instead of drawing the eye
 
 The second try was told: Ash's arms grew to twice their length to reach a

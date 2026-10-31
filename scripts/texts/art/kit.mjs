@@ -555,4 +555,73 @@ export const desk = (x1, x2, y, colour = '#7f97b0') => `<rect x="${x1}" y="${y}"
 /** A suitcase standing at ground y. */
 export const suitcase = (x, y, colour = '#c48a2c') => `<rect x="${x - 26}" y="${y - 70}" width="52" height="66" rx="8" fill="${colour}" ${ink(2.5)}/><path d="M${x - 12} ${y - 70} v-14 h24 v14" ${ink(3)} fill="none"/><circle cx="${x - 16}" cy="${y - 2}" r="5" fill="#3a3a3a"/><circle cx="${x + 16}" cy="${y - 2}" r="5" fill="#3a3a3a"/>`;
 
-export const svg = (inner) => `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${defs}<g filter="url(#paper)">${inner}</g></svg>`;
+/* ------------------------------------------------------- drawn by hand */
+
+/** A seeded random, so a picture is drawn the same every time it is rendered. */
+const seeded = (seed) => () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+
+/**
+ * Coloured-pencil strokes: short lines at one slant, of uneven length, weight
+ * and pressure, on a tile big enough that its repeat is not seen.
+ */
+const hatchTile = (() => {
+  const r = seeded(42);
+  const T = 180;
+  let d = '';
+  for (let i = 0; i < 150; i++) {
+    const x = r() * T;
+    const y = r() * T;
+    const len = 18 + r() * 46;
+    const a = ((-32 + (r() - 0.5) * 10) * Math.PI) / 180;
+    const dx = Math.cos(a) * len;
+    const dy = Math.sin(a) * len;
+    const w = (0.7 + r() * 1.3).toFixed(2);
+    const o = (0.25 + r() * 0.6).toFixed(2);
+    // Drawn at the tile and its neighbours, so a stroke crossing an edge goes on across it.
+    for (const [ox, oy] of [[0, 0], [-T, 0], [T, 0], [0, -T], [0, T]]) {
+      d += `<path d="M${(x + ox).toFixed(1)} ${(y + oy).toFixed(1)} q${(dx / 2).toFixed(1)} ${(dy / 2 + (r() - 0.5) * 3).toFixed(1)} ${dx.toFixed(1)} ${dy.toFixed(1)}" stroke-width="${w}" stroke-opacity="${o}"/>`;
+    }
+  }
+  return `<pattern id="hatch" width="${T}" height="${T}" patternUnits="userSpaceOnUse"><g fill="none" stroke="#3b3430" stroke-linecap="round">${d}</g></pattern>`;
+})();
+
+/**
+ * The look of a picture drawn by hand: the lines wander a little and tremble,
+ * as a pencil's do; colours are a touch softer and lie on grained paper; and
+ * where there is colour, pencil strokes show in it, more in the darker parts
+ * and none on white paper.
+ *
+ * The wander is slow — the noise changes over a hundred pixels — so parts that
+ * touch move together and a figure never comes apart (the brief's "no
+ * displacement on a figure" was about the wash's much larger shift).
+ */
+const handDefs = `<defs>${hatchTile}
+  <filter id="hand" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.011" numOctaves="2" seed="3" result="wander"/>
+    <feDisplacementMap in="SourceGraphic" in2="wander" scale="7" xChannelSelector="R" yChannelSelector="G" result="d1"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="1" seed="8" result="tremble"/>
+    <feDisplacementMap in="d1" in2="tremble" scale="2.4" xChannelSelector="R" yChannelSelector="G" result="d2"/>
+    <feColorMatrix in="d2" type="saturate" values="0.86" result="soft"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="grain"/>
+    <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0.93  0 0 0 0 0.9  0 0 0 0 0.86  0.9 0 0 0 -0.25" result="grainA"/>
+    <feComposite in="grainA" in2="soft" operator="in" result="grainIn"/>
+    <feBlend in="soft" in2="grainIn" mode="multiply"/>
+  </filter>
+  <filter id="inked" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.011" numOctaves="2" seed="3" result="wander"/>
+    <feDisplacementMap in="SourceGraphic" in2="wander" scale="7" xChannelSelector="R" yChannelSelector="G" result="d1"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="1" seed="8" result="tremble"/>
+    <feDisplacementMap in="d1" in2="tremble" scale="2.4" xChannelSelector="R" yChannelSelector="G" result="d2"/>
+    <feColorMatrix in="d2" type="matrix" values="-0.75 -0.75 -0.75 0 1.9  -0.75 -0.75 -0.75 0 1.9  -0.75 -0.75 -0.75 0 1.9  0 0 0 1 0"/>
+  </filter>
+</defs>`;
+
+/** A little larger than the frame, so the wandering lines never pull the paper in at an edge. */
+const bleed = (inner) => `<g transform="translate(${W / 2} ${H / 2}) scale(1.025) translate(${-W / 2} ${-H / 2})">${inner}</g>`;
+
+export const svg = (inner) => `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${defs}${handDefs}
+  <mask id="coloured" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><g filter="url(#inked)">${bleed(inner)}</g></mask>
+  <rect width="${W}" height="${H}" fill="#fbf8f1"/>
+  <g filter="url(#hand)">${bleed(inner)}</g>
+  <rect width="${W}" height="${H}" fill="url(#hatch)" mask="url(#coloured)" opacity="0.5" style="mix-blend-mode:multiply"/>
+</svg>`;
