@@ -6,12 +6,11 @@ import { evalStatus, evaluatePhrase } from '../../api/speechEval';
 import { pinyinOf } from '../../domain/ownText';
 import { attemptOf, EVERYDAY, faultsOf, numbered, partsOf, troubles, verdictOf, type Attempt, type Phrase } from '../../domain/phrases';
 import { alignPinyin } from '../../domain/reading';
-import { isHanzi } from '../../domain/text';
+import { isHanzi, shelve, type GeneratedText } from '../../domain/text';
 import { playSamples } from '../../platform/audio/voiceOut';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
-import { lastReading } from '../reader/lastRead';
 import { addReading, narratedReadings, playLine, prepareClips, stopLine, type Clips } from '../reader/narratedClips';
 import { useLibrary } from '../shared/library';
 import { PronunciationKey } from '../settings/PronunciationKey';
@@ -20,7 +19,6 @@ import { useRecorder } from './useRecorder';
 import './phrases.css';
 import './pinyin.css';
 
-type Source = 'texts' | 'everyday' | 'own';
 
 /** How fast, and how the voice ended, when the service says (SpeechSuper does). */
 function paceOf(r: EvalResult): string {
@@ -53,12 +51,42 @@ function keepAttempt(zh: string, a: Attempt): Record<string, Attempt[]> {
 
 const band = (score: number) => (score >= 75 ? 'good' : score >= 60 ? 'mid' : 'low');
 
+/** What was being said last: a source and a line, to carry on from. */
+const LAST = 'hanzi.phrases.last';
+interface Last {
+  sourceId: string;
+  index: number;
+}
+const loadLast = (): Last | null => {
+  try {
+    return JSON.parse(localStorage.getItem(LAST) ?? 'null') as Last | null;
+  } catch {
+    return null;
+  }
+};
+const keepLast = (l: Last) => {
+  try {
+    localStorage.setItem(LAST, JSON.stringify(l));
+  } catch {
+    // kept for this visit only
+  }
+};
+
+/** Something to say line by line: one of the learner's texts, the everyday phrases, or one of their own. */
+interface Source {
+  id: string;
+  title: string;
+  sub: string;
+  phrases: Phrase[];
+}
+
 /**
- * Phrases: a phrase heard in a narrator's voice, said, and scored by SpeechSuper or iFlytek —
- * the whole (tones, sounds, flow, what was left out) and every syllable — with
- * what to change, how the right sound is made, and what keeps going wrong
- * across everything said. The phrases come from the learner's texts, a set of
- * everyday ones, or their own texts in Voices.
+ * Phrases: choose a text, then say it line by line — each line heard in a
+ * narrator's voice, said, and scored by SpeechSuper or iFlytek, then on to the
+ * next. Choosing and saying are two screens: the choice is a list of texts by
+ * shelf, each with how far it has got; the saying is one line at a time with
+ * the whole text's lines as a strip along the top, so it is always clear
+ * where in the text you are and what comes next.
  */
 export function PhrasesPage() {
   useTitle('Phrases');
@@ -66,40 +94,57 @@ export function PhrasesPage() {
   const texts = useStore((s) => s.texts);
   const sets = useStore((s) => s.sets);
   const [status, setStatus] = useState<EvalStatus | null>(null);
-  const [source, setSource] = useState<Source>('texts');
-  const [textId, setTextId] = useState<string | null>(() => lastReading()?.textId ?? null);
   const [own, setOwn] = useState<OwnTextDto[] | null>(null);
-  const [ownId, setOwnId] = useState<string | null>(null);
-  const [current, setCurrent] = useState<number | null>(null);
+  const [open, setOpen] = useState<Last | null>(null);
+  const [done, setDone] = useState(false);
   const [attempts, setAttempts] = useState(loadAttempts);
 
   useEffect(() => {
     void evalStatus().then(setStatus, () => setStatus({ key: { set: false, hint: null, provider: null }, strictness: 'common' }));
+    void ownTexts().then(setOwn, () => setOwn([]));
   }, []);
-  useEffect(() => {
-    if (source !== 'own' || own) return;
-    void ownTexts().then(
-      (list) => {
-        setOwn(list);
-        setOwnId((id) => id ?? list[0]?.id ?? null);
-      },
-      () => setOwn([]),
+
+  // The shelves as Read has them, chapters in reading order; the shelf read most lately first.
+  const shelves = useMemo(() => {
+    const source = (t: GeneratedText): Source => ({
+      id: t.id,
+      title: t.titleZh || t.title,
+      sub: t.titleZh && t.title !== t.titleZh ? t.title : '',
+      phrases: t.lines.map((l) => ({ zh: l.zh, py: l.py, en: l.en })),
+    });
+    const { bySet, loose } = shelve(
+      texts.filter((t) => t.lines.length),
+      sets,
     );
-  }, [source, own]);
+    const lately = (list: GeneratedText[]) => Math.max(...list.map((t) => t.lastReadAt ?? t.createdAt));
+    const groups = sets
+      .filter((x) => bySet.get(x.id)?.length)
+      .map((x) => ({ name: x.name, at: lately(bySet.get(x.id)!), list: bySet.get(x.id)!.map(source) }));
+    if (loose.length) groups.push({ name: 'Other texts', at: lately(loose), list: loose.map(source) });
+    return groups.sort((x, y) => y.at - x.at);
+  }, [texts, sets]);
 
-  const choosable = useMemo(() => [...texts].filter((t) => t.lines.length).sort((a, b) => (b.lastReadAt ?? b.createdAt) - (a.lastReadAt ?? a.createdAt)), [texts]);
-  const text = choosable.find((t) => t.id === textId) ?? choosable[0] ?? null;
-  const ownText = own?.find((t) => t.id === ownId) ?? own?.[0] ?? null;
+  const everyday: Source = { id: 'everyday', title: 'Everyday phrases', sub: 'Twenty to start from: greetings, shopping, asking again', phrases: EVERYDAY };
+  const owns = useMemo(
+    (): Source[] => (own ?? []).map((t) => ({ id: `own:${t.id}`, title: t.title || 'Untitled', sub: 'From Voices', phrases: t.lines.map((zh) => ({ zh, py: pinyinOf(zh, lib), en: '' })) })),
+    [own, lib],
+  );
+  const all = useMemo(() => [...shelves.flatMap((g) => g.list), everyday, ...owns], [shelves, owns]);
+  const find = (id: string) => all.find((x) => x.id === id) ?? null;
 
-  const { phrases, title, sourceId } = useMemo((): { phrases: Phrase[]; title: string; sourceId: string } => {
-    if (source === 'everyday') return { phrases: EVERYDAY, title: 'Everyday phrases', sourceId: 'everyday' };
-    if (source === 'own') {
-      return { phrases: (ownText?.lines ?? []).map((zh) => ({ zh, py: pinyinOf(zh, lib), en: '' })), title: ownText?.title ?? 'My own', sourceId: `own:${ownText?.id ?? ''}` };
-    }
-    return { phrases: (text?.lines ?? []).map((l) => ({ zh: l.zh, py: l.py, en: l.en })), title: text?.titleZh || text?.title || '', sourceId: text?.id ?? '' };
-  }, [source, text, ownText, lib]);
+  const best = (zh: string) => Math.max(-1, ...(attempts[zh] ?? []).map((a) => a.total));
+  const progressOf = (src: Source) => {
+    const scores = src.phrases.map((p) => best(p.zh)).filter((b) => b >= 0);
+    return { said: scores.length, avg: scores.length ? scores.reduce((x, y) => x + y, 0) / scores.length : -1 };
+  };
 
-  useEffect(() => setCurrent(null), [sourceId]);
+  function start(src: Source, at?: number) {
+    const firstNew = src.phrases.findIndex((p) => !attempts[p.zh]?.length);
+    const index = at ?? (firstNew >= 0 ? firstNew : 0);
+    setDone(false);
+    setOpen({ sourceId: src.id, index });
+    keepLast({ sourceId: src.id, index });
+  }
 
   if (status && !status.key.set) {
     return (
@@ -108,27 +153,39 @@ export function PhrasesPage() {
           <h1>Phrases</h1>
         </div>
         <p className="small muted ph-lede">
-          Say a phrase and see every syllable scored — its initial, final and tone — with what to change. The scoring is
-          SpeechSuper's or iFlytek's: add your keys once.
+          Choose a text and say it line by line: every syllable is scored — its initial, final and tone — with what to
+          change. The scoring is SpeechSuper's or iFlytek's: add your keys once.
         </p>
         <PronunciationKey onChange={setStatus} />
       </section>
     );
   }
 
-  if (current !== null && phrases[current]) {
+  const source = open ? find(open.sourceId) : null;
+  if (open && source && source.phrases.length) {
+    const scores = source.phrases.map((p) => best(p.zh));
+    if (done) {
+      return <Finished source={source} scores={scores} onAgain={(i) => start(source, i)} onBack={() => setOpen(null)} />;
+    }
+    const index = Math.min(open.index, source.phrases.length - 1);
+    const go = (i: number) => {
+      setOpen({ sourceId: source.id, index: i });
+      keepLast({ sourceId: source.id, index: i });
+    };
     return (
       <PhraseView
-        key={`${sourceId}:${current}`}
-        phrases={phrases}
-        index={current}
-        title={title}
-        sourceId={sourceId}
-        lines={phrases.map((p) => p.zh)}
-        tryAgain={attempts[phrases[current]!.zh] ?? []}
+        key={`${source.id}:${index}`}
+        phrases={source.phrases}
+        index={index}
+        title={source.title}
+        sourceId={source.id}
+        lines={source.phrases.map((p) => p.zh)}
+        scores={scores}
+        tryAgain={attempts[source.phrases[index]!.zh] ?? []}
         onAttempt={(zh, a) => setAttempts(keepAttempt(zh, a))}
-        onGo={(i) => setCurrent(i)}
-        onBack={() => setCurrent(null)}
+        onGo={go}
+        onNext={() => (index + 1 < source.phrases.length ? go(index + 1) : setDone(true))}
+        onBack={() => setOpen(null)}
       />
     );
   }
@@ -137,120 +194,142 @@ export function PhrasesPage() {
     .map((list) => list[list.length - 1])
     .filter((a): a is Attempt => Boolean(a));
   const trouble = troubles(latest);
-  const best = (zh: string) => Math.max(-1, ...(attempts[zh] ?? []).map((a) => a.total));
-  const firstNew = phrases.findIndex((p) => !(attempts[p.zh]?.length));
+  const last = loadLast();
+  const lastSource = last ? find(last.sourceId) : null;
+
+  const row = (src: Source) => {
+    const p = progressOf(src);
+    return (
+      <button key={src.id} className="ph-text" onClick={() => start(src)}>
+        <span className="ph-text-name">
+          <span className="hanzi ph-text-zh">{src.title}</span>
+          <span className="tiny muted ph-text-sub">
+            {src.phrases.length} lines{p.said ? ` · ${p.said} said` : ''}
+            {src.sub ? ` · ${src.sub}` : ''}
+          </span>
+        </span>
+        <span className="ph-score" data-band={p.avg < 0 ? 'none' : band(p.avg)}>
+          {p.avg < 0 ? 'New' : Math.round(p.avg)}
+        </span>
+        <Icon name="chevron" className="muted" />
+      </button>
+    );
+  };
 
   return (
     <section className="ph">
       <div className="page-head">
         <h1>Phrases</h1>
-        <span className="spacer" />
-        <div className="seg sm" role="group" aria-label="Where the phrases come from">
-          {(
-            [
-              ['texts', 'My texts'],
-              ['everyday', 'Everyday'],
-              ['own', 'My own'],
-            ] as const
-          ).map(([id, name]) => (
-            <button key={id} aria-pressed={source === id} onClick={() => setSource(id)}>
-              {name}
-            </button>
-          ))}
-        </div>
       </div>
+      <p className="small muted ph-lede">Choose a text and say it line by line: each line is scored, then on to the next.</p>
 
       <div className="ph-columns">
-        <div className="ph-list-col">
-          {source === 'texts' && (
-            <select className="ph-pick" value={text?.id ?? ''} onChange={(e) => setTextId(e.target.value)} aria-label="Text">
-              {sets
-                .map((s) => ({ s, list: choosable.filter((t) => t.setId === s.id) }))
-                .filter((g) => g.list.length)
-                .map(({ s, list }) => (
-                  <optgroup key={s.id} label={s.name}>
-                    {list.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.titleZh || t.title}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-            </select>
-          )}
-          {source === 'own' &&
-            (own && own.length ? (
-              <select className="ph-pick" value={ownText?.id ?? ''} onChange={(e) => setOwnId(e.target.value)} aria-label="Your text">
-                {own.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p className="small muted">{own === null ? 'Getting your texts…' : 'No texts of your own yet: write one in Voices, and a narrator reads it.'}</p>
-            ))}
-
-          <ul className="list ph-list">
-            {phrases.map((p, i) => {
-              const b = best(p.zh);
-              return (
-                <li key={`${i}-${p.zh}`}>
-                  <button className="ph-row" onClick={() => setCurrent(i)}>
-                    <span className="tiny muted ph-n">{i + 1}</span>
-                    <span className="ph-row-text">
-                      <span className="hanzi ph-row-zh">{p.zh}</span>
-                      {p.en && <span className="tiny muted ph-row-en">{p.en}</span>}
-                    </span>
-                    <span className="ph-score" data-band={b < 0 ? 'none' : band(b)}>
-                      {b < 0 ? 'New' : Math.round(b)}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-          {phrases.length > 0 && (
-            <div className="ph-start">
-              <button className="btn primary" onClick={() => setCurrent(firstNew >= 0 ? firstNew : 0)}>
-                {firstNew >= 0 ? `Start with line ${firstNew + 1}` : 'Start again from the top'}
+        <div>
+          {lastSource && last && (
+            <section className="ph-continue">
+              <span className="ph-text-name">
+                <span className="small muted">Where you stopped</span>
+                <span className="hanzi ph-text-zh">{lastSource.title}</span>
+                <span className="tiny muted">
+                  Line {Math.min(last.index, lastSource.phrases.length - 1) + 1} of {lastSource.phrases.length}
+                </span>
+              </span>
+              <button className="btn primary" onClick={() => start(lastSource, Math.min(last.index, lastSource.phrases.length - 1))}>
+                Carry on
               </button>
-            </div>
+            </section>
           )}
+
+          {shelves.map((g) => (
+            <section key={g.name} className="block">
+              <h2 className={`block-title${/\p{Script=Han}/u.test(g.name) ? ' hanzi ph-shelf' : ''}`}>{g.name}</h2>
+              <div className="list">{g.list.map(row)}</div>
+            </section>
+          ))}
+
+          <section className="block">
+            <h2 className="block-title">Everyday</h2>
+            <div className="list">{row(everyday)}</div>
+          </section>
+
+          <section className="block">
+            <h2 className="block-title">Your own texts</h2>
+            {owns.length ? (
+              <div className="list">{owns.map(row)}</div>
+            ) : (
+              <p className="small muted">{own === null ? 'Getting your texts…' : 'None yet: write one in Voices, and a narrator reads it.'}</p>
+            )}
+          </section>
         </div>
 
-        <aside className="ph-trouble-col">
+        <aside className="block ph-aside">
           <h2 className="block-title">What keeps going wrong</h2>
           {trouble.length ? (
             <>
               <p className="small muted" style={{ margin: '0 0 8px' }}>
-                From the last time you said each of {latest.length} phrase{latest.length === 1 ? '' : 's'}.
+                From the last time you said each of {latest.length} line{latest.length === 1 ? '' : 's'}.
               </p>
               <ul className="list ph-trouble">
-                {trouble.map((t) => {
-                  const at = phrases.findIndex((p) => t.chars.some((c) => p.zh.includes(c.char)));
-                  return (
-                    <li key={t.kind} className="ph-trouble-row">
-                      <span className="grow">
-                        <b>{t.title}</b>
-                        <span className="small muted">
-                          <span className="hanzi">{t.chars.slice(0, 4).map((c) => `${c.char} ${partsOf(c.symbol).marked}`).join(' · ')}</span> — {t.count} time{t.count === 1 ? '' : 's'}
-                        </span>
+                {trouble.map((t) => (
+                  <li key={t.kind} className="ph-trouble-row">
+                    <span className="grow">
+                      <b>{t.title}</b>
+                      <span className="small muted">
+                        <span className="hanzi">{t.chars.slice(0, 4).map((c) => `${c.char} ${partsOf(c.symbol).marked}`).join('  ')}</span> — {t.count} time{t.count === 1 ? '' : 's'}
                       </span>
-                      {at >= 0 && (
-                        <button className="btn sm" onClick={() => setCurrent(at)}>
-                          Practise
-                        </button>
-                      )}
-                    </li>
-                  );
-                })}
+                    </span>
+                  </li>
+                ))}
               </ul>
             </>
           ) : (
-            <p className="small muted">Nothing yet: say a few phrases and what keeps going wrong gathers here.</p>
+            <p className="small muted">Nothing yet: say a few lines and what keeps going wrong gathers here.</p>
           )}
         </aside>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------ a text finished */
+
+function Finished({ source, scores, onAgain, onBack }: { source: Source; scores: number[]; onAgain: (i: number) => void; onBack: () => void }) {
+  const said = scores.filter((x) => x >= 0);
+  const avg = said.length ? Math.round(said.reduce((a, b) => a + b, 0) / said.length) : null;
+  const weak = scores.findIndex((x) => x >= 0 && x < 75);
+  return (
+    <section className="ph">
+      <button className="back-link" onClick={onBack}>
+        <Icon name="back" /> Texts
+      </button>
+      <div className="page-head">
+        <h1 className="hanzi ph-done-title">{source.title}</h1>
+      </div>
+      <p className="small muted ph-lede">
+        {avg === null ? 'Nothing was scored this time.' : `To the end: ${said.length} of ${source.phrases.length} lines said, ${avg} on average.`}
+      </p>
+      <div className="list">
+        {source.phrases.map((p, i) => (
+          <button key={i} className="ph-text" onClick={() => onAgain(i)}>
+            <span className="tiny muted ph-n">{i + 1}</span>
+            <span className="ph-text-name">
+              <span className="hanzi ph-line-zh">{p.zh}</span>
+            </span>
+            <span className="ph-score" data-band={scores[i]! < 0 ? 'none' : band(scores[i]!)}>
+              {scores[i]! < 0 ? '–' : Math.round(scores[i]!)}
+            </span>
+          </button>
+        ))}
+      </div>
+      <div className="page-foot ph-foot">
+        {weak >= 0 && (
+          <button className="btn primary lg" onClick={() => onAgain(weak)}>
+            Say the weak lines again
+          </button>
+        )}
+        <button className={`btn lg ${weak >= 0 ? 'tonal' : 'primary'}`} onClick={onBack}>
+          Choose another text
+        </button>
       </div>
     </section>
   );
@@ -271,9 +350,11 @@ function PhraseView({
   title,
   sourceId,
   lines,
+  scores: lineScores,
   tryAgain,
   onAttempt,
   onGo,
+  onNext,
   onBack,
 }: {
   phrases: Phrase[];
@@ -281,9 +362,12 @@ function PhraseView({
   title: string;
   sourceId: string;
   lines: string[];
+  /** each line's best score, −1 for not said yet */
+  scores: number[];
   tryAgain: Attempt[];
   onAttempt: (zh: string, a: Attempt) => void;
   onGo: (i: number) => void;
+  onNext: () => void;
   onBack: () => void;
 }) {
   const lib = useLibrary();
@@ -388,22 +472,28 @@ function PhraseView({
 
   return (
     <section className="ph ph-view">
+      <button className="back-link" onClick={onBack}>
+        <Icon name="back" /> Texts
+      </button>
       <div className="ph-view-head">
-        <button className="icon-btn" onClick={onBack} aria-label="Back to the phrases">
-          <Icon name="back" />
-        </button>
-        <span className="ph-view-title">
-          <span className="hanzi">{title}</span>
-          <span className="tiny muted">
-            Line {index + 1} of {phrases.length}
-          </span>
+        <span className="hanzi ph-view-name">{title}</span>
+        <span className="small muted ph-view-at">
+          Line {index + 1} of {phrases.length}
         </span>
-        <button className="icon-btn" onClick={() => onGo(index - 1)} disabled={index === 0} aria-label="Previous phrase">
-          <Icon name="prev" />
-        </button>
-        <button className="icon-btn" onClick={() => onGo(index + 1)} disabled={index >= phrases.length - 1} aria-label="Next phrase">
-          <Icon name="next" />
-        </button>
+      </div>
+      <div className="ph-strip" role="group" aria-label="The text's lines">
+        {lineScores.map((b, i) => (
+          <button
+            key={i}
+            className="ph-cell"
+            data-band={b < 0 ? 'none' : band(b)}
+            aria-current={i === index ? 'step' : undefined}
+            aria-label={`Line ${i + 1}${b < 0 ? '' : `, ${Math.round(b)}`}`}
+            onClick={() => onGo(i)}
+          >
+            {i + 1}
+          </button>
+        ))}
       </div>
 
       <div className="ph-phrase" aria-label={phrase.zh}>
@@ -451,6 +541,14 @@ function PhraseView({
             Hear yours
           </button>
         </div>
+      </div>
+      <div className="ph-next">
+        <button className="btn quiet" onClick={() => onGo(index - 1)} disabled={index === 0}>
+          Previous line
+        </button>
+        <button className={`btn ${result ? 'primary' : 'quiet'}`} onClick={onNext}>
+          {index + 1 < phrases.length ? (result ? 'Next line' : 'Skip this line') : 'Finish the text'}
+        </button>
       </div>
       {!clips && narrators !== null && (
         <p className="small muted ph-note">

@@ -658,12 +658,12 @@
 }
 
 .verdict[data-state='wrong'] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+  border-color: var(--red);
+  background: var(--red-soft);
 }
 
 .verdict[data-state='wrong'] b {
-  color: var(--accent);
+  color: var(--red);
 }
 
 .speak-tip {
