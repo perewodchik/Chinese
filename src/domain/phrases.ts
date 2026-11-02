@@ -157,11 +157,12 @@ export interface Fault {
 export function faultsOf(s: SyllableEval): Fault[] {
   const p = partsOf(s.symbol);
   const out: Fault[] = [];
-  if (s.said === 'missed') out.push({ kind: 'missed', title: 'Left out', how: 'Say every syllable, the small ones too: 了, 的 and 吗 are short, not silent.' });
+  if (s.said === 'missed') out.push({ kind: 'missed', title: 'Not heard', how: `${s.char} ${p.marked} was not heard in the recording: say every syllable, the small ones too.` });
   else if (s.said === 'added') out.push({ kind: 'added', title: 'Something extra said here', how: 'Say only what is written: no sound before or after the syllable.' });
   else if (s.said === 'repeated') out.push({ kind: 'repeated', title: 'Said twice', how: 'Say it once and go on; a restart breaks the phrase.' });
   else if (s.said === 'replaced') out.push({ kind: 'replaced', title: 'Another syllable said in its place', how: `Say ${p.marked} as written; hear it once more first.` });
   if (s.said !== 'missed') {
+    if (s.extraBefore) out.push({ kind: 'added', title: 'Something extra said before it', how: `Say only what is written: nothing between the syllable before and ${s.char}.` });
     if (s.tone) {
       // The tone it takes here: its own, or the one sandhi gives it.
       const want = s.sandhi ?? p.tone;
@@ -234,7 +235,7 @@ const TROUBLE_TITLE = (kind: string): string => {
   if (kind.startsWith('tone')) return `The ${['neutral', 'first', 'second', 'third', 'fourth'][Number(kind.slice(4)) % 5]} tone`;
   if (kind.startsWith('initial:')) return `The initial ${kind.slice(8)}`;
   if (kind.startsWith('final:')) return `The final ${kind.slice(6)}`;
-  return { missed: 'Syllables left out', added: 'Sounds added', repeated: 'Syllables said twice', replaced: 'Syllables said as others' }[kind] ?? kind;
+  return { missed: 'Syllables not heard', added: 'Sounds added', repeated: 'Syllables said twice', replaced: 'Syllables said as others' }[kind] ?? kind;
 };
 
 /** What keeps going wrong across phrases' latest attempts, most often first. */

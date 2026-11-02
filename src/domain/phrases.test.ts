@@ -28,6 +28,8 @@ describe('phrases said and scored', () => {
     assert.equal(tone!.title, 'Tone: a fourth tone, it sounded like a first tone');
     assert.match(tone!.how, /Here 一 is yì, a fourth tone/);
     assert.equal(faultsOf(syl('卡', 'ka3', { initial: true, initialLike: 'g' }))[0]!.title, 'The initial k — it sounded like g');
+    assert.deepEqual(faultsOf(syl('卡', 'ka3', { said: 'missed' })).map((f) => f.title), ['Not heard']);
+    assert.deepEqual(faultsOf(syl('三', 'san1', { extraBefore: true })).map((f) => f.kind), ['added']);
   });
 
   it('numbers each character’s reading for the service, or gives none when one is unknown', () => {

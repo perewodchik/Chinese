@@ -143,7 +143,15 @@ export function parseAnswer(raw: unknown, strictness: Strictness): EvalResult {
   }
   const r = a.result;
   const bar = WRONG_BELOW[strictness];
-  const syllables: SyllableEval[] = (r.words ?? []).flatMap((w) => {
+  // readType, as SpeechSuper answers it (tried: a syllable left out of the
+  // recording, one added to it, one said as another): on a word 0 said, 1
+  // something extra said just before it, 2 not heard at all, 4 a word in the
+  // recording that is not in the text (their own demo leaves those out); on a
+  // phone 3 not heard, 6 said as another sound. A pause is marked after the
+  // word before one left out, which is the gap, not a pause: so a pause counts
+  // only between two words both said.
+  const words = (r.words ?? []).filter((w) => w.readType !== 4);
+  const syllables: SyllableEval[] = words.flatMap((w, wi) => {
     const parts = w.normalized_syllables?.length ? w.normalized_syllables : [{}];
     const chars = [...(w.word ?? '')];
     return parts.map((ns, j): SyllableEval => {
@@ -152,11 +160,12 @@ export function parseAnswer(raw: unknown, strictness: Strictness): EvalResult {
       const initial = phones.find((p) => p.category === 0);
       const final = phones.find((p) => p.category === 1);
       const missed = w.readType === 2;
+      const nextSaid = words[wi + 1] !== undefined && words[wi + 1]!.readType !== 2;
       const tone = toneNo(ns.tone) ?? Number(/(\d)$/.exec(w.rawpinyin ?? '')?.[1] ?? 5);
       const sandhi = toneNo(ns.tone_sandhi);
       const toneScore = n0(w.scores?.tone);
       const heard = toneNo(w.scores?.tone_sound_like ?? w.tone_sound_like);
-      const wrongPhone = (p: Phone | undefined) => Boolean(p && n0(p.pronunciation) < bar);
+      const wrongPhone = (p: Phone | undefined) => Boolean(p && (p.readType === 6 || n0(p.pronunciation) < bar));
       const like = (p: Phone | undefined) => (p && wrongPhone(p) && p.sound_like && p.sound_like !== '-' && p.sound_like !== p.phone ? p.sound_like : undefined);
       return {
         char: parts.length > 1 ? (ns.syllables ?? chars[j] ?? '') : (w.word ?? ''),
@@ -175,7 +184,8 @@ export function parseAnswer(raw: unknown, strictness: Strictness): EvalResult {
         ...(sandhi && sandhi !== tone ? { sandhi } : {}),
         ...(like(initial) ? { initialLike: like(initial) } : {}),
         ...(like(final) ? { finalLike: like(final) } : {}),
-        ...(w.pause?.type === 1 ? { pause: true } : {}),
+        ...(w.pause?.type === 1 && !missed && nextSaid && j === parts.length - 1 ? { pause: true } : {}),
+        ...(w.readType === 1 && j === 0 ? { extraBefore: true } : {}),
       };
     });
   });

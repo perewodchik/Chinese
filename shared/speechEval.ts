@@ -66,8 +66,10 @@ export interface SyllableEval {
   /** what the initial and the final sounded like, when not what they should */
   initialLike?: string;
   finalLike?: string;
-  /** a pause came after it */
+  /** a pause came after it, before the next syllable said */
   pause?: boolean;
+  /** something not in the text was said just before it */
+  extraBefore?: boolean;
 }
 
 export interface EvalResult {

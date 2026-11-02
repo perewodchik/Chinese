@@ -113,7 +113,7 @@ export function ScoredSay({
                 <div key={i} className="verdict" data-state={faults.length ? 'wrong' : 'right'}>
                   <span className="verdict-hanzi">{s.char || chars[i]}</span>
                   <span className="verdict-py">{shown}</span>
-                  <b>{s.said === 'missed' ? 'Left out' : faults.length ? 'Not yet' : 'Right'}</b>
+                  <b>{s.said === 'missed' ? 'Not heard' : faults.length ? 'Not yet' : 'Right'}</b>
                   <span className="tiny muted">
                     {faults.length ? faults.map((f) => f.title).join(' · ') : s.sandhi ? 'its tone changes here, and you said it so' : 'as it should be'}
                   </span>

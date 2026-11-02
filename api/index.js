@@ -1128,7 +1128,8 @@ function parseAnswer(raw, strictness) {
   }
   const r = a.result;
   const bar = WRONG_BELOW[strictness];
-  const syllables = (r.words ?? []).flatMap((w) => {
+  const words = (r.words ?? []).filter((w) => w.readType !== 4);
+  const syllables = words.flatMap((w, wi) => {
     const parts = w.normalized_syllables?.length ? w.normalized_syllables : [{}];
     const chars = [...w.word ?? ""];
     return parts.map((ns, j) => {
@@ -1137,11 +1138,12 @@ function parseAnswer(raw, strictness) {
       const initial = phones.find((p) => p.category === 0);
       const final = phones.find((p) => p.category === 1);
       const missed = w.readType === 2;
+      const nextSaid = words[wi + 1] !== void 0 && words[wi + 1].readType !== 2;
       const tone = toneNo(ns.tone) ?? Number(/(\d)$/.exec(w.rawpinyin ?? "")?.[1] ?? 5);
       const sandhi = toneNo(ns.tone_sandhi);
       const toneScore = n0(w.scores?.tone);
       const heard = toneNo(w.scores?.tone_sound_like ?? w.tone_sound_like);
-      const wrongPhone = (p) => Boolean(p && n0(p.pronunciation) < bar);
+      const wrongPhone = (p) => Boolean(p && (p.readType === 6 || n0(p.pronunciation) < bar));
       const like = (p) => p && wrongPhone(p) && p.sound_like && p.sound_like !== "-" && p.sound_like !== p.phone ? p.sound_like : void 0;
       return {
         char: parts.length > 1 ? ns.syllables ?? chars[j] ?? "" : w.word ?? "",
@@ -1160,7 +1162,8 @@ function parseAnswer(raw, strictness) {
         ...sandhi && sandhi !== tone ? { sandhi } : {},
         ...like(initial) ? { initialLike: like(initial) } : {},
         ...like(final) ? { finalLike: like(final) } : {},
-        ...w.pause?.type === 1 ? { pause: true } : {}
+        ...w.pause?.type === 1 && !missed && nextSaid && j === parts.length - 1 ? { pause: true } : {},
+        ...w.readType === 1 && j === 0 ? { extraBefore: true } : {}
       };
     });
   });

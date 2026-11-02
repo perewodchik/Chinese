@@ -541,7 +541,7 @@ function PhraseView({
                   </span>
                 );
               }
-              const mark = !result ? '' : !syl ? '' : faults.length === 0 ? '' : faults[0]!.kind.startsWith('tone') ? 'tone' : faults[0]!.kind === 'missed' ? 'missed' : faults[0]!.kind.startsWith('initial') || faults[0]!.kind.startsWith('final') ? 'sound' : 'extra';
+              const mark = !result ? '' : !syl ? '' : faults.length === 0 ? '' : faults[0]!.kind.startsWith('tone') ? 'tone' : faults[0]!.kind === 'missed' ? 'not heard' : faults[0]!.kind.startsWith('initial') || faults[0]!.kind.startsWith('final') ? 'sound' : 'extra';
               return (
                 <button
                   key={i}

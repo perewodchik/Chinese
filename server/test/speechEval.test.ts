@@ -64,7 +64,7 @@ const ANSWER = {
       { word: '他', rawpinyin: 'ta1', readType: 0, scores: { overall: 100, tone: 86 }, tone_sound_like: 'tone2', pause: { type: 1 }, span: { start: 0, end: 23 },
         phonemes: [{ phone: 't', sound_like: 't', pronunciation: 100, category: 0 }, { phone: 'a', sound_like: 'a', pronunciation: 100, category: 1 }],
         normalized_syllables: [{ tone: 'tone1', tone_sandhi: 'tone1', pinyin: 'ta', syllables: '他', phoneme_span: [0, 1] }] },
-      { word: '们', rawpinyin: 'men5', readType: 0, scores: { overall: 80, tone: 100 }, tone_sound_like: 'tone5', pause: { type: 0 }, span: { start: 23, end: 32 },
+      { word: '们', rawpinyin: 'men5', readType: 1, scores: { overall: 80, tone: 100 }, tone_sound_like: 'tone5', pause: { type: 1 }, span: { start: 23, end: 32 },
         phonemes: [{ phone: 'm', sound_like: 'm', pronunciation: 100, category: 0 }, { phone: 'en', sound_like: 'en', pronunciation: 60, category: 1 }],
         normalized_syllables: [{ tone: 'tone5', tone_sandhi: 'tone5', pinyin: 'men', syllables: '们', phoneme_span: [0, 1] }] },
       { word: '一', rawpinyin: 'yi1', readType: 2, scores: { overall: 0, tone: 0 }, tone_sound_like: '-', pause: { type: 0 }, span: { start: 32, end: 38 },
@@ -93,6 +93,8 @@ describe('SpeechSuper’s answer', () => {
     const [ta, , yi, ka] = r.syllables;
     assert.deepEqual([ta!.pause, ta!.from, ta!.to, ta!.heardTone], [true, 0, 230, 2]);
     assert.deepEqual([yi!.sandhi, yi!.heardTone], [4, undefined]);
+    // 们 had something said before it; its "pause" is only the gap where 一 was not heard.
+    assert.deepEqual([r.syllables[1]!.extraBefore, r.syllables[1]!.pause], [true, undefined]);
     assert.deepEqual([ka!.initialLike, ka!.finalLike, ka!.initialScore, ka!.finalScore, ka!.score], ['k', 'a', 0, 6, 3]);
     // Hard asks more of 们's final than Common does.
     assert.equal(parseAnswer(ANSWER, 'hard').syllables[1]!.final, true);
