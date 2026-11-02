@@ -472,11 +472,23 @@ function PhraseView({
   }, [phrase, readings, result]);
 
   const verdict = result ? verdictOf(result) : null;
-  const firstWrong = result ? tiles.findIndex((t) => t.i !== null && faultsOf(result.syllables[t.i]!).length > 0) : -1;
-  const sel = picked ?? (firstWrong >= 0 ? firstWrong : null);
-  const selTile = sel !== null ? tiles[sel] : null;
-  const selSyl = selTile?.i != null && result ? result.syllables[selTile.i]! : null;
-  const selFaults = selSyl ? faultsOf(selSyl) : [];
+  // Each character with the punctuation after it, so a full stop never starts a line alone.
+  const groups = tiles.reduce<number[][]>((out, t, i) => {
+    if (!t.py && out.length) out[out.length - 1]!.push(i);
+    else out.push([i]);
+    return out;
+  }, []);
+
+  // Every character with something wrong, at once, in the order of the line —
+  // and one tapped though said well, to see its scores.
+  const entries = result
+    ? tiles.flatMap((tile, ti) => {
+        if (tile.i === null) return [];
+        const syl = result.syllables[tile.i]!;
+        const faults = faultsOf(syl);
+        return faults.length || picked === ti ? [{ ti, tile, syl, faults }] : [];
+      })
+    : [];
   const state = checking ? 'checking' : recorder.state;
   const scores = result
     ? [
@@ -516,32 +528,41 @@ function PhraseView({
       </div>
 
       <div className="ph-phrase" aria-label={phrase.zh}>
-        {tiles.map((t, i) => {
-          const syl = t.i !== null && result ? result.syllables[t.i]! : null;
-          const faults = syl ? faultsOf(syl) : [];
-          if (!t.py) {
-            return (
-              <span key={i} className="ph-punct hanzi">
-                {t.char}
-              </span>
-            );
-          }
-          const mark = !result ? '' : !syl ? '' : faults.length === 0 ? '' : faults[0]!.kind.startsWith('tone') ? 'tone' : faults[0]!.kind === 'missed' ? 'missed' : faults[0]!.kind.startsWith('initial') || faults[0]!.kind.startsWith('final') ? 'sound' : 'extra';
-          return (
-            <button
-              key={i}
-              className="ph-tile"
-              data-state={!result || !syl ? undefined : faults.length ? 'bad' : 'ok'}
-              aria-pressed={sel === i}
-              onClick={() => setPicked(i)}
-              disabled={!result}
-            >
-              <span className="ph-tile-py">{t.py}</span>
-              <span className="ph-tile-zh hanzi">{t.char}</span>
-              <span className="ph-tile-mark">{mark}</span>
-            </button>
-          );
-        })}
+        {groups.map((g) => (
+          <span key={g[0]} className="ph-word">
+            {g.map((i) => {
+              const t = tiles[i]!;
+              const syl = t.i !== null && result ? result.syllables[t.i]! : null;
+              const faults = syl ? faultsOf(syl) : [];
+              if (!t.py) {
+                return (
+                  <span key={i} className="ph-punct hanzi">
+                    {t.char}
+                  </span>
+                );
+              }
+              const mark = !result ? '' : !syl ? '' : faults.length === 0 ? '' : faults[0]!.kind.startsWith('tone') ? 'tone' : faults[0]!.kind === 'missed' ? 'missed' : faults[0]!.kind.startsWith('initial') || faults[0]!.kind.startsWith('final') ? 'sound' : 'extra';
+              return (
+                <button
+                  key={i}
+                  className="ph-tile"
+                  data-state={!result || !syl ? undefined : faults.length ? 'bad' : 'ok'}
+                  aria-pressed={picked === i}
+                  onClick={() => {
+                    setPicked(i);
+                    // To its entry in the list, once it is drawn.
+                    requestAnimationFrame(() => document.getElementById(`ph-syl-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+                  }}
+                  disabled={!result}
+                >
+                  <span className="ph-tile-py">{t.py}</span>
+                  <span className="ph-tile-zh hanzi">{t.char}</span>
+                  <span className="ph-tile-mark">{mark}</span>
+                </button>
+              );
+            })}
+          </span>
+        ))}
       </div>
       {phrase.en && <p className="ph-en">{phrase.en}</p>}
 
@@ -643,62 +664,63 @@ function PhraseView({
           </section>
 
           <section className="ph-card ph-detail">
-            {selTile && selSyl ? (
-              <>
-                <div className="ph-detail-head">
-                  <span className="hanzi ph-detail-zh" data-state={selFaults.length ? 'bad' : 'ok'}>
-                    {selTile.char}
-                  </span>
-                  <b className="ph-detail-py">{selTile.py}</b>
-                  <span className="small ph-detail-verdict" data-state={selFaults.length ? 'bad' : 'ok'}>
-                    {selFaults.length ? selFaults.map((f) => f.title).join(' · ') : 'Said well'}
-                  </span>
-                </div>
-                {selSyl.score !== undefined && selSyl.said !== 'missed' && (
-                  <div className="ph-parts">
-                    {[
-                      ['Initial', selSyl.initialScore, selSyl.initial],
-                      ['Final', selSyl.finalScore, selSyl.final],
-                      ['Tone', selSyl.toneScore, selSyl.tone],
-                    ]
-                      .filter(([, v]) => v !== undefined)
-                      .map(([name, v, bad]) => (
-                        <span key={name as string} className="ph-part" data-state={bad ? 'bad' : 'ok'}>
-                          <span className="tiny muted">{name as string}</span>
-                          <b>{Math.round(v as number)}</b>
-                        </span>
-                      ))}
+            {entries.length ? (
+              entries.map(({ ti, tile, syl, faults }) => (
+                <div key={ti} id={`ph-syl-${ti}`} className="ph-entry" data-picked={picked === ti || undefined}>
+                  <div className="ph-detail-head">
+                    <span className="hanzi ph-detail-zh" data-state={faults.length ? 'bad' : 'ok'}>
+                      {tile.char}
+                    </span>
+                    <b className="ph-detail-py">{tile.py}</b>
+                    <span className="small ph-detail-verdict" data-state={faults.length ? 'bad' : 'ok'}>
+                      {faults.length ? faults.map((f) => f.title).join(' · ') : 'Said well'}
+                    </span>
                   </div>
-                )}
-                {selFaults.length ? (
-                  <ul className="ph-faults">
-                    {selFaults.map((f) => (
-                      <li key={f.kind}>{f.how}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="small muted" style={{ margin: 0 }}>
-                    Initial, final and tone as they should be.
-                    {selSyl.sandhi ? ` Its tone changes here, to ${partsOf(selSyl.symbol.replace(/\d$/, '') + selSyl.sandhi).marked}, and you said it so.` : ''}
-                  </p>
-                )}
-                {selSyl.pause && <p className="tiny muted" style={{ margin: 0 }}>You paused after it.</p>}
-                <div className="ph-detail-actions">
-                  <button className="btn quiet" onClick={() => clips && playLine(clips, index, 0.75)} disabled={!clips}>
-                    Hear the phrase slowly
-                  </button>
-                  <button
-                    className="btn quiet"
-                    disabled={!samples || selSyl.to <= selSyl.from}
-                    onClick={() => samples && void playSamples(samples.subarray(Math.floor((selSyl.from / 1000) * 16000), Math.ceil((selSyl.to / 1000) * 16000)))}
-                  >
-                    Hear your {selTile.char}
-                  </button>
+                  {syl.score !== undefined && syl.said !== 'missed' && (
+                    <div className="ph-parts">
+                      {[
+                        ['Initial', syl.initialScore, syl.initial],
+                        ['Final', syl.finalScore, syl.final],
+                        ['Tone', syl.toneScore, syl.tone],
+                      ]
+                        .filter(([, v]) => v !== undefined)
+                        .map(([name, v, bad]) => (
+                          <span key={name as string} className="ph-part" data-state={bad ? 'bad' : 'ok'}>
+                            <span className="tiny muted">{name as string}</span>
+                            <b>{Math.round(v as number)}</b>
+                          </span>
+                        ))}
+                    </div>
+                  )}
+                  {faults.length ? (
+                    <ul className="ph-faults">
+                      {faults.map((f) => (
+                        <li key={f.kind}>{f.how}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="small muted" style={{ margin: 0 }}>
+                      Initial, final and tone as they should be.
+                      {syl.sandhi ? ` Its tone changes here, to ${partsOf(syl.symbol.replace(/\d$/, '') + syl.sandhi).marked}, and you said it so.` : ''}
+                    </p>
+                  )}
+                  {syl.pause && <p className="tiny muted" style={{ margin: 0 }}>You paused after it.</p>}
+                  {syl.said !== 'missed' && (
+                    <div className="ph-detail-actions">
+                      <button
+                        className="btn quiet"
+                        disabled={!samples || syl.to <= syl.from}
+                        onClick={() => samples && void playSamples(samples.subarray(Math.floor((syl.from / 1000) * 16000), Math.ceil((syl.to / 1000) * 16000)))}
+                      >
+                        <Icon name="play" size={16} /> Hear your {tile.char}
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </>
+              ))
             ) : (
               <p className="small muted" style={{ margin: 0 }}>
-                {result.syllables.length ? 'Tap a character to see how it was said.' : 'No syllables were heard: say the whole phrase, clearly, close to the microphone.'}
+                {result.syllables.length ? 'Every syllable as it should be. Tap a character to see its scores.' : 'No syllables were heard: say the whole phrase, clearly, close to the microphone.'}
               </p>
             )}
           </section>

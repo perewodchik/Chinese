@@ -395,28 +395,6 @@ strong {
   color: var(--accent);
 }
 
-/* Speak stands in the rail on an iPad and waits in More on a phone, where More is lit for it instead. */
-@media (max-width: 699px) {
-  .nav-wide {
-    display: none;
-  }
-}
-
-@media (min-width: 700px) {
-  .more-narrow {
-    display: none;
-  }
-
-  .nav-more[data-speaking][aria-current='page'] {
-    color: var(--ink-3);
-  }
-
-  .nav-more[data-speaking][aria-current='page'] .nav-ic {
-    background: transparent;
-    color: var(--ink-2);
-  }
-}
-
 .nav-dot {
   position: absolute;
   top: 2px;

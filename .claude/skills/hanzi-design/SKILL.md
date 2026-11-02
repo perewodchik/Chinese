@@ -88,7 +88,7 @@ it, and one redesigned page of the same kind (`src/features/reader/`,
 
 ## Navigation
 
-Four places and More: Today 今, Read 读, Cards 卡, Library 字. Along the
+Four places and More: Today 今, Read 读, Speak 说, Library 字 (Cards 卡 is in More). Along the
 bottom edge under 700px, a rail on the left above it. A sitting
 (`data-focus`) has the whole screen; a text page (`data-immersive`) hides the
 bar on a phone and has its own bar and dock.

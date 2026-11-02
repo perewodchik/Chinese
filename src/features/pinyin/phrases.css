@@ -529,3 +529,34 @@ button.back-link {
   width: 100%;
   justify-content: center;
 }
+
+/* Each character to look at, one under another, divided by hairlines. */
+.ph-entry {
+  display: grid;
+  gap: 8px;
+  padding: 12px 10px;
+  margin: 0 -10px;
+  border-radius: 12px;
+}
+
+.ph-entry + .ph-entry {
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+}
+
+.ph-entry[data-picked] {
+  background: var(--hl);
+  border-radius: 12px;
+}
+
+.ph-detail {
+  gap: 0;
+  align-content: start;
+}
+
+.ph-word {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  white-space: nowrap;
+}

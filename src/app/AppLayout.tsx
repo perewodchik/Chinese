@@ -24,7 +24,7 @@ import { SyncIndicator } from './SyncIndicator';
 const SITTING = /^\/(review\/(recognise|sound|tone|confuse|word|write|words|session)|learn|cards\/session)\/?$/;
 
 /** Where each section of More lives, so its tab stays lit while you are in one of them. */
-const MORE_PATHS = ['/speaking', '/videos', '/play', '/account', '/settings'];
+const MORE_PATHS = ['/cards', '/review', '/learn', '/videos', '/play', '/account', '/settings'];
 
 /**
  * The frame every signed-in page sits in: the sections, the page, and the
@@ -35,7 +35,7 @@ const MORE_PATHS = ['/speaking', '/videos', '/play', '/account', '/settings'];
  * the top had to scroll sideways and hid where you were. On an iPad or a
  * computer the same five stand in a narrow rail on the left, out of the
  * reading column's way. Each is named in English with its character above
- * it — 今 读 卡 字 — which is one more thing read every day.
+ * it — 今 读 说 字 — which is one more thing read every day.
  */
 export function AppLayout() {
   const theme = useStore((s) => s.settings.theme);
@@ -64,21 +64,18 @@ export function AppLayout() {
   const sections = [
     { to: paths.today(), han: '今', label: 'Today', also: [] },
     { to: paths.read(), han: '读', label: 'Read', also: ['/texts'] },
-    { to: paths.cards(), han: '卡', label: 'Cards', also: ['/review', '/learn'] },
+    { to: paths.speaking(), han: '说', label: 'Speak', also: [] },
     { to: paths.library(), han: '字', label: 'Library', also: ['/collections', '/families'] },
-    // On an iPad Speaking is a place of its own; on a phone it waits in More.
-    { to: paths.speaking(), han: '说', label: 'Speak', also: [], wide: true },
   ];
   const lit = (s: (typeof sections)[number]) =>
     pathname.startsWith(s.to) || s.also.some((p) => pathname.startsWith(p));
-  const inMore = !sections.some((s) => !s.wide && lit(s)) && MORE_PATHS.some((p) => pathname.startsWith(p));
-  const speaking = pathname.startsWith('/speaking');
+  const inMore = !sections.some(lit) && MORE_PATHS.some((p) => pathname.startsWith(p));
 
   return (
     <div className="app" data-focus={sitting || undefined} data-immersive={immersive || undefined}>
       <nav className="nav" aria-label="Sections">
         {sections.map((s) => (
-          <Link key={s.to} to={s.to} className={s.wide ? 'nav-tab nav-wide' : 'nav-tab'} aria-current={lit(s) ? 'page' : undefined}>
+          <Link key={s.to} to={s.to} className="nav-tab" aria-current={lit(s) ? 'page' : undefined}>
             <span className="nav-ic hanzi" aria-hidden>
               {s.han}
             </span>
@@ -88,7 +85,6 @@ export function AppLayout() {
         <button
           ref={moreButton}
           className="nav-tab nav-more"
-          data-speaking={speaking || undefined}
           aria-haspopup="dialog"
           aria-expanded={more}
           aria-current={inMore ? 'page' : undefined}
@@ -135,7 +131,7 @@ function SyncDot() {
 }
 
 const MORE = [
-  { to: paths.speaking(), han: '说', label: 'Speaking', blurb: 'Phrases scored, voices, talking with Claude', narrow: true },
+  { to: paths.cards(), han: '卡', label: 'Cards', blurb: 'The day’s cards and the drills' },
   { to: paths.videos(), han: '视', label: 'Videos', blurb: 'Watch, write it out, check it' },
   { to: paths.play(), han: '玩', label: 'Play', blurb: 'Games and the walk through Beijing' },
   { to: paths.stats(), han: '进', label: 'Your progress', blurb: 'Days, words and characters over time' },
@@ -187,7 +183,7 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
         <span className="sheet-grab" aria-hidden {...sheet.gripProps} />
         <div className="more-list">
           {MORE.map((m) => (
-            <Link key={m.to} to={m.to} className={'narrow' in m ? 'more-row more-narrow' : 'more-row'}>
+            <Link key={m.to} to={m.to} className="more-row">
               <span className="more-ic hanzi" aria-hidden>
                 {m.han}
               </span>
