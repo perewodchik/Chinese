@@ -750,24 +750,24 @@ function PhraseView({
         )}
       </div>
 
+      {/* Like a tab bar: an icon over a word, five equal places, so nothing is cut short on the narrowest phone. */}
       <footer className="ph-dock">
-        <button className="icon-btn ph-dock-step" onClick={() => onGo(index - 1)} disabled={index === 0} aria-label="Previous line">
+        <button className="ph-dock-btn" onClick={() => onGo(index - 1)} disabled={index === 0}>
           <Icon name="prev" />
+          <span>Back</span>
         </button>
-        <button className="btn ph-dock-side" onClick={hear} disabled={!clips}>
-          <Icon name="play" size={18} /> Hear
+        <button className="ph-dock-btn" onClick={hear} disabled={!clips}>
+          <Icon name="play" />
+          <span>{slow ? 'Slowly' : 'Hear'}</span>
         </button>
         <RecordButton state={state} level={recorder.level} onToggle={recorder.toggle} compact />
-        <button className="btn ph-dock-side" onClick={() => samples && void playSamples(samples)} disabled={!samples}>
-          <Icon name="play" size={18} /> Mine
+        <button className="ph-dock-btn" onClick={() => samples && void playSamples(samples)} disabled={!samples}>
+          <Icon name="play" />
+          <span>Mine</span>
         </button>
-        <button
-          className={`ph-dock-step ${result ? 'btn primary' : 'icon-btn'}`}
-          onClick={onNext}
-          aria-label={last ? 'Finish the text' : result ? 'Next line' : 'Skip this line'}
-        >
-          {result && <span className="ph-dock-next">{last ? 'Done' : 'Next'}</span>}
+        <button className="ph-dock-btn" data-go={result ? '' : undefined} onClick={onNext}>
           <Icon name="next" />
+          <span>{last ? 'Done' : result ? 'Next' : 'Skip'}</span>
         </button>
       </footer>
     </section>
