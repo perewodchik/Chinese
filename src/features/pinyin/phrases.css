@@ -138,84 +138,6 @@
   min-width: 0;
 }
 
-/* ------------------------------------------------------------ one phrase */
-
-.ph-view-head {
-  display: grid;
-  justify-items: center;
-  gap: 0;
-  margin: 0 0 12px;
-  min-width: 0;
-  text-align: center;
-}
-
-.ph-view-name {
-  font-size: 26px;
-  line-height: 1.3;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ph-view-at {
-  font-variant-numeric: tabular-nums;
-}
-
-/* The text's lines as a strip: done ones coloured by their best score, the one being said highlighted. */
-.ph-strip {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-}
-
-.ph-cell {
-  min-width: 36px;
-  height: 36px;
-  padding: 0 4px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--card);
-  color: var(--ink-3);
-  font: 500 13px/1 var(--sans);
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-}
-
-.ph-cell[data-band='good'] {
-  background: var(--jade-soft);
-  border-color: transparent;
-  color: var(--jade);
-}
-
-.ph-cell[data-band='mid'] {
-  background: var(--gold-soft);
-  border-color: transparent;
-  color: var(--gold);
-}
-
-.ph-cell[data-band='low'] {
-  background: var(--red-soft);
-  border-color: transparent;
-  color: var(--red);
-}
-
-.ph-cell[aria-current='step'] {
-  outline: 2px solid var(--ink-2);
-  outline-offset: 1px;
-  color: var(--ink);
-  font-weight: 600;
-}
-
-.ph-next {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  max-width: 480px;
-  margin: 12px auto 0;
-}
-
 .ph-done-title {
   font-weight: 400;
 }
@@ -237,8 +159,7 @@
   justify-content: center;
   align-items: flex-end;
   gap: 0 2px;
-  min-height: 110px;
-  padding: 10px 0 0;
+  padding: 6px 0 0;
 }
 
 .ph-tile {
@@ -264,28 +185,17 @@
 }
 
 .ph-tile-zh {
-  font-size: clamp(32px, 4.4vw, 46px);
+  font-size: clamp(34px, 8.6vw, 48px);
   line-height: 1.1;
 }
 
-.ph-tile-mark {
-  font: 600 11.5px/1.4 var(--sans);
-  min-height: 16px;
-}
-
-.ph-tile[data-state='ok'] .ph-tile-mark {
-  color: var(--jade);
-}
-
 .ph-tile[data-state='bad'] .ph-tile-zh,
-.ph-tile[data-state='bad'] .ph-tile-py,
-.ph-tile[data-state='bad'] .ph-tile-mark {
+.ph-tile[data-state='bad'] .ph-tile-py {
   color: var(--red);
 }
 
 .ph-tile[data-state='nearly'] .ph-tile-zh,
-.ph-tile[data-state='nearly'] .ph-tile-py,
-.ph-tile[data-state='nearly'] .ph-tile-mark {
+.ph-tile[data-state='nearly'] .ph-tile-py {
   color: var(--gold);
 }
 
@@ -294,7 +204,7 @@
 }
 
 .ph-punct {
-  font-size: clamp(32px, 4.4vw, 46px);
+  font-size: clamp(34px, 8.6vw, 48px);
   line-height: 1.1;
   padding-bottom: 20px;
 }
@@ -305,17 +215,6 @@
   color: var(--ink-2);
   margin: 2px 0 0;
 }
-
-.ph-controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: start;
-  gap: 20px;
-  max-width: 480px;
-  margin: 20px auto 0;
-}
-
-
 
 .ph-note {
   text-align: center;
@@ -328,52 +227,6 @@
 
 .ph-error-box {
   margin-top: 10px;
-}
-
-.ph-result {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 14px;
-  margin-top: 18px;
-}
-
-
-.ph-card {
-  background: var(--card-2);
-  border-radius: var(--radius-lg);
-  padding: 16px 18px;
-  display: grid;
-  gap: 8px;
-}
-
-.ph-total {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 4px;
-}
-
-.ph-total text {
-  font-family: var(--sans);
-}
-
-.ph-verdict {
-  display: grid;
-  min-width: 0;
-}
-
-.ph-verdict b {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.ph-meter {
-  display: grid;
-  grid-template-columns: 116px minmax(0, 1fr) 34px;
-  align-items: center;
-  gap: 10px;
-  min-height: 34px;
-  font-size: 14px;
 }
 
 .ph-bar {
@@ -389,117 +242,6 @@
   border-radius: 4px;
 }
 
-.ph-meter b {
-  text-align: right;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.ph-tries {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-
-.ph-try {
-  min-width: 40px;
-  min-height: 28px;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  font-size: 13px;
-  font-weight: 600;
-  background: var(--card);
-  color: var(--ink-2);
-}
-
-.ph-try[data-last] {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.ph-detail-head {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.ph-detail-zh {
-  font-size: 40px;
-  line-height: 1;
-}
-
-.ph-detail-py {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--py);
-}
-
-.ph-detail-zh[data-state='bad'],
-.ph-detail-verdict[data-state='bad'] {
-  color: var(--red);
-}
-
-.ph-detail-zh[data-state='ok'],
-.ph-detail-verdict[data-state='ok'] {
-  color: var(--jade);
-}
-
-.ph-detail-verdict {
-  font-weight: 600;
-}
-
-.ph-faults {
-  margin: 0;
-  padding-left: 18px;
-  display: grid;
-  gap: 6px;
-}
-
-.ph-detail-actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.ph-pace {
-  margin: 2px 0 0;
-}
-
-/* One syllable's three parts, scored. */
-.ph-parts {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.ph-part {
-  min-width: 64px;
-  min-height: 44px;
-  padding: 4px 10px;
-  border-radius: 10px;
-  background: var(--card);
-  display: grid;
-  align-content: center;
-}
-
-.ph-part b {
-  font-size: 17px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.ph-part[data-state='ok'] b {
-  color: var(--jade);
-}
-
-.ph-part[data-state='bad'] b {
-  color: var(--red);
-}
-
 button.back-link {
   border: 0;
   background: none;
@@ -513,70 +255,11 @@ button.back-link {
   font-size: 21px;
 }
 
-/* One line being said: one centred column, so the title, the strip of lines,
-   the phrase and its buttons all share an axis. */
-.ph-view {
-  max-width: 880px;
-  margin: 0 auto;
-}
-
-.ph-side {
-  width: 100%;
-  margin-top: 18px;
-}
-
-.ph-next .btn {
-  width: 100%;
-  justify-content: center;
-}
-
-/* Each character to look at, one under another, divided by hairlines. */
-.ph-entry {
-  display: grid;
-  gap: 8px;
-  padding: 12px 10px;
-  margin: 0 -10px;
-  border-radius: 12px;
-}
-
-.ph-entry + .ph-entry {
-  border-top: 1px solid var(--line);
-  border-radius: 0;
-}
-
-.ph-entry[data-picked] {
-  background: var(--hl);
-  border-radius: 12px;
-}
-
-.ph-detail {
-  gap: 0;
-  align-content: start;
-}
-
 .ph-word {
   display: inline-flex;
   align-items: flex-end;
   gap: 2px;
   white-space: nowrap;
-}
-
-/* ------------------------------------------------------------ each character, scored */
-
-.ph-chars-block {
-  margin-top: 22px;
-}
-
-.ph-chars-head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.ph-chars-count {
-  margin-left: auto;
-  font-variant-numeric: tabular-nums;
 }
 
 /* A phone: a strip of cards to swipe, one in view and the next peeking in. */
@@ -597,12 +280,12 @@ button.back-link {
 }
 
 .ph-char {
-  flex: 0 0 min(82%, 340px);
+  flex: 0 0 min(84%, 340px);
   scroll-snap-align: center;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   align-content: start;
-  padding: 14px 16px 10px;
+  padding: 10px 12px 12px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--card);
@@ -635,12 +318,12 @@ button.back-link {
 .ph-char-head {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
 }
 
 .ph-char-zh {
-  font-size: 44px;
+  font-size: 34px;
   line-height: 1.05;
 }
 
@@ -687,15 +370,20 @@ button.back-link {
 
 .ph-char-parts {
   display: grid;
-  gap: 4px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .ph-char-part {
   display: grid;
-  grid-template-columns: 50px minmax(0, 1fr) 30px;
-  align-items: center;
-  gap: 8px;
-  min-height: 22px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  row-gap: 3px;
+}
+
+.ph-char-part .ph-bar {
+  grid-column: 1 / -1;
+  height: 5px;
 }
 
 .ph-char-part b {
@@ -756,27 +444,233 @@ button.back-link {
   margin: 0;
 }
 
-.ph-char-hear {
-  justify-self: start;
+/* ------------------------------------------------------------ saying a text: the whole screen */
+
+/* A sitting: a slim bar on top, the line and what came of it in the middle,
+   and every control in a dock along the bottom edge, under the thumb. */
+.ph-say {
+  max-width: 880px;
+  margin: 0 auto;
+  min-height: 100%;
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+
+.ph-say-top {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding-top: env(safe-area-inset-top);
+  background: var(--paper);
+}
+
+.ph-say-top .icon-btn:first-child {
   margin-left: -10px;
 }
 
-/* The summary on its own line above the cards; on an iPad its meters stand beside the total. */
-@media (min-width: 760px) {
-  .ph-result .ph-card {
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    column-gap: 32px;
-    align-items: center;
-  }
+.ph-say-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  text-align: center;
+}
 
-  .ph-result .ph-total {
-    grid-row: span 5;
-    margin: 0;
-  }
+.ph-say-title .hanzi {
+  font-size: 19px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .ph-result .ph-pace,
-  .ph-result .ph-tries,
-  .ph-result .ph-error {
-    grid-column: 1 / -1;
+.ph-slow {
+  flex: none;
+}
+
+/* The text's lines: thin segments, coloured by each line's best, the one being said darker and taller. */
+.ph-segs {
+  display: flex;
+  gap: 3px;
+  margin: 0 0 6px;
+}
+
+.ph-seg {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  display: grid;
+  align-items: center;
+  cursor: pointer;
+}
+
+.ph-seg i {
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--line);
+  transition: height 140ms;
+}
+
+.ph-seg[data-band='good'] i {
+  background: var(--jade);
+}
+
+.ph-seg[data-band='mid'] i {
+  background: var(--gold);
+}
+
+.ph-seg[data-band='low'] i {
+  background: var(--red);
+}
+
+.ph-seg[aria-current='step'] i {
+  height: 9px;
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink-2);
+}
+
+.ph-say-body {
+  display: grid;
+  gap: 12px;
+}
+
+.ph-say-body > * {
+  min-width: 0;
+}
+
+.ph-en {
+  margin: 0;
+}
+
+/* The line's verdict on one row: the total, the headline, the parts as small figures. */
+.ph-sum {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: var(--card-2);
+}
+
+.ph-sum-total {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  border: 4px solid var(--line);
+}
+
+.ph-sum-total[data-band='good'] {
+  border-color: var(--jade);
+}
+
+.ph-sum-total[data-band='mid'] {
+  border-color: var(--gold);
+}
+
+.ph-sum-total[data-band='low'] {
+  border-color: var(--red);
+}
+
+.ph-sum-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ph-sum-text > b {
+  font-size: 15.5px;
+  font-weight: 600;
+}
+
+.ph-sum-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.ph-sum-parts b {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+
+.ph-sum-parts [data-band='mid'] b {
+  color: var(--gold);
+}
+
+.ph-sum-parts [data-band='low'] b {
+  color: var(--red);
+}
+
+.ph-char-hear {
+  width: 36px;
+  height: 36px;
+  margin-left: auto;
+  color: var(--accent);
+}
+
+.ph-char-hear + .ph-char-score {
+  margin-left: 0;
+}
+
+/* The dock: previous, hear, record, mine, next — one row along the bottom edge. */
+.ph-dock {
+  position: fixed;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 10px var(--gutter, 16px) calc(10px + env(safe-area-inset-bottom));
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+}
+
+@media (min-width: 640px) {
+  .ph-dock {
+    bottom: 12px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    padding-bottom: 10px;
   }
+}
+
+.ph-dock-side {
+  width: 100%;
+  min-height: 44px;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.ph-dock-step {
+  min-width: 44px;
+  height: 44px;
+}
+
+.ph-dock-step.btn {
+  padding: 0 10px 0 14px;
+  gap: 2px;
+}
+
+.ph-dock .rec {
+  --composer-h: 60px;
 }

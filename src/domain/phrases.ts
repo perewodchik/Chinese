@@ -197,13 +197,24 @@ export const GREEN = 75;
  * nothing wrong with but scored under green is "nearly", and what fell short
  * is the part (initial, final, tone) it scored lowest, by the service's numbers.
  */
+/**
+ * One number for a character: the service's score for it, or the weakest of
+ * its initial, final and tone when one is lower — so a character whose tone
+ * was wrong never shows 100.
+ */
+export function charScore(s: SyllableEval): number | undefined {
+  if (s.said === 'missed') return 0;
+  const parts = [s.score, s.initialScore, s.finalScore, s.toneScore].filter((n): n is number => n !== undefined);
+  return parts.length ? Math.min(...parts) : undefined;
+}
+
 export function noteOf(s: SyllableEval): CharNote {
   const faults = faultsOf(s);
   const p = partsOf(s.symbol);
   if (s.said === 'missed') return { band: 'low', faults };
-  const score = s.score;
+  const score = charScore(s);
   const bandOf = (n: number): CharNote['band'] => (n >= GREEN ? 'good' : n >= 60 ? 'mid' : 'low');
-  if (faults.length) return { band: score !== undefined && score < 60 ? 'low' : 'mid', faults };
+  if (faults.length) return { band: score !== undefined && score >= 60 ? 'mid' : 'low', faults };
   if (score === undefined || score >= GREEN) return { band: 'good', faults: [] };
   const want = s.sandhi ?? p.tone;
   const short: Fault[] = [];

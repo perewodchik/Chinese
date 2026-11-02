@@ -69,6 +69,7 @@ import { RequireSession } from './RequireSession';
  *   /texts/:textId                 one passage — within a session, its page there
  *   /speaking                      phrases said and scored by SpeechSuper or iFlytek (Speaking's first tab)
  *   /speaking/voices, /talk, /pinyin  Speaking's other tabs: narrators, Claude, the tones and sounds
+ *   /speaking/say/:source?line     a text said line by line, each line scored, on the whole screen
  *   /speaking/practice/:set        saying things out loud: pair-3-3, tone-2
  *   /speaking/sounds/:lesson?step  one sound lesson: how it is made, hear it, say it
  *   /videos                        videos to study, and how well each fits
@@ -169,6 +170,8 @@ export const router = createBrowserRouter([
                   { path: 'speaking/pinyin', element: <TonesPage /> },
                 ],
               },
+              // A text said line by line has the whole screen, like a sitting.
+              { path: 'speaking/say/:source', element: <PhrasesPage /> },
               { path: 'speaking/practice/:set', element: <PracticePage /> },
               { path: 'speaking/sounds/:lesson', element: <SoundLessonPage /> },
               // The sentence shadowing that was here gave way to videos.

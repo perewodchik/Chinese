@@ -48,7 +48,7 @@ export function AppLayout() {
   const [more, setMore] = useState(false);
   // A sitting has the whole screen: the question and its own way out, nothing
   // else to glance at or tap by mistake.
-  const sitting = SITTING.test(pathname);
+  const sitting = SITTING.test(pathname) || pathname.startsWith('/speaking/say/');
   // Reading has the screen edge to edge; on a phone the text page has its own
   // bar and dock, and the sections wait behind its back button.
   const immersive = /^\/texts\/(?!session)/.test(pathname);

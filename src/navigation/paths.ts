@@ -86,6 +86,9 @@ export const paths = {
     withQuery(`/speaking/sounds/${encodeURIComponent(lesson)}`, { step }),
   /** setting a conversation up: what to talk about, and who talks back */
   /** talking with Claude: the partners and the conversations kept */
+  /** saying a text line by line, on the whole screen: `line` counts from 0 */
+  speakingSay: (source: string, line?: number) =>
+    withQuery(`/speaking/say/${encodeURIComponent(source)}`, { line: line === undefined ? undefined : String(line + 1) }),
   speakingTalkFront: () => '/speaking/talk',
   speakingNew: () => '/speaking/new',
   /** a conversation already under way, by its id */
