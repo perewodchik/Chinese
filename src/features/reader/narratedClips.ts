@@ -54,6 +54,12 @@ export async function prepareClips(textId: string, r: Narrated): Promise<Clips> 
   const url = await narrationAudio(r.n);
   const c = { url, timings: r.n.timings, narratorId: r.n.narratorId };
   ready.set(textId, c);
+  // Loaded ahead, so the first tap can move straight to its line and play.
+  const a = audio();
+  if (a.paused && a.src !== url) {
+    a.src = url;
+    a.load();
+  }
   return c;
 }
 
@@ -85,13 +91,13 @@ function audio(): HTMLAudioElement {
   if (el) return el;
   const a = new Audio();
   a.preload = 'auto';
-  // Before the audio knows its length it cannot be moved in it: kept quiet
-  // until it can, then put where the sentence starts.
+  // Before the audio knows its length it cannot be moved in it: put where the
+  // sentence starts as soon as it can. Never muted meanwhile — iOS pauses an
+  // element unmuted outside the tap that started it, so the line never played.
   a.addEventListener('loadedmetadata', () => {
     if (startAt === null) return;
     a.currentTime = startAt;
     startAt = null;
-    a.muted = false;
   });
   el = a;
   return a;
@@ -123,11 +129,9 @@ export function playLine(c: Clips, i: number, rate: number) {
   a.playbackRate = rate;
   const next = c.timings[i + 1]?.[0] ?? Infinity;
   stopAt = Math.min(t[1] + 250, next);
+  a.muted = false;
   if (a.readyState >= 1) a.currentTime = t[0] / 1000;
-  else {
-    startAt = t[0] / 1000;
-    a.muted = true;
-  }
+  else startAt = t[0] / 1000;
   void a.play().catch(() => undefined);
   watch();
 }

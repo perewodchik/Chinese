@@ -395,7 +395,10 @@ function PhraseView({
       live = false;
       stopLine();
     };
-  }, [lines, sourceId]);
+    // By the lines' text, not the array: the parent makes a new one each render,
+    // and every run stops what is playing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lines.join('\n'), sourceId]);
 
   async function readThem() {
     const n = narrators?.find((x) => x.id === chosenNarrator()) ?? narrators?.[0];
