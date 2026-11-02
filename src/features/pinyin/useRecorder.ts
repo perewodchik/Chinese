@@ -44,6 +44,11 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
 
   const start = useCallback(async () => {
     setError(null);
+    // A session whose track iOS ended or muted (a call, another app, a lock) is opened afresh.
+    if (session.current && !session.current.live) {
+      session.current.close();
+      session.current = null;
+    }
     if (!session.current) {
       setState('opening');
       try {

@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { PROVIDER_NAME, type EvalResult, type EvalStatus } from '../../../shared/speechEval';
 import { evalStatus, evaluatePhrase } from '../../api/speechEval';
 import { faultsOf, numbered, partsOf } from '../../domain/phrases';
-import { micUnavailable, MIC_MESSAGE } from '../../platform/audio/mic';
+import { heardAnything, micUnavailable, MIC_MESSAGE } from '../../platform/audio/mic';
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { RecordButton } from './RecordButton';
@@ -50,8 +50,14 @@ export function ScoredSay({
 
   const rec = useRecorder((s) => {
     setMine(s);
-    setChecking(true);
     setError(null);
+    setResult(null);
+    // Silence is not sent to be scored: it would come back as every syllable left out.
+    if (!heardAnything(s)) {
+      setError('Nothing was heard: the microphone gave only silence. Tap the button and say it again; if it keeps happening, reload the page.');
+      return;
+    }
+    setChecking(true);
     evaluatePhrase(word, s, numbered(readings))
       .then(
         (r) => {

@@ -7,6 +7,7 @@ import { pinyinOf } from '../../domain/ownText';
 import { attemptOf, EVERYDAY, faultsOf, numbered, partsOf, troubles, verdictOf, type Attempt, type Phrase } from '../../domain/phrases';
 import { alignPinyin } from '../../domain/reading';
 import { isHanzi, shelve, type GeneratedText } from '../../domain/text';
+import { heardAnything } from '../../platform/audio/mic';
 import { playSamples } from '../../platform/audio/voiceOut';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
@@ -48,6 +49,8 @@ function keepAttempt(zh: string, a: Attempt): Record<string, Attempt[]> {
   }
   return all;
 }
+
+const NOTHING_HEARD = 'Nothing was heard: the microphone gave only silence. Tap the button and say the line again; if it keeps happening, reload the page.';
 
 const band = (score: number) => (score >= 75 ? 'good' : score >= 60 ? 'mid' : 'low');
 
@@ -376,6 +379,7 @@ function PhraseView({
   const [samples, setSamples] = useState<Float32Array | null>(null);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
   const [clips, setClips] = useState<Clips | null>(null);
   const [narrators, setNarrators] = useState<NarratorDto[] | null>(null);
@@ -424,12 +428,24 @@ function PhraseView({
 
   const recorder = useRecorder((s) => {
     setSamples(s);
-    setChecking(true);
     setError(null);
+    setNote(null);
+    // Silence is not sent to be scored: it would come back as every syllable left out.
+    if (!heardAnything(s)) {
+      setNote(NOTHING_HEARD);
+      return;
+    }
+    setChecking(true);
     evaluatePhrase(phrase.zh, s, numbered(readings)).then(
       (r) => {
-        setResult(r);
         setPicked(null);
+        // Not the phrase at all is not a try at it: nothing marked, nothing counted.
+        if (r.rejected) {
+          setResult(null);
+          setNote('That did not sound like this line. Hear it once more, then say all of it, close to the microphone.');
+          return;
+        }
+        setResult(r);
         onAttempt(phrase.zh, attemptOf(r, Date.now()));
       },
       (err: Error) => setError(err.message),
@@ -563,6 +579,11 @@ function PhraseView({
             </>
           )}
           {readingFailed && <span className="ph-error"> {readingFailed}</span>}
+        </p>
+      )}
+      {note && (
+        <p className="small muted ph-note" role="status">
+          {note}
         </p>
       )}
       {(error || recorder.error) && (

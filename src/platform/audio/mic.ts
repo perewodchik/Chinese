@@ -74,9 +74,6 @@ export class MicSession {
     const why = micUnavailable();
     if (why) throw new MicError(why, MIC_MESSAGE[why]);
 
-    const ctx = new (AudioCtx())();
-    // Resume inside the gesture, before any await, or Safari keeps it suspended.
-    const resumed = ctx.resume();
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
@@ -88,7 +85,6 @@ export class MicSession {
         },
       });
     } catch (e) {
-      void ctx.close();
       const name = (e as DOMException)?.name;
       const problem: MicProblem =
         name === 'NotAllowedError' || name === 'SecurityError'
@@ -98,7 +94,12 @@ export class MicSession {
             : 'failed';
       throw new MicError(problem, MIC_MESSAGE[problem]);
     }
-    await resumed;
+    // The context is made once the microphone is open, not before: on iOS a
+    // context made first keeps the playback rate, and when capture changes the
+    // hardware's rate its microphone source gives only silence. While a page
+    // is capturing, Safari lets it start audio without a tap.
+    const ctx = new (AudioCtx())();
+    await ctx.resume().catch(() => undefined);
 
     const source = ctx.createMediaStreamSource(stream);
     let session!: MicSession;
@@ -143,6 +144,11 @@ export class MicSession {
     void this.ctx.resume();
     this.chunks = [];
     this.recording = true;
+  }
+
+  /** Whether the microphone is still giving sound: iOS can end or mute a track behind the page's back. */
+  get live(): boolean {
+    return this.ctx.state !== 'closed' && this.stream.getAudioTracks().some((t) => t.readyState === 'live' && !t.muted);
   }
 
   /** The recording so far, at the analysis rate. */
@@ -202,4 +208,15 @@ export function downsample(input: Float32Array, from: number, to: number): Float
     out[i] = sum / Math.max(1, b - a);
   }
   return out;
+}
+
+/** Whether a recording holds any voice at all: its loudest fiftieth of a second above a whisper. */
+export function heardAnything(samples: Float32Array, rate = ANALYSIS_RATE): boolean {
+  const win = Math.max(1, Math.round(rate / 50));
+  for (let i = 0; i + win <= samples.length; i += win) {
+    let sum = 0;
+    for (let k = i; k < i + win; k++) sum += samples[k]! * samples[k]!;
+    if (Math.sqrt(sum / win) > 0.01) return true;
+  }
+  return false;
 }
