@@ -527,27 +527,23 @@ function PhraseView({
       {phrase.en && <p className="ph-en">{phrase.en}</p>}
 
       <div className="ph-controls">
-        <div className="ph-hear">
-          <button className="btn" onClick={() => clips && playLine(clips, index, 1)} disabled={!clips}>
-            <Icon name="play" size={18} /> Hear it
-          </button>
-          <button className="btn quiet" onClick={() => clips && playLine(clips, index, 0.75)} disabled={!clips}>
-            Slowly
-          </button>
-        </div>
+        <button className="btn ph-side" onClick={() => clips && playLine(clips, index, 1)} disabled={!clips}>
+          <Icon name="play" size={18} /> Hear it
+        </button>
         <RecordButton state={state} level={recorder.level} onToggle={recorder.toggle} />
-        <div className="ph-hear">
-          <button className="btn quiet" onClick={() => samples && void playSamples(samples)} disabled={!samples}>
-            Hear yours
-          </button>
-        </div>
+        <button className="btn ph-side" onClick={() => samples && void playSamples(samples)} disabled={!samples}>
+          <Icon name="play" size={18} /> Yours
+        </button>
       </div>
       <div className="ph-next">
         <button className="btn quiet" onClick={() => onGo(index - 1)} disabled={index === 0}>
-          Previous line
+          <Icon name="prev" size={18} /> Previous
+        </button>
+        <button className="btn quiet" onClick={() => clips && playLine(clips, index, 0.75)} disabled={!clips}>
+          Slowly
         </button>
         <button className={`btn ${result ? 'primary' : 'quiet'}`} onClick={onNext}>
-          {index + 1 < phrases.length ? (result ? 'Next line' : 'Skip this line') : 'Finish the text'}
+          {index + 1 < phrases.length ? (result ? 'Next line' : 'Skip') : 'Finish'} <Icon name="next" size={18} />
         </button>
       </div>
       {!clips && narrators !== null && (
