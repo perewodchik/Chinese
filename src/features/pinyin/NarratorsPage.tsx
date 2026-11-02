@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router';
 import { EMOTIONS, SPEED_RANGE, PITCH_RANGE, type Emotion, type NarrationStatus, type NarratorDto, type NarratorVoice, type TextNarrationDto } from '../../../shared/narration';
 import {
   adoptNarrator,
@@ -17,7 +16,6 @@ import {
   removeNarrator,
 } from '../../api/narration';
 import type { GeneratedText } from '../../domain/text';
-import { paths } from '../../navigation/paths';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
@@ -60,9 +58,6 @@ export function NarratorsPage() {
 
   return (
     <section className="narrators" style={{ maxWidth: 720 }}>
-      <Link className="back-link" to={paths.speaking()}>
-        <Icon name="back" /> Speaking
-      </Link>
       <div className="page-head">
         <h1>Voices</h1>
       </div>

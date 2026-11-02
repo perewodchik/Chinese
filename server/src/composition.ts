@@ -1,6 +1,8 @@
 import { AuthService, DEFAULT_AUTH_POLICY, type AuthPolicy } from './application/auth-service';
 import { ConversationService } from './application/conversation-service';
 import { NarrationService } from './application/narration-service';
+import { SpeechEvalService, type Evaluator } from './application/speech-eval-service';
+import { evaluate as iflytekEvaluate } from './infrastructure/iflytek';
 import { PictureService } from './application/picture-service';
 import { RecordingService } from './application/recording-service';
 import type {
@@ -48,6 +50,8 @@ export interface Services {
   pictures: PictureService;
   /** texts read aloud by MiniMax with the learner's own key */
   narration: NarrationService;
+  /** phrases said aloud and scored by iFlytek with the learner's own keys */
+  speechEval: SpeechEvalService;
 }
 
 /** Where each kind of record is kept. */
@@ -84,6 +88,8 @@ export function createServices(
     talkVoices?: TalkSynthesizer | null;
     /** MiniMax by default; a stand-in in the tests */
     narrator?: Narrator | null;
+    /** iFlytek by default; a stand-in in the tests */
+    evaluator?: Evaluator | null;
   } = {},
 ): Services {
   const clock = options.clock ?? systemClock;
@@ -111,5 +117,6 @@ export function createServices(
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
     narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock }),
+    speechEval: new SpeechEvalService({ secrets: stores.secrets, evaluator: options.evaluator === undefined ? { evaluate: iflytekEvaluate } : options.evaluator, clock }),
   };
 }

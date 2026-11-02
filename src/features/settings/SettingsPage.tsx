@@ -1,3 +1,4 @@
+import { PronunciationKey } from './PronunciationKey';
 import { useEffect, useState } from 'react';
 import { PalettePicker } from '../../ui/PalettePicker';
 import { HSK_BANDS } from '../../domain/text';
@@ -75,6 +76,8 @@ export function SettingsPage() {
       <h1>Settings</h1>
 
       <InstallCard />
+
+      <PronunciationKey />
 
       <div className="card">
         <header>

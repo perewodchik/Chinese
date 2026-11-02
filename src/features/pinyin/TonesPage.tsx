@@ -4,7 +4,6 @@ import { TONE_NAME } from '../../domain/pinyin/contour';
 import { singleTones, tonePairs } from '../../domain/pinyin/practice';
 import { SOUND_LESSONS } from '../../domain/pinyin/sounds';
 import { paths } from '../../navigation/paths';
-import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { WeakSpotsCard } from './WeakSpots';
@@ -47,9 +46,6 @@ export function TonesPage() {
 
   return (
     <section className="pinyin">
-      <Link className="back-link" to={paths.speaking()}>
-        <Icon name="back" /> Speaking
-      </Link>
       <div className="page-head">
         <h1>Tones and sounds</h1>
         <span className="spacer" />

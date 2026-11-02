@@ -66,16 +66,19 @@ export function AppLayout() {
     { to: paths.read(), han: '读', label: 'Read', also: ['/texts'] },
     { to: paths.cards(), han: '卡', label: 'Cards', also: ['/review', '/learn'] },
     { to: paths.library(), han: '字', label: 'Library', also: ['/collections', '/families'] },
+    // On an iPad Speaking is a place of its own; on a phone it waits in More.
+    { to: paths.speaking(), han: '说', label: 'Speak', also: [], wide: true },
   ];
   const lit = (s: (typeof sections)[number]) =>
     pathname.startsWith(s.to) || s.also.some((p) => pathname.startsWith(p));
-  const inMore = !sections.some(lit) && MORE_PATHS.some((p) => pathname.startsWith(p));
+  const inMore = !sections.some((s) => !s.wide && lit(s)) && MORE_PATHS.some((p) => pathname.startsWith(p));
+  const speaking = pathname.startsWith('/speaking');
 
   return (
     <div className="app" data-focus={sitting || undefined} data-immersive={immersive || undefined}>
       <nav className="nav" aria-label="Sections">
         {sections.map((s) => (
-          <Link key={s.to} to={s.to} className="nav-tab" aria-current={lit(s) ? 'page' : undefined}>
+          <Link key={s.to} to={s.to} className={s.wide ? 'nav-tab nav-wide' : 'nav-tab'} aria-current={lit(s) ? 'page' : undefined}>
             <span className="nav-ic hanzi" aria-hidden>
               {s.han}
             </span>
@@ -84,7 +87,8 @@ export function AppLayout() {
         ))}
         <button
           ref={moreButton}
-          className="nav-tab"
+          className="nav-tab nav-more"
+          data-speaking={speaking || undefined}
           aria-haspopup="dialog"
           aria-expanded={more}
           aria-current={inMore ? 'page' : undefined}
@@ -131,7 +135,7 @@ function SyncDot() {
 }
 
 const MORE = [
-  { to: paths.speaking(), han: '说', label: 'Speaking', blurb: 'Tones, sounds, talking with Claude' },
+  { to: paths.speaking(), han: '说', label: 'Speaking', blurb: 'Phrases scored, voices, talking with Claude', narrow: true },
   { to: paths.videos(), han: '视', label: 'Videos', blurb: 'Watch, write it out, check it' },
   { to: paths.play(), han: '玩', label: 'Play', blurb: 'Games and the walk through Beijing' },
   { to: paths.stats(), han: '进', label: 'Your progress', blurb: 'Days, words and characters over time' },
@@ -183,7 +187,7 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
         <span className="sheet-grab" aria-hidden {...sheet.gripProps} />
         <div className="more-list">
           {MORE.map((m) => (
-            <Link key={m.to} to={m.to} className="more-row">
+            <Link key={m.to} to={m.to} className={'narrow' in m ? 'more-row more-narrow' : 'more-row'}>
               <span className="more-ic hanzi" aria-hidden>
                 {m.han}
               </span>

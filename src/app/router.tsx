@@ -12,7 +12,9 @@ import { WorldRoute } from '../features/world/WorldRoute';
 import { LibraryHome } from '../features/library/LibraryHome';
 import { RadicalsPage } from '../features/library/RadicalShelf';
 import { SetPage } from '../features/library/SetPage';
-import { PinyinPage } from '../features/pinyin/PinyinPage';
+import { PhrasesPage } from '../features/pinyin/PhrasesPage';
+import { SpeakingFrame } from '../features/pinyin/SpeakingFrame';
+import { TalkFrontPage } from '../features/pinyin/TalkFrontPage';
 import { PracticePage } from '../features/pinyin/PracticePage';
 import { SoundLessonPage } from '../features/pinyin/SoundLessonPage';
 import { TalkPage } from '../features/pinyin/TalkPage';
@@ -66,7 +68,8 @@ import { RequireSession } from './RequireSession';
  *   /texts/session/:step           a writing session: plan, prompt, paste
  *   /texts/:sessionId?page&v&mode  a shelf read a text at a time: ?page=2, ?v=easy|book, ?mode=all
  *   /texts/:textId                 one passage — within a session, its page there
- *   /speaking                      pronunciation: the four tones and the twenty pairs
+ *   /speaking                      phrases said and scored by iFlytek (Speaking's first tab)
+ *   /speaking/voices, /talk, /pinyin  Speaking's other tabs: narrators, Claude, the tones and sounds
  *   /speaking/practice/:set        saying things out loud: pair-3-3, tone-2
  *   /speaking/sounds/:lesson?step  one sound lesson: how it is made, hear it, say it
  *   /videos                        videos to study, and how well each fits
@@ -157,7 +160,16 @@ export const router = createBrowserRouter([
               { path: 'texts', element: <Navigate to={paths.read()} replace /> },
               { path: 'texts/session/:step?', element: <SessionPage /> },
               { path: 'texts/:textId', element: <ReaderPage /> },
-              { path: 'speaking', element: <PinyinPage /> },
+              // Speaking's four parts, with their own tabs: down the side on an iPad, across the top on a phone.
+              {
+                element: <SpeakingFrame />,
+                children: [
+                  { path: 'speaking', element: <PhrasesPage /> },
+                  { path: 'speaking/voices', element: <NarratorsPage /> },
+                  { path: 'speaking/talk', element: <TalkFrontPage /> },
+                  { path: 'speaking/pinyin', element: <TonesPage /> },
+                ],
+              },
               { path: 'speaking/practice/:set', element: <PracticePage /> },
               { path: 'speaking/sounds/:lesson', element: <SoundLessonPage /> },
               // The sentence shadowing that was here gave way to videos.
@@ -166,8 +178,6 @@ export const router = createBrowserRouter([
               { path: 'videos/add', element: <AddVideoPage /> },
               { path: 'videos/:videoId', element: <VideoPage /> },
               { path: 'speaking/voice', element: <VoicePage /> },
-              { path: 'speaking/voices', element: <NarratorsPage /> },
-              { path: 'speaking/pinyin', element: <TonesPage /> },
               // Setting one up, and the conversation itself. `new` is matched
               // before `:conversationId` so a conversation can never be named
               // out of reach of the page that starts one.

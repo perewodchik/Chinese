@@ -1,0 +1,395 @@
+/* Phrases: a list to choose from beside what keeps going wrong, then one phrase
+   at a time — its characters scored, hear it, say it, the result and one
+   syllable's faults. */
+
+.ph-lede {
+  max-width: 60ch;
+  margin: 0 0 16px;
+}
+
+.ph-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+}
+
+@media (min-width: 1100px) {
+  .ph-columns {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.ph-pick {
+  width: 100%;
+  min-height: 44px;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.ph-list {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 0 14px;
+}
+
+.ph-list > li {
+  padding: 0;
+}
+
+.ph-row {
+  width: 100%;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ph-n {
+  width: 20px;
+  flex: none;
+}
+
+.ph-row-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+}
+
+.ph-row-zh {
+  font-size: 21px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ph-row-en {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ph-score {
+  flex: none;
+  min-width: 46px;
+  min-height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-score[data-band='good'] {
+  background: var(--jade-soft);
+  color: var(--jade);
+}
+
+.ph-score[data-band='mid'] {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.ph-score[data-band='low'] {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.ph-score[data-band='none'] {
+  background: var(--card-2);
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+.ph-start {
+  margin-top: 14px;
+}
+
+.ph-trouble {
+  background: var(--card-2);
+  border-radius: var(--radius-lg);
+  padding: 0 14px;
+}
+
+.ph-trouble-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+}
+
+.ph-trouble-row .grow {
+  display: grid;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------ one phrase */
+
+.ph-view-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.ph-view-title {
+  flex: 1 1 auto;
+  display: grid;
+  min-width: 0;
+}
+
+.ph-view-title .hanzi {
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ph-phrase {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0 2px;
+  min-height: 110px;
+  padding: 10px 0 0;
+}
+
+.ph-tile {
+  display: grid;
+  justify-items: center;
+  padding: 6px 4px 4px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.ph-tile:disabled {
+  cursor: default;
+  color: var(--ink);
+}
+
+.ph-tile-py {
+  font: 500 15px/1.4 var(--sans);
+  color: var(--py);
+  min-height: 21px;
+}
+
+.ph-tile-zh {
+  font-size: clamp(34px, 6vw, 52px);
+  line-height: 1.1;
+}
+
+.ph-tile-mark {
+  font: 600 11.5px/1.4 var(--sans);
+  min-height: 16px;
+}
+
+.ph-tile[data-state='ok'] .ph-tile-mark {
+  color: var(--jade);
+}
+
+.ph-tile[data-state='bad'] .ph-tile-zh,
+.ph-tile[data-state='bad'] .ph-tile-py,
+.ph-tile[data-state='bad'] .ph-tile-mark {
+  color: var(--red);
+}
+
+.ph-tile[aria-pressed='true'] {
+  background: var(--hl);
+}
+
+.ph-punct {
+  font-size: clamp(34px, 6vw, 52px);
+  line-height: 1.1;
+  padding-bottom: 20px;
+}
+
+.ph-en {
+  text-align: center;
+  font: 400 15px/1.5 var(--read);
+  color: var(--ink-2);
+  margin: 2px 0 0;
+}
+
+.ph-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 6px;
+}
+
+.ph-hear {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.ph-hear:first-child {
+  justify-content: flex-end;
+}
+
+.ph-note {
+  text-align: center;
+  margin: 6px 0 0;
+}
+
+.ph-error {
+  color: var(--red);
+}
+
+.ph-error-box {
+  margin-top: 10px;
+}
+
+.ph-result {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  margin-top: 18px;
+}
+
+@media (min-width: 900px) {
+  .ph-result {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    align-items: start;
+  }
+}
+
+.ph-card {
+  background: var(--card-2);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.ph-total {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+
+.ph-total text {
+  font-family: var(--sans);
+}
+
+.ph-verdict {
+  display: grid;
+  min-width: 0;
+}
+
+.ph-verdict b {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.ph-meter {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  font-size: 14px;
+}
+
+.ph-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.ph-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+}
+
+.ph-meter b {
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-tries {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.ph-try {
+  min-width: 40px;
+  min-height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--card);
+  color: var(--ink-2);
+}
+
+.ph-try[data-last] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.ph-detail-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ph-detail-zh {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.ph-detail-py {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--py);
+}
+
+.ph-detail-zh[data-state='bad'],
+.ph-detail-verdict[data-state='bad'] {
+  color: var(--red);
+}
+
+.ph-detail-zh[data-state='ok'],
+.ph-detail-verdict[data-state='ok'] {
+  color: var(--jade);
+}
+
+.ph-detail-verdict {
+  font-weight: 600;
+}
+
+.ph-faults {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.ph-detail-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}

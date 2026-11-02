@@ -810,6 +810,226 @@ var toDto = (n) => ({
 });
 var genderOf = (s) => /\b(male|man|boy|gentleman|uncle|executive|lord)\b/i.test(s) && !/\b(female|woman|girl|lady)\b/i.test(s) ? "male" : "female";
 
+// shared/speechEval.ts
+var STRICTNESS = ["easy", "common", "hard"];
+var EVAL_MAX_CHARS = 100;
+var EVAL_MAX_BYTES = 20 * 16e3 * 2;
+
+// server/src/infrastructure/iflytek.ts
+import { createHmac } from "node:crypto";
+var HOST = "ise-api.xfyun.cn";
+var PATH = "/v2/open-ise";
+var FRAME = 19200;
+var EvaluatorRefused = class extends Error {
+  constructor(message, reason) {
+    super(message);
+    this.reason = reason;
+  }
+};
+function signedUrl(keys, date = (/* @__PURE__ */ new Date()).toUTCString()) {
+  const origin = `host: ${HOST}
+date: ${date}
+GET ${PATH} HTTP/1.1`;
+  const signature = createHmac("sha256", keys.apiSecret).update(origin).digest("base64");
+  const authorization = Buffer.from(
+    `api_key="${keys.apiKey}", algorithm="hmac-sha256", headers="host date request-line", signature="${signature}"`
+  ).toString("base64");
+  return `wss://${HOST}${PATH}?authorization=${encodeURIComponent(authorization)}&date=${encodeURIComponent(date)}&host=${HOST}`;
+}
+async function evaluate(keys, o) {
+  const xml = await new Promise((resolve, reject) => {
+    const ws = new WebSocket(signedUrl(keys));
+    const timer = setTimeout(() => {
+      ws.close();
+      reject(new EvaluatorRefused("iFlytek did not answer in time.", "failed"));
+    }, 3e4);
+    const fail = (err) => {
+      clearTimeout(timer);
+      ws.close();
+      reject(err);
+    };
+    ws.onerror = () => fail(new EvaluatorRefused("iFlytek could not be reached, or did not accept the keys.", "keys"));
+    ws.onopen = async () => {
+      ws.send(
+        JSON.stringify({
+          common: { app_id: keys.appId },
+          business: {
+            sub: "ise",
+            ent: "cn_vip",
+            category: "read_sentence",
+            cmd: "ssb",
+            text: `\uFEFF${o.text}`,
+            tte: "utf-8",
+            ttp_skip: true,
+            aue: "raw",
+            auf: "audio/L16;rate=16000",
+            rstcd: "utf8",
+            group: "adult",
+            check_type: o.strictness
+          },
+          data: { status: 0 }
+        })
+      );
+      const frames = Math.max(1, Math.ceil(o.pcm.length / FRAME));
+      for (let i = 0; i < frames; i++) {
+        const last = i === frames - 1;
+        const chunk = o.pcm.subarray(i * FRAME, (i + 1) * FRAME);
+        ws.send(
+          JSON.stringify({
+            business: { cmd: "auw", aus: last ? 4 : i === 0 ? 1 : 2, aue: "raw" },
+            data: { status: last ? 2 : 1, data: Buffer.from(chunk).toString("base64") }
+          })
+        );
+        if (!last) await new Promise((r) => setTimeout(r, 20));
+      }
+    };
+    ws.onmessage = (e) => {
+      let msg;
+      try {
+        msg = JSON.parse(String(e.data));
+      } catch {
+        return;
+      }
+      if (msg.code && msg.code !== 0) {
+        const keysWrong = [10313, 10316, 11200, 10105, 10106, 10107].includes(msg.code) || /appid|auth|license|signature/i.test(msg.message ?? "");
+        fail(new EvaluatorRefused(`iFlytek: ${msg.message ?? "refused"} (${msg.code})`, keysWrong ? "keys" : "failed"));
+        return;
+      }
+      if (msg.data?.status === 2 && msg.data.data) {
+        clearTimeout(timer);
+        ws.close();
+        resolve(Buffer.from(msg.data.data, "base64").toString("utf8"));
+      }
+    };
+  });
+  return parseReport(xml);
+}
+function tree(xml) {
+  const root = { tag: "#root", attrs: {}, children: [] };
+  const stack = [root];
+  const tagRe = /<(\/?)([\w:-]+)([^>]*?)(\/?)>/g;
+  for (const m of xml.matchAll(tagRe)) {
+    const [, closing, tag, rest, selfClosing] = m;
+    if (closing) {
+      if (stack.length > 1) stack.pop();
+      continue;
+    }
+    const attrs = {};
+    for (const a of rest.matchAll(/([\w:-]+)="([^"]*)"/g)) attrs[a[1]] = a[2];
+    const node = { tag, attrs, children: [] };
+    stack[stack.length - 1].children.push(node);
+    if (!selfClosing) stack.push(node);
+  }
+  return root;
+}
+var all = (n, tag) => [...n.tag === tag ? [n] : [], ...n.children.flatMap((c) => all(c, tag))];
+var num = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.round(n * 10) / 10 : 0;
+};
+var SAID = { "0": "ok", "16": "missed", "32": "added", "64": "repeated", "128": "replaced" };
+function parseReport(xml) {
+  const root = tree(xml);
+  const scored = all(root, "rec_paper").flatMap((p) => p.children)[0] ?? all(root, "read_sentence").find((n) => n.attrs.total_score) ?? root;
+  const sentence = all(scored, "sentence")[0] ?? scored;
+  const at = (k) => sentence.attrs[k] ?? scored.attrs[k];
+  const syllables = all(scored, "syll").filter((s) => (s.attrs.rec_node_type ?? "paper") === "paper" && s.attrs.content && !/^(sil|fil)$/.test(s.attrs.content)).map((s) => {
+    const phones = all(s, "phone");
+    const perr = (yun) => phones.filter((p) => p.attrs.is_yun === "1" === yun).map((p) => Number(p.attrs.perr_msg ?? 0));
+    const initials = perr(false);
+    const finals = perr(true);
+    return {
+      char: s.attrs.content,
+      symbol: s.attrs.symbol ?? "",
+      said: SAID[s.attrs.dp_message ?? "0"] ?? "ok",
+      initial: initials.some((p) => p !== 0),
+      final: finals.some((p) => p === 1 || p === 3),
+      tone: finals.some((p) => p === 2 || p === 3),
+      from: Number(s.attrs.beg_pos ?? 0) * 10,
+      to: Number(s.attrs.end_pos ?? 0) * 10
+    };
+  });
+  return {
+    total: num(at("total_score")),
+    tone: num(at("tone_score")),
+    sounds: num(at("phone_score")),
+    fluency: num(at("fluency_score")),
+    completeness: num(at("integrity_score")),
+    rejected: (scored.attrs.is_rejected ?? sentence.attrs.is_rejected) === "true",
+    syllables
+  };
+}
+
+// server/src/application/speech-eval-service.ts
+var NAME = "iflytek";
+var SpeechEvalService = class {
+  constructor(deps) {
+    this.deps = deps;
+  }
+  async kept(userId) {
+    const raw = await this.deps.secrets.get(userId, NAME);
+    if (!raw) return null;
+    try {
+      const k = JSON.parse(raw);
+      if (!k.appId || !k.apiKey || !k.apiSecret) return null;
+      return { appId: k.appId, apiKey: k.apiKey, apiSecret: k.apiSecret, strictness: STRICTNESS.includes(k.strictness) ? k.strictness : "common" };
+    } catch {
+      return null;
+    }
+  }
+  keep(userId, k) {
+    return this.deps.secrets.set(userId, NAME, JSON.stringify(k), this.deps.clock.now());
+  }
+  async status(userId) {
+    const k = await this.kept(userId);
+    return { key: { set: Boolean(k), hint: k ? `\u2026${k.apiKey.slice(-4)}` : null }, strictness: k?.strictness ?? "common" };
+  }
+  /** Kept once iFlytek has accepted them: a quarter second of quiet is scored, which needs keys that work. */
+  async setKeys(userId, raw) {
+    const keys = { appId: raw.appId.trim(), apiKey: raw.apiKey.trim(), apiSecret: raw.apiSecret.trim() };
+    if (!/^\w{4,40}$/.test(keys.appId) || !/^\w{8,80}$/.test(keys.apiKey) || !/^[\w=+/-]{8,120}$/.test(keys.apiSecret)) {
+      throw new ValidationError("Those do not look like iFlytek keys: the APPID, the APIKey and the APISecret from the console.");
+    }
+    const strictness = (await this.kept(userId))?.strictness ?? "common";
+    try {
+      await this.evaluator().evaluate(keys, { text: "\u4F60\u597D", pcm: new Uint8Array(8e3), strictness });
+    } catch (err) {
+      if (err instanceof EvaluatorRefused && err.reason === "keys") throw new ValidationError(`iFlytek did not accept them. ${err.message}`);
+    }
+    await this.keep(userId, { ...keys, strictness });
+    return this.status(userId);
+  }
+  async deleteKeys(userId) {
+    await this.deps.secrets.delete(userId, NAME);
+    return this.status(userId);
+  }
+  async setStrictness(userId, strictness) {
+    const k = await this.kept(userId);
+    if (!k) throw new NotFoundError("Your iFlytek keys");
+    await this.keep(userId, { ...k, strictness });
+    return this.status(userId);
+  }
+  async evaluate(userId, o) {
+    const k = await this.kept(userId);
+    if (!k) throw new AppError("not_found", "Add your iFlytek keys first, in Settings.");
+    const text = o.text.trim();
+    if (!text || [...text].length > EVAL_MAX_CHARS) throw new ValidationError("The phrase is empty or too long to score.");
+    const pcm = new Uint8Array(Buffer.from(o.audio, "base64"));
+    if (pcm.length < 3200) throw new ValidationError("Nothing was heard: say the phrase again.");
+    if (pcm.length > EVAL_MAX_BYTES) throw new ValidationError("That recording is too long for one phrase.");
+    try {
+      return await this.evaluator().evaluate(k, { text, pcm, strictness: k.strictness });
+    } catch (err) {
+      if (err instanceof EvaluatorRefused) throw new AppError("unavailable", err.message);
+      throw new AppError("unavailable", "iFlytek did not answer. Try again in a minute.");
+    }
+  }
+  evaluator() {
+    if (!this.deps.evaluator) throw new AppError("unavailable", "This server cannot reach iFlytek.");
+    return this.deps.evaluator;
+  }
+};
+
 // server/src/application/picture-service.ts
 import { createHash as createHash2 } from "node:crypto";
 
@@ -1085,12 +1305,13 @@ function createServices(stores, options = {}) {
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock })
+    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock }),
+    speechEval: new SpeechEvalService({ secrets: stores.secrets, evaluator: options.evaluator === void 0 ? { evaluate } : options.evaluator, clock })
   };
 }
 
 // server/src/http/app.ts
-import { Hono as Hono12 } from "hono";
+import { Hono as Hono13 } from "hono";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
 
@@ -1507,10 +1728,47 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
   return routes;
 }
 
-// server/src/http/routes/pictures.ts
+// server/src/http/routes/speechEval.ts
 import { Hono as Hono4 } from "hono";
-function pictureRoutes({ auth, clock, trustProxy, pictures }) {
+import { z as z4 } from "zod";
+var keysRequest = z4.object({ appId: z4.string().min(1).max(60), apiKey: z4.string().min(1).max(120), apiSecret: z4.string().min(1).max(160) });
+var settingsRequest = z4.object({ strictness: z4.enum(STRICTNESS) });
+var evalRequest = z4.object({
+  text: z4.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
+  // base64 of up to EVAL_MAX_BYTES of PCM
+  audio: z4.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
+});
+function speechEvalRoutes({ auth, clock, trustProxy, speechEval }) {
   const routes = new Hono4();
+  const session = requireSession(auth, { trustProxy, clock });
+  const scores = new RateLimiter(200, 10 * 6e4, clock);
+  const keys = new RateLimiter(20, 10 * 6e4, clock);
+  const user = (c) => c.get("session").user.id;
+  const json = (c, body) => {
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
+  };
+  routes.get("/", session, async (c) => json(c, await speechEval.status(user(c))));
+  routes.put("/key", session, async (c) => {
+    keys.consume(user(c));
+    return json(c, await speechEval.setKeys(user(c), await readJson(c, keysRequest)));
+  });
+  routes.delete("/key", session, async (c) => json(c, await speechEval.deleteKeys(user(c))));
+  routes.patch("/settings", session, async (c) => {
+    const { strictness } = await readJson(c, settingsRequest);
+    return json(c, await speechEval.setStrictness(user(c), strictness));
+  });
+  routes.post("/", session, async (c) => {
+    scores.consume(user(c));
+    return json(c, { result: await speechEval.evaluate(user(c), await readJson(c, evalRequest)) });
+  });
+  return routes;
+}
+
+// server/src/http/routes/pictures.ts
+import { Hono as Hono5 } from "hono";
+function pictureRoutes({ auth, clock, trustProxy, pictures }) {
+  const routes = new Hono5();
   const session = requireSession(auth, { trustProxy, clock });
   const uploads = new RateLimiter(300, 10 * 6e4, clock);
   routes.get("/:key", session, async (c) => {
@@ -1532,10 +1790,10 @@ function pictureRoutes({ auth, clock, trustProxy, pictures }) {
 }
 
 // server/src/http/routes/speech.ts
-import { Hono as Hono5 } from "hono";
+import { Hono as Hono6 } from "hono";
 var SPEECH_MAX_CHARS = 240;
 function speechRoutes({ auth, clock, trustProxy, speech }) {
-  const routes = new Hono5();
+  const routes = new Hono6();
   const session = requireSession(auth, { trustProxy, clock });
   const limiter = new RateLimiter(300, 10 * 6e4, clock);
   routes.get("/", session, (c) => {
@@ -1567,7 +1825,7 @@ function speechRoutes({ auth, clock, trustProxy, speech }) {
 }
 
 // server/src/http/routes/strokes.ts
-import { Hono as Hono6 } from "hono";
+import { Hono as Hono7 } from "hono";
 
 // shared/strokes.ts
 var STROKES_PER_REQUEST = 24;
@@ -1606,7 +1864,7 @@ async function fetchOne(c, get2) {
 // server/src/http/routes/strokes.ts
 var HANZI = /^\p{Script=Han}$/u;
 function strokeRoutes({ auth, clock, trustProxy }) {
-  const routes = new Hono6();
+  const routes = new Hono7();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const chars = [.../* @__PURE__ */ new Set([...c.req.query("c") ?? ""])];
@@ -1621,57 +1879,57 @@ function strokeRoutes({ auth, clock, trustProxy }) {
 }
 
 // server/src/http/routes/talk.ts
-import { Hono as Hono7 } from "hono";
-import { z as z4 } from "zod";
-var talkOptions = z4.object({
-  level: z4.enum(TALK_LEVELS),
-  length: z4.enum(TALK_LENGTHS),
-  explain: z4.boolean(),
-  words: z4.boolean(),
-  hints: z4.boolean(),
+import { Hono as Hono8 } from "hono";
+import { z as z5 } from "zod";
+var talkOptions = z5.object({
+  level: z5.enum(TALK_LEVELS),
+  length: z5.enum(TALK_LENGTHS),
+  explain: z5.boolean(),
+  words: z5.boolean(),
+  hints: z5.boolean(),
   // The learner's own words, and they go into a prompt: a topic the length
   // of an essay is a way of talking past everything above it.
-  topic: z4.string().trim().max(TALK_TOPIC_MAX_CHARS),
-  persona: z4.string().max(64).optional()
+  topic: z5.string().trim().max(TALK_TOPIC_MAX_CHARS),
+  persona: z5.string().max(64).optional()
 });
-var savedWord = z4.object({
-  hanzi: z4.string().max(TALK_LINE_MAX_CHARS),
-  pinyin: z4.string().max(TALK_LINE_MAX_CHARS * 2),
-  english: z4.string().max(TALK_LINE_MAX_CHARS)
+var savedWord = z5.object({
+  hanzi: z5.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z5.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z5.string().max(TALK_LINE_MAX_CHARS)
 });
-var savedTurn = z4.object({
-  who: z4.enum(["tutor", "learner"]),
-  hanzi: z4.string().max(TALK_LINE_MAX_CHARS),
-  pinyin: z4.string().max(TALK_LINE_MAX_CHARS * 2),
-  english: z4.string().max(TALK_LINE_MAX_CHARS * 2),
-  words: z4.array(savedWord).max(10).optional(),
-  hints: z4.array(savedWord).max(10).optional(),
-  note: z4.string().max(TALK_LINE_MAX_CHARS * 2).optional()
+var savedTurn = z5.object({
+  who: z5.enum(["tutor", "learner"]),
+  hanzi: z5.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z5.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z5.string().max(TALK_LINE_MAX_CHARS * 2),
+  words: z5.array(savedWord).max(10).optional(),
+  hints: z5.array(savedWord).max(10).optional(),
+  note: z5.string().max(TALK_LINE_MAX_CHARS * 2).optional()
 });
-var recordedRequest = z4.object({
-  voice: z4.string().min(1).max(64),
-  mode: z4.enum(TALK_MODES).optional(),
-  texts: z4.array(z4.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
+var recordedRequest = z5.object({
+  voice: z5.string().min(1).max(64),
+  mode: z5.enum(TALK_MODES).optional(),
+  texts: z5.array(z5.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
 });
-var startRequest = z4.object({
+var startRequest = z5.object({
   options: talkOptions,
-  voice: z4.string().max(64).nullable()
+  voice: z5.string().max(64).nullable()
 });
-var saveRequest = z4.object({
+var saveRequest = z5.object({
   options: talkOptions,
-  voice: z4.string().max(64).nullable(),
-  turns: z4.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
+  voice: z5.string().max(64).nullable(),
+  turns: z5.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
 });
-var replyRequest = z4.object({
-  lines: z4.array(z4.object({ who: z4.enum(["tutor", "learner"]), text: z4.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
+var replyRequest = z5.object({
+  lines: z5.array(z5.object({ who: z5.enum(["tutor", "learner"]), text: z5.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
   options: talkOptions,
-  vocab: z4.object({
-    known: z4.array(z4.string().max(12)).max(TALK_VOCAB_MAX.known),
-    learning: z4.array(z4.string().max(12)).max(TALK_VOCAB_MAX.learning)
+  vocab: z5.object({
+    known: z5.array(z5.string().max(12)).max(TALK_VOCAB_MAX.known),
+    learning: z5.array(z5.string().max(12)).max(TALK_VOCAB_MAX.learning)
   }).optional()
 });
 function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations, recordings }) {
-  const routes = new Hono7();
+  const routes = new Hono8();
   const session = requireSession(auth, { trustProxy, clock });
   const turns = new RateLimiter(120, 10 * 6e4, clock);
   const clips = new RateLimiter(600, 10 * 6e4, clock);
@@ -1751,7 +2009,7 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations,
 }
 
 // server/src/http/routes/videos.ts
-import { Hono as Hono8 } from "hono";
+import { Hono as Hono9 } from "hono";
 
 // shared/videos.ts
 var PLAYLIST_ID = /^[A-Za-z0-9_-]{10,64}$/;
@@ -1902,7 +2160,7 @@ async function lookUpPlaylist(playlistId) {
 
 // server/src/http/routes/videos.ts
 function videoRoutes({ auth, clock, trustProxy, log }) {
-  const routes = new Hono8();
+  const routes = new Hono9();
   const session = requireSession(auth, { trustProxy, clock });
   const lookups = new RateLimiter(60, 60 * 6e4, clock);
   routes.get("/youtube/:id", session, async (c) => {
@@ -1943,15 +2201,15 @@ function videoRoutes({ auth, clock, trustProxy, log }) {
 }
 
 // server/src/http/routes/workspace.ts
-import { Hono as Hono9 } from "hono";
+import { Hono as Hono10 } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { z as z5 } from "zod";
-var saveRequest2 = z5.object({
-  baseRevision: z5.number().int().min(0),
-  document: z5.record(z5.string(), z5.unknown())
+import { z as z6 } from "zod";
+var saveRequest2 = z6.object({
+  baseRevision: z6.number().int().min(0),
+  document: z6.record(z6.string(), z6.unknown())
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
-  const routes = new Hono9();
+  const routes = new Hono10();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -1989,21 +2247,21 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 }
 
 // server/src/http/routes/world.ts
-import { Hono as Hono10 } from "hono";
+import { Hono as Hono11 } from "hono";
 import { bodyLimit as bodyLimit2 } from "hono/body-limit";
-import { z as z6 } from "zod";
+import { z as z7 } from "zod";
 
 // shared/world.ts
 var WORLD_SAVE_MAX_BYTES = 512 * 1024;
 var worldTag = (revision) => `"w${revision}"`;
 
 // server/src/http/routes/world.ts
-var putRequest = z6.object({
-  baseRevision: z6.number().int().min(0),
-  save: z6.record(z6.string(), z6.unknown())
+var putRequest = z7.object({
+  baseRevision: z7.number().int().min(0),
+  save: z7.record(z7.string(), z7.unknown())
 });
 function worldRoutes({ auth, world, clock, trustProxy }) {
-  const routes = new Hono10();
+  const routes = new Hono11();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -2040,9 +2298,9 @@ function worldRoutes({ auth, world, clock, trustProxy }) {
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Hono as Hono11 } from "hono";
+import { Hono as Hono12 } from "hono";
 function staticSite(root) {
-  const site = new Hono11();
+  const site = new Hono12();
   const index = join(root, "index.html");
   site.use("*", caching());
   site.use("*", serveStatic({ root }));
@@ -2080,7 +2338,7 @@ function createHttpApp(services, options) {
     devUserCreate: options.devUserCreate ?? true,
     log: options.log
   };
-  const api = new Hono12();
+  const api = new Hono13();
   api.onError(onError);
   api.use("*", sameOriginOnly());
   api.get("/health", (c) => c.json({ ok: true }));
@@ -2094,10 +2352,11 @@ function createHttpApp(services, options) {
   api.route("/strokes", strokeRoutes(deps));
   api.route("/pictures", pictureRoutes(deps));
   api.route("/narration", narrationRoutes(deps));
+  api.route("/eval", speechEvalRoutes(deps));
   api.all("*", () => {
     throw new NotFoundError("That API route");
   });
-  const app = new Hono12();
+  const app = new Hono13();
   app.onError(onError);
   if (options.compress !== false) app.use("*", compress());
   app.use(

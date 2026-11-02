@@ -1,0 +1,119 @@
+/* Speaking's tabs: across the top on a phone, a column on the left on an iPad. */
+.sp-frame {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.sp-nav {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  margin: -6px calc(-1 * var(--gutter)) 0;
+  padding: 0 var(--gutter);
+}
+
+.sp-nav-title {
+  display: none;
+}
+
+.sp-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  padding: 6px 4px 8px;
+  border-bottom: 2px solid transparent;
+  color: var(--ink-3);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.sp-tab-mark {
+  font-size: 20px;
+  line-height: 1.2;
+  color: var(--ink-2);
+}
+
+.sp-tab-long {
+  display: none;
+}
+
+.sp-tab[aria-current='page'] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.sp-tab[aria-current='page'] .sp-tab-mark {
+  color: var(--accent);
+}
+
+.sp-body {
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .sp-frame {
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+
+  .sp-nav {
+    position: sticky;
+    top: 16px;
+    flex-direction: column;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  .sp-nav-title {
+    display: block;
+    font-size: 22px;
+    margin: 0 10px 12px;
+  }
+
+  .sp-tab {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 12px;
+    font-size: 15px;
+    color: var(--ink);
+  }
+
+  .sp-tab-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--card-2);
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+  }
+
+  .sp-tab-short {
+    display: none;
+  }
+
+  .sp-tab-long {
+    display: inline;
+  }
+
+  .sp-tab[aria-current='page'] {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .sp-tab[aria-current='page'] .sp-tab-mark {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+}

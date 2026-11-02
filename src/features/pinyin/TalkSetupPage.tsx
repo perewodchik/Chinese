@@ -112,7 +112,7 @@ export function TalkSetupPage() {
   return (
     <section className="pinyin talk-setup">
       <div className="row" style={{ marginBottom: 14 }}>
-        <Link className="btn ghost sm" to={paths.speaking()}>
+        <Link className="btn ghost sm" to={paths.speakingTalkFront()}>
           ← Speaking
         </Link>
       </div>
@@ -132,7 +132,7 @@ export function TalkSetupPage() {
       <div className="card">
         <header>
           <h2>Who you are talking to</h2>
-          <Link className="btn ghost sm" to={`${paths.speaking()}#partners`}>
+          <Link className="btn ghost sm" to={`${paths.speakingTalkFront()}#partners`}>
             {keptVoices.length ? 'Change who is here' : 'Hear them first'}
           </Link>
         </header>
