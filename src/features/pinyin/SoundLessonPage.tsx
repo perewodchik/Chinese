@@ -6,7 +6,7 @@ import { paths } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
 import { Seg } from '../../ui/Seg';
 import { useTitle } from '../../ui/useTitle';
-import { SayCheck } from './SayCheck';
+import { ScoredSay } from './ScoredSay';
 import { hearKey, record, recentScore, sayKey, usePinyinMemory } from './voice';
 import { anyVoiceFor, say } from '../../platform/audio/voiceOut';
 import './pinyin.css';
@@ -279,15 +279,23 @@ function SayIt({ lesson }: { lesson: SoundLesson }) {
         <span className="tiny muted">
           Word {(at % words.length) + 1} of {words.length}
         </span>
-        {score !== null && <span className="tiny muted">· {Math.round(score * 100)}% heard as meant lately</span>}
+        {score !== null && <span className="tiny muted">· {Math.round(score * 100)}% right lately</span>}
       </div>
-      <SayCheck
-        word={word}
-        onResult={(r) => {
+      <div className="speak-word" style={{ minHeight: 0 }}>
+        <span className="speak-hanzi" style={{ fontSize: 56 }}>
+          {word.word}
+        </span>
+        <span className="speak-reading">{word.reading}</span>
+      </div>
+      <ScoredSay
+        word={word.word}
+        readings={word.reading.split(/\s+/)}
+        onListen={() => void say(word.word, { slow: true })}
+        onScored={(_r, good) => {
           // The first attempt at each word is what counts; trying again until
           // it comes out right is practice, not a score.
           if (scored.has(at)) return;
-          record(sayKey(lesson.id), r.clean);
+          record(sayKey(lesson.id), good);
           setScored((s) => new Set(s).add(at));
         }}
       />

@@ -12,8 +12,8 @@
  * Each lesson has three parts, in the order they work. What the mouth does,
  * with the nearest English sound and the usual mistake. Pairs of words that
  * differ only in that sound, to tell apart by ear — a sound you cannot hear
- * is a sound you cannot aim at. Then words to say, which the browser's
- * speech recognition checks.
+ * is a sound you cannot aim at. Then words to say, which the pronunciation
+ * service scores.
  */
 
 export interface SaidWord {

@@ -1,7 +1,7 @@
 import type { Library } from '../../data/types';
 import { idValue, isCharId } from '../ids';
 import type { RecallBook } from '../memory';
-import { TONE_NAME } from './contour';
+import { TONE_NAME } from './tones';
 import { SOUND_LESSONS } from './sounds';
 
 /**

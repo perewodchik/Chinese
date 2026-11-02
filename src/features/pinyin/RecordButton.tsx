@@ -1,11 +1,14 @@
-import type { SayItState } from './useSayIt';
+import type { RecorderState } from './useRecorder';
+
+/** The recorder's states, and the wait while the service scores what was said. */
+export type SayItState = RecorderState | 'checking';
 
 const LABEL: Record<SayItState, string> = {
   idle: 'Say it',
   opening: 'Opening the microphone…',
   listening: 'Listening…',
   hearing: 'Hearing you…',
-  checking: 'Working out what you said…',
+  checking: 'Scoring…',
 };
 
 /**

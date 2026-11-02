@@ -12,12 +12,12 @@
  */
 import { readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { analyse } from '../../src/domain/pinyin/analyse';
-import type { VoiceRange } from '../../src/domain/pinyin/contour';
+import { analyse } from './pitch/analyse';
+import type { VoiceRange } from './pitch/contour';
 import { spokenTones } from '../../src/domain/pinyin/sandhi';
-import { voicedMask } from '../../src/domain/pinyin/segment';
+import { voicedMask } from './pitch/segment';
 import { downsample } from '../../src/platform/audio/mic';
-import { trackPitch, type PitchFrame } from '../../src/platform/audio/pitch';
+import { trackPitch, type PitchFrame } from './pitch/track';
 import { readWav } from './wav';
 
 const dir = resolve(process.argv.slice(2).find((a) => !a.startsWith('--')) ?? '.cache/pinyin-sound/wav');

@@ -21,7 +21,6 @@ import { TalkPage } from '../features/pinyin/TalkPage';
 import { TalkSetupPage } from '../features/pinyin/TalkSetupPage';
 import { NarratorsPage } from '../features/pinyin/NarratorsPage';
 import { TonesPage } from '../features/pinyin/TonesPage';
-import { VoicePage } from '../features/pinyin/VoicePage';
 import { SessionPage } from '../features/reader/SessionPage';
 import { ReaderPage } from '../features/reader/ReaderPage';
 import { ReadPage, ShelfPage } from '../features/reader/ReadPage';
@@ -68,7 +67,7 @@ import { RequireSession } from './RequireSession';
  *   /texts/session/:step           a writing session: plan, prompt, paste
  *   /texts/:sessionId?page&v&mode  a shelf read a text at a time: ?page=2, ?v=easy|book, ?mode=all
  *   /texts/:textId                 one passage — within a session, its page there
- *   /speaking                      phrases said and scored by iFlytek (Speaking's first tab)
+ *   /speaking                      phrases said and scored by SpeechSuper or iFlytek (Speaking's first tab)
  *   /speaking/voices, /talk, /pinyin  Speaking's other tabs: narrators, Claude, the tones and sounds
  *   /speaking/practice/:set        saying things out loud: pair-3-3, tone-2
  *   /speaking/sounds/:lesson?step  one sound lesson: how it is made, hear it, say it
@@ -77,7 +76,7 @@ import { RequireSession } from './RequireSession';
  *   /videos/:id?part&do            one video, a part of it, a step
  *   /speaking/new                  setting a conversation up before it starts
  *   /speaking/:conversationId      one conversation with Claude, kept
- *   /speaking/voice                the voice range, and a check of the sounds
+ *   /speaking/voice                (gone: the voice range was for pitch the app measured itself) → the tones
  *   /settings
  *
  * and, on any page, ?item=c好 for the character drawer and ?view=好 for a
@@ -177,7 +176,7 @@ export const router = createBrowserRouter([
               { path: 'videos', element: <VideosPage /> },
               { path: 'videos/add', element: <AddVideoPage /> },
               { path: 'videos/:videoId', element: <VideoPage /> },
-              { path: 'speaking/voice', element: <VoicePage /> },
+              { path: 'speaking/voice', element: <Navigate to={paths.speakingTones()} replace /> },
               // Setting one up, and the conversation itself. `new` is matched
               // before `:conversationId` so a conversation can never be named
               // out of reach of the page that starts one.

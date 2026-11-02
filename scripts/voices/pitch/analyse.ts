@@ -1,5 +1,6 @@
+/* The app's own pitch analysis, kept only for building the voice pack: it turns down machine clips whose tones are off. The learner is scored by the pronunciation service, never by this. */
 import { judge, rangeOf, toChao, type Judged, type VoiceRange } from './contour';
-import type { Spoken } from './sandhi';
+import type { Spoken } from '../../../src/domain/pinyin/sandhi';
 import { alignSyllables, voicedMask, type Frame, type Span } from './segment';
 
 /**

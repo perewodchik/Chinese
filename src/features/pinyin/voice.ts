@@ -1,15 +1,14 @@
 import { logSpoken } from '../../store/commands';
 import { useSyncExternalStore } from 'react';
-import type { VoiceRange } from '../../domain/pinyin/contour';
 
 /**
- * What the pronunciation section remembers: the learner's voice range, and
- * how each tone and tone pair has been going.
+ * What the pronunciation section remembers: how each tone, tone pair and
+ * sound has been going, as the pronunciation service scored it.
  *
- * Kept on the device for now rather than in the synced workspace. A voice
- * range belongs to a microphone as much as to a person — the iPad's and the
- * laptop's hear the same voice differently — and the tallies are a first cut
- * that will move into the account once their shape has settled.
+ * Kept on the device for now rather than in the synced workspace; the
+ * tallies are a first cut that will move into the account once their shape
+ * has settled. (A voice range was kept here too, while the app measured pitch
+ * itself; it no longer does.)
  */
 
 export interface Tally {
@@ -22,7 +21,6 @@ export interface Tally {
 }
 
 interface Saved {
-  range: VoiceRange | null;
   /** keyed "pair:3-3" or "tone:2" */
   tallies: Record<string, Tally>;
 }
@@ -35,12 +33,12 @@ function read(): Saved {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const v = JSON.parse(raw) as Partial<Saved>;
-      return { range: v.range ?? null, tallies: v.tallies ?? {} };
+      return { tallies: v.tallies ?? {} };
     }
   } catch {
     void 0;
   }
-  return { range: null, tallies: {} };
+  return { tallies: {} };
 }
 
 let state = read();
@@ -62,10 +60,6 @@ const subscribe = (l: () => void) => {
 };
 
 export const usePinyinMemory = () => useSyncExternalStore(subscribe, () => state);
-
-export const voiceRange = () => state.range;
-
-export const saveRange = (range: VoiceRange | null) => write({ ...state, range });
 
 // The voice to hear moved beside the player, which every speaker button uses.
 export { preferredVoice, saveVoice } from '../../platform/audio/voicePreference';

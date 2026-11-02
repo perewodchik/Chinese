@@ -12,13 +12,13 @@
  */
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { analyse } from '../../src/domain/pinyin/analyse';
-import type { VoiceRange } from '../../src/domain/pinyin/contour';
-import { voicedMask } from '../../src/domain/pinyin/segment';
+import { analyse } from './pitch/analyse';
+import type { VoiceRange } from './pitch/contour';
+import { voicedMask } from './pitch/segment';
 import { spokenTones } from '../../src/domain/pinyin/sandhi';
 import { syllables } from '../../src/domain/pinyin/syllable';
 import { downsample } from '../../src/platform/audio/mic';
-import { trackPitch } from '../../src/platform/audio/pitch';
+import { trackPitch } from './pitch/track';
 import { readWav } from './wav';
 
 export interface Job {

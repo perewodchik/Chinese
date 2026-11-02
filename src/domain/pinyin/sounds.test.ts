@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { withoutTone } from '../drill';
-import { bestHeard, compareHeard, describeMiss, understood } from './heard';
 import { SOUND_LESSONS } from './sounds';
 import { parseSyllable, syllables } from './syllable';
 
@@ -15,8 +14,6 @@ interface Entry {
 const data = JSON.parse(readFileSync(new URL('../../../public/data/characters.json', import.meta.url), 'utf8')) as {
   items: Entry[];
 };
-const byChar = new Map(data.items.map((e) => [e.c, e]));
-const readings = (ch: string) => byChar.get(ch)?.py ?? [];
 
 /**
  * A character's readings, including the ones only its words show: the
@@ -69,62 +66,3 @@ describe('the sound lessons', () => {
   });
 });
 
-describe('what recognition heard', () => {
-  it('counts a homophone as heard right', () => {
-    const r = compareHeard('shì', '事', readings);
-    assert.ok(r.clean);
-  });
-
-  it('names the sound that went wrong', () => {
-    const r = compareHeard('qǐ chuáng', '吃床', readings);
-    assert.deepEqual(r.syllables[0]!.off, ['initial']);
-    assert.equal(describeMiss(r.syllables[0]!), 'q heard as ch');
-    assert.deepEqual(r.syllables[1]!.off, []);
-    assert.ok(!r.clean);
-  });
-
-  it('ignores punctuation, and takes the closest reading of a many-reading character', () => {
-    assert.ok(compareHeard('jué de', '觉得。', readings).clean);
-  });
-
-  it('picks the closest of several alternatives', () => {
-    const r = bestHeard('xīn qíng', ['星星', '心情'], readings)!;
-    assert.ok(r.clean);
-  });
-
-  it('marks a -n heard as -ng on the final', () => {
-    const r = compareHeard('xīn', '星', readings);
-    assert.deepEqual(r.syllables[0]!.off, ['final']);
-  });
-});
-
-describe('whether a listener understood', () => {
-  const said = (py: string, zh: string, heard: string) => understood(compareHeard(py, heard, readings), zh);
-
-  it('is understood when it heard the sentence meant, or the same words with the same tones', () => {
-    assert.ok(said('wǒ mǎi shū', '我买书。', '我买书'));
-    // 事 for 是: the same sound and the same tone — nobody could tell them apart.
-    assert.ok(said('shì', '是', '事'));
-  });
-
-  it('is not understood when a tone turned it into another word', () => {
-    // 卖 for 买: the sounds are right and the meaning is the opposite.
-    const r = compareHeard('wǒ mǎi shū', '我卖书', readings);
-    assert.ok(r.clean, 'the sounds all came out');
-    assert.ok(r.syllables[1]!.toneOff);
-    assert.ok(!understood(r, '我买书。'));
-    assert.match(describeMiss(r.syllables[1]!), /another tone/);
-  });
-
-  it('does not hold a neutral tone to the dictionary reading', () => {
-    // 便宜's 宜 is written yí and said light.
-    assert.ok(!compareHeard('pián yi', '便宜', readings).syllables[1]!.toneOff);
-  });
-
-  it('takes the very character meant as heard right, whatever the dictionary has for it', () => {
-    // The data has 便 as biàn only.
-    const r = compareHeard('pián yi', '便宜', readings, '便宜');
-    assert.ok(r.syllables.every((x) => x.off.length === 0 && !x.toneOff));
-    assert.ok(said('pián yi', '便宜', '便宜'));
-  });
-});

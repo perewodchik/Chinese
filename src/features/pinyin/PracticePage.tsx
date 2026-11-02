@@ -1,23 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router';
-import { analyse, type Attempt } from '../../domain/pinyin/analyse';
-import { resample, TONE_NAME, type Verdict } from '../../domain/pinyin/contour';
+import { Navigate, useNavigate, useParams } from 'react-router';
+import type { EvalResult } from '../../../shared/speechEval';
+import { TONE_NAME } from '../../domain/pinyin/tones';
 import { singleTones, tonePairs, type PracticeWord } from '../../domain/pinyin/practice';
 import { RULE_NOTE } from '../../domain/pinyin/sandhi';
 import { withTone } from '../../domain/pinyin/syllable';
-import { micUnavailable, MIC_MESSAGE } from '../../platform/audio/mic';
-import { trackPitch } from '../../platform/audio/pitch';
 import { paths } from '../../navigation/paths';
-import { useStore } from '../../store/store';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
-import { PitchStaff } from './PitchStaff';
-import { RecordButton } from './RecordButton';
-import { useRecorder } from './useRecorder';
-import { pairKey, record, toneKey, voiceRange } from './voice';
-import { anyVoiceFor, packTexts, packVoices, referenceSamples, say, voicesFor } from '../../platform/audio/voiceOut';
+import { ScoredSay } from './ScoredSay';
+import { pairKey, record, toneKey } from './voice';
+import { anyVoiceFor, packTexts, packVoices, say, voicesFor } from '../../platform/audio/voiceOut';
 import './pinyin.css';
-import { Icon } from '../../ui/Icon';
 
 interface PracticeSet {
   id: string;
@@ -92,71 +86,29 @@ interface Result {
   tries: number;
 }
 
-const VERDICT_LABEL: Record<Verdict, string> = {
-  right: 'Right',
-  close: 'Nearly',
-  wrong: 'Not yet',
-  light: 'Light',
-  unheard: 'Not heard',
-};
-
-/**
- * The same verdicts, for when the chart is off and the only question is
- * whether a listener would have understood. "Nearly" still counts: a tone
- * that was a coin toss for the checker is one a listener gets from context.
- */
-const PLAIN_LABEL: Record<Verdict, string> = {
-  right: 'Understood',
-  close: 'Understood',
-  wrong: 'Not understood',
-  light: 'Understood',
-  unheard: 'Not heard',
-};
-const PLAIN_STATE: Record<Verdict, 'right' | 'wrong' | undefined> = {
-  right: 'right',
-  close: 'right',
-  wrong: 'wrong',
-  light: 'right',
-  unheard: undefined,
-};
-
 function Sitting({ set }: { set: PracticeSet }) {
   useTitle(set.title);
   const navigate = useNavigate();
   const [at, setAt] = useState(0);
-  const [attempt, setAttempt] = useState<Attempt | null>(null);
-  const [samples, setSamples] = useState<Float32Array | null>(null);
-  const [take, setTake] = useState(0);
+  const [scored, setScored] = useState<{ good: boolean } | null>(null);
   const [tries, setTries] = useState(0);
   const [results, setResults] = useState<Result[]>([]);
-  const blocked = micUnavailable();
-  const chart = useStore((s) => s.settings.pitchChart);
 
   const word = set.words[at];
   const exit = () => navigate(paths.speakingTones(), { replace: true });
 
-  const onRecorded = useCallback(
-    (s: Float32Array) => {
+  // The service's verdict is the only one: the first try is what counts for the
+  // tally; a later success only counts as having got there.
+  const onScored = useCallback(
+    (_r: EvalResult, good: boolean) => {
       if (!word) return;
-      const frames = trackPitch(s, { sampleRate: 16000 });
-      const a = analyse(frames, word.spoken, voiceRange());
-      setSamples(s);
-      setAttempt(a);
-      setTake((n) => n + 1);
-      if (a.problem) return;
-      const good = a.syllables.every((x) => x.judged.verdict === 'right' || x.judged.verdict === 'light');
+      setScored({ good });
       record(set.tally, good);
       setTries((n) => n + 1);
-      if (good || tries === 0) {
-        // The first try is what counts for the tally; a later success only
-        // counts as having got there.
-        setResults((r) => (r.some((x) => x.word === word) ? r : [...r, { word, firstTry: good, tries: tries + 1 }]));
-      }
+      if (good || tries === 0) setResults((r) => (r.some((x) => x.word === word) ? r : [...r, { word, firstTry: good, tries: tries + 1 }]));
     },
     [word, set.tally, tries],
   );
-
-  const rec = useRecorder(onRecorded, 1800 + 700 * (word?.syllables.length ?? 1));
 
   // Who says this word. Several native speakers often recorded the same
   // one, and hearing a tone pair in more than one voice is what teaches the
@@ -194,39 +146,9 @@ function Sitting({ set }: { set: PracticeSet }) {
     [word, speaker],
   );
 
-  // With a natural voice, the reference on the staff is that voice's own pitch
-  // rather than the textbook shape: real sandhi, a real neutral tone, the
-  // exact thing being imitated. Measured on its own scale, like the learner.
-  const [native, setNative] = useState<Array<number[] | null> | null>(null);
-  useEffect(() => {
-    setNative(null);
-    if (!word || speaker === undefined) return;
-    let live = true;
-    void referenceSamples(word.word, { slow: true, voice: speaker || undefined }).then((s) => {
-      if (!live || !s) return;
-      const a = analyse(trackPitch(s, { sampleRate: 16000 }), word.spoken, null);
-      if (a.problem) return;
-      setNative(
-        a.syllables.map((syl) => {
-          const pts = a.line.filter((p) => p.t >= syl.from && p.t <= syl.to && Number.isFinite(p.chao)).map((p) => p.chao);
-          // The tenth at each end is left off, as the checker leaves it off:
-          // the consonant's push at the start and the voice trailing away at
-          // the end are where a pitch tracker jumps an octave, and a spike to
-          // the top of the staff is not a tone anybody should copy.
-          const cut = Math.floor(pts.length * 0.1);
-          const kept = pts.slice(cut, pts.length - cut || undefined);
-          return kept.length > 3 ? resample(kept, 16) : null;
-        }),
-      );
-    });
-    return () => {
-      live = false;
-    };
-  }, [word, speaker]);
   const next = useCallback(() => {
     setAt((n) => n + 1);
-    setAttempt(null);
-    setSamples(null);
+    setScored(null);
     setTries(0);
   }, []);
 
@@ -245,33 +167,16 @@ function Sitting({ set }: { set: PracticeSet }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey) return;
-      if (e.key === ' ') {
-        e.preventDefault();
-        rec.toggle();
-      } else if (e.key === 'l' || e.key === 'L') listen();
-      else if ((e.key === 'p' || e.key === 'P') && samples) rec.play(samples);
-      else if ((e.key === 'Enter' || e.key === 'ArrowRight') && attempt) next();
+      if (e.key === 'l' || e.key === 'L') listen();
+      else if ((e.key === 'Enter' || e.key === 'ArrowRight') && scored) next();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [rec, listen, samples, attempt, next]);
+  }, [listen, scored, next]);
 
   if (!word) return <Done set={set} results={results} onExit={exit} />;
 
-  const judged = attempt && !attempt.problem ? attempt.syllables : null;
   const rules = [...new Set(word.spoken.map((s) => s.rule).filter(Boolean))] as Array<keyof typeof RULE_NOTE>;
-  // Saying the dictionary's tone where a rule changes it is its own mistake,
-  // and the useful thing to hear is the rule, not a description of the shape.
-  const tip = judged
-    ?.map((s, i) => {
-      const sp = word.spoken[i]!;
-      if (sp.rule && s.judged.verdict !== 'right' && s.judged.guess?.tone === sp.citation) {
-        return `That was the dictionary's ${TONE_NAME[sp.citation]} tone. ${RULE_NOTE[sp.rule]}`;
-      }
-      return s.judged.tip;
-    })
-    .find(Boolean);
-  const allRight = judged?.every((s) => s.judged.verdict === 'right' || s.judged.verdict === 'light');
 
   return (
     <section className="drill">
@@ -293,8 +198,6 @@ function Sitting({ set }: { set: PracticeSet }) {
       </div>
 
       <div className="drill-stage speak-stage">
-        {blocked && <p className="notice speak-notice">{MIC_MESSAGE[blocked]}</p>}
-
         <div className="speak-word">
           <span className="speak-hanzi">{word.word}</span>
           <span className="speak-reading">{word.reading}</span>
@@ -310,45 +213,13 @@ function Sitting({ set }: { set: PracticeSet }) {
           )}
         </div>
 
-        {chart && (
-          <div className="staff-card">
-            <PitchStaff
-              take={take}
-              references={native}
-              line={judged ? attempt!.line : undefined}
-              syllables={word.spoken.map((s, i) => ({
-                tone: s.surface,
-                halfThird: s.halfThird,
-                from: judged?.[i]?.from,
-                to: judged?.[i]?.to,
-                verdict: judged?.[i]?.judged.verdict,
-              }))}
-            />
-            <div className="staff-legend tiny muted">
-              <span>
-                <i className="key-ref" /> {native ? 'the voice you are copying' : 'the shape to aim for'}
-              </span>
-              <span>
-                <i className="key-voice" /> your voice
-              </span>
-            </div>
-          </div>
-        )}
-
-        <div className="speak-controls">
-          <button className="btn speak-side" onClick={listen} title="Listen (L)">
-            <Icon name="sound" size={18} /> Listen
-          </button>
-          <RecordButton state={rec.state} level={rec.level} onToggle={rec.toggle} disabled={!!blocked} />
-          <button
-            className="btn speak-side"
-            onClick={() => samples && rec.play(samples)}
-            disabled={!samples}
-            title="Hear yourself (P)"
-          >
-            <span aria-hidden>▶</span> Me
-          </button>
-        </div>
+        <ScoredSay
+          word={word.word}
+          readings={word.syllables.map((s) => s.py)}
+          onListen={listen}
+          onScored={onScored}
+          maxMs={1800 + 700 * word.syllables.length}
+        />
 
         {speaker && (
           <div className="row speak-speaker" style={{ justifyContent: 'center', gap: 10 }}>
@@ -361,60 +232,15 @@ function Sitting({ set }: { set: PracticeSet }) {
           </div>
         )}
 
-        {rec.error && <p className="notice speak-notice">{rec.error}</p>}
-
-        {attempt?.problem && (
-          <p className="small muted" style={{ margin: 0 }}>
-            {attempt.problem === 'silent'
-              ? 'Nothing was heard. Say it a little louder, or closer to the microphone.'
-              : `Could not find ${word.syllables.length} syllables in that. Say it again, a touch more slowly.`}
-          </p>
-        )}
-
-        {judged && (
-          <>
-            <div className="verdicts">
-              {judged.map((s, i) => {
-                const sp = word.spoken[i]!;
-                const heard = s.judged.guess?.tone;
-                return (
-                  <div key={i} className="verdict" data-state={chart ? s.judged.verdict : PLAIN_STATE[s.judged.verdict]}>
-                    <span className="verdict-hanzi">{[...word.word][i]}</span>
-                    <span className="verdict-py">{withTone(word.syllables[i]!.bare, sp.surface)}</span>
-                    <b>{(chart ? VERDICT_LABEL : PLAIN_LABEL)[s.judged.verdict]}</b>
-                    {chart && (
-                      <span className="tiny muted">
-                        {s.judged.verdict === 'light'
-                          ? 'neutral — short and soft'
-                          : s.judged.verdict === 'right'
-                            ? `a clear ${TONE_NAME[sp.surface]}`
-                            : heard
-                              ? `sounded like a ${TONE_NAME[heard]}`
-                              : ''}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            {chart && tip && <p className="speak-tip">{tip}</p>}
-            {chart && attempt!.selfScaled && (
-              <p className="tiny muted" style={{ margin: 0 }}>
-                Your voice range is not set, so how high is guessed from this recording.{' '}
-                <Link to={paths.speakingVoice()}>Set it up</Link> — it takes twenty seconds.
-              </p>
-            )}
-            <div className="row" style={{ justifyContent: 'center' }}>
-              <button className={`btn${allRight ? ' primary' : ''}`} onClick={next}>
-                {at + 1 < set.words.length ? 'Next word' : 'Finish'} <span className="key-hint tiny">↵</span>
-              </button>
-            </div>
-          </>
-        )}
-
-        {!judged && (
+        {scored ? (
+          <div className="row" style={{ justifyContent: 'center' }}>
+            <button className={`btn${scored.good ? ' primary' : ''}`} onClick={next}>
+              {at + 1 < set.words.length ? 'Next word' : 'Finish'} <span className="key-hint tiny">↵</span>
+            </button>
+          </div>
+        ) : (
           <p className="tiny muted key-hint" style={{ margin: 0 }}>
-            Space to record · L to listen · P to hear yourself
+            L to listen
           </p>
         )}
       </div>
