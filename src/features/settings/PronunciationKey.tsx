@@ -1,23 +1,49 @@
 import { useEffect, useState } from 'react';
-import { STRICTNESS, type EvalStatus, type Strictness } from '../../../shared/speechEval';
+import { EVAL_PROVIDERS, PROVIDER_NAME, STRICTNESS, type EvalKeys, type EvalProvider, type EvalStatus, type Strictness } from '../../../shared/speechEval';
 import { evalStatus, forgetEvalKeys, saveEvalKeys, setStrictness } from '../../api/speechEval';
 
 const STRICT_LABEL: Record<Strictness, string> = { easy: 'Easy', common: 'Common', hard: 'Hard' };
 
+/** Each service's fields, as its console names them. */
+const FIELDS: Record<EvalProvider, Array<{ name: string; label: string; secret: boolean }>> = {
+  speechsuper: [
+    { name: 'appKey', label: 'appKey', secret: false },
+    { name: 'secretKey', label: 'secretKey', secret: true },
+  ],
+  iflytek: [
+    { name: 'appId', label: 'APPID', secret: false },
+    { name: 'apiKey', label: 'APIKey', secret: true },
+    { name: 'apiSecret', label: 'APISecret', secret: true },
+  ],
+};
+
+const ABOUT: Record<EvalProvider, string> = {
+  speechsuper:
+    'SpeechSuper scores each phrase you say in Speaking › Phrases: every syllable’s initial, final and tone out of 100, what a wrong sound was like and which tone you said, the tone a syllable takes in the phrase, the rhythm and the pace. Your own keys, from the console at speechsuper.com.',
+  iflytek:
+    'iFlytek’s speech evaluation scores each phrase you say in Speaking › Phrases: whether each syllable’s initial, final and tone were right, the flow, and what was left out. Your own keys, from the console at xfyun.cn (语音评测).',
+};
+
 /**
- * Pronunciation checking: the learner's iFlytek keys (APPID, APIKey and
- * APISecret from the xfyun.cn console), which score each phrase said in
- * Speaking › Phrases, and how strictly. The keys go to the server, which
- * tries them with iFlytek before keeping them and never sends them back.
+ * Pronunciation checking: the learner's keys for SpeechSuper or iFlytek, which
+ * score each phrase said in Speaking › Phrases, and how strictly. The keys go
+ * to the server, which tries them before keeping them and never sends them back.
  */
 export function PronunciationKey({ onChange }: { onChange?: (s: EvalStatus) => void } = {}) {
   const [status, setStatus] = useState<EvalStatus | null>(null);
-  const [keys, setKeys] = useState({ appId: '', apiKey: '', apiSecret: '' });
+  const [provider, setProvider] = useState<EvalProvider>('speechsuper');
+  const [keys, setKeys] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    void evalStatus().then(setStatus, () => setStatus({ key: { set: false, hint: null }, strictness: 'common' }));
+    void evalStatus().then(
+      (s) => {
+        setStatus(s);
+        if (s.key.provider) setProvider(s.key.provider);
+      },
+      () => setStatus({ key: { set: false, hint: null, provider: null }, strictness: 'common' }),
+    );
   }, []);
 
   async function act(fn: () => Promise<EvalStatus>, done: string) {
@@ -27,7 +53,7 @@ export function PronunciationKey({ onChange }: { onChange?: (s: EvalStatus) => v
       const next = await fn();
       setStatus(next);
       onChange?.(next);
-      setKeys({ appId: '', apiKey: '', apiSecret: '' });
+      setKeys({});
       setMessage(done);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'That did not work.');
@@ -36,15 +62,18 @@ export function PronunciationKey({ onChange }: { onChange?: (s: EvalStatus) => v
     }
   }
 
-  const filled = keys.appId.trim() && keys.apiKey.trim() && keys.apiSecret.trim();
-  const field = (name: keyof typeof keys, label: string, secret: boolean) => (
-    <label className="field" style={{ display: 'grid', gap: 4, flex: '1 1 160px', minWidth: 0 }}>
+  const fields = FIELDS[provider];
+  const filled = fields.every((f) => keys[f.name]?.trim());
+  const typed = { provider, ...Object.fromEntries(fields.map((f) => [f.name, keys[f.name] ?? ''])) } as EvalKeys;
+  const name = PROVIDER_NAME[provider];
+  const field = (name: string, label: string, secret: boolean) => (
+    <label key={name} className="field" style={{ display: 'grid', gap: 4, flex: '1 1 160px', minWidth: 0 }}>
       <span className="small">{label}</span>
       <input
         type={secret ? 'password' : 'text'}
         autoComplete="off"
         spellCheck={false}
-        value={keys[name]}
+        value={keys[name] ?? ''}
         onChange={(e) => setKeys((k) => ({ ...k, [name]: e.target.value }))}
         style={{ fontSize: 16, minWidth: 0 }}
       />
@@ -57,29 +86,36 @@ export function PronunciationKey({ onChange }: { onChange?: (s: EvalStatus) => v
         <h2>Pronunciation checking</h2>
       </header>
       <div className="body" style={{ display: 'grid', gap: 12 }}>
+        <div className="seg sm" role="group" aria-label="Service">
+          {EVAL_PROVIDERS.map((p) => (
+            <button key={p} type="button" aria-pressed={provider === p} disabled={busy} onClick={() => setProvider(p)}>
+              {PROVIDER_NAME[p]}
+            </button>
+          ))}
+        </div>
         <p className="small muted" style={{ margin: 0 }}>
-          iFlytek's speech evaluation scores each phrase you say in Speaking › Phrases: every syllable's initial, final and
-          tone, the flow, and what was left out. Your own keys, from the console at xfyun.cn (语音评测): they stay on the
-          server and are never shown again.
+          {ABOUT[provider]} They stay on the server and are never shown again.
         </p>
         <p className="small" style={{ margin: 0, minHeight: '1.5em' }}>
-          {status === null ? '' : status.key.set ? `Keys with an APIKey ending ${status.key.hint} are saved.` : 'No keys saved yet.'}
+          {status === null
+            ? ''
+            : status.key.set && status.key.provider
+              ? `${PROVIDER_NAME[status.key.provider]} keys ending ${status.key.hint} are saved and used.`
+              : 'No keys saved yet.'}
         </p>
         <form
           style={{ display: 'grid', gap: 10 }}
           onSubmit={(e) => {
             e.preventDefault();
-            if (filled) void act(() => saveEvalKeys(keys), 'Saved. iFlytek accepted the keys.');
+            if (filled) void act(() => saveEvalKeys(typed), `Saved. ${name} accepted the keys.`);
           }}
         >
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            {field('appId', 'APPID', false)}
-            {field('apiKey', 'APIKey', true)}
-            {field('apiSecret', 'APISecret', true)}
+            {fields.map((f) => field(f.name, f.label, f.secret))}
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="btn tonal" type="submit" disabled={busy || !filled}>
-              {busy ? 'Checking…' : status?.key.set ? 'Replace the keys' : 'Save the keys'}
+              {busy ? 'Checking…' : status?.key.set ? `Use these ${name} keys` : 'Save the keys'}
             </button>
             {status?.key.set && (
               <button className="btn quiet" type="button" disabled={busy} onClick={() => void act(forgetEvalKeys, 'The keys are forgotten.')}>

@@ -812,6 +812,8 @@ var genderOf = (s) => /\b(male|man|boy|gentleman|uncle|executive|lord)\b/i.test(
 
 // shared/speechEval.ts
 var STRICTNESS = ["easy", "common", "hard"];
+var PROVIDER_NAME = { speechsuper: "SpeechSuper", iflytek: "iFlytek" };
+var PINYIN_SYLLABLE = /^[a-zü]{1,6}[1-5]$/;
 var EVAL_MAX_CHARS = 100;
 var EVAL_MAX_BYTES = 20 * 16e3 * 2;
 
@@ -950,6 +952,7 @@ function parseReport(xml) {
     };
   });
   return {
+    by: "iflytek",
     total: num(at("total_score")),
     tone: num(at("tone_score")),
     sounds: num(at("phone_score")),
@@ -961,7 +964,22 @@ function parseReport(xml) {
 }
 
 // server/src/application/speech-eval-service.ts
-var NAME = "iflytek";
+var NAME = "speech-eval";
+var HAN = /\p{Script=Han}/u;
+function clean(raw) {
+  if (raw.provider === "speechsuper") {
+    const keys2 = { provider: raw.provider, appKey: raw.appKey.trim(), secretKey: raw.secretKey.trim() };
+    if (!/^\w{6,60}$/.test(keys2.appKey) || !/^\w{16,80}$/.test(keys2.secretKey)) {
+      throw new ValidationError("Those do not look like SpeechSuper keys: the appKey and the secretKey from the console.");
+    }
+    return keys2;
+  }
+  const keys = { provider: raw.provider, appId: raw.appId.trim(), apiKey: raw.apiKey.trim(), apiSecret: raw.apiSecret.trim() };
+  if (!/^\w{4,40}$/.test(keys.appId) || !/^\w{8,80}$/.test(keys.apiKey) || !/^[\w=+/-]{8,120}$/.test(keys.apiSecret)) {
+    throw new ValidationError("Those do not look like iFlytek keys: the APPID, the APIKey and the APISecret from the console.");
+  }
+  return keys;
+}
 var SpeechEvalService = class {
   constructor(deps) {
     this.deps = deps;
@@ -971,8 +989,10 @@ var SpeechEvalService = class {
     if (!raw) return null;
     try {
       const k = JSON.parse(raw);
-      if (!k.appId || !k.apiKey || !k.apiSecret) return null;
-      return { appId: k.appId, apiKey: k.apiKey, apiSecret: k.apiSecret, strictness: STRICTNESS.includes(k.strictness) ? k.strictness : "common" };
+      const strictness = STRICTNESS.includes(k.strictness) ? k.strictness : "common";
+      if (k.provider === "speechsuper" && k.appKey && k.secretKey) return { provider: "speechsuper", appKey: k.appKey, secretKey: k.secretKey, strictness };
+      if (k.provider === "iflytek" && k.appId && k.apiKey && k.apiSecret) return { provider: "iflytek", appId: k.appId, apiKey: k.apiKey, apiSecret: k.apiSecret, strictness };
+      return null;
     } catch {
       return null;
     }
@@ -982,19 +1002,17 @@ var SpeechEvalService = class {
   }
   async status(userId) {
     const k = await this.kept(userId);
-    return { key: { set: Boolean(k), hint: k ? `\u2026${k.apiKey.slice(-4)}` : null }, strictness: k?.strictness ?? "common" };
+    const hint = k ? `\u2026${(k.provider === "speechsuper" ? k.appKey : k.apiKey).slice(-4)}` : null;
+    return { key: { set: Boolean(k), hint, provider: k?.provider ?? null }, strictness: k?.strictness ?? "common" };
   }
-  /** Kept once iFlytek has accepted them: a quarter second of quiet is scored, which needs keys that work. */
+  /** Kept once the service has let them in: a quarter second of quiet is scored, which needs keys that work. */
   async setKeys(userId, raw) {
-    const keys = { appId: raw.appId.trim(), apiKey: raw.apiKey.trim(), apiSecret: raw.apiSecret.trim() };
-    if (!/^\w{4,40}$/.test(keys.appId) || !/^\w{8,80}$/.test(keys.apiKey) || !/^[\w=+/-]{8,120}$/.test(keys.apiSecret)) {
-      throw new ValidationError("Those do not look like iFlytek keys: the APPID, the APIKey and the APISecret from the console.");
-    }
+    const keys = clean(raw);
     const strictness = (await this.kept(userId))?.strictness ?? "common";
     try {
       await this.evaluator().evaluate(keys, { text: "\u4F60\u597D", pcm: new Uint8Array(8e3), strictness });
     } catch (err) {
-      if (err instanceof EvaluatorRefused && err.reason === "keys") throw new ValidationError(`iFlytek did not accept them. ${err.message}`);
+      if (err instanceof EvaluatorRefused && err.reason === "keys") throw new ValidationError(`${PROVIDER_NAME[keys.provider]} did not accept them. ${err.message}`);
     }
     await this.keep(userId, { ...keys, strictness });
     return this.status(userId);
@@ -1005,33 +1023,166 @@ var SpeechEvalService = class {
   }
   async setStrictness(userId, strictness) {
     const k = await this.kept(userId);
-    if (!k) throw new NotFoundError("Your iFlytek keys");
+    if (!k) throw new NotFoundError("Your pronunciation keys");
     await this.keep(userId, { ...k, strictness });
     return this.status(userId);
   }
   async evaluate(userId, o) {
     const k = await this.kept(userId);
-    if (!k) throw new AppError("not_found", "Add your iFlytek keys first, in Settings.");
+    if (!k) throw new AppError("not_found", "Add your pronunciation keys first, in Settings.");
     const text = o.text.trim();
     if (!text || [...text].length > EVAL_MAX_CHARS) throw new ValidationError("The phrase is empty or too long to score.");
     const pcm = new Uint8Array(Buffer.from(o.audio, "base64"));
     if (pcm.length < 3200) throw new ValidationError("Nothing was heard: say the phrase again.");
     if (pcm.length > EVAL_MAX_BYTES) throw new ValidationError("That recording is too long for one phrase.");
+    const chars = [...text].filter((c) => HAN.test(c)).length;
+    const pinyin = o.pinyin?.length === chars && o.pinyin.every((p) => PINYIN_SYLLABLE.test(p)) ? o.pinyin : void 0;
+    const { strictness, ...keys } = k;
     try {
-      return await this.evaluator().evaluate(k, { text, pcm, strictness: k.strictness });
+      return await this.evaluator().evaluate(keys, { text, pinyin, pcm, strictness });
     } catch (err) {
       if (err instanceof EvaluatorRefused) throw new AppError("unavailable", err.message);
-      throw new AppError("unavailable", "iFlytek did not answer. Try again in a minute.");
+      throw new AppError("unavailable", `${PROVIDER_NAME[k.provider]} did not answer. Try again in a minute.`);
     }
   }
   evaluator() {
-    if (!this.deps.evaluator) throw new AppError("unavailable", "This server cannot reach iFlytek.");
+    if (!this.deps.evaluator) throw new AppError("unavailable", "This server cannot reach the pronunciation service.");
     return this.deps.evaluator;
   }
 };
 
-// server/src/application/picture-service.ts
+// server/src/infrastructure/speechsuper.ts
 import { createHash as createHash2 } from "node:crypto";
+var BASE2 = "https://api.speechsuper.com";
+var CORE = "sent.eval.promax.cn";
+var USER = "hanzi";
+var SLACK = { easy: 1, common: 0, hard: -1 };
+var WRONG_BELOW = { easy: 45, common: 60, hard: 75 };
+var sha1 = (s) => createHash2("sha1").update(s).digest("hex");
+function requestOf(keys, o, now = Date.now()) {
+  const timestamp = String(now);
+  const { appKey: applicationId, secretKey } = keys;
+  return {
+    connect: {
+      cmd: "connect",
+      param: { sdk: { version: 16777472, source: 9, protocol: 2 }, app: { applicationId, sig: sha1(applicationId + timestamp + secretKey), timestamp } }
+    },
+    start: {
+      cmd: "start",
+      param: {
+        app: { applicationId, sig: sha1(applicationId + timestamp + USER + secretKey), userId: USER, timestamp },
+        audio: { audioType: "wav", sampleRate: 16e3, channel: 1, sampleBytes: 2 },
+        request: {
+          coreType: CORE,
+          refText: o.text,
+          ...o.pinyin?.length ? { refPinyin: o.pinyin.join(" ") } : {},
+          slack: SLACK[o.strictness],
+          tokenId: `t${timestamp}`
+        }
+      }
+    }
+  };
+}
+function wav(pcm) {
+  const head = Buffer.alloc(44);
+  head.write("RIFF", 0);
+  head.writeUInt32LE(36 + pcm.length, 4);
+  head.write("WAVEfmt ", 8);
+  head.writeUInt32LE(16, 16);
+  head.writeUInt16LE(1, 20);
+  head.writeUInt16LE(1, 22);
+  head.writeUInt32LE(16e3, 24);
+  head.writeUInt32LE(32e3, 28);
+  head.writeUInt16LE(2, 32);
+  head.writeUInt16LE(16, 34);
+  head.write("data", 36);
+  head.writeUInt32LE(pcm.length, 40);
+  return new Uint8Array(Buffer.concat([head, pcm]));
+}
+async function evaluate2(keys, o) {
+  const form = new FormData();
+  form.append("text", JSON.stringify(requestOf(keys, o)));
+  form.append("audio", new Blob([Buffer.from(wav(o.pcm))], { type: "audio/wav" }), "phrase.wav");
+  let body;
+  try {
+    const res = await fetch(`${BASE2}/${CORE}`, { method: "POST", body: form, headers: { "Request-Index": "0" }, signal: AbortSignal.timeout(3e4) });
+    if (!res.ok) throw new EvaluatorRefused(`SpeechSuper answered ${res.status}.`, "failed");
+    body = await res.json();
+  } catch (err) {
+    if (err instanceof EvaluatorRefused) throw err;
+    throw new EvaluatorRefused("SpeechSuper did not answer in time.", "failed");
+  }
+  return parseAnswer(body, o.strictness);
+}
+var toneNo = (t) => {
+  const n = Number(/^tone([1-5])$/.exec(t ?? "")?.[1]);
+  return n || void 0;
+};
+var n0 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
+function parseAnswer(raw, strictness) {
+  const a = raw ?? {};
+  if (a.error || a.errId || !a.result) {
+    const message = a.error ?? "no result";
+    const keys = /sig|appkey|application|auth|licen[cs]e|expire|quota|permission/i.test(message);
+    throw new EvaluatorRefused(`SpeechSuper: ${message}${a.errId ? ` (${a.errId})` : ""}`, keys ? "keys" : "failed");
+  }
+  const r = a.result;
+  const bar = WRONG_BELOW[strictness];
+  const syllables = (r.words ?? []).flatMap((w) => {
+    const parts = w.normalized_syllables?.length ? w.normalized_syllables : [{}];
+    const chars = [...w.word ?? ""];
+    return parts.map((ns, j) => {
+      const [p0, p1] = ns.phoneme_span ?? [0, (w.phonemes?.length ?? 1) - 1];
+      const phones = (w.phonemes ?? []).slice(p0, (p1 ?? p0) + 1);
+      const initial = phones.find((p) => p.category === 0);
+      const final = phones.find((p) => p.category === 1);
+      const missed = w.readType === 2;
+      const tone = toneNo(ns.tone) ?? Number(/(\d)$/.exec(w.rawpinyin ?? "")?.[1] ?? 5);
+      const sandhi = toneNo(ns.tone_sandhi);
+      const toneScore = n0(w.scores?.tone);
+      const heard = toneNo(w.scores?.tone_sound_like ?? w.tone_sound_like);
+      const wrongPhone = (p) => Boolean(p && n0(p.pronunciation) < bar);
+      const like = (p) => p && wrongPhone(p) && p.sound_like && p.sound_like !== "-" && p.sound_like !== p.phone ? p.sound_like : void 0;
+      return {
+        char: parts.length > 1 ? ns.syllables ?? chars[j] ?? "" : w.word ?? "",
+        symbol: parts.length > 1 && ns.pinyin ? `${ns.pinyin}${tone}` : w.rawpinyin ?? "",
+        said: missed ? "missed" : "ok",
+        initial: !missed && wrongPhone(initial),
+        final: !missed && wrongPhone(final),
+        tone: !missed && toneScore < bar,
+        from: n0(w.span?.start) * 10,
+        to: n0(w.span?.end) * 10,
+        score: n0(w.scores?.overall),
+        toneScore,
+        ...initial ? { initialScore: n0(initial.pronunciation) } : {},
+        ...final ? { finalScore: n0(final.pronunciation) } : {},
+        ...heard && !missed ? { heardTone: heard } : {},
+        ...sandhi && sandhi !== tone ? { sandhi } : {},
+        ...like(initial) ? { initialLike: like(initial) } : {},
+        ...like(final) ? { finalLike: like(final) } : {},
+        ...w.pause?.type === 1 ? { pause: true } : {}
+      };
+    });
+  });
+  const said = syllables.filter((s) => s.said === "ok").length;
+  return {
+    by: "speechsuper",
+    total: n0(r.overall),
+    tone: n0(r.tone),
+    sounds: n0(r.pronunciation),
+    fluency: n0(r.fluency),
+    completeness: n0(r.integrity),
+    rejected: said === 0 || /no speech/i.test(r.rear_tone ?? ""),
+    syllables,
+    rhythm: n0(r.rhythm),
+    speed: n0(r.speed),
+    ...r.rear_tone === "rise" || r.rear_tone === "fall" ? { ending: r.rear_tone } : {},
+    ...r.warning?.some((w) => w.code === 1002) ? { quiet: true } : {}
+  };
+}
+
+// server/src/application/picture-service.ts
+import { createHash as createHash3 } from "node:crypto";
 
 // shared/api.ts
 var PICTURE_TYPES = ["image/jpeg", "image/webp", "image/png"];
@@ -1040,7 +1191,7 @@ var WORKSPACE_MAX_BYTES = 16 * 1024 * 1024;
 var workspaceTag = (revision) => `"r${revision}"`;
 
 // server/src/application/picture-service.ts
-var pictureKey = (bytes) => createHash2("sha256").update(bytes).digest("hex");
+var pictureKey = (bytes) => createHash3("sha256").update(bytes).digest("hex");
 var PictureService = class {
   constructor(deps) {
     this.deps = deps;
@@ -1067,8 +1218,8 @@ var PictureService = class {
 };
 
 // server/src/application/recording-service.ts
-import { createHash as createHash3 } from "node:crypto";
-var recordingKey = (voice, mode, text) => createHash3("sha256").update(`${voice}
+import { createHash as createHash4 } from "node:crypto";
+var recordingKey = (voice, mode, text) => createHash4("sha256").update(`${voice}
 ${mode}
 ${text}`).digest("hex");
 var RecordingService = class {
@@ -1271,11 +1422,11 @@ function derive(password, salt, cost, length) {
 }
 
 // server/src/infrastructure/crypto/tokens.ts
-import { createHash as createHash4, randomBytes as randomBytes2, randomUUID } from "node:crypto";
+import { createHash as createHash5, randomBytes as randomBytes2, randomUUID } from "node:crypto";
 var cryptoTokens = {
   // 256 bits: not something to guess, and base64url so it needs no escaping in a cookie.
   secret: () => randomBytes2(32).toString("base64url"),
-  digest: (secret) => createHash4("sha256").update(secret).digest("base64url"),
+  digest: (secret) => createHash5("sha256").update(secret).digest("base64url"),
   id: () => randomUUID()
 };
 
@@ -1306,7 +1457,7 @@ function createServices(stores, options = {}) {
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
     narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock }),
-    speechEval: new SpeechEvalService({ secrets: stores.secrets, evaluator: options.evaluator === void 0 ? { evaluate } : options.evaluator, clock })
+    speechEval: new SpeechEvalService({ secrets: stores.secrets, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock })
   };
 }
 
@@ -1472,7 +1623,7 @@ var RateLimiter = class {
 };
 
 // server/src/http/routes/ask.ts
-import { createHash as createHash5 } from "node:crypto";
+import { createHash as createHash6 } from "node:crypto";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -1512,7 +1663,7 @@ function askRoutes({ auth, clock, trustProxy, tutor }) {
     const run = () => tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind] });
     let text;
     if (input.kind === "video") {
-      const key = createHash5("sha256").update(`${user}
+      const key = createHash6("sha256").update(`${user}
 ${input.prompt}`).digest("hex");
       const now = clock.now();
       for (const [k, v] of kept2) if (now - v.at > KEEP_MS) kept2.delete(k);
@@ -1731,10 +1882,14 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
 // server/src/http/routes/speechEval.ts
 import { Hono as Hono4 } from "hono";
 import { z as z4 } from "zod";
-var keysRequest = z4.object({ appId: z4.string().min(1).max(60), apiKey: z4.string().min(1).max(120), apiSecret: z4.string().min(1).max(160) });
+var keysRequest = z4.discriminatedUnion("provider", [
+  z4.object({ provider: z4.literal("speechsuper"), appKey: z4.string().min(1).max(80), secretKey: z4.string().min(1).max(120) }),
+  z4.object({ provider: z4.literal("iflytek"), appId: z4.string().min(1).max(60), apiKey: z4.string().min(1).max(120), apiSecret: z4.string().min(1).max(160) })
+]);
 var settingsRequest = z4.object({ strictness: z4.enum(STRICTNESS) });
 var evalRequest = z4.object({
   text: z4.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
+  pinyin: z4.array(z4.string().regex(PINYIN_SYLLABLE)).max(EVAL_MAX_CHARS).optional(),
   // base64 of up to EVAL_MAX_BYTES of PCM
   audio: z4.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
 });

@@ -1,33 +1,47 @@
 /**
- * A phrase said aloud and scored by iFlytek's speech evaluation, with the
- * learner's own iFlytek keys: what the page and the server agree on.
+ * A phrase said aloud and scored by a speech evaluation service — SpeechSuper
+ * or iFlytek — with the learner's own keys: what the page and the server agree on.
  *
- *   GET    /api/eval              are keys kept, their hint, how strict
- *   PUT    /api/eval/key          { appId, apiKey, apiSecret } → tried, then kept
+ *   GET    /api/eval              are keys kept, whose, their hint, how strict
+ *   PUT    /api/eval/key          EvalKeys → tried, then kept (in place of any kept before)
  *   DELETE /api/eval/key          forget them
  *   PATCH  /api/eval/settings     { strictness }
- *   POST   /api/eval              { text, audio } → the phrase scored (audio: 16 kHz 16-bit mono PCM, base64)
+ *   POST   /api/eval              { text, pinyin?, audio } → the phrase scored (audio: 16 kHz 16-bit mono PCM, base64;
+ *                                  pinyin: a numbered syllable per character, ka3, so 卡 in 皮卡丘 is not taken for qia3)
  */
 
 export const STRICTNESS = ['easy', 'common', 'hard'] as const;
 export type Strictness = (typeof STRICTNESS)[number];
 
+export const EVAL_PROVIDERS = ['speechsuper', 'iflytek'] as const;
+export type EvalProvider = (typeof EVAL_PROVIDERS)[number];
+export const PROVIDER_NAME: Record<EvalProvider, string> = { speechsuper: 'SpeechSuper', iflytek: 'iFlytek' };
+
 export interface EvalStatus {
-  key: { set: boolean; hint: string | null };
+  key: { set: boolean; hint: string | null; provider: EvalProvider | null };
   strictness: Strictness;
 }
 
-export interface EvalKeys {
+export interface SpeechSuperKeys {
+  provider: 'speechsuper';
+  appKey: string;
+  secretKey: string;
+}
+
+export interface IflytekKeys {
+  provider: 'iflytek';
   appId: string;
   apiKey: string;
   apiSecret: string;
 }
 
-/** How a syllable was said, as iFlytek heard it. */
+export type EvalKeys = SpeechSuperKeys | IflytekKeys;
+
+/** How a syllable was said, as the service heard it. The optional parts only SpeechSuper tells. */
 export interface SyllableEval {
   /** the character */
   char: string;
-  /** iFlytek's reading of it: pinyin with the tone as a digit, 5 for neutral (xiao3) */
+  /** its reading: pinyin with the tone as a digit, 5 for neutral (xiao3) */
   symbol: string;
   /** said, or left out, said twice, said over, or something else said in its place */
   said: 'ok' | 'missed' | 'added' | 'repeated' | 'replaced';
@@ -40,9 +54,24 @@ export interface SyllableEval {
   /** where it was in the recording, ms */
   from: number;
   to: number;
+  /** 0–100: the syllable as a whole, its tone, its initial and its final */
+  score?: number;
+  toneScore?: number;
+  initialScore?: number;
+  finalScore?: number;
+  /** the tone it sounded like (1–4, 5 neutral) */
+  heardTone?: number;
+  /** the tone it takes here when that is not its own: 不 before a fourth tone, a third before a third */
+  sandhi?: number;
+  /** what the initial and the final sounded like, when not what they should */
+  initialLike?: string;
+  finalLike?: string;
+  /** a pause came after it */
+  pause?: boolean;
 }
 
 export interface EvalResult {
+  by: EvalProvider;
   /** 0–100 */
   total: number;
   tone: number;
@@ -54,7 +83,16 @@ export interface EvalResult {
   /** iFlytek judged the recording was not the phrase at all: its scores mean nothing */
   rejected: boolean;
   syllables: SyllableEval[];
+  /** SpeechSuper only: the rhythm 0–100, syllables a minute, whether the voice rose or fell at the end */
+  rhythm?: number;
+  speed?: number;
+  ending?: 'rise' | 'fall';
+  /** SpeechSuper only: the recording was very quiet */
+  quiet?: boolean;
 }
+
+/** One character's numbered pinyin, a syllable: ka3, nü3, er5. */
+export const PINYIN_SYLLABLE = /^[a-zü]{1,6}[1-5]$/;
 
 /** Most of a phrase; longer than any line of a passage. */
 export const EVAL_MAX_CHARS = 100;

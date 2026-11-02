@@ -1,13 +1,16 @@
 import type { EvalResult, SyllableEval } from '../../shared/speechEval';
+import { parseSyllable } from './pinyin/syllable';
 
 /**
  * Phrases said aloud and scored: the everyday ones to start from, what to say
- * about each kind of fault iFlytek finds, and what keeps going wrong across
- * every phrase said.
+ * about each kind of fault the service finds, and what keeps going wrong
+ * across every phrase said.
  *
- * The feedback follows iFlytek's report as it is: it says a syllable's
- * initial, final or tone was wrong, or that it was left out or added — not
- * what was said instead — so the advice is how the right sound is made.
+ * The feedback follows the service's report as it is. iFlytek says only that
+ * a syllable's initial, final or tone was wrong, or that it was left out;
+ * SpeechSuper also says what it sounded like instead (k for q, a second tone
+ * for a first) and the tone a syllable takes in the phrase (一 before a third
+ * tone is yì) — said when it is known, the advice always how it is made right.
  */
 
 export interface Phrase {
@@ -53,6 +56,26 @@ export function partsOf(symbol: string): { initial: string; final: string; tone:
   return { initial, final: bare.slice(initial.length).replace(/v|u:/g, 'ü'), tone, marked: marked(bare, tone) };
 }
 
+/**
+ * Each character's reading numbered, as the scoring service takes it (kǎ → ka3,
+ * nǚ → nv3, the r of erhua → er5), so a character with two readings is scored
+ * as this one; none when any is unknown, since one missing would shift the rest.
+ */
+export function numbered(readings: string[]): string[] | undefined {
+  const out: string[] = [];
+  for (const py of readings) {
+    if (/^r$/i.test(py.trim())) {
+      out.push('er5');
+      continue;
+    }
+    const s = parseSyllable(py.trim());
+    const bare = s.bare.replace(/ü/g, 'v');
+    if (!/^[a-z]{1,6}$/.test(bare)) return undefined;
+    out.push(`${bare}${s.tone}`);
+  }
+  return out.length ? out : undefined;
+}
+
 const MARKS: Record<string, string[]> = {
   a: ['ā', 'á', 'ǎ', 'à'],
   e: ['ē', 'é', 'ě', 'è'],
@@ -77,6 +100,8 @@ export function marked(bare: string, tone: number): string {
   if (i < 0) return s;
   return s.slice(0, i) + MARKS[s[i]!]![tone - 1] + s.slice(i + 1);
 }
+
+const TONE_NAME: Record<number, string> = { 1: 'a first tone', 2: 'a second tone', 3: 'a third tone', 4: 'a fourth tone', 5: 'a neutral tone' };
 
 const TONE_HOW: Record<number, string> = {
   1: 'A first tone stays high and level, held at the top of your voice like a sung note.',
@@ -137,9 +162,21 @@ export function faultsOf(s: SyllableEval): Fault[] {
   else if (s.said === 'repeated') out.push({ kind: 'repeated', title: 'Said twice', how: 'Say it once and go on; a restart breaks the phrase.' });
   else if (s.said === 'replaced') out.push({ kind: 'replaced', title: 'Another syllable said in its place', how: `Say ${p.marked} as written; hear it once more first.` });
   if (s.said !== 'missed') {
-    if (s.tone) out.push({ kind: `tone${p.tone}`, title: `Tone: ${p.tone === 5 ? 'a neutral tone' : `a ${['', 'first', 'second', 'third', 'fourth'][p.tone]} tone`}, not as it should be`, how: TONE_HOW[p.tone]! });
-    if (s.initial && p.initial) out.push({ kind: `initial:${p.initial}`, title: `The initial ${p.initial}`, how: INITIAL_HOW[p.initial] ?? `${p.initial}: hear it slowly and copy it.` });
-    if (s.final) out.push({ kind: `final:${p.final}`, title: `The final ${p.final}`, how: finalHow(p.final, p.initial) });
+    if (s.tone) {
+      // The tone it takes here: its own, or the one sandhi gives it.
+      const want = s.sandhi ?? p.tone;
+      const heard = s.heardTone && s.heardTone !== want ? `, it sounded like ${TONE_NAME[s.heardTone]}` : ', not as it should be';
+      const here = s.sandhi ? ` Here ${s.char} is ${marked(s.symbol.toLowerCase().replace(/[0-5]$/, ''), want)}, ${TONE_NAME[want]}: its tone changes before the next syllable.` : '';
+      out.push({ kind: `tone${want}`, title: `Tone: ${TONE_NAME[want]}${heard}`, how: TONE_HOW[want]! + here });
+    }
+    if (s.initial && p.initial) {
+      const like = s.initialLike ? ` — it sounded like ${s.initialLike}` : '';
+      out.push({ kind: `initial:${p.initial}`, title: `The initial ${p.initial}${like}`, how: INITIAL_HOW[p.initial] ?? `${p.initial}: hear it slowly and copy it.` });
+    }
+    if (s.final) {
+      const like = s.finalLike ? ` — it sounded like ${s.finalLike}` : '';
+      out.push({ kind: `final:${p.final}`, title: `The final ${p.final}${like}`, how: finalHow(p.final, p.initial) });
+    }
   }
   return out;
 }

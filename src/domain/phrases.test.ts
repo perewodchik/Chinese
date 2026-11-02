@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { EvalResult, SyllableEval } from '../../shared/speechEval';
-import { attemptOf, faultsOf, marked, partsOf, troubles, verdictOf } from './phrases';
+import { attemptOf, faultsOf, marked, numbered, partsOf, troubles, verdictOf } from './phrases';
 
 const syl = (char: string, symbol: string, o: Partial<SyllableEval> = {}): SyllableEval => ({ char, symbol, said: 'ok', initial: false, final: false, tone: false, from: 0, to: 0, ...o });
 
@@ -22,8 +22,22 @@ describe('phrases said and scored', () => {
     assert.deepEqual(faultsOf(syl('小', 'xiao3')), []);
   });
 
+  it('says what SpeechSuper heard instead, and the tone a syllable takes in the phrase', () => {
+    const [tone] = faultsOf(syl('一', 'yi1', { tone: true, sandhi: 4, heardTone: 1 }));
+    assert.equal(tone!.kind, 'tone4');
+    assert.equal(tone!.title, 'Tone: a fourth tone, it sounded like a first tone');
+    assert.match(tone!.how, /Here 一 is yì, a fourth tone/);
+    assert.equal(faultsOf(syl('卡', 'ka3', { initial: true, initialLike: 'g' }))[0]!.title, 'The initial k — it sounded like g');
+  });
+
+  it('numbers each character’s reading for the service, or gives none when one is unknown', () => {
+    assert.deepEqual(numbered(['pí', 'kǎ', 'qiū']), ['pi2', 'ka3', 'qiu1']);
+    assert.deepEqual(numbered(['nǚ', 'de', 'r']), ['nv3', 'de5', 'er5']);
+    assert.equal(numbered(['nǐ', '']), undefined);
+  });
+
   it('names what let a phrase down, and what keeps going wrong across phrases', () => {
-    const r: EvalResult = { total: 78, tone: 60, sounds: 86, fluency: 81, completeness: 100, rejected: false, syllables: [syl('饿', 'e4', { tone: true }), syl('智', 'zhi4', { initial: true }), syl('小', 'xiao3')] };
+    const r: EvalResult = { by: 'iflytek', total: 78, tone: 60, sounds: 86, fluency: 81, completeness: 100, rejected: false, syllables: [syl('饿', 'e4', { tone: true }), syl('智', 'zhi4', { initial: true }), syl('小', 'xiao3')] };
     assert.equal(verdictOf(r).headline, 'Good — the tones let it down');
     const a = attemptOf(r, 1);
     const b = attemptOf({ ...r, syllables: [syl('是', 'shi4', { tone: true })] }, 2);

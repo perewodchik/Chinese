@@ -4,7 +4,7 @@ import type { EvalResult, EvalStatus } from '../../../shared/speechEval';
 import { chosenNarrator, listNarrators, narrationOf, ownTexts } from '../../api/narration';
 import { evalStatus, evaluatePhrase } from '../../api/speechEval';
 import { pinyinOf } from '../../domain/ownText';
-import { attemptOf, EVERYDAY, faultsOf, partsOf, troubles, verdictOf, type Attempt, type Phrase } from '../../domain/phrases';
+import { attemptOf, EVERYDAY, faultsOf, numbered, partsOf, troubles, verdictOf, type Attempt, type Phrase } from '../../domain/phrases';
 import { alignPinyin } from '../../domain/reading';
 import { isHanzi } from '../../domain/text';
 import { playSamples } from '../../platform/audio/voiceOut';
@@ -21,6 +21,14 @@ import './phrases.css';
 import './pinyin.css';
 
 type Source = 'texts' | 'everyday' | 'own';
+
+/** How fast, and how the voice ended, when the service says (SpeechSuper does). */
+function paceOf(r: EvalResult): string {
+  const parts: string[] = [];
+  if (r.speed) parts.push(`${Math.round(r.speed)} syllables a minute${r.speed > 260 ? ', quick for a learner' : r.speed < 120 ? ', slow — join the words' : ''}`);
+  if (r.ending) parts.push(`your voice ${r.ending === 'rise' ? 'rose' : 'fell'} at the end`);
+  return parts.length ? parts.join(' · ') + '.' : '';
+}
 
 /* ------------------------------------------------------------ attempts, kept on this device */
 
@@ -46,7 +54,7 @@ function keepAttempt(zh: string, a: Attempt): Record<string, Attempt[]> {
 const band = (score: number) => (score >= 75 ? 'good' : score >= 60 ? 'mid' : 'low');
 
 /**
- * Phrases: a phrase heard in a narrator's voice, said, and scored by iFlytek —
+ * Phrases: a phrase heard in a narrator's voice, said, and scored by SpeechSuper or iFlytek —
  * the whole (tones, sounds, flow, what was left out) and every syllable — with
  * what to change, how the right sound is made, and what keeps going wrong
  * across everything said. The phrases come from the learner's texts, a set of
@@ -66,7 +74,7 @@ export function PhrasesPage() {
   const [attempts, setAttempts] = useState(loadAttempts);
 
   useEffect(() => {
-    void evalStatus().then(setStatus, () => setStatus({ key: { set: false, hint: null }, strictness: 'common' }));
+    void evalStatus().then(setStatus, () => setStatus({ key: { set: false, hint: null, provider: null }, strictness: 'common' }));
   }, []);
   useEffect(() => {
     if (source !== 'own' || own) return;
@@ -101,7 +109,7 @@ export function PhrasesPage() {
         </div>
         <p className="small muted ph-lede">
           Say a phrase and see every syllable scored — its initial, final and tone — with what to change. The scoring is
-          iFlytek's: add your keys once.
+          SpeechSuper's or iFlytek's: add your keys once.
         </p>
         <PronunciationKey onChange={setStatus} />
       </section>
@@ -253,7 +261,7 @@ export function PhrasesPage() {
 interface Tile {
   char: string;
   py: string;
-  /** the syllable iFlytek scored for it, in the latest try */
+  /** the syllable the service scored for it, in the latest try */
   i: number | null;
 }
 
@@ -324,11 +332,14 @@ function PhraseView({
     }
   }
 
+  // Each character's reading, for the tiles and for the service.
+  const readings = useMemo(() => alignPinyin({ zh: phrase.zh, py: phrase.py }, lib), [phrase, lib]);
+
   const recorder = useRecorder((s) => {
     setSamples(s);
     setChecking(true);
     setError(null);
-    evaluatePhrase(phrase.zh, s).then(
+    evaluatePhrase(phrase.zh, s, numbered(readings)).then(
       (r) => {
         setResult(r);
         setPicked(null);
@@ -340,7 +351,7 @@ function PhraseView({
 
   // The phrase's characters with their pinyin, and which scored syllable each one is.
   const tiles = useMemo((): Tile[] => {
-    const py = alignPinyin({ zh: phrase.zh, py: phrase.py }, lib);
+    const py = readings;
     let k = 0;
     let s = 0;
     const scored = (result?.syllables ?? []).filter((x) => x.said !== 'added');
@@ -355,7 +366,7 @@ function PhraseView({
       }
       return t;
     });
-  }, [phrase, lib, result]);
+  }, [phrase, readings, result]);
 
   const verdict = result ? verdictOf(result) : null;
   const firstWrong = result ? tiles.findIndex((t) => t.i !== null && faultsOf(result.syllables[t.i]!).length > 0) : -1;
@@ -370,8 +381,10 @@ function PhraseView({
         ['Initials, finals', result.sounds],
         ['Fluency', result.fluency],
         ['Completeness', result.completeness],
+        ...(result.rhythm !== undefined ? [['Rhythm', result.rhythm]] : []),
       ]
     : null;
+  const pace = result ? paceOf(result) : '';
 
   return (
     <section className="ph ph-view">
@@ -497,6 +510,8 @@ function PhraseView({
                 <b>{Math.round(score as number)}</b>
               </div>
             ))}
+            {pace && <p className="small muted ph-pace">{pace}</p>}
+            {result.quiet && <p className="small ph-error">The recording was very quiet: hold the device closer, or speak up.</p>}
             {tryAgain.length > 1 && (
               <div className="ph-tries">
                 <span className="tiny muted">Your tries</span>
@@ -521,6 +536,22 @@ function PhraseView({
                     {selFaults.length ? selFaults.map((f) => f.title).join(' · ') : 'Said well'}
                   </span>
                 </div>
+                {selSyl.score !== undefined && selSyl.said !== 'missed' && (
+                  <div className="ph-parts">
+                    {[
+                      ['Initial', selSyl.initialScore, selSyl.initial],
+                      ['Final', selSyl.finalScore, selSyl.final],
+                      ['Tone', selSyl.toneScore, selSyl.tone],
+                    ]
+                      .filter(([, v]) => v !== undefined)
+                      .map(([name, v, bad]) => (
+                        <span key={name as string} className="ph-part" data-state={bad ? 'bad' : 'ok'}>
+                          <span className="tiny muted">{name as string}</span>
+                          <b>{Math.round(v as number)}</b>
+                        </span>
+                      ))}
+                  </div>
+                )}
                 {selFaults.length ? (
                   <ul className="ph-faults">
                     {selFaults.map((f) => (
@@ -530,8 +561,10 @@ function PhraseView({
                 ) : (
                   <p className="small muted" style={{ margin: 0 }}>
                     Initial, final and tone as they should be.
+                    {selSyl.sandhi ? ` Its tone changes here, to ${partsOf(selSyl.symbol.replace(/\d$/, '') + selSyl.sandhi).marked}, and you said it so.` : ''}
                   </p>
                 )}
+                {selSyl.pause && <p className="tiny muted" style={{ margin: 0 }}>You paused after it.</p>}
                 <div className="ph-detail-actions">
                   <button className="btn quiet" onClick={() => clips && playLine(clips, index, 0.75)} disabled={!clips}>
                     Hear the phrase slowly
@@ -547,7 +580,7 @@ function PhraseView({
               </>
             ) : (
               <p className="small muted" style={{ margin: 0 }}>
-                {result.syllables.length ? 'Tap a character to see how it was said.' : 'iFlytek heard no syllables: say the whole phrase, clearly, close to the microphone.'}
+                {result.syllables.length ? 'Tap a character to see how it was said.' : 'No syllables were heard: say the whole phrase, clearly, close to the microphone.'}
               </p>
             )}
           </section>

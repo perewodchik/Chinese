@@ -1,24 +1,51 @@
-import { EVAL_MAX_BYTES, EVAL_MAX_CHARS, STRICTNESS, type EvalKeys, type EvalResult, type EvalStatus, type Strictness } from '../../../shared/speechEval';
+import {
+  EVAL_MAX_BYTES,
+  EVAL_MAX_CHARS,
+  PINYIN_SYLLABLE,
+  PROVIDER_NAME,
+  STRICTNESS,
+  type EvalKeys,
+  type EvalResult,
+  type EvalStatus,
+  type Strictness,
+} from '../../../shared/speechEval';
 import { AppError, NotFoundError, ValidationError } from '../domain/errors';
 import { EvaluatorRefused } from '../infrastructure/iflytek';
 import type { Clock, SecretRepository } from './ports';
 
-const NAME = 'iflytek';
+const NAME = 'speech-eval';
 
-/** Scores a recording of a text: iFlytek, or a stand-in in the tests. */
+/** Scores a recording of a text: SpeechSuper or iFlytek, by whose keys they are, or a stand-in in the tests. */
 export interface Evaluator {
-  evaluate(keys: EvalKeys, o: { text: string; pcm: Uint8Array; strictness: Strictness }): Promise<EvalResult>;
+  evaluate(keys: EvalKeys, o: { text: string; pinyin?: string[]; pcm: Uint8Array; strictness: Strictness }): Promise<EvalResult>;
 }
 
-interface Kept extends EvalKeys {
-  strictness: Strictness;
+type Kept = EvalKeys & { strictness: Strictness };
+
+const HAN = /\p{Script=Han}/u;
+
+/** Keys trimmed and checked for their shape, or a message saying what they should be. */
+function clean(raw: EvalKeys): EvalKeys {
+  if (raw.provider === 'speechsuper') {
+    const keys = { provider: raw.provider, appKey: raw.appKey.trim(), secretKey: raw.secretKey.trim() };
+    if (!/^\w{6,60}$/.test(keys.appKey) || !/^\w{16,80}$/.test(keys.secretKey)) {
+      throw new ValidationError('Those do not look like SpeechSuper keys: the appKey and the secretKey from the console.');
+    }
+    return keys;
+  }
+  const keys = { provider: raw.provider, appId: raw.appId.trim(), apiKey: raw.apiKey.trim(), apiSecret: raw.apiSecret.trim() };
+  if (!/^\w{4,40}$/.test(keys.appId) || !/^\w{8,80}$/.test(keys.apiKey) || !/^[\w=+/-]{8,120}$/.test(keys.apiSecret)) {
+    throw new ValidationError('Those do not look like iFlytek keys: the APPID, the APIKey and the APISecret from the console.');
+  }
+  return keys;
 }
 
 /**
- * Phrases said aloud and scored by iFlytek with the learner's own keys.
+ * Phrases said aloud and scored with the learner's own keys — SpeechSuper's
+ * or iFlytek's, whichever were saved last.
  *
  * The keys are the learner's and cost them money: kept on the server, tried
- * before they are kept, never sent back to a page — only the end of the API
+ * before they are kept, never sent back to a page — only the end of the app
  * key, so they can tell which it is. How strict the scoring is goes with them.
  */
 export class SpeechEvalService {
@@ -28,9 +55,11 @@ export class SpeechEvalService {
     const raw = await this.deps.secrets.get(userId, NAME);
     if (!raw) return null;
     try {
-      const k = JSON.parse(raw) as Partial<Kept>;
-      if (!k.appId || !k.apiKey || !k.apiSecret) return null;
-      return { appId: k.appId, apiKey: k.apiKey, apiSecret: k.apiSecret, strictness: STRICTNESS.includes(k.strictness as Strictness) ? k.strictness! : 'common' };
+      const k = JSON.parse(raw) as Partial<Kept> & Record<string, string>;
+      const strictness = STRICTNESS.includes(k.strictness as Strictness) ? (k.strictness as Strictness) : 'common';
+      if (k.provider === 'speechsuper' && k.appKey && k.secretKey) return { provider: 'speechsuper', appKey: k.appKey, secretKey: k.secretKey, strictness };
+      if (k.provider === 'iflytek' && k.appId && k.apiKey && k.apiSecret) return { provider: 'iflytek', appId: k.appId, apiKey: k.apiKey, apiSecret: k.apiSecret, strictness };
+      return null;
     } catch {
       return null;
     }
@@ -42,20 +71,18 @@ export class SpeechEvalService {
 
   async status(userId: string): Promise<EvalStatus> {
     const k = await this.kept(userId);
-    return { key: { set: Boolean(k), hint: k ? `…${k.apiKey.slice(-4)}` : null }, strictness: k?.strictness ?? 'common' };
+    const hint = k ? `…${(k.provider === 'speechsuper' ? k.appKey : k.apiKey).slice(-4)}` : null;
+    return { key: { set: Boolean(k), hint, provider: k?.provider ?? null }, strictness: k?.strictness ?? 'common' };
   }
 
-  /** Kept once iFlytek has accepted them: a quarter second of quiet is scored, which needs keys that work. */
+  /** Kept once the service has let them in: a quarter second of quiet is scored, which needs keys that work. */
   async setKeys(userId: string, raw: EvalKeys): Promise<EvalStatus> {
-    const keys = { appId: raw.appId.trim(), apiKey: raw.apiKey.trim(), apiSecret: raw.apiSecret.trim() };
-    if (!/^\w{4,40}$/.test(keys.appId) || !/^\w{8,80}$/.test(keys.apiKey) || !/^[\w=+/-]{8,120}$/.test(keys.apiSecret)) {
-      throw new ValidationError('Those do not look like iFlytek keys: the APPID, the APIKey and the APISecret from the console.');
-    }
+    const keys = clean(raw);
     const strictness = (await this.kept(userId))?.strictness ?? 'common';
     try {
       await this.evaluator().evaluate(keys, { text: '你好', pcm: new Uint8Array(8000), strictness });
     } catch (err) {
-      if (err instanceof EvaluatorRefused && err.reason === 'keys') throw new ValidationError(`iFlytek did not accept them. ${err.message}`);
+      if (err instanceof EvaluatorRefused && err.reason === 'keys') throw new ValidationError(`${PROVIDER_NAME[keys.provider]} did not accept them. ${err.message}`);
       // Anything else — the quiet itself refused — means the keys were let in.
     }
     await this.keep(userId, { ...keys, strictness });
@@ -69,29 +96,33 @@ export class SpeechEvalService {
 
   async setStrictness(userId: string, strictness: Strictness): Promise<EvalStatus> {
     const k = await this.kept(userId);
-    if (!k) throw new NotFoundError('Your iFlytek keys');
+    if (!k) throw new NotFoundError('Your pronunciation keys');
     await this.keep(userId, { ...k, strictness });
     return this.status(userId);
   }
 
-  async evaluate(userId: string, o: { text: string; audio: string }): Promise<EvalResult> {
+  async evaluate(userId: string, o: { text: string; pinyin?: string[]; audio: string }): Promise<EvalResult> {
     const k = await this.kept(userId);
-    if (!k) throw new AppError('not_found', 'Add your iFlytek keys first, in Settings.');
+    if (!k) throw new AppError('not_found', 'Add your pronunciation keys first, in Settings.');
     const text = o.text.trim();
     if (!text || [...text].length > EVAL_MAX_CHARS) throw new ValidationError('The phrase is empty or too long to score.');
     const pcm = new Uint8Array(Buffer.from(o.audio, 'base64'));
     if (pcm.length < 3200) throw new ValidationError('Nothing was heard: say the phrase again.');
     if (pcm.length > EVAL_MAX_BYTES) throw new ValidationError('That recording is too long for one phrase.');
+    // A reading for every character, or none: one missing would shift the rest onto the wrong characters.
+    const chars = [...text].filter((c) => HAN.test(c)).length;
+    const pinyin = o.pinyin?.length === chars && o.pinyin.every((p) => PINYIN_SYLLABLE.test(p)) ? o.pinyin : undefined;
+    const { strictness, ...keys } = k;
     try {
-      return await this.evaluator().evaluate(k, { text, pcm, strictness: k.strictness });
+      return await this.evaluator().evaluate(keys as EvalKeys, { text, pinyin, pcm, strictness });
     } catch (err) {
       if (err instanceof EvaluatorRefused) throw new AppError('unavailable', err.message);
-      throw new AppError('unavailable', 'iFlytek did not answer. Try again in a minute.');
+      throw new AppError('unavailable', `${PROVIDER_NAME[k.provider]} did not answer. Try again in a minute.`);
     }
   }
 
   private evaluator(): Evaluator {
-    if (!this.deps.evaluator) throw new AppError('unavailable', 'This server cannot reach iFlytek.');
+    if (!this.deps.evaluator) throw new AppError('unavailable', 'This server cannot reach the pronunciation service.');
     return this.deps.evaluator;
   }
 }

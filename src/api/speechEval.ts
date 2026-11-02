@@ -6,7 +6,7 @@ export const saveEvalKeys = (keys: EvalKeys) => request<EvalStatus>('PUT', '/api
 export const forgetEvalKeys = () => request<EvalStatus>('DELETE', '/api/eval/key');
 export const setStrictness = (strictness: Strictness) => request<EvalStatus>('PATCH', '/api/eval/settings', { body: { strictness } });
 
-/** The microphone's samples (16 kHz, −1…1) as iFlytek takes them: 16-bit little-endian PCM, base64. */
+/** The microphone's samples (16 kHz, −1…1) as the services take them: 16-bit little-endian PCM, base64. */
 export function pcmBase64(samples: Float32Array): string {
   const bytes = new Uint8Array(samples.length * 2);
   const view = new DataView(bytes.buffer);
@@ -19,6 +19,6 @@ export function pcmBase64(samples: Float32Array): string {
   return btoa(s);
 }
 
-/** A phrase as it was said, scored. */
-export const evaluatePhrase = (text: string, samples: Float32Array) =>
-  request<{ result: EvalResult }>('POST', '/api/eval', { body: { text, audio: pcmBase64(samples) }, timeoutMs: 45_000 }).then((r) => r.result);
+/** A phrase as it was said, scored; `pinyin`, a numbered reading per character, settles the characters with two readings. */
+export const evaluatePhrase = (text: string, samples: Float32Array, pinyin?: string[]) =>
+  request<{ result: EvalResult }>('POST', '/api/eval', { body: { text, ...(pinyin ? { pinyin } : {}), audio: pcmBase64(samples) }, timeoutMs: 45_000 }).then((r) => r.result);

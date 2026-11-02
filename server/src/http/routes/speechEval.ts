@@ -1,19 +1,23 @@
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
-import { EVAL_MAX_BYTES, EVAL_MAX_CHARS, STRICTNESS } from '../../../../shared/speechEval';
+import { EVAL_MAX_BYTES, EVAL_MAX_CHARS, PINYIN_SYLLABLE, STRICTNESS } from '../../../../shared/speechEval';
 import type { AppEnv, RouteDeps } from '../env';
 import { RateLimiter, requireSession } from '../guards';
 import { readJson } from '../request';
 
-const keysRequest = z.object({ appId: z.string().min(1).max(60), apiKey: z.string().min(1).max(120), apiSecret: z.string().min(1).max(160) });
+const keysRequest = z.discriminatedUnion('provider', [
+  z.object({ provider: z.literal('speechsuper'), appKey: z.string().min(1).max(80), secretKey: z.string().min(1).max(120) }),
+  z.object({ provider: z.literal('iflytek'), appId: z.string().min(1).max(60), apiKey: z.string().min(1).max(120), apiSecret: z.string().min(1).max(160) }),
+]);
 const settingsRequest = z.object({ strictness: z.enum(STRICTNESS) });
 const evalRequest = z.object({
   text: z.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
+  pinyin: z.array(z.string().regex(PINYIN_SYLLABLE)).max(EVAL_MAX_CHARS).optional(),
   // base64 of up to EVAL_MAX_BYTES of PCM
   audio: z.string().min(1).max(Math.ceil((EVAL_MAX_BYTES * 4) / 3) + 8),
 });
 
-/** Phrases scored by iFlytek with the learner's own keys (see shared/speechEval.ts for the routes). */
+/** Phrases scored by SpeechSuper or iFlytek with the learner's own keys (see shared/speechEval.ts for the routes). */
 export function speechEvalRoutes({ auth, clock, trustProxy, speechEval }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });

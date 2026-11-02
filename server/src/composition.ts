@@ -3,6 +3,7 @@ import { ConversationService } from './application/conversation-service';
 import { NarrationService } from './application/narration-service';
 import { SpeechEvalService, type Evaluator } from './application/speech-eval-service';
 import { evaluate as iflytekEvaluate } from './infrastructure/iflytek';
+import { evaluate as speechSuperEvaluate } from './infrastructure/speechsuper';
 import { PictureService } from './application/picture-service';
 import { RecordingService } from './application/recording-service';
 import type {
@@ -117,6 +118,6 @@ export function createServices(
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
     narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock }),
-    speechEval: new SpeechEvalService({ secrets: stores.secrets, evaluator: options.evaluator === undefined ? { evaluate: iflytekEvaluate } : options.evaluator, clock }),
+    speechEval: new SpeechEvalService({ secrets: stores.secrets, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock }),
   };
 }

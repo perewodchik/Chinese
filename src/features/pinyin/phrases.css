@@ -393,3 +393,38 @@
   gap: 6px;
   flex-wrap: wrap;
 }
+
+.ph-pace {
+  margin: 2px 0 0;
+}
+
+/* One syllable's three parts, scored. */
+.ph-parts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ph-part {
+  min-width: 64px;
+  min-height: 44px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: var(--card);
+  display: grid;
+  align-content: center;
+}
+
+.ph-part b {
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-part[data-state='ok'] b {
+  color: var(--jade);
+}
+
+.ph-part[data-state='bad'] b {
+  color: var(--red);
+}

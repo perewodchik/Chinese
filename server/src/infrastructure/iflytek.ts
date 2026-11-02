@@ -1,5 +1,5 @@
 import { createHmac } from 'node:crypto';
-import type { EvalKeys, EvalResult, Strictness, SyllableEval } from '../../../shared/speechEval';
+import type { EvalResult, IflytekKeys, Strictness, SyllableEval } from '../../../shared/speechEval';
 
 /**
  * iFlytek's speech evaluation (语音评测, streaming), for Mandarin sentences:
@@ -29,7 +29,7 @@ export class EvaluatorRefused extends Error {
 }
 
 /** The signed address: HMAC-SHA256 over host, date and the request line, with the API secret. */
-export function signedUrl(keys: EvalKeys, date = new Date().toUTCString()): string {
+export function signedUrl(keys: Pick<IflytekKeys, 'apiKey' | 'apiSecret'>, date = new Date().toUTCString()): string {
   const origin = `host: ${HOST}\ndate: ${date}\nGET ${PATH} HTTP/1.1`;
   const signature = createHmac('sha256', keys.apiSecret).update(origin).digest('base64');
   const authorization = Buffer.from(
@@ -39,7 +39,7 @@ export function signedUrl(keys: EvalKeys, date = new Date().toUTCString()): stri
 }
 
 /** Scores `pcm` (16 kHz, 16-bit, mono) as a reading of `text`. */
-export async function evaluate(keys: EvalKeys, o: { text: string; pcm: Uint8Array; strictness: Strictness }): Promise<EvalResult> {
+export async function evaluate(keys: IflytekKeys, o: { text: string; pcm: Uint8Array; strictness: Strictness }): Promise<EvalResult> {
   const xml = await new Promise<string>((resolve, reject) => {
     const ws = new WebSocket(signedUrl(keys));
     const timer = setTimeout(() => {
@@ -170,6 +170,7 @@ export function parseReport(xml: string): EvalResult {
       };
     });
   return {
+    by: 'iflytek',
     total: num(at('total_score')),
     tone: num(at('tone_score')),
     sounds: num(at('phone_score')),
