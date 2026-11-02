@@ -182,6 +182,44 @@ export function faultsOf(s: SyllableEval): Fault[] {
   return out;
 }
 
+/** How a character came out: green, nearly, wrong — and what to change when it is not green. */
+export interface CharNote {
+  band: 'good' | 'mid' | 'low';
+  /** what went wrong, or for a nearly one what fell short; empty when green */
+  faults: Fault[];
+}
+
+/** Below this a character is not green. */
+export const GREEN = 75;
+
+/**
+ * A character's note. The service's own faults first; a character it found
+ * nothing wrong with but scored under green is "nearly", and what fell short
+ * is the part (initial, final, tone) it scored lowest, by the service's numbers.
+ */
+export function noteOf(s: SyllableEval): CharNote {
+  const faults = faultsOf(s);
+  const p = partsOf(s.symbol);
+  if (s.said === 'missed') return { band: 'low', faults };
+  const score = s.score;
+  const bandOf = (n: number): CharNote['band'] => (n >= GREEN ? 'good' : n >= 60 ? 'mid' : 'low');
+  if (faults.length) return { band: score !== undefined && score < 60 ? 'low' : 'mid', faults };
+  if (score === undefined || score >= GREEN) return { band: 'good', faults: [] };
+  const want = s.sandhi ?? p.tone;
+  const short: Fault[] = [];
+  const parts: Array<[number | undefined, Fault]> = [
+    [s.toneScore, { kind: `tone${want}`, title: `Tone a little off (${Math.round(s.toneScore ?? 0)})`, how: TONE_HOW[want]! }],
+    [s.initialScore, { kind: `initial:${p.initial}`, title: `The initial ${p.initial} a little off (${Math.round(s.initialScore ?? 0)})`, how: INITIAL_HOW[p.initial] ?? `${p.initial}: hear it slowly and copy it.` }],
+    [s.finalScore, { kind: `final:${p.final}`, title: `The final ${p.final} a little off (${Math.round(s.finalScore ?? 0)})`, how: finalHow(p.final, p.initial) }],
+  ];
+  for (const [n, f] of parts) if (n !== undefined && n < GREEN && !(f.kind.startsWith('initial') && !p.initial)) short.push(f);
+  if (!short.length) {
+    const lowest = parts.filter(([n]) => n !== undefined).sort((a, b) => a[0]! - b[0]!)[0];
+    if (lowest) short.push(lowest[1]);
+  }
+  return { band: bandOf(score), faults: short };
+}
+
 /** The phrase's one line of verdict: what let it down, or that it was good. */
 export function verdictOf(r: EvalResult): { headline: string; detail: string } {
   if (r.rejected) return { headline: 'That did not sound like the phrase', detail: 'Hear it once more, then say all of it, from the first word to the last.' };

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { EvalResult, SyllableEval } from '../../shared/speechEval';
-import { attemptOf, faultsOf, marked, numbered, partsOf, troubles, verdictOf } from './phrases';
+import { attemptOf, faultsOf, marked, noteOf, numbered, partsOf, troubles, verdictOf } from './phrases';
 
 const syl = (char: string, symbol: string, o: Partial<SyllableEval> = {}): SyllableEval => ({ char, symbol, said: 'ok', initial: false, final: false, tone: false, from: 0, to: 0, ...o });
 
@@ -30,6 +30,14 @@ describe('phrases said and scored', () => {
     assert.equal(faultsOf(syl('卡', 'ka3', { initial: true, initialLike: 'g' }))[0]!.title, 'The initial k — it sounded like g');
     assert.deepEqual(faultsOf(syl('卡', 'ka3', { said: 'missed' })).map((f) => f.title), ['Not heard']);
     assert.deepEqual(faultsOf(syl('三', 'san1', { extraBefore: true })).map((f) => f.kind), ['added']);
+  });
+
+  it('gives each character a band, and for one nearly green the part that fell short', () => {
+    assert.deepEqual(noteOf(syl('小', 'xiao3', { score: 95 })), { band: 'good', faults: [] });
+    const nearly = noteOf(syl('卡', 'ka3', { score: 70, toneScore: 68, initialScore: 90, finalScore: 80 }));
+    assert.equal(nearly.band, 'mid');
+    assert.deepEqual(nearly.faults.map((f) => f.title), ['Tone a little off (68)']);
+    assert.equal(noteOf(syl('走', 'zou3', { said: 'missed', score: 0 })).band, 'low');
   });
 
   it('numbers each character’s reading for the service, or gives none when one is unknown', () => {

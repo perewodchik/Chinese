@@ -283,6 +283,12 @@
   color: var(--red);
 }
 
+.ph-tile[data-state='nearly'] .ph-tile-zh,
+.ph-tile[data-state='nearly'] .ph-tile-py,
+.ph-tile[data-state='nearly'] .ph-tile-mark {
+  color: var(--gold);
+}
+
 .ph-tile[aria-pressed='true'] {
   background: var(--hl);
 }
@@ -331,12 +337,6 @@
   margin-top: 18px;
 }
 
-@media (min-width: 900px) {
-  .ph-result {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-    align-items: start;
-  }
-}
 
 .ph-card {
   background: var(--card-2);
@@ -559,4 +559,224 @@ button.back-link {
   align-items: flex-end;
   gap: 2px;
   white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ each character, scored */
+
+.ph-chars-block {
+  margin-top: 22px;
+}
+
+.ph-chars-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.ph-chars-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A phone: a strip of cards to swipe, one in view and the next peeking in. */
+.ph-chars {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  margin: 0 calc(-1 * var(--gutter, 20px));
+  padding: 2px var(--gutter, 20px) 14px;
+  scroll-padding: 0 var(--gutter, 20px);
+}
+
+.ph-chars::-webkit-scrollbar {
+  display: none;
+}
+
+.ph-char {
+  flex: 0 0 min(82%, 340px);
+  scroll-snap-align: center;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 14px 16px 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.ph-char[data-band='mid'] {
+  border-color: var(--gold);
+}
+
+.ph-char[data-band='low'] {
+  border-color: var(--red);
+}
+
+/* An iPad or wider: every character at once, the one tapped above outlined. */
+@media (min-width: 760px) {
+  .ph-chars {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 12px;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ph-char[data-active] {
+    box-shadow: 0 0 0 2px var(--ink-2);
+  }
+}
+
+.ph-char-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ph-char-zh {
+  font-size: 44px;
+  line-height: 1.05;
+}
+
+.ph-char[data-band='low'] .ph-char-zh {
+  color: var(--red);
+}
+
+.ph-char[data-band='mid'] .ph-char-zh {
+  color: var(--gold);
+}
+
+.ph-char-py {
+  font: 600 18px/1.2 var(--sans);
+  color: var(--py);
+}
+
+.ph-char-score {
+  margin-left: auto;
+  min-width: 54px;
+  height: 38px;
+  padding: 0 8px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-char-score[data-band='good'] {
+  background: var(--jade-soft);
+  color: var(--jade);
+}
+
+.ph-char-score[data-band='mid'] {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.ph-char-score[data-band='low'] {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.ph-char-parts {
+  display: grid;
+  gap: 4px;
+}
+
+.ph-char-part {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+}
+
+.ph-char-part b {
+  text-align: right;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-char-part[data-band='good'] i {
+  background: var(--jade);
+}
+
+.ph-char-part[data-band='mid'] i {
+  background: var(--gold);
+}
+
+.ph-char-part[data-band='low'] i {
+  background: var(--red);
+}
+
+.ph-char-part[data-band='low'] b {
+  color: var(--red);
+}
+
+.ph-char-notes {
+  display: grid;
+  gap: 8px;
+}
+
+.ph-char-note {
+  display: grid;
+  gap: 2px;
+}
+
+.ph-char-note b {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--red);
+}
+
+.ph-char[data-band='mid'] .ph-char-note b {
+  color: var(--gold);
+}
+
+.ph-char-note .small {
+  color: var(--ink-2);
+  font-family: var(--read);
+}
+
+.ph-char-good {
+  margin: 0;
+  color: var(--jade);
+  font-weight: 500;
+}
+
+.ph-char-pause {
+  margin: 0;
+}
+
+.ph-char-hear {
+  justify-self: start;
+  margin-left: -10px;
+}
+
+/* The summary on its own line above the cards; on an iPad its meters stand beside the total. */
+@media (min-width: 760px) {
+  .ph-result .ph-card {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    column-gap: 32px;
+    align-items: center;
+  }
+
+  .ph-result .ph-total {
+    grid-row: span 5;
+    margin: 0;
+  }
+
+  .ph-result .ph-pace,
+  .ph-result .ph-tries,
+  .ph-result .ph-error {
+    grid-column: 1 / -1;
+  }
 }
