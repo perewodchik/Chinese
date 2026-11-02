@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
-import { EVAL_MAX_BYTES, EVAL_MAX_CHARS, PINYIN_SYLLABLE, STRICTNESS } from '../../../../shared/speechEval';
+import { ATTEMPTS_PER_CALL, EVAL_MAX_BYTES, EVAL_MAX_CHARS, PINYIN_SYLLABLE, STRICTNESS } from '../../../../shared/speechEval';
 import type { AppEnv, RouteDeps } from '../env';
 import { RateLimiter, requireSession } from '../guards';
 import { readJson } from '../request';
@@ -10,6 +10,25 @@ const keysRequest = z.discriminatedUnion('provider', [
   z.object({ provider: z.literal('iflytek'), appId: z.string().min(1).max(60), apiKey: z.string().min(1).max(120), apiSecret: z.string().min(1).max(160) }),
 ]);
 const settingsRequest = z.object({ strictness: z.enum(STRICTNESS) });
+// The page's summary and the service's answer are kept as given, within a size.
+const sized = (max: number) => z.unknown().refine((v) => v === undefined || JSON.stringify(v).length <= max, 'too large');
+const attemptsRequest = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(120),
+        at: z.number().int().nonnegative(),
+        kind: z.enum(['phrase', 'drill']),
+        sourceId: z.string().max(200).nullable().optional(),
+        text: z.string().max(EVAL_MAX_CHARS * 4),
+        tally: z.string().max(80).nullable().optional(),
+        good: z.boolean(),
+        summary: sized(16_000).optional(),
+        result: sized(120_000).optional(),
+      }),
+    )
+    .max(ATTEMPTS_PER_CALL),
+});
 const evalRequest = z.object({
   text: z.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
   pinyin: z.array(z.string().regex(PINYIN_SYLLABLE)).max(EVAL_MAX_CHARS).optional(),
@@ -42,6 +61,13 @@ export function speechEvalRoutes({ auth, clock, trustProxy, speechEval }: RouteD
   routes.patch('/settings', session, async (c) => {
     const { strictness } = await readJson(c, settingsRequest);
     return json(c, await speechEval.setStrictness(user(c), strictness));
+  });
+
+  routes.get('/history', session, async (c) => json(c, await speechEval.history(user(c))));
+
+  routes.post('/attempts', session, async (c) => {
+    const { items } = await readJson(c, attemptsRequest);
+    return json(c, await speechEval.keepAttempts(user(c), items as never));
   });
 
   routes.post('/', session, async (c) => {

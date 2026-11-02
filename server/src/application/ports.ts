@@ -138,6 +138,36 @@ export interface SecretRepository {
   delete(userId: string, name: string): Promise<void>;
 }
 
+/**
+ * One thing said aloud and scored: a line in Phrases, a word in the tone
+ * drills or a sound lesson. Kept per account, so every device sees the same
+ * history. `summary` is the page's own short account of the try (its scores
+ * and faults), `result` the service's whole answer, kept for what may be
+ * worked out from it later.
+ */
+export interface SpeechAttempt {
+  id: string;
+  userId: string;
+  at: number;
+  kind: 'phrase' | 'drill';
+  /** the text, everyday or own text a line came from */
+  sourceId: string | null;
+  /** what was said */
+  text: string;
+  /** a drill's tally: "pair:3-3", "tone:2", "say:q" */
+  tally: string | null;
+  good: boolean;
+  summary: string | null;
+  result: string | null;
+}
+
+export interface SpeechAttemptRepository {
+  /** kept, unless one with the same id already is */
+  add(items: SpeechAttempt[]): Promise<void>;
+  /** every attempt of the user's, oldest first, without the services' answers */
+  list(userId: string): Promise<Array<Omit<SpeechAttempt, 'result'>>>;
+}
+
 /** How a narrator sounds, beyond its voice. */
 export interface VoiceTuning {
   /** 0.5–2, 1 is the service's normal pace */

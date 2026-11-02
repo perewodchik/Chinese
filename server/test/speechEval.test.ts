@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { EvalResult, IflytekKeys, SpeechSuperKeys } from '../../shared/speechEval';
+import type { EvalResult, IflytekKeys, SpeechHistory, SpeechSuperKeys } from '../../shared/speechEval';
 import type { Evaluator } from '../src/application/speech-eval-service';
 import { createServices } from '../src/composition';
 import { createHttpApp } from '../src/http/app';
@@ -164,5 +164,26 @@ describe('phrases scored with the learner’s own keys', () => {
 
     const other = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: 'correct horse' } }));
     assert.equal((await call(app, 'POST', '/api/eval', { cookie: other, body: { text: '小智饿了', audio } })).status, 404);
+  });
+});
+
+describe('tries kept for every device', () => {
+  it('keeps each try once, gives each line its last five and each drill its count, and only to its owner', async () => {
+    const { evaluator } = stub();
+    const app = appWith(evaluator);
+    const cookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'admin', password: 'correct horse' } }));
+    const line = (i: number) => ({ id: `p${i}`, at: 1000 + i, kind: 'phrase', sourceId: 't1', text: '小智饿了', good: i % 2 === 0, summary: { total: 60 + i }, result: parseReport(REPORT) });
+    const drill = (i: number, good: boolean) => ({ id: `d${i}`, at: 2000 + i, kind: 'drill', text: '马', tally: 'tone:3', good });
+    const items = [...[0, 1, 2, 3, 4, 5, 6].map(line), drill(0, true), drill(1, false), drill(2, true)];
+    assert.equal((await call(app, 'POST', '/api/eval/attempts', { cookie, body: { items } })).status, 200);
+    // Sent again — a page retrying, or a second device importing — nothing doubles.
+    await call(app, 'POST', '/api/eval/attempts', { cookie, body: { items } });
+    const h = (await (await call(app, 'GET', '/api/eval/history', { cookie })).json()) as SpeechHistory;
+    assert.deepEqual(h.phrases['小智饿了']!.map((a) => (a.summary as { total: number }).total), [62, 63, 64, 65, 66]);
+    assert.deepEqual(h.tallies['tone:3'], { tries: 3, right: 2, recent: [1, 0, 1], last: 2002 });
+
+    const other = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: 'correct horse' } }));
+    assert.deepEqual(await (await call(app, 'GET', '/api/eval/history', { cookie: other })).json(), { phrases: {}, tallies: {} });
+    assert.equal((await call(app, 'GET', '/api/eval/history')).status, 401);
   });
 });

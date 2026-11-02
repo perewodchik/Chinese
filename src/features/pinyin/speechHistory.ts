@@ -1,0 +1,108 @@
+import type { AttemptIn, SpeechHistory } from '../../../shared/speechEval';
+import { ApiError } from '../../api/http';
+import { keepAttempts, speechHistory } from '../../api/speechEval';
+
+/**
+ * Every try at saying something, kept in the account so the iPad and the
+ * iPhone see the same history: a line in Phrases with its scores and the
+ * service's whole answer, a word in a drill with whether it was good.
+ *
+ * A try goes to an outbox on the device first and is sent from there, so one
+ * said without a connection is sent the next time there is one; the server
+ * keeps each id once, so sending one twice does no harm. What was kept only on
+ * the device before this is sent once, the first time a page asks.
+ */
+
+const OUTBOX = 'hanzi.speech.outbox';
+const IMPORTED = 'hanzi.speech.imported';
+
+const read = <T,>(key: string, empty: T): T => {
+  try {
+    return (JSON.parse(localStorage.getItem(key) ?? 'null') as T | null) ?? empty;
+  } catch {
+    return empty;
+  }
+};
+const write = (key: string, value: unknown) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // kept for this visit only
+  }
+};
+
+export const attemptId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+
+let sending: Promise<void> | null = null;
+
+/** Sends what is waiting, a hundred at a time; what fails waits for the next call. */
+export function flush(): Promise<void> {
+  if (sending) return sending;
+  sending = (async () => {
+    try {
+      for (;;) {
+        const box = read<AttemptIn[]>(OUTBOX, []);
+        if (!box.length) return;
+        const batch = box.slice(0, 100);
+        try {
+          await keepAttempts(batch);
+        } catch (err) {
+          // One the server will never take (malformed, too large) is dropped, not retried for ever.
+          if (!(err instanceof ApiError && err.status === 400)) throw err;
+        }
+        const sent = new Set(batch.map((a) => a.id));
+        write(OUTBOX, read<AttemptIn[]>(OUTBOX, []).filter((a) => !sent.has(a.id)));
+      }
+    } catch {
+      // offline, or the server is away: the outbox keeps them
+    } finally {
+      sending = null;
+    }
+  })();
+  return sending;
+}
+
+/** Keeps a try: on the device at once, in the account as soon as it can be sent. */
+export function keepTry(a: AttemptIn) {
+  write(OUTBOX, [...read<AttemptIn[]>(OUTBOX, []), a]);
+  void flush();
+}
+
+/** What was kept only on this device before the account kept it: put in the outbox, once. */
+function importOnce() {
+  if (read<boolean>(IMPORTED, false)) return;
+  const items: AttemptIn[] = [];
+  const phrases = read<Record<string, Array<{ at: number; faults?: unknown[] }>>>('hanzi.phrases.attempts', {});
+  for (const [text, list] of Object.entries(phrases)) {
+    for (const a of list) items.push({ id: `local-p-${a.at}-${[...text].slice(0, 30).join('')}`, at: a.at, kind: 'phrase', text, good: !a.faults?.length, summary: a });
+  }
+  const tallies = read<{ tallies?: Record<string, { recent?: number[]; last?: number }> }>('hanzi.pinyin.v1', {}).tallies ?? {};
+  for (const [tally, t] of Object.entries(tallies)) {
+    const recent = t.recent ?? [];
+    const last = t.last ?? Date.now();
+    recent.forEach((good, i) =>
+      items.push({ id: `local-d-${tally}-${last}-${i}`, at: last - (recent.length - 1 - i) * 1000, kind: 'drill', text: '', tally, good: good === 1 }),
+    );
+  }
+  write(OUTBOX, [...read<AttemptIn[]>(OUTBOX, []), ...items]);
+  write(IMPORTED, true);
+}
+
+let loading: Promise<SpeechHistory | null> | null = null;
+
+/** The account's history, once what waits on this device has been sent; null when the server cannot be reached. */
+export function loadHistory(): Promise<SpeechHistory | null> {
+  loading ??= (async () => {
+    importOnce();
+    await flush();
+    try {
+      return await speechHistory();
+    } catch {
+      return null;
+    } finally {
+      // asked again later, it is fetched again
+      setTimeout(() => (loading = null), 0);
+    }
+  })();
+  return loading;
+}

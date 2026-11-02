@@ -15,6 +15,7 @@ import { useTitle } from '../../ui/useTitle';
 import { addReading, narratedReadings, playLine, prepareClips, stopLine, type Clips } from '../reader/narratedClips';
 import { useLibrary } from '../shared/library';
 import { PronunciationKey } from '../settings/PronunciationKey';
+import { attemptId, keepTry, loadHistory } from './speechHistory';
 import { RecordButton } from './RecordButton';
 import { useRecorder } from './useRecorder';
 import './phrases.css';
@@ -39,15 +40,21 @@ const loadAttempts = (): Record<string, Attempt[]> => {
     return {};
   }
 };
-function keepAttempt(zh: string, a: Attempt): Record<string, Attempt[]> {
+/** Keeps a try on this device at once and in the account, with the service's whole answer. */
+function keepAttempt(zh: string, a: Attempt, sourceId: string, result: EvalResult): Record<string, Attempt[]> {
   const all = loadAttempts();
   all[zh] = [...(all[zh] ?? []), a].slice(-5);
+  saveAttempts(all);
+  keepTry({ id: attemptId(), at: a.at, kind: 'phrase', sourceId, text: zh, good: a.faults.length === 0, summary: a, result });
+  return all;
+}
+
+function saveAttempts(all: Record<string, Attempt[]>) {
   try {
     localStorage.setItem(KEPT, JSON.stringify(all));
   } catch {
     // kept for this visit only
   }
-  return all;
 }
 
 const NOTHING_HEARD = 'Nothing was heard: the microphone gave only silence. Tap the button and say the line again; if it keeps happening, reload the page.';
@@ -105,6 +112,13 @@ export function PhrasesPage() {
   useEffect(() => {
     void evalStatus().then(setStatus, () => setStatus({ key: { set: false, hint: null, provider: null }, strictness: 'common' }));
     void ownTexts().then(setOwn, () => setOwn([]));
+    // The account's tries, every device's, in place of this one's.
+    void loadHistory().then((h) => {
+      if (!h) return;
+      const all = Object.fromEntries(Object.entries(h.phrases).map(([zh, list]) => [zh, list.map((x) => x.summary as Attempt)]));
+      saveAttempts(all);
+      setAttempts(all);
+    });
   }, []);
 
   // The shelves as Read has them, chapters in reading order; the shelf read most lately first.
@@ -185,7 +199,7 @@ export function PhrasesPage() {
         lines={source.phrases.map((p) => p.zh)}
         scores={scores}
         tryAgain={attempts[source.phrases[index]!.zh] ?? []}
-        onAttempt={(zh, a) => setAttempts(keepAttempt(zh, a))}
+        onAttempt={(zh, a, r) => setAttempts(keepAttempt(zh, a, source.id, r))}
         onGo={go}
         onNext={() => (index + 1 < source.phrases.length ? go(index + 1) : setDone(true))}
         onBack={() => setOpen(null)}
@@ -368,7 +382,7 @@ function PhraseView({
   /** each line's best score, −1 for not said yet */
   scores: number[];
   tryAgain: Attempt[];
-  onAttempt: (zh: string, a: Attempt) => void;
+  onAttempt: (zh: string, a: Attempt, r: EvalResult) => void;
   onGo: (i: number) => void;
   onNext: () => void;
   onBack: () => void;
@@ -446,7 +460,7 @@ function PhraseView({
           return;
         }
         setResult(r);
-        onAttempt(phrase.zh, attemptOf(r, Date.now()));
+        onAttempt(phrase.zh, attemptOf(r, Date.now()), r);
       },
       (err: Error) => setError(err.message),
     ).finally(() => setChecking(false));

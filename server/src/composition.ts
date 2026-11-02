@@ -16,6 +16,7 @@ import type {
   SecretRepository,
   TextNarrationRepository,
   OwnTextRepository,
+  SpeechAttemptRepository,
   RecordingRepository,
   SessionRepository,
   SpeechSynthesizer,
@@ -68,6 +69,7 @@ export interface Stores {
   narrators: NarratorRepository;
   narrations: TextNarrationRepository;
   ownTexts: OwnTextRepository;
+  speechAttempts: SpeechAttemptRepository;
 }
 
 /**
@@ -118,6 +120,6 @@ export function createServices(
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
     narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock }),
-    speechEval: new SpeechEvalService({ secrets: stores.secrets, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock }),
+    speechEval: new SpeechEvalService({ secrets: stores.secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock }),
   };
 }

@@ -1,0 +1,24 @@
+import type pg from 'pg';
+import type { SpeechAttempt, SpeechAttemptRepository } from '../../application/ports';
+import { attemptFromRow } from '../sqlite/speech-attempt-repository';
+
+const COLUMNS = 'id, user_id, at, kind, source_id, text, tally, good, summary';
+
+/** Things said aloud and scored, in Postgres. */
+export class PostgresSpeechAttemptRepository implements SpeechAttemptRepository {
+  constructor(private readonly db: pg.Pool) {}
+
+  async add(items: SpeechAttempt[]) {
+    for (const a of items) {
+      await this.db.query(
+        `INSERT INTO speech_attempts (${COLUMNS}, result) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT (id) DO NOTHING`,
+        [a.id, a.userId, a.at, a.kind, a.sourceId, a.text, a.tally, a.good, a.summary, a.result],
+      );
+    }
+  }
+
+  async list(userId: string) {
+    const { rows } = await this.db.query(`SELECT ${COLUMNS} FROM speech_attempts WHERE user_id = $1 ORDER BY at, id`, [userId]);
+    return rows.map(attemptFromRow);
+  }
+}

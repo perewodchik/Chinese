@@ -100,10 +100,10 @@ function Sitting({ set }: { set: PracticeSet }) {
   // The service's verdict is the only one: the first try is what counts for the
   // tally; a later success only counts as having got there.
   const onScored = useCallback(
-    (_r: EvalResult, good: boolean) => {
+    (r: EvalResult, good: boolean) => {
       if (!word) return;
       setScored({ good });
-      record(set.tally, good);
+      record(set.tally, good, { text: word.word, result: r });
       setTries((n) => n + 1);
       if (good || tries === 0) setResults((r) => (r.some((x) => x.word === word) ? r : [...r, { word, firstTry: good, tries: tries + 1 }]));
     },

@@ -816,6 +816,7 @@ var PROVIDER_NAME = { speechsuper: "SpeechSuper", iflytek: "iFlytek" };
 var PINYIN_SYLLABLE = /^[a-zü]{1,6}[1-5]$/;
 var EVAL_MAX_CHARS = 100;
 var EVAL_MAX_BYTES = 20 * 16e3 * 2;
+var ATTEMPTS_PER_CALL = 500;
 
 // server/src/infrastructure/iflytek.ts
 import { createHmac } from "node:crypto";
@@ -1044,6 +1045,50 @@ var SpeechEvalService = class {
       if (err instanceof EvaluatorRefused) throw new AppError("unavailable", err.message);
       throw new AppError("unavailable", `${PROVIDER_NAME[k.provider]} did not answer. Try again in a minute.`);
     }
+  }
+  /** Tries kept for every device; one kept already (by its id) is left as it is. */
+  async keepAttempts(userId, items) {
+    if (items.length > ATTEMPTS_PER_CALL) throw new ValidationError("Too many tries at once.");
+    await this.deps.attempts.add(
+      items.map((a) => ({
+        id: `${userId}:${a.id}`,
+        userId,
+        at: a.at,
+        kind: a.kind,
+        sourceId: a.sourceId ?? null,
+        text: a.text,
+        tally: a.tally ?? null,
+        good: a.good,
+        summary: a.summary === void 0 ? null : JSON.stringify(a.summary),
+        result: a.result === void 0 ? null : JSON.stringify(a.result)
+      }))
+    );
+    return { kept: items.length };
+  }
+  /** Each line's last five tries, and each drill tally's count, from everything kept. */
+  async history(userId) {
+    const phrases = {};
+    const tallies = {};
+    for (const a of await this.deps.attempts.list(userId)) {
+      if (a.kind === "phrase") {
+        if (!a.summary) continue;
+        let summary;
+        try {
+          summary = JSON.parse(a.summary);
+        } catch {
+          continue;
+        }
+        (phrases[a.text] ??= []).push({ at: a.at, summary });
+        if (phrases[a.text].length > 5) phrases[a.text].shift();
+      } else if (a.tally) {
+        const t = tallies[a.tally] ??= { tries: 0, right: 0, recent: [], last: 0 };
+        t.tries += 1;
+        if (a.good) t.right += 1;
+        t.recent = [...t.recent, a.good ? 1 : 0].slice(-10);
+        t.last = Math.max(t.last, a.at);
+      }
+    }
+    return { phrases, tallies };
   }
   evaluator() {
     if (!this.deps.evaluator) throw new AppError("unavailable", "This server cannot reach the pronunciation service.");
@@ -1460,7 +1505,7 @@ function createServices(stores, options = {}) {
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
     narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock }),
-    speechEval: new SpeechEvalService({ secrets: stores.secrets, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock })
+    speechEval: new SpeechEvalService({ secrets: stores.secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock })
   };
 }
 
@@ -1890,6 +1935,22 @@ var keysRequest = z4.discriminatedUnion("provider", [
   z4.object({ provider: z4.literal("iflytek"), appId: z4.string().min(1).max(60), apiKey: z4.string().min(1).max(120), apiSecret: z4.string().min(1).max(160) })
 ]);
 var settingsRequest = z4.object({ strictness: z4.enum(STRICTNESS) });
+var sized = (max) => z4.unknown().refine((v) => v === void 0 || JSON.stringify(v).length <= max, "too large");
+var attemptsRequest = z4.object({
+  items: z4.array(
+    z4.object({
+      id: z4.string().min(1).max(120),
+      at: z4.number().int().nonnegative(),
+      kind: z4.enum(["phrase", "drill"]),
+      sourceId: z4.string().max(200).nullable().optional(),
+      text: z4.string().max(EVAL_MAX_CHARS * 4),
+      tally: z4.string().max(80).nullable().optional(),
+      good: z4.boolean(),
+      summary: sized(16e3).optional(),
+      result: sized(12e4).optional()
+    })
+  ).max(ATTEMPTS_PER_CALL)
+});
 var evalRequest = z4.object({
   text: z4.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
   pinyin: z4.array(z4.string().regex(PINYIN_SYLLABLE)).max(EVAL_MAX_CHARS).optional(),
@@ -1915,6 +1976,11 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval }) {
   routes.patch("/settings", session, async (c) => {
     const { strictness } = await readJson(c, settingsRequest);
     return json(c, await speechEval.setStrictness(user(c), strictness));
+  });
+  routes.get("/history", session, async (c) => json(c, await speechEval.history(user(c))));
+  routes.post("/attempts", session, async (c) => {
+    const { items } = await readJson(c, attemptsRequest);
+    return json(c, await speechEval.keepAttempts(user(c), items));
   });
   routes.post("/", session, async (c) => {
     scores.consume(user(c));
@@ -2732,6 +2798,22 @@ var MIGRATIONS = [
     created_at     BIGINT NOT NULL
   );
   CREATE INDEX own_texts_user ON own_texts (user_id, created_at);
+  `,
+  // Things said aloud and scored (Phrases, the tone drills, the sound lessons): the history every device shares.
+  `
+  CREATE TABLE speech_attempts (
+    id         TEXT PRIMARY KEY,
+    user_id    TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    at         BIGINT NOT NULL,
+    kind       TEXT NOT NULL,
+    source_id  TEXT,
+    text       TEXT NOT NULL,
+    tally      TEXT,
+    good       BOOLEAN NOT NULL,
+    summary    TEXT,
+    result     TEXT
+  );
+  CREATE INDEX speech_attempts_user ON speech_attempts (user_id, at);
   `
 ];
 
@@ -3042,6 +3124,39 @@ var PostgresOwnTextRepository = class {
   }
 };
 
+// server/src/infrastructure/sqlite/speech-attempt-repository.ts
+var attemptFromRow = (r) => ({
+  id: r.id,
+  userId: r.user_id,
+  at: Number(r.at),
+  kind: r.kind === "drill" ? "drill" : "phrase",
+  sourceId: r.source_id,
+  text: r.text,
+  tally: r.tally,
+  good: Boolean(r.good),
+  summary: r.summary
+});
+
+// server/src/infrastructure/postgres/speech-attempt-repository.ts
+var COLUMNS = "id, user_id, at, kind, source_id, text, tally, good, summary";
+var PostgresSpeechAttemptRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async add(items) {
+    for (const a of items) {
+      await this.db.query(
+        `INSERT INTO speech_attempts (${COLUMNS}, result) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT (id) DO NOTHING`,
+        [a.id, a.userId, a.at, a.kind, a.sourceId, a.text, a.tally, a.good, a.summary, a.result]
+      );
+    }
+  }
+  async list(userId) {
+    const { rows } = await this.db.query(`SELECT ${COLUMNS} FROM speech_attempts WHERE user_id = $1 ORDER BY at, id`, [userId]);
+    return rows.map(attemptFromRow);
+  }
+};
+
 // server/src/infrastructure/postgres/secret-repository.ts
 var PostgresSecretRepository = class {
   constructor(db) {
@@ -3284,7 +3399,8 @@ var postgresStores = (db) => ({
   secrets: new PostgresSecretRepository(db),
   narrators: new PostgresNarratorRepository(db),
   narrations: new PostgresTextNarrationRepository(db),
-  ownTexts: new PostgresOwnTextRepository(db)
+  ownTexts: new PostgresOwnTextRepository(db),
+  speechAttempts: new PostgresSpeechAttemptRepository(db)
 });
 
 // server/src/vercel.ts

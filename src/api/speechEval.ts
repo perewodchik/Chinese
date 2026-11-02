@@ -1,4 +1,4 @@
-import type { EvalKeys, EvalResult, EvalStatus, Strictness } from '../../shared/speechEval';
+import type { AttemptIn, EvalKeys, EvalResult, EvalStatus, SpeechHistory, Strictness } from '../../shared/speechEval';
 import { request } from './http';
 
 export const evalStatus = () => request<EvalStatus>('GET', '/api/eval');
@@ -22,3 +22,8 @@ export function pcmBase64(samples: Float32Array): string {
 /** A phrase as it was said, scored; `pinyin`, a numbered reading per character, settles the characters with two readings. */
 export const evaluatePhrase = (text: string, samples: Float32Array, pinyin?: string[]) =>
   request<{ result: EvalResult }>('POST', '/api/eval', { body: { text, ...(pinyin ? { pinyin } : {}), audio: pcmBase64(samples) }, timeoutMs: 45_000 }).then((r) => r.result);
+
+/** Tries to keep for every device; one already kept (by its id) is left as it is. */
+export const keepAttempts = (items: AttemptIn[]) => request<{ kept: number }>('POST', '/api/eval/attempts', { body: { items }, timeoutMs: 30_000 });
+/** Every device's tries, as Phrases and the drills need them. */
+export const speechHistory = () => request<SpeechHistory>('GET', '/api/eval/history');

@@ -6,6 +6,8 @@
  *   PUT    /api/eval/key          EvalKeys → tried, then kept (in place of any kept before)
  *   DELETE /api/eval/key          forget them
  *   PATCH  /api/eval/settings     { strictness }
+ *   POST   /api/eval/attempts     { items: AttemptIn[] } → kept (an id kept already is left as it is)
+ *   GET    /api/eval/history      SpeechHistory: every device's tries, as Phrases and the drills need them
  *   POST   /api/eval              { text, pinyin?, audio } → the phrase scored (audio: 16 kHz 16-bit mono PCM, base64;
  *                                  pinyin: a numbered syllable per character, ka3, so 卡 in 皮卡丘 is not taken for qia3)
  */
@@ -100,3 +102,28 @@ export const PINYIN_SYLLABLE = /^[a-zü]{1,6}[1-5]$/;
 export const EVAL_MAX_CHARS = 100;
 /** Twenty seconds of 16 kHz 16-bit audio. */
 export const EVAL_MAX_BYTES = 20 * 16_000 * 2;
+
+/** A try to keep: a line in Phrases or a word in a drill, scored. Its id is the page's, so sending it twice keeps it once. */
+export interface AttemptIn {
+  id: string;
+  at: number;
+  kind: 'phrase' | 'drill';
+  sourceId?: string | null;
+  text: string;
+  /** a drill's tally: "pair:3-3", "tone:2", "say:q" */
+  tally?: string | null;
+  good: boolean;
+  /** the page's short account of the try: its scores and faults */
+  summary?: unknown;
+  /** the service's whole answer */
+  result?: EvalResult;
+}
+
+export interface SpeechHistory {
+  /** each line's last tries, oldest first: the summaries the page kept */
+  phrases: Record<string, Array<{ at: number; summary: unknown }>>;
+  /** each drill tally: all tries, how many good, the last ten (1 good), the latest */
+  tallies: Record<string, { tries: number; right: number; recent: number[]; last: number }>;
+}
+
+export const ATTEMPTS_PER_CALL = 500;

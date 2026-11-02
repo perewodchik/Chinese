@@ -4,14 +4,17 @@ import {
   PINYIN_SYLLABLE,
   PROVIDER_NAME,
   STRICTNESS,
+  ATTEMPTS_PER_CALL,
+  type AttemptIn,
   type EvalKeys,
   type EvalResult,
   type EvalStatus,
+  type SpeechHistory,
   type Strictness,
 } from '../../../shared/speechEval';
 import { AppError, NotFoundError, ValidationError } from '../domain/errors';
 import { EvaluatorRefused } from '../infrastructure/iflytek';
-import type { Clock, SecretRepository } from './ports';
+import type { Clock, SecretRepository, SpeechAttemptRepository } from './ports';
 
 const NAME = 'speech-eval';
 
@@ -49,7 +52,7 @@ function clean(raw: EvalKeys): EvalKeys {
  * key, so they can tell which it is. How strict the scoring is goes with them.
  */
 export class SpeechEvalService {
-  constructor(private readonly deps: { secrets: SecretRepository; evaluator: Evaluator | null; clock: Clock }) {}
+  constructor(private readonly deps: { secrets: SecretRepository; attempts: SpeechAttemptRepository; evaluator: Evaluator | null; clock: Clock }) {}
 
   private async kept(userId: string): Promise<Kept | null> {
     const raw = await this.deps.secrets.get(userId, NAME);
@@ -119,6 +122,52 @@ export class SpeechEvalService {
       if (err instanceof EvaluatorRefused) throw new AppError('unavailable', err.message);
       throw new AppError('unavailable', `${PROVIDER_NAME[k.provider]} did not answer. Try again in a minute.`);
     }
+  }
+
+  /** Tries kept for every device; one kept already (by its id) is left as it is. */
+  async keepAttempts(userId: string, items: AttemptIn[]): Promise<{ kept: number }> {
+    if (items.length > ATTEMPTS_PER_CALL) throw new ValidationError('Too many tries at once.');
+    await this.deps.attempts.add(
+      items.map((a) => ({
+        id: `${userId}:${a.id}`,
+        userId,
+        at: a.at,
+        kind: a.kind,
+        sourceId: a.sourceId ?? null,
+        text: a.text,
+        tally: a.tally ?? null,
+        good: a.good,
+        summary: a.summary === undefined ? null : JSON.stringify(a.summary),
+        result: a.result === undefined ? null : JSON.stringify(a.result),
+      })),
+    );
+    return { kept: items.length };
+  }
+
+  /** Each line's last five tries, and each drill tally's count, from everything kept. */
+  async history(userId: string): Promise<SpeechHistory> {
+    const phrases: SpeechHistory['phrases'] = {};
+    const tallies: SpeechHistory['tallies'] = {};
+    for (const a of await this.deps.attempts.list(userId)) {
+      if (a.kind === 'phrase') {
+        if (!a.summary) continue;
+        let summary: unknown;
+        try {
+          summary = JSON.parse(a.summary);
+        } catch {
+          continue;
+        }
+        (phrases[a.text] ??= []).push({ at: a.at, summary });
+        if (phrases[a.text]!.length > 5) phrases[a.text]!.shift();
+      } else if (a.tally) {
+        const t = (tallies[a.tally] ??= { tries: 0, right: 0, recent: [], last: 0 });
+        t.tries += 1;
+        if (a.good) t.right += 1;
+        t.recent = [...t.recent, a.good ? 1 : 0].slice(-10);
+        t.last = Math.max(t.last, a.at);
+      }
+    }
+    return { phrases, tallies };
   }
 
   private evaluator(): Evaluator {

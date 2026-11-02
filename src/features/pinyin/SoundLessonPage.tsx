@@ -291,11 +291,11 @@ function SayIt({ lesson }: { lesson: SoundLesson }) {
         word={word.word}
         readings={word.reading.split(/\s+/)}
         onListen={() => void say(word.word, { slow: true })}
-        onScored={(_r, good) => {
+        onScored={(r, good) => {
           // The first attempt at each word is what counts; trying again until
           // it comes out right is practice, not a score.
           if (scored.has(at)) return;
-          record(sayKey(lesson.id), good);
+          record(sayKey(lesson.id), good, { text: word.word, result: r });
           setScored((s) => new Set(s).add(at));
         }}
       />

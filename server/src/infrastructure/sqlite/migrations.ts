@@ -151,4 +151,20 @@ export const MIGRATIONS: readonly string[] = [
   ) STRICT;
   CREATE INDEX own_texts_user ON own_texts (user_id, created_at);
   `,
+  // Things said aloud and scored (Phrases, the tone drills, the sound lessons): the history every device shares.
+  `
+  CREATE TABLE speech_attempts (
+    id         TEXT PRIMARY KEY,
+    user_id    TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    at         INTEGER NOT NULL,
+    kind       TEXT NOT NULL,
+    source_id  TEXT,
+    text       TEXT NOT NULL,
+    tally      TEXT,
+    good       INTEGER NOT NULL,
+    summary    TEXT,
+    result     TEXT
+  ) STRICT;
+  CREATE INDEX speech_attempts_user ON speech_attempts (user_id, at);
+  `,
 ];

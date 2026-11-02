@@ -1,5 +1,7 @@
 import { logSpoken } from '../../store/commands';
 import { useSyncExternalStore } from 'react';
+import type { EvalResult } from '../../../shared/speechEval';
+import { attemptId, keepTry, loadHistory } from './speechHistory';
 
 /**
  * What the pronunciation section remembers: how each tone, tone pair and
@@ -59,12 +61,29 @@ const subscribe = (l: () => void) => {
   return () => listeners.delete(l);
 };
 
-export const usePinyinMemory = () => useSyncExternalStore(subscribe, () => state);
+/** The account's tallies, fetched once a visit, in place of this device's. */
+let synced = false;
+function sync() {
+  if (synced) return;
+  synced = true;
+  void loadHistory().then((h) => {
+    if (h) write({ ...state, tallies: { ...h.tallies } });
+  });
+}
+
+export const usePinyinMemory = () => {
+  sync();
+  return useSyncExternalStore(subscribe, () => state);
+};
 
 // The voice to hear moved beside the player, which every speaker button uses.
 export { preferredVoice, saveVoice } from '../../platform/audio/voicePreference';
 
-export function record(key: string, right: boolean) {
+/**
+ * A try in a drill: counted here at once, and kept in the account with the
+ * word said and the service's answer, so every device counts the same.
+ */
+export function record(key: string, right: boolean, said?: { text: string; result?: EvalResult }) {
   const t = state.tallies[key] ?? { tries: 0, right: 0, recent: [] };
   const next: Tally = {
     tries: t.tries + 1,
@@ -73,7 +92,7 @@ export function record(key: string, right: boolean) {
     last: Date.now(),
   };
   write({ ...state, tallies: { ...state.tallies, [key]: next } });
-  // The tally stays on the device; that a try happened today goes to the account.
+  keepTry({ id: attemptId(), at: next.last!, kind: 'drill', text: said?.text ?? '', tally: key, good: right, ...(said?.result ? { result: said.result } : {}) });
   logSpoken();
 }
 
