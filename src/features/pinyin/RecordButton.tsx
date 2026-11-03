@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import type { RecorderState } from './useRecorder';
 
 /** The recorder's states, and the wait while the service scores what was said. */
@@ -6,7 +7,7 @@ export type SayItState = RecorderState | 'checking';
 const LABEL: Record<SayItState, string> = {
   idle: 'Say it',
   opening: 'Opening the microphone…',
-  listening: 'Listening…',
+  listening: 'Listening… tap to stop',
   hearing: 'Hearing you…',
   checking: 'Scoring…',
 };
@@ -36,6 +37,12 @@ export function RecordButton({
   const live = state === 'listening' || state === 'hearing';
   // Loudness is roughly logarithmic to the ear; so is the ring.
   const swell = live ? Math.min(1, Math.max(0, (Math.log10(level + 1e-4) + 3.2) / 2.4)) : 0;
+  // The last few loudnesses, newest in the middle: five bars that move with the voice, as a level meter does.
+  const recent = useRef<number[]>([0, 0, 0, 0, 0]);
+  if (live) recent.current = [...recent.current.slice(1), swell];
+  else recent.current = [0, 0, 0, 0, 0];
+  const [a, b, c, d, e] = recent.current;
+  const bars = [b!, d!, e!, c!, a!];
   return (
     <div className="rec" data-compact={compact || undefined}>
       <button
@@ -49,7 +56,17 @@ export function RecordButton({
         style={{ ['--swell' as string]: swell }}
       >
         <span className="rec-ring" aria-hidden />
-        <span className="rec-dot" aria-hidden />
+        <span className="rec-ripple" aria-hidden />
+        {live ? (
+          <span className="rec-bars" aria-hidden>
+            {bars.map((v, i) => (
+              <i key={i} style={{ transform: `scaleY(${0.18 + v * 0.82})` }} />
+            ))}
+          </span>
+        ) : (
+          <span className="rec-dot" aria-hidden />
+        )}
+        {state === 'checking' && <span className="rec-spin" aria-hidden />}
       </button>
       {/* The label is the whole state of a drill, but beside a text box the
           button is one control in a row and its state is its own colour. It

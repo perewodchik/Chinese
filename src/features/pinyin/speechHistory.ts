@@ -1,6 +1,6 @@
-import type { AttemptIn, SpeechHistory } from '../../../shared/speechEval';
+import type { AttemptIn, AttemptOut, SpeechHistory } from '../../../shared/speechEval';
 import { ApiError } from '../../api/http';
-import { keepAttempts, speechHistory } from '../../api/speechEval';
+import { keepAttempts, listAttempts, speechHistory } from '../../api/speechEval';
 
 /**
  * Every try at saying something, kept in the account so the iPad and the
@@ -105,4 +105,23 @@ export function loadHistory(): Promise<SpeechHistory | null> {
     }
   })();
   return loading;
+}
+
+const known = new Map<string, Promise<AttemptOut[]>>();
+
+/** The account's tries of a kind, fetched once a visit (what waits here sent first); then kept up to date by `remember`. */
+export function knownTries(kind: 'phrase' | 'voice'): Promise<AttemptOut[]> {
+  let p = known.get(kind);
+  if (!p) {
+    p = flush().then(() => listAttempts(kind));
+    p.catch(() => known.delete(kind));
+    known.set(kind, p);
+  }
+  return p;
+}
+
+/** A try just kept joins what this visit knows, so a line opened again shows it. */
+export function remember(a: AttemptOut) {
+  const p = known.get(a.kind === 'voice' ? 'voice' : 'phrase');
+  if (p) known.set(a.kind === 'voice' ? 'voice' : 'phrase', p.then((list) => [a, ...list.filter((x) => x.id !== a.id)], () => [a]));
 }

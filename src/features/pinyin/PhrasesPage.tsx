@@ -1,27 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import { paths } from '../../navigation/paths';
-import type { NarratorDto, OwnTextDto } from '../../../shared/narration';
+import type { OwnTextDto } from '../../../shared/narration';
 import type { EvalResult, EvalStatus } from '../../../shared/speechEval';
-import { ApiError } from '../../api/http';
-import { chooseNarrator, chosenNarrator, listNarrators, narrationOf, ownTexts } from '../../api/narration';
-import { evalStatus, evaluatePhrase } from '../../api/speechEval';
+import { ownTexts } from '../../api/narration';
+import { evalStatus } from '../../api/speechEval';
 import { pinyinOf } from '../../domain/ownText';
-import { attemptOf, EVERYDAY, numbered, partsOf, troubles, type Attempt, type Phrase } from '../../domain/phrases';
-import { alignPinyin } from '../../domain/reading';
+import { EVERYDAY, partsOf, troubles, type Attempt, type Phrase } from '../../domain/phrases';
 import { shelve, type GeneratedText } from '../../domain/text';
-import { heardAnything } from '../../platform/audio/mic';
-import { playSamples } from '../../platform/audio/voiceOut';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
-import { addReading, narratedLine, narratedReadings, playLine, prepareClips, stopLine, type Clips, type Narrated } from '../reader/narratedClips';
 import { useLibrary } from '../shared/library';
 import { PronunciationKey } from '../settings/PronunciationKey';
-import { attemptId, keepTry, loadHistory } from './speechHistory';
-import { RecordButton } from './RecordButton';
-import { band, ScoredLine } from './ScoredLine';
-import { useRecorder } from './useRecorder';
+import { keepTry, loadHistory, remember } from './speechHistory';
+import { LineStudio } from './LineStudio';
+import { band } from './ScoredLine';
 import './phrases.css';
 import './pinyin.css';
 
@@ -38,11 +32,13 @@ const loadAttempts = (): Record<string, Attempt[]> => {
   }
 };
 /** Keeps a try on this device at once and in the account, with the service's whole answer. */
-function keepAttempt(zh: string, a: Attempt, sourceId: string, result: EvalResult): Record<string, Attempt[]> {
+function keepAttempt(zh: string, a: Attempt, sourceId: string, result: EvalResult, id: string): Record<string, Attempt[]> {
   const all = loadAttempts();
   all[zh] = [...(all[zh] ?? []), a].slice(-5);
   saveAttempts(all);
-  keepTry({ id: attemptId(), at: a.at, kind: 'phrase', sourceId, text: zh, good: a.faults.length === 0, summary: a, result });
+  const good = a.faults.length === 0;
+  keepTry({ id, at: a.at, kind: 'phrase', sourceId, text: zh, good, summary: a, result });
+  remember({ id, at: a.at, kind: 'phrase', sourceId, text: zh, tally: null, good, summary: a, full: true });
   return all;
 }
 
@@ -54,32 +50,6 @@ function saveAttempts(all: Record<string, Attempt[]>) {
   }
 }
 
-/** What went wrong sending a line to be scored, said so the learner knows what to do. */
-interface Trouble {
-  title: string;
-  text: string;
-  /** the same recording can simply be sent again */
-  retry: boolean;
-  settings: boolean;
-}
-
-function troubleOf(err: unknown): Trouble {
-  if (err instanceof ApiError) {
-    if (err.code === 'network') {
-      return /too long/.test(err.message)
-        ? { title: 'No answer in time', text: 'The scoring took too long — usually a slow connection. Your recording is kept: try again.', retry: true, settings: false }
-        : { title: 'No connection', text: 'The server could not be reached. Check the internet, then try again: your recording is kept.', retry: true, settings: false };
-    }
-    if (err.status === 404) return { title: 'No pronunciation keys', text: err.message, retry: false, settings: true };
-    if (err.status === 400) return { title: 'This recording cannot be scored', text: err.message, retry: false, settings: false };
-    if (err.status === 401) return { title: 'Signed out', text: 'Sign in again, then say the line once more.', retry: false, settings: false };
-    if (err.status === 429) return { title: 'Too many at once', text: 'Wait a minute, then try again.', retry: true, settings: false };
-    return { title: 'The scoring service failed', text: `${err.message} Your recording is kept: try again.`, retry: true, settings: /key|sig|licen|expire|quota/i.test(err.message) };
-  }
-  return { title: 'Something went wrong', text: err instanceof Error ? err.message : 'Try again.', retry: true, settings: false };
-}
-
-const NOTHING_HEARD = 'Nothing came through from the microphone, so nothing was sent to be scored. Say the line again; if it happens again, reload the page, and check the browser may use the microphone (on an iPad: Settings › Safari or Chrome › Microphone).';
 
 
 /** What was being said last: a source and a line, to carry on from. */
@@ -221,7 +191,7 @@ export function PhrasesPage() {
       navigate(paths.speakingSay(source.id, i), { replace: true });
     };
     return (
-      <PhraseView
+      <LineStudio
         key={`${source.id}:${index}`}
         phrases={source.phrases}
         index={index}
@@ -229,8 +199,7 @@ export function PhrasesPage() {
         sourceId={source.id}
         lines={source.phrases.map((p) => p.zh)}
         scores={scores}
-        tryAgain={attempts[source.phrases[index]!.zh] ?? []}
-        onAttempt={(zh, a, r) => setAttempts(keepAttempt(zh, a, source.id, r))}
+        onAttempt={(zh, a, r, id) => setAttempts(keepAttempt(zh, a, source.id, r, id))}
         onGo={go}
         onNext={() => (index + 1 < source.phrases.length ? go(index + 1) : navigate(`${paths.speakingSay(source.id)}?done=1`, { replace: true }))}
         onBack={toTexts}
@@ -383,319 +352,6 @@ function Finished({ source, scores, onAgain, onBack }: { source: Source; scores:
           Choose another text
         </button>
       </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------ one phrase */
-
-
-function PhraseView({
-  phrases,
-  index,
-  title,
-  sourceId,
-  lines,
-  scores: lineScores,
-  tryAgain,
-  onAttempt,
-  onGo,
-  onNext,
-  onBack,
-}: {
-  phrases: Phrase[];
-  index: number;
-  title: string;
-  sourceId: string;
-  lines: string[];
-  /** each line's best score, −1 for not said yet */
-  scores: number[];
-  tryAgain: Attempt[];
-  onAttempt: (zh: string, a: Attempt, r: EvalResult) => void;
-  onGo: (i: number) => void;
-  onNext: () => void;
-  onBack: () => void;
-}) {
-  const lib = useLibrary();
-  const phrase = phrases[index]!;
-  const [result, setResult] = useState<EvalResult | null>(null);
-  const [samples, setSamples] = useState<Float32Array | null>(null);
-  const [checking, setChecking] = useState(false);
-  const [error, setError] = useState<Trouble | null>(null);
-  const [note, setNote] = useState<string | null>(null);
-  /** what the microphone was doing when nothing came through, to send with a screenshot */
-  const [micDetail, setMicDetail] = useState<string | null>(null);
-  const [clips, setClips] = useState<Clips | null>(null);
-  const [narrators, setNarrators] = useState<NarratorDto[] | null>(null);
-  const [voices, setVoices] = useState<Narrated[]>([]);
-  const [voice, setVoice] = useState<Narrated | null>(null);
-  const [voiceScore, setVoiceScore] = useState<{ result: EvalResult; samples: Float32Array; name: string } | null>(null);
-  const [voiceScoring, setVoiceScoring] = useState(false);
-  const [voiceTrouble, setVoiceTrouble] = useState<Trouble | null>(null);
-  const [reading, setReading] = useState(false);
-  const [readingFailed, setReadingFailed] = useState<string | null>(null);
-
-  // The example: this phrase cut from a narrator's reading of the lines it is among.
-  useEffect(() => {
-    let live = true;
-    void narratedReadings(lines).then(async (list) => {
-      const c = chosenNarrator();
-      const r = list.find((x) => x.n.narratorId === c) ?? list[0];
-      if (live) setVoices(list);
-      if (r && live) {
-        setVoice(r);
-        setClips(await prepareClips(sourceId, r));
-      }
-      else if (live) void listNarrators().then((n) => live && setNarrators(n), () => live && setNarrators([]));
-    }, () => undefined);
-    return () => {
-      live = false;
-      stopLine();
-    };
-    // By the lines' text, not the array: the parent makes a new one each render,
-    // and every run stops what is playing.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lines.join('\n'), sourceId]);
-
-  // Which narrator says the example, and how the service scores that narrator saying it:
-  // a voice that scores 60 itself is no measure of the learner's 60.
-  async function pickVoice(id: string) {
-    const r = voices.find((x) => x.n.narratorId === id);
-    if (!r) return;
-    stopLine();
-    setVoice(r);
-    setVoiceScore(null);
-    chooseNarrator(id);
-    setClips(await prepareClips(sourceId, r));
-  }
-
-  async function scoreVoice() {
-    if (!voice) return;
-    setVoiceScoring(true);
-    setVoiceTrouble(null);
-    setVoiceScore(null);
-    try {
-      const said = await narratedLine(voice, index);
-      const r = await evaluatePhrase(phrase.zh, said, numbered(readings));
-      if (r.rejected) setVoiceTrouble({ title: `${voice.name}'s reading did not match this line`, text: 'Its timings may be off for this line: the scoring heard other words.', retry: false, settings: false });
-      else setVoiceScore({ result: r, samples: said, name: voice.name });
-    } catch (err) {
-      setVoiceTrouble(troubleOf(err));
-    } finally {
-      setVoiceScoring(false);
-    }
-  }
-
-  async function readThem() {
-    const n = narrators?.find((x) => x.id === chosenNarrator()) ?? narrators?.[0];
-    if (!n) return;
-    setReading(true);
-    setReadingFailed(null);
-    try {
-      const made = await narrationOf(n.id, lines, { generate: true });
-      if (made) {
-        const r = { n: made, name: n.name };
-        addReading(lines, r);
-        setVoices((v) => [...v.filter((x) => x.n.narratorId !== r.n.narratorId), r]);
-        setVoice(r);
-        setClips(await prepareClips(sourceId, r));
-      }
-    } catch (err) {
-      setReadingFailed(err instanceof Error ? err.message : 'MiniMax did not answer.');
-    } finally {
-      setReading(false);
-    }
-  }
-
-  // Each character's reading, for the tiles and for the service.
-  const readings = useMemo(() => alignPinyin({ zh: phrase.zh, py: phrase.py }, lib), [phrase, lib]);
-
-  // Sends a recording to be scored; kept, so a failed one can be sent again without saying it again.
-  function score(s: Float32Array) {
-    setError(null);
-    setNote(null);
-    setMicDetail(null);
-    // Silence is not sent to be scored: it would come back as every syllable left out.
-    if (!heardAnything(s)) {
-      setNote(NOTHING_HEARD);
-      setMicDetail(recorder.diagnostics());
-      return;
-    }
-    setChecking(true);
-    setResult(null);
-    evaluatePhrase(phrase.zh, s, numbered(readings))
-      .then(
-        (r) => {
-          // Not the phrase at all is not a try at it: nothing marked, nothing counted.
-          if (r.rejected) {
-            setNote('That did not sound like this line. Hear it once more, then say all of it, close to the microphone.');
-            return;
-          }
-          setResult(r);
-          onAttempt(phrase.zh, attemptOf(r, Date.now()), r);
-        },
-        (err: unknown) => setError(troubleOf(err)),
-      )
-      .finally(() => setChecking(false));
-  }
-
-  const recorder = useRecorder((s) => {
-    setSamples(s);
-    score(s);
-  }, 15_000);
-
-  const state = checking ? 'checking' : recorder.state;
-  const [slow, setSlow] = useState(false);
-  const hear = () => clips && playLine(clips, index, slow ? 0.75 : 1);
-  const last = index + 1 >= phrases.length;
-
-  return (
-    <section className="ph-say">
-      <header className="ph-say-top">
-        <button className="icon-btn" onClick={onBack} aria-label="Back to the texts">
-          <Icon name="close" />
-        </button>
-        <span className="ph-say-title">
-          <span className="hanzi">{title}</span>
-          <span className="tiny muted">
-            Line {index + 1} of {phrases.length}
-          </span>
-        </span>
-        <button className="chip ph-slow" aria-pressed={slow} onClick={() => setSlow((x) => !x)} title="Hear it at three quarters of the speed">
-          Slowly
-        </button>
-      </header>
-      <div className="ph-segs" role="group" aria-label="The text's lines">
-        {lineScores.map((b, i) => (
-          <button
-            key={i}
-            className="ph-seg"
-            data-band={b < 0 ? 'none' : band(b)}
-            aria-current={i === index ? 'step' : undefined}
-            aria-label={`Line ${i + 1}${b < 0 ? '' : `, ${Math.round(b)}`}`}
-            onClick={() => onGo(i)}
-          >
-            <i />
-          </button>
-        ))}
-      </div>
-
-      <div className="ph-say-body">
-        <ScoredLine zh={phrase.zh} en={phrase.en} readings={readings} result={result} samples={samples} tryAgain={tryAgain} scoring={checking}>
-        {voice && (
-          <div className="ph-voice">
-            <span className="small muted">Read by</span>
-            {voices.length > 1 ? (
-              <select className="ph-voice-pick" value={voice.n.narratorId} onChange={(e) => void pickVoice(e.target.value)} aria-label="The voice that reads it">
-                {voices.map((v) => (
-                  <option key={v.n.narratorId} value={v.n.narratorId}>
-                    {v.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <b className="small">{voice.name}</b>
-            )}
-            <button className="btn quiet sm ph-voice-score" onClick={() => void scoreVoice()} disabled={voiceScoring}>
-              {voiceScoring ? <span className="spinner" aria-hidden /> : null}
-              {voiceScoring ? 'Scoring the voice…' : 'Score this voice'}
-            </button>
-          </div>
-        )}
-        {!clips && narrators !== null && (
-          <p className="small muted ph-note">
-            {narrators.length === 0 ? (
-              'No narrator has read these yet. Make one in Voices, and it reads them for you to copy.'
-            ) : (
-              <>
-                No narrator has read these yet.{' '}
-                <button className="btn quiet sm" onClick={() => void readThem()} disabled={reading}>
-                  {reading ? 'Reading… up to a minute' : `Have ${narrators.find((x) => x.id === chosenNarrator())?.name ?? narrators[0]!.name} read them`}
-                </button>
-              </>
-            )}
-            {readingFailed && <span className="ph-error"> {readingFailed}</span>}
-          </p>
-        )}
-        {note && (
-          <p className="small muted ph-note" role="status">
-            {note}
-            {micDetail && <span className="tiny ph-mic-detail">{micDetail}</span>}
-          </p>
-        )}
-        {recorder.error && (
-          <p className="narrator-error ph-error-box" role="alert">
-            {recorder.error}
-          </p>
-        )}
-        {error && (
-          <div className="ph-failed" role="alert">
-            <b>{error.title}</b>
-            <span className="small">{error.text}</span>
-            <span className="ph-failed-actions">
-              {error.retry && samples && (
-                <button className="btn tonal sm" onClick={() => score(samples)} disabled={checking}>
-                  Try again
-                </button>
-              )}
-              {error.settings && (
-                <Link className="btn quiet sm" to={paths.settings()}>
-                  Open Settings
-                </Link>
-              )}
-            </span>
-          </div>
-        )}
-        </ScoredLine>
-        {voiceTrouble && (
-          <div className="ph-failed" role="alert">
-            <b>{voiceTrouble.title}</b>
-            <span className="small">{voiceTrouble.text}</span>
-            <span className="ph-failed-actions">
-              {voiceTrouble.retry && (
-                <button className="btn tonal sm" onClick={() => void scoreVoice()}>
-                  Try again
-                </button>
-              )}
-            </span>
-          </div>
-        )}
-        {voiceScore && (
-          <section className="ph-voice-panel" aria-label={`How ${voiceScore.name} scored`}>
-            <header className="ph-voice-head">
-              <span>
-                <b>How {voiceScore.name} scored</b>
-                <span className="tiny muted">The example scored the same way as you, for comparison; not counted in your tries.</span>
-              </span>
-              <button className="icon-btn" onClick={() => setVoiceScore(null)} aria-label="Close the voice's score">
-                <Icon name="close" />
-              </button>
-            </header>
-            <ScoredLine zh={phrase.zh} readings={readings} result={voiceScore.result} samples={voiceScore.samples} />
-          </section>
-        )}
-      </div>
-
-      {/* Like a tab bar: an icon over a word, five equal places, so nothing is cut short on the narrowest phone. */}
-      <footer className="ph-dock">
-        <button className="ph-dock-btn" onClick={() => onGo(index - 1)} disabled={index === 0}>
-          <Icon name="prev" />
-          <span>Back</span>
-        </button>
-        <button className="ph-dock-btn" onClick={hear} disabled={!clips}>
-          <Icon name="play" />
-          <span>{slow ? 'Slowly' : 'Hear'}</span>
-        </button>
-        <RecordButton state={state} level={recorder.level} onToggle={recorder.toggle} compact />
-        <button className="ph-dock-btn" onClick={() => samples && void playSamples(samples)} disabled={!samples}>
-          <Icon name="play" />
-          <span>Mine</span>
-        </button>
-        <button className="ph-dock-btn" data-go={result ? '' : undefined} onClick={onNext}>
-          <Icon name="next" />
-          <span>{last ? 'Done' : result ? 'Next' : 'Skip'}</span>
-        </button>
-      </footer>
     </section>
   );
 }

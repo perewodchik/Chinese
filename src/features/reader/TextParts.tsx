@@ -1,3 +1,5 @@
+import { Link } from 'react-router';
+import { paths } from '../../navigation/paths';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ItemId } from '../../domain/ids';
 import { hskLabel, type GeneratedText } from '../../domain/text';
@@ -533,6 +535,16 @@ export function MorePart({ text, partId }: { text: GeneratedText; partId: string
           </span>
           <Icon name="chevron" />
         </button>
+        <Link className="rd-more-row" to={paths.speakingSay(text.id)}>
+          <span className="hanzi" aria-hidden>
+            说
+          </span>
+          <span className="grow">
+            <b>Say it</b>
+            <span className="small muted">Line by line, every syllable scored, beside the narrator's own score</span>
+          </span>
+          <Icon name="chevron" />
+        </Link>
         <button className="rd-more-row" onClick={() => setFilming(true)}>
           <span className="hanzi" aria-hidden>
             影

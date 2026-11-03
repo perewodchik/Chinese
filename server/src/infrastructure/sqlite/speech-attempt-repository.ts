@@ -7,7 +7,7 @@ export const attemptFromRow = (r: Row): Omit<SpeechAttempt, 'result'> & { hasRes
   id: r.id,
   userId: r.user_id,
   at: Number(r.at),
-  kind: r.kind === 'drill' ? 'drill' : 'phrase',
+  kind: r.kind === 'drill' || r.kind === 'voice' ? r.kind : 'phrase',
   sourceId: r.source_id,
   text: r.text,
   tally: r.tally,

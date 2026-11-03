@@ -165,7 +165,8 @@ export function parseAnswer(raw: unknown, strictness: Strictness): EvalResult {
       const sandhi = toneNo(ns.tone_sandhi);
       const toneScore = n0(w.scores?.tone);
       const heard = toneNo(w.scores?.tone_sound_like ?? w.tone_sound_like);
-      const wrongPhone = (p: Phone | undefined) => Boolean(p && (p.readType === 6 || n0(p.pronunciation) < bar));
+      // Wrong by the service's own number for it: a phone marked as said another way (6) but scored 100 is not marked.
+      const wrongPhone = (p: Phone | undefined) => Boolean(p && n0(p.pronunciation) < bar);
       const like = (p: Phone | undefined) => (p && wrongPhone(p) && p.sound_like && p.sound_like !== '-' && p.sound_like !== p.phone ? p.sound_like : undefined);
       return {
         char: parts.length > 1 ? (ns.syllables ?? chars[j] ?? '') : (w.word ?? ''),

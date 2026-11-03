@@ -79,11 +79,15 @@ export class MicSession {
     const resumed = first.resume().catch(() => undefined);
     let stream: MediaStream;
     try {
+      // The service does the listening now, not a pitch tracker that wanted the
+      // signal raw: echo cancelled, so a narrator heard while shadowing stays
+      // out of the recording, and gain kept level, so a quiet iPad microphone
+      // still gives a voice the service can hear.
       stream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          echoCancellation: false,
+          echoCancellation: true,
           noiseSuppression: false,
-          autoGainControl: false,
+          autoGainControl: true,
           channelCount: 1,
         },
       });

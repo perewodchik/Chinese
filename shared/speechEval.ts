@@ -105,14 +105,21 @@ export const EVAL_MAX_CHARS = 100;
 /** Twenty seconds of 16 kHz 16-bit audio. */
 export const EVAL_MAX_BYTES = 20 * 16_000 * 2;
 
+/**
+ * What a try is: a line the learner said in Phrases, a word in a drill, or a
+ * narrator's reading of a line scored the same way (its narrator in `tally`),
+ * to compare the learner's numbers with.
+ */
+export type AttemptKind = 'phrase' | 'drill' | 'voice';
+
 /** A try to keep: a line in Phrases or a word in a drill, scored. Its id is the page's, so sending it twice keeps it once. */
 export interface AttemptIn {
   id: string;
   at: number;
-  kind: 'phrase' | 'drill';
+  kind: AttemptKind;
   sourceId?: string | null;
   text: string;
-  /** a drill's tally: "pair:3-3", "tone:2", "say:q" */
+  /** a drill's tally ("pair:3-3", "tone:2", "say:q"); for a voice, its narrator's id */
   tally?: string | null;
   good: boolean;
   /** the page's short account of the try: its scores and faults */
@@ -134,7 +141,7 @@ export const ATTEMPTS_PER_CALL = 500;
 export interface AttemptOut {
   id: string;
   at: number;
-  kind: 'phrase' | 'drill';
+  kind: AttemptKind;
   sourceId: string | null;
   text: string;
   tally: string | null;

@@ -42,7 +42,7 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
     done.current(samples);
   }, []);
 
-  const start = useCallback(async () => {
+  const start = useCallback(async (fixedMs?: number) => {
     setError(null);
     // A session whose track iOS ended or muted (a call, another app, a lock) is opened afresh.
     if (session.current && !session.current.live) {
@@ -66,6 +66,8 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
     let quietSince = 0;
     s.onLevel = (rms) => {
       setLevel(rms);
+      // A recording of a set length (shadowing a narrator) ends on its clock, not at a pause.
+      if (fixedMs) return;
       const now = performance.now();
       // The first fifth of a second is the room, before anyone speaks.
       if (now - began < 200) {
@@ -86,7 +88,7 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
     };
     s.start();
     setState('listening');
-    watch.current.timer = setTimeout(finish, maxMs);
+    watch.current.timer = setTimeout(finish, fixedMs ?? maxMs);
   }, [finish, maxMs]);
 
   const toggle = useCallback(() => {
@@ -94,10 +96,24 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
     else if (state === 'idle') void start();
   }, [state, start, finish]);
 
+  /** Records for exactly `ms`, whatever pauses come: for shadowing, alongside the narrator. Call from a tap. */
+  const recordFor = useCallback((ms: number) => start(ms), [start]);
+  /** Opens the microphone without recording, from a tap, so a recording after a countdown starts at once. */
+  const prepare = useCallback(async () => {
+    if (session.current?.live) return true;
+    try {
+      session.current = await MicSession.open();
+      return true;
+    } catch (e) {
+      setError(e instanceof MicError ? e.message : MIC_MESSAGE.failed);
+      return false;
+    }
+  }, []);
+
   const play = useCallback((samples: Float32Array) => session.current?.play(samples), []);
 
   /** What the microphone is doing, for a message when nothing came through. */
   const diagnostics = useCallback(() => session.current?.diagnostics() ?? 'microphone not open', []);
 
-  return { state, level, error, toggle, play, diagnostics, ready: !!session.current };
+  return { state, level, error, toggle, play, diagnostics, recordFor, prepare, finish, ready: !!session.current };
 }

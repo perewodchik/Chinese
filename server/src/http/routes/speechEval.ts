@@ -18,7 +18,7 @@ const attemptsRequest = z.object({
       z.object({
         id: z.string().min(1).max(120),
         at: z.number().int().nonnegative(),
-        kind: z.enum(['phrase', 'drill']),
+        kind: z.enum(['phrase', 'drill', 'voice']),
         sourceId: z.string().max(200).nullable().optional(),
         text: z.string().max(EVAL_MAX_CHARS * 4),
         tally: z.string().max(80).nullable().optional(),
@@ -67,7 +67,7 @@ export function speechEvalRoutes({ auth, clock, trustProxy, speechEval }: RouteD
 
   routes.get('/attempts', session, async (c) => {
     const kind = c.req.query('kind');
-    return json(c, { attempts: await speechEval.attempts(user(c), kind === 'phrase' || kind === 'drill' ? kind : undefined) });
+    return json(c, { attempts: await speechEval.attempts(user(c), kind === 'phrase' || kind === 'drill' || kind === 'voice' ? kind : undefined) });
   });
 
   routes.get('/attempts/:id', session, async (c) => json(c, await speechEval.attemptResult(user(c), c.req.param('id'))));

@@ -1,4 +1,4 @@
-import type { AttemptIn, AttemptOut, EvalKeys, EvalResult, EvalStatus, SpeechHistory, Strictness } from '../../shared/speechEval';
+import type { AttemptIn, AttemptKind, AttemptOut, EvalKeys, EvalResult, EvalStatus, SpeechHistory, Strictness } from '../../shared/speechEval';
 import { request } from './http';
 
 export const evalStatus = () => request<EvalStatus>('GET', '/api/eval');
@@ -28,7 +28,7 @@ export const keepAttempts = (items: AttemptIn[]) => request<{ kept: number }>('P
 /** Every device's tries, as Phrases and the drills need them. */
 export const speechHistory = () => request<SpeechHistory>('GET', '/api/eval/history');
 /** Tries to look back over, newest first. */
-export const listAttempts = (kind?: 'phrase' | 'drill') =>
+export const listAttempts = (kind?: AttemptKind) =>
   request<{ attempts: AttemptOut[] }>('GET', `/api/eval/attempts${kind ? `?kind=${kind}` : ''}`).then((r) => r.attempts);
 /** One try's whole answer from the service. */
 export const attemptResult = (id: string) => request<{ result: EvalResult }>('GET', `/api/eval/attempts/${encodeURIComponent(id)}`).then((r) => r.result);

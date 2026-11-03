@@ -6,6 +6,7 @@ import {
   STRICTNESS,
   ATTEMPTS_LISTED,
   ATTEMPTS_PER_CALL,
+  type AttemptKind,
   type AttemptOut,
   type AttemptIn,
   type EvalKeys,
@@ -147,7 +148,7 @@ export class SpeechEvalService {
   }
 
   /** The tries to look back over, newest first, without the services' answers. */
-  async attempts(userId: string, kind?: 'phrase' | 'drill'): Promise<AttemptOut[]> {
+  async attempts(userId: string, kind?: AttemptKind): Promise<AttemptOut[]> {
     const prefix = `${userId}:`;
     return (await this.deps.attempts.list(userId))
       .filter((a) => !kind || a.kind === kind)
@@ -186,7 +187,7 @@ export class SpeechEvalService {
         }
         (phrases[a.text] ??= []).push({ at: a.at, summary });
         if (phrases[a.text]!.length > 5) phrases[a.text]!.shift();
-      } else if (a.tally) {
+      } else if (a.kind === 'drill' && a.tally) {
         const t = (tallies[a.tally] ??= { tries: 0, right: 0, recent: [], last: 0 });
         t.tries += 1;
         if (a.good) t.right += 1;

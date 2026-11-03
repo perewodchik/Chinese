@@ -573,6 +573,66 @@
   background: var(--card);
 }
 
+/* Live: five bars inside the button move with the voice, and a ripple keeps
+   going out from it — the microphone is plainly hearing, before anything is judged. */
+.rec-bars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 40%;
+}
+
+.rec-bars i {
+  display: block;
+  width: 4px;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--on-accent);
+  transform-origin: center;
+  transition: transform 90ms linear;
+}
+
+.rec-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rec-button[data-live] .rec-ripple {
+  animation: rec-ripple 1.6s ease-out infinite;
+}
+
+@keyframes rec-ripple {
+  from {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+/* Scored: an arc goes round the button until the answer comes. */
+.rec-spin {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: var(--accent);
+  animation: spin 0.9s linear infinite;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-button[data-live] .rec-ripple {
+    animation: none;
+  }
+}
+
 .rec-ring {
   position: absolute;
   inset: -6px;
@@ -2907,4 +2967,8 @@
   background: var(--card-2);
   font-size: 22px;
   flex: none;
+}
+
+.rec-button:disabled:has(.rec-spin) {
+  opacity: 1;
 }

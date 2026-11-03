@@ -1,3 +1,4 @@
+import type { AttemptKind } from '../../../shared/speechEval';
 import type {
   ClaudeState,
   TalkConversation,
@@ -149,7 +150,7 @@ export interface SpeechAttempt {
   id: string;
   userId: string;
   at: number;
-  kind: 'phrase' | 'drill';
+  kind: AttemptKind;
   /** the text, everyday or own text a line came from */
   sourceId: string | null;
   /** what was said */

@@ -84,6 +84,12 @@ export function ScoredLine({
   }, [zh, readings, result]);
 
   const verdict = result ? verdictOf(result) : null;
+  // What the total is close to: the characters' own numbers, averaged, a left-out one as 0.
+  const charsAvg = (() => {
+    const said = result?.syllables.filter((x) => x.said !== 'added') ?? [];
+    if (!said.length || said.every((x) => x.score === undefined)) return null;
+    return Math.round(said.reduce((n, x) => n + (x.said === 'missed' ? 0 : (x.score ?? 0)), 0) / said.length);
+  })();
   // Each character with the punctuation after it, so a full stop never starts a line alone.
   const groups = tiles.reduce<number[][]>((out, t, i) => {
     if (!t.py && out.length) out[out.length - 1]!.push(i);
@@ -99,15 +105,17 @@ export function ScoredLine({
   // On a phone the strip and the characters above follow each other: a tap on
   // a character brings its card, a swipe lights the character of the card in view.
   const strip = useRef<HTMLDivElement>(null);
-  const bring = (ti: number) => {
+  // `tapped`: brought by a tap on a character, so the page may move to show it;
+  // brought by a new score, only the strip turns, and the line stays where it is.
+  const bring = (ti: number, tapped = true) => {
     setActive(ti);
     const el = document.getElementById(`${uid}-${ti}`);
     const box = strip.current;
     if (!el || !box) return;
     if (box.scrollWidth > box.clientWidth + 4) {
-      box.scrollTo({ left: el.offsetLeft - (box.clientWidth - el.clientWidth) / 2, behavior: 'smooth' });
-      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } else el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      box.scrollTo({ left: el.offsetLeft - (box.clientWidth - el.clientWidth) / 2, behavior: tapped ? 'smooth' : 'auto' });
+      if (tapped) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else if (tapped) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
   const ticking = useRef(false);
   function onStripScroll() {
@@ -135,7 +143,7 @@ export function ScoredLine({
   useEffect(() => {
     if (!result) return;
     const first = cards.find((c) => c.note.band !== 'good') ?? cards[0];
-    if (first) requestAnimationFrame(() => bring(first.ti));
+    if (first) requestAnimationFrame(() => bring(first.ti, false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result]);
   const parts = result
@@ -193,7 +201,7 @@ export function ScoredLine({
             </span>
           </div>
         )}
-        {result && verdict && (
+        {!scoring && result && verdict && (
           <section className="ph-sum">
             <span className="ph-sum-total" data-band={band(result.total)}>
               {Math.round(result.total)}
@@ -207,6 +215,11 @@ export function ScoredLine({
                   </span>
                 ))}
               </span>
+              {charsAvg !== null && (
+                <span className="tiny muted ph-sum-why">
+                  Total ≈ the average of the characters below ({charsAvg}), one not heard as 0 — so it can sit under every figure here.
+                </span>
+              )}
               {(pace || tryAgain.length > 1) && (
                 <span className="tiny muted">
                   {pace}
@@ -218,7 +231,7 @@ export function ScoredLine({
           </section>
         )}
 
-        {result && cards.length > 0 && (
+        {!scoring && result && cards.length > 0 && (
           <div className="ph-chars" ref={strip} onScroll={onStripScroll} aria-label="Each character">
             {cards.map(({ ti, tile, syl, note }) => {
               const n = charScore(syl);

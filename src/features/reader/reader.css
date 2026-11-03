@@ -2282,3 +2282,7 @@ label.rd-aa-row {
   justify-content: space-between;
   font-variant-numeric: tabular-nums;
 }
+
+a.rd-more-row {
+  text-decoration: none;
+}

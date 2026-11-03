@@ -1100,7 +1100,7 @@ var SpeechEvalService = class {
         }
         (phrases[a.text] ??= []).push({ at: a.at, summary });
         if (phrases[a.text].length > 5) phrases[a.text].shift();
-      } else if (a.tally) {
+      } else if (a.kind === "drill" && a.tally) {
         const t = tallies[a.tally] ??= { tries: 0, right: 0, recent: [], last: 0 };
         t.tries += 1;
         if (a.good) t.right += 1;
@@ -1208,7 +1208,7 @@ function parseAnswer(raw, strictness) {
       const sandhi = toneNo(ns.tone_sandhi);
       const toneScore = n0(w.scores?.tone);
       const heard = toneNo(w.scores?.tone_sound_like ?? w.tone_sound_like);
-      const wrongPhone = (p) => Boolean(p && (p.readType === 6 || n0(p.pronunciation) < bar));
+      const wrongPhone = (p) => Boolean(p && n0(p.pronunciation) < bar);
       const like = (p) => p && wrongPhone(p) && p.sound_like && p.sound_like !== "-" && p.sound_like !== p.phone ? p.sound_like : void 0;
       return {
         char: parts.length > 1 ? ns.syllables ?? chars[j] ?? "" : w.word ?? "",
@@ -1961,7 +1961,7 @@ var attemptsRequest = z4.object({
     z4.object({
       id: z4.string().min(1).max(120),
       at: z4.number().int().nonnegative(),
-      kind: z4.enum(["phrase", "drill"]),
+      kind: z4.enum(["phrase", "drill", "voice"]),
       sourceId: z4.string().max(200).nullable().optional(),
       text: z4.string().max(EVAL_MAX_CHARS * 4),
       tally: z4.string().max(80).nullable().optional(),
@@ -2000,7 +2000,7 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval }) {
   routes.get("/history", session, async (c) => json(c, await speechEval.history(user(c))));
   routes.get("/attempts", session, async (c) => {
     const kind = c.req.query("kind");
-    return json(c, { attempts: await speechEval.attempts(user(c), kind === "phrase" || kind === "drill" ? kind : void 0) });
+    return json(c, { attempts: await speechEval.attempts(user(c), kind === "phrase" || kind === "drill" || kind === "voice" ? kind : void 0) });
   });
   routes.get("/attempts/:id", session, async (c) => json(c, await speechEval.attemptResult(user(c), c.req.param("id"))));
   routes.post("/attempts", session, async (c) => {
@@ -3154,7 +3154,7 @@ var attemptFromRow = (r) => ({
   id: r.id,
   userId: r.user_id,
   at: Number(r.at),
-  kind: r.kind === "drill" ? "drill" : "phrase",
+  kind: r.kind === "drill" || r.kind === "voice" ? r.kind : "phrase",
   sourceId: r.source_id,
   text: r.text,
   tally: r.tally,
