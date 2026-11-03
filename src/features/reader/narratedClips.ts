@@ -1,5 +1,6 @@
 import type { TextNarrationDto } from '../../../shared/narration';
-import { listNarrators, narrationAudio, readingsOf } from '../../api/narration';
+import { listNarrators, narrationAudio, narrationBlob, readingsOf } from '../../api/narration';
+import { ANALYSIS_RATE, downsample } from '../../platform/audio/mic';
 import { stopSpeaking } from '../../platform/speech';
 
 /**
@@ -139,4 +140,41 @@ export function playLine(c: Clips, i: number, rate: number) {
 export function stopLine() {
   clearInterval(timer);
   el?.pause();
+}
+
+const decoded = new Map<string, Promise<Float32Array>>();
+
+/** A reading decoded to 16 kHz mono, as a recording is: once per reading. */
+function readingSamples(n: TextNarrationDto): Promise<Float32Array> {
+  const id = `${n.key}:${n.createdAt}`;
+  let p = decoded.get(id);
+  if (!p) {
+    p = narrationBlob(n).then(async (blob) => {
+      const bytes = await blob.arrayBuffer();
+      try {
+        // Decoded straight at the rate the scoring wants.
+        const buf = await new OfflineAudioContext(1, 1, ANALYSIS_RATE).decodeAudioData(bytes.slice(0));
+        return buf.getChannelData(0).slice();
+      } catch {
+        // An engine that will not decode at that rate: at its own, then down.
+        const ctx = new OfflineAudioContext(1, 1, 44_100);
+        const buf = await ctx.decodeAudioData(bytes.slice(0));
+        return downsample(buf.getChannelData(0), buf.sampleRate, ANALYSIS_RATE);
+      }
+    });
+    p.catch(() => decoded.delete(id));
+    decoded.set(id, p);
+  }
+  return p;
+}
+
+/** Line `i` of a narrator's reading as samples, to be scored like the learner's own recording. */
+export async function narratedLine(r: Narrated, i: number): Promise<Float32Array> {
+  const t = r.n.timings[i];
+  if (!t) throw new Error('This reading has no timing for the line.');
+  const all = await readingSamples(r.n);
+  const next = r.n.timings[i + 1]?.[0] ?? Infinity;
+  const from = Math.max(0, Math.floor(((t[0] - 100) / 1000) * ANALYSIS_RATE));
+  const to = Math.min(all.length, Math.ceil((Math.min(t[1] + 200, next) / 1000) * ANALYSIS_RATE));
+  return all.slice(from, to);
 }

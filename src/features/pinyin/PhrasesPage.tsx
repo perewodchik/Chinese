@@ -4,7 +4,7 @@ import { paths } from '../../navigation/paths';
 import type { NarratorDto, OwnTextDto } from '../../../shared/narration';
 import type { EvalResult, EvalStatus } from '../../../shared/speechEval';
 import { ApiError } from '../../api/http';
-import { chosenNarrator, listNarrators, narrationOf, ownTexts } from '../../api/narration';
+import { chooseNarrator, chosenNarrator, listNarrators, narrationOf, ownTexts } from '../../api/narration';
 import { evalStatus, evaluatePhrase } from '../../api/speechEval';
 import { pinyinOf } from '../../domain/ownText';
 import { attemptOf, EVERYDAY, numbered, partsOf, troubles, type Attempt, type Phrase } from '../../domain/phrases';
@@ -15,7 +15,7 @@ import { playSamples } from '../../platform/audio/voiceOut';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
-import { addReading, narratedReadings, playLine, prepareClips, stopLine, type Clips } from '../reader/narratedClips';
+import { addReading, narratedLine, narratedReadings, playLine, prepareClips, stopLine, type Clips, type Narrated } from '../reader/narratedClips';
 import { useLibrary } from '../shared/library';
 import { PronunciationKey } from '../settings/PronunciationKey';
 import { attemptId, keepTry, loadHistory } from './speechHistory';
@@ -427,6 +427,11 @@ function PhraseView({
   const [micDetail, setMicDetail] = useState<string | null>(null);
   const [clips, setClips] = useState<Clips | null>(null);
   const [narrators, setNarrators] = useState<NarratorDto[] | null>(null);
+  const [voices, setVoices] = useState<Narrated[]>([]);
+  const [voice, setVoice] = useState<Narrated | null>(null);
+  const [voiceScore, setVoiceScore] = useState<{ result: EvalResult; samples: Float32Array; name: string } | null>(null);
+  const [voiceScoring, setVoiceScoring] = useState(false);
+  const [voiceTrouble, setVoiceTrouble] = useState<Trouble | null>(null);
   const [reading, setReading] = useState(false);
   const [readingFailed, setReadingFailed] = useState<string | null>(null);
 
@@ -436,7 +441,11 @@ function PhraseView({
     void narratedReadings(lines).then(async (list) => {
       const c = chosenNarrator();
       const r = list.find((x) => x.n.narratorId === c) ?? list[0];
-      if (r && live) setClips(await prepareClips(sourceId, r));
+      if (live) setVoices(list);
+      if (r && live) {
+        setVoice(r);
+        setClips(await prepareClips(sourceId, r));
+      }
       else if (live) void listNarrators().then((n) => live && setNarrators(n), () => live && setNarrators([]));
     }, () => undefined);
     return () => {
@@ -448,6 +457,35 @@ function PhraseView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lines.join('\n'), sourceId]);
 
+  // Which narrator says the example, and how the service scores that narrator saying it:
+  // a voice that scores 60 itself is no measure of the learner's 60.
+  async function pickVoice(id: string) {
+    const r = voices.find((x) => x.n.narratorId === id);
+    if (!r) return;
+    stopLine();
+    setVoice(r);
+    setVoiceScore(null);
+    chooseNarrator(id);
+    setClips(await prepareClips(sourceId, r));
+  }
+
+  async function scoreVoice() {
+    if (!voice) return;
+    setVoiceScoring(true);
+    setVoiceTrouble(null);
+    setVoiceScore(null);
+    try {
+      const said = await narratedLine(voice, index);
+      const r = await evaluatePhrase(phrase.zh, said, numbered(readings));
+      if (r.rejected) setVoiceTrouble({ title: `${voice.name}'s reading did not match this line`, text: 'Its timings may be off for this line: the scoring heard other words.', retry: false, settings: false });
+      else setVoiceScore({ result: r, samples: said, name: voice.name });
+    } catch (err) {
+      setVoiceTrouble(troubleOf(err));
+    } finally {
+      setVoiceScoring(false);
+    }
+  }
+
   async function readThem() {
     const n = narrators?.find((x) => x.id === chosenNarrator()) ?? narrators?.[0];
     if (!n) return;
@@ -458,6 +496,8 @@ function PhraseView({
       if (made) {
         const r = { n: made, name: n.name };
         addReading(lines, r);
+        setVoices((v) => [...v.filter((x) => x.n.narratorId !== r.n.narratorId), r]);
+        setVoice(r);
         setClips(await prepareClips(sourceId, r));
       }
     } catch (err) {
@@ -542,6 +582,26 @@ function PhraseView({
 
       <div className="ph-say-body">
         <ScoredLine zh={phrase.zh} en={phrase.en} readings={readings} result={result} samples={samples} tryAgain={tryAgain} scoring={checking}>
+        {voice && (
+          <div className="ph-voice">
+            <span className="small muted">Read by</span>
+            {voices.length > 1 ? (
+              <select className="ph-voice-pick" value={voice.n.narratorId} onChange={(e) => void pickVoice(e.target.value)} aria-label="The voice that reads it">
+                {voices.map((v) => (
+                  <option key={v.n.narratorId} value={v.n.narratorId}>
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <b className="small">{voice.name}</b>
+            )}
+            <button className="btn quiet sm ph-voice-score" onClick={() => void scoreVoice()} disabled={voiceScoring}>
+              {voiceScoring ? <span className="spinner" aria-hidden /> : null}
+              {voiceScoring ? 'Scoring the voice…' : 'Score this voice'}
+            </button>
+          </div>
+        )}
         {!clips && narrators !== null && (
           <p className="small muted ph-note">
             {narrators.length === 0 ? (
@@ -587,6 +647,33 @@ function PhraseView({
           </div>
         )}
         </ScoredLine>
+        {voiceTrouble && (
+          <div className="ph-failed" role="alert">
+            <b>{voiceTrouble.title}</b>
+            <span className="small">{voiceTrouble.text}</span>
+            <span className="ph-failed-actions">
+              {voiceTrouble.retry && (
+                <button className="btn tonal sm" onClick={() => void scoreVoice()}>
+                  Try again
+                </button>
+              )}
+            </span>
+          </div>
+        )}
+        {voiceScore && (
+          <section className="ph-voice-panel" aria-label={`How ${voiceScore.name} scored`}>
+            <header className="ph-voice-head">
+              <span>
+                <b>How {voiceScore.name} scored</b>
+                <span className="tiny muted">The example scored the same way as you, for comparison; not counted in your tries.</span>
+              </span>
+              <button className="icon-btn" onClick={() => setVoiceScore(null)} aria-label="Close the voice's score">
+                <Icon name="close" />
+              </button>
+            </header>
+            <ScoredLine zh={phrase.zh} readings={readings} result={voiceScore.result} samples={voiceScore.samples} />
+          </section>
+        )}
       </div>
 
       {/* Like a tab bar: an icon over a word, five equal places, so nothing is cut short on the narrowest phone. */}

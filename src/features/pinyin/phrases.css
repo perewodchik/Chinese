@@ -846,3 +846,52 @@ button.back-link {
   font-family: ui-monospace, monospace;
   opacity: 0.8;
 }
+
+/* Who reads the example, and scoring that reading as the learner's is scored. */
+.ph-voice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: -4px;
+}
+
+.ph-voice-pick {
+  min-height: 34px;
+  font-size: 16px;
+  max-width: 60%;
+}
+
+.ph-voice-score {
+  gap: 6px;
+}
+
+.ph-voice-panel {
+  display: grid;
+  gap: 12px;
+  padding: 12px 14px 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--card);
+}
+
+.ph-voice-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ph-voice-head > span {
+  flex: 1 1 auto;
+  display: grid;
+  gap: 2px;
+}
+
+.ph-voice-head .icon-btn {
+  margin: -6px -8px 0 0;
+}
+
+.ph-voice-panel .ph-tile-zh {
+  font-size: clamp(26px, 6vw, 36px);
+}
