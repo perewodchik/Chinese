@@ -47,8 +47,16 @@ export function flush(): Promise<void> {
         try {
           await keepAttempts(batch);
         } catch (err) {
-          // One the server will never take (malformed, too large) is dropped, not retried for ever.
           if (!(err instanceof ApiError && err.status === 400)) throw err;
+          // Something in the batch the server will never take (malformed, too large): sent one by one,
+          // so only that one is dropped, not the ninety-nine good tries beside it.
+          for (const one of batch) {
+            try {
+              await keepAttempts([one]);
+            } catch (e) {
+              if (!(e instanceof ApiError && e.status === 400)) throw e;
+            }
+          }
         }
         const sent = new Set(batch.map((a) => a.id));
         write(OUTBOX, read<AttemptIn[]>(OUTBOX, []).filter((a) => !sent.has(a.id)));

@@ -21,15 +21,28 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
   const done = useRef(onDone);
   done.current = onDone;
   const watch = useRef<{ timer?: ReturnType<typeof setTimeout>; stop?: () => void }>({});
+  // Opening the microphone takes a second or two, and the page can be left
+  // meanwhile (the next line, the back button): a session that opens after
+  // that is closed at once, or the microphone stays on with nothing to stop it.
+  const alive = useRef(true);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
       clearTimeout(watch.current.timer);
       session.current?.close();
       session.current = null;
-    },
-    [],
-  );
+    };
+  }, []);
+
+  /** A session opened for this page, or null once the page has gone and it is closed again. */
+  const open = useCallback(async () => {
+    const s = await MicSession.open();
+    if (alive.current) return s;
+    s.close();
+    return null;
+  }, []);
 
   const finish = useCallback(() => {
     const s = session.current;
@@ -43,6 +56,7 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
   }, []);
 
   const start = useCallback(async (fixedMs?: number) => {
+    if (!alive.current) return;
     setError(null);
     // A session whose track iOS ended or muted (a call, another app, a lock) is opened afresh.
     if (session.current && !session.current.live) {
@@ -52,7 +66,8 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
     if (!session.current) {
       setState('opening');
       try {
-        session.current = await MicSession.open();
+        session.current = await open();
+        if (!session.current) return;
       } catch (e) {
         setState('idle');
         setError(e instanceof MicError ? e.message : MIC_MESSAGE.failed);
@@ -89,7 +104,7 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
     s.start();
     setState('listening');
     watch.current.timer = setTimeout(finish, fixedMs ?? maxMs);
-  }, [finish, maxMs]);
+  }, [finish, maxMs, open]);
 
   const toggle = useCallback(() => {
     if (state === 'listening' || state === 'hearing') finish();
@@ -101,14 +116,17 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
   /** Opens the microphone without recording, from a tap, so a recording after a countdown starts at once. */
   const prepare = useCallback(async () => {
     if (session.current?.live) return true;
+    // One iOS ended or muted is let go before another is opened, as in `start`.
+    session.current?.close();
+    session.current = null;
     try {
-      session.current = await MicSession.open();
-      return true;
+      session.current = await open();
+      return session.current !== null;
     } catch (e) {
       setError(e instanceof MicError ? e.message : MIC_MESSAGE.failed);
       return false;
     }
-  }, []);
+  }, [open]);
 
   const play = useCallback((samples: Float32Array) => session.current?.play(samples), []);
 

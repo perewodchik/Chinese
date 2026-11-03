@@ -110,9 +110,17 @@ export function PhrasesPage() {
     // The account's tries, every device's, in place of this one's.
     void loadHistory().then((h) => {
       if (!h) return;
-      const all = Object.fromEntries(Object.entries(h.phrases).map(([zh, list]) => [zh, list.map((x) => x.summary as Attempt)]));
-      saveAttempts(all);
-      setAttempts(all);
+      const server = Object.fromEntries(Object.entries(h.phrases).map(([zh, list]) => [zh, list.map((x) => x.summary as Attempt)]));
+      // Merged, not replaced: a try said while the history was on its way is kept, not dropped from the strip.
+      setAttempts((now) => {
+        const all: Record<string, Attempt[]> = { ...server };
+        for (const [zh, list] of Object.entries(now)) {
+          const known = new Set((all[zh] ?? []).map((a) => a.at));
+          all[zh] = [...(all[zh] ?? []), ...list.filter((a) => !known.has(a.at))].sort((a, b) => a.at - b.at).slice(-5);
+        }
+        saveAttempts(all);
+        return all;
+      });
     });
   }, []);
 

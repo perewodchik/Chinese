@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { PROVIDER_NAME, type EvalResult, type EvalStatus } from '../../../shared/speechEval';
 import { evalStatus, evaluatePhrase } from '../../api/speechEval';
@@ -38,6 +38,9 @@ export function ScoredSay({
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const blocked = micUnavailable();
+  // The word on screen now: a score that comes back after Next was for the one before.
+  const current = useRef(word);
+  current.current = word;
 
   useEffect(() => {
     void evalStatus().then(setStatus, () => setStatus({ key: { set: false, hint: null, provider: null }, strictness: 'common' }));
@@ -46,6 +49,7 @@ export function ScoredSay({
     setResult(null);
     setMine(null);
     setError(null);
+    setChecking(false);
   }, [word]);
 
   const rec = useRecorder((s) => {
@@ -58,16 +62,19 @@ export function ScoredSay({
       return;
     }
     setChecking(true);
+    const asked = word;
     evaluatePhrase(word, s, numbered(readings))
       .then(
         (r) => {
+          // Neither shown under the next word nor counted as its try.
+          if (current.current !== asked) return;
           setResult(r);
           // A recording that was not the word at all is not a try at it.
           if (!r.rejected) onScored?.(r, r.syllables.every((x) => faultsOf(x).length === 0));
         },
-        (err: Error) => setError(err.message),
+        (err: Error) => current.current === asked && setError(err.message),
       )
-      .finally(() => setChecking(false));
+      .finally(() => current.current === asked && setChecking(false));
   }, maxMs);
 
   const noKey = status !== null && !status.key.set;
@@ -89,7 +96,7 @@ export function ScoredSay({
         </button>
         <RecordButton state={checking ? 'checking' : rec.state} level={rec.level} onToggle={rec.toggle} disabled={!!blocked || noKey} />
         <button className="btn speak-side" onClick={() => mine && rec.play(mine)} disabled={!mine} title="Hear yourself (P)">
-          <span aria-hidden>▶</span> Me
+          <Icon name="play" size={18} /> Me
         </button>
       </div>
 

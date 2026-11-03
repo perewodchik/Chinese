@@ -211,7 +211,19 @@ export function LineStudio({
   const [mode, setModeState] = useState<Mode>(loadMode);
   const [count, setCount] = useState<number | null>(null);
   const [slow, setSlow] = useState(false);
+  // From the tap until the count begins: the microphone opening, the narrator's line decoded.
+  const [readying, setReadying] = useState(false);
   const shadowing = useRef(false);
+  // Whether the last recording was shadowed, so trying it again keeps it so.
+  const lastShadow = useRef(false);
+  // The line left during a count (Next, a segment, Back) is not recorded after it.
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const setMode = (m: Mode) => {
     setModeState(m);
     try {
@@ -252,6 +264,7 @@ export function LineStudio({
 
   const recorder = useRecorder((s) => {
     setLastSamples(s);
+    lastShadow.current = shadowing.current;
     score(s, shadowing.current);
     shadowing.current = false;
   }, 15_000);
@@ -259,20 +272,25 @@ export function LineStudio({
   // Shadow: a count of three, then the narrator's line and the learner together, for the line's length.
   // The line plays through the microphone's own audio, which is running once it is open: no tap needed then.
   async function shadow() {
-    if (!voice) return;
-    const ready = await recorder.prepare();
-    if (!ready) return;
+    if (!voice || readying) return;
+    // The button reads as opening meanwhile, so a second tap does not start a second count.
+    setReadying(true);
     let said: Float32Array;
     try {
+      if (!(await recorder.prepare())) return;
       said = await narratedLine(voice, index);
     } catch (err) {
       setError(troubleOf(err));
       return;
+    } finally {
+      setReadying(false);
     }
     for (const n of [3, 2, 1]) {
+      if (!mounted.current) return;
       setCount(n);
       await new Promise((r) => setTimeout(r, 650));
     }
+    if (!mounted.current) return;
     setCount(0);
     shadowing.current = true;
     void recorder.recordFor(Math.round((said.length / 16_000) * 1000) + 900);
@@ -289,7 +307,7 @@ export function LineStudio({
 
   const hear = () => clips && playLine(clips, index, slow ? 0.75 : 1);
   const last = index + 1 >= phrases.length;
-  const state = checking ? 'checking' : count !== null ? 'opening' : recorder.state;
+  const state = checking ? 'checking' : count !== null || readying ? 'opening' : recorder.state;
 
   // ------------------------------------------------------------ a voice scored
   const [voiceScoring, setVoiceScoring] = useState(false);
@@ -418,7 +436,7 @@ export function LineStudio({
               <span className="small">{error?.text ?? selFailed}</span>
               <span className="ph-failed-actions">
                 {error?.retry && lastSamples && (
-                  <button className="btn tonal sm" onClick={() => score(lastSamples, false)} disabled={checking}>
+                  <button className="btn tonal sm" onClick={() => score(lastSamples, lastShadow.current)} disabled={checking}>
                     Try again
                   </button>
                 )}
@@ -540,6 +558,13 @@ function VoiceSheet({
   const [failed, setFailed] = useState<string | null>(null);
   const [kept, setKept] = useState<Record<string, number[]>>({});
   const stop = useRef(false);
+  // Left without closing it (the browser's back, a swipe back on iOS), the run stops too: each line costs a score.
+  useEffect(
+    () => () => {
+      stop.current = true;
+    },
+    [],
+  );
 
   // What each narrator scored on this text's lines, from what is kept.
   useEffect(() => {
