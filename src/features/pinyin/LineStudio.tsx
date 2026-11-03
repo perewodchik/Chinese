@@ -57,14 +57,16 @@ function resultOf(id: string): Promise<EvalResult> {
   return p;
 }
 
-/** When a try was, said shortly: the time today, Yesterday, or the date. */
+/** When a try was, so a week later it still says when: today, yesterday, the weekday this week, else the date — with the time. */
 function whenOf(at: number): string {
   const d = new Date(at);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  if (at >= today.getTime()) return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-  if (at >= today.getTime() - 86_400_000) return 'Yesterday';
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  if (at >= today.getTime()) return `today, ${time}`;
+  if (at >= today.getTime() - 86_400_000) return `yesterday, ${time}`;
+  if (at >= today.getTime() - 6 * 86_400_000) return `${d.toLocaleDateString('en-GB', { weekday: 'long' })}, ${time}`;
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', ...(d.getFullYear() !== today.getFullYear() ? { year: 'numeric' } : {}) });
 }
 
 const fromKept = (a: AttemptOut): Take => {
@@ -163,9 +165,9 @@ export function LineStudio({
       if (!live) return;
       const kept = [...mine, ...theirs].filter((a) => a.text === phrase.zh).map(fromKept);
       setTakes((now) => [...now, ...kept.filter((k) => !now.some((t) => t.id === k.id))]);
-      // The line opens on its latest try, so what came of it last time is in view.
-      const latest = kept.filter((t) => t.mine).sort((a, b) => b.at - a.at)[0];
-      setSel((s) => s ?? latest?.id ?? null);
+      // The line opens on its best try, the one to beat; a try said now takes its place on screen.
+      const best = kept.filter((t) => t.mine && t.total !== null).sort((a, b) => b.total! - a.total! || b.at - a.at)[0];
+      setSel((s) => s ?? best?.id ?? null);
     });
     return () => {
       live = false;
@@ -337,13 +339,18 @@ export function LineStudio({
     }
   }
 
-  const chip = (t: Take, label: string) => (
-    <button key={t.id} className="ph-take" data-band={t.total === null ? 'none' : band(t.total)} aria-pressed={sel === t.id} onClick={() => setSel(t.id)}>
-      <span className="ph-take-label">{label}</span>
-      <b>{t.total === null ? '–' : Math.round(t.total)}</b>
-    </button>
-  );
   const firstNew = shown.mine[0] && Date.now() - shown.mine[0].at < 30 * 60_000 && shown.mine[0].samples ? shown.mine[0].id : null;
+  const bestId = shown.mine.filter((t) => t.total !== null).sort((a, b) => b.total! - a.total! || b.at - a.at)[0]?.id ?? null;
+  const [listOpen, setListOpen] = useState(false);
+  const showing = !take
+    ? null
+    : !take.mine
+      ? `${nameOf(take.narratorId)}'s own reading, scored as you are — not one of your tries`
+      : take.id === firstNew
+        ? take.shadow
+          ? 'Just now, shadowing'
+          : 'Just now'
+        : `${take.id === bestId ? `Your best of ${shown.mine.length}` : 'Your try'} · ${whenOf(take.at)}${take.shadow ? ' · shadowing' : ''}`;
 
   return (
     <section className="ph-say">
@@ -401,23 +408,47 @@ export function LineStudio({
             </span>
           </div>
 
+          {/* Which saying is shown, in a line: the result is what matters, the tries are a tap away. */}
           {(shown.mine.length > 0 || voice) && (
-            <div className="ph-takes" role="group" aria-label="Takes of this line">
-              {voice &&
-                (currentVoiceTake ? (
-                  chip(currentVoiceTake, voice.name)
-                ) : (
-                  <button className="ph-take ph-take-voice" onClick={() => void scoreThisVoice()} disabled={voiceScoring}>
-                    <span className="ph-take-label">{voice.name}</span>
-                    <b>{voiceScoring ? <span className="spinner" aria-hidden /> : 'Score'}</b>
+            <div className="ph-showing">
+              <span className="small muted ph-showing-what">{showing ?? 'Say it, and it is scored here.'}</span>
+              <span className="ph-showing-actions">
+                {voice &&
+                  (currentVoiceTake ? (
+                    <button className="btn quiet sm" aria-pressed={sel === currentVoiceTake.id} onClick={() => setSel(sel === currentVoiceTake.id ? bestId : currentVoiceTake.id)}>
+                      Voice {currentVoiceTake.total === null ? '' : Math.round(currentVoiceTake.total)}
+                    </button>
+                  ) : (
+                    <button className="btn quiet sm" onClick={() => void scoreThisVoice()} disabled={voiceScoring}>
+                      {voiceScoring ? <span className="spinner" aria-hidden /> : null} Score the voice
+                    </button>
+                  ))}
+                {shown.mine.length > 0 && (
+                  <button className="btn quiet sm" aria-expanded={listOpen} onClick={() => setListOpen((o) => !o)}>
+                    Tries ({shown.mine.length}) <Icon name="down" size={14} />
                   </button>
-                ))}
-              {shown.voiceTakes.filter((t) => t.narratorId !== voice?.n.narratorId).map((t) => chip(t, nameOf(t.narratorId)))}
-              {shown.mine.map((t) => chip(t, `${t.id === firstNew ? 'Now' : whenOf(t.at)}${t.shadow ? ' · shadow' : ''}`))}
+                )}
+              </span>
             </div>
           )}
-          {take && !take.mine && <p className="tiny muted ph-take-note">{nameOf(take.narratorId)}'s own reading, scored the same way as you: not counted in your tries.</p>}
-          {take?.mine && take.id !== firstNew && <p className="tiny muted ph-take-note">Your try of {whenOf(take.at).toLowerCase() === 'yesterday' ? 'yesterday' : whenOf(take.at)}.</p>}
+          {listOpen && (
+            <div className="list ph-tries-list" role="group" aria-label="Your tries of this line">
+              {[...shown.voiceTakes].map((t) => (
+                <button key={t.id} className="ph-try-mini" aria-pressed={sel === t.id} onClick={() => setSel(t.id)}>
+                  <span className="small">{nameOf(t.narratorId)}</span>
+                  <span className="tiny muted">the voice · {whenOf(t.at)}</span>
+                  <b data-band={t.total === null ? 'none' : band(t.total)}>{t.total === null ? '–' : Math.round(t.total)}</b>
+                </button>
+              ))}
+              {shown.mine.map((t) => (
+                <button key={t.id} className="ph-try-mini" aria-pressed={sel === t.id} onClick={() => setSel(t.id)}>
+                  <span className="small">{t.id === firstNew ? 'Just now' : whenOf(t.at).replace(/^./, (c) => c.toUpperCase())}</span>
+                  <span className="tiny muted">{[t.id === bestId ? 'best' : '', t.shadow ? 'shadowing' : ''].filter(Boolean).join(' · ')}</span>
+                  <b data-band={t.total === null ? 'none' : band(t.total)}>{t.total === null ? '–' : Math.round(t.total)}</b>
+                </button>
+              ))}
+            </div>
+          )}
           {!clips && narrators !== null && <NoReading narrators={narrators} lines={lines} onRead={(r) => { setVoices((v) => [...v.filter((x) => x.n.narratorId !== r.n.narratorId), r]); void switchVoice(r); }} />}
           {note && (
             <p className="small muted ph-note" role="status">

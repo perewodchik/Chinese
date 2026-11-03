@@ -1023,79 +1023,74 @@ button.back-link {
   text-align: center;
 }
 
-/* Every saying of the line, a chip each: the voice's, then yours newest first. */
-.ph-takes {
+/* Which saying is shown — your best, just now, the voice — in one quiet line over the result, the rest a tap away. */
+.ph-showing {
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  margin: 0 calc(-1 * var(--gutter, 20px));
-  padding: 2px var(--gutter, 20px);
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  min-height: 36px;
 }
 
-.ph-takes::-webkit-scrollbar {
-  display: none;
+.ph-showing-what {
+  flex: 1 1 160px;
+  min-width: 0;
 }
 
-.ph-take {
-  flex: none;
+.ph-showing-actions {
+  display: flex;
+  gap: 2px;
+  margin-right: -8px;
+}
+
+.ph-showing-actions .btn[aria-pressed='true'] {
+  background: var(--accent-soft);
+}
+
+.ph-tries-list {
+  margin-top: -6px;
+  padding: 0 12px;
+  border-radius: 14px;
+  background: var(--card-2);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.ph-try-mini {
+  width: calc(100% + 24px);
+  margin: 0 -12px;
+  padding: 0 12px;
+  min-height: 44px;
   display: grid;
-  justify-items: center;
-  gap: 0;
-  min-width: 64px;
-  min-height: 48px;
-  padding: 5px 10px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--card);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: none;
   color: var(--ink);
+  text-align: left;
   cursor: pointer;
 }
 
-.ph-take-label {
-  font-size: 11.5px;
-  color: var(--ink-3);
-  white-space: nowrap;
-  max-width: 110px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ph-take b {
-  font-size: 17px;
-  font-weight: 600;
+.ph-try-mini b {
   font-variant-numeric: tabular-nums;
-  min-height: 22px;
-  display: grid;
-  place-items: center;
+  font-weight: 600;
 }
 
-.ph-take[data-band='good'] b {
+.ph-try-mini b[data-band='good'] {
   color: var(--jade);
 }
 
-.ph-take[data-band='mid'] b {
+.ph-try-mini b[data-band='mid'] {
   color: var(--gold);
 }
 
-.ph-take[data-band='low'] b {
+.ph-try-mini b[data-band='low'] {
   color: var(--red);
 }
 
-.ph-take[aria-pressed='true'] {
-  border-color: var(--ink-2);
-  box-shadow: 0 0 0 1px var(--ink-2);
-  background: var(--card-2);
-}
-
-.ph-take-voice b {
-  color: var(--accent);
-  font-size: 14px;
-}
-
-.ph-take-note {
-  margin: -4px 0 0;
-  text-align: center;
+.ph-try-mini[aria-pressed='true'] {
+  background: var(--hl);
 }
 
 /* Shadowing: a count of three, large over the line, then Now. */
