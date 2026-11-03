@@ -79,7 +79,7 @@ function troubleOf(err: unknown): Trouble {
   return { title: 'Something went wrong', text: err instanceof Error ? err.message : 'Try again.', retry: true, settings: false };
 }
 
-const NOTHING_HEARD = 'Nothing was heard: the microphone gave only silence. Tap the button and say the line again; if it keeps happening, reload the page.';
+const NOTHING_HEARD = 'Nothing came through from the microphone, so nothing was sent to be scored. Say the line again; if it happens again, reload the page, and check the browser may use the microphone (on an iPad: Settings › Safari or Chrome › Microphone).';
 
 
 /** What was being said last: a source and a line, to carry on from. */
@@ -423,6 +423,8 @@ function PhraseView({
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<Trouble | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  /** what the microphone was doing when nothing came through, to send with a screenshot */
+  const [micDetail, setMicDetail] = useState<string | null>(null);
   const [clips, setClips] = useState<Clips | null>(null);
   const [narrators, setNarrators] = useState<NarratorDto[] | null>(null);
   const [reading, setReading] = useState(false);
@@ -472,9 +474,11 @@ function PhraseView({
   function score(s: Float32Array) {
     setError(null);
     setNote(null);
+    setMicDetail(null);
     // Silence is not sent to be scored: it would come back as every syllable left out.
     if (!heardAnything(s)) {
       setNote(NOTHING_HEARD);
+      setMicDetail(recorder.diagnostics());
       return;
     }
     setChecking(true);
@@ -556,6 +560,7 @@ function PhraseView({
         {note && (
           <p className="small muted ph-note" role="status">
             {note}
+            {micDetail && <span className="tiny ph-mic-detail">{micDetail}</span>}
           </p>
         )}
         {recorder.error && (

@@ -839,3 +839,10 @@ button.back-link {
   gap: 12px;
   padding: 4px 0 16px;
 }
+
+.ph-mic-detail {
+  display: block;
+  margin-top: 4px;
+  font-family: ui-monospace, monospace;
+  opacity: 0.8;
+}

@@ -74,6 +74,9 @@ export class MicSession {
     const why = micUnavailable();
     if (why) throw new MicError(why, MIC_MESSAGE[why]);
 
+    // Made and resumed in the tap, before any await: Safari starts audio only from one.
+    const first = new (AudioCtx())();
+    const resumed = first.resume().catch(() => undefined);
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
@@ -85,6 +88,7 @@ export class MicSession {
         },
       });
     } catch (e) {
+      void first.close();
       const name = (e as DOMException)?.name;
       const problem: MicProblem =
         name === 'NotAllowedError' || name === 'SecurityError'
@@ -94,13 +98,25 @@ export class MicSession {
             : 'failed';
       throw new MicError(problem, MIC_MESSAGE[problem]);
     }
-    // The context is made once the microphone is open, not before: on iOS a
-    // context made first keeps the playback rate, and when capture changes the
-    // hardware's rate its microphone source gives only silence. While a page
-    // is capturing, Safari lets it start audio without a tap.
-    const ctx = new (AudioCtx())();
-    await ctx.resume().catch(() => undefined);
+    await resumed;
 
+    // Then listened to for a moment. On iOS a context made before capture can
+    // be left giving only silence once capture changes the hardware's rate (an
+    // iPhone did), and one made after the tap can be left suspended (an iPad
+    // did): whichever way, no sound at all means a second context, made now
+    // that capture is running, takes over from the first.
+    let session = await MicSession.wire(first, stream, 1);
+    if (!(await session.hearing(900))) {
+      session.detach();
+      const second = new (AudioCtx())();
+      await second.resume().catch(() => undefined);
+      session = await MicSession.wire(second, stream, 2);
+      await session.hearing(900);
+    }
+    return session;
+  }
+
+  private static async wire(ctx: AudioContext, stream: MediaStream, attempt: number): Promise<MicSession> {
     const source = ctx.createMediaStreamSource(stream);
     let session!: MicSession;
     const take = (block: Float32Array) => session.take(block);
@@ -126,7 +142,40 @@ export class MicSession {
     mute.connect(ctx.destination);
 
     session = new MicSession(ctx, stream, [source, tap, mute]);
+    session.attempt = attempt;
     return session;
+  }
+
+  /** blocks of samples come so far, and how many held any sound: a microphone in a quiet room is never exactly 0 */
+  private blocks = 0;
+  private sounding = 0;
+  private attempt = 1;
+
+  /** Whether any sound comes within `ms`. */
+  private hearing(ms: number): Promise<boolean> {
+    const start = this.sounding;
+    return new Promise((resolve) => {
+      const began = performance.now();
+      const look = () => {
+        if (this.sounding > start) resolve(true);
+        else if (performance.now() - began > ms) resolve(false);
+        else setTimeout(look, 50);
+      };
+      look();
+    });
+  }
+
+  /** What the microphone is doing, in a line: for a message when nothing came through. */
+  diagnostics(): string {
+    const t = this.stream.getAudioTracks()[0];
+    return `audio ${this.ctx.state}, ${this.ctx.sampleRate} Hz, ${this.blocks} blocks, ${this.sounding} with sound, microphone ${t ? `${t.readyState}${t.muted ? ', muted' : ''}` : 'none'}, context ${this.attempt}`;
+  }
+
+  /** The context's part let go, the microphone kept, for a second context to take it. */
+  private detach() {
+    this.recording = false;
+    for (const n of this.nodes) n.disconnect();
+    void this.ctx.close();
   }
 
   get sampleRate() {
@@ -136,6 +185,8 @@ export class MicSession {
   private take(block: Float32Array) {
     let sum = 0;
     for (let i = 0; i < block.length; i++) sum += block[i]! * block[i]!;
+    this.blocks += 1;
+    if (sum > 0) this.sounding += 1;
     this.onLevel(Math.sqrt(sum / block.length));
     if (this.recording) this.chunks.push(block);
   }
@@ -210,13 +261,18 @@ export function downsample(input: Float32Array, from: number, to: number): Float
   return out;
 }
 
-/** Whether a recording holds any voice at all: its loudest fiftieth of a second above a whisper. */
+/**
+ * Whether a recording holds any voice at all: its loudest fiftieth of a
+ * second above the floor of a quiet room. Low on purpose — an iPad's
+ * microphone, with no gain control, gives a normal voice at a few hundredths —
+ * so only a recording that is silence, or nothing, is held back.
+ */
 export function heardAnything(samples: Float32Array, rate = ANALYSIS_RATE): boolean {
   const win = Math.max(1, Math.round(rate / 50));
   for (let i = 0; i + win <= samples.length; i += win) {
     let sum = 0;
     for (let k = i; k < i + win; k++) sum += samples[k]! * samples[k]!;
-    if (Math.sqrt(sum / win) > 0.01) return true;
+    if (Math.sqrt(sum / win) > 0.003) return true;
   }
   return false;
 }

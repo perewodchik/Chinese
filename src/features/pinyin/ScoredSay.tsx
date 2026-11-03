@@ -54,7 +54,7 @@ export function ScoredSay({
     setResult(null);
     // Silence is not sent to be scored: it would come back as every syllable left out.
     if (!heardAnything(s)) {
-      setError('Nothing was heard: the microphone gave only silence. Tap the button and say it again; if it keeps happening, reload the page.');
+      setError(`Nothing came through from the microphone, so nothing was sent to be scored. Say it again; if it happens again, reload the page, and check the browser may use the microphone. (${rec.diagnostics()})`);
       return;
     }
     setChecking(true);
