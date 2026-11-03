@@ -165,9 +165,9 @@
 .ph-tile {
   display: grid;
   justify-items: center;
-  padding: 6px 4px 4px;
+  padding: 4px 3px 3px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 10px;
   background: none;
   color: var(--ink);
   cursor: pointer;
@@ -179,14 +179,14 @@
 }
 
 .ph-tile-py {
-  font: 500 15px/1.4 var(--sans);
+  font: 500 13.5px/1.35 var(--sans);
   color: var(--py);
-  min-height: 21px;
+  min-height: 18px;
 }
 
 .ph-tile-zh {
-  font-size: clamp(34px, 8.6vw, 48px);
-  line-height: 1.1;
+  font-size: clamp(30px, 7.6vw, 46px);
+  line-height: 1.08;
 }
 
 .ph-tile[data-state='bad'] .ph-tile-zh,
@@ -265,7 +265,8 @@ button.back-link {
 /* A phone: a strip of cards to swipe, one in view and the next peeking in. */
 .ph-chars {
   display: flex;
-  gap: 12px;
+  align-items: flex-start;
+  gap: 10px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   overscroll-behavior-x: contain;
@@ -280,14 +281,14 @@ button.back-link {
 }
 
 .ph-char {
-  flex: 0 0 min(84%, 340px);
+  flex: 0 0 min(76%, 300px);
   scroll-snap-align: center;
   display: grid;
-  gap: 8px;
+  gap: 6px;
   align-content: start;
-  padding: 10px 12px 12px;
+  padding: 8px 10px 10px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--card);
 }
 
@@ -323,7 +324,7 @@ button.back-link {
 }
 
 .ph-char-zh {
-  font-size: 34px;
+  font-size: 28px;
   line-height: 1.05;
 }
 
@@ -336,19 +337,19 @@ button.back-link {
 }
 
 .ph-char-py {
-  font: 600 18px/1.2 var(--sans);
+  font: 600 15px/1.2 var(--sans);
   color: var(--py);
 }
 
 .ph-char-score {
   margin-left: auto;
-  min-width: 54px;
-  height: 38px;
-  padding: 0 8px;
-  border-radius: 11px;
+  min-width: 44px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -369,40 +370,29 @@ button.back-link {
 }
 
 .ph-char-parts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  font-size: 12.5px;
+  color: var(--ink-3);
 }
 
 .ph-char-part {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  row-gap: 3px;
+  display: inline;
 }
 
-.ph-char-part .ph-bar {
-  grid-column: 1 / -1;
-  height: 5px;
-}
 
 .ph-char-part b {
-  text-align: right;
-  font-size: 13.5px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  color: var(--jade);
 }
 
-.ph-char-part[data-band='good'] i {
-  background: var(--jade);
-}
 
-.ph-char-part[data-band='mid'] i {
-  background: var(--gold);
-}
 
-.ph-char-part[data-band='low'] i {
-  background: var(--red);
+
+.ph-char-part[data-band='mid'] b {
+  color: var(--gold);
 }
 
 .ph-char-part[data-band='low'] b {
@@ -420,7 +410,7 @@ button.back-link {
 }
 
 .ph-char-note b {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--red);
 }
@@ -430,6 +420,8 @@ button.back-link {
 }
 
 .ph-char-note .small {
+  font-size: 13px;
+  line-height: 1.4;
   color: var(--ink-2);
   font-family: var(--read);
 }
@@ -536,7 +528,7 @@ button.back-link {
 
 .ph-say-body {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .ph-say-body > * {
@@ -551,23 +543,26 @@ button.back-link {
 .ph-sum {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: 16px;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 14px;
   background: var(--card-2);
 }
 
 .ph-sum-total {
   flex: none;
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 20px;
-  font-weight: 600;
+  padding: 0;
+  font: 600 17px/1 var(--sans);
   font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: none;
   border: 4px solid var(--line);
+  cursor: pointer;
 }
 
 .ph-sum-total[data-band='good'] {
@@ -589,7 +584,7 @@ button.back-link {
 }
 
 .ph-sum-text > b {
-  font-size: 15.5px;
+  font-size: 14.5px;
   font-weight: 600;
 }
 
@@ -1015,13 +1010,9 @@ button.back-link {
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 6px 10px;
+  gap: 6px;
 }
 
-.ph-mode-hint {
-  flex-basis: 100%;
-  text-align: center;
-}
 
 /* Which saying is shown — your best, just now, the voice — in one quiet line over the result, the rest a tap away. */
 .ph-showing {
@@ -1182,4 +1173,30 @@ button.back-link {
 
 .ph-sum-why {
   margin-top: 2px;
+}
+
+/* Marks on: the line itself says what went wrong — the wrong part of each pinyin in red, the tone's final underlined, a short tag under the character. */
+.ph-marked [data-wrong] {
+  color: var(--red);
+}
+
+.ph-marked [data-tone]:not([data-wrong]) {
+  text-decoration: underline wavy var(--gold);
+  text-underline-offset: 3px;
+}
+
+.ph-tile-tag {
+  font: 600 10.5px/1.3 var(--sans);
+  min-height: 14px;
+  white-space: nowrap;
+  color: var(--red);
+}
+
+.ph-tile[data-state='nearly'] .ph-tile-tag {
+  color: var(--gold);
+}
+
+.ph-phrase[data-marks] .ph-tile[data-state='ok'] .ph-tile-zh,
+.ph-phrase[data-marks] .ph-tile[data-state='ok'] .ph-tile-py {
+  color: var(--ink-2);
 }

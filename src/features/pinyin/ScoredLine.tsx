@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { EvalResult, SyllableEval } from '../../../shared/speechEval';
 import { charScore, noteOf, partsOf, verdictOf, type Attempt } from '../../domain/phrases';
+import { parseSyllable } from '../../domain/pinyin/syllable';
 import { isHanzi } from '../../domain/text';
 import { playSamples } from '../../platform/audio/voiceOut';
 import { Icon } from '../../ui/Icon';
@@ -21,6 +22,33 @@ function paceOf(r: EvalResult): string {
   if (r.speed) parts.push(`${Math.round(r.speed)} syllables a minute${r.speed > 260 ? ', quick for a learner' : r.speed < 120 ? ', slow — join the words' : ''}`);
   if (r.ending) parts.push(`your voice ${r.ending === 'rise' ? 'rose' : 'fell'} at the end`);
   return parts.length ? parts.join(' · ') + '.' : '';
+}
+
+/** What was wrong, as short as a tag under a character: zh→z, tone 2→1, not heard. */
+function tagOf(s: SyllableEval): string {
+  if (s.said === 'missed') return 'not heard';
+  const p = partsOf(s.symbol);
+  const want = s.sandhi ?? p.tone;
+  if (s.initial && p.initial) return s.initialLike ? `${p.initial}→${s.initialLike}` : p.initial;
+  if (s.final) return s.finalLike ? `${p.final}→${s.finalLike}` : p.final;
+  if (s.tone) return s.heardTone && s.heardTone !== want ? `tone ${want}→${s.heardTone}` : `tone ${want}`;
+  if (s.extraBefore) return 'extra before';
+  const n = charScore(s);
+  return n !== undefined && n < 75 ? 'nearly' : '';
+}
+
+/** A pinyin with its wrong part in red: the initial, the final, or (for the tone) the whole final underlined. */
+function MarkedPinyin({ py, syl }: { py: string; syl: SyllableEval }) {
+  const initial = parseSyllable(py).initial;
+  const rest = py.slice(initial.length);
+  return (
+    <span className="ph-tile-py ph-marked">
+      {initial && <span data-wrong={(syl.said === 'missed' || syl.initial) || undefined}>{initial}</span>}
+      <span data-wrong={(syl.said === 'missed' || syl.final) || undefined} data-tone={syl.tone || undefined}>
+        {rest}
+      </span>
+    </span>
+  );
 }
 
 /** The reading said here: with the tone sandhi gives it, when it gives one. */
@@ -46,6 +74,7 @@ export function ScoredLine({
   samples = null,
   tryAgain = [],
   scoring = false,
+  marks = false,
   children,
 }: {
   zh: string;
@@ -57,11 +86,14 @@ export function ScoredLine({
   samples?: Float32Array | null;
   tryAgain?: Attempt[];
   scoring?: boolean;
+  /** the line itself says what was wrong: the wrong part of each pinyin in red, a short tag under the character */
+  marks?: boolean;
   /** notes and errors, between the line and its verdict */
   children?: ReactNode;
 }) {
   const uid = useId().replace(/:/g, '');
   const [active, setActive] = useState<number | null>(null);
+  const [why, setWhy] = useState(false);
   useEffect(() => setActive(null), [result]);
 
   // The phrase's characters with their pinyin, and which scored syllable each one is.
@@ -159,7 +191,7 @@ export function ScoredLine({
 
   return (
     <>
-        <div className="ph-phrase" aria-label={zh} data-dim={scoring || undefined}>
+        <div className="ph-phrase" aria-label={zh} data-dim={scoring || undefined} data-marks={(marks && result) || undefined}>
           {groups.map((g) => (
             <span key={g[0]} className="ph-word">
               {g.map((i) => {
@@ -182,8 +214,9 @@ export function ScoredLine({
                     onClick={() => bring(i)}
                     disabled={!result}
                   >
-                    <span className="ph-tile-py">{t.py}</span>
+                    {marks && syl ? <MarkedPinyin py={t.py} syl={syl} /> : <span className="ph-tile-py">{t.py}</span>}
                     <span className="ph-tile-zh hanzi">{t.char}</span>
+                    {marks && <span className="ph-tile-tag">{syl ? tagOf(syl) : ''}</span>}
                   </button>
                 );
               })}
@@ -203,9 +236,9 @@ export function ScoredLine({
         )}
         {!scoring && result && verdict && (
           <section className="ph-sum">
-            <span className="ph-sum-total" data-band={band(result.total)}>
+            <button className="ph-sum-total" data-band={band(result.total)} aria-expanded={why} onClick={() => setWhy((w) => !w)} aria-label={`${Math.round(result.total)} out of 100: what it is made of`}>
               {Math.round(result.total)}
-            </span>
+            </button>
             <span className="ph-sum-text">
               <b>{verdict.headline}</b>
               <span className="ph-sum-parts">
@@ -215,12 +248,12 @@ export function ScoredLine({
                   </span>
                 ))}
               </span>
-              {charsAvg !== null && (
+              {why && charsAvg !== null && (
                 <span className="tiny muted ph-sum-why">
                   Total ≈ the average of the characters below ({charsAvg}), one not heard as 0 — so it can sit under every figure here.
                 </span>
               )}
-              {(pace || tryAgain.length > 1) && (
+              {why && (pace || tryAgain.length > 1) && (
                 <span className="tiny muted">
                   {pace}
                   {tryAgain.length > 1 ? `${pace ? ' ' : ''}Your tries: ${tryAgain.map((a) => Math.round(a.total)).join(' · ')}.` : ''}
@@ -269,11 +302,7 @@ export function ScoredLine({
                         .filter(([, v]) => v !== undefined)
                         .map(([name, v]) => (
                           <span key={name} className="ph-char-part" data-band={band(v!)}>
-                            <span className="tiny muted">{name}</span>
-                            <b>{Math.round(v!)}</b>
-                            <span className="ph-bar">
-                              <i style={{ width: `${Math.max(4, Math.min(100, v!))}%` }} />
-                            </span>
+                            {name} <b>{Math.round(v!)}</b>
                           </span>
                         ))}
                     </div>

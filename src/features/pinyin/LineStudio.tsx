@@ -213,6 +213,21 @@ export function LineStudio({
   const [mode, setModeState] = useState<Mode>(loadMode);
   const [count, setCount] = useState<number | null>(null);
   const [slow, setSlow] = useState(false);
+  const [marks, setMarksState] = useState(() => {
+    try {
+      return localStorage.getItem('hanzi.phrases.marks') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const setMarks = (on: boolean) => {
+    setMarksState(on);
+    try {
+      localStorage.setItem('hanzi.phrases.marks', on ? '1' : '0');
+    } catch {
+      // remembered for this visit
+    }
+  };
   // From the tap until the count begins: the microphone opening, the narrator's line decoded.
   const [readying, setReadying] = useState(false);
   const shadowing = useRef(false);
@@ -390,22 +405,22 @@ export function LineStudio({
             <span key={count}>{count === 0 ? 'Now' : count}</span>
           </div>
         )}
-        <ScoredLine zh={phrase.zh} en={phrase.en} readings={readings} result={selResult} samples={take?.samples ?? null} scoring={checking || selLoading}>
+        <ScoredLine zh={phrase.zh} en={phrase.en} readings={readings} result={selResult} samples={take?.samples ?? null} scoring={checking || selLoading} marks={marks}>
           <div className="ph-modes">
             <div className="seg sm" role="group" aria-label="How to say it">
-              <button aria-pressed={mode === 'repeat'} onClick={() => setMode('repeat')}>
+              <button aria-pressed={mode === 'repeat'} onClick={() => setMode('repeat')} title="Hear it, then say it.">
                 Repeat
               </button>
-              <button aria-pressed={mode === 'shadow'} onClick={() => setMode('shadow')} disabled={!voice}>
+              <button aria-pressed={mode === 'shadow'} onClick={() => setMode('shadow')} disabled={!voice} title="Three, two, one — then say it with the voice. Headphones help.">
                 Shadow
               </button>
             </div>
             <button className="chip ph-slow" aria-pressed={slow} onClick={() => setSlow((x) => !x)} title="Hear it at three quarters of the speed">
               Slowly
             </button>
-            <span className="tiny muted ph-mode-hint">
-              {mode === 'repeat' ? 'Hear it, then say it.' : 'Three, two, one — then say it with the voice. Headphones help.'}
-            </span>
+            <button className="chip" aria-pressed={marks} onClick={() => setMarks(!marks)} title="Show on the line what was wrong with each character">
+              Marks
+            </button>
           </div>
 
           {/* Which saying is shown, in a line: the result is what matters, the tries are a tap away. */}
