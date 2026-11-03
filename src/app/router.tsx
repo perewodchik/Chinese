@@ -14,6 +14,7 @@ import { RadicalsPage } from '../features/library/RadicalShelf';
 import { SetPage } from '../features/library/SetPage';
 import { PhrasesPage } from '../features/pinyin/PhrasesPage';
 import { SpeakingFrame } from '../features/pinyin/SpeakingFrame';
+import { SpeakHome, SpeakSay } from '../features/speak/SpeakPage';
 import { TalkFrontPage } from '../features/pinyin/TalkFrontPage';
 import { PracticePage } from '../features/pinyin/PracticePage';
 import { SoundLessonPage } from '../features/pinyin/SoundLessonPage';
@@ -166,7 +167,7 @@ export const router = createBrowserRouter([
               {
                 element: <SpeakingFrame />,
                 children: [
-                  { path: 'speaking', element: <PhrasesPage /> },
+                  { path: 'speaking', element: <SpeakRoute home /> },
                   { path: 'speaking/voices', element: <NarratorsPage /> },
                   { path: 'speaking/talk', element: <TalkFrontPage /> },
                   { path: 'speaking/pinyin', element: <TonesPage /> },
@@ -174,7 +175,7 @@ export const router = createBrowserRouter([
                 ],
               },
               // A text said line by line has the whole screen, like a sitting.
-              { path: 'speaking/say/:source', element: <PhrasesPage /> },
+              { path: 'speaking/say/:source', element: <SpeakRoute /> },
               { path: 'speaking/practice/:set', element: <PracticePage /> },
               { path: 'speaking/sounds/:lesson', element: <SoundLessonPage /> },
               // The sentence shadowing that was here gave way to videos.
@@ -229,6 +230,13 @@ function LibraryRoute() {
     return <Navigate to={`${set}${rest.size ? `?${rest}` : ''}`} replace />;
   }
   return <LibraryHome />;
+}
+
+/** Speak's phrases, as they were or the new Speak, by the switch in Settings. */
+function SpeakRoute({ home }: { home?: boolean }) {
+  const v2 = useStore((s) => s.settings.speakV2);
+  if (!v2) return <PhrasesPage />;
+  return home ? <SpeakHome /> : <SpeakSay />;
 }
 
 /** An old /radicals address, sent to the library with its radical intact. */

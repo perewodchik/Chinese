@@ -16,6 +16,7 @@ game docs especially are not background reading.
 | 走走, the Beijing walking game (`/play/world`) | `src/world/`, `src/features/world/`, `content/world/`, `scripts/world/` | `src/world/CLAUDE.md` says what to read for which task |
 | Play mini-games and 点单 ordering | `src/games/`, `src/features/play/` | `src/games/README.md`; ordering: `docs/ordering-game/` |
 | Today, Read and its shelves, the text page (Copy out, Dictation), Cards, Library (sets, radicals, full screen), Stats, Videos, words, pinyin | `src/features/<name>/` (Read and the text page are `reader/`), `src/domain/` | the code; open items in `docs/backlog.md`; adding a text from a photo: `docs/photo-to-text.md` |
+| Speak's phrases, the new one (behind Settings › Speak) | `src/features/speak/`, `src/domain/speak.ts` | `docs/speak-v2.md` |
 | Images and voices pipelines | `scripts/images/`, `scripts/voices/` | `scripts/images/README.md` |
 
 ## Environment (this Mac)

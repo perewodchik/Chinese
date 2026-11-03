@@ -179,8 +179,10 @@ export class NarrationService {
    * was read before by the narrator as it is now (its voice, speed, pitch and
    * mood), read only when asked to, and read again only when asked again.
    */
-  async text(userId: string, narratorId: string, lines: string[], o: { generate?: boolean; again?: boolean } = {}): Promise<TextNarrationDto | null> {
-    const n = await this.find(userId, narratorId);
+  async text(userId: string, narratorId: string, lines: string[], o: { generate?: boolean; again?: boolean; speed?: number } = {}): Promise<TextNarrationDto | null> {
+    const found = await this.find(userId, narratorId);
+    // A speed asked for (a line read slowly to copy) is the narrator at that speed: a reading of its own, kept under its own key.
+    const n = o.speed === undefined ? found : { ...found, speed: Math.min(2, Math.max(0.5, o.speed)) };
     const said = lines.map((l) => l.trim());
     if (!said.some(Boolean)) throw new ValidationError('Nothing to read.');
     const key = narrationKey(n, said);

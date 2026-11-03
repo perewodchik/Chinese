@@ -13,6 +13,7 @@ const GOOD = 'sk-api-good-key-0123456789';
 function stub() {
   const read: Array<{ text: string; voice: string; tuning: VoiceTuning }> = [];
   const whole: string[] = [];
+  const wholeSpeeds: number[] = [];
   let designs = 0;
   const narrator: Narrator = {
     async voices(key) {
@@ -27,9 +28,10 @@ function stub() {
       designs += 1;
       return { voiceId: `designed-${designs}`, trial: new Uint8Array(300).fill(3) };
     },
-    async readText(key, text) {
+    async readText(key, text, _voice, tuning) {
       if (key !== GOOD) throw new NarratorRefused('MiniMax did not accept the key.', 'key');
       whole.push(text);
+      wholeSpeeds.push(tuning.speed);
       // 8000 bytes at 64 kbit/s: a second of audio; two sentences, half a second each.
       return { audio: new Uint8Array(8000).fill(9), segments: [{ text: '你好。', start: 0, end: 400 }, { text: '我很好。', start: 600, end: 1000 }] };
     },
@@ -39,7 +41,7 @@ function stub() {
       return new Uint8Array(500).fill(7);
     },
   };
-  return { narrator, read, whole };
+  return { narrator, read, whole, wholeSpeeds };
 }
 
 function appWith(narrator: Narrator) {
@@ -142,6 +144,26 @@ describe('reading texts aloud with MiniMax and the learner’s key', () => {
     assert.equal((await call(app, 'DELETE', `/api/narration/own/${text.id}`, { cookie: other })).status, 404);
     assert.equal((await call(app, 'DELETE', `/api/narration/own/${text.id}`, { cookie })).status, 200);
     assert.deepEqual(await (await call(app, 'GET', '/api/narration/own', { cookie })).json(), { texts: [] });
+  });
+
+  it('reads a line slowly at the speed asked, kept apart from the narrator’s own reading', async () => {
+    const { narrator, whole, wholeSpeeds } = stub();
+    const app = appWith(narrator);
+    const cookie = await signedIn(app);
+    await call(app, 'PUT', '/api/narration/key', { cookie, body: { key: GOOD } });
+    const made = await call(app, 'POST', '/api/narration/narrators', { cookie, body: { name: 'Anchor', voice: 'Chinese (Mandarin)_News_Anchor' } });
+    const { narrator: n } = (await made.json()) as { narrator: { id: string; speed: number } };
+    const lines = ['你好。'];
+    const own = (await (await call(app, 'POST', '/api/narration/texts', { cookie, body: { narrator: n.id, lines, generate: true } })).json()) as { narration: { key: string } };
+    const slow = (await (await call(app, 'POST', '/api/narration/texts', { cookie, body: { narrator: n.id, lines, generate: true, speed: 0.7 } })).json()) as { narration: { key: string } };
+    assert.notEqual(slow.narration.key, own.narration.key);
+    assert.deepEqual(wholeSpeeds, [n.speed, 0.7]);
+    // Kept: asked again, MiniMax is not; and the slow one is not offered as the text's reading.
+    await call(app, 'POST', '/api/narration/texts', { cookie, body: { narrator: n.id, lines, generate: true, speed: 0.7 } });
+    assert.equal(whole.length, 2);
+    const of = (await (await call(app, 'POST', '/api/narration/texts/of', { cookie, body: { lines } })).json()) as { narrations: Array<{ key: string }> };
+    assert.deepEqual(of.narrations.map((x) => x.key), [own.narration.key]);
+    assert.equal((await call(app, 'POST', '/api/narration/texts', { cookie, body: { narrator: n.id, lines, speed: 0.1 } })).status, 400);
   });
 
   it('adopts one of MiniMax’s voices; nobody else sees or reads with a learner’s narrator', async () => {

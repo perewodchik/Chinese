@@ -82,6 +82,12 @@ export interface AppSettings {
    */
   videoWordsTo: string;
   videoCharsTo: string;
+  /**
+   * The new Speak: a line heard in any narrator's voice (and slowly), said,
+   * and what to fix listed by word, each word to practise on its own. Off,
+   * Speak is as it was; switched in Settings while it is being tried.
+   */
+  speakV2: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -111,6 +117,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   restDays: true,
   videoWordsTo: '',
   videoCharsTo: '',
+  speakV2: false,
 };
 
 /**
