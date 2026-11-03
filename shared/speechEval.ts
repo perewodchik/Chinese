@@ -8,6 +8,8 @@
  *   PATCH  /api/eval/settings     { strictness }
  *   POST   /api/eval/attempts     { items: AttemptIn[] } → kept (an id kept already is left as it is)
  *   GET    /api/eval/history      SpeechHistory: every device's tries, as Phrases and the drills need them
+ *   GET    /api/eval/attempts     { attempts: AttemptOut[] } newest first: the tries to look back over
+ *   GET    /api/eval/attempts/:id { result } the service's whole answer for one try
  *   POST   /api/eval              { text, pinyin?, audio } → the phrase scored (audio: 16 kHz 16-bit mono PCM, base64;
  *                                  pinyin: a numbered syllable per character, ka3, so 卡 in 皮卡丘 is not taken for qia3)
  */
@@ -127,3 +129,20 @@ export interface SpeechHistory {
 }
 
 export const ATTEMPTS_PER_CALL = 500;
+
+/** A try as it is looked back on: what the page kept of it, without the service's answer. */
+export interface AttemptOut {
+  id: string;
+  at: number;
+  kind: 'phrase' | 'drill';
+  sourceId: string | null;
+  text: string;
+  tally: string | null;
+  good: boolean;
+  summary: unknown;
+  /** whether the service's whole answer is kept for it */
+  full: boolean;
+}
+
+/** The most tries a look back returns. */
+export const ATTEMPTS_LISTED = 2000;

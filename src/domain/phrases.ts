@@ -260,6 +260,40 @@ export interface Attempt {
   completeness: number;
   /** the faults found, by kind, with the character each was on */
   faults: Array<{ kind: string; char: string; symbol: string }>;
+  /** how each character was said: its number, its colour and what was wrong (kept since November 2026) */
+  chars?: CharSummary[];
+}
+
+/** One character of a try, as it is looked back on. */
+export interface CharSummary {
+  char: string;
+  /** the reading scored, with the tone it takes here: xiao3 */
+  symbol: string;
+  score?: number;
+  band: CharNote['band'];
+  missed?: boolean;
+  initial?: number;
+  final?: number;
+  tone?: number;
+  /** what was wrong, a line each: "The initial zh — it sounded like z" */
+  notes: string[];
+}
+
+export function charSummary(s: SyllableEval): CharSummary {
+  const note = noteOf(s);
+  const n = charScore(s);
+  const p = partsOf(s.symbol);
+  return {
+    char: s.char,
+    symbol: s.sandhi ? `${s.symbol.replace(/\d$/, '')}${s.sandhi}` : s.symbol || `${p.initial}${p.final}${p.tone}`,
+    ...(n !== undefined ? { score: Math.round(n) } : {}),
+    band: note.band,
+    ...(s.said === 'missed' ? { missed: true } : {}),
+    ...(s.initialScore !== undefined ? { initial: Math.round(s.initialScore) } : {}),
+    ...(s.finalScore !== undefined ? { final: Math.round(s.finalScore) } : {}),
+    ...(s.toneScore !== undefined ? { tone: Math.round(s.toneScore) } : {}),
+    notes: note.faults.map((f) => f.title),
+  };
 }
 
 export const attemptOf = (r: EvalResult, at: number): Attempt => ({
@@ -270,6 +304,7 @@ export const attemptOf = (r: EvalResult, at: number): Attempt => ({
   fluency: r.fluency,
   completeness: r.completeness,
   faults: r.syllables.flatMap((s) => faultsOf(s).map((f) => ({ kind: f.kind, char: s.char, symbol: s.symbol }))),
+  chars: r.syllables.filter((s) => s.said !== 'added').map(charSummary),
 });
 
 export interface Trouble {

@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import { paths } from '../../navigation/paths';
 import type { NarratorDto, OwnTextDto } from '../../../shared/narration';
-import type { EvalResult, EvalStatus, SyllableEval } from '../../../shared/speechEval';
+import type { EvalResult, EvalStatus } from '../../../shared/speechEval';
+import { ApiError } from '../../api/http';
 import { chosenNarrator, listNarrators, narrationOf, ownTexts } from '../../api/narration';
 import { evalStatus, evaluatePhrase } from '../../api/speechEval';
 import { pinyinOf } from '../../domain/ownText';
-import { attemptOf, charScore, EVERYDAY, noteOf, numbered, partsOf, troubles, verdictOf, type Attempt, type Phrase } from '../../domain/phrases';
+import { attemptOf, EVERYDAY, numbered, partsOf, troubles, type Attempt, type Phrase } from '../../domain/phrases';
 import { alignPinyin } from '../../domain/reading';
-import { isHanzi, shelve, type GeneratedText } from '../../domain/text';
+import { shelve, type GeneratedText } from '../../domain/text';
 import { heardAnything } from '../../platform/audio/mic';
 import { playSamples } from '../../platform/audio/voiceOut';
 import { useStore } from '../../store/store';
@@ -19,18 +20,12 @@ import { useLibrary } from '../shared/library';
 import { PronunciationKey } from '../settings/PronunciationKey';
 import { attemptId, keepTry, loadHistory } from './speechHistory';
 import { RecordButton } from './RecordButton';
+import { band, ScoredLine } from './ScoredLine';
 import { useRecorder } from './useRecorder';
 import './phrases.css';
 import './pinyin.css';
 
 
-/** How fast, and how the voice ended, when the service says (SpeechSuper does). */
-function paceOf(r: EvalResult): string {
-  const parts: string[] = [];
-  if (r.speed) parts.push(`${Math.round(r.speed)} syllables a minute${r.speed > 260 ? ', quick for a learner' : r.speed < 120 ? ', slow — join the words' : ''}`);
-  if (r.ending) parts.push(`your voice ${r.ending === 'rise' ? 'rose' : 'fell'} at the end`);
-  return parts.length ? parts.join(' · ') + '.' : '';
-}
 
 /* ------------------------------------------------------------ attempts, kept on this device */
 
@@ -59,9 +54,33 @@ function saveAttempts(all: Record<string, Attempt[]>) {
   }
 }
 
+/** What went wrong sending a line to be scored, said so the learner knows what to do. */
+interface Trouble {
+  title: string;
+  text: string;
+  /** the same recording can simply be sent again */
+  retry: boolean;
+  settings: boolean;
+}
+
+function troubleOf(err: unknown): Trouble {
+  if (err instanceof ApiError) {
+    if (err.code === 'network') {
+      return /too long/.test(err.message)
+        ? { title: 'No answer in time', text: 'The scoring took too long — usually a slow connection. Your recording is kept: try again.', retry: true, settings: false }
+        : { title: 'No connection', text: 'The server could not be reached. Check the internet, then try again: your recording is kept.', retry: true, settings: false };
+    }
+    if (err.status === 404) return { title: 'No pronunciation keys', text: err.message, retry: false, settings: true };
+    if (err.status === 400) return { title: 'This recording cannot be scored', text: err.message, retry: false, settings: false };
+    if (err.status === 401) return { title: 'Signed out', text: 'Sign in again, then say the line once more.', retry: false, settings: false };
+    if (err.status === 429) return { title: 'Too many at once', text: 'Wait a minute, then try again.', retry: true, settings: false };
+    return { title: 'The scoring service failed', text: `${err.message} Your recording is kept: try again.`, retry: true, settings: /key|sig|licen|expire|quota/i.test(err.message) };
+  }
+  return { title: 'Something went wrong', text: err instanceof Error ? err.message : 'Try again.', retry: true, settings: false };
+}
+
 const NOTHING_HEARD = 'Nothing was heard: the microphone gave only silence. Tap the button and say the line again; if it keeps happening, reload the page.';
 
-const band = (score: number) => (score >= 75 ? 'good' : score >= 60 ? 'mid' : 'low');
 
 /** What was being said last: a source and a line, to carry on from. */
 const LAST = 'hanzi.phrases.last';
@@ -249,6 +268,10 @@ export function PhrasesPage() {
     <section className="ph">
       <div className="page-head">
         <h1>Phrases</h1>
+        <span className="spacer" />
+        <Link className="btn quiet sm" to={paths.speakingHistory()}>
+          Your tries
+        </Link>
       </div>
       <p className="small muted ph-lede">Choose a text and say it line by line: each line is scored, then on to the next.</p>
 
@@ -366,12 +389,6 @@ function Finished({ source, scores, onAgain, onBack }: { source: Source; scores:
 
 /* ------------------------------------------------------------ one phrase */
 
-interface Tile {
-  char: string;
-  py: string;
-  /** the syllable the service scored for it, in the latest try */
-  i: number | null;
-}
 
 function PhraseView({
   phrases,
@@ -404,9 +421,8 @@ function PhraseView({
   const [result, setResult] = useState<EvalResult | null>(null);
   const [samples, setSamples] = useState<Float32Array | null>(null);
   const [checking, setChecking] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Trouble | null>(null);
   const [note, setNote] = useState<string | null>(null);
-  const [active, setActive] = useState<number | null>(null);
   const [clips, setClips] = useState<Clips | null>(null);
   const [narrators, setNarrators] = useState<NarratorDto[] | null>(null);
   const [reading, setReading] = useState(false);
@@ -452,8 +468,8 @@ function PhraseView({
   // Each character's reading, for the tiles and for the service.
   const readings = useMemo(() => alignPinyin({ zh: phrase.zh, py: phrase.py }, lib), [phrase, lib]);
 
-  const recorder = useRecorder((s) => {
-    setSamples(s);
+  // Sends a recording to be scored; kept, so a failed one can be sent again without saying it again.
+  function score(s: Float32Array) {
     setError(null);
     setNote(null);
     // Silence is not sent to be scored: it would come back as every syllable left out.
@@ -462,107 +478,29 @@ function PhraseView({
       return;
     }
     setChecking(true);
-    evaluatePhrase(phrase.zh, s, numbered(readings)).then(
-      (r) => {
-        setActive(null);
-        // Not the phrase at all is not a try at it: nothing marked, nothing counted.
-        if (r.rejected) {
-          setResult(null);
-          setNote('That did not sound like this line. Hear it once more, then say all of it, close to the microphone.');
-          return;
-        }
-        setResult(r);
-        onAttempt(phrase.zh, attemptOf(r, Date.now()), r);
-      },
-      (err: Error) => setError(err.message),
-    ).finally(() => setChecking(false));
+    setResult(null);
+    evaluatePhrase(phrase.zh, s, numbered(readings))
+      .then(
+        (r) => {
+          // Not the phrase at all is not a try at it: nothing marked, nothing counted.
+          if (r.rejected) {
+            setNote('That did not sound like this line. Hear it once more, then say all of it, close to the microphone.');
+            return;
+          }
+          setResult(r);
+          onAttempt(phrase.zh, attemptOf(r, Date.now()), r);
+        },
+        (err: unknown) => setError(troubleOf(err)),
+      )
+      .finally(() => setChecking(false));
+  }
+
+  const recorder = useRecorder((s) => {
+    setSamples(s);
+    score(s);
   }, 15_000);
 
-  // The phrase's characters with their pinyin, and which scored syllable each one is.
-  const tiles = useMemo((): Tile[] => {
-    const py = readings;
-    let k = 0;
-    let s = 0;
-    const scored = (result?.syllables ?? []).filter((x) => x.said !== 'added');
-    return [...phrase.zh].map((char) => {
-      if (!isHanzi(char)) return { char, py: '', i: null };
-      const t: Tile = { char, py: py[k++] ?? '', i: null };
-      // Scored syllables follow the characters in order; one is matched to a character only when it is that character.
-      while (s < scored.length && scored[s]!.char !== char) s++;
-      if (s < scored.length) {
-        t.i = result!.syllables.indexOf(scored[s]!);
-        s++;
-      }
-      return t;
-    });
-  }, [phrase, readings, result]);
-
-  const verdict = result ? verdictOf(result) : null;
-  // Each character with the punctuation after it, so a full stop never starts a line alone.
-  const groups = tiles.reduce<number[][]>((out, t, i) => {
-    if (!t.py && out.length) out[out.length - 1]!.push(i);
-    else out.push([i]);
-    return out;
-  }, []);
-
-  // Every character scored, as a card: a strip to swipe on a phone, all of them at once on an iPad.
-  const cards = result
-    ? tiles.flatMap((tile, ti) => (tile.i === null ? [] : [{ ti, tile, syl: result.syllables[tile.i]!, note: noteOf(result.syllables[tile.i]!) }]))
-    : [];
-
-  // On a phone the strip and the characters above follow each other: a tap on
-  // a character brings its card, a swipe lights the character of the card in view.
-  const strip = useRef<HTMLDivElement>(null);
-  const bring = (ti: number) => {
-    setActive(ti);
-    const el = document.getElementById(`ph-syl-${ti}`);
-    const box = strip.current;
-    if (!el || !box) return;
-    if (box.scrollWidth > box.clientWidth + 4) {
-      box.scrollTo({ left: el.offsetLeft - (box.clientWidth - el.clientWidth) / 2, behavior: 'smooth' });
-      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } else el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  };
-  const ticking = useRef(false);
-  function onStripScroll() {
-    const box = strip.current;
-    if (!box || ticking.current || box.scrollWidth <= box.clientWidth + 4) return;
-    ticking.current = true;
-    requestAnimationFrame(() => {
-      ticking.current = false;
-      const mid = box.scrollLeft + box.clientWidth / 2;
-      let best: number | null = null;
-      let dist = Infinity;
-      for (const c of cards) {
-        const el = document.getElementById(`ph-syl-${c.ti}`);
-        if (!el) continue;
-        const d = Math.abs(el.offsetLeft + el.clientWidth / 2 - mid);
-        if (d < dist) {
-          dist = d;
-          best = c.ti;
-        }
-      }
-      if (best !== null) setActive(best);
-    });
-  }
-  // A new score opens on its first character that is not green.
-  useEffect(() => {
-    if (!result) return;
-    const first = cards.find((c) => c.note.band !== 'good') ?? cards[0];
-    if (first) requestAnimationFrame(() => bring(first.ti));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result]);
   const state = checking ? 'checking' : recorder.state;
-  const parts = result
-    ? ([
-        ['Tones', result.tone],
-        ['Sounds', result.sounds],
-        ['Flow', result.fluency],
-        ['All said', result.completeness],
-        ...(result.rhythm !== undefined ? [['Rhythm', result.rhythm]] : []),
-      ] as Array<[string, number]>)
-    : [];
-  const pace = result ? paceOf(result) : '';
   const [slow, setSlow] = useState(false);
   const hear = () => clips && playLine(clips, index, slow ? 0.75 : 1);
   const last = index + 1 >= phrases.length;
@@ -599,39 +537,7 @@ function PhraseView({
       </div>
 
       <div className="ph-say-body">
-        <div className="ph-phrase" aria-label={phrase.zh}>
-          {groups.map((g) => (
-            <span key={g[0]} className="ph-word">
-              {g.map((i) => {
-                const t = tiles[i]!;
-                const syl = t.i !== null && result ? result.syllables[t.i]! : null;
-                const note = syl ? noteOf(syl) : null;
-                if (!t.py) {
-                  return (
-                    <span key={i} className="ph-punct hanzi">
-                      {t.char}
-                    </span>
-                  );
-                }
-                return (
-                  <button
-                    key={i}
-                    className="ph-tile"
-                    data-state={!note ? undefined : note.band === 'good' ? 'ok' : note.band === 'mid' ? 'nearly' : 'bad'}
-                    aria-pressed={active === i}
-                    onClick={() => bring(i)}
-                    disabled={!result}
-                  >
-                    <span className="ph-tile-py">{t.py}</span>
-                    <span className="ph-tile-zh hanzi">{t.char}</span>
-                  </button>
-                );
-              })}
-            </span>
-          ))}
-        </div>
-        {phrase.en && <p className="ph-en">{phrase.en}</p>}
-
+        <ScoredLine zh={phrase.zh} en={phrase.en} readings={readings} result={result} samples={samples} tryAgain={tryAgain} scoring={checking}>
         {!clips && narrators !== null && (
           <p className="small muted ph-note">
             {narrators.length === 0 ? (
@@ -652,102 +558,30 @@ function PhraseView({
             {note}
           </p>
         )}
-        {(error || recorder.error) && (
+        {recorder.error && (
           <p className="narrator-error ph-error-box" role="alert">
-            {error ?? recorder.error}
+            {recorder.error}
           </p>
         )}
-
-        {result && verdict && (
-          <section className="ph-sum">
-            <span className="ph-sum-total" data-band={band(result.total)}>
-              {Math.round(result.total)}
-            </span>
-            <span className="ph-sum-text">
-              <b>{verdict.headline}</b>
-              <span className="ph-sum-parts">
-                {parts.map(([name, v]) => (
-                  <span key={name} data-band={band(v)}>
-                    {name} <b>{Math.round(v)}</b>
-                  </span>
-                ))}
-              </span>
-              {(pace || tryAgain.length > 1) && (
-                <span className="tiny muted">
-                  {pace}
-                  {tryAgain.length > 1 ? `${pace ? ' ' : ''}Your tries: ${tryAgain.map((a) => Math.round(a.total)).join(' · ')}.` : ''}
-                </span>
+        {error && (
+          <div className="ph-failed" role="alert">
+            <b>{error.title}</b>
+            <span className="small">{error.text}</span>
+            <span className="ph-failed-actions">
+              {error.retry && samples && (
+                <button className="btn tonal sm" onClick={() => score(samples)} disabled={checking}>
+                  Try again
+                </button>
               )}
-              {result.quiet && <span className="tiny ph-error">The recording was very quiet: hold the device closer.</span>}
+              {error.settings && (
+                <Link className="btn quiet sm" to={paths.settings()}>
+                  Open Settings
+                </Link>
+              )}
             </span>
-          </section>
-        )}
-
-        {result && cards.length > 0 && (
-          <div className="ph-chars" ref={strip} onScroll={onStripScroll} aria-label="Each character">
-            {cards.map(({ ti, tile, syl, note }) => {
-              const n = charScore(syl);
-              return (
-                <article key={ti} id={`ph-syl-${ti}`} className="ph-char" data-band={note.band} data-active={active === ti || undefined} onClick={() => setActive(ti)}>
-                  <header className="ph-char-head">
-                    <span className="hanzi ph-char-zh">{tile.char}</span>
-                    <span className="ph-char-py">{shown(syl, tile.py)}</span>
-                    {syl.said !== 'missed' && syl.to > syl.from && (
-                      <button
-                        className="icon-btn ph-char-hear"
-                        aria-label={`Hear your ${tile.char}`}
-                        disabled={!samples}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (samples) void playSamples(samples.subarray(Math.floor((syl.from / 1000) * 16000), Math.ceil((syl.to / 1000) * 16000)));
-                        }}
-                      >
-                        <Icon name="play" size={16} />
-                      </button>
-                    )}
-                    <span className="ph-char-score" data-band={note.band}>
-                      {n !== undefined ? Math.round(n) : note.band === 'good' ? 'Right' : 'Fix'}
-                    </span>
-                  </header>
-                  {syl.said !== 'missed' && syl.toneScore !== undefined && (
-                    <div className="ph-char-parts">
-                      {(
-                        [
-                          ['Initial', syl.initialScore],
-                          ['Final', syl.finalScore],
-                          ['Tone', syl.toneScore],
-                        ] as const
-                      )
-                        .filter(([, v]) => v !== undefined)
-                        .map(([name, v]) => (
-                          <span key={name} className="ph-char-part" data-band={band(v!)}>
-                            <span className="tiny muted">{name}</span>
-                            <b>{Math.round(v!)}</b>
-                            <span className="ph-bar">
-                              <i style={{ width: `${Math.max(4, Math.min(100, v!))}%` }} />
-                            </span>
-                          </span>
-                        ))}
-                    </div>
-                  )}
-                  {note.faults.length ? (
-                    <div className="ph-char-notes">
-                      {note.faults.map((f) => (
-                        <div key={f.kind} className="ph-char-note">
-                          <b>{f.title}</b>
-                          <span className="small">{f.how}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="small ph-char-good">Said well{syl.sandhi ? ', with its tone changed here as it should be' : ''}.</p>
-                  )}
-                  {syl.pause && <p className="tiny muted ph-char-pause">You paused after it.</p>}
-                </article>
-              );
-            })}
           </div>
         )}
+        </ScoredLine>
       </div>
 
       {/* Like a tab bar: an icon over a word, five equal places, so nothing is cut short on the narrowest phone. */}
@@ -774,8 +608,3 @@ function PhraseView({
   );
 }
 
-/** The reading said here: with the tone sandhi gives it, when it gives one. */
-function shown(s: SyllableEval, py: string): string {
-  if (!s.sandhi) return py;
-  return partsOf(s.symbol.replace(/\d$/, '') + s.sandhi).marked;
-}

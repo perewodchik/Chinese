@@ -3,7 +3,7 @@ import { paths } from '../../navigation/paths';
 import './speaking.css';
 
 const TABS = [
-  { to: paths.speaking(), han: '句', label: 'Phrases', on: (p: string) => p === '/speaking' || p === '/speaking/' },
+  { to: paths.speaking(), han: '句', label: 'Phrases', on: (p: string) => p === '/speaking' || p === '/speaking/' || p.startsWith('/speaking/history') },
   { to: paths.speakingNarrators(), han: '声', label: 'Voices', on: (p: string) => p.startsWith('/speaking/voices') },
   { to: paths.speakingTalkFront(), han: '谈', label: 'Talk', long: 'Talk with Claude', on: (p: string) => p.startsWith('/speaking/talk') },
   { to: paths.speakingTones(), han: '调', label: 'Tones', long: 'Tones and sounds', on: (p: string) => p.startsWith('/speaking/pinyin') },

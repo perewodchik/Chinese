@@ -65,6 +65,13 @@ export function speechEvalRoutes({ auth, clock, trustProxy, speechEval }: RouteD
 
   routes.get('/history', session, async (c) => json(c, await speechEval.history(user(c))));
 
+  routes.get('/attempts', session, async (c) => {
+    const kind = c.req.query('kind');
+    return json(c, { attempts: await speechEval.attempts(user(c), kind === 'phrase' || kind === 'drill' ? kind : undefined) });
+  });
+
+  routes.get('/attempts/:id', session, async (c) => json(c, await speechEval.attemptResult(user(c), c.req.param('id'))));
+
   routes.post('/attempts', session, async (c) => {
     const { items } = await readJson(c, attemptsRequest);
     return json(c, await speechEval.keepAttempts(user(c), items as never));

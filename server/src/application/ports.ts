@@ -165,7 +165,9 @@ export interface SpeechAttemptRepository {
   /** kept, unless one with the same id already is */
   add(items: SpeechAttempt[]): Promise<void>;
   /** every attempt of the user's, oldest first, without the services' answers */
-  list(userId: string): Promise<Array<Omit<SpeechAttempt, 'result'>>>;
+  list(userId: string): Promise<Array<Omit<SpeechAttempt, 'result'> & { hasResult: boolean }>>;
+  /** one attempt, with the service's answer */
+  find(userId: string, id: string): Promise<SpeechAttempt | null>;
 }
 
 /** How a narrator sounds, beyond its voice. */

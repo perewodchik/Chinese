@@ -693,3 +693,149 @@ button.back-link {
   --composer-h: 60px;
   margin: 0 6px;
 }
+
+/* While a line is scored: the line dims a little and a loader stands where the verdict will come. */
+.ph-phrase[data-dim] {
+  opacity: 0.55;
+  transition: opacity 140ms;
+}
+
+.ph-scoring {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--card-2);
+}
+
+.ph-scoring > span:last-child {
+  display: grid;
+}
+
+.ph-scoring-spin {
+  width: 26px;
+  height: 26px;
+  border-width: 3px;
+  color: var(--accent);
+  flex: none;
+}
+
+/* A line that could not be scored: what happened, and what to do. */
+.ph-failed {
+  display: grid;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--red);
+  background: var(--red-soft);
+}
+
+.ph-failed > b {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.ph-failed-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.ph-failed-actions:empty {
+  display: none;
+}
+
+/* ------------------------------------------------------------ your tries */
+
+.ph-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  align-items: center;
+  margin: 4px 0 6px;
+}
+
+.ph-filter-text {
+  min-height: 36px;
+  max-width: 100%;
+  font-size: 16px;
+}
+
+.ph-filter-find {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.ph-tries-count {
+  margin: 8px 0 0;
+}
+
+.ph-day {
+  margin-top: 18px;
+}
+
+.ph-try-row {
+  width: 100%;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ph-try-time {
+  flex: none;
+  width: 40px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-try-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+}
+
+.ph-try-line {
+  font-size: 21px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ph-try-line [data-band='mid'] {
+  color: var(--gold);
+}
+
+.ph-try-line [data-band='low'] {
+  color: var(--red);
+}
+
+.ph-try-sub {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ph-try-chev {
+  flex: none;
+  transition: transform 140ms;
+}
+
+.ph-try[data-open] .ph-try-chev {
+  transform: rotate(90deg);
+}
+
+.ph-try-detail {
+  display: grid;
+  gap: 12px;
+  padding: 4px 0 16px;
+}

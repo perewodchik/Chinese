@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { EvalResult, IflytekKeys, SpeechHistory, SpeechSuperKeys } from '../../shared/speechEval';
+import type { AttemptOut, EvalResult, IflytekKeys, SpeechHistory, SpeechSuperKeys } from '../../shared/speechEval';
 import type { Evaluator } from '../src/application/speech-eval-service';
 import { createServices } from '../src/composition';
 import { createHttpApp } from '../src/http/app';
@@ -182,8 +182,16 @@ describe('tries kept for every device', () => {
     assert.deepEqual(h.phrases['小智饿了']!.map((a) => (a.summary as { total: number }).total), [62, 63, 64, 65, 66]);
     assert.deepEqual(h.tallies['tone:3'], { tries: 3, right: 2, recent: [1, 0, 1], last: 2002 });
 
+    // Looking back: newest first, the page's own ids, which have the service's answer kept.
+    const { attempts } = (await (await call(app, 'GET', '/api/eval/attempts?kind=phrase', { cookie })).json()) as { attempts: AttemptOut[] };
+    assert.deepEqual(attempts.map((a) => a.id), ['p6', 'p5', 'p4', 'p3', 'p2', 'p1', 'p0']);
+    assert.deepEqual([attempts[0]!.full, (attempts[0]!.summary as { total: number }).total], [true, 66]);
+    const one = (await (await call(app, 'GET', '/api/eval/attempts/p6', { cookie })).json()) as { result: EvalResult };
+    assert.equal(one.result.total, 78.3);
+
     const other = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: 'correct horse' } }));
     assert.deepEqual(await (await call(app, 'GET', '/api/eval/history', { cookie: other })).json(), { phrases: {}, tallies: {} });
+    assert.equal((await call(app, 'GET', '/api/eval/attempts/p6', { cookie: other })).status, 404);
     assert.equal((await call(app, 'GET', '/api/eval/history')).status, 401);
   });
 });

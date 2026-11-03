@@ -17,8 +17,13 @@ export class PostgresSpeechAttemptRepository implements SpeechAttemptRepository 
     }
   }
 
+  async find(userId: string, id: string) {
+    const { rows } = await this.db.query(`SELECT ${COLUMNS}, result FROM speech_attempts WHERE user_id = $1 AND id = $2`, [userId, id]);
+    return rows[0] ? { ...attemptFromRow(rows[0]), result: rows[0].result as string | null } : null;
+  }
+
   async list(userId: string) {
-    const { rows } = await this.db.query(`SELECT ${COLUMNS} FROM speech_attempts WHERE user_id = $1 ORDER BY at, id`, [userId]);
+    const { rows } = await this.db.query(`SELECT ${COLUMNS}, (result IS NOT NULL) AS has_result FROM speech_attempts WHERE user_id = $1 ORDER BY at, id`, [userId]);
     return rows.map(attemptFromRow);
   }
 }

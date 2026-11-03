@@ -817,6 +817,7 @@ var PINYIN_SYLLABLE = /^[a-zü]{1,6}[1-5]$/;
 var EVAL_MAX_CHARS = 100;
 var EVAL_MAX_BYTES = 20 * 16e3 * 2;
 var ATTEMPTS_PER_CALL = 500;
+var ATTEMPTS_LISTED = 2e3;
 
 // server/src/infrastructure/iflytek.ts
 import { createHmac } from "node:crypto";
@@ -1064,6 +1065,25 @@ var SpeechEvalService = class {
       }))
     );
     return { kept: items.length };
+  }
+  /** The tries to look back over, newest first, without the services' answers. */
+  async attempts(userId, kind) {
+    const prefix = `${userId}:`;
+    return (await this.deps.attempts.list(userId)).filter((a) => !kind || a.kind === kind).reverse().slice(0, ATTEMPTS_LISTED).map((a) => {
+      let summary = null;
+      try {
+        summary = a.summary ? JSON.parse(a.summary) : null;
+      } catch {
+        summary = null;
+      }
+      return { id: a.id.startsWith(prefix) ? a.id.slice(prefix.length) : a.id, at: a.at, kind: a.kind, sourceId: a.sourceId, text: a.text, tally: a.tally, good: a.good, summary, full: a.hasResult };
+    });
+  }
+  /** One try's whole answer from the service, as it was kept. */
+  async attemptResult(userId, id) {
+    const a = await this.deps.attempts.find(userId, `${userId}:${id}`);
+    if (!a?.result) throw new NotFoundError("That try");
+    return { result: JSON.parse(a.result) };
   }
   /** Each line's last five tries, and each drill tally's count, from everything kept. */
   async history(userId) {
@@ -1978,6 +1998,11 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval }) {
     return json(c, await speechEval.setStrictness(user(c), strictness));
   });
   routes.get("/history", session, async (c) => json(c, await speechEval.history(user(c))));
+  routes.get("/attempts", session, async (c) => {
+    const kind = c.req.query("kind");
+    return json(c, { attempts: await speechEval.attempts(user(c), kind === "phrase" || kind === "drill" ? kind : void 0) });
+  });
+  routes.get("/attempts/:id", session, async (c) => json(c, await speechEval.attemptResult(user(c), c.req.param("id"))));
   routes.post("/attempts", session, async (c) => {
     const { items } = await readJson(c, attemptsRequest);
     return json(c, await speechEval.keepAttempts(user(c), items));
@@ -3134,7 +3159,8 @@ var attemptFromRow = (r) => ({
   text: r.text,
   tally: r.tally,
   good: Boolean(r.good),
-  summary: r.summary
+  summary: r.summary,
+  hasResult: Boolean(r.has_result)
 });
 
 // server/src/infrastructure/postgres/speech-attempt-repository.ts
@@ -3151,8 +3177,12 @@ var PostgresSpeechAttemptRepository = class {
       );
     }
   }
+  async find(userId, id) {
+    const { rows } = await this.db.query(`SELECT ${COLUMNS}, result FROM speech_attempts WHERE user_id = $1 AND id = $2`, [userId, id]);
+    return rows[0] ? { ...attemptFromRow(rows[0]), result: rows[0].result } : null;
+  }
   async list(userId) {
-    const { rows } = await this.db.query(`SELECT ${COLUMNS} FROM speech_attempts WHERE user_id = $1 ORDER BY at, id`, [userId]);
+    const { rows } = await this.db.query(`SELECT ${COLUMNS}, (result IS NOT NULL) AS has_result FROM speech_attempts WHERE user_id = $1 ORDER BY at, id`, [userId]);
     return rows.map(attemptFromRow);
   }
 };

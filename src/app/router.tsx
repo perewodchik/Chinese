@@ -21,6 +21,7 @@ import { TalkPage } from '../features/pinyin/TalkPage';
 import { TalkSetupPage } from '../features/pinyin/TalkSetupPage';
 import { NarratorsPage } from '../features/pinyin/NarratorsPage';
 import { TonesPage } from '../features/pinyin/TonesPage';
+import { TriesPage } from '../features/pinyin/TriesPage';
 import { SessionPage } from '../features/reader/SessionPage';
 import { ReaderPage } from '../features/reader/ReaderPage';
 import { ReadPage, ShelfPage } from '../features/reader/ReadPage';
@@ -69,6 +70,7 @@ import { RequireSession } from './RequireSession';
  *   /texts/:textId                 one passage — within a session, its page there
  *   /speaking                      phrases said and scored by SpeechSuper or iFlytek (Speaking's first tab)
  *   /speaking/voices, /talk, /pinyin  Speaking's other tabs: narrators, Claude, the tones and sounds
+ *   /speaking/history              every try at a line, with filters, each opened to its scored characters
  *   /speaking/say/:source?line     a text said line by line, each line scored, on the whole screen
  *   /speaking/practice/:set        saying things out loud: pair-3-3, tone-2
  *   /speaking/sounds/:lesson?step  one sound lesson: how it is made, hear it, say it
@@ -168,6 +170,7 @@ export const router = createBrowserRouter([
                   { path: 'speaking/voices', element: <NarratorsPage /> },
                   { path: 'speaking/talk', element: <TalkFrontPage /> },
                   { path: 'speaking/pinyin', element: <TonesPage /> },
+                  { path: 'speaking/history', element: <TriesPage /> },
                 ],
               },
               // A text said line by line has the whole screen, like a sitting.

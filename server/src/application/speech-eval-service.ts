@@ -4,7 +4,9 @@ import {
   PINYIN_SYLLABLE,
   PROVIDER_NAME,
   STRICTNESS,
+  ATTEMPTS_LISTED,
   ATTEMPTS_PER_CALL,
+  type AttemptOut,
   type AttemptIn,
   type EvalKeys,
   type EvalResult,
@@ -142,6 +144,31 @@ export class SpeechEvalService {
       })),
     );
     return { kept: items.length };
+  }
+
+  /** The tries to look back over, newest first, without the services' answers. */
+  async attempts(userId: string, kind?: 'phrase' | 'drill'): Promise<AttemptOut[]> {
+    const prefix = `${userId}:`;
+    return (await this.deps.attempts.list(userId))
+      .filter((a) => !kind || a.kind === kind)
+      .reverse()
+      .slice(0, ATTEMPTS_LISTED)
+      .map((a) => {
+        let summary: unknown = null;
+        try {
+          summary = a.summary ? JSON.parse(a.summary) : null;
+        } catch {
+          summary = null;
+        }
+        return { id: a.id.startsWith(prefix) ? a.id.slice(prefix.length) : a.id, at: a.at, kind: a.kind, sourceId: a.sourceId, text: a.text, tally: a.tally, good: a.good, summary, full: a.hasResult };
+      });
+  }
+
+  /** One try's whole answer from the service, as it was kept. */
+  async attemptResult(userId: string, id: string): Promise<{ result: EvalResult }> {
+    const a = await this.deps.attempts.find(userId, `${userId}:${id}`);
+    if (!a?.result) throw new NotFoundError('That try');
+    return { result: JSON.parse(a.result) as EvalResult };
   }
 
   /** Each line's last five tries, and each drill tally's count, from everything kept. */

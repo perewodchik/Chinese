@@ -89,6 +89,8 @@ export const paths = {
   /** saying a text line by line, on the whole screen: `line` counts from 0 */
   speakingSay: (source: string, line?: number) =>
     withQuery(`/speaking/say/${encodeURIComponent(source)}`, { line: line === undefined ? undefined : String(line + 1) }),
+  /** every try at a line, to look back over */
+  speakingHistory: () => '/speaking/history',
   speakingTalkFront: () => '/speaking/talk',
   speakingNew: () => '/speaking/new',
   /** a conversation already under way, by its id */
