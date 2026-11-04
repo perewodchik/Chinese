@@ -3,7 +3,7 @@ import { narrationAudio } from '../../api/narration';
 import type { GeneratedText } from '../../domain/text';
 import { studyText } from '../../store/commands';
 import { Icon } from '../../ui/Icon';
-import { narratedReadings, type Narrated } from './narratedClips';
+import { castReading, narratedReadings, type Narrated } from './narratedClips';
 import type { Reading } from './readAloud';
 
 const clock = (ms: number) => {
@@ -47,7 +47,7 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
       (list) => {
         if (!live) return;
         const c = chosen();
-        setNarrated(list.find((r) => r.n.narratorId === c) ?? list[0] ?? null);
+        setNarrated(castReading(list) ?? list.find((r) => r.n.narratorId === c) ?? list[0] ?? null);
       },
       () => live && setNarrated(null),
     );

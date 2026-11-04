@@ -716,6 +716,7 @@ var NarrationService = class {
       if (!(a >= at - 1 && b >= a && b <= durationMs + 1)) throw new ValidationError("The lines\u2019 times must run in order within the reading.");
       at = b;
     }
+    if (n.kind !== "cast") await this.deps.narrators.save({ ...n, kind: "cast", updatedAt: this.deps.clock.now() });
     const record = { key: narrationKey(n, said), userId, narratorId: n.id, mp3: mp32, timings, durationMs, createdAt: this.deps.clock.now() };
     await this.deps.narrations.save(record);
     return toNarrationDto(record);
@@ -3121,7 +3122,7 @@ var narratorFromRow = (r) => ({
   id: r.id,
   userId: r.user_id,
   name: r.name,
-  kind: r.kind === "system" ? "system" : "designed",
+  kind: r.kind === "system" || r.kind === "cast" ? r.kind : "designed",
   voiceId: r.voice_id,
   prompt: r.prompt,
   previewText: r.preview_text,
@@ -3149,7 +3150,7 @@ var PostgresNarratorRepository = class {
     await this.db.query(
       `INSERT INTO narrators (id, user_id, name, kind, voice_id, prompt, preview_text, speed, pitch, emotion, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, voice_id = EXCLUDED.voice_id, prompt = EXCLUDED.prompt,
+       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, kind = EXCLUDED.kind, voice_id = EXCLUDED.voice_id, prompt = EXCLUDED.prompt,
          preview_text = EXCLUDED.preview_text, speed = EXCLUDED.speed, pitch = EXCLUDED.pitch, emotion = EXCLUDED.emotion, updated_at = EXCLUDED.updated_at`,
       [n.id, n.userId, n.name, n.kind, n.voiceId, n.prompt, n.previewText, n.speed, n.pitch, n.emotion, n.createdAt, n.updatedAt]
     );

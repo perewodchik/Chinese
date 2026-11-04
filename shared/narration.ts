@@ -46,7 +46,8 @@ export type Emotion = (typeof EMOTIONS)[number];
 export interface NarratorDto {
   id: string;
   name: string;
-  kind: 'designed' | 'system';
+  /** a cast's narrator reads with its voice, and its readings are the narrator and each character in their own voice, made off the server */
+  kind: 'designed' | 'system' | 'cast';
   /** the service's voice */
   voiceId: string;
   /** what a designed voice was made from */

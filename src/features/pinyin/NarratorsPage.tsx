@@ -136,7 +136,7 @@ function NarratorRow({
 }) {
   const [inListen, setInListen] = useState(() => chosenNarrator() === narrator.id);
   const summary = [
-    narrator.kind === 'designed' ? 'Made from a description' : 'A MiniMax voice',
+    narrator.kind === 'cast' ? 'A cast: its texts in each character’s voice' : narrator.kind === 'designed' ? 'Made from a description' : 'A MiniMax voice',
     `${narrator.speed.toFixed(2).replace(/0$/, '')}×`,
     narrator.pitch ? `pitch ${narrator.pitch > 0 ? '+' : ''}${narrator.pitch}` : null,
     narrator.emotion,

@@ -200,6 +200,8 @@ describe('a reading made elsewhere', () => {
     assert.deepEqual(narrations.map((x) => [x.key, x.timings]), [[narration.key, [[0, 900], [1200, 2000]]]]);
     assert.equal((await (await call(app, 'GET', `/api/narration/texts/${narration.key}/audio`, { cookie })).arrayBuffer()).byteLength, 8);
     assert.deepEqual(whole, []);
+    const { narrators: kept } = (await (await call(app, 'GET', '/api/narration/narrators', { cookie })).json()) as { narrators: Array<{ id: string; kind: string }> };
+    assert.equal(kept.find((x) => x.id === n.id)?.kind, 'cast');
     const other = await signedIn(app, 'someone');
     assert.equal((await call(app, 'POST', '/api/narration/texts/import', { cookie: other, body: { narrator: n.id, lines, mp3, durationMs: 2000, timings: [[0, 900], [1200, 2000]] } })).status, 404);
   });

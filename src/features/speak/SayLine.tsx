@@ -14,7 +14,7 @@ import { useOpenItem } from '../../navigation/itemDrawer';
 import { heardAnything } from '../../platform/audio/mic';
 import { hasClip, hush, playSamples, say, unlockAudio } from '../../platform/audio/voiceOut';
 import { Icon } from '../../ui/Icon';
-import { narratedReadings, type Narrated } from '../reader/narratedClips';
+import { castReading, narratedReadings, type Narrated } from '../reader/narratedClips';
 import { useLibrary } from '../shared/library';
 import { NOTHING_HEARD, troubleOf, type Trouble } from '../pinyin/lineTrouble';
 import { RecordButton } from '../pinyin/RecordButton';
@@ -107,8 +107,11 @@ export function SayLine({
 
   // ------------------------------------------------------------ the example
   const voice = useNarrator();
-  const narrator = voice.narrator;
   const [wholeList, setWholeList] = useState<Narrated[] | null>(null);
+  // A text a cast has read is said in its characters' voices — Pikachu by Pikachu — until another voice is picked here.
+  const [pickedHere, setPickedHere] = useState(false);
+  const cast = wholeList && !pickedHere ? castReading(wholeList) : null;
+  const narrator = (cast && voice.list?.find((n) => n.id === cast.n.narratorId)) || voice.narrator;
   useEffect(() => {
     let live = true;
     narratedReadings(lines).then(
@@ -587,7 +590,10 @@ export function SayLine({
         </button>
       </footer>
 
-      {sheet && <VoiceSheet list={voice.list ?? []} current={narrator} wholeIds={(wholeList ?? []).map((r) => r.n.narratorId)} failed={voice.failed} onChoose={voice.choose} onClose={() => setSheet(false)} />}
+      {sheet && <VoiceSheet list={voice.list ?? []} current={narrator} wholeIds={(wholeList ?? []).map((r) => r.n.narratorId)} failed={voice.failed} onChoose={(n) => {
+            setPickedHere(true);
+            voice.choose(n);
+          }} onClose={() => setSheet(false)} />}
       {fix && (
         <FixSheet
           fix={fix}

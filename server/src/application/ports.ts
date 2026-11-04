@@ -208,7 +208,7 @@ export interface NarratorRecord extends VoiceTuning {
   userId: string;
   name: string;
   /** made from a description, or one of the service's own voices */
-  kind: 'designed' | 'system';
+  kind: 'designed' | 'system' | 'cast';
   /** the service's id for the voice */
   voiceId: string;
   /** what it was made from, kept to make it again */

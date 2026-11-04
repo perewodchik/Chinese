@@ -16,8 +16,7 @@ import { VideoStudio } from './video/VideoStudio';
 import { mmss } from '../../domain/textVideo';
 import { NarrationPlayer } from './NarrationPlayer';
 import { Narrate } from './Narrate';
-import { addReading, narratedReadings, pickReading, prepareClips } from './narratedClips';
-import type { TextNarrationDto } from '../../../shared/narration';
+import { addReading, castReading, narratedReadings, pickReading, prepareClips, type Narrated } from './narratedClips';
 import { useWordDone, useWordLevel } from './Passage';
 import { LevelQuick } from '../../ui/LevelPicker';
 import { onReadThrough, RATES, type Reading } from './readAloud';
@@ -130,8 +129,10 @@ const storedChoice = () => {
  * in any other voice. The narrators come first among the voices.
  */
 function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: Reading; spoken: string[] }) {
-  const [readings, setReadings] = useState<Array<{ n: TextNarrationDto; name: string }>>([]);
+  const [readings, setReadings] = useState<Narrated[]>([]);
   const [choice, setChoice] = useState<string | null>(storedChoice);
+  // A text a cast has read is heard in its characters' voices, until another voice is picked here.
+  const [pickedHere, setPickedHere] = useState(false);
   const linesZh = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
 
   useEffect(() => {
@@ -147,6 +148,7 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
   }, [linesZh]);
 
   const choose = (id: string) => {
+    setPickedHere(true);
     setChoice(id);
     try {
       localStorage.setItem(LISTEN_CHOICE, id);
@@ -154,7 +156,8 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
       // forgotten between visits
     }
   };
-  const current = choice === SENTENCES ? null : (readings.find((r) => r.n.narratorId === choice) ?? readings[0] ?? null);
+  const cast = pickedHere ? null : castReading(readings);
+  const current = cast ?? (choice === SENTENCES ? null : (readings.find((r) => r.n.narratorId === choice) ?? readings[0] ?? null));
   const chips = readings.map((r) => (
     <button
       key={`n:${r.n.narratorId}`}

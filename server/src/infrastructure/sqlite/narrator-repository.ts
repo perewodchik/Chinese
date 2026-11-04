@@ -7,7 +7,7 @@ export const narratorFromRow = (r: Row): NarratorRecord => ({
   id: r.id,
   userId: r.user_id,
   name: r.name,
-  kind: r.kind === 'system' ? 'system' : 'designed',
+  kind: r.kind === 'system' || r.kind === 'cast' ? r.kind : 'designed',
   voiceId: r.voice_id,
   prompt: r.prompt,
   previewText: r.preview_text,
@@ -36,7 +36,7 @@ export class SqliteNarratorRepository implements NarratorRepository {
       .prepare(
         `INSERT INTO narrators (id, user_id, name, kind, voice_id, prompt, preview_text, speed, pitch, emotion, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         ON CONFLICT (id) DO UPDATE SET name = excluded.name, voice_id = excluded.voice_id, prompt = excluded.prompt,
+         ON CONFLICT (id) DO UPDATE SET name = excluded.name, kind = excluded.kind, voice_id = excluded.voice_id, prompt = excluded.prompt,
            preview_text = excluded.preview_text, speed = excluded.speed, pitch = excluded.pitch, emotion = excluded.emotion, updated_at = excluded.updated_at`,
       )
       .run(n.id, n.userId, n.name, n.kind, n.voiceId, n.prompt, n.previewText, n.speed, n.pitch, n.emotion, n.createdAt, n.updatedAt);

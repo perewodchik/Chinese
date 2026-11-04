@@ -20,7 +20,7 @@ export class PostgresNarratorRepository implements NarratorRepository {
     await this.db.query(
       `INSERT INTO narrators (id, user_id, name, kind, voice_id, prompt, preview_text, speed, pitch, emotion, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, voice_id = EXCLUDED.voice_id, prompt = EXCLUDED.prompt,
+       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, kind = EXCLUDED.kind, voice_id = EXCLUDED.voice_id, prompt = EXCLUDED.prompt,
          preview_text = EXCLUDED.preview_text, speed = EXCLUDED.speed, pitch = EXCLUDED.pitch, emotion = EXCLUDED.emotion, updated_at = EXCLUDED.updated_at`,
       [n.id, n.userId, n.name, n.kind, n.voiceId, n.prompt, n.previewText, n.speed, n.pitch, n.emotion, n.createdAt, n.updatedAt],
     );

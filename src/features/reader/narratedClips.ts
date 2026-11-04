@@ -12,7 +12,12 @@ import { stopSpeaking } from '../../platform/speech';
 export interface Narrated {
   n: TextNarrationDto;
   name: string;
+  /** read by a cast — the narrator and each character in their own voice — so heard first wherever the text's lines are */
+  cast?: boolean;
 }
+
+/** The cast's reading among a text's readings, if it has one. */
+export const castReading = (list: Narrated[]) => list.find((r) => r.cast) ?? null;
 
 const found = new Map<string, Promise<Narrated[]>>();
 
@@ -22,7 +27,10 @@ export function narratedReadings(lines: string[]): Promise<Narrated[]> {
   let p = found.get(id);
   if (!p) {
     p = Promise.all([listNarrators(), readingsOf(lines)]).then(([narrators, kept]) =>
-      kept.map((n) => ({ n, name: narrators.find((x) => x.id === n.narratorId)?.name ?? 'Narrator' })),
+      kept.map((n) => {
+        const who = narrators.find((x) => x.id === n.narratorId);
+        return { n, name: who?.name ?? 'Narrator', cast: who?.kind === 'cast' };
+      }),
     );
     p.catch(() => found.delete(id));
     found.set(id, p);

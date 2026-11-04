@@ -253,6 +253,8 @@ export class NarrationService {
       if (!(a >= at - 1 && b >= a && b <= durationMs + 1)) throw new ValidationError('The lines’ times must run in order within the reading.');
       at = b;
     }
+    // A narrator whose readings come in made by a cast is a cast's: its texts are heard in their characters' voices first.
+    if (n.kind !== 'cast') await this.deps.narrators.save({ ...n, kind: 'cast', updatedAt: this.deps.clock.now() });
     const record: TextNarration = { key: narrationKey(n, said), userId, narratorId: n.id, mp3, timings, durationMs, createdAt: this.deps.clock.now() };
     await this.deps.narrations.save(record);
     return toNarrationDto(record);
