@@ -137,7 +137,8 @@ export function ScoredLine({
     const box = strip.current;
     if (!el || !box) return;
     if (box.scrollWidth > box.clientWidth + 4) {
-      box.scrollTo({ left: el.offsetLeft - (box.clientWidth - el.clientWidth) / 2, behavior: tapped ? 'smooth' : 'auto' });
+      // To the page's own left margin, as the strip snaps: the card in view starts where everything else does.
+      box.scrollTo({ left: el.offsetLeft - parseFloat(getComputedStyle(box).paddingLeft || '0'), behavior: tapped ? 'smooth' : 'auto' });
       if (tapped) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } else if (tapped) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
@@ -148,13 +149,13 @@ export function ScoredLine({
     ticking.current = true;
     requestAnimationFrame(() => {
       ticking.current = false;
-      const mid = box.scrollLeft + box.clientWidth / 2;
+      const mid = box.scrollLeft + parseFloat(getComputedStyle(box).paddingLeft || '0');
       let best: number | null = null;
       let dist = Infinity;
       for (const c of cards) {
         const el = document.getElementById(`${uid}-${c.ti}`);
         if (!el) continue;
-        const d = Math.abs(el.offsetLeft + el.clientWidth / 2 - mid);
+        const d = Math.abs(el.offsetLeft - mid);
         if (d < dist) {
           dist = d;
           best = c.ti;

@@ -272,9 +272,8 @@ button.back-link {
   scroll-snap-type: x mandatory;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
-  margin: 0 calc(-1 * var(--gutter, 20px));
-  padding: 2px var(--gutter, 20px) 14px;
-  scroll-padding: 0 var(--gutter, 20px);
+  /* Within the page's margins: the card in view starts where the verdict does, only the next peeking in on the right. */
+  padding: 2px 0 14px;
 }
 
 .ph-chars::-webkit-scrollbar {
@@ -283,7 +282,7 @@ button.back-link {
 
 .ph-char {
   flex: 0 0 min(76%, 300px);
-  scroll-snap-align: center;
+  scroll-snap-align: start;
   display: grid;
   gap: 6px;
   align-content: start;
@@ -1053,7 +1052,7 @@ button.back-link {
 .ph-tries-head {
   display: flex;
   justify-content: flex-end;
-  padding: 0 12px;
+  padding: 0 8px;
 }
 
 .ph-tries-list {
@@ -1067,12 +1066,14 @@ button.back-link {
   align-items: center;
   gap: 4px;
   min-height: 44px;
-  padding: 0 4px 0 12px;
+  margin: 0 6px;
+  padding: 0 0 0 10px;
+  border-radius: 10px;
 }
 
 /* The voice's row has no delete: its number keeps the same right edge as the others'. */
 .ph-try-voice {
-  padding-right: 48px;
+  padding-right: 44px;
 }
 
 .ph-try-mini[aria-current] {
