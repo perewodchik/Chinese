@@ -196,6 +196,10 @@ export interface Narrator {
   readText(key: string, text: string, voice: string, tuning: VoiceTuning): Promise<{ audio: Uint8Array; segments: Array<{ text: string; start: number; end: number }> | null }>;
   /** a new voice made from a description, and its first words read in it */
   design(key: string, prompt: string, previewText: string): Promise<{ voiceId: string; trial: Uint8Array }>;
+  /** the voices made from descriptions that the account still keeps, each taking one of its slots */
+  designed?(key: string): Promise<string[]>;
+  /** one of those given up, freeing its slot */
+  forget?(key: string, voiceId: string): Promise<void>;
 }
 
 /** A narrator the learner made: a voice of the service's, a name, how it sounds. */

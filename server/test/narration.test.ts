@@ -219,6 +219,20 @@ describe('MiniMax’s Mandarin voices', () => {
   });
 });
 
+describe('voice slots', () => {
+  it('frees the designed voices no narrator uses, and never one a narrator reads with', async () => {
+    const forgotten: string[] = [];
+    const narrator: Narrator = { ...stub().narrator, designed: async () => ['designed-in-use', 'tried-not-kept', 'removed-long-ago'], forget: async (_k, id) => void forgotten.push(id) };
+    const app = appWith(narrator);
+    const cookie = await signedIn(app);
+    await call(app, 'PUT', '/api/narration/key', { cookie, body: { key: GOOD } });
+    await call(app, 'POST', '/api/narration/narrators/keep', { cookie, body: { name: 'Mine', prompt: 'A calm young man', previewText: '你好。', voiceId: 'designed-in-use' } });
+    const res = await call(app, 'POST', '/api/narration/slots/free', { cookie });
+    assert.deepEqual(await res.json(), { freed: ['tried-not-kept', 'removed-long-ago'], kept: 1 });
+    assert.deepEqual(forgotten, ['tried-not-kept', 'removed-long-ago']);
+  });
+});
+
 describe('making voices to choose among', () => {
   it('keeps the ones that came back when some fail, and says why when none does', async () => {
     let n = 0;

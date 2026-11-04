@@ -8,6 +8,7 @@
  *   GET    /api/narration/voices              the service's own Mandarin voices
  *   GET    /api/narration/narrators           the learner's narrators
  *   POST   /api/narration/narrators/try       { prompt, previewText, count? } → up to three new voices to choose among, nothing kept
+ *   POST   /api/narration/slots/free           → the account's designed voices no narrator uses, deleted to free their slots
  *   POST   /api/narration/narrators/keep      { name, prompt, previewText, voiceId } → the one chosen, kept as a narrator
  *   POST   /api/narration/narrators           { name, voice } → a narrator with one of the service's voices
  *   PATCH  /api/narration/narrators/:id       { name?, speed?, pitch?, emotion? }

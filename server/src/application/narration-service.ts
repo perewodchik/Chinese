@@ -97,6 +97,26 @@ export class NarrationService {
     return { voices, failed: count - voices.length };
   }
 
+  /**
+   * The account's voices made from descriptions that no narrator of the
+   * learner's uses — tries not chosen, narrators since removed — given up, so
+   * their slots are free for new ones. A voice a narrator reads with is never
+   * touched.
+   */
+  async freeSlots(userId: string): Promise<{ freed: string[]; kept: number }> {
+    const key = await this.keyOf(userId);
+    const narrator = this.narrator();
+    if (!narrator.designed || !narrator.forget) throw new AppError('unavailable', 'This server cannot free MiniMax voice slots.');
+    const used = new Set((await this.deps.narrators.list(userId)).map((n) => n.voiceId));
+    const all = await this.call(() => narrator.designed!(key));
+    const freed: string[] = [];
+    for (const id of all.filter((v) => !used.has(v))) {
+      await this.call(() => narrator.forget!(key, id));
+      freed.push(id);
+    }
+    return { freed, kept: all.length - freed.length };
+  }
+
   /** The voice chosen among those tried, kept as a narrator. */
   async keepDesigned(userId: string, input: { name: string; prompt: string; previewText: string; voiceId: string }): Promise<NarratorDto> {
     const name = input.name.trim();

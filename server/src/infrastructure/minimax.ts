@@ -40,7 +40,7 @@ async function subtitles(fetcher: typeof fetch, url: string | undefined) {
 export class NarratorRefused extends Error {
   constructor(
     message: string,
-    readonly reason: 'key' | 'balance' | 'busy' | 'other',
+    readonly reason: 'key' | 'balance' | 'busy' | 'slots' | 'other',
   ) {
     super(message);
   }
@@ -50,6 +50,7 @@ function refusal(base: BaseResp | undefined, status: number): NarratorRefused {
   const code = base?.status_code ?? status;
   const msg = base?.status_msg ?? `HTTP ${status}`;
   if (code === 1004 || code === 2049 || status === 401) return new NarratorRefused('MiniMax did not accept the key.', 'key');
+  if (code === 2052) return new NarratorRefused('Every voice slot of the MiniMax account is taken: free the ones no narrator uses, then make the voice again.', 'slots');
   if (code === 1008 || /balance|insufficient/i.test(msg)) return new NarratorRefused(`The MiniMax account has no balance left for the API (MiniMax said ${code}: ${msg}).`, 'balance');
   if (code === 1002 || status === 429) return new NarratorRefused('MiniMax asked to slow down. Try again in a minute.', 'busy');
   return new NarratorRefused(`MiniMax said: ${msg}`, 'other');
@@ -105,6 +106,13 @@ export function minimaxNarrator(fetcher: typeof fetch = fetch): Narrator {
       const out = await post<{ voice_id?: string; trial_audio?: string }>('/voice_design', key, { prompt, preview_text: previewText });
       if (!out.voice_id) throw new NarratorRefused('MiniMax made no voice from that description.', 'other');
       return { voiceId: out.voice_id, trial: new Uint8Array(Buffer.from(out.trial_audio ?? '', 'hex')) };
+    },
+    async designed(key) {
+      const out = await post<{ voice_generation?: Array<{ voice_id: string }> | null }>('/get_voice', key, { voice_type: 'voice_generation' });
+      return (out.voice_generation ?? []).map((v) => v.voice_id);
+    },
+    async forget(key, voiceId) {
+      await post('/delete_voice', key, { voice_type: 'voice_generation', voice_id: voiceId });
     },
     async readText(key, text, voice, tuning) {
       const out = await post<{ data?: { audio?: string; subtitle_file?: string } | null }>('/t2a_v2', key, {

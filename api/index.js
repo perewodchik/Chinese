@@ -445,6 +445,7 @@ function refusal(base, status) {
   const code = base?.status_code ?? status;
   const msg = base?.status_msg ?? `HTTP ${status}`;
   if (code === 1004 || code === 2049 || status === 401) return new NarratorRefused("MiniMax did not accept the key.", "key");
+  if (code === 2052) return new NarratorRefused("Every voice slot of the MiniMax account is taken: free the ones no narrator uses, then make the voice again.", "slots");
   if (code === 1008 || /balance|insufficient/i.test(msg)) return new NarratorRefused(`The MiniMax account has no balance left for the API (MiniMax said ${code}: ${msg}).`, "balance");
   if (code === 1002 || status === 429) return new NarratorRefused("MiniMax asked to slow down. Try again in a minute.", "busy");
   return new NarratorRefused(`MiniMax said: ${msg}`, "other");
@@ -482,6 +483,13 @@ function minimaxNarrator(fetcher = fetch) {
       const out = await post("/voice_design", key, { prompt, preview_text: previewText });
       if (!out.voice_id) throw new NarratorRefused("MiniMax made no voice from that description.", "other");
       return { voiceId: out.voice_id, trial: new Uint8Array(Buffer.from(out.trial_audio ?? "", "hex")) };
+    },
+    async designed(key) {
+      const out = await post("/get_voice", key, { voice_type: "voice_generation" });
+      return (out.voice_generation ?? []).map((v) => v.voice_id);
+    },
+    async forget(key, voiceId) {
+      await post("/delete_voice", key, { voice_type: "voice_generation", voice_id: voiceId });
     },
     async readText(key, text, voice, tuning) {
       const out = await post("/t2a_v2", key, {
@@ -563,6 +571,25 @@ var NarrationService = class {
     const voices = tries.flatMap((t) => t.status === "fulfilled" ? [t.value] : []);
     if (!voices.length) throw tries[0].reason;
     return { voices, failed: count - voices.length };
+  }
+  /**
+   * The account's voices made from descriptions that no narrator of the
+   * learner's uses — tries not chosen, narrators since removed — given up, so
+   * their slots are free for new ones. A voice a narrator reads with is never
+   * touched.
+   */
+  async freeSlots(userId) {
+    const key = await this.keyOf(userId);
+    const narrator = this.narrator();
+    if (!narrator.designed || !narrator.forget) throw new AppError("unavailable", "This server cannot free MiniMax voice slots.");
+    const used = new Set((await this.deps.narrators.list(userId)).map((n) => n.voiceId));
+    const all2 = await this.call(() => narrator.designed(key));
+    const freed = [];
+    for (const id of all2.filter((v) => !used.has(v))) {
+      await this.call(() => narrator.forget(key, id));
+      freed.push(id);
+    }
+    return { freed, kept: all2.length - freed.length };
   }
   /** The voice chosen among those tried, kept as a narrator. */
   async keepDesigned(userId, input) {
@@ -1941,6 +1968,10 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
     const input = await readJson(c, tryRequest);
     const { voices, failed: failed2 } = await narration.tryDesigns(user(c), input);
     return json(c, { voices: voices.map((v) => ({ voiceId: v.voiceId, trial: Buffer.from(v.trial).toString("base64") })), failed: failed2 });
+  });
+  routes.post("/slots/free", session, async (c) => {
+    keys.consume(user(c));
+    return json(c, await narration.freeSlots(user(c)));
   });
   routes.post("/narrators/keep", session, async (c) => {
     const input = await readJson(c, keepRequest);

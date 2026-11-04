@@ -76,6 +76,11 @@ export function narrationRoutes({ auth, clock, trustProxy, narration }: RouteDep
     return json(c, { voices: voices.map((v) => ({ voiceId: v.voiceId, trial: Buffer.from(v.trial).toString('base64') })), failed });
   });
 
+  routes.post('/slots/free', session, async (c) => {
+    keys.consume(user(c));
+    return json(c, await narration.freeSlots(user(c)));
+  });
+
   routes.post('/narrators/keep', session, async (c) => {
     const input = await readJson(c, keepRequest);
     return json(c, { narrator: await narration.keepDesigned(user(c), input) });
