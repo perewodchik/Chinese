@@ -4,33 +4,11 @@ import { PalettePicker } from '../../ui/PalettePicker';
 import { HSK_BANDS } from '../../domain/text';
 import { chooseFolder, folderSupported, forgetFolder, getFolderName } from '../../platform/files';
 import { resetWorkspace, setSettings } from '../../store/commands';
-import type { SyncStatus } from '../../store/sync/engine';
-import { useStore, useSyncStatus } from '../../store/store';
+import { useStore } from '../../store/store';
 import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
-import { ChangePasswordForm } from '../auth/ChangePasswordForm';
-import { useUser } from '../auth/session';
 import { InstallCard } from './InstallCard';
 import { LearningSettings } from './LearningSettings';
-
-const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-
-function whereWorkIs(status: SyncStatus | null): string {
-  if (!status) return '';
-  switch (status.phase) {
-    case 'saved':
-      return `Everything is saved to your account${status.lastSavedAt ? ` — last at ${time(status.lastSavedAt)}` : ''}. Sign in on another device and it is all there.`;
-    case 'pending':
-    case 'saving':
-      return 'Saving your latest changes to your account…';
-    case 'offline':
-      return `${status.unsaved} change${status.unsaved === 1 ? ' is' : 's are'} kept on this device until the server can be reached again.`;
-    case 'failing':
-      return `The last save did not go through (${status.message ?? 'no reason given'}). Trying again shortly.`;
-    case 'signed-out':
-      return 'Signed out. Sign in again and anything unsaved goes to the server.';
-  }
-}
 
 /** Slow enough to follow, and not so slow that it stops being speech. */
 const GUIDED_PACES: ReadonlyArray<{ value: number; label: string }> = [
@@ -51,9 +29,7 @@ const SILENCE_STOPS: ReadonlyArray<{ value: number; label: string }> = [
 
 export function SettingsPage() {
   useTitle('Settings');
-  const user = useUser();
   const settings = useStore((s) => s.settings);
-  const status = useSyncStatus();
   const toast = useToast();
   const [folder, setFolder] = useState<string | null>(null);
 
@@ -132,25 +108,6 @@ export function SettingsPage() {
               </span>
             </span>
           </label>
-        </div>
-      </div>
-
-      <div className="card">
-        <header>
-          <h2>Account</h2>
-        </header>
-        <div className="body" style={{ display: 'grid', gap: 12 }}>
-          <p className="small" style={{ margin: 0 }}>
-            Signed in as <b>{user.username}</b>, since {new Date(user.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}.
-          </p>
-          <p className="small muted" style={{ margin: 0 }}>
-            {whereWorkIs(status)}
-          </p>
-          <div className="subtle-rule" style={{ margin: '2px 0' }} />
-          <h3 className="field-title" style={{ marginTop: 0 }}>
-            Change password
-          </h3>
-          <ChangePasswordForm />
         </div>
       </div>
 

@@ -135,12 +135,13 @@ const MORE = [
   { to: paths.videos(), han: '视', label: 'Videos', blurb: 'Watch, write it out, check it' },
   { to: paths.play(), han: '玩', label: 'Play', blurb: 'Games and the walk through Beijing' },
   { to: paths.stats(), han: '进', label: 'Your progress', blurb: 'Days, words and characters over time' },
+  { to: paths.settings(), han: '设', label: 'Settings', blurb: 'Pronunciation, reading, printing, the look' },
 ];
 
 /**
  * Everything that is not one of the four places: a sheet from the bottom on a
- * phone, a panel beside the rail on anything wider. Settings are not here a
- * second time — they are under your name, at the foot of the sheet.
+ * phone, a panel beside the rail on anything wider. Your name, at the foot of
+ * the sheet, is the account: the password and what your keys have done.
  */
 function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | null>; onClose: () => void }) {
   const user = useUser();
@@ -196,13 +197,13 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
           ))}
         </div>
         <div className="more-foot">
-          <Link to={paths.settings()} className="more-row">
+          <Link to={paths.account()} className="more-row">
             <span className="more-ic" aria-hidden>
               <span className="avatar">{[...user.username][0]?.toUpperCase()}</span>
             </span>
             <span className="more-text">
               <b>{user.username}</b>
-              <span className="small muted">Account and settings</span>
+              <span className="small muted">Your account and your keys</span>
             </span>
             <Icon name="chevron" className="muted" />
           </Link>

@@ -1,0 +1,84 @@
+/* The account page: who you are, what your keys did, the password. */
+.account-page {
+  max-width: 640px;
+  min-width: 0;
+}
+
+.ac-sync {
+  margin: 4px 0 0;
+  /* The line changes as work is saved; two lines kept so nothing below it moves. */
+  min-height: 3em;
+}
+
+/* Room for two services before the counts arrive, so the page does not jump. */
+.ac-usage {
+  min-height: 132px;
+}
+
+.ac-row {
+  display: grid;
+  gap: 6px;
+  padding: 12px 0;
+  min-width: 0;
+}
+
+.ac-row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ac-today {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Thirty days, a thin bar a day: how often the key was used, not how much. */
+.ac-days {
+  display: grid;
+  grid-template-columns: repeat(30, minmax(0, 1fr));
+  align-items: end;
+  gap: 2px;
+  height: 24px;
+}
+
+.ac-days i {
+  display: block;
+  border-radius: 2px;
+  background: var(--jade);
+}
+
+.ac-days i[data-none] {
+  height: 2px;
+  background: var(--line-2);
+}
+
+.ac-balance {
+  justify-self: start;
+  color: var(--accent);
+}
+
+.ac-note {
+  margin: 8px 0 0;
+}
+
+.ac-links {
+  margin-top: 28px;
+}
+
+.ac-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.ac-link .grow {
+  display: grid;
+}
+
+.ac-link > svg {
+  color: var(--ink-3);
+}

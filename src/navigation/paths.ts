@@ -122,6 +122,8 @@ export const paths = {
     withQuery(`/play/${encodeURIComponent(id)}`, { band: band ? String(band) : undefined, seed }),
 
   settings: () => '/settings',
+  /** who is signed in, the password, and what the learner's own keys have been spent on */
+  account: () => '/account',
   /** the cards: how many today, and the ways to practise one kind */
   cards: () => '/cards',
   /** one sitting of cards; `n` asks for fewer (or more) than the day's size */

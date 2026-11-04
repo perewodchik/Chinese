@@ -45,11 +45,14 @@ export function AccountMenu({ up = false }: { up?: boolean }) {
         <div className="account-menu" role="menu" data-up={up || undefined}>
           <div className="tiny muted">Signed in as</div>
           <b className="account-who">{user.username}</b>
+          <Link role="menuitem" className="btn ghost sm" to={paths.account()} onClick={() => setOpen(false)}>
+            Account
+          </Link>
           <Link role="menuitem" className="btn ghost sm" to={paths.stats()} onClick={() => setOpen(false)}>
             Your progress
           </Link>
           <Link role="menuitem" className="btn ghost sm" to={paths.settings()} onClick={() => setOpen(false)}>
-            Account and settings
+            Settings
           </Link>
           <button role="menuitem" className="btn ghost sm" onClick={() => void leave()} disabled={leaving}>
             {leaving ? 'Signing out…' : 'Sign out'}
