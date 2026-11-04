@@ -590,7 +590,8 @@ export function LineStudio({
           narrators={narrators ?? []}
           voices={voices}
           current={voice}
-          phrases={phrases}
+          index={index}
+          line={phrase.zh}
           lines={lines}
           voiceTakes={shown.voiceTakes}
           onRead={(r) => setVoices((v) => [...v.filter((x) => x.n.narratorId !== r.n.narratorId), r])}
@@ -637,16 +638,17 @@ function NoReading({ narrators, lines, onRead }: { narrators: NarratorDto[]; lin
 }
 
 /**
- * The voice for a text: every narrator, whether they have read it and how
- * they scored on its lines; the one chosen reads the examples. A narrator who
- * has not read it can, every line at once; one who has can be scored on every
- * line, to set beside the learner's numbers.
+ * The voice for a text, about the line on screen: every narrator, whether they
+ * have read the text and what they scored on this line; the one chosen reads
+ * the examples. A narrator who has not read it can, the whole text at once;
+ * one who has can be scored on this line, to set beside the learner's numbers.
  */
 function VoiceSheet({
   narrators,
   voices,
   current,
-  phrases,
+  index,
+  line,
   lines,
   voiceTakes,
   onRead,
@@ -657,7 +659,9 @@ function VoiceSheet({
   narrators: NarratorDto[];
   voices: Narrated[];
   current: Narrated | null;
-  phrases: Phrase[];
+  index: number;
+  /** the line on screen */
+  line: string;
   lines: string[];
   voiceTakes: Take[];
   onRead: (r: Narrated) => void;
@@ -667,32 +671,22 @@ function VoiceSheet({
 }) {
   const [picked, setPicked] = useState(current?.n.narratorId ?? narrators[0]?.id ?? '');
   const [reading, setReading] = useState(false);
-  const [progress, setProgress] = useState<{ done: number; scores: number[]; failed: number } | null>(null);
+  const [scoring, setScoring] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
-  const [kept, setKept] = useState<Record<string, number[]>>({});
-  const stop = useRef(false);
-  // Left without closing it (the browser's back, a swipe back on iOS), the run stops too: each line costs a score.
-  useEffect(
-    () => () => {
-      stop.current = true;
-    },
-    [],
-  );
+  const [kept, setKept] = useState<Record<string, number>>({});
 
-  // What each narrator scored on this text's lines, from what is kept.
+  // Each narrator's latest score on this line: what is kept, and what was scored here this visit.
   useEffect(() => {
     void knownTries('voice').then((all) => {
-      const by: Record<string, number[]> = {};
-      const latest = new Map<string, AttemptOut>();
-      for (const a of all) if (a.tally && lines.includes(a.text) && !latest.has(`${a.tally}:${a.text}`)) latest.set(`${a.tally}:${a.text}`, a);
-      for (const a of latest.values()) (by[a.tally!] ??= []).push((a.summary as Attempt | null)?.total ?? 0);
+      const by: Record<string, number> = {};
+      for (const a of all) if (a.tally && a.text === line && by[a.tally] === undefined) by[a.tally] = (a.summary as Attempt | null)?.total ?? 0;
+      for (const t of voiceTakes) if (t.narratorId && t.total !== null) by[t.narratorId] = t.total;
       setKept(by);
     }, () => undefined);
-  }, [lines, progress?.done]);
+  }, [line, voiceTakes]);
 
   const pickedName = narrators.find((n) => n.id === picked)?.name ?? 'Narrator';
   const readingOf = voices.find((v) => v.n.narratorId === picked) ?? null;
-  const avg = (xs: number[]) => (xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : null);
 
   async function readAll() {
     setReading(true);
@@ -712,57 +706,47 @@ function VoiceSheet({
     }
   }
 
-  async function scoreAll() {
+  async function scoreHere() {
     if (!readingOf) return;
-    stop.current = false;
+    setScoring(true);
     setFailed(null);
-    const scores: number[] = [];
-    let bad = 0;
-    setProgress({ done: 0, scores, failed: 0 });
-    for (let i = 0; i < phrases.length && !stop.current; i++) {
-      try {
-        const r = await onScoreLine(readingOf, i);
-        if (r) scores.push(r.total);
-        else bad += 1;
-      } catch (err) {
-        bad += 1;
-        setFailed(troubleOf(err).text);
-      }
-      setProgress({ done: i + 1, scores: [...scores], failed: bad });
+    try {
+      const r = await onScoreLine(readingOf, index);
+      if (r) setKept((k) => ({ ...k, [picked]: r.total }));
+      else setFailed(`${pickedName}'s reading did not match this line.`);
+    } catch (err) {
+      setFailed(troubleOf(err).text);
+    } finally {
+      setScoring(false);
     }
   }
-  const running = progress !== null && progress.done < phrases.length && !stop.current;
 
   return (
     <Modal
       title="The voice"
-      subtitle="Who reads the examples. Any narrator can read the whole text, and be scored on every line the same way as you."
-      onClose={() => {
-        stop.current = true;
-        onClose();
-      }}
+      subtitle="Who reads the examples, and how each scored on this line."
+      onClose={onClose}
       footer={
         <div className="ph-sheet-foot">
           {readingOf ? (
             <>
-              <button className="btn tonal" onClick={() => void scoreAll()} disabled={running}>
-                {running ? `Scoring line ${progress!.done + 1} of ${phrases.length}…` : `Score ${pickedName} on every line`}
+              <button className="btn tonal" onClick={() => void scoreHere()} disabled={scoring}>
+                {scoring ? <span className="spinner" aria-hidden /> : null} {kept[picked] !== undefined ? 'Score this line again' : 'Score this line'}
               </button>
               <button
                 className="btn primary"
                 onClick={() => {
                   onUse(readingOf);
-                  stop.current = true;
                   onClose();
                 }}
-                disabled={running}
+                disabled={scoring}
               >
                 Use {pickedName}
               </button>
             </>
           ) : (
             <button className="btn primary" onClick={() => void readAll()} disabled={reading || !picked}>
-              {reading ? 'Reading every line… up to a minute' : `Read every line with ${pickedName}`}
+              {reading ? 'Reading the text… up to a minute' : `Have ${pickedName} read the text`}
             </button>
           )}
         </div>
@@ -771,35 +755,25 @@ function VoiceSheet({
       <div className="list ph-sheet-list">
         {narrators.map((n) => {
           const has = voices.some((v) => v.n.narratorId === n.id);
-          const own = kept[n.id] ?? [];
+          const here = kept[n.id];
           return (
             <button key={n.id} className="ph-sheet-row" aria-pressed={picked === n.id} onClick={() => setPicked(n.id)}>
               <span className="ph-sheet-radio" aria-hidden />
               <span className="ph-text-name">
                 <b>{n.name}</b>
                 <span className="tiny muted">
-                  {has ? (own.length ? `Read · scored on ${own.length} of ${phrases.length} lines` : 'Read · not scored yet') : 'Not read yet'}
+                  {has ? (here !== undefined ? 'This line scored' : 'This line not scored') : 'Has not read this text'}
                   {current?.n.narratorId === n.id ? ' · in use' : ''}
                 </span>
               </span>
-              {avg(own) !== null && (
-                <span className="ph-score" data-band={band(avg(own)!)}>
-                  {avg(own)}
-                </span>
-              )}
+              <span className="ph-score" data-band={here === undefined ? 'none' : band(here)}>
+                {here === undefined ? '–' : Math.round(here)}
+              </span>
             </button>
           );
         })}
         {narrators.length === 0 && <p className="small muted">No narrators yet: make one in Voices.</p>}
       </div>
-      {progress && (
-        <p className="small ph-sheet-progress" role="status">
-          {progress.done < phrases.length && !stop.current ? <span className="spinner" aria-hidden /> : null} {progress.done} of {phrases.length} lines scored
-          {progress.scores.length ? `, ${avg(progress.scores)} on average` : ''}
-          {progress.failed ? ` · ${progress.failed} could not be` : ''}.
-        </p>
-      )}
-      {voiceTakes.length > 0 && <p className="tiny muted">Each voice's score for this line is beside yours, above the result.</p>}
       {failed && <p className="small ph-error">{failed}</p>}
     </Modal>
   );
