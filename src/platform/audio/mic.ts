@@ -50,6 +50,8 @@ const AudioCtx = (): Ctor =>
 
 /** The sample rate analysis runs at. */
 export const ANALYSIS_RATE = 16000;
+/** Seconds of sound kept from before a recording starts, and put at its head. */
+const PRE_ROLL_S = 0.8;
 
 /**
  * An open microphone, kept open for a whole practice sitting.
@@ -193,11 +195,27 @@ export class MicSession {
     if (sum > 0) this.sounding += 1;
     this.onLevel(Math.sqrt(sum / block.length));
     if (this.recording) this.chunks.push(block);
+    else {
+      // The last moment before a recording, kept: see `start`.
+      this.before.push(block);
+      let n = this.before.reduce((k, b) => k + b.length, 0);
+      while (this.before.length > 1 && n - this.before[0]!.length >= this.ctx.sampleRate * PRE_ROLL_S) n -= this.before.shift()!.length;
+    }
   }
 
+  /** what the microphone gave in the last moment while not recording */
+  private before: Float32Array[] = [];
+
+  /**
+   * A recording begins with the moment before the tap: a learner starts the
+   * line as they tap, and the first syllable fell in the gap between the tap
+   * and the recording starting — every try came back with it not heard. A
+   * little silence before the line costs the service nothing.
+   */
   start() {
     void this.ctx.resume();
-    this.chunks = [];
+    this.chunks = [...this.before];
+    this.before = [];
     this.recording = true;
   }
 
