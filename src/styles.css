@@ -1114,17 +1114,17 @@ h2 {
 /* Learned is shown as a ring rather than by fading the character out: you
    still want to read it, you just want to know you have done it. */
 .item[data-level='1'] {
-  border-color: var(--lv1-ink);
+  border-color: var(--lv1-edge);
   background: var(--lv1);
 }
 
 .item[data-level='2'] {
-  border-color: var(--lv2-ink);
+  border-color: var(--lv2-edge);
   background: var(--lv2);
 }
 
 .item[data-level='3'] {
-  border-color: var(--lv3-ink);
+  border-color: var(--lv3-edge);
   background: var(--lv3);
 }
 
@@ -5849,11 +5849,15 @@ label.field[data-invalid] input {
    deepening greens: a fill for a tile, and three bars for a mark. Mixed
    from jade and the card, so the dark theme gets its own shades for free. */
 :root {
-  --lv1: color-mix(in srgb, var(--jade) 14%, var(--card));
-  --lv2: color-mix(in srgb, var(--jade) 32%, var(--card));
-  --lv3: color-mix(in srgb, var(--jade) 55%, var(--card));
-  --lv1-ink: color-mix(in srgb, var(--jade) 45%, var(--line));
-  --lv2-ink: color-mix(in srgb, var(--jade) 75%, var(--line));
+  /* Quiet on purpose: a tint you notice when you look, not a page of green. */
+  --lv1: color-mix(in srgb, var(--jade) 5%, var(--card));
+  --lv2: color-mix(in srgb, var(--jade) 10%, var(--card));
+  --lv3: color-mix(in srgb, var(--jade) 17%, var(--card));
+  --lv1-edge: color-mix(in srgb, var(--jade) 14%, var(--line));
+  --lv2-edge: color-mix(in srgb, var(--jade) 28%, var(--line));
+  --lv3-edge: color-mix(in srgb, var(--jade) 45%, var(--line));
+  --lv1-ink: color-mix(in srgb, var(--jade) 35%, var(--line));
+  --lv2-ink: color-mix(in srgb, var(--jade) 65%, var(--line));
   --lv3-ink: var(--jade);
 }
 

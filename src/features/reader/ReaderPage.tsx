@@ -618,8 +618,8 @@ function AaMenu({
           )}
           <label className="rd-aa-row">
             <span>
-              Underline words to learn
-              <small>Red: new to you. Blue: words you are learning.</small>
+              Underline what is not known yet
+              <small>Red: what your answers say you do not know yet.</small>
             </span>
             <span className="spacer" />
             <input type="checkbox" checked={settings.markUnknown} onChange={(e) => setSettings({ markUnknown: e.target.checked })} />

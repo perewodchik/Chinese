@@ -237,10 +237,10 @@
   overflow: hidden;
 }
 
-.rd-meter i {
-  display: block;
+.rd-meter .level-bar {
   height: 100%;
-  background: var(--jade);
+  margin: 0;
+  background: none;
 }
 
 .rd-zh {
@@ -292,13 +292,9 @@
   background-color: var(--card-2);
 }
 
-/* The teacher's red pen under what is new to you; your own blue under what you are learning. */
+/* The teacher's red pen, softened, under what is not known yet by your own answers; nothing under the rest. */
 .rd-zh .w[data-mark='new'] {
-  --u: var(--red);
-}
-
-.rd-zh .w[data-mark='learning'] {
-  --u: var(--accent);
+  --u: color-mix(in srgb, var(--red) 70%, transparent);
 }
 
 .rd-zh .nb {

@@ -10,6 +10,7 @@ import { coverageOf, hskLabel, isHanzi, plainTitle, type GeneratedText } from '.
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useStore } from '../../store/store';
 import { useLevelOf } from '../shared/levels';
+import { LevelBar } from '../../ui/LevelMark';
 import { useLibrary } from '../shared/library';
 import { useWordKnowledge } from '../words/useWordKnowledge';
 import { Comic } from './Comic';
@@ -140,11 +141,10 @@ interface PassageProps {
  * and off never moves a line. Punctuation stays with the word before it: a
  * line never begins with a comma.
  */
-export function Passage({ text, view, reading, flash, revealed, onReveal, onPoint, retold, study, heading }: PassageProps) {
+export function Passage({ text, view, reading, flash, revealed, onReveal, onPoint, retold, heading }: PassageProps) {
   const lib = useLibrary();
   const openItem = useOpenItem();
   const learned = useStore((s) => s.learned);
-  const standing = useStanding(study);
 
   // A story with choices shows the nodes on the way taken so far, in the order
   // they were reached; a plain passage shows everything.
@@ -190,7 +190,8 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
   const showTrad = view.traditional && text.lines.some((l) => l.zht);
 
   const ownWords = useMemo(() => new Set(text.vocab.map((w) => w.w)), [text.vocab]);
-  const teach = useMemo(() => new Set(text.teach), [text.teach]);
+  const levelOfWord = useWordLevel();
+  const levelOfId = useLevelOf();
   /** Each sentence cut into words, once per passage. */
   const tokens = useMemo(
     // The writer's own grouping, read out of its pinyin, joins the passage's
@@ -205,6 +206,18 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
   // Worked out from what is learned now, not what was when the text was
   // written: it moves as characters and words are learned.
   const cover = useMemo(() => coverageOf(text, readableChars(learned)), [text, learned]);
+  // The text's characters counted at each level, for its bar.
+  const charLevels = useMemo(() => {
+    const out = [0, 0, 0, 0];
+    const seen = new Set<string>();
+    for (const l of text.lines)
+      for (const c of l.zh) {
+        if (!isHanzi(c) || seen.has(c)) continue;
+        seen.add(c);
+        out[levelOfId(charId(c))] += 1;
+      }
+    return out;
+  }, [text.lines, levelOfId]);
 
   /** One sentence, word by word, punctuation held to its word. */
   function sentence(i: number): ReactNode {
@@ -230,14 +243,13 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
         );
         return;
       }
-      const s = standing(t.text);
+      // How well the word is known now, 0 to 3, from review alone: only what is not known yet is marked and given its pinyin.
+      const unknown = levelOfWord(t.text) === 0;
       const said: string[] = [];
       for (const ch of t.text) if (isHanzi(ch)) said.push(py[h++] ?? '');
-      const showPy = view.pinyin === 'all' || (view.pinyin === 'new' && s !== 'known');
+      const showPy = view.pinyin === 'all' || (view.pinyin === 'new' && unknown);
       const step = view.markAbove ? stepsAbove(t, view.target) : 0;
-      const mark = view.markUnknown && s !== 'known' ? s : undefined;
-      // A word holding one of the text's new characters is new too — until it is chosen to learn, when it turns blue like any other.
-      const isNew = mark === 'new' || (view.markUnknown && [...t.text].some((c) => teach.has(c)) && s !== 'known' && s !== 'learning');
+      const mark = view.markUnknown && unknown ? 'new' : undefined;
       const id = itemForToken(lib, t.text);
       const band = bands.get(t.text);
       const word = (
@@ -246,7 +258,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
           className="w"
           role="button"
           tabIndex={0}
-          data-mark={isNew ? 'new' : mark}
+          data-mark={mark}
           data-above={step || undefined}
           title={step && band ? `${t.text} · ${hskLabel(band)}` : undefined}
           onClick={() => openItem(id)}
@@ -274,9 +286,9 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
         {heading}
         <h1 className="rd-title hanzi">{text.titleZh || text.title}</h1>
         <p className="rd-subtitle">{plainTitle(text.title)}</p>
-        <div className="rd-know" title={`${cover.known} of ${cover.total} different characters`}>
+        <div className="rd-know" title={`Its characters: ${charLevels[3]} solid, ${charLevels[2]} known, ${charLevels[1]} met, ${charLevels[0]} not known yet`}>
           <span className="rd-meter" aria-hidden>
-            <i style={{ width: `${Math.round(cover.ratio * 100)}%` }} />
+            <LevelBar levels={charLevels} />
           </span>
           <span>You know {Math.round(cover.ratio * 100)}%</span>
         </div>

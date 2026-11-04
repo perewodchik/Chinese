@@ -21,7 +21,7 @@ import { usePdfExport } from '../shared/usePdfExport';
 import { lastReading } from './lastRead';
 import { useStanding, useWordLevel } from './Passage';
 import type { Level } from '../../domain/memory';
-import { LevelMark } from '../../ui/LevelMark';
+import { LevelBar, LevelMark } from '../../ui/LevelMark';
 import { readerSheet } from './readerSheet';
 import { partFill, PARTS } from './TextParts';
 import { useStartSession } from './startSession';
@@ -313,6 +313,14 @@ export function ShelfPage() {
   const entries = useMemo(() => shelfEntries(list), [list]);
   const study = useMemo(() => new Set<ItemId>(set?.study ?? []), [set?.study]);
   const standing = useStanding(study);
+  // As the passage marks them: a character's level, or that of the one-character word it is when that was asked about.
+  const levelOfWord = useWordLevel();
+  // A text's characters not known yet, by your own answers, in the order they come.
+  const unknownIn = (t: GeneratedText) => {
+    const out: string[] = [];
+    for (const l of t.lines) for (const c of l.zh) if (isHanzi(c) && !out.includes(c) && levelOfWord(c) === 0) out.push(c);
+    return out;
+  };
   const startSession = useStartSession();
   const pdf = usePdfExport();
   useTitle(set?.name ?? 'Shelf');
@@ -445,6 +453,7 @@ export function ShelfPage() {
             <ol className="list shelf-texts">
               {entries.map((e, i) => {
                 const fill = partFill(e.main, standing);
+                const unknown = unknownIn(e.main);
                 return (
                   <li key={e.main.id}>
                     <Link className="shelf-text" to={paths.reading(set.id, { page: i + 1 })}>
@@ -459,6 +468,17 @@ export function ShelfPage() {
                             ))}
                           </span>
                           {e.easier && e.original && <span className="versions-tag hanzi">简 原</span>}
+                          <span className="shelf-text-new" title={unknown.length ? `Not known yet: ${unknown.join(' ')}` : 'You know every character in it'}>
+                            {unknown.length ? (
+                              <>
+                                <span className="hanzi">{unknown.slice(0, 6).join('')}</span>
+                                {unknown.length > 6 && ` +${unknown.length - 6}`}
+                                <span className="muted"> new to you</span>
+                              </>
+                            ) : (
+                              <span className="muted">every character known</span>
+                            )}
+                          </span>
                         </span>
                       </span>
                     </Link>
@@ -633,6 +653,8 @@ function ShelfChars({ chars }: { chars: string[] }) {
   const openItem = useOpenItem();
   const levelOf = useLevelOf();
   const lib = useLibrary();
+  const levels = [0, 0, 0, 0];
+  for (const c of chars) levels[levelOf(charId(c))] += 1;
   if (!chars.length) {
     return (
       <div className="empty compact">
@@ -642,7 +664,14 @@ function ShelfChars({ chars }: { chars: string[] }) {
     );
   }
   return (
-    <div className="char-grid">
+    <>
+      <div className="shelf-levels small">
+        <span>
+          {levels[0]} not known yet · {levels[1]} met · {levels[2]} known · {levels[3]} solid
+        </span>
+        <LevelBar levels={levels} />
+      </div>
+      <div className="char-grid">
       {chars.map((c) => {
         const e = lib.byChar.get(c);
         return (
@@ -652,6 +681,7 @@ function ShelfChars({ chars }: { chars: string[] }) {
           </button>
         );
       })}
-    </div>
+      </div>
+    </>
   );
 }
