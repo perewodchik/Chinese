@@ -629,7 +629,8 @@ var NarrationService = class {
    * mood), read only when asked to, and read again only when asked again.
    */
   async text(userId, narratorId, lines2, o = {}) {
-    const n = await this.find(userId, narratorId);
+    const found = await this.find(userId, narratorId);
+    const n = o.speed === void 0 ? found : { ...found, speed: Math.min(2, Math.max(0.5, o.speed)) };
     const said = lines2.map((l) => l.trim());
     if (!said.some(Boolean)) throw new ValidationError("Nothing to read.");
     const key = narrationKey(n, said);
@@ -1852,7 +1853,7 @@ import { Hono as Hono3 } from "hono";
 import { z as z3 } from "zod";
 var keyRequest = z3.object({ key: z3.string().min(1).max(400) });
 var lines = z3.array(z3.string().max(240)).min(1).max(300);
-var textRequest = z3.object({ narrator: z3.string().min(1).max(80), lines, generate: z3.boolean().optional(), again: z3.boolean().optional() });
+var textRequest = z3.object({ narrator: z3.string().min(1).max(80), lines, generate: z3.boolean().optional(), again: z3.boolean().optional(), speed: z3.number().min(0.5).max(2).optional() });
 var ofRequest = z3.object({ lines });
 var tryRequest = z3.object({ prompt: z3.string().trim().min(1).max(2e3), previewText: z3.string().trim().min(1).max(200), count: z3.number().int().min(1).max(3).optional() });
 var keepRequest = z3.object({ name: z3.string().trim().min(1).max(60), prompt: z3.string().trim().min(1).max(2e3), previewText: z3.string().trim().max(200), voiceId: z3.string().min(1).max(128) });

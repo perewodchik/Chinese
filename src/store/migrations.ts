@@ -431,6 +431,7 @@ function settingsFrom(v: unknown, version: number): AppSettings {
     restDays: s.restDays !== false,
     videoWordsTo: strOr(s.videoWordsTo, DEFAULT_SETTINGS.videoWordsTo),
     videoCharsTo: strOr(s.videoCharsTo, DEFAULT_SETTINGS.videoCharsTo),
+    speakV2: s.speakV2 === true,
   };
 }
 

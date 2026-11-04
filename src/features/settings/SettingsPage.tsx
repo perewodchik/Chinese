@@ -81,6 +81,24 @@ export function SettingsPage() {
 
       <div className="card">
         <header>
+          <h2>Speak</h2>
+        </header>
+        <div className="body">
+          <label className="toggle">
+            <input type="checkbox" checked={settings.speakV2} onChange={(e) => setSettings({ speakV2: e.target.checked })} />
+            <span>
+              The new Speak
+              <span className="d">
+                Any line heard in your narrator’s voice, and slowly; what to fix listed word by word, each word to practise on its own;
+                lines to say again gathered for you. Switch it off for Speak as it was.
+              </span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div className="card">
+        <header>
           <h2>Account</h2>
           <div className="spacer" />
           <button className="btn ghost sm" onClick={() => void leave()} disabled={leaving}>

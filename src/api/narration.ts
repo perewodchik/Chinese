@@ -45,9 +45,10 @@ export async function previewNarrator(id: string, text: string): Promise<string>
 
 /**
  * A narrator's reading of a whole text: the kept one, or null; made in one
- * request when `generate` (MiniMax takes up to a minute), made again when `again`.
+ * request when `generate` (MiniMax takes up to a minute), made again when `again`;
+ * `speed` reads it at that speed instead of the narrator's own, kept apart.
  */
-export const narrationOf = (narrator: string, lines: string[], o: { generate?: boolean; again?: boolean } = {}) =>
+export const narrationOf = (narrator: string, lines: string[], o: { generate?: boolean; again?: boolean; speed?: number } = {}) =>
   request<{ narration: TextNarrationDto | null }>('POST', '/api/narration/texts', { body: { narrator, lines, ...o }, timeoutMs: 120_000 }).then((r) => r.narration);
 
 /** Every kept reading of this text, by any of the learner's narrators as they sound now. */
