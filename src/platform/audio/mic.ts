@@ -235,7 +235,7 @@ export class MicSession {
       at += c.length;
     }
     this.chunks = [];
-    return downsample(all, this.ctx.sampleRate, ANALYSIS_RATE);
+    return trimToVoice(downsample(all, this.ctx.sampleRate, ANALYSIS_RATE));
   }
 
   /** Plays samples back, at the analysis rate. Returns a function that stops it. */
@@ -297,4 +297,35 @@ export function heardAnything(samples: Float32Array, rate = ANALYSIS_RATE): bool
     if (Math.sqrt(sum / win) > 0.003) return true;
   }
   return false;
+}
+
+/**
+ * A recording cut to the voice in it: from a little before the first sound
+ * above the room's own level to a little after the last. The moment kept from
+ * before the tap catches a line begun as the button was touched; this takes
+ * the quiet off both ends again, with room left so a soft first consonant or a
+ * fading last tone is not cut. A recording with no voice found is left whole.
+ */
+export function trimToVoice(samples: Float32Array, rate = ANALYSIS_RATE): Float32Array {
+  const win = Math.round(rate / 50);
+  const frames = Math.floor(samples.length / win);
+  if (frames < 5) return samples;
+  const rms: number[] = [];
+  for (let f = 0; f < frames; f++) {
+    let sum = 0;
+    for (let i = f * win; i < (f + 1) * win; i++) sum += samples[i]! * samples[i]!;
+    rms.push(Math.sqrt(sum / win));
+  }
+  // The room: the quietest tenth of the frames. A voice is well above it, and above a whisper.
+  const floor = [...rms].sort((a, b) => a - b)[Math.floor(frames / 10)]!;
+  const voice = Math.max(floor * 4, 0.006);
+  // Two frames in a row above it, so a click or a breath is not taken for the start.
+  let first = -1;
+  for (let f = 0; f + 1 < frames; f++) if (rms[f]! > voice && rms[f + 1]! > voice) { first = f; break; }
+  let last = -1;
+  for (let f = frames - 1; f > 0; f--) if (rms[f]! > voice && rms[f - 1]! > voice) { last = f; break; }
+  if (first < 0 || last < first) return samples;
+  const from = Math.max(0, (first - 10) * win); // 200 ms before
+  const to = Math.min(samples.length, (last + 1 + 20) * win); // 400 ms after
+  return samples.slice(from, to);
 }
