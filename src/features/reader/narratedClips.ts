@@ -87,6 +87,13 @@ let el: HTMLAudioElement | null = null;
 let stopAt = Infinity;
 let startAt: number | null = null;
 let timer: ReturnType<typeof setInterval> | undefined;
+/** The promise of the line playing now: settled when it stops, however it stops. */
+let ending: (() => void) | null = null;
+const ended = () => {
+  const e = ending;
+  ending = null;
+  e?.();
+};
 
 function audio(): HTMLAudioElement {
   if (el) return el;
@@ -100,6 +107,11 @@ function audio(): HTMLAudioElement {
     a.currentTime = startAt;
     startAt = null;
   });
+  // Paused at the line's end, by stopLine, or by the system: either way it is over.
+  // A pause queued by a change of source is handled after the next line has started: not an end.
+  a.addEventListener('pause', () => a.paused && ended());
+  a.addEventListener('ended', ended);
+  a.addEventListener('error', ended);
   el = a;
   return a;
 }
@@ -121,10 +133,13 @@ function watch() {
  * Says line `i`: from where it starts to where it ends, with a breath after,
  * never into the next line.
  */
-export function playLine(c: Clips, i: number, rate: number) {
+export function playLine(c: Clips, i: number, rate: number): Promise<void> {
   const t = c.timings[i];
-  if (!t) return;
+  if (!t) return Promise.resolve();
   stopSpeaking();
+  // A line that was playing is over as this one starts.
+  ended();
+  const done = new Promise<void>((resolve) => (ending = resolve));
   const a = audio();
   if (a.src !== c.url) a.src = c.url;
   a.playbackRate = rate;
@@ -133,8 +148,9 @@ export function playLine(c: Clips, i: number, rate: number) {
   a.muted = false;
   if (a.readyState >= 1) a.currentTime = t[0] / 1000;
   else startAt = t[0] / 1000;
-  void a.play().catch(() => undefined);
+  void a.play().catch(ended);
   watch();
+  return done;
 }
 
 export function stopLine() {

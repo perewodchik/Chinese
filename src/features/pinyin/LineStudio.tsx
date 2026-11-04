@@ -7,7 +7,7 @@ import { attemptResult, evaluatePhrase } from '../../api/speechEval';
 import { attemptOf, numbered, type Attempt, type Phrase } from '../../domain/phrases';
 import { alignPinyin } from '../../domain/reading';
 import { heardAnything } from '../../platform/audio/mic';
-import { playSamples } from '../../platform/audio/voiceOut';
+import { hush, playSamples } from '../../platform/audio/voiceOut';
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { Modal } from '../../ui/Modal';
@@ -318,14 +318,40 @@ export function LineStudio({
     setTimeout(() => setCount(null), 500);
   }
 
+  // ------------------------------------------------------------ hearing
+  // What the dock is playing, the narrator's line or your try: its button reads Stop
+  // meanwhile, and a second tap stops it rather than starting it again.
+  const [sounding, setSounding] = useState<'hear' | 'mine' | null>(null);
+  const sound = useRef(0);
+  function stopSound() {
+    sound.current++;
+    stopLine();
+    hush();
+    setSounding(null);
+  }
+  function play(what: 'hear' | 'mine', run: () => Promise<void> | undefined) {
+    if (sounding === what) return stopSound();
+    stopSound();
+    const n = sound.current;
+    const p = run();
+    if (!p) return;
+    setSounding(what);
+    void p.finally(() => sound.current === n && setSounding(null));
+  }
+  // Another line, or leaving: what was playing stops with it.
+  useEffect(() => stopSound, [index]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const live = recorder.state === 'listening' || recorder.state === 'hearing';
   function onRecord() {
+    // Never record over the speaker: whatever is playing stops first.
+    if (sounding) stopSound();
     if (live) return recorder.finish();
     if (mode === 'shadow') void shadow();
     else recorder.toggle();
   }
 
-  const hear = () => clips && playLine(clips, index, slow ? 0.75 : 1);
+  const hear = () => play('hear', () => (clips ? playLine(clips, index, slow ? 0.75 : 1) : undefined));
+  const hearMine = () => play('mine', () => (mineSamples ? playSamples(mineSamples) : undefined));
   const last = index + 1 >= phrases.length;
   const state = checking ? 'checking' : count !== null || readying ? 'opening' : recorder.state;
 
@@ -383,8 +409,11 @@ export function LineStudio({
       document.removeEventListener('keydown', key);
     };
   }, [listOpen]);
-  // Your own voice, always: the try shown when it is one of yours from this visit, else the last you said.
-  const mineSamples = (take?.mine ? take.samples : undefined) ?? lastSamples;
+  // Your own voice: the try on screen when it is yours and was said this visit. Otherwise
+  // the last thing you said, unless that is another try in the list: under a try kept from
+  // an earlier visit (its scores, not its sound) Mine would play a different one.
+  const lastIsATake = lastSamples !== null && takes.some((t) => t.samples === lastSamples);
+  const mineSamples = take?.mine && take.samples ? take.samples : take?.mine && lastIsATake && take.samples !== lastSamples ? null : lastSamples;
   const [order, setOrder] = useState<'new' | 'best'>('new');
   const [confirm, setConfirm] = useState<string | null>(null);
   // Which saying is shown, in a few words.
@@ -570,14 +599,14 @@ export function LineStudio({
           <Icon name="prev" />
           <span>Back</span>
         </button>
-        <button className="ph-dock-btn" onClick={hear} disabled={!clips}>
-          <Icon name="play" />
-          <span>{slow ? 'Slowly' : 'Hear'}</span>
+        <button className="ph-dock-btn" onClick={hear} disabled={!clips} aria-pressed={sounding === 'hear'}>
+          <Icon name={sounding === 'hear' ? 'stop' : 'play'} />
+          <span>{sounding === 'hear' ? 'Stop' : slow ? 'Slowly' : 'Hear'}</span>
         </button>
         <RecordButton state={state} level={recorder.level} onToggle={onRecord} compact />
-        <button className="ph-dock-btn" onClick={() => { const s = mineSamples; if (s) void playSamples(s); }} disabled={!mineSamples}>
-          <Icon name="play" />
-          <span>Mine</span>
+        <button className="ph-dock-btn" onClick={hearMine} disabled={!mineSamples} aria-pressed={sounding === 'mine'}>
+          <Icon name={sounding === 'mine' ? 'stop' : 'play'} />
+          <span>{sounding === 'mine' ? 'Stop' : 'Mine'}</span>
         </button>
         <button className="ph-dock-btn" data-go={takes.some((t) => t.mine && t.id === firstNew) ? '' : undefined} onClick={onNext}>
           <Icon name="next" />

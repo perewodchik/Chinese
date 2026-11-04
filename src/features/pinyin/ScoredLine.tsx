@@ -4,6 +4,7 @@ import { charScore, heardTag, noteOf, partsOf } from '../../domain/phrases';
 import { parseSyllable } from '../../domain/pinyin/syllable';
 import { isHanzi } from '../../domain/text';
 import { playSamples } from '../../platform/audio/voiceOut';
+import { stopLine } from '../reader/narratedClips';
 import { Icon } from '../../ui/Icon';
 import './phrases.css';
 
@@ -297,6 +298,8 @@ export function ScoredLine({
                         disabled={!samples}
                         onClick={(e) => {
                           e.stopPropagation();
+                          // The narrator's line stops first: two voices at once is neither.
+                          stopLine();
                           if (samples) void playSamples(samples.subarray(Math.floor((syl.from / 1000) * 16000), Math.ceil((syl.to / 1000) * 16000)));
                         }}
                       >
