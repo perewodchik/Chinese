@@ -10,11 +10,8 @@ import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
 import { ChangePasswordForm } from '../auth/ChangePasswordForm';
 import { useUser } from '../auth/session';
-import { useSignOut } from '../auth/useSignOut';
 import { InstallCard } from './InstallCard';
 import { LearningSettings } from './LearningSettings';
-import { Link } from 'react-router';
-import { paths } from '../../navigation/paths';
 
 const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 
@@ -58,7 +55,6 @@ export function SettingsPage() {
   const settings = useStore((s) => s.settings);
   const status = useSyncStatus();
   const toast = useToast();
-  const { leave, leaving } = useSignOut();
   const [folder, setFolder] = useState<string | null>(null);
 
   useEffect(() => {
@@ -81,6 +77,48 @@ export function SettingsPage() {
 
       <div className="card">
         <header>
+          <h2>Pronunciation</h2>
+        </header>
+        <div className="body" style={{ display: 'grid', gap: 12 }}>
+          <label className="field">
+            Guided speed
+            <select
+              value={String(settings.guidedPace)}
+              onChange={(e) => setSettings({ guidedPace: Number(e.target.value) })}
+            >
+              {GUIDED_PACES.map((p) => (
+                <option key={p.value} value={String(p.value)}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+            <span className="tiny muted">
+              How slowly the Guided button under a line in a conversation reads it back. The same reading stretched,
+              not a different one — the tones stay where they are.
+            </span>
+          </label>
+          <label className="field">
+            Stop recording after
+            <select
+              value={String(settings.silenceStop)}
+              onChange={(e) => setSettings({ silenceStop: Number(e.target.value) })}
+            >
+              {SILENCE_STOPS.map((p) => (
+                <option key={p.value} value={String(p.value)}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+            <span className="tiny muted">
+              Quiet that ends a recording on its own, once you have started speaking. It watches the words, not the
+              microphone, so a fan or a room of people does not hold it open.
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div className="card">
+        <header>
           <h2>Speak</h2>
         </header>
         <div className="body">
@@ -100,10 +138,6 @@ export function SettingsPage() {
       <div className="card">
         <header>
           <h2>Account</h2>
-          <div className="spacer" />
-          <button className="btn ghost sm" onClick={() => void leave()} disabled={leaving}>
-            {leaving ? 'Signing out…' : 'Sign out'}
-          </button>
         </header>
         <div className="body" style={{ display: 'grid', gap: 12 }}>
           <p className="small" style={{ margin: 0 }}>
@@ -120,57 +154,51 @@ export function SettingsPage() {
         </div>
       </div>
 
-      <div className="card">
-        <header>
-          <h2>Where worksheets go</h2>
-        </header>
-        <div className="body">
-          {folderSupported() ? (
-            <>
-              <p className="small muted" style={{ marginTop: 0 }}>
-                Pick a folder once and every PDF lands there automatically, named after the collection and
-                dated, so you can find them again. The folder belongs to this browser, not to your account.
-              </p>
-              <div className="row">
-                <button
-                  className="btn"
-                  onClick={async () => {
-                    const h = await chooseFolder();
-                    if (h) {
-                      setFolder(h.name);
-                      toast(`Worksheets will be saved to ${h.name}`);
-                    }
-                  }}
-                >
-                  {folder ? 'Choose a different folder' : 'Choose folder'}
-                </button>
-                {folder && (
-                  <>
-                    <span className="small">
-                      Saving to <b>{folder}</b>
-                    </span>
-                    <button
-                      className="btn ghost sm"
-                      onClick={async () => {
-                        await forgetFolder();
-                        setFolder(null);
-                        toast('Worksheets will download normally again');
-                      }}
-                    >
-                      Forget
-                    </button>
-                  </>
-                )}
-              </div>
-            </>
-          ) : (
-            <p className="small muted" style={{ margin: 0 }}>
-              This browser cannot write to a folder directly, so worksheets will download the usual way. Chrome
-              or Edge supports it.
+      {/* Only where the browser can write to a folder (Chrome, Edge); Safari downloads as usual, with nothing to set. */}
+      {folderSupported() && (
+        <div className="card">
+          <header>
+            <h2>Where worksheets go</h2>
+          </header>
+          <div className="body">
+            <p className="small muted" style={{ marginTop: 0 }}>
+              Pick a folder once and every PDF lands there automatically, named after the collection and
+              dated, so you can find them again. The folder belongs to this browser, not to your account.
             </p>
-          )}
+            <div className="row">
+              <button
+                className="btn"
+                onClick={async () => {
+                  const h = await chooseFolder();
+                  if (h) {
+                    setFolder(h.name);
+                    toast(`Worksheets will be saved to ${h.name}`);
+                  }
+                }}
+              >
+                {folder ? 'Choose a different folder' : 'Choose folder'}
+              </button>
+              {folder && (
+                <>
+                  <span className="small">
+                    Saving to <b>{folder}</b>
+                  </span>
+                  <button
+                    className="btn ghost sm"
+                    onClick={async () => {
+                      await forgetFolder();
+                      setFolder(null);
+                      toast('Worksheets will download normally again');
+                    }}
+                  >
+                    Forget
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="card">
         <header>
@@ -234,10 +262,6 @@ export function SettingsPage() {
               more — and new writing sessions are pitched at it.
             </span>
           </label>
-          <p className="small muted" style={{ margin: 0 }}>
-            No API key: a session builds a prompt, you paste it into Claude yourself, and paste the answer back.
-            Nothing is sent to Claude from this app.
-          </p>
           <label className="toggle">
             <input
               type="checkbox"
@@ -249,72 +273,6 @@ export function SettingsPage() {
               <span className="d">Its new words and characters, in the Drill layout a worksheet uses</span>
             </span>
           </label>
-          <label className="field">
-            Credit the writer as
-            <input
-              type="text"
-              value={settings.modelName}
-              placeholder="Claude Opus"
-              onChange={(e) => setSettings({ modelName: e.target.value })}
-            />
-            <span className="tiny muted">Stamped on each text you import.</span>
-          </label>
-        </div>
-      </div>
-
-      <div className="card">
-        <header>
-          <h2>Pronunciation</h2>
-        </header>
-        <div className="body" style={{ display: 'grid', gap: 12 }}>
-          <label className="field">
-            Guided speed
-            <select
-              value={String(settings.guidedPace)}
-              onChange={(e) => setSettings({ guidedPace: Number(e.target.value) })}
-            >
-              {GUIDED_PACES.map((p) => (
-                <option key={p.value} value={String(p.value)}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-            <span className="tiny muted">
-              How slowly the Guided button under a line in a conversation reads it back. The same reading stretched,
-              not a different one — the tones stay where they are.
-            </span>
-          </label>
-          <label className="field">
-            Stop recording after
-            <select
-              value={String(settings.silenceStop)}
-              onChange={(e) => setSettings({ silenceStop: Number(e.target.value) })}
-            >
-              {SILENCE_STOPS.map((p) => (
-                <option key={p.value} value={String(p.value)}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-            <span className="tiny muted">
-              Quiet that ends a recording on its own, once you have started speaking. It watches the words, not the
-              microphone, so a fan or a room of people does not hold it open.
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <div className="card">
-        <header>
-          <h2>Voices for texts</h2>
-        </header>
-        <div className="body" style={{ display: 'grid', gap: 8 }}>
-          <p className="small muted" style={{ margin: 0 }}>
-            Narrators read your texts aloud in Listen, in natural Mandarin voices, with your MiniMax key.
-          </p>
-          <Link className="btn tonal sm" to={paths.speakingNarrators()} style={{ justifySelf: 'start' }}>
-            Voices
-          </Link>
         </div>
       </div>
 
