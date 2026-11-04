@@ -214,6 +214,30 @@ export class NarrationService {
     return toNarrationDto(record);
   }
 
+  /**
+   * A reading made elsewhere, kept as this narrator's reading of the text:
+   * a text read by a cast (the narrator and each character in their own
+   * voice), its clips joined off the server, played in Listen like any other.
+   * The narrator is the one it is shown under; its timings are the caller's.
+   */
+  async importReading(userId: string, narratorId: string, lines: string[], input: { mp3: Uint8Array; durationMs: number; timings: Array<[number, number]> }): Promise<TextNarrationDto> {
+    const n = await this.find(userId, narratorId);
+    const said = lines.map((l) => l.trim());
+    if (!said.some(Boolean)) throw new ValidationError('Nothing to read.');
+    if (input.timings.length !== said.length) throw new ValidationError('A start and an end for every line.');
+    const { mp3, durationMs, timings } = input;
+    const isMp3 = mp3.length > 3 && ((mp3[0] === 0x49 && mp3[1] === 0x44 && mp3[2] === 0x33) || (mp3[0] === 0xff && (mp3[1]! & 0xe0) === 0xe0));
+    if (!isMp3) throw new ValidationError('That is not an MP3.');
+    let at = 0;
+    for (const [a, b] of timings) {
+      if (!(a >= at - 1 && b >= a && b <= durationMs + 1)) throw new ValidationError('The lines’ times must run in order within the reading.');
+      at = b;
+    }
+    const record: TextNarration = { key: narrationKey(n, said), userId, narratorId: n.id, mp3, timings, durationMs, createdAt: this.deps.clock.now() };
+    await this.deps.narrations.save(record);
+    return toNarrationDto(record);
+  }
+
   /** Every reading of this text the learner's narrators have, as each sounds now. */
   async readingsOf(userId: string, lines: string[]): Promise<TextNarrationDto[]> {
     const said = lines.map((l) => l.trim());

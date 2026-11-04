@@ -15,6 +15,7 @@
  *   POST   /api/narration/narrators/:id/preview { text } → MP3, nothing kept
  *   POST   /api/narration/texts               { narrator, lines, generate?, again? } → the narrator's reading of the text (made when asked)
  *   POST   /api/narration/texts/of            { lines } → every narrator's reading of the text there is
+ *   POST   /api/narration/texts/import        { narrator, lines, mp3, durationMs, timings } → a reading made elsewhere (a cast), kept as the narrator's
  *   GET    /api/narration/texts/:key/audio    the reading itself, MP3
  *   GET    /api/narration/own                 the learner's own texts read aloud, newest first
  *   POST   /api/narration/own                 { title, narrator, lines } → read now and kept

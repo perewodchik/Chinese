@@ -182,6 +182,29 @@ describe('reading texts aloud with MiniMax and the learner’s key', () => {
   });
 });
 
+describe('a reading made elsewhere', () => {
+  it('is kept as the narrator’s reading of the text and found in Listen, without MiniMax', async () => {
+    const { narrator, whole } = stub();
+    const app = appWith(narrator);
+    const cookie = await signedIn(app);
+    await call(app, 'PUT', '/api/narration/key', { cookie, body: { key: GOOD } });
+    const { narrator: n } = (await (await call(app, 'POST', '/api/narration/narrators', { cookie, body: { name: 'Cast', voice: 'Chinese (Mandarin)_News_Anchor' } })).json()) as { narrator: { id: string } };
+    const lines = ['“皮卡丘，起床啊！”', '“皮卡……”'];
+    const mp3 = Buffer.from([0xff, 0xfb, 0x90, 0x00, 1, 2, 3, 4]).toString('base64');
+    const bad = await call(app, 'POST', '/api/narration/texts/import', { cookie, body: { narrator: n.id, lines, mp3, durationMs: 2000, timings: [[0, 1500], [1000, 2000]] } });
+    assert.equal(bad.status, 400);
+    const one = await call(app, 'POST', '/api/narration/texts/import', { cookie, body: { narrator: n.id, lines, mp3, durationMs: 2000, timings: [[0, 900], [1200, 2000]] } });
+    assert.equal(one.status, 200);
+    const { narration } = (await one.json()) as { narration: { key: string; timings: number[][] } };
+    const { narrations } = (await (await call(app, 'POST', '/api/narration/texts/of', { cookie, body: { lines } })).json()) as { narrations: Array<{ key: string; timings: number[][] }> };
+    assert.deepEqual(narrations.map((x) => [x.key, x.timings]), [[narration.key, [[0, 900], [1200, 2000]]]]);
+    assert.equal((await (await call(app, 'GET', `/api/narration/texts/${narration.key}/audio`, { cookie })).arrayBuffer()).byteLength, 8);
+    assert.deepEqual(whole, []);
+    const other = await signedIn(app, 'someone');
+    assert.equal((await call(app, 'POST', '/api/narration/texts/import', { cookie: other, body: { narrator: n.id, lines, mp3, durationMs: 2000, timings: [[0, 900], [1200, 2000]] } })).status, 404);
+  });
+});
+
 describe('making voices to choose among', () => {
   it('keeps the ones that came back when some fail, and says why when none does', async () => {
     let n = 0;

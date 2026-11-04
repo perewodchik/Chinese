@@ -20,6 +20,14 @@ const changeRequest = z.object({
 });
 const ownRequest = z.object({ title: z.string().max(80), narrator: z.string().min(1).max(80), lines });
 const ownChange = z.object({ title: z.string().max(80).optional(), textId: z.string().min(1).max(80).nullable().optional() });
+const importRequest = z.object({
+  narrator: z.string().min(1).max(80),
+  lines,
+  // A chapter is a minute or two: a few MB of base64 at most.
+  mp3: z.string().min(8).max(6_000_000),
+  durationMs: z.number().int().min(1).max(30 * 60_000),
+  timings: z.array(z.tuple([z.number().min(0), z.number().min(0)])).min(1).max(300),
+});
 const previewRequest = z.object({ text: z.string().max(200) });
 
 const mp3 = (c: Context<AppEnv>, bytes: Uint8Array) => {
@@ -99,6 +107,13 @@ export function narrationRoutes({ auth, clock, trustProxy, narration }: RouteDep
     const input = await readJson(c, textRequest);
     if (input.generate || input.again) reads.consume(user(c));
     return json(c, { narration: await narration.text(user(c), input.narrator, input.lines, input) });
+  });
+
+  routes.post('/texts/import', session, async (c) => {
+    makes.consume(user(c));
+    const input = await readJson(c, importRequest);
+    const mp3Bytes = new Uint8Array(Buffer.from(input.mp3, 'base64'));
+    return json(c, { narration: await narration.importReading(user(c), input.narrator, input.lines, { mp3: mp3Bytes, durationMs: input.durationMs, timings: input.timings }) });
   });
 
   routes.post('/texts/of', session, async (c) => {
