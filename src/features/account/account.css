@@ -82,3 +82,7 @@
 .ac-link > svg {
   color: var(--ink-3);
 }
+
+.ac-copy-lede {
+  margin: 0 0 12px;
+}

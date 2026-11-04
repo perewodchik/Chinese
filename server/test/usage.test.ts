@@ -87,3 +87,24 @@ describe('what the learner’s own keys were spent on', () => {
     assert.equal((await call(s.app, 'GET', '/api/account/usage')).status, 401);
   });
 });
+
+describe('a copy of the account’s work', () => {
+  it('is everything kept, as one file to download, without the keys', async () => {
+    const s = await setUp();
+    await call(s.app, 'PUT', '/api/eval/key', { cookie: s.cookie, body: { provider: 'speechsuper', appKey: 'app123456', secretKey: 'secret0123456789abcd' } });
+    await call(s.app, 'PUT', '/api/workspace', { cookie: s.cookie, body: { baseRevision: 0, document: { version: 11, texts: [{ id: 't1' }] } } });
+    const res = await call(s.app, 'GET', '/api/account/export', { cookie: s.cookie });
+    assert.equal(res.status, 200);
+    assert.match(res.headers.get('content-disposition') ?? '', /attachment; filename="hanzi-workshop-learner-2026-09-11\.json"/);
+    const text = await res.text();
+    const body = JSON.parse(text) as { account: { username: string }; workspace: { document: { texts: unknown[] } } };
+    assert.equal(body.account.username, 'learner');
+    assert.deepEqual(body.workspace.document.texts, [{ id: 't1' }]);
+    assert.ok(!text.includes('secret0123456789abcd'));
+  });
+
+  it('is for the signed-in learner only', async () => {
+    const s = await setUp();
+    assert.equal((await call(s.app, 'GET', '/api/account/export')).status, 401);
+  });
+});

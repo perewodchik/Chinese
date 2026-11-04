@@ -102,6 +102,17 @@ export function AccountPage() {
       </section>
 
       <section className="block">
+        <h2 className="block-title">A copy of your work</h2>
+        <p className="small muted ac-copy-lede">
+          Your texts, shelves, cards and progress, the walk through Beijing, your conversations, tries and narrators, in one
+          file to keep. Not your keys, recordings or pictures.
+        </p>
+        <a className="btn tonal" href="/api/account/export" download>
+          Download a copy
+        </a>
+      </section>
+
+      <section className="block">
         <h2 className="block-title">Password</h2>
         <ChangePasswordForm />
       </section>

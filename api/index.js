@@ -1818,7 +1818,7 @@ var RateLimiter = class {
 
 // server/src/http/routes/account.ts
 import { Hono } from "hono";
-function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration }) {
+function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations }) {
   const routes = new Hono();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/usage", session, async (c) => {
@@ -1831,6 +1831,34 @@ function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration }
     });
     c.header("Cache-Control", "no-store");
     return c.json(body);
+  });
+  routes.get("/export", session, async (c) => {
+    const { user } = c.get("session");
+    const [workspace, game, talks, tries, narrators, ownTexts] = await Promise.all([
+      workspaces.get(user.id),
+      world.get(user.id),
+      conversations.list(user.id),
+      speechEval.attempts(user.id),
+      narration.narrators(user.id).catch(() => []),
+      narration.ownTexts(user.id).catch(() => [])
+    ]);
+    const body = {
+      app: "Hanzi Workshop",
+      exportedAt: new Date(clock.now()).toISOString(),
+      account: { username: user.username, createdAt: new Date(user.createdAt).toISOString() },
+      workspace,
+      world: game,
+      conversations: await Promise.all(talks.map((t) => conversations.open(user.id, t.id))),
+      speechAttempts: tries,
+      narrators,
+      ownTexts
+    };
+    const day = new Date(clock.now()).toISOString().slice(0, 10);
+    const name = `hanzi-workshop-${user.username.replace(/[^\p{L}\p{N}._-]/gu, "") || "account"}-${day}.json`;
+    c.header("Cache-Control", "no-store");
+    c.header("Content-Type", "application/json; charset=utf-8");
+    c.header("Content-Disposition", `attachment; filename="${encodeURIComponent(name)}"; filename*=UTF-8''${encodeURIComponent(name)}`);
+    return c.body(JSON.stringify(body, null, 1));
   });
   return routes;
 }

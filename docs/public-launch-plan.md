@@ -119,7 +119,7 @@
   сессии остаются. Сделать: `DELETE /api/account` с паролем → удаление
   пользователя (каскад по всем таблицам, проверить каждую в
   `postgres/migrations.ts`), выход, тест, что ни одной строки не осталось.
-- [ ] **S11b (В) Экспорт данных.** `GET /api/account/export` → JSON рабочего
+- [x] **S11b (В) Экспорт данных.** `GET /api/account/export` → JSON рабочего
   места, сохранений игры, разговоров, попыток (без MP3 и без ключей). Кнопка в
   профиле.
 - [ ] **S11c (С) Устройства и сессии.** `GET /api/auth/sessions` (user agent,
@@ -551,3 +551,4 @@ SameSite=Lax, Secure cookie, в базе только хэш; одинаково
 | 2026-11-05 | U0 U1 U2 U4 U5 U8 U10 | — | `scripts/reload-probe.mjs`; часть текста `#words`, `#copy`, `#dictation`; `?q=` в Library и Read; `?narrator=`, `?shelf=` в Voices; `?view=json` в сессии |
 | 2026-11-05 | P2 P3 P4 P6 | — | настройки: папка только где поддерживается, без «Credit the writer» и пояснения про ключ, произношение рядом с ключами, без дубля Sign out и карточки Voices |
 | 2026-11-05 | Q1, Q2–Q3 и P7 частично | — | таблица `api_usage`, учёт в `speech-eval-service` и `narration-service`, `GET /api/account/usage`, страница `/account` |
+| 2026-11-05 | S11b | — | `GET /api/account/export`, кнопка «Download a copy» на `/account`; без ключей, MP3 и картинок |
