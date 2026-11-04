@@ -1045,7 +1045,7 @@ button.back-link {
 .ph-tries-box {
   display: grid;
   gap: 6px;
-  padding: 8px 12px 4px;
+  padding: 8px 0 4px;
   border-radius: 14px;
   background: var(--card-2);
 }
@@ -1053,6 +1053,7 @@ button.back-link {
 .ph-tries-head {
   display: flex;
   justify-content: flex-end;
+  padding: 0 12px;
 }
 
 .ph-tries-list {
@@ -1066,8 +1067,12 @@ button.back-link {
   align-items: center;
   gap: 4px;
   min-height: 44px;
-  margin: 0 -12px;
   padding: 0 4px 0 12px;
+}
+
+/* The voice's row has no delete: its number keeps the same right edge as the others'. */
+.ph-try-voice {
+  padding-right: 48px;
 }
 
 .ph-try-mini[aria-current] {
