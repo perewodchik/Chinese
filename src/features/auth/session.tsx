@@ -10,6 +10,7 @@ import {
 import type { UserDto } from '../../../shared/api';
 import { authApi } from '../../api/auth';
 import { ApiError, onSignedOut } from '../../api/http';
+import { setStorageAccount } from '../../platform/accountStorage';
 import { flushWorkspace } from '../../store/store';
 
 export type Session =
@@ -33,6 +34,23 @@ const SessionContext = createContext<SessionApi | null>(null);
 const SIGN_OUT_WAIT_MS = 4_000;
 
 /**
+ * The account this tab has shown. Screens keep what they fetched for a visit
+ * (tries, narrators, the history) in memory; signing in as someone else in
+ * the same tab would show them the last account's. A different account
+ * starts the page afresh instead, so nothing of the one before is left.
+ */
+let shownAccount: string | null = null;
+function enter(user: UserDto): boolean {
+  if (shownAccount && shownAccount !== user.id) {
+    window.location.reload();
+    return false;
+  }
+  shownAccount = user.id;
+  setStorageAccount(user.id);
+  return true;
+}
+
+/**
  * Who is signed in, as far as this tab knows.
  *
  * The answer always comes from the server rather than from anything kept in the
@@ -46,9 +64,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setSession({ status: 'checking' });
     authApi
       .session()
-      .then(({ user }) =>
-        setSession(user ? { status: 'signed-in', user } : { status: 'signed-out', reason: 'initial' }),
-      )
+      .then(({ user }) => {
+        if (!user) setSession({ status: 'signed-out', reason: 'initial' });
+        else if (enter(user)) setSession({ status: 'signed-in', user });
+      })
       // .catch rather than a second argument to .then: this has to catch what
       // the line above throws too, or a surprising answer leaves the splash up
       // for ever with nothing said.
@@ -70,12 +89,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback(async (username: string, password: string) => {
     const { user } = await authApi.login({ username, password });
-    setSession({ status: 'signed-in', user });
+    if (enter(user)) setSession({ status: 'signed-in', user });
   }, []);
 
   const register = useCallback(async (username: string, password: string, invite?: string) => {
     const { user } = await authApi.register({ username, password, ...(invite && { invite }) });
-    setSession({ status: 'signed-in', user });
+    if (enter(user)) setSession({ status: 'signed-in', user });
   }, []);
 
   const signOut = useCallback(async () => {
@@ -87,6 +106,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       // the session, and claiming otherwise on a shared tablet would be a lie.
       if (!(err instanceof ApiError && err.status === 401)) throw err;
     }
+    setStorageAccount(null);
     setSession({ status: 'signed-out', reason: 'left' });
   }, []);
 

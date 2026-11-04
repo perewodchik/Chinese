@@ -11,6 +11,7 @@ import { shelve, type GeneratedText } from '../../domain/text';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
+import { accountKey } from '../../platform/accountStorage';
 import { useLibrary } from '../shared/library';
 import { PronunciationKey } from '../settings/PronunciationKey';
 import { bestByLine, keepTry, loadHistory, remember } from './speechHistory';
@@ -26,7 +27,7 @@ import './pinyin.css';
 const KEPT = 'hanzi.phrases.attempts';
 const loadAttempts = (): Record<string, Attempt[]> => {
   try {
-    return JSON.parse(localStorage.getItem(KEPT) ?? '{}') as Record<string, Attempt[]>;
+    return JSON.parse(localStorage.getItem(accountKey(KEPT)) ?? '{}') as Record<string, Attempt[]>;
   } catch {
     return {};
   }
@@ -44,7 +45,7 @@ function keepAttempt(zh: string, a: Attempt, sourceId: string, result: EvalResul
 
 function saveAttempts(all: Record<string, Attempt[]>) {
   try {
-    localStorage.setItem(KEPT, JSON.stringify(all));
+    localStorage.setItem(accountKey(KEPT), JSON.stringify(all));
   } catch {
     // kept for this visit only
   }
@@ -60,14 +61,14 @@ interface Last {
 }
 const loadLast = (): Last | null => {
   try {
-    return JSON.parse(localStorage.getItem(LAST) ?? 'null') as Last | null;
+    return JSON.parse(localStorage.getItem(accountKey(LAST)) ?? 'null') as Last | null;
   } catch {
     return null;
   }
 };
 const keepLast = (l: Last) => {
   try {
-    localStorage.setItem(LAST, JSON.stringify(l));
+    localStorage.setItem(accountKey(LAST), JSON.stringify(l));
   } catch {
     // kept for this visit only
   }

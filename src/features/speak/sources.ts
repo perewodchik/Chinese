@@ -6,6 +6,7 @@ import { EVERYDAY, type Phrase } from '../../domain/phrases';
 import { shelve, type GeneratedText } from '../../domain/text';
 import { useStore } from '../../store/store';
 import { useLibrary } from '../shared/library';
+import { accountKey } from '../../platform/accountStorage';
 
 /**
  * What can be said in Speak: the learner's texts by shelf, as Read has them,
@@ -37,7 +38,7 @@ interface KeptSet {
 }
 const readSets = (): Record<string, KeptSet> => {
   try {
-    return (JSON.parse(localStorage.getItem(SETS) ?? '{}') as Record<string, KeptSet>) ?? {};
+    return (JSON.parse(localStorage.getItem(accountKey(SETS)) ?? '{}') as Record<string, KeptSet>) ?? {};
   } catch {
     return {};
   }
@@ -46,7 +47,7 @@ const readSets = (): Record<string, KeptSet> => {
 /** Keeps a set of lines under `id` for a sitting: `weak`, `fault:tone3`, `again:<text>`. */
 export function keepSet(id: string, set: KeptSet) {
   try {
-    localStorage.setItem(SETS, JSON.stringify({ ...readSets(), [id]: set }));
+    localStorage.setItem(accountKey(SETS), JSON.stringify({ ...readSets(), [id]: set }));
   } catch {
     // kept for this visit only: the sitting still has it in the address's state
   }

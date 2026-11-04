@@ -15,6 +15,7 @@ import { keepSet, useNarrator, useSources, type Source } from './sources';
 import { VoiceSheet } from './VoiceSheet';
 import '../pinyin/phrases.css';
 import './speak.css';
+import { accountKey } from '../../platform/accountStorage';
 
 /** Where the learner stopped: a source and a line, to carry on from. */
 const LAST = 'hanzi.phrases.last';
@@ -24,14 +25,14 @@ interface Last {
 }
 const loadLast = (): Last | null => {
   try {
-    return JSON.parse(localStorage.getItem(LAST) ?? 'null') as Last | null;
+    return JSON.parse(localStorage.getItem(accountKey(LAST)) ?? 'null') as Last | null;
   } catch {
     return null;
   }
 };
 const keepLast = (l: Last) => {
   try {
-    localStorage.setItem(LAST, JSON.stringify(l));
+    localStorage.setItem(accountKey(LAST), JSON.stringify(l));
   } catch {
     // kept for this visit only
   }

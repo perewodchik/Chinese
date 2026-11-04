@@ -1,6 +1,7 @@
 import type { AttemptIn, AttemptOut, SpeechHistory } from '../../../shared/speechEval';
 import { ApiError } from '../../api/http';
 import { deleteAttempt, keepAttempts, listAttempts, speechHistory } from '../../api/speechEval';
+import { accountKey } from '../../platform/accountStorage';
 
 /**
  * Every try at saying something, kept in the account so the iPad and the
@@ -15,6 +16,8 @@ import { deleteAttempt, keepAttempts, listAttempts, speechHistory } from '../../
 
 const OUTBOX = 'hanzi.speech.outbox';
 const IMPORTED = 'hanzi.speech.imported';
+/** on this device: the drills' old tallies have gone to an account */
+const TALLIES_TAKEN = 'hanzi.speech.talliesTaken';
 
 const read = <T,>(key: string, empty: T): T => {
   try {
@@ -41,7 +44,7 @@ export function flush(): Promise<void> {
   sending = (async () => {
     try {
       for (;;) {
-        const box = read<AttemptIn[]>(OUTBOX, []);
+        const box = read<AttemptIn[]>(accountKey(OUTBOX), []);
         if (!box.length) return;
         const batch = box.slice(0, 100);
         try {
@@ -59,7 +62,7 @@ export function flush(): Promise<void> {
           }
         }
         const sent = new Set(batch.map((a) => a.id));
-        write(OUTBOX, read<AttemptIn[]>(OUTBOX, []).filter((a) => !sent.has(a.id)));
+        write(accountKey(OUTBOX), read<AttemptIn[]>(accountKey(OUTBOX), []).filter((a) => !sent.has(a.id)));
       }
     } catch {
       // offline, or the server is away: the outbox keeps them
@@ -72,19 +75,25 @@ export function flush(): Promise<void> {
 
 /** Keeps a try: on the device at once, in the account as soon as it can be sent. */
 export function keepTry(a: AttemptIn) {
-  write(OUTBOX, [...read<AttemptIn[]>(OUTBOX, []), a]);
+  write(accountKey(OUTBOX), [...read<AttemptIn[]>(accountKey(OUTBOX), []), a]);
   void flush();
 }
 
 /** What was kept only on this device before the account kept it: put in the outbox, once. */
 function importOnce() {
-  if (read<boolean>(IMPORTED, false)) return;
+  if (read<boolean>(accountKey(IMPORTED), false)) {
+    write(TALLIES_TAKEN, true);
+    return;
+  }
   const items: AttemptIn[] = [];
-  const phrases = read<Record<string, Array<{ at: number; faults?: unknown[] }>>>('hanzi.phrases.attempts', {});
+  const phrases = read<Record<string, Array<{ at: number; faults?: unknown[] }>>>(accountKey('hanzi.phrases.attempts'), {});
   for (const [text, list] of Object.entries(phrases)) {
     for (const a of list) items.push({ id: `local-p-${a.at}-${[...text].slice(0, 30).join('')}`, at: a.at, kind: 'phrase', text, good: !a.faults?.length, summary: a });
   }
-  const tallies = read<{ tallies?: Record<string, { recent?: number[]; last?: number }> }>('hanzi.pinyin.v1', {}).tallies ?? {};
+  // The drills' tallies sit in a device setting, not an account's: they go to
+  // the first account that takes them on this device, and to no other.
+  const taken = read<boolean>(TALLIES_TAKEN, false);
+  const tallies = taken ? {} : (read<{ tallies?: Record<string, { recent?: number[]; last?: number }> }>('hanzi.pinyin.v1', {}).tallies ?? {});
   for (const [tally, t] of Object.entries(tallies)) {
     const recent = t.recent ?? [];
     const last = t.last ?? Date.now();
@@ -92,8 +101,9 @@ function importOnce() {
       items.push({ id: `local-d-${tally}-${last}-${i}`, at: last - (recent.length - 1 - i) * 1000, kind: 'drill', text: '', tally, good: good === 1 }),
     );
   }
-  write(OUTBOX, [...read<AttemptIn[]>(OUTBOX, []), ...items]);
-  write(IMPORTED, true);
+  write(accountKey(OUTBOX), [...read<AttemptIn[]>(accountKey(OUTBOX), []), ...items]);
+  write(accountKey(IMPORTED), true);
+  write(TALLIES_TAKEN, true);
 }
 
 let loading: Promise<SpeechHistory | null> | null = null;
@@ -137,9 +147,9 @@ export function remember(a: AttemptOut) {
 /** A try taken back: out of what this visit knows, out of the outbox if it never left, and out of the account. */
 export async function forget(id: string): Promise<void> {
   for (const [kind, p] of known) known.set(kind, p.then((list) => list.filter((a) => a.id !== id), () => []));
-  const box = read<AttemptIn[]>(OUTBOX, []);
+  const box = read<AttemptIn[]>(accountKey(OUTBOX), []);
   if (box.some((a) => a.id === id)) {
-    write(OUTBOX, box.filter((a) => a.id !== id));
+    write(accountKey(OUTBOX), box.filter((a) => a.id !== id));
     return;
   }
   await deleteAttempt(id);
