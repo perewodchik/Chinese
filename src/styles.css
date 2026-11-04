@@ -5942,96 +5942,76 @@ label.field[data-invalid] input {
   background: var(--lv3-ink);
 }
 
-/* The level, set by hand in a drawer: four equal cells, so pressing one moves nothing. */
-.seg.level-pick {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  width: 100%;
-  max-width: 420px;
+/* The level, set by hand: 0 to 3 as digits in one well, the chosen one
+   raised and, from 1 up, tinted the green of its level. */
+.level-pick {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
 }
 
-.seg.level-pick button {
-  min-height: 40px;
-  padding: 0 6px;
-  justify-content: center;
-  gap: 5px;
+.level-pick-name {
+  width: 76px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-2);
 }
 
-.seg.level-pick button[aria-pressed='false'] .level-bars i {
-  background: var(--line);
-}
-
-.seg.level-pick button[aria-pressed='false'] .level-name {
-  color: var(--ink-3);
-}
-
-@media (max-width: 380px) {
-  .seg.level-pick .level-bars {
-    display: none;
-  }
-}
-
-.level-next {
-  display: block;
-  margin-top: 4px;
-}
-
-/* Four cells in a row of a word list: each shows the bars of its own level,
-   pale until it is the one chosen. 36px wide and 40 high, for a thumb. */
-.level-quick {
+.level-digits {
   display: inline-grid;
-  grid-template-columns: repeat(4, 36px);
+  grid-template-columns: repeat(4, 40px);
   flex: none;
+  gap: 2px;
   padding: 2px;
-  gap: 1px;
   border-radius: 11px;
   background: var(--card-2);
 }
 
-.level-quick button {
-  display: grid;
-  place-items: center;
+.level-digits button {
   height: 36px;
   padding: 0;
   border: 0;
   border-radius: 9px;
   background: transparent;
+  color: var(--ink-3);
+  font: 500 15px/1 var(--sans);
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
-  opacity: 0.45;
-  transition: background 0.12s, opacity 0.12s;
+  transition: background 0.12s, color 0.12s;
 }
 
-.level-quick button[aria-pressed='true'] {
-  opacity: 1;
+@media (hover: hover) {
+  .level-digits button:hover {
+    color: var(--ink);
+  }
+}
+
+.level-digits button[aria-pressed='true'] {
+  color: var(--ink);
+  font-weight: 600;
   background: var(--card);
   box-shadow: 0 1px 2px rgb(24 32 43 / 14%);
 }
 
-:root[data-theme='dark'] .level-quick button[aria-pressed='true'] {
+:root[data-theme='dark'] .level-digits button[aria-pressed='true'] {
   background: var(--line-2);
   box-shadow: none;
 }
 
-@media (hover: hover) {
-  .level-quick button:hover {
-    opacity: 0.8;
-  }
+:root .level-digits button[aria-pressed='true'][data-level='1'] {
+  background: color-mix(in srgb, var(--jade) 12%, var(--card));
 }
 
-/* Each cell's own level in its bars, whether chosen or not; 0 is three bare bars. */
-.level-quick [data-level='1'] i:nth-child(-n + 1) {
-  background: var(--lv1-ink);
+:root .level-digits button[aria-pressed='true'][data-level='2'] {
+  background: color-mix(in srgb, var(--jade) 24%, var(--card));
 }
 
-.level-quick [data-level='2'] i:nth-child(-n + 2) {
-  background: var(--lv2-ink);
+:root .level-digits button[aria-pressed='true'][data-level='3'] {
+  background: color-mix(in srgb, var(--jade) 38%, var(--card));
 }
 
-.level-quick [data-level='3'] i {
-  background: var(--lv3-ink);
-}
-
-.level-quick [data-level='0'] i {
-  background: var(--ink-3);
-  opacity: 0.35;
+.level-next {
+  display: block;
+  margin-top: 4px;
 }

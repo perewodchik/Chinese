@@ -3,44 +3,27 @@ import { setLevel } from '../store/commands';
 import type { ItemId } from '../domain/ids';
 
 /**
- * How well you know it, set by hand in one tap: four choices, each with its
- * bars, the current one pressed. What you set holds until review asks about it
- * and your answer takes over — a level to start from, not a final word.
+ * How well you know it, set by hand in one tap: 0 to 3 as plain digits, the
+ * current one pressed and named beside it. What you set holds until review
+ * asks about it and your answer takes over: a level to start from, not a final word.
  */
 export function LevelPicker({ id, level }: { id: ItemId; level: Level }) {
   return (
-    <span className="seg level-pick" role="radiogroup" aria-label="How well you know it">
-      {LEVELS.map((l) => (
-        <button
-          key={l}
-          role="radio"
-          aria-checked={l === level}
-          aria-pressed={l === level}
-          data-level={l}
-          className="level-mark"
-          onClick={() => l !== level && setLevel([id], l)}
-          title={`${LEVEL_NAME[l]} (${l} of 3)`}
-        >
-          <span className="level-bars" aria-hidden>
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className="level-name">{LEVEL_NAME[l]}</span>
-        </button>
-      ))}
+    <span className="level-pick">
+      <Digits id={id} level={level} />
+      <span className="level-pick-name">{LEVEL_NAME[level]}</span>
     </span>
   );
 }
 
-/**
- * The same choice, small enough for a row in a list: four cells of bars, no
- * words, the current one filled. A tap sets the level there and then, without
- * opening the drawer; each cell says its name to a long press and a reader.
- */
+/** The same four digits, without the name: for a row in a list of words. */
 export function LevelQuick({ id, level }: { id: ItemId; level: Level }) {
+  return <Digits id={id} level={level} />;
+}
+
+function Digits({ id, level }: { id: ItemId; level: Level }) {
   return (
-    <span className="level-quick" role="radiogroup" aria-label="How well you know it">
+    <span className="level-digits" role="radiogroup" aria-label="How well you know it, 0 to 3">
       {LEVELS.map((l) => (
         <button
           key={l}
@@ -48,16 +31,11 @@ export function LevelQuick({ id, level }: { id: ItemId; level: Level }) {
           aria-checked={l === level}
           aria-pressed={l === level}
           data-level={l}
-          className="level-mark"
           onClick={() => l !== level && setLevel([id], l)}
-          title={`${LEVEL_NAME[l]} (${l} of 3)`}
-          aria-label={LEVEL_NAME[l]}
+          title={`${l}: ${LEVEL_NAME[l]}`}
+          aria-label={`${l}, ${LEVEL_NAME[l]}`}
         >
-          <span className="level-bars" aria-hidden>
-            <i />
-            <i />
-            <i />
-          </span>
+          {l}
         </button>
       ))}
     </span>
