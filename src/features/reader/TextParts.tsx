@@ -18,7 +18,7 @@ import { NarrationPlayer } from './NarrationPlayer';
 import { Narrate } from './Narrate';
 import { addReading, narratedReadings, pickReading, prepareClips } from './narratedClips';
 import type { TextNarrationDto } from '../../../shared/narration';
-import { useWordLevel, type Standing } from './Passage';
+import { useWordDone, useWordLevel } from './Passage';
 import { LevelMark } from '../../ui/LevelMark';
 import { onReadThrough, RATES, type Reading } from './readAloud';
 
@@ -51,9 +51,10 @@ export const MORE = { id: 'more' as const, han: '更', label: 'More' };
 const hanCount = (text: GeneratedText) => text.lines.reduce((n, l) => n + [...l.zh].filter((c) => /\p{Script=Han}/u.test(c)).length, 0);
 
 /** How far each part has got, from nothing (0) to done (1). */
-export function partFill(text: GeneratedText, standing: (w: string) => Standing): Record<PartId, number> {
+export function partFill(text: GeneratedText, wordDone: (w: string) => boolean): Record<PartId, number> {
   const s = text.study ?? {};
-  const words = text.vocab.length ? text.vocab.filter((w) => standing(w.w) !== 'new').length / text.vocab.length : 1;
+  // A word counts once you know it or have put it on the list to learn: see useWordDone.
+  const words = text.vocab.length ? text.vocab.filter((w) => wordDone(w.w)).length / text.vocab.length : 0;
   const answered = text.questions.length ? (s.answered ?? []).length / text.questions.length : 1;
   return {
     read: text.read ? 1 : 0,
@@ -64,9 +65,13 @@ export function partFill(text: GeneratedText, standing: (w: string) => Standing)
   };
 }
 
-/** The parts a text has: no questions, no Questions. Every text can be copied out, so Write is always there. */
+/**
+ * The parts a text has: no questions, no Questions; no word list, no Words to
+ * count (the part is still there to read its grammar, but it is not a thing to
+ * finish). Every text can be copied out, so Write is always there.
+ */
 export function partsOf(text: GeneratedText): typeof PARTS {
-  return PARTS.filter((p) => p.id !== 'questions' || text.questions.length > 0);
+  return PARTS.filter((p) => (p.id !== 'questions' || text.questions.length > 0) && (p.id !== 'words' || text.vocab.length > 0));
 }
 
 function Section({ id, han, title, aside, children }: { id: string; han: string; title: string; aside?: ReactNode; children: ReactNode }) {
@@ -587,7 +592,8 @@ export function WordsPart({
   const [all, setAll] = useState(false);
   const words = text.vocab;
   const levelOfWord = useWordLevel();
-  const knownN = words.filter((w) => levelOfWord(w.w) >= 2).length;
+  const done = useWordDone(study);
+  const doneN = words.filter((w) => done(w.w)).length;
   // The least known first: they are what the part is for.
   const ordered = useMemo(() => [...words].sort((a, b) => levelOfWord(a.w) - levelOfWord(b.w)), [words, levelOfWord]);
   const shown = all ? ordered : ordered.slice(0, 6);
@@ -601,9 +607,10 @@ export function WordsPart({
   };
 
   return (
-    <Section id={partId} han="词" title="Words" aside={words.length ? `${knownN} of ${words.length} known` : undefined}>
+    <Section id={partId} han="词" title="Words" aside={words.length ? `${doneN} of ${words.length} done` : undefined}>
       {words.length > 0 ? (
         <>
+          <p className="rd-part-lede">A word counts as done once it is Known or Solid, or once you add it to your list.</p>
           <ul className="rd-words">
             {shown.map((w) => {
               const id = itemForToken(lib, w.w);

@@ -10,7 +10,7 @@ import { useTitle } from '../../ui/useTitle';
 import { AccountMenu } from '../auth/AccountMenu';
 import { useCardsToday } from '../cards/CardsPage';
 import { useContinue } from '../reader/ReadPage';
-import { useStanding } from '../reader/Passage';
+import { useWordDone } from '../reader/Passage';
 import { partFill, partsOf, type PartId } from '../reader/TextParts';
 import type { ItemId } from '../../domain/ids';
 import './today.css';
@@ -46,7 +46,7 @@ export function TodayPage() {
   const videos = useStore((s) => s.videos);
   const sets = useStore((s) => s.sets);
   const study = useMemo(() => new Set<ItemId>(sets.find((s) => s.id === go?.set?.id)?.study ?? []), [sets, go?.set?.id]);
-  const standing = useStanding(study);
+  const wordDone = useWordDone(study);
   const video = useMemo(
     () => [...videos].filter((v) => v.status === 'working').sort((a, b) => touchedAt(b) - touchedAt(a))[0] ?? null,
     [videos],
@@ -65,7 +65,7 @@ export function TodayPage() {
   );
   const worked = days.filter((d) => d.worked).length;
 
-  const fill = go ? partFill(go.text, standing) : null;
+  const fill = go ? partFill(go.text, wordDone) : null;
   const parts = go ? partsOf(go.text) : null;
   const firstLine = go?.text.lines.slice(0, 2).map((l) => l.zh).join('') ?? '';
 

@@ -1,17 +1,15 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Library } from '../../data/types';
-import { charId, readableChars, type ItemId } from '../../domain/ids';
+import { charId, type ItemId } from '../../domain/ids';
 import { alignPinyin, paragraphs, stepsAbove, wordBands, type Token } from '../../domain/reading';
 import { segment, writerHints } from '../../domain/segment';
-import { itemForToken, type WordKnowledge } from '../../domain/words';
+import { itemForToken } from '../../domain/words';
 import { pictureAbove } from '../../domain/pictures';
-import { coverageOf, hskLabel, isHanzi, plainTitle, type GeneratedText } from '../../domain/text';
+import { hskLabel, isHanzi, plainTitle, type GeneratedText } from '../../domain/text';
 import { useOpenItem } from '../../navigation/itemDrawer';
-import { useStore } from '../../store/store';
 import { useLevelOf, useWordLevel } from '../shared/levels';
 import { LevelBar } from '../../ui/LevelMark';
 import { useLibrary } from '../shared/library';
-import { useWordKnowledge } from '../words/useWordKnowledge';
 import { Comic } from './Comic';
 import { ParagraphPicture, type PictureMark } from './ParagraphPicture';
 import { SceneView } from './SceneView';
@@ -37,8 +35,6 @@ export interface ReaderView {
 }
 
 /** Where a word stands for this reader: the marks and the pinyin follow it. */
-export type Standing = 'known' | 'learning' | 'new';
-
 /** The library's words, indexed once per library rather than once per sentence. */
 const bandCache = new WeakMap<Library, Map<string, number>>();
 const bandsOf = (lib: Library) => {
@@ -51,34 +47,14 @@ const bandsOf = (lib: Library) => {
 const OPENERS = /^[“‘《「『（(【〈]+$/;
 
 /**
- * How well you know a word, for this page.
- *
- * What review knows about the word decides it when it knows anything. A word
- * review has never seen is read off its characters: every one of them learned
- * and the word reads itself; one of them new and it is new. Being on a
- * shelf's list says nothing about it: a word chosen to learn is not yet known.
+ * Whether one of a text's words is done, for its Words part: you know it
+ * (Known or Solid, from your answers, or set so in its drawer), or you have
+ * put it on the shelf's list to learn. Either way you have dealt with it.
  */
-export function useStanding(study: ReadonlySet<ItemId>): (word: string) => Standing {
+export function useWordDone(study: ReadonlySet<ItemId>): (word: string) => boolean {
   const lib = useLibrary();
-  const known = useWordKnowledge();
-  const learned = useStore((s) => s.learned);
-  return useMemo(() => standingOf(lib, known, learned, study), [lib, known, learned, study]);
-}
-
-export function standingOf(
-  _lib: Library,
-  known: WordKnowledge,
-  learned: ReadonlySet<ItemId>,
-  _study?: ReadonlySet<ItemId>,
-): (word: string) => Standing {
-  return (word) => {
-    const chars = [...word].filter(isHanzi);
-    if (!chars.length) return 'known';
-    const s = known.status(word);
-    if (s === 'known') return 'known';
-    if (s === 'learning') return 'learning';
-    return chars.every((c) => learned.has(charId(c))) ? 'known' : 'new';
-  };
+  const levelOfWord = useWordLevel();
+  return useMemo(() => (w: string) => levelOfWord(w) >= 2 || study.has(itemForToken(lib, w)), [lib, levelOfWord, study]);
 }
 
 export { useWordLevel };
@@ -123,7 +99,6 @@ interface PassageProps {
 export function Passage({ text, view, reading, flash, revealed, onReveal, onPoint, retold, heading }: PassageProps) {
   const lib = useLibrary();
   const openItem = useOpenItem();
-  const learned = useStore((s) => s.learned);
 
   // A story with choices shows the nodes on the way taken so far, in the order
   // they were reached; a plain passage shows everything.
@@ -182,9 +157,6 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
   const syllables = useMemo(() => text.lines.map((l) => alignPinyin(l, lib)), [text.lines, lib]);
   const bands = bandsOf(lib);
 
-  // Worked out from what is learned now, not what was when the text was
-  // written: it moves as characters and words are learned.
-  const cover = useMemo(() => coverageOf(text, readableChars(learned)), [text, learned]);
   // The text's characters counted at each level, for its bar.
   const charLevels = useMemo(() => {
     const out = [0, 0, 0, 0];
@@ -197,6 +169,8 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
       }
     return out;
   }, [text.lines, levelOfId]);
+  // Its different characters met at least once, by your own answers: the same count as the bar under it.
+  const charTotal = charLevels.reduce((a, b) => a + b, 0);
 
   /** One sentence, word by word, punctuation held to its word. */
   function sentence(i: number): ReactNode {
@@ -269,7 +243,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
           <span className="rd-meter" aria-hidden>
             <LevelBar levels={charLevels} />
           </span>
-          <span>You know {Math.round(cover.ratio * 100)}%</span>
+          <span>You know {Math.round(((charTotal - charLevels[0]) / (charTotal || 1)) * 100)}%</span>
         </div>
       </header>
 

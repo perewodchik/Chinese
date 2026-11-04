@@ -14,7 +14,7 @@ import { PalettePicker } from '../../ui/PalettePicker';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
-import { Passage, useStanding, type ReaderView } from './Passage';
+import { Passage, useWordDone, type ReaderView } from './Passage';
 import { onReadThrough, prefetchPassage, useReading } from './readAloud';
 import {
   PICTURE_LABEL,
@@ -136,7 +136,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const navigate = useNavigate();
   const settings = useStore((s) => s.settings);
   const study = useMemo(() => new Set<ItemId>(set?.study ?? []), [set?.study]);
-  const standing = useStanding(study);
+  const wordDone = useWordDone(study);
   const [pinyin, setPinyin] = usePinyinMode();
   const [translation, setTranslation] = useTranslationMode();
   const [pictures, setPictures] = usePictureMode();
@@ -251,7 +251,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   }, [translation, text.id, text.study?.translated]);
 
   const parts = partsOf(text);
-  const fill = partFill(text, standing);
+  const fill = partFill(text, wordDone);
   const tabs = [...parts, MORE];
   const [current, holdPart] = useCurrentPart(text.id, tabs.map((p) => p.id));
   const partId = (p: TabId) => `part-${p}`;

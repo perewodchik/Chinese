@@ -19,11 +19,11 @@ import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { lastReading } from './lastRead';
-import { useStanding, useWordLevel } from './Passage';
+import { useWordDone, useWordLevel } from './Passage';
 import type { Level } from '../../domain/memory';
 import { LevelBar, LevelMark } from '../../ui/LevelMark';
 import { readerSheet } from './readerSheet';
-import { partFill, PARTS } from './TextParts';
+import { partFill, partsOf } from './TextParts';
 import { useStartSession } from './startSession';
 import './shelves.css';
 
@@ -312,7 +312,7 @@ export function ShelfPage() {
   const list = useMemo(() => (set ? shelve(texts, sets).bySet.get(set.id) ?? [] : []), [texts, sets, set]);
   const entries = useMemo(() => shelfEntries(list), [list]);
   const study = useMemo(() => new Set<ItemId>(set?.study ?? []), [set?.study]);
-  const standing = useStanding(study);
+  const wordDone = useWordDone(study);
   // As the passage marks them: a character's level, or that of the one-character word it is when that was asked about.
   const levelOfWord = useWordLevel();
   // A text's characters not known yet, by your own answers, in the order they come.
@@ -452,7 +452,7 @@ export function ShelfPage() {
           {entries.length ? (
             <ol className="list shelf-texts">
               {entries.map((e, i) => {
-                const fill = partFill(e.main, standing);
+                const fill = partFill(e.main, wordDone);
                 const unknown = unknownIn(e.main);
                 return (
                   <li key={e.main.id}>
@@ -463,7 +463,7 @@ export function ShelfPage() {
                         <span className="small muted">{e.main.title.replace(/\s*\(easier\)\s*$/, '')}</span>
                         <span className="shelf-text-meta">
                           <span className="part-ticks" aria-label="Parts done">
-                            {PARTS.map((p) => (
+                            {partsOf(e.main).map((p) => (
                               <i key={p.id} title={p.label} style={{ '--fill': `${Math.round(fill[p.id] * 100)}%` } as CSSProperties} />
                             ))}
                           </span>
