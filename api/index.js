@@ -657,6 +657,29 @@ var NarrationService = class {
     await this.deps.narrations.save(record);
     return toNarrationDto(record);
   }
+  /**
+   * A reading made elsewhere, kept as this narrator's reading of the text:
+   * a text read by a cast (the narrator and each character in their own
+   * voice), its clips joined off the server, played in Listen like any other.
+   * The narrator is the one it is shown under; its timings are the caller's.
+   */
+  async importReading(userId, narratorId, lines2, input) {
+    const n = await this.find(userId, narratorId);
+    const said = lines2.map((l) => l.trim());
+    if (!said.some(Boolean)) throw new ValidationError("Nothing to read.");
+    if (input.timings.length !== said.length) throw new ValidationError("A start and an end for every line.");
+    const { mp3: mp32, durationMs, timings } = input;
+    const isMp3 = mp32.length > 3 && (mp32[0] === 73 && mp32[1] === 68 && mp32[2] === 51 || mp32[0] === 255 && (mp32[1] & 224) === 224);
+    if (!isMp3) throw new ValidationError("That is not an MP3.");
+    let at = 0;
+    for (const [a, b] of timings) {
+      if (!(a >= at - 1 && b >= a && b <= durationMs + 1)) throw new ValidationError("The lines\u2019 times must run in order within the reading.");
+      at = b;
+    }
+    const record = { key: narrationKey(n, said), userId, narratorId: n.id, mp3: mp32, timings, durationMs, createdAt: this.deps.clock.now() };
+    await this.deps.narrations.save(record);
+    return toNarrationDto(record);
+  }
   /** Every reading of this text the learner's narrators have, as each sounds now. */
   async readingsOf(userId, lines2) {
     const said = lines2.map((l) => l.trim());
@@ -1866,6 +1889,14 @@ var changeRequest = z3.object({
 });
 var ownRequest = z3.object({ title: z3.string().max(80), narrator: z3.string().min(1).max(80), lines });
 var ownChange = z3.object({ title: z3.string().max(80).optional(), textId: z3.string().min(1).max(80).nullable().optional() });
+var importRequest = z3.object({
+  narrator: z3.string().min(1).max(80),
+  lines,
+  // A chapter is a minute or two: a few MB of base64 at most.
+  mp3: z3.string().min(8).max(6e6),
+  durationMs: z3.number().int().min(1).max(30 * 6e4),
+  timings: z3.array(z3.tuple([z3.number().min(0), z3.number().min(0)])).min(1).max(300)
+});
 var previewRequest = z3.object({ text: z3.string().max(200) });
 var mp3 = (c, bytes) => {
   c.header("Content-Type", "audio/mpeg");
@@ -1924,6 +1955,12 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
     const input = await readJson(c, textRequest);
     if (input.generate || input.again) reads.consume(user(c));
     return json(c, { narration: await narration.text(user(c), input.narrator, input.lines, input) });
+  });
+  routes.post("/texts/import", session, async (c) => {
+    makes.consume(user(c));
+    const input = await readJson(c, importRequest);
+    const mp3Bytes = new Uint8Array(Buffer.from(input.mp3, "base64"));
+    return json(c, { narration: await narration.importReading(user(c), input.narrator, input.lines, { mp3: mp3Bytes, durationMs: input.durationMs, timings: input.timings }) });
   });
   routes.post("/texts/of", session, async (c) => {
     const { lines: said } = await readJson(c, ofRequest);
