@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { EvalResult, SyllableEval } from '../../shared/speechEval';
-import { attemptOf, faultsOf, heardTag, marked, noteOf, numbered, partsOf, troubles, verdictOf } from './phrases';
+import { attemptOf, faultsOf, heardTag, marked, noteOf, numbered, partsOf, resultOfAttempt, troubles, verdictOf } from './phrases';
 
 const syl = (char: string, symbol: string, o: Partial<SyllableEval> = {}): SyllableEval => ({ char, symbol, said: 'ok', initial: false, final: false, tone: false, from: 0, to: 0, ...o });
 
@@ -62,5 +62,38 @@ describe('phrases said and scored', () => {
     const b = attemptOf({ ...r, syllables: [syl('是', 'shi4', { tone: true })] }, 2);
     const t = troubles([a, b]);
     assert.deepEqual(t.map((x) => [x.kind, x.count, x.chars.map((c) => c.char).join('')]), [['tone4', 2, '饿是'], ['initial:zh', 1, '智']]);
+  });
+
+  it('draws a try kept without the whole answer from what was kept of it', () => {
+    // A try moved over from a device: totals and faults, no numbers per character.
+    const old = {
+      at: 1,
+      total: 68,
+      tone: 64,
+      sounds: 69,
+      fluency: 69,
+      completeness: 91,
+      faults: [
+        { kind: 'final:e', char: '和', symbol: 'he2' },
+        { kind: 'tone3', char: '卡', symbol: 'ka3' },
+        { kind: 'initial:k', char: '卡', symbol: 'ka3' },
+        { kind: 'missed', char: '走', symbol: 'zou3' },
+      ],
+    };
+    const r = resultOfAttempt('小和卡，走。', ['xiao3', 'he2', 'ka3', 'zou3'], old);
+    assert.equal(r.total, 68);
+    assert.deepEqual(
+      r.syllables.map((x) => [x.char, x.symbol, x.said, x.initial, x.final, x.tone]),
+      [
+        ['小', 'xiao3', 'ok', false, false, false],
+        ['和', 'he2', 'ok', false, true, false],
+        ['卡', 'ka3', 'ok', true, false, true],
+        ['走', 'zou3', 'missed', false, false, false],
+      ],
+    );
+    // One kept with its numbers gets them back.
+    const r2 = attemptOf({ by: 'speechsuper', total: 90, tone: 90, sounds: 90, fluency: 90, completeness: 100, rejected: false, syllables: [syl('小', 'xiao3', { score: 90, toneScore: 70, initialScore: 95, finalScore: 92, tone: true })] }, 2);
+    const back = resultOfAttempt('小', undefined, r2).syllables[0]!;
+    assert.deepEqual([back.toneScore, back.initialScore, back.finalScore, back.tone], [70, 95, 92, true]);
   });
 });

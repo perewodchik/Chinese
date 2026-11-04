@@ -4,7 +4,7 @@ import type { NarratorDto } from '../../../shared/narration';
 import type { AttemptOut, EvalResult } from '../../../shared/speechEval';
 import { chooseNarrator, chosenNarrator, listNarrators, narrationOf } from '../../api/narration';
 import { attemptResult, evaluatePhrase } from '../../api/speechEval';
-import { attemptOf, numbered, type Attempt, type Phrase } from '../../domain/phrases';
+import { attemptOf, numbered, resultOfAttempt, type Attempt, type Phrase } from '../../domain/phrases';
 import { alignPinyin } from '../../domain/reading';
 import { heardAnything } from '../../platform/audio/mic';
 import { hush, playSamples } from '../../platform/audio/voiceOut';
@@ -34,6 +34,8 @@ interface Take {
   /** the recording, when this visit has it, to hear a syllable again */
   samples?: Float32Array;
   full: boolean;
+  /** what the account kept of it: drawn from when the whole answer is not kept */
+  summary?: Attempt;
 }
 
 type Mode = 'repeat' | 'shadow';
@@ -71,7 +73,7 @@ function whenOf(at: number): string {
 
 const fromKept = (a: AttemptOut): Take => {
   const s = a.summary as (Attempt & { shadow?: boolean }) | null;
-  return { id: a.id, mine: a.kind !== 'voice', at: a.at, total: s?.total ?? null, narratorId: a.kind === 'voice' ? (a.tally ?? undefined) : undefined, shadow: s?.shadow, full: a.full };
+  return { id: a.id, mine: a.kind !== 'voice', at: a.at, total: s?.total ?? null, narratorId: a.kind === 'voice' ? (a.tally ?? undefined) : undefined, shadow: s?.shadow, full: a.full, ...(s ? { summary: s } : {}) };
 };
 
 /**
@@ -182,7 +184,8 @@ export function LineStudio({
     setSelFailed(null);
     if (!take) return setSelResult(null);
     if (take.result) return setSelResult(take.result);
-    if (!take.full) return setSelResult(null);
+    // Kept before the whole answer was: drawn from its summary, right and wrong by part.
+    if (!take.full) return setSelResult(take.summary ? resultOfAttempt(phrase.zh, numbered(readings), take.summary) : null);
     let live = true;
     setSelLoading(true);
     setSelResult(null);
@@ -425,7 +428,7 @@ export function LineStudio({
         ? take.shadow
           ? 'Just now · shadowing'
           : 'Just now'
-        : `${take.id === bestId ? 'Your best' : 'Your try'} · ${whenOf(take.at)}`;
+        : `${take.id === bestId ? 'Your best' : 'Your try'} · ${whenOf(take.at)}${!take.full && !take.result && !take.summary?.chars ? ' · marks only' : ''}`;
   const listed = order === 'best' ? [...shown.mine].sort((x, y) => (y.total ?? -1) - (x.total ?? -1) || y.at - x.at) : shown.mine;
 
   async function drop(t: Take) {

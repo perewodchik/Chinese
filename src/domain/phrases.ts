@@ -363,3 +363,48 @@ export function troubles(latest: Attempt[], limit = 6): Trouble[] {
   }
   return [...by.values()].sort((a, b) => b.count - a.count).slice(0, limit);
 }
+
+/**
+ * A try kept without the service's whole answer, as a result to show: what was
+ * kept of it is enough to draw the line and its cards. Since November 2026 a
+ * try keeps each character's numbers (`chars`); one older than that, or moved
+ * over from a device, has only its faults, so its characters are right or
+ * wrong by part, with no numbers. `symbols` is the line's numbered pinyin, a
+ * syllable per character, for the characters with nothing to say.
+ */
+export function resultOfAttempt(zh: string, symbols: string[] | undefined, a: Attempt): EvalResult {
+  const chars = [...zh].filter((c) => /\p{Script=Han}/u.test(c));
+  let at = 0;
+  const syllables = chars.map((c, i): SyllableEval => {
+    const kept = a.chars?.[i]?.char === c ? a.chars[i] : undefined;
+    // Faults are kept in the line's order, so a character's own are the run of its at the front.
+    const own: Array<{ kind: string; symbol: string }> = [];
+    while (a.faults[at]?.char === c) own.push(a.faults[at++]!);
+    const missed = kept?.missed ?? own.some((f) => f.kind === 'missed');
+    const wrong = (k: string) => !missed && own.some((f) => f.kind.startsWith(k));
+    return {
+      char: c,
+      symbol: kept?.symbol ?? own[0]?.symbol ?? symbols?.[i] ?? '',
+      said: missed ? 'missed' : 'ok',
+      initial: wrong('initial'),
+      final: wrong('final'),
+      tone: wrong('tone'),
+      from: 0,
+      to: 0,
+      ...(kept?.score !== undefined ? { score: kept.score } : {}),
+      ...(kept?.initial !== undefined ? { initialScore: kept.initial } : {}),
+      ...(kept?.final !== undefined ? { finalScore: kept.final } : {}),
+      ...(kept?.tone !== undefined ? { toneScore: kept.tone } : {}),
+    };
+  });
+  return {
+    by: 'speechsuper',
+    total: a.total,
+    tone: a.tone,
+    sounds: a.sounds,
+    fluency: a.fluency,
+    completeness: a.completeness,
+    rejected: false,
+    syllables,
+  };
+}
