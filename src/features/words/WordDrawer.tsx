@@ -5,18 +5,18 @@ import { nextCollectionName } from '../../domain/collection';
 import { charId, idValue, type ItemId } from '../../domain/ids';
 import { firstSense } from '../../domain/library';
 import { DAY } from '../../domain/memory';
-import { collectedItems } from '../../domain/sweep';
 import { hskLabel } from '../../domain/text';
 import { listedParts } from '../../domain/wordlist';
-import { wordInfo, wordKnowledge, wordsFromTexts } from '../../domain/words';
+import { wordInfo, wordsFromTexts } from '../../domain/words';
 import { useOpenViewer } from '../../navigation/charViewer';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
-import { setShelfStudy, toggleLearned } from '../../store/commands';
+import { setShelfStudy } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Glyph } from '../../ui/Glyph';
 import { Icon } from '../../ui/Icon';
-import { LevelMark } from '../../ui/LevelMark';
+import { LevelPicker } from '../../ui/LevelPicker';
+import { useWordLevel } from '../shared/levels';
 import { Say } from '../../ui/Say';
 import { useSheetDrag } from '../../ui/useSheetDrag';
 import { CollectionPicker, useCollect } from '../shared/collect';
@@ -76,8 +76,8 @@ export function WordDrawer({ id, onClose }: Props) {
   // A chunk the lists do not have is still the list words it is made of.
   const parts = info?.listed ? null : listedParts(lib, w);
   const partsBand = parts ? Math.max(...parts.map((p) => lib.byWord.get(p)?.hsk ?? 0)) : 0;
-  const collected = useMemo(() => collectedItems(collections), [collections]);
-  const level = wordKnowledge(lib, recall, collected).level(w);
+  // As the passage it was tapped in counts it: its own level, or its weakest character's.
+  const level = useWordLevel()(w);
   const r = recall[id]?.recognise;
   const inCollections = collections.filter((c) => c.items.includes(id));
   // A text with an easier version is one text here too.
@@ -135,14 +135,6 @@ export function WordDrawer({ id, onClose }: Props) {
               <Icon name="close" />
             </button>
             <div className="row">
-              <button
-                className={`btn sm word-known${learned ? ' tonal' : ''}`}
-                aria-pressed={learned}
-                onClick={() => toggleLearned(id)}
-                title={learned ? 'Counted as known — tap to take that back' : 'Count this word as known'}
-              >
-                {learned ? 'Known' : 'I know it'}
-              </button>
               {shelf ? (
                 <button
                   className={`btn sm ${onShelf ? 'tonal' : 'primary'}`}
@@ -232,8 +224,8 @@ export function WordDrawer({ id, onClose }: Props) {
         <dl className="kv">
           <dt>You</dt>
           <dd>
-            <LevelMark level={level} label /> <span className="muted">· {level} of 3</span>
-            {r && <span className="muted"> · {nextCheck(r.due, Date.now())}</span>}
+            <LevelPicker id={id} level={level} />
+            {r && <span className="tiny muted level-next">{nextCheck(r.due, Date.now())}</span>}
           </dd>
           {r && (
             <>

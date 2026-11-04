@@ -1,6 +1,6 @@
 import { DEFAULT_SCOPE, type Collection, type CollectionWord, type PrintScope } from '../domain/collection';
 import type { ItemId } from '../domain/ids';
-import type { PrintedSheet, Rating, Skill } from '../domain/memory';
+import type { Level, PrintedSheet, Rating, Skill } from '../domain/memory';
 import { defaultSheet, type SheetChoice } from '../domain/sheet';
 import { shelve, type GeneratedText, type TextPlan, type TextSet, type TextStudy } from '../domain/text';
 import { emptyListPlan, type WordListPlan } from '../domain/wordlist';
@@ -124,6 +124,11 @@ export const finishLesson = (results: Array<{ id: ItemId; skill: Skill; rating: 
  */
 export function setLearned(ids: ItemId[], value: boolean) {
   if (ids.length) dispatch({ type: 'recall/setLearned', ids, value, at: now() });
+}
+
+/** Setting how well something is known, 0 to 3, by hand — from a drawer. The next answer about it takes over. */
+export function setLevel(ids: ItemId[], level: Level) {
+  if (ids.length) dispatch({ type: 'recall/setLevel', ids, level, at: now() });
 }
 
 export const toggleLearned = (id: ItemId) => setLearned([id], !getState().learned.has(id));

@@ -114,6 +114,11 @@ export interface Recall {
    * back anything that was earned.
    */
   claim?: true;
+  /**
+   * The level you set by hand, 0 to 3, in a drawer: it counts until the next
+   * answer, which writes a fresh record without it, so review takes over.
+   */
+  set?: Level;
 }
 
 /** What is known about one item, across the skills it has been asked for. */
@@ -256,7 +261,9 @@ export function grade(
     // A lapse does not send it back to zero — you have met it before and that
     // still counts for something — but it does cost most of the interval, and
     // costs more on an item that was already difficult.
-    s = clamp(prev.s * 0.35 * (1 - (d - 1) / 25), MIN_STABILITY, MAX_STABILITY);
+    // A level set by hand was a belief, not a memory: failing it leaves nothing of it to keep.
+    const held = prev.set !== undefined ? Math.min(prev.s, LEARNED_STABILITY) : prev.s;
+    s = clamp(held * 0.35 * (1 - (d - 1) / 25), MIN_STABILITY, MAX_STABILITY);
   } else {
     const r = retrievability(prev, now);
     const difficulty = clamp((11 - d) / 7.5, 0.45, 1.35);
@@ -454,6 +461,7 @@ export const LEVEL_NAME: Record<Level, string> = { 0: 'Not known', 1: 'Met', 2: 
 const LEVEL_STABILITY: Record<1 | 2 | 3, number> = { 1: LEARNED_STABILITY, 2: 5, 3: 21 };
 
 function levelOfRecall(r: Recall | undefined, now: number): Level {
+  if (r?.set !== undefined) return r.set > 0 && retrievability(r, now) < 0.7 ? ((r.set - 1) as Level) : r.set;
   if (!r || r.reps === 0) return 0;
   if (isClaimOnly(r)) return 1;
   const by: Level = r.s >= LEVEL_STABILITY[3] ? 3 : r.s >= LEVEL_STABILITY[2] ? 2 : r.s >= LEVEL_STABILITY[1] ? 1 : 0;
@@ -462,12 +470,32 @@ function levelOfRecall(r: Recall | undefined, now: number): Level {
 
 export function levelOf(sk: SkillBook | undefined, now: number): Level {
   if (!sk) return 0;
+  // A level set by hand is the level, until any skill is answered after it.
+  const set = sk.recognise;
+  if (set?.set !== undefined && SKILLS.every((s) => s === 'recognise' || !sk[s] || sk[s]!.last <= set.last)) return levelOfRecall(set, now);
   let best: Level = 0;
   for (const s of SKILLS) {
     const l = levelOfRecall(sk[s], now);
     if (l > best) best = l;
   }
   return best;
+}
+
+/** How long a level set by hand is believed for, in days, before review asks. */
+const SET_STABILITY: Record<1 | 2 | 3, number> = { 1: 2, 2: 7, 3: 30 };
+
+/**
+ * Setting the level by hand. The history behind a record stays (its reps,
+ * lapses, difficulty and the date it was first met); its stability and due
+ * date become the level's, so review checks it at that level's pace. Level 0
+ * falls due now; 1 to 3 come back in 2, 7 and 30 days.
+ */
+export function withLevel(r: Recall | undefined, level: Level, now: number): Recall {
+  const base = { d: r?.d ?? 5, last: now, since: r?.since ?? now, lapses: r?.lapses ?? 0, set: level };
+  if (level === 0) return { ...base, s: Math.min(r?.s ?? UNLEARNED_STABILITY, UNLEARNED_STABILITY), due: now, reps: r?.reps ?? 0 };
+  const s = SET_STABILITY[level];
+  const claim = !r || r.reps === 0 || isClaimOnly(r);
+  return { ...base, s, due: now + s * DAY, reps: Math.max(1, r?.reps ?? 0), ...(claim ? { claim: true as const } : {}) };
 }
 
 /* ------------------------------------------------------------- seeding it */

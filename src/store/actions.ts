@@ -8,6 +8,10 @@ import {
   isLearned,
   learnedFrom,
   reclaimed,
+  withLevel,
+  levelOf,
+  isClaimOnly,
+  type Level,
   unclaimed,
   type PrintedSheet,
   type Rating,
@@ -85,6 +89,7 @@ export type Action =
   | { type: 'collection/reorder'; id: string; items: ItemId[]; at: number }
   | { type: 'recall/grade'; results: GradeResult[]; at: number }
   | { type: 'recall/setLearned'; ids: ItemId[]; value: boolean; at: number }
+  | { type: 'recall/setLevel'; ids: ItemId[]; level: Level; at: number }
   | { type: 'sheet/record'; sheet: PrintedSheet }
   | { type: 'sheet/grade'; id: string; results: Array<{ id: ItemId; rating: Rating }>; at: number }
   | { type: 'sheet/discard'; id: string }
@@ -267,6 +272,23 @@ export function reduce(state: AppState, action: Action): AppState {
           else delete recall[id];
         }
       });
+      return { ...withRecall(state, recall), activity: logDay(state.activity, action.at, { snap: snapshotOf(recall, action.at) }) };
+    }
+
+    case 'recall/setLevel': {
+      if (!action.ids.length) return state;
+      const recall: RecallBook = { ...state.recall };
+      for (const id of action.ids) {
+        const had = recall[id]?.recognise;
+        const { recognise: _old, ...rest } = recall[id] ?? {};
+        // "Not known" about something only ever claimed: the claim goes, and nothing is put in its place
+        // — unless another skill would still lift it, when the record saying 0 stays to hold it there.
+        const nothingEarned = !had || had.reps === 0 || isClaimOnly(had);
+        if (action.level === 0 && nothingEarned && levelOf(rest, action.at) === 0) {
+          if (Object.keys(rest).length) recall[id] = rest;
+          else delete recall[id];
+        } else recall[id] = { ...rest, recognise: withLevel(had, action.level, action.at) };
+      }
       return { ...withRecall(state, recall), activity: logDay(state.activity, action.at, { snap: snapshotOf(recall, action.at) }) };
     }
 

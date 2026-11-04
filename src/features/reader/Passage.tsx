@@ -1,4 +1,3 @@
-import type { Level } from '../../domain/memory';
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Library } from '../../data/types';
 import { charId, readableChars, type ItemId } from '../../domain/ids';
@@ -9,7 +8,7 @@ import { pictureAbove } from '../../domain/pictures';
 import { coverageOf, hskLabel, isHanzi, plainTitle, type GeneratedText } from '../../domain/text';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useStore } from '../../store/store';
-import { useLevelOf } from '../shared/levels';
+import { useLevelOf, useWordLevel } from '../shared/levels';
 import { LevelBar } from '../../ui/LevelMark';
 import { useLibrary } from '../shared/library';
 import { useWordKnowledge } from '../words/useWordKnowledge';
@@ -82,27 +81,7 @@ export function standingOf(
   };
 }
 
-/**
- * A word's level, 0 to 3: its own, from review, when review has asked about
- * it; otherwise that of its weakest character — a word never asked about is
- * known as far as its characters are.
- */
-export function useWordLevel(): (word: string) => Level {
-  const lib = useLibrary();
-  const known = useWordKnowledge();
-  const levelOfId = useLevelOf();
-  const recall = useStore((s) => s.recall);
-  return useMemo(
-    () => (word: string) => {
-      const chars = [...word].filter(isHanzi);
-      if (!chars.length) return 3;
-      const id = itemForToken(lib, word);
-      if (recall[id] && Object.keys(recall[id]!).length) return known.level(word);
-      return Math.min(...chars.map((c) => levelOfId(charId(c)))) as Level;
-    },
-    [lib, known, levelOfId, recall],
-  );
-}
+export { useWordLevel };
 
 const KIND_LABEL: Record<NonNullable<GeneratedText['lines'][number]['kind']>, string> = {
   bubble: 'a speech bubble',

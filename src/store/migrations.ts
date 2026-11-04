@@ -466,6 +466,7 @@ function recallFrom(v: unknown, now: number): Recall | null {
     reps: Math.max(0, Math.round(finite(r.reps, 1))),
     lapses: Math.max(0, Math.round(finite(r.lapses, 0))),
     ...(r.claim === true ? { claim: true as const } : {}),
+    ...(r.set === 0 || r.set === 1 || r.set === 2 || r.set === 3 ? { set: r.set } : {}),
   };
 }
 

@@ -16,8 +16,7 @@ import {
 import { seriesFor } from '../../domain/series';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
-import { toggleLearned } from '../../store/commands';
-import { LevelMark } from '../../ui/LevelMark';
+import { LevelPicker } from '../../ui/LevelPicker';
 import { useStore } from '../../store/store';
 import { useOpenViewer } from '../../navigation/charViewer';
 import { Glyph, StrokeStepper, useStrokeSteps } from '../../ui/Glyph';
@@ -108,15 +107,6 @@ export function ItemDrawer({ id, onClose }: Props) {
             </button>
             {char && (
               <div className="row">
-                <button className={`btn sm${learned ? ' tonal' : ''}`} onClick={() => toggleLearned(id)} aria-pressed={learned}>
-                  {learned ? (
-                    <>
-                      <Icon name="check" /> Learned
-                    </>
-                  ) : (
-                    'Mark as learned'
-                  )}
-                </button>
                 {current ? (
                   <button
                     className="btn sm tonal"
@@ -220,7 +210,7 @@ export function ItemDrawer({ id, onClose }: Props) {
               </dd>
               <dt>Level</dt>
               <dd>
-                <LevelMark level={levelOf(book, Date.now())} label /> <span className="muted">· {levelOf(book, Date.now())} of 3, from your answers</span>
+                <LevelPicker id={id} level={levelOf(book, Date.now())} />
               </dd>
               <dt>Collections</dt>
               <dd>

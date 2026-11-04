@@ -5941,3 +5941,37 @@ label.field[data-invalid] input {
 .level-bar i[data-level='3'] {
   background: var(--lv3-ink);
 }
+
+/* The level, set by hand in a drawer: four equal cells, so pressing one moves nothing. */
+.seg.level-pick {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  max-width: 420px;
+}
+
+.seg.level-pick button {
+  min-height: 40px;
+  padding: 0 6px;
+  justify-content: center;
+  gap: 5px;
+}
+
+.seg.level-pick button[aria-pressed='false'] .level-bars i {
+  background: var(--line);
+}
+
+.seg.level-pick button[aria-pressed='false'] .level-name {
+  color: var(--ink-3);
+}
+
+@media (max-width: 380px) {
+  .seg.level-pick .level-bars {
+    display: none;
+  }
+}
+
+.level-next {
+  display: block;
+  margin-top: 4px;
+}
