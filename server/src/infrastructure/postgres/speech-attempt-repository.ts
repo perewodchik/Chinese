@@ -22,6 +22,11 @@ export class PostgresSpeechAttemptRepository implements SpeechAttemptRepository 
     return rows[0] ? { ...attemptFromRow(rows[0]), result: rows[0].result as string | null } : null;
   }
 
+  async delete(userId: string, id: string) {
+    const { rowCount } = await this.db.query('DELETE FROM speech_attempts WHERE user_id = $1 AND id = $2', [userId, id]);
+    return (rowCount ?? 0) > 0;
+  }
+
   async list(userId: string) {
     const { rows } = await this.db.query(`SELECT ${COLUMNS}, (result IS NOT NULL) AS has_result FROM speech_attempts WHERE user_id = $1 ORDER BY at, id`, [userId]);
     return rows.map(attemptFromRow);

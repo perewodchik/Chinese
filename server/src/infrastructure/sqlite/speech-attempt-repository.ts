@@ -34,6 +34,10 @@ export class SqliteSpeechAttemptRepository implements SpeechAttemptRepository {
     return row ? { ...attemptFromRow(row), result: row.result } : null;
   }
 
+  async delete(userId: string, id: string) {
+    return Number(this.db.prepare('DELETE FROM speech_attempts WHERE user_id = ? AND id = ?').run(userId, id).changes) > 0;
+  }
+
   async list(userId: string) {
     return (this.db.prepare(`SELECT ${COLUMNS}, (result IS NOT NULL) AS has_result FROM speech_attempts WHERE user_id = ? ORDER BY at, id`).all(userId) as Row[]).map(attemptFromRow);
   }

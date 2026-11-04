@@ -1,6 +1,6 @@
 import type { AttemptIn, AttemptOut, SpeechHistory } from '../../../shared/speechEval';
 import { ApiError } from '../../api/http';
-import { keepAttempts, listAttempts, speechHistory } from '../../api/speechEval';
+import { deleteAttempt, keepAttempts, listAttempts, speechHistory } from '../../api/speechEval';
 
 /**
  * Every try at saying something, kept in the account so the iPad and the
@@ -132,4 +132,25 @@ export function knownTries(kind: 'phrase' | 'voice'): Promise<AttemptOut[]> {
 export function remember(a: AttemptOut) {
   const p = known.get(a.kind === 'voice' ? 'voice' : 'phrase');
   if (p) known.set(a.kind === 'voice' ? 'voice' : 'phrase', p.then((list) => [a, ...list.filter((x) => x.id !== a.id)], () => [a]));
+}
+
+/** A try taken back: out of what this visit knows, out of the outbox if it never left, and out of the account. */
+export async function forget(id: string): Promise<void> {
+  for (const [kind, p] of known) known.set(kind, p.then((list) => list.filter((a) => a.id !== id), () => []));
+  const box = read<AttemptIn[]>(OUTBOX, []);
+  if (box.some((a) => a.id === id)) {
+    write(OUTBOX, box.filter((a) => a.id !== id));
+    return;
+  }
+  await deleteAttempt(id);
+}
+
+/** Each line's best total among every try the account keeps, by its text. */
+export async function bestByLine(): Promise<Record<string, number>> {
+  const best: Record<string, number> = {};
+  for (const a of await knownTries('phrase')) {
+    const total = (a.summary as { total?: number } | null)?.total;
+    if (typeof total === 'number') best[a.text] = Math.max(best[a.text] ?? -1, total);
+  }
+  return best;
 }

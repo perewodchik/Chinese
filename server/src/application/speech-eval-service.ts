@@ -172,6 +172,11 @@ export class SpeechEvalService {
     return { result: JSON.parse(a.result) as EvalResult };
   }
 
+  /** A try taken back: gone from every device's history. */
+  async deleteAttempt(userId: string, id: string): Promise<{ deleted: boolean }> {
+    return { deleted: await this.deps.attempts.delete(userId, `${userId}:${id}`) };
+  }
+
   /** Each line's last five tries, and each drill tally's count, from everything kept. */
   async history(userId: string): Promise<SpeechHistory> {
     const phrases: SpeechHistory['phrases'] = {};

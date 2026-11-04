@@ -13,7 +13,7 @@ import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { PronunciationKey } from '../settings/PronunciationKey';
-import { keepTry, loadHistory, remember } from './speechHistory';
+import { bestByLine, keepTry, loadHistory, remember } from './speechHistory';
 import { LineStudio } from './LineStudio';
 import { band } from './ScoredLine';
 import './phrases.css';
@@ -103,10 +103,13 @@ export function PhrasesPage() {
   const open: Last | null = sourceParam ? { sourceId: sourceParam, index: Math.max(0, Number(search.get('line') ?? 1) - 1 || 0) } : null;
   const done = search.get('done') === '1';
   const [attempts, setAttempts] = useState(loadAttempts);
+  const [bests, setBests] = useState<Record<string, number>>({});
+  const refreshBests = () => void bestByLine().then(setBests, () => undefined);
 
   useEffect(() => {
     void evalStatus().then(setStatus, () => setStatus({ key: { set: false, hint: null, provider: null }, strictness: 'common' }));
     void ownTexts().then(setOwn, () => setOwn([]));
+    refreshBests();
     // The account's tries, every device's, in place of this one's.
     void loadHistory().then((h) => {
       if (!h) return;
@@ -152,7 +155,8 @@ export function PhrasesPage() {
   const all = useMemo(() => [...shelves.flatMap((g) => g.list), everyday, ...owns], [shelves, owns]);
   const find = (id: string) => all.find((x) => x.id === id) ?? null;
 
-  const best = (zh: string) => Math.max(-1, ...(attempts[zh] ?? []).map((a) => a.total));
+  // A line's best over every try the account keeps, not only the last five: an 81 from a week ago still counts.
+  const best = (zh: string) => Math.max(bests[zh] ?? -1, ...(attempts[zh] ?? []).map((a) => a.total));
   const progressOf = (src: Source) => {
     const scores = src.phrases.map((p) => best(p.zh)).filter((b) => b >= 0);
     return { said: scores.length, avg: scores.length ? scores.reduce((x, y) => x + y, 0) / scores.length : -1 };
@@ -207,7 +211,18 @@ export function PhrasesPage() {
         sourceId={source.id}
         lines={source.phrases.map((p) => p.zh)}
         scores={scores}
-        onAttempt={(zh, a, r, id) => setAttempts(keepAttempt(zh, a, source.id, r, id))}
+        onAttempt={(zh, a, r, id) => {
+          setAttempts(keepAttempt(zh, a, source.id, r, id));
+          refreshBests();
+        }}
+        onForget={(zh, at) => {
+          setAttempts((now) => {
+            const all = { ...now, [zh]: (now[zh] ?? []).filter((a) => a.at !== at) };
+            saveAttempts(all);
+            return all;
+          });
+          refreshBests();
+        }}
         onGo={go}
         onNext={() => (index + 1 < source.phrases.length ? go(index + 1) : navigate(`${paths.speakingSay(source.id)}?done=1`, { replace: true }))}
         onBack={toTexts}

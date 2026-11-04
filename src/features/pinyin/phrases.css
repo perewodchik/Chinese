@@ -305,6 +305,7 @@ button.back-link {
   .ph-chars {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    align-items: start;
     gap: 12px;
     overflow: visible;
     margin: 0;
@@ -1014,48 +1015,68 @@ button.back-link {
 }
 
 
-/* Which saying is shown — your best, just now, the voice — in one quiet line over the result, the rest a tap away. */
+/* Which saying is shown, in one line that never wraps, so nothing under it moves; the tries a tap away. */
 .ph-showing {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 2px 8px;
-  min-height: 36px;
+  gap: 8px;
+  height: 36px;
 }
 
 .ph-showing-what {
-  flex: 1 1 160px;
+  flex: 1 1 auto;
   min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.ph-showing-actions {
-  display: flex;
-  gap: 2px;
+.ph-showing .btn {
+  flex: none;
   margin-right: -8px;
 }
 
-.ph-showing-actions .btn[aria-pressed='true'] {
-  background: var(--accent-soft);
+.ph-tries-box {
+  display: grid;
+  gap: 6px;
+  padding: 8px 12px 4px;
+  border-radius: 14px;
+  background: var(--card-2);
+}
+
+.ph-tries-head {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .ph-tries-list {
-  margin-top: -6px;
-  padding: 0 12px;
-  border-radius: 14px;
-  background: var(--card-2);
-  max-height: 260px;
+  max-height: 248px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .ph-try-mini {
-  width: calc(100% + 24px);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
   margin: 0 -12px;
-  padding: 0 12px;
+  padding: 0 4px 0 12px;
+}
+
+.ph-try-mini[aria-current] {
+  background: var(--hl);
+}
+
+.ph-try-pick {
+  flex: 1 1 auto;
+  min-width: 0;
   min-height: 44px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
+  padding: 0;
   border: 0;
   background: none;
   color: var(--ink);
@@ -1063,25 +1084,69 @@ button.back-link {
   cursor: pointer;
 }
 
-.ph-try-mini b {
+.ph-try-pick b {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
 
-.ph-try-mini b[data-band='good'] {
+.ph-try-pick b[data-band='good'] {
   color: var(--jade);
 }
 
-.ph-try-mini b[data-band='mid'] {
+.ph-try-pick b[data-band='mid'] {
   color: var(--gold);
 }
 
-.ph-try-mini b[data-band='low'] {
+.ph-try-pick b[data-band='low'] {
   color: var(--red);
 }
 
-.ph-try-mini[aria-pressed='true'] {
-  background: var(--hl);
+.ph-try-score-voice {
+  color: var(--accent);
+  font-size: 13.5px;
+}
+
+.ph-try-del {
+  flex: none;
+  min-width: 40px;
+  color: var(--ink-3);
+}
+
+.ph-try-voice {
+  border-top: 1px solid var(--line-2);
+}
+
+.ph-try-voice .small {
+  color: var(--ink-2);
+}
+
+/* While a line is scored the last result stays where it is, faded, with a small Scoring… on it: nothing jumps. */
+.ph-sum {
+  position: relative;
+}
+
+.ph-sum[data-dim] > :not(.ph-sum-busy),
+.ph-chars[data-dim] {
+  opacity: 0.45;
+  transition: opacity 140ms;
+}
+
+.ph-sum-busy {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 600 12px/1.4 var(--sans);
+}
+
+.ph-scoring {
+  min-height: 62px;
 }
 
 /* Shadowing: a count of three, large over the line, then Now. */

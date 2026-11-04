@@ -192,6 +192,11 @@ describe('tries kept for every device', () => {
     const other = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: 'correct horse' } }));
     assert.deepEqual(await (await call(app, 'GET', '/api/eval/history', { cookie: other })).json(), { phrases: {}, tallies: {} });
     assert.equal((await call(app, 'GET', '/api/eval/attempts/p6', { cookie: other })).status, 404);
+    // Taken back: only by its owner, and gone from the list and the history.
+    assert.deepEqual(await (await call(app, 'DELETE', '/api/eval/attempts/p6', { cookie: other })).json(), { deleted: false });
+    assert.deepEqual(await (await call(app, 'DELETE', '/api/eval/attempts/p6', { cookie })).json(), { deleted: true });
+    const after = (await (await call(app, 'GET', '/api/eval/attempts?kind=phrase', { cookie })).json()) as { attempts: AttemptOut[] };
+    assert.deepEqual(after.attempts.map((a) => a.id), ['p5', 'p4', 'p3', 'p2', 'p1', 'p0']);
     assert.equal((await call(app, 'GET', '/api/eval/history')).status, 401);
   });
 });

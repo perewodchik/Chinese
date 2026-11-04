@@ -169,6 +169,8 @@ export interface SpeechAttemptRepository {
   list(userId: string): Promise<Array<Omit<SpeechAttempt, 'result'> & { hasResult: boolean }>>;
   /** one attempt, with the service's answer */
   find(userId: string, id: string): Promise<SpeechAttempt | null>;
+  /** gone, if it was the user's */
+  delete(userId: string, id: string): Promise<boolean>;
 }
 
 /** How a narrator sounds, beyond its voice. */

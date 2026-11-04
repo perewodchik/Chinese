@@ -72,6 +72,8 @@ export function speechEvalRoutes({ auth, clock, trustProxy, speechEval }: RouteD
 
   routes.get('/attempts/:id', session, async (c) => json(c, await speechEval.attemptResult(user(c), c.req.param('id'))));
 
+  routes.delete('/attempts/:id', session, async (c) => json(c, await speechEval.deleteAttempt(user(c), c.req.param('id'))));
+
   routes.post('/attempts', session, async (c) => {
     const { items } = await readJson(c, attemptsRequest);
     return json(c, await speechEval.keepAttempts(user(c), items as never));

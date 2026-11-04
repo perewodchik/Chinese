@@ -10,6 +10,7 @@
  *   GET    /api/eval/history      SpeechHistory: every device's tries, as Phrases and the drills need them
  *   GET    /api/eval/attempts     { attempts: AttemptOut[] } newest first: the tries to look back over
  *   GET    /api/eval/attempts/:id { result } the service's whole answer for one try
+ *   DELETE /api/eval/attempts/:id { deleted } a try taken back
  *   POST   /api/eval              { text, pinyin?, audio } → the phrase scored (audio: 16 kHz 16-bit mono PCM, base64;
  *                                  pinyin: a numbered syllable per character, ka3, so 卡 in 皮卡丘 is not taken for qia3)
  */

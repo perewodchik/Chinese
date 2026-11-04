@@ -1085,6 +1085,10 @@ var SpeechEvalService = class {
     if (!a?.result) throw new NotFoundError("That try");
     return { result: JSON.parse(a.result) };
   }
+  /** A try taken back: gone from every device's history. */
+  async deleteAttempt(userId, id) {
+    return { deleted: await this.deps.attempts.delete(userId, `${userId}:${id}`) };
+  }
   /** Each line's last five tries, and each drill tally's count, from everything kept. */
   async history(userId) {
     const phrases = {};
@@ -2003,6 +2007,7 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval }) {
     return json(c, { attempts: await speechEval.attempts(user(c), kind === "phrase" || kind === "drill" || kind === "voice" ? kind : void 0) });
   });
   routes.get("/attempts/:id", session, async (c) => json(c, await speechEval.attemptResult(user(c), c.req.param("id"))));
+  routes.delete("/attempts/:id", session, async (c) => json(c, await speechEval.deleteAttempt(user(c), c.req.param("id"))));
   routes.post("/attempts", session, async (c) => {
     const { items } = await readJson(c, attemptsRequest);
     return json(c, await speechEval.keepAttempts(user(c), items));
@@ -3180,6 +3185,10 @@ var PostgresSpeechAttemptRepository = class {
   async find(userId, id) {
     const { rows } = await this.db.query(`SELECT ${COLUMNS}, result FROM speech_attempts WHERE user_id = $1 AND id = $2`, [userId, id]);
     return rows[0] ? { ...attemptFromRow(rows[0]), result: rows[0].result } : null;
+  }
+  async delete(userId, id) {
+    const { rowCount } = await this.db.query("DELETE FROM speech_attempts WHERE user_id = $1 AND id = $2", [userId, id]);
+    return (rowCount ?? 0) > 0;
   }
   async list(userId) {
     const { rows } = await this.db.query(`SELECT ${COLUMNS}, (result IS NOT NULL) AS has_result FROM speech_attempts WHERE user_id = $1 ORDER BY at, id`, [userId]);

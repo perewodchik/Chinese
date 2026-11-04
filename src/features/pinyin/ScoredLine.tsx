@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { EvalResult, SyllableEval } from '../../../shared/speechEval';
-import { charScore, noteOf, partsOf, verdictOf, type Attempt } from '../../domain/phrases';
+import { charScore, noteOf, partsOf, verdictOf } from '../../domain/phrases';
 import { parseSyllable } from '../../domain/pinyin/syllable';
 import { isHanzi } from '../../domain/text';
 import { playSamples } from '../../platform/audio/voiceOut';
@@ -72,7 +72,6 @@ export function ScoredLine({
   readings,
   result,
   samples = null,
-  tryAgain = [],
   scoring = false,
   marks = false,
   children,
@@ -84,7 +83,6 @@ export function ScoredLine({
   result: EvalResult | null;
   /** the recording, to hear a syllable of it again; none in the history */
   samples?: Float32Array | null;
-  tryAgain?: Attempt[];
   scoring?: boolean;
   /** the line itself says what was wrong: the wrong part of each pinyin in red, a short tag under the character */
   marks?: boolean;
@@ -116,12 +114,6 @@ export function ScoredLine({
   }, [zh, readings, result]);
 
   const verdict = result ? verdictOf(result) : null;
-  // What the total is close to: the characters' own numbers, averaged, a left-out one as 0.
-  const charsAvg = (() => {
-    const said = result?.syllables.filter((x) => x.said !== 'added') ?? [];
-    if (!said.length || said.every((x) => x.score === undefined)) return null;
-    return Math.round(said.reduce((n, x) => n + (x.said === 'missed' ? 0 : (x.score ?? 0)), 0) / said.length);
-  })();
   // Each character with the punctuation after it, so a full stop never starts a line alone.
   const groups = tiles.reduce<number[][]>((out, t, i) => {
     if (!t.py && out.length) out[out.length - 1]!.push(i);
@@ -225,7 +217,7 @@ export function ScoredLine({
         </div>
         {en && <p className="ph-en">{en}</p>}
         {children}
-        {scoring && (
+        {scoring && !result && (
           <div className="ph-scoring" role="status">
             <span className="spinner ph-scoring-spin" aria-hidden />
             <span>
@@ -234,8 +226,13 @@ export function ScoredLine({
             </span>
           </div>
         )}
-        {!scoring && result && verdict && (
-          <section className="ph-sum">
+        {result && verdict && (
+          <section className="ph-sum" data-dim={scoring || undefined}>
+            {scoring && (
+              <span className="ph-sum-busy" role="status">
+                <span className="spinner" aria-hidden /> Scoring…
+              </span>
+            )}
             <button className="ph-sum-total" data-band={band(result.total)} aria-expanded={why} onClick={() => setWhy((w) => !w)} aria-label={`${Math.round(result.total)} out of 100: what it is made of`}>
               {Math.round(result.total)}
             </button>
@@ -248,24 +245,14 @@ export function ScoredLine({
                   </span>
                 ))}
               </span>
-              {why && charsAvg !== null && (
-                <span className="tiny muted ph-sum-why">
-                  Total ≈ the average of the characters below ({charsAvg}), one not heard as 0 — so it can sit under every figure here.
-                </span>
-              )}
-              {why && (pace || tryAgain.length > 1) && (
-                <span className="tiny muted">
-                  {pace}
-                  {tryAgain.length > 1 ? `${pace ? ' ' : ''}Your tries: ${tryAgain.map((a) => Math.round(a.total)).join(' · ')}.` : ''}
-                </span>
-              )}
+              {why && pace && <span className="tiny muted">{pace}</span>}
               {result.quiet && <span className="tiny ph-error">The recording was very quiet: hold the device closer.</span>}
             </span>
           </section>
         )}
 
-        {!scoring && result && cards.length > 0 && (
-          <div className="ph-chars" ref={strip} onScroll={onStripScroll} aria-label="Each character">
+        {result && cards.length > 0 && (
+          <div className="ph-chars" data-dim={scoring || undefined} ref={strip} onScroll={onStripScroll} aria-label="Each character">
             {cards.map(({ ti, tile, syl, note }) => {
               const n = charScore(syl);
               return (

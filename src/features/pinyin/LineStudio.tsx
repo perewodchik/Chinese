@@ -16,7 +16,7 @@ import { useLibrary } from '../shared/library';
 import { NOTHING_HEARD, troubleOf, type Trouble } from './lineTrouble';
 import { RecordButton } from './RecordButton';
 import { band, ScoredLine } from './ScoredLine';
-import { attemptId, keepTry, knownTries, remember } from './speechHistory';
+import { attemptId, forget, keepTry, knownTries, remember } from './speechHistory';
 import { useRecorder } from './useRecorder';
 import './phrases.css';
 
@@ -94,6 +94,7 @@ export function LineStudio({
   lines,
   scores: lineScores,
   onAttempt,
+  onForget,
   onGo,
   onNext,
   onBack,
@@ -106,6 +107,8 @@ export function LineStudio({
   /** each line's best score, −1 for not said yet */
   scores: number[];
   onAttempt: (zh: string, a: Attempt, r: EvalResult, id: string) => void;
+  /** a try of the learner's taken back */
+  onForget: (zh: string, at: number) => void;
   onGo: (i: number) => void;
   onNext: () => void;
   onBack: () => void;
@@ -357,15 +360,35 @@ export function LineStudio({
   const firstNew = shown.mine[0] && Date.now() - shown.mine[0].at < 30 * 60_000 && shown.mine[0].samples ? shown.mine[0].id : null;
   const bestId = shown.mine.filter((t) => t.total !== null).sort((a, b) => b.total! - a.total! || b.at - a.at)[0]?.id ?? null;
   const [listOpen, setListOpen] = useState(false);
+  // Your own voice, always: the try shown when it is one of yours from this visit, else the last you said.
+  const mineSamples = (take?.mine ? take.samples : undefined) ?? lastSamples;
+  const [order, setOrder] = useState<'new' | 'best'>('new');
+  const [confirm, setConfirm] = useState<string | null>(null);
+  // Which saying is shown, in a few words.
   const showing = !take
     ? null
     : !take.mine
-      ? `${nameOf(take.narratorId)}'s own reading, scored as you are — not one of your tries`
+      ? `The voice · ${nameOf(take.narratorId)}`
       : take.id === firstNew
         ? take.shadow
-          ? 'Just now, shadowing'
+          ? 'Just now · shadowing'
           : 'Just now'
-        : `${take.id === bestId ? `Your best of ${shown.mine.length}` : 'Your try'} · ${whenOf(take.at)}${take.shadow ? ' · shadowing' : ''}`;
+        : `${take.id === bestId ? 'Your best' : 'Your try'} · ${whenOf(take.at)}`;
+  const listed = order === 'best' ? [...shown.mine].sort((x, y) => (y.total ?? -1) - (x.total ?? -1) || y.at - x.at) : shown.mine;
+
+  async function drop(t: Take) {
+    setConfirm(null);
+    const rest = takes.filter((x) => x.id !== t.id);
+    setTakes(rest);
+    // The one shown taken back: the best of what is left is shown instead.
+    if (sel === t.id) setSel(rest.filter((x) => x.mine && x.total !== null).sort((a, b) => b.total! - a.total! || b.at - a.at)[0]?.id ?? null);
+    try {
+      await forget(t.id);
+    } catch {
+      // gone from this screen; the account is told again next time it is opened
+    }
+    if (t.mine) onForget(phrase.zh, t.at);
+  }
 
   return (
     <section className="ph-say">
@@ -405,7 +428,7 @@ export function LineStudio({
             <span key={count}>{count === 0 ? 'Now' : count}</span>
           </div>
         )}
-        <ScoredLine zh={phrase.zh} en={phrase.en} readings={readings} result={selResult} samples={take?.samples ?? null} scoring={checking || selLoading} marks={marks}>
+        <ScoredLine zh={phrase.zh} readings={readings} result={selResult} samples={take?.samples ?? null} scoring={checking || selLoading} marks={marks}>
           <div className="ph-modes">
             <div className="seg sm" role="group" aria-label="How to say it">
               <button aria-pressed={mode === 'repeat'} onClick={() => setMode('repeat')} title="Hear it, then say it.">
@@ -423,45 +446,65 @@ export function LineStudio({
             </button>
           </div>
 
-          {/* Which saying is shown, in a line: the result is what matters, the tries are a tap away. */}
-          {(shown.mine.length > 0 || voice) && (
-            <div className="ph-showing">
-              <span className="small muted ph-showing-what">{showing ?? 'Say it, and it is scored here.'}</span>
-              <span className="ph-showing-actions">
-                {voice &&
-                  (currentVoiceTake ? (
-                    <button className="btn quiet sm" aria-pressed={sel === currentVoiceTake.id} onClick={() => setSel(sel === currentVoiceTake.id ? bestId : currentVoiceTake.id)}>
-                      Voice {currentVoiceTake.total === null ? '' : Math.round(currentVoiceTake.total)}
-                    </button>
-                  ) : (
-                    <button className="btn quiet sm" onClick={() => void scoreThisVoice()} disabled={voiceScoring}>
-                      {voiceScoring ? <span className="spinner" aria-hidden /> : null} Score the voice
-                    </button>
-                  ))}
-                {shown.mine.length > 0 && (
-                  <button className="btn quiet sm" aria-expanded={listOpen} onClick={() => setListOpen((o) => !o)}>
-                    Tries ({shown.mine.length}) <Icon name="down" size={14} />
-                  </button>
-                )}
-              </span>
-            </div>
-          )}
+          {/* Which saying is shown, in one line: the result is what matters, the tries a tap away. */}
+          <div className="ph-showing">
+            <span className="small muted ph-showing-what">{showing ?? (shown.mine.length ? '' : 'Not said yet')}</span>
+            {(shown.mine.length > 0 || shown.voiceTakes.length > 0 || voice) && (
+              <button className="btn quiet sm" aria-expanded={listOpen} onClick={() => setListOpen((o) => !o)}>
+                Tries {shown.mine.length ? `(${shown.mine.length})` : ''} <Icon name="down" size={14} />
+              </button>
+            )}
+          </div>
           {listOpen && (
-            <div className="list ph-tries-list" role="group" aria-label="Your tries of this line">
-              {[...shown.voiceTakes].map((t) => (
-                <button key={t.id} className="ph-try-mini" aria-pressed={sel === t.id} onClick={() => setSel(t.id)}>
-                  <span className="small">{nameOf(t.narratorId)}</span>
-                  <span className="tiny muted">the voice · {whenOf(t.at)}</span>
-                  <b data-band={t.total === null ? 'none' : band(t.total)}>{t.total === null ? '–' : Math.round(t.total)}</b>
-                </button>
-              ))}
-              {shown.mine.map((t) => (
-                <button key={t.id} className="ph-try-mini" aria-pressed={sel === t.id} onClick={() => setSel(t.id)}>
-                  <span className="small">{t.id === firstNew ? 'Just now' : whenOf(t.at).replace(/^./, (c) => c.toUpperCase())}</span>
-                  <span className="tiny muted">{[t.id === bestId ? 'best' : '', t.shadow ? 'shadowing' : ''].filter(Boolean).join(' · ')}</span>
-                  <b data-band={t.total === null ? 'none' : band(t.total)}>{t.total === null ? '–' : Math.round(t.total)}</b>
-                </button>
-              ))}
+            <div className="ph-tries-box">
+              <div className="ph-tries-head">
+                <div className="seg sm" role="group" aria-label="Order">
+                  <button aria-pressed={order === 'new'} onClick={() => setOrder('new')}>
+                    Newest
+                  </button>
+                  <button aria-pressed={order === 'best'} onClick={() => setOrder('best')}>
+                    Best
+                  </button>
+                </div>
+              </div>
+              <div className="list ph-tries-list" role="group" aria-label="Your tries of this line">
+                {listed.map((t) => (
+                  <div key={t.id} className="ph-try-mini" aria-current={sel === t.id || undefined}>
+                    <button className="ph-try-pick" onClick={() => setSel(t.id)}>
+                      <span className="small">{t.id === firstNew ? 'Just now' : whenOf(t.at).replace(/^./, (c) => c.toUpperCase())}</span>
+                      <span className="tiny muted">{[t.id === bestId ? 'best' : '', t.shadow ? 'shadowing' : ''].filter(Boolean).join(' · ')}</span>
+                      <b data-band={t.total === null ? 'none' : band(t.total)}>{t.total === null ? '–' : Math.round(t.total)}</b>
+                    </button>
+                    {confirm === t.id ? (
+                      <button className="btn danger sm ph-try-del" onClick={() => void drop(t)}>
+                        Delete
+                      </button>
+                    ) : (
+                      <button className="icon-btn ph-try-del" aria-label="Delete this try" onClick={() => setConfirm(t.id)}>
+                        <Icon name="close" size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {/* The voice, last and quiet: a measure beside yours, not one of them. */}
+                {voice && (
+                  <div className="ph-try-mini ph-try-voice" aria-current={(currentVoiceTake && sel === currentVoiceTake.id) || undefined}>
+                    {currentVoiceTake ? (
+                      <button className="ph-try-pick" onClick={() => setSel(currentVoiceTake.id)}>
+                        <span className="small">The voice</span>
+                        <span className="tiny muted">{voice.name}</span>
+                        <b data-band={currentVoiceTake.total === null ? 'none' : band(currentVoiceTake.total)}>{currentVoiceTake.total === null ? '–' : Math.round(currentVoiceTake.total)}</b>
+                      </button>
+                    ) : (
+                      <button className="ph-try-pick" onClick={() => void scoreThisVoice()} disabled={voiceScoring}>
+                        <span className="small">The voice</span>
+                        <span className="tiny muted">{voice.name}</span>
+                        <b className="ph-try-score-voice">{voiceScoring ? <span className="spinner" aria-hidden /> : 'Score it'}</b>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
           {!clips && narrators !== null && <NoReading narrators={narrators} lines={lines} onRead={(r) => { setVoices((v) => [...v.filter((x) => x.n.narratorId !== r.n.narratorId), r]); void switchVoice(r); }} />}
@@ -508,9 +551,9 @@ export function LineStudio({
           <span>{slow ? 'Slowly' : 'Hear'}</span>
         </button>
         <RecordButton state={state} level={recorder.level} onToggle={onRecord} compact />
-        <button className="ph-dock-btn" onClick={() => { const s = take?.samples ?? lastSamples; if (s) void playSamples(s); }} disabled={!(take?.samples ?? lastSamples)}>
+        <button className="ph-dock-btn" onClick={() => { const s = mineSamples; if (s) void playSamples(s); }} disabled={!mineSamples}>
           <Icon name="play" />
-          <span>{take && !take.mine ? 'Voice' : 'Mine'}</span>
+          <span>Mine</span>
         </button>
         <button className="ph-dock-btn" data-go={takes.some((t) => t.mine && t.id === firstNew) ? '' : undefined} onClick={onNext}>
           <Icon name="next" />

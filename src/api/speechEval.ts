@@ -32,3 +32,5 @@ export const listAttempts = (kind?: AttemptKind) =>
   request<{ attempts: AttemptOut[] }>('GET', `/api/eval/attempts${kind ? `?kind=${kind}` : ''}`).then((r) => r.attempts);
 /** One try's whole answer from the service. */
 export const attemptResult = (id: string) => request<{ result: EvalResult }>('GET', `/api/eval/attempts/${encodeURIComponent(id)}`).then((r) => r.result);
+/** A try taken back, from every device. */
+export const deleteAttempt = (id: string) => request<{ deleted: boolean }>('DELETE', `/api/eval/attempts/${encodeURIComponent(id)}`);
