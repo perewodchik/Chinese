@@ -127,3 +127,26 @@ describe('reading what the CLI wrote', () => {
     assert.equal(asked.args[asked.args.indexOf('--model') + 1], 'opus');
   });
 });
+
+describe('Claude on the server’s subscription, for the accounts named', () => {
+  function appFor(tutorUsers: string[]) {
+    const { tutor, asked } = stubTutor();
+    const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock: new TestClock(), tutor });
+    return { app: createHttpApp(services, { trustProxy: false, staticDir: null, log: () => undefined, tutorUsers }), asked };
+  }
+  const account = async (app: ReturnType<typeof appWith>, username: string) =>
+    sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username, password: 'correct horse' } }));
+
+  it('answers the owner, in any case of the name, and tells anyone else it is not there', async () => {
+    const { app, asked } = appFor(['Kirill']);
+    const owner = await account(app, 'kirill');
+    const guest = await account(app, 'masha');
+    assert.deepEqual(await (await call(app, 'GET', '/api/ask', { cookie: owner })).json(), { claude: { state: 'ready' } });
+    assert.deepEqual(await (await call(app, 'GET', '/api/ask', { cookie: guest })).json(), { claude: { state: 'missing' } });
+    const body = { prompt: 'A word list, please.', kind: 'wordlist' };
+    assert.equal((await call(app, 'POST', '/api/ask', { cookie: guest, body })).status, 503);
+    assert.equal((await call(app, 'POST', '/api/talk/reply', { cookie: guest, body: { lines: [], options: { level: 'hsk1', length: 'short', explain: false, words: false, hints: false, topic: '' } } })).status, 503);
+    assert.equal(asked.length, 0);
+    assert.equal((await call(app, 'POST', '/api/ask', { cookie: owner, body })).status, 200);
+  });
+});

@@ -25,6 +25,8 @@ import type {
   UserRepository,
   UsageRepository,
   InviteRepository,
+  RateLimitStore,
+  LookupCache,
   WorkspaceRepository,
   WorldSaveRepository,
 } from './application/ports';
@@ -59,6 +61,10 @@ export interface Services {
   speechEval: SpeechEvalService;
   /** what the learner's own keys have been spent on */
   usage: UsageMeter;
+  /** the counts the rate limits keep, shared by every instance of the server */
+  limits: RateLimitStore;
+  /** answers the same for everyone, kept a while */
+  lookups: LookupCache;
 }
 
 /** Where each kind of record is kept. */
@@ -77,6 +83,8 @@ export interface Stores {
   speechAttempts: SpeechAttemptRepository;
   usage: UsageRepository;
   invites: InviteRepository;
+  limits: RateLimitStore;
+  lookups: LookupCache;
 }
 
 /**
@@ -131,5 +139,7 @@ export function createServices(
     narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock, meter: usage }),
     speechEval: new SpeechEvalService({ secrets: stores.secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock, meter: usage }),
     usage,
+    limits: stores.limits,
+    lookups: stores.lookups,
   };
 }

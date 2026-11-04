@@ -12,6 +12,8 @@ import { SqliteSessionRepository } from './session-repository';
 import { SqliteUserRepository } from './user-repository';
 import { SqliteUsageRepository } from './usage-repository';
 import { SqliteInviteRepository } from './invite-repository';
+import { SqliteRateLimitStore } from './rate-limit-store';
+import { SqliteLookupCache } from './lookup-cache';
 import { SqliteWorkspaceRepository } from './workspace-repository';
 import { SqliteWorldSaveRepository } from './world-save-repository';
 
@@ -31,4 +33,6 @@ export const sqliteStores = (db: DatabaseSync): Stores => ({
   speechAttempts: new SqliteSpeechAttemptRepository(db),
   usage: new SqliteUsageRepository(db),
   invites: new SqliteInviteRepository(db),
+  limits: new SqliteRateLimitStore(db),
+  lookups: new SqliteLookupCache(db),
 });

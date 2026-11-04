@@ -1686,7 +1686,9 @@ function createServices(stores, options = {}) {
     pictures: new PictureService({ pictures: stores.pictures, clock }),
     narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock, meter: usage }),
     speechEval: new SpeechEvalService({ secrets: stores.secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock, meter: usage }),
-    usage
+    usage,
+    limits: stores.limits,
+    lookups: stores.lookups
   };
 }
 
@@ -1749,8 +1751,10 @@ function isHttps(c, trustProxy) {
   const forwarded = trustProxy ? c.req.header("x-forwarded-proto")?.split(",")[0]?.trim() : void 0;
   return (forwarded ?? new URL(c.req.url).protocol.replace(":", "")) === "https";
 }
-function clientIp(c, trustProxy) {
-  const forwarded = trustProxy ? c.req.header("x-forwarded-for")?.split(",")[0]?.trim() : void 0;
+function clientIp(c, trustProxy, ipHeader = null) {
+  const named = trustProxy && ipHeader ? c.req.header(ipHeader)?.split(",")[0]?.trim() : void 0;
+  if (named) return named;
+  const forwarded = trustProxy ? c.req.header("x-forwarded-for")?.split(",").at(-1)?.trim() : void 0;
   if (forwarded) return forwarded;
   try {
     return getConnInfo(c).remote.address ?? "unknown";
@@ -1811,6 +1815,10 @@ function sameOriginOnly() {
     throw new ForbiddenOriginError();
   };
 }
+function tutorFor(tutor, tutorUsers, user) {
+  if (!tutor) return null;
+  return !tutorUsers || tutorUsers.includes(usernameKey(user.username)) ? tutor : null;
+}
 async function currentSession(c, auth, opts) {
   const token = readSessionToken(c);
   if (!token) return null;
@@ -1829,31 +1837,23 @@ function requireSession(auth, opts) {
   };
 }
 var RateLimiter = class {
-  constructor(limit, windowMs, clock) {
+  constructor(name, limit, windowMs, clock, store) {
+    this.name = name;
     this.limit = limit;
     this.windowMs = windowMs;
     this.clock = clock;
+    this.store = store;
   }
-  windows = /* @__PURE__ */ new Map();
   /** Counts one attempt against `key`, and throws once the window is used up. */
-  consume(key) {
+  async consume(key) {
     const now = this.clock.now();
-    if (this.windows.size > 1e4) this.sweep(now);
-    const window = this.windows.get(key);
-    if (!window || window.resetAt <= now) {
-      this.windows.set(key, { count: 1, resetAt: now + this.windowMs });
-      return;
-    }
-    if (window.count >= this.limit) {
-      throw new RateLimitedError(Math.ceil((window.resetAt - now) / 1e3));
-    }
-    window.count++;
+    const start = Math.floor(now / this.windowMs) * this.windowMs;
+    const count = await this.store.hit(`${this.name}:${key}`, start);
+    if (count === 1 && Math.random() < 0.02) void this.store.sweep(now - 864e5).catch(() => void 0);
+    if (count > this.limit) throw new RateLimitedError(Math.max(1, Math.ceil((start + this.windowMs - now) / 1e3)));
   }
   reset(key) {
-    this.windows.delete(key);
-  }
-  sweep(now) {
-    for (const [key, window] of this.windows) if (window.resetAt <= now) this.windows.delete(key);
+    return this.store.reset(`${this.name}:${key}`);
   }
 };
 
@@ -1926,20 +1926,22 @@ var askRequest = z.object({
   prompt: z.string().trim().min(1).max(ASK_MAX_CHARS),
   kind: z.enum(ASK_KINDS)
 });
-function askRoutes({ auth, clock, trustProxy, tutor }) {
+function askRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, limits }) {
   const routes = new Hono2();
   const session = requireSession(auth, { trustProxy, clock });
-  const asks = new RateLimiter(20, 60 * 6e4, clock);
-  const checks = new RateLimiter(120, 60 * 6e4, clock);
+  const asks = new RateLimiter("ask.asks", 20, 60 * 6e4, clock, limits);
+  const checks = new RateLimiter("ask.checks", 120, 60 * 6e4, clock, limits);
   routes.get("/", session, async (c) => {
     c.header("Cache-Control", "no-store");
+    const tutor = tutorFor(anyTutor, tutorUsers, c.get("session").user);
     const body = { claude: { state: tutor ? await tutor.status() : "missing" } };
     return c.json(body);
   });
   const kept2 = /* @__PURE__ */ new Map();
   const KEEP_MS = 60 * 6e4;
   routes.post("/", session, async (c) => {
-    if (!tutor) throw new TutorUnavailableError("Claude Code is not installed on this server.");
+    const tutor = tutorFor(anyTutor, tutorUsers, c.get("session").user);
+    if (!tutor) throw new TutorUnavailableError("Claude is not available to this account.");
     const input = await readJson(c, askRequest);
     const user = c.get("session").user.id;
     const run = () => tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind] });
@@ -1951,14 +1953,14 @@ ${input.prompt}`).digest("hex");
       for (const [k, v] of kept2) if (now - v.at > KEEP_MS) kept2.delete(k);
       let entry = kept2.get(key);
       if (!entry) {
-        asks.consume(user);
+        await asks.consume(user);
         entry = { at: now, answer: run() };
         kept2.set(key, entry);
         entry.answer.catch(() => kept2.delete(key));
       }
       text = await entry.answer;
     } else {
-      (input.kind === "check" ? checks : asks).consume(user);
+      await (input.kind === "check" ? checks : asks).consume(user);
       text = await run();
     }
     const body = { text };
@@ -1998,13 +2000,17 @@ function isLocalNetwork(ip) {
   if (v6.startsWith("fc") || v6.startsWith("fd")) return true;
   return /^fe[89ab]/.test(v6);
 }
-function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }) {
+function tunnelled(c, trustProxy) {
+  if (trustProxy) return false;
+  return ["x-forwarded-for", "forwarded", "x-real-ip", "cf-connecting-ip", "x-forwarded-host"].some((h) => c.req.header(h) !== void 0);
+}
+function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate, log, limits }) {
   const routes = new Hono3();
   const sessionOptions = { trustProxy, clock };
   const session = requireSession(auth, sessionOptions);
-  const perName = new RateLimiter(10, 15 * MINUTE, clock);
-  const perAddress = new RateLimiter(100, 15 * MINUTE, clock);
-  const signUps = new RateLimiter(20, 60 * MINUTE, clock);
+  const perName = new RateLimiter("auth.perName", 10, 15 * MINUTE, clock, limits);
+  const perAddress = new RateLimiter("auth.perAddress", 100, 15 * MINUTE, clock, limits);
+  const signUps = new RateLimiter("auth.signUps", 20, 60 * MINUTE, clock, limits);
   routes.get("/options", (c) => {
     const body = { registration: auth.registration };
     return c.json(body);
@@ -2012,7 +2018,7 @@ function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }) {
   routes.get("/session", async (c) => {
     c.header("Cache-Control", "no-store");
     const active = await currentSession(c, auth, sessionOptions);
-    if (!active && devUser && isLocalNetwork(clientIp(c, trustProxy))) {
+    if (!active && devUser && !tunnelled(c, trustProxy) && isLocalNetwork(clientIp(c, trustProxy, ipHeader))) {
       const issued = await auth.devSignIn(devUser, c.req.header("user-agent") ?? null, devUserCreate);
       if (!issued) log(`No account called \u201C${devUser}\u201D in this database (HANZI_DEV_USER).`);
       else {
@@ -2025,7 +2031,7 @@ function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }) {
     return c.json(body);
   });
   routes.post("/register", async (c) => {
-    signUps.consume(clientIp(c, trustProxy));
+    await signUps.consume(clientIp(c, trustProxy, ipHeader));
     const input = await readJson(c, registration);
     const issued = await auth.register({ ...input, userAgent: c.req.header("user-agent") ?? null });
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
@@ -2034,12 +2040,12 @@ function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }) {
   });
   routes.post("/login", async (c) => {
     const input = await readJson(c, credentials);
-    const ip = clientIp(c, trustProxy);
+    const ip = clientIp(c, trustProxy, ipHeader);
     const nameKey = `${ip} ${usernameKey(input.username)}`;
-    perAddress.consume(ip);
-    perName.consume(nameKey);
+    await perAddress.consume(ip);
+    await perName.consume(nameKey);
     const issued = await auth.login({ ...input, userAgent: c.req.header("user-agent") ?? null });
-    perName.reset(nameKey);
+    await perName.reset(nameKey);
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body = { user: issued.user };
     return c.json(body);
@@ -2090,12 +2096,12 @@ var mp3 = (c, bytes) => {
   c.header("Cache-Control", "no-store");
   return c.body(bytes);
 };
-function narrationRoutes({ auth, clock, trustProxy, narration }) {
+function narrationRoutes({ auth, clock, trustProxy, narration, limits }) {
   const routes = new Hono4();
   const session = requireSession(auth, { trustProxy, clock });
-  const reads = new RateLimiter(200, 10 * 6e4, clock);
-  const keys = new RateLimiter(20, 10 * 6e4, clock);
-  const makes = new RateLimiter(30, 10 * 6e4, clock);
+  const reads = new RateLimiter("narration.reads", 200, 10 * 6e4, clock, limits);
+  const keys = new RateLimiter("narration.keys", 20, 10 * 6e4, clock, limits);
+  const makes = new RateLimiter("narration.makes", 30, 10 * 6e4, clock, limits);
   const user = (c) => c.get("session").user.id;
   const json = (c, body) => {
     c.header("Cache-Control", "no-store");
@@ -2103,7 +2109,7 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
   };
   routes.get("/", session, async (c) => json(c, await narration.status(user(c))));
   routes.put("/key", session, async (c) => {
-    keys.consume(user(c));
+    await keys.consume(user(c));
     const { key } = await readJson(c, keyRequest);
     return json(c, await narration.setKey(user(c), key));
   });
@@ -2111,13 +2117,13 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
   routes.get("/voices", session, async (c) => json(c, { voices: await narration.voices(user(c)) }));
   routes.get("/narrators", session, async (c) => json(c, { narrators: await narration.narrators(user(c)) }));
   routes.post("/narrators/try", session, async (c) => {
-    makes.consume(user(c));
+    await makes.consume(user(c));
     const input = await readJson(c, tryRequest);
     const { voices, failed: failed2 } = await narration.tryDesigns(user(c), input);
     return json(c, { voices: voices.map((v) => ({ voiceId: v.voiceId, trial: Buffer.from(v.trial).toString("base64") })), failed: failed2 });
   });
   routes.post("/slots/free", session, async (c) => {
-    keys.consume(user(c));
+    await keys.consume(user(c));
     return json(c, await narration.freeSlots(user(c)));
   });
   routes.post("/narrators/keep", session, async (c) => {
@@ -2125,7 +2131,7 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
     return json(c, { narrator: await narration.keepDesigned(user(c), input) });
   });
   routes.post("/narrators", session, async (c) => {
-    makes.consume(user(c));
+    await makes.consume(user(c));
     const input = await readJson(c, adoptRequest);
     return json(c, { narrator: await narration.adopt(user(c), input) });
   });
@@ -2138,17 +2144,17 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
     return json(c, { ok: true });
   });
   routes.post("/narrators/:id/preview", session, async (c) => {
-    reads.consume(user(c));
+    await reads.consume(user(c));
     const { text } = await readJson(c, previewRequest);
     return mp3(c, await narration.preview(user(c), c.req.param("id"), text));
   });
   routes.post("/texts", session, async (c) => {
     const input = await readJson(c, textRequest);
-    if (input.generate || input.again) reads.consume(user(c));
+    if (input.generate || input.again) await reads.consume(user(c));
     return json(c, { narration: await narration.text(user(c), input.narrator, input.lines, input) });
   });
   routes.post("/texts/import", session, async (c) => {
-    makes.consume(user(c));
+    await makes.consume(user(c));
     const input = await readJson(c, importRequest);
     const mp3Bytes = new Uint8Array(Buffer.from(input.mp3, "base64"));
     return json(c, { narration: await narration.importReading(user(c), input.narrator, input.lines, { mp3: mp3Bytes, durationMs: input.durationMs, timings: input.timings }) });
@@ -2165,7 +2171,7 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
   });
   routes.get("/own", session, async (c) => json(c, { texts: await narration.ownTexts(user(c)) }));
   routes.post("/own", session, async (c) => {
-    reads.consume(user(c));
+    await reads.consume(user(c));
     const input = await readJson(c, ownRequest);
     return json(c, { text: await narration.readOwn(user(c), input) });
   });
@@ -2210,11 +2216,11 @@ var evalRequest = z4.object({
   // base64 of up to EVAL_MAX_BYTES of PCM
   audio: z4.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
 });
-function speechEvalRoutes({ auth, clock, trustProxy, speechEval }) {
+function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }) {
   const routes = new Hono5();
   const session = requireSession(auth, { trustProxy, clock });
-  const scores = new RateLimiter(200, 10 * 6e4, clock);
-  const keys = new RateLimiter(20, 10 * 6e4, clock);
+  const scores = new RateLimiter("speechEval.scores", 200, 10 * 6e4, clock, limits);
+  const keys = new RateLimiter("speechEval.keys", 20, 10 * 6e4, clock, limits);
   const user = (c) => c.get("session").user.id;
   const json = (c, body) => {
     c.header("Cache-Control", "no-store");
@@ -2222,7 +2228,7 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval }) {
   };
   routes.get("/", session, async (c) => json(c, await speechEval.status(user(c))));
   routes.put("/key", session, async (c) => {
-    keys.consume(user(c));
+    await keys.consume(user(c));
     return json(c, await speechEval.setKeys(user(c), await readJson(c, keysRequest)));
   });
   routes.delete("/key", session, async (c) => json(c, await speechEval.deleteKeys(user(c))));
@@ -2242,7 +2248,7 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval }) {
     return json(c, await speechEval.keepAttempts(user(c), items));
   });
   routes.post("/", session, async (c) => {
-    scores.consume(user(c));
+    await scores.consume(user(c));
     return json(c, { result: await speechEval.evaluate(user(c), await readJson(c, evalRequest)) });
   });
   return routes;
@@ -2250,10 +2256,10 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval }) {
 
 // server/src/http/routes/pictures.ts
 import { Hono as Hono6 } from "hono";
-function pictureRoutes({ auth, clock, trustProxy, pictures }) {
+function pictureRoutes({ auth, clock, trustProxy, pictures, limits }) {
   const routes = new Hono6();
   const session = requireSession(auth, { trustProxy, clock });
-  const uploads = new RateLimiter(300, 10 * 6e4, clock);
+  const uploads = new RateLimiter("pictures.uploads", 300, 10 * 6e4, clock, limits);
   routes.get("/:key", session, async (c) => {
     const { mime, bytes } = await pictures.get(c.get("session").user.id, c.req.param("key"));
     c.header("Content-Type", mime);
@@ -2262,7 +2268,7 @@ function pictureRoutes({ auth, clock, trustProxy, pictures }) {
   });
   routes.put("/:key", session, async (c) => {
     const user = c.get("session").user.id;
-    uploads.consume(user);
+    await uploads.consume(user);
     const mime = (c.req.header("content-type") ?? "").split(";")[0].trim().toLowerCase();
     const bytes = new Uint8Array(await c.req.arrayBuffer());
     await pictures.put(user, c.req.param("key"), mime, bytes);
@@ -2275,10 +2281,10 @@ function pictureRoutes({ auth, clock, trustProxy, pictures }) {
 // server/src/http/routes/speech.ts
 import { Hono as Hono7 } from "hono";
 var SPEECH_MAX_CHARS = 240;
-function speechRoutes({ auth, clock, trustProxy, speech }) {
+function speechRoutes({ auth, clock, trustProxy, speech, limits }) {
   const routes = new Hono7();
   const session = requireSession(auth, { trustProxy, clock });
-  const limiter = new RateLimiter(300, 10 * 6e4, clock);
+  const limiter = new RateLimiter("speech.limiter", 300, 10 * 6e4, clock, limits);
   routes.get("/", session, (c) => {
     c.header("Cache-Control", "no-store");
     return c.json({ voices: speech?.voices ?? [] });
@@ -2293,7 +2299,7 @@ function speechRoutes({ auth, clock, trustProxy, speech }) {
     if (!text) throw new ValidationError("Nothing to say.");
     if ([...text].length > SPEECH_MAX_CHARS) throw new ValidationError(`At most ${SPEECH_MAX_CHARS} characters at a time.`);
     if (!speech.voices.some((v) => v.id === voice)) throw new ValidationError(`There is no voice called ${voice}.`);
-    limiter.consume(c.get("session").user.id);
+    await limiter.consume(c.get("session").user.id);
     let audio;
     try {
       audio = await speech.synthesize(text, voice, slow);
@@ -2411,25 +2417,26 @@ var replyRequest = z5.object({
     learning: z5.array(z5.string().max(12)).max(TALK_VOCAB_MAX.learning)
   }).optional()
 });
-function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations, recordings }) {
+function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, talkVoices, conversations, recordings, limits }) {
   const routes = new Hono9();
   const session = requireSession(auth, { trustProxy, clock });
-  const turns = new RateLimiter(120, 10 * 6e4, clock);
-  const clips = new RateLimiter(600, 10 * 6e4, clock);
-  const saves = new RateLimiter(400, 10 * 6e4, clock);
+  const turns = new RateLimiter("talk.turns", 120, 10 * 6e4, clock, limits);
+  const clips = new RateLimiter("talk.clips", 600, 10 * 6e4, clock, limits);
+  const saves = new RateLimiter("talk.saves", 400, 10 * 6e4, clock, limits);
   routes.get("/", session, async (c) => {
     c.header("Cache-Control", "no-store");
     talkVoices?.warm?.(c.req.query("voice"));
     const body = {
-      claude: { state: tutor ? await tutor.status() : "missing" },
+      claude: { state: tutorFor(anyTutor, tutorUsers, c.get("session").user) ? await anyTutor.status() : "missing" },
       voices: await recordings.voices()
     };
     return c.json(body);
   });
   routes.post("/reply", session, async (c) => {
-    if (!tutor) throw new TutorUnavailableError("Claude Code is not installed on this server.");
+    const tutor = tutorFor(anyTutor, tutorUsers, c.get("session").user);
+    if (!tutor) throw new TutorUnavailableError("Claude is not available to this account.");
     const input = await readJson(c, replyRequest);
-    turns.consume(c.get("session").user.id);
+    await turns.consume(c.get("session").user.id);
     const reply = await tutor.reply({
       lines: input.lines,
       options: input.options,
@@ -2446,7 +2453,7 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations,
     if (!voice) throw new AppError("not_found", "No local voice is set up on this server.");
     if (!text) throw new ValidationError("Nothing to say.");
     if ([...text].length > SPEECH_MAX_CHARS) throw new ValidationError(`At most ${SPEECH_MAX_CHARS} characters at a time.`);
-    clips.consume(c.get("session").user.id);
+    await clips.consume(c.get("session").user.id);
     const audio = await recordings.read(text, voice, mode, c.req.query("keep") === "1");
     c.header("Content-Type", "audio/mpeg");
     c.header("Cache-Control", "private, max-age=31536000, immutable");
@@ -2464,7 +2471,7 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations,
   });
   routes.post("/conversations", session, async (c) => {
     const input = await readJson(c, startRequest);
-    saves.consume(c.get("session").user.id);
+    await saves.consume(c.get("session").user.id);
     const made = await conversations.start(c.get("session").user.id, input.options, input.voice);
     c.header("Cache-Control", "no-store");
     return c.json(made, 201);
@@ -2475,7 +2482,7 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations,
   });
   routes.put("/conversations/:id", session, async (c) => {
     const input = await readJson(c, saveRequest);
-    saves.consume(c.get("session").user.id);
+    await saves.consume(c.get("session").user.id);
     const saved = await conversations.save(c.get("session").user.id, c.req.param("id"), {
       options: input.options,
       voice: input.voice,
@@ -2642,19 +2649,30 @@ async function lookUpPlaylist(playlistId) {
 }
 
 // server/src/http/routes/videos.ts
-function videoRoutes({ auth, clock, trustProxy, log }) {
+var HOUR = 60 * 6e4;
+function videoRoutes({ auth, clock, trustProxy, log, limits, lookups: cache }) {
   const routes = new Hono10();
   const session = requireSession(auth, { trustProxy, clock });
-  const lookups = new RateLimiter(60, 60 * 6e4, clock);
+  const lookups = new RateLimiter("videos.lookups", 60, HOUR, clock, limits);
+  const site = new RateLimiter("videos.site", 300, HOUR, clock, limits);
+  async function kept2(key, forMs, userId, fetch2) {
+    const found = await cache.get(key, clock.now() - forMs).catch(() => null);
+    if (found) return JSON.parse(found);
+    await lookups.consume(userId);
+    await site.consume("all");
+    const fresh = await fetch2();
+    await cache.put(key, JSON.stringify(fresh), clock.now()).catch((err) => log(`videos: could not keep ${key}: ${err instanceof Error ? err.message : String(err)}`));
+    return fresh;
+  }
   routes.get("/youtube/:id", session, async (c) => {
     const id = c.req.param("id");
     if (!VIDEO_ID.test(id)) throw new ValidationError("That is not a YouTube video id.");
-    lookups.consume(c.get("session").user.id);
     let found;
     try {
-      found = await lookUpVideo(id);
+      found = await kept2(`youtube:video:${id}`, 24 * HOUR, c.get("session").user.id, () => lookUpVideo(id));
     } catch (err) {
       if (err instanceof YouTubeNotFound) throw new AppError("not_found", err.message);
+      if (err instanceof AppError) throw err;
       const why = err instanceof Error ? err.message : String(err);
       log(`videos: YouTube lookup of ${id} failed: ${why}`);
       throw new AppError(
@@ -2668,13 +2686,13 @@ function videoRoutes({ auth, clock, trustProxy, log }) {
   routes.get("/playlist/:id", session, async (c) => {
     const id = c.req.param("id");
     if (!PLAYLIST_ID.test(id)) throw new ValidationError("That is not a YouTube playlist id.");
-    lookups.consume(c.get("session").user.id);
     try {
-      const found = await lookUpPlaylist(id);
+      const found = await kept2(`youtube:playlist:${id}`, HOUR, c.get("session").user.id, () => lookUpPlaylist(id));
       c.header("Cache-Control", "private, max-age=3600");
       return c.json(found);
     } catch (err) {
       if (err instanceof YouTubeNotFound) throw new AppError("not_found", err.message);
+      if (err instanceof AppError) throw err;
       const why = err instanceof Error ? err.message : String(err);
       log(`videos: YouTube playlist ${id} failed: ${why}`);
       throw new AppError("unavailable", `YouTube would not list that playlist here (${why}).`);
@@ -2817,6 +2835,8 @@ function createHttpApp(services, options) {
   const deps = {
     ...services,
     trustProxy: options.trustProxy,
+    ipHeader: options.ipHeader ?? null,
+    tutorUsers: options.tutorUsers ? options.tutorUsers.map(usernameKey) : null,
     devUser: options.devUser ?? null,
     devUserCreate: options.devUserCreate ?? true,
     log: options.log
@@ -3098,6 +3118,25 @@ var MIGRATIONS = [
     expires_at  BIGINT,
     used_by     TEXT,
     used_at     BIGINT
+  );
+  `,
+  // Attempts per key per window — sign-ins, sign-ups, calls that cost money —
+  // kept in the database so every instance of the server counts the same.
+  `
+  CREATE TABLE rate_limits (
+    key           TEXT NOT NULL,
+    window_start  BIGINT NOT NULL,
+    count         BIGINT NOT NULL,
+    PRIMARY KEY (key, window_start)
+  );
+  CREATE INDEX rate_limits_by_window ON rate_limits (window_start);
+  `,
+  // Answers that are the same for everyone (a YouTube video's captions), kept a while.
+  `
+  CREATE TABLE lookup_cache (
+    key         TEXT PRIMARY KEY,
+    body        TEXT NOT NULL,
+    fetched_at  BIGINT NOT NULL
   );
   `
 ];
@@ -3661,6 +3700,45 @@ var PostgresInviteRepository = class {
   }
 };
 
+// server/src/infrastructure/postgres/rate-limit-store.ts
+var PostgresRateLimitStore = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async hit(key, windowStart) {
+    const { rows } = await this.db.query(
+      `INSERT INTO rate_limits (key, window_start, count) VALUES ($1, $2, 1)
+       ON CONFLICT (key, window_start) DO UPDATE SET count = rate_limits.count + 1
+       RETURNING count`,
+      [key, windowStart]
+    );
+    return Number(rows[0].count);
+  }
+  async reset(key) {
+    await this.db.query("DELETE FROM rate_limits WHERE key = $1", [key]);
+  }
+  async sweep(before) {
+    await this.db.query("DELETE FROM rate_limits WHERE window_start < $1", [before]);
+  }
+};
+
+// server/src/infrastructure/postgres/lookup-cache.ts
+var PostgresLookupCache = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async get(key, since) {
+    const { rows } = await this.db.query("SELECT body FROM lookup_cache WHERE key = $1 AND fetched_at >= $2", [key, since]);
+    return rows[0]?.body ?? null;
+  }
+  async put(key, body, at) {
+    await this.db.query(
+      "INSERT INTO lookup_cache (key, body, fetched_at) VALUES ($1, $2, $3) ON CONFLICT (key) DO UPDATE SET body = EXCLUDED.body, fetched_at = EXCLUDED.fetched_at",
+      [key, body, at]
+    );
+  }
+};
+
 // server/src/infrastructure/postgres/workspace-repository.ts
 var PostgresWorkspaceRepository = class {
   constructor(db) {
@@ -3756,7 +3834,9 @@ var postgresStores = (db) => ({
   ownTexts: new PostgresOwnTextRepository(db),
   speechAttempts: new PostgresSpeechAttemptRepository(db),
   usage: new PostgresUsageRepository(db),
-  invites: new PostgresInviteRepository(db)
+  invites: new PostgresInviteRepository(db),
+  limits: new PostgresRateLimitStore(db),
+  lookups: new PostgresLookupCache(db)
 });
 
 // server/src/vercel.ts
@@ -3778,6 +3858,7 @@ function application() {
     });
     return createHttpApp(services, {
       trustProxy: true,
+      ipHeader: "x-vercel-forwarded-for",
       staticDir: null,
       // Vercel compresses what it sends; a second pass here would only cost
       // the function time it is billed for.
@@ -3805,9 +3886,13 @@ async function asSent(request) {
   });
 }
 function failed(what, err, status) {
-  const message = err instanceof Error ? err.message : String(err);
+  const message = err instanceof Error ? err.stack ?? err.message : String(err);
   console.error(`${what}: ${message}`);
-  return Response.json({ error: { code: "internal", message: `${what}. ${message}` } }, { status });
+  return Response.json({ error: { code: status === 503 ? "unavailable" : "internal", message: `${what}. Try again in a minute.` } }, { status });
+}
+function mayInspect(request) {
+  const token = process.env.HANZI_HEALTH_TOKEN?.trim();
+  return Boolean(token) && request.headers.get("x-health-token") === token;
 }
 var vercel_default = getRequestListener(async (incoming) => {
   let request;
@@ -3818,6 +3903,7 @@ var vercel_default = getRequestListener(async (incoming) => {
   }
   const asked = new URL(request.url);
   if (asked.pathname === "/api/health") {
+    if (!mayInspect(request)) return Response.json({ ok: true });
     if (asked.searchParams.get("db") === "1") {
       const started = Date.now();
       try {

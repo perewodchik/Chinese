@@ -42,13 +42,13 @@ const mp3 = (c: Context<AppEnv>, bytes: Uint8Array) => {
  * text is read in one request, kept, and played from then on without asking
  * MiniMax again.
  */
-export function narrationRoutes({ auth, clock, trustProxy, narration }: RouteDeps) {
+export function narrationRoutes({ auth, clock, trustProxy, narration, limits }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // A text is a few dozen sentences; a page stuck in a loop would spend the learner's money.
-  const reads = new RateLimiter(200, 10 * 60_000, clock);
-  const keys = new RateLimiter(20, 10 * 60_000, clock);
-  const makes = new RateLimiter(30, 10 * 60_000, clock);
+  const reads = new RateLimiter('narration.reads', 200, 10 * 60_000, clock, limits);
+  const keys = new RateLimiter('narration.keys', 20, 10 * 60_000, clock, limits);
+  const makes = new RateLimiter('narration.makes', 30, 10 * 60_000, clock, limits);
   const user = (c: Context<AppEnv>) => c.get('session').user.id;
   const json = <T,>(c: Context<AppEnv>, body: T) => {
     c.header('Cache-Control', 'no-store');
@@ -58,7 +58,7 @@ export function narrationRoutes({ auth, clock, trustProxy, narration }: RouteDep
   routes.get('/', session, async (c) => json(c, await narration.status(user(c))));
 
   routes.put('/key', session, async (c) => {
-    keys.consume(user(c));
+    await keys.consume(user(c));
     const { key } = await readJson(c, keyRequest);
     return json(c, await narration.setKey(user(c), key));
   });
@@ -70,14 +70,14 @@ export function narrationRoutes({ auth, clock, trustProxy, narration }: RouteDep
   routes.get('/narrators', session, async (c) => json(c, { narrators: await narration.narrators(user(c)) }));
 
   routes.post('/narrators/try', session, async (c) => {
-    makes.consume(user(c));
+    await makes.consume(user(c));
     const input = await readJson(c, tryRequest);
     const { voices, failed } = await narration.tryDesigns(user(c), input);
     return json(c, { voices: voices.map((v) => ({ voiceId: v.voiceId, trial: Buffer.from(v.trial).toString('base64') })), failed });
   });
 
   routes.post('/slots/free', session, async (c) => {
-    keys.consume(user(c));
+    await keys.consume(user(c));
     return json(c, await narration.freeSlots(user(c)));
   });
 
@@ -87,7 +87,7 @@ export function narrationRoutes({ auth, clock, trustProxy, narration }: RouteDep
   });
 
   routes.post('/narrators', session, async (c) => {
-    makes.consume(user(c));
+    await makes.consume(user(c));
     const input = await readJson(c, adoptRequest);
     return json(c, { narrator: await narration.adopt(user(c), input) });
   });
@@ -103,19 +103,19 @@ export function narrationRoutes({ auth, clock, trustProxy, narration }: RouteDep
   });
 
   routes.post('/narrators/:id/preview', session, async (c) => {
-    reads.consume(user(c));
+    await reads.consume(user(c));
     const { text } = await readJson(c, previewRequest);
     return mp3(c, await narration.preview(user(c), c.req.param('id'), text));
   });
 
   routes.post('/texts', session, async (c) => {
     const input = await readJson(c, textRequest);
-    if (input.generate || input.again) reads.consume(user(c));
+    if (input.generate || input.again) await reads.consume(user(c));
     return json(c, { narration: await narration.text(user(c), input.narrator, input.lines, input) });
   });
 
   routes.post('/texts/import', session, async (c) => {
-    makes.consume(user(c));
+    await makes.consume(user(c));
     const input = await readJson(c, importRequest);
     const mp3Bytes = new Uint8Array(Buffer.from(input.mp3, 'base64'));
     return json(c, { narration: await narration.importReading(user(c), input.narrator, input.lines, { mp3: mp3Bytes, durationMs: input.durationMs, timings: input.timings }) });
@@ -137,7 +137,7 @@ export function narrationRoutes({ auth, clock, trustProxy, narration }: RouteDep
   routes.get('/own', session, async (c) => json(c, { texts: await narration.ownTexts(user(c)) }));
 
   routes.post('/own', session, async (c) => {
-    reads.consume(user(c));
+    await reads.consume(user(c));
     const input = await readJson(c, ownRequest);
     return json(c, { text: await narration.readOwn(user(c), input) });
   });

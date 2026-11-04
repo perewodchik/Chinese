@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { z } from 'zod';
 import type {
   AuthOptionsResponse,
@@ -55,16 +55,28 @@ function isLocalNetwork(ip: string): boolean {
   return /^fe[89ab]/.test(v6); // link-local
 }
 
-export function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }: RouteDeps) {
+/**
+ * A request that came through something in front of a server that was not
+ * told about one. A tunnel (ngrok, cloudflared, a port forwarded by an
+ * editor) connects from this machine, so its requests look local by their
+ * address — and would be signed in without a password, from anywhere. It
+ * says it forwarded them, though, and that is enough to refuse.
+ */
+function tunnelled(c: Context, trustProxy: boolean): boolean {
+  if (trustProxy) return false;
+  return ['x-forwarded-for', 'forwarded', 'x-real-ip', 'cf-connecting-ip', 'x-forwarded-host'].some((h) => c.req.header(h) !== undefined);
+}
+
+export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate, log, limits }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const sessionOptions = { trustProxy, clock };
   const session = requireSession(auth, sessionOptions);
 
   // Ten wrong passwords for one name from one address buys a quarter of an
   // hour's wait; a hundred attempts of any kind from one address does too.
-  const perName = new RateLimiter(10, 15 * MINUTE, clock);
-  const perAddress = new RateLimiter(100, 15 * MINUTE, clock);
-  const signUps = new RateLimiter(20, 60 * MINUTE, clock);
+  const perName = new RateLimiter('auth.perName', 10, 15 * MINUTE, clock, limits);
+  const perAddress = new RateLimiter('auth.perAddress', 100, 15 * MINUTE, clock, limits);
+  const signUps = new RateLimiter('auth.signUps', 20, 60 * MINUTE, clock, limits);
 
   routes.get('/options', (c) => {
     const body: AuthOptionsResponse = { registration: auth.registration };
@@ -79,7 +91,7 @@ export function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, lo
     // Development with HANZI_DEV_USER: nobody signed in, asked from this
     // machine or from the Wi-Fi it is on, is signed in as that account — so
     // the tablet you are testing on opens the app rather than a password box.
-    if (!active && devUser && isLocalNetwork(clientIp(c, trustProxy))) {
+    if (!active && devUser && !tunnelled(c, trustProxy) && isLocalNetwork(clientIp(c, trustProxy, ipHeader))) {
       const issued = await auth.devSignIn(devUser, c.req.header('user-agent') ?? null, devUserCreate);
       // No such account, on a database this server is not allowed to add one
       // to: the sign-in page is the honest answer, and the name is worth
@@ -96,7 +108,7 @@ export function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, lo
   });
 
   routes.post('/register', async (c) => {
-    signUps.consume(clientIp(c, trustProxy));
+    await signUps.consume(clientIp(c, trustProxy, ipHeader));
     const input = await readJson(c, registration);
     const issued = await auth.register({ ...input, userAgent: c.req.header('user-agent') ?? null });
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
@@ -106,13 +118,13 @@ export function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, lo
 
   routes.post('/login', async (c) => {
     const input = await readJson(c, credentials);
-    const ip = clientIp(c, trustProxy);
+    const ip = clientIp(c, trustProxy, ipHeader);
     const nameKey = `${ip} ${usernameKey(input.username)}`;
-    perAddress.consume(ip);
-    perName.consume(nameKey);
+    await perAddress.consume(ip);
+    await perName.consume(nameKey);
 
     const issued = await auth.login({ ...input, userAgent: c.req.header('user-agent') ?? null });
-    perName.reset(nameKey);
+    await perName.reset(nameKey);
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body: SessionResponse = { user: issued.user };
     return c.json(body);

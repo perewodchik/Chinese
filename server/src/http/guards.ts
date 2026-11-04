@@ -1,6 +1,7 @@
 import type { Context, MiddlewareHandler } from 'hono';
 import type { ActiveSession, AuthService } from '../application/auth-service';
-import type { Clock } from '../application/ports';
+import { usernameKey } from '../../../shared/credentials';
+import type { Clock, RateLimitStore, Tutor } from '../application/ports';
 import { ForbiddenOriginError, RateLimitedError, UnauthorizedError } from '../domain/errors';
 import type { AppEnv } from './env';
 import { clearSessionCookie, isHttps, readSessionToken, writeSessionCookie } from './request';
@@ -38,6 +39,15 @@ export function sameOriginOnly(): MiddlewareHandler {
   };
 }
 
+/**
+ * Claude for this account, or null: the server's subscription is for the
+ * accounts named in HANZI_TUTOR_USERS (every account when it is not set).
+ */
+export function tutorFor(tutor: Tutor | null, tutorUsers: string[] | null, user: { username: string }): Tutor | null {
+  if (!tutor) return null;
+  return !tutorUsers || tutorUsers.includes(usernameKey(user.username)) ? tutor : null;
+}
+
 interface SessionOptions {
   trustProxy: boolean;
   clock: Clock;
@@ -73,41 +83,37 @@ export function requireSession(auth: AuthService, opts: SessionOptions): Middlew
 }
 
 /**
- * Attempts per key per window, in memory.
+ * Attempts per key per window, counted in the database (`RateLimitStore`).
  *
- * In memory is enough for one process on one machine, and it forgets on a
- * restart — which is a way round it only for someone who can already restart
- * the server.
+ * In memory was enough for one process on one machine; on Vercel each request
+ * may meet a different instance and a cold one starts from nothing, so a count
+ * kept in memory stopped nobody. The windows are fixed — this minute's ten,
+ * then the next minute's — which is simpler to share than a sliding one and
+ * just as good at what it is for: a ceiling no person meets and a loop does.
+ *
+ * Each limiter has a name, so two limiters counting the same key (a user's
+ * readings and a user's keys) never share a count.
  */
 export class RateLimiter {
-  private readonly windows = new Map<string, { count: number; resetAt: number }>();
-
   constructor(
+    private readonly name: string,
     private readonly limit: number,
     private readonly windowMs: number,
     private readonly clock: Clock,
+    private readonly store: RateLimitStore,
   ) {}
 
   /** Counts one attempt against `key`, and throws once the window is used up. */
-  consume(key: string): void {
+  async consume(key: string): Promise<void> {
     const now = this.clock.now();
-    if (this.windows.size > 10_000) this.sweep(now);
-    const window = this.windows.get(key);
-    if (!window || window.resetAt <= now) {
-      this.windows.set(key, { count: 1, resetAt: now + this.windowMs });
-      return;
-    }
-    if (window.count >= this.limit) {
-      throw new RateLimitedError(Math.ceil((window.resetAt - now) / 1000));
-    }
-    window.count++;
+    const start = Math.floor(now / this.windowMs) * this.windowMs;
+    const count = await this.store.hit(`${this.name}:${key}`, start);
+    // Now and then, the windows that ended more than a day ago go.
+    if (count === 1 && Math.random() < 0.02) void this.store.sweep(now - 86_400_000).catch(() => undefined);
+    if (count > this.limit) throw new RateLimitedError(Math.max(1, Math.ceil((start + this.windowMs - now) / 1000)));
   }
 
-  reset(key: string): void {
-    this.windows.delete(key);
-  }
-
-  private sweep(now: number) {
-    for (const [key, window] of this.windows) if (window.resetAt <= now) this.windows.delete(key);
+  reset(key: string): Promise<void> {
+    return this.store.reset(`${this.name}:${key}`);
   }
 }

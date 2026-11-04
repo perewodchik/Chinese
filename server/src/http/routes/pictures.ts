@@ -11,11 +11,11 @@ import { RateLimiter, requireSession } from '../guards';
  * A key is the picture itself, so it is sent with a year-long private cache:
  * a text read every day fetches its pictures once per device.
  */
-export function pictureRoutes({ auth, clock, trustProxy, pictures }: RouteDeps) {
+export function pictureRoutes({ auth, clock, trustProxy, pictures, limits }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // A shelf illustrated at once is a few dozen pictures; a loop is thousands.
-  const uploads = new RateLimiter(300, 10 * 60_000, clock);
+  const uploads = new RateLimiter('pictures.uploads', 300, 10 * 60_000, clock, limits);
 
   routes.get('/:key', session, async (c) => {
     const { mime, bytes } = await pictures.get(c.get('session').user.id, c.req.param('key'));
@@ -26,7 +26,7 @@ export function pictureRoutes({ auth, clock, trustProxy, pictures }: RouteDeps) 
 
   routes.put('/:key', session, async (c) => {
     const user = c.get('session').user.id;
-    uploads.consume(user);
+    await uploads.consume(user);
     const mime = (c.req.header('content-type') ?? '').split(';')[0]!.trim().toLowerCase();
     const bytes = new Uint8Array(await c.req.arrayBuffer());
     await pictures.put(user, c.req.param('key'), mime, bytes);

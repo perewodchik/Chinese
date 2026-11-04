@@ -6,7 +6,10 @@ import type {
   SaveWorkspaceResponse,
   WorkspaceConflictBody,
 } from '../../shared/api';
-import { call, HOST, makeApp, sessionCookie, type TestApp } from './support';
+import { createServices } from '../src/composition';
+import { createHttpApp } from '../src/http/app';
+import { sqliteStores } from '../src/infrastructure/sqlite/stores';
+import { call, cheapHasher, HOST, makeApp, sessionCookie, type TestApp } from './support';
 
 const CREDENTIALS = { username: 'kirill', password: 'correct horse' };
 
@@ -110,6 +113,33 @@ describe('HTTP API', () => {
     assert.ok(Number(blocked.headers.get('retry-after')) > 0);
   });
 
+  it('counts the guesses in the database, so two copies of the server share the wait', async () => {
+    const { db, clock, app } = makeApp();
+    await signUp(app);
+    // A second instance on the same database, as Vercel runs many.
+    const other = createHttpApp(createServices(sqliteStores(db), { hasher: cheapHasher, clock }), { trustProxy: false, staticDir: null, log: () => undefined });
+    const wrong = { username: 'kirill', password: 'not the password' };
+    for (let i = 0; i < 10; i++) {
+      assert.equal((await call(i % 2 ? app : other, 'POST', '/api/auth/login', { body: wrong })).status, 401);
+    }
+    assert.equal((await call(other, 'POST', '/api/auth/login', { body: CREDENTIALS })).status, 429);
+    // The next window starts afresh.
+    clock.advance(15 * 60_000);
+    assert.equal((await call(other, 'POST', '/api/auth/login', { body: CREDENTIALS })).status, 200);
+  });
+
+  it('on Vercel, counts sign-ups by the address Vercel names, not one the client sent', async () => {
+    const { services } = makeApp();
+    const app = createHttpApp(services, { trustProxy: true, ipHeader: 'x-vercel-forwarded-for', staticDir: null, log: () => undefined });
+    const from = (i: number) => ({ 'x-vercel-forwarded-for': '203.0.113.7', 'x-forwarded-for': `198.51.100.${i}` });
+    for (let i = 0; i < 20; i++) {
+      const made = await call(app, 'POST', '/api/auth/register', { body: { username: `learner${i}`, password: 'correct horse' }, headers: from(i) });
+      assert.equal(made.status, 201);
+    }
+    const more = await call(app, 'POST', '/api/auth/register', { body: { username: 'learner20', password: 'correct horse' }, headers: from(20) });
+    assert.equal(more.status, 429);
+  });
+
   it('signs out, and the old cookie opens nothing', async () => {
     const { app } = makeApp();
     const cookie = await signUp(app);
@@ -178,6 +208,21 @@ describe('signing in without a password, on the development server', () => {
       assert.equal(((await res.json()) as CurrentSessionResponse).user, null, `${ip} should be refused`);
       assert.equal(res.headers.get('set-cookie'), null, `${ip} should get no cookie`);
     }
+  });
+
+  it('refuses a request that came through a tunnel, which looks local by its address', async () => {
+    const { app } = makeApp({}, { trustProxy: false, devUser: 'admin' });
+    const tunnels: Array<Record<string, string>> = [{ 'x-forwarded-for': '203.0.113.7' }, { forwarded: 'for=203.0.113.7' }, { 'cf-connecting-ip': '203.0.113.7' }];
+    for (const headers of tunnels) {
+      const res = await call(app, 'GET', '/api/auth/session', { headers });
+      assert.equal(((await res.json()) as CurrentSessionResponse).user, null, JSON.stringify(headers));
+    }
+  });
+
+  it('believes the address the proxy added, not one the client put in front of it', async () => {
+    const { app } = makeApp({}, { trustProxy: true, devUser: 'admin' });
+    const res = await call(app, 'GET', '/api/auth/session', from('127.0.0.1, 203.0.113.7'));
+    assert.equal(((await res.json()) as CurrentSessionResponse).user, null);
   });
 
   it('does nothing unless it was asked for', async () => {

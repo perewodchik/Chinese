@@ -49,6 +49,7 @@ const services = createServices(stores, {
 const api = getRequestListener(
   createHttpApp(services, {
     trustProxy: config.trustProxy,
+    tutorUsers: config.tutorUsers,
     staticDir: null,
     log: console.error,
     devUser,

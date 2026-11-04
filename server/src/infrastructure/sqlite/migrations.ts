@@ -192,4 +192,23 @@ export const MIGRATIONS: readonly string[] = [
     used_at     INTEGER
   ) STRICT;
   `,
+  // Attempts per key per window — sign-ins, sign-ups, calls that cost money —
+  // kept in the database so every instance of the server counts the same.
+  `
+  CREATE TABLE rate_limits (
+    key           TEXT NOT NULL,
+    window_start  INTEGER NOT NULL,
+    count         INTEGER NOT NULL,
+    PRIMARY KEY (key, window_start)
+  ) STRICT;
+  CREATE INDEX rate_limits_by_window ON rate_limits (window_start);
+  `,
+  // Answers that are the same for everyone (a YouTube video's captions), kept a while.
+  `
+  CREATE TABLE lookup_cache (
+    key         TEXT PRIMARY KEY,
+    body        TEXT NOT NULL,
+    fetched_at  INTEGER NOT NULL
+  ) STRICT;
+  `,
 ];

@@ -150,17 +150,33 @@ same session cookies. `api/[...path].ts` is the whole difference, and
 
    Either way there is no migration step: the schema is created on the first
    request.
-3. Deploy, open the site, and **register your account**.
-4. **Then close registration**: Settings › Environment Variables,
-   `HANZI_REGISTRATION` = `closed`, and redeploy. Until you do, anyone who
-   finds the address can make an account on it. At home on the Wi-Fi that did
-   not matter; on a public address it does.
+3. Deploy. On Vercel a new account needs an **invitation**
+   (`HANZI_REGISTRATION` is `invite` unless you set it to `open` or `closed`),
+   so anyone who finds the address cannot simply make one. With
+   `POSTGRES_URL` in `.env`, make one from this machine:
 
-`/api/health` says whether the function is running; `/api/health?db=1`
-connects, migrates and runs a query, and says how long that took or exactly why
-it could not. The two are separate on purpose: a visit with no cookie is
-answered without touching Postgres, so without the second one the first thing
-to find the database unreachable is somebody trying to sign in.
+   ```bash
+   npm run admin -- invite Masha            # good for 14 days; --days 0 for no end
+   npm run admin -- invites                 # who has used theirs
+   ```
+
+   It prints a code and a link (`/register?invite=…`) that arrives with the
+   code typed in. Only the code's digest is kept, so a lost code is made
+   again rather than looked up. Your own first account is made the same way,
+   or with `npm run admin -- add-user <name>`.
+
+`/api/health` says only that the function is running. With
+`HANZI_HEALTH_TOKEN` set on the project and sent as `x-health-token`, it also
+says which variable names the database and the Node version, and
+`/api/health?db=1` connects, migrates and runs a query, and says how long that
+took or exactly why it could not. The two are separate on purpose: a visit
+with no cookie is answered without touching Postgres, so without the second
+one the first thing to find the database unreachable is somebody trying to
+sign in. Without the token none of that is shown, to anyone:
+
+```bash
+curl -H "x-health-token: $HANZI_HEALTH_TOKEN" "https://<site>/api/health?db=1"
+```
 
 `PGSSLNOVERIFY=1` is the way out if you land on a Postgres whose certificate
 does not verify. Neon's and Supabase's both do, so you should not need it.

@@ -12,6 +12,8 @@ import { PostgresSessionRepository } from './session-repository';
 import { PostgresUserRepository } from './user-repository';
 import { PostgresUsageRepository } from './usage-repository';
 import { PostgresInviteRepository } from './invite-repository';
+import { PostgresRateLimitStore } from './rate-limit-store';
+import { PostgresLookupCache } from './lookup-cache';
 import { PostgresWorkspaceRepository } from './workspace-repository';
 import { PostgresWorldSaveRepository } from './world-save-repository';
 
@@ -31,4 +33,6 @@ export const postgresStores = (db: pg.Pool): Stores => ({
   speechAttempts: new PostgresSpeechAttemptRepository(db),
   usage: new PostgresUsageRepository(db),
   invites: new PostgresInviteRepository(db),
+  limits: new PostgresRateLimitStore(db),
+  lookups: new PostgresLookupCache(db),
 });

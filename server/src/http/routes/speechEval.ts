@@ -37,12 +37,12 @@ const evalRequest = z.object({
 });
 
 /** Phrases scored by SpeechSuper or iFlytek with the learner's own keys (see shared/speechEval.ts for the routes). */
-export function speechEvalRoutes({ auth, clock, trustProxy, speechEval }: RouteDeps) {
+export function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // A phrase is said a few times a minute; a page in a loop would spend the learner's allowance.
-  const scores = new RateLimiter(200, 10 * 60_000, clock);
-  const keys = new RateLimiter(20, 10 * 60_000, clock);
+  const scores = new RateLimiter('speechEval.scores', 200, 10 * 60_000, clock, limits);
+  const keys = new RateLimiter('speechEval.keys', 20, 10 * 60_000, clock, limits);
   const user = (c: Context<AppEnv>) => c.get('session').user.id;
   const json = <T,>(c: Context<AppEnv>, body: T) => {
     c.header('Cache-Control', 'no-store');
@@ -52,7 +52,7 @@ export function speechEvalRoutes({ auth, clock, trustProxy, speechEval }: RouteD
   routes.get('/', session, async (c) => json(c, await speechEval.status(user(c))));
 
   routes.put('/key', session, async (c) => {
-    keys.consume(user(c));
+    await keys.consume(user(c));
     return json(c, await speechEval.setKeys(user(c), await readJson(c, keysRequest)));
   });
 
@@ -80,7 +80,7 @@ export function speechEvalRoutes({ auth, clock, trustProxy, speechEval }: RouteD
   });
 
   routes.post('/', session, async (c) => {
-    scores.consume(user(c));
+    await scores.consume(user(c));
     return json(c, { result: await speechEval.evaluate(user(c), await readJson(c, evalRequest)) });
   });
 

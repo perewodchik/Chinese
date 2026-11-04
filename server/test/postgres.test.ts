@@ -173,4 +173,22 @@ describe('Postgres storage', () => {
     await stores.invites.release('d1', 'u1');
     assert.deepEqual((await stores.invites.list())[0], { digest: 'd1', note: 'Masha', createdAt: T, expiresAt: T + 1000, usedBy: null, usedAt: null });
   });
+
+  it('counts attempts per key per window in one statement, and forgets a key or an old window', async () => {
+    assert.equal(await stores.limits.hit('auth.perName:x', T), 1);
+    assert.equal(await stores.limits.hit('auth.perName:x', T), 2);
+    assert.equal(await stores.limits.hit('auth.perName:x', T + 60_000), 1);
+    await stores.limits.reset('auth.perName:x');
+    assert.equal(await stores.limits.hit('auth.perName:x', T), 1);
+    await stores.limits.sweep(T + 1);
+    assert.equal(await stores.limits.hit('auth.perName:x', T), 1);
+  });
+
+  it('keeps an answer the same for everyone, and gives it back only while it is fresh enough', async () => {
+    await stores.lookups.put('youtube:video:x', '{"a":1}', T);
+    await stores.lookups.put('youtube:video:x', '{"a":2}', T + 10);
+    assert.equal(await stores.lookups.get('youtube:video:x', T), '{"a":2}');
+    assert.equal(await stores.lookups.get('youtube:video:x', T + 11), null);
+    assert.equal(await stores.lookups.get('youtube:video:y', 0), null);
+  });
 });

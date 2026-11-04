@@ -379,3 +379,27 @@ export interface UsageRepository {
   since(userId: string, fromDay: string): Promise<UsageRow[]>;
 }
 
+/**
+ * Counts of attempts per key per fixed window, kept where every copy of the
+ * server sees them: on Vercel each request may meet a different instance,
+ * and a count kept in one instance's memory stopped nobody.
+ */
+export interface RateLimitStore {
+  /** Counts one attempt for `key` in the window starting at `windowStart`, and says how many there have been. */
+  hit(key: string, windowStart: number): Promise<number>;
+  /** Forgets the key's counts, as a good sign-in does for that name. */
+  reset(key: string): Promise<void>;
+  /** Drops windows that ended before `before`. */
+  sweep(before: number): Promise<void>;
+}
+
+/**
+ * Answers from outside services that are the same for everyone who asks —
+ * a YouTube video's title and captions — kept for a while, so the second
+ * learner to add a video does not ask YouTube again.
+ */
+export interface LookupCache {
+  /** The answer kept under `key`, if it was fetched at or after `since`. */
+  get(key: string, since: number): Promise<string | null>;
+  put(key: string, body: string, at: number): Promise<void>;
+}

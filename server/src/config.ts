@@ -15,6 +15,8 @@ export interface ServerConfig {
   registration: 'open' | 'closed' | 'invite';
   /** believe X-Forwarded-For and -Proto — only true behind a reverse proxy you run yourself */
   trustProxy: boolean;
+  /** the accounts that may ask Claude on this server's subscription; null for every one */
+  tutorUsers: string[] | null;
 }
 
 /**
@@ -28,6 +30,7 @@ export interface ServerConfig {
  *   HANZI_STATIC_DIR     dist
  *   HANZI_REGISTRATION   open | closed | invite (open at home, invite on Vercel)
  *   HANZI_TRUST_PROXY    1 behind a reverse proxy
+ *   HANZI_TUTOR_USERS    who may ask Claude here, by name (admin,masha); everyone when unset
  *
  * A server here runs on the same Postgres the deployed site runs on as soon as
  * it is given the connection string, so the development server and the site
@@ -49,6 +52,7 @@ export function loadConfig(
     staticDir: defaults.serveStatic ? resolve(cwd, env.HANZI_STATIC_DIR || 'dist') : null,
     registration: registrationFrom(env.HANZI_REGISTRATION, 'open'),
     trustProxy: env.HANZI_TRUST_PROXY === '1' || env.HANZI_TRUST_PROXY === 'true',
+    tutorUsers: env.HANZI_TUTOR_USERS?.trim() ? env.HANZI_TUTOR_USERS.split(',').map((n) => n.trim()).filter(Boolean) : null,
   };
 }
 

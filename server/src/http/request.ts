@@ -20,8 +20,20 @@ export function isHttps(c: Context, trustProxy: boolean): boolean {
   return (forwarded ?? new URL(c.req.url).protocol.replace(':', '')) === 'https';
 }
 
-export function clientIp(c: Context, trustProxy: boolean): string {
-  const forwarded = trustProxy ? c.req.header('x-forwarded-for')?.split(',')[0]?.trim() : undefined;
+/**
+ * Where a request came from, for the limits counted per address.
+ *
+ * Behind a proxy of our own, the last X-Forwarded-For: the address the proxy
+ * itself added. The ones before it are whatever the client sent, and a client
+ * can send `127.0.0.1`. On Vercel, the
+ * header Vercel itself sets (`ipHeader`, x-vercel-forwarded-for): a header a
+ * client sent is not something Vercel vouches for, and an address a guesser
+ * can choose is no limit at all.
+ */
+export function clientIp(c: Context, trustProxy: boolean, ipHeader: string | null = null): string {
+  const named = trustProxy && ipHeader ? c.req.header(ipHeader)?.split(',')[0]?.trim() : undefined;
+  if (named) return named;
+  const forwarded = trustProxy ? c.req.header('x-forwarded-for')?.split(',').at(-1)?.trim() : undefined;
   if (forwarded) return forwarded;
   try {
     return getConnInfo(c).remote.address ?? 'unknown';

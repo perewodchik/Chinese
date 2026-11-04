@@ -40,6 +40,7 @@ const services = createServices(stores, {
 });
 const app = createHttpApp(services, {
   trustProxy: config.trustProxy,
+  tutorUsers: config.tutorUsers,
   staticDir,
   log: (line) => console.error(line),
 });

@@ -59,6 +59,7 @@ function application(): Promise<App> {
     });
     return createHttpApp(services, {
       trustProxy: true,
+      ipHeader: 'x-vercel-forwarded-for',
       staticDir: null,
       // Vercel compresses what it sends; a second pass here would only cost
       // the function time it is billed for.
@@ -97,10 +98,24 @@ async function asSent(request: Request): Promise<Request> {
   });
 }
 
+/**
+ * A failure outside the app, said plainly to the page and in full to the log.
+ * The error's own words (a Postgres host, a connection string's user) are for
+ * whoever reads the function's logs, not for anyone who can send a request.
+ */
 function failed(what: string, err: unknown, status: number): Response {
-  const message = err instanceof Error ? err.message : String(err);
+  const message = err instanceof Error ? (err.stack ?? err.message) : String(err);
   console.error(`${what}: ${message}`);
-  return Response.json({ error: { code: 'internal', message: `${what}. ${message}` } }, { status });
+  return Response.json({ error: { code: status === 503 ? 'unavailable' : 'internal', message: `${what}. Try again in a minute.` } }, { status });
+}
+
+/**
+ * Whether a request may see how the function is set up: only with the token
+ * from HANZI_HEALTH_TOKEN, sent as x-health-token. Without one set, nobody may.
+ */
+function mayInspect(request: Request): boolean {
+  const token = process.env.HANZI_HEALTH_TOKEN?.trim();
+  return Boolean(token) && request.headers.get('x-health-token') === token;
 }
 
 export default getRequestListener(async (incoming: Request): Promise<Response> => {
@@ -117,6 +132,10 @@ export default getRequestListener(async (incoming: Request): Promise<Response> =
   // /api/auth/session is the one to ask about the database.
   const asked = new URL(request.url);
   if (asked.pathname === '/api/health') {
+    // To anyone, only that the function runs: the rest (which variable names
+    // the database, the Node version, whether Postgres answers and what it
+    // said when it did not) is for whoever holds HANZI_HEALTH_TOKEN.
+    if (!mayInspect(request)) return Response.json({ ok: true });
     // ?db=1 asks the harder question. A visit with no cookie never reaches
     // Postgres — the session is answered from the absence of the cookie — so
     // without this the first thing to touch the database is somebody trying to

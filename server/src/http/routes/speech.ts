@@ -17,12 +17,12 @@ export const SPEECH_MAX_CHARS = 240;
  * per device, and the free tier's characters go on new words, not old ones.
  * Private, because the answer is only for somebody signed in.
  */
-export function speechRoutes({ auth, clock, trustProxy, speech }: RouteDeps) {
+export function speechRoutes({ auth, clock, trustProxy, speech, limits }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // A generous ceiling that no person reading and repeating will meet, and a
   // runaway loop in the page will, before it spends the month's characters.
-  const limiter = new RateLimiter(300, 10 * 60_000, clock);
+  const limiter = new RateLimiter('speech.limiter', 300, 10 * 60_000, clock, limits);
 
   routes.get('/', session, (c) => {
     c.header('Cache-Control', 'no-store');
@@ -40,7 +40,7 @@ export function speechRoutes({ auth, clock, trustProxy, speech }: RouteDeps) {
     if ([...text].length > SPEECH_MAX_CHARS) throw new ValidationError(`At most ${SPEECH_MAX_CHARS} characters at a time.`);
     if (!speech.voices.some((v) => v.id === voice)) throw new ValidationError(`There is no voice called ${voice}.`);
 
-    limiter.consume(c.get('session').user.id);
+    await limiter.consume(c.get('session').user.id);
     let audio: Uint8Array;
     try {
       audio = await speech.synthesize(text, voice, slow);

@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { compress } from 'hono/compress';
 import { secureHeaders } from 'hono/secure-headers';
+import { usernameKey } from '../../../shared/credentials';
 import type { Services } from '../composition';
 import { NotFoundError } from '../domain/errors';
 import type { AppEnv } from './env';
@@ -22,6 +23,14 @@ import { staticSite } from './static-site';
 
 export interface HttpOptions {
   trustProxy: boolean;
+  /** the header the host sets with the client's address, when there is one (x-vercel-forwarded-for on Vercel) */
+  ipHeader?: string | null;
+  /**
+   * The accounts that may ask Claude, by name: it runs on the subscription of
+   * whoever runs the server, so a learner who signed up is not given it by
+   * default. Left out, every account may (one learner's own server).
+   */
+  tutorUsers?: string[] | null;
   /** the built app, or null when Vite is serving it */
   staticDir: string | null;
   /** false where something in front already compresses, as a CDN does */
@@ -50,6 +59,8 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   const deps = {
     ...services,
     trustProxy: options.trustProxy,
+    ipHeader: options.ipHeader ?? null,
+    tutorUsers: options.tutorUsers ? options.tutorUsers.map(usernameKey) : null,
     devUser: options.devUser ?? null,
     devUserCreate: options.devUserCreate ?? true,
     log: options.log,

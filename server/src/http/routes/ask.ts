@@ -11,7 +11,7 @@ import {
 } from '../../../../shared/ask';
 import { TutorUnavailableError } from '../../domain/errors';
 import type { AppEnv, RouteDeps } from '../env';
-import { RateLimiter, requireSession } from '../guards';
+import { RateLimiter, requireSession, tutorFor } from '../guards';
 import { readJson } from '../request';
 
 const askRequest = z.object({
@@ -33,18 +33,19 @@ const askRequest = z.object({
  * schema, no voices — one prompt written by a page in this app, and the reply
  * dropped into the box that was waiting for a paste.
  */
-export function askRoutes({ auth, clock, trustProxy, tutor }: RouteDeps) {
+export function askRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, limits }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // A session or a word list is minutes of Claude's time. A handful an hour is
   // a day's work; a page in a loop is stopped before it spends the allowance.
-  const asks = new RateLimiter(20, 60 * 60_000, clock);
+  const asks = new RateLimiter('ask.asks', 20, 60 * 60_000, clock, limits);
   // Checking an answer is seconds of Claude's time, and a reader working
   // through a session asks a dozen of them; it gets its own, larger allowance.
-  const checks = new RateLimiter(120, 60 * 60_000, clock);
+  const checks = new RateLimiter('ask.checks', 120, 60 * 60_000, clock, limits);
 
   routes.get('/', session, async (c) => {
     c.header('Cache-Control', 'no-store');
+    const tutor = tutorFor(anyTutor, tutorUsers, c.get('session').user);
     const body: AskStatusResponse = { claude: { state: tutor ? await tutor.status() : 'missing' } };
     return c.json(body);
   });
@@ -57,7 +58,8 @@ export function askRoutes({ auth, clock, trustProxy, tutor }: RouteDeps) {
   const KEEP_MS = 60 * 60_000;
 
   routes.post('/', session, async (c) => {
-    if (!tutor) throw new TutorUnavailableError('Claude Code is not installed on this server.');
+    const tutor = tutorFor(anyTutor, tutorUsers, c.get('session').user);
+    if (!tutor) throw new TutorUnavailableError('Claude is not available to this account.');
     const input = await readJson(c, askRequest);
     const user = c.get('session').user.id;
     const run = () => tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind as AskKind] });
@@ -68,7 +70,7 @@ export function askRoutes({ auth, clock, trustProxy, tutor }: RouteDeps) {
       for (const [k, v] of kept) if (now - v.at > KEEP_MS) kept.delete(k);
       let entry = kept.get(key);
       if (!entry) {
-        asks.consume(user);
+        await asks.consume(user);
         entry = { at: now, answer: run() };
         kept.set(key, entry);
         // A failed run is not kept: asking again should try again.
@@ -76,7 +78,7 @@ export function askRoutes({ auth, clock, trustProxy, tutor }: RouteDeps) {
       }
       text = await entry.answer;
     } else {
-      (input.kind === 'check' ? checks : asks).consume(user);
+      await (input.kind === 'check' ? checks : asks).consume(user);
       text = await run();
     }
     const body: AskAnswer = { text };

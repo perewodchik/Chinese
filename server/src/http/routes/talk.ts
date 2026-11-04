@@ -19,7 +19,7 @@ import {
 } from '../../../../shared/talk';
 import { AppError, TutorUnavailableError, ValidationError } from '../../domain/errors';
 import type { AppEnv, RouteDeps } from '../env';
-import { RateLimiter, requireSession } from '../guards';
+import { RateLimiter, requireSession, tutorFor } from '../guards';
 import { readJson } from '../request';
 import { SPEECH_MAX_CHARS } from './speech';
 
@@ -104,30 +104,31 @@ const replyRequest = z.object({
  * several seconds it takes are spent while the learner is still reading the
  * page rather than after their first sentence.
  */
-export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations, recordings }: RouteDeps) {
+export function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, talkVoices, conversations, recordings, limits }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // Far more than anyone talking will reach, and a stop to a page stuck in a loop
   // before it spends the subscription's allowance.
-  const turns = new RateLimiter(120, 10 * 60_000, clock);
-  const clips = new RateLimiter(600, 10 * 60_000, clock);
+  const turns = new RateLimiter('talk.turns', 120, 10 * 60_000, clock, limits);
+  const clips = new RateLimiter('talk.clips', 600, 10 * 60_000, clock, limits);
   // A save a turn, with room to spare for a page that retries.
-  const saves = new RateLimiter(400, 10 * 60_000, clock);
+  const saves = new RateLimiter('talk.saves', 400, 10 * 60_000, clock, limits);
 
   routes.get('/', session, async (c) => {
     c.header('Cache-Control', 'no-store');
     talkVoices?.warm?.(c.req.query('voice'));
     const body: TalkStatusResponse = {
-      claude: { state: tutor ? await tutor.status() : 'missing' },
+      claude: { state: tutorFor(anyTutor, tutorUsers, c.get('session').user) ? await anyTutor!.status() : 'missing' },
       voices: await recordings.voices(),
     };
     return c.json(body);
   });
 
   routes.post('/reply', session, async (c) => {
-    if (!tutor) throw new TutorUnavailableError('Claude Code is not installed on this server.');
+    const tutor = tutorFor(anyTutor, tutorUsers, c.get('session').user);
+    if (!tutor) throw new TutorUnavailableError('Claude is not available to this account.');
     const input = await readJson(c, replyRequest);
-    turns.consume(c.get('session').user.id);
+    await turns.consume(c.get('session').user.id);
     const reply: TalkReply = await tutor.reply({
       lines: input.lines,
       options: input.options as TalkOptions,
@@ -146,7 +147,7 @@ export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, convers
     if (!text) throw new ValidationError('Nothing to say.');
     if ([...text].length > SPEECH_MAX_CHARS) throw new ValidationError(`At most ${SPEECH_MAX_CHARS} characters at a time.`);
 
-    clips.consume(c.get('session').user.id);
+    await clips.consume(c.get('session').user.id);
     // A sentence of a text is kept as it is read, for the website to play;
     // a turn of a conversation is never asked for twice.
     const audio = await recordings.read(text, voice, mode, c.req.query('keep') === '1');
@@ -171,7 +172,7 @@ export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, convers
 
   routes.post('/conversations', session, async (c) => {
     const input = await readJson(c, startRequest);
-    saves.consume(c.get('session').user.id);
+    await saves.consume(c.get('session').user.id);
     const made = await conversations.start(c.get('session').user.id, input.options as TalkOptions, input.voice);
     c.header('Cache-Control', 'no-store');
     return c.json(made, 201);
@@ -184,7 +185,7 @@ export function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, convers
 
   routes.put('/conversations/:id', session, async (c) => {
     const input = await readJson(c, saveRequest);
-    saves.consume(c.get('session').user.id);
+    await saves.consume(c.get('session').user.id);
     const saved = await conversations.save(c.get('session').user.id, c.req.param('id'), {
       options: input.options as TalkOptions,
       voice: input.voice,

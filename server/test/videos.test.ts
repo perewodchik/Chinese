@@ -15,3 +15,30 @@ describe('YouTube timed text', () => {
     ]);
   });
 });
+
+describe('a video looked up once is kept for everyone', () => {
+  it('answers from what was kept, without asking YouTube or counting a lookup', async () => {
+    const { makeApp, call, sessionCookie } = await import('./support');
+    const { app, services } = makeApp();
+    const cookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: 'correct horse' } }));
+    const id = 'dQw4w9WgXcQ';
+    const kept = { id, title: '小猫', seconds: 60, lines: [] };
+    await services.lookups.put(`youtube:video:${id}`, JSON.stringify(kept), services.clock.now());
+    const real = globalThis.fetch;
+    let asked = 0;
+    globalThis.fetch = (async () => {
+      asked++;
+      throw new Error('YouTube must not be asked');
+    }) as typeof fetch;
+    try {
+      for (let i = 0; i < 70; i++) {
+        const res = await call(app, 'GET', `/api/videos/youtube/${id}`, { cookie });
+        assert.equal(res.status, 200);
+      }
+      assert.deepEqual(await (await call(app, 'GET', `/api/videos/youtube/${id}`, { cookie })).json(), kept);
+      assert.equal(asked, 0);
+    } finally {
+      globalThis.fetch = real;
+    }
+  });
+});
