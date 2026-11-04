@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { EvalResult, SyllableEval } from '../../../shared/speechEval';
-import { charScore, noteOf, partsOf, verdictOf } from '../../domain/phrases';
+import { charScore, heardTag, noteOf, partsOf } from '../../domain/phrases';
 import { parseSyllable } from '../../domain/pinyin/syllable';
 import { isHanzi } from '../../domain/text';
 import { playSamples } from '../../platform/audio/voiceOut';
@@ -24,18 +24,44 @@ function paceOf(r: EvalResult): string {
   return parts.length ? parts.join(' · ') + '.' : '';
 }
 
-/** What was wrong, as short as a tag under a character: zh→z, tone 2→1, not heard. */
-function tagOf(s: SyllableEval): string {
-  if (s.said === 'missed') return 'not heard';
-  const p = partsOf(s.symbol);
-  const want = s.sandhi ?? p.tone;
-  if (s.initial && p.initial) return s.initialLike ? `${p.initial}→${s.initialLike}` : p.initial;
-  if (s.final) return s.finalLike ? `${p.final}→${s.finalLike}` : p.final;
-  if (s.tone) return s.heardTone && s.heardTone !== want ? `tone ${want}→${s.heardTone}` : `tone ${want}`;
-  if (s.extraBefore) return 'extra before';
-  const n = charScore(s);
-  return n !== undefined && n < 75 ? 'nearly' : '';
+/**
+ * A character's initial, final and tone as the service heard them, and
+ * nothing of the app's own: each part, its number, and what it sounded like
+ * when that was something else (q → j, tone 2 → 1); a syllable not heard says
+ * so; a pause after it is marked. Without numbers (iFlytek) a part is right
+ * or wrong.
+ */
+function CharParts({ syl }: { syl: SyllableEval }) {
+  if (syl.said === 'missed') return <p className="ph-char-missed">not heard</p>;
+  const p = partsOf(syl.symbol);
+  const want = syl.sandhi ?? p.tone;
+  const rows: Array<{ name: string; said: string; like?: string; n?: number; wrong: boolean }> = [
+    ...(p.initial ? [{ name: 'Initial', said: p.initial, like: syl.initialLike, n: syl.initialScore, wrong: syl.initial }] : []),
+    { name: 'Final', said: p.final, like: syl.finalLike, n: syl.finalScore, wrong: syl.final },
+    { name: 'Tone', said: String(want), like: syl.tone && syl.heardTone && syl.heardTone !== want ? String(syl.heardTone) : undefined, n: syl.toneScore, wrong: syl.tone },
+  ];
+  return (
+    <dl className="ph-char-parts">
+      {rows.map((r) => (
+        <div key={r.name} className="ph-char-part" data-band={r.n !== undefined ? band(r.n) : r.wrong ? 'low' : 'good'}>
+          <dt>{r.name}</dt>
+          <dd className="ph-char-said">
+            {r.said}
+            {r.like && (
+              <>
+                {' '}
+                <span aria-label="sounded like">→</span> <b>{r.like}</b>
+              </>
+            )}
+          </dd>
+          <dd className="ph-char-n">{r.n !== undefined ? Math.round(r.n) : <Icon name={r.wrong ? 'close' : 'check'} size={14} />}</dd>
+        </div>
+      ))}
+      {syl.pause && <div className="ph-char-pause">pause after</div>}
+    </dl>
+  );
 }
+
 
 /** A pinyin with its wrong part in red: the initial, the final, or (for the tone) the whole final underlined. */
 function MarkedPinyin({ py, syl }: { py: string; syl: SyllableEval }) {
@@ -113,7 +139,6 @@ export function ScoredLine({
     });
   }, [zh, readings, result]);
 
-  const verdict = result ? verdictOf(result) : null;
   // Each character with the punctuation after it, so a full stop never starts a line alone.
   const groups = tiles.reduce<number[][]>((out, t, i) => {
     if (!t.py && out.length) out[out.length - 1]!.push(i);
@@ -209,7 +234,7 @@ export function ScoredLine({
                   >
                     {marks && syl ? <MarkedPinyin py={t.py} syl={syl} /> : <span className="ph-tile-py">{t.py}</span>}
                     <span className="ph-tile-zh hanzi">{t.char}</span>
-                    {marks && <span className="ph-tile-tag">{syl ? tagOf(syl) : ''}</span>}
+                    {marks && <span className="ph-tile-tag">{syl ? heardTag(syl).replace(/ → /g, '→') : ''}</span>}
                   </button>
                 );
               })}
@@ -227,7 +252,7 @@ export function ScoredLine({
             </span>
           </div>
         )}
-        {result && verdict && (
+        {result && (
           <section className="ph-sum" data-dim={scoring || undefined}>
             {scoring && (
               <span className="ph-sum-busy" role="status">
@@ -238,7 +263,6 @@ export function ScoredLine({
               {Math.round(result.total)}
             </button>
             <span className="ph-sum-text">
-              <b>{verdict.headline}</b>
               <span className="ph-sum-parts">
                 {parts.map(([name, v]) => (
                   <span key={name} data-band={band(v)}>
@@ -278,36 +302,7 @@ export function ScoredLine({
                       {n !== undefined ? Math.round(n) : note.band === 'good' ? 'Right' : 'Fix'}
                     </span>
                   </header>
-                  {syl.said !== 'missed' && syl.toneScore !== undefined && (
-                    <div className="ph-char-parts">
-                      {(
-                        [
-                          ['Initial', syl.initialScore],
-                          ['Final', syl.finalScore],
-                          ['Tone', syl.toneScore],
-                        ] as const
-                      )
-                        .filter(([, v]) => v !== undefined)
-                        .map(([name, v]) => (
-                          <span key={name} className="ph-char-part" data-band={band(v!)}>
-                            {name} <b>{Math.round(v!)}</b>
-                          </span>
-                        ))}
-                    </div>
-                  )}
-                  {note.faults.length ? (
-                    <div className="ph-char-notes">
-                      {/* What the service found, and nothing more: no advice of the app's own. */}
-                      {note.faults.map((f) => (
-                        <div key={f.kind} className="ph-char-note">
-                          <b>{f.title}</b>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="small ph-char-good">Said well{syl.sandhi ? ', with its tone changed here as it should be' : ''}.</p>
-                  )}
-                  {syl.pause && <p className="tiny muted ph-char-pause">You paused after it.</p>}
+                  <CharParts syl={syl} />
                 </article>
               );
             })}

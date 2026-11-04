@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { NarratorDto } from '../../../shared/narration';
-import type { EvalResult } from '../../../shared/speechEval';
+import type { EvalResult, SyllableEval } from '../../../shared/speechEval';
 import { evaluatePhrase } from '../../api/speechEval';
-import { attemptOf, charScore, noteOf, numbered } from '../../domain/phrases';
+import { attemptOf, heardTag, noteOf, numbered } from '../../domain/phrases';
 import { matchSyllables, tagOf, type Fix } from '../../domain/speak';
 import { heardAnything } from '../../platform/audio/mic';
 import { hush, playSamples, unlockAudio } from '../../platform/audio/voiceOut';
@@ -166,16 +166,10 @@ export function FixSheet({
               <b data-band={band(result.total)} className="sk-num">
                 {Math.round(result.total)}
               </b>{' '}
-              {right ? 'Right — every sound and tone. Back to the line and say it whole.' : worstOf(result)}
+              {right ? '' : heardOf(result.syllables)}
             </p>
           ) : (
-            <ul className="sk-practise-faults">
-              {fix.faults.map((f) => (
-                <li key={f.kind}>
-                  <b className="small">{f.title}</b>
-                </li>
-              ))}
-            </ul>
+            <p className="small sk-practise-faults">{heardOf(fix.chars.flatMap((c) => (c.syl ? [c.syl] : [])))}</p>
           )}
           {scores.length > 1 && <p className="tiny muted">Your tries: {scores.join(' · ')}</p>}
           {note && (
@@ -194,9 +188,11 @@ export function FixSheet({
   );
 }
 
-/** What to change still, from the worst syllable of the try. */
-function worstOf(r: EvalResult): string {
-  const worst = [...r.syllables].sort((a, b) => (charScore(a) ?? 100) - (charScore(b) ?? 100))[0];
-  const f = worst ? noteOf(worst).faults[0] : undefined;
-  return f ? `${worst!.char}: ${f.title}.` : 'Nearly: once more.';
+/** What the service heard wrong, character by character, in its own terms (zh → z, tone 2 → 1): nothing of the app's own. */
+function heardOf(syls: SyllableEval[]): string {
+  return syls
+    .map((s) => [s.char, heardTag(s)] as const)
+    .filter(([, t]) => t)
+    .map(([c, t]) => `${c} ${t}`)
+    .join(' · ');
 }

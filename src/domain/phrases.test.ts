@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { EvalResult, SyllableEval } from '../../shared/speechEval';
-import { attemptOf, faultsOf, marked, noteOf, numbered, partsOf, troubles, verdictOf } from './phrases';
+import { attemptOf, faultsOf, heardTag, marked, noteOf, numbered, partsOf, troubles, verdictOf } from './phrases';
 
 const syl = (char: string, symbol: string, o: Partial<SyllableEval> = {}): SyllableEval => ({ char, symbol, said: 'ok', initial: false, final: false, tone: false, from: 0, to: 0, ...o });
 
@@ -38,6 +38,14 @@ describe('phrases said and scored', () => {
     assert.equal(nearly.band, 'mid');
     assert.deepEqual(nearly.faults.map((f) => f.title), ['Tone a little off (68)']);
     assert.equal(noteOf(syl('走', 'zou3', { said: 'missed', score: 0 })).band, 'low');
+  });
+
+  it('says what the service heard wrong in its own terms, and nothing when it was green', () => {
+    assert.equal(heardTag(syl('皮', 'pi2', { initial: true, initialLike: 'j', score: 9, initialScore: 9, finalScore: 100, toneScore: 100 })), 'p → j');
+    assert.equal(heardTag(syl('一', 'yi1', { tone: true, sandhi: 4, heardTone: 1 })), 'tone 4 → 1');
+    assert.equal(heardTag(syl('走', 'zou3', { said: 'missed' })), 'not heard');
+    assert.equal(heardTag(syl('卡', 'ka3', { score: 70, toneScore: 68, initialScore: 90, finalScore: 80 })), 'tone 3 68');
+    assert.equal(heardTag(syl('小', 'xiao3', { score: 95, toneScore: 95, initialScore: 100, finalScore: 96 })), '');
   });
 
   it('numbers each character’s reading for the service, or gives none when one is unknown', () => {

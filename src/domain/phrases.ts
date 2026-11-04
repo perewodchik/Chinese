@@ -231,6 +231,33 @@ export function noteOf(s: SyllableEval): CharNote {
   return { band: bandOf(score), faults: short };
 }
 
+/**
+ * What the service heard wrong in a syllable, in its own terms and nothing
+ * more: the part and what it sounded like (zh → z), the tone wanted and the
+ * tone heard (tone 2 → 1), not heard; for one with nothing marked but under
+ * green, its lowest part and number (tone 68). Empty when it was green.
+ */
+export function heardTag(s: SyllableEval): string {
+  if (s.said === 'missed') return 'not heard';
+  const p = partsOf(s.symbol);
+  const want = s.sandhi ?? p.tone;
+  const out: string[] = [];
+  if (s.initial && p.initial) out.push(s.initialLike ? `${p.initial} → ${s.initialLike}` : p.initial);
+  if (s.final) out.push(s.finalLike ? `${p.final} → ${s.finalLike}` : p.final);
+  if (s.tone) out.push(s.heardTone && s.heardTone !== want ? `tone ${want} → ${s.heardTone}` : `tone ${want}`);
+  if (s.extraBefore) out.push('extra before');
+  if (out.length) return out.join(' · ');
+  const n = charScore(s);
+  if (n === undefined || n >= GREEN) return '';
+  const parts: Array<[string, number | undefined]> = [
+    [p.initial, s.initialScore],
+    [p.final, s.finalScore],
+    [`tone ${want}`, s.toneScore],
+  ];
+  const low = parts.filter(([name, v]) => name && v !== undefined).sort((a, b) => a[1]! - b[1]!)[0];
+  return low ? `${low[0]} ${Math.round(low[1]!)}` : '';
+}
+
 /** The phrase's one line of verdict: what let it down, or that it was good. */
 export function verdictOf(r: EvalResult): { headline: string; detail: string } {
   if (r.rejected) return { headline: 'That did not sound like the phrase', detail: 'Hear it once more, then say all of it, from the first word to the last.' };

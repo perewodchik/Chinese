@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import type { EvalResult, SyllableEval } from '../../../shared/speechEval';
 import { attemptResult, evaluatePhrase } from '../../api/speechEval';
-import { charScore, noteOf, numbered, attemptOf, verdictOf, type Attempt } from '../../domain/phrases';
+import { charScore, heardTag, noteOf, numbered, attemptOf, verdictOf, type Attempt } from '../../domain/phrases';
 import { parseSyllable } from '../../domain/pinyin/syllable';
 import { alignPinyin, tokenize, wordBands } from '../../domain/reading';
 import { fixesOf, matchSyllables, pausesOf, tagOf, type Fix } from '../../domain/speak';
@@ -445,7 +445,7 @@ export function SayLine({
                   {Math.round(result.total)}
                 </span>
                 <span className="ph-sum-text">
-                  <b>{take?.kept ? `Your best, ${whenOf(take.at)}` : verdict.headline}</b>
+                  {take?.kept && <b>Your best, {whenOf(take.at)}</b>}
                   <span className="ph-sum-parts">
                     {(
                       [
@@ -712,7 +712,14 @@ function FixRow({ fix, canHearMine, onWord, onExample, onMine, onPractise }: { f
         <span className="sk-fix-py">{fix.chars.map((c) => c.py).join(' ')}</span>
       </button>
       <span className="sk-fix-text">
-        <b>{fix.faults.map((f) => f.title).join(' · ') || 'Nearly'}</b>
+        {/* What the service heard, character by character: no sentence of the app's own. */}
+        <b>
+          {fix.chars
+            .map((c) => (c.syl ? heardTag(c.syl) : ''))
+            .map((t, i) => (t ? `${fix.chars.length > 1 ? `${fix.chars[i]!.char} ` : ''}${t}` : ''))
+            .filter(Boolean)
+            .join(' · ')}
+        </b>
       </span>
       <span className="sk-fix-actions">
         <button className="icon-btn" onClick={onExample} aria-label={`Hear ${fix.word} said`} title="Hear it said">
