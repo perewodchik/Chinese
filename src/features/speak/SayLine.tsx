@@ -703,9 +703,8 @@ function LineTiles({ zh, readings, result, dim, onWord }: { zh: string; readings
   );
 }
 
-/** A word to fix: the word and its reading, what was wrong and how to make it right, and its three actions. */
+/** A word to fix: the word and its reading, what was wrong, and its three actions. */
 function FixRow({ fix, canHearMine, onWord, onExample, onMine, onPractise }: { fix: Fix; canHearMine: boolean; onWord: () => void; onExample: () => void; onMine: () => void; onPractise: () => void }) {
-  const first = fix.faults[0];
   return (
     <li className="sk-fix" data-band={fix.band}>
       <button className="sk-fix-word" onClick={onWord} aria-label={`${fix.word}: open the word`}>
@@ -714,7 +713,6 @@ function FixRow({ fix, canHearMine, onWord, onExample, onMine, onPractise }: { f
       </button>
       <span className="sk-fix-text">
         <b>{fix.faults.map((f) => f.title).join(' · ') || 'Nearly'}</b>
-        {first && <span className="small muted">{first.how}</span>}
       </span>
       <span className="sk-fix-actions">
         <button className="icon-btn" onClick={onExample} aria-label={`Hear ${fix.word} said`} title="Hear it said">

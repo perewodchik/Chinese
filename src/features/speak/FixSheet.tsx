@@ -173,7 +173,6 @@ export function FixSheet({
               {fix.faults.map((f) => (
                 <li key={f.kind}>
                   <b className="small">{f.title}</b>
-                  <span className="small muted">{f.how}</span>
                 </li>
               ))}
             </ul>
@@ -199,5 +198,5 @@ export function FixSheet({
 function worstOf(r: EvalResult): string {
   const worst = [...r.syllables].sort((a, b) => (charScore(a) ?? 100) - (charScore(b) ?? 100))[0];
   const f = worst ? noteOf(worst).faults[0] : undefined;
-  return f ? `${worst!.char}: ${f.title}. ${f.how}` : 'Nearly: once more.';
+  return f ? `${worst!.char}: ${f.title}.` : 'Nearly: once more.';
 }

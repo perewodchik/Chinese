@@ -79,7 +79,6 @@ export function ScoredSay({
 
   const noKey = status !== null && !status.key.set;
   const chars = [...word];
-  const tip = result?.syllables.flatMap((s) => faultsOf(s))[0]?.how;
 
   return (
     <div className="say-check">
@@ -133,7 +132,6 @@ export function ScoredSay({
               );
             })}
           </div>
-          {tip && <p className="speak-tip">{tip}</p>}
           <p className="tiny muted" style={{ margin: 0 }}>
             Scored by {PROVIDER_NAME[result.by]}: {Math.round(result.total)} of 100.
           </p>
