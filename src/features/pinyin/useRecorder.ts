@@ -128,7 +128,7 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
     }
   }, [open]);
 
-  const play = useCallback((samples: Float32Array, rate?: number) => session.current?.play(samples, rate), []);
+  const play = useCallback((samples: Float32Array) => session.current?.play(samples), []);
 
   /** What the microphone is doing, for a message when nothing came through. */
   const diagnostics = useCallback(() => session.current?.diagnostics() ?? 'microphone not open', []);

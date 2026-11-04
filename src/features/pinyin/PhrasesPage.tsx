@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import { paths } from '../../navigation/paths';
 import type { OwnTextDto } from '../../../shared/narration';
-import type { EvalStatus } from '../../../shared/speechEval';
+import type { EvalResult, EvalStatus } from '../../../shared/speechEval';
 import { ownTexts } from '../../api/narration';
 import { evalStatus } from '../../api/speechEval';
 import { pinyinOf } from '../../domain/ownText';
@@ -13,11 +13,42 @@ import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { PronunciationKey } from '../settings/PronunciationKey';
-import { keepAttempt, loadAttempts, mergedAttempts } from './phraseAttempts';
+import { keepTry, loadHistory, remember } from './speechHistory';
 import { LineStudio } from './LineStudio';
 import { band } from './ScoredLine';
 import './phrases.css';
 import './pinyin.css';
+
+
+
+/* ------------------------------------------------------------ attempts, kept on this device */
+
+const KEPT = 'hanzi.phrases.attempts';
+const loadAttempts = (): Record<string, Attempt[]> => {
+  try {
+    return JSON.parse(localStorage.getItem(KEPT) ?? '{}') as Record<string, Attempt[]>;
+  } catch {
+    return {};
+  }
+};
+/** Keeps a try on this device at once and in the account, with the service's whole answer. */
+function keepAttempt(zh: string, a: Attempt, sourceId: string, result: EvalResult, id: string): Record<string, Attempt[]> {
+  const all = loadAttempts();
+  all[zh] = [...(all[zh] ?? []), a].slice(-5);
+  saveAttempts(all);
+  const good = a.faults.length === 0;
+  keepTry({ id, at: a.at, kind: 'phrase', sourceId, text: zh, good, summary: a, result });
+  remember({ id, at: a.at, kind: 'phrase', sourceId, text: zh, tally: null, good, summary: a, full: true });
+  return all;
+}
+
+function saveAttempts(all: Record<string, Attempt[]>) {
+  try {
+    localStorage.setItem(KEPT, JSON.stringify(all));
+  } catch {
+    // kept for this visit only
+  }
+}
 
 
 
@@ -76,8 +107,21 @@ export function PhrasesPage() {
   useEffect(() => {
     void evalStatus().then(setStatus, () => setStatus({ key: { set: false, hint: null, provider: null }, strictness: 'common' }));
     void ownTexts().then(setOwn, () => setOwn([]));
-    // The account's tries, every device's, merged with this one's.
-    void mergedAttempts().then((all) => all && setAttempts(all));
+    // The account's tries, every device's, in place of this one's.
+    void loadHistory().then((h) => {
+      if (!h) return;
+      const server = Object.fromEntries(Object.entries(h.phrases).map(([zh, list]) => [zh, list.map((x) => x.summary as Attempt)]));
+      // Merged, not replaced: a try said while the history was on its way is kept, not dropped from the strip.
+      setAttempts((now) => {
+        const all: Record<string, Attempt[]> = { ...server };
+        for (const [zh, list] of Object.entries(now)) {
+          const known = new Set((all[zh] ?? []).map((a) => a.at));
+          all[zh] = [...(all[zh] ?? []), ...list.filter((a) => !known.has(a.at))].sort((a, b) => a.at - b.at).slice(-5);
+        }
+        saveAttempts(all);
+        return all;
+      });
+    });
   }, []);
 
   // The shelves as Read has them, chapters in reading order; the shelf read most lately first.

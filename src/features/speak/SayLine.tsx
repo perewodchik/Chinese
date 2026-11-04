@@ -22,7 +22,7 @@ import { band } from '../pinyin/ScoredLine';
 import { attemptId, knownTries } from '../pinyin/speechHistory';
 import { useRecorder } from '../pinyin/useRecorder';
 import { FixSheet } from './FixSheet';
-import { MODEL_RATE, modelSamples, playModel } from './modelVoice';
+import { at16k, MODEL_RATE, modelSamples, playModel } from './modelVoice';
 import { AUTOPLAY, keepPref, pref, SHADOW, SLOW } from './prefs';
 import { useNarrator, type Source } from './sources';
 import { VoiceSheet } from './VoiceSheet';
@@ -277,7 +277,8 @@ export function SayLine({
     hush();
     shadowing.current = true;
     void recorder.recordFor(Math.round((said.length / MODEL_RATE) * 1000) + 900);
-    recorder.play(said, MODEL_RATE);
+    // The microphone's own audio plays at the rate it records at.
+    recorder.play(at16k(said));
     setTimeout(() => mounted.current && setCount(null), 500);
   }
 

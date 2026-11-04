@@ -8,7 +8,7 @@ import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { PronunciationKey } from '../settings/PronunciationKey';
-import { keepAttempt, loadAttempts, mergedAttempts } from '../pinyin/phraseAttempts';
+import { keepAttempt, loadAttempts, mergedAttempts } from './attempts';
 import { band } from '../pinyin/ScoredLine';
 import { armAutoplay, SayLine } from './SayLine';
 import { keepSet, useNarrator, useSources, type Source } from './sources';

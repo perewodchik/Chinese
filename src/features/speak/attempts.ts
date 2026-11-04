@@ -1,11 +1,11 @@
 import type { EvalResult } from '../../../shared/speechEval';
 import type { Attempt } from '../../domain/phrases';
-import { keepTry, loadHistory, remember } from './speechHistory';
+import { keepTry, loadHistory, remember } from '../pinyin/speechHistory';
 
 /**
  * Each line's last tries, kept on this device at once and in the account as
  * soon as they can be sent: what Phrases (and the new Speak) colour a line and
- * a text by. Shared by both, so a line said in one shows in the other.
+ * a text by. The same key as Phrases as it was, so a line said in one shows in the other.
  */
 
 const KEPT = 'hanzi.phrases.attempts';
