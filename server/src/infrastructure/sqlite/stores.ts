@@ -10,6 +10,7 @@ import { SqliteSecretRepository } from './secret-repository';
 import { SqliteRecordingRepository } from './recording-repository';
 import { SqliteSessionRepository } from './session-repository';
 import { SqliteUserRepository } from './user-repository';
+import { SqliteUsageRepository } from './usage-repository';
 import { SqliteWorkspaceRepository } from './workspace-repository';
 import { SqliteWorldSaveRepository } from './world-save-repository';
 
@@ -27,4 +28,5 @@ export const sqliteStores = (db: DatabaseSync): Stores => ({
   narrations: new SqliteTextNarrationRepository(db),
   ownTexts: new SqliteOwnTextRepository(db),
   speechAttempts: new SqliteSpeechAttemptRepository(db),
+  usage: new SqliteUsageRepository(db),
 });

@@ -10,6 +10,7 @@ import { PostgresSecretRepository } from './secret-repository';
 import { PostgresRecordingRepository } from './recording-repository';
 import { PostgresSessionRepository } from './session-repository';
 import { PostgresUserRepository } from './user-repository';
+import { PostgresUsageRepository } from './usage-repository';
 import { PostgresWorkspaceRepository } from './workspace-repository';
 import { PostgresWorldSaveRepository } from './world-save-repository';
 
@@ -27,4 +28,5 @@ export const postgresStores = (db: pg.Pool): Stores => ({
   narrations: new PostgresTextNarrationRepository(db),
   ownTexts: new PostgresOwnTextRepository(db),
   speechAttempts: new PostgresSpeechAttemptRepository(db),
+  usage: new PostgresUsageRepository(db),
 });

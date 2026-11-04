@@ -6,6 +6,7 @@ import { NotFoundError } from '../domain/errors';
 import type { AppEnv } from './env';
 import { handleError } from './errors';
 import { sameOriginOnly } from './guards';
+import { accountRoutes } from './routes/account';
 import { askRoutes } from './routes/ask';
 import { authRoutes } from './routes/auth';
 import { narrationRoutes } from './routes/narration';
@@ -59,6 +60,7 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   api.use('*', sameOriginOnly());
   api.get('/health', (c) => c.json({ ok: true }));
   api.route('/auth', authRoutes(deps));
+  api.route('/account', accountRoutes(deps));
   api.route('/ask', askRoutes(deps));
   api.route('/workspace', workspaceRoutes(deps));
   api.route('/world', worldRoutes(deps));

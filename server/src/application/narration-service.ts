@@ -14,6 +14,7 @@ import {
 import { createHash } from 'node:crypto';
 import { NarratorRefused } from '../infrastructure/minimax';
 import { AppError, NotFoundError, ValidationError } from '../domain/errors';
+import type { UsageMeter } from './usage-service';
 import type { Clock, Narrator, NarratorRecord, NarratorRepository, OwnText, OwnTextRepository, SecretRepository, TextNarration, TextNarrationRepository, Tokens, VoiceTuning } from './ports';
 
 const KEY = 'minimax';
@@ -44,6 +45,8 @@ export class NarrationService {
       ownTexts: OwnTextRepository;
       tokens: Tokens;
       clock: Clock;
+      /** counts what the key is spent on; left out, nothing is counted */
+      meter?: UsageMeter;
     },
   ) {}
 
@@ -91,7 +94,7 @@ export class NarrationService {
     if (prompt.length < 10) throw new ValidationError('Describe the voice in a sentence or two.', { prompt: 'Too short.' });
     if (!previewText) throw new ValidationError('A sentence for it to read first.', { previewText: 'A sentence.' });
     const count = Math.min(3, Math.max(1, input.count ?? 3));
-    const tries = await Promise.allSettled(Array.from({ length: count }, () => this.call(() => this.narrator().design(key, prompt, previewText))));
+    const tries = await Promise.allSettled(Array.from({ length: count }, () => this.paid(userId, previewText, () => this.narrator().design(key, prompt, previewText))));
     const voices = tries.flatMap((t) => (t.status === 'fulfilled' ? [t.value] : []));
     if (!voices.length) throw (tries[0] as PromiseRejectedResult).reason;
     return { voices, failed: count - voices.length };
@@ -191,7 +194,7 @@ export class NarrationService {
     const key = await this.keyOf(userId);
     const n = await this.find(userId, id);
     const line = text.trim() || n.previewText || '你好，我们今天一起读一个小故事。';
-    return this.call(() => this.narrator().read(key, line, n.voiceId, tuningOf(n)));
+    return this.paid(userId, line, () => this.narrator().read(key, line, n.voiceId, tuningOf(n)));
   }
 
   /**
@@ -218,7 +221,7 @@ export class NarrationService {
       })
       .join(' <#0.6#> ');
     if (script.length > 9000) throw new ValidationError('The text is too long to read in one go.');
-    const read = await this.call(() => this.narrator().readText(apiKey, script, n.voiceId, tuningOf(n)));
+    const read = await this.paid(userId, script, () => this.narrator().readText(apiKey, script, n.voiceId, tuningOf(n)));
     // MiniMax's MP3 is a constant 64 kbit/s, so its length is its size.
     const durationMs = Math.round((read.audio.length * 8) / 64);
     const record: TextNarration = {
@@ -351,6 +354,13 @@ export class NarrationService {
     const voices = list.map((v) => ({ ...v, gender: genderOf(`${v.name} ${v.description}`) }));
     this.voiceCache.set(key, { at: this.deps.clock.now(), voices });
     return voices;
+  }
+
+  /** A call MiniMax charges for, counted once it has gone through: a character of what it was given to read is a unit. */
+  private async paid<T>(userId: string, said: string, fn: () => Promise<T>): Promise<T> {
+    const out = await this.call(fn);
+    await this.deps.meter?.record(userId, 'minimax', [...said].length);
+    return out;
   }
 
   private async call<T>(fn: () => Promise<T>): Promise<T> {

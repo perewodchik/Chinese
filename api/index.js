@@ -567,7 +567,7 @@ var NarrationService = class {
     if (prompt.length < 10) throw new ValidationError("Describe the voice in a sentence or two.", { prompt: "Too short." });
     if (!previewText) throw new ValidationError("A sentence for it to read first.", { previewText: "A sentence." });
     const count = Math.min(3, Math.max(1, input.count ?? 3));
-    const tries = await Promise.allSettled(Array.from({ length: count }, () => this.call(() => this.narrator().design(key, prompt, previewText))));
+    const tries = await Promise.allSettled(Array.from({ length: count }, () => this.paid(userId, previewText, () => this.narrator().design(key, prompt, previewText))));
     const voices = tries.flatMap((t) => t.status === "fulfilled" ? [t.value] : []);
     if (!voices.length) throw tries[0].reason;
     return { voices, failed: count - voices.length };
@@ -661,7 +661,7 @@ var NarrationService = class {
     const key = await this.keyOf(userId);
     const n = await this.find(userId, id);
     const line = text.trim() || n.previewText || "\u4F60\u597D\uFF0C\u6211\u4EEC\u4ECA\u5929\u4E00\u8D77\u8BFB\u4E00\u4E2A\u5C0F\u6545\u4E8B\u3002";
-    return this.call(() => this.narrator().read(key, line, n.voiceId, tuningOf(n)));
+    return this.paid(userId, line, () => this.narrator().read(key, line, n.voiceId, tuningOf(n)));
   }
   /**
    * A text read whole by a narrator, in one request, and kept: found when it
@@ -683,7 +683,7 @@ var NarrationService = class {
       return sound ? `${l} ${sound}` : l;
     }).join(" <#0.6#> ");
     if (script.length > 9e3) throw new ValidationError("The text is too long to read in one go.");
-    const read = await this.call(() => this.narrator().readText(apiKey, script, n.voiceId, tuningOf(n)));
+    const read = await this.paid(userId, script, () => this.narrator().readText(apiKey, script, n.voiceId, tuningOf(n)));
     const durationMs = Math.round(read.audio.length * 8 / 64);
     const record = {
       key,
@@ -801,6 +801,12 @@ var NarrationService = class {
     const voices = list.map((v) => ({ ...v, gender: genderOf(`${v.name} ${v.description}`) }));
     this.voiceCache.set(key, { at: this.deps.clock.now(), voices });
     return voices;
+  }
+  /** A call MiniMax charges for, counted once it has gone through: a character of what it was given to read is a unit. */
+  async paid(userId, said, fn) {
+    const out = await this.call(fn);
+    await this.deps.meter?.record(userId, "minimax", [...said].length);
+    return out;
   }
   async call(fn) {
     try {
@@ -1081,6 +1087,7 @@ var SpeechEvalService = class {
     } catch (err) {
       if (err instanceof EvaluatorRefused && err.reason === "keys") throw new ValidationError(`${PROVIDER_NAME[keys.provider]} did not accept them. ${err.message}`);
     }
+    await this.deps.meter?.record(userId, keys.provider, 0.25);
     await this.keep(userId, { ...keys, strictness });
     return this.status(userId);
   }
@@ -1106,7 +1113,9 @@ var SpeechEvalService = class {
     const pinyin = o.pinyin?.length === chars && o.pinyin.every((p) => PINYIN_SYLLABLE.test(p)) ? o.pinyin : void 0;
     const { strictness, ...keys } = k;
     try {
-      return await this.evaluator().evaluate(keys, { text, pinyin, pcm, strictness });
+      const result = await this.evaluator().evaluate(keys, { text, pinyin, pcm, strictness });
+      await this.deps.meter?.record(userId, k.provider, pcm.length / 32e3);
+      return result;
     } catch (err) {
       if (err instanceof EvaluatorRefused) throw new AppError("unavailable", err.message);
       throw new AppError("unavailable", `${PROVIDER_NAME[k.provider]} did not answer. Try again in a minute.`);
@@ -1436,6 +1445,52 @@ var RecordingService = class {
   }
 };
 
+// shared/usage.ts
+var USAGE_UNIT = {
+  speechsuper: "seconds",
+  iflytek: "seconds",
+  minimax: "characters"
+};
+
+// server/src/application/usage-service.ts
+var DAY2 = 864e5;
+var dayOf = (at) => new Date(at).toISOString().slice(0, 10);
+var UsageMeter = class {
+  constructor(deps) {
+    this.deps = deps;
+  }
+  async record(userId, service, units) {
+    try {
+      await this.deps.usage.add(userId, dayOf(this.deps.clock.now()), service, 1, Math.max(0, Math.round(units)));
+    } catch (err) {
+      this.deps.log?.(`usage: could not count a ${service} call: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+  /** Today, this month and the last thirty days, for each service; the services with a key saved first. */
+  async summary(userId, keys) {
+    const now = this.deps.clock.now();
+    const today = dayOf(now);
+    const monthStart = `${today.slice(0, 8)}01`;
+    const from = dayOf(now - 29 * DAY2);
+    const rows = await this.deps.usage.since(userId, from < monthStart ? from : monthStart);
+    const days = Array.from({ length: 30 }, (_, i) => dayOf(now - (29 - i) * DAY2));
+    const sum = (list) => list.reduce((a, b) => ({ calls: a.calls + b.calls, units: a.units + b.units }), { calls: 0, units: 0 });
+    const lines2 = Object.keys(USAGE_UNIT).map((service) => {
+      const mine = rows.filter((r) => r.service === service);
+      const on = (day) => sum(mine.filter((r) => r.day === day));
+      return {
+        service,
+        keySet: keys[service],
+        today: on(today),
+        month: sum(mine.filter((r) => r.day >= monthStart)),
+        days: days.map((day) => ({ day, ...on(day) }))
+      };
+    });
+    const shown = lines2.filter((l) => l.keySet || l.month.calls > 0 || l.days.some((d) => d.calls > 0));
+    return { today, lines: shown.sort((a, b) => Number(b.keySet) - Number(a.keySet)) };
+  }
+};
+
 // server/src/application/workspace-service.ts
 var toDto2 = (w) => w ? { revision: w.revision, document: w.document, updatedAt: w.updatedAt } : { revision: 0, document: null, updatedAt: null };
 var WorkspaceService = class {
@@ -1582,6 +1637,7 @@ function createServices(stores, options = {}) {
   const world = new WorldService({ saves: stores.worldSaves, clock });
   const recordings = new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
+  const usage = new UsageMeter({ usage: stores.usage, clock, log: (line) => console.error(line) });
   return {
     auth,
     workspaces,
@@ -1593,13 +1649,14 @@ function createServices(stores, options = {}) {
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock }),
-    speechEval: new SpeechEvalService({ secrets: stores.secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock })
+    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock, meter: usage }),
+    speechEval: new SpeechEvalService({ secrets: stores.secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock, meter: usage }),
+    usage
   };
 }
 
 // server/src/http/app.ts
-import { Hono as Hono13 } from "hono";
+import { Hono as Hono14 } from "hono";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
 
@@ -1759,9 +1816,28 @@ var RateLimiter = class {
   }
 };
 
+// server/src/http/routes/account.ts
+import { Hono } from "hono";
+function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration }) {
+  const routes = new Hono();
+  const session = requireSession(auth, { trustProxy, clock });
+  routes.get("/usage", session, async (c) => {
+    const user = c.get("session").user.id;
+    const [scoring, reading] = await Promise.all([speechEval.status(user), narration.status(user)]);
+    const body = await usage.summary(user, {
+      speechsuper: scoring.key.set && scoring.key.provider === "speechsuper",
+      iflytek: scoring.key.set && scoring.key.provider === "iflytek",
+      minimax: reading.key.set
+    });
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
+  });
+  return routes;
+}
+
 // server/src/http/routes/ask.ts
 import { createHash as createHash6 } from "node:crypto";
-import { Hono } from "hono";
+import { Hono as Hono2 } from "hono";
 import { z } from "zod";
 
 // shared/ask.ts
@@ -1782,7 +1858,7 @@ var askRequest = z.object({
   kind: z.enum(ASK_KINDS)
 });
 function askRoutes({ auth, clock, trustProxy, tutor }) {
-  const routes = new Hono();
+  const routes = new Hono2();
   const session = requireSession(auth, { trustProxy, clock });
   const asks = new RateLimiter(20, 60 * 6e4, clock);
   const checks = new RateLimiter(120, 60 * 6e4, clock);
@@ -1824,7 +1900,7 @@ ${input.prompt}`).digest("hex");
 }
 
 // server/src/http/routes/auth.ts
-import { Hono as Hono2 } from "hono";
+import { Hono as Hono3 } from "hono";
 import { z as z2 } from "zod";
 var MINUTE = 6e4;
 var credentials = z2.object({
@@ -1853,7 +1929,7 @@ function isLocalNetwork(ip) {
   return /^fe[89ab]/.test(v6);
 }
 function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }) {
-  const routes = new Hono2();
+  const routes = new Hono3();
   const sessionOptions = { trustProxy, clock };
   const session = requireSession(auth, sessionOptions);
   const perName = new RateLimiter(10, 15 * MINUTE, clock);
@@ -1913,7 +1989,7 @@ function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }) {
 }
 
 // server/src/http/routes/narration.ts
-import { Hono as Hono3 } from "hono";
+import { Hono as Hono4 } from "hono";
 import { z as z3 } from "zod";
 var keyRequest = z3.object({ key: z3.string().min(1).max(400) });
 var lines = z3.array(z3.string().max(240)).min(1).max(300);
@@ -1945,7 +2021,7 @@ var mp3 = (c, bytes) => {
   return c.body(bytes);
 };
 function narrationRoutes({ auth, clock, trustProxy, narration }) {
-  const routes = new Hono3();
+  const routes = new Hono4();
   const session = requireSession(auth, { trustProxy, clock });
   const reads = new RateLimiter(200, 10 * 6e4, clock);
   const keys = new RateLimiter(20, 10 * 6e4, clock);
@@ -2035,7 +2111,7 @@ function narrationRoutes({ auth, clock, trustProxy, narration }) {
 }
 
 // server/src/http/routes/speechEval.ts
-import { Hono as Hono4 } from "hono";
+import { Hono as Hono5 } from "hono";
 import { z as z4 } from "zod";
 var keysRequest = z4.discriminatedUnion("provider", [
   z4.object({ provider: z4.literal("speechsuper"), appKey: z4.string().min(1).max(80), secretKey: z4.string().min(1).max(120) }),
@@ -2065,7 +2141,7 @@ var evalRequest = z4.object({
   audio: z4.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
 });
 function speechEvalRoutes({ auth, clock, trustProxy, speechEval }) {
-  const routes = new Hono4();
+  const routes = new Hono5();
   const session = requireSession(auth, { trustProxy, clock });
   const scores = new RateLimiter(200, 10 * 6e4, clock);
   const keys = new RateLimiter(20, 10 * 6e4, clock);
@@ -2103,9 +2179,9 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval }) {
 }
 
 // server/src/http/routes/pictures.ts
-import { Hono as Hono5 } from "hono";
+import { Hono as Hono6 } from "hono";
 function pictureRoutes({ auth, clock, trustProxy, pictures }) {
-  const routes = new Hono5();
+  const routes = new Hono6();
   const session = requireSession(auth, { trustProxy, clock });
   const uploads = new RateLimiter(300, 10 * 6e4, clock);
   routes.get("/:key", session, async (c) => {
@@ -2127,10 +2203,10 @@ function pictureRoutes({ auth, clock, trustProxy, pictures }) {
 }
 
 // server/src/http/routes/speech.ts
-import { Hono as Hono6 } from "hono";
+import { Hono as Hono7 } from "hono";
 var SPEECH_MAX_CHARS = 240;
 function speechRoutes({ auth, clock, trustProxy, speech }) {
-  const routes = new Hono6();
+  const routes = new Hono7();
   const session = requireSession(auth, { trustProxy, clock });
   const limiter = new RateLimiter(300, 10 * 6e4, clock);
   routes.get("/", session, (c) => {
@@ -2162,7 +2238,7 @@ function speechRoutes({ auth, clock, trustProxy, speech }) {
 }
 
 // server/src/http/routes/strokes.ts
-import { Hono as Hono7 } from "hono";
+import { Hono as Hono8 } from "hono";
 
 // shared/strokes.ts
 var STROKES_PER_REQUEST = 24;
@@ -2201,7 +2277,7 @@ async function fetchOne(c, get2) {
 // server/src/http/routes/strokes.ts
 var HANZI = /^\p{Script=Han}$/u;
 function strokeRoutes({ auth, clock, trustProxy }) {
-  const routes = new Hono7();
+  const routes = new Hono8();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const chars = [.../* @__PURE__ */ new Set([...c.req.query("c") ?? ""])];
@@ -2216,7 +2292,7 @@ function strokeRoutes({ auth, clock, trustProxy }) {
 }
 
 // server/src/http/routes/talk.ts
-import { Hono as Hono8 } from "hono";
+import { Hono as Hono9 } from "hono";
 import { z as z5 } from "zod";
 var talkOptions = z5.object({
   level: z5.enum(TALK_LEVELS),
@@ -2266,7 +2342,7 @@ var replyRequest = z5.object({
   }).optional()
 });
 function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations, recordings }) {
-  const routes = new Hono8();
+  const routes = new Hono9();
   const session = requireSession(auth, { trustProxy, clock });
   const turns = new RateLimiter(120, 10 * 6e4, clock);
   const clips = new RateLimiter(600, 10 * 6e4, clock);
@@ -2346,7 +2422,7 @@ function talkRoutes({ auth, clock, trustProxy, tutor, talkVoices, conversations,
 }
 
 // server/src/http/routes/videos.ts
-import { Hono as Hono9 } from "hono";
+import { Hono as Hono10 } from "hono";
 
 // shared/videos.ts
 var PLAYLIST_ID = /^[A-Za-z0-9_-]{10,64}$/;
@@ -2497,7 +2573,7 @@ async function lookUpPlaylist(playlistId) {
 
 // server/src/http/routes/videos.ts
 function videoRoutes({ auth, clock, trustProxy, log }) {
-  const routes = new Hono9();
+  const routes = new Hono10();
   const session = requireSession(auth, { trustProxy, clock });
   const lookups = new RateLimiter(60, 60 * 6e4, clock);
   routes.get("/youtube/:id", session, async (c) => {
@@ -2538,7 +2614,7 @@ function videoRoutes({ auth, clock, trustProxy, log }) {
 }
 
 // server/src/http/routes/workspace.ts
-import { Hono as Hono10 } from "hono";
+import { Hono as Hono11 } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { z as z6 } from "zod";
 var saveRequest2 = z6.object({
@@ -2546,7 +2622,7 @@ var saveRequest2 = z6.object({
   document: z6.record(z6.string(), z6.unknown())
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
-  const routes = new Hono10();
+  const routes = new Hono11();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -2584,7 +2660,7 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 }
 
 // server/src/http/routes/world.ts
-import { Hono as Hono11 } from "hono";
+import { Hono as Hono12 } from "hono";
 import { bodyLimit as bodyLimit2 } from "hono/body-limit";
 import { z as z7 } from "zod";
 
@@ -2598,7 +2674,7 @@ var putRequest = z7.object({
   save: z7.record(z7.string(), z7.unknown())
 });
 function worldRoutes({ auth, world, clock, trustProxy }) {
-  const routes = new Hono11();
+  const routes = new Hono12();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -2635,9 +2711,9 @@ function worldRoutes({ auth, world, clock, trustProxy }) {
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Hono as Hono12 } from "hono";
+import { Hono as Hono13 } from "hono";
 function staticSite(root) {
-  const site = new Hono12();
+  const site = new Hono13();
   const index = join(root, "index.html");
   site.use("*", caching());
   site.use("*", serveStatic({ root }));
@@ -2675,11 +2751,12 @@ function createHttpApp(services, options) {
     devUserCreate: options.devUserCreate ?? true,
     log: options.log
   };
-  const api = new Hono13();
+  const api = new Hono14();
   api.onError(onError);
   api.use("*", sameOriginOnly());
   api.get("/health", (c) => c.json({ ok: true }));
   api.route("/auth", authRoutes(deps));
+  api.route("/account", accountRoutes(deps));
   api.route("/ask", askRoutes(deps));
   api.route("/workspace", workspaceRoutes(deps));
   api.route("/world", worldRoutes(deps));
@@ -2693,7 +2770,7 @@ function createHttpApp(services, options) {
   api.all("*", () => {
     throw new NotFoundError("That API route");
   });
-  const app = new Hono13();
+  const app = new Hono14();
   app.onError(onError);
   if (options.compress !== false) app.use("*", compress());
   app.use(
@@ -2927,6 +3004,17 @@ var MIGRATIONS = [
     result     TEXT
   );
   CREATE INDEX speech_attempts_user ON speech_attempts (user_id, at);
+  `,
+  // What the learner's own keys have been spent on, a row a day a service: counted where the call is made.
+  `
+  CREATE TABLE api_usage (
+    user_id  TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    day      TEXT NOT NULL,
+    service  TEXT NOT NULL,
+    calls    BIGINT NOT NULL,
+    units    BIGINT NOT NULL,
+    PRIMARY KEY (user_id, day, service)
+  );
   `
 ];
 
@@ -3429,6 +3517,27 @@ var PostgresUserRepository = class {
   }
 };
 
+// server/src/infrastructure/postgres/usage-repository.ts
+var PostgresUsageRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async add(userId, day, service, calls, units) {
+    await this.db.query(
+      `INSERT INTO api_usage (user_id, day, service, calls, units) VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (user_id, day, service) DO UPDATE SET calls = api_usage.calls + EXCLUDED.calls, units = api_usage.units + EXCLUDED.units`,
+      [userId, day, service, calls, units]
+    );
+  }
+  async since(userId, fromDay) {
+    const { rows } = await this.db.query(
+      "SELECT day, service, calls, units FROM api_usage WHERE user_id = $1 AND day >= $2 ORDER BY day, service",
+      [userId, fromDay]
+    );
+    return rows.map((r) => ({ day: r.day, service: r.service, calls: Number(r.calls), units: Number(r.units) }));
+  }
+};
+
 // server/src/infrastructure/postgres/workspace-repository.ts
 var PostgresWorkspaceRepository = class {
   constructor(db) {
@@ -3522,7 +3631,8 @@ var postgresStores = (db) => ({
   narrators: new PostgresNarratorRepository(db),
   narrations: new PostgresTextNarrationRepository(db),
   ownTexts: new PostgresOwnTextRepository(db),
-  speechAttempts: new PostgresSpeechAttemptRepository(db)
+  speechAttempts: new PostgresSpeechAttemptRepository(db),
+  usage: new PostgresUsageRepository(db)
 });
 
 // server/src/vercel.ts

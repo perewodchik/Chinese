@@ -23,9 +23,11 @@ import type {
   TalkSynthesizer,
   Tutor,
   UserRepository,
+  UsageRepository,
   WorkspaceRepository,
   WorldSaveRepository,
 } from './application/ports';
+import { UsageMeter } from './application/usage-service';
 import { WorkspaceService } from './application/workspace-service';
 import { WorldService } from './application/world-service';
 import { systemClock } from './infrastructure/clock';
@@ -54,6 +56,8 @@ export interface Services {
   narration: NarrationService;
   /** phrases said aloud and scored by iFlytek with the learner's own keys */
   speechEval: SpeechEvalService;
+  /** what the learner's own keys have been spent on */
+  usage: UsageMeter;
 }
 
 /** Where each kind of record is kept. */
@@ -70,6 +74,7 @@ export interface Stores {
   narrations: TextNarrationRepository;
   ownTexts: OwnTextRepository;
   speechAttempts: SpeechAttemptRepository;
+  usage: UsageRepository;
 }
 
 /**
@@ -108,6 +113,7 @@ export function createServices(
   const world = new WorldService({ saves: stores.worldSaves, clock });
   const recordings = new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
+  const usage = new UsageMeter({ usage: stores.usage, clock, log: (line) => console.error(line) });
   return {
     auth,
     workspaces,
@@ -119,7 +125,8 @@ export function createServices(
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock }),
-    speechEval: new SpeechEvalService({ secrets: stores.secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock }),
+    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock, meter: usage }),
+    speechEval: new SpeechEvalService({ secrets: stores.secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock, meter: usage }),
+    usage,
   };
 }

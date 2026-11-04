@@ -18,6 +18,7 @@ import {
 import { AppError, NotFoundError, ValidationError } from '../domain/errors';
 import { EvaluatorRefused } from '../infrastructure/iflytek';
 import type { Clock, SecretRepository, SpeechAttemptRepository } from './ports';
+import type { UsageMeter } from './usage-service';
 
 const NAME = 'speech-eval';
 
@@ -55,7 +56,7 @@ function clean(raw: EvalKeys): EvalKeys {
  * key, so they can tell which it is. How strict the scoring is goes with them.
  */
 export class SpeechEvalService {
-  constructor(private readonly deps: { secrets: SecretRepository; attempts: SpeechAttemptRepository; evaluator: Evaluator | null; clock: Clock }) {}
+  constructor(private readonly deps: { secrets: SecretRepository; attempts: SpeechAttemptRepository; evaluator: Evaluator | null; clock: Clock; meter?: UsageMeter }) {}
 
   private async kept(userId: string): Promise<Kept | null> {
     const raw = await this.deps.secrets.get(userId, NAME);
@@ -91,6 +92,8 @@ export class SpeechEvalService {
       if (err instanceof EvaluatorRefused && err.reason === 'keys') throw new ValidationError(`${PROVIDER_NAME[keys.provider]} did not accept them. ${err.message}`);
       // Anything else — the quiet itself refused — means the keys were let in.
     }
+    // Trying the keys is a call too: a quarter of a second of quiet.
+    await this.deps.meter?.record(userId, keys.provider, 0.25);
     await this.keep(userId, { ...keys, strictness });
     return this.status(userId);
   }
@@ -120,7 +123,10 @@ export class SpeechEvalService {
     const pinyin = o.pinyin?.length === chars && o.pinyin.every((p) => PINYIN_SYLLABLE.test(p)) ? o.pinyin : undefined;
     const { strictness, ...keys } = k;
     try {
-      return await this.evaluator().evaluate(keys as EvalKeys, { text, pinyin, pcm, strictness });
+      const result = await this.evaluator().evaluate(keys as EvalKeys, { text, pinyin, pcm, strictness });
+      // A unit is a second of speech: 16 kHz, 16-bit, one channel.
+      await this.deps.meter?.record(userId, k.provider, pcm.length / 32_000);
+      return result;
     } catch (err) {
       if (err instanceof EvaluatorRefused) throw new AppError('unavailable', err.message);
       throw new AppError('unavailable', `${PROVIDER_NAME[k.provider]} did not answer. Try again in a minute.`);

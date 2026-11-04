@@ -167,4 +167,15 @@ export const MIGRATIONS: readonly string[] = [
   ) STRICT;
   CREATE INDEX speech_attempts_user ON speech_attempts (user_id, at);
   `,
+  // What the learner's own keys have been spent on, a row a day a service: counted where the call is made.
+  `
+  CREATE TABLE api_usage (
+    user_id  TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    day      TEXT NOT NULL,
+    service  TEXT NOT NULL,
+    calls    INTEGER NOT NULL,
+    units    INTEGER NOT NULL,
+    PRIMARY KEY (user_id, day, service)
+  ) STRICT;
+  `,
 ];

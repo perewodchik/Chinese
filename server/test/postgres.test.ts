@@ -154,4 +154,12 @@ describe('Postgres storage', () => {
     assert.deepEqual(await stores.pictures.find('p1'), { key: 'p1', userId: 'u1', mime: 'image/jpeg', bytes, createdAt: T });
     assert.equal(await stores.pictures.find('p2'), null);
   });
+
+  it('adds a day’s use of a service to its row, and reads the counts back as numbers', async () => {
+    await stores.usage.add('u1', '2026-09-11', 'minimax', 1, 40);
+    await stores.usage.add('u1', '2026-09-11', 'minimax', 1, 2);
+    await stores.usage.add('u1', '2026-09-10', 'speechsuper', 1, 3);
+    assert.deepEqual(await stores.usage.since('u1', '2026-09-11'), [{ day: '2026-09-11', service: 'minimax', calls: 2, units: 42 }]);
+    assert.equal((await stores.usage.since('u1', '2026-09-01')).length, 2);
+  });
 });

@@ -335,3 +335,24 @@ export interface Tutor {
    */
   ask(prompt: string, opts?: { timeoutMs?: number }): Promise<string>;
 }
+
+/** A day's use of one outside service by one account: how many calls, and how much in the service's own unit. */
+export interface UsageRow {
+  /** the day, in UTC: 2026-11-05 */
+  day: string;
+  service: string;
+  calls: number;
+  units: number;
+}
+
+/**
+ * What the learner's own keys have been spent on. Counted by the server where
+ * it calls the service, so it is the same on every device; the bill itself is
+ * the service's to show.
+ */
+export interface UsageRepository {
+  /** Adds to the day's row for the service, making it if there is none. */
+  add(userId: string, day: string, service: string, calls: number, units: number): Promise<void>;
+  /** Every row from that day on, for the account. */
+  since(userId: string, fromDay: string): Promise<UsageRow[]>;
+}
