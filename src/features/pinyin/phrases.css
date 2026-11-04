@@ -1342,3 +1342,36 @@ button.back-link {
 .ph-sum-more[aria-expanded='true'] svg {
   transform: rotate(-90deg);
 }
+
+/* A narrator's row in the voice sheet: picking it, and beside it its score on
+   the line, which is also the button that scores it (again). */
+.ph-sheet-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ph-sheet-line .ph-sheet-row {
+  flex: 1;
+  min-width: 0;
+}
+
+.ph-score-btn {
+  min-width: 64px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ph-score-btn[data-band='none'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.ph-score-btn:disabled {
+  cursor: default;
+}

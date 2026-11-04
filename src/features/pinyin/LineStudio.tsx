@@ -700,7 +700,8 @@ function VoiceSheet({
 }) {
   const [picked, setPicked] = useState(current?.n.narratorId ?? narrators[0]?.id ?? '');
   const [reading, setReading] = useState(false);
-  const [scoring, setScoring] = useState(false);
+  // The narrator whose reading of the line is being scored now.
+  const [scoring, setScoring] = useState<string | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [kept, setKept] = useState<Record<string, number>>({});
 
@@ -735,18 +736,21 @@ function VoiceSheet({
     }
   }
 
-  async function scoreHere() {
-    if (!readingOf) return;
-    setScoring(true);
+  /** A narrator's reading of this line, scored, from the score on its own row. */
+  async function scoreOf(id: string) {
+    const r0 = voices.find((v) => v.n.narratorId === id);
+    if (!r0 || scoring) return;
+    const name = narrators.find((n) => n.id === id)?.name ?? 'Narrator';
+    setScoring(id);
     setFailed(null);
     try {
-      const r = await onScoreLine(readingOf, index);
-      if (r) setKept((k) => ({ ...k, [picked]: r.total }));
-      else setFailed(`${pickedName}'s reading did not match this line.`);
+      const r = await onScoreLine(r0, index);
+      if (r) setKept((k) => ({ ...k, [id]: r.total }));
+      else setFailed(`${name}'s reading did not match this line.`);
     } catch (err) {
       setFailed(troubleOf(err).text);
     } finally {
-      setScoring(false);
+      setScoring(null);
     }
   }
 
@@ -758,21 +762,15 @@ function VoiceSheet({
       footer={
         <div className="ph-sheet-foot">
           {readingOf ? (
-            <>
-              <button className="btn tonal" onClick={() => void scoreHere()} disabled={scoring}>
-                {scoring ? <span className="spinner" aria-hidden /> : null} {kept[picked] !== undefined ? 'Score this line again' : 'Score this line'}
-              </button>
-              <button
-                className="btn primary"
-                onClick={() => {
-                  onUse(readingOf);
-                  onClose();
-                }}
-                disabled={scoring}
-              >
-                Use {pickedName}
-              </button>
-            </>
+            <button
+              className="btn primary"
+              onClick={() => {
+                onUse(readingOf);
+                onClose();
+              }}
+            >
+              Use {pickedName}
+            </button>
           ) : (
             <button className="btn primary" onClick={() => void readAll()} disabled={reading || !picked}>
               {reading ? 'Reading the text… up to a minute' : `Have ${pickedName} read the text`}
@@ -786,19 +784,35 @@ function VoiceSheet({
           const has = voices.some((v) => v.n.narratorId === n.id);
           const here = kept[n.id];
           return (
-            <button key={n.id} className="ph-sheet-row" aria-pressed={picked === n.id} onClick={() => setPicked(n.id)}>
-              <span className="ph-sheet-radio" aria-hidden />
-              <span className="ph-text-name">
-                <b>{n.name}</b>
-                <span className="tiny muted">
-                  {has ? (here !== undefined ? 'This line scored' : 'This line not scored') : 'Has not read this text'}
-                  {current?.n.narratorId === n.id ? ' · in use' : ''}
+            <div key={n.id} className="ph-sheet-line">
+              <button className="ph-sheet-row" aria-pressed={picked === n.id} onClick={() => setPicked(n.id)}>
+                <span className="ph-sheet-radio" aria-hidden />
+                <span className="ph-text-name">
+                  <b>{n.name}</b>
+                  <span className="tiny muted">
+                    {has ? (here !== undefined ? 'Its score on this line' : 'Tap Score to score this line') : 'Has not read this text'}
+                    {current?.n.narratorId === n.id ? ' · in use' : ''}
+                  </span>
                 </span>
-              </span>
-              <span className="ph-score" data-band={here === undefined ? 'none' : band(here)}>
-                {here === undefined ? '–' : Math.round(here)}
-              </span>
-            </button>
+              </button>
+              {/* The score is the button that makes it: Score at first, then the number, a tap to score it again. */}
+              {has ? (
+                <button
+                  className="ph-score ph-score-btn"
+                  data-band={scoring === n.id || here === undefined ? 'none' : band(here)}
+                  onClick={() => void scoreOf(n.id)}
+                  disabled={scoring !== null}
+                  title={here === undefined ? `Score ${n.name}'s reading of this line` : `Score ${n.name}'s reading of this line again`}
+                  aria-label={here === undefined ? `Score ${n.name} on this line` : `${Math.round(here)}: score ${n.name} on this line again`}
+                >
+                  {scoring === n.id ? <span className="spinner" aria-hidden /> : here === undefined ? 'Score' : Math.round(here)}
+                </button>
+              ) : (
+                <span className="ph-score" data-band="none">
+                  –
+                </span>
+              )}
+            </div>
           );
         })}
         {narrators.length === 0 && <p className="small muted">No narrators yet: make one in Voices.</p>}
