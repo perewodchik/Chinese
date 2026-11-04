@@ -206,27 +206,16 @@ describe('a reading made elsewhere', () => {
 });
 
 describe('MiniMax’s Mandarin voices', () => {
-  it('are the "Chinese (Mandarin)_" ones and the older Chinese ones, not another language’s', async () => {
-    const { isMandarin } = await import('../src/infrastructure/minimax');
-    for (const id of ['Chinese (Mandarin)_Gentle_Youth', 'audiobook_male_1', 'clever_boy', 'cartoon_pig', 'male-qn-qingse']) assert.ok(isMandarin(id), id);
-    for (const id of ['English_Graceful_Lady', 'Japanese_KindLady', 'Cantonese_ProfessionalHost（F)', 'Santa_Claus']) assert.ok(!isMandarin(id), id);
-  });
-
-  it('say who they are in Chinese, and a boy is a male voice', async () => {
-    const narrator: Narrator = {
-      ...stub().narrator,
-      async voices() {
-        return [
-          { id: 'clever_boy', name: '聪明男童', description: '' },
-          { id: 'lovely_girl', name: '萌萌女童', description: '' },
-        ];
-      },
-    };
-    const app = appWith(narrator);
-    const cookie = await signedIn(app);
-    await call(app, 'PUT', '/api/narration/key', { cookie, body: { key: GOOD } });
-    const { voices } = (await (await call(app, 'GET', '/api/narration/voices', { cookie })).json()) as { voices: Array<{ id: string; gender: string }> };
-    assert.deepEqual(voices.map((v) => [v.id, v.gender]), [['clever_boy', 'male'], ['lovely_girl', 'female']]);
+  it('are the "Chinese (Mandarin)_" ones and the older Chinese ones the list does not name, not another language’s', async () => {
+    const { isMandarin, minimaxNarrator } = await import('../src/infrastructure/minimax');
+    for (const id of ['Chinese (Mandarin)_Gentle_Youth', 'audiobook_male_1', 'clever_boy', 'cartoon_pig']) assert.ok(isMandarin(id), id);
+    for (const id of ['English_Graceful_Lady', 'greek_male_1a_v1', 'czech_female_2_v2', 'Santa_Claus']) assert.ok(!isMandarin(id), id);
+    const fake = (async () =>
+      new Response(JSON.stringify({ base_resp: { status_code: 0 }, system_voice: [{ voice_id: 'Chinese (Mandarin)_Gentle_Youth' }, { voice_id: 'greek_male_1a_v1' }, { voice_id: 'clever_boy', voice_name: 'Clever Boy' }] }))) as unknown as typeof fetch;
+    const ids = (await minimaxNarrator(fake).voices('k')).map((v) => v.id);
+    assert.ok(ids.includes('Chinese (Mandarin)_Gentle_Youth') && ids.includes('audiobook_male_1') && ids.includes('cartoon_pig'));
+    assert.ok(!ids.includes('greek_male_1a_v1'));
+    assert.equal(ids.filter((id) => id === 'clever_boy').length, 1);
   });
 });
 

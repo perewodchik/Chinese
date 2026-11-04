@@ -56,13 +56,26 @@ function refusal(base: BaseResp | undefined, status: number): NarratorRefused {
 }
 
 /**
- * A Mandarin voice of MiniMax's: the ones named "Chinese (Mandarin)_…", and
- * its older Chinese voices, whose ids are lower case — audiobook_male_1 (an
- * audiobook narrator), clever_boy and cute_boy (boys), cartoon_pig (a cartoon
- * creature) — which a story's characters need. Every other language's voice
- * is named after it: English_…, Japanese_…, Cantonese_….
+ * MiniMax's older Chinese voices. The voice list does not name them, but the
+ * speech API reads with them, and they have what a story's characters need
+ * and the "Chinese (Mandarin)_" ones (all adults) do not: an audiobook
+ * narrator, boys, a cartoon creature.
  */
-export const isMandarin = (id: string) => /^Chinese \(Mandarin\)_/.test(id) || /^[a-z]/.test(id);
+export const OLDER_CHINESE_VOICES: Array<{ id: string; name: string; description: string }> = [
+  { id: 'audiobook_male_1', name: 'Audiobook Narrator (Male)', description: 'A young adult male audiobook narrator in Standard Mandarin, clear and steady.' },
+  { id: 'audiobook_male_2', name: 'Deep Audiobook Narrator (Male)', description: 'A deep adult male audiobook narrator in Standard Mandarin.' },
+  { id: 'audiobook_female_1', name: 'Audiobook Narrator (Female)', description: 'An adult female audiobook narrator in Standard Mandarin.' },
+  { id: 'presenter_male', name: 'Presenter (Male)', description: 'An adult male presenter in Standard Mandarin.' },
+  { id: 'male-qn-qingse', name: 'Young Man (Male)', description: 'A fresh, youthful young adult male voice in Standard Mandarin.' },
+  { id: 'female-chengshu', name: 'Mature Woman (Female)', description: 'A mature adult female voice in Standard Mandarin.' },
+  { id: 'clever_boy', name: 'Clever Boy (Male)', description: 'A clever young boy, about ten, in Standard Mandarin.' },
+  { id: 'cute_boy', name: 'Cute Boy (Male)', description: 'A cute little boy in Standard Mandarin.' },
+  { id: 'lovely_girl', name: 'Lovely Girl (Female)', description: 'A sweet little girl in Standard Mandarin.' },
+  { id: 'cartoon_pig', name: 'Cartoon Creature', description: 'A cartoon animal character, squeaky and funny, in Standard Mandarin.' },
+];
+
+/** A Mandarin voice of MiniMax's: named "Chinese (Mandarin)_…", or one of its older Chinese ones. */
+export const isMandarin = (id: string) => /^Chinese \(Mandarin\)_/.test(id) || OLDER_CHINESE_VOICES.some((v) => v.id === id);
 
 /**
  * MiniMax's speech API: the Mandarin voices, a new voice made from a
@@ -85,7 +98,8 @@ export function minimaxNarrator(fetcher: typeof fetch = fetch): Narrator {
       const out = await post<{ system_voice?: Array<{ voice_id: string; voice_name?: string; description?: string[] }> }>('/get_voice', key, { voice_type: 'system' });
       return (out.system_voice ?? [])
         .filter((v) => isMandarin(v.voice_id))
-        .map((v) => ({ id: v.voice_id, name: v.voice_name || v.voice_id.replace(/^Chinese \(Mandarin\)_/, '').replace(/_/g, ' '), description: (v.description ?? []).join(' ') }));
+        .map((v) => ({ id: v.voice_id, name: v.voice_name || v.voice_id.replace(/^Chinese \(Mandarin\)_/, '').replace(/_/g, ' '), description: (v.description ?? []).join(' ') }))
+        .concat(OLDER_CHINESE_VOICES.filter((o) => !out.system_voice?.some((v) => v.voice_id === o.id)));
     },
     async design(key, prompt, previewText) {
       const out = await post<{ voice_id?: string; trial_audio?: string }>('/voice_design', key, { prompt, preview_text: previewText });
