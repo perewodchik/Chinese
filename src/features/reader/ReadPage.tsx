@@ -8,6 +8,7 @@ import { fromBook, hanziIn, isHanzi, shelfEntries, shelve, type GeneratedText, t
 import { paths, type ShelfTab } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
 import { useOpenItem } from '../../navigation/itemDrawer';
+import { useLevelOf } from '../shared/levels';
 import { renderCollection, renderTextSet } from '../../pdf/render';
 import { downloadText, safeFileName } from '../../platform/files';
 import { addTexts, deleteSet, discardPlan, renameSet, setShelfStudy } from '../../store/commands';
@@ -18,7 +19,9 @@ import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { lastReading } from './lastRead';
-import { useStanding, type Standing } from './Passage';
+import { useStanding, useWordLevel } from './Passage';
+import type { Level } from '../../domain/memory';
+import { LevelMark } from '../../ui/LevelMark';
 import { readerSheet } from './readerSheet';
 import { partFill, PARTS } from './TextParts';
 import { useStartSession } from './startSession';
@@ -326,7 +329,7 @@ export function ShelfPage() {
   if (!set) return <Navigate to={paths.read()} replace />;
 
   const book = list.some(fromBook);
-  const learningWords = words.filter((w) => standing(w.w) === 'learning');
+  const learningWords = words.filter((w) => study.has(([...w.w].length > 1 || lib.byWord.has(w.w) ? (`w${w.w}` as ItemId) : charId(w.w))));
 
   function rename() {
     const name = prompt('Rename this shelf', set!.name);
@@ -478,7 +481,7 @@ export function ShelfPage() {
         </>
       )}
 
-      {tab === 'words' && <ShelfWords setId={set.id} words={words} standing={standing} study={study} learning={learningWords.length} />}
+      {tab === 'words' && <ShelfWords setId={set.id} words={words} study={study} learning={learningWords.length} />}
 
       {tab === 'characters' && (
         <>
@@ -532,33 +535,35 @@ function shelfWords(list: GeneratedText[], study: ItemId[], lib: ReturnType<type
   return [...out.values()];
 }
 
-const FILTERS: Array<{ id: Standing; label: string }> = [
-  { id: 'learning', label: 'Learning' },
-  { id: 'new', label: 'New' },
+/** The shelf's words by how well they are known: not yet, met, known (2 or 3). */
+type LevelGroup = 'none' | 'met' | 'known';
+const groupOf = (l: Level): LevelGroup => (l === 0 ? 'none' : l === 1 ? 'met' : 'known');
+const FILTERS: Array<{ id: LevelGroup; label: string }> = [
+  { id: 'none', label: 'Not known' },
+  { id: 'met', label: 'Met' },
   { id: 'known', label: 'Known' },
 ];
 
 function ShelfWords({
   setId,
   words,
-  standing,
   study,
   learning,
 }: {
   setId: string;
   words: ShelfWord[];
-  standing: (w: string) => Standing;
   study: ReadonlySet<ItemId>;
   learning: number;
 }) {
   const lib = useLibrary();
   const openItem = useOpenItem();
   const [query, setQuery] = useQuery();
-  const counts = { learning: 0, new: 0, known: 0 };
-  for (const w of words) counts[standing(w.w)] += 1;
-  const fallback: Standing = counts.learning ? 'learning' : counts.new ? 'new' : 'known';
-  const filter = oneOf(query.get('words'), ['learning', 'new', 'known'] as const, fallback);
-  const shown = words.filter((w) => standing(w.w) === filter);
+  const levelOfWord = useWordLevel();
+  const counts: Record<LevelGroup, number> = { none: 0, met: 0, known: 0 };
+  for (const w of words) counts[groupOf(levelOfWord(w.w))] += 1;
+  const fallback: LevelGroup = counts.none ? 'none' : counts.met ? 'met' : 'known';
+  const filter = oneOf(query.get('words'), ['none', 'met', 'known'] as const, fallback);
+  const shown = words.filter((w) => groupOf(levelOfWord(w.w)) === filter);
   const itemOf = (w: string): ItemId => ([...w].length > 1 || lib.byWord.has(w) ? (`w${w}` as ItemId) : charId(w));
 
   if (!words.length) {
@@ -584,7 +589,6 @@ function ShelfWords({
         <ul className="list shelf-words">
           {shown.map((w) => {
             const id = itemOf(w.w);
-            const s = standing(w.w);
             return (
               <li key={w.w} className="shelf-word">
                 <button className="shelf-word-main" onClick={() => openItem(id)}>
@@ -597,20 +601,16 @@ function ShelfWords({
                 <span className="tiny muted shelf-word-n">
                   {w.texts} text{w.texts === 1 ? '' : 's'}
                 </span>
-                {s === 'known' ? (
-                  <span className="rd-add" data-state="known" title="You know this one">
-                    <Icon name="check" />
-                  </span>
-                ) : (
-                  <button
-                    className="rd-add"
-                    aria-pressed={study.has(id) || s === 'learning'}
-                    title={study.has(id) ? 'Take it off this shelf’s list' : 'Learn this word'}
-                    onClick={() => setShelfStudy(setId, [id], !study.has(id))}
-                  >
-                    <Icon name={s === 'learning' ? 'check' : 'plus'} />
-                  </button>
-                )}
+                <LevelMark level={levelOfWord(w.w)} />
+                {/* On the shelf's list or not: a choice to learn it, which says nothing of how well it is known. */}
+                <button
+                  className="rd-add"
+                  aria-pressed={study.has(id)}
+                  title={study.has(id) ? 'On this shelf’s list: tap to take it off' : 'Add it to this shelf’s list to learn'}
+                  onClick={() => setShelfStudy(setId, [id], !study.has(id))}
+                >
+                  <Icon name={study.has(id) ? 'check' : 'plus'} />
+                </button>
               </li>
             );
           })}
@@ -631,7 +631,7 @@ function ShelfWords({
 
 function ShelfChars({ chars }: { chars: string[] }) {
   const openItem = useOpenItem();
-  const learned = useStore((s) => s.learned);
+  const levelOf = useLevelOf();
   const lib = useLibrary();
   if (!chars.length) {
     return (
@@ -646,7 +646,7 @@ function ShelfChars({ chars }: { chars: string[] }) {
       {chars.map((c) => {
         const e = lib.byChar.get(c);
         return (
-          <button key={c} className="char-tile" data-learned={learned.has(charId(c)) || undefined} onClick={() => openItem(charId(c))}>
+          <button key={c} className="char-tile" data-level={levelOf(charId(c))} onClick={() => openItem(charId(c))}>
             <span className="hanzi">{c}</span>
             <span className="char-tile-py">{e?.py[0] ?? ''}</span>
           </button>

@@ -210,7 +210,7 @@ export const router = createBrowserRouter([
 /**
  * The library's sets — and the addresses of the page it was before them, a
  * switch and a band strip in the query: `?kind=radicals`, `?kind=words`,
- * `?show=todo` for what is left of the band you were in.
+ * `?show=none` for what is not known yet of the band you were in.
  */
 function LibraryRoute() {
   const { search } = useLocation();

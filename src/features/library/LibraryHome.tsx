@@ -3,10 +3,11 @@ import { Link, useNavigate } from 'react-router';
 import { nextCollectionName } from '../../domain/collection';
 import { charId, wordId } from '../../domain/ids';
 import { pendingSheets } from '../../domain/memory';
-import { collectedItems } from '../../domain/sweep';
 import { HSK_BANDS } from '../../domain/text';
-import { wordKnowledge } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
+import { useLevelOf } from '../shared/levels';
+import { LevelBar } from '../../ui/LevelMark';
+import { useWordKnowledge } from '../words/useWordKnowledge';
 import { paths } from '../../navigation/paths';
 import { createCollection, startListPlan } from '../../store/commands';
 import { useStore } from '../../store/store';
@@ -21,17 +22,28 @@ import './home.css';
 
 const flat = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-/** How much of a set is done: characters learned and words known, as one share. */
+/**
+ * How much of a set is known, from review alone: its characters and words
+ * counted at each level, 0 to 3, and how many are met at least.
+ */
 export function useSetProgress() {
-  const lib = useLibrary();
-  const learned = useStore((s) => s.learned);
-  const recall = useStore((s) => s.recall);
-  const collections = useStore((s) => s.collections);
-  const know = useMemo(() => wordKnowledge(lib, recall, collectedItems(collections)), [lib, recall, collections]);
+  const levelOf = useLevelOf();
+  const know = useWordKnowledge();
   return (set: LibSet) => {
-    const chars = set.chars.filter((c) => learned.has(charId(c))).length;
-    const words = set.words.filter((w) => know.status(w) === 'known').length;
-    return { chars, words, share: (chars + words) / Math.max(1, set.chars.length + set.words.length) };
+    const levels: [number, number, number, number] = [0, 0, 0, 0];
+    let chars = 0;
+    let words = 0;
+    for (const c of set.chars) {
+      const l = levelOf(charId(c));
+      levels[l] += 1;
+      if (l > 0) chars += 1;
+    }
+    for (const w of set.words) {
+      const l = know.level(w);
+      levels[l] += 1;
+      if (l > 0) words += 1;
+    }
+    return { chars, words, levels, share: (chars + words) / Math.max(1, set.chars.length + set.words.length) };
   };
 }
 
@@ -57,7 +69,8 @@ export function LibraryHome() {
   const navigate = useNavigate();
   const openItem = useOpenItem();
   const collections = useStore((s) => s.collections);
-  const learned = useStore((s) => s.learned);
+  const levelOf = useLevelOf();
+  const know = useWordKnowledge();
   const band = useStore((s) => s.settings.hskBand);
   const waiting = pendingSheets(useStore((s) => s.sheets));
   const progress = useSetProgress();
@@ -148,7 +161,7 @@ export function LibraryHome() {
             <h2 className="block-title">{found.chars.length ? 'Characters' : 'No characters'}</h2>
             <div className="lib-tiles">
               {found.chars.map((c) => (
-                <CharTile key={c.c} c={c} learned={learned.has(charId(c.c))} onOpen={() => openItem(charId(c.c))} />
+                <CharTile key={c.c} c={c} level={levelOf(charId(c.c))} onOpen={() => openItem(charId(c.c))} />
               ))}
             </div>
           </section>
@@ -170,7 +183,7 @@ export function LibraryHome() {
               <h2 className="block-title">Words</h2>
               <div className="lib-words">
                 {found.words.map((w) => (
-                  <WordRow key={w.w} w={w} onOpen={() => openItem(wordId(w.w))} />
+                  <WordRow key={w.w} w={w} level={know.level(w.w)} onOpen={() => openItem(wordId(w.w))} />
                 ))}
               </div>
             </section>
@@ -292,12 +305,9 @@ export function LibraryHome() {
   );
 }
 
-function Bar({ share }: { share: number }) {
-  return (
-    <span className="lib-bar" aria-hidden>
-      <i style={{ width: `${Math.round(share * 100)}%` }} />
-    </span>
-  );
+/** A set's items by level, as one bar of deepening greens: solid first, then known, then met. */
+function Bar({ levels }: { levels: readonly number[] }) {
+  return <LevelBar levels={levels} />;
 }
 
 function SetRow({ set, progress, strip }: { set: LibSet; progress: ReturnType<ReturnType<typeof useSetProgress>>; strip?: boolean }) {
@@ -315,7 +325,7 @@ function SetRow({ set, progress, strip }: { set: LibSet; progress: ReturnType<Re
           {count(set)}
           {set.collection && set.group !== 'mine' ? ', printed as your list' : ''}
         </span>
-        <Bar share={progress.share} />
+        <Bar levels={progress.levels} />
       </span>
       <Icon name="chevron" className="muted" />
     </Link>
@@ -329,11 +339,11 @@ function BandRow({ set, progress, now }: { set: LibSet; progress: ReturnType<Ret
       <span className="grow">
         <span className="lib-band-line">
           <span>
-            {progress.chars} of {set.chars.length.toLocaleString('en')} characters
+            {progress.chars} of {set.chars.length.toLocaleString('en')} characters met
           </span>
           {now && <span className="lib-now">Your level</span>}
         </span>
-        <Bar share={progress.share} />
+        <Bar levels={progress.levels} />
       </span>
       <Icon name="chevron" className="muted" />
     </Link>

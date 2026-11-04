@@ -429,6 +429,47 @@ export function learnedFrom(book: RecallBook): Set<ItemId> {
   return out;
 }
 
+/* ------------------------------------------------------------- the level */
+
+/**
+ * How well an item is known, 0 to 3, from what review has shown and nothing
+ * else — being on a list, in a collection or on a shelf says nothing about it.
+ *
+ *   0  not known: never recalled, or just failed
+ *   1  met: recalled, the memory a few days long at most (or only claimed)
+ *   2  known: it has held for days at a time
+ *   3  solid: it has held for weeks
+ *
+ * The best of its skills counts, by stability — how long the memory is
+ * expected to hold — so the line between 0 and 1 is the one `isLearned`
+ * draws. A memory well past due (less than 70% likely to come back) is a
+ * level lower, as it may be forgotten.
+ */
+export type Level = 0 | 1 | 2 | 3;
+
+export const LEVELS: readonly Level[] = [0, 1, 2, 3];
+
+export const LEVEL_NAME: Record<Level, string> = { 0: 'Not known', 1: 'Met', 2: 'Known', 3: 'Solid' };
+
+const LEVEL_STABILITY: Record<1 | 2 | 3, number> = { 1: LEARNED_STABILITY, 2: 5, 3: 21 };
+
+function levelOfRecall(r: Recall | undefined, now: number): Level {
+  if (!r || r.reps === 0) return 0;
+  if (isClaimOnly(r)) return 1;
+  const by: Level = r.s >= LEVEL_STABILITY[3] ? 3 : r.s >= LEVEL_STABILITY[2] ? 2 : r.s >= LEVEL_STABILITY[1] ? 1 : 0;
+  return by > 0 && retrievability(r, now) < 0.7 ? ((by - 1) as Level) : by;
+}
+
+export function levelOf(sk: SkillBook | undefined, now: number): Level {
+  if (!sk) return 0;
+  let best: Level = 0;
+  for (const s of SKILLS) {
+    const l = levelOfRecall(sk[s], now);
+    if (l > best) best = l;
+  }
+  return best;
+}
+
 /* ------------------------------------------------------------- seeding it */
 
 /**

@@ -404,12 +404,16 @@ button.fam-node:hover {
   display: inline-block;
 }
 
-.fam-dot[data-state='known'] {
-  background: var(--jade);
+.fam-dot[data-level='1'] {
+  background: var(--lv1-ink);
 }
 
-.fam-dot[data-state='learning'] {
-  background: var(--gold);
+.fam-dot[data-level='2'] {
+  background: var(--lv2-ink);
+}
+
+.fam-dot[data-level='3'] {
+  background: var(--lv3-ink);
 }
 
 @media (max-width: 640px) {

@@ -401,7 +401,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             text={text}
             setId={set?.id ?? null}
             study={study}
-            standing={standing}
             onShowLine={showLine}
             partId={partId('words')}
           />

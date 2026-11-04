@@ -1,9 +1,8 @@
 /* ---------------------------------------------------------------- the wall */
 
 /*
- * Ink on paper, and nothing else: the one thing that changes from tile to
- * tile is how dark the character is. Five steps from the ink token to the
- * line colour; never-met tiles are outlines.
+ * The one thing that changes from tile to tile is how deep its green is, the
+ * same 0 to 3 as everywhere; not-known tiles are outlines.
  */
 
 .ink-wall-bar {
@@ -48,36 +47,29 @@
   font-size: 19px;
 }
 
-.ink-tile[data-ink='0'],
-.ink-swatch[data-ink='0'] {
-  color: var(--line-2);
+.ink-tile[data-level='0'],
+.ink-swatch[data-level='0'] {
+  color: var(--ink-3);
   background: transparent;
   border: 1px dashed var(--line-2);
 }
 
-.ink-tile[data-ink='1'],
-.ink-swatch[data-ink='1'] {
-  color: color-mix(in srgb, var(--ink) 22%, var(--card-2));
+.ink-tile[data-level='1'],
+.ink-swatch[data-level='1'] {
+  background: var(--lv1);
+  border-color: var(--lv1-ink);
 }
 
-.ink-tile[data-ink='2'],
-.ink-swatch[data-ink='2'] {
-  color: color-mix(in srgb, var(--ink) 40%, var(--card-2));
+.ink-tile[data-level='2'],
+.ink-swatch[data-level='2'] {
+  background: var(--lv2);
+  border-color: var(--lv2-ink);
 }
 
-.ink-tile[data-ink='3'],
-.ink-swatch[data-ink='3'] {
-  color: color-mix(in srgb, var(--ink) 60%, var(--card-2));
-}
-
-.ink-tile[data-ink='4'],
-.ink-swatch[data-ink='4'] {
-  color: color-mix(in srgb, var(--ink) 80%, var(--card-2));
-}
-
-.ink-tile[data-ink='5'],
-.ink-swatch[data-ink='5'] {
-  color: var(--ink);
+.ink-tile[data-level='3'],
+.ink-swatch[data-level='3'] {
+  background: var(--lv3);
+  border-color: var(--lv3-ink);
 }
 
 .ink-tile:hover {
@@ -109,9 +101,5 @@
   width: 12px;
   height: 12px;
   border-radius: 3px;
-  background: currentColor;
-}
-
-.ink-swatch[data-ink='0'] {
-  background: transparent;
+  border: 1px solid transparent;
 }

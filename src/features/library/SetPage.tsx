@@ -4,7 +4,10 @@ import type { CharacterEntry, SyllabusWord } from '../../data/types';
 import { nextCollectionName } from '../../domain/collection';
 import { charId, itemsLabel, wordId, type ItemId } from '../../domain/ids';
 import { collectedItems } from '../../domain/sweep';
-import { wordKnowledge, type WordStatus } from '../../domain/words';
+import { LEVEL_NAME, type Level } from '../../domain/memory';
+import { wordKnowledge } from '../../domain/words';
+import { LevelBar, LevelMark } from '../../ui/LevelMark';
+import { useLevelOf } from '../shared/levels';
 import { setBrowseList, useOpenViewer } from '../../navigation/charViewer';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
@@ -23,18 +26,15 @@ import { useSetProgress } from './LibraryHome';
 import { findSet } from './sets';
 import './home.css';
 
-type CharShow = 'all' | 'todo' | 'learned';
-/** A word still to learn is one not known yet, whether or not the cards have started on it. */
-type WordShow = 'all' | 'todo' | 'known';
+/** By how well it is known, from review alone: not yet (0), met (1), known (2 or 3). */
+type Show = 'all' | 'none' | 'met' | 'known';
 type Order = 'order' | 'strokes' | 'freq';
+const showOf = (l: Level): Exclude<Show, 'all'> => (l === 0 ? 'none' : l === 1 ? 'met' : 'known');
 
 // No "All" chip: a pressed filter is let go of by tapping it again.
-const CHAR_SHOW: Array<{ id: CharShow; label: string }> = [
-  { id: 'todo', label: 'To learn' },
-  { id: 'learned', label: 'Learned' },
-];
-const WORD_SHOW: Array<{ id: WordShow; label: string }> = [
-  { id: 'todo', label: 'To learn' },
+const SHOWS: Array<{ id: Exclude<Show, 'all'>; label: string }> = [
+  { id: 'none', label: 'Not known' },
+  { id: 'met', label: 'Met' },
   { id: 'known', label: 'Known' },
 ];
 const ORDERS: Array<{ id: Order; label: string }> = [
@@ -65,6 +65,7 @@ export function SetPage() {
   const toast = useToast();
   const collections = useStore((s) => s.collections);
   const learned = useStore((s) => s.learned);
+  const levelOf = useLevelOf();
   const recall = useStore((s) => s.recall);
   const [query, setQuery] = useQuery();
   const [cap, setCap] = useState(STEP);
@@ -77,18 +78,17 @@ export function SetPage() {
 
   const hasBoth = Boolean(set?.chars.length && set.words.length);
   const tab = oneOf(query.get('tab'), ['chars', 'words'] as const, set && !set.chars.length ? 'words' : 'chars');
-  const charShow = oneOf<CharShow>(query.get('show'), ['todo', 'learned'], 'all');
-  const wordShow = oneOf<WordShow>(query.get('show'), ['todo', 'known'], 'all');
+  const show = oneOf<Show>(query.get('show'), ['none', 'met', 'known'], 'all');
   const order = oneOf(query.get('order'), ORDERS.map((o) => o.id), 'order');
 
   const chars = useMemo(() => {
     if (!set) return [];
     const rows = set.chars.map((c) => lib.byChar.get(c)).filter((c): c is CharacterEntry => Boolean(c));
-    const shown = rows.filter((c) => (charShow === 'all' ? true : (charShow === 'learned') === learned.has(charId(c.c))));
+    const shown = rows.filter((c) => show === 'all' || showOf(levelOf(charId(c.c))) === show);
     if (order === 'strokes') return [...shown].sort((a, b) => (a.sc ?? 0) - (b.sc ?? 0) || a.i - b.i);
     if (order === 'freq') return [...shown].sort((a, b) => a.freq - b.freq);
     return shown;
-  }, [set, lib, charShow, learned, order]);
+  }, [set, lib, show, levelOf, order]);
 
   const words = useMemo(() => {
     if (!set) return [];
@@ -96,8 +96,8 @@ export function SetPage() {
     return set.words
       .map((w) => lib.byWord.get(w) ?? (extra.get(w) as SyllabusWord | undefined))
       .filter((w): w is SyllabusWord => Boolean(w))
-      .filter((w) => wordShow === 'all' || (wordShow === 'known') === (know.status(w.w) === 'known'));
-  }, [set, lib, wordShow, know]);
+      .filter((w) => show === 'all' || showOf(know.level(w.w)) === show);
+  }, [set, lib, show, know]);
 
   // The full-screen view walks through what this page shows, in its order.
   const glyphs = useMemo(() => (tab === 'chars' ? chars.map((c) => c.c) : words.map((w) => w.w)), [tab, chars, words]);
@@ -112,7 +112,7 @@ export function SetPage() {
     [tab, chars, words],
   );
   const selection = useSelectMode(ordering);
-  useEffect(() => setCap(STEP), [tab, charShow, wordShow, order]);
+  useEffect(() => setCap(STEP), [tab, show, order]);
 
   if (!set) return <Navigate to={paths.library()} replace />;
   const done = progress(set);
@@ -205,22 +205,14 @@ export function SetPage() {
       {set.blurb && <p className="set-blurb">{set.blurb}</p>}
 
       <div className="set-done">
-        <span className="small">
-          {set.chars.length > 0 && (
-            <>
-              <b>{done.chars}</b> of {set.chars.length.toLocaleString('en')} characters learned
-            </>
-          )}
-          {set.chars.length > 0 && set.words.length > 0 && ', '}
-          {set.words.length > 0 && (
-            <>
-              <b>{done.words}</b> of {set.words.length.toLocaleString('en')} words known
-            </>
-          )}
+        <span className="small set-levels">
+          {([3, 2, 1, 0] as const).map((l) => (
+            <span key={l} className="set-level">
+              <LevelMark level={l} /> <b>{done.levels[l]}</b> {LEVEL_NAME[l].toLowerCase()}
+            </span>
+          ))}
         </span>
-        <span className="lib-bar" aria-hidden>
-          <i style={{ width: `${Math.round(done.share * 100)}%` }} />
-        </span>
+        <LevelBar levels={done.levels} />
       </div>
 
       <div className="set-filter">
@@ -236,8 +228,8 @@ export function SetPage() {
           />
         )}
         <div className="chips">
-          {(tab === 'chars' ? CHAR_SHOW : WORD_SHOW).map((s) => {
-            const on = (tab === 'chars' ? charShow : wordShow) === s.id;
+          {SHOWS.map((s) => {
+            const on = show === s.id;
             return (
               <button key={s.id} className="chip" aria-pressed={on} onClick={() => setQuery('show', on ? 'all' : s.id, 'all')}>
                 {s.label}
@@ -274,7 +266,7 @@ export function SetPage() {
               <CharTile
                 key={c.c}
                 c={c}
-                learned={learned.has(id)}
+                level={levelOf(id)}
                 picked={selection.on ? selection.selected.has(id) : undefined}
                 onOpen={(shift) => (selection.on ? selection.toggle(id, shift) : openItem(id))}
               />
@@ -289,7 +281,7 @@ export function SetPage() {
               <WordRow
                 key={w.w}
                 w={w}
-                status={know.status(w.w)}
+                level={know.level(w.w)}
                 picked={selection.on ? selection.selected.has(id) : undefined}
                 onOpen={(shift) => (selection.on ? selection.toggle(id, shift) : openItem(id))}
               />
@@ -342,12 +334,13 @@ export function SetPage() {
 /** A character as a square of the exercise book: the 田 guide, the character, its reading, its sense. */
 export function CharTile({
   c,
-  learned,
+  level,
   picked,
   onOpen,
 }: {
   c: CharacterEntry;
-  learned: boolean;
+  /** how well it is known, 0 to 3: its square filled in a deeper green */
+  level: Level;
   /** undefined when nothing is being picked */
   picked?: boolean;
   onOpen: (shift: boolean) => void;
@@ -355,10 +348,10 @@ export function CharTile({
   return (
     <button
       className="lib-tile"
-      data-learned={learned || undefined}
+      data-level={level}
       aria-pressed={picked}
       onClick={(e) => onOpen(e.shiftKey)}
-      aria-label={`${c.c}, ${c.py[0]}, ${c.def}${learned ? ', learned' : ''}`}
+      aria-label={`${c.c}, ${c.py[0]}, ${c.def}, ${LEVEL_NAME[level].toLowerCase()}`}
     >
       <span className="lib-sq hanzi" aria-hidden>
         {c.c}
@@ -369,28 +362,26 @@ export function CharTile({
   );
 }
 
-const STATUS_LABEL: Record<WordStatus, string> = { new: 'New', learning: 'Learning', known: 'Known' };
-
 export function WordRow({
   w,
-  status,
+  level,
   picked,
   onOpen,
 }: {
   w: SyllabusWord;
-  status?: WordStatus;
+  /** how well it is known, 0 to 3; left out, no mark */
+  level?: Level;
   picked?: boolean;
   onOpen: (shift: boolean) => void;
 }) {
   return (
-    <button className="lib-word" data-status={status} aria-pressed={picked} onClick={(e) => onOpen(e.shiftKey)}>
+    <button className="lib-word" data-level={level} aria-pressed={picked} onClick={(e) => onOpen(e.shiftKey)}>
       <span className="hanzi lib-word-zh">{w.w}</span>
       <span className="lib-word-text">
         <span className="lib-py">{w.py}</span>
         <span className="lib-gloss">{w.d}</span>
       </span>
-      {status === 'learning' && <span className="lib-word-state">{STATUS_LABEL[status]}</span>}
-      {status === 'known' && <span className="lib-word-dot" aria-label="Known" />}
+      {level !== undefined && <LevelMark level={level} />}
     </button>
   );
 }

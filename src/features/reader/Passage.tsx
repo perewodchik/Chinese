@@ -1,3 +1,4 @@
+import type { Level } from '../../domain/memory';
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Library } from '../../data/types';
 import { charId, readableChars, type ItemId } from '../../domain/ids';
@@ -8,6 +9,7 @@ import { pictureAbove } from '../../domain/pictures';
 import { coverageOf, hskLabel, isHanzi, plainTitle, type GeneratedText } from '../../domain/text';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useStore } from '../../store/store';
+import { useLevelOf } from '../shared/levels';
 import { useLibrary } from '../shared/library';
 import { useWordKnowledge } from '../words/useWordKnowledge';
 import { Comic } from './Comic';
@@ -53,8 +55,8 @@ const OPENERS = /^[“‘《「『（(【〈]+$/;
  *
  * What review knows about the word decides it when it knows anything. A word
  * review has never seen is read off its characters: every one of them learned
- * and the word reads itself; one of them new and it is new. Chosen on this
- * shelf to learn, it is being learned from that moment.
+ * and the word reads itself; one of them new and it is new. Being on a
+ * shelf's list says nothing about it: a word chosen to learn is not yet known.
  */
 export function useStanding(study: ReadonlySet<ItemId>): (word: string) => Standing {
   const lib = useLibrary();
@@ -64,19 +66,41 @@ export function useStanding(study: ReadonlySet<ItemId>): (word: string) => Stand
 }
 
 export function standingOf(
-  lib: Library,
+  _lib: Library,
   known: WordKnowledge,
   learned: ReadonlySet<ItemId>,
-  study: ReadonlySet<ItemId>,
+  _study?: ReadonlySet<ItemId>,
 ): (word: string) => Standing {
   return (word) => {
     const chars = [...word].filter(isHanzi);
     if (!chars.length) return 'known';
     const s = known.status(word);
     if (s === 'known') return 'known';
-    if (s === 'learning' || study.has(itemForToken(lib, word))) return 'learning';
+    if (s === 'learning') return 'learning';
     return chars.every((c) => learned.has(charId(c))) ? 'known' : 'new';
   };
+}
+
+/**
+ * A word's level, 0 to 3: its own, from review, when review has asked about
+ * it; otherwise that of its weakest character — a word never asked about is
+ * known as far as its characters are.
+ */
+export function useWordLevel(): (word: string) => Level {
+  const lib = useLibrary();
+  const known = useWordKnowledge();
+  const levelOfId = useLevelOf();
+  const recall = useStore((s) => s.recall);
+  return useMemo(
+    () => (word: string) => {
+      const chars = [...word].filter(isHanzi);
+      if (!chars.length) return 3;
+      const id = itemForToken(lib, word);
+      if (recall[id] && Object.keys(recall[id]!).length) return known.level(word);
+      return Math.min(...chars.map((c) => levelOfId(charId(c)))) as Level;
+    },
+    [lib, known, levelOfId, recall],
+  );
 }
 
 const KIND_LABEL: Record<NonNullable<GeneratedText['lines'][number]['kind']>, string> = {

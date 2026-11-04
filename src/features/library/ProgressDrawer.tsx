@@ -49,7 +49,7 @@ export function ProgressDrawer({ onClose }: { onClose: () => void }) {
   const lastStarted = p.current ? p.current.band : 0;
 
   /** Opens the band's page on what is left of it. */
-  const leftIn = (b: BandProgress) => ({ to: `${paths.librarySet(`hsk-${b.band}`)}?show=todo` });
+  const leftIn = (b: BandProgress) => ({ to: `${paths.librarySet(`hsk-${b.band}`)}?show=none` });
 
   return (
     <div className="drawer" data-leaving={sheet.leaving || undefined} onClick={close}>

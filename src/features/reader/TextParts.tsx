@@ -18,7 +18,8 @@ import { NarrationPlayer } from './NarrationPlayer';
 import { Narrate } from './Narrate';
 import { addReading, narratedReadings, pickReading, prepareClips } from './narratedClips';
 import type { TextNarrationDto } from '../../../shared/narration';
-import type { Standing } from './Passage';
+import { useWordLevel, type Standing } from './Passage';
+import { LevelMark } from '../../ui/LevelMark';
 import { onReadThrough, RATES, type Reading } from './readAloud';
 
 /**
@@ -572,14 +573,12 @@ export function WordsPart({
   text,
   setId,
   study,
-  standing,
   onShowLine,
   partId,
 }: {
   text: GeneratedText;
   setId: string | null;
   study: ReadonlySet<ItemId>;
-  standing: (w: string) => Standing;
   onShowLine: (i: number) => void;
   partId: string;
 }) {
@@ -587,12 +586,10 @@ export function WordsPart({
   const openItem = useOpenItem();
   const [all, setAll] = useState(false);
   const words = text.vocab;
-  const learning = words.filter((w) => standing(w.w) === 'learning').length;
-  // The new ones first: they are what the part is for.
-  const ordered = useMemo(
-    () => [...words].sort((a, b) => Number(standing(a.w) === 'known') - Number(standing(b.w) === 'known')),
-    [words, standing],
-  );
+  const levelOfWord = useWordLevel();
+  const knownN = words.filter((w) => levelOfWord(w.w) >= 2).length;
+  // The least known first: they are what the part is for.
+  const ordered = useMemo(() => [...words].sort((a, b) => levelOfWord(a.w) - levelOfWord(b.w)), [words, levelOfWord]);
   const shown = all ? ordered : ordered.slice(0, 6);
 
   /** The line a grammar note's example comes from, so it can be pointed at in the text. */
@@ -604,13 +601,12 @@ export function WordsPart({
   };
 
   return (
-    <Section id={partId} han="词" title="Words" aside={words.length ? `${learning} of ${words.length} learning` : undefined}>
+    <Section id={partId} han="词" title="Words" aside={words.length ? `${knownN} of ${words.length} known` : undefined}>
       {words.length > 0 ? (
         <>
           <ul className="rd-words">
             {shown.map((w) => {
               const id = itemForToken(lib, w.w);
-              const s = standing(w.w);
               const band = lib.byWord.get(w.w)?.hsk;
               return (
                 <li key={w.w} className="rd-word">
@@ -624,22 +620,17 @@ export function WordsPart({
                       </span>
                     </span>
                   </button>
-                  {s === 'known' ? (
-                    <span className="rd-add" data-state="known" title="You know this one">
-                      <Icon name="check" />
-                    </span>
-                  ) : (
-                    <button
-                      className="rd-add"
-                      data-state={s}
-                      disabled={!setId}
-                      aria-pressed={study.has(id) || s === 'learning'}
-                      title={study.has(id) ? 'On this shelf’s list: tap to take it off' : 'Learn this word'}
-                      onClick={() => setId && setShelfStudy(setId, [id], !study.has(id))}
-                    >
-                      <Icon name={s === 'learning' ? 'check' : 'plus'} />
-                    </button>
-                  )}
+                  <LevelMark level={levelOfWord(w.w)} />
+                  {/* On the shelf's list or not: a choice to learn it, which says nothing of how well it is known. */}
+                  <button
+                    className="rd-add"
+                    disabled={!setId}
+                    aria-pressed={study.has(id)}
+                    title={study.has(id) ? 'On this shelf’s list: tap to take it off' : 'Add it to this shelf’s list to learn'}
+                    onClick={() => setId && setShelfStudy(setId, [id], !study.has(id))}
+                  >
+                    <Icon name={study.has(id) ? 'check' : 'plus'} />
+                  </button>
                 </li>
               );
             })}

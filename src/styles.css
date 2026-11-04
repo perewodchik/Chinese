@@ -1113,12 +1113,22 @@ h2 {
 
 /* Learned is shown as a ring rather than by fading the character out: you
    still want to read it, you just want to know you have done it. */
-.item[data-learned='true'] {
-  border-color: color-mix(in srgb, var(--jade) 55%, var(--line));
-  background: color-mix(in srgb, var(--jade-soft) 60%, var(--card));
+.item[data-level='1'] {
+  border-color: var(--lv1-ink);
+  background: var(--lv1);
 }
 
-.item[data-learned='true'][data-selected='true'] {
+.item[data-level='2'] {
+  border-color: var(--lv2-ink);
+  background: var(--lv2);
+}
+
+.item[data-level='3'] {
+  border-color: var(--lv3-ink);
+  background: var(--lv3);
+}
+
+.item[data-level][data-selected='true'] {
   border-color: var(--accent);
 }
 
@@ -5832,4 +5842,98 @@ label.field[data-invalid] input {
 
 .run-font[data-ahead] {
   color: var(--line);
+}
+
+/* -------------------------------------------------------------- levels
+   How well a character or word is known, 0 to 3, from review alone, in
+   deepening greens: a fill for a tile, and three bars for a mark. Mixed
+   from jade and the card, so the dark theme gets its own shades for free. */
+:root {
+  --lv1: color-mix(in srgb, var(--jade) 14%, var(--card));
+  --lv2: color-mix(in srgb, var(--jade) 32%, var(--card));
+  --lv3: color-mix(in srgb, var(--jade) 55%, var(--card));
+  --lv1-ink: color-mix(in srgb, var(--jade) 45%, var(--line));
+  --lv2-ink: color-mix(in srgb, var(--jade) 75%, var(--line));
+  --lv3-ink: var(--jade);
+}
+
+.level-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
+.level-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+
+.level-bars i {
+  display: block;
+  width: 4px;
+  border-radius: 1px;
+  background: var(--line);
+}
+
+.level-bars i:nth-child(1) {
+  height: 6px;
+}
+
+.level-bars i:nth-child(2) {
+  height: 9px;
+}
+
+.level-bars i:nth-child(3) {
+  height: 12px;
+}
+
+.level-mark[data-level='1'] i:nth-child(-n + 1) {
+  background: var(--lv1-ink);
+}
+
+.level-mark[data-level='2'] i:nth-child(-n + 2) {
+  background: var(--lv2-ink);
+}
+
+.level-mark[data-level='3'] i {
+  background: var(--lv3-ink);
+}
+
+.level-name {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.level-mark[data-level='0'] .level-name {
+  color: var(--ink-3);
+}
+
+.level-bar {
+  display: flex;
+  height: 5px;
+  margin-top: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.level-bar i {
+  display: block;
+  height: 100%;
+}
+
+.level-bar i[data-level='1'] {
+  background: var(--lv1-ink);
+}
+
+.level-bar i[data-level='2'] {
+  background: var(--lv2-ink);
+}
+
+.level-bar i[data-level='3'] {
+  background: var(--lv3-ink);
 }

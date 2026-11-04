@@ -5,6 +5,7 @@ import { wordId, type ItemId } from '../../domain/ids';
 import { characterOf, partGloss } from '../../domain/library';
 import {
   DAY,
+  levelOf,
   masteryOf,
   skillHold,
   SKILL_META,
@@ -16,6 +17,7 @@ import { seriesFor } from '../../domain/series';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
 import { toggleLearned } from '../../store/commands';
+import { LevelMark } from '../../ui/LevelMark';
 import { useStore } from '../../store/store';
 import { useOpenViewer } from '../../navigation/charViewer';
 import { Glyph, StrokeStepper, useStrokeSteps } from '../../ui/Glyph';
@@ -216,14 +218,9 @@ export function ItemDrawer({ id, onClose }: Props) {
                   <span className="muted">Not learned yet</span>
                 )}
               </dd>
-              <dt>Mastery</dt>
+              <dt>Level</dt>
               <dd>
-                <span className="band" data-band={mastery.band}>
-                  {mastery.label}
-                </span>{' '}
-                <span className="muted">
-                  · {Math.round(mastery.score * 100)}% over the four skills
-                </span>
+                <LevelMark level={levelOf(book, Date.now())} label /> <span className="muted">· {levelOf(book, Date.now())} of 3, from your answers</span>
               </dd>
               <dt>Collections</dt>
               <dd>

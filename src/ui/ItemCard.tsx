@@ -1,3 +1,5 @@
+import { LEVEL_NAME, type Level } from '../domain/memory';
+import { LevelMark } from './LevelMark';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import type { StrokeMap } from '../data/types';
 import { Glyph } from './Glyph';
@@ -19,7 +21,8 @@ export interface ItemCardProps {
   word?: boolean;
   /** the number in the corner: teaching order, or position in a collection */
   index?: number | string;
-  learned?: boolean;
+  /** how well it is known, 0 to 3: a deeper green each step */
+  level?: Level;
   selected?: boolean;
   /** marks a card that already sits in a collection; `title` says which */
   claimed?: boolean;
@@ -55,7 +58,7 @@ export function ItemCard({
   fallback,
   word,
   index,
-  learned,
+  level,
   selected,
   claimed,
   size = 46,
@@ -75,11 +78,11 @@ export function ItemCard({
       role="button"
       tabIndex={0}
       data-selected={selected || undefined}
-      data-learned={learned || undefined}
+      data-level={level || undefined}
       data-dragging={dragging || undefined}
       data-kind={word ? 'word' : undefined}
       style={style}
-      title={title ?? (learned ? 'Learned' : 'Not learned yet')}
+      title={title ?? LEVEL_NAME[level ?? 0]}
       onClick={(e) => onClick?.(e.shiftKey)}
       onPointerDown={onDragStart}
       onPointerMove={onDragMove}
@@ -102,7 +105,7 @@ export function ItemCard({
           </span>
         )}
         {claimed && <span className="dot claimed" />}
-        {learned && <span className="tick">✓</span>}
+        {level !== undefined && level > 0 && <LevelMark level={level} />}
       </span>
       <Glyph
         char={glyph}

@@ -1,7 +1,7 @@
 import type { Library, SyllabusWord } from '../data/types';
 import type { CollectionWord } from './collection';
 import { charId, wordId, type ItemId } from './ids';
-import { isDue, isLearned, type RecallBook } from './memory';
+import { isDue, isLearned, levelOf, type Level, type RecallBook } from './memory';
 import type { GeneratedText } from './text';
 import { wordIndex } from './vocab';
 
@@ -28,26 +28,24 @@ export function wordInfo(lib: Library, w: string): WordInfo | null {
 }
 
 /**
- * Where you stand with a word.
+ * Where you stand with a word, from review alone.
  *
- * `known` is what review has let stand — the same line a character crosses to
- * count as learned. `learning` is anything short of that you have started on:
- * a word you were not sure of, one failed back, one sitting in a collection.
- * Everything else is `new`.
+ * `known` is a word recalled and holding (level 1 or more); `learning` one
+ * asked about but not held — failed, or only just met; `new` one never asked
+ * about. Being in a collection, a list or a shelf says nothing here: a word
+ * on a list may never have been seen. `level` is the finer 0–3 (see
+ * `levelOf`).
  */
 export type WordStatus = 'known' | 'learning' | 'new';
 
 export interface WordKnowledge {
   status(w: string): WordStatus;
+  level(w: string): Level;
   /** false until anything at all is known about any word — before the sweep */
   any: boolean;
 }
 
-export function wordKnowledge(
-  lib: Library,
-  recall: RecallBook,
-  collected: ReadonlySet<ItemId>,
-): WordKnowledge {
+export function wordKnowledge(lib: Library, recall: RecallBook, _collected?: ReadonlySet<ItemId>, now = Date.now()): WordKnowledge {
   let any = false;
   for (const id in recall) {
     if (id.startsWith('w')) {
@@ -55,22 +53,16 @@ export function wordKnowledge(
       break;
     }
   }
-  if (!any) for (const id of collected) if (id.startsWith('w')) (any = true);
-
+  // A single character that is no word on the lists — 们, the 汤 of 汤姆 — is read as the character it is.
+  const bookOf = (w: string) => recall[wordId(w)] ?? ([...w].length === 1 && !lib.byWord.has(w) ? recall[charId(w)] : undefined);
+  const level = (w: string): Level => levelOf(bookOf(w), now);
   return {
     any,
+    level,
     status(w) {
-      const id = wordId(w);
-      const book = recall[id];
-      if (book && Object.keys(book).length) return isLearned(book) ? 'known' : 'learning';
-      if (collected.has(id)) return 'learning';
-      // A single character that is no word on the lists — 们, the 汤 of 汤姆 —
-      // is read as the character it is.
-      if ([...w].length === 1 && !lib.byWord.has(w)) {
-        const c = recall[charId(w)];
-        return c && isLearned(c) ? 'known' : c ? 'learning' : 'new';
-      }
-      return 'new';
+      const book = bookOf(w);
+      if (!book || !Object.keys(book).length) return 'new';
+      return level(w) >= 1 ? 'known' : 'learning';
     },
   };
 }

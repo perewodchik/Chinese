@@ -1,3 +1,5 @@
+import { levelOf } from '../../domain/memory';
+import { LevelMark } from '../../ui/LevelMark';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { planCards, planShelf, SECONDS_PER_CARD, type CardPlan, type CardSkill } from '../../domain/cards';
@@ -303,15 +305,13 @@ function OneCard({
         <ul className="cs-chars">
           {[...shown].map((c, i) => {
             const e = lib.byChar.get(c);
-            const learned = getState().learned.has(charId(c));
+            const level = levelOf(getState().recall[charId(c)], Date.now());
             return (
               <li key={i}>
                 <span className="hanzi">{c}</span>
                 <b>{e?.py[0] ?? ''}</b>
                 <span className="muted">{e ? firstSense(e.def) : ''}</span>
-                <span className="cs-char-state" data-known={learned || undefined}>
-                  {learned ? 'Known' : 'New'}
-                </span>
+                <LevelMark level={level} label />
               </li>
             );
           })}

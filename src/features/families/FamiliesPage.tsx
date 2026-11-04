@@ -1,3 +1,4 @@
+import { levelOf, type Level } from '../../domain/memory';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { loadFamilies } from '../../data/families';
@@ -210,7 +211,6 @@ function FamilyTree({
 }) {
   const lib = useLibrary();
   const rlib = useRadicalLibrary();
-  const learned = useStore((s) => s.learned);
   const recall = useStore((s) => s.recall);
 
   const forms = useMemo(() => [...new Set([...r.forms.map((f) => f.g), r.kangxi])], [r]);
@@ -219,12 +219,9 @@ function FamilyTree({
     [data, r, forms, facts, band],
   );
 
-  const stateOf = (g: string): NodeState => {
-    const id = charId(g);
-    if (learned.has(id)) return 'known';
-    if (recall[id]) return 'learning';
-    return 'new';
-  };
+  // How well each character is known, 0 to 3, from review alone.
+  const now = Date.now();
+  const stateOf = (g: string): NodeState => levelOf(recall[charId(g)], now);
 
   const alone = lib.byChar.get(r.word) ?? null;
   const soundCount = family.sections.find((s) => s.role === 'sound')?.count ?? 0;
@@ -308,7 +305,7 @@ function sectionBlurb(role: FamilyRole, r: RadicalEntry): string {
   return 'It is in the drawing, but says nothing about the meaning or the sound.';
 }
 
-type NodeState = 'known' | 'learning' | 'new';
+type NodeState = Level;
 
 function Kids({
   nodes,
@@ -330,7 +327,7 @@ function Kids({
       {nodes.map((n) => (
         <li key={n.g} data-role={n.role}>
           <div className="fam-row">
-            <Node node={n} parent={parent} state={n.kind === 'char' ? stateOf(n.g) : 'new'} lib={lib} strokes={strokes} />
+            <Node node={n} parent={parent} state={n.kind === 'char' ? stateOf(n.g) : 0} lib={lib} strokes={strokes} />
             {n.children.length > 0 && (
               <Kids nodes={n.children} parent={n.g} stateOf={stateOf} lib={lib} strokes={strokes} />
             )}
@@ -362,7 +359,7 @@ function Node({
         <b>{node.py || ' '}</b>
         <i>{node.above && node.hsk ? `HSK ${node.hsk === 7 ? '7–9' : node.hsk} · ` : ''}{node.gloss || 'a part'}</i>
       </span>
-      {node.kind === 'char' && state !== 'new' && <span className="fam-dot" data-state={state} aria-hidden />}
+      {node.kind === 'char' && state > 0 && <span className="fam-dot" data-level={state} aria-hidden />}
     </>
   );
   if (node.kind === 'part') {
@@ -377,7 +374,7 @@ function Node({
       type="button"
       className="fam-node"
       data-kind="char"
-      data-state={state}
+      data-state={state === 0 ? 'new' : 'known'}
       data-above={node.above || undefined}
       onClick={() => open(charId(node.g))}
       aria-label={`${node.g} ${node.py} ${node.gloss}`}
@@ -440,10 +437,13 @@ function Legend() {
         <i className="ln" data-role="shape" /> only the shape
       </span>
       <span>
-        <i className="fam-dot" data-state="known" /> learned
+        <i className="fam-dot" data-level="1" /> met
       </span>
       <span>
-        <i className="fam-dot" data-state="learning" /> learning
+        <i className="fam-dot" data-level="2" /> known
+      </span>
+      <span>
+        <i className="fam-dot" data-level="3" /> solid
       </span>
     </div>
   );

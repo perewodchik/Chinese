@@ -1,9 +1,9 @@
 import type { Collection } from '../../domain/collection';
+import { useLevelOf } from '../shared/levels';
 import { itemsLabel, type ItemId } from '../../domain/ids';
 import { factsOf, sortByLibrary } from '../../domain/library';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { removeItems, reorderItems, setLearned } from '../../store/commands';
-import { useStore } from '../../store/store';
 import { ItemCard } from '../../ui/ItemCard';
 import { useToast } from '../../ui/toast';
 import { useGridReorder } from '../../ui/useGridReorder';
@@ -29,7 +29,7 @@ export function ItemBoard({ c, taken }: Props) {
   const lib = useLibrary();
   const toast = useToast();
   const openItem = useOpenItem();
-  const learned = useStore((s) => s.learned);
+  const levelOf = useLevelOf();
   const picked = useSelectMode(c.items);
 
   const reorder = useGridReorder(c.items.length, (from, to) => {
@@ -127,7 +127,7 @@ export function ItemBoard({ c, taken }: Props) {
                 strokes={lib.strokes}
                 word={f.kind === 'word'}
                 index={i + 1}
-                learned={learned.has(id)}
+                level={levelOf(id)}
                 selected={picked.selected.has(id)}
                 onClick={(shift) => {
                   if (reorder.consumeClick()) return;
@@ -144,7 +144,7 @@ export function ItemBoard({ c, taken }: Props) {
       )}
 
       <p className="tiny muted" style={{ margin: '14px 0 0' }}>
-        {itemsLabel(c.items)} · {c.items.filter((i) => learned.has(i)).length} learned
+        {itemsLabel(c.items)} · {c.items.filter((i) => levelOf(i) >= 2).length} known, {c.items.filter((i) => levelOf(i) === 3).length} solid
       </p>
     </div>
   );

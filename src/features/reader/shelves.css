@@ -260,9 +260,19 @@
   color: var(--ink-3);
 }
 
-.char-tile[data-learned] {
-  border-color: var(--jade);
-  background: var(--jade-soft);
+.char-tile[data-level='1'] {
+  border-color: var(--lv1-ink);
+  background: var(--lv1);
+}
+
+.char-tile[data-level='2'] {
+  border-color: var(--lv2-ink);
+  background: var(--lv2);
+}
+
+.char-tile[data-level='3'] {
+  border-color: var(--lv3-ink);
+  background: var(--lv3);
 }
 
 @media (max-width: 420px) {
