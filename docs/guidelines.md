@@ -128,7 +128,12 @@ reader's two-column layout each column scrolls on its own.
 
 ## Checking a change
 
+The whole routine (the states to list, how to see each one, how to fix a bug
+so it stays fixed) is `docs/making-changes.md`. In brief:
+
 - `npm test` and `npm run vercel-build` (which runs `tsc -b`).
+- `node scripts/check-screens.mjs <paths…>` for the pictures and the overflow
+  audit at every width, light and dark.
 - Never the production database: a dev server with `HANZI_DB=.data/<copy>.db`
   and `HANZI_DEV_USER=admin`.
 - Screens at 375, 768, 1024 (and 1194 for the reader), light and dark, with
