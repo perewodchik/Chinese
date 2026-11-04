@@ -199,29 +199,9 @@
 
 .shelf-word {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0 12px;
+  gap: 12px;
   padding: 9px 0;
-}
-
-@media (max-width: 560px) {
-  .shelf-word {
-    row-gap: 4px;
-  }
-
-  /* A line break: what comes after it starts a new line. */
-  .shelf-word::after {
-    content: '';
-    order: 2;
-    flex-basis: 100%;
-    height: 0;
-  }
-
-  .shelf-word .level-digits {
-    order: 3;
-    margin-left: 108px;
-  }
 }
 
 .shelf-word-main {

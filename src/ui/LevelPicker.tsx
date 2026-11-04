@@ -16,9 +16,24 @@ export function LevelPicker({ id, level }: { id: ItemId; level: Level }) {
   );
 }
 
-/** The same four digits, without the name: for a row in a list of words. */
+/**
+ * For a row in a list of words: one button showing the level, a tap moves it
+ * up by one, and from 3 back round to 0. Small enough to sit beside the add
+ * button on a phone.
+ */
 export function LevelQuick({ id, level }: { id: ItemId; level: Level }) {
-  return <Digits id={id} level={level} />;
+  const next = ((level + 1) % 4) as Level;
+  return (
+    <button
+      className="level-step"
+      data-level={level}
+      onClick={() => setLevel([id], next)}
+      title={`${level}: ${LEVEL_NAME[level]}. Tap for ${next}: ${LEVEL_NAME[next]}`}
+      aria-label={`Level ${level}, ${LEVEL_NAME[level]}. Tap for ${next}, ${LEVEL_NAME[next]}`}
+    >
+      {level}
+    </button>
+  );
 }
 
 function Digits({ id, level }: { id: ItemId; level: Level }) {

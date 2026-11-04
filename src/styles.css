@@ -6015,3 +6015,41 @@ label.field[data-invalid] input {
   display: block;
   margin-top: 4px;
 }
+
+/* A word's level on its row: one digit in a square, a tap for the next one up,
+   round from 3 to 0. Tinted its level's green, like the drawer's digits. */
+.level-step {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink-2);
+  font: 600 15px/1 var(--sans);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.level-step[data-level='0'] {
+  color: var(--ink-3);
+}
+
+.level-step[data-level='1'] {
+  border-color: var(--lv1-edge);
+  background: color-mix(in srgb, var(--jade) 12%, var(--card));
+}
+
+.level-step[data-level='2'] {
+  border-color: var(--lv2-edge);
+  background: color-mix(in srgb, var(--jade) 24%, var(--card));
+  color: var(--ink);
+}
+
+.level-step[data-level='3'] {
+  border-color: var(--lv3-edge);
+  background: color-mix(in srgb, var(--jade) 38%, var(--card));
+  color: var(--ink);
+}
