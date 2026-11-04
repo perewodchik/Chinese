@@ -28,7 +28,8 @@ function paceOf(r: EvalResult): string {
  * A character's initial, final and tone as the service heard them, and
  * nothing of the app's own: each part, its number, and what it sounded like
  * when that was something else (q → j, tone 2 → 1); a syllable not heard says
- * so; a pause after it is marked. Without numbers (iFlytek) a part is right
+ * so. A pause between characters is the line's Flow, not shown here: on
+ * one card it would make every card in the row taller. Without numbers (iFlytek) a part is right
  * or wrong.
  */
 function CharParts({ syl }: { syl: SyllableEval }) {
@@ -57,7 +58,6 @@ function CharParts({ syl }: { syl: SyllableEval }) {
           <dd className="ph-char-n">{r.n !== undefined ? Math.round(r.n) : <Icon name={r.wrong ? 'close' : 'check'} size={14} />}</dd>
         </div>
       ))}
-      {syl.pause && <div className="ph-char-pause">pause after</div>}
     </dl>
   );
 }
@@ -259,9 +259,9 @@ export function ScoredLine({
                 <span className="spinner" aria-hidden /> Scoring…
               </span>
             )}
-            <button className="ph-sum-total" data-band={band(result.total)} aria-expanded={why} onClick={() => setWhy((w) => !w)} aria-label={`${Math.round(result.total)} out of 100: what it is made of`}>
+            <span className="ph-sum-total" data-band={band(result.total)} aria-label={`${Math.round(result.total)} out of 100`}>
               {Math.round(result.total)}
-            </button>
+            </span>
             <span className="ph-sum-text">
               <span className="ph-sum-parts">
                 {parts.map(([name, v]) => (
@@ -273,6 +273,11 @@ export function ScoredLine({
               {why && pace && <span className="tiny muted">{pace}</span>}
               {result.quiet && <span className="tiny ph-error">The recording was very quiet: hold the device closer.</span>}
             </span>
+            {pace && (
+              <button className="icon-btn ph-sum-more" aria-expanded={why} onClick={() => setWhy((w) => !w)} aria-label={why ? 'Hide the pace' : 'Show the pace'} title={why ? 'Hide the pace' : 'Show the pace'}>
+                <Icon name="chevron" size={18} />
+              </button>
+            )}
           </section>
         )}
 

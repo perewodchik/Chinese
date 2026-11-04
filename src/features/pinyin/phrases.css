@@ -530,7 +530,6 @@ button.back-link {
   color: var(--ink);
   background: none;
   border: 4px solid var(--line);
-  cursor: pointer;
 }
 
 .ph-sum-total[data-band='good'] {
@@ -1319,14 +1318,27 @@ button.back-link {
   color: var(--red);
 }
 
-.ph-char-parts .ph-char-pause {
-  font-size: 11.5px;
-  color: var(--ink-3);
-}
-
 /* Three in view once there is room for them. */
 @media (min-width: 560px) {
   .ph-char {
     flex-basis: calc((100% - 20px) / 3);
   }
+}
+
+/* What the summary keeps folded (pace, the voice at the end): a chevron at its
+   end, pointing down while folded, up once open. */
+.ph-sum-more {
+  flex: none;
+  margin-left: auto;
+  align-self: flex-start;
+  color: var(--ink-3);
+}
+
+.ph-sum-more svg {
+  transform: rotate(90deg);
+  transition: transform 140ms;
+}
+
+.ph-sum-more[aria-expanded='true'] svg {
+  transform: rotate(-90deg);
 }

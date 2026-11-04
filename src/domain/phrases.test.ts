@@ -29,7 +29,8 @@ describe('phrases said and scored', () => {
     assert.match(tone!.how, /Here 一 is yì, a fourth tone/);
     assert.equal(faultsOf(syl('卡', 'ka3', { initial: true, initialLike: 'g' }))[0]!.title, 'The initial k — it sounded like g');
     assert.deepEqual(faultsOf(syl('卡', 'ka3', { said: 'missed' })).map((f) => f.title), ['Not heard']);
-    assert.deepEqual(faultsOf(syl('三', 'san1', { extraBefore: true })).map((f) => f.kind), ['added']);
+    // Something said before it is the line's flow, not the character's fault.
+    assert.deepEqual(faultsOf(syl('三', 'san1', { extraBefore: true })).map((f) => f.kind), []);
   });
 
   it('gives each character a band, and for one nearly green the part that fell short', () => {

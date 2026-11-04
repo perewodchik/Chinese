@@ -162,7 +162,8 @@ export function faultsOf(s: SyllableEval): Fault[] {
   else if (s.said === 'repeated') out.push({ kind: 'repeated', title: 'Said twice', how: 'Say it once and go on; a restart breaks the phrase.' });
   else if (s.said === 'replaced') out.push({ kind: 'replaced', title: 'Another syllable said in its place', how: `Say ${p.marked} as written; hear it once more first.` });
   if (s.said !== 'missed') {
-    if (s.extraBefore) out.push({ kind: 'added', title: 'Something extra said before it', how: `Say only what is written: nothing between the syllable before and ${s.char}.` });
+    // Something said between it and the syllable before is about the line's flow, not this
+    // character: the service still scores the character itself, and Flow counts the extra sound.
     if (s.tone) {
       // The tone it takes here: its own, or the one sandhi gives it.
       const want = s.sandhi ?? p.tone;
