@@ -445,7 +445,7 @@ function refusal(base, status) {
   const code = base?.status_code ?? status;
   const msg = base?.status_msg ?? `HTTP ${status}`;
   if (code === 1004 || code === 2049 || status === 401) return new NarratorRefused("MiniMax did not accept the key.", "key");
-  if (code === 1008 || /balance|insufficient/i.test(msg)) return new NarratorRefused("The MiniMax account has no balance left for the API.", "balance");
+  if (code === 1008 || /balance|insufficient/i.test(msg)) return new NarratorRefused(`The MiniMax account has no balance left for the API (MiniMax said ${code}: ${msg}).`, "balance");
   if (code === 1002 || status === 429) return new NarratorRefused("MiniMax asked to slow down. Try again in a minute.", "busy");
   return new NarratorRefused(`MiniMax said: ${msg}`, "other");
 }
