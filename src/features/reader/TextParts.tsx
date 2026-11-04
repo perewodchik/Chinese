@@ -19,7 +19,7 @@ import { Narrate } from './Narrate';
 import { addReading, narratedReadings, pickReading, prepareClips } from './narratedClips';
 import type { TextNarrationDto } from '../../../shared/narration';
 import { useWordDone, useWordLevel } from './Passage';
-import { LevelMark } from '../../ui/LevelMark';
+import { LevelQuick } from '../../ui/LevelPicker';
 import { onReadThrough, RATES, type Reading } from './readAloud';
 
 /**
@@ -594,8 +594,14 @@ export function WordsPart({
   const levelOfWord = useWordLevel();
   const done = useWordDone(study);
   const doneN = words.filter((w) => done(w.w)).length;
-  // The least known first: they are what the part is for.
-  const ordered = useMemo(() => [...words].sort((a, b) => levelOfWord(a.w) - levelOfWord(b.w)), [words, levelOfWord]);
+  // The least known first: they are what the part is for. Sorted when the text
+  // opens and then left alone, so setting a level from a row does not move it.
+  const order = useRef<{ of: typeof words; ws: string[] } | null>(null);
+  if (order.current?.of !== words) order.current = { of: words, ws: [...words].sort((a, b) => levelOfWord(a.w) - levelOfWord(b.w)).map((w) => w.w) };
+  const ordered = useMemo(() => {
+    const at = new Map(order.current!.ws.map((w, i) => [w, i]));
+    return [...words].sort((a, b) => (at.get(a.w) ?? 0) - (at.get(b.w) ?? 0));
+  }, [words]);
   const shown = all ? ordered : ordered.slice(0, 6);
 
   /** The line a grammar note's example comes from, so it can be pointed at in the text. */
@@ -627,7 +633,7 @@ export function WordsPart({
                       </span>
                     </span>
                   </button>
-                  <LevelMark level={levelOfWord(w.w)} />
+                  <LevelQuick id={id} level={levelOfWord(w.w)} />
                   {/* On the shelf's list or not: a choice to learn it, which says nothing of how well it is known. */}
                   <button
                     className="rd-add"

@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { DEFAULT_SCOPE, type Collection } from '../../domain/collection';
 import { charId, isCharId, isWordId, idValue, type ItemId } from '../../domain/ids';
@@ -21,7 +21,8 @@ import { usePdfExport } from '../shared/usePdfExport';
 import { lastReading } from './lastRead';
 import { useWordDone, useWordLevel } from './Passage';
 import type { Level } from '../../domain/memory';
-import { LevelBar, LevelMark } from '../../ui/LevelMark';
+import { LevelBar } from '../../ui/LevelMark';
+import { LevelQuick } from '../../ui/LevelPicker';
 import { readerSheet } from './readerSheet';
 import { partFill, partsOf } from './TextParts';
 import { useStartSession } from './startSession';
@@ -581,9 +582,15 @@ function ShelfWords({
   const levelOfWord = useWordLevel();
   const counts: Record<LevelGroup, number> = { none: 0, met: 0, known: 0 };
   for (const w of words) counts[groupOf(levelOfWord(w.w))] += 1;
-  const fallback: LevelGroup = counts.none ? 'none' : counts.met ? 'met' : 'known';
+  // Chosen once, on opening: a default that followed the counts would jump to another filter as the last word is set.
+  const [fallback] = useState<LevelGroup>(counts.none ? 'none' : counts.met ? 'met' : 'known');
   const filter = oneOf(query.get('words'), ['none', 'met', 'known'] as const, fallback);
-  const shown = words.filter((w) => groupOf(levelOfWord(w.w)) === filter);
+  // A row shown under a filter stays until the filter changes, so setting its level
+  // from the row does not make it, and everything under it, jump.
+  const kept = useRef<{ filter: LevelGroup; words: Set<string> }>({ filter, words: new Set() });
+  if (kept.current.filter !== filter) kept.current = { filter, words: new Set() };
+  const shown = words.filter((w) => kept.current.words.has(w.w) || groupOf(levelOfWord(w.w)) === filter);
+  for (const w of shown) kept.current.words.add(w.w);
   const itemOf = (w: string): ItemId => ([...w].length > 1 || lib.byWord.has(w) ? (`w${w}` as ItemId) : charId(w));
 
   if (!words.length) {
@@ -621,7 +628,7 @@ function ShelfWords({
                 <span className="tiny muted shelf-word-n">
                   {w.texts} text{w.texts === 1 ? '' : 's'}
                 </span>
-                <LevelMark level={levelOfWord(w.w)} />
+                <LevelQuick id={id} level={levelOfWord(w.w)} />
                 {/* On the shelf's list or not: a choice to learn it, which says nothing of how well it is known. */}
                 <button
                   className="rd-add"

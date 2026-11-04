@@ -5975,3 +5975,63 @@ label.field[data-invalid] input {
   display: block;
   margin-top: 4px;
 }
+
+/* Four cells in a row of a word list: each shows the bars of its own level,
+   pale until it is the one chosen. 36px wide and 40 high, for a thumb. */
+.level-quick {
+  display: inline-grid;
+  grid-template-columns: repeat(4, 36px);
+  flex: none;
+  padding: 2px;
+  gap: 1px;
+  border-radius: 11px;
+  background: var(--card-2);
+}
+
+.level-quick button {
+  display: grid;
+  place-items: center;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: background 0.12s, opacity 0.12s;
+}
+
+.level-quick button[aria-pressed='true'] {
+  opacity: 1;
+  background: var(--card);
+  box-shadow: 0 1px 2px rgb(24 32 43 / 14%);
+}
+
+:root[data-theme='dark'] .level-quick button[aria-pressed='true'] {
+  background: var(--line-2);
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  .level-quick button:hover {
+    opacity: 0.8;
+  }
+}
+
+/* Each cell's own level in its bars, whether chosen or not; 0 is three bare bars. */
+.level-quick [data-level='1'] i:nth-child(-n + 1) {
+  background: var(--lv1-ink);
+}
+
+.level-quick [data-level='2'] i:nth-child(-n + 2) {
+  background: var(--lv2-ink);
+}
+
+.level-quick [data-level='3'] i {
+  background: var(--lv3-ink);
+}
+
+.level-quick [data-level='0'] i {
+  background: var(--ink-3);
+  opacity: 0.35;
+}

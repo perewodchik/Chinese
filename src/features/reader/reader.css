@@ -547,9 +547,30 @@
 
 .rd-word {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 0 12px;
   padding: 8px 0;
+}
+
+/* On a phone the level cells take a line of their own, under the meaning. */
+@media (max-width: 560px) {
+  .rd-word {
+    row-gap: 4px;
+  }
+
+  /* A line break: what comes after it starts a new line. */
+  .rd-word::after {
+    content: '';
+    order: 2;
+    flex-basis: 100%;
+    height: 0;
+  }
+
+  .rd-word .level-quick {
+    order: 3;
+    margin-left: 108px;
+  }
 }
 
 .rd-word-main {
