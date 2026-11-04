@@ -40,11 +40,15 @@ export function LoginPage() {
           : 'Your collections, reviews and texts, on whichever device you open them.'
       }
       footer={
-        registration === 'open' && (
+        registration === 'open' ? (
           <>
             New here? <Link to={paths.register(next)}>Make an account</Link>
           </>
-        )
+        ) : registration === 'invite' ? (
+          <>
+            Have an invitation? <Link to={paths.register(next)}>Make an account</Link>
+          </>
+        ) : null
       }
     >
       <form className="auth-form" onSubmit={submit} noValidate>

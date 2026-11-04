@@ -51,8 +51,10 @@ var InvalidCredentialsError = class extends AppError {
   }
 };
 var UsernameTakenError = class extends AppError {
-  constructor() {
+  /** `userId` is the account that could not be written, so what was claimed for it can be given back. */
+  constructor(userId) {
     super("username_taken", "That name is taken.", { username: "Taken \u2014 pick another." });
+    this.userId = userId;
   }
 };
 var RegistrationClosedError = class extends AppError {
@@ -111,12 +113,16 @@ var TutorUnavailableError = class extends AppError {
 };
 
 // server/src/application/auth-service.ts
+import { randomInt } from "node:crypto";
 var DAY = 864e5;
 var DEFAULT_AUTH_POLICY = {
   registration: "open",
   sessionTtlMs: 30 * DAY,
   sessionRefreshMs: DAY
 };
+var INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+var INVITE_LENGTH = 12;
+var normaliseInvite = (raw) => raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
 var toUserDto = (u) => ({
   id: u.id,
   username: u.username,
@@ -131,15 +137,42 @@ var AuthService = class {
     return this.deps.policy.registration;
   }
   async register(input) {
-    if (this.deps.policy.registration === "closed") throw new RegistrationClosedError();
-    const user = await this.createUser(input.username, input.password);
+    const { registration: registration2 } = this.deps.policy;
+    if (registration2 === "closed") throw new RegistrationClosedError();
+    if (registration2 === "open") return this.issue(await this.createUser(input.username, input.password), input.userAgent);
+    const code = normaliseInvite(input.invite ?? "");
+    if (!code) throw new ValidationError("An account here needs an invitation.", { invite: "The code from your invitation." });
+    const digest = this.deps.tokens.digest(code);
+    const user = await this.createUser(input.username, input.password, async (userId) => {
+      if (!await this.deps.invites.claim(digest, userId, this.deps.clock.now())) {
+        throw new ValidationError("That invitation is not right, or it has been used.", { invite: "Not a code that can be used." });
+      }
+    }).catch(async (err) => {
+      if (err instanceof UsernameTakenError && err.userId) await this.deps.invites.release(digest, err.userId);
+      throw err;
+    });
     return this.issue(user, input.userAgent);
+  }
+  /** For whoever runs the server: an invitation for one account, good for `days` (or for ever). */
+  async invite(note, days) {
+    const code = Array.from({ length: INVITE_LENGTH }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join("");
+    const now = this.deps.clock.now();
+    const expiresAt = days === null ? null : now + days * DAY;
+    await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null });
+    return { code: code.match(/.{1,4}/g).join("-"), note, expiresAt };
+  }
+  /** The invitations given out, with who used each (by name) — never their codes, which are not kept. */
+  async invites() {
+    const [list, users] = await Promise.all([this.deps.invites.list(), this.deps.users.list()]);
+    const name = new Map(users.map((u) => [u.id, u.username]));
+    return list.map((i) => ({ note: i.note, createdAt: i.createdAt, expiresAt: i.expiresAt, usedBy: i.usedBy ? name.get(i.usedBy) ?? "an account since deleted" : null, usedAt: i.usedAt }));
   }
   /** An account made by whoever runs the server, whether or not sign-ups are open. No session comes with it. */
   async addUser(username, password) {
     return toUserDto(await this.createUser(username, password));
   }
-  async createUser(rawName, password) {
+  /** `before` runs once the name and password are good, just before the account is written, with its id. */
+  async createUser(rawName, password, before) {
     const { users, hasher, tokens, clock } = this.deps;
     const username = normaliseUsername(rawName);
     const nameProblem = usernameProblem(username);
@@ -159,7 +192,8 @@ var AuthService = class {
       createdAt: now,
       updatedAt: now
     };
-    if (!await users.insert(user)) throw new UsernameTakenError();
+    await before?.(user.id);
+    if (!await users.insert(user)) throw new UsernameTakenError(user.id);
     return user;
   }
   async login(input) {
@@ -1628,6 +1662,7 @@ function createServices(stores, options = {}) {
   const auth = new AuthService({
     users: stores.users,
     sessions: stores.sessions,
+    invites: stores.invites,
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
     clock,
@@ -1653,6 +1688,12 @@ function createServices(stores, options = {}) {
     speechEval: new SpeechEvalService({ secrets: stores.secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock, meter: usage }),
     usage
   };
+}
+
+// server/src/config.ts
+function registrationFrom(raw, fallback) {
+  const v = raw?.trim().toLowerCase();
+  return v === "open" || v === "closed" || v === "invite" ? v : fallback;
 }
 
 // server/src/http/app.ts
@@ -1935,6 +1976,7 @@ var credentials = z2.object({
   username: z2.string().max(200),
   password: z2.string().max(2048)
 });
+var registration = credentials.extend({ invite: z2.string().max(64).optional() });
 var passwordChange = z2.object({
   currentPassword: z2.string().max(2048),
   newPassword: z2.string().max(2048)
@@ -1984,7 +2026,7 @@ function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, log }) {
   });
   routes.post("/register", async (c) => {
     signUps.consume(clientIp(c, trustProxy));
-    const input = await readJson(c, credentials);
+    const input = await readJson(c, registration);
     const issued = await auth.register({ ...input, userAgent: c.req.header("user-agent") ?? null });
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body = { user: issued.user };
@@ -3043,6 +3085,20 @@ var MIGRATIONS = [
     units    BIGINT NOT NULL,
     PRIMARY KEY (user_id, day, service)
   );
+  `,
+  // Invitations to make an account, when sign-ups are by invitation. Only the
+  // code's digest is kept, so the list cannot be read back into working codes;
+  // used_by is not a foreign key, because the code is claimed for an account
+  // a moment before that account exists.
+  `
+  CREATE TABLE invites (
+    digest      TEXT PRIMARY KEY,
+    note        TEXT NOT NULL,
+    created_at  BIGINT NOT NULL,
+    expires_at  BIGINT,
+    used_by     TEXT,
+    used_at     BIGINT
+  );
   `
 ];
 
@@ -3566,6 +3622,45 @@ var PostgresUsageRepository = class {
   }
 };
 
+// server/src/infrastructure/postgres/invite-repository.ts
+var toInvite = (r) => ({
+  digest: r.digest,
+  note: r.note,
+  createdAt: Number(r.created_at),
+  expiresAt: r.expires_at === null ? null : Number(r.expires_at),
+  usedBy: r.used_by,
+  usedAt: r.used_at === null ? null : Number(r.used_at)
+});
+var PostgresInviteRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async insert(i) {
+    await this.db.query("INSERT INTO invites (digest, note, created_at, expires_at, used_by, used_at) VALUES ($1, $2, $3, $4, $5, $6)", [
+      i.digest,
+      i.note,
+      i.createdAt,
+      i.expiresAt,
+      i.usedBy,
+      i.usedAt
+    ]);
+  }
+  async claim(digest, userId, now) {
+    const { rowCount } = await this.db.query(
+      "UPDATE invites SET used_by = $1, used_at = $2 WHERE digest = $3 AND used_by IS NULL AND (expires_at IS NULL OR expires_at > $2)",
+      [userId, now, digest]
+    );
+    return rowCount === 1;
+  }
+  async release(digest, userId) {
+    await this.db.query("UPDATE invites SET used_by = NULL, used_at = NULL WHERE digest = $1 AND used_by = $2", [digest, userId]);
+  }
+  async list() {
+    const { rows } = await this.db.query("SELECT * FROM invites ORDER BY created_at");
+    return rows.map(toInvite);
+  }
+};
+
 // server/src/infrastructure/postgres/workspace-repository.ts
 var PostgresWorkspaceRepository = class {
   constructor(db) {
@@ -3660,11 +3755,12 @@ var postgresStores = (db) => ({
   narrations: new PostgresTextNarrationRepository(db),
   ownTexts: new PostgresOwnTextRepository(db),
   speechAttempts: new PostgresSpeechAttemptRepository(db),
-  usage: new PostgresUsageRepository(db)
+  usage: new PostgresUsageRepository(db),
+  invites: new PostgresInviteRepository(db)
 });
 
 // server/src/vercel.ts
-var REGISTRATION = process.env.HANZI_REGISTRATION === "closed" ? "closed" : "open";
+var REGISTRATION = registrationFrom(process.env.HANZI_REGISTRATION, "invite");
 var building = null;
 function application() {
   if (building) return building;

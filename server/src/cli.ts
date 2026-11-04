@@ -11,6 +11,8 @@ import { banner } from './lan';
  *   npm run admin -- users
  *   npm run admin -- add-user <name>
  *   npm run admin -- reset-password <name>
+ *   npm run admin -- invite [note] [--days 14]
+ *   npm run admin -- invites
  *   npm run admin -- backup [file]
  *   npm run admin -- address [port]
  *
@@ -28,6 +30,8 @@ const USAGE = `
   npm run admin -- users                   list the accounts
   npm run admin -- add-user <name>         make an account, even with sign-ups switched off
   npm run admin -- reset-password <name>   give an account a new password and sign it out everywhere
+  npm run admin -- invite [note] [--days N] an invitation for one new account (14 days; --days 0 for no end)
+  npm run admin -- invites                 the invitations given out, and who used them
   npm run admin -- backup [file]           copy the database, safely, even while the server runs
   npm run admin -- address [port]          print the address a tablet should open
 `;
@@ -65,6 +69,30 @@ try {
       const password = temporaryPassword();
       const user = await withServices(({ auth }) => auth.addUser(name, password));
       console.log(`\n  Made ${user.username}. The password, to change in Settings:  ${password}\n`);
+      break;
+    }
+
+    case 'invite': {
+      const at = args.indexOf('--days');
+      const days = at >= 0 ? Number(args[at + 1]) : 14;
+      if (!Number.isInteger(days) || days < 0) throw new Error(`--days is a whole number of days.\n${USAGE}`);
+      const note = args.filter((_, i) => at < 0 || (i !== at && i !== at + 1)).join(' ');
+      const made = await withServices(({ auth }) => auth.invite(note, days === 0 ? null : days));
+      const site = process.env.HANZI_SITE_URL?.replace(/\/$/, '') ?? 'https://chinese-inky.vercel.app';
+      console.log(`\n  Invitation${note ? ` for ${note}` : ''}:  ${made.code}`);
+      console.log(`  The link to send:  ${site}/register?invite=${made.code}`);
+      console.log(made.expiresAt ? `  Good for one account until ${new Date(made.expiresAt).toLocaleDateString()}.\n` : '  Good for one account, with no end date.\n');
+      break;
+    }
+
+    case 'invites': {
+      const list = await withServices(({ auth }) => auth.invites());
+      if (!list.length) console.log('\n  No invitations given out yet.\n');
+      const now = Date.now();
+      for (const i of list) {
+        const state = i.usedBy ? `used by ${i.usedBy} on ${new Date(i.usedAt!).toLocaleDateString()}` : i.expiresAt && i.expiresAt <= now ? 'ran out unused' : 'not used yet';
+        console.log(`  ${new Date(i.createdAt).toLocaleDateString().padEnd(12)} ${(i.note || '—').padEnd(24)} ${state}`);
+      }
       break;
     }
 

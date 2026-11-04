@@ -178,4 +178,18 @@ export const MIGRATIONS: readonly string[] = [
     PRIMARY KEY (user_id, day, service)
   ) STRICT;
   `,
+  // Invitations to make an account, when sign-ups are by invitation. Only the
+  // code's digest is kept, so the list cannot be read back into working codes;
+  // used_by is not a foreign key, because the code is claimed for an account
+  // a moment before that account exists.
+  `
+  CREATE TABLE invites (
+    digest      TEXT PRIMARY KEY,
+    note        TEXT NOT NULL,
+    created_at  INTEGER NOT NULL,
+    expires_at  INTEGER,
+    used_by     TEXT,
+    used_at     INTEGER
+  ) STRICT;
+  `,
 ];

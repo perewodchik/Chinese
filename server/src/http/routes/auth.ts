@@ -24,6 +24,7 @@ const credentials = z.object({
   username: z.string().max(200),
   password: z.string().max(2048),
 });
+const registration = credentials.extend({ invite: z.string().max(64).optional() });
 
 const passwordChange = z.object({
   currentPassword: z.string().max(2048),
@@ -96,7 +97,7 @@ export function authRoutes({ auth, clock, trustProxy, devUser, devUserCreate, lo
 
   routes.post('/register', async (c) => {
     signUps.consume(clientIp(c, trustProxy));
-    const input = await readJson(c, credentials);
+    const input = await readJson(c, registration);
     const issued = await auth.register({ ...input, userAgent: c.req.header('user-agent') ?? null });
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body: SessionResponse = { user: issued.user };

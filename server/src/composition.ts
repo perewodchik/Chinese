@@ -24,6 +24,7 @@ import type {
   Tutor,
   UserRepository,
   UsageRepository,
+  InviteRepository,
   WorkspaceRepository,
   WorldSaveRepository,
 } from './application/ports';
@@ -75,6 +76,7 @@ export interface Stores {
   ownTexts: OwnTextRepository;
   speechAttempts: SpeechAttemptRepository;
   usage: UsageRepository;
+  invites: InviteRepository;
 }
 
 /**
@@ -104,6 +106,7 @@ export function createServices(
   const auth = new AuthService({
     users: stores.users,
     sessions: stores.sessions,
+    invites: stores.invites,
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
     clock,

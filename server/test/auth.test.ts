@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { AppError } from '../src/domain/errors';
-import { makeServices } from './support';
+import { call, makeApp, makeServices } from './support';
 
 const DAY = 86_400_000;
 const PASSWORD = 'correct horse';
@@ -113,5 +113,64 @@ describe('AuthService', () => {
       }),
       { code: 'validation' },
     );
+  });
+});
+
+describe('signing up by invitation', () => {
+  const sign = (invite: string | undefined, username = 'masha', password = PASSWORD) => ({ username, password, invite, userAgent: null });
+
+  it('makes an account with a code, typed in any case and with or without its dashes, and only once', async () => {
+    const { services } = makeServices({ registration: 'invite' });
+    const { code } = await services.auth.invite('Masha', 14);
+    assert.match(code, /^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/);
+    const made = await services.auth.register(sign(code.toLowerCase().replace(/-/g, ' ')));
+    assert.equal(made.user.username, 'masha');
+    await assert.rejects(services.auth.register(sign(code, 'pasha')), { code: 'validation', fields: { invite: 'Not a code that can be used.' } });
+    assert.deepEqual(
+      (await services.auth.invites()).map((i) => [i.note, i.usedBy]),
+      [['Masha', 'masha']],
+    );
+  });
+
+  it('asks for a code when there is none, and refuses one that was never given', async () => {
+    const { services } = makeServices({ registration: 'invite' });
+    await assert.rejects(services.auth.register(sign(undefined)), { code: 'validation', fields: { invite: 'The code from your invitation.' } });
+    await assert.rejects(services.auth.register(sign('ABCD-EFGH-JKMN')), { code: 'validation' });
+  });
+
+  it('keeps the invitation for another try when the name is taken or the password too short', async () => {
+    const { services } = makeServices({ registration: 'invite' });
+    const first = await services.auth.invite('', null);
+    await services.auth.register(sign(first.code, 'kirill'));
+    const { code } = await services.auth.invite('', null);
+    await assert.rejects(services.auth.register(sign(code, 'Kirill')), { code: 'username_taken' });
+    await assert.rejects(services.auth.register(sign(code, 'masha', 'short')), { code: 'validation' });
+    const made = await services.auth.register(sign(code, 'masha'));
+    assert.equal(made.user.username, 'masha');
+  });
+
+  it('runs out on its last day', async () => {
+    const { services, clock } = makeServices({ registration: 'invite' });
+    const { code } = await services.auth.invite('', 3);
+    clock.advance(3 * DAY);
+    await assert.rejects(services.auth.register(sign(code)), { code: 'validation' });
+  });
+
+  it('is not asked for when sign-ups are open', async () => {
+    const { services } = makeServices();
+    const made = await services.auth.register(sign(undefined));
+    assert.equal(made.user.username, 'masha');
+  });
+});
+
+describe('signing up by invitation, over HTTP', () => {
+  it('says sign-ups are by invitation, and takes the code with the name and password', async () => {
+    const { app, services } = makeApp({ registration: 'invite' });
+    assert.deepEqual(await (await call(app, 'GET', '/api/auth/options')).json(), { registration: 'invite' });
+    const without = await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: PASSWORD } });
+    assert.equal(without.status, 400);
+    const { code } = await services.auth.invite('', null);
+    const made = await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: PASSWORD, invite: code } });
+    assert.equal(made.status, 201);
   });
 });

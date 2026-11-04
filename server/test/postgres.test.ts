@@ -162,4 +162,15 @@ describe('Postgres storage', () => {
     assert.deepEqual(await stores.usage.since('u1', '2026-09-11'), [{ day: '2026-09-11', service: 'minimax', calls: 2, units: 42 }]);
     assert.equal((await stores.usage.since('u1', '2026-09-01')).length, 2);
   });
+
+  it('lets an invitation be claimed once and only before it runs out, and given back', async () => {
+    await stores.invites.insert({ digest: 'd1', note: 'Masha', createdAt: T, expiresAt: T + 1000, usedBy: null, usedAt: null });
+    assert.equal(await stores.invites.claim('d1', 'u1', T + 2000), false);
+    assert.equal(await stores.invites.claim('d1', 'u1', T + 10), true);
+    assert.equal(await stores.invites.claim('d1', 'u2', T + 20), false);
+    await stores.invites.release('d1', 'u2');
+    assert.equal((await stores.invites.list())[0]!.usedBy, 'u1');
+    await stores.invites.release('d1', 'u1');
+    assert.deepEqual((await stores.invites.list())[0], { digest: 'd1', note: 'Masha', createdAt: T, expiresAt: T + 1000, usedBy: null, usedAt: null });
+  });
 });

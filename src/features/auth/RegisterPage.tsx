@@ -14,6 +14,8 @@ export function RegisterPage() {
   const next = params.get('next') ?? undefined;
   const registration = useRegistration();
 
+  // An invitation link (/register?invite=…) arrives with its code typed in.
+  const [invite, setInvite] = useState(() => params.get('invite') ?? '');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [again, setAgain] = useState('');
@@ -23,12 +25,14 @@ export function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const needsInvite = registration === 'invite';
   const problems = {
+    invite: serverFields.invite ?? (needsInvite && !invite.trim() ? 'The code from your invitation.' : null),
     username: serverFields.username ?? usernameProblem(username),
     password: serverFields.password ?? passwordProblem(password, username),
     again: again !== password ? 'The two passwords are different.' : null,
   };
-  const ready = !problems.username && !problems.password && !problems.again;
+  const ready = !problems.invite && !problems.username && !problems.password && !problems.again;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -37,7 +41,7 @@ export function RegisterPage() {
     setBusy(true);
     setError(null);
     try {
-      await register(username, password);
+      await register(username, password, needsInvite ? invite : undefined);
     } catch (err) {
       if (err instanceof ApiError && Object.keys(err.fields).length) setServerFields(err.fields);
       else setError(messageFor(err));
@@ -51,7 +55,7 @@ export function RegisterPage() {
     return (
       <AuthLayout
         title="Make an account"
-        lede="New accounts are switched off on this server. Whoever runs it can make one for you with npm run admin -- add-user."
+        lede="New accounts are switched off here. Whoever runs the site can make one for you."
         footer={<>Already have one? {signIn}</>}
       />
     );
@@ -60,10 +64,31 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="Make an account"
-      lede="One account holds everything — collections, what you have learned, the texts — and opens it on any device that can reach this server."
+      lede={
+        needsInvite
+          ? 'New accounts here are by invitation. One account holds everything — what you have learned, the texts, the cards — on every device you sign in on.'
+          : 'One account holds everything — collections, what you have learned, the texts — and opens it on any device that can reach this server.'
+      }
       footer={<>Already have one? {signIn}</>}
     >
       <form className="auth-form" onSubmit={submit} noValidate>
+        {needsInvite && (
+          <Field label="Invitation" hint="The code from your invitation, as it was written." error={tried || serverFields.invite ? problems.invite : null}>
+            <input
+              type="text"
+              name="invite"
+              autoComplete="off"
+              autoCapitalize="characters"
+              autoCorrect="off"
+              spellCheck={false}
+              value={invite}
+              onChange={(e) => {
+                setInvite(e.target.value);
+                setServerFields({});
+              }}
+            />
+          </Field>
+        )}
         <Field label="Name" hint="What you sign in with." error={tried || serverFields.username ? problems.username : null}>
           <input
             type="text"

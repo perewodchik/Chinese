@@ -1,5 +1,6 @@
 import { getRequestListener } from '@hono/node-server';
 import { createServices } from './composition';
+import { registrationFrom } from './config';
 import { createHttpApp } from './http/app';
 import { speechFromEnv } from './infrastructure/azure-speech';
 import { databaseUrl, openPostgres } from './infrastructure/postgres/database';
@@ -34,7 +35,9 @@ import { postgresStores } from './infrastructure/postgres/stores';
  * nothing to be compiled: one file, and the packages beside it.
  */
 
-const REGISTRATION = process.env.HANZI_REGISTRATION === 'closed' ? 'closed' : 'open';
+// The deployed site is reached by anyone with its address, so a new account
+// there needs an invitation unless HANZI_REGISTRATION says otherwise.
+const REGISTRATION = registrationFrom(process.env.HANZI_REGISTRATION, 'invite');
 
 type App = { fetch(request: Request): Response | Promise<Response> };
 

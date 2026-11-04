@@ -12,7 +12,7 @@ export interface ServerConfig {
   database: DatabaseSetting;
   /** the built app to serve beside the API, or null when something else serves it */
   staticDir: string | null;
-  registration: 'open' | 'closed';
+  registration: 'open' | 'closed' | 'invite';
   /** believe X-Forwarded-For and -Proto — only true behind a reverse proxy you run yourself */
   trustProxy: boolean;
 }
@@ -26,7 +26,7 @@ export interface ServerConfig {
  *   HANZI_DB             a file, or a postgres:// URL; see below
  *   POSTGRES_URL         the deployed database, when HANZI_DB says nothing
  *   HANZI_STATIC_DIR     dist
- *   HANZI_REGISTRATION   open | closed
+ *   HANZI_REGISTRATION   open | closed | invite (open at home, invite on Vercel)
  *   HANZI_TRUST_PROXY    1 behind a reverse proxy
  *
  * A server here runs on the same Postgres the deployed site runs on as soon as
@@ -47,7 +47,7 @@ export function loadConfig(
     port: portFrom(env.PORT, defaults.port),
     database: databaseFrom(env, cwd),
     staticDir: defaults.serveStatic ? resolve(cwd, env.HANZI_STATIC_DIR || 'dist') : null,
-    registration: env.HANZI_REGISTRATION === 'closed' ? 'closed' : 'open',
+    registration: registrationFrom(env.HANZI_REGISTRATION, 'open'),
     trustProxy: env.HANZI_TRUST_PROXY === '1' || env.HANZI_TRUST_PROXY === 'true',
   };
 }
@@ -90,6 +90,12 @@ export function loadEnvFile(cwd = process.cwd()): void {
   } catch {
     // No .env, which is the ordinary case for a home server.
   }
+}
+
+/** Who may make an account. Anything unrecognised is the default, never wider than it. */
+export function registrationFrom(raw: string | undefined, fallback: ServerConfig['registration']): ServerConfig['registration'] {
+  const v = raw?.trim().toLowerCase();
+  return v === 'open' || v === 'closed' || v === 'invite' ? v : fallback;
 }
 
 function portFrom(raw: string | undefined, fallback: number): number {

@@ -33,7 +33,7 @@
 
 ### Регистрация и злоупотребления
 
-- [ ] **S1 (К) Закрытая регистрация по приглашениям.** Сейчас `registration`
+- [x] **S1 (К) Закрытая регистрация по приглашениям.** Сейчас `registration`
   по умолчанию `open` (`server/src/config.ts`, `server/src/vercel.ts`), без
   капчи и подтверждения. Любой скрипт создаёт сотни аккаунтов, и каждый
   получает место в базе.
@@ -552,3 +552,4 @@ SameSite=Lax, Secure cookie, в базе только хэш; одинаково
 | 2026-11-05 | P2 P3 P4 P6 | — | настройки: папка только где поддерживается, без «Credit the writer» и пояснения про ключ, произношение рядом с ключами, без дубля Sign out и карточки Voices |
 | 2026-11-05 | Q1, Q2–Q3 и P7 частично | — | таблица `api_usage`, учёт в `speech-eval-service` и `narration-service`, `GET /api/account/usage`, страница `/account` |
 | 2026-11-05 | S11b | — | `GET /api/account/export`, кнопка «Download a copy» на `/account`; без ключей, MP3 и картинок |
+| 2026-11-05 | S1 | — | `HANZI_REGISTRATION=invite` (на Vercel по умолчанию), таблица `invites` (только хэш кода), `npm run admin -- invite [кто] [--days N]` и `invites`, поле Invitation и ссылка `/register?invite=` |

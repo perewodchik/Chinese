@@ -15,12 +15,14 @@ import {
   UsernameTakenError,
   ValidationError,
 } from '../domain/errors';
-import type { Clock, PasswordHasher, SessionRepository, Tokens, UserRepository } from './ports';
+import { randomInt } from 'node:crypto';
+import type { Clock, InviteRepository, PasswordHasher, SessionRepository, Tokens, UserRepository } from './ports';
 
 const DAY = 86_400_000;
 
 export interface AuthPolicy {
-  registration: 'open' | 'closed';
+  /** anyone may make an account, nobody may, or only someone with an invitation */
+  registration: 'open' | 'closed' | 'invite';
   /** how long a session lasts once it stops being used */
   sessionTtlMs: number;
   /** how often a session in use has its expiry pushed back */
@@ -36,6 +38,7 @@ export const DEFAULT_AUTH_POLICY: AuthPolicy = {
 export interface AuthDeps {
   users: UserRepository;
   sessions: SessionRepository;
+  invites: InviteRepository;
   hasher: PasswordHasher;
   tokens: Tokens;
   clock: Clock;
@@ -63,6 +66,20 @@ interface SignIn {
   userAgent: string | null;
 }
 
+/** An invitation as it was given out: the code to type, once. */
+export interface IssuedInvite {
+  code: string;
+  note: string;
+  expiresAt: number | null;
+}
+
+/** Letters and digits that cannot be read as one another: no 0/O, 1/I/L. */
+const INVITE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const INVITE_LENGTH = 12;
+
+/** A code as typed: any case, with or without the dashes and spaces it was printed with. */
+export const normaliseInvite = (raw: string) => raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
 export const toUserDto = (u: User): UserDto => ({
   id: u.id,
   username: u.username,
@@ -88,10 +105,41 @@ export class AuthService {
     return this.deps.policy.registration;
   }
 
-  async register(input: SignIn): Promise<IssuedSession> {
-    if (this.deps.policy.registration === 'closed') throw new RegistrationClosedError();
-    const user = await this.createUser(input.username, input.password);
+  async register(input: SignIn & { invite?: string }): Promise<IssuedSession> {
+    const { registration } = this.deps.policy;
+    if (registration === 'closed') throw new RegistrationClosedError();
+    if (registration === 'open') return this.issue(await this.createUser(input.username, input.password), input.userAgent);
+
+    const code = normaliseInvite(input.invite ?? '');
+    if (!code) throw new ValidationError('An account here needs an invitation.', { invite: 'The code from your invitation.' });
+    const digest = this.deps.tokens.digest(code);
+    // Claimed only once the name and password are good, so a typo in either
+    // does not use the invitation up; given back if the name turns out taken.
+    const user = await this.createUser(input.username, input.password, async (userId) => {
+      if (!(await this.deps.invites.claim(digest, userId, this.deps.clock.now()))) {
+        throw new ValidationError('That invitation is not right, or it has been used.', { invite: 'Not a code that can be used.' });
+      }
+    }).catch(async (err: unknown) => {
+      if (err instanceof UsernameTakenError && err.userId) await this.deps.invites.release(digest, err.userId);
+      throw err;
+    });
     return this.issue(user, input.userAgent);
+  }
+
+  /** For whoever runs the server: an invitation for one account, good for `days` (or for ever). */
+  async invite(note: string, days: number | null): Promise<IssuedInvite> {
+    const code = Array.from({ length: INVITE_LENGTH }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join('');
+    const now = this.deps.clock.now();
+    const expiresAt = days === null ? null : now + days * DAY;
+    await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null });
+    return { code: code.match(/.{1,4}/g)!.join('-'), note, expiresAt };
+  }
+
+  /** The invitations given out, with who used each (by name) — never their codes, which are not kept. */
+  async invites(): Promise<Array<{ note: string; createdAt: number; expiresAt: number | null; usedBy: string | null; usedAt: number | null }>> {
+    const [list, users] = await Promise.all([this.deps.invites.list(), this.deps.users.list()]);
+    const name = new Map(users.map((u) => [u.id, u.username]));
+    return list.map((i) => ({ note: i.note, createdAt: i.createdAt, expiresAt: i.expiresAt, usedBy: i.usedBy ? (name.get(i.usedBy) ?? 'an account since deleted') : null, usedAt: i.usedAt }));
   }
 
   /** An account made by whoever runs the server, whether or not sign-ups are open. No session comes with it. */
@@ -99,7 +147,8 @@ export class AuthService {
     return toUserDto(await this.createUser(username, password));
   }
 
-  private async createUser(rawName: string, password: string): Promise<User> {
+  /** `before` runs once the name and password are good, just before the account is written, with its id. */
+  private async createUser(rawName: string, password: string, before?: (userId: string) => Promise<void>): Promise<User> {
     const { users, hasher, tokens, clock } = this.deps;
     const username = normaliseUsername(rawName);
     const nameProblem = usernameProblem(username);
@@ -120,7 +169,8 @@ export class AuthService {
       createdAt: now,
       updatedAt: now,
     };
-    if (!(await users.insert(user))) throw new UsernameTakenError();
+    await before?.(user.id);
+    if (!(await users.insert(user))) throw new UsernameTakenError(user.id);
     return user;
   }
 

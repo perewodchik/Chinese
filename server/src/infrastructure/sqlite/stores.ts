@@ -11,6 +11,7 @@ import { SqliteRecordingRepository } from './recording-repository';
 import { SqliteSessionRepository } from './session-repository';
 import { SqliteUserRepository } from './user-repository';
 import { SqliteUsageRepository } from './usage-repository';
+import { SqliteInviteRepository } from './invite-repository';
 import { SqliteWorkspaceRepository } from './workspace-repository';
 import { SqliteWorldSaveRepository } from './world-save-repository';
 
@@ -29,4 +30,5 @@ export const sqliteStores = (db: DatabaseSync): Stores => ({
   ownTexts: new SqliteOwnTextRepository(db),
   speechAttempts: new SqliteSpeechAttemptRepository(db),
   usage: new SqliteUsageRepository(db),
+  invites: new SqliteInviteRepository(db),
 });

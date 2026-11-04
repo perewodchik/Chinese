@@ -23,13 +23,15 @@ export interface CurrentSessionResponse {
 }
 
 export interface AuthOptionsResponse {
-  /** whether a new account can be made from the sign-in page */
-  registration: 'open' | 'closed';
+  /** whether a new account can be made from the sign-in page: by anyone, by nobody, or with an invitation */
+  registration: 'open' | 'closed' | 'invite';
 }
 
 export interface CredentialsRequest {
   username: string;
   password: string;
+  /** the invitation's code, when sign-ups are by invitation */
+  invite?: string;
 }
 
 export interface ChangePasswordRequest {

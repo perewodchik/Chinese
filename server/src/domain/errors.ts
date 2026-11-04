@@ -33,7 +33,8 @@ export class InvalidCredentialsError extends AppError {
 }
 
 export class UsernameTakenError extends AppError {
-  constructor() {
+  /** `userId` is the account that could not be written, so what was claimed for it can be given back. */
+  constructor(readonly userId?: string) {
     super('username_taken', 'That name is taken.', { username: 'Taken — pick another.' });
   }
 }

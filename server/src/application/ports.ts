@@ -336,6 +336,28 @@ export interface Tutor {
   ask(prompt: string, opts?: { timeoutMs?: number }): Promise<string>;
 }
 
+/** An invitation to make an account: the code itself is never kept, only its digest. */
+export interface Invite {
+  digest: string;
+  note: string;
+  createdAt: number;
+  expiresAt: number | null;
+  usedBy: string | null;
+  usedAt: number | null;
+}
+
+export interface InviteRepository {
+  insert(invite: Invite): Promise<void>;
+  /**
+   * Takes the invitation for `userId` if it is unused and not out of date,
+   * in one statement, so two sign-ups with one code cannot both have it.
+   */
+  claim(digest: string, userId: string, now: number): Promise<boolean>;
+  /** Gives back a claim whose account could not be made after all. */
+  release(digest: string, userId: string): Promise<void>;
+  list(): Promise<Invite[]>;
+}
+
 /** A day's use of one outside service by one account: how many calls, and how much in the service's own unit. */
 export interface UsageRow {
   /** the day, in UTC: 2026-11-05 */
@@ -356,3 +378,4 @@ export interface UsageRepository {
   /** Every row from that day on, for the account. */
   since(userId: string, fromDay: string): Promise<UsageRow[]>;
 }
+

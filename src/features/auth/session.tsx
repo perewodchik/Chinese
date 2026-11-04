@@ -22,7 +22,7 @@ export type Session =
 interface SessionApi {
   session: Session;
   signIn(username: string, password: string): Promise<void>;
-  register(username: string, password: string): Promise<void>;
+  register(username: string, password: string, invite?: string): Promise<void>;
   signOut(): Promise<void>;
   retry(): void;
 }
@@ -73,8 +73,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setSession({ status: 'signed-in', user });
   }, []);
 
-  const register = useCallback(async (username: string, password: string) => {
-    const { user } = await authApi.register({ username, password });
+  const register = useCallback(async (username: string, password: string, invite?: string) => {
+    const { user } = await authApi.register({ username, password, ...(invite && { invite }) });
     setSession({ status: 'signed-in', user });
   }, []);
 
