@@ -56,6 +56,15 @@ function refusal(base: BaseResp | undefined, status: number): NarratorRefused {
 }
 
 /**
+ * A Mandarin voice of MiniMax's: the ones named "Chinese (Mandarin)_…", and
+ * its older Chinese voices, whose ids are lower case — audiobook_male_1 (an
+ * audiobook narrator), clever_boy and cute_boy (boys), cartoon_pig (a cartoon
+ * creature) — which a story's characters need. Every other language's voice
+ * is named after it: English_…, Japanese_…, Cantonese_….
+ */
+export const isMandarin = (id: string) => /^Chinese \(Mandarin\)_/.test(id) || /^[a-z]/.test(id);
+
+/**
  * MiniMax's speech API: the Mandarin voices, a new voice made from a
  * description, and one sentence read aloud by speech-2.8-hd, which also
  * understands sound tags like (laughs).
@@ -75,7 +84,7 @@ export function minimaxNarrator(fetcher: typeof fetch = fetch): Narrator {
     async voices(key) {
       const out = await post<{ system_voice?: Array<{ voice_id: string; voice_name?: string; description?: string[] }> }>('/get_voice', key, { voice_type: 'system' });
       return (out.system_voice ?? [])
-        .filter((v) => /^Chinese \(Mandarin\)/.test(v.voice_id))
+        .filter((v) => isMandarin(v.voice_id))
         .map((v) => ({ id: v.voice_id, name: v.voice_name || v.voice_id.replace(/^Chinese \(Mandarin\)_/, '').replace(/_/g, ' '), description: (v.description ?? []).join(' ') }));
     },
     async design(key, prompt, previewText) {

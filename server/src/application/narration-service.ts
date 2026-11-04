@@ -421,4 +421,6 @@ const toDto = (n: NarratorRecord): NarratorDto => ({
   createdAt: n.createdAt,
 });
 
-const genderOf = (s: string): 'female' | 'male' => (/\b(male|man|boy|gentleman|uncle|executive|lord)\b/i.test(s) && !/\b(female|woman|girl|lady)\b/i.test(s) ? 'male' : 'female');
+// The older Chinese voices are described in Chinese: 男童 a boy, 青年 a young man, 少爷 a young master.
+const genderOf = (s: string): 'female' | 'male' =>
+  (/\b(male|man|boy|gentleman|uncle|executive|lord)\b/i.test(s) || /男|少爷|弟弟|学弟|兄|大叔|爷爷|青年/.test(s)) && !/\b(female|woman|girl|lady)\b/i.test(s) && !/女|姐|妹|妈/.test(s) ? 'male' : 'female';

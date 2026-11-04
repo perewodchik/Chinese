@@ -205,6 +205,31 @@ describe('a reading made elsewhere', () => {
   });
 });
 
+describe('MiniMax’s Mandarin voices', () => {
+  it('are the "Chinese (Mandarin)_" ones and the older Chinese ones, not another language’s', async () => {
+    const { isMandarin } = await import('../src/infrastructure/minimax');
+    for (const id of ['Chinese (Mandarin)_Gentle_Youth', 'audiobook_male_1', 'clever_boy', 'cartoon_pig', 'male-qn-qingse']) assert.ok(isMandarin(id), id);
+    for (const id of ['English_Graceful_Lady', 'Japanese_KindLady', 'Cantonese_ProfessionalHost（F)', 'Santa_Claus']) assert.ok(!isMandarin(id), id);
+  });
+
+  it('say who they are in Chinese, and a boy is a male voice', async () => {
+    const narrator: Narrator = {
+      ...stub().narrator,
+      async voices() {
+        return [
+          { id: 'clever_boy', name: '聪明男童', description: '' },
+          { id: 'lovely_girl', name: '萌萌女童', description: '' },
+        ];
+      },
+    };
+    const app = appWith(narrator);
+    const cookie = await signedIn(app);
+    await call(app, 'PUT', '/api/narration/key', { cookie, body: { key: GOOD } });
+    const { voices } = (await (await call(app, 'GET', '/api/narration/voices', { cookie })).json()) as { voices: Array<{ id: string; gender: string }> };
+    assert.deepEqual(voices.map((v) => [v.id, v.gender]), [['clever_boy', 'male'], ['lovely_girl', 'female']]);
+  });
+});
+
 describe('making voices to choose among', () => {
   it('keeps the ones that came back when some fail, and says why when none does', async () => {
     let n = 0;

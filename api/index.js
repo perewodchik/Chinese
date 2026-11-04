@@ -449,6 +449,7 @@ function refusal(base, status) {
   if (code === 1002 || status === 429) return new NarratorRefused("MiniMax asked to slow down. Try again in a minute.", "busy");
   return new NarratorRefused(`MiniMax said: ${msg}`, "other");
 }
+var isMandarin = (id) => /^Chinese \(Mandarin\)_/.test(id) || /^[a-z]/.test(id);
 function minimaxNarrator(fetcher = fetch) {
   const post = async (path, key, body) => {
     const res = await fetcher(`${BASE}${path}`, {
@@ -463,7 +464,7 @@ function minimaxNarrator(fetcher = fetch) {
   return {
     async voices(key) {
       const out = await post("/get_voice", key, { voice_type: "system" });
-      return (out.system_voice ?? []).filter((v) => /^Chinese \(Mandarin\)/.test(v.voice_id)).map((v) => ({ id: v.voice_id, name: v.voice_name || v.voice_id.replace(/^Chinese \(Mandarin\)_/, "").replace(/_/g, " "), description: (v.description ?? []).join(" ") }));
+      return (out.system_voice ?? []).filter((v) => isMandarin(v.voice_id)).map((v) => ({ id: v.voice_id, name: v.voice_name || v.voice_id.replace(/^Chinese \(Mandarin\)_/, "").replace(/_/g, " "), description: (v.description ?? []).join(" ") }));
     },
     async design(key, prompt, previewText) {
       const out = await post("/voice_design", key, { prompt, preview_text: previewText });
@@ -832,7 +833,7 @@ var toDto = (n) => ({
   recordingId: narratorRecordingId(n.id),
   createdAt: n.createdAt
 });
-var genderOf = (s) => /\b(male|man|boy|gentleman|uncle|executive|lord)\b/i.test(s) && !/\b(female|woman|girl|lady)\b/i.test(s) ? "male" : "female";
+var genderOf = (s) => (/\b(male|man|boy|gentleman|uncle|executive|lord)\b/i.test(s) || /男|少爷|弟弟|学弟|兄|大叔|爷爷|青年/.test(s)) && !/\b(female|woman|girl|lady)\b/i.test(s) && !/女|姐|妹|妈/.test(s) ? "male" : "female";
 
 // shared/speechEval.ts
 var STRICTNESS = ["easy", "common", "hard"];
