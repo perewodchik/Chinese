@@ -5,6 +5,7 @@ import { buildBrief, buildPrompt, HANDOFF_STEPS, type PromptExtras } from '../..
 import type { TextPlan } from '../../domain/text';
 import { readableWords } from '../../domain/vocab';
 import { wordInventory } from '../../domain/words';
+import { oneOf, useQuery } from '../../navigation/query';
 import { copyText } from '../../platform/clipboard';
 import { downloadText } from '../../platform/files';
 import { patchPlan } from '../../store/commands';
@@ -38,7 +39,10 @@ export function PromptStep({ plan, onNext, onBack }: Props) {
   const lib = useLibrary();
   const toast = useToast();
   const claude = useClaude();
-  const [tab, setTab] = useState<'prompt' | 'json'>('prompt');
+  // Which of the two is shown is kept in the address (?view=json), as a tab is.
+  const [query, setQuery] = useQuery();
+  const tab = oneOf(query.get('view'), ['prompt', 'json'] as const, 'prompt');
+  const setTab = (t: 'prompt' | 'json') => setQuery('view', t, 'prompt');
   const [copied, setCopied] = useState(false);
   const recall = useStore((s) => s.recall);
 

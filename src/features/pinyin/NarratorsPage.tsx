@@ -19,6 +19,7 @@ import type { GeneratedText } from '../../domain/text';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
+import { useQuery } from '../../navigation/query';
 import { NarrationKey } from '../settings/NarrationKey';
 import { OwnTexts } from './OwnTexts';
 import './narrators.css';
@@ -39,7 +40,10 @@ export function NarratorsPage() {
   useTitle('Voices');
   const [status, setStatus] = useState<NarrationStatus | null>(null);
   const [narrators, setNarrators] = useState<NarratorDto[] | null>(null);
-  const [open, setOpen] = useState<string | null>(null);
+  // The narrator open for tuning is kept in the address (?narrator=), so a reload finds it open.
+  const [query, setQuery] = useQuery();
+  const open = query.get('narrator');
+  const setOpen = (id: string | null) => setQuery('narrator', id);
   const [error, setError] = useState<string | null>(null);
 
   const load = () =>
@@ -490,7 +494,11 @@ function ReadTexts({ narrators }: { narrators: NarratorDto[] }) {
     return narrators.some((n) => n.id === c) ? c! : narrators[0]!.id;
   });
   const shelves = useMemo(() => sets.filter((s) => texts.some((t) => t.setId === s.id)), [sets, texts]);
-  const [shelf, setShelf] = useState(() => shelves[0]?.id ?? '');
+  // The shelf being read is kept in the address (?shelf=) as well.
+  const [query, setQuery] = useQuery();
+  const asked = query.get('shelf');
+  const shelf = asked && shelves.some((s) => s.id === asked) ? asked : (shelves[0]?.id ?? '');
+  const setShelf = (id: string) => setQuery('shelf', id, shelves[0]?.id ?? '');
   const narrator = narrators.find((n) => n.id === narratorId) ?? narrators[0]!;
   const list = useMemo(() => texts.filter((t) => t.setId === shelf).sort((a, b) => a.createdAt - b.createdAt), [texts, shelf]);
   /** the narrator's reading of each text, as it sounds now; null for none yet */

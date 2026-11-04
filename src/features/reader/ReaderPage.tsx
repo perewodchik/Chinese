@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-r
 import type { ItemId } from '../../domain/ids';
 import { hskLabel, shelfEntries, shelve, type GeneratedText, type ShelfEntry, type TextSet } from '../../domain/text';
 import { paths, type ReadMode, type TextVersion } from '../../navigation/paths';
+import { readHash, writeHash } from '../../navigation/hash';
 import { renderReading, renderTextSet } from '../../pdf/render';
 import { dayKey } from '../../domain/activity';
 import { deleteText, markRead, setSettings, setTextRead, studyText } from '../../store/commands';
@@ -255,15 +256,44 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const tabs = [...parts, MORE];
   const [current, holdPart] = useCurrentPart(text.id, tabs.map((p) => p.id));
   const partId = (p: TabId) => `part-${p}`;
-  function goPart(p: TabId) {
+  function goPart(p: TabId, behavior: ScrollBehavior = 'smooth') {
     holdPart(p);
     if (p === 'read') {
-      top.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      document.querySelector('.rd-study')?.scrollTo({ top: 0, behavior: 'smooth' });
+      top.current?.scrollIntoView({ behavior, block: 'start' });
+      document.querySelector('.rd-study')?.scrollTo({ top: 0, behavior });
       return;
     }
-    document.getElementById(partId(p))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById(partId(p))?.scrollIntoView({ behavior, block: 'start' });
   }
+
+  // The part being read is kept in the address (#words), and a reload — or
+  // the same link on the iPad — opens the text at that part again. Something
+  // open over the text (#copy, #dictation) is its part's business, and wins.
+  const tabKey = tabs.map((p) => p.id).join(',');
+  // The part asked for by the address the page was opened at, until it has been gone to.
+  // Copying or dictation open over the text opens at its part, for when it is closed.
+  const wanted = useRef<string | null>(({ copy: 'write', dictation: 'more' } as Record<string, string>)[readHash()] ?? (readHash() || null));
+  useEffect(() => {
+    const at = wanted.current;
+    if (mode !== 'single' || !at || at === 'read' || !tabKey.split(',').includes(at)) {
+      wanted.current = null;
+      return;
+    }
+    // After the text has its height: the top-of-the-text scroll above runs first.
+    const frame = requestAnimationFrame(() => {
+      wanted.current = null;
+      goPart(at as TabId, 'auto');
+    });
+    return () => cancelAnimationFrame(frame);
+    // Only when a text opens; goPart is the same every render in all that matters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text.id, mode]);
+  useEffect(() => {
+    if (mode !== 'single' || wanted.current) return;
+    const at = readHash();
+    if (at && !tabKey.split(',').includes(at)) return;
+    writeHash(current === 'read' ? null : current);
+  }, [current, mode, tabKey]);
 
   const shown = mode === 'all' ? entries.map((e) => versionOf(e, null)) : [text];
   const next = page < total ? versionOf(entries[page]!, null) : null;

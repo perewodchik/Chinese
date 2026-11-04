@@ -78,7 +78,9 @@ export function ReadPage() {
   const startSession = useStartSession();
   const shelf = useMemo(() => shelve(texts, sets), [texts, sets]);
   const go = useContinue();
-  const [q, setQ] = useState('');
+  // Kept in the address (?q=) as it is typed, so a reload finds the same search.
+  const [query, setQuery] = useQuery();
+  const [q, setQ] = useState(() => query.get('q') ?? '');
 
   const found = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -152,7 +154,10 @@ export function ReadPage() {
         <input
           type="search"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setQuery('q', e.target.value);
+          }}
           placeholder="Search texts and words"
           aria-label="Search texts and words"
         />

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useQuery } from '../../navigation/query';
 import { Link, useNavigate } from 'react-router';
 import { nextCollectionName } from '../../domain/collection';
 import { charId, wordId } from '../../domain/ids';
@@ -74,7 +75,9 @@ export function LibraryHome() {
   const band = useStore((s) => s.settings.hskBand);
   const waiting = pendingSheets(useStore((s) => s.sheets));
   const progress = useSetProgress();
-  const [q, setQ] = useState('');
+  // Kept in the address (?q=) as it is typed, so a reload finds the same search.
+  const [query, setQuery] = useQuery();
+  const [q, setQ] = useState(() => query.get('q') ?? '');
   const [allTopics, setAllTopics] = useState(false);
   const [allLists, setAllLists] = useState(false);
 
@@ -139,7 +142,10 @@ export function LibraryHome() {
         <input
           type="search"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setQuery('q', e.target.value);
+          }}
           placeholder="好, hao or good"
           aria-label="Search characters, words and sets"
         />

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ItemId } from '../../domain/ids';
 import { hskLabel, type GeneratedText } from '../../domain/text';
 import { itemForToken } from '../../domain/words';
+import { useHashFlag } from '../../navigation/hash';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { setShelfStudy, studyText } from '../../store/commands';
 import { Icon } from '../../ui/Icon';
@@ -475,7 +476,8 @@ function TranslateBody({ text }: { text: GeneratedText }) {
  */
 export function MorePart({ text, partId }: { text: GeneratedText; partId: string }) {
   const [open, setOpen] = useState<'translate' | null>(null);
-  const [dictating, setDictating] = useState(false);
+  // Open over the text and kept in the address (#dictation), so a reload finds it open again.
+  const [dictating, setDictating] = useHashFlag('dictation');
   const [filming, setFilming] = useState(false);
   const [film, setFilm] = useState<KeptVideo | null>(null);
   // A video made of this text, kept on this device: the row says so.
@@ -694,7 +696,8 @@ export function WordsPart({
  * screen itself shows them. Tapping the strip is the same as the button.
  */
 export function WritePart({ text, partId }: { text: GeneratedText; partId: string }) {
-  const [copying, setCopying] = useState(false);
+  // Kept in the address (#copy): reloaded, the copying is open again where it was left.
+  const [copying, setCopying] = useHashFlag('copy');
   const chars = useMemo(() => text.lines.flatMap((l) => [...l.zh].filter((c) => /\p{Script=Han}/u.test(c))), [text.lines]);
   const total = chars.length;
   const copied = Math.min(total, text.study?.copied ?? 0);
