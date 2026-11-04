@@ -1041,22 +1041,62 @@ button.back-link {
   margin-right: -8px;
 }
 
+.ph-showing {
+  position: relative;
+}
+
+/* The tries, dropped down over the page from their button: a floating card, so it may cast the one shadow. */
 .ph-tries-box {
+  position: absolute;
+  z-index: 6;
+  top: calc(100% + 4px);
+  right: 0;
+  width: min(340px, 100%);
   display: grid;
   gap: 6px;
-  padding: 8px 0 4px;
-  border-radius: 14px;
-  background: var(--card-2);
+  padding: 8px 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  transform-origin: top right;
+  animation: ph-drop 140ms ease-out;
+}
+
+@keyframes ph-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ph-tries-box {
+    animation: none;
+  }
+}
+
+.ph-showing .btn[aria-expanded='true'] {
+  background: var(--accent-soft);
+}
+
+.ph-showing .btn[aria-expanded='true'] svg {
+  transform: rotate(180deg);
 }
 
 .ph-tries-head {
   display: flex;
-  justify-content: flex-end;
-  padding: 0 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 16px;
+}
+
+.ph-tries-head b {
+  font-weight: 600;
 }
 
 .ph-tries-list {
-  max-height: 248px;
+  max-height: min(300px, 50vh);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
