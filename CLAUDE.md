@@ -67,6 +67,10 @@ Several sessions edit and commit in this working tree on `main` at once.
 - Read `docs/guidelines.md` before changing a screen or the workspace: the
   rules the redesign settled (no layout shift, one primary button, touch sizes,
   speech on iOS, adding or removing a feature) and how to check a change.
+- Read `docs/development-standards.md` before a feature or anything bigger than
+  one control: brief, spec, small vertical steps, and build → check → fix →
+  commit for each step before the next; the code, test and commit standards and
+  the definition of done.
 - Read `docs/making-changes.md` before building or fixing anything: list every
   state first (with the learner's real data, read-only), see each one before
   committing (`node scripts/check-screens.mjs …`, WebKit too), and reproduce a

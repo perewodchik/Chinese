@@ -1,6 +1,8 @@
 # Making a change: design it, see every state, then commit
 
-`docs/guidelines.md` says how the app should look and behave. This file says
+`docs/guidelines.md` says how the app should look and behave;
+`docs/development-standards.md` says how a feature is cut into steps and the
+standards each step is held to. This file says
 how to get a change there in one go: what to work out before writing code, what
 to look at before committing, and how to fix a bug so it stays fixed. It was
 written after a day of bugs (November 2026) that were each simple and each
