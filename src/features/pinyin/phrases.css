@@ -265,7 +265,8 @@ button.back-link {
 /* A phone: a strip of cards to swipe, one in view and the next peeking in. */
 .ph-chars {
   display: flex;
-  align-items: flex-start;
+  /* One height for every card, so the strip is an even row; the advice is held to three lines, so that height stays small. */
+  align-items: stretch;
   gap: 10px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -305,7 +306,8 @@ button.back-link {
   .ph-chars {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    align-items: start;
+    align-items: stretch;
+    grid-auto-rows: 1fr;
     gap: 12px;
     overflow: visible;
     margin: 0;
@@ -421,6 +423,10 @@ button.back-link {
 }
 
 .ph-char-note .small {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
   font-size: 13px;
   line-height: 1.4;
   color: var(--ink-2);

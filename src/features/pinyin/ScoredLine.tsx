@@ -296,10 +296,11 @@ export function ScoredLine({
                   )}
                   {note.faults.length ? (
                     <div className="ph-char-notes">
-                      {note.faults.map((f) => (
+                      {/* Every fault named, but only the first one's advice: a card stays the height of the others. */}
+                      {note.faults.map((f, k) => (
                         <div key={f.kind} className="ph-char-note">
                           <b>{f.title}</b>
-                          <span className="small">{f.how}</span>
+                          {k === 0 && <span className="small">{f.how}</span>}
                         </div>
                       ))}
                     </div>
