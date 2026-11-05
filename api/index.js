@@ -165,7 +165,7 @@ var NotFoundError = class extends AppError {
 var RateLimitedError = class extends AppError {
   retryAfterSeconds;
   constructor(retryAfterSeconds) {
-    super("rate_limited", "Too many attempts. Wait a few minutes and try again.");
+    super("rate_limited", `Too many at once. Try again in ${waitWords(retryAfterSeconds)}.`);
     this.retryAfterSeconds = retryAfterSeconds;
   }
 };
@@ -196,6 +196,11 @@ var TutorUnavailableError = class extends AppError {
     super("unavailable", message);
   }
 };
+function waitWords(seconds) {
+  if (seconds < 60) return `${Math.max(1, seconds)} second${seconds === 1 ? "" : "s"}`;
+  const minutes = Math.ceil(seconds / 60);
+  return minutes === 1 ? "a minute" : `${minutes} minutes`;
+}
 
 // server/src/application/auth-service.ts
 import { randomInt } from "node:crypto";
