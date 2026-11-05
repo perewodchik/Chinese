@@ -1,6 +1,6 @@
-import type { AttemptIn, AttemptOut, SpeechHistory } from '../../../shared/speechEval';
+import type { AttemptIn, AttemptOut, EvalResult, SpeechHistory } from '../../../shared/speechEval';
 import { ApiError, isOffline } from '../../api/http';
-import { deleteAttempt, keepAttempts, listAttempts, speechHistory } from '../../api/speechEval';
+import { attemptResult, deleteAttempt, keepAttempts, listAttempts, speechHistory } from '../../api/speechEval';
 import { accountKey } from '../../platform/accountStorage';
 
 /**
@@ -267,4 +267,19 @@ export async function bestByLine(): Promise<Record<string, number>> {
     if (typeof total === 'number') best[a.text] = Math.max(best[a.text] ?? -1, total);
   }
   return best;
+}
+
+/** A try's whole answer from the service: from the outbox when it has not gone yet, else fetched once a visit. */
+const results = new Map<string, Promise<EvalResult>>();
+export function resultOf(id: string): Promise<EvalResult> {
+  // Not sent yet: the outbox has the whole answer, and the server does not.
+  const waiting = pendingTry(id)?.result as EvalResult | undefined;
+  if (waiting) return Promise.resolve(waiting);
+  let p = results.get(id);
+  if (!p) {
+    p = attemptResult(id);
+    p.catch(() => results.delete(id));
+    results.set(id, p);
+  }
+  return p;
 }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { EvalResult, SyllableEval } from '../../shared/speechEval';
-import { attemptOf, faultsOf, heardNote, heardTag, marked, noteOf, numbered, partsOf, resultOfAttempt, troubles, verdictOf } from './phrases';
+import { attemptOf, charBands, faultsOf, heardNote, heardTag, marked, noteOf, numbered, partsOf, resultOfAttempt, troubles, verdictOf } from './phrases';
 
 const syl = (char: string, symbol: string, o: Partial<SyllableEval> = {}): SyllableEval => ({ char, symbol, said: 'ok', initial: false, final: false, tone: false, from: 0, to: 0, ...o });
 
@@ -104,5 +104,11 @@ describe('phrases said and scored', () => {
     assert.equal(heardNote(syl('一', 'yi1', { tone: true, sandhi: 4, heardTone: 4 })), 'tone 4 off');
     assert.equal(heardNote(syl('鱼', 'yu2', { said: 'missed' })), 'not heard');
     assert.equal(heardNote(syl('好', 'hao3')), '');
+  });
+
+  it('colours each character of a line by how it was said, punctuation left plain', () => {
+    const r: EvalResult = { by: 'speechsuper', total: 70, tone: 70, sounds: 70, fluency: 70, completeness: 90, rejected: false,
+      syllables: [syl('你', 'ni3', { score: 95 }), syl('好', 'hao3', { tone: true, toneScore: 40 }), syl('吗', 'ma5', { said: 'missed' })] };
+    assert.deepEqual(charBands('你好，吗？', r), ['good', 'low', null, 'low', null]);
   });
 });

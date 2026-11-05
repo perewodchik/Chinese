@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import type { NarratorDto } from '../../../shared/narration';
 import type { AttemptOut, EvalResult } from '../../../shared/speechEval';
 import { chooseNarrator, chosenNarrator, listNarrators, narrationOf } from '../../api/narration';
-import { attemptResult, evaluatePhrase } from '../../api/speechEval';
+import { evaluatePhrase } from '../../api/speechEval';
 import { attemptOf, numbered, resultOfAttempt, type Attempt, type Phrase } from '../../domain/phrases';
 import { alignPinyin } from '../../domain/reading';
 import { heardAnything } from '../../platform/audio/mic';
@@ -18,7 +18,8 @@ import { useLibrary } from '../shared/library';
 import { NOTHING_HEARD, troubleOf, type Trouble } from './lineTrouble';
 import { RecordButton } from './RecordButton';
 import { band, ScoredLine } from './ScoredLine';
-import { attemptId, flush, forget, keepTry, knownTries, pendingTries, pendingTry, remember, saveTrouble, watchOutbox } from './speechHistory';
+import { attemptId, flush, forget, keepTry, knownTries, pendingTries, pendingTry, remember, resultOf, saveTrouble, watchOutbox } from './speechHistory';
+import { whenOf } from './when';
 import { useRecorder } from './useRecorder';
 import './phrases.css';
 
@@ -53,32 +54,7 @@ function recentLevels(rms: number): number[] {
   return [b!, d!, e!, c!, a!];
 }
 
-const results = new Map<string, Promise<EvalResult>>();
-function resultOf(id: string): Promise<EvalResult> {
-  // Not sent yet: the outbox has the whole answer, and the server does not.
-  const waiting = pendingTry(id)?.result as EvalResult | undefined;
-  if (waiting) return Promise.resolve(waiting);
-  let p = results.get(id);
-  if (!p) {
-    p = attemptResult(id);
-    p.catch(() => results.delete(id));
-    results.set(id, p);
-  }
-  return p;
-}
 
-/** When a try was, so a week later it still says when: today, yesterday, the weekday this week, else the date — with the time. */
-function whenOf(at: number, short = false): string {
-  const d = new Date(at);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-  if (at >= today.getTime()) return `today, ${time}`;
-  if (at >= today.getTime() - 86_400_000) return `yesterday, ${time}`;
-  // Short, for the one row above the score that a phone shares with two chips: Tue 14:37.
-  if (at >= today.getTime() - 6 * 86_400_000) return short ? `${d.toLocaleDateString('en-GB', { weekday: 'short' })} ${time}` : `${d.toLocaleDateString('en-GB', { weekday: 'long' })}, ${time}`;
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', ...(d.getFullYear() !== today.getFullYear() ? { year: 'numeric' } : {}) });
-}
 
 const fromKept = (a: AttemptOut): Take => {
   const s = a.summary as (Attempt & { shadow?: boolean }) | null;

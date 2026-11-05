@@ -1502,3 +1502,185 @@ button.back-link {
 .ph-sheet-foot-close .btn {
   width: 100%;
 }
+
+/* ---------------------------------------------------------- a text, looked back on */
+
+.ph-review-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 4px 0 8px;
+}
+
+.ph-review-stats > span {
+  display: grid;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--card-2);
+}
+
+.ph-review-stats b {
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-review-stats b small {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.ph-review-stats b[data-band='good'] {
+  color: var(--jade);
+}
+
+.ph-review-stats b[data-band='mid'] {
+  color: var(--gold);
+}
+
+.ph-review-stats b[data-band='low'] {
+  color: var(--red);
+}
+
+/* The lines by their best, a cell each: eight to a row on a phone, sixteen on an iPad. */
+.ph-map {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 6px;
+}
+
+@media (min-width: 760px) {
+  .ph-map {
+    grid-template-columns: repeat(16, minmax(0, 1fr));
+  }
+}
+
+.ph-map-cell {
+  height: 46px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  background: var(--jade-soft);
+  color: var(--jade);
+}
+
+.ph-map-cell span {
+  font-size: 10.5px;
+  opacity: 0.75;
+}
+
+.ph-map-cell b {
+  font-size: 13.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-map-cell[data-band='mid'] {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.ph-map-cell[data-band='low'] {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.ph-map-cell[data-band='none'] {
+  background: none;
+  border: 1px dashed var(--line-2);
+  color: var(--ink-3);
+}
+
+.ph-review-fault {
+  display: grid;
+  gap: 2px;
+  padding: 10px 0;
+}
+
+.ph-review-fault-zh {
+  font-size: 17px;
+  color: var(--red);
+}
+
+.ph-review-line {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ph-review-line-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+/* The line coloured by its best try, wrapping like the text it is. */
+.ph-review-line-zh {
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+.ph-review-line-zh [data-band='mid'] {
+  color: var(--gold);
+}
+
+.ph-review-line-zh [data-band='low'] {
+  color: var(--red);
+}
+
+.ph-review-line-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* A bar for each try, as tall as its score. */
+.ph-review-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.ph-review-bars i {
+  display: block;
+  width: 4px;
+  height: var(--h);
+  border-radius: 1px;
+  background: var(--jade);
+}
+
+.ph-review-bars i[data-band='mid'] {
+  background: var(--gold);
+}
+
+.ph-review-bars i[data-band='low'] {
+  background: var(--red);
+}
+
+.ph-line-sheet-no {
+  margin: 4px 0 6px;
+}
+
+.ph-line-sheet .ph-say-body {
+  padding-bottom: 4px;
+}
+
+/* A sheet with a Close at its foot: the foot is the bottom edge, so nothing scrolls by under it. */
+.drawer > .sheet.ph-char-sheet {
+  padding-bottom: 0;
+}

@@ -16,6 +16,7 @@ import { useLibrary } from '../shared/library';
 import { NeedsKey } from '../../ui/NeedsKey';
 import { bestByLine, keepTry, loadHistory, remember } from './speechHistory';
 import { LineStudio } from './LineStudio';
+import { TextReview } from './TextReview';
 import { band } from './ScoredLine';
 import './phrases.css';
 import './pinyin.css';
@@ -184,7 +185,7 @@ export function PhrasesPage() {
     const scores = source.phrases.map((p) => best(p.zh));
     const toTexts = () => navigate(paths.speaking());
     if (done) {
-      return <Finished source={source} scores={scores} onAgain={(i) => start(source, i)} onBack={toTexts} />;
+      return <TextReview title={source.title} sub={source.sub} phrases={source.phrases} onSay={(i) => start(source, i)} onBack={toTexts} />;
     }
     const index = Math.min(open.index, source.phrases.length - 1);
     const go = (i: number) => {
@@ -230,7 +231,7 @@ export function PhrasesPage() {
   const row = (src: Source) => {
     const p = progressOf(src);
     return (
-      <button key={src.id} className="ph-text" onClick={() => start(src)}>
+      <button key={src.id} className="ph-text" onClick={() => (p.said ? navigate(`${paths.speakingSay(src.id)}?done=1`) : start(src))}>
         <span className="ph-text-name">
           <span className="hanzi ph-text-zh">{src.title}</span>
           <span className="tiny muted ph-text-sub">
@@ -325,50 +326,6 @@ export function PhrasesPage() {
             <p className="small muted">Nothing yet: say a few lines and what keeps going wrong gathers here.</p>
           )}
         </aside>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------ a text finished */
-
-function Finished({ source, scores, onAgain, onBack }: { source: Source; scores: number[]; onAgain: (i: number) => void; onBack: () => void }) {
-  const said = scores.filter((x) => x >= 0);
-  const avg = said.length ? Math.round(said.reduce((a, b) => a + b, 0) / said.length) : null;
-  const weak = scores.findIndex((x) => x >= 0 && x < 75);
-  return (
-    <section className="ph">
-      <button className="back-link" onClick={onBack}>
-        <Icon name="back" /> Texts
-      </button>
-      <div className="page-head">
-        <h1 className="hanzi ph-done-title">{source.title}</h1>
-      </div>
-      <p className="small muted ph-lede">
-        {avg === null ? 'Nothing was scored this time.' : `To the end: ${said.length} of ${source.phrases.length} lines said, ${avg} on average.`}
-      </p>
-      <div className="list">
-        {source.phrases.map((p, i) => (
-          <button key={i} className="ph-text" onClick={() => onAgain(i)}>
-            <span className="tiny muted ph-n">{i + 1}</span>
-            <span className="ph-text-name">
-              <span className="hanzi ph-line-zh">{p.zh}</span>
-            </span>
-            <span className="ph-score" data-band={scores[i]! < 0 ? 'none' : band(scores[i]!)}>
-              {scores[i]! < 0 ? '–' : Math.round(scores[i]!)}
-            </span>
-          </button>
-        ))}
-      </div>
-      <div className="page-foot ph-foot">
-        {weak >= 0 && (
-          <button className="btn primary lg" onClick={() => onAgain(weak)}>
-            Say the weak lines again
-          </button>
-        )}
-        <button className={`btn lg ${weak >= 0 ? 'tonal' : 'primary'}`} onClick={onBack}>
-          Choose another text
-        </button>
       </div>
     </section>
   );

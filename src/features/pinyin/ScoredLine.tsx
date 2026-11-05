@@ -146,6 +146,7 @@ export function ScoredLine({
   scoring = false,
   marks = false,
   voice,
+  tableScrolls = true,
   children,
 }: {
   zh: string;
@@ -160,6 +161,8 @@ export function ScoredLine({
   marks?: boolean;
   /** the voice's own try at the line, scored, for the timeline under the score */
   voice?: { result: EvalResult; samples?: Float32Array | null };
+  /** false on a sheet: the table shows every row and the sheet scrolls */
+  tableScrolls?: boolean;
   /** notes and errors, between the line and its verdict */
   children?: ReactNode;
 }) {
@@ -298,7 +301,7 @@ export function ScoredLine({
           </section>
         )}
 
-        {result && rows.length > 0 && <CharTable rows={rows} samples={samples} active={active} dim={scoring} />}
+        {result && rows.length > 0 && <CharTable rows={rows} samples={samples} active={active} dim={scoring} scrollInside={tableScrolls} />}
 
     </>
   );

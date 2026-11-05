@@ -83,7 +83,7 @@ function Row({ r, samples, active, note }: { r: CharRow; samples: Float32Array |
  * least well said first, so what to fix is in view; on a phone the table
  * scrolls inside the screen. All opens every character on a sheet of its own.
  */
-export function CharTable({ rows, samples, active, dim }: { rows: CharRow[]; samples: Float32Array | null; active: number | null; dim?: boolean }) {
+export function CharTable({ rows, samples, active, dim, scrollInside = true }: { rows: CharRow[]; samples: Float32Array | null; active: number | null; dim?: boolean; /** false on a sheet, which scrolls itself */ scrollInside?: boolean }) {
   const [all, setAll] = useState(false);
   const body = useRef<HTMLDivElement>(null);
   const sorted = worstFirst(rows);
@@ -94,14 +94,14 @@ export function CharTable({ rows, samples, active, dim }: { rows: CharRow[]; sam
   useEffect(() => {
     const fit = () => {
       const el = body.current;
-      if (!el || window.innerWidth >= 760) return setMaxH(null);
+      if (!el || !scrollInside || window.innerWidth >= 760) return setMaxH(null);
       const dock = document.querySelector('.ph-dock')?.getBoundingClientRect().top ?? window.innerHeight;
       setMaxH(Math.max(176, Math.floor(dock - el.getBoundingClientRect().top - 12)));
     };
     fit();
     window.addEventListener('resize', fit);
     return () => window.removeEventListener('resize', fit);
-  }, [rows.length]);
+  }, [rows.length, scrollInside]);
   // A character tapped in the line brings its row into view, inside the table only.
   useEffect(() => {
     if (active === null || !body.current) return;
@@ -120,7 +120,7 @@ export function CharTable({ rows, samples, active, dim }: { rows: CharRow[]; sam
           <Icon name="expand" size={15} /> All
         </button>
       </div>
-      <div className="ph-tab-body" ref={body} style={maxH ? { maxHeight: maxH } : undefined}>
+      <div className="ph-tab-body" ref={body} style={maxH ? { maxHeight: maxH } : scrollInside ? undefined : { maxHeight: 'none' }}>
         {sorted.map((r) => (
           <Row key={r.ti} r={r} samples={samples} active={active === r.ti} />
         ))}

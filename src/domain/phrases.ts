@@ -425,3 +425,22 @@ export function heardNote(s: SyllableEval): string {
   if (s.extraBefore) out.push('something said before it');
   return out.join(' · ');
 }
+
+/**
+ * Each character of a line, in order, with how it was said in a try: its band,
+ * or null for punctuation and for a character the service did not score. The
+ * scored syllables follow the characters; one is matched to a character only
+ * when it is that character, so a syllable left out never shifts the rest.
+ */
+export function charBands(zh: string, r: EvalResult): Array<CharNote['band'] | null> {
+  const scored = r.syllables.filter((s) => s.said !== 'added');
+  let k = 0;
+  return [...zh].map((c) => {
+    if (!/\p{Script=Han}/u.test(c)) return null;
+    let j = k;
+    while (j < scored.length && scored[j]!.char !== c) j++;
+    if (j >= scored.length) return null;
+    k = j + 1;
+    return noteOf(scored[j]!).band;
+  });
+}
