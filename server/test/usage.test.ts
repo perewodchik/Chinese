@@ -32,10 +32,11 @@ const evaluator: Evaluator = {
 
 async function setUp() {
   const clock = new TestClock();
-  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock, narrator, evaluator });
+  const db = openDatabase(':memory:');
+  const services = createServices(sqliteStores(db), { hasher: cheapHasher, clock, narrator, evaluator });
   const app = createHttpApp(services, { trustProxy: false, staticDir: null, log: () => undefined });
   const cookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'learner', password: 'correct horse' } }));
-  return { app, cookie, clock };
+  return { app, cookie, clock, db };
 }
 const usage = async (s: Awaited<ReturnType<typeof setUp>>) => (await (await call(s.app, 'GET', '/api/account/usage', { cookie: s.cookie })).json()) as UsageResponse;
 
@@ -106,5 +107,33 @@ describe('a copy of the account’s work', () => {
   it('is for the signed-in learner only', async () => {
     const s = await setUp();
     assert.equal((await call(s.app, 'GET', '/api/account/export')).status, 401);
+  });
+});
+
+describe('deleting the account', () => {
+  it('takes the password, and leaves nothing of the account behind', async () => {
+    const s = await setUp();
+    await call(s.app, 'PUT', '/api/eval/key', { cookie: s.cookie, body: { provider: 'speechsuper', appKey: 'app123456', secretKey: 'secret0123456789abcd' } });
+    await call(s.app, 'PUT', '/api/workspace', { cookie: s.cookie, body: { baseRevision: 0, document: { version: 11 } } });
+    assert.equal((await call(s.app, 'DELETE', '/api/account', { cookie: s.cookie, body: { password: 'wrong horse' } })).status, 400);
+    const gone = await call(s.app, 'DELETE', '/api/account', { cookie: s.cookie, body: { password: 'correct horse' } });
+    assert.equal(gone.status, 204);
+    assert.match(gone.headers.get('set-cookie') ?? '', /Max-Age=0/i);
+    assert.equal((await call(s.app, 'GET', '/api/workspace', { cookie: s.cookie })).status, 401);
+    const left = s.db
+      .prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND sql LIKE '%user_id%'`)
+      .all() as Array<{ name: string }>;
+    for (const { name } of left) {
+      if (name === 'invites') continue;
+      const { n } = s.db.prepare(`SELECT COUNT(*) AS n FROM ${name}`).get() as { n: number };
+      assert.equal(n, 0, `${name} still has rows`);
+    }
+    // The name is free again.
+    assert.equal((await call(s.app, 'POST', '/api/auth/register', { body: { username: 'learner', password: 'correct horse' } })).status, 201);
+  });
+
+  it('is for the signed-in learner only', async () => {
+    const s = await setUp();
+    assert.equal((await call(s.app, 'DELETE', '/api/account', { body: { password: 'correct horse' } })).status, 401);
   });
 });

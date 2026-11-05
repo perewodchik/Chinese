@@ -45,6 +45,10 @@ export class PostgresUserRepository implements UserRepository {
     return result.rowCount === 1;
   }
 
+  async delete(id: string): Promise<void> {
+    await this.db.query('DELETE FROM users WHERE id = $1', [id]);
+  }
+
   async updatePassword(id: string, passwordHash: string, at: number): Promise<void> {
     await this.db.query('UPDATE users SET password_hash = $1, updated_at = $2 WHERE id = $3', [
       passwordHash,

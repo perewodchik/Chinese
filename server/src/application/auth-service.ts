@@ -269,6 +269,20 @@ export class AuthService {
     await sessions.deleteForUser(user.id, input.sessionId);
   }
 
+  /**
+   * The account gone, with everything it kept — asked for with its password,
+   * so a browser left signed in is not enough to lose a year's work.
+   */
+  async deleteAccount(input: { userId: string; password: string }): Promise<void> {
+    const { users, hasher } = this.deps;
+    const user = await users.findById(input.userId);
+    if (!user) throw new UnauthorizedError();
+    if (!(await hasher.verify(input.password, user.passwordHash))) {
+      throw new ValidationError('That is not the password.', { password: 'Not the password.' });
+    }
+    await users.delete(user.id);
+  }
+
   /** For whoever runs the server: a new password for an account, and every session of it ended. */
   async resetPassword(username: string, newPassword: string): Promise<UserDto> {
     const { users, sessions, hasher, clock } = this.deps;

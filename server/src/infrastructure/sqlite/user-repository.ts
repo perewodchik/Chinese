@@ -27,7 +27,7 @@ export class SqliteUserRepository implements UserRepository {
   private readonly setPassword: StatementSync;
   private readonly all: StatementSync;
 
-  constructor(db: DatabaseSync) {
+  constructor(private readonly db: DatabaseSync) {
     this.byId = db.prepare('SELECT * FROM users WHERE id = ?');
     this.byKey = db.prepare('SELECT * FROM users WHERE username_key = ?');
     this.insertOne = db.prepare(
@@ -60,5 +60,9 @@ export class SqliteUserRepository implements UserRepository {
 
   async list(): Promise<User[]> {
     return (this.all.all() as unknown as Row[]).map(toUser);
+  }
+
+  async delete(id: string): Promise<void> {
+    this.db.prepare('DELETE FROM users WHERE id = ?').run(id);
   }
 }

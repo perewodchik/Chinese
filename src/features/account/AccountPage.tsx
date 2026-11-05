@@ -9,6 +9,7 @@ import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { ChangePasswordForm } from '../auth/ChangePasswordForm';
 import { useUser } from '../auth/session';
+import { DeleteAccount } from './DeleteAccount';
 import './account.css';
 
 const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -133,6 +134,8 @@ export function AccountPage() {
           <Icon name="chevron" />
         </Link>
       </nav>
+
+      <DeleteAccount />
     </section>
   );
 }

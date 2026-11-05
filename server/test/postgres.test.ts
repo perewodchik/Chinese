@@ -127,7 +127,7 @@ describe('Postgres storage', () => {
   });
 
   it('takes a workspace away with the account that owned it', async () => {
-    await pool.query('DELETE FROM users WHERE id = $1', ['u3']);
+    await stores.users.delete('u3');
     assert.equal(await stores.users.findById('u3'), null);
     // ON DELETE CASCADE, which SQLite only obeys with a pragma and Postgres
     // always does — the sessions and the saved work have to go with it.

@@ -10,7 +10,7 @@ import {
 import type { UserDto } from '../../../shared/api';
 import { authApi } from '../../api/auth';
 import { ApiError, onSignedOut } from '../../api/http';
-import { setStorageAccount } from '../../platform/accountStorage';
+import { forgetAccount, setStorageAccount } from '../../platform/accountStorage';
 import { flushWorkspace } from '../../store/store';
 
 export type Session =
@@ -25,6 +25,8 @@ interface SessionApi {
   signIn(username: string, password: string): Promise<void>;
   register(username: string, password: string, invite?: string): Promise<void>;
   signOut(): Promise<void>;
+  /** The account was deleted: what this device kept for it goes, and the sign-in page comes back. */
+  deleted(): void;
   retry(): void;
 }
 
@@ -110,9 +112,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setSession({ status: 'signed-out', reason: 'left' });
   }, []);
 
+  const deleted = useCallback(() => {
+    if (shownAccount) forgetAccount(shownAccount);
+    shownAccount = null;
+    setStorageAccount(null);
+    setSession({ status: 'signed-out', reason: 'left' });
+  }, []);
+
   const value = useMemo(
-    () => ({ session, signIn, register, signOut, retry: check }),
-    [session, signIn, register, signOut, check],
+    () => ({ session, signIn, register, signOut, deleted, retry: check }),
+    [session, signIn, register, signOut, deleted, check],
   );
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }

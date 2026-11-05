@@ -25,6 +25,8 @@ export interface UserRepository {
   insert(user: User): Promise<boolean>;
   updatePassword(id: string, passwordHash: string, at: number): Promise<void>;
   list(): Promise<User[]>;
+  /** The account and, by the schema's cascades, everything it kept: sessions, work, keys, recordings of its texts. */
+  delete(id: string): Promise<void>;
 }
 
 export interface SessionRepository {

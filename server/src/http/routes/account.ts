@@ -1,17 +1,32 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
 import type { UsageResponse } from '../../../../shared/usage';
 import type { AppEnv, RouteDeps } from '../env';
-import { requireSession } from '../guards';
+import { RateLimiter, requireSession } from '../guards';
+import { clearSessionCookie, isHttps, readJson } from '../request';
 
 /**
  * The account's own pages' questions.
  *
  *   GET /api/account/usage    what the learner's own keys have been spent on (shared/usage.ts)
  *   GET /api/account/export   everything the account keeps, as one JSON file to download
+ *   DELETE /api/account       { password } → the account and all it kept, gone
  */
-export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations }: RouteDeps) {
+const deleteRequest = z.object({ password: z.string().max(2048) });
+export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
+  // The password is asked for, so a guesser with a stolen cookie gets as few tries as at the sign-in page.
+  const deletes = new RateLimiter('account.deletes', 10, 15 * 60_000, clock, limits);
+
+  routes.delete('/', session, async (c) => {
+    const { user } = c.get('session');
+    await deletes.consume(user.id);
+    const { password } = await readJson(c, deleteRequest);
+    await auth.deleteAccount({ userId: user.id, password });
+    clearSessionCookie(c, isHttps(c, trustProxy));
+    return c.body(null, 204);
+  });
 
   routes.get('/usage', session, async (c) => {
     const user = c.get('session').user.id;

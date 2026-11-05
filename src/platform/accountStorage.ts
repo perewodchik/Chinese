@@ -42,3 +42,22 @@ export function accountKey(name: string): string {
   }
   return key;
 }
+
+/**
+ * Everything this device kept for an account that is gone: its own values,
+ * its unsaved changes, the game's copy. Found by the account's id, which is
+ * a random identifier no other key can contain by chance.
+ */
+export function forgetAccount(id: string): void {
+  if (!id) return;
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.includes(id) || k.includes(encodeURIComponent(id)))) keys.push(k);
+    }
+    for (const k of keys) localStorage.removeItem(k);
+  } catch {
+    // storage refused: there is nothing kept to forget
+  }
+}
