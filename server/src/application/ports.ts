@@ -417,3 +417,8 @@ export interface LookupCache {
   get(key: string, since: number): Promise<string | null>;
   put(key: string, body: string, at: number): Promise<void>;
 }
+
+/** How much one account keeps on the server, in bytes, across everything it has made. */
+export interface StorageMeter {
+  usedBy(userId: string): Promise<number>;
+}

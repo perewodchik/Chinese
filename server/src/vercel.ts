@@ -1,6 +1,6 @@
 import { getRequestListener } from '@hono/node-server';
 import { createServices } from './composition';
-import { registrationFrom } from './config';
+import { registrationFrom, storageLimitFrom } from './config';
 import { createHttpApp } from './http/app';
 import { speechFromEnv } from './infrastructure/azure-speech';
 import { databaseUrl, openPostgres } from './infrastructure/postgres/database';
@@ -56,6 +56,7 @@ function application(): Promise<App> {
     const services = createServices(postgresStores(pool), {
       policy: { registration: REGISTRATION },
       secretsKey: process.env.HANZI_SECRETS_KEY ?? '',
+      storageLimitMb: storageLimitFrom(process.env.HANZI_STORAGE_MB),
       speech: speechFromEnv(process.env),
     });
     return createHttpApp(services, {

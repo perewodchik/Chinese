@@ -142,3 +142,29 @@
   letter-spacing: 0.04em;
   user-select: all;
 }
+
+/* The room the account takes: the line is there from the start, the bar only with a ceiling. */
+.ac-storage {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+  max-width: 420px;
+}
+
+.ac-storage-bar {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line-2);
+  overflow: hidden;
+}
+
+.ac-storage-bar[data-hidden] {
+  visibility: hidden;
+}
+
+.ac-storage-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}

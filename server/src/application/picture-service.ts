@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { PICTURE_MAX_BYTES, PICTURE_TYPES } from '../../../shared/api';
 import { NotFoundError, ValidationError } from '../domain/errors';
 import type { Clock, Picture, PictureRepository } from './ports';
+import type { StorageQuota } from './storage-quota';
 
 /** What a picture is filed under: the digest of its bytes. */
 export const pictureKey = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
@@ -16,7 +17,7 @@ export const pictureKey = (bytes: Uint8Array) => createHash('sha256').update(byt
  * keeps one copy, and a key in the workspace cannot point at the wrong file.
  */
 export class PictureService {
-  constructor(private readonly deps: { pictures: PictureRepository; clock: Clock }) {}
+  constructor(private readonly deps: { pictures: PictureRepository; clock: Clock; quota?: StorageQuota }) {}
 
   async put(userId: string, key: string, mime: string, bytes: Uint8Array): Promise<void> {
     if (!(PICTURE_TYPES as readonly string[]).includes(mime)) {
@@ -33,6 +34,7 @@ export class PictureService {
     // key be read through this account, so it is refused rather than shared.
     if (kept && kept.userId !== userId) throw new ValidationError('That picture is kept under another account.');
     if (kept) return;
+    await this.deps.quota?.check(userId, bytes.length);
     await this.deps.pictures.save({ key, userId, mime, bytes, createdAt: this.deps.clock.now() });
   }
 

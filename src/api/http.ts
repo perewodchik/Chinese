@@ -88,6 +88,11 @@ export async function send<T>(method: string, url: string, options: RequestOptio
     }
 
     const read = parse(text);
+    // Vercel refuses a body over 4.5 MB itself, before the server sees it, and
+    // says so in a page of its own rather than in JSON.
+    if (!read.ok && res.status === 413) {
+      throw new ApiError(413, 'payload_too_large', 'That is more than the site takes in one go (4.5 MB). Your work is kept on this device; delete pictures or texts you no longer need, and it will be saved.');
+    }
     if (!read.ok) {
       // A JSON API answering with something else is not working, whatever the
       // status says. It is usually the app's own page, served where the API

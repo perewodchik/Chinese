@@ -28,9 +28,11 @@ import type {
   RateLimitStore,
   LookupCache,
   RecoveryCodeRepository,
+  StorageMeter,
   WorkspaceRepository,
   WorldSaveRepository,
 } from './application/ports';
+import { StorageQuota } from './application/storage-quota';
 import { UsageMeter } from './application/usage-service';
 import { WorkspaceService } from './application/workspace-service';
 import { WorldService } from './application/world-service';
@@ -67,6 +69,8 @@ export interface Services {
   limits: RateLimitStore;
   /** answers the same for everyone, kept a while */
   lookups: LookupCache;
+  /** how much each account keeps, against its ceiling */
+  storage: StorageQuota;
 }
 
 /** Where each kind of record is kept. */
@@ -88,6 +92,7 @@ export interface Stores {
   limits: RateLimitStore;
   lookups: LookupCache;
   recoveryCodes: RecoveryCodeRepository;
+  storage: StorageMeter;
 }
 
 /**
@@ -117,6 +122,8 @@ export function createServices(
      * they are stored as they are.
      */
     secretsKey?: string;
+    /** HANZI_STORAGE_MB: the most one account may keep; left out or 0, no ceiling */
+    storageLimitMb?: number | null;
   } = {},
 ): Services {
   const clock = options.clock ?? systemClock;
@@ -135,6 +142,7 @@ export function createServices(
   const recordings = new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
   const secrets = options.secretsKey === undefined ? stores.secrets : secretsFor(stores.secrets, options.secretsKey, (line) => console.error(line));
+  const quota = new StorageQuota({ meter: stores.storage, limitMb: options.storageLimitMb || null });
   const usage = new UsageMeter({ usage: stores.usage, clock, log: (line) => console.error(line) });
   return {
     auth,
@@ -146,11 +154,12 @@ export function createServices(
     tutor: options.tutor ?? null,
     talkVoices: options.talkVoices ?? null,
     recordings,
-    pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock, meter: usage }),
-    speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock, meter: usage }),
+    pictures: new PictureService({ pictures: stores.pictures, clock, quota }),
+    narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),
+    speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock, meter: usage, quota }),
     usage,
     limits: stores.limits,
     lookups: stores.lookups,
+    storage: quota,
   };
 }

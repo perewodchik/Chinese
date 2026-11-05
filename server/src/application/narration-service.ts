@@ -14,6 +14,7 @@ import {
 import { createHash } from 'node:crypto';
 import { NarratorRefused } from '../infrastructure/minimax';
 import { AppError, NotFoundError, ValidationError } from '../domain/errors';
+import type { StorageQuota } from './storage-quota';
 import type { UsageMeter } from './usage-service';
 import type { Clock, Narrator, NarratorRecord, NarratorRepository, OwnText, OwnTextRepository, SecretRepository, TextNarration, TextNarrationRepository, Tokens, VoiceTuning } from './ports';
 
@@ -47,6 +48,8 @@ export class NarrationService {
       clock: Clock;
       /** counts what the key is spent on; left out, nothing is counted */
       meter?: UsageMeter;
+      /** the account's ceiling on what it keeps; left out, none */
+      quota?: StorageQuota;
     },
   ) {}
 
@@ -233,6 +236,7 @@ export class NarrationService {
       durationMs,
       createdAt: this.deps.clock.now(),
     };
+    await this.deps.quota?.check(userId, record.mp3.length);
     await this.deps.narrations.save(record);
     return toNarrationDto(record);
   }
@@ -259,6 +263,7 @@ export class NarrationService {
     // A narrator whose readings come in made by a cast is a cast's: its texts are heard in their characters' voices first.
     if (n.kind !== 'cast') await this.deps.narrators.save({ ...n, kind: 'cast', updatedAt: this.deps.clock.now() });
     const record: TextNarration = { key: narrationKey(n, said), userId, narratorId: n.id, mp3, timings, durationMs, createdAt: this.deps.clock.now() };
+    await this.deps.quota?.check(userId, record.mp3.length);
     await this.deps.narrations.save(record);
     return toNarrationDto(record);
   }

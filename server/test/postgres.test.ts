@@ -211,4 +211,15 @@ describe('Postgres storage', () => {
     assert.equal(await stores.recoveryCodes.use('u9', 'b', T + 6), false);
     assert.deepEqual(await stores.recoveryCodes.status('u9'), { left: 1, createdAt: T + 5 });
   });
+
+  it('sums what an account keeps across its tables, in bytes', async () => {
+    await stores.users.insert(user('u7'));
+    const before = await stores.storage.usedBy('u7');
+    await stores.pictures.save({ key: 'p7', userId: 'u7', mime: 'image/jpeg', bytes: new Uint8Array(1000), createdAt: T });
+    await stores.workspaces.save('u7', 0, { note: '你好' }, T);
+    const after = await stores.storage.usedBy('u7');
+    assert.equal(before, 0);
+    assert.ok(after >= 1000 + JSON.stringify({ note: '你好' }).length, String(after));
+    assert.equal(await stores.storage.usedBy('nobody'), 0);
+  });
 });

@@ -18,6 +18,7 @@ import {
 import { AppError, NotFoundError, ValidationError } from '../domain/errors';
 import { EvaluatorRefused } from '../infrastructure/iflytek';
 import type { Clock, SecretRepository, SpeechAttemptRepository } from './ports';
+import type { StorageQuota } from './storage-quota';
 import type { UsageMeter } from './usage-service';
 
 const NAME = 'speech-eval';
@@ -56,7 +57,7 @@ function clean(raw: EvalKeys): EvalKeys {
  * key, so they can tell which it is. How strict the scoring is goes with them.
  */
 export class SpeechEvalService {
-  constructor(private readonly deps: { secrets: SecretRepository; attempts: SpeechAttemptRepository; evaluator: Evaluator | null; clock: Clock; meter?: UsageMeter }) {}
+  constructor(private readonly deps: { secrets: SecretRepository; attempts: SpeechAttemptRepository; evaluator: Evaluator | null; clock: Clock; meter?: UsageMeter; quota?: StorageQuota }) {}
 
   private async kept(userId: string): Promise<Kept | null> {
     const raw = await this.deps.secrets.get(userId, NAME);
@@ -136,6 +137,7 @@ export class SpeechEvalService {
   /** Tries kept for every device; one kept already (by its id) is left as it is. */
   async keepAttempts(userId: string, items: AttemptIn[]): Promise<{ kept: number }> {
     if (items.length > ATTEMPTS_PER_CALL) throw new ValidationError('Too many tries at once.');
+    await this.deps.quota?.check(userId, items.reduce((n, a) => n + JSON.stringify(a).length, 0));
     await this.deps.attempts.add(
       items.map((a) => ({
         id: `${userId}:${a.id}`,

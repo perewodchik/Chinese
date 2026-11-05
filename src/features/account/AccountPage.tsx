@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { USAGE_UNIT, type UsageLine, type UsageResponse, type UsageService } from '../../../shared/usage';
-import { accountUsage } from '../../api/account';
+import { accountStorage, accountUsage } from '../../api/account';
 import { paths } from '../../navigation/paths';
 import type { SyncStatus } from '../../store/sync/engine';
 import { useSyncStatus } from '../../store/store';
@@ -105,10 +105,11 @@ export function AccountPage() {
       </section>
 
       <section className="block">
-        <h2 className="block-title">A copy of your work</h2>
+        <h2 className="block-title">Your work</h2>
+        <StorageLine />
         <p className="small muted ac-copy-lede">
-          Your texts, shelves, cards and progress, the walk through Beijing, your conversations, tries and narrators, in one
-          file to keep. Not your keys, recordings or pictures.
+          A copy to keep: your texts, shelves, cards and progress, the walk through Beijing, your conversations, tries and
+          narrators, in one file. Not your keys, recordings or pictures.
         </p>
         <a className="btn tonal" href="/api/account/export" download>
           Download a copy
@@ -169,5 +170,38 @@ function UsageRow({ line }: { line: UsageLine }) {
         Your balance at {s.site}
       </a>
     </li>
+  );
+}
+
+const MB = 1024 * 1024;
+const mb = (bytes: number) => (bytes < MB ? '<1' : Math.round(bytes / MB).toLocaleString('en'));
+
+/** How much the account keeps on the server, against its ceiling: a line, and a bar when there is a ceiling. */
+function StorageLine() {
+  const [use, setUse] = useState<{ usedBytes: number; limitBytes: number | null } | null>(null);
+  useEffect(() => {
+    let live = true;
+    accountStorage().then(
+      (u) => live && setUse(u),
+      () => undefined,
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+  const share = use?.limitBytes ? Math.min(1, use.usedBytes / use.limitBytes) : 0;
+  return (
+    <div className="ac-storage">
+      <span className="small">
+        {use === null
+          ? '\u00a0'
+          : use.limitBytes
+            ? `It takes ${mb(use.usedBytes)} MB of the ${mb(use.limitBytes)} MB an account keeps here.`
+            : `It takes ${mb(use.usedBytes)} MB here.`}
+      </span>
+      <span className="ac-storage-bar" aria-hidden data-hidden={use?.limitBytes ? undefined : ''}>
+        <i style={{ width: `${share * 100}%` }} />
+      </span>
+    </div>
   );
 }

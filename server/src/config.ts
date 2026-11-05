@@ -96,6 +96,14 @@ export function loadEnvFile(cwd = process.cwd()): void {
   }
 }
 
+/** HANZI_STORAGE_MB: the most one account keeps, 300 MB unless set; 0 for no ceiling. */
+export function storageLimitFrom(raw: string | undefined): number | null {
+  if (raw === undefined || raw.trim() === '') return 300;
+  const mb = Number(raw);
+  if (!Number.isFinite(mb) || mb < 0) throw new Error(`HANZI_STORAGE_MB has to be a number of megabytes, not “${raw}”.`);
+  return mb === 0 ? null : mb;
+}
+
 /** Who may make an account. Anything unrecognised is the default, never wider than it. */
 export function registrationFrom(raw: string | undefined, fallback: ServerConfig['registration']): ServerConfig['registration'] {
   const v = raw?.trim().toLowerCase();

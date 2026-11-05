@@ -11,9 +11,10 @@ import { clearSessionCookie, isHttps, readJson } from '../request';
  *   GET /api/account/usage    what the learner's own keys have been spent on (shared/usage.ts)
  *   GET /api/account/export   everything the account keeps, as one JSON file to download
  *   DELETE /api/account       { password } → the account and all it kept, gone
+ *   GET /api/account/storage  how much the account keeps, out of how much it may
  */
 const deleteRequest = z.object({ password: z.string().max(2048) });
-export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits }: RouteDeps) {
+export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // The password is asked for, so a guesser with a stolen cookie gets as few tries as at the sign-in page.
@@ -38,6 +39,11 @@ export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narr
     });
     c.header('Cache-Control', 'no-store');
     return c.json(body);
+  });
+
+  routes.get('/storage', session, async (c) => {
+    c.header('Cache-Control', 'no-store');
+    return c.json(await storage.use(c.get('session').user.id));
   });
 
   // A copy of the work to keep: the workspace as the app saves it, the game,

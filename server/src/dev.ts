@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { getRequestListener } from '@hono/node-server';
 import { createServer as createViteServer } from 'vite';
 import { createServices } from './composition';
-import { describeDatabase, loadConfig, loadEnvFile } from './config';
+import { describeDatabase, loadConfig, loadEnvFile, storageLimitFrom } from './config';
 import { createHttpApp } from './http/app';
 import { speechFromEnv } from './infrastructure/azure-speech';
 import { tutorFromEnv } from './infrastructure/claude-cli';
@@ -43,6 +43,7 @@ const { stores, local, close } = await openStores(config.database).catch(stop);
 const services = createServices(stores, {
   policy: { registration: config.registration },
   secretsKey: process.env.HANZI_SECRETS_KEY ?? '',
+  storageLimitMb: storageLimitFrom(process.env.HANZI_STORAGE_MB),
   speech: speechFromEnv(process.env),
   tutor: tutorFromEnv(process.env),
   talkVoices: localVoicesFromEnv(process.env, process.cwd()),

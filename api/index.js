@@ -812,6 +812,7 @@ var NarrationService = class {
       durationMs,
       createdAt: this.deps.clock.now()
     };
+    await this.deps.quota?.check(userId, record.mp3.length);
     await this.deps.narrations.save(record);
     return toNarrationDto(record);
   }
@@ -836,6 +837,7 @@ var NarrationService = class {
     }
     if (n.kind !== "cast") await this.deps.narrators.save({ ...n, kind: "cast", updatedAt: this.deps.clock.now() });
     const record = { key: narrationKey(n, said), userId, narratorId: n.id, mp3: mp32, timings, durationMs, createdAt: this.deps.clock.now() };
+    await this.deps.quota?.check(userId, record.mp3.length);
     await this.deps.narrations.save(record);
     return toNarrationDto(record);
   }
@@ -1242,6 +1244,7 @@ var SpeechEvalService = class {
   /** Tries kept for every device; one kept already (by its id) is left as it is. */
   async keepAttempts(userId, items) {
     if (items.length > ATTEMPTS_PER_CALL) throw new ValidationError("Too many tries at once.");
+    await this.deps.quota?.check(userId, items.reduce((n, a) => n + JSON.stringify(a).length, 0));
     await this.deps.attempts.add(
       items.map((a) => ({
         id: `${userId}:${a.id}`,
@@ -1472,6 +1475,7 @@ var PictureService = class {
     const kept2 = await this.deps.pictures.find(key);
     if (kept2 && kept2.userId !== userId) throw new ValidationError("That picture is kept under another account.");
     if (kept2) return;
+    await this.deps.quota?.check(userId, bytes.length);
     await this.deps.pictures.save({ key, userId, mime, bytes, createdAt: this.deps.clock.now() });
   }
   async get(userId, key) {
@@ -1560,6 +1564,28 @@ var RecordingService = class {
       say(`${p.title}: ${missing.length ? `${missing.length} of ${lines2.length} sentences recorded` : "recorded already"}`);
     }
     return { recorded, already };
+  }
+};
+
+// server/src/application/storage-quota.ts
+var MB = 1024 * 1024;
+var StorageQuota = class {
+  constructor(deps) {
+    this.deps = deps;
+  }
+  async use(userId) {
+    return { usedBytes: await this.deps.meter.usedBy(userId), limitBytes: this.deps.limitMb ? this.deps.limitMb * MB : null };
+  }
+  /** Throws when `adding` more bytes would take the account past its ceiling. */
+  async check(userId, adding) {
+    if (!this.deps.limitMb) return;
+    const { usedBytes, limitBytes } = await this.use(userId);
+    if (limitBytes !== null && usedBytes + adding > limitBytes) {
+      throw new AppError(
+        "payload_too_large",
+        `Your account is full: ${Math.round(usedBytes / MB)} MB of ${Math.round(limitBytes / MB)} MB. Delete readings or pictures you no longer need, or ask whoever runs the site for more room.`
+      );
+    }
   }
 };
 
@@ -1826,6 +1852,7 @@ function createServices(stores, options = {}) {
   const recordings = new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
   const secrets = options.secretsKey === void 0 ? stores.secrets : secretsFor(stores.secrets, options.secretsKey, (line) => console.error(line));
+  const quota = new StorageQuota({ meter: stores.storage, limitMb: options.storageLimitMb || null });
   const usage = new UsageMeter({ usage: stores.usage, clock, log: (line) => console.error(line) });
   return {
     auth,
@@ -1837,16 +1864,23 @@ function createServices(stores, options = {}) {
     tutor: options.tutor ?? null,
     talkVoices: options.talkVoices ?? null,
     recordings,
-    pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock, meter: usage }),
-    speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock, meter: usage }),
+    pictures: new PictureService({ pictures: stores.pictures, clock, quota }),
+    narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),
+    speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock, meter: usage, quota }),
     usage,
     limits: stores.limits,
-    lookups: stores.lookups
+    lookups: stores.lookups,
+    storage: quota
   };
 }
 
 // server/src/config.ts
+function storageLimitFrom(raw) {
+  if (raw === void 0 || raw.trim() === "") return 300;
+  const mb = Number(raw);
+  if (!Number.isFinite(mb) || mb < 0) throw new Error(`HANZI_STORAGE_MB has to be a number of megabytes, not \u201C${raw}\u201D.`);
+  return mb === 0 ? null : mb;
+}
 function registrationFrom(raw, fallback) {
   const v = raw?.trim().toLowerCase();
   return v === "open" || v === "closed" || v === "invite" ? v : fallback;
@@ -2015,7 +2049,7 @@ var RateLimiter = class {
 import { Hono } from "hono";
 import { z } from "zod";
 var deleteRequest = z.object({ password: z.string().max(2048) });
-function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits }) {
+function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage }) {
   const routes = new Hono();
   const session = requireSession(auth, { trustProxy, clock });
   const deletes = new RateLimiter("account.deletes", 10, 15 * 6e4, clock, limits);
@@ -2037,6 +2071,10 @@ function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, 
     });
     c.header("Cache-Control", "no-store");
     return c.json(body);
+  });
+  routes.get("/storage", session, async (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json(await storage.use(c.get("session").user.id));
   });
   routes.get("/export", session, async (c) => {
     const { user } = c.get("session");
@@ -3958,6 +3996,20 @@ var PostgresLookupCache = class {
   }
 };
 
+// server/src/infrastructure/postgres/storage-meter.ts
+var PostgresStorageMeter = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async usedBy(userId) {
+    const { rows } = await this.db.query(
+      `SELECT (SELECT COALESCE(SUM(octet_length(document)), 0) FROM workspaces WHERE user_id = $1) + (SELECT COALESCE(SUM(octet_length(save)), 0) FROM world_saves WHERE user_id = $1) + (SELECT COALESCE(SUM(octet_length(turns)), 0) FROM conversations WHERE user_id = $1) + (SELECT COALESCE(SUM(octet_length(bytes)), 0) FROM pictures WHERE user_id = $1) + (SELECT COALESCE(SUM(octet_length(mp3)), 0) FROM text_narrations WHERE user_id = $1) + (SELECT COALESCE(SUM(octet_length(timings)), 0) FROM text_narrations WHERE user_id = $1) + (SELECT COALESCE(SUM(octet_length(text)), 0) FROM speech_attempts WHERE user_id = $1) + (SELECT COALESCE(SUM(octet_length(summary)), 0) FROM speech_attempts WHERE user_id = $1) + (SELECT COALESCE(SUM(octet_length(result)), 0) FROM speech_attempts WHERE user_id = $1) + (SELECT COALESCE(SUM(octet_length(lines)), 0) FROM own_texts WHERE user_id = $1) AS used`,
+      [userId]
+    );
+    return Number(rows[0].used);
+  }
+};
+
 // server/src/infrastructure/postgres/recovery-code-repository.ts
 var PostgresRecoveryCodeRepository = class {
   constructor(db) {
@@ -4089,6 +4141,7 @@ var postgresStores = (db) => ({
   invites: new PostgresInviteRepository(db),
   limits: new PostgresRateLimitStore(db),
   lookups: new PostgresLookupCache(db),
+  storage: new PostgresStorageMeter(db),
   recoveryCodes: new PostgresRecoveryCodeRepository(db)
 });
 
@@ -4108,6 +4161,7 @@ function application() {
     const services = createServices(postgresStores(pool2), {
       policy: { registration: REGISTRATION },
       secretsKey: process.env.HANZI_SECRETS_KEY ?? "",
+      storageLimitMb: storageLimitFrom(process.env.HANZI_STORAGE_MB),
       speech: speechFromEnv(process.env)
     });
     return createHttpApp(services, {

@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { serve } from '@hono/node-server';
 import { createServices } from './composition';
-import { describeDatabase, loadConfig, loadEnvFile } from './config';
+import { describeDatabase, loadConfig, loadEnvFile, storageLimitFrom } from './config';
 import { createHttpApp } from './http/app';
 import { speechFromEnv } from './infrastructure/azure-speech';
 import { tutorFromEnv } from './infrastructure/claude-cli';
@@ -35,6 +35,7 @@ const { stores, close } = await openStores(config.database).catch(stop);
 const services = createServices(stores, {
   policy: { registration: config.registration },
   secretsKey: process.env.HANZI_SECRETS_KEY ?? '',
+  storageLimitMb: storageLimitFrom(process.env.HANZI_STORAGE_MB),
   speech: speechFromEnv(process.env),
   tutor: tutorFromEnv(process.env),
   talkVoices: localVoicesFromEnv(process.env, process.cwd()),
