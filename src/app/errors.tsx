@@ -1,5 +1,6 @@
 import { isRouteErrorResponse, Link, useRouteError } from 'react-router';
 import { paths } from '../navigation/paths';
+import { feedbackUrl } from '../platform/feedback';
 import { Splash } from '../ui/Splash';
 import { useTitle } from '../ui/useTitle';
 
@@ -13,6 +14,8 @@ export function RouteError() {
       ? error.message
       : String(error);
 
+  // The form, with this page and the error's words already in it; no name, since the session may be what broke.
+  const feedback = feedbackUrl(window.location.pathname, '', message);
   return (
     <Splash mark="误">
       <p>Something broke on this page.</p>
@@ -25,6 +28,13 @@ export function RouteError() {
           Go to Today
         </Link>
       </div>
+      {feedback && (
+        <p className="small" style={{ marginTop: 14 }}>
+          <a href={feedback} target="_blank" rel="noreferrer">
+            Tell whoever runs the site what happened
+          </a>
+        </p>
+      )}
     </Splash>
   );
 }

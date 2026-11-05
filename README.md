@@ -189,6 +189,14 @@ Without it the keys are kept as typed, and the log says so. Set it, and each
 key is sealed the first time it is next used. Keep a copy: with a different
 one, or none, a sealed key reads as no key and its owner types it again.
 
+**Feedback** is a Google Form of your own. Make it (a choice of what it is
+about, a paragraph for what happened, and two short answers for the page and
+the name), then ⋮ › Get pre-filled link, put `%PAGE%`, `%USER%` and
+`%MESSAGE%` in those three fields, and copy the link. Set it on the project as
+`VITE_FEEDBACK_URL` and redeploy: Send feedback appears in the account menu
+and in More, and the error page offers it with the error's words already in.
+Without it there is no such row. It opens in a tab of its own.
+
 `PGSSLNOVERIFY=1` is the way out if you land on a Postgres whose certificate
 does not verify. Neon's and Supabase's both do, so you should not need it.
 

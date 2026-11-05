@@ -19,6 +19,7 @@ import { useColorScheme } from '../ui/colorScheme';
 import { useSheetDrag } from '../ui/useSheetDrag';
 import { Icon } from '../ui/Icon';
 import { SyncIndicator } from './SyncIndicator';
+import { feedbackUrl } from '../platform/feedback';
 
 /** A review sitting's address: one drill, the words, the daily session, the cards, or the day's lesson. */
 const SITTING = /^\/(review\/(recognise|sound|tone|confuse|word|write|words|session)|learn|cards\/session)\/?$/;
@@ -145,6 +146,7 @@ const MORE = [
  */
 function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | null>; onClose: () => void }) {
   const user = useUser();
+  const feedback = feedbackUrl(window.location.pathname, user.username);
   const { leave, leaving } = useSignOut();
   const panel = useRef<HTMLDivElement>(null);
   // Beside the rail, the panel opens level with More rather than at the foot
@@ -195,6 +197,18 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
               <Icon name="chevron" className="muted" />
             </Link>
           ))}
+          {feedback && (
+            <a href={feedback} className="more-row" target="_blank" rel="noreferrer">
+              <span className="more-ic hanzi" aria-hidden>
+                言
+              </span>
+              <span className="more-text">
+                <b>Send feedback</b>
+                <span className="small muted">Something wrong, missing or good: say it in a short form</span>
+              </span>
+              <Icon name="chevron" className="muted" />
+            </a>
+          )}
         </div>
         <div className="more-foot">
           <Link to={paths.account()} className="more-row">

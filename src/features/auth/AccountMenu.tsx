@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
+import { feedbackUrl } from '../../platform/feedback';
 import { paths } from '../../navigation/paths';
 import { useUser } from './session';
 import { useSignOut } from './useSignOut';
@@ -10,6 +11,8 @@ export function AccountMenu({ up = false }: { up?: boolean }) {
   const { leave, leaving } = useSignOut();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
+  const { pathname } = useLocation();
+  const feedback = feedbackUrl(pathname, user.username);
 
   useEffect(() => {
     if (!open) return;
@@ -54,6 +57,11 @@ export function AccountMenu({ up = false }: { up?: boolean }) {
           <Link role="menuitem" className="btn ghost sm" to={paths.settings()} onClick={() => setOpen(false)}>
             Settings
           </Link>
+          {feedback && (
+            <a role="menuitem" className="btn ghost sm" href={feedback} target="_blank" rel="noreferrer" onClick={() => setOpen(false)}>
+              Send feedback
+            </a>
+          )}
           <button role="menuitem" className="btn ghost sm" onClick={() => void leave()} disabled={leaving}>
             {leaving ? 'Signing out…' : 'Sign out'}
           </button>
