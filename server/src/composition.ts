@@ -37,6 +37,7 @@ import { WorldService } from './application/world-service';
 import { systemClock } from './infrastructure/clock';
 import { minimaxNarrator } from './infrastructure/minimax';
 import { ScryptHasher } from './infrastructure/crypto/scrypt-hasher';
+import { secretsFor } from './infrastructure/crypto/sealed-secrets';
 import { cryptoTokens } from './infrastructure/crypto/tokens';
 
 export interface Services {
@@ -110,6 +111,12 @@ export function createServices(
     narrator?: Narrator | null;
     /** iFlytek by default; a stand-in in the tests */
     evaluator?: Evaluator | null;
+    /**
+     * HANZI_SECRETS_KEY: the learners' keys for outside services are sealed
+     * with it before they are stored. Left out (the tests, the admin commands),
+     * they are stored as they are.
+     */
+    secretsKey?: string;
   } = {},
 ): Services {
   const clock = options.clock ?? systemClock;
@@ -127,6 +134,7 @@ export function createServices(
   const world = new WorldService({ saves: stores.worldSaves, clock });
   const recordings = new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
+  const secrets = options.secretsKey === undefined ? stores.secrets : secretsFor(stores.secrets, options.secretsKey, (line) => console.error(line));
   const usage = new UsageMeter({ usage: stores.usage, clock, log: (line) => console.error(line) });
   return {
     auth,
@@ -139,8 +147,8 @@ export function createServices(
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock, meter: usage }),
-    speechEval: new SpeechEvalService({ secrets: stores.secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock, meter: usage }),
+    narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock, meter: usage }),
+    speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock, meter: usage }),
     usage,
     limits: stores.limits,
     lookups: stores.lookups,

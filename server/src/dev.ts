@@ -42,6 +42,7 @@ const devUser = process.env.HANZI_DEV_USER?.trim() || null;
 const { stores, local, close } = await openStores(config.database).catch(stop);
 const services = createServices(stores, {
   policy: { registration: config.registration },
+  secretsKey: process.env.HANZI_SECRETS_KEY ?? '',
   speech: speechFromEnv(process.env),
   tutor: tutorFromEnv(process.env),
   talkVoices: localVoicesFromEnv(process.env, process.cwd()),

@@ -1731,12 +1731,80 @@ function derive(password, salt, cost, length) {
   });
 }
 
+// server/src/infrastructure/crypto/sealed-secrets.ts
+import { createCipheriv, createDecipheriv, createHash as createHash5, randomBytes as randomBytes2 } from "node:crypto";
+var PREFIX = "v1:";
+var SealedSecrets = class {
+  constructor(inner, secret, log = () => void 0) {
+    this.inner = inner;
+    this.log = log;
+    this.key = createHash5("sha256").update(secret, "utf8").digest();
+  }
+  key;
+  async get(userId, name) {
+    const stored = await this.inner.get(userId, name);
+    if (stored === null) return null;
+    if (!stored.startsWith(PREFIX)) {
+      await this.inner.set(userId, name, this.seal(userId, name, stored), Date.now()).catch(() => void 0);
+      return stored;
+    }
+    try {
+      return this.open(userId, name, stored);
+    } catch {
+      this.log(`secrets: a ${name} key would not open \u2014 HANZI_SECRETS_KEY is not the one it was sealed with.`);
+      return null;
+    }
+  }
+  set(userId, name, value, at) {
+    return this.inner.set(userId, name, this.seal(userId, name, value), at);
+  }
+  delete(userId, name) {
+    return this.inner.delete(userId, name);
+  }
+  seal(userId, name, value) {
+    const iv = randomBytes2(12);
+    const cipher = createCipheriv("aes-256-gcm", this.key, iv);
+    cipher.setAAD(Buffer.from(`${userId}
+${name}`, "utf8"));
+    const body = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
+    return PREFIX + Buffer.concat([iv, cipher.getAuthTag(), body]).toString("base64url");
+  }
+  open(userId, name, stored) {
+    const raw = Buffer.from(stored.slice(PREFIX.length), "base64url");
+    const decipher = createDecipheriv("aes-256-gcm", this.key, raw.subarray(0, 12));
+    decipher.setAAD(Buffer.from(`${userId}
+${name}`, "utf8"));
+    decipher.setAuthTag(raw.subarray(12, 28));
+    return Buffer.concat([decipher.update(raw.subarray(28)), decipher.final()]).toString("utf8");
+  }
+};
+function secretsFor(inner, secret, log) {
+  const s = secret?.trim();
+  if (!s) {
+    log("secrets: HANZI_SECRETS_KEY is not set, so learners\u2019 keys are kept in the database as they were typed.");
+    return {
+      get: async (userId, name) => {
+        const v = await inner.get(userId, name);
+        if (v?.startsWith(PREFIX)) {
+          log(`secrets: a ${name} key is sealed and HANZI_SECRETS_KEY is not set here, so it reads as none.`);
+          return null;
+        }
+        return v;
+      },
+      set: (userId, name, value, at) => inner.set(userId, name, value, at),
+      delete: (userId, name) => inner.delete(userId, name)
+    };
+  }
+  if (s.length < 32) throw new Error("HANZI_SECRETS_KEY has to be at least 32 characters: a long random string, kept out of the database.");
+  return new SealedSecrets(inner, s, log);
+}
+
 // server/src/infrastructure/crypto/tokens.ts
-import { createHash as createHash5, randomBytes as randomBytes2, randomUUID } from "node:crypto";
+import { createHash as createHash6, randomBytes as randomBytes3, randomUUID } from "node:crypto";
 var cryptoTokens = {
   // 256 bits: not something to guess, and base64url so it needs no escaping in a cookie.
-  secret: () => randomBytes2(32).toString("base64url"),
-  digest: (secret) => createHash5("sha256").update(secret).digest("base64url"),
+  secret: () => randomBytes3(32).toString("base64url"),
+  digest: (secret) => createHash6("sha256").update(secret).digest("base64url"),
   id: () => randomUUID()
 };
 
@@ -1757,6 +1825,7 @@ function createServices(stores, options = {}) {
   const world = new WorldService({ saves: stores.worldSaves, clock });
   const recordings = new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
+  const secrets = options.secretsKey === void 0 ? stores.secrets : secretsFor(stores.secrets, options.secretsKey, (line) => console.error(line));
   const usage = new UsageMeter({ usage: stores.usage, clock, log: (line) => console.error(line) });
   return {
     auth,
@@ -1769,8 +1838,8 @@ function createServices(stores, options = {}) {
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, clock }),
-    narration: new NarrationService({ secrets: stores.secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock, meter: usage }),
-    speechEval: new SpeechEvalService({ secrets: stores.secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock, meter: usage }),
+    narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock, meter: usage }),
+    speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock, meter: usage }),
     usage,
     limits: stores.limits,
     lookups: stores.lookups
@@ -2001,7 +2070,7 @@ function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, 
 }
 
 // server/src/http/routes/ask.ts
-import { createHash as createHash6 } from "node:crypto";
+import { createHash as createHash7 } from "node:crypto";
 import { Hono as Hono2 } from "hono";
 import { z as z2 } from "zod";
 
@@ -2043,7 +2112,7 @@ function askRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, limit
     const run = () => tutor.ask(input.prompt, { timeoutMs: ASK_TIMEOUT_MS[input.kind] });
     let text;
     if (input.kind === "video") {
-      const key = createHash6("sha256").update(`${user}
+      const key = createHash7("sha256").update(`${user}
 ${input.prompt}`).digest("hex");
       const now = clock.now();
       for (const [k, v] of kept2) if (now - v.at > KEEP_MS) kept2.delete(k);
@@ -4038,6 +4107,7 @@ function application() {
     const pool2 = await openPostgres(url);
     const services = createServices(postgresStores(pool2), {
       policy: { registration: REGISTRATION },
+      secretsKey: process.env.HANZI_SECRETS_KEY ?? "",
       speech: speechFromEnv(process.env)
     });
     return createHttpApp(services, {

@@ -55,6 +55,7 @@ function application(): Promise<App> {
     const pool = await openPostgres(url);
     const services = createServices(postgresStores(pool), {
       policy: { registration: REGISTRATION },
+      secretsKey: process.env.HANZI_SECRETS_KEY ?? '',
       speech: speechFromEnv(process.env),
     });
     return createHttpApp(services, {

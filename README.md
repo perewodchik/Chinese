@@ -178,6 +178,14 @@ sign in. Without the token none of that is shown, to anyone:
 curl -H "x-health-token: $HANZI_HEALTH_TOKEN" "https://<site>/api/health?db=1"
 ```
 
+**The learners' own keys** (SpeechSuper, MiniMax) are sealed with AES-256-GCM
+before they are stored, once `HANZI_SECRETS_KEY` is set — a long random
+string (at least 32 characters; `openssl rand -base64 48` makes one), kept
+on the Vercel project and in this machine's `.env`, never in the database.
+Without it the keys are kept as typed, and the log says so. Set it, and each
+key is sealed the first time it is next used. Keep a copy: with a different
+one, or none, a sealed key reads as no key and its owner types it again.
+
 `PGSSLNOVERIFY=1` is the way out if you land on a Postgres whose certificate
 does not verify. Neon's and Supabase's both do, so you should not need it.
 
