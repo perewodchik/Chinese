@@ -55,6 +55,11 @@ export class PostgresSessionRepository implements SessionRepository {
     return result.rowCount ?? 0;
   }
 
+  async listForUser(userId: string, now: number): Promise<Session[]> {
+    const { rows } = await this.db.query<Row>('SELECT * FROM sessions WHERE user_id = $1 AND expires_at > $2 ORDER BY last_seen_at DESC, created_at DESC', [userId, now]);
+    return rows.map(toSession);
+  }
+
   async deleteExpired(now: number): Promise<number> {
     const result = await this.db.query('DELETE FROM sessions WHERE expires_at <= $1', [now]);
     return result.rowCount ?? 0;

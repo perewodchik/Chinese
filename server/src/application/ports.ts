@@ -37,6 +37,8 @@ export interface SessionRepository {
   /** Every session of one user except `keepId`; returns how many went. */
   deleteForUser(userId: string, keepId?: string): Promise<number>;
   deleteExpired(now: number): Promise<number>;
+  /** One user's sessions still good at `now`, the one used last first. */
+  listForUser(userId: string, now: number): Promise<Session[]>;
 }
 
 export type WorkspaceWrite =

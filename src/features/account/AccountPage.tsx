@@ -10,6 +10,7 @@ import { useTitle } from '../../ui/useTitle';
 import { ChangePasswordForm } from '../auth/ChangePasswordForm';
 import { useUser } from '../auth/session';
 import { DeleteAccount } from './DeleteAccount';
+import { Devices } from './Devices';
 import './account.css';
 
 const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -117,6 +118,8 @@ export function AccountPage() {
         <h2 className="block-title">Password</h2>
         <ChangePasswordForm />
       </section>
+
+      <Devices />
 
       <nav className="block list ac-links" aria-label="More about you">
         <Link className="ac-link" to={paths.stats()}>

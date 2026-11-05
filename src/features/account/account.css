@@ -83,6 +83,29 @@
   color: var(--ink-3);
 }
 
+/* Room for two devices before the list arrives. */
+.ac-devices {
+  min-height: 120px;
+}
+
+.ac-device {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+}
+
+.ac-device .grow {
+  display: grid;
+  min-width: 0;
+}
+
+/* Sign out and Signing out… take the same room. */
+.ac-device-out {
+  min-width: 104px;
+}
+
 .ac-copy-lede {
   margin: 0 0 12px;
 }

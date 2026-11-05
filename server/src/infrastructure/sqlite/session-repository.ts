@@ -28,6 +28,7 @@ export class SqliteSessionRepository implements SessionRepository {
   private readonly deleteUser: StatementSync;
   private readonly deleteUserExcept: StatementSync;
   private readonly deleteOld: StatementSync;
+  private readonly byUser: StatementSync;
 
   constructor(db: DatabaseSync) {
     this.insertOne = db.prepare(
@@ -40,6 +41,7 @@ export class SqliteSessionRepository implements SessionRepository {
     this.deleteUser = db.prepare('DELETE FROM sessions WHERE user_id = ?');
     this.deleteUserExcept = db.prepare('DELETE FROM sessions WHERE user_id = ? AND id <> ?');
     this.deleteOld = db.prepare('DELETE FROM sessions WHERE expires_at <= ?');
+    this.byUser = db.prepare('SELECT * FROM sessions WHERE user_id = ? AND expires_at > ? ORDER BY last_seen_at DESC, created_at DESC');
   }
 
   async insert(s: Session): Promise<void> {
@@ -66,5 +68,9 @@ export class SqliteSessionRepository implements SessionRepository {
 
   async deleteExpired(now: number): Promise<number> {
     return Number(this.deleteOld.run(now).changes);
+  }
+
+  async listForUser(userId: string, now: number): Promise<Session[]> {
+    return (this.byUser.all(userId, now) as unknown as Row[]).map(toSession);
   }
 }

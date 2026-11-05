@@ -191,4 +191,12 @@ describe('Postgres storage', () => {
     assert.equal(await stores.lookups.get('youtube:video:x', T + 11), null);
     assert.equal(await stores.lookups.get('youtube:video:y', 0), null);
   });
+
+  it('lists a user’s sessions still good, the one used last first', async () => {
+    await stores.users.insert(user('u9'));
+    await stores.sessions.insert({ id: 's9a', userId: 'u9', createdAt: T, lastSeenAt: T + 5, expiresAt: T + 1000, userAgent: 'iPad' });
+    await stores.sessions.insert({ id: 's9b', userId: 'u9', createdAt: T, lastSeenAt: T + 9, expiresAt: T + 1000, userAgent: 'iPhone' });
+    await stores.sessions.insert({ id: 's9c', userId: 'u9', createdAt: T, lastSeenAt: T + 1, expiresAt: T + 10, userAgent: 'old' });
+    assert.deepEqual((await stores.sessions.listForUser('u9', T + 100)).map((s) => s.id), ['s9b', 's9a']);
+  });
 });

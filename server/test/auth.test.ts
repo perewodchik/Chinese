@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { AppError } from '../src/domain/errors';
-import { call, makeApp, makeServices } from './support';
+import { call, makeApp, makeServices, sessionCookie } from './support';
 
 const DAY = 86_400_000;
 const PASSWORD = 'correct horse';
@@ -172,5 +172,46 @@ describe('signing up by invitation, over HTTP', () => {
     const { code } = await services.auth.invite('', null);
     const made = await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: PASSWORD, invite: code } });
     assert.equal(made.status, 201);
+  });
+});
+
+describe('the browsers signed in to an account', () => {
+  const login = async (app: Awaited<ReturnType<typeof makeApp>>['app'], ua: string) =>
+    sessionCookie(await call(app, 'POST', '/api/auth/login', { body: { username: 'kirill', password: PASSWORD }, headers: { 'user-agent': ua } }));
+  type List = { sessions: Array<{ id: string; userAgent: string | null; current: boolean }> };
+
+  it('lists them, the one asking marked, with nothing that could sign anyone in', async () => {
+    const { app, services } = makeApp();
+    await services.auth.register({ username: 'kirill', password: PASSWORD, userAgent: null });
+    const ipad = await login(app, 'iPad Safari');
+    const phone = await login(app, 'iPhone Safari');
+    const list = (await (await call(app, 'GET', '/api/auth/sessions', { cookie: ipad })).json()) as List;
+    assert.equal(list.sessions.length, 3);
+    assert.deepEqual(list.sessions.filter((s) => s.current).map((s) => s.userAgent), ['iPad Safari']);
+    const raw = JSON.stringify(list);
+    for (const cookie of [ipad, phone]) assert.ok(!raw.includes(cookie.split('=')[1]!.split(';')[0]!));
+  });
+
+  it('signs one of them out, and then everyone else, but never someone else’s', async () => {
+    const { app, services } = makeApp();
+    await services.auth.register({ username: 'kirill', password: PASSWORD, userAgent: null });
+    await services.auth.register({ username: 'masha', password: PASSWORD, userAgent: null });
+    const ipad = await login(app, 'iPad Safari');
+    const phone = await login(app, 'iPhone Safari');
+    const masha = sessionCookie(await call(app, 'POST', '/api/auth/login', { body: { username: 'masha', password: PASSWORD } }));
+    const list = (await (await call(app, 'GET', '/api/auth/sessions', { cookie: ipad })).json()) as List;
+    const phoneId = list.sessions.find((s) => s.userAgent === 'iPhone Safari')!.id;
+    assert.equal((await call(app, 'DELETE', `/api/auth/sessions/${phoneId}`, { cookie: masha })).status, 404);
+    assert.equal((await call(app, 'DELETE', `/api/auth/sessions/${phoneId}`, { cookie: ipad })).status, 204);
+    assert.equal((await call(app, 'GET', '/api/workspace', { cookie: phone })).status, 401);
+    const others = await call(app, 'POST', '/api/auth/sessions/others', { cookie: ipad });
+    assert.deepEqual(await others.json(), { signedOut: 1 });
+    assert.equal((await call(app, 'GET', '/api/workspace', { cookie: ipad })).status, 200);
+    assert.equal((await call(app, 'GET', '/api/workspace', { cookie: masha })).status, 200);
+  });
+
+  it('is for somebody signed in', async () => {
+    const { app } = makeApp();
+    assert.equal((await call(app, 'GET', '/api/auth/sessions')).status, 401);
   });
 });

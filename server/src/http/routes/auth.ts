@@ -4,8 +4,10 @@ import type {
   AuthOptionsResponse,
   CurrentSessionResponse,
   SessionResponse,
+  SessionsResponse,
 } from '../../../../shared/api';
 import { usernameKey } from '../../../../shared/credentials';
+import { NotFoundError } from '../../domain/errors';
 import type { AppEnv, RouteDeps } from '../env';
 import { currentSession, RateLimiter, requireSession } from '../guards';
 import {
@@ -134,6 +136,24 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
     await auth.logout(readSessionToken(c));
     clearSessionCookie(c, isHttps(c, trustProxy));
     return c.body(null, 204);
+  });
+
+  // The browsers signed in to this account, to see and to sign out.
+  routes.get('/sessions', session, async (c) => {
+    const { user, sessionId } = c.get('session');
+    c.header('Cache-Control', 'no-store');
+    const body: SessionsResponse = { sessions: await auth.sessionsOf(user.id, sessionId) };
+    return c.json(body);
+  });
+
+  routes.delete('/sessions/:id', session, async (c) => {
+    if (!(await auth.signOutSession(c.get('session').user.id, c.req.param('id')))) throw new NotFoundError('That device');
+    return c.body(null, 204);
+  });
+
+  routes.post('/sessions/others', session, async (c) => {
+    const { user, sessionId } = c.get('session');
+    return c.json({ signedOut: await auth.signOutOthers(user.id, sessionId) });
   });
 
   routes.post('/password', session, async (c) => {

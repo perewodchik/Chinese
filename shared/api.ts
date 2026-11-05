@@ -27,6 +27,22 @@ export interface AuthOptionsResponse {
   registration: 'open' | 'closed' | 'invite';
 }
 
+/** A browser signed in to the account, for the account page's list of devices. */
+export interface SessionDto {
+  /** a handle for signing this one out; not the cookie, and not enough to sign in with */
+  id: string;
+  createdAt: number;
+  lastSeenAt: number;
+  /** what the browser said it was, as it said it, cut short; null when it said nothing */
+  userAgent: string | null;
+  /** the browser asking */
+  current: boolean;
+}
+
+export interface SessionsResponse {
+  sessions: SessionDto[];
+}
+
 export interface CredentialsRequest {
   username: string;
   password: string;

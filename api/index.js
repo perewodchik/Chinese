@@ -255,6 +255,33 @@ var AuthService = class {
     await sessions.touch(id, now, expiresAt);
     return { user: toUserDto(user), sessionId: id, expiresAt, renewed: true };
   }
+  /**
+   * The browsers signed in to the account. A session's id is the digest of
+   * its cookie; what goes to the page is a digest of that again, enough to
+   * name one to sign out and of no use for anything else.
+   */
+  async sessionsOf(userId, currentId) {
+    const { sessions, tokens, clock } = this.deps;
+    return (await sessions.listForUser(userId, clock.now())).map((s) => ({
+      id: tokens.digest(s.id).slice(0, 22),
+      createdAt: s.createdAt,
+      lastSeenAt: s.lastSeenAt,
+      userAgent: s.userAgent,
+      current: s.id === currentId
+    }));
+  }
+  /** Signs one of the account's browsers out, by the handle `sessionsOf` gave it. False when there is no such one. */
+  async signOutSession(userId, handle) {
+    const { sessions, tokens, clock } = this.deps;
+    const found = (await sessions.listForUser(userId, clock.now())).find((s) => tokens.digest(s.id).slice(0, 22) === handle);
+    if (!found) return false;
+    await sessions.delete(found.id);
+    return true;
+  }
+  /** Every browser but this one signed out; how many went. */
+  signOutOthers(userId, currentId) {
+    return this.deps.sessions.deleteForUser(userId, currentId);
+  }
   /** A new password, and every other browser signed out — which is usually why it is being changed. */
   async changePassword(input) {
     const { users, sessions, hasher, clock } = this.deps;
@@ -2079,6 +2106,20 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
     clearSessionCookie(c, isHttps(c, trustProxy));
     return c.body(null, 204);
   });
+  routes.get("/sessions", session, async (c) => {
+    const { user, sessionId } = c.get("session");
+    c.header("Cache-Control", "no-store");
+    const body = { sessions: await auth.sessionsOf(user.id, sessionId) };
+    return c.json(body);
+  });
+  routes.delete("/sessions/:id", session, async (c) => {
+    if (!await auth.signOutSession(c.get("session").user.id, c.req.param("id"))) throw new NotFoundError("That device");
+    return c.body(null, 204);
+  });
+  routes.post("/sessions/others", session, async (c) => {
+    const { user, sessionId } = c.get("session");
+    return c.json({ signedOut: await auth.signOutOthers(user.id, sessionId) });
+  });
   routes.post("/password", session, async (c) => {
     const input = await readJson(c, passwordChange);
     const { user, sessionId } = c.get("session");
@@ -3612,6 +3653,10 @@ var PostgresSessionRepository = class {
   async deleteForUser(userId, keepId) {
     const result = keepId ? await this.db.query("DELETE FROM sessions WHERE user_id = $1 AND id <> $2", [userId, keepId]) : await this.db.query("DELETE FROM sessions WHERE user_id = $1", [userId]);
     return result.rowCount ?? 0;
+  }
+  async listForUser(userId, now) {
+    const { rows } = await this.db.query("SELECT * FROM sessions WHERE user_id = $1 AND expires_at > $2 ORDER BY last_seen_at DESC, created_at DESC", [userId, now]);
+    return rows.map(toSession);
   }
   async deleteExpired(now) {
     const result = await this.db.query("DELETE FROM sessions WHERE expires_at <= $1", [now]);

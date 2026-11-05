@@ -1,4 +1,4 @@
-import type { UserDto } from '../../../shared/api';
+import type { SessionDto, UserDto } from '../../../shared/api';
 import {
   normaliseUsername,
   PASSWORD_MAX,
@@ -245,6 +245,36 @@ export class AuthService {
     const expiresAt = now + policy.sessionTtlMs;
     await sessions.touch(id, now, expiresAt);
     return { user: toUserDto(user), sessionId: id, expiresAt, renewed: true };
+  }
+
+  /**
+   * The browsers signed in to the account. A session's id is the digest of
+   * its cookie; what goes to the page is a digest of that again, enough to
+   * name one to sign out and of no use for anything else.
+   */
+  async sessionsOf(userId: string, currentId: string): Promise<SessionDto[]> {
+    const { sessions, tokens, clock } = this.deps;
+    return (await sessions.listForUser(userId, clock.now())).map((s) => ({
+      id: tokens.digest(s.id).slice(0, 22),
+      createdAt: s.createdAt,
+      lastSeenAt: s.lastSeenAt,
+      userAgent: s.userAgent,
+      current: s.id === currentId,
+    }));
+  }
+
+  /** Signs one of the account's browsers out, by the handle `sessionsOf` gave it. False when there is no such one. */
+  async signOutSession(userId: string, handle: string): Promise<boolean> {
+    const { sessions, tokens, clock } = this.deps;
+    const found = (await sessions.listForUser(userId, clock.now())).find((s) => tokens.digest(s.id).slice(0, 22) === handle);
+    if (!found) return false;
+    await sessions.delete(found.id);
+    return true;
+  }
+
+  /** Every browser but this one signed out; how many went. */
+  signOutOthers(userId: string, currentId: string): Promise<number> {
+    return this.deps.sessions.deleteForUser(userId, currentId);
   }
 
   /** A new password, and every other browser signed out — which is usually why it is being changed. */

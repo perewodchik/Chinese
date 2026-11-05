@@ -1,3 +1,4 @@
+import type { SessionsResponse } from '../../shared/api';
 import type { UsageResponse } from '../../shared/usage';
 import { request } from './http';
 
@@ -6,3 +7,8 @@ export const accountUsage = () => request<UsageResponse>('GET', '/api/account/us
 
 /** The account and everything it kept, gone; the password asked again. */
 export const deleteAccount = (password: string) => request<void>('DELETE', '/api/account', { body: { password } });
+
+/** The browsers signed in to the account, and signing them out. */
+export const accountSessions = () => request<SessionsResponse>('GET', '/api/auth/sessions').then((r) => r.sessions);
+export const signOutSession = (id: string) => request<void>('DELETE', `/api/auth/sessions/${encodeURIComponent(id)}`);
+export const signOutOthers = () => request<{ signedOut: number }>('POST', '/api/auth/sessions/others');
