@@ -173,10 +173,11 @@
 - [x] **S12 (Н) Пароли.** Только длина ≥ 8. Добавить отказ от самых частых
   паролей (список топ-10k в `shared/credentials.ts`).
   — сделано короче: около 80 самых частых паролей от 8 символов (английские, китайские, русские) вместо 10 тысяч, чтобы не утяжелять страницу.
-- [ ] **S14 (С) Заголовки.** CSP записан дважды (`app.ts` и `vercel.json`) —
+- [x] **S14 (С) Заголовки.** CSP записан дважды (`app.ts` и `vercel.json`) —
   вынести в один источник (`shared/csp.ts`, генерация `vercel.json` при
   сборке). Добавить `Permissions-Policy: microphone=(self), camera=()`,
   `Cross-Origin-Opener-Policy: same-origin`.
+  — CSP в `shared/csp.ts`; `vercel.json` — копия, тест сверяет их; генерации `vercel.json` при сборке нет.
 - [ ] **S15 (С) CI.** Нет `.github/`: GitHub Actions с `npm test`,
   `npm run vercel-build`, `npm audit --omit=dev`; Dependabot; включить secret
   scanning в репозитории (владелец).
@@ -571,3 +572,4 @@ SameSite=Lax, Secure cookie, в базе только хэш; одинаково
 | 2026-11-05 | S21 частично | — | `/admin` для `HANZI_ADMIN_USERS` |
 | 2026-11-05 | S19 частично | — | журнал событий аккаунтов и «Lately» на `/admin` |
 | 2026-11-05 | S12 S23 | — | частые пароли отклоняются на форме и на сервере; scrypt по минимуму OWASP |
+| 2026-11-05 | S14 | — | один источник CSP, `Permissions-Policy` (микрофон только свой; камера, геолокация, платежи запрещены), COOP на Vercel |

@@ -37,6 +37,14 @@
           "value": "SAMEORIGIN"
         },
         {
+          "key": "Permissions-Policy",
+          "value": "microphone=(self), camera=(), geolocation=(), payment=(), usb=()"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
           "key": "Cache-Control",
           "value": "public, max-age=0, must-revalidate"
         }

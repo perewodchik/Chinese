@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { compress } from 'hono/compress';
 import { secureHeaders } from 'hono/secure-headers';
 import { usernameKey } from '../../../shared/credentials';
+import { CSP, PERMISSIONS_POLICY } from '../../../shared/csp';
 import type { Services } from '../composition';
 import { NotFoundError } from '../domain/errors';
 import type { AppEnv } from './env';
@@ -100,29 +101,19 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   app.use(
     '*',
     secureHeaders({
-      contentSecurityPolicy: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        // Video thumbnails on the Videos shelf.
-        imgSrc: ["'self'", 'data:', 'blob:', 'https://i.ytimg.com'],
-        // Audio fetched and played from a blob: a sentence's recording, a narrator's reading of a text.
-        mediaSrc: ["'self'", 'data:', 'blob:'],
-        fontSrc: ["'self'", 'data:'],
-        connectSrc: ["'self'"],
-        // The worksheet preview is the PDF itself, in a frame, from a blob; a
-        // video being studied is YouTube's own player, in a frame.
-        frameSrc: ["'self'", 'blob:', 'https://www.youtube-nocookie.com'],
-        objectSrc: ["'none'"],
-        baseUri: ["'self'"],
-        formAction: ["'self'"],
-        frameAncestors: ["'self'"],
-      },
+      // The policy itself is written once, in shared/csp.ts, beside the copy
+      // vercel.json sends; a test keeps the two the same.
+      contentSecurityPolicy: undefined,
       // Sent over plain http it would be ignored anyway, and on a LAN address
       // it would only get in the way of ever trying https out.
       strictTransportSecurity: false,
     }),
   );
+  app.use('*', async (c, next) => {
+    await next();
+    c.header('Content-Security-Policy', CSP);
+    c.header('Permissions-Policy', PERMISSIONS_POLICY);
+  });
   app.route('/api', api);
   if (options.staticDir) app.route('/', staticSite(options.staticDir));
   return app;
