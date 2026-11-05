@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { EvalResult, SyllableEval } from '../../shared/speechEval';
-import { attemptOf, faultsOf, heardTag, marked, noteOf, numbered, partsOf, resultOfAttempt, troubles, verdictOf } from './phrases';
+import { attemptOf, faultsOf, heardNote, heardTag, marked, noteOf, numbered, partsOf, resultOfAttempt, troubles, verdictOf } from './phrases';
 
 const syl = (char: string, symbol: string, o: Partial<SyllableEval> = {}): SyllableEval => ({ char, symbol, said: 'ok', initial: false, final: false, tone: false, from: 0, to: 0, ...o });
 
@@ -95,5 +95,14 @@ describe('phrases said and scored', () => {
     const r2 = attemptOf({ by: 'speechsuper', total: 90, tone: 90, sounds: 90, fluency: 90, completeness: 100, rejected: false, syllables: [syl('小', 'xiao3', { score: 90, toneScore: 70, initialScore: 95, finalScore: 92, tone: true })] }, 2);
     const back = resultOfAttempt('小', undefined, r2).syllables[0]!;
     assert.deepEqual([back.toneScore, back.initialScore, back.finalScore, back.tone], [70, 95, 92, true]);
+  });
+
+  it('says what was heard, from the service\'s own data only', () => {
+    assert.equal(heardNote(syl('打', 'da3', { tone: true, heardTone: 2 })), 'tone 3, heard as 2');
+    assert.equal(heardNote(syl('打', 'da3', { tone: true })), 'tone 3 off');
+    assert.equal(heardNote(syl('这', 'zhe4', { initial: true, initialLike: 'z' })), 'zh, heard as z');
+    assert.equal(heardNote(syl('一', 'yi1', { tone: true, sandhi: 4, heardTone: 4 })), 'tone 4 off');
+    assert.equal(heardNote(syl('鱼', 'yu2', { said: 'missed' })), 'not heard');
+    assert.equal(heardNote(syl('好', 'hao3')), '');
   });
 });

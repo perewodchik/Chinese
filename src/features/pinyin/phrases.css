@@ -262,148 +262,6 @@ button.back-link {
   white-space: nowrap;
 }
 
-/* A phone: a strip of cards to swipe, one in view and the next peeking in. */
-.ph-chars {
-  display: flex;
-  /* One height for every card, so the strip is an even row; the advice is held to three lines, so that height stays small. */
-  align-items: stretch;
-  gap: 10px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  /* Within the page's margins: the card in view starts where the verdict does, only the next peeking in on the right. */
-  padding: 2px 0 14px;
-}
-
-.ph-chars::-webkit-scrollbar {
-  display: none;
-}
-
-.ph-char {
-  flex: 0 0 calc((100% - 10px) / 2);
-  scroll-snap-align: start;
-  display: grid;
-  gap: 6px;
-  align-content: start;
-  padding: 8px 10px 9px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--card);
-  min-width: 0;
-}
-
-.ph-char[data-band='mid'] {
-  border-color: var(--gold);
-}
-
-.ph-char[data-band='low'] {
-  border-color: var(--red);
-}
-
-/* An iPad or wider: every character at once, the one tapped above outlined. */
-@media (min-width: 760px) {
-  .ph-chars {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-    align-items: stretch;
-    grid-auto-rows: 1fr;
-    gap: 12px;
-    overflow: visible;
-    margin: 0;
-    padding: 0;
-  }
-
-  .ph-char[data-active] {
-    box-shadow: 0 0 0 2px var(--ink-2);
-  }
-}
-
-.ph-char-head {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-}
-
-.ph-char-zh {
-  font-size: 26px;
-  line-height: 1.05;
-}
-
-.ph-char[data-band='low'] .ph-char-zh {
-  color: var(--red);
-}
-
-.ph-char[data-band='mid'] .ph-char-zh {
-  color: var(--gold);
-}
-
-.ph-char-py {
-  font: 600 14px/1.2 var(--sans);
-  color: var(--py);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ph-char-score {
-  margin-left: auto;
-  min-width: 38px;
-  height: 30px;
-  padding: 0 6px;
-  border-radius: 9px;
-  display: grid;
-  place-items: center;
-  font-size: 15px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.ph-char-score[data-band='good'] {
-  background: var(--jade-soft);
-  color: var(--jade);
-}
-
-.ph-char-score[data-band='mid'] {
-  background: var(--gold-soft);
-  color: var(--gold);
-}
-
-.ph-char-score[data-band='low'] {
-  background: var(--red-soft);
-  color: var(--red);
-}
-
-.ph-char-parts {
-  display: grid;
-  gap: 1px;
-  margin: 0;
-  font-size: 12.5px;
-}
-
-.ph-char-part {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: 6px;
-  min-height: 19px;
-}
-
-.ph-char-part b {
-  font-weight: 600;
-  color: var(--red);
-}
-
-.ph-char-part[data-band='mid'] b {
-  color: var(--gold);
-}
-
-.ph-char-part[data-band='low'] b {
-  color: var(--red);
-}
-
 /* ------------------------------------------------------------ saying a text: the whole screen */
 
 /* A sitting: a slim bar on top, the line and what came of it in the middle,
@@ -575,18 +433,6 @@ button.back-link {
 
 .ph-sum-parts [data-band='low'] b {
   color: var(--red);
-}
-
-.ph-char-hear {
-  width: 30px;
-  height: 30px;
-  margin-left: auto;
-  color: var(--accent);
-  flex: none;
-}
-
-.ph-char-hear + .ph-char-score {
-  margin-left: 0;
 }
 
 /* The dock: previous, hear, record, mine, next — one row along the bottom edge. */
@@ -1136,10 +982,6 @@ button.back-link {
 
 .ph-sum-box[data-dim] .ph-sum > :not(.ph-sum-busy),
 .ph-sum-box[data-dim] .ph-sum-open,
-.ph-chars[data-dim] {
-  opacity: 0.45;
-  transition: opacity 140ms;
-}
 
 .ph-sum-busy {
   position: absolute;
@@ -1274,52 +1116,6 @@ button.back-link {
 .ph-phrase[data-marks] .ph-tile[data-state='ok'] .ph-tile-zh,
 .ph-phrase[data-marks] .ph-tile[data-state='ok'] .ph-tile-py {
   color: var(--ink-2);
-}
-
-.ph-char-part dt {
-  color: var(--ink-3);
-}
-
-.ph-char-part dd {
-  margin: 0;
-}
-
-.ph-char-said {
-  font-weight: 500;
-  color: var(--ink-2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ph-char-n {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  color: var(--jade);
-}
-
-.ph-char-part[data-band='mid'] .ph-char-n {
-  color: var(--gold);
-}
-
-.ph-char-part[data-band='low'] .ph-char-n,
-.ph-char-part[data-band='low'] .ph-char-said {
-  color: var(--red);
-}
-
-.ph-char-missed {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--red);
-}
-
-/* Three in view once there is room for them. */
-@media (min-width: 560px) {
-  .ph-char {
-    flex-basis: calc((100% - 20px) / 3);
-  }
 }
 
 /* What the summary keeps folded (pace, the voice at the end): a chevron at its
@@ -1515,4 +1311,194 @@ button.back-link {
 .ph-time-axis span {
   position: absolute;
   top: 0;
+}
+
+/* Every character of the line in a table under the score: the least well said
+   first. On a phone it scrolls inside the screen, so the score stays in view;
+   on an iPad every row is shown. */
+.ph-tab {
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.ph-tab[data-dim] {
+  opacity: 0.45;
+  transition: opacity 140ms;
+}
+
+.ph-tab-row {
+  display: grid;
+  grid-template-columns: 32px 52px repeat(3, minmax(0, 1fr)) 40px 32px;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ph-tab-body .ph-tab-row:last-child,
+.ph-tab-big .ph-tab-row:last-child {
+  border-bottom: 0;
+}
+
+.ph-tab-row[data-active] {
+  background: var(--hl);
+}
+
+.ph-tab-headrow {
+  min-height: 34px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.ph-tab-all {
+  grid-column: span 2;
+  justify-self: end;
+  margin-right: -8px;
+}
+
+.ph-tab-body {
+  max-height: 46dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (min-width: 760px) {
+  .ph-tab-body {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+.ph-tab-zh {
+  font-size: 23px;
+  line-height: 1.2;
+}
+
+.ph-tab-row[data-band='mid'] .ph-tab-zh {
+  color: var(--gold);
+}
+
+.ph-tab-row[data-band='low'] .ph-tab-zh {
+  color: var(--red);
+}
+
+.ph-tab-py {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.ph-tab-part {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+
+.ph-tab-part[data-band='mid'] {
+  color: var(--gold);
+}
+
+.ph-tab-part[data-band='low'] {
+  color: var(--red);
+}
+
+.ph-tab-extra {
+  margin-left: 3px;
+  font-size: 11.5px;
+}
+
+.ph-tab-missed {
+  grid-column: span 3;
+  font-size: 13px;
+  color: var(--red);
+}
+
+.ph-tab-score {
+  justify-self: end;
+  min-width: 34px;
+  height: 24px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background: var(--jade-soft);
+  color: var(--jade);
+}
+
+.ph-tab-score[data-band='mid'] {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.ph-tab-score[data-band='low'] {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.ph-tab-hear {
+  justify-self: end;
+  width: 32px;
+  height: 32px;
+  color: var(--accent);
+}
+
+.ph-tab-note {
+  grid-column: 3 / -1;
+  padding-bottom: 6px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+/* The same table on a sheet of its own: every character at once, larger, each with what was heard. */
+.ph-tab-big {
+  border: 0;
+  background: none;
+  margin: 0 -12px;
+}
+
+.ph-tab-big .ph-tab-row:not(.ph-tab-headrow) {
+  min-height: 52px;
+}
+
+.ph-tab-big .ph-tab-zh {
+  font-size: 28px;
+}
+
+.ph-char-sheet-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 6px 0 10px;
+}
+
+.ph-char-sheet-title {
+  flex: 1 1 auto;
+  display: grid;
+  min-width: 0;
+}
+
+.ph-char-sheet-title > b {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* For looking, so its one action is Close, held at the foot as the rows scroll. */
+.ph-sheet-foot-close {
+  position: sticky;
+  bottom: 0;
+  margin: 12px -16px 0;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  background: var(--card);
+  border-top: 1px solid var(--line);
+}
+
+.ph-sheet-foot-close .btn {
+  width: 100%;
 }
