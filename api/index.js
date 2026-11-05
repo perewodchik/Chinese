@@ -67,6 +67,11 @@ var UnauthorizedError = class extends AppError {
     super("unauthorized", "Sign in to carry on.");
   }
 };
+var ForbiddenError = class extends AppError {
+  constructor(message = "That is for whoever runs the site.") {
+    super("forbidden", message);
+  }
+};
 var ForbiddenOriginError = class extends AppError {
   constructor() {
     super("forbidden_origin", "That request did not come from this app.");
@@ -1573,8 +1578,12 @@ var StorageQuota = class {
   constructor(deps) {
     this.deps = deps;
   }
+  /** The ceiling, in bytes; null when there is none. */
+  get limitBytes() {
+    return this.deps.limitMb ? this.deps.limitMb * MB : null;
+  }
   async use(userId) {
-    return { usedBytes: await this.deps.meter.usedBy(userId), limitBytes: this.deps.limitMb ? this.deps.limitMb * MB : null };
+    return { usedBytes: await this.deps.meter.usedBy(userId), limitBytes: this.limitBytes };
   }
   /** Throws when `adding` more bytes would take the account past its ceiling. */
   async check(userId, adding) {
@@ -1887,7 +1896,7 @@ function registrationFrom(raw, fallback) {
 }
 
 // server/src/http/app.ts
-import { Hono as Hono14 } from "hono";
+import { Hono as Hono15 } from "hono";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
 
@@ -1899,6 +1908,7 @@ var STATUS = {
   unauthorized: 401,
   registration_closed: 403,
   forbidden_origin: 403,
+  forbidden: 403,
   not_found: 404,
   username_taken: 409,
   conflict: 409,
@@ -2107,10 +2117,63 @@ function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, 
   return routes;
 }
 
-// server/src/http/routes/ask.ts
-import { createHash as createHash7 } from "node:crypto";
+// server/src/http/routes/admin.ts
 import { Hono as Hono2 } from "hono";
 import { z as z2 } from "zod";
+var inviteRequest = z2.object({ note: z2.string().trim().max(120), days: z2.number().int().min(0).max(365) });
+function adminRoutes({ auth, clock, trustProxy, adminUsers, limits, usage, storage }) {
+  const routes = new Hono2();
+  const session = requireSession(auth, { trustProxy, clock });
+  const admin = async (c, next) => {
+    if (!adminUsers.includes(usernameKey(c.get("session").user.username))) throw new ForbiddenError();
+    await next();
+  };
+  const invites = new RateLimiter("admin.invites", 50, 60 * 6e4, clock, limits);
+  routes.get("/", session, admin, (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json({ admin: true });
+  });
+  routes.get("/overview", session, admin, async (c) => {
+    const users = await auth.listUsers();
+    const none = { speechsuper: false, iflytek: false, minimax: false };
+    const accounts = await Promise.all(
+      users.map(async (u) => {
+        const [devices, room, spent] = await Promise.all([auth.sessionsOf(u.id, ""), storage.use(u.id), usage.summary(u.id, none)]);
+        const month = (service) => spent.lines.find((l) => l.service === service)?.month ?? { calls: 0, units: 0 };
+        return {
+          username: u.username,
+          createdAt: u.createdAt,
+          lastSeenAt: devices.length ? Math.max(...devices.map((d) => d.lastSeenAt)) : null,
+          devices: devices.length,
+          storageBytes: room.usedBytes,
+          scoredThisMonth: month("speechsuper").calls + month("iflytek").calls,
+          charactersReadThisMonth: month("minimax").units
+        };
+      })
+    );
+    const body = {
+      registration: auth.registration,
+      storageLimitBytes: storage.limitBytes,
+      accounts: accounts.sort((a, b) => (b.lastSeenAt ?? 0) - (a.lastSeenAt ?? 0)),
+      invites: (await auth.invites()).reverse()
+    };
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
+  });
+  routes.post("/invites", session, admin, async (c) => {
+    await invites.consume(c.get("session").user.id);
+    const { note, days } = await readJson(c, inviteRequest);
+    const made = await auth.invite(note, days === 0 ? null : days);
+    c.header("Cache-Control", "no-store");
+    return c.json({ code: made.code, expiresAt: made.expiresAt }, 201);
+  });
+  return routes;
+}
+
+// server/src/http/routes/ask.ts
+import { createHash as createHash7 } from "node:crypto";
+import { Hono as Hono3 } from "hono";
+import { z as z3 } from "zod";
 
 // shared/ask.ts
 var ASK_KINDS = ["passages", "wordlist", "check", "video"];
@@ -2125,12 +2188,12 @@ var ASK_TIMEOUT_MS = {
 };
 
 // server/src/http/routes/ask.ts
-var askRequest = z2.object({
-  prompt: z2.string().trim().min(1).max(ASK_MAX_CHARS),
-  kind: z2.enum(ASK_KINDS)
+var askRequest = z3.object({
+  prompt: z3.string().trim().min(1).max(ASK_MAX_CHARS),
+  kind: z3.enum(ASK_KINDS)
 });
 function askRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, limits }) {
-  const routes = new Hono2();
+  const routes = new Hono3();
   const session = requireSession(auth, { trustProxy, clock });
   const asks = new RateLimiter("ask.asks", 20, 60 * 6e4, clock, limits);
   const checks = new RateLimiter("ask.checks", 120, 60 * 6e4, clock, limits);
@@ -2174,18 +2237,18 @@ ${input.prompt}`).digest("hex");
 }
 
 // server/src/http/routes/auth.ts
-import { Hono as Hono3 } from "hono";
-import { z as z3 } from "zod";
+import { Hono as Hono4 } from "hono";
+import { z as z4 } from "zod";
 var MINUTE = 6e4;
-var credentials = z3.object({
-  username: z3.string().max(200),
-  password: z3.string().max(2048)
+var credentials = z4.object({
+  username: z4.string().max(200),
+  password: z4.string().max(2048)
 });
-var registration = credentials.extend({ invite: z3.string().max(64).optional() });
-var recoverRequest = z3.object({ username: z3.string().max(200), code: z3.string().max(64), newPassword: z3.string().max(2048) });
-var passwordChange = z3.object({
-  currentPassword: z3.string().max(2048),
-  newPassword: z3.string().max(2048)
+var registration = credentials.extend({ invite: z4.string().max(64).optional() });
+var recoverRequest = z4.object({ username: z4.string().max(200), code: z4.string().max(64), newPassword: z4.string().max(2048) });
+var passwordChange = z4.object({
+  currentPassword: z4.string().max(2048),
+  newPassword: z4.string().max(2048)
 });
 function isLocalNetwork(ip) {
   const plain = ip.startsWith("::ffff:") ? ip.slice("::ffff:".length) : ip;
@@ -2209,7 +2272,7 @@ function tunnelled(c, trustProxy) {
   return ["x-forwarded-for", "forwarded", "x-real-ip", "cf-connecting-ip", "x-forwarded-host"].some((h) => c.req.header(h) !== void 0);
 }
 function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate, log, limits }) {
-  const routes = new Hono3();
+  const routes = new Hono4();
   const sessionOptions = { trustProxy, clock };
   const session = requireSession(auth, sessionOptions);
   const perName = new RateLimiter("auth.perName", 10, 15 * MINUTE, clock, limits);
@@ -2280,7 +2343,7 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
   });
   routes.post("/recovery-codes", session, async (c) => {
     await recoveries.consume(c.get("session").user.id);
-    const { password } = await readJson(c, z3.object({ password: z3.string().max(2048) }));
+    const { password } = await readJson(c, z4.object({ password: z4.string().max(2048) }));
     c.header("Cache-Control", "no-store");
     return c.json({ codes: await auth.makeRecoveryCodes({ userId: c.get("session").user.id, password }) });
   });
@@ -2304,39 +2367,39 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
 }
 
 // server/src/http/routes/narration.ts
-import { Hono as Hono4 } from "hono";
-import { z as z4 } from "zod";
-var keyRequest = z4.object({ key: z4.string().min(1).max(400) });
-var lines = z4.array(z4.string().max(240)).min(1).max(300);
-var textRequest = z4.object({ narrator: z4.string().min(1).max(80), lines, generate: z4.boolean().optional(), again: z4.boolean().optional(), speed: z4.number().min(0.5).max(2).optional() });
-var ofRequest = z4.object({ lines });
-var tryRequest = z4.object({ prompt: z4.string().trim().min(1).max(2e3), previewText: z4.string().trim().min(1).max(200), count: z4.number().int().min(1).max(3).optional() });
-var keepRequest = z4.object({ name: z4.string().trim().min(1).max(60), prompt: z4.string().trim().min(1).max(2e3), previewText: z4.string().trim().max(200), voiceId: z4.string().min(1).max(128) });
-var adoptRequest = z4.object({ name: z4.string().max(60), voice: z4.string().min(1).max(120) });
-var changeRequest = z4.object({
-  name: z4.string().trim().min(1).max(60).optional(),
-  speed: z4.number().min(0.5).max(2).optional(),
-  pitch: z4.number().min(-12).max(12).optional(),
-  emotion: z4.enum(EMOTIONS).nullable().optional()
+import { Hono as Hono5 } from "hono";
+import { z as z5 } from "zod";
+var keyRequest = z5.object({ key: z5.string().min(1).max(400) });
+var lines = z5.array(z5.string().max(240)).min(1).max(300);
+var textRequest = z5.object({ narrator: z5.string().min(1).max(80), lines, generate: z5.boolean().optional(), again: z5.boolean().optional(), speed: z5.number().min(0.5).max(2).optional() });
+var ofRequest = z5.object({ lines });
+var tryRequest = z5.object({ prompt: z5.string().trim().min(1).max(2e3), previewText: z5.string().trim().min(1).max(200), count: z5.number().int().min(1).max(3).optional() });
+var keepRequest = z5.object({ name: z5.string().trim().min(1).max(60), prompt: z5.string().trim().min(1).max(2e3), previewText: z5.string().trim().max(200), voiceId: z5.string().min(1).max(128) });
+var adoptRequest = z5.object({ name: z5.string().max(60), voice: z5.string().min(1).max(120) });
+var changeRequest = z5.object({
+  name: z5.string().trim().min(1).max(60).optional(),
+  speed: z5.number().min(0.5).max(2).optional(),
+  pitch: z5.number().min(-12).max(12).optional(),
+  emotion: z5.enum(EMOTIONS).nullable().optional()
 });
-var ownRequest = z4.object({ title: z4.string().max(80), narrator: z4.string().min(1).max(80), lines });
-var ownChange = z4.object({ title: z4.string().max(80).optional(), textId: z4.string().min(1).max(80).nullable().optional() });
-var importRequest = z4.object({
-  narrator: z4.string().min(1).max(80),
+var ownRequest = z5.object({ title: z5.string().max(80), narrator: z5.string().min(1).max(80), lines });
+var ownChange = z5.object({ title: z5.string().max(80).optional(), textId: z5.string().min(1).max(80).nullable().optional() });
+var importRequest = z5.object({
+  narrator: z5.string().min(1).max(80),
   lines,
   // A chapter is a minute or two: a few MB of base64 at most.
-  mp3: z4.string().min(8).max(6e6),
-  durationMs: z4.number().int().min(1).max(30 * 6e4),
-  timings: z4.array(z4.tuple([z4.number().min(0), z4.number().min(0)])).min(1).max(300)
+  mp3: z5.string().min(8).max(6e6),
+  durationMs: z5.number().int().min(1).max(30 * 6e4),
+  timings: z5.array(z5.tuple([z5.number().min(0), z5.number().min(0)])).min(1).max(300)
 });
-var previewRequest = z4.object({ text: z4.string().max(200) });
+var previewRequest = z5.object({ text: z5.string().max(200) });
 var mp3 = (c, bytes) => {
   c.header("Content-Type", "audio/mpeg");
   c.header("Cache-Control", "no-store");
   return c.body(bytes);
 };
 function narrationRoutes({ auth, clock, trustProxy, narration, limits }) {
-  const routes = new Hono4();
+  const routes = new Hono5();
   const session = requireSession(auth, { trustProxy, clock });
   const reads = new RateLimiter("narration.reads", 200, 10 * 6e4, clock, limits);
   const keys = new RateLimiter("narration.keys", 20, 10 * 6e4, clock, limits);
@@ -2426,37 +2489,37 @@ function narrationRoutes({ auth, clock, trustProxy, narration, limits }) {
 }
 
 // server/src/http/routes/speechEval.ts
-import { Hono as Hono5 } from "hono";
-import { z as z5 } from "zod";
-var keysRequest = z5.discriminatedUnion("provider", [
-  z5.object({ provider: z5.literal("speechsuper"), appKey: z5.string().min(1).max(80), secretKey: z5.string().min(1).max(120) }),
-  z5.object({ provider: z5.literal("iflytek"), appId: z5.string().min(1).max(60), apiKey: z5.string().min(1).max(120), apiSecret: z5.string().min(1).max(160) })
+import { Hono as Hono6 } from "hono";
+import { z as z6 } from "zod";
+var keysRequest = z6.discriminatedUnion("provider", [
+  z6.object({ provider: z6.literal("speechsuper"), appKey: z6.string().min(1).max(80), secretKey: z6.string().min(1).max(120) }),
+  z6.object({ provider: z6.literal("iflytek"), appId: z6.string().min(1).max(60), apiKey: z6.string().min(1).max(120), apiSecret: z6.string().min(1).max(160) })
 ]);
-var settingsRequest = z5.object({ strictness: z5.enum(STRICTNESS) });
-var sized = (max) => z5.unknown().refine((v) => v === void 0 || JSON.stringify(v).length <= max, "too large");
-var attemptsRequest = z5.object({
-  items: z5.array(
-    z5.object({
-      id: z5.string().min(1).max(120),
-      at: z5.number().int().nonnegative(),
-      kind: z5.enum(["phrase", "drill", "voice"]),
-      sourceId: z5.string().max(200).nullable().optional(),
-      text: z5.string().max(EVAL_MAX_CHARS * 4),
-      tally: z5.string().max(80).nullable().optional(),
-      good: z5.boolean(),
+var settingsRequest = z6.object({ strictness: z6.enum(STRICTNESS) });
+var sized = (max) => z6.unknown().refine((v) => v === void 0 || JSON.stringify(v).length <= max, "too large");
+var attemptsRequest = z6.object({
+  items: z6.array(
+    z6.object({
+      id: z6.string().min(1).max(120),
+      at: z6.number().int().nonnegative(),
+      kind: z6.enum(["phrase", "drill", "voice"]),
+      sourceId: z6.string().max(200).nullable().optional(),
+      text: z6.string().max(EVAL_MAX_CHARS * 4),
+      tally: z6.string().max(80).nullable().optional(),
+      good: z6.boolean(),
       summary: sized(16e3).optional(),
       result: sized(12e4).optional()
     })
   ).max(ATTEMPTS_PER_CALL)
 });
-var evalRequest = z5.object({
-  text: z5.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
-  pinyin: z5.array(z5.string().regex(PINYIN_SYLLABLE)).max(EVAL_MAX_CHARS).optional(),
+var evalRequest = z6.object({
+  text: z6.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
+  pinyin: z6.array(z6.string().regex(PINYIN_SYLLABLE)).max(EVAL_MAX_CHARS).optional(),
   // base64 of up to EVAL_MAX_BYTES of PCM
-  audio: z5.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
+  audio: z6.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
 });
 function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }) {
-  const routes = new Hono5();
+  const routes = new Hono6();
   const session = requireSession(auth, { trustProxy, clock });
   const scores = new RateLimiter("speechEval.scores", 200, 10 * 6e4, clock, limits);
   const keys = new RateLimiter("speechEval.keys", 20, 10 * 6e4, clock, limits);
@@ -2494,9 +2557,9 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }) {
 }
 
 // server/src/http/routes/pictures.ts
-import { Hono as Hono6 } from "hono";
+import { Hono as Hono7 } from "hono";
 function pictureRoutes({ auth, clock, trustProxy, pictures, limits }) {
-  const routes = new Hono6();
+  const routes = new Hono7();
   const session = requireSession(auth, { trustProxy, clock });
   const uploads = new RateLimiter("pictures.uploads", 300, 10 * 6e4, clock, limits);
   routes.get("/:key", session, async (c) => {
@@ -2518,10 +2581,10 @@ function pictureRoutes({ auth, clock, trustProxy, pictures, limits }) {
 }
 
 // server/src/http/routes/speech.ts
-import { Hono as Hono7 } from "hono";
+import { Hono as Hono8 } from "hono";
 var SPEECH_MAX_CHARS = 240;
 function speechRoutes({ auth, clock, trustProxy, speech, limits }) {
-  const routes = new Hono7();
+  const routes = new Hono8();
   const session = requireSession(auth, { trustProxy, clock });
   const limiter = new RateLimiter("speech.limiter", 300, 10 * 6e4, clock, limits);
   routes.get("/", session, (c) => {
@@ -2553,7 +2616,7 @@ function speechRoutes({ auth, clock, trustProxy, speech, limits }) {
 }
 
 // server/src/http/routes/strokes.ts
-import { Hono as Hono8 } from "hono";
+import { Hono as Hono9 } from "hono";
 
 // shared/strokes.ts
 var STROKES_PER_REQUEST = 24;
@@ -2592,7 +2655,7 @@ async function fetchOne(c, get2) {
 // server/src/http/routes/strokes.ts
 var HANZI = /^\p{Script=Han}$/u;
 function strokeRoutes({ auth, clock, trustProxy }) {
-  const routes = new Hono8();
+  const routes = new Hono9();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const chars = [.../* @__PURE__ */ new Set([...c.req.query("c") ?? ""])];
@@ -2607,57 +2670,57 @@ function strokeRoutes({ auth, clock, trustProxy }) {
 }
 
 // server/src/http/routes/talk.ts
-import { Hono as Hono9 } from "hono";
-import { z as z6 } from "zod";
-var talkOptions = z6.object({
-  level: z6.enum(TALK_LEVELS),
-  length: z6.enum(TALK_LENGTHS),
-  explain: z6.boolean(),
-  words: z6.boolean(),
-  hints: z6.boolean(),
+import { Hono as Hono10 } from "hono";
+import { z as z7 } from "zod";
+var talkOptions = z7.object({
+  level: z7.enum(TALK_LEVELS),
+  length: z7.enum(TALK_LENGTHS),
+  explain: z7.boolean(),
+  words: z7.boolean(),
+  hints: z7.boolean(),
   // The learner's own words, and they go into a prompt: a topic the length
   // of an essay is a way of talking past everything above it.
-  topic: z6.string().trim().max(TALK_TOPIC_MAX_CHARS),
-  persona: z6.string().max(64).optional()
+  topic: z7.string().trim().max(TALK_TOPIC_MAX_CHARS),
+  persona: z7.string().max(64).optional()
 });
-var savedWord = z6.object({
-  hanzi: z6.string().max(TALK_LINE_MAX_CHARS),
-  pinyin: z6.string().max(TALK_LINE_MAX_CHARS * 2),
-  english: z6.string().max(TALK_LINE_MAX_CHARS)
+var savedWord = z7.object({
+  hanzi: z7.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z7.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z7.string().max(TALK_LINE_MAX_CHARS)
 });
-var savedTurn = z6.object({
-  who: z6.enum(["tutor", "learner"]),
-  hanzi: z6.string().max(TALK_LINE_MAX_CHARS),
-  pinyin: z6.string().max(TALK_LINE_MAX_CHARS * 2),
-  english: z6.string().max(TALK_LINE_MAX_CHARS * 2),
-  words: z6.array(savedWord).max(10).optional(),
-  hints: z6.array(savedWord).max(10).optional(),
-  note: z6.string().max(TALK_LINE_MAX_CHARS * 2).optional()
+var savedTurn = z7.object({
+  who: z7.enum(["tutor", "learner"]),
+  hanzi: z7.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z7.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z7.string().max(TALK_LINE_MAX_CHARS * 2),
+  words: z7.array(savedWord).max(10).optional(),
+  hints: z7.array(savedWord).max(10).optional(),
+  note: z7.string().max(TALK_LINE_MAX_CHARS * 2).optional()
 });
-var recordedRequest = z6.object({
-  voice: z6.string().min(1).max(64),
-  mode: z6.enum(TALK_MODES).optional(),
-  texts: z6.array(z6.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
+var recordedRequest = z7.object({
+  voice: z7.string().min(1).max(64),
+  mode: z7.enum(TALK_MODES).optional(),
+  texts: z7.array(z7.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
 });
-var startRequest = z6.object({
+var startRequest = z7.object({
   options: talkOptions,
-  voice: z6.string().max(64).nullable()
+  voice: z7.string().max(64).nullable()
 });
-var saveRequest = z6.object({
+var saveRequest = z7.object({
   options: talkOptions,
-  voice: z6.string().max(64).nullable(),
-  turns: z6.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
+  voice: z7.string().max(64).nullable(),
+  turns: z7.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
 });
-var replyRequest = z6.object({
-  lines: z6.array(z6.object({ who: z6.enum(["tutor", "learner"]), text: z6.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
+var replyRequest = z7.object({
+  lines: z7.array(z7.object({ who: z7.enum(["tutor", "learner"]), text: z7.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
   options: talkOptions,
-  vocab: z6.object({
-    known: z6.array(z6.string().max(12)).max(TALK_VOCAB_MAX.known),
-    learning: z6.array(z6.string().max(12)).max(TALK_VOCAB_MAX.learning)
+  vocab: z7.object({
+    known: z7.array(z7.string().max(12)).max(TALK_VOCAB_MAX.known),
+    learning: z7.array(z7.string().max(12)).max(TALK_VOCAB_MAX.learning)
   }).optional()
 });
 function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, talkVoices, conversations, recordings, limits }) {
-  const routes = new Hono9();
+  const routes = new Hono10();
   const session = requireSession(auth, { trustProxy, clock });
   const turns = new RateLimiter("talk.turns", 120, 10 * 6e4, clock, limits);
   const clips = new RateLimiter("talk.clips", 600, 10 * 6e4, clock, limits);
@@ -2738,7 +2801,7 @@ function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, talk
 }
 
 // server/src/http/routes/videos.ts
-import { Hono as Hono10 } from "hono";
+import { Hono as Hono11 } from "hono";
 
 // shared/videos.ts
 var PLAYLIST_ID = /^[A-Za-z0-9_-]{10,64}$/;
@@ -2890,7 +2953,7 @@ async function lookUpPlaylist(playlistId) {
 // server/src/http/routes/videos.ts
 var HOUR = 60 * 6e4;
 function videoRoutes({ auth, clock, trustProxy, log, limits, lookups: cache }) {
-  const routes = new Hono10();
+  const routes = new Hono11();
   const session = requireSession(auth, { trustProxy, clock });
   const lookups = new RateLimiter("videos.lookups", 60, HOUR, clock, limits);
   const site = new RateLimiter("videos.site", 300, HOUR, clock, limits);
@@ -2941,15 +3004,15 @@ function videoRoutes({ auth, clock, trustProxy, log, limits, lookups: cache }) {
 }
 
 // server/src/http/routes/workspace.ts
-import { Hono as Hono11 } from "hono";
+import { Hono as Hono12 } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { z as z7 } from "zod";
-var saveRequest2 = z7.object({
-  baseRevision: z7.number().int().min(0),
-  document: z7.record(z7.string(), z7.unknown())
+import { z as z8 } from "zod";
+var saveRequest2 = z8.object({
+  baseRevision: z8.number().int().min(0),
+  document: z8.record(z8.string(), z8.unknown())
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
-  const routes = new Hono11();
+  const routes = new Hono12();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -2987,21 +3050,21 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 }
 
 // server/src/http/routes/world.ts
-import { Hono as Hono12 } from "hono";
+import { Hono as Hono13 } from "hono";
 import { bodyLimit as bodyLimit2 } from "hono/body-limit";
-import { z as z8 } from "zod";
+import { z as z9 } from "zod";
 
 // shared/world.ts
 var WORLD_SAVE_MAX_BYTES = 512 * 1024;
 var worldTag = (revision) => `"w${revision}"`;
 
 // server/src/http/routes/world.ts
-var putRequest = z8.object({
-  baseRevision: z8.number().int().min(0),
-  save: z8.record(z8.string(), z8.unknown())
+var putRequest = z9.object({
+  baseRevision: z9.number().int().min(0),
+  save: z9.record(z9.string(), z9.unknown())
 });
 function worldRoutes({ auth, world, clock, trustProxy }) {
-  const routes = new Hono12();
+  const routes = new Hono13();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -3038,9 +3101,9 @@ function worldRoutes({ auth, world, clock, trustProxy }) {
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Hono as Hono13 } from "hono";
+import { Hono as Hono14 } from "hono";
 function staticSite(root) {
-  const site = new Hono13();
+  const site = new Hono14();
   const index = join(root, "index.html");
   site.use("*", caching());
   site.use("*", serveStatic({ root }));
@@ -3076,16 +3139,18 @@ function createHttpApp(services, options) {
     trustProxy: options.trustProxy,
     ipHeader: options.ipHeader ?? null,
     tutorUsers: options.tutorUsers ? options.tutorUsers.map(usernameKey) : null,
+    adminUsers: (options.adminUsers ?? []).map(usernameKey),
     devUser: options.devUser ?? null,
     devUserCreate: options.devUserCreate ?? true,
     log: options.log
   };
-  const api = new Hono14();
+  const api = new Hono15();
   api.onError(onError);
   api.use("*", sameOriginOnly());
   api.get("/health", (c) => c.json({ ok: true }));
   api.route("/auth", authRoutes(deps));
   api.route("/account", accountRoutes(deps));
+  api.route("/admin", adminRoutes(deps));
   api.route("/ask", askRoutes(deps));
   api.route("/workspace", workspaceRoutes(deps));
   api.route("/world", worldRoutes(deps));
@@ -3099,7 +3164,7 @@ function createHttpApp(services, options) {
   api.all("*", () => {
     throw new NotFoundError("That API route");
   });
-  const app = new Hono14();
+  const app = new Hono15();
   app.onError(onError);
   if (options.compress !== false) app.use("*", compress());
   app.use(
@@ -4167,6 +4232,7 @@ function application() {
     return createHttpApp(services, {
       trustProxy: true,
       ipHeader: "x-vercel-forwarded-for",
+      adminUsers: (process.env.HANZI_ADMIN_USERS ?? "").split(",").map((n) => n.trim()).filter(Boolean),
       staticDir: null,
       // Vercel compresses what it sends; a second pass here would only cost
       // the function time it is billed for.

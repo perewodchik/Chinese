@@ -52,6 +52,7 @@ const api = getRequestListener(
   createHttpApp(services, {
     trustProxy: config.trustProxy,
     tutorUsers: config.tutorUsers,
+    adminUsers: config.adminUsers,
     staticDir: null,
     log: console.error,
     devUser,

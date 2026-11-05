@@ -126,6 +126,8 @@ export const paths = {
   settings: () => '/settings',
   /** who is signed in, the password, and what the learner's own keys have been spent on */
   account: () => '/account',
+  /** the site's own page, for whoever runs it: invitations and the accounts */
+  admin: () => '/admin',
   /** the cards: how many today, and the ways to practise one kind */
   cards: () => '/cards',
   /** one sitting of cards; `n` asks for fewer (or more) than the day's size */

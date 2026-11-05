@@ -51,6 +51,12 @@ export class UnauthorizedError extends AppError {
   }
 }
 
+export class ForbiddenError extends AppError {
+  constructor(message = 'That is for whoever runs the site.') {
+    super('forbidden', message);
+  }
+}
+
 export class ForbiddenOriginError extends AppError {
   constructor() {
     super('forbidden_origin', 'That request did not come from this app.');

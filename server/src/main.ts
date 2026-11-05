@@ -43,6 +43,7 @@ const services = createServices(stores, {
 const app = createHttpApp(services, {
   trustProxy: config.trustProxy,
   tutorUsers: config.tutorUsers,
+  adminUsers: config.adminUsers,
   staticDir,
   log: (line) => console.error(line),
 });

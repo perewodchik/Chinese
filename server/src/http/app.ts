@@ -8,6 +8,7 @@ import type { AppEnv } from './env';
 import { handleError } from './errors';
 import { sameOriginOnly } from './guards';
 import { accountRoutes } from './routes/account';
+import { adminRoutes } from './routes/admin';
 import { askRoutes } from './routes/ask';
 import { authRoutes } from './routes/auth';
 import { narrationRoutes } from './routes/narration';
@@ -31,6 +32,8 @@ export interface HttpOptions {
    * default. Left out, every account may (one learner's own server).
    */
   tutorUsers?: string[] | null;
+  /** the accounts that run the site, by name (HANZI_ADMIN_USERS); none when left out */
+  adminUsers?: string[];
   /** the built app, or null when Vite is serving it */
   staticDir: string | null;
   /** false where something in front already compresses, as a CDN does */
@@ -61,6 +64,7 @@ export function createHttpApp(services: Services, options: HttpOptions) {
     trustProxy: options.trustProxy,
     ipHeader: options.ipHeader ?? null,
     tutorUsers: options.tutorUsers ? options.tutorUsers.map(usernameKey) : null,
+    adminUsers: (options.adminUsers ?? []).map(usernameKey),
     devUser: options.devUser ?? null,
     devUserCreate: options.devUserCreate ?? true,
     log: options.log,
@@ -72,6 +76,7 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   api.get('/health', (c) => c.json({ ok: true }));
   api.route('/auth', authRoutes(deps));
   api.route('/account', accountRoutes(deps));
+  api.route('/admin', adminRoutes(deps));
   api.route('/ask', askRoutes(deps));
   api.route('/workspace', workspaceRoutes(deps));
   api.route('/world', worldRoutes(deps));

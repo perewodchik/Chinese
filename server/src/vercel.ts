@@ -62,6 +62,7 @@ function application(): Promise<App> {
     return createHttpApp(services, {
       trustProxy: true,
       ipHeader: 'x-vercel-forwarded-for',
+      adminUsers: (process.env.HANZI_ADMIN_USERS ?? '').split(',').map((n) => n.trim()).filter(Boolean),
       staticDir: null,
       // Vercel compresses what it sends; a second pass here would only cost
       // the function time it is billed for.

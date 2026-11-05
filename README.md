@@ -161,7 +161,10 @@ same session cookies. `api/[...path].ts` is the whole difference, and
    ```
 
    It prints a code and a link (`/register?invite=…`) that arrives with the
-   code typed in. Only the code's digest is kept, so a lost code is made
+   code typed in. With `HANZI_ADMIN_USERS=<your name>` on the project, the
+   same is on the site itself, at **/admin** (Account › The site): an
+   invitation made from the phone, and the accounts with when each was last
+   there and how much it keeps. Only the code's digest is kept, so a lost code is made
    again rather than looked up. Your own first account is made the same way,
    or with `npm run admin -- add-user <name>`.
 

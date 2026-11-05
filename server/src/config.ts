@@ -17,6 +17,8 @@ export interface ServerConfig {
   trustProxy: boolean;
   /** the accounts that may ask Claude on this server's subscription; null for every one */
   tutorUsers: string[] | null;
+  /** the accounts that run the site (invitations, the list of accounts) */
+  adminUsers: string[];
 }
 
 /**
@@ -31,6 +33,7 @@ export interface ServerConfig {
  *   HANZI_REGISTRATION   open | closed | invite (open at home, invite on Vercel)
  *   HANZI_TRUST_PROXY    1 behind a reverse proxy
  *   HANZI_TUTOR_USERS    who may ask Claude here, by name (admin,masha); everyone when unset
+ *   HANZI_ADMIN_USERS    who runs the site, by name: invitations and the accounts, at /admin
  *
  * A server here runs on the same Postgres the deployed site runs on as soon as
  * it is given the connection string, so the development server and the site
@@ -52,6 +55,7 @@ export function loadConfig(
     staticDir: defaults.serveStatic ? resolve(cwd, env.HANZI_STATIC_DIR || 'dist') : null,
     registration: registrationFrom(env.HANZI_REGISTRATION, 'open'),
     trustProxy: env.HANZI_TRUST_PROXY === '1' || env.HANZI_TRUST_PROXY === 'true',
+    adminUsers: (env.HANZI_ADMIN_USERS ?? '').split(',').map((n) => n.trim()).filter(Boolean),
     tutorUsers: env.HANZI_TUTOR_USERS?.trim() ? env.HANZI_TUTOR_USERS.split(',').map((n) => n.trim()).filter(Boolean) : null,
   };
 }

@@ -23,8 +23,13 @@ export interface StorageUse {
 export class StorageQuota {
   constructor(private readonly deps: { meter: StorageMeter; limitMb: number | null }) {}
 
+  /** The ceiling, in bytes; null when there is none. */
+  get limitBytes(): number | null {
+    return this.deps.limitMb ? this.deps.limitMb * MB : null;
+  }
+
   async use(userId: string): Promise<StorageUse> {
-    return { usedBytes: await this.deps.meter.usedBy(userId), limitBytes: this.deps.limitMb ? this.deps.limitMb * MB : null };
+    return { usedBytes: await this.deps.meter.usedBy(userId), limitBytes: this.limitBytes };
   }
 
   /** Throws when `adding` more bytes would take the account past its ceiling. */

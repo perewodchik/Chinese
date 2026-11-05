@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { USAGE_UNIT, type UsageLine, type UsageResponse, type UsageService } from '../../../shared/usage';
 import { accountStorage, accountUsage } from '../../api/account';
+import { isAdmin } from '../../api/admin';
 import { paths } from '../../navigation/paths';
 import type { SyncStatus } from '../../store/sync/engine';
 import { useSyncStatus } from '../../store/store';
@@ -59,6 +60,15 @@ export function AccountPage() {
   const status = useSyncStatus();
   const [usage, setUsage] = useState<UsageResponse | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
+  // Whoever runs the site has a row for its own page; nobody else sees it.
+  const [admin, setAdmin] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void isAdmin().then((yes) => live && setAdmin(yes));
+    return () => {
+      live = false;
+    };
+  }, []);
   useEffect(() => {
     let live = true;
     accountUsage().then(
@@ -140,6 +150,15 @@ export function AccountPage() {
           </span>
           <Icon name="chevron" />
         </Link>
+        {admin && (
+          <Link className="ac-link" to={paths.admin()}>
+            <span className="grow">
+              <b>The site</b>
+              <span className="small muted">Invitations, and the accounts with how much each keeps</span>
+            </span>
+            <Icon name="chevron" />
+          </Link>
+        )}
       </nav>
 
       <DeleteAccount />

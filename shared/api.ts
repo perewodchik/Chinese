@@ -89,6 +89,8 @@ export type ApiErrorCode =
   | 'registration_closed'
   | 'unauthorized'
   | 'forbidden_origin'
+  /** signed in, but not as someone who may do this */
+  | 'forbidden'
   | 'conflict'
   /** a save from a build older than the document it would replace */
   | 'outdated_app'
