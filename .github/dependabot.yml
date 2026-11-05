@@ -1,0 +1,13 @@
+# A weekly look at the npm packages and the workflow's actions, as pull
+# requests to read and merge by hand; never merged by itself.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

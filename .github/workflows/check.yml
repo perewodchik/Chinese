@@ -1,0 +1,35 @@
+# Every push to main and every pull request: the same checks a session runs
+# before it pushes — the build Vercel runs (tsc -b, vite, the API bundle) and
+# the whole test suite — and the dependencies the server ships with, against
+# the advisories. A red run is a step that should not have been pushed.
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run vercel-build
+      - run: npm test
+      # Advisories against what the server runs with; reported, not blocking,
+      # since a fix may wait on a release upstream.
+      - run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true

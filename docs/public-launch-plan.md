@@ -178,9 +178,10 @@
   сборке). Добавить `Permissions-Policy: microphone=(self), camera=()`,
   `Cross-Origin-Opener-Policy: same-origin`.
   — CSP в `shared/csp.ts`; `vercel.json` — копия, тест сверяет их; генерации `vercel.json` при сборке нет.
-- [ ] **S15 (С) CI.** Нет `.github/`: GitHub Actions с `npm test`,
+- [x] **S15 (С) CI.** Нет `.github/`: GitHub Actions с `npm test`,
   `npm run vercel-build`, `npm audit --omit=dev`; Dependabot; включить secret
   scanning в репозитории (владелец).
+  — `.github/workflows/check.yml` (сборка, тесты, `npm audit`), Dependabot раз в неделю. Secret scanning включает владелец в настройках репозитория. Аудит сразу нашёл три уязвимости в hono, @hono/node-server и zod — обновлены.
 - [ ] **S16 (Н) Оракул картинок.** `PUT /api/pictures/:key` отвечает «kept under
   another account» — так можно узнать, есть ли у кого-то такая же картинка.
   Хранить ключ как `sha256(userId|bytes)`, тогда совпадений между аккаунтами нет.
@@ -573,3 +574,4 @@ SameSite=Lax, Secure cookie, в базе только хэш; одинаково
 | 2026-11-05 | S19 частично | — | журнал событий аккаунтов и «Lately» на `/admin` |
 | 2026-11-05 | S12 S23 | — | частые пароли отклоняются на форме и на сервере; scrypt по минимуму OWASP |
 | 2026-11-05 | S14 | — | один источник CSP, `Permissions-Policy` (микрофон только свой; камера, геолокация, платежи запрещены), COOP на Vercel |
+| 2026-11-05 | S15 | — | CI на GitHub Actions и Dependabot; hono, @hono/node-server, zod обновлены по advisories |
