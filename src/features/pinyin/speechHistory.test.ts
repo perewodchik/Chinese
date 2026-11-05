@@ -21,7 +21,7 @@ describe('sending the tries that wait', () => {
       if (batch.some((x) => x.id === 'b')) throw new ApiError(500, 'internal', 'boom');
     });
     assert.deepEqual([...r.done].sort(), ['a', 'c']);
-    assert.match(r.trouble ?? '', /did not take them/);
+    assert.match(r.trouble ?? '', /did not take it/);
   });
 
   it('lets go of a try the server will never take, and says nothing is wrong', async () => {

@@ -1,6 +1,7 @@
 import type { AttemptIn, AttemptOut, SpeechHistory } from '../../../shared/speechEval';
 import { ApiError, isOffline } from '../../api/http';
 import { deleteAttempt, keepAttempts, listAttempts, speechHistory } from '../../api/speechEval';
+import { accountKey } from '../../platform/accountStorage';
 
 /**
  * Every try at saying something, kept in the account so the iPad and the
@@ -15,6 +16,8 @@ import { deleteAttempt, keepAttempts, listAttempts, speechHistory } from '../../
 
 const OUTBOX = 'hanzi.speech.outbox';
 const IMPORTED = 'hanzi.speech.imported';
+/** on this device: the drills' old tallies have gone to an account */
+const TALLIES_TAKEN = 'hanzi.speech.talliesTaken';
 
 const read = <T,>(key: string, empty: T): T => {
   try {
@@ -46,7 +49,7 @@ const changed = () => watchers.forEach((f) => f());
 
 /** What waits to be sent: the device's outbox and what this visit holds, each try once. */
 function outbox(): AttemptIn[] {
-  const stored = read<AttemptIn[]>(OUTBOX, []);
+  const stored = read<AttemptIn[]>(accountKey(OUTBOX), []);
   const ids = new Set(stored.map((a) => a.id));
   return [...stored, ...held.filter((a) => !ids.has(a.id))];
 }
@@ -54,7 +57,7 @@ function outbox(): AttemptIn[] {
 function setOutbox(items: AttemptIn[]) {
   held = items;
   // Kept on the device when it can be; in memory either way, so this visit still sends it.
-  write(OUTBOX, items);
+  write(accountKey(OUTBOX), items);
   changed();
 }
 
@@ -112,11 +115,11 @@ export async function sendOutbox(
 }
 
 function troubleOf(err: unknown): string {
-  if (isOffline(err)) return 'No connection: they are sent when there is one.';
-  if (err instanceof ApiError && err.status === 401) return 'Signed out: sign in and they are sent.';
+  if (isOffline(err)) return 'No connection: sent when there is one.';
+  if (err instanceof ApiError && err.status === 401) return 'Signed out: sent once you sign in.';
   // The site's own trouble, in the learner's words: what the server said is for the console, not the screen.
   if (err instanceof ApiError) console.warn(`Tries not sent: ${err.status} ${err.message}`);
-  return 'The site did not take them just now: they are sent again on the next try, or with Try again.';
+  return 'The site did not take it just now: sent again with your next try, or with Try again.';
 }
 
 export const attemptId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
@@ -164,13 +167,19 @@ export function keepTry(a: AttemptIn) {
 
 /** What was kept only on this device before the account kept it: put in the outbox, once. */
 function importOnce() {
-  if (read<boolean>(IMPORTED, false)) return;
+  if (read<boolean>(accountKey(IMPORTED), false)) {
+    write(TALLIES_TAKEN, true);
+    return;
+  }
   const items: AttemptIn[] = [];
-  const phrases = read<Record<string, Array<{ at: number; faults?: unknown[] }>>>('hanzi.phrases.attempts', {});
+  const phrases = read<Record<string, Array<{ at: number; faults?: unknown[] }>>>(accountKey('hanzi.phrases.attempts'), {});
   for (const [text, list] of Object.entries(phrases)) {
     for (const a of list) items.push({ id: `local-p-${a.at}-${[...text].slice(0, 30).join('')}`, at: a.at, kind: 'phrase', text, good: !a.faults?.length, summary: a });
   }
-  const tallies = read<{ tallies?: Record<string, { recent?: number[]; last?: number }> }>('hanzi.pinyin.v1', {}).tallies ?? {};
+  // The drills' tallies sit in a device setting, not an account's: they go to
+  // the first account that takes them on this device, and to no other.
+  const taken = read<boolean>(TALLIES_TAKEN, false);
+  const tallies = taken ? {} : (read<{ tallies?: Record<string, { recent?: number[]; last?: number }> }>('hanzi.pinyin.v1', {}).tallies ?? {});
   for (const [tally, t] of Object.entries(tallies)) {
     const recent = t.recent ?? [];
     const last = t.last ?? Date.now();
@@ -179,7 +188,8 @@ function importOnce() {
     );
   }
   setOutbox([...outbox(), ...items]);
-  write(IMPORTED, true);
+  write(accountKey(IMPORTED), true);
+  write(TALLIES_TAKEN, true);
 }
 
 let loading: Promise<SpeechHistory | null> | null = null;

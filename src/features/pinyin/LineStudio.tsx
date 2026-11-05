@@ -12,7 +12,7 @@ import { forgetRecording, keepRecording, recordingOf } from '../../platform/audi
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { Modal } from '../../ui/Modal';
-import { addReading, narratedLine, narratedReadings, playLine, prepareClips, stopLine, type Clips, type Narrated } from '../reader/narratedClips';
+import { addReading, castReading, narratedLine, narratedReadings, playLine, prepareClips, stopLine, type Clips, type Narrated } from '../reader/narratedClips';
 import { useLibrary } from '../shared/library';
 import { NOTHING_HEARD, troubleOf, type Trouble } from './lineTrouble';
 import { RecordButton } from './RecordButton';
@@ -137,7 +137,8 @@ export function LineStudio({
       if (!live) return;
       setVoices(list);
       const c = chosenNarrator();
-      const r = list.find((x) => x.n.narratorId === c) ?? list[0];
+      // A text a cast has read is said in its characters' voices — Pikachu by Pikachu — unless another is picked in the sheet.
+      const r = castReading(list) ?? list.find((x) => x.n.narratorId === c) ?? list[0];
       if (r) {
         setVoice(r);
         const ready = await prepareClips(sourceId, r);
