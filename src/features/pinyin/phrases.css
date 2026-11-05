@@ -1375,3 +1375,20 @@ button.back-link {
 .ph-score-btn:disabled {
   cursor: default;
 }
+
+/* Tries that could not reach the account: said plainly, with a retry, in the error's colour. */
+.ph-save-trouble {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--red-soft);
+  color: var(--ink);
+}
+
+.ph-save-trouble > span {
+  flex: 1;
+  min-width: 0;
+}

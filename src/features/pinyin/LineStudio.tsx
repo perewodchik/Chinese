@@ -8,15 +8,16 @@ import { attemptOf, numbered, resultOfAttempt, type Attempt, type Phrase } from 
 import { alignPinyin } from '../../domain/reading';
 import { heardAnything } from '../../platform/audio/mic';
 import { hush, playSamples } from '../../platform/audio/voiceOut';
+import { forgetRecording, keepRecording, recordingOf } from '../../platform/audio/recordings';
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { Modal } from '../../ui/Modal';
-import { addReading, castReading, narratedLine, narratedReadings, playLine, prepareClips, stopLine, type Clips, type Narrated } from '../reader/narratedClips';
+import { addReading, narratedLine, narratedReadings, playLine, prepareClips, stopLine, type Clips, type Narrated } from '../reader/narratedClips';
 import { useLibrary } from '../shared/library';
 import { NOTHING_HEARD, troubleOf, type Trouble } from './lineTrouble';
 import { RecordButton } from './RecordButton';
 import { band, ScoredLine } from './ScoredLine';
-import { attemptId, forget, keepTry, knownTries, remember } from './speechHistory';
+import { attemptId, flush, forget, keepTry, knownTries, pendingTries, pendingTry, remember, saveTrouble, watchOutbox } from './speechHistory';
 import { useRecorder } from './useRecorder';
 import './phrases.css';
 
@@ -50,6 +51,9 @@ const loadMode = (): Mode => {
 
 const results = new Map<string, Promise<EvalResult>>();
 function resultOf(id: string): Promise<EvalResult> {
+  // Not sent yet: the outbox has the whole answer, and the server does not.
+  const waiting = pendingTry(id)?.result as EvalResult | undefined;
+  if (waiting) return Promise.resolve(waiting);
   let p = results.get(id);
   if (!p) {
     p = attemptResult(id);
@@ -133,8 +137,7 @@ export function LineStudio({
       if (!live) return;
       setVoices(list);
       const c = chosenNarrator();
-      // A text a cast has read is said in its characters' voices — Pikachu by Pikachu — unless another is picked in the sheet.
-      const r = castReading(list) ?? list.find((x) => x.n.narratorId === c) ?? list[0];
+      const r = list.find((x) => x.n.narratorId === c) ?? list[0];
       if (r) {
         setVoice(r);
         const ready = await prepareClips(sourceId, r);
@@ -191,12 +194,34 @@ export function LineStudio({
     setSelLoading(true);
     setSelResult(null);
     resultOf(take.id)
-      .then((r) => live && setSelResult(r), (err: Error) => live && setSelFailed(err.message))
+      .then(
+        (r) => live && setSelResult(r),
+        (err: Error) => {
+          if (!live) return;
+          // What the list knows of it is better than an error: the line and its marks.
+          if (take.summary) setSelResult(resultOfAttempt(phrase.zh, numbered(readings), take.summary));
+          else setSelFailed(err.message);
+        },
+      )
       .finally(() => live && setSelLoading(false));
     return () => {
       live = false;
     };
-  }, [take]);
+    // By the try and its answer: its recording arriving later must not load it again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [take?.id, take?.result, take?.full]);
+
+  // A try of yours from an earlier visit: its recording, when this device kept it, for Mine
+  // and each character's play button.
+  useEffect(() => {
+    if (!take?.mine || take.samples) return;
+    let live = true;
+    const id = take.id;
+    void recordingOf(id).then((s) => live && s && setTakes((now) => now.map((t) => (t.id === id ? { ...t, samples: s } : t))));
+    return () => {
+      live = false;
+    };
+  }, [take?.id, take?.mine, take?.samples]);
 
   function addTake(t: Take) {
     setTakes((now) => [t, ...now.filter((x) => x.id !== t.id)]);
@@ -280,6 +305,8 @@ export function LineStudio({
           const a = { ...attemptOf(r, Date.now()), ...(shadow ? { shadow: true } : {}) };
           onAttempt(phrase.zh, a, r, id);
           addTake({ id, mine: true, at: a.at, total: r.total, shadow, result: r, samples: s, full: true });
+          // Kept on this device, so this try can be heard again when the line is opened later.
+          void keepRecording(id, s);
         },
         (err: unknown) => setError(troubleOf(err)),
       )
@@ -321,6 +348,21 @@ export function LineStudio({
     recorder.play(said);
     setTimeout(() => setCount(null), 500);
   }
+
+  // ------------------------------------------------------------ saving
+  // Tries go to the account from an outbox: when they cannot, it is said, with why and a retry.
+  const [, setOutboxSeen] = useState(0);
+  useEffect(() => {
+    const off = watchOutbox(() => setOutboxSeen((n) => n + 1));
+    const again = () => void flush();
+    window.addEventListener('online', again);
+    return () => {
+      off();
+      window.removeEventListener('online', again);
+    };
+  }, []);
+  const unsaved = pendingTries().filter((a) => a.kind !== 'drill').length;
+  const saveWhy = saveTrouble();
 
   // ------------------------------------------------------------ hearing
   // What the dock is playing, the narrator's line or your try: its button reads Stop
@@ -438,6 +480,7 @@ export function LineStudio({
     setTakes(rest);
     // The one shown taken back: the best of what is left is shown instead.
     if (sel === t.id) setSel(rest.filter((x) => x.mine && x.total !== null).sort((a, b) => b.total! - a.total! || b.at - a.at)[0]?.id ?? null);
+    void forgetRecording(t.id);
     try {
       await forget(t.id);
     } catch {
@@ -528,7 +571,7 @@ export function LineStudio({
                     <div key={t.id} className="ph-try-mini" aria-current={sel === t.id || undefined}>
                       <button className="ph-try-pick" onClick={() => pick(t.id)}>
                         <span className="small">{t.id === firstNew ? 'Just now' : whenOf(t.at).replace(/^./, (c) => c.toUpperCase())}</span>
-                        <span className="tiny muted">{[t.id === bestId ? 'best' : '', t.shadow ? 'shadowing' : ''].filter(Boolean).join(' · ')}</span>
+                        <span className="tiny muted">{[t.id === bestId ? 'best' : '', t.shadow ? 'shadowing' : '', pendingTry(t.id) ? 'not saved yet' : ''].filter(Boolean).join(' · ')}</span>
                         <b data-band={t.total === null ? 'none' : band(t.total)}>{t.total === null ? '–' : Math.round(t.total)}</b>
                       </button>
                       {confirm === t.id ? (
@@ -565,6 +608,16 @@ export function LineStudio({
             )}
           </div>
           {!clips && narrators !== null && <NoReading narrators={narrators} lines={lines} onRead={(r) => { setVoices((v) => [...v.filter((x) => x.n.narratorId !== r.n.narratorId), r]); void switchVoice(r); }} />}
+          {saveWhy && unsaved > 0 && (
+            <p className="small ph-save-trouble" role="status">
+              <span>
+                {unsaved === 1 ? 'One try is' : `${unsaved} tries are`} kept on this device and not yet in your account. {saveWhy}
+              </span>
+              <button className="btn quiet sm" onClick={() => void flush()}>
+                Try again
+              </button>
+            </p>
+          )}
           {note && (
             <p className="small muted ph-note" role="status">
               {note}
