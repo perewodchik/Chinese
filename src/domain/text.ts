@@ -471,6 +471,14 @@ export function shelfEntries(list: GeneratedText[]): ShelfEntry[] {
   return out;
 }
 
+/**
+ * The texts a shelf teaches from, one an entry: of a book's passage with a
+ * retelling, the retelling — what the learner reads. The book's passage, read
+ * after it, brings far more new characters than anyone is meant to learn from
+ * it; they are explained where it is read, not added to the shelf's lists.
+ */
+export const taughtTexts = (list: GeneratedText[]): GeneratedText[] => shelfEntries(list).map((e) => e.easier ?? e.main);
+
 /** The other version of a text on the same shelf, if it has one. */
 export function otherVersion(t: GeneratedText, list: GeneratedText[]): GeneratedText | null {
   const entry = shelfEntries(list).find((e) => e.easier?.id === t.id || e.original?.id === t.id);

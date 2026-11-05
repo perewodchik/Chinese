@@ -4,7 +4,7 @@ import { DEFAULT_SCOPE, type Collection } from '../../domain/collection';
 import { charId, isCharId, isWordId, idValue, type ItemId } from '../../domain/ids';
 import { firstSense } from '../../domain/library';
 import { defaultSheet } from '../../domain/sheet';
-import { fromBook, hanziIn, isHanzi, shelfEntries, shelve, type GeneratedText, type TextSet } from '../../domain/text';
+import { fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTexts, type GeneratedText, type TextSet } from '../../domain/text';
 import { paths, type ShelfTab } from '../../navigation/paths';
 import { useIsAdmin } from '../../api/admin';
 import { oneOf, useQuery } from '../../navigation/query';
@@ -334,14 +334,16 @@ export function ShelfPage() {
   const pdf = usePdfExport();
   useTitle(set?.name ?? 'Shelf');
 
-  const words = useMemo(() => shelfWords(list, set?.study ?? [], lib), [list, set?.study, lib]);
+  // What the shelf teaches: a retelling stands for the book's passage it retells.
+  const taught = useMemo(() => taughtTexts(list), [list]);
+  const words = useMemo(() => shelfWords(taught, set?.study ?? [], lib), [taught, set?.study, lib]);
   const chars = useMemo(() => {
     const out: string[] = [];
     const add = (c: string) => isHanzi(c) && !out.includes(c) && out.push(c);
-    for (const t of list) t.teach.forEach(add);
+    for (const t of taught) t.teach.forEach(add);
     for (const id of set?.study ?? []) hanziIn(idValue(id)).forEach(add);
     return out;
-  }, [list, set?.study]);
+  }, [taught, set?.study]);
 
   if (!set) return <Navigate to={paths.read()} replace />;
 

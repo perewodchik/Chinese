@@ -4,7 +4,7 @@ import { DEFAULT_SCOPE, type Collection } from '../domain/collection';
 import { DEFAULT_RADICAL_SCOPE } from '../domain/radicals/sets';
 import { DEFAULT_RADICAL_SHEET } from '../domain/radicals/sheet';
 import { defaultSheet } from '../domain/sheet';
-import { shelfEntries, shelve, type GeneratedText, type TextPlan } from '../domain/text';
+import { shelfEntries, shelve, taughtTexts, type GeneratedText, type TextPlan } from '../domain/text';
 import { coalesce, reduce, type Action } from './actions';
 import { mergeStates } from './merge';
 import { emptyState, type AppState } from './state';
@@ -282,5 +282,7 @@ describe('text collections', () => {
     assert.equal(entries[0]?.main.id, 'o');
     assert.equal(entries[0]?.easier?.id, 'e');
     assert.equal(entries[1]?.easier, null);
+    // The shelf's words and characters come from what is read: the retelling, not the book's passage too.
+    assert.deepEqual(taughtTexts([easy, book, text('x', 'a', 3)]).map((t) => t.id), ['e', 'x']);
   });
 });
