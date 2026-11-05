@@ -126,6 +126,31 @@ or Space on a focused button.
 places by history entry and puts them back while slow content grows. In the
 reader's two-column layout each column scrolls on its own.
 
+## When something is missing
+
+Other learners have none of the owner's set-up: no keys, no narrator, no
+Claude on the server, perhaps no microphone, perhaps no network. Each of these
+leaves the rest of the app working and says, in one quiet line, what would
+add the missing part (`src/ui/NeedsKey.tsx`) — never a form in place of the
+page, never the red of a mistake.
+
+| Missing | What still works | What is said, where |
+|---|---|---|
+| SpeechSuper keys | every line heard, said and played back (Mine) | “Not scored…” under the line; a line atop Phrases and the drills with Add the keys |
+| A narrator (MiniMax) | Hear in the device's own voice | that it is not a native speaker's, and that a narrator in Voices is |
+| Claude on the server (Vercel) | the prompt to copy and paste | Talk and Today's Talk row are left out (`useClaudeHere`) |
+| The microphone (refused, busy) | listening, reading, cards | `MIC_MESSAGE`, on the line |
+| The network | what is open, and changes kept on the device (`store/sync/outbox`) | the save line: kept on this device until the server is back |
+| The session (expired) | nothing lost: the outbox keeps it | the sign-in page says so (`/login?expired=1`) |
+| Storage (Safari private, cleared) | everything; device choices forgotten | nothing: every `localStorage` access is in `try/catch` |
+| Room (the account's ceiling, S4) | everything kept so far | “Your account is full: N MB of M…” on what was refused |
+| A limit reached | everything else | “Too many at once. Try again in 40 seconds.” |
+| A service down (SpeechSuper, MiniMax, YouTube) | the rest | the service's name and to try again, on the action |
+
+`node scripts/fresh-user-probe.mjs` (a server on a scratch database with
+sign-up open) opens every place as a new account sees it, light and dark,
+at 375, 768 and 1024; `--no-mic` and `--offline` for those states.
+
 ## Checking a change
 
 The whole routine (the states to list, how to see each one, how to fix a bug
