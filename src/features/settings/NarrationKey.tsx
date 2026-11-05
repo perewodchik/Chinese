@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { NarrationStatus } from '../../../shared/narration';
 import { forgetNarrationKey, narrationStatus, saveNarrationKey } from '../../api/narration';
+import { KeyHelp } from './KeyHelp';
 
 /**
  * The learner's MiniMax API key, for recording texts in a natural voice from
@@ -43,6 +44,7 @@ export function NarrationKey({ onChange }: { onChange?: (s: NarrationStatus) => 
           Narrators read with your own MiniMax API key, from platform.minimax.io (API Keys), and its balance there:
           a chapter costs a few cents. The key stays on the server and is never shown again.
         </p>
+        <KeyHelp service="minimax" />
         <p className="small" style={{ margin: 0, minHeight: '1.5em' }}>
           {status === null ? '' : status.key.set ? `A key ending ${status.key.hint} is saved.` : 'No key saved yet.'}
         </p>

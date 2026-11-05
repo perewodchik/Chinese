@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { EVAL_PROVIDERS, PROVIDER_NAME, STRICTNESS, type EvalKeys, type EvalProvider, type EvalStatus, type Strictness } from '../../../shared/speechEval';
 import { evalStatus, forgetEvalKeys, saveEvalKeys, setStrictness } from '../../api/speechEval';
+import { KeyHelp } from './KeyHelp';
 
 const STRICT_LABEL: Record<Strictness, string> = { easy: 'Easy', common: 'Common', hard: 'Hard' };
 
@@ -96,6 +97,7 @@ export function PronunciationKey({ onChange }: { onChange?: (s: EvalStatus) => v
         <p className="small muted" style={{ margin: 0 }}>
           {ABOUT[provider]} They stay on the server and are never shown again.
         </p>
+        {provider === 'speechsuper' && <KeyHelp service="speechsuper" />}
         <p className="small" style={{ margin: 0, minHeight: '1.5em' }}>
           {status === null
             ? ''
