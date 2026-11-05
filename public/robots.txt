@@ -1,0 +1,9 @@
+# The front door and the sources are for anyone; everything else is a
+# learner's own pages behind a sign-in, and the API.
+User-agent: *
+Allow: /$
+Allow: /welcome.html
+Allow: /sources.html
+Disallow: /
+
+Sitemap: https://chinese-inky.vercel.app/sitemap.xml

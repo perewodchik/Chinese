@@ -284,19 +284,23 @@ SameSite=Lax, Secure cookie, в базе только хэш; одинаково
 с кодом 200 — для поисковика нет настоящих 404. Индексировать стоит только
 открытые страницы; учебные экраны — закрыть.
 
-- [ ] **SEO1 Открытая главная `/`** для того, кто не вошёл: что это, для кого
+- [x] **SEO1 Открытая главная `/`** для того, кто не вошёл: что это, для кого
   (HSK 1–2, iPad/iPhone), три-четыре экрана, кнопки «Войти» и «Есть
   приглашение». Статический HTML, отрендеренный при сборке (prerender через
   Vite — отдельная точка входа `landing.html`), чтобы поисковик видел текст
   без JS. Вошедшему `/` по-прежнему ведёт на `/today`.
+  — сделано как `public/welcome.html` (статический HTML без скриптов); `/` без входа уводит туда из приложения (Vercel отдаёт `index.html` раньше любых правил с cookie). Вошедшие видят приложение как раньше.
 - [ ] **SEO2 `index.html`:** правильный `description`, `og:title`,
   `og:description`, `og:image` (1200×630 в `public/og.png`), `twitter:card`,
   `<link rel="canonical">`.
-- [ ] **SEO3 `public/robots.txt`:** `Allow: /`, `/about`, `/privacy`, `/terms`;
+  — частично: описание и OG в `index.html` и `welcome.html`; картинки OG и canonical нет — для них нужен окончательный адрес сайта.
+- [x] **SEO3 `public/robots.txt`:** `Allow: /`, `/about`, `/privacy`, `/terms`;
   `Disallow: /api/` и учебные разделы; ссылка на sitemap.
   Плюс `<meta name="robots" content="noindex">` на страницах за входом
   (в `AppLayout`).
-- [ ] **SEO4 `public/sitemap.xml`** из открытых страниц, генерируется при сборке.
+  — `public/robots.txt`: открыты `/`, `/welcome.html`, `/sources.html`, остальное закрыто; `noindex` в `index.html` (оболочка приложения).
+- [x] **SEO4 `public/sitemap.xml`** из открытых страниц, генерируется при сборке.
+  — статический `public/sitemap.xml` с адресом chinese-inky.vercel.app — поменять при своём домене.
 - [ ] **SEO5 Настоящие 404** для известных поисковику адресов: в `vercel.json`
   переписывать на `index.html` только адреса приложения (список из
   `router.tsx`), остальное — статическая `404.html`.
@@ -589,3 +593,4 @@ SameSite=Lax, Secure cookie, в базе только хэш; одинаково
 | 2026-11-05 | S12 S23 | — | частые пароли отклоняются на форме и на сервере; scrypt по минимуму OWASP |
 | 2026-11-05 | S14 | — | один источник CSP, `Permissions-Policy` (микрофон только свой; камера, геолокация, платежи запрещены), COOP на Vercel |
 | 2026-11-05 | S15 | — | CI на GitHub Actions и Dependabot; hono, @hono/node-server, zod обновлены по advisories |
+| 2026-11-05 | SEO1 SEO3 SEO4, SEO2 и L2 частично | — | `welcome.html`, `sources.html` (источники и лицензии на сайте), robots, sitemap, noindex приложения |

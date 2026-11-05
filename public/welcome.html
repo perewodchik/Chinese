@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- The front door for someone not signed in, and the page a search engine
+         sees: plain HTML, readable without a line of script. Vercel serves it
+         at / when there is no session cookie (vercel.json); the Node server
+         does the same (server/src/http/static-site.ts). Colours and type are
+         the app's own tokens, copied from src/styles.css. -->
+    <title>Hanzi Workshop — read Chinese from real texts, HSK 1–2</title>
+    <meta
+      name="description"
+      content="Learn to read Chinese at HSK 1–2 from texts at your level: pinyin and the words you are learning marked, a few cards a day, lines said aloud and scored, characters copied out stroke by stroke. Twenty to thirty minutes a day, on an iPhone or an iPad."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Hanzi Workshop" />
+    <meta property="og:description" content="Read Chinese from real texts at HSK 1–2, twenty to thirty minutes a day." />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafbf8" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#14191e" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/icons/favicon-64.png" />
+    <style>
+      @font-face {
+        font-family: 'WenKai';
+        src: url('/fonts/wenkai.woff2') format('woff2');
+        /* A megabyte: used if it is already there, never waited for. */
+        font-display: optional;
+      }
+      @font-face {
+        font-family: 'Fira Sans';
+        font-weight: 400;
+        src: url('/fonts/fira-400-latin.woff2') format('woff2');
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Fira Sans';
+        font-weight: 600;
+        src: url('/fonts/fira-600-latin.woff2') format('woff2');
+        font-display: swap;
+      }
+      :root {
+        color-scheme: light;
+        --paper: #fafbf8;
+        --card: #ffffff;
+        --card-2: #f1f4ef;
+        --ink: #18202b;
+        --ink-2: #4a5464;
+        --ink-3: #7a838f;
+        --line: #dce2da;
+        --accent: #1e4a8a;
+        --accent-soft: #e2eaf5;
+        --on-accent: #fff;
+        --grid: #a4c7b1;
+        --han: 'WenKai', 'Kaiti SC', 'STKaiti', 'KaiTi', serif;
+        --sans: 'Fira Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --paper: #14191e;
+          --card: #1a2026;
+          --card-2: #1f262d;
+          --ink: #e5e8ec;
+          --ink-2: #aab2bc;
+          --ink-3: #7e8792;
+          --line: #273039;
+          --accent: #8eb0e6;
+          --accent-soft: #1c2a40;
+          --on-accent: #10151a;
+          --grid: #355443;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font: 15px/1.5 var(--sans);
+      }
+      .page {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom))
+          max(20px, env(safe-area-inset-left));
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 48px;
+      }
+      .mark {
+        font-family: var(--han);
+        font-size: 26px;
+        color: var(--accent);
+      }
+      .brand {
+        font-weight: 600;
+      }
+      .spacer {
+        flex: 1;
+      }
+      a {
+        color: var(--accent);
+      }
+      .quiet {
+        font-weight: 600;
+        text-decoration: none;
+        padding: 10px 4px;
+      }
+      h1 {
+        font-size: 30px;
+        line-height: 1.2;
+        font-weight: 600;
+        margin: 40px 0 12px;
+        text-wrap: balance;
+      }
+      .lede {
+        font-size: 17px;
+        color: var(--ink-2);
+        margin: 0;
+        max-width: 34em;
+      }
+      /* The exercise book: a strip of 田字格 with the first characters of a text in it. */
+      .book {
+        display: flex;
+        gap: 6px;
+        margin: 28px 0 8px;
+        flex-wrap: wrap;
+      }
+      .sq {
+        width: 56px;
+        height: 56px;
+        border: 1px solid var(--grid);
+        border-radius: 4px;
+        display: grid;
+        place-items: center;
+        font-family: var(--han);
+        font-size: 36px;
+        line-height: 1;
+        /* The 田: a cross of the grid's colour through the middle. */
+        background:
+          linear-gradient(var(--grid), var(--grid)) center / 1px 100% no-repeat,
+          linear-gradient(var(--grid), var(--grid)) center / 100% 1px no-repeat,
+          var(--card);
+      }
+      .sq.faint {
+        color: var(--ink-3);
+      }
+      .caption {
+        font-size: 13.5px;
+        color: var(--ink-3);
+        margin: 0;
+      }
+      h2 {
+        font-size: 19px;
+        font-weight: 600;
+        margin: 40px 0 4px;
+      }
+      ul.rows {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .rows li {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr);
+        gap: 12px;
+        padding: 14px 0;
+        border-top: 1px solid var(--line);
+      }
+      .rows li:first-child {
+        border-top: 0;
+      }
+      .rows .han {
+        font-family: var(--han);
+        font-size: 30px;
+        line-height: 1.1;
+        color: var(--ink-2);
+      }
+      .rows b {
+        display: block;
+        font-weight: 600;
+      }
+      .rows span {
+        color: var(--ink-2);
+      }
+      .door {
+        margin-top: 40px;
+        padding: 20px;
+        border-radius: 20px;
+        background: var(--card-2);
+        display: grid;
+        gap: 14px;
+        justify-items: start;
+      }
+      .door p {
+        margin: 0;
+        color: var(--ink-2);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        min-height: 50px;
+        padding: 0 22px;
+        border-radius: 12px;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      footer {
+        margin-top: 40px;
+        font-size: 13.5px;
+        color: var(--ink-3);
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <span class="mark" aria-hidden="true">写</span>
+        <span class="brand">Hanzi Workshop</span>
+        <span class="spacer"></span>
+        <a class="quiet" href="/login">Sign in</a>
+      </header>
+
+      <main>
+        <h1>Read Chinese from real texts, at your level</h1>
+        <p class="lede">
+          For HSK 1 and 2, twenty to thirty minutes a day, on an iPhone or an iPad. Everything you learn is kept in your
+          account and is the same on every device.
+        </p>
+
+        <div class="book" aria-hidden="true">
+          <span class="sq">我</span>
+          <span class="sq">喜</span>
+          <span class="sq">欢</span>
+          <span class="sq faint">水</span>
+          <span class="sq faint">果</span>
+        </div>
+        <p class="caption">我喜欢水果。 Wǒ xǐhuan shuǐguǒ. I like fruit.</p>
+
+        <h2>What a day looks like</h2>
+        <ul class="rows">
+          <li>
+            <span class="han" aria-hidden="true">读</span>
+            <span><b>Read</b>Texts written at your level, with pinyin above the characters, the words you are learning marked, and any word a tap away.</span>
+          </li>
+          <li>
+            <span class="han" aria-hidden="true">卡</span>
+            <span><b>Cards</b>A fixed few a day, the ones that are slipping first. Never a pile of debts.</span>
+          </li>
+          <li>
+            <span class="han" aria-hidden="true">说</span>
+            <span><b>Speak</b>Say a line from your text and hear native recordings; with a SpeechSuper key of your own, see which initials, finals and tones were off.</span>
+          </li>
+          <li>
+            <span class="han" aria-hidden="true">写</span>
+            <span><b>Copy out</b>Write the text into your exercise book a word at a time, with the strokes beside it.</span>
+          </li>
+          <li>
+            <span class="han" aria-hidden="true">玩</span>
+            <span><b>Play</b>Small games for the words of the week, and a walk through Beijing in Chinese.</span>
+          </li>
+        </ul>
+
+        <div class="door">
+          <p>New accounts are by invitation. If you have one, its link brings you straight to making your account.</p>
+          <a class="btn" href="/login">Sign in</a>
+          <span>Have an invitation? <a href="/register">Make an account</a></span>
+        </div>
+      </main>
+
+      <footer>
+        <a href="/sources.html">Where the words, voices and pictures come from</a>
+      </footer>
+    </div>
+  </body>
+</html>

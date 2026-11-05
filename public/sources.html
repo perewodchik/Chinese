@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Who made what the app is built on, as their licences ask: plain HTML
+         beside welcome.html, in the same dress. The full lists are the
+         CREDITS files it links to; README › Where everything comes from is
+         the same table for whoever works on the code. -->
+    <title>Sources · Hanzi Workshop</title>
+    <meta name="description" content="Where Hanzi Workshop’s words, stroke outlines, example sentences, recordings, pictures and type come from, and under which licences." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Hanzi Workshop" />
+    <meta property="og:description" content="Read Chinese from real texts at HSK 1–2, twenty to thirty minutes a day." />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafbf8" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#14191e" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/icons/favicon-64.png" />
+    <style>
+      @font-face {
+        font-family: 'WenKai';
+        src: url('/fonts/wenkai.woff2') format('woff2');
+        /* A megabyte: used if it is already there, never waited for. */
+        font-display: optional;
+      }
+      @font-face {
+        font-family: 'Fira Sans';
+        font-weight: 400;
+        src: url('/fonts/fira-400-latin.woff2') format('woff2');
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Fira Sans';
+        font-weight: 600;
+        src: url('/fonts/fira-600-latin.woff2') format('woff2');
+        font-display: swap;
+      }
+      :root {
+        color-scheme: light;
+        --paper: #fafbf8;
+        --card: #ffffff;
+        --card-2: #f1f4ef;
+        --ink: #18202b;
+        --ink-2: #4a5464;
+        --ink-3: #7a838f;
+        --line: #dce2da;
+        --accent: #1e4a8a;
+        --accent-soft: #e2eaf5;
+        --on-accent: #fff;
+        --grid: #a4c7b1;
+        --han: 'WenKai', 'Kaiti SC', 'STKaiti', 'KaiTi', serif;
+        --sans: 'Fira Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --paper: #14191e;
+          --card: #1a2026;
+          --card-2: #1f262d;
+          --ink: #e5e8ec;
+          --ink-2: #aab2bc;
+          --ink-3: #7e8792;
+          --line: #273039;
+          --accent: #8eb0e6;
+          --accent-soft: #1c2a40;
+          --on-accent: #10151a;
+          --grid: #355443;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font: 15px/1.5 var(--sans);
+      }
+      .page {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom))
+          max(20px, env(safe-area-inset-left));
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 48px;
+      }
+      .mark {
+        font-family: var(--han);
+        font-size: 26px;
+        color: var(--accent);
+      }
+      .brand {
+        font-weight: 600;
+      }
+      .spacer {
+        flex: 1;
+      }
+      a {
+        color: var(--accent);
+      }
+      .quiet {
+        font-weight: 600;
+        text-decoration: none;
+        padding: 10px 4px;
+      }
+      h1 {
+        font-size: 30px;
+        line-height: 1.2;
+        font-weight: 600;
+        margin: 40px 0 12px;
+        text-wrap: balance;
+      }
+      .lede {
+        font-size: 17px;
+        color: var(--ink-2);
+        margin: 0;
+        max-width: 34em;
+      }
+      /* The exercise book: a strip of 田字格 with the first characters of a text in it. */
+      .book {
+        display: flex;
+        gap: 6px;
+        margin: 28px 0 8px;
+        flex-wrap: wrap;
+      }
+      .sq {
+        width: 56px;
+        height: 56px;
+        border: 1px solid var(--grid);
+        border-radius: 4px;
+        display: grid;
+        place-items: center;
+        font-family: var(--han);
+        font-size: 36px;
+        line-height: 1;
+        /* The 田: a cross of the grid's colour through the middle. */
+        background:
+          linear-gradient(var(--grid), var(--grid)) center / 1px 100% no-repeat,
+          linear-gradient(var(--grid), var(--grid)) center / 100% 1px no-repeat,
+          var(--card);
+      }
+      .sq.faint {
+        color: var(--ink-3);
+      }
+      .caption {
+        font-size: 13.5px;
+        color: var(--ink-3);
+        margin: 0;
+      }
+      h2 {
+        font-size: 19px;
+        font-weight: 600;
+        margin: 40px 0 4px;
+      }
+      ul.rows {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .rows li {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr);
+        gap: 12px;
+        padding: 14px 0;
+        border-top: 1px solid var(--line);
+      }
+      .rows li:first-child {
+        border-top: 0;
+      }
+      .rows .han {
+        font-family: var(--han);
+        font-size: 30px;
+        line-height: 1.1;
+        color: var(--ink-2);
+      }
+      .rows b {
+        display: block;
+        font-weight: 600;
+      }
+      .rows span {
+        color: var(--ink-2);
+      }
+      .door {
+        margin-top: 40px;
+        padding: 20px;
+        border-radius: 20px;
+        background: var(--card-2);
+        display: grid;
+        gap: 14px;
+        justify-items: start;
+      }
+      .door p {
+        margin: 0;
+        color: var(--ink-2);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        min-height: 50px;
+        padding: 0 22px;
+        border-radius: 12px;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        padding: 10px 8px 10px 0;
+        border-top: 1px solid var(--line);
+      }
+      th {
+        font-weight: 600;
+        color: var(--ink-2);
+      }
+      .wide {
+        overflow-x: auto;
+      }
+      footer {
+        margin-top: 40px;
+        font-size: 13.5px;
+        color: var(--ink-3);
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+    <body>
+    <div class="page">
+      <header>
+        <a class="mark" href="/" aria-label="Hanzi Workshop" style="text-decoration: none">写</a>
+        <span class="brand">Hanzi Workshop</span>
+        <span class="spacer"></span>
+        <a class="quiet" href="/login">Sign in</a>
+      </header>
+
+      <main>
+        <h1>Where everything comes from</h1>
+        <p class="lede">The words, outlines, sentences, recordings, pictures and type the app is built on, who made them, and the licence each is used under. Thank you to all of them.</p>
+
+        <div class="wide">
+          <table>
+            <thead>
+              <tr><th>What</th><th>From</th><th>Licence</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>HSK 3.0 character and word lists</td><td><a href="https://github.com/elkmovie/hsk30">elkmovie/hsk30, from the 2021 standard</a></td><td>MIT</td></tr>
+              <tr><td>HSK word lists, readings, measure words</td><td><a href="https://github.com/drkameleon/complete-hsk-vocabulary">complete-hsk-vocabulary</a></td><td>MIT</td></tr>
+              <tr><td>Stroke outlines and decompositions</td><td><a href="https://www.skishore.me/makemeahanzi/">Make Me a Hanzi and hanzi-writer-data, from Arphic’s Kai typefaces</a></td><td>Arphic Public License</td></tr>
+              <tr><td>Definitions and pinyin</td><td><a href="https://www.mdbg.net/chinese/dictionary?page=cedict">CC-CEDICT</a></td><td>CC BY-SA 4.0</td></tr>
+              <tr><td>Character frequency, Kangxi radical numbers</td><td><a href="https://github.com/ruddfawcett/hanziDB.csv">hanziDB, after Jun Da</a></td><td>MIT</td></tr>
+              <tr><td>Word frequency</td><td><a href="https://github.com/fxsjy/jieba">jieba’s dictionary</a></td><td>MIT</td></tr>
+              <tr><td>Example sentences</td><td><a href="https://tatoeba.org/">Tatoeba</a></td><td>CC BY 2.0 FR</td></tr>
+              <tr><td>Syllable recordings</td><td><a href="https://github.com/davinfifield/mp3-chinese-pinyin-sound">mp3-chinese-pinyin-sound</a></td><td>Unlicense</td></tr>
+              <tr><td>Word and sentence recordings</td><td><a href="/voices/CREDITS.md">Native speakers on Wikimedia Commons (Lingua Libre, the Shtooka project) and Tatoeba — every file, speaker and licence</a></td><td>CC BY-SA, CC BY, CC BY-NC, CC0</td></tr>
+              <tr><td>Pictures of words</td><td><a href="/images/words/CREDITS.md">Wikimedia Commons — every picture, author and licence</a></td><td>CC BY, CC BY-SA, CC0, public domain</td></tr>
+              <tr><td>Conversation voices</td><td><a href="https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice">Qwen3-TTS, generated</a></td><td>Apache-2.0</td></tr>
+              <tr><td>Chinese type</td><td><a href="https://github.com/lxgw/LxgwWenKai">LXGW WenKai 霞鹜文楷</a></td><td>SIL OFL 1.1</td></tr>
+              <tr><td>Latin type</td><td><a href="https://fonts.google.com/">Fira Sans, Literata, Noto Sans</a></td><td>SIL OFL 1.1</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="caption" style="margin-top: 16px">The texts you read in your account are your own: what you wrote, asked for or added stays in your account and is shown to nobody else.</p>
+      </main>
+
+      <footer>
+        <a href="/">Hanzi Workshop</a>
+      </footer>
+    </div>
+  </body>
+</html>

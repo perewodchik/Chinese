@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { ServerUnreachable } from '../features/auth/gates';
 import { useSession } from '../features/auth/session';
@@ -25,6 +26,9 @@ export function RequireSession() {
     case 'unreachable':
       return <ServerUnreachable message={session.message} onRetry={retry} />;
     case 'signed-out': {
+      // Someone arriving at the bare address, signed in nowhere: the front
+      // door, a page of its own (public/welcome.html) rather than a password box.
+      if (session.reason === 'initial' && location.pathname === '/' && !location.search) return <FrontDoor />;
       const here = `${location.pathname}${location.search}`;
       const to = session.reason === 'left' ? paths.login() : paths.login(here, session.reason === 'expired');
       return <Navigate to={to} replace />;
@@ -40,4 +44,10 @@ export function RequireSession() {
         </WorkspaceGate>
       );
   }
+}
+
+/** Leaves the app for the front door, the plain page that says what this is. */
+function FrontDoor() {
+  useEffect(() => window.location.replace('/welcome.html'), []);
+  return <Splash mark="写">Hanzi Workshop</Splash>;
 }
