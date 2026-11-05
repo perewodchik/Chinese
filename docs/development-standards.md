@@ -254,6 +254,17 @@ build  →  check  →  fix what the check found  →  check again  →  commit 
   - Stage explicit paths only.
   - Before committing, compare your files with `origin/main`. If another
     session changed one of them, merge by hand; never overwrite.
+  - Make it a check that stops the commit, not a step to remember. Committing
+    a file whole on top of a newer `main` replaces every change made to it
+    since your copy was taken. On 5 November that took out two other
+    sessions' work: per-account storage on a shared iPad, and a cast's
+    voices. So, with `B` the commit your copy is based on:
+    ```bash
+    git fetch -q origin main
+    test -z "$(git diff --name-only $B origin/main -- <your paths>)" || echo "MERGE FIRST"
+    ```
+    Merge each listed file with `git merge-file <yours> <B's> <origin's>`
+    (conflicts by hand), build and test the merge, then commit.
 - **Generated files** (`public/world/…`, `stamps.gen.ts`) are rebuilt, never
   edited or merged by hand.
 - **No `reset --hard`, no force-push,** and nothing rewritten that someone
