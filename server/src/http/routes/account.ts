@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { UsageResponse } from '../../../../shared/usage';
 import type { AppEnv, RouteDeps } from '../env';
-import { RateLimiter, requireSession } from '../guards';
+import { auditor, RateLimiter, requireSession } from '../guards';
 import { clearSessionCookie, isHttps, readJson } from '../request';
 
 /**
@@ -14,7 +14,7 @@ import { clearSessionCookie, isHttps, readJson } from '../request';
  *   GET /api/account/storage  how much the account keeps, out of how much it may
  */
 const deleteRequest = z.object({ password: z.string().max(2048) });
-export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage }: RouteDeps) {
+export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage, audit, ipHeader, log }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // The password is asked for, so a guesser with a stolen cookie gets as few tries as at the sign-in page.
@@ -25,6 +25,7 @@ export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narr
     await deletes.consume(user.id);
     const { password } = await readJson(c, deleteRequest);
     await auth.deleteAccount({ userId: user.id, password });
+    auditor(audit, clock, trustProxy, ipHeader, log)(c, 'deleted', user.username);
     clearSessionCookie(c, isHttps(c, trustProxy));
     return c.body(null, 204);
   });

@@ -7,9 +7,9 @@ import type {
   SessionsResponse,
 } from '../../../../shared/api';
 import { usernameKey } from '../../../../shared/credentials';
-import { NotFoundError } from '../../domain/errors';
+import { InvalidCredentialsError, NotFoundError, ValidationError } from '../../domain/errors';
 import type { AppEnv, RouteDeps } from '../env';
-import { currentSession, RateLimiter, requireSession } from '../guards';
+import { auditor, currentSession, RateLimiter, requireSession } from '../guards';
 import {
   clearSessionCookie,
   clientIp,
@@ -70,10 +70,11 @@ function tunnelled(c: Context, trustProxy: boolean): boolean {
   return ['x-forwarded-for', 'forwarded', 'x-real-ip', 'cf-connecting-ip', 'x-forwarded-host'].some((h) => c.req.header(h) !== undefined);
 }
 
-export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate, log, limits }: RouteDeps) {
+export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate, log, limits, audit }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const sessionOptions = { trustProxy, clock };
   const session = requireSession(auth, sessionOptions);
+  const note = auditor(audit, clock, trustProxy, ipHeader, log);
 
   // Ten wrong passwords for one name from one address buys a quarter of an
   // hour's wait; a hundred attempts of any kind from one address does too.
@@ -114,6 +115,7 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
     await signUps.consume(clientIp(c, trustProxy, ipHeader));
     const input = await readJson(c, registration);
     const issued = await auth.register({ ...input, userAgent: c.req.header('user-agent') ?? null });
+    note(c, 'sign-up', issued.user.username);
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body: SessionResponse = { user: issued.user };
     return c.json(body, 201);
@@ -126,7 +128,11 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
     await perAddress.consume(ip);
     await perName.consume(nameKey);
 
-    const issued = await auth.login({ ...input, userAgent: c.req.header('user-agent') ?? null });
+    const issued = await auth.login({ ...input, userAgent: c.req.header('user-agent') ?? null }).catch((err: unknown) => {
+      if (err instanceof InvalidCredentialsError) note(c, 'sign-in-refused', input.username);
+      throw err;
+    });
+    note(c, 'sign-in', issued.user.username);
     await perName.reset(nameKey);
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body: SessionResponse = { user: issued.user };
@@ -176,7 +182,11 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
     const ip = clientIp(c, trustProxy, ipHeader);
     await perAddress.consume(ip);
     await recoveries.consume(`${ip} ${usernameKey(input.username)}`);
-    const issued = await auth.recover({ ...input, userAgent: c.req.header('user-agent') ?? null });
+    const issued = await auth.recover({ ...input, userAgent: c.req.header('user-agent') ?? null }).catch((err: unknown) => {
+      if (err instanceof ValidationError && err.fields?.code) note(c, 'recovery-refused', input.username);
+      throw err;
+    });
+    note(c, 'recovery', issued.user.username);
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body: SessionResponse = { user: issued.user };
     return c.json(body);
@@ -186,6 +196,7 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
     const input = await readJson(c, passwordChange);
     const { user, sessionId } = c.get('session');
     await auth.changePassword({ userId: user.id, sessionId, ...input });
+    note(c, 'password', user.username);
     return c.body(null, 204);
   });
 

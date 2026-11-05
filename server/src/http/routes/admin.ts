@@ -4,7 +4,7 @@ import type { AdminAccount, AdminOverview } from '../../../../shared/admin';
 import { usernameKey } from '../../../../shared/credentials';
 import { ForbiddenError } from '../../domain/errors';
 import type { AppEnv, RouteDeps } from '../env';
-import { RateLimiter, requireSession } from '../guards';
+import { auditor, RateLimiter, requireSession } from '../guards';
 import { readJson } from '../request';
 
 const inviteRequest = z.object({ note: z.string().trim().max(120), days: z.number().int().min(0).max(365) });
@@ -16,7 +16,7 @@ const inviteRequest = z.object({ note: z.string().trim().max(120), days: z.numbe
  *
  * Nothing here reads anyone's work: names, dates, sizes and counts.
  */
-export function adminRoutes({ auth, clock, trustProxy, adminUsers, limits, usage, storage }: RouteDeps) {
+export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, adminUsers, limits, usage, storage, audit }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   const admin: MiddlewareHandler<AppEnv> = async (c, next) => {
@@ -53,6 +53,7 @@ export function adminRoutes({ auth, clock, trustProxy, adminUsers, limits, usage
       storageLimitBytes: storage.limitBytes,
       accounts: accounts.sort((a, b) => (b.lastSeenAt ?? 0) - (a.lastSeenAt ?? 0)),
       invites: (await auth.invites()).reverse(),
+      events: (await audit.recent(60)).map(({ at, kind, username, userAgent }) => ({ at, kind, username, userAgent })),
     };
     c.header('Cache-Control', 'no-store');
     return c.json(body);
@@ -62,6 +63,7 @@ export function adminRoutes({ auth, clock, trustProxy, adminUsers, limits, usage
     await invites.consume(c.get('session').user.id);
     const { note, days } = await readJson(c, inviteRequest);
     const made = await auth.invite(note, days === 0 ? null : days);
+    auditor(audit, clock, trustProxy, ipHeader, log)(c, 'invite', c.get('session').user.username);
     c.header('Cache-Control', 'no-store');
     return c.json({ code: made.code, expiresAt: made.expiresAt }, 201);
   });

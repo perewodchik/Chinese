@@ -15,6 +15,7 @@ import { PostgresInviteRepository } from './invite-repository';
 import { PostgresRateLimitStore } from './rate-limit-store';
 import { PostgresLookupCache } from './lookup-cache';
 import { PostgresStorageMeter } from './storage-meter';
+import { PostgresAuditLog } from './audit-log';
 import { PostgresRecoveryCodeRepository } from './recovery-code-repository';
 import { PostgresWorkspaceRepository } from './workspace-repository';
 import { PostgresWorldSaveRepository } from './world-save-repository';
@@ -38,5 +39,6 @@ export const postgresStores = (db: pg.Pool): Stores => ({
   limits: new PostgresRateLimitStore(db),
   lookups: new PostgresLookupCache(db),
   storage: new PostgresStorageMeter(db),
+  audit: new PostgresAuditLog(db),
   recoveryCodes: new PostgresRecoveryCodeRepository(db),
 });

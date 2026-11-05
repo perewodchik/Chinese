@@ -1879,7 +1879,8 @@ function createServices(stores, options = {}) {
     usage,
     limits: stores.limits,
     lookups: stores.lookups,
-    storage: quota
+    storage: quota,
+    audit: stores.audit
   };
 }
 
@@ -2017,6 +2018,12 @@ function tutorFor(tutor, tutorUsers, user) {
   if (!tutor) return null;
   return !tutorUsers || tutorUsers.includes(usernameKey(user.username)) ? tutor : null;
 }
+function auditor(audit, clock, trustProxy, ipHeader, log) {
+  return (c, kind, username) => {
+    const at = clock.now();
+    void audit.add({ at, kind, username: username.trim().slice(0, 64), ip: clientIp(c, trustProxy, ipHeader), userAgent: c.req.header("user-agent")?.slice(0, 300) ?? null }).then(() => Math.random() < 0.01 ? audit.sweep(at - 90 * 864e5) : void 0).catch((err) => log(`audit: could not write ${kind}: ${err instanceof Error ? err.message : String(err)}`));
+  };
+}
 async function currentSession(c, auth, opts) {
   const token = readSessionToken(c);
   if (!token) return null;
@@ -2059,7 +2066,7 @@ var RateLimiter = class {
 import { Hono } from "hono";
 import { z } from "zod";
 var deleteRequest = z.object({ password: z.string().max(2048) });
-function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage }) {
+function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage, audit, ipHeader, log }) {
   const routes = new Hono();
   const session = requireSession(auth, { trustProxy, clock });
   const deletes = new RateLimiter("account.deletes", 10, 15 * 6e4, clock, limits);
@@ -2068,6 +2075,7 @@ function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, 
     await deletes.consume(user.id);
     const { password } = await readJson(c, deleteRequest);
     await auth.deleteAccount({ userId: user.id, password });
+    auditor(audit, clock, trustProxy, ipHeader, log)(c, "deleted", user.username);
     clearSessionCookie(c, isHttps(c, trustProxy));
     return c.body(null, 204);
   });
@@ -2121,7 +2129,7 @@ function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, 
 import { Hono as Hono2 } from "hono";
 import { z as z2 } from "zod";
 var inviteRequest = z2.object({ note: z2.string().trim().max(120), days: z2.number().int().min(0).max(365) });
-function adminRoutes({ auth, clock, trustProxy, adminUsers, limits, usage, storage }) {
+function adminRoutes({ auth, clock, trustProxy, ipHeader, log, adminUsers, limits, usage, storage, audit }) {
   const routes = new Hono2();
   const session = requireSession(auth, { trustProxy, clock });
   const admin = async (c, next) => {
@@ -2155,7 +2163,8 @@ function adminRoutes({ auth, clock, trustProxy, adminUsers, limits, usage, stora
       registration: auth.registration,
       storageLimitBytes: storage.limitBytes,
       accounts: accounts.sort((a, b) => (b.lastSeenAt ?? 0) - (a.lastSeenAt ?? 0)),
-      invites: (await auth.invites()).reverse()
+      invites: (await auth.invites()).reverse(),
+      events: (await audit.recent(60)).map(({ at, kind, username, userAgent }) => ({ at, kind, username, userAgent }))
     };
     c.header("Cache-Control", "no-store");
     return c.json(body);
@@ -2164,6 +2173,7 @@ function adminRoutes({ auth, clock, trustProxy, adminUsers, limits, usage, stora
     await invites.consume(c.get("session").user.id);
     const { note, days } = await readJson(c, inviteRequest);
     const made = await auth.invite(note, days === 0 ? null : days);
+    auditor(audit, clock, trustProxy, ipHeader, log)(c, "invite", c.get("session").user.username);
     c.header("Cache-Control", "no-store");
     return c.json({ code: made.code, expiresAt: made.expiresAt }, 201);
   });
@@ -2271,10 +2281,11 @@ function tunnelled(c, trustProxy) {
   if (trustProxy) return false;
   return ["x-forwarded-for", "forwarded", "x-real-ip", "cf-connecting-ip", "x-forwarded-host"].some((h) => c.req.header(h) !== void 0);
 }
-function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate, log, limits }) {
+function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate, log, limits, audit }) {
   const routes = new Hono4();
   const sessionOptions = { trustProxy, clock };
   const session = requireSession(auth, sessionOptions);
+  const note = auditor(audit, clock, trustProxy, ipHeader, log);
   const perName = new RateLimiter("auth.perName", 10, 15 * MINUTE, clock, limits);
   const perAddress = new RateLimiter("auth.perAddress", 100, 15 * MINUTE, clock, limits);
   const signUps = new RateLimiter("auth.signUps", 20, 60 * MINUTE, clock, limits);
@@ -2301,6 +2312,7 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
     await signUps.consume(clientIp(c, trustProxy, ipHeader));
     const input = await readJson(c, registration);
     const issued = await auth.register({ ...input, userAgent: c.req.header("user-agent") ?? null });
+    note(c, "sign-up", issued.user.username);
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body = { user: issued.user };
     return c.json(body, 201);
@@ -2311,7 +2323,11 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
     const nameKey = `${ip} ${usernameKey(input.username)}`;
     await perAddress.consume(ip);
     await perName.consume(nameKey);
-    const issued = await auth.login({ ...input, userAgent: c.req.header("user-agent") ?? null });
+    const issued = await auth.login({ ...input, userAgent: c.req.header("user-agent") ?? null }).catch((err) => {
+      if (err instanceof InvalidCredentialsError) note(c, "sign-in-refused", input.username);
+      throw err;
+    });
+    note(c, "sign-in", issued.user.username);
     await perName.reset(nameKey);
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body = { user: issued.user };
@@ -2352,7 +2368,11 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
     const ip = clientIp(c, trustProxy, ipHeader);
     await perAddress.consume(ip);
     await recoveries.consume(`${ip} ${usernameKey(input.username)}`);
-    const issued = await auth.recover({ ...input, userAgent: c.req.header("user-agent") ?? null });
+    const issued = await auth.recover({ ...input, userAgent: c.req.header("user-agent") ?? null }).catch((err) => {
+      if (err instanceof ValidationError && err.fields?.code) note(c, "recovery-refused", input.username);
+      throw err;
+    });
+    note(c, "recovery", issued.user.username);
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body = { user: issued.user };
     return c.json(body);
@@ -2361,6 +2381,7 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
     const input = await readJson(c, passwordChange);
     const { user, sessionId } = c.get("session");
     await auth.changePassword({ userId: user.id, sessionId, ...input });
+    note(c, "password", user.username);
     return c.body(null, 204);
   });
   return routes;
@@ -3453,6 +3474,17 @@ var MIGRATIONS = [
     used_at     BIGINT,
     PRIMARY KEY (user_id, digest)
   );
+  `,
+  // What happened to accounts, kept ninety days for whoever runs the site.
+  `
+  CREATE TABLE audit_log (
+    at          BIGINT NOT NULL,
+    kind        TEXT NOT NULL,
+    username    TEXT NOT NULL,
+    ip          TEXT NOT NULL,
+    user_agent  TEXT
+  );
+  CREATE INDEX audit_log_by_time ON audit_log (at);
   `
 ];
 
@@ -4075,6 +4107,26 @@ var PostgresStorageMeter = class {
   }
 };
 
+// server/src/infrastructure/postgres/audit-log.ts
+var PostgresAuditLog = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async add(e) {
+    await this.db.query("INSERT INTO audit_log (at, kind, username, ip, user_agent) VALUES ($1, $2, $3, $4, $5)", [e.at, e.kind, e.username, e.ip, e.userAgent]);
+  }
+  async recent(limit) {
+    const { rows } = await this.db.query(
+      "SELECT at, kind, username, ip, user_agent FROM audit_log ORDER BY at DESC LIMIT $1",
+      [limit]
+    );
+    return rows.map((r) => ({ at: Number(r.at), kind: r.kind, username: r.username, ip: r.ip, userAgent: r.user_agent }));
+  }
+  async sweep(before) {
+    await this.db.query("DELETE FROM audit_log WHERE at < $1", [before]);
+  }
+};
+
 // server/src/infrastructure/postgres/recovery-code-repository.ts
 var PostgresRecoveryCodeRepository = class {
   constructor(db) {
@@ -4207,6 +4259,7 @@ var postgresStores = (db) => ({
   limits: new PostgresRateLimitStore(db),
   lookups: new PostgresLookupCache(db),
   storage: new PostgresStorageMeter(db),
+  audit: new PostgresAuditLog(db),
   recoveryCodes: new PostgresRecoveryCodeRepository(db)
 });
 

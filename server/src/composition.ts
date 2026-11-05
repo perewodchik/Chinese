@@ -29,6 +29,7 @@ import type {
   LookupCache,
   RecoveryCodeRepository,
   StorageMeter,
+  AuditLog,
   WorkspaceRepository,
   WorldSaveRepository,
 } from './application/ports';
@@ -71,6 +72,8 @@ export interface Services {
   lookups: LookupCache;
   /** how much each account keeps, against its ceiling */
   storage: StorageQuota;
+  /** what happened to accounts, ninety days of it */
+  audit: AuditLog;
 }
 
 /** Where each kind of record is kept. */
@@ -93,6 +96,7 @@ export interface Stores {
   lookups: LookupCache;
   recoveryCodes: RecoveryCodeRepository;
   storage: StorageMeter;
+  audit: AuditLog;
 }
 
 /**
@@ -161,5 +165,6 @@ export function createServices(
     limits: stores.limits,
     lookups: stores.lookups,
     storage: quota,
+    audit: stores.audit,
   };
 }

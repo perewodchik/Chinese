@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { AdminOverview } from '../../../shared/admin';
 import { ApiError } from '../../api/http';
 import { adminOverview, makeInvite } from '../../api/admin';
+import { deviceName } from '../../domain/device';
 import { paths } from '../../navigation/paths';
 import { copyText } from '../../platform/clipboard';
 import { useToast } from '../../ui/toast';
@@ -13,6 +14,20 @@ const day = (at: number) => new Date(at).toLocaleDateString(undefined, { day: 'n
 const MB = 1024 * 1024;
 const mb = (b: number) => (b < MB ? '<1 MB' : `${Math.round(b / MB).toLocaleString('en')} MB`);
 const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString('en')} ${n === 1 ? one : many}`;
+
+const when = (at: number) => new Date(at).toLocaleString(undefined, { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' });
+
+/** What happened, in words. */
+const EVENT: Record<string, string> = {
+  'sign-in': 'Signed in',
+  'sign-in-refused': 'Wrong password for',
+  'sign-up': 'New account',
+  recovery: 'New password from a recovery code',
+  'recovery-refused': 'Wrong recovery code for',
+  password: 'Password changed',
+  deleted: 'Account deleted',
+  invite: 'Invitation made by',
+};
 
 const DAYS = [
   { value: 7, label: 'A week' },
@@ -146,6 +161,29 @@ export function AdminPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="block">
+        <h2 className="block-title">Lately</h2>
+        {data && data.events.length === 0 ? (
+          <p className="small muted">Nothing yet.</p>
+        ) : (
+          <ul className="list admin-list">
+            {(data?.events ?? []).map((e, i) => (
+              <li key={`${e.at}-${i}`} className="admin-row">
+                <span>
+                  <b data-state={e.kind.endsWith('-refused') ? 'wrong' : undefined} className="admin-kind">
+                    {EVENT[e.kind] ?? e.kind}
+                  </b>{' '}
+                  {e.username}
+                </span>
+                <span className="small muted">
+                  {when(e.at)} · {deviceName(e.userAgent)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="block">

@@ -1,10 +1,10 @@
 import type { Context, MiddlewareHandler } from 'hono';
 import type { ActiveSession, AuthService } from '../application/auth-service';
 import { usernameKey } from '../../../shared/credentials';
-import type { Clock, RateLimitStore, Tutor } from '../application/ports';
+import type { AuditLog, Clock, RateLimitStore, Tutor } from '../application/ports';
 import { ForbiddenOriginError, RateLimitedError, UnauthorizedError } from '../domain/errors';
 import type { AppEnv } from './env';
-import { clearSessionCookie, isHttps, readSessionToken, writeSessionCookie } from './request';
+import { clearSessionCookie, clientIp, isHttps, readSessionToken, writeSessionCookie } from './request';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
@@ -46,6 +46,21 @@ export function sameOriginOnly(): MiddlewareHandler {
 export function tutorFor(tutor: Tutor | null, tutorUsers: string[] | null, user: { username: string }): Tutor | null {
   if (!tutor) return null;
   return !tutorUsers || tutorUsers.includes(usernameKey(user.username)) ? tutor : null;
+}
+
+/**
+ * Writes down what happened to an account, for whoever runs the site, and
+ * now and then forgets what is older than ninety days. A line that cannot be
+ * written never fails what was asked for.
+ */
+export function auditor(audit: AuditLog, clock: Clock, trustProxy: boolean, ipHeader: string | null, log: (line: string) => void) {
+  return (c: Context, kind: string, username: string) => {
+    const at = clock.now();
+    void audit
+      .add({ at, kind, username: username.trim().slice(0, 64), ip: clientIp(c, trustProxy, ipHeader), userAgent: c.req.header('user-agent')?.slice(0, 300) ?? null })
+      .then(() => (Math.random() < 0.01 ? audit.sweep(at - 90 * 86_400_000) : undefined))
+      .catch((err: unknown) => log(`audit: could not write ${kind}: ${err instanceof Error ? err.message : String(err)}`));
+  };
 }
 
 interface SessionOptions {

@@ -31,6 +31,16 @@ describe('the site’s own page, for whoever runs it', () => {
     const masha = overview.accounts.find((a) => a.username === 'masha')!;
     assert.equal(masha.devices, 1);
     assert.ok(!JSON.stringify(overview).includes(code.replace(/-/g, '')), 'no code is ever shown again');
+    await call(app, 'POST', '/api/auth/login', { body: { username: 'masha', password: 'wrong horse' } });
+    await new Promise((r) => setTimeout(r, 20));
+    const later = (await (await call(app, 'GET', '/api/admin/overview', { cookie: ownerCookie })).json()) as AdminOverview;
+    assert.deepEqual(later.events.slice(0, 4).map((e) => [e.kind, e.username]), [
+      ['sign-in-refused', 'masha'],
+      ['sign-up', 'masha'],
+      ['invite', 'kirill'],
+      ['sign-up', 'kirill'],
+    ]);
+    assert.ok(!JSON.stringify(later.events).includes('ip'), 'the address stays on the server');
   });
 
   it('is refused to every other account, and to nobody signed in', async () => {

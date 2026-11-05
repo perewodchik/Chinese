@@ -27,9 +27,19 @@ export interface AdminInvite {
   usedAt: number | null;
 }
 
+/** Something that happened to an account: who, what, when, on what. Not the address. */
+export interface AdminEvent {
+  at: number;
+  kind: 'sign-in' | 'sign-in-refused' | 'sign-up' | 'recovery' | 'recovery-refused' | 'password' | 'deleted' | 'invite' | string;
+  username: string;
+  userAgent: string | null;
+}
+
 export interface AdminOverview {
   registration: 'open' | 'closed' | 'invite';
   storageLimitBytes: number | null;
   accounts: AdminAccount[];
   invites: AdminInvite[];
+  /** the latest sixty, newest first */
+  events: AdminEvent[];
 }

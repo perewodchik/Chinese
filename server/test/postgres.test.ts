@@ -222,4 +222,12 @@ describe('Postgres storage', () => {
     assert.ok(after >= 1000 + JSON.stringify({ note: '你好' }).length, String(after));
     assert.equal(await stores.storage.usedBy('nobody'), 0);
   });
+
+  it('keeps what happened to accounts, the latest first, and forgets what is old', async () => {
+    await stores.audit.add({ at: T, kind: 'sign-up', username: 'masha', ip: '203.0.113.7', userAgent: null });
+    await stores.audit.add({ at: T + 5, kind: 'sign-in-refused', username: 'masha', ip: '203.0.113.7', userAgent: 'iPhone' });
+    assert.deepEqual((await stores.audit.recent(10)).map((e) => e.kind), ['sign-in-refused', 'sign-up']);
+    await stores.audit.sweep(T + 1);
+    assert.deepEqual((await stores.audit.recent(10)).map((e) => [e.kind, e.at]), [['sign-in-refused', T + 5]]);
+  });
 });

@@ -49,3 +49,8 @@
   padding: 10px 0;
   min-width: 0;
 }
+
+/* A refused sign-in is the one thing here in the teacher's red. */
+.admin-kind[data-state='wrong'] {
+  color: var(--red);
+}

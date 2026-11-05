@@ -422,3 +422,22 @@ export interface LookupCache {
 export interface StorageMeter {
   usedBy(userId: string): Promise<number>;
 }
+
+/** What happened to accounts, for whoever runs the site: sign-ins, sign-ups, passwords, deletions. */
+export interface AuditEvent {
+  at: number;
+  /** sign-in, sign-in-refused, sign-up, recovery, recovery-refused, password, deleted, invite */
+  kind: string;
+  /** the name as it was given, for a refused one too */
+  username: string;
+  ip: string;
+  userAgent: string | null;
+}
+
+export interface AuditLog {
+  add(event: AuditEvent): Promise<void>;
+  /** The latest first. */
+  recent(limit: number): Promise<AuditEvent[]>;
+  /** Drops what happened before `before`. */
+  sweep(before: number): Promise<void>;
+}

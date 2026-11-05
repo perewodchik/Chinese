@@ -15,6 +15,7 @@ import { SqliteInviteRepository } from './invite-repository';
 import { SqliteRateLimitStore } from './rate-limit-store';
 import { SqliteLookupCache } from './lookup-cache';
 import { SqliteStorageMeter } from './storage-meter';
+import { SqliteAuditLog } from './audit-log';
 import { SqliteRecoveryCodeRepository } from './recovery-code-repository';
 import { SqliteWorkspaceRepository } from './workspace-repository';
 import { SqliteWorldSaveRepository } from './world-save-repository';
@@ -38,5 +39,6 @@ export const sqliteStores = (db: DatabaseSync): Stores => ({
   limits: new SqliteRateLimitStore(db),
   lookups: new SqliteLookupCache(db),
   storage: new SqliteStorageMeter(db),
+  audit: new SqliteAuditLog(db),
   recoveryCodes: new SqliteRecoveryCodeRepository(db),
 });

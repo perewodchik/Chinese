@@ -222,4 +222,15 @@ export const MIGRATIONS: readonly string[] = [
     PRIMARY KEY (user_id, digest)
   ) STRICT;
   `,
+  // What happened to accounts, kept ninety days for whoever runs the site.
+  `
+  CREATE TABLE audit_log (
+    at          INTEGER NOT NULL,
+    kind        TEXT NOT NULL,
+    username    TEXT NOT NULL,
+    ip          TEXT NOT NULL,
+    user_agent  TEXT
+  ) STRICT;
+  CREATE INDEX audit_log_by_time ON audit_log (at);
+  `,
 ];
