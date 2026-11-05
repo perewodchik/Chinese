@@ -8,6 +8,85 @@ var USERNAME_MIN = 3;
 var USERNAME_MAX = 32;
 var PASSWORD_MIN = 8;
 var PASSWORD_MAX = 256;
+var COMMON_PASSWORDS = /* @__PURE__ */ new Set([
+  "password",
+  "password1",
+  "password12",
+  "password123",
+  "passw0rd",
+  "p@ssw0rd",
+  "iloveyou",
+  "sunshine",
+  "princess",
+  "football",
+  "baseball",
+  "superman",
+  "trustno1",
+  "letmein1",
+  "welcome1",
+  "welcome123",
+  "whatever",
+  "starwars",
+  "dragon12",
+  "monkey123",
+  "computer",
+  "internet",
+  "michelle",
+  "jennifer",
+  "qwertyui",
+  "qwertyuiop",
+  "qwerty12",
+  "qwerty123",
+  "qwerty1234",
+  "asdfghjk",
+  "asdfasdf",
+  "zxcvbnm1",
+  "zxcvbnma",
+  "1q2w3e4r",
+  "1q2w3e4r5t",
+  "1qaz2wsx",
+  "zaq12wsx",
+  "q1w2e3r4",
+  "q1w2e3r4t5",
+  "123qweasd",
+  "qweasdzxc",
+  "abcd1234",
+  "abc12345",
+  "abcdefgh",
+  "admin123",
+  "administrator",
+  "12345678",
+  "123456789",
+  "1234567890",
+  "0123456789",
+  "87654321",
+  "987654321",
+  "12341234",
+  "11223344",
+  "12344321",
+  "123123123",
+  "147258369",
+  "159753456",
+  "123654789",
+  "11111111",
+  "00000000",
+  "88888888",
+  "66666666",
+  "12121212",
+  "11112222",
+  "woaini520",
+  "woaini1314",
+  "5201314520",
+  "52013145",
+  "nihao123",
+  "iloveyou1",
+  "qwertyqwerty",
+  "parol123",
+  "privet123",
+  "hanziworkshop",
+  "chinese1",
+  "chinese123"
+]);
 var NAME_SHAPE = /^[\p{L}\p{N}][\p{L}\p{N}._-]*$/u;
 var normaliseUsername = (raw) => raw.normalize("NFKC").trim();
 var usernameKey = (raw) => normaliseUsername(raw).toLowerCase();
@@ -26,6 +105,7 @@ function passwordProblem(password, username = "") {
   if (username && usernameKey(password) === usernameKey(username)) {
     return "Not the same as the name.";
   }
+  if (COMMON_PASSWORDS.has(password.toLowerCase())) return "That is one of the passwords everyone tries first: pick another.";
   return null;
 }
 
