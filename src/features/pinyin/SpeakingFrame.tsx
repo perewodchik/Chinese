@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router';
 import { paths } from '../../navigation/paths';
+import { useClaudeHere } from '../shared/useClaude';
 import './speaking.css';
 
 const TABS = [
@@ -17,11 +18,14 @@ const TABS = [
  */
 export function SpeakingFrame() {
   const { pathname } = useLocation();
+  // Talking is with Claude; where the server has none, the tab is left out.
+  const claude = useClaudeHere();
+  const tabs = claude ? TABS : TABS.filter((t) => t.to !== paths.speakingTalkFront());
   return (
     <div className="sp-frame">
       <nav className="sp-nav" aria-label="Speaking">
         <h1 className="sp-nav-title">Speaking</h1>
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <Link key={t.to} to={t.to} className="sp-tab" aria-current={t.on(pathname) ? 'page' : undefined}>
             <span className="sp-tab-mark hanzi" aria-hidden>
               {t.han}

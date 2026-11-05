@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { USAGE_UNIT, type UsageLine, type UsageResponse, type UsageService } from '../../../shared/usage';
 import { accountStorage, accountUsage } from '../../api/account';
-import { isAdmin } from '../../api/admin';
+import { useIsAdmin } from '../../api/admin';
 import { paths } from '../../navigation/paths';
 import type { SyncStatus } from '../../store/sync/engine';
 import { useSyncStatus } from '../../store/store';
@@ -61,14 +61,7 @@ export function AccountPage() {
   const [usage, setUsage] = useState<UsageResponse | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   // Whoever runs the site has a row for its own page; nobody else sees it.
-  const [admin, setAdmin] = useState(false);
-  useEffect(() => {
-    let live = true;
-    void isAdmin().then((yes) => live && setAdmin(yes));
-    return () => {
-      live = false;
-    };
-  }, []);
+  const admin = useIsAdmin();
   useEffect(() => {
     let live = true;
     accountUsage().then(

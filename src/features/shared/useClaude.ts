@@ -24,6 +24,41 @@ const claudeState = () =>
     .then((s) => s.claude.state)
     .catch((): ClaudeState => 'missing'));
 
+const HERE = 'hanzi.claude.here';
+
+/**
+ * Whether this server has Claude at all, for the places that are only about
+ * talking with it (the Talk tab, Today's row). Where it is missing — the
+ * Vercel site — they are left out rather than shown and broken. The last
+ * answer is remembered on the device, so the tabs are drawn right at once
+ * and do not move when the answer comes.
+ */
+export function useClaudeHere(): boolean {
+  const [here, setHere] = useState(() => {
+    try {
+      return localStorage.getItem(HERE) !== '0';
+    } catch {
+      return true;
+    }
+  });
+  useEffect(() => {
+    let live = true;
+    void claudeState().then((s) => {
+      const yes = s !== 'missing';
+      try {
+        localStorage.setItem(HERE, yes ? '1' : '0');
+      } catch {
+        // remembered for this visit only
+      }
+      if (live) setHere(yes);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+  return here;
+}
+
 /** A Claude Code that is here but cannot be used, which is worth explaining. */
 export type ClaudeTrouble = 'signed-out' | 'api-key';
 

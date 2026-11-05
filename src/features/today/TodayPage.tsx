@@ -14,6 +14,7 @@ import { useWordDone } from '../reader/Passage';
 import { partFill, partsOf, type PartId } from '../reader/TextParts';
 import type { ItemId } from '../../domain/ids';
 import './today.css';
+import { useClaudeHere } from '../shared/useClaude';
 
 const WEEKDAY = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -38,6 +39,7 @@ function nextStep(parts: ReadonlyArray<{ id: PartId; label: string }>, fill: Rec
  * a tap away: Cards for the drills, Your progress for the calendar.
  */
 export function TodayPage() {
+  const claude = useClaudeHere();
   useTitle('Today');
   const now = useMemo(() => Date.now(), []);
   const go = useContinue();
@@ -170,11 +172,13 @@ export function TodayPage() {
       </section>
 
       <nav className="list today2-more" aria-label="When there is more time">
-        <Link className="way-row" to={paths.speakingNew()}>
-          <span className="hanzi way-mark">说</span>
-          <span className="grow">Talk with Claude</span>
-          <Icon name="chevron" className="muted" />
-        </Link>
+        {claude && (
+          <Link className="way-row" to={paths.speakingNew()}>
+            <span className="hanzi way-mark">说</span>
+            <span className="grow">Talk with Claude</span>
+            <Icon name="chevron" className="muted" />
+          </Link>
+        )}
         {video && (
           <Link className="way-row" to={paths.video(video.id)}>
             <span className="hanzi way-mark">视</span>

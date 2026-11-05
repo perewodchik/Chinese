@@ -6,6 +6,7 @@ import { firstSense } from '../../domain/library';
 import { defaultSheet } from '../../domain/sheet';
 import { fromBook, hanziIn, isHanzi, shelfEntries, shelve, type GeneratedText, type TextSet } from '../../domain/text';
 import { paths, type ShelfTab } from '../../navigation/paths';
+import { useIsAdmin } from '../../api/admin';
 import { oneOf, useQuery } from '../../navigation/query';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useLevelOf } from '../shared/levels';
@@ -70,6 +71,7 @@ const bare = (s: string) =>
     .toLowerCase();
 
 export function ReadPage() {
+  const admin = useIsAdmin();
   useTitle('Read');
   const navigate = useNavigate();
   const texts = useStore((s) => s.texts);
@@ -245,8 +247,8 @@ export function ReadPage() {
               <div className="empty compact">
                 <span className="big">读</span>
                 <p>
-                  Nothing to read yet. Claude can write a few texts out of the characters you know, or add pages from a
-                  book with /add-text.
+                  Nothing to read yet. Claude can write a few texts out of the characters you know
+                  {admin ? ', or add pages from a book with /add-text' : ''}.
                 </p>
                 <button className="btn primary" onClick={() => startSession(null)}>
                   Write the first texts
@@ -306,6 +308,7 @@ const TABS: ShelfTab[] = ['texts', 'words', 'characters'];
  * characters, each a tab.
  */
 export function ShelfPage() {
+  const admin = useIsAdmin();
   const { setId = '' } = useParams();
   const [query, setQuery] = useQuery();
   const tab = oneOf(query.get('tab'), TABS, 'texts');
@@ -502,7 +505,8 @@ export function ShelfPage() {
             <button className="btn primary lg" onClick={() => startSession(set.id, set.name)}>
               Write more texts with Claude
             </button>
-            <p className="tiny muted">From a book: send the page to Claude with /add-text and name this shelf.</p>
+            {/* Claude Code's add-text is the site owner's tool, not a learner's. */}
+            {admin && <p className="tiny muted">From a book: send the page to Claude with /add-text and name this shelf.</p>}
           </div>
         </>
       )}
