@@ -231,3 +231,10 @@ describe('signing in without a password, on the development server', () => {
     assert.equal(((await res.json()) as CurrentSessionResponse).user, null);
   });
 });
+
+describe('a limit reached', () => {
+  it('says how long to wait, in words', async () => {
+    const { waitWords } = await import('../src/domain/errors');
+    assert.deepEqual([waitWords(1), waitWords(40), waitWords(60), waitWords(61), waitWords(900)], ['1 second', '40 seconds', 'a minute', '2 minutes', '15 minutes']);
+  });
+});

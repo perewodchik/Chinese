@@ -73,7 +73,7 @@ export class RateLimitedError extends AppError {
   readonly retryAfterSeconds: number;
 
   constructor(retryAfterSeconds: number) {
-    super('rate_limited', 'Too many attempts. Wait a few minutes and try again.');
+    super('rate_limited', `Too many at once. Try again in ${waitWords(retryAfterSeconds)}.`);
     this.retryAfterSeconds = retryAfterSeconds;
   }
 }
@@ -121,4 +121,11 @@ export class TutorUnavailableError extends AppError {
   constructor(message: string) {
     super('unavailable', message);
   }
+}
+
+/** A wait in words a learner reads at a glance: 40 seconds, a minute, 6 minutes. */
+export function waitWords(seconds: number): string {
+  if (seconds < 60) return `${Math.max(1, seconds)} second${seconds === 1 ? '' : 's'}`;
+  const minutes = Math.ceil(seconds / 60);
+  return minutes === 1 ? 'a minute' : `${minutes} minutes`;
 }
