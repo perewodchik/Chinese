@@ -40,15 +40,18 @@ interface Take {
   summary?: Attempt;
 }
 
-type Mode = 'repeat' | 'shadow';
-const MODE_KEY = 'hanzi.phrases.mode';
-const loadMode = (): Mode => {
-  try {
-    return localStorage.getItem(MODE_KEY) === 'shadow' ? 'shadow' : 'repeat';
-  } catch {
-    return 'repeat';
-  }
-};
+
+/** 0:07 — how long a recording has gone on. */
+const clock = (ms: number) => `0:${String(Math.floor(ms / 1000)).padStart(2, '0')}`;
+
+// The last few loudnesses, newest in the middle, for five bars that move with the voice.
+let levels = [0, 0, 0, 0, 0];
+function recentLevels(rms: number): number[] {
+  const v = Math.min(1, Math.max(0, (Math.log10(rms + 1e-4) + 3.2) / 2.4));
+  levels = [...levels.slice(1), v];
+  const [a, b, c, d, e] = levels;
+  return [b!, d!, e!, c!, a!];
+}
 
 const results = new Map<string, Promise<EvalResult>>();
 function resultOf(id: string): Promise<EvalResult> {
@@ -65,14 +68,15 @@ function resultOf(id: string): Promise<EvalResult> {
 }
 
 /** When a try was, so a week later it still says when: today, yesterday, the weekday this week, else the date — with the time. */
-function whenOf(at: number): string {
+function whenOf(at: number, short = false): string {
   const d = new Date(at);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   if (at >= today.getTime()) return `today, ${time}`;
   if (at >= today.getTime() - 86_400_000) return `yesterday, ${time}`;
-  if (at >= today.getTime() - 6 * 86_400_000) return `${d.toLocaleDateString('en-GB', { weekday: 'long' })}, ${time}`;
+  // Short, for the one row above the score that a phone shares with two chips: Tue 14:37.
+  if (at >= today.getTime() - 6 * 86_400_000) return short ? `${d.toLocaleDateString('en-GB', { weekday: 'short' })} ${time}` : `${d.toLocaleDateString('en-GB', { weekday: 'long' })}, ${time}`;
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', ...(d.getFullYear() !== today.getFullYear() ? { year: 'numeric' } : {}) });
 }
 
@@ -88,9 +92,9 @@ const fromKept = (a: AttemptOut): Take => {
  * said just now, every try kept from before (the latest shown as soon as the
  * line opens), and the narrator's own reading scored the same way, so the
  * learner's 60 can be set beside the voice's 96. A take tapped is the one
- * shown, its characters and cards. Two ways to say it: Repeat (hear it, then
- * say it) and Shadow (a count of three, then the narrator and the learner
- * together, recorded for the line's length). The voice is chosen in a sheet
+ * shown, its characters and cards. It is heard, then said: the recording goes
+ * on through pauses until the square is tapped, so a comma never ends it
+ * early (stopping at a pause cut the last word off). The voice is chosen in a sheet
  * that also has every line read by it, and scored by it.
  */
 export function LineStudio({
@@ -247,8 +251,6 @@ export function LineStudio({
   const [note, setNote] = useState<string | null>(null);
   const [micDetail, setMicDetail] = useState<string | null>(null);
   const [lastSamples, setLastSamples] = useState<Float32Array | null>(null);
-  const [mode, setModeState] = useState<Mode>(loadMode);
-  const [count, setCount] = useState<number | null>(null);
   const [slow, setSlow] = useState(false);
   const [marks, setMarksState] = useState(() => {
     try {
@@ -265,29 +267,7 @@ export function LineStudio({
       // remembered for this visit
     }
   };
-  // From the tap until the count begins: the microphone opening, the narrator's line decoded.
-  const [readying, setReadying] = useState(false);
-  const shadowing = useRef(false);
-  // Whether the last recording was shadowed, so trying it again keeps it so.
-  const lastShadow = useRef(false);
-  // The line left during a count (Next, a segment, Back) is not recorded after it.
-  const mounted = useRef(true);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-  const setMode = (m: Mode) => {
-    setModeState(m);
-    try {
-      localStorage.setItem(MODE_KEY, m);
-    } catch {
-      // remembered for this visit
-    }
-  };
-
-  function score(s: Float32Array, shadow: boolean) {
+  function score(s: Float32Array) {
     setError(null);
     setNote(null);
     setMicDetail(null);
@@ -311,9 +291,9 @@ export function LineStudio({
             return;
           }
           const id = attemptId();
-          const a = { ...attemptOf(r, Date.now()), ...(shadow ? { shadow: true } : {}) };
+          const a = attemptOf(r, Date.now());
           onAttempt(phrase.zh, a, r, id);
-          addTake({ id, mine: true, at: a.at, total: r.total, shadow, result: r, samples: s, full: true });
+          addTake({ id, mine: true, at: a.at, total: r.total, result: r, samples: s, full: true });
           // Kept on this device, so this try can be heard again when the line is opened later.
           void keepRecording(id, s);
         },
@@ -322,41 +302,25 @@ export function LineStudio({
       .finally(() => setChecking(false));
   }
 
-  const recorder = useRecorder((s) => {
-    setLastSamples(s);
-    lastShadow.current = shadowing.current;
-    score(s, shadowing.current);
-    shadowing.current = false;
-  }, 15_000);
+  // Stopped by a tap, never at a pause: a line has commas in it, and stopping at one cut its end off.
+  const recorder = useRecorder(
+    (s) => {
+      setLastSamples(s);
+      score(s);
+    },
+    15_000,
+    false,
+  );
 
-  // Shadow: a count of three, then the narrator's line and the learner together, for the line's length.
-  // The line plays through the microphone's own audio, which is running once it is open: no tap needed then.
-  async function shadow() {
-    if (!voice || readying) return;
-    // The button reads as opening meanwhile, so a second tap does not start a second count.
-    setReadying(true);
-    let said: Float32Array;
-    try {
-      if (!(await recorder.prepare())) return;
-      said = await narratedLine(voice, index);
-    } catch (err) {
-      setError(troubleOf(err));
-      return;
-    } finally {
-      setReadying(false);
-    }
-    for (const n of [3, 2, 1]) {
-      if (!mounted.current) return;
-      setCount(n);
-      await new Promise((r) => setTimeout(r, 650));
-    }
-    if (!mounted.current) return;
-    setCount(0);
-    shadowing.current = true;
-    void recorder.recordFor(Math.round((said.length / 16_000) * 1000) + 900);
-    recorder.play(said);
-    setTimeout(() => setCount(null), 500);
-  }
+  // How long it has been recording, for the row that says so.
+  const [recordedFor, setRecordedFor] = useState(0);
+  const recording = recorder.state === 'listening' || recorder.state === 'hearing';
+  useEffect(() => {
+    if (!recording) return setRecordedFor(0);
+    const began = performance.now();
+    const t = setInterval(() => setRecordedFor(performance.now() - began), 200);
+    return () => clearInterval(t);
+  }, [recording]);
 
   // ------------------------------------------------------------ saving
   // Tries go to the account from an outbox: when they cannot, it is said, with why and a retry.
@@ -396,13 +360,11 @@ export function LineStudio({
   // Another line, or leaving: what was playing stops with it.
   useEffect(() => stopSound, [index]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const live = recorder.state === 'listening' || recorder.state === 'hearing';
   function onRecord() {
     // Never record over the speaker: whatever is playing stops first.
     if (sounding) stopSound();
-    if (live) return recorder.finish();
-    if (mode === 'shadow') void shadow();
-    else recorder.toggle();
+    if (recording) return recorder.finish();
+    recorder.toggle();
   }
 
   // No narrator's reading: the device's own voice says it meanwhile, said so on the screen.
@@ -411,7 +373,7 @@ export function LineStudio({
   const deviceVoice = canSpeak();
   const hearMine = () => play('mine', () => (mineSamples ? playSamples(mineSamples) : undefined));
   const last = index + 1 >= phrases.length;
-  const state = checking ? 'checking' : count !== null || readying ? 'opening' : recorder.state;
+  const state = checking ? 'checking' : recorder.state;
 
   // ------------------------------------------------------------ a voice scored
   const [voiceScoring, setVoiceScoring] = useState(false);
@@ -483,7 +445,7 @@ export function LineStudio({
         ? take.shadow
           ? 'Just now · shadowing'
           : 'Just now'
-        : `${take.id === bestId ? 'Your best' : 'Your try'} · ${whenOf(take.at)}${!take.full && !take.result && !take.summary?.chars ? ' · marks only' : ''}`;
+        : `${take.id === bestId ? 'Best' : 'Try'} · ${whenOf(take.at, true)}${!take.full && !take.result && !take.summary?.chars ? ' · marks only' : ''}`;
   const listed = order === 'best' ? [...shown.mine].sort((x, y) => (y.total ?? -1) - (x.total ?? -1) || y.at - x.at) : shown.mine;
 
   async function drop(t: Take) {
@@ -534,35 +496,31 @@ export function LineStudio({
       </div>
 
       <div className="ph-say-body">
-        {count !== null && (
-          <div className="ph-count" aria-live="assertive">
-            <span key={count}>{count === 0 ? 'Now' : count}</span>
-          </div>
-        )}
         <ScoredLine zh={phrase.zh} readings={readings} result={selResult} samples={take?.samples ?? null} scoring={checking || selLoading} marks={marks}>
-          <div className="ph-modes">
-            <div className="seg sm" role="group" aria-label="How to say it">
-              <button aria-pressed={mode === 'repeat'} onClick={() => setMode('repeat')} title="Hear it, then say it.">
-                Repeat
-              </button>
-              <button aria-pressed={mode === 'shadow'} onClick={() => setMode('shadow')} disabled={!voice} title="Three, two, one — then say it with the voice. Headphones help.">
-                Shadow
-              </button>
+          {/* One row, the same height either way: which saying is shown, Slowly, Marks and the tries;
+              while recording, how long, how loud, and how to end it. Nothing under it moves. */}
+          {recording ? (
+            <div className="ph-showing ph-recording" role="status">
+              <span className="ph-rec-bars" aria-hidden>
+                {recentLevels(recorder.level).map((v, i) => (
+                  <i key={i} style={{ transform: `scaleY(${0.2 + v * 0.8})` }} />
+                ))}
+              </span>
+              <b className="ph-rec-time">{clock(recordedFor)}</b>
+              <span className="small muted ph-showing-what">Tap the square when you finish.</span>
             </div>
+          ) : (
+          <div className="ph-showing" ref={tries}>
+            <span className="small muted ph-showing-what">{showing ?? (shown.mine.length ? '' : 'Not said yet')}</span>
             <button className="chip ph-slow" aria-pressed={slow} onClick={() => setSlow((x) => !x)} title="Hear it at three quarters of the speed">
               Slowly
             </button>
             <button className="chip" aria-pressed={marks} onClick={() => setMarks(!marks)} title="Show on the line what was wrong with each character">
               Marks
             </button>
-          </div>
-
-          {/* Which saying is shown, in one line: the result is what matters, the tries a tap away. */}
-          <div className="ph-showing" ref={tries}>
-            <span className="small muted ph-showing-what">{showing ?? (shown.mine.length ? '' : 'Not said yet')}</span>
             {(shown.mine.length > 0 || shown.voiceTakes.length > 0 || voice) && (
               <button className="btn quiet sm" aria-expanded={listOpen} onClick={() => setListOpen((o) => !o)}>
-                Tries {shown.mine.length ? `(${shown.mine.length})` : ''} <Icon name="down" size={14} />
+                Tries {shown.mine.length || ''} <Icon name="down" size={14} />
               </button>
             )}
             {listOpen && (
@@ -619,6 +577,7 @@ export function LineStudio({
               </div>
             )}
           </div>
+          )}
           {!clips && narrators !== null && <NoReading narrators={narrators} lines={lines} onRead={(r) => { setVoices((v) => [...v.filter((x) => x.n.narratorId !== r.n.narratorId), r]); void switchVoice(r); }} />}
           {saveWhy && unsaved > 0 && (
             <p className="small ph-save-trouble" role="status">
@@ -647,7 +606,7 @@ export function LineStudio({
               <span className="small">{error?.text ?? selFailed}</span>
               <span className="ph-failed-actions">
                 {error?.retry && lastSamples && (
-                  <button className="btn tonal sm" onClick={() => score(lastSamples, lastShadow.current)} disabled={checking}>
+                  <button className="btn tonal sm" onClick={() => score(lastSamples)} disabled={checking}>
                     Try again
                   </button>
                 )}
@@ -672,7 +631,7 @@ export function LineStudio({
           <Icon name={sounding === 'hear' ? 'stop' : 'play'} />
           <span>{sounding === 'hear' ? 'Stop' : slow ? 'Slowly' : 'Hear'}</span>
         </button>
-        <RecordButton state={state} level={recorder.level} onToggle={onRecord} compact />
+        <RecordButton state={state} level={recorder.level} onToggle={onRecord} compact stopSquare />
         <button className="ph-dock-btn" onClick={hearMine} disabled={!mineSamples} aria-pressed={sounding === 'mine'}>
           <Icon name={sounding === 'mine' ? 'stop' : 'play'} />
           <span>{sounding === 'mine' ? 'Stop' : 'Mine'}</span>

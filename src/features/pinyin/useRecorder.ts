@@ -13,7 +13,12 @@ export type RecorderState = 'idle' | 'opening' | 'listening' | 'hearing';
  * silence. So the recorder waits for voice, then for the voice to stop — 0.7s
  * of quiet — with a hard ceiling in case the room never goes quiet.
  */
-export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 4000) {
+export function useRecorder(
+  onDone: (samples: Float32Array) => void,
+  maxMs = 4000,
+  /** false: never stops at a pause, only when told to (or at maxMs) — for a line with pauses in it */
+  stopOnPause = true,
+) {
   const session = useRef<MicSession | null>(null);
   const [state, setState] = useState<RecorderState>('idle');
   const [level, setLevel] = useState(0);
@@ -94,7 +99,7 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
         heard = true;
         setState('hearing');
       }
-      if (heard) {
+      if (heard && stopOnPause) {
         if (rms < Math.max(floor * 2, 0.006)) {
           quietSince ||= now;
           if (now - quietSince > 700) finish();
@@ -104,7 +109,7 @@ export function useRecorder(onDone: (samples: Float32Array) => void, maxMs = 400
     s.start();
     setState('listening');
     watch.current.timer = setTimeout(finish, fixedMs ?? maxMs);
-  }, [finish, maxMs, open]);
+  }, [finish, maxMs, open, stopOnPause]);
 
   const toggle = useCallback(() => {
     if (state === 'listening' || state === 'hearing') finish();

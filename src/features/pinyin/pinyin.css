@@ -2972,3 +2972,11 @@
 .rec-button:disabled:has(.rec-spin) {
   opacity: 1;
 }
+
+/* The square that stops a recording, where the level is shown beside it instead. */
+.rec-stop {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: var(--on-accent);
+}

@@ -26,6 +26,7 @@ export function RecordButton({
   onToggle,
   disabled,
   compact,
+  stopSquare,
 }: {
   state: SayItState;
   level: number;
@@ -33,6 +34,8 @@ export function RecordButton({
   disabled?: boolean;
   /** Beside a text box rather than alone on a drill: smaller, and no label under it. */
   compact?: boolean;
+  /** while it records, a square to stop it rather than the level bars: for a screen that shows the level elsewhere */
+  stopSquare?: boolean;
 }) {
   const live = state === 'listening' || state === 'hearing';
   // Loudness is roughly logarithmic to the ear; so is the ring.
@@ -57,7 +60,9 @@ export function RecordButton({
       >
         <span className="rec-ring" aria-hidden />
         <span className="rec-ripple" aria-hidden />
-        {live ? (
+        {live && stopSquare ? (
+          <span className="rec-stop" aria-hidden />
+        ) : live ? (
           <span className="rec-bars" aria-hidden>
             {bars.map((v, i) => (
               <i key={i} style={{ transform: `scaleY(${0.18 + v * 0.82})` }} />

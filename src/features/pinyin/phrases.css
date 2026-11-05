@@ -973,14 +973,6 @@ button.back-link {
 }
 
 /* Repeat or shadow, slowly or not, and what the mode asks of you. */
-.ph-modes {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
 /* Which saying is shown, in one line that never wraps, so nothing under it moves; the tries a tap away. */
 .ph-showing {
   display: flex;
@@ -1000,6 +992,10 @@ button.back-link {
 .ph-showing .btn {
   flex: none;
   margin-right: -8px;
+}
+
+.ph-showing .chip {
+  flex: none;
 }
 
 .ph-showing {
@@ -1391,4 +1387,42 @@ button.back-link {
 .ph-save-trouble > span {
   flex: 1;
   min-width: 0;
+}
+
+/* Recording, in the row that otherwise says which try is shown: five bars that
+   move with the voice, how long, and how to end it. The same height as that row. */
+.ph-recording {
+  gap: 10px;
+}
+
+.ph-rec-bars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 18px;
+  flex: none;
+}
+
+.ph-rec-bars i {
+  display: block;
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: transform 90ms linear;
+}
+
+.ph-rec-time {
+  flex: none;
+  min-width: 34px;
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* On a phone the row holds the label, two chips and the tries: the chips a little narrower, so the label keeps its date. */
+@media (max-width: 420px) {
+  .ph-showing .chip {
+    padding: 0 10px;
+  }
 }
