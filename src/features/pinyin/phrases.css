@@ -1134,7 +1134,8 @@ button.back-link {
   position: relative;
 }
 
-.ph-sum[data-dim] > :not(.ph-sum-busy),
+.ph-sum-box[data-dim] .ph-sum > :not(.ph-sum-busy),
+.ph-sum-box[data-dim] .ph-sum-open,
 .ph-chars[data-dim] {
   opacity: 0.45;
   transition: opacity 140ms;
@@ -1425,4 +1426,93 @@ button.back-link {
   .ph-showing .chip {
     padding: 0 10px;
   }
+}
+
+/* The score and, under its chevron, how it went: the pace, the line in time, and what that shows in words. */
+.ph-sum-box {
+  border-radius: 14px;
+  background: var(--card-2);
+}
+
+.ph-sum-box > .ph-sum {
+  background: none;
+}
+
+.ph-sum-open {
+  display: grid;
+  gap: 8px;
+  padding: 8px 12px 12px;
+  border-top: 1px solid var(--line);
+}
+
+.ph-sum-told {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.ph-time {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  row-gap: 6px;
+}
+
+.ph-time-lane {
+  position: relative;
+  height: 28px;
+}
+
+.ph-time-block {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  min-width: 14px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  font-size: 14px;
+  line-height: 1;
+  overflow: hidden;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--jade) 16%, var(--card));
+  color: var(--jade);
+}
+
+.ph-time-block:disabled {
+  cursor: default;
+}
+
+.ph-time-block[data-band='voice'] {
+  background: var(--card);
+  color: var(--ink-2);
+}
+
+.ph-time-block[data-band='mid'] {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.ph-time-block[data-band='low'] {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.ph-time-block[data-missed] {
+  background: none;
+  border: 1.5px dashed var(--red);
+  color: var(--red);
+}
+
+.ph-time-axis {
+  position: relative;
+  height: 14px;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.ph-time-axis span {
+  position: absolute;
+  top: 0;
 }

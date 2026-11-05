@@ -78,6 +78,92 @@ function MarkedPinyin({ py, syl }: { py: string; syl: SyllableEval }) {
   );
 }
 
+/** A syllable's sound out of a recording, by where the service found it. */
+function hearPart(samples: Float32Array, s: SyllableEval) {
+  stopLine();
+  void playSamples(samples.subarray(Math.floor((s.from / 1000) * 16000), Math.ceil((s.to / 1000) * 16000)));
+}
+
+/**
+ * The line in time: the voice's syllables above (when the voice has been
+ * scored on this line), yours below, on one scale, each a block where the
+ * service heard it, coloured as it was said; one not heard is a dashed block
+ * after the last one said. A tap on a block plays that syllable. Only a try
+ * with the service's timings has it: one kept as a summary has none.
+ */
+function Timeline({ result, samples, voice }: { result: EvalResult; samples: Float32Array | null; voice?: { result: EvalResult; samples?: Float32Array | null } }) {
+  const lane = (r: EvalResult) => {
+    const said = r.syllables.filter((s) => s.said !== 'added');
+    let at = 0;
+    return said.map((s) => {
+      // Not heard: no place of its own in the recording, so a short dashed block after the one before.
+      const from = s.said === 'missed' || s.to <= s.from ? at : s.from;
+      const to = s.said === 'missed' || s.to <= s.from ? at + 250 : s.to;
+      at = to;
+      return { s, from, to, missed: s.said === 'missed', band: noteOf(s).band };
+    });
+  };
+  const you = lane(result);
+  const them = voice ? lane(voice.result) : [];
+  const end = Math.max(1000, ...you.map((x) => x.to), ...them.map((x) => x.to));
+  const pct = (ms: number) => `${(ms / end) * 100}%`;
+  const row = (blocks: ReturnType<typeof lane>, rec: Float32Array | null | undefined, who: string) => (
+    <div className="ph-time-lane" role="group" aria-label={who}>
+      {blocks.map((b, i) => (
+        <button
+          key={i}
+          className="ph-time-block hanzi"
+          data-band={who === 'The voice' ? 'voice' : b.band}
+          data-missed={b.missed || undefined}
+          style={{ left: pct(b.from), width: `calc(${pct(b.to - b.from)} - 2px)` }}
+          disabled={!rec || b.missed}
+          onClick={() => rec && hearPart(rec, b.s)}
+          aria-label={`${b.s.char}${b.missed ? ', not heard' : ''}`}
+        >
+          {b.s.char}
+        </button>
+      ))}
+    </div>
+  );
+  const ticks = Array.from({ length: Math.floor(end / 1000) + 1 }, (_, i) => i);
+  return (
+    <div className="ph-time">
+      {voice && (
+        <>
+          <span className="tiny muted">Voice</span>
+          {row(them, voice.samples, 'The voice')}
+        </>
+      )}
+      <span className="tiny muted">You</span>
+      {row(you, samples, 'You')}
+      <span />
+      <div className="ph-time-axis" aria-hidden>
+        {ticks.map((t) => (
+          <span key={t} style={{ left: pct(t * 1000) }}>
+            {t === 0 ? '0 s' : t}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * What the timeline shows, in words: where you paused, what was not heard.
+ * Not when you began: a recording is trimmed to the voice, so it always starts
+ * at once.
+ */
+function howItWent(r: EvalResult): string {
+  const paused = r.syllables.filter((s) => s.pause).map((s) => s.char);
+  let text = paused.length ? `You paused after ${paused.join(', ')}.` : '';
+  const missed = r.syllables.filter((s) => s.said === 'missed').map((s) => s.char);
+  if (missed.length) {
+    const atEnd = r.syllables.slice(-missed.length).every((s) => s.said === 'missed');
+    text += ` ${missed.join(' ')} ${missed.length === 1 ? 'was' : 'were'} not heard${atEnd ? ': the recording ends when you tap the square, so tap it after the last syllable' : ''}.`;
+  }
+  return text.trim();
+}
+
 /** The reading said here: with the tone sandhi gives it, when it gives one. */
 function shown(s: SyllableEval, py: string): string {
   if (!s.sandhi) return py;
@@ -101,6 +187,7 @@ export function ScoredLine({
   samples = null,
   scoring = false,
   marks = false,
+  voice,
   children,
 }: {
   zh: string;
@@ -113,6 +200,8 @@ export function ScoredLine({
   scoring?: boolean;
   /** the line itself says what was wrong: the wrong part of each pinyin in red, a short tag under the character */
   marks?: boolean;
+  /** the voice's own try at the line, scored, for the timeline under the score */
+  voice?: { result: EvalResult; samples?: Float32Array | null };
   /** notes and errors, between the line and its verdict */
   children?: ReactNode;
 }) {
@@ -207,6 +296,11 @@ export function ScoredLine({
       ] as Array<[string, number]>)
     : [];
   const pace = result ? paceOf(result) : '';
+  // What went wrong that the numbers do not say, on one line under them: a syllable not heard.
+  const missed = result ? result.syllables.filter((s) => s.said === 'missed').map((s) => s.char) : [];
+  const timed = Boolean(result?.syllables.some((s) => s.to > s.from));
+  const told = result ? howItWent(result) : '';
+  const opens = Boolean(pace || timed || told || (result?.rhythm !== undefined));
 
   return (
     <>
@@ -254,30 +348,39 @@ export function ScoredLine({
           </div>
         )}
         {result && (
-          <section className="ph-sum" data-dim={scoring || undefined}>
-            {scoring && (
-              <span className="ph-sum-busy" role="status">
-                <span className="spinner" aria-hidden /> Scoring…
+          <section className="ph-sum-box" data-dim={scoring || undefined}>
+            <div className="ph-sum">
+              {scoring && (
+                <span className="ph-sum-busy" role="status">
+                  <span className="spinner" aria-hidden /> Scoring…
+                </span>
+              )}
+              <span className="ph-sum-total" data-band={band(result.total)} aria-label={`${Math.round(result.total)} out of 100`}>
+                {Math.round(result.total)}
               </span>
-            )}
-            <span className="ph-sum-total" data-band={band(result.total)} aria-label={`${Math.round(result.total)} out of 100`}>
-              {Math.round(result.total)}
-            </span>
-            <span className="ph-sum-text">
-              <span className="ph-sum-parts">
-                {parts.map(([name, v]) => (
-                  <span key={name} data-band={band(v)}>
-                    {name} <b>{Math.round(v)}</b>
-                  </span>
-                ))}
+              <span className="ph-sum-text">
+                <span className="ph-sum-parts">
+                  {parts.map(([name, v]) => (
+                    <span key={name} data-band={band(v)}>
+                      {name} <b>{Math.round(v)}</b>
+                    </span>
+                  ))}
+                </span>
+                {missed.length > 0 && <span className="tiny ph-error">{missed.join(' ')} not heard</span>}
+                {result.quiet && <span className="tiny ph-error">The recording was very quiet: hold the device closer.</span>}
               </span>
-              {why && pace && <span className="tiny muted">{pace}</span>}
-              {result.quiet && <span className="tiny ph-error">The recording was very quiet: hold the device closer.</span>}
-            </span>
-            {pace && (
-              <button className="icon-btn ph-sum-more" aria-expanded={why} onClick={() => setWhy((w) => !w)} aria-label={why ? 'Hide the pace' : 'Show the pace'} title={why ? 'Hide the pace' : 'Show the pace'}>
-                <Icon name="chevron" size={18} />
-              </button>
+              {opens && (
+                <button className="icon-btn ph-sum-more" aria-expanded={why} onClick={() => setWhy((w) => !w)} aria-label={why ? 'Hide how it went' : 'How it went'} title={why ? 'Hide how it went' : 'How it went'}>
+                  <Icon name="chevron" size={18} />
+                </button>
+              )}
+            </div>
+            {why && opens && (
+              <div className="ph-sum-open">
+                {pace && <span className="tiny muted">{pace}</span>}
+                {timed && <Timeline result={result} samples={samples} voice={voice} />}
+                {told && <p className="small ph-sum-told">{told}</p>}
+              </div>
             )}
           </section>
         )}

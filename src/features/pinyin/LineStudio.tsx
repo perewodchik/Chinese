@@ -244,6 +244,20 @@ export function LineStudio({
     return { voiceTakes, mine };
   }, [takes]);
   const currentVoiceTake = shown.voiceTakes.find((t) => t.narratorId === voice?.n.narratorId);
+  // The voice's own scored try at this line, for the timeline under your score: kept here when
+  // scored this visit, else fetched once (a try kept with its whole answer).
+  const [voiceResult, setVoiceResult] = useState<EvalResult | null>(null);
+  useEffect(() => {
+    const t = currentVoiceTake;
+    if (!t) return setVoiceResult(null);
+    if (t.result) return setVoiceResult(t.result);
+    if (!t.full) return setVoiceResult(null);
+    let live = true;
+    resultOf(t.id).then((r) => live && setVoiceResult(r), () => live && setVoiceResult(null));
+    return () => {
+      live = false;
+    };
+  }, [currentVoiceTake?.id, currentVoiceTake?.result, currentVoiceTake?.full]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ------------------------------------------------------------ saying it
   const [checking, setChecking] = useState(false);
@@ -496,7 +510,7 @@ export function LineStudio({
       </div>
 
       <div className="ph-say-body">
-        <ScoredLine zh={phrase.zh} readings={readings} result={selResult} samples={take?.samples ?? null} scoring={checking || selLoading} marks={marks}>
+        <ScoredLine zh={phrase.zh} readings={readings} result={selResult} samples={take?.samples ?? null} scoring={checking || selLoading} marks={marks} voice={take?.mine && voiceResult ? { result: voiceResult, samples: currentVoiceTake?.samples ?? null } : undefined}>
           {/* One row, the same height either way: which saying is shown, Slowly, Marks and the tries;
               while recording, how long, how loud, and how to end it. Nothing under it moves. */}
           {recording ? (
