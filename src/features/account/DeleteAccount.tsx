@@ -51,7 +51,7 @@ export function DeleteAccount() {
           </button>
         </>
       ) : (
-        <form className="auth-form ac-delete" onSubmit={submit} noValidate>
+        <form className="ac-delete" onSubmit={submit} noValidate>
           <p className="small" style={{ margin: 0 }}>
             Your texts, shelves, cards and progress, the walk through Beijing, your conversations, tries, narrators and
             their readings, and your keys are deleted for good. Download a copy above first if you want to keep any of it.

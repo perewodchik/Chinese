@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate, useLocation } from 'react-router';
 import { GuestOnly } from '../features/auth/gates';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
+import { RecoverPage } from '../features/auth/RecoverPage';
 import { CollectionPage } from '../features/collections/CollectionPage';
 import { PaperPage } from '../features/collections/BlankPaper';
 import { BuildListPage } from '../features/collections/build/BuildListPage';
@@ -114,6 +115,14 @@ export const router = createBrowserRouter([
         element: (
           <GuestOnly>
             <RegisterPage />
+          </GuestOnly>
+        ),
+      },
+      {
+        path: 'recover',
+        element: (
+          <GuestOnly>
+            <RecoverPage />
           </GuestOnly>
         ),
       },

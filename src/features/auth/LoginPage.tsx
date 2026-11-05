@@ -85,6 +85,9 @@ export function LoginPage() {
         <button className="btn primary" type="submit" disabled={busy || !username.trim() || !password}>
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
+        <Link className="small auth-forgot" to={paths.recover()}>
+          Forgot the password? Use a recovery code
+        </Link>
       </form>
     </AuthLayout>
   );

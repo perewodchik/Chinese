@@ -4333,6 +4333,11 @@ a.waiting {
   padding: 9px 13px;
 }
 
+.auth-forgot {
+  justify-self: center;
+  color: var(--accent);
+}
+
 .auth-foot {
   margin: 18px 0 0;
   padding-top: 14px;

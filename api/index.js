@@ -122,6 +122,9 @@ var DEFAULT_AUTH_POLICY = {
 };
 var INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 var INVITE_LENGTH = 12;
+var RECOVERY_CODES = 8;
+var RECOVERY_LENGTH = 10;
+var randomCode = (length) => Array.from({ length }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join("");
 var normaliseInvite = (raw) => raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
 var toUserDto = (u) => ({
   id: u.id,
@@ -309,6 +312,47 @@ var AuthService = class {
       throw new ValidationError("That is not the password.", { password: "Not the password." });
     }
     await users.delete(user.id);
+  }
+  /**
+   * New recovery codes for the account, shown this once: the old ones stop
+   * working. Asked for with the password, like anything that would let
+   * someone into the account later. Kept as digests tied to the account, so
+   * the list in the database opens nothing.
+   */
+  async makeRecoveryCodes(input) {
+    const { users, hasher, recoveryCodes, clock } = this.deps;
+    const user = await users.findById(input.userId);
+    if (!user) throw new UnauthorizedError();
+    if (!await hasher.verify(input.password, user.passwordHash)) {
+      throw new ValidationError("That is not the password.", { password: "Not the password." });
+    }
+    const codes = Array.from({ length: RECOVERY_CODES }, () => randomCode(RECOVERY_LENGTH));
+    await recoveryCodes.replace(user.id, codes.map((c) => this.recoveryDigest(user.id, c)), clock.now());
+    return codes.map((c) => `${c.slice(0, 5)}-${c.slice(5)}`);
+  }
+  recoveryStatus(userId) {
+    return this.deps.recoveryCodes.status(userId);
+  }
+  /**
+   * A forgotten password replaced with one of the account's recovery codes:
+   * the code is used up, every browser is signed out, and this one is signed
+   * in. A wrong name and a wrong code fail the same way.
+   */
+  async recover(input) {
+    const { users, sessions, hasher, recoveryCodes, clock } = this.deps;
+    const user = await users.findByUsernameKey(usernameKey(input.username));
+    const problem = passwordProblem(input.newPassword, user?.username ?? normaliseUsername(input.username));
+    if (problem) throw new ValidationError(problem, { newPassword: problem });
+    const code = normaliseInvite(input.code);
+    const refused = new ValidationError("That name and code do not go together, or the code has been used.", { code: "Not a code that works for this name." });
+    if (!user || code.length !== RECOVERY_LENGTH) throw refused;
+    if (!await recoveryCodes.use(user.id, this.recoveryDigest(user.id, code), clock.now())) throw refused;
+    await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
+    await sessions.deleteForUser(user.id);
+    return this.issue(user, input.userAgent);
+  }
+  recoveryDigest(userId, code) {
+    return this.deps.tokens.digest(`${userId}:${normaliseInvite(code)}`);
   }
   /** For whoever runs the server: a new password for an account, and every session of it ended. */
   async resetPassword(username, newPassword) {
@@ -1703,6 +1747,7 @@ function createServices(stores, options = {}) {
     users: stores.users,
     sessions: stores.sessions,
     invites: stores.invites,
+    recoveryCodes: stores.recoveryCodes,
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
     clock,
@@ -2030,6 +2075,7 @@ var credentials = z3.object({
   password: z3.string().max(2048)
 });
 var registration = credentials.extend({ invite: z3.string().max(64).optional() });
+var recoverRequest = z3.object({ username: z3.string().max(200), code: z3.string().max(64), newPassword: z3.string().max(2048) });
 var passwordChange = z3.object({
   currentPassword: z3.string().max(2048),
   newPassword: z3.string().max(2048)
@@ -2119,6 +2165,27 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
   routes.post("/sessions/others", session, async (c) => {
     const { user, sessionId } = c.get("session");
     return c.json({ signedOut: await auth.signOutOthers(user.id, sessionId) });
+  });
+  const recoveries = new RateLimiter("auth.recoveries", 10, 15 * MINUTE, clock, limits);
+  routes.get("/recovery-codes", session, async (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json({ codes: await auth.recoveryStatus(c.get("session").user.id) });
+  });
+  routes.post("/recovery-codes", session, async (c) => {
+    await recoveries.consume(c.get("session").user.id);
+    const { password } = await readJson(c, z3.object({ password: z3.string().max(2048) }));
+    c.header("Cache-Control", "no-store");
+    return c.json({ codes: await auth.makeRecoveryCodes({ userId: c.get("session").user.id, password }) });
+  });
+  routes.post("/recover", async (c) => {
+    const input = await readJson(c, recoverRequest);
+    const ip = clientIp(c, trustProxy, ipHeader);
+    await perAddress.consume(ip);
+    await recoveries.consume(`${ip} ${usernameKey(input.username)}`);
+    const issued = await auth.recover({ ...input, userAgent: c.req.header("user-agent") ?? null });
+    writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
+    const body = { user: issued.user };
+    return c.json(body);
   });
   routes.post("/password", session, async (c) => {
     const input = await readJson(c, passwordChange);
@@ -3203,6 +3270,17 @@ var MIGRATIONS = [
     body        TEXT NOT NULL,
     fetched_at  BIGINT NOT NULL
   );
+  `,
+  // Codes to set a new password with when the old one is forgotten: there is
+  // no e-mail to send a link to. Only their digests are kept; each works once.
+  `
+  CREATE TABLE recovery_codes (
+    user_id     TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    digest      TEXT NOT NULL,
+    created_at  BIGINT NOT NULL,
+    used_at     BIGINT,
+    PRIMARY KEY (user_id, digest)
+  );
   `
 ];
 
@@ -3811,6 +3889,39 @@ var PostgresLookupCache = class {
   }
 };
 
+// server/src/infrastructure/postgres/recovery-code-repository.ts
+var PostgresRecoveryCodeRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async replace(userId, digests, at) {
+    const client = await this.db.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("DELETE FROM recovery_codes WHERE user_id = $1", [userId]);
+      for (const d of digests) await client.query("INSERT INTO recovery_codes (user_id, digest, created_at, used_at) VALUES ($1, $2, $3, NULL)", [userId, d, at]);
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+  async use(userId, digest, at) {
+    const { rowCount } = await this.db.query("UPDATE recovery_codes SET used_at = $1 WHERE user_id = $2 AND digest = $3 AND used_at IS NULL", [at, userId, digest]);
+    return rowCount === 1;
+  }
+  async status(userId) {
+    const { rows } = await this.db.query(
+      "SELECT COUNT(*) AS n, SUM(CASE WHEN used_at IS NULL THEN 1 ELSE 0 END) AS left, MAX(created_at) AS at FROM recovery_codes WHERE user_id = $1",
+      [userId]
+    );
+    const r = rows[0];
+    return Number(r.n) ? { left: Number(r.left ?? 0), createdAt: Number(r.at) } : null;
+  }
+};
+
 // server/src/infrastructure/postgres/workspace-repository.ts
 var PostgresWorkspaceRepository = class {
   constructor(db) {
@@ -3908,7 +4019,8 @@ var postgresStores = (db) => ({
   usage: new PostgresUsageRepository(db),
   invites: new PostgresInviteRepository(db),
   limits: new PostgresRateLimitStore(db),
-  lookups: new PostgresLookupCache(db)
+  lookups: new PostgresLookupCache(db),
+  recoveryCodes: new PostgresRecoveryCodeRepository(db)
 });
 
 // server/src/vercel.ts

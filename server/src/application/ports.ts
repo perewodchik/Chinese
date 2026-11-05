@@ -362,6 +362,16 @@ export interface InviteRepository {
   list(): Promise<Invite[]>;
 }
 
+/** The codes an account can set a new password with, kept as digests. */
+export interface RecoveryCodeRepository {
+  /** The account's codes, all of them replaced by these. */
+  replace(userId: string, digests: string[], at: number): Promise<void>;
+  /** Marks the code used if it is the account's and unused, in one statement; false otherwise. */
+  use(userId: string, digest: string, at: number): Promise<boolean>;
+  /** How many are left unused, and when they were made; null when there are none at all. */
+  status(userId: string): Promise<{ left: number; createdAt: number } | null>;
+}
+
 /** A day's use of one outside service by one account: how many calls, and how much in the service's own unit. */
 export interface UsageRow {
   /** the day, in UTC: 2026-11-05 */

@@ -27,6 +27,7 @@ const credentials = z.object({
   password: z.string().max(2048),
 });
 const registration = credentials.extend({ invite: z.string().max(64).optional() });
+const recoverRequest = z.object({ username: z.string().max(200), code: z.string().max(64), newPassword: z.string().max(2048) });
 
 const passwordChange = z.object({
   currentPassword: z.string().max(2048),
@@ -154,6 +155,31 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
   routes.post('/sessions/others', session, async (c) => {
     const { user, sessionId } = c.get('session');
     return c.json({ signedOut: await auth.signOutOthers(user.id, sessionId) });
+  });
+
+  // Recovery codes: made (and shown) once with the password, used without one.
+  const recoveries = new RateLimiter('auth.recoveries', 10, 15 * MINUTE, clock, limits);
+  routes.get('/recovery-codes', session, async (c) => {
+    c.header('Cache-Control', 'no-store');
+    return c.json({ codes: await auth.recoveryStatus(c.get('session').user.id) });
+  });
+
+  routes.post('/recovery-codes', session, async (c) => {
+    await recoveries.consume(c.get('session').user.id);
+    const { password } = await readJson(c, z.object({ password: z.string().max(2048) }));
+    c.header('Cache-Control', 'no-store');
+    return c.json({ codes: await auth.makeRecoveryCodes({ userId: c.get('session').user.id, password }) });
+  });
+
+  routes.post('/recover', async (c) => {
+    const input = await readJson(c, recoverRequest);
+    const ip = clientIp(c, trustProxy, ipHeader);
+    await perAddress.consume(ip);
+    await recoveries.consume(`${ip} ${usernameKey(input.username)}`);
+    const issued = await auth.recover({ ...input, userAgent: c.req.header('user-agent') ?? null });
+    writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
+    const body: SessionResponse = { user: issued.user };
+    return c.json(body);
   });
 
   routes.post('/password', session, async (c) => {

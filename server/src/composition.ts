@@ -27,6 +27,7 @@ import type {
   InviteRepository,
   RateLimitStore,
   LookupCache,
+  RecoveryCodeRepository,
   WorkspaceRepository,
   WorldSaveRepository,
 } from './application/ports';
@@ -85,6 +86,7 @@ export interface Stores {
   invites: InviteRepository;
   limits: RateLimitStore;
   lookups: LookupCache;
+  recoveryCodes: RecoveryCodeRepository;
 }
 
 /**
@@ -115,6 +117,7 @@ export function createServices(
     users: stores.users,
     sessions: stores.sessions,
     invites: stores.invites,
+    recoveryCodes: stores.recoveryCodes,
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
     clock,

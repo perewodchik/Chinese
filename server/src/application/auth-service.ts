@@ -16,7 +16,7 @@ import {
   ValidationError,
 } from '../domain/errors';
 import { randomInt } from 'node:crypto';
-import type { Clock, InviteRepository, PasswordHasher, SessionRepository, Tokens, UserRepository } from './ports';
+import type { Clock, InviteRepository, PasswordHasher, RecoveryCodeRepository, SessionRepository, Tokens, UserRepository } from './ports';
 
 const DAY = 86_400_000;
 
@@ -39,6 +39,7 @@ export interface AuthDeps {
   users: UserRepository;
   sessions: SessionRepository;
   invites: InviteRepository;
+  recoveryCodes: RecoveryCodeRepository;
   hasher: PasswordHasher;
   tokens: Tokens;
   clock: Clock;
@@ -76,6 +77,12 @@ export interface IssuedInvite {
 /** Letters and digits that cannot be read as one another: no 0/O, 1/I/L. */
 const INVITE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const INVITE_LENGTH = 12;
+
+/** How many recovery codes an account is given at a time, and how long each is. */
+const RECOVERY_CODES = 8;
+const RECOVERY_LENGTH = 10;
+
+const randomCode = (length: number) => Array.from({ length }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join('');
 
 /** A code as typed: any case, with or without the dashes and spaces it was printed with. */
 export const normaliseInvite = (raw: string) => raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -311,6 +318,51 @@ export class AuthService {
       throw new ValidationError('That is not the password.', { password: 'Not the password.' });
     }
     await users.delete(user.id);
+  }
+
+  /**
+   * New recovery codes for the account, shown this once: the old ones stop
+   * working. Asked for with the password, like anything that would let
+   * someone into the account later. Kept as digests tied to the account, so
+   * the list in the database opens nothing.
+   */
+  async makeRecoveryCodes(input: { userId: string; password: string }): Promise<string[]> {
+    const { users, hasher, recoveryCodes, clock } = this.deps;
+    const user = await users.findById(input.userId);
+    if (!user) throw new UnauthorizedError();
+    if (!(await hasher.verify(input.password, user.passwordHash))) {
+      throw new ValidationError('That is not the password.', { password: 'Not the password.' });
+    }
+    const codes = Array.from({ length: RECOVERY_CODES }, () => randomCode(RECOVERY_LENGTH));
+    await recoveryCodes.replace(user.id, codes.map((c) => this.recoveryDigest(user.id, c)), clock.now());
+    return codes.map((c) => `${c.slice(0, 5)}-${c.slice(5)}`);
+  }
+
+  recoveryStatus(userId: string): Promise<{ left: number; createdAt: number } | null> {
+    return this.deps.recoveryCodes.status(userId);
+  }
+
+  /**
+   * A forgotten password replaced with one of the account's recovery codes:
+   * the code is used up, every browser is signed out, and this one is signed
+   * in. A wrong name and a wrong code fail the same way.
+   */
+  async recover(input: { username: string; code: string; newPassword: string; userAgent: string | null }): Promise<IssuedSession> {
+    const { users, sessions, hasher, recoveryCodes, clock } = this.deps;
+    const user = await users.findByUsernameKey(usernameKey(input.username));
+    const problem = passwordProblem(input.newPassword, user?.username ?? normaliseUsername(input.username));
+    if (problem) throw new ValidationError(problem, { newPassword: problem });
+    const code = normaliseInvite(input.code);
+    const refused = new ValidationError('That name and code do not go together, or the code has been used.', { code: 'Not a code that works for this name.' });
+    if (!user || code.length !== RECOVERY_LENGTH) throw refused;
+    if (!(await recoveryCodes.use(user.id, this.recoveryDigest(user.id, code), clock.now()))) throw refused;
+    await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
+    await sessions.deleteForUser(user.id);
+    return this.issue(user, input.userAgent);
+  }
+
+  private recoveryDigest(userId: string, code: string) {
+    return this.deps.tokens.digest(`${userId}:${normaliseInvite(code)}`);
   }
 
   /** For whoever runs the server: a new password for an account, and every session of it ended. */

@@ -211,4 +211,15 @@ export const MIGRATIONS: readonly string[] = [
     fetched_at  INTEGER NOT NULL
   ) STRICT;
   `,
+  // Codes to set a new password with when the old one is forgotten: there is
+  // no e-mail to send a link to. Only their digests are kept; each works once.
+  `
+  CREATE TABLE recovery_codes (
+    user_id     TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    digest      TEXT NOT NULL,
+    created_at  INTEGER NOT NULL,
+    used_at     INTEGER,
+    PRIMARY KEY (user_id, digest)
+  ) STRICT;
+  `,
 ];

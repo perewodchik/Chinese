@@ -199,4 +199,16 @@ describe('Postgres storage', () => {
     await stores.sessions.insert({ id: 's9c', userId: 'u9', createdAt: T, lastSeenAt: T + 1, expiresAt: T + 10, userAgent: 'old' });
     assert.deepEqual((await stores.sessions.listForUser('u9', T + 100)).map((s) => s.id), ['s9b', 's9a']);
   });
+
+  it('keeps recovery codes as digests, each used once, and replaces them all at once', async () => {
+    await stores.recoveryCodes.replace('u9', ['a', 'b'], T);
+    assert.deepEqual(await stores.recoveryCodes.status('u9'), { left: 2, createdAt: T });
+    assert.equal(await stores.recoveryCodes.use('u9', 'a', T + 1), true);
+    assert.equal(await stores.recoveryCodes.use('u9', 'a', T + 2), false);
+    assert.equal(await stores.recoveryCodes.use('u1', 'b', T + 2), false);
+    assert.deepEqual(await stores.recoveryCodes.status('u9'), { left: 1, createdAt: T });
+    await stores.recoveryCodes.replace('u9', ['c'], T + 5);
+    assert.equal(await stores.recoveryCodes.use('u9', 'b', T + 6), false);
+    assert.deepEqual(await stores.recoveryCodes.status('u9'), { left: 1, createdAt: T + 5 });
+  });
 });

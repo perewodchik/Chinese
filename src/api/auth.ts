@@ -17,4 +17,9 @@ export const authApi = {
     request<SessionResponse>('POST', API.login, { body, expect401: true }),
   logout: () => request<null>('POST', API.logout, { expect401: true }),
   changePassword: (body: ChangePasswordRequest) => request<null>('POST', API.password, { body }),
+  /** A forgotten password replaced with a recovery code; signed in on the way. */
+  recover: (body: { username: string; code: string; newPassword: string }) => request<SessionResponse>('POST', '/api/auth/recover', { body, expect401: true }),
+  recoveryStatus: () => request<{ codes: { left: number; createdAt: number } | null }>('GET', '/api/auth/recovery-codes').then((r) => r.codes),
+  /** New codes, shown this once; the old ones stop working. */
+  makeRecoveryCodes: (password: string) => request<{ codes: string[] }>('POST', '/api/auth/recovery-codes', { body: { password } }).then((r) => r.codes),
 };

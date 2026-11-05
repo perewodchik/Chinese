@@ -11,6 +11,7 @@ import { ChangePasswordForm } from '../auth/ChangePasswordForm';
 import { useUser } from '../auth/session';
 import { DeleteAccount } from './DeleteAccount';
 import { Devices } from './Devices';
+import { RecoveryCodes } from './RecoveryCodes';
 import './account.css';
 
 const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -118,6 +119,8 @@ export function AccountPage() {
         <h2 className="block-title">Password</h2>
         <ChangePasswordForm />
       </section>
+
+      <RecoveryCodes />
 
       <Devices />
 

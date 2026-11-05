@@ -30,6 +30,8 @@ export const paths = {
   login: (next?: string, expired = false) =>
     withQuery('/login', { next: next && next !== '/' ? next : undefined, expired: expired ? '1' : undefined }),
   register: (next?: string) => withQuery('/register', { next }),
+  /** a new password, with a recovery code */
+  recover: () => '/recover',
 
   /** the front door: the text to carry on with, and the day's cards */
   today: () => '/today',

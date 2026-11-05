@@ -109,3 +109,36 @@
 .ac-copy-lede {
   margin: 0 0 12px;
 }
+
+/* The forms under an account's blocks: a column of fields, the buttons in a row. */
+.ac-delete,
+.ac-codes {
+  display: grid;
+  gap: 14px;
+  max-width: 420px;
+}
+
+/* Two lines' room for the status, which is a word while it loads. */
+.ac-codes-status {
+  min-height: 3em;
+}
+
+.ac-codes-shown {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.ac-code-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  gap: 6px 24px;
+  margin: 0;
+  padding: 12px 16px 12px 36px;
+  border-radius: 14px;
+  background: var(--card-2);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  user-select: all;
+}

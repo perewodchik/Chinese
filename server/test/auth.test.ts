@@ -215,3 +215,51 @@ describe('the browsers signed in to an account', () => {
     assert.equal((await call(app, 'GET', '/api/auth/sessions')).status, 401);
   });
 });
+
+describe('recovery codes, for a forgotten password', () => {
+  async function withCodes() {
+    const made = makeApp();
+    const reg = await made.services.auth.register({ username: 'kirill', password: PASSWORD, userAgent: null });
+    const codes = await made.services.auth.makeRecoveryCodes({ userId: reg.user.id, password: PASSWORD });
+    return { ...made, codes, userId: reg.user.id };
+  }
+
+  it('are made with the password, eight at once, shown as ten letters and digits', async () => {
+    const { services, codes, userId } = await withCodes();
+    assert.equal(codes.length, 8);
+    for (const c of codes) assert.match(c, /^[A-Z2-9]{5}-[A-Z2-9]{5}$/);
+    assert.deepEqual(await services.auth.recoveryStatus(userId), { left: 8, createdAt: (await services.auth.recoveryStatus(userId))!.createdAt });
+    await assert.rejects(services.auth.makeRecoveryCodes({ userId, password: 'wrong horse' }), { code: 'validation' });
+  });
+
+  it('set a new password once each, sign every browser out and this one in', async () => {
+    const { app, services, codes, userId } = await withCodes();
+    const old = sessionCookie(await call(app, 'POST', '/api/auth/login', { body: { username: 'kirill', password: PASSWORD } }));
+    const res = await call(app, 'POST', '/api/auth/recover', { body: { username: 'Kirill', code: codes[2]!.toLowerCase(), newPassword: 'a new horse' } });
+    assert.equal(res.status, 200);
+    assert.equal((await call(app, 'GET', '/api/workspace', { cookie: sessionCookie(res) })).status, 200);
+    assert.equal((await call(app, 'GET', '/api/workspace', { cookie: old })).status, 401);
+    assert.equal((await services.auth.recoveryStatus(userId))!.left, 7);
+    const again = await call(app, 'POST', '/api/auth/recover', { body: { username: 'kirill', code: codes[2], newPassword: 'another horse' } });
+    assert.equal(again.status, 400);
+    assert.equal((await call(app, 'POST', '/api/auth/login', { body: { username: 'kirill', password: 'a new horse' } })).status, 200);
+  });
+
+  it('fail the same way for a wrong name and a wrong code, and stop for a while after ten', async () => {
+    const { app, codes } = await withCodes();
+    const tries = [
+      { username: 'nobody', code: codes[0] },
+      { username: 'kirill', code: 'AAAAA-BBBBB' },
+    ];
+    const answers = await Promise.all(tries.map(async (t) => (await (await call(app, 'POST', '/api/auth/recover', { body: { ...t, newPassword: 'a new horse' } })).json()) as { error: { message: string } }));
+    assert.equal(answers[0]!.error.message, answers[1]!.error.message);
+    for (let i = 0; i < 9; i++) await call(app, 'POST', '/api/auth/recover', { body: { username: 'kirill', code: 'AAAAA-BBBBB', newPassword: 'a new horse' } });
+    assert.equal((await call(app, 'POST', '/api/auth/recover', { body: { username: 'kirill', code: codes[0], newPassword: 'a new horse' } })).status, 429);
+  });
+
+  it('made again, the old ones stop working', async () => {
+    const { app, services, codes, userId } = await withCodes();
+    await services.auth.makeRecoveryCodes({ userId, password: PASSWORD });
+    assert.equal((await call(app, 'POST', '/api/auth/recover', { body: { username: 'kirill', code: codes[0], newPassword: 'a new horse' } })).status, 400);
+  });
+});
