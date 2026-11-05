@@ -9,6 +9,7 @@ import { alignPinyin } from '../../domain/reading';
 import { heardAnything } from '../../platform/audio/mic';
 import { hush, playSamples } from '../../platform/audio/voiceOut';
 import { forgetRecording, keepRecording, recordingOf } from '../../platform/audio/recordings';
+import { canSpeak, sayAndWait } from '../../platform/speech';
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { Modal } from '../../ui/Modal';
@@ -104,6 +105,7 @@ export function LineStudio({
   onGo,
   onNext,
   onBack,
+  canScore = true,
 }: {
   phrases: Phrase[];
   index: number;
@@ -118,6 +120,8 @@ export function LineStudio({
   onGo: (i: number) => void;
   onNext: () => void;
   onBack: () => void;
+  /** false without scoring keys: a line is heard, said and played back, and not sent to be scored */
+  canScore?: boolean;
 }) {
   const lib = useLibrary();
   const phrase = phrases[index]!;
@@ -293,6 +297,10 @@ export function LineStudio({
       setMicDetail(recorder.diagnostics());
       return;
     }
+    if (!canScore) {
+      setNote('Not scored: checking how it sounded needs your SpeechSuper keys, in Settings. Mine plays what you said.');
+      return;
+    }
     setChecking(true);
     evaluatePhrase(phrase.zh, s, numbered(readings))
       .then(
@@ -397,7 +405,10 @@ export function LineStudio({
     else recorder.toggle();
   }
 
-  const hear = () => play('hear', () => (clips ? playLine(clips, index, slow ? 0.75 : 1) : undefined));
+  // No narrator's reading: the device's own voice says it meanwhile, said so on the screen.
+  const hear = () => play('hear', () => (clips ? playLine(clips, index, slow ? 0.75 : 1) : sayAndWait(phrase.zh, slow ? 0.6 : 0.85)));
+  // Asked each render: a browser lists its voices a moment after the page opens.
+  const deviceVoice = canSpeak();
   const hearMine = () => play('mine', () => (mineSamples ? playSamples(mineSamples) : undefined));
   const last = index + 1 >= phrases.length;
   const state = checking ? 'checking' : count !== null || readying ? 'opening' : recorder.state;
@@ -657,7 +668,7 @@ export function LineStudio({
           <Icon name="prev" />
           <span>Back</span>
         </button>
-        <button className="ph-dock-btn" onClick={hear} disabled={!clips} aria-pressed={sounding === 'hear'}>
+        <button className="ph-dock-btn" onClick={hear} disabled={!clips && !deviceVoice} aria-pressed={sounding === 'hear'}>
           <Icon name={sounding === 'hear' ? 'stop' : 'play'} />
           <span>{sounding === 'hear' ? 'Stop' : slow ? 'Slowly' : 'Hear'}</span>
         </button>
@@ -696,7 +707,7 @@ function NoReading({ narrators, lines, onRead }: { narrators: NarratorDto[]; lin
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const n = narrators.find((x) => x.id === chosenNarrator()) ?? narrators[0];
-  if (!n) return <p className="small muted ph-note">No narrator has read these yet. Make one in Voices, and it reads them for you to copy.</p>;
+  if (!n) return <p className="small muted ph-note">No narrator has read these yet: Hear uses this device’s own voice, which is not a native speaker’s. Make a narrator in Voices, and it reads them for you to copy.</p>;
   async function read() {
     setBusy(true);
     setFailed(null);

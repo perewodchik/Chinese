@@ -170,6 +170,18 @@ export function speak(text: string, opts: { rate?: number; queue?: boolean; onEn
   return true;
 }
 
+/**
+ * Says a line in the device's own Mandarin voice and settles when it ends,
+ * however it ends — for a button that turns back from Stop. Undefined when
+ * the device has no such voice.
+ */
+export function sayAndWait(text: string, rate = 0.85): Promise<void> | undefined {
+  if (!canSpeak()) return undefined;
+  return new Promise<void>((resolve) => {
+    if (!speak(text, { rate, onEnd: () => resolve() })) resolve();
+  });
+}
+
 /** Whether something is being said, or waiting to be. */
 export const speechBusy = () => {
   const s = synth();

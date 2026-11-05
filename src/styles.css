@@ -6058,3 +6058,12 @@ label.field[data-invalid] input {
   background: color-mix(in srgb, var(--jade) 38%, var(--card));
   color: var(--ink);
 }
+
+/* One quiet line where a key of the learner's own would add something (src/ui/NeedsKey.tsx). */
+.needs-key {
+  margin: 8px 0 0;
+}
+
+.needs-key a {
+  color: var(--accent);
+}

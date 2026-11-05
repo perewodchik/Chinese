@@ -7,7 +7,7 @@ import { bestOf, linesWithFault, today, weakLines } from '../../domain/speak';
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
-import { PronunciationKey } from '../settings/PronunciationKey';
+import { NeedsKey } from '../../ui/NeedsKey';
 import { keepAttempt, loadAttempts, mergedAttempts } from './attempts';
 import { band } from '../pinyin/ScoredLine';
 import { armAutoplay, SayLine } from './SayLine';
@@ -68,7 +68,7 @@ export function SpeakHome() {
   const navigate = useNavigate();
   const src = useSources();
   const [attempts] = useAttempts();
-  const [status, setStatus] = useEvalStatus();
+  const [status] = useEvalStatus();
   const voice = useNarrator();
   const [sheet, setSheet] = useState(false);
 
@@ -103,19 +103,6 @@ export function SpeakHome() {
     if (s) start(s, 0);
   }
 
-  if (status && !status.key.set) {
-    return (
-      <section className="ph sk-home">
-        <div className="page-head">
-          <h1>Phrases</h1>
-        </div>
-        <p className="small muted ph-lede">
-          Say a line, and every syllable is scored — its initial, final and tone — with the words to fix. The scoring is SpeechSuper’s or iFlytek’s: add your keys once.
-        </p>
-        <PronunciationKey onChange={setStatus} />
-      </section>
-    );
-  }
 
   const row = (s: Source) => {
     const p = progressOf(s);
@@ -150,6 +137,11 @@ export function SpeakHome() {
         Hear a line, say it, fix the words that were off.{' '}
         {day.said ? `Today: ${day.said} line${day.said === 1 ? '' : 's'} said${day.green ? `, ${day.green} of them green` : ''}.` : ''}
       </p>
+      {status && !status.key.set && (
+        <NeedsKey to={paths.settings()} action="Add the keys in Settings">
+          You can hear every line and say it back; scoring each syllable needs your own SpeechSuper keys.
+        </NeedsKey>
+      )}
 
       <div className="ph-columns">
         <div>
@@ -255,7 +247,6 @@ export function SpeakSay() {
   const done = search.get('done') === '1';
   const asked = Math.max(0, Number(search.get('line') ?? 1) - 1 || 0);
 
-  if (status && !status.key.set) return <Navigate to={paths.speaking()} replace />;
   const source = id ? src.find(id) : null;
   if (!source || !source.phrases.length) {
     // Its own texts come from the server: wait for them before saying it is gone.
@@ -301,6 +292,7 @@ export function SpeakSay() {
       onGo={go}
       onNext={() => (index + 1 < source.phrases.length ? go(index + 1) : navigate(`${paths.speakingSay(source.id)}?done=1`, { replace: true }))}
       onBack={toHome}
+      canScore={!status || status.key.set}
     />
   );
 }

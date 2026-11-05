@@ -29,6 +29,7 @@ import { VoiceSheet } from './VoiceSheet';
 import '../pinyin/phrases.css';
 import '../pinyin/pinyin.css';
 import './speak.css';
+import { canSpeak, sayAndWait } from '../../platform/speech';
 
 /**
  * Set by a tap that opens a line (Next, Back, a segment, Start): the line
@@ -71,6 +72,7 @@ export function SayLine({
   onGo,
   onNext,
   onBack,
+  canScore = true,
 }: {
   source: Source;
   index: number;
@@ -82,6 +84,8 @@ export function SayLine({
   onGo: (i: number) => void;
   onNext: () => void;
   onBack: () => void;
+  /** false without scoring keys: the line is heard, said and played back, and not sent to be scored */
+  canScore?: boolean;
 }) {
   const lib = useLibrary();
   const openItem = useOpenItem();
@@ -171,7 +175,13 @@ export function SayLine({
   }, [narrator?.id, wholeList, slow, index]);
 
   async function hear() {
-    if (!narrator || hearing) return;
+    // No narrator: the device's own voice says the line meanwhile (said so under the line).
+    if (!narrator) {
+      unlockAudio();
+      void sayAndWait(phrase.zh, slow ? 0.6 : 0.85);
+      return;
+    }
+    if (hearing) return;
     autoplay.current = false;
     unlockAudio();
     setHearing(true);
@@ -209,6 +219,8 @@ export function SayLine({
   // Taken as the line opens: the tries passed in grow with every try said here, and a try is not its own best before.
   const [bestBefore] = useState(() => (tries.length ? tries.reduce((a, b) => (b.total > a.total ? b : a)) : null));
   const [bestNow, setBestNow] = useState<number | null>(null);
+  // Asked each render: a browser lists its voices a moment after the page opens.
+  const deviceVoice = canSpeak();
 
   // Where the microphone's recording goes: the line, or the word being practised in the sheet.
   const target = useRef<'line' | 'fix'>('line');
@@ -222,6 +234,10 @@ export function SayLine({
     if (!heardAnything(s)) {
       setNote(NOTHING_HEARD);
       setMicDetail(recorder.diagnostics());
+      return;
+    }
+    if (!canScore) {
+      setNote('Not scored: checking how it sounded needs your SpeechSuper keys, in Settings. Mine plays what you said.');
       return;
     }
     setChecking(true);
@@ -502,7 +518,11 @@ export function SayLine({
           ) : (
             <div className="sk-empty">
               <p className="small muted">
-                {narrator ? 'Hear it, then tap the microphone and say the whole line. It stops by itself when you do.' : 'Tap the microphone and say the whole line. It stops by itself when you do.'}
+                {narrator
+                  ? 'Hear it, then tap the microphone and say the whole line. It stops by itself when you do.'
+                  : deviceVoice
+                    ? 'Hear it in this device’s own voice (not a native speaker’s: a narrator in Voices is), then tap the microphone and say the whole line.'
+                    : 'Tap the microphone and say the whole line. It stops by itself when you do.'}
               </p>
               {bestBefore && (
                 <p className="small sk-best">
@@ -559,7 +579,7 @@ export function SayLine({
           <Icon name="prev" />
           <span>Back</span>
         </button>
-        <button className="ph-dock-btn" onClick={() => void hear()} disabled={!narrator} aria-busy={hearing || undefined}>
+        <button className="ph-dock-btn" onClick={() => void hear()} disabled={!narrator && !deviceVoice} aria-busy={hearing || undefined}>
           {hearing ? <span className="spinner sk-dock-spin" aria-hidden /> : <Icon name="play" />}
           <span>{slow ? 'Slowly' : 'Hear'}</span>
         </button>

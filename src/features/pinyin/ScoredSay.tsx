@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router';
 import { PROVIDER_NAME, type EvalResult, type EvalStatus } from '../../../shared/speechEval';
 import { evalStatus, evaluatePhrase } from '../../api/speechEval';
 import { faultsOf, numbered, partsOf } from '../../domain/phrases';
@@ -8,6 +7,7 @@ import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { RecordButton } from './RecordButton';
 import { useRecorder } from './useRecorder';
+import { NeedsKey } from '../../ui/NeedsKey';
 
 /**
  * A word to say, scored by the pronunciation service with the learner's own
@@ -52,6 +52,7 @@ export function ScoredSay({
     setChecking(false);
   }, [word]);
 
+  const noKeyNow = useRef(false);
   const rec = useRecorder((s) => {
     setMine(s);
     setError(null);
@@ -61,6 +62,8 @@ export function ScoredSay({
       setError(`Nothing came through from the microphone, so nothing was sent to be scored. Say it again; if it happens again, reload the page, and check the browser may use the microphone. (${rec.diagnostics()})`);
       return;
     }
+    // Without scoring keys the try is kept to hear back (Me), and not sent.
+    if (noKeyNow.current) return;
     setChecking(true);
     const asked = word;
     evaluatePhrase(word, s, numbered(readings))
@@ -78,22 +81,23 @@ export function ScoredSay({
   }, maxMs);
 
   const noKey = status !== null && !status.key.set;
+  noKeyNow.current = noKey;
   const chars = [...word];
 
   return (
     <div className="say-check">
       {blocked && <p className="notice speak-notice">{MIC_MESSAGE[blocked]}</p>}
       {noKey && (
-        <p className="notice speak-notice">
-          Scoring needs your SpeechSuper (or iFlytek) keys. <Link to={paths.settings()}>Add them in Settings</Link>.
-        </p>
+        <NeedsKey to={paths.settings()} action="Add the keys in Settings">
+          Say it and hear yourself with Me; scoring it needs your own SpeechSuper keys.
+        </NeedsKey>
       )}
 
       <div className="speak-controls">
         <button className="btn speak-side" onClick={onListen} title="Listen (L)">
           <Icon name="sound" size={18} /> Listen
         </button>
-        <RecordButton state={checking ? 'checking' : rec.state} level={rec.level} onToggle={rec.toggle} disabled={!!blocked || noKey} />
+        <RecordButton state={checking ? 'checking' : rec.state} level={rec.level} onToggle={rec.toggle} disabled={!!blocked} />
         <button className="btn speak-side" onClick={() => mine && rec.play(mine)} disabled={!mine} title="Hear yourself (P)">
           <Icon name="play" size={18} /> Me
         </button>

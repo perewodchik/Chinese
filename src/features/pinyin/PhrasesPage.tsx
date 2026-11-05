@@ -13,7 +13,7 @@ import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { accountKey } from '../../platform/accountStorage';
 import { useLibrary } from '../shared/library';
-import { PronunciationKey } from '../settings/PronunciationKey';
+import { NeedsKey } from '../../ui/NeedsKey';
 import { bestByLine, keepTry, loadHistory, remember } from './speechHistory';
 import { LineStudio } from './LineStudio';
 import { band } from './ScoredLine';
@@ -170,21 +170,9 @@ export function PhrasesPage() {
     navigate(paths.speakingSay(src.id, index), { replace: Boolean(open) });
   }
 
-  if (status && !status.key.set) {
-    if (open) return <Navigate to={paths.speaking()} replace />;
-    return (
-      <section className="ph">
-        <div className="page-head">
-          <h1>Phrases</h1>
-        </div>
-        <p className="small muted ph-lede">
-          Choose a text and say it line by line: every syllable is scored — its initial, final and tone — with what to
-          change. The scoring is SpeechSuper's or iFlytek's: add your keys once.
-        </p>
-        <PronunciationKey onChange={setStatus} />
-      </section>
-    );
-  }
+  // Without scoring keys every line can still be heard and said, and what was
+  // said played back; only the scores wait for the keys.
+  const canScore = status === null || status.key.set;
 
   const source = open ? find(open.sourceId) : null;
   if (open && !(source && source.phrases.length)) {
@@ -227,6 +215,7 @@ export function PhrasesPage() {
         onGo={go}
         onNext={() => (index + 1 < source.phrases.length ? go(index + 1) : navigate(`${paths.speakingSay(source.id)}?done=1`, { replace: true }))}
         onBack={toTexts}
+        canScore={canScore}
       />
     );
   }
@@ -267,6 +256,11 @@ export function PhrasesPage() {
         </Link>
       </div>
       <p className="small muted ph-lede">Choose a text and say it line by line: each line is scored, then on to the next.</p>
+      {!canScore && (
+        <NeedsKey to={paths.settings()} action="Add the keys in Settings">
+          You can hear every line and say it back; scoring each syllable needs your own SpeechSuper keys.
+        </NeedsKey>
+      )}
 
       <div className="ph-columns">
         <div>
