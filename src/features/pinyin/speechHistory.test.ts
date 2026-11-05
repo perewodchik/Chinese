@@ -65,3 +65,21 @@ describe('sending the tries that wait', () => {
     assert.equal(pendingTries().some((a) => a.id === 'after-empty'), false);
   });
 });
+
+describe('the tries waiting on a shared device', () => {
+  it('are kept under the account that said them, never under a plain name the next account reads', async () => {
+    const m = new Map<string, string>();
+    (globalThis as { localStorage?: unknown }).localStorage = {
+      getItem: (k: string) => m.get(k) ?? null,
+      setItem: (k: string, v: string) => void m.set(k, v),
+      removeItem: (k: string) => void m.delete(k),
+    };
+    const { setStorageAccount } = await import('../../platform/accountStorage');
+    const { keepTry } = await import('./speechHistory');
+    setStorageAccount('learner-a');
+    keepTry(tryOf('mine'));
+    assert.ok(m.get('hanzi/learner-a/hanzi.speech.outbox')?.includes('"mine"'));
+    assert.equal(m.get('hanzi.speech.outbox'), undefined);
+    setStorageAccount(null);
+  });
+});
