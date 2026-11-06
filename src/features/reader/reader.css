@@ -830,6 +830,17 @@ label.rd-aa-row {
   cursor: pointer;
 }
 
+/* The words take what is left, and a control beside them never wraps its buttons. */
+.rd-aa-row > span:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rd-aa-row > .seg {
+  flex: none;
+  flex-wrap: nowrap;
+}
+
 .rd-aa-row small {
   display: block;
   margin-top: 2px;
@@ -1873,7 +1884,10 @@ label.rd-aa-row {
   float: right;
   height: calc((var(--lines) - 1) * var(--lh) + 1em);
   aspect-ratio: 1;
-  margin: var(--glyph-top) 0 calc(var(--lh) - var(--glyph-top) - 1em) 0.5em;
+  /* No margin under it: the text goes back to the full width on the first
+     line below the picture, with no empty band (the pinyin row above that
+     line already keeps them apart). */
+  margin: var(--glyph-top) 0 0 0.5em;
 }
 
 @media (min-width: 700px) {
@@ -2749,7 +2763,16 @@ a.rd-more-row {
 }
 
 .rd-peek[data-place='margin'] {
-  width: 270px;
+  width: 290px;
+}
+
+/* By the word, the level's name is in the button's title: the row keeps to one line. */
+.rd-peek:not([data-place='strip']) .rd-peek-level > span {
+  display: none;
+}
+
+.rd-peek-acts > * {
+  flex-shrink: 0;
 }
 
 .rd-peek-grab {
