@@ -301,3 +301,332 @@
     display: none;
   }
 }
+
+/* ------------------------------------------------------------ the bookcase */
+
+/* A book's cover: its cloth colour, a darker spine down its left edge, the
+   corners of a hardback. Sized by width; everything on it scales with it. */
+.book-cover {
+  position: relative;
+  display: block;
+  flex: none;
+  border-radius: 3px 8px 8px 3px;
+  background: var(--cover);
+  box-shadow: inset 0.5em 0 0 var(--spine), 0 1px 0 rgb(24 32 43 / 14%);
+  overflow: hidden;
+  color: #fafbf8;
+  line-height: 1.12;
+}
+
+.book-art {
+  position: absolute;
+  top: 7%;
+  left: 7%;
+  right: 3%;
+}
+
+.book-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.book-title {
+  position: absolute;
+  left: 13%;
+  right: 6%;
+  bottom: 8%;
+  font-size: 1em;
+  overflow-wrap: anywhere;
+}
+
+/* A plain book: an exercise book's white label, the title on it, two ruled lines under. */
+.book-label {
+  position: absolute;
+  left: 15%;
+  right: 9%;
+  top: 22%;
+  display: grid;
+  justify-items: center;
+  gap: 0.3em;
+  padding: 0.55em 0.35em 0.7em;
+  border-radius: 4px;
+  background: #fafbf8;
+  color: #18202b;
+  text-align: center;
+}
+
+.book-label .hanzi {
+  font-size: 0.85em;
+  overflow-wrap: anywhere;
+}
+
+/* A title in English on the label: smaller, in the app's own type, broken between words only. */
+.book-label .book-label-latin {
+  font-family: var(--sans);
+  font-size: 0.6em;
+  font-weight: 500;
+  line-height: 1.25;
+  overflow-wrap: normal;
+  hyphens: auto;
+}
+
+.book-label i {
+  display: block;
+  width: 82%;
+  height: 1px;
+  background: #c8d1c6;
+}
+
+/* The easier edition's sticker, at the top right edge. */
+.book-easier {
+  position: absolute;
+  top: 7%;
+  right: -2px;
+  padding: 0.12em 0.5em 0.12em 0.4em;
+  border-radius: 4px 0 0 4px;
+  background: #fafbf8;
+  color: #18202b;
+  font-size: max(10.5px, 0.6em);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.book-easier .hanzi {
+  font-size: 1.2em;
+  font-weight: 400;
+}
+
+/* Where you are: a bookmark ribbon from the top edge. */
+.book-ribbon {
+  position: absolute;
+  top: 0;
+  left: 30%;
+  width: 9%;
+  height: 22%;
+  background: #e8b84a;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+}
+
+/* A chapter not opened yet: one dot, as small as it can be and still be seen. */
+.book-new {
+  position: absolute;
+  top: 7%;
+  right: 8%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #d9544a;
+  box-shadow: 0 0 0 2px #fafbf8;
+}
+
+/* Read to the end: a seal pressed in the cover. */
+.book-seal {
+  position: absolute;
+  top: 6%;
+  right: 7%;
+  padding: 0.15em 0.3em;
+  border: 2px solid rgb(250 251 248 / 85%);
+  border-radius: 6px;
+  font-size: max(11px, 0.55em);
+  line-height: 1.2;
+  white-space: nowrap;
+  transform: rotate(-8deg);
+}
+
+/* A shelf: its books standing on a ledge, swiped sideways when there are more than fit. */
+.bookcase {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 26px;
+  margin-top: 24px;
+}
+
+.bookshelf-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.bookshelf-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.bookshelf-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 2px 4px 0;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+.bookshelf-row::-webkit-scrollbar {
+  display: none;
+}
+
+.bookshelf-ledge {
+  display: block;
+  height: 8px;
+  border-top: 2px solid var(--line-2);
+  border-radius: 0 0 6px 6px;
+  background: var(--card-2);
+}
+
+.book {
+  flex: none;
+  display: grid;
+  gap: 6px;
+  scroll-snap-align: start;
+  color: inherit;
+  text-decoration: none;
+}
+
+.book-meta {
+  display: grid;
+  gap: 3px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.book-meta > i {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.book-meta > i > i {
+  display: block;
+  height: 100%;
+  background: var(--jade);
+}
+
+/* On an iPad a shelf of one or two books takes half a row, so two such shelves share one. */
+@media (min-width: 900px) {
+  .bookcase {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px 40px;
+  }
+
+  .bookshelf {
+    grid-column: 1 / -1;
+  }
+
+  .bookshelf[data-small] {
+    grid-column: auto;
+  }
+}
+
+/* Where you stopped, with its book's cover. */
+.continue-book {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--card-2);
+  color: inherit;
+  text-decoration: none;
+}
+
+.continue-book .continue-title {
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+@media (max-width: 520px) {
+  .continue-book {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .continue-book > .btn {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+/* A book's page: its cover beside its title and how far through it you are. */
+.book-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: 16px;
+  margin: 4px 0 18px;
+}
+
+.book-head-text {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.book-head-text .sh-title {
+  margin: 0;
+}
+
+.book-head-easier {
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.book-head-progress {
+  margin-top: 4px;
+  max-width: 260px;
+}
+
+/* A chapter's number as the book gives it, coloured by where you are with it. */
+.chapter-badge {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-family: var(--han);
+  font-size: 18px;
+  background: var(--card-2);
+  color: var(--ink-2);
+}
+
+.chapter-badge[data-state='done'] {
+  background: var(--jade-soft);
+  color: var(--jade);
+}
+
+.chapter-badge[data-state='now'] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.shelf-text[data-state='now'] {
+  background: var(--hl);
+  border-radius: 12px;
+  margin: 0 -12px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* Not opened yet: the red pen, small. */
+.chapter-new {
+  margin-left: 8px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--red);
+  vertical-align: middle;
+}
+
+/* An easier edition read through: the sticker keeps the top corner, the seal goes to the foot. */
+.book-easier ~ .book-seal {
+  top: auto;
+  bottom: 6%;
+}

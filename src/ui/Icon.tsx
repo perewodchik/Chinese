@@ -23,7 +23,8 @@ export type IconName =
   | 'print'
   | 'prev'
   | 'next'
-  | 'expand';
+  | 'expand'
+  | 'book';
 
 const PATHS: Record<IconName, JSX.Element> = {
   back: <path d="M15 5l-7 7 7 7" />,
@@ -75,6 +76,7 @@ const PATHS: Record<IconName, JSX.Element> = {
   prev: <path d="M11 6l-6 6 6 6M19 6l-6 6 6 6" />,
   next: <path d="M13 6l6 6-6 6M5 6l6 6-6 6" />,
   expand: <path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" />,
+  book: <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 0 6.5 21H19M9 7h6" />,
 };
 
 export function Icon({ name, size, className }: { name: IconName; size?: number; className?: string }) {

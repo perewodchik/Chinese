@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { DEFAULT_SCOPE, type Collection } from '../../domain/collection';
 import { charId, isCharId, isWordId, idValue, type ItemId } from '../../domain/ids';
@@ -27,6 +27,9 @@ import { LevelQuick } from '../../ui/LevelPicker';
 import { readerSheet } from './readerSheet';
 import { partFill, partsOf } from './TextParts';
 import { useStartSession } from './startSession';
+import { bookcase, bookOf, isFrontMatter, type Book } from '../../domain/bookshelf';
+import { shelveBook } from '../../store/commands';
+import { BookCover } from './BookCover';
 import './shelves.css';
 
 const hasHan = (s: string) => [...s].some(isHanzi);
@@ -110,26 +113,15 @@ export function ReadPage() {
       .slice(0, 30);
   }, [q, texts]);
 
-  function newShelf() {
-    const name = prompt('What is the new shelf called? A book’s title, or a subject.');
+  function newBook() {
+    const name = prompt('What is the new book called? A real book’s title, or a subject for texts.');
     if (!name?.trim()) return;
     const { set } = addTexts([], { setId: null, name: name.trim() });
     navigate(paths.shelf(set.id));
   }
 
-  // Newest first, a text with two versions once.
-  const latest = useMemo(() => {
-    const seen = new Set<string>();
-    return [...texts]
-      .sort((a, b) => b.createdAt - a.createdAt)
-      .filter((t) => {
-        const key = `${t.setId ?? ''}|${t.titleZh}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      })
-      .slice(0, 3);
-  }, [texts]);
+  // Each shelf with its books, and what each book shows on its cover.
+  const shelves = useMemo(() => bookcase(sets, shelf.bySet), [sets, shelf]);
 
   return (
     <div className="read-page">
@@ -143,8 +135,9 @@ export function ReadPage() {
                 Write texts with Claude
                 <span className="tiny muted">out of the characters you know</span>
               </button>
-              <button role="menuitem" className="btn ghost sm" onClick={() => (close(), newShelf())}>
-                New shelf
+              <button role="menuitem" className="btn ghost sm" onClick={() => (close(), newBook())}>
+                New book
+                <span className="tiny muted">for a real book’s pages, or texts on a subject</span>
               </button>
             </>
           )}
@@ -199,63 +192,39 @@ export function ReadPage() {
             </div>
           )}
 
-          {go && (
-            <Link className="continue" to={go.to}>
-              <span className="grow">
-                <span className="small muted">Where you stopped{go.set ? `, in ${go.set.name}` : ''}</span>
-                <span className="hanzi continue-title">{go.text.titleZh || go.text.title}</span>
-              </span>
-              <span className="btn tonal sm">Open</span>
-            </Link>
-          )}
+          {go && <ContinueBook go={go} />}
 
-          <section className="block">
-            <div className="block-head">
-              <h2 className="block-title">Shelves</h2>
-              <span className="spacer" />
-              <button className="btn quiet sm" onClick={newShelf}>
-                New shelf
+          {sets.length ? (
+            <div className="bookcase">
+              {shelves.map((sh) => (
+                <section key={sh.name} className="bookshelf" data-small={sh.books.length <= 2 || undefined}>
+                  <div className="bookshelf-head">
+                    <h2>{sh.name}</h2>
+                    <span className="small muted">
+                      {sh.books.length} book{sh.books.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <div className="bookshelf-row">
+                    {sh.books.map((b) => (
+                      <BookOnShelf key={b.set.id} book={b} texts={shelf.bySet.get(b.set.id) ?? []} reading={go?.set?.id === b.set.id} />
+                    ))}
+                  </div>
+                  <span className="bookshelf-ledge" aria-hidden />
+                </section>
+              ))}
+            </div>
+          ) : (
+            <div className="empty compact">
+              <span className="big">读</span>
+              <p>
+                Nothing to read yet. Claude can write a few texts out of the characters you know
+                {admin ? ', or add pages from a book with /add-text' : ''}.
+              </p>
+              <button className="btn primary" onClick={() => startSession(null)}>
+                Write the first texts
               </button>
             </div>
-            {sets.length ? (
-              <div className="list">
-                {sets.map((set) => {
-                  const entries = shelfEntries(shelf.bySet.get(set.id) ?? []);
-                  const learning = (set.study ?? []).length;
-                  return (
-                    <Link key={set.id} className="shelf-row" to={paths.shelf(set.id)}>
-                      <span className="grow">
-                        <span className={hasHan(set.name) ? 'hanzi shelf-name zh' : 'shelf-name'}>{set.name}</span>
-                        <span className="small muted">
-                          {entries.length ? `${entries.length} text${entries.length === 1 ? '' : 's'}` : 'No texts yet'}
-                          {learning ? `, ${learning} word${learning === 1 ? '' : 's'} you are learning` : ''}
-                        </span>
-                        {entries.length > 0 && (
-                          <span className="read-dots" aria-label={`${entries.filter((e) => e.main.read || e.easier?.read).length} read`}>
-                            {entries.map((e) => (
-                              <i key={e.main.id} data-read={e.main.read || e.easier?.read || undefined} />
-                            ))}
-                          </span>
-                        )}
-                      </span>
-                      <Icon name="chevron" className="muted" />
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="empty compact">
-                <span className="big">读</span>
-                <p>
-                  Nothing to read yet. Claude can write a few texts out of the characters you know
-                  {admin ? ', or add pages from a book with /add-text' : ''}.
-                </p>
-                <button className="btn primary" onClick={() => startSession(null)}>
-                  Write the first texts
-                </button>
-              </div>
-            )}
-          </section>
+          )}
 
           {shelf.loose.length > 0 && (
             <section className="block">
@@ -268,19 +237,87 @@ export function ReadPage() {
             </section>
           )}
 
-          {latest.length > 1 && (
-            <section className="block">
-              <h2 className="block-title">Added lately</h2>
-              <div className="list">
-                {latest.map((t) => (
-                  <TextRow key={t.id} text={t} to={paths.text(t.id)} sub={`${sets.find((s) => s.id === t.setId)?.name ?? 'Not on a shelf'}, ${ago(t.createdAt)}`} />
-                ))}
-              </div>
-            </section>
-          )}
         </>
       )}
     </div>
+  );
+}
+
+/** 一 to 十, then 十一 to 九十九, as a Chinese book numbers its chapters; past that, the digits. */
+function chineseNumber(n: number): string {
+  const d = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+  if (n < 1 || n > 99) return String(n);
+  if (n < 10) return d[n]!;
+  const tens = Math.floor(n / 10);
+  return `${tens > 1 ? d[tens] : ''}十${d[n % 10]}`;
+}
+
+/** How far through a book is: its chapters (a text and its easier version one chapter), read and opened. */
+function progressOf(texts: GeneratedText[]) {
+  const entries = shelfEntries(texts);
+  const read = entries.filter((e) => e.main.read || e.easier?.read).length;
+  const opened = (t: GeneratedText | null) => Boolean(t && (t.read || t.lastReadAt));
+  const unopened = entries.filter((e) => !opened(e.main) && !opened(e.easier)).length;
+  return { total: entries.length, read, unopened };
+}
+
+/** A book standing on its shelf: its cover, how far through it you are, and a tap opens it. */
+function BookOnShelf({ book, texts, reading }: { book: Book; texts: GeneratedText[]; reading: boolean }) {
+  const width = useBookWidth();
+  const p = progressOf(texts);
+  const meta = !p.total ? 'Empty' : p.read === 0 && p.unopened === p.total ? `New · ${p.total} ${p.total === 1 ? 'text' : book.kind === 'story' ? 'chapters' : 'texts'}` : `${p.read} of ${p.total} read`;
+  return (
+    <Link className="book" to={paths.shelf(book.set.id)} aria-label={`${book.title}${book.easier ? ', easier edition' : ''}: ${meta}`} style={{ width }}>
+      <BookCover book={book} width={width} bookmark={reading} fresh={p.unopened > 0 && p.unopened < p.total} done={p.total > 0 && p.read === p.total} />
+      <span className="book-meta">
+        <i>
+          <i style={{ width: `${p.total ? Math.round((p.read / p.total) * 100) : 0}%` }} />
+        </i>
+        {meta}
+      </span>
+    </Link>
+  );
+}
+
+/** Covers on a shelf: a little wider on an iPad, where there is room; followed as the iPad turns. */
+function useBookWidth(): number {
+  const query = '(min-width: 900px)';
+  const [wide, setWide] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
+  useEffect(() => {
+    const m = window.matchMedia(query);
+    const on = () => setWide(m.matches);
+    m.addEventListener('change', on);
+    return () => m.removeEventListener('change', on);
+  }, []);
+  return wide ? 120 : 104;
+}
+
+/** Where you stopped: the book's cover, the chapter, and the way back to it. */
+function ContinueBook({ go }: { go: NonNullable<ReturnType<typeof useContinue>> }) {
+  const texts = useStore((s) => s.texts);
+  const sets = useStore((s) => s.sets);
+  // In the book's own reading order, as its page lists them.
+  const inBook = go.set ? (shelve(texts, sets).bySet.get(go.set.id) ?? []) : [];
+  const book = go.set ? bookOf(go.set, inBook) : null;
+  const entries = shelfEntries(inBook);
+  const at = entries.findIndex((e) => e.main.id === go.text.id || (e.easier !== null && e.easier.id === go.text.id));
+  // Counted as the book counts them: the page before the chapters is not one.
+  const chapters = entries.filter((e) => !isFrontMatter(e.main));
+  const chapterAt = at >= 0 && !isFrontMatter(entries[at]!.main) ? chapters.indexOf(entries[at]!) : -1;
+  return (
+    <Link className="continue-book" to={go.to}>
+      {book && <BookCover book={book} width={66} bookmark />}
+      <span className="grow" style={{ display: 'grid', gap: 2, minWidth: 0 }}>
+        <span className="small muted">Go on reading{book ? ` · ${book.title}` : ''}</span>
+        <span className="hanzi continue-title">{go.text.titleZh || go.text.title}</span>
+        {chapterAt >= 0 && chapters.length > 1 && (
+          <span className="small muted">
+            {book?.kind === 'story' ? 'Chapter' : 'Text'} {chapterAt + 1} of {chapters.length}
+          </span>
+        )}
+      </span>
+      <span className="btn primary">Read</span>
+    </Link>
   );
 }
 
@@ -295,11 +332,6 @@ function TextRow({ text, to, sub }: { text: GeneratedText; to: string; sub?: str
     </Link>
   );
 }
-
-const ago = (at: number) => {
-  const days = Math.floor((Date.now() - at) / 86_400_000);
-  return days <= 0 ? 'today' : days === 1 ? 'yesterday' : days < 30 ? `${days} days ago` : new Date(at).toLocaleDateString();
-};
 
 const TABS: ShelfTab[] = ['texts', 'words', 'characters'];
 
@@ -348,15 +380,35 @@ export function ShelfPage() {
   if (!set) return <Navigate to={paths.read()} replace />;
 
   const book = list.some(fromBook);
+  const asBook = bookOf(set, list);
+  const story = asBook.kind === 'story';
+  const progress = progressOf(list);
+  // The chapter being read: the one last open here, else the first not read.
+  const lastId = lastReading()?.textId ?? null;
+  // Not `e.easier?.id === lastId`: with no easier version and nothing read, undefined would equal undefined.
+  const lastAt = lastId ? entries.findIndex((e) => e.main.id === lastId || (e.easier !== null && e.easier.id === lastId)) : -1;
+  const reading = lastAt >= 0;
+  const nowAt = Math.max(0, reading ? lastAt : entries.findIndex((e) => !e.main.read && !e.easier?.read));
+  const frontMatter = isFrontMatter;
+  // Chapters numbered as a Chinese book numbers them, the page before them not counted.
+  const numbers = entries.map((_e, i) => entries.slice(0, i + 1).filter((x) => !frontMatter(x.main)).length);
+  const opened = (t: GeneratedText | null) => Boolean(t && (t.read || t.lastReadAt));
+
+  function moveShelf() {
+    const names = bookcase(sets, shelve(texts, sets).bySet).map((s) => s.name);
+    const name = prompt(`Which shelf should it stand on? Yours: ${names.join(', ')}. A new name makes a new shelf; empty puts it back where it was.`, asBook.shelf);
+    if (name === null) return;
+    shelveBook(set!.id, name.trim() || null);
+  }
   const learningWords = words.filter((w) => study.has(([...w.w].length > 1 || lib.byWord.has(w.w) ? (`w${w.w}` as ItemId) : charId(w.w))));
 
   function rename() {
-    const name = prompt('Rename this shelf', set!.name);
+    const name = prompt('Rename this book', set!.name);
     if (name?.trim()) renameSet(set!.id, name.trim());
   }
 
   function remove() {
-    if (!confirm(`Delete the shelf “${set!.name}” and its ${list.length} text${list.length === 1 ? '' : 's'}?`)) return;
+    if (!confirm(`Delete the book “${set!.name}” and its ${list.length} text${list.length === 1 ? '' : 's'}?`)) return;
     navigate(paths.read(), { replace: true, flushSync: true });
     deleteSet(set!.id);
   }
@@ -404,10 +456,14 @@ export function ShelfPage() {
           {(close) => (
             <>
               <button role="menuitem" className="btn ghost sm" onClick={() => (close(), startSession(set.id, set.name))}>
-                Write more texts for this shelf
+                Write more texts for this book
               </button>
               <button role="menuitem" className="btn ghost sm" onClick={() => (close(), rename())}>
                 Rename
+              </button>
+              <button role="menuitem" className="btn ghost sm" onClick={() => (close(), moveShelf())}>
+                Move to another shelf
+                <span className="tiny muted">now on {asBook.shelf}</span>
               </button>
               {list.length > 0 && (
                 <button
@@ -436,23 +492,41 @@ export function ShelfPage() {
                 </button>
               )}
               <button role="menuitem" className="btn ghost sm danger" onClick={() => (close(), remove())}>
-                Delete this shelf
+                Delete this book
               </button>
             </>
           )}
         </Menu>
       </header>
 
-      <h1 className={hasHan(set.name) ? 'hanzi sh-title zh' : 'sh-title'}>{set.name}</h1>
-      <p className="small muted sh-sub">
-        {book ? 'A book, ' : ''}
-        {entries.length} text{entries.length === 1 ? '' : 's'} so far
-      </p>
+      <div className="book-head">
+        <BookCover book={asBook} width={112} bookmark={reading && progress.read < progress.total} done={progress.total > 0 && progress.read === progress.total} />
+        <div className="book-head-text">
+          <h1 className={hasHan(asBook.title) ? 'hanzi sh-title zh' : 'sh-title'}>{asBook.title}</h1>
+          {asBook.easier && (
+            <span className="small book-head-easier">
+              <span className="hanzi">简</span> Easier edition
+            </span>
+          )}
+          <span className="small muted">
+            {story ? `A story in ${numbers[numbers.length - 1] ?? 0} chapter${numbers[numbers.length - 1] === 1 ? '' : 's'}` : `${entries.length} text${entries.length === 1 ? '' : 's'}`}
+            {book ? ', from a book' : ''}
+          </span>
+          {progress.total > 0 && (
+            <span className="book-meta book-head-progress">
+              <i>
+                <i style={{ width: `${Math.round((progress.read / progress.total) * 100)}%` }} />
+              </i>
+              {progress.read} of {progress.total} read
+            </span>
+          )}
+        </div>
+      </div>
 
       <div className="seg sh-tabs" role="tablist">
         {TABS.map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} aria-pressed={tab === t} onClick={() => setQuery('tab', t, 'texts')}>
-            {t === 'texts' ? 'Texts' : t === 'words' ? 'Words' : 'Characters'}
+            {t === 'texts' ? (story ? 'Chapters' : 'Texts') : t === 'words' ? 'Words' : 'Characters'}
             <span className="count">{t === 'texts' ? entries.length : t === 'words' ? words.length : chars.length}</span>
           </button>
         ))}
@@ -465,12 +539,19 @@ export function ShelfPage() {
               {entries.map((e, i) => {
                 const fill = partFill(e.main, wordDone);
                 const unknown = unknownIn(e.main);
+                const front = frontMatter(e.main);
+                const state = e.main.read || e.easier?.read ? 'done' : reading && i === nowAt ? 'now' : !opened(e.main) && !opened(e.easier) ? 'new' : 'open';
                 return (
                   <li key={e.main.id}>
-                    <Link className="shelf-text" to={paths.reading(set.id, { page: i + 1 })}>
-                      <span className="shelf-text-n">{i + 1}</span>
+                    <Link className="shelf-text" data-state={state} to={paths.reading(set.id, { page: i + 1 })}>
+                      <span className="chapter-badge" data-state={state} aria-hidden>
+                        {front ? <Icon name="book" size={18} /> : story ? chineseNumber(numbers[i]!) : numbers[i]}
+                      </span>
                       <span className="grow">
-                        <span className="hanzi shelf-text-zh">{e.main.titleZh || e.main.title}</span>
+                        <span className="hanzi shelf-text-zh">
+                          {e.main.titleZh || e.main.title}
+                          {state === 'new' && <span className="chapter-new">New</span>}
+                        </span>
                         <span className="small muted">{e.main.title.replace(/\s*\(easier\)\s*$/, '')}</span>
                         <span className="shelf-text-meta">
                           <span className="part-ticks" aria-label="Parts done">
@@ -504,7 +585,12 @@ export function ShelfPage() {
             </div>
           )}
           <div className="page-foot">
-            <button className="btn primary lg" onClick={() => startSession(set.id, set.name)}>
+            {entries.length > 0 && (
+              <Link className="btn primary lg" to={paths.reading(set.id, { page: nowAt + 1 })}>
+                {progress.read === progress.total ? 'Read it again from the start' : story && frontMatter(entries[nowAt]!.main) ? 'Start reading' : `Read ${story ? (frontMatter(entries[nowAt]!.main) ? '' : `chapter ${numbers[nowAt]}`) : `text ${nowAt + 1}`}`}
+              </Link>
+            )}
+            <button className={`btn lg ${entries.length ? 'quiet' : 'primary'}`} onClick={() => startSession(set.id, set.name)}>
               Write more texts with Claude
             </button>
             {/* Claude Code's add-text is the site owner's tool, not a learner's. */}
