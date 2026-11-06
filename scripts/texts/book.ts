@@ -685,6 +685,7 @@ const USAGE = `
   npm run texts -- describe <pictures.json>    { "pictures": { "<text id>": [{ "para": 0, "prompt": "…" }] } }
   npm run texts -- boxes <text id> <boxes.json>
   npm run texts -- put <text id> <picture for ¶1> <picture for ¶2> …
+  npm run texts -- first <text id>    the text first in its session (a preface added after the chapters)
   npm run texts -- record [--voice wang] [--set <id or name>]    on the Mac: the texts, read aloud for the site
 `;
 
@@ -772,6 +773,36 @@ async function main(argv: string[]) {
         const next = { ...document, texts: texts.map((t) => (t.id === textId ? { ...t, lines } : t)) };
         if (values['dry-run'] || (await account.write(revision, next))) {
           console.log(`  ${text.titleZh || text.title}: ${Object.keys(wanted).length} boxes put${values['dry-run'] ? ' (dry run)' : ''}`);
+          return;
+        }
+        if (attempt === 3) throw new Error('The workspace kept changing under this save. Try again in a minute.');
+      }
+    } finally {
+      await account.close();
+    }
+  }
+  if (command === 'first') {
+    // A session's texts read in the order its `order` gives, then by when they were added: a
+    // preface written after the chapters goes in last, and this puts it in front.
+    const textId = positionals[0];
+    if (!textId) throw new Error(`Which text?\n${USAGE}`);
+    const account = await openAccount();
+    try {
+      for (let attempt = 1; ; attempt++) {
+        const { revision, document } = await account.read();
+        if (!isDoc(document)) throw new Error(`${account.where} has never saved anything.`);
+        const { texts, sets } = shelfOf(document);
+        const text = texts.find((t) => t.id === textId);
+        const set = text?.setId ? sets.find((x) => x.id === text.setId) : undefined;
+        if (!text || !set) throw new Error(`No text ${textId} in a session on ${account.where}.`);
+        const rank = new Map((set.order ?? []).map((id, i) => [id, i]));
+        const rest = texts
+          .filter((t) => t.setId === set.id && t.id !== textId)
+          .sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity) || a.createdAt - b.createdAt);
+        const order = [textId, ...rest.map((t) => t.id)];
+        const next = { ...document, sets: sets.map((x) => (x.id === set.id ? { ...x, order } : x)) };
+        if (values['dry-run'] || (await account.write(revision, next))) {
+          console.log(`  ${set.name}: ${order.map((id) => texts.find((t) => t.id === id)!.titleZh).join(', ')}${values['dry-run'] ? ' (dry run)' : ''}`);
           return;
         }
         if (attempt === 3) throw new Error('The workspace kept changing under this save. Try again in a minute.');

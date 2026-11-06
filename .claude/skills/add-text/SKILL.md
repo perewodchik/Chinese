@@ -234,21 +234,34 @@ already on the shelf (same title, same first line) is left alone and said so.
 It saves the way a device does, so an iPad open at the time keeps its own
 changes and picks these up on its next sync.
 
-Then it draws the pictures, with Gemini, when `GEMINI_API_KEY` is set in the
-environment (the cloud environment's settings, or `.env` on the Mac): each
-paragraph's picture is drawn beside the ones already drawn in the session, so
-the people in it look the same, made small, kept on the site and put above its
-paragraph. A minute or so for a chapter. A picture Gemini refuses (it will not
-draw some famous characters) is named and left; without the key it says so and
-draws nothing. Either way, later:
+**The pictures are drawn by you, by hand, not by Gemini.** The learner chose
+this (7 November 2026): Gemini's pictures did not match the book's look, and
+the free key draws nothing. `add` may still say it would draw with Gemini, or
+that the key cannot: ignore it. Instead:
 
-```bash
-<the same variables as in step 2> npm run -s texts -- illustrate --set "<session>"           # what is not drawn yet
-<the same variables as in step 2> npm run -s texts -- illustrate --text <id> --redo           # one text drawn again
-```
+1. Read `scripts/texts/art/BRIEF.md` — how a picture is built and checked,
+   and the requirements every chapter is held to.
+2. Draw the chapter as `scripts/texts/art/stories/<book>-ch<n>.mjs`, from the
+   kit (`kit.mjs`) and the book's earlier chapters (the same people, built
+   by the same functions). One picture a paragraph; where the easier version
+   changed a detail a picture shows, a picture for each version.
+3. Render it: `node scripts/texts/art/render.mjs <file> <scratch dir>`, look
+   at a contact sheet and close crops, fix, render again.
+4. Put them in, in paragraph order, into each text:
+   ```bash
+   <the same variables as in step 2> npm run -s texts -- put <text id> p1.jpg p2.jpg …
+   ```
+5. Commit the drawing module (never the rendered pictures or the book's
+   text).
 
-`--style "…"` changes the look (a watercolour picture book unless said);
-`--dry-run` lists what would be drawn.
+## A preface
+
+A story's easier book opens with a preface, 人物和词语 ("Before you read: …"),
+as **A comic → Before you read: the primer** describes: one paragraph a
+person, one sentence a name they go by, the places, and the words the book
+stands on, in Chinese the learner can nearly read; `note` the story's start in
+English. It goes in with `--adapted --preface`. Written after the chapters, it
+lands last: `npm run -s texts -- first <its id>` puts it in front.
 
 ## A voice from MiniMax
 
@@ -352,7 +365,7 @@ Before the first chapter of a book comes a primer of who is who.
 - **`grammar`**: the written-Chinese patterns HSK 1–2 do not teach that the
   chapter leans on (看来, 怕是, 并不, 如 for 像, 名 for 个).
 - **No `pictures`.** The photos go in at step 7. A described picture would
-  have Gemini draw over the book's own page.
+  put a drawing over the book's own page.
 
 ### The easier version (steps 5 and 6)
 

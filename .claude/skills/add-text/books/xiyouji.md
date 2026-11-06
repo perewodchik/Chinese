@@ -100,34 +100,51 @@ words the story cannot do without (菩提祖, 孙悟空, 聪, 教, 筋斗云). W
 
 ## Pictures
 
-One picture a paragraph, eight for chapter 2. The same people must look the
-same in every chapter, in both books. Describe them always in these words:
+Drawn by hand, never by Gemini (the learner's choice), in the look of chapter
+1: coloured pencil on grained paper, soft and warm. Read
+`scripts/texts/art/BRIEF.md` first: its requirements are what each chapter is
+held to. The drawings are code:
 
-- **The Monkey King**: "a small golden-furred monkey king in a simple robe"
-  (before he becomes a disciple), "the golden-furred monkey in a grey robe"
-  (as a disciple).
-- **Master Bodhi**: "an old master with a long white beard".
-- **The other disciples**: "young disciples (pupils) in robes".
-- **Places**: "a calm mountain cave school", "a green mountain covered in
-  flowers and fruit trees" (花果山), "misty green mountains".
+| Chapter | Module | Pictures |
+|---|---|---|
+| 1 | `scripts/texts/art/stories/xyj-ch1.mjs` | p1–p6, the same in both books |
+| 2 | `scripts/texts/art/stories/xyj-ch2.mjs` | p1–p8; ¶6 has `p6-book` (kneeling) and `p6-easy` (sitting) |
 
-End each prompt with the light and the mood ("Deep blue night, gentle golden
-lamplight."). No words or Chinese in the picture.
+The people, as the modules draw them, and as every chapter must keep them:
+- **Sun Wukong**: `monkey({ fur: HERO, hero: true })` — a golden-brown monkey
+  with a tuft on his head, a pale face and tummy, a curling tail. From chapter
+  2, a disciple: `robe: '#9aa3ad'` (grey), crossed collar and a sash.
+- **The monkeys of the Mountain**: `monkey({ fur: TROOP[n] })`, darker browns;
+  the old monkey with white brows and beard (`old: true`).
+- **Master Bodhi**: `person({ robe: '#f1ead8', trim: '#c9443a', hair: 'bald',
+  beard: true })` — a pale robe with red trim, a bald crown with a little white
+  topknot, white side hair and brows, a long white beard.
+- **The other disciples**: `person({ hair: 'bun', robe: ROBES[n] })` — young,
+  hair in a bun, robes in sage, sand and lavender.
+- **The Jade Emperor**: `emperor()` in `xyj-ch1.mjs` — yellow robe, black crown,
+  on a palace on a cloud.
+- **The somersault cloud**: `nimbus()` in `xyj-ch2.mjs`.
 
-The retelling's prompts follow its own text: where it changed a detail (an old
-man, not a woodcutter; sitting, not kneeling), change the prompt too.
+Put them in with `npm run -s texts -- put <text id> p1.jpg …`, into the easier
+text and the book's text each, in paragraph order.
 
-Pictures are drawn with Gemini when `add` runs. In the cloud environment the
-key was on the free tier, which draws nothing: `add` says so and leaves them.
-They are drawn later with `npm run texts -- illustrate --set "西游记 (easier)"`
-and the same for `(original)`, from the Mac or after billing is turned on in
-Google AI Studio. Chapter 2's were left undrawn this way on 7 November 2026.
+## The preface
+
+The easier book opens with 人物和词语 ("Before you read: Journey to the West"),
+`/texts/mw51lpik317f85ec7315891e69f9`: the Stone Monkey and his names, the
+Mountain and the Water Curtain Cave, the Jade Emperor, Master Bodhi and his
+names, and the immortals' skills (长生, 七十二变, 筋斗云). It went in after the
+chapters and was moved to the front with `npm run -s texts -- first <id>`.
+When a chapter brings in a new person or a new name, add a sentence for them:
+the text is in the account, so this means writing the preface's JSON again
+from the one on the site and putting it in as a new text, or asking first.
 
 ## Chapters so far
 
 | Chapter | Easier text | Book's text | Pictures |
 |---|---|---|---|
-| 1 美猴王横空出世 | in 西游记 (easier) | in 西游记 (original) | 6 drawn |
-| 2 三星洞石猴学道 | `/texts/mw4ycn066abce04c8eeac21ee178` | `/texts/mw4ycyqlaae565bb6e8fb8b7d951` | 8 described, not drawn |
+| 0 人物和词语 (preface) | `/texts/mw51lpik317f85ec7315891e69f9` | — | none |
+| 1 美猴王横空出世 | in 西游记 (easier) | in 西游记 (original) | 6, `xyj-ch1.mjs` |
+| 2 三星洞石猴学道 | `/texts/mw4ycn066abce04c8eeac21ee178` | `/texts/mw4ycyqlaae565bb6e8fb8b7d951` | 8, `xyj-ch2.mjs` |
 
 Add a row when a chapter goes in.

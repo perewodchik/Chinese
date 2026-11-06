@@ -545,6 +545,15 @@ strong {
   padding: 4px 0 2px;
 }
 
+/* An iPad opened from the home screen: iOS blurs a band under its status bar
+   too, and the bar of a page right under the status bar came out smeared in
+   it. A little room below the status bar keeps it clear. */
+@media (min-width: 700px) and (display-mode: standalone) {
+  :root {
+    --top-clear: calc(env(safe-area-inset-top, 0px) + 14px);
+  }
+}
+
 @media (max-width: 699px) {
   :root {
     --top-clear: max(env(safe-area-inset-top, 0px), 24px);

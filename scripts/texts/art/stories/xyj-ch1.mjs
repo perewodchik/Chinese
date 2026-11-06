@@ -9,20 +9,20 @@
  */
 import { flowers, grassTufts, H, hills, INK, marks, pine, svg, tree, W } from '../kit.mjs';
 
-const ink = (w = 3) => `stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
-const limb = (pts, width, colour) => {
+export const ink = (w = 3) => `stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+export const limb = (pts, width, colour) => {
   const d = pts.length === 3 ? `M${pts[0][0]} ${pts[0][1]} Q${pts[1][0]} ${pts[1][1]} ${pts[2][0]} ${pts[2][1]}` : `M${pts.map((p) => p.join(' ')).join(' L')}`;
   return `<path d="${d}" fill="none" stroke="${INK}" stroke-width="${width + 6}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${colour}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`;
 };
-const dir = (a) => [Math.sin((a * Math.PI) / 180), Math.cos((a * Math.PI) / 180)];
-const step = ([x0, y0], a, len) => { const [dx, dy] = dir(a); return [x0 + dx * len, y0 + dy * len]; };
-const place = (x, y, s, flip, body) => `<g transform="translate(${x} ${y}) scale(${flip ? -s : s} ${s})">${body}</g>`;
-const shadow = (rx) => `<ellipse cx="0" cy="2" rx="${rx}" ry="${rx / 5}" fill="#2b3a2a" opacity="0.16"/>`;
+export const dir = (a) => [Math.sin((a * Math.PI) / 180), Math.cos((a * Math.PI) / 180)];
+export const step = ([x0, y0], a, len) => { const [dx, dy] = dir(a); return [x0 + dx * len, y0 + dy * len]; };
+export const place = (x, y, s, flip, body) => `<g transform="translate(${x} ${y}) scale(${flip ? -s : s} ${s})">${body}</g>`;
+export const shadow = (rx) => `<ellipse cx="0" cy="2" rx="${rx}" ry="${rx / 5}" fill="#2b3a2a" opacity="0.16"/>`;
 
 /* ---------------------------------------------------------------- monkeys */
 
-const FACE = '#f3d9b1';
-const PALM = '#e7bf92';
+export const FACE = '#f3d9b1';
+export const PALM = '#e7bf92';
 const BONE = { upper: 30, fore: 28, thigh: 26, shin: 26 };
 
 /** Arm poses, [left, right] of [upper, forearm], degrees from straight down; and their layer. */
@@ -38,6 +38,12 @@ const M_ARMS = {
   shade: { a: [[-14, -6], [150, -112]], layer: 'over' },
   stick: { a: [[-14, -6], [34, 20]], layer: 'back' },
   pole: { a: [[60, 120], [40, 150]], layer: 'back' },
+  // Both hands on the head, after a knock on it: the arms over the face's sides.
+  head: { a: [[-160, -178], [160, 178]], layer: 'over' },
+  // Bowing: the hands together at the chest, the body leant forward with lean.
+  bow: { a: [[-34, 96], [34, -96]], layer: 'front' },
+  // Writing at a low table: one hand on the paper, one holding the brush.
+  write: { a: [[-30, 60], [20, 70]], layer: 'front' },
 };
 /** Leg poses, [left, right] of [thigh, shin]; kneel and sit are their own shapes. */
 const M_LEGS = {
@@ -54,7 +60,7 @@ const M_LEGS = {
  * determined | shut | worried. look: front | left | right | up. lean: the
  * body from the hips, degrees.
  */
-export function monkey({ x, y, s = 1, flip = false, fur = '#8a5a38', hero = false, old = false, legs = 'stand', arms = 'rest', lean = 0, face = 'smile', look = 'front', tailSide = 1, shadowless = false, glow = false }) {
+export function monkey({ x, y, s = 1, flip = false, fur = '#8a5a38', hero = false, old = false, legs = 'stand', arms = 'rest', lean = 0, face = 'smile', look = 'front', tailSide = 1, shadowless = false, glow = false, robe = null, tear = false }) {
   const A = M_ARMS[arms];
   const L = M_LEGS[legs];
   const dark = shade(fur, -0.18);
@@ -81,14 +87,19 @@ export function monkey({ x, y, s = 1, flip = false, fur = '#8a5a38', hero = fals
   const top = hipY - 66; // shoulders
   const shoulders = [[-20, top + 6], [20, top + 6]];
   const armPts = A.a.map(([u, f], i) => { const el = step(shoulders[i], u, BONE.upper); return [shoulders[i], el, step(el, f, BONE.fore)]; });
-  const arm = ([sh, el, h]) => limb([sh, el], 13, fur) + limb([el, h], 11, fur) + `<circle cx="${h[0]}" cy="${h[1]}" r="8" fill="${PALM}" ${ink(2.5)}/>`;
+  const arm = ([sh, el, h]) => limb([sh, el], robe ? 15 : 13, robe ?? fur) + limb([el, h], robe ? 13 : 11, robe ?? fur) + `<circle cx="${h[0]}" cy="${h[1]}" r="8" fill="${PALM}" ${ink(2.5)}/>`;
   const layerOf = () => A.layer;
   const armsIn = (layer) => (layerOf() === layer ? armPts.map(arm).join('') : '');
   // The tail roots at the lower back, behind everything, and curls up beside the body.
   const ts = tailSide;
   const tail = `<path d="M${6 * ts} ${hipY - 6} C${46 * ts} ${hipY + 4} ${70 * ts} ${hipY - 30} ${58 * ts} ${hipY - 64} C${52 * ts} ${hipY - 82} ${34 * ts} ${hipY - 80} ${36 * ts} ${hipY - 66}" fill="none" stroke="${INK}" stroke-width="15" stroke-linecap="round"/>
     <path d="M${6 * ts} ${hipY - 6} C${46 * ts} ${hipY + 4} ${70 * ts} ${hipY - 30} ${58 * ts} ${hipY - 64} C${52 * ts} ${hipY - 82} ${34 * ts} ${hipY - 80} ${36 * ts} ${hipY - 66}" fill="none" stroke="${fur}" stroke-width="9" stroke-linecap="round"/>`;
-  const torso = `<path d="M-22 ${top} C-36 ${top + 24} -36 ${hipY + 2} -14 ${hipY + 6} L14 ${hipY + 6} C36 ${hipY + 2} 36 ${top + 24} 22 ${top} Q0 ${top - 8} -22 ${top} Z" fill="${fur}" ${ink()}/>
+  // A disciple's robe (chapter 2 on): crossed at the neck, a sash at the waist, over the hips.
+  const torso = robe
+    ? `<path d="M-24 ${top} C-38 ${top + 24} -40 ${hipY + 6} -24 ${hipY + 16} L24 ${hipY + 16} C40 ${hipY + 6} 38 ${top + 24} 24 ${top} Q0 ${top - 8} -24 ${top} Z" fill="${robe}" ${ink()}/>
+    <path d="M-14 ${top - 2} L6 ${top + 30} M14 ${top - 2} L-2 ${top + 22}" ${ink(2.5)} fill="none"/>
+    <path d="M-30 ${hipY - 12} Q0 ${hipY - 6} 30 ${hipY - 12}" stroke="${shade(robe, -0.3)}" stroke-width="8" fill="none" stroke-linecap="round"/>`
+    : `<path d="M-22 ${top} C-36 ${top + 24} -36 ${hipY + 2} -14 ${hipY + 6} L14 ${hipY + 6} C36 ${hipY + 2} 36 ${top + 24} 22 ${top} Q0 ${top - 8} -22 ${top} Z" fill="${fur}" ${ink()}/>
     <ellipse cx="0" cy="${(top + hipY) / 2 + 6}" rx="16" ry="22" fill="${FACE}" ${ink(2)}/>`;
   const hy = top - 30; // head centre
   const ox = look === 'left' ? -3 : look === 'right' ? 3 : 0;
@@ -127,6 +138,7 @@ export function monkey({ x, y, s = 1, flip = false, fur = '#8a5a38', hero = fals
     <path d="M-3 ${hy + 6} h0.1 M3 ${hy + 6} h0.1" ${ink(3.5)}/>
     ${mouth}
     <circle cx="-20" cy="${hy + 8}" r="5" fill="#e89a86" opacity="0.6"/><circle cx="20" cy="${hy + 8}" r="5" fill="#e89a86" opacity="0.6"/>
+    ${tear ? `<path d="M14 ${hy + 2} q-4 8 0 11 q4 -3 0 -11 Z" fill="#9fd3ee" ${ink(1.6)}/>` : ''}
     ${oldness}`;
   const upper = `${armsIn('back')}${torso}${armsIn('front')}${head}${armsIn('over')}`;
   const body = `${shadowless ? '' : shadow(L === 'sit' ? 56 : 40)}${beams}${tail}${legSvg}<g transform="rotate(${lean} 0 ${hipY})">${upper}</g>`;
@@ -151,35 +163,35 @@ export function monkeyHand({ x, y, s = 1, flip = false, legs = 'stand', arms = '
 }
 
 /** A colour lighter (+) or darker (-) by a share. */
-function shade(hex, k) {
+export function shade(hex, k) {
   const n = parseInt(hex.slice(1), 16);
   const c = [n >> 16, (n >> 8) & 255, n & 255].map((v) => Math.round(k < 0 ? v * (1 + k) : v + (255 - v) * k));
   return `#${c.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
 }
 
-const HERO = '#c98a47';
-const TROOP = ['#8a5a38', '#9b6a44', '#7d5136'];
+export const HERO = '#c98a47';
+export const TROOP = ['#8a5a38', '#9b6a44', '#7d5136'];
 
 /* ------------------------------------------------------------- scenery */
 
-const sky = (top, bottom, sun = [860, 100]) => `<defs><linearGradient id="skyx" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${top}"/><stop offset="1" stop-color="${bottom}"/></linearGradient></defs>
+export const sky = (top, bottom, sun = [860, 100]) => `<defs><linearGradient id="skyx" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${top}"/><stop offset="1" stop-color="${bottom}"/></linearGradient></defs>
   <rect width="${W}" height="${H}" fill="url(#skyx)"/>
   <circle cx="${sun[0]}" cy="${sun[1]}" r="170" fill="#fff4d2" opacity="0.7" filter="url(#blur18)"/>`;
-const cloud = (x, y, k = 1, colour = '#ffffff') => `<g transform="translate(${x} ${y}) scale(${k})"><path d="M-90 0 q-10 -34 26 -38 q10 -30 48 -22 q22 -26 56 -4 q36 -6 40 26 q30 6 16 38 Z" fill="${colour}" ${ink(2.5)}/><path d="M-60 -10 q20 -12 40 -4 M10 -22 q18 -8 34 2" stroke="#e4e9f2" stroke-width="5" fill="none" stroke-linecap="round"/></g>`;
-const sea = (y, colour = '#8fc3dc') => `<path d="M0 ${y} C200 ${y - 8} 420 ${y + 8} 620 ${y - 2} C800 ${y - 10} 920 ${y + 4} ${W} ${y - 4} L${W} ${H} L0 ${H} Z" fill="${colour}" filter="url(#wash)"/>
+export const cloud = (x, y, k = 1, colour = '#ffffff') => `<g transform="translate(${x} ${y}) scale(${k})"><path d="M-90 0 q-10 -34 26 -38 q10 -30 48 -22 q22 -26 56 -4 q36 -6 40 26 q30 6 16 38 Z" fill="${colour}" ${ink(2.5)}/><path d="M-60 -10 q20 -12 40 -4 M10 -22 q18 -8 34 2" stroke="#e4e9f2" stroke-width="5" fill="none" stroke-linecap="round"/></g>`;
+export const sea = (y, colour = '#8fc3dc') => `<path d="M0 ${y} C200 ${y - 8} 420 ${y + 8} 620 ${y - 2} C800 ${y - 10} 920 ${y + 4} ${W} ${y - 4} L${W} ${H} L0 ${H} Z" fill="${colour}" filter="url(#wash)"/>
   ${[[60, 30, 70], [300, 60, 90], [560, 26, 60], [760, 74, 80], [900, 40, 60], [180, 110, 70], [640, 130, 90]].map(([x, dy, w]) => `<path d="M${x} ${y + dy} q${w / 4} -8 ${w / 2} 0 t${w / 2} 0" stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.7"/>`).join('')}`;
 /** A peach tree, small, with pink fruit. */
-const peachTree = (x, y, h) => tree(x, y, h, { colour: '#7fae64', dark: '#5f8f4a', light: '#a3cc84' }) + [[-0.35, 0.1], [0.3, -0.25], [0.1, 0.35], [-0.1, -0.5]].map(([ax, ay]) => peach(x + ax * h * 0.32, y - h + h * 0.32 + ay * h * 0.32, h * 0.04)).join('');
-const peach = (x, y, r = 12) => `<g transform="translate(${x} ${y})"><path d="M0 ${-r} C${r * 1.2} ${-r} ${r * 1.1} ${r} 0 ${r} C${-r * 1.1} ${r} ${-r * 1.2} ${-r} 0 ${-r} Z" fill="#f4a38f" ${ink(2.2)}/><path d="M0 ${-r} q${-r * 0.2} ${r * 0.9} 0 ${r * 1.9}" stroke="#e2806e" stroke-width="2" fill="none"/><path d="M0 ${-r} q${r * 0.7} ${-r * 0.7} ${r * 1.2} ${-r * 0.2} q${-r * 0.6} ${r * 0.4} ${-r * 1.2} ${r * 0.2} Z" fill="#7fae64" ${ink(1.8)}/></g>`;
+export const peachTree = (x, y, h) => tree(x, y, h, { colour: '#7fae64', dark: '#5f8f4a', light: '#a3cc84' }) + [[-0.35, 0.1], [0.3, -0.25], [0.1, 0.35], [-0.1, -0.5]].map(([ax, ay]) => peach(x + ax * h * 0.32, y - h + h * 0.32 + ay * h * 0.32, h * 0.04)).join('');
+export const peach = (x, y, r = 12) => `<g transform="translate(${x} ${y})"><path d="M0 ${-r} C${r * 1.2} ${-r} ${r * 1.1} ${r} 0 ${r} C${-r * 1.1} ${r} ${-r * 1.2} ${-r} 0 ${-r} Z" fill="#f4a38f" ${ink(2.2)}/><path d="M0 ${-r} q${-r * 0.2} ${r * 0.9} 0 ${r * 1.9}" stroke="#e2806e" stroke-width="2" fill="none"/><path d="M0 ${-r} q${r * 0.7} ${-r * 0.7} ${r * 1.2} ${-r * 0.2} q${-r * 0.6} ${r * 0.4} ${-r * 1.2} ${r * 0.2} Z" fill="#7fae64" ${ink(1.8)}/></g>`;
 /** The mountain of flowers and fruit: a green peak with a flat top at (x, top). */
-const mountain = (x, top, w, base) => `<path d="M${x - w / 2} ${base} C${x - w * 0.36} ${top + 140} ${x - w * 0.2} ${top + 20} ${x - 60} ${top} L${x + 60} ${top} C${x + w * 0.2} ${top + 30} ${x + w * 0.34} ${top + 150} ${x + w / 2} ${base} Z" fill="#8fbf74" ${ink(2.5)}/>
+export const mountain = (x, top, w, base) => `<path d="M${x - w / 2} ${base} C${x - w * 0.36} ${top + 140} ${x - w * 0.2} ${top + 20} ${x - 60} ${top} L${x + 60} ${top} C${x + w * 0.2} ${top + 30} ${x + w * 0.34} ${top + 150} ${x + w / 2} ${base} Z" fill="#8fbf74" ${ink(2.5)}/>
   <path d="M${x - w * 0.3} ${base - 40} C${x - w * 0.2} ${top + 160} ${x - 40} ${top + 90} ${x - 10} ${top + 60}" stroke="#76a85f" stroke-width="14" fill="none" stroke-linecap="round" opacity="0.6"/>
   <path d="M${x + w * 0.28} ${base - 30} C${x + w * 0.2} ${top + 170} ${x + 50} ${top + 100} ${x + 20} ${top + 70}" stroke="#a6d08a" stroke-width="12" fill="none" stroke-linecap="round" opacity="0.6"/>`;
 /** A boulder, smooth and grey, its base at (x, y). */
-const boulder = (x, y, w, h, colour = '#b9b4a8') => `<path d="M${x - w / 2} ${y} C${x - w / 2} ${y - h * 0.9} ${x - w * 0.2} ${y - h} ${x} ${y - h} C${x + w * 0.3} ${y - h} ${x + w / 2} ${y - h * 0.7} ${x + w / 2} ${y} Z" fill="${colour}" ${ink(3)}/>
+export const boulder = (x, y, w, h, colour = '#b9b4a8') => `<path d="M${x - w / 2} ${y} C${x - w / 2} ${y - h * 0.9} ${x - w * 0.2} ${y - h} ${x} ${y - h} C${x + w * 0.3} ${y - h} ${x + w / 2} ${y - h * 0.7} ${x + w / 2} ${y} Z" fill="${colour}" ${ink(3)}/>
   <path d="M${x - w * 0.28} ${y - h * 0.62} q${w * 0.12} ${-h * 0.18} ${w * 0.3} ${-h * 0.14}" stroke="#d8d4ca" stroke-width="8" fill="none" stroke-linecap="round"/>`;
 /** A heavenly hall on a cloud: red pillars, golden roofs. */
-const palace = (x, y, k = 1) => `<g transform="translate(${x} ${y}) scale(${k})">
+export const palace = (x, y, k = 1) => `<g transform="translate(${x} ${y}) scale(${k})">
   ${cloud(0, 40, 1.5)}
   <rect x="-80" y="-60" width="160" height="70" fill="#f6e7cf" ${ink(2.5)}/>
   ${[-64, -22, 22, 64].map((px) => `<rect x="${px - 6}" y="-60" width="12" height="70" fill="#c9443a" ${ink(2)}/>`).join('')}
@@ -196,11 +208,11 @@ const emperor = (x, y, k = 1) => `<g transform="translate(${x} ${y}) scale(${k})
   <circle cx="-6" cy="-75" r="3.5" fill="#fff" ${ink(1.5)}/><circle cx="6" cy="-75" r="3.5" fill="#fff" ${ink(1.5)}/>
   <rect x="-24" y="-96" width="48" height="8" fill="#3a3330" ${ink(1.5)}/><rect x="-8" y="-104" width="16" height="10" fill="#f2c64a" ${ink(1.5)}/>
   ${[-20, -12, 12, 20].map((bx) => `<path d="M${bx} -88 v8" stroke="#c9443a" stroke-width="3"/>`).join('')}</g>`;
-const waterfall = (x, top, w, bottom) => `<path d="M${x - w / 2} ${top} L${x + w / 2} ${top} L${x + w / 2 + 20} ${bottom} L${x - w / 2 - 20} ${bottom} Z" fill="#cfe9f4" filter="url(#wash)"/>
+export const waterfall = (x, top, w, bottom) => `<path d="M${x - w / 2} ${top} L${x + w / 2} ${top} L${x + w / 2 + 20} ${bottom} L${x - w / 2 - 20} ${bottom} Z" fill="#cfe9f4" filter="url(#wash)"/>
   ${Array.from({ length: 7 }, (_, i) => `<path d="M${x - w / 2 + 12 + i * (w - 24) / 6} ${top + 10} q-4 ${(bottom - top) / 2} ${-6 + i * 2} ${bottom - top - 20}" stroke="#ffffff" stroke-width="${i % 2 ? 5 : 8}" fill="none" stroke-linecap="round" opacity="0.85"/>`).join('')}
   <path d="M${x - w / 2 - 40} ${bottom} q30 -26 60 -6 q24 -24 50 -4 q26 -22 54 0 q24 -18 50 4 q30 -16 46 6" fill="#ffffff" ${ink(2)} opacity="0.95"/>`;
-const cliff = (x1, x2, top, bottom, colour = '#9aa08a') => `<path d="M${x1} ${bottom} L${x1} ${top + 30} C${x1 + 20} ${top} ${x2 - 20} ${top} ${x2} ${top + 30} L${x2} ${bottom} Z" fill="${colour}" ${ink(2.5)}/>`;
-const rockSeat = (x, y, w, h) => `<path d="M${x - w / 2} ${y} C${x - w / 2} ${y - h} ${x + w / 2} ${y - h} ${x + w / 2} ${y} Z" fill="#a8a294" ${ink(2.5)}/><path d="M${x - w / 2 + 10} ${y - h * 0.7} h${w - 20}" stroke="#c6c0b2" stroke-width="5" stroke-linecap="round"/>`;
+export const cliff = (x1, x2, top, bottom, colour = '#9aa08a') => `<path d="M${x1} ${bottom} L${x1} ${top + 30} C${x1 + 20} ${top} ${x2 - 20} ${top} ${x2} ${top + 30} L${x2} ${bottom} Z" fill="${colour}" ${ink(2.5)}/>`;
+export const rockSeat = (x, y, w, h) => `<path d="M${x - w / 2} ${y} C${x - w / 2} ${y - h} ${x + w / 2} ${y - h} ${x + w / 2} ${y} Z" fill="#a8a294" ${ink(2.5)}/><path d="M${x - w / 2 + 10} ${y - h * 0.7} h${w - 20}" stroke="#c6c0b2" stroke-width="5" stroke-linecap="round"/>`;
 
 /* ---------------------------------------------------------------- scenes */
 
@@ -257,7 +269,7 @@ const s3 = svg(`${sky('#cfe6e6', '#f2f2df')}
   ${flowers([[90, 740, '#f2a6b4'], [430, 750, '#f6f0e8'], [960, 740, '#f2a6b4']])}${grassTufts([[60, 700], [420, 712], [700, 730], [980, 700]])}`);
 
 /** ¶4 Behind the water: an iron bridge with flowers and trees, a stone house and its tablet. */
-const cave = (dark, mid) => `<rect width="${W}" height="${H}" fill="${mid}"/>
+export const cave = (dark, mid) => `<rect width="${W}" height="${H}" fill="${mid}"/>
   <path d="M0 0 H${W} V180 C820 130 640 110 512 114 C380 118 200 140 0 190 Z" fill="${dark}" filter="url(#wash)"/>
   ${[[220, 150, 60], [330, 128, 90], [470, 116, 50], [600, 118, 80], [760, 132, 64], [880, 150, 44]].map(([x, y, h]) => `<path d="M${x - 18} ${y} L${x} ${y + h} L${x + 18} ${y} Z" fill="${dark}" ${ink(2)}/>`).join('')}`;
 const s4 = svg(`${cave('#8a7660', '#b39c80')}

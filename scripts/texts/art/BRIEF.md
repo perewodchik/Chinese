@@ -1,8 +1,8 @@
 # Drawing a story's pictures by hand
 
-When Gemini cannot draw (no key, no quota), Claude draws a text's pictures
-itself, as SVG, with the kit in `kit.mjs`, renders them to JPEG through
-Chromium (`render.mjs`) and puts them in with `put.mts`. This is the brief to
+Claude draws every text's pictures itself (the learner's choice: not Gemini),
+as SVG, with the kit in `kit.mjs`, renders them to JPEG through Chromium
+(`render.mjs`) and puts them in with `npm run texts -- put`. This is the brief to
 read before drawing one — written after a first try where arms, ears and tails
 floated loose from the bodies and every scene was a strip of grass under a
 gradient.
@@ -119,3 +119,64 @@ Render, then look at the contact sheet at thumbnail size and at full size
 before putting anything in. Look for: a limb or tail not joined to its body,
 a figure floating above the ground, a face covered by something held, a
 character cut off by the square crop, the same pose twice in a row.
+
+## Requirements for every chapter
+
+The learner asked for pictures made "more professionally, more carefully and
+more beautifully" (November 2026), and for them to be drawn here, by hand,
+never by Gemini. Each chapter's set is held to all of these before it goes in:
+
+1. **One picture a paragraph**, of the moment the paragraph is about, in the
+   paragraph's order. Read the paragraph again before drawing it: who is
+   there, what each one does, where, what time of day.
+2. **Both versions.** Where the easier version changes something a picture
+   shows (kneeling becomes sitting, a woodcutter becomes an old man), that
+   paragraph gets a picture for each version, named `p6-book` and `p6-easy`.
+   The rest are shared.
+3. **The same people every time.** A person is one function with fixed
+   colours and proportions, kept in the book's module and imported by every
+   chapter after (西游记: `monkey` and its `HERO` coat in `xyj-ch1.mjs`;
+   `person` with the master's pale robe and white beard in `xyj-ch2.mjs`).
+   A change of clothes is part of the story and stays (Wukong's grey robe
+   from chapter 2 on). The book's notes in the skill list each one in words.
+4. **Every gesture means what the text says.** A pointing arm points at the
+   thing (the woodcutter at the cave, not up into the sky); a held thing is in
+   the hand or on the shoulder that carries it, never beside the head; a
+   person looks at whom they speak to.
+5. **Nothing floats and nothing collides.** Feet on the ground with a shadow;
+   a raft on the water; props clear of faces; a figure clear of a burner, a
+   table, another figure.
+6. **No mark without a reason.** A star is magic or a knock on the head;
+   speed lines are a jump; a tear is sadness. None in an empty sky.
+7. **Three depths and the light.** Far, middle, near; light from the upper
+   right (a lamp or the sun where the scene has one); the figures in the
+   middle half so a square crop keeps them.
+8. **The book's palette.** Soft and natural; the people's colours the
+   strongest; night is deep blue with one warm light.
+9. **Checked twice.** Render, look at the contact sheet at thumbnail size and
+   at every picture at full size; crop every hand, held thing and meeting
+   point. Fix, render, look again. Only then put them in.
+
+## Improvements to make next time
+
+What chapter 2 of 西游记 showed could be better, for whoever draws next:
+
+- **People need more poses**: lying in bed (the master woke sitting up
+  because there is no lying pose), walking away with hands behind the back
+  (`behind` exists in `person` but hides the arms and has not been looked at
+  in a scene), carrying in both arms.
+- **Interiors are one cave.** Add a room (wooden beams, a paper window, a
+  door) and a courtyard with a wall, so a whole chapter is not the same
+  brown cave with the same glow.
+- **The glow behind a cave scene is a large pale oval** that reads as a
+  spotlight; make it softer and lower, or light from a doorway instead.
+- **Faces at thumbnail size** lose their expression: make the eyes and mouth
+  a touch bigger on secondary figures, and keep one clear expression each.
+- **Transformations** (七十二变) need their own marks: a puff of smoke with
+  the thing half out of it, the monkey's tail showing; chapter 2's pine with a
+  tail is the pattern.
+- **The somersault cloud** (`nimbus` in `xyj-ch2.mjs`) should be reused, not
+  redrawn, so it looks the same in every chapter.
+- **Look at the last chapter's pictures side by side** with the new ones
+  before putting them in: same sizes for the same people, same sky colours
+  for the same time of day.

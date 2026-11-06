@@ -77,10 +77,9 @@ first time, from the chapters already added. Read it once before step 3.
   the drawings looking like one book.
 - No words, letters or Chinese in the picture.
 - Where the easier version changed a detail, its prompt changes too.
-- When `add` cannot draw (no key, or a free-tier key: it says "draws no
-  pictures"), the prompts are kept with the texts and `illustrate` draws them
-  later. Say so in the report with the command; it is not a failure of the
-  text.
+- The prompts are the brief for **your own drawing**: the pictures are drawn
+  by hand with the kit (`scripts/texts/art/BRIEF.md`), never by Gemini. Write
+  the prompt, then draw exactly that.
 
 ## Checking before it goes in
 
