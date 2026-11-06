@@ -71,3 +71,15 @@ export const usePictureMode = () => useStoredChoice<PictureMode>('hanzi.reader.p
 
 /** The next choice round, for a button that steps through them. */
 export const nextOf = <T,>(list: readonly T[], at: T): T => list[(list.indexOf(at) + 1) % list.length]!;
+
+/**
+ * The page's colour: Paper is the app's own (light or dark, as the app is),
+ * Sepia a warm light page, Night a dark one whatever the app is. Kept on the
+ * device: the iPad in the evening and the phone on the train differ.
+ */
+export type PaperMode = 'paper' | 'sepia' | 'night';
+export const PAPER_MODES: PaperMode[] = ['paper', 'sepia', 'night'];
+export const PAPER_LABEL: Record<PaperMode, string> = { paper: 'Paper', sepia: 'Sepia', night: 'Night' };
+/** The character on each page's tile in Aa. */
+export const PAPER_HAN: Record<PaperMode, string> = { paper: '纸', sepia: '旧', night: '夜' };
+export const usePaperMode = () => useStoredChoice<PaperMode>('hanzi.reader.paper', PAPER_MODES, 'paper');

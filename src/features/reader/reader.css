@@ -2282,3 +2282,54 @@ label.rd-aa-row {
 a.rd-more-row {
   text-decoration: none;
 }
+
+/* Aa's three pages, each tile in the colours of the page it gives: a swatch,
+   so these are the pages' own colours rather than the theme's tokens. */
+.rd-aa-papers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.rd-aa-papers button {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  height: 60px;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  font: inherit;
+  cursor: pointer;
+}
+.rd-aa-papers button[data-paper='paper'] {
+  background: #fafbf8;
+  color: #18202b;
+}
+.rd-aa-papers button[data-paper='sepia'] {
+  background: #f4ecd8;
+  color: #2d2416;
+}
+.rd-aa-papers button[data-paper='night'] {
+  background: #14191e;
+  color: #e5e8ec;
+}
+.rd-aa-papers button[aria-pressed='true'] {
+  border: 2px solid var(--accent);
+}
+.rd-aa-papers .hanzi {
+  font-size: 20px;
+  line-height: 1.2;
+}
+.rd-aa-papers small {
+  font-size: 12px;
+}
+.rd-aa-papers button[aria-pressed='true'] small {
+  font-weight: 600;
+}
+/* Paper is the app's own page: dark when the app is. */
+:root[data-app-theme='dark'] .rd-aa-papers button[data-paper='paper'] {
+  background: #14191e;
+  color: #e5e8ec;
+}

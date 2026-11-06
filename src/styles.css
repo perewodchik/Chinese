@@ -185,6 +185,33 @@
   --on-accent: #10151a;
 }
 
+/* Sepia: the text page's warm paper, chosen in its Aa (src/ui/colorScheme.ts
+   puts it on while a text is open). Always a light page: the same roles in
+   browner ink, the blue and the red pen kept recognisable on it. */
+:root[data-paper='sepia'] {
+  --paper: #f4ecd8;
+  --card: #fbf6ea;
+  --card-2: #ece2cb;
+  --ink: #2d2416;
+  --ink-2: #5e5140;
+  --ink-3: #85755a;
+  --line: #e2d6bb;
+  --line-2: #d1c3a3;
+  --accent: #2a5694;
+  --accent-soft: #e2e2d6;
+  --red: #b0392a;
+  --red-soft: #f2dbc9;
+  --hl: rgb(226 178 50 / 38%);
+  --grid: #b3bf98;
+  --py: #5e5140;
+  --jade: #2f7a4f;
+  --jade-soft: #e0e7cc;
+  --gold: #8f6a1d;
+  --gold-soft: #efe0bd;
+  --shadow: 0 8px 28px rgb(45 36 22 / 16%), 0 1px 3px rgb(45 36 22 / 10%);
+  --scrim: rgb(45 36 22 / 30%);
+}
+
 * {
   box-sizing: border-box;
 }

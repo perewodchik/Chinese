@@ -1,0 +1,62 @@
+# The text page as a book (reader v2)
+
+The mockups: the "Reading a chapter" design canvas (phone row and iPad row),
+approved on 6 November 2026 with three page colours.
+
+## Brief
+
+- **Who and when:** the learner, reading a chapter of a story or a book's text,
+  mostly on the iPad (landscape on a table, portrait in the hand) and on the
+  iPhone, often in the evening.
+- **The job:** reading feels like reading a book: a quiet page in the colour
+  they like, the chapter's name at its head, new words explained in the margin
+  where there is room, and at the end of the chapter what there is to do with
+  it and the next chapter.
+- **Done looks like:** a chapter on the iPad in landscape reads in one centred
+  column with its new words in the right margin; Aa offers Paper, Sepia and
+  Night; the end of a chapter has its parts and one button to the next
+  chapter.
+- **Not in it:** what the parts do (Words, Questions, Copy it out, Listen,
+  More), comics' page photos, stories with choices, the PDFs. They keep
+  working as they are and only move.
+- **Open questions:** none left; the word opens in the drawer from the right,
+  as the mockup shows.
+
+## States
+
+| Ask | Here |
+|---|---|
+| What the page is | a chapter of a book (a set with several texts), a text on its own, the easier retelling or the book's own text of one chapter, every text on one page (`?mode=all`) |
+| Page colour | Paper (follows the app: light or dark), Sepia (always light, warm), Night (always dark); remembered on the device |
+| Width | 375–430 phone; 597 Split View; 768–834 iPad portrait; 1024–1194 iPad landscape |
+| Text | paragraphs or lines; a comic with page photos; a story with choices; pictures off, beside or large; traditional characters |
+| Pinyin and English | pinyin off, over new words, over all; English off, a sentence held, every paragraph |
+| Narrator | none; one; playing, paused, at the end |
+| End | not read, read, read again; the last chapter (no next one); a text on its own (no book) |
+| Longest real content | 天官赐福 chapter titles, 十万个为什么 long English titles, 西游记 with 30+ texts |
+
+## Steps
+
+Each is built, checked at every width in all three colours, and committed
+before the next.
+
+1. **Page colours.** Aa gets Paper, Sepia and Night. Sepia and Night are the
+   page's: they set the app's tokens while a text is open and give them back
+   when it closes.
+2. **The bar and the chapter's head.** The bar says the book and the chapter
+   (‹ book, chapter 3 of 12) with Aa and ⋯ in it and a hairline of how far
+   down the chapter you are. The head: 第三章, the title, its English, and
+   minutes, how much you know and new words in one quiet line. Paragraphs
+   read as a book's: indented, justified.
+3. **The end of the chapter.** The parts bar at the top goes; the chapter
+   ends with 第三章 · 完, the parts as rows with their state (each opens its
+   part below), and the next chapter with its cover and the page's one
+   button, which also marks this one read.
+4. **The margin.** On a wide page the column is centred and new words sit in
+   the right margin beside their paragraph; English shown "beside each" goes
+   there too. On a narrower page they sit under their paragraph. Holding a
+   sentence shows its English.
+5. **Chapters.** The list button in the bar opens the book's chapters in a
+   panel from the left, with where you are and what is new in each.
+6. **The player.** Previous and next sentence beside play, and "Reading along
+   · sentence 3 of 9".

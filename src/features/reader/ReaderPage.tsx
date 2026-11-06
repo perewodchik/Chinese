@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import type { ItemId } from '../../domain/ids';
 import { hskLabel, shelfEntries, shelve, type GeneratedText, type ShelfEntry, type TextSet } from '../../domain/text';
@@ -13,20 +13,26 @@ import { Menu } from '../../ui/Menu';
 import { Modal } from '../../ui/Modal';
 import { PalettePicker } from '../../ui/PalettePicker';
 import { useTitle } from '../../ui/useTitle';
+import { setPageColour } from '../../ui/colorScheme';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { Passage, useWordDone, type ReaderView } from './Passage';
 import { onReadThrough, prefetchPassage, useReading } from './readAloud';
 import {
+  PAPER_HAN,
+  PAPER_LABEL,
+  PAPER_MODES,
   PICTURE_LABEL,
   PICTURE_MODES,
   PINYIN_LABEL,
   PINYIN_MODES,
   TRANSLATION_LABEL,
   TRANSLATION_MODES,
+  usePaperMode,
   usePictureMode,
   usePinyinMode,
   useTranslationMode,
+  type PaperMode,
   type PictureMode,
   type PinyinMode,
   type TranslationMode,
@@ -141,6 +147,13 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [pinyin, setPinyin] = usePinyinMode();
   const [translation, setTranslation] = useTranslationMode();
   const [pictures, setPictures] = usePictureMode();
+  const [paper, setPaper] = usePaperMode();
+  // Sepia and Night are this page's: on while it is open, the app's own colours back when it closes.
+  // Before the first paint, so a sepia page never shows white for a moment.
+  useLayoutEffect(() => {
+    setPageColour(paper === 'paper' ? null : paper);
+  }, [paper]);
+  useLayoutEffect(() => () => setPageColour(null), []);
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [flash, setFlash] = useState<number | null>(null);
   // The line the bottom bar's narrator is reading, lit in the text, and kept in sight.
@@ -420,6 +433,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             hasPictures={list.some((t) => t.pictures?.some((p) => p.key))}
             pictures={pictures}
             setPictures={setPictures}
+            paper={paper}
+            setPaper={setPaper}
           />
         </div>
       </div>
@@ -545,6 +560,8 @@ function AaMenu({
   hasPictures,
   pictures,
   setPictures,
+  paper,
+  setPaper,
 }: {
   pinyin: PinyinMode;
   setPinyin: (m: PinyinMode) => void;
@@ -554,6 +571,8 @@ function AaMenu({
   hasPictures: boolean;
   pictures: PictureMode;
   setPictures: (m: PictureMode) => void;
+  paper: PaperMode;
+  setPaper: (m: PaperMode) => void;
 }) {
   const settings = useStore((s) => s.settings);
   const [open, setOpen] = useState(false);
@@ -579,6 +598,14 @@ function AaMenu({
       </button>
       {open && (
         <div className="rd-aa-panel" role="dialog" aria-label="How the text looks">
+          <div className="rd-aa-papers" role="group" aria-label="Page">
+            {PAPER_MODES.map((m) => (
+              <button key={m} data-paper={m} aria-pressed={paper === m} onClick={() => setPaper(m)}>
+                <span className="hanzi">{PAPER_HAN[m]}</span>
+                <small>{PAPER_LABEL[m]}</small>
+              </button>
+            ))}
+          </div>
           <div className="rd-aa-row">
             <span>Pinyin</span>
             <span className="spacer" />
