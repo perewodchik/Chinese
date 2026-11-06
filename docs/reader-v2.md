@@ -74,3 +74,15 @@ Open:
 - A picture in Night is as bright as by day; the mockup dimmed it.
 - On a phone the narrator's name is cut short beside the clock until it
   plays ("Pikachu story narr…"); while it plays the row says the sentence.
+
+## Later the same day
+
+- The narrator moved up: a slim row under the bar, pinned with it. The
+  bottom edge is the text's, and a tapped word's.
+- A tapped word opens a small card instead of the whole drawer: pinyin,
+  meaning, hear it, its level (one tap steps it), and Learn this word. A
+  phone has it as a strip on the bottom edge; a page with a margin (an iPad
+  on its side) puts it in the margin level with the word; anywhere else it
+  is a popover by the word, above it when the word is low. A tap on the card
+  opens the word drawer, unchanged. Another word changes the card; a tap
+  elsewhere or Escape closes it.

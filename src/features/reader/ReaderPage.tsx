@@ -17,6 +17,8 @@ import { setPageColour } from '../../ui/colorScheme';
 import { bookOf, bookTitle, chapterHead, isFrontMatter, kindOf } from '../../domain/bookshelf';
 import { ChapterEnd } from './ChapterEnd';
 import { BookContents } from './BookContents';
+import { WordPeek, type Peeked } from './WordPeek';
+import { useOpenItem } from '../../navigation/itemDrawer';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { Passage, useWordDone, type ReaderView } from './Passage';
@@ -174,6 +176,11 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [paper, setPaper] = usePaperMode();
   const [glosses, setGlosses] = useGlossMode();
   const [contents, setContents] = useState(false);
+  // A tapped word's card; the whole drawer is a tap on it away.
+  const [peek, setPeek] = useState<(Peeked & { key: string }) | null>(null);
+  const closePeek = useCallback(() => setPeek(null), []);
+  const openItem = useOpenItem();
+  useEffect(() => setPeek(null), [text.id]);
   const closeContents = useCallback(() => setContents(false), []);
   // Sepia and Night are this page's: on while it is open, the app's own colours back when it closes.
   // Before the first paint, so a sepia page never shows white for a moment.
@@ -428,9 +435,24 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             study={study}
             heading={mode === 'all' && !story ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
             head={chapterHead(t, chapterAt(mode === 'all' ? i : page - 1))}
+            onWord={(p) => setPeek((was) => (was?.key === p.key && was.el === p.el ? null : p))}
+            peekKey={peek?.key ?? null}
           />
         ))}
       </div>
+
+      {peek && (
+        <WordPeek
+          peek={peek}
+          setId={set?.id ?? null}
+          onShelf={study.has(peek.id)}
+          onMore={() => {
+            setPeek(null);
+            openItem(peek.id);
+          }}
+          onClose={closePeek}
+        />
+      )}
 
       {contents && set && (
         <BookContents set={set} book={bookOf(set, list)} entries={entries} page={mode === 'single' ? page : 0} onClose={closeContents} />

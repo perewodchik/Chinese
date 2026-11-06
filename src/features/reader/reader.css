@@ -2729,3 +2729,171 @@ a.rd-more-row {
   opacity: 0.45;
   cursor: default;
 }
+
+/* ------------------------------------------------------------ a tapped word */
+/* The word whose card is open: the highlighter, as for a word in a drawer. */
+.rd-zh .w[data-peek] {
+  background-color: var(--hl);
+}
+
+/* The card: small, so the reading goes on around it. A strip on a phone's
+   bottom edge; on a wider page a card in the margin or by the word. */
+.rd-peek {
+  position: fixed;
+  z-index: 30;
+  display: grid;
+  gap: 8px;
+  width: 340px;
+  padding: 12px 14px 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  animation: rise 0.12s ease-out;
+}
+
+.rd-peek[data-place='strip'] {
+  left: 8px;
+  right: 8px;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: auto;
+  padding-top: 6px;
+  border-radius: 20px;
+}
+
+.rd-peek[data-place='margin'] {
+  width: 270px;
+}
+
+.rd-peek-grab {
+  justify-self: center;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-2);
+}
+
+/* Its pointer, to the word: up at it, down at it, or across the gap to it. */
+.rd-peek:not([data-place='strip'])::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  transform: rotate(45deg);
+}
+
+.rd-peek[data-place='below']::before {
+  top: -8px;
+  left: var(--arrow);
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.rd-peek[data-place='above']::before {
+  bottom: -8px;
+  left: var(--arrow);
+  border-left: 0;
+  border-top: 0;
+}
+
+.rd-peek[data-place='margin']::before {
+  left: -8px;
+  top: var(--arrow);
+  border-top: 0;
+  border-right: 0;
+}
+
+/* The top of the card is one button: the whole word drawer. */
+.rd-peek-top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-peek-word {
+  font-size: 32px;
+  line-height: 1.1;
+}
+
+.rd-peek-what {
+  display: grid;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.rd-peek-what b {
+  font-weight: 500;
+  color: var(--py);
+}
+
+.rd-peek-what > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rd-peek-what small {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.rd-peek-more {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+
+/* On a phone the card grows upward into the drawer: its arrow points up. */
+.rd-peek[data-place='strip'] .rd-peek-more .icon {
+  transform: rotate(-90deg);
+}
+
+.rd-peek-acts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rd-peek-level {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.rd-peek-learn {
+  white-space: nowrap;
+}
+
+.rd-peek-learn[aria-pressed='false'] {
+  border: 1px solid var(--line-2);
+  color: var(--accent);
+}
+
+.rd-peek-known {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: var(--jade-soft);
+  color: var(--jade);
+  font-size: 13.5px;
+  font-weight: 500;
+}

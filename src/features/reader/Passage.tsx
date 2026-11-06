@@ -15,6 +15,7 @@ import { ParagraphPicture, type PictureMark } from './ParagraphPicture';
 import { SceneView } from './SceneView';
 import { StoryChoices, StoryMap } from './StoryPath';
 import { useHold } from './useHold';
+import type { Peeked } from './WordPeek';
 import type { PictureMode, PinyinMode, TranslationMode } from './readerView';
 import './stories.css';
 
@@ -100,6 +101,10 @@ interface PassageProps {
   heading?: ReactNode;
   /** the head as a book prints it: 第三章, the name, its English (`chapterHead`) */
   head: { kicker: string | null; zh: string; en: string };
+  /** a word tapped, for its card; without it a tap opens the word drawer */
+  onWord?: (p: Peeked & { key: string }) => void;
+  /** the word whose card is open, by `line:token`: lit with the highlighter */
+  peekKey?: string | null;
 }
 
 /**
@@ -111,7 +116,7 @@ interface PassageProps {
  * and off never moves a line. Punctuation stays with the word before it: a
  * line never begins with a comma.
  */
-export function Passage({ text, view, reading, flash, revealed, onReveal, onPoint, retold, heading, head }: PassageProps) {
+export function Passage({ text, view, reading, flash, revealed, onReveal, onPoint, retold, heading, head, onWord, peekKey }: PassageProps) {
   const lib = useLibrary();
   const openItem = useOpenItem();
 
@@ -243,6 +248,12 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
       const mark = view.markUnknown && unknown ? 'new' : undefined;
       const id = itemForToken(lib, t.text);
       const band = bands.get(t.text);
+      const key = `${text.id}:${i}:${k}`;
+      const open = (el: HTMLElement) => {
+        if (!onWord) return openItem(id);
+        const g = glossOf(lib, text, t.text);
+        onWord({ key, word: t.text, id, el, py: g?.py ?? said.join(''), meaning: g ? firstSense(g.d) : '', band: band ?? null });
+      };
       const word = (
         <span
           key={k}
@@ -251,10 +262,11 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
           tabIndex={0}
           data-mark={mark}
           data-above={step || undefined}
+          data-peek={peekKey === key || undefined}
           title={step && band ? `${t.text} · ${hskLabel(band)}` : undefined}
-          onClick={() => openItem(id)}
+          onClick={(e) => open(e.currentTarget)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') openItem(id);
+            if (e.key === 'Enter') open(e.currentTarget);
           }}
         >
           {opener && <span className="opener">{opener}</span>}
