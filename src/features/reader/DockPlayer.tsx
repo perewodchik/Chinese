@@ -11,6 +11,18 @@ const clock = (ms: number) => {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 };
 
+/** The narrator's speeds, a tap stepping through them: slower to follow, back to as recorded. */
+const RATES = [1, 0.85, 0.7] as const;
+const RATE_KEY = 'hanzi.reader.rate';
+const storedRate = (): number => {
+  try {
+    const r = Number(localStorage.getItem(RATE_KEY));
+    return (RATES as readonly number[]).includes(r) ? r : 1;
+  } catch {
+    return 1;
+  }
+};
+
 /** The reading Listen last chose, when it is one of this text's. */
 const chosen = () => {
   try {
@@ -36,7 +48,21 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
   const [at, setAt] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [dragging, setDragging] = useState<number | null>(null);
+  const [rate, setRate] = useState(storedRate);
   const audio = useRef<HTMLAudioElement>(null);
+  // The speed holds for every reading, and for this one as soon as it has loaded.
+  useEffect(() => {
+    if (audio.current) audio.current.playbackRate = rate;
+  }, [rate, src]);
+  const nextRate = () => {
+    const r = RATES[(RATES.indexOf(rate as (typeof RATES)[number]) + 1) % RATES.length]!;
+    setRate(r);
+    try {
+      localStorage.setItem(RATE_KEY, String(r));
+    } catch {
+      // private browsing: it holds for this visit
+    }
+  };
 
   useEffect(() => {
     let live = true;
@@ -104,6 +130,14 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
     return (
       <div className="rd-dock-play">
         <button
+          className="rd-dock-step"
+          onClick={() => reading.readFrom(spoken, n - 1)}
+          disabled={!going || n === 0}
+          aria-label="The sentence before"
+        >
+          <Icon name="prev" size={20} />
+        </button>
+        <button
           className="rd-dock-playbtn"
           onClick={() => (going ? reading.stop() : reading.readFrom(spoken, 0))}
           disabled={!reading.choices.length && !reading.system}
@@ -111,10 +145,18 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
         >
           <Icon name={going ? 'pause' : 'play'} size={20} />
         </button>
+        <button
+          className="rd-dock-step"
+          onClick={() => reading.readFrom(spoken, n + 1)}
+          disabled={!going || n >= spoken.length - 1}
+          aria-label="The next sentence"
+        >
+          <Icon name="next" size={20} />
+        </button>
         <div className="rd-dock-track">
           <div className="rd-dock-meta">
             <span className="rd-dock-label">{reading.choices.find((v) => v.active)?.name ?? 'Listen'}</span>
-            <span className="rd-dock-time">{going ? `Line ${n + 1} of ${spoken.length}` : `${spoken.length} lines`}</span>
+            <span className="rd-dock-time">{going ? `Sentence ${n + 1} of ${spoken.length}` : `${spoken.length} sentences`}</span>
           </div>
           <div className="rd-dock-bar">
             <i style={{ width: `${going ? ((n + 1) / spoken.length) * 100 : 0}%` }} />
@@ -125,6 +167,15 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
   }
 
   const shown = dragging ?? at;
+  /** To the start of sentence `i`, playing or not. */
+  const toLine = (i: number) => {
+    const start = timings[Math.max(0, Math.min(timings.length - 1, i))]?.[0];
+    if (start !== undefined) seek(start);
+  };
+  // Back goes to the start of this sentence; at its very start, to the one before.
+  const startOf = timings[line]?.[0] ?? 0;
+  const back = () => toLine(shown - startOf > 1200 ? line : line - 1);
+  const along = playing || at > 0;
   return (
     <div className="rd-dock-play">
       {src && (
@@ -143,6 +194,9 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
           }}
         />
       )}
+      <button className="rd-dock-step" onClick={back} disabled={!src || !timings.length || shown <= 0} aria-label="The sentence before">
+        <Icon name="prev" size={20} />
+      </button>
       <button
         className="rd-dock-playbtn"
         disabled={!src}
@@ -156,9 +210,19 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
       >
         <Icon name={playing ? 'pause' : 'play'} size={20} />
       </button>
+      <button
+        className="rd-dock-step"
+        onClick={() => toLine(line + 1)}
+        disabled={!src || line >= timings.length - 1}
+        aria-label="The next sentence"
+      >
+        <Icon name="next" size={20} />
+      </button>
       <div className="rd-dock-track">
         <div className="rd-dock-meta">
-          <span className="rd-dock-label">{narrated?.name ?? 'Listen'}</span>
+          <span className="rd-dock-label">
+            {along && timings.length ? `Sentence ${line + 1} of ${timings.length}` : (narrated?.name ?? 'Listen')}
+          </span>
           <span className="rd-dock-time">
             {clock(shown)} / {clock(duration)}
           </span>
@@ -188,6 +252,9 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
           style={{ '--fill': `${Math.round((shown / (duration || 1)) * 100)}%` } as CSSProperties}
         />
       </div>
+      <button className="rd-dock-rate" onClick={nextRate} disabled={!src} aria-label={`Speed ${rate} times; tap for the next`}>
+        {rate === 1 ? '1×' : `${rate}×`}
+      </button>
     </div>
   );
 }

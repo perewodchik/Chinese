@@ -679,13 +679,18 @@
   padding: 0 10px;
 }
 
-/* The narrator's reading in the bottom bar: play, whose voice and how far, a slider. */
+/* The narrator's reading in the bottom bar: the sentence before, play, the
+   next, whose voice or which sentence and how far, a slider, the speed. */
 .rd-dock-play {
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 4px;
+}
+
+.rd-dock-play > .rd-dock-track {
+  margin: 0 8px 0 6px;
 }
 
 .rd-dock-playbtn {
@@ -2690,4 +2695,42 @@ a.rd-more-row {
   gap: 12px;
   padding: 12px 20px max(16px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
+}
+
+/* Either side of play: the sentence before, the next one. */
+.rd-dock-step {
+  flex: none;
+  width: 36px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.rd-dock-step:disabled {
+  color: var(--line-2);
+  cursor: default;
+}
+
+/* The narrator's speed: one fixed-width button, so 0.85× moves nothing. */
+.rd-dock-rate {
+  flex: none;
+  width: 54px;
+  height: 36px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  font: 500 13px/1 var(--sans);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.rd-dock-rate:disabled {
+  opacity: 0.45;
+  cursor: default;
 }

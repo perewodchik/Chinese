@@ -60,3 +60,17 @@ before the next.
    panel from the left, with where you are and what is new in each.
 6. **The player.** Previous and next sentence beside play, and "Reading along
    · sentence 3 of 9".
+
+## Where it stands (6 November 2026)
+
+All six steps are in. The word opens in the word drawer as before (from the
+right on an iPad, a bottom sheet on a phone), which is what the mockup drew.
+
+Open:
+- Checked in Chromium at 375–1194 in Paper, Sepia and Night; **not yet in
+  Safari** (WebKit is not installed where it was built). Look at: holding a
+  sentence on the iPad (no callout, no selection), the Aa panel dropping from
+  the bar, the contents panel's edge, the status bar's colour in Sepia.
+- A picture in Night is as bright as by day; the mockup dimmed it.
+- On a phone the narrator's name is cut short beside the clock until it
+  plays ("Pikachu story narr…"); while it plays the row says the sentence.
