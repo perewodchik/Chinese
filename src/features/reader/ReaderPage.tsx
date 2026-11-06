@@ -30,10 +30,12 @@ import {
   PINYIN_MODES,
   TRANSLATION_LABEL,
   TRANSLATION_MODES,
+  useGlossMode,
   usePaperMode,
   usePictureMode,
   usePinyinMode,
   useTranslationMode,
+  type GlossMode,
   type PaperMode,
   type PictureMode,
   type PinyinMode,
@@ -169,6 +171,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [translation, setTranslation] = useTranslationMode();
   const [pictures, setPictures] = usePictureMode();
   const [paper, setPaper] = usePaperMode();
+  const [glosses, setGlosses] = useGlossMode();
   // Sepia and Night are this page's: on while it is open, the app's own colours back when it closes.
   // Before the first paint, so a sepia page never shows white for a moment.
   useLayoutEffect(() => {
@@ -201,6 +204,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     // Dialogue as a comic is no longer offered: a dialogue reads as any text.
     comic: false,
     pictures,
+    glosses: glosses === 'on',
   };
 
   /* -------------------------------------------------------- the voice */
@@ -379,6 +383,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           setPictures={setPictures}
           paper={paper}
           setPaper={setPaper}
+          glosses={glosses}
+          setGlosses={setGlosses}
         />
         <ReaderMenu
           set={set}
@@ -392,7 +398,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
 
       </div>
 
-      <div className="rd-text">
+      <div className="rd-text" data-layout={settings.readerLayout}>
         {shown.map((t, i) => (
           <Passage
             key={t.id}
@@ -585,6 +591,8 @@ function AaMenu({
   setPictures,
   paper,
   setPaper,
+  glosses,
+  setGlosses,
 }: {
   pinyin: PinyinMode;
   setPinyin: (m: PinyinMode) => void;
@@ -596,6 +604,8 @@ function AaMenu({
   setPictures: (m: PictureMode) => void;
   paper: PaperMode;
   setPaper: (m: PaperMode) => void;
+  glosses: GlossMode;
+  setGlosses: (m: GlossMode) => void;
 }) {
   const settings = useStore((s) => s.settings);
   const [open, setOpen] = useState(false);
@@ -641,7 +651,10 @@ function AaMenu({
             </div>
           </div>
           <div className="rd-aa-row">
-            <span>Translation</span>
+            <span>
+              Translation
+              <small>When it is off, hold a sentence for its English.</small>
+            </span>
             <span className="spacer" />
             <div className="seg sm" role="group" aria-label="Translation">
               {TRANSLATION_MODES.map((m) => (
@@ -696,6 +709,14 @@ function AaMenu({
               </div>
             </div>
           )}
+          <label className="rd-aa-row">
+            <span>
+              New words beside the text
+              <small>Each with its pinyin and meaning, by its paragraph.</small>
+            </span>
+            <span className="spacer" />
+            <input type="checkbox" checked={glosses === 'on'} onChange={(e) => setGlosses(e.target.checked ? 'on' : 'off')} />
+          </label>
           <label className="rd-aa-row">
             <span>
               Underline what is not known yet

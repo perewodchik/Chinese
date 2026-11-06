@@ -2348,3 +2348,158 @@ a.rd-more-row {
   justify-content: center;
   gap: 4px 12px;
 }
+
+/* ---------------------------------------------------------------- the margin */
+/* Beside each paragraph: its English when it is shown or a sentence of it is
+   held, and its new words with their pinyin and meaning. Under the paragraph
+   on a phone or an upright iPad; in a margin of its own on a wide page. */
+.rd-margin {
+  display: grid;
+  gap: 8px;
+  margin: -0.35em 0 1.2em;
+  font: 400 15px/1.5 var(--sans);
+  letter-spacing: 0;
+}
+
+.rd-margin:empty {
+  display: none;
+}
+
+.rd-margin .rd-en-para {
+  margin: 0;
+}
+
+/* A held sentence's English: tap it to put it away again. */
+.rd-en-held {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--card-2);
+  font: 400 calc(15px * var(--reader-scale, 1)) / 1.55 var(--read);
+  color: var(--ink-2);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* The sentence whose English is open: a wash of blue ink, so it is clear
+   which one the English beside or under it belongs to. */
+.rd-zh .sent[data-open] {
+  background-color: var(--accent-soft);
+  border-radius: 3px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Holding a sentence is for its English: no selection or callout on the way. */
+.rd-zh[data-layout='paragraph'] .sent {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.rd-glosses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-glosses li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* New to you: the red pen's dot, small, before each. */
+.rd-glosses li::before {
+  content: '';
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  align-self: center;
+}
+
+.rd-glosses .hanzi {
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+.rd-glosses b {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--py);
+}
+
+.rd-glosses [lang='en'] {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+/* A phone has pinyin over the new word itself and no room to spare. */
+@media (max-width: 699px) {
+  .rd-glosses {
+    display: none;
+  }
+}
+
+/* A wide page: the text in a column and its margin beside it, the chapter's
+   head over the text, pictures across both. */
+@media (min-width: 1100px) {
+  .rd-text[data-layout='paragraph'] {
+    max-width: 980px;
+  }
+
+  .rd-text[data-layout='paragraph'] .rd-head {
+    margin-right: 264px;
+  }
+
+  .rd-text[data-layout='paragraph'] .rd-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    column-gap: 44px;
+    align-items: start;
+  }
+
+  .rd-text[data-layout='paragraph'] .rd-margin {
+    margin: 0;
+    padding-top: 0.9em;
+    gap: 14px;
+  }
+
+  .rd-text[data-layout='paragraph'] .rd-margin:empty {
+    display: grid;
+  }
+
+  .rd-text[data-layout='paragraph'] .rd-en-para,
+  .rd-text[data-layout='paragraph'] .rd-en-held {
+    font-size: 14.5px;
+  }
+
+  .rd-text[data-layout='paragraph'] .rd-glosses {
+    display: grid;
+    gap: 12px;
+  }
+
+  .rd-text[data-layout='paragraph'] .rd-glosses li {
+    display: grid;
+    grid-template-columns: 5px auto minmax(0, 1fr);
+    column-gap: 10px;
+    align-items: center;
+  }
+
+  .rd-text[data-layout='paragraph'] .rd-glosses li > span:last-child {
+    display: grid;
+    line-height: 1.3;
+  }
+
+  .rd-text[data-layout='paragraph'] .rd-glosses .hanzi {
+    font-size: 22px;
+  }
+}

@@ -83,3 +83,8 @@ export const PAPER_LABEL: Record<PaperMode, string> = { paper: 'Paper', sepia: '
 /** The character on each page's tile in Aa. */
 export const PAPER_HAN: Record<PaperMode, string> = { paper: '纸', sepia: '旧', night: '夜' };
 export const usePaperMode = () => useStoredChoice<PaperMode>('hanzi.reader.paper', PAPER_MODES, 'paper');
+
+/** New words glossed beside their paragraph (under it where the page is narrow): on unless turned off. */
+export type GlossMode = 'on' | 'off';
+const GLOSS_MODES: GlossMode[] = ['on', 'off'];
+export const useGlossMode = () => useStoredChoice<GlossMode>('hanzi.reader.glosses', GLOSS_MODES, 'on');

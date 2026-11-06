@@ -14,6 +14,7 @@ import { Comic } from './Comic';
 import { ParagraphPicture, type PictureMark } from './ParagraphPicture';
 import { SceneView } from './SceneView';
 import { StoryChoices, StoryMap } from './StoryPath';
+import { useHold } from './useHold';
 import type { PictureMode, PinyinMode, TranslationMode } from './readerView';
 import './stories.css';
 
@@ -32,7 +33,19 @@ export interface ReaderView {
   comic: boolean;
   /** the pictures above or beside the paragraphs */
   pictures: PictureMode;
+  /** each paragraph's new words with their pinyin and meaning, in the margin or under it */
+  glosses: boolean;
 }
+
+/** A word's pinyin and its first sense: the text's own list first, then the syllabus, the writer's notes, the character. */
+function glossOf(lib: Library, text: GeneratedText, w: string): { py: string; d: string } | null {
+  const own = text.vocab.find((v) => v.w === w);
+  const found = own ?? lib.byWord.get(w) ?? text.glosses[w] ?? null;
+  if (found) return { py: found.py, d: found.d };
+  const c = [...w].length === 1 ? lib.byChar.get(w) : undefined;
+  return c ? { py: c.py[0] ?? '', d: c.def } : null;
+}
+const firstSense = (d: string) => d.split(/;|\/|\s\|\s/)[0]!.trim();
 
 /** Where a word stands for this reader: the marks and the pinyin follow it. */
 /** The library's words, indexed once per library rather than once per sentence. */
@@ -179,6 +192,21 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
     for (const line of tokens) for (const t of line) if (t.word && levelOfWord(t.text) === 0) seen.add(t.text);
     return seen.size;
   }, [tokens, levelOfWord]);
+  // Each paragraph's new words, each glossed once, where it first comes.
+  const glosses = useMemo(() => {
+    const seen = new Set<string>();
+    return paras.map((p) =>
+      p.flatMap((i) =>
+        (tokens[i] ?? []).flatMap((t) => {
+          if (!t.word || seen.has(t.text) || levelOfWord(t.text) !== 0) return [];
+          seen.add(t.text);
+          const g = glossOf(lib, text, t.text);
+          return g ? [{ w: t.text, py: g.py, d: firstSense(g.d) }] : [];
+        }),
+      ),
+    );
+  }, [paras, tokens, levelOfWord, lib, text]);
+  const hold = useHold(onReveal);
   // A learner at HSK 1–2 reads about seventy characters a minute, stopping on what is new.
   const minutes = Math.max(1, Math.round(text.lines.reduce((n, l) => n + [...l.zh].filter(isHanzi).length, 0) / 70));
 
@@ -289,17 +317,51 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
                   <SceneView key={`s${k}`} scene={sc} />
                 ))}
               {pictureOf(n) && !beside && <ParagraphPicture picture={pictureOf(n)!} size="large" marks={marks[n]} onMark={onPoint} retold={retold} />}
-              <p className="rd-para">
-                {pictureOf(n) && beside && <ParagraphPicture picture={pictureOf(n)!} size="beside" />}
-                {p.map((i) => (
-                  <span key={i} id={`line-${text.id}-${i}`} className="sent" data-reading={reading === i || undefined} data-flash={flash === i || undefined}>
-                    {sentence(i)}
-                  </span>
-                ))}
-              </p>
-              {view.translation === 'shown' && (
-                <p className="rd-en-para">{p.map((i) => text.lines[i]!.en).filter(Boolean).join(' ')}</p>
-              )}
+              {/* The paragraph, and beside it on a wide page (under it on a
+                  narrower one) its English and its new words. */}
+              <div className="rd-row">
+                <p className="rd-para">
+                  {pictureOf(n) && beside && <ParagraphPicture picture={pictureOf(n)!} size="beside" />}
+                  {p.map((i) => (
+                    <span
+                      key={i}
+                      id={`line-${text.id}-${i}`}
+                      className="sent"
+                      data-reading={reading === i || undefined}
+                      data-flash={flash === i || undefined}
+                      data-open={revealed.has(i) || undefined}
+                      {...hold(i)}
+                    >
+                      {sentence(i)}
+                    </span>
+                  ))}
+                </p>
+                <aside className="rd-margin">
+                  {view.translation === 'shown' ? (
+                    <p className="rd-en-para">{p.map((i) => text.lines[i]!.en).filter(Boolean).join(' ')}</p>
+                  ) : (
+                    p
+                      .filter((i) => revealed.has(i) && text.lines[i]!.en)
+                      .map((i) => (
+                        <button key={i} className="rd-en-held" onClick={() => onReveal(i)} aria-label="Hide this English">
+                          {text.lines[i]!.en}
+                        </button>
+                      ))
+                  )}
+                  {view.glosses && glosses[n]!.length > 0 && (
+                    <ul className="rd-glosses" lang="zh">
+                      {glosses[n]!.map((g) => (
+                        <li key={g.w}>
+                          <span className="hanzi">{g.w}</span>
+                          <span>
+                            <b>{g.py}</b> <span lang="en">{g.d}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </aside>
+              </div>
             </Fragment>
           ))
         ) : (
