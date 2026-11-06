@@ -23,6 +23,7 @@
 }
 
 .rd-top {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -63,8 +64,7 @@
 }
 
 .rd-where b {
-  font-weight: 600;
-  font-size: 16px;
+  font: 400 18px/1.3 var(--han);
 }
 
 .rd-where span {
@@ -200,37 +200,51 @@
   border-top: 1px solid var(--line);
 }
 
+/* The head of a chapter as a book prints it, in the middle of the page:
+   第三章, the name, its English, and how long and how hard it is. */
+.rd-head {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  padding-bottom: 6px;
+}
+
+.rd-chapter {
+  margin: 0 0 4px;
+  font: 400 18px/1.3 var(--han);
+  letter-spacing: 0.2em;
+  color: var(--ink-3);
+}
+
 .rd-title {
-  font: 400 calc(24px * var(--reader-scale, 1)) / 1.3 var(--han);
+  font: 400 calc(28px * var(--reader-scale, 1)) / 1.3 var(--han);
   margin: 0;
 }
 
 @media (min-width: 700px) {
   .rd-title {
-    font-size: calc(28px * var(--reader-scale, 1));
+    font-size: calc(32px * var(--reader-scale, 1));
   }
 }
 
 .rd-subtitle {
-  font: 400 15px/1.4 var(--read);
-  color: var(--ink-3);
+  font: italic 400 15px/1.4 var(--read);
+  color: var(--ink-2);
   margin: 4px 0 0;
 }
 
 .rd-know {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 14px 0 18px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin: 16px 0 22px;
   font-size: 13px;
-  font-weight: 500;
-  color: var(--ink-2);
-  white-space: nowrap;
+  color: var(--ink-3);
+  text-wrap: balance;
 }
 
 .rd-meter {
-  flex: 1;
-  max-width: 320px;
+  width: 120px;
   height: 4px;
   border-radius: 2px;
   background: var(--card-2);
@@ -253,6 +267,11 @@
 
 .rd-para {
   margin: 0 0 0.9em;
+}
+
+/* Paragraphs as a book sets them: each opens two characters in. */
+.rd-zh[data-layout='paragraph'] .rd-para {
+  text-indent: 2em;
 }
 
 .rd-zh ruby {
@@ -865,26 +884,29 @@
 
 .rd-aa-btn {
   width: 44px;
-  height: 42px;
+  height: 40px;
   border: 0;
   border-radius: 12px;
-  background: var(--card-2);
-  font: 500 19px/1 var(--read);
+  background: transparent;
+  font: 400 20px/1 var(--read);
   color: var(--ink);
   cursor: pointer;
 }
 
+.rd-aa-btn:hover,
 .rd-aa-btn[aria-expanded='true'] {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--card-2);
 }
 
+/* Aa sits in the bar beside ⋯: its panel drops from it, its right edge with the bar's. */
 .rd-aa-panel {
   position: absolute;
-  right: 0;
-  bottom: calc(100% + 12px);
+  right: -48px;
+  top: calc(100% + 8px);
   z-index: 20;
-  width: min(340px, calc(100vw - 24px));
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100dvh - 80px);
+  overflow-y: auto;
   padding: 4px 16px;
   background: var(--card);
   border: 1px solid var(--line);
@@ -2332,4 +2354,22 @@ a.rd-more-row {
 :root[data-app-theme='dark'] .rd-aa-papers button[data-paper='paper'] {
   background: #14191e;
   color: #e5e8ec;
+}
+
+/* How far down the text you are: a hairline in jade along the bar's foot. */
+.rd-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--line);
+  pointer-events: none;
+}
+
+.rd-progress i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--jade);
 }

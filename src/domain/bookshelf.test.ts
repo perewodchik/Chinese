@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import { reduce } from '../store/actions';
 import { hydrate, serialise } from '../store/migrations';
 import { emptyState } from '../store/state';
-import { bookcase, bookOf, coverArt, coverColor, kindOf, SHELF_FROM_BOOKS, SHELF_MINE, SHELF_STORIES } from './bookshelf';
+import { bookcase, bookOf, chapterHead, coverArt, coverColor, kindOf, SHELF_FROM_BOOKS, SHELF_MINE, SHELF_STORIES } from './bookshelf';
 import { BOOK, type GeneratedText, type TextSet } from './text';
 
 // Texts shaped as the learner's are (November 2026): only what a shelf reads of them.
@@ -74,4 +74,15 @@ describe('books on shelves', () => {
     assert.equal(back.sets[0]!.shelf, 'Classics');
     assert.equal(reduce(moved, { type: 'set/shelf', id: '西游记 (easier)', shelf: null }).sets[0]!.shelf, undefined);
   });
+});
+
+it('a chapter head takes its number out of both titles', () => {
+  const t = (titleZh: string, title: string) => ({ titleZh, title }) as GeneratedText;
+  assert.deepEqual(chapterHead(t('第六章 在机场', 'Chapter 6: At the Airport'), 6), { kicker: '第六章', zh: '在机场', en: 'At the Airport' });
+  // A story whose titles carry no number takes its place among the chapters.
+  assert.deepEqual(chapterHead(t('河里的大鱼', 'The Big Fish (easier)'), 12), { kicker: '第十二章', zh: '河里的大鱼', en: 'The Big Fish' });
+  // A text that is not a chapter keeps its titles whole.
+  assert.deepEqual(chapterHead(t('广州一日游', 'A Visit to Guangzhou'), null), { kicker: null, zh: '广州一日游', en: 'A Visit to Guangzhou' });
+  // A title that is only the number keeps it.
+  assert.deepEqual(chapterHead(t('第一章', 'Chapter 1'), 1), { kicker: null, zh: '第一章', en: 'Chapter 1' });
 });

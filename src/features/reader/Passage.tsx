@@ -5,7 +5,7 @@ import { alignPinyin, paragraphs, stepsAbove, wordBands, type Token } from '../.
 import { segment, writerHints } from '../../domain/segment';
 import { itemForToken } from '../../domain/words';
 import { pictureAbove } from '../../domain/pictures';
-import { hskLabel, isHanzi, plainTitle, type GeneratedText } from '../../domain/text';
+import { hskLabel, isHanzi, type GeneratedText } from '../../domain/text';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useLevelOf, useWordLevel } from '../shared/levels';
 import { LevelBar } from '../../ui/LevelMark';
@@ -85,6 +85,8 @@ interface PassageProps {
   study: ReadonlySet<ItemId>;
   /** above the title, when several passages share the page */
   heading?: ReactNode;
+  /** the head as a book prints it: 第三章, the name, its English (`chapterHead`) */
+  head: { kicker: string | null; zh: string; en: string };
 }
 
 /**
@@ -96,7 +98,7 @@ interface PassageProps {
  * and off never moves a line. Punctuation stays with the word before it: a
  * line never begins with a comma.
  */
-export function Passage({ text, view, reading, flash, revealed, onReveal, onPoint, retold, heading }: PassageProps) {
+export function Passage({ text, view, reading, flash, revealed, onReveal, onPoint, retold, heading, head }: PassageProps) {
   const lib = useLibrary();
   const openItem = useOpenItem();
 
@@ -171,6 +173,14 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
   }, [text.lines, levelOfId]);
   // Its different characters met at least once, by your own answers: the same count as the bar under it.
   const charTotal = charLevels.reduce((a, b) => a + b, 0);
+  // The words not known yet, each once: what the head counts as new.
+  const newWords = useMemo(() => {
+    const seen = new Set<string>();
+    for (const line of tokens) for (const t of line) if (t.word && levelOfWord(t.text) === 0) seen.add(t.text);
+    return seen.size;
+  }, [tokens, levelOfWord]);
+  // A learner at HSK 1–2 reads about seventy characters a minute, stopping on what is new.
+  const minutes = Math.max(1, Math.round(text.lines.reduce((n, l) => n + [...l.zh].filter(isHanzi).length, 0) / 70));
 
   /** One sentence, word by word, punctuation held to its word. */
   function sentence(i: number): ReactNode {
@@ -237,13 +247,17 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
     <article className="rd-passage" lang="zh">
       <header className="rd-head">
         {heading}
-        <h1 className="rd-title hanzi">{text.titleZh || text.title}</h1>
-        <p className="rd-subtitle">{plainTitle(text.title)}</p>
+        {head.kicker && <p className="rd-chapter hanzi">{head.kicker}</p>}
+        <h1 className="rd-title hanzi">{head.zh}</h1>
+        {head.en && head.en !== head.zh && <p className="rd-subtitle">{head.en}</p>}
         <div className="rd-know" title={`Its characters: ${charLevels[3]} solid, ${charLevels[2]} known, ${charLevels[1]} met, ${charLevels[0]} not known yet`}>
           <span className="rd-meter" aria-hidden>
             <LevelBar levels={charLevels} />
           </span>
-          <span>You know {Math.round(((charTotal - charLevels[0]) / (charTotal || 1)) * 100)}%</span>
+          <span>
+            About {minutes} minute{minutes === 1 ? '' : 's'}. You know {Math.round(((charTotal - charLevels[0]) / (charTotal || 1)) * 100)}% of it
+            {newWords ? `, and ${newWords} word${newWords === 1 ? ' is' : 's are'} new.` : '.'}
+          </span>
         </div>
       </header>
 

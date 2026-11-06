@@ -14,6 +14,7 @@ import { Modal } from '../../ui/Modal';
 import { PalettePicker } from '../../ui/PalettePicker';
 import { useTitle } from '../../ui/useTitle';
 import { setPageColour } from '../../ui/colorScheme';
+import { bookTitle, chapterHead, isFrontMatter, kindOf } from '../../domain/bookshelf';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { Passage, useWordDone, type ReaderView } from './Passage';
@@ -138,6 +139,24 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const entry = entries[page - 1]!;
   const text = versionOf(entry, version);
   const both = Boolean(entry.easier && entry.original);
+  // A story read as a book counts its chapters, the page of who is who before them not one of them.
+  const story = Boolean(set) && kindOf(list) === 'story';
+  const chapterAt = (at: number) =>
+    story && !isFrontMatter(entries[at]!.main) ? entries.slice(0, at + 1).filter((e) => !isFrontMatter(e.main)).length : null;
+  const chapters = story ? entries.filter((e) => !isFrontMatter(e.main)).length : 0;
+  const easier = both && text === entry.easier;
+  const where =
+    mode === 'all'
+      ? story
+        ? `All ${chapters} chapters`
+        : `All ${total} texts`
+      : !set
+        ? 'A text on its own'
+        : story
+          ? chapterAt(page - 1) === null
+            ? 'Before the chapters'
+            : `Chapter ${chapterAt(page - 1)} of ${chapters}${easier ? ', easier' : ''}`
+          : `Text ${page} of ${total}${easier ? ', easier' : ''}`;
   useTitle(mode === 'all' && set ? set.name : text.titleZh || text.title);
 
   const navigate = useNavigate();
@@ -318,18 +337,12 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           iPhone where the text showed through. */}
       <div className="rd-pin no-print">
       <header className="rd-top">
-        <Link className="rd-back" to={set ? paths.shelf(set.id) : paths.read()} aria-label="Back to the shelf">
+        <Link className="rd-back" to={set ? paths.shelf(set.id) : paths.read()} aria-label={set ? `Back to ${bookTitle(set.name)}` : 'Back to Read'}>
           <Icon name="back" size={24} />
         </Link>
         <div className="rd-where">
-          <b>{set?.name ?? 'A text on its own'}</b>
-          <span>
-            {mode === 'all'
-              ? `All ${total} texts`
-              : both && text === entry.easier
-                ? `Text ${page} of ${total}, easier`
-                : `Text ${page} of ${total}`}
-          </span>
+          <b className="hanzi">{set ? bookTitle(set.name) : (text.titleZh || text.title)}</b>
+          <span>{where}</span>
         </div>
         {mode === 'single' && both && (
           <div className="rd-versions" role="group" aria-label="Version">
@@ -349,6 +362,18 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             </button>
           </div>
         )}
+        <AaMenu
+          pinyin={pinyin}
+          setPinyin={setPinyin}
+          translation={translation}
+          setTranslation={setTranslation}
+          hasTrad={list.some((t) => t.lines.some((l) => l.zht))}
+          hasPictures={list.some((t) => t.pictures?.some((p) => p.key))}
+          pictures={pictures}
+          setPictures={setPictures}
+          paper={paper}
+          setPaper={setPaper}
+        />
         <ReaderMenu
           set={set}
           list={list}
@@ -356,6 +381,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           mode={mode}
           onMode={(m) => navigate(address(m === 'all' ? { mode: 'all' } : { page }))}
         />
+        <ReadingProgress textId={text.id} />
       </header>
 
       {mode === 'single' && (
@@ -391,7 +417,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             onPoint={point}
             retold={Boolean(entry.original) && t.id === entry.easier?.id}
             study={study}
-            heading={mode === 'all' ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
+            heading={mode === 'all' && !story ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
+            head={chapterHead(t, chapterAt(mode === 'all' ? i : page - 1))}
           />
         ))}
         {mode === 'single' && (
@@ -420,23 +447,13 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           </div>
         )}
 
-        {/* The text's own controls, stuck to the bottom of the screen while the
-            text is on it, and gone with the text when the parts below come up. */}
-        <div className="rd-dock no-print">
-          {mode === 'single' ? <DockPlayer text={text} reading={reading} spoken={spoken} onLine={setNarrLine} /> : <span className="spacer" />}
-          <AaMenu
-            pinyin={pinyin}
-            setPinyin={setPinyin}
-            translation={translation}
-            setTranslation={setTranslation}
-            hasTrad={list.some((t) => t.lines.some((l) => l.zht))}
-            hasPictures={list.some((t) => t.pictures?.some((p) => p.key))}
-            pictures={pictures}
-            setPictures={setPictures}
-            paper={paper}
-            setPaper={setPaper}
-          />
-        </div>
+        {/* The narrator, stuck to the bottom of the screen while the text is
+            on it, and gone with the text when the parts below come up. */}
+        {mode === 'single' && (
+          <div className="rd-dock no-print">
+            <DockPlayer text={text} reading={reading} spoken={spoken} onLine={setNarrLine} />
+          </div>
+        )}
       </div>
 
       {mode === 'single' && (
@@ -472,6 +489,51 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       )}
 
     </div>
+  );
+}
+
+/**
+ * How far down the text you are, as a hairline under the bar: nothing at its
+ * top, all of it once its last line is on the screen. The text scrolls with
+ * the page on a phone and in its own column on a wide screen; either is read.
+ * The width is set on the line itself, so scrolling renders nothing.
+ */
+function ReadingProgress({ textId }: { textId: string }) {
+  const line = useRef<HTMLElement>(null);
+  useEffect(() => {
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const el = document.querySelector<HTMLElement>('.rd-text');
+      if (!el || !line.current) return;
+      let done: number;
+      if (getComputedStyle(el).overflowY === 'auto') {
+        const room = el.scrollHeight - el.clientHeight;
+        done = room > 0 ? el.scrollTop / room : 1;
+      } else {
+        const bar = document.querySelector('.rd-pin')?.getBoundingClientRect().bottom ?? 0;
+        const r = el.getBoundingClientRect();
+        const room = r.height - (window.innerHeight - bar);
+        done = room > 0 ? (bar - r.top) / room : 1;
+      }
+      line.current.style.width = `${Math.round(Math.min(1, Math.max(0, done)) * 1000) / 10}%`;
+    };
+    const soon = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    measure();
+    document.addEventListener('scroll', soon, true);
+    window.addEventListener('resize', soon);
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener('scroll', soon, true);
+      window.removeEventListener('resize', soon);
+    };
+  }, [textId]);
+  return (
+    <span className="rd-progress" aria-hidden>
+      <i ref={line} />
+    </span>
   );
 }
 
@@ -593,7 +655,7 @@ function AaMenu({
 
   return (
     <div className="rd-aa" ref={root}>
-      <button className="rd-dock-btn rd-aa-btn" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen((o) => !o)}>
+      <button className="rd-aa-btn" aria-expanded={open} aria-haspopup="dialog" title="How the text looks" onClick={() => setOpen((o) => !o)}>
         Aa
       </button>
       {open && (

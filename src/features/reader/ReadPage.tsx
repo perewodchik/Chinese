@@ -27,7 +27,7 @@ import { LevelQuick } from '../../ui/LevelPicker';
 import { readerSheet } from './readerSheet';
 import { partFill, partsOf } from './TextParts';
 import { useStartSession } from './startSession';
-import { bookcase, bookOf, isFrontMatter, type Book } from '../../domain/bookshelf';
+import { bookcase, bookOf, chineseNumber, isFrontMatter, type Book } from '../../domain/bookshelf';
 import { shelveBook } from '../../store/commands';
 import { BookCover } from './BookCover';
 import './shelves.css';
@@ -241,15 +241,6 @@ export function ReadPage() {
       )}
     </div>
   );
-}
-
-/** 一 to 十, then 十一 to 九十九, as a Chinese book numbers its chapters; past that, the digits. */
-function chineseNumber(n: number): string {
-  const d = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-  if (n < 1 || n > 99) return String(n);
-  if (n < 10) return d[n]!;
-  const tens = Math.floor(n / 10);
-  return `${tens > 1 ? d[tens] : ''}十${d[n % 10]}`;
 }
 
 /** How far through a book is: its chapters (a text and its easier version one chapter), read and opened. */

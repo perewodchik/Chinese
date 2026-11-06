@@ -221,3 +221,31 @@ export function bookcase(sets: TextSet[], bySet: Map<string, GeneratedText[]>): 
 
 /** The plain title of a chapter, without the "(easier)" its retelling's English title carries. */
 export const chapterTitle = (t: GeneratedText) => plainTitle(t.title);
+
+/** 一 to 十, then 十一 to 九十九, as a Chinese book numbers its chapters; past that, the digits. */
+export function chineseNumber(n: number): string {
+  const d = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+  if (n < 1 || n > 99) return String(n);
+  if (n < 10) return d[n]!;
+  const tens = Math.floor(n / 10);
+  return `${tens > 1 ? d[tens] : ''}十${d[n % 10]}`;
+}
+
+const ZH_CHAPTER = /^(第.{1,4}[章话回节])[\s：:]*/;
+const EN_CHAPTER = /^chapter\s+\w+\s*[:.\-–—]\s*/i;
+
+/**
+ * A chapter's head as a book prints it: 第三章 over its name, and the name in
+ * English under it. The number is the one in its Chinese title when it has
+ * one, else its place among the chapters (`n`, null for a text that is not a
+ * chapter), and neither title repeats it.
+ */
+export function chapterHead(t: GeneratedText, n: number | null): { kicker: string | null; zh: string; en: string } {
+  const zh = t.titleZh.trim() || t.title;
+  const en = plainTitle(t.title).replace(EN_CHAPTER, '').trim();
+  const m = zh.match(ZH_CHAPTER);
+  if (m && zh.length > m[0].length) return { kicker: m[1]!, zh: zh.slice(m[0].length), en };
+  // A title that is only its number (第一章) is the head on its own: no second 第一章 over it.
+  if (m || n === null) return { kicker: null, zh, en: plainTitle(t.title) };
+  return { kicker: `第${chineseNumber(n)}章`, zh, en };
+}
