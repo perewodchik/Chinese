@@ -183,15 +183,16 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   useLayoutEffect(() => () => setPageColour(null), []);
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [flash, setFlash] = useState<number | null>(null);
-  // The line the bottom bar's narrator is reading, lit in the text, and kept in sight.
+  // The line the narrator is reading, lit in the text, and kept in sight.
   const [narrLine, setNarrLine] = useState<number | null>(null);
   useEffect(() => {
     if (narrLine === null) return;
     const el = document.getElementById(`line-${text.id}-${narrLine}`);
     if (!el) return;
     const r = el.getBoundingClientRect();
-    // Above the bar at the top or under the dock at the bottom: brought back, gently.
-    if (r.top < 120 || r.bottom > window.innerHeight - 110) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    // Under the bar and the player at the top, or off the bottom: brought back, gently.
+    const pinned = document.querySelector('.rd-pin')?.getBoundingClientRect().bottom ?? 120;
+    if (r.top < pinned + 8 || r.bottom > window.innerHeight - 24) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [narrLine, text.id]);
   const top = useRef<HTMLDivElement>(null);
   useEffect(() => setRevealed(new Set()), [text.id]);
@@ -401,9 +402,15 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           mode={mode}
           onMode={(m) => navigate(address(m === 'all' ? { mode: 'all' } : { page }))}
         />
-        <ReadingProgress textId={text.id} />
       </header>
-
+      {/* The narrator, under the bar and pinned with it: the bottom edge is
+          left to the text and to a tapped word's card. */}
+      {mode === 'single' && (
+        <div className="rd-dock">
+          <DockPlayer text={text} reading={reading} spoken={spoken} onLine={setNarrLine} />
+        </div>
+      )}
+      <ReadingProgress textId={text.id} />
       </div>
 
       <div className="rd-text" data-layout={settings.readerLayout}>
@@ -423,14 +430,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             head={chapterHead(t, chapterAt(mode === 'all' ? i : page - 1))}
           />
         ))}
-
-        {/* The narrator, stuck to the bottom of the screen while the text is
-            on it, and gone with the text when the parts below come up. */}
-        {mode === 'single' && (
-          <div className="rd-dock no-print">
-            <DockPlayer text={text} reading={reading} spoken={spoken} onLine={setNarrLine} />
-          </div>
-        )}
       </div>
 
       {contents && set && (

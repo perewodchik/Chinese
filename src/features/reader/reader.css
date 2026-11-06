@@ -134,7 +134,7 @@
 /* ------------------------------------------------------------------ the text */
 .rd-text {
   padding: 22px var(--gutter) 6px;
-  scroll-margin-top: 120px;
+  scroll-margin-top: 130px;
 }
 
 .rd-kicker {
@@ -378,7 +378,7 @@
 .rd-part {
   padding: 26px 0 8px;
   border-top: 1px solid var(--line);
-  scroll-margin-top: 120px;
+  scroll-margin-top: 130px;
 }
 
 .rd-part-head {
@@ -641,18 +641,13 @@
 }
 
 /* ----------------------------------------------------------------- the dock */
-/* The text's own controls: inside the text, stuck to the bottom of the
-   screen while the text is on it, gone with it when the parts come up. */
+/* The narrator, a slim row under the bar, pinned with it; on a wide page its
+   controls keep to the width of the text below. */
 .rd-dock {
-  position: sticky;
-  bottom: 0;
-  /* Under the bar and the parts at the top, so it slides away beneath them. */
-  z-index: 5;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 10px calc(-1 * var(--gutter)) 0;
-  padding: 8px var(--gutter) max(10px, env(safe-area-inset-bottom));
+  min-height: 48px;
+  padding: 2px max(var(--gutter), calc((100% - 940px) / 2)) 4px;
   background: var(--paper);
   border-top: 1px solid var(--line);
 }
@@ -695,9 +690,9 @@
 
 .rd-dock-playbtn {
   flex: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 22px;
+  width: 38px;
+  height: 38px;
+  border-radius: 19px;
   border: 0;
   background: var(--accent);
   color: var(--on-accent);
@@ -2190,7 +2185,7 @@ a.rd-more-row {
   color: #e5e8ec;
 }
 
-/* How far down the text you are: a hairline in jade along the bar's foot. */
+/* How far down the text you are: a hairline in jade along the foot of what is pinned. */
 .rd-progress {
   position: absolute;
   left: 0;
@@ -2212,7 +2207,7 @@ a.rd-more-row {
 /* 第一章 · 完, what there is to do with it, and the next chapter: the page's
    one button is here, at the end, where the reading stops. */
 .rd-end {
-  scroll-margin-top: 80px;
+  scroll-margin-top: 124px;
   display: grid;
   gap: 24px;
   padding: 34px 0 30px;
@@ -2700,8 +2695,8 @@ a.rd-more-row {
 /* Either side of play: the sentence before, the next one. */
 .rd-dock-step {
   flex: none;
-  width: 36px;
-  height: 44px;
+  width: 34px;
+  height: 40px;
   border: 0;
   border-radius: 12px;
   background: transparent;
@@ -2719,8 +2714,8 @@ a.rd-more-row {
 /* The narrator's speed: one fixed-width button, so 0.85× moves nothing. */
 .rd-dock-rate {
   flex: none;
-  width: 54px;
-  height: 36px;
+  width: 52px;
+  height: 32px;
   border: 1px solid var(--line-2);
   border-radius: 10px;
   background: transparent;
