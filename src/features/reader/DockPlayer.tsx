@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MutableRefObject } from 'react';
 import { narrationAudio } from '../../api/narration';
 import type { GeneratedText } from '../../domain/text';
 import { studyText } from '../../store/commands';
@@ -32,16 +32,40 @@ const chosen = () => {
   }
 };
 
+/** What the bar's listen button does with the player: start it, or stop it. */
+export interface PlayerControl {
+  start: () => void;
+  stop: () => void;
+}
+
 /**
- * The text heard from the bottom bar, under the thumb, while it is read: the
- * narrator's reading of the whole text with a slider through it, the line
- * being read lit in the text above (`onLine`). A text no narrator has read
- * plays line by line in the sentence voices instead.
+ * The narrator, in one row under the bar while it is open: the sentence
+ * before, play, the next, a slider through the reading, the speed, and ✕.
+ * The line being read is lit in the text (`onLine`). A text no narrator has
+ * read plays line by line in the sentence voices instead.
+ *
+ * It is there, hidden, from the moment the text opens, so its recording is
+ * loaded before the listen button is tapped and starts from the tap itself:
+ * iOS plays sound only in answer to a tap.
  *
  * It counts as Listen's player does: how far in it has got, and, heard to
  * the end, once more.
  */
-export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedText; reading: Reading; spoken: string[]; onLine: (i: number | null) => void }) {
+export function DockPlayer({
+  text,
+  reading,
+  spoken,
+  onLine,
+  control,
+  onClose,
+}: {
+  text: GeneratedText;
+  reading: Reading;
+  spoken: string[];
+  onLine: (i: number | null) => void;
+  control: MutableRefObject<PlayerControl | null>;
+  onClose: () => void;
+}) {
   const lines = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
   const [narrated, setNarrated] = useState<Narrated | null | undefined>(undefined);
   const [src, setSrc] = useState<string | null>(null);
@@ -116,6 +140,25 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
     if (playing && line + 1 > furthest) studyText(text.id, { listened: line + 1 });
   }, [playing, line, furthest, text.id]);
 
+  // The bar's button starts it from where it was and ✕ stops it; a text no narrator has read reads in the sentence voices.
+  control.current = {
+    start: () => {
+      if (narrated === null) reading.readFrom(spoken, 0);
+      else void audio.current?.play().catch(() => undefined);
+    },
+    stop: () => {
+      audio.current?.pause();
+      if (reading.at !== null || reading.loading) reading.stop();
+    },
+  };
+  useEffect(() => () => control.current?.stop(), [control]);
+
+  const close = (
+    <button className="rd-dock-close" onClick={onClose} aria-label="Close the narrator">
+      <Icon name="close" size={20} />
+    </button>
+  );
+
   const seek = (ms: number) => {
     const el = audio.current;
     if (!el) return;
@@ -154,14 +197,11 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
           <Icon name="next" size={20} />
         </button>
         <div className="rd-dock-track">
-          <div className="rd-dock-meta">
-            <span className="rd-dock-label">{reading.choices.find((v) => v.active)?.name ?? 'Listen'}</span>
-            <span className="rd-dock-time">{going ? `Sentence ${n + 1} of ${spoken.length}` : `${spoken.length} sentences`}</span>
-          </div>
           <div className="rd-dock-bar">
             <i style={{ width: `${going ? ((n + 1) / spoken.length) * 100 : 0}%` }} />
           </div>
         </div>
+        {close}
       </div>
     );
   }
@@ -175,7 +215,6 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
   // Back goes to the start of this sentence; at its very start, to the one before.
   const startOf = timings[line]?.[0] ?? 0;
   const back = () => toLine(shown - startOf > 1200 ? line : line - 1);
-  const along = playing || at > 0;
   return (
     <div className="rd-dock-play">
       {src && (
@@ -219,14 +258,7 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
         <Icon name="next" size={20} />
       </button>
       <div className="rd-dock-track">
-        <div className="rd-dock-meta">
-          <span className="rd-dock-label">
-            {along && timings.length ? `Sentence ${line + 1} of ${timings.length}` : (narrated?.name ?? 'Listen')}
-          </span>
-          <span className="rd-dock-time">
-            {clock(shown)} / {clock(duration)}
-          </span>
-        </div>
+        <span className="rd-dock-time">{clock(shown)}</span>
         <input
           className="rd-dock-range"
           type="range"
@@ -251,10 +283,12 @@ export function DockPlayer({ text, reading, spoken, onLine }: { text: GeneratedT
           }}
           style={{ '--fill': `${Math.round((shown / (duration || 1)) * 100)}%` } as CSSProperties}
         />
+        <span className="rd-dock-time">{clock(duration)}</span>
       </div>
       <button className="rd-dock-rate" onClick={nextRate} disabled={!src} aria-label={`Speed ${rate} times; tap for the next`}>
         {rate === 1 ? '1×' : `${rate}×`}
       </button>
+      {close}
     </div>
   );
 }

@@ -44,7 +44,7 @@ import {
   type PinyinMode,
   type TranslationMode,
 } from './readerView';
-import { DockPlayer } from './DockPlayer';
+import { DockPlayer, type PlayerControl } from './DockPlayer';
 import { readerSheet } from './readerSheet';
 import { rememberReading } from './lastRead';
 import {
@@ -192,6 +192,19 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [flash, setFlash] = useState<number | null>(null);
   // The line the narrator is reading, lit in the text, and kept in sight.
   const [narrLine, setNarrLine] = useState<number | null>(null);
+  // The narrator's row shows only while it is wanted: the listen button opens and starts it, ✕ or the button closes it.
+  const [listening, setListening] = useState(false);
+  const player = useRef<PlayerControl | null>(null);
+  useEffect(() => setListening(false), [text.id]);
+  function listen() {
+    if (listening) {
+      player.current?.stop();
+      setListening(false);
+    } else {
+      setListening(true);
+      player.current?.start();
+    }
+  }
   useEffect(() => {
     if (narrLine === null) return;
     const el = document.getElementById(`line-${text.id}-${narrLine}`);
@@ -365,11 +378,17 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             <Icon name="contents" size={22} />
           </button>
         )}
-        <div className="rd-where">
+        <div className="rd-where" data-listen={mode === 'single' || undefined}>
           {/* 楷体 for a Chinese name; a shelf named in English keeps the app's own type. */}
           <b className={/\p{Script=Han}/u.test(barName) ? 'hanzi' : undefined}>{barName}</b>
           <span>{where}</span>
         </div>
+        {mode === 'single' && (
+          <button className="rd-listen-btn" aria-pressed={listening} aria-label={listening ? 'Close the narrator' : 'Listen: the narrator reads it to you'} onClick={listen}>
+            <Icon name="listen" size={20} />
+          </button>
+        )}
+        <span className="spacer" />
         {mode === 'single' && both && (
           <div className="rd-versions" role="group" aria-label="Version">
             <button
@@ -413,8 +432,18 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       {/* The narrator, under the bar and pinned with it: the bottom edge is
           left to the text and to a tapped word's card. */}
       {mode === 'single' && (
-        <div className="rd-dock">
-          <DockPlayer text={text} reading={reading} spoken={spoken} onLine={setNarrLine} />
+        <div className="rd-dock" hidden={!listening}>
+          <DockPlayer
+            text={text}
+            reading={reading}
+            spoken={spoken}
+            onLine={setNarrLine}
+            control={player}
+            onClose={() => {
+              player.current?.stop();
+              setListening(false);
+            }}
+          />
         </div>
       )}
       <ReadingProgress textId={text.id} />
@@ -426,7 +455,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             key={t.id}
             text={t}
             view={view}
-            reading={t.id === text.id ? (narrLine ?? reading.at) : null}
+            reading={t.id === text.id && listening ? (narrLine ?? reading.at) : null}
             flash={t.id === text.id ? flash : null}
             revealed={t.id === text.id ? revealed : new Set()}
             onReveal={reveal}

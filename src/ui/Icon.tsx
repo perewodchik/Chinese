@@ -25,7 +25,8 @@ export type IconName =
   | 'next'
   | 'expand'
   | 'book'
-  | 'contents';
+  | 'contents'
+  | 'listen';
 
 const PATHS: Record<IconName, JSX.Element> = {
   back: <path d="M15 5l-7 7 7 7" />,
@@ -80,6 +81,8 @@ const PATHS: Record<IconName, JSX.Element> = {
   book: <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 0 6.5 21H19M9 7h6" />,
   /* a book's contents: three lines, each with its mark */
   contents: <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />,
+  /* headphones: the narrator reads it to you */
+  listen: <path d="M4 15v-3a8 8 0 0 1 16 0v3M4 15h3v5H5.5A1.5 1.5 0 0 1 4 18.5zM20 15h-3v5h1.5a1.5 1.5 0 0 0 1.5-1.5z" />,
 };
 
 export function Icon({ name, size, className }: { name: IconName; size?: number; className?: string }) {

@@ -657,12 +657,6 @@
   gap: 4px;
 }
 
-.rd-dock-label {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--ink-3);
-}
-
 .rd-dock .seg {
   flex-wrap: nowrap;
 }
@@ -709,21 +703,14 @@
 .rd-dock-track {
   flex: 1 1 auto;
   min-width: 0;
-  display: grid;
-  gap: 4px;
-}
-
-.rd-dock-meta {
   display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  min-width: 0;
+  align-items: center;
+  gap: 10px;
 }
 
-.rd-dock-meta .rd-dock-label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.rd-dock-track > input,
+.rd-dock-track > .rd-dock-bar {
+  flex: 1;
   min-width: 0;
 }
 
@@ -2896,4 +2883,57 @@ a.rd-more-row {
   color: var(--jade);
   font-size: 13.5px;
   font-weight: 500;
+}
+
+/* The narrator only while it is wanted: the row is not there until the listen button opens it. */
+.rd-dock[hidden] {
+  display: none;
+}
+
+.rd-dock {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+/* The clock either side of the slider where there is room for it. */
+@media (max-width: 699px) {
+  .rd-dock-time {
+    display: none;
+  }
+}
+
+.rd-dock-close {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+/* Beside the book's name, the narrator's button: headphones, blue once open. */
+.rd-where[data-listen] {
+  flex: 0 1 auto;
+}
+
+.rd-listen-btn {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.rd-listen-btn[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--on-accent);
 }
