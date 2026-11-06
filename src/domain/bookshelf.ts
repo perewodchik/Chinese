@@ -21,7 +21,9 @@ export interface Book {
   /** an easier retelling: a sticker on its cover says so */
   easier: boolean;
   art: CoverArt;
-  /** the cover's colour and its spine's, a darker shade */
+  /** a story's picture, its colours from its world */
+  scene: ScenePalette;
+  /** the cover's colour and its spine's, a darker shade: a story's is its title band's */
   color: { bg: string; spine: string };
   shelf: string;
 }
@@ -66,14 +68,19 @@ const ART: Array<[CoverArt, RegExp]> = [
 ];
 
 /**
- * What a book's cover shows, from the words in its title, its chapters' titles
- * and topics: the title's own motif when it names one, else the one its
- * chapters name most; a story about nothing on the list gets a night sky.
+ * What a book's cover shows: where its first chapter happens, as a picture
+ * book's cover shows the world it opens in (皮卡丘饿了 opens in a forest of
+ * apples); when the first chapter names nothing on the list, the book's own
+ * title (天官赐福: lanterns), then whatever its chapters name most; a story
+ * about nothing on the list gets a night sky.
  */
 export function coverArt(name: string, texts: GeneratedText[]): CoverArt {
-  // The book's own title decides when it names a motif: 皮卡丘饿了 is about being hungry, wherever its chapters go.
-  const fromTitle = ART.find(([, re]) => re.test(name));
-  if (fromTitle) return fromTitle[0];
+  const motif = (s: string) => ART.find(([, re]) => re.test(s))?.[0];
+  const first = texts.find((t) => !isFrontMatter(t));
+  const opening = first && motif(`${first.titleZh} ${first.title} ${first.topic}`);
+  if (opening) return opening;
+  const titled = motif(name);
+  if (titled) return titled;
   const words = texts.flatMap((t) => [t.titleZh, t.title, t.topic]).join(' ');
   let best: CoverArt = 'night';
   let most = 0;
@@ -86,6 +93,64 @@ export function coverArt(name: string, texts: GeneratedText[]): CoverArt {
   }
   return best;
 }
+
+/** A story's picture: its sky, the far and near ground, the thing it is about, and the band its title sits on. */
+export interface ScenePalette {
+  sky: string;
+  far: string;
+  near: string;
+  accent: string;
+  band: string;
+}
+
+// Each world in two or three lights, so two forest stories need not look alike.
+const SCENES: Record<CoverArt, ScenePalette[]> = {
+  tree: [
+    { sky: '#d9ecef', far: '#9cc79a', near: '#5e9b5f', accent: '#d9544a', band: '#2f6b3f' },
+    { sky: '#f6e7c4', far: '#b9cf8a', near: '#6f9a4d', accent: '#d9544a', band: '#55703a' },
+  ],
+  mountain: [
+    { sky: '#f4dcc2', far: '#d9a77c', near: '#a8553c', accent: '#fafbf8', band: '#7c2f22' },
+    { sky: '#dfe7ef', far: '#9db0c4', near: '#5c7593', accent: '#fafbf8', band: '#3b4f6b' },
+    { sky: '#f2e6c9', far: '#c9b27a', near: '#8a6a32', accent: '#fafbf8', band: '#5e4520' },
+  ],
+  lantern: [
+    { sky: '#2b2450', far: '#463a74', near: '#1f1a3a', accent: '#e0473a', band: '#1b1633' },
+    { sky: '#3a1f34', far: '#5b2c4a', near: '#2a1626', accent: '#e8b84a', band: '#24121f' },
+  ],
+  water: [
+    { sky: '#e3f0f2', far: '#7fb6c6', near: '#3f7f9a', accent: '#ef8a3a', band: '#245a72' },
+    { sky: '#f3e3cf', far: '#8fb3b0', near: '#4f8582', accent: '#e05a3a', band: '#2f5f5c' },
+  ],
+  city: [
+    { sky: '#f6d4b0', far: '#b98a8a', near: '#5d5470', accent: '#f4c35a', band: '#3d3651' },
+    { sky: '#cfdcea', far: '#8d9db5', near: '#4a566e', accent: '#f4c35a', band: '#2f3850' },
+  ],
+  snow: [
+    { sky: '#dde9f3', far: '#ffffff', near: '#b9cfe0', accent: '#3f6e5a', band: '#35587a' },
+    { sky: '#e9e3f2', far: '#ffffff', near: '#c9c0dc', accent: '#4f6e8a', band: '#4b4170' },
+  ],
+  food: [
+    { sky: '#f7e2c4', far: '#efc28f', near: '#c9783e', accent: '#fafbf8', band: '#8a4422' },
+    { sky: '#f3ead8', far: '#e5c89a', near: '#a8763c', accent: '#fafbf8', band: '#6b4a24' },
+  ],
+  night: [
+    { sky: '#23345a', far: '#33497a', near: '#182440', accent: '#f2cf6a', band: '#141e36' },
+    { sky: '#2f2a4f', far: '#463f73', near: '#1e1a35', accent: '#f2cf6a', band: '#191530' },
+  ],
+};
+
+const hashOf = (s: string) => {
+  let h = 0;
+  for (const ch of s) h = (h * 31 + ch.codePointAt(0)!) >>> 0;
+  return h;
+};
+
+/** The light a story's picture is drawn in: chosen by its title, so both editions match and it never changes. */
+export const scenePalette = (art: CoverArt, title: string): ScenePalette => {
+  const list = SCENES[art];
+  return list[hashOf(title) % list.length]!;
+};
 
 // Muted cloth colours, each with a darker spine; light text sits on all of them.
 const COLORS: Array<{ bg: string; spine: string }> = [
@@ -101,9 +166,7 @@ const COLORS: Array<{ bg: string; spine: string }> = [
 
 /** The same title, the same colour, on every device and every visit; both editions of a book alike. */
 export function coverColor(title: string): { bg: string; spine: string } {
-  let h = 0;
-  for (const ch of title) h = (h * 31 + ch.codePointAt(0)!) >>> 0;
-  return COLORS[h % COLORS.length]!;
+  return COLORS[hashOf(title) % COLORS.length]!;
 }
 
 /** Where a book goes until it is put somewhere: stories together, a real book's pages, then your own texts. */
@@ -115,13 +178,16 @@ export function defaultShelf(kind: Book['kind'], texts: GeneratedText[]): string
 export function bookOf(set: TextSet, texts: GeneratedText[]): Book {
   const kind = kindOf(texts);
   const title = bookTitle(set.name) || set.name;
+  const art = coverArt(title, texts);
+  const scene = scenePalette(art, title);
   return {
     set,
     title,
     kind,
     easier: isEasier(set, texts),
-    art: coverArt(title, texts),
-    color: coverColor(title),
+    art,
+    scene,
+    color: kind === 'story' ? { bg: scene.band, spine: scene.near } : coverColor(title),
     shelf: set.shelf?.trim() || defaultShelf(kind, texts),
   };
 }

@@ -33,8 +33,9 @@ describe('books on shelves', () => {
     assert.equal(kindOf(why), 'plain');
   });
 
-  it('draws the cover from what the book is about, its own title first', () => {
-    assert.equal(coverArt('皮卡丘饿了', pikachu), 'food');
+  it('draws the cover from where the story opens, else its title', () => {
+    // 皮卡丘饿了 opens in a forest of apples: not a bowl because its title says hungry.
+    assert.equal(coverArt('皮卡丘饿了', pikachu), 'tree');
     assert.equal(coverArt('西游记', monkey), 'mountain');
     assert.equal(coverArt('天官赐福 1', [text({ titleZh: '第一话', title: 'Chapter 1' })]), 'lantern');
     assert.equal(coverArt('无题', [text({ titleZh: '你好', title: 'Hello' })]), 'night');
