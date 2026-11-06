@@ -171,10 +171,16 @@
   font-size: 13px;
 }
 
+/* The characters new to you, in ink: the count says how many, the dot on the number says new. */
 .shelf-text-new .hanzi {
   font-size: 16px;
   letter-spacing: 1px;
-  color: color-mix(in srgb, var(--red) 80%, var(--ink-3));
+  color: var(--ink-2);
+}
+
+.shelf-text-new b {
+  font-weight: 500;
+  color: var(--ink-2);
 }
 
 .shelf-levels {
@@ -619,26 +625,238 @@
   color: var(--on-accent);
 }
 
+/* The chapter you are reading: a card in blue ink, your own mark, where
+   the highlighter used to be (it turned to mud on the dark page). */
 .shelf-text[data-state='now'] {
-  background: var(--hl);
-  border-radius: 12px;
-  margin: 0 -12px;
-  padding-left: 12px;
-  padding-right: 12px;
+  margin: 8px 0;
+  padding: 14px 12px;
+  border-radius: var(--radius-lg);
+  background: var(--accent-soft);
 }
 
-/* Not opened yet: the red pen, small. */
-.chapter-new {
-  margin-left: 8px;
-  font-family: var(--sans);
+.shelf-texts li:has(> .shelf-text[data-state='now']),
+.shelf-texts li:has(> .shelf-text[data-state='now']) + li {
+  border-top-color: transparent;
+}
+
+.shelf-text-now {
   font-size: 12px;
   font-weight: 600;
-  color: var(--red);
-  vertical-align: middle;
+  color: var(--accent);
+}
+
+.shelf-text[data-state='now'] .muted {
+  color: var(--ink-2);
+}
+
+.shelf-text-go {
+  flex: none;
+  align-self: center;
+  color: var(--ink-3);
+}
+
+.shelf-text[data-state='now'] .shelf-text-go {
+  color: var(--accent);
+}
+
+/* Not opened yet: the red pen's dot on the number's corner. */
+.chapter-badge {
+  position: relative;
+}
+
+.chapter-badge[data-state='new']::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: -2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 0 2px var(--paper);
 }
 
 /* An easier edition read through: the sticker keeps the top corner, the seal goes to the foot. */
 .book-easier ~ .book-seal {
   top: auto;
   bottom: 6%;
+}
+
+/* Said to a screen reader, not shown: what a dot says to the eye. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------- a book's words and characters */
+/* How many, and a bar of their levels with the counts under it. */
+.bk-sum {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 14px;
+}
+
+.bk-sum p {
+  margin: 0;
+}
+
+.bk-sum b {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.bk-sum b.bk-sum-list {
+  color: var(--accent);
+}
+
+.bk-sum-bar .level-bar {
+  height: 6px;
+  margin: 0;
+}
+
+.bk-search {
+  margin: 10px 0 4px;
+}
+
+.bk-search-chip {
+  width: 36px;
+  padding: 0;
+  justify-content: center;
+}
+
+/* Each chapter a group: closed it is one line, so a book of a hundred words reads as seven lines. */
+.bk-groups {
+  margin-top: 8px;
+}
+
+.bk-group {
+  border-top: 1px solid var(--line);
+}
+
+.bk-group-head {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 64px 20px;
+  gap: 12px;
+  align-items: center;
+  min-height: 64px;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bk-group-what {
+  display: grid;
+  min-width: 0;
+}
+
+.bk-group-what > span {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bk-group-what > .hanzi {
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.bk-group-what small {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bk-group-bar .level-bar {
+  height: 5px;
+  margin: 0;
+}
+
+.bk-group-chev {
+  color: var(--ink-3);
+  transform: rotate(90deg);
+  transition: transform 0.14s ease-out;
+}
+
+.bk-group[data-open] .bk-group-chev {
+  transform: rotate(-90deg);
+}
+
+.bk-group-body {
+  padding-bottom: 14px;
+}
+
+.bk-group-act {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 0 8px;
+}
+
+.bk-group-act .btn {
+  color: var(--accent);
+}
+
+.bk-none {
+  margin: 4px 0 8px;
+}
+
+/* Practising them as cards stays in reach however far down the list goes. */
+.bk-foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  background: linear-gradient(transparent, var(--paper) 30%);
+}
+
+/* A character not known yet: the red pen's dot on its tile. */
+.char-tile {
+  position: relative;
+}
+
+.char-tile[data-level='0']::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+/* The filters on one line, a swipe for any that do not fit. */
+.chips.bk-filters {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-inline: calc(-1 * var(--gutter));
+  padding-inline: var(--gutter);
+}
+
+.bk-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.bk-filters .chip {
+  flex: none;
+}
+
+.bk-foot .btn {
+  width: 100%;
 }

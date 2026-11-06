@@ -124,7 +124,8 @@ function audit() {
 
   // Text cut off: a box that hides what it holds, holding more than it shows.
   for (const el of document.querySelectorAll('body *')) {
-    if (!seen(el) || !el.childNodes.length) continue;
+    // A label for a screen reader only is clipped on purpose.
+    if (!seen(el) || !el.childNodes.length || el.closest('.sr-only')) continue;
     const s = getComputedStyle(el);
     const hides = s.overflowX === 'hidden' || s.overflowX === 'clip' || s.textOverflow === 'ellipsis';
     if (!hides || !(el.innerText || '').trim()) continue;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { DEFAULT_SCOPE, type Collection } from '../../domain/collection';
 import { charId, isCharId, isWordId, idValue, type ItemId } from '../../domain/ids';
@@ -8,11 +8,9 @@ import { fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTexts, type Gen
 import { paths, type ShelfTab } from '../../navigation/paths';
 import { useIsAdmin } from '../../api/admin';
 import { oneOf, useQuery } from '../../navigation/query';
-import { useOpenItem } from '../../navigation/itemDrawer';
-import { useLevelOf } from '../shared/levels';
 import { renderCollection, renderTextSet } from '../../pdf/render';
 import { downloadText, safeFileName } from '../../platform/files';
-import { addTexts, deleteSet, discardPlan, renameSet, setShelfStudy } from '../../store/commands';
+import { addTexts, deleteSet, discardPlan, renameSet } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { Menu } from '../../ui/Menu';
@@ -21,13 +19,11 @@ import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { lastReading } from './lastRead';
 import { useWordDone, useWordLevel } from './Passage';
-import type { Level } from '../../domain/memory';
-import { LevelBar } from '../../ui/LevelMark';
-import { LevelQuick } from '../../ui/LevelPicker';
 import { readerSheet } from './readerSheet';
 import { partFill, partsOf } from './TextParts';
 import { useStartSession } from './startSession';
-import { bookcase, bookOf, chineseNumber, isFrontMatter, type Book } from '../../domain/bookshelf';
+import { bookcase, bookOf, chapterHead, chineseNumber, isFrontMatter, type Book } from '../../domain/bookshelf';
+import { BookChars, BookWords, type BookWord, type Chapter } from './BookStudy';
 import { shelveBook } from '../../store/commands';
 import { BookCover } from './BookCover';
 import './shelves.css';
@@ -360,11 +356,18 @@ export function ShelfPage() {
   // What the shelf teaches: a retelling stands for the book's passage it retells.
   const taught = useMemo(() => taughtTexts(list), [list]);
   const words = useMemo(() => shelfWords(taught, set?.study ?? [], lib), [taught, set?.study, lib]);
+  // Each character once, with the chapter it first comes in: a character only
+  // added by hand goes with the first text that has it, or with none.
   const chars = useMemo(() => {
-    const out: string[] = [];
-    const add = (c: string) => isHanzi(c) && !out.includes(c) && out.push(c);
-    for (const t of taught) t.teach.forEach(add);
-    for (const id of set?.study ?? []) hanziIn(idValue(id)).forEach(add);
+    const out: Array<{ c: string; at: number }> = [];
+    const seen = new Set<string>();
+    const add = (c: string, at: number) => {
+      if (!isHanzi(c) || seen.has(c)) return;
+      seen.add(c);
+      out.push({ c, at });
+    };
+    taught.forEach((t, i) => t.teach.forEach((c) => add(c, i)));
+    for (const id of set?.study ?? []) for (const c of hanziIn(idValue(id))) add(c, taught.findIndex((t) => t.lines.some((l) => l.zh.includes(c))));
     return out;
   }, [taught, set?.study]);
 
@@ -384,6 +387,20 @@ export function ShelfPage() {
   // Chapters numbered as a Chinese book numbers them, the page before them not counted.
   const numbers = entries.map((_e, i) => entries.slice(0, i + 1).filter((x) => !frontMatter(x.main)).length);
   const opened = (t: GeneratedText | null) => Boolean(t && (t.read || t.lastReadAt));
+  const stateAt = (i: number): Chapter['state'] => {
+    const e = entries[i]!;
+    return e.main.read || e.easier?.read ? 'done' : reading && i === nowAt ? 'now' : !opened(e.main) && !opened(e.easier) ? 'new' : 'open';
+  };
+  // The chapters as the Words and Characters tabs group by them, and one for what was added by hand.
+  const chapters: Chapter[] = [
+    ...entries.map((e, i): Chapter => ({
+      at: i,
+      badge: frontMatter(e.main) ? <Icon name="book" size={16} /> : story ? chineseNumber(numbers[i]!) : numbers[i],
+      title: frontMatter(e.main) ? 'Before the chapters' : chapterHead(e.main, null).zh,
+      state: stateAt(i),
+    })),
+    { at: -1, badge: <Icon name="plus" size={16} />, title: 'Added by you', state: 'open' },
+  ];
 
   function moveShelf() {
     const names = bookcase(sets, shelve(texts, sets).bySet).map((s) => s.name);
@@ -391,7 +408,6 @@ export function ShelfPage() {
     if (name === null) return;
     shelveBook(set!.id, name.trim() || null);
   }
-  const learningWords = words.filter((w) => study.has(([...w.w].length > 1 || lib.byWord.has(w.w) ? (`w${w.w}` as ItemId) : charId(w.w))));
 
   function rename() {
     const name = prompt('Rename this book', set!.name);
@@ -419,7 +435,7 @@ export function ShelfPage() {
   }
 
   function printChars() {
-    const items = chars.map(charId).filter((id) => lib.byChar.has(idValue(id)));
+    const items = chars.map((x) => charId(x.c)).filter((id) => lib.byChar.has(idValue(id)));
     const sheet: Collection = {
       id: set!.id,
       name: set!.name,
@@ -531,17 +547,19 @@ export function ShelfPage() {
                 const fill = partFill(e.main, wordDone);
                 const unknown = unknownIn(e.main);
                 const front = frontMatter(e.main);
-                const state = e.main.read || e.easier?.read ? 'done' : reading && i === nowAt ? 'now' : !opened(e.main) && !opened(e.easier) ? 'new' : 'open';
+                const state = stateAt(i);
                 return (
                   <li key={e.main.id}>
                     <Link className="shelf-text" data-state={state} to={paths.reading(set.id, { page: i + 1 })}>
+                      {/* Read is a tick; not opened yet, the red pen's dot on the corner. */}
                       <span className="chapter-badge" data-state={state} aria-hidden>
-                        {front ? <Icon name="book" size={18} /> : story ? chineseNumber(numbers[i]!) : numbers[i]}
+                        {state === 'done' ? <Icon name="check" size={18} /> : front ? <Icon name="book" size={18} /> : story ? chineseNumber(numbers[i]!) : numbers[i]}
                       </span>
                       <span className="grow">
+                        {state === 'now' && <span className="shelf-text-now">Reading now</span>}
                         <span className="hanzi shelf-text-zh">
                           {e.main.titleZh || e.main.title}
-                          {state === 'new' && <span className="chapter-new">New</span>}
+                          {state === 'new' && <span className="sr-only">, not opened yet</span>}
                         </span>
                         <span className="small muted">{e.main.title.replace(/\s*\(easier\)\s*$/, '')}</span>
                         <span className="shelf-text-meta">
@@ -555,7 +573,7 @@ export function ShelfPage() {
                             {unknown.length ? (
                               <>
                                 <span className="hanzi">{unknown.slice(0, 6).join('')}</span>
-                                {unknown.length > 6 && ` +${unknown.length - 6}`}
+                                {unknown.length > 6 && <b> +{unknown.length - 6}</b>}
                                 <span className="muted"> new to you</span>
                               </>
                             ) : (
@@ -564,6 +582,7 @@ export function ShelfPage() {
                           </span>
                         </span>
                       </span>
+                      <Icon name="chevron" size={18} className="shelf-text-go" />
                     </Link>
                   </li>
                 );
@@ -590,11 +609,11 @@ export function ShelfPage() {
         </>
       )}
 
-      {tab === 'words' && <ShelfWords setId={set.id} words={words} study={study} learning={learningWords.length} />}
+      {tab === 'words' && <BookWords setId={set.id} words={words} chapters={chapters} study={study} />}
 
       {tab === 'characters' && (
         <>
-          <ShelfChars chars={chars} />
+          <BookChars chars={chars} chapters={chapters} />
           {chars.length > 0 && (
             <div className="page-foot">
               <button className="btn lg" disabled={pdf.busy !== null} onClick={printChars}>
@@ -609,174 +628,23 @@ export function ShelfPage() {
   );
 }
 
-interface ShelfWord {
-  w: string;
-  py: string;
-  d: string;
-  /** how many of the shelf's texts have it */
-  texts: number;
-}
-
 /** Every word a shelf's texts list, and every word chosen to learn on it, once each. */
-function shelfWords(list: GeneratedText[], study: ItemId[], lib: ReturnType<typeof useLibrary>): ShelfWord[] {
-  const out = new Map<string, ShelfWord>();
-  for (const t of list) {
-    const seen = new Set<string>();
-    for (const v of t.vocab) {
-      if (seen.has(v.w)) continue;
-      seen.add(v.w);
-      const had = out.get(v.w);
-      if (had) had.texts += 1;
-      else out.set(v.w, { w: v.w, py: v.py, d: v.d, texts: 1 });
-    }
-  }
+function shelfWords(list: GeneratedText[], study: ItemId[], lib: ReturnType<typeof useLibrary>): BookWord[] {
+  const out = new Map<string, BookWord>();
+  list.forEach((t, at) => {
+    for (const v of t.vocab) if (!out.has(v.w)) out.set(v.w, { w: v.w, py: v.py, d: v.d, at });
+  });
   for (const id of study) {
     const w = idValue(id);
     if (out.has(w)) continue;
     if (isWordId(id)) {
       const e = lib.byWord.get(w);
-      out.set(w, { w, py: e?.py ?? '', d: e?.d ?? '', texts: list.filter((t) => t.lines.some((l) => l.zh.includes(w))).length });
+      out.set(w, { w, py: e?.py ?? '', d: e?.d ?? '', at: list.findIndex((t) => t.lines.some((l) => l.zh.includes(w))) });
     } else if (isCharId(id)) {
       const e = lib.byChar.get(w);
-      out.set(w, { w, py: e?.py[0] ?? '', d: e ? firstSense(e.def) : '', texts: list.filter((t) => t.lines.some((l) => l.zh.includes(w))).length });
+      out.set(w, { w, py: e?.py[0] ?? '', d: e ? firstSense(e.def) : '', at: list.findIndex((t) => t.lines.some((l) => l.zh.includes(w))) });
     }
   }
   return [...out.values()];
 }
 
-/** The shelf's words by how well they are known: not yet, met, known (2 or 3). */
-type LevelGroup = 'none' | 'met' | 'known';
-const groupOf = (l: Level): LevelGroup => (l === 0 ? 'none' : l === 1 ? 'met' : 'known');
-const FILTERS: Array<{ id: LevelGroup; label: string }> = [
-  { id: 'none', label: 'Not known' },
-  { id: 'met', label: 'Met' },
-  { id: 'known', label: 'Known' },
-];
-
-function ShelfWords({
-  setId,
-  words,
-  study,
-  learning,
-}: {
-  setId: string;
-  words: ShelfWord[];
-  study: ReadonlySet<ItemId>;
-  learning: number;
-}) {
-  const lib = useLibrary();
-  const openItem = useOpenItem();
-  const [query, setQuery] = useQuery();
-  const levelOfWord = useWordLevel();
-  const counts: Record<LevelGroup, number> = { none: 0, met: 0, known: 0 };
-  for (const w of words) counts[groupOf(levelOfWord(w.w))] += 1;
-  // Chosen once, on opening: a default that followed the counts would jump to another filter as the last word is set.
-  const [fallback] = useState<LevelGroup>(counts.none ? 'none' : counts.met ? 'met' : 'known');
-  const filter = oneOf(query.get('words'), ['none', 'met', 'known'] as const, fallback);
-  // A row shown under a filter stays until the filter changes, so setting its level
-  // from the row does not make it, and everything under it, jump.
-  const kept = useRef<{ filter: LevelGroup; words: Set<string> }>({ filter, words: new Set() });
-  if (kept.current.filter !== filter) kept.current = { filter, words: new Set() };
-  const shown = words.filter((w) => kept.current.words.has(w.w) || groupOf(levelOfWord(w.w)) === filter);
-  for (const w of shown) kept.current.words.add(w.w);
-  const itemOf = (w: string): ItemId => ([...w].length > 1 || lib.byWord.has(w) ? (`w${w}` as ItemId) : charId(w));
-
-  if (!words.length) {
-    return (
-      <div className="empty compact">
-        <span className="big">词</span>
-        <p>No words yet. Tap a word in any text here and choose Learn this word.</p>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <div className="chips shelf-filters">
-        {FILTERS.map((f) => (
-          <button key={f.id} className="chip" aria-pressed={filter === f.id} onClick={() => setQuery('words', f.id, fallback)}>
-            {f.label}
-            <span className="count">{counts[f.id]}</span>
-          </button>
-        ))}
-      </div>
-      {shown.length ? (
-        <ul className="list shelf-words">
-          {shown.map((w) => {
-            const id = itemOf(w.w);
-            return (
-              <li key={w.w} className="shelf-word">
-                <button className="shelf-word-main" onClick={() => openItem(id)}>
-                  <span className="hanzi shelf-word-zh">{w.w}</span>
-                  <span className="shelf-word-text">
-                    <span className="shelf-word-py">{w.py}</span>
-                    <span className="shelf-word-d">{w.d}</span>
-                  </span>
-                </button>
-                <span className="tiny muted shelf-word-n">
-                  {w.texts} text{w.texts === 1 ? '' : 's'}
-                </span>
-                <LevelQuick id={id} level={levelOfWord(w.w)} />
-                {/* On the shelf's list or not: a choice to learn it, which says nothing of how well it is known. */}
-                <button
-                  className="rd-add"
-                  aria-pressed={study.has(id)}
-                  title={study.has(id) ? 'On this shelf’s list: tap to take it off' : 'Add it to this shelf’s list to learn'}
-                  onClick={() => setShelfStudy(setId, [id], !study.has(id))}
-                >
-                  <Icon name={study.has(id) ? 'check' : 'plus'} />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <p className="small muted">None here.</p>
-      )}
-      {learning > 0 && (
-        <div className="page-foot">
-          <Link className="btn tonal lg" to={paths.cardSession({ shelf: setId })}>
-            {learning === 1 ? 'Practise it as a card' : `Practise these ${learning} as cards`}
-          </Link>
-        </div>
-      )}
-    </>
-  );
-}
-
-function ShelfChars({ chars }: { chars: string[] }) {
-  const openItem = useOpenItem();
-  const levelOf = useLevelOf();
-  const lib = useLibrary();
-  const levels = [0, 0, 0, 0];
-  for (const c of chars) levels[levelOf(charId(c))] += 1;
-  if (!chars.length) {
-    return (
-      <div className="empty compact">
-        <span className="big">字</span>
-        <p>The characters this shelf’s texts bring in will be here.</p>
-      </div>
-    );
-  }
-  return (
-    <>
-      <div className="shelf-levels small">
-        <span>
-          {levels[0]} not known yet · {levels[1]} met · {levels[2]} known · {levels[3]} solid
-        </span>
-        <LevelBar levels={levels} />
-      </div>
-      <div className="char-grid">
-      {chars.map((c) => {
-        const e = lib.byChar.get(c);
-        return (
-          <button key={c} className="char-tile" data-level={levelOf(charId(c))} onClick={() => openItem(charId(c))}>
-            <span className="hanzi">{c}</span>
-            <span className="char-tile-py">{e?.py[0] ?? ''}</span>
-          </button>
-        );
-      })}
-      </div>
-    </>
-  );
-}
