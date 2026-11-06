@@ -14,7 +14,8 @@ import { Modal } from '../../ui/Modal';
 import { PalettePicker } from '../../ui/PalettePicker';
 import { useTitle } from '../../ui/useTitle';
 import { setPageColour } from '../../ui/colorScheme';
-import { bookTitle, chapterHead, isFrontMatter, kindOf } from '../../domain/bookshelf';
+import { bookOf, bookTitle, chapterHead, isFrontMatter, kindOf } from '../../domain/bookshelf';
+import { ChapterEnd } from './ChapterEnd';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { Passage, useWordDone, type ReaderView } from './Passage';
@@ -157,6 +158,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             ? 'Before the chapters'
             : `Chapter ${chapterAt(page - 1)} of ${chapters}${easier ? ', easier' : ''}`
           : `Text ${page} of ${total}${easier ? ', easier' : ''}`;
+  const barName = set ? bookTitle(set.name) : text.titleZh || text.title;
   useTitle(mode === 'all' && set ? set.name : text.titleZh || text.title);
 
   const navigate = useNavigate();
@@ -235,7 +237,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   // A new text starts at its top, not wherever the last one was scrolled to.
   useEffect(() => {
     top.current?.scrollIntoView({ block: 'start' });
-    document.querySelector('.rd-study')?.scrollTo({ top: 0 });
   }, [text.id, mode]);
 
   // The arrow keys turn pages, as they do in every reader — but not while typing an answer.
@@ -292,7 +293,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     holdPart(p);
     if (p === 'read') {
       top.current?.scrollIntoView({ behavior, block: 'start' });
-      document.querySelector('.rd-study')?.scrollTo({ top: 0, behavior });
       return;
     }
     document.getElementById(partId(p))?.scrollIntoView({ behavior, block: 'start' });
@@ -327,21 +327,27 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     writeHash(current === 'read' ? null : current);
   }, [current, mode, tabKey]);
 
+  /** Read, or not read after all: ticked again the same day is a slip taken back, not a second reading. */
+  function toggleRead() {
+    if (text.read) setTextRead(text.id, false);
+    else if (text.lastReadAt && dayKey(text.lastReadAt) === dayKey(Date.now())) setTextRead(text.id, true);
+    else markRead(text.id);
+  }
+
   const shown = mode === 'all' ? entries.map((e) => versionOf(e, null)) : [text];
   const next = page < total ? versionOf(entries[page]!, null) : null;
 
   return (
     <div className="rd" ref={top} data-mode={mode} style={{ '--reader-scale': settings.readerScale } as CSSProperties}>
-      {/* The bar and the parts are stuck to the top as one block: two sticky
-          pieces, each with its own offset, left a sliver between them on an
-          iPhone where the text showed through. */}
+      {/* The bar, stuck to the top and opaque from the screen's edge down. */}
       <div className="rd-pin no-print">
       <header className="rd-top">
         <Link className="rd-back" to={set ? paths.shelf(set.id) : paths.read()} aria-label={set ? `Back to ${bookTitle(set.name)}` : 'Back to Read'}>
           <Icon name="back" size={24} />
         </Link>
         <div className="rd-where">
-          <b className="hanzi">{set ? bookTitle(set.name) : (text.titleZh || text.title)}</b>
+          {/* 楷体 for a Chinese name; a shelf named in English keeps the app's own type. */}
+          <b className={/\p{Script=Han}/u.test(barName) ? 'hanzi' : undefined}>{barName}</b>
           <span>{where}</span>
         </div>
         {mode === 'single' && both && (
@@ -384,24 +390,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
         <ReadingProgress textId={text.id} />
       </header>
 
-      {mode === 'single' && (
-        <nav className="rd-parts" aria-label="Parts of this text">
-          {tabs.map((p) => (
-            <button
-              key={p.id}
-              className="rd-part-tab"
-              aria-current={current === p.id ? 'true' : undefined}
-              data-more={p.id === 'more' || undefined}
-              style={p.id === 'more' ? undefined : ({ '--fill': `${Math.round(fill[p.id] * 100)}%` } as CSSProperties)}
-              onClick={() => goPart(p.id)}
-              title={p.id === 'more' ? 'Translate and dictation: practice that is not counted' : `${p.label}: ${fill[p.id] >= 1 ? 'done' : fill[p.id] > 0 ? 'started' : 'not yet'}`}
-            >
-              <span className="hanzi">{p.han}</span>
-              <small>{p.label}</small>
-            </button>
-          ))}
-        </nav>
-      )}
       </div>
 
       <div className="rd-text">
@@ -421,31 +409,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             head={chapterHead(t, chapterAt(mode === 'all' ? i : page - 1))}
           />
         ))}
-        {mode === 'single' && (
-          <div className="rd-done no-print">
-            <button
-              className={`btn rd-done-btn ${text.read ? 'tonal' : ''}`}
-              aria-pressed={text.read}
-              onClick={() =>
-                text.read
-                  ? setTextRead(text.id, false)
-                  : // Ticked again the same day is a slip taken back, not a second reading.
-                    text.lastReadAt && dayKey(text.lastReadAt) === dayKey(Date.now())
-                    ? setTextRead(text.id, true)
-                    : markRead(text.id)
-              }
-            >
-              {text.read ? (
-                <>
-                  <Icon name="check" /> Read
-                </>
-              ) : (
-                'Mark as read'
-              )}
-            </button>
-            {text.reads && text.reads > 1 ? <span className="small muted">Read {text.reads} times</span> : null}
-          </div>
-        )}
 
         {/* The narrator, stuck to the bottom of the screen while the text is
             on it, and gone with the text when the parts below come up. */}
@@ -458,6 +421,31 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
 
       {mode === 'single' && (
         <div className="rd-study no-print">
+          <ChapterEnd
+            text={text}
+            kicker={chapterHead(text, chapterAt(page - 1)).kicker}
+            chapter={story}
+            parts={tabs.map((p) => p.id)}
+            fill={fill}
+            onPart={(p) => goPart(p)}
+            next={
+              next
+                ? {
+                    ...chapterHead(next, chapterAt(page)),
+                    where: story ? `Chapter ${chapterAt(page)} of ${chapters}` : `Text ${page + 1} of ${total}`,
+                    action: story ? `Read chapter ${chapterAt(page)}` : 'Read the next text',
+                  }
+                : null
+            }
+            book={set && story ? bookOf(set, list) : null}
+            onNext={() => {
+              // Going on from the end is having read it: counted once, as the tick did.
+              if (!text.read) toggleRead();
+              go(page + 1);
+            }}
+            onToggleRead={toggleRead}
+            onAgain={() => goPart('read')}
+          />
           <WritePart text={text} partId={partId('write')} />
           <WordsPart
             text={text}
@@ -471,20 +459,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           )}
           <ListenPart text={text} reading={reading} spoken={spoken} partId={partId('listen')} />
           <MorePart text={text} partId={partId('more')} />
-          <div className="rd-next">
-            {next ? (
-              <button className="rd-next-btn" onClick={() => go(page + 1)}>
-                <span className="small muted">Next on {set?.name ?? 'this shelf'}</span>
-                <span className="hanzi">{next.titleZh || next.title}</span>
-                <Icon name="chevron" />
-              </button>
-            ) : (
-              <p className="small muted">
-                {total > 1 ? `That is the last of ${total} texts on this shelf.` : 'This shelf has one text so far.'}{' '}
-                <Link to={set ? paths.shelf(set.id) : paths.read()}>Back to the shelf</Link>
-              </p>
-            )}
-          </div>
         </div>
       )}
 
@@ -538,20 +512,13 @@ function ReadingProgress({ textId }: { textId: string }) {
 }
 
 /**
- * Which part is in view: the last one whose top has passed the bar at the top
- * of the page. On a wide screen the parts scroll in their own column, so both
- * scrollers are listened to.
- */
-/**
- * The part being looked at, for the parts bar: the last one whose top has
- * come up to the line under the bars — in two columns, to the top of the
- * study column, with the text itself current while that column is at its
- * top. Scrolled to the very end, the last part is current even when it is
- * too short to reach the line.
+ * The part being looked at, kept in the address so a reload opens there: the
+ * last one whose top has come up past the bar. Scrolled to the very end, the
+ * last part is current even when it is too short to reach the line.
  *
- * A part tapped in the bar is current at once and stays so while the page
- * glides to it; the next thing the learner does with a finger, a wheel or a
- * key hands it back to the scrolling.
+ * A part chosen at the end of the chapter is current at once and stays so
+ * while the page glides to it; the next thing the learner does with a finger,
+ * a wheel or a key hands it back to the scrolling.
  */
 function useCurrentPart(textId: string, ids: TabId[]): [TabId, (p: TabId) => void] {
   const [current, setCurrent] = useState<TabId>('read');
@@ -562,22 +529,16 @@ function useCurrentPart(textId: string, ids: TabId[]): [TabId, (p: TabId) => voi
     const look = () => {
       if (held.current) return;
       const list = key.split(',') as TabId[];
-      const study = document.querySelector<HTMLElement>('.rd-study');
-      const wide = Boolean(study && getComputedStyle(study).overflowY === 'auto');
-      const scroller = wide ? study : document.querySelector<HTMLElement>('.main');
-      const line = wide
-        ? study!.getBoundingClientRect().top + 24
-        : (document.querySelector('.rd-parts')?.getBoundingClientRect().bottom ?? 120) + 48;
+      const scroller = document.querySelector<HTMLElement>('.main');
+      const line = (document.querySelector('.rd-pin')?.getBoundingClientRect().bottom ?? 120) + 48;
       let at: TabId = 'read';
-      if (!wide || study!.scrollTop > 0) {
-        for (const id of list) {
-          if (id === 'read') continue;
-          const el = document.getElementById(`part-${id}`);
-          if (el && el.getBoundingClientRect().top <= line) at = id;
-        }
-        if (scroller && scroller.scrollTop > 0 && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4) {
-          at = list[list.length - 1]!;
-        }
+      for (const id of list) {
+        if (id === 'read') continue;
+        const el = document.getElementById(`part-${id}`);
+        if (el && el.getBoundingClientRect().top <= line) at = id;
+      }
+      if (scroller && scroller.scrollTop > 0 && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4) {
+        at = list[list.length - 1]!;
       }
       setCurrent(at);
     };

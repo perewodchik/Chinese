@@ -752,7 +752,7 @@ export function WritePart({ text, partId }: { text: GeneratedText; partId: strin
           </span>
         </span>
       </button>
-      <button className="btn primary lg rd-write-go" onClick={() => setCopying(true)}>
+      <button className="btn tonal lg rd-write-go" onClick={() => setCopying(true)}>
         {done ? 'Copy it out again' : copied ? 'Go on copying' : 'Start copying'}
       </button>
       {copying && <CopyOut text={text} onClose={() => setCopying(false)} />}
