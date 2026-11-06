@@ -1,12 +1,16 @@
 import type { Book } from '../../domain/bookshelf';
 import type { GeneratedText } from '../../domain/text';
 import { BookCover } from './BookCover';
-import { MORE, type PartId, type TabId } from './TextParts';
+import { MORE, type PartId } from './TextParts';
+
+/** The rows at the end of a chapter: each part, and listening again. */
+export type EndPart = 'write' | 'speak' | 'words' | 'questions' | 'listen' | 'more';
 import './shelves.css';
 
 /** What each part is for, in a line: the rows say it so a part is chosen without opening it. */
-const PART: Record<Exclude<TabId, 'read'>, { name: string; about: string }> = {
+const PART: Record<EndPart, { name: string; about: string }> = {
   write: { name: 'Copy it out', about: 'A word at a time, with its strokes beside it' },
+  speak: { name: 'Say it', about: 'Line by line after the narrator, each line scored' },
   words: { name: 'Words', about: 'Its new words, and how well you know them' },
   questions: { name: 'Questions', about: 'What happened, in a few questions' },
   listen: { name: 'Listen again', about: 'The narrator, a sentence at a time' },
@@ -14,9 +18,10 @@ const PART: Record<Exclude<TabId, 'read'>, { name: string; about: string }> = {
 };
 
 /** Where a part has got, in words: what is done is said in jade. */
-function stateOf(id: Exclude<TabId, 'read'>, text: GeneratedText, fill: Record<PartId, number>): { label: string; done: boolean } {
+function stateOf(id: EndPart, text: GeneratedText, fill: Record<PartId, number>, speak: { said: number; of: number }): { label: string; done: boolean } {
   const st = text.study ?? {};
   if (id === 'more') return { label: '', done: false };
+  if (id === 'speak') return { label: speak.said ? `${speak.said} of ${speak.of} said` : 'Not yet', done: speak.of > 0 && speak.said >= speak.of };
   if (id === 'words') {
     const n = text.vocab.length;
     return { label: `${Math.round(fill.words * n)} of ${n} done`, done: fill.words >= 1 };
@@ -30,7 +35,7 @@ function stateOf(id: Exclude<TabId, 'read'>, text: GeneratedText, fill: Record<P
     if (times) return { label: times === 1 ? 'Heard once' : `Heard ${times} times`, done: true };
   }
   if (id === 'write' && fill.write >= 1) return { label: 'Copied out', done: true };
-  return { label: fill[id] > 0 ? 'Started' : 'Not yet', done: false };
+  return { label: fill[id as PartId] > 0 ? 'Started' : 'Not yet', done: false };
 }
 
 export interface NextChapter {
@@ -55,6 +60,7 @@ export function ChapterEnd({
   chapter,
   parts,
   fill,
+  speak,
   onPart,
   next,
   book,
@@ -66,16 +72,18 @@ export function ChapterEnd({
   kicker: string | null;
   /** a chapter of a book (else a text on a shelf of texts) */
   chapter: boolean;
-  parts: TabId[];
+  parts: EndPart[];
   fill: Record<PartId, number>;
-  onPart: (id: TabId) => void;
+  /** lines said aloud, of all of them */
+  speak: { said: number; of: number };
+  onPart: (id: EndPart) => void;
   next: NextChapter | null;
   book: Book | null;
   onNext: () => void;
   onToggleRead: () => void;
   onAgain: () => void;
 }) {
-  const rows = parts.filter((p): p is Exclude<TabId, 'read'> => p !== 'read');
+  const rows = parts;
   const reads = text.reads ?? (text.read ? 1 : 0);
   const status = text.read
     ? reads > 1
@@ -98,8 +106,8 @@ export function ChapterEnd({
       <div className="rd-end-parts">
         <p className="rd-end-label">{chapter ? 'With this chapter, if you like' : 'With this text, if you like'}</p>
         {rows.map((id) => {
-          const s = stateOf(id, text, fill);
-          const han = id === 'more' ? MORE.han : { write: '写', words: '词', questions: '问', listen: '听' }[id];
+          const s = stateOf(id, text, fill, speak);
+          const han = id === 'more' ? MORE.han : { write: '写', speak: '说', words: '词', questions: '问', listen: '听' }[id];
           return (
             <button key={id} className="rd-end-part" onClick={() => onPart(id)}>
               <span className="rd-end-han hanzi" data-done={s.done || undefined} aria-hidden>

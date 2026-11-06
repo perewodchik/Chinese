@@ -18,6 +18,7 @@ import { bookOf, bookTitle, chapterHead, isFrontMatter, kindOf } from '../../dom
 import { ChapterEnd } from './ChapterEnd';
 import { BookContents } from './BookContents';
 import { WordPeek, type Peeked } from './WordPeek';
+import { ChapterTabs, SpeakPart, tabOfHash, useLineBests, type ChapterTab, type TabInfo } from './ChapterTabs';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
@@ -47,17 +48,7 @@ import {
 import { DockPlayer, type PlayerControl } from './DockPlayer';
 import { readerSheet } from './readerSheet';
 import { rememberReading } from './lastRead';
-import {
-  ListenPart,
-  MORE,
-  MorePart,
-  partFill,
-  partsOf,
-  QuestionsPart,
-  WordsPart,
-  WritePart,
-  type TabId,
-} from './TextParts';
+import { ListenPart, MorePart, partFill, QuestionsPart, WordsPart, WritePart } from './TextParts';
 import './reader.css';
 
 /**
@@ -312,48 +303,30 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     if (translation === 'shown' && !text.study?.translated) studyText(text.id, { translated: Date.now() });
   }, [translation, text.id, text.study?.translated]);
 
-  const parts = partsOf(text);
   const fill = partFill(text, wordDone);
-  const tabs = [...parts, MORE];
-  const [current, holdPart] = useCurrentPart(text.id, tabs.map((p) => p.id));
-  const partId = (p: TabId) => `part-${p}`;
-  function goPart(p: TabId, behavior: ScrollBehavior = 'smooth') {
-    holdPart(p);
-    if (p === 'read') {
-      top.current?.scrollIntoView({ behavior, block: 'start' });
-      return;
-    }
-    document.getElementById(partId(p))?.scrollIntoView({ behavior, block: 'start' });
+  const bests = useLineBests(text.id);
+  const saidLines = text.lines.filter((l) => bests[l.zh] !== undefined).length;
+  // The chapter's tabs: the text, then what there is to do with it. No questions, no Quiz.
+  const tabs: TabInfo[] = [
+    { id: 'read', han: '读', label: 'Read', fill: fill.read },
+    { id: 'write', han: '写', label: 'Write', fill: fill.write },
+    { id: 'speak', han: '说', label: 'Speak', fill: text.lines.length ? saidLines / text.lines.length : 0 },
+    { id: 'words', han: '词', label: 'Words', fill: text.vocab.length ? fill.words : 0 },
+    ...(text.questions.length ? [{ id: 'questions' as const, han: '问', label: 'Quiz', fill: fill.questions }] : []),
+  ];
+  // The tab is kept in the address (#words), so a reload, or the same link on
+  // the iPad, opens on it again. Copying out or dictation open over the text
+  // (#copy, #dictation) open on Write, which they belong to.
+  const [tab, setTab] = useState<ChapterTab>(() => tabOfHash(readHash()));
+  useEffect(() => {
+    setTab((t) => (t === 'read' ? t : tabOfHash(readHash())));
+  }, [text.id]);
+  const shownTab: ChapterTab = mode === 'single' && tabs.some((t) => t.id === tab) ? tab : 'read';
+  function pick(t: ChapterTab) {
+    setTab(t);
+    writeHash(t === 'read' ? null : t);
+    top.current?.scrollIntoView({ block: 'start' });
   }
-
-  // The part being read is kept in the address (#words), and a reload — or
-  // the same link on the iPad — opens the text at that part again. Something
-  // open over the text (#copy, #dictation) is its part's business, and wins.
-  const tabKey = tabs.map((p) => p.id).join(',');
-  // The part asked for by the address the page was opened at, until it has been gone to.
-  // Copying or dictation open over the text opens at its part, for when it is closed.
-  const wanted = useRef<string | null>(({ copy: 'write', dictation: 'more' } as Record<string, string>)[readHash()] ?? (readHash() || null));
-  useEffect(() => {
-    const at = wanted.current;
-    if (mode !== 'single' || !at || at === 'read' || !tabKey.split(',').includes(at)) {
-      wanted.current = null;
-      return;
-    }
-    // After the text has its height: the top-of-the-text scroll above runs first.
-    const frame = requestAnimationFrame(() => {
-      wanted.current = null;
-      goPart(at as TabId, 'auto');
-    });
-    return () => cancelAnimationFrame(frame);
-    // Only when a text opens; goPart is the same every render in all that matters.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text.id, mode]);
-  useEffect(() => {
-    if (mode !== 'single' || wanted.current) return;
-    const at = readHash();
-    if (at && !tabKey.split(',').includes(at)) return;
-    writeHash(current === 'read' ? null : current);
-  }, [current, mode, tabKey]);
 
   /** Read, or not read after all: ticked again the same day is a slip taken back, not a second reading. */
   function toggleRead() {
@@ -389,6 +362,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           </button>
         )}
         <span className="spacer" />
+        {mode === 'single' && <ChapterTabs tabs={tabs} current={shownTab} onPick={pick} place="bar" />}
+        {mode === 'single' && <span className="spacer rd-tabs-gap" />}
         {mode === 'single' && both && (
           <div className="rd-versions" role="group" aria-label="Version">
             <button
@@ -449,7 +424,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       <ReadingProgress textId={text.id} />
       </div>
 
-      <div className="rd-text" data-layout={settings.readerLayout}>
+      <div className="rd-text" data-layout={settings.readerLayout} hidden={shownTab !== 'read'}>
         {shown.map((t, i) => (
           <Passage
             key={t.id}
@@ -488,48 +463,53 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       )}
 
       {mode === 'single' && (
-        <div className="rd-study no-print">
-          <ChapterEnd
-            text={text}
-            kicker={chapterHead(text, chapterAt(page - 1)).kicker}
-            chapter={story}
-            parts={tabs.map((p) => p.id)}
-            fill={fill}
-            onPart={(p) => goPart(p)}
-            next={
-              next
-                ? {
-                    ...chapterHead(next, chapterAt(page)),
-                    where: story ? `Chapter ${chapterAt(page)} of ${chapters}` : `Text ${page + 1} of ${total}`,
-                    action: story ? `Read chapter ${chapterAt(page)}` : 'Read the next text',
-                  }
-                : null
-            }
-            book={set && story ? bookOf(set, list) : null}
-            onNext={() => {
-              // Going on from the end is having read it: counted once, as the tick did.
-              if (!text.read) toggleRead();
-              go(page + 1);
-            }}
-            onToggleRead={toggleRead}
-            onAgain={() => goPart('read')}
-          />
-          <WritePart text={text} partId={partId('write')} />
-          <WordsPart
-            text={text}
-            setId={set?.id ?? null}
-            study={study}
-            onShowLine={showLine}
-            partId={partId('words')}
-          />
-          {text.questions.length > 0 && (
-            <QuestionsPart key={`q${text.id}`} text={text} partId={partId('questions')} showPinyin={pinyin === 'all'} />
+        <div className="rd-study no-print" data-tab={shownTab}>
+          {shownTab === 'read' && (
+            <>
+              <ChapterEnd
+                text={text}
+                kicker={chapterHead(text, chapterAt(page - 1)).kicker}
+                chapter={story}
+                parts={['write', 'speak', 'words', ...(text.questions.length ? (['questions'] as const) : []), 'listen']}
+                fill={fill}
+                speak={{ said: saidLines, of: text.lines.length }}
+                onPart={(p) => (p === 'listen' ? !listening && listen() : pick(p === 'more' ? 'write' : (p as ChapterTab)))}
+                next={
+                  next
+                    ? {
+                        ...chapterHead(next, chapterAt(page)),
+                        where: story ? `Chapter ${chapterAt(page)} of ${chapters}` : `Text ${page + 1} of ${total}`,
+                        action: story ? `Read chapter ${chapterAt(page)}` : 'Read the next text',
+                      }
+                    : null
+                }
+                book={set && story ? bookOf(set, list) : null}
+                onNext={() => {
+                  // Going on from the end is having read it: counted once, as the tick did.
+                  if (!text.read) toggleRead();
+                  go(page + 1);
+                }}
+                onToggleRead={toggleRead}
+                onAgain={() => top.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              />
+              <ListenPart text={text} reading={reading} spoken={spoken} partId="part-listen" />
+            </>
           )}
-          <ListenPart text={text} reading={reading} spoken={spoken} partId={partId('listen')} />
-          <MorePart text={text} partId={partId('more')} />
+          {shownTab === 'write' && (
+            <>
+              <WritePart text={text} partId="part-write" />
+              <MorePart text={text} partId="part-more" />
+            </>
+          )}
+          {shownTab === 'speak' && <SpeakPart text={text} bests={bests} />}
+          {shownTab === 'words' && <WordsPart text={text} setId={set?.id ?? null} study={study} onShowLine={(i) => (pick('read'), window.setTimeout(() => showLine(i), 60))} partId="part-words" />}
+          {shownTab === 'questions' && text.questions.length > 0 && (
+            <QuestionsPart key={`q${text.id}`} text={text} partId="part-questions" showPinyin={pinyin === 'all'} />
+          )}
         </div>
       )}
 
+      {mode === 'single' && <ChapterTabs tabs={tabs} current={shownTab} onPick={pick} place="bottom" />}
     </div>
   );
 }
@@ -577,61 +557,6 @@ function ReadingProgress({ textId }: { textId: string }) {
       <i ref={line} />
     </span>
   );
-}
-
-/**
- * The part being looked at, kept in the address so a reload opens there: the
- * last one whose top has come up past the bar. Scrolled to the very end, the
- * last part is current even when it is too short to reach the line.
- *
- * A part chosen at the end of the chapter is current at once and stays so
- * while the page glides to it; the next thing the learner does with a finger,
- * a wheel or a key hands it back to the scrolling.
- */
-function useCurrentPart(textId: string, ids: TabId[]): [TabId, (p: TabId) => void] {
-  const [current, setCurrent] = useState<TabId>('read');
-  const held = useRef<TabId | null>(null);
-  const key = ids.join(',');
-  useEffect(() => {
-    held.current = null;
-    const look = () => {
-      if (held.current) return;
-      const list = key.split(',') as TabId[];
-      const scroller = document.querySelector<HTMLElement>('.main');
-      const line = (document.querySelector('.rd-pin')?.getBoundingClientRect().bottom ?? 120) + 48;
-      let at: TabId = 'read';
-      for (const id of list) {
-        if (id === 'read') continue;
-        const el = document.getElementById(`part-${id}`);
-        if (el && el.getBoundingClientRect().top <= line) at = id;
-      }
-      if (scroller && scroller.scrollTop > 0 && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4) {
-        at = list[list.length - 1]!;
-      }
-      setCurrent(at);
-    };
-    const release = () => {
-      if (!held.current) return;
-      held.current = null;
-      look();
-    };
-    look();
-    document.addEventListener('scroll', look, true);
-    window.addEventListener('wheel', release, { passive: true });
-    window.addEventListener('touchstart', release, { passive: true });
-    window.addEventListener('keydown', release);
-    return () => {
-      document.removeEventListener('scroll', look, true);
-      window.removeEventListener('wheel', release);
-      window.removeEventListener('touchstart', release);
-      window.removeEventListener('keydown', release);
-    };
-  }, [key, textId]);
-  const hold = useCallback((p: TabId) => {
-    held.current = p;
-    setCurrent(p);
-  }, []);
-  return [current, hold];
 }
 
 const SCALE_MIN = 0.8;

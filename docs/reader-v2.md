@@ -86,3 +86,16 @@ Open:
   is a popover by the word, above it when the word is low. A tap on the card
   opens the word drawer, unchanged. Another word changes the card; a tap
   elsewhere or Escape closes it.
+
+## The day after
+
+- The book page: the chapter being read is a card in blue ink (the
+  highlighter was mud on the dark page); words and characters come grouped
+  by the chapter each first comes in, closed but for the one being read,
+  with one tap to put a chapter's unknown words on the list.
+- The narrator only while it reads: a headphones button by the book's name
+  opens a one-row player (back, play, next, slider, speed, ✕).
+- A chapter's tabs: Read, Write (copy it out, translate, dictation), Speak
+  (each line's best score, the next line to say), Words, Quiz. Along the
+  bottom on a phone, in the bar on a wider page (characters only under
+  1100px). The tab is kept in the address (#speak).
