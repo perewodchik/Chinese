@@ -351,16 +351,11 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             <Icon name="contents" size={22} />
           </button>
         )}
-        <div className="rd-where" data-listen={mode === 'single' || undefined}>
+        <div className="rd-where">
           {/* 楷体 for a Chinese name; a shelf named in English keeps the app's own type. */}
           <b className={/\p{Script=Han}/u.test(barName) ? 'hanzi' : undefined}>{barName}</b>
           <span>{where}</span>
         </div>
-        {mode === 'single' && (
-          <button className="rd-listen-btn" aria-pressed={listening} aria-label={listening ? 'Close the narrator' : 'Listen: the narrator reads it to you'} onClick={listen}>
-            <Icon name="listen" size={20} />
-          </button>
-        )}
         <span className="spacer" />
         {mode === 'single' && <ChapterTabs tabs={tabs} current={shownTab} onPick={pick} place="bar" />}
         {mode === 'single' && <span className="spacer rd-tabs-gap" />}
@@ -439,6 +434,13 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             study={study}
             heading={mode === 'all' && !story ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
             head={chapterHead(t, chapterAt(mode === 'all' ? i : page - 1))}
+            titleAction={
+              mode === 'single' ? (
+                <button className="rd-listen-btn" aria-pressed={listening} aria-label={listening ? 'Close the narrator' : 'Listen: the narrator reads it to you'} onClick={listen}>
+                  <Icon name="listen" size={22} />
+                </button>
+              ) : null
+            }
             onWord={(p) => setPeek((was) => (was?.key === p.key && was.el === p.el ? null : p))}
             peekKey={peek?.key ?? null}
           />

@@ -101,6 +101,8 @@ interface PassageProps {
   heading?: ReactNode;
   /** the head as a book prints it: 第三章, the name, its English (`chapterHead`) */
   head: { kicker: string | null; zh: string; en: string };
+  /** beside the title: the narrator's button */
+  titleAction?: ReactNode;
   /** a word tapped, for its card; without it a tap opens the word drawer */
   onWord?: (p: Peeked & { key: string }) => void;
   /** the word whose card is open, by `line:token`: lit with the highlighter */
@@ -116,7 +118,7 @@ interface PassageProps {
  * and off never moves a line. Punctuation stays with the word before it: a
  * line never begins with a comma.
  */
-export function Passage({ text, view, reading, flash, revealed, onReveal, onPoint, retold, heading, head, onWord, peekKey }: PassageProps) {
+export function Passage({ text, view, reading, flash, revealed, onReveal, onPoint, retold, heading, head, titleAction, onWord, peekKey }: PassageProps) {
   const lib = useLibrary();
   const openItem = useOpenItem();
 
@@ -288,7 +290,11 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
       <header className="rd-head">
         {heading}
         {head.kicker && <p className="rd-chapter hanzi">{head.kicker}</p>}
-        <h1 className="rd-title hanzi">{head.zh}</h1>
+        {/* The title in the middle, the narrator's button to its right, outside the centring. */}
+        <div className="rd-title-row">
+          <h1 className="rd-title hanzi">{head.zh}</h1>
+          {titleAction}
+        </div>
         {head.en && head.en !== head.zh && <p className="rd-subtitle">{head.en}</p>}
         <div className="rd-know" title={`Its characters: ${charLevels[3]} solid, ${charLevels[2]} known, ${charLevels[1]} met, ${charLevels[0]} not known yet`}>
           <span className="rd-meter" aria-hidden>

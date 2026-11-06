@@ -55,7 +55,8 @@
 }
 
 .rd-where {
-  flex: 1;
+  /* As wide as the name needs, no wider: the spacer after it takes the rest. */
+  flex: 0 1 auto;
   min-width: 0;
   display: grid;
   line-height: 1.25;
@@ -2938,15 +2939,30 @@ a.rd-more-row {
   cursor: pointer;
 }
 
-/* Beside the book's name, the narrator's button: headphones, blue once open. */
-.rd-where[data-listen] {
-  flex: 0 1 auto;
+/* Beside the chapter's title, the narrator's button: headphones, blue once open.
+   The title keeps the middle; the button sits in the column to its right. */
+.rd-title-row {
+  display: grid;
+  grid-template-columns: minmax(44px, 1fr) minmax(0, max-content) minmax(44px, 1fr);
+  align-items: center;
+  column-gap: 6px;
+  width: 100%;
+}
+
+.rd-title-row > .rd-title {
+  grid-column: 2;
+  text-wrap: balance;
+}
+
+.rd-title-row > .rd-listen-btn {
+  grid-column: 3;
+  justify-self: start;
 }
 
 .rd-listen-btn {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 0;
   border-radius: 50%;
   background: var(--accent-soft);
