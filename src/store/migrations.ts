@@ -256,6 +256,7 @@ function setFrom(v: unknown): TextSet | null {
     createdAt: typeof s.createdAt === 'number' ? s.createdAt : Date.now(),
     note: typeof s.note === 'string' ? s.note : undefined,
     order: Array.isArray(s.order) ? s.order.filter((x): x is string => typeof x === 'string') : undefined,
+    ...optional('shelf', typeof s.shelf === 'string' && s.shelf.trim() ? s.shelf.trim().slice(0, 40) : undefined),
     ...optional('study', arr<string>(s.study).filter((x): x is ItemId => typeof x === 'string' && x.length > 1)),
   };
 }

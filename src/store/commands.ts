@@ -217,6 +217,9 @@ export function reachEnding(id: string, node: string) {
 
 export const renameSet = (id: string, name: string) => dispatch({ type: 'set/rename', id, name });
 
+/** Puts a book on a shelf of Read; null takes it back to where its kind puts it. */
+export const shelveBook = (id: string, shelf: string | null) => dispatch({ type: 'set/shelf', id, shelf });
+
 /** Removes a set and everything in it — the texts have nowhere else to live. */
 export const deleteSet = (id: string) => dispatch({ type: 'set/delete', id });
 

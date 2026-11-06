@@ -98,6 +98,7 @@ export type Action =
   | { type: 'text/setRead'; id: string; read: boolean }
   | { type: 'text/markRead'; id: string; at: number }
   | { type: 'set/rename'; id: string; name: string }
+  | { type: 'set/shelf'; id: string; shelf: string | null }
   | { type: 'set/delete'; id: string }
   /** texts gathered into one set, made for them if `set` is new; sets left empty go */
   | { type: 'texts/collect'; textIds: string[]; set: TextSet }
@@ -480,6 +481,16 @@ export function reduce(state: AppState, action: Action): AppState {
       return {
         ...state,
         sets: state.sets.map((s) => (s.id === action.id ? { ...s, name: action.name } : s)),
+      };
+
+    case 'set/shelf':
+      return {
+        ...state,
+        sets: state.sets.map((s) => {
+          if (s.id !== action.id) return s;
+          const { shelf: _old, ...rest } = s;
+          return action.shelf?.trim() ? { ...rest, shelf: action.shelf.trim().slice(0, 40) } : rest;
+        }),
       };
 
     case 'set/delete':

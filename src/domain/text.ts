@@ -316,6 +316,8 @@ export interface TextSet {
    * listed (added since) follow in the order they were written.
    */
   order?: string[];
+  /** the shelf it stands on in Read, when it has been put on one; else its kind decides (domain/bookshelf) */
+  shelf?: string;
 }
 
 export interface GeneratedText {
