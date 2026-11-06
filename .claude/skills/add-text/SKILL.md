@@ -16,6 +16,13 @@ and practice sheets as a passage Claude wrote. You write the study material;
 Talk to the learner in their language (often Russian); everything written into
 the app is in English, as the app is.
 
+**Read first**, in this directory:
+- `books/<book>.md` when the book has one (`books/xiyouji.md` for 西游记): its
+  sessions, titles, names, how its retelling is written and how its people
+  are drawn, as settled with the learner. Follow it over your own idea.
+- `craft.md`: how to get lines, pinyin, vocab, the easier version and the
+  picture prompts right the first time, from the chapters already added.
+
 ## 1. The text
 
 It comes as text in the arguments (`$ARGUMENTS`), as photos of the book's
@@ -257,6 +264,14 @@ characters they already know, how many new ones, and its address
 (`/texts/<id>`) and how many of its pictures were drawn. Any corrected typo and
 any character you were unsure of, and any picture that was refused. Not the
 JSON.
+
+## 9. The book's notes
+
+Update `books/<book>.md` (make it for a book's first chapter): the chapter's
+row with its addresses, any new name and how a new person is drawn, and what
+the learner asked for. Commit it as CLAUDE.md says. `craft.md` gets a line
+when something went wrong that the next agent should not repeat. Never the
+book's text or photos: only these notes.
 
 ## A comic
 
