@@ -16,6 +16,7 @@ import { useTitle } from '../../ui/useTitle';
 import { setPageColour } from '../../ui/colorScheme';
 import { bookOf, bookTitle, chapterHead, isFrontMatter, kindOf } from '../../domain/bookshelf';
 import { ChapterEnd } from './ChapterEnd';
+import { BookContents } from './BookContents';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { Passage, useWordDone, type ReaderView } from './Passage';
@@ -172,6 +173,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [pictures, setPictures] = usePictureMode();
   const [paper, setPaper] = usePaperMode();
   const [glosses, setGlosses] = useGlossMode();
+  const [contents, setContents] = useState(false);
+  const closeContents = useCallback(() => setContents(false), []);
   // Sepia and Night are this page's: on while it is open, the app's own colours back when it closes.
   // Before the first paint, so a sepia page never shows white for a moment.
   useLayoutEffect(() => {
@@ -349,6 +352,11 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
         <Link className="rd-back" to={set ? paths.shelf(set.id) : paths.read()} aria-label={set ? `Back to ${bookTitle(set.name)}` : 'Back to Read'}>
           <Icon name="back" size={24} />
         </Link>
+        {set && total > 1 && (
+          <button className="rd-toc-btn" aria-label={story ? 'Chapters' : 'Texts on this shelf'} aria-expanded={contents} onClick={() => setContents(true)}>
+            <Icon name="contents" size={22} />
+          </button>
+        )}
         <div className="rd-where">
           {/* 楷体 for a Chinese name; a shelf named in English keeps the app's own type. */}
           <b className={/\p{Script=Han}/u.test(barName) ? 'hanzi' : undefined}>{barName}</b>
@@ -424,6 +432,10 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           </div>
         )}
       </div>
+
+      {contents && set && (
+        <BookContents set={set} book={bookOf(set, list)} entries={entries} page={mode === 'single' ? page : 0} onClose={closeContents} />
+      )}
 
       {mode === 'single' && (
         <div className="rd-study no-print">

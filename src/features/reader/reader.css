@@ -2503,3 +2503,191 @@ a.rd-more-row {
     font-size: 22px;
   }
 }
+
+/* ------------------------------------------------------------- the contents */
+.rd-toc-btn {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin-left: -6px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.rd-toc-btn:hover,
+.rd-toc-btn[aria-expanded='true'] {
+  background: var(--card-2);
+}
+
+/* The book's chapters: a panel from the left, as a book's contents come
+   before its pages; the page stays in sight beside it. */
+.rd-toc-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--scrim);
+  animation: rd-toc-fade 0.14s ease-out;
+}
+
+.rd-toc {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  /* A strip of the page stays in sight beside it on a phone: it is over the page, not instead of it. */
+  width: min(380px, calc(100% - 40px));
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  animation: rd-toc-in 0.16s ease-out;
+}
+
+@keyframes rd-toc-in {
+  from {
+    transform: translateX(-18px);
+    opacity: 0.6;
+  }
+}
+
+@keyframes rd-toc-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.rd-toc-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(var(--top-clear) + 22px) 14px 16px;
+}
+
+.rd-toc-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 8px 18px;
+}
+
+.rd-toc-head > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rd-toc-head b {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.rd-toc-head b.hanzi {
+  font: 400 24px/1.3 var(--han);
+}
+
+.rd-toc-head small {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.rd-toc-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-toc-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 60px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.rd-toc-row:hover {
+  background: var(--card-2);
+}
+
+.rd-toc-row[aria-current='page'] {
+  background: var(--card-2);
+}
+
+.rd-toc-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  background: var(--card-2);
+  color: var(--ink-2);
+}
+
+.rd-toc-row[aria-current='page'] .rd-toc-badge {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.rd-toc-badge[data-read] {
+  background: var(--jade-soft);
+  color: var(--jade);
+}
+
+.rd-toc-title {
+  display: grid;
+  min-width: 0;
+}
+
+.rd-toc-title > span {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rd-toc-title > .hanzi {
+  font-weight: 400;
+  font-size: 19px;
+  line-height: 1.35;
+}
+
+.rd-toc-title small {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rd-toc-state {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.rd-toc-row[aria-current='page'] .rd-toc-state {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.rd-toc-foot {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+}
