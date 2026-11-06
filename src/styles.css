@@ -639,6 +639,15 @@ strong {
   }
 }
 
+/* Opened from the home screen, iOS puts the page below the status bar itself
+   (the bar style is "default"), so the 24px kept for Safari's blurred band
+   would be a second gap on top of it: only the system's own inset there. */
+@media (max-width: 699px) and (display-mode: standalone) {
+  :root {
+    --top-clear: env(safe-area-inset-top, 0px);
+  }
+}
+
 @keyframes slide-up {
   from {
     transform: translateY(24px);
