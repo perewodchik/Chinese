@@ -3174,3 +3174,12 @@ a.rd-more-row {
   display: grid;
   padding: 18px 0 8px;
 }
+
+/* A phone: a lower bar under the band iOS blurs below the status bar. That
+   band has to stay empty (a title in it comes out smeared, as it did from
+   the home screen when it was taken away), so the room is won back here. */
+@media (max-width: 699px) {
+  .rd-top {
+    height: 48px;
+  }
+}
