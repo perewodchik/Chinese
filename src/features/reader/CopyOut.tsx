@@ -6,6 +6,7 @@ import { isHanzi, type GeneratedText } from '../../domain/text';
 import { itemForToken } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { studyText } from '../../store/commands';
+import { useGamepad } from '../../platform/gamepad';
 import { Glyph } from '../../ui/Glyph';
 import { Icon } from '../../ui/Icon';
 import { Say } from '../../ui/Say';
@@ -247,6 +248,14 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+  });
+
+  // A game controller on the table (a Switch's A, R or the d-pad) turns the
+  // pages too, so the pen need not leave the paper; not while a drawer is open.
+  useGamepad((action) => {
+    if (document.querySelector('.drawer')) return;
+    if (action === 'next') next();
+    else back();
   });
 
   // The word drawer opens over the copying, not under it.
