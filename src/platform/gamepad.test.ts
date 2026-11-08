@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { pressed } from './gamepad';
+import { pressed, stickSpeed } from './gamepad';
 
 const pad = (...down: number[]) => Array.from({ length: 17 }, (_, i) => down.includes(i));
 
@@ -24,5 +24,13 @@ describe('a game controller', () => {
 
   it('ignores the other buttons', () => {
     assert.deepEqual(pressed(pad(), pad(2, 3, 8, 9)), []);
+  });
+
+  it('scrolls with a stick only past its rest, faster the further it leans, either way', () => {
+    assert.equal(stickSpeed(0.1), 0);
+    assert.equal(stickSpeed(-0.15), 0);
+    assert.ok(stickSpeed(0.5) > 0 && stickSpeed(0.5) < stickSpeed(1));
+    assert.equal(stickSpeed(1), 1400);
+    assert.equal(stickSpeed(-1), -1400);
   });
 });

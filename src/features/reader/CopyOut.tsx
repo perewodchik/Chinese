@@ -6,7 +6,7 @@ import { isHanzi, type GeneratedText } from '../../domain/text';
 import { itemForToken } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { studyText } from '../../store/commands';
-import { useGamepad } from '../../platform/gamepad';
+import { stickSpeed, useGamepad } from '../../platform/gamepad';
 import { Glyph } from '../../ui/Glyph';
 import { Icon } from '../../ui/Icon';
 import { Say } from '../../ui/Say';
@@ -266,11 +266,19 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
   // A game controller on the table (a Switch's A, R or the d-pad) moves on a
   // character at a time, the one being written, so the pen need not leave the
   // paper; not while a drawer is open.
-  useGamepad((action) => {
-    if (document.querySelector('.drawer')) return;
-    if (action === 'next') nextChar();
-    else backChar();
-  });
+  // Its left stick scrolls the row of squares, its right stick the strokes.
+  useGamepad(
+    (action) => {
+      if (document.querySelector('.drawer')) return;
+      if (action === 'next') nextChar();
+      else backChar();
+    },
+    ({ left, right }, ms) => {
+      if (document.querySelector('.drawer')) return;
+      if (row.current) row.current.scrollLeft += (stickSpeed(left) * ms) / 1000;
+      if (strip.current) strip.current.scrollLeft += (stickSpeed(right) * ms) / 1000;
+    },
+  );
 
   // The word drawer opens over the copying, not under it.
   useEffect(() => {
