@@ -233,6 +233,19 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
 
   const next = () => setAt(Math.min(units.length, at + 1));
   const back = () => setAt(Math.max(0, at - 1));
+  // A character at a time, for the controller: through the word's characters,
+  // then from its last to the first of the next word; back the same way, from
+  // a word's first to the last of the word before.
+  const nextChar = () => {
+    if (!done && charAt < chars.length - 1) setCharAt(charAt + 1);
+    else next();
+  };
+  const backChar = () => {
+    if (!done && charAt > 0) return setCharAt(charAt - 1);
+    const to = Math.max(0, Math.min(at, units.length) - 1);
+    if (to === at) return;
+    setAt(to, Math.max(0, [...(units[to]?.text ?? '')].length - 1));
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -250,12 +263,13 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  // A game controller on the table (a Switch's A, R or the d-pad) turns the
-  // pages too, so the pen need not leave the paper; not while a drawer is open.
+  // A game controller on the table (a Switch's A, R or the d-pad) moves on a
+  // character at a time, the one being written, so the pen need not leave the
+  // paper; not while a drawer is open.
   useGamepad((action) => {
     if (document.querySelector('.drawer')) return;
-    if (action === 'next') next();
-    else back();
+    if (action === 'next') nextChar();
+    else backChar();
   });
 
   // The word drawer opens over the copying, not under it.
