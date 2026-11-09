@@ -26,7 +26,8 @@ export type IconName =
   | 'expand'
   | 'book'
   | 'contents'
-  | 'listen';
+  | 'listen'
+  | 'sort';
 
 const PATHS: Record<IconName, JSX.Element> = {
   back: <path d="M15 5l-7 7 7 7" />,
@@ -82,6 +83,8 @@ const PATHS: Record<IconName, JSX.Element> = {
   /* a book's contents: three lines, each with its mark */
   contents: <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />,
   /* headphones: the narrator reads it to you */
+  /* an order: lines short to long, an arrow down beside them */
+  sort: <path d="M4 7h8M4 12h6M4 17h4M17 5v14M14 16l3 3 3-3" />,
   listen: <path d="M4 15v-3a8 8 0 0 1 16 0v3M4 15h3v5H5.5A1.5 1.5 0 0 1 4 18.5zM20 15h-3v5h1.5a1.5 1.5 0 0 0 1.5-1.5z" />,
 };
 

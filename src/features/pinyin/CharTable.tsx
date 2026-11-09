@@ -24,6 +24,43 @@ const shownPy = (s: SyllableEval, py: string) => (s.sandhi ? partsOf(s.symbol.re
 const rank = (r: CharRow) => (r.syl.said === 'missed' ? -1 : (charScore(r.syl) ?? ({ good: 100, mid: 70, low: 40 } as const)[noteOf(r.syl).band]));
 export const worstFirst = (rows: CharRow[]) => [...rows].sort((a, b) => rank(a) - rank(b) || a.ti - b.ti);
 
+/** The characters' order: the ones to fix first, or the line's own. */
+type Order = 'fix' | 'line';
+const ORDER_KEY = 'hanzi.speak.charOrder';
+const ORDER_EVENT = 'hanzi-char-order';
+const storedOrder = (): Order => {
+  try {
+    return localStorage.getItem(ORDER_KEY) === 'line' ? 'line' : 'fix';
+  } catch {
+    return 'fix';
+  }
+};
+
+/**
+ * The order chosen, kept on the device and the same in the table and on its
+ * sheet: changing it in one changes it in the other.
+ */
+function useOrder(): [Order, (o: Order) => void] {
+  const [order, setOrderState] = useState<Order>(storedOrder);
+  useEffect(() => {
+    const on = () => setOrderState(storedOrder());
+    window.addEventListener(ORDER_EVENT, on);
+    return () => window.removeEventListener(ORDER_EVENT, on);
+  }, []);
+  const setOrder = (o: Order) => {
+    setOrderState(o);
+    try {
+      localStorage.setItem(ORDER_KEY, o);
+    } catch {
+      // private browsing: it holds for this visit
+    }
+    window.dispatchEvent(new Event(ORDER_EVENT));
+  };
+  return [order, setOrder];
+}
+
+const ordered = (rows: CharRow[], order: Order) => (order === 'fix' ? worstFirst(rows) : rows);
+
 function hear(samples: Float32Array, s: SyllableEval) {
   // The narrator's line stops first: two voices at once is neither.
   stopLine();
@@ -85,8 +122,9 @@ function Row({ r, samples, active, note }: { r: CharRow; samples: Float32Array |
  */
 export function CharTable({ rows, samples, active, dim, scrollInside = true }: { rows: CharRow[]; samples: Float32Array | null; active: number | null; dim?: boolean; /** false on a sheet, which scrolls itself */ scrollInside?: boolean }) {
   const [all, setAll] = useState(false);
+  const [order, setOrder] = useOrder();
   const body = useRef<HTMLDivElement>(null);
-  const sorted = worstFirst(rows);
+  const sorted = ordered(rows, order);
   // On a phone the table ends above the dock, however tall the line above it is: its rows
   // scroll inside it, so the score and the line stay in view. Measured, since a line takes
   // one or two rows; on a wider screen every row shows and the page scrolls.
@@ -111,8 +149,15 @@ export function CharTable({ rows, samples, active, dim, scrollInside = true }: {
   return (
     <section className="ph-tab" data-dim={dim || undefined} aria-label="Each character">
       <div className="ph-tab-row ph-tab-headrow">
-        <span />
-        <span />
+        {/* Where the character and its pinyin have their columns: which order they come in, one tap to turn it. */}
+        <button
+          className="ph-tab-sort"
+          onClick={() => setOrder(order === 'fix' ? 'line' : 'fix')}
+          aria-label={order === 'fix' ? 'The ones to fix first. Tap for the line’s order' : 'In the line’s order. Tap for the ones to fix first'}
+        >
+          <Icon name="sort" size={15} />
+          {order === 'fix' ? 'To fix' : 'In order'}
+        </button>
         <span>Initial</span>
         <span>Final</span>
         <span>Tone</span>
@@ -138,14 +183,14 @@ export function CharTable({ rows, samples, active, dim, scrollInside = true }: {
 export function CharSheet({ rows, samples, onClose, title = 'Each character' }: { rows: CharRow[]; samples: Float32Array | null; onClose: () => void; title?: string }) {
   const sheet = useSheetDrag(onClose);
   const { close } = sheet;
-  const [order, setOrder] = useState<'line' | 'fix'>('line');
+  const [order, setOrder] = useOrder();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [close]);
   const toFix = rows.filter((r) => noteOf(r.syl).band !== 'good').length;
-  const shown = order === 'fix' ? worstFirst(rows) : rows;
+  const shown = ordered(rows, order);
   return (
     <div className="drawer ph-sheet-drawer" data-leaving={sheet.leaving || undefined} onClick={close}>
       <div />

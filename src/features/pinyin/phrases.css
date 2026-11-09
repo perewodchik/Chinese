@@ -1352,6 +1352,30 @@ button.back-link {
   color: var(--ink-3);
 }
 
+/* The order's switch, over the character and pinyin columns: one fixed width, so the label changing moves nothing. */
+.ph-tab-sort {
+  grid-column: span 2;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: 84px;
+  height: 32px;
+  margin-left: -6px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--accent);
+  font: 500 12.5px/1 var(--sans);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ph-tab-sort:hover {
+  background: var(--card-2);
+}
+
 .ph-tab-all {
   grid-column: span 2;
   justify-self: end;
