@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SyllableEval } from '../../../shared/speechEval';
-import { charScore, heardNote, noteOf, partsOf, type CharNote } from '../../domain/phrases';
+import { charScore, heardNote, heardSyllable, noteOf, partsOf, type CharNote } from '../../domain/phrases';
 import { playSamples } from '../../platform/audio/voiceOut';
 import { Icon } from '../../ui/Icon';
 import { useSheetDrag } from '../../ui/useSheetDrag';
@@ -73,7 +73,7 @@ function Part({ n, wrong, extra }: { n?: number; wrong: boolean; extra?: string 
   return (
     <span className="ph-tab-part" data-band={b}>
       {n !== undefined ? Math.round(n) : <Icon name={wrong ? 'close' : 'check'} size={14} />}
-      {extra && <span className="ph-tab-extra"> {extra}</span>}
+      {extra && <span className="ph-tab-extra">{extra}</span>}
     </span>
   );
 }
@@ -83,8 +83,9 @@ function Row({ r, samples, active, note }: { r: CharRow; samples: Float32Array |
   const n: CharNote = noteOf(s);
   const score = charScore(s);
   const p = partsOf(s.symbol);
-  const want = s.sandhi ?? p.tone;
-  const heardAs = s.tone && s.heardTone && s.heardTone !== want ? `as ${s.heardTone}` : undefined;
+  // A tone heard as another: the syllable as it was heard (hòu), not a bare tone number.
+  const slip = heardSyllable(s);
+  const heardAs = slip ? `heard ${slip.heard}` : undefined;
   const tag = heardNote(s);
   return (
     <div className="ph-tab-row" data-band={n.band} data-active={active || undefined} id={`ph-row-${r.ti}`}>

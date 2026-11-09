@@ -98,7 +98,9 @@ describe('phrases said and scored', () => {
   });
 
   it('says what was heard, from the service\'s own data only', () => {
-    assert.equal(heardNote(syl('打', 'da3', { tone: true, heardTone: 2 })), 'tone 3, heard as 2');
+    // A tone heard wrong reads as the syllable that was heard, beside the one asked for.
+    assert.equal(heardNote(syl('打', 'da3', { tone: true, heardTone: 2 })), 'heard dá, not dǎ');
+    assert.equal(heardNote(syl('猴', 'hou2', { tone: true, heardTone: 4 })), 'heard hòu, not hóu');
     assert.equal(heardNote(syl('打', 'da3', { tone: true })), 'tone 3 off');
     assert.equal(heardNote(syl('这', 'zhe4', { initial: true, initialLike: 'z' })), 'zh, heard as z');
     assert.equal(heardNote(syl('一', 'yi1', { tone: true, sandhi: 4, heardTone: 4 })), 'tone 4 off');

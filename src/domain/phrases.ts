@@ -411,9 +411,22 @@ export function resultOfAttempt(zh: string, symbols: string[] | undefined, a: At
 
 /**
  * What the service heard, in a few words, from its own data only: the part it
- * marked wrong and what that sounded like when it says (tone 3, heard as 2;
+ * marked wrong and what that sounded like when it says (heard dá, not dǎ;
  * zh, heard as z), or that it fell short (tone 3 off).
  */
+/**
+ * The syllable as it was heard when its tone was not the one asked for: the
+ * same syllable with the tone heard (hóu said as hòu), so the slip reads as
+ * a sound and not as a number. None when the tone was right or not heard.
+ */
+export function heardSyllable(s: SyllableEval): { want: string; heard: string } | null {
+  const p = partsOf(s.symbol);
+  const want = s.sandhi ?? p.tone;
+  if (!s.tone || !s.heardTone || s.heardTone === want) return null;
+  const bare = p.initial + p.final;
+  return { want: marked(bare, want), heard: marked(bare, s.heardTone) };
+}
+
 export function heardNote(s: SyllableEval): string {
   if (s.said === 'missed') return 'not heard';
   const p = partsOf(s.symbol);
@@ -421,7 +434,8 @@ export function heardNote(s: SyllableEval): string {
   const out: string[] = [];
   if (s.initial && p.initial) out.push(s.initialLike ? `${p.initial}, heard as ${s.initialLike}` : `${p.initial} off`);
   if (s.final) out.push(s.finalLike ? `${p.final}, heard as ${s.finalLike}` : `${p.final} off`);
-  if (s.tone) out.push(s.heardTone && s.heardTone !== want ? `tone ${want}, heard as ${s.heardTone}` : `tone ${want} off`);
+  const slip = heardSyllable(s);
+  if (s.tone) out.push(slip ? `heard ${slip.heard}, not ${slip.want}` : `tone ${want} off`);
   if (s.extraBefore) out.push('something said before it');
   return out.join(' · ');
 }

@@ -1430,9 +1430,16 @@ button.back-link {
   color: var(--red);
 }
 
+/* What was heard, under the part's number: the syllable as it sounded (heard hòu). */
+.ph-tab-part:has(.ph-tab-extra) {
+  display: grid;
+  line-height: 1.25;
+}
+
 .ph-tab-extra {
-  margin-left: 3px;
-  font-size: 11.5px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .ph-tab-missed {
