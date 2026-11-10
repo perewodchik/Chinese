@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import { ensureStrokes } from '../../data/load';
-import { alignPinyin } from '../../domain/reading';
+import { alignPinyin, paragraphs } from '../../domain/reading';
 import { segment, writerHints } from '../../domain/segment';
 import { isHanzi, type GeneratedText } from '../../domain/text';
 import { itemForToken } from '../../domain/words';
@@ -100,8 +100,24 @@ function cut(text: GeneratedText, lib: ReturnType<typeof useLibrary>, by: 'word'
   return { units, lines };
 }
 
+/**
+ * A sentence's pieces in groups that never break across lines: a word with
+ * the punctuation after it, so a 。 or ， never starts a line alone.
+ */
+function held(pieces: Piece[]): { p: Piece; k: number }[][] {
+  const out: { p: Piece; k: number }[][] = [];
+  pieces.forEach((p, k) => {
+    const mark = p.unit === null && !/[\p{L}\p{N}]/u.test(p.text);
+    if (mark && out.length) out[out.length - 1]!.push({ p, k });
+    else out.push([{ p, k }]);
+  });
+  return out;
+}
+
 /** The gap between squares, and the text column beside them on a wide screen. */
 const GAP = 22;
+/** Stands in the whole-text row for a square a new paragraph leaves empty. */
+const INDENT = '\u3000';
 const TEXT_W = 430;
 /**
  * The room beside the row of squares: on a wide screen the next square shows
@@ -193,6 +209,7 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
 
   // The whole text moves on a word at a time too; it only shows more of it.
   const { units, lines } = useMemo(() => cut(text, lib, by === 'char' ? 'char' : 'word'), [text, lib, by]);
+  const paras = useMemo(() => paragraphs(text), [text]);
   const totalChars = useMemo(() => text.lines.reduce((n, l) => n + [...l.zh].filter(isHanzi).length, 0), [text.lines]);
   // Start where the last copy stopped, if it did not reach the end.
   const resumeAt = text.study?.copied && text.study.copied < totalChars ? text.study.copied : 0;
@@ -208,13 +225,30 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
   const chars = [...(unit?.text ?? '')];
 
   // Every character of the text in order, for the whole-text row.
+  // A new paragraph starts on a new line two squares in, as in an exercise
+  // book: the whole text's row shows those two squares, empty, before its
+  // first character.
+  const paraOf = useMemo(() => {
+    const of = new Map<number, number>();
+    paras.forEach((p, n) => of.set(p[0]!, n));
+    return of;
+  }, [paras]);
+  const startsPara = (k: number) => {
+    const u = units[k];
+    return !!u && paraOf.has(u.line) && units[k - 1]?.line !== u.line;
+  };
   const track = useMemo(
-    () => units.flatMap((u, k) => [...u.text].map((c, j) => ({ c, py: u.py[j] ?? '', unit: k, j }))),
-    [units],
+    () =>
+      units.flatMap((u, k) => [
+        ...(startsPara(k) ? [INDENT, INDENT].map((c, j) => ({ c, py: '', unit: k, j: j - 2 })) : []),
+        ...[...u.text].map((c, j) => ({ c, py: u.py[j] ?? '', unit: k, j })),
+      ]),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [units, paraOf],
   );
 
   useEffect(() => {
-    void ensureStrokes(lib, [...new Set(track.map((t) => t.c))]);
+    void ensureStrokes(lib, [...new Set(track.filter((t) => t.c !== INDENT).map((t) => t.c))]);
   }, [lib, track]);
 
   // The place is kept, as characters copied, whenever it moves on.
@@ -293,6 +327,8 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
   const sq = useSquares(pane, wide, strokeSize);
   const whole = by === 'whole';
   const n = whole ? track.length : chars.length;
+  // Said over the squares too, where a word's squares are too big to show the two empty ones.
+  const newPara = !done && startsPara(at) ? <span className="cw-new-para">New paragraph</span> : null;
   const across = Math.min(sq.across, Math.max(2, n));
   const slots = across * sq.side + (across - 1) * GAP;
   // The strokes and Back and Next stay two squares wide whatever the word: a longer word widens its squares, not them.
@@ -308,7 +344,7 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
   useEffect(() => {
     const r = row.current;
     if (!r || !unit) return;
-    const first = whole ? track.findIndex((t) => t.unit === at) + charAt : Math.min(charAt, Math.max(0, n - across));
+    const first = whole ? track.findIndex((t) => t.unit === at && t.j === 0) + charAt : Math.min(charAt, Math.max(0, n - across));
     // The first placing is at once; after that the whole text glides, with no snapping to spring back from.
     r.scrollTo({ left: Math.max(0, first) * (sq.side + GAP), behavior: whole && placed.current ? 'smooth' : 'auto' });
     placed.current = true;
@@ -354,6 +390,14 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
   useEffect(() => {
     page.current?.querySelector('[data-now]')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [at, sideText]);
+
+  // The two squares a paragraph leaves empty: nothing to tap, the first saying why.
+  const gap = (key: string | number, first: boolean) => (
+    <div key={key} className="cw-cell" style={{ width: sq.side }}>
+      <span className="cw-py">{first && <span className="cw-indent-say">New paragraph</span>}</span>
+      <span className="cw-box cw-indent" style={{ width: sq.side, height: sq.side }} aria-hidden />
+    </div>
+  );
 
   const square = (c: string, py: string, key: string | number, state: 'done' | 'now' | 'ahead', onTap: () => void) => (
     <div key={key} className="cw-cell" style={{ width: sq.side }}>
@@ -404,29 +448,45 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
           {sideText && (
             <div className="cw-page" ref={page}>
               <p className="tiny muted cw-page-hint">Tap any word to go there</p>
-              {lines.map((pieces, i) => (
-                <div key={i} className="cw-para" data-now={unit?.line === i || undefined}>
-                  <span className="cw-para-n">{i + 1}</span>
-                  <p className="hanzi">
-                    {pieces.map((p, k) =>
-                      p.unit === null ? (
-                        <span key={k} data-state={done || (unit && i < unit.line) ? 'done' : undefined}>
-                          {p.text}
+              {paras.map((para, n) => {
+                // The English of the sentence being copied goes under it, so a paragraph
+                // splits there and goes on below, its first line still indented.
+                const cut = unit && para.includes(unit.line) ? para.indexOf(unit.line) + 1 : para.length;
+                const sentences = (ls: number[]) =>
+                  ls.map((i) => (
+                    <span key={i} className="cw-sent" data-now={unit?.line === i || undefined}>
+                      {held(lines[i]!).map((group, g) => (
+                        <span key={g} className="cw-held">
+                          {group.map(({ p, k }) =>
+                            p.unit === null ? (
+                              <span key={k} data-state={done || (unit && i < unit.line) ? 'done' : undefined}>
+                                {p.text}
+                              </span>
+                            ) : (
+                              <button
+                                key={k}
+                                data-state={done || p.unit < at ? 'done' : p.unit === at ? 'now' : undefined}
+                                onClick={() => setAt(p.unit!)}
+                              >
+                                {p.text}
+                              </button>
+                            ),
+                          )}
                         </span>
-                      ) : (
-                        <button
-                          key={k}
-                          data-state={done || p.unit < at ? 'done' : p.unit === at ? 'now' : undefined}
-                          onClick={() => setAt(p.unit!)}
-                        >
-                          {p.text}
-                        </button>
-                      ),
+                      ))}
+                    </span>
+                  ));
+                return (
+                  <div key={n} className="cw-para">
+                    {paras.length > 1 && <span className="cw-para-n">{n + 1}</span>}
+                    <p className="hanzi">{sentences(para.slice(0, cut))}</p>
+                    {unit && para.includes(unit.line) && text.lines[unit.line]?.en && (
+                      <p className="cw-en">{text.lines[unit.line]!.en}</p>
                     )}
-                  </p>
-                  {unit?.line === i && text.lines[i]?.en && <p className="cw-en">{text.lines[i]!.en}</p>}
-                </div>
-              ))}
+                    {cut < para.length && <p className="hanzi cw-para-on">{sentences(para.slice(cut))}</p>}
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -448,6 +508,7 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
               <>
                 {sideText ? (
                   <div className="cw-word">
+                    {newPara}
                     <button className="hanzi cw-word-zh" onClick={() => openItem(itemForToken(lib, unit.text))}>
                       {unit.text}
                     </button>
@@ -459,7 +520,7 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
                   </div>
                 ) : (
                   <div className="cw-line">
-                    <p className="hanzi cw-line-zh" ref={sentence}>
+                    <p className="hanzi cw-line-zh" ref={sentence} data-para={paraOf.has(unit.line) || undefined}>
                       {lines[unit.line]!.map((p, k) =>
                         p.unit === at ? (
                           <button key={k} className="cw-line-now" onClick={() => openItem(itemForToken(lib, unit.text))}>
@@ -480,6 +541,7 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
                         {reading}
                         {meaning ? ` · ${meaning}` : ''}
                       </span>
+                      {newPara}
                     </div>
                   </div>
                 )}
@@ -499,6 +561,7 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
                   >
                     {whole
                       ? track.map((t, k) =>
+                          t.c === INDENT ? gap(k, t.j === -2) :
                           square(t.c, t.py, k, t.unit < at || (t.unit === at && t.j < charAt) ? 'done' : t.unit === at && t.j === charAt ? 'now' : 'ahead', () =>
                             setAt(t.unit, t.j),
                           ),

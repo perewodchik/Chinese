@@ -3222,3 +3222,61 @@ a.rd-more-row {
     height: 48px;
   }
 }
+
+/* Copy out: the book's paragraphs. Each starts two squares in, as it is written in the
+   exercise book, with a line's gap before the next; the text on the left shows them so. */
+.cw-para + .cw-para {
+  margin-top: 28px;
+}
+
+.cw-para > p.hanzi:first-of-type {
+  text-indent: 2em;
+}
+
+.cw-sent[data-now] {
+  color: var(--ink-2);
+}
+
+/* A word and the punctuation after it stay on one line. */
+.cw-held {
+  white-space: nowrap;
+}
+
+/* The two squares a new paragraph leaves empty: no grid, no ink, a dashed edge. */
+.cw-box.cw-indent {
+  cursor: default;
+  border-style: dashed;
+  border-color: var(--line-2);
+  background: none;
+}
+
+.cw-indent-say {
+  display: block;
+  width: max-content;
+  font: 500 12px/24px var(--sans);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.cw-py:has(.cw-indent-say) {
+  justify-self: start;
+}
+
+/* Over the word that starts a paragraph: start a new line, two squares in. */
+.cw-new-para {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px dashed var(--line-2);
+  border-radius: 6px;
+  font: 500 12.5px/18px var(--sans);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.cw-line-meta .cw-new-para {
+  margin-left: auto;
+}
+
+.cw-line-zh[data-para] {
+  text-indent: 2em;
+}
