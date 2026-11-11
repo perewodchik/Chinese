@@ -7,6 +7,7 @@ import { Icon } from '../../ui/Icon';
 import { Menu } from '../../ui/Menu';
 import { useToast } from '../../ui/toast';
 import { messageFor } from '../auth/messages';
+import { NotConfirmed } from '../auth/useFreshPassword';
 import { day, mb, plural } from './format';
 
 /**
@@ -20,7 +21,18 @@ import { day, mb, plural } from './format';
  * refused (said in the row, on the field when it is the reason's); done
  * (the page reloads the list, and a toast says what happened).
  */
-export function AdminAccountRow({ account: a, self, onChanged }: { account: AdminAccount; self: boolean; onChanged: () => void }) {
+export function AdminAccountRow({
+  account: a,
+  self,
+  confirm,
+  onChanged,
+}: {
+  account: AdminAccount;
+  self: boolean;
+  /** runs an action, asking for the password again first when the server wants it (useFreshPassword) */
+  confirm: <T>(run: () => Promise<T>) => Promise<T>;
+  onChanged: () => void;
+}) {
   const toast = useToast();
   const [asking, setAsking] = useState(false);
   const [reason, setReason] = useState('');
@@ -33,12 +45,13 @@ export function AdminAccountRow({ account: a, self, onChanged }: { account: Admi
     setError(null);
     setFieldError(null);
     try {
-      await run();
+      await confirm(run);
       setAsking(false);
       setReason('');
       toast(said);
       onChanged();
     } catch (err) {
+      if (err instanceof NotConfirmed) return;
       if (err instanceof ApiError && err.fields.reason) setFieldError(err.fields.reason);
       else setError(messageFor(err));
     } finally {

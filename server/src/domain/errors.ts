@@ -39,6 +39,13 @@ export class AccountBlockedError extends AppError {
   }
 }
 
+/** An admin's action that changes something, in a session whose password was typed too long ago. */
+export class ReauthRequiredError extends AppError {
+  constructor() {
+    super('reauth_required', 'Type your password again to do that.');
+  }
+}
+
 export class UsernameTakenError extends AppError {
   /** `userId` is the account that could not be written, so what was claimed for it can be given back. */
   constructor(readonly userId?: string) {

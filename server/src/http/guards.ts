@@ -3,7 +3,7 @@ import type { ActiveSession, AuthService } from '../application/auth-service';
 import { usernameKey } from '../../../shared/credentials';
 import type { AuditLog, Clock, RateLimitStore, Tutor } from '../application/ports';
 import type { Role, TokenScope } from '../../../shared/api';
-import { ForbiddenError, ForbiddenOriginError, RateLimitedError, UnauthorizedError } from '../domain/errors';
+import { ForbiddenError, ForbiddenOriginError, RateLimitedError, ReauthRequiredError, UnauthorizedError } from '../domain/errors';
 import type { AppEnv } from './env';
 import { clearSessionCookie, clientIp, isHttps, readSessionToken, writeSessionCookie } from './request';
 
@@ -132,6 +132,20 @@ export function requireSession(auth: AuthService, opts: SessionOptions, tokenSco
 export function requireRole(role: Role): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
     if (c.get('session').user.role !== role) throw new ForbiddenError();
+    await next();
+  };
+}
+
+/**
+ * After `requireSession`: an admin's action that changes something wants
+ * the password typed within the last quarter of an hour (AuthPolicy
+ * freshMs). Otherwise the answer is `reauth_required`; the page asks for
+ * the password, sends it to POST /api/auth/reauth and tries again. A stolen
+ * or forgotten cookie alone then reads the admin pages but changes nothing.
+ */
+export function requireFresh(auth: AuthService): MiddlewareHandler<AppEnv> {
+  return async (c, next) => {
+    if (!auth.isFresh(c.get('session'))) throw new ReauthRequiredError();
     await next();
   };
 }

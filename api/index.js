@@ -143,6 +143,11 @@ var AccountBlockedError = class extends AppError {
     super("account_blocked", "This account is paused. Ask whoever runs the site to open it again.");
   }
 };
+var ReauthRequiredError = class extends AppError {
+  constructor() {
+    super("reauth_required", "Type your password again to do that.");
+  }
+};
 var UsernameTakenError = class extends AppError {
   /** `userId` is the account that could not be written, so what was claimed for it can be given back. */
   constructor(userId) {
@@ -221,7 +226,10 @@ var DAY = 864e5;
 var DEFAULT_AUTH_POLICY = {
   registration: "open",
   sessionTtlMs: 30 * DAY,
-  sessionRefreshMs: DAY
+  sessionRefreshMs: DAY,
+  sessionMaxAgeMs: 180 * DAY,
+  adminSessionMaxAgeMs: 7 * DAY,
+  freshMs: 15 * 6e4
 };
 var INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 var INVITE_LENGTH = 12;
@@ -376,16 +384,40 @@ var AuthService = class {
     if (!session) return null;
     const now = clock.now();
     const user = session.expiresAt > now ? await users.findById(session.userId) : null;
-    if (!user || user.status === "blocked") {
+    const lastDay = user ? this.lastDayOf(session.createdAt, user) : 0;
+    if (!user || user.status === "blocked" || now >= lastDay) {
       await sessions.delete(id);
       return null;
     }
+    const open = { user: toUserDto(user), sessionId: id, verifiedAt: session.verifiedAt };
     if (now - session.lastSeenAt < policy.sessionRefreshMs) {
-      return { user: toUserDto(user), sessionId: id, expiresAt: session.expiresAt, renewed: false };
+      return { ...open, expiresAt: session.expiresAt, renewed: false };
     }
-    const expiresAt = now + policy.sessionTtlMs;
+    const expiresAt = Math.min(now + policy.sessionTtlMs, lastDay);
     await sessions.touch(id, now, expiresAt);
-    return { user: toUserDto(user), sessionId: id, expiresAt, renewed: true };
+    return { ...open, expiresAt, renewed: true };
+  }
+  /** When a session made at `createdAt` ends whatever happens: a week for an admin, half a year for anyone else. */
+  lastDayOf(createdAt, user) {
+    const { policy } = this.deps;
+    return createdAt + (user.role === "admin" ? policy.adminSessionMaxAgeMs : policy.sessionMaxAgeMs);
+  }
+  /**
+   * The password typed again in this session, for an admin's action that
+   * asked for it (`requireFresh`). A wrong one is said on its field.
+   */
+  async reauthenticate(input) {
+    const { users, sessions, hasher, clock } = this.deps;
+    const user = await users.findById(input.userId);
+    if (!user) throw new UnauthorizedError();
+    if (!await hasher.verify(input.password, user.passwordHash)) {
+      throw new ValidationError("That is not the password.", { password: "Not the password." });
+    }
+    await sessions.verify(input.sessionId, clock.now());
+  }
+  /** Whether the session's password was typed recently enough for an admin to change things. */
+  isFresh(session) {
+    return this.deps.clock.now() - session.verifiedAt <= this.deps.policy.freshMs;
   }
   /**
    * The browsers signed in to the account. A session's id is the digest of
@@ -641,7 +673,7 @@ var AuthService = class {
     const user = await users.findById(found.userId);
     if (!user || user.status === "blocked") return null;
     if (found.lastUsedAt === null || now - found.lastUsedAt >= TOKEN_TOUCH_MS) await apiTokens.touch(found.id, now);
-    return { user: toUserDto(user), sessionId: `token:${found.id}`, expiresAt: found.expiresAt, renewed: false, scopes: toTokenDto(found).scopes };
+    return { user: toUserDto(user), sessionId: `token:${found.id}`, expiresAt: found.expiresAt, renewed: false, verifiedAt: found.createdAt, scopes: toTokenDto(found).scopes };
   }
   /** A page of the admins' log, the newest first. */
   adminLogPage(query) {
@@ -664,14 +696,17 @@ var AuthService = class {
     const { sessions, tokens, clock, policy } = this.deps;
     const token = tokens.secret();
     const now = clock.now();
-    const expiresAt = now + policy.sessionTtlMs;
+    const expiresAt = Math.min(now + policy.sessionTtlMs, this.lastDayOf(now, user));
     await sessions.insert({
       id: tokens.digest(token),
       userId: user.id,
       createdAt: now,
       lastSeenAt: now,
       expiresAt,
-      userAgent: userAgent ? userAgent.slice(0, 300) : null
+      userAgent: userAgent ? userAgent.slice(0, 300) : null,
+      // Signing in is typing the password, except for the development
+      // sign-in, which never asked for one (and is local only).
+      verifiedAt: now
     });
     return { user: toUserDto(user), token, expiresAt };
   }
@@ -2207,6 +2242,7 @@ var STATUS = {
   validation: 400,
   invalid_credentials: 401,
   account_blocked: 403,
+  reauth_required: 403,
   unauthorized: 401,
   registration_closed: 403,
   forbidden_origin: 403,
@@ -2362,6 +2398,12 @@ function requireRole(role) {
     await next();
   };
 }
+function requireFresh(auth) {
+  return async (c, next) => {
+    if (!auth.isFresh(c.get("session"))) throw new ReauthRequiredError();
+    await next();
+  };
+}
 var RateLimiter = class {
   constructor(name, limit, windowMs, clock, store) {
     this.name = name;
@@ -2493,6 +2535,7 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, st
   const routes = new Hono2();
   const session = requireSession(auth, { trustProxy, clock });
   const admin = requireRole("admin");
+  const fresh = requireFresh(auth);
   const invites = new RateLimiter("admin.invites", 50, 60 * 6e4, clock, limits);
   routes.get("/", session, admin, (c) => {
     c.header("Cache-Control", "no-store");
@@ -2546,22 +2589,22 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, st
     return c.json(body);
   });
   const changes = new RateLimiter("admin.accounts", 60, 60 * 6e4, clock, limits);
-  routes.post("/accounts/:id/block", session, admin, async (c) => {
+  routes.post("/accounts/:id/block", session, admin, fresh, async (c) => {
     await changes.consume(c.get("session").user.id);
     const { reason } = await readJson(c, blockRequest);
     await auth.setStatusById(c.req.param("id"), "blocked", actor(c), reason);
     return c.body(null, 204);
   });
-  routes.post("/accounts/:id/unblock", session, admin, async (c) => {
+  routes.post("/accounts/:id/unblock", session, admin, fresh, async (c) => {
     await changes.consume(c.get("session").user.id);
     await auth.setStatusById(c.req.param("id"), "active", actor(c));
     return c.body(null, 204);
   });
-  routes.post("/accounts/:id/sign-out", session, admin, async (c) => {
+  routes.post("/accounts/:id/sign-out", session, admin, fresh, async (c) => {
     await changes.consume(c.get("session").user.id);
     return c.json(await auth.signOutEverywhere(c.req.param("id"), actor(c)));
   });
-  routes.post("/invites", session, admin, async (c) => {
+  routes.post("/invites", session, admin, fresh, async (c) => {
     await invites.consume(c.get("session").user.id);
     const { note, days } = await readJson(c, inviteRequest);
     const made = await auth.invite(note, days === 0 ? null : days, actor(c));
@@ -2649,6 +2692,7 @@ var credentials = z4.object({
 });
 var registration = credentials.extend({ invite: z4.string().max(64).optional() });
 var recoverRequest = z4.object({ username: z4.string().max(200), code: z4.string().max(64), newPassword: z4.string().max(2048) });
+var reauthRequest = z4.object({ password: z4.string().max(2048) });
 var passwordChange = z4.object({
   currentPassword: z4.string().max(2048),
   newPassword: z4.string().max(2048)
@@ -2780,6 +2824,19 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
     const { user, sessionId } = c.get("session");
     await auth.changePassword({ userId: user.id, sessionId, ...input });
     note(c, "password", user.username);
+    return c.body(null, 204);
+  });
+  const reauths = new RateLimiter("auth.reauth", 10, 15 * MINUTE, clock, limits);
+  routes.post("/reauth", session, async (c) => {
+    const { user, sessionId } = c.get("session");
+    await reauths.consume(user.id);
+    const { password } = await readJson(c, reauthRequest);
+    try {
+      await auth.reauthenticate({ userId: user.id, sessionId, password });
+    } catch (err) {
+      if (err instanceof ValidationError) note(c, "reauth-refused", user.username);
+      throw err;
+    }
     return c.body(null, 204);
   });
   return routes;
@@ -3932,6 +3989,13 @@ var MIGRATIONS = [
     ip           TEXT
   );
   CREATE INDEX admin_log_by_time ON admin_log (at);
+  `,
+  // When the session's password was last typed: an admin's action that
+  // changes something asks for it again once this is older than a quarter
+  // of an hour. A session from before reads as typed when it was made.
+  `
+  ALTER TABLE sessions ADD COLUMN verified_at BIGINT NOT NULL DEFAULT 0;
+  UPDATE sessions SET verified_at = created_at;
   `
 ];
 
@@ -4445,7 +4509,8 @@ var toSession = (r) => ({
   createdAt: r.created_at,
   lastSeenAt: r.last_seen_at,
   expiresAt: r.expires_at,
-  userAgent: r.user_agent
+  userAgent: r.user_agent,
+  verifiedAt: Number(r.verified_at)
 });
 var PostgresSessionRepository = class {
   constructor(db) {
@@ -4453,14 +4518,17 @@ var PostgresSessionRepository = class {
   }
   async insert(s) {
     await this.db.query(
-      `INSERT INTO sessions (id, user_id, created_at, last_seen_at, expires_at, user_agent)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [s.id, s.userId, s.createdAt, s.lastSeenAt, s.expiresAt, s.userAgent]
+      `INSERT INTO sessions (id, user_id, created_at, last_seen_at, expires_at, user_agent, verified_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [s.id, s.userId, s.createdAt, s.lastSeenAt, s.expiresAt, s.userAgent, s.verifiedAt]
     );
   }
   async findById(id) {
     const { rows } = await this.db.query("SELECT * FROM sessions WHERE id = $1", [id]);
     return rows[0] ? toSession(rows[0]) : null;
+  }
+  async verify(id, at) {
+    await this.db.query("UPDATE sessions SET verified_at = $1 WHERE id = $2", [at, id]);
   }
   async touch(id, lastSeenAt, expiresAt) {
     await this.db.query("UPDATE sessions SET last_seen_at = $1, expires_at = $2 WHERE id = $3", [

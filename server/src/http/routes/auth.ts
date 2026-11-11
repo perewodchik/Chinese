@@ -31,6 +31,8 @@ const credentials = z.object({
 const registration = credentials.extend({ invite: z.string().max(64).optional() });
 const recoverRequest = z.object({ username: z.string().max(200), code: z.string().max(64), newPassword: z.string().max(2048) });
 
+const reauthRequest = z.object({ password: z.string().max(2048) });
+
 const passwordChange = z.object({
   currentPassword: z.string().max(2048),
   newPassword: z.string().max(2048),
@@ -209,6 +211,23 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
     const { user, sessionId } = c.get('session');
     await auth.changePassword({ userId: user.id, sessionId, ...input });
     note(c, 'password', user.username);
+    return c.body(null, 204);
+  });
+
+  // The password again, for an admin's action that asked for it
+  // (requireFresh). Counted per account like a sign-in, so a stolen cookie
+  // is not a way to guess the password at leisure.
+  const reauths = new RateLimiter('auth.reauth', 10, 15 * MINUTE, clock, limits);
+  routes.post('/reauth', session, async (c) => {
+    const { user, sessionId } = c.get('session');
+    await reauths.consume(user.id);
+    const { password } = await readJson(c, reauthRequest);
+    try {
+      await auth.reauthenticate({ userId: user.id, sessionId, password });
+    } catch (err) {
+      if (err instanceof ValidationError) note(c, 'reauth-refused', user.username);
+      throw err;
+    }
     return c.body(null, 204);
   });
 

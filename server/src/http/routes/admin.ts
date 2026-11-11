@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { AdminAccount, AdminLogPage, AdminOverview } from '../../../../shared/admin';
 import type { Actor } from '../../application/ports';
 import type { AppEnv, RouteDeps } from '../env';
-import { auditor, RateLimiter, requireRole, requireSession } from '../guards';
+import { auditor, RateLimiter, requireFresh, requireRole, requireSession } from '../guards';
 import { clientIp, readJson } from '../request';
 
 const inviteRequest = z.object({ note: z.string().trim().max(120), days: z.number().int().min(0).max(365) });
@@ -26,6 +26,8 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, us
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   const admin = requireRole('admin');
+  // Everything here that changes something asks for the password again when it was typed long ago.
+  const fresh = requireFresh(auth);
   const invites = new RateLimiter('admin.invites', 50, 60 * 60_000, clock, limits);
 
   routes.get('/', session, admin, (c) => {
@@ -88,25 +90,25 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, us
   // the log. A loop that pauses every account is what the limit is for.
   const changes = new RateLimiter('admin.accounts', 60, 60 * 60_000, clock, limits);
 
-  routes.post('/accounts/:id/block', session, admin, async (c) => {
+  routes.post('/accounts/:id/block', session, admin, fresh, async (c) => {
     await changes.consume(c.get('session').user.id);
     const { reason } = await readJson(c, blockRequest);
     await auth.setStatusById(c.req.param('id'), 'blocked', actor(c), reason);
     return c.body(null, 204);
   });
 
-  routes.post('/accounts/:id/unblock', session, admin, async (c) => {
+  routes.post('/accounts/:id/unblock', session, admin, fresh, async (c) => {
     await changes.consume(c.get('session').user.id);
     await auth.setStatusById(c.req.param('id'), 'active', actor(c));
     return c.body(null, 204);
   });
 
-  routes.post('/accounts/:id/sign-out', session, admin, async (c) => {
+  routes.post('/accounts/:id/sign-out', session, admin, fresh, async (c) => {
     await changes.consume(c.get('session').user.id);
     return c.json(await auth.signOutEverywhere(c.req.param('id'), actor(c)));
   });
 
-  routes.post('/invites', session, admin, async (c) => {
+  routes.post('/invites', session, admin, fresh, async (c) => {
     await invites.consume(c.get('session').user.id);
     const { note, days } = await readJson(c, inviteRequest);
     const made = await auth.invite(note, days === 0 ? null : days, actor(c));

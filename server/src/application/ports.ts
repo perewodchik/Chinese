@@ -34,6 +34,8 @@ export interface UserRepository {
 
 export interface SessionRepository {
   insert(session: Session): Promise<void>;
+  /** The password was typed again in this session, at `at`. */
+  verify(id: string, at: number): Promise<void>;
   findById(id: string): Promise<Session | null>;
   touch(id: string, lastSeenAt: number, expiresAt: number): Promise<void>;
   delete(id: string): Promise<void>;

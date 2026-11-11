@@ -21,5 +21,7 @@ export const authApi = {
   recover: (body: { username: string; code: string; newPassword: string }) => request<SessionResponse>('POST', '/api/auth/recover', { body, expect401: true }),
   recoveryStatus: () => request<{ codes: { left: number; createdAt: number } | null }>('GET', '/api/auth/recovery-codes').then((r) => r.codes),
   /** New codes, shown this once; the old ones stop working. */
+  /** The password again, for an admin's action that asked for it (reauth_required). */
+  reauth: (password: string) => request<null>('POST', '/api/auth/reauth', { body: { password } }),
   makeRecoveryCodes: (password: string) => request<{ codes: string[] }>('POST', '/api/auth/recovery-codes', { body: { password } }).then((r) => r.codes),
 };

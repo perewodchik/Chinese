@@ -9,6 +9,7 @@ interface Row {
   last_seen_at: number;
   expires_at: number;
   user_agent: string | null;
+  verified_at: number;
 }
 
 const toSession = (r: Row): Session => ({
@@ -18,6 +19,7 @@ const toSession = (r: Row): Session => ({
   lastSeenAt: r.last_seen_at,
   expiresAt: r.expires_at,
   userAgent: r.user_agent,
+  verifiedAt: Number(r.verified_at),
 });
 
 export class PostgresSessionRepository implements SessionRepository {
@@ -25,15 +27,19 @@ export class PostgresSessionRepository implements SessionRepository {
 
   async insert(s: Session): Promise<void> {
     await this.db.query(
-      `INSERT INTO sessions (id, user_id, created_at, last_seen_at, expires_at, user_agent)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [s.id, s.userId, s.createdAt, s.lastSeenAt, s.expiresAt, s.userAgent],
+      `INSERT INTO sessions (id, user_id, created_at, last_seen_at, expires_at, user_agent, verified_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [s.id, s.userId, s.createdAt, s.lastSeenAt, s.expiresAt, s.userAgent, s.verifiedAt],
     );
   }
 
   async findById(id: string): Promise<Session | null> {
     const { rows } = await this.db.query<Row>('SELECT * FROM sessions WHERE id = $1', [id]);
     return rows[0] ? toSession(rows[0]) : null;
+  }
+
+  async verify(id: string, at: number): Promise<void> {
+    await this.db.query('UPDATE sessions SET verified_at = $1 WHERE id = $2', [at, id]);
   }
 
   async touch(id: string, lastSeenAt: number, expiresAt: number): Promise<void> {

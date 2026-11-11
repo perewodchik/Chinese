@@ -11,6 +11,7 @@ import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
 import { messageFor } from '../auth/messages';
 import { useUser } from '../auth/session';
+import { NotConfirmed, useFreshPassword } from '../auth/useFreshPassword';
 import { AdminAccountRow } from './AdminAccountRow';
 import { day, mb, plural } from './format';
 import './admin.css';
@@ -30,6 +31,7 @@ const EVENT: Record<string, string> = {
   invite: 'Invitation made by',
   'token-made': 'Access token made by',
   'token-revoked': 'Access token revoked by',
+  'reauth-refused': 'Wrong password, asked again, for',
 };
 
 const DAYS = [
@@ -52,6 +54,7 @@ export function AdminPage() {
   useTitle('The site');
   const toast = useToast();
   const user = useUser();
+  const { confirm, sheet } = useFreshPassword();
   const [data, setData] = useState<AdminOverview | null>(null);
   const [denied, setDenied] = useState<string | null>(null);
   const [note, setNote] = useState('');
@@ -74,12 +77,12 @@ export function AdminPage() {
     setBusy(true);
     setError(null);
     try {
-      const { code } = await makeInvite(note, days);
+      const { code } = await confirm(() => makeInvite(note, days));
       setMade({ code, note, link: `${location.origin}${paths.register()}?invite=${code}` });
       setNote('');
       void load();
     } catch (err) {
-      setError(messageFor(err));
+      if (!(err instanceof NotConfirmed)) setError(messageFor(err));
     } finally {
       setBusy(false);
     }
@@ -98,6 +101,7 @@ export function AdminPage() {
 
   return (
     <section className="admin-page">
+      {sheet}
       <div className="page-head">
         <h1>The site</h1>
       </div>
@@ -153,7 +157,7 @@ export function AdminPage() {
         <h2 className="block-title">Accounts</h2>
         <ul className="list admin-list">
           {(data?.accounts ?? []).map((a) => (
-            <AdminAccountRow key={a.id} account={a} self={a.id === user.id} onChanged={() => void load()} />
+            <AdminAccountRow key={a.id} account={a} self={a.id === user.id} confirm={confirm} onChanged={() => void load()} />
           ))}
         </ul>
       </section>

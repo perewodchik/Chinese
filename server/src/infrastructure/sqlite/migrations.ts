@@ -274,4 +274,11 @@ export const MIGRATIONS: readonly string[] = [
   ) STRICT;
   CREATE INDEX admin_log_by_time ON admin_log (at);
   `,
+  // When the session's password was last typed: an admin's action that
+  // changes something asks for it again once this is older than a quarter
+  // of an hour. A session from before reads as typed when it was made.
+  `
+  ALTER TABLE sessions ADD COLUMN verified_at INTEGER NOT NULL DEFAULT 0;
+  UPDATE sessions SET verified_at = created_at;
+  `,
 ];

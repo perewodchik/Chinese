@@ -46,6 +46,8 @@ export interface Session {
   lastSeenAt: number;
   expiresAt: number;
   userAgent: string | null;
+  /** when the password was last typed in it: at sign-in, and again when an admin action asked for it */
+  verifiedAt: number;
 }
 
 /**

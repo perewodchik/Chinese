@@ -36,12 +36,25 @@ export interface AuthPolicy {
   sessionTtlMs: number;
   /** how often a session in use has its expiry pushed back */
   sessionRefreshMs: number;
+  /** the longest any session lives from the moment it was made, used or not */
+  sessionMaxAgeMs: number;
+  /**
+   * The same for an account that runs the site, which is shorter: a cookie
+   * left on someone else's computer opens the admin pages for a week at
+   * most, however often it is used.
+   */
+  adminSessionMaxAgeMs: number;
+  /** how long after the password was typed an admin may change things without typing it again */
+  freshMs: number;
 }
 
 export const DEFAULT_AUTH_POLICY: AuthPolicy = {
   registration: 'open',
   sessionTtlMs: 30 * DAY,
   sessionRefreshMs: DAY,
+  sessionMaxAgeMs: 180 * DAY,
+  adminSessionMaxAgeMs: 7 * DAY,
+  freshMs: 15 * 60_000,
 };
 
 export interface AuthDeps {
@@ -71,6 +84,8 @@ export interface ActiveSession {
   expiresAt: number;
   /** the expiry moved on this request, so the cookie should be sent again */
   renewed: boolean;
+  /** when the password was last typed in this session (a token's: when it was made) */
+  verifiedAt: number;
   /**
    * Set when an access token opened this rather than a cookie: what the token
    * may do. A route that does not name one of these refuses it.
@@ -294,18 +309,46 @@ export class AuthService {
 
     const now = clock.now();
     const user = session.expiresAt > now ? await users.findById(session.userId) : null;
-    // A blocked account's cookies open nothing, wherever they are.
-    if (!user || user.status === 'blocked') {
+    // A blocked account's cookies open nothing, wherever they are; and no
+    // session outlives its last day, however often it was used.
+    const lastDay = user ? this.lastDayOf(session.createdAt, user) : 0;
+    if (!user || user.status === 'blocked' || now >= lastDay) {
       await sessions.delete(id);
       return null;
     }
 
+    const open = { user: toUserDto(user), sessionId: id, verifiedAt: session.verifiedAt };
     if (now - session.lastSeenAt < policy.sessionRefreshMs) {
-      return { user: toUserDto(user), sessionId: id, expiresAt: session.expiresAt, renewed: false };
+      return { ...open, expiresAt: session.expiresAt, renewed: false };
     }
-    const expiresAt = now + policy.sessionTtlMs;
+    const expiresAt = Math.min(now + policy.sessionTtlMs, lastDay);
     await sessions.touch(id, now, expiresAt);
-    return { user: toUserDto(user), sessionId: id, expiresAt, renewed: true };
+    return { ...open, expiresAt, renewed: true };
+  }
+
+  /** When a session made at `createdAt` ends whatever happens: a week for an admin, half a year for anyone else. */
+  private lastDayOf(createdAt: number, user: User): number {
+    const { policy } = this.deps;
+    return createdAt + (user.role === 'admin' ? policy.adminSessionMaxAgeMs : policy.sessionMaxAgeMs);
+  }
+
+  /**
+   * The password typed again in this session, for an admin's action that
+   * asked for it (`requireFresh`). A wrong one is said on its field.
+   */
+  async reauthenticate(input: { userId: string; sessionId: string; password: string }): Promise<void> {
+    const { users, sessions, hasher, clock } = this.deps;
+    const user = await users.findById(input.userId);
+    if (!user) throw new UnauthorizedError();
+    if (!(await hasher.verify(input.password, user.passwordHash))) {
+      throw new ValidationError('That is not the password.', { password: 'Not the password.' });
+    }
+    await sessions.verify(input.sessionId, clock.now());
+  }
+
+  /** Whether the session's password was typed recently enough for an admin to change things. */
+  isFresh(session: ActiveSession): boolean {
+    return this.deps.clock.now() - session.verifiedAt <= this.deps.policy.freshMs;
   }
 
   /**
@@ -596,7 +639,7 @@ export class AuthService {
     const user = await users.findById(found.userId);
     if (!user || user.status === 'blocked') return null;
     if (found.lastUsedAt === null || now - found.lastUsedAt >= TOKEN_TOUCH_MS) await apiTokens.touch(found.id, now);
-    return { user: toUserDto(user), sessionId: `token:${found.id}`, expiresAt: found.expiresAt, renewed: false, scopes: toTokenDto(found).scopes };
+    return { user: toUserDto(user), sessionId: `token:${found.id}`, expiresAt: found.expiresAt, renewed: false, verifiedAt: found.createdAt, scopes: toTokenDto(found).scopes };
   }
 
   /** A page of the admins' log, the newest first. */
@@ -623,7 +666,7 @@ export class AuthService {
     const { sessions, tokens, clock, policy } = this.deps;
     const token = tokens.secret();
     const now = clock.now();
-    const expiresAt = now + policy.sessionTtlMs;
+    const expiresAt = Math.min(now + policy.sessionTtlMs, this.lastDayOf(now, user));
     await sessions.insert({
       id: tokens.digest(token),
       userId: user.id,
@@ -631,6 +674,9 @@ export class AuthService {
       lastSeenAt: now,
       expiresAt,
       userAgent: userAgent ? userAgent.slice(0, 300) : null,
+      // Signing in is typing the password, except for the development
+      // sign-in, which never asked for one (and is local only).
+      verifiedAt: now,
     });
     return { user: toUserDto(user), token, expiresAt };
   }

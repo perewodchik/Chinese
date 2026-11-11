@@ -73,7 +73,11 @@ describe('the admins’ log', () => {
   it('finds by what was done and by whom or to whom, fifty at a time', async () => {
     const { app, clock, owner } = await setUp();
     for (let i = 0; i < 55; i++) {
-      if (i === 40) clock.advance(61 * 60_000); // past the hour's fifty invitations
+      if (i === 40) {
+        clock.advance(61 * 60_000); // past the hour's fifty invitations
+        // and past the quarter of an hour an admin changes things without the password again
+        assert.equal((await call(app, 'POST', '/api/auth/reauth', { cookie: owner, body: { password: 'correct horse' } })).status, 204);
+      }
       assert.equal((await call(app, 'POST', '/api/admin/invites', { cookie: owner, body: { note: `n${i}`, days: 7 } })).status, 201);
     }
     const first = await page(app, owner, '?action=invite-made');

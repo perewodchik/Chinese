@@ -9,6 +9,7 @@ interface Row {
   last_seen_at: number;
   expires_at: number;
   user_agent: string | null;
+  verified_at: number;
 }
 
 const toSession = (r: Row): Session => ({
@@ -18,12 +19,14 @@ const toSession = (r: Row): Session => ({
   lastSeenAt: r.last_seen_at,
   expiresAt: r.expires_at,
   userAgent: r.user_agent,
+  verifiedAt: Number(r.verified_at),
 });
 
 export class SqliteSessionRepository implements SessionRepository {
   private readonly insertOne: StatementSync;
   private readonly byId: StatementSync;
   private readonly touchOne: StatementSync;
+  private readonly verifyOne: StatementSync;
   private readonly deleteOne: StatementSync;
   private readonly deleteUser: StatementSync;
   private readonly deleteUserExcept: StatementSync;
@@ -32,11 +35,12 @@ export class SqliteSessionRepository implements SessionRepository {
 
   constructor(db: DatabaseSync) {
     this.insertOne = db.prepare(
-      `INSERT INTO sessions (id, user_id, created_at, last_seen_at, expires_at, user_agent)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO sessions (id, user_id, created_at, last_seen_at, expires_at, user_agent, verified_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     );
     this.byId = db.prepare('SELECT * FROM sessions WHERE id = ?');
     this.touchOne = db.prepare('UPDATE sessions SET last_seen_at = ?, expires_at = ? WHERE id = ?');
+    this.verifyOne = db.prepare('UPDATE sessions SET verified_at = ? WHERE id = ?');
     this.deleteOne = db.prepare('DELETE FROM sessions WHERE id = ?');
     this.deleteUser = db.prepare('DELETE FROM sessions WHERE user_id = ?');
     this.deleteUserExcept = db.prepare('DELETE FROM sessions WHERE user_id = ? AND id <> ?');
@@ -45,12 +49,16 @@ export class SqliteSessionRepository implements SessionRepository {
   }
 
   async insert(s: Session): Promise<void> {
-    this.insertOne.run(s.id, s.userId, s.createdAt, s.lastSeenAt, s.expiresAt, s.userAgent);
+    this.insertOne.run(s.id, s.userId, s.createdAt, s.lastSeenAt, s.expiresAt, s.userAgent, s.verifiedAt);
   }
 
   async findById(id: string): Promise<Session | null> {
     const row = this.byId.get(id) as Row | undefined;
     return row ? toSession(row) : null;
+  }
+
+  async verify(id: string, at: number): Promise<void> {
+    this.verifyOne.run(at, id);
   }
 
   async touch(id: string, lastSeenAt: number, expiresAt: number): Promise<void> {

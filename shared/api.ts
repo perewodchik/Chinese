@@ -134,6 +134,8 @@ export type ApiErrorCode =
   | 'invalid_credentials'
   /** the right password, for an account that has been paused */
   | 'account_blocked'
+  /** an admin's action that wants the password typed again: ask, then send it to /api/auth/reauth and try again */
+  | 'reauth_required'
   | 'username_taken'
   | 'registration_closed'
   | 'unauthorized'

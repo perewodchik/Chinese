@@ -70,7 +70,7 @@ describe('Postgres storage', () => {
   });
 
   it('keeps a session, touches it, and forgets one', async () => {
-    const s = { id: 's1', userId: 'u1', createdAt: T, lastSeenAt: T, expiresAt: T + 1000, userAgent: 'iPad' };
+    const s = { id: 's1', userId: 'u1', createdAt: T, lastSeenAt: T, expiresAt: T + 1000, userAgent: 'iPad', verifiedAt: T };
     await stores.sessions.insert(s);
     assert.equal((await stores.sessions.findById('s1'))?.userAgent, 'iPad');
     await stores.sessions.touch('s1', T + 10, T + 2000);
@@ -82,11 +82,11 @@ describe('Postgres storage', () => {
   it('signs every other browser out, and sweeps what has expired', async () => {
     for (const id of ['a', 'b', 'c']) {
       await stores.sessions.insert({
-        id, userId: 'u1', createdAt: T, lastSeenAt: T, expiresAt: T + 1000, userAgent: null,
+        id, userId: 'u1', createdAt: T, lastSeenAt: T, expiresAt: T + 1000, userAgent: null, verifiedAt: T,
       });
     }
     await stores.sessions.insert({
-      id: 'other', userId: 'u3', createdAt: T, lastSeenAt: T, expiresAt: T + 1000, userAgent: null,
+      id: 'other', userId: 'u3', createdAt: T, lastSeenAt: T, expiresAt: T + 1000, userAgent: null, verifiedAt: T,
     });
     assert.equal(await stores.sessions.deleteForUser('u1', 'b'), 2);
     assert.equal((await stores.sessions.findById('b'))?.id, 'b');
@@ -197,9 +197,9 @@ describe('Postgres storage', () => {
 
   it('lists a user’s sessions still good, the one used last first', async () => {
     await stores.users.insert(user('u9'));
-    await stores.sessions.insert({ id: 's9a', userId: 'u9', createdAt: T, lastSeenAt: T + 5, expiresAt: T + 1000, userAgent: 'iPad' });
-    await stores.sessions.insert({ id: 's9b', userId: 'u9', createdAt: T, lastSeenAt: T + 9, expiresAt: T + 1000, userAgent: 'iPhone' });
-    await stores.sessions.insert({ id: 's9c', userId: 'u9', createdAt: T, lastSeenAt: T + 1, expiresAt: T + 10, userAgent: 'old' });
+    await stores.sessions.insert({ id: 's9a', userId: 'u9', createdAt: T, lastSeenAt: T + 5, expiresAt: T + 1000, userAgent: 'iPad', verifiedAt: T });
+    await stores.sessions.insert({ id: 's9b', userId: 'u9', createdAt: T, lastSeenAt: T + 9, expiresAt: T + 1000, userAgent: 'iPhone', verifiedAt: T });
+    await stores.sessions.insert({ id: 's9c', userId: 'u9', createdAt: T, lastSeenAt: T + 1, expiresAt: T + 10, userAgent: 'old', verifiedAt: T });
     assert.deepEqual((await stores.sessions.listForUser('u9', T + 100)).map((s) => s.id), ['s9b', 's9a']);
   });
 
