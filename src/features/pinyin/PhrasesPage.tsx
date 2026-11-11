@@ -292,19 +292,18 @@ export function PhrasesPage() {
             <div className="list">{row(everyday)}</div>
           </section>
 
-          <section className="block">
-            <h2 className="block-title">Your own texts</h2>
-            {owns.length ? (
+          {/* Shown once there is one: an empty block with nothing to do in it is not shown (guidelines). */}
+          {owns.length > 0 && (
+            <section className="block">
+              <h2 className="block-title">Your own texts</h2>
               <div className="list">{owns.map(row)}</div>
-            ) : (
-              <p className="small muted">{own === null ? 'Getting your texts…' : 'None yet: write one in Voices, and a narrator reads it.'}</p>
-            )}
-          </section>
+            </section>
+          )}
         </div>
 
+        {trouble.length > 0 && (
         <aside className="block ph-aside">
           <h2 className="block-title">What keeps going wrong</h2>
-          {trouble.length ? (
             <>
               <p className="small muted" style={{ margin: '0 0 8px' }}>
                 From the last time you said each of {latest.length} line{latest.length === 1 ? '' : 's'}.
@@ -322,10 +321,8 @@ export function PhrasesPage() {
                 ))}
               </ul>
             </>
-          ) : (
-            <p className="small muted">Nothing yet: say a few lines and what keeps going wrong gathers here.</p>
-          )}
         </aside>
+        )}
       </div>
     </section>
   );

@@ -645,3 +645,18 @@ export function shelve(texts: GeneratedText[], sets: TextSet[]): Shelf {
   }
   return { bySet, loose };
 }
+
+/**
+ * The first chapter not read yet, book by book in the shelves' order: what
+ * an empty deck of cards offers to open, since cards come from reading.
+ * Null when everything on the shelves is read, or there is nothing.
+ */
+export function firstUnread(texts: GeneratedText[], sets: TextSet[]): { set: TextSet; page: number; text: GeneratedText } | null {
+  const shelf = shelve(texts, sets);
+  for (const set of sets) {
+    const entries = shelfEntries(shelf.bySet.get(set.id) ?? []);
+    const at = entries.findIndex((e) => !e.main.read && !(e.easier?.read ?? false));
+    if (at >= 0) return { set, page: at + 1, text: entries[at]!.main };
+  }
+  return null;
+}

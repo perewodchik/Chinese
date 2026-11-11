@@ -580,3 +580,11 @@
   color: inherit;
   text-decoration: none;
 }
+
+/* An empty deck's way to a text: a long title fades rather than pushes the button wide. */
+.deck-open {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

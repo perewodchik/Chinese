@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { CARD_SIZES, CARD_SKILLS, planCards } from '../../domain/cards';
 import { idValue } from '../../domain/ids';
+import { firstUnread } from '../../domain/text';
 import { NEW_PER_DAY } from '../../domain/lesson';
 import { paths } from '../../navigation/paths';
 import { setSettings } from '../../store/commands';
@@ -41,6 +42,10 @@ export function CardsPage() {
   useTitle('Cards');
   const today = useCardsToday();
   const settings = useStore((s) => s.settings);
+  const texts = useStore((s) => s.texts);
+  const sets = useStore((s) => s.sets);
+  // With nothing to ask, the way to cards is a text: the first one not read yet.
+  const unread = useMemo(() => (today.count ? null : firstUnread(texts, sets)), [today.count, texts, sets]);
   const next = today.plan.cards.slice(0, 3).map((c) => idValue(c.id));
 
   return (
@@ -82,16 +87,20 @@ export function CardsPage() {
               <p className="muted">
                 {today.done
                   ? `${today.plan.answeredToday} answered. The rest wait for tomorrow.`
-                  : 'Cards come from the words you choose to learn while reading.'}
+                  : 'Cards come from words you pick while reading: tap a word in a text, then Learn this word.'}
               </p>
               <div className="deck-actions">
                 {today.done ? (
                   <Link className="btn tonal" to={paths.cardSession({ n: 10 })}>
                     10 more
                   </Link>
+                ) : unread ? (
+                  <Link className="btn tonal deck-open" to={paths.reading(unread.set.id, { page: unread.page })}>
+                    Open <span className="hanzi">{unread.text.titleZh || unread.text.title}</span>
+                  </Link>
                 ) : (
                   <Link className="btn tonal" to={paths.read()}>
-                    Go to Read
+                    Find something to read
                   </Link>
                 )}
               </div>

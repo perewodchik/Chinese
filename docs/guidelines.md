@@ -36,6 +36,11 @@ actions to the foot of the screen, where the thumb is.
 tonal buttons. A "Learned/Known" state is tonal and `aria-pressed`, not
 primary.
 
+**Empty means one thing to do.** A block that is empty and offers nothing
+to do is not shown (Speak's own texts until there is one). A screen that is
+empty as a whole says what it is in one sentence and offers one action that
+starts it (an empty deck of cards opens the first text not read yet).
+
 **Actions under ⋯ on a page for looking.** A set's page is for looking at
 the characters: Print, Full screen, Sort, Pick some out are in its ⋯ menu,
 each with a line under it saying what it does, so nothing stands between the

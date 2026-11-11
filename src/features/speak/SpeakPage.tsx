@@ -206,14 +206,13 @@ export function SpeakHome() {
             <div className="list">{row(src.everyday)}</div>
           </section>
 
-          <section className="block">
-            <h2 className="block-title">Your own texts</h2>
-            {src.owns.length ? (
+          {/* Shown once there is one: an empty block with nothing to do in it is not shown (guidelines). */}
+          {src.owns.length > 0 && (
+            <section className="block">
+              <h2 className="block-title">Your own texts</h2>
               <div className="list">{src.owns.map(row)}</div>
-            ) : (
-              <p className="small muted">{src.ownLoaded ? 'None yet: write one in Voices, and a narrator reads it.' : 'Getting your texts…'}</p>
-            )}
-          </section>
+            </section>
+          )}
         </div>
 
         <aside className="block ph-aside">

@@ -4,7 +4,7 @@ import { DEFAULT_SCOPE, type Collection } from '../../domain/collection';
 import { charId, isCharId, isWordId, idValue, type ItemId } from '../../domain/ids';
 import { firstSense } from '../../domain/library';
 import { defaultSheet } from '../../domain/sheet';
-import { fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTexts, type GeneratedText, type TextSet } from '../../domain/text';
+import { firstUnread, fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTexts, type GeneratedText, type TextSet } from '../../domain/text';
 import { paths, type ShelfTab } from '../../navigation/paths';
 import { useIsAdmin } from '../auth/session';
 import { oneOf, useQuery } from '../../navigation/query';
@@ -43,13 +43,8 @@ function useContinue(): { text: GeneratedText; set: TextSet | null; to: string }
       const set = sets.find((s) => s.id === text.setId) ?? null;
       return { text, set, to: set ? paths.reading(set.id, { page: last.page, version: last.version ?? undefined }) : paths.text(text.id) };
     }
-    const shelf = shelve(texts, sets);
-    for (const set of sets) {
-      const entries = shelfEntries(shelf.bySet.get(set.id) ?? []);
-      const at = entries.findIndex((e) => !e.main.read && !(e.easier?.read ?? false));
-      if (at >= 0) return { text: entries[at]!.main, set, to: paths.reading(set.id, { page: at + 1 }) };
-    }
-    return null;
+    const next = firstUnread(texts, sets);
+    return next ? { text: next.text, set: next.set, to: paths.reading(next.set.id, { page: next.page }) } : null;
   }, [texts, sets]);
 }
 
