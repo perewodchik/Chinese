@@ -8,6 +8,7 @@ import {
 } from '../../../shared/credentials';
 import type { ApiToken, User } from '../domain/entities';
 import {
+  AccountBlockedError,
   InvalidCredentialsError,
   NotFoundError,
   RegistrationClosedError,
@@ -121,6 +122,7 @@ export const toUserDto = (u: User): UserDto => ({
   id: u.id,
   username: u.username,
   createdAt: u.createdAt,
+  role: u.role,
 });
 
 /**
@@ -207,6 +209,11 @@ export class AuthService {
       passwordHash: await hasher.hash(password),
       createdAt: now,
       updatedAt: now,
+      // Never anything else from here: a role is given by a command on the
+      // server or by an account that already has it, not asked for.
+      role: 'learner',
+      status: 'active',
+      flags: {},
     };
     await before?.(user.id);
     if (!(await users.insert(user))) throw new UsernameTakenError(user.id);
@@ -221,6 +228,7 @@ export class AuthService {
     // unknown name takes exactly as long to refuse as a wrong password.
     const matches = await hasher.verify(input.password, user?.passwordHash ?? (await this.decoyHash()));
     if (!user || !matches) throw new InvalidCredentialsError();
+    if (user.status === 'blocked') throw new AccountBlockedError();
     return this.issue(user, input.userAgent);
   }
 
@@ -256,6 +264,7 @@ export class AuthService {
         if (!user) throw err;
       }
     }
+    if (user.status === 'blocked') return null;
     return this.issue(user, userAgent);
   }
 
@@ -273,7 +282,8 @@ export class AuthService {
 
     const now = clock.now();
     const user = session.expiresAt > now ? await users.findById(session.userId) : null;
-    if (!user) {
+    // A blocked account's cookies open nothing, wherever they are.
+    if (!user || user.status === 'blocked') {
       await sessions.delete(id);
       return null;
     }
@@ -390,6 +400,7 @@ export class AuthService {
     const refused = new ValidationError('That name and code do not go together, or the code has been used.', { code: 'Not a code that works for this name.' });
     if (!user || code.length !== RECOVERY_LENGTH) throw refused;
     if (!(await recoveryCodes.use(user.id, this.recoveryDigest(user.id, code), clock.now()))) throw refused;
+    if (user.status === 'blocked') throw new AccountBlockedError();
     await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
     await sessions.deleteForUser(user.id);
     await this.deps.apiTokens.revokeForUser(user.id, clock.now());
@@ -411,6 +422,70 @@ export class AuthService {
     await users.updatePassword(user.id, await hasher.hash(newPassword), clock.now());
     await sessions.deleteForUser(user.id);
     await this.deps.apiTokens.revokeForUser(user.id, clock.now());
+    return toUserDto(user);
+  }
+
+  /**
+   * The first accounts to run the site, from HANZI_ADMIN_USERS: given the
+   * role once, and only while no account has it, so the setting can be taken
+   * away afterwards and a name added to it later gives nobody anything. Only
+   * names that already have an account are given it. Says which names were
+   * given it, for the log, and whether there is an admin now.
+   */
+  async seedAdmins(names: readonly string[]): Promise<{ given: string[]; settled: boolean }> {
+    const { users, clock } = this.deps;
+    if (!names.length || (await users.countByRole('admin')) > 0) return { given: [], settled: true };
+    const given: string[] = [];
+    for (const name of names) {
+      const user = await users.findByUsernameKey(usernameKey(name));
+      if (!user || user.role === 'admin') continue;
+      await users.setRole(user.id, 'admin', clock.now());
+      given.push(user.username);
+    }
+    // Not settled while none of the names has an account yet: the next
+    // request looks again, so an account made later (npm run admin --
+    // add-user, which the reserved names leave as the only way) is given it.
+    return { given, settled: given.length > 0 };
+  }
+
+  /**
+   * For whoever runs the server (`npm run admin -- grant-admin` and
+   * `revoke-admin`), and later the admin pages: an account's role, by name.
+   * The last account that runs the site keeps the role, so the site is never
+   * left with nobody to run it.
+   */
+  async setRole(username: string, role: UserDto['role']): Promise<UserDto> {
+    const { users, clock } = this.deps;
+    const user = await users.findByUsernameKey(usernameKey(username));
+    if (!user) throw new NotFoundError(`An account called “${username}”`);
+    if (user.role === role) return toUserDto(user);
+    if (user.role === 'admin' && (await users.countByRole('admin')) <= 1) {
+      throw new ValidationError('That is the last account that runs the site. Give the role to another first.');
+    }
+    await users.setRole(user.id, role, clock.now());
+    return toUserDto({ ...user, role });
+  }
+
+  /**
+   * An account paused, or opened again. Pausing signs it out everywhere and
+   * stops its tokens; the work it kept stays. An account cannot pause itself
+   * (`byUserId`), and the last one that runs the site cannot be paused.
+   */
+  async setStatus(username: string, status: 'active' | 'blocked', byUserId?: string): Promise<UserDto> {
+    const { users, sessions, apiTokens, clock } = this.deps;
+    const user = await users.findByUsernameKey(usernameKey(username));
+    if (!user) throw new NotFoundError(`An account called “${username}”`);
+    if (status === 'blocked') {
+      if (user.id === byUserId) throw new ValidationError('An account cannot pause itself.');
+      if (user.role === 'admin' && (await users.countByRole('admin')) <= 1) {
+        throw new ValidationError('That is the last account that runs the site, and cannot be paused.');
+      }
+    }
+    if (user.status !== status) await users.setStatus(user.id, status, clock.now());
+    if (status === 'blocked') {
+      await sessions.deleteForUser(user.id);
+      await apiTokens.revokeForUser(user.id, clock.now());
+    }
     return toUserDto(user);
   }
 
@@ -465,7 +540,7 @@ export class AuthService {
     const now = clock.now();
     if (!found || found.revokedAt !== null || found.expiresAt <= now) return null;
     const user = await users.findById(found.userId);
-    if (!user) return null;
+    if (!user || user.status === 'blocked') return null;
     if (found.lastUsedAt === null || now - found.lastUsedAt >= TOKEN_TOUCH_MS) await apiTokens.touch(found.id, now);
     return { user: toUserDto(user), sessionId: `token:${found.id}`, expiresAt: found.expiresAt, renewed: false, scopes: toTokenDto(found).scopes };
   }

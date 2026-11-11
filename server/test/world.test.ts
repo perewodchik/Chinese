@@ -103,7 +103,7 @@ describe('world saves in Postgres', () => {
     const made = await makePostgres();
     close = made.close;
     stores = postgresStores(made.pool);
-    await stores.users.insert({ id: 'u1', username: 'K', usernameKey: 'k', passwordHash: 'h', createdAt: T, updatedAt: T });
+    await stores.users.insert({ id: 'u1', username: 'K', usernameKey: 'k', passwordHash: 'h', createdAt: T, updatedAt: T, role: 'learner', status: 'active', flags: {} });
   });
 
   after(async () => {

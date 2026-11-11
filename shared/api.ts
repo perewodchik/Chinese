@@ -7,10 +7,15 @@
  * from either side.
  */
 
+/** What an account may do: a learner, or one that runs the site. Decided by the server, from the database. */
+export type Role = 'learner' | 'admin';
+
 export interface UserDto {
   id: string;
   username: string;
   createdAt: number;
+  /** for the page to know which links to draw; every decision is the server's */
+  role: Role;
 }
 
 export interface SessionResponse {
@@ -127,6 +132,8 @@ export interface SaveWorkspaceResponse {
 export type ApiErrorCode =
   | 'validation'
   | 'invalid_credentials'
+  /** the right password, for an account that has been paused */
+  | 'account_blocked'
   | 'username_taken'
   | 'registration_closed'
   | 'unauthorized'

@@ -145,3 +145,12 @@ export function useUser(): UserDto {
   if (session.status !== 'signed-in') throw new Error('useUser() is only for screens behind a session.');
   return session.user;
 }
+
+/**
+ * Whether the one signed in runs the site, from the role the session came
+ * with: only for deciding what to draw. Every admin route checks the role
+ * again on the server, from the database.
+ */
+export function useIsAdmin(): boolean {
+  return useUser().role === 'admin';
+}

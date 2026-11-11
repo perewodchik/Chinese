@@ -161,8 +161,11 @@ same session cookies. `api/[...path].ts` is the whole difference, and
    ```
 
    It prints a code and a link (`/register?invite=…`) that arrives with the
-   code typed in. With `HANZI_ADMIN_USERS=<your name>` on the project, the
-   same is on the site itself, at **/admin** (Account › The site): an
+   code typed in. An account that runs the site (its role, kept in the
+   database) has the same on the site itself, at **/admin** (Account › The
+   site). The first one gets the role from `HANZI_ADMIN_USERS=<your name>` on
+   the project, once, while no account has it; after that the setting can be
+   removed, and `npm run admin -- grant-admin <name>` gives the role: an
    invitation made from the phone, and the accounts with when each was last
    there and how much it keeps. Only the code's digest is kept, so a lost code is made
    again rather than looked up. Your own first account is made the same way,
@@ -369,6 +372,8 @@ way, red is not saved yet — offline, say — with the reason in its tooltip.
 | `npm run admin -- users` | lists the accounts |
 | `npm run admin -- add-user <name>` | makes an account, even with sign-ups switched off |
 | `npm run admin -- reset-password <name>` | a new password, and every session of that account signed out |
+| `npm run admin -- grant-admin <name>` / `revoke-admin <name>` | lets an account run the site (/admin), or makes it a learner again; never the last one |
+| `npm run admin -- block <name>` / `unblock <name>` | pauses an account (signed out everywhere, its tokens stopped) or opens it again |
 | `npm run admin -- backup [file]` | a consistent copy of the database, safe while the server runs — by default into `.data/backups/` |
 | `npm run admin -- address [port]` | the address a tablet should open |
 

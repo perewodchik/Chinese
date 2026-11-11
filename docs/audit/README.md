@@ -113,7 +113,8 @@
 
 ### Этап 1 — роли и основа админки (нужны всему остальному)
 
-- [ ] **A1 (К)** `users.role` и `users.status` в базе, проверка на сервере. [→](09-admin.md#a1)
+- [x] **A1 (К)** `users.role` и `users.status` в базе, проверка на сервере. [→](09-admin.md#a1)
+  — переезд `HANZI_TUTOR_USERS` во флаг `tutor` отложен до A5 (вопрос владельцу в 09-admin.md).
 - [ ] **A2 (В)** Журнал действий админа. [→](09-admin.md#a2)
 - [ ] **A3 (В)** Блокировка аккаунта и выход со всех устройств. [→](09-admin.md#a3)
 - [ ] **SEC7 (В)** Повторный ввод пароля для опасных действий админа. [→](06-security.md#sec7)
@@ -188,4 +189,5 @@
 |---|---|---|---|
 | 2026-11-11 | аудит | — | план составлен; SEC4, SEC5, SEC6 исправлены сразу |
 | 2026-11-11 | SEC1 частично | — | пароль сменён владельцем и убран из скиллов и `docs/photo-to-text.md` |
-| 2026-11-11 | SEC2 | см. ветку | токены `hzw_…` (`api_tokens` в SQLite и Postgres), Bearer в `requireSession`, область `texts:write` на workspace и pictures; экран Account › Access tokens; `book.ts` и скиллы — на `HANZI_TOKEN`. Осталось владельцу: сделать токен после выката |
+| 2026-11-11 | SEC2 | 79ef34a | токены `hzw_…` (`api_tokens` в SQLite и Postgres), Bearer в `requireSession`, область `texts:write` на workspace и pictures; экран Account › Access tokens; `book.ts` и скиллы — на `HANZI_TOKEN`. Осталось владельцу: сделать токен после выката |
+| 2026-11-11 | A1 | см. ветку | `users.role/status/flags` в обеих базах; `requireRole('admin')` на `/api/admin/*`; посев из `HANZI_ADMIN_USERS` один раз, пока админов нет; `grant-admin`/`revoke-admin`/`block`/`unblock` в `npm run admin`; роль в `GET /api/auth/session`, `useIsAdmin` берёт её оттуда. Осталось: флаг `tutor` (A5) |

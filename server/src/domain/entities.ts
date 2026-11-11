@@ -1,3 +1,5 @@
+import type { Role } from '../../../shared/api';
+
 /**
  * What the server keeps, which is deliberately little: an account, the browsers
  * signed in to it, and one workspace document each.
@@ -12,6 +14,23 @@ export interface User {
   passwordHash: string;
   createdAt: number;
   updatedAt: number;
+  /** what it may do; only the server, or a command on it, changes this */
+  role: Role;
+  /** a blocked account signs in nowhere and its sessions open nothing */
+  status: AccountStatus;
+  flags: UserFlags;
+}
+
+export type AccountStatus = 'active' | 'blocked';
+
+/** What an account is given beyond the rest, one switch each. */
+export interface UserFlags {
+  /** may talk with Claude through the server's subscription */
+  tutor?: boolean;
+  /** no limits on what costs the site money */
+  unlimited?: boolean;
+  /** may send photos of pages to be turned into texts */
+  photoInbox?: boolean;
 }
 
 /**

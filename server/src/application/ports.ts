@@ -7,7 +7,7 @@ import type {
   TalkReply,
   TalkRequest,
 } from '../../../shared/talk';
-import type { ApiToken, Session, User, Workspace, WorldSaveRecord } from '../domain/entities';
+import type { AccountStatus, ApiToken, Session, User, Workspace, WorldSaveRecord } from '../domain/entities';
 
 /**
  * What the use cases need from the outside world, and nothing about how it is
@@ -24,6 +24,9 @@ export interface UserRepository {
    */
   insert(user: User): Promise<boolean>;
   updatePassword(id: string, passwordHash: string, at: number): Promise<void>;
+  setRole(id: string, role: User['role'], at: number): Promise<void>;
+  setStatus(id: string, status: AccountStatus, at: number): Promise<void>;
+  countByRole(role: User['role']): Promise<number>;
   list(): Promise<User[]>;
   /** The account and, by the schema's cascades, everything it kept: sessions, work, keys, recordings of its texts. */
   delete(id: string): Promise<void>;

@@ -1,7 +1,6 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { TOKEN_SCOPES, type AccessTokensResponse, type MadeAccessTokenResponse } from '../../../../shared/api';
-import { usernameKey } from '../../../../shared/credentials';
 import type { UsageResponse } from '../../../../shared/usage';
 import { TOKEN_DAYS_MAX } from '../../application/auth-service';
 import { ForbiddenError, NotFoundError } from '../../domain/errors';
@@ -26,7 +25,7 @@ const tokenRequest = z.object({
   days: z.number().int().min(1).max(TOKEN_DAYS_MAX),
   scopes: z.array(z.enum(TOKEN_SCOPES)).max(TOKEN_SCOPES.length).optional(),
 });
-export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage, audit, ipHeader, log, adminUsers }: RouteDeps) {
+export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage, audit, ipHeader, log }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // The password is asked for, so a guesser with a stolen cookie gets as few tries as at the sign-in page.
@@ -59,7 +58,7 @@ export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narr
     await tokenMakes.consume(user.id);
     const input = await readJson(c, tokenRequest);
     const scopes = input.scopes ?? ['texts:write'];
-    if (scopes.includes('catalog:write') && !adminUsers.includes(usernameKey(user.username))) {
+    if (scopes.includes('catalog:write') && user.role !== 'admin') {
       throw new ForbiddenError('Only the accounts that run the site may publish to the catalogue.');
     }
     const made = await auth.makeAccessToken(user.id, { name: input.name, days: input.days, scopes });

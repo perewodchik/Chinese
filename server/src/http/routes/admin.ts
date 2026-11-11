@@ -1,28 +1,23 @@
-import { Hono, type MiddlewareHandler } from 'hono';
+import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AdminAccount, AdminOverview } from '../../../../shared/admin';
-import { usernameKey } from '../../../../shared/credentials';
-import { ForbiddenError } from '../../domain/errors';
 import type { AppEnv, RouteDeps } from '../env';
-import { auditor, RateLimiter, requireSession } from '../guards';
+import { auditor, RateLimiter, requireRole, requireSession } from '../guards';
 import { readJson } from '../request';
 
 const inviteRequest = z.object({ note: z.string().trim().max(120), days: z.number().int().min(0).max(365) });
 
 /**
- * For whoever runs the site, named in HANZI_ADMIN_USERS: the accounts, how
+ * For the accounts that run the site (role `admin`): the accounts, how
  * much each keeps and spends, and invitations made from the phone rather
  * than from a terminal (see shared/admin.ts for the routes).
  *
  * Nothing here reads anyone's work: names, dates, sizes and counts.
  */
-export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, adminUsers, limits, usage, storage, audit }: RouteDeps) {
+export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
-  const admin: MiddlewareHandler<AppEnv> = async (c, next) => {
-    if (!adminUsers.includes(usernameKey(c.get('session').user.username))) throw new ForbiddenError();
-    await next();
-  };
+  const admin = requireRole('admin');
   const invites = new RateLimiter('admin.invites', 50, 60 * 60_000, clock, limits);
 
   routes.get('/', session, admin, (c) => {

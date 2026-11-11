@@ -35,7 +35,11 @@ export interface HttpOptions {
    * default. Left out, every account may (one learner's own server).
    */
   tutorUsers?: string[] | null;
-  /** the accounts that run the site, by name (HANZI_ADMIN_USERS); none when left out */
+  /**
+   * HANZI_ADMIN_USERS: the names given the admin role the first time the
+   * server meets a database where no account has it. After that the role in
+   * the database is what counts, and the setting can go.
+   */
   adminUsers?: string[];
   /** the built app, or null when Vite is serving it */
   staticDir: string | null;
@@ -71,7 +75,6 @@ export function createHttpApp(services: Services, options: HttpOptions) {
     trustProxy: options.trustProxy,
     ipHeader: options.ipHeader ?? null,
     tutorUsers: options.tutorUsers ? options.tutorUsers.map(usernameKey) : null,
-    adminUsers: (options.adminUsers ?? []).map(usernameKey),
     devUser: options.devUser ?? null,
     devUserCreate: options.devUserCreate ?? true,
     log: options.log,
@@ -85,6 +88,25 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   // "password" is held in memory by a server that was only going to refuse it.
   // The routes that take less say so themselves (sign-in, a picture).
   api.use('*', tooLarge(WORKSPACE_MAX_BYTES + 64 * 1024));
+  // Once per process, before the first request is answered: the first
+  // accounts to run the site get the role (AuthService.seedAdmins). A failure
+  // is logged and tried again on the next request, never answered with.
+  let seeded: Promise<void> | null = null;
+  const seedAdmins = () =>
+    services.auth.seedAdmins(options.adminUsers ?? []).then(
+      ({ given, settled }) => {
+        if (!settled) seeded = null;
+        if (given.length) options.log(`Gave the admin role to ${given.join(', ')} (HANZI_ADMIN_USERS); the setting is no longer needed.`);
+      },
+      (err: unknown) => {
+        seeded = null;
+        options.log(`Could not give the admin role from HANZI_ADMIN_USERS: ${err instanceof Error ? err.message : String(err)}`);
+      },
+    );
+  api.use('*', async (_c, next) => {
+    await (seeded ??= seedAdmins());
+    await next();
+  });
   api.get('/health', (c) => c.json({ ok: true }));
   api.route('/auth', authRoutes(deps));
   api.route('/account', accountRoutes(deps));

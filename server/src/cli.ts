@@ -11,6 +11,8 @@ import { banner } from './lan';
  *   npm run admin -- users
  *   npm run admin -- add-user <name>
  *   npm run admin -- reset-password <name>
+ *   npm run admin -- grant-admin <name> | revoke-admin <name>
+ *   npm run admin -- block <name> | unblock <name>
  *   npm run admin -- invite [note] [--days 14]
  *   npm run admin -- invites
  *   npm run admin -- backup [file]
@@ -30,6 +32,10 @@ const USAGE = `
   npm run admin -- users                   list the accounts
   npm run admin -- add-user <name>         make an account, even with sign-ups switched off
   npm run admin -- reset-password <name>   give an account a new password and sign it out everywhere
+  npm run admin -- grant-admin <name>      let an account run the site (/admin)
+  npm run admin -- revoke-admin <name>     make it a learner again; never the last one
+  npm run admin -- block <name>            pause an account: signed out everywhere, its tokens stopped
+  npm run admin -- unblock <name>          open a paused account again
   npm run admin -- invite [note] [--days N] an invitation for one new account (14 days; --days 0 for no end)
   npm run admin -- invites                 the invitations given out, and who used them
   npm run admin -- backup [file]           copy the database, safely, even while the server runs
@@ -58,7 +64,7 @@ try {
       const users = await withServices(({ auth }) => auth.listUsers());
       if (!users.length) console.log('\n  No accounts yet.\n');
       for (const u of users) {
-        console.log(`  ${u.username.padEnd(34)} since ${new Date(u.createdAt).toLocaleDateString()}`);
+        console.log(`  ${u.username.padEnd(34)} since ${new Date(u.createdAt).toLocaleDateString()}${u.role === 'admin' ? '   runs the site' : ''}`);
       }
       break;
     }
@@ -103,6 +109,24 @@ try {
       const user = await withServices(({ auth }) => auth.resetPassword(name, password));
       console.log(`\n  New password for ${user.username}:  ${password}`);
       console.log('  Every browser signed in to that account has been signed out.\n');
+      break;
+    }
+
+    case 'grant-admin':
+    case 'revoke-admin': {
+      const name = args[0];
+      if (!name) throw new Error(`Which account?\n${USAGE}`);
+      const user = await withServices(({ auth }) => auth.setRole(name, command === 'grant-admin' ? 'admin' : 'learner'));
+      console.log(`\n  ${user.username} ${user.role === 'admin' ? 'runs the site now' : 'is a learner now'}.\n`);
+      break;
+    }
+
+    case 'block':
+    case 'unblock': {
+      const name = args[0];
+      if (!name) throw new Error(`Which account?\n${USAGE}`);
+      const user = await withServices(({ auth }) => auth.setStatus(name, command === 'block' ? 'blocked' : 'active'));
+      console.log(command === 'block' ? `\n  ${user.username} is paused: signed out everywhere, its tokens stopped.\n` : `\n  ${user.username} can sign in again.\n`);
       break;
     }
 

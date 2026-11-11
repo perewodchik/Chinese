@@ -247,4 +247,12 @@ export const MIGRATIONS: readonly string[] = [
   );
   CREATE INDEX api_tokens_by_user ON api_tokens (user_id);
   `,
+  // What an account may do and whether it may sign in at all, kept by its
+  // id: who runs the site used to be a list of names in HANZI_ADMIN_USERS,
+  // and a name is not a person. Flags are JSON: { tutor, unlimited, photoInbox }.
+  `
+  ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'learner';
+  ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active';
+  ALTER TABLE users ADD COLUMN flags TEXT NOT NULL DEFAULT '{}';
+  `,
 ];

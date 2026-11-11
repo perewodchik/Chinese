@@ -8,6 +8,7 @@ import { AppError, RateLimitedError, RevisionConflictError, WorldConflictError }
 const STATUS: Record<ApiErrorCode, ContentfulStatusCode> = {
   validation: 400,
   invalid_credentials: 401,
+  account_blocked: 403,
   unauthorized: 401,
   registration_closed: 403,
   forbidden_origin: 403,

@@ -23,6 +23,9 @@ const user = (id: string, key = id) => ({
   passwordHash: `hash-of-${id}`,
   createdAt: T,
   updatedAt: T,
+  role: 'learner' as const,
+  status: 'active' as const,
+  flags: {},
 });
 
 describe('Postgres storage', () => {
@@ -246,5 +249,21 @@ describe('Postgres storage', () => {
     assert.equal((await stores.apiTokens.findByDigest('d-t1'))?.revokedAt, T + 60);
     assert.equal(await stores.apiTokens.revokeForUser('u1', T + 70), 1);
     assert.deepEqual(await stores.apiTokens.listForUser('u1'), []);
+  });
+
+  it('keeps a role, a status and flags, and counts the accounts with a role', async () => {
+    await stores.users.insert({ ...user('u-roles', 'zhang'), flags: { tutor: true } });
+    const made = await stores.users.findById('u-roles');
+    assert.equal(made?.role, 'learner');
+    assert.equal(made?.status, 'active');
+    assert.deepEqual(made?.flags, { tutor: true });
+    const before = await stores.users.countByRole('admin');
+    await stores.users.setRole('u-roles', 'admin', T + 1);
+    await stores.users.setStatus('u-roles', 'blocked', T + 2);
+    const changed = await stores.users.findById('u-roles');
+    assert.equal(changed?.role, 'admin');
+    assert.equal(changed?.status, 'blocked');
+    assert.equal(await stores.users.countByRole('admin'), before + 1);
+    assert.equal(typeof (await stores.users.countByRole('admin')), 'number');
   });
 });

@@ -33,7 +33,8 @@ export interface ServerConfig {
  *   HANZI_REGISTRATION   open | closed | invite (open at home, invite on Vercel)
  *   HANZI_TRUST_PROXY    1 behind a reverse proxy
  *   HANZI_TUTOR_USERS    who may ask Claude here, by name (admin,masha); everyone when unset
- *   HANZI_ADMIN_USERS    who runs the site, by name: invitations and the accounts, at /admin
+ *   HANZI_ADMIN_USERS    the first accounts to run the site, by name: given the admin role once,
+ *                        while no account has it; the role is kept in the database after that
  *
  * A server here runs on the same Postgres the deployed site runs on as soon as
  * it is given the connection string, so the development server and the site

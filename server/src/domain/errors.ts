@@ -32,6 +32,13 @@ export class InvalidCredentialsError extends AppError {
   }
 }
 
+/** Said only once the password was right, so it tells a guesser nothing. */
+export class AccountBlockedError extends AppError {
+  constructor() {
+    super('account_blocked', 'This account is paused. Ask whoever runs the site to open it again.');
+  }
+}
+
 export class UsernameTakenError extends AppError {
   /** `userId` is the account that could not be written, so what was claimed for it can be given back. */
   constructor(readonly userId?: string) {

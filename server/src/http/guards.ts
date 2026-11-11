@@ -2,7 +2,7 @@ import type { Context, MiddlewareHandler } from 'hono';
 import type { ActiveSession, AuthService } from '../application/auth-service';
 import { usernameKey } from '../../../shared/credentials';
 import type { AuditLog, Clock, RateLimitStore, Tutor } from '../application/ports';
-import type { TokenScope } from '../../../shared/api';
+import type { Role, TokenScope } from '../../../shared/api';
 import { ForbiddenError, ForbiddenOriginError, RateLimitedError, UnauthorizedError } from '../domain/errors';
 import type { AppEnv } from './env';
 import { clearSessionCookie, clientIp, isHttps, readSessionToken, writeSessionCookie } from './request';
@@ -120,6 +120,18 @@ export function requireSession(auth: AuthService, opts: SessionOptions, tokenSco
     const session = await currentSession(c, auth, opts);
     if (!session) throw new UnauthorizedError();
     c.set('session', session);
+    await next();
+  };
+}
+
+/**
+ * After `requireSession`: lets the request through only for an account with
+ * `role`. The role is the one `authenticate` just read from the database for
+ * this request; nothing the request says about itself counts.
+ */
+export function requireRole(role: Role): MiddlewareHandler<AppEnv> {
+  return async (c, next) => {
+    if (c.get('session').user.role !== role) throw new ForbiddenError();
     await next();
   };
 }

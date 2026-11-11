@@ -138,6 +138,11 @@ var InvalidCredentialsError = class extends AppError {
     super("invalid_credentials", "That name and password do not match an account.");
   }
 };
+var AccountBlockedError = class extends AppError {
+  constructor() {
+    super("account_blocked", "This account is paused. Ask whoever runs the site to open it again.");
+  }
+};
 var UsernameTakenError = class extends AppError {
   /** `userId` is the account that could not be written, so what was claimed for it can be given back. */
   constructor(userId) {
@@ -239,7 +244,8 @@ var normaliseInvite = (raw) => raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
 var toUserDto = (u) => ({
   id: u.id,
   username: u.username,
-  createdAt: u.createdAt
+  createdAt: u.createdAt,
+  role: u.role
 });
 var AuthService = class {
   constructor(deps) {
@@ -304,7 +310,12 @@ var AuthService = class {
       usernameKey: usernameKey(username),
       passwordHash: await hasher.hash(password),
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      // Never anything else from here: a role is given by a command on the
+      // server or by an account that already has it, not asked for.
+      role: "learner",
+      status: "active",
+      flags: {}
     };
     await before?.(user.id);
     if (!await users.insert(user)) throw new UsernameTakenError(user.id);
@@ -316,6 +327,7 @@ var AuthService = class {
     const user = plausible ? await users.findByUsernameKey(usernameKey(input.username)) : null;
     const matches = await hasher.verify(input.password, user?.passwordHash ?? await this.decoyHash());
     if (!user || !matches) throw new InvalidCredentialsError();
+    if (user.status === "blocked") throw new AccountBlockedError();
     return this.issue(user, input.userAgent);
   }
   /**
@@ -344,6 +356,7 @@ var AuthService = class {
         if (!user) throw err;
       }
     }
+    if (user.status === "blocked") return null;
     return this.issue(user, userAgent);
   }
   async logout(token) {
@@ -358,7 +371,7 @@ var AuthService = class {
     if (!session) return null;
     const now = clock.now();
     const user = session.expiresAt > now ? await users.findById(session.userId) : null;
-    if (!user) {
+    if (!user || user.status === "blocked") {
       await sessions.delete(id);
       return null;
     }
@@ -459,6 +472,7 @@ var AuthService = class {
     const refused = new ValidationError("That name and code do not go together, or the code has been used.", { code: "Not a code that works for this name." });
     if (!user || code.length !== RECOVERY_LENGTH) throw refused;
     if (!await recoveryCodes.use(user.id, this.recoveryDigest(user.id, code), clock.now())) throw refused;
+    if (user.status === "blocked") throw new AccountBlockedError();
     await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
     await sessions.deleteForUser(user.id);
     await this.deps.apiTokens.revokeForUser(user.id, clock.now());
@@ -477,6 +491,64 @@ var AuthService = class {
     await users.updatePassword(user.id, await hasher.hash(newPassword), clock.now());
     await sessions.deleteForUser(user.id);
     await this.deps.apiTokens.revokeForUser(user.id, clock.now());
+    return toUserDto(user);
+  }
+  /**
+   * The first accounts to run the site, from HANZI_ADMIN_USERS: given the
+   * role once, and only while no account has it, so the setting can be taken
+   * away afterwards and a name added to it later gives nobody anything. Only
+   * names that already have an account are given it. Says which names were
+   * given it, for the log, and whether there is an admin now.
+   */
+  async seedAdmins(names) {
+    const { users, clock } = this.deps;
+    if (!names.length || await users.countByRole("admin") > 0) return { given: [], settled: true };
+    const given = [];
+    for (const name of names) {
+      const user = await users.findByUsernameKey(usernameKey(name));
+      if (!user || user.role === "admin") continue;
+      await users.setRole(user.id, "admin", clock.now());
+      given.push(user.username);
+    }
+    return { given, settled: given.length > 0 };
+  }
+  /**
+   * For whoever runs the server (`npm run admin -- grant-admin` and
+   * `revoke-admin`), and later the admin pages: an account's role, by name.
+   * The last account that runs the site keeps the role, so the site is never
+   * left with nobody to run it.
+   */
+  async setRole(username, role) {
+    const { users, clock } = this.deps;
+    const user = await users.findByUsernameKey(usernameKey(username));
+    if (!user) throw new NotFoundError(`An account called \u201C${username}\u201D`);
+    if (user.role === role) return toUserDto(user);
+    if (user.role === "admin" && await users.countByRole("admin") <= 1) {
+      throw new ValidationError("That is the last account that runs the site. Give the role to another first.");
+    }
+    await users.setRole(user.id, role, clock.now());
+    return toUserDto({ ...user, role });
+  }
+  /**
+   * An account paused, or opened again. Pausing signs it out everywhere and
+   * stops its tokens; the work it kept stays. An account cannot pause itself
+   * (`byUserId`), and the last one that runs the site cannot be paused.
+   */
+  async setStatus(username, status, byUserId) {
+    const { users, sessions, apiTokens, clock } = this.deps;
+    const user = await users.findByUsernameKey(usernameKey(username));
+    if (!user) throw new NotFoundError(`An account called \u201C${username}\u201D`);
+    if (status === "blocked") {
+      if (user.id === byUserId) throw new ValidationError("An account cannot pause itself.");
+      if (user.role === "admin" && await users.countByRole("admin") <= 1) {
+        throw new ValidationError("That is the last account that runs the site, and cannot be paused.");
+      }
+    }
+    if (user.status !== status) await users.setStatus(user.id, status, clock.now());
+    if (status === "blocked") {
+      await sessions.deleteForUser(user.id);
+      await apiTokens.revokeForUser(user.id, clock.now());
+    }
     return toUserDto(user);
   }
   async listUsers() {
@@ -524,7 +596,7 @@ var AuthService = class {
     const now = clock.now();
     if (!found || found.revokedAt !== null || found.expiresAt <= now) return null;
     const user = await users.findById(found.userId);
-    if (!user) return null;
+    if (!user || user.status === "blocked") return null;
     if (found.lastUsedAt === null || now - found.lastUsedAt >= TOKEN_TOUCH_MS) await apiTokens.touch(found.id, now);
     return { user: toUserDto(user), sessionId: `token:${found.id}`, expiresAt: found.expiresAt, renewed: false, scopes: toTokenDto(found).scopes };
   }
@@ -2076,6 +2148,7 @@ import { HTTPException } from "hono/http-exception";
 var STATUS = {
   validation: 400,
   invalid_credentials: 401,
+  account_blocked: 403,
   unauthorized: 401,
   registration_closed: 403,
   forbidden_origin: 403,
@@ -2225,6 +2298,12 @@ function requireSession(auth, opts, tokenScope) {
     await next();
   };
 }
+function requireRole(role) {
+  return async (c, next) => {
+    if (c.get("session").user.role !== role) throw new ForbiddenError();
+    await next();
+  };
+}
 var RateLimiter = class {
   constructor(name, limit, windowMs, clock, store) {
     this.name = name;
@@ -2255,7 +2334,7 @@ var tokenRequest = z.object({
   days: z.number().int().min(1).max(TOKEN_DAYS_MAX),
   scopes: z.array(z.enum(TOKEN_SCOPES)).max(TOKEN_SCOPES.length).optional()
 });
-function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage, audit, ipHeader, log, adminUsers }) {
+function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage, audit, ipHeader, log }) {
   const routes = new Hono();
   const session = requireSession(auth, { trustProxy, clock });
   const deletes = new RateLimiter("account.deletes", 10, 15 * 6e4, clock, limits);
@@ -2280,7 +2359,7 @@ function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, 
     await tokenMakes.consume(user.id);
     const input = await readJson(c, tokenRequest);
     const scopes = input.scopes ?? ["texts:write"];
-    if (scopes.includes("catalog:write") && !adminUsers.includes(usernameKey(user.username))) {
+    if (scopes.includes("catalog:write") && user.role !== "admin") {
       throw new ForbiddenError("Only the accounts that run the site may publish to the catalogue.");
     }
     const made = await auth.makeAccessToken(user.id, { name: input.name, days: input.days, scopes });
@@ -2345,13 +2424,10 @@ function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, 
 import { Hono as Hono2 } from "hono";
 import { z as z2 } from "zod";
 var inviteRequest = z2.object({ note: z2.string().trim().max(120), days: z2.number().int().min(0).max(365) });
-function adminRoutes({ auth, clock, trustProxy, ipHeader, log, adminUsers, limits, usage, storage, audit }) {
+function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit }) {
   const routes = new Hono2();
   const session = requireSession(auth, { trustProxy, clock });
-  const admin = async (c, next) => {
-    if (!adminUsers.includes(usernameKey(c.get("session").user.username))) throw new ForbiddenError();
-    await next();
-  };
+  const admin = requireRole("admin");
   const invites = new RateLimiter("admin.invites", 50, 60 * 6e4, clock, limits);
   routes.get("/", session, admin, (c) => {
     c.header("Cache-Control", "no-store");
@@ -3385,7 +3461,6 @@ function createHttpApp(services, options) {
     trustProxy: options.trustProxy,
     ipHeader: options.ipHeader ?? null,
     tutorUsers: options.tutorUsers ? options.tutorUsers.map(usernameKey) : null,
-    adminUsers: (options.adminUsers ?? []).map(usernameKey),
     devUser: options.devUser ?? null,
     devUserCreate: options.devUserCreate ?? true,
     log: options.log
@@ -3394,6 +3469,21 @@ function createHttpApp(services, options) {
   api.onError(onError);
   api.use("*", sameOriginOnly());
   api.use("*", tooLarge(WORKSPACE_MAX_BYTES + 64 * 1024));
+  let seeded = null;
+  const seedAdmins = () => services.auth.seedAdmins(options.adminUsers ?? []).then(
+    ({ given, settled }) => {
+      if (!settled) seeded = null;
+      if (given.length) options.log(`Gave the admin role to ${given.join(", ")} (HANZI_ADMIN_USERS); the setting is no longer needed.`);
+    },
+    (err) => {
+      seeded = null;
+      options.log(`Could not give the admin role from HANZI_ADMIN_USERS: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  );
+  api.use("*", async (_c, next) => {
+    await (seeded ??= seedAdmins());
+    await next();
+  });
   api.get("/health", (c) => c.json({ ok: true }));
   api.route("/auth", authRoutes(deps));
   api.route("/account", accountRoutes(deps));
@@ -3717,6 +3807,14 @@ var MIGRATIONS = [
     revoked_at    BIGINT
   );
   CREATE INDEX api_tokens_by_user ON api_tokens (user_id);
+  `,
+  // What an account may do and whether it may sign in at all, kept by its
+  // id: who runs the site used to be a list of names in HANZI_ADMIN_USERS,
+  // and a name is not a person. Flags are JSON: { tutor, unlimited, photoInbox }.
+  `
+  ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'learner';
+  ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active';
+  ALTER TABLE users ADD COLUMN flags TEXT NOT NULL DEFAULT '{}';
   `
 ];
 
@@ -4222,6 +4320,23 @@ var PostgresSessionRepository = class {
   }
 };
 
+// server/src/infrastructure/user-fields.ts
+var roleOf = (raw) => raw === "admin" ? "admin" : "learner";
+function parseFlags(raw) {
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return {};
+  }
+  if (!parsed || typeof parsed !== "object") return {};
+  const flags = {};
+  for (const key of ["tutor", "unlimited", "photoInbox"]) {
+    if (parsed[key] === true) flags[key] = true;
+  }
+  return flags;
+}
+
 // server/src/infrastructure/postgres/user-repository.ts
 var toUser = (r) => ({
   id: r.id,
@@ -4229,7 +4344,10 @@ var toUser = (r) => ({
   usernameKey: r.username_key,
   passwordHash: r.password_hash,
   createdAt: r.created_at,
-  updatedAt: r.updated_at
+  updatedAt: r.updated_at,
+  role: roleOf(r.role),
+  status: r.status === "blocked" ? "blocked" : "active",
+  flags: parseFlags(r.flags)
 });
 var PostgresUserRepository = class {
   constructor(db) {
@@ -4247,12 +4365,22 @@ var PostgresUserRepository = class {
   }
   async insert(u) {
     const result = await this.db.query(
-      `INSERT INTO users (id, username, username_key, password_hash, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO users (id, username, username_key, password_hash, created_at, updated_at, role, status, flags)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        ON CONFLICT (username_key) DO NOTHING`,
-      [u.id, u.username, u.usernameKey, u.passwordHash, u.createdAt, u.updatedAt]
+      [u.id, u.username, u.usernameKey, u.passwordHash, u.createdAt, u.updatedAt, u.role, u.status, JSON.stringify(u.flags)]
     );
     return result.rowCount === 1;
+  }
+  async setRole(id, role, at) {
+    await this.db.query("UPDATE users SET role = $1, updated_at = $2 WHERE id = $3", [role, at, id]);
+  }
+  async setStatus(id, status, at) {
+    await this.db.query("UPDATE users SET status = $1, updated_at = $2 WHERE id = $3", [status, at, id]);
+  }
+  async countByRole(role) {
+    const { rows } = await this.db.query("SELECT COUNT(*)::int AS n FROM users WHERE role = $1", [role]);
+    return Number(rows[0]?.n ?? 0);
   }
   async delete(id) {
     await this.db.query("DELETE FROM users WHERE id = $1", [id]);
