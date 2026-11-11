@@ -24,7 +24,7 @@ import { charLevels, fitOf } from '../../domain/reading';
 import { readerSheet } from './readerSheet';
 import { partFill, partsOf } from './TextParts';
 import { useStartSession } from './startSession';
-import { bookcase, bookOf, chapterHead, chineseNumber, isFrontMatter, type Book } from '../../domain/bookshelf';
+import { bookcase, bookOf, chapterHead, chineseNumber, isFrontMatter, SHELF_FINISHED, type Book } from '../../domain/bookshelf';
 import { BookChars, BookWords, type BookWord, type Chapter } from './BookStudy';
 import { shelveBook } from '../../store/commands';
 import { BookCover } from './BookCover';
@@ -78,6 +78,7 @@ export function ReadPage() {
   const startSession = useStartSession();
   const shelf = useMemo(() => shelve(texts, sets), [texts, sets]);
   const go = useContinue();
+  const [showFinished, setShowFinished] = useState(false);
   // With fewer than twenty characters marked every book reads as hard, which says nothing: covers say it from twenty on.
   const marked = useStore((s) => [...s.learned].filter((id) => id.startsWith('c')).length);
   // Kept in the address (?q=) as it is typed, so a reload finds the same search.
@@ -210,12 +211,20 @@ export function ReadPage() {
                     <span className="small muted">
                       {sh.books.length} book{sh.books.length === 1 ? '' : 's'}
                     </span>
+                    {/* What is finished is folded away: it is there to come back to, not to choose from. */}
+                    {sh.name === SHELF_FINISHED && (
+                      <button className="btn quiet sm bookshelf-fold" aria-expanded={showFinished} onClick={() => setShowFinished((v) => !v)}>
+                        {showFinished ? 'Hide' : 'Show'}
+                      </button>
+                    )}
                   </div>
+                  {(sh.name !== SHELF_FINISHED || showFinished) && (
                   <div className="bookshelf-row">
                     {sh.books.map((b) => (
                       <BookOnShelf key={b.set.id} book={b} texts={shelf.bySet.get(b.set.id) ?? []} reading={go?.set?.id === b.set.id} judge={marked >= 20} />
                     ))}
                   </div>
+                  )}
                   <span className="bookshelf-ledge" aria-hidden />
                 </section>
               ))}
@@ -237,7 +246,7 @@ export function ReadPage() {
 
           {shelf.loose.length > 0 && (
             <section className="block">
-              <h2 className="block-title">Not on a shelf</h2>
+              <h2 className="block-title">Single texts</h2>
               <div className="list">
                 {shelf.loose.map((t) => (
                   <TextRow key={t.id} text={t} to={paths.text(t.id)} />

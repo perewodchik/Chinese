@@ -950,3 +950,9 @@
 .book-fit[data-hidden] {
   visibility: hidden;
 }
+
+/* Show and Hide on the Finished shelf take the same room, at the head's far end. */
+.bookshelf-fold {
+  margin-left: auto;
+  min-width: 64px;
+}

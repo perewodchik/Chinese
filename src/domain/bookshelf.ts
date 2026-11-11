@@ -1,4 +1,4 @@
-import { fromBook, isRetelling, plainTitle, type GeneratedText, type TextSet } from './text';
+import { isRetelling, plainTitle, shelfEntries, type GeneratedText, type TextSet } from './text';
 
 /**
  * Read as a bookcase: shelves, books on them, chapters in the books.
@@ -28,9 +28,15 @@ export interface Book {
   shelf: string;
 }
 
-export const SHELF_STORIES = 'Stories';
-export const SHELF_FROM_BOOKS = 'From books';
-export const SHELF_MINE = 'My texts';
+/**
+ * The shelves a book stands on when it has not been put on one by hand (V5):
+ * by where the reading of it is, which is what a learner looks for, not by
+ * where it came from.
+ */
+export const SHELF_READING = 'Reading now';
+export const SHELF_NEXT = 'Next up';
+export const SHELF_FINISHED = 'Finished';
+const STATE_ORDER = [SHELF_READING, SHELF_NEXT, SHELF_FINISHED];
 
 /** "西游记 (easier)" → 西游记: the edition is the sticker's to say. */
 export const bookTitle = (name: string) => name.replace(/\s*\((easier|original)\)\s*$/i, '').trim();
@@ -170,9 +176,14 @@ export function coverColor(title: string): { bg: string; spine: string } {
 }
 
 /** Where a book goes until it is put somewhere: stories together, a real book's pages, then your own texts. */
-export function defaultShelf(kind: Book['kind'], texts: GeneratedText[]): string {
-  if (kind === 'story') return SHELF_STORIES;
-  return texts.some((t) => fromBook(t)) ? SHELF_FROM_BOOKS : SHELF_MINE;
+/** Where the reading of a book is: begun and not finished, not begun, or every chapter read. */
+export function stateShelf(texts: GeneratedText[]): string {
+  const entries = shelfEntries(texts);
+  if (!entries.length) return SHELF_NEXT;
+  const read = entries.filter((e) => e.main.read || e.easier?.read).length;
+  if (read === entries.length) return SHELF_FINISHED;
+  const opened = entries.some((e) => e.main.read || e.main.lastReadAt || e.easier?.read || e.easier?.lastReadAt);
+  return opened ? SHELF_READING : SHELF_NEXT;
 }
 
 export function bookOf(set: TextSet, texts: GeneratedText[]): Book {
@@ -188,35 +199,46 @@ export function bookOf(set: TextSet, texts: GeneratedText[]): Book {
     art,
     scene,
     color: kind === 'story' ? { bg: scene.band, spine: scene.near } : coverColor(title),
-    shelf: set.shelf?.trim() || defaultShelf(kind, texts),
+    shelf: set.shelf?.trim() || stateShelf(texts),
   };
 }
 
 /**
- * The bookcase: each shelf with its books. Stories first, then the shelves
- * in the order their newest book was made; in a shelf, both editions of a
- * book side by side, the original first.
+ * The bookcase: each shelf with its books. Reading now, then Next up, then
+ * Finished, then the shelves put up by hand in the order their newest book
+ * was made. Both editions of a book stand side by side, the original first,
+ * on the shelf of whichever of them is furthest on: an easier edition begun
+ * puts the book on Reading now.
  */
 export function bookcase(sets: TextSet[], bySet: Map<string, GeneratedText[]>): Array<{ name: string; books: Book[] }> {
-  const shelves = new Map<string, Book[]>();
-  for (const set of sets) {
-    const b = bookOf(set, bySet.get(set.id) ?? []);
-    const list = shelves.get(b.shelf);
-    if (list) list.push(b);
-    else shelves.set(b.shelf, [b]);
+  const books = sets.map((set) => bookOf(set, bySet.get(set.id) ?? []));
+  // Editions not put on a shelf by hand go together, onto the furthest one's shelf.
+  const rank = (shelf: string) => STATE_ORDER.indexOf(shelf);
+  const together = new Map<string, string>();
+  for (const b of books) {
+    if (b.set.shelf?.trim()) continue;
+    const now = together.get(b.title);
+    if (now === undefined || rank(b.shelf) < rank(now)) together.set(b.title, b.shelf);
   }
-  const newest = (books: Book[]) => Math.max(...books.map((b) => b.set.createdAt));
+  const shelves = new Map<string, Book[]>();
+  for (const b of books) {
+    const shelf = b.set.shelf?.trim() ? b.shelf : (together.get(b.title) ?? b.shelf);
+    const placed = shelf === b.shelf ? b : { ...b, shelf };
+    shelves.set(shelf, [...(shelves.get(shelf) ?? []), placed]);
+  }
+  const newest = (list: Book[]) => Math.max(...list.map((b) => b.set.createdAt));
+  const order = (name: string) => (rank(name) >= 0 ? rank(name) : STATE_ORDER.length);
   return [...shelves.entries()]
-    .map(([name, books]) => {
+    .map(([name, list]) => {
       // By title, newest first; within a title the original, then the easier edition.
       const byTitle = new Map<string, Book[]>();
-      for (const b of books) byTitle.set(b.title, [...(byTitle.get(b.title) ?? []), b]);
+      for (const b of list) byTitle.set(b.title, [...(byTitle.get(b.title) ?? []), b]);
       const ordered = [...byTitle.values()]
         .sort((x, y) => newest(y) - newest(x))
         .flatMap((eds) => [...eds].sort((a, b) => Number(a.easier) - Number(b.easier) || b.set.createdAt - a.set.createdAt));
       return { name, books: ordered };
     })
-    .sort((a, b) => (a.name === SHELF_STORIES ? -1 : b.name === SHELF_STORIES ? 1 : newest(b.books) - newest(a.books)));
+    .sort((a, b) => order(a.name) - order(b.name) || newest(b.books) - newest(a.books));
 }
 
 /** The plain title of a chapter, without the "(easier)" its retelling's English title carries. */

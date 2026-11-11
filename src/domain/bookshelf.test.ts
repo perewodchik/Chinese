@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import { reduce } from '../store/actions';
 import { hydrate, serialise } from '../store/migrations';
 import { emptyState } from '../store/state';
-import { bookcase, bookOf, chapterHead, coverArt, coverColor, kindOf, SHELF_FROM_BOOKS, SHELF_MINE, SHELF_STORIES } from './bookshelf';
+import { bookcase, bookOf, chapterHead, coverArt, coverColor, kindOf, SHELF_FINISHED, SHELF_NEXT, SHELF_READING } from './bookshelf';
 import { BOOK, type GeneratedText, type TextSet } from './text';
 
 // Texts shaped as the learner's are (November 2026): only what a shelf reads of them.
@@ -52,18 +52,36 @@ describe('books on shelves', () => {
   });
 
   it('puts a book on its shelf: stories, real books, your own texts, or where you put it', () => {
-    assert.equal(bookOf(set('皮卡丘饿了'), pikachu).shelf, SHELF_STORIES);
-    assert.equal(bookOf(set('十万个为什么'), why).shelf, SHELF_FROM_BOOKS);
-    assert.equal(bookOf(set('Reading, 14 September'), practice).shelf, SHELF_MINE);
+    assert.equal(bookOf(set('皮卡丘饿了'), pikachu).shelf, SHELF_NEXT, 'nothing read yet');
+    assert.equal(bookOf(set('十万个为什么'), why.map((t) => ({ ...t, read: true }))).shelf, SHELF_FINISHED, 'every chapter read');
+    assert.equal(bookOf(set('Reading, 14 September'), [{ ...practice[0]!, read: true }, practice[1]!]).shelf, SHELF_READING, 'one of two read');
+    assert.equal(bookOf(set('Reading, 14 September'), [{ ...practice[0]!, lastReadAt: 5 }, practice[1]!]).shelf, SHELF_READING, 'one opened');
     assert.equal(bookOf(set('Reading, 14 September', { shelf: 'Trips' }), practice).shelf, 'Trips');
   });
 
-  it('lists Stories first, and both editions of a book side by side, the original first', () => {
-    const sets = [set('Reading, 14 September', { createdAt: 9 }), set('西游记 (easier)', { createdAt: 5 }), set('皮卡丘饿了', { createdAt: 3 }), set('西游记 (original)', { createdAt: 4 })];
-    const by = new Map<string, GeneratedText[]>([['Reading, 14 September', practice], ['西游记 (easier)', monkeyEasy], ['皮卡丘饿了', pikachu], ['西游记 (original)', monkey]]);
+  it('puts Reading now first, then Next up, Finished and the shelves made by hand, both editions of a book side by side', () => {
+    const sets = [
+      set('Reading, 14 September', { createdAt: 9 }),
+      set('西游记 (easier)', { createdAt: 5 }),
+      set('皮卡丘饿了', { createdAt: 3 }),
+      set('西游记 (original)', { createdAt: 4 }),
+      set('十万个为什么', { createdAt: 2 }),
+      set('Trips', { createdAt: 1, shelf: 'Trips' }),
+    ];
+    const by = new Map<string, GeneratedText[]>([
+      ['Reading, 14 September', practice],
+      // The easier edition begun takes the original along onto Reading now.
+      ['西游记 (easier)', monkeyEasy.map((t) => ({ ...t, lastReadAt: 7 }))],
+      ['皮卡丘饿了', pikachu],
+      ['西游记 (original)', monkey],
+      ['十万个为什么', why.map((t) => ({ ...t, read: true }))],
+      ['Trips', practice],
+    ]);
     const shelves = bookcase(sets, by);
-    assert.deepEqual(shelves.map((s) => s.name), [SHELF_STORIES, SHELF_MINE]);
-    assert.deepEqual(shelves[0]!.books.map((b) => `${b.title}${b.easier ? ' 简' : ''}`), ['西游记', '西游记 简', '皮卡丘饿了']);
+    assert.deepEqual(shelves.map((s) => s.name), [SHELF_READING, SHELF_NEXT, SHELF_FINISHED, 'Trips']);
+    assert.deepEqual(shelves[0]!.books.map((b) => `${b.title}${b.easier ? ' 简' : ''}`), ['西游记', '西游记 简']);
+    assert.deepEqual(shelves[0]!.books.map((b) => b.shelf), [SHELF_READING, SHELF_READING]);
+    assert.deepEqual(shelves[1]!.books.map((b) => b.title), ['Reading, 14 September', '皮卡丘饿了']);
   });
 
   it('keeps a shelf put by hand through saving and loading, and takes it back on null', () => {
