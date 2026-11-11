@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { basisPool, emptySpec, renumber, taughtAlready } from '../../domain/teach';
 import {
@@ -19,6 +19,7 @@ import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { ImportStep } from './ImportStep';
 import { PromptStep } from './PromptStep';
+import { SimplePlan } from './SimplePlan';
 import { SpecCard } from './SpecCard';
 
 /** The writing session in progress, at /texts/session/plan, …/prompt and …/paste. */
@@ -77,7 +78,9 @@ function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
 
   const specs = plan.specs;
   const budget = specs.reduce((n, s) => n + s.newCount, 0);
-  const canGo = plan.basis.length >= 10 && specs.length > 0;
+  // Nothing marked known is no reason to stop: the prompt then asks for the band (domain/prompt.ts).
+  const canGo = specs.length > 0;
+  const [more, setMore] = useState(false);
 
   // Too little in the plan to prompt for: an address typed by hand goes back to planning.
   if (!canGo && step !== 'plan') return <Navigate to={paths.session('plan')} replace />;
@@ -141,8 +144,8 @@ function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
           aria-label="Name of this session"
         />
         <div className="spacer" />
-        <button className="btn danger sm" onClick={discard}>
-          Discard session
+        <button className="btn danger sm" onClick={discard} title="Throw this session away">
+          Discard
         </button>
       </div>
 
@@ -166,6 +169,18 @@ function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
       </nav>
 
       {step === 'plan' && (
+        <SimplePlan
+          specs={specs}
+          marked={pool.length}
+          band={Math.min(...specs.map((sp) => sp.hsk))}
+          more={more}
+          onMore={() => setMore((m) => !m)}
+          onChange={update}
+          onBuild={() => go('prompt')}
+        />
+      )}
+
+      {step === 'plan' && more && (
         <div className="split studio-split">
           <div>
             <div className="board-bar row">
@@ -338,13 +353,7 @@ function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
                 </label>
               )}
             </div>
-            <footer className="card-foot">
-              <span className="tiny muted">Step 1 of 3</span>
-              <div className="spacer" />
-              <button className="btn primary" disabled={!canGo} onClick={() => go('prompt')}>
-                Build the prompt →
-              </button>
-            </footer>
+
           </div>
         </div>
       )}

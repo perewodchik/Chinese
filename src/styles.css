@@ -1607,9 +1607,10 @@ h2 {
   letter-spacing: -0.015em;
   padding: 4px 8px;
   width: auto;
-  min-width: 180px;
+  /* It gives way before the bar's buttons do, so on a phone they stay on its line. */
+  min-width: 0;
   max-width: 420px;
-  flex: 0 1 auto;
+  flex: 1 1 180px;
   border-radius: 8px;
 }
 
@@ -2430,16 +2431,36 @@ select.mt {
   color: var(--ink);
 }
 
+/* On a phone the three steps stay one row: the number and the name, without the line under it. */
 @media (max-width: 720px) {
   .stepper {
-    grid-template-columns: 1fr;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .stepper .step {
+    gap: 6px;
+    padding: 7px 8px;
+    min-height: 40px;
+  }
+
+  .stepper .txt b {
+    font-size: 12.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stepper .txt i {
+    display: none;
   }
 }
 
 /* ------------------------------------------------------- the passage cards */
 .spec-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  /* Never wider than a phone: below 340px of room a card takes what there is. */
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
   gap: 12px;
 }
 
@@ -2500,6 +2521,7 @@ select.mt {
 
 .spec-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 9px;
 }

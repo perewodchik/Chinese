@@ -899,3 +899,39 @@
 .publish-go {
   min-width: 128px;
 }
+
+/* The writing form's short version: three questions and the button, on one phone screen. */
+.simple-plan {
+  display: grid;
+  gap: 16px;
+  max-width: 560px;
+  margin-bottom: 24px;
+}
+
+.simple-plan-note {
+  margin: 0;
+}
+
+.simple-plan-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.simple-plan-chevron {
+  transition: transform 140ms;
+}
+
+.simple-plan-foot [aria-expanded='true'] .simple-plan-chevron {
+  transform: rotate(90deg);
+}
+
+/* Copy and Copied take the same room. */
+.prompt-copy {
+  min-width: 76px;
+}
+
+/* The prompt's bar: on a phone its buttons go under the tabs rather than past the edge. */
+.card > header.prompt-head {
+  flex-wrap: wrap;
+}

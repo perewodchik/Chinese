@@ -256,10 +256,23 @@ export function buildPrompt(plan: TextPlan, extra: PromptExtras = {}): string {
   );
   out.push('');
 
-  out.push(`## What I can already read — ${plan.basis.length} characters`);
-  out.push('');
-  out.push(plan.basis.join(''));
-  out.push('');
+  // Fewer than ten marked is not a list to write from (the form asks for ten
+  // at least): the band each passage names stands in for it.
+  if (plan.basis.length >= 10) {
+    out.push(`## What I can already read — ${plan.basis.length} characters`);
+    out.push('');
+    out.push(plan.basis.join(''));
+    out.push('');
+  } else {
+    // Nothing marked yet is where every new learner starts.
+    const band = Math.min(...plan.specs.map((sp) => sp.hsk));
+    out.push('## What I can already read');
+    out.push('');
+    out.push(
+      `I have not told the app which characters I know yet. Assume I can read the characters of HSK ${band}${band > 1 ? ' and the bands before it' : ''}, and nothing past them: keep to those, and treat anything else as new.`,
+    );
+    out.push('');
+  }
 
   if (extra.words?.length && extra.wordsKnown) {
     out.push(`## Words I know — ${extra.words.length}`);
@@ -478,8 +491,6 @@ export function buildBrief(plan: TextPlan, extra: PromptExtras = {}): string {
 
 /** A one-line reminder of what to do with the prompt, shown next to it. */
 export const HANDOFF_STEPS = [
-  'Copy the prompt.',
-  'Open Claude — a new chat, Opus, extended thinking on if you have it.',
-  'Paste, send, and wait for the JSON block.',
-  'Copy the whole reply and bring it back to the Paste step.',
+  'Open claude.ai (the free plan is enough), start a new chat, paste the prompt and send it.',
+  'When it has answered, copy the whole answer and bring it back here.',
 ];

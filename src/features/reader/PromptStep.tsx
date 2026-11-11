@@ -9,6 +9,7 @@ import { oneOf, useQuery } from '../../navigation/query';
 import { copyText } from '../../platform/clipboard';
 import { downloadText } from '../../platform/files';
 import { patchPlan } from '../../store/commands';
+import './shelves.css';
 import { useStore } from '../../store/store';
 import { useToast } from '../../ui/toast';
 import { AskClaude } from '../shared/AskClaude';
@@ -94,7 +95,7 @@ export function PromptStep({ plan, onNext, onBack }: Props) {
   return (
     <div className="split studio-split">
       <div className="card">
-        <header>
+        <header className="prompt-head">
           <div className="chips">
             <button className="chip" aria-pressed={tab === 'prompt'} onClick={() => setTab('prompt')}>
               Prompt
@@ -110,8 +111,9 @@ export function PromptStep({ plan, onNext, onBack }: Props) {
           <button className="btn sm" onClick={() => downloadText(fileName(plan, tab), text)}>
             Save as file
           </button>
-          <button className="btn primary sm" onClick={copy}>
-            {copied ? '✓ Copied' : 'Copy'}
+          {/* Tonal: the step's one primary is "I have the answer". */}
+          <button className="btn tonal sm prompt-copy" onClick={copy}>
+            {copied ? 'Copied' : 'Copy'}
           </button>
         </header>
         <pre className="prompt-pre">{text}</pre>

@@ -113,7 +113,23 @@ new»), и подчёркивает красным всё подряд.
 до Sweep один тап.
 
 <a id="n4"></a>
-### N4 (В) Форма «Write texts with Claude»: один экран
+### N4 (В) ✔ Форма «Write texts with Claude»: один экран
+
+**Сделано (2026-11-11).** `SimplePlan.tsx`: «What about», «How many texts»
+(1/3/5), «How hard» (Easy / A little harder / Hard) и **Build the prompt** —
+одна главная кнопка, не выключается; всё прежнее — под «More options»
+(шеврон, `aria-expanded`). Меньше 10 отмеченных — строка «Nothing is marked
+known yet, so they are written for HSK N. Mark what you know…», а промпт
+вместо пустого списка говорит «Assume I can read the characters of HSK N…»
+(`domain/prompt.ts`, тест). Инструкция «Taking it to Claude» — две строки
+(claude.ai, бесплатного плана хватает). На 375: карточки текстов
+(`minmax(min(340px, 100%), 1fr)`), строки карточки переносятся, степпер —
+одна строка без подсказок, «Discard» и название на одной строке, шапка
+промпта переносится; Copy — tonal. Простой вид — 600/600 px на 375×667.
+
+**Замечено.** Где Claude есть на сервере (dev), на шаге Prompt две
+главные кнопки: «Ask Claude here» и «I have the answer» (было и раньше).
+
 
 **Что не так.** `src/features/reader/SessionPage.tsx` + `SpecCard.tsx`:
 три карточки по семь групп настроек, затем «What it may assume», «Also let

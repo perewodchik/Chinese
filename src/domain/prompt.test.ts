@@ -73,3 +73,18 @@ describe('stories, speakers and scenes in the prompt', () => {
     assert.doesNotMatch(buildPrompt(plan), /## Scenes/);
   });
 });
+
+describe('a writing prompt before anything is marked known', () => {
+  it('names the band in place of an empty list of characters', () => {
+    const empty = { ...plan, basis: [], specs: plan.specs.map((s) => ({ ...s, hsk: 2 })) };
+    const text = buildPrompt(empty);
+    assert.match(text, /## What I can already read\n\nI have not told the app which characters I know yet\. Assume I can read the characters of HSK 2 and the bands before it/);
+    assert.doesNotMatch(text, /— 0 characters/);
+  });
+
+  it('lists the characters once there are ten', () => {
+    const ten = [...'你好我是人大小中国学'];
+    assert.match(buildPrompt({ ...plan, basis: ten }), /## What I can already read — 10 characters\n\n你好我是人大小中国学/);
+    assert.match(buildPrompt({ ...plan, basis: ten.slice(0, 9) }), /I have not told the app which characters I know yet/);
+  });
+});
