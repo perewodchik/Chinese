@@ -50,7 +50,7 @@ describe('the development sign-in, on a database it does not own', () => {
 
   it('signs in as an account that is there', async () => {
     const { app, services } = makeApp({}, { trustProxy: true, devUser: 'admin', devUserCreate: false });
-    await services.auth.addUser('admin', 'adminadmin');
+    await services.auth.addUser('admin', 'a test password');
 
     const res = await call(app, 'GET', '/api/auth/session', here);
     const body = (await res.json()) as { user: { username: string } | null };

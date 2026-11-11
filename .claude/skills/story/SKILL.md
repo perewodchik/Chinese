@@ -32,7 +32,7 @@ From the arguments (`$ARGUMENTS`) and anything said with them:
 
 Every `npm run texts` command here starts with the same variables as the
 `sets` command in step 2 of `.claude/skills/add-text/SKILL.md` — the site, the
-account and its password, and `NODE_USE_ENV_PROXY=1` — and fails the same ways,
+account (its password comes from `HANZI_PASSWORD` in the environment, never from a file here), and `NODE_USE_ENV_PROXY=1` — and fails the same ways,
 handled as that step says.
 
 ```bash

@@ -75,10 +75,10 @@ subscription, like any Claude Code session.
 - **No questions.** The skill asks which shelf and whether to simplify; here
   both are answered in the sheet before sending. Characters the transcription
   was unsure of are listed on the text with the photo beside them, to check.
-- **The account.** The skill signs in with the admin password, which is in this
-  public repository. For the routine, give the inbox its own token (an env var
-  on both sides) that can only read inbox items and add texts — and change the
-  account password.
+- **The account.** The skill signs in with the account's password, read from
+  `HANZI_PASSWORD` in the environment. For the routine, give the inbox its own
+  token (an env var on both sides) that can only read inbox items and add
+  texts (`docs/audit/06-security.md`, SEC2).
 - **Storage.** Photos in Postgres are fine at this size; delete them once the
   text is in, or after a week.
 
