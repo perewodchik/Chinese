@@ -1475,6 +1475,30 @@ h2 {
   animation: pop 0.16s ease-out;
 }
 
+/* A message that offers to undo: the button in it, in the paper's colour on the ink. */
+.toast[data-action] {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 8px 6px 18px;
+  /* Its own width, not what is left right of the middle of the screen. */
+  width: max-content;
+  max-width: calc(100vw - 2 * var(--gutter));
+}
+
+.toast-action {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--paper);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 @keyframes pop {
   from {
     transform: translate(-50%, 8px);

@@ -127,6 +127,21 @@ export function SetPage() {
     navigate(paths.collection(c.id));
   }
 
+  /**
+   * The whole band marked as known at once, for someone who has studied it
+   * elsewhere: asked first, said in a toast that can take it back. Only what
+   * was not marked already is marked, so Undo leaves the rest as it was.
+   */
+  function knowAll() {
+    if (!set) return;
+    const fresh = [...set.chars.map(charId), ...set.words.map(wordId)].filter((id) => !learned.has(id));
+    if (!fresh.length) return toast(`Everything in ${set.name} is marked already`);
+    const counted = [set.chars.length && `${set.chars.length.toLocaleString('en')} characters`, set.words.length && `${set.words.length.toLocaleString('en')} words`].filter(Boolean).join(' and ');
+    if (!confirm(`Mark the ${counted} of ${set.name} as learned? Cards will check them again within a few days.`)) return;
+    setLearned(fresh, true);
+    toast(`Marked ${itemsLabel(fresh)} as learned`, { label: 'Undo', run: () => setLearned(fresh, false) });
+  }
+
   function mark(value: boolean) {
     const picked = [...selection.selected];
     setLearned(picked, value);
@@ -165,9 +180,15 @@ export function SetPage() {
                   <span className="tiny muted">one {tab === 'chars' ? 'character' : 'word'} at a time, stroke by stroke</span>
                 </button>
               )}
+              {band && (
+                <button role="menuitem" className="btn ghost sm" onClick={() => (close(), knowAll())}>
+                  I know all of these
+                  <span className="tiny muted">every character and word of {set.name}, at once</span>
+                </button>
+              )}
               {band && Number(band) <= 4 && (
                 <button role="menuitem" className="btn ghost sm" onClick={() => (close(), navigate(paths.sweep(Number(band))))}>
-                  Sort what you know
+                  Check them one by one
                   <span className="tiny muted">known, not sure or new, word by word</span>
                 </button>
               )}

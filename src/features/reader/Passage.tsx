@@ -6,7 +6,10 @@ import { segment, writerHints } from '../../domain/segment';
 import { itemForToken } from '../../domain/words';
 import { pictureAbove } from '../../domain/pictures';
 import { hskLabel, isHanzi, type GeneratedText } from '../../domain/text';
+import { Link } from 'react-router';
 import { useOpenItem } from '../../navigation/itemDrawer';
+import { paths } from '../../navigation/paths';
+import { useStore } from '../../store/store';
 import { useLevelOf, useWordLevel } from '../shared/levels';
 import { LevelBar } from '../../ui/LevelMark';
 import { useLibrary } from '../shared/library';
@@ -193,6 +196,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
   }, [text.lines, levelOfId]);
   // Its different characters met at least once, by your own answers: the same count as the bar under it.
   const charTotal = charLevels.reduce((a, b) => a + b, 0);
+  const band = useStore((st) => st.settings.hskBand);
   // The words not known yet, each once: what the head counts as new.
   const newWords = useMemo(() => {
     const seen = new Set<string>();
@@ -301,8 +305,18 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
             <LevelBar levels={charLevels} />
           </span>
           <span>
-            About {minutes} minute{minutes === 1 ? '' : 's'}. You know {Math.round(((charTotal - charLevels[0]) / (charTotal || 1)) * 100)}% of it
-            {newWords ? `, and ${newWords} word${newWords === 1 ? ' is' : 's are'} new.` : '.'}
+            About {minutes} minute{minutes === 1 ? '' : 's'}.{' '}
+            {charTotal > 0 && charLevels[0] === charTotal ? (
+              // Nothing known yet is almost always nothing marked yet: say how, rather than 0%.
+              <Link className="rd-know-mark" to={paths.sweep(band <= 4 ? band : undefined)}>
+                Mark what you know
+              </Link>
+            ) : (
+              <>
+                You know {Math.round(((charTotal - charLevels[0]) / (charTotal || 1)) * 100)}% of it
+                {newWords ? `, and ${newWords} word${newWords === 1 ? ' is' : 's are'} new.` : '.'}
+              </>
+            )}
           </span>
         </div>
       </header>

@@ -451,3 +451,28 @@
   align-items: center;
   gap: 5px;
 }
+
+/* Above the HSK bands while almost nothing is marked: the way to say what is known already. */
+.lib-tell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  margin-bottom: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.lib-tell .grow {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lib-tell > svg {
+  color: var(--accent);
+  flex: none;
+}

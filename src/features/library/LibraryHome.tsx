@@ -73,6 +73,8 @@ export function LibraryHome() {
   const levelOf = useLevelOf();
   const know = useWordKnowledge();
   const band = useStore((s) => s.settings.hskBand);
+  // Fewer than twenty characters marked: the app takes every text to be all new, so it says how to tell it.
+  const marked = useStore((s) => [...s.learned].filter((id) => id.startsWith('c')).length);
   const waiting = pendingSheets(useStore((s) => s.sheets));
   const progress = useSetProgress();
   // Kept in the address (?q=) as it is typed, so a reload finds the same search.
@@ -242,6 +244,15 @@ export function LibraryHome() {
 
               <section className="block">
                 <h2 className="block-title">HSK</h2>
+                {marked < 20 && (
+                  <Link className="lib-tell" to={paths.sweep(band <= 4 ? band : undefined)}>
+                    <span className="grow">
+                      <b>Tell the app what you already know</b>
+                      <span className="small muted">Go through {band <= 4 ? `the HSK ${band} words` : 'the words'}: known, not sure or new. Texts and cards follow what you say.</span>
+                    </span>
+                    <Icon name="chevron" />
+                  </Link>
+                )}
                 <div className="list">
                   {bands.map((s) => (
                     <BandRow key={s.id} set={s} progress={progress(s)} now={`hsk-${band}` === s.id} />
