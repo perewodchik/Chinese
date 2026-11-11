@@ -121,7 +121,17 @@ export function ReadPage() {
       <header className="page-head">
         <h1>Read</h1>
         <span className="spacer" />
-        <Menu label={<Icon name="plus" size={22} />} title="Add" className="icon-btn accent">
+        {/* A word on it, not a bare +: a new learner does not know + means "a text to read" (V3). */}
+        <Menu
+          label={
+            <>
+              <Icon name="plus" size={18} />
+              Add
+            </>
+          }
+          title="Add a text or a book"
+          className="btn tonal sm read-add"
+        >
           {(close) => (
             <>
               <button role="menuitem" className="btn ghost sm" onClick={() => (close(), startSession(null))}>

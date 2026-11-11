@@ -935,3 +935,9 @@
 .card > header.prompt-head {
   flex-wrap: wrap;
 }
+
+/* Read's Add: the + and its word, the size of a small button. */
+.read-add {
+  gap: 4px;
+  padding-left: 10px;
+}
