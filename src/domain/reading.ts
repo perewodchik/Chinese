@@ -290,3 +290,35 @@ export function bandSpread(text: Pick<GeneratedText, 'lines'>, lib: Library): Ma
   }
   return out;
 }
+
+/**
+ * The different characters of some lines, counted at each level 0–3 (not
+ * known, met, known, solid): a text's head draws its bar from this, and a
+ * book's cover says from it how far within reach the book is.
+ */
+export function charLevels(lines: readonly string[], levelOfChar: (c: string) => number): [number, number, number, number] {
+  const out: [number, number, number, number] = [0, 0, 0, 0];
+  const seen = new Set<string>();
+  for (const line of lines)
+    for (const c of line) {
+      if (!isHanzi(c) || seen.has(c)) continue;
+      seen.add(c);
+      const level = Math.max(0, Math.min(3, levelOfChar(c)));
+      out[level] += 1;
+    }
+  return out;
+}
+
+export type Fit = 'comfortable' | 'stretch' | 'hard';
+
+/**
+ * How far within reach, from the share of characters met at least once:
+ * 90% and over is comfortable, 75% a stretch, below that hard. Null with no
+ * characters to count.
+ */
+export function fitOf(levels: readonly number[]): Fit | null {
+  const total = levels.reduce((a, b) => a + b, 0);
+  if (!total) return null;
+  const share = (total - (levels[0] ?? 0)) / total;
+  return share >= 0.9 ? 'comfortable' : share >= 0.75 ? 'stretch' : 'hard';
+}

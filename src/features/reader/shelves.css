@@ -941,3 +941,12 @@
   gap: 4px;
   padding-left: 10px;
 }
+
+/* Under a cover: how far within reach the book is, in a word (V4). Its line is kept when empty. */
+.book-fit {
+  color: var(--ink-2);
+}
+
+.book-fit[data-hidden] {
+  visibility: hidden;
+}

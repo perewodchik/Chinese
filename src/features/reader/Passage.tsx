@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Library } from '../../data/types';
 import { charId, type ItemId } from '../../domain/ids';
-import { alignPinyin, paragraphs, stepsAbove, wordBands, type Token } from '../../domain/reading';
+import { alignPinyin, charLevels as countLevels, paragraphs, stepsAbove, wordBands, type Token } from '../../domain/reading';
 import { segment, writerHints } from '../../domain/segment';
 import { itemForToken } from '../../domain/words';
 import { pictureAbove } from '../../domain/pictures';
@@ -183,17 +183,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
   const bands = bandsOf(lib);
 
   // The text's characters counted at each level, for its bar.
-  const charLevels = useMemo(() => {
-    const out = [0, 0, 0, 0];
-    const seen = new Set<string>();
-    for (const l of text.lines)
-      for (const c of l.zh) {
-        if (!isHanzi(c) || seen.has(c)) continue;
-        seen.add(c);
-        out[levelOfId(charId(c))] += 1;
-      }
-    return out;
-  }, [text.lines, levelOfId]);
+  const charLevels = useMemo(() => countLevels(text.lines.map((l) => l.zh), (c) => levelOfId(charId(c))), [text.lines, levelOfId]);
   // Its different characters met at least once, by your own answers: the same count as the bar under it.
   const charTotal = charLevels.reduce((a, b) => a + b, 0);
   const band = useStore((st) => st.settings.hskBand);

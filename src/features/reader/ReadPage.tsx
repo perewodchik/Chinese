@@ -19,6 +19,8 @@ import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { lastReading } from './lastRead';
 import { useWordDone, useWordLevel } from './Passage';
+import { useLevelOf } from '../shared/levels';
+import { charLevels, fitOf } from '../../domain/reading';
 import { readerSheet } from './readerSheet';
 import { partFill, partsOf } from './TextParts';
 import { useStartSession } from './startSession';
@@ -76,6 +78,8 @@ export function ReadPage() {
   const startSession = useStartSession();
   const shelf = useMemo(() => shelve(texts, sets), [texts, sets]);
   const go = useContinue();
+  // With fewer than twenty characters marked every book reads as hard, which says nothing: covers say it from twenty on.
+  const marked = useStore((s) => [...s.learned].filter((id) => id.startsWith('c')).length);
   // Kept in the address (?q=) as it is typed, so a reload finds the same search.
   const [query, setQuery] = useQuery();
   const [q, setQ] = useState(() => query.get('q') ?? '');
@@ -209,7 +213,7 @@ export function ReadPage() {
                   </div>
                   <div className="bookshelf-row">
                     {sh.books.map((b) => (
-                      <BookOnShelf key={b.set.id} book={b} texts={shelf.bySet.get(b.set.id) ?? []} reading={go?.set?.id === b.set.id} />
+                      <BookOnShelf key={b.set.id} book={b} texts={shelf.bySet.get(b.set.id) ?? []} reading={go?.set?.id === b.set.id} judge={marked >= 20} />
                     ))}
                   </div>
                   <span className="bookshelf-ledge" aria-hidden />
@@ -257,10 +261,15 @@ function progressOf(texts: GeneratedText[]) {
   return { total: entries.length, read, unopened };
 }
 
-/** A book standing on its shelf: its cover, how far through it you are, and a tap opens it. */
-function BookOnShelf({ book, texts, reading }: { book: Book; texts: GeneratedText[]; reading: boolean }) {
+const FIT = { comfortable: 'Comfortable', stretch: 'A stretch', hard: 'Hard' } as const;
+
+/** A book standing on its shelf: its cover, how far through it you are, how far within reach, and a tap opens it. */
+function BookOnShelf({ book, texts, reading, judge }: { book: Book; texts: GeneratedText[]; reading: boolean; judge: boolean }) {
   const width = useBookWidth();
   const p = progressOf(texts);
+  const levelOfId = useLevelOf();
+  // How far within reach, over every text of the book: the text head's count, once per book (V4).
+  const fit = useMemo(() => (judge ? fitOf(charLevels(texts.flatMap((t) => t.lines.map((l) => l.zh)), (c) => levelOfId(charId(c)))) : null), [judge, texts, levelOfId]);
   const meta = !p.total ? 'Empty' : p.read === 0 && p.unopened === p.total ? `New · ${p.total} ${p.total === 1 ? 'text' : book.kind === 'story' ? 'chapters' : 'texts'}` : `${p.read} of ${p.total} read`;
   return (
     <Link className="book" to={paths.shelf(book.set.id)} aria-label={`${book.title}${book.easier ? ', easier edition' : ''}: ${meta}`} style={{ width }}>
@@ -270,6 +279,10 @@ function BookOnShelf({ book, texts, reading }: { book: Book; texts: GeneratedTex
           <i style={{ width: `${p.total ? Math.round((p.read / p.total) * 100) : 0}%` }} />
         </i>
         {meta}
+        {/* The room is kept when there is nothing to say, so covers on a shelf line up. */}
+        <span className="book-fit" data-hidden={fit ? undefined : ''}>
+          {fit ? FIT[fit] : '\u00a0'}
+        </span>
       </span>
     </Link>
   );

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { CharacterEntry, Library } from '../data/types';
 import { parseResponse } from './parse';
-import { alignPinyin, bandSpread, paragraphs, stepsAbove, tokenize, wordBands } from './reading';
+import { alignPinyin, bandSpread, charLevels, fitOf, paragraphs, stepsAbove, tokenize, wordBands } from './reading';
 import type { TextLine } from './text';
 
 const entry = (c: string, hsk: number, py: string, words: Array<[string, number | null]> = []): CharacterEntry => ({
@@ -158,5 +158,21 @@ describe('stepsAbove', () => {
     const at = (band: number) => stepsAbove({ word: true, band }, 1);
     assert.deepEqual([1, 2, 3, 4, 5, 7, 0].map(at), [0, 1, 2, 3, 4, 4, 4]);
     assert.equal(stepsAbove({ word: false, band: 0 }, 1), 0);
+  });
+});
+
+describe('how far a book is within reach', () => {
+  const levels = (known: string) => (c: string) => (known.includes(c) ? 2 : 0);
+
+  it('counts each different character once, at its level, and nothing that is not a character', () => {
+    assert.deepEqual(charLevels(['你好，你好！', 'abc 好'], levels('你')), [1, 0, 1, 0]);
+  });
+
+  it('says comfortable from nine in ten, a stretch from three in four, else hard', () => {
+    assert.equal(fitOf([1, 0, 9, 0]), 'comfortable');
+    assert.equal(fitOf([2, 3, 5, 0]), 'stretch');
+    assert.equal(fitOf([1, 3, 0, 0]), 'stretch');
+    assert.equal(fitOf([3, 7, 0, 0]), 'hard');
+    assert.equal(fitOf([0, 0, 0, 0]), null);
   });
 });
