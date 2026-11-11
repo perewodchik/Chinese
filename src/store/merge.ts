@@ -39,9 +39,12 @@ export function mergeStates(account: AppState, incoming: AppState): AppState {
       const pictures = mergePictures(ours.pictures, theirs.pictures);
       return { ...kept, ...(endings.length ? { endings } : {}), ...(study ? { study } : {}), ...(pictures ? { pictures } : {}) };
     }).sort((a, b) => b.createdAt - a.createdAt),
-    sets: union(account.sets, incoming.sets, (ours, theirs) =>
-      theirs.study?.length ? { ...ours, study: [...new Set([...(ours.study ?? []), ...theirs.study])] } : ours,
-    ).sort((a, b) => b.createdAt - a.createdAt),
+    sets: union(account.sets, incoming.sets, (ours, theirs) => {
+      const study = theirs.study?.length ? { study: [...new Set([...(ours.study ?? []), ...theirs.study])] } : {};
+      // The catalogue book it is, at the newer version of the two.
+      const catalog = !ours.catalog || (theirs.catalog && theirs.catalog.version > ours.catalog.version) ? theirs.catalog : ours.catalog;
+      return { ...ours, ...study, ...(catalog ? { catalog } : {}) };
+    }).sort((a, b) => b.createdAt - a.createdAt),
     plan: account.plan ?? incoming.plan,
     listPlan: account.listPlan ?? incoming.listPlan,
     radicals: mergeRadicals(account.radicals, incoming.radicals),

@@ -318,6 +318,12 @@ export interface TextSet {
   order?: string[];
   /** the shelf it stands on in Read, when it has been put on one; else its kind decides (domain/bookshelf) */
   shelf?: string;
+  /**
+   * The book of the shared catalogue this is (T1), and the version it was
+   * taken at: taken from the library by a learner, or published from here by
+   * an admin, whose next publish then makes a new version of the same book.
+   */
+  catalog?: { id: string; version: number };
 }
 
 export interface GeneratedText {

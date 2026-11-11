@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { PICTURE_MAX_BYTES, PICTURE_TYPES } from '../../../shared/api';
 import { NotFoundError, ValidationError } from '../domain/errors';
-import type { Clock, Picture, PictureRepository } from './ports';
+import type { CatalogRepository, Clock, Picture, PictureRepository } from './ports';
 import type { StorageQuota } from './storage-quota';
 
 /** What a picture is filed under: the digest of its bytes. */
@@ -17,7 +17,7 @@ export const pictureKey = (bytes: Uint8Array) => createHash('sha256').update(byt
  * keeps one copy, and a key in the workspace cannot point at the wrong file.
  */
 export class PictureService {
-  constructor(private readonly deps: { pictures: PictureRepository; clock: Clock; quota?: StorageQuota }) {}
+  constructor(private readonly deps: { pictures: PictureRepository; catalog?: CatalogRepository; clock: Clock; quota?: StorageQuota }) {}
 
   async put(userId: string, key: string, mime: string, bytes: Uint8Array): Promise<void> {
     if (!(PICTURE_TYPES as readonly string[]).includes(mime)) {
@@ -39,8 +39,13 @@ export class PictureService {
   }
 
   async get(userId: string, key: string): Promise<Pick<Picture, 'mime' | 'bytes'>> {
-    const kept = /^[0-9a-f]{64}$/.test(key) ? await this.deps.pictures.find(key) : null;
-    if (!kept || kept.userId !== userId) throw new NotFoundError('That picture');
-    return { mime: kept.mime, bytes: kept.bytes };
+    if (!/^[0-9a-f]{64}$/.test(key)) throw new NotFoundError('That picture');
+    const kept = await this.deps.pictures.find(key);
+    if (kept && kept.userId === userId) return { mime: kept.mime, bytes: kept.bytes };
+    // A picture of a book in the shared catalogue is anyone's to see: a
+    // learner who took the book reads its texts with their pictures.
+    const shared = await this.deps.catalog?.findPicture(key);
+    if (shared) return shared;
+    throw new NotFoundError('That picture');
   }
 }

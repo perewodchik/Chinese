@@ -1,3 +1,4 @@
+import { CatalogService } from './application/catalog-service';
 import { AuthService, DEFAULT_AUTH_POLICY, type AuthPolicy } from './application/auth-service';
 import { ConversationService } from './application/conversation-service';
 import { NarrationService } from './application/narration-service';
@@ -32,6 +33,7 @@ import type {
   StorageMeter,
   AuditLog,
   AdminLogRepository,
+  CatalogRepository,
   WorkspaceRepository,
   WorldSaveRepository,
 } from './application/ports';
@@ -76,6 +78,8 @@ export interface Services {
   storage: StorageQuota;
   /** what happened to accounts, ninety days of it */
   audit: AuditLog;
+  /** the shared catalogue of books an admin published */
+  catalog: CatalogService;
 }
 
 /** Where each kind of record is kept. */
@@ -101,6 +105,7 @@ export interface Stores {
   storage: StorageMeter;
   audit: AuditLog;
   adminLog: AdminLogRepository;
+  catalog: CatalogRepository;
 }
 
 /**
@@ -165,7 +170,8 @@ export function createServices(
     tutor: options.tutor ?? null,
     talkVoices: options.talkVoices ?? null,
     recordings,
-    pictures: new PictureService({ pictures: stores.pictures, clock, quota }),
+    pictures: new PictureService({ pictures: stores.pictures, catalog: stores.catalog, clock, quota }),
+    catalog: new CatalogService({ catalog: stores.catalog, pictures: stores.pictures, adminLog: stores.adminLog, clock, tokens: cryptoTokens }),
     narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),
     speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock, meter: usage, quota }),
     usage,

@@ -258,7 +258,17 @@ function setFrom(v: unknown): TextSet | null {
     order: Array.isArray(s.order) ? s.order.filter((x): x is string => typeof x === 'string') : undefined,
     ...optional('shelf', typeof s.shelf === 'string' && s.shelf.trim() ? s.shelf.trim().slice(0, 40) : undefined),
     ...optional('study', arr<string>(s.study).filter((x): x is ItemId => typeof x === 'string' && x.length > 1)),
+    ...optional('catalog', catalogFrom(s.catalog)),
   };
+}
+
+/** Which catalogue book a shelf is, and at what version; anything else is no book. */
+function catalogFrom(v: unknown): TextSet['catalog'] {
+  if (!v || typeof v !== 'object') return undefined;
+  const c = v as Loose;
+  return typeof c.id === 'string' && c.id && typeof c.version === 'number' && Number.isInteger(c.version) && c.version > 0
+    ? { id: c.id.slice(0, 80), version: c.version }
+    : undefined;
 }
 
 /** What has been done with a text besides reading it; anything malformed is simply not there. */

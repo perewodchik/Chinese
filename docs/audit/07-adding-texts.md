@@ -47,6 +47,30 @@
 <a id="t1"></a>
 ### T1 (К) Общий каталог текстов
 
+**Сделано (2026-11-11), частично.** Таблицы `catalog_books`,
+`catalog_texts`, `catalog_pictures` в обеих базах. `GET /api/catalog`,
+`GET /api/catalog/:id` (вошедшим; скрытые — только админу);
+`GET/POST /api/admin/catalog`, `PUT /api/admin/catalog/:id` (новая версия),
+`PATCH … { hidden }` — роль админа, второй шаг, свежий пароль, журнал
+(`catalog-published/updated/hidden/shown`). Тексты проходят схему
+(`server/src/application/catalog-schema.ts`): известные поля с пределами,
+прогресс и посторонние поля отброшены, в историях и сценах — без адресов.
+Картинки текстов копируются из аккаунта админа в каталог;
+`GET /api/pictures/:key` отдаёт их любому вошедшему. Лицензия — только из
+списка «written for this site / public domain / CC…». Клиент: в меню книги
+у админа «Publish to the library…» / «Publish a new version…»; в Read —
+блок «From the library» с книгами, которых у ученика нет, **Add** кладёт
+копию книги на новую полку (`TextSet.catalog = { id, version }`, с загрузкой
+и слиянием) и открывает её. Тесты: `server/test/catalog.test.ts`,
+`postgres.test.ts`, `src/store/*.test.ts`.
+
+**Осталось.** (1) Тексты взятой книги — по ссылке из каталога с кэшем на
+устройстве, а в рабочем месте только прогресс; (2) тихо подтягивать новую
+версию; (3) публикация токеном `catalog:write` (сейчас маршруты требуют
+свежего пароля, а у токена его нет). (1) меняет то, как читалка, карточки
+и статистика берут тексты, — отдельный большой шаг.
+
+
 **Сервер.**
 - Таблицы: `catalog_books(id, title, title_zh, level, kind, cover, blurb,
   source, licence, published_at, published_by, version, hidden_at)`,

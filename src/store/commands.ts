@@ -220,6 +220,27 @@ export const renameSet = (id: string, name: string) => dispatch({ type: 'set/ren
 /** Puts a book on a shelf of Read; null takes it back to where its kind puts it. */
 export const shelveBook = (id: string, shelf: string | null) => dispatch({ type: 'set/shelf', id, shelf });
 
+/** The shelf was published to the shared catalogue as that book, at that version. */
+export const markPublished = (id: string, catalog: { id: string; version: number }) => dispatch({ type: 'set/catalog', id, catalog });
+
+/**
+ * A book of the shared catalogue taken onto the shelf: a new book of its
+ * own, its texts copied in reading order with nothing read yet, and the
+ * catalogue book it came from, so the library does not offer it again.
+ */
+export function addCatalogBook(book: { id: string; version: number; title: string; textList: Array<Record<string, unknown>> }): TextSet {
+  const at = now();
+  const set: TextSet = { id: newId(), name: book.title.trim() || 'From the library', createdAt: at, catalog: { id: book.id, version: book.version } };
+  const texts = book.textList.map((t, i): GeneratedText => {
+    const { id: _id, setId: _setId, read: _read, reads: _reads, lastReadAt: _last, study: _study, endings: _endings, ...text } = t;
+    // The server held it to the catalogue's schema; the workspace's own
+    // loading checks it again as it would any text (store/migrations.ts).
+    return { ...(text as unknown as Omit<GeneratedText, 'id' | 'createdAt' | 'read'>), id: newId(), setId: set.id, createdAt: at + i, read: false };
+  });
+  dispatch({ type: 'text/add', texts, newSet: set });
+  return set;
+}
+
 /** Removes a set and everything in it — the texts have nowhere else to live. */
 export const deleteSet = (id: string) => dispatch({ type: 'set/delete', id });
 

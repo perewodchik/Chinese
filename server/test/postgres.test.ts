@@ -282,4 +282,26 @@ describe('Postgres storage', () => {
     await stores.adminLog.sweep(T + 1);
     assert.equal((await stores.adminLog.list({ limit: 10 })).length, 2);
   });
+
+  it('keeps a catalogue book with its texts in order, replaces them on a new version, hides it, and keeps its pictures', async () => {
+    const book = { id: 'b1', title: 'Pikachu', titleZh: '皮卡丘', level: 2, kind: 'story' as const, blurb: 'x', source: 'y', licence: 'CC0' as const, version: 1, publishedAt: T, publishedBy: 'u1', hiddenAt: null, texts: 2, chars: 5 };
+    await stores.catalog.save(book, [
+      { id: 't2', position: 1, document: { id: 't2', lines: [{ zh: '二' }] }, chars: 1 },
+      { id: 't1', position: 0, document: { id: 't1', lines: [{ zh: '一' }] }, chars: 1 },
+    ]);
+    assert.deepEqual(await stores.catalog.find('b1'), book);
+    assert.deepEqual((await stores.catalog.texts('b1')).map((t) => [t.id, t.position, t.document]), [['t1', 0, { id: 't1', lines: [{ zh: '一' }] }], ['t2', 1, { id: 't2', lines: [{ zh: '二' }] }]]);
+    await stores.catalog.save({ ...book, version: 2, texts: 1 }, [{ id: 't3', position: 0, document: { id: 't3' }, chars: 0 }]);
+    assert.deepEqual((await stores.catalog.texts('b1')).map((t) => t.id), ['t3']);
+    assert.equal((await stores.catalog.find('b1'))?.version, 2);
+    assert.equal(await stores.catalog.setHidden('b1', T + 5), true);
+    assert.deepEqual(await stores.catalog.list(false), []);
+    assert.equal((await stores.catalog.list(true))[0]?.hiddenAt, T + 5);
+    assert.equal(await stores.catalog.setHidden('nope', null), false);
+    const bytes = new Uint8Array([1, 2, 3]);
+    await stores.catalog.savePicture({ key: 'k1', mime: 'image/png', bytes, createdAt: T });
+    await stores.catalog.savePicture({ key: 'k1', mime: 'image/jpeg', bytes: new Uint8Array([9]), createdAt: T });
+    assert.deepEqual(await stores.catalog.findPicture('k1'), { mime: 'image/png', bytes });
+    assert.equal(await stores.catalog.findPicture('k2'), null);
+  });
 });

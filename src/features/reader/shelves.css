@@ -860,3 +860,42 @@
 .bk-foot .btn {
   width: 100%;
 }
+
+/* From the library: a catalogue book a row, its Add on the right. */
+.from-library-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.from-library-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.from-library-blurb {
+  font-family: var(--read);
+  color: var(--ink-2);
+}
+
+.from-library-error {
+  color: var(--red);
+}
+
+/* Add and Adding… take the same room. */
+.from-library-add {
+  min-width: 84px;
+  flex: none;
+}
+
+/* Publishing a book: a column of fields. */
+.publish-form {
+  display: grid;
+  gap: 14px;
+}
+
+.publish-go {
+  min-width: 128px;
+}

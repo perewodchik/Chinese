@@ -14,6 +14,7 @@ import { accountRoutes } from './routes/account';
 import { adminRoutes } from './routes/admin';
 import { askRoutes } from './routes/ask';
 import { authRoutes } from './routes/auth';
+import { catalogRoutes } from './routes/catalog';
 import { narrationRoutes } from './routes/narration';
 import { speechEvalRoutes } from './routes/speechEval';
 import { pictureRoutes } from './routes/pictures';
@@ -120,6 +121,7 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   api.route('/strokes', strokeRoutes(deps));
   api.route('/pictures', pictureRoutes(deps));
   api.route('/narration', narrationRoutes(deps));
+  api.route('/catalog', catalogRoutes(deps));
   api.route('/eval', speechEvalRoutes(deps));
   api.all('*', () => {
     throw new NotFoundError('That API route');

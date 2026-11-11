@@ -1,3 +1,4 @@
+import type { CatalogBookMeta } from '../../../shared/catalog';
 import type { AttemptKind } from '../../../shared/speechEval';
 import type {
   ClaudeState,
@@ -486,4 +487,39 @@ export interface AdminLogRepository {
   /** The newest first, `limit` of them, with ids below `before`; `name` matches the actor or the target, any case. */
   list(query: { action?: string; name?: string; before?: number; limit: number }): Promise<AdminLogRecord[]>;
   sweep(before: number): Promise<void>;
+}
+
+/** A book of the shared catalogue, as kept. */
+export interface CatalogBookRecord extends CatalogBookMeta {
+  id: string;
+  version: number;
+  publishedAt: number;
+  /** the admin's account id */
+  publishedBy: string;
+  hiddenAt: number | null;
+  texts: number;
+  chars: number;
+}
+
+/** A catalogue text as kept: the text itself, in its book's reading order. */
+export interface CatalogTextRecord {
+  id: string;
+  position: number;
+  document: unknown;
+  chars: number;
+}
+
+/** The shared catalogue (T1): books, their texts, and copies of their pictures. */
+export interface CatalogRepository {
+  /** The book and, in the same transaction, its texts, replacing any it had. */
+  save(book: CatalogBookRecord, texts: CatalogTextRecord[]): Promise<void>;
+  /** False when there is no such book. */
+  setHidden(id: string, hiddenAt: number | null): Promise<boolean>;
+  /** The newest first; hidden ones only when asked. */
+  list(includeHidden: boolean): Promise<CatalogBookRecord[]>;
+  find(id: string): Promise<CatalogBookRecord | null>;
+  texts(bookId: string): Promise<CatalogTextRecord[]>;
+  /** Keeps a picture under its key; one already kept stays. */
+  savePicture(picture: { key: string; mime: string; bytes: Uint8Array; createdAt: number }): Promise<void>;
+  findPicture(key: string): Promise<{ mime: string; bytes: Uint8Array } | null>;
 }

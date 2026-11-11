@@ -99,6 +99,8 @@ export type Action =
   | { type: 'text/markRead'; id: string; at: number }
   | { type: 'set/rename'; id: string; name: string }
   | { type: 'set/shelf'; id: string; shelf: string | null }
+  /** the shelf is that book of the shared catalogue, at that version */
+  | { type: 'set/catalog'; id: string; catalog: { id: string; version: number } }
   | { type: 'set/delete'; id: string }
   /** texts gathered into one set, made for them if `set` is new; sets left empty go */
   | { type: 'texts/collect'; textIds: string[]; set: TextSet }
@@ -491,6 +493,12 @@ export function reduce(state: AppState, action: Action): AppState {
           const { shelf: _old, ...rest } = s;
           return action.shelf?.trim() ? { ...rest, shelf: action.shelf.trim().slice(0, 40) } : rest;
         }),
+      };
+
+    case 'set/catalog':
+      return {
+        ...state,
+        sets: state.sets.map((s) => (s.id === action.id ? { ...s, catalog: action.catalog } : s)),
       };
 
     case 'set/delete':

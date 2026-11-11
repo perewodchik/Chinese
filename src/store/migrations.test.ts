@@ -246,3 +246,19 @@ describe('what has been done with a text, and a shelf’s list (version 11)', ()
     assert.deepEqual(written.texts.find((t) => t.id === 't')?.study, { heard: 7, written: ['孔'], answered: [0, 2] });
   });
 });
+
+describe('a shelf that is a book of the shared catalogue', () => {
+  const stored = (catalog: unknown) => ({ version: 11, collections: [], sets: [{ id: 's', name: 'Pikachu', createdAt: 1, catalog }] });
+
+  it('keeps which book and which version, and writes them back', () => {
+    const state = hydrate(stored({ id: 'b1', version: 3 }));
+    assert.deepEqual(state.sets[0]?.catalog, { id: 'b1', version: 3 });
+    assert.deepEqual(serialise(state).sets[0]?.catalog, { id: 'b1', version: 3 });
+  });
+
+  it('reads anything else as no book, and an old shelf as it was', () => {
+    for (const bad of [null, 'b1', { id: 'b1' }, { id: '', version: 1 }, { id: 'b1', version: 0 }, { id: 'b1', version: 1.5 }]) {
+      assert.equal('catalog' in (hydrate(stored(bad)).sets[0] ?? {}), false, JSON.stringify(bad));
+    }
+  });
+});

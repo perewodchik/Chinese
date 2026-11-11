@@ -5,6 +5,7 @@ import type { Actor } from '../../application/ports';
 import type { AppEnv, RouteDeps } from '../env';
 import { auditor, RateLimiter, requireFresh, requireRole, requireSession } from '../guards';
 import { clientIp, readJson } from '../request';
+import { publishSchema } from '../../application/catalog-schema';
 
 const inviteRequest = z.object({ note: z.string().trim().max(120), days: z.number().int().min(0).max(365) });
 const logQuery = z.object({
@@ -22,7 +23,7 @@ const blockRequest = z.object({ reason: z.string().trim().min(1, 'Say why, for t
  *
  * Nothing here reads anyone's work: names, dates, sizes and counts.
  */
-export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit }: RouteDeps) {
+export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit, catalog }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   const role = requireRole('admin');
@@ -112,6 +113,33 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, us
   routes.post('/accounts/:id/sign-out', session, admin, fresh, async (c) => {
     await changes.consume(c.get('session').user.id);
     return c.json(await auth.signOutEverywhere(c.req.param('id'), actor(c)));
+  });
+
+  // The shared catalogue (T1): a shelf published as a book, a new version of
+  // it, hidden or shown again. Checked against the catalogue's schema here
+  // (SEC12): what goes in is read by every learner.
+  const hideRequest = z.object({ hidden: z.boolean() });
+  routes.get('/catalog', session, admin, async (c) => {
+    c.header('Cache-Control', 'no-store');
+    return c.json(await catalog.list(true));
+  });
+  routes.post('/catalog', session, admin, fresh, async (c) => {
+    await changes.consume(c.get('session').user.id);
+    const { book, texts } = await readJson(c, publishSchema);
+    const who = actor(c);
+    return c.json(await catalog.publish({ ...who, id: c.get('session').user.id }, book, texts), 201);
+  });
+  routes.put('/catalog/:id', session, admin, fresh, async (c) => {
+    await changes.consume(c.get('session').user.id);
+    const { book, texts } = await readJson(c, publishSchema);
+    const who = actor(c);
+    return c.json(await catalog.publish({ ...who, id: c.get('session').user.id }, book, texts, c.req.param('id')));
+  });
+  routes.patch('/catalog/:id', session, admin, fresh, async (c) => {
+    await changes.consume(c.get('session').user.id);
+    const { hidden } = await readJson(c, hideRequest);
+    await catalog.setHidden(actor(c), c.req.param('id'), hidden);
+    return c.body(null, 204);
   });
 
   routes.post('/invites', session, admin, fresh, async (c) => {

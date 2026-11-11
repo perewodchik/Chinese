@@ -281,4 +281,40 @@ export const MIGRATIONS: readonly string[] = [
   ALTER TABLE sessions ADD COLUMN verified_at INTEGER NOT NULL DEFAULT 0;
   UPDATE sessions SET verified_at = created_at;
   `,
+  // The shared catalogue: books an admin published for every learner to
+  // take (T1). A book's texts are a copy made when it was published, so the
+  // admin's own shelf can change afterwards without changing the book; its
+  // pictures are copies too, readable by anyone signed in.
+  `
+  CREATE TABLE catalog_books (
+    id            TEXT PRIMARY KEY,
+    title         TEXT NOT NULL,
+    title_zh      TEXT NOT NULL,
+    level         INTEGER NOT NULL,
+    kind          TEXT NOT NULL,
+    blurb         TEXT NOT NULL,
+    source        TEXT NOT NULL,
+    licence       TEXT NOT NULL,
+    version       INTEGER NOT NULL,
+    published_at  INTEGER NOT NULL,
+    published_by  TEXT NOT NULL,
+    hidden_at     INTEGER,
+    texts         INTEGER NOT NULL,
+    chars         INTEGER NOT NULL
+  ) STRICT;
+  CREATE TABLE catalog_texts (
+    book_id    TEXT NOT NULL REFERENCES catalog_books (id) ON DELETE CASCADE,
+    position   INTEGER NOT NULL,
+    id         TEXT NOT NULL,
+    document   TEXT NOT NULL,
+    chars      INTEGER NOT NULL,
+    PRIMARY KEY (book_id, position)
+  ) STRICT;
+  CREATE TABLE catalog_pictures (
+    key         TEXT PRIMARY KEY,
+    mime        TEXT NOT NULL,
+    bytes       BLOB NOT NULL,
+    created_at  INTEGER NOT NULL
+  ) STRICT;
+  `,
 ];

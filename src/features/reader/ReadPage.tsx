@@ -27,6 +27,8 @@ import { BookChars, BookWords, type BookWord, type Chapter } from './BookStudy';
 import { shelveBook } from '../../store/commands';
 import { BookCover } from './BookCover';
 import './shelves.css';
+import { FromLibrary } from './FromLibrary';
+import { PublishSheet } from './PublishSheet';
 
 const hasHan = (s: string) => [...s].some(isHanzi);
 
@@ -222,6 +224,8 @@ export function ReadPage() {
             </div>
           )}
 
+          <FromLibrary sets={sets} />
+
           {shelf.loose.length > 0 && (
             <section className="block">
               <h2 className="block-title">Not on a shelf</h2>
@@ -351,6 +355,7 @@ export function ShelfPage() {
   };
   const startSession = useStartSession();
   const pdf = usePdfExport();
+  const [publishing, setPublishing] = useState(false);
   useTitle(set?.name ?? 'Shelf');
 
   // What the shelf teaches: a retelling stands for the book's passage it retells.
@@ -453,6 +458,7 @@ export function ShelfPage() {
 
   return (
     <div className="shelf-page">
+      {publishing && <PublishSheet set={set} texts={list} kind={story ? 'story' : 'texts'} onClose={() => setPublishing(false)} />}
       <header className="page-head">
         <Link className="back-link" to={paths.read()}>
           <Icon name="back" size={22} />
@@ -496,6 +502,12 @@ export function ShelfPage() {
                 <button role="menuitem" className="btn ghost sm" onClick={() => (close(), exportJson())}>
                   Save the texts as a file
                   <span className="tiny muted">to paste back into a writing session</span>
+                </button>
+              )}
+              {admin && list.length > 0 && (
+                <button role="menuitem" className="btn ghost sm" onClick={() => (close(), setPublishing(true))}>
+                  {set.catalog ? 'Publish a new version…' : 'Publish to the library…'}
+                  <span className="tiny muted">{set.catalog ? `in the library as version ${set.catalog.version}` : 'for every learner to add to their shelves'}</span>
                 </button>
               )}
               <button role="menuitem" className="btn ghost sm danger" onClick={() => (close(), remove())}>

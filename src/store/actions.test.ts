@@ -163,6 +163,24 @@ describe('mergeStates', () => {
   });
 });
 
+describe('a book of the shared catalogue', () => {
+  const shelf = (catalog?: { id: string; version: number }) => ({ id: 's', name: 'Pikachu', createdAt: 1, ...(catalog && { catalog }) });
+
+  it('marks a shelf as the book it was published as', () => {
+    const state = run({ ...emptyState(), sets: [shelf()] }, { type: 'set/catalog', id: 's', catalog: { id: 'b1', version: 2 } });
+    assert.deepEqual(state.sets[0]?.catalog, { id: 'b1', version: 2 });
+  });
+
+  it('keeps the newer version of the book when two devices meet', () => {
+    const merged = (a?: { id: string; version: number }, b?: { id: string; version: number }) =>
+      mergeStates({ ...emptyState(), sets: [shelf(a)] }, { ...emptyState(), sets: [shelf(b)] }).sets[0]?.catalog;
+    assert.deepEqual(merged({ id: 'b1', version: 1 }, { id: 'b1', version: 2 }), { id: 'b1', version: 2 });
+    assert.deepEqual(merged({ id: 'b1', version: 3 }, { id: 'b1', version: 2 }), { id: 'b1', version: 3 });
+    assert.deepEqual(merged(undefined, { id: 'b1', version: 1 }), { id: 'b1', version: 1 });
+    assert.equal(merged(undefined, undefined), undefined);
+  });
+});
+
 describe('radicals', () => {
   it('adds a radical to a set once, however often the change is replayed', () => {
     const set = {
