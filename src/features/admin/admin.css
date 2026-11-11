@@ -54,3 +54,52 @@
 .admin-kind[data-state='wrong'] {
   color: var(--red);
 }
+
+/* What admins did: the two filters side by side, one above the other on a phone. */
+.admin-log-lede {
+  margin: 4px 0 16px;
+}
+
+.admin-log-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+  gap: 12px;
+  max-width: 520px;
+}
+
+@media (max-width: 480px) {
+  .admin-log-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Room for a few rows before the page arrives, so the filters do not jump. */
+.admin-log {
+  min-height: 240px;
+  margin-top: 16px;
+}
+
+/* Show older and Loading… take the same room. */
+.admin-log-more {
+  min-width: 132px;
+  margin-top: 16px;
+}
+
+/* A whole row that opens another of the site's pages, with its chevron. */
+.admin-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.admin-nav .grow {
+  display: grid;
+}
+
+.admin-nav > svg {
+  color: var(--ink-3);
+}

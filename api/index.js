@@ -239,6 +239,8 @@ var toTokenDto = (t) => ({
   lastUsedAt: t.lastUsedAt,
   expiresAt: t.expiresAt
 });
+var FROM_SETTINGS = { id: null, name: "HANZI_ADMIN_USERS", ip: null };
+var ADMIN_LOG_DAYS = 365;
 var randomCode = (length) => Array.from({ length }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join("");
 var normaliseInvite = (raw) => raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
 var toUserDto = (u) => ({
@@ -274,11 +276,12 @@ var AuthService = class {
     return this.issue(user, input.userAgent);
   }
   /** For whoever runs the server: an invitation for one account, good for `days` (or for ever). */
-  async invite(note, days) {
+  async invite(note, days, actor) {
     const code = Array.from({ length: INVITE_LENGTH }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join("");
     const now = this.deps.clock.now();
     const expiresAt = days === null ? null : now + days * DAY;
     await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null });
+    await this.record(actor, "invite-made", null, { note: note.trim().slice(0, 120), days });
     return { code: code.match(/.{1,4}/g).join("-"), note, expiresAt };
   }
   /** The invitations given out, with who used each (by name) — never their codes, which are not kept. */
@@ -288,8 +291,10 @@ var AuthService = class {
     return list.map((i) => ({ note: i.note, createdAt: i.createdAt, expiresAt: i.expiresAt, usedBy: i.usedBy ? name.get(i.usedBy) ?? "an account since deleted" : null, usedAt: i.usedAt }));
   }
   /** An account made by whoever runs the server, whether or not sign-ups are open. No session comes with it. */
-  async addUser(username, password) {
-    return toUserDto(await this.createUser(username, password));
+  async addUser(username, password, actor) {
+    const user = await this.createUser(username, password);
+    await this.record(actor, "account-made", user, {});
+    return toUserDto(user);
   }
   /** `before` runs once the name and password are good, just before the account is written, with its id. */
   async createUser(rawName, password, before) {
@@ -482,7 +487,7 @@ var AuthService = class {
     return this.deps.tokens.digest(`${userId}:${normaliseInvite(code)}`);
   }
   /** For whoever runs the server: a new password for an account, and every session of it ended. */
-  async resetPassword(username, newPassword) {
+  async resetPassword(username, newPassword, actor) {
     const { users, sessions, hasher, clock } = this.deps;
     const user = await users.findByUsernameKey(usernameKey(username));
     if (!user) throw new NotFoundError(`An account called \u201C${username}\u201D`);
@@ -491,6 +496,7 @@ var AuthService = class {
     await users.updatePassword(user.id, await hasher.hash(newPassword), clock.now());
     await sessions.deleteForUser(user.id);
     await this.deps.apiTokens.revokeForUser(user.id, clock.now());
+    await this.record(actor, "password-reset", user, {});
     return toUserDto(user);
   }
   /**
@@ -508,6 +514,7 @@ var AuthService = class {
       const user = await users.findByUsernameKey(usernameKey(name));
       if (!user || user.role === "admin") continue;
       await users.setRole(user.id, "admin", clock.now());
+      await this.record(FROM_SETTINGS, "role-granted", user, {});
       given.push(user.username);
     }
     return { given, settled: given.length > 0 };
@@ -518,7 +525,7 @@ var AuthService = class {
    * The last account that runs the site keeps the role, so the site is never
    * left with nobody to run it.
    */
-  async setRole(username, role) {
+  async setRole(username, role, actor) {
     const { users, clock } = this.deps;
     const user = await users.findByUsernameKey(usernameKey(username));
     if (!user) throw new NotFoundError(`An account called \u201C${username}\u201D`);
@@ -527,24 +534,28 @@ var AuthService = class {
       throw new ValidationError("That is the last account that runs the site. Give the role to another first.");
     }
     await users.setRole(user.id, role, clock.now());
+    await this.record(actor, role === "admin" ? "role-granted" : "role-revoked", user, {});
     return toUserDto({ ...user, role });
   }
   /**
    * An account paused, or opened again. Pausing signs it out everywhere and
-   * stops its tokens; the work it kept stays. An account cannot pause itself
-   * (`byUserId`), and the last one that runs the site cannot be paused.
+   * stops its tokens; the work it kept stays. An account cannot pause itself,
+   * and the last one that runs the site cannot be paused.
    */
-  async setStatus(username, status, byUserId) {
+  async setStatus(username, status, actor) {
     const { users, sessions, apiTokens, clock } = this.deps;
     const user = await users.findByUsernameKey(usernameKey(username));
     if (!user) throw new NotFoundError(`An account called \u201C${username}\u201D`);
     if (status === "blocked") {
-      if (user.id === byUserId) throw new ValidationError("An account cannot pause itself.");
+      if (user.id === actor.id) throw new ValidationError("An account cannot pause itself.");
       if (user.role === "admin" && await users.countByRole("admin") <= 1) {
         throw new ValidationError("That is the last account that runs the site, and cannot be paused.");
       }
     }
-    if (user.status !== status) await users.setStatus(user.id, status, clock.now());
+    if (user.status !== status) {
+      await users.setStatus(user.id, status, clock.now());
+      await this.record(actor, status === "blocked" ? "blocked" : "unblocked", user, {});
+    }
     if (status === "blocked") {
       await sessions.deleteForUser(user.id);
       await apiTokens.revokeForUser(user.id, clock.now());
@@ -599,6 +610,20 @@ var AuthService = class {
     if (!user || user.status === "blocked") return null;
     if (found.lastUsedAt === null || now - found.lastUsedAt >= TOKEN_TOUCH_MS) await apiTokens.touch(found.id, now);
     return { user: toUserDto(user), sessionId: `token:${found.id}`, expiresAt: found.expiresAt, renewed: false, scopes: toTokenDto(found).scopes };
+  }
+  /** A page of the admins' log, the newest first. */
+  adminLogPage(query) {
+    return this.deps.adminLog.list(query);
+  }
+  /**
+   * One line of the admins' log, written as part of the action: awaited, so
+   * an action whose line could not be written is answered as failed rather
+   * than done unseen. Now and then, what is older than a year goes.
+   */
+  async record(actor, action, target, details) {
+    const at = this.deps.clock.now();
+    await this.deps.adminLog.add({ at, actorId: actor.id, actorName: actor.name, action, targetId: target?.id ?? null, targetName: target?.username ?? null, details, ip: actor.ip });
+    if (Math.random() < 0.01) await this.deps.adminLog.sweep(at - ADMIN_LOG_DAYS * DAY);
   }
   purgeExpiredSessions() {
     return this.deps.sessions.deleteExpired(this.deps.clock.now());
@@ -2071,6 +2096,7 @@ function createServices(stores, options = {}) {
     apiTokens: stores.apiTokens,
     invites: stores.invites,
     recoveryCodes: stores.recoveryCodes,
+    adminLog: stores.adminLog,
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
     clock,
@@ -2424,6 +2450,12 @@ function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, 
 import { Hono as Hono2 } from "hono";
 import { z as z2 } from "zod";
 var inviteRequest = z2.object({ note: z2.string().trim().max(120), days: z2.number().int().min(0).max(365) });
+var logQuery = z2.object({
+  action: z2.string().max(40).optional(),
+  name: z2.string().max(200).optional(),
+  before: z2.coerce.number().int().positive().optional()
+});
+var LOG_PAGE = 50;
 function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit }) {
   const routes = new Hono2();
   const session = requireSession(auth, { trustProxy, clock });
@@ -2461,10 +2493,26 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, st
     c.header("Cache-Control", "no-store");
     return c.json(body);
   });
+  const actor = (c) => {
+    const { user } = c.get("session");
+    return { id: user.id, name: user.username, ip: clientIp(c, trustProxy, ipHeader) };
+  };
+  routes.get("/log", session, admin, async (c) => {
+    const parsed = logQuery.safeParse(c.req.query());
+    const q = parsed.success ? parsed.data : {};
+    const rows = await auth.adminLogPage({ action: q.action || void 0, name: q.name?.trim() || void 0, before: q.before, limit: LOG_PAGE + 1 });
+    const page = rows.slice(0, LOG_PAGE);
+    const body = {
+      entries: page.map((r) => ({ id: r.id, at: r.at, actor: r.actorName, action: r.action, target: r.targetName, details: r.details })),
+      next: rows.length > LOG_PAGE ? page[page.length - 1]?.id ?? null : null
+    };
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
+  });
   routes.post("/invites", session, admin, async (c) => {
     await invites.consume(c.get("session").user.id);
     const { note, days } = await readJson(c, inviteRequest);
-    const made = await auth.invite(note, days === 0 ? null : days);
+    const made = await auth.invite(note, days === 0 ? null : days, actor(c));
     auditor(audit, clock, trustProxy, ipHeader, log)(c, "invite", c.get("session").user.username);
     c.header("Cache-Control", "no-store");
     return c.json({ code: made.code, expiresAt: made.expiresAt }, 201);
@@ -3815,6 +3863,23 @@ var MIGRATIONS = [
   ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'learner';
   ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active';
   ALTER TABLE users ADD COLUMN flags TEXT NOT NULL DEFAULT '{}';
+  `,
+  // What the accounts that run the site did, and to whom, kept a year. The
+  // actor and the target are kept by name as well as by id, so the line
+  // still reads after either account is deleted; neither is a foreign key.
+  `
+  CREATE TABLE admin_log (
+    id           BIGSERIAL PRIMARY KEY,
+    at           BIGINT NOT NULL,
+    actor_id     TEXT,
+    actor_name   TEXT NOT NULL,
+    action       TEXT NOT NULL,
+    target_id    TEXT,
+    target_name  TEXT,
+    details      TEXT NOT NULL,
+    ip           TEXT
+  );
+  CREATE INDEX admin_log_by_time ON admin_log (at);
   `
 ];
 
@@ -3948,6 +4013,55 @@ var PostgresApiTokenRepository = class {
   }
   async touch(id, at) {
     await this.db.query("UPDATE api_tokens SET last_used_at = $1 WHERE id = $2", [at, id]);
+  }
+};
+
+// server/src/infrastructure/admin-log-row.ts
+function toAdminLogRecord(r) {
+  let details = {};
+  try {
+    const parsed = JSON.parse(r.details);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) details = parsed;
+  } catch {
+  }
+  return { id: Number(r.id), at: Number(r.at), actorId: r.actor_id, actorName: r.actor_name, action: r.action, targetId: r.target_id, targetName: r.target_name, details, ip: r.ip };
+}
+
+// server/src/infrastructure/postgres/admin-log.ts
+var PostgresAdminLog = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async add(e) {
+    await this.db.query(
+      "INSERT INTO admin_log (at, actor_id, actor_name, action, target_id, target_name, details, ip) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+      [e.at, e.actorId, e.actorName, e.action, e.targetId, e.targetName, JSON.stringify(e.details), e.ip]
+    );
+  }
+  async list(q) {
+    const where = [];
+    const args = [];
+    if (q.action) {
+      args.push(q.action);
+      where.push(`action = $${args.length}`);
+    }
+    if (q.name) {
+      args.push(q.name);
+      where.push(`(LOWER(actor_name) = LOWER($${args.length}) OR LOWER(target_name) = LOWER($${args.length}))`);
+    }
+    if (q.before !== void 0) {
+      args.push(q.before);
+      where.push(`id < $${args.length}`);
+    }
+    args.push(q.limit);
+    const { rows } = await this.db.query(
+      `SELECT * FROM admin_log ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY id DESC LIMIT $${args.length}`,
+      args
+    );
+    return rows.map(toAdminLogRecord);
+  }
+  async sweep(before) {
+    await this.db.query("DELETE FROM admin_log WHERE at < $1", [before]);
   }
 };
 
@@ -4664,6 +4778,7 @@ var postgresStores = (db) => ({
   limits: new PostgresRateLimitStore(db),
   lookups: new PostgresLookupCache(db),
   storage: new PostgresStorageMeter(db),
+  adminLog: new PostgresAdminLog(db),
   audit: new PostgresAuditLog(db),
   recoveryCodes: new PostgresRecoveryCodeRepository(db)
 });

@@ -1,5 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { SqliteApiTokenRepository } from './api-token-repository';
+import { SqliteAdminLog } from './admin-log';
 import type { Stores } from '../../composition';
 import { SqliteConversationRepository } from './conversation-repository';
 import { SqlitePictureRepository } from './picture-repository';
@@ -41,6 +42,7 @@ export const sqliteStores = (db: DatabaseSync): Stores => ({
   limits: new SqliteRateLimitStore(db),
   lookups: new SqliteLookupCache(db),
   storage: new SqliteStorageMeter(db),
+  adminLog: new SqliteAdminLog(db),
   audit: new SqliteAuditLog(db),
   recoveryCodes: new SqliteRecoveryCodeRepository(db),
 });

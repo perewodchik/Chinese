@@ -266,4 +266,20 @@ describe('Postgres storage', () => {
     assert.equal(await stores.users.countByRole('admin'), before + 1);
     assert.equal(typeof (await stores.users.countByRole('admin')), 'number');
   });
+
+  it('keeps the admins’ log newest first, finds by action and by either name, and pages by id', async () => {
+    const line = (at: number, action: string, target: string | null) => ({ at, actorId: null, actorName: 'Kirill', action, targetId: null, targetName: target, details: { note: `at ${at}` }, ip: '203.0.113.7' });
+    await stores.adminLog.add(line(T, 'invite-made', null));
+    await stores.adminLog.add(line(T + 1, 'blocked', 'Masha'));
+    await stores.adminLog.add(line(T + 2, 'invite-made', null));
+    const all = await stores.adminLog.list({ limit: 10 });
+    assert.deepEqual(all.map((e) => e.at), [T + 2, T + 1, T]);
+    assert.equal(typeof all[0]!.id, 'number');
+    assert.deepEqual(all[0]!.details, { note: `at ${T + 2}` });
+    assert.deepEqual((await stores.adminLog.list({ action: 'invite-made', limit: 10 })).map((e) => e.at), [T + 2, T]);
+    assert.deepEqual((await stores.adminLog.list({ name: 'masha', limit: 10 })).map((e) => e.action), ['blocked']);
+    assert.deepEqual((await stores.adminLog.list({ name: 'KIRILL', before: all[0]!.id, limit: 1 })).map((e) => e.at), [T + 1]);
+    await stores.adminLog.sweep(T + 1);
+    assert.equal((await stores.adminLog.list({ limit: 10 })).length, 2);
+  });
 });

@@ -31,6 +31,7 @@ import type {
   RecoveryCodeRepository,
   StorageMeter,
   AuditLog,
+  AdminLogRepository,
   WorkspaceRepository,
   WorldSaveRepository,
 } from './application/ports';
@@ -99,6 +100,7 @@ export interface Stores {
   recoveryCodes: RecoveryCodeRepository;
   storage: StorageMeter;
   audit: AuditLog;
+  adminLog: AdminLogRepository;
 }
 
 /**
@@ -139,6 +141,7 @@ export function createServices(
     apiTokens: stores.apiTokens,
     invites: stores.invites,
     recoveryCodes: stores.recoveryCodes,
+    adminLog: stores.adminLog,
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
     clock,

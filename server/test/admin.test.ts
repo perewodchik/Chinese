@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { AdminOverview } from '../../shared/admin';
+import { SERVER_COMMAND } from '../src/application/auth-service';
 import { createServices } from '../src/composition';
 import { createHttpApp } from '../src/http/app';
 import { openDatabase } from '../src/infrastructure/sqlite/database';
@@ -10,7 +11,7 @@ import { call, cheapHasher, sessionCookie, TestClock } from './support';
 async function setUp() {
   const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock: new TestClock(), policy: { registration: 'invite' }, storageLimitMb: 300 });
   const app = createHttpApp(services, { trustProxy: false, staticDir: null, log: () => undefined, adminUsers: ['Kirill'] });
-  const owner = await services.auth.invite('', null);
+  const owner = await services.auth.invite('', null, SERVER_COMMAND);
   const ownerCookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'kirill', password: 'correct horse', invite: owner.code } }));
   return { app, services, ownerCookie };
 }
@@ -45,7 +46,7 @@ describe('the site’s own page, for whoever runs it', () => {
 
   it('is refused to every other account, and to nobody signed in', async () => {
     const { app, services } = await setUp();
-    const { code } = await services.auth.invite('', null);
+    const { code } = await services.auth.invite('', null, SERVER_COMMAND);
     const guest = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: 'correct horse', invite: code } }));
     assert.equal((await call(app, 'GET', '/api/admin', { cookie: guest })).status, 403);
     assert.equal((await call(app, 'GET', '/api/admin/overview', { cookie: guest })).status, 403);

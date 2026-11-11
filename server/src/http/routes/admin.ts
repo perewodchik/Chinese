@@ -1,11 +1,18 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { z } from 'zod';
-import type { AdminAccount, AdminOverview } from '../../../../shared/admin';
+import type { AdminAccount, AdminLogPage, AdminOverview } from '../../../../shared/admin';
+import type { Actor } from '../../application/ports';
 import type { AppEnv, RouteDeps } from '../env';
 import { auditor, RateLimiter, requireRole, requireSession } from '../guards';
-import { readJson } from '../request';
+import { clientIp, readJson } from '../request';
 
 const inviteRequest = z.object({ note: z.string().trim().max(120), days: z.number().int().min(0).max(365) });
+const logQuery = z.object({
+  action: z.string().max(40).optional(),
+  name: z.string().max(200).optional(),
+  before: z.coerce.number().int().positive().optional(),
+});
+const LOG_PAGE = 50;
 
 /**
  * For the accounts that run the site (role `admin`): the accounts, how
@@ -54,10 +61,29 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, us
     return c.json(body);
   });
 
+  /** The admin making this request, as the log names them. */
+  const actor = (c: Context<AppEnv>): Actor => {
+    const { user } = c.get('session');
+    return { id: user.id, name: user.username, ip: clientIp(c, trustProxy, ipHeader) };
+  };
+
+  routes.get('/log', session, admin, async (c) => {
+    const parsed = logQuery.safeParse(c.req.query());
+    const q = parsed.success ? parsed.data : {};
+    const rows = await auth.adminLogPage({ action: q.action || undefined, name: q.name?.trim() || undefined, before: q.before, limit: LOG_PAGE + 1 });
+    const page = rows.slice(0, LOG_PAGE);
+    const body: AdminLogPage = {
+      entries: page.map((r) => ({ id: r.id!, at: r.at, actor: r.actorName, action: r.action, target: r.targetName, details: r.details })),
+      next: rows.length > LOG_PAGE ? (page[page.length - 1]?.id ?? null) : null,
+    };
+    c.header('Cache-Control', 'no-store');
+    return c.json(body);
+  });
+
   routes.post('/invites', session, admin, async (c) => {
     await invites.consume(c.get('session').user.id);
     const { note, days } = await readJson(c, inviteRequest);
-    const made = await auth.invite(note, days === 0 ? null : days);
+    const made = await auth.invite(note, days === 0 ? null : days, actor(c));
     auditor(audit, clock, trustProxy, ipHeader, log)(c, 'invite', c.get('session').user.username);
     c.header('Cache-Control', 'no-store');
     return c.json({ code: made.code, expiresAt: made.expiresAt }, 201);

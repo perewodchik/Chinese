@@ -457,3 +457,31 @@ export interface AuditLog {
   /** Drops what happened before `before`. */
   sweep(before: number): Promise<void>;
 }
+
+/** Who did something an admin does: an account, or a command on the server (`id` null). */
+export interface Actor {
+  id: string | null;
+  name: string;
+  ip: string | null;
+}
+
+/** A line of the admins' log, as kept. */
+export interface AdminLogRecord {
+  id?: number;
+  at: number;
+  actorId: string | null;
+  actorName: string;
+  action: string;
+  targetId: string | null;
+  targetName: string | null;
+  details: Record<string, string | number | boolean | null>;
+  ip: string | null;
+}
+
+/** What the accounts that run the site did, a year of it; never edited, only swept when old. */
+export interface AdminLogRepository {
+  add(entry: AdminLogRecord): Promise<void>;
+  /** The newest first, `limit` of them, with ids below `before`; `name` matches the actor or the target, any case. */
+  list(query: { action?: string; name?: string; before?: number; limit: number }): Promise<AdminLogRecord[]>;
+  sweep(before: number): Promise<void>;
+}

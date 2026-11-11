@@ -1,10 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router';
 import type { AdminOverview } from '../../../shared/admin';
 import { ApiError } from '../../api/http';
 import { adminOverview, makeInvite } from '../../api/admin';
 import { deviceName } from '../../domain/device';
 import { paths } from '../../navigation/paths';
 import { copyText } from '../../platform/clipboard';
+import { Icon } from '../../ui/Icon';
 import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
 import { messageFor } from '../auth/messages';
@@ -39,7 +41,7 @@ const DAYS = [
 ];
 
 /**
- * The site's own page, for whoever runs it (HANZI_ADMIN_USERS): an
+ * The site's own page, for the accounts that run it (role `admin`): an
  * invitation made from the phone, the accounts with how much each keeps and
  * spends, and the invitations given out. Names, dates and sizes only —
  * nobody's work.
@@ -187,6 +189,16 @@ export function AdminPage() {
           </ul>
         )}
       </section>
+
+      <nav className="block list" aria-label="More about the site">
+        <Link className="admin-nav" to={paths.adminLog()}>
+          <span className="grow">
+            <b>What admins did</b>
+            <span className="small muted">Invitations, roles, pauses and passwords reset, a year of them</span>
+          </span>
+          <Icon name="chevron" />
+        </Link>
+      </nav>
 
       <section className="block">
         <h2 className="block-title">Invitations</h2>

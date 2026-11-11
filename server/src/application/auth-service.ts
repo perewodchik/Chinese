@@ -17,7 +17,7 @@ import {
   ValidationError,
 } from '../domain/errors';
 import { randomInt } from 'node:crypto';
-import type { ApiTokenRepository, Clock, InviteRepository, PasswordHasher, RecoveryCodeRepository, SessionRepository, Tokens, UserRepository } from './ports';
+import type { Actor, AdminLogRecord, AdminLogRepository, ApiTokenRepository, Clock, InviteRepository, PasswordHasher, RecoveryCodeRepository, SessionRepository, Tokens, UserRepository } from './ports';
 
 const DAY = 86_400_000;
 
@@ -48,6 +48,8 @@ export interface AuthDeps {
   users: UserRepository;
   sessions: SessionRepository;
   apiTokens: ApiTokenRepository;
+  /** what the accounts that run the site did; every method here that one of them calls writes to it */
+  adminLog: AdminLogRepository;
   invites: InviteRepository;
   recoveryCodes: RecoveryCodeRepository;
   hasher: PasswordHasher;
@@ -113,6 +115,13 @@ const toTokenDto = (t: ApiToken): AccessTokenDto => ({
   expiresAt: t.expiresAt,
 });
 
+/** Who did it, when a command on the server did: `npm run admin`, the scripts, the tests. */
+export const SERVER_COMMAND: Actor = { id: null, name: 'a command on the server', ip: null };
+/** Who gave the first admins their role. */
+const FROM_SETTINGS: Actor = { id: null, name: 'HANZI_ADMIN_USERS', ip: null };
+/** How long the admins' log is kept. */
+const ADMIN_LOG_DAYS = 365;
+
 const randomCode = (length: number) => Array.from({ length }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join('');
 
 /** A code as typed: any case, with or without the dashes and spaces it was printed with. */
@@ -168,11 +177,12 @@ export class AuthService {
   }
 
   /** For whoever runs the server: an invitation for one account, good for `days` (or for ever). */
-  async invite(note: string, days: number | null): Promise<IssuedInvite> {
+  async invite(note: string, days: number | null, actor: Actor): Promise<IssuedInvite> {
     const code = Array.from({ length: INVITE_LENGTH }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join('');
     const now = this.deps.clock.now();
     const expiresAt = days === null ? null : now + days * DAY;
     await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null });
+    await this.record(actor, 'invite-made', null, { note: note.trim().slice(0, 120), days });
     return { code: code.match(/.{1,4}/g)!.join('-'), note, expiresAt };
   }
 
@@ -184,8 +194,10 @@ export class AuthService {
   }
 
   /** An account made by whoever runs the server, whether or not sign-ups are open. No session comes with it. */
-  async addUser(username: string, password: string): Promise<UserDto> {
-    return toUserDto(await this.createUser(username, password));
+  async addUser(username: string, password: string, actor: Actor): Promise<UserDto> {
+    const user = await this.createUser(username, password);
+    await this.record(actor, 'account-made', user, {});
+    return toUserDto(user);
   }
 
   /** `before` runs once the name and password are good, just before the account is written, with its id. */
@@ -412,7 +424,7 @@ export class AuthService {
   }
 
   /** For whoever runs the server: a new password for an account, and every session of it ended. */
-  async resetPassword(username: string, newPassword: string): Promise<UserDto> {
+  async resetPassword(username: string, newPassword: string, actor: Actor): Promise<UserDto> {
     const { users, sessions, hasher, clock } = this.deps;
     const user = await users.findByUsernameKey(usernameKey(username));
     if (!user) throw new NotFoundError(`An account called “${username}”`);
@@ -422,6 +434,7 @@ export class AuthService {
     await users.updatePassword(user.id, await hasher.hash(newPassword), clock.now());
     await sessions.deleteForUser(user.id);
     await this.deps.apiTokens.revokeForUser(user.id, clock.now());
+    await this.record(actor, 'password-reset', user, {});
     return toUserDto(user);
   }
 
@@ -440,6 +453,7 @@ export class AuthService {
       const user = await users.findByUsernameKey(usernameKey(name));
       if (!user || user.role === 'admin') continue;
       await users.setRole(user.id, 'admin', clock.now());
+      await this.record(FROM_SETTINGS, 'role-granted', user, {});
       given.push(user.username);
     }
     // Not settled while none of the names has an account yet: the next
@@ -454,7 +468,7 @@ export class AuthService {
    * The last account that runs the site keeps the role, so the site is never
    * left with nobody to run it.
    */
-  async setRole(username: string, role: UserDto['role']): Promise<UserDto> {
+  async setRole(username: string, role: UserDto['role'], actor: Actor): Promise<UserDto> {
     const { users, clock } = this.deps;
     const user = await users.findByUsernameKey(usernameKey(username));
     if (!user) throw new NotFoundError(`An account called “${username}”`);
@@ -463,25 +477,29 @@ export class AuthService {
       throw new ValidationError('That is the last account that runs the site. Give the role to another first.');
     }
     await users.setRole(user.id, role, clock.now());
+    await this.record(actor, role === 'admin' ? 'role-granted' : 'role-revoked', user, {});
     return toUserDto({ ...user, role });
   }
 
   /**
    * An account paused, or opened again. Pausing signs it out everywhere and
-   * stops its tokens; the work it kept stays. An account cannot pause itself
-   * (`byUserId`), and the last one that runs the site cannot be paused.
+   * stops its tokens; the work it kept stays. An account cannot pause itself,
+   * and the last one that runs the site cannot be paused.
    */
-  async setStatus(username: string, status: 'active' | 'blocked', byUserId?: string): Promise<UserDto> {
+  async setStatus(username: string, status: 'active' | 'blocked', actor: Actor): Promise<UserDto> {
     const { users, sessions, apiTokens, clock } = this.deps;
     const user = await users.findByUsernameKey(usernameKey(username));
     if (!user) throw new NotFoundError(`An account called “${username}”`);
     if (status === 'blocked') {
-      if (user.id === byUserId) throw new ValidationError('An account cannot pause itself.');
+      if (user.id === actor.id) throw new ValidationError('An account cannot pause itself.');
       if (user.role === 'admin' && (await users.countByRole('admin')) <= 1) {
         throw new ValidationError('That is the last account that runs the site, and cannot be paused.');
       }
     }
-    if (user.status !== status) await users.setStatus(user.id, status, clock.now());
+    if (user.status !== status) {
+      await users.setStatus(user.id, status, clock.now());
+      await this.record(actor, status === 'blocked' ? 'blocked' : 'unblocked', user, {});
+    }
     if (status === 'blocked') {
       await sessions.deleteForUser(user.id);
       await apiTokens.revokeForUser(user.id, clock.now());
@@ -543,6 +561,22 @@ export class AuthService {
     if (!user || user.status === 'blocked') return null;
     if (found.lastUsedAt === null || now - found.lastUsedAt >= TOKEN_TOUCH_MS) await apiTokens.touch(found.id, now);
     return { user: toUserDto(user), sessionId: `token:${found.id}`, expiresAt: found.expiresAt, renewed: false, scopes: toTokenDto(found).scopes };
+  }
+
+  /** A page of the admins' log, the newest first. */
+  adminLogPage(query: { action?: string; name?: string; before?: number; limit: number }): Promise<AdminLogRecord[]> {
+    return this.deps.adminLog.list(query);
+  }
+
+  /**
+   * One line of the admins' log, written as part of the action: awaited, so
+   * an action whose line could not be written is answered as failed rather
+   * than done unseen. Now and then, what is older than a year goes.
+   */
+  private async record(actor: Actor, action: string, target: User | null, details: AdminLogRecord['details']): Promise<void> {
+    const at = this.deps.clock.now();
+    await this.deps.adminLog.add({ at, actorId: actor.id, actorName: actor.name, action, targetId: target?.id ?? null, targetName: target?.username ?? null, details, ip: actor.ip });
+    if (Math.random() < 0.01) await this.deps.adminLog.sweep(at - ADMIN_LOG_DAYS * DAY);
   }
 
   purgeExpiredSessions(): Promise<number> {

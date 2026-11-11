@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { describe, it } from 'node:test';
 import { describeDatabase, loadConfig } from '../src/config';
+import { SERVER_COMMAND } from '../src/application/auth-service';
 import { call, makeApp, sessionCookie } from './support';
 
 const defaults = { port: 4173, serveStatic: false };
@@ -50,7 +51,7 @@ describe('the development sign-in, on a database it does not own', () => {
 
   it('signs in as an account that is there', async () => {
     const { app, services } = makeApp({}, { trustProxy: true, devUser: 'admin', devUserCreate: false });
-    await services.auth.addUser('admin', 'a test password');
+    await services.auth.addUser('admin', 'a test password', SERVER_COMMAND);
 
     const res = await call(app, 'GET', '/api/auth/session', here);
     const body = (await res.json()) as { user: { username: string } | null };

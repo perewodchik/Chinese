@@ -33,6 +33,7 @@ import { GradeSheetPage } from '../features/review/GradeSheetPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { StatsPage } from '../features/stats/StatsPage';
 import { AccountPage } from '../features/account/AccountPage';
+import { AdminLogPage } from '../features/admin/AdminLogPage';
 import { AdminPage } from '../features/admin/AdminPage';
 import { TodayPage } from '../features/today/TodayPage';
 import { AddVideoPage } from '../features/videos/AddVideoPage';
@@ -210,6 +211,7 @@ export const router = createBrowserRouter([
               { path: 'account', element: <AccountPage /> },
               { path: 'account/stats', element: <StatsPage /> },
               { path: 'admin', element: <AdminPage /> },
+              { path: 'admin/log', element: <AdminLogPage /> },
               { path: '*', element: <NotFoundPage /> },
             ],
           },

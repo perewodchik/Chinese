@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { resolve } from 'node:path';
+import { SERVER_COMMAND } from './application/auth-service';
 import { createServices, type Services } from './composition';
 import { describeDatabase, loadConfig, loadEnvFile } from './config';
 import { openStores } from './infrastructure/stores';
@@ -73,7 +74,7 @@ try {
       const name = args[0];
       if (!name) throw new Error(`What should the account be called?\n${USAGE}`);
       const password = temporaryPassword();
-      const user = await withServices(({ auth }) => auth.addUser(name, password));
+      const user = await withServices(({ auth }) => auth.addUser(name, password, SERVER_COMMAND));
       console.log(`\n  Made ${user.username}. The password, to change in Settings:  ${password}\n`);
       break;
     }
@@ -83,7 +84,7 @@ try {
       const days = at >= 0 ? Number(args[at + 1]) : 14;
       if (!Number.isInteger(days) || days < 0) throw new Error(`--days is a whole number of days.\n${USAGE}`);
       const note = args.filter((_, i) => at < 0 || (i !== at && i !== at + 1)).join(' ');
-      const made = await withServices(({ auth }) => auth.invite(note, days === 0 ? null : days));
+      const made = await withServices(({ auth }) => auth.invite(note, days === 0 ? null : days, SERVER_COMMAND));
       const site = process.env.HANZI_SITE_URL?.replace(/\/$/, '') ?? 'https://chinese-inky.vercel.app';
       console.log(`\n  Invitation${note ? ` for ${note}` : ''}:  ${made.code}`);
       console.log(`  The link to send:  ${site}/register?invite=${made.code}`);
@@ -106,7 +107,7 @@ try {
       const name = args[0];
       if (!name) throw new Error(`Which account?\n${USAGE}`);
       const password = temporaryPassword();
-      const user = await withServices(({ auth }) => auth.resetPassword(name, password));
+      const user = await withServices(({ auth }) => auth.resetPassword(name, password, SERVER_COMMAND));
       console.log(`\n  New password for ${user.username}:  ${password}`);
       console.log('  Every browser signed in to that account has been signed out.\n');
       break;
@@ -116,7 +117,7 @@ try {
     case 'revoke-admin': {
       const name = args[0];
       if (!name) throw new Error(`Which account?\n${USAGE}`);
-      const user = await withServices(({ auth }) => auth.setRole(name, command === 'grant-admin' ? 'admin' : 'learner'));
+      const user = await withServices(({ auth }) => auth.setRole(name, command === 'grant-admin' ? 'admin' : 'learner', SERVER_COMMAND));
       console.log(`\n  ${user.username} ${user.role === 'admin' ? 'runs the site now' : 'is a learner now'}.\n`);
       break;
     }
@@ -125,7 +126,7 @@ try {
     case 'unblock': {
       const name = args[0];
       if (!name) throw new Error(`Which account?\n${USAGE}`);
-      const user = await withServices(({ auth }) => auth.setStatus(name, command === 'block' ? 'blocked' : 'active'));
+      const user = await withServices(({ auth }) => auth.setStatus(name, command === 'block' ? 'blocked' : 'active', SERVER_COMMAND));
       console.log(command === 'block' ? `\n  ${user.username} is paused: signed out everywhere, its tokens stopped.\n` : `\n  ${user.username} can sign in again.\n`);
       break;
     }

@@ -1,10 +1,38 @@
 /**
- * What whoever runs the site sees at /admin (HANZI_ADMIN_USERS).
+ * What the accounts that run the site (role `admin`) see at /admin.
  *
  *   GET  /api/admin            200 for an admin, 403 for anyone else
  *   GET  /api/admin/overview   → AdminOverview
  *   POST /api/admin/invites    { note, days } → { code, expiresAt }
+ *   GET  /api/admin/log        ?action=&name=&before= → AdminLogPage
  */
+
+/**
+ * What an account that runs the site (or a command on the server) did. The
+ * list grows with the admin pages; a kind the page does not know is shown
+ * as it is.
+ */
+export const ADMIN_ACTIONS = ['invite-made', 'account-made', 'password-reset', 'role-granted', 'role-revoked', 'blocked', 'unblocked'] as const;
+export type AdminAction = (typeof ADMIN_ACTIONS)[number];
+
+/** One line of the admins' log. Not the address it came from. */
+export interface AdminLogEntry {
+  id: number;
+  at: number;
+  /** the account's name, or "server command" / "HANZI_ADMIN_USERS" for what no account did */
+  actor: string;
+  action: AdminAction | string;
+  /** the account it was done to, when it was done to one */
+  target: string | null;
+  /** what else is worth knowing: an invitation's note and length, the reason for a block */
+  details: Record<string, string | number | boolean | null>;
+}
+
+export interface AdminLogPage {
+  entries: AdminLogEntry[];
+  /** the id to ask `before` for the next page; null at the end */
+  next: number | null;
+}
 
 export interface AdminAccount {
   username: string;

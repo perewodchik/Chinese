@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { CurrentSessionResponse, MadeAccessTokenResponse } from '../../shared/api';
+import { SERVER_COMMAND } from '../src/application/auth-service';
 import { createServices } from '../src/composition';
 import { createHttpApp } from '../src/http/app';
 import { openDatabase } from '../src/infrastructure/sqlite/database';
@@ -81,13 +82,13 @@ describe('who runs the site, from the database', () => {
     const app = serve(['kirill']);
     const owner = await signUp(app, 'kirill');
     assert.equal(await roleOf(app, owner), 'admin');
-    await assert.rejects(services.auth.setRole('kirill', 'learner'), /last account that runs the site/);
-    await assert.rejects(services.auth.setStatus('kirill', 'blocked'), /last account that runs the site/);
+    await assert.rejects(services.auth.setRole('kirill', 'learner', SERVER_COMMAND), /last account that runs the site/);
+    await assert.rejects(services.auth.setStatus('kirill', 'blocked', SERVER_COMMAND), /last account that runs the site/);
 
     await signUp(app, 'masha');
-    await services.auth.setRole('masha', 'admin');
-    await assert.rejects(services.auth.setStatus('masha', 'blocked', (await services.auth.listUsers()).find((u) => u.username === 'masha')!.id), /cannot pause itself/);
-    assert.equal((await services.auth.setRole('kirill', 'learner')).role, 'learner');
+    await services.auth.setRole('masha', 'admin', SERVER_COMMAND);
+    await assert.rejects(services.auth.setStatus('masha', 'blocked', { ...SERVER_COMMAND, id: (await services.auth.listUsers()).find((u) => u.username === 'masha')!.id }), /cannot pause itself/);
+    assert.equal((await services.auth.setRole('kirill', 'learner', SERVER_COMMAND)).role, 'learner');
     assert.equal(await roleOf(app, owner), 'learner', 'read afresh on the next request');
     assert.equal((await call(app, 'GET', '/api/admin/overview', { cookie: owner })).status, 403);
   });
@@ -101,7 +102,7 @@ describe('a paused account', () => {
     const cookie = await signUp(app, 'masha');
     const made = (await (await call(app, 'POST', '/api/account/tokens', { cookie, body: { name: 'script', days: 30 } })).json()) as MadeAccessTokenResponse;
 
-    await services.auth.setStatus('masha', 'blocked');
+    await services.auth.setStatus('masha', 'blocked', SERVER_COMMAND);
     assert.equal((await call(app, 'GET', '/api/workspace', { cookie })).status, 401);
     assert.equal(((await (await call(app, 'GET', '/api/auth/session', { cookie })).json()) as CurrentSessionResponse).user, null);
     const byToken = await app.request(`http://${HOST}/api/workspace`, { headers: { host: HOST, authorization: `Bearer ${made.token}` } });
@@ -114,7 +115,7 @@ describe('a paused account', () => {
     assert.equal(((await right.json()) as { error: { code: string } }).error.code, 'account_blocked');
     assert.equal(right.headers.get('set-cookie'), null, 'and no session comes with it');
 
-    await services.auth.setStatus('masha', 'active');
+    await services.auth.setStatus('masha', 'active', SERVER_COMMAND);
     assert.equal((await call(app, 'POST', '/api/auth/login', { body: { username: 'masha', password: PASSWORD } })).status, 200);
     const stillRevoked = await app.request(`http://${HOST}/api/workspace`, { headers: { host: HOST, authorization: `Bearer ${made.token}` } });
     assert.equal(stillRevoked.status, 401, 'opening it again does not bring its tokens back');

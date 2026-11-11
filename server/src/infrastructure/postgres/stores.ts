@@ -1,5 +1,6 @@
 import type pg from 'pg';
 import { PostgresApiTokenRepository } from './api-token-repository';
+import { PostgresAdminLog } from './admin-log';
 import type { Stores } from '../../composition';
 import { PostgresConversationRepository } from './conversation-repository';
 import { PostgresPictureRepository } from './picture-repository';
@@ -41,6 +42,7 @@ export const postgresStores = (db: pg.Pool): Stores => ({
   limits: new PostgresRateLimitStore(db),
   lookups: new PostgresLookupCache(db),
   storage: new PostgresStorageMeter(db),
+  adminLog: new PostgresAdminLog(db),
   audit: new PostgresAuditLog(db),
   recoveryCodes: new PostgresRecoveryCodeRepository(db),
 });

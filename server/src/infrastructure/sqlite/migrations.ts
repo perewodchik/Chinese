@@ -257,4 +257,21 @@ export const MIGRATIONS: readonly string[] = [
   ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active';
   ALTER TABLE users ADD COLUMN flags TEXT NOT NULL DEFAULT '{}';
   `,
+  // What the accounts that run the site did, and to whom, kept a year. The
+  // actor and the target are kept by name as well as by id, so the line
+  // still reads after either account is deleted; neither is a foreign key.
+  `
+  CREATE TABLE admin_log (
+    id           INTEGER PRIMARY KEY,
+    at           INTEGER NOT NULL,
+    actor_id     TEXT,
+    actor_name   TEXT NOT NULL,
+    action       TEXT NOT NULL,
+    target_id    TEXT,
+    target_name  TEXT,
+    details      TEXT NOT NULL,
+    ip           TEXT
+  ) STRICT;
+  CREATE INDEX admin_log_by_time ON admin_log (at);
+  `,
 ];
