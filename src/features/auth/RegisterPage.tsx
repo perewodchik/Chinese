@@ -65,9 +65,10 @@ export function RegisterPage() {
     <AuthLayout
       title="Make an account"
       lede={
-        needsInvite
-          ? 'New accounts here are by invitation. One account holds everything — what you have learned, the texts, the cards — on every device you sign in on.'
-          : 'One account holds everything — collections, what you have learned, the texts — and opens it on any device that can reach this server.'
+        // What the site is, before anything is asked (N6): a stranger with an invitation link knows nothing else about it.
+        `Chinese for HSK 1–3: read short texts at your level, keep their words as cards, and say them aloud. ${
+          needsInvite ? 'Accounts here are by invitation. ' : ''
+        }One account keeps it all on every device you sign in on, and deleting it takes it all away.`
       }
       footer={<>Already have one? {signIn}</>}
     >

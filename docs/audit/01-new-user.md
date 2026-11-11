@@ -191,6 +191,15 @@ pick while reading: tap a word in a text, then Learn this word.» и одна
 <a id="n6"></a>
 ### N6 (С) Регистрация и приглашение объясняют, что это
 
+**Сделано (2026-11-11), частично.** Над формой: «Chinese for HSK 1–3: read
+short texts at your level, keep their words as cards, and say them aloud.
+[Accounts here are by invitation.] One account keeps it all on every
+device you sign in on, and deleting it takes it all away.» Подсказка «At
+least 8 characters» уже видна до ошибки. **Ждёт владельца:** правовые
+страницы и согласие (L1: что хранится и где, 152-ФЗ), «что бесплатно»
+(зависит от M1); коды восстановления на шаге «готово» — с N2.
+
+
 `src/features/auth/RegisterPage.tsx`, `AuthLayout.tsx`. По ссылке
 `/register?invite=…` человек видит форму. Добавить над формой три строки:
 что это («Chinese for HSK 1–3: read short texts at your level, keep the
