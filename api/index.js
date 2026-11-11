@@ -538,14 +538,27 @@ var AuthService = class {
     return toUserDto({ ...user, role });
   }
   /**
-   * An account paused, or opened again. Pausing signs it out everywhere and
-   * stops its tokens; the work it kept stays. An account cannot pause itself,
-   * and the last one that runs the site cannot be paused.
+   * An account paused, or opened again, by name (`npm run admin -- block`).
+   * See `setStatusOf`.
    */
-  async setStatus(username, status, actor) {
-    const { users, sessions, apiTokens, clock } = this.deps;
-    const user = await users.findByUsernameKey(usernameKey(username));
+  async setStatus(username, status, actor, reason = "") {
+    const user = await this.deps.users.findByUsernameKey(usernameKey(username));
     if (!user) throw new NotFoundError(`An account called \u201C${username}\u201D`);
+    return this.setStatusOf(user, status, actor, reason);
+  }
+  /** The same, by the account's id, as the admin pages name it. */
+  async setStatusById(userId, status, actor, reason = "") {
+    const user = await this.deps.users.findById(userId);
+    if (!user) throw new NotFoundError("That account");
+    return this.setStatusOf(user, status, actor, reason);
+  }
+  /**
+   * Pausing signs the account out everywhere and stops its tokens; the work
+   * it kept stays. An account cannot pause itself, and the last one that
+   * runs the site cannot be paused. The reason goes in the admins' log.
+   */
+  async setStatusOf(user, status, actor, reason) {
+    const { users, sessions, apiTokens, clock } = this.deps;
     if (status === "blocked") {
       if (user.id === actor.id) throw new ValidationError("An account cannot pause itself.");
       if (user.role === "admin" && await users.countByRole("admin") <= 1) {
@@ -554,13 +567,32 @@ var AuthService = class {
     }
     if (user.status !== status) {
       await users.setStatus(user.id, status, clock.now());
-      await this.record(actor, status === "blocked" ? "blocked" : "unblocked", user, {});
+      await this.record(actor, status === "blocked" ? "blocked" : "unblocked", user, reason ? { reason } : {});
     }
     if (status === "blocked") {
       await sessions.deleteForUser(user.id);
       await apiTokens.revokeForUser(user.id, clock.now());
     }
     return toUserDto(user);
+  }
+  /**
+   * Every browser of the account signed out and every token of it stopped,
+   * for an account that may be in someone else's hands. An admin signs
+   * their own other browsers out from their account page instead.
+   */
+  async signOutEverywhere(userId, actor) {
+    const { users, sessions, apiTokens, clock } = this.deps;
+    const user = await users.findById(userId);
+    if (!user) throw new NotFoundError("That account");
+    if (user.id === actor.id) throw new ValidationError("Sign your own other devices out from your account page.");
+    const signedOut = await sessions.deleteForUser(user.id);
+    const tokens = await apiTokens.revokeForUser(user.id, clock.now());
+    await this.record(actor, "signed-out", user, { sessions: signedOut, tokens });
+    return { sessions: signedOut, tokens };
+  }
+  /** The accounts as the admin pages list them: who, since when, what role, whether paused. */
+  async accounts() {
+    return (await this.deps.users.list()).map((u) => ({ ...toUserDto(u), status: u.status }));
   }
   async listUsers() {
     return (await this.deps.users.list()).map(toUserDto);
@@ -2456,6 +2488,7 @@ var logQuery = z2.object({
   before: z2.coerce.number().int().positive().optional()
 });
 var LOG_PAGE = 50;
+var blockRequest = z2.object({ reason: z2.string().trim().min(1, "Say why, for the log.").max(300) });
 function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit }) {
   const routes = new Hono2();
   const session = requireSession(auth, { trustProxy, clock });
@@ -2466,14 +2499,17 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, st
     return c.json({ admin: true });
   });
   routes.get("/overview", session, admin, async (c) => {
-    const users = await auth.listUsers();
+    const users = await auth.accounts();
     const none = { speechsuper: false, iflytek: false, minimax: false };
     const accounts = await Promise.all(
       users.map(async (u) => {
         const [devices, room, spent] = await Promise.all([auth.sessionsOf(u.id, ""), storage.use(u.id), usage.summary(u.id, none)]);
         const month = (service) => spent.lines.find((l) => l.service === service)?.month ?? { calls: 0, units: 0 };
         return {
+          id: u.id,
           username: u.username,
+          role: u.role,
+          status: u.status,
           createdAt: u.createdAt,
           lastSeenAt: devices.length ? Math.max(...devices.map((d) => d.lastSeenAt)) : null,
           devices: devices.length,
@@ -2508,6 +2544,22 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, st
     };
     c.header("Cache-Control", "no-store");
     return c.json(body);
+  });
+  const changes = new RateLimiter("admin.accounts", 60, 60 * 6e4, clock, limits);
+  routes.post("/accounts/:id/block", session, admin, async (c) => {
+    await changes.consume(c.get("session").user.id);
+    const { reason } = await readJson(c, blockRequest);
+    await auth.setStatusById(c.req.param("id"), "blocked", actor(c), reason);
+    return c.body(null, 204);
+  });
+  routes.post("/accounts/:id/unblock", session, admin, async (c) => {
+    await changes.consume(c.get("session").user.id);
+    await auth.setStatusById(c.req.param("id"), "active", actor(c));
+    return c.body(null, 204);
+  });
+  routes.post("/accounts/:id/sign-out", session, admin, async (c) => {
+    await changes.consume(c.get("session").user.id);
+    return c.json(await auth.signOutEverywhere(c.req.param("id"), actor(c)));
   });
   routes.post("/invites", session, admin, async (c) => {
     await invites.consume(c.get("session").user.id);

@@ -482,14 +482,29 @@ export class AuthService {
   }
 
   /**
-   * An account paused, or opened again. Pausing signs it out everywhere and
-   * stops its tokens; the work it kept stays. An account cannot pause itself,
-   * and the last one that runs the site cannot be paused.
+   * An account paused, or opened again, by name (`npm run admin -- block`).
+   * See `setStatusOf`.
    */
-  async setStatus(username: string, status: 'active' | 'blocked', actor: Actor): Promise<UserDto> {
-    const { users, sessions, apiTokens, clock } = this.deps;
-    const user = await users.findByUsernameKey(usernameKey(username));
+  async setStatus(username: string, status: 'active' | 'blocked', actor: Actor, reason = ''): Promise<UserDto> {
+    const user = await this.deps.users.findByUsernameKey(usernameKey(username));
     if (!user) throw new NotFoundError(`An account called “${username}”`);
+    return this.setStatusOf(user, status, actor, reason);
+  }
+
+  /** The same, by the account's id, as the admin pages name it. */
+  async setStatusById(userId: string, status: 'active' | 'blocked', actor: Actor, reason = ''): Promise<UserDto> {
+    const user = await this.deps.users.findById(userId);
+    if (!user) throw new NotFoundError('That account');
+    return this.setStatusOf(user, status, actor, reason);
+  }
+
+  /**
+   * Pausing signs the account out everywhere and stops its tokens; the work
+   * it kept stays. An account cannot pause itself, and the last one that
+   * runs the site cannot be paused. The reason goes in the admins' log.
+   */
+  private async setStatusOf(user: User, status: 'active' | 'blocked', actor: Actor, reason: string): Promise<UserDto> {
+    const { users, sessions, apiTokens, clock } = this.deps;
     if (status === 'blocked') {
       if (user.id === actor.id) throw new ValidationError('An account cannot pause itself.');
       if (user.role === 'admin' && (await users.countByRole('admin')) <= 1) {
@@ -498,13 +513,34 @@ export class AuthService {
     }
     if (user.status !== status) {
       await users.setStatus(user.id, status, clock.now());
-      await this.record(actor, status === 'blocked' ? 'blocked' : 'unblocked', user, {});
+      await this.record(actor, status === 'blocked' ? 'blocked' : 'unblocked', user, reason ? { reason } : {});
     }
     if (status === 'blocked') {
       await sessions.deleteForUser(user.id);
       await apiTokens.revokeForUser(user.id, clock.now());
     }
     return toUserDto(user);
+  }
+
+  /**
+   * Every browser of the account signed out and every token of it stopped,
+   * for an account that may be in someone else's hands. An admin signs
+   * their own other browsers out from their account page instead.
+   */
+  async signOutEverywhere(userId: string, actor: Actor): Promise<{ sessions: number; tokens: number }> {
+    const { users, sessions, apiTokens, clock } = this.deps;
+    const user = await users.findById(userId);
+    if (!user) throw new NotFoundError('That account');
+    if (user.id === actor.id) throw new ValidationError('Sign your own other devices out from your account page.');
+    const signedOut = await sessions.deleteForUser(user.id);
+    const tokens = await apiTokens.revokeForUser(user.id, clock.now());
+    await this.record(actor, 'signed-out', user, { sessions: signedOut, tokens });
+    return { sessions: signedOut, tokens };
+  }
+
+  /** The accounts as the admin pages list them: who, since when, what role, whether paused. */
+  async accounts(): Promise<Array<UserDto & { status: 'active' | 'blocked' }>> {
+    return (await this.deps.users.list()).map((u) => ({ ...toUserDto(u), status: u.status }));
   }
 
   async listUsers(): Promise<UserDto[]> {

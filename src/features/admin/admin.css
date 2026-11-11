@@ -103,3 +103,28 @@
 .admin-nav > svg {
   color: var(--ink-3);
 }
+
+/* An account: who and its line on the left, its ⋯ menu on the right. */
+.admin-account-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.admin-account-who {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-account-meta {
+  display: block;
+}
+
+/* Asking why an account is being paused, under its line. */
+.admin-pause {
+  display: grid;
+  gap: 12px;
+  max-width: 420px;
+  margin-top: 10px;
+}

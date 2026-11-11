@@ -13,3 +13,8 @@ export const adminLog = (q: { action?: string; name?: string; before?: number })
   const search = params.toString();
   return request<AdminLogPage>('GET', `/api/admin/log${search ? `?${search}` : ''}`);
 };
+
+/** An account paused, with the reason for the log; opened again; signed out everywhere with its tokens. */
+export const blockAccount = (id: string, reason: string) => request<void>('POST', `/api/admin/accounts/${encodeURIComponent(id)}/block`, { body: { reason } });
+export const unblockAccount = (id: string) => request<void>('POST', `/api/admin/accounts/${encodeURIComponent(id)}/unblock`);
+export const signOutAccount = (id: string) => request<{ sessions: number; tokens: number }>('POST', `/api/admin/accounts/${encodeURIComponent(id)}/sign-out`);

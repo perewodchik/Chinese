@@ -5,6 +5,9 @@
  *   GET  /api/admin/overview   → AdminOverview
  *   POST /api/admin/invites    { note, days } → { code, expiresAt }
  *   GET  /api/admin/log        ?action=&name=&before= → AdminLogPage
+ *   POST /api/admin/accounts/:id/block     { reason } → 204: paused, signed out everywhere, its tokens stopped
+ *   POST /api/admin/accounts/:id/unblock   → 204
+ *   POST /api/admin/accounts/:id/sign-out  → { sessions, tokens }: how many browsers and tokens went
  */
 
 /**
@@ -12,7 +15,7 @@
  * list grows with the admin pages; a kind the page does not know is shown
  * as it is.
  */
-export const ADMIN_ACTIONS = ['invite-made', 'account-made', 'password-reset', 'role-granted', 'role-revoked', 'blocked', 'unblocked'] as const;
+export const ADMIN_ACTIONS = ['invite-made', 'account-made', 'password-reset', 'role-granted', 'role-revoked', 'blocked', 'unblocked', 'signed-out'] as const;
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];
 
 /** One line of the admins' log. Not the address it came from. */
@@ -35,7 +38,11 @@ export interface AdminLogPage {
 }
 
 export interface AdminAccount {
+  id: string;
   username: string;
+  role: 'learner' | 'admin';
+  /** a paused account signs in nowhere until it is opened again */
+  status: 'active' | 'blocked';
   createdAt: number;
   /** the last time any of its browsers was seen; null when none is signed in */
   lastSeenAt: number | null;

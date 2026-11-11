@@ -10,12 +10,11 @@ import { Icon } from '../../ui/Icon';
 import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
 import { messageFor } from '../auth/messages';
+import { useUser } from '../auth/session';
+import { AdminAccountRow } from './AdminAccountRow';
+import { day, mb, plural } from './format';
 import './admin.css';
 
-const day = (at: number) => new Date(at).toLocaleDateString(undefined, { day: 'numeric', month: 'long' });
-const MB = 1024 * 1024;
-const mb = (b: number) => (b < MB ? '<1 MB' : `${Math.round(b / MB).toLocaleString('en')} MB`);
-const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString('en')} ${n === 1 ? one : many}`;
 
 const when = (at: number) => new Date(at).toLocaleString(undefined, { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' });
 
@@ -52,6 +51,7 @@ const DAYS = [
 export function AdminPage() {
   useTitle('The site');
   const toast = useToast();
+  const user = useUser();
   const [data, setData] = useState<AdminOverview | null>(null);
   const [denied, setDenied] = useState<string | null>(null);
   const [note, setNote] = useState('');
@@ -153,16 +153,7 @@ export function AdminPage() {
         <h2 className="block-title">Accounts</h2>
         <ul className="list admin-list">
           {(data?.accounts ?? []).map((a) => (
-            <li key={a.username} className="admin-row">
-              <b>{a.username}</b>
-              <span className="small muted">
-                {a.lastSeenAt ? `Last here ${day(a.lastSeenAt)}` : 'Not signed in anywhere'} · {plural(a.devices, 'device')} · {mb(a.storageBytes)}
-                {a.scoredThisMonth || a.charactersReadThisMonth
-                  ? ` · this month ${plural(a.scoredThisMonth, 'phrase')} scored, ${plural(a.charactersReadThisMonth, 'character')} read`
-                  : ''}
-                {` · since ${day(a.createdAt)}`}
-              </span>
-            </li>
+            <AdminAccountRow key={a.id} account={a} self={a.id === user.id} onChanged={() => void load()} />
           ))}
         </ul>
       </section>

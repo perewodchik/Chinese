@@ -13,6 +13,7 @@ const logQuery = z.object({
   before: z.coerce.number().int().positive().optional(),
 });
 const LOG_PAGE = 50;
+const blockRequest = z.object({ reason: z.string().trim().min(1, 'Say why, for the log.').max(300) });
 
 /**
  * For the accounts that run the site (role `admin`): the accounts, how
@@ -33,14 +34,17 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, us
   });
 
   routes.get('/overview', session, admin, async (c) => {
-    const users = await auth.listUsers();
+    const users = await auth.accounts();
     const none = { speechsuper: false, iflytek: false, minimax: false };
     const accounts: AdminAccount[] = await Promise.all(
       users.map(async (u) => {
         const [devices, room, spent] = await Promise.all([auth.sessionsOf(u.id, ''), storage.use(u.id), usage.summary(u.id, none)]);
         const month = (service: string) => spent.lines.find((l) => l.service === service)?.month ?? { calls: 0, units: 0 };
         return {
+          id: u.id,
           username: u.username,
+          role: u.role,
+          status: u.status,
           createdAt: u.createdAt,
           lastSeenAt: devices.length ? Math.max(...devices.map((d) => d.lastSeenAt)) : null,
           devices: devices.length,
@@ -78,6 +82,28 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, us
     };
     c.header('Cache-Control', 'no-store');
     return c.json(body);
+  });
+
+  // Pausing, opening again and signing out everywhere: few, and each one in
+  // the log. A loop that pauses every account is what the limit is for.
+  const changes = new RateLimiter('admin.accounts', 60, 60 * 60_000, clock, limits);
+
+  routes.post('/accounts/:id/block', session, admin, async (c) => {
+    await changes.consume(c.get('session').user.id);
+    const { reason } = await readJson(c, blockRequest);
+    await auth.setStatusById(c.req.param('id'), 'blocked', actor(c), reason);
+    return c.body(null, 204);
+  });
+
+  routes.post('/accounts/:id/unblock', session, admin, async (c) => {
+    await changes.consume(c.get('session').user.id);
+    await auth.setStatusById(c.req.param('id'), 'active', actor(c));
+    return c.body(null, 204);
+  });
+
+  routes.post('/accounts/:id/sign-out', session, admin, async (c) => {
+    await changes.consume(c.get('session').user.id);
+    return c.json(await auth.signOutEverywhere(c.req.param('id'), actor(c)));
   });
 
   routes.post('/invites', session, admin, async (c) => {
