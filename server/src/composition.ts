@@ -19,6 +19,7 @@ import type {
   SpeechAttemptRepository,
   RecordingRepository,
   SessionRepository,
+  ApiTokenRepository,
   SpeechSynthesizer,
   TalkSynthesizer,
   Tutor,
@@ -80,6 +81,7 @@ export interface Services {
 export interface Stores {
   users: UserRepository;
   sessions: SessionRepository;
+  apiTokens: ApiTokenRepository;
   workspaces: WorkspaceRepository;
   worldSaves: WorldSaveRepository;
   conversations: ConversationRepository;
@@ -134,6 +136,7 @@ export function createServices(
   const auth = new AuthService({
     users: stores.users,
     sessions: stores.sessions,
+    apiTokens: stores.apiTokens,
     invites: stores.invites,
     recoveryCodes: stores.recoveryCodes,
     hasher: options.hasher ?? new ScryptHasher(),

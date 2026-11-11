@@ -2,7 +2,8 @@ import type { Context, MiddlewareHandler } from 'hono';
 import type { ActiveSession, AuthService } from '../application/auth-service';
 import { usernameKey } from '../../../shared/credentials';
 import type { AuditLog, Clock, RateLimitStore, Tutor } from '../application/ports';
-import { ForbiddenOriginError, RateLimitedError, UnauthorizedError } from '../domain/errors';
+import type { TokenScope } from '../../../shared/api';
+import { ForbiddenError, ForbiddenOriginError, RateLimitedError, UnauthorizedError } from '../domain/errors';
 import type { AppEnv } from './env';
 import { clearSessionCookie, clientIp, isHttps, readSessionToken, writeSessionCookie } from './request';
 
@@ -87,9 +88,35 @@ export async function currentSession(
   return session;
 }
 
-/** Lets a request through only with a live session, which handlers then read from `c.get('session')`. */
-export function requireSession(auth: AuthService, opts: SessionOptions): MiddlewareHandler<AppEnv> {
+/** The token in `Authorization: Bearer …`, or null when the request carries none. */
+export function bearerToken(c: Context): string | null {
+  const header = c.req.header('authorization');
+  if (!header) return null;
+  const match = /^Bearer\s+(\S+)\s*$/i.exec(header);
+  // An Authorization header that is not a bearer token opens nothing either.
+  return match?.[1] ?? '';
+}
+
+/**
+ * Lets a request through only with a live session, which handlers then read
+ * from `c.get('session')`.
+ *
+ * A request with `Authorization: Bearer hzw_…` is a script's, and is judged
+ * by its token alone: the cookie is not read. It gets through only where the
+ * route names a scope the token has (`tokenScope`); everywhere else — the
+ * password, the account, the keys, the admin pages, the tokens themselves —
+ * a working token is refused with 403, and one that does not work with 401.
+ */
+export function requireSession(auth: AuthService, opts: SessionOptions, tokenScope?: TokenScope): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
+    const bearer = bearerToken(c);
+    if (bearer !== null) {
+      const opened = await auth.authenticateAccessToken(bearer);
+      if (!opened) throw new UnauthorizedError();
+      if (!tokenScope || !opened.scopes?.includes(tokenScope)) throw new ForbiddenError('An access token cannot do that. Sign in on the site instead.');
+      c.set('session', opened);
+      return next();
+    }
     const session = await currentSession(c, auth, opts);
     if (!session) throw new UnauthorizedError();
     c.set('session', session);

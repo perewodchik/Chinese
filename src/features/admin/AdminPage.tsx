@@ -27,6 +27,8 @@ const EVENT: Record<string, string> = {
   password: 'Password changed',
   deleted: 'Account deleted',
   invite: 'Invitation made by',
+  'token-made': 'Access token made by',
+  'token-revoked': 'Access token revoked by',
 };
 
 const DAYS = [

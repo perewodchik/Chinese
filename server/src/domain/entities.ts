@@ -29,6 +29,22 @@ export interface Session {
   userAgent: string | null;
 }
 
+/**
+ * A token a script signs in with in place of the password. Only its digest
+ * is kept; `scopes` is what it may do (shared/api.ts, TOKEN_SCOPES).
+ */
+export interface ApiToken {
+  id: string;
+  userId: string;
+  name: string;
+  digest: string;
+  scopes: string[];
+  createdAt: number;
+  lastUsedAt: number | null;
+  expiresAt: number;
+  revokedAt: number | null;
+}
+
 export interface Workspace {
   userId: string;
   revision: number;

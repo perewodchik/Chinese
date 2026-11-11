@@ -1,4 +1,4 @@
-import type { SessionsResponse } from '../../shared/api';
+import { API, type AccessTokensResponse, type MadeAccessTokenResponse, type MakeAccessTokenRequest, type SessionsResponse } from '../../shared/api';
 import type { UsageResponse } from '../../shared/usage';
 import { request } from './http';
 
@@ -15,3 +15,8 @@ export const deleteAccount = (password: string) => request<void>('DELETE', '/api
 export const accountSessions = () => request<SessionsResponse>('GET', '/api/auth/sessions').then((r) => r.sessions);
 export const signOutSession = (id: string) => request<void>('DELETE', `/api/auth/sessions/${encodeURIComponent(id)}`);
 export const signOutOthers = () => request<{ signedOut: number }>('POST', '/api/auth/sessions/others');
+
+/** The account's access tokens for scripts: listed without the token, made (shown once), revoked. */
+export const accessTokens = () => request<AccessTokensResponse>('GET', API.tokens).then((r) => r.tokens);
+export const makeAccessToken = (body: MakeAccessTokenRequest) => request<MadeAccessTokenResponse>('POST', API.tokens, { body });
+export const revokeAccessToken = (id: string) => request<void>('DELETE', `${API.tokens}/${encodeURIComponent(id)}`);

@@ -1023,8 +1023,10 @@ asks which session, and `npm run texts -- add` saves them into the account
 are every one you have not learned: a book does not teach them, so later
 writing sessions are not told you have met them; a retelling does, and they
 are. It writes to the database `.env` names, or — from a cloud session, which
-cannot reach Postgres — signs in to the site with `HANZI_SITE`, `HANZI_USER`
-and `HANZI_PASSWORD`.
+cannot reach Postgres — writes to the site with `HANZI_SITE` and
+`HANZI_TOKEN`, an access token made in Account › Access tokens (it can read and
+save the texts and their pictures, nothing else; changing the password stops
+every token).
 
 **Stories.** `/story` in Claude Code writes one to learn from — your topic
 and characters, pitched so you know the share of the characters you ask for

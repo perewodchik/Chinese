@@ -1,4 +1,5 @@
 import type { DatabaseSync } from 'node:sqlite';
+import { SqliteApiTokenRepository } from './api-token-repository';
 import type { Stores } from '../../composition';
 import { SqliteConversationRepository } from './conversation-repository';
 import { SqlitePictureRepository } from './picture-repository';
@@ -23,6 +24,7 @@ import { SqliteWorldSaveRepository } from './world-save-repository';
 /** Everything kept in the one SQLite file. */
 export const sqliteStores = (db: DatabaseSync): Stores => ({
   users: new SqliteUserRepository(db),
+  apiTokens: new SqliteApiTokenRepository(db),
   sessions: new SqliteSessionRepository(db),
   workspaces: new SqliteWorkspaceRepository(db),
   worldSaves: new SqliteWorldSaveRepository(db),

@@ -7,7 +7,7 @@ import type {
   TalkReply,
   TalkRequest,
 } from '../../../shared/talk';
-import type { Session, User, Workspace, WorldSaveRecord } from '../domain/entities';
+import type { ApiToken, Session, User, Workspace, WorldSaveRecord } from '../domain/entities';
 
 /**
  * What the use cases need from the outside world, and nothing about how it is
@@ -44,6 +44,19 @@ export interface SessionRepository {
 export type WorkspaceWrite =
   | { saved: true; revision: number; updatedAt: number }
   | { saved: false; current: Workspace | null };
+
+/** The account's access tokens for scripts, kept as digests. */
+export interface ApiTokenRepository {
+  insert(token: ApiToken): Promise<void>;
+  findByDigest(digest: string): Promise<ApiToken | null>;
+  /** The account's tokens that are not revoked, expired ones too, newest first. */
+  listForUser(userId: string): Promise<ApiToken[]>;
+  /** Marks the account's token revoked; false when it has no such live one. */
+  revoke(userId: string, id: string, at: number): Promise<boolean>;
+  /** Every token of the account revoked, as a new password does; how many went. */
+  revokeForUser(userId: string, at: number): Promise<number>;
+  touch(id: string, at: number): Promise<void>;
+}
 
 export interface WorkspaceRepository {
   find(userId: string): Promise<Workspace | null>;
@@ -426,7 +439,7 @@ export interface StorageMeter {
 /** What happened to accounts, for whoever runs the site: sign-ins, sign-ups, passwords, deletions. */
 export interface AuditEvent {
   at: number;
-  /** sign-in, sign-in-refused, sign-up, recovery, recovery-refused, password, deleted, invite */
+  /** sign-in, sign-in-refused, sign-up, recovery, recovery-refused, password, deleted, invite, token-made, token-revoked */
   kind: string;
   /** the name as it was given, for a refused one too */
   username: string;

@@ -37,10 +37,11 @@
  *       recordings, so the website plays the text in that voice (on the Mac only:
  *       the voices are models on it, set up once by `npm run voices`)
  *
- * Which account, and where it lives: with HANZI_SITE (plus HANZI_PASSWORD) it
- * signs in to the deployed site over HTTPS — the way from a cloud session,
- * which cannot reach Postgres itself. Otherwise the database `.env` names, as
- * `npm run admin` does. HANZI_USER is the account either way, admin by default.
+ * Which account, and where it lives: with HANZI_SITE (plus HANZI_TOKEN, an
+ * access token made in Account › Access tokens) it writes to the deployed
+ * site over HTTPS — the way from a cloud session, which cannot reach Postgres
+ * itself; the token is the account's. Otherwise the database `.env` names,
+ * as `npm run admin` does, and HANZI_USER is the account (admin by default).
  *
  * Saved as a device saves: on the revision it read, read again and redone if
  * a device saved in between. A device that was open meanwhile has its own
@@ -54,10 +55,9 @@ import { parseArgs } from 'node:util';
 import { createServices } from '../../server/src/composition';
 import { describeDatabase, loadConfig, loadEnvFile } from '../../server/src/config';
 import { RevisionConflictError } from '../../server/src/domain/errors';
-import { SESSION_COOKIE } from '../../server/src/http/request';
 import { localVoicesFromEnv } from '../../server/src/infrastructure/local-voices';
 import { openStores } from '../../server/src/infrastructure/stores';
-import { API, type ApiErrorBody, type SaveWorkspaceRequest, type WorkspaceDto } from '../../shared/api';
+import { API, TOKEN_PREFIX, type ApiErrorBody, type SaveWorkspaceRequest, type WorkspaceDto } from '../../shared/api';
 import { usernameKey } from '../../shared/credentials';
 import type { Collection } from '../../src/domain/collection';
 import { charId, idValue, isCharId, isItemId, isWordId, wordId, type ItemId } from '../../src/domain/ids';
@@ -554,15 +554,15 @@ interface Account extends PictureAccount {
 }
 
 const SETUP = `No account to write to. Either
-  · HANZI_SITE (the deployed site's address), HANZI_USER and HANZI_PASSWORD — from a cloud session; or
+  · HANZI_SITE (the deployed site's address) and HANZI_TOKEN (made in the site's Account › Access tokens) — from a cloud session; or
   · POSTGRES_URL in .env (or HANZI_DB) — on the Mac, as npm run admin uses.`;
 
 async function openAccount(): Promise<Account> {
   loadEnvFile();
   const env = process.env;
-  const user = env.HANZI_USER?.trim() || 'admin';
   const site = env.HANZI_SITE?.trim();
-  if (site) return siteAccount(site.replace(/\/+$/, ''), user, env.HANZI_PASSWORD ?? '');
+  if (site) return siteAccount(site.replace(/\/+$/, ''), env.HANZI_TOKEN?.trim() ?? '');
+  const user = env.HANZI_USER?.trim() || 'admin';
   // Never the default SQLite file by accident: a run that names no database
   // would otherwise make an empty one and report that the account is missing.
   if (![env.HANZI_DB, env.POSTGRES_URL, env.DATABASE_URL].some((v) => v?.trim())) throw new Error(SETUP);
@@ -601,26 +601,20 @@ async function failure(res: Response): Promise<string> {
   return body?.error?.message ?? `${res.status} ${res.statusText}`;
 }
 
-async function siteAccount(site: string, user: string, password: string): Promise<Account> {
-  if (!password) throw new Error(`HANZI_SITE is set and HANZI_PASSWORD is not.\n${SETUP}`);
-  const json = { 'content-type': 'application/json' };
-  const login = await fetch(`${site}${API.login}`, {
-    method: 'POST',
-    headers: json,
-    body: JSON.stringify({ username: user, password }),
-  });
-  if (!login.ok) throw new Error(`Signing in to ${site} as ${user}: ${await failure(login)}`);
-  const cookie = login.headers
-    .getSetCookie()
-    .map((c) => c.split(';')[0] ?? '')
-    .find((c) => c.startsWith(`${SESSION_COOKIE}=`));
-  if (!cookie) throw new Error(`${site} signed ${user} in but sent no session cookie.`);
-  const headers = { ...json, cookie };
+async function siteAccount(site: string, token: string): Promise<Account> {
+  if (!token) throw new Error(`HANZI_SITE is set and HANZI_TOKEN is not.\n${SETUP}`);
+  if (!token.startsWith(TOKEN_PREFIX)) throw new Error(`HANZI_TOKEN does not look like an access token (they begin ${TOKEN_PREFIX}).\n${SETUP}`);
+  // A token, not a password: it can read and save the workspace and keep
+  // pictures, and nothing else, and it is revoked on the site in one tap.
+  const authorization = `Bearer ${token}`;
+  const headers = { 'content-type': 'application/json', authorization };
+  const refused = (res: Response) =>
+    res.status === 401 ? ' — the token is revoked, out of date, or mistyped: make a new one in Account › Access tokens.' : '';
   return {
-    where: `${user} on ${new URL(site).host}`,
+    where: `the token's account on ${new URL(site).host}`,
     async read() {
       const res = await fetch(`${site}${API.workspace}`, { headers });
-      if (!res.ok) throw new Error(`Reading the workspace: ${await failure(res)}`);
+      if (!res.ok) throw new Error(`Reading the workspace: ${await failure(res)}${refused(res)}`);
       return (await res.json()) as WorkspaceDto;
     },
     async write(baseRevision, document) {
@@ -629,25 +623,23 @@ async function siteAccount(site: string, user: string, password: string): Promis
       if (res.ok) return true;
       const refusal = (await res.json().catch(() => null)) as ApiErrorBody | null;
       if (res.status === 409 && refusal?.error?.code === 'conflict') return false;
-      throw new Error(`Saving the workspace: ${refusal?.error?.message ?? `${res.status} ${res.statusText}`}`);
+      throw new Error(`Saving the workspace: ${refusal?.error?.message ?? `${res.status} ${res.statusText}`}${refused(res)}`);
     },
     async getPicture(key) {
-      const res = await fetch(`${site}${API.pictures}/${key}`, { headers: { cookie } });
+      const res = await fetch(`${site}${API.pictures}/${key}`, { headers: { authorization } });
       if (!res.ok) return null;
       return { mime: res.headers.get('content-type') ?? 'image/jpeg', bytes: new Uint8Array(await res.arrayBuffer()) };
     },
     async putPicture(key, mime, bytes) {
       const res = await fetch(`${site}${API.pictures}/${key}`, {
         method: 'PUT',
-        headers: { cookie, 'content-type': mime },
+        headers: { authorization, 'content-type': mime },
         body: bytes as Uint8Array<ArrayBuffer>,
       });
       if (!res.ok) throw new Error(`Keeping the picture: ${await failure(res)}`);
     },
-    // One sign-in per run, signed out again so the account's sessions do not pile up.
-    async close() {
-      await fetch(`${site}${API.logout}`, { method: 'POST', headers }).catch(() => undefined);
-    },
+    // Nothing to sign out of: a token is not a session.
+    async close() {},
   };
 }
 

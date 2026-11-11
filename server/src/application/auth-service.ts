@@ -1,4 +1,4 @@
-import type { SessionDto, UserDto } from '../../../shared/api';
+import { TOKEN_PREFIX, TOKEN_SCOPES, type AccessTokenDto, type SessionDto, type TokenScope, type UserDto } from '../../../shared/api';
 import {
   normaliseUsername,
   PASSWORD_MAX,
@@ -6,7 +6,7 @@ import {
   usernameKey,
   usernameProblem,
 } from '../../../shared/credentials';
-import type { User } from '../domain/entities';
+import type { ApiToken, User } from '../domain/entities';
 import {
   InvalidCredentialsError,
   NotFoundError,
@@ -16,7 +16,7 @@ import {
   ValidationError,
 } from '../domain/errors';
 import { randomInt } from 'node:crypto';
-import type { Clock, InviteRepository, PasswordHasher, RecoveryCodeRepository, SessionRepository, Tokens, UserRepository } from './ports';
+import type { ApiTokenRepository, Clock, InviteRepository, PasswordHasher, RecoveryCodeRepository, SessionRepository, Tokens, UserRepository } from './ports';
 
 const DAY = 86_400_000;
 
@@ -46,6 +46,7 @@ export const DEFAULT_AUTH_POLICY: AuthPolicy = {
 export interface AuthDeps {
   users: UserRepository;
   sessions: SessionRepository;
+  apiTokens: ApiTokenRepository;
   invites: InviteRepository;
   recoveryCodes: RecoveryCodeRepository;
   hasher: PasswordHasher;
@@ -67,6 +68,11 @@ export interface ActiveSession {
   expiresAt: number;
   /** the expiry moved on this request, so the cookie should be sent again */
   renewed: boolean;
+  /**
+   * Set when an access token opened this rather than a cookie: what the token
+   * may do. A route that does not name one of these refuses it.
+   */
+  scopes?: readonly TokenScope[];
 }
 
 interface SignIn {
@@ -89,6 +95,22 @@ const INVITE_LENGTH = 12;
 /** How many recovery codes an account is given at a time, and how long each is. */
 const RECOVERY_CODES = 8;
 const RECOVERY_LENGTH = 10;
+
+/** How many tokens an account may have working at once, and the most days one lasts. */
+const TOKENS_MAX = 20;
+const TOKEN_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+export const TOKEN_DAYS_MAX = 365;
+/** A token's last use is written at most this often, so a script's every request is not also a write. */
+const TOKEN_TOUCH_MS = 60_000;
+
+const toTokenDto = (t: ApiToken): AccessTokenDto => ({
+  id: t.id,
+  name: t.name,
+  scopes: t.scopes.filter((s): s is TokenScope => (TOKEN_SCOPES as readonly string[]).includes(s)),
+  createdAt: t.createdAt,
+  lastUsedAt: t.lastUsedAt,
+  expiresAt: t.expiresAt,
+});
 
 const randomCode = (length: number) => Array.from({ length }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join('');
 
@@ -314,6 +336,8 @@ export class AuthService {
 
     await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
     await sessions.deleteForUser(user.id, input.sessionId);
+    // A token made by whoever knew the old password must not outlive it.
+    await this.deps.apiTokens.revokeForUser(user.id, clock.now());
   }
 
   /**
@@ -368,6 +392,7 @@ export class AuthService {
     if (!(await recoveryCodes.use(user.id, this.recoveryDigest(user.id, code), clock.now()))) throw refused;
     await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
     await sessions.deleteForUser(user.id);
+    await this.deps.apiTokens.revokeForUser(user.id, clock.now());
     return this.issue(user, input.userAgent);
   }
 
@@ -385,11 +410,64 @@ export class AuthService {
 
     await users.updatePassword(user.id, await hasher.hash(newPassword), clock.now());
     await sessions.deleteForUser(user.id);
+    await this.deps.apiTokens.revokeForUser(user.id, clock.now());
     return toUserDto(user);
   }
 
   async listUsers(): Promise<UserDto[]> {
     return (await this.deps.users.list()).map(toUserDto);
+  }
+
+  /**
+   * A token for a script, in place of the password: shown this once, kept as
+   * its digest. Whether the account may have `scopes` (catalog:write is for
+   * the accounts that run the site) is the route's to decide before this.
+   */
+  async makeAccessToken(userId: string, input: { name: string; days: number; scopes: TokenScope[] }): Promise<{ token: string; made: AccessTokenDto }> {
+    const { apiTokens, tokens, clock } = this.deps;
+    const name = input.name.trim().replace(/\s+/g, ' ').slice(0, 60);
+    if (!name) throw new ValidationError('Give the token a name, so you know later what uses it.', { name: 'A name, such as “add-text skill”.' });
+    if (!Number.isInteger(input.days) || input.days < 1 || input.days > TOKEN_DAYS_MAX) {
+      throw new ValidationError(`A token lasts from 1 to ${TOKEN_DAYS_MAX} days.`, { days: `From 1 to ${TOKEN_DAYS_MAX} days.` });
+    }
+    const scopes = [...new Set(input.scopes)];
+    if (!scopes.length) throw new ValidationError('A token has to be allowed to do something.');
+    const now = clock.now();
+    const live = (await apiTokens.listForUser(userId)).filter((t) => t.expiresAt > now);
+    if (live.length >= TOKENS_MAX) throw new ValidationError(`An account has at most ${TOKENS_MAX} tokens at a time. Revoke one first.`);
+
+    // 32 letters and digits: about 190 bits, and nothing to escape in a header or an environment variable.
+    const token = `${TOKEN_PREFIX}${Array.from({ length: 32 }, () => TOKEN_ALPHABET[randomInt(TOKEN_ALPHABET.length)]).join('')}`;
+    const record: ApiToken = { id: tokens.id(), userId, name, digest: tokens.digest(token), scopes, createdAt: now, lastUsedAt: null, expiresAt: now + input.days * DAY, revokedAt: null };
+    await apiTokens.insert(record);
+    return { token, made: toTokenDto(record) };
+  }
+
+  /** The account's tokens that are not revoked, expired ones too, newest first. */
+  async accessTokensOf(userId: string): Promise<AccessTokenDto[]> {
+    return (await this.deps.apiTokens.listForUser(userId)).map(toTokenDto);
+  }
+
+  /** False when the account has no such token, or it was revoked already. */
+  revokeAccessToken(userId: string, id: string): Promise<boolean> {
+    return this.deps.apiTokens.revoke(userId, id, this.deps.clock.now());
+  }
+
+  /**
+   * The account a token opens, if it is the account's, not revoked and not
+   * out of date — with what it may do. Never renewed: a token ends when it
+   * says it does.
+   */
+  async authenticateAccessToken(token: string): Promise<ActiveSession | null> {
+    const { apiTokens, users, tokens, clock } = this.deps;
+    if (!token.startsWith(TOKEN_PREFIX) || token.length > 100) return null;
+    const found = await apiTokens.findByDigest(tokens.digest(token));
+    const now = clock.now();
+    if (!found || found.revokedAt !== null || found.expiresAt <= now) return null;
+    const user = await users.findById(found.userId);
+    if (!user) return null;
+    if (found.lastUsedAt === null || now - found.lastUsedAt >= TOKEN_TOUCH_MS) await apiTokens.touch(found.id, now);
+    return { user: toUserDto(user), sessionId: `token:${found.id}`, expiresAt: found.expiresAt, renewed: false, scopes: toTokenDto(found).scopes };
   }
 
   purgeExpiredSessions(): Promise<number> {

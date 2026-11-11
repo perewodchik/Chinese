@@ -1,4 +1,5 @@
 import type pg from 'pg';
+import { PostgresApiTokenRepository } from './api-token-repository';
 import type { Stores } from '../../composition';
 import { PostgresConversationRepository } from './conversation-repository';
 import { PostgresPictureRepository } from './picture-repository';
@@ -23,6 +24,7 @@ import { PostgresWorldSaveRepository } from './world-save-repository';
 /** The same records, in Postgres. */
 export const postgresStores = (db: pg.Pool): Stores => ({
   users: new PostgresUserRepository(db),
+  apiTokens: new PostgresApiTokenRepository(db),
   sessions: new PostgresSessionRepository(db),
   workspaces: new PostgresWorkspaceRepository(db),
   worldSaves: new PostgresWorldSaveRepository(db),

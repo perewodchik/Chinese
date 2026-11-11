@@ -1,6 +1,10 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { TOKEN_SCOPES, type AccessTokensResponse, type MadeAccessTokenResponse } from '../../../../shared/api';
+import { usernameKey } from '../../../../shared/credentials';
 import type { UsageResponse } from '../../../../shared/usage';
+import { TOKEN_DAYS_MAX } from '../../application/auth-service';
+import { ForbiddenError, NotFoundError } from '../../domain/errors';
 import type { AppEnv, RouteDeps } from '../env';
 import { auditor, RateLimiter, requireSession } from '../guards';
 import { clearSessionCookie, isHttps, readJson } from '../request';
@@ -12,21 +16,63 @@ import { clearSessionCookie, isHttps, readJson } from '../request';
  *   GET /api/account/export   everything the account keeps, as one JSON file to download
  *   DELETE /api/account       { password } → the account and all it kept, gone
  *   GET /api/account/storage  how much the account keeps, out of how much it may
+ *   GET /api/account/tokens   the account's access tokens for scripts (never the tokens themselves)
+ *   POST /api/account/tokens  { name, days, scopes? } → a new token, shown this once
+ *   DELETE /api/account/tokens/:id  that token stops working
  */
 const deleteRequest = z.object({ password: z.string().max(2048) });
-export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage, audit, ipHeader, log }: RouteDeps) {
+const tokenRequest = z.object({
+  name: z.string().max(200),
+  days: z.number().int().min(1).max(TOKEN_DAYS_MAX),
+  scopes: z.array(z.enum(TOKEN_SCOPES)).max(TOKEN_SCOPES.length).optional(),
+});
+export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage, audit, ipHeader, log, adminUsers }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // The password is asked for, so a guesser with a stolen cookie gets as few tries as at the sign-in page.
   const deletes = new RateLimiter('account.deletes', 10, 15 * 60_000, clock, limits);
+  // Nobody makes more than a few tokens in a day; a loop would make thousands.
+  const tokenMakes = new RateLimiter('account.tokens', 30, 60 * 60_000, clock, limits);
+  const note = auditor(audit, clock, trustProxy, ipHeader, log);
 
   routes.delete('/', session, async (c) => {
     const { user } = c.get('session');
     await deletes.consume(user.id);
     const { password } = await readJson(c, deleteRequest);
     await auth.deleteAccount({ userId: user.id, password });
-    auditor(audit, clock, trustProxy, ipHeader, log)(c, 'deleted', user.username);
+    note(c, 'deleted', user.username);
     clearSessionCookie(c, isHttps(c, trustProxy));
+    return c.body(null, 204);
+  });
+
+  // Tokens are made, listed and revoked only from a browser signed in with
+  // the password: requireSession refuses a token here, so one token can
+  // neither make another nor outlive being revoked.
+  routes.get('/tokens', session, async (c) => {
+    const body: AccessTokensResponse = { tokens: await auth.accessTokensOf(c.get('session').user.id) };
+    c.header('Cache-Control', 'no-store');
+    return c.json(body);
+  });
+
+  routes.post('/tokens', session, async (c) => {
+    const { user } = c.get('session');
+    await tokenMakes.consume(user.id);
+    const input = await readJson(c, tokenRequest);
+    const scopes = input.scopes ?? ['texts:write'];
+    if (scopes.includes('catalog:write') && !adminUsers.includes(usernameKey(user.username))) {
+      throw new ForbiddenError('Only the accounts that run the site may publish to the catalogue.');
+    }
+    const made = await auth.makeAccessToken(user.id, { name: input.name, days: input.days, scopes });
+    note(c, 'token-made', user.username);
+    const body: MadeAccessTokenResponse = made;
+    c.header('Cache-Control', 'no-store');
+    return c.json(body, 201);
+  });
+
+  routes.delete('/tokens/:id', session, async (c) => {
+    const { user } = c.get('session');
+    if (!(await auth.revokeAccessToken(user.id, c.req.param('id')))) throw new NotFoundError('That token');
+    note(c, 'token-revoked', user.username);
     return c.body(null, 204);
   });
 

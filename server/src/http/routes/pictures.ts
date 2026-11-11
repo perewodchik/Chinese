@@ -16,7 +16,8 @@ import { RateLimiter, requireSession } from '../guards';
  */
 export function pictureRoutes({ auth, clock, trustProxy, pictures, limits }: RouteDeps) {
   const routes = new Hono<AppEnv>();
-  const session = requireSession(auth, { trustProxy, clock });
+  // A script's token for texts may read and save the workspace and keep pictures (the add-text skill).
+  const session = requireSession(auth, { trustProxy, clock }, 'texts:write');
   // A shelf illustrated at once is a few dozen pictures; a loop is thousands.
   const uploads = new RateLimiter('pictures.uploads', 300, 10 * 60_000, clock, limits);
 

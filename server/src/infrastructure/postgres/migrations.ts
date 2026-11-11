@@ -231,4 +231,20 @@ export const MIGRATIONS: readonly string[] = [
   );
   CREATE INDEX audit_log_by_time ON audit_log (at);
   `,
+  // Tokens for scripts (the add-text skill) in place of the account's
+  // password: only the digest is kept, and each says what it may do.
+  `
+  CREATE TABLE api_tokens (
+    id            TEXT PRIMARY KEY,
+    user_id       TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    name          TEXT NOT NULL,
+    digest        TEXT NOT NULL UNIQUE,
+    scopes        TEXT NOT NULL,
+    created_at    BIGINT NOT NULL,
+    last_used_at  BIGINT,
+    expires_at    BIGINT NOT NULL,
+    revoked_at    BIGINT
+  );
+  CREATE INDEX api_tokens_by_user ON api_tokens (user_id);
+  `,
 ];

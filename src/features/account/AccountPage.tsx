@@ -10,6 +10,7 @@ import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { ChangePasswordForm } from '../auth/ChangePasswordForm';
 import { useUser } from '../auth/session';
+import { AccessTokens } from './AccessTokens';
 import { DeleteAccount } from './DeleteAccount';
 import { Devices } from './Devices';
 import { RecoveryCodes } from './RecoveryCodes';
@@ -127,6 +128,8 @@ export function AccountPage() {
       <RecoveryCodes />
 
       <Devices />
+
+      <AccessTokens />
 
       <nav className="block list ac-links" aria-label="More about you">
         <Link className="ac-link" to={paths.stats()}>

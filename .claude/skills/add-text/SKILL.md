@@ -52,19 +52,21 @@ text.
 
 ## 2. The account
 
-The learner has given standing permission: sign in to their account on the
-site — the account **admin** at https://chinese-inky.vercel.app — and add the
-texts there, without asking first. The password is never written in this
-repository: it is read from `HANZI_PASSWORD`, which the learner keeps in the
-cloud environment's variables (the environment menu in the session's title bar
-→ Edit → Environment variables) or in `.env` on the Mac. Every `npm run texts`
-call carries the site and the account, since shell variables do not survive
-from one command to the next:
+The learner has given standing permission: add the texts to their account on
+the site — https://chinese-inky.vercel.app — without asking first. The skill
+signs in with an **access token**, not a password: the learner makes one on the
+site (Account › Access tokens) and keeps it in the cloud environment's
+variables as `HANZI_TOKEN` (the environment menu in the session's title bar →
+Edit → Environment variables), or in `.env` on the Mac. The token can read and
+save the texts and their pictures and nothing else; it names the account
+itself. It is never written in this repository. Every `npm run texts` call
+carries the site, since shell variables do not survive from one command to the
+next:
 
 ```bash
 export PATH=/opt/homebrew/bin:$PATH   # on the Mac; harmless elsewhere
 [ -d node_modules ] || npm ci --no-audit --no-fund
-HANZI_SITE=https://chinese-inky.vercel.app HANZI_USER=admin NODE_USE_ENV_PROXY=1 npm run -s texts -- sets
+HANZI_SITE=https://chinese-inky.vercel.app NODE_USE_ENV_PROXY=1 npm run -s texts -- sets
 ```
 
 It prints JSON: `account`, `sessions` (most recently added to first — `id`,
@@ -79,10 +81,12 @@ When it fails, tell the learner in a few lines and stop:
   the environment's settings (the cloud environment menu in the session's
   title bar → Edit), then a new session. On the Mac, the same command without
   `HANZI_SITE=…` goes through `POSTGRES_URL` in `.env` instead.
-- **`HANZI_PASSWORD` is not set**, or **signing in is refused**: the password
-  is missing from the environment, or has changed. Say so, and that it goes in
-  the environment's variables (or `.env`) as `HANZI_PASSWORD` — never in this
-  file, and never ask for it in the chat.
+- **`HANZI_TOKEN` is not set**, or **the token is refused** ("Sign in to carry
+  on", 401): the token is missing from the environment, was revoked, ran out,
+  or the password was changed (which stops every token). Say so, and that a new
+  one is made on the site in Account › Access tokens and goes in the
+  environment's variables (or `.env`) as `HANZI_TOKEN` — never in this file,
+  and never ask for it in the chat.
 
 ## 3. The study material
 
@@ -153,7 +157,7 @@ Valid JSON only — the script refuses a file that needs repairs.
 
 ## 4. How hard it is
 
-Every command below starts with the same `HANZI_SITE=… HANZI_USER=…
+Every command below starts with the same `HANZI_SITE=…
 NODE_USE_ENV_PROXY=1` as the `sets` command in step 2.
 
 ```bash

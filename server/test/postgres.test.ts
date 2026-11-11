@@ -230,4 +230,21 @@ describe('Postgres storage', () => {
     await stores.audit.sweep(T + 1);
     assert.deepEqual((await stores.audit.recent(10)).map((e) => [e.kind, e.at]), [['sign-in-refused', T + 5]]);
   });
+
+  it('keeps an access token as its digest, lists the live ones, and revokes one or all', async () => {
+    const token = (id: string, at: number) => ({ id, userId: 'u1', name: `script ${id}`, digest: `d-${id}`, scopes: ['texts:write'], createdAt: at, lastUsedAt: null, expiresAt: at + 1000, revokedAt: null });
+    await stores.apiTokens.insert(token('t1', T));
+    await stores.apiTokens.insert(token('t2', T + 1));
+    const found = await stores.apiTokens.findByDigest('d-t1');
+    assert.deepEqual(found, token('t1', T));
+    await stores.apiTokens.touch('t1', T + 50);
+    assert.equal((await stores.apiTokens.findByDigest('d-t1'))?.lastUsedAt, T + 50);
+    assert.deepEqual((await stores.apiTokens.listForUser('u1')).map((t) => t.id), ['t2', 't1']);
+    assert.equal(await stores.apiTokens.revoke('u2', 't1', T + 60), false, 'not another account’s to revoke');
+    assert.equal(await stores.apiTokens.revoke('u1', 't1', T + 60), true);
+    assert.equal(await stores.apiTokens.revoke('u1', 't1', T + 61), false);
+    assert.equal((await stores.apiTokens.findByDigest('d-t1'))?.revokedAt, T + 60);
+    assert.equal(await stores.apiTokens.revokeForUser('u1', T + 70), 1);
+    assert.deepEqual(await stores.apiTokens.listForUser('u1'), []);
+  });
 });

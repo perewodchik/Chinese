@@ -109,6 +109,14 @@ function passwordProblem(password, username = "") {
   return null;
 }
 
+// shared/api.ts
+var TOKEN_SCOPES = ["texts:write", "catalog:write"];
+var TOKEN_PREFIX = "hzw_";
+var PICTURE_TYPES = ["image/jpeg", "image/webp", "image/png"];
+var PICTURE_MAX_BYTES = 2 * 1024 * 1024;
+var WORKSPACE_MAX_BYTES = 16 * 1024 * 1024;
+var workspaceTag = (revision) => `"r${revision}"`;
+
 // server/src/domain/errors.ts
 var AppError = class extends Error {
   code;
@@ -214,6 +222,18 @@ var INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 var INVITE_LENGTH = 12;
 var RECOVERY_CODES = 8;
 var RECOVERY_LENGTH = 10;
+var TOKENS_MAX = 20;
+var TOKEN_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+var TOKEN_DAYS_MAX = 365;
+var TOKEN_TOUCH_MS = 6e4;
+var toTokenDto = (t) => ({
+  id: t.id,
+  name: t.name,
+  scopes: t.scopes.filter((s) => TOKEN_SCOPES.includes(s)),
+  createdAt: t.createdAt,
+  lastUsedAt: t.lastUsedAt,
+  expiresAt: t.expiresAt
+});
 var randomCode = (length) => Array.from({ length }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join("");
 var normaliseInvite = (raw) => raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
 var toUserDto = (u) => ({
@@ -390,6 +410,7 @@ var AuthService = class {
     if (problem) throw new ValidationError(problem, { newPassword: problem });
     await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
     await sessions.deleteForUser(user.id, input.sessionId);
+    await this.deps.apiTokens.revokeForUser(user.id, clock.now());
   }
   /**
    * The account gone, with everything it kept — asked for with its password,
@@ -440,6 +461,7 @@ var AuthService = class {
     if (!await recoveryCodes.use(user.id, this.recoveryDigest(user.id, code), clock.now())) throw refused;
     await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
     await sessions.deleteForUser(user.id);
+    await this.deps.apiTokens.revokeForUser(user.id, clock.now());
     return this.issue(user, input.userAgent);
   }
   recoveryDigest(userId, code) {
@@ -454,10 +476,57 @@ var AuthService = class {
     if (problem) throw new ValidationError(problem);
     await users.updatePassword(user.id, await hasher.hash(newPassword), clock.now());
     await sessions.deleteForUser(user.id);
+    await this.deps.apiTokens.revokeForUser(user.id, clock.now());
     return toUserDto(user);
   }
   async listUsers() {
     return (await this.deps.users.list()).map(toUserDto);
+  }
+  /**
+   * A token for a script, in place of the password: shown this once, kept as
+   * its digest. Whether the account may have `scopes` (catalog:write is for
+   * the accounts that run the site) is the route's to decide before this.
+   */
+  async makeAccessToken(userId, input) {
+    const { apiTokens, tokens, clock } = this.deps;
+    const name = input.name.trim().replace(/\s+/g, " ").slice(0, 60);
+    if (!name) throw new ValidationError("Give the token a name, so you know later what uses it.", { name: "A name, such as \u201Cadd-text skill\u201D." });
+    if (!Number.isInteger(input.days) || input.days < 1 || input.days > TOKEN_DAYS_MAX) {
+      throw new ValidationError(`A token lasts from 1 to ${TOKEN_DAYS_MAX} days.`, { days: `From 1 to ${TOKEN_DAYS_MAX} days.` });
+    }
+    const scopes = [...new Set(input.scopes)];
+    if (!scopes.length) throw new ValidationError("A token has to be allowed to do something.");
+    const now = clock.now();
+    const live = (await apiTokens.listForUser(userId)).filter((t) => t.expiresAt > now);
+    if (live.length >= TOKENS_MAX) throw new ValidationError(`An account has at most ${TOKENS_MAX} tokens at a time. Revoke one first.`);
+    const token = `${TOKEN_PREFIX}${Array.from({ length: 32 }, () => TOKEN_ALPHABET[randomInt(TOKEN_ALPHABET.length)]).join("")}`;
+    const record = { id: tokens.id(), userId, name, digest: tokens.digest(token), scopes, createdAt: now, lastUsedAt: null, expiresAt: now + input.days * DAY, revokedAt: null };
+    await apiTokens.insert(record);
+    return { token, made: toTokenDto(record) };
+  }
+  /** The account's tokens that are not revoked, expired ones too, newest first. */
+  async accessTokensOf(userId) {
+    return (await this.deps.apiTokens.listForUser(userId)).map(toTokenDto);
+  }
+  /** False when the account has no such token, or it was revoked already. */
+  revokeAccessToken(userId, id) {
+    return this.deps.apiTokens.revoke(userId, id, this.deps.clock.now());
+  }
+  /**
+   * The account a token opens, if it is the account's, not revoked and not
+   * out of date — with what it may do. Never renewed: a token ends when it
+   * says it does.
+   */
+  async authenticateAccessToken(token) {
+    const { apiTokens, users, tokens, clock } = this.deps;
+    if (!token.startsWith(TOKEN_PREFIX) || token.length > 100) return null;
+    const found = await apiTokens.findByDigest(tokens.digest(token));
+    const now = clock.now();
+    if (!found || found.revokedAt !== null || found.expiresAt <= now) return null;
+    const user = await users.findById(found.userId);
+    if (!user) return null;
+    if (found.lastUsedAt === null || now - found.lastUsedAt >= TOKEN_TOUCH_MS) await apiTokens.touch(found.id, now);
+    return { user: toUserDto(user), sessionId: `token:${found.id}`, expiresAt: found.expiresAt, renewed: false, scopes: toTokenDto(found).scopes };
   }
   purgeExpiredSessions() {
     return this.deps.sessions.deleteExpired(this.deps.clock.now());
@@ -1541,14 +1610,6 @@ function parseAnswer(raw, strictness) {
 
 // server/src/application/picture-service.ts
 import { createHash as createHash3 } from "node:crypto";
-
-// shared/api.ts
-var PICTURE_TYPES = ["image/jpeg", "image/webp", "image/png"];
-var PICTURE_MAX_BYTES = 2 * 1024 * 1024;
-var WORKSPACE_MAX_BYTES = 16 * 1024 * 1024;
-var workspaceTag = (revision) => `"r${revision}"`;
-
-// server/src/application/picture-service.ts
 var pictureKey = (bytes) => createHash3("sha256").update(bytes).digest("hex");
 var PictureService = class {
   constructor(deps) {
@@ -1935,6 +1996,7 @@ function createServices(stores, options = {}) {
   const auth = new AuthService({
     users: stores.users,
     sessions: stores.sessions,
+    apiTokens: stores.apiTokens,
     invites: stores.invites,
     recoveryCodes: stores.recoveryCodes,
     hasher: options.hasher ?? new ScryptHasher(),
@@ -2141,8 +2203,22 @@ async function currentSession(c, auth, opts) {
   else if (session.renewed) writeSessionCookie(c, token, session.expiresAt - opts.clock.now(), secure);
   return session;
 }
-function requireSession(auth, opts) {
+function bearerToken(c) {
+  const header = c.req.header("authorization");
+  if (!header) return null;
+  const match = /^Bearer\s+(\S+)\s*$/i.exec(header);
+  return match?.[1] ?? "";
+}
+function requireSession(auth, opts, tokenScope) {
   return async (c, next) => {
+    const bearer = bearerToken(c);
+    if (bearer !== null) {
+      const opened = await auth.authenticateAccessToken(bearer);
+      if (!opened) throw new UnauthorizedError();
+      if (!tokenScope || !opened.scopes?.includes(tokenScope)) throw new ForbiddenError("An access token cannot do that. Sign in on the site instead.");
+      c.set("session", opened);
+      return next();
+    }
     const session = await currentSession(c, auth, opts);
     if (!session) throw new UnauthorizedError();
     c.set("session", session);
@@ -2174,17 +2250,49 @@ var RateLimiter = class {
 import { Hono } from "hono";
 import { z } from "zod";
 var deleteRequest = z.object({ password: z.string().max(2048) });
-function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage, audit, ipHeader, log }) {
+var tokenRequest = z.object({
+  name: z.string().max(200),
+  days: z.number().int().min(1).max(TOKEN_DAYS_MAX),
+  scopes: z.array(z.enum(TOKEN_SCOPES)).max(TOKEN_SCOPES.length).optional()
+});
+function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, workspaces, world, conversations, limits, storage, audit, ipHeader, log, adminUsers }) {
   const routes = new Hono();
   const session = requireSession(auth, { trustProxy, clock });
   const deletes = new RateLimiter("account.deletes", 10, 15 * 6e4, clock, limits);
+  const tokenMakes = new RateLimiter("account.tokens", 30, 60 * 6e4, clock, limits);
+  const note = auditor(audit, clock, trustProxy, ipHeader, log);
   routes.delete("/", session, async (c) => {
     const { user } = c.get("session");
     await deletes.consume(user.id);
     const { password } = await readJson(c, deleteRequest);
     await auth.deleteAccount({ userId: user.id, password });
-    auditor(audit, clock, trustProxy, ipHeader, log)(c, "deleted", user.username);
+    note(c, "deleted", user.username);
     clearSessionCookie(c, isHttps(c, trustProxy));
+    return c.body(null, 204);
+  });
+  routes.get("/tokens", session, async (c) => {
+    const body = { tokens: await auth.accessTokensOf(c.get("session").user.id) };
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
+  });
+  routes.post("/tokens", session, async (c) => {
+    const { user } = c.get("session");
+    await tokenMakes.consume(user.id);
+    const input = await readJson(c, tokenRequest);
+    const scopes = input.scopes ?? ["texts:write"];
+    if (scopes.includes("catalog:write") && !adminUsers.includes(usernameKey(user.username))) {
+      throw new ForbiddenError("Only the accounts that run the site may publish to the catalogue.");
+    }
+    const made = await auth.makeAccessToken(user.id, { name: input.name, days: input.days, scopes });
+    note(c, "token-made", user.username);
+    const body = made;
+    c.header("Cache-Control", "no-store");
+    return c.json(body, 201);
+  });
+  routes.delete("/tokens/:id", session, async (c) => {
+    const { user } = c.get("session");
+    if (!await auth.revokeAccessToken(user.id, c.req.param("id"))) throw new NotFoundError("That token");
+    note(c, "token-revoked", user.username);
     return c.body(null, 204);
   });
   routes.get("/usage", session, async (c) => {
@@ -2696,7 +2804,7 @@ import { Hono as Hono7 } from "hono";
 import { bodyLimit as bodyLimit2 } from "hono/body-limit";
 function pictureRoutes({ auth, clock, trustProxy, pictures, limits }) {
   const routes = new Hono7();
-  const session = requireSession(auth, { trustProxy, clock });
+  const session = requireSession(auth, { trustProxy, clock }, "texts:write");
   const uploads = new RateLimiter("pictures.uploads", 300, 10 * 6e4, clock, limits);
   routes.get("/:key", session, async (c) => {
     const { mime, bytes } = await pictures.get(c.get("session").user.id, c.req.param("key"));
@@ -3150,7 +3258,7 @@ var saveRequest2 = z8.object({
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
   const routes = new Hono12();
-  const session = requireSession(auth, { trustProxy, clock });
+  const session = requireSession(auth, { trustProxy, clock }, "texts:write");
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
     c.header("Cache-Control", "no-store");
@@ -3593,6 +3701,22 @@ var MIGRATIONS = [
     user_agent  TEXT
   );
   CREATE INDEX audit_log_by_time ON audit_log (at);
+  `,
+  // Tokens for scripts (the add-text skill) in place of the account's
+  // password: only the digest is kept, and each says what it may do.
+  `
+  CREATE TABLE api_tokens (
+    id            TEXT PRIMARY KEY,
+    user_id       TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    name          TEXT NOT NULL,
+    digest        TEXT NOT NULL UNIQUE,
+    scopes        TEXT NOT NULL,
+    created_at    BIGINT NOT NULL,
+    last_used_at  BIGINT,
+    expires_at    BIGINT NOT NULL,
+    revoked_at    BIGINT
+  );
+  CREATE INDEX api_tokens_by_user ON api_tokens (user_id);
   `
 ];
 
@@ -3684,6 +3808,50 @@ async function upToDate(c) {
     return false;
   }
 }
+
+// server/src/infrastructure/postgres/api-token-repository.ts
+var toToken = (r) => ({
+  id: r.id,
+  userId: r.user_id,
+  name: r.name,
+  digest: r.digest,
+  scopes: r.scopes ? r.scopes.split(" ") : [],
+  createdAt: Number(r.created_at),
+  lastUsedAt: r.last_used_at === null ? null : Number(r.last_used_at),
+  expiresAt: Number(r.expires_at),
+  revokedAt: r.revoked_at === null ? null : Number(r.revoked_at)
+});
+var PostgresApiTokenRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async insert(t) {
+    await this.db.query(
+      `INSERT INTO api_tokens (id, user_id, name, digest, scopes, created_at, last_used_at, expires_at, revoked_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [t.id, t.userId, t.name, t.digest, t.scopes.join(" "), t.createdAt, t.lastUsedAt, t.expiresAt, t.revokedAt]
+    );
+  }
+  async findByDigest(digest) {
+    const { rows } = await this.db.query("SELECT * FROM api_tokens WHERE digest = $1", [digest]);
+    return rows[0] ? toToken(rows[0]) : null;
+  }
+  async listForUser(userId) {
+    const { rows } = await this.db.query("SELECT * FROM api_tokens WHERE user_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC", [userId]);
+    return rows.map(toToken);
+  }
+  async revoke(userId, id, at) {
+    const done = await this.db.query("UPDATE api_tokens SET revoked_at = $1 WHERE user_id = $2 AND id = $3 AND revoked_at IS NULL", [at, userId, id]);
+    return (done.rowCount ?? 0) === 1;
+  }
+  async revokeForUser(userId, at) {
+    const done = await this.db.query("UPDATE api_tokens SET revoked_at = $1 WHERE user_id = $2 AND revoked_at IS NULL", [at, userId]);
+    return done.rowCount ?? 0;
+  }
+  async touch(id, at) {
+    await this.db.query("UPDATE api_tokens SET last_used_at = $1 WHERE id = $2", [at, id]);
+  }
+};
 
 // server/src/infrastructure/postgres/conversation-repository.ts
 var PostgresConversationRepository = class {
@@ -4351,6 +4519,7 @@ var PostgresWorldSaveRepository = class {
 // server/src/infrastructure/postgres/stores.ts
 var postgresStores = (db) => ({
   users: new PostgresUserRepository(db),
+  apiTokens: new PostgresApiTokenRepository(db),
   sessions: new PostgresSessionRepository(db),
   workspaces: new PostgresWorkspaceRepository(db),
   worldSaves: new PostgresWorldSaveRepository(db),

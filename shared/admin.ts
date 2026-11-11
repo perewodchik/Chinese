@@ -30,7 +30,7 @@ export interface AdminInvite {
 /** Something that happened to an account: who, what, when, on what. Not the address. */
 export interface AdminEvent {
   at: number;
-  kind: 'sign-in' | 'sign-in-refused' | 'sign-up' | 'recovery' | 'recovery-refused' | 'password' | 'deleted' | 'invite' | string;
+  kind: 'sign-in' | 'sign-in-refused' | 'sign-up' | 'recovery' | 'recovery-refused' | 'password' | 'deleted' | 'invite' | 'token-made' | 'token-revoked' | string;
   username: string;
   userAgent: string | null;
 }

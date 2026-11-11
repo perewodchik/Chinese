@@ -19,7 +19,8 @@ const saveRequest = z.object({
 
 export function workspaceRoutes({ auth, workspaces, clock, trustProxy }: RouteDeps) {
   const routes = new Hono<AppEnv>();
-  const session = requireSession(auth, { trustProxy, clock });
+  // A script's token for texts may read and save the workspace and keep pictures (the add-text skill).
+  const session = requireSession(auth, { trustProxy, clock }, 'texts:write');
 
   routes.get('/', session, async (c) => {
     const userId = c.get('session').user.id;

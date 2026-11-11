@@ -43,6 +43,48 @@ export interface SessionsResponse {
   sessions: SessionDto[];
 }
 
+/**
+ * What an access token may do. A token stands in for the password in a
+ * script (the add-text skill): it can read and save the workspace and keep
+ * pictures, and nothing else: not the password, not the account, not the
+ * keys, not the site's own pages, not other tokens.
+ *
+ *   texts:write    read and save the workspace, keep a text's pictures
+ *   catalog:write  publish to the shared catalogue (accounts that run the site only)
+ */
+export const TOKEN_SCOPES = ['texts:write', 'catalog:write'] as const;
+export type TokenScope = (typeof TOKEN_SCOPES)[number];
+
+/** Every token begins with this, so one pasted somewhere it should not be is easy to find. */
+export const TOKEN_PREFIX = 'hzw_';
+
+/** A token as the account page lists it: never the token itself, which is shown once. */
+export interface AccessTokenDto {
+  id: string;
+  name: string;
+  scopes: TokenScope[];
+  createdAt: number;
+  lastUsedAt: number | null;
+  expiresAt: number;
+}
+
+export interface AccessTokensResponse {
+  tokens: AccessTokenDto[];
+}
+
+export interface MakeAccessTokenRequest {
+  name: string;
+  /** how long it works: 1–365 days */
+  days: number;
+  scopes?: TokenScope[];
+}
+
+/** A token just made: `token` is shown this once and kept nowhere. */
+export interface MadeAccessTokenResponse {
+  token: string;
+  made: AccessTokenDto;
+}
+
 export interface CredentialsRequest {
   username: string;
   password: string;
@@ -123,6 +165,8 @@ export const API = {
   logout: '/api/auth/logout',
   password: '/api/auth/password',
   workspace: '/api/workspace',
+  /** the account's access tokens for scripts: GET the list, POST a new one, DELETE …/:id */
+  tokens: '/api/account/tokens',
   /** a text's picture, by the digest of its bytes: GET to show it, PUT to keep it */
   pictures: '/api/pictures',
 } as const;
