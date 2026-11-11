@@ -232,6 +232,7 @@ var AuthService = class {
   async register(input) {
     const { registration: registration2 } = this.deps.policy;
     if (registration2 === "closed") throw new RegistrationClosedError();
+    if (this.deps.policy.reservedNames?.includes(usernameKey(input.username))) throw new UsernameTakenError();
     if (registration2 === "open") return this.issue(await this.createUser(input.username, input.password), input.userAgent);
     const code = normaliseInvite(input.invite ?? "");
     if (!code) throw new ValidationError("An account here needs an invitation.", { invite: "The code from your invitation." });
@@ -1983,6 +1984,7 @@ function registrationFrom(raw, fallback) {
 
 // server/src/http/app.ts
 import { Hono as Hono15 } from "hono";
+import { bodyLimit as bodyLimit5 } from "hono/body-limit";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
 
@@ -2354,6 +2356,7 @@ ${input.prompt}`).digest("hex");
 
 // server/src/http/routes/auth.ts
 import { Hono as Hono4 } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { z as z4 } from "zod";
 var MINUTE = 6e4;
 var credentials = z4.object({
@@ -2389,11 +2392,13 @@ function tunnelled(c, trustProxy) {
 }
 function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate, log, limits, audit }) {
   const routes = new Hono4();
+  routes.use("*", bodyLimit({ maxSize: 16 * 1024, onError: (c) => c.json(errorBody("payload_too_large", "That is too long to be a name and a password."), 413) }));
   const sessionOptions = { trustProxy, clock };
   const session = requireSession(auth, sessionOptions);
   const note = auditor(audit, clock, trustProxy, ipHeader, log);
   const perName = new RateLimiter("auth.perName", 10, 15 * MINUTE, clock, limits);
   const perAddress = new RateLimiter("auth.perAddress", 100, 15 * MINUTE, clock, limits);
+  const perAccount = new RateLimiter("auth.perAccount", 50, 60 * MINUTE, clock, limits);
   const signUps = new RateLimiter("auth.signUps", 20, 60 * MINUTE, clock, limits);
   routes.get("/options", (c) => {
     const body = { registration: auth.registration };
@@ -2429,12 +2434,14 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
     const nameKey = `${ip} ${usernameKey(input.username)}`;
     await perAddress.consume(ip);
     await perName.consume(nameKey);
+    await perAccount.consume(usernameKey(input.username));
     const issued = await auth.login({ ...input, userAgent: c.req.header("user-agent") ?? null }).catch((err) => {
       if (err instanceof InvalidCredentialsError) note(c, "sign-in-refused", input.username);
       throw err;
     });
     note(c, "sign-in", issued.user.username);
     await perName.reset(nameKey);
+    await perAccount.reset(usernameKey(input.username));
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body = { user: issued.user };
     return c.json(body);
@@ -2474,6 +2481,7 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
     const ip = clientIp(c, trustProxy, ipHeader);
     await perAddress.consume(ip);
     await recoveries.consume(`${ip} ${usernameKey(input.username)}`);
+    await perAccount.consume(usernameKey(input.username));
     const issued = await auth.recover({ ...input, userAgent: c.req.header("user-agent") ?? null }).catch((err) => {
       if (err instanceof ValidationError && err.fields?.code) note(c, "recovery-refused", input.username);
       throw err;
@@ -2685,6 +2693,7 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }) {
 
 // server/src/http/routes/pictures.ts
 import { Hono as Hono7 } from "hono";
+import { bodyLimit as bodyLimit2 } from "hono/body-limit";
 function pictureRoutes({ auth, clock, trustProxy, pictures, limits }) {
   const routes = new Hono7();
   const session = requireSession(auth, { trustProxy, clock });
@@ -2695,7 +2704,8 @@ function pictureRoutes({ auth, clock, trustProxy, pictures, limits }) {
     c.header("Cache-Control", "private, max-age=31536000, immutable");
     return c.body(bytes);
   });
-  routes.put("/:key", session, async (c) => {
+  const sized2 = bodyLimit2({ maxSize: PICTURE_MAX_BYTES, onError: (c) => c.json(errorBody("payload_too_large", `A picture is at most ${Math.round(PICTURE_MAX_BYTES / 1024)} KB.`), 413) });
+  routes.put("/:key", session, sized2, async (c) => {
     const user = c.get("session").user.id;
     await uploads.consume(user);
     const mime = (c.req.header("content-type") ?? "").split(";")[0].trim().toLowerCase();
@@ -3132,7 +3142,7 @@ function videoRoutes({ auth, clock, trustProxy, log, limits, lookups: cache }) {
 
 // server/src/http/routes/workspace.ts
 import { Hono as Hono12 } from "hono";
-import { bodyLimit } from "hono/body-limit";
+import { bodyLimit as bodyLimit3 } from "hono/body-limit";
 import { z as z8 } from "zod";
 var saveRequest2 = z8.object({
   baseRevision: z8.number().int().min(0),
@@ -3159,7 +3169,7 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
   routes.put(
     "/",
     session,
-    bodyLimit({
+    bodyLimit3({
       maxSize: WORKSPACE_MAX_BYTES,
       onError: (c) => c.json(errorBody("payload_too_large", "That is more than one account can store."), 413)
     }),
@@ -3178,7 +3188,7 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 
 // server/src/http/routes/world.ts
 import { Hono as Hono13 } from "hono";
-import { bodyLimit as bodyLimit2 } from "hono/body-limit";
+import { bodyLimit as bodyLimit4 } from "hono/body-limit";
 import { z as z9 } from "zod";
 
 // shared/world.ts
@@ -3211,7 +3221,7 @@ function worldRoutes({ auth, world, clock, trustProxy }) {
   routes.put(
     "/",
     session,
-    bodyLimit2({
+    bodyLimit4({
       maxSize: WORLD_SAVE_MAX_BYTES,
       onError: (c) => c.json(errorBody("payload_too_large", "That game save is larger than the server keeps."), 413)
     }),
@@ -3259,6 +3269,7 @@ function caching() {
 }
 
 // server/src/http/app.ts
+var tooLarge = (maxSize) => bodyLimit5({ maxSize, onError: (c) => c.json(errorBody("payload_too_large", "That is more than the server takes in one request."), 413) });
 function createHttpApp(services, options) {
   const onError = handleError(options.log);
   const deps = {
@@ -3274,6 +3285,7 @@ function createHttpApp(services, options) {
   const api = new Hono15();
   api.onError(onError);
   api.use("*", sameOriginOnly());
+  api.use("*", tooLarge(WORKSPACE_MAX_BYTES + 64 * 1024));
   api.get("/health", (c) => c.json({ ok: true }));
   api.route("/auth", authRoutes(deps));
   api.route("/account", accountRoutes(deps));
@@ -4361,6 +4373,7 @@ var postgresStores = (db) => ({
 
 // server/src/vercel.ts
 var REGISTRATION = registrationFrom(process.env.HANZI_REGISTRATION, "invite");
+var ADMIN_USERS = (process.env.HANZI_ADMIN_USERS ?? "").split(",").map((n) => n.trim()).filter(Boolean);
 var building = null;
 function application() {
   if (building) return building;
@@ -4373,7 +4386,7 @@ function application() {
     }
     const pool2 = await openPostgres(url);
     const services = createServices(postgresStores(pool2), {
-      policy: { registration: REGISTRATION },
+      policy: { registration: REGISTRATION, reservedNames: ADMIN_USERS.map(usernameKey) },
       secretsKey: process.env.HANZI_SECRETS_KEY ?? "",
       storageLimitMb: storageLimitFrom(process.env.HANZI_STORAGE_MB),
       speech: speechFromEnv(process.env)
@@ -4381,7 +4394,7 @@ function application() {
     return createHttpApp(services, {
       trustProxy: true,
       ipHeader: "x-vercel-forwarded-for",
-      adminUsers: (process.env.HANZI_ADMIN_USERS ?? "").split(",").map((n) => n.trim()).filter(Boolean),
+      adminUsers: ADMIN_USERS,
       staticDir: null,
       // Vercel compresses what it sends; a second pass here would only cost
       // the function time it is billed for.

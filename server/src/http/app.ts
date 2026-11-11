@@ -1,12 +1,14 @@
 import { Hono } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
 import { compress } from 'hono/compress';
 import { secureHeaders } from 'hono/secure-headers';
+import { WORKSPACE_MAX_BYTES } from '../../../shared/api';
 import { usernameKey } from '../../../shared/credentials';
 import { CSP, PERMISSIONS_POLICY } from '../../../shared/csp';
 import type { Services } from '../composition';
 import { NotFoundError } from '../domain/errors';
 import type { AppEnv } from './env';
-import { handleError } from './errors';
+import { errorBody, handleError } from './errors';
 import { sameOriginOnly } from './guards';
 import { accountRoutes } from './routes/account';
 import { adminRoutes } from './routes/admin';
@@ -54,6 +56,10 @@ export interface HttpOptions {
   devUserCreate?: boolean;
 }
 
+/** Refuses a body over `maxSize` bytes with the app's own 413, before it is read into memory. */
+export const tooLarge = (maxSize: number) =>
+  bodyLimit({ maxSize, onError: (c) => c.json(errorBody('payload_too_large', 'That is more than the server takes in one request.'), 413) });
+
 /**
  * The HTTP face of the application: JSON under /api, and the app itself
  * everywhere else when there is a build to serve.
@@ -74,6 +80,11 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   const api = new Hono<AppEnv>();
   api.onError(onError);
   api.use('*', sameOriginOnly());
+  // Nothing the app sends is larger than a workspace. Without a ceiling a
+  // route reads whatever it is sent before it looks at it, and a 30 MB
+  // "password" is held in memory by a server that was only going to refuse it.
+  // The routes that take less say so themselves (sign-in, a picture).
+  api.use('*', tooLarge(WORKSPACE_MAX_BYTES + 64 * 1024));
   api.get('/health', (c) => c.json({ ok: true }));
   api.route('/auth', authRoutes(deps));
   api.route('/account', accountRoutes(deps));

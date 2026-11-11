@@ -18,6 +18,7 @@ game docs especially are not background reading.
 | Today, Read and its shelves, the text page (Copy out, Dictation), Cards, Library (sets, radicals, full screen), Stats, Videos, words, pinyin | `src/features/<name>/` (Read and the text page are `reader/`), `src/domain/` | the code; open items in `docs/backlog.md`; adding a text from a photo: `docs/photo-to-text.md` |
 | Speak's phrases, the new one (behind Settings › Speak) | `src/features/speak/`, `src/domain/speak.ts` | `docs/speak-v2.md` |
 | Images and voices pipelines | `scripts/images/`, `scripts/voices/` | `scripts/images/README.md` |
+| Opening the site to other learners: new-user path, navigation, settings, security, adding texts, credits, admin, refactoring | the whole app | `docs/audit/README.md` (the plan, a file a topic); what was done before it: `docs/public-launch-plan.md` |
 
 ## Environment (this Mac)
 

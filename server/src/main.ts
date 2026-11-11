@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { serve } from '@hono/node-server';
+import { usernameKey } from '../../shared/credentials';
 import { createServices } from './composition';
 import { describeDatabase, loadConfig, loadEnvFile, storageLimitFrom } from './config';
 import { createHttpApp } from './http/app';
@@ -33,7 +34,7 @@ if (staticDir && !existsSync(join(staticDir, 'index.html'))) {
 
 const { stores, close } = await openStores(config.database).catch(stop);
 const services = createServices(stores, {
-  policy: { registration: config.registration },
+  policy: { registration: config.registration, reservedNames: config.adminUsers.map(usernameKey) },
   secretsKey: process.env.HANZI_SECRETS_KEY ?? '',
   storageLimitMb: storageLimitFrom(process.env.HANZI_STORAGE_MB),
   speech: speechFromEnv(process.env),

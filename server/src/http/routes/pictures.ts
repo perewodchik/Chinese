@@ -1,4 +1,7 @@
 import { Hono } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
+import { PICTURE_MAX_BYTES } from '../../../../shared/api';
+import { errorBody } from '../errors';
 import type { AppEnv, RouteDeps } from '../env';
 import { RateLimiter, requireSession } from '../guards';
 
@@ -24,7 +27,9 @@ export function pictureRoutes({ auth, clock, trustProxy, pictures, limits }: Rou
     return c.body(bytes as Uint8Array<ArrayBuffer>);
   });
 
-  routes.put('/:key', session, async (c) => {
+  // Refused by its length before it is read: the service checks the size too, but only of bytes already in memory.
+  const sized = bodyLimit({ maxSize: PICTURE_MAX_BYTES, onError: (c) => c.json(errorBody('payload_too_large', `A picture is at most ${Math.round(PICTURE_MAX_BYTES / 1024)} KB.`), 413) });
+  routes.put('/:key', session, sized, async (c) => {
     const user = c.get('session').user.id;
     await uploads.consume(user);
     const mime = (c.req.header('content-type') ?? '').split(';')[0]!.trim().toLowerCase();

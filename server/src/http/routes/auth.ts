@@ -1,4 +1,5 @@
 import { Hono, type Context } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
 import type {
   AuthOptionsResponse,
@@ -9,6 +10,7 @@ import type {
 import { usernameKey } from '../../../../shared/credentials';
 import { InvalidCredentialsError, NotFoundError, ValidationError } from '../../domain/errors';
 import type { AppEnv, RouteDeps } from '../env';
+import { errorBody } from '../errors';
 import { auditor, currentSession, RateLimiter, requireSession } from '../guards';
 import {
   clearSessionCookie,
@@ -72,6 +74,8 @@ function tunnelled(c: Context, trustProxy: boolean): boolean {
 
 export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate, log, limits, audit }: RouteDeps) {
   const routes = new Hono<AppEnv>();
+  // A name, a password, a code: a few hundred bytes. Anything longer is not a sign-in.
+  routes.use('*', bodyLimit({ maxSize: 16 * 1024, onError: (c) => c.json(errorBody('payload_too_large', 'That is too long to be a name and a password.'), 413) }));
   const sessionOptions = { trustProxy, clock };
   const session = requireSession(auth, sessionOptions);
   const note = auditor(audit, clock, trustProxy, ipHeader, log);
@@ -80,6 +84,11 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
   // hour's wait; a hundred attempts of any kind from one address does too.
   const perName = new RateLimiter('auth.perName', 10, 15 * MINUTE, clock, limits);
   const perAddress = new RateLimiter('auth.perAddress', 100, 15 * MINUTE, clock, limits);
+  // And for one account from everywhere at once: the two above are counted
+  // per address, so a guesser with a thousand addresses had a thousand times
+  // the tries. Fifty an hour is more than anyone mistyping, and 1,200 a day
+  // is nothing against a password that is not on the common list.
+  const perAccount = new RateLimiter('auth.perAccount', 50, 60 * MINUTE, clock, limits);
   const signUps = new RateLimiter('auth.signUps', 20, 60 * MINUTE, clock, limits);
 
   routes.get('/options', (c) => {
@@ -127,6 +136,7 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
     const nameKey = `${ip} ${usernameKey(input.username)}`;
     await perAddress.consume(ip);
     await perName.consume(nameKey);
+    await perAccount.consume(usernameKey(input.username));
 
     const issued = await auth.login({ ...input, userAgent: c.req.header('user-agent') ?? null }).catch((err: unknown) => {
       if (err instanceof InvalidCredentialsError) note(c, 'sign-in-refused', input.username);
@@ -134,6 +144,7 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
     });
     note(c, 'sign-in', issued.user.username);
     await perName.reset(nameKey);
+    await perAccount.reset(usernameKey(input.username));
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body: SessionResponse = { user: issued.user };
     return c.json(body);
@@ -182,6 +193,7 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
     const ip = clientIp(c, trustProxy, ipHeader);
     await perAddress.consume(ip);
     await recoveries.consume(`${ip} ${usernameKey(input.username)}`);
+    await perAccount.consume(usernameKey(input.username));
     const issued = await auth.recover({ ...input, userAgent: c.req.header('user-agent') ?? null }).catch((err: unknown) => {
       if (err instanceof ValidationError && err.fields?.code) note(c, 'recovery-refused', input.username);
       throw err;

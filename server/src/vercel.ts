@@ -1,4 +1,5 @@
 import { getRequestListener } from '@hono/node-server';
+import { usernameKey } from '../../shared/credentials';
 import { createServices } from './composition';
 import { registrationFrom, storageLimitFrom } from './config';
 import { createHttpApp } from './http/app';
@@ -38,6 +39,8 @@ import { postgresStores } from './infrastructure/postgres/stores';
 // The deployed site is reached by anyone with its address, so a new account
 // there needs an invitation unless HANZI_REGISTRATION says otherwise.
 const REGISTRATION = registrationFrom(process.env.HANZI_REGISTRATION, 'invite');
+// Who runs the site, by name (HANZI_ADMIN_USERS): the names the sign-up form never hands out.
+const ADMIN_USERS = (process.env.HANZI_ADMIN_USERS ?? '').split(',').map((n) => n.trim()).filter(Boolean);
 
 type App = { fetch(request: Request): Response | Promise<Response> };
 
@@ -54,7 +57,7 @@ function application(): Promise<App> {
     }
     const pool = await openPostgres(url);
     const services = createServices(postgresStores(pool), {
-      policy: { registration: REGISTRATION },
+      policy: { registration: REGISTRATION, reservedNames: ADMIN_USERS.map(usernameKey) },
       secretsKey: process.env.HANZI_SECRETS_KEY ?? '',
       storageLimitMb: storageLimitFrom(process.env.HANZI_STORAGE_MB),
       speech: speechFromEnv(process.env),
@@ -62,7 +65,7 @@ function application(): Promise<App> {
     return createHttpApp(services, {
       trustProxy: true,
       ipHeader: 'x-vercel-forwarded-for',
-      adminUsers: (process.env.HANZI_ADMIN_USERS ?? '').split(',').map((n) => n.trim()).filter(Boolean),
+      adminUsers: ADMIN_USERS,
       staticDir: null,
       // Vercel compresses what it sends; a second pass here would only cost
       // the function time it is billed for.

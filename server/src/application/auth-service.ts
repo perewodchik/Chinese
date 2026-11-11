@@ -23,6 +23,14 @@ const DAY = 86_400_000;
 export interface AuthPolicy {
   /** anyone may make an account, nobody may, or only someone with an invitation */
   registration: 'open' | 'closed' | 'invite';
+  /**
+   * Names (as `usernameKey` gives them) that the sign-up form never hands
+   * out: the accounts that run the site. Whoever runs the server makes those
+   * with `npm run admin -- add-user`. Without this, a name listed in
+   * HANZI_ADMIN_USERS before its account exists — or after it was deleted —
+   * would make an administrator of whoever registered it first.
+   */
+  reservedNames?: readonly string[];
   /** how long a session lasts once it stops being used */
   sessionTtlMs: number;
   /** how often a session in use has its expiry pushed back */
@@ -115,6 +123,8 @@ export class AuthService {
   async register(input: SignIn & { invite?: string }): Promise<IssuedSession> {
     const { registration } = this.deps.policy;
     if (registration === 'closed') throw new RegistrationClosedError();
+    // Said as any taken name is, so the form does not tell a visitor which names run the site.
+    if (this.deps.policy.reservedNames?.includes(usernameKey(input.username))) throw new UsernameTakenError();
     if (registration === 'open') return this.issue(await this.createUser(input.username, input.password), input.userAgent);
 
     const code = normaliseInvite(input.invite ?? '');

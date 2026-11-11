@@ -238,3 +238,37 @@ describe('a limit reached', () => {
     assert.deepEqual([waitWords(1), waitWords(40), waitWords(60), waitWords(61), waitWords(900)], ['1 second', '40 seconds', 'a minute', '2 minutes', '15 minutes']);
   });
 });
+
+describe('HTTP API: what stands between a guesser and an account', () => {
+  it('counts wrong passwords for one account from every address together', async () => {
+    const { services } = makeApp();
+    const app = createHttpApp(services, { trustProxy: true, ipHeader: 'x-vercel-forwarded-for', staticDir: null, log: () => undefined });
+    await call(app, 'POST', '/api/auth/register', { body: CREDENTIALS, headers: { 'x-vercel-forwarded-for': '203.0.113.1' } });
+    const wrong = { username: 'Kirill', password: 'not the password' };
+    // Fifty guesses, each from an address of its own: none of them meets the per-address wait.
+    for (let i = 0; i < 50; i++) {
+      const res = await call(app, 'POST', '/api/auth/login', { body: wrong, headers: { 'x-vercel-forwarded-for': `198.51.100.${i}` } });
+      assert.equal(res.status, 401);
+    }
+    const next = await call(app, 'POST', '/api/auth/login', { body: wrong, headers: { 'x-vercel-forwarded-for': '198.51.100.200' } });
+    assert.equal(next.status, 429);
+    // Another account is not held up by it.
+    const other = await call(app, 'POST', '/api/auth/login', { body: { username: 'masha', password: 'not the password' }, headers: { 'x-vercel-forwarded-for': '198.51.100.201' } });
+    assert.equal(other.status, 401);
+  });
+
+  it('refuses a body longer than a sign-in could be, before reading it', async () => {
+    const { app } = makeApp();
+    const res = await call(app, 'POST', '/api/auth/login', { body: { username: 'kirill', password: 'x'.repeat(40_000) } });
+    assert.equal(res.status, 413);
+    assert.equal(((await res.json()) as ApiErrorBody).error.code, 'payload_too_large');
+  });
+
+  it('does not hand out a name that runs the site', async () => {
+    const { app } = makeApp({ reservedNames: ['admin'] });
+    const res = await call(app, 'POST', '/api/auth/register', { body: { username: 'Admin', password: 'correct horse' } });
+    assert.equal(res.status, 409);
+    assert.equal(((await res.json()) as ApiErrorBody).error.code, 'username_taken');
+    assert.equal((await call(app, 'POST', '/api/auth/register', { body: CREDENTIALS })).status, 201);
+  });
+});
