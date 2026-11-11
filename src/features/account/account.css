@@ -191,3 +191,8 @@
   overflow-wrap: anywhere;
   user-select: all;
 }
+
+/* Two-step sign-in's code form sits under the key it was made from. */
+.ac-two-step {
+  margin-top: 12px;
+}

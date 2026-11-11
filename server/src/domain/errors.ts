@@ -46,6 +46,20 @@ export class ReauthRequiredError extends AppError {
   }
 }
 
+/** The right password, for an account with two-step sign-in: said only after the password, so it tells a guesser nothing. */
+export class TwoStepRequiredError extends AppError {
+  constructor() {
+    super('totp_required', 'Type the code from your authenticator app too.');
+  }
+}
+
+/** An admin page, for an admin without two-step sign-in. */
+export class TwoStepSetupRequiredError extends AppError {
+  constructor() {
+    super('totp_setup_required', 'Turn on two-step sign-in on your account page to use the site’s pages.');
+  }
+}
+
 export class UsernameTakenError extends AppError {
   /** `userId` is the account that could not be written, so what was claimed for it can be given back. */
   constructor(readonly userId?: string) {

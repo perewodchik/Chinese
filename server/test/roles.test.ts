@@ -14,7 +14,7 @@ const PASSWORD = 'correct horse';
 function site() {
   const db = openDatabase(':memory:');
   const clock = new TestClock();
-  const services = createServices(sqliteStores(db), { hasher: cheapHasher, clock });
+  const services = createServices(sqliteStores(db), { hasher: cheapHasher, clock, policy: { adminTwoStep: 'optional' } });
   const serve = (adminUsers: string[] = []) => createHttpApp(services, { trustProxy: false, staticDir: null, log: () => undefined, adminUsers });
   return { services, serve };
 }

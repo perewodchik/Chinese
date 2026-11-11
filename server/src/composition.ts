@@ -135,6 +135,7 @@ export function createServices(
   } = {},
 ): Services {
   const clock = options.clock ?? systemClock;
+  const secrets = options.secretsKey === undefined ? stores.secrets : secretsFor(stores.secrets, options.secretsKey, (line) => console.error(line));
   const auth = new AuthService({
     users: stores.users,
     sessions: stores.sessions,
@@ -142,6 +143,7 @@ export function createServices(
     invites: stores.invites,
     recoveryCodes: stores.recoveryCodes,
     adminLog: stores.adminLog,
+    secrets,
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
     clock,
@@ -151,7 +153,6 @@ export function createServices(
   const world = new WorldService({ saves: stores.worldSaves, clock });
   const recordings = new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
-  const secrets = options.secretsKey === undefined ? stores.secrets : secretsFor(stores.secrets, options.secretsKey, (line) => console.error(line));
   const quota = new StorageQuota({ meter: stores.storage, limitMb: options.storageLimitMb || null });
   const usage = new UsageMeter({ usage: stores.usage, clock, log: (line) => console.error(line) });
   return {

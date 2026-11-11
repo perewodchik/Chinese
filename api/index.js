@@ -148,6 +148,16 @@ var ReauthRequiredError = class extends AppError {
     super("reauth_required", "Type your password again to do that.");
   }
 };
+var TwoStepRequiredError = class extends AppError {
+  constructor() {
+    super("totp_required", "Type the code from your authenticator app too.");
+  }
+};
+var TwoStepSetupRequiredError = class extends AppError {
+  constructor() {
+    super("totp_setup_required", "Turn on two-step sign-in on your account page to use the site\u2019s pages.");
+  }
+};
 var UsernameTakenError = class extends AppError {
   /** `userId` is the account that could not be written, so what was claimed for it can be given back. */
   constructor(userId) {
@@ -222,6 +232,72 @@ function waitWords(seconds) {
 
 // server/src/application/auth-service.ts
 import { randomInt } from "node:crypto";
+
+// server/src/application/totp.ts
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+var STEP_MS = 3e4;
+var DIGITS = 6;
+var ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+function newTotpSecret() {
+  return base32Encode(randomBytes(20));
+}
+function base32Encode(bytes) {
+  let bits = 0;
+  let value = 0;
+  let out = "";
+  for (const byte of bytes) {
+    value = value << 8 | byte;
+    bits += 8;
+    while (bits >= 5) {
+      out += ALPHABET[value >>> bits - 5 & 31];
+      bits -= 5;
+    }
+  }
+  if (bits > 0) out += ALPHABET[value << 5 - bits & 31];
+  return out;
+}
+function base32Decode(text) {
+  const clean2 = text.toUpperCase().replace(/[\s=-]/g, "");
+  let bits = 0;
+  let value = 0;
+  const out = [];
+  for (const ch of clean2) {
+    const i = ALPHABET.indexOf(ch);
+    if (i < 0) throw new Error("Not base32.");
+    value = value << 5 | i;
+    bits += 5;
+    if (bits >= 8) {
+      out.push(value >>> bits - 8 & 255);
+      bits -= 8;
+    }
+  }
+  return Buffer.from(out);
+}
+function codeAt(secret, step) {
+  const counter = Buffer.alloc(8);
+  counter.writeBigUInt64BE(BigInt(step));
+  const mac = createHmac("sha1", base32Decode(secret)).update(counter).digest();
+  const offset = mac[mac.length - 1] & 15;
+  const n = (mac.readUInt32BE(offset) & 2147483647) % 10 ** DIGITS;
+  return String(n).padStart(DIGITS, "0");
+}
+var stepOf = (at) => Math.floor(at / STEP_MS);
+function matchingStep(secret, typed, at) {
+  const code = typed.replace(/\s/g, "");
+  if (!/^\d{6}$/.test(code)) return null;
+  const now = stepOf(at);
+  for (const step of [now, now - 1, now + 1]) {
+    const expected = codeAt(secret, step);
+    if (timingSafeEqual(Buffer.from(expected), Buffer.from(code))) return step;
+  }
+  return null;
+}
+function otpauthLink(secret, account, issuer) {
+  const label = encodeURIComponent(`${issuer}:${account}`);
+  return `otpauth://totp/${label}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=${DIGITS}&period=${STEP_MS / 1e3}`;
+}
+
+// server/src/application/auth-service.ts
 var DAY = 864e5;
 var DEFAULT_AUTH_POLICY = {
   registration: "open",
@@ -231,6 +307,10 @@ var DEFAULT_AUTH_POLICY = {
   adminSessionMaxAgeMs: 7 * DAY,
   freshMs: 15 * 6e4
 };
+var TOTP = "totp";
+var TOTP_PENDING = "totp-pending";
+var TOTP_LAST_STEP = "totp-step";
+var ISSUER = "Hanzi Workshop";
 var INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 var INVITE_LENGTH = 12;
 var RECOVERY_CODES = 8;
@@ -341,6 +421,7 @@ var AuthService = class {
     const matches = await hasher.verify(input.password, user?.passwordHash ?? await this.decoyHash());
     if (!user || !matches) throw new InvalidCredentialsError();
     if (user.status === "blocked") throw new AccountBlockedError();
+    await this.checkSecondStep(user, input.code);
     return this.issue(user, input.userAgent);
   }
   /**
@@ -414,6 +495,70 @@ var AuthService = class {
       throw new ValidationError("That is not the password.", { password: "Not the password." });
     }
     await sessions.verify(input.sessionId, clock.now());
+  }
+  /**
+   * For an account with two-step sign-in, the code that goes with the
+   * password: the authenticator's six digits for now (each used once), or one
+   * of the account's recovery codes, which is then used up. Asked for only
+   * once the password was right.
+   */
+  async checkSecondStep(user, code) {
+    const { secrets, recoveryCodes, clock } = this.deps;
+    const secret = await secrets.get(user.id, TOTP);
+    if (!secret) return;
+    const typed = (code ?? "").trim();
+    if (!typed) throw new TwoStepRequiredError();
+    const refused = new ValidationError("That code is not right. Use the one your app shows now, or a recovery code.", { code: "Not the code." });
+    if (/^\d[\d\s]*$/.test(typed)) {
+      const now = clock.now();
+      const step = matchingStep(secret, typed, now);
+      const last = Number(await secrets.get(user.id, TOTP_LAST_STEP) ?? "-1");
+      if (step === null || step <= last) throw refused;
+      await secrets.set(user.id, TOTP_LAST_STEP, String(step), now);
+      return;
+    }
+    const recovery = normaliseInvite(typed);
+    if (recovery.length !== RECOVERY_LENGTH || !await recoveryCodes.use(user.id, this.recoveryDigest(user.id, recovery), clock.now())) throw refused;
+  }
+  async twoStepStatus(userId, role) {
+    return { enabled: Boolean(await this.deps.secrets.get(userId, TOTP)), required: role === "admin" && this.deps.policy.adminTwoStep !== "optional" };
+  }
+  /** For an admin page: refused until the admin has two-step sign-in, unless the server says it is optional. */
+  async checkAdminTwoStep(userId) {
+    if (this.deps.policy.adminTwoStep === "optional") return;
+    if (!await this.deps.secrets.get(userId, TOTP)) throw new TwoStepSetupRequiredError();
+  }
+  /** A new secret for an authenticator app, kept aside until a code from the app confirms it. */
+  async startTwoStep(userId, username) {
+    const secret = newTotpSecret();
+    await this.deps.secrets.set(userId, TOTP_PENDING, secret, this.deps.clock.now());
+    return { secret, link: otpauthLink(secret, username, ISSUER) };
+  }
+  /**
+   * The first code from the app turns two-step sign-in on. Every other
+   * browser is signed out, since none of them was asked for a code.
+   */
+  async confirmTwoStep(input) {
+    const { secrets, sessions, clock } = this.deps;
+    const pending = await secrets.get(input.userId, TOTP_PENDING);
+    if (!pending) throw new ValidationError("Start again: there is no secret waiting for its first code.");
+    const now = clock.now();
+    const step = matchingStep(pending, input.code, now);
+    if (step === null) throw new ValidationError("That code is not right. Type the six digits your app shows now.", { code: "Not the code." });
+    await secrets.set(input.userId, TOTP, pending, now);
+    await secrets.set(input.userId, TOTP_LAST_STEP, String(step), now);
+    await secrets.delete(input.userId, TOTP_PENDING);
+    await sessions.deleteForUser(input.userId, input.sessionId);
+  }
+  /** Two-step sign-in off, with a code to show the app is still at hand. An admin cannot, where it is required. */
+  async disableTwoStep(input) {
+    const { users, secrets } = this.deps;
+    const user = await users.findById(input.userId);
+    if (!user) throw new UnauthorizedError();
+    if ((await this.twoStepStatus(user.id, user.role)).required) throw new ValidationError("An account that runs the site keeps two-step sign-in on.");
+    await this.checkSecondStep(user, input.code);
+    await secrets.delete(user.id, TOTP);
+    await secrets.delete(user.id, TOTP_LAST_STEP);
   }
   /** Whether the session's password was typed recently enough for an admin to change things. */
   isFresh(session) {
@@ -1335,7 +1480,7 @@ var ATTEMPTS_PER_CALL = 500;
 var ATTEMPTS_LISTED = 2e3;
 
 // server/src/infrastructure/iflytek.ts
-import { createHmac } from "node:crypto";
+import { createHmac as createHmac2 } from "node:crypto";
 var HOST = "ise-api.xfyun.cn";
 var PATH = "/v2/open-ise";
 var FRAME = 19200;
@@ -1349,7 +1494,7 @@ function signedUrl(keys, date = (/* @__PURE__ */ new Date()).toUTCString()) {
   const origin = `host: ${HOST}
 date: ${date}
 GET ${PATH} HTTP/1.1`;
-  const signature = createHmac("sha256", keys.apiSecret).update(origin).digest("base64");
+  const signature = createHmac2("sha256", keys.apiSecret).update(origin).digest("base64");
   const authorization = Buffer.from(
     `api_key="${keys.apiKey}", algorithm="hmac-sha256", headers="host date request-line", signature="${signature}"`
   ).toString("base64");
@@ -2039,7 +2184,7 @@ function versionOf2(save) {
 var systemClock = { now: () => Date.now() };
 
 // server/src/infrastructure/crypto/scrypt-hasher.ts
-import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { randomBytes as randomBytes2, scrypt, timingSafeEqual as timingSafeEqual2 } from "node:crypto";
 var DEFAULT_COST = { log2N: 15, r: 8, p: 3 };
 var SALT_BYTES = 16;
 var KEY_BYTES = 32;
@@ -2048,7 +2193,7 @@ var ScryptHasher = class {
     this.cost = cost;
   }
   async hash(password) {
-    const salt = randomBytes(SALT_BYTES);
+    const salt = randomBytes2(SALT_BYTES);
     const key = await derive(password, salt, this.cost, KEY_BYTES);
     const { log2N, r, p } = this.cost;
     return ["scrypt", log2N, r, p, salt.toString("base64"), key.toString("base64")].join("$");
@@ -2061,7 +2206,7 @@ var ScryptHasher = class {
     const expected = Buffer.from(parts[5], "base64");
     if (expected.length === 0) return false;
     const actual = await derive(password, Buffer.from(parts[4], "base64"), { log2N, r, p }, expected.length);
-    return timingSafeEqual(actual, expected);
+    return timingSafeEqual2(actual, expected);
   }
 };
 function derive(password, salt, cost, length) {
@@ -2078,7 +2223,7 @@ function derive(password, salt, cost, length) {
 }
 
 // server/src/infrastructure/crypto/sealed-secrets.ts
-import { createCipheriv, createDecipheriv, createHash as createHash5, randomBytes as randomBytes2 } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash as createHash5, randomBytes as randomBytes3 } from "node:crypto";
 var PREFIX = "v1:";
 var SealedSecrets = class {
   constructor(inner, secret, log = () => void 0) {
@@ -2108,7 +2253,7 @@ var SealedSecrets = class {
     return this.inner.delete(userId, name);
   }
   seal(userId, name, value) {
-    const iv = randomBytes2(12);
+    const iv = randomBytes3(12);
     const cipher = createCipheriv("aes-256-gcm", this.key, iv);
     cipher.setAAD(Buffer.from(`${userId}
 ${name}`, "utf8"));
@@ -2146,10 +2291,10 @@ function secretsFor(inner, secret, log) {
 }
 
 // server/src/infrastructure/crypto/tokens.ts
-import { createHash as createHash6, randomBytes as randomBytes3, randomUUID } from "node:crypto";
+import { createHash as createHash6, randomBytes as randomBytes4, randomUUID } from "node:crypto";
 var cryptoTokens = {
   // 256 bits: not something to guess, and base64url so it needs no escaping in a cookie.
-  secret: () => randomBytes3(32).toString("base64url"),
+  secret: () => randomBytes4(32).toString("base64url"),
   digest: (secret) => createHash6("sha256").update(secret).digest("base64url"),
   id: () => randomUUID()
 };
@@ -2157,6 +2302,7 @@ var cryptoTokens = {
 // server/src/composition.ts
 function createServices(stores, options = {}) {
   const clock = options.clock ?? systemClock;
+  const secrets = options.secretsKey === void 0 ? stores.secrets : secretsFor(stores.secrets, options.secretsKey, (line) => console.error(line));
   const auth = new AuthService({
     users: stores.users,
     sessions: stores.sessions,
@@ -2164,6 +2310,7 @@ function createServices(stores, options = {}) {
     invites: stores.invites,
     recoveryCodes: stores.recoveryCodes,
     adminLog: stores.adminLog,
+    secrets,
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
     clock,
@@ -2173,7 +2320,6 @@ function createServices(stores, options = {}) {
   const world = new WorldService({ saves: stores.worldSaves, clock });
   const recordings = new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
-  const secrets = options.secretsKey === void 0 ? stores.secrets : secretsFor(stores.secrets, options.secretsKey, (line) => console.error(line));
   const quota = new StorageQuota({ meter: stores.storage, limitMb: options.storageLimitMb || null });
   const usage = new UsageMeter({ usage: stores.usage, clock, log: (line) => console.error(line) });
   return {
@@ -2243,6 +2389,8 @@ var STATUS = {
   invalid_credentials: 401,
   account_blocked: 403,
   reauth_required: 403,
+  totp_required: 401,
+  totp_setup_required: 403,
   unauthorized: 401,
   registration_closed: 403,
   forbidden_origin: 403,
@@ -2534,7 +2682,11 @@ var blockRequest = z2.object({ reason: z2.string().trim().min(1, "Say why, for t
 function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit }) {
   const routes = new Hono2();
   const session = requireSession(auth, { trustProxy, clock });
-  const admin = requireRole("admin");
+  const role = requireRole("admin");
+  const admin = async (c, next) => role(c, async () => {
+    await auth.checkAdminTwoStep(c.get("session").user.id);
+    await next();
+  });
   const fresh = requireFresh(auth);
   const invites = new RateLimiter("admin.invites", 50, 60 * 6e4, clock, limits);
   routes.get("/", session, admin, (c) => {
@@ -2688,9 +2840,11 @@ import { z as z4 } from "zod";
 var MINUTE = 6e4;
 var credentials = z4.object({
   username: z4.string().max(200),
-  password: z4.string().max(2048)
+  password: z4.string().max(2048),
+  code: z4.string().max(64).optional()
 });
-var registration = credentials.extend({ invite: z4.string().max(64).optional() });
+var registration = credentials.omit({ code: true }).extend({ invite: z4.string().max(64).optional() });
+var codeRequest = z4.object({ code: z4.string().max(64) });
 var recoverRequest = z4.object({ username: z4.string().max(200), code: z4.string().max(64), newPassword: z4.string().max(2048) });
 var reauthRequest = z4.object({ password: z4.string().max(2048) });
 var passwordChange = z4.object({
@@ -2765,6 +2919,7 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
     await perAccount.consume(usernameKey(input.username));
     const issued = await auth.login({ ...input, userAgent: c.req.header("user-agent") ?? null }).catch((err) => {
       if (err instanceof InvalidCredentialsError) note(c, "sign-in-refused", input.username);
+      if (err instanceof ValidationError && input.code) note(c, "two-step-refused", input.username);
       throw err;
     });
     note(c, "sign-in", issued.user.username);
@@ -2837,6 +2992,36 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
       if (err instanceof ValidationError) note(c, "reauth-refused", user.username);
       throw err;
     }
+    return c.body(null, 204);
+  });
+  const fresh = requireFresh(auth);
+  const twoStepCodes = new RateLimiter("auth.twoStep", 10, 15 * MINUTE, clock, limits);
+  routes.get("/two-step", session, async (c) => {
+    const { user } = c.get("session");
+    const body = await auth.twoStepStatus(user.id, user.role);
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
+  });
+  routes.post("/two-step/start", session, fresh, async (c) => {
+    const { user } = c.get("session");
+    const body = await auth.startTwoStep(user.id, user.username);
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
+  });
+  routes.post("/two-step/confirm", session, async (c) => {
+    const { user, sessionId } = c.get("session");
+    await twoStepCodes.consume(user.id);
+    const { code } = await readJson(c, codeRequest);
+    await auth.confirmTwoStep({ userId: user.id, sessionId, code });
+    note(c, "two-step-on", user.username);
+    return c.body(null, 204);
+  });
+  routes.post("/two-step/disable", session, fresh, async (c) => {
+    const { user } = c.get("session");
+    await twoStepCodes.consume(user.id);
+    const { code } = await readJson(c, codeRequest);
+    await auth.disableTwoStep({ userId: user.id, code });
+    note(c, "two-step-off", user.username);
     return c.body(null, 204);
   });
   return routes;
@@ -4918,7 +5103,7 @@ function application() {
     }
     const pool2 = await openPostgres(url);
     const services = createServices(postgresStores(pool2), {
-      policy: { registration: REGISTRATION, reservedNames: ADMIN_USERS.map(usernameKey) },
+      policy: { registration: REGISTRATION, reservedNames: ADMIN_USERS.map(usernameKey), adminTwoStep: process.env.HANZI_ADMIN_TWO_STEP?.trim() === "optional" ? "optional" : "required" },
       secretsKey: process.env.HANZI_SECRETS_KEY ?? "",
       storageLimitMb: storageLimitFrom(process.env.HANZI_STORAGE_MB),
       speech: speechFromEnv(process.env)

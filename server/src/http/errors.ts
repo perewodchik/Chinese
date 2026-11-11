@@ -10,6 +10,8 @@ const STATUS: Record<ApiErrorCode, ContentfulStatusCode> = {
   invalid_credentials: 401,
   account_blocked: 403,
   reauth_required: 403,
+  totp_required: 401,
+  totp_setup_required: 403,
   unauthorized: 401,
   registration_closed: 403,
   forbidden_origin: 403,

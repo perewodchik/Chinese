@@ -13,6 +13,7 @@ import { AccessTokens } from './AccessTokens';
 import { DeleteAccount } from './DeleteAccount';
 import { Devices } from './Devices';
 import { RecoveryCodes } from './RecoveryCodes';
+import { TwoStep } from './TwoStep';
 import './account.css';
 
 const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -123,6 +124,8 @@ export function AccountPage() {
         <h2 className="block-title">Password</h2>
         <ChangePasswordForm />
       </section>
+
+      <TwoStep />
 
       <RecoveryCodes />
 

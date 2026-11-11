@@ -11,7 +11,7 @@ import { call, cheapHasher, HOST, sessionCookie, TestClock, type TestApp } from 
 const PASSWORD = 'correct horse';
 
 async function setUp() {
-  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock: new TestClock() });
+  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock: new TestClock(), policy: { adminTwoStep: 'optional' } });
   const app = createHttpApp(services, { trustProxy: false, staticDir: null, log: () => undefined, adminUsers: ['kirill'] });
   const signUp = async (username: string) => sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username, password: PASSWORD } }));
   const owner = await signUp('kirill');

@@ -1,4 +1,4 @@
-import { TOKEN_PREFIX, TOKEN_SCOPES, type AccessTokenDto, type SessionDto, type TokenScope, type UserDto } from '../../../shared/api';
+import { TOKEN_PREFIX, TOKEN_SCOPES, type AccessTokenDto, type SessionDto, type TokenScope, type TwoStepSetup, type TwoStepStatus, type UserDto } from '../../../shared/api';
 import {
   normaliseUsername,
   PASSWORD_MAX,
@@ -12,12 +12,15 @@ import {
   InvalidCredentialsError,
   NotFoundError,
   RegistrationClosedError,
+  TwoStepRequiredError,
+  TwoStepSetupRequiredError,
   UnauthorizedError,
   UsernameTakenError,
   ValidationError,
 } from '../domain/errors';
 import { randomInt } from 'node:crypto';
-import type { Actor, AdminLogRecord, AdminLogRepository, ApiTokenRepository, Clock, InviteRepository, PasswordHasher, RecoveryCodeRepository, SessionRepository, Tokens, UserRepository } from './ports';
+import { matchingStep, newTotpSecret, otpauthLink } from './totp';
+import type { Actor, AdminLogRecord, AdminLogRepository, ApiTokenRepository, Clock, InviteRepository, PasswordHasher, RecoveryCodeRepository, SecretRepository, SessionRepository, Tokens, UserRepository } from './ports';
 
 const DAY = 86_400_000;
 
@@ -46,6 +49,8 @@ export interface AuthPolicy {
   adminSessionMaxAgeMs: number;
   /** how long after the password was typed an admin may change things without typing it again */
   freshMs: number;
+  /** whether an admin must have two-step sign-in to use the site's pages (HANZI_ADMIN_TWO_STEP) */
+  adminTwoStep?: 'required' | 'optional';
 }
 
 export const DEFAULT_AUTH_POLICY: AuthPolicy = {
@@ -63,6 +68,8 @@ export interface AuthDeps {
   apiTokens: ApiTokenRepository;
   /** what the accounts that run the site did; every method here that one of them calls writes to it */
   adminLog: AdminLogRepository;
+  /** where the two-step secret is kept, sealed like the learners' keys */
+  secrets: SecretRepository;
   invites: InviteRepository;
   recoveryCodes: RecoveryCodeRepository;
   hasher: PasswordHasher;
@@ -97,7 +104,15 @@ interface SignIn {
   username: string;
   password: string;
   userAgent: string | null;
+  /** the authenticator's six digits, or a recovery code, for an account with two-step sign-in */
+  code?: string;
 }
+
+/** The names the two-step secret is kept under in the secrets store. */
+const TOTP = 'totp';
+const TOTP_PENDING = 'totp-pending';
+const TOTP_LAST_STEP = 'totp-step';
+const ISSUER = 'Hanzi Workshop';
 
 /** An invitation as it was given out: the code to type, once. */
 export interface IssuedInvite {
@@ -256,6 +271,7 @@ export class AuthService {
     const matches = await hasher.verify(input.password, user?.passwordHash ?? (await this.decoyHash()));
     if (!user || !matches) throw new InvalidCredentialsError();
     if (user.status === 'blocked') throw new AccountBlockedError();
+    await this.checkSecondStep(user, input.code);
     return this.issue(user, input.userAgent);
   }
 
@@ -344,6 +360,77 @@ export class AuthService {
       throw new ValidationError('That is not the password.', { password: 'Not the password.' });
     }
     await sessions.verify(input.sessionId, clock.now());
+  }
+
+  /**
+   * For an account with two-step sign-in, the code that goes with the
+   * password: the authenticator's six digits for now (each used once), or one
+   * of the account's recovery codes, which is then used up. Asked for only
+   * once the password was right.
+   */
+  private async checkSecondStep(user: User, code: string | undefined): Promise<void> {
+    const { secrets, recoveryCodes, clock } = this.deps;
+    const secret = await secrets.get(user.id, TOTP);
+    if (!secret) return;
+    const typed = (code ?? '').trim();
+    if (!typed) throw new TwoStepRequiredError();
+    const refused = new ValidationError('That code is not right. Use the one your app shows now, or a recovery code.', { code: 'Not the code.' });
+    if (/^\d[\d\s]*$/.test(typed)) {
+      const now = clock.now();
+      const step = matchingStep(secret, typed, now);
+      const last = Number((await secrets.get(user.id, TOTP_LAST_STEP)) ?? '-1');
+      // A code seen once is not taken again, so one read over a shoulder is spent.
+      if (step === null || step <= last) throw refused;
+      await secrets.set(user.id, TOTP_LAST_STEP, String(step), now);
+      return;
+    }
+    const recovery = normaliseInvite(typed);
+    if (recovery.length !== RECOVERY_LENGTH || !(await recoveryCodes.use(user.id, this.recoveryDigest(user.id, recovery), clock.now()))) throw refused;
+  }
+
+  async twoStepStatus(userId: string, role: UserDto['role']): Promise<TwoStepStatus> {
+    return { enabled: Boolean(await this.deps.secrets.get(userId, TOTP)), required: role === 'admin' && this.deps.policy.adminTwoStep !== 'optional' };
+  }
+
+  /** For an admin page: refused until the admin has two-step sign-in, unless the server says it is optional. */
+  async checkAdminTwoStep(userId: string): Promise<void> {
+    if (this.deps.policy.adminTwoStep === 'optional') return;
+    if (!(await this.deps.secrets.get(userId, TOTP))) throw new TwoStepSetupRequiredError();
+  }
+
+  /** A new secret for an authenticator app, kept aside until a code from the app confirms it. */
+  async startTwoStep(userId: string, username: string): Promise<TwoStepSetup> {
+    const secret = newTotpSecret();
+    await this.deps.secrets.set(userId, TOTP_PENDING, secret, this.deps.clock.now());
+    return { secret, link: otpauthLink(secret, username, ISSUER) };
+  }
+
+  /**
+   * The first code from the app turns two-step sign-in on. Every other
+   * browser is signed out, since none of them was asked for a code.
+   */
+  async confirmTwoStep(input: { userId: string; sessionId: string; code: string }): Promise<void> {
+    const { secrets, sessions, clock } = this.deps;
+    const pending = await secrets.get(input.userId, TOTP_PENDING);
+    if (!pending) throw new ValidationError('Start again: there is no secret waiting for its first code.');
+    const now = clock.now();
+    const step = matchingStep(pending, input.code, now);
+    if (step === null) throw new ValidationError('That code is not right. Type the six digits your app shows now.', { code: 'Not the code.' });
+    await secrets.set(input.userId, TOTP, pending, now);
+    await secrets.set(input.userId, TOTP_LAST_STEP, String(step), now);
+    await secrets.delete(input.userId, TOTP_PENDING);
+    await sessions.deleteForUser(input.userId, input.sessionId);
+  }
+
+  /** Two-step sign-in off, with a code to show the app is still at hand. An admin cannot, where it is required. */
+  async disableTwoStep(input: { userId: string; code: string }): Promise<void> {
+    const { users, secrets } = this.deps;
+    const user = await users.findById(input.userId);
+    if (!user) throw new UnauthorizedError();
+    if ((await this.twoStepStatus(user.id, user.role)).required) throw new ValidationError('An account that runs the site keeps two-step sign-in on.');
+    await this.checkSecondStep(user, input.code);
+    await secrets.delete(user.id, TOTP);
+    await secrets.delete(user.id, TOTP_LAST_STEP);
   }
 
   /** Whether the session's password was typed recently enough for an admin to change things. */

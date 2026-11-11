@@ -12,7 +12,7 @@ const DAY = 86_400_000;
 
 function setUp() {
   const clock = new TestClock();
-  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock });
+  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock, policy: { adminTwoStep: 'optional' } });
   const app = createHttpApp(services, { trustProxy: false, staticDir: null, log: () => undefined, adminUsers: ['kirill'] });
   return { app, clock, services };
 }

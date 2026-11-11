@@ -14,7 +14,7 @@ const DAY = 86_400_000;
 
 async function setUp() {
   const clock = new TestClock();
-  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock });
+  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock, policy: { adminTwoStep: 'optional' } });
   const app = createHttpApp(services, { trustProxy: false, staticDir: null, log: () => undefined, adminUsers: ['kirill'] });
   const signUp = async (username: string) => sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username, password: PASSWORD } }));
   const learner = await signUp('masha');

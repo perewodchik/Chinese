@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router';
+import { ApiError } from '../../api/http';
 import { paths } from '../../navigation/paths';
+import { Field } from '../../ui/Field';
 import { AuthLayout } from './AuthLayout';
 import { messageFor, useRegistration } from './messages';
 import { useSession } from './session';
@@ -16,17 +18,24 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Asked for once the server says the password was right and the account has two-step sign-in.
+  const [askingCode, setAskingCode] = useState(false);
+  const [code, setCode] = useState('');
+  const [codeError, setCodeError] = useState<string | null>(null);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (busy || !username.trim() || !password) return;
+    if (busy || !username.trim() || !password || (askingCode && !code.trim())) return;
     setBusy(true);
     setError(null);
+    setCodeError(null);
     try {
       // Nothing to do on success: the page this sits in moves on to `next` by itself.
-      await signIn(username, password);
+      await signIn(username, password, askingCode ? code.trim() : undefined);
     } catch (err) {
-      setError(messageFor(err));
+      if (err instanceof ApiError && err.code === 'totp_required') setAskingCode(true);
+      else if (err instanceof ApiError && err.fields.code) setCodeError(err.fields.code);
+      else setError(messageFor(err));
       setBusy(false);
     }
   }
@@ -77,12 +86,31 @@ export function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </label>
+        {askingCode && (
+          <Field label="Code from your authenticator app" hint="Or one of your recovery codes." error={codeError}>
+            <input
+              type="text"
+              name="code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              autoFocus
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value);
+                setCodeError(null);
+              }}
+            />
+          </Field>
+        )}
         {error && (
           <p className="notice error" role="alert">
             {error}
           </p>
         )}
-        <button className="btn primary" type="submit" disabled={busy || !username.trim() || !password}>
+        <button className="btn primary" type="submit" disabled={busy || !username.trim() || !password || (askingCode && !code.trim())}>
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
         <Link className="small auth-forgot" to={paths.recover()}>

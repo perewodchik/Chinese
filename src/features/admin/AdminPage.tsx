@@ -32,6 +32,9 @@ const EVENT: Record<string, string> = {
   'token-made': 'Access token made by',
   'token-revoked': 'Access token revoked by',
   'reauth-refused': 'Wrong password, asked again, for',
+  'two-step-on': 'Two-step sign-in turned on by',
+  'two-step-off': 'Two-step sign-in turned off by',
+  'two-step-refused': 'Wrong two-step code for',
 };
 
 const DAYS = [
@@ -57,6 +60,8 @@ export function AdminPage() {
   const { confirm, sheet } = useFreshPassword();
   const [data, setData] = useState<AdminOverview | null>(null);
   const [denied, setDenied] = useState<string | null>(null);
+  // An admin without two-step sign-in is sent to the account page to turn it on.
+  const [needsTwoStep, setNeedsTwoStep] = useState(false);
   const [note, setNote] = useState('');
   const [days, setDays] = useState(14);
   const [busy, setBusy] = useState(false);
@@ -64,9 +69,16 @@ export function AdminPage() {
   const [error, setError] = useState<string | null>(null);
 
   const load = () =>
-    adminOverview().then(setData, (err: unknown) =>
-      setDenied(err instanceof ApiError && err.status === 403 ? 'This page is for whoever runs the site.' : messageFor(err)),
-    );
+    adminOverview().then(setData, (err: unknown) => {
+      setNeedsTwoStep(err instanceof ApiError && err.code === 'totp_setup_required');
+      setDenied(
+        err instanceof ApiError && err.code === 'totp_setup_required'
+          ? 'Turn on two-step sign-in on your account page first: the site’s pages need it.'
+          : err instanceof ApiError && err.status === 403
+            ? 'This page is for whoever runs the site.'
+            : messageFor(err),
+      );
+    });
   useEffect(() => {
     void load();
   }, []);
@@ -95,6 +107,11 @@ export function AdminPage() {
           <h1>The site</h1>
         </div>
         <p className="small muted">{denied}</p>
+        {needsTwoStep && (
+          <Link className="btn tonal" to={paths.account()}>
+            Your account
+          </Link>
+        )}
       </section>
     );
   }
