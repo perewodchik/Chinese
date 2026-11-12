@@ -18,7 +18,6 @@ import { useStore, useSyncStatus } from '../store/store';
 import { useColorScheme } from '../ui/colorScheme';
 import { useSheetDrag } from '../ui/useSheetDrag';
 import { Icon } from '../ui/Icon';
-import { SyncIndicator } from './SyncIndicator';
 import { feedbackUrl } from '../platform/feedback';
 
 /** A review sitting's address: one drill, the words, the daily session, the cards, or the day's lesson. */
@@ -221,8 +220,8 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
             </span>
             <Icon name="chevron" className="muted" />
           </Link>
+          {/* Whether the work is saved is said in Account › Your data, and by the dot on More when it is not (P18). */}
           <div className="row more-sync">
-            <SyncIndicator quiet />
             <span className="spacer" />
             <button className="btn quiet sm" onClick={() => void leave()} disabled={leaving}>
               {leaving ? 'Signing out…' : 'Sign out'}

@@ -4446,39 +4446,6 @@ label.field[data-invalid] input {
 }
 
 /* ------------------------------------------------------------ top bar */
-.sync {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--ink-3);
-  white-space: nowrap;
-}
-
-.sync i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--jade);
-}
-
-.sync[data-phase='pending'] i,
-.sync[data-phase='saving'] i {
-  background: var(--gold);
-}
-
-.sync[data-phase='offline'],
-.sync[data-phase='failing'],
-.sync[data-phase='signed-out'] {
-  color: var(--accent);
-}
-
-.sync[data-phase='offline'] i,
-.sync[data-phase='failing'] i,
-.sync[data-phase='signed-out'] i {
-  background: var(--accent);
-}
-
 .account {
   position: relative;
 }
@@ -4553,8 +4520,7 @@ label.field[data-invalid] input {
 }
 
 @media (max-width: 860px) {
-  .account-name,
-  .sync:not([data-words]) .sync-label {
+  .account-name {
     display: none;
   }
 

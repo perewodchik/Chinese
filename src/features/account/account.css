@@ -186,3 +186,10 @@
 .ac-device-groups {
   margin-bottom: 8px;
 }
+
+/* No recovery codes yet: one quiet line under the name. */
+.ac-nudge {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--accent);
+}

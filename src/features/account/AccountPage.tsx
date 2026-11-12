@@ -1,36 +1,18 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { authApi } from '../../api/auth';
 import { Link } from 'react-router';
+import { dayKey } from '../../domain/activity';
 import { isWordId, type ItemId } from '../../domain/ids';
 import { levelOf } from '../../domain/memory';
 import { HSK_BANDS } from '../../domain/text';
 import { paths } from '../../navigation/paths';
 import { setSettings } from '../../store/commands';
-import type { SyncStatus } from '../../store/sync/engine';
-import { useStore, useSyncStatus } from '../../store/store';
+import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { useIsAdmin, useUser } from '../auth/session';
 import { useSignOut } from '../auth/useSignOut';
 import './account.css';
-
-const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-
-function whereWorkIs(status: SyncStatus | null): string {
-  if (!status) return '';
-  switch (status.phase) {
-    case 'saved':
-      return `Everything is saved to your account${status.lastSavedAt ? ` — last at ${time(status.lastSavedAt)}` : ''}. Sign in on another device and it is all there.`;
-    case 'pending':
-    case 'saving':
-      return 'Saving your latest changes to your account…';
-    case 'offline':
-      return `${status.unsaved} change${status.unsaved === 1 ? ' is' : 's are'} kept on this device until the server can be reached again.`;
-    case 'failing':
-      return `The last save did not go through (${status.message ?? 'no reason given'}). Trying again shortly.`;
-    case 'signed-out':
-      return 'Signed out. Sign in again and anything unsaved goes to the server.';
-  }
-}
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString('en')} ${n === 1 ? one : many}`;
 
@@ -40,14 +22,39 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString
  * Security, Your data, Progress, Settings, and Admin for an admin. Sign out
  * at the foot. The keys and what they cost are in Settings › Keys & services.
  */
+/**
+ * With no recovery codes and no e-mail, a forgotten password is a lost
+ * account: said once, quietly, until there are codes (P17).
+ */
+function RecoveryNudge() {
+  const [none, setNone] = useState(false);
+  useEffect(() => {
+    let live = true;
+    authApi.recoveryStatus().then(
+      (s) => live && setNone(s === null),
+      () => undefined,
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (!none) return null;
+  return (
+    <Link className="small ac-nudge" to={paths.accountSecurity()}>
+      No way back in if you forget the password: make recovery codes
+    </Link>
+  );
+}
+
 export function AccountPage() {
   useTitle('Account');
   const user = useUser();
-  const status = useSyncStatus();
   const admin = useIsAdmin();
   const level = useStore((s) => s.settings.targetHsk);
   const recall = useStore((s) => s.recall);
   const textsRead = useStore((s) => s.texts.filter((t) => t.read).length);
+  const goal = useStore((s) => (s.settings.dailyGoal === 'minutes' ? s.settings.goalMinutes : null));
+  const minutesToday = useStore((s) => Math.round((s.activity[dayKey(Date.now())]?.ms ?? 0) / 60_000));
   const { leave, leaving } = useSignOut();
   // Met at least once, by review or by a claim: the count Progress starts from.
   const met = useMemo(() => {
@@ -78,7 +85,7 @@ export function AccountPage() {
       <p className="small muted" style={{ margin: 0 }}>
         Learning since {new Date(user.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}.
       </p>
-      <p className="small muted ac-sync">{whereWorkIs(status)}</p>
+      <RecoveryNudge />
 
       <section className="block ac-who">
         <label className="field ac-level">
@@ -91,6 +98,12 @@ export function AccountPage() {
             ))}
           </select>
         </label>
+        {/* The day's goal, where one is set (P15): Settings › Learning sets it. */}
+        {goal !== null && (
+          <span className="small ac-today-goal">
+            Today {minutesToday} of {goal} minutes{minutesToday >= goal ? ': the day counts.' : '.'}
+          </span>
+        )}
         <Link className="ac-sum" to={paths.stats()}>
           {plural(met.chars, 'character')} · {plural(met.words, 'word')} · {plural(textsRead, 'text')} read
           <Icon name="chevron" size={16} />
