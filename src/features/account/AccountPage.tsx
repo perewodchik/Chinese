@@ -133,7 +133,7 @@ export function AccountPage() {
       <nav className="block list ac-links" aria-label="More about you">
         <Link className="ac-link" to={paths.stats()}>
           <span className="grow">
-            <b>Your progress</b>
+            <b>Progress</b>
             <span className="small muted">What you know, day by day and week by week</span>
           </span>
           <Icon name="chevron" />
@@ -148,7 +148,7 @@ export function AccountPage() {
         {admin && (
           <Link className="ac-link" to={paths.admin()}>
             <span className="grow">
-              <b>The site</b>
+              <b>Admin</b>
               <span className="small muted">Invitations, and the accounts with how much each keeps</span>
             </span>
             <Icon name="chevron" />

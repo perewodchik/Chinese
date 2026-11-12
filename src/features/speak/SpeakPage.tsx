@@ -64,7 +64,7 @@ function useEvalStatus() {
  * then every text to say, by shelf, and who reads them.
  */
 export function SpeakHome() {
-  useTitle('Phrases');
+  useTitle('Speak');
   const navigate = useNavigate();
   const src = useSources();
   const [attempts] = useAttempts();

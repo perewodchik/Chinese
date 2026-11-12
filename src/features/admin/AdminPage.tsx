@@ -51,7 +51,7 @@ const DAYS = [
  * being made; made (the link to copy, until the next one); refused.
  */
 export function AdminPage() {
-  useTitle('The site');
+  useTitle('Admin');
   const toast = useToast();
   const user = useUser();
   const { confirm, sheet } = useFreshPassword();
@@ -92,7 +92,7 @@ export function AdminPage() {
     return (
       <section className="admin-page">
         <div className="page-head">
-          <h1>The site</h1>
+          <h1>Admin</h1>
         </div>
         <p className="small muted">{denied}</p>
       </section>
@@ -103,7 +103,7 @@ export function AdminPage() {
     <section className="admin-page">
       {sheet}
       <div className="page-head">
-        <h1>The site</h1>
+        <h1>Admin</h1>
       </div>
       <p className="small muted" style={{ margin: 0 }}>
         {data

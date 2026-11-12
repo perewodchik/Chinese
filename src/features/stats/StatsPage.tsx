@@ -48,7 +48,7 @@ const pct = (x: number | null) => (x === null ? '—' : `${Math.round(x * 100)}%
  * recorded are drawn dashed and said to be.
  */
 export function StatsPage() {
-  useTitle('Stats');
+  useTitle('Progress');
   const lib = useLibrary();
   const recall = useStore((s) => s.recall);
   const activity = useStore((s) => s.activity);
@@ -90,7 +90,7 @@ export function StatsPage() {
     <div className="stats-page">
       <div className="row">
         <div>
-          <h1>Your progress</h1>
+          <h1>Progress</h1>
           <div className="small muted">
             {plural(today.chars, 'character')} and {plural(today.words, 'word')} known.{' '}
             {streak.current > 0 ? `${plural(streak.current, 'day')} in a row.` : 'Start a run today.'}

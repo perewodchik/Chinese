@@ -46,7 +46,7 @@ try {
   pw = createRequire(path.join(execSync('npm root -g').toString().trim(), '/'))('playwright');
 }
 
-const PLACES = ['/today', '/read', '/cards', '/library', '/library/hsk-1', '/library/radicals', '/speaking', '/speaking/voices', '/speaking/pinyin', '/speaking/say/everyday?line=1', '/videos', '/play', '/account', '/account/stats', '/settings'];
+const PLACES = ['/today', '/read', '/cards', '/library', '/library/hsk-1', '/library/radicals', '/speaking', '/speaking/voices', '/speaking/pinyin', '/speaking/say/everyday?line=1', '/videos', '/play', '/account', '/progress', '/settings'];
 const WIDTHS = [375, 768, 1024];
 
 mkdirSync(out, { recursive: true });

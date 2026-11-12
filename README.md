@@ -162,8 +162,8 @@ same session cookies. `api/[...path].ts` is the whole difference, and
 
    It prints a code and a link (`/register?invite=…`) that arrives with the
    code typed in. An account that runs the site (its role, kept in the
-   database) has the same on the site itself, at **/admin** (Account › The
-   site). The first one gets the role from `HANZI_ADMIN_USERS=<your name>` on
+   database) has the same on the site itself, at **/admin** (Account › Admin).
+   The first one gets the role from `HANZI_ADMIN_USERS=<your name>` on
    the project, once, while no account has it; after that the setting can be
    removed, and `npm run admin -- grant-admin <name>` gives the role: an
    invitation made from the phone, and the accounts with when each was last

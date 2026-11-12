@@ -52,7 +52,7 @@ export function AccountMenu({ up = false }: { up?: boolean }) {
             Account
           </Link>
           <Link role="menuitem" className="btn ghost sm" to={paths.stats()} onClick={() => setOpen(false)}>
-            Your progress
+            Progress
           </Link>
           <Link role="menuitem" className="btn ghost sm" to={paths.settings()} onClick={() => setOpen(false)}>
             Settings

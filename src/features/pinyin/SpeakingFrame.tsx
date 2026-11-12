@@ -24,7 +24,7 @@ export function SpeakingFrame() {
   return (
     <div className="sp-frame">
       <nav className="sp-nav" aria-label="Speaking">
-        <h1 className="sp-nav-title">Speaking</h1>
+        <h1 className="sp-nav-title">Speak</h1>
         {tabs.map((t) => (
           <Link key={t.to} to={t.to} className="sp-tab" aria-current={t.on(pathname) ? 'page' : undefined}>
             <span className="sp-tab-mark hanzi" aria-hidden>

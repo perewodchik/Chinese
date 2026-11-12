@@ -99,7 +99,7 @@ export function AdminLogPage() {
     <header className="page-head">
       <Link className="back-link" to={paths.admin()}>
         <Icon name="back" />
-        The site
+        Admin
       </Link>
     </header>
   );

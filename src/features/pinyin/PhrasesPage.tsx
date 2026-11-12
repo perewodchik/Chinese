@@ -92,7 +92,7 @@ interface Source {
  * where in the text you are and what comes next.
  */
 export function PhrasesPage() {
-  useTitle('Phrases');
+  useTitle('Speak');
   const lib = useLibrary();
   const texts = useStore((s) => s.texts);
   const sets = useStore((s) => s.sets);

@@ -58,7 +58,7 @@ export function ProgressDrawer({ onClose }: { onClose: () => void }) {
         className="sheet progress-sheet"
         role="dialog"
         aria-modal="true"
-        aria-label="Your progress"
+        aria-label="Progress"
         onClick={(e) => e.stopPropagation()}
         {...sheet.sheetProps}
       >

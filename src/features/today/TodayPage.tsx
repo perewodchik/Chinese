@@ -36,7 +36,7 @@ function nextStep(parts: ReadonlyArray<{ id: PartId; label: string }>, fill: Rec
  * the review's every drill, a forecast and a calendar. All of it was true,
  * and together it said "you are behind" every time the app opened, which is
  * the one thing that keeps somebody from opening it. The rest is still there,
- * a tap away: Cards for the drills, Your progress for the calendar.
+ * a tap away: Cards for the drills, Progress for the calendar.
  */
 export function TodayPage() {
   const claude = useClaudeHere();
@@ -188,7 +188,7 @@ export function TodayPage() {
         )}
         <Link className="way-row" to={paths.stats()}>
           <span className="hanzi way-mark">进</span>
-          <span className="grow">Your progress</span>
+          <span className="grow">Progress</span>
           <Icon name="chevron" className="muted" />
         </Link>
       </nav>

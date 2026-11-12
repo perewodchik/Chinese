@@ -31,7 +31,7 @@ export function LearningSettings() {
               </option>
             ))}
           </select>
-          <span className="tiny muted">What keeps the streak going, on Today and in Your progress.</span>
+          <span className="tiny muted">What keeps the streak going, on Today and in Progress.</span>
         </label>
 
         <label className="toggle">
@@ -46,7 +46,7 @@ export function LearningSettings() {
 
         <p className="small muted" style={{ margin: 0 }}>
           How many cards a day, what they ask, and how many new words come in are on the{' '}
-          <Link to={paths.cards()}>Cards</Link> tab. The streak itself is in <Link to={paths.stats()}>Your progress</Link>.
+          <Link to={paths.cards()}>Cards</Link> tab. The streak itself is in <Link to={paths.stats()}>Progress</Link>.
         </p>
       </div>
     </div>

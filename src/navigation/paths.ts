@@ -136,7 +136,7 @@ export const paths = {
   cardSession: (at: { n?: number; shelf?: string } = {}) =>
     withQuery('/cards/session', { n: at.n ? String(at.n) : undefined, shelf: at.shelf }),
   /** how much has been learned, day by day and week by week */
-  stats: () => '/account/stats',
+  stats: () => '/progress',
 };
 
 function withQuery(path: string, query: Record<string, string | undefined>) {

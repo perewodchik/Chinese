@@ -42,7 +42,7 @@ const RELAY_NOTE: Record<Exclude<ClaudeState, 'ready'>, string> = {
  * likeliest reason to be on this page is to carry one on.
  */
 export function TalkSetupPage() {
-  useTitle('Speaking');
+  useTitle('Speak');
   const lib = useLibrary();
   const toast = useToast();
   const navigate = useNavigate();
