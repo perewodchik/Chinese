@@ -186,6 +186,9 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
   const charLevels = useMemo(() => countLevels(text.lines.map((l) => l.zh), (c) => levelOfId(charId(c))), [text.lines, levelOfId]);
   // Its different characters met at least once, by your own answers: the same count as the bar under it.
   const charTotal = charLevels.reduce((a, b) => a + b, 0);
+  // Under three in ten of its characters met, nearly everything would be underlined as new, and the red
+  // pen would say nothing: nothing is underlined then, and the head says how to fix it (V8).
+  const fewKnown = charTotal > 0 && (charTotal - charLevels[0]) / charTotal < 0.3;
   const band = useStore((st) => st.settings.hskBand);
   // The words not known yet, each once: what the head counts as new.
   const newWords = useMemo(() => {
@@ -241,7 +244,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
       for (const ch of t.text) if (isHanzi(ch)) said.push(py[h++] ?? '');
       const showPy = view.pinyin === 'all' || (view.pinyin === 'new' && unknown);
       const step = view.markAbove ? stepsAbove(t, view.target) : 0;
-      const mark = view.markUnknown && unknown ? 'new' : undefined;
+      const mark = view.markUnknown && unknown && !fewKnown ? 'new' : undefined;
       const id = itemForToken(lib, t.text);
       const band = bands.get(t.text);
       const key = `${text.id}:${i}:${k}`;
@@ -296,10 +299,10 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onPoin
           </span>
           <span>
             About {minutes} minute{minutes === 1 ? '' : 's'}.{' '}
-            {charTotal > 0 && charLevels[0] === charTotal ? (
-              // Nothing known yet is almost always nothing marked yet: say how, rather than 0%.
+            {fewKnown ? (
+              // Little known yet is almost always little marked yet: say how, rather than a percentage.
               <Link className="rd-know-mark" to={paths.sweep(band <= 4 ? band : undefined)}>
-                Mark what you know
+                Mark what you know to see what is new
               </Link>
             ) : (
               <>
