@@ -557,3 +557,39 @@ g[data-hover] .st-bar {
   font-size: 11.5px;
   color: var(--accent);
 }
+
+/* The top of Progress (G1): where you are, what you can read, what next, the skills. */
+.st-where .body {
+  display: grid;
+  gap: 10px;
+}
+
+.st-where-level {
+  margin: 0;
+  font-size: 19px;
+}
+
+.st-where-reach {
+  margin: 0;
+  font-family: var(--read);
+  color: var(--ink-2);
+}
+
+.st-where-next {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.st-skills {
+  margin-top: 4px;
+}
+
+.st-skill {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+}

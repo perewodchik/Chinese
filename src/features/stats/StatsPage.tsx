@@ -24,6 +24,7 @@ import { Seg } from '../../ui/Seg';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { BarChart, Legend, LineChart } from './charts';
+import { WhereYouAre } from './WhereYouAre';
 import './stats.css';
 
 const UNITS: Array<{ id: Unit; label: string }> = [
@@ -97,6 +98,8 @@ export function StatsPage() {
           </div>
         </div>
       </div>
+
+      <WhereYouAre words={words} activity={activity} />
 
       <section className="st-tiles" aria-label="Today">
         <Tile
