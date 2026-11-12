@@ -88,7 +88,7 @@ export function ScoredSay({
     <div className="say-check">
       {blocked && <p className="notice speak-notice">{MIC_MESSAGE[blocked]}</p>}
       {noKey && (
-        <NeedsKey to={paths.settings()} action="Add the keys in Settings">
+        <NeedsKey to={paths.settings('keys')} action="Add the keys in Settings">
           Say it and hear yourself with Me; scoring it needs your own SpeechSuper keys.
         </NeedsKey>
       )}

@@ -90,7 +90,7 @@ export function AccountPage() {
             <p className="small muted">{failed ?? 'Loading…'}</p>
           ) : usage.lines.length === 0 ? (
             <p className="small muted">
-              No keys of your own are saved. Pronunciation checking uses SpeechSuper’s (in <Link to={paths.settings()}>Settings</Link>), and
+              No keys of your own are saved. Pronunciation checking uses SpeechSuper’s (in <Link to={paths.settings('keys')}>Settings</Link>), and
               narrators MiniMax’s (in <Link to={paths.speakingNarrators()}>Speak › Voices</Link>).
             </p>
           ) : (

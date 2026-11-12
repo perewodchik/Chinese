@@ -11,7 +11,7 @@ export function LearningSettings() {
   return (
     <div className="card">
       <header>
-        <h2>Learning</h2>
+        <h2>Days and the streak</h2>
       </header>
       <div className="body" style={{ display: 'grid', gap: 12 }}>
         <label className="field">

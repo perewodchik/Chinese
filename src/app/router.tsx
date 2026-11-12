@@ -208,6 +208,7 @@ export const router = createBrowserRouter([
               { path: 'pinyin/:rest/*', element: <MovedToSpeaking /> },
               { path: 'pinyin/:rest', element: <MovedToSpeaking /> },
               { path: 'settings', element: <SettingsPage /> },
+              { path: 'settings/:section', element: <SettingsPage /> },
               { path: 'account', element: <AccountPage /> },
               { path: 'progress', element: <StatsPage /> },
               // Its old address, kept for bookmarks (V14).

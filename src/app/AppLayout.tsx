@@ -136,7 +136,7 @@ const MORE = [
   { to: paths.videos(), han: '视', label: 'Videos', blurb: 'Watch, write it out, check it' },
   { to: paths.play(), han: '玩', label: 'Play', blurb: 'Games and the walk through Beijing' },
   { to: paths.stats(), han: '进', label: 'Progress', blurb: 'Days, words and characters over time' },
-  { to: paths.settings(), han: '设', label: 'Settings', blurb: 'Pronunciation, reading, printing, the look' },
+  { to: paths.settings(), han: '设', label: 'Settings', blurb: 'Learning, speaking, keys, printing, the look' },
 ];
 
 /**

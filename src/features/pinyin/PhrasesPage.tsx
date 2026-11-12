@@ -258,7 +258,7 @@ export function PhrasesPage() {
       </div>
       <p className="small muted ph-lede">Choose a text and say it line by line: each line is scored, then on to the next.</p>
       {!canScore && (
-        <NeedsKey to={paths.settings()} action="Add the keys in Settings">
+        <NeedsKey to={paths.settings('keys')} action="Add the keys in Settings">
           You can hear every line and say it back; scoring each syllable needs your own SpeechSuper keys.
         </NeedsKey>
       )}

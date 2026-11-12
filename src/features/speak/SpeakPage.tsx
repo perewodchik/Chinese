@@ -138,7 +138,7 @@ export function SpeakHome() {
         {day.said ? `Today: ${day.said} line${day.said === 1 ? '' : 's'} said${day.green ? `, ${day.green} of them green` : ''}.` : ''}
       </p>
       {status && !status.key.set && (
-        <NeedsKey to={paths.settings()} action="Add the keys in Settings">
+        <NeedsKey to={paths.settings('keys')} action="Add the keys in Settings">
           You can hear every line and say it back; scoring each syllable needs your own SpeechSuper keys.
         </NeedsKey>
       )}

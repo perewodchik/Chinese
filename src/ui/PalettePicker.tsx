@@ -24,7 +24,7 @@ export function PalettePicker({ value, onChange, fallback }: Props) {
   const deflt = fallback ? PALETTES.find((p) => p.id === fallback) : undefined;
   return (
     <div>
-      <div className="swatches">
+      <div className="swatches" data-wraps>
         {deflt && (
           <button
             className="swatch-option"

@@ -1,0 +1,50 @@
+/* Settings: the list of sections, and a section (P11). */
+.settings-page {
+  max-width: 640px;
+  min-width: 0;
+}
+
+.settings-cards {
+  display: grid;
+  gap: 16px;
+}
+
+.settings-body {
+  display: grid;
+  gap: 12px;
+}
+
+.settings-title {
+  margin: 4px 0 16px;
+  font-size: 26px;
+}
+
+/* A phone: the list, or a section with its way back — never both. */
+@media (max-width: 899px) {
+  .settings-page:not([data-open]) .settings-section,
+  .settings-page[data-open] .settings-list {
+    display: none;
+  }
+}
+
+/* From 900 px the list beside the section; the way back is not needed. */
+@media (min-width: 900px) {
+  .settings-page {
+    display: grid;
+    grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+    gap: 40px;
+    max-width: 1040px;
+  }
+
+  .settings-page .settings-head {
+    display: none;
+  }
+
+  .settings-section {
+    padding-top: 6px;
+  }
+
+  .settings-row[aria-current='page'] b {
+    color: var(--accent);
+  }
+}

@@ -123,7 +123,8 @@ export const paths = {
   game: (id: string, band?: number, seed?: string) =>
     withQuery(`/play/${encodeURIComponent(id)}`, { band: band ? String(band) : undefined, seed }),
 
-  settings: () => '/settings',
+  /** the list of settings, or one section of them (P11): learning, speaking, keys, printing, appearance, app, work */
+  settings: (section?: string) => (section ? `/settings/${section}` : '/settings'),
   /** who is signed in, the password, and what the learner's own keys have been spent on */
   account: () => '/account',
   /** the site's own page, for whoever runs it: invitations and the accounts */

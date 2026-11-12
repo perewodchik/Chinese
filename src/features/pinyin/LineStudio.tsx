@@ -601,7 +601,7 @@ export function LineStudio({
                   </button>
                 )}
                 {error?.settings && (
-                  <Link className="btn quiet sm" to={paths.settings()}>
+                  <Link className="btn quiet sm" to={paths.settings('keys')}>
                     Open Settings
                   </Link>
                 )}
