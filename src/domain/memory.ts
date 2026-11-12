@@ -625,5 +625,15 @@ export interface PrintedSheet {
 }
 
 /** Sheets still waiting to be marked, oldest first. */
-export const pendingSheets = (sheets: PrintedSheet[]) =>
-  sheets.filter((s) => s.gradedAt === null).sort((a, b) => a.printedAt - b.printedAt);
+/** How long a printed sheet is offered for marking before it stops being asked about (B1). */
+export const SHEET_MARKING_DAYS = 30;
+
+/**
+ * Printed sheets still waiting to be marked, the oldest first: those not
+ * marked, printed within the last thirty days. One not marked in a month is
+ * not going to be, and stops being offered.
+ */
+export const pendingSheets = (sheets: PrintedSheet[], now = Date.now()) =>
+  sheets
+    .filter((s) => s.gradedAt === null && now - s.printedAt <= SHEET_MARKING_DAYS * 86_400_000)
+    .sort((a, b) => a.printedAt - b.printedAt);

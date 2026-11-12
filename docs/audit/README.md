@@ -166,7 +166,7 @@
 
 ### Этап 5 — библиотека и прогресс
 
-- [ ] **B1 (В)** «Mark it» — одна строка, а не стопка. [→](04-library-progress.md#b1)
+- [x] **B1 (В)** «Mark it» — одна строка, а не стопка. [→](04-library-progress.md#b1)
 - [ ] **B2–B7 (С)** Порядок секций, «Your level», поиск, печать. [→](04-library-progress.md#library)
 - [ ] **G1 (В)** Верх прогресса: «где ты и что читать дальше». [→](04-library-progress.md#g1)
 - [ ] **G2 (В)** Графики не показывают нули и плоские линии. [→](04-library-progress.md#g2)
@@ -228,7 +228,8 @@
 | 2026-11-12 | P12 | a05806f | `/account` — имя, с какого дня, уровень (меняется тут), итог «N characters · N words · N texts read» → Progress, строки Security / Your data / Progress / Settings / Admin, Sign out; `/account/security` (пароль по кнопке, коды, устройства, токены), `/account/data` (место, копия, удалить работу, удалить аккаунт); расход ключей — в `/settings/keys`; раздел «Your saved work» из настроек ушёл в Your data (P16) |
 | 2026-11-12 | P13 | 3f8fe28 | при входе: сессия того же браузера, не тронутая неделю, удаляется; не больше 20 сессий (уходит давно не использованная); с вероятностью 1% чистятся истёкшие (для Vercel); блок Devices — одна строка «This one · and N other devices», раскрытие по Show, группы «× N», Sign out у группы |
 | 2026-11-12 | P14 частично | 5a0cc44 | вверху Keys & services — одна фраза: свой ключ SpeechSuper / iFlytek или «No scoring yet…»; якоря `#speechsuper`, `#usage` |
-| 2026-11-12 | P15 | см. ветку | цель в минутах уже была (Settings › Learning, Progress); на странице аккаунта — «Today N of M minutes», если цель задана |
-| 2026-11-12 | P16 | см. ветку | «Delete all my work» — на `/account/data`, свёрнуто, ввод слова delete, «Download a copy» прямо в тексте; удаление аккаунта — там же |
-| 2026-11-12 | P17 | см. ветку | без кодов восстановления — строка «No way back in if you forget the password: make recovery codes» на странице аккаунта; пароль уже по кнопке (P12) |
-| 2026-11-12 | P18 | см. ветку | строка сохранения — только на `/account/data` и точкой на More; индикатор в листе More и его стили удалены |
+| 2026-11-12 | P15 | 71481ed | цель в минутах уже была (Settings › Learning, Progress); на странице аккаунта — «Today N of M minutes», если цель задана |
+| 2026-11-12 | P16 | 71481ed | «Delete all my work» — на `/account/data`, свёрнуто, ввод слова delete, «Download a copy» прямо в тексте; удаление аккаунта — там же |
+| 2026-11-12 | P17 | 71481ed | без кодов восстановления — строка «No way back in if you forget the password: make recovery codes» на странице аккаунта; пароль уже по кнопке (P12) |
+| 2026-11-12 | P18 | 71481ed | строка сохранения — только на `/account/data` и точкой на More; индикатор в листе More и его стили удалены |
+| 2026-11-12 | B1 | см. ветку | верх Библиотеки без листов; в «Your lists» — одна строка «N printed sheets to mark» с Show, у листа Mark it и Dismiss; лист старше 30 дней перестаёт предлагаться (`pendingSheets(sheets, now)`, тест) |

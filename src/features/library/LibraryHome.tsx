@@ -3,14 +3,14 @@ import { useQuery } from '../../navigation/query';
 import { Link, useNavigate } from 'react-router';
 import { nextCollectionName } from '../../domain/collection';
 import { charId, wordId } from '../../domain/ids';
-import { pendingSheets } from '../../domain/memory';
+import { pendingSheets, type PrintedSheet } from '../../domain/memory';
 import { HSK_BANDS } from '../../domain/text';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useLevelOf } from '../shared/levels';
 import { LevelBar } from '../../ui/LevelMark';
 import { useWordKnowledge } from '../words/useWordKnowledge';
 import { paths } from '../../navigation/paths';
-import { createCollection, startListPlan } from '../../store/commands';
+import { createCollection, discardSheet, startListPlan } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { Menu } from '../../ui/Menu';
@@ -199,18 +199,6 @@ export function LibraryHome() {
         </>
       ) : (
         <>
-          {waiting.map((w) => (
-            <Link key={w.id} className="continue" to={paths.gradeSheet(w.id)}>
-              <span className="grow">
-                <span className="small muted">
-                  Printed {new Date(w.printedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}, not marked yet
-                </span>
-                <b>{w.name}</b>
-              </span>
-              <span className="btn tonal sm">Mark it</span>
-            </Link>
-          ))}
-
           <div className="lib-cols">
             <div>
               <section className="block">
@@ -240,6 +228,7 @@ export function LibraryHome() {
                   </p>
                 )}
                 {fromTexts.length > 0 && <FromTexts lists={fromTexts} />}
+                {waiting.length > 0 && <SheetsToMark sheets={waiting} />}
               </section>
 
               <section className="block">
@@ -364,5 +353,48 @@ function BandRow({ set, progress, now }: { set: LibSet; progress: ReturnType<Ret
       </span>
       <Icon name="chevron" className="muted" />
     </Link>
+  );
+}
+
+/**
+ * Printed sheets waiting to be marked, under Your lists (B1): one line, "2
+ * printed sheets to mark", unfolding to each with Mark it and Dismiss.
+ * Marking a sheet is something done with a list, not the first thing in the
+ * Library, so it no longer stands at its top.
+ *
+ * States: folded; unfolded; a sheet dismissed (its row goes; the line goes
+ * with the last).
+ */
+function SheetsToMark({ sheets }: { sheets: PrintedSheet[] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="lib-sheets">
+      <div className="lib-sheets-head">
+        <span className="small">
+          {sheets.length} printed sheet{sheets.length === 1 ? '' : 's'} to mark
+        </span>
+        <button className="btn quiet sm lib-sheets-fold" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          {open ? 'Hide' : 'Show'}
+        </button>
+      </div>
+      {open && (
+        <ul className="list">
+          {sheets.map((w) => (
+            <li key={w.id} className="lib-sheet">
+              <span className="grow">
+                <b>{w.name}</b>
+                <span className="small muted">Printed {new Date(w.printedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}</span>
+              </span>
+              <button className="btn quiet sm" onClick={() => discardSheet(w.id)}>
+                Dismiss
+              </button>
+              <Link className="btn tonal sm" to={paths.gradeSheet(w.id)}>
+                Mark it
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

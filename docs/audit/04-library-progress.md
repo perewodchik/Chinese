@@ -10,7 +10,16 @@
 (семь полос) → Topics → Look things up (Radicals, Families, Blank paper).
 
 <a id="b1"></a>
-### B1 (В) «Mark it» — одна строка, а не стопка
+### B1 (В) ✔ «Mark it» — одна строка, а не стопка
+
+**Сделано (2026-11-12).** Наверху Библиотеки листов больше нет. В блоке
+«Your lists» — одна строка «N printed sheets to mark» с Show/Hide; в
+раскрытом списке у листа Mark it и Dismiss (это прежняя команда
+`discardSheet`: лист уходит из списка ожидающих). `pendingSheets` берёт
+только листы за последние 30 дней (тест `src/domain/memory.test.ts`).
+Отметки «1 sheet to mark» на самой строке списка нет: лист не помнит, из
+какого списка он напечатан.
+
 
 **Что не так.** `LibraryHome.tsx:199`: `waiting.map(...)` — по строке на
 **каждый** напечатанный и не проверенный лист (`pendingSheets`,

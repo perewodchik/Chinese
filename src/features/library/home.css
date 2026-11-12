@@ -476,3 +476,32 @@
   color: var(--accent);
   flex: none;
 }
+
+/* Printed sheets to mark, under Your lists (B1): a line that unfolds. */
+.lib-sheets {
+  margin-top: 8px;
+}
+
+.lib-sheets-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.lib-sheets-fold {
+  margin-left: auto;
+  min-width: 64px;
+}
+
+.lib-sheet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.lib-sheet .grow {
+  display: grid;
+  min-width: 0;
+}
