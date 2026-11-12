@@ -306,13 +306,13 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const fill = partFill(text, wordDone);
   const bests = useLineBests(text.id);
   const saidLines = text.lines.filter((l) => bests[l.zh] !== undefined).length;
-  // The chapter's tabs: the text, then what there is to do with it. No questions, no Quiz.
+  // The chapter's tabs: the text, then what there is to do with it, named as the end of the text names them (V6). No questions, no Questions.
   const tabs: TabInfo[] = [
     { id: 'read', han: '读', label: 'Read', fill: fill.read },
     { id: 'write', han: '写', label: 'Write', fill: fill.write },
-    { id: 'speak', han: '说', label: 'Speak', fill: text.lines.length ? saidLines / text.lines.length : 0 },
+    { id: 'speak', han: '说', label: 'Say', fill: text.lines.length ? saidLines / text.lines.length : 0 },
     { id: 'words', han: '词', label: 'Words', fill: text.vocab.length ? fill.words : 0 },
-    ...(text.questions.length ? [{ id: 'questions' as const, han: '问', label: 'Quiz', fill: fill.questions }] : []),
+    ...(text.questions.length ? [{ id: 'questions' as const, han: '问', label: 'Questions', fill: fill.questions }] : []),
   ];
   // The tab is kept in the address (#words), so a reload, or the same link on
   // the iPad, opens on it again. Copying out or dictation open over the text

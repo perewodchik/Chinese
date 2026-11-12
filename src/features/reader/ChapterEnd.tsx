@@ -9,11 +9,11 @@ import './shelves.css';
 
 /** What each part is for, in a line: the rows say it so a part is chosen without opening it. */
 const PART: Record<EndPart, { name: string; about: string }> = {
-  write: { name: 'Copy it out', about: 'A word at a time, with its strokes beside it' },
-  speak: { name: 'Say it', about: 'Line by line after the narrator, each line scored' },
+  write: { name: 'Write', about: 'A word at a time, with its strokes beside it' },
+  speak: { name: 'Say', about: 'Line by line after the narrator, each line scored' },
   words: { name: 'Words', about: 'Its new words, and how well you know them' },
   questions: { name: 'Questions', about: 'What happened, in a few questions' },
-  listen: { name: 'Listen again', about: 'The narrator, a sentence at a time' },
+  listen: { name: 'Listen', about: 'The narrator, a sentence at a time' },
   more: { name: 'More', about: 'Translate it, or take it down as dictation' },
 };
 
