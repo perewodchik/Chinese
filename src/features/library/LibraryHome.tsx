@@ -102,8 +102,10 @@ export function LibraryHome() {
       chars: lib.characters.filter((c) => hit(c.c, c.py.join(' '), c.def)).slice(0, 32),
       words: lib.words.filter((w) => hit(w.w, w.py, w.d)).slice(0, 12),
       sets: [...mine, ...bands, ...(ownWords ? [ownWords] : []), ...topics].filter((s) => hit(s.name)),
+      // B6: the same search in your texts, so a word looked up here is found where it was read.
+      texts: texts.filter((t) => t.titleZh.includes(q.trim()) || t.lines.some((l) => l.zh.includes(q.trim()))),
     };
-  }, [q, lib, mine, bands, ownWords, topics]);
+  }, [q, lib, mine, bands, ownWords, topics, texts]);
 
   function newList() {
     const c = createCollection({ name: nextCollectionName(collections) });
@@ -196,6 +198,30 @@ export function LibraryHome() {
               </Link>
             </div>
           </section>
+          {found.texts.length > 0 && (
+            <section className="block">
+              <div className="block-head">
+                <h2 className="block-title">In your texts</h2>
+                <span className="spacer" />
+                {found.texts.length > 5 && (
+                  <Link className="btn quiet sm" to={paths.readSearch(q.trim())}>
+                    All {found.texts.length}
+                  </Link>
+                )}
+              </div>
+              <div className="list">
+                {found.texts.slice(0, 5).map((t) => (
+                  <Link key={t.id} className="lib-ref" to={paths.text(t.id)}>
+                    <span className="grow">
+                      <b className="hanzi">{t.titleZh || t.title}</b>
+                      <span className="small muted">{t.title}</span>
+                    </span>
+                    <Icon name="chevron" className="muted" />
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
           {found.words.length > 0 && (
             <section className="block">
               <h2 className="block-title">Words</h2>

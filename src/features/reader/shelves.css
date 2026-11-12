@@ -956,3 +956,8 @@
   margin-left: auto;
   min-width: 64px;
 }
+
+/* B6: the way from Read's search to the dictionary. */
+.read-dict {
+  margin-top: 12px;
+}

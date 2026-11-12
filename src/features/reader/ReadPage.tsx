@@ -176,6 +176,16 @@ export function ReadPage() {
               <TextRow key={t.id} text={t} to={paths.text(t.id)} sub={sets.find((s) => s.id === t.setId)?.name} />
             ))}
           </div>
+          {/* B6: the same search in the dictionary, for a word met here to be looked up. */}
+          <div className="list read-dict">
+            <Link className="text-row" to={paths.librarySearch(q.trim())}>
+              <span className="grow">
+                <b>Look up “{q.trim()}” in the Library</b>
+                <span className="small muted">Its characters and words, with their meaning and strokes</span>
+              </span>
+              <Icon name="chevron" className="muted" />
+            </Link>
+          </div>
         </section>
       ) : (
         <>

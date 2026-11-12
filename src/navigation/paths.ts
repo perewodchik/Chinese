@@ -41,6 +41,8 @@ export const paths = {
   sweep: (band?: number) => withQuery('/review/sweep', { band: band ? String(band) : undefined }),
 
   library: () => '/library',
+  /** the Library with its search filled in (B6) */
+  librarySearch: (q: string) => withQuery('/library', { q }),
   /** one set in the library: a band (`hsk-1`), a topic, or a list of yours (`list-<id>`) */
   librarySet: (id: string) => `/library/${encodeURIComponent(id)}`,
   /** the 214 radicals, with what was typed in the library's search */
@@ -59,6 +61,8 @@ export const paths = {
 
   /** Read: where you stopped, and every shelf — where every "back to the shelf" goes */
   read: () => '/read',
+  /** Read with its search filled in (B6) */
+  readSearch: (q: string) => withQuery('/read', { q }),
   texts: () => '/read',
   /** one shelf: its texts, the words it is teaching, or its characters */
   shelf: (setId: string, tab: ShelfTab = 'texts') =>
