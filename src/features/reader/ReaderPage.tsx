@@ -343,11 +343,11 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       {/* The bar, stuck to the top and opaque from the screen's edge down. */}
       <div className="rd-pin no-print">
       <header className="rd-top">
-        <Link className="rd-back" to={set ? paths.shelf(set.id) : paths.read()} aria-label={set ? `Back to ${bookTitle(set.name)}` : 'Back to Read'}>
+        <Link className="rd-back" to={set ? paths.shelf(set.id) : paths.read()} aria-label={set ? `Back to ${bookTitle(set.name)}` : 'Back to Read'} title={set ? `Back to ${bookTitle(set.name)}` : 'Back to Read'}>
           <Icon name="back" size={24} />
         </Link>
         {set && total > 1 && (
-          <button className="rd-toc-btn" aria-label={story ? 'Chapters' : 'Texts on this shelf'} aria-expanded={contents} onClick={() => setContents(true)}>
+          <button className="rd-toc-btn" aria-label={story ? 'Chapters' : 'Texts on this shelf'} title={story ? 'Chapters' : 'Texts on this shelf'} aria-expanded={contents} onClick={() => setContents(true)}>
             <Icon name="contents" size={22} />
           </button>
         )}
@@ -364,6 +364,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             <button
               aria-pressed={text === entry.easier}
               title="The easier retelling"
+              aria-label="The easier retelling"
               onClick={() => navigate(address({ page, version: 'easy' }), { replace: true })}
             >
               简
@@ -371,6 +372,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             <button
               aria-pressed={text === entry.original}
               title="The book’s own text"
+              aria-label="The book’s own text"
               onClick={() => navigate(address({ page, version: 'book' }), { replace: true })}
             >
               原
@@ -436,7 +438,13 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             head={chapterHead(t, chapterAt(mode === 'all' ? i : page - 1))}
             titleAction={
               mode === 'single' ? (
-                <button className="rd-listen-btn" aria-pressed={listening} aria-label={listening ? 'Close the narrator' : 'Listen: the narrator reads it to you'} onClick={listen}>
+                <button
+                  className="rd-listen-btn"
+                  aria-pressed={listening}
+                  aria-label={listening ? 'Close the narrator' : 'Listen: the narrator reads it to you'}
+                  title={listening ? 'Close the narrator' : 'Listen: the narrator reads it to you'}
+                  onClick={listen}
+                >
                   <Icon name="listen" size={22} />
                 </button>
               ) : null
@@ -615,7 +623,7 @@ function AaMenu({
 
   return (
     <div className="rd-aa" ref={root}>
-      <button className="rd-aa-btn" aria-expanded={open} aria-haspopup="dialog" title="How the text looks" onClick={() => setOpen((o) => !o)}>
+      <button className="rd-aa-btn" aria-expanded={open} aria-haspopup="dialog" title="How the text looks" aria-label="How the text looks" onClick={() => setOpen((o) => !o)}>
         Aa
       </button>
       {open && (
