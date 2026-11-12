@@ -158,7 +158,7 @@
   — без раздела Reading (вид текста остаётся в Aa на самом тексте) и без Voices (придут с V11).
 - [x] **P12 (В)** Профиль — про человека: имя, уровень, цель, итоги. [→](03-settings-profile.md#p12)
   — без дневной цели и серии (P15) и без кредитов (этап 7).
-- [ ] **P13 (В)** Устройства: одна строка и раскрытие; чистка старых. [→](03-settings-profile.md#p13)
+- [x] **P13 (В)** Устройства: одна строка и раскрытие; чистка старых. [→](03-settings-profile.md#p13)
 - [ ] **P14 (В)** Ключи и расход — один раздел «Keys & services». [→](03-settings-profile.md#p14)
 - [ ] **P15–P20 (С/Н)** Остальное: дневная цель, удаление, подтверждения. [→](03-settings-profile.md)
 
@@ -223,4 +223,5 @@
 | 2026-11-12 | V8 | e954384 | меньше 30% иероглифов текста встречено — ничего не подчёркивается красным, в шапке «Mark what you know to see what is new» |
 | 2026-11-12 | V14 частично | 42dee2d | «Speak» вместо Speaking/Phrases, «Progress» и `/progress` (с `/account/stats` — переадресация), «Admin» вместо «The site» |
 | 2026-11-12 | P11 | 7da0e6a | `/settings` — список из 7 разделов, `/settings/:section` — раздел; на ≥ 900 px список рядом с разделом; ссылки «добавить ключ» ведут в `/settings/keys` |
-| 2026-11-12 | P12 | см. ветку | `/account` — имя, с какого дня, уровень (меняется тут), итог «N characters · N words · N texts read» → Progress, строки Security / Your data / Progress / Settings / Admin, Sign out; `/account/security` (пароль по кнопке, коды, устройства, токены), `/account/data` (место, копия, удалить работу, удалить аккаунт); расход ключей — в `/settings/keys`; раздел «Your saved work» из настроек ушёл в Your data (P16) |
+| 2026-11-12 | P12 | a05806f | `/account` — имя, с какого дня, уровень (меняется тут), итог «N characters · N words · N texts read» → Progress, строки Security / Your data / Progress / Settings / Admin, Sign out; `/account/security` (пароль по кнопке, коды, устройства, токены), `/account/data` (место, копия, удалить работу, удалить аккаунт); расход ключей — в `/settings/keys`; раздел «Your saved work» из настроек ушёл в Your data (P16) |
+| 2026-11-12 | P13 | см. ветку | при входе: сессия того же браузера, не тронутая неделю, удаляется; не больше 20 сессий (уходит давно не использованная); с вероятностью 1% чистятся истёкшие (для Vercel); блок Devices — одна строка «This one · and N other devices», раскрытие по Show, группы «× N», Sign out у группы |

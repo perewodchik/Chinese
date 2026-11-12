@@ -104,6 +104,11 @@ const INVITE_LENGTH = 12;
 const RECOVERY_CODES = 8;
 const RECOVERY_LENGTH = 10;
 
+/** A session of the same browser unused this long is that browser having lost its cookie (P13). */
+const SAME_BROWSER_STALE_MS = 7 * DAY;
+/** The most sessions an account keeps; signing in past it lets the least recently used go. */
+const SESSIONS_MAX = 20;
+
 /** How many tokens an account may have working at once, and the most days one lasts. */
 const TOKENS_MAX = 20;
 const TOKEN_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -652,6 +657,7 @@ export class AuthService {
     const token = tokens.secret();
     const now = clock.now();
     const expiresAt = now + policy.sessionTtlMs;
+    await this.tidySessions(user.id, userAgent ? userAgent.slice(0, 300) : null, now);
     await sessions.insert({
       id: tokens.digest(token),
       userId: user.id,
@@ -664,6 +670,24 @@ export class AuthService {
       verifiedAt: now,
     });
     return { user: toUserDto(user), token, expiresAt };
+  }
+
+  /**
+   * Before a new sign-in (P13): the same browser signed in before and unused
+   * for a week is that browser having lost its cookie, so its old session
+   * goes; an account keeps at most twenty, the least recently used going
+   * first; and now and then the expired ones of every account are swept,
+   * since on Vercel there is no process to do it on a timer.
+   */
+  private async tidySessions(userId: string, userAgent: string | null, now: number): Promise<void> {
+    const { sessions } = this.deps;
+    const live = await sessions.listForUser(userId, now);
+    const stale = live.filter((s) => userAgent !== null && s.userAgent === userAgent && now - s.lastSeenAt > SAME_BROWSER_STALE_MS);
+    const kept = live.filter((s) => !stale.includes(s));
+    // Newest first, so what is past the ceiling is the least recently used.
+    const over = kept.slice(Math.max(0, SESSIONS_MAX - 1));
+    for (const s of [...stale, ...over]) await sessions.delete(s.id);
+    if (Math.random() < 0.01) await sessions.deleteExpired(now);
   }
 
   private decoyHash(): Promise<string> {

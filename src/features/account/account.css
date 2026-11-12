@@ -32,9 +32,9 @@
   color: var(--ink-3);
 }
 
-/* Room for two devices before the list arrives. */
+/* Room for the one line and its button before the list arrives. */
 .ac-devices {
-  min-height: 120px;
+  min-height: 104px;
 }
 
 .ac-device {
@@ -166,4 +166,23 @@
 
 .ac-close {
   margin-top: 8px;
+}
+
+/* Show and Hide take the same room; the chevron turns as the list unfolds. */
+.ac-device-unfold {
+  min-width: 76px;
+  gap: 4px;
+}
+
+.ac-chevron {
+  transform: rotate(90deg);
+  transition: transform 140ms;
+}
+
+.ac-device-unfold[aria-expanded='true'] .ac-chevron {
+  transform: rotate(-90deg);
+}
+
+.ac-device-groups {
+  margin-bottom: 8px;
 }

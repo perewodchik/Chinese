@@ -329,6 +329,8 @@ var INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 var INVITE_LENGTH = 12;
 var RECOVERY_CODES = 8;
 var RECOVERY_LENGTH = 10;
+var SAME_BROWSER_STALE_MS = 7 * DAY;
+var SESSIONS_MAX = 20;
 var TOKENS_MAX = 20;
 var TOKEN_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 var TOKEN_DAYS_MAX = 365;
@@ -785,6 +787,7 @@ var AuthService = class {
     const token = tokens.secret();
     const now = clock.now();
     const expiresAt = now + policy.sessionTtlMs;
+    await this.tidySessions(user.id, userAgent ? userAgent.slice(0, 300) : null, now);
     await sessions.insert({
       id: tokens.digest(token),
       userId: user.id,
@@ -797,6 +800,22 @@ var AuthService = class {
       verifiedAt: now
     });
     return { user: toUserDto(user), token, expiresAt };
+  }
+  /**
+   * Before a new sign-in (P13): the same browser signed in before and unused
+   * for a week is that browser having lost its cookie, so its old session
+   * goes; an account keeps at most twenty, the least recently used going
+   * first; and now and then the expired ones of every account are swept,
+   * since on Vercel there is no process to do it on a timer.
+   */
+  async tidySessions(userId, userAgent, now) {
+    const { sessions } = this.deps;
+    const live = await sessions.listForUser(userId, now);
+    const stale = live.filter((s) => userAgent !== null && s.userAgent === userAgent && now - s.lastSeenAt > SAME_BROWSER_STALE_MS);
+    const kept2 = live.filter((s) => !stale.includes(s));
+    const over = kept2.slice(Math.max(0, SESSIONS_MAX - 1));
+    for (const s of [...stale, ...over]) await sessions.delete(s.id);
+    if (Math.random() < 0.01) await sessions.deleteExpired(now);
   }
   decoyHash() {
     this.decoy ??= this.deps.hasher.hash("a password nobody has");
