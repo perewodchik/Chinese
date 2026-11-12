@@ -13,8 +13,6 @@ export interface ServerConfig {
   /** the built app to serve beside the API, or null when something else serves it */
   staticDir: string | null;
   registration: 'open' | 'closed' | 'invite';
-  /** whether an account that runs the site must have two-step sign-in to use its pages (HANZI_ADMIN_TWO_STEP) */
-  adminTwoStep: 'required' | 'optional';
   /** believe X-Forwarded-For and -Proto — only true behind a reverse proxy you run yourself */
   trustProxy: boolean;
   /** the accounts that may ask Claude on this server's subscription; null for every one */
@@ -35,7 +33,6 @@ export interface ServerConfig {
  *   HANZI_REGISTRATION   open | closed | invite (open at home, invite on Vercel)
  *   HANZI_TRUST_PROXY    1 behind a reverse proxy
  *   HANZI_TUTOR_USERS    who may ask Claude here, by name (admin,masha); everyone when unset
- *   HANZI_ADMIN_TWO_STEP optional lets an admin use the site's pages without two-step sign-in (required by default)
  *   HANZI_ADMIN_USERS    the first accounts to run the site, by name: given the admin role once,
  *                        while no account has it; the role is kept in the database after that
  *
@@ -58,7 +55,6 @@ export function loadConfig(
     database: databaseFrom(env, cwd),
     staticDir: defaults.serveStatic ? resolve(cwd, env.HANZI_STATIC_DIR || 'dist') : null,
     registration: registrationFrom(env.HANZI_REGISTRATION, 'open'),
-    adminTwoStep: env.HANZI_ADMIN_TWO_STEP?.trim() === 'optional' ? 'optional' : 'required',
     trustProxy: env.HANZI_TRUST_PROXY === '1' || env.HANZI_TRUST_PROXY === 'true',
     adminUsers: (env.HANZI_ADMIN_USERS ?? '').split(',').map((n) => n.trim()).filter(Boolean),
     tutorUsers: env.HANZI_TUTOR_USERS?.trim() ? env.HANZI_TUTOR_USERS.split(',').map((n) => n.trim()).filter(Boolean) : null,

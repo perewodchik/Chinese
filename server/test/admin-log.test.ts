@@ -10,7 +10,7 @@ import { call, cheapHasher, sessionCookie, TestClock, type TestApp } from './sup
 
 async function setUp() {
   const clock = new TestClock();
-  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock, policy: { adminTwoStep: 'optional' } });
+  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock });
   const app = createHttpApp(services, { trustProxy: false, staticDir: null, log: () => undefined, adminUsers: ['kirill'] });
   const signUp = async (username: string) => sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username, password: 'correct horse' } }));
   const owner = await signUp('kirill');

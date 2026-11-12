@@ -1,4 +1,4 @@
-import { Hono, type Context, type MiddlewareHandler } from 'hono';
+import { Hono, type Context } from 'hono';
 import { z } from 'zod';
 import type { AdminAccount, AdminLogPage, AdminOverview } from '../../../../shared/admin';
 import type { Actor } from '../../application/ports';
@@ -26,13 +26,7 @@ const blockRequest = z.object({ reason: z.string().trim().min(1, 'Say why, for t
 export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit, catalog }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
-  const role = requireRole('admin');
-  // And two-step sign-in on (SEC8), unless the server was told it is optional.
-  const admin: MiddlewareHandler<AppEnv> = async (c, next) =>
-    role(c, async () => {
-      await auth.checkAdminTwoStep(c.get('session').user.id);
-      await next();
-    });
+  const admin = requireRole('admin');
   // Everything here that changes something asks for the password again when it was typed long ago.
   const fresh = requireFresh(auth);
   const invites = new RateLimiter('admin.invites', 50, 60 * 60_000, clock, limits);

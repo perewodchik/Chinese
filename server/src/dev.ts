@@ -42,7 +42,7 @@ const config = loadConfig(process.env, { port: 5173, serveStatic: false });
 const devUser = process.env.HANZI_DEV_USER?.trim() || null;
 const { stores, local, close } = await openStores(config.database).catch(stop);
 const services = createServices(stores, {
-  policy: { registration: config.registration, reservedNames: config.adminUsers.map(usernameKey), adminTwoStep: config.adminTwoStep },
+  policy: { registration: config.registration, reservedNames: config.adminUsers.map(usernameKey) },
   secretsKey: process.env.HANZI_SECRETS_KEY ?? '',
   storageLimitMb: storageLimitFrom(process.env.HANZI_STORAGE_MB),
   speech: speechFromEnv(process.env),

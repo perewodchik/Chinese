@@ -390,7 +390,6 @@ The server reads a few settings from the environment:
 | `HANZI_DB` | `.data/hanzi-workshop.db` | |
 | `HANZI_REGISTRATION` | `open` | `closed` hides "Make an account" |
 | `HANZI_TRUST_PROXY` | off | `1` only behind a reverse proxy you run |
-| `HANZI_ADMIN_TWO_STEP` | `required` | `optional` lets an admin use /admin without two-step sign-in (Account › Two-step sign-in); for a development server |
 | `HANZI_STATIC_DIR` | `dist` | the built app `npm start` serves |
 | `AZURE_SPEECH_KEY` | unset | optional: a cloud voice behind the voice pack (see Pronunciation) |
 | `AZURE_SPEECH_REGION` | unset | the key's region, e.g. `eastus` |

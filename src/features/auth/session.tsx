@@ -22,8 +22,7 @@ export type Session =
 
 interface SessionApi {
   session: Session;
-  /** `code`: the authenticator's, or a recovery code, for an account with two-step sign-in */
-  signIn(username: string, password: string, code?: string): Promise<void>;
+  signIn(username: string, password: string): Promise<void>;
   register(username: string, password: string, invite?: string): Promise<void>;
   /** A new password set with a recovery code, and signed in. */
   recover(username: string, code: string, newPassword: string): Promise<void>;
@@ -92,8 +91,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => onSignedOut(null);
   }, []);
 
-  const signIn = useCallback(async (username: string, password: string, code?: string) => {
-    const { user } = await authApi.login({ username, password, ...(code && { code }) });
+  const signIn = useCallback(async (username: string, password: string) => {
+    const { user } = await authApi.login({ username, password });
     if (enter(user)) setSession({ status: 'signed-in', user });
   }, []);
 

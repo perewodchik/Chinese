@@ -2,8 +2,6 @@ import { Hono, type Context } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
 import type {
-  TwoStepSetup,
-  TwoStepStatus,
   AuthOptionsResponse,
   CurrentSessionResponse,
   SessionResponse,
@@ -13,7 +11,7 @@ import { usernameKey } from '../../../../shared/credentials';
 import { InvalidCredentialsError, NotFoundError, ValidationError } from '../../domain/errors';
 import type { AppEnv, RouteDeps } from '../env';
 import { errorBody } from '../errors';
-import { auditor, currentSession, RateLimiter, requireFresh, requireSession } from '../guards';
+import { auditor, currentSession, RateLimiter, requireSession } from '../guards';
 import {
   clearSessionCookie,
   clientIp,
@@ -29,10 +27,8 @@ const MINUTE = 60_000;
 const credentials = z.object({
   username: z.string().max(200),
   password: z.string().max(2048),
-  code: z.string().max(64).optional(),
 });
-const registration = credentials.omit({ code: true }).extend({ invite: z.string().max(64).optional() });
-const codeRequest = z.object({ code: z.string().max(64) });
+const registration = credentials.extend({ invite: z.string().max(64).optional() });
 const recoverRequest = z.object({ username: z.string().max(200), code: z.string().max(64), newPassword: z.string().max(2048) });
 
 const reauthRequest = z.object({ password: z.string().max(2048) });
@@ -146,8 +142,6 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
 
     const issued = await auth.login({ ...input, userAgent: c.req.header('user-agent') ?? null }).catch((err: unknown) => {
       if (err instanceof InvalidCredentialsError) note(c, 'sign-in-refused', input.username);
-      // The right password with a wrong code: the password is known to whoever sent it.
-      if (err instanceof ValidationError && input.code) note(c, 'two-step-refused', input.username);
       throw err;
     });
     note(c, 'sign-in', issued.user.username);
@@ -234,44 +228,6 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
       if (err instanceof ValidationError) note(c, 'reauth-refused', user.username);
       throw err;
     }
-    return c.body(null, 204);
-  });
-
-  // Two-step sign-in: a code from an authenticator app after the password.
-  // Turning it on or off is an account change, so the password must have
-  // been typed lately (requireFresh); codes are counted like passwords.
-  const fresh = requireFresh(auth);
-  const twoStepCodes = new RateLimiter('auth.twoStep', 10, 15 * MINUTE, clock, limits);
-
-  routes.get('/two-step', session, async (c) => {
-    const { user } = c.get('session');
-    const body: TwoStepStatus = await auth.twoStepStatus(user.id, user.role);
-    c.header('Cache-Control', 'no-store');
-    return c.json(body);
-  });
-
-  routes.post('/two-step/start', session, fresh, async (c) => {
-    const { user } = c.get('session');
-    const body: TwoStepSetup = await auth.startTwoStep(user.id, user.username);
-    c.header('Cache-Control', 'no-store');
-    return c.json(body);
-  });
-
-  routes.post('/two-step/confirm', session, async (c) => {
-    const { user, sessionId } = c.get('session');
-    await twoStepCodes.consume(user.id);
-    const { code } = await readJson(c, codeRequest);
-    await auth.confirmTwoStep({ userId: user.id, sessionId, code });
-    note(c, 'two-step-on', user.username);
-    return c.body(null, 204);
-  });
-
-  routes.post('/two-step/disable', session, fresh, async (c) => {
-    const { user } = c.get('session');
-    await twoStepCodes.consume(user.id);
-    const { code } = await readJson(c, codeRequest);
-    await auth.disableTwoStep({ userId: user.id, code });
-    note(c, 'two-step-off', user.username);
     return c.body(null, 204);
   });
 

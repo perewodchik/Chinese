@@ -93,25 +93,8 @@ export interface MadeAccessTokenResponse {
 export interface CredentialsRequest {
   username: string;
   password: string;
-  /** the six digits from an authenticator app, or a recovery code, when the account has two-step sign-in */
-  code?: string;
   /** the invitation's code, when sign-ups are by invitation */
   invite?: string;
-}
-
-/** Two-step sign-in, as the account page shows it. */
-export interface TwoStepStatus {
-  enabled: boolean;
-  /** an account that runs the site has to have it, and cannot turn it off */
-  required: boolean;
-}
-
-/** A secret to add to an authenticator app, before the first code confirms it. */
-export interface TwoStepSetup {
-  /** base32, to type in by hand */
-  secret: string;
-  /** otpauth://, which an iPhone opens in Passwords or an authenticator app */
-  link: string;
 }
 
 export interface ChangePasswordRequest {
@@ -153,10 +136,6 @@ export type ApiErrorCode =
   | 'account_blocked'
   /** an admin's action that wants the password typed again: ask, then send it to /api/auth/reauth and try again */
   | 'reauth_required'
-  /** the right password for an account with two-step sign-in: send it again with the code */
-  | 'totp_required'
-  /** an admin page, for an admin who has not turned two-step sign-in on yet */
-  | 'totp_setup_required'
   | 'username_taken'
   | 'registration_closed'
   | 'unauthorized'

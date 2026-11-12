@@ -9,7 +9,7 @@ import { sqliteStores } from '../src/infrastructure/sqlite/stores';
 import { call, cheapHasher, sessionCookie, TestClock } from './support';
 
 async function setUp() {
-  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock: new TestClock(), policy: { registration: 'invite', adminTwoStep: 'optional' }, storageLimitMb: 300 });
+  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock: new TestClock(), policy: { registration: 'invite' }, storageLimitMb: 300 });
   const app = createHttpApp(services, { trustProxy: false, staticDir: null, log: () => undefined, adminUsers: ['Kirill'] });
   const owner = await services.auth.invite('', null, SERVER_COMMAND);
   const ownerCookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'kirill', password: 'correct horse', invite: owner.code } }));

@@ -57,7 +57,7 @@ function application(): Promise<App> {
     }
     const pool = await openPostgres(url);
     const services = createServices(postgresStores(pool), {
-      policy: { registration: REGISTRATION, reservedNames: ADMIN_USERS.map(usernameKey), adminTwoStep: process.env.HANZI_ADMIN_TWO_STEP?.trim() === 'optional' ? 'optional' : 'required' },
+      policy: { registration: REGISTRATION, reservedNames: ADMIN_USERS.map(usernameKey) },
       secretsKey: process.env.HANZI_SECRETS_KEY ?? '',
       storageLimitMb: storageLimitFrom(process.env.HANZI_STORAGE_MB),
       speech: speechFromEnv(process.env),

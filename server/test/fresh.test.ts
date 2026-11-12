@@ -14,7 +14,7 @@ const DAY = 86_400_000;
 
 async function setUp() {
   const clock = new TestClock();
-  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock, policy: { adminTwoStep: 'optional' } });
+  const services = createServices(sqliteStores(openDatabase(':memory:')), { hasher: cheapHasher, clock });
   const app = createHttpApp(services, { trustProxy: false, staticDir: null, log: () => undefined, adminUsers: ['kirill'] });
   const signUp = async (username: string) => sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username, password: PASSWORD } }));
   const learner = await signUp('masha');
@@ -67,26 +67,19 @@ describe('an admin’s action asks for the password again', () => {
 });
 
 describe('how long a session lives', () => {
-  it('ends an admin’s session a week after it was made, however much it is used', async () => {
+  it('keeps an admin signed in for as long as the site is used, as anyone', async () => {
     const { app, clock, owner, learner } = await setUp();
-    for (let day = 0; day < 6; day++) {
-      clock.advance(DAY + MINUTE);
-      assert.ok(await signedIn(app, owner), `day ${day + 1}`);
-      assert.ok(await signedIn(app, learner));
+    // Used every twenty days for a year: the thirty-day expiry keeps moving on.
+    for (let day = 0; day < 365; day += 20) {
+      clock.advance(20 * DAY);
+      assert.ok(await signedIn(app, owner), `admin, day ${day + 20}`);
+      assert.ok(await signedIn(app, learner), `learner, day ${day + 20}`);
     }
-    clock.advance(DAY);
-    assert.equal(await signedIn(app, owner), false, 'a week on, the admin signs in again');
-    assert.ok(await signedIn(app, learner), 'a learner stays signed in');
   });
 
-  it('ends anyone’s session half a year after it was made', async () => {
-    const { app, clock, learner } = await setUp();
-    for (let day = 0; day < 179; day++) {
-      clock.advance(DAY);
-      if (day % 20 === 0) assert.ok(await signedIn(app, learner), `day ${day + 1}`);
-    }
-    // Used every twenty days, so the thirty-day expiry kept moving; the end did not.
-    clock.advance(2 * DAY);
-    assert.equal(await signedIn(app, learner), false);
+  it('ends a session left unused for thirty days', async () => {
+    const { app, clock, owner } = await setUp();
+    clock.advance(31 * DAY);
+    assert.equal(await signedIn(app, owner), false);
   });
 });
