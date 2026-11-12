@@ -41,6 +41,11 @@ to do is not shown (Speak's own texts until there is one). A screen that is
 empty as a whole says what it is in one sentence and offers one action that
 starts it (an empty deck of cards opens the first text not read yet).
 
+**Charts only with something to show.** Fewer than five days of practice: a
+sentence, not empty axes. No "(+0)", no "0 answers · 0 min" on an empty day;
+no table comparing nothing with nothing; a streak from its second day, and
+after a break the best run, never a zero.
+
 **Actions under ⋯ on a page for looking.** A set's page is for looking at
 the characters: Print, Full screen, Sort, Pick some out are in its ⋯ menu,
 each with a line under it saying what it does, so nothing stands between the

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { dayKey, dayWeight, shift, type Activity, type DaySnap } from '../../domain/activity';
+import { active, dayKey, dayWeight, shift, type Activity, type DaySnap } from '../../domain/activity';
 import { bandName, progressOf } from '../../domain/progress';
 import {
   bucketed,
@@ -56,7 +56,8 @@ export function StatsPage() {
   const learned = useStore((s) => s.learned);
   const sheets = useStore((s) => s.sheets);
   const settings = useStore((s) => s.settings);
-  const [unit, setUnit] = useState<Unit>('day');
+  // Weeks by default: days are a fence of gaps for anyone who does not work every day (G2).
+  const [unit, setUnit] = useState<Unit>('week');
   const now = useMemo(() => Date.now(), []);
 
   const history = useMemo(() => days(activity, recall, now, SPAN.month.days), [activity, recall, now]);
@@ -81,10 +82,14 @@ export function StatsPage() {
   }, [lib]);
 
   const today = history[history.length - 1]!;
+  // Fewer than five days with any work: the charts would be zeros and flat lines, so a sentence stands in (G2).
+  const practiceDays = Object.values(activity).filter((d) => active(d) || d.ms > 0).length;
+  const charts = practiceDays >= 5;
   const before = history.slice(-8, -1);
   const usual = (f: (d: Day) => number) => before.reduce((n, d) => n + f(d), 0) / Math.max(1, before.length);
   const dashedTo = view.reduce((last, b, i) => (b.estimated ? i : last), -1);
   const week = weekCompare(history);
+  const weekHasBoth = Object.values(week.now).some((v) => typeof v === 'number' && v > 0) && Object.values(week.before).some((v) => typeof v === 'number' && v > 0);
   const rec = records(history);
 
   return (
@@ -120,14 +125,18 @@ export function StatsPage() {
           sub={settings.dailyGoal === 'minutes' ? `goal ${settings.goalMinutes}` : 'working, today'}
           delta={(today.ms - usual((d) => d.ms)) / 60_000}
         />
-        <Tile
-          label="Streak"
-          value={`${streak.current}`}
-          sub={`best ${streak.best}${streak.today ? ' · today counts' : ''}`}
-          accent={goalMet(activity[dayKey(now)], goal)}
-        />
+        {/* A streak from its second day; after a break the best run, never a zero (G2). */}
+        {streak.current >= 2 ? (
+          <Tile label="Streak" value={`${streak.current}`} sub={`best ${streak.best}${streak.today ? ' · today counts' : ''}`} accent={goalMet(activity[dayKey(now)], goal)} />
+        ) : streak.best >= 2 ? (
+          <Tile label="Best run" value={`${streak.best}`} sub={streak.today ? 'days · today counts' : 'days in a row'} accent={goalMet(activity[dayKey(now)], goal)} />
+        ) : (
+          <Tile label="Streak" value="—" sub="starts on the second day" accent={goalMet(activity[dayKey(now)], goal)} />
+        )}
       </section>
 
+      {charts ? (
+        <>
       <section className="card st-card">
         <header className="st-head">
           <h2>Known over time</h2>
@@ -154,7 +163,7 @@ export function StatsPage() {
             tip={(i) => {
               const b = view[i]!;
               const prev = view[i - 1];
-              const d = (a: number, p?: number) => (p === undefined ? '' : ` (${a - p >= 0 ? '+' : ''}${a - p})`);
+              const d = (a: number, p?: number) => (p === undefined || a === p ? '' : ` (${a - p > 0 ? '+' : ''}${a - p})`);
               return (
                 <>
                   <b>{b.label}</b> · {b.chars} characters{d(b.chars, prev?.chars)}, {b.words} words
@@ -211,8 +220,16 @@ export function StatsPage() {
                 const b = view[i]!;
                 return (
                   <>
-                    <b>{b.label}</b> · {plural(b.answers, 'answer')}
-                    {b.answers ? `, ${pct(b.right / b.answers)} right` : ''} · {Math.round(b.ms / 60_000)} min
+                    <b>{b.label}</b>
+                    {b.answers || b.ms ? (
+                      <>
+                        {' '}
+                        · {plural(b.answers, 'answer')}
+                        {b.answers ? `, ${pct(b.right / b.answers)} right` : ''} · {Math.round(b.ms / 60_000)} min
+                      </>
+                    ) : (
+                      ' · nothing'
+                    )}
                   </>
                 );
               }}
@@ -221,6 +238,17 @@ export function StatsPage() {
         </div>
       </section>
 
+        </>
+      ) : (
+        <section className="card st-card">
+          <div className="body">
+            <p className="small muted" style={{ margin: 0 }}>
+              Charts appear after a few days of practice: {plural(practiceDays, 'day')} so far.
+            </p>
+          </div>
+        </section>
+      )}
+
       <div className="st-split">
         <section className="card st-card">
           <header className="st-head">
@@ -228,7 +256,8 @@ export function StatsPage() {
             <span className="tiny muted">against the 7 before</span>
           </header>
           <div className="body">
-            <WeekTable now={week.now} before={week.before} />
+            {/* Nothing against nothing, or something against a break, compares nothing (G2). */}
+            {weekHasBoth ? <WeekTable now={week.now} before={week.before} /> : <p className="small muted" style={{ margin: 0 }}>A week against the one before, once both have work in them.</p>}
             <ul className="st-records">
               {rec.bestDay && (
                 <li>

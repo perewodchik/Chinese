@@ -185,7 +185,16 @@ Reading (текстов прочитано), Words (слов известно), 
 `src/domain/reading.ts` с тестами.
 
 <a id="g2"></a>
-### G2 (В) Графики не показывают нули и плоские линии
+### G2 (В) ✔ Графики не показывают нули и плоские линии
+
+**Сделано (2026-11-12).** Меньше 5 дней с работой — вместо «Known over
+time» и «What each … added» одна фраза «Charts appear after a few days of
+practice: N days so far». По умолчанию — недели (переключатель остался).
+В подсказках графиков нет «(+0)», пустой день — «· nothing». «Last 7 days
+against the 7 before» — таблица только когда в обеих неделях есть работа.
+Плитка серии: от двух дней — «Streak N»; после перерыва — «Best run N»;
+иначе «—, starts on the second day». Правило — в `docs/guidelines.md`.
+
 
 Правила (записать в `docs/guidelines.md`):
 
