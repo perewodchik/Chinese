@@ -10,57 +10,6 @@
   min-height: 3em;
 }
 
-/* Room for two services before the counts arrive, so the page does not jump. */
-.ac-usage {
-  min-height: 132px;
-}
-
-.ac-row {
-  display: grid;
-  gap: 6px;
-  padding: 12px 0;
-  min-width: 0;
-}
-
-.ac-row-head {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.ac-today {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Thirty days, a thin bar a day: how often the key was used, not how much. */
-.ac-days {
-  display: grid;
-  grid-template-columns: repeat(30, minmax(0, 1fr));
-  align-items: end;
-  gap: 2px;
-  height: 24px;
-}
-
-.ac-days i {
-  display: block;
-  border-radius: 2px;
-  background: var(--jade);
-}
-
-.ac-days i[data-none] {
-  height: 2px;
-  background: var(--line-2);
-}
-
-.ac-balance {
-  justify-self: start;
-  color: var(--accent);
-}
-
-.ac-note {
-  margin: 8px 0 0;
-}
-
 .ac-links {
   margin-top: 28px;
 }
@@ -190,4 +139,31 @@
   font-size: 15px;
   overflow-wrap: anywhere;
   user-select: all;
+}
+
+/* The person: the level beside what there is so far. */
+.ac-who {
+  display: grid;
+  gap: 12px;
+}
+
+.ac-level {
+  max-width: 240px;
+}
+
+.ac-sum {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-2);
+  text-decoration: none;
+  font-size: 15px;
+}
+
+.ac-signout {
+  margin-top: 24px;
+}
+
+.ac-close {
+  margin-top: 8px;
 }

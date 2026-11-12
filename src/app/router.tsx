@@ -33,6 +33,8 @@ import { GradeSheetPage } from '../features/review/GradeSheetPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { StatsPage } from '../features/stats/StatsPage';
 import { AccountPage } from '../features/account/AccountPage';
+import { AccountData } from '../features/account/AccountData';
+import { AccountSecurity } from '../features/account/AccountSecurity';
 import { AdminLogPage } from '../features/admin/AdminLogPage';
 import { AdminPage } from '../features/admin/AdminPage';
 import { TodayPage } from '../features/today/TodayPage';
@@ -210,6 +212,8 @@ export const router = createBrowserRouter([
               { path: 'settings', element: <SettingsPage /> },
               { path: 'settings/:section', element: <SettingsPage /> },
               { path: 'account', element: <AccountPage /> },
+              { path: 'account/security', element: <AccountSecurity /> },
+              { path: 'account/data', element: <AccountData /> },
               { path: 'progress', element: <StatsPage /> },
               // Its old address, kept for bookmarks (V14).
               { path: 'account/stats', element: <Navigate to={paths.stats()} replace /> },

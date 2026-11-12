@@ -142,7 +142,7 @@ const MORE = [
 /**
  * Everything that is not one of the four places: a sheet from the bottom on a
  * phone, a panel beside the rail on anything wider. Your name, at the foot of
- * the sheet, is the account: the password and what your keys have done.
+ * the sheet, is the account: who you are, security and your data.
  */
 function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | null>; onClose: () => void }) {
   const user = useUser();
@@ -217,7 +217,7 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
             </span>
             <span className="more-text">
               <b>{user.username}</b>
-              <span className="small muted">Your account and your keys</span>
+              <span className="small muted">Your account, security and data</span>
             </span>
             <Icon name="chevron" className="muted" />
           </Link>

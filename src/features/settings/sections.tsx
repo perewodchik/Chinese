@@ -1,12 +1,13 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { HSK_BANDS } from '../../domain/text';
 import { chooseFolder, folderSupported, forgetFolder, getFolderName } from '../../platform/files';
-import { resetWorkspace, setSettings } from '../../store/commands';
+import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { PalettePicker } from '../../ui/PalettePicker';
 import { useToast } from '../../ui/toast';
 import { InstallCard } from './InstallCard';
 import { LearningSettings } from './LearningSettings';
+import { KeyUsage } from './KeyUsage';
 import { PronunciationKey } from './PronunciationKey';
 
 /** Slow enough to follow, and not so slow that it stops being speech. */
@@ -221,29 +222,12 @@ function ThisApp() {
   );
 }
 
-function Work() {
-  const toast = useToast();
+function Keys() {
   return (
-    <Card>
-      <p className="small muted" style={{ margin: 0 }}>
-        Your texts, shelves, cards, lists and progress are kept in your account and saved as you go, the same on every
-        device you sign in on.
-      </p>
-      <div className="row">
-        <div className="spacer" />
-        <button
-          className="btn danger sm"
-          onClick={() => {
-            if (confirm('Delete everything in this account — collections, progress, reviews and texts — on every device? This cannot be undone.')) {
-              resetWorkspace();
-              toast('Everything in this account was deleted');
-            }
-          }}
-        >
-          Delete all my work
-        </button>
-      </div>
-    </Card>
+    <>
+      <PronunciationKey />
+      <KeyUsage />
+    </>
   );
 }
 
@@ -263,9 +247,8 @@ export interface Section {
 export const SECTIONS: Section[] = [
   { id: 'learning', han: '学', label: 'Learning', blurb: 'Your level, and what counts as a day done', body: Learning },
   { id: 'speaking', han: '说', label: 'Speaking', blurb: 'Guided speed, when recording stops', body: Speaking },
-  { id: 'keys', han: '钥', label: 'Keys & services', blurb: 'Pronunciation scoring with your own key', body: PronunciationKey },
+  { id: 'keys', han: '钥', label: 'Keys & services', blurb: 'Your own keys, and what they have cost', body: Keys },
   { id: 'printing', han: '印', label: 'Printing', blurb: 'The colour, the footer, practice pages', body: Printing },
   { id: 'appearance', han: '色', label: 'Appearance', blurb: 'Light, dark or as the system is', body: Appearance },
   { id: 'app', han: '机', label: 'This app', blurb: 'On the Home Screen, like an app', body: ThisApp },
-  { id: 'work', han: '存', label: 'Your saved work', blurb: 'Where it is kept, and deleting it all', body: Work },
 ];

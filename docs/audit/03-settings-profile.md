@@ -90,7 +90,19 @@ iPad (≥ 900 px) — список слева, раздел справа, как
 потеряна (сверить по таблице).
 
 <a id="p12"></a>
-### P12 (В) Профиль — про человека
+### P12 (В) ✔ Профиль — про человека
+
+**Сделано (2026-11-12).** `/account`: имя заголовком, «Learning since…»,
+строка о сохранении, уровень HSK (меняется здесь же), итог «N characters ·
+N words · N texts read» (встреченное хотя бы раз; ведёт в Progress),
+строки Security, Your data, Progress, Settings и Admin (для админа), внизу
+Sign out. `/account/security` — пароль (форма по кнопке «Change
+password…»), коды восстановления, устройства, токены. `/account/data` —
+сколько занято, «Download a copy», «Delete all my work» (из настроек, P16),
+«Delete the account». Расход ключей («Your own keys this month») — в
+`/settings/keys` под самим ключом (часть P14). Без дневной цели и серии
+(P15) и кредитов (этап 7).
+
 
 `/account` показывает то, что человек ожидает от слова «профиль»:
 

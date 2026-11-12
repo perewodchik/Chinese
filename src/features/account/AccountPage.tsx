@@ -1,18 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
-import { USAGE_UNIT, type UsageLine, type UsageResponse, type UsageService } from '../../../shared/usage';
-import { accountStorage, accountUsage } from '../../api/account';
+import { isWordId, type ItemId } from '../../domain/ids';
+import { levelOf } from '../../domain/memory';
+import { HSK_BANDS } from '../../domain/text';
 import { paths } from '../../navigation/paths';
+import { setSettings } from '../../store/commands';
 import type { SyncStatus } from '../../store/sync/engine';
-import { useSyncStatus } from '../../store/store';
+import { useStore, useSyncStatus } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
-import { ChangePasswordForm } from '../auth/ChangePasswordForm';
 import { useIsAdmin, useUser } from '../auth/session';
-import { AccessTokens } from './AccessTokens';
-import { DeleteAccount } from './DeleteAccount';
-import { Devices } from './Devices';
-import { RecoveryCodes } from './RecoveryCodes';
+import { useSignOut } from '../auth/useSignOut';
 import './account.css';
 
 const time = (at: number) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -34,188 +32,86 @@ function whereWorkIs(status: SyncStatus | null): string {
   }
 }
 
-const SERVICE: Record<UsageService, { name: string; calls: [string, string]; balance: string; site: string }> = {
-  speechsuper: { name: 'SpeechSuper', calls: ['phrase scored', 'phrases scored'], balance: 'https://www.speechsuper.com/', site: 'speechsuper.com' },
-  iflytek: { name: 'iFlytek', calls: ['phrase scored', 'phrases scored'], balance: 'https://console.xfyun.cn/', site: 'console.xfyun.cn' },
-  minimax: { name: 'MiniMax', calls: ['reading', 'readings'], balance: 'https://platform.minimax.io/', site: 'platform.minimax.io' },
-};
-
-const counted = (n: number, [one, many]: [string, string]) => `${n.toLocaleString('en')} ${n === 1 ? one : many}`;
-
-function amount(service: UsageService, units: number): string {
-  if (USAGE_UNIT[service] === 'characters') return `${units.toLocaleString('en')} character${units === 1 ? '' : 's'} read`;
-  if (units < 60) return `${units} s of speech`;
-  return `${Math.round(units / 60).toLocaleString('en')} min of speech`;
-}
+const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString('en')} ${n === 1 ? one : many}`;
 
 /**
- * The account: who is signed in and where the work is kept, the password,
- * and what the learner's own keys have been spent on — counted by the server
- * as it makes each call, so the same on every device. The bill itself is the
- * service's: each line links to where it shows the balance.
+ * The account, about the person (P12): who, since when, the level (changed
+ * here), what they have so far in one line, and the way to everything else —
+ * Security, Your data, Progress, Settings, and Admin for an admin. Sign out
+ * at the foot. The keys and what they cost are in Settings › Keys & services.
  */
 export function AccountPage() {
   useTitle('Account');
   const user = useUser();
   const status = useSyncStatus();
-  const [usage, setUsage] = useState<UsageResponse | null>(null);
-  const [failed, setFailed] = useState<string | null>(null);
-  // Whoever runs the site has a row for its own page; nobody else sees it.
   const admin = useIsAdmin();
-  useEffect(() => {
-    let live = true;
-    accountUsage().then(
-      (u) => live && setUsage(u),
-      (err: Error) => live && setFailed(err.message),
-    );
-    return () => {
-      live = false;
-    };
-  }, []);
+  const level = useStore((s) => s.settings.targetHsk);
+  const recall = useStore((s) => s.recall);
+  const textsRead = useStore((s) => s.texts.filter((t) => t.read).length);
+  const { leave, leaving } = useSignOut();
+  // Met at least once, by review or by a claim: the count Progress starts from.
+  const met = useMemo(() => {
+    const now = Date.now();
+    let chars = 0;
+    let words = 0;
+    for (const id in recall) {
+      if (levelOf(recall[id as ItemId], now) === 0) continue;
+      if (isWordId(id as ItemId)) words++;
+      else chars++;
+    }
+    return { chars, words };
+  }, [recall]);
+
+  const rows: Array<{ to: string; label: string; blurb: string }> = [
+    { to: paths.accountSecurity(), label: 'Security', blurb: 'Password, recovery codes, devices, access tokens' },
+    { to: paths.accountData(), label: 'Your data', blurb: 'A copy to download, deleting your work or the account' },
+    { to: paths.stats(), label: 'Progress', blurb: 'What you know, day by day and week by week' },
+    { to: paths.settings(), label: 'Settings', blurb: 'Learning, speaking, keys, printing, the look' },
+    ...(admin ? [{ to: paths.admin(), label: 'Admin', blurb: 'Invitations, the accounts, the catalogue, the log' }] : []),
+  ];
 
   return (
     <section className="account-page">
       <div className="page-head">
-        <h1>Account</h1>
+        <h1>{user.username}</h1>
       </div>
-      <p className="small" style={{ margin: 0 }}>
-        Signed in as <b>{user.username}</b>, since {new Date(user.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}.
+      <p className="small muted" style={{ margin: 0 }}>
+        Learning since {new Date(user.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}.
       </p>
       <p className="small muted ac-sync">{whereWorkIs(status)}</p>
 
-      <section className="block">
-        <h2 className="block-title">Your own keys this month</h2>
-        <div className="ac-usage">
-          {usage === null ? (
-            <p className="small muted">{failed ?? 'Loading…'}</p>
-          ) : usage.lines.length === 0 ? (
-            <p className="small muted">
-              No keys of your own are saved. Pronunciation checking uses SpeechSuper’s (in <Link to={paths.settings('keys')}>Settings</Link>), and
-              narrators MiniMax’s (in <Link to={paths.speakingNarrators()}>Speak › Voices</Link>).
-            </p>
-          ) : (
-            <ul className="list">
-              {usage.lines.map((l) => (
-                <UsageRow key={l.service} line={l} />
-              ))}
-            </ul>
-          )}
-        </div>
-        <p className="tiny muted ac-note">
-          Counted by this site as it asks each service: a reading kept from before costs nothing and is not here. Days run
-          midnight to midnight UTC. What you have left is on the service’s own page.
-        </p>
-      </section>
-
-      <section className="block">
-        <h2 className="block-title">Your work</h2>
-        <StorageLine />
-        <p className="small muted ac-copy-lede">
-          A copy to keep: your texts, shelves, cards and progress, the walk through Beijing, your conversations, tries and
-          narrators, in one file. Not your keys, recordings or pictures.
-        </p>
-        <a className="btn tonal" href="/api/account/export" download>
-          Download a copy
-        </a>
-      </section>
-
-      <section className="block">
-        <h2 className="block-title">Password</h2>
-        <ChangePasswordForm />
-      </section>
-
-      <RecoveryCodes />
-
-      <Devices />
-
-      <AccessTokens />
-
-      <nav className="block list ac-links" aria-label="More about you">
-        <Link className="ac-link" to={paths.stats()}>
-          <span className="grow">
-            <b>Progress</b>
-            <span className="small muted">What you know, day by day and week by week</span>
-          </span>
-          <Icon name="chevron" />
+      <section className="block ac-who">
+        <label className="field ac-level">
+          Your level
+          <select value={level} onChange={(e) => setSettings({ targetHsk: Number(e.target.value) })}>
+            {HSK_BANDS.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <Link className="ac-sum" to={paths.stats()}>
+          {plural(met.chars, 'character')} · {plural(met.words, 'word')} · {plural(textsRead, 'text')} read
+          <Icon name="chevron" size={16} />
         </Link>
-        <Link className="ac-link" to={paths.settings()}>
-          <span className="grow">
-            <b>Settings</b>
-            <span className="small muted">Pronunciation, reading, printing, the look</span>
-          </span>
-          <Icon name="chevron" />
-        </Link>
-        {admin && (
-          <Link className="ac-link" to={paths.admin()}>
+      </section>
+
+      <nav className="block list ac-links" aria-label="Your account">
+        {rows.map((r) => (
+          <Link key={r.to} className="ac-link" to={r.to}>
             <span className="grow">
-              <b>Admin</b>
-              <span className="small muted">Invitations, and the accounts with how much each keeps</span>
+              <b>{r.label}</b>
+              <span className="small muted">{r.blurb}</span>
             </span>
             <Icon name="chevron" />
           </Link>
-        )}
+        ))}
       </nav>
 
-      <DeleteAccount />
+      <button className="btn quiet ac-signout" onClick={() => void leave()} disabled={leaving}>
+        {leaving ? 'Signing out…' : 'Sign out'}
+      </button>
     </section>
-  );
-}
-
-function UsageRow({ line }: { line: UsageLine }) {
-  const s = SERVICE[line.service];
-  const most = Math.max(1, ...line.days.map((d) => d.calls));
-  return (
-    <li className="ac-row">
-      <div className="ac-row-head">
-        <b>{s.name}</b>
-        {!line.keySet && <span className="tiny muted">no key saved now</span>}
-        <span className="spacer" />
-        <span className="small muted ac-today">Today {line.today.calls.toLocaleString('en')}</span>
-      </div>
-      <span className="small">
-        {line.month.calls ? `${counted(line.month.calls, s.calls)} · ${amount(line.service, line.month.units)}` : 'Nothing yet this month'}
-      </span>
-      <span className="ac-days" aria-hidden>
-        {line.days.map((d) => (
-          <i key={d.day} title={`${d.day}: ${counted(d.calls, s.calls)}`} style={{ height: d.calls ? `${Math.max(12, (d.calls / most) * 100)}%` : undefined }} data-none={d.calls ? undefined : ''} />
-        ))}
-      </span>
-      <a className="tiny ac-balance" href={s.balance} target="_blank" rel="noreferrer">
-        Your balance at {s.site}
-      </a>
-    </li>
-  );
-}
-
-const MB = 1024 * 1024;
-const mb = (bytes: number) => (bytes < MB ? '<1' : Math.round(bytes / MB).toLocaleString('en'));
-
-/** How much the account keeps on the server, against its ceiling: a line, and a bar when there is a ceiling. */
-function StorageLine() {
-  const [use, setUse] = useState<{ usedBytes: number; limitBytes: number | null } | null>(null);
-  useEffect(() => {
-    let live = true;
-    accountStorage().then(
-      (u) => live && setUse(u),
-      () => undefined,
-    );
-    return () => {
-      live = false;
-    };
-  }, []);
-  const share = use?.limitBytes ? Math.min(1, use.usedBytes / use.limitBytes) : 0;
-  return (
-    <div className="ac-storage">
-      <span className="small">
-        {use === null
-          ? '\u00a0'
-          : use.limitBytes
-            ? `It takes ${mb(use.usedBytes)} MB of the ${mb(use.limitBytes)} MB an account keeps here.`
-            : `It takes ${mb(use.usedBytes)} MB here.`}
-      </span>
-      <span className="ac-storage-bar" aria-hidden data-hidden={use?.limitBytes ? undefined : ''}>
-        <i style={{ width: `${share * 100}%` }} />
-      </span>
-    </div>
   );
 }

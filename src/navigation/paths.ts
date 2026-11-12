@@ -127,6 +127,10 @@ export const paths = {
   settings: (section?: string) => (section ? `/settings/${section}` : '/settings'),
   /** who is signed in, the password, and what the learner's own keys have been spent on */
   account: () => '/account',
+  /** the password, recovery codes, devices and access tokens (P12) */
+  accountSecurity: () => '/account/security',
+  /** a copy to download, deleting the work or the account (P12) */
+  accountData: () => '/account/data',
   /** the site's own page, for whoever runs it: invitations and the accounts */
   admin: () => '/admin',
   /** what the accounts that run the site did, a year of it */
