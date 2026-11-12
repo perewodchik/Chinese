@@ -222,11 +222,28 @@ function ThisApp() {
   );
 }
 
+/**
+ * Keys & services (P14): what is in use, in one sentence; then each
+ * service's key; then what the keys have cost. Nothing here is needed:
+ * everything is heard, said and played back without a key.
+ */
 function Keys() {
+  const [scoring, setScoring] = useState<string | null>(null);
   return (
     <>
-      <PronunciationKey />
-      <KeyUsage />
+      <p className="small settings-state" aria-live="polite">
+        {scoring === null
+          ? '\u00a0'
+          : scoring
+            ? `Your speech is scored with your own ${scoring} key.`
+            : 'No scoring yet. Every line is heard, said and played back without a key; a key adds the scores, and is yours to pay for.'}
+      </p>
+      <div id="speechsuper">
+        <PronunciationKey onChange={(st) => setScoring(st.key.set ? (st.key.provider === 'iflytek' ? 'iFlytek' : 'SpeechSuper') : '')} />
+      </div>
+      <div id="usage">
+        <KeyUsage />
+      </div>
     </>
   );
 }

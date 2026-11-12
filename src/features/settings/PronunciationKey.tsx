@@ -41,10 +41,16 @@ export function PronunciationKey({ onChange }: { onChange?: (s: EvalStatus) => v
     void evalStatus().then(
       (s) => {
         setStatus(s);
+        onChange?.(s);
         if (s.key.provider) setProvider(s.key.provider);
       },
-      () => setStatus({ key: { set: false, hint: null, provider: null }, strictness: 'common' }),
+      () => {
+        const none: EvalStatus = { key: { set: false, hint: null, provider: null }, strictness: 'common' };
+        setStatus(none);
+        onChange?.(none);
+      },
     );
+    // Told once as it loads; after that a parent showing what is in use follows the saves through `act`.
   }, []);
 
   async function act(fn: () => Promise<EvalStatus>, done: string) {
