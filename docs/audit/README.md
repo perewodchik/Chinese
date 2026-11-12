@@ -168,6 +168,7 @@
 
 - [x] **B1 (В)** «Mark it» — одна строка, а не стопка. [→](04-library-progress.md#b1)
 - [ ] **B2–B7 (С)** Порядок секций, «Your level», поиск, печать. [→](04-library-progress.md#library)
+  — частично: B2, B3, B5 сделаны; B4, B6 — дальше; B7 — проверка в Safari (владелец).
 - [ ] **G1 (В)** Верх прогресса: «где ты и что читать дальше». [→](04-library-progress.md#g1)
 - [ ] **G2 (В)** Графики не показывают нули и плоские линии. [→](04-library-progress.md#g2)
 - [ ] **G3–G8 (С)** Чтение и речь в статистике, возвращение после перерыва. [→](04-library-progress.md#progress)
@@ -232,4 +233,5 @@
 | 2026-11-12 | P16 | 71481ed | «Delete all my work» — на `/account/data`, свёрнуто, ввод слова delete, «Download a copy» прямо в тексте; удаление аккаунта — там же |
 | 2026-11-12 | P17 | 71481ed | без кодов восстановления — строка «No way back in if you forget the password: make recovery codes» на странице аккаунта; пароль уже по кнопке (P12) |
 | 2026-11-12 | P18 | 71481ed | строка сохранения — только на `/account/data` и точкой на More; индикатор в листе More и его стили удалены |
-| 2026-11-12 | B1 | см. ветку | верх Библиотеки без листов; в «Your lists» — одна строка «N printed sheets to mark» с Show, у листа Mark it и Dismiss; лист старше 30 дней перестаёт предлагаться (`pendingSheets(sheets, now)`, тест) |
+| 2026-11-12 | B1 | b81fbfb | верх Библиотеки без листов; в «Your lists» — одна строка «N printed sheets to mark» с Show, у листа Mark it и Dismiss; лист старше 30 дней перестаёт предлагаться (`pendingSheets(sheets, now)`, тест) |
+| 2026-11-12 | B2, B3, B5 | см. ветку | Библиотека: Your level (карточка своей полосы с Browse и Check what you know; остальные — под «Other levels») → Words from your texts (одно место) → Topics → Your lists → Look things up; у полос и символы, и слова; «+ New list» со словом |

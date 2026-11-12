@@ -452,30 +452,6 @@
   gap: 5px;
 }
 
-/* Above the HSK bands while almost nothing is marked: the way to say what is known already. */
-.lib-tell {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 56px;
-  margin-bottom: 8px;
-  padding: 10px 14px;
-  border-radius: 14px;
-  background: var(--accent-soft);
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.lib-tell .grow {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.lib-tell > svg {
-  color: var(--accent);
-  flex: none;
-}
 
 /* Printed sheets to mark, under Your lists (B1): a line that unfolds. */
 .lib-sheets {
@@ -504,4 +480,44 @@
 .lib-sheet .grow {
   display: grid;
   min-width: 0;
+}
+
+/* Your level (B2): the band's card, then the others folded under it. */
+.lib-level {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--card-2);
+}
+
+.lib-level-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lib-level-head .grow {
+  display: grid;
+  min-width: 0;
+}
+
+.lib-other {
+  margin-top: 8px;
+  gap: 4px;
+}
+
+.lib-other-chevron {
+  transform: rotate(90deg);
+  transition: transform 140ms;
+}
+
+.lib-other[aria-expanded='true'] .lib-other-chevron {
+  transform: rotate(-90deg);
+}
+
+/* The Library's New list: the + and its word. */
+.lib-home .read-add {
+  gap: 4px;
+  padding-left: 10px;
 }

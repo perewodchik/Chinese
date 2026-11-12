@@ -73,8 +73,6 @@ export function LibraryHome() {
   const levelOf = useLevelOf();
   const know = useWordKnowledge();
   const band = useStore((s) => s.settings.hskBand);
-  // Fewer than twenty characters marked: the app takes every text to be all new, so it says how to tell it.
-  const marked = useStore((s) => [...s.learned].filter((id) => id.startsWith('c')).length);
   const waiting = pendingSheets(useStore((s) => s.sheets));
   const progress = useSetProgress();
   // Kept in the address (?q=) as it is typed, so a reload finds the same search.
@@ -86,10 +84,13 @@ export function LibraryHome() {
   const bands = useMemo(() => HSK_BANDS.map((b) => withList(bandSet(lib, b.id), collections)), [lib, collections]);
   const texts = useStore((s) => s.texts);
   // The words your texts brought that no band has come first: they are the ones you have met.
-  const topics = useMemo(() => {
+  const ownWords = useMemo(() => {
     const own = textWordsSet(lib, texts);
-    return [...(own ? [withList(own, collections)] : []), ...topicSets(lib).map((t) => withList(t, collections))];
+    return own ? withList(own, collections) : null;
   }, [lib, collections, texts]);
+  const topics = useMemo(() => topicSets(lib).map((t) => withList(t, collections)), [lib, collections]);
+  const [otherLevels, setOtherLevels] = useState(false);
+  const levelSet = bands.find((b) => b.id === `hsk-${band}`) ?? bands[0]!;
   const mine = useMemo(() => ownLists(collections), [collections]);
   const fromTexts = useMemo(() => collections.filter((c) => FROM_TEXT.test(c.name)), [collections]);
 
@@ -100,9 +101,9 @@ export function LibraryHome() {
     return {
       chars: lib.characters.filter((c) => hit(c.c, c.py.join(' '), c.def)).slice(0, 32),
       words: lib.words.filter((w) => hit(w.w, w.py, w.d)).slice(0, 12),
-      sets: [...mine, ...bands, ...topics].filter((s) => hit(s.name)),
+      sets: [...mine, ...bands, ...(ownWords ? [ownWords] : []), ...topics].filter((s) => hit(s.name)),
     };
-  }, [q, lib, mine, bands, topics]);
+  }, [q, lib, mine, bands, ownWords, topics]);
 
   function newList() {
     const c = createCollection({ name: nextCollectionName(collections) });
@@ -119,7 +120,16 @@ export function LibraryHome() {
       <header className="page-head">
         <h1>Library</h1>
         <span className="spacer" />
-        <Menu label={<Icon name="plus" size={22} />} title="New list" className="icon-btn accent">
+        <Menu
+          label={
+            <>
+              <Icon name="plus" size={18} />
+              New list
+            </>
+          }
+          title="Make a new list"
+          className="btn tonal sm read-add"
+        >
           {(close) => (
             <>
               <button role="menuitem" className="btn ghost sm" onClick={() => (close(), newList())}>
@@ -201,56 +211,37 @@ export function LibraryHome() {
         <>
           <div className="lib-cols">
             <div>
+              {/* B2: what people come for first — where they are — then what to learn from. */}
               <section className="block">
-                <div className="block-head">
-                  <h2 className="block-title">Your lists</h2>
-                  <span className="spacer" />
-                  {mine.length > 3 ? (
-                    <button className="btn quiet sm lib-more" onClick={() => setAllLists((a) => !a)}>
-                      {allLists ? 'Fewer' : `All ${mine.length}`}
-                    </button>
-                  ) : (
-                    <button className="btn quiet sm" onClick={newList}>
-                      New list
-                    </button>
-                  )}
-                </div>
-                {mine.length ? (
+                <h2 className="block-title">Your level</h2>
+                <LevelCard set={levelSet} progress={progress(levelSet)} band={band} />
+                <button className="btn quiet sm lib-other" aria-expanded={otherLevels} onClick={() => setOtherLevels((o) => !o)}>
+                  Other levels
+                  <Icon name="chevron" size={14} className="lib-other-chevron" />
+                </button>
+                {otherLevels && (
                   <div className="list">
-                    {shownLists.map((s) => (
-                      <SetRow key={s.id} set={s} progress={progress(s)} strip />
-                    ))}
+                    {bands
+                      .filter((b) => b.id !== levelSet.id)
+                      .map((s) => (
+                        <BandRow key={s.id} set={s} progress={progress(s)} now={false} />
+                      ))}
                   </div>
-                ) : (
-                  <p className="small muted">
-                    A list is what you print and write out: start an empty one, or print any set below and it becomes
-                    yours.
-                  </p>
                 )}
-                {fromTexts.length > 0 && <FromTexts lists={fromTexts} />}
-                {waiting.length > 0 && <SheetsToMark sheets={waiting} />}
               </section>
 
-              <section className="block">
-                <h2 className="block-title">HSK</h2>
-                {marked < 20 && (
-                  <Link className="lib-tell" to={paths.sweep(band <= 4 ? band : undefined)}>
-                    <span className="grow">
-                      <b>Tell the app what you already know</b>
-                      <span className="small muted">Go through {band <= 4 ? `the HSK ${band} words` : 'the words'}: known, not sure or new. Texts and cards follow what you say.</span>
-                    </span>
-                    <Icon name="chevron" />
-                  </Link>
-                )}
-                <div className="list">
-                  {bands.map((s) => (
-                    <BandRow key={s.id} set={s} progress={progress(s)} now={`hsk-${band}` === s.id} />
-                  ))}
-                </div>
-              </section>
-            </div>
+              {(ownWords || fromTexts.length > 0) && (
+                <section className="block">
+                  <h2 className="block-title">Words from your texts</h2>
+                  {ownWords && (
+                    <div className="list">
+                      <SetRow set={ownWords} progress={progress(ownWords)} strip />
+                    </div>
+                  )}
+                  {fromTexts.length > 0 && <FromTexts lists={fromTexts} />}
+                </section>
+              )}
 
-            <div>
               <section className="block">
                 <div className="block-head">
                   <h2 className="block-title">Topics</h2>
@@ -266,6 +257,30 @@ export function LibraryHome() {
                     <SetRow key={s.id} set={s} progress={progress(s)} strip />
                   ))}
                 </div>
+              </section>
+            </div>
+
+            <div>
+              <section className="block">
+                <div className="block-head">
+                  <h2 className="block-title">Your lists</h2>
+                  <span className="spacer" />
+                  {mine.length > 3 && (
+                    <button className="btn quiet sm lib-more" onClick={() => setAllLists((a) => !a)}>
+                      {allLists ? 'Fewer' : `All ${mine.length}`}
+                    </button>
+                  )}
+                </div>
+                {mine.length ? (
+                  <div className="list">
+                    {shownLists.map((s) => (
+                      <SetRow key={s.id} set={s} progress={progress(s)} strip />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="small muted">What you print and write out. None yet.</p>
+                )}
+                {waiting.length > 0 && <SheetsToMark sheets={waiting} />}
               </section>
 
               <section className="block">
@@ -338,6 +353,36 @@ function SetRow({ set, progress, strip }: { set: LibSet; progress: ReturnType<Re
   );
 }
 
+/**
+ * The learner's own HSK level, as one card (B2): how much of it is met, in
+ * characters and in words, its bar, and the two things to do with it —
+ * look through it, or say what is known already.
+ */
+function LevelCard({ set, progress, band }: { set: LibSet; progress: ReturnType<ReturnType<typeof useSetProgress>>; band: number }) {
+  return (
+    <div className="lib-level">
+      <div className="lib-level-head">
+        <span className="lib-band-n">{set.name.replace('HSK ', '')}</span>
+        <span className="grow">
+          <b>{set.name}</b>
+          <span className="small muted">
+            {progress.chars} of {set.chars.length.toLocaleString('en')} characters · {progress.words} of {set.words.length.toLocaleString('en')} words met
+          </span>
+        </span>
+      </div>
+      <Bar levels={progress.levels} />
+      <div className="row">
+        <Link className="btn tonal sm" to={paths.librarySet(set.id)}>
+          Browse
+        </Link>
+        <Link className="btn quiet sm" to={paths.sweep(band <= 4 ? band : undefined)}>
+          Check what you know
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function BandRow({ set, progress, now }: { set: LibSet; progress: ReturnType<ReturnType<typeof useSetProgress>>; now: boolean }) {
   return (
     <Link className="lib-band" to={paths.librarySet(set.id)}>
@@ -345,7 +390,7 @@ function BandRow({ set, progress, now }: { set: LibSet; progress: ReturnType<Ret
       <span className="grow">
         <span className="lib-band-line">
           <span>
-            {progress.chars} of {set.chars.length.toLocaleString('en')} characters met
+            {progress.chars} of {set.chars.length.toLocaleString('en')} characters · {progress.words} of {set.words.length.toLocaleString('en')} words
           </span>
           {now && <span className="lib-now">Your level</span>}
         </span>
