@@ -593,3 +593,23 @@ g[data-hover] .st-bar {
   gap: 12px;
   padding: 8px 0;
 }
+
+/* A milestone not reached yet: how much of the way, under its count (G4). */
+.st-mark-bar {
+  display: block;
+  height: 3px;
+  margin-top: 4px;
+  border-radius: 2px;
+  background: var(--line-2);
+  overflow: hidden;
+}
+
+.st-mark-bar i {
+  display: block;
+  height: 100%;
+  background: var(--jade);
+}
+
+.st-marks-more {
+  padding-top: 0;
+}

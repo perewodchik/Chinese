@@ -7,6 +7,7 @@ import { defaultSheet } from '../../domain/sheet';
 import { firstUnread, fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTexts, type GeneratedText, type TextSet } from '../../domain/text';
 import { paths, type ShelfTab } from '../../navigation/paths';
 import { useIsAdmin } from '../auth/session';
+import { WelcomeBack } from '../shared/WelcomeBack';
 import { oneOf, useQuery } from '../../navigation/query';
 import { renderCollection, renderTextSet } from '../../pdf/render';
 import { downloadText, safeFileName } from '../../platform/files';
@@ -209,6 +210,8 @@ export function ReadPage() {
               </Link>
             </div>
           )}
+
+          <WelcomeBack />
 
           {go && <ContinueBook go={go} />}
 

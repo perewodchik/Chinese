@@ -8,6 +8,7 @@ import {
   goalMet,
   goalStreak,
   milestones,
+  nearestMilestones,
   records,
   snapshotOf,
   SPAN,
@@ -25,6 +26,8 @@ import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { BarChart, Legend, LineChart } from './charts';
 import { WhereYouAre } from './WhereYouAre';
+import { WelcomeBack } from '../shared/WelcomeBack';
+import { useUser } from '../auth/session';
 import './stats.css';
 
 const UNITS: Array<{ id: Unit; label: string }> = [
@@ -50,6 +53,7 @@ const pct = (x: number | null) => (x === null ? '—' : `${Math.round(x * 100)}%
  */
 export function StatsPage() {
   useTitle('Progress');
+  const user = useUser();
   const lib = useLibrary();
   const recall = useStore((s) => s.recall);
   const activity = useStore((s) => s.activity);
@@ -71,6 +75,9 @@ export function StatsPage() {
   const progress = useMemo(() => progressOf(lib, recall, learned, sheets, now), [lib, recall, learned, sheets, now]);
   const words = useMemo(() => wordBands(lib, recall), [lib, recall]);
   const marks = useMemo(() => milestones(lib, activity, recall, now, history, streak), [lib, activity, recall, now, history, streak]);
+  // The last reached and the two nearest, the rest a tap away (G4).
+  const nearest = useMemo(() => nearestMilestones(marks), [marks]);
+  const [allMarks, setAllMarks] = useState(false);
 
   const goals = useMemo(() => {
     const chars = (b: number) => lib.characters.filter((c) => c.hsk <= b).length;
@@ -103,6 +110,8 @@ export function StatsPage() {
           </div>
         </div>
       </div>
+
+      <WelcomeBack />
 
       <WhereYouAre words={words} activity={activity} />
 
@@ -285,10 +294,10 @@ export function StatsPage() {
           </header>
           <div className="body">
             <Held label="Now" snap={snapshotOf(recall, now)} />
-            <Held label="4 weeks ago" snap={snapBefore(activity, now, 28)} />
+            {snapBefore(activity, now, 28) && <Held label="4 weeks ago" snap={snapBefore(activity, now, 28)} />}
             <p className="tiny muted st-note">
-              Just met → holding → solid is the scheduler’s own reading of how long each would last. Things move
-              right as reviews space out.
+              Solid: you would still know it in a month. Holding: in a week or two. Just met or shaky: it needs seeing
+              again soon.
             </p>
           </div>
         </section>
@@ -324,14 +333,14 @@ export function StatsPage() {
 
       <section className="card st-card">
         <header className="st-head">
-          <h2>The last half-year</h2>
+          <h2>{now - user.createdAt < 30 * 86_400_000 ? 'Since you started' : 'The last half-year'}</h2>
           <span className="tiny muted">
             {settings.dailyGoal === 'minutes' ? `a filled square is ${settings.goalMinutes} minutes or more` : 'a filled square is a day with work in it'}
             {settings.restDays ? ' · a ring is a rest day that kept the streak' : ''}
           </span>
         </header>
         <div className="body">
-          <Calendar now={now} activity={activity} rested={streak.rested} />
+          <Calendar now={now} activity={activity} rested={streak.rested} since={user.createdAt} />
         </div>
       </section>
 
@@ -342,7 +351,7 @@ export function StatsPage() {
           <h2>Milestones</h2>
         </header>
         <div className="body st-marks">
-          {marks.map((m) => (
+          {(allMarks ? marks : [...(nearest.last ? [nearest.last] : []), ...nearest.next]).map((m) => (
             <div key={m.id} className="st-mark" data-reached={m.reached !== null || undefined}>
               <span className="st-seal hanzi" aria-hidden>
                 {m.mark}
@@ -351,14 +360,24 @@ export function StatsPage() {
                 <b>{m.label}</b>
                 <i className="tiny muted">
                   {m.reached === null
-                    ? `${Math.max(0, m.need - m.have).toLocaleString('en')} to go`
+                    ? `${Math.min(m.have, m.need).toLocaleString('en')} of ${m.need.toLocaleString('en')}`
                     : m.reached
                       ? fmtDay(m.reached)
                       : 'reached'}
                 </i>
+                {m.reached === null && (
+                  <span className="st-mark-bar" aria-hidden>
+                    <i style={{ width: `${Math.min(1, m.have / Math.max(1, m.need)) * 100}%` }} />
+                  </span>
+                )}
               </span>
             </div>
           ))}
+        </div>
+        <div className="body st-marks-more">
+          <button className="btn quiet sm" aria-expanded={allMarks} onClick={() => setAllMarks((a) => !a)}>
+            {allMarks ? 'The nearest only' : `All ${marks.length} milestones`}
+          </button>
         </div>
       </section>
     </div>
@@ -472,7 +491,7 @@ function Held({ label, snap }: { label: string; snap: DaySnap | null }) {
           </span>
         </>
       ) : (
-        <span className="tiny muted st-held-none">Not recorded yet — the app starts writing this down today.</span>
+        <span className="tiny muted st-held-none">Nothing in rotation yet.</span>
       )}
     </div>
   );
@@ -494,17 +513,23 @@ function Calendar({
   now,
   activity,
   rested,
+  since,
 }: {
   now: number;
   activity: Activity;
   rested: Set<string>;
+  /** when the account was made: one younger than thirty days sees only its own weeks (G6) */
+  since: number;
 }) {
   const todayKey = dayKey(now);
   const d = new Date(now);
   const sinceMonday = (d.getDay() + 6) % 7;
-  const firstBack = sinceMonday + 7 * (WEEKS - 1);
+  const ageDays = Math.floor((now - since) / 86_400_000);
+  const weeks = ageDays < 30 ? Math.min(WEEKS, Math.ceil((ageDays - sinceMonday) / 7) + 1) : WEEKS;
+  const WEEKS_SHOWN = Math.max(1, weeks);
+  const firstBack = sinceMonday + 7 * (WEEKS_SHOWN - 1);
   const cols: Array<Array<{ key: string; future: boolean }>> = [];
-  for (let n = firstBack; n > firstBack - WEEKS * 7; n--) {
+  for (let n = firstBack; n > firstBack - WEEKS_SHOWN * 7; n--) {
     const i = firstBack - n;
     (cols[Math.floor(i / 7)] ??= []).push({ key: shift(now, n), future: n < 0 });
   }

@@ -6149,3 +6149,20 @@ label.field[data-invalid] input {
 .key-help-body a {
   color: var(--accent);
 }
+
+/* Back after a week or more (G3): what is still there, and a short way in. */
+.welcome-back {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--card-2);
+}
+
+.welcome-back .grow {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}

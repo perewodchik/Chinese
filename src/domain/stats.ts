@@ -441,7 +441,37 @@ export function milestones(
       need: n,
     });
   }
+
+  // Reading and saying aloud, where most of the time goes (G4): counted from the days' logs.
+  const series = (field: 'read' | 'spoken') => {
+    let total = 0;
+    return { list: keys.map((k) => ({ k, n: (total += activity[k]![field]) })), total: () => total };
+  };
+  const read = series('read');
+  const readTotal = read.total();
+  for (const [n, label] of [[1, 'Your first text read'], [10, '10 texts read'], [50, '50 texts read']] as const) {
+    out.push({ id: `read-${n}`, mark: '读', label, reached: readTotal >= n ? firstAt(read.list, (x) => x.n, (x) => x.k, n) : null, have: readTotal, need: n });
+  }
+  const said = series('spoken');
+  const saidTotal = said.total();
+  for (const n of [100, 1000]) {
+    out.push({ id: `said-${n}`, mark: '说', label: `${n.toLocaleString('en')} lines said aloud`, reached: saidTotal >= n ? firstAt(said.list, (x) => x.n, (x) => x.k, n) : null, have: saidTotal, need: n });
+  }
   return out;
+}
+
+/**
+ * The milestones worth showing first (G4): the last one reached and the two
+ * nearest not reached yet, nearest by how much of the way is done.
+ */
+export function nearestMilestones(marks: readonly Milestone[]): { last: Milestone | null; next: Milestone[] } {
+  const reached = marks.filter((m) => m.reached !== null);
+  const last = [...reached].sort((a, b) => (a.reached ?? '').localeCompare(b.reached ?? ''))[reached.length - 1] ?? null;
+  const next = marks
+    .filter((m) => m.reached === null)
+    .sort((a, b) => b.have / Math.max(1, b.need) - a.have / Math.max(1, a.need))
+    .slice(0, 2);
+  return { last, next };
 }
 
 /* ------------------------------------------------------------ pace */
