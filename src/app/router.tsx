@@ -37,7 +37,6 @@ import { AccountData } from '../features/account/AccountData';
 import { AccountSecurity } from '../features/account/AccountSecurity';
 import { AdminLogPage } from '../features/admin/AdminLogPage';
 import { AdminPage } from '../features/admin/AdminPage';
-import { TodayPage } from '../features/today/TodayPage';
 import { AddVideoPage } from '../features/videos/AddVideoPage';
 import { VideoPage } from '../features/videos/VideoPage';
 import { VideosPage } from '../features/videos/VideosPage';
@@ -137,8 +136,9 @@ export const router = createBrowserRouter([
             // A page that throws takes the page with it, not the bar above it.
             errorElement: <RouteError />,
             children: [
-              { index: true, element: <Navigate to={paths.today()} replace /> },
-              { path: 'today', element: <TodayPage /> },
+              { index: true, element: <Navigate to={paths.read()} replace /> },
+              // Today is gone (V2): what it showed is at the top of Read. Its address is kept for bookmarks.
+              { path: 'today', element: <Navigate to={paths.read()} replace /> },
               // Review became Cards; what the old page held is on the Cards tab.
               { path: 'review', element: <Navigate to={paths.cards()} replace /> },
               { path: 'cards', element: <CardsPage /> },

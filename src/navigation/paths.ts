@@ -34,7 +34,6 @@ export const paths = {
   recover: () => '/recover',
 
   /** the front door: the text to carry on with, and the day's cards */
-  today: () => '/today',
   /** marking a printed sheet; kept under /review, where printed links point */
   gradeSheet: (sheetId: string) => `/review/sheets/${encodeURIComponent(sheetId)}`,
   /** sorting a band's words into known, not sure and new */
@@ -161,6 +160,6 @@ function withQuery(path: string, query: Record<string, string | undefined>) {
  * somebody there with this app's name on the link.
  */
 export function safeNext(raw: string | null): string {
-  if (!raw || !raw.startsWith('/') || raw.startsWith('//') || raw.startsWith('/\\')) return paths.today();
+  if (!raw || !raw.startsWith('/') || raw.startsWith('//') || raw.startsWith('/\\')) return paths.read();
   return raw;
 }

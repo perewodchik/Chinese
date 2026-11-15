@@ -8,6 +8,7 @@ import { firstUnread, fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTe
 import { paths, type ShelfTab } from '../../navigation/paths';
 import { useIsAdmin } from '../auth/session';
 import { WelcomeBack } from '../shared/WelcomeBack';
+import { useCardsToday } from '../cards/CardsPage';
 import { oneOf, useQuery } from '../../navigation/query';
 import { renderCollection, renderTextSet } from '../../pdf/render';
 import { downloadText, safeFileName } from '../../platform/files';
@@ -79,6 +80,7 @@ export function ReadPage() {
   const startSession = useStartSession();
   const shelf = useMemo(() => shelve(texts, sets), [texts, sets]);
   const go = useContinue();
+  const cards = useCardsToday();
   const [showFinished, setShowFinished] = useState(false);
   // With fewer than twenty characters marked every book reads as hard, which says nothing: covers say it from twenty on.
   const marked = useStore((s) => [...s.learned].filter((id) => id.startsWith('c')).length);
@@ -214,6 +216,16 @@ export function ReadPage() {
           <WelcomeBack />
 
           {go && <ContinueBook go={go} />}
+
+          {/* What Today used to say about the day's cards, as one quiet line (V2); nothing when there are none. */}
+          {cards.count > 0 && (
+            <Link className="read-cards" to={paths.cardSession()}>
+              <span className="grow">
+                {cards.count} card{cards.count === 1 ? '' : 's'} today · about {cards.minutes} min
+              </span>
+              <span className="btn tonal sm">Start</span>
+            </Link>
+          )}
 
           {sets.length ? (
             <div className="bookcase">

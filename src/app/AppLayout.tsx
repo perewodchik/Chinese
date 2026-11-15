@@ -30,12 +30,13 @@ const MORE_PATHS = ['/cards', '/review', '/learn', '/videos', '/play', '/account
  * The frame every signed-in page sits in: the sections, the page, and the
  * drawer for a character or a word.
  *
- * Four places and a fifth for everything else. On a phone they sit along the
+ * Three places and a fourth for everything else. On a phone they sit along the
  * bottom edge, where a thumb already is, and never scroll: seven tabs across
  * the top had to scroll sideways and hid where you were. On an iPad or a
- * computer the same five stand in a narrow rail on the left, out of the
+ * computer the same four stand in a narrow rail on the left, out of the
  * reading column's way. Each is named in English with its character above
- * it — 今 读 说 字 — which is one more thing read every day.
+ * it — 读 说 字 — which is one more thing read every day. Today is gone
+ * (V2): the day's cards are a line at the top of Read.
  */
 export function AppLayout() {
   const theme = useStore((s) => s.settings.theme);
@@ -62,7 +63,6 @@ export function AppLayout() {
   useEffect(() => setMore(false), [pathname]);
 
   const sections = [
-    { to: paths.today(), han: '今', label: 'Today', also: [] },
     { to: paths.read(), han: '读', label: 'Read', also: ['/texts'] },
     { to: paths.speaking(), han: '说', label: 'Speak', also: [] },
     { to: paths.library(), han: '字', label: 'Library', also: ['/collections', '/families'] },

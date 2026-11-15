@@ -961,3 +961,17 @@
 .read-dict {
   margin-top: 12px;
 }
+
+/* The day's cards, under Go on reading (V2): one quiet line, the whole row a link. */
+.read-cards {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  margin: 8px 0 16px;
+  padding: 6px 6px 6px 16px;
+  border-radius: 14px;
+  background: var(--card-2);
+  color: var(--ink);
+  text-decoration: none;
+}

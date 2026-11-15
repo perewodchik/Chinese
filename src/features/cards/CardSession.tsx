@@ -63,7 +63,7 @@ function Session({ plan, shelf, onMore }: { plan: CardPlan; shelf: string | null
   const again = useRef(new Set<string>());
   const card = queue[at] ?? null;
   const total = queue.length;
-  const exit = shelf ? paths.shelf(shelf, 'words') : paths.today();
+  const exit = shelf ? paths.shelf(shelf, 'words') : paths.cards();
 
   function answer(rating: Rating) {
     if (!card) return;

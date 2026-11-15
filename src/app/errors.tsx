@@ -24,7 +24,7 @@ export function RouteError() {
         <button className="btn primary" onClick={() => window.location.reload()}>
           Reload
         </button>
-        <Link className="btn" to={paths.today()}>
+        <Link className="btn" to={paths.read()}>
           Go to Today
         </Link>
       </div>
@@ -44,7 +44,7 @@ export function NotFoundPage() {
   return (
     <Splash mark="迷">
       <p>Nothing lives at this address.</p>
-      <Link className="btn primary" to={paths.today()} style={{ marginTop: 10 }}>
+      <Link className="btn primary" to={paths.read()} style={{ marginTop: 10 }}>
         Go to Today
       </Link>
     </Splash>
