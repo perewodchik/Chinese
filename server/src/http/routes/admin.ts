@@ -143,6 +143,13 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, us
     return c.body(null, 204);
   });
 
+  // A8: an invitation taken back before it was used.
+  routes.post('/invites/:id/revoke', session, admin, fresh, async (c) => {
+    await changes.consume(c.get('session').user.id);
+    await auth.revokeInvite(c.req.param('id'), actor(c));
+    return c.body(null, 204);
+  });
+
   routes.post('/invites', session, admin, fresh, async (c) => {
     await invites.consume(c.get('session').user.id);
     const { note, days } = await readJson(c, inviteRequest);

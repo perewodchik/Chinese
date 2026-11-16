@@ -1,3 +1,4 @@
+import type { AdminInvite } from '../../../shared/admin';
 import { TOKEN_PREFIX, TOKEN_SCOPES, type AccessTokenDto, type SessionDto, type TokenScope, type UserDto } from '../../../shared/api';
 import {
   normaliseUsername,
@@ -197,16 +198,38 @@ export class AuthService {
     const code = Array.from({ length: INVITE_LENGTH }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join('');
     const now = this.deps.clock.now();
     const expiresAt = days === null ? null : now + days * DAY;
-    await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null });
+    await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null, createdBy: actor.id });
     await this.record(actor, 'invite-made', null, { note: note.trim().slice(0, 120), days });
     return { code: code.match(/.{1,4}/g)!.join('-'), note, expiresAt };
   }
 
-  /** The invitations given out, with who used each (by name) — never their codes, which are not kept. */
-  async invites(): Promise<Array<{ note: string; createdAt: number; expiresAt: number | null; usedBy: string | null; usedAt: number | null }>> {
+  /**
+   * The invitations given out, with who made and who used each (by name) —
+   * never their codes, which are not kept. `id` is the code's digest, which
+   * opens nothing: it is how one is taken back.
+   */
+  async invites(): Promise<AdminInvite[]> {
     const [list, users] = await Promise.all([this.deps.invites.list(), this.deps.users.list()]);
     const name = new Map(users.map((u) => [u.id, u.username]));
-    return list.map((i) => ({ note: i.note, createdAt: i.createdAt, expiresAt: i.expiresAt, usedBy: i.usedBy ? (name.get(i.usedBy) ?? 'an account since deleted') : null, usedAt: i.usedAt }));
+    const who = (id: string | null | undefined) => (id ? (name.get(id) ?? 'an account since deleted') : null);
+    return list.map((i) => ({
+      id: i.digest,
+      note: i.note,
+      createdAt: i.createdAt,
+      expiresAt: i.expiresAt,
+      usedBy: who(i.usedBy),
+      usedAt: i.usedAt,
+      revokedAt: i.revokedAt ?? null,
+      createdBy: who(i.createdBy),
+    }));
+  }
+
+  /** A8: an invitation taken back before anyone used it; in the admins' log. */
+  async revokeInvite(id: string, actor: Actor): Promise<void> {
+    const invite = (await this.deps.invites.list()).find((i) => i.digest === id);
+    if (!invite) throw new NotFoundError('That invitation');
+    if (!(await this.deps.invites.revoke(id, this.deps.clock.now()))) throw new ValidationError(invite.usedBy ? 'That invitation has been used already.' : 'That invitation was taken back already.');
+    await this.record(actor, 'invite-revoked', null, { note: invite.note });
   }
 
   /** An account made by whoever runs the server, whether or not sign-ups are open. No session comes with it. */

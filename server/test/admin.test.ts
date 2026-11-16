@@ -54,3 +54,32 @@ describe('the site’s own page, for whoever runs it', () => {
     assert.equal((await call(app, 'GET', '/api/admin')).status, 401);
   });
 });
+
+describe('taking an invitation back (A8)', () => {
+  it('stops the code making an account, says who made it, and is in the log; only an admin may, and only once', async () => {
+    const { app, services, ownerCookie } = await setUp();
+    const made = (await (await call(app, 'POST', '/api/admin/invites', { cookie: ownerCookie, body: { note: 'Petya', days: 7 } })).json()) as { code: string };
+    const overview = async () => (await (await call(app, 'GET', '/api/admin/overview', { cookie: ownerCookie })).json()) as AdminOverview;
+    const invite = (await overview()).invites.find((i) => i.note === 'Petya')!;
+    assert.equal(invite.createdBy, 'kirill');
+    assert.equal(invite.revokedAt, null);
+
+    const { code } = await services.auth.invite('', null, SERVER_COMMAND);
+    const guest = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: 'correct horse', invite: code } }));
+    assert.equal((await call(app, 'POST', `/api/admin/invites/${invite.id}/revoke`)).status, 401);
+    assert.equal((await call(app, 'POST', `/api/admin/invites/${invite.id}/revoke`, { cookie: guest })).status, 403);
+
+    assert.equal((await call(app, 'POST', `/api/admin/invites/${invite.id}/revoke`, { cookie: ownerCookie })).status, 204);
+    assert.ok((await overview()).invites.find((i) => i.id === invite.id)!.revokedAt);
+    assert.equal((await call(app, 'POST', '/api/auth/register', { body: { username: 'petya', password: 'correct horse', invite: made.code } })).status, 400);
+    assert.equal((await call(app, 'POST', `/api/admin/invites/${invite.id}/revoke`, { cookie: ownerCookie })).status, 400);
+    assert.equal((await call(app, 'POST', '/api/admin/invites/nothing/revoke', { cookie: ownerCookie })).status, 404);
+
+    // One already used cannot be taken back.
+    const used = (await overview()).invites.find((i) => i.usedBy === 'masha')!;
+    assert.equal((await call(app, 'POST', `/api/admin/invites/${used.id}/revoke`, { cookie: ownerCookie })).status, 400);
+    const log = await (await call(app, 'GET', '/api/admin/log?action=invite-revoked', { cookie: ownerCookie })).json() as { entries: Array<{ actor: string; details: unknown }> };
+    assert.deepEqual(log.entries.map((e) => [e.actor, e.details]), [['kirill', { note: 'Petya' }]]);
+  });
+});
+

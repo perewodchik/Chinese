@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import type { AdminOverview } from '../../../shared/admin';
 import { ApiError } from '../../api/http';
-import { adminOverview, makeInvite } from '../../api/admin';
+import { adminOverview, makeInvite, revokeInvite } from '../../api/admin';
 import { deviceName } from '../../domain/device';
 import { paths } from '../../navigation/paths';
 import { copyText } from '../../platform/clipboard';
@@ -83,6 +83,20 @@ export function AdminPage() {
       void load();
     } catch (err) {
       if (!(err instanceof NotConfirmed)) setError(messageFor(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function takeBack(id: string) {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await confirm(() => revokeInvite(id));
+      toast('Taken back: the code no longer makes an account');
+      void load();
+    } catch (err) {
+      if (!(err instanceof NotConfirmed)) toast(messageFor(err));
     } finally {
       setBusy(false);
     }
@@ -202,18 +216,29 @@ export function AdminPage() {
         ) : (
           <ul className="list admin-list">
             {(data?.invites ?? []).map((i) => (
-              <li key={`${i.createdAt}-${i.note}`} className="admin-row">
-                <b>{i.note || 'For someone'}</b>
-                <span className="small muted">
-                  Made {day(i.createdAt)} ·{' '}
-                  {i.usedBy
-                    ? `used by ${i.usedBy} on ${day(i.usedAt!)}`
-                    : i.expiresAt && i.expiresAt <= Date.now()
-                      ? 'ran out unused'
-                      : i.expiresAt
-                        ? `good until ${day(i.expiresAt)}`
-                        : 'good with no end'}
+              <li key={i.id} className="admin-row admin-invite-row">
+                <span className="grow">
+                  <b>{i.note || 'For someone'}</b>
+                  <span className="small muted">
+                    Made {day(i.createdAt)}
+                    {i.createdBy ? ` by ${i.createdBy}` : ''} ·{' '}
+                    {i.usedBy
+                      ? `used by ${i.usedBy} on ${day(i.usedAt!)}`
+                      : i.revokedAt
+                        ? `taken back ${day(i.revokedAt)}`
+                        : i.expiresAt && i.expiresAt <= Date.now()
+                          ? 'ran out unused'
+                          : i.expiresAt
+                            ? `good until ${day(i.expiresAt)}`
+                            : 'good with no end'}
+                  </span>
                 </span>
+                {/* A8: one still good can be taken back, in case the link went to the wrong person. */}
+                {!i.usedBy && !i.revokedAt && !(i.expiresAt && i.expiresAt <= Date.now()) && (
+                  <button className="btn quiet sm" disabled={busy} onClick={() => void takeBack(i.id)}>
+                    Take back
+                  </button>
+                )}
               </li>
             ))}
           </ul>

@@ -327,4 +327,9 @@ export const MIGRATIONS: readonly string[] = [
   );
   CREATE INDEX password_resets_by_user ON password_resets (user_id);
   `,
+  // A8: an invitation taken back before it was used, and who made it.
+  `
+  ALTER TABLE invites ADD COLUMN revoked_at BIGINT;
+  ALTER TABLE invites ADD COLUMN created_by TEXT;
+  `,
 ];

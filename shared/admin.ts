@@ -15,7 +15,7 @@
  * list grows with the admin pages; a kind the page does not know is shown
  * as it is.
  */
-export const ADMIN_ACTIONS = ['invite-made', 'account-made', 'password-reset', 'reset-link', 'role-granted', 'role-revoked', 'blocked', 'unblocked', 'signed-out', 'catalog-published', 'catalog-updated', 'catalog-hidden', 'catalog-shown'] as const;
+export const ADMIN_ACTIONS = ['invite-made', 'invite-revoked', 'account-made', 'password-reset', 'reset-link', 'role-granted', 'role-revoked', 'blocked', 'unblocked', 'signed-out', 'catalog-published', 'catalog-updated', 'catalog-hidden', 'catalog-shown'] as const;
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];
 
 /** One line of the admins' log. Not the address it came from. */
@@ -55,11 +55,17 @@ export interface AdminAccount {
 }
 
 export interface AdminInvite {
+  /** its code's digest: opens nothing, names it to take it back (A8) */
+  id: string;
   note: string;
   createdAt: number;
   expiresAt: number | null;
   usedBy: string | null;
   usedAt: number | null;
+  /** A8: taken back before it was used */
+  revokedAt: number | null;
+  /** A8: who made it, by name; null for one made before that was kept */
+  createdBy: string | null;
 }
 
 /** Something that happened to an account: who, what, when, on what. Not the address. */

@@ -3,6 +3,8 @@ import { request } from './http';
 
 export const adminOverview = () => request<AdminOverview>('GET', '/api/admin/overview');
 /** An invitation for one account, `days` long (0: no end); its code is shown this once. */
+/** A8: an invitation taken back before it was used. */
+export const revokeInvite = (id: string) => request<void>('POST', `/api/admin/invites/${encodeURIComponent(id)}/revoke`);
 export const makeInvite = (note: string, days: number) => request<{ code: string; expiresAt: number | null }>('POST', '/api/admin/invites', { body: { note, days } });
 /** A page of what the admins did, newest first; `before` is the `next` of the page before. */
 export const adminLog = (q: { action?: string; name?: string; before?: number }) => {

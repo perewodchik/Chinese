@@ -8,6 +8,8 @@ interface Row {
   expires_at: string | null;
   used_by: string | null;
   used_at: string | null;
+  revoked_at: string | null;
+  created_by: string | null;
 }
 
 // BIGINT comes back from pg as a string.
@@ -18,6 +20,8 @@ const toInvite = (r: Row): Invite => ({
   expiresAt: r.expires_at === null ? null : Number(r.expires_at),
   usedBy: r.used_by,
   usedAt: r.used_at === null ? null : Number(r.used_at),
+  revokedAt: r.revoked_at === null || r.revoked_at === undefined ? null : Number(r.revoked_at),
+  createdBy: r.created_by ?? null,
 });
 
 /** Invitations to make an account, in Postgres. */
@@ -25,19 +29,20 @@ export class PostgresInviteRepository implements InviteRepository {
   constructor(private readonly db: pg.Pool) {}
 
   async insert(i: Invite): Promise<void> {
-    await this.db.query('INSERT INTO invites (digest, note, created_at, expires_at, used_by, used_at) VALUES ($1, $2, $3, $4, $5, $6)', [
+    await this.db.query('INSERT INTO invites (digest, note, created_at, expires_at, used_by, used_at, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7)', [
       i.digest,
       i.note,
       i.createdAt,
       i.expiresAt,
       i.usedBy,
       i.usedAt,
+      i.createdBy ?? null,
     ]);
   }
 
   async claim(digest: string, userId: string, now: number): Promise<boolean> {
     const { rowCount } = await this.db.query(
-      'UPDATE invites SET used_by = $1, used_at = $2 WHERE digest = $3 AND used_by IS NULL AND (expires_at IS NULL OR expires_at > $2)',
+      'UPDATE invites SET used_by = $1, used_at = $2 WHERE digest = $3 AND used_by IS NULL AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > $2)',
       [userId, now, digest],
     );
     return rowCount === 1;
@@ -50,5 +55,10 @@ export class PostgresInviteRepository implements InviteRepository {
   async list(): Promise<Invite[]> {
     const { rows } = await this.db.query<Row>('SELECT * FROM invites ORDER BY created_at');
     return rows.map(toInvite);
+  }
+
+  async revoke(digest: string, at: number): Promise<boolean> {
+    const { rowCount } = await this.db.query('UPDATE invites SET revoked_at = $1 WHERE digest = $2 AND used_by IS NULL AND revoked_at IS NULL', [at, digest]);
+    return rowCount === 1;
   }
 }

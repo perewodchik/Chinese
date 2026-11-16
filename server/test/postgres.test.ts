@@ -174,7 +174,7 @@ describe('Postgres storage', () => {
     await stores.invites.release('d1', 'u2');
     assert.equal((await stores.invites.list())[0]!.usedBy, 'u1');
     await stores.invites.release('d1', 'u1');
-    assert.deepEqual((await stores.invites.list())[0], { digest: 'd1', note: 'Masha', createdAt: T, expiresAt: T + 1000, usedBy: null, usedAt: null });
+    assert.deepEqual((await stores.invites.list())[0], { digest: 'd1', note: 'Masha', createdAt: T, expiresAt: T + 1000, usedBy: null, usedAt: null, revokedAt: null, createdBy: null });
   });
 
   it('counts attempts per key per window in one statement, and forgets a key or an old window', async () => {
@@ -315,5 +315,15 @@ describe('Postgres storage', () => {
     assert.equal(await stores.passwordResets.find('d2', at + 1000), null);
     assert.equal(await stores.passwordResets.use('d2', at + 1), 'reset-1');
     assert.equal(await stores.passwordResets.use('d2', at + 2), null);
+  });
+
+  it('takes an invitation back once, and a taken-back one makes no account (A8)', async () => {
+    await stores.users.insert(user('inv-1'));
+    await stores.invites.insert({ digest: 'inv-d', note: 'n', createdAt: T, expiresAt: null, usedBy: null, usedAt: null, createdBy: 'inv-1' });
+    assert.equal(await stores.invites.revoke('inv-d', T + 1), true);
+    assert.equal(await stores.invites.revoke('inv-d', T + 2), false);
+    assert.equal(await stores.invites.claim('inv-d', 'inv-1', T + 3), false);
+    const kept = (await stores.invites.list()).find((i) => i.digest === 'inv-d')!;
+    assert.deepEqual([kept.revokedAt, kept.createdBy], [T + 1, 'inv-1']);
   });
 });

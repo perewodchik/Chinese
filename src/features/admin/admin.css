@@ -50,6 +50,19 @@
   min-width: 0;
 }
 
+/* An invitation with Take back on its right (A8). */
+.admin-invite-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-invite-row .grow {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
 /* A refused sign-in is the one thing here in the teacher's red. */
 .admin-kind[data-state='wrong'] {
   color: var(--red);

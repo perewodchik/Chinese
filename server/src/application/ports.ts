@@ -367,6 +367,9 @@ export interface Invite {
   expiresAt: number | null;
   usedBy: string | null;
   usedAt: number | null;
+  /** A8: taken back before it was used; and the account that made it */
+  revokedAt?: number | null;
+  createdBy?: string | null;
 }
 
 export interface InviteRepository {
@@ -379,6 +382,8 @@ export interface InviteRepository {
   /** Gives back a claim whose account could not be made after all. */
   release(digest: string, userId: string): Promise<void>;
   list(): Promise<Invite[]>;
+  /** A8: takes back an invitation not used yet; false when it was used, taken back already, or is not there. */
+  revoke(digest: string, at: number): Promise<boolean>;
 }
 
 /** The codes an account can set a new password with, kept as digests. */

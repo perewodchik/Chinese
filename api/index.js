@@ -386,15 +386,36 @@ var AuthService = class {
     const code = Array.from({ length: INVITE_LENGTH }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join("");
     const now = this.deps.clock.now();
     const expiresAt = days === null ? null : now + days * DAY;
-    await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null });
+    await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null, createdBy: actor.id });
     await this.record(actor, "invite-made", null, { note: note.trim().slice(0, 120), days });
     return { code: code.match(/.{1,4}/g).join("-"), note, expiresAt };
   }
-  /** The invitations given out, with who used each (by name) — never their codes, which are not kept. */
+  /**
+   * The invitations given out, with who made and who used each (by name) —
+   * never their codes, which are not kept. `id` is the code's digest, which
+   * opens nothing: it is how one is taken back.
+   */
   async invites() {
     const [list, users] = await Promise.all([this.deps.invites.list(), this.deps.users.list()]);
     const name = new Map(users.map((u) => [u.id, u.username]));
-    return list.map((i) => ({ note: i.note, createdAt: i.createdAt, expiresAt: i.expiresAt, usedBy: i.usedBy ? name.get(i.usedBy) ?? "an account since deleted" : null, usedAt: i.usedAt }));
+    const who = (id) => id ? name.get(id) ?? "an account since deleted" : null;
+    return list.map((i) => ({
+      id: i.digest,
+      note: i.note,
+      createdAt: i.createdAt,
+      expiresAt: i.expiresAt,
+      usedBy: who(i.usedBy),
+      usedAt: i.usedAt,
+      revokedAt: i.revokedAt ?? null,
+      createdBy: who(i.createdBy)
+    }));
+  }
+  /** A8: an invitation taken back before anyone used it; in the admins' log. */
+  async revokeInvite(id, actor) {
+    const invite = (await this.deps.invites.list()).find((i) => i.digest === id);
+    if (!invite) throw new NotFoundError("That invitation");
+    if (!await this.deps.invites.revoke(id, this.deps.clock.now())) throw new ValidationError(invite.usedBy ? "That invitation has been used already." : "That invitation was taken back already.");
+    await this.record(actor, "invite-revoked", null, { note: invite.note });
   }
   /** An account made by whoever runs the server, whether or not sign-ups are open. No session comes with it. */
   async addUser(username, password, actor) {
@@ -2930,6 +2951,11 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, st
     await catalog.setHidden(actor(c), c.req.param("id"), hidden);
     return c.body(null, 204);
   });
+  routes.post("/invites/:id/revoke", session, admin, fresh, async (c) => {
+    await changes.consume(c.get("session").user.id);
+    await auth.revokeInvite(c.req.param("id"), actor(c));
+    return c.body(null, 204);
+  });
   routes.post("/invites", session, admin, fresh, async (c) => {
     await invites.consume(c.get("session").user.id);
     const { note, days } = await readJson(c, inviteRequest);
@@ -4410,6 +4436,11 @@ var MIGRATIONS = [
     used_at     BIGINT
   );
   CREATE INDEX password_resets_by_user ON password_resets (user_id);
+  `,
+  // A8: an invitation taken back before it was used, and who made it.
+  `
+  ALTER TABLE invites ADD COLUMN revoked_at BIGINT;
+  ALTER TABLE invites ADD COLUMN created_by TEXT;
   `
 ];
 
@@ -5154,25 +5185,28 @@ var toInvite = (r) => ({
   createdAt: Number(r.created_at),
   expiresAt: r.expires_at === null ? null : Number(r.expires_at),
   usedBy: r.used_by,
-  usedAt: r.used_at === null ? null : Number(r.used_at)
+  usedAt: r.used_at === null ? null : Number(r.used_at),
+  revokedAt: r.revoked_at === null || r.revoked_at === void 0 ? null : Number(r.revoked_at),
+  createdBy: r.created_by ?? null
 });
 var PostgresInviteRepository = class {
   constructor(db) {
     this.db = db;
   }
   async insert(i) {
-    await this.db.query("INSERT INTO invites (digest, note, created_at, expires_at, used_by, used_at) VALUES ($1, $2, $3, $4, $5, $6)", [
+    await this.db.query("INSERT INTO invites (digest, note, created_at, expires_at, used_by, used_at, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7)", [
       i.digest,
       i.note,
       i.createdAt,
       i.expiresAt,
       i.usedBy,
-      i.usedAt
+      i.usedAt,
+      i.createdBy ?? null
     ]);
   }
   async claim(digest, userId, now) {
     const { rowCount } = await this.db.query(
-      "UPDATE invites SET used_by = $1, used_at = $2 WHERE digest = $3 AND used_by IS NULL AND (expires_at IS NULL OR expires_at > $2)",
+      "UPDATE invites SET used_by = $1, used_at = $2 WHERE digest = $3 AND used_by IS NULL AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > $2)",
       [userId, now, digest]
     );
     return rowCount === 1;
@@ -5183,6 +5217,10 @@ var PostgresInviteRepository = class {
   async list() {
     const { rows } = await this.db.query("SELECT * FROM invites ORDER BY created_at");
     return rows.map(toInvite);
+  }
+  async revoke(digest, at) {
+    const { rowCount } = await this.db.query("UPDATE invites SET revoked_at = $1 WHERE digest = $2 AND used_by IS NULL AND revoked_at IS NULL", [at, digest]);
+    return rowCount === 1;
   }
 };
 
