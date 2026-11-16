@@ -17,7 +17,7 @@ import {
   ValidationError,
 } from '../domain/errors';
 import { randomInt } from 'node:crypto';
-import type { Actor, AdminLogRecord, AdminLogRepository, ApiTokenRepository, Clock, InviteRepository, PasswordHasher, RecoveryCodeRepository, SessionRepository, Tokens, UserRepository } from './ports';
+import type { Actor, AdminLogRecord, AdminLogRepository, ApiTokenRepository, Clock, InviteRepository, PasswordHasher, PasswordResetRepository, RecoveryCodeRepository, SessionRepository, Tokens, UserRepository } from './ports';
 
 const DAY = 86_400_000;
 
@@ -55,6 +55,8 @@ export interface AuthDeps {
   adminLog: AdminLogRepository;
   invites: InviteRepository;
   recoveryCodes: RecoveryCodeRepository;
+  /** A6: one-time links an admin makes for someone locked out */
+  passwordResets: PasswordResetRepository;
   hasher: PasswordHasher;
   tokens: Tokens;
   clock: Clock;
@@ -99,6 +101,10 @@ export interface IssuedInvite {
 /** Letters and digits that cannot be read as one another: no 0/O, 1/I/L. */
 const INVITE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const INVITE_LENGTH = 12;
+
+/** A6: how long an admin's reset link is, and how long it lasts. */
+const RESET_LENGTH = 24;
+const RESET_TTL = 24 * 60 * 60_000;
 
 /** How many recovery codes an account is given at a time, and how long each is. */
 const RECOVERY_CODES = 8;
@@ -446,6 +452,52 @@ export class AuthService {
     if (!user || code.length !== RECOVERY_LENGTH) throw refused;
     if (!(await recoveryCodes.use(user.id, this.recoveryDigest(user.id, code), clock.now()))) throw refused;
     if (user.status === 'blocked') throw new AccountBlockedError();
+    await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
+    await sessions.deleteForUser(user.id);
+    await this.deps.apiTokens.revokeForUser(user.id, clock.now());
+    return this.issue(user, input.userAgent);
+  }
+
+  /**
+   * A6: a link for someone locked out, made by an admin who never sees or
+   * sets the password — the person sets it themselves. Good once and for a
+   * day; an earlier unused link for the account stops working. Kept as its
+   * digest, and in the admins' log.
+   */
+  async makeResetLink(userId: string, actor: Actor): Promise<{ code: string; expiresAt: number }> {
+    const { users, passwordResets, clock, tokens } = this.deps;
+    const user = await users.findById(userId);
+    if (!user) throw new NotFoundError('That account');
+    if (user.id === actor.id) throw new ValidationError('Change your own password from your account page.');
+    if (user.status === 'blocked') throw new ValidationError('That account is paused: open it again first.');
+    const code = randomCode(RESET_LENGTH);
+    const now = clock.now();
+    const expiresAt = now + RESET_TTL;
+    await passwordResets.create({ digest: tokens.digest(`reset:${code}`), userId: user.id, createdAt: now, expiresAt, createdBy: actor.id ?? actor.name });
+    await this.record(actor, 'reset-link', user, {});
+    return { code, expiresAt };
+  }
+
+  /**
+   * A6: a new password set from an admin's reset link: the link is used up,
+   * every browser and token of the account is signed out, and this browser
+   * is signed in. A wrong, used or old link fails the same way.
+   */
+  async resetWithLink(input: { code: string; newPassword: string; userAgent: string | null }): Promise<IssuedSession> {
+    const { users, sessions, hasher, passwordResets, clock, tokens } = this.deps;
+    const code = normaliseInvite(input.code);
+    const refused = new ValidationError('That link has been used, is more than a day old, or is not a reset link. Ask for a new one.', { code: 'Not a link that works.' });
+    if (code.length !== RESET_LENGTH) throw refused;
+    if (!input.newPassword) throw new ValidationError('A new password.', { newPassword: 'A new password.' });
+    const digest = tokens.digest(`reset:${code}`);
+    // The password is checked against the account before the link is used up, so a weak one costs nothing.
+    const userId = await passwordResets.find(digest, clock.now());
+    const user = userId ? await users.findById(userId) : null;
+    if (!user) throw refused;
+    if (user.status === 'blocked') throw new AccountBlockedError();
+    const problem = passwordProblem(input.newPassword, user.username);
+    if (problem) throw new ValidationError(problem, { newPassword: problem });
+    if ((await passwordResets.use(digest, clock.now())) !== user.id) throw refused;
     await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
     await sessions.deleteForUser(user.id);
     await this.deps.apiTokens.revokeForUser(user.id, clock.now());

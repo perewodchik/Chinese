@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import type { AdminAccount } from '../../../shared/admin';
-import { blockAccount, signOutAccount, unblockAccount } from '../../api/admin';
+import { blockAccount, makeResetLink, signOutAccount, unblockAccount } from '../../api/admin';
+import { copyText } from '../../platform/clipboard';
+import { paths } from '../../navigation/paths';
 import { ApiError } from '../../api/http';
 import { Field } from '../../ui/Field';
 import { Icon } from '../../ui/Icon';
@@ -12,7 +14,8 @@ import { day, mb, plural } from './format';
 
 /**
  * One account on the site's page, with what an admin can do to it in its ⋯
- * menu: sign it out everywhere (its tokens too), pause it (with the reason,
+ * menu: a link for them to set a new password (A6, shown once in the row),
+ * sign it out everywhere (its tokens too), pause it (with the reason,
  * asked in the row), open it again. Nothing for the admin's own row, which
  * is looked after from the account page.
  *
@@ -39,6 +42,21 @@ export function AdminAccountRow({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<string | null>(null);
+  // A6: the reset link, shown here once — the server keeps only its digest.
+  const [resetLink, setResetLink] = useState<{ url: string; expiresAt: number } | null>(null);
+
+  async function makeLink() {
+    setBusy(true);
+    setError(null);
+    try {
+      const made = await confirm(() => makeResetLink(a.id));
+      setResetLink({ url: `${window.location.origin}${paths.resetPassword(made.code)}`, expiresAt: made.expiresAt });
+    } catch (err) {
+      if (!(err instanceof NotConfirmed)) setError(messageFor(err));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function act(run: () => Promise<unknown>, said: string) {
     setBusy(true);
@@ -85,6 +103,12 @@ export function AdminAccountRow({
           <Menu label={<Icon name="more" size={20} />} title={`What to do with ${a.username}`} className="icon-btn">
             {(close) => (
               <>
+                {!paused && (
+                  <button role="menuitem" className="btn ghost sm" disabled={busy} onClick={() => (close(), void makeLink())}>
+                    Make a reset link…
+                    <span className="tiny muted">for them to set a new password; you never see it</span>
+                  </button>
+                )}
                 <button role="menuitem" className="btn ghost sm" disabled={busy} onClick={() => (close(), void act(() => signOutAccount(a.id), `${a.username} is signed out everywhere`))}>
                   Sign out everywhere
                   <span className="tiny muted">every device, and its access tokens</span>
@@ -128,6 +152,23 @@ export function AdminAccountRow({
             </button>
           </div>
         </form>
+      )}
+      {resetLink && (
+        <div className="admin-pause admin-reset">
+          <p className="small" style={{ margin: 0 }}>
+            Send this to {a.username} yourself. It works once, until {new Date(resetLink.expiresAt).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}, and
+            signs them out everywhere when used. It is not shown again.
+          </p>
+          <input readOnly value={resetLink.url} onFocus={(e) => e.target.select()} aria-label="Reset link" />
+          <div className="row">
+            <button className="btn tonal" type="button" onClick={() => void copyText(resetLink.url).then((ok) => toast(ok ? 'Copied' : 'Select the link and copy it by hand'))}>
+              Copy the link
+            </button>
+            <button className="btn quiet" type="button" onClick={() => setResetLink(null)}>
+              Done
+            </button>
+          </div>
+        </div>
       )}
       {error && (
         <p className="notice error" role="alert">

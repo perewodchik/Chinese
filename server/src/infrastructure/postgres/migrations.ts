@@ -315,4 +315,16 @@ export const MIGRATIONS: readonly string[] = [
     created_at  BIGINT NOT NULL
   );
   `,
+  // A6: a link the admin makes for someone locked out, kept as its digest, good once and for a day.
+  `
+  CREATE TABLE password_resets (
+    digest      TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    created_at  BIGINT NOT NULL,
+    expires_at  BIGINT NOT NULL,
+    created_by  TEXT NOT NULL,
+    used_at     BIGINT
+  );
+  CREATE INDEX password_resets_by_user ON password_resets (user_id);
+  `,
 ];

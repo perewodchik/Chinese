@@ -206,6 +206,24 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
     return c.json(body);
   });
 
+  // A6: a new password from a link an admin made. Limited per address, and the
+  // codes are 24 random characters: a guess is not a way in.
+  const resetRequest = z.object({ code: z.string().max(64), newPassword: z.string().max(2048) });
+  routes.post('/reset', async (c) => {
+    const input = await readJson(c, resetRequest);
+    const ip = clientIp(c, trustProxy, ipHeader);
+    await perAddress.consume(ip);
+    await recoveries.consume(`reset ${ip}`);
+    const issued = await auth.resetWithLink({ ...input, userAgent: c.req.header('user-agent') ?? null }).catch((err: unknown) => {
+      if (err instanceof ValidationError && err.fields?.code) note(c, 'reset-refused', '');
+      throw err;
+    });
+    note(c, 'reset', issued.user.username);
+    writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
+    const body: SessionResponse = { user: issued.user };
+    return c.json(body);
+  });
+
   routes.post('/password', session, async (c) => {
     const input = await readJson(c, passwordChange);
     const { user, sessionId } = c.get('session');

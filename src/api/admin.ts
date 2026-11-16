@@ -17,4 +17,6 @@ export const adminLog = (q: { action?: string; name?: string; before?: number })
 /** An account paused, with the reason for the log; opened again; signed out everywhere with its tokens. */
 export const blockAccount = (id: string, reason: string) => request<void>('POST', `/api/admin/accounts/${encodeURIComponent(id)}/block`, { body: { reason } });
 export const unblockAccount = (id: string) => request<void>('POST', `/api/admin/accounts/${encodeURIComponent(id)}/unblock`);
+/** A6: a one-time link for someone locked out to set a new password; shown once, to pass on by hand. */
+export const makeResetLink = (id: string) => request<{ code: string; expiresAt: number }>('POST', `/api/admin/accounts/${encodeURIComponent(id)}/reset-link`);
 export const signOutAccount = (id: string) => request<{ sessions: number; tokens: number }>('POST', `/api/admin/accounts/${encodeURIComponent(id)}/sign-out`);

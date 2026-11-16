@@ -79,6 +79,8 @@ export const paths = {
   /** Chinese pasted or scanned in, made a text to read (T2): into a book, or a new one */
   addText: (shelf?: string) => withQuery('/read/add', { shelf }),
   /** a pasted text explained by the learner's own chat with Claude (T4) */
+  /** A6: where an admin's reset link leads: a new password, no name or old one asked */
+  resetPassword: (code: string) => withQuery('/recover', { reset: code }),
   explainText: (textId: string) => `/read/explain/${encodeURIComponent(textId)}`,
   /** a text put right by hand: its lines, title and place in its book (T7) */
   editText: (textId: string) => `/read/edit/${encodeURIComponent(textId)}`,

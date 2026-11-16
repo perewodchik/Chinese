@@ -382,6 +382,16 @@ export interface InviteRepository {
 }
 
 /** The codes an account can set a new password with, kept as digests. */
+/** A6: one-time links an admin makes so a locked-out learner can set a new password. */
+export interface PasswordResetRepository {
+  /** A new link for the account, as its digest; any earlier unused one for the account stops working. */
+  create(r: { digest: string; userId: string; createdAt: number; expiresAt: number; createdBy: string }): Promise<void>;
+  /** The account an unused link that is not past its time opens, or null; the link stays unused. */
+  find(digest: string, at: number): Promise<string | null>;
+  /** Uses the link if it is unused and not past its time, in one statement: the account it opens, or null. */
+  use(digest: string, at: number): Promise<string | null>;
+}
+
 export interface RecoveryCodeRepository {
   /** The account's codes, all of them replaced by these. */
   replace(userId: string, digests: string[], at: number): Promise<void>;

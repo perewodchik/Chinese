@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { PASSWORD_MIN, passwordProblem } from '../../../shared/credentials';
 import { ApiError } from '../../api/http';
 import { paths } from '../../navigation/paths';
@@ -17,6 +17,87 @@ import { useSession } from './session';
  * busy; refused (a wrong name and a wrong code read the same); signed in.
  */
 export function RecoverPage() {
+  const [query] = useSearchParams();
+  const reset = query.get('reset');
+  return reset ? <ResetWithLink code={reset} /> : <RecoverWithCode />;
+}
+
+/**
+ * A6: a new password from a link an admin made — no name and no code to
+ * type, as the link carries them. Used once; every other device is signed
+ * out, and this one signed in.
+ *
+ * States: empty; a field's problem once tried; busy; refused (used, old or
+ * not a link: ask for a new one); signed in.
+ */
+function ResetWithLink({ code }: { code: string }) {
+  const { reset } = useSession();
+  const [password, setPassword] = useState('');
+  const [again, setAgain] = useState('');
+  const [tried, setTried] = useState(false);
+  const [serverFields, setServerFields] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const problems = {
+    password: serverFields.newPassword ?? passwordProblem(password, ''),
+    again: again !== password ? 'The two passwords are different.' : null,
+  };
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setTried(true);
+    if (busy || problems.password || problems.again) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await reset(code, password);
+    } catch (err) {
+      if (err instanceof ApiError && err.fields.newPassword) setServerFields(err.fields);
+      else setError(err instanceof ApiError && err.fields.code ? err.fields.code + ' ' + err.message : messageFor(err));
+      setBusy(false);
+    }
+  }
+
+  return (
+    <AuthLayout
+      title="A new password"
+      lede="Whoever runs the site made this link for you. Choose a new password: the link works once, and every other device is signed out."
+      footer={
+        <>
+          Remembered it? <Link to={paths.login()}>Sign in</Link>
+        </>
+      }
+    >
+      <form className="auth-form" onSubmit={submit} noValidate>
+        <Field label="New password" hint={`At least ${PASSWORD_MIN} characters.`} error={tried || serverFields.newPassword ? problems.password : null}>
+          <input
+            type="password"
+            name="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setServerFields({});
+            }}
+          />
+        </Field>
+        <Field label="New password again" error={tried ? problems.again : null}>
+          <input type="password" name="password-again" autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} />
+        </Field>
+        {error && (
+          <p className="notice error" role="alert">
+            {error}
+          </p>
+        )}
+        <button className="btn primary" type="submit" disabled={busy}>
+          {busy ? 'Setting it…' : 'Set the new password'}
+        </button>
+      </form>
+    </AuthLayout>
+  );
+}
+
+function RecoverWithCode() {
   const { recover } = useSession();
   const [username, setUsername] = useState('');
   const [code, setCode] = useState('');

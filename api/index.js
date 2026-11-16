@@ -327,6 +327,8 @@ var DEFAULT_AUTH_POLICY = {
 };
 var INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 var INVITE_LENGTH = 12;
+var RESET_LENGTH = 24;
+var RESET_TTL = 24 * 60 * 6e4;
 var RECOVERY_CODES = 8;
 var RECOVERY_LENGTH = 10;
 var SAME_BROWSER_STALE_MS = 7 * DAY;
@@ -600,6 +602,49 @@ var AuthService = class {
     if (!user || code.length !== RECOVERY_LENGTH) throw refused;
     if (!await recoveryCodes.use(user.id, this.recoveryDigest(user.id, code), clock.now())) throw refused;
     if (user.status === "blocked") throw new AccountBlockedError();
+    await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
+    await sessions.deleteForUser(user.id);
+    await this.deps.apiTokens.revokeForUser(user.id, clock.now());
+    return this.issue(user, input.userAgent);
+  }
+  /**
+   * A6: a link for someone locked out, made by an admin who never sees or
+   * sets the password — the person sets it themselves. Good once and for a
+   * day; an earlier unused link for the account stops working. Kept as its
+   * digest, and in the admins' log.
+   */
+  async makeResetLink(userId, actor) {
+    const { users, passwordResets, clock, tokens } = this.deps;
+    const user = await users.findById(userId);
+    if (!user) throw new NotFoundError("That account");
+    if (user.id === actor.id) throw new ValidationError("Change your own password from your account page.");
+    if (user.status === "blocked") throw new ValidationError("That account is paused: open it again first.");
+    const code = randomCode(RESET_LENGTH);
+    const now = clock.now();
+    const expiresAt = now + RESET_TTL;
+    await passwordResets.create({ digest: tokens.digest(`reset:${code}`), userId: user.id, createdAt: now, expiresAt, createdBy: actor.id ?? actor.name });
+    await this.record(actor, "reset-link", user, {});
+    return { code, expiresAt };
+  }
+  /**
+   * A6: a new password set from an admin's reset link: the link is used up,
+   * every browser and token of the account is signed out, and this browser
+   * is signed in. A wrong, used or old link fails the same way.
+   */
+  async resetWithLink(input) {
+    const { users, sessions, hasher, passwordResets, clock, tokens } = this.deps;
+    const code = normaliseInvite(input.code);
+    const refused = new ValidationError("That link has been used, is more than a day old, or is not a reset link. Ask for a new one.", { code: "Not a link that works." });
+    if (code.length !== RESET_LENGTH) throw refused;
+    if (!input.newPassword) throw new ValidationError("A new password.", { newPassword: "A new password." });
+    const digest = tokens.digest(`reset:${code}`);
+    const userId = await passwordResets.find(digest, clock.now());
+    const user = userId ? await users.findById(userId) : null;
+    if (!user) throw refused;
+    if (user.status === "blocked") throw new AccountBlockedError();
+    const problem = passwordProblem(input.newPassword, user.username);
+    if (problem) throw new ValidationError(problem, { newPassword: problem });
+    if (await passwordResets.use(digest, clock.now()) !== user.id) throw refused;
     await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
     await sessions.deleteForUser(user.id);
     await this.deps.apiTokens.revokeForUser(user.id, clock.now());
@@ -2337,6 +2382,7 @@ function createServices(stores, options = {}) {
     apiTokens: stores.apiTokens,
     invites: stores.invites,
     recoveryCodes: stores.recoveryCodes,
+    passwordResets: stores.passwordResets,
     adminLog: stores.adminLog,
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
@@ -2852,6 +2898,11 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, st
     await auth.setStatusById(c.req.param("id"), "active", actor(c));
     return c.body(null, 204);
   });
+  routes.post("/accounts/:id/reset-link", session, admin, fresh, async (c) => {
+    await changes.consume(c.get("session").user.id);
+    c.header("Cache-Control", "no-store");
+    return c.json(await auth.makeResetLink(c.req.param("id"), actor(c)));
+  });
   routes.post("/accounts/:id/sign-out", session, admin, fresh, async (c) => {
     await changes.consume(c.get("session").user.id);
     return c.json(await auth.signOutEverywhere(c.req.param("id"), actor(c)));
@@ -3090,6 +3141,21 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
       throw err;
     });
     note(c, "recovery", issued.user.username);
+    writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
+    const body = { user: issued.user };
+    return c.json(body);
+  });
+  const resetRequest = z6.object({ code: z6.string().max(64), newPassword: z6.string().max(2048) });
+  routes.post("/reset", async (c) => {
+    const input = await readJson(c, resetRequest);
+    const ip = clientIp(c, trustProxy, ipHeader);
+    await perAddress.consume(ip);
+    await recoveries.consume(`reset ${ip}`);
+    const issued = await auth.resetWithLink({ ...input, userAgent: c.req.header("user-agent") ?? null }).catch((err) => {
+      if (err instanceof ValidationError && err.fields?.code) note(c, "reset-refused", "");
+      throw err;
+    });
+    note(c, "reset", issued.user.username);
     writeSessionCookie(c, issued.token, issued.expiresAt - clock.now(), isHttps(c, trustProxy));
     const body = { user: issued.user };
     return c.json(body);
@@ -4332,6 +4398,18 @@ var MIGRATIONS = [
     bytes       BYTEA NOT NULL,
     created_at  BIGINT NOT NULL
   );
+  `,
+  // A6: a link the admin makes for someone locked out, kept as its digest, good once and for a day.
+  `
+  CREATE TABLE password_resets (
+    digest      TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    created_at  BIGINT NOT NULL,
+    expires_at  BIGINT NOT NULL,
+    created_by  TEXT NOT NULL,
+    used_at     BIGINT
+  );
+  CREATE INDEX password_resets_by_user ON password_resets (user_id);
   `
 ];
 
@@ -5214,6 +5292,44 @@ var PostgresRecoveryCodeRepository = class {
   }
 };
 
+// server/src/infrastructure/postgres/password-reset-repository.ts
+var PostgresPasswordResetRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async create(r) {
+    const client = await this.db.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("DELETE FROM password_resets WHERE user_id = $1 AND used_at IS NULL", [r.userId]);
+      await client.query("INSERT INTO password_resets (digest, user_id, created_at, expires_at, created_by, used_at) VALUES ($1, $2, $3, $4, $5, NULL)", [
+        r.digest,
+        r.userId,
+        r.createdAt,
+        r.expiresAt,
+        r.createdBy
+      ]);
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+  async find(digest, at) {
+    const { rows } = await this.db.query("SELECT user_id FROM password_resets WHERE digest = $1 AND used_at IS NULL AND expires_at > $2", [digest, at]);
+    return rows[0]?.user_id ?? null;
+  }
+  async use(digest, at) {
+    const { rows } = await this.db.query(
+      "UPDATE password_resets SET used_at = $1 WHERE digest = $2 AND used_at IS NULL AND expires_at > $1 RETURNING user_id",
+      [at, digest]
+    );
+    return rows[0]?.user_id ?? null;
+  }
+};
+
 // server/src/infrastructure/postgres/workspace-repository.ts
 var PostgresWorkspaceRepository = class {
   constructor(db) {
@@ -5317,7 +5433,8 @@ var postgresStores = (db) => ({
   catalog: new PostgresCatalogRepository(db),
   adminLog: new PostgresAdminLog(db),
   audit: new PostgresAuditLog(db),
-  recoveryCodes: new PostgresRecoveryCodeRepository(db)
+  recoveryCodes: new PostgresRecoveryCodeRepository(db),
+  passwordResets: new PostgresPasswordResetRepository(db)
 });
 
 // server/src/vercel.ts

@@ -29,6 +29,7 @@ import type {
   InviteRepository,
   RateLimitStore,
   LookupCache,
+  PasswordResetRepository,
   RecoveryCodeRepository,
   StorageMeter,
   AuditLog,
@@ -102,6 +103,7 @@ export interface Stores {
   limits: RateLimitStore;
   lookups: LookupCache;
   recoveryCodes: RecoveryCodeRepository;
+  passwordResets: PasswordResetRepository;
   storage: StorageMeter;
   audit: AuditLog;
   adminLog: AdminLogRepository;
@@ -146,6 +148,7 @@ export function createServices(
     apiTokens: stores.apiTokens,
     invites: stores.invites,
     recoveryCodes: stores.recoveryCodes,
+    passwordResets: stores.passwordResets,
     adminLog: stores.adminLog,
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,

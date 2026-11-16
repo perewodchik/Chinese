@@ -20,6 +20,7 @@ import { SqliteLookupCache } from './lookup-cache';
 import { SqliteStorageMeter } from './storage-meter';
 import { SqliteAuditLog } from './audit-log';
 import { SqliteRecoveryCodeRepository } from './recovery-code-repository';
+import { SqlitePasswordResetRepository } from './password-reset-repository';
 import { SqliteWorkspaceRepository } from './workspace-repository';
 import { SqliteWorldSaveRepository } from './world-save-repository';
 
@@ -47,4 +48,5 @@ export const sqliteStores = (db: DatabaseSync): Stores => ({
   adminLog: new SqliteAdminLog(db),
   audit: new SqliteAuditLog(db),
   recoveryCodes: new SqliteRecoveryCodeRepository(db),
+  passwordResets: new SqlitePasswordResetRepository(db),
 });

@@ -104,6 +104,13 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, us
     return c.body(null, 204);
   });
 
+  // A6: a link for someone locked out, to pass on by hand; the admin never sees or sets the password.
+  routes.post('/accounts/:id/reset-link', session, admin, fresh, async (c) => {
+    await changes.consume(c.get('session').user.id);
+    c.header('Cache-Control', 'no-store');
+    return c.json(await auth.makeResetLink(c.req.param('id'), actor(c)));
+  });
+
   routes.post('/accounts/:id/sign-out', session, admin, fresh, async (c) => {
     await changes.consume(c.get('session').user.id);
     return c.json(await auth.signOutEverywhere(c.req.param('id'), actor(c)));

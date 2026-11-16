@@ -26,6 +26,8 @@ interface SessionApi {
   register(username: string, password: string, invite?: string): Promise<void>;
   /** A new password set with a recovery code, and signed in. */
   recover(username: string, code: string, newPassword: string): Promise<void>;
+  /** A6: a new password set from an admin's reset link, and signed in. */
+  reset(code: string, newPassword: string): Promise<void>;
   signOut(): Promise<void>;
   /** The account was deleted: what this device kept for it goes, and the sign-in page comes back. */
   deleted(): void;
@@ -106,6 +108,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     if (enter(user)) setSession({ status: 'signed-in', user });
   }, []);
 
+  const reset = useCallback(async (code: string, newPassword: string) => {
+    const { user } = await authApi.reset({ code, newPassword });
+    if (enter(user)) setSession({ status: 'signed-in', user });
+  }, []);
+
   const signOut = useCallback(async () => {
     await Promise.race([flushWorkspace(), new Promise((resolve) => setTimeout(resolve, SIGN_OUT_WAIT_MS))]);
     try {
@@ -127,8 +134,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ session, signIn, register, recover, signOut, deleted, retry: check }),
-    [session, signIn, register, recover, signOut, deleted, check],
+    () => ({ session, signIn, register, recover, reset, signOut, deleted, retry: check }),
+    [session, signIn, register, recover, reset, signOut, deleted, check],
   );
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }

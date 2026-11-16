@@ -304,4 +304,16 @@ describe('Postgres storage', () => {
     assert.deepEqual(await stores.catalog.findPicture('k1'), { mime: 'image/png', bytes });
     assert.equal(await stores.catalog.findPicture('k2'), null);
   });
+
+  it('keeps a reset link once, for a day, the newer one for an account replacing the older (A6)', async () => {
+    await stores.users.insert(user('reset-1'));
+    const at = T + 10;
+    await stores.passwordResets.create({ digest: 'd1', userId: 'reset-1', createdAt: at, expiresAt: at + 1000, createdBy: 'admin' });
+    await stores.passwordResets.create({ digest: 'd2', userId: 'reset-1', createdAt: at, expiresAt: at + 1000, createdBy: 'admin' });
+    assert.equal(await stores.passwordResets.find('d1', at), null);
+    assert.equal(await stores.passwordResets.find('d2', at), 'reset-1');
+    assert.equal(await stores.passwordResets.find('d2', at + 1000), null);
+    assert.equal(await stores.passwordResets.use('d2', at + 1), 'reset-1');
+    assert.equal(await stores.passwordResets.use('d2', at + 2), null);
+  });
 });
