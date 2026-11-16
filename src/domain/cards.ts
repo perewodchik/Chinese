@@ -1,7 +1,7 @@
 import type { Library } from '../data/types';
 import { idValue, isCharId, isWordId, type ItemId } from './ids';
 import { isDue, type RecallBook } from './memory';
-import { interleave, planReview, type SessionTarget } from './reviewSession';
+import { interleave, leeches, planReview, type SessionTarget } from './reviewSession';
 import type { TextSet } from './text';
 import { answeredSince, startOfToday } from './today';
 
@@ -116,6 +116,22 @@ export function planShelf(lib: Library, book: RecallBook, set: TextSet, now: num
     due: met.filter((t) => isDue(t.record, now)).length,
     waiting: fresh,
   };
+}
+
+/**
+ * The ones that keep being missed (G8), as a sitting of their own: each asked
+ * the way it is missed most, among the kinds of card switched on, worst
+ * first. A word is only ever turned over.
+ */
+export function planStubborn(book: RecallBook, now: number, size: number, skills: readonly CardSkill[] = CARD_SKILLS): CardPlan {
+  const cards: Array<SessionTarget & { fresh: boolean }> = [];
+  for (const { id } of leeches(book)) {
+    const asked = (isWordId(id) ? (['recognise'] as CardSkill[]) : skills).filter((k) => skills.includes(k) && book[id]?.[k]);
+    const skill = asked.sort((a, b) => book[id]![b]!.lapses - book[id]![a]!.lapses)[0];
+    if (skill) cards.push({ id, skill, record: book[id]![skill]!, fresh: false });
+    if (cards.length >= size) break;
+  }
+  return { cards, answeredToday: answeredSince(book, startOfToday(now)), left: size, due: cards.filter((c) => isDue(c.record!, now)).length, waiting: [] };
 }
 
 /** New cards spread through the due ones, one in every few, rather than bunched at the start. */

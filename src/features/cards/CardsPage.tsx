@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router';
-import { CARD_SIZES, CARD_SKILLS, planCards } from '../../domain/cards';
+import { CARD_SIZES, CARD_SKILLS, planCards, planStubborn } from '../../domain/cards';
 import { idValue } from '../../domain/ids';
+import { itemInfo } from '../../domain/exercises/items';
 import { firstUnread } from '../../domain/text';
 import { NEW_PER_DAY } from '../../domain/lesson';
 import { paths } from '../../navigation/paths';
 import { setSettings } from '../../store/commands';
+import { useOpenItem } from '../../navigation/itemDrawer';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
@@ -109,6 +111,8 @@ export function CardsPage() {
         </div>
       </section>
 
+      <KeepMissing />
+
       <section className="block">
         <h2 className="block-title">What the cards ask</h2>
         <div className="list">
@@ -194,5 +198,43 @@ export function CardsPage() {
       </section>
 
     </div>
+  );
+}
+
+/**
+ * What keeps being missed (G8), where something can be done about it: the
+ * items missed four times or more, each a tap from its drawer, and a sitting
+ * of just those. Nothing when there are none.
+ */
+function KeepMissing() {
+  const lib = useLibrary();
+  const recall = useStore((s) => s.recall);
+  const skills = useStore((s) => s.settings.cardSkills);
+  const openItem = useOpenItem();
+  // Only what a card can still ask: one missed only in writing, with writing off, waits.
+  const list = useMemo(() => planStubborn(recall, Date.now(), Infinity, skills).cards.map((c) => ({ id: c.id, lapses: c.record!.lapses })), [recall, skills]);
+  if (!list.length) return null;
+  return (
+    <section className="block">
+      <div className="row keep-missing-head">
+        <h2 className="block-title grow">Keep missing · {list.length}</h2>
+        <Link className="btn tonal sm" to={paths.cardSession({ missed: true })}>
+          Practise them
+        </Link>
+      </div>
+      <p className="small muted keep-missing-lede">Missed four times or more. A look at each in its drawer often does more than asking again.</p>
+      <div className="keep-missing">
+        {list.slice(0, 24).map((l) => {
+          const info = itemInfo(lib, l.id);
+          return (
+            <button key={l.id} className="keep-missing-item" onClick={() => openItem(l.id)}>
+              <b className="hanzi">{info?.text ?? l.id.slice(1)}</b>
+              <i>{info?.py}</i>
+              <span className="tiny muted">{l.lapses}×</span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 }

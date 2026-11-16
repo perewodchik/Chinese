@@ -141,8 +141,8 @@ export const paths = {
   /** the cards: how many today, and the ways to practise one kind */
   cards: () => '/cards',
   /** one sitting of cards; `n` asks for fewer (or more) than the day's size */
-  cardSession: (at: { n?: number; shelf?: string } = {}) =>
-    withQuery('/cards/session', { n: at.n ? String(at.n) : undefined, shelf: at.shelf }),
+  cardSession: (at: { n?: number; shelf?: string; missed?: boolean } = {}) =>
+    withQuery('/cards/session', { n: at.n ? String(at.n) : undefined, shelf: at.shelf, missed: at.missed ? '1' : undefined }),
   /** how much has been learned, day by day and week by week */
   stats: () => '/progress',
 };

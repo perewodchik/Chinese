@@ -588,3 +588,48 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* Keep missing (G8): the stubborn ones, each opening its drawer. */
+.keep-missing-head {
+  align-items: center;
+  gap: 12px;
+}
+
+.keep-missing-head .block-title {
+  margin: 0;
+}
+
+.keep-missing-lede {
+  margin: 4px 0 10px;
+}
+
+.keep-missing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.keep-missing-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  min-height: 44px;
+  padding: 3px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  align-items: center;
+}
+
+.keep-missing-item b {
+  font-weight: 400;
+  font-size: 18px;
+}
+
+.keep-missing-item i {
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--accent);
+}

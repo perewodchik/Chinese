@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { CharacterEntry, Library } from '../data/types';
-import { planCards, planShelf, waitingCards } from './cards';
+import { planCards, planShelf, planStubborn, waitingCards } from './cards';
 import { charId, wordId, type ItemId } from './ids';
 import { DAY, grade, type RecallBook } from './memory';
 import type { TextSet } from './text';
@@ -87,5 +87,37 @@ describe('the cards', () => {
         [wordId('火车'), false],
       ],
     );
+  });
+});
+
+describe('the ones that keep being missed', () => {
+  const missed = (n: number, skill: 'recognise' | 'sound' | 'write') => {
+    let r = grade(undefined, 'good', NOW - 30 * DAY, skill);
+    for (let i = 0; i < n; i++) r = grade(r, 'again', NOW - (20 - i) * DAY, skill);
+    return r;
+  };
+
+  it('asks each the way it is missed most, worst first, and leaves the rest out', () => {
+    const book: RecallBook = {
+      [charId('火')]: { recognise: missed(4, 'recognise'), write: missed(6, 'write') },
+      [charId('车')]: { recognise: missed(5, 'recognise') },
+      [charId('好')]: { recognise: missed(1, 'recognise') },
+      [wordId('火车')]: { recognise: missed(4, 'recognise') },
+    };
+    const plan = planStubborn(book, NOW, 20);
+    assert.deepEqual(plan.cards.map((c) => [c.id, c.skill]), [
+      [charId('火'), 'write'],
+      [charId('车'), 'recognise'],
+      [wordId('火车'), 'recognise'],
+    ]);
+  });
+
+  it('never asks a kind of card that is switched off, and stops at the size', () => {
+    const book: RecallBook = {
+      [charId('火')]: { recognise: missed(4, 'recognise'), write: missed(6, 'write') },
+      [charId('车')]: { write: missed(5, 'write') },
+    };
+    assert.deepEqual(planStubborn(book, NOW, 20, ['recognise']).cards.map((c) => [c.id, c.skill]), [[charId('火'), 'recognise']]);
+    assert.equal(planStubborn(book, NOW, 1).cards.length, 1);
   });
 });

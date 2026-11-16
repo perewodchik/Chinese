@@ -2,7 +2,7 @@ import { levelOf } from '../../domain/memory';
 import { LevelMark } from '../../ui/LevelMark';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { planCards, planShelf, SECONDS_PER_CARD, type CardPlan, type CardSkill } from '../../domain/cards';
+import { type CardPlan, type CardSkill, planCards, planShelf, planStubborn, SECONDS_PER_CARD } from '../../domain/cards';
 import { checkPinyin, type PinyinCheck } from '../../domain/exercises/check';
 import { itemInfo, senses, type ItemInfo } from '../../domain/exercises/items';
 import { charId, idValue, isCharId } from '../../domain/ids';
@@ -42,6 +42,7 @@ export function CardSessionPage() {
     const n = Number(query.get('n')) || 0;
     const shelf = s.sets.find((x) => x.id === query.get('shelf'));
     if (shelf) return planShelf(lib, s.recall, shelf, Date.now(), n || 20);
+    if (query.get('missed')) return planStubborn(s.recall, Date.now(), n || 20, s.settings.cardSkills);
     // `n` is how many now, on top of whatever was answered today already: "only
     // ten" on a fresh day, "ten more" on a finished one.
     const answered = answeredSince(s.recall, startOfToday(Date.now()));
