@@ -433,23 +433,8 @@ strong {
   box-shadow: 0 0 0 2px var(--paper);
 }
 
-.nav-foot {
-  margin-top: auto;
-}
-
-.nav-foot .account-name {
-  display: none;
-}
-
-.nav-foot .account-button {
-  padding: 3px;
-}
-
-.account-menu[data-up] {
-  top: auto;
-  bottom: calc(100% + 6px);
-  left: 0;
-  right: auto;
+.nav-dot[data-quiet] {
+  background: var(--accent);
 }
 
 /* The app's line icons: one weight, round ends, the colour of their text. */
@@ -501,13 +486,6 @@ strong {
 .more-list > * + *,
 .more-foot {
   border-top: 1px solid var(--line);
-}
-
-/* Beside the rail the account has its own button at the rail's foot; the panel need not say it twice. */
-@media (min-width: 700px) {
-  .more-foot {
-    display: none;
-  }
 }
 
 .more-row {
@@ -584,10 +562,6 @@ strong {
     width: auto;
     height: 52px;
     font-size: 11px;
-  }
-
-  .nav-foot {
-    display: none;
   }
 
   .more-scrim {
@@ -4445,30 +4419,6 @@ label.field[data-invalid] input {
   max-width: 380px;
 }
 
-/* ------------------------------------------------------------ top bar */
-.account {
-  position: relative;
-}
-
-.account-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  max-width: 180px;
-  padding: 3px 10px 3px 3px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-2);
-  cursor: pointer;
-}
-
-.account-button:hover,
-.account-button[aria-expanded='true'] {
-  background: var(--card-2);
-  color: var(--ink);
-}
-
 .avatar {
   flex: none;
   width: 26px;
@@ -4482,51 +4432,9 @@ label.field[data-invalid] input {
   font-size: 12.5px;
 }
 
-.account-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 13px;
-}
-
-.account-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
-  z-index: 30;
-  min-width: 210px;
-  display: grid;
-  gap: 2px;
-  padding: 12px;
-  background: var(--card);
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  animation: rise 0.12s ease-out;
-}
-
-.account-who {
-  margin-bottom: 8px;
-  overflow-wrap: anywhere;
-}
-
-.account-menu .btn {
-  justify-content: flex-start;
-}
-
 .legacy-notice {
   margin-bottom: 16px;
   font-size: 13px;
-}
-
-@media (max-width: 860px) {
-  .account-name {
-    display: none;
-  }
-
-  .account-button {
-    padding: 3px;
-  }
 }
 
 /* --------------------------------------------------- writing on a tablet */

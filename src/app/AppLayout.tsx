@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
-import { AccountMenu } from '../features/auth/AccountMenu';
 import { useUser } from '../features/auth/session';
 import { useSignOut } from '../features/auth/useSignOut';
+import { useCardsToday } from '../features/cards/CardsPage';
 import { CharViewer } from '../features/library/CharViewer';
 import { ItemDrawer } from '../features/library/ItemDrawer';
 import { ProgressDrawer } from '../features/library/ProgressDrawer';
@@ -23,20 +23,21 @@ import { feedbackUrl } from '../platform/feedback';
 /** A review sitting's address: one drill, the words, the daily session, the cards, or the day's lesson. */
 const SITTING = /^\/(review\/(recognise|sound|tone|confuse|word|write|words|session)|learn|cards\/session)\/?$/;
 
-/** Where each section of More lives, so its tab stays lit while you are in one of them. */
-const MORE_PATHS = ['/cards', '/review', '/learn', '/videos', '/play', '/account', '/settings'];
+/** Where each section of Me lives, so its tab stays lit while you are in one of them. */
+const MORE_PATHS = ['/videos', '/play', '/progress', '/account', '/settings', '/admin'];
 
 /**
  * The frame every signed-in page sits in: the sections, the page, and the
  * drawer for a character or a word.
  *
- * Three places and a fourth for everything else. On a phone they sit along the
- * bottom edge, where a thumb already is, and never scroll: seven tabs across
- * the top had to scroll sideways and hid where you were. On an iPad or a
- * computer the same four stand in a narrow rail on the left, out of the
- * reading column's way. Each is named in English with its character above
- * it — 读 说 字 — which is one more thing read every day. Today is gone
- * (V2): the day's cards are a line at the top of Read.
+ * Four places and Me for everything else (V1): Read, where the app opens;
+ * Cards, the one thing to do every day, with a quiet dot while some wait;
+ * Speak; Library. On a phone they sit along the bottom edge, where a thumb
+ * already is, and never scroll. On an iPad or a computer the same five stand
+ * in a narrow rail on the left, out of the reading column's way. Each is
+ * named in English with its character above it — 读 卡 说 字 我 — which is
+ * one more thing read every day. Today is gone (V2): the day's cards are
+ * also a line at the top of Read.
  */
 export function AppLayout() {
   const theme = useStore((s) => s.settings.theme);
@@ -64,6 +65,7 @@ export function AppLayout() {
 
   const sections = [
     { to: paths.read(), han: '读', label: 'Read', also: ['/texts'] },
+    { to: paths.cards(), han: '卡', label: 'Cards', also: ['/review', '/learn'] },
     { to: paths.speaking(), han: '说', label: 'Speak', also: [] },
     { to: paths.library(), han: '字', label: 'Library', also: ['/collections', '/families'] },
   ];
@@ -78,6 +80,7 @@ export function AppLayout() {
           <Link key={s.to} to={s.to} className="nav-tab" aria-current={lit(s) ? 'page' : undefined}>
             <span className="nav-ic hanzi" aria-hidden>
               {s.han}
+              {s.to === paths.cards() && <CardsDot />}
             </span>
             {s.label}
           </Link>
@@ -90,15 +93,12 @@ export function AppLayout() {
           aria-current={inMore ? 'page' : undefined}
           onClick={() => setMore((m) => !m)}
         >
-          <span className="nav-ic" aria-hidden>
-            <Icon name="more" />
+          <span className="nav-ic hanzi" aria-hidden>
+            我
             <SyncDot />
           </span>
-          More
+          Me
         </button>
-        <div className="nav-foot">
-          <AccountMenu up />
-        </div>
       </nav>
 
       <main className="main" ref={main}>
@@ -123,7 +123,16 @@ export function AppLayout() {
   );
 }
 
-/** A dot on More when the work on screen has not reached the server: the one thing worth interrupting for. */
+/**
+ * A dot in ink on Cards while some wait today: there are cards, never a
+ * count of what is overdue.
+ */
+function CardsDot() {
+  const { count } = useCardsToday();
+  return count > 0 ? <i className="nav-dot" data-quiet="" aria-label="Cards waiting" /> : null;
+}
+
+/** A dot on Me when the work on screen has not reached the server: the one thing worth interrupting for. */
 function SyncDot() {
   const status = useSyncStatus();
   const trouble = status && (status.phase === 'offline' || status.phase === 'failing' || status.phase === 'signed-out');
@@ -131,7 +140,6 @@ function SyncDot() {
 }
 
 const MORE = [
-  { to: paths.cards(), han: '卡', label: 'Cards', blurb: 'The day’s cards and the drills' },
   { to: paths.videos(), han: '视', label: 'Videos', blurb: 'Watch, write it out, check it' },
   { to: paths.play(), han: '玩', label: 'Play', blurb: 'Games and the walk through Beijing' },
   { to: paths.stats(), han: '进', label: 'Progress', blurb: 'Days, words and characters over time' },
@@ -139,7 +147,7 @@ const MORE = [
 ];
 
 /**
- * Everything that is not one of the four places: a sheet from the bottom on a
+ * Me, everything that is not one of the four places: a sheet from the bottom on a
  * phone, a panel beside the rail on anything wider. Your name, at the foot of
  * the sheet, is the account: who you are, security and your data.
  */
@@ -148,7 +156,7 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
   const feedback = feedbackUrl(window.location.pathname, user.username);
   const { leave, leaving } = useSignOut();
   const panel = useRef<HTMLDivElement>(null);
-  // Beside the rail, the panel opens level with More rather than at the foot
+  // Beside the rail, the panel opens level with Me rather than at the foot
   // of the screen, a hand's width away from what was tapped.
   const [top, setTop] = useState<number | null>(null);
   useLayoutEffect(() => {
@@ -176,7 +184,7 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
       <div
         className="more-sheet"
         role="dialog"
-        aria-label="More"
+        aria-label="Me"
         ref={panel}
         tabIndex={-1}
         {...sheet.sheetProps}
@@ -220,7 +228,7 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
             </span>
             <Icon name="chevron" className="muted" />
           </Link>
-          {/* Whether the work is saved is said in Account › Your data, and by the dot on More when it is not (P18). */}
+          {/* Whether the work is saved is said in Account › Your data, and by the dot on Me when it is not (P18). */}
           <div className="row more-sync">
             <span className="spacer" />
             <button className="btn quiet sm" onClick={() => void leave()} disabled={leaving}>
