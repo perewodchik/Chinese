@@ -238,6 +238,7 @@ function textFrom(v: unknown): GeneratedText | null {
     // Texts stored before re-reading was counted have read it once, if at all.
     reads: typeof t.reads === 'number' ? t.reads : t.read === true ? 1 : 0,
     lastReadAt: typeof t.lastReadAt === 'number' ? t.lastReadAt : undefined,
+    ...optional('editedAt', typeof t.editedAt === 'number' ? t.editedAt : undefined),
     ...optional('story', storyFrom(t.story)),
     ...optional('endings', arr<string>(t.endings).filter((e) => typeof e === 'string')),
     ...optional('scenes', scenesOf(t.scenes, hasPicture)),

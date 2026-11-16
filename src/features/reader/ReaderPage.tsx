@@ -836,6 +836,12 @@ function ReaderMenu({
               How the PDF looks…
             </button>
             {mode === 'single' && (
+              <button role="menuitem" className="btn ghost sm" onClick={then(close, () => navigate(paths.editText(text.id)))}>
+                Edit text
+                <span className="tiny muted">a line’s Chinese, pinyin or English, its title, its place in the book</span>
+              </button>
+            )}
+            {mode === 'single' && (
               <button role="menuitem" className="btn ghost sm danger" onClick={then(close, remove)}>
                 Delete this text
               </button>

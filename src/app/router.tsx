@@ -27,6 +27,7 @@ import { TriesPage } from '../features/pinyin/TriesPage';
 import { SessionPage } from '../features/reader/SessionPage';
 import { AddTextPage } from '../features/reader/AddTextPage';
 import { ExplainTextPage } from '../features/reader/ExplainTextPage';
+import { EditTextPage } from '../features/reader/EditTextPage';
 import { ReaderPage } from '../features/reader/ReaderPage';
 import { ReadPage, ShelfPage } from '../features/reader/ReadPage';
 import { CardsPage } from '../features/cards/CardsPage';
@@ -74,6 +75,7 @@ import { RequireSession } from './RequireSession';
  *   /read/session/:step            a writing session: plan, prompt, paste
  *   /read/add?shelf                Chinese pasted or scanned in, made a text to read
  *   /read/explain/:textId          that text's English, words and questions, from the learner's Claude
+ *   /read/edit/:textId             a text put right by hand: its lines, title, place in its book
  *   /read/text/:setId?page&v&mode  a shelf read a text at a time: ?page=2, ?v=easy|book, ?mode=all
  *   /read/text/:textId             one passage — within a session, its page there
  *   /collections/…, /texts/…       moved (V14): the old addresses land on the new ones
@@ -197,6 +199,7 @@ export const router = createBrowserRouter([
               { path: 'read/session/:step?', element: <SessionPage /> },
               { path: 'read/add', element: <AddTextPage /> },
               { path: 'read/explain/:textId', element: <ExplainTextPage /> },
+              { path: 'read/edit/:textId', element: <EditTextPage /> },
               { path: 'read/text/:textId', element: <ReaderPage /> },
               { path: 'texts', element: <MovedAddress /> },
               { path: 'texts/*', element: <MovedAddress /> },

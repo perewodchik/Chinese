@@ -80,6 +80,8 @@ export const paths = {
   addText: (shelf?: string) => withQuery('/read/add', { shelf }),
   /** a pasted text explained by the learner's own chat with Claude (T4) */
   explainText: (textId: string) => `/read/explain/${encodeURIComponent(textId)}`,
+  /** a text put right by hand: its lines, title and place in its book (T7) */
+  editText: (textId: string) => `/read/edit/${encodeURIComponent(textId)}`,
 
   /**
    * Speaking — the section that was called Pinyin until the conversation grew

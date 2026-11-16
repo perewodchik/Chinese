@@ -282,12 +282,25 @@ describe('text collections', () => {
       type: 'text/explain',
       id: 'a1',
       patch: { lines: [{ zh: '你好。', py: 'nǐ hǎo', en: 'Hello.' }], vocab: [], questions: [], grammar: [], note: 'Say it warmly.', title: 'Hello', model: 'explained' },
+      at: 3,
     });
     const readMore = run(bare(), { type: 'text/markRead', id: 'a1', at: 5 });
     for (const merged of [mergeStates(explained, readMore), mergeStates(readMore, explained)]) {
       const t = merged.texts.find((x) => x.id === 'a1')!;
       assert.equal(t.lines[0]!.en, 'Hello.');
       assert.equal(t.note, 'Say it warmly.');
+      assert.equal(t.reads, 1);
+    }
+  });
+
+  it('keeps the text as it was edited last, on whichever device', () => {
+    const fix = (zh: string, at: number): Action => ({ type: 'text/edit', id: 'a1', patch: { lines: [{ zh, py: '', en: '' }], title: zh, titleZh: zh }, at });
+    const early = run(start(), fix('你好！', 5), { type: 'text/markRead', id: 'a1', at: 6 });
+    const late = run(start(), fix('您好。', 9));
+    for (const merged of [mergeStates(early, late), mergeStates(late, early)]) {
+      const t = merged.texts.find((x) => x.id === 'a1')!;
+      assert.equal(t.lines[0]!.zh, '您好。');
+      assert.equal(t.editedAt, 9);
       assert.equal(t.reads, 1);
     }
   });

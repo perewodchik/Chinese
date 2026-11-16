@@ -247,6 +247,14 @@ describe('what has been done with a text, and a shelf’s list (version 11)', ()
   });
 });
 
+describe('a text edited by hand (T7)', () => {
+  it('keeps when it was edited, and nothing that is not a time', () => {
+    const texts = (editedAt: unknown) => hydrate({ version: 11, collections: [], texts: [{ id: 't', lines: [{ zh: '好。', py: 'hǎo', en: 'Good.' }], editedAt }] }).texts;
+    assert.equal(texts(1234)[0]?.editedAt, 1234);
+    assert.equal('editedAt' in texts('soon')[0]!, false);
+  });
+});
+
 describe('a shelf that is a book of the shared catalogue', () => {
   const stored = (catalog: unknown) => ({ version: 11, collections: [], sets: [{ id: 's', name: 'Pikachu', createdAt: 1, catalog }] });
 

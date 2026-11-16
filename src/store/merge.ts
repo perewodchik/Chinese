@@ -32,10 +32,12 @@ export function mergeStates(account: AppState, incoming: AppState): AppState {
     ).sort((a, b) => b.printedAt - a.printedAt),
     texts: union(account.texts, incoming.texts, (ours, theirs) => {
       const later = (theirs.reads ?? 0) > (ours.reads ?? 0) ? theirs : ours;
-      // A pasted text explained on one device keeps its explanation (T4), whichever was read more.
+      // What the text says comes from the copy edited last (T7), or the one explained (T4) when
+      // neither says when — whichever was read more.
       const other = later === ours ? theirs : ours;
-      const kept = !isExplained(later) && isExplained(other)
-        ? { ...later, lines: other.lines, vocab: other.vocab, questions: other.questions, grammar: other.grammar, note: other.note, title: other.title, model: other.model }
+      const edited = (other.editedAt ?? 0) !== (later.editedAt ?? 0) ? (other.editedAt ?? 0) > (later.editedAt ?? 0) : !isExplained(later) && isExplained(other);
+      const kept = edited
+        ? { ...later, lines: other.lines, vocab: other.vocab, questions: other.questions, grammar: other.grammar, note: other.note, title: other.title, titleZh: other.titleZh, model: other.model, ...(other.editedAt ? { editedAt: other.editedAt } : {}) }
         : later;
       // endings found on either device stay found
       const endings = [...new Set([...(ours.endings ?? []), ...(theirs.endings ?? [])])];

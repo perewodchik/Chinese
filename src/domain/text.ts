@@ -380,6 +380,8 @@ export interface GeneratedText {
    */
   reads?: number;
   lastReadAt?: number;
+  /** when its lines or title were last changed by hand or by an explanation (T4, T7): the newer edit wins between devices */
+  editedAt?: number;
   /** what has been done with it besides reading: see `TextStudy` */
   study?: TextStudy;
 }

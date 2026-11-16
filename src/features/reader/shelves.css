@@ -1045,3 +1045,60 @@
   line-height: 1.5;
   min-height: 160px;
 }
+
+/* Editing a text by hand (T7). */
+.edit-text-state {
+  min-height: 1.5em;
+  margin: -4px 0 12px;
+  color: var(--ink-2);
+}
+
+.edit-text-state[data-warn] {
+  color: var(--ink);
+}
+
+.edit-text-place {
+  align-items: center;
+  margin: 12px 0 0;
+}
+
+.edit-lines {
+  display: grid;
+  gap: 0;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.edit-line {
+  display: grid;
+  gap: 8px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.edit-line-head {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.edit-line-para {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+}
+
+.edit-line-zh {
+  width: 100%;
+  font-size: 19px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.edit-line-py,
+.edit-line-actions {
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}

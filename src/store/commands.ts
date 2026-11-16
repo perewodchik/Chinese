@@ -203,7 +203,10 @@ export const markRead = (id: string) => dispatch({ type: 'text/markRead', id, at
 export const studyText = (id: string, study: TextStudy) => dispatch({ type: 'text/study', id, study });
 
 /** A pasted text explained: its lines' English and the rest, laid over it (T4). */
-export const explainText = (id: string, patch: Explanation) => dispatch({ type: 'text/explain', id, patch });
+export const explainText = (id: string, patch: Explanation) => dispatch({ type: 'text/explain', id, patch, at: now() });
+
+/** A text's lines and title, changed by hand (T7). */
+export const editText = (id: string, patch: Pick<GeneratedText, 'lines' | 'title' | 'titleZh'>) => dispatch({ type: 'text/edit', id, patch, at: now() });
 
 /** Items chosen to learn from a shelf's texts, or taken off its list. */
 export const setShelfStudy = (setId: string, items: ItemId[], add: boolean) =>

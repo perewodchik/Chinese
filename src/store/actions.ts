@@ -124,7 +124,9 @@ export type Action =
   /** something done with a text besides reading it: heard, translated, a character written, a question answered */
   | { type: 'text/study'; id: string; study: TextStudy }
   /** a pasted text's English, words, grammar and questions, brought back from Claude (T4) */
-  | { type: 'text/explain'; id: string; patch: Explanation }
+  | { type: 'text/explain'; id: string; patch: Explanation; at: number }
+  /** a text's lines and title changed by hand (T7) */
+  | { type: 'text/edit'; id: string; patch: Pick<GeneratedText, 'lines' | 'title' | 'titleZh'>; at: number }
   /** items chosen to learn from a shelf, or taken off its list */
   | { type: 'set/study'; id: string; items: ItemId[]; add: boolean }
   /** a video onto the shelf; one already there takes whatever the new copy has more of */
@@ -366,7 +368,8 @@ export function reduce(state: AppState, action: Action): AppState {
       return { ...state, play: recordGame(state.play, action.game) };
 
     case 'text/explain':
-      return { ...state, texts: state.texts.map((t) => (t.id === action.id ? { ...t, ...action.patch } : t)) };
+    case 'text/edit':
+      return { ...state, texts: state.texts.map((t) => (t.id === action.id ? { ...t, ...action.patch, editedAt: action.at } : t)) };
 
     case 'text/study':
       return {
