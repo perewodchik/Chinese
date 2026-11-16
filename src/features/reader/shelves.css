@@ -692,6 +692,59 @@
   white-space: nowrap;
 }
 
+/* ---------------------------------------------- adding a text (T2) */
+.add-text-page {
+  max-width: 720px;
+}
+
+.add-text-form {
+  display: grid;
+  gap: 12px;
+}
+
+.add-text-box {
+  width: 100%;
+  min-height: 200px;
+  resize: vertical;
+  font-size: 19px;
+  line-height: 1.7;
+}
+
+/* Two lines' room from the start: what it says changes as it is typed, the form below does not move. */
+.add-text-about {
+  min-height: 2.9em;
+  margin: -4px 0 0;
+  color: var(--ink-2);
+}
+
+.add-text-about[data-warn] {
+  color: var(--ink);
+}
+
+.add-text-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.add-text-other {
+  margin-top: 28px;
+}
+
+.add-text-other .text-row {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* A pasted text, until somebody gives its lines their English (T3). */
+.rd-draft-note {
+  margin: 0 0 14px;
+}
+
 /* ---------------------------------------------- a book's words and characters */
 /* How many, and a bar of their levels with the counts under it. */
 .bk-sum {

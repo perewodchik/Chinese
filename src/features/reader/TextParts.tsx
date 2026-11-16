@@ -516,7 +516,11 @@ export function MorePart({ text, partId }: { text: GeneratedText; partId: string
   return (
     <Section id={partId} han="更" title="More" aside="Practice, not counted">
       <div className="rd-more-list">
-        {row('translate', '译', 'Translate', 'Say what a line means, then check')}
+        {/* A pasted text has no English to check against (T3): said, not offered. */}
+        {!text.lines.some((l) => l.en) && (
+          <p className="small muted rd-draft-note">No English for its lines yet: it was pasted in, and its pinyin and words come from the dictionary.</p>
+        )}
+        {text.lines.some((l) => l.en) && row('translate', '译', 'Translate', 'Say what a line means, then check')}
         {open === 'translate' && (
           <div className="rd-more-body">
             <TranslateBody key={text.id} text={text} />

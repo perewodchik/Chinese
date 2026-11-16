@@ -142,6 +142,10 @@ export function ReadPage() {
         >
           {(close) => (
             <>
+              <button role="menuitem" className="btn ghost sm" onClick={() => (close(), navigate(paths.addText()))}>
+                Paste a text
+                <span className="tiny muted">Chinese from anywhere, or scanned off a page</span>
+              </button>
               <button role="menuitem" className="btn ghost sm" onClick={() => (close(), startSession(null))}>
                 Write texts with Claude
                 <span className="tiny muted">out of the characters you know</span>
@@ -520,6 +524,9 @@ export function ShelfPage() {
         <Menu label={<Icon name="more" size={22} />} title="More" className="icon-btn">
           {(close) => (
             <>
+              <button role="menuitem" className="btn ghost sm" onClick={() => (close(), navigate(paths.addText(set.id)))}>
+                Paste a text into this book
+              </button>
               <button role="menuitem" className="btn ghost sm" onClick={() => (close(), startSession(set.id, set.name))}>
                 Write more texts for this book
               </button>

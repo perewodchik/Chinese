@@ -76,6 +76,8 @@ export const paths = {
       v: at.mode !== 'all' ? at.version : undefined,
     }),
   session: (step: PlanStep = 'plan') => `/read/session/${step}`,
+  /** Chinese pasted or scanned in, made a text to read (T2): into a book, or a new one */
+  addText: (shelf?: string) => withQuery('/read/add', { shelf }),
 
   /**
    * Speaking — the section that was called Pinyin until the conversation grew
