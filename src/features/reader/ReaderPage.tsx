@@ -480,7 +480,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
                 text={text}
                 kicker={chapterHead(text, chapterAt(page - 1)).kicker}
                 chapter={story}
-                parts={['write', 'speak', 'words', ...(text.questions.length ? (['questions'] as const) : []), 'listen']}
+                // A text with no word list (from the catalogue, say) has no Words row to report "0 of 0".
+                parts={['write', 'speak', ...(text.vocab.length ? (['words'] as const) : []), ...(text.questions.length ? (['questions'] as const) : []), 'listen']}
                 fill={fill}
                 speak={{ said: saidLines, of: text.lines.length }}
                 onPart={(p) => (p === 'listen' ? !listening && listen() : pick(p === 'more' ? 'write' : (p as ChapterTab)))}

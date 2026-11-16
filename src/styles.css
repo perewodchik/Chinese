@@ -1450,6 +1450,14 @@ h2 {
 }
 
 /* A message that offers to undo: the button in it, in the paper's colour on the ink. */
+/* On a phone the menu runs along the bottom: a toast stands above it, not on its labels.
+   Without the menu (a text full screen, a sitting of cards) it keeps to the edge. */
+@media (max-width: 699px) {
+  body:has(.app:not([data-immersive]):not([data-focus]) > .nav) .toast {
+    bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 .toast[data-action] {
   display: flex;
   align-items: center;
