@@ -127,8 +127,16 @@ export function ReadPage() {
       toast(book.error);
       return;
     }
-    const { set } = addTexts(book.texts, { setId: null, name: book.name });
-    toast(`${book.texts.length} text${book.texts.length === 1 ? '' : 's'} added as “${set.name}”`);
+    // The same check the shared catalogue makes (T6), loaded only when a file is opened.
+    const { newTextSchema } = await import('../../../shared/text');
+    const fit = book.texts.filter((t) => newTextSchema.safeParse(t).success);
+    if (!fit.length) {
+      toast('Its texts are not in a shape the app can read, or too long.');
+      return;
+    }
+    const { set } = addTexts(fit, { setId: null, name: book.name });
+    const left = book.texts.length - fit.length;
+    toast(`${fit.length} text${fit.length === 1 ? '' : 's'} added as “${set.name}”${left ? `; ${left} left out, too long or malformed` : ''}`);
     navigate(paths.shelf(set.id));
   }
 
