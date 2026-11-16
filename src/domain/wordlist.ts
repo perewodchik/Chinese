@@ -5,9 +5,11 @@ import {
   asLine,
   balancedEnd,
   fences,
+  looksLikePrompt,
   pick,
   spans,
   tryParse,
+  whyNothing,
   type Bag,
   type Route,
 } from './parse';
@@ -327,6 +329,8 @@ function salvage(raw: string, into: DraftList, seen: Set<string>) {
 export function parseWordList(raw: string): ListParse {
   const list: DraftList = { title: '', titleZh: '', note: '', words: [] };
   if (!raw.trim()) return { list, route: 'none', problems: [] };
+  // The prompt pasted back: its example list is not an answer.
+  if (looksLikePrompt(raw)) return { list, route: 'none', problems: [whyNothing(raw, 'words')] };
 
   const seen = new Set<string>();
   let route: Route = 'none';
@@ -362,7 +366,7 @@ export function parseWordList(raw: string): ListParse {
     }
   }
   if (!list.words.length) {
-    problems.push('No words found. Paste Claude’s whole reply, including the ```json block — or ask it to send the JSON again.');
+    problems.push(whyNothing(raw, 'words'));
   }
   return { list, route, problems };
 }

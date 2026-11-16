@@ -443,9 +443,36 @@ function harvest(v: unknown, out: DraftText[], seen: Set<string>) {
 
 /* ---------------------------------------------------------------- parsing */
 
+/**
+ * Why nothing could be read out of a paste, said so it can be put right
+ * (K21): the prompt pasted back instead of the answer, an answer cut off
+ * part-way, an answer with no JSON in it at all, or JSON that holds nothing
+ * of the kind asked for. `what` names what was looked for: "passages",
+ * "words".
+ */
+/** Words only the prompts say ("One JSON code block and nothing else", "What to send back") — never an answer. */
+export const looksLikePrompt = (raw: string) =>
+  /Reply with one ```json block|One JSON code block and nothing else|A single JSON object, in one json code block|## What to send back/i.test(raw);
+
+export function whyNothing(raw: string, what: string): string {
+  const text = raw.trim();
+  if (looksLikePrompt(text))
+    return `This looks like the prompt, not Claude’s answer. Send the prompt in Claude, then copy what Claude writes back — the copy button under its reply — and paste that here.`;
+  const opened = (text.match(/```/g) ?? []).length;
+  const braces = [...text].reduce((n, c) => n + (c === '{' ? 1 : c === '}' ? -1 : 0), 0);
+  if (opened % 2 === 1 || braces > 0)
+    return `The answer stops part-way — Claude was cut off. In Claude, write “continue”, then paste both parts here, one after the other.`;
+  if (!/[{[]/.test(text))
+    return `There is no JSON in this. Ask Claude: “Please send it again as one json code block”, then copy the whole reply.`;
+  return `No ${what} found. Paste Claude’s whole reply, including the \`\`\`json block — or ask it to send the JSON again.`;
+}
+
+
 export function parseResponse(raw: string): ParseResult {
   const problems: string[] = [];
   if (!raw.trim()) return { drafts: [], route: 'none', problems: [] };
+  // The prompt pasted back holds an example of the answer: read as one, it would make a text of the example.
+  if (looksLikePrompt(raw)) return { drafts: [], route: 'none', problems: [whyNothing(raw, 'passages')] };
 
   const drafts: DraftText[] = [];
   const seen = new Set<string>();
@@ -486,9 +513,7 @@ export function parseResponse(raw: string): ParseResult {
   }
 
   if (!drafts.length) {
-    problems.push(
-      'No passages found. Paste Claude’s whole reply, including the ```json block — or ask it to send the JSON again.',
-    );
+    problems.push(whyNothing(raw, 'passages'));
   }
 
   return { drafts, route, problems };

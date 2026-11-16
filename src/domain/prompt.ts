@@ -491,6 +491,7 @@ export function buildBrief(plan: TextPlan, extra: PromptExtras = {}): string {
 
 /** A one-line reminder of what to do with the prompt, shown next to it. */
 export const HANDOFF_STEPS = [
-  'Open claude.ai (the free plan is enough), start a new chat, paste the prompt and send it.',
-  'When it has answered, copy the whole answer and bring it back here.',
+  'Copy the prompt (the Copy button above it).',
+  'Open claude.ai — the free plan is enough — start a new chat, paste the prompt and send it.',
+  'When it has answered, copy the whole answer with the copy button under it, and paste it back here. If it stops part-way, write “continue” and paste both parts.',
 ];
