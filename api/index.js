@@ -1071,6 +1071,36 @@ function minimaxNarrator(fetcher = fetch) {
   };
 }
 
+// server/src/application/broken-keys.ts
+var BrokenKeys = class {
+  constructor(deps) {
+    this.deps = deps;
+  }
+  name = (service) => `${service}:broken`;
+  async get(userId, service) {
+    const raw = await this.deps.secrets.get(userId, this.name(service));
+    if (!raw) return null;
+    try {
+      const b = JSON.parse(raw);
+      if ((b.reason === "key" || b.reason === "balance") && typeof b.message === "string" && typeof b.at === "number") return { reason: b.reason, message: b.message, at: b.at };
+    } catch {
+    }
+    return null;
+  }
+  async mark(userId, service, reason, message) {
+    const at = this.deps.clock.now();
+    await this.deps.secrets.set(userId, this.name(service), JSON.stringify({ reason, message: message.slice(0, 300), at }), at);
+  }
+  clear(userId, service) {
+    return this.deps.secrets.delete(userId, this.name(service));
+  }
+  /** Refuses before the service is called, when the key is known to be turned away. */
+  async guard(userId, service) {
+    const b = await this.get(userId, service);
+    if (b) throw new AppError("unavailable", `${b.message} Nothing more is sent with this key: save it again once it is fixed, or Try again, in Settings \u203A Keys & services.`);
+  }
+};
+
 // server/src/application/narration-service.ts
 var KEY = "minimax";
 var clamp = (v, [lo, hi]) => Math.min(hi, Math.max(lo, v));
@@ -1080,19 +1110,30 @@ var NarrationService = class {
   }
   voiceCache = /* @__PURE__ */ new Map();
   /* ------------------------------------------------------------ the key */
+  get broken() {
+    return new BrokenKeys(this.deps);
+  }
   async status(userId) {
     const key = await this.deps.secrets.get(userId, KEY);
-    return { key: { set: Boolean(key), hint: key ? `\u2026${key.slice(-4)}` : null } };
+    const broken = key ? await this.broken.get(userId, KEY) : null;
+    return { key: { set: Boolean(key), hint: key ? `\u2026${key.slice(-4)}` : null, ...broken ? { broken } : {} } };
+  }
+  /** "Try again" on a key MiniMax turned away: the next call goes to MiniMax, and is marked again if it fails the same way. */
+  async retryKey(userId) {
+    await this.broken.clear(userId, KEY);
+    return this.status(userId);
   }
   async setKey(userId, raw) {
     const key = raw.trim();
     if (key.length < 16 || /\s/.test(key)) throw new ValidationError("That does not look like a MiniMax API key.", { key: "Not a key." });
     await this.voicesFor(key, true);
     await this.deps.secrets.set(userId, KEY, key, this.deps.clock.now());
+    await this.broken.clear(userId, KEY);
     return this.status(userId);
   }
   async deleteKey(userId) {
     await this.deps.secrets.delete(userId, KEY);
+    await this.broken.clear(userId, KEY);
     return this.status(userId);
   }
   /** MiniMax's own Mandarin voices. */
@@ -1355,7 +1396,15 @@ var NarrationService = class {
   }
   /** A call MiniMax charges for, counted once it has gone through: a character of what it was given to read is a unit. */
   async paid(userId, said, fn) {
-    const out = await this.call(fn);
+    await this.broken.guard(userId, KEY);
+    const out = await this.call(async () => {
+      try {
+        return await fn();
+      } catch (err) {
+        if (err instanceof NarratorRefused && (err.reason === "key" || err.reason === "balance")) await this.broken.mark(userId, KEY, err.reason, err.message);
+        throw err;
+      }
+    });
     await this.deps.meter?.record(userId, "minimax", [...said].length);
     return out;
   }
@@ -1624,10 +1673,19 @@ var SpeechEvalService = class {
   keep(userId, k) {
     return this.deps.secrets.set(userId, NAME, JSON.stringify(k), this.deps.clock.now());
   }
+  get broken() {
+    return new BrokenKeys(this.deps);
+  }
   async status(userId) {
     const k = await this.kept(userId);
     const hint = k ? `\u2026${(k.provider === "speechsuper" ? k.appKey : k.apiKey).slice(-4)}` : null;
-    return { key: { set: Boolean(k), hint, provider: k?.provider ?? null }, strictness: k?.strictness ?? "common" };
+    const broken = k ? await this.broken.get(userId, NAME) : null;
+    return { key: { set: Boolean(k), hint, provider: k?.provider ?? null, ...broken ? { broken } : {} }, strictness: k?.strictness ?? "common" };
+  }
+  /** "Try again" on keys the service turned away: the next phrase goes to it, and is marked again if it fails the same way. */
+  async retryKeys(userId) {
+    await this.broken.clear(userId, NAME);
+    return this.status(userId);
   }
   /** Kept once the service has let them in: a quarter second of quiet is scored, which needs keys that work. */
   async setKeys(userId, raw) {
@@ -1640,10 +1698,12 @@ var SpeechEvalService = class {
     }
     await this.deps.meter?.record(userId, keys.provider, 0.25);
     await this.keep(userId, { ...keys, strictness });
+    await this.broken.clear(userId, NAME);
     return this.status(userId);
   }
   async deleteKeys(userId) {
     await this.deps.secrets.delete(userId, NAME);
+    await this.broken.clear(userId, NAME);
     return this.status(userId);
   }
   async setStrictness(userId, strictness) {
@@ -1655,6 +1715,7 @@ var SpeechEvalService = class {
   async evaluate(userId, o) {
     const k = await this.kept(userId);
     if (!k) throw new AppError("not_found", "Add your pronunciation keys first, in Settings.");
+    await this.broken.guard(userId, NAME);
     const text = o.text.trim();
     if (!text || [...text].length > EVAL_MAX_CHARS) throw new ValidationError("The phrase is empty or too long to score.");
     const pcm = new Uint8Array(Buffer.from(o.audio, "base64"));
@@ -1668,7 +1729,10 @@ var SpeechEvalService = class {
       await this.deps.meter?.record(userId, k.provider, pcm.length / 32e3);
       return result;
     } catch (err) {
-      if (err instanceof EvaluatorRefused) throw new AppError("unavailable", err.message);
+      if (err instanceof EvaluatorRefused) {
+        if (err.reason === "keys") await this.broken.mark(userId, NAME, "key", `${PROVIDER_NAME[k.provider]} turned the keys away (${err.message}).`);
+        throw new AppError("unavailable", err.message);
+      }
       throw new AppError("unavailable", `${PROVIDER_NAME[k.provider]} did not answer. Try again in a minute.`);
     }
   }
@@ -3119,6 +3183,10 @@ function narrationRoutes({ auth, clock, trustProxy, narration, limits }) {
     return json(c, await narration.setKey(user(c), key));
   });
   routes.delete("/key", session, async (c) => json(c, await narration.deleteKey(user(c))));
+  routes.post("/key/retry", session, async (c) => {
+    await keys.consume(user(c));
+    return json(c, await narration.retryKey(user(c)));
+  });
   routes.get("/voices", session, async (c) => json(c, { voices: await narration.voices(user(c)) }));
   routes.get("/narrators", session, async (c) => json(c, { narrators: await narration.narrators(user(c)) }));
   routes.post("/narrators/try", session, async (c) => {
@@ -3237,6 +3305,10 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }) {
     return json(c, await speechEval.setKeys(user(c), await readJson(c, keysRequest)));
   });
   routes.delete("/key", session, async (c) => json(c, await speechEval.deleteKeys(user(c))));
+  routes.post("/key/retry", session, async (c) => {
+    await keys.consume(user(c));
+    return json(c, await speechEval.retryKeys(user(c)));
+  });
   routes.patch("/settings", session, async (c) => {
     const { strictness } = await readJson(c, settingsRequest);
     return json(c, await speechEval.setStrictness(user(c), strictness));

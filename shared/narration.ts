@@ -1,3 +1,4 @@
+import type { BrokenKey } from './keys';
 /**
  * Texts read aloud by a voice service (MiniMax) with the learner's own key:
  * what the page and the server agree on.
@@ -25,7 +26,8 @@
  */
 
 export interface NarrationStatus {
-  key: { set: boolean; hint: string | null };
+  /** `broken`: MiniMax turned the key away and nothing more is sent with it (K18) */
+  key: { set: boolean; hint: string | null; broken?: BrokenKey | null };
 }
 
 /** One of the service's own voices. */

@@ -268,3 +268,48 @@ describe('where each line falls in a reading', () => {
     assert.deepEqual(timingsFor(['你好', '我很好呀'], null, 1200), [[0, 400], [400, 1200]]);
   });
 });
+
+describe('a MiniMax key turned away (K18)', () => {
+  it('is marked at the first refusal for its balance, sends nothing more until Try again, and only for its owner', async () => {
+    const base = stub();
+    let broke = false;
+    let calls = 0;
+    const narrator: Narrator = {
+      ...base.narrator,
+      async read(key, text, voice, tuning) {
+        calls++;
+        if (broke) throw new NarratorRefused('The MiniMax account has no balance left for the API.', 'balance');
+        return base.narrator.read(key, text, voice, tuning);
+      },
+    };
+    const app = appWith(narrator);
+    const cookie = await signedIn(app);
+    const other = await signedIn(app, 'masha');
+    const narratorOf = async (c: string) => {
+      await call(app, 'PUT', '/api/narration/key', { cookie: c, body: { key: GOOD } });
+      const made = await call(app, 'POST', '/api/narration/narrators', { cookie: c, body: { name: 'Anchor', voice: 'Chinese (Mandarin)_News_Anchor' } });
+      return ((await made.json()) as { narrator: { id: string } }).narrator.id;
+    };
+    const mine = await narratorOf(cookie);
+    const theirs = await narratorOf(other);
+    const preview = (c: string, id: string) => call(app, 'POST', `/api/narration/narrators/${id}/preview`, { cookie: c, body: { text: '慢慢说。' } });
+
+    broke = true;
+    assert.equal((await preview(cookie, mine)).status, 503);
+    const status = (await (await call(app, 'GET', '/api/narration', { cookie })).json()) as { key: { broken?: { reason: string } } };
+    assert.equal(status.key.broken?.reason, 'balance');
+    broke = false;
+    const before = calls;
+    assert.equal((await preview(cookie, mine)).status, 503);
+    assert.equal(calls, before);
+
+    assert.equal((await preview(other, theirs)).status, 200);
+    await call(app, 'POST', '/api/narration/key/retry', { cookie: other });
+    assert.equal((await preview(cookie, mine)).status, 503);
+    assert.equal((await call(app, 'POST', '/api/narration/key/retry')).status, 401);
+
+    await call(app, 'POST', '/api/narration/key/retry', { cookie });
+    assert.equal((await preview(cookie, mine)).status, 200);
+  });
+});
+

@@ -1,3 +1,4 @@
+import type { BrokenKey } from './keys';
 /**
  * A phrase said aloud and scored by a speech evaluation service — SpeechSuper
  * or iFlytek — with the learner's own keys: what the page and the server agree on.
@@ -23,7 +24,8 @@ export type EvalProvider = (typeof EVAL_PROVIDERS)[number];
 export const PROVIDER_NAME: Record<EvalProvider, string> = { speechsuper: 'SpeechSuper', iflytek: 'iFlytek' };
 
 export interface EvalStatus {
-  key: { set: boolean; hint: string | null; provider: EvalProvider | null };
+  /** `broken`: the service turned the keys away and nothing more is sent with them (K18) */
+  key: { set: boolean; hint: string | null; provider: EvalProvider | null; broken?: BrokenKey | null };
   strictness: Strictness;
 }
 

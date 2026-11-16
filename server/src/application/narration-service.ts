@@ -14,6 +14,7 @@ import {
 import { createHash } from 'node:crypto';
 import { NarratorRefused } from '../infrastructure/minimax';
 import { AppError, NotFoundError, ValidationError } from '../domain/errors';
+import { BrokenKeys } from './broken-keys';
 import type { StorageQuota } from './storage-quota';
 import type { UsageMeter } from './usage-service';
 import type { Clock, Narrator, NarratorRecord, NarratorRepository, OwnText, OwnTextRepository, SecretRepository, TextNarration, TextNarrationRepository, Tokens, VoiceTuning } from './ports';
@@ -55,9 +56,20 @@ export class NarrationService {
 
   /* ------------------------------------------------------------ the key */
 
+  private get broken() {
+    return new BrokenKeys(this.deps);
+  }
+
   async status(userId: string): Promise<NarrationStatus> {
     const key = await this.deps.secrets.get(userId, KEY);
-    return { key: { set: Boolean(key), hint: key ? `…${key.slice(-4)}` : null } };
+    const broken = key ? await this.broken.get(userId, KEY) : null;
+    return { key: { set: Boolean(key), hint: key ? `…${key.slice(-4)}` : null, ...(broken ? { broken } : {}) } };
+  }
+
+  /** "Try again" on a key MiniMax turned away: the next call goes to MiniMax, and is marked again if it fails the same way. */
+  async retryKey(userId: string): Promise<NarrationStatus> {
+    await this.broken.clear(userId, KEY);
+    return this.status(userId);
   }
 
   async setKey(userId: string, raw: string): Promise<NarrationStatus> {
@@ -65,11 +77,13 @@ export class NarrationService {
     if (key.length < 16 || /\s/.test(key)) throw new ValidationError('That does not look like a MiniMax API key.', { key: 'Not a key.' });
     await this.voicesFor(key, true);
     await this.deps.secrets.set(userId, KEY, key, this.deps.clock.now());
+    await this.broken.clear(userId, KEY);
     return this.status(userId);
   }
 
   async deleteKey(userId: string): Promise<NarrationStatus> {
     await this.deps.secrets.delete(userId, KEY);
+    await this.broken.clear(userId, KEY);
     return this.status(userId);
   }
 
@@ -363,7 +377,16 @@ export class NarrationService {
 
   /** A call MiniMax charges for, counted once it has gone through: a character of what it was given to read is a unit. */
   private async paid<T>(userId: string, said: string, fn: () => Promise<T>): Promise<T> {
-    const out = await this.call(fn);
+    await this.broken.guard(userId, KEY);
+    const out = await this.call(async () => {
+      try {
+        return await fn();
+      } catch (err) {
+        // Turned away for the key itself: marked, so the next tries are not sent (K18).
+        if (err instanceof NarratorRefused && (err.reason === 'key' || err.reason === 'balance')) await this.broken.mark(userId, KEY, err.reason, err.message);
+        throw err;
+      }
+    });
     await this.deps.meter?.record(userId, 'minimax', [...said].length);
     return out;
   }

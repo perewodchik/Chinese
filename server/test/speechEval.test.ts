@@ -167,6 +167,55 @@ describe('phrases scored with the learner’s own keys', () => {
   });
 });
 
+describe('keys the service turned away (K18)', () => {
+  it('marks them at the first refusal, sends nothing more until Try again or new keys, and only for their owner', async () => {
+    let refusing = false;
+    let calls = 0;
+    const evaluator: Evaluator = {
+      async evaluate(keys, o) {
+        calls++;
+        if (refusing || keys.provider !== 'iflytek' || keys.apiKey !== GOOD.apiKey) throw new EvaluatorRefused('iFlytek: licence expired (11200)', 'keys');
+        void o;
+        return parseReport(REPORT);
+      },
+    };
+    const app = appWith(evaluator);
+    const cookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'admin', password: 'correct horse' } }));
+    const other = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: 'correct horse' } }));
+    await call(app, 'PUT', '/api/eval/key', { cookie, body: GOOD });
+    await call(app, 'PUT', '/api/eval/key', { cookie: other, body: GOOD });
+    const audio = Buffer.alloc(16_000).toString('base64');
+    const say = (c: string) => call(app, 'POST', '/api/eval', { cookie: c, body: { text: '小智饿了', audio } });
+
+    refusing = true;
+    assert.equal((await say(cookie)).status, 503);
+    const status = (await (await call(app, 'GET', '/api/eval', { cookie })).json()) as { key: { broken?: { reason: string } } };
+    assert.equal(status.key.broken?.reason, 'key');
+    const before = calls;
+    refusing = false;
+    // Marked: refused here, without a call to the service.
+    assert.equal((await say(cookie)).status, 503);
+    assert.equal(calls, before);
+    // Another learner's keys are their own: not marked, and their Try again clears nothing of this one's.
+    assert.equal((await say(other)).status, 200);
+    await call(app, 'POST', '/api/eval/key/retry', { cookie: other });
+    assert.equal((await say(cookie)).status, 503);
+    // Nobody signed in may clear anything.
+    assert.equal((await call(app, 'POST', '/api/eval/key/retry')).status, 401);
+
+    const retried = (await (await call(app, 'POST', '/api/eval/key/retry', { cookie })).json()) as { key: { broken?: unknown } };
+    assert.equal(retried.key.broken, undefined);
+    assert.equal((await say(cookie)).status, 200);
+
+    // Saved again, the mark goes too.
+    refusing = true;
+    await say(cookie);
+    refusing = false;
+    await call(app, 'PUT', '/api/eval/key', { cookie, body: GOOD });
+    assert.equal((await say(cookie)).status, 200);
+  });
+});
+
 describe('tries kept for every device', () => {
   it('keeps each try once, gives each line its last five and each drill its count, and only to its owner', async () => {
     const { evaluator } = stub();

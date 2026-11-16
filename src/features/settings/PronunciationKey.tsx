@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { EVAL_PROVIDERS, PROVIDER_NAME, STRICTNESS, type EvalKeys, type EvalProvider, type EvalStatus, type Strictness } from '../../../shared/speechEval';
-import { evalStatus, forgetEvalKeys, saveEvalKeys, setStrictness } from '../../api/speechEval';
+import { evalStatus, forgetEvalKeys, retryEvalKeys, saveEvalKeys, setStrictness } from '../../api/speechEval';
+import { BrokenKeyLine } from './BrokenKeyLine';
 import { KeyHelp } from './KeyHelp';
 
 const STRICT_LABEL: Record<Strictness, string> = { easy: 'Easy', common: 'Common', hard: 'Hard' };
@@ -111,6 +112,7 @@ export function PronunciationKey({ onChange }: { onChange?: (s: EvalStatus) => v
               ? `${PROVIDER_NAME[status.key.provider]} keys ending ${status.key.hint} are saved and used.`
               : 'No keys saved yet.'}
         </p>
+        {status?.key.broken && <BrokenKeyLine broken={status.key.broken} busy={busy} onRetry={() => void act(retryEvalKeys, 'The next phrase goes to the service again.')} />}
         <form
           style={{ display: 'grid', gap: 10 }}
           onSubmit={(e) => {

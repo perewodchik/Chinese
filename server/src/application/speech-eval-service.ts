@@ -1,3 +1,4 @@
+import { BrokenKeys } from './broken-keys';
 import {
   EVAL_MAX_BYTES,
   EVAL_MAX_CHARS,
@@ -77,10 +78,21 @@ export class SpeechEvalService {
     return this.deps.secrets.set(userId, NAME, JSON.stringify(k), this.deps.clock.now());
   }
 
+  private get broken() {
+    return new BrokenKeys(this.deps);
+  }
+
   async status(userId: string): Promise<EvalStatus> {
     const k = await this.kept(userId);
     const hint = k ? `…${(k.provider === 'speechsuper' ? k.appKey : k.apiKey).slice(-4)}` : null;
-    return { key: { set: Boolean(k), hint, provider: k?.provider ?? null }, strictness: k?.strictness ?? 'common' };
+    const broken = k ? await this.broken.get(userId, NAME) : null;
+    return { key: { set: Boolean(k), hint, provider: k?.provider ?? null, ...(broken ? { broken } : {}) }, strictness: k?.strictness ?? 'common' };
+  }
+
+  /** "Try again" on keys the service turned away: the next phrase goes to it, and is marked again if it fails the same way. */
+  async retryKeys(userId: string): Promise<EvalStatus> {
+    await this.broken.clear(userId, NAME);
+    return this.status(userId);
   }
 
   /** Kept once the service has let them in: a quarter second of quiet is scored, which needs keys that work. */
@@ -96,11 +108,13 @@ export class SpeechEvalService {
     // Trying the keys is a call too: a quarter of a second of quiet.
     await this.deps.meter?.record(userId, keys.provider, 0.25);
     await this.keep(userId, { ...keys, strictness });
+    await this.broken.clear(userId, NAME);
     return this.status(userId);
   }
 
   async deleteKeys(userId: string): Promise<EvalStatus> {
     await this.deps.secrets.delete(userId, NAME);
+    await this.broken.clear(userId, NAME);
     return this.status(userId);
   }
 
@@ -114,6 +128,7 @@ export class SpeechEvalService {
   async evaluate(userId: string, o: { text: string; pinyin?: string[]; audio: string }): Promise<EvalResult> {
     const k = await this.kept(userId);
     if (!k) throw new AppError('not_found', 'Add your pronunciation keys first, in Settings.');
+    await this.broken.guard(userId, NAME);
     const text = o.text.trim();
     if (!text || [...text].length > EVAL_MAX_CHARS) throw new ValidationError('The phrase is empty or too long to score.');
     const pcm = new Uint8Array(Buffer.from(o.audio, 'base64'));
@@ -129,7 +144,11 @@ export class SpeechEvalService {
       await this.deps.meter?.record(userId, k.provider, pcm.length / 32_000);
       return result;
     } catch (err) {
-      if (err instanceof EvaluatorRefused) throw new AppError('unavailable', err.message);
+      if (err instanceof EvaluatorRefused) {
+        // The keys themselves turned away: marked, so the next phrases are not sent (K18).
+        if (err.reason === 'keys') await this.broken.mark(userId, NAME, 'key', `${PROVIDER_NAME[k.provider]} turned the keys away (${err.message}).`);
+        throw new AppError('unavailable', err.message);
+      }
       throw new AppError('unavailable', `${PROVIDER_NAME[k.provider]} did not answer. Try again in a minute.`);
     }
   }

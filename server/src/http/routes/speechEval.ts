@@ -58,6 +58,12 @@ export function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }
 
   routes.delete('/key', session, async (c) => json(c, await speechEval.deleteKeys(user(c))));
 
+  // K18: clears the mark on keys the service turned away, so the next phrase goes through to it.
+  routes.post('/key/retry', session, async (c) => {
+    await keys.consume(user(c));
+    return json(c, await speechEval.retryKeys(user(c)));
+  });
+
   routes.patch('/settings', session, async (c) => {
     const { strictness } = await readJson(c, settingsRequest);
     return json(c, await speechEval.setStrictness(user(c), strictness));

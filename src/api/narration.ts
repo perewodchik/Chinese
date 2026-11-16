@@ -12,6 +12,8 @@ import { request } from './http';
 export const narrationStatus = () => request<NarrationStatus>('GET', '/api/narration');
 export const saveNarrationKey = (key: string) => request<NarrationStatus>('PUT', '/api/narration/key', { body: { key } });
 export const forgetNarrationKey = () => request<NarrationStatus>('DELETE', '/api/narration/key');
+/** K18: try a key MiniMax turned away once more. */
+export const retryNarrationKey = () => request<NarrationStatus>('POST', '/api/narration/key/retry');
 /** MiniMax's own Mandarin voices */
 export const narratorVoices = () => request<{ voices: NarratorVoice[] }>('GET', '/api/narration/voices').then((r) => r.voices);
 

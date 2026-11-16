@@ -65,6 +65,12 @@ export function narrationRoutes({ auth, clock, trustProxy, narration, limits }: 
 
   routes.delete('/key', session, async (c) => json(c, await narration.deleteKey(user(c))));
 
+  // K18: clears the mark on a key MiniMax turned away, so the next call goes through to it.
+  routes.post('/key/retry', session, async (c) => {
+    await keys.consume(user(c));
+    return json(c, await narration.retryKey(user(c)));
+  });
+
   routes.get('/voices', session, async (c) => json(c, { voices: await narration.voices(user(c)) }));
 
   routes.get('/narrators', session, async (c) => json(c, { narrators: await narration.narrators(user(c)) }));

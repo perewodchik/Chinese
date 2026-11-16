@@ -4,6 +4,8 @@ import { request } from './http';
 export const evalStatus = () => request<EvalStatus>('GET', '/api/eval');
 export const saveEvalKeys = (keys: EvalKeys) => request<EvalStatus>('PUT', '/api/eval/key', { body: keys, timeoutMs: 40_000 });
 export const forgetEvalKeys = () => request<EvalStatus>('DELETE', '/api/eval/key');
+/** K18: try keys the service turned away once more. */
+export const retryEvalKeys = () => request<EvalStatus>('POST', '/api/eval/key/retry');
 export const setStrictness = (strictness: Strictness) => request<EvalStatus>('PATCH', '/api/eval/settings', { body: { strictness } });
 
 /** The microphone's samples (16 kHz, −1…1) as the services take them: 16-bit little-endian PCM, base64. */

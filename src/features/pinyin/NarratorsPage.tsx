@@ -75,6 +75,12 @@ export function NarratorsPage() {
 
       {keySet && (
         <>
+          {status?.key.broken && (
+            <p className="small narrators-broken">
+              {status.key.broken.reason === 'balance' ? 'Your MiniMax balance ran out' : 'MiniMax stopped accepting your key'}: nothing is read until it is fixed. See
+              the key at the foot of this page.
+            </p>
+          )}
           <div className="block">
             <div className="block-head">
               <h2 className="block-title">Your narrators</h2>
@@ -113,7 +119,8 @@ export function NarratorsPage() {
             </>
           )}
 
-          <details className="narrators-key">
+          {/* A key MiniMax turned away is said at the top, where it stops everything below (K18), and opens its fold. */}
+          <details className="narrators-key" open={Boolean(status?.key.broken) || undefined}>
             <summary className="small muted">MiniMax key {status?.key.hint ?? ''}</summary>
             <NarrationKey onChange={setStatus} />
           </details>

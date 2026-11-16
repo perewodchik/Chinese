@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { NarrationStatus } from '../../../shared/narration';
-import { forgetNarrationKey, narrationStatus, saveNarrationKey } from '../../api/narration';
+import { forgetNarrationKey, narrationStatus, retryNarrationKey, saveNarrationKey } from '../../api/narration';
+import { BrokenKeyLine } from './BrokenKeyLine';
 import { KeyHelp } from './KeyHelp';
 
 /**
@@ -48,6 +49,7 @@ export function NarrationKey({ onChange }: { onChange?: (s: NarrationStatus) => 
         <p className="small" style={{ margin: 0, minHeight: '1.5em' }}>
           {status === null ? '' : status.key.set ? `A key ending ${status.key.hint} is saved.` : 'No key saved yet.'}
         </p>
+        {status?.key.broken && <BrokenKeyLine broken={status.key.broken} busy={busy} onRetry={() => void act(retryNarrationKey, 'The next reading goes to MiniMax again.')} />}
         <form
           style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}
           onSubmit={(e) => {
