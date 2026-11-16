@@ -13,6 +13,8 @@ import { band } from '../pinyin/ScoredLine';
 import { armAutoplay, SayLine } from './SayLine';
 import { keepSet, useNarrator, useSources, type Source } from './sources';
 import { VoiceSheet } from './VoiceSheet';
+import { ShelfBlock } from './ShelfBlock';
+import { lastReading } from '../reader/lastRead';
 import '../pinyin/phrases.css';
 import './speak.css';
 import { accountKey } from '../../platform/accountStorage';
@@ -89,6 +91,7 @@ export function SpeakHome() {
   const day = useMemo(() => today(attempts), [attempts]);
   const last = loadLast();
   const lastSource = last ? src.find(last.sourceId) : null;
+  const reading = src.find(lastReading()?.textId ?? '');
 
   function start(s: Source, at?: number) {
     const firstNew = s.phrases.findIndex((p) => !best.has(p.zh));
@@ -160,6 +163,22 @@ export function SpeakHome() {
             </section>
           )}
 
+          {/* Nothing said yet: the text open in Read is the one to say. */}
+          {!lastSource && reading && (
+            <section className="ph-continue">
+              <span className="ph-text-name">
+                <span className="small muted">The text you are reading</span>
+                <span className="hanzi ph-text-zh">{reading.title}</span>
+                <span className="tiny muted">
+                  {reading.phrases.length} line{reading.phrases.length === 1 ? '' : 's'}
+                </span>
+              </span>
+              <button className="btn primary" onClick={() => start(reading)}>
+                Say it
+              </button>
+            </section>
+          )}
+
           {(weak.length > 0 || trouble.length > 0) && (
             <section className="block">
               <h2 className="block-title">To work on</h2>
@@ -195,10 +214,7 @@ export function SpeakHome() {
           )}
 
           {src.shelves.map((g) => (
-            <section key={g.name} className="block">
-              <h2 className={`block-title${/\p{Script=Han}/u.test(g.name) ? ' hanzi ph-shelf' : ''}`}>{g.name}</h2>
-              <div className="list">{g.list.map(row)}</div>
-            </section>
+            <ShelfBlock key={g.name} name={g.name} list={g.list} row={row} done={(s) => progressOf(s).said >= s.phrases.length} />
           ))}
 
           <section className="block">

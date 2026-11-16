@@ -1,3 +1,5 @@
+import { ShelfBlock } from '../speak/ShelfBlock';
+import { lastReading } from '../reader/lastRead';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import { paths } from '../../navigation/paths';
@@ -227,6 +229,7 @@ export function PhrasesPage() {
   const trouble = troubles(latest);
   const last = loadLast();
   const lastSource = last ? find(last.sourceId) : null;
+  const reading = find(lastReading()?.textId ?? '');
 
   const row = (src: Source) => {
     const p = progressOf(src);
@@ -280,11 +283,24 @@ export function PhrasesPage() {
             </section>
           )}
 
-          {shelves.map((g) => (
-            <section key={g.name} className="block">
-              <h2 className={`block-title${/\p{Script=Han}/u.test(g.name) ? ' hanzi ph-shelf' : ''}`}>{g.name}</h2>
-              <div className="list">{g.list.map(row)}</div>
+          {/* Nothing said yet: the text open in Read is the one to say. */}
+          {!lastSource && reading && (
+            <section className="ph-continue">
+              <span className="ph-text-name">
+                <span className="small muted">The text you are reading</span>
+                <span className="hanzi ph-text-zh">{reading.title}</span>
+                <span className="tiny muted">
+                  {reading.phrases.length} line{reading.phrases.length === 1 ? '' : 's'}
+                </span>
+              </span>
+              <button className="btn primary" onClick={() => start(reading)}>
+                Say it
+              </button>
             </section>
+          )}
+
+          {shelves.map((g) => (
+            <ShelfBlock key={g.name} name={g.name} list={g.list} row={row} done={(x) => progressOf(x).said >= x.phrases.length} />
           ))}
 
           <section className="block">

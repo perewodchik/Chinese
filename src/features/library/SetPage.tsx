@@ -243,8 +243,8 @@ export function SetPage() {
             label="Show"
             value={tab}
             options={[
-              { id: 'chars', label: `字 ${set.chars.length.toLocaleString('en')}` },
-              { id: 'words', label: `词 ${set.words.length.toLocaleString('en')}` },
+              { id: 'chars', label: `Characters ${set.chars.length.toLocaleString('en')}` },
+              { id: 'words', label: `Words ${set.words.length.toLocaleString('en')}` },
             ]}
             onChange={(t) => setQuery('tab', t, set.chars.length ? 'chars' : 'words')}
           />
