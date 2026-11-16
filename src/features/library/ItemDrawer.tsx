@@ -54,7 +54,7 @@ export function ItemDrawer({ id, onClose }: Props) {
   const learned = useStore((s) => s.learned.has(id));
   const book = useStore((s) => s.recall[id]);
   const collections = useStore((s) => s.collections);
-  const match = useMatch('/collections/:collectionId/*');
+  const match = useMatch('/library/lists/:collectionId/*');
   const sheet = useSheetDrag(onClose);
   const { close } = sheet;
 

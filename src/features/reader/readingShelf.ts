@@ -5,7 +5,7 @@ import { useStore } from '../../store/store';
 
 /**
  * The shelf a drawer was opened over, if it was opened while reading: from a
- * text (`/texts/<shelf or text>`) or from a shelf's own page (`/read/<shelf>`).
+ * text (`/read/text/<shelf or text>`) or from a shelf's own page (`/read/<shelf>`).
  * Learning a word there puts it on that shelf's list.
  */
 export function useReadingShelf(): { set: TextSet; texts: GeneratedText[] } | null {

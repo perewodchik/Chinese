@@ -149,8 +149,7 @@
   — частично: V6 и V8 — сделаны; V7 — подписи у значков сделаны, перенос наушников от заголовка ждёт владельца (OWNER.md, п. 12).
 - [ ] **V9–V13 (В)** Speak: одна страница занятий, голоса — в настройки. [→](02-navigation.md#speak)
   — ждёт владельца: V9 требует проверки новой Speak в Safari на iPhone и iPad (здесь WebKit нет); V10–V13 — после V9 (см. OWNER.md).
-- [ ] **V14 (Н)** Одинаковые названия разделов везде. [→](02-navigation.md#v14)
-  — частично: Speak (рамка и заголовки), Progress и `/progress` (старый адрес переадресует), Admin вместо «The site». Осталось: Library (collections/sets/lists) и Read (адреса `/texts`).
+- [x] **V14 (Н)** Одинаковые названия разделов везде. [→](02-navigation.md#v14)
 
 ### Этап 4 — настройки и профиль
 
@@ -242,4 +241,5 @@
 | 2026-11-15 | G3–G6 | см. ветку | «Welcome back» в Read и Progress после перерыва > 7 дней; вехи — последняя и две ближайшие + «All N», вехи чтения и речи; «How firmly» без языка планировщика; календарь нового аккаунта — только его недели. Проверено: tsc, тесты stats/wordProgress, vercel-build, снимки в Chromium; полный npm test — нет |
 | 2026-11-15 | V2 (А) | dd65569 | вкладки Today нет; `/` и `/today` ведут в Read; под «Go on reading» — строка «N cards today · about M min · Start», только когда карточки есть; выход из сессии карточек без полки — в Cards; `TodayPage.tsx`, `today.css` удалены, `domain/today.ts` оставлен. Проверено: tsc, npm test, снимки 375/768/1024 светлая/тёмная в Chromium; WebKit — нет |
 | 2026-11-16 | V1 (А), P19 | a276d772 | меню Read · Cards · Speak · Library · Me (读 卡 说 字 我); на Cards — тихая точка чернилами, пока карточки ждут; Me — прежний лист без Cards, с аккаунтом и Sign out на любой ширине; `AccountMenu` и кружок внизу рельсы удалены — в аккаунт один путь, через Me. Проверено: tsc, npm test, vercel-build, снимки 375/768/1024 светлая/тёмная в Chromium (подсветка вкладок на /cards, /progress, /settings, /account); WebKit — нет |
-| 2026-11-16 | G7, G8 | см. ветку | G7 закрыт с V1 (Progress — в Me, `/progress`). G8: «Stubborn» ушёл из Progress в Cards как «Keep missing · N» — каждое открывает свой ящик, «Practise them» — сессия только из них (`planStubborn`: каждое спрашивается так, как чаще всего ошибались, среди включённых видов карточек; с тестами). Проверено: tsc, npm test, снимки 375/768/1024 светлая/тёмная в Chromium; WebKit — нет |
+| 2026-11-16 | G7, G8 | 71531b7a | G7 закрыт с V1 (Progress — в Me, `/progress`). G8: «Stubborn» ушёл из Progress в Cards как «Keep missing · N» — каждое открывает свой ящик, «Practise them» — сессия только из них (`planStubborn`: каждое спрашивается так, как чаще всего ошибались, среди включённых видов карточек; с тестами). Проверено: tsc, npm test, снимки 375/768/1024 светлая/тёмная в Chromium; WebKit — нет |
+| 2026-11-16 | V14 | см. ветку | списки для печати — `/library/lists/:id[/items|words]` и `/library/lists/build/:step`; тексты — `/read/text/:id`, сессия письма — `/read/session/:step`; `/collections/…` и `/texts/…` переадресуют с запросом и `#`; ссылки в скриптах и скиллах обновлены. Проверено: tsc, npm test, vercel-build, переходы в Chromium (старые адреса, полноэкранный режим текста) |

@@ -19,7 +19,7 @@ import { useTitle } from '../../../ui/useTitle';
 import { ListImportStep } from './ListImportStep';
 import { ListPromptStep } from './ListPromptStep';
 
-/** A word list being written with Claude, at /collections/build/describe, …/prompt and …/paste. */
+/** A word list being written with Claude, at /library/lists/build/describe, …/prompt and …/paste. */
 export function BuildListPage() {
   const { step } = useParams();
   const plan = useStore((s) => s.listPlan);

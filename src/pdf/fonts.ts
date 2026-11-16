@@ -22,7 +22,7 @@ function fetchFonts(): Promise<Buffers> {
   if (!buffers) {
     buffers = (async () => {
       const [sans, sansBold, han, hanCore, coreMeta] = await Promise.all([
-        // From the root: a page at /texts/abc would otherwise ask for /texts/fonts/….
+        // From the root: a page at /read/text/abc would otherwise ask for /read/text/fonts/….
         fetch('/fonts/sans.ttf').then((r) => r.arrayBuffer()),
         fetch('/fonts/sans-semibold.ttf').then((r) => r.arrayBuffer()),
         fetch('/fonts/wenkai.ttf').then((r) => r.arrayBuffer()),

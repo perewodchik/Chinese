@@ -700,7 +700,7 @@ function report(result: BookResult, where: string, dryRun: boolean) {
       ? `\n  ${dryRun ? 'Would add' : 'Added'} ${n} text${n === 1 ? '' : 's'} to ${result.madeSet ? 'the new' : 'the'} session “${result.set.name}” · ${where}`
       : `\n  Nothing new for “${result.set.name}” · ${where}`,
   );
-  for (const a of result.added) describe(a, `/texts/${a.text.id}`);
+  for (const a of result.added) describe(a, `/read/text/${a.text.id}`);
   for (const title of result.skipped) console.log(`\n  ${title} — already on the shelf, left as it was`);
   if (result.onList) console.log(`\n  ${result.onList.added} new words and characters ${dryRun ? 'would go' : 'went'} onto the shelf’s list`);
   console.log('');

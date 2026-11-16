@@ -4,7 +4,7 @@ import { setWords } from '../../store/commands';
 import { WordCard } from './WordCard';
 
 /**
- * The words a collection was written around, at /collections/:id/words.
+ * The words a collection was written around, at /library/lists/:id/words.
  *
  * Pinyin and meaning can be turned off, which turns the page into a test of
  * itself: the word and its examples, and whether you can still read them.

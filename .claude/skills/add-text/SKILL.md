@@ -282,7 +282,7 @@ paid, a few cents a chapter). Nothing to run from here.
 Short, in the learner's language: the session, then per passage — the easier
 version marked as such — its title, how many sentences, what share of its
 characters they already know, how many new ones, and its address
-(`/texts/<id>`) and how many of its pictures were drawn. Any corrected typo and
+(`/read/text/<id>`) and how many of its pictures were drawn. Any corrected typo and
 any character you were unsure of, and any picture that was refused. Not the
 JSON.
 
@@ -422,7 +422,7 @@ that chapter's `note` and `vocab`.
 Use one session per volume, named after it (天官赐福 1), with `--genre story`.
 Make two adds per chapter, in this order: the easier file (the primer, if
 there is one, then the chapter) with `--adapted`, then the book's chapter
-without it. `add`'s report gives each text's id (`/texts/<id>`).
+without it. `add`'s report gives each text's id (`/read/text/<id>`).
 
 Then put the photos in, one per page with words, in order. They go into both
 texts of the chapter, never into the primer:

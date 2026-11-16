@@ -131,7 +131,7 @@ text and the book's text each, in paragraph order.
 ## The preface
 
 The easier book opens with 人物和词语 ("Before you read: Journey to the West"),
-`/texts/mw51lpik317f85ec7315891e69f9`: the Stone Monkey and his names, the
+`/read/text/mw51lpik317f85ec7315891e69f9`: the Stone Monkey and his names, the
 Mountain and the Water Curtain Cave, the Jade Emperor, Master Bodhi and his
 names, and the immortals' skills (长生, 七十二变, 筋斗云). It went in after the
 chapters and was moved to the front with `npm run -s texts -- first <id>`.
@@ -143,8 +143,8 @@ from the one on the site and putting it in as a new text, or asking first.
 
 | Chapter | Easier text | Book's text | Pictures |
 |---|---|---|---|
-| 0 人物和词语 (preface) | `/texts/mw51lpik317f85ec7315891e69f9` | — | none |
+| 0 人物和词语 (preface) | `/read/text/mw51lpik317f85ec7315891e69f9` | — | none |
 | 1 美猴王横空出世 | in 西游记 (easier) | in 西游记 (original) | 6, `xyj-ch1.mjs` |
-| 2 三星洞石猴学道 | `/texts/mw4ycn066abce04c8eeac21ee178` | `/texts/mw4ycyqlaae565bb6e8fb8b7d951` | 8, `xyj-ch2.mjs` |
+| 2 三星洞石猴学道 | `/read/text/mw4ycn066abce04c8eeac21ee178` | `/read/text/mw4ycyqlaae565bb6e8fb8b7d951` | 8, `xyj-ch2.mjs` |
 
 Add a row when a chapter goes in.

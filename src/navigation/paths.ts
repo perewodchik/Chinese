@@ -54,9 +54,9 @@ export const paths = {
   family: (n?: number) => (n ? `/families/${n}` : '/families'),
 
   collection: (id: string, tab: CollectionTab = 'design') =>
-    `/collections/${encodeURIComponent(id)}${tab === 'design' ? '' : `/${tab}`}`,
+    `/library/lists/${encodeURIComponent(id)}${tab === 'design' ? '' : `/${tab}`}`,
   /** a word list being written with Claude: describe, prompt, paste */
-  buildList: (step: ListStep = 'describe') => `/collections/build/${step}`,
+  buildList: (step: ListStep = 'describe') => `/library/lists/build/${step}`,
 
   /** Read: where you stopped, and every shelf — where every "back to the shelf" goes */
   read: () => '/read',
@@ -67,15 +67,15 @@ export const paths = {
   shelf: (setId: string, tab: ShelfTab = 'texts') =>
     withQuery(`/read/${encodeURIComponent(setId)}`, { tab: tab === 'texts' ? undefined : tab }),
   /** one text; within a session it redirects to its page there */
-  text: (id: string) => `/texts/${encodeURIComponent(id)}`,
+  text: (id: string) => `/read/text/${encodeURIComponent(id)}`,
   /** a session of texts: `?page=2` for the second on its own, `?mode=all` for every one */
   reading: (setId: string, at: { page?: number; mode?: ReadMode; version?: TextVersion } = {}) =>
-    withQuery(`/texts/${encodeURIComponent(setId)}`, {
+    withQuery(`/read/text/${encodeURIComponent(setId)}`, {
       mode: at.mode === 'all' ? 'all' : undefined,
       page: at.mode !== 'all' && at.page && at.page > 1 ? String(at.page) : undefined,
       v: at.mode !== 'all' ? at.version : undefined,
     }),
-  session: (step: PlanStep = 'plan') => `/texts/session/${step}`,
+  session: (step: PlanStep = 'plan') => `/read/session/${step}`,
 
   /**
    * Speaking — the section that was called Pinyin until the conversation grew

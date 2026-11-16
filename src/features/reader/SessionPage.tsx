@@ -22,7 +22,7 @@ import { PromptStep } from './PromptStep';
 import { SimplePlan } from './SimplePlan';
 import { SpecCard } from './SpecCard';
 
-/** The writing session in progress, at /texts/session/plan, …/prompt and …/paste. */
+/** The writing session in progress, at /read/session/plan, …/prompt and …/paste. */
 export function SessionPage() {
   const { step } = useParams();
   const plan = useStore((s) => s.plan);

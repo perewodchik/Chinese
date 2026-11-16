@@ -157,7 +157,7 @@ it in.
 
 ## 8. The report
 
-Short, in their language: the session and its address (`/texts/<id>` of the
+Short, in their language: the session and its address (`/read/text/<id>` of the
 preface), a reminder to open the preface first and mark its words as known,
 then per chapter its title, what share of it they know and how many new
 characters, and how many went onto the shelf's list; how many pictures were

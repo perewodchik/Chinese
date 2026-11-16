@@ -10,8 +10,8 @@ let extended: Promise<void> | null = null;
 
 /**
  * Paths start at the root. Pages have addresses of their own now, and from
- * /collections/abc a relative `data/characters.json` would be a request for
- * /collections/data/characters.json.
+ * /library/lists/abc a relative `data/characters.json` would be a request for
+ * /library/lists/data/characters.json.
  */
 async function json<T>(path: string): Promise<T> {
   const r = await fetch(path);

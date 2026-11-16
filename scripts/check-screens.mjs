@@ -8,7 +8,7 @@
  *
  *   node scripts/check-screens.mjs [--base http://localhost:5199] [--browser chromium|webkit]
  *        [--widths 375,390,430,768,1024,1194] [--out .data/shots] [--wait 1500]
- *        /read /texts/<id> "/speaking/say/<id>?line=5" …
+ *        /read /read/text/<id> "/speaking/say/<id>?line=5" …
  *
  * A path can carry a step to run before the picture, after a `#`:
  *   "/speaking/say/<id>?line=5#click=Tries"      taps the first button named Tries

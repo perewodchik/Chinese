@@ -67,13 +67,12 @@ import { RequireSession } from './RequireSession';
  *   /play/:gameId?band&seed        one round of one game
  *   /read                          where you stopped, every shelf, and search
  *   /read/:setId?tab               one shelf: its texts, its words, its characters
- *   /collections                   moved: lists are in the library
- *   /collections/build/:step       a word list written with Claude: describe, prompt, paste
- *   /collections/:id[/items|words] one collection: its design, what is in it, its words
- *   /texts                         moved: the texts are on /read
- *   /texts/session/:step           a writing session: plan, prompt, paste
- *   /texts/:sessionId?page&v&mode  a shelf read a text at a time: ?page=2, ?v=easy|book, ?mode=all
- *   /texts/:textId                 one passage — within a session, its page there
+ *   /library/lists/build/:step     a word list written with Claude: describe, prompt, paste
+ *   /library/lists/:id[/items|words] one list to print: its design, what is in it, its words
+ *   /read/session/:step            a writing session: plan, prompt, paste
+ *   /read/text/:setId?page&v&mode  a shelf read a text at a time: ?page=2, ?v=easy|book, ?mode=all
+ *   /read/text/:textId             one passage — within a session, its page there
+ *   /collections/…, /texts/…       moved (V14): the old addresses land on the new ones
  *   /speaking                      phrases said and scored by SpeechSuper or iFlytek (Speaking's first tab)
  *   /speaking/voices, /talk, /pinyin  Speaking's other tabs: narrators, Claude, the tones and sounds
  *   /speaking/history              every try at a line, with filters, each opened to its scored characters
@@ -94,6 +93,21 @@ import { RequireSession } from './RequireSession';
  * The section answered to /pinyin until the conversation grew into the largest
  * thing in it; every old address redirects to its new one.
  */
+
+/**
+ * One name a section (V14): lists to print live in the Library and texts in
+ * Read, so /collections/… and /texts/… carry across, query and hash intact.
+ */
+function MovedAddress() {
+  const { pathname, search, hash } = useLocation();
+  const to = pathname
+    .replace(/^\/collections(?=\/|$)/, '/library/lists')
+    .replace(/^\/texts\/session(?=\/|$)/, '/read/session')
+    .replace(/^\/texts(?=\/)/, '/read/text')
+    .replace(/^\/texts$/, '/read')
+    .replace(/^\/library\/lists$/, '/library');
+  return <Navigate to={`${to}${search}${hash}`} replace />;
+}
 
 /** Anything else under the old /pinyin name, carried across with its tail intact. */
 function MovedToSpeaking() {
@@ -153,6 +167,9 @@ export const router = createBrowserRouter([
               { path: 'review/:drill', element: <Navigate to={paths.cards()} replace /> },
               { path: 'library', element: <LibraryRoute /> },
               { path: 'library/radicals', element: <RadicalsPage /> },
+              { path: 'library/lists', element: <Navigate to={paths.library()} replace /> },
+              { path: 'library/lists/build/:step?', element: <BuildListPage /> },
+              { path: 'library/lists/:collectionId/:tab?', element: <CollectionPage /> },
               { path: 'library/paper', element: <PaperPage /> },
               { path: 'library/:setId', element: <SetPage /> },
               { path: 'families/:radical?', element: <FamiliesPage /> },
@@ -160,9 +177,8 @@ export const router = createBrowserRouter([
               { path: 'play/world', element: <WorldRoute /> },
               { path: 'play/:gameId', element: <GamePage /> },
               // Lists to print became part of the library: a list is a set you made.
-              { path: 'collections', element: <Navigate to={paths.library()} replace /> },
-              { path: 'collections/build/:step?', element: <BuildListPage /> },
-              { path: 'collections/:collectionId/:tab?', element: <CollectionPage /> },
+              { path: 'collections', element: <MovedAddress /> },
+              { path: 'collections/*', element: <MovedAddress /> },
               // Radicals were a section of their own, with sets and sheets to
               // design, until it became clear that a radical is something you
               // look up rather than something you work through. They are part
@@ -174,9 +190,10 @@ export const router = createBrowserRouter([
               // always were: collections, beside the character ones.
               { path: 'read', element: <ReadPage /> },
               { path: 'read/:setId', element: <ShelfPage /> },
-              { path: 'texts', element: <Navigate to={paths.read()} replace /> },
-              { path: 'texts/session/:step?', element: <SessionPage /> },
-              { path: 'texts/:textId', element: <ReaderPage /> },
+              { path: 'read/session/:step?', element: <SessionPage /> },
+              { path: 'read/text/:textId', element: <ReaderPage /> },
+              { path: 'texts', element: <MovedAddress /> },
+              { path: 'texts/*', element: <MovedAddress /> },
               // Speaking's four parts, with their own tabs: down the side on an iPad, across the top on a phone.
               {
                 element: <SpeakingFrame />,

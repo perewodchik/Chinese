@@ -52,7 +52,7 @@ import { ListenPart, MorePart, partFill, QuestionsPart, WordsPart, WritePart } f
 import './reader.css';
 
 /**
- * /texts/:id — a shelf of texts read one at a time, or one text on its own.
+ * /read/text/:id — a shelf of texts read one at a time, or one text on its own.
  *
  * The address names the shelf, and the query says where in it: `?page=2`
  * for its second text, `?v=easy` for the easier retelling of a text that has

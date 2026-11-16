@@ -53,7 +53,7 @@ export function AppLayout() {
   const sitting = SITTING.test(pathname) || pathname.startsWith('/speaking/say/');
   // Reading has the screen edge to edge; on a phone the text page has its own
   // bar and dock, and the sections wait behind its back button.
-  const immersive = /^\/texts\/(?!session)/.test(pathname);
+  const immersive = /^\/read\/text\//.test(pathname);
 
   useColorScheme(theme);
   useScrollRestoration(main);
@@ -64,10 +64,10 @@ export function AppLayout() {
   useEffect(() => setMore(false), [pathname]);
 
   const sections = [
-    { to: paths.read(), han: '读', label: 'Read', also: ['/texts'] },
+    { to: paths.read(), han: '读', label: 'Read', also: [] },
     { to: paths.cards(), han: '卡', label: 'Cards', also: ['/review', '/learn'] },
     { to: paths.speaking(), han: '说', label: 'Speak', also: [] },
-    { to: paths.library(), han: '字', label: 'Library', also: ['/collections', '/families'] },
+    { to: paths.library(), han: '字', label: 'Library', also: ['/families'] },
   ];
   const lit = (s: (typeof sections)[number]) =>
     pathname.startsWith(s.to) || s.also.some((p) => pathname.startsWith(p));

@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 
 /**
  * Where on a long page the learner is, or what is open over it, kept in the
- * address's hash: `/texts/s1#words`, `/texts/s1#copy`. A reload, or the same
+ * address's hash: `/read/text/s1#words`, `/read/text/s1#copy`. A reload, or the same
  * link on the other device, opens the page there again.
  *
  * Written with `replaceState` and the router's own history state kept, so the

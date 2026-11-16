@@ -105,11 +105,11 @@ const tap = async (locator) => {
 };
 
 const scenarios = {
-  textWords: async () => (await open('/texts/s1'), tap(p.getByRole('button', { name: /Words/ }))),
-  textQuestions: async () => (await open('/texts/s1'), tap(p.getByRole('button', { name: /Questions/ }))),
-  copyOut: async () => (await open('/texts/s1'), tap(p.getByRole('button', { name: /Start copying/ }))),
-  dictation: async () => (await open('/texts/s1'), tap(p.locator('.rd-more-row', { hasText: 'Dictation' }))),
-  secondText: async () => open('/texts/s1?page=2'),
+  textWords: async () => (await open('/read/text/s1'), tap(p.getByRole('button', { name: /Words/ }))),
+  textQuestions: async () => (await open('/read/text/s1'), tap(p.getByRole('button', { name: /Questions/ }))),
+  copyOut: async () => (await open('/read/text/s1'), tap(p.getByRole('button', { name: /Start copying/ }))),
+  dictation: async () => (await open('/read/text/s1'), tap(p.locator('.rd-more-row', { hasText: 'Dictation' }))),
+  secondText: async () => open('/read/text/s1?page=2'),
   speakLine: async () => open('/speaking/say/t1?line=3'),
   librarySearch: async () => (await open('/library'), await p.locator('input[type=search]').first().fill('水'), p.waitForTimeout(900)),
   readSearch: async () => (await open('/read'), await p.locator('input[type=search]').first().fill('商店'), p.waitForTimeout(900)),

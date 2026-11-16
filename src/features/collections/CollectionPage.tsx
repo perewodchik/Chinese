@@ -5,8 +5,8 @@ import { useTitle } from '../../ui/useTitle';
 import { CollectionEditor } from './CollectionEditor';
 
 /**
- * One collection: /collections/:id for how it prints, /collections/:id/items for
- * what is in it, and /collections/:id/words for the words it was written around.
+ * One collection: /library/lists/:id for how it prints, …/items for
+ * what is in it, and …/words for the words it was written around.
  */
 export function CollectionPage() {
   const { collectionId = '', tab } = useParams();

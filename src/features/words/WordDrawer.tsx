@@ -47,7 +47,7 @@ export function WordDrawer({ id, onClose }: Props) {
   const collections = useStore((s) => s.collections);
   const texts = useStore((s) => s.texts);
   const learned = useStore((s) => s.learned.has(id));
-  const match = useMatch('/collections/:collectionId/*');
+  const match = useMatch('/library/lists/:collectionId/*');
   const sheet = useSheetDrag(onClose);
   const { close } = sheet;
 
