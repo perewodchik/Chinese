@@ -792,6 +792,12 @@ function ReaderMenu({
       <Menu label={<Icon name="more" size={22} />} title={busy ? 'Building the PDF…' : 'More'} className={`rd-menu-btn${busy ? ' busy' : ''}`}>
         {(close) => (
           <>
+            {mode === 'single' && !text.lines.some((l) => l.en) && (
+              <button role="menuitem" className="btn ghost sm" onClick={then(close, () => navigate(paths.explainText(text.id)))}>
+                Explain it with Claude
+                <span className="tiny muted">its English, words, grammar and questions, from your own chat</span>
+              </button>
+            )}
             {list.length > 1 && (
               <button role="menuitem" className="btn ghost sm" onClick={then(close, () => onMode(mode === 'all' ? 'single' : 'all'))}>
                 {mode === 'all' ? 'One text at a time' : 'Every text on one page'}

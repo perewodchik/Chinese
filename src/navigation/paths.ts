@@ -78,6 +78,8 @@ export const paths = {
   session: (step: PlanStep = 'plan') => `/read/session/${step}`,
   /** Chinese pasted or scanned in, made a text to read (T2): into a book, or a new one */
   addText: (shelf?: string) => withQuery('/read/add', { shelf }),
+  /** a pasted text explained by the learner's own chat with Claude (T4) */
+  explainText: (textId: string) => `/read/explain/${encodeURIComponent(textId)}`,
 
   /**
    * Speaking — the section that was called Pinyin until the conversation grew

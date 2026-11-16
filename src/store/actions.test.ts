@@ -276,6 +276,22 @@ describe('text collections', () => {
     assert.deepEqual(merged, { heard: 5, translated: 9, written: ['好', '你'], answered: [1, 0], copied: 12 });
   });
 
+  it('keeps a pasted text’s explanation from either device, whichever was read more', () => {
+    const bare = (): AppState => ({ ...start(), texts: start().texts.map((t) => (t.id === 'a1' ? { ...t, model: 'paste', lines: [{ zh: '你好。', py: 'nǐ hǎo', en: '' }] } : t)) });
+    const explained = run(bare(), {
+      type: 'text/explain',
+      id: 'a1',
+      patch: { lines: [{ zh: '你好。', py: 'nǐ hǎo', en: 'Hello.' }], vocab: [], questions: [], grammar: [], note: 'Say it warmly.', title: 'Hello', model: 'explained' },
+    });
+    const readMore = run(bare(), { type: 'text/markRead', id: 'a1', at: 5 });
+    for (const merged of [mergeStates(explained, readMore), mergeStates(readMore, explained)]) {
+      const t = merged.texts.find((x) => x.id === 'a1')!;
+      assert.equal(t.lines[0]!.en, 'Hello.');
+      assert.equal(t.note, 'Say it warmly.');
+      assert.equal(t.reads, 1);
+    }
+  });
+
   it('keeps the answers written to a text’s questions, an edit over the answer before it', () => {
     let state = run(start(), { type: 'text/study', id: 'a1', study: { answered: [0], answers: { '0': '在家' } } });
     state = run(state, { type: 'text/study', id: 'a1', study: { answered: [1], answers: { '1': '吃饭' } } });

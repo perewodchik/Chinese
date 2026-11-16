@@ -1,3 +1,4 @@
+import { isExplained } from '../domain/explainText';
 import { mergeActivity } from '../domain/activity';
 import { mergePlay } from '../domain/play';
 import { mergePictures } from '../domain/pictures';
@@ -30,7 +31,12 @@ export function mergeStates(account: AppState, incoming: AppState): AppState {
       ours.gradedAt === null && theirs.gradedAt !== null ? theirs : ours,
     ).sort((a, b) => b.printedAt - a.printedAt),
     texts: union(account.texts, incoming.texts, (ours, theirs) => {
-      const kept = (theirs.reads ?? 0) > (ours.reads ?? 0) ? theirs : ours;
+      const later = (theirs.reads ?? 0) > (ours.reads ?? 0) ? theirs : ours;
+      // A pasted text explained on one device keeps its explanation (T4), whichever was read more.
+      const other = later === ours ? theirs : ours;
+      const kept = !isExplained(later) && isExplained(other)
+        ? { ...later, lines: other.lines, vocab: other.vocab, questions: other.questions, grammar: other.grammar, note: other.note, title: other.title, model: other.model }
+        : later;
       // endings found on either device stay found
       const endings = [...new Set([...(ours.endings ?? []), ...(theirs.endings ?? [])])];
       // and so does anything done with the text on either

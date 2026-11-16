@@ -1028,3 +1028,20 @@
   color: var(--ink);
   text-decoration: none;
 }
+
+/* Explaining a pasted text with Claude (T4). */
+.explain-prompt {
+  margin-top: 12px;
+}
+
+.explain-prompt .prompt-pre {
+  max-height: 320px;
+  overflow: auto;
+}
+
+.explain-answer {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 160px;
+}

@@ -5,6 +5,8 @@ import { itemForToken } from '../../domain/words';
 import { useHashFlag } from '../../navigation/hash';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { setShelfStudy, studyText } from '../../store/commands';
+import { Link } from 'react-router';
+import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { useLibrary } from '../shared/library';
 import { AnswerBox } from './AnswerBox';
@@ -518,7 +520,16 @@ export function MorePart({ text, partId }: { text: GeneratedText; partId: string
       <div className="rd-more-list">
         {/* A pasted text has no English to check against (T3): said, not offered. */}
         {!text.lines.some((l) => l.en) && (
-          <p className="small muted rd-draft-note">No English for its lines yet: it was pasted in, and its pinyin and words come from the dictionary.</p>
+          <Link className="rd-more-row" to={paths.explainText(text.id)}>
+            <span className="hanzi" aria-hidden>
+              译
+            </span>
+            <span className="grow">
+              <b>Explain it with Claude</b>
+              <span className="small muted">No English for its lines yet. Your own chat with Claude gives it, with words, grammar and questions.</span>
+            </span>
+            <Icon name="chevron" />
+          </Link>
         )}
         {text.lines.some((l) => l.en) && row('translate', '译', 'Translate', 'Say what a line means, then check')}
         {open === 'translate' && (
