@@ -452,6 +452,15 @@
   gap: 5px;
 }
 
+/* On a phone the four do not fit one line: two rows of two from the start, so
+   the counts changing with the tab (字 / 词) never re-wrap them. */
+@media (max-width: 699px) {
+  .set-levels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 
 /* Printed sheets to mark, under Your lists (B1): a line that unfolds. */
 .lib-sheets {

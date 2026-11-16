@@ -85,7 +85,7 @@ export function SpeakPart({ text, bests }: { text: GeneratedText; bests: Record<
         <span className="hanzi" aria-hidden>
           说
         </span>
-        <h2>Speak</h2>
+        <h2>Say</h2>
         <span className="spacer" />
         <span className="rd-part-aside">
           {said.length} of {lines.length} said

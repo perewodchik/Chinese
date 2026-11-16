@@ -153,6 +153,22 @@ export function ItemDrawer({ id, onClose }: Props) {
             <div className="subtle-rule" />
 
             <dl className="kv">
+              {/* What you can do here comes first — say how well you know it — and the facts after. */}
+              <dt>Level</dt>
+              <dd>
+                <LevelPicker id={id} level={levelOf(book, Date.now())} />
+              </dd>
+              <dt>Progress</dt>
+              <dd>
+                {mastery.since ? (
+                  <>
+                    {learned ? 'Learned' : 'Started'}{' '}
+                    <span className="muted">· {dateOf(mastery.since)}</span>
+                  </>
+                ) : (
+                  <span className="muted">Not learned yet</span>
+                )}
+              </dd>
               {c && (
                 <>
                   <dt>Position</dt>
@@ -197,33 +213,18 @@ export function ItemDrawer({ id, onClose }: Props) {
                   <dd>#{c.freq} most common</dd>
                 </>
               )}
-              <dt>Progress</dt>
-              <dd>
-                {mastery.since ? (
-                  <>
-                    {learned ? 'Learned' : 'Started'}{' '}
-                    <span className="muted">· {dateOf(mastery.since)}</span>
-                  </>
-                ) : (
-                  <span className="muted">Not learned yet</span>
-                )}
-              </dd>
-              <dt>Level</dt>
-              <dd>
-                <LevelPicker id={id} level={levelOf(book, Date.now())} />
-              </dd>
-              <dt>Collections</dt>
+              <dt>Lists</dt>
               <dd>
                 {inCollections.length ? (
                   <span className="pill-list">
                     {inCollections.map((t) => (
-                      <Link key={t.id} className="pill as-button" to={paths.collection(t.id)} title="Open this collection">
+                      <Link key={t.id} className="pill as-button" to={paths.collection(t.id)} title="Open this list">
                         {t.name}
                       </Link>
                     ))}
                   </span>
                 ) : (
-                  <span className="muted">Not in any collection yet</span>
+                  <span className="muted">Not in any list yet</span>
                 )}
               </dd>
             </dl>

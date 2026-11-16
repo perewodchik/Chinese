@@ -153,13 +153,18 @@
   }
 }
 
+/* A line too long for the phone breaks into rows of about the same length
+   (balance), never eight characters and then one alone. */
 .ph-phrase {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 0 2px;
+  text-align: center;
+  text-wrap: balance;
+  line-height: 0;
   padding: 6px 0 0;
+}
+
+.ph-phrase .ph-word {
+  vertical-align: bottom;
+  margin: 0 1px;
 }
 
 .ph-tile {
@@ -203,10 +208,16 @@
   background: var(--hl);
 }
 
+/* The full stop sits on the characters' own line: as high as the tile's foot,
+   and above the tags' row when Marks keeps one. */
 .ph-punct {
-  font-size: clamp(34px, 8.6vw, 48px);
-  line-height: 1.1;
-  padding-bottom: 20px;
+  font-size: clamp(30px, 7.6vw, 46px);
+  line-height: 1.08;
+  padding-bottom: 3px;
+}
+
+.ph-phrase[data-tags] .ph-punct {
+  padding-bottom: 17px;
 }
 
 .ph-en {

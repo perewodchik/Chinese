@@ -17,15 +17,20 @@
   gap: 10px;
 }
 
-/* The line: each character with its pinyin and, under it, the room for its tag. */
+/* The line: each character with its pinyin and, under it, the room for its tag.
+   A line too long for the phone breaks into rows of about the same length
+   (balance), never eight characters and then one alone. */
 .sk-line {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 0 2px;
+  text-align: center;
+  text-wrap: balance;
+  line-height: 0;
   padding: 6px 0 0;
   transition: opacity 140ms;
+}
+
+.sk-line .ph-word {
+  vertical-align: bottom;
+  margin: 0 1px;
 }
 
 .sk-line[data-dim] {
@@ -85,10 +90,11 @@ button.sk-tile {
   color: var(--jade);
 }
 
+/* The full stop sits on the characters' own line: above the room kept for the tag (14px and the tile's 2px). */
 .sk-punct {
-  font-size: clamp(32px, 8vw, 44px);
-  line-height: 1.1;
-  padding-bottom: 34px;
+  font-size: clamp(30px, 7.6vw, 44px);
+  line-height: 1.08;
+  padding-bottom: 16px;
 }
 
 /* Who reads it, in a line, and the two ways of hearing and saying it. */
