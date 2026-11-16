@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { DEFAULT_SCOPE, type Collection } from '../../domain/collection';
 import { charId, isCharId, isWordId, idValue, type ItemId } from '../../domain/ids';
 import { firstSense } from '../../domain/library';
+import { bookFromFile } from '../../domain/bookFile';
+import { useToast } from '../../ui/toast';
 import { defaultSheet } from '../../domain/sheet';
 import { firstUnread, fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTexts, type GeneratedText, type TextSet } from '../../domain/text';
 import { paths, type ShelfTab } from '../../navigation/paths';
@@ -114,6 +116,22 @@ export function ReadPage() {
       .slice(0, 30);
   }, [q, texts]);
 
+  // A book file read back in (T9): the JSON "Save the texts as a file" writes, or Claude's answer as a file.
+  const fileInput = useRef<HTMLInputElement>(null);
+  const toast = useToast();
+  const learned = useStore((s) => s.learned);
+  async function openBookFile(file: File) {
+    const known = [...learned].filter((id) => id.startsWith('c')).map((id) => id.slice(1));
+    const book = bookFromFile(await file.text(), known, file.name.replace(/\.[a-z]+$/i, ''));
+    if ('error' in book) {
+      toast(book.error);
+      return;
+    }
+    const { set } = addTexts(book.texts, { setId: null, name: book.name });
+    toast(`${book.texts.length} text${book.texts.length === 1 ? '' : 's'} added as “${set.name}”`);
+    navigate(paths.shelf(set.id));
+  }
+
   function newBook() {
     const name = prompt('What is the new book called? A real book’s title, or a subject for texts.');
     if (!name?.trim()) return;
@@ -154,9 +172,24 @@ export function ReadPage() {
                 New book
                 <span className="tiny muted">for a real book’s pages, or texts on a subject</span>
               </button>
+              <button role="menuitem" className="btn ghost sm" onClick={() => (close(), fileInput.current?.click())}>
+                Open a book file
+                <span className="tiny muted">a book saved as a file, from here or from Claude</span>
+              </button>
             </>
           )}
         </Menu>
+        <input
+          ref={fileInput}
+          type="file"
+          accept=".json,application/json,text/plain"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = '';
+            if (file) void openBookFile(file);
+          }}
+        />
       </header>
 
       <label className="search">
