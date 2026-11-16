@@ -141,3 +141,14 @@
   max-width: 420px;
   margin-top: 10px;
 }
+
+/* Feedback sent from the site (A12): the message as its own text, kept to its lines. */
+.admin-feedback-message {
+  margin: 4px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-feedback-empty {
+  margin-top: 16px;
+}

@@ -19,6 +19,8 @@ const ACTION: Record<string, string> = {
   blocked: 'Paused:',
   unblocked: 'Opened again:',
   'signed-out': 'Signed out everywhere:',
+  'reset-link': 'Reset link made for',
+  'invite-revoked': 'Invitation taken back',
 };
 
 const when = (at: number) => new Date(at).toLocaleString(undefined, { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit' });

@@ -1,0 +1,24 @@
+/* Sending feedback (A12), and reading it on the admin page. */
+.feedback-page {
+  max-width: 640px;
+}
+
+.feedback-form {
+  display: grid;
+  gap: 12px;
+}
+
+.feedback-form textarea {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+}
+
+.feedback-count {
+  margin: -6px 0 0;
+  text-align: right;
+}
+
+.feedback-count[data-over] {
+  color: var(--red);
+}

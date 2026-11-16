@@ -308,6 +308,52 @@ var CatalogService = class {
   }
 };
 
+// shared/feedback.ts
+var FEEDBACK_KINDS = ["wrong", "missing", "good"];
+var FEEDBACK_STATUSES = ["new", "answered", "closed"];
+var FEEDBACK_MAX = 2e3;
+
+// server/src/application/feedback-service.ts
+var FeedbackService = class {
+  constructor(deps) {
+    this.deps = deps;
+  }
+  async send(userId, input) {
+    const message = input.message.trim();
+    if (!message) throw new ValidationError("Say what it is, in a line or two.", { message: "Say what it is." });
+    if ([...message].length > FEEDBACK_MAX) throw new ValidationError(`At most ${FEEDBACK_MAX} characters.`, { message: "Too long." });
+    const kind = FEEDBACK_KINDS.includes(input.kind) ? input.kind : "wrong";
+    const now = this.deps.clock.now();
+    await this.deps.feedback.add({
+      id: this.deps.tokens.id(),
+      userId,
+      kind,
+      message,
+      // A path on this site, and nothing more: no host, no query that might hold a code.
+      page: (input.page.startsWith("/") ? input.page.split(/[?#]/)[0] : "/").slice(0, 200),
+      createdAt: now,
+      status: "new",
+      updatedAt: now
+    });
+  }
+  async list(status) {
+    const [items, users] = await Promise.all([this.deps.feedback.list({ status, limit: 200 }), this.deps.users.list()]);
+    const name = new Map(users.map((u) => [u.id, u.username]));
+    return items.map((f) => ({
+      id: f.id,
+      kind: FEEDBACK_KINDS.includes(f.kind) ? f.kind : "wrong",
+      message: f.message,
+      page: f.page,
+      username: name.get(f.userId) ?? null,
+      createdAt: f.createdAt,
+      status: FEEDBACK_STATUSES.includes(f.status) ? f.status : "new"
+    }));
+  }
+  async setStatus(id, status) {
+    if (!await this.deps.feedback.setStatus(id, status, this.deps.clock.now())) throw new NotFoundError("That feedback");
+  }
+};
+
 // shared/api.ts
 var TOKEN_SCOPES = ["texts:write", "catalog:write"];
 var TOKEN_PREFIX = "hzw_";
@@ -2428,6 +2474,7 @@ function createServices(stores, options = {}) {
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, catalog: stores.catalog, clock, quota }),
+    feedback: new FeedbackService({ feedback: stores.feedback, users: stores.users, clock, tokens: cryptoTokens }),
     catalog: new CatalogService({ catalog: stores.catalog, pictures: stores.pictures, adminLog: stores.adminLog, clock, tokens: cryptoTokens }),
     narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),
     speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock, meter: usage, quota }),
@@ -2452,7 +2499,7 @@ function registrationFrom(raw, fallback) {
 }
 
 // server/src/http/app.ts
-import { Hono as Hono16 } from "hono";
+import { Hono as Hono17 } from "hono";
 import { bodyLimit as bodyLimit5 } from "hono/body-limit";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
@@ -2850,7 +2897,7 @@ var logQuery = z4.object({
 });
 var LOG_PAGE = 50;
 var blockRequest = z4.object({ reason: z4.string().trim().min(1, "Say why, for the log.").max(300) });
-function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit, catalog }) {
+function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit, catalog, feedback }) {
   const routes = new Hono2();
   const session = requireSession(auth, { trustProxy, clock });
   const admin = requireRole("admin");
@@ -2949,6 +2996,17 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, st
     await changes.consume(c.get("session").user.id);
     const { hidden } = await readJson(c, hideRequest);
     await catalog.setHidden(actor(c), c.req.param("id"), hidden);
+    return c.body(null, 204);
+  });
+  routes.get("/feedback", session, admin, async (c) => {
+    const status = c.req.query("status");
+    c.header("Cache-Control", "no-store");
+    return c.json({ items: await feedback.list(FEEDBACK_STATUSES.includes(status ?? "") ? status : void 0) });
+  });
+  const feedbackStatus = z4.object({ status: z4.enum(FEEDBACK_STATUSES) });
+  routes.patch("/feedback/:id", session, admin, async (c) => {
+    await changes.consume(c.get("session").user.id);
+    await feedback.setStatus(c.req.param("id"), (await readJson(c, feedbackStatus)).status);
     return c.body(null, 204);
   });
   routes.post("/invites/:id/revoke", session, admin, fresh, async (c) => {
@@ -3225,40 +3283,57 @@ function catalogRoutes({ auth, clock, trustProxy, catalog }) {
   return routes;
 }
 
-// server/src/http/routes/narration.ts
+// server/src/http/routes/feedback.ts
 import { Hono as Hono6 } from "hono";
 import { z as z7 } from "zod";
-var keyRequest = z7.object({ key: z7.string().min(1).max(400) });
-var lines = z7.array(z7.string().max(240)).min(1).max(300);
-var textRequest = z7.object({ narrator: z7.string().min(1).max(80), lines, generate: z7.boolean().optional(), again: z7.boolean().optional(), speed: z7.number().min(0.5).max(2).optional() });
-var ofRequest = z7.object({ lines });
-var tryRequest = z7.object({ prompt: z7.string().trim().min(1).max(2e3), previewText: z7.string().trim().min(1).max(200), count: z7.number().int().min(1).max(3).optional() });
-var keepRequest = z7.object({ name: z7.string().trim().min(1).max(60), prompt: z7.string().trim().min(1).max(2e3), previewText: z7.string().trim().max(200), voiceId: z7.string().min(1).max(128) });
-var adoptRequest = z7.object({ name: z7.string().max(60), voice: z7.string().min(1).max(120) });
-var changeRequest = z7.object({
-  name: z7.string().trim().min(1).max(60).optional(),
-  speed: z7.number().min(0.5).max(2).optional(),
-  pitch: z7.number().min(-12).max(12).optional(),
-  emotion: z7.enum(EMOTIONS).nullable().optional()
+function feedbackRoutes({ auth, clock, trustProxy, feedback, limits }) {
+  const routes = new Hono6();
+  const session = requireSession(auth, { trustProxy, clock });
+  const sends = new RateLimiter("feedback.sends", 10, 24 * 60 * 6e4, clock, limits);
+  const body = z7.object({ kind: z7.string().max(20), message: z7.string().max(FEEDBACK_MAX * 4), page: z7.string().max(2e3).default("/") });
+  routes.post("/", session, async (c) => {
+    const userId = c.get("session").user.id;
+    await sends.consume(userId);
+    await feedback.send(userId, await readJson(c, body));
+    return c.body(null, 201);
+  });
+  return routes;
+}
+
+// server/src/http/routes/narration.ts
+import { Hono as Hono7 } from "hono";
+import { z as z8 } from "zod";
+var keyRequest = z8.object({ key: z8.string().min(1).max(400) });
+var lines = z8.array(z8.string().max(240)).min(1).max(300);
+var textRequest = z8.object({ narrator: z8.string().min(1).max(80), lines, generate: z8.boolean().optional(), again: z8.boolean().optional(), speed: z8.number().min(0.5).max(2).optional() });
+var ofRequest = z8.object({ lines });
+var tryRequest = z8.object({ prompt: z8.string().trim().min(1).max(2e3), previewText: z8.string().trim().min(1).max(200), count: z8.number().int().min(1).max(3).optional() });
+var keepRequest = z8.object({ name: z8.string().trim().min(1).max(60), prompt: z8.string().trim().min(1).max(2e3), previewText: z8.string().trim().max(200), voiceId: z8.string().min(1).max(128) });
+var adoptRequest = z8.object({ name: z8.string().max(60), voice: z8.string().min(1).max(120) });
+var changeRequest = z8.object({
+  name: z8.string().trim().min(1).max(60).optional(),
+  speed: z8.number().min(0.5).max(2).optional(),
+  pitch: z8.number().min(-12).max(12).optional(),
+  emotion: z8.enum(EMOTIONS).nullable().optional()
 });
-var ownRequest = z7.object({ title: z7.string().max(80), narrator: z7.string().min(1).max(80), lines });
-var ownChange = z7.object({ title: z7.string().max(80).optional(), textId: z7.string().min(1).max(80).nullable().optional() });
-var importRequest = z7.object({
-  narrator: z7.string().min(1).max(80),
+var ownRequest = z8.object({ title: z8.string().max(80), narrator: z8.string().min(1).max(80), lines });
+var ownChange = z8.object({ title: z8.string().max(80).optional(), textId: z8.string().min(1).max(80).nullable().optional() });
+var importRequest = z8.object({
+  narrator: z8.string().min(1).max(80),
   lines,
   // A chapter is a minute or two: a few MB of base64 at most.
-  mp3: z7.string().min(8).max(6e6),
-  durationMs: z7.number().int().min(1).max(30 * 6e4),
-  timings: z7.array(z7.tuple([z7.number().min(0), z7.number().min(0)])).min(1).max(300)
+  mp3: z8.string().min(8).max(6e6),
+  durationMs: z8.number().int().min(1).max(30 * 6e4),
+  timings: z8.array(z8.tuple([z8.number().min(0), z8.number().min(0)])).min(1).max(300)
 });
-var previewRequest = z7.object({ text: z7.string().max(200) });
+var previewRequest = z8.object({ text: z8.string().max(200) });
 var mp3 = (c, bytes) => {
   c.header("Content-Type", "audio/mpeg");
   c.header("Cache-Control", "no-store");
   return c.body(bytes);
 };
 function narrationRoutes({ auth, clock, trustProxy, narration, limits }) {
-  const routes = new Hono6();
+  const routes = new Hono7();
   const session = requireSession(auth, { trustProxy, clock });
   const reads = new RateLimiter("narration.reads", 200, 10 * 6e4, clock, limits);
   const keys = new RateLimiter("narration.keys", 20, 10 * 6e4, clock, limits);
@@ -3352,37 +3427,37 @@ function narrationRoutes({ auth, clock, trustProxy, narration, limits }) {
 }
 
 // server/src/http/routes/speechEval.ts
-import { Hono as Hono7 } from "hono";
-import { z as z8 } from "zod";
-var keysRequest = z8.discriminatedUnion("provider", [
-  z8.object({ provider: z8.literal("speechsuper"), appKey: z8.string().min(1).max(80), secretKey: z8.string().min(1).max(120) }),
-  z8.object({ provider: z8.literal("iflytek"), appId: z8.string().min(1).max(60), apiKey: z8.string().min(1).max(120), apiSecret: z8.string().min(1).max(160) })
+import { Hono as Hono8 } from "hono";
+import { z as z9 } from "zod";
+var keysRequest = z9.discriminatedUnion("provider", [
+  z9.object({ provider: z9.literal("speechsuper"), appKey: z9.string().min(1).max(80), secretKey: z9.string().min(1).max(120) }),
+  z9.object({ provider: z9.literal("iflytek"), appId: z9.string().min(1).max(60), apiKey: z9.string().min(1).max(120), apiSecret: z9.string().min(1).max(160) })
 ]);
-var settingsRequest = z8.object({ strictness: z8.enum(STRICTNESS) });
-var sized = (max) => z8.unknown().refine((v) => v === void 0 || JSON.stringify(v).length <= max, "too large");
-var attemptsRequest = z8.object({
-  items: z8.array(
-    z8.object({
-      id: z8.string().min(1).max(120),
-      at: z8.number().int().nonnegative(),
-      kind: z8.enum(["phrase", "drill", "voice"]),
-      sourceId: z8.string().max(200).nullable().optional(),
-      text: z8.string().max(EVAL_MAX_CHARS * 4),
-      tally: z8.string().max(80).nullable().optional(),
-      good: z8.boolean(),
+var settingsRequest = z9.object({ strictness: z9.enum(STRICTNESS) });
+var sized = (max) => z9.unknown().refine((v) => v === void 0 || JSON.stringify(v).length <= max, "too large");
+var attemptsRequest = z9.object({
+  items: z9.array(
+    z9.object({
+      id: z9.string().min(1).max(120),
+      at: z9.number().int().nonnegative(),
+      kind: z9.enum(["phrase", "drill", "voice"]),
+      sourceId: z9.string().max(200).nullable().optional(),
+      text: z9.string().max(EVAL_MAX_CHARS * 4),
+      tally: z9.string().max(80).nullable().optional(),
+      good: z9.boolean(),
       summary: sized(16e3).optional(),
       result: sized(12e4).optional()
     })
   ).max(ATTEMPTS_PER_CALL)
 });
-var evalRequest = z8.object({
-  text: z8.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
-  pinyin: z8.array(z8.string().regex(PINYIN_SYLLABLE)).max(EVAL_MAX_CHARS).optional(),
+var evalRequest = z9.object({
+  text: z9.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
+  pinyin: z9.array(z9.string().regex(PINYIN_SYLLABLE)).max(EVAL_MAX_CHARS).optional(),
   // base64 of up to EVAL_MAX_BYTES of PCM
-  audio: z8.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
+  audio: z9.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
 });
 function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }) {
-  const routes = new Hono7();
+  const routes = new Hono8();
   const session = requireSession(auth, { trustProxy, clock });
   const scores = new RateLimiter("speechEval.scores", 200, 10 * 6e4, clock, limits);
   const keys = new RateLimiter("speechEval.keys", 20, 10 * 6e4, clock, limits);
@@ -3424,10 +3499,10 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }) {
 }
 
 // server/src/http/routes/pictures.ts
-import { Hono as Hono8 } from "hono";
+import { Hono as Hono9 } from "hono";
 import { bodyLimit as bodyLimit2 } from "hono/body-limit";
 function pictureRoutes({ auth, clock, trustProxy, pictures, limits }) {
-  const routes = new Hono8();
+  const routes = new Hono9();
   const session = requireSession(auth, { trustProxy, clock }, "texts:write");
   const uploads = new RateLimiter("pictures.uploads", 300, 10 * 6e4, clock, limits);
   routes.get("/:key", session, async (c) => {
@@ -3450,10 +3525,10 @@ function pictureRoutes({ auth, clock, trustProxy, pictures, limits }) {
 }
 
 // server/src/http/routes/speech.ts
-import { Hono as Hono9 } from "hono";
+import { Hono as Hono10 } from "hono";
 var SPEECH_MAX_CHARS = 240;
 function speechRoutes({ auth, clock, trustProxy, speech, limits }) {
-  const routes = new Hono9();
+  const routes = new Hono10();
   const session = requireSession(auth, { trustProxy, clock });
   const limiter = new RateLimiter("speech.limiter", 300, 10 * 6e4, clock, limits);
   routes.get("/", session, (c) => {
@@ -3485,7 +3560,7 @@ function speechRoutes({ auth, clock, trustProxy, speech, limits }) {
 }
 
 // server/src/http/routes/strokes.ts
-import { Hono as Hono10 } from "hono";
+import { Hono as Hono11 } from "hono";
 
 // shared/strokes.ts
 var STROKES_PER_REQUEST = 24;
@@ -3524,7 +3599,7 @@ async function fetchOne(c, get2) {
 // server/src/http/routes/strokes.ts
 var HANZI = /^\p{Script=Han}$/u;
 function strokeRoutes({ auth, clock, trustProxy }) {
-  const routes = new Hono10();
+  const routes = new Hono11();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const chars = [.../* @__PURE__ */ new Set([...c.req.query("c") ?? ""])];
@@ -3539,57 +3614,57 @@ function strokeRoutes({ auth, clock, trustProxy }) {
 }
 
 // server/src/http/routes/talk.ts
-import { Hono as Hono11 } from "hono";
-import { z as z9 } from "zod";
-var talkOptions = z9.object({
-  level: z9.enum(TALK_LEVELS),
-  length: z9.enum(TALK_LENGTHS),
-  explain: z9.boolean(),
-  words: z9.boolean(),
-  hints: z9.boolean(),
+import { Hono as Hono12 } from "hono";
+import { z as z10 } from "zod";
+var talkOptions = z10.object({
+  level: z10.enum(TALK_LEVELS),
+  length: z10.enum(TALK_LENGTHS),
+  explain: z10.boolean(),
+  words: z10.boolean(),
+  hints: z10.boolean(),
   // The learner's own words, and they go into a prompt: a topic the length
   // of an essay is a way of talking past everything above it.
-  topic: z9.string().trim().max(TALK_TOPIC_MAX_CHARS),
-  persona: z9.string().max(64).optional()
+  topic: z10.string().trim().max(TALK_TOPIC_MAX_CHARS),
+  persona: z10.string().max(64).optional()
 });
-var savedWord = z9.object({
-  hanzi: z9.string().max(TALK_LINE_MAX_CHARS),
-  pinyin: z9.string().max(TALK_LINE_MAX_CHARS * 2),
-  english: z9.string().max(TALK_LINE_MAX_CHARS)
+var savedWord = z10.object({
+  hanzi: z10.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z10.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z10.string().max(TALK_LINE_MAX_CHARS)
 });
-var savedTurn = z9.object({
-  who: z9.enum(["tutor", "learner"]),
-  hanzi: z9.string().max(TALK_LINE_MAX_CHARS),
-  pinyin: z9.string().max(TALK_LINE_MAX_CHARS * 2),
-  english: z9.string().max(TALK_LINE_MAX_CHARS * 2),
-  words: z9.array(savedWord).max(10).optional(),
-  hints: z9.array(savedWord).max(10).optional(),
-  note: z9.string().max(TALK_LINE_MAX_CHARS * 2).optional()
+var savedTurn = z10.object({
+  who: z10.enum(["tutor", "learner"]),
+  hanzi: z10.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z10.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z10.string().max(TALK_LINE_MAX_CHARS * 2),
+  words: z10.array(savedWord).max(10).optional(),
+  hints: z10.array(savedWord).max(10).optional(),
+  note: z10.string().max(TALK_LINE_MAX_CHARS * 2).optional()
 });
-var recordedRequest = z9.object({
-  voice: z9.string().min(1).max(64),
-  mode: z9.enum(TALK_MODES).optional(),
-  texts: z9.array(z9.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
+var recordedRequest = z10.object({
+  voice: z10.string().min(1).max(64),
+  mode: z10.enum(TALK_MODES).optional(),
+  texts: z10.array(z10.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
 });
-var startRequest = z9.object({
+var startRequest = z10.object({
   options: talkOptions,
-  voice: z9.string().max(64).nullable()
+  voice: z10.string().max(64).nullable()
 });
-var saveRequest = z9.object({
+var saveRequest = z10.object({
   options: talkOptions,
-  voice: z9.string().max(64).nullable(),
-  turns: z9.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
+  voice: z10.string().max(64).nullable(),
+  turns: z10.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
 });
-var replyRequest = z9.object({
-  lines: z9.array(z9.object({ who: z9.enum(["tutor", "learner"]), text: z9.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
+var replyRequest = z10.object({
+  lines: z10.array(z10.object({ who: z10.enum(["tutor", "learner"]), text: z10.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
   options: talkOptions,
-  vocab: z9.object({
-    known: z9.array(z9.string().max(12)).max(TALK_VOCAB_MAX.known),
-    learning: z9.array(z9.string().max(12)).max(TALK_VOCAB_MAX.learning)
+  vocab: z10.object({
+    known: z10.array(z10.string().max(12)).max(TALK_VOCAB_MAX.known),
+    learning: z10.array(z10.string().max(12)).max(TALK_VOCAB_MAX.learning)
   }).optional()
 });
 function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, talkVoices, conversations, recordings, limits }) {
-  const routes = new Hono11();
+  const routes = new Hono12();
   const session = requireSession(auth, { trustProxy, clock });
   const turns = new RateLimiter("talk.turns", 120, 10 * 6e4, clock, limits);
   const clips = new RateLimiter("talk.clips", 600, 10 * 6e4, clock, limits);
@@ -3670,7 +3745,7 @@ function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, talk
 }
 
 // server/src/http/routes/videos.ts
-import { Hono as Hono12 } from "hono";
+import { Hono as Hono13 } from "hono";
 
 // shared/videos.ts
 var PLAYLIST_ID = /^[A-Za-z0-9_-]{10,64}$/;
@@ -3822,7 +3897,7 @@ async function lookUpPlaylist(playlistId) {
 // server/src/http/routes/videos.ts
 var HOUR = 60 * 6e4;
 function videoRoutes({ auth, clock, trustProxy, log, limits, lookups: cache }) {
-  const routes = new Hono12();
+  const routes = new Hono13();
   const session = requireSession(auth, { trustProxy, clock });
   const lookups = new RateLimiter("videos.lookups", 60, HOUR, clock, limits);
   const site = new RateLimiter("videos.site", 300, HOUR, clock, limits);
@@ -3873,15 +3948,15 @@ function videoRoutes({ auth, clock, trustProxy, log, limits, lookups: cache }) {
 }
 
 // server/src/http/routes/workspace.ts
-import { Hono as Hono13 } from "hono";
+import { Hono as Hono14 } from "hono";
 import { bodyLimit as bodyLimit3 } from "hono/body-limit";
-import { z as z10 } from "zod";
-var saveRequest2 = z10.object({
-  baseRevision: z10.number().int().min(0),
-  document: z10.record(z10.string(), z10.unknown())
+import { z as z11 } from "zod";
+var saveRequest2 = z11.object({
+  baseRevision: z11.number().int().min(0),
+  document: z11.record(z11.string(), z11.unknown())
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
-  const routes = new Hono13();
+  const routes = new Hono14();
   const session = requireSession(auth, { trustProxy, clock }, "texts:write");
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -3919,21 +3994,21 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 }
 
 // server/src/http/routes/world.ts
-import { Hono as Hono14 } from "hono";
+import { Hono as Hono15 } from "hono";
 import { bodyLimit as bodyLimit4 } from "hono/body-limit";
-import { z as z11 } from "zod";
+import { z as z12 } from "zod";
 
 // shared/world.ts
 var WORLD_SAVE_MAX_BYTES = 512 * 1024;
 var worldTag = (revision) => `"w${revision}"`;
 
 // server/src/http/routes/world.ts
-var putRequest = z11.object({
-  baseRevision: z11.number().int().min(0),
-  save: z11.record(z11.string(), z11.unknown())
+var putRequest = z12.object({
+  baseRevision: z12.number().int().min(0),
+  save: z12.record(z12.string(), z12.unknown())
 });
 function worldRoutes({ auth, world, clock, trustProxy }) {
-  const routes = new Hono14();
+  const routes = new Hono15();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -3970,9 +4045,9 @@ function worldRoutes({ auth, world, clock, trustProxy }) {
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Hono as Hono15 } from "hono";
+import { Hono as Hono16 } from "hono";
 function staticSite(root) {
-  const site = new Hono15();
+  const site = new Hono16();
   const index = join(root, "index.html");
   site.use("*", caching());
   site.use("*", serveStatic({ root }));
@@ -4013,7 +4088,7 @@ function createHttpApp(services, options) {
     devUserCreate: options.devUserCreate ?? true,
     log: options.log
   };
-  const api = new Hono16();
+  const api = new Hono17();
   api.onError(onError);
   api.use("*", sameOriginOnly());
   api.use("*", tooLarge(WORKSPACE_MAX_BYTES + 64 * 1024));
@@ -4046,11 +4121,12 @@ function createHttpApp(services, options) {
   api.route("/pictures", pictureRoutes(deps));
   api.route("/narration", narrationRoutes(deps));
   api.route("/catalog", catalogRoutes(deps));
+  api.route("/feedback", feedbackRoutes(deps));
   api.route("/eval", speechEvalRoutes(deps));
   api.all("*", () => {
     throw new NotFoundError("That API route");
   });
-  const app = new Hono16();
+  const app = new Hono17();
   app.onError(onError);
   if (options.compress !== false) app.use("*", compress());
   app.use(
@@ -4441,6 +4517,20 @@ var MIGRATIONS = [
   `
   ALTER TABLE invites ADD COLUMN revoked_at BIGINT;
   ALTER TABLE invites ADD COLUMN created_by TEXT;
+  `,
+  // A12: feedback sent from the site itself; it goes with the account that sent it.
+  `
+  CREATE TABLE feedback (
+    id          TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    kind        TEXT NOT NULL,
+    message     TEXT NOT NULL,
+    page        TEXT NOT NULL,
+    created_at  BIGINT NOT NULL,
+    status      TEXT NOT NULL,
+    updated_at  BIGINT NOT NULL
+  );
+  CREATE INDEX feedback_by_time ON feedback (created_at);
   `
 ];
 
@@ -5368,6 +5458,43 @@ var PostgresPasswordResetRepository = class {
   }
 };
 
+// server/src/infrastructure/postgres/feedback-repository.ts
+var toRecord = (r) => ({
+  id: r.id,
+  userId: r.user_id,
+  kind: r.kind,
+  message: r.message,
+  page: r.page,
+  createdAt: Number(r.created_at),
+  status: r.status,
+  updatedAt: Number(r.updated_at)
+});
+var PostgresFeedbackRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async add(f) {
+    await this.db.query("INSERT INTO feedback (id, user_id, kind, message, page, created_at, status, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [
+      f.id,
+      f.userId,
+      f.kind,
+      f.message,
+      f.page,
+      f.createdAt,
+      f.status,
+      f.updatedAt
+    ]);
+  }
+  async list(o) {
+    const { rows } = o.status ? await this.db.query("SELECT * FROM feedback WHERE status = $1 ORDER BY created_at DESC LIMIT $2", [o.status, o.limit]) : await this.db.query("SELECT * FROM feedback ORDER BY created_at DESC LIMIT $1", [o.limit]);
+    return rows.map(toRecord);
+  }
+  async setStatus(id, status, at) {
+    const { rowCount } = await this.db.query("UPDATE feedback SET status = $1, updated_at = $2 WHERE id = $3", [status, at, id]);
+    return rowCount === 1;
+  }
+};
+
 // server/src/infrastructure/postgres/workspace-repository.ts
 var PostgresWorkspaceRepository = class {
   constructor(db) {
@@ -5472,7 +5599,8 @@ var postgresStores = (db) => ({
   adminLog: new PostgresAdminLog(db),
   audit: new PostgresAuditLog(db),
   recoveryCodes: new PostgresRecoveryCodeRepository(db),
-  passwordResets: new PostgresPasswordResetRepository(db)
+  passwordResets: new PostgresPasswordResetRepository(db),
+  feedback: new PostgresFeedbackRepository(db)
 });
 
 // server/src/vercel.ts

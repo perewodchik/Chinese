@@ -207,6 +207,13 @@ export function AdminPage() {
           </span>
           <Icon name="chevron" />
         </Link>
+        <Link className="admin-nav" to={paths.adminFeedback()}>
+          <span className="grow">
+            <b>Feedback</b>
+            <span className="small muted">What learners sent from the site, and where each stands</span>
+          </span>
+          <Icon name="chevron" />
+        </Link>
       </nav>
 
       <section className="block">

@@ -146,6 +146,10 @@ export const paths = {
   admin: () => '/admin',
   /** what the accounts that run the site did, a year of it */
   adminLog: () => '/admin/log',
+  /** A12: what learners sent from the site */
+  adminFeedback: () => '/admin/feedback',
+  /** A12: sending feedback, about the page it was opened from */
+  feedback: (from?: string) => withQuery('/feedback', { from }),
   /** the cards: how many today, and the ways to practise one kind */
   cards: () => '/cards',
   /** one sitting of cards; `n` asks for fewer (or more) than the day's size */

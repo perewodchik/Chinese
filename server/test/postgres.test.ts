@@ -326,4 +326,15 @@ describe('Postgres storage', () => {
     const kept = (await stores.invites.list()).find((i) => i.digest === 'inv-d')!;
     assert.deepEqual([kept.revokedAt, kept.createdBy], [T + 1, 'inv-1']);
   });
+
+  it('keeps feedback newest first, by status, and marks it (A12)', async () => {
+    await stores.users.insert(user('fb-1'));
+    const item = (id: string, at: number) => ({ id, userId: 'fb-1', kind: 'wrong', message: `m ${id}`, page: '/read', createdAt: at, status: 'new', updatedAt: at });
+    await stores.feedback.add(item('f1', T));
+    await stores.feedback.add(item('f2', T + 5));
+    assert.deepEqual((await stores.feedback.list({ limit: 10 })).map((f) => [f.id, f.createdAt]), [['f2', T + 5], ['f1', T]]);
+    assert.equal(await stores.feedback.setStatus('f1', 'closed', T + 9), true);
+    assert.equal(await stores.feedback.setStatus('nope', 'closed', T + 9), false);
+    assert.deepEqual((await stores.feedback.list({ status: 'closed', limit: 10 })).map((f) => f.id), ['f1']);
+  });
 });

@@ -21,6 +21,7 @@ import { PostgresStorageMeter } from './storage-meter';
 import { PostgresAuditLog } from './audit-log';
 import { PostgresRecoveryCodeRepository } from './recovery-code-repository';
 import { PostgresPasswordResetRepository } from './password-reset-repository';
+import { PostgresFeedbackRepository } from './feedback-repository';
 import { PostgresWorkspaceRepository } from './workspace-repository';
 import { PostgresWorldSaveRepository } from './world-save-repository';
 
@@ -49,4 +50,5 @@ export const postgresStores = (db: pg.Pool): Stores => ({
   audit: new PostgresAuditLog(db),
   recoveryCodes: new PostgresRecoveryCodeRepository(db),
   passwordResets: new PostgresPasswordResetRepository(db),
+  feedback: new PostgresFeedbackRepository(db),
 });

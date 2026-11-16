@@ -6,6 +6,7 @@ import type { AppEnv, RouteDeps } from '../env';
 import { auditor, RateLimiter, requireFresh, requireRole, requireSession } from '../guards';
 import { clientIp, readJson } from '../request';
 import { publishSchema } from '../../application/catalog-schema';
+import { FEEDBACK_STATUSES } from '../../../../shared/feedback';
 
 const inviteRequest = z.object({ note: z.string().trim().max(120), days: z.number().int().min(0).max(365) });
 const logQuery = z.object({
@@ -23,7 +24,7 @@ const blockRequest = z.object({ reason: z.string().trim().min(1, 'Say why, for t
  *
  * Nothing here reads anyone's work: names, dates, sizes and counts.
  */
-export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit, catalog }: RouteDeps) {
+export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit, catalog, feedback }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   const admin = requireRole('admin');
@@ -140,6 +141,19 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, us
     await changes.consume(c.get('session').user.id);
     const { hidden } = await readJson(c, hideRequest);
     await catalog.setHidden(actor(c), c.req.param('id'), hidden);
+    return c.body(null, 204);
+  });
+
+  // A12: feedback sent from the site, and where each stands.
+  routes.get('/feedback', session, admin, async (c) => {
+    const status = c.req.query('status');
+    c.header('Cache-Control', 'no-store');
+    return c.json({ items: await feedback.list((FEEDBACK_STATUSES as readonly string[]).includes(status ?? '') ? (status as (typeof FEEDBACK_STATUSES)[number]) : undefined) });
+  });
+  const feedbackStatus = z.object({ status: z.enum(FEEDBACK_STATUSES) });
+  routes.patch('/feedback/:id', session, admin, async (c) => {
+    await changes.consume(c.get('session').user.id);
+    await feedback.setStatus(c.req.param('id'), (await readJson(c, feedbackStatus)).status);
     return c.body(null, 204);
   });
 

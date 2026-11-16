@@ -24,7 +24,7 @@ import { feedbackUrl } from '../platform/feedback';
 const SITTING = /^\/(review\/(recognise|sound|tone|confuse|word|write|words|session)|learn|cards\/session)\/?$/;
 
 /** Where each section of Me lives, so its tab stays lit while you are in one of them. */
-const MORE_PATHS = ['/videos', '/play', '/progress', '/account', '/settings', '/admin'];
+const MORE_PATHS = ['/videos', '/play', '/progress', '/account', '/settings', '/admin', '/feedback'];
 
 /**
  * The frame every signed-in page sits in: the sections, the page, and the
@@ -204,7 +204,8 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
               <Icon name="chevron" className="muted" />
             </Link>
           ))}
-          {feedback && (
+          {/* The site's own form (A12), unless a form elsewhere was set for the build (VITE_FEEDBACK_URL). */}
+          {feedback ? (
             <a href={feedback} className="more-row" target="_blank" rel="noreferrer">
               <span className="more-ic hanzi" aria-hidden>
                 言
@@ -215,6 +216,17 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
               </span>
               <Icon name="chevron" className="muted" />
             </a>
+          ) : (
+            <Link to={paths.feedback(window.location.pathname)} className="more-row">
+              <span className="more-ic hanzi" aria-hidden>
+                言
+              </span>
+              <span className="more-text">
+                <b>Send feedback</b>
+                <span className="small muted">Something wrong, missing or good: a line or two</span>
+              </span>
+              <Icon name="chevron" className="muted" />
+            </Link>
           )}
         </div>
         <div className="more-foot">

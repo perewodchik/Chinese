@@ -387,6 +387,26 @@ export interface InviteRepository {
 }
 
 /** The codes an account can set a new password with, kept as digests. */
+/** A12: feedback sent from the site, newest first when listed. */
+export interface FeedbackRecord {
+  id: string;
+  userId: string;
+  kind: string;
+  message: string;
+  page: string;
+  createdAt: number;
+  status: string;
+  updatedAt: number;
+}
+
+export interface FeedbackRepository {
+  add(f: FeedbackRecord): Promise<void>;
+  /** newest first, at most `limit`, optionally of one status */
+  list(o: { status?: string; limit: number }): Promise<FeedbackRecord[]>;
+  /** false when there is no such item */
+  setStatus(id: string, status: string, at: number): Promise<boolean>;
+}
+
 /** A6: one-time links an admin makes so a locked-out learner can set a new password. */
 export interface PasswordResetRepository {
   /** A new link for the account, as its digest; any earlier unused one for the account stops working. */

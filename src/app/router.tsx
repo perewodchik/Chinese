@@ -39,6 +39,8 @@ import { AccountPage } from '../features/account/AccountPage';
 import { AccountData } from '../features/account/AccountData';
 import { AccountSecurity } from '../features/account/AccountSecurity';
 import { AdminLogPage } from '../features/admin/AdminLogPage';
+import { AdminFeedbackPage } from '../features/admin/AdminFeedbackPage';
+import { FeedbackPage } from '../features/feedback/FeedbackPage';
 import { AdminPage } from '../features/admin/AdminPage';
 import { AddVideoPage } from '../features/videos/AddVideoPage';
 import { VideoPage } from '../features/videos/VideoPage';
@@ -245,6 +247,8 @@ export const router = createBrowserRouter([
               { path: 'account/stats', element: <Navigate to={paths.stats()} replace /> },
               { path: 'admin', element: <AdminPage /> },
               { path: 'admin/log', element: <AdminLogPage /> },
+              { path: 'admin/feedback', element: <AdminFeedbackPage /> },
+              { path: 'feedback', element: <FeedbackPage /> },
               { path: '*', element: <NotFoundPage /> },
             ],
           },

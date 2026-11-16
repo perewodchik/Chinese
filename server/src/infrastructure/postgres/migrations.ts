@@ -332,4 +332,18 @@ export const MIGRATIONS: readonly string[] = [
   ALTER TABLE invites ADD COLUMN revoked_at BIGINT;
   ALTER TABLE invites ADD COLUMN created_by TEXT;
   `,
+  // A12: feedback sent from the site itself; it goes with the account that sent it.
+  `
+  CREATE TABLE feedback (
+    id          TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    kind        TEXT NOT NULL,
+    message     TEXT NOT NULL,
+    page        TEXT NOT NULL,
+    created_at  BIGINT NOT NULL,
+    status      TEXT NOT NULL,
+    updated_at  BIGINT NOT NULL
+  );
+  CREATE INDEX feedback_by_time ON feedback (created_at);
+  `,
 ];

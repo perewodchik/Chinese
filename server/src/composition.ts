@@ -1,4 +1,5 @@
 import { CatalogService } from './application/catalog-service';
+import { FeedbackService } from './application/feedback-service';
 import { AuthService, DEFAULT_AUTH_POLICY, type AuthPolicy } from './application/auth-service';
 import { ConversationService } from './application/conversation-service';
 import { NarrationService } from './application/narration-service';
@@ -29,6 +30,7 @@ import type {
   InviteRepository,
   RateLimitStore,
   LookupCache,
+  FeedbackRepository,
   PasswordResetRepository,
   RecoveryCodeRepository,
   StorageMeter,
@@ -81,6 +83,8 @@ export interface Services {
   audit: AuditLog;
   /** the shared catalogue of books an admin published */
   catalog: CatalogService;
+  /** A12: feedback sent from the site itself */
+  feedback: FeedbackService;
 }
 
 /** Where each kind of record is kept. */
@@ -104,6 +108,7 @@ export interface Stores {
   lookups: LookupCache;
   recoveryCodes: RecoveryCodeRepository;
   passwordResets: PasswordResetRepository;
+  feedback: FeedbackRepository;
   storage: StorageMeter;
   audit: AuditLog;
   adminLog: AdminLogRepository;
@@ -173,6 +178,7 @@ export function createServices(
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, catalog: stores.catalog, clock, quota }),
+    feedback: new FeedbackService({ feedback: stores.feedback, users: stores.users, clock, tokens: cryptoTokens }),
     catalog: new CatalogService({ catalog: stores.catalog, pictures: stores.pictures, adminLog: stores.adminLog, clock, tokens: cryptoTokens }),
     narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),
     speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock, meter: usage, quota }),
