@@ -188,6 +188,21 @@ describe('WorkspaceSync', () => {
     assert.equal(storage.length, 0, 'nothing left queued once it is saved');
   });
 
+  it('keeps what one account left unsaved from the next account signed in on the device (SEC16)', async () => {
+    const storage = memoryStorage();
+    // Paused or signed out everywhere: the server answers 401 and the queue stays where it is.
+    const mine = localOutbox<{ add: string }>('user-1', storage, { tab: 'tab-1' });
+    mine.takeOver();
+    mine.write([{ add: '火' }]);
+    mine.release();
+    // Someone else signs in on the same tablet: nothing of the first account's queue is theirs.
+    const theirs = localOutbox<{ add: string }>('user-2', storage, { tab: 'tab-2' });
+    assert.deepEqual(theirs.takeOver(), []);
+    // The first account, back again, still has it to send to its own account.
+    const again = localOutbox<{ add: string }>('user-1', storage, { tab: 'tab-3' });
+    assert.deepEqual(again.takeOver(), [{ add: '火' }]);
+  });
+
   it('does not save twice what another tab has taken over', async () => {
     const server = new Server<ListDoc>();
     const storage = memoryStorage();
