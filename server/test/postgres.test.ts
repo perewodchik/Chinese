@@ -154,8 +154,13 @@ describe('Postgres storage', () => {
     const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x02]);
     await stores.pictures.save({ key: 'p1', userId: 'u1', mime: 'image/jpeg', bytes, createdAt: T });
     await stores.pictures.save({ key: 'p1', userId: 'u1', mime: 'image/png', bytes: new Uint8Array([1]), createdAt: T + 1 });
-    assert.deepEqual(await stores.pictures.find('p1'), { key: 'p1', userId: 'u1', mime: 'image/jpeg', bytes, createdAt: T });
-    assert.equal(await stores.pictures.find('p2'), null);
+    assert.deepEqual(await stores.pictures.find('u1', 'p1'), { key: 'p1', userId: 'u1', mime: 'image/jpeg', bytes, createdAt: T });
+    assert.equal(await stores.pictures.find('u1', 'p2'), null);
+    // SEC13: the same picture under another account is that account's own.
+    await stores.users.insert(user('pic-2', 'zzpic'));
+    await stores.pictures.save({ key: 'p1', userId: 'pic-2', mime: 'image/jpeg', bytes, createdAt: T + 2 });
+    assert.equal((await stores.pictures.find('pic-2', 'p1'))?.createdAt, T + 2);
+    assert.equal((await stores.pictures.find('u1', 'p1'))?.createdAt, T);
   });
 
   it('adds a day’s use of a service to its row, and reads the counts back as numbers', async () => {

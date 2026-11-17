@@ -57,8 +57,8 @@ export class CatalogService {
     for (const text of texts) {
       for (const picture of text.pictures ?? []) {
         if (!picture.key || kept.has(picture.key)) continue;
-        const found = missing.has(picture.key) ? null : await pictures.find(picture.key);
-        if (!found || found.userId !== actor.id) {
+        const found = missing.has(picture.key) || !actor.id ? null : await pictures.find(actor.id, picture.key);
+        if (!found) {
           missing.add(picture.key);
           delete picture.key;
           continue;

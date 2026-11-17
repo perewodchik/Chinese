@@ -346,4 +346,19 @@ export const MIGRATIONS: readonly string[] = [
   );
   CREATE INDEX feedback_by_time ON feedback (created_at);
   `,
+  // SEC13: a picture is kept per account — the same drawing in two accounts
+  // is two pictures, each read only through its own account.
+  `
+  CREATE TABLE pictures_owned (
+    user_id    TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    key        TEXT NOT NULL,
+    mime       TEXT NOT NULL,
+    bytes      BYTEA NOT NULL,
+    created_at BIGINT NOT NULL,
+    PRIMARY KEY (user_id, key)
+  );
+  INSERT INTO pictures_owned (user_id, key, mime, bytes, created_at) SELECT user_id, key, mime, bytes, created_at FROM pictures;
+  DROP TABLE pictures;
+  ALTER TABLE pictures_owned RENAME TO pictures;
+  `,
 ];

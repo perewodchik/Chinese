@@ -52,4 +52,16 @@ describe('pictures', () => {
     assert.equal((await call(app, 'GET', `/api/pictures/${key}`, { cookie: theirs })).status, 404);
     assert.equal((await call(app, 'GET', `/api/pictures/${'0'.repeat(64)}`, { cookie: mine })).status, 404);
   });
+
+  it('keeps the same picture for a second account as its own, and says nothing of the first (SEC13)', async () => {
+    const { app } = makeApp();
+    const mine = await signedIn(app, 'kirill');
+    const theirs = await signedIn(app, 'masha');
+    const key = pictureKey(jpeg);
+    await put(app, mine, key, jpeg);
+    const second = await put(app, theirs, key, jpeg);
+    assert.ok(second.status < 300, `the second account keeps it too (${second.status})`);
+    assert.equal((await call(app, 'GET', `/api/pictures/${key}`, { cookie: theirs })).status, 200);
+    assert.equal((await call(app, 'GET', `/api/pictures/${key}`, { cookie: mine })).status, 200);
+  });
 });

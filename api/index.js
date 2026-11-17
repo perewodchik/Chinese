@@ -268,8 +268,8 @@ var CatalogService = class {
     for (const text of texts) {
       for (const picture2 of text.pictures ?? []) {
         if (!picture2.key || kept2.has(picture2.key)) continue;
-        const found = missing.has(picture2.key) ? null : await pictures.find(picture2.key);
-        if (!found || found.userId !== actor.id) {
+        const found = missing.has(picture2.key) || !actor.id ? null : await pictures.find(actor.id, picture2.key);
+        if (!found) {
           missing.add(picture2.key);
           delete picture2.key;
           continue;
@@ -2109,16 +2109,14 @@ var PictureService = class {
       throw new ValidationError(`A picture is at most ${Math.round(PICTURE_MAX_BYTES / 1024)} KB.`);
     }
     if (pictureKey(bytes) !== key) throw new ValidationError("The key is not the digest of this picture.");
-    const kept2 = await this.deps.pictures.find(key);
-    if (kept2 && kept2.userId !== userId) throw new ValidationError("That picture is kept under another account.");
-    if (kept2) return;
+    if (await this.deps.pictures.find(userId, key)) return;
     await this.deps.quota?.check(userId, bytes.length);
     await this.deps.pictures.save({ key, userId, mime, bytes, createdAt: this.deps.clock.now() });
   }
   async get(userId, key) {
     if (!/^[0-9a-f]{64}$/.test(key)) throw new NotFoundError("That picture");
-    const kept2 = await this.deps.pictures.find(key);
-    if (kept2 && kept2.userId === userId) return { mime: kept2.mime, bytes: kept2.bytes };
+    const kept2 = await this.deps.pictures.find(userId, key);
+    if (kept2) return { mime: kept2.mime, bytes: kept2.bytes };
     const shared = await this.deps.catalog?.findPicture(key);
     if (shared) return shared;
     throw new NotFoundError("That picture");
@@ -4561,6 +4559,21 @@ var MIGRATIONS = [
     updated_at  BIGINT NOT NULL
   );
   CREATE INDEX feedback_by_time ON feedback (created_at);
+  `,
+  // SEC13: a picture is kept per account — the same drawing in two accounts
+  // is two pictures, each read only through its own account.
+  `
+  CREATE TABLE pictures_owned (
+    user_id    TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    key        TEXT NOT NULL,
+    mime       TEXT NOT NULL,
+    bytes      BYTEA NOT NULL,
+    created_at BIGINT NOT NULL,
+    PRIMARY KEY (user_id, key)
+  );
+  INSERT INTO pictures_owned (user_id, key, mime, bytes, created_at) SELECT user_id, key, mime, bytes, created_at FROM pictures;
+  DROP TABLE pictures;
+  ALTER TABLE pictures_owned RENAME TO pictures;
   `
 ];
 
@@ -4906,10 +4919,10 @@ var PostgresPictureRepository = class {
   constructor(db) {
     this.db = db;
   }
-  async find(key) {
+  async find(userId, key) {
     const { rows } = await this.db.query(
-      "SELECT user_id, mime, bytes, created_at FROM pictures WHERE key = $1",
-      [key]
+      "SELECT user_id, mime, bytes, created_at FROM pictures WHERE user_id = $1 AND key = $2",
+      [userId, key]
     );
     const row = rows[0];
     return row ? { key, userId: row.user_id, mime: row.mime, bytes: new Uint8Array(row.bytes), createdAt: Number(row.created_at) } : null;
@@ -4918,7 +4931,7 @@ var PostgresPictureRepository = class {
     await this.db.query(
       `INSERT INTO pictures (key, user_id, mime, bytes, created_at)
        VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (key) DO NOTHING`,
+       ON CONFLICT (user_id, key) DO NOTHING`,
       [p.key, p.userId, p.mime, Buffer.from(p.bytes), p.createdAt]
     );
   }

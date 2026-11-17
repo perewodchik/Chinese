@@ -147,8 +147,9 @@ export interface Picture {
 }
 
 export interface PictureRepository {
-  find(key: string): Promise<Picture | null>;
-  /** keeps it; a picture already kept under the key stays as it is */
+  /** The account's own picture under the key (SEC13): another account's identical one is not found here. */
+  find(userId: string, key: string): Promise<Picture | null>;
+  /** keeps it; a picture the account already keeps under the key stays as it is */
   save(picture: Picture): Promise<void>;
 }
 

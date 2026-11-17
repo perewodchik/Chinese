@@ -28,20 +28,17 @@ export class PictureService {
       throw new ValidationError(`A picture is at most ${Math.round(PICTURE_MAX_BYTES / 1024)} KB.`);
     }
     if (pictureKey(bytes) !== key) throw new ValidationError('The key is not the digest of this picture.');
-    const kept = await this.deps.pictures.find(key);
-    // Somebody else's identical picture stays theirs; this one could not be
-    // told apart from it, so there is nothing to keep twice — but nor may the
-    // key be read through this account, so it is refused rather than shared.
-    if (kept && kept.userId !== userId) throw new ValidationError('That picture is kept under another account.');
-    if (kept) return;
+    // Kept per account (SEC13): the same picture in another account is that
+    // account's, and nothing here says whether it exists.
+    if (await this.deps.pictures.find(userId, key)) return;
     await this.deps.quota?.check(userId, bytes.length);
     await this.deps.pictures.save({ key, userId, mime, bytes, createdAt: this.deps.clock.now() });
   }
 
   async get(userId: string, key: string): Promise<Pick<Picture, 'mime' | 'bytes'>> {
     if (!/^[0-9a-f]{64}$/.test(key)) throw new NotFoundError('That picture');
-    const kept = await this.deps.pictures.find(key);
-    if (kept && kept.userId === userId) return { mime: kept.mime, bytes: kept.bytes };
+    const kept = await this.deps.pictures.find(userId, key);
+    if (kept) return { mime: kept.mime, bytes: kept.bytes };
     // A picture of a book in the shared catalogue is anyone's to see: a
     // learner who took the book reads its texts with their pictures.
     const shared = await this.deps.catalog?.findPicture(key);
