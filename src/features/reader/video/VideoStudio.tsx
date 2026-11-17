@@ -7,7 +7,7 @@ import type { GeneratedText } from '../../../domain/text';
 import { useStore } from '../../../store/store';
 import { Icon } from '../../../ui/Icon';
 import { useLibrary } from '../../shared/library';
-import { narratedReadings, type Narrated } from '../narratedClips';
+import { narratedReadings, type Narrated } from '../../shared/narratedClips';
 import { drawFrame, geometry } from './draw';
 import { forgetVideo, keepVideo, keptVideo, type KeptVideo } from './kept';
 import { canRecord, decodeReading, run, type Run } from './record';

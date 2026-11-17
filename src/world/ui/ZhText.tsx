@@ -1,6 +1,6 @@
 import { itemForToken } from '../../domain/words';
 import { useLibrary } from '../../features/shared/library';
-import { useWordKnowledge } from '../../features/words/useWordKnowledge';
+import { useWordKnowledge } from '../../features/shared/useWordKnowledge';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { gameWords } from './content';
 import { readLine } from './pinyin';

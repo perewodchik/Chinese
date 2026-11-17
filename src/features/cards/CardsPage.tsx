@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router';
-import { CARD_SIZES, CARD_SKILLS, planCards, planStubborn } from '../../domain/cards';
+import { CARD_SIZES, CARD_SKILLS, planStubborn } from '../../domain/cards';
 import { idValue } from '../../domain/ids';
 import { itemInfo } from '../../domain/exercises/items';
 import { firstUnread } from '../../domain/text';
@@ -13,28 +13,8 @@ import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { ASKS } from './asks';
-import { minutesFor } from './CardSession';
+import { useCardsToday } from '../shared/cardsToday';
 import './cards.css';
-
-/** The day's cards, as Today and the Cards tab both show them. */
-export function useCardsToday() {
-  const lib = useLibrary();
-  const recall = useStore((s) => s.recall);
-  const sets = useStore((s) => s.sets);
-  const size = useStore((s) => s.settings.cardsPerDay);
-  const newPerDay = useStore((s) => s.settings.newPerDay);
-  const skills = useStore((s) => s.settings.cardSkills);
-  return useMemo(() => {
-    const plan = planCards(lib, recall, sets, Date.now(), { size, newPerDay, skills });
-    return {
-      plan,
-      count: plan.cards.length,
-      minutes: minutesFor(plan.cards.length),
-      done: plan.answeredToday > 0 && plan.cards.length === 0,
-      inRotation: Object.keys(recall).length,
-    };
-  }, [lib, recall, sets, size, newPerDay, skills]);
-}
 
 /**
  * The Cards tab: today's cards, how many a day, and — folded away — the

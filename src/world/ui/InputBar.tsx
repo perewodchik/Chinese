@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLibrary } from '../../features/shared/library';
-import { useWordKnowledge } from '../../features/words/useWordKnowledge';
+import { useWordKnowledge } from '../../features/shared/useWordKnowledge';
 import { canRecognise, listen, RECOGNITION_MESSAGE, type Listening } from '../../platform/audio/recognition';
 import { buildIme, type ImeIndex } from '../core/ime';
 import type { Answer, Hint, InputMode } from '../core/types';

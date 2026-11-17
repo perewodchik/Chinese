@@ -49,7 +49,7 @@ import {
 } from './readerView';
 import { DockPlayer, type PlayerControl } from './DockPlayer';
 import { readerSheet } from './readerSheet';
-import { rememberReading } from './lastRead';
+import { rememberReading } from '../shared/lastRead';
 import { ListenPart, MorePart, partFill, QuestionsPart, WordsPart, WritePart } from './TextParts';
 import './reader.css';
 

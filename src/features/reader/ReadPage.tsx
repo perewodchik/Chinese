@@ -11,7 +11,7 @@ import { firstUnread, fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTe
 import { paths, type ShelfTab } from '../../navigation/paths';
 import { useIsAdmin } from '../auth/session';
 import { WelcomeBack } from '../shared/WelcomeBack';
-import { useCardsToday } from '../cards/CardsPage';
+import { useCardsToday } from '../shared/cardsToday';
 import { oneOf, useQuery } from '../../navigation/query';
 // R5: the PDF code (pdf-lib and the fonts) comes only when something is printed.
 const pdfRender = () => import('../../pdf/render');
@@ -23,7 +23,7 @@ import { Menu } from '../../ui/Menu';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
-import { lastReading } from './lastRead';
+import { lastReading } from '../shared/lastRead';
 import { useWordDone, useWordLevel } from './Passage';
 import { useLevelOf } from '../shared/levels';
 import { charLevels, fitOf } from '../../domain/reading';

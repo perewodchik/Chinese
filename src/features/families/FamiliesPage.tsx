@@ -23,7 +23,7 @@ import { Glyph } from '../../ui/Glyph';
 import { Seg } from '../../ui/Seg';
 import { Splash } from '../../ui/Splash';
 import { useTitle } from '../../ui/useTitle';
-import { RadicalGate, useRadicalLibrary } from '../library/radicalData';
+import { RadicalGate, useRadicalLibrary } from '../shared/radicalData';
 import { useLibrary } from '../shared/library';
 import './families.css';
 

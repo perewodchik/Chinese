@@ -3,7 +3,7 @@ import { narrationAudio } from '../../api/narration';
 import type { GeneratedText } from '../../domain/text';
 import { studyText } from '../../store/commands';
 import { Icon } from '../../ui/Icon';
-import { castReading, narratedReadings, type Narrated } from './narratedClips';
+import { castReading, narratedReadings, type Narrated } from '../shared/narratedClips';
 import type { Reading } from './readAloud';
 
 const clock = (ms: number) => {

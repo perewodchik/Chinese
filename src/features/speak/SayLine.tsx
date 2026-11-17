@@ -14,7 +14,7 @@ import { useOpenItem } from '../../navigation/itemDrawer';
 import { heardAnything } from '../../platform/audio/mic';
 import { hasClip, hush, playSamples, say, unlockAudio } from '../../platform/audio/voiceOut';
 import { Icon } from '../../ui/Icon';
-import { castReading, narratedReadings, type Narrated } from '../reader/narratedClips';
+import { castReading, narratedReadings, type Narrated } from '../shared/narratedClips';
 import { useLibrary } from '../shared/library';
 import { NOTHING_HEARD, troubleOf, type Trouble } from '../pinyin/lineTrouble';
 import { RecordButton } from '../pinyin/RecordButton';

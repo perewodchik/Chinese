@@ -14,7 +14,7 @@ import { armAutoplay, SayLine } from './SayLine';
 import { keepSet, useNarrator, useSources, type Source } from './sources';
 import { VoiceSheet } from './VoiceSheet';
 import { ShelfBlock } from './ShelfBlock';
-import { lastReading } from '../reader/lastRead';
+import { lastReading } from '../shared/lastRead';
 import '../pinyin/phrases.css';
 import './speak.css';
 import { accountKey } from '../../platform/accountStorage';

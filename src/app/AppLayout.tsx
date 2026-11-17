@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 're
 import { Link, Outlet, useLocation } from 'react-router';
 import { useUser } from '../features/auth/session';
 import { useSignOut } from '../features/auth/useSignOut';
-import { useCardsToday } from '../features/cards/CardsPage';
+import { useCardsToday } from '../features/shared/cardsToday';
 import { CharViewer } from '../features/library/CharViewer';
 import { ItemDrawer } from '../features/library/ItemDrawer';
 import { ProgressDrawer } from '../features/library/ProgressDrawer';

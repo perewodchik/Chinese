@@ -4,7 +4,7 @@ import { charScore, heardNote, heardSyllable, noteOf, partsOf, type CharNote } f
 import { playSamples } from '../../platform/audio/voiceOut';
 import { Icon } from '../../ui/Icon';
 import { useSheetDrag } from '../../ui/useSheetDrag';
-import { stopLine } from '../reader/narratedClips';
+import { stopLine } from '../shared/narratedClips';
 import './phrases.css';
 
 /** One character of a scored line: where it is in the line, how it reads, what the service heard. */

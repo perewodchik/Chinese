@@ -7,7 +7,7 @@ import { useStore } from '../../store/store';
 import { keepTalkWord } from '../../store/wordCommands';
 import { useToast } from '../../ui/toast';
 import { useLibrary } from '../shared/library';
-import { useWordKnowledge } from './useWordKnowledge';
+import { useWordKnowledge } from '../shared/useWordKnowledge';
 
 /** Enough to learn from a turn without the chips outgrowing the line they are about. */
 const MAX_CHIPS = 4;

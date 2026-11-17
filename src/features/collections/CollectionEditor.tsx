@@ -13,7 +13,7 @@ import {
 } from '../../domain/collection';
 import { itemsLabel } from '../../domain/ids';
 import { perPageOf, printSheet } from '../../domain/sheet';
-import { setIdOfList } from '../library/sets';
+import { setIdOfList } from '../shared/sets';
 import { paths, type CollectionTab } from '../../navigation/paths';
 import { renderCollection, renderRecall } from '../../pdf/render';
 import {

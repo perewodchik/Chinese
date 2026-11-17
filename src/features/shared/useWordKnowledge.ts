@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { collectedItems } from '../../domain/sweep';
 import { wordKnowledge, type WordKnowledge } from '../../domain/words';
 import { useStore } from '../../store/store';
-import { useLibrary } from '../shared/library';
+import { useLibrary } from './library';
 
 /** Where you stand with every word, worked out once per change to what you know. */
 export function useWordKnowledge(): WordKnowledge {

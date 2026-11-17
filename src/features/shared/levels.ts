@@ -4,7 +4,7 @@ import { levelOf, type Level } from '../../domain/memory';
 import { isHanzi } from '../../domain/text';
 import { itemForToken } from '../../domain/words';
 import { useStore } from '../../store/store';
-import { useWordKnowledge } from '../words/useWordKnowledge';
+import { useWordKnowledge } from './useWordKnowledge';
 import { useLibrary } from './library';
 
 /** Each item's level, 0 to 3, from review alone: worked out once per change to what is remembered. */

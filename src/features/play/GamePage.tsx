@@ -15,7 +15,7 @@ import { paths } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
 import { Say } from '../../ui/Say';
 import { useTitle } from '../../ui/useTitle';
-import { useWordKnowledge } from '../words/useWordKnowledge';
+import { useWordKnowledge } from '../shared/useWordKnowledge';
 import { usePlayContext } from './usePlayContext';
 import '../../games/kit/kit.css';
 

@@ -17,7 +17,7 @@ import { VideoStudio } from './video/VideoStudio';
 import { mmss } from '../../domain/textVideo';
 import { NarrationPlayer } from './NarrationPlayer';
 import { Narrate } from './Narrate';
-import { addReading, castReading, narratedReadings, pickReading, prepareClips, type Narrated } from './narratedClips';
+import { addReading, castReading, narratedReadings, pickReading, prepareClips, type Narrated } from '../shared/narratedClips';
 import { useWordDone, useWordLevel } from './Passage';
 import { LevelQuick } from '../../ui/LevelPicker';
 import { onReadThrough, RATES, type Reading } from './readAloud';

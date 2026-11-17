@@ -9,7 +9,7 @@ import { HSK_BANDS } from '../../domain/text';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { useLevelOf } from '../shared/levels';
 import { LevelBar } from '../../ui/LevelMark';
-import { useWordKnowledge } from '../words/useWordKnowledge';
+import { useWordKnowledge } from '../shared/useWordKnowledge';
 import { paths } from '../../navigation/paths';
 import { createCollection, discardSheet, startListPlan } from '../../store/commands';
 import { useStore } from '../../store/store';
@@ -18,7 +18,7 @@ import { Menu } from '../../ui/Menu';
 import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { FromTexts } from './FromTexts';
-import { bandSet, FROM_TEXT, ownLists, textWordsSet, topicSets, withList, type LibSet } from './sets';
+import { bandSet, FROM_TEXT, ownLists, textWordsSet, topicSets, withList, type LibSet } from '../shared/sets';
 import { CharTile, WordRow } from './SetPage';
 import './home.css';
 

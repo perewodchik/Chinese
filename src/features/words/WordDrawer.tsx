@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Link, useMatch } from 'react-router';
-import { useReadingShelf } from '../reader/readingShelf';
+import { useReadingShelf } from '../shared/readingShelf';
 import { nextCollectionName } from '../../domain/collection';
 import { charId, idValue, type ItemId } from '../../domain/ids';
 import { firstSense } from '../../domain/library';

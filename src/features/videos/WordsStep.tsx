@@ -14,7 +14,7 @@ import { SelectToggle } from '../../ui/SelectToggle';
 import { useToast } from '../../ui/toast';
 import { useSelectMode } from '../../ui/useRangeSelection';
 import { useLibrary } from '../shared/library';
-import { useWordKnowledge } from '../words/useWordKnowledge';
+import { useWordKnowledge } from '../shared/useWordKnowledge';
 import { isNoise } from '../../domain/videoFit';
 import { skippedWords, useFit } from './hooks';
 import { useVideoCtx } from './context';

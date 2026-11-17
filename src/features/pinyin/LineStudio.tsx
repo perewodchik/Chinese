@@ -13,7 +13,7 @@ import { canSpeak, sayAndWait } from '../../platform/speech';
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { Modal } from '../../ui/Modal';
-import { addReading, castReading, narratedLine, narratedReadings, playLine, prepareClips, stopLine, type Clips, type Narrated } from '../reader/narratedClips';
+import { addReading, castReading, narratedLine, narratedReadings, playLine, prepareClips, stopLine, type Clips, type Narrated } from '../shared/narratedClips';
 import { useLibrary } from '../shared/library';
 import { NOTHING_HEARD, troubleOf, type Trouble } from './lineTrouble';
 import { RecordButton } from './RecordButton';

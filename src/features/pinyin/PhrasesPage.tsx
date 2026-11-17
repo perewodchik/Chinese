@@ -1,5 +1,5 @@
 import { ShelfBlock } from '../speak/ShelfBlock';
-import { lastReading } from '../reader/lastRead';
+import { lastReading } from '../shared/lastRead';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import { paths } from '../../navigation/paths';

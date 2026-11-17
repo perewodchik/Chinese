@@ -35,6 +35,9 @@ export const DEFAULT_CARDS = 20;
 /** About how long a card takes, for "about 6 minutes". */
 export const SECONDS_PER_CARD = 18;
 
+/** How long so many cards take, in whole minutes, at least one. */
+export const minutesFor = (cards: number) => Math.max(1, Math.round((cards * SECONDS_PER_CARD) / 60));
+
 export interface CardPlan {
   /** what is asked, in order: due cards, with the new ones dealt in among them */
   cards: Array<SessionTarget & { fresh: boolean }>;

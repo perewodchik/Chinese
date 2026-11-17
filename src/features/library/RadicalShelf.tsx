@@ -13,7 +13,7 @@ import { Menu } from '../../ui/Menu';
 import { useTitle } from '../../ui/useTitle';
 import { usePdfExport } from '../shared/usePdfExport';
 import { RadicalDrawer } from './RadicalDrawer';
-import { RadicalGate, useRadicalLibrary } from './radicalData';
+import { RadicalGate, useRadicalLibrary } from '../shared/radicalData';
 import './home.css';
 
 type RadicalShow = 'all' | 'forms';

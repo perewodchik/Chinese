@@ -5,7 +5,7 @@ import type { StrokeMap } from '../../data/types';
 import { ordinal, POSITION_PHRASE } from '../../domain/radicals/forms';
 import { paths } from '../../navigation/paths';
 import { Glyph, StrokeStepper, useStrokeSteps } from '../../ui/Glyph';
-import { useRadicalLibrary } from './radicalData';
+import { useRadicalLibrary } from '../shared/radicalData';
 
 interface Props {
   n: number;

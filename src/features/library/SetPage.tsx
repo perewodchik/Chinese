@@ -24,7 +24,7 @@ import { useTitle } from '../../ui/useTitle';
 import { useCollect } from '../shared/collect';
 import { useLibrary } from '../shared/library';
 import { useSetProgress } from './LibraryHome';
-import { findSet } from './sets';
+import { findSet } from '../shared/sets';
 import './home.css';
 
 /** By how well it is known, from review alone: not yet (0), met (1), known (2 or 3). */

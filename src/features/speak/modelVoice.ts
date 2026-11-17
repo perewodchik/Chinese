@@ -2,7 +2,7 @@ import type { NarratorDto } from '../../../shared/narration';
 import { narrationBlob, narrationOf } from '../../api/narration';
 import { ANALYSIS_RATE, downsample } from '../../platform/audio/mic';
 import { playSamples } from '../../platform/audio/voiceOut';
-import type { Narrated } from '../reader/narratedClips';
+import type { Narrated } from '../shared/narratedClips';
 
 /**
  * The example to copy, in a narrator's voice, for any line or word — not only

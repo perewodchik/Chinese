@@ -14,7 +14,7 @@ import {
   stopLine,
   type Clips,
   type Narrated,
-} from './narratedClips';
+} from '../shared/narratedClips';
 
 /**
  * Dictation: a sentence of the text is said, and written in the notebook

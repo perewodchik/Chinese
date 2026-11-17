@@ -7,7 +7,7 @@ import type { Learner } from '../../domain/videoPrompt';
 import { wordInventory } from '../../domain/words';
 import { useStore } from '../../store/store';
 import { useLibrary } from '../shared/library';
-import { useWordKnowledge } from '../words/useWordKnowledge';
+import { useWordKnowledge } from '../shared/useWordKnowledge';
 
 /** The words Claude marked "skip" on any part: names and noises, not counted against the video. */
 export function skippedWords(v: Video): Set<string> {

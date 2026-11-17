@@ -2,7 +2,7 @@ import { levelOf } from '../../domain/memory';
 import { LevelMark } from '../../ui/LevelMark';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { type CardPlan, type CardSkill, planCards, planShelf, planStubborn, SECONDS_PER_CARD } from '../../domain/cards';
+import { type CardPlan, type CardSkill, planCards, planShelf, planStubborn } from '../../domain/cards';
 import { checkPinyin, type PinyinCheck } from '../../domain/exercises/check';
 import { itemInfo, senses, type ItemInfo } from '../../domain/exercises/items';
 import { charId, idValue, isCharId } from '../../domain/ids';
@@ -17,7 +17,7 @@ import { getState, useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { Say } from '../../ui/Say';
 import { useTitle } from '../../ui/useTitle';
-import { WritePad } from '../review/WritePad';
+import { WritePad } from './WritePad';
 import { useLibrary } from '../shared/library';
 import { ASKS } from './asks';
 import './cards.css';
@@ -427,7 +427,6 @@ function OneCard({
   );
 }
 
-export const minutesFor = (cards: number) => Math.max(1, Math.round((cards * SECONDS_PER_CARD) / 60));
 
 /** A kind of card turned off from one of its cards; it comes back on the Cards tab. */
 function TurnOff({ skill, onClick }: { skill: CardSkill; onClick: () => void }) {

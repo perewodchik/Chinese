@@ -4,7 +4,7 @@ import { heardTag, noteOf } from '../../domain/phrases';
 import { parseSyllable } from '../../domain/pinyin/syllable';
 import { isHanzi } from '../../domain/text';
 import { playSamples } from '../../platform/audio/voiceOut';
-import { stopLine } from '../reader/narratedClips';
+import { stopLine } from '../shared/narratedClips';
 import { Icon } from '../../ui/Icon';
 import { CharTable, type CharRow } from './CharTable';
 import './phrases.css';

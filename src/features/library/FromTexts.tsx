@@ -6,7 +6,7 @@ import { deleteCollection, setShelfStudy } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useToast } from '../../ui/toast';
-import { FROM_TEXT, listSetId } from './sets';
+import { FROM_TEXT, listSetId } from '../shared/sets';
 
 /**
  * Lists made from texts, folded away under your lists, with the way to put
