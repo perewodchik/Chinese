@@ -11,6 +11,7 @@ import { firstUnread, fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTe
 import { paths, type ShelfTab } from '../../navigation/paths';
 import { useIsAdmin } from '../auth/session';
 import { WelcomeBack } from '../shared/WelcomeBack';
+import { Announcement } from '../shared/Announcement';
 import { useCardsToday } from '../shared/cardsToday';
 import { oneOf, useQuery } from '../../navigation/query';
 // R5: the PDF code (pdf-lib and the fonts) comes only when something is printed.
@@ -269,6 +270,8 @@ export function ReadPage() {
               </Link>
             </div>
           )}
+
+          <Announcement />
 
           <WelcomeBack />
 

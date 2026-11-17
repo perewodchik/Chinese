@@ -61,6 +61,8 @@ export interface AuthDeps {
   passwordResets: PasswordResetRepository;
   /** A4: the accounts as the admin page lists them, in one query */
   accounts?: AccountDirectory;
+  /** A11: the site's own settings, whose sign-up mode wins over the policy's */
+  site?: { get(): Promise<{ registration: AuthPolicy['registration'] }> };
   hasher: PasswordHasher;
   tokens: Tokens;
   clock: Clock;
@@ -172,12 +174,13 @@ export class AuthService {
 
   constructor(private readonly deps: AuthDeps) {}
 
-  get registration(): AuthPolicy['registration'] {
-    return this.deps.policy.registration;
+  /** How sign-ups are now: the admin page's setting (A11), else the environment's. */
+  async registration(): Promise<AuthPolicy['registration']> {
+    return this.deps.site ? (await this.deps.site.get()).registration : this.deps.policy.registration;
   }
 
   async register(input: SignIn & { invite?: string }): Promise<IssuedSession> {
-    const { registration } = this.deps.policy;
+    const registration = await this.registration();
     if (registration === 'closed') throw new RegistrationClosedError();
     // Said as any taken name is, so the form does not tell a visitor which names run the site.
     if (this.deps.policy.reservedNames?.includes(usernameKey(input.username)) || RESERVED_NAMES.has(usernameKey(input.username))) throw new UsernameTakenError();

@@ -361,4 +361,13 @@ export const MIGRATIONS: readonly string[] = [
   DROP TABLE pictures;
   ALTER TABLE pictures_owned RENAME TO pictures;
   `,
+  // A11: what an admin changes about the site without a new deploy; the environment's values stay the defaults.
+  `
+  CREATE TABLE site_settings (
+    key         TEXT PRIMARY KEY,
+    value       TEXT NOT NULL,
+    updated_at  BIGINT NOT NULL,
+    updated_by  TEXT NOT NULL
+  );
+  `,
 ];

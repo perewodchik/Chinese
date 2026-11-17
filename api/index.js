@@ -374,6 +374,80 @@ var FeedbackService = class {
   }
 };
 
+// shared/site.ts
+var ANNOUNCEMENT_MAX = 200;
+
+// server/src/application/site-settings.ts
+var MINUTE = 6e4;
+var REGISTRATIONS = ["open", "invite", "closed"];
+var SiteSettingsService = class {
+  constructor(deps) {
+    this.deps = deps;
+  }
+  cache = null;
+  async view() {
+    const now = this.deps.clock.now();
+    if (this.cache && now - this.cache.at < MINUTE) return this.cache.view;
+    const rows = await this.deps.settings.all();
+    const settings = { ...this.deps.defaults };
+    const changed = {};
+    for (const r of rows) {
+      let value;
+      try {
+        value = JSON.parse(r.value);
+      } catch {
+        continue;
+      }
+      if (r.key === "registration" && REGISTRATIONS.includes(value)) settings.registration = value;
+      else if (r.key === "storageLimitMb" && (value === null || typeof value === "number" && value > 0)) settings.storageLimitMb = value;
+      else if (r.key === "announcement" && typeof value === "string") settings.announcement = value.slice(0, ANNOUNCEMENT_MAX);
+      else continue;
+      changed[r.key] = { at: r.updatedAt, by: r.updatedBy };
+    }
+    const view = { settings, defaults: this.deps.defaults, changed };
+    this.cache = { at: now, view };
+    return view;
+  }
+  async get() {
+    return (await this.view()).settings;
+  }
+  async change(patch, actor) {
+    const before = await this.get();
+    const now = this.deps.clock.now();
+    const next = {};
+    if (patch.registration !== void 0) {
+      if (!REGISTRATIONS.includes(patch.registration)) throw new ValidationError("Open, by invitation, or closed.");
+      next.registration = patch.registration;
+    }
+    if (patch.storageLimitMb !== void 0) {
+      const mb = patch.storageLimitMb;
+      if (mb !== null && !(Number.isInteger(mb) && mb >= 10 && mb <= 1e5)) throw new ValidationError("Room for each account: between 10 MB and 100,000 MB, or no ceiling.");
+      next.storageLimitMb = mb;
+    }
+    if (patch.announcement !== void 0) {
+      const line2 = patch.announcement.replace(/\s+/g, " ").trim();
+      if ([...line2].length > ANNOUNCEMENT_MAX) throw new ValidationError(`An announcement is one line, at most ${ANNOUNCEMENT_MAX} characters.`);
+      next.announcement = line2;
+    }
+    for (const [key, value] of Object.entries(next)) {
+      if (JSON.stringify(before[key]) === JSON.stringify(value)) continue;
+      await this.deps.settings.set(key, JSON.stringify(value), now, actor.name);
+      await this.deps.adminLog.add({
+        at: now,
+        actorId: actor.id,
+        actorName: actor.name,
+        action: "setting-changed",
+        targetId: null,
+        targetName: key,
+        details: { from: before[key] ?? null, to: value ?? null },
+        ip: actor.ip
+      });
+    }
+    this.cache = null;
+    return this.view();
+  }
+};
+
 // shared/api.ts
 var TOKEN_SCOPES = ["texts:write", "catalog:write"];
 var TOKEN_PREFIX = "hzw_";
@@ -427,11 +501,12 @@ var AuthService = class {
     this.deps = deps;
   }
   decoy = null;
-  get registration() {
-    return this.deps.policy.registration;
+  /** How sign-ups are now: the admin page's setting (A11), else the environment's. */
+  async registration() {
+    return this.deps.site ? (await this.deps.site.get()).registration : this.deps.policy.registration;
   }
   async register(input) {
-    const { registration: registration2 } = this.deps.policy;
+    const registration2 = await this.registration();
     if (registration2 === "closed") throw new RegistrationClosedError();
     if (this.deps.policy.reservedNames?.includes(usernameKey(input.username)) || RESERVED_NAMES.has(usernameKey(input.username))) throw new UsernameTakenError();
     if (registration2 === "open") return this.issue(await this.createUser(input.username, input.password), input.userAgent);
@@ -2209,19 +2284,21 @@ var RecordingService = class {
 // server/src/application/storage-quota.ts
 var MB = 1024 * 1024;
 var StorageQuota = class {
+  /** `limit`, when given, is the site's own setting (A11), which wins over `limitMb` from the environment. */
   constructor(deps) {
     this.deps = deps;
   }
   /** The ceiling, in bytes; null when there is none. */
-  get limitBytes() {
-    return this.deps.limitMb ? this.deps.limitMb * MB : null;
+  async limitBytes() {
+    const mb = this.deps.limit ? await this.deps.limit() : this.deps.limitMb;
+    return mb ? mb * MB : null;
   }
   async use(userId) {
-    return { usedBytes: await this.deps.meter.usedBy(userId), limitBytes: this.limitBytes };
+    return { usedBytes: await this.deps.meter.usedBy(userId), limitBytes: await this.limitBytes() };
   }
   /** Throws when `adding` more bytes would take the account past its ceiling. */
   async check(userId, adding) {
-    if (!this.deps.limitMb) return;
+    if (await this.limitBytes() === null) return;
     const { usedBytes, limitBytes } = await this.use(userId);
     if (limitBytes !== null && usedBytes + adding > limitBytes) {
       throw new AppError(
@@ -2480,6 +2557,13 @@ var cryptoTokens = {
 // server/src/composition.ts
 function createServices(stores, options = {}) {
   const clock = options.clock ?? systemClock;
+  const authPolicy = { ...DEFAULT_AUTH_POLICY, ...options.policy };
+  const site = new SiteSettingsService({
+    settings: stores.siteSettings,
+    adminLog: stores.adminLog,
+    clock,
+    defaults: { registration: authPolicy.registration, storageLimitMb: options.storageLimitMb || null, announcement: "" }
+  });
   const auth = new AuthService({
     users: stores.users,
     sessions: stores.sessions,
@@ -2492,14 +2576,15 @@ function createServices(stores, options = {}) {
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
     clock,
-    policy: { ...DEFAULT_AUTH_POLICY, ...options.policy }
+    policy: authPolicy,
+    site
   });
   const workspaces = new WorkspaceService({ workspaces: stores.workspaces, clock });
   const world = new WorldService({ saves: stores.worldSaves, clock });
   const recordings = new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
   const secrets = options.secretsKey === void 0 ? stores.secrets : secretsFor(stores.secrets, options.secretsKey, (line2) => console.error(line2));
-  const quota = new StorageQuota({ meter: stores.storage, limitMb: options.storageLimitMb || null });
+  const quota = new StorageQuota({ meter: stores.storage, limitMb: options.storageLimitMb || null, limit: async () => (await site.get()).storageLimitMb });
   const usage = new UsageMeter({ usage: stores.usage, clock, log: (line2) => console.error(line2) });
   return {
     auth,
@@ -2512,6 +2597,7 @@ function createServices(stores, options = {}) {
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, catalog: stores.catalog, clock, quota }),
+    site,
     feedback: new FeedbackService({ feedback: stores.feedback, users: stores.users, clock, tokens: cryptoTokens }),
     catalog: new CatalogService({ catalog: stores.catalog, pictures: stores.pictures, adminLog: stores.adminLog, clock, tokens: cryptoTokens }),
     narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),
@@ -2683,7 +2769,7 @@ var RateLimiter = class {
 };
 
 // server/src/http/app.ts
-import { Hono as Hono17 } from "hono";
+import { Hono as Hono18 } from "hono";
 import { bodyLimit as bodyLimit5 } from "hono/body-limit";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
@@ -2936,7 +3022,7 @@ var logQuery = z4.object({
 });
 var LOG_PAGE = 50;
 var blockRequest = z4.object({ reason: z4.string().trim().min(1, "Say why, for the log.").max(300) });
-function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, audit, catalog, feedback }) {
+function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, audit, catalog, feedback, site }) {
   const routes = new Hono2();
   const session = requireSession(auth, { trustProxy, clock });
   const admin = requireRole("admin");
@@ -2971,8 +3057,8 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
   routes.get("/overview", session, admin, async (c) => {
     const first = await auth.accountPage({});
     const body = {
-      registration: auth.registration,
-      storageLimitBytes: storage.limitBytes,
+      registration: await auth.registration(),
+      storageLimitBytes: await storage.limitBytes(),
       accounts: first.rows,
       accountsTotal: first.total,
       invites: (await auth.invites()).reverse(),
@@ -3050,6 +3136,20 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
     const { hidden } = await readJson(c, hideRequest);
     await catalog.setHidden(actor(c), c.req.param("id"), hidden);
     return c.body(null, 204);
+  });
+  routes.get("/settings", session, admin, async (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json(await site.view());
+  });
+  const settingsChange = z4.object({
+    registration: z4.enum(["open", "invite", "closed"]).optional(),
+    storageLimitMb: z4.number().int().nullable().optional(),
+    announcement: z4.string().max(1e3).optional()
+  }).strict();
+  routes.put("/settings", session, admin, fresh, async (c) => {
+    await changes.consume(c.get("session").user.id);
+    c.header("Cache-Control", "no-store");
+    return c.json(await site.change(await readJson(c, settingsChange), actor(c)));
   });
   routes.get("/feedback", session, admin, async (c) => {
     const status = c.req.query("status");
@@ -3148,7 +3248,7 @@ ${input.prompt}`).digest("hex");
 import { Hono as Hono4 } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { z as z6 } from "zod";
-var MINUTE = 6e4;
+var MINUTE2 = 6e4;
 var credentials = z6.object({
   username: z6.string().max(200),
   password: z6.string().max(2048)
@@ -3187,12 +3287,12 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
   const sessionOptions = { trustProxy, clock };
   const session = requireSession(auth, sessionOptions);
   const note = auditor(audit, clock, trustProxy, ipHeader, log);
-  const perName = new RateLimiter("auth.perName", 10, 15 * MINUTE, clock, limits);
-  const perAddress = new RateLimiter("auth.perAddress", 100, 15 * MINUTE, clock, limits);
-  const perAccount = new RateLimiter("auth.perAccount", 50, 60 * MINUTE, clock, limits);
-  const signUps = new RateLimiter("auth.signUps", 20, 60 * MINUTE, clock, limits);
-  routes.get("/options", (c) => {
-    const body = { registration: auth.registration };
+  const perName = new RateLimiter("auth.perName", 10, 15 * MINUTE2, clock, limits);
+  const perAddress = new RateLimiter("auth.perAddress", 100, 15 * MINUTE2, clock, limits);
+  const perAccount = new RateLimiter("auth.perAccount", 50, 60 * MINUTE2, clock, limits);
+  const signUps = new RateLimiter("auth.signUps", 20, 60 * MINUTE2, clock, limits);
+  routes.get("/options", async (c) => {
+    const body = { registration: await auth.registration() };
     return c.json(body);
   });
   routes.get("/session", async (c) => {
@@ -3256,7 +3356,7 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
     const { user, sessionId } = c.get("session");
     return c.json({ signedOut: await auth.signOutOthers(user.id, sessionId) });
   });
-  const recoveries = new RateLimiter("auth.recoveries", 10, 15 * MINUTE, clock, limits);
+  const recoveries = new RateLimiter("auth.recoveries", 10, 15 * MINUTE2, clock, limits);
   routes.get("/recovery-codes", session, async (c) => {
     c.header("Cache-Control", "no-store");
     return c.json({ codes: await auth.recoveryStatus(c.get("session").user.id) });
@@ -3304,7 +3404,7 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
     note(c, "password", user.username);
     return c.body(null, 204);
   });
-  const reauths = new RateLimiter("auth.reauth", 10, 15 * MINUTE, clock, limits);
+  const reauths = new RateLimiter("auth.reauth", 10, 15 * MINUTE2, clock, limits);
   routes.post("/reauth", session, async (c) => {
     const { user, sessionId } = c.get("session");
     await reauths.consume(user.id);
@@ -3353,8 +3453,21 @@ function feedbackRoutes({ auth, clock, trustProxy, feedback, limits }) {
   return routes;
 }
 
-// server/src/http/routes/narration.ts
+// server/src/http/routes/site.ts
 import { Hono as Hono7 } from "hono";
+function siteRoutes({ auth, clock, trustProxy, site }) {
+  const routes = new Hono7();
+  const session = requireSession(auth, { trustProxy, clock });
+  routes.get("/", session, async (c) => {
+    const body = { announcement: (await site.get()).announcement };
+    c.header("Cache-Control", "private, max-age=60");
+    return c.json(body);
+  });
+  return routes;
+}
+
+// server/src/http/routes/narration.ts
+import { Hono as Hono8 } from "hono";
 import { z as z8 } from "zod";
 var keyRequest = z8.object({ key: z8.string().min(1).max(400) });
 var lines = z8.array(z8.string().max(240)).min(1).max(300);
@@ -3387,7 +3500,7 @@ var mp3 = (c, bytes) => {
 };
 function narrationRoutes({ auth, clock, trustProxy, narration, limits, audit, ipHeader, log }) {
   const note = auditor(audit, clock, trustProxy, ipHeader, log);
-  const routes = new Hono7();
+  const routes = new Hono8();
   const session = requireSession(auth, { trustProxy, clock });
   const reads = new RateLimiter("narration.reads", 200, 10 * 6e4, clock, limits);
   const keys = new RateLimiter("narration.keys", 20, 10 * 6e4, clock, limits);
@@ -3487,7 +3600,7 @@ function narrationRoutes({ auth, clock, trustProxy, narration, limits, audit, ip
 }
 
 // server/src/http/routes/speechEval.ts
-import { Hono as Hono8 } from "hono";
+import { Hono as Hono9 } from "hono";
 import { z as z9 } from "zod";
 var keysRequest = z9.discriminatedUnion("provider", [
   z9.object({ provider: z9.literal("speechsuper"), appKey: z9.string().min(1).max(80), secretKey: z9.string().min(1).max(120) }),
@@ -3518,7 +3631,7 @@ var evalRequest = z9.object({
 });
 function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits, audit, ipHeader, log }) {
   const note = auditor(audit, clock, trustProxy, ipHeader, log);
-  const routes = new Hono8();
+  const routes = new Hono9();
   const session = requireSession(auth, { trustProxy, clock });
   const scores = new RateLimiter("speechEval.scores", 200, 10 * 6e4, clock, limits);
   const keys = new RateLimiter("speechEval.keys", 20, 10 * 6e4, clock, limits);
@@ -3566,10 +3679,10 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits, audit, 
 }
 
 // server/src/http/routes/pictures.ts
-import { Hono as Hono9 } from "hono";
+import { Hono as Hono10 } from "hono";
 import { bodyLimit as bodyLimit2 } from "hono/body-limit";
 function pictureRoutes({ auth, clock, trustProxy, pictures, limits }) {
-  const routes = new Hono9();
+  const routes = new Hono10();
   const session = requireSession(auth, { trustProxy, clock }, "texts:write");
   const uploads = new RateLimiter("pictures.uploads", 300, 10 * 6e4, clock, limits);
   routes.get("/:key", session, async (c) => {
@@ -3592,10 +3705,10 @@ function pictureRoutes({ auth, clock, trustProxy, pictures, limits }) {
 }
 
 // server/src/http/routes/speech.ts
-import { Hono as Hono10 } from "hono";
+import { Hono as Hono11 } from "hono";
 var SPEECH_MAX_CHARS = 240;
 function speechRoutes({ auth, clock, trustProxy, speech, limits }) {
-  const routes = new Hono10();
+  const routes = new Hono11();
   const session = requireSession(auth, { trustProxy, clock });
   const limiter = new RateLimiter("speech.limiter", 300, 10 * 6e4, clock, limits);
   routes.get("/", session, (c) => {
@@ -3627,7 +3740,7 @@ function speechRoutes({ auth, clock, trustProxy, speech, limits }) {
 }
 
 // server/src/http/routes/strokes.ts
-import { Hono as Hono11 } from "hono";
+import { Hono as Hono12 } from "hono";
 
 // shared/strokes.ts
 var STROKES_PER_REQUEST = 24;
@@ -3666,7 +3779,7 @@ async function fetchOne(c, get2) {
 // server/src/http/routes/strokes.ts
 var HANZI = /^\p{Script=Han}$/u;
 function strokeRoutes({ auth, clock, trustProxy }) {
-  const routes = new Hono11();
+  const routes = new Hono12();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const chars = [.../* @__PURE__ */ new Set([...c.req.query("c") ?? ""])];
@@ -3681,7 +3794,7 @@ function strokeRoutes({ auth, clock, trustProxy }) {
 }
 
 // server/src/http/routes/talk.ts
-import { Hono as Hono12 } from "hono";
+import { Hono as Hono13 } from "hono";
 import { z as z10 } from "zod";
 var talkOptions = z10.object({
   level: z10.enum(TALK_LEVELS),
@@ -3731,7 +3844,7 @@ var replyRequest = z10.object({
   }).optional()
 });
 function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, talkVoices, conversations, recordings, limits }) {
-  const routes = new Hono12();
+  const routes = new Hono13();
   const session = requireSession(auth, { trustProxy, clock });
   const turns = new RateLimiter("talk.turns", 120, 10 * 6e4, clock, limits);
   const clips = new RateLimiter("talk.clips", 600, 10 * 6e4, clock, limits);
@@ -3812,7 +3925,7 @@ function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, talk
 }
 
 // server/src/http/routes/videos.ts
-import { Hono as Hono13 } from "hono";
+import { Hono as Hono14 } from "hono";
 
 // shared/videos.ts
 var PLAYLIST_ID = /^[A-Za-z0-9_-]{10,64}$/;
@@ -3964,7 +4077,7 @@ async function lookUpPlaylist(playlistId) {
 // server/src/http/routes/videos.ts
 var HOUR = 60 * 6e4;
 function videoRoutes({ auth, clock, trustProxy, log, limits, lookups: cache }) {
-  const routes = new Hono13();
+  const routes = new Hono14();
   const session = requireSession(auth, { trustProxy, clock });
   const lookups = new RateLimiter("videos.lookups", 60, HOUR, clock, limits);
   const site = new RateLimiter("videos.site", 300, HOUR, clock, limits);
@@ -4015,7 +4128,7 @@ function videoRoutes({ auth, clock, trustProxy, log, limits, lookups: cache }) {
 }
 
 // server/src/http/routes/workspace.ts
-import { Hono as Hono14 } from "hono";
+import { Hono as Hono15 } from "hono";
 import { bodyLimit as bodyLimit3 } from "hono/body-limit";
 import { z as z11 } from "zod";
 var saveRequest2 = z11.object({
@@ -4023,7 +4136,7 @@ var saveRequest2 = z11.object({
   document: z11.record(z11.string(), z11.unknown())
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
-  const routes = new Hono14();
+  const routes = new Hono15();
   const session = requireSession(auth, { trustProxy, clock }, "texts:write");
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -4061,7 +4174,7 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 }
 
 // server/src/http/routes/world.ts
-import { Hono as Hono15 } from "hono";
+import { Hono as Hono16 } from "hono";
 import { bodyLimit as bodyLimit4 } from "hono/body-limit";
 import { z as z12 } from "zod";
 
@@ -4075,7 +4188,7 @@ var putRequest = z12.object({
   save: z12.record(z12.string(), z12.unknown())
 });
 function worldRoutes({ auth, world, clock, trustProxy }) {
-  const routes = new Hono15();
+  const routes = new Hono16();
   const session = requireSession(auth, { trustProxy, clock });
   routes.get("/", session, async (c) => {
     const userId = c.get("session").user.id;
@@ -4112,9 +4225,9 @@ function worldRoutes({ auth, world, clock, trustProxy }) {
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Hono as Hono16 } from "hono";
+import { Hono as Hono17 } from "hono";
 function staticSite(root) {
-  const site = new Hono16();
+  const site = new Hono17();
   const index = join(root, "index.html");
   site.use("*", caching());
   site.use("*", serveStatic({ root }));
@@ -4155,7 +4268,7 @@ function createHttpApp(services, options) {
     devUserCreate: options.devUserCreate ?? true,
     log: options.log
   };
-  const api = new Hono17();
+  const api = new Hono18();
   const note = auditor(services.audit, services.clock, options.trustProxy, options.ipHeader ?? null, options.log);
   const limited = /* @__PURE__ */ new Map();
   api.onError((err, c) => {
@@ -4203,11 +4316,12 @@ function createHttpApp(services, options) {
   api.route("/narration", narrationRoutes(deps));
   api.route("/catalog", catalogRoutes(deps));
   api.route("/feedback", feedbackRoutes(deps));
+  api.route("/site", siteRoutes(deps));
   api.route("/eval", speechEvalRoutes(deps));
   api.all("*", () => {
     throw new NotFoundError("That API route");
   });
-  const app = new Hono17();
+  const app = new Hono18();
   app.onError(onError);
   if (options.compress !== false) app.use("*", compress());
   app.use(
@@ -4627,6 +4741,15 @@ var MIGRATIONS = [
   INSERT INTO pictures_owned (user_id, key, mime, bytes, created_at) SELECT user_id, key, mime, bytes, created_at FROM pictures;
   DROP TABLE pictures;
   ALTER TABLE pictures_owned RENAME TO pictures;
+  `,
+  // A11: what an admin changes about the site without a new deploy; the environment's values stay the defaults.
+  `
+  CREATE TABLE site_settings (
+    key         TEXT PRIMARY KEY,
+    value       TEXT NOT NULL,
+    updated_at  BIGINT NOT NULL,
+    updated_by  TEXT NOT NULL
+  );
   `
 ];
 
@@ -5655,6 +5778,23 @@ var PostgresAccountDirectory = class {
   }
 };
 
+// server/src/infrastructure/postgres/site-settings-repository.ts
+var PostgresSiteSettingsRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async all() {
+    const { rows } = await this.db.query("SELECT key, value, updated_at, updated_by FROM site_settings");
+    return rows.map((r) => ({ key: r.key, value: r.value, updatedAt: Number(r.updated_at), updatedBy: r.updated_by }));
+  }
+  async set(key, value, at, by) {
+    await this.db.query(
+      "INSERT INTO site_settings (key, value, updated_at, updated_by) VALUES ($1, $2, $3, $4) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by",
+      [key, value, at, by]
+    );
+  }
+};
+
 // server/src/infrastructure/postgres/workspace-repository.ts
 var PostgresWorkspaceRepository = class {
   constructor(db) {
@@ -5761,7 +5901,8 @@ var postgresStores = (db) => ({
   recoveryCodes: new PostgresRecoveryCodeRepository(db),
   passwordResets: new PostgresPasswordResetRepository(db),
   feedback: new PostgresFeedbackRepository(db),
-  accounts: new PostgresAccountDirectory(db)
+  accounts: new PostgresAccountDirectory(db),
+  siteSettings: new PostgresSiteSettingsRepository(db)
 });
 
 // server/src/vercel.ts

@@ -1,5 +1,6 @@
 import { CatalogService } from './application/catalog-service';
 import { FeedbackService } from './application/feedback-service';
+import { SiteSettingsService } from './application/site-settings';
 import { AuthService, DEFAULT_AUTH_POLICY, type AuthPolicy } from './application/auth-service';
 import { ConversationService } from './application/conversation-service';
 import { NarrationService } from './application/narration-service';
@@ -31,6 +32,7 @@ import type {
   RateLimitStore,
   LookupCache,
   AccountDirectory,
+  SiteSettingsRepository,
   FeedbackRepository,
   PasswordResetRepository,
   RecoveryCodeRepository,
@@ -86,6 +88,8 @@ export interface Services {
   catalog: CatalogService;
   /** A12: feedback sent from the site itself */
   feedback: FeedbackService;
+  /** A11: what an admin changes about the site without a deploy */
+  site: SiteSettingsService;
 }
 
 /** Where each kind of record is kept. */
@@ -112,6 +116,8 @@ export interface Stores {
   feedback: FeedbackRepository;
   /** A4: the accounts as the admin page lists them */
   accounts: AccountDirectory;
+  /** A11: the site's own settings */
+  siteSettings: SiteSettingsRepository;
   storage: StorageMeter;
   audit: AuditLog;
   adminLog: AdminLogRepository;
@@ -150,6 +156,14 @@ export function createServices(
   } = {},
 ): Services {
   const clock = options.clock ?? systemClock;
+  const authPolicy = { ...DEFAULT_AUTH_POLICY, ...options.policy };
+  // A11: the environment's values are the defaults; an admin's change on the page wins.
+  const site = new SiteSettingsService({
+    settings: stores.siteSettings,
+    adminLog: stores.adminLog,
+    clock,
+    defaults: { registration: authPolicy.registration, storageLimitMb: options.storageLimitMb || null, announcement: '' },
+  });
   const auth = new AuthService({
     users: stores.users,
     sessions: stores.sessions,
@@ -162,14 +176,15 @@ export function createServices(
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
     clock,
-    policy: { ...DEFAULT_AUTH_POLICY, ...options.policy },
+    policy: authPolicy,
+    site,
   });
   const workspaces = new WorkspaceService({ workspaces: stores.workspaces, clock });
   const world = new WorldService({ saves: stores.worldSaves, clock });
   const recordings = new RecordingService({ recordings: stores.recordings, live: options.talkVoices ?? null, clock });
   const conversations = new ConversationService({ conversations: stores.conversations, clock, tokens: cryptoTokens });
   const secrets = options.secretsKey === undefined ? stores.secrets : secretsFor(stores.secrets, options.secretsKey, (line) => console.error(line));
-  const quota = new StorageQuota({ meter: stores.storage, limitMb: options.storageLimitMb || null });
+  const quota = new StorageQuota({ meter: stores.storage, limitMb: options.storageLimitMb || null, limit: async () => (await site.get()).storageLimitMb });
   const usage = new UsageMeter({ usage: stores.usage, clock, log: (line) => console.error(line) });
   return {
     auth,
@@ -182,6 +197,7 @@ export function createServices(
     talkVoices: options.talkVoices ?? null,
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, catalog: stores.catalog, clock, quota }),
+    site,
     feedback: new FeedbackService({ feedback: stores.feedback, users: stores.users, clock, tokens: cryptoTokens }),
     catalog: new CatalogService({ catalog: stores.catalog, pictures: stores.pictures, adminLog: stores.adminLog, clock, tokens: cryptoTokens }),
     narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),

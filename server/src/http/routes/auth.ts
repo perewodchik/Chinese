@@ -93,8 +93,8 @@ export function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUser
   const perAccount = new RateLimiter('auth.perAccount', 50, 60 * MINUTE, clock, limits);
   const signUps = new RateLimiter('auth.signUps', 20, 60 * MINUTE, clock, limits);
 
-  routes.get('/options', (c) => {
-    const body: AuthOptionsResponse = { registration: auth.registration };
+  routes.get('/options', async (c) => {
+    const body: AuthOptionsResponse = { registration: await auth.registration() };
     return c.json(body);
   });
 

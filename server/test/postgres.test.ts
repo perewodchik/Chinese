@@ -343,6 +343,17 @@ describe('Postgres storage', () => {
     assert.deepEqual((await stores.feedback.list({ status: 'closed', limit: 10 })).map((f) => f.id), ['f1']);
   });
 
+  it('keeps the site’s settings, one value a key, the last write winning (A11)', async () => {
+    await stores.siteSettings.set('registration', '"invite"', T, 'kirill');
+    await stores.siteSettings.set('registration', '"closed"', T + 1, 'masha');
+    await stores.siteSettings.set('announcement', '"Hi"', T + 2, 'kirill');
+    const all = (await stores.siteSettings.all()).sort((a, b) => a.key.localeCompare(b.key));
+    assert.deepEqual(all, [
+      { key: 'announcement', value: '"Hi"', updatedAt: T + 2, updatedBy: 'kirill' },
+      { key: 'registration', value: '"closed"', updatedAt: T + 1, updatedBy: 'masha' },
+    ]);
+  });
+
   it('reads the accounts’ log since a time, by kind, oldest first (SEC15)', async () => {
     const e = (at: number, kind: string) => ({ at, kind, username: 'w', ip: '1.2.3.4', userAgent: null });
     await stores.audit.add(e(T + 100, 'sign-in'));

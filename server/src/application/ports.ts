@@ -406,6 +406,12 @@ export interface AccountDirectory {
   page(o: { q: string; sort: AccountSort; offset: number; limit: number; now: number; monthStart: string }): Promise<{ total: number; rows: AccountRow[] }>;
 }
 
+/** A11: the site's own settings, as JSON by key. */
+export interface SiteSettingsRepository {
+  all(): Promise<Array<{ key: string; value: string; updatedAt: number; updatedBy: string }>>;
+  set(key: string, value: string, at: number, by: string): Promise<void>;
+}
+
 /** A12: feedback sent from the site, newest first when listed. */
 export interface FeedbackRecord {
   id: string;

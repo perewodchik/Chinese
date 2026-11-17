@@ -1124,3 +1124,12 @@
   line-height: 1.4;
   color: var(--ink-2);
 }
+
+/* A11: the line whoever runs the site put over Read. */
+.site-announcement {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--ink);
+}

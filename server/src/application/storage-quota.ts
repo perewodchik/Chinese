@@ -21,20 +21,22 @@ export interface StorageUse {
  * has a ceiling of its own and is saved after every change.
  */
 export class StorageQuota {
-  constructor(private readonly deps: { meter: StorageMeter; limitMb: number | null }) {}
+  /** `limit`, when given, is the site's own setting (A11), which wins over `limitMb` from the environment. */
+  constructor(private readonly deps: { meter: StorageMeter; limitMb: number | null; limit?: () => Promise<number | null> }) {}
 
   /** The ceiling, in bytes; null when there is none. */
-  get limitBytes(): number | null {
-    return this.deps.limitMb ? this.deps.limitMb * MB : null;
+  async limitBytes(): Promise<number | null> {
+    const mb = this.deps.limit ? await this.deps.limit() : this.deps.limitMb;
+    return mb ? mb * MB : null;
   }
 
   async use(userId: string): Promise<StorageUse> {
-    return { usedBytes: await this.deps.meter.usedBy(userId), limitBytes: this.limitBytes };
+    return { usedBytes: await this.deps.meter.usedBy(userId), limitBytes: await this.limitBytes() };
   }
 
   /** Throws when `adding` more bytes would take the account past its ceiling. */
   async check(userId: string, adding: number): Promise<void> {
-    if (!this.deps.limitMb) return;
+    if ((await this.limitBytes()) === null) return;
     const { usedBytes, limitBytes } = await this.use(userId);
     if (limitBytes !== null && usedBytes + adding > limitBytes) {
       throw new AppError(

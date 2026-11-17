@@ -24,7 +24,7 @@ const blockRequest = z.object({ reason: z.string().trim().min(1, 'Say why, for t
  *
  * Nothing here reads anyone's work: names, dates, sizes and counts.
  */
-export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, audit, catalog, feedback }: RouteDeps) {
+export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, audit, catalog, feedback, site }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   const admin = requireRole('admin');
@@ -70,8 +70,8 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
     // The first page, seen last first, from one query (A4, SEC14): no longer three queries an account.
     const first = await auth.accountPage({});
     const body: AdminOverview = {
-      registration: auth.registration,
-      storageLimitBytes: storage.limitBytes,
+      registration: await auth.registration(),
+      storageLimitBytes: await storage.limitBytes(),
       accounts: first.rows,
       accountsTotal: first.total,
       invites: (await auth.invites()).reverse(),
@@ -166,6 +166,24 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
     const { hidden } = await readJson(c, hideRequest);
     await catalog.setHidden(actor(c), c.req.param('id'), hidden);
     return c.body(null, 204);
+  });
+
+  // A11: the site's own settings, changed here without a deploy.
+  routes.get('/settings', session, admin, async (c) => {
+    c.header('Cache-Control', 'no-store');
+    return c.json(await site.view());
+  });
+  const settingsChange = z
+    .object({
+      registration: z.enum(['open', 'invite', 'closed']).optional(),
+      storageLimitMb: z.number().int().nullable().optional(),
+      announcement: z.string().max(1000).optional(),
+    })
+    .strict();
+  routes.put('/settings', session, admin, fresh, async (c) => {
+    await changes.consume(c.get('session').user.id);
+    c.header('Cache-Control', 'no-store');
+    return c.json(await site.change(await readJson(c, settingsChange), actor(c)));
   });
 
   // A12: feedback sent from the site, and where each stands.

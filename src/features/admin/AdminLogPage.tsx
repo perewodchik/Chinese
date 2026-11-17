@@ -21,6 +21,7 @@ const ACTION: Record<string, string> = {
   'signed-out': 'Signed out everywhere:',
   'reset-link': 'Reset link made for',
   'invite-revoked': 'Invitation taken back',
+  'setting-changed': 'Site setting changed:',
 };
 
 const when = (at: number) => new Date(at).toLocaleString(undefined, { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit' });

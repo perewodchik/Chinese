@@ -13,6 +13,7 @@ import { messageFor } from '../auth/messages';
 import { useUser } from '../auth/session';
 import { NotConfirmed, useFreshPassword } from '../auth/useFreshPassword';
 import { AdminAccounts } from './AdminAccounts';
+import { SiteSettingsBlock } from './SiteSettingsBlock';
 import { day, mb, plural } from './format';
 import './admin.css';
 
@@ -177,6 +178,8 @@ export function AdminPage() {
           </div>
         )}
       </section>
+
+      <SiteSettingsBlock confirm={confirm} onChanged={() => void load()} />
 
       {data && <AdminAccounts first={data.accounts} total={data.accountsTotal} selfId={user.id} confirm={confirm} onChanged={() => void load()} />}
 

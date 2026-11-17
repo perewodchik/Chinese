@@ -183,3 +183,36 @@
 .admin-watch[data-state='wrong'] {
   color: var(--red);
 }
+
+/* A11: the line over Read, written on the admin page. */
+.admin-announce {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 12px;
+  padding: 12px 0;
+}
+
+.admin-announce .field {
+  flex: 1 1 260px;
+}
+
+.admin-setting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-height: 64px;
+  padding: 10px 0;
+}
+
+.admin-setting .grow {
+  display: grid;
+  gap: 2px;
+  min-width: 180px;
+}
+
+.admin-setting small {
+  font-size: 13px;
+  color: var(--ink-3);
+}
