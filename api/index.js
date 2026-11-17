@@ -1887,6 +1887,7 @@ var SpeechEvalService = class {
     }
   }
   /** Tries kept for every device; one kept already (by its id) is left as it is. */
+  /** `result` is kept as the JSON it came as: the page's own record of the service's answer (R16: no cast at the route). */
   async keepAttempts(userId, items) {
     if (items.length > ATTEMPTS_PER_CALL) throw new ValidationError("Too many tries at once.");
     await this.deps.quota?.check(userId, items.reduce((n, a) => n + JSON.stringify(a).length, 0));

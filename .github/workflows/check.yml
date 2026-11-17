@@ -28,6 +28,10 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm run vercel-build
+      # R17: Vercel finds the function in api/ before it builds, so the bundle
+      # is committed; it has to be the one the server's sources make.
+      - name: The committed API bundle matches the server's sources
+        run: git diff --exit-code -- api/index.js || (echo "api/index.js is out of date: run npm run vercel-build and commit it" && exit 1)
       - run: npm test
       # Advisories against what the server runs with; reported, not blocking,
       # since a fix may wait on a release upstream.

@@ -11,10 +11,10 @@ import {
   TALK_TOPIC_MAX_CHARS,
   TALK_VOCAB_MAX,
   type TalkMode,
-  type TalkOptions,
+  type TalkLength,
+  type TalkLevel,
   type TalkRecordedResponse,
   type TalkReply,
-  type TalkSavedTurn,
   type TalkStatusResponse,
 } from '../../../../shared/talk';
 import { AppError, TutorUnavailableError, ValidationError } from '../../domain/errors';
@@ -24,8 +24,8 @@ import { readJson } from '../request';
 import { SPEECH_MAX_CHARS } from './speech';
 
 const talkOptions = z.object({
-  level: z.enum(TALK_LEVELS as [string, ...string[]]),
-  length: z.enum(TALK_LENGTHS as [string, ...string[]]),
+  level: z.enum(TALK_LEVELS as readonly [TalkLevel, ...TalkLevel[]]),
+  length: z.enum(TALK_LENGTHS as readonly [TalkLength, ...TalkLength[]]),
   explain: z.boolean(),
   words: z.boolean(),
   hints: z.boolean(),
@@ -131,7 +131,7 @@ export function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUser
     await turns.consume(c.get('session').user.id);
     const reply: TalkReply = await tutor.reply({
       lines: input.lines,
-      options: input.options as TalkOptions,
+      options: input.options,
       ...(input.vocab && { vocab: input.vocab }),
     });
     c.header('Cache-Control', 'no-store');
@@ -173,7 +173,7 @@ export function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUser
   routes.post('/conversations', session, async (c) => {
     const input = await readJson(c, startRequest);
     await saves.consume(c.get('session').user.id);
-    const made = await conversations.start(c.get('session').user.id, input.options as TalkOptions, input.voice);
+    const made = await conversations.start(c.get('session').user.id, input.options, input.voice);
     c.header('Cache-Control', 'no-store');
     return c.json(made, 201);
   });
@@ -187,9 +187,9 @@ export function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUser
     const input = await readJson(c, saveRequest);
     await saves.consume(c.get('session').user.id);
     const saved = await conversations.save(c.get('session').user.id, c.req.param('id'), {
-      options: input.options as TalkOptions,
+      options: input.options,
       voice: input.voice,
-      turns: input.turns as TalkSavedTurn[],
+      turns: input.turns,
     });
     c.header('Cache-Control', 'no-store');
     return c.json(saved);

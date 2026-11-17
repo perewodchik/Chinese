@@ -90,7 +90,7 @@ export function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits, 
 
   routes.post('/attempts', session, async (c) => {
     const { items } = await readJson(c, attemptsRequest);
-    return json(c, await speechEval.keepAttempts(user(c), items as never));
+    return json(c, await speechEval.keepAttempts(user(c), items));
   });
 
   routes.post('/', session, async (c) => {
