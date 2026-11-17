@@ -25,6 +25,10 @@ game docs especially are not background reading.
 - `export PATH=/opt/homebrew/bin:$PATH` before any npm/npx/node command (the
   default nvm node 20 is too old; `npm test`'s globs need Node ≥ 22).
 - Check with `npm test` and `npm run vercel-build` (runs `tsc -b`).
+  `npm run test:quick` (about 30 s) is everything but the game's level
+  solver, which alone takes 9 minutes (`npm run test:world-solver`); run it
+  before each commit, and the whole `npm test` when the game changed. CI
+  runs all of it.
   `npx tsc --noEmit -p .` checks nothing — the root tsconfig only has references.
 - **Dev servers use the PRODUCTION database** (`.env` has `POSTGRES_URL`)
   unless `HANZI_DB=.data/<name>.db` is set. In `.claude/launch.json` only the

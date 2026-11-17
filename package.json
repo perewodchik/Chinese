@@ -13,6 +13,8 @@
     "start": "node --disable-warning=ExperimentalWarning dist-server/server.mjs",
     "serve": "vite build && node scripts/build-server.mjs && npm start",
     "test": "node --disable-warning=ExperimentalWarning --import tsx --test \"server/test/**/*.test.ts\" \"src/**/*.test.ts\" \"scripts/**/*.test.ts\"",
+    "test:quick": "node --disable-warning=ExperimentalWarning --import tsx --test \"server/test/**/*.test.ts\" \"src/**/*.test.ts\" \"scripts/**/!(solver).test.ts\"",
+    "test:world-solver": "node --disable-warning=ExperimentalWarning --import tsx --test scripts/world/solver.test.ts",
     "typecheck": "tsc -b",
     "admin": "node --disable-warning=ExperimentalWarning --import tsx server/src/cli.ts",
     "texts": "node --disable-warning=ExperimentalWarning --import tsx scripts/texts/book.ts",
