@@ -337,4 +337,18 @@ describe('Postgres storage', () => {
     assert.equal(await stores.feedback.setStatus('nope', 'closed', T + 9), false);
     assert.deepEqual((await stores.feedback.list({ status: 'closed', limit: 10 })).map((f) => f.id), ['f1']);
   });
+
+  it('lists accounts with their room, browsers and month in one query, searched and paged (A4)', async () => {
+    await stores.users.insert(user('dir-1', 'zzdir_anna'));
+    await stores.users.insert(user('dir-2', 'zzdir_boris'));
+    await stores.usage.add('dir-1', '2026-09-20', 'minimax', 1, 300);
+    await stores.usage.add('dir-1', '2026-08-20', 'minimax', 1, 999);
+    const found = await stores.accounts.page({ q: 'zzdir', sort: 'spent', offset: 0, limit: 10, now: T, monthStart: '2026-09-01' });
+    assert.equal(found.total, 2);
+    assert.deepEqual(found.rows.map((r) => [r.id, r.charactersReadThisMonth, r.devices, typeof r.storageBytes]), [
+      ['dir-1', 300, 0, 'number'],
+      ['dir-2', 0, 0, 'number'],
+    ]);
+    assert.equal((await stores.accounts.page({ q: 'zzdir', sort: 'joined', offset: 1, limit: 1, now: T, monthStart: '2026-09-01' })).rows.length, 1);
+  });
 });

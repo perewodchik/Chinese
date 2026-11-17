@@ -54,6 +54,15 @@ export interface AdminAccount {
   charactersReadThisMonth: number;
 }
 
+/** A4: GET /api/admin/accounts?q=&sort=seen|joined|room|spent&page= */
+export interface AdminAccountPage {
+  accounts: AdminAccount[];
+  total: number;
+  /** from 0 */
+  page: number;
+  pages: number;
+}
+
 export interface AdminInvite {
   /** its code's digest: opens nothing, names it to take it back (A8) */
   id: string;
@@ -79,7 +88,10 @@ export interface AdminEvent {
 export interface AdminOverview {
   registration: 'open' | 'closed' | 'invite';
   storageLimitBytes: number | null;
+  /** the first page of them, seen last first (A4) */
   accounts: AdminAccount[];
+  /** how many there are in all */
+  accountsTotal: number;
   invites: AdminInvite[];
   /** the latest sixty, newest first */
   events: AdminEvent[];

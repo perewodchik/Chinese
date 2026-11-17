@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
-import type { AdminAccount, AdminLogPage, AdminOverview } from '../../../../shared/admin';
+import type { AdminAccountPage, AdminLogPage, AdminOverview } from '../../../../shared/admin';
 import type { Actor } from '../../application/ports';
 import type { AppEnv, RouteDeps } from '../env';
 import { auditor, RateLimiter, requireFresh, requireRole, requireSession } from '../guards';
@@ -24,7 +24,7 @@ const blockRequest = z.object({ reason: z.string().trim().min(1, 'Say why, for t
  *
  * Nothing here reads anyone's work: names, dates, sizes and counts.
  */
-export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit, catalog, feedback }: RouteDeps) {
+export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, audit, catalog, feedback }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   const admin = requireRole('admin');
@@ -38,33 +38,27 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, us
   });
 
   routes.get('/overview', session, admin, async (c) => {
-    const users = await auth.accounts();
-    const none = { speechsuper: false, iflytek: false, minimax: false };
-    const accounts: AdminAccount[] = await Promise.all(
-      users.map(async (u) => {
-        const [devices, room, spent] = await Promise.all([auth.sessionsOf(u.id, ''), storage.use(u.id), usage.summary(u.id, none)]);
-        const month = (service: string) => spent.lines.find((l) => l.service === service)?.month ?? { calls: 0, units: 0 };
-        return {
-          id: u.id,
-          username: u.username,
-          role: u.role,
-          status: u.status,
-          createdAt: u.createdAt,
-          lastSeenAt: devices.length ? Math.max(...devices.map((d) => d.lastSeenAt)) : null,
-          devices: devices.length,
-          storageBytes: room.usedBytes,
-          scoredThisMonth: month('speechsuper').calls + month('iflytek').calls,
-          charactersReadThisMonth: month('minimax').units,
-        };
-      }),
-    );
+    // The first page, seen last first, from one query (A4, SEC14): no longer three queries an account.
+    const first = await auth.accountPage({});
     const body: AdminOverview = {
       registration: auth.registration,
       storageLimitBytes: storage.limitBytes,
-      accounts: accounts.sort((a, b) => (b.lastSeenAt ?? 0) - (a.lastSeenAt ?? 0)),
+      accounts: first.rows,
+      accountsTotal: first.total,
       invites: (await auth.invites()).reverse(),
       events: (await audit.recent(60)).map(({ at, kind, username, userAgent }) => ({ at, kind, username, userAgent })),
     };
+    c.header('Cache-Control', 'no-store');
+    return c.json(body);
+  });
+
+  // A4: the accounts a page at a time, searched by name and sorted.
+  const accountsQuery = z.object({ q: z.string().max(64).optional(), sort: z.enum(['seen', 'joined', 'room', 'spent']).optional(), page: z.coerce.number().int().min(0).max(10_000).optional() });
+  routes.get('/accounts', session, admin, async (c) => {
+    const parsed = accountsQuery.safeParse(c.req.query());
+    const q = parsed.success ? parsed.data : {};
+    const found = await auth.accountPage(q);
+    const body: AdminAccountPage = { accounts: found.rows, total: found.total, page: found.page, pages: found.pages };
     c.header('Cache-Control', 'no-store');
     return c.json(body);
   });

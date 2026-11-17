@@ -12,7 +12,7 @@ import { useTitle } from '../../ui/useTitle';
 import { messageFor } from '../auth/messages';
 import { useUser } from '../auth/session';
 import { NotConfirmed, useFreshPassword } from '../auth/useFreshPassword';
-import { AdminAccountRow } from './AdminAccountRow';
+import { AdminAccounts } from './AdminAccounts';
 import { day, mb, plural } from './format';
 import './admin.css';
 
@@ -121,7 +121,7 @@ export function AdminPage() {
       </div>
       <p className="small muted" style={{ margin: 0 }}>
         {data
-          ? `${plural(data.accounts.length, 'account')}. New accounts ${data.registration === 'invite' ? 'by invitation' : data.registration === 'open' ? 'open to anyone' : 'switched off'}${data.storageLimitBytes ? `; each keeps up to ${mb(data.storageLimitBytes)}` : ''}.`
+          ? `${plural(data.accountsTotal, 'account')}. New accounts ${data.registration === 'invite' ? 'by invitation' : data.registration === 'open' ? 'open to anyone' : 'switched off'}${data.storageLimitBytes ? `; each keeps up to ${mb(data.storageLimitBytes)}` : ''}.`
           : 'Loading…'}
       </p>
 
@@ -167,14 +167,7 @@ export function AdminPage() {
         )}
       </section>
 
-      <section className="block">
-        <h2 className="block-title">Accounts</h2>
-        <ul className="list admin-list">
-          {(data?.accounts ?? []).map((a) => (
-            <AdminAccountRow key={a.id} account={a} self={a.id === user.id} confirm={confirm} onChanged={() => void load()} />
-          ))}
-        </ul>
-      </section>
+      {data && <AdminAccounts first={data.accounts} total={data.accountsTotal} selfId={user.id} confirm={confirm} onChanged={() => void load()} />}
 
       <section className="block">
         <h2 className="block-title">Lately</h2>

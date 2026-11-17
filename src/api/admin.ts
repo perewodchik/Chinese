@@ -1,6 +1,14 @@
-import type { AdminLogPage, AdminOverview } from '../../shared/admin';
+import type { AdminAccountPage, AdminLogPage, AdminOverview } from '../../shared/admin';
 import { request } from './http';
 
+/** A4: the accounts a page at a time, searched and sorted. */
+export const adminAccounts = (q: { q?: string; sort?: 'seen' | 'joined' | 'room' | 'spent'; page?: number }) => {
+  const p = new URLSearchParams();
+  if (q.q) p.set('q', q.q);
+  if (q.sort && q.sort !== 'seen') p.set('sort', q.sort);
+  if (q.page) p.set('page', String(q.page));
+  return request<AdminAccountPage>('GET', `/api/admin/accounts${p.size ? `?${p}` : ''}`);
+};
 export const adminOverview = () => request<AdminOverview>('GET', '/api/admin/overview');
 /** An invitation for one account, `days` long (0: no end); its code is shown this once. */
 /** A8: an invitation taken back before it was used. */

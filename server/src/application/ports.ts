@@ -387,6 +387,24 @@ export interface InviteRepository {
 }
 
 /** The codes an account can set a new password with, kept as digests. */
+/** A4, SEC14: the accounts as the admin page lists them, in one query whatever their number. */
+export type AccountSort = 'seen' | 'joined' | 'room' | 'spent';
+export interface AccountRow {
+  id: string;
+  username: string;
+  role: 'learner' | 'admin';
+  status: 'active' | 'blocked';
+  createdAt: number;
+  lastSeenAt: number | null;
+  devices: number;
+  storageBytes: number;
+  scoredThisMonth: number;
+  charactersReadThisMonth: number;
+}
+export interface AccountDirectory {
+  page(o: { q: string; sort: AccountSort; offset: number; limit: number; now: number; monthStart: string }): Promise<{ total: number; rows: AccountRow[] }>;
+}
+
 /** A12: feedback sent from the site, newest first when listed. */
 export interface FeedbackRecord {
   id: string;

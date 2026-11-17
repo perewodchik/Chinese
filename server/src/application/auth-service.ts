@@ -19,7 +19,7 @@ import {
   ValidationError,
 } from '../domain/errors';
 import { randomInt } from 'node:crypto';
-import type { Actor, AdminLogRecord, AdminLogRepository, ApiTokenRepository, Clock, InviteRepository, PasswordHasher, PasswordResetRepository, RecoveryCodeRepository, SessionRepository, Tokens, UserRepository } from './ports';
+import type { AccountDirectory, AccountRow, AccountSort, Actor, AdminLogRecord, AdminLogRepository, ApiTokenRepository, Clock, InviteRepository, PasswordHasher, PasswordResetRepository, RecoveryCodeRepository, SessionRepository, Tokens, UserRepository } from './ports';
 
 const DAY = 86_400_000;
 
@@ -59,6 +59,8 @@ export interface AuthDeps {
   recoveryCodes: RecoveryCodeRepository;
   /** A6: one-time links an admin makes for someone locked out */
   passwordResets: PasswordResetRepository;
+  /** A4: the accounts as the admin page lists them, in one query */
+  accounts?: AccountDirectory;
   hasher: PasswordHasher;
   tokens: Tokens;
   clock: Clock;
@@ -103,6 +105,9 @@ export interface IssuedInvite {
 /** Letters and digits that cannot be read as one another: no 0/O, 1/I/L. */
 const INVITE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const INVITE_LENGTH = 12;
+
+/** A4: accounts a page on the admin page. */
+const ACCOUNTS_PAGE = 50;
 
 /** A6: how long an admin's reset link is, and how long it lasts. */
 const RESET_LENGTH = 24;
@@ -651,6 +656,20 @@ export class AuthService {
     const tokens = await apiTokens.revokeForUser(user.id, clock.now());
     await this.record(actor, 'signed-out', user, { sessions: signedOut, tokens });
     return { sessions: signedOut, tokens };
+  }
+
+  /**
+   * A4, SEC14: a page of the accounts for the admin page — searched by name,
+   * sorted by last seen, joining, room kept or this month's spending — with
+   * what each keeps and spends, gathered in one query whatever their number.
+   */
+  async accountPage(o: { q?: string; sort?: AccountSort; page?: number }): Promise<{ total: number; page: number; pages: number; rows: AccountRow[] }> {
+    if (!this.deps.accounts) throw new Error('No account directory is configured.');
+    const now = this.deps.clock.now();
+    const day = new Date(now).toISOString().slice(0, 10);
+    const page = Math.max(0, Math.floor(o.page ?? 0));
+    const { total, rows } = await this.deps.accounts.page({ q: (o.q ?? '').trim().slice(0, 64), sort: o.sort ?? 'seen', offset: page * ACCOUNTS_PAGE, limit: ACCOUNTS_PAGE, now, monthStart: `${day.slice(0, 8)}01` });
+    return { total, page, pages: Math.max(1, Math.ceil(total / ACCOUNTS_PAGE)), rows };
   }
 
   /** The accounts as the admin pages list them: who, since when, what role, whether paused. */

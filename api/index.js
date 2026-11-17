@@ -393,6 +393,7 @@ var DEFAULT_AUTH_POLICY = {
 };
 var INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 var INVITE_LENGTH = 12;
+var ACCOUNTS_PAGE = 50;
 var RESET_LENGTH = 24;
 var RESET_TTL = 24 * 60 * 6e4;
 var RECOVERY_CODES = 8;
@@ -847,6 +848,19 @@ var AuthService = class {
     const tokens = await apiTokens.revokeForUser(user.id, clock.now());
     await this.record(actor, "signed-out", user, { sessions: signedOut, tokens });
     return { sessions: signedOut, tokens };
+  }
+  /**
+   * A4, SEC14: a page of the accounts for the admin page — searched by name,
+   * sorted by last seen, joining, room kept or this month's spending — with
+   * what each keeps and spends, gathered in one query whatever their number.
+   */
+  async accountPage(o) {
+    if (!this.deps.accounts) throw new Error("No account directory is configured.");
+    const now = this.deps.clock.now();
+    const day = new Date(now).toISOString().slice(0, 10);
+    const page = Math.max(0, Math.floor(o.page ?? 0));
+    const { total, rows } = await this.deps.accounts.page({ q: (o.q ?? "").trim().slice(0, 64), sort: o.sort ?? "seen", offset: page * ACCOUNTS_PAGE, limit: ACCOUNTS_PAGE, now, monthStart: `${day.slice(0, 8)}01` });
+    return { total, page, pages: Math.max(1, Math.ceil(total / ACCOUNTS_PAGE)), rows };
   }
   /** The accounts as the admin pages list them: who, since when, what role, whether paused. */
   async accounts() {
@@ -2474,6 +2488,7 @@ function createServices(stores, options = {}) {
     invites: stores.invites,
     recoveryCodes: stores.recoveryCodes,
     passwordResets: stores.passwordResets,
+    accounts: stores.accounts,
     adminLog: stores.adminLog,
     hasher: options.hasher ?? new ScryptHasher(),
     tokens: cryptoTokens,
@@ -2921,7 +2936,7 @@ var logQuery = z4.object({
 });
 var LOG_PAGE = 50;
 var blockRequest = z4.object({ reason: z4.string().trim().min(1, "Say why, for the log.").max(300) });
-function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, storage, audit, catalog, feedback }) {
+function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, audit, catalog, feedback }) {
   const routes = new Hono2();
   const session = requireSession(auth, { trustProxy, clock });
   const admin = requireRole("admin");
@@ -2932,33 +2947,24 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, usage, st
     return c.json({ admin: true });
   });
   routes.get("/overview", session, admin, async (c) => {
-    const users = await auth.accounts();
-    const none = { speechsuper: false, iflytek: false, minimax: false };
-    const accounts = await Promise.all(
-      users.map(async (u) => {
-        const [devices, room, spent] = await Promise.all([auth.sessionsOf(u.id, ""), storage.use(u.id), usage.summary(u.id, none)]);
-        const month = (service) => spent.lines.find((l) => l.service === service)?.month ?? { calls: 0, units: 0 };
-        return {
-          id: u.id,
-          username: u.username,
-          role: u.role,
-          status: u.status,
-          createdAt: u.createdAt,
-          lastSeenAt: devices.length ? Math.max(...devices.map((d) => d.lastSeenAt)) : null,
-          devices: devices.length,
-          storageBytes: room.usedBytes,
-          scoredThisMonth: month("speechsuper").calls + month("iflytek").calls,
-          charactersReadThisMonth: month("minimax").units
-        };
-      })
-    );
+    const first = await auth.accountPage({});
     const body = {
       registration: auth.registration,
       storageLimitBytes: storage.limitBytes,
-      accounts: accounts.sort((a, b) => (b.lastSeenAt ?? 0) - (a.lastSeenAt ?? 0)),
+      accounts: first.rows,
+      accountsTotal: first.total,
       invites: (await auth.invites()).reverse(),
       events: (await audit.recent(60)).map(({ at, kind, username, userAgent }) => ({ at, kind, username, userAgent }))
     };
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
+  });
+  const accountsQuery = z4.object({ q: z4.string().max(64).optional(), sort: z4.enum(["seen", "joined", "room", "spent"]).optional(), page: z4.coerce.number().int().min(0).max(1e4).optional() });
+  routes.get("/accounts", session, admin, async (c) => {
+    const parsed = accountsQuery.safeParse(c.req.query());
+    const q = parsed.success ? parsed.data : {};
+    const found = await auth.accountPage(q);
+    const body = { accounts: found.rows, total: found.total, page: found.page, pages: found.pages };
     c.header("Cache-Control", "no-store");
     return c.json(body);
   });
@@ -5522,6 +5528,59 @@ var PostgresFeedbackRepository = class {
   }
 };
 
+// server/src/infrastructure/sqlite/account-directory.ts
+var toRow = (r) => ({
+  id: r.id,
+  username: r.username,
+  role: r.role === "admin" ? "admin" : "learner",
+  status: r.status === "blocked" ? "blocked" : "active",
+  createdAt: Number(r.created_at),
+  lastSeenAt: r.seen === null ? null : Number(r.seen),
+  devices: Number(r.n ?? 0),
+  storageBytes: Number(r.bytes ?? 0),
+  scoredThisMonth: Number(r.scored ?? 0),
+  charactersReadThisMonth: Number(r.chars ?? 0)
+});
+
+// server/src/infrastructure/postgres/account-directory.ts
+var ORDER = {
+  seen: "s.seen IS NULL, s.seen DESC, u.created_at DESC",
+  joined: "u.created_at DESC",
+  room: "COALESCE(r.bytes, 0) DESC, u.created_at DESC",
+  spent: "COALESCE(m.scored, 0) + COALESCE(m.chars, 0) DESC, u.created_at DESC"
+};
+var PostgresAccountDirectory = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async page(o) {
+    const like = `%${o.q.toLowerCase().replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+    const total = await this.db.query("SELECT COUNT(*) AS n FROM users WHERE username_key LIKE $1", [like]);
+    const { rows } = await this.db.query(
+      `WITH s AS (SELECT user_id, COUNT(*) AS n, MAX(last_seen_at) AS seen FROM sessions WHERE expires_at > $1 GROUP BY user_id),
+      m AS (SELECT user_id, SUM(CASE WHEN service IN ('speechsuper', 'iflytek') THEN calls ELSE 0 END) AS scored, SUM(CASE WHEN service = 'minimax' THEN units ELSE 0 END) AS chars FROM api_usage WHERE day >= $2 GROUP BY user_id),
+      r AS (SELECT user_id, SUM(b) AS bytes FROM (
+      SELECT user_id, octet_length(document) AS b FROM workspaces
+        UNION ALL SELECT user_id, octet_length(save) AS b FROM world_saves
+        UNION ALL SELECT user_id, octet_length(turns) AS b FROM conversations
+        UNION ALL SELECT user_id, octet_length(bytes) AS b FROM pictures
+        UNION ALL SELECT user_id, octet_length(mp3) AS b FROM text_narrations
+        UNION ALL SELECT user_id, octet_length(timings) AS b FROM text_narrations
+        UNION ALL SELECT user_id, octet_length(text) AS b FROM speech_attempts
+        UNION ALL SELECT user_id, octet_length(summary) AS b FROM speech_attempts
+        UNION ALL SELECT user_id, octet_length(result) AS b FROM speech_attempts
+        UNION ALL SELECT user_id, octet_length(lines) AS b FROM own_texts
+      ) parts GROUP BY user_id)
+      SELECT u.id, u.username, u.role, u.status, u.created_at, s.n, s.seen, r.bytes, m.scored, m.chars
+      FROM users u LEFT JOIN s ON s.user_id = u.id LEFT JOIN m ON m.user_id = u.id LEFT JOIN r ON r.user_id = u.id
+      WHERE u.username_key LIKE $3
+      ORDER BY ${ORDER[o.sort]} LIMIT $4 OFFSET $5`,
+      [o.now, o.monthStart, like, o.limit, o.offset]
+    );
+    return { total: Number(total.rows[0].n), rows: rows.map(toRow) };
+  }
+};
+
 // server/src/infrastructure/postgres/workspace-repository.ts
 var PostgresWorkspaceRepository = class {
   constructor(db) {
@@ -5627,7 +5686,8 @@ var postgresStores = (db) => ({
   audit: new PostgresAuditLog(db),
   recoveryCodes: new PostgresRecoveryCodeRepository(db),
   passwordResets: new PostgresPasswordResetRepository(db),
-  feedback: new PostgresFeedbackRepository(db)
+  feedback: new PostgresFeedbackRepository(db),
+  accounts: new PostgresAccountDirectory(db)
 });
 
 // server/src/vercel.ts
