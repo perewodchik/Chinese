@@ -406,6 +406,9 @@ export interface AccountDirectory {
   page(o: { q: string; sort: AccountSort; offset: number; limit: number; now: number; monthStart: string }): Promise<{ total: number; rows: AccountRow[] }>;
 }
 
+/** A5: what an account's room goes on. */
+export type RoomKind = 'work' | 'pictures' | 'readings' | 'tries' | 'conversations' | 'game';
+
 /** A7: an account's day in numbers. */
 export interface DayCounts {
   minutes: number;
@@ -419,6 +422,8 @@ export interface ActivityRepository {
   record(userId: string, day: string, counts: DayCounts, at: number): Promise<void>;
   /** Every row from that day on, for everyone. */
   since(fromDay: string): Promise<Array<{ userId: string; day: string } & DayCounts>>;
+  /** A5: one account's rows from that day on. */
+  forUser(userId: string, fromDay: string): Promise<Array<{ userId: string; day: string } & DayCounts>>;
 }
 
 /** A11: the site's own settings, as JSON by key. */
@@ -518,6 +523,8 @@ export interface LookupCache {
 /** How much one account keeps on the server, in bytes, across everything it has made. */
 export interface StorageMeter {
   usedBy(userId: string): Promise<number>;
+  /** A5: the same, by kind of thing kept */
+  byKind(userId: string): Promise<Record<RoomKind, number>>;
 }
 
 /** What happened to accounts, for whoever runs the site: sign-ins, sign-ups, passwords, deletions. */

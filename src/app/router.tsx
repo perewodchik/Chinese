@@ -47,6 +47,7 @@ const AccountPage = lazyPage(() => import('../features/account/AccountPage'), 'A
 const AccountData = lazyPage(() => import('../features/account/AccountData'), 'AccountData');
 const AccountSecurity = lazyPage(() => import('../features/account/AccountSecurity'), 'AccountSecurity');
 const AdminLogPage = lazyPage(() => import('../features/admin/AdminLogPage'), 'AdminLogPage');
+const AdminUserPage = lazyPage(() => import('../features/admin/AdminUserPage'), 'AdminUserPage');
 const AdminFeedbackPage = lazyPage(() => import('../features/admin/AdminFeedbackPage'), 'AdminFeedbackPage');
 const FeedbackPage = lazyPage(() => import('../features/feedback/FeedbackPage'), 'FeedbackPage');
 const AdminPage = lazyPage(() => import('../features/admin/AdminPage'), 'AdminPage');
@@ -252,6 +253,7 @@ export const router = createBrowserRouter([
               { path: 'admin', element: <AdminPage /> },
               { path: 'admin/log', element: <AdminLogPage /> },
               { path: 'admin/feedback', element: <AdminFeedbackPage /> },
+              { path: 'admin/users/:id', element: <AdminUserPage /> },
               { path: 'feedback', element: <FeedbackPage /> },
               { path: '*', element: <NotFoundPage /> },
             ],

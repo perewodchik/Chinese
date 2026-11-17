@@ -30,6 +30,11 @@ export class StorageQuota {
     return mb ? mb * MB : null;
   }
 
+  /** A5: what the account's room goes on. */
+  byKind(userId: string) {
+    return this.deps.meter.byKind(userId);
+  }
+
   async use(userId: string): Promise<StorageUse> {
     return { usedBytes: await this.deps.meter.usedBy(userId), limitBytes: await this.limitBytes() };
   }

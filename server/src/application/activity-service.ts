@@ -28,6 +28,13 @@ export class ActivityService {
     );
   }
 
+  /** A5: one account's last thirty days, summed. */
+  async month(userId: string): Promise<{ days: number; minutes: number; textsRead: number; answers: number; spoken: number }> {
+    const rows = (await this.deps.activity.forUser(userId, dayOf(this.deps.clock.now() - 29 * DAY))).filter(worked);
+    const sum = (k: 'minutes' | 'textsRead' | 'answers' | 'spoken') => rows.reduce((n, r) => n + r[k], 0);
+    return { days: rows.length, minutes: sum('minutes'), textsRead: sum('textsRead'), answers: sum('answers'), spoken: sum('spoken') };
+  }
+
   async dashboard(): Promise<Dashboard> {
     const now = this.deps.clock.now();
     const today = dayOf(now);

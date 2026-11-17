@@ -54,6 +54,17 @@ export interface AdminAccount {
   charactersReadThisMonth: number;
 }
 
+/** A5: GET /api/admin/accounts/:id — one account, more than its row says. */
+export interface AdminAccountCard {
+  account: AdminAccount;
+  /** the invitation it came by, if any: its note and who made it */
+  invite: { note: string; createdBy: string | null } | null;
+  /** the last thirty days, in numbers (A7) */
+  month: { days: number; minutes: number; textsRead: number; answers: number; spoken: number };
+  /** what its room goes on, in bytes */
+  room: Record<'work' | 'pictures' | 'readings' | 'tries' | 'conversations' | 'game', number>;
+}
+
 /** A4: GET /api/admin/accounts?q=&sort=seen|joined|room|spent&page= */
 export interface AdminAccountPage {
   accounts: AdminAccount[];

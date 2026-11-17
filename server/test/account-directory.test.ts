@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { AdminAccountPage, AdminOverview } from '../../shared/admin';
+import type { AdminAccountCard, AdminAccountPage, AdminOverview } from '../../shared/admin';
 import { createServices } from '../src/composition';
 import { createHttpApp } from '../src/http/app';
 import { openDatabase } from '../src/infrastructure/sqlite/database';
@@ -58,3 +58,21 @@ describe('the accounts on the admin page, in one query (A4, SEC14)', () => {
     assert.equal((await call(app, 'GET', '/api/admin/accounts')).status, 401);
   });
 });
+
+describe('one account’s card on the admin page (A5)', () => {
+  it('gives its row, its month in numbers and its room by kind, only to an admin', async () => {
+    const { app, clock, services, owner, masha } = await setUp();
+    await call(app, 'PUT', '/api/workspace', { cookie: masha, body: { baseRevision: 0, document: { version: 11, note: 'x'.repeat(3000) } } });
+    await call(app, 'POST', '/api/activity', { cookie: masha, body: { day: new Date(clock.now()).toISOString().slice(0, 10), minutes: 9, textsRead: 1, answers: 12, spoken: 0, videos: 0 } });
+    const id = (await services.auth.accounts()).find((a) => a.username === 'masha')!.id;
+    const card = (await (await call(app, 'GET', `/api/admin/accounts/${id}`, { cookie: owner })).json()) as AdminAccountCard;
+    assert.equal(card.account.username, 'masha');
+    assert.deepEqual(card.month, { days: 1, minutes: 9, textsRead: 1, answers: 12, spoken: 0 });
+    assert.ok(card.room.work > 3000);
+    assert.equal(card.room.work, card.account.storageBytes);
+    assert.equal(card.invite, null);
+    assert.equal((await call(app, 'GET', `/api/admin/accounts/${id}`, { cookie: masha })).status, 403);
+    assert.equal((await call(app, 'GET', '/api/admin/accounts/nobody', { cookie: owner })).status, 404);
+  });
+});
+

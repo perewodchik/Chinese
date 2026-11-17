@@ -146,6 +146,8 @@ export const paths = {
   admin: () => '/admin',
   /** what the accounts that run the site did, a year of it */
   adminLog: () => '/admin/log',
+  /** A5: one account, on its own page */
+  adminUser: (id: string) => `/admin/users/${encodeURIComponent(id)}`,
   /** A12: what learners sent from the site */
   adminFeedback: () => '/admin/feedback',
   /** A12: sending feedback, about the page it was opened from */

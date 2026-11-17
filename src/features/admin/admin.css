@@ -269,3 +269,17 @@
 .admin-cohorts td:first-child {
   text-align: left;
 }
+
+/* A5: an account's name opens its card. */
+.admin-account-name {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.admin-account-name:hover b {
+  text-decoration: underline;
+}
+
+.admin-card-head {
+  margin-bottom: 4px;
+}

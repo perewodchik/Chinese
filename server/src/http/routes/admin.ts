@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
-import type { AdminAccountPage, AdminLogPage, AdminOverview, AdminWatch } from '../../../../shared/admin';
+import type { AdminAccountCard, AdminAccountPage, AdminLogPage, AdminOverview, AdminWatch } from '../../../../shared/admin';
 import type { Actor } from '../../application/ports';
 import type { AppEnv, RouteDeps } from '../env';
 import { auditor, RateLimiter, requireFresh, requireRole, requireSession } from '../guards';
@@ -89,6 +89,23 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
     const q = parsed.success ? parsed.data : {};
     const found = await auth.accountPage(q);
     const body: AdminAccountPage = { accounts: found.rows, total: found.total, page: found.page, pages: found.pages };
+    c.header('Cache-Control', 'no-store');
+    return c.json(body);
+  });
+
+  // A5: one account, more than its row in the list says.
+  routes.get('/accounts/:id', session, admin, async (c) => {
+    const id = c.req.param('id');
+    const user = (await auth.accounts()).find((a) => a.id === id);
+    if (!user) return c.json({ error: { code: 'not_found', message: 'That account is not here.' } }, 404);
+    const row = (await auth.accountPage({ q: user.username, sort: 'joined' })).rows.find((r) => r.id === id)!;
+    const invite = (await auth.invites()).find((i) => i.usedBy === user.username);
+    const body: AdminAccountCard = {
+      account: row,
+      invite: invite ? { note: invite.note, createdBy: invite.createdBy } : null,
+      month: await activity.month(id),
+      room: await storage.byKind(id),
+    };
     c.header('Cache-Control', 'no-store');
     return c.json(body);
   });

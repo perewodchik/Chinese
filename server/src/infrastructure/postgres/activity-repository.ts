@@ -15,6 +15,11 @@ export class PostgresActivityRepository implements ActivityRepository {
     );
   }
 
+  async forUser(userId: string, fromDay: string): Promise<Array<{ userId: string; day: string } & DayCounts>> {
+    const { rows } = await this.db.query<Row>('SELECT * FROM daily_activity WHERE user_id = $1 AND day >= $2', [userId, fromDay]);
+    return rows.map(toCounts);
+  }
+
   async since(fromDay: string): Promise<Array<{ userId: string; day: string } & DayCounts>> {
     const { rows } = await this.db.query<Row>('SELECT * FROM daily_activity WHERE day >= $1', [fromDay]);
     return rows.map(toCounts);

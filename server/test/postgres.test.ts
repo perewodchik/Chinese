@@ -362,6 +362,13 @@ describe('Postgres storage', () => {
     assert.deepEqual(rows.map((r) => [r.userId, r.day, r.minutes, r.answers]), [['act-1', '2031-02-01', 10, 70]]);
   });
 
+  it('reads one account’s days, and its room by kind (A5)', async () => {
+    assert.equal((await stores.activity.forUser('act-1', '2031-01-01')).length, 2);
+    assert.deepEqual(await stores.activity.forUser('nobody', '2031-01-01'), []);
+    const room = await stores.storage.byKind('act-1');
+    assert.deepEqual(Object.keys(room).sort(), ['conversations', 'game', 'pictures', 'readings', 'tries', 'work']);
+  });
+
   it('keeps the site’s settings, one value a key, the last write winning (A11)', async () => {
     await stores.siteSettings.set('registration', '"invite"', T, 'kirill');
     await stores.siteSettings.set('registration', '"closed"', T + 1, 'masha');

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router';
 import type { AdminAccount } from '../../../shared/admin';
 import { blockAccount, makeResetLink, signOutAccount, unblockAccount } from '../../api/admin';
 import { copyText } from '../../platform/clipboard';
@@ -88,7 +89,9 @@ export function AdminAccountRow({
     <li className="admin-row admin-account">
       <div className="admin-account-head">
         <span className="admin-account-who">
-          <b>{a.username}</b>
+          <Link to={paths.adminUser(a.id)} className="admin-account-name">
+            <b>{a.username}</b>
+          </Link>
           {a.role === 'admin' && <span className="small muted"> runs the site</span>}
           <span className="small muted admin-account-meta">
             {paused ? 'Paused · ' : ''}

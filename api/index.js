@@ -468,6 +468,12 @@ var ActivityService = class {
       now
     );
   }
+  /** A5: one account's last thirty days, summed. */
+  async month(userId) {
+    const rows = (await this.deps.activity.forUser(userId, dayOf(this.deps.clock.now() - 29 * DAY))).filter(worked);
+    const sum = (k) => rows.reduce((n, r) => n + r[k], 0);
+    return { days: rows.length, minutes: sum("minutes"), textsRead: sum("textsRead"), answers: sum("answers"), spoken: sum("spoken") };
+  }
   async dashboard() {
     const now = this.deps.clock.now();
     const today = dayOf(now);
@@ -2350,6 +2356,10 @@ var StorageQuota = class {
     const mb = this.deps.limit ? await this.deps.limit() : this.deps.limitMb;
     return mb ? mb * MB : null;
   }
+  /** A5: what the account's room goes on. */
+  byKind(userId) {
+    return this.deps.meter.byKind(userId);
+  }
   async use(userId) {
     return { usedBytes: await this.deps.meter.usedBy(userId), limitBytes: await this.limitBytes() };
   }
@@ -3148,6 +3158,21 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
     const q = parsed.success ? parsed.data : {};
     const found = await auth.accountPage(q);
     const body = { accounts: found.rows, total: found.total, page: found.page, pages: found.pages };
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
+  });
+  routes.get("/accounts/:id", session, admin, async (c) => {
+    const id = c.req.param("id");
+    const user = (await auth.accounts()).find((a) => a.id === id);
+    if (!user) return c.json({ error: { code: "not_found", message: "That account is not here." } }, 404);
+    const row = (await auth.accountPage({ q: user.username, sort: "joined" })).rows.find((r) => r.id === id);
+    const invite = (await auth.invites()).find((i) => i.usedBy === user.username);
+    const body = {
+      account: row,
+      invite: invite ? { note: invite.note, createdBy: invite.createdBy } : null,
+      month: await activity.month(id),
+      room: await storage.byKind(id)
+    };
     c.header("Cache-Control", "no-store");
     return c.json(body);
   });
@@ -5709,6 +5734,13 @@ var PostgresLookupCache = class {
   }
 };
 
+// server/src/infrastructure/sqlite/storage-meter.ts
+function sumKinds(rows) {
+  const out = { work: 0, pictures: 0, readings: 0, tries: 0, conversations: 0, game: 0 };
+  for (const r of rows) out[r.kind] += Number(r.b);
+  return out;
+}
+
 // server/src/infrastructure/postgres/storage-meter.ts
 var PostgresStorageMeter = class {
   constructor(db) {
@@ -5720,6 +5752,10 @@ var PostgresStorageMeter = class {
       [userId]
     );
     return Number(rows[0].used);
+  }
+  async byKind(userId) {
+    const { rows } = await this.db.query(`SELECT 'work' AS kind, COALESCE(SUM(octet_length(document)), 0) AS b FROM workspaces WHERE user_id = $1 UNION ALL SELECT 'game' AS kind, COALESCE(SUM(octet_length(save)), 0) AS b FROM world_saves WHERE user_id = $1 UNION ALL SELECT 'conversations' AS kind, COALESCE(SUM(octet_length(turns)), 0) AS b FROM conversations WHERE user_id = $1 UNION ALL SELECT 'pictures' AS kind, COALESCE(SUM(octet_length(bytes)), 0) AS b FROM pictures WHERE user_id = $1 UNION ALL SELECT 'readings' AS kind, COALESCE(SUM(octet_length(mp3)), 0) AS b FROM text_narrations WHERE user_id = $1 UNION ALL SELECT 'readings' AS kind, COALESCE(SUM(octet_length(timings)), 0) AS b FROM text_narrations WHERE user_id = $1 UNION ALL SELECT 'tries' AS kind, COALESCE(SUM(octet_length(text)), 0) AS b FROM speech_attempts WHERE user_id = $1 UNION ALL SELECT 'tries' AS kind, COALESCE(SUM(octet_length(summary)), 0) AS b FROM speech_attempts WHERE user_id = $1 UNION ALL SELECT 'tries' AS kind, COALESCE(SUM(octet_length(result)), 0) AS b FROM speech_attempts WHERE user_id = $1 UNION ALL SELECT 'readings' AS kind, COALESCE(SUM(octet_length(lines)), 0) AS b FROM own_texts WHERE user_id = $1`, [userId]);
+    return sumKinds(rows);
   }
 };
 
@@ -5953,6 +5989,10 @@ var PostgresActivityRepository = class {
          answers = GREATEST(daily_activity.answers, EXCLUDED.answers), spoken = GREATEST(daily_activity.spoken, EXCLUDED.spoken), videos = GREATEST(daily_activity.videos, EXCLUDED.videos), updated_at = EXCLUDED.updated_at`,
       [userId, day, c.minutes, c.textsRead, c.answers, c.spoken, c.videos, at]
     );
+  }
+  async forUser(userId, fromDay) {
+    const { rows } = await this.db.query("SELECT * FROM daily_activity WHERE user_id = $1 AND day >= $2", [userId, fromDay]);
+    return rows.map(toCounts);
   }
   async since(fromDay) {
     const { rows } = await this.db.query("SELECT * FROM daily_activity WHERE day >= $1", [fromDay]);
