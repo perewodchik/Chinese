@@ -98,6 +98,8 @@ export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narr
   // their own rather than work.
   routes.get('/export', session, async (c) => {
     const { user } = c.get('session');
+    // SEC15: a copy of everything taken away is worth a line in the log.
+    note(c, 'exported', user.username);
     const [workspace, game, talks, tries, narrators, ownTexts] = await Promise.all([
       workspaces.get(user.id),
       world.get(user.id),

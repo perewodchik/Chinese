@@ -173,3 +173,13 @@
   gap: 12px;
   margin-top: 8px;
 }
+
+/* SEC15: the day's line; the teacher's red only when there is something to look at. */
+.admin-watch {
+  margin: 6px 0 0;
+  color: var(--ink-2);
+}
+
+.admin-watch[data-state='wrong'] {
+  color: var(--red);
+}

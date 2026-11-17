@@ -343,6 +343,18 @@ describe('Postgres storage', () => {
     assert.deepEqual((await stores.feedback.list({ status: 'closed', limit: 10 })).map((f) => f.id), ['f1']);
   });
 
+  it('reads the accounts’ log since a time, by kind, oldest first (SEC15)', async () => {
+    const e = (at: number, kind: string) => ({ at, kind, username: 'w', ip: '1.2.3.4', userAgent: null });
+    await stores.audit.add(e(T + 100, 'sign-in'));
+    await stores.audit.add(e(T + 200, 'rate-limited'));
+    await stores.audit.add(e(T + 300, 'sign-in-refused'));
+    assert.deepEqual((await stores.audit.since(T + 150, ['sign-in-refused', 'rate-limited'], 10)).map((x) => [x.at, x.kind]), [
+      [T + 200, 'rate-limited'],
+      [T + 300, 'sign-in-refused'],
+    ]);
+    assert.deepEqual(await stores.audit.since(T, [], 10), []);
+  });
+
   it('lists accounts with their room, browsers and month in one query, searched and paged (A4)', async () => {
     await stores.users.insert(user('dir-1', 'zzdir_anna'));
     await stores.users.insert(user('dir-2', 'zzdir_boris'));

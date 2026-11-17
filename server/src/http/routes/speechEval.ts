@@ -2,7 +2,7 @@ import { Hono, type Context } from 'hono';
 import { z } from 'zod';
 import { ATTEMPTS_PER_CALL, EVAL_MAX_BYTES, EVAL_MAX_CHARS, PINYIN_SYLLABLE, STRICTNESS } from '../../../../shared/speechEval';
 import type { AppEnv, RouteDeps } from '../env';
-import { RateLimiter, requireSession } from '../guards';
+import { auditor, RateLimiter, requireSession } from '../guards';
 import { readJson } from '../request';
 
 const keysRequest = z.discriminatedUnion('provider', [
@@ -37,7 +37,9 @@ const evalRequest = z.object({
 });
 
 /** Phrases scored by SpeechSuper or iFlytek with the learner's own keys (see shared/speechEval.ts for the routes). */
-export function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }: RouteDeps) {
+export function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits, audit, ipHeader, log }: RouteDeps) {
+  // SEC15: a key saved or taken away goes in the accounts' log, as a password change does.
+  const note = auditor(audit, clock, trustProxy, ipHeader, log);
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // A phrase is said a few times a minute; a page in a loop would spend the learner's allowance.
@@ -53,10 +55,16 @@ export function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }
 
   routes.put('/key', session, async (c) => {
     await keys.consume(user(c));
-    return json(c, await speechEval.setKeys(user(c), await readJson(c, keysRequest)));
+    const saved = await speechEval.setKeys(user(c), await readJson(c, keysRequest));
+    note(c, 'key-saved', c.get('session').user.username);
+    return json(c, saved);
   });
 
-  routes.delete('/key', session, async (c) => json(c, await speechEval.deleteKeys(user(c))));
+  routes.delete('/key', session, async (c) => {
+    const gone = await speechEval.deleteKeys(user(c));
+    note(c, 'key-removed', c.get('session').user.username);
+    return json(c, gone);
+  });
 
   // K18: clears the mark on keys the service turned away, so the next phrase goes through to it.
   routes.post('/key/retry', session, async (c) => {

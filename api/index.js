@@ -2535,76 +2535,6 @@ function registrationFrom(raw, fallback) {
   return v === "open" || v === "closed" || v === "invite" ? v : fallback;
 }
 
-// server/src/http/app.ts
-import { Hono as Hono17 } from "hono";
-import { bodyLimit as bodyLimit5 } from "hono/body-limit";
-import { compress } from "hono/compress";
-import { secureHeaders } from "hono/secure-headers";
-
-// shared/csp.ts
-var CSP_DIRECTIVES = [
-  ["default-src", ["'self'"]],
-  ["script-src", ["'self'"]],
-  ["style-src", ["'self'", "'unsafe-inline'"]],
-  // Video thumbnails on the Videos shelf.
-  ["img-src", ["'self'", "data:", "blob:", "https://i.ytimg.com"]],
-  // Audio fetched and played from a blob: a sentence's recording, a narrator's reading of a text.
-  ["media-src", ["'self'", "data:", "blob:"]],
-  ["font-src", ["'self'", "data:"]],
-  ["connect-src", ["'self'"]],
-  // The worksheet preview is the PDF itself, in a frame, from a blob; a video being studied is YouTube's own player.
-  ["frame-src", ["'self'", "blob:", "https://www.youtube-nocookie.com"]],
-  ["object-src", ["'none'"]],
-  ["base-uri", ["'self'"]],
-  ["form-action", ["'self'"]],
-  ["frame-ancestors", ["'self'"]]
-];
-var CSP = CSP_DIRECTIVES.map(([name, values]) => `${name} ${values.join(" ")}`).join("; ");
-var PERMISSIONS_POLICY = "microphone=(self), camera=(), geolocation=(), payment=(), usb=()";
-
-// server/src/http/errors.ts
-import { HTTPException } from "hono/http-exception";
-var STATUS = {
-  validation: 400,
-  invalid_credentials: 401,
-  account_blocked: 403,
-  reauth_required: 403,
-  unauthorized: 401,
-  registration_closed: 403,
-  forbidden_origin: 403,
-  forbidden: 403,
-  not_found: 404,
-  username_taken: 409,
-  conflict: 409,
-  outdated_app: 409,
-  payload_too_large: 413,
-  rate_limited: 429,
-  internal: 500,
-  unavailable: 503
-};
-var errorBody = (code, message, fields) => ({
-  error: { code, message, ...fields && { fields } }
-});
-function handleError(log) {
-  return (err, c) => {
-    if (err instanceof RevisionConflictError) {
-      const body = { ...errorBody(err.code, err.message), current: err.current };
-      return c.json(body, 409);
-    }
-    if (err instanceof WorldConflictError) {
-      const body = { error: { code: "conflict", message: err.message }, current: err.current };
-      return c.json(body, 409);
-    }
-    if (err instanceof AppError) {
-      if (err instanceof RateLimitedError) c.header("Retry-After", String(err.retryAfterSeconds));
-      return c.json(errorBody(err.code, err.message, err.fields), STATUS[err.code]);
-    }
-    if (err instanceof HTTPException) return err.getResponse();
-    log(`${c.req.method} ${c.req.path} failed: ${err.stack ?? err.message}`);
-    return c.json(errorBody("internal", "Something went wrong on the server."), 500);
-  };
-}
-
 // server/src/http/request.ts
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
@@ -2751,6 +2681,76 @@ var RateLimiter = class {
   }
 };
 
+// server/src/http/app.ts
+import { Hono as Hono17 } from "hono";
+import { bodyLimit as bodyLimit5 } from "hono/body-limit";
+import { compress } from "hono/compress";
+import { secureHeaders } from "hono/secure-headers";
+
+// shared/csp.ts
+var CSP_DIRECTIVES = [
+  ["default-src", ["'self'"]],
+  ["script-src", ["'self'"]],
+  ["style-src", ["'self'", "'unsafe-inline'"]],
+  // Video thumbnails on the Videos shelf.
+  ["img-src", ["'self'", "data:", "blob:", "https://i.ytimg.com"]],
+  // Audio fetched and played from a blob: a sentence's recording, a narrator's reading of a text.
+  ["media-src", ["'self'", "data:", "blob:"]],
+  ["font-src", ["'self'", "data:"]],
+  ["connect-src", ["'self'"]],
+  // The worksheet preview is the PDF itself, in a frame, from a blob; a video being studied is YouTube's own player.
+  ["frame-src", ["'self'", "blob:", "https://www.youtube-nocookie.com"]],
+  ["object-src", ["'none'"]],
+  ["base-uri", ["'self'"]],
+  ["form-action", ["'self'"]],
+  ["frame-ancestors", ["'self'"]]
+];
+var CSP = CSP_DIRECTIVES.map(([name, values]) => `${name} ${values.join(" ")}`).join("; ");
+var PERMISSIONS_POLICY = "microphone=(self), camera=(), geolocation=(), payment=(), usb=()";
+
+// server/src/http/errors.ts
+import { HTTPException } from "hono/http-exception";
+var STATUS = {
+  validation: 400,
+  invalid_credentials: 401,
+  account_blocked: 403,
+  reauth_required: 403,
+  unauthorized: 401,
+  registration_closed: 403,
+  forbidden_origin: 403,
+  forbidden: 403,
+  not_found: 404,
+  username_taken: 409,
+  conflict: 409,
+  outdated_app: 409,
+  payload_too_large: 413,
+  rate_limited: 429,
+  internal: 500,
+  unavailable: 503
+};
+var errorBody = (code, message, fields) => ({
+  error: { code, message, ...fields && { fields } }
+});
+function handleError(log) {
+  return (err, c) => {
+    if (err instanceof RevisionConflictError) {
+      const body = { ...errorBody(err.code, err.message), current: err.current };
+      return c.json(body, 409);
+    }
+    if (err instanceof WorldConflictError) {
+      const body = { error: { code: "conflict", message: err.message }, current: err.current };
+      return c.json(body, 409);
+    }
+    if (err instanceof AppError) {
+      if (err instanceof RateLimitedError) c.header("Retry-After", String(err.retryAfterSeconds));
+      return c.json(errorBody(err.code, err.message, err.fields), STATUS[err.code]);
+    }
+    if (err instanceof HTTPException) return err.getResponse();
+    log(`${c.req.method} ${c.req.path} failed: ${err.stack ?? err.message}`);
+    return c.json(errorBody("internal", "Something went wrong on the server."), 500);
+  };
+}
+
 // server/src/http/routes/account.ts
 import { Hono } from "hono";
 import { z } from "zod";
@@ -2817,6 +2817,7 @@ function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, 
   });
   routes.get("/export", session, async (c) => {
     const { user } = c.get("session");
+    note(c, "exported", user.username);
     const [workspace, game, talks, tries, narrators, ownTexts] = await Promise.all([
       workspaces.get(user.id),
       world.get(user.id),
@@ -2944,6 +2945,28 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
     c.header("Cache-Control", "no-store");
     return c.json({ admin: true });
   });
+  async function watchOf() {
+    const now = clock.now();
+    const day = now - 864e5;
+    const today = await audit.since(day, ["sign-in-refused", "reauth-refused", "recovery-refused", "reset-refused", "rate-limited"], 1e4);
+    const admins = new Set((await auth.accounts()).filter((a) => a.role === "admin").map((a) => a.username));
+    const signIns = await audit.since(now - 90 * 864e5, ["sign-in", "recovery", "reset"], 2e4);
+    const seen = /* @__PURE__ */ new Map();
+    const fresh2 = [];
+    for (const e of signIns) {
+      if (!admins.has(e.username)) continue;
+      const browsers = seen.get(e.username) ?? /* @__PURE__ */ new Set();
+      const agent = e.userAgent ?? "";
+      if (e.at >= day && browsers.size > 0 && !browsers.has(agent)) fresh2.push({ username: e.username, userAgent: e.userAgent, at: e.at });
+      browsers.add(agent);
+      seen.set(e.username, browsers);
+    }
+    return {
+      refusedToday: today.filter((e) => e.kind !== "rate-limited").length,
+      limitedToday: today.filter((e) => e.kind === "rate-limited").length,
+      newAdminDevices: fresh2
+    };
+  }
   routes.get("/overview", session, admin, async (c) => {
     const first = await auth.accountPage({});
     const body = {
@@ -2952,7 +2975,8 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
       accounts: first.rows,
       accountsTotal: first.total,
       invites: (await auth.invites()).reverse(),
-      events: (await audit.recent(60)).map(({ at, kind, username, userAgent }) => ({ at, kind, username, userAgent }))
+      events: (await audit.recent(60)).map(({ at, kind, username, userAgent }) => ({ at, kind, username, userAgent })),
+      watch: await watchOf()
     };
     c.header("Cache-Control", "no-store");
     return c.json(body);
@@ -3360,7 +3384,8 @@ var mp3 = (c, bytes) => {
   c.header("Cache-Control", "no-store");
   return c.body(bytes);
 };
-function narrationRoutes({ auth, clock, trustProxy, narration, limits }) {
+function narrationRoutes({ auth, clock, trustProxy, narration, limits, audit, ipHeader, log }) {
+  const note = auditor(audit, clock, trustProxy, ipHeader, log);
   const routes = new Hono7();
   const session = requireSession(auth, { trustProxy, clock });
   const reads = new RateLimiter("narration.reads", 200, 10 * 6e4, clock, limits);
@@ -3375,9 +3400,15 @@ function narrationRoutes({ auth, clock, trustProxy, narration, limits }) {
   routes.put("/key", session, async (c) => {
     await keys.consume(user(c));
     const { key } = await readJson(c, keyRequest);
-    return json(c, await narration.setKey(user(c), key));
+    const saved = await narration.setKey(user(c), key);
+    note(c, "key-saved", c.get("session").user.username);
+    return json(c, saved);
   });
-  routes.delete("/key", session, async (c) => json(c, await narration.deleteKey(user(c))));
+  routes.delete("/key", session, async (c) => {
+    const gone = await narration.deleteKey(user(c));
+    note(c, "key-removed", c.get("session").user.username);
+    return json(c, gone);
+  });
   routes.post("/key/retry", session, async (c) => {
     await keys.consume(user(c));
     return json(c, await narration.retryKey(user(c)));
@@ -3484,7 +3515,8 @@ var evalRequest = z9.object({
   // base64 of up to EVAL_MAX_BYTES of PCM
   audio: z9.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
 });
-function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }) {
+function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits, audit, ipHeader, log }) {
+  const note = auditor(audit, clock, trustProxy, ipHeader, log);
   const routes = new Hono8();
   const session = requireSession(auth, { trustProxy, clock });
   const scores = new RateLimiter("speechEval.scores", 200, 10 * 6e4, clock, limits);
@@ -3497,9 +3529,15 @@ function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits }) {
   routes.get("/", session, async (c) => json(c, await speechEval.status(user(c))));
   routes.put("/key", session, async (c) => {
     await keys.consume(user(c));
-    return json(c, await speechEval.setKeys(user(c), await readJson(c, keysRequest)));
+    const saved = await speechEval.setKeys(user(c), await readJson(c, keysRequest));
+    note(c, "key-saved", c.get("session").user.username);
+    return json(c, saved);
   });
-  routes.delete("/key", session, async (c) => json(c, await speechEval.deleteKeys(user(c))));
+  routes.delete("/key", session, async (c) => {
+    const gone = await speechEval.deleteKeys(user(c));
+    note(c, "key-removed", c.get("session").user.username);
+    return json(c, gone);
+  });
   routes.post("/key/retry", session, async (c) => {
     await keys.consume(user(c));
     return json(c, await speechEval.retryKeys(user(c)));
@@ -4117,7 +4155,21 @@ function createHttpApp(services, options) {
     log: options.log
   };
   const api = new Hono17();
-  api.onError(onError);
+  const note = auditor(services.audit, services.clock, options.trustProxy, options.ipHeader ?? null, options.log);
+  const limited = /* @__PURE__ */ new Map();
+  api.onError((err, c) => {
+    if (err instanceof RateLimitedError) {
+      const who = c.get("session")?.user?.username ?? "";
+      const key = `${clientIp(c, options.trustProxy, options.ipHeader ?? null)}|${who}`;
+      const now = services.clock.now();
+      if ((limited.get(key) ?? 0) < now - 10 * 6e4) {
+        if (limited.size > 5e3) limited.clear();
+        limited.set(key, now);
+        note(c, "rate-limited", who);
+      }
+    }
+    return onError(err, c);
+  });
   api.use("*", sameOriginOnly());
   api.use("*", tooLarge(WORKSPACE_MAX_BYTES + 64 * 1024));
   let seeded = null;
@@ -5424,6 +5476,14 @@ var PostgresAuditLog = class {
     const { rows } = await this.db.query(
       "SELECT at, kind, username, ip, user_agent FROM audit_log ORDER BY at DESC LIMIT $1",
       [limit]
+    );
+    return rows.map((r) => ({ at: Number(r.at), kind: r.kind, username: r.username, ip: r.ip, userAgent: r.user_agent }));
+  }
+  async since(at, kinds, limit) {
+    if (!kinds.length) return [];
+    const { rows } = await this.db.query(
+      "SELECT at, kind, username, ip, user_agent FROM audit_log WHERE at >= $1 AND kind = ANY($2) ORDER BY at LIMIT $3",
+      [at, kinds, limit]
     );
     return rows.map((r) => ({ at: Number(r.at), kind: r.kind, username: r.username, ip: r.ip, userAgent: r.user_agent }));
   }

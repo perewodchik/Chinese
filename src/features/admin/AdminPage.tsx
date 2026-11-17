@@ -32,7 +32,16 @@ const EVENT: Record<string, string> = {
   'token-made': 'Access token made by',
   'token-revoked': 'Access token revoked by',
   'reauth-refused': 'Wrong password, asked again, for',
+  reset: 'New password from a reset link',
+  'reset-refused': 'A reset link that did not work',
+  'rate-limited': 'Too many at once, held back:',
+  'key-saved': 'Service key saved by',
+  'key-removed': 'Service key removed by',
+  exported: 'Copy of the data taken by',
 };
+
+/** SEC15: refused sign-ins in a day past this are worth saying in the teacher's red. */
+const REFUSED_ALARM = 20;
 
 const DAYS = [
   { value: 7, label: 'A week' },
@@ -124,6 +133,8 @@ export function AdminPage() {
           ? `${plural(data.accountsTotal, 'account')}. New accounts ${data.registration === 'invite' ? 'by invitation' : data.registration === 'open' ? 'open to anyone' : 'switched off'}${data.storageLimitBytes ? `; each keeps up to ${mb(data.storageLimitBytes)}` : ''}.`
           : 'Loading…'}
       </p>
+      {/* SEC15: what is worth a look today, one line, in red only when it is many or an admin's new browser. */}
+      {data && <WatchLine watch={data.watch} />}
 
       <section className="block">
         <h2 className="block-title">Invite someone</h2>
@@ -247,3 +258,15 @@ export function AdminPage() {
     </section>
   );
 }
+
+function WatchLine({ watch }: { watch: AdminOverview['watch'] }) {
+  const alarm = watch.refusedToday > REFUSED_ALARM || watch.newAdminDevices.length > 0;
+  return (
+    <p className="small admin-watch" data-state={alarm ? 'wrong' : undefined}>
+      In the last day: {plural(watch.refusedToday, 'refused sign-in')}
+      {watch.limitedToday ? `, ${plural(watch.limitedToday, 'limit')} reached` : ''}.
+      {watch.newAdminDevices.map((d) => ` ${d.username} signed in from a new browser (${deviceName(d.userAgent)}) at ${new Date(d.at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}.`)}
+    </p>
+  );
+}
+

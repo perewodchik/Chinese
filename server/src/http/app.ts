@@ -1,3 +1,6 @@
+import { RateLimitedError } from '../domain/errors';
+import { auditor } from './guards';
+import { clientIp } from './request';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { compress } from 'hono/compress';
@@ -83,7 +86,23 @@ export function createHttpApp(services: Services, options: HttpOptions) {
   };
 
   const api = new Hono<AppEnv>();
-  api.onError(onError);
+  // SEC15: a limit reached goes in the accounts' log — once in ten minutes for
+  // the same address and name, so a loop against a limit does not fill the log.
+  const note = auditor(services.audit, services.clock, options.trustProxy, options.ipHeader ?? null, options.log);
+  const limited = new Map<string, number>();
+  api.onError((err, c) => {
+    if (err instanceof RateLimitedError) {
+      const who = (c.get('session') as { user?: { username?: string } } | undefined)?.user?.username ?? '';
+      const key = `${clientIp(c, options.trustProxy, options.ipHeader ?? null)}|${who}`;
+      const now = services.clock.now();
+      if ((limited.get(key) ?? 0) < now - 10 * 60_000) {
+        if (limited.size > 5000) limited.clear();
+        limited.set(key, now);
+        note(c, 'rate-limited', who);
+      }
+    }
+    return onError(err, c);
+  });
   api.use('*', sameOriginOnly());
   // Nothing the app sends is larger than a workspace. Without a ceiling a
   // route reads whatever it is sent before it looks at it, and a 30 MB

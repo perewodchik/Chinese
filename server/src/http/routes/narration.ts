@@ -2,7 +2,7 @@ import { Hono, type Context } from 'hono';
 import { z } from 'zod';
 import { EMOTIONS } from '../../../../shared/narration';
 import type { AppEnv, RouteDeps } from '../env';
-import { RateLimiter, requireSession } from '../guards';
+import { auditor, RateLimiter, requireSession } from '../guards';
 import { readJson } from '../request';
 
 const keyRequest = z.object({ key: z.string().min(1).max(400) });
@@ -42,7 +42,9 @@ const mp3 = (c: Context<AppEnv>, bytes: Uint8Array) => {
  * text is read in one request, kept, and played from then on without asking
  * MiniMax again.
  */
-export function narrationRoutes({ auth, clock, trustProxy, narration, limits }: RouteDeps) {
+export function narrationRoutes({ auth, clock, trustProxy, narration, limits, audit, ipHeader, log }: RouteDeps) {
+  // SEC15: a key saved or taken away goes in the accounts' log, as a password change does.
+  const note = auditor(audit, clock, trustProxy, ipHeader, log);
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   // A text is a few dozen sentences; a page stuck in a loop would spend the learner's money.
@@ -60,10 +62,16 @@ export function narrationRoutes({ auth, clock, trustProxy, narration, limits }: 
   routes.put('/key', session, async (c) => {
     await keys.consume(user(c));
     const { key } = await readJson(c, keyRequest);
-    return json(c, await narration.setKey(user(c), key));
+    const saved = await narration.setKey(user(c), key);
+    note(c, 'key-saved', c.get('session').user.username);
+    return json(c, saved);
   });
 
-  routes.delete('/key', session, async (c) => json(c, await narration.deleteKey(user(c))));
+  routes.delete('/key', session, async (c) => {
+    const gone = await narration.deleteKey(user(c));
+    note(c, 'key-removed', c.get('session').user.username);
+    return json(c, gone);
+  });
 
   // K18: clears the mark on a key MiniMax turned away, so the next call goes through to it.
   routes.post('/key/retry', session, async (c) => {

@@ -14,6 +14,14 @@ export class SqliteAuditLog implements AuditLog {
     return rows.map((r) => ({ at: Number(r.at), kind: r.kind, username: r.username, ip: r.ip, userAgent: r.user_agent }));
   }
 
+  async since(at: number, kinds: string[], limit: number): Promise<AuditEvent[]> {
+    if (!kinds.length) return [];
+    const rows = this.db
+      .prepare(`SELECT at, kind, username, ip, user_agent FROM audit_log WHERE at >= ? AND kind IN (${kinds.map(() => '?').join(', ')}) ORDER BY at, rowid LIMIT ?`)
+      .all(at, ...kinds, limit) as unknown as Array<{ at: number; kind: string; username: string; ip: string; user_agent: string | null }>;
+    return rows.map((r) => ({ at: Number(r.at), kind: r.kind, username: r.username, ip: r.ip, userAgent: r.user_agent }));
+  }
+
   async sweep(before: number): Promise<void> {
     this.db.prepare('DELETE FROM audit_log WHERE at < ?').run(before);
   }

@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
-import type { AdminAccountPage, AdminLogPage, AdminOverview } from '../../../../shared/admin';
+import type { AdminAccountPage, AdminLogPage, AdminOverview, AdminWatch } from '../../../../shared/admin';
 import type { Actor } from '../../application/ports';
 import type { AppEnv, RouteDeps } from '../env';
 import { auditor, RateLimiter, requireFresh, requireRole, requireSession } from '../guards';
@@ -37,6 +37,35 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
     return c.json({ admin: true });
   });
 
+  /**
+   * SEC15: what is worth a look today — sign-ins refused and limits reached in
+   * the last day, and any admin signed in from a browser their sign-ins of the
+   * last ninety days have not come from.
+   */
+  async function watchOf(): Promise<AdminWatch> {
+    const now = clock.now();
+    const day = now - 86_400_000;
+    const today = await audit.since(day, ['sign-in-refused', 'reauth-refused', 'recovery-refused', 'reset-refused', 'rate-limited'], 10_000);
+    const admins = new Set((await auth.accounts()).filter((a) => a.role === 'admin').map((a) => a.username));
+    const signIns = await audit.since(now - 90 * 86_400_000, ['sign-in', 'recovery', 'reset'], 20_000);
+    const seen = new Map<string, Set<string>>();
+    const fresh: AdminWatch['newAdminDevices'] = [];
+    for (const e of signIns) {
+      if (!admins.has(e.username)) continue;
+      const browsers = seen.get(e.username) ?? new Set<string>();
+      const agent = e.userAgent ?? '';
+      // The first sign-in on record is where the account began, not news.
+      if (e.at >= day && browsers.size > 0 && !browsers.has(agent)) fresh.push({ username: e.username, userAgent: e.userAgent, at: e.at });
+      browsers.add(agent);
+      seen.set(e.username, browsers);
+    }
+    return {
+      refusedToday: today.filter((e) => e.kind !== 'rate-limited').length,
+      limitedToday: today.filter((e) => e.kind === 'rate-limited').length,
+      newAdminDevices: fresh,
+    };
+  }
+
   routes.get('/overview', session, admin, async (c) => {
     // The first page, seen last first, from one query (A4, SEC14): no longer three queries an account.
     const first = await auth.accountPage({});
@@ -47,6 +76,7 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
       accountsTotal: first.total,
       invites: (await auth.invites()).reverse(),
       events: (await audit.recent(60)).map(({ at, kind, username, userAgent }) => ({ at, kind, username, userAgent })),
+      watch: await watchOf(),
     };
     c.header('Cache-Control', 'no-store');
     return c.json(body);

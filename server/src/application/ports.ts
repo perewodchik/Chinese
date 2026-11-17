@@ -513,6 +513,8 @@ export interface AuditLog {
   recent(limit: number): Promise<AuditEvent[]>;
   /** Drops what happened before `before`. */
   sweep(before: number): Promise<void>;
+  /** SEC15: what happened since `at`, of these kinds, oldest first, at most `limit`. */
+  since(at: number, kinds: string[], limit: number): Promise<AuditEvent[]>;
 }
 
 /** Who did something an admin does: an account, or a command on the server (`id` null). */

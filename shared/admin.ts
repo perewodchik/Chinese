@@ -95,4 +95,13 @@ export interface AdminOverview {
   invites: AdminInvite[];
   /** the latest sixty, newest first */
   events: AdminEvent[];
+  /** SEC15: what is worth a look today */
+  watch: AdminWatch;
+}
+
+/** SEC15: refused sign-ins in the last day, and admins signed in from a browser not seen for them in ninety days. */
+export interface AdminWatch {
+  refusedToday: number;
+  limitedToday: number;
+  newAdminDevices: Array<{ username: string; userAgent: string | null; at: number }>;
 }

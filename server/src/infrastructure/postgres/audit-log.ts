@@ -17,6 +17,15 @@ export class PostgresAuditLog implements AuditLog {
     return rows.map((r) => ({ at: Number(r.at), kind: r.kind, username: r.username, ip: r.ip, userAgent: r.user_agent }));
   }
 
+  async since(at: number, kinds: string[], limit: number): Promise<AuditEvent[]> {
+    if (!kinds.length) return [];
+    const { rows } = await this.db.query<{ at: string; kind: string; username: string; ip: string; user_agent: string | null }>(
+      'SELECT at, kind, username, ip, user_agent FROM audit_log WHERE at >= $1 AND kind = ANY($2) ORDER BY at LIMIT $3',
+      [at, kinds, limit],
+    );
+    return rows.map((r) => ({ at: Number(r.at), kind: r.kind, username: r.username, ip: r.ip, userAgent: r.user_agent }));
+  }
+
   async sweep(before: number): Promise<void> {
     await this.db.query('DELETE FROM audit_log WHERE at < $1', [before]);
   }
