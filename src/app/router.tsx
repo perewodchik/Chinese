@@ -15,6 +15,7 @@ import { paths } from '../navigation/paths';
 import { useStore } from '../store/store';
 import { NotFoundPage, RouteError } from './errors';
 import { RequireSession } from './RequireSession';
+import { REDIRECTS } from './redirects';
 import { lazyPage } from './lazyPage';
 
 // R5: pages that come in pieces of their own, fetched when opened.
@@ -107,27 +108,6 @@ const SweepPage = lazyPage(() => import('../features/words/SweepPage'), 'SweepPa
  * thing in it; every old address redirects to its new one.
  */
 
-/**
- * One name a section (V14): lists to print live in the Library and texts in
- * Read, so /collections/… and /texts/… carry across, query and hash intact.
- */
-function MovedAddress() {
-  const { pathname, search, hash } = useLocation();
-  const to = pathname
-    .replace(/^\/collections(?=\/|$)/, '/library/lists')
-    .replace(/^\/texts\/session(?=\/|$)/, '/read/session')
-    .replace(/^\/texts(?=\/)/, '/read/text')
-    .replace(/^\/texts$/, '/read')
-    .replace(/^\/library\/lists$/, '/library');
-  return <Navigate to={`${to}${search}${hash}`} replace />;
-}
-
-/** Anything else under the old /pinyin name, carried across with its tail intact. */
-function MovedToSpeaking() {
-  const { pathname, search } = useLocation();
-  return <Navigate to={`${pathname.replace(/^\/pinyin/, '/speaking')}${search}`} replace />;
-}
-
 export const router = createBrowserRouter([
   {
     errorElement: <RouteError />,
@@ -164,23 +144,12 @@ export const router = createBrowserRouter([
             errorElement: <RouteError />,
             children: [
               { index: true, element: <Navigate to={paths.read()} replace /> },
-              // Today is gone (V2): what it showed is at the top of Read. Its address is kept for bookmarks.
-              { path: 'today', element: <Navigate to={paths.read()} replace /> },
-              // Review became Cards; what the old page held is on the Cards tab.
-              { path: 'review', element: <Navigate to={paths.cards()} replace /> },
               { path: 'cards', element: <CardsPage /> },
               { path: 'cards/session', element: <CardSessionPage /> },
               { path: 'review/sheets/:sheetId', element: <GradeSheetPage /> },
               { path: 'review/sweep', element: <SweepPage /> },
-              // The drills, the daily review and the lessons of new characters
-              // were folded into the cards: one way to practise, not six.
-              { path: 'review/words', element: <Navigate to={paths.cards()} replace /> },
-              { path: 'learn', element: <Navigate to={paths.cards()} replace /> },
-              { path: 'review/session', element: <Navigate to={paths.cards()} replace /> },
-              { path: 'review/:drill', element: <Navigate to={paths.cards()} replace /> },
               { path: 'library', element: <LibraryRoute /> },
               { path: 'library/radicals', element: <RadicalsPage /> },
-              { path: 'library/lists', element: <Navigate to={paths.library()} replace /> },
               { path: 'library/lists/build/:step?', element: <BuildListPage /> },
               { path: 'library/lists/:collectionId/:tab?', element: <CollectionPage /> },
               { path: 'library/paper', element: <PaperPage /> },
@@ -189,16 +158,6 @@ export const router = createBrowserRouter([
               { path: 'play', element: <PlayPage /> },
               { path: 'play/world', element: <WorldRoute /> },
               { path: 'play/:gameId', element: <GamePage /> },
-              // Lists to print became part of the library: a list is a set you made.
-              { path: 'collections', element: <MovedAddress /> },
-              { path: 'collections/*', element: <MovedAddress /> },
-              // Radicals were a section of their own, with sets and sheets to
-              // design, until it became clear that a radical is something you
-              // look up rather than something you work through. They are part
-              // of the library now; anything bookmarked under the old address
-              // still lands, keeping the radical it named.
-              { path: 'radicals', element: <MovedToLibrary /> },
-              { path: 'radicals/*', element: <MovedToLibrary /> },
               // Texts were a tab of their own until they became what they
               // always were: collections, beside the character ones.
               { path: 'read', element: <ReadPage /> },
@@ -208,8 +167,6 @@ export const router = createBrowserRouter([
               { path: 'read/explain/:textId', element: <ExplainTextPage /> },
               { path: 'read/edit/:textId', element: <EditTextPage /> },
               { path: 'read/text/:textId', element: <ReaderPage /> },
-              { path: 'texts', element: <MovedAddress /> },
-              { path: 'texts/*', element: <MovedAddress /> },
               // Speaking's four parts, with their own tabs: down the side on an iPad, across the top on a phone.
               {
                 element: <SpeakingFrame />,
@@ -225,36 +182,27 @@ export const router = createBrowserRouter([
               { path: 'speaking/say/:source', element: <SpeakRoute /> },
               { path: 'speaking/practice/:set', element: <PracticePage /> },
               { path: 'speaking/sounds/:lesson', element: <SoundLessonPage /> },
-              // The sentence shadowing that was here gave way to videos.
-              { path: 'speaking/shadow', element: <Navigate to={paths.videos()} replace /> },
               { path: 'videos', element: <VideosPage /> },
               { path: 'videos/add', element: <AddVideoPage /> },
               { path: 'videos/:videoId', element: <VideoPage /> },
-              { path: 'speaking/voice', element: <Navigate to={paths.speakingTones()} replace /> },
               // Setting one up, and the conversation itself. `new` is matched
               // before `:conversationId` so a conversation can never be named
               // out of reach of the page that starts one.
               { path: 'speaking/new', element: <TalkSetupPage /> },
               { path: 'speaking/:conversationId', element: <TalkPage /> },
-              // The section was called Pinyin until speaking became the whole
-              // of it. Anything bookmarked under the old name still lands.
-              { path: 'pinyin', element: <Navigate to={paths.speaking()} replace /> },
-              { path: 'pinyin/talk', element: <Navigate to={paths.speakingNew()} replace /> },
-              { path: 'pinyin/:rest/*', element: <MovedToSpeaking /> },
-              { path: 'pinyin/:rest', element: <MovedToSpeaking /> },
               { path: 'settings', element: <SettingsPage /> },
               { path: 'settings/:section', element: <SettingsPage /> },
               { path: 'account', element: <AccountPage /> },
               { path: 'account/security', element: <AccountSecurity /> },
               { path: 'account/data', element: <AccountData /> },
               { path: 'progress', element: <StatsPage /> },
-              // Its old address, kept for bookmarks (V14).
-              { path: 'account/stats', element: <Navigate to={paths.stats()} replace /> },
               { path: 'admin', element: <AdminPage /> },
               { path: 'admin/log', element: <AdminLogPage /> },
               { path: 'admin/feedback', element: <AdminFeedbackPage /> },
               { path: 'admin/users/:id', element: <AdminUserPage /> },
               { path: 'feedback', element: <FeedbackPage /> },
+              // Old addresses, kept for bookmarks: one list, in redirects.tsx (R13).
+              ...REDIRECTS,
               { path: '*', element: <NotFoundPage /> },
             ],
           },
@@ -294,11 +242,4 @@ function SpeakRoute({ home }: { home?: boolean }) {
   const v2 = useStore((s) => s.settings.speakV2);
   if (!v2) return <PhrasesPage />;
   return home ? <SpeakHome /> : <SpeakSay />;
-}
-
-/** An old /radicals address, sent to the library with its radical intact. */
-function MovedToLibrary() {
-  const asked = new URLSearchParams(useLocation().search).get('radical');
-  const n = asked && /^\d+$/.test(asked) ? Number(asked) : null;
-  return <Navigate to={n ? paths.radical(n) : paths.radicals()} replace />;
 }
