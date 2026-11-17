@@ -1,3 +1,4 @@
+import { ask } from '../../ui/dialogs';
 import { useNavigate } from 'react-router';
 import { planSession } from '../../domain/session';
 import { paths } from '../../navigation/paths';
@@ -21,8 +22,8 @@ export function useStartSession() {
   const learned = useStore((s) => s.learned);
   const settings = useStore((s) => s.settings);
 
-  return (setId: string | null = null, name?: string) => {
-    if (plan && !confirm(`Start a new session? “${plan.name}” is still in progress, and would be thrown away.`)) {
+  return async (setId: string | null = null, name?: string) => {
+    if (plan && !(await ask({ title: 'Start a new session?', message: `“${plan.name}” is still in progress, and would be thrown away.`, yes: 'Start a new one', danger: true }))) {
       return;
     }
     startPlan(

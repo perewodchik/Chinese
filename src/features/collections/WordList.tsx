@@ -1,3 +1,4 @@
+import { ask } from '../../ui/dialogs';
 import { useState } from 'react';
 import type { Collection } from '../../domain/collection';
 import { setWords } from '../../store/commands';
@@ -14,8 +15,8 @@ export function WordList({ c }: { c: Collection }) {
   const [meaning, setMeaning] = useState(true);
   const words = c.words ?? [];
 
-  function remove(w: string) {
-    if (!confirm(`Take “${w}” out of this list? Its characters stay in the collection.`)) return;
+  async function remove(w: string) {
+    if (!(await ask({ title: `Take “${w}” out of this list?`, message: 'Its characters stay in the collection.', yes: 'Take it out' }))) return;
     setWords(
       c.id,
       words.filter((x) => x.w !== w),

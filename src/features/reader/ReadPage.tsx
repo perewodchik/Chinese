@@ -1,3 +1,4 @@
+import { ask, askText } from '../../ui/dialogs';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { DEFAULT_SCOPE, type Collection } from '../../domain/collection';
@@ -148,8 +149,8 @@ export function ReadPage() {
     navigate(paths.shelf(set.id));
   }
 
-  function newBook() {
-    const name = prompt('What is the new book called? A real book’s title, or a subject for texts.');
+  async function newBook() {
+    const name = await askText({ title: 'A new book', message: 'A real book’s title, or a subject for texts.', label: 'What it is called', yes: 'Make it' });
     if (!name?.trim()) return;
     const { set } = addTexts([], { setId: null, name: name.trim() });
     navigate(paths.shelf(set.id));
@@ -257,7 +258,10 @@ export function ReadPage() {
                   {plan.step === 'plan' ? 'still being planned' : plan.step === 'prompt' ? 'the prompt is ready' : 'waiting for Claude’s answer'}
                 </span>
               </div>
-              <button className="btn quiet sm" onClick={() => confirm('Throw this session away?') && discardPlan()}>
+              <button
+                className="btn quiet sm"
+                onClick={() => void ask({ title: 'Throw this session away?', message: 'The plan and anything pasted go with it.', yes: 'Throw it away', danger: true }).then((yes) => yes && discardPlan())}
+              >
                 Discard
               </button>
               <Link className="btn tonal sm" to={paths.session(plan.step)}>
@@ -521,20 +525,28 @@ export function ShelfPage() {
     { at: -1, badge: <Icon name="plus" size={16} />, title: 'Added by you', state: 'open' },
   ];
 
-  function moveShelf() {
+  async function moveShelf() {
     const names = bookcase(sets, shelve(texts, sets).bySet).map((s) => s.name);
-    const name = prompt(`Which shelf should it stand on? Yours: ${names.join(', ')}. A new name makes a new shelf; empty puts it back where it was.`, asBook.shelf);
+    const name = await askText({
+      title: 'Move to another shelf',
+      message: 'Tap one of your shelves, or write a new name for a new shelf. Empty puts it back where it was.',
+      label: 'Shelf',
+      value: asBook.shelf,
+      choices: names,
+      yes: 'Move it',
+      allowEmpty: true,
+    });
     if (name === null) return;
     shelveBook(set!.id, name.trim() || null);
   }
 
-  function rename() {
-    const name = prompt('Rename this book', set!.name);
+  async function rename() {
+    const name = await askText({ title: 'Rename this book', label: 'Its name', value: set!.name, yes: 'Rename' });
     if (name?.trim()) renameSet(set!.id, name.trim());
   }
 
-  function remove() {
-    if (!confirm(`Delete the book “${set!.name}” and its ${list.length} text${list.length === 1 ? '' : 's'}?`)) return;
+  async function remove() {
+    if (!(await ask({ title: `Delete the book “${set!.name}”?`, message: list.length === 1 ? 'Its text goes with it.' : `Its ${list.length} texts go with it.`, yes: 'Delete it', danger: true }))) return;
     navigate(paths.read(), { replace: true, flushSync: true });
     deleteSet(set!.id);
   }

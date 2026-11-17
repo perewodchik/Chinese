@@ -6087,3 +6087,19 @@ label.field[data-invalid] input {
 .page-loading {
   min-height: 70vh;
 }
+
+/* The app's own questions (R6): a sentence, then the two answers on the right. */
+.dialog-message {
+  margin: 0 0 4px;
+}
+
+.dialog-actions {
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+}
+
+.dialog-choices {
+  margin-top: 10px;
+  flex-wrap: wrap;
+}

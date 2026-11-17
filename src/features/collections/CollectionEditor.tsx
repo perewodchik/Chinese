@@ -1,3 +1,4 @@
+import { ask } from '../../ui/dialogs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router';
 import {
@@ -158,8 +159,8 @@ export function CollectionEditor({ c, tab }: Props) {
     toast(`This is the copy, “${copy.name}”. The original is still in the library.`);
   }
 
-  function remove() {
-    if (!confirm(`Delete “${c.name}”? The characters stay in the library.`)) return;
+  async function remove() {
+    if (!(await ask({ title: `Delete “${c.name}”?`, message: 'The characters stay in the library.', yes: 'Delete it', danger: true }))) return;
     // Off the page first: once the collection is gone there is nothing here to show.
     navigate(paths.library(), { replace: true, flushSync: true });
     deleteCollection(c.id);

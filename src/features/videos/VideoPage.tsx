@@ -1,3 +1,4 @@
+import { ask } from '../../ui/dialogs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { lookUpYouTube } from '../../api/videos';
@@ -139,8 +140,8 @@ export function VideoPage() {
           )}
           <button
             className="btn sm ghost"
-            onClick={() => {
-              if (window.confirm(`Take “${v.title}” off your shelf, with its checks and notes?`)) {
+            onClick={async () => {
+              if (await ask({ title: `Take “${v.title}” off your shelf?`, message: 'Its checks and notes go with it.', yes: 'Remove it', danger: true })) {
                 deleteVideo(v.id);
                 navigate(paths.videos(), { replace: true });
               }

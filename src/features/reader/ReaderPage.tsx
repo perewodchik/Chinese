@@ -1,3 +1,4 @@
+import { ask } from '../../ui/dialogs';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import type { ItemId } from '../../domain/ids';
@@ -782,8 +783,8 @@ function ReaderMenu({
     fn();
   };
 
-  function remove() {
-    if (!confirm(`Delete “${text.titleZh || text.title}”?`)) return;
+  async function remove() {
+    if (!(await ask({ title: `Delete “${text.titleZh || text.title}”?`, yes: 'Delete it', danger: true }))) return;
     navigate(set && list.length > 1 ? paths.reading(set.id) : paths.read(), { replace: true, flushSync: true });
     deleteText(text.id);
   }

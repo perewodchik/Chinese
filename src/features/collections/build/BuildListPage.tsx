@@ -1,3 +1,4 @@
+import { ask } from '../../../ui/dialogs';
 import { useEffect } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import {
@@ -60,8 +61,8 @@ function Builder({ plan, step }: { plan: WordListPlan; step: ListStep }) {
 
   const go = (id: ListStep) => navigate(paths.buildList(id));
 
-  function discard() {
-    if (!confirm('Throw this word list away? What you described and anything pasted go with it.')) return;
+  async function discard() {
+    if (!(await ask({ title: 'Throw this word list away?', message: 'What you described and anything pasted go with it.', yes: 'Throw it away', danger: true }))) return;
     navigate(paths.library(), { replace: true, flushSync: true });
     discardListPlan();
   }

@@ -1,3 +1,4 @@
+import { ask } from '../../ui/dialogs';
 import { Link } from 'react-router';
 import type { Collection } from '../../domain/collection';
 import { paths } from '../../navigation/paths';
@@ -43,8 +44,8 @@ export function FromTexts({ lists }: { lists: Collection[] }) {
         <div className="page-foot">
           <button
             className="btn tonal"
-            onClick={() => {
-              if (!confirm(`Put the characters of ${movable.length} list${movable.length === 1 ? '' : 's'} onto their shelves, and remove the lists?`)) return;
+            onClick={async () => {
+              if (!(await ask({ title: `Move ${movable.length} list${movable.length === 1 ? '' : 's'} onto their shelves?`, message: 'Their characters go onto the shelves of the texts they came from, and the lists are removed.', yes: 'Move them', no: 'Not now' }))) return;
               for (const c of movable) {
                 setShelfStudy(home(c)!.id, c.items, true);
                 deleteCollection(c.id);

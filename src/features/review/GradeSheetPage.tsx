@@ -1,3 +1,4 @@
+import { ask } from '../../ui/dialogs';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { idValue, type ItemId } from '../../domain/ids';
@@ -86,8 +87,8 @@ function GradeSheet({ sheet }: { sheet: PrintedSheet }) {
     toast(`Marked ${results.length} — ${missed} to come back sooner.`);
   }
 
-  function throwAway() {
-    if (!confirm('Throw this sheet away unmarked?')) return;
+  async function throwAway() {
+    if (!(await ask({ title: 'Throw this sheet away unmarked?', yes: 'Throw it away', danger: true }))) return;
     navigate(paths.library(), { replace: true, flushSync: true });
     discardSheet(sheet.id);
   }

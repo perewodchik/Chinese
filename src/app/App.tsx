@@ -1,6 +1,7 @@
 import { RouterProvider } from 'react-router/dom';
 import { SessionProvider } from '../features/auth/session';
 import { LibraryProvider } from '../features/shared/library';
+import { DialogHost } from '../ui/dialogs';
 import { ToastProvider } from '../ui/toast';
 import { router } from './router';
 
@@ -17,6 +18,7 @@ export default function App() {
       <SessionProvider>
         <LibraryProvider>
           <RouterProvider router={router} />
+          <DialogHost />
         </LibraryProvider>
       </SessionProvider>
     </ToastProvider>

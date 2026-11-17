@@ -1,3 +1,4 @@
+import { ask } from '../../ui/dialogs';
 import { useState } from 'react';
 import { mergeIntoWorkspace } from '../../store/commands';
 import { forgetLegacyWork, readLegacyWork, type LegacyWork } from '../../store/legacy';
@@ -43,8 +44,8 @@ export function LegacyWorkNotice() {
     }
   }
 
-  function remove() {
-    if (!confirm('Remove the work this browser kept from before accounts? Your account is not touched.')) return;
+  async function remove() {
+    if (!(await ask({ title: 'Remove the work kept in this browser?', message: 'It is what this browser kept from before accounts. Your account is not touched.', yes: 'Remove it', danger: true }))) return;
     forgetLegacyWork();
     setWork(null);
   }

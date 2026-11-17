@@ -1,3 +1,4 @@
+import { ask } from '../../ui/dialogs';
 import { useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { pinyinOf } from '../../domain/ownText';
@@ -65,7 +66,15 @@ export function EditTextPage() {
   return (
     <div className="add-text-page edit-text-page">
       <header className="page-head">
-        <Link className="back-link" to={back} onClick={(e) => changed && !confirm('Leave without saving your changes?') && e.preventDefault()}>
+        <Link
+          className="back-link"
+          to={back}
+          onClick={(e) => {
+            if (!changed) return;
+            e.preventDefault();
+            void ask({ title: 'Leave without saving?', message: 'Your changes to this text are not saved yet.', yes: 'Leave', no: 'Stay', danger: true }).then((go) => go && navigate(back));
+          }}
+        >
           <Icon name="back" />
           Back to the text
         </Link>

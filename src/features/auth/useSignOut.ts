@@ -1,3 +1,4 @@
+import { ask } from '../../ui/dialogs';
 import { useCallback, useState } from 'react';
 import { getSyncStatus } from '../../store/store';
 import { useToast } from '../../ui/toast';
@@ -19,10 +20,12 @@ export function useSignOut() {
     const unsaved = getSyncStatus()?.unsaved ?? 0;
     if (
       unsaved > 0 &&
-      !confirm(
-        `${unsaved} change${unsaved === 1 ? ' has' : 's have'} not reached the server yet. ` +
-          'They stay on this device and are saved the next time you sign in here. Sign out anyway?',
-      )
+      !(await ask({
+        title: 'Sign out with changes unsaved?',
+        message: `${unsaved} change${unsaved === 1 ? ' has' : 's have'} not reached the server yet. They stay on this device and are saved the next time you sign in here.`,
+        yes: 'Sign out anyway',
+        no: 'Stay signed in',
+      }))
     ) {
       return;
     }

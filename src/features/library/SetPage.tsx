@@ -1,3 +1,4 @@
+import { ask } from '../../ui/dialogs';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import type { CharacterEntry, SyllabusWord } from '../../data/types';
@@ -133,12 +134,12 @@ export function SetPage() {
    * elsewhere: asked first, said in a toast that can take it back. Only what
    * was not marked already is marked, so Undo leaves the rest as it was.
    */
-  function knowAll() {
+  async function knowAll() {
     if (!set) return;
     const fresh = [...set.chars.map(charId), ...set.words.map(wordId)].filter((id) => !learned.has(id));
     if (!fresh.length) return toast(`Everything in ${set.name} is marked already`);
     const counted = [set.chars.length && `${set.chars.length.toLocaleString('en')} characters`, set.words.length && `${set.words.length.toLocaleString('en')} words`].filter(Boolean).join(' and ');
-    if (!confirm(`Mark the ${counted} of ${set.name} as learned? Cards will check them again within a few days.`)) return;
+    if (!(await ask({ title: `Mark the ${counted} of ${set.name} as learned?`, message: 'Cards will check them again within a few days.', yes: 'Mark them', no: 'Not now' }))) return;
     setLearned(fresh, true);
     toast(`Marked ${itemsLabel(fresh)} as learned`, { label: 'Undo', run: () => setLearned(fresh, false) });
   }

@@ -1,3 +1,4 @@
+import { ask } from '../../ui/dialogs';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { basisPool, emptySpec, renumber, taughtAlready } from '../../domain/teach';
@@ -124,8 +125,8 @@ function Studio({ plan, step }: { plan: TextPlan; step: PlanStep }) {
     );
   }
 
-  function discard() {
-    if (!confirm('Throw this session away? The plan and anything pasted go with it.')) return;
+  async function discard() {
+    if (!(await ask({ title: 'Throw this session away?', message: 'The plan and anything pasted go with it.', yes: 'Throw it away', danger: true }))) return;
     // Off the page first: once the session is gone there is nothing here to show.
     navigate(paths.texts(), { replace: true, flushSync: true });
     discardPlan();
