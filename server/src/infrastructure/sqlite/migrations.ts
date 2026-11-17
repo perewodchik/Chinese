@@ -372,4 +372,19 @@ export const MIGRATIONS: readonly string[] = [
     updated_by  TEXT NOT NULL
   ) STRICT;
   `,
+  // A7: each account's day in numbers — no content — so the admin page can say whether the site is used.
+  `
+  CREATE TABLE daily_activity (
+    user_id     TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    day         TEXT NOT NULL,
+    minutes     INTEGER NOT NULL,
+    texts_read  INTEGER NOT NULL,
+    answers     INTEGER NOT NULL,
+    spoken      INTEGER NOT NULL,
+    videos      INTEGER NOT NULL,
+    updated_at  INTEGER NOT NULL,
+    PRIMARY KEY (user_id, day)
+  ) STRICT;
+  CREATE INDEX daily_activity_by_day ON daily_activity (day);
+  `,
 ];

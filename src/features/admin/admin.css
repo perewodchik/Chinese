@@ -216,3 +216,56 @@
   font-size: 13px;
   color: var(--ink-3);
 }
+
+/* A7: who is using it — four numbers, a line, and the weeks' newcomers. */
+.admin-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-tiles > span {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card-2);
+}
+
+.admin-tiles b {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-tiles small {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.admin-dash-line {
+  margin: 10px 0;
+}
+
+.admin-cohorts {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-cohorts th,
+.admin-cohorts td {
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  font-weight: 400;
+}
+
+.admin-cohorts th {
+  color: var(--ink-3);
+}
+
+.admin-cohorts th:first-child,
+.admin-cohorts td:first-child {
+  text-align: left;
+}

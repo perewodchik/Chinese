@@ -1,6 +1,7 @@
 import { CatalogService } from './application/catalog-service';
 import { FeedbackService } from './application/feedback-service';
 import { SiteSettingsService } from './application/site-settings';
+import { ActivityService } from './application/activity-service';
 import { AuthService, DEFAULT_AUTH_POLICY, type AuthPolicy } from './application/auth-service';
 import { ConversationService } from './application/conversation-service';
 import { NarrationService } from './application/narration-service';
@@ -33,6 +34,7 @@ import type {
   LookupCache,
   AccountDirectory,
   SiteSettingsRepository,
+  ActivityRepository,
   FeedbackRepository,
   PasswordResetRepository,
   RecoveryCodeRepository,
@@ -90,6 +92,8 @@ export interface Services {
   feedback: FeedbackService;
   /** A11: what an admin changes about the site without a deploy */
   site: SiteSettingsService;
+  /** A7: each account's day in numbers, and the admin's dashboard */
+  activity: ActivityService;
 }
 
 /** Where each kind of record is kept. */
@@ -118,6 +122,8 @@ export interface Stores {
   accounts: AccountDirectory;
   /** A11: the site's own settings */
   siteSettings: SiteSettingsRepository;
+  /** A7: each account's day in numbers */
+  activity: ActivityRepository;
   storage: StorageMeter;
   audit: AuditLog;
   adminLog: AdminLogRepository;
@@ -198,6 +204,7 @@ export function createServices(
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, catalog: stores.catalog, clock, quota }),
     site,
+    activity: new ActivityService({ activity: stores.activity, users: stores.users, clock }),
     feedback: new FeedbackService({ feedback: stores.feedback, users: stores.users, clock, tokens: cryptoTokens }),
     catalog: new CatalogService({ catalog: stores.catalog, pictures: stores.pictures, adminLog: stores.adminLog, clock, tokens: cryptoTokens }),
     narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),

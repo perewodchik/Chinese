@@ -406,6 +406,21 @@ export interface AccountDirectory {
   page(o: { q: string; sort: AccountSort; offset: number; limit: number; now: number; monthStart: string }): Promise<{ total: number; rows: AccountRow[] }>;
 }
 
+/** A7: an account's day in numbers. */
+export interface DayCounts {
+  minutes: number;
+  textsRead: number;
+  answers: number;
+  spoken: number;
+  videos: number;
+}
+export interface ActivityRepository {
+  /** The day's row, each count the larger of what was kept and what came: a day only grows. */
+  record(userId: string, day: string, counts: DayCounts, at: number): Promise<void>;
+  /** Every row from that day on, for everyone. */
+  since(fromDay: string): Promise<Array<{ userId: string; day: string } & DayCounts>>;
+}
+
 /** A11: the site's own settings, as JSON by key. */
 export interface SiteSettingsRepository {
   all(): Promise<Array<{ key: string; value: string; updatedAt: number; updatedBy: string }>>;

@@ -24,6 +24,7 @@ import { SqlitePasswordResetRepository } from './password-reset-repository';
 import { SqliteFeedbackRepository } from './feedback-repository';
 import { SqliteAccountDirectory } from './account-directory';
 import { SqliteSiteSettingsRepository } from './site-settings-repository';
+import { SqliteActivityRepository } from './activity-repository';
 import { SqliteWorkspaceRepository } from './workspace-repository';
 import { SqliteWorldSaveRepository } from './world-save-repository';
 
@@ -55,4 +56,5 @@ export const sqliteStores = (db: DatabaseSync): Stores => ({
   feedback: new SqliteFeedbackRepository(db),
   accounts: new SqliteAccountDirectory(db),
   siteSettings: new SqliteSiteSettingsRepository(db),
+  activity: new SqliteActivityRepository(db),
 });

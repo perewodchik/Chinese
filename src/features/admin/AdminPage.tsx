@@ -15,6 +15,7 @@ import { NotConfirmed, useFreshPassword } from '../auth/useFreshPassword';
 import { AdminAccounts } from './AdminAccounts';
 import { SiteSettingsBlock } from './SiteSettingsBlock';
 import { CostsBlock } from './CostsBlock';
+import { DashboardBlock } from './DashboardBlock';
 import { CatalogBlock } from './CatalogBlock';
 import { day, mb, plural } from './format';
 import './admin.css';
@@ -138,6 +139,8 @@ export function AdminPage() {
       </p>
       {/* SEC15: what is worth a look today, one line, in red only when it is many or an admin's new browser. */}
       {data && <WatchLine watch={data.watch} />}
+
+      <DashboardBlock />
 
       <section className="block">
         <h2 className="block-title">Invite someone</h2>

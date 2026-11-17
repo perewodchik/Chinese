@@ -352,6 +352,16 @@ describe('Postgres storage', () => {
     assert.deepEqual((await stores.usage.topSince('2031-01-01', 1))[0], { userId: 'cost-1', service: 'minimax', calls: 2, units: 700 });
   });
 
+  it('keeps an account’s day in numbers, each count only growing (A7)', async () => {
+    await stores.users.insert(user('act-1', 'zzact'));
+    const c = (minutes: number, answers: number) => ({ minutes, textsRead: 1, answers, spoken: 0, videos: 0 });
+    await stores.activity.record('act-1', '2031-02-01', c(10, 50), T);
+    await stores.activity.record('act-1', '2031-02-01', c(4, 70), T + 1);
+    await stores.activity.record('act-1', '2031-01-01', c(9, 9), T + 2);
+    const rows = await stores.activity.since('2031-02-01');
+    assert.deepEqual(rows.map((r) => [r.userId, r.day, r.minutes, r.answers]), [['act-1', '2031-02-01', 10, 70]]);
+  });
+
   it('keeps the site’s settings, one value a key, the last write winning (A11)', async () => {
     await stores.siteSettings.set('registration', '"invite"', T, 'kirill');
     await stores.siteSettings.set('registration', '"closed"', T + 1, 'masha');
