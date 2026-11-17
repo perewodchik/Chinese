@@ -24,7 +24,7 @@ const blockRequest = z.object({ reason: z.string().trim().min(1, 'Say why, for t
  *
  * Nothing here reads anyone's work: names, dates, sizes and counts.
  */
-export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, audit, catalog, feedback, site }: RouteDeps) {
+export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, audit, catalog, feedback, site, usage }: RouteDeps) {
   const routes = new Hono<AppEnv>();
   const session = requireSession(auth, { trustProxy, clock });
   const admin = requireRole('admin');
@@ -166,6 +166,17 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
     const { hidden } = await readJson(c, hideRequest);
     await catalog.setHidden(actor(c), c.req.param('id'), hidden);
     return c.body(null, 204);
+  });
+
+  // A10: the site's use of the services, this month and today, and who used most.
+  routes.get('/costs', session, admin, async (c) => {
+    c.header('Cache-Control', 'no-store');
+    return c.json(
+      await usage.site(async (ids) => {
+        const accounts = await auth.accounts();
+        return new Map(accounts.filter((a) => ids.includes(a.id)).map((a) => [a.id, a.username]));
+      }),
+    );
   });
 
   // A11: the site's own settings, changed here without a deploy.

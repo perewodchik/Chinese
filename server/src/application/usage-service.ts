@@ -1,5 +1,5 @@
-import { USAGE_UNIT, type UsageCount, type UsageLine, type UsageResponse, type UsageService } from '../../../shared/usage';
-import type { Clock, UsageRepository } from './ports';
+import { USAGE_UNIT, type SiteUsage, type UsageCount, type UsageLine, type UsageResponse, type UsageService } from '../../../shared/usage';
+import type { Clock, UsageRepository, UsageRow } from './ports';
 
 const DAY = 86_400_000;
 const dayOf = (at: number) => new Date(at).toISOString().slice(0, 10);
@@ -20,6 +20,25 @@ export class UsageMeter {
     } catch (err) {
       this.deps.log?.(`usage: could not count a ${service} call: ${err instanceof Error ? err.message : String(err)}`);
     }
+  }
+
+  /** A10: the whole site, today and this month, and who used most this month; `names` turns ids into names. */
+  async site(names: (ids: string[]) => Promise<Map<string, string>>): Promise<SiteUsage> {
+    const today = dayOf(this.deps.clock.now());
+    const monthStart = `${today.slice(0, 8)}01`;
+    const rows = await this.deps.usage.siteSince(monthStart);
+    const services: UsageService[] = ['speechsuper', 'iflytek', 'minimax'];
+    const sum = (list: UsageRow[]) => list.reduce((a, r) => ({ calls: a.calls + r.calls, units: a.units + r.units }), { calls: 0, units: 0 });
+    const lines = services
+      .map((service) => ({ service, today: sum(rows.filter((r) => r.service === service && r.day === today)), month: sum(rows.filter((r) => r.service === service)) }))
+      .filter((l) => l.month.calls > 0);
+    const top = await this.deps.usage.topSince(monthStart, 10);
+    const named = await names([...new Set(top.map((t) => t.userId))]);
+    return {
+      today,
+      lines,
+      top: top.filter((t) => services.includes(t.service as UsageService)).map((t) => ({ username: named.get(t.userId) ?? 'an account since deleted', service: t.service as UsageService, calls: t.calls, units: t.units })),
+    };
   }
 
   /** Today, this month and the last thirty days, for each service; the services with a key saved first. */

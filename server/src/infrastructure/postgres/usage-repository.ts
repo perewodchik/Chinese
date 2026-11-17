@@ -13,6 +13,22 @@ export class PostgresUsageRepository implements UsageRepository {
     );
   }
 
+  async siteSince(fromDay: string): Promise<UsageRow[]> {
+    const { rows } = await this.db.query<{ day: string; service: string; calls: string; units: string }>(
+      'SELECT day, service, SUM(calls) AS calls, SUM(units) AS units FROM api_usage WHERE day >= $1 GROUP BY day, service ORDER BY day, service',
+      [fromDay],
+    );
+    return rows.map((r) => ({ day: r.day, service: r.service, calls: Number(r.calls), units: Number(r.units) }));
+  }
+
+  async topSince(fromDay: string, limit: number): Promise<Array<{ userId: string; service: string; calls: number; units: number }>> {
+    const { rows } = await this.db.query<{ user_id: string; service: string; calls: string; units: string }>(
+      'SELECT user_id, service, SUM(calls) AS calls, SUM(units) AS units FROM api_usage WHERE day >= $1 GROUP BY user_id, service ORDER BY SUM(calls) DESC LIMIT $2',
+      [fromDay, limit],
+    );
+    return rows.map((r) => ({ userId: r.user_id, service: r.service, calls: Number(r.calls), units: Number(r.units) }));
+  }
+
   async since(userId: string, fromDay: string): Promise<UsageRow[]> {
     const { rows } = await this.db.query<{ day: string; service: string; calls: string; units: string }>(
       'SELECT day, service, calls, units FROM api_usage WHERE user_id = $1 AND day >= $2 ORDER BY day, service',

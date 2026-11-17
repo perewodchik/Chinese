@@ -2330,6 +2330,22 @@ var UsageMeter = class {
       this.deps.log?.(`usage: could not count a ${service} call: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
+  /** A10: the whole site, today and this month, and who used most this month; `names` turns ids into names. */
+  async site(names) {
+    const today = dayOf(this.deps.clock.now());
+    const monthStart = `${today.slice(0, 8)}01`;
+    const rows = await this.deps.usage.siteSince(monthStart);
+    const services = ["speechsuper", "iflytek", "minimax"];
+    const sum = (list) => list.reduce((a, r) => ({ calls: a.calls + r.calls, units: a.units + r.units }), { calls: 0, units: 0 });
+    const lines2 = services.map((service) => ({ service, today: sum(rows.filter((r) => r.service === service && r.day === today)), month: sum(rows.filter((r) => r.service === service)) })).filter((l) => l.month.calls > 0);
+    const top = await this.deps.usage.topSince(monthStart, 10);
+    const named = await names([...new Set(top.map((t) => t.userId))]);
+    return {
+      today,
+      lines: lines2,
+      top: top.filter((t) => services.includes(t.service)).map((t) => ({ username: named.get(t.userId) ?? "an account since deleted", service: t.service, calls: t.calls, units: t.units }))
+    };
+  }
   /** Today, this month and the last thirty days, for each service; the services with a key saved first. */
   async summary(userId, keys) {
     const now = this.deps.clock.now();
@@ -3022,7 +3038,7 @@ var logQuery = z4.object({
 });
 var LOG_PAGE = 50;
 var blockRequest = z4.object({ reason: z4.string().trim().min(1, "Say why, for the log.").max(300) });
-function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, audit, catalog, feedback, site }) {
+function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, audit, catalog, feedback, site, usage }) {
   const routes = new Hono2();
   const session = requireSession(auth, { trustProxy, clock });
   const admin = requireRole("admin");
@@ -3136,6 +3152,15 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
     const { hidden } = await readJson(c, hideRequest);
     await catalog.setHidden(actor(c), c.req.param("id"), hidden);
     return c.body(null, 204);
+  });
+  routes.get("/costs", session, admin, async (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json(
+      await usage.site(async (ids) => {
+        const accounts = await auth.accounts();
+        return new Map(accounts.filter((a) => ids.includes(a.id)).map((a) => [a.id, a.username]));
+      })
+    );
   });
   routes.get("/settings", session, admin, async (c) => {
     c.header("Cache-Control", "no-store");
@@ -5477,6 +5502,20 @@ var PostgresUsageRepository = class {
        ON CONFLICT (user_id, day, service) DO UPDATE SET calls = api_usage.calls + EXCLUDED.calls, units = api_usage.units + EXCLUDED.units`,
       [userId, day, service, calls, units]
     );
+  }
+  async siteSince(fromDay) {
+    const { rows } = await this.db.query(
+      "SELECT day, service, SUM(calls) AS calls, SUM(units) AS units FROM api_usage WHERE day >= $1 GROUP BY day, service ORDER BY day, service",
+      [fromDay]
+    );
+    return rows.map((r) => ({ day: r.day, service: r.service, calls: Number(r.calls), units: Number(r.units) }));
+  }
+  async topSince(fromDay, limit) {
+    const { rows } = await this.db.query(
+      "SELECT user_id, service, SUM(calls) AS calls, SUM(units) AS units FROM api_usage WHERE day >= $1 GROUP BY user_id, service ORDER BY SUM(calls) DESC LIMIT $2",
+      [fromDay, limit]
+    );
+    return rows.map((r) => ({ userId: r.user_id, service: r.service, calls: Number(r.calls), units: Number(r.units) }));
   }
   async since(userId, fromDay) {
     const { rows } = await this.db.query(

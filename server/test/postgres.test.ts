@@ -343,6 +343,15 @@ describe('Postgres storage', () => {
     assert.deepEqual((await stores.feedback.list({ status: 'closed', limit: 10 })).map((f) => f.id), ['f1']);
   });
 
+  it('sums the whole site’s use a day a service, and who used most (A10)', async () => {
+    await stores.users.insert(user('cost-1', 'zzcost'));
+    await stores.usage.add('cost-1', '2031-01-02', 'minimax', 2, 700);
+    await stores.usage.add('u1', '2031-01-02', 'minimax', 1, 100);
+    await stores.usage.add('u1', '2030-12-30', 'minimax', 9, 900);
+    assert.deepEqual(await stores.usage.siteSince('2031-01-01'), [{ day: '2031-01-02', service: 'minimax', calls: 3, units: 800 }]);
+    assert.deepEqual((await stores.usage.topSince('2031-01-01', 1))[0], { userId: 'cost-1', service: 'minimax', calls: 2, units: 700 });
+  });
+
   it('keeps the site’s settings, one value a key, the last write winning (A11)', async () => {
     await stores.siteSettings.set('registration', '"invite"', T, 'kirill');
     await stores.siteSettings.set('registration', '"closed"', T + 1, 'masha');

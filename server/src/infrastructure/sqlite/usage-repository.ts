@@ -14,6 +14,20 @@ export class SqliteUsageRepository implements UsageRepository {
       .run(userId, day, service, calls, units);
   }
 
+  async siteSince(fromDay: string): Promise<UsageRow[]> {
+    const rows = this.db
+      .prepare('SELECT day, service, SUM(calls) AS calls, SUM(units) AS units FROM api_usage WHERE day >= ? GROUP BY day, service ORDER BY day, service')
+      .all(fromDay) as unknown as UsageRow[];
+    return rows.map((r) => ({ day: r.day, service: r.service, calls: Number(r.calls), units: Number(r.units) }));
+  }
+
+  async topSince(fromDay: string, limit: number): Promise<Array<{ userId: string; service: string; calls: number; units: number }>> {
+    const rows = this.db
+      .prepare('SELECT user_id, service, SUM(calls) AS calls, SUM(units) AS units FROM api_usage WHERE day >= ? GROUP BY user_id, service ORDER BY calls DESC LIMIT ?')
+      .all(fromDay, limit) as unknown as Array<{ user_id: string; service: string; calls: number; units: number }>;
+    return rows.map((r) => ({ userId: r.user_id, service: r.service, calls: Number(r.calls), units: Number(r.units) }));
+  }
+
   async since(userId: string, fromDay: string): Promise<UsageRow[]> {
     const rows = this.db
       .prepare('SELECT day, service, calls, units FROM api_usage WHERE user_id = ? AND day >= ? ORDER BY day, service')

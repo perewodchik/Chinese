@@ -39,3 +39,17 @@ export interface UsageResponse {
   today: string;
   lines: UsageLine[];
 }
+
+/**
+ * A10: the whole site's use of the services, for an admin — today and this
+ * month a line a service, and who used most this month. The keys are still
+ * each learner's own: this is how much, not whose bill.
+ *
+ *   GET /api/admin/costs → SiteUsage
+ */
+export interface SiteUsage {
+  today: string;
+  lines: Array<{ service: UsageService; today: UsageCount; month: UsageCount }>;
+  top: Array<{ username: string; service: UsageService; calls: number; units: number }>;
+}
+

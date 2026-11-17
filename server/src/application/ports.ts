@@ -470,6 +470,9 @@ export interface UsageRepository {
   add(userId: string, day: string, service: string, calls: number, units: number): Promise<void>;
   /** Every row from that day on, for the account. */
   since(userId: string, fromDay: string): Promise<UsageRow[]>;
+  /** A10: the whole site from that day on, a row a day a service; and who spent most in calls, a row an account a service. */
+  siteSince(fromDay: string): Promise<UsageRow[]>;
+  topSince(fromDay: string, limit: number): Promise<Array<{ userId: string; service: string; calls: number; units: number }>>;
 }
 
 /**
