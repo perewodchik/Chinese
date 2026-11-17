@@ -6082,3 +6082,8 @@ label.field[data-invalid] input {
   gap: 2px;
   min-width: 0;
 }
+
+/* R5: where a page that comes in its own piece will stand, held at a page's height while it loads. */
+.page-loading {
+  min-height: 70vh;
+}

@@ -12,7 +12,8 @@ import { useIsAdmin } from '../auth/session';
 import { WelcomeBack } from '../shared/WelcomeBack';
 import { useCardsToday } from '../cards/CardsPage';
 import { oneOf, useQuery } from '../../navigation/query';
-import { renderCollection, renderTextSet } from '../../pdf/render';
+// R5: the PDF code (pdf-lib and the fonts) comes only when something is printed.
+const pdfRender = () => import('../../pdf/render');
 import { downloadText, safeFileName } from '../../platform/files';
 import { addTexts, deleteSet, discardPlan, renameSet } from '../../store/commands';
 import { useStore } from '../../store/store';
@@ -565,7 +566,7 @@ export function ShelfPage() {
     };
     void pdf.run(`chars-${set!.id}`, {
       title: `${set!.name}, characters`,
-      render: () => renderCollection(lib, sheet, items, { footerNote: settings.footerNote, palette: settings.printPalette }),
+      render: async () => (await pdfRender()).renderCollection(lib, sheet, items, { footerNote: settings.footerNote, palette: settings.printPalette }),
     });
   }
 
@@ -603,8 +604,8 @@ export function ShelfPage() {
                     close();
                     void pdf.run(set.id, {
                       title: set.name,
-                      render: () =>
-                        renderTextSet(lib, set.name, list, readerSheet(settings), {
+                      render: async () =>
+                        (await pdfRender()).renderTextSet(lib, set.name, list, readerSheet(settings), {
                           footerNote: settings.footerNote,
                           practice: settings.readerPractice,
                         }),

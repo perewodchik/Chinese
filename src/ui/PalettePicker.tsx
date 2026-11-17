@@ -1,5 +1,5 @@
 import type { PaletteId } from '../domain/sheet';
-import { PALETTES } from '../pdf/theme';
+import { PALETTES } from '../pdf/theme/recipes';
 
 interface Props {
   value: PaletteId | null;

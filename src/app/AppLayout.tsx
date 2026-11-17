@@ -13,7 +13,6 @@ import { useItemDrawer } from '../navigation/itemDrawer';
 import { useProgressDrawer } from '../navigation/progressDrawer';
 import { paths } from '../navigation/paths';
 import { useScrollRestoration } from '../navigation/useScrollRestoration';
-import { preloadFonts } from '../pdf/fonts';
 import { useStore, useSyncStatus } from '../store/store';
 import { useColorScheme } from '../ui/colorScheme';
 import { useSheetDrag } from '../ui/useSheetDrag';
@@ -58,7 +57,8 @@ export function AppLayout() {
   useColorScheme(theme);
   useScrollRestoration(main);
   useEffect(() => {
-    preloadFonts().catch(() => undefined);
+    // The fonts for printing, fetched once the page has settled; the PDF code is its own piece (R5).
+    import('../pdf/fonts').then((m) => m.preloadFonts()).catch(() => undefined);
   }, []);
   // Going somewhere closes the sheet that took you there.
   useEffect(() => setMore(false), [pathname]);

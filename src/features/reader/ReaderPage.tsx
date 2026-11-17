@@ -4,7 +4,8 @@ import type { ItemId } from '../../domain/ids';
 import { hskLabel, shelfEntries, shelve, type GeneratedText, type ShelfEntry, type TextSet } from '../../domain/text';
 import { paths, type ReadMode, type TextVersion } from '../../navigation/paths';
 import { readHash, writeHash } from '../../navigation/hash';
-import { renderReading, renderTextSet } from '../../pdf/render';
+// R5: the PDF code (pdf-lib and the fonts) comes only when something is printed.
+const pdfRender = () => import('../../pdf/render');
 import { dayKey } from '../../domain/activity';
 import { deleteText, markRead, setSettings, setTextRead, studyText } from '../../store/commands';
 import { useStore } from '../../store/store';
@@ -814,7 +815,7 @@ function ReaderMenu({
               onClick={then(close, () =>
                 void pdf.run('passage', {
                   title: text.title,
-                  render: () => renderReading(lib, text, sheet, { ...printOptions, pinyin: true, english: true }),
+                  render: async () => (await pdfRender()).renderReading(lib, text, sheet, { ...printOptions, pinyin: true, english: true }),
                 }),
               )}
             >
@@ -826,7 +827,7 @@ function ReaderMenu({
                 className="btn ghost sm"
                 disabled={busy}
                 onClick={then(close, () =>
-                  void pdf.run(set.id, { title: set.name, render: () => renderTextSet(lib, set.name, list, sheet, printOptions) }),
+                  void pdf.run(set.id, { title: set.name, render: async () => (await pdfRender()).renderTextSet(lib, set.name, list, sheet, printOptions) }),
                 )}
               >
                 The shelf as a PDF

@@ -6,7 +6,6 @@ import { RADICAL_TEMPLATE } from '../../domain/radicals/sheet';
 import { paths } from '../../navigation/paths';
 import { oneOf, useQuery } from '../../navigation/query';
 import { useOpenRadical, useRadicalDrawer } from '../../navigation/radicalDrawer';
-import { renderRadicals } from '../../pdf/radicals/render';
 import { useStore } from '../../store/store';
 import { Glyph } from '../../ui/Glyph';
 import { Icon } from '../../ui/Icon';
@@ -68,8 +67,9 @@ function RadicalShelf() {
   function template(list: RadicalEntry[]) {
     void pdf.run('radical-template', {
       title: show === 'forms' ? 'Radicals written more than one way' : 'Radicals',
-      render: () =>
-        renderRadicals(rlib, list, { ...RADICAL_TEMPLATE, palette: printPalette }, {
+      // R5: the PDF code comes only when something is printed.
+      render: async () =>
+        (await import('../../pdf/radicals/render')).renderRadicals(rlib, list, { ...RADICAL_TEMPLATE, palette: printPalette }, {
           title: show === 'forms' ? 'Radicals — the ones with more than one shape' : 'Radicals',
           footerNote,
         }),
