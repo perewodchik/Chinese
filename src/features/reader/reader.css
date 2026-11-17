@@ -3105,10 +3105,26 @@ a.rd-more-row {
   }
 }
 
-/* The names beside the characters where the bar has room for them. */
+/* The names beside the characters where the bar has room for them; under them
+   on an iPad, where it has not. Never the characters alone: 问 says nothing to
+   someone at HSK 1. */
 @media (min-width: 700px) and (max-width: 1099px) {
-  .rd-tabs[data-place='bar'] .rd-tab-label {
-    display: none;
+  .rd-tabs[data-place='bar'] .rd-tab {
+    flex-direction: column;
+    gap: 2px;
+    height: 46px;
+    min-width: 54px;
+    padding: 0 6px 5px;
+    font-size: 10.5px;
+    line-height: 1;
+  }
+
+  .rd-tabs[data-place='bar'] .rd-tab-han {
+    font-size: 17px;
+  }
+
+  .rd-tabs[data-place='bar'] .rd-tab-fill {
+    bottom: 2px;
   }
 }
 

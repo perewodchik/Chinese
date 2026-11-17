@@ -115,7 +115,8 @@ export function SetPage() {
   useEffect(() => setCap(STEP), [tab, show, order]);
 
   if (!set) return <Navigate to={paths.library()} replace />;
-  const done = progress(set);
+  // Counted over what is listed under it: the characters, or the words. Both at once gave "400 not known" over 248 squares.
+  const done = progress(hasBoth ? (tab === 'chars' ? { ...set, words: [] } : { ...set, chars: [] }) : set);
   const band = /^hsk-(\d)$/.exec(set.id)?.[1];
 
   /** Printing a ready-made set makes it a list of yours, where its sheet is kept. */
@@ -242,8 +243,8 @@ export function SetPage() {
             label="Show"
             value={tab}
             options={[
-              { id: 'chars', label: `字 ${set.chars.length.toLocaleString('en')}` },
-              { id: 'words', label: `词 ${set.words.length.toLocaleString('en')}` },
+              { id: 'chars', label: `Characters ${set.chars.length.toLocaleString('en')}` },
+              { id: 'words', label: `Words ${set.words.length.toLocaleString('en')}` },
             ]}
             onChange={(t) => setQuery('tab', t, set.chars.length ? 'chars' : 'words')}
           />
