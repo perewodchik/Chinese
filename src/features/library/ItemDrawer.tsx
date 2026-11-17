@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from 'react';
+import { useFocusTrap } from '../../ui/useFocusTrap';
+import { useEffect, useMemo, useRef } from 'react';
 import { Link, useMatch } from 'react-router';
 import { nextCollectionName } from '../../domain/collection';
 import { wordId, type ItemId } from '../../domain/ids';
@@ -84,10 +85,15 @@ export function ItemDrawer({ id, onClose }: Props) {
   const current = collections.find((x) => x.id === match?.params.collectionId) ?? null;
   const addTo = (target: string) => collect(target, [id], { newName: nextCollectionName(collections) });
 
+  // R18: Tab goes round the drawer, not off into the page under it.
+  const trapped = useRef<HTMLDivElement>(null);
+  useFocusTrap(trapped);
+
   return (
     <div className="drawer" data-leaving={sheet.leaving || undefined} onClick={close}>
       <div />
       <div
+        ref={trapped}
         className="sheet"
         role="dialog"
         aria-modal="true"

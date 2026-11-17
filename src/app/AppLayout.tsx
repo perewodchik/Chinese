@@ -18,6 +18,7 @@ import { useActivityReport } from './activityReport';
 import { useErrorReport } from './errorReport';
 import { useColorScheme } from '../ui/colorScheme';
 import { useSheetDrag } from '../ui/useSheetDrag';
+import { useFocusTrap } from '../ui/useFocusTrap';
 import { Icon } from '../ui/Icon';
 import { feedbackUrl } from '../platform/feedback';
 
@@ -160,6 +161,8 @@ function MoreSheet({ anchor, onClose }: { anchor: RefObject<HTMLButtonElement | 
   const feedback = feedbackUrl(window.location.pathname, user.username);
   const { leave, leaving } = useSignOut();
   const panel = useRef<HTMLDivElement>(null);
+  // R18: Tab stays inside the sheet while it is open.
+  useFocusTrap(panel);
   // Beside the rail, the panel opens level with Me rather than at the foot
   // of the screen, a hand's width away from what was tapped.
   const [top, setTop] = useState<number | null>(null);

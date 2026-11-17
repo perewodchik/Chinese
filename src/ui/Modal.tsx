@@ -1,4 +1,5 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { useFocusTrap } from './useFocusTrap';
 import { createPortal } from 'react-dom';
 import { Icon } from './Icon';
 
@@ -29,6 +30,12 @@ export function Modal({
   footer,
   wide,
 }: Props) {
+  const box = useRef<HTMLDivElement>(null);
+  useFocusTrap(box);
+  useEffect(() => {
+    // Into the dialog on opening, unless something in it took focus itself.
+    if (box.current && !box.current.contains(document.activeElement)) box.current.focus();
+  }, []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -45,6 +52,8 @@ export function Modal({
   return createPortal(
     <div className="modal-scrim" onClick={onClose} role="presentation">
       <div
+        ref={box}
+        tabIndex={-1}
         className={`modal${wide ? ' wide' : ''}`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
