@@ -1,8 +1,17 @@
 # Hanzi Workshop
 
-Build Chinese handwriting worksheets as PDFs, be asked about them until they
-stick, and read it all back in passages written out of exactly those
-characters.
+A place to learn Chinese by reading: texts at your level with the words you
+are learning underlined, a fixed number of cards a day for those words, your
+own voice scored against the lines you read, and — where it all started —
+handwriting worksheets printed as real PDFs. Built for one learner reading
+from English on an iPad and an iPhone, and open to others by invitation.
+
+The menu is **Read · Cards · Speak · Library · Me**. Read opens on the text
+to carry on with; a Chinese text from anywhere can be pasted in and read at
+once, and explained by your own chat with Claude. Cards asks a few words a
+day. Speak scores the lines you say. Library holds every character, word,
+radical and list to print. Me has progress, videos, games, settings, your
+account — and, for whoever runs the site, the admin pages.
 
 - **3000 characters** — the whole official HSK 3.0 syllabus, bands 1 to 9,
   ordered band by band so that a character never turns up before the parts it
@@ -54,12 +63,21 @@ characters.
 
 ## Running it
 
-Double-click **`start.cmd`**, or:
+On a Mac (Node 22 or later — `export PATH=/opt/homebrew/bin:$PATH` if the
+default one is older), with a local database so the deployed site's is never
+touched:
 
 ```bash
 npm install
-npm run dev
 ```
+
+```bash
+HANZI_DB=.data/local.db npm run dev
+```
+
+Without `HANZI_DB`, a `.env` holding `POSTGRES_URL` makes the dev server work
+on the deployed site's own database. On the Windows machine, `start.cmd` does
+the same as `npm run dev`.
 
 Then open <http://localhost:5173> and make an account — the first visit asks for
 a name and a password. `npm run dev` is one process: the server and the app
@@ -269,41 +287,31 @@ character drawer, because the drawer is part of the address.
 
 ## How you use it
 
-1. **Today** — the front door: the text to carry on with, and the day's
-   **Cards** — a fixed number a day, asking what you chose on the Cards tab
-   (the meaning, the pinyin typed, or the character written). A printed test
-   sheet waiting to be marked shows up at the top of the Library.
-2. **Library** — every set in one place: your lists, the HSK bands, the
-   topics, and beside them the radicals, their families and blank paper. One
-   search finds characters, words and sets. A set's page shows its characters
-   as squares from the exercise book and its words as rows, filtered to what is
-   still to learn or already learned. A tap opens a character's drawer; ⋯ has
-   the rest: Print, Full screen (one character at a time, its strokes stepped
-   through with buttons), Sort what you know, Pick some out.
-3. **Pick some out** turns taps into picks; a tray marks them learned or adds
-   them to a list, new or existing. Anything already there is skipped.
-4. **Print** a ready-made set and it becomes one of your lists, where its
-   sheet design is kept; set and list stay one row in the library.
-5. In a list, **Design** decides what the PDF looks like and **Items** is
-   what is in it: the same cards as the library, dragged into whatever order
-   you like, ticked off as you learn them. Search at the top of **Items** to
-   put a specific character in — by shape, reading or meaning — and click it
-   again to take it out.
-6. **Put on paper** — everything, only what you have not learned yet, what the
-   schedule says is due, the ones you keep missing, or a range like "#41 to
-   #60". The page count follows along.
-7. **Download** the worksheet, or **Test sheet** for the same characters with
-   nothing to copy from. Either lands in your worksheets folder (Settings →
-   choose one) or downloads normally, named after the collection and the
-   slice. A test sheet then waits at the top of the Library to be marked.
-8. **Texts** — plan a session of several passages at once, each with its own
-   topic, length, level, form and however many new characters you want it to
-   teach you. Copy the prompt into Claude, paste the reply back, and the set
-   lands on the shelf. Read it with the pinyin and the translation off — then
-   one line's number opens just that line, and any character opens its entry —
-   or print it as a booklet with practice sheets for every character it taught.
-   Coming back to a passage a week later is counted; re-reading is most of what
-   turns decoding into reading.
+1. **Read** — the front door: the book to carry on with, today's cards in one
+   line under it, and your shelves of books. **Add** pastes in a Chinese text
+   (or scans it off a page with the iPhone's Scan Text): it is a text to read
+   at once, with pinyin and its new words from the site's dictionary; **Explain
+   it with Claude** brings its English, grammar and questions from your own
+   Claude chat. Or have Claude write texts out of the characters you know, take
+   a book from the library everyone shares, or open a book file. On a text, a
+   tap on a word opens it; the parts under it are writing it out, saying it,
+   its words and its questions; ⋯ › Edit text puts a line right.
+2. **Cards** — a fixed number a day, asking what you chose (the meaning, the
+   pinyin typed, or the character written), with a quiet dot on the tab while
+   some wait. **Keep missing** lists what you miss most, a tap from its drawer,
+   and a sitting of just those.
+3. **Speak** — the lines of the text you are reading, said and scored, and the
+   sounds and tones.
+4. **Library** — every set in one place: your lists, the HSK bands, the
+   topics, and beside them the radicals, their families and blank paper. A
+   set's page shows its characters as squares from the exercise book and its
+   words as rows; ⋯ has Print, Full screen, Sort what you know, Pick some out.
+   A list's **Design** decides what its PDF looks like; a **Test sheet** has
+   the same characters with nothing to copy from, and waits at the top of the
+   Library to be marked.
+5. **Me** — progress, videos, games, settings, feedback and your account; for
+   an admin, the admin pages: who is using the site, accounts, invitations,
+   the shared library, the site's settings, feedback and errors.
 
 ## Addresses
 
@@ -1138,9 +1146,21 @@ download normally.
 ## Tests
 
 ```bash
-npm test
-npm run typecheck
+npm run test:quick
 ```
+
+```bash
+npm test
+```
+
+```bash
+npm run vercel-build
+```
+
+`test:quick` is everything but the game's level solver, about thirty seconds;
+`npm test` is all of it, ten minutes, as CI runs it; `vercel-build` is the type
+check and the build Vercel runs. A test in `src/features/boundaries.test.ts`
+fails when one feature imports from another.
 
 The server's use cases and its HTTP API run against an in-memory SQLite:
 accounts, sessions that expire and renew, a password change signing other
