@@ -191,6 +191,12 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
     return c.json(await activity.dashboard());
   });
 
+  // R15: what broke on learners' screens lately.
+  routes.get('/errors', session, admin, async (c) => {
+    c.header('Cache-Control', 'no-store');
+    return c.json({ errors: await activity.errors() });
+  });
+
   // A10: the site's use of the services, this month and today, and who used most.
   routes.get('/costs', session, admin, async (c) => {
     c.header('Cache-Control', 'no-store');

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import type { FeedbackItem, FeedbackStatus } from '../../../shared/feedback';
 import { adminFeedback, setFeedbackStatus } from '../../api/feedback';
-import { ApiError } from '../../api/http';
+import { ApiError, request } from '../../api/http';
+import { deviceName } from '../../domain/device';
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { Seg } from '../../ui/Seg';
@@ -101,6 +102,35 @@ export function AdminFeedbackPage() {
             </ul>
           )}
         </>
+      )}
+      {!denied && <ScreenErrors />}
+    </section>
+  );
+}
+
+/** R15: what broke on learners' screens in the last thirty days, newest first, as text. */
+function ScreenErrors() {
+  const [list, setList] = useState<Array<{ at: number; message: string; page: string; username: string | null; userAgent: string | null }> | null>(null);
+  useEffect(() => {
+    void request<{ errors: NonNullable<typeof list> }>('GET', '/api/admin/errors').then((r) => setList(r.errors), () => undefined);
+  }, []);
+  if (!list) return null;
+  return (
+    <section className="block">
+      <h2 className="block-title">Errors on learners’ screens</h2>
+      {list.length === 0 ? (
+        <p className="small muted">None in the last thirty days.</p>
+      ) : (
+        <ul className="list admin-list">
+          {list.map((e, i) => (
+            <li key={`${e.at}-${i}`} className="admin-row">
+              <span className="small muted">
+                {when(e.at)} · {e.username ?? 'an account since deleted'} · {e.page} · {deviceName(e.userAgent)}
+              </span>
+              <p className="admin-feedback-message">{e.message}</p>
+            </li>
+          ))}
+        </ul>
       )}
     </section>
   );

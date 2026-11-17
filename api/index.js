@@ -456,6 +456,27 @@ var ActivityService = class {
   constructor(deps) {
     this.deps = deps;
   }
+  /** R15: what broke on a learner's screen, kept thirty days for the admin page. */
+  async error(userId, e, userAgent) {
+    if (!this.deps.errors || !this.deps.tokens) return;
+    const at = this.deps.clock.now();
+    await this.deps.errors.add({
+      id: this.deps.tokens.id(),
+      userId,
+      at,
+      message: e.message.replace(/\s+/g, " ").trim().slice(0, 500) || "An error with no message",
+      // A path, no query or hash, which may hold a code.
+      page: (e.page.startsWith("/") ? e.page.split(/[?#]/)[0] : "/").slice(0, 200),
+      userAgent: userAgent?.slice(0, 300) ?? null
+    });
+    if (Math.random() < 0.02) await this.deps.errors.sweep(at - 30 * DAY);
+  }
+  async errors() {
+    if (!this.deps.errors) return [];
+    const [list, users] = await Promise.all([this.deps.errors.recent(100), this.deps.users.list()]);
+    const name = new Map(users.map((u) => [u.id, u.username]));
+    return list.map((e) => ({ at: e.at, message: e.message, page: e.page, username: name.get(e.userId) ?? null, userAgent: e.userAgent }));
+  }
   async record(userId, r) {
     const now = this.deps.clock.now();
     const near = [dayOf(now - DAY), dayOf(now), dayOf(now + DAY)];
@@ -2681,7 +2702,7 @@ function createServices(stores, options = {}) {
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, catalog: stores.catalog, clock, quota }),
     site,
-    activity: new ActivityService({ activity: stores.activity, users: stores.users, clock }),
+    activity: new ActivityService({ activity: stores.activity, users: stores.users, clock, errors: stores.clientErrors, tokens: cryptoTokens }),
     feedback: new FeedbackService({ feedback: stores.feedback, users: stores.users, clock, tokens: cryptoTokens }),
     catalog: new CatalogService({ catalog: stores.catalog, pictures: stores.pictures, adminLog: stores.adminLog, clock, tokens: cryptoTokens }),
     narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),
@@ -3240,6 +3261,10 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
     c.header("Cache-Control", "no-store");
     return c.json(await activity.dashboard());
   });
+  routes.get("/errors", session, admin, async (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json({ errors: await activity.errors() });
+  });
   routes.get("/costs", session, admin, async (c) => {
     c.header("Cache-Control", "no-store");
     return c.json(
@@ -3587,6 +3612,14 @@ function activityRoutes({ auth, clock, trustProxy, activity, limits }) {
   const reports = new RateLimiter("activity.reports", 60, 60 * 6e4, clock, limits);
   const count = z8.number().finite().min(0).max(1e6);
   const body = z8.object({ day: z8.string().max(10), minutes: count, textsRead: count, answers: count, spoken: count, videos: count }).strict();
+  const errorsSent = new RateLimiter("activity.errors", 20, 24 * 60 * 6e4, clock, limits);
+  const errorBody2 = z8.object({ message: z8.string().max(4e3), page: z8.string().max(2e3) }).strict();
+  routes.post("/error", session, async (c) => {
+    const userId = c.get("session").user.id;
+    await errorsSent.consume(userId);
+    await activity.error(userId, await readJson(c, errorBody2), c.req.header("user-agent") ?? null);
+    return c.body(null, 204);
+  });
   routes.post("/", session, async (c) => {
     const userId = c.get("session").user.id;
     await reports.consume(userId);
@@ -4896,6 +4929,18 @@ var MIGRATIONS = [
     PRIMARY KEY (user_id, day)
   );
   CREATE INDEX daily_activity_by_day ON daily_activity (day);
+  `,
+  // R15: what broke on a learner's screen, so whoever runs the site hears of it; kept thirty days.
+  `
+  CREATE TABLE client_errors (
+    id          TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    at          BIGINT NOT NULL,
+    message     TEXT NOT NULL,
+    page        TEXT NOT NULL,
+    user_agent  TEXT
+  );
+  CREATE INDEX client_errors_by_time ON client_errors (at);
   `
 ];
 
@@ -6000,6 +6045,26 @@ var PostgresActivityRepository = class {
   }
 };
 
+// server/src/infrastructure/sqlite/client-error-repository.ts
+var toError = (r) => ({ id: r.id, userId: r.user_id, at: Number(r.at), message: r.message, page: r.page, userAgent: r.user_agent });
+
+// server/src/infrastructure/postgres/client-error-repository.ts
+var PostgresClientErrorRepository = class {
+  constructor(db) {
+    this.db = db;
+  }
+  async add(e) {
+    await this.db.query("INSERT INTO client_errors (id, user_id, at, message, page, user_agent) VALUES ($1, $2, $3, $4, $5, $6)", [e.id, e.userId, e.at, e.message, e.page, e.userAgent]);
+  }
+  async recent(limit) {
+    const { rows } = await this.db.query("SELECT * FROM client_errors ORDER BY at DESC LIMIT $1", [limit]);
+    return rows.map(toError);
+  }
+  async sweep(before) {
+    await this.db.query("DELETE FROM client_errors WHERE at < $1", [before]);
+  }
+};
+
 // server/src/infrastructure/postgres/workspace-repository.ts
 var PostgresWorkspaceRepository = class {
   constructor(db) {
@@ -6108,7 +6173,8 @@ var postgresStores = (db) => ({
   feedback: new PostgresFeedbackRepository(db),
   accounts: new PostgresAccountDirectory(db),
   siteSettings: new PostgresSiteSettingsRepository(db),
-  activity: new PostgresActivityRepository(db)
+  activity: new PostgresActivityRepository(db),
+  clientErrors: new PostgresClientErrorRepository(db)
 });
 
 // server/src/vercel.ts

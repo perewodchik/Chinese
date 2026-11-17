@@ -226,7 +226,7 @@ export function AdminPage() {
         <Link className="admin-nav" to={paths.adminFeedback()}>
           <span className="grow">
             <b>Feedback</b>
-            <span className="small muted">What learners sent from the site, and where each stands</span>
+            <span className="small muted">What learners sent from the site, and what broke on their screens</span>
           </span>
           <Icon name="chevron" />
         </Link>

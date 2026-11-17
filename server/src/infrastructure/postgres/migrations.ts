@@ -385,4 +385,16 @@ export const MIGRATIONS: readonly string[] = [
   );
   CREATE INDEX daily_activity_by_day ON daily_activity (day);
   `,
+  // R15: what broke on a learner's screen, so whoever runs the site hears of it; kept thirty days.
+  `
+  CREATE TABLE client_errors (
+    id          TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    at          BIGINT NOT NULL,
+    message     TEXT NOT NULL,
+    page        TEXT NOT NULL,
+    user_agent  TEXT
+  );
+  CREATE INDEX client_errors_by_time ON client_errors (at);
+  `,
 ];

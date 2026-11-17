@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { isRouteErrorResponse, Link, useRouteError } from 'react-router';
+import { reportError } from './errorReport';
 import { paths } from '../navigation/paths';
 import { feedbackUrl } from '../platform/feedback';
 import { Splash } from '../ui/Splash';
@@ -14,6 +16,9 @@ export function RouteError() {
       ? error.message
       : String(error);
 
+  // R15: whoever runs the site hears of it (refused quietly when nobody is signed in).
+  useEffect(() => reportError(`Page broke: ${message}`), [message]);
+
   // The form, with this page and the error's words already in it; no name, since the session may be what broke.
   const feedback = feedbackUrl(window.location.pathname, '', message);
   return (
@@ -25,7 +30,7 @@ export function RouteError() {
           Reload
         </button>
         <Link className="btn" to={paths.read()}>
-          Go to Today
+          Go to Read
         </Link>
       </div>
       {feedback && (
@@ -45,7 +50,7 @@ export function NotFoundPage() {
     <Splash mark="迷">
       <p>Nothing lives at this address.</p>
       <Link className="btn primary" to={paths.read()} style={{ marginTop: 10 }}>
-        Go to Today
+        Go to Read
       </Link>
     </Splash>
   );

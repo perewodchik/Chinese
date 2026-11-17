@@ -1,6 +1,6 @@
 import type { DayReport, Dashboard } from '../../../shared/activity';
 import { ValidationError } from '../domain/errors';
-import type { ActivityRepository, Clock, UserRepository } from './ports';
+import type { ActivityRepository, ClientErrorRepository, Clock, Tokens, UserRepository } from './ports';
 
 const DAY = 86_400_000;
 const dayOf = (at: number) => new Date(at).toISOString().slice(0, 10);
@@ -12,7 +12,30 @@ const worked = (r: { minutes: number; textsRead: number; answers: number; spoken
  * stayed, and what they use. Nothing of what anyone read or said.
  */
 export class ActivityService {
-  constructor(private readonly deps: { activity: ActivityRepository; users: UserRepository; clock: Clock }) {}
+  constructor(private readonly deps: { activity: ActivityRepository; users: UserRepository; clock: Clock; errors?: ClientErrorRepository; tokens?: Tokens }) {}
+
+  /** R15: what broke on a learner's screen, kept thirty days for the admin page. */
+  async error(userId: string, e: { message: string; page: string }, userAgent: string | null): Promise<void> {
+    if (!this.deps.errors || !this.deps.tokens) return;
+    const at = this.deps.clock.now();
+    await this.deps.errors.add({
+      id: this.deps.tokens.id(),
+      userId,
+      at,
+      message: e.message.replace(/\s+/g, ' ').trim().slice(0, 500) || 'An error with no message',
+      // A path, no query or hash, which may hold a code.
+      page: (e.page.startsWith('/') ? e.page.split(/[?#]/)[0]! : '/').slice(0, 200),
+      userAgent: userAgent?.slice(0, 300) ?? null,
+    });
+    if (Math.random() < 0.02) await this.deps.errors.sweep(at - 30 * DAY);
+  }
+
+  async errors(): Promise<Array<{ at: number; message: string; page: string; username: string | null; userAgent: string | null }>> {
+    if (!this.deps.errors) return [];
+    const [list, users] = await Promise.all([this.deps.errors.recent(100), this.deps.users.list()]);
+    const name = new Map(users.map((u) => [u.id, u.username]));
+    return list.map((e) => ({ at: e.at, message: e.message, page: e.page, username: name.get(e.userId) ?? null, userAgent: e.userAgent }));
+  }
 
   async record(userId: string, r: DayReport): Promise<void> {
     const now = this.deps.clock.now();

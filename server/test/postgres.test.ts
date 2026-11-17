@@ -362,6 +362,14 @@ describe('Postgres storage', () => {
     assert.deepEqual(rows.map((r) => [r.userId, r.day, r.minutes, r.answers]), [['act-1', '2031-02-01', 10, 70]]);
   });
 
+  it('keeps what broke on screens, newest first, and lets the old go (R15)', async () => {
+    await stores.clientErrors.add({ id: 'ce1', userId: 'act-1', at: T, message: 'old', page: '/', userAgent: null });
+    await stores.clientErrors.add({ id: 'ce2', userId: 'act-1', at: T + 9, message: 'new', page: '/read', userAgent: 'iPad' });
+    assert.deepEqual((await stores.clientErrors.recent(5)).map((e) => e.message), ['new', 'old']);
+    await stores.clientErrors.sweep(T + 1);
+    assert.deepEqual((await stores.clientErrors.recent(5)).map((e) => e.id), ['ce2']);
+  });
+
   it('reads one account’s days, and its room by kind (A5)', async () => {
     assert.equal((await stores.activity.forUser('act-1', '2031-01-01')).length, 2);
     assert.deepEqual(await stores.activity.forUser('nobody', '2031-01-01'), []);

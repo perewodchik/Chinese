@@ -25,6 +25,7 @@ import { PostgresFeedbackRepository } from './feedback-repository';
 import { PostgresAccountDirectory } from './account-directory';
 import { PostgresSiteSettingsRepository } from './site-settings-repository';
 import { PostgresActivityRepository } from './activity-repository';
+import { PostgresClientErrorRepository } from './client-error-repository';
 import { PostgresWorkspaceRepository } from './workspace-repository';
 import { PostgresWorldSaveRepository } from './world-save-repository';
 
@@ -57,4 +58,5 @@ export const postgresStores = (db: pg.Pool): Stores => ({
   accounts: new PostgresAccountDirectory(db),
   siteSettings: new PostgresSiteSettingsRepository(db),
   activity: new PostgresActivityRepository(db),
+  clientErrors: new PostgresClientErrorRepository(db),
 });

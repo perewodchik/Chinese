@@ -35,6 +35,7 @@ import type {
   AccountDirectory,
   SiteSettingsRepository,
   ActivityRepository,
+  ClientErrorRepository,
   FeedbackRepository,
   PasswordResetRepository,
   RecoveryCodeRepository,
@@ -124,6 +125,8 @@ export interface Stores {
   siteSettings: SiteSettingsRepository;
   /** A7: each account's day in numbers */
   activity: ActivityRepository;
+  /** R15: what broke on learners' screens */
+  clientErrors: ClientErrorRepository;
   storage: StorageMeter;
   audit: AuditLog;
   adminLog: AdminLogRepository;
@@ -204,7 +207,7 @@ export function createServices(
     recordings,
     pictures: new PictureService({ pictures: stores.pictures, catalog: stores.catalog, clock, quota }),
     site,
-    activity: new ActivityService({ activity: stores.activity, users: stores.users, clock }),
+    activity: new ActivityService({ activity: stores.activity, users: stores.users, clock, errors: stores.clientErrors, tokens: cryptoTokens }),
     feedback: new FeedbackService({ feedback: stores.feedback, users: stores.users, clock, tokens: cryptoTokens }),
     catalog: new CatalogService({ catalog: stores.catalog, pictures: stores.pictures, adminLog: stores.adminLog, clock, tokens: cryptoTokens }),
     narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),

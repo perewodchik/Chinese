@@ -426,6 +426,22 @@ export interface ActivityRepository {
   forUser(userId: string, fromDay: string): Promise<Array<{ userId: string; day: string } & DayCounts>>;
 }
 
+/** R15: what broke on a learner's screen. */
+export interface ClientErrorRecord {
+  id: string;
+  userId: string;
+  at: number;
+  message: string;
+  page: string;
+  userAgent: string | null;
+}
+export interface ClientErrorRepository {
+  add(e: ClientErrorRecord): Promise<void>;
+  /** newest first */
+  recent(limit: number): Promise<ClientErrorRecord[]>;
+  sweep(before: number): Promise<void>;
+}
+
 /** A11: the site's own settings, as JSON by key. */
 export interface SiteSettingsRepository {
   all(): Promise<Array<{ key: string; value: string; updatedAt: number; updatedBy: string }>>;

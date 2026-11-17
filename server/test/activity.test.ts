@@ -55,3 +55,20 @@ describe('the site in numbers (A7)', () => {
     assert.equal((await call(app, 'GET', '/api/admin/dashboard')).status, 401);
   });
 });
+
+describe('what broke on learners’ screens (R15)', () => {
+  it('keeps the message and the page — no query — for the admin, twenty a day an account', async () => {
+    const { app, signUp } = await setUp();
+    const owner = await signUp('kirill');
+    const masha = await signUp('masha');
+    const send = (cookie: string | undefined, message: string) => call(app, 'POST', '/api/activity/error', { cookie, body: { message, page: '/read/text/abc?reset=SECRET#x' } });
+    assert.equal((await send(masha, 'TypeError: x is undefined')).status, 204);
+    assert.equal((await send(undefined, 'nobody')).status, 401);
+    const { errors } = (await (await call(app, 'GET', '/api/admin/errors', { cookie: owner })).json()) as { errors: Array<{ message: string; page: string; username: string }> };
+    assert.deepEqual(errors.map((e) => [e.message, e.page, e.username]), [['TypeError: x is undefined', '/read/text/abc', 'masha']]);
+    assert.equal((await call(app, 'GET', '/api/admin/errors', { cookie: masha })).status, 403);
+    for (let i = 0; i < 19; i++) await send(masha, `e${i}`);
+    assert.equal((await send(masha, 'one too many')).status, 429);
+  });
+});
+
