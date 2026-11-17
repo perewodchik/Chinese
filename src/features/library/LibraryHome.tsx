@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '../../navigation/query';
 import { Link, useNavigate } from 'react-router';
 import { nextCollectionName } from '../../domain/collection';
 import { charId, wordId } from '../../domain/ids';
+import { flat, lookup } from '../../domain/lookup';
 import { pendingSheets, type PrintedSheet } from '../../domain/memory';
 import { HSK_BANDS } from '../../domain/text';
 import { useOpenItem } from '../../navigation/itemDrawer';
@@ -21,7 +22,9 @@ import { bandSet, FROM_TEXT, ownLists, textWordsSet, topicSets, withList, type L
 import { CharTile, WordRow } from './SetPage';
 import './home.css';
 
-const flat = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+/** How many characters a search shows before All, and at most. */
+const CHARS_SHOWN = 12;
+const CHARS_MOST = 60;
 
 /**
  * How much of a set is known, from review alone: its characters and words
@@ -95,17 +98,26 @@ export function LibraryHome() {
   const fromTexts = useMemo(() => collections.filter((c) => FROM_TEXT.test(c.name)), [collections]);
 
   const found = useMemo(() => {
-    const needle = flat(q.trim());
+    const typed = q.trim();
+    const needle = flat(typed);
     if (!needle) return null;
-    const hit = (...s: string[]) => s.some((x) => flat(x).includes(needle));
+    // The best match first (domain/lookup): "hao" is 好, not every character read shao or zhao.
+    // Among equals the commoner character first.
+    const chars = lookup(typed, lib.characters, (c) => ({ zh: c.c, py: c.py, def: c.def })).sort((a, b) => a.rank - b.rank || a.entry.freq - b.entry.freq);
+    const words = lookup(typed, lib.words, (w) => ({ zh: w.w, py: [w.py], def: w.d }));
     return {
-      chars: lib.characters.filter((c) => hit(c.c, c.py.join(' '), c.def)).slice(0, 32),
-      words: lib.words.filter((w) => hit(w.w, w.py, w.d)).slice(0, 12),
-      sets: [...mine, ...bands, ...(ownWords ? [ownWords] : []), ...topics].filter((s) => hit(s.name)),
+      chars: chars.map((x) => x.entry),
+      words: words.slice(0, 20).map((x) => x.entry),
+      // Whichever answers better comes first: "pengyou" is a word, "hao" a character.
+      wordsFirst: words.length > 0 && (!chars.length || words[0]!.rank < chars[0]!.rank),
+      sets: [...mine, ...bands, ...(ownWords ? [ownWords] : []), ...topics].filter((s) => flat(s.name).includes(needle)),
       // B6: the same search in your texts, so a word looked up here is found where it was read.
-      texts: texts.filter((t) => t.titleZh.includes(q.trim()) || t.lines.some((l) => l.zh.includes(q.trim()))),
+      texts: texts.filter((t) => t.titleZh.includes(typed) || t.lines.some((l) => l.zh.includes(typed))),
     };
   }, [q, lib, mine, bands, ownWords, topics, texts]);
+  // Three rows of characters on a phone, the rest behind All: the words under them stay within reach.
+  const [allChars, setAllChars] = useState(false);
+  useEffect(() => setAllChars(false), [q]);
 
   function newList() {
     const c = createCollection({ name: nextCollectionName(collections) });
@@ -177,14 +189,43 @@ export function LibraryHome() {
               </div>
             </section>
           )}
-          <section className="block">
-            <h2 className="block-title">{found.chars.length ? 'Characters' : 'No characters'}</h2>
-            <div className="lib-tiles">
-              {found.chars.map((c) => (
-                <CharTile key={c.c} c={c} level={levelOf(charId(c.c))} onOpen={() => openItem(charId(c.c))} />
-              ))}
-            </div>
-          </section>
+          {found.chars.length + found.words.length === 0 && (
+            <section className="block">
+              <h2 className="block-title">Nothing found</h2>
+              <p className="small muted">Try the character itself, its pinyin without tones, or an English word.</p>
+            </section>
+          )}
+          {[found.wordsFirst ? 'words' : 'chars', found.wordsFirst ? 'chars' : 'words'].map((kind) =>
+            kind === 'chars'
+              ? found.chars.length > 0 && (
+                  <section className="block" key="chars">
+                    <div className="block-head">
+                      <h2 className="block-title">Characters</h2>
+                      <span className="spacer" />
+                      {found.chars.length > CHARS_SHOWN && (
+                        <button className="btn quiet sm lib-more" onClick={() => setAllChars((a) => !a)}>
+                          {allChars ? 'Fewer' : `All ${Math.min(found.chars.length, CHARS_MOST)}`}
+                        </button>
+                      )}
+                    </div>
+                    <div className="lib-tiles">
+                      {found.chars.slice(0, allChars ? CHARS_MOST : CHARS_SHOWN).map((c) => (
+                        <CharTile key={c.c} c={c} level={levelOf(charId(c.c))} onOpen={() => openItem(charId(c.c))} />
+                      ))}
+                    </div>
+                  </section>
+                )
+              : found.words.length > 0 && (
+                  <section className="block" key="words">
+                    <h2 className="block-title">Words</h2>
+                    <div className="lib-words">
+                      {found.words.map((w) => (
+                        <WordRow key={w.w} w={w} level={know.level(w.w)} onOpen={() => openItem(wordId(w.w))} />
+                      ))}
+                    </div>
+                  </section>
+                ),
+          )}
           <section className="block">
             <div className="list">
               <Link className="lib-ref" to={paths.radicals(q.trim())}>
@@ -218,16 +259,6 @@ export function LibraryHome() {
                     </span>
                     <Icon name="chevron" className="muted" />
                   </Link>
-                ))}
-              </div>
-            </section>
-          )}
-          {found.words.length > 0 && (
-            <section className="block">
-              <h2 className="block-title">Words</h2>
-              <div className="lib-words">
-                {found.words.map((w) => (
-                  <WordRow key={w.w} w={w} level={know.level(w.w)} onOpen={() => openItem(wordId(w.w))} />
                 ))}
               </div>
             </section>

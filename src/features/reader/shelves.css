@@ -975,3 +975,25 @@
   color: var(--ink);
   text-decoration: none;
 }
+
+/* The search and the book to go on with are both wells of the same fill: without
+   air between them they read as one box. */
+.read-page > .search {
+  margin-bottom: 12px;
+}
+
+/* A search result's sentence: where in the text the word was, in pencil under the title. */
+.text-row-hit {
+  display: grid;
+  gap: 1px;
+  margin-top: 6px;
+  padding-left: 10px;
+  border-left: 2px solid var(--line);
+  min-width: 0;
+}
+
+.text-row-hit .hanzi {
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}

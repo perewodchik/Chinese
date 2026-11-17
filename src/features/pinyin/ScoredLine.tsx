@@ -220,7 +220,7 @@ export function ScoredLine({
 
   return (
     <>
-        <div className="ph-phrase" aria-label={zh} data-dim={scoring || undefined} data-marks={(marks && result) || undefined}>
+        <div className="ph-phrase" aria-label={zh} data-dim={scoring || undefined} data-marks={(marks && result) || undefined} data-tags={marks || undefined}>
           {groups.map((g) => (
             <span key={g[0]} className="ph-word">
               {g.map((i) => {

@@ -111,7 +111,14 @@ export function ReadPage() {
         seen.add(key);
         return true;
       })
-      .slice(0, 30);
+      .slice(0, 30)
+      // The sentence that answered, unless the title did: why this text is in the list.
+      .map((t) => {
+        const inTitle = t.titleZh.includes(needle) || t.title.toLowerCase().includes(needle);
+        const line = inTitle ? undefined : t.lines.find((l) => l.zh.includes(needle) || l.en.toLowerCase().includes(needle) || sounds(l.py));
+        const word = inTitle || line ? undefined : t.vocab.find((w) => w.w.includes(needle) || w.d.toLowerCase().includes(needle) || sounds(w.py));
+        return { text: t, hit: line ? { zh: line.zh, en: line.en } : word ? { zh: word.w, en: word.d } : undefined };
+      });
   }, [q, texts]);
 
   function newBook() {
@@ -175,8 +182,8 @@ export function ReadPage() {
             {found.length ? `${found.length} text${found.length === 1 ? '' : 's'}` : 'Nothing found'}
           </h2>
           <div className="list">
-            {found.map((t) => (
-              <TextRow key={t.id} text={t} to={paths.text(t.id)} sub={sets.find((s) => s.id === t.setId)?.name} />
+            {found.map(({ text: t, hit }) => (
+              <TextRow key={t.id} text={t} to={paths.text(t.id)} sub={sets.find((s) => s.id === t.setId)?.name} hit={hit} />
             ))}
           </div>
           {/* B6: the same search in the dictionary, for a word met here to be looked up. */}
@@ -351,7 +358,8 @@ function ContinueBook({ go }: { go: NonNullable<ReturnType<typeof useContinue>> 
     <Link className="continue-book" to={go.to}>
       {book && <BookCover book={book} width={66} bookmark />}
       <span className="grow" style={{ display: 'grid', gap: 2, minWidth: 0 }}>
-        <span className="small muted">Go on reading{book ? ` · ${book.title}` : ''}</span>
+        {/* A text never opened is started, not gone on with. */}
+        <span className="small muted">{go.text.read || go.text.lastReadAt ? 'Go on reading' : 'Start reading'}{book ? ` · ${book.title}` : ''}</span>
         <span className="hanzi continue-title">{go.text.titleZh || go.text.title}</span>
         {chapterAt >= 0 && chapters.length > 1 && (
           <span className="small muted">
@@ -364,12 +372,20 @@ function ContinueBook({ go }: { go: NonNullable<ReturnType<typeof useContinue>> 
   );
 }
 
-function TextRow({ text, to, sub }: { text: GeneratedText; to: string; sub?: string }) {
+function TextRow({ text, to, sub, hit }: { text: GeneratedText; to: string; sub?: string; hit?: { zh: string; en: string } }) {
   return (
     <Link className="text-row" to={to}>
       <span className="grow">
         <span className="hanzi text-row-zh">{text.titleZh || text.title}</span>
         <span className="small muted">{sub ?? text.title}</span>
+        {hit && (
+          <span className="text-row-hit">
+            <span className="hanzi" lang="zh">
+              {hit.zh}
+            </span>
+            <span className="small muted">{hit.en}</span>
+          </span>
+        )}
       </span>
       <Icon name="chevron" className="muted" />
     </Link>
