@@ -66,6 +66,11 @@ const options = (o: Partial<BookOptions>): BookOptions => ({
 });
 
 describe('book passages onto the shelf', () => {
+  it('refuses a passage the site would not take, naming it (R7)', () => {
+    const long = JSON.stringify({ texts: [{ title: 'Too long', titleZh: '太长', lines: [{ zh: '长'.repeat(700), py: '', en: 'x' }] }] });
+    assert.throws(() => addBookTexts(doc(), long, options({ newSet: 'X' })), /“太长” is not a text the site takes/);
+  });
+
   it('a new session goes first, its passages in the order given, everything else untouched', () => {
     const r = addBookTexts(doc(), reply, options({ newSet: 'Why? (book)' }));
     assert.equal(r.madeSet, true);

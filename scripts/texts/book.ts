@@ -64,6 +64,7 @@ import { charId, idValue, isCharId, isItemId, isWordId, wordId, type ItemId } fr
 import { isDue, type RecallBook } from '../../src/domain/memory';
 import type { CharacterEntry, Library, SyllabusWord } from '../../src/data/types';
 import { asLine, parseResponse, toText, type DraftText } from '../../src/domain/parse';
+import { newTextSchema } from '../../shared/text';
 import { segment, writerHints } from '../../src/domain/segment';
 import { taughtAlready } from '../../src/domain/teach';
 import {
@@ -440,6 +441,10 @@ export function addBookTexts(doc: Doc, reply: string, o: BookOptions): BookResul
   const added: BookResult['added'] = [];
   const skipped: string[] = [];
   for (const m of measureAll(drafts, inv, o)) {
+    // R7: held to the same shape the catalogue and a book file are (shared/text.ts): a line past
+    // the limits stops here, with its title, rather than in a learner's reader or at publishing.
+    const shape = newTextSchema.safeParse(m.text);
+    if (!shape.success) throw new Error(`“${m.text.titleZh || m.text.title}” is not a text the site takes: ${shape.error.issues.map((i) => `${i.path.join('.')} ${i.message}`).join('; ')}`);
     if (shelved.has(shelfKey(m.text))) {
       skipped.push(m.text.titleZh);
       continue;
