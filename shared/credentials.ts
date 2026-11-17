@@ -40,12 +40,46 @@ export const normaliseUsername = (raw: string) => raw.normalize('NFKC').trim();
 /** A name as it is compared, so that "Kirill" and "kirill" are one account. */
 export const usernameKey = (raw: string) => normaliseUsername(raw).toLowerCase();
 
+/**
+ * The writing systems a name's letters may come from — one of them a name
+ * (SEC10): "bоss" with a Cyrillic о beside "boss" reads as the same name in
+ * every list, and is refused. Chinese and Japanese characters count as one,
+ * as names mix them.
+ */
+const SCRIPTS: Array<[string, RegExp]> = [
+  ['Latin', /\p{Script=Latin}/u],
+  ['Cyrillic', /\p{Script=Cyrillic}/u],
+  ['Greek', /\p{Script=Greek}/u],
+  ['CJK', /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u],
+  ['Hangul', /\p{Script=Hangul}/u],
+  ['Arabic', /\p{Script=Arabic}/u],
+  ['Hebrew', /\p{Script=Hebrew}/u],
+];
+
+/** The writing systems a name's letters come from, by name; a letter of none of them counts as its own. */
+export function scriptsOf(name: string): Set<string> {
+  const out = new Set<string>();
+  for (const ch of name) {
+    if (!/\p{L}/u.test(ch)) continue;
+    out.add(SCRIPTS.find(([, re]) => re.test(ch))?.[0] ?? `other:${ch}`);
+  }
+  return out;
+}
+
+/**
+ * Names no one signs up with (SEC10): they read as the site speaking. Said
+ * to be taken, as any taken name is. Accounts made on the server itself are
+ * not held to this.
+ */
+export const RESERVED_NAMES = new Set(['admin', 'administrator', 'root', 'support', 'moderator', 'hanzi', 'system', 'staff', 'help', 'owner', 'official']);
+
 export function usernameProblem(raw: string): string | null {
   const name = normaliseUsername(raw);
   const length = [...name].length;
   if (length < USERNAME_MIN) return `At least ${USERNAME_MIN} characters.`;
   if (length > USERNAME_MAX) return `No more than ${USERNAME_MAX} characters.`;
   if (!NAME_SHAPE.test(name)) return 'Letters and digits, with . _ or - between them.';
+  if (scriptsOf(name).size > 1) return 'Letters of one alphabet: Latin, Cyrillic or Chinese characters, not mixed.';
   return null;
 }
 

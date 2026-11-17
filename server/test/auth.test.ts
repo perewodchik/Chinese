@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { AppError } from '../src/domain/errors';
 import { SERVER_COMMAND } from '../src/application/auth-service';
-import { call, makeApp, makeServices, sessionCookie } from './support';
+import { createServices } from '../src/composition';
+import { openDatabase } from '../src/infrastructure/sqlite/database';
+import { sqliteStores } from '../src/infrastructure/sqlite/stores';
+import { call, cheapHasher, makeApp, makeServices, sessionCookie, TestClock } from './support';
 
 const DAY = 86_400_000;
 const PASSWORD = 'correct horse';
@@ -148,6 +151,22 @@ describe('signing up by invitation', () => {
     await assert.rejects(services.auth.register(sign(code, 'masha', 'short')), { code: 'validation' });
     const made = await services.auth.register(sign(code, 'masha'));
     assert.equal(made.user.username, 'masha');
+  });
+
+  it('gives the invitation back when the account could not be written at all (SEC11)', async () => {
+    const db = openDatabase(':memory:');
+    const stores = sqliteStores(db);
+    let failing = true;
+    const insert = stores.users.insert.bind(stores.users);
+    stores.users.insert = async (u) => {
+      if (failing) throw new Error('the database went away');
+      return insert(u);
+    };
+    const services = createServices(stores, { hasher: cheapHasher, clock: new TestClock(), policy: { registration: 'invite' } });
+    const { code } = await services.auth.invite('', null, SERVER_COMMAND);
+    await assert.rejects(services.auth.register(sign(code)), /went away/);
+    failing = false;
+    assert.equal((await services.auth.register(sign(code))).user.username, 'masha');
   });
 
   it('runs out on its last day', async () => {

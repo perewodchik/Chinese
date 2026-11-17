@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import { getRequestListener } from '@hono/node-server';
 import { usernameKey } from '../../shared/credentials';
 import { createServices } from './composition';
@@ -121,7 +122,12 @@ function failed(what: string, err: unknown, status: number): Response {
  */
 function mayInspect(request: Request): boolean {
   const token = process.env.HANZI_HEALTH_TOKEN?.trim();
-  return Boolean(token) && request.headers.get('x-health-token') === token;
+  const given = request.headers.get('x-health-token') ?? '';
+  // Compared in constant time (SEC17): how long a wrong guess takes says nothing about the token.
+  const a = Buffer.from(given);
+  const b = Buffer.from(token ?? '');
+  if (!token || a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }
 
 export default getRequestListener(async (incoming: Request): Promise<Response> => {

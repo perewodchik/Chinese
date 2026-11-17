@@ -10,6 +10,8 @@ export class PostgresPasswordResetRepository implements PasswordResetRepository 
     try {
       await client.query('BEGIN');
       await client.query('DELETE FROM password_resets WHERE user_id = $1 AND used_at IS NULL', [r.userId]);
+      // Links a week past their day are of no use to anyone (SEC9).
+      await client.query('DELETE FROM password_resets WHERE expires_at < $1', [r.createdAt - 7 * 86_400_000]);
       await client.query('INSERT INTO password_resets (digest, user_id, created_at, expires_at, created_by, used_at) VALUES ($1, $2, $3, $4, $5, NULL)', [
         r.digest,
         r.userId,

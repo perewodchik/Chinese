@@ -1,6 +1,8 @@
 import type pg from 'pg';
 import type { LookupCache } from '../../application/ports';
 
+const STALE = 30 * 86_400_000;
+
 /** Answers the same for everyone, kept a while, in Postgres. */
 export class PostgresLookupCache implements LookupCache {
   constructor(private readonly db: pg.Pool) {}
@@ -15,5 +17,7 @@ export class PostgresLookupCache implements LookupCache {
       'INSERT INTO lookup_cache (key, body, fetched_at) VALUES ($1, $2, $3) ON CONFLICT (key) DO UPDATE SET body = EXCLUDED.body, fetched_at = EXCLUDED.fetched_at',
       [key, body, at],
     );
+    // Now and then, what nobody has asked for in a month goes (SEC9): no server runs a sweep on Vercel.
+    if (Math.random() < 0.01) await this.db.query('DELETE FROM lookup_cache WHERE fetched_at < $1', [at - STALE]);
   }
 }

@@ -49,7 +49,7 @@ function appWith(narrator: Narrator) {
   return createHttpApp(services, { trustProxy: false, staticDir: null, log: () => undefined });
 }
 
-async function signedIn(app: ReturnType<typeof appWith>, username = 'admin') {
+async function signedIn(app: ReturnType<typeof appWith>, username = 'kirill') {
   return sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username, password: 'correct horse' } }));
 }
 

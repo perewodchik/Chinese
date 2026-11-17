@@ -5,6 +5,7 @@ import {
   PASSWORD_MAX,
   passwordProblem,
   usernameKey,
+  RESERVED_NAMES,
   usernameProblem,
 } from '../../../shared/credentials';
 import type { ApiToken, User } from '../domain/entities';
@@ -174,20 +175,23 @@ export class AuthService {
     const { registration } = this.deps.policy;
     if (registration === 'closed') throw new RegistrationClosedError();
     // Said as any taken name is, so the form does not tell a visitor which names run the site.
-    if (this.deps.policy.reservedNames?.includes(usernameKey(input.username))) throw new UsernameTakenError();
+    if (this.deps.policy.reservedNames?.includes(usernameKey(input.username)) || RESERVED_NAMES.has(usernameKey(input.username))) throw new UsernameTakenError();
     if (registration === 'open') return this.issue(await this.createUser(input.username, input.password), input.userAgent);
 
     const code = normaliseInvite(input.invite ?? '');
     if (!code) throw new ValidationError('An account here needs an invitation.', { invite: 'The code from your invitation.' });
     const digest = this.deps.tokens.digest(code);
     // Claimed only once the name and password are good, so a typo in either
-    // does not use the invitation up; given back if the name turns out taken.
+    // does not use the invitation up; given back whenever the account then
+    // could not be written — a taken name, or the database failing (SEC11).
+    let claimedFor: string | null = null;
     const user = await this.createUser(input.username, input.password, async (userId) => {
       if (!(await this.deps.invites.claim(digest, userId, this.deps.clock.now()))) {
         throw new ValidationError('That invitation is not right, or it has been used.', { invite: 'Not a code that can be used.' });
       }
+      claimedFor = userId;
     }).catch(async (err: unknown) => {
-      if (err instanceof UsernameTakenError && err.userId) await this.deps.invites.release(digest, err.userId);
+      if (claimedFor) await this.deps.invites.release(digest, claimedFor).catch(() => undefined);
       throw err;
     });
     return this.issue(user, input.userAgent);
@@ -472,8 +476,11 @@ export class AuthService {
     if (problem) throw new ValidationError(problem, { newPassword: problem });
     const code = normaliseInvite(input.code);
     const refused = new ValidationError('That name and code do not go together, or the code has been used.', { code: 'Not a code that works for this name.' });
-    if (!user || code.length !== RECOVERY_LENGTH) throw refused;
-    if (!(await recoveryCodes.use(user.id, this.recoveryDigest(user.id, code), clock.now()))) throw refused;
+    if (code.length !== RECOVERY_LENGTH) throw refused;
+    // A name with no account goes to the codes too, so it is not answered sooner (SEC18).
+    const owner = user?.id ?? 'no-such-account';
+    const used = await recoveryCodes.use(owner, this.recoveryDigest(owner, code), clock.now());
+    if (!user || !used) throw refused;
     if (user.status === 'blocked') throw new AccountBlockedError();
     await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
     await sessions.deleteForUser(user.id);

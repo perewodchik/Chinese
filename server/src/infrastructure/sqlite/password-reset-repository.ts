@@ -9,6 +9,8 @@ export class SqlitePasswordResetRepository implements PasswordResetRepository {
     this.db.exec('BEGIN');
     try {
       this.db.prepare('DELETE FROM password_resets WHERE user_id = ? AND used_at IS NULL').run(r.userId);
+      // Links a week past their day are of no use to anyone (SEC9).
+      this.db.prepare('DELETE FROM password_resets WHERE expires_at < ?').run(r.createdAt - 7 * 86_400_000);
       this.db
         .prepare('INSERT INTO password_resets (digest, user_id, created_at, expires_at, created_by, used_at) VALUES (?, ?, ?, ?, ?, NULL)')
         .run(r.digest, r.userId, r.createdAt, r.expiresAt, r.createdBy);

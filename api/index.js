@@ -1,6 +1,7 @@
 // Built from server/src/vercel.ts by scripts/build-api.mjs — do not edit.
 
 // server/src/vercel.ts
+import { timingSafeEqual as timingSafeEqual2 } from "node:crypto";
 import { getRequestListener } from "@hono/node-server";
 
 // shared/credentials.ts
@@ -90,12 +91,31 @@ var COMMON_PASSWORDS = /* @__PURE__ */ new Set([
 var NAME_SHAPE = /^[\p{L}\p{N}][\p{L}\p{N}._-]*$/u;
 var normaliseUsername = (raw) => raw.normalize("NFKC").trim();
 var usernameKey = (raw) => normaliseUsername(raw).toLowerCase();
+var SCRIPTS = [
+  ["Latin", /\p{Script=Latin}/u],
+  ["Cyrillic", /\p{Script=Cyrillic}/u],
+  ["Greek", /\p{Script=Greek}/u],
+  ["CJK", /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u],
+  ["Hangul", /\p{Script=Hangul}/u],
+  ["Arabic", /\p{Script=Arabic}/u],
+  ["Hebrew", /\p{Script=Hebrew}/u]
+];
+function scriptsOf(name) {
+  const out = /* @__PURE__ */ new Set();
+  for (const ch of name) {
+    if (!/\p{L}/u.test(ch)) continue;
+    out.add(SCRIPTS.find(([, re]) => re.test(ch))?.[0] ?? `other:${ch}`);
+  }
+  return out;
+}
+var RESERVED_NAMES = /* @__PURE__ */ new Set(["admin", "administrator", "root", "support", "moderator", "hanzi", "system", "staff", "help", "owner", "official"]);
 function usernameProblem(raw) {
   const name = normaliseUsername(raw);
   const length = [...name].length;
   if (length < USERNAME_MIN) return `At least ${USERNAME_MIN} characters.`;
   if (length > USERNAME_MAX) return `No more than ${USERNAME_MAX} characters.`;
   if (!NAME_SHAPE.test(name)) return "Letters and digits, with . _ or - between them.";
+  if (scriptsOf(name).size > 1) return "Letters of one alphabet: Latin, Cyrillic or Chinese characters, not mixed.";
   return null;
 }
 function passwordProblem(password, username = "") {
@@ -412,17 +432,19 @@ var AuthService = class {
   async register(input) {
     const { registration: registration2 } = this.deps.policy;
     if (registration2 === "closed") throw new RegistrationClosedError();
-    if (this.deps.policy.reservedNames?.includes(usernameKey(input.username))) throw new UsernameTakenError();
+    if (this.deps.policy.reservedNames?.includes(usernameKey(input.username)) || RESERVED_NAMES.has(usernameKey(input.username))) throw new UsernameTakenError();
     if (registration2 === "open") return this.issue(await this.createUser(input.username, input.password), input.userAgent);
     const code = normaliseInvite(input.invite ?? "");
     if (!code) throw new ValidationError("An account here needs an invitation.", { invite: "The code from your invitation." });
     const digest = this.deps.tokens.digest(code);
+    let claimedFor = null;
     const user = await this.createUser(input.username, input.password, async (userId) => {
       if (!await this.deps.invites.claim(digest, userId, this.deps.clock.now())) {
         throw new ValidationError("That invitation is not right, or it has been used.", { invite: "Not a code that can be used." });
       }
+      claimedFor = userId;
     }).catch(async (err) => {
-      if (err instanceof UsernameTakenError && err.userId) await this.deps.invites.release(digest, err.userId);
+      if (claimedFor) await this.deps.invites.release(digest, claimedFor).catch(() => void 0);
       throw err;
     });
     return this.issue(user, input.userAgent);
@@ -666,8 +688,10 @@ var AuthService = class {
     if (problem) throw new ValidationError(problem, { newPassword: problem });
     const code = normaliseInvite(input.code);
     const refused = new ValidationError("That name and code do not go together, or the code has been used.", { code: "Not a code that works for this name." });
-    if (!user || code.length !== RECOVERY_LENGTH) throw refused;
-    if (!await recoveryCodes.use(user.id, this.recoveryDigest(user.id, code), clock.now())) throw refused;
+    if (code.length !== RECOVERY_LENGTH) throw refused;
+    const owner = user?.id ?? "no-such-account";
+    const used = await recoveryCodes.use(owner, this.recoveryDigest(owner, code), clock.now());
+    if (!user || !used) throw refused;
     if (user.status === "blocked") throw new AccountBlockedError();
     await users.updatePassword(user.id, await hasher.hash(input.newPassword), clock.now());
     await sessions.deleteForUser(user.id);
@@ -5337,6 +5361,7 @@ var PostgresRateLimitStore = class {
 };
 
 // server/src/infrastructure/postgres/lookup-cache.ts
+var STALE = 30 * 864e5;
 var PostgresLookupCache = class {
   constructor(db) {
     this.db = db;
@@ -5350,6 +5375,7 @@ var PostgresLookupCache = class {
       "INSERT INTO lookup_cache (key, body, fetched_at) VALUES ($1, $2, $3) ON CONFLICT (key) DO UPDATE SET body = EXCLUDED.body, fetched_at = EXCLUDED.fetched_at",
       [key, body, at]
     );
+    if (Math.random() < 0.01) await this.db.query("DELETE FROM lookup_cache WHERE fetched_at < $1", [at - STALE]);
   }
 };
 
@@ -5430,6 +5456,7 @@ var PostgresPasswordResetRepository = class {
     try {
       await client.query("BEGIN");
       await client.query("DELETE FROM password_resets WHERE user_id = $1 AND used_at IS NULL", [r.userId]);
+      await client.query("DELETE FROM password_resets WHERE expires_at < $1", [r.createdAt - 7 * 864e5]);
       await client.query("INSERT INTO password_resets (digest, user_id, created_at, expires_at, created_by, used_at) VALUES ($1, $2, $3, $4, $5, NULL)", [
         r.digest,
         r.userId,
@@ -5660,7 +5687,11 @@ function failed(what, err, status) {
 }
 function mayInspect(request) {
   const token = process.env.HANZI_HEALTH_TOKEN?.trim();
-  return Boolean(token) && request.headers.get("x-health-token") === token;
+  const given = request.headers.get("x-health-token") ?? "";
+  const a = Buffer.from(given);
+  const b = Buffer.from(token ?? "");
+  if (!token || a.length !== b.length) return false;
+  return timingSafeEqual2(a, b);
 }
 var vercel_default = getRequestListener(async (incoming) => {
   let request;

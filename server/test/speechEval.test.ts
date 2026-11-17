@@ -138,7 +138,7 @@ describe('phrases scored with the learner’s own keys', () => {
   it('keeps keys only once iFlytek lets them in, never sends them back, and scores at the strictness chosen', async () => {
     const { evaluator, seen } = stub();
     const app = appWith(evaluator);
-    const cookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'admin', password: 'correct horse' } }));
+    const cookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'kirill', password: 'correct horse' } }));
     assert.deepEqual(await (await call(app, 'GET', '/api/eval', { cookie })).json(), { key: { set: false, hint: null, provider: null }, strictness: 'common' });
 
     const audio = Buffer.alloc(16_000).toString('base64');
@@ -180,7 +180,7 @@ describe('keys the service turned away (K18)', () => {
       },
     };
     const app = appWith(evaluator);
-    const cookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'admin', password: 'correct horse' } }));
+    const cookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'kirill', password: 'correct horse' } }));
     const other = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: 'correct horse' } }));
     await call(app, 'PUT', '/api/eval/key', { cookie, body: GOOD });
     await call(app, 'PUT', '/api/eval/key', { cookie: other, body: GOOD });
@@ -220,7 +220,7 @@ describe('tries kept for every device', () => {
   it('keeps each try once, gives each line its last five and each drill its count, and only to its owner', async () => {
     const { evaluator } = stub();
     const app = appWith(evaluator);
-    const cookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'admin', password: 'correct horse' } }));
+    const cookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'kirill', password: 'correct horse' } }));
     const line = (i: number) => ({ id: `p${i}`, at: 1000 + i, kind: 'phrase', sourceId: 't1', text: '小智饿了', good: i % 2 === 0, summary: { total: 60 + i }, result: parseReport(REPORT) });
     const drill = (i: number, good: boolean) => ({ id: `d${i}`, at: 2000 + i, kind: 'drill', text: '马', tally: 'tone:3', good });
     const items = [...[0, 1, 2, 3, 4, 5, 6].map(line), drill(0, true), drill(1, false), drill(2, true)];
