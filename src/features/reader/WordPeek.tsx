@@ -18,38 +18,46 @@ export interface Peeked {
   band: number | null;
 }
 
-/** Where the card sits: a strip on the bottom edge, in the margin beside the line, or by the word. */
-type Place = { kind: 'strip' } | { kind: 'margin' | 'below' | 'above'; left: number; top: number; arrow: number };
+/** Where the card sits: a strip on the bottom edge of a phone, or by what it is about. */
+export type Place = { kind: 'strip' } | { kind: 'below' | 'above'; left: number; top: number; arrow: number };
+
+/** Where what is pinned to the top ends: the bar, and the narrator's row under it while it is open. */
+export function pinnedBottom(fallback = 0): number {
+  const bar = document.querySelector('.rd-pin')?.getBoundingClientRect().bottom;
+  const dock = document.querySelector('.rd-dock:not([hidden])')?.getBoundingClientRect().bottom;
+  return Math.max(bar ?? fallback, dock ?? 0);
+}
 
 const GAP = 10;
 const EDGE = 12;
-/** Wide enough for the margin card: the margin of a page on an iPad on its side. */
-const MARGIN_MIN = 200;
 
 /**
- * Where the card goes. A phone gets a strip along the bottom, under the
- * thumb and over nothing but the last lines. A page with a margin puts the
- * card in it, level with the word's line, so no line of the text is covered.
- * Anywhere else it is a popover by the word: below it, or above it when the
- * word is low on the screen.
+ * Where a card about something on the page goes. A phone gets a strip along
+ * the bottom, under the thumb and over nothing but the last lines. Anywhere
+ * else it is a popover by the thing itself: below it, or above it when it is
+ * low on the screen, its pointer at the middle of it. (It used to go into a
+ * wide page's margin, level with the line: on an iPad on its side that put
+ * it a hand's width from the word, over the glosses, and it read as lost.)
+ *
+ * A sentence wraps over lines: the card goes under its last line, or over
+ * its first, and points at that line.
  */
-function placeFor(el: HTMLElement, card: HTMLElement | null): Place {
+export function placeFor(el: HTMLElement, card: HTMLElement | null): Place {
   if (window.innerWidth < 700) return { kind: 'strip' };
-  const w = el.getBoundingClientRect();
+  const rects = [...el.getClientRects()].filter((r) => r.width > 0);
+  const whole = el.getBoundingClientRect();
+  const first = rects[0] ?? whole;
+  const last = rects[rects.length - 1] ?? whole;
   const width = card?.offsetWidth ?? 340;
   const height = card?.offsetHeight ?? 170;
-  const pinned = document.querySelector('.rd-pin')?.getBoundingClientRect().bottom ?? 0;
-  const clampTop = (t: number) => Math.max(pinned + GAP, Math.min(window.innerHeight - height - EDGE, t));
-  const margin = el.closest('.rd-row')?.querySelector<HTMLElement>('.rd-margin')?.getBoundingClientRect();
-  if (margin && margin.width >= MARGIN_MIN && margin.left > w.right) {
-    const top = clampTop(w.top + w.height / 2 - 30);
-    return { kind: 'margin', left: margin.left - 16, top, arrow: Math.max(14, Math.min(height - 28, w.top + w.height / 2 - top - 8)) };
-  }
-  const left = Math.max(EDGE, Math.min(window.innerWidth - width - EDGE, w.left + w.width / 2 - width / 2));
-  const arrow = Math.max(16, Math.min(width - 32, w.left + w.width / 2 - left - 8));
-  const below = w.bottom + GAP;
-  if (below + height <= window.innerHeight - EDGE) return { kind: 'below', left, top: below, arrow };
-  return { kind: 'above', left, top: Math.max(pinned + GAP, w.top - GAP - height), arrow };
+  const pinned = pinnedBottom();
+  const at = (r: DOMRect) => {
+    const left = Math.max(EDGE, Math.min(window.innerWidth - width - EDGE, r.left + r.width / 2 - width / 2));
+    return { left, arrow: Math.max(16, Math.min(width - 32, r.left + r.width / 2 - left - 8)) };
+  };
+  const below = whole.bottom + GAP;
+  if (below + height <= window.innerHeight - EDGE) return { kind: 'below', top: below, ...at(last) };
+  return { kind: 'above', top: Math.max(pinned + GAP, first.top - GAP - height), ...at(first) };
 }
 
 /**
@@ -95,11 +103,19 @@ export function WordPeek({
   }, [measure]);
 
   // A phone: the word is kept above the strip, not under it.
+  // Checked again as the card takes its height (its fonts and sound button arrive a moment after it).
   useEffect(() => {
-    if (place.kind !== 'strip' || !card.current) return;
-    const r = peek.el.getBoundingClientRect();
-    const clear = card.current.getBoundingClientRect().top - 16;
-    if (r.bottom > clear) document.querySelector('.main')?.scrollBy({ top: r.bottom - clear + 24, behavior: 'smooth' });
+    const c = card.current;
+    if (place.kind !== 'strip' || !c) return;
+    const keepClear = () => {
+      const r = peek.el.getBoundingClientRect();
+      // From its resting place, not its box: the card is still rising into it when it is first measured.
+      const clear = window.innerHeight - (parseFloat(getComputedStyle(c).bottom) || 0) - c.offsetHeight - 16;
+      if (r.bottom > clear) document.querySelector('.main')?.scrollBy({ top: r.bottom - clear + 24, behavior: 'smooth' });
+    };
+    const seen = new ResizeObserver(keepClear);
+    seen.observe(c);
+    return () => seen.disconnect();
   }, [peek.el, place.kind]);
 
   // Away with a tap anywhere but the card or another word (a word opens its own), and with Escape.

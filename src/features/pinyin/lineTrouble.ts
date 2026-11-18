@@ -20,6 +20,10 @@ export function troubleOf(err: unknown): Trouble {
     if (err.status === 400) return { title: 'This recording cannot be scored', text: err.message, retry: false, settings: false };
     if (err.status === 401) return { title: 'Signed out', text: 'Sign in again, then say the line once more.', retry: false, settings: false };
     if (err.status === 429) return { title: 'Too many at once', text: 'Wait a minute, then try again.', retry: true, settings: false };
+    // Keys the service turned away (expired, refused, out of balance): the same recording would fail again, so no Try again.
+    if (/expired|turned the keys away|did not accept|Nothing more is sent with this key/i.test(err.message)) {
+      return { title: /expired/i.test(err.message) ? 'The pronunciation keys have expired' : 'The pronunciation keys were turned away', text: err.message, retry: false, settings: true };
+    }
     return { title: 'The scoring service failed', text: `${err.message} Your recording is kept: try again.`, retry: true, settings: /key|sig|licen|expire|quota/i.test(err.message) };
   }
   return { title: 'Something went wrong', text: err instanceof Error ? err.message : 'Try again.', retry: true, settings: false };

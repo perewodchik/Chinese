@@ -14,7 +14,9 @@ import { setPageColour } from '../../ui/colorScheme';
 import { bookOf, bookTitle, chapterHead, isFrontMatter, kindOf } from '../../domain/bookshelf';
 import { ChapterEnd } from './ChapterEnd';
 import { BookContents } from './BookContents';
-import { WordPeek, type Peeked } from './WordPeek';
+import { ListenControl, useListenVoice } from './ListenBar';
+import { SentencePeek, type HeldSentence } from './SentencePeek';
+import { pinnedBottom, WordPeek, type Peeked } from './WordPeek';
 import { ChapterTabs, SpeakPart, tabOfHash, useLineBests, type ChapterTab, type TabInfo } from './ChapterTabs';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { Passage, useWordDone, type ReaderView } from './Passage';
@@ -25,12 +27,13 @@ import {
   usePictureMode,
   usePinyinMode,
   useTranslationMode,
+  useBookStyleMode,
 } from './readerView';
+import { bookStyleOf } from '../../domain/bookStyle';
 import { DockPlayer, type PlayerControl } from './DockPlayer';
 import { AaMenu } from './AaMenu';
 import { ReaderMenu } from './ReaderMenu';
 import { rememberReading } from '../shared/lastRead';
-import { ListenPart } from './ListenPart';
 import { MorePart } from './MorePart';
 import { partFill } from './parts';
 import { QuestionsPart } from './QuestionsPart';
@@ -153,12 +156,22 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [pictures, setPictures] = usePictureMode();
   const [paper, setPaper] = usePaperMode();
   const [glosses, setGlosses] = useGlossMode();
+  const [bookOn, setBookOn] = useBookStyleMode();
+  // The book's own look, where it has one and it is turned on.
+  const bookStyle = bookStyleOf(set?.name, list[0]?.topic, text.title, text.titleZh);
+  const dressed = bookOn === 'on' ? bookStyle : null;
   const [contents, setContents] = useState(false);
   // A tapped word's card; the whole drawer is a tap on it away.
   const [peek, setPeek] = useState<(Peeked & { key: string }) | null>(null);
   const closePeek = useCallback(() => setPeek(null), []);
   const openItem = useOpenItem();
-  useEffect(() => setPeek(null), [text.id]);
+  // A held sentence's card: its English and Copy.
+  const [held, setHeld] = useState<HeldSentence | null>(null);
+  const closeHeld = useCallback(() => setHeld(null), []);
+  useEffect(() => {
+    setPeek(null);
+    setHeld(null);
+  }, [text.id]);
   const closeContents = useCallback(() => setContents(false), []);
   // Sepia and Night are this page's: on while it is open, the app's own colours back when it closes.
   // Before the first paint, so a sepia page never shows white for a moment.
@@ -189,7 +202,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     if (!el) return;
     const r = el.getBoundingClientRect();
     // Under the bar and the player at the top, or off the bottom: brought back, gently.
-    const pinned = document.querySelector('.rd-pin')?.getBoundingClientRect().bottom ?? 120;
+    const pinned = pinnedBottom(120);
     if (r.top < pinned + 8 || r.bottom > window.innerHeight - 24) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [narrLine, text.id]);
   const top = useRef<HTMLDivElement>(null);
@@ -212,6 +225,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   /* -------------------------------------------------------- the voice */
   const spoken = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
   const reading = useReading(spoken);
+  const voice = useListenVoice(text, reading);
+  const [playing, setPlaying] = useState(false);
   useEffect(() => prefetchPassage(spoken, reading.voice), [spoken, reading.voice]);
   // Heard to the end is the Listen part done, once more; read through a ref so a listening ending counts the latest number.
   const listensRef = useRef(text.study?.listens ?? (text.study?.heard ? 1 : 0));
@@ -326,7 +341,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const next = page < total ? versionOf(entries[page]!, null) : null;
 
   return (
-    <div className="rd" ref={top} data-mode={mode} style={{ '--reader-scale': settings.readerScale } as CSSProperties}>
+    <div className="rd" ref={top} data-mode={mode} data-book={dressed ?? undefined} style={{ '--reader-scale': settings.readerScale } as CSSProperties}>
       {/* The bar, stuck to the top and opaque from the screen's edge down. */}
       <div className="rd-pin no-print">
       <header className="rd-top">
@@ -373,6 +388,9 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           setTranslation={setTranslation}
           hasTrad={list.some((t) => t.lines.some((l) => l.zht))}
           hasPictures={list.some((t) => t.pictures?.some((p) => p.key))}
+          book={bookStyle}
+          bookOn={bookOn}
+          setBookOn={setBookOn}
           pictures={pictures}
           setPictures={setPictures}
           paper={paper}
@@ -393,10 +411,13 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       {mode === 'single' && (
         <div className="rd-dock" hidden={!listening}>
           <DockPlayer
+            key={voice.current ? voice.current.n.key : String(voice.current)}
             text={text}
             reading={reading}
             spoken={spoken}
+            narrated={voice.current}
             onLine={setNarrLine}
+            onPlaying={setPlaying}
             control={player}
             onClose={() => {
               player.current?.stop();
@@ -420,23 +441,39 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             onReveal={reveal}
             onPoint={point}
             retold={Boolean(entry.original) && t.id === entry.easier?.id}
+            book={dressed}
             study={study}
             heading={mode === 'all' && !story ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
             head={chapterHead(t, chapterAt(mode === 'all' ? i : page - 1))}
             titleAction={
               mode === 'single' ? (
-                <button
-                  className="rd-listen-btn"
-                  aria-pressed={listening}
-                  aria-label={listening ? 'Close the narrator' : 'Listen: the narrator reads it to you'}
-                  title={listening ? 'Close the narrator' : 'Listen: the narrator reads it to you'}
-                  onClick={listen}
-                >
-                  <Icon name="listen" size={22} />
-                </button>
+                <ListenControl
+                  text={text}
+                  voice={voice}
+                  reading={reading}
+                  playing={listening && playing}
+                  onPlay={() => {
+                    if (!listening) listen();
+                    else if (playing) player.current?.stop();
+                    else player.current?.start();
+                  }}
+                />
               ) : null
             }
-            onWord={(p) => setPeek((was) => (was?.key === p.key && was.el === p.el ? null : p))}
+            onHold={
+              t.id === text.id
+                ? (line, el) => {
+                    setPeek(null);
+                    setHeld({ i: line, el });
+                    if (!text.study?.translated) studyText(text.id, { translated: Date.now() });
+                  }
+                : undefined
+            }
+            held={t.id === text.id ? (held?.i ?? null) : null}
+            onWord={(p) => {
+              setHeld(null);
+              setPeek((was) => (was?.key === p.key && was.el === p.el ? null : p));
+            }}
             peekKey={peek?.key ?? null}
           />
         ))}
@@ -454,6 +491,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           onClose={closePeek}
         />
       )}
+
+      {held && text.lines[held.i] && <SentencePeek held={held} line={text.lines[held.i]!} onClose={closeHeld} />}
 
       {contents && set && (
         <BookContents set={set} book={bookOf(set, list)} entries={entries} page={mode === 'single' ? page : 0} onClose={closeContents} />
@@ -490,7 +529,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
                 onToggleRead={toggleRead}
                 onAgain={() => top.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
               />
-              <ListenPart text={text} reading={reading} spoken={spoken} partId="part-listen" />
             </>
           )}
           {shownTab === 'write' && (

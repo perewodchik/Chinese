@@ -3,7 +3,7 @@ import { narrationAudio } from '../../api/narration';
 import type { GeneratedText } from '../../domain/text';
 import { studyText } from '../../store/commands';
 import { Icon } from '../../ui/Icon';
-import { castReading, narratedReadings, type Narrated } from '../shared/narratedClips';
+import type { Narrated } from '../shared/narratedClips';
 import type { Reading } from './readAloud';
 import { stored } from '../../platform/storage';
 
@@ -24,15 +24,6 @@ const storedRate = (): number => {
   }
 };
 
-/** The reading Listen last chose, when it is one of this text's. */
-const chosen = () => {
-  try {
-    return stored.get('hanzi.listen.reading');
-  } catch {
-    return null;
-  }
-};
-
 /** What the bar's listen button does with the player: start it, or stop it. */
 export interface PlayerControl {
   start: () => void;
@@ -42,8 +33,9 @@ export interface PlayerControl {
 /**
  * The narrator, in one row under the bar while it is open: the sentence
  * before, play, the next, a slider through the reading, the speed, and ✕.
- * The line being read is lit in the text (`onLine`). A text no narrator has
- * read plays line by line in the sentence voices instead.
+ * The line being read is lit in the text (`onLine`). Which reading it plays
+ * is chosen at the top of the text (Listen); the sentence voices read line by
+ * line.
  *
  * It is there, hidden, from the moment the text opens, so its recording is
  * loaded before the listen button is tapped and starts from the tap itself:
@@ -56,19 +48,23 @@ export function DockPlayer({
   text,
   reading,
   spoken,
+  narrated,
   onLine,
+  onPlaying,
   control,
   onClose,
 }: {
   text: GeneratedText;
   reading: Reading;
   spoken: string[];
+  /** the reading chosen at the top of the text (Listen); null for the sentence voices, undefined while they are asked for */
+  narrated: Narrated | null | undefined;
   onLine: (i: number | null) => void;
+  /** whether it is reading now, for Listen's own button */
+  onPlaying: (on: boolean) => void;
   control: MutableRefObject<PlayerControl | null>;
   onClose: () => void;
 }) {
-  const lines = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
-  const [narrated, setNarrated] = useState<Narrated | null | undefined>(undefined);
   const [src, setSrc] = useState<string | null>(null);
   const [at, setAt] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -90,24 +86,8 @@ export function DockPlayer({
   };
 
   useEffect(() => {
-    let live = true;
-    setNarrated(undefined);
     setSrc(null);
     setAt(0);
-    narratedReadings(lines).then(
-      (list) => {
-        if (!live) return;
-        const c = chosen();
-        setNarrated(castReading(list) ?? list.find((r) => r.n.narratorId === c) ?? list[0] ?? null);
-      },
-      () => live && setNarrated(null),
-    );
-    return () => {
-      live = false;
-    };
-  }, [lines]);
-
-  useEffect(() => {
     if (!narrated) return;
     let live = true;
     narrationAudio(narrated.n).then((u) => live && setSrc(u), () => undefined);
@@ -134,6 +114,9 @@ export function DockPlayer({
     if (narrated) onLine(playing || at > 0 ? line : null);
   }, [narrated, playing, at, line, onLine]);
   useEffect(() => () => onLine(null), [onLine]);
+  const going = reading.at !== null || reading.loading;
+  useEffect(() => onPlaying(narrated ? playing : going), [narrated, playing, going, onPlaying]);
+  useEffect(() => () => onPlaying(false), [onPlaying]);
 
   // How far the voice has got counts, as in Listen.
   const furthest = text.study?.listened ?? 0;
@@ -168,8 +151,7 @@ export function DockPlayer({
   };
 
   if (narrated === null) {
-    // No narrator has read it: the sentence voices, a line at a time.
-    const going = reading.at !== null || reading.loading;
+    // No narrator has read it, or the sentence voices were chosen: a line at a time.
     const n = sentenceLine ?? 0;
     return (
       <div className="rd-dock-play">

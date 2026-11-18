@@ -1,4 +1,4 @@
-import { ask, askText } from '../../ui/dialogs';
+import { askText } from '../../ui/dialogs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { charId } from '../../domain/ids';
@@ -11,7 +11,7 @@ import { WelcomeBack } from '../shared/WelcomeBack';
 import { Announcement } from '../shared/Announcement';
 import { useCardsToday } from '../shared/cardsToday';
 import { useQuery } from '../../navigation/query';
-import { addTexts, discardPlan } from '../../store/commands';
+import { addTexts } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { Menu } from '../../ui/Menu';
@@ -67,7 +67,6 @@ export function ReadPage() {
   const navigate = useNavigate();
   const texts = useStore((s) => s.texts);
   const sets = useStore((s) => s.sets);
-  const plan = useStore((s) => s.plan);
   const startSession = useStartSession();
   const shelf = useMemo(() => shelve(texts, sets), [texts, sets]);
   const go = useContinue();
@@ -233,30 +232,6 @@ export function ReadPage() {
         </section>
       ) : (
         <>
-          {plan && (
-            <div className="resume-row">
-              <span className="hanzi" aria-hidden>
-                写
-              </span>
-              <div className="grow">
-                <b>{plan.name}</b>
-                <span className="small muted">
-                  {plan.specs.length} texts being written,{' '}
-                  {plan.step === 'plan' ? 'still being planned' : plan.step === 'prompt' ? 'the prompt is ready' : 'waiting for Claude’s answer'}
-                </span>
-              </div>
-              <button
-                className="btn quiet sm"
-                onClick={() => void ask({ title: 'Throw this session away?', message: 'The plan and anything pasted go with it.', yes: 'Throw it away', danger: true }).then((yes) => yes && discardPlan())}
-              >
-                Discard
-              </button>
-              <Link className="btn tonal sm" to={paths.session(plan.step)}>
-                Continue
-              </Link>
-            </div>
-          )}
-
           <Announcement />
 
           <WelcomeBack />
