@@ -8,6 +8,7 @@ import { Icon } from '../../ui/Icon';
 import { Dictation, openDictation } from './Dictation';
 import { keptVideo, type KeptVideo } from './video/kept';
 import { VideoStudio } from './video/VideoStudio';
+import { isSpeakSectionEnabled } from '../../navigation/features';
 import { mmss } from '../../domain/textVideo';
 import { narratedReadings, pickReading, prepareClips } from '../shared/narratedClips';
 import { Section } from './PartSection';
@@ -70,7 +71,7 @@ export function MorePart({ text, partId }: { text: GeneratedText; partId: string
   const [film, setFilm] = useState<KeptVideo | null>(null);
   // A video made of this text, kept on this device: the row says so.
   useEffect(() => {
-    if (filming) return;
+    if (filming || !isSpeakSectionEnabled) return;
     let live = true;
     void keptVideo(text.id).then((v) => live && setFilm(v));
     return () => {
@@ -147,20 +148,23 @@ export function MorePart({ text, partId }: { text: GeneratedText; partId: string
           </span>
           <Icon name="chevron" />
         </button>
-        <button className="rd-more-row" onClick={() => setFilming(true)}>
-          <span className="hanzi" aria-hidden>
-            影
-          </span>
-          <span className="grow">
-            <b>Video</b>
-            <span className="small muted">
-              {film
-                ? `A video, ${mmss(film.duration)}${film.parts.length > 1 ? ` in ${film.parts.length} parts` : ''}: watch it or make it again`
-                : 'The text as an upright video: its pictures, the narrator, subtitles'}
+        {/* A video is timed by a narrator's reading, and narrators are made in Speak: without Speak there is none to make. */}
+        {isSpeakSectionEnabled && (
+          <button className="rd-more-row" onClick={() => setFilming(true)}>
+            <span className="hanzi" aria-hidden>
+              影
             </span>
-          </span>
-          <Icon name="chevron" />
-        </button>
+            <span className="grow">
+              <b>Video</b>
+              <span className="small muted">
+                {film
+                  ? `A video, ${mmss(film.duration)}${film.parts.length > 1 ? ` in ${film.parts.length} parts` : ''}: watch it or make it again`
+                  : 'The text as an upright video: its pictures, the narrator, subtitles'}
+              </span>
+            </span>
+            <Icon name="chevron" />
+          </button>
+        )}
       </div>
       {dictating && <Dictation text={text} onClose={() => setDictating(false)} />}
       {filming && <VideoStudio text={text} onClose={() => setFilming(false)} />}
