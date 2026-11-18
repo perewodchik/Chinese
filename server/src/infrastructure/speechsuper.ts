@@ -138,7 +138,12 @@ export function parseAnswer(raw: unknown, strictness: Strictness): EvalResult {
   const a = (raw ?? {}) as Answer;
   if (a.error || a.errId || !a.result) {
     const message = a.error ?? 'no result';
-    const keys = /sig|appkey|application|auth|licen[cs]e|expire|quota|permission/i.test(message);
+    // "invalid expired" (errId 41030, the code it gives every refused request): the key's term is over, as a
+    // trial key's is after a few weeks. Trying again cannot help; new keys from the console do.
+    if (/expire/i.test(message)) {
+      throw new EvaluatorRefused(`SpeechSuper says the keys have expired (${message}${a.errId ? `, ${a.errId}` : ''}). Renew them in the SpeechSuper console, then paste them again in Settings.`, 'keys');
+    }
+    const keys = /sig|appkey|application|auth|licen[cs]e|quota|permission/i.test(message);
     throw new EvaluatorRefused(`SpeechSuper: ${message}${a.errId ? ` (${a.errId})` : ''}`, keys ? 'keys' : 'failed');
   }
   const r = a.result;

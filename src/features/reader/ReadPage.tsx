@@ -17,7 +17,7 @@ import { oneOf, useQuery } from '../../navigation/query';
 // R5: the PDF code (pdf-lib and the fonts) comes only when something is printed.
 const pdfRender = () => import('../../pdf/render');
 import { downloadText, safeFileName } from '../../platform/files';
-import { addTexts, deleteSet, discardPlan, renameSet } from '../../store/commands';
+import { addTexts, deleteSet, renameSet } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { Menu } from '../../ui/Menu';
@@ -81,7 +81,6 @@ export function ReadPage() {
   const navigate = useNavigate();
   const texts = useStore((s) => s.texts);
   const sets = useStore((s) => s.sets);
-  const plan = useStore((s) => s.plan);
   const startSession = useStartSession();
   const shelf = useMemo(() => shelve(texts, sets), [texts, sets]);
   const go = useContinue();
@@ -247,30 +246,6 @@ export function ReadPage() {
         </section>
       ) : (
         <>
-          {plan && (
-            <div className="resume-row">
-              <span className="hanzi" aria-hidden>
-                写
-              </span>
-              <div className="grow">
-                <b>{plan.name}</b>
-                <span className="small muted">
-                  {plan.specs.length} texts being written,{' '}
-                  {plan.step === 'plan' ? 'still being planned' : plan.step === 'prompt' ? 'the prompt is ready' : 'waiting for Claude’s answer'}
-                </span>
-              </div>
-              <button
-                className="btn quiet sm"
-                onClick={() => void ask({ title: 'Throw this session away?', message: 'The plan and anything pasted go with it.', yes: 'Throw it away', danger: true }).then((yes) => yes && discardPlan())}
-              >
-                Discard
-              </button>
-              <Link className="btn tonal sm" to={paths.session(plan.step)}>
-                Continue
-              </Link>
-            </div>
-          )}
-
           <Announcement />
 
           <WelcomeBack />

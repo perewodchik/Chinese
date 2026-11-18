@@ -103,6 +103,7 @@ describe('SpeechSuper’s answer', () => {
   it('tells keys it does not accept from other refusals', () => {
     assert.throws(() => parseAnswer({ errId: 41030, error: 'connect with invalid sig' }, 'common'), (e: EvaluatorRefused) => e.reason === 'keys');
     assert.throws(() => parseAnswer({ errId: 41030, error: 'invalid coreType' }, 'common'), (e: EvaluatorRefused) => e.reason === 'failed');
+    assert.throws(() => parseAnswer({ errId: 41030, error: 'invalid expired' }, 'common'), (e: EvaluatorRefused) => e.reason === 'keys' && /have expired/.test(e.message) && /Settings/.test(e.message));
   });
 
   it('signs the request and gives each character its reading', () => {
