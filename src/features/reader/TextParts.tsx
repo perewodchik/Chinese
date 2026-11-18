@@ -6,7 +6,7 @@ import { useHashFlag } from '../../navigation/hash';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { setShelfStudy, studyText } from '../../store/commands';
 import { Link } from 'react-router';
-import { FEATURES } from '../../navigation/features';
+import { isSpeakSectionEnabled } from '../../navigation/features';
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
 import { useLibrary } from '../shared/library';
@@ -176,7 +176,7 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
     </button>
   ));
   // Narrators are made in Speak › Voices: without Speak, a text has no narrator to add.
-  const narrate = FEATURES.speak && (
+  const narrate = isSpeakSectionEnabled && (
     <Narrate
       key={text.id}
       lines={linesZh}

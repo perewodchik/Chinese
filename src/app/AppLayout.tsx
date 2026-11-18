@@ -11,7 +11,7 @@ import { WordDrawer } from '../features/words/WordDrawer';
 import { isWordId } from '../domain/ids';
 import { useItemDrawer } from '../navigation/itemDrawer';
 import { useProgressDrawer } from '../navigation/progressDrawer';
-import { FEATURES } from '../navigation/features';
+import { isSpeakSectionEnabled } from '../navigation/features';
 import { paths } from '../navigation/paths';
 import { useScrollRestoration } from '../navigation/useScrollRestoration';
 import { useStore, useSyncStatus } from '../store/store';
@@ -35,7 +35,7 @@ const MORE_PATHS = ['/videos', '/play', '/progress', '/account', '/settings', '/
  *
  * Four places and Me for everything else (V1): Read, where the app opens;
  * Cards, the one thing to do every day, with a quiet dot while some wait;
- * Speak (when the app is built with it, FEATURES); Library. On a phone they
+ * Speak (when isSpeakSectionEnabled); Library. On a phone they
  * sit along the bottom edge, where a thumb already is, and never scroll, and
  * Me opens a sheet. On an iPad or a computer, where the rail on the left has
  * the room, Me's places stand in the rail too, under the four, with your
@@ -75,7 +75,7 @@ export function AppLayout() {
   const sections = [
     { to: paths.read(), han: '读', label: 'Read', also: [] as string[] },
     { to: paths.cards(), han: '卡', label: 'Cards', also: ['/review', '/learn'] },
-    ...(FEATURES.speak ? [{ to: paths.speaking(), han: '说', label: 'Speak', also: [] as string[] }] : []),
+    ...(isSpeakSectionEnabled ? [{ to: paths.speaking(), han: '说', label: 'Speak', also: [] as string[] }] : []),
     { to: paths.library(), han: '字', label: 'Library', also: ['/families'] },
   ];
   const lit = (s: (typeof sections)[number]) =>
@@ -192,7 +192,7 @@ const MORE = [
   { to: paths.videos(), han: '视', label: 'Videos', blurb: 'Watch, write it out, check it' },
   { to: paths.play(), han: '玩', label: 'Play', blurb: 'Games and the walk through Beijing' },
   { to: paths.stats(), han: '进', label: 'Progress', blurb: 'Days, words and characters over time' },
-  { to: paths.settings(), han: '设', label: 'Settings', blurb: FEATURES.speak ? 'Learning, speaking, keys, printing, the look' : 'Learning, keys, printing, the look' },
+  { to: paths.settings(), han: '设', label: 'Settings', blurb: isSpeakSectionEnabled ? 'Learning, speaking, keys, printing, the look' : 'Learning, keys, printing, the look' },
 ];
 
 /**

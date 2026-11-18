@@ -3,7 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import type { ItemId } from '../../domain/ids';
 import { hskLabel, shelfEntries, shelve, type GeneratedText, type ShelfEntry, type TextSet } from '../../domain/text';
-import { FEATURES } from '../../navigation/features';
+import { isSpeakSectionEnabled } from '../../navigation/features';
 import { paths, type ReadMode, type TextVersion } from '../../navigation/paths';
 import { readHash, writeHash } from '../../navigation/hash';
 // R5: the PDF code (pdf-lib and the fonts) comes only when something is printed.
@@ -313,7 +313,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const tabs: TabInfo[] = [
     { id: 'read', han: '读', label: 'Read', fill: fill.read },
     { id: 'write', han: '写', label: 'Write', fill: fill.write },
-    ...(FEATURES.speak ? [{ id: 'speak' as const, han: '说', label: 'Say', fill: text.lines.length ? saidLines / text.lines.length : 0 }] : []),
+    ...(isSpeakSectionEnabled ? [{ id: 'speak' as const, han: '说', label: 'Say', fill: text.lines.length ? saidLines / text.lines.length : 0 }] : []),
     { id: 'words', han: '词', label: 'Words', fill: text.vocab.length ? fill.words : 0 },
     ...(text.questions.length ? [{ id: 'questions' as const, han: '问', label: 'Questions', fill: fill.questions }] : []),
   ];
@@ -484,7 +484,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
                 kicker={chapterHead(text, chapterAt(page - 1)).kicker}
                 chapter={story}
                 // A text with no word list (from the catalogue, say) has no Words row to report "0 of 0".
-                parts={['write', ...(FEATURES.speak ? (['speak'] as const) : []), ...(text.vocab.length ? (['words'] as const) : []), ...(text.questions.length ? (['questions'] as const) : []), 'listen']}
+                parts={['write', ...(isSpeakSectionEnabled ? (['speak'] as const) : []), ...(text.vocab.length ? (['words'] as const) : []), ...(text.questions.length ? (['questions'] as const) : []), 'listen']}
                 fill={fill}
                 speak={{ said: saidLines, of: text.lines.length }}
                 onPart={(p) => (p === 'listen' ? !listening && listen() : pick(p === 'more' ? 'write' : (p as ChapterTab)))}
@@ -515,7 +515,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
               <MorePart text={text} partId="part-more" />
             </>
           )}
-          {FEATURES.speak && shownTab === 'speak' && <SpeakPart text={text} bests={bests} />}
+          {isSpeakSectionEnabled && shownTab === 'speak' && <SpeakPart text={text} bests={bests} />}
           {shownTab === 'words' && <WordsPart text={text} setId={set?.id ?? null} study={study} onShowLine={(i) => (pick('read'), window.setTimeout(() => showLine(i), 60))} partId="part-words" />}
           {shownTab === 'questions' && text.questions.length > 0 && (
             <QuestionsPart key={`q${text.id}`} text={text} partId="part-questions" showPinyin={pinyin === 'all'} />

@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { readPack } from '../../domain/videoPack';
 import { answerPrompt, packPrompt } from '../../domain/videoPrompt';
 import type { PackSentence } from '../../domain/video';
-import { FEATURES } from '../../navigation/features';
+import { isSpeakSectionEnabled } from '../../navigation/features';
 import { paths } from '../../navigation/paths';
 import { saveAsk, saveVideoPack } from '../../store/videoCommands';
 import { Say } from '../../ui/Say';
@@ -127,12 +127,12 @@ export function StudyStep() {
         </Card>
       )}
 
-      {(pack.extra.sentences.length > 0 || (FEATURES.speak && pack.extra.topic)) && (
+      {(pack.extra.sentences.length > 0 || (isSpeakSectionEnabled && pack.extra.topic)) && (
         <Card title="Use it">
           {pack.extra.sentences.map((s, i) => (
             <Sentence key={i} s={s} />
           ))}
-          {FEATURES.speak && pack.extra.topic && (
+          {isSpeakSectionEnabled && pack.extra.topic && (
             <p className="small" style={{ marginBottom: 0 }}>
               Talk about it: <i>{pack.extra.topic}</i> —{' '}
               <Link to={paths.speakingNew()}>start a conversation</Link>

@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import type { Activity } from '../../domain/activity';
 import { firstUnread } from '../../domain/text';
 import { whereYouAre, type BandFit, type WordBand } from '../../domain/wordProgress';
-import { FEATURES } from '../../navigation/features';
+import { isSpeakSectionEnabled } from '../../navigation/features';
 import { paths } from '../../navigation/paths';
 import { useStore } from '../../store/store';
 
@@ -38,7 +38,7 @@ export function WhereYouAre({ words, activity }: { words: WordBand[]; activity: 
     return [
       { label: 'Reading', value: `${plural(texts.filter((t) => t.read).length, 'text')} read` },
       { label: 'Words', value: `${plural(knownWords, 'word')} known` },
-      ...(FEATURES.speak ? [{ label: 'Speaking', value: `${plural(spoken, 'line')} said` }] : []),
+      ...(isSpeakSectionEnabled ? [{ label: 'Speaking', value: `${plural(spoken, 'line')} said` }] : []),
       { label: 'Writing', value: `${plural(copied, 'character')} copied out · ${plural(answers, 'card')} answered` },
     ];
   }, [activity, texts, words]);

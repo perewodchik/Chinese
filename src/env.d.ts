@@ -7,7 +7,6 @@ interface ImportMetaEnv {
    */
   readonly VITE_FEEDBACK_URL?: string;
   /** `on` builds the app with Speak (src/navigation/features.ts); anything else, without it. */
-  readonly VITE_SPEAK?: string;
 }
 
 interface ImportMeta {

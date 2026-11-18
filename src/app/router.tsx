@@ -11,7 +11,7 @@ import { ReaderPage } from '../features/reader/ReaderPage';
 import { ReadPage, ShelfPage } from '../features/reader/ReadPage';
 import { CardsPage } from '../features/cards/CardsPage';
 import { CardSessionPage } from '../features/cards/CardSession';
-import { FEATURES } from '../navigation/features';
+import { isSpeakSectionEnabled } from '../navigation/features';
 import { paths } from '../navigation/paths';
 import { useStore } from '../store/store';
 import { NotFoundPage, RouteError } from './errors';
@@ -110,10 +110,10 @@ const SweepPage = lazyPage(() => import('../features/words/SweepPage'), 'SweepPa
  */
 
 /**
- * Speak's pages, when the app is built with it (FEATURES.speak); without it,
+ * Speak's pages, when the app is built with it (isSpeakSectionEnabled); without it,
  * every address of the section lands on Read, as if it had never been there.
  */
-const SPEAK_ROUTES: RouteObject[] = FEATURES.speak
+const SPEAK_ROUTES: RouteObject[] = isSpeakSectionEnabled
   ? [
         // Speaking's four parts, with their own tabs: down the side on an iPad, across the top on a phone.
         {
