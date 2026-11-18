@@ -2459,11 +2459,16 @@ a.rd-more-row {
     max-width: 980px;
   }
 
-  .rd-text[data-layout='paragraph'] .rd-head {
+  .rd-text[data-layout='paragraph'] .rd-passage:has(.rd-zh[data-margin]) .rd-head {
     margin-right: 264px;
   }
 
-  .rd-text[data-layout='paragraph'] .rd-row {
+  /* Without a margin the text takes the column a book's width, as on a narrower page. */
+  .rd-text[data-layout='paragraph']:not(:has(.rd-zh[data-margin])) {
+    max-width: 780px;
+  }
+
+  .rd-text[data-layout='paragraph'] .rd-zh[data-margin] .rd-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 220px;
     column-gap: 44px;
@@ -2476,7 +2481,7 @@ a.rd-more-row {
     gap: 14px;
   }
 
-  .rd-text[data-layout='paragraph'] .rd-margin:empty {
+  .rd-text[data-layout='paragraph'] .rd-zh[data-margin] .rd-margin:empty {
     display: grid;
   }
 
@@ -3467,8 +3472,8 @@ body:has(.rd[data-book='xiyouji']) {
 .rd[data-book='xiyouji'] .rd-text[data-layout='paragraph'] .rd-row {
   position: relative;
   isolation: isolate;
-  margin-inline: -12px;
-  padding: 10px 12px 12px;
+  /* Less at the foot: the last line's own leading already leaves room under it. */
+  padding: 12px 16px 4px;
   border-radius: 16px;
   background: color-mix(in srgb, var(--scene, transparent) 7%, transparent);
   transition: background-color 160ms;
@@ -3495,6 +3500,11 @@ body:has(.rd[data-book='xiyouji']) {
 
 .rd[data-book='xiyouji'] .rd-row + .rd-row {
   margin-top: 10px;
+}
+
+/* A picture above its paragraph spans the paragraph's own block, edge to edge. */
+.rd[data-book='xiyouji'] .rd-pic[data-size='large'] .rd-pic-frame {
+  width: 100%;
 }
 
 /* A paragraph with its own picture has its place drawn already: no line

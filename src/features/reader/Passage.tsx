@@ -337,6 +337,9 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
         className="rd-zh"
         data-layout={comic ? 'comic' : layout}
         data-pinyin={view.pinyin !== 'off' || undefined}
+        // The margin beside the paragraphs on a wide page is kept only for what goes in it: the
+        // English, the new words, a held line's English. Empty, it squeezed the text to half the page.
+        data-margin={view.translation === 'shown' || view.glosses || revealed.size > 0 || undefined}
       >
         {comic ? (
           <Comic

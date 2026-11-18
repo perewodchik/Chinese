@@ -92,11 +92,6 @@ export function useListenVoice(text: GeneratedText, reading: Reading): ListenVoi
   };
 }
 
-const clock = (ms: number) => {
-  const s = Math.max(0, Math.round(ms / 1000));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-};
-
 /**
  * Listen, at the top of the text, before its first line: play, what it is
  * (how long, how far it has been heard), and the voice. Play opens the player
@@ -127,7 +122,6 @@ export function ListenBar({
     : st.listened
       ? `heard to line ${Math.min(st.listened, text.lines.length)} of ${text.lines.length}`
       : 'not heard yet';
-  const length = voice.current ? clock(voice.current.n.durationMs) : `${text.lines.length} line${text.lines.length === 1 ? '' : 's'}`;
   const canPlay = voice.current !== undefined && (voice.current !== null || reading.choices.length > 0 || reading.system);
   const lines = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
 
@@ -167,12 +161,9 @@ export function ListenBar({
           </span>{' '}
           Listen
         </b>
-        <span>
-          {length}, {heard}
-        </span>
+        <span>{heard[0]!.toUpperCase() + heard.slice(1)}</span>
       </div>
       <label className="rd-listen-voice">
-        <span className="tiny muted">Voice</span>
         <span className="rd-listen-select">
           <select value={voice.value} onChange={(e) => voice.choose(e.target.value)} disabled={!options.length} aria-label="Voice">
             {!options.length && <option value="">{voice.current === undefined ? "…" : "None here"}</option>}
