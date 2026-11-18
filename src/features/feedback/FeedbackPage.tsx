@@ -27,6 +27,8 @@ export function FeedbackPage() {
   useTitle('Send feedback');
   const [query] = useSearchParams();
   const from = query.get('from')?.startsWith('/') ? query.get('from')! : '/';
+  // A9: a mistake in a library book is named, since the page is the learner's own copy of it.
+  const about = query.get('about')?.slice(0, 200) ?? '';
   const [kind, setKind] = useState<FeedbackKind>('wrong');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -40,7 +42,7 @@ export function FeedbackPage() {
     setBusy(true);
     setError(null);
     try {
-      await sendFeedback({ kind, message, page: from });
+      await sendFeedback({ kind, message: about ? `About ${about}:\n${message}` : message, page: from });
       setSent(true);
     } catch (err) {
       setError(messageFor(err));
@@ -67,7 +69,11 @@ export function FeedbackPage() {
         </>
       ) : (
         <form className="feedback-form" onSubmit={send} noValidate>
-          <p className="small muted">Something wrong, something missing, or something good: a line or two is plenty. It goes with the page you were on ({from}) and your name, nothing else.</p>
+          <p className="small muted">
+            {about
+              ? `A mistake in ${about}: say where and what it should be. It goes to whoever runs the site, with your name and nothing else.`
+              : `Something wrong, something missing, or something good: a line or two is plenty. It goes with the page you were on (${from}) and your name, nothing else.`}
+          </p>
           <Seg value={kind} options={KINDS} onChange={setKind} label="What it is" />
           <label className="field">
             <span className="sr-only">What happened</span>

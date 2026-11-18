@@ -151,7 +151,8 @@ export const paths = {
   /** A12: what learners sent from the site */
   adminFeedback: () => '/admin/feedback',
   /** A12: sending feedback, about the page it was opened from */
-  feedback: (from?: string) => withQuery('/feedback', { from }),
+  /** `about`: what it is about when the page alone does not say — a library book's text (A9) */
+  feedback: (from?: string, about?: string) => withQuery('/feedback', { from, about }),
   /** the cards: how many today, and the ways to practise one kind */
   cards: () => '/cards',
   /** one sitting of cards; `n` asks for fewer (or more) than the day's size */

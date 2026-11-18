@@ -838,6 +838,17 @@ function ReaderMenu({
             <button role="menuitem" className="btn ghost sm" onClick={then(close, () => setLook(true))}>
               How the PDF looks…
             </button>
+            {/* A9: a book from the library is everyone's: a mistake in it goes to whoever runs the site. */}
+            {set?.catalog && (
+              <button
+                role="menuitem"
+                className="btn ghost sm"
+                onClick={then(close, () => navigate(paths.feedback(window.location.pathname, `the library book “${set.name}”, “${text.titleZh || text.title}”`)))}
+              >
+                Report a mistake
+                <span className="tiny muted">in this library book, to whoever runs the site</span>
+              </button>
+            )}
             {mode === 'single' && (
               <button role="menuitem" className="btn ghost sm" onClick={then(close, () => navigate(paths.editText(text.id)))}>
                 Edit text
