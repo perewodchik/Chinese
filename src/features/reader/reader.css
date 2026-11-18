@@ -3505,10 +3505,23 @@ body:has(.rd[data-book='xiyouji']) {
   width: 100%;
 }
 
-/* A paragraph with its own picture has its place drawn already: no line
-   drawing behind it as well, which only fought with the picture. */
+/* A paragraph with its own picture keeps its drawing, in the corner away from
+   the picture: the bottom left, under the last lines. */
 .rd[data-book='xiyouji'] .rd-row[data-pictured]::before {
-  content: none;
+  top: auto;
+  bottom: 0;
+  left: 0;
+  right: auto;
+  width: min(55%, 340px);
+  height: 84px;
+  opacity: 0.16;
+  -webkit-mask-position: bottom left;
+  mask-position: bottom left;
+}
+
+/* Each paragraph in its own block is plainly a new one: no indent as well. */
+.rd[data-book='xiyouji'] .rd-zh[data-layout='paragraph'] .rd-para {
+  text-indent: 0;
 }
 
 /* The wash ends with the paragraph's last line, not a paragraph's space below it. */
@@ -3519,12 +3532,6 @@ body:has(.rd[data-book='xiyouji']) {
 /* Listen's well, in the book's paper rather than the app's grey. */
 .rd[data-book='xiyouji'] .rd-listen-bar {
   background: color-mix(in srgb, var(--ink-3) 9%, transparent);
-}
-
-/* After the place's name the paragraph's first line still opens two characters in. */
-.rd-indent {
-  display: inline-block;
-  width: 2em;
 }
 
 /* The place a paragraph opens in, named once, where it first comes. */

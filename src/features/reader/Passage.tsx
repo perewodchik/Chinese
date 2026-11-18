@@ -368,7 +368,6 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
                       <span className="hanzi">{scenes[n]!.place!.zh}</span> <span lang="en">{scenes[n]!.place!.en}</span>
                     </span>
                   )}
-                  {scenes?.[n]?.place && <span className="rd-indent" aria-hidden />}
                   {p.map((i) => (
                     <span
                       key={i}
