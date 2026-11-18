@@ -259,6 +259,7 @@ export interface TextNarrationRepository {
   find(key: string): Promise<TextNarration | null>;
   /** what is kept under these keys, without the audio */
   have(keys: readonly string[]): Promise<Array<Omit<TextNarration, 'mp3'>>>;
+  /** keeps it, in place of a reading kept under the same key: a text read again */
   save(n: TextNarration): Promise<void>;
 }
 
