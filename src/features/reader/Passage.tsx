@@ -356,7 +356,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
               {pictureOf(n) && !beside && <ParagraphPicture picture={pictureOf(n)!} size="large" marks={marks[n]} onMark={onPoint} retold={retold} />}
               {/* The paragraph, and beside it on a wide page (under it on a
                   narrower one) its English and its new words. */}
-              <div className="rd-row" data-scene={scenes?.[n]?.scene}>
+              <div className="rd-row" data-scene={scenes?.[n]?.scene} data-pictured={pictureOf(n)?.key ? true : undefined}>
                 {scenes?.[n]?.place && (
                   <p className="rd-scene-name">
                     <span className="hanzi">{scenes[n]!.place!.zh}</span> <span lang="en">{scenes[n]!.place!.en}</span>

@@ -3497,6 +3497,17 @@ body:has(.rd[data-book='xiyouji']) {
   margin-top: 10px;
 }
 
+/* A paragraph with its own picture has its place drawn already: no line
+   drawing behind it as well, which only fought with the picture. */
+.rd[data-book='xiyouji'] .rd-row[data-pictured]::before {
+  content: none;
+}
+
+/* The wash ends with the paragraph's last line, not a paragraph's space below it. */
+.rd[data-book='xiyouji'] .rd-row > .rd-para {
+  margin-bottom: 0;
+}
+
 /* Listen's well, in the book's paper rather than the app's grey. */
 .rd[data-book='xiyouji'] .rd-listen-bar {
   background: color-mix(in srgb, var(--ink-3) 9%, transparent);
