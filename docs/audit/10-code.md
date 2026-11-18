@@ -92,7 +92,7 @@
 | `features/pinyin/TalkPage.tsx` | 656 | |
 | ~~`features/reader/ReadPage.tsx`~~ (сделано 2026-11-18: `ShelfPage.tsx` отдельно) | 650 | `ReadPage` и `ShelfPage` — в разные файлы; `ShelfPage` сейчас считает слова, иероглифы, экспорт и печать внутри компонента |
 | `features/reader/CopyOut.tsx` (2026-11-18: разрезка текста и раскладка — `copyOutLayout.ts`; 614 → 480) | 614 | |
-| `features/stats/StatsPage.tsx` | 502 | по карточке на файл (вместе с G1–G6) |
+| `features/stats/StatsPage.tsx` (2026-11-18: плитки, неделя, «держится», календарь — `StatsCards.tsx`; 502 → 381) | 502 | по карточке на файл (вместе с G1–G6) |
 
 Игру (`src/world`, `features/world/WorldPage.tsx` — 1566) не трогать в
 рамках этого плана: у неё свои заметки.
