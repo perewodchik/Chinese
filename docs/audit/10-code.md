@@ -85,7 +85,7 @@
 | Файл | Строк | Как резать |
 |---|---|---|
 | `features/reader/video/VideoStudio.tsx` | 1006 | состояние в хук, шаги — в компоненты |
-| `features/reader/ReaderPage.tsx` | 857 | шапка, тело, док, части — отдельно (вместе с V6) |
+| `features/reader/ReaderPage.tsx` (2026-11-18: Aa и ⋯ вынесены в `AaMenu.tsx`, `ReaderMenu.tsx`; 892 → 574) | 857 | шапка, тело, док, части — отдельно (вместе с V6) |
 | ~~`features/reader/TextParts.tsx`~~ | 772 | сделано 2026-11-18: `parts.ts`, `PartSection.tsx`, `ListenPart`, `MorePart`, `WordsPart`, `WritePart`, `QuestionsPart` |
 | `features/speak/SayLine.tsx` | 763 | запись / результат / список исправлений |
 | `features/pinyin/NarratorsPage.tsx` | 669 | при переносе в настройки (V11) |
