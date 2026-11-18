@@ -106,7 +106,14 @@ words the story cannot do without (菩提祖, 孙悟空, 聪, 教, 筋斗云). W
 - The book's patterns kept where they are easy: `听得太高兴了`, `这个也不学，
   那个也不学`.
 - The names repeat a lot, so the share known is lower than the count of new
-  characters suggests. 80% is the floor; aim for 90.
+  characters suggests.
+- **From chapter 3 the learner asked for 85–90% known** (not 95%), and for the
+  retelling to stay closer to the book: keep its details (the crown, mail and
+  shoes by name, the soul, the judge, the brush, the edict) and its everyday
+  words (办法, 只好, 商量, 既然, 准备, 故意), and simplify only the written
+  style and the rarest characters. Chapter 3 came out at 87% with 75 new
+  characters, and lifted the book's own text from 76% to 84%. Measure against
+  the shelf *without* the chapter's old texts when redoing one.
 
 ## Pictures
 
@@ -119,7 +126,7 @@ held to. The drawings are code:
 |---|---|---|
 | 1 | `scripts/texts/art/stories/xyj-ch1.mjs` | p1–p6, the same in both books |
 | 2 | `scripts/texts/art/stories/xyj-ch2.mjs` | p1–p8; ¶6 has `p6-book` (kneeling) and `p6-easy` (sitting) |
-| 3 | `scripts/texts/art/stories/xyj-ch3.mjs` | p1–p11; ¶3 has `p3-book` (the crown too) and `p3-easy` (clothes and shoes) |
+| 3 | `scripts/texts/art/stories/xyj-ch3.mjs` | p1–p11, the same in both books (`p3-easy`, without the crown, was drawn for the first retelling and is not used now) |
 
 The people, as the modules draw them, and as every chapter must keep them:
 - **Sun Wukong**: `monkey({ fur: HERO, hero: true })` — a golden-brown monkey
@@ -167,6 +174,10 @@ When a chapter brings in a new person or a new name, add a sentence for them:
 the text is in the account, so this means writing the preface's JSON again
 from the one on the site and putting it in as a new text, or asking first.
 
+There is no command to replace a text on the shelf: chapter 3's retelling
+was swapped in place (same ids, dates and pictures) with a one-off script
+calling `addBookTexts` on the workspace without the old texts, then a PUT.
+
 Chapter 3 brings in the Dragon Kings, the Ten Kings of the Underworld and the
 Great White Star, and the preface does not have them yet (not done without
 asking: offered to the learner).
@@ -178,6 +189,6 @@ asking: offered to the learner).
 | 0 人物和词语 (preface) | `/read/text/mw51lpik317f85ec7315891e69f9` | — | none |
 | 1 美猴王横空出世 | in 西游记 (easier) | in 西游记 (original) | 6, `xyj-ch1.mjs` |
 | 2 三星洞石猴学道 | `/read/text/mw4ycn066abce04c8eeac21ee178` | `/read/text/mw4ycyqlaae565bb6e8fb8b7d951` | 8, `xyj-ch2.mjs` |
-| 3 闯龙宫醉闹冥府 | `/read/text/mwm998fnb5f8171c2376611b0f08` (95% known, 12 new) | `/read/text/mwm99aige0bf825509aaa27cba86` (76%, 171 new) | 11, `xyj-ch3.mjs` |
+| 3 闯龙宫醉闹冥府 | `/read/text/mwm998fnb5f8171c2376611b0f08` (87% known, 75 new) | `/read/text/mwm99aige0bf825509aaa27cba86` (84%, 118 new) | 11, `xyj-ch3.mjs` |
 
 Add a row when a chapter goes in.
