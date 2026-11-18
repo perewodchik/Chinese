@@ -84,10 +84,16 @@ export const PAPER_LABEL: Record<PaperMode, string> = { paper: 'Paper', sepia: '
 export const PAPER_HAN: Record<PaperMode, string> = { paper: '纸', sepia: '旧', night: '夜' };
 export const usePaperMode = () => useStoredChoice<PaperMode>('hanzi.reader.paper', PAPER_MODES, 'paper');
 
-/** New words glossed beside their paragraph (under it where the page is narrow): on unless turned off. */
+/**
+ * New words glossed beside their paragraph (under it where the page is
+ * narrow): off unless turned on in Aa. Under every paragraph the list read as
+ * a second text and buried the first; a new word is marked in the text, a tap
+ * gives its card, and the Words tab has them all. A new key, so a page that
+ * had it on by the old default starts with it off.
+ */
 export type GlossMode = 'on' | 'off';
 const GLOSS_MODES: GlossMode[] = ['on', 'off'];
-export const useGlossMode = () => useStoredChoice<GlossMode>('hanzi.reader.glosses', GLOSS_MODES, 'on');
+export const useGlossMode = () => useStoredChoice<GlossMode>('hanzi.reader.newWordGlosses', GLOSS_MODES, 'off');
 
 /** The book dressed as itself (Aa › Book style), for a book that has a look of its own: off unless turned on. */
 export type BookStyleMode = 'on' | 'off';
