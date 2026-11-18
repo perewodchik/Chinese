@@ -86,11 +86,11 @@
 |---|---|---|
 | `features/reader/video/VideoStudio.tsx` | 1006 | состояние в хук, шаги — в компоненты |
 | `features/reader/ReaderPage.tsx` | 857 | шапка, тело, док, части — отдельно (вместе с V6) |
-| `features/reader/TextParts.tsx` | 772 | по файлу на часть |
+| ~~`features/reader/TextParts.tsx`~~ | 772 | сделано 2026-11-18: `parts.ts`, `PartSection.tsx`, `ListenPart`, `MorePart`, `WordsPart`, `WritePart`, `QuestionsPart` |
 | `features/speak/SayLine.tsx` | 763 | запись / результат / список исправлений |
 | `features/pinyin/NarratorsPage.tsx` | 669 | при переносе в настройки (V11) |
 | `features/pinyin/TalkPage.tsx` | 656 | |
-| `features/reader/ReadPage.tsx` | 650 | `ReadPage` и `ShelfPage` — в разные файлы; `ShelfPage` сейчас считает слова, иероглифы, экспорт и печать внутри компонента |
+| ~~`features/reader/ReadPage.tsx`~~ (сделано 2026-11-18: `ShelfPage.tsx` отдельно) | 650 | `ReadPage` и `ShelfPage` — в разные файлы; `ShelfPage` сейчас считает слова, иероглифы, экспорт и печать внутри компонента |
 | `features/reader/CopyOut.tsx` | 614 | |
 | `features/stats/StatsPage.tsx` | 502 | по карточке на файл (вместе с G1–G6) |
 

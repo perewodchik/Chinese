@@ -1,7 +1,7 @@
 import type { Book } from '../../domain/bookshelf';
 import type { GeneratedText } from '../../domain/text';
 import { BookCover } from './BookCover';
-import { MORE, type PartId } from './TextParts';
+import { MORE, type PartId } from './parts';
 
 /** The rows at the end of a chapter: each part, and listening again. */
 export type EndPart = 'write' | 'speak' | 'words' | 'questions' | 'listen' | 'more';

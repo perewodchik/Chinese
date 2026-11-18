@@ -51,7 +51,12 @@ import {
 import { DockPlayer, type PlayerControl } from './DockPlayer';
 import { readerSheet } from './readerSheet';
 import { rememberReading } from '../shared/lastRead';
-import { ListenPart, MorePart, partFill, QuestionsPart, WordsPart, WritePart } from './TextParts';
+import { ListenPart } from './ListenPart';
+import { MorePart } from './MorePart';
+import { partFill } from './parts';
+import { QuestionsPart } from './QuestionsPart';
+import { WordsPart } from './WordsPart';
+import { WritePart } from './WritePart';
 import './reader.css';
 
 /**

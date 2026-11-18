@@ -22,7 +22,7 @@ import { usePdfExport } from '../shared/usePdfExport';
 import { lastReading } from '../shared/lastRead';
 import { useWordDone, useWordLevel } from './Passage';
 import { readerSheet } from './readerSheet';
-import { partFill, partsOf } from './TextParts';
+import { partFill, partsOf } from './parts';
 import { useStartSession } from './startSession';
 import { bookcase, bookOf, chapterHead, chineseNumber, isFrontMatter } from '../../domain/bookshelf';
 import { BookChars, BookWords, type BookWord, type Chapter } from './BookStudy';
