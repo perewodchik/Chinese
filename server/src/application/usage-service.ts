@@ -27,7 +27,7 @@ export class UsageMeter {
     const today = dayOf(this.deps.clock.now());
     const monthStart = `${today.slice(0, 8)}01`;
     const rows = await this.deps.usage.siteSince(monthStart);
-    const services: UsageService[] = ['speechsuper', 'iflytek', 'minimax'];
+    const services: UsageService[] = ['speechsuper', 'minimax'];
     const sum = (list: UsageRow[]) => list.reduce((a, r) => ({ calls: a.calls + r.calls, units: a.units + r.units }), { calls: 0, units: 0 });
     const lines = services
       .map((service) => ({ service, today: sum(rows.filter((r) => r.service === service && r.day === today)), month: sum(rows.filter((r) => r.service === service)) }))

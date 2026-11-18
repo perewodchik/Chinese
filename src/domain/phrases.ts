@@ -6,9 +6,9 @@ import { parseSyllable } from './pinyin/syllable';
  * about each kind of fault the service finds, and what keeps going wrong
  * across every phrase said.
  *
- * The feedback follows the service's report as it is. iFlytek says only that
- * a syllable's initial, final or tone was wrong, or that it was left out;
- * SpeechSuper also says what it sounded like instead (k for q, a second tone
+ * The feedback follows the service's report as it is. SpeechSuper says that
+ * a syllable's initial, final or tone was wrong, or that it was left out, and
+ * what it sounded like instead (k for q, a second tone
  * for a first) and the tone a syllable takes in the phrase (一 before a third
  * tone is yì) — said when it is known, the advice always how it is made right.
  */
@@ -47,7 +47,7 @@ export const EVERYDAY: Phrase[] = [
 
 const INITIALS = ['zh', 'ch', 'sh', 'b', 'p', 'm', 'f', 'd', 't', 'n', 'l', 'g', 'k', 'h', 'j', 'q', 'x', 'r', 'z', 'c', 's', 'y', 'w'];
 
-/** A syllable as iFlytek writes it (zhi4) taken apart: initial, final, tone (5 neutral). */
+/** A syllable as the service writes it (zhi4) taken apart: initial, final, tone (5 neutral). */
 export function partsOf(symbol: string): { initial: string; final: string; tone: number; marked: string } {
   const m = symbol.toLowerCase().match(/^([a-zü:v]+)([0-5])?$/);
   const bare = m?.[1] ?? symbol;

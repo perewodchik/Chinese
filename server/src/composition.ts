@@ -6,7 +6,6 @@ import { AuthService, DEFAULT_AUTH_POLICY, type AuthPolicy } from './application
 import { ConversationService } from './application/conversation-service';
 import { NarrationService } from './application/narration-service';
 import { SpeechEvalService, type Evaluator } from './application/speech-eval-service';
-import { evaluate as iflytekEvaluate } from './infrastructure/iflytek';
 import { evaluate as speechSuperEvaluate } from './infrastructure/speechsuper';
 import { PictureService } from './application/picture-service';
 import { RecordingService } from './application/recording-service';
@@ -75,7 +74,7 @@ export interface Services {
   pictures: PictureService;
   /** texts read aloud by MiniMax with the learner's own key */
   narration: NarrationService;
-  /** phrases said aloud and scored by iFlytek with the learner's own keys */
+  /** phrases said aloud and scored by SpeechSuper with the learner's own keys */
   speechEval: SpeechEvalService;
   /** what the learner's own keys have been spent on */
   usage: UsageMeter;
@@ -152,7 +151,7 @@ export function createServices(
     talkVoices?: TalkSynthesizer | null;
     /** MiniMax by default; a stand-in in the tests */
     narrator?: Narrator | null;
-    /** iFlytek by default; a stand-in in the tests */
+    /** SpeechSuper by default; a stand-in in the tests */
     evaluator?: Evaluator | null;
     /**
      * HANZI_SECRETS_KEY: the learners' keys for outside services are sealed
@@ -211,7 +210,7 @@ export function createServices(
     feedback: new FeedbackService({ feedback: stores.feedback, users: stores.users, clock, tokens: cryptoTokens }),
     catalog: new CatalogService({ catalog: stores.catalog, pictures: stores.pictures, adminLog: stores.adminLog, clock, tokens: cryptoTokens }),
     narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === undefined ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),
-    speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === undefined ? { evaluate: (k, o) => (k.provider === 'speechsuper' ? speechSuperEvaluate(k, o) : iflytekEvaluate(k, o)) } : options.evaluator, clock, meter: usage, quota }),
+    speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === undefined ? { evaluate: speechSuperEvaluate } : options.evaluator, clock, meter: usage, quota }),
     usage,
     limits: stores.limits,
     lookups: stores.lookups,

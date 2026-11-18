@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { EvalResult, SpeechSuperKeys, Strictness, SyllableEval } from '../../../shared/speechEval';
-import { EvaluatorRefused } from './iflytek';
+import { EvaluatorRefused } from './evaluator-refused';
 
 /**
  * SpeechSuper's pronunciation assessment for Mandarin, over plain HTTP: one

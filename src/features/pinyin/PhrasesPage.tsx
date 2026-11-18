@@ -87,7 +87,7 @@ interface Source {
 
 /**
  * Phrases: choose a text, then say it line by line — each line heard in a
- * narrator's voice, said, and scored by SpeechSuper or iFlytek, then on to the
+ * narrator's voice, said, and scored by SpeechSuper, then on to the
  * next. Choosing and saying are two screens: the choice is a list of texts by
  * shelf, each with how far it has got; the saying is one line at a time with
  * the whole text's lines as a strip along the top, so it is always clear

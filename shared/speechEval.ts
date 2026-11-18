@@ -1,7 +1,7 @@
 import type { BrokenKey } from './keys';
 /**
- * A phrase said aloud and scored by a speech evaluation service — SpeechSuper
- * or iFlytek — with the learner's own keys: what the page and the server agree on.
+ * A phrase said aloud and scored by a speech evaluation service — SpeechSuper —
+ * with the learner's own keys: what the page and the server agree on.
  *
  *   GET    /api/eval              are keys kept, whose, their hint, how strict
  *   PUT    /api/eval/key          EvalKeys → tried, then kept (in place of any kept before)
@@ -19,9 +19,9 @@ import type { BrokenKey } from './keys';
 export const STRICTNESS = ['easy', 'common', 'hard'] as const;
 export type Strictness = (typeof STRICTNESS)[number];
 
-export const EVAL_PROVIDERS = ['speechsuper', 'iflytek'] as const;
+export const EVAL_PROVIDERS = ['speechsuper'] as const;
 export type EvalProvider = (typeof EVAL_PROVIDERS)[number];
-export const PROVIDER_NAME: Record<EvalProvider, string> = { speechsuper: 'SpeechSuper', iflytek: 'iFlytek' };
+export const PROVIDER_NAME: Record<EvalProvider, string> = { speechsuper: 'SpeechSuper' };
 
 export interface EvalStatus {
   /** `broken`: the service turned the keys away and nothing more is sent with them (K18) */
@@ -35,16 +35,9 @@ export interface SpeechSuperKeys {
   secretKey: string;
 }
 
-export interface IflytekKeys {
-  provider: 'iflytek';
-  appId: string;
-  apiKey: string;
-  apiSecret: string;
-}
+export type EvalKeys = SpeechSuperKeys;
 
-export type EvalKeys = SpeechSuperKeys | IflytekKeys;
-
-/** How a syllable was said, as the service heard it. The optional parts only SpeechSuper tells. */
+/** How a syllable was said, as the service heard it. */
 export interface SyllableEval {
   /** the character */
   char: string;
@@ -89,14 +82,14 @@ export interface EvalResult {
   fluency: number;
   /** how much of the phrase was said */
   completeness: number;
-  /** iFlytek judged the recording was not the phrase at all: its scores mean nothing */
+  /** the service judged the recording was not the phrase at all: its scores mean nothing */
   rejected: boolean;
   syllables: SyllableEval[];
-  /** SpeechSuper only: the rhythm 0–100, syllables a minute, whether the voice rose or fell at the end */
+  /** the rhythm 0–100, syllables a minute, whether the voice rose or fell at the end */
   rhythm?: number;
   speed?: number;
   ending?: 'rise' | 'fall';
-  /** SpeechSuper only: the recording was very quiet */
+  /** the recording was very quiet */
   quiet?: boolean;
 }
 

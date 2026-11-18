@@ -8,7 +8,6 @@ import './settings.css';
 
 const SERVICE: Record<UsageService, { name: string; calls: [string, string]; balance: string; site: string }> = {
   speechsuper: { name: 'SpeechSuper', calls: ['phrase scored', 'phrases scored'], balance: 'https://www.speechsuper.com/', site: 'speechsuper.com' },
-  iflytek: { name: 'iFlytek', calls: ['phrase scored', 'phrases scored'], balance: 'https://console.xfyun.cn/', site: 'console.xfyun.cn' },
   minimax: { name: 'MiniMax', calls: ['reading', 'readings'], balance: 'https://platform.minimax.io/', site: 'platform.minimax.io' },
 };
 

@@ -1,39 +1,27 @@
 import { useEffect, useState } from 'react';
-import { EVAL_PROVIDERS, PROVIDER_NAME, STRICTNESS, type EvalKeys, type EvalProvider, type EvalStatus, type Strictness } from '../../../shared/speechEval';
+import { STRICTNESS, type EvalKeys, type EvalStatus, type Strictness } from '../../../shared/speechEval';
 import { evalStatus, forgetEvalKeys, retryEvalKeys, saveEvalKeys, setStrictness } from '../../api/speechEval';
 import { BrokenKeyLine } from './BrokenKeyLine';
 import { KeyHelp } from './KeyHelp';
 
 const STRICT_LABEL: Record<Strictness, string> = { easy: 'Easy', common: 'Common', hard: 'Hard' };
 
-/** Each service's fields, as its console names them. */
-const FIELDS: Record<EvalProvider, Array<{ name: string; label: string; secret: boolean }>> = {
-  speechsuper: [
-    { name: 'appKey', label: 'appKey', secret: false },
-    { name: 'secretKey', label: 'secretKey', secret: true },
-  ],
-  iflytek: [
-    { name: 'appId', label: 'APPID', secret: false },
-    { name: 'apiKey', label: 'APIKey', secret: true },
-    { name: 'apiSecret', label: 'APISecret', secret: true },
-  ],
-};
+/** The keys' fields, as SpeechSuper's console names them. */
+const FIELDS: Array<{ name: 'appKey' | 'secretKey'; label: string; secret: boolean }> = [
+  { name: 'appKey', label: 'appKey', secret: false },
+  { name: 'secretKey', label: 'secretKey', secret: true },
+];
 
-const ABOUT: Record<EvalProvider, string> = {
-  speechsuper:
-    'SpeechSuper scores each phrase you say in Speaking › Phrases: every syllable’s initial, final and tone out of 100, what a wrong sound was like and which tone you said, the tone a syllable takes in the phrase, the rhythm and the pace. Your own keys, from the console at speechsuper.com.',
-  iflytek:
-    'iFlytek’s speech evaluation scores each phrase you say in Speaking › Phrases: whether each syllable’s initial, final and tone were right, the flow, and what was left out. Your own keys, from the console at xfyun.cn (语音评测).',
-};
+const ABOUT =
+  'SpeechSuper scores each phrase you say in Speaking › Phrases: every syllable’s initial, final and tone out of 100, what a wrong sound was like and which tone you said, the tone a syllable takes in the phrase, the rhythm and the pace. Your own keys, from the console at speechsuper.com.';
 
 /**
- * Pronunciation checking: the learner's keys for SpeechSuper or iFlytek, which
+ * Pronunciation checking: the learner's keys for SpeechSuper, which
  * score each phrase said in Speaking › Phrases, and how strictly. The keys go
  * to the server, which tries them before keeping them and never sends them back.
  */
 export function PronunciationKey({ onChange }: { onChange?: (s: EvalStatus) => void } = {}) {
   const [status, setStatus] = useState<EvalStatus | null>(null);
-  const [provider, setProvider] = useState<EvalProvider>('speechsuper');
   const [keys, setKeys] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -43,7 +31,6 @@ export function PronunciationKey({ onChange }: { onChange?: (s: EvalStatus) => v
       (s) => {
         setStatus(s);
         onChange?.(s);
-        if (s.key.provider) setProvider(s.key.provider);
       },
       () => {
         const none: EvalStatus = { key: { set: false, hint: null, provider: null }, strictness: 'common' };
@@ -70,10 +57,10 @@ export function PronunciationKey({ onChange }: { onChange?: (s: EvalStatus) => v
     }
   }
 
-  const fields = FIELDS[provider];
+  const fields = FIELDS;
   const filled = fields.every((f) => keys[f.name]?.trim());
-  const typed = { provider, ...Object.fromEntries(fields.map((f) => [f.name, keys[f.name] ?? ''])) } as EvalKeys;
-  const name = PROVIDER_NAME[provider];
+  const typed: EvalKeys = { provider: 'speechsuper', appKey: keys.appKey ?? '', secretKey: keys.secretKey ?? '' };
+  const name = 'SpeechSuper';
   const field = (name: string, label: string, secret: boolean) => (
     <label key={name} className="field" style={{ display: 'grid', gap: 4, flex: '1 1 160px', minWidth: 0 }}>
       <span className="small">{label}</span>
@@ -94,22 +81,15 @@ export function PronunciationKey({ onChange }: { onChange?: (s: EvalStatus) => v
         <h2>Pronunciation checking</h2>
       </header>
       <div className="body" style={{ display: 'grid', gap: 12 }}>
-        <div className="seg sm" role="group" aria-label="Service">
-          {EVAL_PROVIDERS.map((p) => (
-            <button key={p} type="button" aria-pressed={provider === p} disabled={busy} onClick={() => setProvider(p)}>
-              {PROVIDER_NAME[p]}
-            </button>
-          ))}
-        </div>
         <p className="small muted" style={{ margin: 0 }}>
-          {ABOUT[provider]} They stay on the server and are never shown again.
+          {ABOUT} They stay on the server and are never shown again.
         </p>
-        {provider === 'speechsuper' && <KeyHelp service="speechsuper" />}
+        <KeyHelp service="speechsuper" />
         <p className="small" style={{ margin: 0, minHeight: '1.5em' }}>
           {status === null
             ? ''
-            : status.key.set && status.key.provider
-              ? `${PROVIDER_NAME[status.key.provider]} keys ending ${status.key.hint} are saved and used.`
+            : status.key.set
+              ? `SpeechSuper keys ending ${status.key.hint} are saved and used.`
               : 'No keys saved yet.'}
         </p>
         {status?.key.broken && <BrokenKeyLine broken={status.key.broken} busy={busy} onRetry={() => void act(retryEvalKeys, 'The next phrase goes to the service again.')} />}

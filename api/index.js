@@ -1482,13 +1482,13 @@ var NarrationService = class {
     const narrator = this.narrator();
     if (!narrator.designed || !narrator.forget) throw new AppError("unavailable", "This server cannot free MiniMax voice slots.");
     const used = new Set((await this.deps.narrators.list(userId)).map((n) => n.voiceId));
-    const all2 = await this.call(() => narrator.designed(key));
+    const all = await this.call(() => narrator.designed(key));
     const freed = [];
-    for (const id of all2.filter((v) => !used.has(v))) {
+    for (const id of all.filter((v) => !used.has(v))) {
       await this.call(() => narrator.forget(key, id));
       freed.push(id);
     }
-    return { freed, kept: all2.length - freed.length };
+    return { freed, kept: all.length - freed.length };
   }
   /** The voice chosen among those tried, kept as a narrator. */
   async keepDesigned(userId, input) {
@@ -1792,173 +1792,28 @@ var genderOf = (s) => /\b(male|man|boy|gentleman|uncle|executive|lord)\b/i.test(
 
 // shared/speechEval.ts
 var STRICTNESS = ["easy", "common", "hard"];
-var PROVIDER_NAME = { speechsuper: "SpeechSuper", iflytek: "iFlytek" };
+var PROVIDER_NAME = { speechsuper: "SpeechSuper" };
 var PINYIN_SYLLABLE = /^[a-zü]{1,6}[1-5]$/;
 var EVAL_MAX_CHARS = 100;
 var EVAL_MAX_BYTES = 20 * 16e3 * 2;
 var ATTEMPTS_PER_CALL = 500;
 var ATTEMPTS_LISTED = 2e3;
 
-// server/src/infrastructure/iflytek.ts
-import { createHmac } from "node:crypto";
-var HOST = "ise-api.xfyun.cn";
-var PATH = "/v2/open-ise";
-var FRAME = 19200;
+// server/src/infrastructure/evaluator-refused.ts
 var EvaluatorRefused = class extends Error {
   constructor(message, reason) {
     super(message);
     this.reason = reason;
   }
 };
-function signedUrl(keys, date = (/* @__PURE__ */ new Date()).toUTCString()) {
-  const origin = `host: ${HOST}
-date: ${date}
-GET ${PATH} HTTP/1.1`;
-  const signature = createHmac("sha256", keys.apiSecret).update(origin).digest("base64");
-  const authorization = Buffer.from(
-    `api_key="${keys.apiKey}", algorithm="hmac-sha256", headers="host date request-line", signature="${signature}"`
-  ).toString("base64");
-  return `wss://${HOST}${PATH}?authorization=${encodeURIComponent(authorization)}&date=${encodeURIComponent(date)}&host=${HOST}`;
-}
-async function evaluate(keys, o) {
-  const xml = await new Promise((resolve, reject) => {
-    const ws = new WebSocket(signedUrl(keys));
-    const timer = setTimeout(() => {
-      ws.close();
-      reject(new EvaluatorRefused("iFlytek did not answer in time.", "failed"));
-    }, 3e4);
-    const fail = (err) => {
-      clearTimeout(timer);
-      ws.close();
-      reject(err);
-    };
-    ws.onerror = () => fail(new EvaluatorRefused("iFlytek could not be reached, or did not accept the keys.", "keys"));
-    ws.onopen = async () => {
-      ws.send(
-        JSON.stringify({
-          common: { app_id: keys.appId },
-          business: {
-            sub: "ise",
-            ent: "cn_vip",
-            category: "read_sentence",
-            cmd: "ssb",
-            text: `\uFEFF${o.text}`,
-            tte: "utf-8",
-            ttp_skip: true,
-            aue: "raw",
-            auf: "audio/L16;rate=16000",
-            rstcd: "utf8",
-            group: "adult",
-            check_type: o.strictness
-          },
-          data: { status: 0 }
-        })
-      );
-      const frames = Math.max(1, Math.ceil(o.pcm.length / FRAME));
-      for (let i = 0; i < frames; i++) {
-        const last = i === frames - 1;
-        const chunk = o.pcm.subarray(i * FRAME, (i + 1) * FRAME);
-        ws.send(
-          JSON.stringify({
-            business: { cmd: "auw", aus: last ? 4 : i === 0 ? 1 : 2, aue: "raw" },
-            data: { status: last ? 2 : 1, data: Buffer.from(chunk).toString("base64") }
-          })
-        );
-        if (!last) await new Promise((r) => setTimeout(r, 20));
-      }
-    };
-    ws.onmessage = (e) => {
-      let msg;
-      try {
-        msg = JSON.parse(String(e.data));
-      } catch {
-        return;
-      }
-      if (msg.code && msg.code !== 0) {
-        const keysWrong = [10313, 10316, 11200, 10105, 10106, 10107].includes(msg.code) || /appid|auth|license|signature/i.test(msg.message ?? "");
-        fail(new EvaluatorRefused(`iFlytek: ${msg.message ?? "refused"} (${msg.code})`, keysWrong ? "keys" : "failed"));
-        return;
-      }
-      if (msg.data?.status === 2 && msg.data.data) {
-        clearTimeout(timer);
-        ws.close();
-        resolve(Buffer.from(msg.data.data, "base64").toString("utf8"));
-      }
-    };
-  });
-  return parseReport(xml);
-}
-function tree(xml) {
-  const root = { tag: "#root", attrs: {}, children: [] };
-  const stack = [root];
-  const tagRe = /<(\/?)([\w:-]+)([^>]*?)(\/?)>/g;
-  for (const m of xml.matchAll(tagRe)) {
-    const [, closing, tag, rest, selfClosing] = m;
-    if (closing) {
-      if (stack.length > 1) stack.pop();
-      continue;
-    }
-    const attrs = {};
-    for (const a of rest.matchAll(/([\w:-]+)="([^"]*)"/g)) attrs[a[1]] = a[2];
-    const node = { tag, attrs, children: [] };
-    stack[stack.length - 1].children.push(node);
-    if (!selfClosing) stack.push(node);
-  }
-  return root;
-}
-var all = (n, tag) => [...n.tag === tag ? [n] : [], ...n.children.flatMap((c) => all(c, tag))];
-var num = (v) => {
-  const n = Number(v);
-  return Number.isFinite(n) ? Math.round(n * 10) / 10 : 0;
-};
-var SAID = { "0": "ok", "16": "missed", "32": "added", "64": "repeated", "128": "replaced" };
-function parseReport(xml) {
-  const root = tree(xml);
-  const scored = all(root, "rec_paper").flatMap((p) => p.children)[0] ?? all(root, "read_sentence").find((n) => n.attrs.total_score) ?? root;
-  const sentence = all(scored, "sentence")[0] ?? scored;
-  const at = (k) => sentence.attrs[k] ?? scored.attrs[k];
-  const syllables = all(scored, "syll").filter((s) => (s.attrs.rec_node_type ?? "paper") === "paper" && s.attrs.content && !/^(sil|fil)$/.test(s.attrs.content)).map((s) => {
-    const phones = all(s, "phone");
-    const perr = (yun) => phones.filter((p) => p.attrs.is_yun === "1" === yun).map((p) => Number(p.attrs.perr_msg ?? 0));
-    const initials = perr(false);
-    const finals = perr(true);
-    return {
-      char: s.attrs.content,
-      symbol: s.attrs.symbol ?? "",
-      said: SAID[s.attrs.dp_message ?? "0"] ?? "ok",
-      initial: initials.some((p) => p !== 0),
-      final: finals.some((p) => p === 1 || p === 3),
-      tone: finals.some((p) => p === 2 || p === 3),
-      from: Number(s.attrs.beg_pos ?? 0) * 10,
-      to: Number(s.attrs.end_pos ?? 0) * 10
-    };
-  });
-  return {
-    by: "iflytek",
-    total: num(at("total_score")),
-    tone: num(at("tone_score")),
-    sounds: num(at("phone_score")),
-    fluency: num(at("fluency_score")),
-    completeness: num(at("integrity_score")),
-    rejected: (scored.attrs.is_rejected ?? sentence.attrs.is_rejected) === "true",
-    syllables
-  };
-}
 
 // server/src/application/speech-eval-service.ts
 var NAME = "speech-eval";
 var HAN = /\p{Script=Han}/u;
 function clean(raw) {
-  if (raw.provider === "speechsuper") {
-    const keys2 = { provider: raw.provider, appKey: raw.appKey.trim(), secretKey: raw.secretKey.trim() };
-    if (!/^\w{6,60}$/.test(keys2.appKey) || !/^\w{16,80}$/.test(keys2.secretKey)) {
-      throw new ValidationError("Those do not look like SpeechSuper keys: the appKey and the secretKey from the console.");
-    }
-    return keys2;
-  }
-  const keys = { provider: raw.provider, appId: raw.appId.trim(), apiKey: raw.apiKey.trim(), apiSecret: raw.apiSecret.trim() };
-  if (!/^\w{4,40}$/.test(keys.appId) || !/^\w{8,80}$/.test(keys.apiKey) || !/^[\w=+/-]{8,120}$/.test(keys.apiSecret)) {
-    throw new ValidationError("Those do not look like iFlytek keys: the APPID, the APIKey and the APISecret from the console.");
+  const keys = { provider: "speechsuper", appKey: raw.appKey.trim(), secretKey: raw.secretKey.trim() };
+  if (!/^\w{6,60}$/.test(keys.appKey) || !/^\w{16,80}$/.test(keys.secretKey)) {
+    throw new ValidationError("Those do not look like SpeechSuper keys: the appKey and the secretKey from the console.");
   }
   return keys;
 }
@@ -1973,7 +1828,6 @@ var SpeechEvalService = class {
       const k = JSON.parse(raw);
       const strictness = STRICTNESS.includes(k.strictness) ? k.strictness : "common";
       if (k.provider === "speechsuper" && k.appKey && k.secretKey) return { provider: "speechsuper", appKey: k.appKey, secretKey: k.secretKey, strictness };
-      if (k.provider === "iflytek" && k.appId && k.apiKey && k.apiSecret) return { provider: "iflytek", appId: k.appId, apiKey: k.apiKey, apiSecret: k.apiSecret, strictness };
       return null;
     } catch {
       return null;
@@ -1987,7 +1841,7 @@ var SpeechEvalService = class {
   }
   async status(userId) {
     const k = await this.kept(userId);
-    const hint = k ? `\u2026${(k.provider === "speechsuper" ? k.appKey : k.apiKey).slice(-4)}` : null;
+    const hint = k ? `\u2026${k.appKey.slice(-4)}` : null;
     const broken = k ? await this.broken.get(userId, NAME) : null;
     return { key: { set: Boolean(k), hint, provider: k?.provider ?? null, ...broken ? { broken } : {} }, strictness: k?.strictness ?? "common" };
   }
@@ -2168,7 +2022,7 @@ function wav(pcm) {
   head.writeUInt32LE(pcm.length, 40);
   return new Uint8Array(Buffer.concat([head, pcm]));
 }
-async function evaluate2(keys, o) {
+async function evaluate(keys, o) {
   const form = new FormData();
   form.append("text", JSON.stringify(requestOf(keys, o)));
   form.append("audio", new Blob([Buffer.from(wav(o.pcm))], { type: "audio/wav" }), "phrase.wav");
@@ -2400,7 +2254,6 @@ var StorageQuota = class {
 // shared/usage.ts
 var USAGE_UNIT = {
   speechsuper: "seconds",
-  iflytek: "seconds",
   minimax: "characters"
 };
 
@@ -2423,7 +2276,7 @@ var UsageMeter = class {
     const today = dayOf2(this.deps.clock.now());
     const monthStart = `${today.slice(0, 8)}01`;
     const rows = await this.deps.usage.siteSince(monthStart);
-    const services = ["speechsuper", "iflytek", "minimax"];
+    const services = ["speechsuper", "minimax"];
     const sum = (list) => list.reduce((a, r) => ({ calls: a.calls + r.calls, units: a.units + r.units }), { calls: 0, units: 0 });
     const lines2 = services.map((service) => ({ service, today: sum(rows.filter((r) => r.service === service && r.day === today)), month: sum(rows.filter((r) => r.service === service)) })).filter((l) => l.month.calls > 0);
     const top = await this.deps.usage.topSince(monthStart, 10);
@@ -2706,7 +2559,7 @@ function createServices(stores, options = {}) {
     feedback: new FeedbackService({ feedback: stores.feedback, users: stores.users, clock, tokens: cryptoTokens }),
     catalog: new CatalogService({ catalog: stores.catalog, pictures: stores.pictures, adminLog: stores.adminLog, clock, tokens: cryptoTokens }),
     narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),
-    speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock, meter: usage, quota }),
+    speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate } : options.evaluator, clock, meter: usage, quota }),
     usage,
     limits: stores.limits,
     lookups: stores.lookups,
@@ -2997,7 +2850,6 @@ function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, 
     const [scoring, reading] = await Promise.all([speechEval.status(user), narration.status(user)]);
     const body = await usage.summary(user, {
       speechsuper: scoring.key.set && scoring.key.provider === "speechsuper",
-      iflytek: scoring.key.set && scoring.key.provider === "iflytek",
       minimax: reading.key.set
     });
     c.header("Cache-Control", "no-store");
@@ -3765,10 +3617,7 @@ function narrationRoutes({ auth, clock, trustProxy, narration, limits, audit, ip
 // server/src/http/routes/speechEval.ts
 import { Hono as Hono10 } from "hono";
 import { z as z10 } from "zod";
-var keysRequest = z10.discriminatedUnion("provider", [
-  z10.object({ provider: z10.literal("speechsuper"), appKey: z10.string().min(1).max(80), secretKey: z10.string().min(1).max(120) }),
-  z10.object({ provider: z10.literal("iflytek"), appId: z10.string().min(1).max(60), apiKey: z10.string().min(1).max(120), apiSecret: z10.string().min(1).max(160) })
-]);
+var keysRequest = z10.object({ provider: z10.literal("speechsuper"), appKey: z10.string().min(1).max(80), secretKey: z10.string().min(1).max(120) });
 var settingsRequest = z10.object({ strictness: z10.enum(STRICTNESS) });
 var sized = (max) => z10.unknown().refine((v) => v === void 0 || JSON.stringify(v).length <= max, "too large");
 var attemptsRequest = z10.object({
@@ -5971,7 +5820,7 @@ var PostgresAccountDirectory = class {
     const total = await this.db.query("SELECT COUNT(*) AS n FROM users WHERE username_key LIKE $1", [like]);
     const { rows } = await this.db.query(
       `WITH s AS (SELECT user_id, COUNT(*) AS n, MAX(last_seen_at) AS seen FROM sessions WHERE expires_at > $1 GROUP BY user_id),
-      m AS (SELECT user_id, SUM(CASE WHEN service IN ('speechsuper', 'iflytek') THEN calls ELSE 0 END) AS scored, SUM(CASE WHEN service = 'minimax' THEN units ELSE 0 END) AS chars FROM api_usage WHERE day >= $2 GROUP BY user_id),
+      m AS (SELECT user_id, SUM(CASE WHEN service = 'speechsuper' THEN calls ELSE 0 END) AS scored, SUM(CASE WHEN service = 'minimax' THEN units ELSE 0 END) AS chars FROM api_usage WHERE day >= $2 GROUP BY user_id),
       r AS (SELECT user_id, SUM(b) AS bytes FROM (
       SELECT user_id, octet_length(document) AS b FROM workspaces
         UNION ALL SELECT user_id, octet_length(save) AS b FROM world_saves

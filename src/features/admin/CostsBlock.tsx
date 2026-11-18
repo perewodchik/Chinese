@@ -3,7 +3,7 @@ import { USAGE_UNIT, type SiteUsage, type UsageService } from '../../../shared/u
 import { request } from '../../api/http';
 import { plural } from './format';
 
-const NAME: Record<UsageService, string> = { speechsuper: 'SpeechSuper', iflytek: 'iFlytek', minimax: 'MiniMax' };
+const NAME: Record<UsageService, string> = { speechsuper: 'SpeechSuper', minimax: 'MiniMax' };
 const units = (service: UsageService, n: number) =>
   USAGE_UNIT[service] === 'seconds' ? `${Math.round(n / 60).toLocaleString('en')} min of speech scored` : `${n.toLocaleString('en')} characters read aloud`;
 
