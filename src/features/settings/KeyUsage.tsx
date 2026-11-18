@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { USAGE_UNIT, type UsageLine, type UsageResponse, type UsageService } from '../../../shared/usage';
 import { accountUsage } from '../../api/account';
+import { FEATURES } from '../../navigation/features';
 import { paths } from '../../navigation/paths';
 import './settings.css';
 
@@ -53,8 +54,14 @@ export function KeyUsage() {
             <p className="small muted">{failed ?? 'Loading…'}</p>
           ) : usage.lines.length === 0 ? (
             <p className="small muted">
-              No keys of your own are saved. Pronunciation checking uses SpeechSuper’s (above), and narrators MiniMax’s (in{' '}
-              <Link to={paths.speakingNarrators()}>Speak › Voices</Link>).
+              {FEATURES.speak ? (
+                <>
+                  No keys of your own are saved. Pronunciation checking uses SpeechSuper’s (above), and narrators MiniMax’s (in{' '}
+                  <Link to={paths.speakingNarrators()}>Speak › Voices</Link>).
+                </>
+              ) : (
+                'No keys of your own are saved.'
+              )}
             </p>
           ) : (
             <ul className="list">

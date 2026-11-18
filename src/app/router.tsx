@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, useLocation } from 'react-router';
+import { createBrowserRouter, Navigate, useLocation, type RouteObject } from 'react-router';
 import { GuestOnly } from '../features/auth/gates';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
@@ -11,6 +11,7 @@ import { ReaderPage } from '../features/reader/ReaderPage';
 import { ReadPage, ShelfPage } from '../features/reader/ReadPage';
 import { CardsPage } from '../features/cards/CardsPage';
 import { CardSessionPage } from '../features/cards/CardSession';
+import { FEATURES } from '../navigation/features';
 import { paths } from '../navigation/paths';
 import { useStore } from '../store/store';
 import { NotFoundPage, RouteError } from './errors';
@@ -108,6 +109,38 @@ const SweepPage = lazyPage(() => import('../features/words/SweepPage'), 'SweepPa
  * thing in it; every old address redirects to its new one.
  */
 
+/**
+ * Speak's pages, when the app is built with it (FEATURES.speak); without it,
+ * every address of the section lands on Read, as if it had never been there.
+ */
+const SPEAK_ROUTES: RouteObject[] = FEATURES.speak
+  ? [
+        // Speaking's four parts, with their own tabs: down the side on an iPad, across the top on a phone.
+        {
+          element: <SpeakingFrame />,
+          children: [
+            { path: 'speaking', element: <SpeakRoute home /> },
+            { path: 'speaking/voices', element: <NarratorsPage /> },
+            { path: 'speaking/talk', element: <TalkFrontPage /> },
+            { path: 'speaking/pinyin', element: <TonesPage /> },
+            { path: 'speaking/history', element: <TriesPage /> },
+          ],
+        },
+        // A text said line by line has the whole screen, like a sitting.
+        { path: 'speaking/say/:source', element: <SpeakRoute /> },
+        { path: 'speaking/practice/:set', element: <PracticePage /> },
+        { path: 'speaking/sounds/:lesson', element: <SoundLessonPage /> },
+        // Setting one up, and the conversation itself. `new` is matched
+        // before `:conversationId` so a conversation can never be named
+        // out of reach of the page that starts one.
+        { path: 'speaking/new', element: <TalkSetupPage /> },
+        { path: 'speaking/:conversationId', element: <TalkPage /> },
+    ]
+  : [
+      { path: 'speaking', element: <Navigate to={paths.read()} replace /> },
+      { path: 'speaking/*', element: <Navigate to={paths.read()} replace /> },
+    ];
+
 export const router = createBrowserRouter([
   {
     errorElement: <RouteError />,
@@ -167,29 +200,10 @@ export const router = createBrowserRouter([
               { path: 'read/explain/:textId', element: <ExplainTextPage /> },
               { path: 'read/edit/:textId', element: <EditTextPage /> },
               { path: 'read/text/:textId', element: <ReaderPage /> },
-              // Speaking's four parts, with their own tabs: down the side on an iPad, across the top on a phone.
-              {
-                element: <SpeakingFrame />,
-                children: [
-                  { path: 'speaking', element: <SpeakRoute home /> },
-                  { path: 'speaking/voices', element: <NarratorsPage /> },
-                  { path: 'speaking/talk', element: <TalkFrontPage /> },
-                  { path: 'speaking/pinyin', element: <TonesPage /> },
-                  { path: 'speaking/history', element: <TriesPage /> },
-                ],
-              },
-              // A text said line by line has the whole screen, like a sitting.
-              { path: 'speaking/say/:source', element: <SpeakRoute /> },
-              { path: 'speaking/practice/:set', element: <PracticePage /> },
-              { path: 'speaking/sounds/:lesson', element: <SoundLessonPage /> },
+              ...SPEAK_ROUTES,
               { path: 'videos', element: <VideosPage /> },
               { path: 'videos/add', element: <AddVideoPage /> },
               { path: 'videos/:videoId', element: <VideoPage /> },
-              // Setting one up, and the conversation itself. `new` is matched
-              // before `:conversationId` so a conversation can never be named
-              // out of reach of the page that starts one.
-              { path: 'speaking/new', element: <TalkSetupPage /> },
-              { path: 'speaking/:conversationId', element: <TalkPage /> },
               { path: 'settings', element: <SettingsPage /> },
               { path: 'settings/:section', element: <SettingsPage /> },
               { path: 'account', element: <AccountPage /> },

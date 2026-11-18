@@ -9,6 +9,7 @@ import { InstallCard } from './InstallCard';
 import { LearningSettings } from './LearningSettings';
 import { KeyUsage } from './KeyUsage';
 import { PronunciationKey } from './PronunciationKey';
+import { FEATURES } from '../../navigation/features';
 
 /** Slow enough to follow, and not so slow that it stops being speech. */
 const GUIDED_PACES: ReadonlyArray<{ value: number; label: string }> = [
@@ -231,6 +232,8 @@ function Keys() {
   const [scoring, setScoring] = useState<string | null>(null);
   return (
     <>
+      {FEATURES.speak && (
+        <>
       <p className="small settings-state" aria-live="polite">
         {scoring === null
           ? '\u00a0'
@@ -241,6 +244,8 @@ function Keys() {
       <div id="speechsuper">
         <PronunciationKey onChange={(st) => setScoring(st.key.set ? (st.key.provider === 'iflytek' ? 'iFlytek' : 'SpeechSuper') : '')} />
       </div>
+        </>
+      )}
       <div id="usage">
         <KeyUsage />
       </div>
@@ -263,7 +268,7 @@ export interface Section {
  */
 export const SECTIONS: Section[] = [
   { id: 'learning', han: '学', label: 'Learning', blurb: 'Your level, and what counts as a day done', body: Learning },
-  { id: 'speaking', han: '说', label: 'Speaking', blurb: 'Guided speed, when recording stops', body: Speaking },
+  ...(FEATURES.speak ? [{ id: 'speaking', han: '说', label: 'Speaking', blurb: 'Guided speed, when recording stops', body: Speaking }] : []),
   { id: 'keys', han: '钥', label: 'Keys & services', blurb: 'Your own keys, and what they have cost', body: Keys },
   { id: 'printing', han: '印', label: 'Printing', blurb: 'The colour, the footer, practice pages', body: Printing },
   { id: 'appearance', han: '色', label: 'Appearance', blurb: 'Light, dark or as the system is', body: Appearance },

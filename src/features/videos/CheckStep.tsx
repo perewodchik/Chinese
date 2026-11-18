@@ -15,6 +15,7 @@ import { lessonById } from '../../domain/pinyin/sounds';
 import { RULE_NOTE } from '../../domain/pinyin/sandhi';
 import { hanOf, MARK_WAYS, OVERALL, syllablesOf, type LineMark, type MarkWay, type SylMark } from '../../domain/video';
 import { mistakesPrompt } from '../../domain/videoPrompt';
+import { FEATURES } from '../../navigation/features';
 import { paths } from '../../navigation/paths';
 import { saveAsk, saveCheck } from '../../store/videoCommands';
 import { ClaudeBox } from './ClaudeBox';
@@ -441,7 +442,7 @@ function Summary({ s }: { s: CheckSummary }) {
         {s.confusions.length > 0 && (
           <ul className="confusions">
             {s.confusions.map((c) => {
-              const lesson = c.lesson ? lessonById(c.lesson) : null;
+              const lesson = FEATURES.speak && c.lesson ? lessonById(c.lesson) : null;
               return (
                 <li key={c.key}>
                   <span className="small">

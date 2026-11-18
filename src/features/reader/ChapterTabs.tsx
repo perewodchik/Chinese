@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router';
 import type { GeneratedText } from '../../domain/text';
+import { FEATURES } from '../../navigation/features';
 import { paths } from '../../navigation/paths';
 import { bestByLine } from '../pinyin/speechHistory';
 
@@ -55,6 +56,8 @@ export function useLineBests(textId: string): Record<string, number> {
   const [bests, setBests] = useState<Record<string, number>>({});
   useEffect(() => {
     let live = true;
+    // Without Speak there are no tries to ask for.
+    if (!FEATURES.speak) return;
     bestByLine().then(
       (b) => live && setBests(b),
       () => undefined,
