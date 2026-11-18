@@ -181,6 +181,9 @@ phrases»), для кредитов — подтверждение дороги�
 <a id="k22"></a>
 ### K22 (Н) iFlytek и Azure
 
+**iFlytek убран из интерфейса и кода (2026-11-18, решение владельца).**
+Осталось решение про Azure.
+
 Решение владельца: убрать из интерфейса и кода (`server/src/infrastructure/
 iflytek.ts`, `azure-speech.ts`, маршрут `/api/speech`) или оставить
 скрытыми. Сейчас `/api/speech/audio` при заданном `AZURE_SPEECH_KEY` даёт

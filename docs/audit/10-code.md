@@ -34,6 +34,8 @@
 <a id="r1"></a>
 ### R1 (В) Линтер и форматтер в CI
 
+**Снято владельцем 2026-11-18: не нужен.**
+
 Нет ни ESLint, ни Prettier/Biome; CI (`.github/workflows/check.yml`) гоняет
 только сборку, тесты и `npm audit`. Поставить **Biome** (один инструмент,
 быстрый) или ESLint + Prettier. Правила минимум: `react-hooks/rules-of-hooks`
