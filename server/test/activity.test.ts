@@ -54,6 +54,21 @@ describe('the site in numbers (A7)', () => {
     assert.equal((await call(app, 'GET', '/api/admin/dashboard', { cookie: old })).status, 403);
     assert.equal((await call(app, 'GET', '/api/admin/dashboard')).status, 401);
   });
+
+  it('follows the last month’s newcomers as far as each got', async () => {
+    const { app, clock, signUp, report, dashboard } = await setUp();
+    await signUp('kirill');
+    clock.advance(40 * DAY);
+    const owner = sessionCookie(await call(app, 'POST', '/api/auth/login', { body: { username: 'kirill', password: 'correct horse' } }));
+    const [reader, carder, idle] = [await signUp('masha'), await signUp('petya'), await signUp('vasya')];
+    void idle;
+    await report(reader, { day: dayOf(clock.now()), textsRead: 1, minutes: 5 });
+    await report(carder, { day: dayOf(clock.now()), answers: 10 });
+    clock.advance(DAY);
+    await report(reader, { day: dayOf(clock.now()), minutes: 3 });
+    // The owner joined forty days ago: not a newcomer any more.
+    assert.deepEqual((await dashboard(owner)).funnel, { joined: 3, worked: 2, read: 1, answered: 1, cameBack: 1 });
+  });
 });
 
 describe('what broke on learners’ screens (R15)', () => {

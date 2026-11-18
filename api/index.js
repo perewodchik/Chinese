@@ -550,7 +550,17 @@ var ActivityService = class {
       };
       cohorts.push({ week: dayOf(start), joined: joined.length, week1: inWeek(1), week2: inWeek(2), week4: inWeek(4) });
     }
+    const newcomers = users.filter((u) => u.createdAt >= now - 30 * DAY);
+    const theirs = (id) => live.filter((r) => r.userId === id);
+    const funnel = {
+      joined: newcomers.length,
+      worked: newcomers.filter((u) => theirs(u.id).length > 0).length,
+      read: newcomers.filter((u) => theirs(u.id).some((r) => r.textsRead > 0)).length,
+      answered: newcomers.filter((u) => theirs(u.id).some((r) => r.answers > 0)).length,
+      cameBack: newcomers.filter((u) => new Set(theirs(u.id).map((r) => r.day)).size > 1).length
+    };
     return {
+      funnel,
       active: { day: activeSince(today).size, week: week.size, month: activeSince(back(29)).size },
       joined: { week: users.filter((u) => u.createdAt >= now - 7 * DAY).length, month: users.filter((u) => u.createdAt >= now - 30 * DAY).length },
       returned: users.filter((u) => u.createdAt < now - 7 * DAY && week.has(u.id)).length,
