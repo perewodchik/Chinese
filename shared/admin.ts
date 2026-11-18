@@ -3,7 +3,7 @@
  *
  *   GET  /api/admin            200 for an admin, 403 for anyone else
  *   GET  /api/admin/overview   → AdminOverview
- *   POST /api/admin/invites    { note, days } → { code, expiresAt }
+ *   POST /api/admin/invites    { note, days, uses? } → { code, expiresAt, uses }
  *   GET  /api/admin/log        ?action=&name=&before= → AdminLogPage
  *   POST /api/admin/accounts/:id/block     { reason } → 204: paused, signed out everywhere, its tokens stopped
  *   POST /api/admin/accounts/:id/unblock   → 204
@@ -74,6 +74,9 @@ export interface AdminAccountPage {
   pages: number;
 }
 
+/** The most accounts one invitation may make (A8): a class, not the world. */
+export const INVITE_MAX_USES = 100;
+
 export interface AdminInvite {
   /** its code's digest: opens nothing, names it to take it back (A8) */
   id: string;
@@ -82,10 +85,14 @@ export interface AdminInvite {
   expiresAt: number | null;
   usedBy: string | null;
   usedAt: number | null;
-  /** A8: taken back before it was used */
+  /** A8: taken back while it still had uses left */
   revokedAt: number | null;
   /** A8: who made it, by name; null for one made before that was kept */
   createdBy: string | null;
+  /** A8: how many accounts it may make (1, or a group's N), how many it has made, and who came by it, oldest first */
+  maxUses: number;
+  uses: number;
+  people: Array<{ username: string; at: number }>;
 }
 
 /** Something that happened to an account: who, what, when, on what. Not the address. */

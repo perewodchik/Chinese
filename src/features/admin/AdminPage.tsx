@@ -54,6 +54,9 @@ const DAYS = [
   { value: 0, label: 'No end' },
 ];
 
+/** A8: one person, or a group — a class, a club — on one link. */
+const PEOPLE = [1, 5, 10, 20, 30, 50];
+
 /**
  * The site's own page, for the accounts that run it (role `admin`): an
  * invitation made from the phone, the accounts with how much each keeps and
@@ -72,8 +75,9 @@ export function AdminPage() {
   const [denied, setDenied] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [days, setDays] = useState(14);
+  const [uses, setUses] = useState(1);
   const [busy, setBusy] = useState(false);
-  const [made, setMade] = useState<{ code: string; link: string; note: string } | null>(null);
+  const [made, setMade] = useState<{ code: string; link: string; note: string; uses: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = () =>
@@ -90,8 +94,8 @@ export function AdminPage() {
     setBusy(true);
     setError(null);
     try {
-      const { code } = await confirm(() => makeInvite(note, days));
-      setMade({ code, note, link: `${location.origin}${paths.register()}?invite=${code}` });
+      const { code } = await confirm(() => makeInvite(note, days, uses));
+      setMade({ code, note, uses, link: `${location.origin}${paths.register()}?invite=${code}` });
       setNote('');
       void load();
     } catch (err) {
@@ -150,6 +154,16 @@ export function AdminPage() {
             <input type="text" name="note" value={note} placeholder="Masha" maxLength={120} onChange={(e) => setNote(e.target.value)} />
           </label>
           <label className="field">
+            How many
+            <select value={uses} onChange={(e) => setUses(Number(e.target.value))}>
+              {PEOPLE.map((n) => (
+                <option key={n} value={n}>
+                  {n === 1 ? 'One person' : `${n} people`}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
             Good for
             <select value={days} onChange={(e) => setDays(Number(e.target.value))}>
               {DAYS.map((d) => (
@@ -171,7 +185,7 @@ export function AdminPage() {
         {made && (
           <div className="admin-made">
             <p className="small" style={{ margin: 0 }}>
-              {made.note ? `For ${made.note}: ` : ''}one account, with the code <b className="admin-code">{made.code}</b>. Send the link; it arrives with the code typed in. It is shown this once.
+              {made.note ? `For ${made.note}: ` : ''}{made.uses > 1 ? `up to ${made.uses} accounts, one each,` : 'one account,'} with the code <b className="admin-code">{made.code}</b>. Send the link; it arrives with the code typed in. It is shown this once.
             </p>
             <span className="small admin-link">{made.link}</span>
             <button
@@ -245,7 +259,9 @@ export function AdminPage() {
                   <span className="small muted">
                     Made {day(i.createdAt)}
                     {i.createdBy ? ` by ${i.createdBy}` : ''} ·{' '}
-                    {i.usedBy
+                    {i.maxUses > 1
+                      ? `${i.uses} of ${i.maxUses} used${i.revokedAt ? `, taken back ${day(i.revokedAt)}` : i.uses < i.maxUses && i.expiresAt && i.expiresAt <= Date.now() ? ', ran out' : ''}`
+                      : i.usedBy
                       ? `used by ${i.usedBy} on ${day(i.usedAt!)}`
                       : i.revokedAt
                         ? `taken back ${day(i.revokedAt)}`
@@ -255,9 +271,10 @@ export function AdminPage() {
                             ? `good until ${day(i.expiresAt)}`
                             : 'good with no end'}
                   </span>
+                  {i.maxUses > 1 && i.people.length > 0 && <span className="small">{i.people.map((p) => p.username).join(', ')}</span>}
                 </span>
-                {/* A8: one still good can be taken back, in case the link went to the wrong person. */}
-                {!i.usedBy && !i.revokedAt && !(i.expiresAt && i.expiresAt <= Date.now()) && (
+                {/* A8: one still good can be taken back, in case the link went to the wrong person; who came by it stays. */}
+                {i.uses < i.maxUses && !i.revokedAt && !(i.expiresAt && i.expiresAt <= Date.now()) && (
                   <button className="btn quiet sm" disabled={busy} onClick={() => void takeBack(i.id)}>
                     Take back
                   </button>

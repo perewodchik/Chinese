@@ -31,6 +31,7 @@ function detailsOf(e: AdminLogEntry): string | null {
   const parts: string[] = [];
   if (typeof e.details.note === 'string' && e.details.note) parts.push(`for ${e.details.note}`);
   if (e.action === 'invite-made' && 'days' in e.details) parts.push(e.details.days ? `good for ${e.details.days} days` : 'good with no end');
+  if (e.action === 'invite-made' && typeof e.details.uses === 'number') parts.push(`for ${e.details.uses} people`);
   if (typeof e.details.reason === 'string' && e.details.reason) parts.push(`because: ${e.details.reason}`);
   return parts.length ? parts.join(', ') : null;
 }

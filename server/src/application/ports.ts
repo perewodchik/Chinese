@@ -371,19 +371,24 @@ export interface Invite {
   /** A8: taken back before it was used; and the account that made it */
   revokedAt?: number | null;
   createdBy?: string | null;
+  /** A8: how many accounts it may make (1 unless made for a group), how many it has, and whose, oldest first */
+  maxUses?: number;
+  uses?: number;
+  usedByAll?: Array<{ userId: string; at: number }>;
 }
 
 export interface InviteRepository {
   insert(invite: Invite): Promise<void>;
   /**
-   * Takes the invitation for `userId` if it is unused and not out of date,
-   * in one statement, so two sign-ups with one code cannot both have it.
+   * Takes one of the invitation's uses for `userId` if one is left and it is
+   * not out of date, in one statement, so two sign-ups with the last use of a
+   * code cannot both have it.
    */
   claim(digest: string, userId: string, now: number): Promise<boolean>;
   /** Gives back a claim whose account could not be made after all. */
   release(digest: string, userId: string): Promise<void>;
   list(): Promise<Invite[]>;
-  /** A8: takes back an invitation not used yet; false when it was used, taken back already, or is not there. */
+  /** A8: takes back an invitation with uses left; false when they are all used, it was taken back already, or is not there. */
   revoke(digest: string, at: number): Promise<boolean>;
 }
 

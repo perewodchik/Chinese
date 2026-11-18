@@ -179,7 +179,15 @@ describe('Postgres storage', () => {
     await stores.invites.release('d1', 'u2');
     assert.equal((await stores.invites.list())[0]!.usedBy, 'u1');
     await stores.invites.release('d1', 'u1');
-    assert.deepEqual((await stores.invites.list())[0], { digest: 'd1', note: 'Masha', createdAt: T, expiresAt: T + 1000, usedBy: null, usedAt: null, revokedAt: null, createdBy: null });
+    assert.deepEqual((await stores.invites.list())[0], { digest: 'd1', note: 'Masha', createdAt: T, expiresAt: T + 1000, usedBy: null, usedAt: null, revokedAt: null, createdBy: null, maxUses: 1, uses: 0, usedByAll: [] });
+    // A8: one for a group takes as many as it was made for, and keeps who came.
+    await stores.invites.insert({ digest: 'd2', note: 'Class', createdAt: T, expiresAt: null, usedBy: null, usedAt: null, maxUses: 2 });
+    assert.equal(await stores.invites.claim('d2', 'u1', T + 1), true);
+    assert.equal(await stores.invites.claim('d2', 'u2', T + 2), true);
+    assert.equal(await stores.invites.claim('d2', 'u3', T + 3), false);
+    const group = (await stores.invites.list()).find((i) => i.digest === 'd2')!;
+    assert.deepEqual([group.uses, group.usedBy, group.usedByAll], [2, 'u1', [{ userId: 'u1', at: T + 1 }, { userId: 'u2', at: T + 2 }]]);
+    assert.equal(await stores.invites.revoke('d2', T + 4), false);
   });
 
   it('counts attempts per key per window in one statement, and forgets a key or an old window', async () => {

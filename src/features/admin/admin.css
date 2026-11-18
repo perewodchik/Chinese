@@ -6,7 +6,7 @@
 
 .admin-invite {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 160px);
+  grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 150px));
   gap: 12px;
   align-items: end;
 }

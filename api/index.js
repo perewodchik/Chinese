@@ -532,6 +532,9 @@ var ActivityService = class {
   }
 };
 
+// shared/admin.ts
+var INVITE_MAX_USES = 100;
+
 // shared/api.ts
 var TOKEN_SCOPES = ["texts:write", "catalog:write"];
 var TOKEN_PREFIX = "hzw_";
@@ -609,14 +612,15 @@ var AuthService = class {
     });
     return this.issue(user, input.userAgent);
   }
-  /** For whoever runs the server: an invitation for one account, good for `days` (or for ever). */
-  async invite(note, days, actor) {
+  /** For whoever runs the server: an invitation for one account — or `uses` of them, for a group — good for `days` (or for ever). */
+  async invite(note, days, actor, uses = 1) {
+    if (!Number.isInteger(uses) || uses < 1 || uses > INVITE_MAX_USES) throw new ValidationError(`An invitation makes from 1 to ${INVITE_MAX_USES} accounts.`);
     const code = Array.from({ length: INVITE_LENGTH }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join("");
     const now = this.deps.clock.now();
     const expiresAt = days === null ? null : now + days * DAY2;
-    await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null, createdBy: actor.id });
-    await this.record(actor, "invite-made", null, { note: note.trim().slice(0, 120), days });
-    return { code: code.match(/.{1,4}/g).join("-"), note, expiresAt };
+    await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null, createdBy: actor.id, maxUses: uses });
+    await this.record(actor, "invite-made", null, { note: note.trim().slice(0, 120), days, ...uses > 1 ? { uses } : {} });
+    return { code: code.match(/.{1,4}/g).join("-"), note, expiresAt, uses };
   }
   /**
    * The invitations given out, with who made and who used each (by name) —
@@ -635,14 +639,17 @@ var AuthService = class {
       usedBy: who(i.usedBy),
       usedAt: i.usedAt,
       revokedAt: i.revokedAt ?? null,
-      createdBy: who(i.createdBy)
+      createdBy: who(i.createdBy),
+      maxUses: i.maxUses ?? 1,
+      uses: i.uses ?? (i.usedBy ? 1 : 0),
+      people: (i.usedByAll?.length ? i.usedByAll : i.usedBy ? [{ userId: i.usedBy, at: i.usedAt ?? i.createdAt }] : []).map((u) => ({ username: who(u.userId), at: u.at }))
     }));
   }
-  /** A8: an invitation taken back before anyone used it; in the admins' log. */
+  /** A8: an invitation taken back while it could still make an account; in the admins' log. Accounts made by it stay. */
   async revokeInvite(id, actor) {
     const invite = (await this.deps.invites.list()).find((i) => i.digest === id);
     if (!invite) throw new NotFoundError("That invitation");
-    if (!await this.deps.invites.revoke(id, this.deps.clock.now())) throw new ValidationError(invite.usedBy ? "That invitation has been used already." : "That invitation was taken back already.");
+    if (!await this.deps.invites.revoke(id, this.deps.clock.now())) throw new ValidationError(invite.revokedAt ? "That invitation was taken back already." : "That invitation has been used already.");
     await this.record(actor, "invite-revoked", null, { note: invite.note });
   }
   /** An account made by whoever runs the server, whether or not sign-ups are open. No session comes with it. */
@@ -2971,7 +2978,7 @@ var publishSchema = z3.object({
 });
 
 // server/src/http/routes/admin.ts
-var inviteRequest = z4.object({ note: z4.string().trim().max(120), days: z4.number().int().min(0).max(365) });
+var inviteRequest = z4.object({ note: z4.string().trim().max(120), days: z4.number().int().min(0).max(365), uses: z4.number().int().min(1).max(INVITE_MAX_USES).optional() });
 var logQuery = z4.object({
   action: z4.string().max(40).optional(),
   name: z4.string().max(200).optional(),
@@ -3039,7 +3046,7 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
     const user = (await auth.accounts()).find((a) => a.id === id);
     if (!user) return c.json({ error: { code: "not_found", message: "That account is not here." } }, 404);
     const row = (await auth.accountPage({ q: user.username, sort: "joined" })).rows.find((r) => r.id === id);
-    const invite = (await auth.invites()).find((i) => i.usedBy === user.username);
+    const invite = (await auth.invites()).find((i) => i.people.some((p) => p.username === user.username));
     const body = {
       account: row,
       invite: invite ? { note: invite.note, createdBy: invite.createdBy } : null,
@@ -3158,11 +3165,11 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
   });
   routes.post("/invites", session, admin, fresh, async (c) => {
     await invites.consume(c.get("session").user.id);
-    const { note, days } = await readJson(c, inviteRequest);
-    const made = await auth.invite(note, days === 0 ? null : days, actor(c));
+    const { note, days, uses } = await readJson(c, inviteRequest);
+    const made = await auth.invite(note, days === 0 ? null : days, actor(c), uses ?? 1);
     auditor(audit, clock, trustProxy, ipHeader, log)(c, "invite", c.get("session").user.username);
     c.header("Cache-Control", "no-store");
-    return c.json({ code: made.code, expiresAt: made.expiresAt }, 201);
+    return c.json({ code: made.code, expiresAt: made.expiresAt, uses: made.uses }, 201);
   });
   return routes;
 }
@@ -4790,6 +4797,19 @@ var MIGRATIONS = [
     user_agent  TEXT
   );
   CREATE INDEX client_errors_by_time ON client_errors (at);
+  `,
+  // A8: an invitation for a group — good for up to N accounts — and who came by each.
+  `
+  ALTER TABLE invites ADD COLUMN max_uses INTEGER NOT NULL DEFAULT 1;
+  ALTER TABLE invites ADD COLUMN uses INTEGER NOT NULL DEFAULT 0;
+  UPDATE invites SET uses = 1 WHERE used_by IS NOT NULL;
+  CREATE TABLE invite_uses (
+    digest   TEXT NOT NULL,
+    user_id  TEXT NOT NULL,
+    used_at  BIGINT NOT NULL,
+    PRIMARY KEY (digest, user_id)
+  );
+  INSERT INTO invite_uses (digest, user_id, used_at) SELECT digest, used_by, used_at FROM invites WHERE used_by IS NOT NULL AND used_at IS NOT NULL;
   `
 ];
 
@@ -5542,7 +5562,7 @@ var PostgresUsageRepository = class {
 };
 
 // server/src/infrastructure/postgres/invite-repository.ts
-var toInvite = (r) => ({
+var toInvite = (r, usedByAll = []) => ({
   digest: r.digest,
   note: r.note,
   createdAt: Number(r.created_at),
@@ -5550,39 +5570,55 @@ var toInvite = (r) => ({
   usedBy: r.used_by,
   usedAt: r.used_at === null ? null : Number(r.used_at),
   revokedAt: r.revoked_at === null || r.revoked_at === void 0 ? null : Number(r.revoked_at),
-  createdBy: r.created_by ?? null
+  createdBy: r.created_by ?? null,
+  maxUses: Number(r.max_uses ?? 1),
+  uses: Number(r.uses ?? 0),
+  usedByAll
 });
 var PostgresInviteRepository = class {
   constructor(db) {
     this.db = db;
   }
   async insert(i) {
-    await this.db.query("INSERT INTO invites (digest, note, created_at, expires_at, used_by, used_at, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7)", [
+    await this.db.query("INSERT INTO invites (digest, note, created_at, expires_at, used_by, used_at, created_by, max_uses) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [
       i.digest,
       i.note,
       i.createdAt,
       i.expiresAt,
       i.usedBy,
       i.usedAt,
-      i.createdBy ?? null
+      i.createdBy ?? null,
+      i.maxUses ?? 1
     ]);
   }
   async claim(digest, userId, now) {
     const { rowCount } = await this.db.query(
-      "UPDATE invites SET used_by = $1, used_at = $2 WHERE digest = $3 AND used_by IS NULL AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > $2)",
+      "UPDATE invites SET uses = uses + 1, used_by = COALESCE(used_by, $1), used_at = COALESCE(used_at, $2) WHERE digest = $3 AND uses < max_uses AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > $2)",
       [userId, now, digest]
     );
-    return rowCount === 1;
+    if (rowCount !== 1) return false;
+    await this.db.query("INSERT INTO invite_uses (digest, user_id, used_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING", [digest, userId, now]);
+    return true;
   }
   async release(digest, userId) {
-    await this.db.query("UPDATE invites SET used_by = NULL, used_at = NULL WHERE digest = $1 AND used_by = $2", [digest, userId]);
+    const gone = await this.db.query("DELETE FROM invite_uses WHERE digest = $1 AND user_id = $2", [digest, userId]);
+    if (gone.rowCount !== 1) return;
+    await this.db.query(
+      "UPDATE invites SET uses = uses - 1, used_at = CASE WHEN used_by = $1 THEN NULL ELSE used_at END, used_by = CASE WHEN used_by = $1 THEN NULL ELSE used_by END WHERE digest = $2",
+      [userId, digest]
+    );
   }
   async list() {
-    const { rows } = await this.db.query("SELECT * FROM invites ORDER BY created_at");
-    return rows.map(toInvite);
+    const [{ rows }, uses] = await Promise.all([
+      this.db.query("SELECT * FROM invites ORDER BY created_at"),
+      this.db.query("SELECT digest, user_id, used_at FROM invite_uses ORDER BY used_at")
+    ]);
+    const by = /* @__PURE__ */ new Map();
+    for (const u of uses.rows) by.set(u.digest, [...by.get(u.digest) ?? [], { userId: u.user_id, at: Number(u.used_at) }]);
+    return rows.map((r) => toInvite(r, by.get(r.digest) ?? []));
   }
   async revoke(digest, at) {
-    const { rowCount } = await this.db.query("UPDATE invites SET revoked_at = $1 WHERE digest = $2 AND used_by IS NULL AND revoked_at IS NULL", [at, digest]);
+    const { rowCount } = await this.db.query("UPDATE invites SET revoked_at = $1 WHERE digest = $2 AND uses < max_uses AND revoked_at IS NULL", [at, digest]);
     return rowCount === 1;
   }
 };
