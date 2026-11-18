@@ -107,12 +107,13 @@ words the story cannot do without (菩提祖, 孙悟空, 聪, 教, 筋斗云). W
   那个也不学`.
 - The names repeat a lot, so the share known is lower than the count of new
   characters suggests.
-- **From chapter 3 the learner asked for 85–90% known** (not 95%), and for the
+- **From chapter 3 the learner asked for 90% known** (not 95%), and for the
   retelling to stay closer to the book: keep its details (the crown, mail and
   shoes by name, the soul, the judge, the brush, the edict) and its everyday
   words (办法, 只好, 商量, 既然, 准备, 故意), and simplify only the written
-  style and the rarest characters. Chapter 3 came out at 87% with 75 new
-  characters, and lifted the book's own text from 76% to 84%. Measure against
+  style and the rarest characters. Chapter 3 came out at 90% with 42 new
+  characters (a first try at 87% was too hard), and lifted the book's own text
+  from 76% to 81%. Measure against
   the shelf *without* the chapter's old texts when redoing one.
 
 ## Pictures
@@ -189,6 +190,6 @@ asking: offered to the learner).
 | 0 人物和词语 (preface) | `/read/text/mw51lpik317f85ec7315891e69f9` | — | none |
 | 1 美猴王横空出世 | in 西游记 (easier) | in 西游记 (original) | 6, `xyj-ch1.mjs` |
 | 2 三星洞石猴学道 | `/read/text/mw4ycn066abce04c8eeac21ee178` | `/read/text/mw4ycyqlaae565bb6e8fb8b7d951` | 8, `xyj-ch2.mjs` |
-| 3 闯龙宫醉闹冥府 | `/read/text/mwm998fnb5f8171c2376611b0f08` (87% known, 75 new) | `/read/text/mwm99aige0bf825509aaa27cba86` (84%, 118 new) | 11, `xyj-ch3.mjs` |
+| 3 闯龙宫醉闹冥府 | `/read/text/mwm998fnb5f8171c2376611b0f08` (90% known, 42 new) | `/read/text/mwm99aige0bf825509aaa27cba86` (81%, 146 new) | 11, `xyj-ch3.mjs` |
 
 Add a row when a chapter goes in.
