@@ -52,6 +52,7 @@ file into the original book. `--source "西游记"`, `--genre story`.
 |---|---|---|
 | 1 | 美猴王横空出世 | The Monkey King is born |
 | 2 | 三星洞石猴学道 | The stone monkey learns the Way at Three Stars Cave |
+| 3 | 闯龙宫醉闹冥府 | Storming the Dragon Palace and rampaging drunk through the Underworld |
 
 ## Names, as they are written here
 
@@ -73,6 +74,15 @@ Keep every name in `vocab` of both versions, so the reader keeps it one word.
 | 玉皇大帝, 玉帝 | Yùhuáng Dàdì, Yùdì | the Jade Emperor (ch. 1) |
 | 筋斗云 | jīndǒuyún | the somersault cloud |
 | 七十二变 | qīshí'èr biàn | the seventy-two transformations |
+| 金箍棒, 如意棒 | jīngūbàng, rúyìbàng | the golden-banded staff; the As-You-Will staff, the same one (ch. 3) |
+| 东海龙王, 敖广 | Dōnghǎi lóngwáng, Áo Guǎng | the Dragon King of the Eastern Sea (ch. 3) |
+| 龙宫 | lónggōng | the Dragon Palace (ch. 3) |
+| 幽冥界, 冥府, 地府 | Yōumíngjiè, míngfǔ, dìfǔ | the Underworld (ch. 3: all three) |
+| 阎王, 阎罗殿 | Yánwang, Yánluódiàn | Yama, the King of Hell; his hall (ch. 3) |
+| 十代冥王, 秦广王 | Shídài Míngwáng, Qínguǎngwáng | the Ten Kings of the Underworld; the first of them (ch. 3) |
+| 生死簿 | shēngsǐbù | the Book of Life and Death (ch. 3) |
+| 太白金星 | Tàibái Jīnxīng | the Great White Star, the Jade Emperor's messenger (ch. 3) |
+| 灵霄宝殿, 天庭 | Língxiāo Bǎodiàn, tiāntíng | the Hall of Divine Mists; the Court of Heaven (ch. 3) |
 
 ## The book's written style
 
@@ -109,6 +119,7 @@ held to. The drawings are code:
 |---|---|---|
 | 1 | `scripts/texts/art/stories/xyj-ch1.mjs` | p1–p6, the same in both books |
 | 2 | `scripts/texts/art/stories/xyj-ch2.mjs` | p1–p8; ¶6 has `p6-book` (kneeling) and `p6-easy` (sitting) |
+| 3 | `scripts/texts/art/stories/xyj-ch3.mjs` | p1–p11; ¶3 has `p3-book` (the crown too) and `p3-easy` (clothes and shoes) |
 
 The people, as the modules draw them, and as every chapter must keep them:
 - **Sun Wukong**: `monkey({ fur: HERO, hero: true })` — a golden-brown monkey
@@ -124,6 +135,23 @@ The people, as the modules draw them, and as every chapter must keep them:
 - **The Jade Emperor**: `emperor()` in `xyj-ch1.mjs` — yellow robe, black crown,
   on a palace on a cloud.
 - **The somersault cloud**: `nimbus()` in `xyj-ch2.mjs`.
+- **Wukong from chapter 3, ¶4 on**: `armoured()` in `xyj-ch3.mjs` —
+  `monkey({ robe: '#e0b040', armour: true, crown: true })`: golden chain mail,
+  a purple-gold cap with two long red phoenix plumes. Before he gets it,
+  `robed()`, the grey robe. His staff: `staff()` / `staffAt()`, black iron with
+  a gold band at each end.
+- **The Dragon Kings**: `dragonKing(sea)` — `person` with `hat: 'dragon'`
+  (golden antlers, a little gold crown, long whiskers) and a pale beard; robes
+  east green, south red, west white, north blue.
+- **The Underworld**: ghosts `ghost()` (pale, grey robe, tall white pointed
+  hat); the Ten Kings `underKing()` (dark red robe, black winged hat, black
+  beard); the judge `judge()` (the same in dark green).
+- **The Jade Emperor, full size**: `jadeEmperor()` — `person` with the yellow
+  robe, `hat: 'crown'` (black board with red bead strings) and a black beard.
+- **The Great White Star**: `greatWhiteStar()` — pale blue robe, white beard,
+  a blue scholar's cap (`hat: 'scholar'`), a horsetail whisk.
+- `person` now takes `skin`, `hat` (`HATS` in `xyj-ch2.mjs`) and
+  `beardColour`, and the poses `offer` and `low`.
 
 Put them in with `npm run -s texts -- put <text id> p1.jpg …`, into the easier
 text and the book's text each, in paragraph order.
@@ -139,6 +167,10 @@ When a chapter brings in a new person or a new name, add a sentence for them:
 the text is in the account, so this means writing the preface's JSON again
 from the one on the site and putting it in as a new text, or asking first.
 
+Chapter 3 brings in the Dragon Kings, the Ten Kings of the Underworld and the
+Great White Star, and the preface does not have them yet (not done without
+asking: offered to the learner).
+
 ## Chapters so far
 
 | Chapter | Easier text | Book's text | Pictures |
@@ -146,5 +178,6 @@ from the one on the site and putting it in as a new text, or asking first.
 | 0 人物和词语 (preface) | `/read/text/mw51lpik317f85ec7315891e69f9` | — | none |
 | 1 美猴王横空出世 | in 西游记 (easier) | in 西游记 (original) | 6, `xyj-ch1.mjs` |
 | 2 三星洞石猴学道 | `/read/text/mw4ycn066abce04c8eeac21ee178` | `/read/text/mw4ycyqlaae565bb6e8fb8b7d951` | 8, `xyj-ch2.mjs` |
+| 3 闯龙宫醉闹冥府 | `/read/text/mwm998fnb5f8171c2376611b0f08` (95% known, 12 new) | `/read/text/mwm99aige0bf825509aaa27cba86` (76%, 171 new) | 11, `xyj-ch3.mjs` |
 
 Add a row when a chapter goes in.

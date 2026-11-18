@@ -31,6 +31,9 @@ const P_ARMS = {
   shoulder: { a: [[-12, -4], [40, 178]], layer: 'front' },
   behind: { a: [[-20, -40], [20, 40]], layer: 'hidden' },
   frown: { a: [[-40, 100], [40, -100]], layer: 'front' },
+  // Chapter 3: holding something out at chest height in the right hand; both hands low in front.
+  offer: { a: [[-12, -4], [44, 96]], layer: 'back' },
+  low: { a: [[-26, 50], [26, -50]], layer: 'front' },
 };
 
 /**
@@ -40,13 +43,13 @@ const P_ARMS = {
  * (cross-legged) | kneel; face: smile | happy | stern | worried | open;
  * hold: something drawn at the right hand (a function of its x, y).
  */
-export function person({ x, y, s = 1, flip = false, robe = '#7d9cc4', trim = '#f4efe2', hair = 'bun', beard = false, legs = 'stand', arms = 'rest', lean = 0, face = 'smile', look = 'front', hold = null, shadowless = false }) {
+export function person({ x, y, s = 1, flip = false, robe = '#7d9cc4', trim = '#f4efe2', hair = 'bun', beard = false, legs = 'stand', arms = 'rest', lean = 0, face = 'smile', look = 'front', hold = null, shadowless = false, skin = SKIN, hat = null, beardColour = '#fffaf0' }) {
   const A = P_ARMS[arms];
   // The shoulders' height, and the robe from them down, by how the person is placed.
   const top = legs === 'stand' ? -150 : legs === 'kneel' ? -118 : -104;
   const shoulders = [[-24, top + 8], [24, top + 8]];
   const armPts = A.a.map(([u, f], i) => { const el = step(shoulders[i], u, BONE.upper); return [shoulders[i], el, step(el, f, BONE.fore)]; });
-  const hand = (h) => `<circle cx="${h[0]}" cy="${h[1]}" r="9" fill="${SKIN}" ${ink(2.5)}/>`;
+  const hand = (h) => `<circle cx="${h[0]}" cy="${h[1]}" r="9" fill="${skin}" ${ink(2.5)}/>`;
   const sleeve = ([sh, el, h]) => limb([sh, el], 18, robe) + limb([el, h], 16, robe) + `<path d="M${h[0] - 9} ${h[1] - 4} q9 6 18 0" stroke="${trim}" stroke-width="4" fill="none"/>` + hand(h);
   const armsIn = (layer) => (A.layer === layer ? armPts.map(sleeve).join('') : '');
   const held = hold ? hold(armPts[1][2][0], armPts[1][2][1]) : '';
@@ -90,27 +93,48 @@ export function person({ x, y, s = 1, flip = false, robe = '#7d9cc4', trim = '#f
     bun: `<circle cx="0" cy="${hy - 36}" r="13" fill="#3a302c" ${ink(2.5)}/>`,
     bald: `<circle cx="0" cy="${hy - 34}" r="8" fill="#fffaf0" ${ink(2.5)}/>`,
     cap: '',
+    none: '',
   }[hair];
   const hairFront = {
     bun: `<path d="M-30 ${hy - 2} C-32 ${hy - 34} 32 ${hy - 34} 30 ${hy - 2} C22 ${hy - 20} -22 ${hy - 20} -30 ${hy - 2} Z" fill="#3a302c" ${ink(2.5)}/>`,
     bald: `<path d="M-31 ${hy + 4} q-6 -14 2 -24 M31 ${hy + 4} q6 -14 -2 -24" stroke="#fffaf0" stroke-width="9" fill="none" stroke-linecap="round"/>`,
     cap: `<path d="M-34 ${hy - 6} C-30 ${hy - 40} 30 ${hy - 40} 34 ${hy - 6} Z" fill="#8a7a5a" ${ink(2.5)}/>`,
+    none: '',
   }[hair];
   const beardSvg = beard
-    ? `<path d="M-20 ${hy + 10} C-24 ${hy + 50} -8 ${hy + 86} 0 ${hy + 96} C8 ${hy + 86} 24 ${hy + 50} 20 ${hy + 10} C12 ${hy + 24} -12 ${hy + 24} -20 ${hy + 10} Z" fill="#fffaf0" ${ink(2.5)}/>
-       <path d="M-14 ${hy + 9} q14 -8 28 0" stroke="#fffaf0" stroke-width="7" fill="none" stroke-linecap="round"/>`
+    ? `<path d="M-20 ${hy + 10} C-24 ${hy + 50} -8 ${hy + 86} 0 ${hy + 96} C8 ${hy + 86} 24 ${hy + 50} 20 ${hy + 10} C12 ${hy + 24} -12 ${hy + 24} -20 ${hy + 10} Z" fill="${beardColour}" ${ink(2.5)}/>
+       <path d="M-14 ${hy + 9} q14 -8 28 0" stroke="${beardColour}" stroke-width="7" fill="none" stroke-linecap="round"/>`
     : '';
   const head = `${hairBack}
-    <circle cx="0" cy="${hy}" r="31" fill="${SKIN}" ${ink()}/>
+    <circle cx="0" cy="${hy}" r="31" fill="${skin}" ${ink()}/>
     ${hairFront}
     ${eye(-11)}${eye(11)}${brows}
     <circle cx="-19" cy="${hy + 9}" r="5" fill="#e89a86" opacity="0.55"/><circle cx="19" cy="${hy + 9}" r="5" fill="#e89a86" opacity="0.55"/>
     ${beard ? '' : mouth}
     ${beardSvg}
-    ${beard ? `<path d="M-6 ${hy + 13} q6 ${face === 'stern' ? 0 : 4} 12 0" ${ink(2.5)} fill="none"/>` : ''}`;
+    ${beard ? `<path d="M-6 ${hy + 13} q6 ${face === 'stern' ? 0 : 4} 12 0" ${beardColour === '#fffaf0' ? ink(2.5) : 'stroke="#e8c9a8" stroke-width="2.5"'} fill="none"/>` : ''}
+    ${hat ? HATS[hat](hy) : ''}`;
   const upper = `${armsIn('back')}${body}${collar}${armsIn('front')}${head}${held}`;
   return place(x, y, s, flip, `${shadowless ? '' : shadow(legs === 'stand' ? 44 : 70)}<g transform="rotate(${lean} 0 0)">${upper}</g>`);
 }
+
+/** Hats and headgear drawn over the head (hy: the head's centre). Chapter 3 on. */
+const twice = (d, w, colour) => `<path d="${d}" stroke="${INK}" stroke-width="${w + 5}" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${colour}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
+export const HATS = {
+  // The Jade Emperor: a flat black board on a cap, strings of red beads at its ends.
+  crown: (hy) => `${[-34, -26, 26, 34].map((bx) => `<path d="M${bx} ${hy - 40} v22" stroke="#c9443a" stroke-width="3.5" stroke-dasharray="4 3"/>`).join('')}
+    <path d="M-22 ${hy - 22} L-18 ${hy - 40} h36 L22 ${hy - 22} Z" fill="#3a3330" ${ink(2)}/><rect x="-40" y="${hy - 48}" width="80" height="10" rx="2" fill="#3a3330" ${ink(2)}/><circle cx="0" cy="${hy - 30}" r="5" fill="#f4c430" ${ink(1.5)}/>`,
+  // An official of the Underworld: a black square hat with a wing at each side.
+  official: (hy) => `<rect x="-66" y="${hy - 32}" width="132" height="9" rx="4" fill="#2e2a2a" ${ink(2)}/><path d="M-28 ${hy - 14} C-30 ${hy - 50} 30 ${hy - 50} 28 ${hy - 14} Z" fill="#2e2a2a" ${ink(2.5)}/><path d="M-28 ${hy - 18} h56" stroke="#7a2e2a" stroke-width="5"/>`,
+  // A Dragon King: golden antlers, two long whiskers and a little gold crown.
+  dragon: (hy) => `${twice(`M-14 ${hy - 26} C-18 ${hy - 50} -30 ${hy - 60} -40 ${hy - 76} M-26 ${hy - 54} l-18 -2`, 6, '#e8c66a')}${twice(`M14 ${hy - 26} C18 ${hy - 50} 30 ${hy - 60} 40 ${hy - 76} M26 ${hy - 54} l18 -2`, 6, '#e8c66a')}
+    <path d="M-18 ${hy - 26} L-14 ${hy - 44} L-5 ${hy - 34} L0 ${hy - 48} L5 ${hy - 34} L14 ${hy - 44} L18 ${hy - 26} Z" fill="#f4c430" ${ink(2)}/>
+    <path d="M-8 ${hy + 8} C-36 ${hy + 4} -56 ${hy + 22} -62 ${hy + 52} M8 ${hy + 8} C36 ${hy + 4} 56 ${hy + 22} 62 ${hy + 52}" ${ink(3)} fill="none"/>`,
+  // The Great White Star: a soft blue scholar's cap with two ribbons.
+  scholar: (hy) => `<path d="M24 ${hy - 26} q22 6 26 30 M-24 ${hy - 26} q-22 6 -26 30" stroke="#4a5a7a" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M-30 ${hy - 14} C-32 ${hy - 56} 32 ${hy - 56} 30 ${hy - 14} Z" fill="#4a5a7a" ${ink(2.5)}/><path d="M-30 ${hy - 16} h60" stroke="#e8dcc2" stroke-width="4"/>`,
+  // A soul-catching ghost: a tall white pointed hat.
+  ghost: (hy) => `<path d="M-30 ${hy - 14} L-8 ${hy - 104} L8 ${hy - 104} L30 ${hy - 14} Z" fill="#f2f0ea" ${ink(2.5)}/><path d="M-28 ${hy - 20} h56" stroke="#9aa0a8" stroke-width="4"/>`,
+};
 
 /** Where a person's right hand is in the picture. */
 export function personHand({ x, y, s = 1, flip = false, legs = 'stand', arms = 'rest' }) {
@@ -122,10 +146,10 @@ export function personHand({ x, y, s = 1, flip = false, legs = 'stand', arms = '
 
 /* ------------------------------------------------------------- the props */
 
-const DISCIPLE = '#9aa3ad'; // Wukong's grey disciple's robe
-const ROBES = ['#8fb3a3', '#c9a77a', '#a7a3c9']; // the other disciples
-const MASTER = '#f1ead8'; // the master's pale robe
-const MASTER_TRIM = '#c9443a';
+export const DISCIPLE = '#9aa3ad'; // Wukong's grey disciple's robe
+export const ROBES = ['#8fb3a3', '#c9a77a', '#a7a3c9']; // the other disciples
+export const MASTER = '#f1ead8'; // the master's pale robe
+export const MASTER_TRIM = '#c9443a';
 
 /** A teacher's ruler held in the hand, pointing up and out. */
 const ruler = (hx, hy) => `<path d="M${hx - 4} ${hy + 6} L${hx + 44} ${hy - 70}" stroke="${INK}" stroke-width="14" stroke-linecap="round"/><path d="M${hx - 4} ${hy + 6} L${hx + 44} ${hy - 70}" stroke="#c99a5a" stroke-width="8" stroke-linecap="round"/>`;
@@ -144,7 +168,7 @@ const platform = (x, y, w = 300) => `<path d="M${x - w / 2} ${y} L${x - w / 2 + 
 /** A wooden raft of lashed logs, its top at y. */
 const raft = (x, y, w = 260) => `<path d="M${x - w / 2} ${y} h${w} l-10 26 h${-w + 20} Z" fill="#a07a52" ${ink(2.5)}/>${Array.from({ length: Math.floor(w / 30) }, (_, i) => `<path d="M${x - w / 2 + 14 + i * 30} ${y + 2} v22" stroke="#7f5e3e" stroke-width="3"/>`).join('')}<path d="M${x - w / 2 + 40} ${y + 4} v20 M${x + w / 2 - 40} ${y + 4} v20" stroke="#6f9f5c" stroke-width="6"/>`;
 /** The somersault cloud: a swirl of white puffs with a curling tail. */
-const nimbus = (x, y, k = 1) => `<g transform="translate(${x} ${y}) scale(${k})">
+export const nimbus = (x, y, k = 1) => `<g transform="translate(${x} ${y}) scale(${k})">
   <path d="M90 10 C150 14 190 -10 230 6 C200 10 170 34 120 30" fill="#ffffff" ${ink(2.5)}/>
   <path d="M-110 10 q-14 -30 20 -34 q14 -28 50 -16 q24 -24 58 0 q34 -14 52 14 q30 4 22 34 q-20 18 -50 10 q-30 16 -62 4 q-40 14 -66 -4 q-30 4 -24 -8 Z" fill="#ffffff" ${ink(2.5)}/>
   <path d="M-70 4 q20 -14 40 -2 M10 -6 q20 -12 40 0" stroke="#e4e9f2" stroke-width="5" fill="none" stroke-linecap="round"/></g>`;
