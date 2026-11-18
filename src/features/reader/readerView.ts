@@ -22,7 +22,8 @@ export type TranslationMode = 'hidden' | 'shown';
 export type PictureMode = 'off' | 'beside' | 'large';
 
 export const PINYIN_MODES: PinyinMode[] = ['off', 'new', 'all'];
-export const PICTURE_MODES: PictureMode[] = ['off', 'beside', 'large'];
+/** Large is not offered: a picture across the whole column outweighed its paragraph. A comic's page photo is still shown large. */
+export const PICTURE_MODES: PictureMode[] = ['off', 'beside'];
 export const PICTURE_LABEL: Record<PictureMode, string> = { off: 'Off', beside: 'Beside', large: 'Large' };
 export const TRANSLATION_MODES: TranslationMode[] = ['hidden', 'shown'];
 

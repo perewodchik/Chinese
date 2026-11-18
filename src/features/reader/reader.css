@@ -1880,20 +1880,18 @@ label.rd-aa-row {
    screen, at 4:3. */
 .rd-pic[data-size='beside'] {
   --lh: 2.35em;
-  --lines: 2;
-  --glyph-top: 0.67em;
+  --lines: 2.6;
   float: right;
-  height: calc((var(--lines) - 1) * var(--lh) + 1em);
+  /* Level with the top of the paragraph (its first pinyin row), and as tall as
+     its lines, a little short of the last: the line after it has the full width. */
+  height: calc(var(--lines) * var(--lh) - 0.5em);
   aspect-ratio: 1;
-  /* No margin under it: the text goes back to the full width on the first
-     line below the picture, with no empty band (the pinyin row above that
-     line already keeps them apart). */
-  margin: var(--glyph-top) 0 0 0.5em;
+  margin: 0 0 0 0.6em;
 }
 
 @media (min-width: 700px) {
   .rd-pic[data-size='beside'] {
-    --lines: 3;
+    --lines: 3.4;
     aspect-ratio: 4 / 3;
   }
 }
@@ -3523,10 +3521,18 @@ body:has(.rd[data-book='xiyouji']) {
   background: color-mix(in srgb, var(--ink-3) 9%, transparent);
 }
 
+/* After the place's name the paragraph's first line still opens two characters in. */
+.rd-indent {
+  display: inline-block;
+  width: 2em;
+}
+
 /* The place a paragraph opens in, named once, where it first comes. */
 .rd-scene-name {
-  grid-column: 1 / -1;
-  margin: 0 0 2px;
+  display: block;
+  margin: 0 0 6px;
+  text-indent: 0;
+  line-height: 1.4;
   font-size: 12px;
   color: var(--ink-3);
 }

@@ -360,13 +360,15 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
               {/* The paragraph, and beside it on a wide page (under it on a
                   narrower one) its English and its new words. */}
               <div className="rd-row" data-scene={scenes?.[n]?.scene} data-pictured={pictureOf(n)?.key ? true : undefined}>
-                {scenes?.[n]?.place && (
-                  <p className="rd-scene-name">
-                    <span className="hanzi">{scenes[n]!.place!.zh}</span> <span lang="en">{scenes[n]!.place!.en}</span>
-                  </p>
-                )}
                 <p className="rd-para">
+                  {/* The picture first, so it stands at the top of the block, beside the place's name too. */}
                   {pictureOf(n) && beside && <ParagraphPicture picture={pictureOf(n)!} size="beside" />}
+                  {scenes?.[n]?.place && (
+                    <span className="rd-scene-name">
+                      <span className="hanzi">{scenes[n]!.place!.zh}</span> <span lang="en">{scenes[n]!.place!.en}</span>
+                    </span>
+                  )}
+                  {scenes?.[n]?.place && <span className="rd-indent" aria-hidden />}
                   {p.map((i) => (
                     <span
                       key={i}
