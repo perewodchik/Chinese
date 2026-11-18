@@ -6,6 +6,7 @@ interface ImportMetaEnv {
    * what went wrong, from the error page). Unset: no feedback row.
    */
   readonly VITE_FEEDBACK_URL?: string;
+  /** `on` builds the app with Speak (src/navigation/features.ts); anything else, without it. */
 }
 
 interface ImportMeta {

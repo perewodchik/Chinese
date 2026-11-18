@@ -1,13 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { GeneratedText } from '../../domain/text';
-import { Icon } from '../../ui/Icon';
-import { addReading, castReading, narratedReadings, type Narrated } from '../shared/narratedClips';
-import { Narrate } from './Narrate';
-import type { Reading } from './readAloud';
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { GeneratedText } from "../../domain/text";
+import { isSpeakSectionEnabled } from "../../navigation/features";
+import { Icon } from "../../ui/Icon";
+import {
+  addReading,
+  castReading,
+  narratedReadings,
+  type Narrated,
+} from "../shared/narratedClips";
+import { Narrate } from "./Narrate";
+import type { Reading } from "./readAloud";
 
 /** Which voice Listen reads in: a narrator's id, or "sentences" for the sentence voices. Kept on the device. */
-const LISTEN_CHOICE = 'hanzi.listen.reading';
-const SENTENCES = 'sentences';
+const LISTEN_CHOICE = "hanzi.listen.reading";
+const SENTENCES = "sentences";
 const storedChoice = () => {
   try {
     return localStorage.getItem(LISTEN_CHOICE);
@@ -34,7 +40,10 @@ export interface ListenVoice {
  * sentence voices, line by line, otherwise. The top of the text picks it, the
  * player under the bar plays it.
  */
-export function useListenVoice(text: GeneratedText, reading: Reading): ListenVoice {
+export function useListenVoice(
+  text: GeneratedText,
+  reading: Reading,
+): ListenVoice {
   const lines = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
   const [readings, setReadings] = useState<Narrated[] | null>(null);
   const [choice, setChoice] = useState<string | null>(storedChoice);
@@ -67,9 +76,19 @@ export function useListenVoice(text: GeneratedText, reading: Reading): ListenVoi
   const list = readings ?? [];
   const cast = pickedHere ? null : castReading(list);
   const current =
-    readings === null ? undefined : (cast ?? (choice === SENTENCES ? null : (list.find((r) => r.n.narratorId === choice) ?? list[0] ?? null)));
-  const sentenceVoice = reading.choices.find((v) => v.active) ?? reading.choices[0];
-  const value = current ? `n:${current.n.narratorId}` : current === null && sentenceVoice ? `s:${sentenceVoice.key}` : '';
+    readings === null
+      ? undefined
+      : (cast ??
+        (choice === SENTENCES
+          ? null
+          : (list.find((r) => r.n.narratorId === choice) ?? list[0] ?? null)));
+  const sentenceVoice =
+    reading.choices.find((v) => v.active) ?? reading.choices[0];
+  const value = current
+    ? `n:${current.n.narratorId}`
+    : current === null && sentenceVoice
+      ? `s:${sentenceVoice.key}`
+      : "";
 
   return {
     readings: list,
@@ -77,7 +96,7 @@ export function useListenVoice(text: GeneratedText, reading: Reading): ListenVoi
     value,
     choose: (v) => {
       reading.stop();
-      if (v.startsWith('n:')) keep(v.slice(2));
+      if (v.startsWith("n:")) keep(v.slice(2));
       else {
         keep(SENTENCES);
         reading.choices.find((c) => `s:${c.key}` === v)?.pick();
@@ -86,7 +105,10 @@ export function useListenVoice(text: GeneratedText, reading: Reading): ListenVoi
     made: (r) => {
       reading.stop();
       addReading(lines, r);
-      setReadings((was) => [...(was ?? []).filter((x) => x.n.narratorId !== r.n.narratorId), r]);
+      setReadings((was) => [
+        ...(was ?? []).filter((x) => x.n.narratorId !== r.n.narratorId),
+        r,
+      ]);
       keep(r.n.narratorId);
     },
   };
@@ -126,23 +148,25 @@ export function ListenControl({
     const away = (e: PointerEvent) => {
       if (!root.current?.contains(e.target as Node)) setOpen(false);
     };
-    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('pointerdown', away);
-    document.addEventListener('keydown', esc);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", esc);
     return () => {
-      document.removeEventListener('pointerdown', away);
-      document.removeEventListener('keydown', esc);
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", esc);
     };
   }, [open]);
 
   const st = text.study ?? {};
   const listens = st.listens ?? (st.heard ? 1 : 0);
   const heard = listens
-    ? `Heard to the end ${listens === 1 ? 'once' : `${listens} times`}.`
+    ? `Heard to the end ${listens === 1 ? "once" : `${listens} times`}.`
     : st.listened
       ? `Heard to line ${Math.min(st.listened, text.lines.length)} of ${text.lines.length}.`
-      : 'Not heard yet.';
-  const canPlay = voice.current !== undefined && (voice.current !== null || reading.choices.length > 0 || reading.system);
+      : "Not heard yet.";
+  const canPlay =
+    voice.current !== undefined &&
+    (voice.current !== null || reading.choices.length > 0 || reading.system);
   const lines = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
 
   const row = (value: string, name: string) => (
@@ -163,10 +187,23 @@ export function ListenControl({
 
   return (
     <div className="rd-listen-ctl no-print" ref={root}>
-      <button className="rd-listen-play" onClick={onPlay} disabled={!canPlay} aria-label={playing ? 'Pause' : 'Listen to the text'} title={playing ? 'Pause' : 'Listen'}>
-        <Icon name={playing ? 'pause' : 'play'} size={18} />
+      <button
+        className="rd-listen-play"
+        onClick={onPlay}
+        disabled={!canPlay}
+        aria-label={playing ? "Pause" : "Listen to the text"}
+        title={playing ? "Pause" : "Listen"}
+      >
+        <Icon name={playing ? "pause" : "play"} size={18} />
       </button>
-      <button className="rd-listen-more" aria-haspopup="menu" aria-expanded={open} aria-label="Voice" title="Voice" onClick={() => setOpen((o) => !o)}>
+      <button
+        className="rd-listen-more"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Voice"
+        title="Voice"
+        onClick={() => setOpen((o) => !o)}
+      >
         <Icon name="down" size={16} />
       </button>
       {open && (
@@ -184,14 +221,30 @@ export function ListenControl({
               {reading.choices.map((c) => row(`s:${c.key}`, c.name))}
             </>
           )}
-          {!voice.readings.length && !reading.choices.length && <p className="rd-listen-group">No voice here yet.</p>}
-          <div className="rd-listen-new">
-            <button className="rd-listen-voice-row" aria-expanded={narrating} onClick={() => setNarrating((n) => !n)}>
-              <Icon name="plus" size={18} />
-              <span className="grow">A new narrator’s reading</span>
-            </button>
-            {narrating && <Narrate embedded key={text.id} lines={lines} onMade={(n, name) => voice.made({ n, name })} />}
-          </div>
+          {!voice.readings.length && !reading.choices.length && (
+            <p className="rd-listen-group">No voice here yet.</p>
+          )}
+          {/* Narrators are made in Speak › Voices: without Speak, a text has no narrator to add. */}
+          {isSpeakSectionEnabled && (
+            <div className="rd-listen-new">
+              <button
+                className="rd-listen-voice-row"
+                aria-expanded={narrating}
+                onClick={() => setNarrating((n) => !n)}
+              >
+                <Icon name="plus" size={18} />
+                <span className="grow">A new narrator’s reading</span>
+              </button>
+              {narrating && (
+                <Narrate
+                  embedded
+                  key={text.id}
+                  lines={lines}
+                  onMade={(n, name) => voice.made({ n, name })}
+                />
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

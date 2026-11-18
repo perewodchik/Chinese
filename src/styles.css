@@ -437,6 +437,51 @@ strong {
   background: var(--accent);
 }
 
+/* Beside a phone's width the rail has the room for Me's places too: they
+   stand under the four, after a hairline, and the account sits at the foot.
+   Me itself, and its panel, are for a phone. A short window scrolls the rail
+   rather than clip it. */
+.nav {
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.nav-more {
+  display: none;
+}
+
+.nav-tab:not(.nav-wide) + .nav-wide {
+  margin-top: 6px;
+  padding-top: 6px;
+  height: 68px;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 14px 14px;
+}
+
+.nav-account {
+  margin-top: auto;
+}
+
+.nav-tab {
+  flex: none;
+}
+
+@media (min-width: 700px) and (max-height: 760px) {
+  .nav {
+    gap: 0;
+    padding-top: max(10px, env(safe-area-inset-top));
+    padding-bottom: 8px;
+  }
+
+  .nav-tab {
+    height: 56px;
+  }
+
+  .nav-tab:not(.nav-wide) + .nav-wide {
+    height: 62px;
+  }
+}
+
 /* The app's line icons: one weight, round ends, the colour of their text. */
 .icon {
   width: 20px;
@@ -562,6 +607,18 @@ strong {
     width: auto;
     height: 52px;
     font-size: 11px;
+  }
+
+  .nav {
+    overflow: visible;
+  }
+
+  .nav-wide {
+    display: none;
+  }
+
+  .nav-more {
+    display: flex;
   }
 
   .more-scrim {

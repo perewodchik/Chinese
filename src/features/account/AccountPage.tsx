@@ -5,6 +5,7 @@ import { dayKey } from '../../domain/activity';
 import { isWordId, type ItemId } from '../../domain/ids';
 import { levelOf } from '../../domain/memory';
 import { HSK_BANDS } from '../../domain/text';
+import { isSpeakSectionEnabled } from '../../navigation/features';
 import { paths } from '../../navigation/paths';
 import { setSettings } from '../../store/commands';
 import { useStore } from '../../store/store';
@@ -73,7 +74,7 @@ export function AccountPage() {
     { to: paths.accountSecurity(), label: 'Security', blurb: 'Password, recovery codes, devices, access tokens' },
     { to: paths.accountData(), label: 'Your data', blurb: 'A copy to download, deleting your work or the account' },
     { to: paths.stats(), label: 'Progress', blurb: 'What you know, day by day and week by week' },
-    { to: paths.settings(), label: 'Settings', blurb: 'Learning, speaking, keys, printing, the look' },
+    { to: paths.settings(), label: 'Settings', blurb: isSpeakSectionEnabled ? 'Learning, speaking, keys, printing, the look' : 'Learning, keys, printing, the look' },
     ...(admin ? [{ to: paths.admin(), label: 'Admin', blurb: 'Invitations, the accounts, the catalogue, the log' }] : []),
   ];
 

@@ -11,6 +11,7 @@ import { WordDrawer } from '../features/words/WordDrawer';
 import { isWordId } from '../domain/ids';
 import { useItemDrawer } from '../navigation/itemDrawer';
 import { useProgressDrawer } from '../navigation/progressDrawer';
+import { isSpeakSectionEnabled } from '../navigation/features';
 import { paths } from '../navigation/paths';
 import { useScrollRestoration } from '../navigation/useScrollRestoration';
 import { useStore, useSyncStatus } from '../store/store';
@@ -34,15 +35,18 @@ const MORE_PATHS = ['/videos', '/play', '/progress', '/account', '/settings', '/
  *
  * Four places and Me for everything else (V1): Read, where the app opens;
  * Cards, the one thing to do every day, with a quiet dot while some wait;
- * Speak; Library. On a phone they sit along the bottom edge, where a thumb
- * already is, and never scroll. On an iPad or a computer the same five stand
- * in a narrow rail on the left, out of the reading column's way. Each is
+ * Speak (when isSpeakSectionEnabled); Library. On a phone they
+ * sit along the bottom edge, where a thumb already is, and never scroll, and
+ * Me opens a sheet. On an iPad or a computer, where the rail on the left has
+ * the room, Me's places stand in the rail too, under the four, with your
+ * name's letter at its foot for the account: one tap to any of them. Each is
  * named in English with its character above it — 读 卡 说 字 我 — which is
  * one more thing read every day. Today is gone (V2): the day's cards are
  * also a line at the top of Read.
  */
 export function AppLayout() {
   const theme = useStore((s) => s.settings.theme);
+  const user = useUser();
   const { pathname } = useLocation();
   const drawer = useItemDrawer();
   const viewing = new URLSearchParams(useLocation().search).has('view');
@@ -69,9 +73,9 @@ export function AppLayout() {
   useEffect(() => setMore(false), [pathname]);
 
   const sections = [
-    { to: paths.read(), han: '读', label: 'Read', also: [] },
+    { to: paths.read(), han: '读', label: 'Read', also: [] as string[] },
     { to: paths.cards(), han: '卡', label: 'Cards', also: ['/review', '/learn'] },
-    { to: paths.speaking(), han: '说', label: 'Speak', also: [] },
+    ...(isSpeakSectionEnabled ? [{ to: paths.speaking(), han: '说', label: 'Speak', also: [] as string[] }] : []),
     { to: paths.library(), han: '字', label: 'Library', also: ['/families'] },
   ];
   const lit = (s: (typeof sections)[number]) =>
@@ -90,6 +94,23 @@ export function AppLayout() {
             {s.label}
           </Link>
         ))}
+        {/* Me's places, in the rail itself on anything wider than a phone. */}
+        {MORE.map((m) => (
+          <Link key={m.to} to={m.to} className="nav-tab nav-wide" aria-current={pathname.startsWith(m.to) ? 'page' : undefined}>
+            <span className="nav-ic hanzi" aria-hidden>
+              {m.han}
+            </span>
+            {m.label}
+          </Link>
+        ))}
+        <FeedbackTab current={pathname.startsWith('/feedback')} />
+        <Link to={paths.account()} className="nav-tab nav-wide nav-account" aria-current={pathname.startsWith('/account') ? 'page' : undefined}>
+          <span className="nav-ic" aria-hidden>
+            <span className="avatar">{[...user.username][0]?.toUpperCase()}</span>
+            <SyncDot />
+          </span>
+          Account
+        </Link>
         <button
           ref={moreButton}
           className="nav-tab nav-more"
@@ -144,11 +165,34 @@ function SyncDot() {
   return trouble ? <i className="nav-dot" aria-label="Not saved" /> : null;
 }
 
+/** Send feedback, in the rail: the site's own form, or the one set for the build. */
+function FeedbackTab({ current }: { current: boolean }) {
+  const user = useUser();
+  const outside = feedbackUrl(window.location.pathname, user.username);
+  const inner = (
+    <>
+      <span className="nav-ic hanzi" aria-hidden>
+        言
+      </span>
+      Feedback
+    </>
+  );
+  return outside ? (
+    <a href={outside} className="nav-tab nav-wide" target="_blank" rel="noreferrer">
+      {inner}
+    </a>
+  ) : (
+    <Link to={paths.feedback(window.location.pathname)} className="nav-tab nav-wide" aria-current={current ? 'page' : undefined}>
+      {inner}
+    </Link>
+  );
+}
+
 const MORE = [
   { to: paths.videos(), han: '视', label: 'Videos', blurb: 'Watch, write it out, check it' },
   { to: paths.play(), han: '玩', label: 'Play', blurb: 'Games and the walk through Beijing' },
   { to: paths.stats(), han: '进', label: 'Progress', blurb: 'Days, words and characters over time' },
-  { to: paths.settings(), han: '设', label: 'Settings', blurb: 'Learning, speaking, keys, printing, the look' },
+  { to: paths.settings(), han: '设', label: 'Settings', blurb: isSpeakSectionEnabled ? 'Learning, speaking, keys, printing, the look' : 'Learning, keys, printing, the look' },
 ];
 
 /**
