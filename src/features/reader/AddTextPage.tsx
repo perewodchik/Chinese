@@ -13,6 +13,7 @@ import { useLevelOf } from '../shared/levels';
 import { useLibrary } from '../shared/library';
 import { useStartSession } from './startSession';
 import './shelves.css';
+import { tabStored } from '../../platform/storage';
 
 const NEW_BOOK = '';
 
@@ -20,7 +21,7 @@ const NEW_BOOK = '';
 function useDraft(key: string): [string, (v: string) => void] {
   const [value, setValue] = useState(() => {
     try {
-      return sessionStorage.getItem(key) ?? '';
+      return tabStored.get(key) ?? '';
     } catch {
       return '';
     }
@@ -28,8 +29,8 @@ function useDraft(key: string): [string, (v: string) => void] {
   const set = (v: string) => {
     setValue(v);
     try {
-      if (v) sessionStorage.setItem(key, v);
-      else sessionStorage.removeItem(key);
+      if (v) tabStored.set(key, v);
+      else tabStored.remove(key);
     } catch {
       /* a private window keeps it on screen only */
     }

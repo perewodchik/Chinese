@@ -22,6 +22,7 @@ import { addReading, castReading, narratedReadings, pickReading, prepareClips, t
 import { useWordDone, useWordLevel } from './Passage';
 import { LevelQuick } from '../../ui/LevelPicker';
 import { onReadThrough, RATES, type Reading } from './readAloud';
+import { stored } from '../../platform/storage';
 
 /**
  * The parts of a text, as the strip at the top of the page names them.
@@ -119,7 +120,7 @@ const LISTEN_CHOICE = 'hanzi.listen.reading';
 const SENTENCES = 'sentences';
 const storedChoice = () => {
   try {
-    return localStorage.getItem(LISTEN_CHOICE);
+    return stored.get(LISTEN_CHOICE);
   } catch {
     return null;
   }
@@ -153,7 +154,7 @@ function ListenBody({ text, reading, spoken }: { text: GeneratedText; reading: R
     setPickedHere(true);
     setChoice(id);
     try {
-      localStorage.setItem(LISTEN_CHOICE, id);
+      stored.set(LISTEN_CHOICE, id);
     } catch {
       // forgotten between visits
     }
@@ -395,7 +396,7 @@ const IOS_KEY = 'hanzi.listen.iosSpeak';
 function useIosSpeak(): [boolean, (on: boolean) => void] {
   const [on, setOn] = useState(() => {
     try {
-      return IOS_SPEAK && localStorage.getItem(IOS_KEY) === '1';
+      return IOS_SPEAK && stored.get(IOS_KEY) === '1';
     } catch {
       return false;
     }
@@ -403,7 +404,7 @@ function useIosSpeak(): [boolean, (on: boolean) => void] {
   const set = (v: boolean) => {
     setOn(v);
     try {
-      localStorage.setItem(IOS_KEY, v ? '1' : '0');
+      stored.set(IOS_KEY, v ? '1' : '0');
     } catch {
       // remembered for this visit only
     }

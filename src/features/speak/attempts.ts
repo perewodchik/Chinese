@@ -2,6 +2,7 @@ import type { EvalResult } from '../../../shared/speechEval';
 import type { Attempt } from '../../domain/phrases';
 import { keepTry, loadHistory, remember } from '../pinyin/speechHistory';
 import { accountKey } from '../../platform/accountStorage';
+import { stored } from '../../platform/storage';
 
 /**
  * Each line's last tries, kept on this device at once and in the account as
@@ -13,7 +14,7 @@ const KEPT = 'hanzi.phrases.attempts';
 
 export const loadAttempts = (): Record<string, Attempt[]> => {
   try {
-    return JSON.parse(localStorage.getItem(accountKey(KEPT)) ?? '{}') as Record<string, Attempt[]>;
+    return JSON.parse(stored.get(accountKey(KEPT)) ?? '{}') as Record<string, Attempt[]>;
   } catch {
     return {};
   }
@@ -21,7 +22,7 @@ export const loadAttempts = (): Record<string, Attempt[]> => {
 
 export function saveAttempts(all: Record<string, Attempt[]>) {
   try {
-    localStorage.setItem(accountKey(KEPT), JSON.stringify(all));
+    stored.set(accountKey(KEPT), JSON.stringify(all));
   } catch {
     // kept for this visit only
   }

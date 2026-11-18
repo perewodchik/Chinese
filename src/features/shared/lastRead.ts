@@ -1,5 +1,6 @@
 import type { TextVersion } from '../../navigation/paths';
 import { accountKey } from '../../platform/accountStorage';
+import { stored } from '../../platform/storage';
 
 /**
  * The text last open on this device, so Read and Today can offer to go back
@@ -18,7 +19,7 @@ const KEY = 'hanzi.reader.last';
 
 export function rememberReading(last: LastRead) {
   try {
-    localStorage.setItem(accountKey(KEY), JSON.stringify(last));
+    stored.set(accountKey(KEY), JSON.stringify(last));
   } catch {
     // private browsing: nothing to come back to next time
   }
@@ -26,7 +27,7 @@ export function rememberReading(last: LastRead) {
 
 export function lastReading(): LastRead | null {
   try {
-    const raw = localStorage.getItem(accountKey(KEY));
+    const raw = stored.get(accountKey(KEY));
     if (!raw) return null;
     const v = JSON.parse(raw) as Partial<LastRead>;
     return typeof v.textId === 'string' && typeof v.page === 'number'

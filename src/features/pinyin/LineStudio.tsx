@@ -22,6 +22,7 @@ import { attemptId, flush, forget, keepTry, knownTries, pendingTries, pendingTry
 import { whenOf } from './when';
 import { useRecorder } from './useRecorder';
 import './phrases.css';
+import { stored } from '../../platform/storage';
 
 /** One scored saying of the line: the learner's (now, or kept from before) or a narrator's. */
 interface Take {
@@ -244,7 +245,7 @@ export function LineStudio({
   const [slow, setSlow] = useState(false);
   const [marks, setMarksState] = useState(() => {
     try {
-      return localStorage.getItem('hanzi.phrases.marks') === '1';
+      return stored.get('hanzi.phrases.marks') === '1';
     } catch {
       return false;
     }
@@ -252,7 +253,7 @@ export function LineStudio({
   const setMarks = (on: boolean) => {
     setMarksState(on);
     try {
-      localStorage.setItem('hanzi.phrases.marks', on ? '1' : '0');
+      stored.set('hanzi.phrases.marks', on ? '1' : '0');
     } catch {
       // remembered for this visit
     }

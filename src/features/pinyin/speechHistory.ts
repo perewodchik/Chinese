@@ -2,6 +2,7 @@ import type { AttemptIn, AttemptOut, EvalResult, SpeechHistory } from '../../../
 import { ApiError, isOffline } from '../../api/http';
 import { attemptResult, deleteAttempt, keepAttempts, listAttempts, speechHistory } from '../../api/speechEval';
 import { accountKey } from '../../platform/accountStorage';
+import { stored } from '../../platform/storage';
 
 /**
  * Every try at saying something, kept in the account so the iPad and the
@@ -21,14 +22,14 @@ const TALLIES_TAKEN = 'hanzi.speech.talliesTaken';
 
 const read = <T,>(key: string, empty: T): T => {
   try {
-    return (JSON.parse(localStorage.getItem(key) ?? 'null') as T | null) ?? empty;
+    return (JSON.parse(stored.get(key) ?? 'null') as T | null) ?? empty;
   } catch {
     return empty;
   }
 };
 const write = (key: string, value: unknown): boolean => {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    stored.set(key, JSON.stringify(value));
     return true;
   } catch {
     // kept for this visit only

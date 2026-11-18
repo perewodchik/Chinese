@@ -5,6 +5,7 @@ import { studyText } from '../../store/commands';
 import { Icon } from '../../ui/Icon';
 import { castReading, narratedReadings, type Narrated } from '../shared/narratedClips';
 import type { Reading } from './readAloud';
+import { stored } from '../../platform/storage';
 
 const clock = (ms: number) => {
   const s = Math.max(0, Math.round(ms / 1000));
@@ -16,7 +17,7 @@ const RATES = [1, 0.85, 0.7] as const;
 const RATE_KEY = 'hanzi.reader.rate';
 const storedRate = (): number => {
   try {
-    const r = Number(localStorage.getItem(RATE_KEY));
+    const r = Number(stored.get(RATE_KEY));
     return (RATES as readonly number[]).includes(r) ? r : 1;
   } catch {
     return 1;
@@ -26,7 +27,7 @@ const storedRate = (): number => {
 /** The reading Listen last chose, when it is one of this text's. */
 const chosen = () => {
   try {
-    return localStorage.getItem('hanzi.listen.reading');
+    return stored.get('hanzi.listen.reading');
   } catch {
     return null;
   }
@@ -82,7 +83,7 @@ export function DockPlayer({
     const r = RATES[(RATES.indexOf(rate as (typeof RATES)[number]) + 1) % RATES.length]!;
     setRate(r);
     try {
-      localStorage.setItem(RATE_KEY, String(r));
+      stored.set(RATE_KEY, String(r));
     } catch {
       // private browsing: it holds for this visit
     }

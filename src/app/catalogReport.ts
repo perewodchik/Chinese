@@ -3,6 +3,7 @@ import { markCatalogReader } from '../api/catalog';
 import { accountKey } from '../platform/accountStorage';
 import type { AppState } from '../store/state';
 import { useStore } from '../store/store';
+import { stored } from '../platform/storage';
 
 const SENT = 'hanzi.catalog.finished';
 
@@ -19,7 +20,7 @@ function finishedBooks(s: AppState): string {
 
 function sent(): Set<string> {
   try {
-    return new Set((localStorage.getItem(accountKey(SENT)) ?? '').split(' ').filter(Boolean));
+    return new Set((stored.get(accountKey(SENT)) ?? '').split(' ').filter(Boolean));
   } catch {
     return new Set();
   }
@@ -43,7 +44,7 @@ export function useCatalogReport(): void {
           const now = sent();
           now.add(id);
           try {
-            localStorage.setItem(accountKey(SENT), [...now].join(' '));
+            stored.set(accountKey(SENT), [...now].join(' '));
           } catch {
             // said again next time: counted once all the same
           }

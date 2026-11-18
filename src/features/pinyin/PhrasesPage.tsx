@@ -22,6 +22,7 @@ import { TextReview } from './TextReview';
 import { band } from './ScoredLine';
 import './phrases.css';
 import './pinyin.css';
+import { stored } from '../../platform/storage';
 
 
 
@@ -30,7 +31,7 @@ import './pinyin.css';
 const KEPT = 'hanzi.phrases.attempts';
 const loadAttempts = (): Record<string, Attempt[]> => {
   try {
-    return JSON.parse(localStorage.getItem(accountKey(KEPT)) ?? '{}') as Record<string, Attempt[]>;
+    return JSON.parse(stored.get(accountKey(KEPT)) ?? '{}') as Record<string, Attempt[]>;
   } catch {
     return {};
   }
@@ -48,7 +49,7 @@ function keepAttempt(zh: string, a: Attempt, sourceId: string, result: EvalResul
 
 function saveAttempts(all: Record<string, Attempt[]>) {
   try {
-    localStorage.setItem(accountKey(KEPT), JSON.stringify(all));
+    stored.set(accountKey(KEPT), JSON.stringify(all));
   } catch {
     // kept for this visit only
   }
@@ -64,14 +65,14 @@ interface Last {
 }
 const loadLast = (): Last | null => {
   try {
-    return JSON.parse(localStorage.getItem(accountKey(LAST)) ?? 'null') as Last | null;
+    return JSON.parse(stored.get(accountKey(LAST)) ?? 'null') as Last | null;
   } catch {
     return null;
   }
 };
 const keepLast = (l: Last) => {
   try {
-    localStorage.setItem(accountKey(LAST), JSON.stringify(l));
+    stored.set(accountKey(LAST), JSON.stringify(l));
   } catch {
     // kept for this visit only
   }

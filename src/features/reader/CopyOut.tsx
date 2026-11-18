@@ -11,6 +11,7 @@ import { Glyph } from '../../ui/Glyph';
 import { Icon } from '../../ui/Icon';
 import { Say } from '../../ui/Say';
 import { useLibrary } from '../shared/library';
+import { stored as storage } from '../../platform/storage';
 
 /**
  * Copying the text out into a notebook, a piece at a time: the word to write
@@ -57,7 +58,7 @@ const TEXT_KEY = 'hanzi.copy.text';
 
 function stored<T extends string>(key: string, ok: readonly T[], fallback: T): T {
   try {
-    const v = localStorage.getItem(key);
+    const v = storage.get(key);
     return ok.includes(v as T) ? (v as T) : fallback;
   } catch {
     return fallback;
@@ -66,7 +67,7 @@ function stored<T extends string>(key: string, ok: readonly T[], fallback: T): T
 
 function keep(key: string, v: string) {
   try {
-    localStorage.setItem(key, v);
+    storage.set(key, v);
   } catch {
     // remembered for this visit only
   }

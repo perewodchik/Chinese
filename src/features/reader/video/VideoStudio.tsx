@@ -13,11 +13,12 @@ import { forgetVideo, keepVideo, keptVideo, type KeptVideo } from './kept';
 import { canRecord, decodeReading, run, type Run } from './record';
 import { makeThumbnail } from './thumbnail';
 import './video.css';
+import { stored } from '../../../platform/storage';
 
 const KEPT = 'hanzi.video.look';
 const keptLook = () => {
   try {
-    return lookOf(JSON.parse(localStorage.getItem(KEPT) ?? 'null'));
+    return lookOf(JSON.parse(stored.get(KEPT) ?? 'null'));
   } catch {
     return DEFAULT_LOOK;
   }
@@ -33,7 +34,7 @@ interface Own {
 const ownKey = (id: string) => `hanzi.video.own.${id}`;
 function keptOwn(text: GeneratedText): Own {
   try {
-    const o = JSON.parse(localStorage.getItem(ownKey(text.id)) ?? 'null') as Partial<Own> | null;
+    const o = JSON.parse(stored.get(ownKey(text.id)) ?? 'null') as Partial<Own> | null;
     if (o) return { hook: typeof o.hook === 'string' ? o.hook : '', cover: Number.isInteger(o.cover) ? o.cover! : 0 };
   } catch {
     // as new
@@ -138,7 +139,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
     setOwn((o) => {
       const next = { ...o, ...patch };
       try {
-        localStorage.setItem(ownKey(text.id), JSON.stringify(next));
+        stored.set(ownKey(text.id), JSON.stringify(next));
       } catch {
         // kept for this visit only
       }
@@ -162,7 +163,7 @@ export function VideoStudio({ text, onClose }: { text: GeneratedText; onClose: (
     setLook((l) => {
       const next = { ...l, ...patch };
       try {
-        localStorage.setItem(KEPT, JSON.stringify(next));
+        stored.set(KEPT, JSON.stringify(next));
       } catch {
         // kept for this visit only
       }
@@ -933,7 +934,7 @@ const BUILT_IN: Preset[] = [
 const PRESETS = 'hanzi.video.presets';
 const keptPresets = (): Preset[] => {
   try {
-    const raw = JSON.parse(localStorage.getItem(PRESETS) ?? '[]') as unknown;
+    const raw = JSON.parse(stored.get(PRESETS) ?? '[]') as unknown;
     return Array.isArray(raw) ? raw.filter((p): p is Preset => Boolean(p && typeof p.name === 'string' && p.look && typeof p.look === 'object')) : [];
   } catch {
     return [];
@@ -952,7 +953,7 @@ function Presets({ look, change, disabled }: { look: VideoLook; change: (p: Part
   const keep = (list: Preset[]) => {
     setOwn(list);
     try {
-      localStorage.setItem(PRESETS, JSON.stringify(list));
+      stored.set(PRESETS, JSON.stringify(list));
     } catch {
       // kept for this visit only
     }

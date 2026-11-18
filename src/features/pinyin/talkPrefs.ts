@@ -1,5 +1,6 @@
 import { DEFAULT_OPTIONS, type TalkLength, type TalkLevel, type TalkOptions, type TalkVoice } from '../../../shared/talk';
 import { preferredVoice } from './voice';
+import { stored } from '../../platform/storage';
 
 /**
  * What the setup page starts from next time.
@@ -24,7 +25,7 @@ export const FALLBACK_PREFS: TalkPrefs = { ...DEFAULT_OPTIONS, voice: null, piny
 
 export function readPrefs(): TalkPrefs {
   try {
-    const raw = localStorage.getItem(PREFS_KEY);
+    const raw = stored.get(PREFS_KEY);
     return raw ? { ...FALLBACK_PREFS, ...(JSON.parse(raw) as Partial<TalkPrefs>) } : FALLBACK_PREFS;
   } catch {
     return FALLBACK_PREFS;
@@ -33,7 +34,7 @@ export function readPrefs(): TalkPrefs {
 
 export function writePrefs(p: TalkPrefs) {
   try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify(p));
+    stored.set(PREFS_KEY, JSON.stringify(p));
   } catch {
     // Private browsing: remembered for this visit only.
   }

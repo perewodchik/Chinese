@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { stored as storage } from '../platform/storage';
 
 export type ThemeChoice = 'system' | 'light' | 'dark';
 
@@ -55,7 +56,7 @@ export function setPageColour(colour: PageColour | null) {
 export function applyRememberedTheme() {
   let choice: ThemeChoice = 'system';
   try {
-    const stored = localStorage.getItem(HINT);
+    const stored = storage.get(HINT);
     if (stored === 'light' || stored === 'dark') choice = stored;
   } catch {
     /* no storage: follow the system */
@@ -67,7 +68,7 @@ export function useColorScheme(choice: ThemeChoice) {
   useEffect(() => {
     apply(choice);
     try {
-      localStorage.setItem(HINT, choice);
+      storage.set(HINT, choice);
     } catch {
       /* the hint is only a nicety */
     }

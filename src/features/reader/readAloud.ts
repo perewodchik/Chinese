@@ -13,6 +13,7 @@ import {
   unlockSpeech,
   voiceLabel,
 } from '../../platform/speech';
+import { stored as storage } from '../../platform/storage';
 
 /**
  * Hearing a passage read.
@@ -48,7 +49,7 @@ export type ReadingRate = (typeof RATES)[number];
 
 let rate: ReadingRate = (() => {
   try {
-    return Number(localStorage.getItem(RATE)) === 0.75 ? 0.75 : 1;
+    return Number(storage.get(RATE)) === 0.75 ? 0.75 : 1;
   } catch {
     return 1;
   }
@@ -57,7 +58,7 @@ const rateWatchers = new Set<(r: ReadingRate) => void>();
 
 function stored(): string | null {
   try {
-    return localStorage.getItem(STORED);
+    return storage.get(STORED);
   } catch {
     return null;
   }
@@ -515,7 +516,7 @@ export function useReading(passage?: string[]): Reading {
     // Get the new model loading now, not on the first sentence.
     if (id !== SYSTEM_VOICE) void talkStatus(id).catch(() => undefined);
     try {
-      localStorage.setItem(STORED, id);
+      storage.set(STORED, id);
     } catch {
       // A browser with storage switched off simply forgets between visits.
     }
@@ -559,7 +560,7 @@ export function useReading(passage?: string[]): Reading {
       // A clip already playing changes pace at once; the system voice from its next line.
       if (player) player.playbackRate = r;
       try {
-        localStorage.setItem(RATE, String(r));
+        storage.set(RATE, String(r));
       } catch {
         // remembered for this visit only
       }

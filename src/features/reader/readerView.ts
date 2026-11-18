@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { stored as storage } from '../../platform/storage';
 
 /**
  * How a text is shown, chosen with the two buttons beside Listen — kept on
@@ -31,7 +32,7 @@ export const TRANSLATION_LABEL: Record<TranslationMode, string> = { hidden: 'Off
 
 function stored<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
   try {
-    const v = localStorage.getItem(key);
+    const v = storage.get(key);
     return v && (allowed as readonly string[]).includes(v) ? (v as T) : fallback;
   } catch {
     return fallback;
@@ -52,7 +53,7 @@ function useStoredChoice<T extends string>(key: string, allowed: readonly T[], f
     (v: T) => {
       setValue(v);
       try {
-        localStorage.setItem(key, v);
+        storage.set(key, v);
       } catch {
         // private browsing: it holds for this visit
       }

@@ -3,6 +3,7 @@ import { GlossBody, T, useHelp } from './help';
 import type { Hint } from './order';
 import type { Brand, ScreenId, Stage, Task } from './types';
 import { MenuWordList, WordPicks } from './words';
+import { stored } from '../../platform/storage';
 
 /**
  * The guide beside the phone, for when the learner is lost. It is in the
@@ -24,7 +25,7 @@ const FOLD_KEY = 'hanzi-workshop/order-guide-folded';
 
 function readFolded(): Set<string> {
   try {
-    return new Set(JSON.parse(localStorage.getItem(FOLD_KEY) ?? '[]') as string[]);
+    return new Set(JSON.parse(stored.get(FOLD_KEY) ?? '[]') as string[]);
   } catch {
     return new Set();
   }
@@ -66,7 +67,7 @@ export function GuideSidebar(p: GuideProps) {
     else next.add(id);
     setFolded(next);
     try {
-      localStorage.setItem(FOLD_KEY, JSON.stringify([...next]));
+      stored.set(FOLD_KEY, JSON.stringify([...next]));
     } catch {
       /* per device only */
     }

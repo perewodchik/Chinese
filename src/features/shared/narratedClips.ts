@@ -2,6 +2,7 @@ import type { TextNarrationDto } from '../../../shared/narration';
 import { listNarrators, narrationAudio, narrationBlob, readingsOf } from '../../api/narration';
 import { ANALYSIS_RATE, downsample } from '../../platform/audio/mic';
 import { stopSpeaking } from '../../platform/speech';
+import { stored } from '../../platform/storage';
 
 /**
  * A text's sentences said by a narrator, one at a time, cut out of the
@@ -76,14 +77,14 @@ export async function prepareClips(textId: string, r: Narrated): Promise<Clips> 
 const VOICE = 'hanzi.dictation.voice';
 export function dictationVoice(): string | null {
   try {
-    return localStorage.getItem(VOICE);
+    return stored.get(VOICE);
   } catch {
     return null;
   }
 }
 export function chooseDictationVoice(id: string) {
   try {
-    localStorage.setItem(VOICE, id);
+    stored.set(VOICE, id);
   } catch {
     // forgotten between visits
   }
