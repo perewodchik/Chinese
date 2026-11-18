@@ -1,9 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router';
-import type { NarratorDto, TextNarrationDto } from '../../../shared/narration';
-import { chooseNarrator, chosenNarrator, listNarrators, narrationOf, narrationStatus } from '../../api/narration';
-import { paths } from '../../navigation/paths';
-import { Icon } from '../../ui/Icon';
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router";
+import type { NarratorDto, TextNarrationDto } from "../../../shared/narration";
+import {
+  chooseNarrator,
+  chosenNarrator,
+  listNarrators,
+  narrationOf,
+  narrationStatus,
+} from "../../api/narration";
+import { paths } from "../../navigation/paths";
+import { Icon } from "../../ui/Icon";
 
 /**
  * A narrator for the text: a + at the end of Listen's voices that drops a
@@ -12,33 +18,44 @@ import { Icon } from '../../ui/Icon';
  * text in one go with their own key; the reading is kept, so it is never paid
  * for twice, and plays above with a slider.
  */
-export function Narrate({ lines, onMade }: { lines: string[]; onMade: (n: TextNarrationDto, name: string) => void }) {
-  const [open, setOpen] = useState(false);
+export function Narrate({
+  lines,
+  onMade,
+  embedded = false,
+}: {
+  lines: string[];
+  onMade: (n: TextNarrationDto, name: string) => void;
+  /** shown open inside another menu (Listen's), with no + of its own */
+  embedded?: boolean;
+}) {
+  const [open, setOpen] = useState(embedded);
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [narrators, setNarrators] = useState<NarratorDto[] | null>(null);
   const [narratorId, setNarratorId] = useState<string | null>(chosenNarrator);
   const [kept, setKept] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const narrator = narrators?.find((n) => n.id === narratorId) ?? narrators?.[0] ?? null;
+  const narrator =
+    narrators?.find((n) => n.id === narratorId) ?? narrators?.[0] ?? null;
   const panel = useRef<HTMLDivElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
 
   // A dropdown: a tap anywhere else, or Escape, closes it.
   useEffect(() => {
-    if (!open) return;
+    if (!open || embedded) return;
     const away = (e: PointerEvent) => {
       const t = e.target as Node;
-      if (!panel.current?.contains(t) && !toggle.current?.contains(t)) setOpen(false);
+      if (!panel.current?.contains(t) && !toggle.current?.contains(t))
+        setOpen(false);
     };
-    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('pointerdown', away);
-    document.addEventListener('keydown', esc);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", esc);
     return () => {
-      document.removeEventListener('pointerdown', away);
-      document.removeEventListener('keydown', esc);
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", esc);
     };
-  }, [open]);
+  }, [open, embedded]);
 
   // Asked only once the panel is opened: most visits to Listen never need MiniMax.
   useEffect(() => {
@@ -88,13 +105,21 @@ export function Narrate({ lines, onMade }: { lines: string[]; onMade: (n: TextNa
     setBusy(true);
     setMessage(null);
     try {
-      const n = await narrationOf(narrator.id, lines, again ? { again: true } : { generate: true });
-      if (!n) throw new Error('MiniMax sent nothing back.');
+      const n = await narrationOf(
+        narrator.id,
+        lines,
+        again ? { again: true } : { generate: true },
+      );
+      if (!n) throw new Error("MiniMax sent nothing back.");
       setKept(true);
       onMade(n, narrator.name);
-      setMessage(`${narrator.name} has read the text. It is kept: playing it costs nothing.`);
+      setMessage(
+        `${narrator.name} has read the text. It is kept: playing it costs nothing.`,
+      );
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'MiniMax did not answer.');
+      setMessage(
+        err instanceof Error ? err.message : "MiniMax did not answer.",
+      );
     } finally {
       setBusy(false);
     }
@@ -102,28 +127,38 @@ export function Narrate({ lines, onMade }: { lines: string[]; onMade: (n: TextNa
 
   return (
     <>
-      <button
-        ref={toggle}
-        className="chip rd-natural-add"
-        aria-expanded={open}
-        aria-label="A narrator for this text"
-        title="A narrator for this text"
-        data-busy={busy || undefined}
-        onClick={() => setOpen((o) => !o)}
-      >
-        <Icon name="plus" size={18} />
-      </button>
+      {!embedded && (
+        <button
+          ref={toggle}
+          className="chip rd-natural-add"
+          aria-expanded={open}
+          aria-label="A narrator for this text"
+          title="A narrator for this text"
+          data-busy={busy || undefined}
+          onClick={() => setOpen((o) => !o)}
+        >
+          <Icon name="plus" size={18} />
+        </button>
+      )}
       {open && (
-        <div className="rd-natural-panel" ref={panel}>
-          <b className="small">A narrator for this text</b>
+        <div
+          className={embedded ? "rd-natural-inline" : "rd-natural-panel"}
+          ref={panel}
+        >
+          {!embedded && <b className="small">A narrator for this text</b>}
           {hasKey === false ? (
             <p className="small" style={{ margin: 0 }}>
-              Narrators read texts in natural Mandarin voices with your own MiniMax key. Add the key and make a narrator in{' '}
+              Narrators read texts in natural Mandarin voices with your own
+              MiniMax key. Add the key and make a narrator in{" "}
               <Link to={paths.speakingNarrators()}>Speaking › Voices</Link>.
             </p>
           ) : narrators && narrators.length === 0 ? (
             <p className="small" style={{ margin: 0 }}>
-              No narrators yet. <Link to={paths.speakingNarrators()}>Make one in Speaking › Voices</Link>: describe the voice you want.
+              No narrators yet.{" "}
+              <Link to={paths.speakingNarrators()}>
+                Make one in Speaking › Voices
+              </Link>
+              : describe the voice you want.
             </p>
           ) : (
             <>
@@ -131,7 +166,7 @@ export function Narrate({ lines, onMade }: { lines: string[]; onMade: (n: TextNa
                 <label className="rd-natural-pick">
                   <span className="tiny muted">Narrator</span>
                   <select
-                    value={narrator?.id ?? ''}
+                    value={narrator?.id ?? ""}
                     onChange={(e) => {
                       setNarratorId(e.target.value);
                       chooseNarrator(e.target.value);
@@ -148,12 +183,20 @@ export function Narrate({ lines, onMade }: { lines: string[]; onMade: (n: TextNa
                   </select>
                 </label>
                 {kept ? (
-                  <button className="btn quiet sm rd-natural-go" onClick={() => void read(true)} disabled={busy}>
-                    {busy ? 'Reading…' : 'Read it again'}
+                  <button
+                    className="btn quiet sm rd-natural-go"
+                    onClick={() => void read(true)}
+                    disabled={busy}
+                  >
+                    {busy ? "Reading…" : "Read it again"}
                   </button>
                 ) : (
-                  <button className="btn tonal sm rd-natural-go" onClick={() => void read()} disabled={!narrator || busy || kept === null}>
-                    {busy ? 'Reading… up to a minute' : 'Read the whole text'}
+                  <button
+                    className="btn tonal sm rd-natural-go"
+                    onClick={() => void read()}
+                    disabled={!narrator || busy || kept === null}
+                  >
+                    {busy ? "Reading… up to a minute" : "Read the whole text"}
                   </button>
                 )}
               </div>
@@ -161,8 +204,10 @@ export function Narrate({ lines, onMade }: { lines: string[]; onMade: (n: TextNa
                 {message ??
                   (kept
                     ? `${narrator?.name} has read this text; it plays above. Read it again only after changing the voice.`
-                    : 'One request for the whole text, kept on the server: it is paid for once. ')}
-                {!message && !kept && <Link to={paths.speakingNarrators()}>Voices</Link>}
+                    : "One request for the whole text, kept on the server: it is paid for once. ")}
+                {!message && !kept && (
+                  <Link to={paths.speakingNarrators()}>Voices</Link>
+                )}
               </p>
             </>
           )}

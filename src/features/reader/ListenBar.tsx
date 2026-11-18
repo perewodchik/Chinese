@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GeneratedText } from '../../domain/text';
 import { Icon } from '../../ui/Icon';
 import { addReading, castReading, narratedReadings, type Narrated } from '../shared/narratedClips';
@@ -93,15 +93,13 @@ export function useListenVoice(text: GeneratedText, reading: Reading): ListenVoi
 }
 
 /**
- * Listen, at the top of the text, before its first line: play, what it is
- * (how long, how far it has been heard), and the voice. Play opens the player
- * under the bar — back, next, the slider, the speed — which stays in sight
- * while the text scrolls under it, and the line being read is lit.
- *
- * The row is the same height whatever arrives: the voices come a moment after
- * the page, and the text under it must not move.
+ * Listen, beside the chapter's title: play, and ▾ for the voice. The menu
+ * lists the voices — narrators that read the whole text first, then the
+ * sentence voices — says how far the text has been heard, and offers a new
+ * narrator's reading. Play opens the player under the bar (back, next, the
+ * slider, the speed), which stays in sight while the text scrolls.
  */
-export function ListenBar({
+export function ListenControl({
   text,
   voice,
   reading,
@@ -115,64 +113,87 @@ export function ListenBar({
   playing: boolean;
   onPlay: () => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const [narrating, setNarrating] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    setOpen(false);
+    setNarrating(false);
+  }, [text.id]);
+  // A tap anywhere else, or Escape, closes it.
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('pointerdown', away);
+    document.addEventListener('keydown', esc);
+    return () => {
+      document.removeEventListener('pointerdown', away);
+      document.removeEventListener('keydown', esc);
+    };
+  }, [open]);
+
   const st = text.study ?? {};
   const listens = st.listens ?? (st.heard ? 1 : 0);
   const heard = listens
-    ? `heard to the end ${listens === 1 ? 'once' : `${listens} times`}`
+    ? `Heard to the end ${listens === 1 ? 'once' : `${listens} times`}.`
     : st.listened
-      ? `heard to line ${Math.min(st.listened, text.lines.length)} of ${text.lines.length}`
-      : 'not heard yet';
+      ? `Heard to line ${Math.min(st.listened, text.lines.length)} of ${text.lines.length}.`
+      : 'Not heard yet.';
   const canPlay = voice.current !== undefined && (voice.current !== null || reading.choices.length > 0 || reading.system);
   const lines = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
 
-  const options: ReactNode[] = [];
-  if (voice.readings.length) {
-    options.push(
-      <optgroup key="n" label="The whole text">
-        {voice.readings.map((r) => (
-          <option key={r.n.narratorId} value={`n:${r.n.narratorId}`}>
-            {r.name}
-          </option>
-        ))}
-      </optgroup>,
-    );
-  }
-  if (reading.choices.length) {
-    options.push(
-      <optgroup key="s" label="Line by line">
-        {reading.choices.map((c) => (
-          <option key={c.key} value={`s:${c.key}`}>
-            {c.name}
-          </option>
-        ))}
-      </optgroup>,
-    );
-  }
+  const row = (value: string, name: string) => (
+    <button
+      key={value}
+      role="menuitemradio"
+      aria-checked={voice.value === value}
+      className="rd-listen-voice-row"
+      onClick={() => {
+        voice.choose(value);
+        setOpen(false);
+      }}
+    >
+      <span className="grow">{name}</span>
+      {voice.value === value && <Icon name="check" size={18} />}
+    </button>
+  );
 
   return (
-    <section className="rd-listen-bar no-print" aria-label="Listen">
-      <button className="rd-listen-play" onClick={onPlay} disabled={!canPlay} aria-label={playing ? 'Pause' : 'Listen to the text'}>
-        <Icon name={playing ? 'pause' : 'play'} size={20} />
+    <div className="rd-listen-ctl no-print" ref={root}>
+      <button className="rd-listen-play" onClick={onPlay} disabled={!canPlay} aria-label={playing ? 'Pause' : 'Listen to the text'} title={playing ? 'Pause' : 'Listen'}>
+        <Icon name={playing ? 'pause' : 'play'} size={18} />
       </button>
-      <div className="rd-listen-what">
-        <b>
-          <span className="hanzi" aria-hidden>
-            听
-          </span>{' '}
-          Listen
-        </b>
-        <span>{heard[0]!.toUpperCase() + heard.slice(1)}</span>
-      </div>
-      <label className="rd-listen-voice">
-        <span className="rd-listen-select">
-          <select value={voice.value} onChange={(e) => voice.choose(e.target.value)} disabled={!options.length} aria-label="Voice">
-            {!options.length && <option value="">{voice.current === undefined ? "…" : "None here"}</option>}
-            {options}
-          </select>
-          <Icon name="down" size={16} />
-        </span>
-      </label>
-      <Narrate key={text.id} lines={lines} onMade={(n, name) => voice.made({ n, name })} />
-    </section>
+      <button className="rd-listen-more" aria-haspopup="menu" aria-expanded={open} aria-label="Voice" title="Voice" onClick={() => setOpen((o) => !o)}>
+        <Icon name="down" size={16} />
+      </button>
+      {open && (
+        <div className="rd-listen-menu" role="menu" aria-label="Voice">
+          <p className="rd-listen-heard">{heard}</p>
+          {voice.readings.length > 0 && (
+            <>
+              <p className="rd-listen-group">The whole text</p>
+              {voice.readings.map((r) => row(`n:${r.n.narratorId}`, r.name))}
+            </>
+          )}
+          {reading.choices.length > 0 && (
+            <>
+              <p className="rd-listen-group">Line by line</p>
+              {reading.choices.map((c) => row(`s:${c.key}`, c.name))}
+            </>
+          )}
+          {!voice.readings.length && !reading.choices.length && <p className="rd-listen-group">No voice here yet.</p>}
+          <div className="rd-listen-new">
+            <button className="rd-listen-voice-row" aria-expanded={narrating} onClick={() => setNarrating((n) => !n)}>
+              <Icon name="plus" size={18} />
+              <span className="grow">A new narrator’s reading</span>
+            </button>
+            {narrating && <Narrate embedded key={text.id} lines={lines} onMade={(n, name) => voice.made({ n, name })} />}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

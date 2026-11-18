@@ -19,7 +19,7 @@ import { setPageColour } from '../../ui/colorScheme';
 import { bookOf, bookTitle, chapterHead, isFrontMatter, kindOf } from '../../domain/bookshelf';
 import { ChapterEnd } from './ChapterEnd';
 import { BookContents } from './BookContents';
-import { ListenBar, useListenVoice } from './ListenBar';
+import { ListenControl, useListenVoice } from './ListenBar';
 import { SentencePeek, type HeldSentence } from './SentencePeek';
 import { pinnedBottom, WordPeek, type Peeked } from './WordPeek';
 import { ChapterTabs, SpeakPart, tabOfHash, useLineBests, type ChapterTab, type TabInfo } from './ChapterTabs';
@@ -462,9 +462,9 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             study={study}
             heading={mode === 'all' && !story ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
             head={chapterHead(t, chapterAt(mode === 'all' ? i : page - 1))}
-            listen={
+            titleAction={
               mode === 'single' ? (
-                <ListenBar
+                <ListenControl
                   text={text}
                   voice={voice}
                   reading={reading}

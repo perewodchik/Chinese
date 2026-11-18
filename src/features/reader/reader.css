@@ -2983,44 +2983,59 @@ a.rd-more-row {
   cursor: pointer;
 }
 
-/* The chapter's title in the middle of its row. */
+/* The chapter's title in the middle of its row; Listen in the column to its
+   right, outside the centring, so the title stays in the middle. */
 .rd-title-row {
   display: grid;
-  grid-template-columns: minmax(0, max-content);
-  justify-content: center;
+  grid-template-columns: minmax(84px, 1fr) minmax(0, max-content) minmax(84px, 1fr);
+  align-items: center;
+  column-gap: 10px;
   width: 100%;
 }
 
 .rd-title-row > .rd-title {
+  grid-column: 2;
   text-wrap: balance;
 }
 
-/* ------------------------------------------------- Listen, before the text */
-/* One row in a well: play, what it is, the voice, and + for a narrator. Its
-   height is fixed, so the voices arriving a moment late move nothing. */
-.rd-listen-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 64px;
-  margin: 4px 0 18px;
-  padding: 8px 10px 8px 10px;
-  background: var(--card-2);
-  border-radius: 16px;
-  box-sizing: border-box;
+.rd-title-row > .rd-listen-ctl {
+  grid-column: 3;
+  justify-self: start;
 }
 
-.rd-listen-play {
-  flex: none;
-  width: 44px;
-  height: 44px;
+/* --------------------------------------------- Listen, beside the title */
+/* Play and ▾ as one pill: play in blue ink, ▾ the voice. */
+.rd-listen-ctl {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  border-radius: 20px;
+  background: var(--accent-soft);
+}
+
+.rd-listen-play,
+.rd-listen-more {
+  height: 40px;
   border: 0;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
+  background: none;
+  color: var(--accent);
   display: grid;
   place-items: center;
   cursor: pointer;
+}
+
+.rd-listen-play {
+  width: 40px;
+  border-radius: 20px;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.rd-listen-more {
+  width: 32px;
+  padding-right: 4px;
+  border-radius: 0 20px 20px 0;
 }
 
 .rd-listen-play:disabled {
@@ -3028,84 +3043,108 @@ a.rd-more-row {
   cursor: default;
 }
 
-.rd-listen-what {
-  flex: 1 1 auto;
-  min-width: 0;
+@media (pointer: coarse) {
+  .rd-listen-ctl,
+  .rd-listen-play,
+  .rd-listen-more {
+    height: 44px;
+  }
+
+  .rd-listen-ctl,
+  .rd-listen-play {
+    border-radius: 22px;
+  }
+
+  .rd-listen-play {
+    width: 44px;
+  }
+
+  .rd-listen-more {
+    width: 36px;
+  }
+}
+
+/* The menu under it, its right edge under the pill's, kept on the screen. */
+.rd-listen-menu {
+  position: absolute;
+  z-index: 25;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 300px;
+  max-width: calc(100vw - 2 * var(--gutter));
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
   display: grid;
-  line-height: 1.3;
+  padding: 8px;
+  box-sizing: border-box;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  text-align: left;
+  font: 15px/1.4 var(--sans);
+  animation: rise 0.12s ease-out;
 }
 
-.rd-listen-what b {
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.rd-listen-what b .hanzi {
+.rd-listen-heard {
+  margin: 4px 8px 6px;
+  font-size: 13px;
   color: var(--ink-3);
-  font-weight: 400;
 }
 
-/* Up to two lines, which the row's height already holds: nothing moves as the count changes. */
-.rd-listen-what > span {
+.rd-listen-group {
+  margin: 8px 8px 2px;
   font-size: 12.5px;
-  line-height: 1.3;
-  color: var(--ink-3);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
+  font-weight: 600;
+  color: var(--ink-2);
 }
 
-.rd-listen-voice {
-  flex: 0 1 auto;
-  min-width: 0;
-  display: grid;
-  gap: 1px;
-}
-
-/* A native picker, dressed as a chip: on an iPhone it opens the system's wheel. */
-.rd-listen-select {
-  position: relative;
+.rd-listen-voice-row {
   display: flex;
   align-items: center;
-  color: var(--accent);
-}
-
-.rd-listen-select select {
-  appearance: none;
-  -webkit-appearance: none;
-  max-width: 168px;
-  height: 36px;
-  padding: 0 28px 0 12px;
-  border: 1px solid var(--line-2);
-  border-radius: 12px;
-  background: var(--card);
-  color: var(--accent);
-  font: 500 14px/1 var(--sans);
-  text-overflow: ellipsis;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
   cursor: pointer;
 }
 
-.rd-listen-select svg {
-  position: absolute;
-  right: 8px;
-  pointer-events: none;
+.rd-listen-voice-row[aria-checked='true'] {
+  color: var(--accent);
+  font-weight: 500;
 }
 
-/* Narrate's + sits at the row's end; its panel drops from the row. */
-.rd-listen-bar {
-  position: relative;
-}
-
-.rd-listen-bar > .rd-natural-add {
-  flex: none;
-  height: 36px;
-}
-
-@media (max-width: 420px) {
-  .rd-listen-select select {
-    max-width: 128px;
+@media (hover: hover) {
+  .rd-listen-voice-row:hover {
+    background: var(--card-2);
   }
+}
+
+.rd-listen-new {
+  display: grid;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.rd-listen-new > .rd-listen-voice-row {
+  color: var(--accent);
+}
+
+/* A new narrator's reading, open in the menu rather than over it. */
+.rd-natural-inline {
+  display: grid;
+  gap: 10px;
+  padding: 4px 8px 8px;
+}
+
+.rd-natural-inline .rd-natural-row {
+  flex-wrap: wrap;
 }
 
 /* -------------------------------------------------------- a chapter's tabs */
@@ -3527,11 +3566,6 @@ body:has(.rd[data-book='xiyouji']) {
 /* The wash ends with the paragraph's last line, not a paragraph's space below it. */
 .rd[data-book='xiyouji'] .rd-row > .rd-para {
   margin-bottom: 0;
-}
-
-/* Listen's well, in the book's paper rather than the app's grey. */
-.rd[data-book='xiyouji'] .rd-listen-bar {
-  background: color-mix(in srgb, var(--ink-3) 9%, transparent);
 }
 
 /* The place a paragraph opens in, named once, where it first comes. */
