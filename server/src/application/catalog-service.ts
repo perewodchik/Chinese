@@ -1,7 +1,7 @@
 import type { CatalogBook, CatalogBookWithTexts, CatalogText, PublishCatalogResponse } from '../../../shared/catalog';
-import { NotFoundError } from '../domain/errors';
+import { NotFoundError, ValidationError } from '../domain/errors';
 import type { catalogBookSchema, CatalogTextInput } from './catalog-schema';
-import type { Actor, AdminLogRepository, CatalogBookRecord, CatalogRepository, Clock, PictureRepository, Tokens } from './ports';
+import type { Actor, AdminLogRepository, CatalogBookRecord, CatalogReaders, CatalogRepository, Clock, PictureRepository, Tokens } from './ports';
 import type { z } from 'zod';
 
 /** Every distinct Chinese character in the strings given. */
@@ -13,7 +13,7 @@ function hanzi(strings: Iterable<string>): Set<string> {
 
 const linesOf = (t: CatalogTextInput) => t.lines.map((l) => l.zh);
 
-const toDto = (b: CatalogBookRecord, admin: boolean): CatalogBook => ({
+const toDto = (b: CatalogBookRecord, admin: boolean, readers?: CatalogReaders): CatalogBook => ({
   id: b.id,
   title: b.title,
   titleZh: b.titleZh,
@@ -26,7 +26,7 @@ const toDto = (b: CatalogBookRecord, admin: boolean): CatalogBook => ({
   publishedAt: b.publishedAt,
   texts: b.texts,
   chars: b.chars,
-  ...(admin && { hidden: b.hiddenAt !== null }),
+  ...(admin && { hidden: b.hiddenAt !== null, readers: readers ?? { took: 0, finished: 0 } }),
 });
 
 /**
@@ -75,6 +75,8 @@ export class CatalogService {
       publishedAt: now,
       publishedBy: actor.id,
       hiddenAt: before?.hiddenAt ?? null,
+      // A new version keeps the book's place in the library; a new book goes first.
+      position: before?.position ?? Math.max(now, ((await catalog.list(true))[0]?.position ?? 0) + 1),
       texts: texts.length,
       chars: hanzi(texts.flatMap(linesOf)).size,
     };
@@ -103,9 +105,39 @@ export class CatalogService {
     await this.deps.adminLog.add({ at: now, actorId: actor.id, actorName: actor.name, action: hidden ? 'catalog-hidden' : 'catalog-shown', targetId: null, targetName: null, details: { book: book.title }, ip: actor.ip });
   }
 
-  /** The books on offer; an admin sees the hidden ones too. */
+  /** A9: a book moved one place up or down the library; in the admins' log. */
+  async move(actor: Actor, id: string, way: 'earlier' | 'later'): Promise<void> {
+    const book = await this.deps.catalog.find(id);
+    if (!book) throw new NotFoundError('That book');
+    if (!(await this.deps.catalog.move(id, way))) throw new ValidationError(way === 'earlier' ? 'That book is first already.' : 'That book is last already.');
+    await this.deps.adminLog.add({ at: this.deps.clock.now(), actorId: actor.id, actorName: actor.name, action: 'catalog-moved', targetId: null, targetName: null, details: { book: book.title, way }, ip: actor.ip });
+  }
+
+  /** A9: the band a book is for, put right without publishing it again; in the admins' log. */
+  async setLevel(actor: Actor, id: string, level: number): Promise<void> {
+    const book = await this.deps.catalog.find(id);
+    if (!book) throw new NotFoundError('That book');
+    if (book.level === level) return;
+    await this.deps.catalog.setLevel(id, level);
+    await this.deps.adminLog.add({ at: this.deps.clock.now(), actorId: actor.id, actorName: actor.name, action: 'catalog-level', targetId: null, targetName: null, details: { book: book.title, from: book.level, to: level }, ip: actor.ip });
+  }
+
+  /**
+   * A9: a learner took a book onto a shelf, or has read every text of it.
+   * Counted, never shown by name; a book that is hidden or gone is not counted.
+   */
+  async markReader(userId: string, id: string, finished: boolean): Promise<void> {
+    const book = await this.deps.catalog.find(id);
+    if (!book || book.hiddenAt !== null) throw new NotFoundError('That book');
+    // The admin who published it has it on their shelf as the book itself, not as a reader.
+    if (book.publishedBy === userId) return;
+    await this.deps.catalog.markReader(id, userId, this.deps.clock.now(), finished);
+  }
+
+  /** The books on offer, in the library's order; an admin sees the hidden ones too, and how many took and finished each. */
   async list(admin: boolean): Promise<CatalogBook[]> {
-    return (await this.deps.catalog.list(admin)).map((b) => toDto(b, admin));
+    const [books, readers] = await Promise.all([this.deps.catalog.list(admin), admin ? this.deps.catalog.readers() : Promise.resolve(new Map<string, CatalogReaders>())]);
+    return books.map((b) => toDto(b, admin, readers.get(b.id)));
   }
 
   /** A book with its texts, unless it is hidden (an admin still sees it). */

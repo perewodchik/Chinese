@@ -161,7 +161,11 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
   // The shared catalogue (T1): a shelf published as a book, a new version of
   // it, hidden or shown again. Checked against the catalogue's schema here
   // (SEC12): what goes in is read by every learner.
-  const hideRequest = z.object({ hidden: z.boolean() });
+  const catalogChange = z.union([
+    z.object({ hidden: z.boolean() }),
+    z.object({ move: z.enum(['earlier', 'later']) }),
+    z.object({ level: z.number().int().min(1).max(7) }),
+  ]);
   routes.get('/catalog', session, admin, async (c) => {
     c.header('Cache-Control', 'no-store');
     return c.json(await catalog.list(true));
@@ -180,8 +184,11 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
   });
   routes.patch('/catalog/:id', session, admin, fresh, async (c) => {
     await changes.consume(c.get('session').user.id);
-    const { hidden } = await readJson(c, hideRequest);
-    await catalog.setHidden(actor(c), c.req.param('id'), hidden);
+    const change = await readJson(c, catalogChange);
+    const id = c.req.param('id');
+    if ('hidden' in change) await catalog.setHidden(actor(c), id, change.hidden);
+    else if ('move' in change) await catalog.move(actor(c), id, change.move);
+    else await catalog.setLevel(actor(c), id, change.level);
     return c.body(null, 204);
   });
 

@@ -607,6 +607,14 @@ export interface CatalogBookRecord extends CatalogBookMeta {
   hiddenAt: number | null;
   texts: number;
   chars: number;
+  /** A9: where it stands in the library, the highest first; set when first published, kept by new versions */
+  position?: number;
+}
+
+/** A9: how many learners took a book of the catalogue, and how many read every text of it. */
+export interface CatalogReaders {
+  took: number;
+  finished: number;
 }
 
 /** A catalogue text as kept: the text itself, in its book's reading order. */
@@ -623,8 +631,16 @@ export interface CatalogRepository {
   save(book: CatalogBookRecord, texts: CatalogTextRecord[]): Promise<void>;
   /** False when there is no such book. */
   setHidden(id: string, hiddenAt: number | null): Promise<boolean>;
-  /** The newest first; hidden ones only when asked. */
+  /** In the library's order (the highest position first); hidden ones only when asked. */
   list(includeHidden: boolean): Promise<CatalogBookRecord[]>;
+  /** A9: the book swapped with the one before it or after it, hidden ones counted; false at the end or when it is not there. */
+  move(id: string, way: 'earlier' | 'later'): Promise<boolean>;
+  /** A9: the band it is for. False when there is no such book. */
+  setLevel(id: string, level: number): Promise<boolean>;
+  /** A9: a learner took the book, or has read all of it; the first time of each is kept. */
+  markReader(bookId: string, userId: string, at: number, finished: boolean): Promise<void>;
+  /** A9: each book's takers and finishers, by book id. */
+  readers(): Promise<Map<string, CatalogReaders>>;
   find(id: string): Promise<CatalogBookRecord | null>;
   texts(bookId: string): Promise<CatalogTextRecord[]>;
   /** Keeps a picture under its key; one already kept stays. */

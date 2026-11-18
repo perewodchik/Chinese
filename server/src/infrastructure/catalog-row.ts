@@ -16,6 +16,7 @@ export interface CatalogBookRow {
   hidden_at: number | null;
   texts: number;
   chars: number;
+  position?: number;
 }
 
 export interface CatalogTextRow {
@@ -41,6 +42,7 @@ export const toCatalogBook = (r: CatalogBookRow): CatalogBookRecord => ({
   hiddenAt: r.hidden_at === null ? null : Number(r.hidden_at),
   texts: Number(r.texts),
   chars: Number(r.chars),
+  position: Number(r.position ?? r.published_at),
 });
 
 export const toCatalogText = (r: CatalogTextRow): CatalogTextRecord => ({
@@ -50,4 +52,4 @@ export const toCatalogText = (r: CatalogTextRow): CatalogTextRecord => ({
   chars: Number(r.chars),
 });
 
-export const bookColumns = (b: CatalogBookRecord) => [b.id, b.title, b.titleZh, b.level, b.kind, b.blurb, b.source, b.licence, b.version, b.publishedAt, b.publishedBy, b.hiddenAt, b.texts, b.chars] as const;
+export const bookColumns = (b: CatalogBookRecord) => [b.id, b.title, b.titleZh, b.level, b.kind, b.blurb, b.source, b.licence, b.version, b.publishedAt, b.publishedBy, b.hiddenAt, b.texts, b.chars, b.position ?? b.publishedAt] as const;

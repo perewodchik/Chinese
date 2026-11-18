@@ -302,7 +302,7 @@ describe('Postgres storage', () => {
       { id: 't2', position: 1, document: { id: 't2', lines: [{ zh: '二' }] }, chars: 1 },
       { id: 't1', position: 0, document: { id: 't1', lines: [{ zh: '一' }] }, chars: 1 },
     ]);
-    assert.deepEqual(await stores.catalog.find('b1'), book);
+    assert.deepEqual(await stores.catalog.find('b1'), { ...book, position: T });
     assert.deepEqual((await stores.catalog.texts('b1')).map((t) => [t.id, t.position, t.document]), [['t1', 0, { id: 't1', lines: [{ zh: '一' }] }], ['t2', 1, { id: 't2', lines: [{ zh: '二' }] }]]);
     await stores.catalog.save({ ...book, version: 2, texts: 1 }, [{ id: 't3', position: 0, document: { id: 't3' }, chars: 0 }]);
     assert.deepEqual((await stores.catalog.texts('b1')).map((t) => t.id), ['t3']);
@@ -316,6 +316,23 @@ describe('Postgres storage', () => {
     await stores.catalog.savePicture({ key: 'k1', mime: 'image/jpeg', bytes: new Uint8Array([9]), createdAt: T });
     assert.deepEqual(await stores.catalog.findPicture('k1'), { mime: 'image/png', bytes });
     assert.equal(await stores.catalog.findPicture('k2'), null);
+
+    // A9: a newer book goes first, moves keep their place through a new version, the band changes, readers are counted once.
+    await stores.catalog.save({ ...book, id: 'b2', publishedAt: T + 10, hiddenAt: null }, []);
+    assert.deepEqual((await stores.catalog.list(true)).map((b) => b.id), ['b2', 'b1']);
+    assert.equal(await stores.catalog.move('b1', 'earlier'), true);
+    assert.equal(await stores.catalog.move('b1', 'earlier'), false);
+    await stores.catalog.save({ ...(await stores.catalog.find('b1'))!, version: 3 }, []);
+    assert.deepEqual((await stores.catalog.list(true)).map((b) => b.id), ['b1', 'b2']);
+    assert.equal(await stores.catalog.setLevel('b2', 4), true);
+    assert.equal((await stores.catalog.find('b2'))?.level, 4);
+    await stores.users.insert(user('r1', 'reader1'));
+    await stores.users.insert(user('r2', 'reader2'));
+    await stores.catalog.markReader('b2', 'r1', T, false);
+    await stores.catalog.markReader('b2', 'r1', T + 1, true);
+    await stores.catalog.markReader('b2', 'r1', T + 2, false);
+    await stores.catalog.markReader('b2', 'r2', T + 3, false);
+    assert.deepEqual([...(await stores.catalog.readers())], [['b2', { took: 2, finished: 1 }]]);
   });
 
   it('keeps a reset link once, for a day, the newer one for an account replacing the older (A6)', async () => {

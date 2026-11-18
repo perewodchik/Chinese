@@ -239,7 +239,7 @@ function hanzi(strings) {
   return found;
 }
 var linesOf = (t) => t.lines.map((l) => l.zh);
-var toDto = (b, admin) => ({
+var toDto = (b, admin, readers) => ({
   id: b.id,
   title: b.title,
   titleZh: b.titleZh,
@@ -252,7 +252,7 @@ var toDto = (b, admin) => ({
   publishedAt: b.publishedAt,
   texts: b.texts,
   chars: b.chars,
-  ...admin && { hidden: b.hiddenAt !== null }
+  ...admin && { hidden: b.hiddenAt !== null, readers: readers ?? { took: 0, finished: 0 } }
 });
 var CatalogService = class {
   constructor(deps) {
@@ -285,6 +285,8 @@ var CatalogService = class {
       publishedAt: now,
       publishedBy: actor.id,
       hiddenAt: before?.hiddenAt ?? null,
+      // A new version keeps the book's place in the library; a new book goes first.
+      position: before?.position ?? Math.max(now, ((await catalog.list(true))[0]?.position ?? 0) + 1),
       texts: texts.length,
       chars: hanzi(texts.flatMap(linesOf)).size
     };
@@ -311,9 +313,35 @@ var CatalogService = class {
     await this.deps.catalog.setHidden(id, hidden ? book.hiddenAt ?? now : null);
     await this.deps.adminLog.add({ at: now, actorId: actor.id, actorName: actor.name, action: hidden ? "catalog-hidden" : "catalog-shown", targetId: null, targetName: null, details: { book: book.title }, ip: actor.ip });
   }
-  /** The books on offer; an admin sees the hidden ones too. */
+  /** A9: a book moved one place up or down the library; in the admins' log. */
+  async move(actor, id, way) {
+    const book = await this.deps.catalog.find(id);
+    if (!book) throw new NotFoundError("That book");
+    if (!await this.deps.catalog.move(id, way)) throw new ValidationError(way === "earlier" ? "That book is first already." : "That book is last already.");
+    await this.deps.adminLog.add({ at: this.deps.clock.now(), actorId: actor.id, actorName: actor.name, action: "catalog-moved", targetId: null, targetName: null, details: { book: book.title, way }, ip: actor.ip });
+  }
+  /** A9: the band a book is for, put right without publishing it again; in the admins' log. */
+  async setLevel(actor, id, level) {
+    const book = await this.deps.catalog.find(id);
+    if (!book) throw new NotFoundError("That book");
+    if (book.level === level) return;
+    await this.deps.catalog.setLevel(id, level);
+    await this.deps.adminLog.add({ at: this.deps.clock.now(), actorId: actor.id, actorName: actor.name, action: "catalog-level", targetId: null, targetName: null, details: { book: book.title, from: book.level, to: level }, ip: actor.ip });
+  }
+  /**
+   * A9: a learner took a book onto a shelf, or has read every text of it.
+   * Counted, never shown by name; a book that is hidden or gone is not counted.
+   */
+  async markReader(userId, id, finished) {
+    const book = await this.deps.catalog.find(id);
+    if (!book || book.hiddenAt !== null) throw new NotFoundError("That book");
+    if (book.publishedBy === userId) return;
+    await this.deps.catalog.markReader(id, userId, this.deps.clock.now(), finished);
+  }
+  /** The books on offer, in the library's order; an admin sees the hidden ones too, and how many took and finished each. */
   async list(admin) {
-    return (await this.deps.catalog.list(admin)).map((b) => toDto(b, admin));
+    const [books, readers] = await Promise.all([this.deps.catalog.list(admin), admin ? this.deps.catalog.readers() : Promise.resolve(/* @__PURE__ */ new Map())]);
+    return books.map((b) => toDto(b, admin, readers.get(b.id)));
   }
   /** A book with its texts, unless it is hidden (an admin still sees it). */
   async get(id, admin) {
@@ -3093,7 +3121,11 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
     await changes.consume(c.get("session").user.id);
     return c.json(await auth.signOutEverywhere(c.req.param("id"), actor(c)));
   });
-  const hideRequest = z4.object({ hidden: z4.boolean() });
+  const catalogChange = z4.union([
+    z4.object({ hidden: z4.boolean() }),
+    z4.object({ move: z4.enum(["earlier", "later"]) }),
+    z4.object({ level: z4.number().int().min(1).max(7) })
+  ]);
   routes.get("/catalog", session, admin, async (c) => {
     c.header("Cache-Control", "no-store");
     return c.json(await catalog.list(true));
@@ -3112,8 +3144,11 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
   });
   routes.patch("/catalog/:id", session, admin, fresh, async (c) => {
     await changes.consume(c.get("session").user.id);
-    const { hidden } = await readJson(c, hideRequest);
-    await catalog.setHidden(actor(c), c.req.param("id"), hidden);
+    const change = await readJson(c, catalogChange);
+    const id = c.req.param("id");
+    if ("hidden" in change) await catalog.setHidden(actor(c), id, change.hidden);
+    else if ("move" in change) await catalog.move(actor(c), id, change.move);
+    else await catalog.setLevel(actor(c), id, change.level);
     return c.body(null, 204);
   });
   routes.get("/dashboard", session, admin, async (c) => {
@@ -3418,9 +3453,11 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
 
 // server/src/http/routes/catalog.ts
 import { Hono as Hono5 } from "hono";
-function catalogRoutes({ auth, clock, trustProxy, catalog }) {
+import { z as z7 } from "zod";
+function catalogRoutes({ auth, clock, trustProxy, catalog, limits }) {
   const routes = new Hono5();
   const session = requireSession(auth, { trustProxy, clock });
+  const marks = new RateLimiter("catalog.readers", 60, 60 * 6e4, clock, limits);
   routes.get("/", session, async (c) => {
     c.header("Cache-Control", "private, max-age=60");
     return c.json(await catalog.list(c.get("session").user.role === "admin"));
@@ -3429,17 +3466,24 @@ function catalogRoutes({ auth, clock, trustProxy, catalog }) {
     c.header("Cache-Control", "private, max-age=60");
     return c.json(await catalog.get(c.req.param("id"), c.get("session").user.role === "admin"));
   });
+  routes.post("/:id/reader", session, async (c) => {
+    const user = c.get("session").user.id;
+    await marks.consume(user);
+    const { finished } = await readJson(c, z7.object({ finished: z7.boolean() }));
+    await catalog.markReader(user, c.req.param("id"), finished);
+    return c.body(null, 204);
+  });
   return routes;
 }
 
 // server/src/http/routes/feedback.ts
 import { Hono as Hono6 } from "hono";
-import { z as z7 } from "zod";
+import { z as z8 } from "zod";
 function feedbackRoutes({ auth, clock, trustProxy, feedback, limits }) {
   const routes = new Hono6();
   const session = requireSession(auth, { trustProxy, clock });
   const sends = new RateLimiter("feedback.sends", 10, 24 * 60 * 6e4, clock, limits);
-  const body = z7.object({ kind: z7.string().max(20), message: z7.string().max(FEEDBACK_MAX * 4), page: z7.string().max(2e3).default("/") });
+  const body = z8.object({ kind: z8.string().max(20), message: z8.string().max(FEEDBACK_MAX * 4), page: z8.string().max(2e3).default("/") });
   routes.post("/", session, async (c) => {
     const userId = c.get("session").user.id;
     await sends.consume(userId);
@@ -3464,15 +3508,15 @@ function siteRoutes({ auth, clock, trustProxy, site }) {
 
 // server/src/http/routes/activity.ts
 import { Hono as Hono8 } from "hono";
-import { z as z8 } from "zod";
+import { z as z9 } from "zod";
 function activityRoutes({ auth, clock, trustProxy, activity, limits }) {
   const routes = new Hono8();
   const session = requireSession(auth, { trustProxy, clock });
   const reports = new RateLimiter("activity.reports", 60, 60 * 6e4, clock, limits);
-  const count = z8.number().finite().min(0).max(1e6);
-  const body = z8.object({ day: z8.string().max(10), minutes: count, textsRead: count, answers: count, spoken: count, videos: count }).strict();
+  const count = z9.number().finite().min(0).max(1e6);
+  const body = z9.object({ day: z9.string().max(10), minutes: count, textsRead: count, answers: count, spoken: count, videos: count }).strict();
   const errorsSent = new RateLimiter("activity.errors", 20, 24 * 60 * 6e4, clock, limits);
-  const errorBody2 = z8.object({ message: z8.string().max(4e3), page: z8.string().max(2e3) }).strict();
+  const errorBody2 = z9.object({ message: z9.string().max(4e3), page: z9.string().max(2e3) }).strict();
   routes.post("/error", session, async (c) => {
     const userId = c.get("session").user.id;
     await errorsSent.consume(userId);
@@ -3490,31 +3534,31 @@ function activityRoutes({ auth, clock, trustProxy, activity, limits }) {
 
 // server/src/http/routes/narration.ts
 import { Hono as Hono9 } from "hono";
-import { z as z9 } from "zod";
-var keyRequest = z9.object({ key: z9.string().min(1).max(400) });
-var lines = z9.array(z9.string().max(240)).min(1).max(300);
-var textRequest = z9.object({ narrator: z9.string().min(1).max(80), lines, generate: z9.boolean().optional(), again: z9.boolean().optional(), speed: z9.number().min(0.5).max(2).optional() });
-var ofRequest = z9.object({ lines });
-var tryRequest = z9.object({ prompt: z9.string().trim().min(1).max(2e3), previewText: z9.string().trim().min(1).max(200), count: z9.number().int().min(1).max(3).optional() });
-var keepRequest = z9.object({ name: z9.string().trim().min(1).max(60), prompt: z9.string().trim().min(1).max(2e3), previewText: z9.string().trim().max(200), voiceId: z9.string().min(1).max(128) });
-var adoptRequest = z9.object({ name: z9.string().max(60), voice: z9.string().min(1).max(120) });
-var changeRequest = z9.object({
-  name: z9.string().trim().min(1).max(60).optional(),
-  speed: z9.number().min(0.5).max(2).optional(),
-  pitch: z9.number().min(-12).max(12).optional(),
-  emotion: z9.enum(EMOTIONS).nullable().optional()
+import { z as z10 } from "zod";
+var keyRequest = z10.object({ key: z10.string().min(1).max(400) });
+var lines = z10.array(z10.string().max(240)).min(1).max(300);
+var textRequest = z10.object({ narrator: z10.string().min(1).max(80), lines, generate: z10.boolean().optional(), again: z10.boolean().optional(), speed: z10.number().min(0.5).max(2).optional() });
+var ofRequest = z10.object({ lines });
+var tryRequest = z10.object({ prompt: z10.string().trim().min(1).max(2e3), previewText: z10.string().trim().min(1).max(200), count: z10.number().int().min(1).max(3).optional() });
+var keepRequest = z10.object({ name: z10.string().trim().min(1).max(60), prompt: z10.string().trim().min(1).max(2e3), previewText: z10.string().trim().max(200), voiceId: z10.string().min(1).max(128) });
+var adoptRequest = z10.object({ name: z10.string().max(60), voice: z10.string().min(1).max(120) });
+var changeRequest = z10.object({
+  name: z10.string().trim().min(1).max(60).optional(),
+  speed: z10.number().min(0.5).max(2).optional(),
+  pitch: z10.number().min(-12).max(12).optional(),
+  emotion: z10.enum(EMOTIONS).nullable().optional()
 });
-var ownRequest = z9.object({ title: z9.string().max(80), narrator: z9.string().min(1).max(80), lines });
-var ownChange = z9.object({ title: z9.string().max(80).optional(), textId: z9.string().min(1).max(80).nullable().optional() });
-var importRequest = z9.object({
-  narrator: z9.string().min(1).max(80),
+var ownRequest = z10.object({ title: z10.string().max(80), narrator: z10.string().min(1).max(80), lines });
+var ownChange = z10.object({ title: z10.string().max(80).optional(), textId: z10.string().min(1).max(80).nullable().optional() });
+var importRequest = z10.object({
+  narrator: z10.string().min(1).max(80),
   lines,
   // A chapter is a minute or two: a few MB of base64 at most.
-  mp3: z9.string().min(8).max(6e6),
-  durationMs: z9.number().int().min(1).max(30 * 6e4),
-  timings: z9.array(z9.tuple([z9.number().min(0), z9.number().min(0)])).min(1).max(300)
+  mp3: z10.string().min(8).max(6e6),
+  durationMs: z10.number().int().min(1).max(30 * 6e4),
+  timings: z10.array(z10.tuple([z10.number().min(0), z10.number().min(0)])).min(1).max(300)
 });
-var previewRequest = z9.object({ text: z9.string().max(200) });
+var previewRequest = z10.object({ text: z10.string().max(200) });
 var mp3 = (c, bytes) => {
   c.header("Content-Type", "audio/mpeg");
   c.header("Cache-Control", "no-store");
@@ -3623,30 +3667,30 @@ function narrationRoutes({ auth, clock, trustProxy, narration, limits, audit, ip
 
 // server/src/http/routes/speechEval.ts
 import { Hono as Hono10 } from "hono";
-import { z as z10 } from "zod";
-var keysRequest = z10.object({ provider: z10.literal("speechsuper"), appKey: z10.string().min(1).max(80), secretKey: z10.string().min(1).max(120) });
-var settingsRequest = z10.object({ strictness: z10.enum(STRICTNESS) });
-var sized = (max) => z10.unknown().refine((v) => v === void 0 || JSON.stringify(v).length <= max, "too large");
-var attemptsRequest = z10.object({
-  items: z10.array(
-    z10.object({
-      id: z10.string().min(1).max(120),
-      at: z10.number().int().nonnegative(),
-      kind: z10.enum(["phrase", "drill", "voice"]),
-      sourceId: z10.string().max(200).nullable().optional(),
-      text: z10.string().max(EVAL_MAX_CHARS * 4),
-      tally: z10.string().max(80).nullable().optional(),
-      good: z10.boolean(),
+import { z as z11 } from "zod";
+var keysRequest = z11.object({ provider: z11.literal("speechsuper"), appKey: z11.string().min(1).max(80), secretKey: z11.string().min(1).max(120) });
+var settingsRequest = z11.object({ strictness: z11.enum(STRICTNESS) });
+var sized = (max) => z11.unknown().refine((v) => v === void 0 || JSON.stringify(v).length <= max, "too large");
+var attemptsRequest = z11.object({
+  items: z11.array(
+    z11.object({
+      id: z11.string().min(1).max(120),
+      at: z11.number().int().nonnegative(),
+      kind: z11.enum(["phrase", "drill", "voice"]),
+      sourceId: z11.string().max(200).nullable().optional(),
+      text: z11.string().max(EVAL_MAX_CHARS * 4),
+      tally: z11.string().max(80).nullable().optional(),
+      good: z11.boolean(),
       summary: sized(16e3).optional(),
       result: sized(12e4).optional()
     })
   ).max(ATTEMPTS_PER_CALL)
 });
-var evalRequest = z10.object({
-  text: z10.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
-  pinyin: z10.array(z10.string().regex(PINYIN_SYLLABLE)).max(EVAL_MAX_CHARS).optional(),
+var evalRequest = z11.object({
+  text: z11.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
+  pinyin: z11.array(z11.string().regex(PINYIN_SYLLABLE)).max(EVAL_MAX_CHARS).optional(),
   // base64 of up to EVAL_MAX_BYTES of PCM
-  audio: z10.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
+  audio: z11.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
 });
 function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits, audit, ipHeader, log }) {
   const note = auditor(audit, clock, trustProxy, ipHeader, log);
@@ -3814,52 +3858,52 @@ function strokeRoutes({ auth, clock, trustProxy }) {
 
 // server/src/http/routes/talk.ts
 import { Hono as Hono14 } from "hono";
-import { z as z11 } from "zod";
-var talkOptions = z11.object({
-  level: z11.enum(TALK_LEVELS),
-  length: z11.enum(TALK_LENGTHS),
-  explain: z11.boolean(),
-  words: z11.boolean(),
-  hints: z11.boolean(),
+import { z as z12 } from "zod";
+var talkOptions = z12.object({
+  level: z12.enum(TALK_LEVELS),
+  length: z12.enum(TALK_LENGTHS),
+  explain: z12.boolean(),
+  words: z12.boolean(),
+  hints: z12.boolean(),
   // The learner's own words, and they go into a prompt: a topic the length
   // of an essay is a way of talking past everything above it.
-  topic: z11.string().trim().max(TALK_TOPIC_MAX_CHARS),
-  persona: z11.string().max(64).optional()
+  topic: z12.string().trim().max(TALK_TOPIC_MAX_CHARS),
+  persona: z12.string().max(64).optional()
 });
-var savedWord = z11.object({
-  hanzi: z11.string().max(TALK_LINE_MAX_CHARS),
-  pinyin: z11.string().max(TALK_LINE_MAX_CHARS * 2),
-  english: z11.string().max(TALK_LINE_MAX_CHARS)
+var savedWord = z12.object({
+  hanzi: z12.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z12.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z12.string().max(TALK_LINE_MAX_CHARS)
 });
-var savedTurn = z11.object({
-  who: z11.enum(["tutor", "learner"]),
-  hanzi: z11.string().max(TALK_LINE_MAX_CHARS),
-  pinyin: z11.string().max(TALK_LINE_MAX_CHARS * 2),
-  english: z11.string().max(TALK_LINE_MAX_CHARS * 2),
-  words: z11.array(savedWord).max(10).optional(),
-  hints: z11.array(savedWord).max(10).optional(),
-  note: z11.string().max(TALK_LINE_MAX_CHARS * 2).optional()
+var savedTurn = z12.object({
+  who: z12.enum(["tutor", "learner"]),
+  hanzi: z12.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z12.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z12.string().max(TALK_LINE_MAX_CHARS * 2),
+  words: z12.array(savedWord).max(10).optional(),
+  hints: z12.array(savedWord).max(10).optional(),
+  note: z12.string().max(TALK_LINE_MAX_CHARS * 2).optional()
 });
-var recordedRequest = z11.object({
-  voice: z11.string().min(1).max(64),
-  mode: z11.enum(TALK_MODES).optional(),
-  texts: z11.array(z11.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
+var recordedRequest = z12.object({
+  voice: z12.string().min(1).max(64),
+  mode: z12.enum(TALK_MODES).optional(),
+  texts: z12.array(z12.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
 });
-var startRequest = z11.object({
+var startRequest = z12.object({
   options: talkOptions,
-  voice: z11.string().max(64).nullable()
+  voice: z12.string().max(64).nullable()
 });
-var saveRequest = z11.object({
+var saveRequest = z12.object({
   options: talkOptions,
-  voice: z11.string().max(64).nullable(),
-  turns: z11.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
+  voice: z12.string().max(64).nullable(),
+  turns: z12.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
 });
-var replyRequest = z11.object({
-  lines: z11.array(z11.object({ who: z11.enum(["tutor", "learner"]), text: z11.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
+var replyRequest = z12.object({
+  lines: z12.array(z12.object({ who: z12.enum(["tutor", "learner"]), text: z12.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
   options: talkOptions,
-  vocab: z11.object({
-    known: z11.array(z11.string().max(12)).max(TALK_VOCAB_MAX.known),
-    learning: z11.array(z11.string().max(12)).max(TALK_VOCAB_MAX.learning)
+  vocab: z12.object({
+    known: z12.array(z12.string().max(12)).max(TALK_VOCAB_MAX.known),
+    learning: z12.array(z12.string().max(12)).max(TALK_VOCAB_MAX.learning)
   }).optional()
 });
 function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, talkVoices, conversations, recordings, limits }) {
@@ -4149,10 +4193,10 @@ function videoRoutes({ auth, clock, trustProxy, log, limits, lookups: cache }) {
 // server/src/http/routes/workspace.ts
 import { Hono as Hono16 } from "hono";
 import { bodyLimit as bodyLimit3 } from "hono/body-limit";
-import { z as z12 } from "zod";
-var saveRequest2 = z12.object({
-  baseRevision: z12.number().int().min(0),
-  document: z12.record(z12.string(), z12.unknown())
+import { z as z13 } from "zod";
+var saveRequest2 = z13.object({
+  baseRevision: z13.number().int().min(0),
+  document: z13.record(z13.string(), z13.unknown())
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
   const routes = new Hono16();
@@ -4195,16 +4239,16 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 // server/src/http/routes/world.ts
 import { Hono as Hono17 } from "hono";
 import { bodyLimit as bodyLimit4 } from "hono/body-limit";
-import { z as z13 } from "zod";
+import { z as z14 } from "zod";
 
 // shared/world.ts
 var WORLD_SAVE_MAX_BYTES = 512 * 1024;
 var worldTag = (revision) => `"w${revision}"`;
 
 // server/src/http/routes/world.ts
-var putRequest = z13.object({
-  baseRevision: z13.number().int().min(0),
-  save: z13.record(z13.string(), z13.unknown())
+var putRequest = z14.object({
+  baseRevision: z14.number().int().min(0),
+  save: z14.record(z14.string(), z14.unknown())
 });
 function worldRoutes({ auth, world, clock, trustProxy }) {
   const routes = new Hono17();
@@ -4810,6 +4854,18 @@ var MIGRATIONS = [
     PRIMARY KEY (digest, user_id)
   );
   INSERT INTO invite_uses (digest, user_id, used_at) SELECT digest, used_by, used_at FROM invites WHERE used_by IS NOT NULL AND used_at IS NOT NULL;
+  `,
+  // A9: the library's books in the order an admin puts them (newest first until then), and who took and finished each.
+  `
+  ALTER TABLE catalog_books ADD COLUMN position BIGINT NOT NULL DEFAULT 0;
+  UPDATE catalog_books SET position = published_at;
+  CREATE TABLE catalog_readers (
+    book_id      TEXT NOT NULL REFERENCES catalog_books (id) ON DELETE CASCADE,
+    user_id      TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    taken_at     BIGINT NOT NULL,
+    finished_at  BIGINT,
+    PRIMARY KEY (book_id, user_id)
+  );
   `
 ];
 
@@ -5010,7 +5066,8 @@ var toCatalogBook = (r) => ({
   publishedBy: r.published_by,
   hiddenAt: r.hidden_at === null ? null : Number(r.hidden_at),
   texts: Number(r.texts),
-  chars: Number(r.chars)
+  chars: Number(r.chars),
+  position: Number(r.position ?? r.published_at)
 });
 var toCatalogText = (r) => ({
   id: r.id,
@@ -5018,7 +5075,7 @@ var toCatalogText = (r) => ({
   document: JSON.parse(r.document),
   chars: Number(r.chars)
 });
-var bookColumns = (b) => [b.id, b.title, b.titleZh, b.level, b.kind, b.blurb, b.source, b.licence, b.version, b.publishedAt, b.publishedBy, b.hiddenAt, b.texts, b.chars];
+var bookColumns = (b) => [b.id, b.title, b.titleZh, b.level, b.kind, b.blurb, b.source, b.licence, b.version, b.publishedAt, b.publishedBy, b.hiddenAt, b.texts, b.chars, b.position ?? b.publishedAt];
 
 // server/src/infrastructure/postgres/catalog-repository.ts
 var PostgresCatalogRepository = class {
@@ -5030,8 +5087,8 @@ var PostgresCatalogRepository = class {
     try {
       await client.query("BEGIN");
       await client.query(
-        `INSERT INTO catalog_books (id, title, title_zh, level, kind, blurb, source, licence, version, published_at, published_by, hidden_at, texts, chars)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        `INSERT INTO catalog_books (id, title, title_zh, level, kind, blurb, source, licence, version, published_at, published_by, hidden_at, texts, chars, position)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
          ON CONFLICT (id) DO UPDATE SET title = excluded.title, title_zh = excluded.title_zh, level = excluded.level, kind = excluded.kind,
            blurb = excluded.blurb, source = excluded.source, licence = excluded.licence, version = excluded.version,
            published_at = excluded.published_at, published_by = excluded.published_by, hidden_at = excluded.hidden_at,
@@ -5055,8 +5112,46 @@ var PostgresCatalogRepository = class {
     return (done.rowCount ?? 0) === 1;
   }
   async list(includeHidden) {
-    const { rows } = await this.db.query(`SELECT * FROM catalog_books ${includeHidden ? "" : "WHERE hidden_at IS NULL"} ORDER BY published_at DESC, id`);
+    const { rows } = await this.db.query(`SELECT * FROM catalog_books ${includeHidden ? "" : "WHERE hidden_at IS NULL"} ORDER BY position DESC, id`);
     return rows.map(toCatalogBook);
+  }
+  async move(id, way) {
+    const client = await this.db.connect();
+    try {
+      await client.query("BEGIN");
+      const { rows } = await client.query("SELECT id, position FROM catalog_books ORDER BY position DESC, id FOR UPDATE");
+      const at = rows.findIndex((b) => b.id === id);
+      const other = rows[way === "earlier" ? at - 1 : at + 1];
+      if (at < 0 || !other) {
+        await client.query("ROLLBACK");
+        return false;
+      }
+      const me = rows[at];
+      const [mine, theirs] = me.position === other.position ? [Number(other.position) + (way === "earlier" ? 1 : -1), Number(me.position)] : [Number(other.position), Number(me.position)];
+      await client.query("UPDATE catalog_books SET position = $1 WHERE id = $2", [mine, me.id]);
+      await client.query("UPDATE catalog_books SET position = $1 WHERE id = $2", [theirs, other.id]);
+      await client.query("COMMIT");
+      return true;
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+  async setLevel(id, level) {
+    const done = await this.db.query("UPDATE catalog_books SET level = $1 WHERE id = $2", [level, id]);
+    return (done.rowCount ?? 0) === 1;
+  }
+  async markReader(bookId, userId, at, finished) {
+    await this.db.query(
+      "INSERT INTO catalog_readers (book_id, user_id, taken_at, finished_at) VALUES ($1, $2, $3, $4) ON CONFLICT (book_id, user_id) DO UPDATE SET finished_at = COALESCE(catalog_readers.finished_at, excluded.finished_at)",
+      [bookId, userId, at, finished ? at : null]
+    );
+  }
+  async readers() {
+    const { rows } = await this.db.query("SELECT book_id, COUNT(*) AS took, COUNT(finished_at) AS finished FROM catalog_readers GROUP BY book_id");
+    return new Map(rows.map((r) => [r.book_id, { took: Number(r.took), finished: Number(r.finished) }]));
   }
   async find(id) {
     const { rows } = await this.db.query("SELECT * FROM catalog_books WHERE id = $1", [id]);

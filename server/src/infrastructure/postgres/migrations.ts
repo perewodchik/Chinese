@@ -410,4 +410,16 @@ export const MIGRATIONS: readonly string[] = [
   );
   INSERT INTO invite_uses (digest, user_id, used_at) SELECT digest, used_by, used_at FROM invites WHERE used_by IS NOT NULL AND used_at IS NOT NULL;
   `,
+  // A9: the library's books in the order an admin puts them (newest first until then), and who took and finished each.
+  `
+  ALTER TABLE catalog_books ADD COLUMN position BIGINT NOT NULL DEFAULT 0;
+  UPDATE catalog_books SET position = published_at;
+  CREATE TABLE catalog_readers (
+    book_id      TEXT NOT NULL REFERENCES catalog_books (id) ON DELETE CASCADE,
+    user_id      TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    taken_at     BIGINT NOT NULL,
+    finished_at  BIGINT,
+    PRIMARY KEY (book_id, user_id)
+  );
+  `,
 ];

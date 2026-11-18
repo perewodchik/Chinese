@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { CatalogBook } from '../../../shared/catalog';
-import { catalogBook, catalogBooks } from '../../api/catalog';
+import { catalogBook, catalogBooks, markCatalogReader } from '../../api/catalog';
 import type { TextSet } from '../../domain/text';
 import { paths } from '../../navigation/paths';
 import { addCatalogBook } from '../../store/commands';
@@ -46,6 +46,8 @@ export function FromLibrary({ sets }: { sets: TextSet[] }) {
     try {
       const full = await catalogBook(book.id);
       const set = addCatalogBook(full);
+      // A9: counted for the admin page; a miss is only one fewer in a count.
+      void markCatalogReader(book.id, false).catch(() => undefined);
       navigate(paths.shelf(set.id));
     } catch (err) {
       setError({ id: book.id, message: messageFor(err) });
