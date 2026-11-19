@@ -57,6 +57,18 @@ export function BookContents({
               </small>
             </span>
           </header>
+          {companion && entries.some((e) => !isFrontMatter(e.main) && canRelive(e)) && (
+            <Link className="rd-toc-row rd-toc-guide" to={paths.guide(set.id)} onClick={onClose}>
+              <span className="rd-toc-badge" aria-hidden>
+                <Icon name="book" size={18} />
+              </span>
+              <span className="rd-toc-title">
+                <span>Guide</span>
+                <small>Who, where and what, from the chapters you have read</small>
+              </span>
+              <Icon name="chevron" size={18} />
+            </Link>
+          )}
           <ol className="rd-toc-list">
             {entries.map((e, i) => {
               const front = story && isFrontMatter(e.main);

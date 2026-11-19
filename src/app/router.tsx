@@ -22,6 +22,7 @@ import { lazyPage } from './lazyPage';
 
 // R5: pages that come in pieces of their own, fetched when opened.
 const RelivePage = lazyPage(() => import('../features/reader/RelivePage'), 'RelivePage');
+const GuidePage = lazyPage(() => import('../features/reader/GuidePage'), 'GuidePage');
 const CollectionPage = lazyPage(() => import('../features/collections/CollectionPage'), 'CollectionPage');
 const PaperPage = lazyPage(() => import('../features/collections/BlankPaper'), 'PaperPage');
 const BuildListPage = lazyPage(() => import('../features/collections/build/BuildListPage'), 'BuildListPage');
@@ -89,7 +90,8 @@ const SweepPage = lazyPage(() => import('../features/words/SweepPage'), 'SweepPa
  *   /read/edit/:textId             a text put right by hand: its lines, title, place in its book
  *   /read/text/:setId?page&v&mode  a shelf read a text at a time: ?page=2, ?v=easy|book, ?mode=all
  *   /read/text/:textId             one passage — within a session, its page there
- *   /read/relive/:setId/:page      a read chapter of a book with a companion, lived again as scenes
+ *   /read/relive/:setId/:page?at   a read chapter of a book with a companion, lived again as scenes
+ *   /read/guide/:setId             its people, places and things, from the chapters read
  *   /collections/…, /texts/…       moved (V14): the old addresses land on the new ones
  *   /speaking                      phrases said and scored by SpeechSuper (Speaking's first tab)
  *   /speaking/voices, /talk, /pinyin  Speaking's other tabs: narrators, Claude, the tones and sounds
@@ -204,6 +206,7 @@ export const router = createBrowserRouter([
               { path: 'read/edit/:textId', element: <EditTextPage /> },
               { path: 'read/text/:textId', element: <ReaderPage /> },
               { path: 'read/relive/:setId/:page', element: <RelivePage /> },
+              { path: 'read/guide/:setId', element: <GuidePage /> },
               ...SPEAK_ROUTES,
               { path: 'videos', element: <VideosPage /> },
               { path: 'videos/add', element: <AddVideoPage /> },

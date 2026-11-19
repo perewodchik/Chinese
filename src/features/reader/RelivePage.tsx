@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useSearchParams } from 'react-router';
 import { pictureUrl } from '../../api/pictures';
 import { bookTitle, chapterHead, isFrontMatter } from '../../domain/bookshelf';
-import { beatAt, beatCount, canRelive, castOf, scenesOf, type BeatPart, type CastMember } from '../../domain/companion';
+import { beatAt, beatCount, beatFromQuery, canRelive, castOf, mixedOrder, scenesOf, wordsSaid, type BeatPart, type CastMember } from '../../domain/companion';
 import { pictureAbove } from '../../domain/pictures';
 import { alignPinyin, type Token } from '../../domain/reading';
 import { segment, writerHints } from '../../domain/segment';
@@ -18,6 +18,7 @@ import { useWordLevel } from '../shared/levels';
 import { usePinyinMode } from './readerView';
 import './reader.css';
 import './relive.css';
+import { CompanionFace } from './CompanionFace';
 
 /**
  * /read/relive/:setId/:page — a chapter already read, lived again as scenes
@@ -33,6 +34,8 @@ import './relive.css';
  */
 export function RelivePage() {
   const { setId = '', page: pageParam = '1' } = useParams();
+  const [params] = useSearchParams();
+  const start = params.get('at');
   const texts = useStore((s) => s.texts);
   const sets = useStore((s) => s.sets);
   const set = sets.find((s) => s.id === setId) ?? null;
@@ -49,7 +52,7 @@ export function RelivePage() {
     return <Away title="Read it first" line="Read this chapter in the book, and then you can live it again here." to={paths.reading(set.id, { page })} label="Read the chapter" />;
   }
   const chapter = entries.slice(0, page).filter((e) => !isFrontMatter(e.main)).length;
-  return <Relive key={entry.main.id} text={entry.easier ?? entry.main} cast={cast} back={paths.reading(set.id, { page })} chapter={chapter} />;
+  return <Relive key={entry.main.id} text={entry.easier ?? entry.main} cast={cast} back={paths.reading(set.id, { page })} chapter={chapter} guide={paths.guide(set.id)} title={bookTitle(set.name)} start={start} />;
 }
 
 function Away({ title, line, to, label }: { title: string; line: string; to: string; label: string }) {
@@ -65,12 +68,13 @@ function Away({ title, line, to, label }: { title: string; line: string; to: str
   );
 }
 
-function Relive({ text, cast, back, chapter }: { text: GeneratedText; cast: CastMember[]; back: string; chapter: number }) {
+function Relive({ text, cast, back, chapter, guide, title, start }: { text: GeneratedText; cast: CastMember[]; back: string; chapter: number; guide: string; title: string; start: string | null }) {
   const head = chapterHead(text, chapter);
   useTitle(`${head.zh} · relive`);
   const scenes = useMemo(() => scenesOf(text, cast), [text, cast]);
   const total = beatCount(scenes);
-  const [n, setN] = useState(0);
+  // Opened from the guide at a line someone says, or a place first seen: start there.
+  const [n, setN] = useState(() => beatFromQuery(start, total));
   const done = n >= total;
   const at = beatAt(scenes, Math.min(n, total - 1));
 
@@ -89,8 +93,10 @@ function Relive({ text, cast, back, chapter }: { text: GeneratedText; cast: Cast
   }, [next, prev]);
 
   const scene = at ? scenes[at.scene]! : null;
-  const beat = at && scene ? scene.beats[at.beat]! : null;
   const picture = scene ? pictureAbove(text, scene.para) : undefined;
+  const last = scenes[scenes.length - 1];
+  const endPicture = last ? pictureAbove(text, last.para) : undefined;
+  const shown = done ? endPicture : picture;
 
   return (
     <div className="cp-page">
@@ -99,13 +105,16 @@ function Relive({ text, cast, back, chapter }: { text: GeneratedText; cast: Cast
           <Icon name="back" />
           {head.kicker ?? 'The book'}
         </Link>
+        <Link className="btn quiet sm cp-guide" to={guide}>
+          Guide
+        </Link>
         <span className="cp-count" aria-live="polite">
           {done ? 'The end' : `${n + 1} of ${total}`}
         </span>
       </header>
 
-      <div className="cp-stage" style={{ '--ratio': picture?.w && picture.h ? picture.w / picture.h : 4 / 3 } as CSSProperties}>
-        {picture?.key ? <img key={picture.key} src={pictureUrl(picture.key)} alt="" width={picture.w} height={picture.h} /> : <span className="cp-stage-title hanzi">{head.zh}</span>}
+      <div className="cp-stage" style={{ '--ratio': shown?.w && shown.h ? shown.w / shown.h : 4 / 3 } as CSSProperties}>
+        {shown?.key ? <img key={shown.key} src={pictureUrl(shown.key)} alt="" width={shown.w} height={shown.h} /> : <span className="cp-stage-title hanzi">{head.zh}</span>}
       </div>
 
       <div className="cp-progress" aria-hidden>
@@ -114,15 +123,14 @@ function Relive({ text, cast, back, chapter }: { text: GeneratedText; cast: Cast
 
       <section className="cp-beat" aria-live="polite">
         {done ? (
-          <div className="cp-end">
-            <span className="hanzi cp-end-zh">{head.zh}</span>
-            <p>You lived this chapter again. Nothing here counts; the book is where you left it.</p>
-            <button className="btn quiet" type="button" onClick={() => setN(0)}>
-              From the start
-            </button>
-          </div>
-        ) : beat ? (
-          <BeatView key={beat.line} text={text} line={beat.line} parts={beat.parts} cast={cast} />
+          <ChapterEndView text={text} cast={cast} title={title} zh={head.zh} onRestart={() => setN(0)} />
+        ) : at && scene ? (
+          // The sentences of the scene so far: on a phone only the one now, on a wide screen the ones before it too, quieter.
+          scene.beats.slice(0, at.beat + 1).map((beat, i) => (
+            <div key={beat.line} className="cp-beat-line" data-past={i < at.beat || undefined}>
+              <BeatView text={text} line={beat.line} parts={beat.parts} cast={cast} />
+            </div>
+          ))
         ) : null}
       </section>
 
@@ -144,6 +152,84 @@ function Relive({ text, cast, back, chapter }: { text: GeneratedText; cast: Cast
   );
 }
 
+/**
+ * The end of a chapter lived again: the words its people said, with their
+ * faces — a tap opens the word, where it can be learned — and, for a chapter
+ * with pictures enough, the story to put back in order. Nothing is scored.
+ */
+function ChapterEndView({ text, cast, title, zh, onRestart }: { text: GeneratedText; cast: CastMember[]; title: string; zh: string; onRestart: () => void }) {
+  const lib = useLibrary();
+  const openItem = useOpenItem();
+  const words = useMemo(() => wordsSaid(text, cast, title), [text, cast, title]);
+  return (
+    <div className="cp-end">
+      <span className="hanzi cp-end-zh">{zh}</span>
+      <p>You lived this chapter again. Nothing here counts; the book is where you left it.</p>
+      {words.length > 0 && (
+        <>
+          <h2 className="cp-end-title">Words they said</h2>
+          <ul className="list cp-words">
+            {words.map((w) => {
+              const member = cast.find((c) => c.id === w.who.id);
+              return (
+                <li key={w.w}>
+                  <button type="button" className="cp-word" onClick={() => openItem(itemForToken(lib, w.w))}>
+                    <CompanionFace member={member} name={w.who.name} size={32} />
+                    <span className="cp-word-zh">
+                      <span className="hanzi">{w.w}</span>
+                      <small>{w.py}</small>
+                    </span>
+                    <span className="cp-word-d">{w.d}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+      <StoryInOrder text={text} />
+      <button className="btn quiet" type="button" onClick={onRestart}>
+        From the start
+      </button>
+    </div>
+  );
+}
+
+/**
+ * The chapter's pictures, mixed, to tap in the order the story went. When
+ * all are tapped it says how it went and shows them in their order — no
+ * mark, nothing kept. A chapter with fewer than three pictures has none.
+ */
+function StoryInOrder({ text }: { text: GeneratedText }) {
+  const pictures = useMemo(() => (text.pictures ?? []).filter((p) => p.key).sort((a, b) => a.para - b.para), [text.pictures]);
+  const mixed = useMemo(() => mixedOrder(pictures.length), [pictures]);
+  const [picked, setPicked] = useState<number[]>([]);
+  if (pictures.length < 3) return null;
+  const finished = picked.length === pictures.length;
+  const right = finished && picked.every((p, i) => p === i);
+  const tiles = finished ? pictures.map((_, i) => i) : mixed;
+  return (
+    <div className="cp-order">
+      <h2 className="cp-end-title">The story in pictures</h2>
+      <p className="cp-order-say">{finished ? (right ? 'That is the order it happened in.' : 'This is the order it happened in.') : 'Tap them in the order it happened, if you like.'}</p>
+      <div className="cp-order-grid">
+        {tiles.map((i) => {
+          const at = picked.indexOf(i);
+          return (
+            <button key={pictures[i]!.key} type="button" className="cp-order-tile" disabled={finished || at >= 0} onClick={() => setPicked((p) => [...p, i])} aria-label={at >= 0 ? `Picture ${at + 1}` : 'A picture of the story'}>
+              <img src={pictureUrl(pictures[i]!.key!)} alt="" width={pictures[i]!.w} height={pictures[i]!.h} loading="lazy" />
+              <span className="cp-order-n" data-shown={finished || at >= 0 || undefined}>{finished ? i + 1 : at + 1}</span>
+            </button>
+          );
+        })}
+      </div>
+      <button className="btn quiet sm" type="button" onClick={() => setPicked([])} disabled={!picked.length}>
+        Again
+      </button>
+    </div>
+  );
+}
+
 /** One sentence: what is told in the book's voice, what is said in a bubble from the speaker's face. */
 function BeatView({ text, line, parts, cast }: { text: GeneratedText; line: number; parts: BeatPart[]; cast: CastMember[] }) {
   const lib = useLibrary();
@@ -159,10 +245,7 @@ function BeatView({ text, line, parts, cast }: { text: GeneratedText; line: numb
         const who = p.who ? cast.find((c) => c.id === p.who!.id) : undefined;
         return (
           <div key={i} className="cp-said">
-            <span className="cp-face" aria-hidden>
-              {/* A face from the book's pictures; for someone without one, the first character of their name. */}
-              {who?.face ? <img src={`/companion/faces/${who.face}.jpg`} alt="" width={44} height={44} /> : <span className="hanzi">{p.who ? [...p.who.name][0] : '？'}</span>}
-            </span>
+            <CompanionFace member={who} name={p.who?.name ?? null} />
             <div className="cp-said-body">
               <span className="cp-who">{p.who ? <><b className="hanzi">{p.who.name}</b> {who?.en}</> : 'Someone says'}</span>
               <p className="cp-bubble rd-zh hanzi" lang="zh">{words}</p>

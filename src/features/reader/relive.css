@@ -201,3 +201,329 @@
 .cp-dock .btn {
   width: 100%;
 }
+
+.cp-guide {
+  margin-left: auto;
+}
+
+.cp-guide + .cp-count {
+  margin-left: 4px;
+}
+
+/* The sentences before the one now, in this scene: only on a wide screen. */
+.cp-beat-line[data-past] {
+  display: none;
+}
+
+.cp-beat-line + .cp-beat-line {
+  margin-top: 14px;
+}
+
+/* ---------------------------------------------------------- chapter end */
+
+.cp-end-title {
+  margin: 18px 0 4px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.cp-words {
+  width: 100%;
+}
+
+.cp-word {
+  width: 100%;
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, auto) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cp-word-zh {
+  display: grid;
+  line-height: 1.2;
+}
+
+.cp-word-zh .hanzi {
+  font-size: 22px;
+}
+
+.cp-word-zh small {
+  font-size: 12px;
+  color: var(--py);
+}
+
+.cp-word-d {
+  font-family: var(--read);
+  font-size: 14px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cp-order {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.cp-order-say {
+  margin: 0;
+  font-family: var(--read);
+  color: var(--ink-2);
+}
+
+.cp-order-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cp-order-tile {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card-2);
+  cursor: pointer;
+}
+
+.cp-order-tile:disabled {
+  cursor: default;
+}
+
+.cp-order-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cp-order-n {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 600 13px var(--sans);
+  background: var(--accent);
+  color: var(--on-accent);
+  visibility: hidden;
+}
+
+.cp-order-n[data-shown] {
+  visibility: visible;
+}
+
+/* ------------------------------------------------- the iPad, held sideways
+   A spread: the picture on the left page, the scene's sentences so far on the
+   right, the dock under them. */
+@media (min-width: 1000px) and (orientation: landscape) {
+  .cp-page {
+    max-width: 1180px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'bar bar'
+      'stage beat'
+      'progress beat'
+      'progress dock';
+    column-gap: 36px;
+    min-height: 100dvh;
+  }
+
+  .cp-bar { grid-area: bar; }
+  .cp-stage { grid-area: stage; width: 100%; align-self: start; }
+  .cp-progress { grid-area: progress; align-self: start; }
+  .cp-beat { grid-area: beat; overflow-y: auto; padding-top: 8px; }
+  .cp-dock { grid-area: dock; }
+
+  .cp-beat-line[data-past] {
+    display: block;
+    opacity: 0.55;
+  }
+
+  .cp-beat-line[data-past] .cp-en {
+    display: none;
+  }
+}
+
+/* -------------------------------------------------------------- the guide */
+
+.gd {
+  max-width: 720px;
+}
+
+.gd-lede {
+  margin: 0 0 14px;
+  font-family: var(--read);
+  color: var(--ink-2);
+}
+
+.gd-none {
+  margin: 20px 0;
+  font-family: var(--read);
+  color: var(--ink-3);
+}
+
+.gd-list {
+  margin-top: 12px;
+}
+
+.gd-person,
+.gd-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+  padding: 14px 0;
+}
+
+.gd-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.gd-person {
+  grid-template-columns: 52px minmax(0, 1fr);
+}
+
+.gd-body {
+  min-width: 0;
+}
+
+.gd-names {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.gd-name {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 17px;
+  color: var(--ink-2);
+  cursor: pointer;
+  min-height: 32px;
+}
+
+.gd-name.big {
+  font-size: 24px;
+  color: var(--ink);
+}
+
+.gd-py {
+  font-size: 13px;
+  color: var(--py);
+}
+
+.gd-what {
+  margin: 2px 0 0;
+  font-family: var(--read);
+  font-size: 14.5px;
+  color: var(--ink-3);
+}
+
+.gd-lines {
+  margin-top: 8px;
+}
+
+.gd-lines summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+}
+
+.gd-lines summary::-webkit-details-marker {
+  display: none;
+}
+
+.gd-lines summary svg {
+  transition: transform 140ms;
+}
+
+.gd-lines[open] summary svg {
+  transform: rotate(90deg);
+}
+
+.gd-lines ol {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.gd-line {
+  display: grid;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--card-2);
+  color: inherit;
+  text-decoration: none;
+}
+
+.gd-line .hanzi {
+  font-size: 19px;
+  line-height: 1.5;
+}
+
+.gd-at {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* The places as the way the journey goes: a stop for each, a line between. */
+.gd-way .gd-item {
+  grid-template-columns: 14px minmax(0, 1fr) auto;
+  position: relative;
+}
+
+.gd-stop {
+  width: 12px;
+  height: 12px;
+  margin-top: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--jade);
+  background: var(--paper);
+}
+
+.gd-way > li + li {
+  border-top: 0;
+}
+
+.gd-way .gd-item::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--jade-soft);
+  z-index: -1;
+}
