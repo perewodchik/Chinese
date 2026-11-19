@@ -78,3 +78,33 @@ test('beats are counted across scenes and found again', () => {
   assert.deepEqual(beatAt(scenes, 2), { scene: 1, beat: 0 });
   assert.equal(beatAt(scenes, 3), null);
 });
+
+// The cases below are sentences from the learner's own chapters of 西游记,
+// where the first version of the rule gave a line to the wrong person.
+
+test('a name or an inscription in quotation marks is told, not said', () => {
+  for (const zh of ['海上有一座很有名的山，叫“花果山”。', '有一天，“轰隆”一声，石头开了！', '房子里有一块大石头，上面写着三个字：“水帘洞”。', '石猴过了桥，发现前面有座石房，中间有一块石碣，写着：“花果山福地，水帘洞洞天。”']) {
+    assert.deepEqual(partsOf(line(zh), cast, null).parts.map((p) => p.kind), ['told'], zh);
+  }
+});
+
+test('the one acting speaks, not the one spoken to or pointed at', () => {
+  const who = (zh: string) => partsOf(line(zh), cast, null).parts.find((p) => p.kind === 'said')?.who?.id;
+  assert.equal(who('祖师生气了，手持戒尺，指着孙悟空说：“你这猢狲，这也不学，那也不学，要做什么？”'), 'bodhi');
+  assert.equal(who('一天，美猴王对众猴说：“我要去学长生不老的道法。”'), 'wukong');
+  assert.equal(who('猴子们都同意了，一起对石猴说：“大王好！”'), 'troop');
+  assert.equal(who('祖师说不能，悟空就说：“不学！不学！”'), 'wukong');
+  assert.equal(who('小鬼们吓坏了，跑去告诉大王：“不好了！外面一只猴子打进来了！”'), 'ghosts');
+});
+
+test('someone the cast does not know is no one, not the last person named', () => {
+  const zh = '那个人说：“你好。”';
+  assert.equal(partsOf(line(zh), cast, { id: 'wukong', name: '孙悟空' }).parts[1]!.who, null);
+});
+
+test('他 and a sentence with no one named point back to whom the paragraph is about', () => {
+  const text = { genre: 'story', lines: [line('过了一会儿，两个神仙回来了。', true), line('他们说：“花果山上出生了一只石猴。”'), line('然后，把簿子一扔，说：“了账！”')] } as GeneratedText;
+  const [scene] = scenesOf(text, cast);
+  assert.equal(scene!.beats[1]!.parts[1]!.who?.id, 'gods');
+  assert.equal(scene!.beats[2]!.parts[1]!.who?.id, 'gods');
+});
