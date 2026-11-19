@@ -171,6 +171,10 @@ header.top{padding-block:40px 8px;display:grid;gap:14px}
 .book{width:72px;height:100px;border-radius:6px 10px 10px 6px;background:var(--card-2);border:1px solid var(--line);display:grid;place-items:center;font-family:var(--han);font-size:18px;writing-mode:vertical-rl;color:var(--ink-2)}
 
 /* cast */
+.seg{display:flex;background:var(--card-2);border-radius:12px;padding:3px;margin:4px 0 12px}
+.seg span{flex:1;text-align:center;font-size:14px;font-weight:500;padding:6px 0;border-radius:9px;color:var(--ink-2)}
+.seg span[aria-pressed="true"]{background:var(--card);color:var(--accent)}
+.rd-add{width:32px;height:32px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:18px;flex:none}
 .cast{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .person{background:var(--card-2);border-radius:16px;padding:12px;display:grid;gap:4px;justify-items:start}
 .person .face{width:56px;height:56px}
@@ -320,9 +324,9 @@ pre{background:var(--card-2);border-radius:14px;padding:14px 16px;overflow-x:aut
 
 <header class="top">
   <div class="mark"><span class="han">入戏</span><span class="pencil">rùxì — войти в роль, в историю</span></div>
-  <h1>Иммерсивное чтение: «Путешествие на Запад»</h1>
-  <p class="lede">Концепт новой секции в Read. Те же главы 西游记, что уже лежат на полке, только прочитанные как сцена: у каждой фразы есть место, где она сказана, и человек, который её говорит. Иероглиф перестаёт быть строкой в учебнике — это голос Сунь Укуна, водопад, который можно потрогать, пещера, где наступила ночь.</p>
-  <p class="read small">Макет, а не код. Тексты глав не меняются: сцена — отдельный слой поверх существующих текстов (easier и original), он ссылается на их абзацы и фразы. Экраны ниже живые: в главном можно листать сцену и нажимать на слова и на картинку.</p>
+  <h1>Путеводитель по «Путешествию на Запад»</h1>
+  <p class="lede">Дополнение к книге в разделе Read. Это не новый способ читать 西游记 и не ещё одна полка, а интерактивный путеводитель по миру книги и возможность прожить уже прочитанную главу заново — в сцене, с голосами героев. У каждой фразы появляется место, где она сказана, и человек, который её говорит: иероглиф становится голосом Сунь Укуна, водопадом, который можно потрогать, пещерой, где наступила ночь.</p>
+  <p class="read small">Макет, а не код. Тексты глав не меняются: сцена — отдельный слой поверх существующих текстов (easier и original), он только ссылается на их абзацы и фразы. Экраны ниже живые: в главном можно листать сцену и нажимать на слова и на картинку.</p>
 </header>
 
 <div class="ideas">
@@ -341,32 +345,33 @@ pre{background:var(--card-2);border-radius:14px;padding:14px 16px;overflow-x:aut
       <div class="sbar"><span>9:41</span><span>100%</span></div>
       <div class="pg">
         <div class="ph"><h4>Read</h4><span class="spacer"></span><span class="ibtn"><svg class="icon"><use href="#i-aa"/></svg></span></div>
-        <div class="sect">Step into a story</div>
+        <div class="sect" style="margin-top:6px">Carry on</div>
+        <div class="list" style="margin-bottom:4px"><div><div class="book" style="width:44px;height:60px;font-size:13px">西游记</div><div style="flex:1;min-width:0"><div class="han" style="font-size:19px">大闹天宫</div><div class="small pencil">西游记 (easier), chapter 3</div></div></div></div>
+        <button class="btn primary" style="width:100%">Read chapter 3</button>
+        <div class="sect">Companion</div>
         <div class="cover">
           <div class="pic"><svg viewBox="70 0 230 230" preserveAspectRatio="xMidYMid slice"><use class="art" href="#scene-cave" width="360" height="230"/></svg></div>
           <div class="tx">
             <span class="han" style="font-size:24px">西游记</span>
             <span class="small pencil">Journey to the West</span>
-            <span class="small" style="margin-top:6px">Chapter 2, scene 4 of 9</span>
-            <span class="han small pencil" style="font-size:15px">三星洞石猴学道</span>
-            <div class="prog" style="margin-top:6px"><span style="width:44%"></span></div>
-            <button class="btn primary sm" style="margin-top:10px;justify-self:start">Go back in</button>
+            <span class="small" style="margin-top:6px">A guide to its world. Relive the chapters you have read.</span>
+            <button class="btn tonal sm" style="margin-top:10px;justify-self:start">Open the guide</button>
           </div>
         </div>
         <div class="sect">Your shelves</div>
         <div class="books"><div class="book">西游记</div><div class="book">十万个为什么</div><div class="book">天官赐福</div><div class="book">故事</div></div>
-        <p class="small pencil" style="margin-top:10px">The two 西游记 books stay where they are, as they are.</p>
       </div>
       <div class="tabs"><span><b class="han">今</b>Today</span><span class="on"><b class="han">读</b>Read</span><span><b class="han">说</b>Speak</span><span><b class="han">字</b>Library</span><span><b class="han">⋯</b>More</span></div>
     </div></div>
     <div class="notes">
       <span class="step">Экран 1 · Read</span>
-      <h3>Отдельная секция наверху Read</h3>
+      <h3>Книга главная, путеводитель рядом</h3>
       <ul>
-        <li><b>Своя полоса над полками</b> — «Step into a story». Одна большая обложка: картинка последней сцены, где остановилась, номер главы и сцены, одна кнопка «Go back in».</li>
-        <li><b>Полки не трогаем.</b> 西游记 (easier) и 西游记 (original) остаются обычными книгами со всеми частями (слова, вопросы, Copy out). Иммерсивный режим — другой способ войти в те же главы.</li>
-        <li><b>Прогресс общий.</b> Прочитанная в сцене глава считается прочитанной и на полке, слова из сцены попадают в те же карточки. Две дороги к одному тексту — не два учёта.</li>
-        <li>Позже здесь могут появиться другие книги с персонажами (天官赐福), но концепт строится на одной.</li>
+        <li><b>Главное действие на Read не меняется:</b> «Read chapter 3» — продолжить книгу. Синяя кнопка остаётся у книги.</li>
+        <li><b>Путеводитель — строка «Companion» под ней</b>, со спокойной тональной кнопкой «Open the guide». Без процентов, без «сцена 4 из 9»: путеводитель ничего не ждёт от ученицы.</li>
+        <li><b>Второй вход — из книги.</b> В конце прочитанной главы на полке появляется тихая ссылка «Relive this chapter»: прочитала — можно сразу побывать там.</li>
+        <li><b>Полки и тексты не трогаем.</b> 西游记 (easier) и 西游记 (original) остаются обычными книгами со всеми частями.</li>
+        <li>Позже путеводитель может появиться и у других книг с героями (天官赐福), но концепт строится на одной.</li>
       </ul>
     </div>
   </div>
@@ -409,20 +414,22 @@ pre{background:var(--card-2);border-radius:14px;padding:14px 16px;overflow-x:aut
           </g>
         </svg></div>
         <div class="list" style="margin-top:10px">
-          <div><span class="han" style="font-size:20px">美猴王横空出世</span><span class="spacer"></span><span class="small" style="color:var(--jade)">Read</span></div>
-          <div><span class="han" style="font-size:20px">三星洞石猴学道</span><span class="spacer"></span><span class="small pencil">4 of 9</span><svg class="icon chev"><use href="#i-chev"/></svg></div>
+          <div><span class="han" style="font-size:20px">美猴王横空出世</span><span class="spacer"></span><span class="small" style="color:var(--accent)">Relive</span><svg class="icon chev"><use href="#i-chev"/></svg></div>
+          <div><span class="han" style="font-size:20px">三星洞石猴学道</span><span class="spacer"></span><span class="small" style="color:var(--accent)">Relive</span><svg class="icon chev"><use href="#i-chev"/></svg></div>
+          <div><span class="han pencil" style="font-size:20px">大闹天宫</span><span class="spacer"></span><span class="small pencil">After you read it</span></div>
         </div>
       </div>
     </div></div>
     <div class="notes">
-      <span class="step">Экран 2 · Обложка книги</span>
-      <h3>Карта вместо оглавления</h3>
+      <span class="step">Экран 2 · Путеводитель: карта</span>
+      <h3>Дом путеводителя — карта мира книги</h3>
       <ul>
         <li><b>Глава — это место.</b> Карта нарисована в той же манере, что и картинки глав (цветной карандаш, зернистая бумага). Пройденный путь — синей ручкой, впереди — пунктир карандашом.</li>
         <li><b>Названия мест — настоящие слова.</b> Нажала 花果山 — открылся word drawer с этим словом. Географию истории учишь, не заметив.</li>
         <li><b>Будущее видно, но не раскрыто.</b> 天宫 и 西天 подписаны, но серым: интрига и ощущение длинного пути на запад.</li>
-        <li>Под картой — обычный список глав одной строкой каждая; строка целиком ссылка.</li>
-        <li>Справа вверху — «люди» (экран 3).</li>
+        <li><b>Путеводитель идёт за книгой, а не впереди неё.</b> Открыты главы, прочитанные на полке; следующая подписана «After you read it». Так он не спойлерит и не подменяет чтение.</li>
+        <li>Под картой — главы одной строкой; строка целиком ссылка «Relive». Никаких галочек «пройдено»: прожить главу можно сколько угодно раз.</li>
+        <li>Справа вверху — люди, места и вещи (экран 3).</li>
       </ul>
     </div>
   </div>
@@ -433,7 +440,8 @@ pre{background:var(--card-2);border-radius:14px;padding:14px 16px;overflow-x:aut
       <div class="sbar"><span>9:41</span><span>100%</span></div>
       <div class="pg">
         <div class="ph"><span class="back"><svg class="icon"><use href="#i-back"/></svg>西游记</span></div>
-        <div style="margin:2px 0 12px"><span class="han" style="font-size:28px">人物</span> <span class="pencil small">who is who</span></div>
+        <div class="seg" role="tablist"><span aria-pressed="true">People</span><span>Places</span><span>Things</span></div>
+        <div style="margin:0 0 12px"><span class="han" style="font-size:28px">人物</span> <span class="pencil small">who is who</span></div>
         <div class="cast">
           <div class="person"><span class="face"><svg viewBox="0 0 60 60" style="--fur:#b07a3d"><rect width="60" height="60" fill="#e9e3d2"/><use href="#mk-head" width="60" height="60"/><use href="#mk-tuft" width="60" height="60"/></svg></span>
             <span class="han">孙悟空</span><span class="small pencil">Sūn Wùkōng</span><span class="small">The stone monkey. Also 石猴, 美猴王, 悟空</span><button class="btn quiet sm" style="padding:0"><svg class="icon" style="fill:currentColor;stroke:none;width:16px"><use href="#i-play"/></svg>His voice</button></div>
@@ -448,12 +456,13 @@ pre{background:var(--card-2);border-radius:14px;padding:14px 16px;overflow-x:aut
     </div></div>
     <div class="notes">
       <span class="step">Экран 3 · Люди</span>
-      <h3>Каст, который растёт по мере чтения</h3>
+      <h3>Справочник: люди, места, вещи</h3>
       <ul>
         <li><b>Лица — из тех же рисунков.</b> Сунь Укун с хохолком, Бодхи с белой бородой и красной каймой — как их уже рисуют модули <code>xyj-ch1/ch2.mjs</code>. Один персонаж — один облик во всех главах.</li>
         <li><b>Все имена одного героя вместе:</b> 石猴 → 美猴王 → 孙悟空 → 悟空. Это главная путаница в 西游记, и здесь она снимается.</li>
         <li><b>Голос.</b> У каждого персонажа свой записанный голос (native, по правилу приложения). Кнопка «His voice» — одна характерная реплика.</li>
         <li><b>Страница персонажа</b>: всё, что он сказал до этого места, по сценам, с картинкой каждой. Это готовый «словарь героя»: слова Укуна — 我, 进去, 大王, 学.</li>
+        <li><b>Места и вещи</b> — те же карточки для 花果山, 水帘洞, 三星洞 и для 筋斗云, 七十二变, 金箍棒: рисунок, слово, одна фраза о том, что это, и сцена, где оно появилось. Это и есть «путеводитель»: в него можно заглянуть посреди чтения книги, чтобы вспомнить, кто такой 祖师.</li>
         <li><b>Не спойлерим:</b> тот, кого ещё не встретила, — пустая рамка карандашом с номером главы. Заменяет нынешнее предисловие «人物和词语», не удаляя его.</li>
       </ul>
     </div>
@@ -506,8 +515,9 @@ pre{background:var(--card-2);border-radius:14px;padding:14px 16px;overflow-x:aut
       </div>
     </div></div>
     <div class="notes">
-      <span class="step">Экран 4 · Сцена — сердце концепта (живой макет)</span>
+      <span class="step">Экран 4 · Прожить главу заново (живой макет)</span>
       <h3>Картинка сверху, реплика под ней, одна строка за раз</h3>
+      <p class="read small">Это та глава, которую ученица уже прочитала в книге, рассказанная сценой. Можно открыть любую сцену с карты, перемотать, остановиться на середине и уйти — ничего не отмечается, ничего не теряется.</p>
       <ol>
         <li><b>Сцена = абзац главы.</b> Рисунок абзаца (те же p1…p6) занимает верх экрана в рамке фиксированной пропорции — ничего не прыгает. Подпись места и времени: <span class="han">花果山</span> · morning.</li>
         <li><b>Абзац разбит на «такты».</b> Повествование идёт без лица, тихо; реплика — пузырём с лицом говорящего и его голосом. Полоска над текстом — где ты в сцене.</li>
@@ -565,11 +575,11 @@ pre{background:var(--card-2);border-radius:14px;padding:14px 16px;overflow-x:aut
         <span class="han" style="font-size:16px;color:var(--ink-3)">第一章</span>
         <h4 class="han" style="font-size:26px;font-weight:400;margin:2px 0 4px">美猴王横空出世</h4>
         <p class="small pencil" style="font-family:var(--read)">The stone monkey found the cave behind the water and became king.</p>
-        <div class="sect">Words he gave you</div>
+        <div class="sect">Words they gave you</div>
         <div class="list">
-          <div><span class="face" style="width:32px;height:32px"><svg viewBox="0 0 60 60" style="--fur:#b07a3d"><rect width="60" height="60" fill="#e9e3d2"/><use href="#mk-head" width="60" height="60"/><use href="#mk-tuft" width="60" height="60"/></svg></span><span class="ln sm" data-line="*进去|jìnqu"></span><span class="spacer"></span><span class="small pencil">to go in</span></div>
-          <div><span class="face" style="width:32px;height:32px"><svg viewBox="0 0 60 60" style="--fur:#6f4b2c"><rect width="60" height="60" fill="#e9e3d2"/><use href="#mk-head" width="60" height="60"/><use href="#mk-old" width="60" height="60"/></svg></span><span class="ln sm" data-line="*敢|gǎn"></span><span class="spacer"></span><span class="small pencil">to dare</span></div>
-          <div><span class="face" style="width:32px;height:32px;display:grid;place-items:center"><svg class="icon" style="width:18px"><use href="#i-map"/></svg></span><span class="ln sm" data-line="*瀑布|pùbù"></span><span class="spacer"></span><span class="small pencil">waterfall</span></div>
+          <div><span class="face" style="width:32px;height:32px"><svg viewBox="0 0 60 60" style="--fur:#b07a3d"><rect width="60" height="60" fill="#e9e3d2"/><use href="#mk-head" width="60" height="60"/><use href="#mk-tuft" width="60" height="60"/></svg></span><span class="ln sm" data-line="*进去|jìnqu"></span><span class="spacer"></span><span class="small pencil">to go in</span><span class="rd-add" aria-label="Add to cards">+</span></div>
+          <div><span class="face" style="width:32px;height:32px"><svg viewBox="0 0 60 60" style="--fur:#6f4b2c"><rect width="60" height="60" fill="#e9e3d2"/><use href="#mk-head" width="60" height="60"/><use href="#mk-old" width="60" height="60"/></svg></span><span class="ln sm" data-line="*敢|gǎn"></span><span class="spacer"></span><span class="small pencil">to dare</span><span class="rd-add" aria-label="Add to cards">+</span></div>
+          <div><span class="face" style="width:32px;height:32px;display:grid;place-items:center"><svg class="icon" style="width:18px"><use href="#i-map"/></svg></span><span class="ln sm" data-line="*瀑布|pùbù"></span><span class="spacer"></span><span class="small pencil">waterfall</span><span class="rd-add" aria-label="Add to cards">+</span></div>
         </div>
         <div class="sect">The story in four pictures</div>
         <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">
@@ -578,18 +588,18 @@ pre{background:var(--card-2);border-radius:14px;padding:14px 16px;overflow-x:aut
           <svg viewBox="0 0 360 230" style="border-radius:8px;width:100%;background:var(--card-2)"></svg>
           <svg viewBox="0 0 360 230" style="border-radius:8px;width:100%;background:var(--card-2)"></svg>
         </div>
-        <p class="small pencil" style="margin-top:6px">Put them in order and tell it in a sentence each. Or skip.</p>
-        <div style="margin-top:auto;padding:12px 0 14px"><button class="btn primary" style="width:100%">On to Three Stars Cave</button></div>
+        <p class="small pencil" style="margin-top:6px">Put them in order, if you like.</p>
+        <div style="margin-top:auto;padding:12px 0 14px;display:grid;gap:4px"><button class="btn primary" style="width:100%">Read chapter 3 in the book</button><button class="btn quiet" style="width:100%">Back to the map</button></div>
       </div>
     </div></div>
     <div class="notes">
-      <span class="step">Экран 6 · Конец главы</span>
-      <h3>Закрыть главу, как закрывают сцену в театре</h3>
+      <span class="step">Экран 6 · Конец проживания</span>
+      <h3>Занавес — и обратно к книге</h3>
       <ul>
         <li><b>Одна фраза о том, что случилось</b> — Literata, без похвал и процентов.</li>
-        <li><b>«Words he gave you»</b> — новые слова главы с лицом того, кто их сказал. Слово запоминается как «то, что крикнул Укун», а не как строка в списке. В карточки они идут с картинкой своей сцены.</li>
-        <li><b>История в четырёх картинках</b> — пересказ: разложить сцены по порядку и сказать по фразе. Это существующие части «Write» и «Questions», только в обличье сцены.</li>
-        <li><b>Следующая глава — это следующее место:</b> «On to Three Stars Cave», а не «Next chapter».</li>
+        <li><b>«Words they gave you»</b> — слова главы с лицом того, кто их сказал. Слово запоминается как «то, что крикнул Укун». В карточки ничего не уходит само: только по «+», и тогда карточка берёт с собой картинку сцены.</li>
+        <li><b>История в четырёх картинках</b> — разложить сцены по порядку, просто чтобы вспомнить. Не задание и не часть «Write» или «Questions» книги.</li>
+        <li><b>Синяя кнопка ведёт обратно в книгу</b> — к следующей непрочитанной главе. Путеводитель всегда отпускает к чтению, а не держит у себя.</li>
       </ul>
     </div>
   </div>
@@ -653,6 +663,7 @@ pre{background:var(--card-2);border-radius:14px;padding:14px 16px;overflow-x:aut
 <section class="part">
   <h2>Как это ляжет на данные (без кода, только форма)</h2>
   <p class="read">Тексты глав не меняются. Сцена — отдельный файл на главу, который ссылается на текст по id и на его абзацы и фразы. Если в тексте что-то поправят, сцена проверяется сверкой фраз, а не копией.</p>
+  <p class="read" style="margin-top:10px">Путеводитель только читает: какие главы прочитаны в книге (чтобы знать, что открыть). Сам он ничего не записывает в прогресс — разве что место, где остановилась в сцене, как удобство.</p>
 <pre>content/immersive/xiyouji/
   cast.json          персонажи: id, имена (石猴, 美猴王, 孙悟空…), лицо, голос, с какой главы виден
   map.json           места: слово, точка на карте, глава
@@ -675,7 +686,17 @@ ch1.scenes.json
 
 <!-- ======================= Rules ======================= -->
 <section class="part">
-  <h2>Чего здесь не будет</h2>
+  <h2>Не в счёт</h2>
+  <p class="read">Путеводитель — дополнение, поэтому он не участвует в учёте книги и занятий.</p>
+  <div class="never" style="margin-bottom:28px">
+    <p>Глава не отмечается прочитанной от того, что её прожили в путеводителе.</p>
+    <p>Прогресс книги на полке и обложке не меняется.</p>
+    <p>Время здесь не идёт в Today, Stats и в дни подряд.</p>
+    <p>Слова не попадают в карточки сами, только по «+».</p>
+    <p>Нет «пройдено», процентов и счётчиков сцен.</p>
+    <p>Части книги (вопросы, Write, Copy out) остаются в книге.</p>
+  </div>
+  <h2>Чего здесь не будет вообще</h2>
   <div class="never">
     <p>Очков, звёзд, «ошибок» и пометок «использована подсказка».</p>
     <p>Автоматической анимации и персонажей, которые машут сами по себе.</p>
@@ -690,9 +711,9 @@ ch1.scenes.json
 <section class="part">
   <h2>Как строить, по шагам</h2>
   <div class="steps">
-    <div><span class="n">一</span><div><h3>Сцена главы 1 (easier) без звука</h3><p class="read small">Картинка + такты + лица + связь слово ↔ рисунок для шести картинок главы 1. Секция в Read с одной обложкой. Уже по этому шагу видно, работает ли идея.</p></div></div>
+    <div><span class="n">一</span><div><h3>Сцена главы 1 (easier) без звука</h3><p class="read small">Картинка + такты + лица + связь слово ↔ рисунок для шести картинок главы 1. Строка «Companion» в Read и ссылка «Relive this chapter» в конце главы книги. Уже по этому шагу видно, работает ли идея.</p></div></div>
     <div><span class="n">二</span><div><h3>Голоса персонажей</h3><p class="read small">Рассказчик, Укун, старая обезьяна, Бодхи. Озвучка по тактам, кнопка «ещё раз».</p></div></div>
-    <div><span class="n">三</span><div><h3>Люди и карта</h3><p class="read small">Каст, растущий по главам, страница персонажа; карта пути с местами-словами.</p></div></div>
+    <div><span class="n">三</span><div><h3>Путеводитель: карта, люди, места, вещи</h3><p class="read small">Карта с местами-словами, справочник, растущий вслед за прочитанными главами, страница персонажа.</p></div></div>
     <div><span class="n">四</span><div><h3>Моменты и конец главы</h3><p class="read small">«Что он ответит», «Скажи как Укун», жест главы, история в четырёх картинках.</p></div></div>
     <div><span class="n">五</span><div><h3>Разворот на iPad, атмосфера, глава 2 и версия book</h3><p class="read small">Время суток, фоновый звук, переключатель easier ↔ book, разметка главы 2.</p></div></div>
   </div>
@@ -701,7 +722,8 @@ ch1.scenes.json
 <section class="part">
   <h2>Что решить тебе</h2>
   <div class="q">
-    <div><b>Где жить секции.</b> Полоса «Step into a story» наверху Read (как в макете) или отдельная вкладка внутри Read рядом с полками?</div>
+    <div><b>Что открыто.</b> Только главы, прочитанные в книге (как в макете), или весь путеводитель сразу, со спойлерами?</div>
+    <div><b>Карточки.</b> Оставить «+» в путеводителе или он вообще не касается карточек?</div>
     <div><b>Перевод фразы.</b> По умолчанию скрыт (нажать на фразу) или виден карандашом под каждой репликой?</div>
     <div><b>Звук фона.</b> Нужен вообще, или атмосферы достаточно от картинки, времени суток и голосов?</div>
     <div><b>Голоса.</b> Записывать отдельный голос на каждого героя (дороже, живее) или один рассказчик и один голос для всех реплик на первом шаге?</div>
