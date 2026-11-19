@@ -58,7 +58,7 @@ export function GuidePage() {
       <div className="empty">
         <span className="big">读</span>
         <p>This book has no guide.</p>
-        <Link className="btn" to={set ? paths.reading(set.id) : paths.read()}>
+        <Link className="btn" to={set ? paths.shelf(set.id) : paths.read()}>
           Back to the book
         </Link>
       </div>
@@ -69,7 +69,7 @@ export function GuidePage() {
 
   return (
     <div className="gd">
-      <Link className="back-link" to={paths.reading(set.id)}>
+      <Link className="back-link" to={paths.shelf(set.id)}>
         <Icon name="back" />
         <span className="hanzi">{title}</span>
       </Link>

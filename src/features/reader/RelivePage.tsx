@@ -46,7 +46,7 @@ export function RelivePage() {
   const cast = set ? castOf(bookTitle(set.name)) : null;
 
   if (!set || !entry || !cast || isFrontMatter(entry.main)) {
-    return <Away title="Nothing to relive here" line="This chapter is not in a book with a companion." to={set ? paths.reading(set.id) : paths.read()} label="Back to the book" />;
+    return <Away title="Nothing to relive here" line="This chapter is not in a book with a companion." to={set ? paths.shelf(set.id) : paths.read()} label="Back to the book" />;
   }
   if (!canRelive(entry, readInBook(texts, sets, bookTitle(set.name)))) {
     return <Away title="Read it first" line="Read this chapter in the book, and then you can live it again here." to={paths.reading(set.id, { page })} label="Read the chapter" />;
