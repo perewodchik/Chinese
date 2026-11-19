@@ -30,6 +30,12 @@ The learner asked for two books on the shelf ("две книги"):
 | 西游记 (easier) | `mw3oblvnf2a5947e0114e54d5d7b` | the retelling of each chapter, `--adapted` |
 | 西游记 (original) | `mw4buuar03a879f3a3ab341fd623` | the book's own text, as printed |
 
+The original stands on its own shelf, **Originals** (`TextSet.shelf`, set
+19 November 2026 at the learner's asking), and has its own cover: another
+light of the same picture and a 原 Original sticker. The learner wants the
+original to stand on its own: its new characters do **not** count as met for
+later chapters (only the retelling's do, as the tool already does).
+
 Check the ids with `npm run -s texts -- sets` first; if one has changed, match
 by name. Both versions of a chapter go in every time, without asking: the
 learner said "в таком же стиле" for chapter 2, which means as chapter 1 was.
