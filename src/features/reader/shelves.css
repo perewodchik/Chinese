@@ -1133,3 +1133,38 @@
   background: var(--accent-soft);
   color: var(--ink);
 }
+
+/* A book with a companion: its guide under the cover, and Relive on each chapter read. */
+.shelf-guide {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  margin: 4px 0 14px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: var(--card-2);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.shelf-guide .grow {
+  display: grid;
+  min-width: 0;
+}
+
+.shelf-guide svg {
+  color: var(--ink-3);
+  flex: none;
+}
+
+.shelf-texts li:has(> .shelf-relive) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px;
+}
+
+.shelf-relive {
+  min-height: 36px;
+}

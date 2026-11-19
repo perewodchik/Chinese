@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router';
 import { bookTitle, chapterHead, chineseNumber, isFrontMatter, type Book } from '../../domain/bookshelf';
-import { canRelive, castOf } from '../../domain/companion';
+import { canRelive, castOf, readInBook } from '../../domain/companion';
+import { useStore } from '../../store/store';
 import type { ShelfEntry, TextSet } from '../../domain/text';
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
@@ -33,6 +34,9 @@ export function BookContents({
   const story = book.kind === 'story';
   // A book with a companion offers each chapter read in it to be lived again (reader/RelivePage).
   const companion = story && castOf(bookTitle(set.name)) !== null;
+  const texts = useStore((s) => s.texts);
+  const sets = useStore((s) => s.sets);
+  const readInPair = useMemo(() => (companion ? readInBook(texts, sets, bookTitle(set.name)) : new Set<string>()), [companion, texts, sets, set.name]);
   const current = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
@@ -57,7 +61,7 @@ export function BookContents({
               </small>
             </span>
           </header>
-          {companion && entries.some((e) => !isFrontMatter(e.main) && canRelive(e)) && (
+          {companion && entries.some((e) => !isFrontMatter(e.main) && canRelive(e, readInPair)) && (
             <Link className="rd-toc-row rd-toc-guide" to={paths.guide(set.id)} onClick={onClose}>
               <span className="rd-toc-badge" aria-hidden>
                 <Icon name="book" size={18} />
@@ -77,7 +81,7 @@ export function BookContents({
               const read = Boolean(e.main.read || e.easier?.read);
               const now = i + 1 === page;
               const fresh = e.main.vocab.filter((v) => levelOfWord(v.w) === 0).length;
-              const relive = companion && !front && canRelive(e);
+              const relive = companion && !front && canRelive(e, readInPair);
               return (
                 <li key={e.main.id} className="rd-toc-item">
                   <Link

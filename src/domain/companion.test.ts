@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { beatAt, beatCount, beatFromQuery, canRelive, castOf, guideOf, mixedOrder, partsOf, scenesOf, wordsSaid, type GuideChapter } from './companion';
-import type { GeneratedText, TextLine } from './text';
+import { beatAt, beatCount, beatFromQuery, canRelive, castOf, guideOf, mixedOrder, partsOf, readInBook, scenesOf, wordsSaid, type GuideChapter } from './companion';
+import type { GeneratedText, TextLine, TextSet } from './text';
 
 const cast = castOf('西游记')!;
 const line = (zh: string, p = false, who?: string): TextLine => ({ zh, py: '', en: '', p, who });
@@ -14,7 +14,7 @@ test('only a book with a cast has a companion', () => {
 });
 
 test('a chapter can be relived once either version has been read', () => {
-  const t = (read: boolean) => ({ read }) as GeneratedText;
+  const t = (read: boolean) => ({ read, titleZh: '美猴王横空出世' }) as GeneratedText;
   assert.equal(canRelive({ main: t(false), easier: t(false) }), false);
   assert.equal(canRelive({ main: t(false), easier: t(true) }), true);
   assert.equal(canRelive({ main: t(true), easier: null }), true);
@@ -159,4 +159,14 @@ test('a place’s reading is made of its listed parts, and left out rather than 
   const g = guideOf('西游记', [chapter(1, [line('他去了东海龙宫，想学长生。', true)], [{ w: '东海', py: 'Dōnghǎi', d: 'the Eastern Sea' }, { w: '龙宫', py: 'lónggōng', d: 'the Dragon Palace' }])])!;
   assert.equal(g.places.find((p) => p.entry.id === 'longgong')!.py, 'Dōnghǎi lónggōng');
   assert.equal(g.things.find((t) => t.entry.id === 'changsheng')!.py, '');
+});
+
+test('a chapter read in the easier book can be relived from the original one', () => {
+  const sets = [{ id: 'e', name: '西游记 (easier)' }, { id: 'o', name: '西游记 (original)' }, { id: 'x', name: '十万个为什么' }] as TextSet[];
+  const t = (id: string, setId: string, titleZh: string, read: boolean) => ({ id, setId, titleZh, read }) as GeneratedText;
+  const texts = [t('1', 'e', '美猴王横空出世', true), t('2', 'o', '美猴王横空出世', false), t('3', 'o', '三星洞石猴学道', false), t('4', 'x', '三星洞石猴学道', true)];
+  const read = readInBook(texts, sets, '西游记');
+  assert.deepEqual([...read], ['美猴王横空出世']);
+  assert.equal(canRelive({ main: texts[1]!, easier: null }, read), true);
+  assert.equal(canRelive({ main: texts[2]!, easier: null }, read), false, 'read in another book of the same name does not count');
 });

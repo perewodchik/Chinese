@@ -24,7 +24,8 @@ import { useWordDone, useWordLevel } from './Passage';
 import { readerSheet } from './readerSheet';
 import { partFill, partsOf } from './parts';
 import { useStartSession } from './startSession';
-import { bookcase, bookOf, chapterHead, chineseNumber, isFrontMatter } from '../../domain/bookshelf';
+import { bookcase, bookOf, bookTitle, chapterHead, chineseNumber, isFrontMatter } from '../../domain/bookshelf';
+import { canRelive, castOf, readInBook } from '../../domain/companion';
 import { BookChars, BookWords, type BookWord, type Chapter } from './BookStudy';
 import { shelveBook } from '../../store/commands';
 import { BookCover } from './BookCover';
@@ -89,6 +90,10 @@ export function ShelfPage() {
   const book = list.some(fromBook);
   const asBook = bookOf(set, list);
   const story = asBook.kind === 'story';
+  // A book with a companion (domain/companion): its guide, and each chapter read in either book of the pair to live again.
+  const companion = story && castOf(bookTitle(set.name)) !== null;
+  // Not a hook: it comes after the early return above, and it is a pass over the texts once a render.
+  const readInPair = companion ? readInBook(texts, sets, bookTitle(set.name)) : new Set<string>();
   const progress = progressOf(list);
   // The chapter being read: the one last open here, else the first not read.
   const lastId = lastReading()?.textId ?? null;
@@ -266,6 +271,17 @@ export function ShelfPage() {
         </div>
       </div>
 
+      {companion && entries.some((e) => !isFrontMatter(e.main) && canRelive(e, readInPair)) && (
+        <Link className="shelf-guide" to={paths.guide(set.id)}>
+          <Icon name="book" size={20} />
+          <span className="grow">
+            <b>Guide</b>
+            <span className="small muted">Who, where and what, from the chapters you have read</span>
+          </span>
+          <Icon name="chevron" size={18} />
+        </Link>
+      )}
+
       <div className="seg sh-tabs" role="tablist">
         {TABS.map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} aria-pressed={tab === t} onClick={() => setQuery('tab', t, 'texts')}>
@@ -320,6 +336,11 @@ export function ShelfPage() {
                       </span>
                       <Icon name="chevron" size={18} className="shelf-text-go" />
                     </Link>
+                    {companion && !front && canRelive(e, readInPair) && (
+                      <Link className="btn quiet sm shelf-relive" to={paths.relive(set.id, i + 1)} aria-label={`Relive ${e.main.titleZh}`}>
+                        Relive
+                      </Link>
+                    )}
                   </li>
                 );
               })}

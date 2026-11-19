@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { bookTitle, chapterHead, isFrontMatter } from '../../domain/bookshelf';
-import { canRelive, guideOf, type GuideItem, type GuidePerson } from '../../domain/companion';
+import { canRelive, guideOf, readInBook, type GuideItem, type GuidePerson } from '../../domain/companion';
 import { shelfEntries, shelve } from '../../domain/text';
 import { itemForToken } from '../../domain/words';
 import { useOpenItem } from '../../navigation/itemDrawer';
@@ -43,11 +43,12 @@ export function GuidePage() {
   const guide = useMemo(() => {
     if (!set) return null;
     const entries = shelfEntries(shelve(texts, sets).bySet.get(set.id) ?? []);
+    const read = readInBook(texts, sets, title);
     let n = 0;
     const chapters = entries.flatMap((e, i) => {
       if (isFrontMatter(e.main)) return [];
       n += 1;
-      return canRelive(e) ? [{ n, page: i + 1, text: e.easier ?? e.main }] : [];
+      return canRelive(e, read) ? [{ n, page: i + 1, text: e.easier ?? e.main }] : [];
     });
     return { result: guideOf(title, chapters), read: chapters.length, heads: new Map(chapters.map((c) => [c.n, chapterHead(c.text, c.n)])) };
   }, [set, texts, sets, title]);

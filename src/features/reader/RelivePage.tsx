@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties, type Rea
 import { Link, useParams, useSearchParams } from 'react-router';
 import { pictureUrl } from '../../api/pictures';
 import { bookTitle, chapterHead, isFrontMatter } from '../../domain/bookshelf';
-import { beatAt, beatCount, beatFromQuery, canRelive, castOf, mixedOrder, scenesOf, wordsSaid, type BeatPart, type CastMember } from '../../domain/companion';
+import { beatAt, beatCount, beatFromQuery, canRelive, castOf, mixedOrder, readInBook, scenesOf, wordsSaid, type BeatPart, type CastMember } from '../../domain/companion';
 import { pictureAbove } from '../../domain/pictures';
 import { alignPinyin, type Token } from '../../domain/reading';
 import { segment, writerHints } from '../../domain/segment';
@@ -48,7 +48,7 @@ export function RelivePage() {
   if (!set || !entry || !cast || isFrontMatter(entry.main)) {
     return <Away title="Nothing to relive here" line="This chapter is not in a book with a companion." to={set ? paths.reading(set.id) : paths.read()} label="Back to the book" />;
   }
-  if (!canRelive(entry)) {
+  if (!canRelive(entry, readInBook(texts, sets, bookTitle(set.name)))) {
     return <Away title="Read it first" line="Read this chapter in the book, and then you can live it again here." to={paths.reading(set.id, { page })} label="Read the chapter" />;
   }
   const chapter = entries.slice(0, page).filter((e) => !isFrontMatter(e.main)).length;

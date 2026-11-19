@@ -1,5 +1,6 @@
 import { paragraphs } from './reading';
-import type { GeneratedText, ShelfEntry, TextLine } from './text';
+import { bookTitle } from './bookshelf';
+import type { GeneratedText, ShelfEntry, TextLine, TextSet } from './text';
 
 /**
  * The companion to a book: a chapter already read, lived again as scenes.
@@ -50,9 +51,19 @@ export function castOf(bookTitle: string): CastMember[] | null {
   return BOOKS[bookTitle.trim()] ?? null;
 }
 
-/** A chapter can be lived again once it has been read in the book, in either version. */
-export const canRelive = (entry: Pick<ShelfEntry, 'main' | 'easier'>): boolean =>
-  Boolean(entry.main.read || entry.easier?.read);
+/**
+ * The chapters read anywhere in a book, by their Chinese title. A book is
+ * often two on the shelf — 西游记 (easier) and 西游记 (original) — and a
+ * chapter read in one has been read: it can be lived again from either.
+ */
+export function readInBook(texts: GeneratedText[], sets: TextSet[], title: string): Set<string> {
+  const ids = new Set(sets.filter((s) => bookTitle(s.name) === title.trim()).map((s) => s.id));
+  return new Set(texts.filter((t) => t.read && t.setId && ids.has(t.setId)).map((t) => t.titleZh.trim()));
+}
+
+/** A chapter can be lived again once it has been read, in either version, in either book of the pair. */
+export const canRelive = (entry: Pick<ShelfEntry, 'main' | 'easier'>, read: ReadonlySet<string> = new Set()): boolean =>
+  Boolean(entry.main.read || entry.easier?.read || read.has(entry.main.titleZh.trim()));
 
 /** A stretch of one sentence: told, or said by someone. `from` and `to` index its characters. */
 export interface BeatPart {
