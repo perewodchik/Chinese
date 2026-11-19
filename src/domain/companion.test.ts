@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { beatAt, beatCount, canRelive, castOf, partsOf, scenesOf } from './companion';
+import { beatAt, beatCount, beatFromQuery, canRelive, castOf, guideOf, mixedOrder, partsOf, scenesOf, wordsSaid, type GuideChapter } from './companion';
 import type { GeneratedText, TextLine } from './text';
 
 const cast = castOf('西游记')!;
@@ -107,4 +107,56 @@ test('他 and a sentence with no one named point back to whom the paragraph is a
   const [scene] = scenesOf(text, cast);
   assert.equal(scene!.beats[1]!.parts[1]!.who?.id, 'gods');
   assert.equal(scene!.beats[2]!.parts[1]!.who?.id, 'gods');
+});
+
+const chapter = (n: number, lines: TextLine[], vocab: Array<{ w: string; py: string; d: string }> = []): GuideChapter => ({ n, page: n + 1, text: { genre: 'story', lines, vocab } });
+
+test('the guide has only what the read chapters have, people in the order they come in', () => {
+  const g = guideOf('西游记', [
+    chapter(1, [line('花果山上有一只石猴。', true), line('老猴子说：“谁敢进去？”'), line('石猴说：“我进去！”')], [{ w: '花果山', py: 'Huāguǒshān', d: 'the Mountain of Flowers and Fruit' }]),
+  ])!;
+  assert.deepEqual(g.people.map((p) => p.member.id), ['wukong', 'old']);
+  assert.deepEqual(g.people[0]!.lines.map((l) => l.zh), ['“我进去！”']);
+  assert.deepEqual(g.people[0]!.lines[0]!.line, 2);
+  assert.deepEqual(g.places.map((p) => [p.name, p.py, p.first.n]), [['花果山', 'Huāguǒshān', 1]]);
+  assert.equal(g.things.length, 0);
+  assert.equal(guideOf('十万个为什么', []), null);
+});
+
+test('a hero’s names are gathered in the order the book first uses them', () => {
+  const g = guideOf('西游记', [chapter(1, [line('石猴成了美猴王。', true)]), chapter(2, [line('祖师给他起名叫孙悟空。', true), line('祖师说：“悟空，过来。”')])])!;
+  assert.deepEqual(g.people.find((p) => p.member.id === 'wukong')!.names, ['石猴', '美猴王', '孙悟空', '悟空']);
+});
+
+test('places come in the order of the journey, whatever order they are met in', () => {
+  const g = guideOf('西游记', [chapter(1, [line('他从三星洞回到了花果山。', true)])])!;
+  assert.deepEqual(g.places.map((p) => p.entry.id), ['huaguoshan', 'sanxingdong']);
+});
+
+test('a beat from the address stays inside the chapter', () => {
+  assert.equal(beatFromQuery('3', 10), 3);
+  assert.equal(beatFromQuery('40', 10), 9);
+  assert.equal(beatFromQuery('-1', 10), 0);
+  assert.equal(beatFromQuery('x', 10), 0);
+  assert.equal(beatFromQuery(null, 10), 0);
+});
+
+test('the words said are the chapter’s own, with who said them, and no names', () => {
+  const text = { genre: 'story', lines: [line('老猴子说：“谁敢进去看看？”', true), line('石猴说：“我进去！花果山真好。”')], vocab: [{ w: '进去', py: 'jìnqu', d: 'to go in' }, { w: '花果山', py: 'Huāguǒshān', d: 'the mountain' }, { w: '看看', py: 'kànkan', d: 'to have a look' }] } as GeneratedText;
+  assert.deepEqual(wordsSaid(text, cast, '西游记').map((w) => [w.w, w.who.id]), [['进去', 'old'], ['看看', 'old']]);
+});
+
+test('the pictures are mixed into a real reordering: each once, never the story’s order', () => {
+  for (let n = 3; n <= 12; n++) {
+    const m = mixedOrder(n);
+    assert.deepEqual([...m].sort((a, b) => a - b), Array.from({ length: n }, (_, i) => i), `n=${n}`);
+    assert.notDeepEqual(m, Array.from({ length: n }, (_, i) => i), `n=${n}`);
+  }
+  assert.deepEqual(mixedOrder(2), [0, 1]);
+});
+
+test('a place’s reading is made of its listed parts, and left out rather than guessed', () => {
+  const g = guideOf('西游记', [chapter(1, [line('他去了东海龙宫，想学长生。', true)], [{ w: '东海', py: 'Dōnghǎi', d: 'the Eastern Sea' }, { w: '龙宫', py: 'lónggōng', d: 'the Dragon Palace' }])])!;
+  assert.equal(g.places.find((p) => p.entry.id === 'longgong')!.py, 'Dōnghǎi lónggōng');
+  assert.equal(g.things.find((t) => t.entry.id === 'changsheng')!.py, '');
 });
