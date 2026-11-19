@@ -60,7 +60,7 @@ export function AppLayout() {
   const sitting = SITTING.test(pathname) || pathname.startsWith('/speaking/say/');
   // Reading has the screen edge to edge; on a phone the text page has its own
   // bar and dock, and the sections wait behind its back button.
-  const immersive = /^\/read\/text\//.test(pathname);
+  const immersive = /^\/read\/(text|relive)\//.test(pathname);
 
   useColorScheme(theme);
   useScrollRestoration(main);

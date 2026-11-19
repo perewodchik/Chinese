@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router';
-import { chapterHead, chineseNumber, isFrontMatter, type Book } from '../../domain/bookshelf';
+import { bookTitle, chapterHead, chineseNumber, isFrontMatter, type Book } from '../../domain/bookshelf';
+import { canRelive, castOf } from '../../domain/companion';
 import type { ShelfEntry, TextSet } from '../../domain/text';
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
@@ -30,6 +31,8 @@ export function BookContents({
 }) {
   const levelOfWord = useWordLevel();
   const story = book.kind === 'story';
+  // A book with a companion offers each chapter read in it to be lived again (reader/RelivePage).
+  const companion = story && castOf(bookTitle(set.name)) !== null;
   const current = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
@@ -62,8 +65,9 @@ export function BookContents({
               const read = Boolean(e.main.read || e.easier?.read);
               const now = i + 1 === page;
               const fresh = e.main.vocab.filter((v) => levelOfWord(v.w) === 0).length;
+              const relive = companion && !front && canRelive(e);
               return (
-                <li key={e.main.id}>
+                <li key={e.main.id} className="rd-toc-item">
                   <Link
                     ref={now ? current : undefined}
                     className="rd-toc-row"
@@ -79,8 +83,14 @@ export function BookContents({
                       <span className={front ? undefined : 'hanzi'}>{front ? 'Before the chapters' : head.zh}</span>
                       <small>{front ? 'Who is who, and the key words' : head.en}</small>
                     </span>
-                    <span className="rd-toc-state">{now ? 'Reading' : read ? 'Read' : fresh ? `${fresh} new` : ''}</span>
+                    {/* Beside Relive the row's state goes: the tick and the highlight already say it, and the title keeps the room. */}
+                    {!relive && <span className="rd-toc-state">{now ? 'Reading' : read ? 'Read' : fresh ? `${fresh} new` : ''}</span>}
                   </Link>
+                  {relive && (
+                    <Link className="btn quiet sm rd-toc-relive" to={paths.relive(set.id, i + 1)} onClick={onClose} aria-label={`Relive ${head.zh}`}>
+                      Relive
+                    </Link>
+                  )}
                 </li>
               );
             })}

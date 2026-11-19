@@ -75,6 +75,8 @@ export const paths = {
       page: at.mode !== 'all' && at.page && at.page > 1 ? String(at.page) : undefined,
       v: at.mode !== 'all' ? at.version : undefined,
     }),
+  /** a chapter of a book with a companion, already read, lived again as scenes (reader/RelivePage) */
+  relive: (setId: string, page: number) => `/read/relive/${encodeURIComponent(setId)}/${page}`,
   session: (step: PlanStep = 'plan') => `/read/session/${step}`,
   /** Chinese pasted or scanned in, made a text to read (T2): into a book, or a new one */
   addText: (shelf?: string) => withQuery('/read/add', { shelf }),

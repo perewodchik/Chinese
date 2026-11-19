@@ -2610,6 +2610,18 @@ a.rd-more-row {
   list-style: none;
 }
 
+.rd-toc-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px;
+}
+
+/* A read chapter of a book with a companion: live it again, beside the row that opens it. */
+.rd-toc-relive {
+  min-height: 36px;
+}
+
 .rd-toc-row {
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr) auto;
