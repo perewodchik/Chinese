@@ -20,6 +20,11 @@ export interface Book {
   kind: 'story' | 'plain';
   /** an easier retelling: a sticker on its cover says so */
   easier: boolean;
+  /**
+   * The book as printed, beside an easier edition of it: its own sticker and
+   * a cover in another light, so the two are not taken for each other.
+   */
+  original: boolean;
   art: CoverArt;
   /** a story's picture, its colours from its world */
   scene: ScenePalette;
@@ -152,10 +157,14 @@ const hashOf = (s: string) => {
   return h;
 };
 
-/** The light a story's picture is drawn in: chosen by its title, so both editions match and it never changes. */
-export const scenePalette = (art: CoverArt, title: string): ScenePalette => {
+/**
+ * The light a story's picture is drawn in: chosen by its title, so it never
+ * changes. The original edition of a book takes the next light along, so it
+ * shows the same world as its easier edition and is still told apart at a glance.
+ */
+export const scenePalette = (art: CoverArt, title: string, original = false): ScenePalette => {
   const list = SCENES[art];
-  return list[hashOf(title) % list.length]!;
+  return list[(hashOf(title) + (original ? 1 : 0)) % list.length]!;
 };
 
 // Muted cloth colours, each with a darker spine; light text sits on all of them.
@@ -170,10 +179,13 @@ const COLORS: Array<{ bg: string; spine: string }> = [
   { bg: '#3d6470', spine: '#30515b' },
 ];
 
-/** The same title, the same colour, on every device and every visit; both editions of a book alike. */
-export function coverColor(title: string): { bg: string; spine: string } {
-  return COLORS[hashOf(title) % COLORS.length]!;
+/** The same title, the same colour, on every device and every visit; an original edition the next colour along. */
+export function coverColor(title: string, original = false): { bg: string; spine: string } {
+  return COLORS[(hashOf(title) + (original ? 1 : 0)) % COLORS.length]!;
 }
+
+/** The book as printed, when it is shelved beside an easier edition: named "… (original)". */
+export const isOriginal = (set: TextSet) => /\(original\)\s*$/i.test(set.name);
 
 /** Where a book goes until it is put somewhere: stories together, a real book's pages, then your own texts. */
 /** Where the reading of a book is: begun and not finished, not begun, or every chapter read. */
@@ -190,15 +202,18 @@ export function bookOf(set: TextSet, texts: GeneratedText[]): Book {
   const kind = kindOf(texts);
   const title = bookTitle(set.name) || set.name;
   const art = coverArt(title, texts);
-  const scene = scenePalette(art, title);
+  const easier = isEasier(set, texts);
+  const original = !easier && isOriginal(set);
+  const scene = scenePalette(art, title, original);
   return {
     set,
     title,
     kind,
-    easier: isEasier(set, texts),
+    easier,
+    original,
     art,
     scene,
-    color: kind === 'story' ? { bg: scene.band, spine: scene.near } : coverColor(title),
+    color: kind === 'story' ? { bg: scene.band, spine: scene.near } : coverColor(title, original),
     shelf: set.shelf?.trim() || stateShelf(texts),
   };
 }
