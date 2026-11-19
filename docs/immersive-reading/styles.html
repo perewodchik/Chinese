@@ -35,6 +35,10 @@ header{padding-block:40px 8px;display:grid;gap:12px}
 .letter{font-size:13.5px;color:var(--ink-3)}
 figure{margin:0}
 .plate{width:100%;max-width:100%;aspect-ratio:3/2;border-radius:6px;display:block;object-fit:cover;background:var(--card-2)}
+.grid4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid4 figcaption{font-size:13.5px;color:var(--ink-3);margin-top:6px}
+.grid4 figcaption .han{font-size:16px;color:var(--ink-2);margin-right:4px}
+@media (max-width:640px){.grid4{grid-template-columns:minmax(0,1fr)}}
 .body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:40px;align-items:start}
 @media (max-width:820px){.body{grid-template-columns:minmax(0,1fr)}}
 .facts{display:grid;gap:16px}
@@ -67,13 +71,13 @@ figure{margin:0}
 <header>
   <span class="pencil small">Hanzi Workshop · иллюстрации к «Путешествию на Запад» · на согласование</span>
   <h1>Каким нарисовать путешествие</h1>
-  <p class="lede">Одна и та же сцена в трёх стилях: каменная обезьяна уходит на плоту на запад, позади — сосна на скале её родной Горы Цветов и Плодов, впереди — горы, в которых она будет искать учителя. Все три стиля взяты из китайской живописи и печати. Выберите один (или смесь), и по нему будут нарисованы герои, сцены глав и карта.</p>
-  <p class="read small">Это эскизы стиля: важны манера, цвет и то, как картинка держится на экране телефона. Лицо и поза Укуна будут проработаны отдельно, когда стиль выбран. В приложении ничего не менялось.</p>
+  <p class="lede">Четыре сцены в каждом из трёх стилей, одни и те же, чтобы было что сравнивать: Укун уходит на плоту на запад; обезьяны у водопада Горы Цветов и Плодов; урок у Учителя Бодхи в пещере Трёх Звёзд; полёт на облаке 筋斗云 на закате. Пейзаж, толпа, интерьер и небо — всё, что встретится в книге. Все три стиля взяты из китайской живописи и печати. Выберите один (или смесь), и по нему будут нарисованы герои, сцены глав и карта.</p>
+  <p class="read small">Это эскизы стиля: важны манера, цвет и то, как картинка держится на экране телефона. Герои пока нарисованы одной простой фигурой на все стили; лица, позы и одежда будут проработаны на листе героя, когда стиль выбран. В приложении ничего не менялось.</p>
 </header>
 
 <section class="style">
   <div class="title"><span class="letter">А</span><span class="han">水墨</span><h2>Тушь по рисовой бумаге</h2></div>
-  <figure><img class="plate" src="style/ink.jpg" alt="Ink wash: the monkey on a raft between misty mountains and a pine on a cliff"></figure>
+  <div class="grid4"><figure><img class="plate" src="style/ink-1-raft.jpg" alt="Leaving home on a raft" loading="lazy"><figcaption><span class="han">乘筏西去</span> Leaving home on a raft</figcaption></figure><figure><img class="plate" src="style/ink-2-falls.jpg" alt="The troop at the waterfall" loading="lazy"><figcaption><span class="han">水帘洞</span> The troop at the waterfall</figcaption></figure><figure><img class="plate" src="style/ink-3-cave.jpg" alt="A lesson in Three Stars Cave" loading="lazy"><figcaption><span class="han">三星洞</span> A lesson in Three Stars Cave</figcaption></figure><figure><img class="plate" src="style/ink-4-cloud.jpg" alt="The somersault cloud at sunset" loading="lazy"><figcaption><span class="han">筋斗云</span> The somersault cloud at sunset</figcaption></figure></div>
   <div class="body">
     <div class="facts">
       <div><h3>Ощущение</h3><p class="read">Тишина, даль и туман. Горы растворяются в бумаге, вода — это пустота. Цвет почти только в солнце, печати и в тёплом охристом Укуне: глаз сразу находит героя.</p></div>
@@ -83,7 +87,7 @@ figure{margin:0}
     </div>
     <div class="phone"><div class="screen">
       <div class="bar"><span>‹ Chapter 2</span><span class="pencil">2 of 8</span></div>
-      <img src="style/ink.jpg" alt="">
+      <img src="style/ink-1-raft.jpg" alt="">
       <div class="ln"><span class="w"><i>tā</i>他</span><span class="w"><i>yí ge rén</i>一个人</span><span class="w"><i>zuò</i>坐</span><span class="w"><i>mùfá</i>木筏</span><span class="w"><i>wǎng xī</i>往西</span><span class="w"><i>qù</i>去。</span></div>
       <p class="en">He sails west on a raft, alone.</p>
       <button class="btn">Go on</button>
@@ -93,7 +97,7 @@ figure{margin:0}
 
 <section class="style">
   <div class="title"><span class="letter">Б</span><span class="han">青绿山水</span><h2>Сине-зелёный пейзаж на шёлке</h2></div>
-  <figure><img class="plate" src="style/bluegreen.jpg" alt="Blue-green landscape: azure and malachite peaks over a sea of fine waves"></figure>
+  <div class="grid4"><figure><img class="plate" src="style/bluegreen-1-raft.jpg" alt="Leaving home on a raft" loading="lazy"><figcaption><span class="han">乘筏西去</span> Leaving home on a raft</figcaption></figure><figure><img class="plate" src="style/bluegreen-2-falls.jpg" alt="The troop at the waterfall" loading="lazy"><figcaption><span class="han">水帘洞</span> The troop at the waterfall</figcaption></figure><figure><img class="plate" src="style/bluegreen-3-cave.jpg" alt="A lesson in Three Stars Cave" loading="lazy"><figcaption><span class="han">三星洞</span> A lesson in Three Stars Cave</figcaption></figure><figure><img class="plate" src="style/bluegreen-4-cloud.jpg" alt="The somersault cloud at sunset" loading="lazy"><figcaption><span class="han">筋斗云</span> The somersault cloud at sunset</figcaption></figure></div>
   <div class="body">
     <div class="facts">
       <div><h3>Ощущение</h3><p class="read">Сказочно и празднично: лазурные вершины переходят в малахит и охру, море нарисовано тонкими волнами, всё обведено тонкой линией. Тепло старого шёлка.</p></div>
@@ -103,7 +107,7 @@ figure{margin:0}
     </div>
     <div class="phone"><div class="screen">
       <div class="bar"><span>‹ Chapter 2</span><span class="pencil">2 of 8</span></div>
-      <img src="style/bluegreen.jpg" alt="">
+      <img src="style/bluegreen-1-raft.jpg" alt="">
       <div class="ln"><span class="w"><i>tā</i>他</span><span class="w"><i>yí ge rén</i>一个人</span><span class="w"><i>zuò</i>坐</span><span class="w"><i>mùfá</i>木筏</span><span class="w"><i>wǎng xī</i>往西</span><span class="w"><i>qù</i>去。</span></div>
       <p class="en">He sails west on a raft, alone.</p>
       <button class="btn">Go on</button>
@@ -113,7 +117,7 @@ figure{margin:0}
 
 <section class="style">
   <div class="title"><span class="letter">В</span><span class="han">木版年画</span><h2>Новогодний лубок, оттиск с доски</h2></div>
-  <figure><img class="plate" src="style/woodblock.jpg" alt="Woodblock print: flat colours, a curling-wave sea and a bold outline"></figure>
+  <div class="grid4"><figure><img class="plate" src="style/woodblock-1-raft.jpg" alt="Leaving home on a raft" loading="lazy"><figcaption><span class="han">乘筏西去</span> Leaving home on a raft</figcaption></figure><figure><img class="plate" src="style/woodblock-2-falls.jpg" alt="The troop at the waterfall" loading="lazy"><figcaption><span class="han">水帘洞</span> The troop at the waterfall</figcaption></figure><figure><img class="plate" src="style/woodblock-3-cave.jpg" alt="A lesson in Three Stars Cave" loading="lazy"><figcaption><span class="han">三星洞</span> A lesson in Three Stars Cave</figcaption></figure><figure><img class="plate" src="style/woodblock-4-cloud.jpg" alt="The somersault cloud at sunset" loading="lazy"><figcaption><span class="han">筋斗云</span> The somersault cloud at sunset</figcaption></figure></div>
   <div class="body">
     <div class="facts">
       <div><h3>Ощущение</h3><p class="read">Ярко и по-детски: плоские цвета, жирный контур, море из завитков волн, крапинки краски, как на оттиске. Весело и читается с одного взгляда.</p></div>
@@ -123,7 +127,7 @@ figure{margin:0}
     </div>
     <div class="phone"><div class="screen">
       <div class="bar"><span>‹ Chapter 2</span><span class="pencil">2 of 8</span></div>
-      <img src="style/woodblock.jpg" alt="">
+      <img src="style/woodblock-1-raft.jpg" alt="">
       <div class="ln"><span class="w"><i>tā</i>他</span><span class="w"><i>yí ge rén</i>一个人</span><span class="w"><i>zuò</i>坐</span><span class="w"><i>mùfá</i>木筏</span><span class="w"><i>wǎng xī</i>往西</span><span class="w"><i>qù</i>去。</span></div>
       <p class="en">He sails west on a raft, alone.</p>
       <button class="btn">Go on</button>
@@ -138,6 +142,8 @@ figure{margin:0}
     <div><h3>Плот в воде, а не на ней</h3><p class="read small">Нижняя половина бревна скрыта под линией воды, под плотом — отражение и рябь. Плот сидит в море, а не лежит на картинке.</p></div>
     <div><h3>Ноги на палубе, руки на шесте</h3><p class="read small">Шест — одна прямая; обе кисти посчитаны точно на ней. Под водой шест обрезан, на месте входа — кольцо ряби.</p></div>
     <div><h3>Дерево растёт из скалы</h3><p class="read small">Корень уходит за край скалы, каждая шапка хвои — на конце своей ветки, каждая ветка начинается на стволе.</p></div>
+    <div><h3>Фигуры на земле</h3><p class="read small">Обезьяны стоят ногами на траве и на камне, с тенью у ног; Учитель сидит на подушке на каменном возвышении; курильница стоит на трёх ножках, дым идёт из её чаши; облако закрывает ноги Укуна.</p></div>
+    <div><h3>Вода откуда-то и куда-то</h3><p class="read small">Водопад выходит из-под края скалы в седловине и падает в пену озерца у её подножия. Вид из круглого окна в пещере — часть стены, а не картинка на ней.</p></div>
     <div><h3>Горы стоят на берегу</h3><p class="read small">Основания гор уходят в туман или в воду, туман лежит между слоями гор, а не плавает отдельными облачками. Облака — только в небе и только там, где они облака.</p></div>
   </div>
 </section>
