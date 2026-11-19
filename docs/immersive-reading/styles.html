@@ -1,0 +1,163 @@
+<title>Journey West Art Styles</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600&family=Literata:opsz,wght@7..72,400;7..72,600&family=LXGW+WenKai+TC&display=swap">
+<style>
+/* Layout: one scene in three styles, each a big plate with its notes and a
+   phone showing it at reading size; then the drawing rules and the choice. */
+:root{
+  --paper:#fafbf8; --card:#fff; --card-2:#f1f4ef; --ink:#18202b; --ink-2:#4a5464; --ink-3:#7a838f;
+  --line:#dce2da; --accent:#1e4a8a; --accent-soft:#e2eaf5; --red:#cc2f2a; --jade:#1f7a55;
+  --sans:'Fira Sans',-apple-system,'Segoe UI',sans-serif; --read:'Literata',Georgia,serif;
+  --han:'Kaiti SC','STKaiti','LXGW WenKai TC','KaiTi',serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#14191e; --card:#1a2026; --card-2:#1f262d; --ink:#e5e8ec; --ink-2:#aab2bc; --ink-3:#7e8792;
+  --line:#273039; --accent:#8eb0e6; --accent-soft:#1c2a40; --red:#f07c6e; --jade:#5dc395; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#14191e; --card:#1a2026; --card-2:#1f262d; --ink:#e5e8ec; --ink-2:#aab2bc; --ink-3:#7e8792;
+  --line:#273039; --accent:#8eb0e6; --accent-soft:#1c2a40; --red:#f07c6e; --jade:#5dc395; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 var(--sans);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+.wrap{max-width:1120px;margin:0 auto}
+h1,h2,h3{font-weight:600;margin:0;text-wrap:balance}
+h1{font-size:30px;line-height:1.2} h2{font-size:24px} h3{font-size:16px}
+p{margin:0}
+.han{font-family:var(--han)}
+.read{font-family:var(--read);font-size:16px;line-height:1.65;color:var(--ink-2);max-width:66ch}
+.pencil{color:var(--ink-3)} .small{font-size:13.5px}
+header{padding-block:40px 8px;display:grid;gap:12px}
+.lede{font-family:var(--read);font-size:18px;line-height:1.6;color:var(--ink-2);max-width:64ch}
+
+.style{border-top:1px solid var(--line);margin-top:48px;padding-top:36px;display:grid;gap:20px}
+.title{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.title .han{font-size:40px;line-height:1}
+.letter{font-size:13.5px;color:var(--ink-3)}
+figure{margin:0}
+.plate{width:100%;max-width:100%;aspect-ratio:3/2;border-radius:6px;display:block;object-fit:cover;background:var(--card-2)}
+.body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:40px;align-items:start}
+@media (max-width:820px){.body{grid-template-columns:minmax(0,1fr)}}
+.facts{display:grid;gap:16px}
+.facts h3{margin-bottom:4px}
+.sw{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.sw span{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-3)}
+.sw i{width:22px;height:22px;border-radius:6px;display:inline-block;border:1px solid var(--line)}
+
+.phone{border:1px solid var(--line);border-radius:30px;padding:9px;background:var(--paper);max-width:300px;width:100%;margin-inline:auto}
+.screen{border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--paper);padding:14px 14px 16px;display:grid;gap:10px}
+.screen img{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:12px;display:block}
+.bar{display:flex;justify-content:space-between;font-size:13px;color:var(--accent);font-weight:500}
+.ln{font-family:var(--han);font-size:22px;line-height:1.25;display:flex;flex-wrap:wrap;gap:1px 2px}
+.w{display:inline-flex;flex-direction:column;align-items:center}
+.w i{font:400 10.5px/1.3 var(--sans);font-style:normal;color:var(--ink-2)}
+.en{font-family:var(--read);font-size:13.5px;color:var(--ink-3)}
+.btn{height:42px;border-radius:12px;border:0;background:var(--accent);color:var(--paper);font:500 15px var(--sans);width:100%}
+
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 40px;margin-top:20px}
+.rules>div{border-top:1px solid var(--line);padding-top:12px}
+.rules h3{margin-bottom:4px}
+@media (max-width:700px){.rules{grid-template-columns:minmax(0,1fr)}}
+.part{border-top:1px solid var(--line);margin-top:48px;padding-top:36px}
+.steps{margin:16px 0 0;padding-left:22px;display:grid;gap:8px;font-family:var(--read);color:var(--ink-2);line-height:1.6;max-width:70ch}
+.ask{display:grid;gap:10px;margin-top:16px}
+.ask>div{background:var(--card-2);border-radius:16px;padding:14px 16px}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="pencil small">Hanzi Workshop · иллюстрации к «Путешествию на Запад» · на согласование</span>
+  <h1>Каким нарисовать путешествие</h1>
+  <p class="lede">Одна и та же сцена в трёх стилях: каменная обезьяна уходит на плоту на запад, позади — сосна на скале её родной Горы Цветов и Плодов, впереди — горы, в которых она будет искать учителя. Все три стиля взяты из китайской живописи и печати. Выберите один (или смесь), и по нему будут нарисованы герои, сцены глав и карта.</p>
+  <p class="read small">Это эскизы стиля: важны манера, цвет и то, как картинка держится на экране телефона. Лицо и поза Укуна будут проработаны отдельно, когда стиль выбран. В приложении ничего не менялось.</p>
+</header>
+
+<section class="style">
+  <div class="title"><span class="letter">А</span><span class="han">水墨</span><h2>Тушь по рисовой бумаге</h2></div>
+  <figure><img class="plate" src="style/ink.jpg" alt="Ink wash: the monkey on a raft between misty mountains and a pine on a cliff"></figure>
+  <div class="body">
+    <div class="facts">
+      <div><h3>Ощущение</h3><p class="read">Тишина, даль и туман. Горы растворяются в бумаге, вода — это пустота. Цвет почти только в солнце, печати и в тёплом охристом Укуне: глаз сразу находит героя.</p></div>
+      <div><h3>Почему путешествию</h3><p class="read">Классика китайского пейзажа: маленький путник в огромном мире. Каждая глава может начинаться с такого вида — где он сейчас и куда идёт.</p></div>
+      <div><h3>Риски</h3><p class="read">Сцены в пещере и во дворце (учёба, Нефритовый император) в туши выходят тёмными и строгими; детям может не хватить тепла. В тёмной теме бумажный фон картинки будет ярким пятном.</p></div>
+      <div class="sw"><span><i style="background:#efe7d6"></i>бумага</span><span><i style="background:#262a28"></i>тушь</span><span><i style="background:#8a8f8c"></i>размыв</span><span><i style="background:#b08a5c"></i>охра</span><span><i style="background:#c9482f"></i>киноварь</span></div>
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="bar"><span>‹ Chapter 2</span><span class="pencil">2 of 8</span></div>
+      <img src="style/ink.jpg" alt="">
+      <div class="ln"><span class="w"><i>tā</i>他</span><span class="w"><i>yí ge rén</i>一个人</span><span class="w"><i>zuò</i>坐</span><span class="w"><i>mùfá</i>木筏</span><span class="w"><i>wǎng xī</i>往西</span><span class="w"><i>qù</i>去。</span></div>
+      <p class="en">He sails west on a raft, alone.</p>
+      <button class="btn">Go on</button>
+    </div></div>
+  </div>
+</section>
+
+<section class="style">
+  <div class="title"><span class="letter">Б</span><span class="han">青绿山水</span><h2>Сине-зелёный пейзаж на шёлке</h2></div>
+  <figure><img class="plate" src="style/bluegreen.jpg" alt="Blue-green landscape: azure and malachite peaks over a sea of fine waves"></figure>
+  <div class="body">
+    <div class="facts">
+      <div><h3>Ощущение</h3><p class="read">Сказочно и празднично: лазурные вершины переходят в малахит и охру, море нарисовано тонкими волнами, всё обведено тонкой линией. Тепло старого шёлка.</p></div>
+      <div><h3>Почему путешествию</h3><p class="read">Так в Китае рисовали волшебные горы и бессмертных — ровно мир 西游记. Стиль держит и пейзаж, и подробную сцену с героями: в пещере, во дворце, на облаке.</p></div>
+      <div><h3>Риски</h3><p class="read">Самый трудоёмкий: тонкие линии и градиенты в каждой сцене. На маленьком экране детали волн и штрихов сливаются, поэтому герой должен быть крупнее, чем в туши.</p></div>
+      <div class="sw"><span><i style="background:#ead9b6"></i>шёлк</span><span><i style="background:#2c5f84"></i>лазурь</span><span><i style="background:#3c8a76"></i>малахит</span><span><i style="background:#c9a76a"></i>охра</span><span><i style="background:#c13d2b"></i>киноварь</span></div>
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="bar"><span>‹ Chapter 2</span><span class="pencil">2 of 8</span></div>
+      <img src="style/bluegreen.jpg" alt="">
+      <div class="ln"><span class="w"><i>tā</i>他</span><span class="w"><i>yí ge rén</i>一个人</span><span class="w"><i>zuò</i>坐</span><span class="w"><i>mùfá</i>木筏</span><span class="w"><i>wǎng xī</i>往西</span><span class="w"><i>qù</i>去。</span></div>
+      <p class="en">He sails west on a raft, alone.</p>
+      <button class="btn">Go on</button>
+    </div></div>
+  </div>
+</section>
+
+<section class="style">
+  <div class="title"><span class="letter">В</span><span class="han">木版年画</span><h2>Новогодний лубок, оттиск с доски</h2></div>
+  <figure><img class="plate" src="style/woodblock.jpg" alt="Woodblock print: flat colours, a curling-wave sea and a bold outline"></figure>
+  <div class="body">
+    <div class="facts">
+      <div><h3>Ощущение</h3><p class="read">Ярко и по-детски: плоские цвета, жирный контур, море из завитков волн, крапинки краски, как на оттиске. Весело и читается с одного взгляда.</p></div>
+      <div><h3>Почему путешествию</h3><p class="read">Народная картинка — то, как 西游记 знали дети и на ярмарке. Лучше всех держится на маленьком экране и в карточках слов: силуэты простые, цвета яркие.</p></div>
+      <div><h3>Риски</h3><p class="read">Меньше атмосферы: нет тумана и дали, ночь и рассвет передаются только цветом. Самый «простой» с виду, легко скатиться в плакат.</p></div>
+      <div class="sw"><span><i style="background:#f3e4c4"></i>бумага</span><span><i style="background:#2d4f7a"></i>индиго</span><span><i style="background:#2e6c70"></i>бирюза</span><span><i style="background:#d9873a"></i>охра</span><span><i style="background:#d1482c"></i>киноварь</span></div>
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="bar"><span>‹ Chapter 2</span><span class="pencil">2 of 8</span></div>
+      <img src="style/woodblock.jpg" alt="">
+      <div class="ln"><span class="w"><i>tā</i>他</span><span class="w"><i>yí ge rén</i>一个人</span><span class="w"><i>zuò</i>坐</span><span class="w"><i>mùfá</i>木筏</span><span class="w"><i>wǎng xī</i>往西</span><span class="w"><i>qù</i>去。</span></div>
+      <p class="en">He sails west on a raft, alone.</p>
+      <button class="btn">Go on</button>
+    </div></div>
+  </div>
+</section>
+
+<section class="part">
+  <h2>Правило: ничего не висит в воздухе</h2>
+  <p class="read" style="margin-top:8px">Прошлые картинки выглядели собранными из деталей, потому что предметы ставились «рядом» и не касались друг друга. Здесь каждый предмет ставится от того, что его держит, и это правило будет действовать во всех сценах.</p>
+  <div class="rules">
+    <div><h3>Плот в воде, а не на ней</h3><p class="read small">Нижняя половина бревна скрыта под линией воды, под плотом — отражение и рябь. Плот сидит в море, а не лежит на картинке.</p></div>
+    <div><h3>Ноги на палубе, руки на шесте</h3><p class="read small">Шест — одна прямая; обе кисти посчитаны точно на ней. Под водой шест обрезан, на месте входа — кольцо ряби.</p></div>
+    <div><h3>Дерево растёт из скалы</h3><p class="read small">Корень уходит за край скалы, каждая шапка хвои — на конце своей ветки, каждая ветка начинается на стволе.</p></div>
+    <div><h3>Горы стоят на берегу</h3><p class="read small">Основания гор уходят в туман или в воду, туман лежит между слоями гор, а не плавает отдельными облачками. Облака — только в небе и только там, где они облака.</p></div>
+  </div>
+</section>
+
+<section class="part">
+  <h2>Что дальше, когда стиль выбран</h2>
+  <ol class="steps">
+    <li>Лист героя: Укун в трёх позах (стоит, сидит, прыгает) и крупно лицо, Учитель Бодхи, обезьяны Горы. На согласование.</li>
+    <li>Две сцены главы 1 в выбранном стиле: водопад и пещера за водой. На согласование.</li>
+    <li>Карта пути в том же стиле.</li>
+    <li>Только после этого — перерисовка картинок глав 1–2 и правки в приложении.</li>
+  </ol>
+</section>
+
+<section class="part">
+  <h2>Что выбрать</h2>
+  <div class="ask">
+    <div><b>Стиль:</b> А (тушь), Б (сине-зелёный) или В (лубок)?</div>
+    <div><b>Или смесь:</b> например, даль и туман из А, а цвет гор и героя из Б.</div>
+    <div><b>Укун:</b> оставить таким маленьким в большом пейзаже или показывать крупнее, чтобы на телефоне было видно лицо?</div>
+  </div>
+</section>
+</div>
