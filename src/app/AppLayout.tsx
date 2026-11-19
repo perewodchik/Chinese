@@ -16,6 +16,7 @@ import { paths } from '../navigation/paths';
 import { useScrollRestoration } from '../navigation/useScrollRestoration';
 import { useStore, useSyncStatus } from '../store/store';
 import { useActivityReport } from './activityReport';
+import { useCatalogReport } from './catalogReport';
 import { useErrorReport } from './errorReport';
 import { useColorScheme } from '../ui/colorScheme';
 import { useSheetDrag } from '../ui/useSheetDrag';
@@ -64,6 +65,7 @@ export function AppLayout() {
   useColorScheme(theme);
   useScrollRestoration(main);
   useActivityReport();
+  useCatalogReport();
   useErrorReport();
   useEffect(() => {
     // The fonts for printing, fetched once the page has settled; the PDF code is its own piece (R5).

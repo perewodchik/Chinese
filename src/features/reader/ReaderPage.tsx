@@ -1,57 +1,44 @@
-import { ask } from '../../ui/dialogs';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import type { ItemId } from '../../domain/ids';
-import { hskLabel, shelfEntries, shelve, type GeneratedText, type ShelfEntry, type TextSet } from '../../domain/text';
+import { shelfEntries, shelve, type GeneratedText, type ShelfEntry, type TextSet } from '../../domain/text';
 import { isSpeakSectionEnabled } from '../../navigation/features';
 import { paths, type ReadMode, type TextVersion } from '../../navigation/paths';
 import { readHash, writeHash } from '../../navigation/hash';
-// R5: the PDF code (pdf-lib and the fonts) comes only when something is printed.
-const pdfRender = () => import('../../pdf/render');
 import { dayKey } from '../../domain/activity';
-import { deleteText, markRead, setSettings, setTextRead, studyText } from '../../store/commands';
+import { markRead, setTextRead, studyText } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
-import { Menu } from '../../ui/Menu';
-import { Modal } from '../../ui/Modal';
-import { PalettePicker } from '../../ui/PalettePicker';
 import { useTitle } from '../../ui/useTitle';
 import { setPageColour } from '../../ui/colorScheme';
 import { bookOf, bookTitle, chapterHead, isFrontMatter, kindOf } from '../../domain/bookshelf';
 import { ChapterEnd } from './ChapterEnd';
 import { BookContents } from './BookContents';
-import { WordPeek, type Peeked } from './WordPeek';
+import { ListenControl, useListenVoice } from './ListenBar';
+import { SentencePeek, type HeldSentence } from './SentencePeek';
+import { pinnedBottom, WordPeek, type Peeked } from './WordPeek';
 import { ChapterTabs, SpeakPart, tabOfHash, useLineBests, type ChapterTab, type TabInfo } from './ChapterTabs';
 import { useOpenItem } from '../../navigation/itemDrawer';
-import { useLibrary } from '../shared/library';
-import { usePdfExport } from '../shared/usePdfExport';
 import { Passage, useWordDone, type ReaderView } from './Passage';
 import { onReadThrough, prefetchPassage, useReading } from './readAloud';
 import {
-  PAPER_HAN,
-  PAPER_LABEL,
-  PAPER_MODES,
-  PICTURE_LABEL,
-  PICTURE_MODES,
-  PINYIN_LABEL,
-  PINYIN_MODES,
-  TRANSLATION_LABEL,
-  TRANSLATION_MODES,
   useGlossMode,
   usePaperMode,
   usePictureMode,
   usePinyinMode,
   useTranslationMode,
-  type GlossMode,
-  type PaperMode,
-  type PictureMode,
-  type PinyinMode,
-  type TranslationMode,
+  useBookStyleMode,
 } from './readerView';
+import { bookStyleOf } from '../../domain/bookStyle';
 import { DockPlayer, type PlayerControl } from './DockPlayer';
-import { readerSheet } from './readerSheet';
+import { AaMenu } from './AaMenu';
+import { ReaderMenu } from './ReaderMenu';
 import { rememberReading } from '../shared/lastRead';
-import { ListenPart, MorePart, partFill, QuestionsPart, WordsPart, WritePart } from './TextParts';
+import { MorePart } from './MorePart';
+import { partFill } from './parts';
+import { QuestionsPart } from './QuestionsPart';
+import { WordsPart } from './WordsPart';
+import { WritePart } from './WritePart';
 import './reader.css';
 
 /**
@@ -169,12 +156,22 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [pictures, setPictures] = usePictureMode();
   const [paper, setPaper] = usePaperMode();
   const [glosses, setGlosses] = useGlossMode();
+  const [bookOn, setBookOn] = useBookStyleMode();
+  // The book's own look, where it has one and it is turned on.
+  const bookStyle = bookStyleOf(set?.name, list[0]?.topic, text.title, text.titleZh);
+  const dressed = bookOn === 'on' ? bookStyle : null;
   const [contents, setContents] = useState(false);
   // A tapped word's card; the whole drawer is a tap on it away.
   const [peek, setPeek] = useState<(Peeked & { key: string }) | null>(null);
   const closePeek = useCallback(() => setPeek(null), []);
   const openItem = useOpenItem();
-  useEffect(() => setPeek(null), [text.id]);
+  // A held sentence's card: its English and Copy.
+  const [held, setHeld] = useState<HeldSentence | null>(null);
+  const closeHeld = useCallback(() => setHeld(null), []);
+  useEffect(() => {
+    setPeek(null);
+    setHeld(null);
+  }, [text.id]);
   const closeContents = useCallback(() => setContents(false), []);
   // Sepia and Night are this page's: on while it is open, the app's own colours back when it closes.
   // Before the first paint, so a sepia page never shows white for a moment.
@@ -205,7 +202,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     if (!el) return;
     const r = el.getBoundingClientRect();
     // Under the bar and the player at the top, or off the bottom: brought back, gently.
-    const pinned = document.querySelector('.rd-pin')?.getBoundingClientRect().bottom ?? 120;
+    const pinned = pinnedBottom(120);
     if (r.top < pinned + 8 || r.bottom > window.innerHeight - 24) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [narrLine, text.id]);
   const top = useRef<HTMLDivElement>(null);
@@ -228,6 +225,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   /* -------------------------------------------------------- the voice */
   const spoken = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
   const reading = useReading(spoken);
+  const voice = useListenVoice(text, reading);
+  const [playing, setPlaying] = useState(false);
   useEffect(() => prefetchPassage(spoken, reading.voice), [spoken, reading.voice]);
   // Heard to the end is the Listen part done, once more; read through a ref so a listening ending counts the latest number.
   const listensRef = useRef(text.study?.listens ?? (text.study?.heard ? 1 : 0));
@@ -342,7 +341,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const next = page < total ? versionOf(entries[page]!, null) : null;
 
   return (
-    <div className="rd" ref={top} data-mode={mode} style={{ '--reader-scale': settings.readerScale } as CSSProperties}>
+    <div className="rd" ref={top} data-mode={mode} data-book={dressed ?? undefined} style={{ '--reader-scale': settings.readerScale } as CSSProperties}>
       {/* The bar, stuck to the top and opaque from the screen's edge down. */}
       <div className="rd-pin no-print">
       <header className="rd-top">
@@ -389,6 +388,9 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           setTranslation={setTranslation}
           hasTrad={list.some((t) => t.lines.some((l) => l.zht))}
           hasPictures={list.some((t) => t.pictures?.some((p) => p.key))}
+          book={bookStyle}
+          bookOn={bookOn}
+          setBookOn={setBookOn}
           pictures={pictures}
           setPictures={setPictures}
           paper={paper}
@@ -409,10 +411,13 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       {mode === 'single' && (
         <div className="rd-dock" hidden={!listening}>
           <DockPlayer
+            key={voice.current ? voice.current.n.key : String(voice.current)}
             text={text}
             reading={reading}
             spoken={spoken}
+            narrated={voice.current}
             onLine={setNarrLine}
+            onPlaying={setPlaying}
             control={player}
             onClose={() => {
               player.current?.stop();
@@ -436,23 +441,39 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             onReveal={reveal}
             onPoint={point}
             retold={Boolean(entry.original) && t.id === entry.easier?.id}
+            book={dressed}
             study={study}
             heading={mode === 'all' && !story ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
             head={chapterHead(t, chapterAt(mode === 'all' ? i : page - 1))}
             titleAction={
               mode === 'single' ? (
-                <button
-                  className="rd-listen-btn"
-                  aria-pressed={listening}
-                  aria-label={listening ? 'Close the narrator' : 'Listen: the narrator reads it to you'}
-                  title={listening ? 'Close the narrator' : 'Listen: the narrator reads it to you'}
-                  onClick={listen}
-                >
-                  <Icon name="listen" size={22} />
-                </button>
+                <ListenControl
+                  text={text}
+                  voice={voice}
+                  reading={reading}
+                  playing={listening && playing}
+                  onPlay={() => {
+                    if (!listening) listen();
+                    else if (playing) player.current?.stop();
+                    else player.current?.start();
+                  }}
+                />
               ) : null
             }
-            onWord={(p) => setPeek((was) => (was?.key === p.key && was.el === p.el ? null : p))}
+            onHold={
+              t.id === text.id
+                ? (line, el) => {
+                    setPeek(null);
+                    setHeld({ i: line, el });
+                    if (!text.study?.translated) studyText(text.id, { translated: Date.now() });
+                  }
+                : undefined
+            }
+            held={t.id === text.id ? (held?.i ?? null) : null}
+            onWord={(p) => {
+              setHeld(null);
+              setPeek((was) => (was?.key === p.key && was.el === p.el ? null : p));
+            }}
             peekKey={peek?.key ?? null}
           />
         ))}
@@ -470,6 +491,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           onClose={closePeek}
         />
       )}
+
+      {held && text.lines[held.i] && <SentencePeek held={held} line={text.lines[held.i]!} onClose={closeHeld} />}
 
       {contents && set && (
         <BookContents set={set} book={bookOf(set, list)} entries={entries} page={mode === 'single' ? page : 0} onClose={closeContents} />
@@ -506,7 +529,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
                 onToggleRead={toggleRead}
                 onAgain={() => top.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
               />
-              <ListenPart text={text} reading={reading} spoken={spoken} partId="part-listen" />
             </>
           )}
           {shownTab === 'write' && (
@@ -570,312 +592,5 @@ function ReadingProgress({ textId }: { textId: string }) {
     <span className="rd-progress" aria-hidden>
       <i ref={line} />
     </span>
-  );
-}
-
-const SCALE_MIN = 0.8;
-const SCALE_MAX = 1.6;
-
-/** A tenth larger or smaller, kept to one decimal so steps land where they started. */
-const stepScale = (at: number, by: number) =>
-  Math.round(Math.min(SCALE_MAX, Math.max(SCALE_MIN, at + by * 0.1)) * 10) / 10;
-
-/** Aa: the size, the layout, and the marks — everything about the look that is not pinyin or translation. */
-function AaMenu({
-  pinyin,
-  setPinyin,
-  translation,
-  setTranslation,
-  hasTrad,
-  hasPictures,
-  pictures,
-  setPictures,
-  paper,
-  setPaper,
-  glosses,
-  setGlosses,
-}: {
-  pinyin: PinyinMode;
-  setPinyin: (m: PinyinMode) => void;
-  translation: TranslationMode;
-  setTranslation: (m: TranslationMode) => void;
-  hasTrad: boolean;
-  hasPictures: boolean;
-  pictures: PictureMode;
-  setPictures: (m: PictureMode) => void;
-  paper: PaperMode;
-  setPaper: (m: PaperMode) => void;
-  glosses: GlossMode;
-  setGlosses: (m: GlossMode) => void;
-}) {
-  const settings = useStore((s) => s.settings);
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const outside = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const escape = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('pointerdown', outside);
-    document.addEventListener('keydown', escape);
-    return () => {
-      document.removeEventListener('pointerdown', outside);
-      document.removeEventListener('keydown', escape);
-    };
-  }, [open]);
-
-  return (
-    <div className="rd-aa" ref={root}>
-      <button className="rd-aa-btn" aria-expanded={open} aria-haspopup="dialog" title="How the text looks" aria-label="How the text looks" onClick={() => setOpen((o) => !o)}>
-        Aa
-      </button>
-      {open && (
-        <div className="rd-aa-panel" role="dialog" aria-label="How the text looks">
-          <div className="rd-aa-papers" role="group" aria-label="Page">
-            {PAPER_MODES.map((m) => (
-              <button key={m} data-paper={m} aria-pressed={paper === m} onClick={() => setPaper(m)}>
-                <span className="hanzi">{PAPER_HAN[m]}</span>
-                <small>{PAPER_LABEL[m]}</small>
-              </button>
-            ))}
-          </div>
-          <div className="rd-aa-row">
-            <span>Pinyin</span>
-            <span className="spacer" />
-            <div className="seg sm" role="group" aria-label="Pinyin">
-              {PINYIN_MODES.map((m) => (
-                <button key={m} aria-pressed={pinyin === m} onClick={() => setPinyin(m)}>
-                  {PINYIN_LABEL[m]}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="rd-aa-row">
-            <span>
-              Translation
-              <small>When it is off, hold a sentence for its English.</small>
-            </span>
-            <span className="spacer" />
-            <div className="seg sm" role="group" aria-label="Translation">
-              {TRANSLATION_MODES.map((m) => (
-                <button key={m} aria-pressed={translation === m} onClick={() => setTranslation(m)}>
-                  {TRANSLATION_LABEL[m]}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="rd-aa-row">
-            <span>Text size</span>
-            <span className="spacer" />
-            <div className="seg sm" role="group" aria-label="Text size">
-              <button
-                onClick={() => setSettings({ readerScale: stepScale(settings.readerScale, -1) })}
-                disabled={settings.readerScale <= SCALE_MIN}
-                aria-label="Smaller"
-              >
-                A−
-              </button>
-              <button
-                onClick={() => setSettings({ readerScale: stepScale(settings.readerScale, 1) })}
-                disabled={settings.readerScale >= SCALE_MAX}
-                aria-label="Larger"
-              >
-                A+
-              </button>
-            </div>
-          </div>
-          <div className="rd-aa-row">
-            <span>Layout</span>
-            <span className="spacer" />
-            <div className="seg sm" role="group" aria-label="Layout">
-              <button aria-pressed={settings.readerLayout === 'paragraph'} onClick={() => setSettings({ readerLayout: 'paragraph' })}>
-                Paragraphs
-              </button>
-              <button aria-pressed={settings.readerLayout === 'sentences'} onClick={() => setSettings({ readerLayout: 'sentences' })}>
-                Lines
-              </button>
-            </div>
-          </div>
-          {hasPictures && (
-            <div className="rd-aa-row">
-              <span>Pictures</span>
-              <span className="spacer" />
-              <div className="seg sm" role="group" aria-label="Pictures">
-                {PICTURE_MODES.map((m) => (
-                  <button key={m} aria-pressed={pictures === m} onClick={() => setPictures(m)}>
-                    {PICTURE_LABEL[m]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <label className="rd-aa-row">
-            <span>
-              New words beside the text
-              <small>Each with its pinyin and meaning, by its paragraph.</small>
-            </span>
-            <span className="spacer" />
-            <input type="checkbox" checked={glosses === 'on'} onChange={(e) => setGlosses(e.target.checked ? 'on' : 'off')} />
-          </label>
-          <label className="rd-aa-row">
-            <span>
-              Underline what is not known yet
-              <small>Red: what your answers say you do not know yet.</small>
-            </span>
-            <span className="spacer" />
-            <input type="checkbox" checked={settings.markUnknown} onChange={(e) => setSettings({ markUnknown: e.target.checked })} />
-          </label>
-          <label className="rd-aa-row">
-            <span>
-              Mark words above {hskLabel(settings.targetHsk)}
-              <small>Your level is set in Settings.</small>
-            </span>
-            <span className="spacer" />
-            <input type="checkbox" checked={settings.markAbove} onChange={(e) => setSettings({ markAbove: e.target.checked })} />
-          </label>
-          {hasTrad && (
-            <label className="rd-aa-row">
-              <span>Traditional characters</span>
-              <span className="spacer" />
-              <input
-                type="checkbox"
-                checked={settings.readerTraditional}
-                onChange={(e) => setSettings({ readerTraditional: e.target.checked })}
-              />
-            </label>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/**
- * ⋯: whether it is read, printing in its three forms, and deleting.
- *
- * The browser's own print is the page as it is on screen with the controls
- * taken off. The PDFs are the designed sheets the worksheets use, with
- * practice squares.
- */
-function ReaderMenu({
-  set,
-  list,
-  text,
-  mode,
-  onMode,
-}: {
-  set: TextSet | null;
-  list: GeneratedText[];
-  text: GeneratedText;
-  mode: ReadMode;
-  onMode: (m: ReadMode) => void;
-}) {
-  const lib = useLibrary();
-  const navigate = useNavigate();
-  const pdf = usePdfExport();
-  const settings = useStore((s) => s.settings);
-  const [look, setLook] = useState(false);
-  const sheet = readerSheet(settings);
-  const printOptions = { footerNote: settings.footerNote, practice: settings.readerPractice };
-  const busy = pdf.busy !== null;
-  const then = (close: () => void, fn: () => void) => () => {
-    close();
-    fn();
-  };
-
-  async function remove() {
-    if (!(await ask({ title: `Delete “${text.titleZh || text.title}”?`, yes: 'Delete it', danger: true }))) return;
-    navigate(set && list.length > 1 ? paths.reading(set.id) : paths.read(), { replace: true, flushSync: true });
-    deleteText(text.id);
-  }
-
-  return (
-    <>
-      <Menu label={<Icon name="more" size={22} />} title={busy ? 'Building the PDF…' : 'More'} className={`rd-menu-btn${busy ? ' busy' : ''}`}>
-        {(close) => (
-          <>
-            {mode === 'single' && !text.lines.some((l) => l.en) && (
-              <button role="menuitem" className="btn ghost sm" onClick={then(close, () => navigate(paths.explainText(text.id)))}>
-                Explain it with Claude
-                <span className="tiny muted">its English, words, grammar and questions, from your own chat</span>
-              </button>
-            )}
-            {list.length > 1 && (
-              <button role="menuitem" className="btn ghost sm" onClick={then(close, () => onMode(mode === 'all' ? 'single' : 'all'))}>
-                {mode === 'all' ? 'One text at a time' : 'Every text on one page'}
-              </button>
-            )}
-            <button role="menuitem" className="btn ghost sm" onClick={then(close, () => window.print())}>
-              Print {mode === 'all' ? 'the whole shelf' : 'this page'}
-              <span className="tiny muted">as it looks here</span>
-            </button>
-            <button
-              role="menuitem"
-              className="btn ghost sm"
-              disabled={busy}
-              onClick={then(close, () =>
-                void pdf.run('passage', {
-                  title: text.title,
-                  render: async () => (await pdfRender()).renderReading(lib, text, sheet, { ...printOptions, pinyin: true, english: true }),
-                }),
-              )}
-            >
-              This text as a PDF
-            </button>
-            {set && (
-              <button
-                role="menuitem"
-                className="btn ghost sm"
-                disabled={busy}
-                onClick={then(close, () =>
-                  void pdf.run(set.id, { title: set.name, render: async () => (await pdfRender()).renderTextSet(lib, set.name, list, sheet, printOptions) }),
-                )}
-              >
-                The shelf as a PDF
-              </button>
-            )}
-            <button role="menuitem" className="btn ghost sm" onClick={then(close, () => setLook(true))}>
-              How the PDF looks…
-            </button>
-            {mode === 'single' && (
-              <button role="menuitem" className="btn ghost sm" onClick={then(close, () => navigate(paths.editText(text.id)))}>
-                Edit text
-                <span className="tiny muted">a line’s Chinese, pinyin or English, its title, its place in the book</span>
-              </button>
-            )}
-            {mode === 'single' && (
-              <button role="menuitem" className="btn ghost sm danger" onClick={then(close, remove)}>
-                Delete this text
-              </button>
-            )}
-          </>
-        )}
-      </Menu>
-      {look && <PdfLook onClose={() => setLook(false)} teaches={text.teach.length} />}
-    </>
-  );
-}
-
-function PdfLook({ onClose, teaches }: { onClose: () => void; teaches: number }) {
-  const settings = useStore((s) => s.settings);
-  return (
-    <Modal title="How the PDF looks" subtitle="For the designed sheets. Printing the page keeps the page’s own look." onClose={onClose}>
-      <PalettePicker value={settings.printPalette} onChange={(p) => p && setSettings({ printPalette: p })} />
-      <p className="tiny muted" style={{ margin: '6px 0 0' }}>
-        This is the print colour for every sheet: worksheets, tests and texts. A collection can still pick its own.
-      </p>
-      <label className="toggle" style={{ marginTop: 12 }}>
-        <input type="checkbox" checked={settings.readerPractice} onChange={(e) => setSettings({ readerPractice: e.target.checked })} />
-        <span>
-          Practice pages behind the reading
-          <span className="d">
-            {teaches
-              ? `Drill pages for its new words and ${teaches} new character${teaches === 1 ? '' : 's'}`
-              : 'Drill pages for each text’s new words and characters'}
-          </span>
-        </span>
-      </label>
-    </Modal>
   );
 }

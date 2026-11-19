@@ -9,12 +9,11 @@
  */
 
 /** The outside services the learner pays for with keys of their own. */
-export type UsageService = 'speechsuper' | 'iflytek' | 'minimax';
+export type UsageService = 'speechsuper' | 'minimax';
 
 /** What a service's `units` are: seconds of speech scored, or characters read aloud. */
 export const USAGE_UNIT: Record<UsageService, 'seconds' | 'characters'> = {
   speechsuper: 'seconds',
-  iflytek: 'seconds',
   minimax: 'characters',
 };
 

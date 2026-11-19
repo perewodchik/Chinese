@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
-import type { AdminAccountCard, AdminAccountPage, AdminLogPage, AdminOverview, AdminWatch } from '../../../../shared/admin';
+import { INVITE_MAX_USES, type AdminAccountCard, type AdminAccountPage, type AdminLogPage, type AdminOverview, type AdminWatch } from '../../../../shared/admin';
 import type { Actor } from '../../application/ports';
 import type { AppEnv, RouteDeps } from '../env';
 import { auditor, RateLimiter, requireFresh, requireRole, requireSession } from '../guards';
@@ -8,7 +8,7 @@ import { clientIp, readJson } from '../request';
 import { publishSchema } from '../../application/catalog-schema';
 import { FEEDBACK_STATUSES } from '../../../../shared/feedback';
 
-const inviteRequest = z.object({ note: z.string().trim().max(120), days: z.number().int().min(0).max(365) });
+const inviteRequest = z.object({ note: z.string().trim().max(120), days: z.number().int().min(0).max(365), uses: z.number().int().min(1).max(INVITE_MAX_USES).optional() });
 const logQuery = z.object({
   action: z.string().max(40).optional(),
   name: z.string().max(200).optional(),
@@ -99,7 +99,7 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
     const user = (await auth.accounts()).find((a) => a.id === id);
     if (!user) return c.json({ error: { code: 'not_found', message: 'That account is not here.' } }, 404);
     const row = (await auth.accountPage({ q: user.username, sort: 'joined' })).rows.find((r) => r.id === id)!;
-    const invite = (await auth.invites()).find((i) => i.usedBy === user.username);
+    const invite = (await auth.invites()).find((i) => i.people.some((p) => p.username === user.username));
     const body: AdminAccountCard = {
       account: row,
       invite: invite ? { note: invite.note, createdBy: invite.createdBy } : null,
@@ -161,7 +161,11 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
   // The shared catalogue (T1): a shelf published as a book, a new version of
   // it, hidden or shown again. Checked against the catalogue's schema here
   // (SEC12): what goes in is read by every learner.
-  const hideRequest = z.object({ hidden: z.boolean() });
+  const catalogChange = z.union([
+    z.object({ hidden: z.boolean() }),
+    z.object({ move: z.enum(['earlier', 'later']) }),
+    z.object({ level: z.number().int().min(1).max(7) }),
+  ]);
   routes.get('/catalog', session, admin, async (c) => {
     c.header('Cache-Control', 'no-store');
     return c.json(await catalog.list(true));
@@ -180,8 +184,11 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
   });
   routes.patch('/catalog/:id', session, admin, fresh, async (c) => {
     await changes.consume(c.get('session').user.id);
-    const { hidden } = await readJson(c, hideRequest);
-    await catalog.setHidden(actor(c), c.req.param('id'), hidden);
+    const change = await readJson(c, catalogChange);
+    const id = c.req.param('id');
+    if ('hidden' in change) await catalog.setHidden(actor(c), id, change.hidden);
+    else if ('move' in change) await catalog.move(actor(c), id, change.move);
+    else await catalog.setLevel(actor(c), id, change.level);
     return c.body(null, 204);
   });
 
@@ -248,11 +255,11 @@ export function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, st
 
   routes.post('/invites', session, admin, fresh, async (c) => {
     await invites.consume(c.get('session').user.id);
-    const { note, days } = await readJson(c, inviteRequest);
-    const made = await auth.invite(note, days === 0 ? null : days, actor(c));
+    const { note, days, uses } = await readJson(c, inviteRequest);
+    const made = await auth.invite(note, days === 0 ? null : days, actor(c), uses ?? 1);
     auditor(audit, clock, trustProxy, ipHeader, log)(c, 'invite', c.get('session').user.username);
     c.header('Cache-Control', 'no-store');
-    return c.json({ code: made.code, expiresAt: made.expiresAt }, 201);
+    return c.json({ code: made.code, expiresAt: made.expiresAt, uses: made.uses }, 201);
   });
 
   return routes;

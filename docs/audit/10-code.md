@@ -34,6 +34,8 @@
 <a id="r1"></a>
 ### R1 (В) Линтер и форматтер в CI
 
+**Снято владельцем 2026-11-18: не нужен.**
+
 Нет ни ESLint, ни Prettier/Biome; CI (`.github/workflows/check.yml`) гоняет
 только сборку, тесты и `npm audit`. Поставить **Biome** (один инструмент,
 быстрый) или ESLint + Prettier. Правила минимум: `react-hooks/rules-of-hooks`
@@ -82,15 +84,15 @@
 
 | Файл | Строк | Как резать |
 |---|---|---|
-| `features/reader/video/VideoStudio.tsx` | 1006 | состояние в хук, шаги — в компоненты |
-| `features/reader/ReaderPage.tsx` | 857 | шапка, тело, док, части — отдельно (вместе с V6) |
-| `features/reader/TextParts.tsx` | 772 | по файлу на часть |
+| `features/reader/video/VideoStudio.tsx` (2026-11-18: настройки и пресеты — `VideoSettings.tsx`; 1006 → 586) | 1006 | состояние в хук, шаги — в компоненты |
+| `features/reader/ReaderPage.tsx` (2026-11-18: Aa и ⋯ вынесены в `AaMenu.tsx`, `ReaderMenu.tsx`; 892 → 574) | 857 | шапка, тело, док, части — отдельно (вместе с V6) |
+| ~~`features/reader/TextParts.tsx`~~ | 772 | сделано 2026-11-18: `parts.ts`, `PartSection.tsx`, `ListenPart`, `MorePart`, `WordsPart`, `WritePart`, `QuestionsPart` |
 | `features/speak/SayLine.tsx` | 763 | запись / результат / список исправлений |
 | `features/pinyin/NarratorsPage.tsx` | 669 | при переносе в настройки (V11) |
 | `features/pinyin/TalkPage.tsx` | 656 | |
-| `features/reader/ReadPage.tsx` | 650 | `ReadPage` и `ShelfPage` — в разные файлы; `ShelfPage` сейчас считает слова, иероглифы, экспорт и печать внутри компонента |
-| `features/reader/CopyOut.tsx` | 614 | |
-| `features/stats/StatsPage.tsx` | 502 | по карточке на файл (вместе с G1–G6) |
+| ~~`features/reader/ReadPage.tsx`~~ (сделано 2026-11-18: `ShelfPage.tsx` отдельно) | 650 | `ReadPage` и `ShelfPage` — в разные файлы; `ShelfPage` сейчас считает слова, иероглифы, экспорт и печать внутри компонента |
+| `features/reader/CopyOut.tsx` (2026-11-18: разрезка текста и раскладка — `copyOutLayout.ts`; 614 → 480) | 614 | |
+| `features/stats/StatsPage.tsx` (2026-11-18: плитки, неделя, «держится», календарь — `StatsCards.tsx`; 502 → 381) | 502 | по карточке на файл (вместе с G1–G6) |
 
 Игру (`src/world`, `features/world/WorldPage.tsx` — 1566) не трогать в
 рамках этого плана: у неё свои заметки.
@@ -159,6 +161,15 @@
 <a id="r10"></a>
 ### R10 (С) `localStorage` — через один модуль
 
+**Сделано (2026-11-18):** `src/platform/storage.ts` — `stored`, `tabStored`,
+`storedJson`: чтение никогда не бросает, запись говорит, сохранилось ли.
+Все 87 обращений вне `src/platform` переведены; тест
+`src/platform/storage.test.ts` не пускает новых (исключения: игра 走走 со
+своими заметками, очередь несохранённого `store/sync/outbox.ts` и
+`store/legacy.ts` — им передаётся объект Storage, чтобы тесты подставляли
+свой). Списка ключей одним файлом нет — ключи лежат рядом с тем, что их
+читает.
+
 100 обращений. `src/platform/accountStorage.ts` (S5) уже есть — довести:
 ни одного прямого `localStorage.` вне `src/platform/`; список всех ключей с
 типами в одном файле; правило линтера. Заодно проверить, что каждый читатель
@@ -180,6 +191,14 @@
 
 <a id="r12"></a>
 ### R12 (С) Два хранилища — один набор тестов
+
+**Сделано (2026-11-18):** `server/test/storage-contract.ts` — один набор
+тестов хранилища, его проходят обе базы: `sqlite.test.ts` (в памяти) и
+`postgres.test.ts` (PGlite). Добавлены те, что не проверялись ни на одной:
+сохранения 走走, разговоры, секреты, попытки речи, чтецы, озвучки текстов,
+свои тексты — теперь каждое хранилище из `Stores` в контракте. Расхождений
+не нашлось; `TextNarrationRepository.save` заменяет прежнюю запись — так и
+записано в `ports.ts`.
 
 `server/src/infrastructure/sqlite/` и `postgres/` — по 22 файла с
 одинаковыми репозиториями (2370 строк). Дублирование неизбежно, но

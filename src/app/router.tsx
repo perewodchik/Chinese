@@ -8,7 +8,8 @@ import { LibraryHome } from '../features/library/LibraryHome';
 import { SetPage } from '../features/library/SetPage';
 import { AddTextPage } from '../features/reader/AddTextPage';
 import { ReaderPage } from '../features/reader/ReaderPage';
-import { ReadPage, ShelfPage } from '../features/reader/ReadPage';
+import { ReadPage } from '../features/reader/ReadPage';
+import { ShelfPage } from '../features/reader/ShelfPage';
 import { CardsPage } from '../features/cards/CardsPage';
 import { CardSessionPage } from '../features/cards/CardSession';
 import { isSpeakSectionEnabled } from '../navigation/features';
@@ -88,7 +89,7 @@ const SweepPage = lazyPage(() => import('../features/words/SweepPage'), 'SweepPa
  *   /read/text/:setId?page&v&mode  a shelf read a text at a time: ?page=2, ?v=easy|book, ?mode=all
  *   /read/text/:textId             one passage — within a session, its page there
  *   /collections/…, /texts/…       moved (V14): the old addresses land on the new ones
- *   /speaking                      phrases said and scored by SpeechSuper or iFlytek (Speaking's first tab)
+ *   /speaking                      phrases said and scored by SpeechSuper (Speaking's first tab)
  *   /speaking/voices, /talk, /pinyin  Speaking's other tabs: narrators, Claude, the tones and sounds
  *   /speaking/history              every try at a line, with filters, each opened to its scored characters
  *   /speaking/say/:source?line     a text said line by line, each line scored, on the whole screen

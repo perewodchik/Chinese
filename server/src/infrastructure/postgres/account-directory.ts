@@ -18,7 +18,7 @@ export class PostgresAccountDirectory implements AccountDirectory {
     const total = await this.db.query<{ n: string }>("SELECT COUNT(*) AS n FROM users WHERE username_key LIKE $1", [like]);
     const { rows } = await this.db.query(
       `WITH s AS (SELECT user_id, COUNT(*) AS n, MAX(last_seen_at) AS seen FROM sessions WHERE expires_at > $1 GROUP BY user_id),
-      m AS (SELECT user_id, SUM(CASE WHEN service IN ('speechsuper', 'iflytek') THEN calls ELSE 0 END) AS scored, SUM(CASE WHEN service = 'minimax' THEN units ELSE 0 END) AS chars FROM api_usage WHERE day >= $2 GROUP BY user_id),
+      m AS (SELECT user_id, SUM(CASE WHEN service = 'speechsuper' THEN calls ELSE 0 END) AS scored, SUM(CASE WHEN service = 'minimax' THEN units ELSE 0 END) AS chars FROM api_usage WHERE day >= $2 GROUP BY user_id),
       r AS (SELECT user_id, SUM(b) AS bytes FROM (
       SELECT user_id, octet_length(document) AS b FROM workspaces
         UNION ALL SELECT user_id, octet_length(save) AS b FROM world_saves

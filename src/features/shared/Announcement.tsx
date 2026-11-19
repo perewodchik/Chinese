@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { siteInfo } from '../../api/site';
+import { stored } from '../../platform/storage';
 
 const KEY = 'hanzi.announcement';
 const kept = () => {
   try {
-    return localStorage.getItem(KEY) ?? '';
+    return stored.get(KEY) ?? '';
   } catch {
     return '';
   }
@@ -24,8 +25,8 @@ export function Announcement() {
         if (!live) return;
         setLine(r.announcement);
         try {
-          if (r.announcement) localStorage.setItem(KEY, r.announcement);
-          else localStorage.removeItem(KEY);
+          if (r.announcement) stored.set(KEY, r.announcement);
+          else stored.remove(KEY);
         } catch {
           /* kept for this visit only */
         }

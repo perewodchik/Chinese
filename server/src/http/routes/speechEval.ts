@@ -5,10 +5,7 @@ import type { AppEnv, RouteDeps } from '../env';
 import { auditor, RateLimiter, requireSession } from '../guards';
 import { readJson } from '../request';
 
-const keysRequest = z.discriminatedUnion('provider', [
-  z.object({ provider: z.literal('speechsuper'), appKey: z.string().min(1).max(80), secretKey: z.string().min(1).max(120) }),
-  z.object({ provider: z.literal('iflytek'), appId: z.string().min(1).max(60), apiKey: z.string().min(1).max(120), apiSecret: z.string().min(1).max(160) }),
-]);
+const keysRequest = z.object({ provider: z.literal('speechsuper'), appKey: z.string().min(1).max(80), secretKey: z.string().min(1).max(120) });
 const settingsRequest = z.object({ strictness: z.enum(STRICTNESS) });
 // The page's summary and the service's answer are kept as given, within a size.
 const sized = (max: number) => z.unknown().refine((v) => v === undefined || JSON.stringify(v).length <= max, 'too large');
@@ -36,7 +33,7 @@ const evalRequest = z.object({
   audio: z.string().min(1).max(Math.ceil((EVAL_MAX_BYTES * 4) / 3) + 8),
 });
 
-/** Phrases scored by SpeechSuper or iFlytek with the learner's own keys (see shared/speechEval.ts for the routes). */
+/** Phrases scored by SpeechSuper with the learner's own keys (see shared/speechEval.ts for the routes). */
 export function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits, audit, ipHeader, log }: RouteDeps) {
   // SEC15: a key saved or taken away goes in the accounts' log, as a password change does.
   const note = auditor(audit, clock, trustProxy, ipHeader, log);

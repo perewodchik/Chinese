@@ -1,58 +1,15 @@
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { AttemptOut, EvalResult, IflytekKeys, SpeechHistory, SpeechSuperKeys } from '../../shared/speechEval';
+import type { AttemptOut, EvalResult, SpeechHistory, SpeechSuperKeys } from '../../shared/speechEval';
 import type { Evaluator } from '../src/application/speech-eval-service';
 import { createServices } from '../src/composition';
 import { createHttpApp } from '../src/http/app';
-import { EvaluatorRefused, parseReport, signedUrl } from '../src/infrastructure/iflytek';
+import { EvaluatorRefused } from '../src/infrastructure/evaluator-refused';
 import { parseAnswer, requestOf, wav } from '../src/infrastructure/speechsuper';
 import { openDatabase } from '../src/infrastructure/sqlite/database';
 import { sqliteStores } from '../src/infrastructure/sqlite/stores';
 import { call, cheapHasher, sessionCookie, TestClock } from './support';
-
-// A report as iFlytek writes one for a read_sentence: the scored sentence under
-// rec_paper, silences around it, and per phone the kind (is_yun) and the fault.
-const REPORT = `<?xml version="1.0" ?>
-<xml_result><read_sentence lan="cn" type="study" version="7,0,0,1024"><rec_paper>
-<read_sentence beg_pos="0" content="小智饿了" end_pos="220" except_info="0" fluency_score="80.5" integrity_score="100" is_rejected="false" phone_score="85.2" time_len="220" tone_score="60" total_score="78.3">
-<sentence beg_pos="0" content="小智饿了" end_pos="220" fluency_score="80.5" integrity_score="100" phone_score="85.2" time_len="220" tone_score="60" total_score="78.3">
-<word beg_pos="0" content="sil" end_pos="10"><syll beg_pos="0" content="sil" end_pos="10" rec_node_type="sil" symbol="sil"/></word>
-<word beg_pos="10" content="小" end_pos="40" symbol="xiao3"><syll beg_pos="10" content="小" dp_message="0" end_pos="40" rec_node_type="paper" symbol="xiao3">
-<phone beg_pos="10" content="x" dp_message="0" end_pos="20" is_yun="0" perr_msg="0" rec_node_type="paper"/>
-<phone beg_pos="20" content="iao" dp_message="0" end_pos="40" is_yun="1" mono_tone="TONE3" perr_msg="0" rec_node_type="paper"/></syll></word>
-<word beg_pos="40" content="智" end_pos="80" symbol="zhi4"><syll beg_pos="40" content="智" dp_message="0" end_pos="80" rec_node_type="paper" symbol="zhi4">
-<phone content="zh" is_yun="0" perr_msg="1"/><phone content="ix" is_yun="1" perr_msg="0" mono_tone="TONE4"/></syll></word>
-<word beg_pos="80" content="饿" end_pos="130" symbol="e4"><syll beg_pos="80" content="饿" dp_message="0" end_pos="130" rec_node_type="paper" symbol="e4">
-<phone content="e" is_yun="1" perr_msg="2" mono_tone="TONE4"/></syll></word>
-<word content="了" symbol="le5"><syll beg_pos="130" content="了" dp_message="16" end_pos="130" rec_node_type="paper" symbol="le5">
-<phone content="l" is_yun="0" perr_msg="16"/><phone content="e" is_yun="1" perr_msg="16"/></syll></word>
-</sentence></read_sentence></rec_paper></read_sentence></xml_result>`;
-
-describe('iFlytek’s report', () => {
-  it('reads the scores and each syllable’s faults, leaving the silences out', () => {
-    const r = parseReport(REPORT);
-    assert.deepEqual([r.total, r.tone, r.sounds, r.fluency, r.completeness, r.rejected], [78.3, 60, 85.2, 80.5, 100, false]);
-    assert.deepEqual(
-      r.syllables.map((s) => [s.char, s.symbol, s.said, s.initial, s.final, s.tone]),
-      [
-        ['小', 'xiao3', 'ok', false, false, false],
-        ['智', 'zhi4', 'ok', true, false, false],
-        ['饿', 'e4', 'ok', false, false, true],
-        ['了', 'le5', 'missed', true, false, false],
-      ],
-    );
-    assert.deepEqual([r.syllables[0]!.from, r.syllables[0]!.to], [100, 400]);
-  });
-
-  it('signs the address with the secret, over host, date and the request line', () => {
-    const url = new URL(signedUrl({ apiKey: 'key123', apiSecret: 'secret' }, 'Mon, 02 Nov 2026 10:00:00 GMT'));
-    assert.equal(url.host, 'ise-api.xfyun.cn');
-    assert.equal(url.searchParams.get('date'), 'Mon, 02 Nov 2026 10:00:00 GMT');
-    const auth = Buffer.from(url.searchParams.get('authorization')!, 'base64').toString();
-    assert.match(auth, /^api_key="key123", algorithm="hmac-sha256", headers="host date request-line", signature="[\w+/=]+"$/);
-  });
-});
 
 // An answer as SpeechSuper gives one for sent.eval.promax.cn (cut down), for 他们一起走了… said without 一起,
 // and 卡 read for qia3 and said as ka3 — its initial sounding like k.
@@ -103,6 +60,7 @@ describe('SpeechSuper’s answer', () => {
   it('tells keys it does not accept from other refusals', () => {
     assert.throws(() => parseAnswer({ errId: 41030, error: 'connect with invalid sig' }, 'common'), (e: EvaluatorRefused) => e.reason === 'keys');
     assert.throws(() => parseAnswer({ errId: 41030, error: 'invalid coreType' }, 'common'), (e: EvaluatorRefused) => e.reason === 'failed');
+    assert.throws(() => parseAnswer({ errId: 41030, error: 'invalid expired' }, 'common'), (e: EvaluatorRefused) => e.reason === 'keys' && /have expired/.test(e.message) && /Settings/.test(e.message));
   });
 
   it('signs the request and gives each character its reading', () => {
@@ -115,15 +73,16 @@ describe('SpeechSuper’s answer', () => {
   });
 });
 
-const GOOD: IflytekKeys = { provider: 'iflytek', appId: 'app12345', apiKey: 'apikey0123456789', apiSecret: 'secret0123456789' };
+const GOOD: SpeechSuperKeys = { provider: 'speechsuper', appKey: 'app12345', secretKey: 'secret0123456789' };
+const SCORED = () => parseAnswer(ANSWER, 'common');
 
 function stub() {
   const seen: Array<{ text: string; bytes: number; strictness: string; pinyin?: string[] }> = [];
   const evaluator: Evaluator = {
     async evaluate(keys, o) {
-      if (keys.provider !== 'iflytek' || keys.apiKey !== GOOD.apiKey) throw new EvaluatorRefused('iFlytek: invalid appid (10313)', 'keys');
+      if (keys.secretKey !== GOOD.secretKey) throw new EvaluatorRefused('SpeechSuper: connect with invalid sig (41030)', 'keys');
       seen.push({ text: o.text, bytes: o.pcm.length, strictness: o.strictness, ...(o.pinyin ? { pinyin: o.pinyin } : {}) });
-      return parseReport(REPORT) satisfies EvalResult;
+      return SCORED() satisfies EvalResult;
     },
   };
   return { evaluator, seen };
@@ -135,7 +94,7 @@ function appWith(evaluator: Evaluator) {
 }
 
 describe('phrases scored with the learner’s own keys', () => {
-  it('keeps keys only once iFlytek lets them in, never sends them back, and scores at the strictness chosen', async () => {
+  it('keeps keys only once SpeechSuper lets them in, never sends them back, and scores at the strictness chosen', async () => {
     const { evaluator, seen } = stub();
     const app = appWith(evaluator);
     const cookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'kirill', password: 'correct horse' } }));
@@ -143,13 +102,13 @@ describe('phrases scored with the learner’s own keys', () => {
 
     const audio = Buffer.alloc(16_000).toString('base64');
     assert.equal((await call(app, 'POST', '/api/eval', { cookie, body: { text: '小智饿了', audio } })).status, 404);
-    assert.equal((await call(app, 'PUT', '/api/eval/key', { cookie, body: { ...GOOD, apiKey: 'wrongkey0123456' } })).status, 400);
+    assert.equal((await call(app, 'PUT', '/api/eval/key', { cookie, body: { ...GOOD, secretKey: 'wrongsecret01234567' } })).status, 400);
     const kept = await call(app, 'PUT', '/api/eval/key', { cookie, body: GOOD });
-    assert.deepEqual(await kept.json(), { key: { set: true, hint: '…6789', provider: 'iflytek' }, strictness: 'common' });
+    assert.deepEqual(await kept.json(), { key: { set: true, hint: '…2345', provider: 'speechsuper' }, strictness: 'common' });
 
     const res = await call(app, 'POST', '/api/eval', { cookie, body: { text: '小智饿了', audio } });
     const { result } = (await res.json()) as { result: EvalResult };
-    assert.equal(result.total, 78.3);
+    assert.equal(result.total, 74);
     assert.deepEqual(seen.at(-1), { text: '小智饿了', bytes: 16_000, strictness: 'common' });
 
     await call(app, 'PATCH', '/api/eval/settings', { cookie, body: { strictness: 'hard' } });
@@ -174,9 +133,9 @@ describe('keys the service turned away (K18)', () => {
     const evaluator: Evaluator = {
       async evaluate(keys, o) {
         calls++;
-        if (refusing || keys.provider !== 'iflytek' || keys.apiKey !== GOOD.apiKey) throw new EvaluatorRefused('iFlytek: licence expired (11200)', 'keys');
+        if (refusing || keys.secretKey !== GOOD.secretKey) throw new EvaluatorRefused('SpeechSuper: connect with invalid sig (41030)', 'keys');
         void o;
-        return parseReport(REPORT);
+        return SCORED();
       },
     };
     const app = appWith(evaluator);
@@ -221,7 +180,7 @@ describe('tries kept for every device', () => {
     const { evaluator } = stub();
     const app = appWith(evaluator);
     const cookie = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'kirill', password: 'correct horse' } }));
-    const line = (i: number) => ({ id: `p${i}`, at: 1000 + i, kind: 'phrase', sourceId: 't1', text: '小智饿了', good: i % 2 === 0, summary: { total: 60 + i }, result: parseReport(REPORT) });
+    const line = (i: number) => ({ id: `p${i}`, at: 1000 + i, kind: 'phrase', sourceId: 't1', text: '小智饿了', good: i % 2 === 0, summary: { total: 60 + i }, result: SCORED() });
     const drill = (i: number, good: boolean) => ({ id: `d${i}`, at: 2000 + i, kind: 'drill', text: '马', tally: 'tone:3', good });
     const items = [...[0, 1, 2, 3, 4, 5, 6].map(line), drill(0, true), drill(1, false), drill(2, true)];
     assert.equal((await call(app, 'POST', '/api/eval/attempts', { cookie, body: { items } })).status, 200);
@@ -236,7 +195,7 @@ describe('tries kept for every device', () => {
     assert.deepEqual(attempts.map((a) => a.id), ['p6', 'p5', 'p4', 'p3', 'p2', 'p1', 'p0']);
     assert.deepEqual([attempts[0]!.full, (attempts[0]!.summary as { total: number }).total], [true, 66]);
     const one = (await (await call(app, 'GET', '/api/eval/attempts/p6', { cookie })).json()) as { result: EvalResult };
-    assert.equal(one.result.total, 78.3);
+    assert.equal(one.result.total, 74);
 
     const other = sessionCookie(await call(app, 'POST', '/api/auth/register', { body: { username: 'masha', password: 'correct horse' } }));
     assert.deepEqual(await (await call(app, 'GET', '/api/eval/history', { cookie: other })).json(), { phrases: {}, tallies: {} });

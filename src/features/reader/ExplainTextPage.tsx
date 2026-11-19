@@ -9,6 +9,7 @@ import { Icon } from '../../ui/Icon';
 import { useToast } from '../../ui/toast';
 import { useTitle } from '../../ui/useTitle';
 import './shelves.css';
+import { tabStored } from '../../platform/storage';
 
 const CLAUDE = 'https://claude.ai/new';
 
@@ -16,7 +17,7 @@ const CLAUDE = 'https://claude.ai/new';
 function useAnswer(key: string): [string, (v: string) => void] {
   const [value, setValue] = useState(() => {
     try {
-      return sessionStorage.getItem(key) ?? '';
+      return tabStored.get(key) ?? '';
     } catch {
       return '';
     }
@@ -24,8 +25,8 @@ function useAnswer(key: string): [string, (v: string) => void] {
   const set = (v: string) => {
     setValue(v);
     try {
-      if (v) sessionStorage.setItem(key, v);
-      else sessionStorage.removeItem(key);
+      if (v) tabStored.set(key, v);
+      else tabStored.remove(key);
     } catch {
       /* kept on screen only */
     }

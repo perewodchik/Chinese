@@ -239,7 +239,7 @@ function hanzi(strings) {
   return found;
 }
 var linesOf = (t) => t.lines.map((l) => l.zh);
-var toDto = (b, admin) => ({
+var toDto = (b, admin, readers) => ({
   id: b.id,
   title: b.title,
   titleZh: b.titleZh,
@@ -252,7 +252,7 @@ var toDto = (b, admin) => ({
   publishedAt: b.publishedAt,
   texts: b.texts,
   chars: b.chars,
-  ...admin && { hidden: b.hiddenAt !== null }
+  ...admin && { hidden: b.hiddenAt !== null, readers: readers ?? { took: 0, finished: 0 } }
 });
 var CatalogService = class {
   constructor(deps) {
@@ -285,6 +285,8 @@ var CatalogService = class {
       publishedAt: now,
       publishedBy: actor.id,
       hiddenAt: before?.hiddenAt ?? null,
+      // A new version keeps the book's place in the library; a new book goes first.
+      position: before?.position ?? Math.max(now, ((await catalog.list(true))[0]?.position ?? 0) + 1),
       texts: texts.length,
       chars: hanzi(texts.flatMap(linesOf)).size
     };
@@ -311,9 +313,35 @@ var CatalogService = class {
     await this.deps.catalog.setHidden(id, hidden ? book.hiddenAt ?? now : null);
     await this.deps.adminLog.add({ at: now, actorId: actor.id, actorName: actor.name, action: hidden ? "catalog-hidden" : "catalog-shown", targetId: null, targetName: null, details: { book: book.title }, ip: actor.ip });
   }
-  /** The books on offer; an admin sees the hidden ones too. */
+  /** A9: a book moved one place up or down the library; in the admins' log. */
+  async move(actor, id, way) {
+    const book = await this.deps.catalog.find(id);
+    if (!book) throw new NotFoundError("That book");
+    if (!await this.deps.catalog.move(id, way)) throw new ValidationError(way === "earlier" ? "That book is first already." : "That book is last already.");
+    await this.deps.adminLog.add({ at: this.deps.clock.now(), actorId: actor.id, actorName: actor.name, action: "catalog-moved", targetId: null, targetName: null, details: { book: book.title, way }, ip: actor.ip });
+  }
+  /** A9: the band a book is for, put right without publishing it again; in the admins' log. */
+  async setLevel(actor, id, level) {
+    const book = await this.deps.catalog.find(id);
+    if (!book) throw new NotFoundError("That book");
+    if (book.level === level) return;
+    await this.deps.catalog.setLevel(id, level);
+    await this.deps.adminLog.add({ at: this.deps.clock.now(), actorId: actor.id, actorName: actor.name, action: "catalog-level", targetId: null, targetName: null, details: { book: book.title, from: book.level, to: level }, ip: actor.ip });
+  }
+  /**
+   * A9: a learner took a book onto a shelf, or has read every text of it.
+   * Counted, never shown by name; a book that is hidden or gone is not counted.
+   */
+  async markReader(userId, id, finished) {
+    const book = await this.deps.catalog.find(id);
+    if (!book || book.hiddenAt !== null) throw new NotFoundError("That book");
+    if (book.publishedBy === userId) return;
+    await this.deps.catalog.markReader(id, userId, this.deps.clock.now(), finished);
+  }
+  /** The books on offer, in the library's order; an admin sees the hidden ones too, and how many took and finished each. */
   async list(admin) {
-    return (await this.deps.catalog.list(admin)).map((b) => toDto(b, admin));
+    const [books, readers] = await Promise.all([this.deps.catalog.list(admin), admin ? this.deps.catalog.readers() : Promise.resolve(/* @__PURE__ */ new Map())]);
+    return books.map((b) => toDto(b, admin, readers.get(b.id)));
   }
   /** A book with its texts, unless it is hidden (an admin still sees it). */
   async get(id, admin) {
@@ -522,7 +550,17 @@ var ActivityService = class {
       };
       cohorts.push({ week: dayOf(start), joined: joined.length, week1: inWeek(1), week2: inWeek(2), week4: inWeek(4) });
     }
+    const newcomers = users.filter((u) => u.createdAt >= now - 30 * DAY);
+    const theirs = (id) => live.filter((r) => r.userId === id);
+    const funnel = {
+      joined: newcomers.length,
+      worked: newcomers.filter((u) => theirs(u.id).length > 0).length,
+      read: newcomers.filter((u) => theirs(u.id).some((r) => r.textsRead > 0)).length,
+      answered: newcomers.filter((u) => theirs(u.id).some((r) => r.answers > 0)).length,
+      cameBack: newcomers.filter((u) => new Set(theirs(u.id).map((r) => r.day)).size > 1).length
+    };
     return {
+      funnel,
       active: { day: activeSince(today).size, week: week.size, month: activeSince(back(29)).size },
       joined: { week: users.filter((u) => u.createdAt >= now - 7 * DAY).length, month: users.filter((u) => u.createdAt >= now - 30 * DAY).length },
       returned: users.filter((u) => u.createdAt < now - 7 * DAY && week.has(u.id)).length,
@@ -531,6 +569,9 @@ var ActivityService = class {
     };
   }
 };
+
+// shared/admin.ts
+var INVITE_MAX_USES = 100;
 
 // shared/api.ts
 var TOKEN_SCOPES = ["texts:write", "catalog:write"];
@@ -609,14 +650,15 @@ var AuthService = class {
     });
     return this.issue(user, input.userAgent);
   }
-  /** For whoever runs the server: an invitation for one account, good for `days` (or for ever). */
-  async invite(note, days, actor) {
+  /** For whoever runs the server: an invitation for one account — or `uses` of them, for a group — good for `days` (or for ever). */
+  async invite(note, days, actor, uses = 1) {
+    if (!Number.isInteger(uses) || uses < 1 || uses > INVITE_MAX_USES) throw new ValidationError(`An invitation makes from 1 to ${INVITE_MAX_USES} accounts.`);
     const code = Array.from({ length: INVITE_LENGTH }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join("");
     const now = this.deps.clock.now();
     const expiresAt = days === null ? null : now + days * DAY2;
-    await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null, createdBy: actor.id });
-    await this.record(actor, "invite-made", null, { note: note.trim().slice(0, 120), days });
-    return { code: code.match(/.{1,4}/g).join("-"), note, expiresAt };
+    await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null, createdBy: actor.id, maxUses: uses });
+    await this.record(actor, "invite-made", null, { note: note.trim().slice(0, 120), days, ...uses > 1 ? { uses } : {} });
+    return { code: code.match(/.{1,4}/g).join("-"), note, expiresAt, uses };
   }
   /**
    * The invitations given out, with who made and who used each (by name) —
@@ -635,14 +677,17 @@ var AuthService = class {
       usedBy: who(i.usedBy),
       usedAt: i.usedAt,
       revokedAt: i.revokedAt ?? null,
-      createdBy: who(i.createdBy)
+      createdBy: who(i.createdBy),
+      maxUses: i.maxUses ?? 1,
+      uses: i.uses ?? (i.usedBy ? 1 : 0),
+      people: (i.usedByAll?.length ? i.usedByAll : i.usedBy ? [{ userId: i.usedBy, at: i.usedAt ?? i.createdAt }] : []).map((u) => ({ username: who(u.userId), at: u.at }))
     }));
   }
-  /** A8: an invitation taken back before anyone used it; in the admins' log. */
+  /** A8: an invitation taken back while it could still make an account; in the admins' log. Accounts made by it stay. */
   async revokeInvite(id, actor) {
     const invite = (await this.deps.invites.list()).find((i) => i.digest === id);
     if (!invite) throw new NotFoundError("That invitation");
-    if (!await this.deps.invites.revoke(id, this.deps.clock.now())) throw new ValidationError(invite.usedBy ? "That invitation has been used already." : "That invitation was taken back already.");
+    if (!await this.deps.invites.revoke(id, this.deps.clock.now())) throw new ValidationError(invite.revokedAt ? "That invitation was taken back already." : "That invitation has been used already.");
     await this.record(actor, "invite-revoked", null, { note: invite.note });
   }
   /** An account made by whoever runs the server, whether or not sign-ups are open. No session comes with it. */
@@ -1482,13 +1527,13 @@ var NarrationService = class {
     const narrator = this.narrator();
     if (!narrator.designed || !narrator.forget) throw new AppError("unavailable", "This server cannot free MiniMax voice slots.");
     const used = new Set((await this.deps.narrators.list(userId)).map((n) => n.voiceId));
-    const all2 = await this.call(() => narrator.designed(key));
+    const all = await this.call(() => narrator.designed(key));
     const freed = [];
-    for (const id of all2.filter((v) => !used.has(v))) {
+    for (const id of all.filter((v) => !used.has(v))) {
       await this.call(() => narrator.forget(key, id));
       freed.push(id);
     }
-    return { freed, kept: all2.length - freed.length };
+    return { freed, kept: all.length - freed.length };
   }
   /** The voice chosen among those tried, kept as a narrator. */
   async keepDesigned(userId, input) {
@@ -1792,173 +1837,28 @@ var genderOf = (s) => /\b(male|man|boy|gentleman|uncle|executive|lord)\b/i.test(
 
 // shared/speechEval.ts
 var STRICTNESS = ["easy", "common", "hard"];
-var PROVIDER_NAME = { speechsuper: "SpeechSuper", iflytek: "iFlytek" };
+var PROVIDER_NAME = { speechsuper: "SpeechSuper" };
 var PINYIN_SYLLABLE = /^[a-zü]{1,6}[1-5]$/;
 var EVAL_MAX_CHARS = 100;
 var EVAL_MAX_BYTES = 20 * 16e3 * 2;
 var ATTEMPTS_PER_CALL = 500;
 var ATTEMPTS_LISTED = 2e3;
 
-// server/src/infrastructure/iflytek.ts
-import { createHmac } from "node:crypto";
-var HOST = "ise-api.xfyun.cn";
-var PATH = "/v2/open-ise";
-var FRAME = 19200;
+// server/src/infrastructure/evaluator-refused.ts
 var EvaluatorRefused = class extends Error {
   constructor(message, reason) {
     super(message);
     this.reason = reason;
   }
 };
-function signedUrl(keys, date = (/* @__PURE__ */ new Date()).toUTCString()) {
-  const origin = `host: ${HOST}
-date: ${date}
-GET ${PATH} HTTP/1.1`;
-  const signature = createHmac("sha256", keys.apiSecret).update(origin).digest("base64");
-  const authorization = Buffer.from(
-    `api_key="${keys.apiKey}", algorithm="hmac-sha256", headers="host date request-line", signature="${signature}"`
-  ).toString("base64");
-  return `wss://${HOST}${PATH}?authorization=${encodeURIComponent(authorization)}&date=${encodeURIComponent(date)}&host=${HOST}`;
-}
-async function evaluate(keys, o) {
-  const xml = await new Promise((resolve, reject) => {
-    const ws = new WebSocket(signedUrl(keys));
-    const timer = setTimeout(() => {
-      ws.close();
-      reject(new EvaluatorRefused("iFlytek did not answer in time.", "failed"));
-    }, 3e4);
-    const fail = (err) => {
-      clearTimeout(timer);
-      ws.close();
-      reject(err);
-    };
-    ws.onerror = () => fail(new EvaluatorRefused("iFlytek could not be reached, or did not accept the keys.", "keys"));
-    ws.onopen = async () => {
-      ws.send(
-        JSON.stringify({
-          common: { app_id: keys.appId },
-          business: {
-            sub: "ise",
-            ent: "cn_vip",
-            category: "read_sentence",
-            cmd: "ssb",
-            text: `\uFEFF${o.text}`,
-            tte: "utf-8",
-            ttp_skip: true,
-            aue: "raw",
-            auf: "audio/L16;rate=16000",
-            rstcd: "utf8",
-            group: "adult",
-            check_type: o.strictness
-          },
-          data: { status: 0 }
-        })
-      );
-      const frames = Math.max(1, Math.ceil(o.pcm.length / FRAME));
-      for (let i = 0; i < frames; i++) {
-        const last = i === frames - 1;
-        const chunk = o.pcm.subarray(i * FRAME, (i + 1) * FRAME);
-        ws.send(
-          JSON.stringify({
-            business: { cmd: "auw", aus: last ? 4 : i === 0 ? 1 : 2, aue: "raw" },
-            data: { status: last ? 2 : 1, data: Buffer.from(chunk).toString("base64") }
-          })
-        );
-        if (!last) await new Promise((r) => setTimeout(r, 20));
-      }
-    };
-    ws.onmessage = (e) => {
-      let msg;
-      try {
-        msg = JSON.parse(String(e.data));
-      } catch {
-        return;
-      }
-      if (msg.code && msg.code !== 0) {
-        const keysWrong = [10313, 10316, 11200, 10105, 10106, 10107].includes(msg.code) || /appid|auth|license|signature/i.test(msg.message ?? "");
-        fail(new EvaluatorRefused(`iFlytek: ${msg.message ?? "refused"} (${msg.code})`, keysWrong ? "keys" : "failed"));
-        return;
-      }
-      if (msg.data?.status === 2 && msg.data.data) {
-        clearTimeout(timer);
-        ws.close();
-        resolve(Buffer.from(msg.data.data, "base64").toString("utf8"));
-      }
-    };
-  });
-  return parseReport(xml);
-}
-function tree(xml) {
-  const root = { tag: "#root", attrs: {}, children: [] };
-  const stack = [root];
-  const tagRe = /<(\/?)([\w:-]+)([^>]*?)(\/?)>/g;
-  for (const m of xml.matchAll(tagRe)) {
-    const [, closing, tag, rest, selfClosing] = m;
-    if (closing) {
-      if (stack.length > 1) stack.pop();
-      continue;
-    }
-    const attrs = {};
-    for (const a of rest.matchAll(/([\w:-]+)="([^"]*)"/g)) attrs[a[1]] = a[2];
-    const node = { tag, attrs, children: [] };
-    stack[stack.length - 1].children.push(node);
-    if (!selfClosing) stack.push(node);
-  }
-  return root;
-}
-var all = (n, tag) => [...n.tag === tag ? [n] : [], ...n.children.flatMap((c) => all(c, tag))];
-var num = (v) => {
-  const n = Number(v);
-  return Number.isFinite(n) ? Math.round(n * 10) / 10 : 0;
-};
-var SAID = { "0": "ok", "16": "missed", "32": "added", "64": "repeated", "128": "replaced" };
-function parseReport(xml) {
-  const root = tree(xml);
-  const scored = all(root, "rec_paper").flatMap((p) => p.children)[0] ?? all(root, "read_sentence").find((n) => n.attrs.total_score) ?? root;
-  const sentence = all(scored, "sentence")[0] ?? scored;
-  const at = (k) => sentence.attrs[k] ?? scored.attrs[k];
-  const syllables = all(scored, "syll").filter((s) => (s.attrs.rec_node_type ?? "paper") === "paper" && s.attrs.content && !/^(sil|fil)$/.test(s.attrs.content)).map((s) => {
-    const phones = all(s, "phone");
-    const perr = (yun) => phones.filter((p) => p.attrs.is_yun === "1" === yun).map((p) => Number(p.attrs.perr_msg ?? 0));
-    const initials = perr(false);
-    const finals = perr(true);
-    return {
-      char: s.attrs.content,
-      symbol: s.attrs.symbol ?? "",
-      said: SAID[s.attrs.dp_message ?? "0"] ?? "ok",
-      initial: initials.some((p) => p !== 0),
-      final: finals.some((p) => p === 1 || p === 3),
-      tone: finals.some((p) => p === 2 || p === 3),
-      from: Number(s.attrs.beg_pos ?? 0) * 10,
-      to: Number(s.attrs.end_pos ?? 0) * 10
-    };
-  });
-  return {
-    by: "iflytek",
-    total: num(at("total_score")),
-    tone: num(at("tone_score")),
-    sounds: num(at("phone_score")),
-    fluency: num(at("fluency_score")),
-    completeness: num(at("integrity_score")),
-    rejected: (scored.attrs.is_rejected ?? sentence.attrs.is_rejected) === "true",
-    syllables
-  };
-}
 
 // server/src/application/speech-eval-service.ts
 var NAME = "speech-eval";
 var HAN = /\p{Script=Han}/u;
 function clean(raw) {
-  if (raw.provider === "speechsuper") {
-    const keys2 = { provider: raw.provider, appKey: raw.appKey.trim(), secretKey: raw.secretKey.trim() };
-    if (!/^\w{6,60}$/.test(keys2.appKey) || !/^\w{16,80}$/.test(keys2.secretKey)) {
-      throw new ValidationError("Those do not look like SpeechSuper keys: the appKey and the secretKey from the console.");
-    }
-    return keys2;
-  }
-  const keys = { provider: raw.provider, appId: raw.appId.trim(), apiKey: raw.apiKey.trim(), apiSecret: raw.apiSecret.trim() };
-  if (!/^\w{4,40}$/.test(keys.appId) || !/^\w{8,80}$/.test(keys.apiKey) || !/^[\w=+/-]{8,120}$/.test(keys.apiSecret)) {
-    throw new ValidationError("Those do not look like iFlytek keys: the APPID, the APIKey and the APISecret from the console.");
+  const keys = { provider: "speechsuper", appKey: raw.appKey.trim(), secretKey: raw.secretKey.trim() };
+  if (!/^\w{6,60}$/.test(keys.appKey) || !/^\w{16,80}$/.test(keys.secretKey)) {
+    throw new ValidationError("Those do not look like SpeechSuper keys: the appKey and the secretKey from the console.");
   }
   return keys;
 }
@@ -1973,7 +1873,6 @@ var SpeechEvalService = class {
       const k = JSON.parse(raw);
       const strictness = STRICTNESS.includes(k.strictness) ? k.strictness : "common";
       if (k.provider === "speechsuper" && k.appKey && k.secretKey) return { provider: "speechsuper", appKey: k.appKey, secretKey: k.secretKey, strictness };
-      if (k.provider === "iflytek" && k.appId && k.apiKey && k.apiSecret) return { provider: "iflytek", appId: k.appId, apiKey: k.apiKey, apiSecret: k.apiSecret, strictness };
       return null;
     } catch {
       return null;
@@ -1987,7 +1886,7 @@ var SpeechEvalService = class {
   }
   async status(userId) {
     const k = await this.kept(userId);
-    const hint = k ? `\u2026${(k.provider === "speechsuper" ? k.appKey : k.apiKey).slice(-4)}` : null;
+    const hint = k ? `\u2026${k.appKey.slice(-4)}` : null;
     const broken = k ? await this.broken.get(userId, NAME) : null;
     return { key: { set: Boolean(k), hint, provider: k?.provider ?? null, ...broken ? { broken } : {} }, strictness: k?.strictness ?? "common" };
   }
@@ -2168,7 +2067,7 @@ function wav(pcm) {
   head.writeUInt32LE(pcm.length, 40);
   return new Uint8Array(Buffer.concat([head, pcm]));
 }
-async function evaluate2(keys, o) {
+async function evaluate(keys, o) {
   const form = new FormData();
   form.append("text", JSON.stringify(requestOf(keys, o)));
   form.append("audio", new Blob([Buffer.from(wav(o.pcm))], { type: "audio/wav" }), "phrase.wav");
@@ -2192,7 +2091,10 @@ function parseAnswer(raw, strictness) {
   const a = raw ?? {};
   if (a.error || a.errId || !a.result) {
     const message = a.error ?? "no result";
-    const keys = /sig|appkey|application|auth|licen[cs]e|expire|quota|permission/i.test(message);
+    if (/expire/i.test(message)) {
+      throw new EvaluatorRefused(`SpeechSuper says the keys have expired (${message}${a.errId ? `, ${a.errId}` : ""}). Renew them in the SpeechSuper console, then paste them again in Settings.`, "keys");
+    }
+    const keys = /sig|appkey|application|auth|licen[cs]e|quota|permission/i.test(message);
     throw new EvaluatorRefused(`SpeechSuper: ${message}${a.errId ? ` (${a.errId})` : ""}`, keys ? "keys" : "failed");
   }
   const r = a.result;
@@ -2400,7 +2302,6 @@ var StorageQuota = class {
 // shared/usage.ts
 var USAGE_UNIT = {
   speechsuper: "seconds",
-  iflytek: "seconds",
   minimax: "characters"
 };
 
@@ -2423,7 +2324,7 @@ var UsageMeter = class {
     const today = dayOf2(this.deps.clock.now());
     const monthStart = `${today.slice(0, 8)}01`;
     const rows = await this.deps.usage.siteSince(monthStart);
-    const services = ["speechsuper", "iflytek", "minimax"];
+    const services = ["speechsuper", "minimax"];
     const sum = (list) => list.reduce((a, r) => ({ calls: a.calls + r.calls, units: a.units + r.units }), { calls: 0, units: 0 });
     const lines2 = services.map((service) => ({ service, today: sum(rows.filter((r) => r.service === service && r.day === today)), month: sum(rows.filter((r) => r.service === service)) })).filter((l) => l.month.calls > 0);
     const top = await this.deps.usage.topSince(monthStart, 10);
@@ -2706,7 +2607,7 @@ function createServices(stores, options = {}) {
     feedback: new FeedbackService({ feedback: stores.feedback, users: stores.users, clock, tokens: cryptoTokens }),
     catalog: new CatalogService({ catalog: stores.catalog, pictures: stores.pictures, adminLog: stores.adminLog, clock, tokens: cryptoTokens }),
     narration: new NarrationService({ secrets, narrators: stores.narrators, narrations: stores.narrations, ownTexts: stores.ownTexts, tokens: cryptoTokens, narrator: options.narrator === void 0 ? minimaxNarrator() : options.narrator, clock, meter: usage, quota }),
-    speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate: (k, o) => k.provider === "speechsuper" ? evaluate2(k, o) : evaluate(k, o) } : options.evaluator, clock, meter: usage, quota }),
+    speechEval: new SpeechEvalService({ secrets, attempts: stores.speechAttempts, evaluator: options.evaluator === void 0 ? { evaluate } : options.evaluator, clock, meter: usage, quota }),
     usage,
     limits: stores.limits,
     lookups: stores.lookups,
@@ -2997,7 +2898,6 @@ function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narration, 
     const [scoring, reading] = await Promise.all([speechEval.status(user), narration.status(user)]);
     const body = await usage.summary(user, {
       speechsuper: scoring.key.set && scoring.key.provider === "speechsuper",
-      iflytek: scoring.key.set && scoring.key.provider === "iflytek",
       minimax: reading.key.set
     });
     c.header("Cache-Control", "no-store");
@@ -3119,7 +3019,7 @@ var publishSchema = z3.object({
 });
 
 // server/src/http/routes/admin.ts
-var inviteRequest = z4.object({ note: z4.string().trim().max(120), days: z4.number().int().min(0).max(365) });
+var inviteRequest = z4.object({ note: z4.string().trim().max(120), days: z4.number().int().min(0).max(365), uses: z4.number().int().min(1).max(INVITE_MAX_USES).optional() });
 var logQuery = z4.object({
   action: z4.string().max(40).optional(),
   name: z4.string().max(200).optional(),
@@ -3187,7 +3087,7 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
     const user = (await auth.accounts()).find((a) => a.id === id);
     if (!user) return c.json({ error: { code: "not_found", message: "That account is not here." } }, 404);
     const row = (await auth.accountPage({ q: user.username, sort: "joined" })).rows.find((r) => r.id === id);
-    const invite = (await auth.invites()).find((i) => i.usedBy === user.username);
+    const invite = (await auth.invites()).find((i) => i.people.some((p) => p.username === user.username));
     const body = {
       account: row,
       invite: invite ? { note: invite.note, createdBy: invite.createdBy } : null,
@@ -3234,7 +3134,11 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
     await changes.consume(c.get("session").user.id);
     return c.json(await auth.signOutEverywhere(c.req.param("id"), actor(c)));
   });
-  const hideRequest = z4.object({ hidden: z4.boolean() });
+  const catalogChange = z4.union([
+    z4.object({ hidden: z4.boolean() }),
+    z4.object({ move: z4.enum(["earlier", "later"]) }),
+    z4.object({ level: z4.number().int().min(1).max(7) })
+  ]);
   routes.get("/catalog", session, admin, async (c) => {
     c.header("Cache-Control", "no-store");
     return c.json(await catalog.list(true));
@@ -3253,8 +3157,11 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
   });
   routes.patch("/catalog/:id", session, admin, fresh, async (c) => {
     await changes.consume(c.get("session").user.id);
-    const { hidden } = await readJson(c, hideRequest);
-    await catalog.setHidden(actor(c), c.req.param("id"), hidden);
+    const change = await readJson(c, catalogChange);
+    const id = c.req.param("id");
+    if ("hidden" in change) await catalog.setHidden(actor(c), id, change.hidden);
+    else if ("move" in change) await catalog.move(actor(c), id, change.move);
+    else await catalog.setLevel(actor(c), id, change.level);
     return c.body(null, 204);
   });
   routes.get("/dashboard", session, admin, async (c) => {
@@ -3306,11 +3213,11 @@ function adminRoutes({ auth, clock, trustProxy, ipHeader, log, limits, storage, 
   });
   routes.post("/invites", session, admin, fresh, async (c) => {
     await invites.consume(c.get("session").user.id);
-    const { note, days } = await readJson(c, inviteRequest);
-    const made = await auth.invite(note, days === 0 ? null : days, actor(c));
+    const { note, days, uses } = await readJson(c, inviteRequest);
+    const made = await auth.invite(note, days === 0 ? null : days, actor(c), uses ?? 1);
     auditor(audit, clock, trustProxy, ipHeader, log)(c, "invite", c.get("session").user.username);
     c.header("Cache-Control", "no-store");
-    return c.json({ code: made.code, expiresAt: made.expiresAt }, 201);
+    return c.json({ code: made.code, expiresAt: made.expiresAt, uses: made.uses }, 201);
   });
   return routes;
 }
@@ -3559,9 +3466,11 @@ function authRoutes({ auth, clock, trustProxy, ipHeader, devUser, devUserCreate,
 
 // server/src/http/routes/catalog.ts
 import { Hono as Hono5 } from "hono";
-function catalogRoutes({ auth, clock, trustProxy, catalog }) {
+import { z as z7 } from "zod";
+function catalogRoutes({ auth, clock, trustProxy, catalog, limits }) {
   const routes = new Hono5();
   const session = requireSession(auth, { trustProxy, clock });
+  const marks = new RateLimiter("catalog.readers", 60, 60 * 6e4, clock, limits);
   routes.get("/", session, async (c) => {
     c.header("Cache-Control", "private, max-age=60");
     return c.json(await catalog.list(c.get("session").user.role === "admin"));
@@ -3570,17 +3479,24 @@ function catalogRoutes({ auth, clock, trustProxy, catalog }) {
     c.header("Cache-Control", "private, max-age=60");
     return c.json(await catalog.get(c.req.param("id"), c.get("session").user.role === "admin"));
   });
+  routes.post("/:id/reader", session, async (c) => {
+    const user = c.get("session").user.id;
+    await marks.consume(user);
+    const { finished } = await readJson(c, z7.object({ finished: z7.boolean() }));
+    await catalog.markReader(user, c.req.param("id"), finished);
+    return c.body(null, 204);
+  });
   return routes;
 }
 
 // server/src/http/routes/feedback.ts
 import { Hono as Hono6 } from "hono";
-import { z as z7 } from "zod";
+import { z as z8 } from "zod";
 function feedbackRoutes({ auth, clock, trustProxy, feedback, limits }) {
   const routes = new Hono6();
   const session = requireSession(auth, { trustProxy, clock });
   const sends = new RateLimiter("feedback.sends", 10, 24 * 60 * 6e4, clock, limits);
-  const body = z7.object({ kind: z7.string().max(20), message: z7.string().max(FEEDBACK_MAX * 4), page: z7.string().max(2e3).default("/") });
+  const body = z8.object({ kind: z8.string().max(20), message: z8.string().max(FEEDBACK_MAX * 4), page: z8.string().max(2e3).default("/") });
   routes.post("/", session, async (c) => {
     const userId = c.get("session").user.id;
     await sends.consume(userId);
@@ -3605,15 +3521,15 @@ function siteRoutes({ auth, clock, trustProxy, site }) {
 
 // server/src/http/routes/activity.ts
 import { Hono as Hono8 } from "hono";
-import { z as z8 } from "zod";
+import { z as z9 } from "zod";
 function activityRoutes({ auth, clock, trustProxy, activity, limits }) {
   const routes = new Hono8();
   const session = requireSession(auth, { trustProxy, clock });
   const reports = new RateLimiter("activity.reports", 60, 60 * 6e4, clock, limits);
-  const count = z8.number().finite().min(0).max(1e6);
-  const body = z8.object({ day: z8.string().max(10), minutes: count, textsRead: count, answers: count, spoken: count, videos: count }).strict();
+  const count = z9.number().finite().min(0).max(1e6);
+  const body = z9.object({ day: z9.string().max(10), minutes: count, textsRead: count, answers: count, spoken: count, videos: count }).strict();
   const errorsSent = new RateLimiter("activity.errors", 20, 24 * 60 * 6e4, clock, limits);
-  const errorBody2 = z8.object({ message: z8.string().max(4e3), page: z8.string().max(2e3) }).strict();
+  const errorBody2 = z9.object({ message: z9.string().max(4e3), page: z9.string().max(2e3) }).strict();
   routes.post("/error", session, async (c) => {
     const userId = c.get("session").user.id;
     await errorsSent.consume(userId);
@@ -3631,31 +3547,31 @@ function activityRoutes({ auth, clock, trustProxy, activity, limits }) {
 
 // server/src/http/routes/narration.ts
 import { Hono as Hono9 } from "hono";
-import { z as z9 } from "zod";
-var keyRequest = z9.object({ key: z9.string().min(1).max(400) });
-var lines = z9.array(z9.string().max(240)).min(1).max(300);
-var textRequest = z9.object({ narrator: z9.string().min(1).max(80), lines, generate: z9.boolean().optional(), again: z9.boolean().optional(), speed: z9.number().min(0.5).max(2).optional() });
-var ofRequest = z9.object({ lines });
-var tryRequest = z9.object({ prompt: z9.string().trim().min(1).max(2e3), previewText: z9.string().trim().min(1).max(200), count: z9.number().int().min(1).max(3).optional() });
-var keepRequest = z9.object({ name: z9.string().trim().min(1).max(60), prompt: z9.string().trim().min(1).max(2e3), previewText: z9.string().trim().max(200), voiceId: z9.string().min(1).max(128) });
-var adoptRequest = z9.object({ name: z9.string().max(60), voice: z9.string().min(1).max(120) });
-var changeRequest = z9.object({
-  name: z9.string().trim().min(1).max(60).optional(),
-  speed: z9.number().min(0.5).max(2).optional(),
-  pitch: z9.number().min(-12).max(12).optional(),
-  emotion: z9.enum(EMOTIONS).nullable().optional()
+import { z as z10 } from "zod";
+var keyRequest = z10.object({ key: z10.string().min(1).max(400) });
+var lines = z10.array(z10.string().max(240)).min(1).max(300);
+var textRequest = z10.object({ narrator: z10.string().min(1).max(80), lines, generate: z10.boolean().optional(), again: z10.boolean().optional(), speed: z10.number().min(0.5).max(2).optional() });
+var ofRequest = z10.object({ lines });
+var tryRequest = z10.object({ prompt: z10.string().trim().min(1).max(2e3), previewText: z10.string().trim().min(1).max(200), count: z10.number().int().min(1).max(3).optional() });
+var keepRequest = z10.object({ name: z10.string().trim().min(1).max(60), prompt: z10.string().trim().min(1).max(2e3), previewText: z10.string().trim().max(200), voiceId: z10.string().min(1).max(128) });
+var adoptRequest = z10.object({ name: z10.string().max(60), voice: z10.string().min(1).max(120) });
+var changeRequest = z10.object({
+  name: z10.string().trim().min(1).max(60).optional(),
+  speed: z10.number().min(0.5).max(2).optional(),
+  pitch: z10.number().min(-12).max(12).optional(),
+  emotion: z10.enum(EMOTIONS).nullable().optional()
 });
-var ownRequest = z9.object({ title: z9.string().max(80), narrator: z9.string().min(1).max(80), lines });
-var ownChange = z9.object({ title: z9.string().max(80).optional(), textId: z9.string().min(1).max(80).nullable().optional() });
-var importRequest = z9.object({
-  narrator: z9.string().min(1).max(80),
+var ownRequest = z10.object({ title: z10.string().max(80), narrator: z10.string().min(1).max(80), lines });
+var ownChange = z10.object({ title: z10.string().max(80).optional(), textId: z10.string().min(1).max(80).nullable().optional() });
+var importRequest = z10.object({
+  narrator: z10.string().min(1).max(80),
   lines,
   // A chapter is a minute or two: a few MB of base64 at most.
-  mp3: z9.string().min(8).max(6e6),
-  durationMs: z9.number().int().min(1).max(30 * 6e4),
-  timings: z9.array(z9.tuple([z9.number().min(0), z9.number().min(0)])).min(1).max(300)
+  mp3: z10.string().min(8).max(6e6),
+  durationMs: z10.number().int().min(1).max(30 * 6e4),
+  timings: z10.array(z10.tuple([z10.number().min(0), z10.number().min(0)])).min(1).max(300)
 });
-var previewRequest = z9.object({ text: z9.string().max(200) });
+var previewRequest = z10.object({ text: z10.string().max(200) });
 var mp3 = (c, bytes) => {
   c.header("Content-Type", "audio/mpeg");
   c.header("Cache-Control", "no-store");
@@ -3764,33 +3680,30 @@ function narrationRoutes({ auth, clock, trustProxy, narration, limits, audit, ip
 
 // server/src/http/routes/speechEval.ts
 import { Hono as Hono10 } from "hono";
-import { z as z10 } from "zod";
-var keysRequest = z10.discriminatedUnion("provider", [
-  z10.object({ provider: z10.literal("speechsuper"), appKey: z10.string().min(1).max(80), secretKey: z10.string().min(1).max(120) }),
-  z10.object({ provider: z10.literal("iflytek"), appId: z10.string().min(1).max(60), apiKey: z10.string().min(1).max(120), apiSecret: z10.string().min(1).max(160) })
-]);
-var settingsRequest = z10.object({ strictness: z10.enum(STRICTNESS) });
-var sized = (max) => z10.unknown().refine((v) => v === void 0 || JSON.stringify(v).length <= max, "too large");
-var attemptsRequest = z10.object({
-  items: z10.array(
-    z10.object({
-      id: z10.string().min(1).max(120),
-      at: z10.number().int().nonnegative(),
-      kind: z10.enum(["phrase", "drill", "voice"]),
-      sourceId: z10.string().max(200).nullable().optional(),
-      text: z10.string().max(EVAL_MAX_CHARS * 4),
-      tally: z10.string().max(80).nullable().optional(),
-      good: z10.boolean(),
+import { z as z11 } from "zod";
+var keysRequest = z11.object({ provider: z11.literal("speechsuper"), appKey: z11.string().min(1).max(80), secretKey: z11.string().min(1).max(120) });
+var settingsRequest = z11.object({ strictness: z11.enum(STRICTNESS) });
+var sized = (max) => z11.unknown().refine((v) => v === void 0 || JSON.stringify(v).length <= max, "too large");
+var attemptsRequest = z11.object({
+  items: z11.array(
+    z11.object({
+      id: z11.string().min(1).max(120),
+      at: z11.number().int().nonnegative(),
+      kind: z11.enum(["phrase", "drill", "voice"]),
+      sourceId: z11.string().max(200).nullable().optional(),
+      text: z11.string().max(EVAL_MAX_CHARS * 4),
+      tally: z11.string().max(80).nullable().optional(),
+      good: z11.boolean(),
       summary: sized(16e3).optional(),
       result: sized(12e4).optional()
     })
   ).max(ATTEMPTS_PER_CALL)
 });
-var evalRequest = z10.object({
-  text: z10.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
-  pinyin: z10.array(z10.string().regex(PINYIN_SYLLABLE)).max(EVAL_MAX_CHARS).optional(),
+var evalRequest = z11.object({
+  text: z11.string().trim().min(1).max(EVAL_MAX_CHARS * 2),
+  pinyin: z11.array(z11.string().regex(PINYIN_SYLLABLE)).max(EVAL_MAX_CHARS).optional(),
   // base64 of up to EVAL_MAX_BYTES of PCM
-  audio: z10.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
+  audio: z11.string().min(1).max(Math.ceil(EVAL_MAX_BYTES * 4 / 3) + 8)
 });
 function speechEvalRoutes({ auth, clock, trustProxy, speechEval, limits, audit, ipHeader, log }) {
   const note = auditor(audit, clock, trustProxy, ipHeader, log);
@@ -3958,52 +3871,52 @@ function strokeRoutes({ auth, clock, trustProxy }) {
 
 // server/src/http/routes/talk.ts
 import { Hono as Hono14 } from "hono";
-import { z as z11 } from "zod";
-var talkOptions = z11.object({
-  level: z11.enum(TALK_LEVELS),
-  length: z11.enum(TALK_LENGTHS),
-  explain: z11.boolean(),
-  words: z11.boolean(),
-  hints: z11.boolean(),
+import { z as z12 } from "zod";
+var talkOptions = z12.object({
+  level: z12.enum(TALK_LEVELS),
+  length: z12.enum(TALK_LENGTHS),
+  explain: z12.boolean(),
+  words: z12.boolean(),
+  hints: z12.boolean(),
   // The learner's own words, and they go into a prompt: a topic the length
   // of an essay is a way of talking past everything above it.
-  topic: z11.string().trim().max(TALK_TOPIC_MAX_CHARS),
-  persona: z11.string().max(64).optional()
+  topic: z12.string().trim().max(TALK_TOPIC_MAX_CHARS),
+  persona: z12.string().max(64).optional()
 });
-var savedWord = z11.object({
-  hanzi: z11.string().max(TALK_LINE_MAX_CHARS),
-  pinyin: z11.string().max(TALK_LINE_MAX_CHARS * 2),
-  english: z11.string().max(TALK_LINE_MAX_CHARS)
+var savedWord = z12.object({
+  hanzi: z12.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z12.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z12.string().max(TALK_LINE_MAX_CHARS)
 });
-var savedTurn = z11.object({
-  who: z11.enum(["tutor", "learner"]),
-  hanzi: z11.string().max(TALK_LINE_MAX_CHARS),
-  pinyin: z11.string().max(TALK_LINE_MAX_CHARS * 2),
-  english: z11.string().max(TALK_LINE_MAX_CHARS * 2),
-  words: z11.array(savedWord).max(10).optional(),
-  hints: z11.array(savedWord).max(10).optional(),
-  note: z11.string().max(TALK_LINE_MAX_CHARS * 2).optional()
+var savedTurn = z12.object({
+  who: z12.enum(["tutor", "learner"]),
+  hanzi: z12.string().max(TALK_LINE_MAX_CHARS),
+  pinyin: z12.string().max(TALK_LINE_MAX_CHARS * 2),
+  english: z12.string().max(TALK_LINE_MAX_CHARS * 2),
+  words: z12.array(savedWord).max(10).optional(),
+  hints: z12.array(savedWord).max(10).optional(),
+  note: z12.string().max(TALK_LINE_MAX_CHARS * 2).optional()
 });
-var recordedRequest = z11.object({
-  voice: z11.string().min(1).max(64),
-  mode: z11.enum(TALK_MODES).optional(),
-  texts: z11.array(z11.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
+var recordedRequest = z12.object({
+  voice: z12.string().min(1).max(64),
+  mode: z12.enum(TALK_MODES).optional(),
+  texts: z12.array(z12.string().max(TALK_LINE_MAX_CHARS)).max(TALK_RECORDED_MAX)
 });
-var startRequest = z11.object({
+var startRequest = z12.object({
   options: talkOptions,
-  voice: z11.string().max(64).nullable()
+  voice: z12.string().max(64).nullable()
 });
-var saveRequest = z11.object({
+var saveRequest = z12.object({
   options: talkOptions,
-  voice: z11.string().max(64).nullable(),
-  turns: z11.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
+  voice: z12.string().max(64).nullable(),
+  turns: z12.array(savedTurn).max(TALK_SAVED_TURNS_MAX)
 });
-var replyRequest = z11.object({
-  lines: z11.array(z11.object({ who: z11.enum(["tutor", "learner"]), text: z11.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
+var replyRequest = z12.object({
+  lines: z12.array(z12.object({ who: z12.enum(["tutor", "learner"]), text: z12.string().trim().min(1).max(TALK_LINE_MAX_CHARS) })).max(TALK_MAX_LINES * 5),
   options: talkOptions,
-  vocab: z11.object({
-    known: z11.array(z11.string().max(12)).max(TALK_VOCAB_MAX.known),
-    learning: z11.array(z11.string().max(12)).max(TALK_VOCAB_MAX.learning)
+  vocab: z12.object({
+    known: z12.array(z12.string().max(12)).max(TALK_VOCAB_MAX.known),
+    learning: z12.array(z12.string().max(12)).max(TALK_VOCAB_MAX.learning)
   }).optional()
 });
 function talkRoutes({ auth, clock, trustProxy, tutor: anyTutor, tutorUsers, talkVoices, conversations, recordings, limits }) {
@@ -4293,10 +4206,10 @@ function videoRoutes({ auth, clock, trustProxy, log, limits, lookups: cache }) {
 // server/src/http/routes/workspace.ts
 import { Hono as Hono16 } from "hono";
 import { bodyLimit as bodyLimit3 } from "hono/body-limit";
-import { z as z12 } from "zod";
-var saveRequest2 = z12.object({
-  baseRevision: z12.number().int().min(0),
-  document: z12.record(z12.string(), z12.unknown())
+import { z as z13 } from "zod";
+var saveRequest2 = z13.object({
+  baseRevision: z13.number().int().min(0),
+  document: z13.record(z13.string(), z13.unknown())
 });
 function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
   const routes = new Hono16();
@@ -4339,16 +4252,16 @@ function workspaceRoutes({ auth, workspaces, clock, trustProxy }) {
 // server/src/http/routes/world.ts
 import { Hono as Hono17 } from "hono";
 import { bodyLimit as bodyLimit4 } from "hono/body-limit";
-import { z as z13 } from "zod";
+import { z as z14 } from "zod";
 
 // shared/world.ts
 var WORLD_SAVE_MAX_BYTES = 512 * 1024;
 var worldTag = (revision) => `"w${revision}"`;
 
 // server/src/http/routes/world.ts
-var putRequest = z13.object({
-  baseRevision: z13.number().int().min(0),
-  save: z13.record(z13.string(), z13.unknown())
+var putRequest = z14.object({
+  baseRevision: z14.number().int().min(0),
+  save: z14.record(z14.string(), z14.unknown())
 });
 function worldRoutes({ auth, world, clock, trustProxy }) {
   const routes = new Hono17();
@@ -4941,6 +4854,31 @@ var MIGRATIONS = [
     user_agent  TEXT
   );
   CREATE INDEX client_errors_by_time ON client_errors (at);
+  `,
+  // A8: an invitation for a group — good for up to N accounts — and who came by each.
+  `
+  ALTER TABLE invites ADD COLUMN max_uses INTEGER NOT NULL DEFAULT 1;
+  ALTER TABLE invites ADD COLUMN uses INTEGER NOT NULL DEFAULT 0;
+  UPDATE invites SET uses = 1 WHERE used_by IS NOT NULL;
+  CREATE TABLE invite_uses (
+    digest   TEXT NOT NULL,
+    user_id  TEXT NOT NULL,
+    used_at  BIGINT NOT NULL,
+    PRIMARY KEY (digest, user_id)
+  );
+  INSERT INTO invite_uses (digest, user_id, used_at) SELECT digest, used_by, used_at FROM invites WHERE used_by IS NOT NULL AND used_at IS NOT NULL;
+  `,
+  // A9: the library's books in the order an admin puts them (newest first until then), and who took and finished each.
+  `
+  ALTER TABLE catalog_books ADD COLUMN position BIGINT NOT NULL DEFAULT 0;
+  UPDATE catalog_books SET position = published_at;
+  CREATE TABLE catalog_readers (
+    book_id      TEXT NOT NULL REFERENCES catalog_books (id) ON DELETE CASCADE,
+    user_id      TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    taken_at     BIGINT NOT NULL,
+    finished_at  BIGINT,
+    PRIMARY KEY (book_id, user_id)
+  );
   `
 ];
 
@@ -5141,7 +5079,8 @@ var toCatalogBook = (r) => ({
   publishedBy: r.published_by,
   hiddenAt: r.hidden_at === null ? null : Number(r.hidden_at),
   texts: Number(r.texts),
-  chars: Number(r.chars)
+  chars: Number(r.chars),
+  position: Number(r.position ?? r.published_at)
 });
 var toCatalogText = (r) => ({
   id: r.id,
@@ -5149,7 +5088,7 @@ var toCatalogText = (r) => ({
   document: JSON.parse(r.document),
   chars: Number(r.chars)
 });
-var bookColumns = (b) => [b.id, b.title, b.titleZh, b.level, b.kind, b.blurb, b.source, b.licence, b.version, b.publishedAt, b.publishedBy, b.hiddenAt, b.texts, b.chars];
+var bookColumns = (b) => [b.id, b.title, b.titleZh, b.level, b.kind, b.blurb, b.source, b.licence, b.version, b.publishedAt, b.publishedBy, b.hiddenAt, b.texts, b.chars, b.position ?? b.publishedAt];
 
 // server/src/infrastructure/postgres/catalog-repository.ts
 var PostgresCatalogRepository = class {
@@ -5161,8 +5100,8 @@ var PostgresCatalogRepository = class {
     try {
       await client.query("BEGIN");
       await client.query(
-        `INSERT INTO catalog_books (id, title, title_zh, level, kind, blurb, source, licence, version, published_at, published_by, hidden_at, texts, chars)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        `INSERT INTO catalog_books (id, title, title_zh, level, kind, blurb, source, licence, version, published_at, published_by, hidden_at, texts, chars, position)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
          ON CONFLICT (id) DO UPDATE SET title = excluded.title, title_zh = excluded.title_zh, level = excluded.level, kind = excluded.kind,
            blurb = excluded.blurb, source = excluded.source, licence = excluded.licence, version = excluded.version,
            published_at = excluded.published_at, published_by = excluded.published_by, hidden_at = excluded.hidden_at,
@@ -5186,8 +5125,46 @@ var PostgresCatalogRepository = class {
     return (done.rowCount ?? 0) === 1;
   }
   async list(includeHidden) {
-    const { rows } = await this.db.query(`SELECT * FROM catalog_books ${includeHidden ? "" : "WHERE hidden_at IS NULL"} ORDER BY published_at DESC, id`);
+    const { rows } = await this.db.query(`SELECT * FROM catalog_books ${includeHidden ? "" : "WHERE hidden_at IS NULL"} ORDER BY position DESC, id`);
     return rows.map(toCatalogBook);
+  }
+  async move(id, way) {
+    const client = await this.db.connect();
+    try {
+      await client.query("BEGIN");
+      const { rows } = await client.query("SELECT id, position FROM catalog_books ORDER BY position DESC, id FOR UPDATE");
+      const at = rows.findIndex((b) => b.id === id);
+      const other = rows[way === "earlier" ? at - 1 : at + 1];
+      if (at < 0 || !other) {
+        await client.query("ROLLBACK");
+        return false;
+      }
+      const me = rows[at];
+      const [mine, theirs] = me.position === other.position ? [Number(other.position) + (way === "earlier" ? 1 : -1), Number(me.position)] : [Number(other.position), Number(me.position)];
+      await client.query("UPDATE catalog_books SET position = $1 WHERE id = $2", [mine, me.id]);
+      await client.query("UPDATE catalog_books SET position = $1 WHERE id = $2", [theirs, other.id]);
+      await client.query("COMMIT");
+      return true;
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+  async setLevel(id, level) {
+    const done = await this.db.query("UPDATE catalog_books SET level = $1 WHERE id = $2", [level, id]);
+    return (done.rowCount ?? 0) === 1;
+  }
+  async markReader(bookId, userId, at, finished) {
+    await this.db.query(
+      "INSERT INTO catalog_readers (book_id, user_id, taken_at, finished_at) VALUES ($1, $2, $3, $4) ON CONFLICT (book_id, user_id) DO UPDATE SET finished_at = COALESCE(catalog_readers.finished_at, excluded.finished_at)",
+      [bookId, userId, at, finished ? at : null]
+    );
+  }
+  async readers() {
+    const { rows } = await this.db.query("SELECT book_id, COUNT(*) AS took, COUNT(finished_at) AS finished FROM catalog_readers GROUP BY book_id");
+    return new Map(rows.map((r) => [r.book_id, { took: Number(r.took), finished: Number(r.finished) }]));
   }
   async find(id) {
     const { rows } = await this.db.query("SELECT * FROM catalog_books WHERE id = $1", [id]);
@@ -5693,7 +5670,7 @@ var PostgresUsageRepository = class {
 };
 
 // server/src/infrastructure/postgres/invite-repository.ts
-var toInvite = (r) => ({
+var toInvite = (r, usedByAll = []) => ({
   digest: r.digest,
   note: r.note,
   createdAt: Number(r.created_at),
@@ -5701,39 +5678,55 @@ var toInvite = (r) => ({
   usedBy: r.used_by,
   usedAt: r.used_at === null ? null : Number(r.used_at),
   revokedAt: r.revoked_at === null || r.revoked_at === void 0 ? null : Number(r.revoked_at),
-  createdBy: r.created_by ?? null
+  createdBy: r.created_by ?? null,
+  maxUses: Number(r.max_uses ?? 1),
+  uses: Number(r.uses ?? 0),
+  usedByAll
 });
 var PostgresInviteRepository = class {
   constructor(db) {
     this.db = db;
   }
   async insert(i) {
-    await this.db.query("INSERT INTO invites (digest, note, created_at, expires_at, used_by, used_at, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7)", [
+    await this.db.query("INSERT INTO invites (digest, note, created_at, expires_at, used_by, used_at, created_by, max_uses) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [
       i.digest,
       i.note,
       i.createdAt,
       i.expiresAt,
       i.usedBy,
       i.usedAt,
-      i.createdBy ?? null
+      i.createdBy ?? null,
+      i.maxUses ?? 1
     ]);
   }
   async claim(digest, userId, now) {
     const { rowCount } = await this.db.query(
-      "UPDATE invites SET used_by = $1, used_at = $2 WHERE digest = $3 AND used_by IS NULL AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > $2)",
+      "UPDATE invites SET uses = uses + 1, used_by = COALESCE(used_by, $1), used_at = COALESCE(used_at, $2) WHERE digest = $3 AND uses < max_uses AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > $2)",
       [userId, now, digest]
     );
-    return rowCount === 1;
+    if (rowCount !== 1) return false;
+    await this.db.query("INSERT INTO invite_uses (digest, user_id, used_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING", [digest, userId, now]);
+    return true;
   }
   async release(digest, userId) {
-    await this.db.query("UPDATE invites SET used_by = NULL, used_at = NULL WHERE digest = $1 AND used_by = $2", [digest, userId]);
+    const gone = await this.db.query("DELETE FROM invite_uses WHERE digest = $1 AND user_id = $2", [digest, userId]);
+    if (gone.rowCount !== 1) return;
+    await this.db.query(
+      "UPDATE invites SET uses = uses - 1, used_at = CASE WHEN used_by = $1 THEN NULL ELSE used_at END, used_by = CASE WHEN used_by = $1 THEN NULL ELSE used_by END WHERE digest = $2",
+      [userId, digest]
+    );
   }
   async list() {
-    const { rows } = await this.db.query("SELECT * FROM invites ORDER BY created_at");
-    return rows.map(toInvite);
+    const [{ rows }, uses] = await Promise.all([
+      this.db.query("SELECT * FROM invites ORDER BY created_at"),
+      this.db.query("SELECT digest, user_id, used_at FROM invite_uses ORDER BY used_at")
+    ]);
+    const by = /* @__PURE__ */ new Map();
+    for (const u of uses.rows) by.set(u.digest, [...by.get(u.digest) ?? [], { userId: u.user_id, at: Number(u.used_at) }]);
+    return rows.map((r) => toInvite(r, by.get(r.digest) ?? []));
   }
   async revoke(digest, at) {
-    const { rowCount } = await this.db.query("UPDATE invites SET revoked_at = $1 WHERE digest = $2 AND used_by IS NULL AND revoked_at IS NULL", [at, digest]);
+    const { rowCount } = await this.db.query("UPDATE invites SET revoked_at = $1 WHERE digest = $2 AND uses < max_uses AND revoked_at IS NULL", [at, digest]);
     return rowCount === 1;
   }
 };
@@ -5971,7 +5964,7 @@ var PostgresAccountDirectory = class {
     const total = await this.db.query("SELECT COUNT(*) AS n FROM users WHERE username_key LIKE $1", [like]);
     const { rows } = await this.db.query(
       `WITH s AS (SELECT user_id, COUNT(*) AS n, MAX(last_seen_at) AS seen FROM sessions WHERE expires_at > $1 GROUP BY user_id),
-      m AS (SELECT user_id, SUM(CASE WHEN service IN ('speechsuper', 'iflytek') THEN calls ELSE 0 END) AS scored, SUM(CASE WHEN service = 'minimax' THEN units ELSE 0 END) AS chars FROM api_usage WHERE day >= $2 GROUP BY user_id),
+      m AS (SELECT user_id, SUM(CASE WHEN service = 'speechsuper' THEN calls ELSE 0 END) AS scored, SUM(CASE WHEN service = 'minimax' THEN units ELSE 0 END) AS chars FROM api_usage WHERE day >= $2 GROUP BY user_id),
       r AS (SELECT user_id, SUM(b) AS bytes FROM (
       SELECT user_id, octet_length(document) AS b FROM workspaces
         UNION ALL SELECT user_id, octet_length(save) AS b FROM world_saves

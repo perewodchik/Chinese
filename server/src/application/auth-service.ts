@@ -1,4 +1,4 @@
-import type { AdminInvite } from '../../../shared/admin';
+import { INVITE_MAX_USES, type AdminInvite } from '../../../shared/admin';
 import { TOKEN_PREFIX, TOKEN_SCOPES, type AccessTokenDto, type SessionDto, type TokenScope, type UserDto } from '../../../shared/api';
 import {
   normaliseUsername,
@@ -102,6 +102,8 @@ export interface IssuedInvite {
   code: string;
   note: string;
   expiresAt: number | null;
+  /** how many accounts it makes: 1, or a group's N (A8) */
+  uses: number;
 }
 
 /** Letters and digits that cannot be read as one another: no 0/O, 1/I/L. */
@@ -205,14 +207,15 @@ export class AuthService {
     return this.issue(user, input.userAgent);
   }
 
-  /** For whoever runs the server: an invitation for one account, good for `days` (or for ever). */
-  async invite(note: string, days: number | null, actor: Actor): Promise<IssuedInvite> {
+  /** For whoever runs the server: an invitation for one account — or `uses` of them, for a group — good for `days` (or for ever). */
+  async invite(note: string, days: number | null, actor: Actor, uses = 1): Promise<IssuedInvite> {
+    if (!Number.isInteger(uses) || uses < 1 || uses > INVITE_MAX_USES) throw new ValidationError(`An invitation makes from 1 to ${INVITE_MAX_USES} accounts.`);
     const code = Array.from({ length: INVITE_LENGTH }, () => INVITE_ALPHABET[randomInt(INVITE_ALPHABET.length)]).join('');
     const now = this.deps.clock.now();
     const expiresAt = days === null ? null : now + days * DAY;
-    await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null, createdBy: actor.id });
-    await this.record(actor, 'invite-made', null, { note: note.trim().slice(0, 120), days });
-    return { code: code.match(/.{1,4}/g)!.join('-'), note, expiresAt };
+    await this.deps.invites.insert({ digest: this.deps.tokens.digest(code), note: note.trim().slice(0, 120), createdAt: now, expiresAt, usedBy: null, usedAt: null, createdBy: actor.id, maxUses: uses });
+    await this.record(actor, 'invite-made', null, { note: note.trim().slice(0, 120), days, ...(uses > 1 ? { uses } : {}) });
+    return { code: code.match(/.{1,4}/g)!.join('-'), note, expiresAt, uses };
   }
 
   /**
@@ -233,14 +236,17 @@ export class AuthService {
       usedAt: i.usedAt,
       revokedAt: i.revokedAt ?? null,
       createdBy: who(i.createdBy),
+      maxUses: i.maxUses ?? 1,
+      uses: i.uses ?? (i.usedBy ? 1 : 0),
+      people: (i.usedByAll?.length ? i.usedByAll : i.usedBy ? [{ userId: i.usedBy, at: i.usedAt ?? i.createdAt }] : []).map((u) => ({ username: who(u.userId)!, at: u.at })),
     }));
   }
 
-  /** A8: an invitation taken back before anyone used it; in the admins' log. */
+  /** A8: an invitation taken back while it could still make an account; in the admins' log. Accounts made by it stay. */
   async revokeInvite(id: string, actor: Actor): Promise<void> {
     const invite = (await this.deps.invites.list()).find((i) => i.digest === id);
     if (!invite) throw new NotFoundError('That invitation');
-    if (!(await this.deps.invites.revoke(id, this.deps.clock.now()))) throw new ValidationError(invite.usedBy ? 'That invitation has been used already.' : 'That invitation was taken back already.');
+    if (!(await this.deps.invites.revoke(id, this.deps.clock.now()))) throw new ValidationError(invite.revokedAt ? 'That invitation was taken back already.' : 'That invitation has been used already.');
     await this.record(actor, 'invite-revoked', null, { note: invite.note });
   }
 

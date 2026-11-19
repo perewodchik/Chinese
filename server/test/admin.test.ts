@@ -83,3 +83,34 @@ describe('taking an invitation back (A8)', () => {
   });
 });
 
+describe('an invitation for a group (A8)', () => {
+  it('makes as many accounts as it was made for, names who came, and can be taken back with uses left', async () => {
+    const { app, ownerCookie } = await setUp();
+    const overview = async () => (await (await call(app, 'GET', '/api/admin/overview', { cookie: ownerCookie })).json()) as AdminOverview;
+    assert.equal((await call(app, 'POST', '/api/admin/invites', { cookie: ownerCookie, body: { note: 'Class', days: 7, uses: 101 } })).status, 400);
+    const made = (await (await call(app, 'POST', '/api/admin/invites', { cookie: ownerCookie, body: { note: 'Class', days: 7, uses: 3 } })).json()) as { code: string; uses: number };
+    assert.equal(made.uses, 3);
+    const join = (name: string) => call(app, 'POST', '/api/auth/register', { body: { username: name, password: 'correct horse', invite: made.code } });
+    assert.equal((await join('masha')).status, 201);
+    assert.equal((await join('petya')).status, 201);
+    let group = (await overview()).invites.find((i) => i.note === 'Class')!;
+    assert.deepEqual([group.uses, group.maxUses, group.people.map((p) => p.username)], [2, 3, ['masha', 'petya']]);
+
+    // Taken back with a use left: the third cannot come, the two who did stay.
+    assert.equal((await call(app, 'POST', `/api/admin/invites/${group.id}/revoke`, { cookie: ownerCookie })).status, 204);
+    assert.equal((await join('vasya')).status, 400);
+    group = (await overview()).invites.find((i) => i.note === 'Class')!;
+    assert.deepEqual([group.uses, group.people.length, Boolean(group.revokedAt)], [2, 2, true]);
+    const card = (await (await call(app, 'GET', `/api/admin/accounts/${(await overview()).accounts.find((a) => a.username === 'petya')!.id}`, { cookie: ownerCookie })).json()) as { invite: { note: string } | null };
+    assert.equal(card.invite?.note, 'Class');
+    const log = (await (await call(app, 'GET', '/api/admin/log?action=invite-made', { cookie: ownerCookie })).json()) as { entries: Array<{ details: { uses?: number } }> };
+    assert.equal(log.entries[0]!.details.uses, 3);
+  });
+
+  it('gives its last use to one sign-up only', async () => {
+    const { app, ownerCookie } = await setUp();
+    const made = (await (await call(app, 'POST', '/api/admin/invites', { cookie: ownerCookie, body: { note: 'Two', days: 7, uses: 2 } })).json()) as { code: string };
+    const tries = await Promise.all(['a1', 'a2', 'a3'].map((n) => call(app, 'POST', '/api/auth/register', { body: { username: `user${n}`, password: 'correct horse', invite: made.code } })));
+    assert.deepEqual(tries.map((r) => r.status).sort(), [201, 201, 400]);
+  });
+});

@@ -18,6 +18,7 @@ import { lastReading } from '../shared/lastRead';
 import '../pinyin/phrases.css';
 import './speak.css';
 import { accountKey } from '../../platform/accountStorage';
+import { stored } from '../../platform/storage';
 
 /** Where the learner stopped: a source and a line, to carry on from. */
 const LAST = 'hanzi.phrases.last';
@@ -27,14 +28,14 @@ interface Last {
 }
 const loadLast = (): Last | null => {
   try {
-    return JSON.parse(localStorage.getItem(accountKey(LAST)) ?? 'null') as Last | null;
+    return JSON.parse(stored.get(accountKey(LAST)) ?? 'null') as Last | null;
   } catch {
     return null;
   }
 };
 const keepLast = (l: Last) => {
   try {
-    localStorage.setItem(accountKey(LAST), JSON.stringify(l));
+    stored.set(accountKey(LAST), JSON.stringify(l));
   } catch {
     // kept for this visit only
   }

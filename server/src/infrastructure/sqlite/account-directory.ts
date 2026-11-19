@@ -22,7 +22,7 @@ export class SqliteAccountDirectory implements AccountDirectory {
     const rows = this.db
       .prepare(
         `WITH s AS (SELECT user_id, COUNT(*) AS n, MAX(last_seen_at) AS seen FROM sessions WHERE expires_at > ? GROUP BY user_id),
-        m AS (SELECT user_id, SUM(CASE WHEN service IN ('speechsuper', 'iflytek') THEN calls ELSE 0 END) AS scored, SUM(CASE WHEN service = 'minimax' THEN units ELSE 0 END) AS chars FROM api_usage WHERE day >= ? GROUP BY user_id),
+        m AS (SELECT user_id, SUM(CASE WHEN service = 'speechsuper' THEN calls ELSE 0 END) AS scored, SUM(CASE WHEN service = 'minimax' THEN units ELSE 0 END) AS chars FROM api_usage WHERE day >= ? GROUP BY user_id),
         r AS (SELECT user_id, SUM(b) AS bytes FROM (
         SELECT user_id, length(CAST(document AS BLOB)) AS b FROM workspaces
         UNION ALL SELECT user_id, length(CAST(save AS BLOB)) AS b FROM world_saves

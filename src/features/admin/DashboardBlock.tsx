@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import type { Dashboard } from '../../../shared/activity';
 import { request } from '../../api/http';
+import { isSpeakSectionEnabled } from '../../navigation/features';
 
 const pct = (n: number | null, of: number) => (n === null ? '—' : of ? `${n} (${Math.round((n / of) * 100)}%)` : '0');
 const weekOf = (day: string) => new Date(`${day}T00:00:00Z`).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 
 /**
  * Whether the site is used (A7), at the top of the admin page: who was here
- * today, this week and this month, who came back, what they use, and how
- * each of the last six weeks' newcomers stayed — numbers, no charts.
+ * today, this week and this month, who came back, what they use, how far the
+ * last month's newcomers got, and how each of the last six weeks' newcomers
+ * stayed — numbers, no charts.
  *
  * States: loading (the same shape, with dashes); the numbers.
  */
@@ -42,7 +44,14 @@ export function DashboardBlock() {
         </span>
       </div>
       <p className="small muted admin-dash-line">
-        {d.returned} came back this week from before it. Of this week’s {week}: {d.uses.reading} read, {d.uses.cards} did cards, {d.uses.speaking} spoke, {d.uses.videos} watched.
+        {d.returned} came back this week from before it. Of this week’s {week}: {d.uses.reading} read, {d.uses.cards} did cards, {isSpeakSectionEnabled ? `${d.uses.speaking} spoke, ` : ''}
+        {d.uses.videos} watched.
+      </p>
+      {/* A7: where newcomers stop — each step those who got that far. */}
+      <p className="small muted admin-dash-line">
+        {d.funnel.joined
+          ? `Of the ${d.funnel.joined} who joined in 30 days: ${d.funnel.worked} did something, ${d.funnel.read} read a text, ${d.funnel.answered} answered a card, ${d.funnel.cameBack} came back on another day.`
+          : 'Nobody joined in the last 30 days.'}
       </p>
       <table className="admin-cohorts">
         <thead>
@@ -83,6 +92,7 @@ function DashboardShape() {
         ))}
       </div>
       <p className="small muted admin-dash-line">&nbsp;<br />&nbsp;</p>
+      <p className="small muted admin-dash-line">&nbsp;</p>
       <table className="admin-cohorts">
         <thead>
           <tr>

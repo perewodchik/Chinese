@@ -242,7 +242,7 @@ function Keys() {
             : 'No scoring yet. Every line is heard, said and played back without a key; a key adds the scores, and is yours to pay for.'}
       </p>
       <div id="speechsuper">
-        <PronunciationKey onChange={(st) => setScoring(st.key.set ? (st.key.provider === 'iflytek' ? 'iFlytek' : 'SpeechSuper') : '')} />
+        <PronunciationKey onChange={(st) => setScoring(st.key.set ? 'SpeechSuper' : '')} />
       </div>
         </>
       )}

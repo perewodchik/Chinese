@@ -2,6 +2,7 @@ import { logSpoken } from '../../store/commands';
 import { useSyncExternalStore } from 'react';
 import type { EvalResult } from '../../../shared/speechEval';
 import { attemptId, keepTry, loadHistory } from './speechHistory';
+import { stored } from '../../platform/storage';
 
 /**
  * What the pronunciation section remembers: how each tone, tone pair and
@@ -32,7 +33,7 @@ const RECENT = 10;
 
 function read(): Saved {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = stored.get(KEY);
     if (raw) {
       const v = JSON.parse(raw) as Partial<Saved>;
       return { tallies: v.tallies ?? {} };
@@ -49,7 +50,7 @@ const listeners = new Set<() => void>();
 function write(next: Saved) {
   state = next;
   try {
-    localStorage.setItem(KEY, JSON.stringify(next));
+    stored.set(KEY, JSON.stringify(next));
   } catch {
     // Private browsing, or storage full: it works for this sitting anyway.
   }

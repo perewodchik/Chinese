@@ -259,6 +259,7 @@ export interface TextNarrationRepository {
   find(key: string): Promise<TextNarration | null>;
   /** what is kept under these keys, without the audio */
   have(keys: readonly string[]): Promise<Array<Omit<TextNarration, 'mp3'>>>;
+  /** keeps it, in place of a reading kept under the same key: a text read again */
   save(n: TextNarration): Promise<void>;
 }
 
@@ -371,19 +372,24 @@ export interface Invite {
   /** A8: taken back before it was used; and the account that made it */
   revokedAt?: number | null;
   createdBy?: string | null;
+  /** A8: how many accounts it may make (1 unless made for a group), how many it has, and whose, oldest first */
+  maxUses?: number;
+  uses?: number;
+  usedByAll?: Array<{ userId: string; at: number }>;
 }
 
 export interface InviteRepository {
   insert(invite: Invite): Promise<void>;
   /**
-   * Takes the invitation for `userId` if it is unused and not out of date,
-   * in one statement, so two sign-ups with one code cannot both have it.
+   * Takes one of the invitation's uses for `userId` if one is left and it is
+   * not out of date, in one statement, so two sign-ups with the last use of a
+   * code cannot both have it.
    */
   claim(digest: string, userId: string, now: number): Promise<boolean>;
   /** Gives back a claim whose account could not be made after all. */
   release(digest: string, userId: string): Promise<void>;
   list(): Promise<Invite[]>;
-  /** A8: takes back an invitation not used yet; false when it was used, taken back already, or is not there. */
+  /** A8: takes back an invitation with uses left; false when they are all used, it was taken back already, or is not there. */
   revoke(digest: string, at: number): Promise<boolean>;
 }
 
@@ -602,6 +608,14 @@ export interface CatalogBookRecord extends CatalogBookMeta {
   hiddenAt: number | null;
   texts: number;
   chars: number;
+  /** A9: where it stands in the library, the highest first; set when first published, kept by new versions */
+  position?: number;
+}
+
+/** A9: how many learners took a book of the catalogue, and how many read every text of it. */
+export interface CatalogReaders {
+  took: number;
+  finished: number;
 }
 
 /** A catalogue text as kept: the text itself, in its book's reading order. */
@@ -618,8 +632,16 @@ export interface CatalogRepository {
   save(book: CatalogBookRecord, texts: CatalogTextRecord[]): Promise<void>;
   /** False when there is no such book. */
   setHidden(id: string, hiddenAt: number | null): Promise<boolean>;
-  /** The newest first; hidden ones only when asked. */
+  /** In the library's order (the highest position first); hidden ones only when asked. */
   list(includeHidden: boolean): Promise<CatalogBookRecord[]>;
+  /** A9: the book swapped with the one before it or after it, hidden ones counted; false at the end or when it is not there. */
+  move(id: string, way: 'earlier' | 'later'): Promise<boolean>;
+  /** A9: the band it is for. False when there is no such book. */
+  setLevel(id: string, level: number): Promise<boolean>;
+  /** A9: a learner took the book, or has read all of it; the first time of each is kept. */
+  markReader(bookId: string, userId: string, at: number, finished: boolean): Promise<void>;
+  /** A9: each book's takers and finishers, by book id. */
+  readers(): Promise<Map<string, CatalogReaders>>;
   find(id: string): Promise<CatalogBookRecord | null>;
   texts(bookId: string): Promise<CatalogTextRecord[]>;
   /** Keeps a picture under its key; one already kept stays. */

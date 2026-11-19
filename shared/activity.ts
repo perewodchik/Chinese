@@ -26,4 +26,11 @@ export interface Dashboard {
   uses: { reading: number; cards: number; speaking: number; videos: number };
   /** the last six weeks of new accounts, and how many of each worked in their 2nd, 3rd and 5th week */
   cohorts: Array<{ week: string; joined: number; week1: number | null; week2: number | null; week4: number | null }>;
+  /**
+   * A7: the accounts made in the last 30 days, and how far each got — did
+   * anything, read a text, answered a card, came back on a later day — so the
+   * admin page shows where newcomers stop. Each step counts those who did it,
+   * whatever they did before it.
+   */
+  funnel: { joined: number; worked: number; read: number; answered: number; cameBack: number };
 }

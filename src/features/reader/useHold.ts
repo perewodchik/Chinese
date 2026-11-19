@@ -6,12 +6,12 @@ const HOLD_MS = 450;
 const SLOP = 10;
 
 /**
- * A press held on a sentence, for its English: a tap on a word still opens
+ * A press held on a sentence, for its card (its English, Copy): a tap on a word still opens
  * the word, and a finger that moves is scrolling. Once a hold has fired, the
  * tap that ends it is swallowed, so the word under the finger does not open
  * as well, and on iOS the callout does not come up.
  */
-export function useHold(onHold: (i: number) => void) {
+export function useHold(onHold: (i: number, el: HTMLElement) => void) {
   const timer = useRef(0);
   const fired = useRef(false);
   const from = useRef<{ x: number; y: number } | null>(null);
@@ -25,11 +25,12 @@ export function useHold(onHold: (i: number) => void) {
       if (e.button !== 0) return;
       fired.current = false;
       from.current = { x: e.clientX, y: e.clientY };
+      const el = e.currentTarget as HTMLElement;
       window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => {
         fired.current = true;
         from.current = null;
-        onHold(i);
+        onHold(i, el);
       }, HOLD_MS);
     },
     onPointerMove: (e: PointerEvent) => {

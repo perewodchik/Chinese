@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { stored as storage } from '../../platform/storage';
 
 /**
  * How a text is shown, chosen with the two buttons beside Listen — kept on
@@ -22,7 +23,8 @@ export type TranslationMode = 'hidden' | 'shown';
 export type PictureMode = 'off' | 'beside' | 'large';
 
 export const PINYIN_MODES: PinyinMode[] = ['off', 'new', 'all'];
-export const PICTURE_MODES: PictureMode[] = ['off', 'beside', 'large'];
+/** Large is not offered: a picture across the whole column outweighed its paragraph. A comic's page photo is still shown large. */
+export const PICTURE_MODES: PictureMode[] = ['off', 'beside'];
 export const PICTURE_LABEL: Record<PictureMode, string> = { off: 'Off', beside: 'Beside', large: 'Large' };
 export const TRANSLATION_MODES: TranslationMode[] = ['hidden', 'shown'];
 
@@ -31,7 +33,7 @@ export const TRANSLATION_LABEL: Record<TranslationMode, string> = { hidden: 'Off
 
 function stored<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
   try {
-    const v = localStorage.getItem(key);
+    const v = storage.get(key);
     return v && (allowed as readonly string[]).includes(v) ? (v as T) : fallback;
   } catch {
     return fallback;
@@ -52,7 +54,7 @@ function useStoredChoice<T extends string>(key: string, allowed: readonly T[], f
     (v: T) => {
       setValue(v);
       try {
-        localStorage.setItem(key, v);
+        storage.set(key, v);
       } catch {
         // private browsing: it holds for this visit
       }
@@ -84,7 +86,18 @@ export const PAPER_LABEL: Record<PaperMode, string> = { paper: 'Paper', sepia: '
 export const PAPER_HAN: Record<PaperMode, string> = { paper: '纸', sepia: '旧', night: '夜' };
 export const usePaperMode = () => useStoredChoice<PaperMode>('hanzi.reader.paper', PAPER_MODES, 'paper');
 
-/** New words glossed beside their paragraph (under it where the page is narrow): on unless turned off. */
+/**
+ * New words glossed beside their paragraph (under it where the page is
+ * narrow): off unless turned on in Aa. Under every paragraph the list read as
+ * a second text and buried the first; a new word is marked in the text, a tap
+ * gives its card, and the Words tab has them all. A new key, so a page that
+ * had it on by the old default starts with it off.
+ */
 export type GlossMode = 'on' | 'off';
 const GLOSS_MODES: GlossMode[] = ['on', 'off'];
-export const useGlossMode = () => useStoredChoice<GlossMode>('hanzi.reader.glosses', GLOSS_MODES, 'on');
+export const useGlossMode = () => useStoredChoice<GlossMode>('hanzi.reader.newWordGlosses', GLOSS_MODES, 'off');
+
+/** The book dressed as itself (Aa › Book style), for a book that has a look of its own: off unless turned on. */
+export type BookStyleMode = 'on' | 'off';
+const BOOK_STYLE_MODES: BookStyleMode[] = ['on', 'off'];
+export const useBookStyleMode = () => useStoredChoice<BookStyleMode>('hanzi.reader.bookStyle', BOOK_STYLE_MODES, 'off');

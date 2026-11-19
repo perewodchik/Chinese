@@ -8,6 +8,7 @@ import type {
   TriedVoicesResponse,
 } from '../../shared/narration';
 import { request } from './http';
+import { stored } from '../platform/storage';
 
 export const narrationStatus = () => request<NarrationStatus>('GET', '/api/narration');
 export const saveNarrationKey = (key: string) => request<NarrationStatus>('PUT', '/api/narration/key', { body: { key } });
@@ -103,14 +104,14 @@ export function narrationAudio(n: TextNarrationDto): Promise<string> {
 const CHOSEN = 'hanzi.narrator';
 export function chosenNarrator(): string | null {
   try {
-    return localStorage.getItem(CHOSEN);
+    return stored.get(CHOSEN);
   } catch {
     return null;
   }
 }
 export function chooseNarrator(id: string) {
   try {
-    localStorage.setItem(CHOSEN, id);
+    stored.set(CHOSEN, id);
   } catch {
     // forgotten between visits, that is all
   }

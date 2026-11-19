@@ -7,7 +7,8 @@
  *   GET   /api/admin/catalog           → CatalogBook[], hidden ones too
  *   POST  /api/admin/catalog           PublishCatalogRequest → PublishCatalogResponse
  *   PUT   /api/admin/catalog/:id       PublishCatalogRequest → PublishCatalogResponse (a new version)
- *   PATCH /api/admin/catalog/:id       { hidden } → 204
+ *   PATCH /api/admin/catalog/:id       { hidden } | { move: 'earlier'|'later' } | { level } → 204 (A9)
+ *   POST  /api/catalog/:id/reader      { finished } → 204: this learner took it (false) or read all of it (true)
  *
  * A text in the catalogue is a text as the reader shows it, without anyone's
  * progress: no reads, no study, no endings reached.
@@ -44,6 +45,8 @@ export interface CatalogBook extends CatalogBookMeta {
   chars: number;
   /** only in the admin's list */
   hidden?: boolean;
+  /** A9, only in the admin's list: how many learners took it, and how many read every text of it */
+  readers?: { took: number; finished: number };
 }
 
 /** A catalogue text: the fields of a GeneratedText that are the text itself (src/domain/text.ts). */

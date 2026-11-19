@@ -17,14 +17,14 @@ import {
   type Strictness,
 } from '../../../shared/speechEval';
 import { AppError, NotFoundError, ValidationError } from '../domain/errors';
-import { EvaluatorRefused } from '../infrastructure/iflytek';
+import { EvaluatorRefused } from '../infrastructure/evaluator-refused';
 import type { Clock, SecretRepository, SpeechAttemptRepository } from './ports';
 import type { StorageQuota } from './storage-quota';
 import type { UsageMeter } from './usage-service';
 
 const NAME = 'speech-eval';
 
-/** Scores a recording of a text: SpeechSuper or iFlytek, by whose keys they are, or a stand-in in the tests. */
+/** Scores a recording of a text: SpeechSuper, or a stand-in in the tests. */
 export interface Evaluator {
   evaluate(keys: EvalKeys, o: { text: string; pinyin?: string[]; pcm: Uint8Array; strictness: Strictness }): Promise<EvalResult>;
 }
@@ -35,23 +35,16 @@ const HAN = /\p{Script=Han}/u;
 
 /** Keys trimmed and checked for their shape, or a message saying what they should be. */
 function clean(raw: EvalKeys): EvalKeys {
-  if (raw.provider === 'speechsuper') {
-    const keys = { provider: raw.provider, appKey: raw.appKey.trim(), secretKey: raw.secretKey.trim() };
-    if (!/^\w{6,60}$/.test(keys.appKey) || !/^\w{16,80}$/.test(keys.secretKey)) {
-      throw new ValidationError('Those do not look like SpeechSuper keys: the appKey and the secretKey from the console.');
-    }
-    return keys;
-  }
-  const keys = { provider: raw.provider, appId: raw.appId.trim(), apiKey: raw.apiKey.trim(), apiSecret: raw.apiSecret.trim() };
-  if (!/^\w{4,40}$/.test(keys.appId) || !/^\w{8,80}$/.test(keys.apiKey) || !/^[\w=+/-]{8,120}$/.test(keys.apiSecret)) {
-    throw new ValidationError('Those do not look like iFlytek keys: the APPID, the APIKey and the APISecret from the console.');
+  const keys: EvalKeys = { provider: 'speechsuper', appKey: raw.appKey.trim(), secretKey: raw.secretKey.trim() };
+  if (!/^\w{6,60}$/.test(keys.appKey) || !/^\w{16,80}$/.test(keys.secretKey)) {
+    throw new ValidationError('Those do not look like SpeechSuper keys: the appKey and the secretKey from the console.');
   }
   return keys;
 }
 
 /**
- * Phrases said aloud and scored with the learner's own keys — SpeechSuper's
- * or iFlytek's, whichever were saved last.
+ * Phrases said aloud and scored with the learner's own SpeechSuper keys.
+ * Keys of another service saved before (iFlytek, gone) read as none.
  *
  * The keys are the learner's and cost them money: kept on the server, tried
  * before they are kept, never sent back to a page — only the end of the app
@@ -67,7 +60,6 @@ export class SpeechEvalService {
       const k = JSON.parse(raw) as Partial<Kept> & Record<string, string>;
       const strictness = STRICTNESS.includes(k.strictness as Strictness) ? (k.strictness as Strictness) : 'common';
       if (k.provider === 'speechsuper' && k.appKey && k.secretKey) return { provider: 'speechsuper', appKey: k.appKey, secretKey: k.secretKey, strictness };
-      if (k.provider === 'iflytek' && k.appId && k.apiKey && k.apiSecret) return { provider: 'iflytek', appId: k.appId, apiKey: k.apiKey, apiSecret: k.apiSecret, strictness };
       return null;
     } catch {
       return null;
@@ -84,7 +76,7 @@ export class SpeechEvalService {
 
   async status(userId: string): Promise<EvalStatus> {
     const k = await this.kept(userId);
-    const hint = k ? `…${(k.provider === 'speechsuper' ? k.appKey : k.apiKey).slice(-4)}` : null;
+    const hint = k ? `…${k.appKey.slice(-4)}` : null;
     const broken = k ? await this.broken.get(userId, NAME) : null;
     return { key: { set: Boolean(k), hint, provider: k?.provider ?? null, ...(broken ? { broken } : {}) }, strictness: k?.strictness ?? 'common' };
   }

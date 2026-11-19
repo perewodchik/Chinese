@@ -80,7 +80,6 @@ export function accountRoutes({ auth, clock, trustProxy, usage, speechEval, narr
     const [scoring, reading] = await Promise.all([speechEval.status(user), narration.status(user)]);
     const body: UsageResponse = await usage.summary(user, {
       speechsuper: scoring.key.set && scoring.key.provider === 'speechsuper',
-      iflytek: scoring.key.set && scoring.key.provider === 'iflytek',
       minimax: reading.key.set,
     });
     c.header('Cache-Control', 'no-store');

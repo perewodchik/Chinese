@@ -235,6 +235,9 @@ out/Say it/Listen again.
 плане), и новая выключена по умолчанию (`src/store/state.ts:120`).
 
 <a id="v9"></a>
+**V9–V13 сняты владельцем 2026-11-18: Speak больше нет** (раздел выключен,
+`isSpeakSectionEnabled` в `src/navigation/features.ts`).
+
 ### V9 (В) Одна версия Speak
 
 Включить новую (`speakV2`) всем, удалить старую и переключатель: шаги — в

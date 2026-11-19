@@ -14,7 +14,7 @@ import { banner } from './lan';
  *   npm run admin -- reset-password <name>
  *   npm run admin -- grant-admin <name> | revoke-admin <name>
  *   npm run admin -- block <name> | unblock <name>
- *   npm run admin -- invite [note] [--days 14]
+ *   npm run admin -- invite [note] [--days 14] [--uses 1]
  *   npm run admin -- invites
  *   npm run admin -- backup [file]
  *   npm run admin -- address [port]
@@ -37,7 +37,7 @@ const USAGE = `
   npm run admin -- revoke-admin <name>     make it a learner again; never the last one
   npm run admin -- block <name>            pause an account: signed out everywhere, its tokens stopped
   npm run admin -- unblock <name>          open a paused account again
-  npm run admin -- invite [note] [--days N] an invitation for one new account (14 days; --days 0 for no end)
+  npm run admin -- invite [note] [--days N] [--uses N]  an invitation for one new account, or N (14 days; --days 0 for no end)
   npm run admin -- invites                 the invitations given out, and who used them
   npm run admin -- backup [file]           copy the database, safely, even while the server runs
   npm run admin -- address [port]          print the address a tablet should open
@@ -83,12 +83,17 @@ try {
       const at = args.indexOf('--days');
       const days = at >= 0 ? Number(args[at + 1]) : 14;
       if (!Number.isInteger(days) || days < 0) throw new Error(`--days is a whole number of days.\n${USAGE}`);
-      const note = args.filter((_, i) => at < 0 || (i !== at && i !== at + 1)).join(' ');
-      const made = await withServices(({ auth }) => auth.invite(note, days === 0 ? null : days, SERVER_COMMAND));
+      const usesAt = args.indexOf('--uses');
+      const uses = usesAt >= 0 ? Number(args[usesAt + 1]) : 1;
+      if (!Number.isInteger(uses) || uses < 1) throw new Error(`--uses is how many accounts it makes, 1 or more.\n${USAGE}`);
+      const flags = [at, usesAt].filter((i) => i >= 0).flatMap((i) => [i, i + 1]);
+      const note = args.filter((_, i) => !flags.includes(i)).join(' ');
+      const made = await withServices(({ auth }) => auth.invite(note, days === 0 ? null : days, SERVER_COMMAND, uses));
       const site = process.env.HANZI_SITE_URL?.replace(/\/$/, '') ?? 'https://chinese-inky.vercel.app';
       console.log(`\n  Invitation${note ? ` for ${note}` : ''}:  ${made.code}`);
       console.log(`  The link to send:  ${site}/register?invite=${made.code}`);
-      console.log(made.expiresAt ? `  Good for one account until ${new Date(made.expiresAt).toLocaleDateString()}.\n` : '  Good for one account, with no end date.\n');
+      const many = made.uses > 1 ? `${made.uses} accounts` : 'one account';
+      console.log(made.expiresAt ? `  Good for ${many} until ${new Date(made.expiresAt).toLocaleDateString()}.\n` : `  Good for ${many}, with no end date.\n`);
       break;
     }
 
@@ -97,7 +102,9 @@ try {
       if (!list.length) console.log('\n  No invitations given out yet.\n');
       const now = Date.now();
       for (const i of list) {
-        const state = i.usedBy ? `used by ${i.usedBy} on ${new Date(i.usedAt!).toLocaleDateString()}` : i.expiresAt && i.expiresAt <= now ? 'ran out unused' : 'not used yet';
+        const who = i.people.map((p) => p.username).join(', ');
+        const used = i.maxUses > 1 ? `${i.uses} of ${i.maxUses} used${who ? `: ${who}` : ''}` : `used by ${who} on ${new Date(i.usedAt!).toLocaleDateString()}`;
+        const state = i.uses > 0 ? used : i.expiresAt && i.expiresAt <= now ? 'ran out unused' : 'not used yet';
         console.log(`  ${new Date(i.createdAt).toLocaleDateString().padEnd(12)} ${(i.note || '—').padEnd(24)} ${state}`);
       }
       break;

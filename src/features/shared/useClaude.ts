@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AskKind } from '../../../shared/ask';
 import type { ClaudeState } from '../../../shared/talk';
 import { askClaude, askStatus } from '../../api/ask';
+import { stored } from '../../platform/storage';
 
 /**
  * Whether this server can ask Claude for us, and the asking.
@@ -36,7 +37,7 @@ const HERE = 'hanzi.claude.here';
 export function useClaudeHere(): boolean {
   const [here, setHere] = useState(() => {
     try {
-      return localStorage.getItem(HERE) !== '0';
+      return stored.get(HERE) !== '0';
     } catch {
       return true;
     }
@@ -46,7 +47,7 @@ export function useClaudeHere(): boolean {
     void claudeState().then((s) => {
       const yes = s !== 'missing';
       try {
-        localStorage.setItem(HERE, yes ? '1' : '0');
+        stored.set(HERE, yes ? '1' : '0');
       } catch {
         // remembered for this visit only
       }

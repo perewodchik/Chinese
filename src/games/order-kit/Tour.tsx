@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import type { Brand } from './types';
 import { useHelp } from './help';
 import { glossFor } from './gloss';
+import { stored } from '../../platform/storage';
 
 /**
  * The first-visit tour: numbered coach marks over the real menu screen,
@@ -13,7 +14,7 @@ const seenKey = (brand: Brand) => `hanzi-workshop/order-tour/${brand.id}`;
 
 export function tourSeen(brand: Brand): boolean {
   try {
-    return localStorage.getItem(seenKey(brand)) === '1';
+    return stored.get(seenKey(brand)) === '1';
   } catch {
     return false;
   }
@@ -21,7 +22,7 @@ export function tourSeen(brand: Brand): boolean {
 
 export function markTourSeen(brand: Brand) {
   try {
-    localStorage.setItem(seenKey(brand), '1');
+    stored.set(seenKey(brand), '1');
   } catch {
     /* per device only */
   }

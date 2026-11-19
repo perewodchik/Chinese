@@ -18,6 +18,7 @@ import { useWordKnowledge } from '../shared/useWordKnowledge';
 import { isNoise } from '../../domain/videoFit';
 import { skippedWords, useFit } from './hooks';
 import { useVideoCtx } from './context';
+import { stored } from '../../platform/storage';
 
 /** How big the text is drawn, as a multiple of the usual size. */
 const SIZES = [
@@ -32,7 +33,7 @@ type Size = (typeof SIZES)[number]['id'];
 const VIEW_KEY = 'hanzi.videos.wordsView';
 function readView(): { size: Size; english: boolean; pinyin: boolean } {
   try {
-    const v = JSON.parse(localStorage.getItem(VIEW_KEY) ?? '{}') as { size?: string; english?: boolean; pinyin?: boolean };
+    const v = JSON.parse(stored.get(VIEW_KEY) ?? '{}') as { size?: string; english?: boolean; pinyin?: boolean };
     return {
       size: SIZES.some((s) => s.id === v.size) ? (v.size as Size) : '1',
       english: v.english === true,
@@ -120,7 +121,7 @@ export function WordsStep() {
     const next = { ...view, ...patch };
     setViewState(next);
     try {
-      localStorage.setItem(VIEW_KEY, JSON.stringify(next));
+      stored.set(VIEW_KEY, JSON.stringify(next));
     } catch {
       /* fine without: it is only how the text looks */
     }

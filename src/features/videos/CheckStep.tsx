@@ -21,11 +21,12 @@ import { saveAsk, saveCheck } from '../../store/videoCommands';
 import { ClaudeBox } from './ClaudeBox';
 import { useLearner } from './hooks';
 import { useVideoCtx } from './context';
+import { stored } from '../../platform/storage';
 
 const WAY_KEY = 'hanzi.videos.markWay';
 const readWay = (): MarkWay => {
   try {
-    const w = localStorage.getItem(WAY_KEY);
+    const w = stored.get(WAY_KEY);
     return MARK_WAYS.some((m) => m.id === w) ? (w as MarkWay) : 'detailed';
   } catch {
     return 'detailed';
@@ -77,7 +78,7 @@ export function CheckStep() {
     setDone(false);
     setSavedId(null);
     try {
-      localStorage.setItem(WAY_KEY, w);
+      stored.set(WAY_KEY, w);
     } catch {
       /* a per-device convenience; fine without */
     }

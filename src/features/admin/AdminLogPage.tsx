@@ -22,6 +22,12 @@ const ACTION: Record<string, string> = {
   'reset-link': 'Reset link made for',
   'invite-revoked': 'Invitation taken back',
   'setting-changed': 'Site setting changed:',
+  'catalog-published': 'Book published to the library',
+  'catalog-updated': 'New version of a library book',
+  'catalog-hidden': 'Library book hidden',
+  'catalog-shown': 'Library book shown again',
+  'catalog-moved': 'Library book moved',
+  'catalog-level': 'Library book’s band changed',
 };
 
 const when = (at: number) => new Date(at).toLocaleString(undefined, { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit' });
@@ -31,7 +37,11 @@ function detailsOf(e: AdminLogEntry): string | null {
   const parts: string[] = [];
   if (typeof e.details.note === 'string' && e.details.note) parts.push(`for ${e.details.note}`);
   if (e.action === 'invite-made' && 'days' in e.details) parts.push(e.details.days ? `good for ${e.details.days} days` : 'good with no end');
+  if (e.action === 'invite-made' && typeof e.details.uses === 'number') parts.push(`for ${e.details.uses} people`);
   if (typeof e.details.reason === 'string' && e.details.reason) parts.push(`because: ${e.details.reason}`);
+  if (typeof e.details.book === 'string') parts.push(`“${e.details.book}”`);
+  if (e.action === 'catalog-moved' && typeof e.details.way === 'string') parts.push(e.details.way === 'earlier' ? 'up' : 'down');
+  if (e.action === 'catalog-level' && typeof e.details.to === 'number') parts.push(`now HSK ${e.details.to >= 7 ? '7–9' : e.details.to}`);
   return parts.length ? parts.join(', ') : null;
 }
 

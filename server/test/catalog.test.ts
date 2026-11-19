@@ -135,3 +135,36 @@ describe('the shared catalogue', () => {
     assert.equal((await call(app, 'GET', `/api/catalog/${id}`)).status, 401);
   });
 });
+
+describe('the library on the admin page (A9)', () => {
+  it('orders the books, changes a band, and counts who took and finished each — the publisher not among them', async () => {
+    const { app, owner, learner } = await setUp();
+    const first = (await (await publish(app, owner)).json()) as PublishCatalogResponse;
+    const second = (await (await publish(app, owner, { book: { ...book, title: 'Second' }, texts: [text('3', '再见。')] })).json()) as PublishCatalogResponse;
+    const list = async (cookie = owner) => (await (await call(app, 'GET', '/api/admin/catalog', { cookie })).json()) as CatalogBook[];
+    assert.deepEqual((await list()).map((b) => b.id), [second.id, first.id]);
+
+    // Only an admin may change the library, and a book at the top goes no higher.
+    assert.equal((await call(app, 'PATCH', `/api/admin/catalog/${first.id}`, { cookie: learner, body: { move: 'earlier' } })).status, 403);
+    assert.equal((await call(app, 'PATCH', `/api/admin/catalog/${first.id}`, { cookie: owner, body: { move: 'earlier' } })).status, 204);
+    assert.equal((await call(app, 'PATCH', `/api/admin/catalog/${first.id}`, { cookie: owner, body: { move: 'earlier' } })).status, 400);
+    const learnerList = (await (await call(app, 'GET', '/api/catalog', { cookie: learner })).json()) as CatalogBook[];
+    assert.deepEqual(learnerList.map((b) => b.id), [first.id, second.id]);
+    assert.equal(learnerList[0]!.readers, undefined);
+
+    assert.equal((await call(app, 'PATCH', `/api/admin/catalog/${second.id}`, { cookie: owner, body: { level: 9 } })).status, 400);
+    assert.equal((await call(app, 'PATCH', `/api/admin/catalog/${second.id}`, { cookie: owner, body: { level: 3 } })).status, 204);
+    assert.equal((await list()).find((b) => b.id === second.id)!.level, 3);
+
+    assert.equal((await call(app, 'POST', `/api/catalog/${first.id}/reader`, { body: { finished: false } })).status, 401);
+    assert.equal((await call(app, 'POST', `/api/catalog/${first.id}/reader`, { cookie: learner, body: { finished: false } })).status, 204);
+    assert.equal((await call(app, 'POST', `/api/catalog/${first.id}/reader`, { cookie: learner, body: { finished: true } })).status, 204);
+    assert.equal((await call(app, 'POST', `/api/catalog/${first.id}/reader`, { cookie: owner, body: { finished: true } })).status, 204);
+    assert.equal((await call(app, 'POST', '/api/catalog/nothing/reader', { cookie: learner, body: { finished: false } })).status, 404);
+    assert.deepEqual((await list()).find((b) => b.id === first.id)!.readers, { took: 1, finished: 1 });
+
+    const log = (await (await call(app, 'GET', '/api/admin/log?action=catalog-level', { cookie: owner })).json()) as AdminLogPage;
+    assert.deepEqual(log.entries.map((e) => e.details), [{ book: 'Second', from: 2, to: 3 }]);
+  });
+});
+

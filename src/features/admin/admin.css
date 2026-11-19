@@ -6,7 +6,7 @@
 
 .admin-invite {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 160px);
+  grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 150px));
   gap: 12px;
   align-items: end;
 }
@@ -61,6 +61,47 @@
   display: grid;
   gap: 2px;
   min-width: 0;
+}
+
+/* A9: a library book — what it is, then its band, a place up or down, and Hide; under it on a phone. */
+.admin-book-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.admin-book-row .grow {
+  display: grid;
+  gap: 2px;
+  min-width: min(100%, 220px);
+}
+
+.admin-book-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+
+.admin-book-level {
+  width: auto;
+  min-height: 36px;
+  padding-block: 4px;
+}
+
+.admin-move {
+  width: 40px;
+  padding-inline: 0;
+  justify-content: center;
+}
+
+.admin-up .icon {
+  transform: rotate(180deg);
+}
+
+.admin-book-hide {
+  min-width: 64px;
 }
 
 /* A refused sign-in is the one thing here in the teacher's red. */

@@ -6,6 +6,7 @@ import { Icon } from '../../ui/Icon';
 import { useSheetDrag } from '../../ui/useSheetDrag';
 import { stopLine } from '../shared/narratedClips';
 import './phrases.css';
+import { stored } from '../../platform/storage';
 
 /** One character of a scored line: where it is in the line, how it reads, what the service heard. */
 export interface CharRow {
@@ -30,7 +31,7 @@ const ORDER_KEY = 'hanzi.speak.charOrder';
 const ORDER_EVENT = 'hanzi-char-order';
 const storedOrder = (): Order => {
   try {
-    return localStorage.getItem(ORDER_KEY) === 'line' ? 'line' : 'fix';
+    return stored.get(ORDER_KEY) === 'line' ? 'line' : 'fix';
   } catch {
     return 'fix';
   }
@@ -50,7 +51,7 @@ function useOrder(): [Order, (o: Order) => void] {
   const setOrder = (o: Order) => {
     setOrderState(o);
     try {
-      localStorage.setItem(ORDER_KEY, o);
+      stored.set(ORDER_KEY, o);
     } catch {
       // private browsing: it holds for this visit
     }

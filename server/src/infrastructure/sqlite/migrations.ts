@@ -399,4 +399,29 @@ export const MIGRATIONS: readonly string[] = [
   ) STRICT;
   CREATE INDEX client_errors_by_time ON client_errors (at);
   `,
+  // A8: an invitation for a group — good for up to N accounts — and who came by each.
+  `
+  ALTER TABLE invites ADD COLUMN max_uses INTEGER NOT NULL DEFAULT 1;
+  ALTER TABLE invites ADD COLUMN uses INTEGER NOT NULL DEFAULT 0;
+  UPDATE invites SET uses = 1 WHERE used_by IS NOT NULL;
+  CREATE TABLE invite_uses (
+    digest   TEXT NOT NULL,
+    user_id  TEXT NOT NULL,
+    used_at  INTEGER NOT NULL,
+    PRIMARY KEY (digest, user_id)
+  ) STRICT;
+  INSERT INTO invite_uses (digest, user_id, used_at) SELECT digest, used_by, used_at FROM invites WHERE used_by IS NOT NULL AND used_at IS NOT NULL;
+  `,
+  // A9: the library's books in the order an admin puts them (newest first until then), and who took and finished each.
+  `
+  ALTER TABLE catalog_books ADD COLUMN position INTEGER NOT NULL DEFAULT 0;
+  UPDATE catalog_books SET position = published_at;
+  CREATE TABLE catalog_readers (
+    book_id      TEXT NOT NULL REFERENCES catalog_books (id) ON DELETE CASCADE,
+    user_id      TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    taken_at     INTEGER NOT NULL,
+    finished_at  INTEGER,
+    PRIMARY KEY (book_id, user_id)
+  ) STRICT;
+  `,
 ];
