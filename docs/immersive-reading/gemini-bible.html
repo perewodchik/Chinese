@@ -1,0 +1,227 @@
+<title>Journey West Prompt Bible</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600&family=Literata:opsz,wght@7..72,400;7..72,600&family=LXGW+WenKai+TC&display=swap">
+<style>
+/* Layout: a working document — how consistency is kept, the fixed blocks,
+   the reference sheets to make once, then every scene of chapters 1–2 as a
+   ready prompt assembled from those blocks, each with a copy button. */
+:root{
+  --paper:#fafbf8; --card:#fff; --card-2:#f1f4ef; --ink:#18202b; --ink-2:#4a5464; --ink-3:#7a838f;
+  --line:#dce2da; --accent:#1e4a8a; --accent-soft:#e2eaf5; --on-accent:#fff; --jade:#1f7a55; --red:#cc2f2a;
+  --sans:'Fira Sans',-apple-system,'Segoe UI',sans-serif; --read:'Literata',Georgia,serif;
+  --han:'Kaiti SC','STKaiti','LXGW WenKai TC','KaiTi',serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#14191e; --card:#1a2026; --card-2:#1f262d; --ink:#e5e8ec; --ink-2:#aab2bc; --ink-3:#7e8792;
+  --line:#273039; --accent:#8eb0e6; --accent-soft:#1c2a40; --on-accent:#10151a; --jade:#5dc395; --red:#f07c6e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#14191e; --card:#1a2026; --card-2:#1f262d; --ink:#e5e8ec; --ink-2:#aab2bc; --ink-3:#7e8792;
+  --line:#273039; --accent:#8eb0e6; --accent-soft:#1c2a40; --on-accent:#10151a; --jade:#5dc395; --red:#f07c6e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 var(--sans);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+.wrap{max-width:900px;margin:0 auto}
+h1,h2,h3{font-weight:600;margin:0;text-wrap:balance}
+h1{font-size:30px;line-height:1.2} h2{font-size:22px} h3{font-size:16px}
+p{margin:0}
+.han{font-family:var(--han)}
+.read{font-family:var(--read);font-size:16px;line-height:1.65;color:var(--ink-2)}
+.small{font-size:13.5px} .pencil{color:var(--ink-3)}
+header{padding-block:40px 8px;display:grid;gap:12px}
+section{border-top:1px solid var(--line);margin-top:40px;padding-top:28px;display:grid;gap:14px}
+nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+nav a{color:var(--accent);text-decoration:none}
+ol.how{margin:0;padding-left:22px;display:grid;gap:10px;font-family:var(--read);color:var(--ink-2);line-height:1.6}
+ol.how b{font-family:var(--sans);color:var(--ink);font-weight:600}
+.block{background:var(--card-2);border-radius:16px;padding:14px 16px;display:grid;gap:10px;min-width:0}
+.bhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bhead h3{flex:1;min-width:0}
+.tag{font-size:12.5px;color:var(--ink-3)}
+pre{margin:0;white-space:pre-wrap;word-break:break-word;font:13px/1.55 var(--mono);color:var(--ink-2);max-height:260px;overflow:auto}
+pre.full{max-height:none}
+.btn{height:36px;border-radius:10px;border:0;font:500 14px var(--sans);padding:0 14px;cursor:pointer;background:var(--accent-soft);color:var(--accent);min-width:96px}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn[data-done]{color:var(--jade)}
+.refs{font-size:13.5px;color:var(--ink-2)}
+.refs b{font-weight:600}
+details{border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;color:var(--accent);font-size:14px;font-weight:500}
+.check{margin:0;padding-left:20px;display:grid;gap:6px;font-family:var(--read);color:var(--ink-2)}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="pencil small">Hanzi Workshop · иллюстрации к 西游记 · стиль «гуашь с тушевой линией»</span>
+  <h1>Библия для Gemini: чтобы всё было одинаковым</h1>
+  <p class="read">Герои, места и предметы описаны здесь один раз, с точными приметами. Каждый промпт сцены собран из этих описаний слово в слово, поэтому Gemini каждый раз получает одно и то же. Вторая половина одинаковости — картинки-образцы: их делаешь один раз и прикладываешь к каждой сцене.</p>
+  <nav><a href="#how">Как работать</a><a href="#refs">Образцы</a><a href="#ch1">Сцены главы 1</a><a href="#ch2">Сцены главы 2</a><a href="#blocks">Все блоки</a><a href="#check">Проверка</a></nav>
+</header>
+
+<section id="how">
+  <h2>Как работать</h2>
+  <ol class="how">
+    <li><b>Сделай образцы (раздел ниже), по одному разу.</b> Генерируй каждый, пока не понравится, и сохрани под именем из заголовка: <i>REF Wukong</i>, <i>REF Bodhi</i> и так далее. Это «паспорта» героев, мест и предметов. Начни с Укуна: остальные образцы делай, прикладывая его, чтобы совпали пропорции и манера.</li>
+    <li><b>Каждую сцену — в новом чате, с образцами.</b> Под каждой сценой написано, какие образцы приложить. Приложи их и вставь промпт целиком. Промпт сам говорит Gemini, какая картинка кто.</li>
+    <li><b>Не правь блоки внутри промпта.</b> Если хочется поменять что-то в сцене, меняй только абзац «Scene». Описания героев, мест и стиля должны оставаться слово в слово.</li>
+    <li><b>Проверь по списку (внизу)</b> и, если что-то уехало, допиши одну фразу-поправку в тот же чат.</li>
+    <li><b>Удачную сцену можно использовать как образец места.</b> Например, первая удачная пещера Трёх Звёзд прикладывается ко всем следующим сценам в ней.</li>
+  </ol>
+  <p class="read small">Направление пути: запад всегда слева. Укун идёт и плывёт влево, домой (на восток) — вправо.</p>
+</section>
+
+<section id="refs">
+  <h2>Образцы: сделать один раз</h2>
+  <div id="refList" style="display:grid;gap:14px"></div>
+</section>
+
+<section id="ch1">
+  <h2><span class="han">第一章 美猴王横空出世</span> · сцены главы 1</h2>
+  <div id="ch1List" style="display:grid;gap:14px"></div>
+</section>
+
+<section id="ch2">
+  <h2><span class="han">第二章 三星洞石猴学道</span> · сцены главы 2</h2>
+  <div id="ch2List" style="display:grid;gap:14px"></div>
+</section>
+
+<section id="blocks">
+  <h2>Все блоки по отдельности</h2>
+  <p class="read small">Для новых сцен (глава 3 и дальше): собери промпт так — стиль, герои в кадре, место, предметы, «Scene», «Light», правила, «Avoid». Новый герой или место — сначала новый блок и образец.</p>
+  <div id="blockList" style="display:grid;gap:14px"></div>
+</section>
+
+<section id="check">
+  <h2>Проверка после каждой картинки</h2>
+  <ul class="check">
+    <li>Укун: медово-золотой мех, персиковое лицо в форме сердечка, один хохолок-огонёк, круглые уши по бокам, хвост с одним завитком. Без обруча, короны и посоха.</li>
+    <li>Одежда по главе: в главе 1 и в начале главы 2 без одежды, в школе — серо-голубой халат с кремовым воротом и охристым поясом.</li>
+    <li>Бодхи: лысый с белым пучком и нефритовой шпилькой, длинные белые брови и борода, кремовый халат с красной каймой.</li>
+    <li>Место совпадает с образцом: где водопад, какого цвета камень, где круглое окно.</li>
+    <li>Всё на что-то опирается: ноги на земле, тени под ногами, деревья с корнями, вода откуда-то течёт.</li>
+    <li>Нет надписей и иероглифов, лишних пальцев и конечностей.</li>
+  </ul>
+  <div class="block">
+    <div class="bhead"><h3>Поправки, если что-то уехало</h3></div>
+    <pre>Keep Wukong exactly as in the attached reference image: same fur colour, face shape, single flame-shaped tuft, ears and tail. Change nothing else.
+
+Make sure everything rests on something: feet on the ground with a soft contact shadow, trees rooted in the ground or rock, held objects in the hands.
+
+Remove all text, letters and Chinese characters from the image.
+
+Make it look hand-painted with gouache: visible brush strokes and paper texture, flatter lighting, fewer tiny details, no glossy 3D look.</pre>
+  </div>
+</section>
+</div>
+
+<script>
+// The blocks, written once. Every prompt below is assembled from them verbatim.
+const B = {
+  STYLE: `STYLE: A hand-painted children's picture book illustration, gouache with a fine ink brush line, inspired by traditional Chinese landscape painting but with the warmth, light and atmosphere of a modern illustrated storybook. Opaque and semi-transparent gouache on textured watercolour paper, visible brush strokes and dry-brush texture, slight paper grain. A thin, lively dark ink line drawn with a brush, varying in thickness and sometimes broken. Palette: warm ochre, jade and malachite green, muted azure, soft cream; vermilion is the only strong accent. Shadows are cool blue-green, never black. Gentle atmospheric perspective: a rich, detailed foreground, far mountains pale and dissolving into mist. Calm, warm, full of air. Eye-level storybook framing. Landscape format 3:2.`,
+
+  WUKONG: `SUN WUKONG, the Stone Monkey (always identical in every picture): a young male monkey, slim and lively, the size of a seven-year-old child; the head is large for the body (he is about 2.5 heads tall). Fur warm honey-gold, a little darker on the back and on top of the head. Face heart-shaped and pale peach, including a rounded muzzle and the area around the eyes; small dark nose; wide expressive mouth. Eyes large, round, warm amber-brown with a white highlight. Small round ears at the sides of the head, pale peach inside. On top of the head a single tuft of fur shaped like a small three-pointed flame, leaning forward. Pale cream oval belly. Hands and feet pale peach, slender fingers. The tail is as long as his body, honey-gold, ending in one loose spiral curl. No headband, no crown, no jewellery, no weapon.`,
+  WUKONG_BARE: `OUTFIT: Wukong wears nothing.`,
+  WUKONG_ROBE: `OUTFIT: Wukong wears his disciple's robe: a plain dove grey-blue cross-collar robe to the knees, a cream collar band, loose sleeves to the wrists, an ochre cloth sash tied in a knot at his left hip; barefoot; his tail comes out at the back below the sash.`,
+  OLD: `THE OLD MONKEY: an elderly monkey a head shorter than Wukong, slightly bent, grey-brown fur, white bushy eyebrows and a short white chin beard, a kind wrinkled pale peach face; he always leans on a crooked wooden walking stick held in his right hand. No clothes.`,
+  TROOP: `THE MONKEYS OF THE MOUNTAIN: ordinary monkeys a little smaller than Wukong, with no tuft on the head and no clothes: one dark chocolate brown, one chestnut, one small young one in light sandy brown with big ears. Pale peach faces with smaller eyes than Wukong's.`,
+  BODHI: `MASTER BODHI (Puti Zushi): a very old Taoist master, small and slight, kind and calm. Bald crown with a small white topknot held by a jade pin; long white eyebrows that hang down to his cheeks; white hair at the sides; a long thin white beard reaching to his chest; eyes usually gently closed or half-closed, a quiet smile. Wide cream robe with vermilion trim at the collar, cuffs and hem, and a jade-green sash.`,
+  DISCIPLES: `THE DISCIPLES: three young men in their twenties, hair tied in a top bun with a cloth wrap, friendly faces, simple cross-collar robes: one sage green, one sand-coloured, one lavender; cloth shoes.`,
+  WOODCUTTER: `THE WOODCUTTER: an old man with a weathered tanned face and grey stubble, a conical straw hat, a short brown work tunic, rolled trousers and straw sandals; he carries a bundle of firewood tied with rope on a shoulder pole.`,
+  EMPEROR: `THE JADE EMPEROR: a stately man with a long black beard, an imperial yellow robe, a flat black crown board with strings of beads hanging at the front and back.`,
+
+  HUAGUOSHAN: `PLACE — THE MOUNTAIN OF FLOWERS AND FRUIT (Huaguoshan): an island in a calm turquoise eastern sea; one high green mountain with rounded slopes; on its very top a flat rock ledge where a huge smooth grey egg-shaped stone sits (until it bursts); groves of peach trees with pink blossom and ripe peaches on the lower slopes; dark green pines on the cliffs; on its north face a tall grey rock wall with a waterfall falling from a notch at the top into a round pool, a grassy bank and round boulders around the pool; the shore of pale sand and grey rocks.`,
+  SHUILIAN: `PLACE — THE WATER CURTAIN CAVE (Shuiliandong), behind the waterfall, seen from inside: the waterfall is a bright curtain of falling water across the left side of the picture; a wide hall of warm grey stone with a high rounded ceiling; an arched stone bridge over a small stream in the foreground; peach trees in blossom growing from earth between the rocks; stone tables and round stone stools; at the back a simple stone house with a dark doorway and a blank stone tablet beside it, with no writing on it.`,
+  HEAVEN: `PLACE — THE HEAVENLY PALACE: a palace of red pillars and golden double roofs standing on a bank of white clouds, high in the sky and far away.`,
+  RIVER: `PLACE — THE ROAD WEST: a wide calm river between tall rounded karst mountains wrapped in mist, pines on the lower slopes.`,
+  LINGTAI: `PLACE — LINGTAI FANGCUN MOUNTAIN, outside Three Stars Cave: a tall mountain covered in old pines and some bamboo, a winding pale stone path climbing it, mist between the trees; high on the slope a cave mouth closed by two weathered stone doors in a carved stone frame, with no writing on it.`,
+  SCHOOL: `PLACE — THREE STARS CAVE, inside (the master's school): a large calm hall carved in warm sandstone with a high arched ceiling; at the back in the centre a low square stone platform two steps high with a round vermilion cushion on it, the master's seat; behind it a round window opening in the rock that shows distant green mountains; a bronze incense burner on three legs to the right of the platform; low dark-wood writing tables in a row on the floor; a floor of smooth pale stone slabs; warm daylight from the round window.`,
+  CHAMBER: `PLACE — THE MASTER'S CHAMBER: a small room of the same warm sandstone; a low wooden bed with a dark blue quilt against the back wall; a small square window showing the night sky with a moon and stars; one oil lamp on a tall wooden stand beside the bed.`,
+  GROVE: `PLACE — THE PINE GROVE at the foot of the master's mountain: a flat grassy clearing among tall old pines, the mountain and the cave doors faint in the mist behind.`,
+
+  RAFT: `OBJECT — THE RAFT: seven pine logs about two metres long lashed side by side with three bands of red-brown rope; bark-brown with pale cut ends; it sits low in the water.`,
+  POLE: `OBJECT — THE POLE: a long pale yellow-green bamboo pole with visible nodes, longer than Wukong is tall.`,
+  PEACH: `OBJECT — PEACHES: round, pink blushing to cream, each with one green leaf at the stem.`,
+  BURNER: `OBJECT — THE INCENSE BURNER: a round bronze burner with a lid, on three short legs, a thin curl of grey-white smoke rising from it.`,
+  WHISK: `OBJECT — THE FLY-WHISK: the master's white horsehair whisk on a dark wooden handle.`,
+  RULER: `OBJECT — THE MASTER'S RULER: a flat dark wooden ruler about the length of a forearm.`,
+  BRUSH: `OBJECT — WRITING THINGS: thin bamboo writing brushes, a black inkstone and sheets of cream paper on the tables.`,
+  LAMP: `OBJECT — THE OIL LAMP: a small bronze oil lamp with one flame on a tall wooden stand, giving a warm circle of light.`,
+  CLOUD: `OBJECT — THE SOMERSAULT CLOUD (jindouyun): a small, dense, bright white cloud just big enough for one rider to stand on, with soft rounded puffs and a long thin curling tail streaming behind it.`,
+
+  RULES: `RULES: The characters, places and objects must look exactly as described above and as in the attached reference images — the same colours, proportions, faces, clothes and details in every picture; do not add accessories or change outfits. Every figure stands, sits or kneels on a surface with a soft contact shadow; held things are in the hands; trees grow from the ground or rock with visible roots; water flows from somewhere to somewhere; nothing floats except clouds and a rider standing on his cloud. West is to the left.`,
+  AVOID: `AVOID: any text, letters, Chinese characters, signatures or seals; floating objects; extra or missing limbs or fingers; changes to the characters' design; 3D render, glossy or plastic look, photorealism, anime or manga style, digital airbrush smoothness, neon colours, black shadows, cluttered details.`,
+};
+
+// Reference sheets: made once, then attached to scenes.
+const REFS = [
+  { id: 'REF Wukong', blocks: ['STYLE', 'WUKONG', 'WUKONG_BARE'], task: `A character reference sheet on a plain cream paper background: Sun Wukong shown five times in a row, the same size — standing front view, standing side view facing left, standing three-quarter view, sitting cross-legged, and a close-up of his face. Same proportions in every view. Even soft daylight. No text, no labels.` },
+  { id: 'REF Wukong robe', attach: ['REF Wukong'], blocks: ['STYLE', 'WUKONG', 'WUKONG_ROBE'], task: `A character reference sheet on a plain cream paper background: Sun Wukong in his disciple's robe, shown four times — standing front view, standing side view facing left, sitting cross-legged, kneeling. He is exactly the monkey in the attached reference image, only dressed. No text, no labels.` },
+  { id: 'REF Monkeys', attach: ['REF Wukong'], blocks: ['STYLE', 'WUKONG', 'WUKONG_BARE', 'OLD', 'TROOP'], task: `A line-up on a plain cream paper background, all standing on the same ground line to show their heights: Sun Wukong (exactly as in the attached image) in the middle, the old monkey with his stick on his right, and the three monkeys of the mountain on his left. No text, no labels.` },
+  { id: 'REF Bodhi', attach: ['REF Wukong robe'], blocks: ['STYLE', 'BODHI', 'WHISK', 'RULER'], task: `A character reference sheet on a plain cream paper background: Master Bodhi shown four times — sitting cross-legged on a round vermilion cushion front view holding the fly-whisk, standing front view, standing side view holding the ruler, and a close-up of his face. Painted in exactly the manner of the attached image. No text, no labels.` },
+  { id: 'REF People', attach: ['REF Wukong robe', 'REF Bodhi'], blocks: ['STYLE', 'DISCIPLES', 'WOODCUTTER', 'EMPEROR'], task: `A line-up on a plain cream paper background, all standing on the same ground line: the three disciples, the woodcutter with his firewood, and the Jade Emperor. Same scale and painting manner as the attached images. No text, no labels.` },
+  { id: 'REF Objects', attach: ['REF Wukong'], blocks: ['STYLE', 'RAFT', 'POLE', 'PEACH', 'BURNER', 'WHISK', 'RULER', 'BRUSH', 'LAMP', 'CLOUD'], task: `An object reference sheet on a plain cream paper background, each object resting on the same ground line (the cloud just above it): the raft, the bamboo pole lying beside it, three peaches, the incense burner, the fly-whisk, the ruler, the writing things, the oil lamp on its stand, and the somersault cloud. Same painting manner as the attached image. No text, no labels.` },
+  { id: 'REF Huaguoshan', blocks: ['STYLE', 'HUAGUOSHAN'], task: `An establishing view of the whole Mountain of Flowers and Fruit from the sea, morning light, with the waterfall visible on its side. No characters, no text.` },
+  { id: 'REF Water Curtain Cave', attach: ['REF Huaguoshan'], blocks: ['STYLE', 'SHUILIAN'], task: `An establishing view of the Water Curtain Cave from inside, cool light through the falling water. No characters, no text.` },
+  { id: 'REF Three Stars Cave', blocks: ['STYLE', 'SCHOOL', 'BURNER', 'BRUSH'], task: `An establishing view of the hall of Three Stars Cave, empty, warm daylight from the round window. No characters, no text.` },
+  { id: 'REF Lingtai', attach: ['REF Three Stars Cave'], blocks: ['STYLE', 'LINGTAI'], task: `An establishing view of the master's mountain and the path up to the stone doors of the cave, misty morning. No characters, no text.` },
+];
+
+// Scenes of chapters 1–2: one per paragraph, as in the books on the shelf.
+const SCENES = {
+  ch1: [
+    { n: '¶1', title: 'The island and the stone', attach: ['REF Huaguoshan'], blocks: ['HUAGUOSHAN'], light: 'Dawn: soft pink-gold light from the right, the sea shining.', scene: 'The Mountain of Flowers and Fruit seen whole from the sea, a little from above. On its peak the huge smooth egg-shaped stone glows faintly in the first light. A few white seabirds low over the water. No characters.' },
+    { n: '¶2', title: 'The stone monkey is born', attach: ['REF Wukong', 'REF Huaguoshan', 'REF People'], blocks: ['WUKONG', 'WUKONG_BARE', 'EMPEROR', 'HUAGUOSHAN', 'HEAVEN'], light: 'Morning; a golden glow around the newborn monkey.', scene: 'On the flat rock at the top of the mountain the great stone has split into two halves. The newborn Stone Monkey stands between them with his arms spread wide, and two beams of golden light shine from his eyes up into the sky. High in the upper right, small and far away, the Heavenly Palace on its clouds, where the Jade Emperor steps back in surprise in the doorway.' },
+    { n: '¶3', title: 'At the waterfall', attach: ['REF Monkeys', 'REF Huaguoshan'], blocks: ['WUKONG', 'WUKONG_BARE', 'OLD', 'TROOP', 'HUAGUOSHAN'], light: 'Bright midday, sparkles on the falling water.', scene: 'The monkeys have climbed to the great waterfall and gather on the grassy bank by the pool. The Stone Monkey stands on a round boulder at the edge of the pool, crouching, ready to jump into the waterfall, one arm thrown forward. The old monkey leans on his stick and watches; the three troop monkeys cheer or peep from behind each other.' },
+    { n: '¶4', title: 'Behind the water', attach: ['REF Wukong', 'REF Water Curtain Cave'], blocks: ['WUKONG', 'WUKONG_BARE', 'SHUILIAN'], light: 'Cool silvery light through the falling water, warm stone.', scene: 'Inside the Water Curtain Cave for the first time: the Stone Monkey stands on the arched stone bridge with his arms spread in delight, looking at the hall, the stone house, the tables and stools and the blossoming trees. He is wet, a few drops falling from his fur.' },
+    { n: '¶5', title: 'The Monkey King', attach: ['REF Monkeys', 'REF Water Curtain Cave', 'REF Objects'], blocks: ['WUKONG', 'WUKONG_BARE', 'OLD', 'TROOP', 'SHUILIAN', 'PEACH'], light: 'Warm, festive light.', scene: 'In the Water Curtain Cave the monkeys hail the Stone Monkey as their king: he sits proudly on a flat stone seat in the middle of the hall, the three troop monkeys bowing and cheering around him, the old monkey leaning on his stick and smiling. Peaches are piled on a stone table beside him.' },
+    { n: '¶6', title: 'Leaving by raft', attach: ['REF Monkeys', 'REF Huaguoshan', 'REF Objects'], blocks: ['WUKONG', 'WUKONG_BARE', 'OLD', 'TROOP', 'HUAGUOSHAN', 'RAFT', 'POLE', 'PEACH'], light: 'Sunrise: orange sun low over the sea on the right, long golden reflections.', scene: 'On the shore of the Mountain of Flowers and Fruit at sunrise. The Monkey King stands on his raft, already a little way out on the water, pushing it out to sea to the left with his pole, a small pile of peaches on the raft, turning to wave back. On the sand the old monkey and the three troop monkeys wave goodbye.' },
+  ],
+  ch2: [
+    { n: '¶1', title: 'Alone on the river', attach: ['REF Wukong', 'REF Objects'], blocks: ['WUKONG', 'WUKONG_BARE', 'RIVER', 'RAFT', 'POLE'], light: 'Misty morning, soft pale light, the far mountains almost white.', scene: 'Alone on his raft, the Stone Monkey poles it down a wide river between tall misty mountains, travelling west to the left. He shades his eyes with one hand and looks far ahead; the other hand holds the pole. He is small in a big world, about a fifth of the picture height.' },
+    { n: '¶2', title: 'The woodcutter', attach: ['REF Wukong', 'REF People', 'REF Lingtai'], blocks: ['WUKONG', 'WUKONG_BARE', 'WOODCUTTER', 'LINGTAI'], light: 'Morning sun slanting through the pines.', scene: 'On the winding path up the master\'s mountain, the woodcutter with his firewood on his shoulder points up the slope towards the stone doors of the cave; the Stone Monkey bows politely to him with his hands pressed together.' },
+    { n: '¶3', title: 'The cave school', attach: ['REF Wukong robe', 'REF People', 'REF Three Stars Cave'], blocks: ['WUKONG', 'WUKONG_ROBE', 'DISCIPLES', 'SCHOOL', 'BURNER', 'BRUSH'], light: 'Warm daylight from the round window.', scene: 'Wukong, now in his disciple\'s robe, kneels at a low writing table in a row with the three disciples, carefully writing with a brush, his tongue between his teeth. The incense burner smokes on the right; the master\'s seat on the platform is empty.' },
+    { n: '¶4', title: 'Jumping for joy', attach: ['REF Wukong robe', 'REF Bodhi', 'REF People', 'REF Three Stars Cave'], blocks: ['WUKONG', 'WUKONG_ROBE', 'BODHI', 'DISCIPLES', 'SCHOOL', 'WHISK', 'BURNER'], light: 'Warm daylight from the round window.', scene: 'The master sits cross-legged on his vermilion cushion on the platform, teaching, holding the fly-whisk. In the middle of the hall Wukong jumps up with joy, both arms in the air, his tail curling; the three disciples, sitting at their tables, stare at him in surprise.' },
+    { n: '¶5', title: 'Three taps of the ruler', attach: ['REF Wukong robe', 'REF Bodhi', 'REF People', 'REF Three Stars Cave'], blocks: ['WUKONG', 'WUKONG_ROBE', 'BODHI', 'DISCIPLES', 'SCHOOL', 'RULER'], light: 'Warm daylight, a little cooler and stiller.', scene: 'The master stands in front of the platform, stern, and taps Wukong on the head with his ruler; Wukong holds his head with both hands, eyes squeezed shut, but there is a secret smile on his face. Behind them the three disciples look on, dismayed.' },
+    { n: '¶6', title: 'At midnight (easier: sitting)', attach: ['REF Wukong robe', 'REF Bodhi', 'REF Objects'], blocks: ['WUKONG', 'WUKONG_ROBE', 'BODHI', 'CHAMBER', 'LAMP'], light: 'Night: the oil lamp gives the only warm circle of light, everything else deep blue.', scene: 'Midnight in the master\'s chamber. The master sits up on his bed under the dark blue quilt and smiles. Wukong sits quietly on the floor beside the bed, hands in his lap, waiting. Moon and stars in the window. (For the book\'s version, write "kneels" instead of "sits".)' },
+    { n: '¶7', title: 'The pine-tree trick', attach: ['REF Wukong robe', 'REF People'], blocks: ['WUKONG', 'WUKONG_ROBE', 'DISCIPLES', 'GROVE'], light: 'Afternoon sun through the pines.', scene: 'In the pine grove Wukong has just turned himself into a pine tree in a puff of white smoke: a young pine, rooted in the grass, stands where he was, the last wisps of smoke around it, and his honey-gold curling tail still peeps out from behind its trunk. The three disciples clap and cheer.' },
+    { n: '¶8', title: 'Home on the cloud', attach: ['REF Wukong robe', 'REF Objects', 'REF Huaguoshan'], blocks: ['WUKONG', 'WUKONG_ROBE', 'CLOUD', 'HUAGUOSHAN'], light: 'Sunset: a big red sun low on the right, orange and pink sky, the mountains below in violet mist.', scene: 'Wukong rides the somersault cloud away to the right, homewards to the east, standing on it, looking back over his shoulder with tears in his eyes. Far below, misty mountain tops; far ahead on the horizon, small and green, the Mountain of Flowers and Fruit.' },
+  ],
+};
+
+const compose = (blocks, attach, task, light) => {
+  const parts = [];
+  if (attach && attach.length) parts.push(`Attached reference images, in order: ${attach.map((a, i) => `image ${i + 1} is "${a}"`).join('; ')}. Use them for how the characters, places and objects look.`);
+  for (const k of blocks) parts.push(B[k]);
+  if (light) parts.push(`LIGHT: ${light}`);
+  parts.push(task.startsWith('SCENE') ? task : `SCENE: ${task}`);
+  parts.push(B.RULES, B.AVOID);
+  return parts.join('\n\n');
+};
+const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+function card(title, tag, attach, text, open) {
+  const el = document.createElement('div');
+  el.className = 'block';
+  el.innerHTML = `<div class="bhead"><h3>${esc(title)}</h3><span class="tag">${esc(tag)}</span><button class="btn" type="button">Скопировать</button></div>
+    ${attach && attach.length ? `<p class="refs"><b>Приложить:</b> ${attach.map(esc).join(', ')}</p>` : '<p class="refs"><b>Приложить:</b> ничего</p>'}
+    <details ${open ? 'open' : ''}><summary>Промпт целиком</summary><pre>${esc(text)}</pre></details>`;
+  const btn = el.querySelector('button');
+  btn.addEventListener('click', () => {
+    const done = () => { btn.textContent = 'Скопировано'; btn.dataset.done = ''; setTimeout(() => { btn.textContent = 'Скопировать'; delete btn.dataset.done; }, 1600); };
+    const fallback = () => { const d = el.querySelector('details'); d.open = true; const r = document.createRange(); r.selectNodeContents(el.querySelector('pre')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Выделено'; };
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  });
+  return el;
+}
+const refList = document.getElementById('refList');
+REFS.forEach((r, i) => refList.appendChild(card(r.id, `образец ${i + 1}`, r.attach, compose(r.blocks, r.attach, r.task), i === 0)));
+for (const ch of ['ch1', 'ch2']) {
+  const list = document.getElementById(ch + 'List');
+  SCENES[ch].forEach((s) => list.appendChild(card(`${s.n} ${s.title}`, ch === 'ch1' ? 'глава 1' : 'глава 2', s.attach, compose(['STYLE', ...s.blocks], s.attach, s.scene, s.light))));
+}
+const names = { STYLE: 'Стиль', WUKONG: 'Укун', WUKONG_BARE: 'Укун без одежды', WUKONG_ROBE: 'Укун в халате', OLD: 'Старая обезьяна', TROOP: 'Обезьяны горы', BODHI: 'Бодхи', DISCIPLES: 'Ученики', WOODCUTTER: 'Дровосек', EMPEROR: 'Нефритовый император', HUAGUOSHAN: 'Гора Цветов и Плодов', SHUILIAN: 'Пещера за водопадом', HEAVEN: 'Небесный дворец', RIVER: 'Дорога на запад', LINGTAI: 'Гора учителя', SCHOOL: 'Пещера Трёх Звёзд', CHAMBER: 'Покои учителя', GROVE: 'Сосновая роща', RAFT: 'Плот', POLE: 'Шест', PEACH: 'Персики', BURNER: 'Курильница', WHISK: 'Мухогонка', RULER: 'Линейка', BRUSH: 'Кисти и бумага', LAMP: 'Лампа', CLOUD: 'Облако 筋斗云', RULES: 'Правила', AVOID: 'Чего избегать' };
+const blockList = document.getElementById('blockList');
+Object.keys(B).forEach((k) => {
+  const el = card(names[k] || k, k, null, B[k], false);
+  el.querySelector('.refs').remove();
+  blockList.appendChild(el);
+});
+</script>
