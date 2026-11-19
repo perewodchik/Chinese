@@ -122,7 +122,7 @@ function Relive({ text, cast, back, chapter }: { text: GeneratedText; cast: Cast
             </button>
           </div>
         ) : beat ? (
-          <BeatView text={text} line={beat.line} parts={beat.parts} cast={cast} />
+          <BeatView key={beat.line} text={text} line={beat.line} parts={beat.parts} cast={cast} />
         ) : null}
       </section>
 
@@ -191,27 +191,43 @@ function Words({ tokens, syllables, chars, from, to }: { tokens: Token[]; syllab
     }
     return out;
   }, [chars]);
-  const out: ReactNode[] = [];
+  // Punctuation is held to the word before it, an opening mark to the word after
+  // it, so a line never starts with ： or ends with “ (an unbreakable .nb run).
+  const groups: ReactNode[][] = [];
+  let opener: ReactNode[] = [];
   for (const t of tokens) {
     const end = t.at + [...t.text].length;
     if (end <= from || t.at >= to) continue;
     if (!t.word) {
       // Punctuation is cut where the told part and the said part meet.
-      out.push(<span key={t.at}>{chars.slice(Math.max(t.at, from), Math.min(end, to)).join('')}</span>);
+      const text = chars.slice(Math.max(t.at, from), Math.min(end, to)).join('');
+      const mark = <span key={`p${t.at}`}>{text}</span>;
+      if (/^[“‘《「『（(]+$/.test(text)) opener.push(mark);
+      else if (groups.length) groups[groups.length - 1]!.push(mark);
+      else groups.push([mark]);
       continue;
     }
     const unknown = levelOfWord(t.text) === 0;
     const show = pinyin === 'all' || (pinyin === 'new' && unknown);
     const said = [...t.text].map((_, k) => syllables[hanziBefore[t.at]! + k] ?? '').join('');
     const id = itemForToken(lib, t.text);
-    out.push(
+    groups.push([
+      ...opener,
       <span key={t.at} className="w" role="button" tabIndex={0} data-mark={unknown ? 'new' : undefined} onClick={() => openItem(id)} onKeyDown={(e) => e.key === 'Enter' && openItem(id)}>
         <ruby>
           {t.text}
           <rt data-hidden={!show || undefined}>{said}</rt>
         </ruby>
       </span>,
-    );
+    ]);
+    opener = [];
   }
+  if (opener.length) groups.push(opener);
+  // Every run is its own span with its own key, so a beat never keeps a word of the one before.
+  const out = groups.map((g, i) => (
+    <span key={`g${i}`} className={g.length > 1 ? 'nb' : undefined}>
+      {g}
+    </span>
+  ));
   return <>{out}</>;
 }
