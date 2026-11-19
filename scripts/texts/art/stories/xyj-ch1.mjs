@@ -60,7 +60,7 @@ const M_LEGS = {
  * determined | shut | worried. look: front | left | right | up. lean: the
  * body from the hips, degrees.
  */
-export function monkey({ x, y, s = 1, flip = false, fur = '#8a5a38', hero = false, old = false, legs = 'stand', arms = 'rest', lean = 0, face = 'smile', look = 'front', tailSide = 1, shadowless = false, glow = false, robe = null, tear = false }) {
+export function monkey({ x, y, s = 1, flip = false, fur = '#8a5a38', hero = false, old = false, legs = 'stand', arms = 'rest', lean = 0, face = 'smile', look = 'front', tailSide = 1, shadowless = false, glow = false, robe = null, tear = false, armour = false, crown = false }) {
   const A = M_ARMS[arms];
   const L = M_LEGS[legs];
   const dark = shade(fur, -0.18);
@@ -124,7 +124,7 @@ export function monkey({ x, y, s = 1, flip = false, fur = '#8a5a38', hero = fals
     worried: `<path d="M-6 ${hy + 15} q6 -5 12 0" ${ink(2.5)} fill="none"/>`,
   }[face];
   const ear = (sx) => `<circle cx="${36 * sx}" cy="${hy - 2}" r="12" fill="${fur}" ${ink()}/><circle cx="${36 * sx}" cy="${hy - 2}" r="6.5" fill="${PALM}"/>`;
-  const tuft = hero ? `<path d="M-10 ${hy - 31} q-4 -16 6 -20 q0 10 6 12 q2 -14 12 -12 q-6 8 -2 20 Z" fill="${fur}" ${ink(2.5)}/>` : '';
+  const tuft = hero && !crown ? `<path d="M-10 ${hy - 31} q-4 -16 6 -20 q0 10 6 12 q2 -14 12 -12 q-6 8 -2 20 Z" fill="${fur}" ${ink(2.5)}/>` : '';
   const oldness = old
     ? `<path d="M-24 ${hy - 13} q8 -9 16 -3 M24 ${hy - 13} q-8 -9 -16 -3" stroke="#fffaf0" stroke-width="6" fill="none" stroke-linecap="round"/>
        <path d="M-14 ${hy + 18} q14 30 28 0 q-2 8 -14 24 q-12 -16 -14 -24 Z" fill="#fffaf0" ${ink(2.5)}/>`
@@ -140,7 +140,17 @@ export function monkey({ x, y, s = 1, flip = false, fur = '#8a5a38', hero = fals
     <circle cx="-20" cy="${hy + 8}" r="5" fill="#e89a86" opacity="0.6"/><circle cx="20" cy="${hy + 8}" r="5" fill="#e89a86" opacity="0.6"/>
     ${tear ? `<path d="M14 ${hy + 2} q-4 8 0 11 q4 -3 0 -11 Z" fill="#9fd3ee" ${ink(1.6)}/>` : ''}
     ${oldness}`;
-  const upper = `${armsIn('back')}${torso}${armsIn('front')}${head}${armsIn('over')}`;
+  // Golden chain mail (chapter 3 on): rows of little scales over the robe.
+  const mail = armour && robe
+    ? Array.from({ length: 4 }, (_, r) => Array.from({ length: 4 }, (_, c) => `<path d="M${-21 + c * 13 + (r % 2) * 6} ${top + 18 + r * 11} q6 8 12 0" stroke="${shade(robe, -0.35)}" stroke-width="2" fill="none"/>`).join('')).join('')
+    : '';
+  // The phoenix-winged purple-gold crown (chapter 3 on): a cap with two long red plumes.
+  const crownSvg = crown
+    ? `<path d="M-6 ${hy - 40} C-26 ${hy - 110} -70 ${hy - 140} -104 ${hy - 128}" stroke="${INK}" stroke-width="11" fill="none" stroke-linecap="round"/><path d="M-6 ${hy - 40} C-26 ${hy - 110} -70 ${hy - 140} -104 ${hy - 128}" stroke="#c9443a" stroke-width="6" fill="none" stroke-linecap="round"/>
+       <path d="M6 ${hy - 40} C26 ${hy - 110} 70 ${hy - 140} 104 ${hy - 128}" stroke="${INK}" stroke-width="11" fill="none" stroke-linecap="round"/><path d="M6 ${hy - 40} C26 ${hy - 110} 70 ${hy - 140} 104 ${hy - 128}" stroke="#c9443a" stroke-width="6" fill="none" stroke-linecap="round"/>
+       <path d="M-24 ${hy - 24} C-24 ${hy - 50} 24 ${hy - 50} 24 ${hy - 24} Z" fill="#8e5aa8" ${ink(2.5)}/><path d="M-26 ${hy - 25} h52" stroke="#f4c430" stroke-width="6" stroke-linecap="round"/><circle cx="0" cy="${hy - 40}" r="6" fill="#f4c430" ${ink(1.8)}/>`
+    : '';
+  const upper = `${armsIn('back')}${torso}${mail}${armsIn('front')}${head}${crownSvg}${armsIn('over')}`;
   const body = `${shadowless ? '' : shadow(L === 'sit' ? 56 : 40)}${beams}${tail}${legSvg}<g transform="rotate(${lean} 0 ${hipY})">${upper}</g>`;
   return place(x, y, s, flip, body);
 }

@@ -6,7 +6,7 @@ import type { Book, CoverArt, ScenePalette } from '../../domain/bookshelf';
  * about, title in brush at its foot; anything else an exercise book (练习本)
  * with a white label. Cloth colours are the book's own, the same in light and
  * dark, as a real cover would be. On it, as marks a real book could carry: the
- * 简 Easier sticker of an easier edition, a bookmark where you are reading, a
+ * 简 Easier sticker of an easier edition, the 原 Original one of the book as printed beside it, a bookmark where you are reading, a
  * dot for a chapter not opened yet, and a 读完 seal once it is read through.
  */
 export function BookCover({
@@ -16,7 +16,7 @@ export function BookCover({
   fresh,
   done,
 }: {
-  book: Pick<Book, 'title' | 'kind' | 'easier' | 'art' | 'color' | 'scene'>;
+  book: Pick<Book, 'title' | 'kind' | 'easier' | 'original' | 'art' | 'color' | 'scene'>;
   width: number;
   /** you are reading it now */
   bookmark?: boolean;
@@ -49,8 +49,13 @@ export function BookCover({
           <span className="hanzi">简</span> Easier
         </span>
       )}
+      {book.original && (
+        <span className="book-easier book-original">
+          <span className="hanzi">原</span> Original
+        </span>
+      )}
       {bookmark && <span className="book-ribbon" />}
-      {fresh && !book.easier && <span className="book-new" />}
+      {fresh && !book.easier && !book.original && <span className="book-new" />}
       {done && <span className="book-seal hanzi">读完</span>}
     </span>
   );

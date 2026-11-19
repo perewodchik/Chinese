@@ -41,13 +41,18 @@ describe('books on shelves', () => {
     assert.equal(coverArt('无题', [text({ titleZh: '你好', title: 'Hello' })]), 'night');
   });
 
-  it('marks the easier edition, gives both editions one title and one colour', () => {
+  it('marks both editions, gives them one title and each its own colour', () => {
     const easy = bookOf(set('西游记 (easier)'), monkeyEasy);
     const orig = bookOf(set('西游记 (original)'), monkey);
     assert.equal(easy.easier, true);
     assert.equal(orig.easier, false);
+    assert.equal(orig.original, true);
+    assert.equal(easy.original, false);
     assert.equal(easy.title, '西游记');
-    assert.deepEqual(easy.color, orig.color);
+    assert.equal(orig.title, '西游记');
+    assert.equal(easy.art, orig.art, 'the same world on both');
+    assert.notDeepEqual(easy.color, orig.color, 'told apart at a glance');
+    assert.equal(bookOf(set('皮卡丘饿了'), pikachu).original, false, 'a book with one edition is not marked');
     assert.deepEqual(coverColor('西游记'), coverColor('西游记'));
   });
 

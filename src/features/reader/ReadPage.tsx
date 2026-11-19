@@ -327,7 +327,7 @@ function BookOnShelf({ book, texts, reading, judge }: { book: Book; texts: Gener
   const fit = useMemo(() => (judge ? fitOf(charLevels(texts.flatMap((t) => t.lines.map((l) => l.zh)), (c) => levelOfId(charId(c)))) : null), [judge, texts, levelOfId]);
   const meta = !p.total ? 'Empty' : p.read === 0 && p.unopened === p.total ? `New · ${p.total} ${p.total === 1 ? 'text' : book.kind === 'story' ? 'chapters' : 'texts'}` : `${p.read} of ${p.total} read`;
   return (
-    <Link className="book" to={paths.shelf(book.set.id)} aria-label={`${book.title}${book.easier ? ', easier edition' : ''}: ${meta}`} style={{ width }}>
+    <Link className="book" to={paths.shelf(book.set.id)} aria-label={`${book.title}${book.easier ? ', easier edition' : book.original ? ', original edition' : ''}: ${meta}`} style={{ width }}>
       <BookCover book={book} width={width} bookmark={reading} fresh={p.unopened > 0 && p.unopened < p.total} done={p.total > 0 && p.read === p.total} />
       <span className="book-meta">
         <i>

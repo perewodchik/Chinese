@@ -246,6 +246,11 @@ export function ShelfPage() {
               <span className="hanzi">简</span> Easier edition
             </span>
           )}
+          {asBook.original && (
+            <span className="small book-head-easier">
+              <span className="hanzi">原</span> Original edition
+            </span>
+          )}
           <span className="small muted">
             {story ? `A story in ${numbers[numbers.length - 1] ?? 0} chapter${numbers[numbers.length - 1] === 1 ? '' : 's'}` : `${entries.length} text${entries.length === 1 ? '' : 's'}`}
             {book ? ', from a book' : ''}
