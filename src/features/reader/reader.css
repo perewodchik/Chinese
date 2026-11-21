@@ -3667,3 +3667,33 @@ body:has(.rd[data-book='xiyouji']) {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M0 128 q120 -30 200 -40 t200 -50'/%3E%3Cpath d='M0 138 q120 -20 200 -26 t200 -40'/%3E%3Cpath d='M300 70 l6 -14 l6 14 M318 64 l5 -12 l5 12'/%3E%3Ccircle cx='70' cy='26' r='12'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M0 128 q120 -30 200 -40 t200 -50'/%3E%3Cpath d='M0 138 q120 -20 200 -26 t200 -40'/%3E%3Cpath d='M300 70 l6 -14 l6 14 M318 64 l5 -12 l5 12'/%3E%3Ccircle cx='70' cy='26' r='12'/%3E%3C/svg%3E");
 }
+
+/* A new voice from Listen's menu: the key asked for in place, and the one button to read with it. */
+.rd-natural-key {
+  display: grid;
+  gap: 8px;
+}
+
+.rd-natural-key input {
+  min-width: 0;
+  min-height: 36px;
+  font-size: 16px;
+}
+
+.rd-natural-read .btn {
+  width: 100%;
+}
+
+
+/* The menu is as wide as it is: what is inside wraps rather than running off its right edge. */
+.rd-listen-menu,
+.rd-listen-new,
+.rd-natural-inline {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.rd-natural-read .btn {
+  white-space: normal;
+  height: auto;
+  min-height: 36px;
+}

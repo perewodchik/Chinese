@@ -1,22 +1,25 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router";
 import type { NarratorDto, TextNarrationDto } from "../../../shared/narration";
+import type { NarratorVoice } from "../../../shared/narration";
 import {
+  adoptNarrator,
   chooseNarrator,
   chosenNarrator,
   listNarrators,
   narrationOf,
   narrationStatus,
+  narratorVoices,
+  previewNarrator,
+  saveNarrationKey,
 } from "../../api/narration";
-import { paths } from "../../navigation/paths";
 import { Icon } from "../../ui/Icon";
 
 /**
- * A narrator for the text: a + at the end of Listen's voices that drops a
- * panel over the lines, so the player stays the thing on the screen. There one of the
- * learner's narrators (made and tuned in Speaking › Voices) reads the whole
- * text in one go with their own key; the reading is kept, so it is never paid
- * for twice, and plays above with a slider.
+ * A narrator for the text, from Listen's menu: one of the learner's
+ * narrators, or one of MiniMax's own voices taken on as a new narrator right
+ * here (heard first on the text's first line), reads the whole text in one go
+ * with the learner's own key — asked for here when there is none. The reading
+ * is kept, so it is never paid for twice, and plays above with a slider.
  */
 export function Narrate({
   lines,
@@ -35,8 +38,16 @@ export function Narrate({
   const [kept, setKept] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const narrator =
-    narrators?.find((n) => n.id === narratorId) ?? narrators?.[0] ?? null;
+  // MiniMax's own voices, offered as new narrators right here: Speak, where
+  // narrators were made, may be switched off.
+  const [stock, setStock] = useState<NarratorVoice[] | null>(null);
+  const [stockId, setStockId] = useState<string | null>(null);
+  const [key, setKey] = useState("");
+  const [sample, setSample] = useState<string | null>(null);
+  const narrator = stockId
+    ? null
+    : (narrators?.find((n) => n.id === narratorId) ?? narrators?.[0] ?? null);
+  const stockVoice = stockId ? (stock?.find((v) => v.id === stockId) ?? null) : null;
   const panel = useRef<HTMLDivElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
 
@@ -81,14 +92,31 @@ export function Narrate({
       (list) => live && setNarrators(list),
       (err: Error) => live && setMessage(err.message),
     );
+
     return () => {
       live = false;
     };
   }, [hasKey, narrators]);
 
+  // MiniMax's own voices, once there is a key to ask with.
+  useEffect(() => {
+    if (!hasKey || stock) return;
+    let live = true;
+    narratorVoices().then(
+      (list) => live && setStock(list),
+      () => live && setStock([]),
+    );
+    return () => {
+      live = false;
+    };
+  }, [hasKey, stock]);
+
   // Has the narrator, as it sounds now, read this text already?
   useEffect(() => {
-    if (!narrator) return;
+    if (!narrator) {
+      setKept(stockId ? false : null);
+      return;
+    }
     let live = true;
     setKept(null);
     narrationOf(narrator.id, lines).then(
@@ -98,13 +126,57 @@ export function Narrate({
     return () => {
       live = false;
     };
-  }, [narrator, lines]);
+  }, [narrator, lines, stockId]);
 
-  async function read(again = false) {
-    if (!narrator) return;
+  /** The chosen voice as a narrator of the learner's: MiniMax's own voice taken on first, when that is what was chosen. */
+  async function narratorToUse() {
+    if (narrator) return narrator;
+    if (!stockVoice) return null;
+    const made = await adoptNarrator(stockVoice.name.replace(/\s*\((Fe)?[Mm]ale\)\s*$/, ""), stockVoice.id);
+    setNarrators((list) => [...(list ?? []), made]);
+    setNarratorId(made.id);
+    chooseNarrator(made.id);
+    setStockId(null);
+    return made;
+  }
+
+  async function hear() {
     setBusy(true);
     setMessage(null);
     try {
+      const n = await narratorToUse();
+      if (!n) return;
+      const url = await previewNarrator(n.id, lines[0] ?? "你好。");
+      if (sample) URL.revokeObjectURL(sample);
+      setSample(url);
+      void new Audio(url).play().catch(() => undefined);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "MiniMax did not answer.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveKey() {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const s = await saveNarrationKey(key);
+      setKey("");
+      setHasKey(s.key.set);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "MiniMax did not take the key.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function read(again = false) {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const narrator = await narratorToUse();
+      if (!narrator) return;
       const n = await narrationOf(
         narrator.id,
         lines,
@@ -124,6 +196,10 @@ export function Narrate({
       setBusy(false);
     }
   }
+
+  const mine = new Set((narrators ?? []).map((n) => n.voiceId));
+  const fresh = (stock ?? []).filter((v) => !mine.has(v.id));
+  const who = narrator?.name ?? stockVoice?.name ?? "";
 
   return (
     <>
@@ -147,41 +223,84 @@ export function Narrate({
         >
           {!embedded && <b className="small">A narrator for this text</b>}
           {hasKey === false ? (
-            <p className="small" style={{ margin: 0 }}>
-              Narrators read texts in natural Mandarin voices with your own
-              MiniMax key. Add the key and make a narrator in{" "}
-              <Link to={paths.speakingNarrators()}>Speaking › Voices</Link>.
-            </p>
-          ) : narrators && narrators.length === 0 ? (
-            <p className="small" style={{ margin: 0 }}>
-              No narrators yet.{" "}
-              <Link to={paths.speakingNarrators()}>
-                Make one in Speaking › Voices
-              </Link>
-              : describe the voice you want.
-            </p>
+            <form
+              className="rd-natural-key"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (key.trim()) void saveKey();
+              }}
+            >
+              <p className="small" style={{ margin: 0 }}>
+                A natural voice reads the text with your own MiniMax key (platform.minimax.io › API Keys); a chapter costs a few cents, once.
+              </p>
+              <div className="rd-natural-row">
+                <input
+                  type="password"
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder="Your MiniMax API key"
+                  aria-label="MiniMax API key"
+                  value={key}
+                  onChange={(e) => setKey(e.target.value)}
+                />
+                <button className="btn tonal sm" type="submit" disabled={busy || !key.trim()}>
+                  {busy ? "Checking…" : "Save the key"}
+                </button>
+              </div>
+              {message && <p className="tiny muted rd-natural-msg">{message}</p>}
+            </form>
           ) : (
             <>
               <div className="rd-natural-row">
                 <label className="rd-natural-pick">
-                  <span className="tiny muted">Narrator</span>
+                  <span className="tiny muted">Voice</span>
                   <select
-                    value={narrator?.id ?? ""}
+                    value={stockId ? `v:${stockId}` : `n:${narrator?.id ?? ""}`}
                     onChange={(e) => {
-                      setNarratorId(e.target.value);
-                      chooseNarrator(e.target.value);
+                      const v = e.target.value;
+                      if (v.startsWith("v:")) setStockId(v.slice(2));
+                      else {
+                        setStockId(null);
+                        setNarratorId(v.slice(2));
+                        chooseNarrator(v.slice(2));
+                      }
                       setMessage(null);
                     }}
                     disabled={!narrators || busy}
                   >
-                    {!narrators && <option value="">Loading…</option>}
-                    {(narrators ?? []).map((n) => (
-                      <option key={n.id} value={n.id}>
-                        {n.name}
-                      </option>
-                    ))}
+                    {!narrators && <option value="n:">Loading…</option>}
+                    {narrators && narrators.length > 0 && (
+                      <optgroup label="Your narrators">
+                        {narrators.map((n) => (
+                          <option key={n.id} value={`n:${n.id}`}>
+                            {n.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {narrators && narrators.length === 0 && !stockId && <option value="n:">Choose a voice</option>}
+                    {fresh.length > 0 && (
+                      <optgroup label="A new voice">
+                        {fresh.map((v) => (
+                          <option key={v.id} value={`v:${v.id}`}>
+                            {v.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
                   </select>
                 </label>
+                <button
+                  className="btn quiet sm"
+                  onClick={() => void hear()}
+                  disabled={busy || (!narrator && !stockVoice)}
+                  title="Its first line, read in this voice"
+                >
+                  Hear it
+                </button>
+              </div>
+              {stockVoice && <p className="tiny muted rd-natural-msg">{stockVoice.description}</p>}
+              <div className="rd-natural-read">
                 {kept ? (
                   <button
                     className="btn quiet sm rd-natural-go"
@@ -194,20 +313,17 @@ export function Narrate({
                   <button
                     className="btn tonal sm rd-natural-go"
                     onClick={() => void read()}
-                    disabled={!narrator || busy || kept === null}
+                    disabled={(!narrator && !stockVoice) || busy || kept === null}
                   >
-                    {busy ? "Reading… up to a minute" : "Read the whole text"}
+                    {busy ? "Reading… up to a minute" : `Read the whole text${who ? ` as ${who}` : ""}`}
                   </button>
                 )}
               </div>
               <p className="tiny muted rd-natural-msg">
                 {message ??
                   (kept
-                    ? `${narrator?.name} has read this text; it plays above. Read it again only after changing the voice.`
-                    : "One request for the whole text, kept on the server: it is paid for once. ")}
-                {!message && !kept && (
-                  <Link to={paths.speakingNarrators()}>Voices</Link>
-                )}
+                    ? `${who} has read this text; it plays above. Read it again only after changing the voice.`
+                    : "One request for the whole text, kept on the server: it is paid for once.")}
               </p>
             </>
           )}
