@@ -1229,7 +1229,6 @@ label.rd-aa-row {
   font-size: 21px;
 }
 
-
 /* ------------------------------------------- copying out: the squares, the strokes */
 :root[data-copying] .drawer {
   z-index: 70;
@@ -1989,7 +1988,6 @@ label.rd-aa-row {
   background: var(--hl);
 }
 
-
 /* A narrator for the text: a + at the end of the voices that drops a panel
    over what is below, so nothing under it moves. */
 .rd-voices {
@@ -2400,56 +2398,6 @@ a.rd-more-row {
   user-select: none;
 }
 
-.rd-glosses {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 18px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.rd-glosses li {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
-}
-
-/* New to you: the red pen's dot, small, before each. */
-.rd-glosses li::before {
-  content: '';
-  flex: none;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--red);
-  align-self: center;
-}
-
-.rd-glosses .hanzi {
-  font-size: 19px;
-  line-height: 1.3;
-}
-
-.rd-glosses b {
-  font-weight: 500;
-  font-size: 13px;
-  color: var(--py);
-}
-
-.rd-glosses [lang='en'] {
-  font-size: 13px;
-  color: var(--ink-2);
-}
-
-/* A phone has pinyin over the new word itself and no room to spare. */
-@media (max-width: 699px) {
-  .rd-glosses {
-    display: none;
-  }
-}
-
 /* A wide page: the text in a column and its margin beside it, the chapter's
    head over the text, pictures across both. */
 @media (min-width: 1100px) {
@@ -2488,26 +2436,6 @@ a.rd-more-row {
     font-size: 14.5px;
   }
 
-  .rd-text[data-layout='paragraph'] .rd-glosses {
-    display: grid;
-    gap: 12px;
-  }
-
-  .rd-text[data-layout='paragraph'] .rd-glosses li {
-    display: grid;
-    grid-template-columns: 5px auto minmax(0, 1fr);
-    column-gap: 10px;
-    align-items: center;
-  }
-
-  .rd-text[data-layout='paragraph'] .rd-glosses li > span:last-child {
-    display: grid;
-    line-height: 1.3;
-  }
-
-  .rd-text[data-layout='paragraph'] .rd-glosses .hanzi {
-    font-size: 22px;
-  }
 }
 
 /* ------------------------------------------------------------- the contents */
@@ -2821,7 +2749,6 @@ a.rd-more-row {
   border-left: 0;
   border-top: 0;
 }
-
 
 /* The top of the card is one button: the whole word drawer. */
 .rd-peek-top {
@@ -3480,193 +3407,6 @@ a.rd-more-row {
 }
 
 /* ---------------------------------------------- a book dressed as itself */
-/* Aa › Book style, for 西游记: the page a warmer paper, the chapter's 回 a
-   seal, its title between rules, and behind each paragraph, faint, a line
-   drawing of where it happens. Every colour is mixed from the page's own, so
-   Paper, Sepia, Night and the dark theme each get their version of it. */
-body:has(.rd[data-book='xiyouji']) {
-  --book-paper: color-mix(in srgb, #b08a4a 9%, var(--paper));
-  background: var(--book-paper);
-}
-
-.rd[data-book='xiyouji'] {
-  --paper: var(--book-paper);
-}
-
-.rd[data-book='xiyouji'] .rd-chapter {
-  display: inline-grid;
-  place-items: center;
-  /* Two characters wide, so 第一回 stands as a seal does: 第一 over 回. */
-  width: calc(2em + 18px);
-  min-height: 46px;
-  margin: 0 auto 10px;
-  padding: 4px 6px;
-  box-sizing: border-box;
-  border: 2px solid var(--red);
-  border-radius: 6px;
-  color: var(--red);
-  font-size: 15px;
-  letter-spacing: 0;
-  line-height: 1.15;
-}
-
-.rd[data-book='xiyouji'] .rd-title {
-  padding: 6px 20px;
-  border-block: 1px solid color-mix(in srgb, var(--ink-3) 70%, transparent);
-  letter-spacing: 0.06em;
-}
-
-/* Each paragraph in its place: a faint wash of the place's colour, and its
-   drawing in the top corner, under the words. */
-.rd[data-book='xiyouji'] .rd-text[data-layout='paragraph'] .rd-row {
-  position: relative;
-  isolation: isolate;
-  /* Less at the foot: the last line's own leading already leaves room under it. */
-  padding: 12px 16px 4px;
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--scene, transparent) 7%, transparent);
-  transition: background-color 160ms;
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene]::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  right: 0;
-  width: min(100%, 400px);
-  height: 140px;
-  background: color-mix(in srgb, var(--scene) 55%, var(--ink-3));
-  opacity: 0.24;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: top right;
-  mask-position: top right;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  pointer-events: none;
-}
-
-.rd[data-book='xiyouji'] .rd-row + .rd-row {
-  margin-top: 10px;
-}
-
-/* A picture above its paragraph spans the paragraph's own block, edge to edge. */
-.rd[data-book='xiyouji'] .rd-pic[data-size='large'] .rd-pic-frame {
-  width: 100%;
-}
-
-/* A paragraph with its own picture keeps its drawing, in the corner away from
-   the picture: the bottom left, under the last lines. */
-.rd[data-book='xiyouji'] .rd-row[data-pictured]::before {
-  top: auto;
-  bottom: 0;
-  left: 0;
-  right: auto;
-  width: min(55%, 340px);
-  height: 84px;
-  opacity: 0.16;
-  -webkit-mask-position: bottom left;
-  mask-position: bottom left;
-}
-
-/* Each paragraph in its own block is plainly a new one: no indent as well. */
-.rd[data-book='xiyouji'] .rd-zh[data-layout='paragraph'] .rd-para {
-  text-indent: 0;
-}
-
-/* The wash ends with the paragraph's last line, not a paragraph's space below it. */
-.rd[data-book='xiyouji'] .rd-row > .rd-para {
-  margin-bottom: 0;
-}
-
-/* The place a paragraph opens in, named once, where it first comes. */
-.rd-scene-name {
-  display: block;
-  margin: 0 0 6px;
-  text-indent: 0;
-  line-height: 1.4;
-  font-size: 12px;
-  color: var(--ink-3);
-}
-
-.rd-scene-name .hanzi {
-  font-size: 14px;
-  margin-right: 4px;
-  color: var(--ink-2);
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='mountain'] {
-  --scene: #7a6a3a;
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='cave'] {
-  --scene: #3d6a6a;
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='sea'] {
-  --scene: #2f5a7a;
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='heaven'] {
-  --scene: #8a6a2a;
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='demon'] {
-  --scene: #9a3a2a;
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='temple'] {
-  --scene: #7a5a2a;
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='palace'] {
-  --scene: #8a3a3a;
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='road'] {
-  --scene: #6a5a3a;
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='mountain']::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M0 130 L70 58 L105 90 L165 24 L225 96 L262 66 L330 130'/%3E%3Cpath d='M210 130 L272 48 L312 80 L352 36 L400 100'/%3E%3Cpath d='M150 46 l15 -22 l15 22'/%3E%3Ccircle cx='352' cy='18' r='11'/%3E%3Cpath d='M40 120 q10 -16 20 0 M60 124 q8 -12 16 0'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M0 130 L70 58 L105 90 L165 24 L225 96 L262 66 L330 130'/%3E%3Cpath d='M210 130 L272 48 L312 80 L352 36 L400 100'/%3E%3Cpath d='M150 46 l15 -22 l15 22'/%3E%3Ccircle cx='352' cy='18' r='11'/%3E%3Cpath d='M40 120 q10 -16 20 0 M60 124 q8 -12 16 0'/%3E%3C/svg%3E");
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='cave']::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M300 0 v140 M314 0 v140 M328 0 v140 M342 0 v140 M356 0 v122'/%3E%3Cpath d='M268 140 q60 -84 112 0'/%3E%3Cpath d='M286 16 q14 -10 28 0 q14 -10 28 0 q14 -10 28 0'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M300 0 v140 M314 0 v140 M328 0 v140 M342 0 v140 M356 0 v122'/%3E%3Cpath d='M268 140 q60 -84 112 0'/%3E%3Cpath d='M286 16 q14 -10 28 0 q14 -10 28 0 q14 -10 28 0'/%3E%3C/svg%3E");
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='sea']::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M0 104 q20 -14 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0'/%3E%3Cpath d='M0 124 q20 -14 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0'/%3E%3Cpath d='M260 84 q18 -40 46 -26 q20 10 10 30 q-8 14 -24 6'/%3E%3Ccircle cx='300' cy='64' r='2'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M0 104 q20 -14 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0'/%3E%3Cpath d='M0 124 q20 -14 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0'/%3E%3Cpath d='M260 84 q18 -40 46 -26 q20 10 10 30 q-8 14 -24 6'/%3E%3Ccircle cx='300' cy='64' r='2'/%3E%3C/svg%3E");
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='heaven']::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M232 46 q10 -18 28 -9 q12 -16 30 -2 q18 -4 18 12 q-34 7 -76 -1z'/%3E%3Cpath d='M44 34 q8 -13 22 -7 q11 -11 24 0 q13 0 11 9 q-30 4 -57 -2z'/%3E%3Cpath d='M120 96 q10 -14 24 -6 q12 -12 26 0 q14 0 12 10 q-34 5 -62 -4z'/%3E%3Cpath d='M330 108 l0 -30 M344 108 l0 -38 M358 108 l0 -30 M322 78 h44'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M232 46 q10 -18 28 -9 q12 -16 30 -2 q18 -4 18 12 q-34 7 -76 -1z'/%3E%3Cpath d='M44 34 q8 -13 22 -7 q11 -11 24 0 q13 0 11 9 q-30 4 -57 -2z'/%3E%3Cpath d='M120 96 q10 -14 24 -6 q12 -12 26 0 q14 0 12 10 q-34 5 -62 -4z'/%3E%3Cpath d='M330 108 l0 -30 M344 108 l0 -38 M358 108 l0 -30 M322 78 h44'/%3E%3C/svg%3E");
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='demon']::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M300 130 q-26 -36 4 -64 q-4 26 16 34 q-6 -40 26 -66 q-6 40 20 56 q14 -14 8 -34 q30 32 4 74'/%3E%3Cpath d='M40 130 q-10 -20 6 -34 q0 14 10 18 q0 -22 16 -34 q-2 24 10 32 q8 -8 4 -18 q16 18 2 36'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M300 130 q-26 -36 4 -64 q-4 26 16 34 q-6 -40 26 -66 q-6 40 20 56 q14 -14 8 -34 q30 32 4 74'/%3E%3Cpath d='M40 130 q-10 -20 6 -34 q0 14 10 18 q0 -22 16 -34 q-2 24 10 32 q8 -8 4 -18 q16 18 2 36'/%3E%3C/svg%3E");
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='temple']::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M250 40 h120 M240 50 q70 -26 140 0 M262 50 v70 M358 50 v70 M250 120 h120 M290 120 v-40 h40 v40'/%3E%3Cpath d='M300 30 l10 -14 l10 14'/%3E%3Ccircle cx='60' cy='40' r='18'/%3E%3Cpath d='M60 58 v60'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M250 40 h120 M240 50 q70 -26 140 0 M262 50 v70 M358 50 v70 M250 120 h120 M290 120 v-40 h40 v40'/%3E%3Cpath d='M300 30 l10 -14 l10 14'/%3E%3Ccircle cx='60' cy='40' r='18'/%3E%3Cpath d='M60 58 v60'/%3E%3C/svg%3E");
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='palace']::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M220 50 h170 M210 62 q95 -32 190 0 M232 62 v56 M378 62 v56 M220 118 h170 M262 62 v56 M348 62 v56 M295 118 v-34 h20 v34'/%3E%3Cpath d='M0 118 h120 M20 118 v-30 h80 v30 M40 88 v-16 h40 v16'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M220 50 h170 M210 62 q95 -32 190 0 M232 62 v56 M378 62 v56 M220 118 h170 M262 62 v56 M348 62 v56 M295 118 v-34 h20 v34'/%3E%3Cpath d='M0 118 h120 M20 118 v-30 h80 v30 M40 88 v-16 h40 v16'/%3E%3C/svg%3E");
-}
-
-.rd[data-book='xiyouji'] .rd-row[data-scene='road']::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M0 128 q120 -30 200 -40 t200 -50'/%3E%3Cpath d='M0 138 q120 -20 200 -26 t200 -40'/%3E%3Cpath d='M300 70 l6 -14 l6 14 M318 64 l5 -12 l5 12'/%3E%3Ccircle cx='70' cy='26' r='12'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M0 128 q120 -30 200 -40 t200 -50'/%3E%3Cpath d='M0 138 q120 -20 200 -26 t200 -40'/%3E%3Cpath d='M300 70 l6 -14 l6 14 M318 64 l5 -12 l5 12'/%3E%3Ccircle cx='70' cy='26' r='12'/%3E%3C/svg%3E");
-}
 
 /* A new voice from Listen's menu: the key asked for in place, and the one button to read with it. */
 .rd-natural-key {
@@ -3684,7 +3424,6 @@ body:has(.rd[data-book='xiyouji']) {
   width: 100%;
 }
 
-
 /* The menu is as wide as it is: what is inside wraps rather than running off its right edge. */
 .rd-listen-menu,
 .rd-listen-new,
@@ -3696,4 +3435,43 @@ body:has(.rd[data-book='xiyouji']) {
   white-space: normal;
   height: auto;
   min-height: 36px;
+}
+
+/* What can be done with the text and the book, under the chapters (☰): the ⋯ on the page is gone. */
+.rd-toc-actions {
+  display: grid;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.rd-toc-group {
+  margin: 0 0 4px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+button.rd-toc-action {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.rd-toc-action:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.rd-toc-action[data-danger] .rd-toc-title > span {
+  color: var(--red);
+}
+
+button.rd-toc-action {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 52px;
 }

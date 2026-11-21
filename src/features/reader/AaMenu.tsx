@@ -12,14 +12,11 @@ import {
   PINYIN_MODES,
   TRANSLATION_LABEL,
   TRANSLATION_MODES,
-  type GlossMode,
   type PaperMode,
   type PictureMode,
   type PinyinMode,
   type TranslationMode,
-  type BookStyleMode,
 } from './readerView';
-import type { BookStyle } from '../../domain/bookStyle';
 
 const SCALE_MIN = 0.8;
 const SCALE_MAX = 1.6;
@@ -36,15 +33,10 @@ export function AaMenu({
   setTranslation,
   hasTrad,
   hasPictures,
-  book,
-  bookOn,
-  setBookOn,
   pictures,
   setPictures,
   paper,
   setPaper,
-  glosses,
-  setGlosses,
 }: {
   pinyin: PinyinMode;
   setPinyin: (m: PinyinMode) => void;
@@ -52,16 +44,10 @@ export function AaMenu({
   setTranslation: (m: TranslationMode) => void;
   hasTrad: boolean;
   hasPictures: boolean;
-  /** the book's own look, when it has one */
-  book: BookStyle | null;
-  bookOn: BookStyleMode;
-  setBookOn: (m: BookStyleMode) => void;
   pictures: PictureMode;
   setPictures: (m: PictureMode) => void;
   paper: PaperMode;
   setPaper: (m: PaperMode) => void;
-  glosses: GlossMode;
-  setGlosses: (m: GlossMode) => void;
 }) {
   const settings = useStore((s) => s.settings);
   const [open, setOpen] = useState(false);
@@ -165,24 +151,6 @@ export function AaMenu({
               </div>
             </div>
           )}
-          {book && (
-            <label className="rd-aa-row">
-              <span>
-                Book style
-                <small>The page dressed as the book, each paragraph against the place it happens in.</small>
-              </span>
-              <span className="spacer" />
-              <input type="checkbox" checked={bookOn === 'on'} onChange={(e) => setBookOn(e.target.checked ? 'on' : 'off')} />
-            </label>
-          )}
-          <label className="rd-aa-row">
-            <span>
-              New words beside the text
-              <small>Each with its pinyin and meaning, by its paragraph.</small>
-            </span>
-            <span className="spacer" />
-            <input type="checkbox" checked={glosses === 'on'} onChange={(e) => setGlosses(e.target.checked ? 'on' : 'off')} />
-          </label>
           <label className="rd-aa-row">
             <span>
               Underline what is not known yet

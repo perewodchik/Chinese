@@ -5,7 +5,6 @@ import { alignPinyin, charLevels as countLevels, paragraphs, stepsAbove, wordBan
 import { segment, writerHints } from '../../domain/segment';
 import { itemForToken } from '../../domain/words';
 import { pictureAbove } from '../../domain/pictures';
-import { paragraphScenes, type BookStyle } from '../../domain/bookStyle';
 import { hskLabel, isHanzi, type GeneratedText } from '../../domain/text';
 import { Link } from 'react-router';
 import { useOpenItem } from '../../navigation/itemDrawer';
@@ -38,8 +37,6 @@ export interface ReaderView {
   comic: boolean;
   /** the pictures above or beside the paragraphs */
   pictures: PictureMode;
-  /** each paragraph's new words with their pinyin and meaning, in the margin or under it */
-  glosses: boolean;
 }
 
 /** A word's pinyin and its first sense: the text's own list first, then the syllabus, the writer's notes, the character. */
@@ -109,8 +106,6 @@ interface PassageProps {
   heading?: ReactNode;
   /** the head as a book prints it: 第三章, the name, its English (`chapterHead`) */
   head: { kicker: string | null; zh: string; en: string };
-  /** the book's own look, when it is turned on: each paragraph's scene behind it */
-  book?: BookStyle | null;
   /** beside the title, to its right: Listen */
   titleAction?: ReactNode;
   /** a word tapped, for its card; without it a tap opens the word drawer */
@@ -128,7 +123,7 @@ interface PassageProps {
  * and off never moves a line. Punctuation stays with the word before it: a
  * line never begins with a comma.
  */
-export function Passage({ text, view, reading, flash, revealed, onReveal, onHold, held, onPoint, retold, heading, head, titleAction, book, onWord, peekKey }: PassageProps) {
+export function Passage({ text, view, reading, flash, revealed, onReveal, onHold, held, onPoint, retold, heading, head, titleAction, onWord, peekKey }: PassageProps) {
   const lib = useLibrary();
   const openItem = useOpenItem();
 
@@ -159,11 +154,6 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
   const pictureOf = (n: number) => (story || view.pictures === 'off' ? undefined : pictureAbove(text, n));
   // A comic's page photo is what is being read, not an illustration: always large, with its spots.
   const beside = view.pictures === 'beside' && !text.lines.some((l) => l.box);
-  // In the book's own look, the place each paragraph happens in, drawn faint behind it.
-  const scenes = useMemo(
-    () => (book ? paragraphScenes(paras.map((p) => p.map((i) => text.lines[i]!.zh).join(''))) : null),
-    [book, paras, text.lines],
-  );
   const paraStarts = useMemo(() => new Map(paragraphs(text).map((p, n) => [p[0]!, n])), [text]);
   // A comic's lines, by the page (paragraph) whose photo they are on.
   const marks = useMemo(
@@ -208,20 +198,6 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
     for (const line of tokens) for (const t of line) if (t.word && levelOfWord(t.text) === 0) seen.add(t.text);
     return seen.size;
   }, [tokens, levelOfWord]);
-  // Each paragraph's new words, each glossed once, where it first comes.
-  const glosses = useMemo(() => {
-    const seen = new Set<string>();
-    return paras.map((p) =>
-      p.flatMap((i) =>
-        (tokens[i] ?? []).flatMap((t) => {
-          if (!t.word || seen.has(t.text) || levelOfWord(t.text) !== 0) return [];
-          seen.add(t.text);
-          const g = glossOf(lib, text, t.text);
-          return g ? [{ w: t.text, py: g.py, d: firstSense(g.d) }] : [];
-        }),
-      ),
-    );
-  }, [paras, tokens, levelOfWord, lib, text]);
   const hold = useHold((i, el) => (onHold ? onHold(i, el) : onReveal(i)));
   // A learner at HSK 1–2 reads about seventy characters a minute, stopping on what is new.
   const minutes = Math.max(1, Math.round(text.lines.reduce((n, l) => n + [...l.zh].filter(isHanzi).length, 0) / 70));
@@ -295,7 +271,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
   }
 
   return (
-    <article className="rd-passage" lang="zh" data-book={book ?? undefined}>
+    <article className="rd-passage" lang="zh">
       <header className="rd-head">
         {heading}
         {head.kicker && <p className="rd-chapter hanzi">{head.kicker}</p>}
@@ -338,7 +314,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
         data-pinyin={view.pinyin !== 'off' || undefined}
         // The margin beside the paragraphs on a wide page is kept only for what goes in it: the
         // English, the new words, a held line's English. Empty, it squeezed the text to half the page.
-        data-margin={view.translation === 'shown' || view.glosses || revealed.size > 0 || undefined}
+        data-margin={view.translation === 'shown' || revealed.size > 0 || undefined}
       >
         {comic ? (
           <Comic
@@ -358,15 +334,10 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
               {pictureOf(n) && !beside && <ParagraphPicture picture={pictureOf(n)!} size="large" marks={marks[n]} onMark={onPoint} retold={retold} />}
               {/* The paragraph, and beside it on a wide page (under it on a
                   narrower one) its English and its new words. */}
-              <div className="rd-row" data-scene={scenes?.[n]?.scene} data-pictured={pictureOf(n)?.key ? true : undefined}>
+              <div className="rd-row" data-pictured={pictureOf(n)?.key ? true : undefined}>
                 <p className="rd-para">
                   {/* The picture first, so it stands at the top of the block, beside the place's name too. */}
                   {pictureOf(n) && beside && <ParagraphPicture picture={pictureOf(n)!} size="beside" />}
-                  {scenes?.[n]?.place && (
-                    <span className="rd-scene-name">
-                      <span className="hanzi">{scenes[n]!.place!.zh}</span> <span lang="en">{scenes[n]!.place!.en}</span>
-                    </span>
-                  )}
                   {p.map((i) => (
                     <span
                       key={i}
@@ -393,18 +364,6 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
                           {text.lines[i]!.en}
                         </button>
                       ))
-                  )}
-                  {view.glosses && glosses[n]!.length > 0 && (
-                    <ul className="rd-glosses" lang="zh">
-                      {glosses[n]!.map((g) => (
-                        <li key={g.w}>
-                          <span className="hanzi">{g.w}</span>
-                          <span>
-                            <b>{g.py}</b> <span lang="en">{g.d}</span>
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
                   )}
                 </aside>
               </div>

@@ -22,17 +22,14 @@ import { useOpenItem } from '../../navigation/itemDrawer';
 import { Passage, useWordDone, type ReaderView } from './Passage';
 import { onReadThrough, prefetchPassage, useReading } from './readAloud';
 import {
-  useGlossMode,
   usePaperMode,
   usePictureMode,
   usePinyinMode,
   useTranslationMode,
-  useBookStyleMode,
 } from './readerView';
-import { bookStyleOf } from '../../domain/bookStyle';
 import { DockPlayer, type PlayerControl } from './DockPlayer';
 import { AaMenu } from './AaMenu';
-import { ReaderMenu } from './ReaderMenu';
+import { TextActions } from './TextActions';
 import { rememberReading } from '../shared/lastRead';
 import { MorePart } from './MorePart';
 import { partFill } from './parts';
@@ -155,11 +152,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [translation, setTranslation] = useTranslationMode();
   const [pictures, setPictures] = usePictureMode();
   const [paper, setPaper] = usePaperMode();
-  const [glosses, setGlosses] = useGlossMode();
-  const [bookOn, setBookOn] = useBookStyleMode();
-  // The book's own look, where it has one and it is turned on.
-  const bookStyle = bookStyleOf(set?.name, list[0]?.topic, text.title, text.titleZh);
-  const dressed = bookOn === 'on' ? bookStyle : null;
   const [contents, setContents] = useState(false);
   // A tapped word's card; the whole drawer is a tap on it away.
   const [peek, setPeek] = useState<(Peeked & { key: string }) | null>(null);
@@ -219,7 +211,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     // Dialogue as a comic is no longer offered: a dialogue reads as any text.
     comic: false,
     pictures,
-    glosses: glosses === 'on',
   };
 
   /* -------------------------------------------------------- the voice */
@@ -341,15 +332,22 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const next = page < total ? versionOf(entries[page]!, null) : null;
 
   return (
-    <div className="rd" ref={top} data-mode={mode} data-book={dressed ?? undefined} style={{ '--reader-scale': settings.readerScale } as CSSProperties}>
+    <div className="rd" ref={top} data-mode={mode} style={{ '--reader-scale': settings.readerScale } as CSSProperties}>
       {/* The bar, stuck to the top and opaque from the screen's edge down. */}
       <div className="rd-pin no-print">
       <header className="rd-top">
         <Link className="rd-back" to={set ? paths.shelf(set.id) : paths.read()} aria-label={set ? `Back to ${bookTitle(set.name)}` : 'Back to Read'} title={set ? `Back to ${bookTitle(set.name)}` : 'Back to Read'}>
           <Icon name="back" size={24} />
         </Link>
-        {set && total > 1 && (
-          <button className="rd-toc-btn" aria-label={story ? 'Chapters' : 'Texts on this shelf'} title={story ? 'Chapters' : 'Texts on this shelf'} aria-expanded={contents} onClick={() => setContents(true)}>
+        {/* Always there: besides the chapters, it holds what can be done with the text and the book. */}
+        {(
+          <button
+            className="rd-toc-btn"
+            aria-label={set && total > 1 ? (story ? 'Chapters, and what to do with the text' : 'Texts, and what to do with them') : 'What to do with the text'}
+            title={set && total > 1 ? (story ? 'Chapters' : 'Texts on this shelf') : 'Print, edit, explain'}
+            aria-expanded={contents}
+            onClick={() => setContents(true)}
+          >
             <Icon name="contents" size={22} />
           </button>
         )}
@@ -388,22 +386,10 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           setTranslation={setTranslation}
           hasTrad={list.some((t) => t.lines.some((l) => l.zht))}
           hasPictures={list.some((t) => t.pictures?.some((p) => p.key))}
-          book={bookStyle}
-          bookOn={bookOn}
-          setBookOn={setBookOn}
           pictures={pictures}
           setPictures={setPictures}
           paper={paper}
           setPaper={setPaper}
-          glosses={glosses}
-          setGlosses={setGlosses}
-        />
-        <ReaderMenu
-          set={set}
-          list={list}
-          text={text}
-          mode={mode}
-          onMode={(m) => navigate(address(m === 'all' ? { mode: 'all' } : { page }))}
         />
       </header>
       {/* The narrator, under the bar and pinned with it: the bottom edge is
@@ -441,7 +427,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             onReveal={reveal}
             onPoint={point}
             retold={Boolean(entry.original) && t.id === entry.easier?.id}
-            book={dressed}
             study={study}
             heading={mode === 'all' && !story ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
             head={chapterHead(t, chapterAt(mode === 'all' ? i : page - 1))}
@@ -494,8 +479,25 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
 
       {held && text.lines[held.i] && <SentencePeek held={held} line={text.lines[held.i]!} onClose={closeHeld} />}
 
-      {contents && set && (
-        <BookContents set={set} book={bookOf(set, list)} entries={entries} page={mode === 'single' ? page : 0} onClose={closeContents} />
+      {contents && (
+        <BookContents
+          set={set}
+          book={set ? bookOf(set, list) : null}
+          title={text.titleZh || text.title}
+          entries={entries}
+          page={mode === 'single' ? page : 0}
+          onClose={closeContents}
+          actions={
+            <TextActions
+              set={set}
+              list={list}
+              text={text}
+              mode={mode}
+              onMode={(m) => navigate(address(m === 'all' ? { mode: 'all' } : { page }))}
+              onClose={closeContents}
+            />
+          }
+        />
       )}
 
       {mode === 'single' && (

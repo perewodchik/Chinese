@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { bookTitle, chapterHead, chineseNumber, isFrontMatter, type Book } from '../../domain/bookshelf';
 import { canRelive, castOf, readInBook } from '../../domain/companion';
@@ -22,21 +22,28 @@ export function BookContents({
   entries,
   page,
   onClose,
+  actions,
+  title,
 }: {
-  set: TextSet;
-  book: Book;
+  /** null for a text on no shelf: the panel then holds only what can be done with it */
+  set: TextSet | null;
+  book: Book | null;
   entries: ShelfEntry[];
   /** the chapter open now, from 1 */
   page: number;
   onClose: () => void;
+  /** what can be done with the text and the book, under the chapters (there is no ⋯ on the page) */
+  actions?: ReactNode;
+  /** the text's own title, for a text on no shelf */
+  title?: string;
 }) {
   const levelOfWord = useWordLevel();
-  const story = book.kind === 'story';
+  const story = book?.kind === 'story';
   // A book with a companion offers each chapter read in it to be lived again (reader/RelivePage).
-  const companion = story && castOf(bookTitle(set.name)) !== null;
+  const companion = story && set !== null && castOf(bookTitle(set.name)) !== null;
   const texts = useStore((s) => s.texts);
   const sets = useStore((s) => s.sets);
-  const readInPair = useMemo(() => (companion ? readInBook(texts, sets, bookTitle(set.name)) : new Set<string>()), [companion, texts, sets, set.name]);
+  const readInPair = useMemo(() => (companion ? readInBook(texts, sets, bookTitle(set!.name)) : new Set<string>()), [companion, texts, sets, set]);
   const current = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
@@ -52,16 +59,22 @@ export function BookContents({
     <div className="rd-toc-scrim" onClick={onClose}>
       <nav className="rd-toc" role="dialog" aria-modal="true" aria-label="Chapters" onClick={(e) => e.stopPropagation()}>
         <div className="rd-toc-body">
-          <header className="rd-toc-head">
-            <BookCover book={book} width={64} />
-            <span>
-              <b className={/\p{Script=Han}/u.test(book.title) ? 'hanzi' : undefined}>{book.title}</b>
-              <small>
-                {story ? `${entries.filter((e) => !isFrontMatter(e.main)).length} chapters` : `${entries.length} texts`}
-              </small>
-            </span>
-          </header>
-          {companion && entries.some((e) => !isFrontMatter(e.main) && canRelive(e, readInPair)) && (
+          {book ? (
+            <header className="rd-toc-head">
+              <BookCover book={book} width={64} />
+              <span>
+                <b className={/\p{Script=Han}/u.test(book.title) ? 'hanzi' : undefined}>{book.title}</b>
+                <small>
+                  {story ? `${entries.filter((e) => !isFrontMatter(e.main)).length} chapters` : `${entries.length} text${entries.length === 1 ? '' : 's'}`}
+                </small>
+              </span>
+            </header>
+          ) : (
+            <header className="rd-toc-head">
+              <b className={title && /\p{Script=Han}/u.test(title) ? 'hanzi' : undefined}>{title}</b>
+            </header>
+          )}
+          {companion && set && entries.some((e) => !isFrontMatter(e.main) && canRelive(e, readInPair)) && (
             <Link className="rd-toc-row rd-toc-guide" to={paths.guide(set.id)} onClick={onClose}>
               <span className="rd-toc-badge" aria-hidden>
                 <Icon name="book" size={18} />
@@ -73,7 +86,7 @@ export function BookContents({
               <Icon name="chevron" size={18} />
             </Link>
           )}
-          <ol className="rd-toc-list">
+          {set && entries.length > 1 && <ol className="rd-toc-list">
             {entries.map((e, i) => {
               const front = story && isFrontMatter(e.main);
               if (!front) n += 1;
@@ -110,12 +123,17 @@ export function BookContents({
                 </li>
               );
             })}
-          </ol>
+          </ol>}
+          {actions}
         </div>
         <div className="rd-toc-foot">
-          <Link className="btn quiet" to={paths.shelf(set.id)}>
-            The book’s page
-          </Link>
+          {set ? (
+            <Link className="btn quiet" to={paths.shelf(set.id)}>
+              The book’s page
+            </Link>
+          ) : (
+            <span />
+          )}
           <button className="btn tonal" onClick={onClose}>
             Close
           </button>
