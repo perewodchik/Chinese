@@ -1168,3 +1168,181 @@
 .shelf-relive {
   min-height: 36px;
 }
+
+/* ------------------------------------------------ the book page, plainer */
+/* The one thing to do here: go on reading. Under the book's head, not at the page's foot. */
+.book-go {
+  width: 100%;
+  margin: 4px 0 18px;
+}
+
+@media (min-width: 700px) {
+  .book-go {
+    width: auto;
+    min-width: 320px;
+  }
+}
+
+/* Tabs as words with a line under the open one: no box around them. */
+.book-tabs {
+  display: flex;
+  gap: 22px;
+  margin: 0 0 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.book-tabs button {
+  position: relative;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: 400 15px var(--sans);
+  color: var(--ink-3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.book-tabs button[aria-selected='true'] {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.book-tabs button[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+}
+
+.book-tabs .count {
+  margin-left: 5px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+/* A chapter is one row: its number, its name and its English, where you are
+   in it, and 写 to write it out. Rows divided by hairlines. */
+.book-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.book-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+}
+
+.book-row:first-child {
+  border-top: 0;
+}
+
+.book-row > .shelf-relive {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin: -6px 0 8px 2.4em;
+}
+
+.book-row-main {
+  display: grid;
+  grid-template-columns: 1.8em minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 6px 4px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.book-grammar .book-row-main {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.book-row-n {
+  font-size: 19px;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.book-row[data-state='now'] .book-row-n {
+  color: var(--accent);
+}
+
+.book-row-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.book-row-title b {
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.book-grammar .book-row-title {
+  display: grid;
+  gap: 2px;
+}
+
+.book-grammar .book-row-title b {
+  font: 500 15px var(--sans);
+  white-space: normal;
+}
+
+.book-row-title small {
+  min-width: 0;
+  font-size: 13px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-grammar .book-row-title small {
+  font-size: 17px;
+  color: var(--ink-2);
+  white-space: normal;
+}
+
+.book-row[data-state='done'] .book-row-title b {
+  color: var(--ink-2);
+}
+
+.book-row-state {
+  font-size: 13px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.book-row-state .now {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.book-row-write {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  color: var(--accent);
+  text-decoration: none;
+  border-radius: 10px;
+}
+
+.book-grammar h3 {
+  margin: 18px 0 2px;
+  font: 600 13.5px var(--sans);
+  color: var(--ink-2);
+}

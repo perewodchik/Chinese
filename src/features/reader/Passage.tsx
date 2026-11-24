@@ -6,6 +6,7 @@ import { segment, writerHints } from '../../domain/segment';
 import { itemForToken } from '../../domain/words';
 import { pictureAbove } from '../../domain/pictures';
 import { hskLabel, isHanzi, type GeneratedText } from '../../domain/text';
+import { minutesToRead } from './readerProgress';
 import { Link } from 'react-router';
 import { useOpenItem } from '../../navigation/itemDrawer';
 import { paths } from '../../navigation/paths';
@@ -215,8 +216,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
     );
   }, [paras, tokens, levelOfWord, lib, text]);
   const hold = useHold((i, el) => (onHold ? onHold(i, el) : onReveal(i)));
-  // A learner at HSK 1–2 reads about seventy characters a minute, stopping on what is new.
-  const minutes = Math.max(1, Math.round(text.lines.reduce((n, l) => n + [...l.zh].filter(isHanzi).length, 0) / 70));
+  const minutes = minutesToRead(text);
 
   /** One sentence, word by word, punctuation held to its word. */
   function sentence(i: number): ReactNode {

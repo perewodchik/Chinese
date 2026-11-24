@@ -1,11 +1,11 @@
 import { ask, askText } from '../../ui/dialogs';
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { DEFAULT_SCOPE, type Collection } from '../../domain/collection';
 import { charId, isCharId, isWordId, idValue, type ItemId } from '../../domain/ids';
 import { firstSense } from '../../domain/library';
 import { defaultSheet } from '../../domain/sheet';
-import { fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTexts, type GeneratedText } from '../../domain/text';
+import { fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTexts, type GeneratedText, type ShelfEntry } from '../../domain/text';
 import { paths, type ShelfTab } from '../../navigation/paths';
 import { useIsAdmin } from '../auth/session';
 import { oneOf, useQuery } from '../../navigation/query';
@@ -20,20 +20,19 @@ import { useTitle } from '../../ui/useTitle';
 import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { lastReading } from '../shared/lastRead';
-import { useWordDone, useWordLevel } from './Passage';
 import { readerSheet } from './readerSheet';
-import { partFill, partsOf } from './parts';
+import { minutesToRead, shareOf } from './readerProgress';
 import { useStartSession } from './startSession';
 import { bookcase, bookOf, bookTitle, chapterHead, chineseNumber, isFrontMatter } from '../../domain/bookshelf';
 import { canRelive, castOf, readInBook } from '../../domain/companion';
-import { BookChars, BookWords, type BookWord, type Chapter } from './BookStudy';
+import { BookWords, type BookWord, type Chapter } from './BookStudy';
 import { shelveBook } from '../../store/commands';
 import { BookCover } from './BookCover';
 import './shelves.css';
 import { PublishSheet } from './PublishSheet';
 import { hasHan, progressOf } from './ReadPage';
 
-const TABS: ShelfTab[] = ['texts', 'words', 'characters'];
+const TABS: ShelfTab[] = ['texts', 'words', 'grammar'];
 
 /**
  * One shelf, at /read/:setId — its texts, the words it is teaching, and its
@@ -53,15 +52,6 @@ export function ShelfPage() {
   const list = useMemo(() => (set ? shelve(texts, sets).bySet.get(set.id) ?? [] : []), [texts, sets, set]);
   const entries = useMemo(() => shelfEntries(list), [list]);
   const study = useMemo(() => new Set<ItemId>(set?.study ?? []), [set?.study]);
-  const wordDone = useWordDone(study);
-  // As the passage marks them: a character's level, or that of the one-character word it is when that was asked about.
-  const levelOfWord = useWordLevel();
-  // A text's characters not known yet, by your own answers, in the order they come.
-  const unknownIn = (t: GeneratedText) => {
-    const out: string[] = [];
-    for (const l of t.lines) for (const c of l.zh) if (isHanzi(c) && !out.includes(c) && levelOfWord(c) === 0) out.push(c);
-    return out;
-  };
   const startSession = useStartSession();
   const pdf = usePdfExport();
   const [publishing, setPublishing] = useState(false);
@@ -86,6 +76,7 @@ export function ShelfPage() {
   }, [taught, set?.study]);
 
   if (!set) return <Navigate to={paths.read()} replace />;
+  const grammarCount = entries.reduce((n, e) => n + e.main.grammar.length, 0);
 
   const book = list.some(fromBook);
   const asBook = bookOf(set, list);
@@ -195,6 +186,12 @@ export function ShelfPage() {
               <button role="menuitem" className="btn ghost sm" onClick={() => (close(), startSession(set.id, set.name))}>
                 Write more texts for this book
               </button>
+              {list.length > 1 && (
+                <button role="menuitem" className="btn ghost sm" onClick={() => (close(), navigate(paths.reading(set.id, { mode: 'all' })))}>
+                  {story ? 'Every chapter on one page' : 'Every text on one page'}
+                  <span className="tiny muted">to read straight through, or print</span>
+                </button>
+              )}
               <button role="menuitem" className="btn ghost sm" onClick={() => (close(), rename())}>
                 Rename
               </button>
@@ -234,6 +231,11 @@ export function ShelfPage() {
                   <span className="tiny muted">{set.catalog ? `in the library as version ${set.catalog.version}` : 'for every learner to add to their shelves'}</span>
                 </button>
               )}
+              {chars.length > 0 && (
+                <button role="menuitem" className="btn ghost sm" disabled={pdf.busy !== null} onClick={() => (close(), printChars())}>
+                  Print a practice sheet of its characters
+                </button>
+              )}
               <button role="menuitem" className="btn ghost sm danger" onClick={() => (close(), remove())}>
                 Delete this book
               </button>
@@ -256,20 +258,25 @@ export function ShelfPage() {
               <span className="hanzi">原</span> Original edition
             </span>
           )}
-          <span className="small muted">
-            {story ? `A story in ${numbers[numbers.length - 1] ?? 0} chapter${numbers[numbers.length - 1] === 1 ? '' : 's'}` : `${entries.length} text${entries.length === 1 ? '' : 's'}`}
-            {book ? ', from a book' : ''}
+          <span className="small muted book-head-meta">
+            {story ? `${numbers[numbers.length - 1] ?? 0} chapter${numbers[numbers.length - 1] === 1 ? '' : 's'}` : `${entries.length} text${entries.length === 1 ? '' : 's'}`}
+            {progress.total > 0 ? ` · ${progress.read} read` : ''}
+            {book ? ' · from a book' : ''}
           </span>
-          {progress.total > 0 && (
-            <span className="book-meta book-head-progress">
-              <i>
-                <i style={{ width: `${Math.round((progress.read / progress.total) * 100)}%` }} />
-              </i>
-              {progress.read} of {progress.total} read
-            </span>
-          )}
         </div>
       </div>
+
+      {entries.length > 0 && (
+        <Link className="btn primary lg book-go" to={paths.reading(set.id, { page: nowAt + 1 })}>
+          {progress.total > 0 && progress.read === progress.total
+            ? 'Read it again from the start'
+            : story && frontMatter(entries[nowAt]!.main)
+              ? 'Start reading'
+              : reading
+                ? `Continue ${story ? `chapter ${numbers[nowAt]}` : `text ${nowAt + 1}`}`
+                : `Read ${story ? `chapter ${numbers[nowAt]}` : `text ${nowAt + 1}`}`}
+        </Link>
+      )}
 
       {companion && entries.some((e) => !isFrontMatter(e.main) && canRelive(e, readInPair)) && (
         <Link className="shelf-guide" to={paths.guide(set.id)}>
@@ -282,11 +289,11 @@ export function ShelfPage() {
         </Link>
       )}
 
-      <div className="seg sh-tabs" role="tablist">
+      <div className="book-tabs" role="tablist">
         {TABS.map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} aria-pressed={tab === t} onClick={() => setQuery('tab', t, 'texts')}>
-            {t === 'texts' ? (story ? 'Chapters' : 'Texts') : t === 'words' ? 'Words' : 'Characters'}
-            <span className="count">{t === 'texts' ? entries.length : t === 'words' ? words.length : chars.length}</span>
+            {t === 'texts' ? (story ? 'Chapters' : 'Texts') : t === 'words' ? 'Words' : 'Grammar'}
+            <span className="count">{t === 'texts' ? entries.length : t === 'words' ? words.length : grammarCount}</span>
           </button>
         ))}
       </div>
@@ -294,48 +301,39 @@ export function ShelfPage() {
       {tab === 'texts' && (
         <>
           {entries.length ? (
-            <ol className="list shelf-texts">
+            <ol className="book-rows">
               {entries.map((e, i) => {
-                const fill = partFill(e.main, wordDone);
-                const unknown = unknownIn(e.main);
                 const front = frontMatter(e.main);
                 const state = stateAt(i);
+                const pct = shareOf(e.easier?.id ?? e.main.id) ?? shareOf(e.main.id);
                 return (
-                  <li key={e.main.id}>
-                    <Link className="shelf-text" data-state={state} to={paths.reading(set.id, { page: i + 1 })}>
-                      {/* Read is a tick; not opened yet, the red pen's dot on the corner. */}
-                      <span className="chapter-badge" data-state={state} aria-hidden>
-                        {state === 'done' ? <Icon name="check" size={18} /> : front ? <Icon name="book" size={18} /> : story ? chineseNumber(numbers[i]!) : numbers[i]}
+                  <li key={e.main.id} className="book-row" data-state={state}>
+                    <Link className="book-row-main" to={paths.reading(set.id, { page: i + 1 })}>
+                      <span className="book-row-n hanzi" aria-hidden>
+                        {front ? '序' : story ? chineseNumber(numbers[i]!) : numbers[i]}
                       </span>
-                      <span className="grow">
-                        {state === 'now' && <span className="shelf-text-now">Reading now</span>}
-                        <span className="hanzi shelf-text-zh">
-                          {e.main.titleZh || e.main.title}
-                          {state === 'new' && <span className="sr-only">, not opened yet</span>}
-                        </span>
-                        <span className="small muted">{e.main.title.replace(/\s*\(easier\)\s*$/, '')}</span>
-                        <span className="shelf-text-meta">
-                          <span className="part-ticks" aria-label="Parts done">
-                            {partsOf(e.main).map((p) => (
-                              <i key={p.id} title={p.label} style={{ '--fill': `${Math.round(fill[p.id] * 100)}%` } as CSSProperties} />
-                            ))}
-                          </span>
-                          {e.easier && e.original && <span className="versions-tag hanzi">简 原</span>}
-                          <span className="shelf-text-new" title={unknown.length ? `Not known yet: ${unknown.join(' ')}` : 'You know every character in it'}>
-                            {unknown.length ? (
-                              <>
-                                <span className="hanzi">{unknown.slice(0, 6).join('')}</span>
-                                {unknown.length > 6 && <b> +{unknown.length - 6}</b>}
-                                <span className="muted"> new to you</span>
-                              </>
-                            ) : (
-                              <span className="muted">every character known</span>
-                            )}
-                          </span>
-                        </span>
+                      <span className="book-row-title">
+                        <b className="hanzi">{front ? e.main.titleZh || e.main.title : chapterHead(e.main, null).zh}</b>
+                        <small>{e.main.title.replace(/\s*\(easier\)\s*$/, '').replace(/^Chapter \d+:\s*/, '')}</small>
                       </span>
-                      <Icon name="chevron" size={18} className="shelf-text-go" />
+                      <span className="book-row-state">
+                        {state === 'done' ? (
+                          <Icon name="check" size={18} />
+                        ) : state === 'now' && pct !== null ? (
+                          <span className="now">{pct}%</span>
+                        ) : (
+                          `${minutesToRead(e.main)} min`
+                        )}
+                        {state === 'new' && <span className="sr-only">, not opened yet</span>}
+                      </span>
                     </Link>
+                    {!front ? (
+                      <Link className="book-row-write hanzi" to={`${paths.reading(set.id, { page: i + 1 })}#write`} aria-label={`Write out ${e.main.titleZh || e.main.title}`} title="Write it out">
+                        写
+                      </Link>
+                    ) : (
+                      <span />
+                    )}
                     {companion && !front && canRelive(e, readInPair) && (
                       <Link className="btn quiet sm shelf-relive" to={paths.relive(set.id, i + 1)} aria-label={`Relive ${e.main.titleZh}`}>
                         Relive
@@ -352,11 +350,6 @@ export function ShelfPage() {
             </div>
           )}
           <div className="page-foot">
-            {entries.length > 0 && (
-              <Link className="btn primary lg" to={paths.reading(set.id, { page: nowAt + 1 })}>
-                {progress.read === progress.total ? 'Read it again from the start' : story && frontMatter(entries[nowAt]!.main) ? 'Start reading' : `Read ${story ? (frontMatter(entries[nowAt]!.main) ? '' : `chapter ${numbers[nowAt]}`) : `text ${nowAt + 1}`}`}
-              </Link>
-            )}
             <button className={`btn lg ${entries.length ? 'quiet' : 'primary'}`} onClick={() => startSession(set.id, set.name)}>
               Write more texts with Claude
             </button>
@@ -368,19 +361,7 @@ export function ShelfPage() {
 
       {tab === 'words' && <BookWords setId={set.id} words={words} chapters={chapters} study={study} />}
 
-      {tab === 'characters' && (
-        <>
-          <BookChars chars={chars} chapters={chapters} />
-          {chars.length > 0 && (
-            <div className="page-foot">
-              <button className="btn lg" disabled={pdf.busy !== null} onClick={printChars}>
-                <Icon name="print" />
-                Print a practice sheet
-              </button>
-            </div>
-          )}
-        </>
-      )}
+      {tab === 'grammar' && <BookGrammar setId={set.id} entries={entries} numbers={numbers} story={story} />}
     </div>
   );
 }
@@ -405,3 +386,39 @@ function shelfWords(list: GeneratedText[], study: ItemId[], lib: ReturnType<type
   return [...out.values()];
 }
 
+
+/**
+ * Every grammar pattern the book's chapters bring in, by chapter. A tap opens
+ * the chapter on its Grammar sheet, where each has its examples.
+ */
+function BookGrammar({ setId, entries, numbers, story }: { setId: string; entries: ShelfEntry[]; numbers: number[]; story: boolean }) {
+  const withGrammar = entries.map((e, i) => ({ e, i })).filter(({ e }) => e.main.grammar.length > 0);
+  if (!withGrammar.length)
+    return (
+      <div className="empty compact">
+        <span className="big">法</span>
+        <p>These texts came without grammar notes.</p>
+      </div>
+    );
+  return (
+    <div className="book-grammar">
+      {withGrammar.map(({ e, i }) => (
+        <section key={e.main.id}>
+          <h3>{story ? `Chapter ${numbers[i]}` : `Text ${i + 1}`}</h3>
+          <ul className="book-rows">
+            {e.main.grammar.map((g, k) => (
+              <li key={k} className="book-row">
+                <Link className="book-row-main" to={`${paths.reading(setId, { page: i + 1 })}#grammar`}>
+                  <span className="book-row-title">
+                    <b>{g.point}</b>
+                    {g.zh && <small className="hanzi">{g.zh}</small>}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}

@@ -371,13 +371,16 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           width={width}
           setWidth={setWidth}
         />
-        <ReaderMenu
-          set={set}
-          list={list}
-          text={text}
-          mode={mode}
-          onMode={(m) => navigate(address(m === 'all' ? { mode: 'all' } : { page }))}
-        />
+        {/* A book's own ⋯ is on its page; a text on its own keeps one here. */}
+        {!set && (
+          <ReaderMenu
+            set={set}
+            list={list}
+            text={text}
+            mode={mode}
+            onMode={(m) => navigate(address(m === 'all' ? { mode: 'all' } : { page }))}
+          />
+        )}
       </header>
       {/* The narrator, under the bar and pinned with it: the bottom edge is
           left to the text and to a tapped word's card. */}

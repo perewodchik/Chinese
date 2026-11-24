@@ -14,7 +14,7 @@ export type EditorTab = 'design' | 'items';
 export type CollectionTab = EditorTab | 'words';
 
 /** What a shelf shows: its texts, its words, or its characters. */
-export type ShelfTab = 'texts' | 'words' | 'characters';
+export type ShelfTab = 'texts' | 'words' | 'grammar';
 
 /** Which version of a text with two: the easier retelling, or the book's own. */
 export type TextVersion = 'easy' | 'book';

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../../ui/Icon';
-import { scrolledShare } from './readerProgress';
+import { rememberShare, scrolledShare } from './readerProgress';
 
 /**
  * The reader's foot, in one row along the bottom edge: the chapters, back a
@@ -51,6 +51,7 @@ export function ReaderFoot({
       const end = lines.length ? lines[lines.length - 1]!.getBoundingClientRect().bottom : r.bottom;
       const s = scrolledShare(top - r.top, end - r.top, bottom - top);
       setShare(s);
+      rememberShare(textId, s);
       if (s >= 1 && !ended.current) {
         ended.current = true;
         onEndRef.current();
