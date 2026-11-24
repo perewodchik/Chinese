@@ -5,7 +5,6 @@ import { alignPinyin, charLevels as countLevels, paragraphs, stepsAbove, wordBan
 import { segment, writerHints } from '../../domain/segment';
 import { itemForToken } from '../../domain/words';
 import { pictureAbove } from '../../domain/pictures';
-import { paragraphScenes, type BookStyle } from '../../domain/bookStyle';
 import { hskLabel, isHanzi, type GeneratedText } from '../../domain/text';
 import { Link } from 'react-router';
 import { useOpenItem } from '../../navigation/itemDrawer';
@@ -109,8 +108,6 @@ interface PassageProps {
   heading?: ReactNode;
   /** the head as a book prints it: 第三章, the name, its English (`chapterHead`) */
   head: { kicker: string | null; zh: string; en: string };
-  /** the book's own look, when it is turned on: each paragraph's scene behind it */
-  book?: BookStyle | null;
   /** beside the title, to its right: Listen */
   titleAction?: ReactNode;
   /** a word tapped, for its card; without it a tap opens the word drawer */
@@ -128,7 +125,7 @@ interface PassageProps {
  * and off never moves a line. Punctuation stays with the word before it: a
  * line never begins with a comma.
  */
-export function Passage({ text, view, reading, flash, revealed, onReveal, onHold, held, onPoint, retold, heading, head, titleAction, book, onWord, peekKey }: PassageProps) {
+export function Passage({ text, view, reading, flash, revealed, onReveal, onHold, held, onPoint, retold, heading, head, titleAction, onWord, peekKey }: PassageProps) {
   const lib = useLibrary();
   const openItem = useOpenItem();
 
@@ -159,11 +156,6 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
   const pictureOf = (n: number) => (story || view.pictures === 'off' ? undefined : pictureAbove(text, n));
   // A comic's page photo is what is being read, not an illustration: always large, with its spots.
   const beside = view.pictures === 'beside' && !text.lines.some((l) => l.box);
-  // In the book's own look, the place each paragraph happens in, drawn faint behind it.
-  const scenes = useMemo(
-    () => (book ? paragraphScenes(paras.map((p) => p.map((i) => text.lines[i]!.zh).join(''))) : null),
-    [book, paras, text.lines],
-  );
   const paraStarts = useMemo(() => new Map(paragraphs(text).map((p, n) => [p[0]!, n])), [text]);
   // A comic's lines, by the page (paragraph) whose photo they are on.
   const marks = useMemo(
@@ -295,7 +287,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
   }
 
   return (
-    <article className="rd-passage" lang="zh" data-book={book ?? undefined}>
+    <article className="rd-passage" lang="zh">
       <header className="rd-head">
         {heading}
         {head.kicker && <p className="rd-chapter hanzi">{head.kicker}</p>}
@@ -358,15 +350,10 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
               {pictureOf(n) && !beside && <ParagraphPicture picture={pictureOf(n)!} size="large" marks={marks[n]} onMark={onPoint} retold={retold} />}
               {/* The paragraph, and beside it on a wide page (under it on a
                   narrower one) its English and its new words. */}
-              <div className="rd-row" data-scene={scenes?.[n]?.scene} data-pictured={pictureOf(n)?.key ? true : undefined}>
+              <div className="rd-row" data-pictured={pictureOf(n)?.key ? true : undefined}>
                 <p className="rd-para">
-                  {/* The picture first, so it stands at the top of the block, beside the place's name too. */}
+                  {/* The picture first, so it stands at the top of the block. */}
                   {pictureOf(n) && beside && <ParagraphPicture picture={pictureOf(n)!} size="beside" />}
-                  {scenes?.[n]?.place && (
-                    <span className="rd-scene-name">
-                      <span className="hanzi">{scenes[n]!.place!.zh}</span> <span lang="en">{scenes[n]!.place!.en}</span>
-                    </span>
-                  )}
                   {p.map((i) => (
                     <span
                       key={i}

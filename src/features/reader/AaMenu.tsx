@@ -17,9 +17,7 @@ import {
   type PictureMode,
   type PinyinMode,
   type TranslationMode,
-  type BookStyleMode,
 } from './readerView';
-import type { BookStyle } from '../../domain/bookStyle';
 
 const SCALE_MIN = 0.8;
 const SCALE_MAX = 1.6;
@@ -36,9 +34,6 @@ export function AaMenu({
   setTranslation,
   hasTrad,
   hasPictures,
-  book,
-  bookOn,
-  setBookOn,
   pictures,
   setPictures,
   paper,
@@ -52,10 +47,6 @@ export function AaMenu({
   setTranslation: (m: TranslationMode) => void;
   hasTrad: boolean;
   hasPictures: boolean;
-  /** the book's own look, when it has one */
-  book: BookStyle | null;
-  bookOn: BookStyleMode;
-  setBookOn: (m: BookStyleMode) => void;
   pictures: PictureMode;
   setPictures: (m: PictureMode) => void;
   paper: PaperMode;
@@ -164,16 +155,6 @@ export function AaMenu({
                 ))}
               </div>
             </div>
-          )}
-          {book && (
-            <label className="rd-aa-row">
-              <span>
-                Book style
-                <small>The page dressed as the book, each paragraph against the place it happens in.</small>
-              </span>
-              <span className="spacer" />
-              <input type="checkbox" checked={bookOn === 'on'} onChange={(e) => setBookOn(e.target.checked ? 'on' : 'off')} />
-            </label>
           )}
           <label className="rd-aa-row">
             <span>

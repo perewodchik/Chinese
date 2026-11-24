@@ -97,7 +97,3 @@ export type GlossMode = 'on' | 'off';
 const GLOSS_MODES: GlossMode[] = ['on', 'off'];
 export const useGlossMode = () => useStoredChoice<GlossMode>('hanzi.reader.newWordGlosses', GLOSS_MODES, 'off');
 
-/** The book dressed as itself (Aa › Book style), for a book that has a look of its own: off unless turned on. */
-export type BookStyleMode = 'on' | 'off';
-const BOOK_STYLE_MODES: BookStyleMode[] = ['on', 'off'];
-export const useBookStyleMode = () => useStoredChoice<BookStyleMode>('hanzi.reader.bookStyle', BOOK_STYLE_MODES, 'off');

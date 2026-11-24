@@ -27,9 +27,7 @@ import {
   usePictureMode,
   usePinyinMode,
   useTranslationMode,
-  useBookStyleMode,
 } from './readerView';
-import { bookStyleOf } from '../../domain/bookStyle';
 import { DockPlayer, type PlayerControl } from './DockPlayer';
 import { AaMenu } from './AaMenu';
 import { ReaderMenu } from './ReaderMenu';
@@ -156,10 +154,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [pictures, setPictures] = usePictureMode();
   const [paper, setPaper] = usePaperMode();
   const [glosses, setGlosses] = useGlossMode();
-  const [bookOn, setBookOn] = useBookStyleMode();
-  // The book's own look, where it has one and it is turned on.
-  const bookStyle = bookStyleOf(set?.name, list[0]?.topic, text.title, text.titleZh);
-  const dressed = bookOn === 'on' ? bookStyle : null;
   const [contents, setContents] = useState(false);
   // A tapped word's card; the whole drawer is a tap on it away.
   const [peek, setPeek] = useState<(Peeked & { key: string }) | null>(null);
@@ -341,7 +335,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const next = page < total ? versionOf(entries[page]!, null) : null;
 
   return (
-    <div className="rd" ref={top} data-mode={mode} data-book={dressed ?? undefined} style={{ '--reader-scale': settings.readerScale } as CSSProperties}>
+    <div className="rd" ref={top} data-mode={mode} style={{ '--reader-scale': settings.readerScale } as CSSProperties}>
       {/* The bar, stuck to the top and opaque from the screen's edge down. */}
       <div className="rd-pin no-print">
       <header className="rd-top">
@@ -388,9 +382,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           setTranslation={setTranslation}
           hasTrad={list.some((t) => t.lines.some((l) => l.zht))}
           hasPictures={list.some((t) => t.pictures?.some((p) => p.key))}
-          book={bookStyle}
-          bookOn={bookOn}
-          setBookOn={setBookOn}
           pictures={pictures}
           setPictures={setPictures}
           paper={paper}
@@ -441,7 +432,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             onReveal={reveal}
             onPoint={point}
             retold={Boolean(entry.original) && t.id === entry.easier?.id}
-            book={dressed}
             study={study}
             heading={mode === 'all' && !story ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
             head={chapterHead(t, chapterAt(mode === 'all' ? i : page - 1))}
