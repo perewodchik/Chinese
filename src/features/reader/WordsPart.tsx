@@ -16,7 +16,10 @@ export function WordsPart({
   study,
   onShowLine,
   partId,
+  show = 'all',
 }: {
+  /** the words, the grammar, or both (the chapter's end opens each in a sheet of its own) */
+  show?: 'all' | 'words' | 'grammar';
   text: GeneratedText;
   setId: string | null;
   study: ReadonlySet<ItemId>;
@@ -48,9 +51,8 @@ export function WordsPart({
     return text.lines.findIndex((l) => bare(l.zh).includes(z) || (z.length > 3 && z.includes(bare(l.zh))));
   };
 
-  return (
-    <Section id={partId} han="词" title="Words" aside={words.length ? `${doneN} of ${words.length} done` : undefined}>
-      {words.length > 0 ? (
+  const wordList =
+      words.length > 0 ? (
         <>
           <p className="rd-part-lede">A word counts as done once it is Known or Solid, or once you add it to your list.</p>
           <ul className="rd-words">
@@ -92,8 +94,10 @@ export function WordsPart({
         </>
       ) : (
         <p className="rd-part-lede">This text came without a word list. Tap any word in it to look it up.</p>
-      )}
+      );
 
+  const grammar = (
+    <>
       {text.grammar.map((g, k) => {
         const at = lineOf(g.zh);
         return (
@@ -114,6 +118,15 @@ export function WordsPart({
       })}
 
       {text.note.trim() && <p className="rd-note">{text.note}</p>}
+    </>
+  );
+
+  if (show === 'words') return <div id={partId}>{wordList}</div>;
+  if (show === 'grammar') return <div id={partId}>{grammar}</div>;
+  return (
+    <Section id={partId} han="词" title="Words" aside={words.length ? `${doneN} of ${words.length} done` : undefined}>
+      {wordList}
+      {grammar}
     </Section>
   );
 }

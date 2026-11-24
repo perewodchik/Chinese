@@ -12,6 +12,8 @@ interface Props {
   children: ReactNode;
   footer?: ReactNode;
   wide?: boolean;
+  /** on a phone, rise from the bottom edge as a sheet */
+  sheet?: boolean;
 }
 
 /**
@@ -29,6 +31,7 @@ export function Modal({
   children,
   footer,
   wide,
+  sheet,
 }: Props) {
   const box = useRef<HTMLDivElement>(null);
   useFocusTrap(box);
@@ -50,7 +53,7 @@ export function Modal({
   }, [onClose, onConfirm]);
 
   return createPortal(
-    <div className="modal-scrim" onClick={onClose} role="presentation">
+    <div className={`modal-scrim${sheet ? ' as-sheet' : ''}`} onClick={onClose} role="presentation">
       <div
         ref={box}
         tabIndex={-1}

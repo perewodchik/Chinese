@@ -1711,6 +1711,22 @@ h2 {
   animation: fade 0.14s ease-out;
 }
 
+/* A sheet: on a phone it rises from the bottom edge, full width. */
+@media (max-width: 699px) {
+  .modal-scrim.as-sheet {
+    place-items: end stretch;
+    padding: 0;
+  }
+
+  .modal-scrim.as-sheet .modal {
+    width: 100%;
+    max-height: 80dvh;
+    border-radius: 22px 22px 0 0;
+    border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 @keyframes fade {
   from {
     opacity: 0;

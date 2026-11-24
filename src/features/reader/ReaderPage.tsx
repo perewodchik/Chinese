@@ -5,21 +5,21 @@ import { shelfEntries, shelve, type GeneratedText, type ShelfEntry, type TextSet
 import { isSpeakSectionEnabled } from '../../navigation/features';
 import { paths, type ReadMode, type TextVersion } from '../../navigation/paths';
 import { readHash, writeHash } from '../../navigation/hash';
-import { dayKey } from '../../domain/activity';
-import { markRead, setTextRead, studyText } from '../../store/commands';
+import { markRead, studyText } from '../../store/commands';
 import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { setPageColour } from '../../ui/colorScheme';
 import { bookOf, bookTitle, chapterHead, isFrontMatter, kindOf } from '../../domain/bookshelf';
-import { ChapterEnd } from './ChapterEnd';
+import { ChapterFinish, ChapterSheetView, sheetOfHash, type ChapterSheet } from './ChapterFinish';
+import { ReaderFoot } from './ReaderFoot';
 import { BookContents } from './BookContents';
 import { ListenControl, useListenVoice } from './ListenBar';
 import { SentencePeek, type HeldSentence } from './SentencePeek';
 import { pinnedBottom, WordPeek, type Peeked } from './WordPeek';
-import { ChapterTabs, SpeakPart, tabOfHash, useLineBests, type ChapterTab, type TabInfo } from './ChapterTabs';
+import { SpeakPart, useLineBests } from './ChapterTabs';
 import { useOpenItem } from '../../navigation/itemDrawer';
-import { Passage, useWordDone, type ReaderView } from './Passage';
+import { Passage, type ReaderView } from './Passage';
 import { onReadThrough, prefetchPassage, useReading } from './readAloud';
 import {
   HAN_FONT_STACK,
@@ -38,7 +38,6 @@ import { AaMenu } from './AaMenu';
 import { ReaderMenu } from './ReaderMenu';
 import { rememberReading } from '../shared/lastRead';
 import { MorePart } from './MorePart';
-import { partFill } from './parts';
 import { QuestionsPart } from './QuestionsPart';
 import { WordsPart } from './WordsPart';
 import { WritePart } from './WritePart';
@@ -153,7 +152,6 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const navigate = useNavigate();
   const settings = useStore((s) => s.settings);
   const study = useMemo(() => new Set<ItemId>(set?.study ?? []), [set?.study]);
-  const wordDone = useWordDone(study);
   const [pinyin, setPinyin] = usePinyinMode();
   const [translation, setTranslation] = useTranslationMode();
   const [pictures, setPictures] = usePictureMode();
@@ -307,40 +305,20 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     if (translation === 'shown' && !text.study?.translated) studyText(text.id, { translated: Date.now() });
   }, [translation, text.id, text.study?.translated]);
 
-  const fill = partFill(text, wordDone);
   const bests = useLineBests(text.id);
-  const saidLines = text.lines.filter((l) => bests[l.zh] !== undefined).length;
-  // The chapter's tabs: the text, then what there is to do with it, named as the end of the text names them (V6). No questions, no Questions.
-  const tabs: TabInfo[] = [
-    { id: 'read', han: '读', label: 'Read', fill: fill.read },
-    { id: 'write', han: '写', label: 'Write', fill: fill.write },
-    ...(isSpeakSectionEnabled ? [{ id: 'speak' as const, han: '说', label: 'Say', fill: text.lines.length ? saidLines / text.lines.length : 0 }] : []),
-    { id: 'words', han: '词', label: 'Words', fill: text.vocab.length ? fill.words : 0 },
-    ...(text.questions.length ? [{ id: 'questions' as const, han: '问', label: 'Questions', fill: fill.questions }] : []),
-  ];
-  // The tab is kept in the address (#words), so a reload, or the same link on
-  // the iPad, opens on it again. Copying out or dictation open over the text
-  // (#copy, #dictation) open on Write, which they belong to.
-  const [tab, setTab] = useState<ChapterTab>(() => tabOfHash(readHash()));
+  // A part of the chapter, open in a sheet over the text. Kept in the address
+  // (#words), so a reload or the book page's 写 opens on it; copying out and
+  // dictation (#copy, #dictation) open in Write, which they belong to.
+  const [sheet, setSheet] = useState<ChapterSheet | null>(() => sheetOfHash(readHash()));
   useEffect(() => {
-    setTab((t) => (t === 'read' ? t : tabOfHash(readHash())));
+    setSheet((s) => (s === null ? s : sheetOfHash(readHash())));
   }, [text.id]);
-  const shownTab: ChapterTab = mode === 'single' && tabs.some((t) => t.id === tab) ? tab : 'read';
-  function pick(t: ChapterTab) {
-    setTab(t);
-    writeHash(t === 'read' ? null : t);
-    top.current?.scrollIntoView({ block: 'start' });
-  }
-
-  /** Read, or not read after all: ticked again the same day is a slip taken back, not a second reading. */
-  function toggleRead() {
-    if (text.read) setTextRead(text.id, false);
-    else if (text.lastReadAt && dayKey(text.lastReadAt) === dayKey(Date.now())) setTextRead(text.id, true);
-    else markRead(text.id);
-  }
+  const openSheet = (s: ChapterSheet | null) => {
+    setSheet(s);
+    writeHash(s);
+  };
 
   const shown = mode === 'all' ? entries.map((e) => versionOf(e, null)) : [text];
-  const next = page < total ? versionOf(entries[page]!, null) : null;
 
   return (
     <div className="rd" ref={top} data-mode={mode} style={{ '--reader-scale': settings.readerScale, '--rd-han': HAN_FONT_STACK[font], '--rd-lh': LINE_HEIGHT[spacing], '--rd-measure': TEXT_MEASURE[width] } as CSSProperties}>
@@ -350,19 +328,12 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
         <Link className="rd-back" to={set ? paths.shelf(set.id) : paths.read()} aria-label={set ? `Back to ${bookTitle(set.name)}` : 'Back to Read'} title={set ? `Back to ${bookTitle(set.name)}` : 'Back to Read'}>
           <Icon name="back" size={24} />
         </Link>
-        {set && total > 1 && (
-          <button className="rd-toc-btn" aria-label={story ? 'Chapters' : 'Texts on this shelf'} title={story ? 'Chapters' : 'Texts on this shelf'} aria-expanded={contents} onClick={() => setContents(true)}>
-            <Icon name="contents" size={22} />
-          </button>
-        )}
         <div className="rd-where">
           {/* 楷体 for a Chinese name; a shelf named in English keeps the app's own type. */}
           <b className={/\p{Script=Han}/u.test(barName) ? 'hanzi' : undefined}>{barName}</b>
           <span>{where}</span>
         </div>
         <span className="spacer" />
-        {mode === 'single' && <ChapterTabs tabs={tabs} current={shownTab} onPick={pick} place="bar" />}
-        {mode === 'single' && <span className="spacer rd-tabs-gap" />}
         {mode === 'single' && both && (
           <div className="rd-versions" role="group" aria-label="Version">
             <button
@@ -428,10 +399,9 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           />
         </div>
       )}
-      <ReadingProgress textId={text.id} />
       </div>
 
-      <div className="rd-text" data-layout="paragraph" hidden={shownTab !== 'read'}>
+      <div className="rd-text" data-layout="paragraph">
         {shown.map((t, i) => (
           <Passage
             key={t.id}
@@ -500,98 +470,51 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       )}
 
       {mode === 'single' && (
-        <div className="rd-study no-print" data-tab={shownTab}>
-          {shownTab === 'read' && (
-            <>
-              <ChapterEnd
-                text={text}
-                kicker={chapterHead(text, chapterAt(page - 1)).kicker}
-                chapter={story}
-                // A text with no word list (from the catalogue, say) has no Words row to report "0 of 0".
-                parts={['write', ...(isSpeakSectionEnabled ? (['speak'] as const) : []), ...(text.vocab.length ? (['words'] as const) : []), ...(text.questions.length ? (['questions'] as const) : []), 'listen']}
-                fill={fill}
-                speak={{ said: saidLines, of: text.lines.length }}
-                onPart={(p) => (p === 'listen' ? !listening && listen() : pick(p === 'more' ? 'write' : (p as ChapterTab)))}
-                next={
-                  next
-                    ? {
-                        ...chapterHead(next, chapterAt(page)),
-                        where: story ? `Chapter ${chapterAt(page)} of ${chapters}` : `Text ${page + 1} of ${total}`,
-                        action: story ? `Read chapter ${chapterAt(page)}` : 'Read the next text',
-                      }
-                    : null
-                }
-                book={set && story ? bookOf(set, list) : null}
-                onNext={() => {
-                  // Going on from the end is having read it: counted once, as the tick did.
-                  if (!text.read) toggleRead();
-                  go(page + 1);
-                }}
-                onToggleRead={toggleRead}
-                onAgain={() => top.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              />
-            </>
-          )}
-          {shownTab === 'write' && (
+        <div className="rd-study no-print">
+          <ChapterFinish text={text} onOpen={openSheet} />
+        </div>
+      )}
+
+      {mode === 'single' && sheet && (
+        <ChapterSheetView which={sheet} chapter={text.titleZh || text.title} onClose={() => openSheet(null)}>
+          {sheet === 'write' && (
             <>
               <WritePart text={text} partId="part-write" />
               <MorePart text={text} partId="part-more" />
             </>
           )}
-          {isSpeakSectionEnabled && shownTab === 'speak' && <SpeakPart text={text} bests={bests} />}
-          {shownTab === 'words' && <WordsPart text={text} setId={set?.id ?? null} study={study} onShowLine={(i) => (pick('read'), window.setTimeout(() => showLine(i), 60))} partId="part-words" />}
-          {shownTab === 'questions' && text.questions.length > 0 && (
+          {isSpeakSectionEnabled && sheet === 'speak' && <SpeakPart text={text} bests={bests} />}
+          {(sheet === 'words' || sheet === 'grammar') && (
+            <WordsPart
+              text={text}
+              setId={set?.id ?? null}
+              study={study}
+              show={sheet}
+              onShowLine={(i) => (openSheet(null), window.setTimeout(() => showLine(i), 60))}
+              partId={`part-${sheet}`}
+            />
+          )}
+          {sheet === 'questions' && text.questions.length > 0 && (
             <QuestionsPart key={`q${text.id}`} text={text} partId="part-questions" showPinyin={pinyin === 'all'} />
           )}
-        </div>
+        </ChapterSheetView>
       )}
 
-      {mode === 'single' && <ChapterTabs tabs={tabs} current={shownTab} onPick={pick} place="bottom" />}
+      {mode === 'single' && (
+        <ReaderFoot
+          textId={text.id}
+          onContents={set && total > 1 ? () => setContents(true) : null}
+          onPrev={page > 1 ? () => go(page - 1) : null}
+          onNext={page < total ? () => go(page + 1) : null}
+          prevLabel={story ? 'The chapter before' : 'The text before'}
+          nextLabel={story ? 'The next chapter' : 'The next text'}
+          onEnd={() => {
+            // Scrolled to the end is read: counted once a day, as the old tick did.
+            if (!text.read) markRead(text.id);
+          }}
+        />
+      )}
     </div>
   );
 }
 
-/**
- * How far down the text you are, as a hairline under the bar: nothing at its
- * top, all of it once its last line is on the screen. The text scrolls with
- * the page on a phone and in its own column on a wide screen; either is read.
- * The width is set on the line itself, so scrolling renders nothing.
- */
-function ReadingProgress({ textId }: { textId: string }) {
-  const line = useRef<HTMLElement>(null);
-  useEffect(() => {
-    let frame = 0;
-    const measure = () => {
-      frame = 0;
-      const el = document.querySelector<HTMLElement>('.rd-text');
-      if (!el || !line.current) return;
-      let done: number;
-      if (getComputedStyle(el).overflowY === 'auto') {
-        const room = el.scrollHeight - el.clientHeight;
-        done = room > 0 ? el.scrollTop / room : 1;
-      } else {
-        const bar = document.querySelector('.rd-pin')?.getBoundingClientRect().bottom ?? 0;
-        const r = el.getBoundingClientRect();
-        const room = r.height - (window.innerHeight - bar);
-        done = room > 0 ? (bar - r.top) / room : 1;
-      }
-      line.current.style.width = `${Math.round(Math.min(1, Math.max(0, done)) * 1000) / 10}%`;
-    };
-    const soon = () => {
-      if (!frame) frame = requestAnimationFrame(measure);
-    };
-    measure();
-    document.addEventListener('scroll', soon, true);
-    window.addEventListener('resize', soon);
-    return () => {
-      cancelAnimationFrame(frame);
-      document.removeEventListener('scroll', soon, true);
-      window.removeEventListener('resize', soon);
-    };
-  }, [textId]);
-  return (
-    <span className="rd-progress" aria-hidden>
-      <i ref={line} />
-    </span>
-  );
-}
