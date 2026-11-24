@@ -97,3 +97,34 @@ export type GlossMode = 'on' | 'off';
 const GLOSS_MODES: GlossMode[] = ['on', 'off'];
 export const useGlossMode = () => useStoredChoice<GlossMode>('hanzi.reader.newWordGlosses', GLOSS_MODES, 'off');
 
+
+/**
+ * The type of the Chinese (Aa › Type): the brush 楷 the app is set in, a
+ * printed 宋 as books are, or a plain 黑 as screens are. Kept on the device,
+ * as the page colour is.
+ */
+export type HanFont = 'kai' | 'song' | 'hei';
+export const HAN_FONTS: HanFont[] = ['kai', 'song', 'hei'];
+export const HAN_FONT_LABEL: Record<HanFont, string> = { kai: 'Brush', song: 'Print', hei: 'Plain' };
+export const HAN_FONT_HAN: Record<HanFont, string> = { kai: '楷', song: '宋', hei: '黑' };
+/** The stack each one is drawn from: WenKai is the app's own; the other two are the system's. */
+export const HAN_FONT_STACK: Record<HanFont, string> = {
+  kai: 'var(--han)',
+  song: "'Songti SC', 'STSong', 'Noto Serif SC', 'Source Han Serif SC', serif",
+  hei: "'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', sans-serif",
+};
+export const useHanFont = () => useStoredChoice<HanFont>('hanzi.reader.font', HAN_FONTS, 'kai');
+
+/** Room between lines. Normal is what the page always had: room for pinyin on every line. */
+export type LineSpacing = 'tight' | 'normal' | 'airy';
+export const LINE_SPACINGS: LineSpacing[] = ['tight', 'normal', 'airy'];
+export const LINE_SPACING_LABEL: Record<LineSpacing, string> = { tight: 'Tight', normal: 'Normal', airy: 'Airy' };
+export const LINE_HEIGHT: Record<LineSpacing, number> = { tight: 2.05, normal: 2.35, airy: 2.7 };
+export const useLineSpacing = () => useStoredChoice<LineSpacing>('hanzi.reader.lineSpacing', LINE_SPACINGS, 'normal');
+
+/** How wide the column of text runs on a wide screen; on a phone it is the screen either way. */
+export type TextWidth = 'narrow' | 'book' | 'wide';
+export const TEXT_WIDTHS: TextWidth[] = ['narrow', 'book', 'wide'];
+export const TEXT_WIDTH_LABEL: Record<TextWidth, string> = { narrow: 'Narrow', book: 'Book', wide: 'Wide' };
+export const TEXT_MEASURE: Record<TextWidth, string> = { narrow: '560px', book: '780px', wide: '1100px' };
+export const useTextWidth = () => useStoredChoice<TextWidth>('hanzi.reader.width', TEXT_WIDTHS, 'book');

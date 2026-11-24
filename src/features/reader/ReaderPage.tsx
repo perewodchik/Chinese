@@ -22,7 +22,12 @@ import { useOpenItem } from '../../navigation/itemDrawer';
 import { Passage, useWordDone, type ReaderView } from './Passage';
 import { onReadThrough, prefetchPassage, useReading } from './readAloud';
 import {
-  useGlossMode,
+  HAN_FONT_STACK,
+  LINE_HEIGHT,
+  TEXT_MEASURE,
+  useHanFont,
+  useLineSpacing,
+  useTextWidth,
   usePaperMode,
   usePictureMode,
   usePinyinMode,
@@ -153,7 +158,9 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [translation, setTranslation] = useTranslationMode();
   const [pictures, setPictures] = usePictureMode();
   const [paper, setPaper] = usePaperMode();
-  const [glosses, setGlosses] = useGlossMode();
+  const [font, setFont] = useHanFont();
+  const [spacing, setSpacing] = useLineSpacing();
+  const [width, setWidth] = useTextWidth();
   const [contents, setContents] = useState(false);
   // A tapped word's card; the whole drawer is a tap on it away.
   const [peek, setPeek] = useState<(Peeked & { key: string }) | null>(null);
@@ -203,17 +210,18 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   useEffect(() => setRevealed(new Set()), [text.id]);
 
   const view: ReaderView = {
-    layout: settings.readerLayout,
+    // One way of setting the text now: paragraphs, as a book sets them (Lines went with the redesign).
+    layout: 'paragraph',
     pinyin,
     translation,
-    traditional: settings.readerTraditional,
+    traditional: false,
     markUnknown: settings.markUnknown,
-    markAbove: settings.markAbove,
+    markAbove: false,
     target: settings.targetHsk,
     // Dialogue as a comic is no longer offered: a dialogue reads as any text.
     comic: false,
     pictures,
-    glosses: glosses === 'on',
+    glosses: false,
   };
 
   /* -------------------------------------------------------- the voice */
@@ -335,7 +343,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const next = page < total ? versionOf(entries[page]!, null) : null;
 
   return (
-    <div className="rd" ref={top} data-mode={mode} style={{ '--reader-scale': settings.readerScale } as CSSProperties}>
+    <div className="rd" ref={top} data-mode={mode} style={{ '--reader-scale': settings.readerScale, '--rd-han': HAN_FONT_STACK[font], '--rd-lh': LINE_HEIGHT[spacing], '--rd-measure': TEXT_MEASURE[width] } as CSSProperties}>
       {/* The bar, stuck to the top and opaque from the screen's edge down. */}
       <div className="rd-pin no-print">
       <header className="rd-top">
@@ -380,14 +388,17 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           setPinyin={setPinyin}
           translation={translation}
           setTranslation={setTranslation}
-          hasTrad={list.some((t) => t.lines.some((l) => l.zht))}
           hasPictures={list.some((t) => t.pictures?.some((p) => p.key))}
           pictures={pictures}
           setPictures={setPictures}
           paper={paper}
           setPaper={setPaper}
-          glosses={glosses}
-          setGlosses={setGlosses}
+          font={font}
+          setFont={setFont}
+          spacing={spacing}
+          setSpacing={setSpacing}
+          width={width}
+          setWidth={setWidth}
         />
         <ReaderMenu
           set={set}
@@ -420,7 +431,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       <ReadingProgress textId={text.id} />
       </div>
 
-      <div className="rd-text" data-layout={settings.readerLayout} hidden={shownTab !== 'read'}>
+      <div className="rd-text" data-layout="paragraph" hidden={shownTab !== 'read'}>
         {shown.map((t, i) => (
           <Passage
             key={t.id}
