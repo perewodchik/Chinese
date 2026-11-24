@@ -210,9 +210,6 @@
 }
 
 .rd-zh {
-  /* Lines run to the right edge, as a printed page's do. */
-  text-align: justify;
-  text-justify: inter-character;
   line-break: strict;
   font-family: var(--rd-han, var(--han));
   font-size: calc(25px * var(--reader-scale, 1));
@@ -1980,21 +1977,30 @@ label.rd-aa-row {
    so the text runs round it line for line and goes back to the full width on
    the line after. Two lines on a phone, cropped square; three on a wider
    screen, at 4:3. */
+/* On a phone the picture stands over its paragraph, the column's width and
+   short, so the text keeps the whole width: beside it, two characters a line
+   were left. From 700px it sits beside the paragraph, two lines and a half tall. */
 .rd-pic[data-size='beside'] {
-  --lh: 2.35em;
-  --lines: 2.6;
-  float: right;
-  /* Level with the top of the paragraph (its first pinyin row), and as tall as
-     its lines, a little short of the last: the line after it has the full width. */
-  height: calc(var(--lines) * var(--lh) - 0.5em);
-  aspect-ratio: 1;
-  margin: 0 0 0 0.6em;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  max-height: 200px;
+  margin: 0 0 0.6em;
+  text-indent: 0;
 }
 
 @media (min-width: 700px) {
   .rd-pic[data-size='beside'] {
-    --lines: 3.4;
+    --lh: calc(var(--rd-lh, 2.35) * 1em);
+    --lines: 2.6;
+    float: right;
+    width: auto;
+    max-height: none;
+    /* Level with the top of the paragraph, as tall as its lines, a little short of the last. */
+    height: calc(var(--lines) * var(--lh) - 0.5em);
     aspect-ratio: 4 / 3;
+    margin: 0 0 0 0.6em;
   }
 }
 

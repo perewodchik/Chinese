@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 /**
  * A button that opens a short list of actions, closing on a tap outside it or
@@ -43,7 +44,7 @@ export function Menu({
     const left = Math.max(8, Math.min(btn.right - w, window.innerWidth - w - 8));
     const below = btn.bottom + 6;
     const top = below + h > window.innerHeight - 8 ? Math.max(8, btn.top - h - 6) : below;
-    setPlace({ position: 'fixed', left, top, right: 'auto', bottom: 'auto' });
+    setPlace({ position: 'fixed', left, top, right: 'auto', bottom: 'auto', zIndex: 60 });
   }, [open, floating]);
   useEffect(() => {
     if (!open || !floating) return;
@@ -60,7 +61,8 @@ export function Menu({
   useEffect(() => {
     if (!open) return;
     const outside = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (!root.current?.contains(t) && !panel.current?.contains(t)) setOpen(false);
     };
     const escape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
@@ -88,11 +90,16 @@ export function Menu({
       >
         {label}
       </button>
-      {open && (
-        <div ref={panel} className={up ? 'menu up' : 'menu'} role="menu" style={floating ? (place ?? { position: 'fixed', visibility: 'hidden' }) : undefined}>
-          {children(() => setOpen(false))}
-        </div>
-      )}
+      {open &&
+        (() => {
+          const list = (
+            <div ref={panel} className={up ? 'menu up' : 'menu'} role="menu" style={floating ? (place ?? { position: 'fixed', visibility: 'hidden', zIndex: 60 }) : undefined}>
+              {children(() => setOpen(false))}
+            </div>
+          );
+          // Floating, it is drawn at the end of the page, over everything: inside a shelf the next cover painted over it.
+          return floating ? createPortal(list, document.body) : list;
+        })()}
     </div>
   );
 }

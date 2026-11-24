@@ -270,10 +270,6 @@ function BookOnShelf({ book, texts, reading }: { book: Book; texts: GeneratedTex
     <div className="book" style={{ width }}>
       <Link to={paths.shelf(id)} aria-label={`${book.title}${book.easier ? ', easier edition' : book.original ? ', original edition' : ''}: ${meta}`}>
         <BookCover book={book} width={width} bookmark={reading} done={p.total > 0 && p.read === p.total} />
-        <span className="book-name">
-          <span className={hasHan(book.title) ? 'hanzi' : undefined}>{book.title}</span>
-          {(book.easier || book.original) && <span className="book-edition">{book.easier ? 'Easier' : 'Original'}</span>}
-        </span>
       </Link>
       <span className="book-meta">
         <span className="book-meta-state" data-now={reading || undefined}>
