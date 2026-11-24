@@ -488,43 +488,69 @@
   display: none;
 }
 
-.bookshelf-ledge {
-  display: block;
-  height: 8px;
-  border-top: 2px solid var(--line-2);
-  border-radius: 0 0 6px 6px;
-  background: var(--card-2);
-}
-
 .book {
   flex: none;
   display: grid;
   gap: 6px;
+  align-content: start;
   scroll-snap-align: start;
+}
+
+.book > a {
+  display: grid;
+  gap: 6px;
   color: inherit;
   text-decoration: none;
 }
 
+/* The book's name in type under its cover, two lines at most, and its edition beside it. */
+.book-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.book-edition {
+  margin-left: 5px;
+  padding: 0 4px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  font: 11.5px var(--sans);
+  color: var(--ink-3);
+  vertical-align: 2px;
+}
+
+/* How far through, and ⋯ at its end. */
 .book-meta {
   display: grid;
-  gap: 3px;
-  font-size: 11.5px;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: center;
+  margin-top: -4px;
+  font-size: 12.5px;
   color: var(--ink-3);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
-.book-meta > i {
-  display: block;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--line);
-  overflow: hidden;
+.book-meta-state[data-now] {
+  color: var(--accent);
+  font-weight: 500;
 }
 
-.book-meta > i > i {
-  display: block;
-  height: 100%;
-  background: var(--jade);
+.book-more {
+  width: 32px;
+  height: 32px;
+  margin-right: -6px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink-3);
+  cursor: pointer;
 }
 
 /* On an iPad a shelf of one or two books takes half a row, so two such shelves share one. */
@@ -544,31 +570,78 @@
 }
 
 /* Where you stopped, with its book's cover. */
+/* Where you stopped: one row, no box — the small cover, the book and the
+   chapter, how far; Continue the width of the row under it on a phone, at
+   its end from 700px. A hairline under it parts it from the shelves. */
 .continue-book {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 64px minmax(0, 1fr);
   align-items: center;
-  gap: 14px;
-  padding: 14px;
-  border-radius: 18px;
-  background: var(--card-2);
-  color: inherit;
-  text-decoration: none;
+  gap: 10px 14px;
+  padding: 4px 0 20px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.continue-text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.continue-where {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .continue-book .continue-title {
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1.25;
 }
 
-@media (max-width: 520px) {
+.continue-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.continue-bar > i {
+  position: relative;
+  flex: 1;
+  max-width: 200px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.continue-bar > i::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--f);
+  background: var(--accent);
+}
+
+.continue-go {
+  grid-column: 1 / -1;
+  height: 48px;
+}
+
+@media (min-width: 700px) {
   .continue-book {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+    gap: 20px;
   }
 
-  .continue-book > .btn {
-    grid-column: 2;
-    justify-self: start;
+  .continue-go {
+    grid-column: auto;
+    padding-inline: 28px;
   }
 }
 

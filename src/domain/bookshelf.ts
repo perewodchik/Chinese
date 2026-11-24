@@ -41,7 +41,26 @@ export interface Book {
 export const SHELF_READING = 'Reading now';
 export const SHELF_NEXT = 'Next up';
 export const SHELF_FINISHED = 'Finished';
-const STATE_ORDER = [SHELF_READING, SHELF_NEXT, SHELF_FINISHED];
+/** Begun, then left: not opened for two weeks. Off Reading now, so what is being read is all that is there. */
+export const SHELF_ASIDE = 'Put aside';
+const STATE_ORDER = [SHELF_READING, SHELF_NEXT, SHELF_ASIDE, SHELF_FINISHED];
+/** How long a begun book stays on Reading now without being opened. */
+export const ASIDE_AFTER = 14 * 24 * 60 * 60 * 1000;
+
+/** The last time anything was done in a book: read, heard, its translation opened, a sentence marked. */
+export function lastTouched(texts: GeneratedText[]): number | null {
+  let last: number | null = null;
+  const see = (t?: number) => {
+    if (typeof t === 'number' && (last === null || t > last)) last = t;
+  };
+  for (const t of texts) {
+    see(t.lastReadAt);
+    see(t.study?.heard);
+    see(t.study?.translated);
+    for (const m of Object.values(t.study?.marks ?? {})) see(m.at);
+  }
+  return last;
+}
 
 /** "西游记 (easier)" → 西游记: the edition is the sticker's to say. */
 export const bookTitle = (name: string) => name.replace(/\s*\((easier|original)\)\s*$/i, '').trim();
@@ -188,17 +207,23 @@ export function coverColor(title: string, original = false): { bg: string; spine
 export const isOriginal = (set: TextSet) => /\(original\)\s*$/i.test(set.name);
 
 /** Where a book goes until it is put somewhere: stories together, a real book's pages, then your own texts. */
-/** Where the reading of a book is: begun and not finished, not begun, or every chapter read. */
-export function stateShelf(texts: GeneratedText[]): string {
+/**
+ * Where the reading of a book is: begun and not finished (Reading now, or Put
+ * aside once it has not been opened for two weeks), not begun, or every
+ * chapter read. A book read with no time kept stays on Reading now.
+ */
+export function stateShelf(texts: GeneratedText[], now = Date.now()): string {
   const entries = shelfEntries(texts);
   if (!entries.length) return SHELF_NEXT;
   const read = entries.filter((e) => e.main.read || e.easier?.read).length;
   if (read === entries.length) return SHELF_FINISHED;
   const opened = entries.some((e) => e.main.read || e.main.lastReadAt || e.easier?.read || e.easier?.lastReadAt);
-  return opened ? SHELF_READING : SHELF_NEXT;
+  if (!opened) return SHELF_NEXT;
+  const last = lastTouched(texts);
+  return last !== null && now - last > ASIDE_AFTER ? SHELF_ASIDE : SHELF_READING;
 }
 
-export function bookOf(set: TextSet, texts: GeneratedText[]): Book {
+export function bookOf(set: TextSet, texts: GeneratedText[], now = Date.now()): Book {
   const kind = kindOf(texts);
   const title = bookTitle(set.name) || set.name;
   const art = coverArt(title, texts);
@@ -214,7 +239,7 @@ export function bookOf(set: TextSet, texts: GeneratedText[]): Book {
     art,
     scene,
     color: kind === 'story' ? { bg: scene.band, spine: scene.near } : coverColor(title, original),
-    shelf: set.shelf?.trim() || stateShelf(texts),
+    shelf: set.shelf?.trim() || stateShelf(texts, now),
   };
 }
 
@@ -225,8 +250,8 @@ export function bookOf(set: TextSet, texts: GeneratedText[]): Book {
  * on the shelf of whichever of them is furthest on: an easier edition begun
  * puts the book on Reading now.
  */
-export function bookcase(sets: TextSet[], bySet: Map<string, GeneratedText[]>): Array<{ name: string; books: Book[] }> {
-  const books = sets.map((set) => bookOf(set, bySet.get(set.id) ?? []));
+export function bookcase(sets: TextSet[], bySet: Map<string, GeneratedText[]>, now = Date.now()): Array<{ name: string; books: Book[] }> {
+  const books = sets.map((set) => bookOf(set, bySet.get(set.id) ?? [], now));
   // Editions not put on a shelf by hand go together, onto the furthest one's shelf.
   const rank = (shelf: string) => STATE_ORDER.indexOf(shelf);
   const together = new Map<string, string>();

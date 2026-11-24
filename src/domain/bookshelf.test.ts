@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import { reduce } from '../store/actions';
 import { hydrate, serialise } from '../store/migrations';
 import { emptyState } from '../store/state';
-import { bookcase, bookOf, chapterHead, coverArt, coverColor, kindOf, SHELF_FINISHED, SHELF_NEXT, SHELF_READING } from './bookshelf';
+import { ASIDE_AFTER, bookcase, bookOf, chapterHead, coverArt, coverColor, kindOf, SHELF_ASIDE, SHELF_FINISHED, SHELF_NEXT, SHELF_READING } from './bookshelf';
 import { BOOK, type GeneratedText, type TextSet } from './text';
 
 // Texts shaped as the learner's are (November 2026): only what a shelf reads of them.
@@ -60,7 +60,14 @@ describe('books on shelves', () => {
     assert.equal(bookOf(set('皮卡丘饿了'), pikachu).shelf, SHELF_NEXT, 'nothing read yet');
     assert.equal(bookOf(set('十万个为什么'), why.map((t) => ({ ...t, read: true }))).shelf, SHELF_FINISHED, 'every chapter read');
     assert.equal(bookOf(set('Reading, 14 September'), [{ ...practice[0]!, read: true }, practice[1]!]).shelf, SHELF_READING, 'one of two read');
-    assert.equal(bookOf(set('Reading, 14 September'), [{ ...practice[0]!, lastReadAt: 5 }, practice[1]!]).shelf, SHELF_READING, 'one opened');
+    assert.equal(bookOf(set('Reading, 14 September'), [{ ...practice[0]!, lastReadAt: 5 }, practice[1]!], 10).shelf, SHELF_READING, 'one opened');
+    assert.equal(bookOf(set('Reading, 14 September'), [{ ...practice[0]!, lastReadAt: 5 }, practice[1]!], 5 + ASIDE_AFTER + 1).shelf, SHELF_ASIDE, 'opened, then left two weeks');
+    assert.equal(
+      bookOf(set('Reading, 14 September'), [{ ...practice[0]!, lastReadAt: 5, study: { marks: { '0': { at: 5 + ASIDE_AFTER } } } }, practice[1]!], 5 + ASIDE_AFTER + 1).shelf,
+      SHELF_READING,
+      'a sentence marked lately keeps it on Reading now',
+    );
+    assert.equal(bookOf({ ...set('Reading, 14 September'), shelf: 'Trips' }, [{ ...practice[0]!, lastReadAt: 5 }, practice[1]!], 5 + ASIDE_AFTER + 1).shelf, 'Trips', 'a shelf chosen by hand holds');
     assert.equal(bookOf(set('Reading, 14 September', { shelf: 'Trips' }), practice).shelf, 'Trips');
   });
 
@@ -82,7 +89,7 @@ describe('books on shelves', () => {
       ['十万个为什么', why.map((t) => ({ ...t, read: true }))],
       ['Trips', practice],
     ]);
-    const shelves = bookcase(sets, by);
+    const shelves = bookcase(sets, by, 10);
     assert.deepEqual(shelves.map((s) => s.name), [SHELF_READING, SHELF_NEXT, SHELF_FINISHED, 'Trips']);
     assert.deepEqual(shelves[0]!.books.map((b) => `${b.title}${b.easier ? ' 简' : ''}`), ['西游记', '西游记 简']);
     assert.deepEqual(shelves[0]!.books.map((b) => b.shelf), [SHELF_READING, SHELF_READING]);
