@@ -6,16 +6,17 @@ export type ThemeChoice = 'system' | 'light' | 'dark';
 const HINT = 'hanzi-workshop/theme';
 
 /**
- * A page's own colour, over the app's: the text page in Sepia or Night. It
- * holds while that page is open and gives the app its own theme back after.
+ * A page's own colour, over the app's: the text page in Paper (light, even
+ * when the app is dark), Sepia or Night. It holds while that page is open and
+ * gives the app its own theme back after.
  */
-export type PageColour = 'sepia' | 'night';
+export type PageColour = 'paper' | 'sepia' | 'night';
 
 let current: ThemeChoice = 'system';
 let page: PageColour | null = null;
 
 /** The status bar's colour on iOS for a page colour: the page's own paper. */
-const PAGE_BAR: Record<PageColour, string> = { sepia: '#f4ecd8', night: '#14191e' };
+const PAGE_BAR: Record<PageColour, string> = { paper: '#fafbf8', sepia: '#f4ecd8', night: '#14191e' };
 
 function apply(choice: ThemeChoice) {
   current = choice;
@@ -23,7 +24,7 @@ function apply(choice: ThemeChoice) {
   // The app's own theme under the page's: Aa's Paper tile shows the page Paper would give.
   const appDark = choice === 'dark' || (choice === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   root.dataset.appTheme = appDark ? 'dark' : 'light';
-  root.dataset.theme = page === 'night' || (page !== 'sepia' && appDark) ? 'dark' : 'light';
+  root.dataset.theme = page === 'night' || (page === null && appDark) ? 'dark' : 'light';
   if (page === 'sepia') root.dataset.paper = 'sepia';
   else delete root.dataset.paper;
   // Safari tints its bars from the first theme-color that matches; a page colour goes before the two by scheme.

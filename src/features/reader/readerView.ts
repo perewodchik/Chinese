@@ -75,8 +75,8 @@ export const usePictureMode = () => useStoredChoice<PictureMode>('hanzi.reader.p
 export const nextOf = <T,>(list: readonly T[], at: T): T => list[(list.indexOf(at) + 1) % list.length]!;
 
 /**
- * The page's colour: Paper is the app's own (light or dark, as the app is),
- * Sepia a warm light page, Night a dark one whatever the app is. Kept on the
+ * The page's colour while reading, whatever the app's theme: Paper a light
+ * page, Sepia a warm light one, Night a dark one. Kept on the
  * device: the iPad in the evening and the phone on the train differ.
  */
 export type PaperMode = 'paper' | 'sepia' | 'night';

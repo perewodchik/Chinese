@@ -23,7 +23,8 @@
 .rd-pin {
   position: sticky;
   top: 0;
-  z-index: 8;
+  /* Above the foot, so Aa's sheet (which opens from the bar) covers it. */
+  z-index: 9;
   background: var(--paper);
 }
 
@@ -150,24 +151,25 @@
   border-top: 1px solid var(--line);
 }
 
-/* The head of a chapter as a book prints it, in the middle of the page:
-   第三章, the name, its English, and how long and how hard it is. */
+/* The head of a chapter, set to the left like the text under it: 第三章,
+   the name in the reader's chosen type, its English. Listen sits at the
+   row's right edge, a fixed size, so the type's size never moves it. */
 .rd-head {
   display: grid;
-  justify-items: center;
-  text-align: center;
-  padding-bottom: 6px;
+  justify-items: stretch;
+  text-align: left;
+  padding-bottom: 22px;
 }
 
 .rd-chapter {
   margin: 0 0 4px;
-  font: 400 18px/1.3 var(--han);
+  font: 400 18px/1.3 var(--rd-han, var(--han));
   letter-spacing: 0.2em;
   color: var(--ink-3);
 }
 
 .rd-title {
-  font: 400 calc(28px * var(--reader-scale, 1)) / 1.3 var(--han);
+  font: 400 calc(28px * var(--reader-scale, 1)) / 1.3 var(--rd-han, var(--han));
   margin: 0;
 }
 
@@ -208,6 +210,10 @@
 }
 
 .rd-zh {
+  /* Lines run to the right edge, as a printed page's do. */
+  text-align: justify;
+  text-justify: inter-character;
+  line-break: strict;
   font-family: var(--rd-han, var(--han));
   font-size: calc(25px * var(--reader-scale, 1));
   /* Room for pinyin on every line, shown or not: turning it on moves nothing. Aa › Line spacing sets it. */
@@ -241,12 +247,12 @@
 }
 
 .rd-zh .w {
-  /* A word with its reading over it is one piece: never 二 at the end of a
-     line and 氧化碳 at the start of the next. An inline block cannot be split,
-     and the line still breaks between words. */
-  display: inline-block;
+  /* A word breaks across lines as a printed book's does, so no line ends
+     early with room left on it; each character has its own reading over it. */
+  display: inline;
   text-indent: 0;
-  line-height: 1.25;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
   cursor: pointer;
   border-radius: 3px;
   --u: transparent;
@@ -811,19 +817,23 @@
   overscroll-behavior: contain;
   padding: 6px max(var(--gutter), env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
   background: var(--card);
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--line-2);
   border-radius: 22px 22px 0 0;
-  box-shadow: var(--shadow);
+  /* Lifted clear of the page under it, in the dark as much as in the light. */
+  box-shadow:
+    0 -10px 36px rgb(0 0 0 / 22%),
+    0 -1px 0 var(--line-2);
   animation: rise 0.14s ease-out;
 }
 
 .rd-aa-grab {
   display: block;
-  width: 40px;
-  height: 4px;
-  margin: 4px auto 10px;
-  border-radius: 2px;
-  background: var(--line-2);
+  width: 44px;
+  height: 5px;
+  margin: 4px auto 12px;
+  border-radius: 3px;
+  background: var(--ink-3);
+  opacity: 0.5;
 }
 
 @media (min-width: 700px) {
@@ -2269,11 +2279,7 @@ a.rd-more-row {
 .rd-aa-papers button[aria-pressed='true'] small {
   font-weight: 600;
 }
-/* Paper is the app's own page: dark when the app is. */
-:root[data-app-theme='dark'] .rd-aa-papers button[data-paper='paper'] {
-  background: #14191e;
-  color: #e5e8ec;
-}
+
 
 /* How far down the text you are: a hairline in jade along the foot of what is pinned. */
 .rd-progress {
@@ -3089,20 +3095,20 @@ a.rd-more-row {
    right, outside the centring, so the title stays in the middle. */
 .rd-title-row {
   display: grid;
-  grid-template-columns: minmax(84px, 1fr) minmax(0, max-content) minmax(84px, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: 10px;
+  column-gap: 12px;
   width: 100%;
 }
 
 .rd-title-row > .rd-title {
-  grid-column: 2;
+  grid-column: 1;
   text-wrap: balance;
 }
 
 .rd-title-row > .rd-listen-ctl {
-  grid-column: 3;
-  justify-self: start;
+  grid-column: 2;
+  justify-self: end;
 }
 
 /* --------------------------------------------- Listen, beside the title */
@@ -3666,9 +3672,9 @@ a.rd-more-row {
   max-width: none;
   /* On the box itself, so every page (column) starts with room for the pinyin over its first line. */
   padding: 14px 0 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
+  /* Moved a whole page at a time by the reader (a swipe, an edge, a key), never left between two. */
+  overflow: hidden;
+  touch-action: pan-y;
   scrollbar-width: none;
   column-width: var(--rd-page, 100vw);
   column-gap: 0;
@@ -3685,8 +3691,10 @@ a.rd-more-row {
 }
 
 
-.rd[data-turn='pages'] .rd-pic {
+/* Nothing is cut in two by a page's edge: pictures, the head, the end's buttons, a held card's sentence. */
+.rd[data-turn='pages'] :is(.rd-head, .rd-pic, .rd-pic-frame, .rd-finish, .rd-finish-row, .rd-finish-btn, figure, img, .story-bar) {
   break-inside: avoid;
+  -webkit-column-break-inside: avoid;
 }
 
 /* ----------------------------------------------- only the text on the screen */

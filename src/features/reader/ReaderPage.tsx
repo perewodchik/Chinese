@@ -182,7 +182,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   // Sepia and Night are this page's: on while it is open, the app's own colours back when it closes.
   // Before the first paint, so a sepia page never shows white for a moment.
   useLayoutEffect(() => {
-    setPageColour(paper === 'paper' ? null : paper);
+    setPageColour(paper);
   }, [paper]);
   useLayoutEffect(() => () => setPageColour(null), []);
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
@@ -331,29 +331,55 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
 
   const shown = mode === 'all' ? entries.map((e) => versionOf(e, null)) : [text];
 
-  // Pages: each column is the text's own width, and a swipe that stops between two pages settles on the nearer one.
+  // Pages: each column is the text's own width. A swipe moves the page with
+  // the finger and lets go onto a whole page: on to the next once it has
+  // gone a sixth of the way, else back. Nothing scrolls by itself, so the
+  // text never rests between two pages.
   useEffect(() => {
     const el = textBox.current;
     if (!paged || !el) return;
-    const size = () => el.style.setProperty('--rd-page', `${el.clientWidth}px`);
+    const size = () => {
+      el.style.setProperty('--rd-page', `${el.clientWidth}px`);
+      el.scrollLeft = Math.round(el.scrollLeft / el.clientWidth) * el.clientWidth;
+    };
     size();
     const ro = new ResizeObserver(size);
     ro.observe(el);
-    let t = 0;
-    const settle = () => {
-      window.clearTimeout(t);
-      t = window.setTimeout(() => {
-        const w = el.clientWidth;
-        const want = Math.round(el.scrollLeft / w) * w;
-        if (Math.abs(want - el.scrollLeft) > 1) el.scrollTo({ left: want, behavior: 'smooth' });
-      }, 140);
+    let start: { x: number; y: number; left: number } | null = null;
+    let sideways = false;
+    const down = (e: TouchEvent) => {
+      const t = e.touches[0]!;
+      start = { x: t.clientX, y: t.clientY, left: el.scrollLeft };
+      sideways = false;
     };
-    el.addEventListener('scroll', settle, { passive: true });
+    const move = (e: TouchEvent) => {
+      if (!start) return;
+      const t = e.touches[0]!;
+      const dx = t.clientX - start.x;
+      if (!sideways && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(t.clientY - start.y)) sideways = true;
+      if (sideways) el.scrollLeft = start.left - dx;
+    };
+    const up = (e: TouchEvent) => {
+      if (!start) return;
+      const w = el.clientWidth;
+      const dx = (e.changedTouches[0]?.clientX ?? start.x) - start.x;
+      const from = Math.round(start.left / w);
+      const of = Math.round(el.scrollWidth / w);
+      const to = sideways && Math.abs(dx) > w / 6 ? Math.min(of - 1, Math.max(0, from + (dx < 0 ? 1 : -1))) : from;
+      el.scrollTo({ left: to * w, behavior: 'smooth' });
+      start = null;
+    };
+    el.addEventListener('touchstart', down, { passive: true });
+    el.addEventListener('touchmove', move, { passive: true });
+    el.addEventListener('touchend', up);
+    el.addEventListener('touchcancel', up);
     el.scrollLeft = 0;
     return () => {
       ro.disconnect();
-      window.clearTimeout(t);
-      el.removeEventListener('scroll', settle);
+      el.removeEventListener('touchstart', down);
+      el.removeEventListener('touchmove', move);
+      el.removeEventListener('touchend', up);
+      el.removeEventListener('touchcancel', up);
     };
   }, [paged, text.id]);
 

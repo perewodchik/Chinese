@@ -6,13 +6,8 @@ import { segment, writerHints } from '../../domain/segment';
 import { itemForToken } from '../../domain/words';
 import { pictureAbove } from '../../domain/pictures';
 import { hskLabel, isHanzi, type GeneratedText } from '../../domain/text';
-import { minutesToRead } from './readerProgress';
-import { Link } from 'react-router';
 import { useOpenItem } from '../../navigation/itemDrawer';
-import { paths } from '../../navigation/paths';
-import { useStore } from '../../store/store';
 import { useLevelOf, useWordLevel } from '../shared/levels';
-import { LevelBar } from '../../ui/LevelMark';
 import { useLibrary } from '../shared/library';
 import { Comic } from './Comic';
 import { ParagraphPicture, type PictureMark } from './ParagraphPicture';
@@ -194,13 +189,6 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
   // Under three in ten of its characters met, nearly everything would be underlined as new, and the red
   // pen would say nothing: nothing is underlined then, and the head says how to fix it (V8).
   const fewKnown = charTotal > 0 && (charTotal - charLevels[0]) / charTotal < 0.3;
-  const band = useStore((st) => st.settings.hskBand);
-  // The words not known yet, each once: what the head counts as new.
-  const newWords = useMemo(() => {
-    const seen = new Set<string>();
-    for (const line of tokens) for (const t of line) if (t.word && levelOfWord(t.text) === 0) seen.add(t.text);
-    return seen.size;
-  }, [tokens, levelOfWord]);
   // Each paragraph's new words, each glossed once, where it first comes.
   const glosses = useMemo(() => {
     const seen = new Set<string>();
@@ -216,7 +204,6 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
     );
   }, [paras, tokens, levelOfWord, lib, text]);
   const hold = useHold((i, el) => (onHold ? onHold(i, el) : onReveal(i)));
-  const minutes = minutesToRead(text);
   // The learner's highlights and notes, by sentence.
   const hl = text.study?.marks;
 
@@ -275,11 +262,19 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
           }}
         >
           {opener && <span className="opener">{opener}</span>}
-          <ruby>
-            {t.text}
-            {/* Always there, hidden when not asked for: its width is the word's, and switching pinyin on must not move a line. */}
-            <rt data-hidden={!showPy || undefined}>{said.join('')}</rt>
-          </ruby>
+          {/* A reading over each character, so a line can break inside a word as a
+              printed book's does and no line ends early. Always there, hidden
+              when not asked for: switching pinyin on must not move a line. */}
+          {[...t.text].map((ch, c, all) => {
+            if (!isHanzi(ch)) return <Fragment key={c}>{ch}</Fragment>;
+            const at = all.slice(0, c).filter(isHanzi).length;
+            return (
+              <ruby key={c}>
+                {ch}
+                <rt data-hidden={!showPy || undefined}>{said[at]}</rt>
+              </ruby>
+            );
+          })}
         </span>
       );
       opener = '';
@@ -298,25 +293,6 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
           {titleAction}
         </div>
         {head.en && head.en !== head.zh && <p className="rd-subtitle">{head.en}</p>}
-        <div className="rd-know" title={`Its characters: ${charLevels[3]} solid, ${charLevels[2]} known, ${charLevels[1]} met, ${charLevels[0]} not known yet`}>
-          <span className="rd-meter" aria-hidden>
-            <LevelBar levels={charLevels} />
-          </span>
-          <span>
-            About {minutes} minute{minutes === 1 ? '' : 's'}.{' '}
-            {fewKnown ? (
-              // Little known yet is almost always little marked yet: say how, rather than a percentage.
-              <Link className="rd-know-mark" to={paths.sweep(band <= 4 ? band : undefined)}>
-                Mark what you know to see what is new
-              </Link>
-            ) : (
-              <>
-                You know {Math.round(((charTotal - charLevels[0]) / (charTotal || 1)) * 100)}% of it
-                {newWords ? `, and ${newWords} word${newWords === 1 ? ' is' : 's are'} new.` : '.'}
-              </>
-            )}
-          </span>
-        </div>
       </header>
 
       {story && (
