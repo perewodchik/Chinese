@@ -28,6 +28,7 @@ import { canRelive, castOf, readInBook } from '../../domain/companion';
 import { BookWords, type BookWord, type Chapter } from './BookStudy';
 import { shelveBook } from '../../store/commands';
 import { BookCover } from './BookCover';
+import { BookNarrate } from './BookNarrate';
 import './shelves.css';
 import { PublishSheet } from './PublishSheet';
 import { hasHan, progressOf } from './ReadPage';
@@ -277,6 +278,8 @@ export function ShelfPage() {
                 : `Read ${story ? `chapter ${numbers[nowAt]}` : `text ${nowAt + 1}`}`}
         </Link>
       )}
+
+      {entries.length > 0 && <BookNarrate texts={list} story={story} />}
 
       {companion && entries.some((e) => !isFrontMatter(e.main) && canRelive(e, readInPair)) && (
         <Link className="shelf-guide" to={paths.guide(set.id)}>

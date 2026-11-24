@@ -1346,3 +1346,76 @@
   font: 600 13.5px var(--sans);
   color: var(--ink-2);
 }
+
+/* Narrating the whole book: one quiet row under Continue. */
+.book-narrate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: -6px 0 18px;
+  color: var(--ink-3);
+}
+
+.book-narrate-none {
+  flex-wrap: nowrap;
+  margin-top: -6px;
+}
+
+.book-narrate select {
+  height: 36px;
+  max-width: 40%;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a838f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 9px center;
+  color: var(--ink);
+  font: 14px var(--sans);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.book-narrate-go {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font: 500 14px var(--sans);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.book-narrate-go span {
+  position: relative;
+  white-space: nowrap;
+}
+
+.book-narrate-go i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--accent);
+  opacity: 0.2;
+  transition: width 0.3s;
+}
+
+.book-narrate-go:disabled:not([data-busy]) {
+  background: none;
+  color: var(--ink-3);
+  font-weight: 400;
+  cursor: default;
+}
+
+.book-narrate-go[data-busy] {
+  cursor: progress;
+}
+
+.book-narrate-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--red);
+}
