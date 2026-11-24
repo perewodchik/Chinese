@@ -240,6 +240,23 @@ describe('what has been done with a text, and a shelf’s list (version 11)', ()
     assert.equal(state.texts.find((t) => t.id === 'u')?.study, undefined);
   });
 
+  it('keeps highlights and notes, and drops the malformed ones', () => {
+    const marked = {
+      ...base,
+      texts: [
+        {
+          id: 'm',
+          lines: [{ zh: '好。', py: 'hǎo', en: 'Good.' }],
+          study: { marks: { '0': { at: 5, note: '  remember 了  ' }, '1': { at: 6, off: true }, x: { at: 1 }, '2': { note: 'no time' }, '3': 'nope' } },
+        },
+      ],
+    };
+    const state = hydrate(marked);
+    assert.deepEqual(state.texts[0]?.study, { marks: { '0': { at: 5, note: 'remember 了' }, '1': { at: 6, off: true } } });
+    // and back again unchanged
+    assert.deepEqual(hydrate(serialise(state)).texts[0]?.study, state.texts[0]?.study);
+  });
+
   it('writes them back as they are', () => {
     const written = serialise(hydrate(base));
     assert.deepEqual(written.sets[0]?.study, ['w面包', 'c孔']);

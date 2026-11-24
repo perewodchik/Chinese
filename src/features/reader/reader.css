@@ -3715,3 +3715,49 @@ a.rd-more-row {
     transition: none;
   }
 }
+
+/* ----------------------------------------------- highlights and notes */
+/* A highlighted sentence keeps the highlighter behind it; one with a note has a pencil line under it too. */
+.rd-zh .sent[data-marked] {
+  background: var(--hl);
+  border-radius: 4px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.rd-zh .sent[data-noted] {
+  text-decoration: underline dotted var(--ink-3);
+  text-underline-offset: 0.35em;
+}
+
+.rd-peek-note {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.rd-peek-note textarea {
+  width: 100%;
+  min-height: 72px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.45 var(--read);
+  resize: vertical;
+}
+
+.rd-peek-note button {
+  justify-self: end;
+}
+
+/* With Highlight and Note the held sentence's actions take two lines on a phone rather than run off the card. */
+.rd-peek-sent .rd-peek-acts {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.rd-peek-note textarea {
+  box-sizing: border-box;
+}

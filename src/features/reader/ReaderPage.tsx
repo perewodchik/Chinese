@@ -541,7 +541,15 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
         />
       )}
 
-      {held && text.lines[held.i] && <SentencePeek held={held} line={text.lines[held.i]!} onClose={closeHeld} />}
+      {held && text.lines[held.i] && (
+        <SentencePeek
+          held={held}
+          line={text.lines[held.i]!}
+          onClose={closeHeld}
+          mark={text.study?.marks?.[held.i]}
+          onMark={(m) => studyText(text.id, { marks: { [held.i]: m } })}
+        />
+      )}
 
       {contents && set && (
         <BookContents set={set} book={bookOf(set, list)} entries={entries} page={mode === 'single' ? page : 0} onClose={closeContents} />

@@ -1419,3 +1419,15 @@
   margin: 0;
   color: var(--red);
 }
+
+.book-notes .book-note-zh {
+  background: var(--hl);
+  border-radius: 4px;
+  justify-self: start;
+  padding: 0 2px;
+}
+
+.book-notes .book-row-title .book-note {
+  font: 400 15px/1.5 var(--read);
+  color: var(--ink-2);
+}

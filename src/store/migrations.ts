@@ -17,7 +17,7 @@ import {
   type SkillBook,
 } from '../domain/memory';
 import { DEFAULT_SHEET, LAYOUT_IDS, layoutFor, type LayoutId, type PaletteId, type SheetChoice } from '../domain/sheet';
-import { clampBand, type GeneratedText, type TextLine, type TextPlan, type TextSet, type TextSpec, type TextStudy } from '../domain/text';
+import { clampBand, type GeneratedText, type TextLine, type TextPlan, type TextSet, type TextSpec, type TextStudy, type SentenceMark } from '../domain/text';
 import { emptyListPlan, LIST_STEPS, type WordListPlan } from '../domain/wordlist';
 import {
   isRadicalId,
@@ -287,7 +287,25 @@ function studyFrom(v: unknown): TextStudy | undefined {
     ...optional('answers', answersFrom(s.answers)),
     ...optional('copied', typeof s.copied === 'number' && Number.isInteger(s.copied) && s.copied > 0 ? s.copied : undefined),
     ...optional('dictated', typeof s.dictated === 'number' && Number.isInteger(s.dictated) && s.dictated > 0 ? s.dictated : undefined),
+    ...optional('marks', marksFrom(s.marks)),
   };
+  return Object.keys(out).length ? out : undefined;
+}
+
+/** Highlights and notes, by a sentence's index: a time, a note no longer than a page, and `off` once taken off. */
+function marksFrom(v: unknown): Record<string, SentenceMark> | undefined {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return undefined;
+  const out: Record<string, SentenceMark> = {};
+  for (const [k, raw] of Object.entries(v as Loose)) {
+    if (!/^\d{1,4}$/.test(k) || !raw || typeof raw !== 'object') continue;
+    const m = raw as Loose;
+    if (typeof m.at !== 'number' || !Number.isFinite(m.at)) continue;
+    out[k] = {
+      at: m.at,
+      ...(typeof m.note === 'string' && m.note.trim() ? { note: m.note.trim().slice(0, 2000) } : {}),
+      ...(m.off === true ? { off: true as const } : {}),
+    };
+  }
   return Object.keys(out).length ? out : undefined;
 }
 

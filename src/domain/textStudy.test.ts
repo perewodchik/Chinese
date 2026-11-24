@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { firstUnread, mergeStudy, type GeneratedText, type TextSet } from './text';
+import { firstUnread, liveMarks, mergeStudy, type GeneratedText, type TextSet } from './text';
 
 describe('listening to a text, as the study record keeps it', () => {
   it('keeps the furthest line heard and the most read-throughs from either device', () => {
@@ -22,5 +22,15 @@ describe('the first text not read yet', () => {
   it('is nothing when everything is read, or nothing is there', () => {
     assert.equal(firstUnread([text('a1', 'a', true, 1)], sets), null);
     assert.equal(firstUnread([], []), null);
+  });
+});
+
+describe('highlights and notes', () => {
+  it('keep each sentence’s later record, so taking a highlight off on one device holds on the other', () => {
+    const phone = { marks: { '0': { at: 10, note: 'a' }, '2': { at: 5 } } };
+    const ipad = { marks: { '0': { at: 20, off: true as const }, '1': { at: 7, note: 'b' }, '2': { at: 3, note: 'older' } } };
+    const both = mergeStudy(phone, ipad);
+    assert.deepEqual(both?.marks, { '0': { at: 20, off: true }, '1': { at: 7, note: 'b' }, '2': { at: 5 } });
+    assert.deepEqual(liveMarks(both), [{ line: 1, at: 7, note: 'b' }, { line: 2, at: 5 }]);
   });
 });

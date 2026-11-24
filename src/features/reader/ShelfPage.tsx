@@ -5,7 +5,7 @@ import { DEFAULT_SCOPE, type Collection } from '../../domain/collection';
 import { charId, isCharId, isWordId, idValue, type ItemId } from '../../domain/ids';
 import { firstSense } from '../../domain/library';
 import { defaultSheet } from '../../domain/sheet';
-import { fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTexts, type GeneratedText, type ShelfEntry } from '../../domain/text';
+import { fromBook, hanziIn, isHanzi, shelfEntries, shelve, taughtTexts, type GeneratedText, type ShelfEntry, liveMarks } from '../../domain/text';
 import { paths, type ShelfTab } from '../../navigation/paths';
 import { useIsAdmin } from '../auth/session';
 import { oneOf, useQuery } from '../../navigation/query';
@@ -33,7 +33,7 @@ import './shelves.css';
 import { PublishSheet } from './PublishSheet';
 import { hasHan, progressOf } from './ReadPage';
 
-const TABS: ShelfTab[] = ['texts', 'words', 'grammar'];
+const TABS: ShelfTab[] = ['texts', 'words', 'grammar', 'notes'];
 
 /**
  * One shelf, at /read/:setId — its texts, the words it is teaching, and its
@@ -78,6 +78,7 @@ export function ShelfPage() {
 
   if (!set) return <Navigate to={paths.read()} replace />;
   const grammarCount = entries.reduce((n, e) => n + e.main.grammar.length, 0);
+  const notesCount = list.reduce((n, t) => n + liveMarks(t.study).length, 0);
 
   const book = list.some(fromBook);
   const asBook = bookOf(set, list);
@@ -295,8 +296,8 @@ export function ShelfPage() {
       <div className="book-tabs" role="tablist">
         {TABS.map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} aria-pressed={tab === t} onClick={() => setQuery('tab', t, 'texts')}>
-            {t === 'texts' ? (story ? 'Chapters' : 'Texts') : t === 'words' ? 'Words' : 'Grammar'}
-            <span className="count">{t === 'texts' ? entries.length : t === 'words' ? words.length : grammarCount}</span>
+            {t === 'texts' ? (story ? 'Chapters' : 'Texts') : t === 'words' ? 'Words' : t === 'grammar' ? 'Grammar' : 'Notes'}
+            <span className="count">{t === 'texts' ? entries.length : t === 'words' ? words.length : t === 'grammar' ? grammarCount : notesCount}</span>
           </button>
         ))}
       </div>
@@ -364,6 +365,7 @@ export function ShelfPage() {
 
       {tab === 'words' && <BookWords setId={set.id} words={words} chapters={chapters} study={study} />}
 
+      {tab === 'notes' && <BookNotes setId={set.id} entries={entries} numbers={numbers} story={story} />}
       {tab === 'grammar' && <BookGrammar setId={set.id} entries={entries} numbers={numbers} story={story} />}
     </div>
   );
@@ -415,6 +417,44 @@ function BookGrammar({ setId, entries, numbers, story }: { setId: string; entrie
                   <span className="book-row-title">
                     <b>{g.point}</b>
                     {g.zh && <small className="hanzi">{g.zh}</small>}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The sentences highlighted in the book's chapters, with the notes on them,
+ * chapter by chapter, in the order they come. A tap opens the chapter.
+ */
+function BookNotes({ setId, entries, numbers, story }: { setId: string; entries: ShelfEntry[]; numbers: number[]; story: boolean }) {
+  const chapters = entries
+    .map((e, i) => ({ i, items: [e.easier, e.original ?? e.main].filter((t, k, all): t is GeneratedText => Boolean(t) && all.findIndex((x) => x?.id === t!.id) === k).flatMap((t) => liveMarks(t.study).map((m) => ({ t, m }))) }))
+    .filter((c) => c.items.length > 0);
+  if (!chapters.length)
+    return (
+      <div className="empty compact">
+        <span className="big">记</span>
+        <p>Your highlights and notes from every chapter land here. In a chapter, hold a sentence, then Highlight or Note.</p>
+      </div>
+    );
+  return (
+    <div className="book-grammar book-notes">
+      {chapters.map(({ i, items }) => (
+        <section key={i}>
+          <h3>{story ? `Chapter ${numbers[i]}` : `Text ${i + 1}`}</h3>
+          <ul className="book-rows">
+            {items.map(({ t, m }) => (
+              <li key={`${t.id}:${m.line}`} className="book-row">
+                <Link className="book-row-main" to={paths.reading(setId, { page: i + 1 })}>
+                  <span className="book-row-title">
+                    <small className="hanzi book-note-zh">{t.lines[m.line]?.zh ?? ''}</small>
+                    {m.note && <b className="book-note">{m.note}</b>}
                   </span>
                 </Link>
               </li>

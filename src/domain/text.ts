@@ -412,6 +412,36 @@ export interface TextStudy {
   copied?: number;
   /** how many of its sentences have been written from dictation, in order, in Write */
   dictated?: number;
+  /**
+   * Sentences highlighted, and notes on them, by the sentence's index. Taking
+   * a highlight off keeps the record with `off`, so a device that still has
+   * it does not bring it back: of two records, the later `at` wins.
+   */
+  marks?: Record<string, SentenceMark>;
+}
+
+/** A sentence highlighted, with the learner's note on it if they wrote one. */
+export interface SentenceMark {
+  at: number;
+  note?: string;
+  off?: true;
+}
+
+/** The sentences marked now, by index: highlighted and not taken off. */
+export function liveMarks(study: TextStudy | undefined): Array<{ line: number; note?: string; at: number }> {
+  return Object.entries(study?.marks ?? {})
+    .filter(([, m]) => !m.off)
+    .map(([k, m]) => ({ line: Number(k), at: m.at, ...(m.note ? { note: m.note } : {}) }))
+    .sort((a, b) => a.line - b.line);
+}
+
+/** Two devices' marks: each sentence's later record. */
+function mergeMarks(a?: Record<string, SentenceMark>, b?: Record<string, SentenceMark>): Record<string, SentenceMark> | undefined {
+  if (!a) return b;
+  if (!b) return a;
+  const out = { ...a };
+  for (const [k, m] of Object.entries(b)) if (!out[k] || m.at >= out[k]!.at) out[k] = m;
+  return out;
 }
 
 /** Two records of the same text from two devices, keeping everything either did. */
@@ -432,6 +462,7 @@ export function mergeStudy(a: TextStudy | undefined, b: TextStudy | undefined): 
     ...optionalField('answers', a.answers || b.answers ? { ...a.answers, ...b.answers } : undefined),
     ...optionalField('copied', max(a.copied, b.copied)),
     ...optionalField('dictated', max(a.dictated, b.dictated)),
+    ...optionalField('marks', mergeMarks(a.marks, b.marks)),
   };
 }
 

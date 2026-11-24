@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
-import type { TextLine } from '../../domain/text';
+import type { SentenceMark, TextLine } from '../../domain/text';
 import { Say } from '../../ui/Say';
 import { placeFor, type Place } from './WordPeek';
 
@@ -38,7 +38,28 @@ async function copyText(text: string): Promise<boolean> {
  * sentence as a tapped word's card sits by the word (a strip on a phone), and
  * goes the same way: a tap anywhere else, or Escape.
  */
-export function SentencePeek({ held, line, onClose }: { held: HeldSentence; line: TextLine; onClose: () => void }) {
+export function SentencePeek({
+  held,
+  line,
+  onClose,
+  mark,
+  onMark,
+}: {
+  held: HeldSentence;
+  line: TextLine;
+  onClose: () => void;
+  /** this sentence's highlight and note, if it has one */
+  mark?: SentenceMark;
+  /** highlight it (with a note, or none), or take the highlight off */
+  onMark?: (m: SentenceMark) => void;
+}) {
+  const marked = Boolean(mark && !mark.off);
+  const [noting, setNoting] = useState(false);
+  const [note, setNote] = useState(mark?.note ?? '');
+  useEffect(() => {
+    setNoting(false);
+    setNote(mark?.note ?? '');
+  }, [held.i]); // eslint-disable-line react-hooks/exhaustive-deps
   const card = useRef<HTMLDivElement>(null);
   const [place, setPlace] = useState<Place>(() => placeFor(held.el, null));
   const [copied, setCopied] = useState<'zh' | 'both' | null>(null);
@@ -109,6 +130,20 @@ export function SentencePeek({ held, line, onClose }: { held: HeldSentence; line
       {line.py && <p className="rd-peek-py">{line.py}</p>}
       <div className="rd-peek-acts">
         <Say text={line.zh} size="lg" title="Hear the sentence" />
+        {onMark && (
+          <>
+            <button
+              className="btn quiet sm"
+              aria-pressed={marked}
+              onClick={() => onMark(marked ? { at: Date.now(), off: true } : { at: Date.now(), ...(mark?.note ? { note: mark.note } : {}) })}
+            >
+              {marked ? 'Unhighlight' : 'Highlight'}
+            </button>
+            <button className="btn quiet sm" aria-expanded={noting} onClick={() => setNoting((n) => !n)}>
+              Note
+            </button>
+          </>
+        )}
         <span className="spacer" />
         {line.en && (
           <button className="btn quiet sm rd-peek-copy-both" onClick={() => copy('both')}>
@@ -119,6 +154,21 @@ export function SentencePeek({ held, line, onClose }: { held: HeldSentence; line
           {copied === 'zh' ? 'Copied' : 'Copy'}
         </button>
       </div>
+      {noting && onMark && (
+        <form
+          className="rd-peek-note"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onMark({ at: Date.now(), ...(note.trim() ? { note: note.trim() } : {}) });
+            setNoting(false);
+          }}
+        >
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Your note on this sentence" aria-label="Your note on this sentence" rows={3} autoFocus />
+          <button className="btn tonal sm" type="submit">
+            Save the note
+          </button>
+        </form>
+      )}
     </div>
   );
 }

@@ -217,6 +217,8 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
   }, [paras, tokens, levelOfWord, lib, text]);
   const hold = useHold((i, el) => (onHold ? onHold(i, el) : onReveal(i)));
   const minutes = minutesToRead(text);
+  // The learner's highlights and notes, by sentence.
+  const hl = text.study?.marks;
 
   /** One sentence, word by word, punctuation held to its word. */
   function sentence(i: number): ReactNode {
@@ -363,6 +365,8 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
                       data-flash={flash === i || undefined}
                       data-open={revealed.has(i) || undefined}
                       data-held={held === i || undefined}
+                      data-marked={hl?.[i] && !hl[i]!.off ? true : undefined}
+                      data-noted={hl?.[i]?.note && !hl[i]!.off ? true : undefined}
                       {...hold(i)}
                     >
                       {sentence(i)}
