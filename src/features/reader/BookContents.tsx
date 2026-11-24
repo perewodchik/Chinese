@@ -6,8 +6,8 @@ import { useStore } from '../../store/store';
 import type { ShelfEntry, TextSet } from '../../domain/text';
 import { paths } from '../../navigation/paths';
 import { Icon } from '../../ui/Icon';
-import { useWordLevel } from '../shared/levels';
 import { BookCover } from './BookCover';
+import { minutesToRead, shareOf } from './readerProgress';
 import './shelves.css';
 
 /**
@@ -30,7 +30,6 @@ export function BookContents({
   page: number;
   onClose: () => void;
 }) {
-  const levelOfWord = useWordLevel();
   const story = book.kind === 'story';
   // A book with a companion offers each chapter read in it to be lived again (reader/RelivePage).
   const companion = story && castOf(bookTitle(set.name)) !== null;
@@ -80,7 +79,6 @@ export function BookContents({
               const head = chapterHead(e.main, story && !front ? n : null);
               const read = Boolean(e.main.read || e.easier?.read);
               const now = i + 1 === page;
-              const fresh = e.main.vocab.filter((v) => levelOfWord(v.w) === 0).length;
               const relive = companion && !front && canRelive(e, readInPair);
               return (
                 <li key={e.main.id} className="rd-toc-item">
@@ -100,7 +98,7 @@ export function BookContents({
                       <small>{front ? 'Who is who, and the key words' : head.en}</small>
                     </span>
                     {/* Beside Relive the row's state goes: the tick and the highlight already say it, and the title keeps the room. */}
-                    {!relive && <span className="rd-toc-state">{now ? 'Reading' : read ? 'Read' : fresh ? `${fresh} new` : ''}</span>}
+                    {!relive && <span className="rd-toc-state">{now ? `${shareOf(e.easier?.id ?? e.main.id) ?? shareOf(e.main.id) ?? 0}%` : read ? '' : `${minutesToRead(e.main)} min`}</span>}
                   </Link>
                   {relive && (
                     <Link className="btn quiet sm rd-toc-relive" to={paths.relive(set.id, i + 1)} onClick={onClose} aria-label={`Relive ${head.zh}`}>

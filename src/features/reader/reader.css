@@ -3649,3 +3649,69 @@ a.rd-more-row {
 .rd[data-mode='single'] > .rd-foot {
   margin-top: auto;
 }
+
+/* ------------------------------------------------------------ pages */
+/* Aa › Turning › Pages: the chapter laid out in columns as wide as the text's
+   box and as tall as the room between the bar and the foot, moved through
+   sideways. The end of the chapter is its last page. */
+.rd[data-turn='pages'] {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.rd[data-turn='pages'] .rd-text {
+  flex: 1 1 0;
+  min-height: 0;
+  max-width: none;
+  /* On the box itself, so every page (column) starts with room for the pinyin over its first line. */
+  padding: 14px 0 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  column-width: var(--rd-page, 100vw);
+  column-gap: 0;
+  column-fill: auto;
+}
+
+.rd[data-turn='pages'] .rd-text::-webkit-scrollbar {
+  display: none;
+}
+
+/* The gutter on every page, and the text no wider than the chosen width. */
+.rd[data-turn='pages'] .rd-text > * {
+  padding-inline: max(var(--gutter), calc((var(--rd-page, 100vw) - var(--rd-measure, 780px)) / 2));
+}
+
+
+.rd[data-turn='pages'] .rd-pic {
+  break-inside: avoid;
+}
+
+/* ----------------------------------------------- only the text on the screen */
+.rd-pin,
+.rd-foot {
+  transition:
+    transform 0.16s ease-out,
+    opacity 0.16s ease-out;
+}
+
+.rd[data-calm] .rd-pin {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rd[data-calm] .rd-foot {
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-pin,
+  .rd-foot {
+    transition: none;
+  }
+}

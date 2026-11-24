@@ -28,6 +28,7 @@ import {
   useHanFont,
   useLineSpacing,
   useTextWidth,
+  useTurnMode,
   usePaperMode,
   usePictureMode,
   usePinyinMode,
@@ -159,6 +160,12 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [font, setFont] = useHanFont();
   const [spacing, setSpacing] = useLineSpacing();
   const [width, setWidth] = useTextWidth();
+  const [turn, setTurn] = useTurnMode();
+  // Turned a page at a time: only one text on the page, and never inside a sheet.
+  const paged = turn === 'pages' && mode === 'single';
+  // Only the text on the screen: a tap on the text where there is no word hides the bar and the foot, another brings them back.
+  const [calm, setCalm] = useState(false);
+  const textBox = useRef<HTMLDivElement>(null);
   const [contents, setContents] = useState(false);
   // A tapped word's card; the whole drawer is a tap on it away.
   const [peek, setPeek] = useState<(Peeked & { key: string }) | null>(null);
@@ -268,6 +275,10 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) return;
       // Something open over the text — copying it out, a drawer, a panel — has the keys to itself.
       if (e.defaultPrevented || document.querySelector('[role="dialog"], .drawer, .rd-aa-panel')) return;
+      if (paged && (e.key === 'ArrowRight' || e.key === 'ArrowLeft') && turnPage(e.key === 'ArrowRight' ? 1 : -1)) {
+        e.preventDefault();
+        return;
+      }
       if (e.key === 'ArrowRight' && page < total) go(page + 1);
       if (e.key === 'ArrowLeft' && page > 1) go(page - 1);
     };
@@ -320,8 +331,68 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
 
   const shown = mode === 'all' ? entries.map((e) => versionOf(e, null)) : [text];
 
+  // Pages: each column is the text's own width, and a swipe that stops between two pages settles on the nearer one.
+  useEffect(() => {
+    const el = textBox.current;
+    if (!paged || !el) return;
+    const size = () => el.style.setProperty('--rd-page', `${el.clientWidth}px`);
+    size();
+    const ro = new ResizeObserver(size);
+    ro.observe(el);
+    let t = 0;
+    const settle = () => {
+      window.clearTimeout(t);
+      t = window.setTimeout(() => {
+        const w = el.clientWidth;
+        const want = Math.round(el.scrollLeft / w) * w;
+        if (Math.abs(want - el.scrollLeft) > 1) el.scrollTo({ left: want, behavior: 'smooth' });
+      }, 140);
+    };
+    el.addEventListener('scroll', settle, { passive: true });
+    el.scrollLeft = 0;
+    return () => {
+      ro.disconnect();
+      window.clearTimeout(t);
+      el.removeEventListener('scroll', settle);
+    };
+  }, [paged, text.id]);
+
+  /** A page on or back, in pages mode; false at either end, so the arrow keys go on to the next chapter there. */
+  function turnPage(by: 1 | -1): boolean {
+    const el = textBox.current;
+    if (!el) return false;
+    const w = el.clientWidth;
+    const at = Math.round(el.scrollLeft / w);
+    const of = Math.round(el.scrollWidth / w);
+    if (at + by < 0 || at + by >= of) return false;
+    el.scrollTo({ left: (at + by) * w, behavior: 'smooth' });
+    return true;
+  }
+
+  /**
+   * In pages, a tap on a page's edge turns it, before any word there gets it:
+   * the outer fifth on each side is for turning, as in a book reader.
+   */
+  function tapEdge(e: React.MouseEvent<HTMLDivElement>) {
+    if (!paged || peek || held) return;
+    if ((e.target as HTMLElement).closest('button, a, input, select, textarea')) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    if (x >= 0.2 && x <= 0.8) return;
+    e.preventDefault();
+    e.stopPropagation();
+    turnPage(x < 0.2 ? -1 : 1);
+  }
+
+  /** A tap on the text that is not a word: the bars go, or come back. */
+  function tapText(e: React.MouseEvent<HTMLDivElement>) {
+    if ((e.target as HTMLElement).closest('.w, button, a, input, select, textarea, [role="button"], .rd-pic')) return;
+    if (peek || held) return;
+    setCalm((c) => !c);
+  }
+
   return (
-    <div className="rd" ref={top} data-mode={mode} style={{ '--reader-scale': settings.readerScale, '--rd-han': HAN_FONT_STACK[font], '--rd-lh': LINE_HEIGHT[spacing], '--rd-measure': TEXT_MEASURE[width] } as CSSProperties}>
+    <div className="rd" ref={top} data-mode={mode} data-turn={paged ? 'pages' : undefined} data-calm={calm || undefined} style={{ '--reader-scale': settings.readerScale, '--rd-han': HAN_FONT_STACK[font], '--rd-lh': LINE_HEIGHT[spacing], '--rd-measure': TEXT_MEASURE[width] } as CSSProperties}>
       {/* The bar, stuck to the top and opaque from the screen's edge down. */}
       <div className="rd-pin no-print">
       <header className="rd-top">
@@ -370,6 +441,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           setSpacing={setSpacing}
           width={width}
           setWidth={setWidth}
+          turn={turn}
+          setTurn={setTurn}
         />
         {/* A book's own ⋯ is on its page; a text on its own keeps one here. */}
         {!set && (
@@ -404,7 +477,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       )}
       </div>
 
-      <div className="rd-text" data-layout="paragraph">
+      <div className="rd-text" data-layout="paragraph" ref={textBox} onClickCapture={tapEdge} onClick={tapText}>
         {shown.map((t, i) => (
           <Passage
             key={t.id}
@@ -451,6 +524,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             peekKey={peek?.key ?? null}
           />
         ))}
+        {/* In pages the end of the chapter is its last page. */}
+        {paged && <ChapterFinish text={text} onOpen={openSheet} />}
       </div>
 
       {peek && (
@@ -474,7 +549,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
 
       {mode === 'single' && (
         <div className="rd-study no-print">
-          <ChapterFinish text={text} onOpen={openSheet} />
+          {!paged && <ChapterFinish text={text} onOpen={openSheet} />}
         </div>
       )}
 
@@ -506,6 +581,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       {mode === 'single' && (
         <ReaderFoot
           textId={text.id}
+          pages={paged}
           onContents={set && total > 1 ? () => setContents(true) : null}
           onPrev={page > 1 ? () => go(page - 1) : null}
           onNext={page < total ? () => go(page + 1) : null}

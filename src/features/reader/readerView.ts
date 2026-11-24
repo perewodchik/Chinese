@@ -128,3 +128,9 @@ export const TEXT_WIDTHS: TextWidth[] = ['narrow', 'book', 'wide'];
 export const TEXT_WIDTH_LABEL: Record<TextWidth, string> = { narrow: 'Narrow', book: 'Book', wide: 'Wide' };
 export const TEXT_MEASURE: Record<TextWidth, string> = { narrow: '560px', book: '780px', wide: '1100px' };
 export const useTextWidth = () => useStoredChoice<TextWidth>('hanzi.reader.width', TEXT_WIDTHS, 'book');
+
+/** How a chapter is moved through (Aa › Layout): scrolled down, or turned a screen-wide page at a time. */
+export type TurnMode = 'scroll' | 'pages';
+export const TURN_MODES: TurnMode[] = ['scroll', 'pages'];
+export const TURN_LABEL: Record<TurnMode, string> = { scroll: 'Scroll', pages: 'Pages' };
+export const useTurnMode = () => useStoredChoice<TurnMode>('hanzi.reader.turn', TURN_MODES, 'scroll');

@@ -15,6 +15,7 @@ import { rememberShare, scrolledShare } from './readerProgress';
  */
 export function ReaderFoot({
   textId,
+  pages,
   onContents,
   onPrev,
   onNext,
@@ -23,6 +24,8 @@ export function ReaderFoot({
   onEnd,
 }: {
   textId: string;
+  /** turned a page at a time (Aa › Turning): the share is the pages turned, and it says 3/7 */
+  pages: boolean;
   onContents: (() => void) | null;
   onPrev: (() => void) | null;
   onNext: (() => void) | null;
@@ -31,6 +34,7 @@ export function ReaderFoot({
   onEnd: () => void;
 }) {
   const [share, setShare] = useState(0);
+  const [leaf, setLeaf] = useState({ at: 1, of: 1 });
   const ended = useRef(false);
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
@@ -43,6 +47,19 @@ export function ReaderFoot({
       // scrolls in the app's own column, not always in the window.
       const text = document.querySelector<HTMLElement>('.rd-text');
       if (!text) return;
+      if (pages) {
+        const w = text.clientWidth || 1;
+        const of = Math.max(1, Math.round(text.scrollWidth / w));
+        setLeaf({ at: Math.min(of, Math.round(text.scrollLeft / w) + 1), of });
+        const s = scrolledShare(text.scrollLeft, text.scrollWidth, text.clientWidth);
+        setShare(s);
+        rememberShare(textId, s);
+        if (s >= 1 && !ended.current) {
+          ended.current = true;
+          onEndRef.current();
+        }
+        return;
+      }
       const top = document.querySelector('.rd-pin')?.getBoundingClientRect().bottom ?? 0;
       const bottom = document.querySelector('.rd-foot')?.getBoundingClientRect().top ?? window.innerHeight;
       // Up to its last line: once that is in sight, the chapter is read.
@@ -70,7 +87,7 @@ export function ReaderFoot({
       document.removeEventListener('scroll', soon, { capture: true });
       window.removeEventListener('resize', soon);
     };
-  }, [textId]);
+  }, [textId, pages]);
 
   const pct = Math.round(share * 100);
   /** A tap on the line goes to that share of the chapter. */
@@ -79,6 +96,11 @@ export function ReaderFoot({
     if (!text) return;
     const r = e.currentTarget.getBoundingClientRect();
     const want = (e.clientX - r.left) / r.width;
+    if (pages) {
+      const w = text.clientWidth;
+      text.scrollTo({ left: Math.round((want * (text.scrollWidth - w)) / w) * w, behavior: 'smooth' });
+      return;
+    }
     const top = document.querySelector('.rd-pin')?.getBoundingClientRect().bottom ?? 0;
     const bottom = document.querySelector('.rd-foot')?.getBoundingClientRect().top ?? window.innerHeight;
     const t = text.getBoundingClientRect();
@@ -100,7 +122,7 @@ export function ReaderFoot({
       <button className="rd-foot-btn" aria-label={prevLabel} title={prevLabel} disabled={!onPrev} onClick={onPrev ?? undefined}>
         <Icon name="back" size={20} />
       </button>
-      <span className="rd-foot-pct">{pct}%</span>
+      <span className="rd-foot-pct">{pages ? `${leaf.at}/${leaf.of}` : `${pct}%`}</span>
       <div className="rd-foot-track" role="progressbar" aria-label="How far down this chapter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} onClick={seek}>
         <i style={{ width: `${pct}%` }} />
       </div>

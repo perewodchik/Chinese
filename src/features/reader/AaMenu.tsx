@@ -19,6 +19,9 @@ import {
   TEXT_WIDTHS,
   TRANSLATION_LABEL,
   TRANSLATION_MODES,
+  TURN_LABEL,
+  TURN_MODES,
+  type TurnMode,
   type HanFont,
   type LineSpacing,
   type PaperMode,
@@ -46,6 +49,8 @@ export interface AaChoices {
   setSpacing: (m: LineSpacing) => void;
   width: TextWidth;
   setWidth: (m: TextWidth) => void;
+  turn: TurnMode;
+  setTurn: (m: TurnMode) => void;
 }
 
 /**
@@ -151,14 +156,17 @@ export function AaMenu({ hasPictures, ...c }: AaChoices & { hasPictures: boolean
             </label>
           </section>
 
-          {hasPictures && (
-            <section className="rd-aa-sec" aria-label="Layout">
-              <h3>Layout</h3>
+          <section className="rd-aa-sec" aria-label="Layout">
+            <h3>Layout</h3>
+            <Row label="Turning" hint="Pages: swipe, or tap the left or right edge.">
+              <Seg value={c.turn} options={TURN_MODES} label={(v) => TURN_LABEL[v]} onPick={c.setTurn} name="Turning" />
+            </Row>
+            {hasPictures && (
               <Row label="Pictures">
                 <Seg value={c.pictures} options={PICTURE_MODES} label={(v) => PICTURE_LABEL[v]} onPick={c.setPictures} name="Pictures" />
               </Row>
-            </section>
-          )}
+            )}
+          </section>
         </div>
       )}
     </div>
