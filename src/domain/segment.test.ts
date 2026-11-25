@@ -39,6 +39,11 @@ const characters = [
   entry('意', 2),
   entry('思', 2),
   entry('汤', 4),
+  entry('能', 1),
+  entry('活', 3),
+  entry('多', 1),
+  entry('少', 1),
+  entry('年', 1),
 ];
 const words = [
   word('他', 1),
@@ -49,6 +54,12 @@ const words = [
   word('不好意思', 2),
   word('好', 1),
   word('意思', 2),
+  word('能', 1),
+  word('多', 1),
+  word('少', 1),
+  word('年', 1),
+  word('多少', 1),
+  word('少年', 4),
 ];
 const lib: Library = {
   characters,
@@ -72,6 +83,23 @@ describe('cutting a sentence into words', () => {
 
   it('keeps a four-character word whole', () => {
     assert.deepEqual(cut('不好意思'), ['不好意思']);
+  });
+
+  it('takes the commoner words when two cuts have as many pieces: 多少 | 年, not 多 | 少年', () => {
+    assert.deepEqual(cut('能活多少年'), ['能', '活', '多少', '年']);
+  });
+
+  it('counts a lone character’s band as well, so it is not taken for the commonest word', () => {
+    // 研究 | 生命 (4 + 4) and not 研究生 | 命 (4 + 5): 命 alone is HSK 5.
+    const science: Library = {
+      ...lib,
+      words: [...words, word('研究', 4), word('生命', 4), word('研究生', 4), word('命', 5)],
+      byWord: new Map([...words, word('研究', 4), word('生命', 4), word('研究生', 4), word('命', 5)].map((w) => [w.w, w])),
+    };
+    assert.deepEqual(
+      segment('研究生命', science).map((t) => t.text),
+      ['研究', '生命'],
+    );
   });
 
   it('lets the passage’s own vocabulary win', () => {

@@ -32,8 +32,8 @@ const MAX_WORD = 4;
 interface Dictionary {
   /** every word that may be cut out, with its band; 0 where nobody gives one */
   bands: Map<string, number>;
-  /** the ones on the 2026 lists */
-  listed: ReadonlySet<string>;
+  /** the ones on the 2026 lists, with their band there, a single character's too */
+  listed: ReadonlyMap<string, number>;
 }
 
 const cache = new WeakMap<Library, Dictionary>();
@@ -42,9 +42,9 @@ function dictionaryOf(lib: Library): Dictionary {
   let d = cache.get(lib);
   if (d) return d;
   const bands = new Map(wordBands(lib));
-  const listed = new Set<string>();
+  const listed = new Map<string, number>();
   for (const w of lib.words) {
-    listed.add(w.w);
+    listed.set(w.w, w.hsk);
     if ([...w.w].length > 1) bands.set(w.w, w.hsk);
   }
   d = { bands, listed };
@@ -55,8 +55,18 @@ function dictionaryOf(lib: Library): Dictionary {
 /** Ten to a piece, so no amount of preference outweighs one piece fewer. */
 const PIECE = 10;
 
+/**
+ * A hundredth of a piece for each step up the syllabus, so that between two
+ * cuts with as many pieces, both of listed words, the one made of commoner
+ * words wins: 能活多少 | 年 (多少 and 年 are HSK 1) and not 多 | 少年 (少年 is
+ * higher), which "longer last piece" alone got wrong. Never enough to outweigh
+ * a piece, or a word off the lists.
+ */
+const STEP = 0.01;
+
 function costOf(piece: string, d: Dictionary, extra: ReadonlySet<string>): number {
-  if (extra.has(piece) || d.listed.has(piece)) return PIECE;
+  if (extra.has(piece)) return PIECE;
+  if (d.listed.has(piece)) return PIECE + STEP * Math.min(9, d.listed.get(piece) || 9);
   // A compound only the characters' entries know, or a character no list
   // counts as a word: allowed, but a syllabus reading of the same span wins.
   return PIECE + ([...piece].length > 1 ? 2 : 1);
