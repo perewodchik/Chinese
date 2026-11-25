@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GeneratedText } from "../../domain/text";
-import { isSpeakSectionEnabled } from "../../navigation/features";
 import { Icon } from "../../ui/Icon";
 import {
   addReading,
@@ -218,8 +217,9 @@ export function ListenControl({
           {/* Only the narrators' readings are offered: the old line-by-line voices are
               gone from the list, and read the text only while it has no narrator yet. */}
           {!voice.readings.length && <p className="rd-listen-group">No narrator has read this text yet.</p>}
-          {/* Narrators are made in Speak › Voices: without Speak, a text has no narrator to add. */}
-          {isSpeakSectionEnabled && (
+          {/* One of the narrators there are (Beijing tutor) reads this text: offered with
+              Speak off too, since the narrators already made are the account's. */}
+          {(
             <div className="rd-listen-new">
               <button
                 className="rd-listen-voice-row"
@@ -227,7 +227,7 @@ export function ListenControl({
                 onClick={() => setNarrating((n) => !n)}
               >
                 <Icon name="plus" size={18} />
-                <span className="grow">A new narrator’s reading</span>
+                <span className="grow">{voice.readings.length ? 'Read it with another narrator' : 'Read it with a narrator'}</span>
               </button>
               {narrating && (
                 <Narrate
