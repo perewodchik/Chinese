@@ -176,7 +176,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
     // The writer's own grouping, read out of its pinyin, joins the passage's
     // vocabulary for each sentence: 广州 and 食街 are words there even though
     // no dictionary has them.
-    () => text.lines.map((l) => segment(l.zh, lib, new Set([...ownWords, ...writerHints(l.zh, l.py, lib)]))),
+    () => text.lines.map((l) => segment(l.zh, lib, new Set([...ownWords, ...writerHints(l.zh, l.py, lib)]), { bySense: true })),
     [text.lines, lib, ownWords],
   );
   const syllables = useMemo(() => text.lines.map((l) => alignPinyin(l, lib)), [text.lines, lib]);

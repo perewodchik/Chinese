@@ -32,7 +32,7 @@ export function cut(text: GeneratedText, lib: ReturnType<typeof useLibrary>, by:
     const py = alignPinyin(l, lib);
     let h = 0;
     const pieces: Piece[] = [];
-    for (const t of segment(l.zh, lib, new Set([...own, ...writerHints(l.zh, l.py, lib)]))) {
+    for (const t of segment(l.zh, lib, new Set([...own, ...writerHints(l.zh, l.py, lib)]), { bySense: true })) {
       const chars = [...t.text];
       if (!t.word || !chars.some(isHanzi)) {
         pieces.push({ text: t.text, unit: null });

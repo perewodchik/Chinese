@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { CharacterEntry, Library, SyllabusWord } from '../data/types';
-import { segment, writerHints, writerWords } from './segment';
+import { bySense, segment, writerHints, writerWords } from './segment';
 
 const entry = (c: string, hsk: number, words: string[] = []): CharacterEntry => ({
   c,
@@ -100,6 +100,29 @@ describe('cutting a sentence into words', () => {
       segment('研究生命', science).map((t) => t.text),
       ['研究', '生命'],
     );
+  });
+
+  it('puts a sentence back together by sense only when asked (the reader asks, the game does not)', () => {
+    const words = (o?: { bySense?: boolean }) => segment('能活多少年', lib, undefined, o).filter((t) => t.word).map((t) => t.text);
+    assert.deepEqual(words({ bySense: true }), ['能', '活', '多少', '年']);
+    const counted = (o?: { bySense?: boolean }) => segment('一个人', { ...lib, byChar: new Map([...lib.byChar, ['个', entry('个', 1)], ['人', entry('人', 1)]]) }, undefined, o).map((t) => t.text);
+    assert.deepEqual(counted({ bySense: true }), ['一个人']);
+    assert.deepEqual(counted(), ['一', '个', '人']);
+  });
+
+  it('puts back together what is one thing to a reader', () => {
+    const glue = (...ws: string[]) => bySense(ws.map((w) => [...w])).map((p) => p.join(''));
+    assert.deepEqual(glue('冥王', '们', '来', '了'), ['冥王们', '来', '了']);
+    assert.deepEqual(glue('每', '个人', '能', '活'), ['每个人', '能', '活']);
+    assert.deepEqual(glue('一', '个', '人'), ['一个人']);
+    assert.deepEqual(glue('我', '买', '两', '杯', '咖啡'), ['我', '买', '两杯', '咖啡']);
+    assert.deepEqual(glue('这', '本', '书'), ['这本', '书']);
+    assert.deepEqual(glue('第三', '次'), ['第三次']);
+    assert.deepEqual(glue('吃', '了', '三', '十', '个', '饺子'), ['吃', '了', '三十个', '饺子']);
+    assert.deepEqual(glue('贵', '一', '百', '块'), ['贵', '一百块']);
+    // what is not counting is left alone
+    assert.deepEqual(glue('他', '个人', '的', '事'), ['他', '个人', '的', '事']);
+    assert.deepEqual(glue('我们', '走'), ['我们', '走']);
   });
 
   it('lets the passage’s own vocabulary win', () => {

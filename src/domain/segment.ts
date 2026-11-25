@@ -76,6 +76,12 @@ export function segment(
   zh: string,
   lib: Library,
   extra: ReadonlySet<string> = new Set(),
+  /**
+   * Put back together what is one thing to a reader (`bySense`): the reader
+   * and Write ask for it. The game leaves it off: its word budget counts
+   * 一 and 张 apart, and its content is checked against that.
+   */
+  o: { bySense?: boolean } = {},
 ): Token[] {
   const d = dictionaryOf(lib);
   const chars = [...zh];
@@ -83,6 +89,19 @@ export function segment(
   const charBand = (c: string) => {
     const e = lib.byChar.get(c);
     return e ? clampBand(e.hsk) : 0;
+  };
+
+  const listedBand = (t: string) => ([...t].length > 1 ? d.bands.get(t) || lib.byWord.get(t)?.hsk : lib.byWord.get(t)?.hsk);
+  // A piece put together by sense is as hard as its parts: 动物们 is 动物's
+  // band, 一个人 the hardest of 一, 个 and 人 as words, not of its characters.
+  const bandOf = (piece: string[]): number => {
+    const text = piece.join('');
+    const listed = listedBand(text);
+    if (listed) return listed;
+    if (piece.length > 1 && piece[piece.length - 1] === '们') return bandOf(piece.slice(0, -1));
+    if (piece.length > 1 && piece.some((c) => MEASURE.has(c)) && piece.every((c) => NUMERAL.has(c) || MEASURE.has(c) || POINTING.has(c) || c === '人' || c === '一'))
+      return Math.max(...piece.map((c) => listedBand(c) || charBand(c)));
+    return Math.max(...piece.map(charBand));
   };
 
   let i = 0;
@@ -96,12 +115,59 @@ export function segment(
     }
     let end = i;
     while (end < chars.length && isHanzi(chars[end]!)) end++;
-    for (const piece of cutRun(chars.slice(i, end), d, extra)) {
+    const cut = cutRun(chars.slice(i, end), d, extra);
+    for (const piece of o.bySense ? bySense(cut) : cut) {
       const text = piece.join('');
-      const listed = piece.length > 1 ? d.bands.get(text) || lib.byWord.get(text)?.hsk : lib.byWord.get(text)?.hsk;
-      out.push({ text, at: i, word: true, band: listed || Math.max(...piece.map(charBand)) });
+      out.push({ text, at: i, word: true, band: bandOf(piece) });
       i += piece.length;
     }
+  }
+  return out;
+}
+
+/** Counting: the numerals, and the words that point or count before a measure word. */
+const NUMERAL = new Set([...'零一二三四五六七八九十百千万两几半第']);
+const POINTING = new Set(['这', '那', '哪', '每', '这一', '那一', '每一']);
+/** The measure words a learner meets, which are read with the number before them. */
+const MEASURE = new Set([...'个只本杯张件条位次天块口双把辆家岁种部首篇节封层片支座棵匹头碗瓶份群句课遍点']);
+const isCount = (p: string[]) => p.every((c) => NUMERAL.has(c)) || POINTING.has(p.join(''));
+
+/**
+ * The cut put back together where the sense is one thing though no dictionary
+ * lists it, the way a reader takes it in:
+ * - 们 goes with what it makes plural: 冥王们, 孩子们, 朋友们;
+ * - a number is one, however many characters: 三十, 一百, 两千;
+ * - a number or a pointing word goes with its measure word: 一个, 每个, 这本,
+ *   两杯, 三十个, 第三次; and 人 after it as well: 一个人, 每个人, 两个人.
+ */
+export function bySense(pieces: string[][]): string[][] {
+  const out: string[][] = [];
+  for (const p of pieces) {
+    const prev = out[out.length - 1];
+    const w = p.join('');
+    // A number is one: 三 | 十 | 个 is 三十个, 一 | 百 | 块 is 一百块.
+    if (prev && prev.every((c) => NUMERAL.has(c)) && p.every((c) => NUMERAL.has(c)) && p[0] !== '第') {
+      out[out.length - 1] = [...prev, ...p];
+      continue;
+    }
+    if (prev && w === '们' && prev.join('') !== '们') {
+      out[out.length - 1] = [...prev, ...p];
+      continue;
+    }
+    if (prev && p.length === 1 && MEASURE.has(w) && isCount(prev)) {
+      out[out.length - 1] = [...prev, ...p];
+      continue;
+    }
+    if (prev && w === '人' && prev.length >= 2 && MEASURE.has(prev[prev.length - 1]!) && isCount(prev.slice(0, -1))) {
+      out[out.length - 1] = [...prev, ...p];
+      continue;
+    }
+    // A measure word the dictionary already took with its noun (个人): the count keeps it, the noun stands alone.
+    if (prev && p.length === 2 && MEASURE.has(p[0]!) && isCount(prev) && p[1] === '人') {
+      out[out.length - 1] = [...prev, ...p];
+      continue;
+    }
+    out.push(p);
   }
   return out;
 }
@@ -208,9 +274,9 @@ export function writerWords(zh: string, py: string, lib: Library): string[] {
 /**
  * The writer's groups worth cutting by: the dictionary's own words, and those
  * with a character that is not an everyday word by itself — 广州, 食街,
- * 深圳. A group made only of everyday words (HSK 1–3) is left to the
- * dictionary: pinyin often runs 很多 or 玩了 together, and neither is one
- * word to learn.
+ * 深圳, 冥王. A group made only of everyday words (HSK 1–3) is left to the
+ * dictionary and to `bySense`: pinyin often runs 很多 or 玩了 together, and
+ * neither is one word to learn.
  */
 export function writerHints(zh: string, py: string, lib: Library): string[] {
   const d = dictionaryOf(lib);

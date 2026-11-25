@@ -235,7 +235,7 @@ function BeatView({ text, line, parts, cast }: { text: GeneratedText; line: numb
   const lib = useLibrary();
   const l = text.lines[line]!;
   const own = useMemo(() => new Set(text.vocab.map((v) => v.w)), [text.vocab]);
-  const tokens = useMemo(() => segment(l.zh, lib, new Set([...own, ...writerHints(l.zh, l.py, lib)])), [l.zh, l.py, lib, own]);
+  const tokens = useMemo(() => segment(l.zh, lib, new Set([...own, ...writerHints(l.zh, l.py, lib)]), { bySense: true }), [l.zh, l.py, lib, own]);
   const syllables = useMemo(() => alignPinyin(l, lib), [l, lib]);
   return (
     <div className="cp-lines">
