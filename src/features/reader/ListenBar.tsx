@@ -79,10 +79,9 @@ export function useListenVoice(
   const current =
     readings === null
       ? undefined
-      : (cast ??
-        (choice === SENTENCES
-          ? null
-          : (list.find((r) => r.n.narratorId === choice) ?? list[0] ?? null)));
+      : // A narrator's reading whenever the text has one: the line-by-line voices are
+        // no longer offered beside them, so a choice of them made before is passed over.
+        (cast ?? list.find((r) => r.n.narratorId === choice) ?? list[0] ?? null);
   const sentenceVoice =
     reading.choices.find((v) => v.active) ?? reading.choices[0];
   const value = current
@@ -216,15 +215,9 @@ export function ListenControl({
               {voice.readings.map((r) => row(`n:${r.n.narratorId}`, r.name))}
             </>
           )}
-          {reading.choices.length > 0 && (
-            <>
-              <p className="rd-listen-group">Line by line</p>
-              {reading.choices.map((c) => row(`s:${c.key}`, c.name))}
-            </>
-          )}
-          {!voice.readings.length && !reading.choices.length && (
-            <p className="rd-listen-group">No voice here yet.</p>
-          )}
+          {/* Only the narrators' readings are offered: the old line-by-line voices are
+              gone from the list, and read the text only while it has no narrator yet. */}
+          {!voice.readings.length && <p className="rd-listen-group">No narrator has read this text yet.</p>}
           {/* Narrators are made in Speak › Voices: without Speak, a text has no narrator to add. */}
           {isSpeakSectionEnabled && (
             <div className="rd-listen-new">
