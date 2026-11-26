@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
 import { USAGE_UNIT, type UsageLine, type UsageResponse, type UsageService } from '../../../shared/usage';
 import { accountUsage } from '../../api/account';
 import { isSpeakSectionEnabled } from '../../navigation/features';
-import { paths } from '../../navigation/paths';
 import './settings.css';
 
 const SERVICE: Record<UsageService, { name: string; calls: [string, string]; balance: string; site: string }> = {
@@ -53,14 +51,9 @@ export function KeyUsage() {
             <p className="small muted">{failed ?? 'Loading…'}</p>
           ) : usage.lines.length === 0 ? (
             <p className="small muted">
-              {isSpeakSectionEnabled ? (
-                <>
-                  No keys of your own are saved. Pronunciation checking uses SpeechSuper’s (above), and narrators MiniMax’s (in{' '}
-                  <Link to={paths.speakingNarrators()}>Speak › Voices</Link>).
-                </>
-              ) : (
-                'No keys of your own are saved.'
-              )}
+              {isSpeakSectionEnabled
+                ? 'No keys of your own are saved. Pronunciation checking uses SpeechSuper’s and narrators MiniMax’s, both above.'
+                : 'No keys of your own are saved. Narrators use MiniMax’s, above.'}
             </p>
           ) : (
             <ul className="list">

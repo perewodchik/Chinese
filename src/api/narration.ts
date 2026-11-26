@@ -25,8 +25,8 @@ export const tryVoices = (prompt: string, previewText: string, count = 3) =>
 /** The voice chosen, kept as a narrator. */
 export const keepVoice = (name: string, prompt: string, previewText: string, voiceId: string) =>
   request<{ narrator: NarratorDto }>('POST', '/api/narration/narrators/keep', { body: { name, prompt, previewText, voiceId } }).then((r) => r.narrator);
-export const adoptNarrator = (name: string, voice: string) =>
-  request<{ narrator: NarratorDto }>('POST', '/api/narration/narrators', { body: { name, voice } }).then((r) => r.narrator);
+export const adoptNarrator = (name: string, voice: string, byId = false) =>
+  request<{ narrator: NarratorDto }>('POST', '/api/narration/narrators', { body: { name, voice, ...(byId ? { byId: true } : {}) } }).then((r) => r.narrator);
 export const changeNarrator = (id: string, change: NarratorChange) =>
   request<{ narrator: NarratorDto }>('PATCH', `/api/narration/narrators/${encodeURIComponent(id)}`, { body: change }).then((r) => r.narrator);
 export const removeNarrator = (id: string) => request<{ ok: true }>('DELETE', `/api/narration/narrators/${encodeURIComponent(id)}`);

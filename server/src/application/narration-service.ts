@@ -161,19 +161,23 @@ export class NarrationService {
     return toDto(record);
   }
 
-  /** A narrator with one of MiniMax's own voices. */
-  async adopt(userId: string, input: { name: string; voice: string }): Promise<NarratorDto> {
+  /** A narrator with one of MiniMax's own voices, or any MiniMax voice_id when `byId` is set. */
+  async adopt(userId: string, input: { name: string; voice: string; byId?: boolean }): Promise<NarratorDto> {
     const key = await this.keyOf(userId);
-    const voice = (await this.voicesFor(key)).find((v) => v.id === input.voice);
-    if (!voice) throw new ValidationError(`MiniMax has no voice ${input.voice}.`);
+    const id = input.voice.trim();
+    const voice = input.byId ? undefined : (await this.voicesFor(key)).find((v) => v.id === input.voice);
+    if (!input.byId && !voice) throw new ValidationError(`MiniMax has no voice ${input.voice}.`);
+    if (input.byId && !/^[A-Za-z0-9_(). -]{2,120}$/.test(id)) {
+      throw new ValidationError('That does not look like a MiniMax voice ID.', { voice: 'Not a voice ID.' });
+    }
     const now = this.deps.clock.now();
     const record: NarratorRecord = {
       id: this.deps.tokens.id(),
       userId,
-      name: input.name.trim() || voice.name.replace(/\s*\((?:Female|Male)\)\s*/i, ''),
+      name: input.name.trim() || (voice ? voice.name.replace(/\s*\((?:Female|Male)\)\s*/i, '') : id),
       kind: 'system',
-      voiceId: voice.id,
-      prompt: voice.description,
+      voiceId: voice ? voice.id : id,
+      prompt: voice ? voice.description : '',
       previewText: '',
       speed: 1,
       pitch: 0,

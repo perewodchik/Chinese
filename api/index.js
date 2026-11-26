@@ -1558,19 +1558,23 @@ var NarrationService = class {
     await this.deps.narrators.save(record);
     return toDto2(record);
   }
-  /** A narrator with one of MiniMax's own voices. */
+  /** A narrator with one of MiniMax's own voices, or any MiniMax voice_id when `byId` is set. */
   async adopt(userId, input) {
     const key = await this.keyOf(userId);
-    const voice = (await this.voicesFor(key)).find((v) => v.id === input.voice);
-    if (!voice) throw new ValidationError(`MiniMax has no voice ${input.voice}.`);
+    const id = input.voice.trim();
+    const voice = input.byId ? void 0 : (await this.voicesFor(key)).find((v) => v.id === input.voice);
+    if (!input.byId && !voice) throw new ValidationError(`MiniMax has no voice ${input.voice}.`);
+    if (input.byId && !/^[A-Za-z0-9_(). -]{2,120}$/.test(id)) {
+      throw new ValidationError("That does not look like a MiniMax voice ID.", { voice: "Not a voice ID." });
+    }
     const now = this.deps.clock.now();
     const record = {
       id: this.deps.tokens.id(),
       userId,
-      name: input.name.trim() || voice.name.replace(/\s*\((?:Female|Male)\)\s*/i, ""),
+      name: input.name.trim() || (voice ? voice.name.replace(/\s*\((?:Female|Male)\)\s*/i, "") : id),
       kind: "system",
-      voiceId: voice.id,
-      prompt: voice.description,
+      voiceId: voice ? voice.id : id,
+      prompt: voice ? voice.description : "",
       previewText: "",
       speed: 1,
       pitch: 0,
@@ -3554,7 +3558,7 @@ var textRequest = z10.object({ narrator: z10.string().min(1).max(80), lines, gen
 var ofRequest = z10.object({ lines });
 var tryRequest = z10.object({ prompt: z10.string().trim().min(1).max(2e3), previewText: z10.string().trim().min(1).max(200), count: z10.number().int().min(1).max(3).optional() });
 var keepRequest = z10.object({ name: z10.string().trim().min(1).max(60), prompt: z10.string().trim().min(1).max(2e3), previewText: z10.string().trim().max(200), voiceId: z10.string().min(1).max(128) });
-var adoptRequest = z10.object({ name: z10.string().max(60), voice: z10.string().min(1).max(120) });
+var adoptRequest = z10.object({ name: z10.string().max(60), voice: z10.string().min(1).max(120), byId: z10.boolean().optional() });
 var changeRequest = z10.object({
   name: z10.string().trim().min(1).max(60).optional(),
   speed: z10.number().min(0.5).max(2).optional(),
