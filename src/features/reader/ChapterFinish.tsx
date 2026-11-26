@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { GeneratedText } from '../../domain/text';
+import { isSpeakSectionEnabled } from '../../navigation/features';
 import { Modal } from '../../ui/Modal';
 
 /** What the end of a chapter offers to open, each in a sheet over the text. */
@@ -26,6 +27,8 @@ export function ChapterFinish({ text, onOpen }: { text: GeneratedText; onOpen: (
     ...(text.vocab.length ? [{ id: 'words' as const, han: '词', label: 'Words', sub: `${text.vocab.length} in it` }] : []),
     ...(text.grammar.length ? [{ id: 'grammar' as const, han: '法', label: 'Grammar', sub: `${text.grammar.length} pattern${text.grammar.length === 1 ? '' : 's'}` }] : []),
     ...(text.questions.length ? [{ id: 'questions' as const, han: '问', label: 'Questions', sub: `${text.questions.length} to answer` }] : []),
+    // Saying it after the narrator, line by line, with Speak on.
+    ...(isSpeakSectionEnabled ? [{ id: 'speak' as const, han: '说', label: 'Say', sub: 'line by line' }] : []),
   ];
   return (
     <section className="rd-finish" aria-label="End of the chapter">

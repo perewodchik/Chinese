@@ -6,4 +6,4 @@
  * Set to true to bring it back, whole. While it is false, its addresses land
  * on Read.
  */
-export const isSpeakSectionEnabled: boolean = false;
+export const isSpeakSectionEnabled: boolean = true;
