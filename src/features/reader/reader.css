@@ -1936,22 +1936,13 @@ label.rd-aa-row {
   border-radius: 18px;
   overflow: hidden;
   background: var(--card-2);
-  cursor: zoom-in;
 }
 
-.rd-pic-frame img,
-.rd-pic-large img {
+.rd-pic-frame img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.rd-pic-large {
-  width: 100%;
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--card-2);
 }
 
 /* in the line-by-line layout it sits between the lines, under the numbers' column */
@@ -1969,23 +1960,14 @@ label.rd-aa-row {
   }
 }
 
-/* Beside: small, at the top right of its paragraph, held to the lines' grid.
-   A line is 2.35em tall with the room for pinyin at its top and the
-   character's square in the 1em below that, from 0.67em down. The picture
-   starts level with the first line's characters and ends level with the last
-   line's beside it, and with its margins takes exactly that many whole lines,
-   so the text runs round it line for line and goes back to the full width on
-   the line after. Two lines on a phone, cropped square; three on a wider
-   screen, at 4:3. */
-/* On a phone the picture stands over its paragraph, the column's width and
-   short, so the text keeps the whole width: beside it, two characters a line
-   were left. From 700px it sits beside the paragraph, two lines and a half tall. */
+/* On a phone the picture stands over its paragraph at full column width,
+   keeping its own aspect ratio (4:3, 16:9, etc.) so nothing is cropped.
+   From 700px it sits beside the paragraph, two lines and a half tall,
+   still keeping its own aspect ratio. */
 .rd-pic[data-size='beside'] {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 16 / 9;
-  max-height: 200px;
   margin: 0 0 0.6em;
   text-indent: 0;
 }
@@ -1996,10 +1978,8 @@ label.rd-aa-row {
     --lines: 2.6;
     float: right;
     width: auto;
-    max-height: none;
     /* Level with the top of the paragraph, as tall as its lines, a little short of the last. */
     height: calc(var(--lines) * var(--lh) - 0.5em);
-    aspect-ratio: 4 / 3;
     margin: 0 0 0 0.6em;
   }
 }
@@ -2017,22 +1997,11 @@ label.rd-aa-row {
 }
 
 /* A comic's page photo: a spot over each bubble, caption and sound effect.
-   Drawn faintly in blue ink, since a tap there is something to do; a tap on
-   the rest of the photo still shows it larger. The spot's tap area reaches
-   past a small box, so a two-character sound effect is still a finger wide. */
+   Drawn faintly in blue ink, since a tap there is something to do.
+   The spot's tap area reaches past a small box, so a two-character sound
+   effect is still a finger wide. */
 .rd-pic-page {
   position: relative;
-  cursor: default;
-}
-
-.rd-pic-zoom {
-  display: block;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: zoom-in;
 }
 
 .rd-pic-spot {

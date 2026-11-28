@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { pictureUrl } from '../../api/pictures';
 import type { TextPicture } from '../../domain/pictures';
 import type { TextLine } from '../../domain/text';
-import { Modal } from '../../ui/Modal';
 
 /** A line of a comic, where it is on its page's photo. */
 export interface PictureMark {
@@ -15,7 +14,8 @@ export interface PictureMark {
 /**
  * A paragraph's picture, in a box the size of the picture from the start, so
  * the text never moves when it arrives: large above the paragraph, or small
- * beside its first lines, the text running round it. A tap shows it larger.
+ * beside its first lines, the text running round it. Both modes preserve the
+ * picture's own aspect ratio (4:3, 16:9, etc.) so nothing is cropped.
  *
  * A comic's page photo carries its lines' places (`marks`): each is a spot on
  * the photo, and a tap there lights that line in the text under the photo and
@@ -43,7 +43,6 @@ export function ParagraphPicture({
   /** the easier retelling: its lines are laid over the book's on the page */
   retold?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
   const [said, setSaid] = useState<PictureMark | null>(null);
   if (!picture.key || !picture.w || !picture.h) return null;
   const src = pictureUrl(picture.key);
@@ -52,12 +51,10 @@ export function ParagraphPicture({
   const Box = size === 'beside' ? 'span' : 'figure';
   const spots = size === 'large' && onMark ? (marks ?? []) : [];
   return (
-    <Box className="rd-pic no-print" data-size={size}>
+    <Box className="rd-pic no-print" data-size={size} style={size === 'beside' ? { aspectRatio: ratio } : undefined}>
       {spots.length ? (
         <div className="rd-pic-frame rd-pic-page" style={{ aspectRatio: ratio }}>
-          <button className="rd-pic-zoom" onClick={() => setOpen(true)} aria-label="Show the page larger">
-            <img src={src} alt="" width={picture.w} height={picture.h} loading="lazy" decoding="async" />
-          </button>
+          <img src={src} alt="" width={picture.w} height={picture.h} loading="lazy" decoding="async" />
           {spots.map((m) => {
             const patch = retold && m.line.kind !== 'sfx' && m.line.kind !== 'sign';
             return (
@@ -85,16 +82,9 @@ export function ParagraphPicture({
           })}
         </div>
       ) : (
-        <button className="rd-pic-frame" style={size === 'large' ? { aspectRatio: ratio } : undefined} onClick={() => setOpen(true)} aria-label="Show the picture larger">
+        <span className="rd-pic-frame" style={size === 'large' ? { aspectRatio: ratio } : undefined}>
           <img src={src} alt="" width={picture.w} height={picture.h} loading="lazy" decoding="async" />
-        </button>
-      )}
-      {open && (
-        <Modal title="Picture" onClose={() => setOpen(false)} wide>
-          <div className="rd-pic-large" style={{ aspectRatio: ratio }}>
-            <img src={src} alt="" width={picture.w} height={picture.h} />
-          </div>
-        </Modal>
+        </span>
       )}
     </Box>
   );
