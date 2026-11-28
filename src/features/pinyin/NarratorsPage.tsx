@@ -337,12 +337,13 @@ const toAudioUrl = (b64: string) => {
  * are not. From MiniMax's library: one of its own voices, kept as it is.
  */
 function NewNarrator({ onMade }: { onMade: (n: NarratorDto) => void }) {
-  const [how, setHow] = useState<'describe' | 'library'>('describe');
+  const [how, setHow] = useState<'describe' | 'library' | 'id'>('describe');
   const [name, setName] = useState('');
   const [prompt, setPrompt] = useState('');
   const [sample, setSample] = useState(SAMPLE);
   const [voices, setVoices] = useState<NarratorVoice[] | null>(null);
   const [voice, setVoice] = useState('');
+  const [voiceId, setVoiceId] = useState('');
   const [busy, setBusy] = useState<'try' | 'keep' | 'add' | null>(null);
   /** the voices just made, to choose among; what they were made from, so a kept one is kept with it */
   const [tried, setTried] = useState<{ prompt: string; sample: string; voices: Array<{ voiceId: string; url: string | null }> } | null>(null);
@@ -394,10 +395,11 @@ function NewNarrator({ onMade }: { onMade: (n: NarratorDto) => void }) {
     setBusy('add');
     setError(null);
     try {
-      const n = await adoptNarrator(name.trim(), voice);
+      const n = how === 'id' ? await adoptNarrator(name.trim(), voiceId.trim(), true) : await adoptNarrator(name.trim(), voice);
       onMade(n);
       setNote(`${n.name} is added to Your narrators.`);
       setName('');
+      if (how === 'id') setVoiceId('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'That did not work.');
     } finally {
@@ -418,10 +420,18 @@ function NewNarrator({ onMade }: { onMade: (n: NarratorDto) => void }) {
           <button aria-pressed={how === 'library'} onClick={() => setHow('library')}>
             MiniMax’s voices
           </button>
+          <button aria-pressed={how === 'id'} onClick={() => setHow('id')}>
+            By voice ID
+          </button>
         </div>
         <label className="field">
           Name
-          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder={how === 'describe' ? 'Tutor, Storyteller, Ash…' : 'Leave empty for its own name'} />
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={60}
+            placeholder={how === 'describe' ? 'Tutor, Storyteller, Ash…' : 'Leave empty for its own name'}
+          />
         </label>
         {how === 'describe' ? (
           <>
@@ -459,7 +469,7 @@ function NewNarrator({ onMade }: { onMade: (n: NarratorDto) => void }) {
               </ul>
             )}
           </>
-        ) : (
+        ) : how === 'library' ? (
           <>
             <label className="field">
               Voice
@@ -475,6 +485,19 @@ function NewNarrator({ onMade }: { onMade: (n: NarratorDto) => void }) {
             </label>
             <div className="narrator-actions">
               <button className="btn primary" onClick={() => void add()} disabled={!voice || busy !== null}>
+                {busy === 'add' ? 'Adding…' : 'Add the voice'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <label className="field">
+              Voice ID
+              <input value={voiceId} onChange={(e) => setVoiceId(e.target.value)} maxLength={120} placeholder="ttv-voice-..." spellCheck={false} />
+              <span className="tiny muted">Paste a voice_id from your MiniMax account (Voice Design, Voice Cloning, or any MiniMax voice).</span>
+            </label>
+            <div className="narrator-actions">
+              <button className="btn primary" onClick={() => void add()} disabled={!voiceId.trim() || busy !== null}>
                 {busy === 'add' ? 'Adding…' : 'Add the voice'}
               </button>
             </div>

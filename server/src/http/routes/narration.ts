@@ -11,7 +11,7 @@ const textRequest = z.object({ narrator: z.string().min(1).max(80), lines, gener
 const ofRequest = z.object({ lines });
 const tryRequest = z.object({ prompt: z.string().trim().min(1).max(2000), previewText: z.string().trim().min(1).max(200), count: z.number().int().min(1).max(3).optional() });
 const keepRequest = z.object({ name: z.string().trim().min(1).max(60), prompt: z.string().trim().min(1).max(2000), previewText: z.string().trim().max(200), voiceId: z.string().min(1).max(128) });
-const adoptRequest = z.object({ name: z.string().max(60), voice: z.string().min(1).max(120) });
+const adoptRequest = z.object({ name: z.string().max(60), voice: z.string().min(1).max(120), byId: z.boolean().optional() });
 const changeRequest = z.object({
   name: z.string().trim().min(1).max(60).optional(),
   speed: z.number().min(0.5).max(2).optional(),

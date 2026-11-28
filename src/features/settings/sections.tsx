@@ -8,6 +8,7 @@ import { useToast } from '../../ui/toast';
 import { InstallCard } from './InstallCard';
 import { LearningSettings } from './LearningSettings';
 import { KeyUsage } from './KeyUsage';
+import { NarrationKey } from './NarrationKey';
 import { PronunciationKey } from './PronunciationKey';
 import { isSpeakSectionEnabled } from '../../navigation/features';
 
@@ -246,6 +247,9 @@ function Keys() {
       </div>
         </>
       )}
+      <div id="minimax">
+        <NarrationKey />
+      </div>
       <div id="usage">
         <KeyUsage />
       </div>

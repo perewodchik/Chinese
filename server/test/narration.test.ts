@@ -174,6 +174,10 @@ describe('reading texts aloud with MiniMax and the learner’s key', () => {
     const { narrator } = (await res.json()) as { narrator: { id: string; name: string } };
     assert.equal(narrator.name, 'News Anchor');
     assert.equal((await call(app, 'POST', '/api/narration/narrators', { cookie, body: { name: 'x', voice: 'Nobody' } })).status, 400);
+    const byId = await call(app, 'POST', '/api/narration/narrators', { cookie, body: { name: 'goodBoy', voice: 'ttv-voice-2026112620035226-7lKSBV25', byId: true } });
+    assert.equal(byId.status, 200);
+    assert.equal(((await byId.json()) as { narrator: { voiceId: string } }).narrator.voiceId, 'ttv-voice-2026112620035226-7lKSBV25');
+    assert.equal((await call(app, 'POST', '/api/narration/narrators', { cookie, body: { name: 'bad', voice: 'bad\nid', byId: true } })).status, 400);
 
     const other = await signedIn(app, 'masha');
     assert.deepEqual(await (await call(app, 'GET', '/api/narration/narrators', { cookie: other })).json(), { narrators: [] });
