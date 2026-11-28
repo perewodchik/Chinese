@@ -28,6 +28,9 @@
  *       what to draw for texts already on the shelf: { "pictures": { "<text id>": [{ para, prompt }] } };
  *       then illustrate draws them
  *   npm run texts -- boxes <text id> <boxes.json>
+ *   npm run texts -- lines <text id> <lines.json>
+ *       a sentence of a text already on the shelf rewritten in place:
+ *       { "<line number from 0>": { "zh": "…", "py": "…", "en": "…" } }
  *       a comic's lines put where they are on their pages again: { "<line number from 0>": [left, top, width, height] },
  *       for a box read wrong off the photo
  *   npm run texts -- put <text id> <picture for ¶1> <picture for ¶2> …
@@ -681,6 +684,7 @@ const USAGE = `
   npm run texts -- illustrate [--set <id or name>] [--text <id>] [--redo] [--style "…"] [--dry-run]
   npm run texts -- describe <pictures.json>    { "pictures": { "<text id>": [{ "para": 0, "prompt": "…" }] } }
   npm run texts -- boxes <text id> <boxes.json>
+  npm run texts -- lines <text id> <lines.json>
   npm run texts -- put <text id> <picture for ¶1> <picture for ¶2> …
   npm run texts -- first <text id>    the text first in its session (a preface added after the chapters)
   npm run texts -- record [--voice wang] [--set <id or name>]    on the Mac: the texts, read aloud for the site
@@ -770,6 +774,37 @@ async function main(argv: string[]) {
         const next = { ...document, texts: texts.map((t) => (t.id === textId ? { ...t, lines } : t)) };
         if (values['dry-run'] || (await account.write(revision, next))) {
           console.log(`  ${text.titleZh || text.title}: ${Object.keys(wanted).length} boxes put${values['dry-run'] ? ' (dry run)' : ''}`);
+          return;
+        }
+        if (attempt === 3) throw new Error('The workspace kept changing under this save. Try again in a minute.');
+      }
+    } finally {
+      await account.close();
+    }
+  }
+  if (command === 'lines') {
+    const [textId, file] = positionals;
+    if (!textId || !file) throw new Error(`Which text, and which lines?\n${USAGE}`);
+    const wanted = JSON.parse(readFileSync(file, 'utf8')) as Record<string, { zh?: unknown; py?: unknown; en?: unknown }>;
+    const account = await openAccount();
+    try {
+      for (let attempt = 1; ; attempt++) {
+        const { revision, document } = await account.read();
+        if (!isDoc(document)) throw new Error(`${account.where} has never saved anything.`);
+        const { texts } = shelfOf(document);
+        const text = texts.find((t) => t.id === textId);
+        if (!text) throw new Error(`No text ${textId} on ${account.where}.`);
+        const lines = text.lines.map((l, i) => {
+          const w = wanted[String(i)];
+          if (!w) return l;
+          // Through the same parser as a pasted line, so a malformed one is refused here too.
+          const next = asLine({ ...l, ...w });
+          if (!next || typeof w.zh !== 'string' || !w.zh.trim()) throw new Error(`Line ${i}: ${JSON.stringify(w)} is not a sentence.`);
+          return next;
+        });
+        const next = { ...document, texts: texts.map((t) => (t.id === textId ? { ...t, lines } : t)) };
+        if (values['dry-run'] || (await account.write(revision, next))) {
+          console.log(`  ${text.titleZh || text.title}: ${Object.keys(wanted).length} line(s) rewritten${values['dry-run'] ? ' (dry run)' : ''}`);
           return;
         }
         if (attempt === 3) throw new Error('The workspace kept changing under this save. Try again in a minute.');
